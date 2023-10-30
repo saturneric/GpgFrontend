@@ -427,7 +427,7 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
       QString(_("OpenSSH Public Key Files")) + " (*.pub);;All Files (*)");
 
   if (!file_name.isEmpty()) {
-    write_buffer_to_file(file_name.toStdString(), *key_export_data);
+    WriteBufferToFile(file_name.toStdString(), *key_export_data);
     emit SignalStatusBarChanged(QString(_("key(s) exported")));
   }
 }

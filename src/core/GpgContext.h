@@ -37,12 +37,7 @@ namespace GpgFrontend {
  *
  */
 struct GpgContextInitArgs {
-  // make no sense for gpg2
-  bool independent_database = false;  ///<
   std::string db_path = {};
-
-  bool gpg_alone = false;
-  std::string gpg_path = {};
 
   bool test_mode = false;
   bool ascii = true;
@@ -53,8 +48,6 @@ struct GpgContextInitArgs {
   std::string custom_gpgconf_path;
 
   bool use_pinentry = false;
-
-  GpgContextInitArgs() = default;
 };
 
 /**
@@ -66,122 +59,25 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
       public SingletonFunctionObject<GpgContext> {
   Q_OBJECT
  public:
-  /**
-   * @brief Construct a new Gpg Context object
-   *
-   * @param args
-   */
-  explicit GpgContext(const GpgContextInitArgs& args = {});
-
-  /**
-   * @brief Construct a new Gpg Context object
-   *
-   * @param channel
-   */
   explicit GpgContext(int channel);
 
-  /**
-   * @brief Destroy the Gpg Context object
-   *
-   */
-  ~GpgContext() override = default;
+  explicit GpgContext(const GpgContextInitArgs &args, int channel);
 
-  /**
-   * @brief
-   *
-   * @return true
-   * @return false
-   */
-  [[nodiscard]] bool good() const;
+  ~GpgContext() override;
 
-  /**
-   * @brief
-   *
-   * @return gpgme_ctx_t
-   */
-  operator gpgme_ctx_t() const { return _ctx_ref.get(); }
+  [[nodiscard]] auto Good() const -> bool;
 
- private:
-  GpgContextInitArgs args_{};  ///<
+  operator gpgme_ctx_t() const;
 
-  /**
-   * @brief
-   *
-   */
-  void post_init_ctx();
+  void SetPassphraseCb(gpgme_passphrase_cb_t passphrase_cb) const;
 
-  /**
-   * @brief
-   *
-   * @return std::string
-   */
-  std::string need_user_input_passphrase();
-
-  /**
-   * @brief
-   *
-   */
-  struct _ctx_ref_deleter {
-    void operator()(gpgme_ctx_t _ctx);
-  };
-
-  using CtxRefHandler =
-      std::unique_ptr<struct gpgme_context, _ctx_ref_deleter>;  ///<
-  CtxRefHandler _ctx_ref = nullptr;                             ///<
-  bool good_ = true;                                            ///<
+  auto ShowPasswordInputDialog() -> std::string;
 
  signals:
-  /**
-   * @brief
-   *
-   */
   void SignalNeedUserInputPassphrase();
 
- public:
-  /**
-   * @brief
-   *
-   * @param opaque
-   * @param uid_hint
-   * @param passphrase_info
-   * @param last_was_bad
-   * @param fd
-   * @return gpgme_error_t
-   */
-  static gpgme_error_t test_passphrase_cb(void* opaque, const char* uid_hint,
-                                          const char* passphrase_info,
-                                          int last_was_bad, int fd);
-
-  /**
-   * @brief
-   *
-   * @param opaque
-   * @param uid_hint
-   * @param passphrase_info
-   * @param last_was_bad
-   * @param fd
-   * @return gpgme_error_t
-   */
-  static gpgme_error_t custom_passphrase_cb(void* opaque, const char* uid_hint,
-                                            const char* passphrase_info,
-                                            int last_was_bad, int fd);
-
-  /**
-   * @brief
-   *
-   * @param hook
-   * @param keyword
-   * @param args
-   * @return gpgme_error_t
-   */
-  static gpgme_error_t test_status_cb(void* hook, const char* keyword,
-                                      const char* args);
-
-  /**
-   * @brief Set the Passphrase Cb object
-   *
-   * @param func
-   */
-  void SetPassphraseCb(gpgme_passphrase_cb_t func) const;
+ private:
+  class Impl;
+  std::unique_ptr<Impl> p_;
 };
 }  // namespace GpgFrontend

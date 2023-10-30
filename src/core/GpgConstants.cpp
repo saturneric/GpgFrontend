@@ -54,7 +54,26 @@ const char* GpgFrontend::GpgConstants::PGP_PRIVATE_KEY_BEGIN =
 const char* GpgFrontend::GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD =
     "GpgF_Scpt://";  ///<
 
-gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err) {
+static inline void Ltrim(std::string& s) {
+  s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+            return !std::isspace(ch);
+          }));
+}
+
+static inline void Rtrim(std::string& s) {
+  s.erase(std::find_if(s.rbegin(), s.rend(),
+                       [](unsigned char ch) { return !std::isspace(ch); })
+              .base(),
+          s.end());
+}
+
+static inline auto Trim(std::string& s) -> std::string {
+  Ltrim(s);
+  Rtrim(s);
+  return s;
+}
+
+auto GpgFrontend::CheckGpgError(gpgme_error_t err) -> gpgme_error_t {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
     SPDLOG_ERROR("[error: {}] source: {} description: {}", gpg_err_code(err),
                  gpgme_strsource(err), gpgme_strerror(err));
@@ -62,8 +81,9 @@ gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err) {
   return err;
 }
 
-gpg_err_code_t GpgFrontend::check_gpg_error_2_err_code(gpgme_error_t err,
-                                                       gpgme_error_t predict) {
+auto GpgFrontend::CheckGpgError2ErrCode(gpgme_error_t err,
+                                        gpgme_error_t predict)
+    -> gpg_err_code_t {
   auto err_code = gpg_err_code(err);
   if (err_code != gpg_err_code(predict)) {
     if (err_code == GPG_ERR_NO_ERROR)
@@ -78,8 +98,8 @@ gpg_err_code_t GpgFrontend::check_gpg_error_2_err_code(gpgme_error_t err,
   return err_code;
 }
 
-gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err,
-                                           const std::string& comment) {
+auto GpgFrontend::CheckGpgError(gpgme_error_t err, const std::string& comment)
+    -> gpgme_error_t {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
     SPDLOG_WARN("[Error {}] Source: {} description: {} predict: {}",
                 gpg_err_code(err), gpgme_strsource(err), gpgme_strerror(err),
@@ -88,50 +108,32 @@ gpgme_error_t GpgFrontend::check_gpg_error(gpgme_error_t err,
   return err;
 }
 
-std::string GpgFrontend::beautify_fingerprint(
-    GpgFrontend::BypeArrayConstRef fingerprint) {
+auto GpgFrontend::BeautifyFingerprint(
+    GpgFrontend::BypeArrayConstRef fingerprint) -> std::string {
   auto len = fingerprint.size();
   std::stringstream out;
   decltype(len) count = 0;
   while (count < len) {
-    if (count && !(count % 5)) out << " ";
+    if ((count != 0U) && !(count % 5)) out << " ";
     out << fingerprint[count];
     count++;
   }
   return out.str();
 }
 
-static inline void ltrim(std::string& s) {
-  s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
-            return !std::isspace(ch);
-          }));
-}
-
-static inline void rtrim(std::string& s) {
-  s.erase(std::find_if(s.rbegin(), s.rend(),
-                       [](unsigned char ch) { return !std::isspace(ch); })
-              .base(),
-          s.end());
-}
-
-static inline std::string trim(std::string& s) {
-  ltrim(s);
-  rtrim(s);
-  return s;
-}
-
-std::string GpgFrontend::read_all_data_in_file(const std::string& utf8_path) {
+auto GpgFrontend::ReadAllDataInFile(const std::string& utf8_path)
+    -> std::string {
   std::string data;
   FileOperator::ReadFileStd(utf8_path, data);
   return data;
 }
 
-bool GpgFrontend::write_buffer_to_file(const std::string& utf8_path,
-                                       const std::string& out_buffer) {
+auto GpgFrontend::WriteBufferToFile(const std::string& utf8_path,
+                                    const std::string& out_buffer) -> bool {
   return FileOperator::WriteFileStd(utf8_path, out_buffer);
 }
 
-std::string GpgFrontend::get_file_extension(const std::string& path) {
+auto GpgFrontend::GetFileExtension(const std::string& path) -> std::string {
   // Create a path object from given string
   std::filesystem::path path_obj(path);
 
@@ -144,7 +146,8 @@ std::string GpgFrontend::get_file_extension(const std::string& path) {
   return {};
 }
 
-std::string GpgFrontend::get_only_file_name_with_path(const std::string& path) {
+auto GpgFrontend::GetOnlyFileNameWithPath(const std::string& path)
+    -> std::string {
   // Create a path object from given string
   std::filesystem::path path_obj(path);
   // Check if file name in the path object has extension
@@ -156,58 +159,59 @@ std::string GpgFrontend::get_only_file_name_with_path(const std::string& path) {
   return {};
 }
 
-int GpgFrontend::text_is_signed(GpgFrontend::BypeArrayRef text) {
+auto GpgFrontend::TextIsSigned(GpgFrontend::BypeArrayRef text) -> int {
   using boost::algorithm::ends_with;
   using boost::algorithm::starts_with;
 
-  auto trim_text = trim(text);
+  auto trim_text = Trim(text);
   if (starts_with(trim_text, GpgConstants::PGP_SIGNED_BEGIN) &&
-      ends_with(trim_text, GpgConstants::PGP_SIGNED_END))
+      ends_with(trim_text, GpgConstants::PGP_SIGNED_END)) {
     return 2;
-  else if (text.find(GpgConstants::PGP_SIGNED_BEGIN) != std::string::npos &&
-           text.find(GpgConstants::PGP_SIGNED_END) != std::string::npos)
+  }
+  if (text.find(GpgConstants::PGP_SIGNED_BEGIN) != std::string::npos &&
+      text.find(GpgConstants::PGP_SIGNED_END) != std::string::npos) {
     return 1;
-  else
-    return 0;
+  }
+  return 0;
 }
 
-GpgFrontend::GpgEncrResult GpgFrontend::_new_result(
-    gpgme_encrypt_result_t&& result) {
+auto GpgFrontend::NewResult(gpgme_encrypt_result_t&& result)
+    -> GpgFrontend::GpgEncrResult {
   gpgme_result_ref(result);
-  return {result, _result_ref_deletor()};
+  return {result, ResultRefDeletor()};
 }
 
-GpgFrontend::GpgDecrResult GpgFrontend::_new_result(
-    gpgme_decrypt_result_t&& result) {
+auto GpgFrontend::NewResult(gpgme_decrypt_result_t&& result)
+    -> GpgFrontend::GpgDecrResult {
   gpgme_result_ref(result);
-  return {result, _result_ref_deletor()};
+  return {result, ResultRefDeletor()};
 }
 
-GpgFrontend::GpgSignResult GpgFrontend::_new_result(
-    gpgme_sign_result_t&& result) {
+auto GpgFrontend::NewResult(gpgme_sign_result_t&& result)
+    -> GpgFrontend::GpgSignResult {
   gpgme_result_ref(result);
-  return {result, _result_ref_deletor()};
+  return {result, ResultRefDeletor()};
 }
 
-GpgFrontend::GpgVerifyResult GpgFrontend::_new_result(
-    gpgme_verify_result_t&& result) {
+auto GpgFrontend::NewResult(gpgme_verify_result_t&& result)
+    -> GpgFrontend::GpgVerifyResult {
   gpgme_result_ref(result);
-  return {result, _result_ref_deletor()};
+  return {result, ResultRefDeletor()};
 }
 
-GpgFrontend::GpgGenKeyResult GpgFrontend::_new_result(
-    gpgme_genkey_result_t&& result) {
+auto GpgFrontend::NewResult(gpgme_genkey_result_t&& result)
+    -> GpgFrontend::GpgGenKeyResult {
   gpgme_result_ref(result);
-  return {result, _result_ref_deletor()};
+  return {result, ResultRefDeletor()};
 }
 
-void GpgFrontend::_result_ref_deletor::operator()(void* _result) {
+void GpgFrontend::ResultRefDeletor::operator()(void* _result) {
   SPDLOG_TRACE("gpgme unref {}", _result);
   if (_result != nullptr) gpgme_result_unref(_result);
 }
 
-int GpgFrontend::software_version_compare(const std::string& a,
-                                          const std::string& b) {
+auto GpgFrontend::CompareSoftwareVersion(const std::string& a,
+                                         const std::string& b) -> int {
   auto remove_prefix = [](const std::string& version) {
     return version.front() == 'v' ? version.substr(1) : version;
   };
@@ -215,14 +219,16 @@ int GpgFrontend::software_version_compare(const std::string& a,
   std::string real_version_a = remove_prefix(a);
   std::string real_version_b = remove_prefix(b);
 
-  std::vector<std::string> split_a, split_b;
+  std::vector<std::string> split_a;
+  std::vector<std::string> split_b;
   boost::split(split_a, real_version_a, boost::is_any_of("."));
   boost::split(split_b, real_version_b, boost::is_any_of("."));
 
-  const int min_depth = std::min(split_a.size(), split_b.size());
+  const auto min_depth = std::min(split_a.size(), split_b.size());
 
-  for (int i = 0; i < min_depth; ++i) {
-    int num_a = 0, num_b = 0;
+  for (auto i = 0U; i < min_depth; ++i) {
+    int num_a = 0;
+    int num_b = 0;
 
     try {
       num_a = boost::lexical_cast<int>(split_a[i]);

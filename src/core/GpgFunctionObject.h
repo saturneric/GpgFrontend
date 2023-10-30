@@ -168,8 +168,8 @@ class SingletonFunctionObject : public ChannelObject {
    * @param channel
    * @return T&
    */
-  static auto GetInstance(
-      int channel = GpgFrontend::GPGFRONTEND_DEFAULT_CHANNEL) -> T& {
+  static auto GetInstance(int channel = GpgFrontend::kGpgfrontendDefaultChannel)
+      -> T& {
     static std::mutex g_channel_mutex_map_lock;
     static std::map<int, std::mutex> g_channel_mutex_map;
 

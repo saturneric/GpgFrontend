@@ -116,7 +116,7 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
         }
 
         // announce the restart
-        this->slot_set_restart_needed(DEEP_RESTART_CODE);
+        this->slot_set_restart_needed(kDeepRestartCode);
 
         // update ui
         this->slot_update_custom_key_database_path_label(
@@ -153,7 +153,7 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
         }
 
         // announce the restart
-        this->slot_set_restart_needed(DEEP_RESTART_CODE);
+        this->slot_set_restart_needed(kDeepRestartCode);
 
         // update ui
         this->slot_update_custom_gnupg_install_path_label(
@@ -163,7 +163,7 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
   connect(ui_->usePinentryAsPasswordInputDialogCheckBox,
           &QCheckBox::stateChanged, this, [=](int state) {
             // announce the restart
-            this->slot_set_restart_needed(DEEP_RESTART_CODE);
+            this->slot_set_restart_needed(kDeepRestartCode);
           });
 
 #ifndef MACOS
@@ -203,7 +203,7 @@ void GnuPGControllerDialog::SlotAccept() {
 void GnuPGControllerDialog::slot_update_custom_key_database_path_label(
     int state) {
   // announce the restart
-  this->slot_set_restart_needed(DEEP_RESTART_CODE);
+  this->slot_set_restart_needed(kDeepRestartCode);
 
   const auto database_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.database_path", std::string{});
@@ -241,7 +241,7 @@ void GnuPGControllerDialog::slot_update_custom_key_database_path_label(
 void GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label(
     int state) {
   // announce the restart
-  this->slot_set_restart_needed(DEEP_RESTART_CODE);
+  this->slot_set_restart_needed(kDeepRestartCode);
 
   const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
       Module::GetRealModuleIdentifier(

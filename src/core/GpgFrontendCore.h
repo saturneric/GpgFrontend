@@ -41,6 +41,9 @@
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 #include <spdlog/spdlog.h>
 
+// gpgme library
+#include <gpgme.h>
+
 // logbal includes or macroes
 #include "GpgFrontend.h"
 

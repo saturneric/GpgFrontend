@@ -29,6 +29,7 @@
 #pragma once
 
 #include <functional>
+#include <utility>
 
 #include "core/GpgContext.h"
 #include "core/GpgFunctionObject.h"
@@ -58,8 +59,9 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
    * @param expires expire date and time of the signature
    * @return if successful
    */
-  bool SignKey(const GpgKey& target, KeyArgsList& keys, const std::string& uid,
-               const std::unique_ptr<boost::posix_time::ptime>& expires);
+  auto SignKey(const GpgKey& target, KeyArgsList& keys, const std::string& uid,
+               const std::unique_ptr<boost::posix_time::ptime>& expires)
+      -> bool;
 
   /**
    * @brief
@@ -69,8 +71,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
    * @return true
    * @return false
    */
-  bool RevSign(const GpgFrontend::GpgKey& key,
-               const GpgFrontend::SignIdArgsListPtr& signature_id);
+  auto RevSign(const GpgFrontend::GpgKey& key,
+               const GpgFrontend::SignIdArgsListPtr& signature_id) -> bool;
 
   /**
    * @brief Set the Expire object
@@ -81,19 +83,19 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
    * @return true
    * @return false
    */
-  bool SetExpire(const GpgKey& key, std::unique_ptr<GpgSubKey>& subkey,
-                 std::unique_ptr<boost::posix_time::ptime>& expires);
+  auto SetExpire(const GpgKey& key, std::unique_ptr<GpgSubKey>& subkey,
+                 std::unique_ptr<boost::posix_time::ptime>& expires) -> bool;
 
   /**
    * @brief
    *
    * @return
    */
-  bool SetOwnerTrustLevel(const GpgKey& key, int trust_level);
+  auto SetOwnerTrustLevel(const GpgKey& key, int trust_level) -> bool;
 
  private:
-  static gpgme_error_t interactor_cb_fnc(void* handle, const char* status,
-                                         const char* args, int fd);
+  static auto interactor_cb_fnc(void* handle, const char* status,
+                                const char* args, int fd) -> gpgme_error_t;
 
   using Command = std::string;
   using AutomatonState = enum {
@@ -115,24 +117,26 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
 
   struct AutomatonHandelStruct {
     void SetStatus(AutomatonState next_state) { current_state_ = next_state; }
-    AutomatonState CuurentStatus() { return current_state_; }
+    auto CuurentStatus() -> AutomatonState { return current_state_; }
     void SetHandler(AutomatonNextStateHandler next_state_handler,
                     AutomatonActionHandler action_handler) {
-      next_state_handler_ = next_state_handler;
-      action_handler_ = action_handler;
+      next_state_handler_ = std::move(next_state_handler);
+      action_handler_ = std::move(action_handler);
     }
-    AutomatonState NextState(std::string gpg_status, std::string args) {
-      return next_state_handler_(current_state_, gpg_status, args);
+    auto NextState(std::string gpg_status, std::string args) -> AutomatonState {
+      return next_state_handler_(current_state_, std::move(gpg_status),
+                                 std::move(args));
     }
-    Command Action() { return action_handler_(*this, current_state_); }
+    auto Action() -> Command { return action_handler_(*this, current_state_); }
 
     void SetSuccess(bool success) { success_ = success; }
 
-    bool Success() { return success_; }
+    [[nodiscard]] auto Success() const -> bool { return success_; }
 
-    std::string KeyFpr() { return key_fpr_; }
+    auto KeyFpr() -> std::string { return key_fpr_; }
 
-    AutomatonHandelStruct(std::string key_fpr) : key_fpr_(key_fpr) {}
+    explicit AutomatonHandelStruct(std::string key_fpr)
+        : key_fpr_(std::move(key_fpr)) {}
 
    private:
     AutomatonState current_state_ = AS_START;

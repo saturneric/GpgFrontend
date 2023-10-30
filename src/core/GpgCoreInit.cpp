@@ -50,9 +50,6 @@ namespace GpgFrontend {
  *
  */
 void InitCoreLoggingSystem() {
-  using namespace boost::posix_time;
-  using namespace boost::gregorian;
-
   // get the log directory
   auto logfile_path =
       (GlobalSettingStation::GetInstance().GetLogDir() / "core");
@@ -181,7 +178,7 @@ void InitGpgFrontendCore() {
 
   // init default channel
   auto& default_ctx = GpgFrontend::GpgContext::CreateInstance(
-      GPGFRONTEND_DEFAULT_CHANNEL, [=]() -> std::unique_ptr<ChannelObject> {
+      kGpgfrontendDefaultChannel, [=]() -> std::unique_ptr<ChannelObject> {
         GpgFrontend::GpgContextInitArgs args;
 
         // set key database path
@@ -198,11 +195,12 @@ void InitGpgFrontendCore() {
         args.auto_import_missing_key = auto_import_missing_key;
         args.use_pinentry = use_pinentry_as_password_input_dialog;
 
-        return std::unique_ptr<ChannelObject>(new GpgContext(args));
+        return std::unique_ptr<ChannelObject>(
+            new GpgContext(args, kGpgfrontendDefaultChannel));
       });
 
   // exit if failed
-  if (!default_ctx.good()) {
+  if (!default_ctx.Good()) {
     SPDLOG_ERROR("default gnupg context init error");
   };
 
@@ -210,10 +208,10 @@ void InitGpgFrontendCore() {
   Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
       ->PostTask(new Thread::Task(
-          [=](DataObjectPtr data_obj) -> int {
+          [=](const DataObjectPtr& /*data_obj*/) -> int {
             // init non-ascii channel
             auto& ctx = GpgFrontend::GpgContext::CreateInstance(
-                GPGFRONTEND_NON_ASCII_CHANNEL,
+                kGpgfrontendNonAsciiChannel,
                 [=]() -> std::unique_ptr<ChannelObject> {
                   GpgFrontend::GpgContextInitArgs args;
                   args.ascii = false;
@@ -234,11 +232,12 @@ void InitGpgFrontendCore() {
                   args.auto_import_missing_key = auto_import_missing_key;
                   args.use_pinentry = use_pinentry_as_password_input_dialog;
 
-                  return std::unique_ptr<ChannelObject>(new GpgContext(args));
+                  return std::unique_ptr<ChannelObject>(
+                      new GpgContext(args, kGpgfrontendDefaultChannel));
                 });
 
-            if (!ctx.good()) SPDLOG_ERROR("no-ascii channel init error");
-            return ctx.good() ? 0 : -1;
+            if (!ctx.Good()) SPDLOG_ERROR("no-ascii channel init error");
+            return ctx.Good() ? 0 : -1;
           },
           "default_channel_ctx_init"));
 
@@ -263,7 +262,8 @@ void new_default_settings_channel(int channel) {
   GpgFrontend::GpgContext::CreateInstance(
       channel, [&]() -> std::unique_ptr<ChannelObject> {
         GpgFrontend::GpgContextInitArgs args;
-        return std::unique_ptr<ChannelObject>(new GpgContext(args));
+        return std::unique_ptr<ChannelObject>(
+            new GpgContext(args, kGpgFrontendDefaultChannel));
       });
 }
 

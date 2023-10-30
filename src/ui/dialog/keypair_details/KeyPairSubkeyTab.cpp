@@ -312,7 +312,7 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   }
 
   fingerprint_var_label_->setText(
-      QString::fromStdString(beautify_fingerprint(subkey.GetFingerprint())));
+      QString::fromStdString(BeautifyFingerprint(subkey.GetFingerprint())));
 }
 
 void KeyPairSubkeyTab::create_subkey_opera_menu() {

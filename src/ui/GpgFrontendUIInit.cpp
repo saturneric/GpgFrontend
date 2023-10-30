@@ -187,7 +187,7 @@ int RunGpgFrontendUI(QApplication* app) {
   // pre-check, if application need to restart
   if (CommonUtils::GetInstance()->isApplicationNeedRestart()) {
     SPDLOG_DEBUG("application need to restart, before mian window init");
-    return DEEP_RESTART_CODE;
+    return kDeepRestartCode;
   } else {
     main_window->Init();
     SPDLOG_DEBUG("main window inited");

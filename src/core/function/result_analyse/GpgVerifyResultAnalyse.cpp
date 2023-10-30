@@ -156,7 +156,7 @@ void GpgFrontend::GpgVerifyResultAnalyse::do_analyse() {
         default:
           auto fpr = std::string(sign->fpr);
           stream_ << _("Error for key with fingerprint") << " "
-                  << GpgFrontend::beautify_fingerprint(fpr);
+                  << GpgFrontend::BeautifyFingerprint(fpr);
           set_status(-1);
       }
       stream_ << std::endl;

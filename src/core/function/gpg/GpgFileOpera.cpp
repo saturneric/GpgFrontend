@@ -56,9 +56,9 @@ auto GpgFrontend::GpgFileOpera::EncryptFile(KeyListPtr keys,
   auto err = GpgBasicOperator::GetInstance(_channel).Encrypt(
       std::move(keys), in_buffer, out_buffer, result);
 
-  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
+  if (CheckGpgError(err) == GPG_ERR_NO_ERROR)
     if (!FileOperator::WriteFileStd(out_path_std, *out_buffer)) {
-      throw std::runtime_error("write_buffer_to_file error");
+      throw std::runtime_error("WriteBufferToFile error");
     };
 
   return err;
@@ -87,11 +87,11 @@ auto GpgFrontend::GpgFileOpera::DecryptFile(const std::string& in_path,
   auto err =
       GpgBasicOperator::GetInstance().Decrypt(in_buffer, out_buffer, result);
 
-  assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
+  assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
 
-  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
+  if (CheckGpgError(err) == GPG_ERR_NO_ERROR)
     if (!FileOperator::WriteFileStd(out_path_std, *out_buffer)) {
-      throw std::runtime_error("write_buffer_to_file error");
+      throw std::runtime_error("WriteBufferToFile error");
     };
 
   return err;
@@ -121,9 +121,9 @@ auto GpgFrontend::GpgFileOpera::SignFile(KeyListPtr keys,
   auto err = GpgBasicOperator::GetInstance(_channel).Sign(
       std::move(keys), in_buffer, out_buffer, GPGME_SIG_MODE_DETACH, result);
 
-  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
+  if (CheckGpgError(err) == GPG_ERR_NO_ERROR)
     if (!FileOperator::WriteFileStd(out_path_std, *out_buffer)) {
-      throw std::runtime_error("write_buffer_to_file error");
+      throw std::runtime_error("WriteBufferToFile error");
     };
 
   return err;
@@ -184,9 +184,9 @@ auto GpgFrontend::GpgFileOpera::EncryptSignFile(
       std::move(keys), std::move(signer_keys), in_buffer, out_buffer, encr_res,
       sign_res);
 
-  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
+  if (CheckGpgError(err) == GPG_ERR_NO_ERROR)
     if (!FileOperator::WriteFileStd(out_path_std, *out_buffer)) {
-      throw std::runtime_error("write_buffer_to_file error");
+      throw std::runtime_error("WriteBufferToFile error");
     };
 
   return err;
@@ -216,7 +216,7 @@ auto GpgFrontend::GpgFileOpera::DecryptVerifyFile(const std::string& in_path,
   auto err = GpgBasicOperator::GetInstance().DecryptVerify(
       in_buffer, out_buffer, decr_res, verify_res);
 
-  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
+  if (CheckGpgError(err) == GPG_ERR_NO_ERROR)
     if (!FileOperator::WriteFileStd(out_path_std, *out_buffer)) {
       throw std::runtime_error("write file error");
     };
@@ -245,9 +245,9 @@ auto GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
   auto err = GpgBasicOperator::GetInstance(_channel).EncryptSymmetric(
       in_buffer, out_buffer, result);
 
-  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
+  if (CheckGpgError(err) == GPG_ERR_NO_ERROR)
     if (!FileOperator::WriteFileStd(out_path_std, *out_buffer)) {
-      throw std::runtime_error("write_buffer_to_file error");
+      throw std::runtime_error("WriteBufferToFile error");
     };
 
   return err;

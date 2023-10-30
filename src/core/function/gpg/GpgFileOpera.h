@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "core/GpgConstants.h"
 #include "core/GpgModel.h"
 
 namespace GpgFrontend {
@@ -52,7 +51,7 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    */
   static auto EncryptFile(KeyListPtr keys, const std::string& in_path,
                           const std::string& out_path, GpgEncrResult& result,
-                          int channel = GPGFRONTEND_DEFAULT_CHANNEL)
+                          int channel = kGpgfrontendDefaultChannel)
       -> unsigned int;
 
   /**
@@ -67,7 +66,7 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
   static auto EncryptFileSymmetric(const std::string& in_path,
                                    const std::string& out_path,
                                    GpgEncrResult& result,
-                                   int channel = GPGFRONTEND_DEFAULT_CHANNEL)
+                                   int channel = kGpgfrontendDefaultChannel)
       -> unsigned int;
 
   /**
@@ -94,7 +93,7 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    */
   static auto SignFile(KeyListPtr keys, const std::string& in_path,
                        const std::string& out_path, GpgSignResult& result,
-                       int channel = GPGFRONTEND_DEFAULT_CHANNEL) -> GpgError;
+                       int channel = kGpgfrontendDefaultChannel) -> GpgError;
 
   /**
    * @brief Verify file with public key
@@ -107,7 +106,7 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    */
   static auto VerifyFile(const std::string& data_path,
                          const std::string& sign_path, GpgVerifyResult& result,
-                         int channel = GPGFRONTEND_DEFAULT_CHANNEL) -> GpgError;
+                         int channel = kGpgfrontendDefaultChannel) -> GpgError;
 
   /**
    * @brief Encrypt and sign file with public key and private key
@@ -125,7 +124,7 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
                               const std::string& in_path,
                               const std::string& out_path,
                               GpgEncrResult& encr_res, GpgSignResult& sign_res,
-                              int channel = GPGFRONTEND_DEFAULT_CHANNEL)
+                              int channel = kGpgfrontendDefaultChannel)
       -> GpgError;
 
   /**

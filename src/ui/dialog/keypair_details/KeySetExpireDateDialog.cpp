@@ -78,7 +78,7 @@ void KeySetExpireDateDialog::slot_confirm() {
 
   auto err = GpgKeyOpera::GetInstance().SetExpire(m_key_, m_subkey_, expires);
 
-  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR) {
+  if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
     auto* msg_box = new QMessageBox(qobject_cast<QWidget*>(this->parent()));
     msg_box->setAttribute(Qt::WA_DeleteOnClose);
     msg_box->setStandardButtons(QMessageBox::Ok);

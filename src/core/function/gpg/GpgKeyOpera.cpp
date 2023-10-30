@@ -54,7 +54,7 @@ void GpgKeyOpera::DeleteKeys(GpgFrontend::KeyIdArgsListPtr key_ids) {
   for (const auto& tmp : *key_ids) {
     auto key = GpgKeyGetter::GetInstance().GetKey(tmp);
     if (key.IsGood()) {
-      err = check_gpg_error(
+      err = CheckGpgError(
           gpgme_op_delete_ext(ctx_, gpgme_key_t(key),
                               GPGME_DELETE_ALLOW_SECRET | GPGME_DELETE_FORCE));
       assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
@@ -178,7 +178,7 @@ GpgError GpgKeyOpera::GenerateKey(const std::unique_ptr<GenKeyInfo>& params,
       "core", "gpgme.ctx.gnupg_version", std::string{"2.0.0"});
   SPDLOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
 
-  if (software_version_compare(gnupg_version, "2.1.0") >= 0) {
+  if (CompareSoftwareVersion(gnupg_version, "2.1.0") >= 0) {
     unsigned int flags = 0;
 
     if (!params->IsSubKey()) flags |= GPGME_CREATE_CERT;
@@ -222,12 +222,12 @@ GpgError GpgKeyOpera::GenerateKey(const std::unique_ptr<GenKeyInfo>& params,
     err = gpgme_op_genkey(ctx_, ss.str().c_str(), nullptr, nullptr);
   }
 
-  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR) {
-    auto temp_result = _new_result(gpgme_op_genkey_result(ctx_));
+  if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+    auto temp_result = NewResult(gpgme_op_genkey_result(ctx_));
     std::swap(temp_result, result);
   }
 
-  return check_gpg_error(err);
+  return CheckGpgError(err);
 }
 
 /**
@@ -265,7 +265,7 @@ GpgError GpgKeyOpera::GenerateSubkey(
 
   auto err =
       gpgme_op_createsubkey(ctx_, gpgme_key_t(key), algo, 0, expires, flags);
-  return check_gpg_error(err);
+  return CheckGpgError(err);
 }
 
 GpgError GpgKeyOpera::ModifyPassword(const GpgKey& key) {
@@ -273,12 +273,12 @@ GpgError GpgKeyOpera::ModifyPassword(const GpgKey& key) {
       "core", "gpgme.ctx.gnupg_version", std::string{"2.0.0"});
   SPDLOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
 
-  if (software_version_compare(gnupg_version, "2.0.15") < 0) {
+  if (CompareSoftwareVersion(gnupg_version, "2.0.15") < 0) {
     SPDLOG_ERROR("operator not support");
     return GPG_ERR_NOT_SUPPORTED;
   }
   auto err = gpgme_op_passwd(ctx_, gpgme_key_t(key), 0);
-  return check_gpg_error(err);
+  return CheckGpgError(err);
 }
 
 GpgError GpgKeyOpera::ModifyTOFUPolicy(const GpgKey& key,
@@ -287,13 +287,13 @@ GpgError GpgKeyOpera::ModifyTOFUPolicy(const GpgKey& key,
       "core", "gpgme.ctx.gnupg_version", std::string{"2.0.0"});
   SPDLOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
 
-  if (software_version_compare(gnupg_version, "2.1.10") < 0) {
+  if (CompareSoftwareVersion(gnupg_version, "2.1.10") < 0) {
     SPDLOG_ERROR("operator not support");
     return GPG_ERR_NOT_SUPPORTED;
   }
 
   auto err = gpgme_op_tofu_policy(ctx_, gpgme_key_t(key), tofu_policy);
-  return check_gpg_error(err);
+  return CheckGpgError(err);
 }
 
 void GpgKeyOpera::DeleteKey(const GpgFrontend::KeyId& key_id) {

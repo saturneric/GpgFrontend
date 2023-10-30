@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "core/GpgConstants.h"
 #include "core/GpgContext.h"
 #include "core/GpgFunctionObject.h"
 #include "core/GpgModel.h"
@@ -45,7 +44,7 @@ class GpgImportedKey {
   int import_status;  ///<
 };
 
-typedef std::list<GpgImportedKey> GpgImportedKeyList;  ///<
+using GpgImportedKeyList = std::list<GpgImportedKey>;  ///<
 
 /**
  * @brief
@@ -76,7 +75,7 @@ class GPGFRONTEND_CORE_EXPORT GpgImportInformation {
   int secret_unchanged = 0;  ///<
   int not_imported = 0;      ///<
 
-  GpgImportedKeyList importedKeys;  ///<
+  GpgImportedKeyList imported_keys;  ///<
 };
 
 /**
@@ -100,7 +99,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
    * @param inBuffer
    * @return GpgImportInformation
    */
-  GpgImportInformation ImportKey(StdBypeArrayPtr inBuffer);
+  auto ImportKey(StdBypeArrayPtr inBuffer) -> GpgImportInformation;
 
   /**
    * @brief
@@ -111,8 +110,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
    * @return true
    * @return false
    */
-  bool ExportKeys(KeyIdArgsListPtr& uid_list, ByteArrayPtr& out_buffer,
-                  bool secret = false) const;
+  auto ExportKeys(KeyIdArgsListPtr& uid_list, ByteArrayPtr& out_buffer,
+                  bool secret = false) const -> bool;
 
   /**
    * @brief
@@ -123,8 +122,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
    * @return true
    * @return false
    */
-  bool ExportKeys(const KeyArgsList& keys, ByteArrayPtr& outBuffer,
-                  bool secret = false) const;
+  auto ExportKeys(const KeyArgsList& keys, ByteArrayPtr& out_buffer,
+                  bool secret = false) const -> bool;
 
   /**
    * @brief
@@ -135,8 +134,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
    * @return true
    * @return false
    */
-  bool ExportAllKeys(KeyIdArgsListPtr& uid_list, ByteArrayPtr& out_buffer,
-                     bool secret) const;
+  auto ExportAllKeys(KeyIdArgsListPtr& uid_list, ByteArrayPtr& out_buffer,
+                     bool secret) const -> bool;
 
   /**
    * @brief
@@ -146,7 +145,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
    * @return true
    * @return false
    */
-  bool ExportKey(const GpgKey& key, ByteArrayPtr& out_buffer) const;
+  auto ExportKey(const GpgKey& key, ByteArrayPtr& out_buffer) const -> bool;
 
   /**
    * @brief
@@ -156,7 +155,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
    * @return true
    * @return false
    */
-  bool ExportKeyOpenSSH(const GpgKey& key, ByteArrayPtr& out_buffer) const;
+  auto ExportKeyOpenSSH(const GpgKey& key, ByteArrayPtr& out_buffer) const
+      -> bool;
 
   /**
    * @brief
@@ -166,7 +166,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
    * @return true
    * @return false
    */
-  bool ExportSecretKey(const GpgKey& key, ByteArrayPtr& outBuffer) const;
+  auto ExportSecretKey(const GpgKey& key, ByteArrayPtr& outBuffer) const
+      -> bool;
 
   /**
    * @brief
@@ -176,12 +177,11 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
    * @return true
    * @return false
    */
-  bool ExportSecretKeyShortest(const GpgKey& key,
-                               ByteArrayPtr& outBuffer) const;
+  auto ExportSecretKeyShortest(const GpgKey& key, ByteArrayPtr& outBuffer) const
+      -> bool;
 
  private:
-  GpgContext& ctx_ =
-      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
+  GpgContext& ctx_;
 };
 
 }  // namespace GpgFrontend

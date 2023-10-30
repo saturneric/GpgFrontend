@@ -141,7 +141,7 @@ void KeyImportDetailDialog::create_keys_table() {
 
   keys_table_->setHorizontalHeaderLabels(headerLabels);
   int row = 0;
-  for (const auto& imp_key : m_result_.importedKeys) {
+  for (const auto& imp_key : m_result_.imported_keys) {
     keys_table_->setRowCount(row + 1);
     GpgKey key = GpgKeyGetter::GetInstance().GetKey(imp_key.fpr);
     if (!key.IsGood()) continue;

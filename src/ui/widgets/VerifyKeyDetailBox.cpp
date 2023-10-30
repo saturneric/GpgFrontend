@@ -184,7 +184,7 @@ QGridLayout* VerifyKeyDetailBox::create_key_info_grid(
 
   grid->addWidget(new QLabel(QString::fromStdString(key.GetName())), 0, 1);
   grid->addWidget(new QLabel(QString::fromStdString(key.GetEmail())), 1, 1);
-  grid->addWidget(new QLabel(beautify_fingerprint(fpr_).c_str()), 2, 1);
+  grid->addWidget(new QLabel(BeautifyFingerprint(fpr_).c_str()), 2, 1);
 
   if (signature.GetSummary() & GPGME_SIGSUM_VALID) {
     grid->addWidget(new QLabel(_("Fully Valid")), 3, 1);

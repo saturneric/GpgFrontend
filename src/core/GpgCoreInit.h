@@ -68,6 +68,6 @@ void reset_gpgfrontend_core();
  * @param channel
  */
 void new_default_settings_channel(
-    int channel = GpgFrontend::GPGFRONTEND_DEFAULT_CHANNEL);
+    int channel = GpgFrontend::kGpgfrontendDefaultChannel);
 
 }  // namespace GpgFrontend

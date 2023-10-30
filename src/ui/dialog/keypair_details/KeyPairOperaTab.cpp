@@ -193,7 +193,7 @@ void KeyPairOperaTab::slot_export_public_key() {
 
   if (file_name.empty()) return;
 
-  if (!write_buffer_to_file(file_name, *keyArray)) {
+  if (!WriteBufferToFile(file_name, *keyArray)) {
     QMessageBox::critical(
         this, _("Export Error"),
         QString(_("Couldn't open %1 for writing")).arg(file_name.c_str()));
@@ -245,7 +245,7 @@ void KeyPairOperaTab::slot_export_short_private_key() {
 
     if (file_name.empty()) return;
 
-    if (!write_buffer_to_file(file_name, *keyArray)) {
+    if (!WriteBufferToFile(file_name, *keyArray)) {
       QMessageBox::critical(
           this, _("Export Error"),
           QString(_("Couldn't open %1 for writing")).arg(file_name.c_str()));
@@ -294,7 +294,7 @@ void KeyPairOperaTab::slot_export_private_key() {
 
     if (file_name.empty()) return;
 
-    if (!write_buffer_to_file(file_name, *keyArray)) {
+    if (!WriteBufferToFile(file_name, *keyArray)) {
       QMessageBox::critical(
           this, _("Export Error"),
           QString(_("Couldn't open %1 for writing")).arg(file_name.c_str()));
@@ -343,7 +343,7 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
 
 void KeyPairOperaTab::slot_modify_password() {
   auto err = GpgKeyOpera::GetInstance().ModifyPassword(m_key_);
-  if (check_gpg_error_2_err_code(err) != GPG_ERR_NO_ERROR) {
+  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
     QMessageBox::critical(this, _("Not Successful"),
                           QString(_("Modify password not successfully.")));
   }
@@ -373,7 +373,7 @@ void KeyPairOperaTab::slot_modify_tofu_policy() {
       tofu_policy = GPGME_TOFU_POLICY_UNKNOWN;
     }
     auto err = GpgKeyOpera::GetInstance().ModifyTOFUPolicy(m_key_, tofu_policy);
-    if (check_gpg_error_2_err_code(err) != GPG_ERR_NO_ERROR) {
+    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
       QMessageBox::critical(this, _("Not Successful"),
                             QString(_("Modify TOFU policy not successfully.")));
     }

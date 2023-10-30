@@ -96,10 +96,10 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     GpgError err = gpgme_op_keylist_start(ctx_, nullptr, 0);
 
     // for debug
-    assert(check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR);
+    assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
 
     // return when error
-    if (check_gpg_error_2_err_code(err) != GPG_ERR_NO_ERROR) return;
+    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return;
 
     {
       // get the lock
@@ -123,10 +123,10 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
                  static_cast<void*>(&keys_cache_), static_cast<void*>(this));
 
     // for debug
-    assert(check_gpg_error_2_err_code(err, GPG_ERR_EOF) == GPG_ERR_EOF);
+    assert(CheckGpgError2ErrCode(err, GPG_ERR_EOF) == GPG_ERR_EOF);
 
     err = gpgme_op_keylist_end(ctx_);
-    assert(check_gpg_error_2_err_code(err, GPG_ERR_EOF) == GPG_ERR_NO_ERROR);
+    assert(CheckGpgError2ErrCode(err, GPG_ERR_EOF) == GPG_ERR_NO_ERROR);
   }
 
   auto GetKeys(const KeyIdArgsListPtr& ids) -> KeyListPtr {

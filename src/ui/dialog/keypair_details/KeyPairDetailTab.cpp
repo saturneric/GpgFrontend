@@ -273,7 +273,7 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   key_size_var_label_->setText(key_size_val.c_str());
   algorithm_var_label_->setText(key_algo_val.c_str());
   fingerprint_var_label_->setText(
-      beautify_fingerprint(key_.GetFingerprint()).c_str());
+      BeautifyFingerprint(key_.GetFingerprint()).c_str());
 
   icon_label_->hide();
   exp_label_->hide();

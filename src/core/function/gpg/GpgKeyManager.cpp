@@ -37,10 +37,10 @@
 GpgFrontend::GpgKeyManager::GpgKeyManager(int channel)
     : SingletonFunctionObject<GpgKeyManager>(channel) {}
 
-bool GpgFrontend::GpgKeyManager::SignKey(
+auto GpgFrontend::GpgKeyManager::SignKey(
     const GpgFrontend::GpgKey& target, GpgFrontend::KeyArgsList& keys,
     const std::string& uid,
-    const std::unique_ptr<boost::posix_time::ptime>& expires) {
+    const std::unique_ptr<boost::posix_time::ptime>& expires) -> bool {
   using namespace boost::posix_time;
 
   GpgBasicOperator::GetInstance().SetSigners(keys);
@@ -48,36 +48,38 @@ bool GpgFrontend::GpgKeyManager::SignKey(
   unsigned int flags = 0;
   unsigned int expires_time_t = 0;
 
-  if (expires == nullptr)
+  if (expires == nullptr) {
     flags |= GPGME_KEYSIGN_NOEXPIRE;
-  else
+  } else {
     expires_time_t = to_time_t(*expires);
+  }
 
-  auto err = check_gpg_error(gpgme_op_keysign(
-      ctx_, gpgme_key_t(target), uid.c_str(), expires_time_t, flags));
+  auto err =
+      CheckGpgError(gpgme_op_keysign(ctx_, static_cast<gpgme_key_t>(target),
+                                     uid.c_str(), expires_time_t, flags));
 
-  return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
+  return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
-bool GpgFrontend::GpgKeyManager::RevSign(
+auto GpgFrontend::GpgKeyManager::RevSign(
     const GpgFrontend::GpgKey& key,
-    const GpgFrontend::SignIdArgsListPtr& signature_id) {
+    const GpgFrontend::SignIdArgsListPtr& signature_id) -> bool {
   auto& key_getter = GpgKeyGetter::GetInstance();
 
   for (const auto& sign_id : *signature_id) {
     auto signing_key = key_getter.GetKey(sign_id.first);
     assert(signing_key.IsGood());
-    auto err = check_gpg_error(gpgme_op_revsig(ctx_, gpgme_key_t(key),
-                                               gpgme_key_t(signing_key),
-                                               sign_id.second.c_str(), 0));
-    if (check_gpg_error_2_err_code(err) != GPG_ERR_NO_ERROR) return false;
+    auto err = CheckGpgError(gpgme_op_revsig(ctx_, gpgme_key_t(key),
+                                             gpgme_key_t(signing_key),
+                                             sign_id.second.c_str(), 0));
+    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return false;
   }
   return true;
 }
 
-bool GpgFrontend::GpgKeyManager::SetExpire(
+auto GpgFrontend::GpgKeyManager::SetExpire(
     const GpgFrontend::GpgKey& key, std::unique_ptr<GpgSubKey>& subkey,
-    std::unique_ptr<boost::posix_time::ptime>& expires) {
+    std::unique_ptr<boost::posix_time::ptime>& expires) -> bool {
   using namespace boost::posix_time;
 
   unsigned long expires_time = 0;
@@ -88,14 +90,14 @@ bool GpgFrontend::GpgKeyManager::SetExpire(
 
   if (subkey != nullptr) sub_fprs = subkey->GetFingerprint().c_str();
 
-  auto err = check_gpg_error(
-      gpgme_op_setexpire(ctx_, gpgme_key_t(key), expires_time, sub_fprs, 0));
+  auto err = CheckGpgError(gpgme_op_setexpire(
+      ctx_, static_cast<gpgme_key_t>(key), expires_time, sub_fprs, 0));
 
-  return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
+  return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
-bool GpgFrontend::GpgKeyManager::SetOwnerTrustLevel(const GpgKey& key,
-                                                    int trust_level) {
+auto GpgFrontend::GpgKeyManager::SetOwnerTrustLevel(const GpgKey& key,
+                                                    int trust_level) -> bool {
   if (trust_level < 0 || trust_level > 5) {
     SPDLOG_ERROR("illegal owner trust level: {}", trust_level);
   }
@@ -109,8 +111,9 @@ bool GpgFrontend::GpgKeyManager::SetOwnerTrustLevel(const GpgKey& key,
 
         switch (state) {
           case AS_START:
-            if (status == "GET_LINE" && args == "keyedit.prompt")
+            if (status == "GET_LINE" && args == "keyedit.prompt") {
               return AS_COMMAND;
+            }
             return AS_ERROR;
           case AS_COMMAND:
             if (status == "GET_LINE" && args == "edit_ownertrust.value") {
@@ -177,7 +180,7 @@ bool GpgFrontend::GpgKeyManager::SetOwnerTrustLevel(const GpgKey& key,
 
   GpgData data_out;
 
-  auto err = gpgme_op_interact(ctx_, gpgme_key_t(key), 0,
+  auto err = gpgme_op_interact(ctx_, static_cast<gpgme_key_t>(key), 0,
                                GpgKeyManager::interactor_cb_fnc,
                                (void*)&handel_struct, data_out);
   if (err != GPG_ERR_NO_ERROR) {
@@ -185,14 +188,13 @@ bool GpgFrontend::GpgKeyManager::SetOwnerTrustLevel(const GpgKey& key,
                  trust_level, key.GetId(), gpgme_strerror(err));
   }
 
-  return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR &&
-         handel_struct.Success();
+  return CheckGpgError(err) == GPG_ERR_NO_ERROR && handel_struct.Success();
 }
 
-gpgme_error_t GpgFrontend::GpgKeyManager::interactor_cb_fnc(void* handle,
-                                                            const char* status,
-                                                            const char* args,
-                                                            int fd) {
+auto GpgFrontend::GpgKeyManager::interactor_cb_fnc(void* handle,
+                                                   const char* status,
+                                                   const char* args, int fd)
+    -> gpgme_error_t {
   auto handle_struct = static_cast<AutomatonHandelStruct*>(handle);
   std::string status_s = status;
   std::string args_s = args;

@@ -28,12 +28,10 @@
 
 #pragma once
 
-#include <gpgme.h>
-
 #include "GpgFrontendCore.h"
 
-const int RESTART_CODE = 1000;       ///< only refresh ui
-const int DEEP_RESTART_CODE = 1001;  // refresh core and ui
+const int kRestartCode = 1000;      ///< only refresh ui
+const int kDeepRestartCode = 1001;  // refresh core and ui
 
 namespace GpgFrontend {
 using ByteArray = std::string;                                    ///<
@@ -50,7 +48,7 @@ using GpgError = gpgme_error_t;
  * @brief Result Deleter
  *
  */
-struct _result_ref_deletor {
+struct ResultRefDeletor {
   void operator()(void* _result);
 };
 
@@ -68,8 +66,8 @@ using GpgGenKeyResult = std::shared_ptr<struct _gpgme_op_genkey_result>;  ///<
  * @param result
  * @return GpgEncrResult
  */
-GPGFRONTEND_CORE_EXPORT GpgEncrResult
-_new_result(gpgme_encrypt_result_t&& result);
+GPGFRONTEND_CORE_EXPORT auto NewResult(gpgme_encrypt_result_t&& result)
+    -> GpgEncrResult;
 
 /**
  * @brief
@@ -77,8 +75,8 @@ _new_result(gpgme_encrypt_result_t&& result);
  * @param result
  * @return GpgDecrResult
  */
-GPGFRONTEND_CORE_EXPORT GpgDecrResult
-_new_result(gpgme_decrypt_result_t&& result);
+GPGFRONTEND_CORE_EXPORT auto NewResult(gpgme_decrypt_result_t&& result)
+    -> GpgDecrResult;
 
 /**
  * @brief
@@ -86,7 +84,8 @@ _new_result(gpgme_decrypt_result_t&& result);
  * @param result
  * @return GpgSignResult
  */
-GPGFRONTEND_CORE_EXPORT GpgSignResult _new_result(gpgme_sign_result_t&& result);
+GPGFRONTEND_CORE_EXPORT auto NewResult(gpgme_sign_result_t&& result)
+    -> GpgSignResult;
 
 /**
  * @brief
@@ -94,8 +93,8 @@ GPGFRONTEND_CORE_EXPORT GpgSignResult _new_result(gpgme_sign_result_t&& result);
  * @param result
  * @return GpgVerifyResult
  */
-GPGFRONTEND_CORE_EXPORT GpgVerifyResult
-_new_result(gpgme_verify_result_t&& result);
+GPGFRONTEND_CORE_EXPORT auto NewResult(gpgme_verify_result_t&& result)
+    -> GpgVerifyResult;
 
 /**
  * @brief
@@ -103,8 +102,8 @@ _new_result(gpgme_verify_result_t&& result);
  * @param result
  * @return GpgGenKeyResult
  */
-GPGFRONTEND_CORE_EXPORT GpgGenKeyResult
-_new_result(gpgme_genkey_result_t&& result);
+GPGFRONTEND_CORE_EXPORT auto NewResult(gpgme_genkey_result_t&& result)
+    -> GpgGenKeyResult;
 
 // Error Info Printer
 
@@ -114,7 +113,7 @@ _new_result(gpgme_genkey_result_t&& result);
  * @param err
  * @return GpgError
  */
-GPGFRONTEND_CORE_EXPORT GpgError check_gpg_error(GpgError err);
+GPGFRONTEND_CORE_EXPORT auto CheckGpgError(GpgError err) -> GpgError;
 
 /**
  * @brief
@@ -123,8 +122,9 @@ GPGFRONTEND_CORE_EXPORT GpgError check_gpg_error(GpgError err);
  * @param comment
  * @return GpgError
  */
-GPGFRONTEND_CORE_EXPORT GpgError check_gpg_error(GpgError gpgmeError,
-                                                 const std::string& comment);
+GPGFRONTEND_CORE_EXPORT auto CheckGpgError(GpgError gpgmeError,
+                                           const std::string& comment)
+    -> GpgError;
 
 /**
  * @brief
@@ -133,8 +133,9 @@ GPGFRONTEND_CORE_EXPORT GpgError check_gpg_error(GpgError gpgmeError,
  * @param predict
  * @return gpg_err_code_t
  */
-GPGFRONTEND_CORE_EXPORT gpg_err_code_t check_gpg_error_2_err_code(
-    gpgme_error_t err, gpgme_error_t predict = GPG_ERR_NO_ERROR);
+GPGFRONTEND_CORE_EXPORT auto CheckGpgError2ErrCode(
+    gpgme_error_t err, gpgme_error_t predict = GPG_ERR_NO_ERROR)
+    -> gpg_err_code_t;
 
 // Fingerprint
 
@@ -144,8 +145,8 @@ GPGFRONTEND_CORE_EXPORT gpg_err_code_t check_gpg_error_2_err_code(
  * @param fingerprint
  * @return std::string
  */
-GPGFRONTEND_CORE_EXPORT std::string beautify_fingerprint(
-    BypeArrayConstRef fingerprint);
+GPGFRONTEND_CORE_EXPORT auto BeautifyFingerprint(BypeArrayConstRef fingerprint)
+    -> std::string;
 
 // File Operation
 
@@ -155,7 +156,7 @@ GPGFRONTEND_CORE_EXPORT std::string beautify_fingerprint(
  * @param path
  * @return std::string
  */
-std::string read_all_data_in_file(const std::string& path);
+auto ReadAllDataInFile(const std::string& path) -> std::string;
 
 /**
  * @brief
@@ -165,11 +166,13 @@ std::string read_all_data_in_file(const std::string& path);
  * @return true
  * @return false
  */
-GPGFRONTEND_CORE_EXPORT bool write_buffer_to_file(
-    const std::string& path, const std::string& out_buffer);
+auto GPGFRONTEND_CORE_EXPORT WriteBufferToFile(const std::string& path,
+                                               const std::string& out_buffer)
+    -> bool;
 
-int GPGFRONTEND_CORE_EXPORT software_version_compare(const std::string& a,
-                                                     const std::string& b);
+auto GPGFRONTEND_CORE_EXPORT CompareSoftwareVersion(const std::string& a,
+                                                    const std::string& b)
+    -> int;
 
 /**
  * @brief Get the file extension object
@@ -177,7 +180,7 @@ int GPGFRONTEND_CORE_EXPORT software_version_compare(const std::string& a,
  * @param path
  * @return std::string
  */
-std::string get_file_extension(const std::string& path);
+auto GetFileExtension(const std::string& path) -> std::string;
 
 /**
  * @brief Get the only file name with path object
@@ -185,7 +188,7 @@ std::string get_file_extension(const std::string& path);
  * @param path
  * @return std::string
  */
-std::string get_only_file_name_with_path(const std::string& path);
+auto GetOnlyFileNameWithPath(const std::string& path) -> std::string;
 
 // Check
 
@@ -195,11 +198,11 @@ std::string get_only_file_name_with_path(const std::string& path);
  * @param text
  * @return int
  */
-int text_is_signed(BypeArrayRef text);
+auto TextIsSigned(BypeArrayRef text) -> int;
 
 // Channels
-const int GPGFRONTEND_DEFAULT_CHANNEL = 0;    ///<
-const int GPGFRONTEND_NON_ASCII_CHANNEL = 2;  ///<
+const int kGpgfrontendDefaultChannel = 0;   ///<
+const int kGpgfrontendNonAsciiChannel = 2;  ///<
 
 /**
  * @brief

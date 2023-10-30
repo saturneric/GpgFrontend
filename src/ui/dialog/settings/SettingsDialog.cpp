@@ -80,16 +80,16 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   // restart ui
   connect(general_tab_, &GeneralTab::SignalRestartNeeded, this,
           [=](bool needed) {
-            if (needed && restart_needed_ < RESTART_CODE) {
-              this->restart_needed_ = RESTART_CODE;
+            if (needed && restart_needed_ < kRestartCode) {
+              this->restart_needed_ = kRestartCode;
             }
           });
 
   // restart core and ui
   connect(general_tab_, &GeneralTab::SignalDeepRestartNeeded, this,
           [=](bool needed) {
-            if (needed && restart_needed_ < DEEP_RESTART_CODE)
-              this->restart_needed_ = DEEP_RESTART_CODE;
+            if (needed && restart_needed_ < kDeepRestartCode)
+              this->restart_needed_ = kDeepRestartCode;
           });
 
   // announce main window

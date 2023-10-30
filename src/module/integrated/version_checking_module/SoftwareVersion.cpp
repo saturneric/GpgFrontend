@@ -35,14 +35,14 @@ namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 bool VersionCheckingModule::SoftwareVersion::NeedUpgrade() const {
   MODULE_LOG_DEBUG("compair version current {} latest {}, result {}",
                    current_version, latest_version,
-                   software_version_compare(current_version, latest_version));
+                   CompareSoftwareVersion(current_version, latest_version));
 
   MODULE_LOG_DEBUG("load done: {}, pre-release: {}, draft: {}", loading_done,
                    latest_prerelease_version_from_remote,
                    latest_draft_from_remote);
   return loading_done && !latest_prerelease_version_from_remote &&
          !latest_draft_from_remote &&
-         software_version_compare(current_version, latest_version) < 0;
+         CompareSoftwareVersion(current_version, latest_version) < 0;
 }
 
 bool VersionCheckingModule::SoftwareVersion::VersionWithdrawn() const {

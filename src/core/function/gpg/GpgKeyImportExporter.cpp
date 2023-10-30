@@ -28,23 +28,24 @@
 
 #include "GpgKeyImportExporter.h"
 
-#include "GpgConstants.h"
-#include "GpgKeyGetter.h"
+#include "core/GpgConstants.h"
+#include "core/function/gpg/GpgKeyGetter.h"
 
 GpgFrontend::GpgKeyImportExporter::GpgKeyImportExporter(int channel)
-    : SingletonFunctionObject<GpgKeyImportExporter>(channel) {}
+    : SingletonFunctionObject<GpgKeyImportExporter>(channel),
+      ctx_(GpgContext::GetInstance(SingletonFunctionObject::GetChannel())) {}
 
 /**
  * Import key pair
  * @param inBuffer input byte array
  * @return Import information
  */
-GpgFrontend::GpgImportInformation GpgFrontend::GpgKeyImportExporter::ImportKey(
-    StdBypeArrayPtr in_buffer) {
+auto GpgFrontend::GpgKeyImportExporter::ImportKey(StdBypeArrayPtr in_buffer)
+    -> GpgFrontend::GpgImportInformation {
   if (in_buffer->empty()) return {};
 
   GpgData data_in(in_buffer->data(), in_buffer->size());
-  auto err = check_gpg_error(gpgme_op_import(ctx_, data_in));
+  auto err = CheckGpgError(gpgme_op_import(ctx_, data_in));
   if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
 
   gpgme_import_result_t result;
@@ -55,7 +56,7 @@ GpgFrontend::GpgImportInformation GpgFrontend::GpgKeyImportExporter::ImportKey(
     GpgImportedKey key;
     key.import_status = static_cast<int>(status->status);
     key.fpr = status->fpr;
-    import_info->importedKeys.emplace_back(key);
+    import_info->imported_keys.emplace_back(key);
     status = status->next;
   }
 
@@ -68,9 +69,9 @@ GpgFrontend::GpgImportInformation GpgFrontend::GpgKeyImportExporter::ImportKey(
  * @param out_buffer output byte array
  * @return if success
  */
-bool GpgFrontend::GpgKeyImportExporter::ExportKeys(KeyIdArgsListPtr& uid_list,
+auto GpgFrontend::GpgKeyImportExporter::ExportKeys(KeyIdArgsListPtr& uid_list,
                                                    ByteArrayPtr& out_buffer,
-                                                   bool secret) const {
+                                                   bool secret) const -> bool {
   if (uid_list->empty()) return false;
 
   int _mode = 0;
@@ -107,9 +108,9 @@ bool GpgFrontend::GpgKeyImportExporter::ExportKeys(KeyIdArgsListPtr& uid_list,
  * @param outBuffer output byte array
  * @return if success
  */
-bool GpgFrontend::GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys,
+auto GpgFrontend::GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys,
                                                    ByteArrayPtr& out_buffer,
-                                                   bool secret) const {
+                                                   bool secret) const -> bool {
   KeyIdArgsListPtr key_ids = std::make_unique<std::vector<std::string>>();
   for (const auto& key : keys) key_ids->push_back(key.GetId());
   return ExportKeys(key_ids, out_buffer, secret);
@@ -121,8 +122,9 @@ bool GpgFrontend::GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys,
  * @param out_buffer output byte array
  * @return if success
  */
-bool GpgFrontend::GpgKeyImportExporter::ExportAllKeys(
-    KeyIdArgsListPtr& uid_list, ByteArrayPtr& out_buffer, bool secret) const {
+auto GpgFrontend::GpgKeyImportExporter::ExportAllKeys(
+    KeyIdArgsListPtr& uid_list, ByteArrayPtr& out_buffer, bool secret) const
+    -> bool {
   bool result = true;
   result = ExportKeys(uid_list, out_buffer, false) & result;
 
@@ -140,11 +142,11 @@ bool GpgFrontend::GpgKeyImportExporter::ExportAllKeys(
  * @param outBuffer output byte array
  * @return if successful
  */
-bool GpgFrontend::GpgKeyImportExporter::ExportSecretKey(
-    const GpgKey& key, ByteArrayPtr& out_buffer) const {
+auto GpgFrontend::GpgKeyImportExporter::ExportSecretKey(
+    const GpgKey& key, ByteArrayPtr& out_buffer) const -> bool {
   SPDLOG_DEBUG("export secret key: {}", key.GetId().c_str());
 
-  gpgme_key_t target_key[2] = {gpgme_key_t(key), nullptr};
+  gpgme_key_t target_key[2] = {static_cast<gpgme_key_t>(key), nullptr};
 
   GpgData data_out;
   // export private key to outBuffer
@@ -154,12 +156,12 @@ bool GpgFrontend::GpgKeyImportExporter::ExportSecretKey(
   auto temp_out_buffer = data_out.Read2Buffer();
   std::swap(out_buffer, temp_out_buffer);
 
-  return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
+  return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
-bool GpgFrontend::GpgKeyImportExporter::ExportKey(
-    const GpgFrontend::GpgKey& key,
-    GpgFrontend::ByteArrayPtr& out_buffer) const {
+auto GpgFrontend::GpgKeyImportExporter::ExportKey(
+    const GpgFrontend::GpgKey& key, GpgFrontend::ByteArrayPtr& out_buffer) const
+    -> bool {
   GpgData data_out;
   auto err = gpgme_op_export(ctx_, key.GetId().c_str(), 0, data_out);
 
@@ -168,12 +170,12 @@ bool GpgFrontend::GpgKeyImportExporter::ExportKey(
 
   auto temp_out_buffer = data_out.Read2Buffer();
   std::swap(out_buffer, temp_out_buffer);
-  return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
+  return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
-bool GpgFrontend::GpgKeyImportExporter::ExportKeyOpenSSH(
-    const GpgFrontend::GpgKey& key,
-    GpgFrontend::ByteArrayPtr& out_buffer) const {
+auto GpgFrontend::GpgKeyImportExporter::ExportKeyOpenSSH(
+    const GpgFrontend::GpgKey& key, GpgFrontend::ByteArrayPtr& out_buffer) const
+    -> bool {
   GpgData data_out;
   auto err = gpgme_op_export(ctx_, key.GetId().c_str(), GPGME_EXPORT_MODE_SSH,
                              data_out);
@@ -182,12 +184,12 @@ bool GpgFrontend::GpgKeyImportExporter::ExportKeyOpenSSH(
 
   auto temp_out_buffer = data_out.Read2Buffer();
   std::swap(out_buffer, temp_out_buffer);
-  return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
+  return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
-bool GpgFrontend::GpgKeyImportExporter::ExportSecretKeyShortest(
-    const GpgFrontend::GpgKey& key,
-    GpgFrontend::ByteArrayPtr& out_buffer) const {
+auto GpgFrontend::GpgKeyImportExporter::ExportSecretKeyShortest(
+    const GpgFrontend::GpgKey& key, GpgFrontend::ByteArrayPtr& out_buffer) const
+    -> bool {
   GpgData data_out;
   auto err = gpgme_op_export(ctx_, key.GetId().c_str(),
                              GPGME_EXPORT_MODE_MINIMAL, data_out);
@@ -196,25 +198,27 @@ bool GpgFrontend::GpgKeyImportExporter::ExportSecretKeyShortest(
 
   auto temp_out_buffer = data_out.Read2Buffer();
   std::swap(out_buffer, temp_out_buffer);
-  return check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR;
+  return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
 GpgFrontend::GpgImportInformation::GpgImportInformation() = default;
 
 GpgFrontend::GpgImportInformation::GpgImportInformation(
     gpgme_import_result_t result) {
-  if (result->unchanged) unchanged = result->unchanged;
-  if (result->considered) considered = result->considered;
-  if (result->no_user_id) no_user_id = result->no_user_id;
-  if (result->imported) imported = result->imported;
-  if (result->imported_rsa) imported_rsa = result->imported_rsa;
-  if (result->unchanged) unchanged = result->unchanged;
-  if (result->new_user_ids) new_user_ids = result->new_user_ids;
-  if (result->new_sub_keys) new_sub_keys = result->new_sub_keys;
-  if (result->new_signatures) new_signatures = result->new_signatures;
-  if (result->new_revocations) new_revocations = result->new_revocations;
-  if (result->secret_read) secret_read = result->secret_read;
-  if (result->secret_imported) secret_imported = result->secret_imported;
-  if (result->secret_unchanged) secret_unchanged = result->secret_unchanged;
-  if (result->not_imported) not_imported = result->not_imported;
+  if (result->unchanged != 0) unchanged = result->unchanged;
+  if (result->considered != 0) considered = result->considered;
+  if (result->no_user_id != 0) no_user_id = result->no_user_id;
+  if (result->imported != 0) imported = result->imported;
+  if (result->imported_rsa != 0) imported_rsa = result->imported_rsa;
+  if (result->unchanged != 0) unchanged = result->unchanged;
+  if (result->new_user_ids != 0) new_user_ids = result->new_user_ids;
+  if (result->new_sub_keys != 0) new_sub_keys = result->new_sub_keys;
+  if (result->new_signatures != 0) new_signatures = result->new_signatures;
+  if (result->new_revocations != 0) new_revocations = result->new_revocations;
+  if (result->secret_read != 0) secret_read = result->secret_read;
+  if (result->secret_imported != 0) secret_imported = result->secret_imported;
+  if (result->secret_unchanged != 0) {
+    secret_unchanged = result->secret_unchanged;
+  }
+  if (result->not_imported != 0) not_imported = result->not_imported;
 }

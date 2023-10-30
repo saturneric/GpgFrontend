@@ -207,7 +207,7 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
         // restart application when loop start
         application_need_to_restart_at_once_ = true;
         // restart application, core and ui
-        emit SignalRestartApplication(DEEP_RESTART_CODE);
+        emit SignalRestartApplication(kDeepRestartCode);
         break;
       case QMessageBox::Cancel:
         // close application

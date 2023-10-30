@@ -45,7 +45,7 @@ void GpgFrontend::Thread::CoreInitTask::Run() {
   InitGpgFrontendCore();
 
   // Create & Check Gnupg Context Status
-  if (!GpgContext::GetInstance().good()) {
+  if (!GpgContext::GetInstance().Good()) {
     emit SignalGnupgNotInstall();
   }
   // Try flushing key cache

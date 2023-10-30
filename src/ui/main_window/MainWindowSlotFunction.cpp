@@ -78,7 +78,7 @@ void MainWindow::slot_encrypt() {
       resultAnalyse.Analyse();
       process_result_analyse(edit_, info_board_, resultAnalyse);
 
-      if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
+      if (CheckGpgError(error) == GPG_ERR_NO_ERROR)
         edit_->SlotFillTextEditWithText(QString::fromStdString(*tmp));
       info_board_->ResetOptionActionsMenu();
     } else {
@@ -239,7 +239,7 @@ void MainWindow::slot_sign() {
       resultAnalyse.Analyse();
       process_result_analyse(edit_, info_board_, resultAnalyse);
 
-      if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
+      if (CheckGpgError(error) == GPG_ERR_NO_ERROR)
         edit_->SlotFillTextEditWithText(QString::fromStdString(*tmp));
     } else {
       QMessageBox::critical(this, _("Error"),
@@ -302,7 +302,7 @@ void MainWindow::slot_decrypt() {
       resultAnalyse.Analyse();
       process_result_analyse(edit_, info_board_, resultAnalyse);
 
-      if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
+      if (CheckGpgError(error) == GPG_ERR_NO_ERROR)
         edit_->SlotFillTextEditWithText(QString::fromStdString(*decrypted));
     } else {
       QMessageBox::critical(this, _("Error"),
@@ -363,7 +363,7 @@ void MainWindow::slot_verify() {
       result_analyse.Analyse();
       process_result_analyse(edit_, info_board_, result_analyse);
 
-      if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR) {
+      if (CheckGpgError(error) == GPG_ERR_NO_ERROR) {
         if (result_analyse.GetStatus() == -2)
           import_unknown_key_from_keyserver(this, result_analyse);
 
@@ -480,7 +480,7 @@ void MainWindow::slot_encrypt_sign() {
       sign_result_analyse.Analyse();
       process_result_analyse(edit_, info_board_, encrypt_result_analyse,
                              sign_result_analyse);
-      if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
+      if (CheckGpgError(error) == GPG_ERR_NO_ERROR)
         edit_->SlotFillTextEditWithText(QString::fromStdString(*tmp));
 
       info_board_->ResetOptionActionsMenu();
@@ -547,7 +547,7 @@ void MainWindow::slot_decrypt_verify() {
       verify_result_analyse.Analyse();
       process_result_analyse(edit_, info_board_, decrypt_result_analyse,
                              verify_result_analyse);
-      if (check_gpg_error_2_err_code(error) == GPG_ERR_NO_ERROR)
+      if (CheckGpgError(error) == GPG_ERR_NO_ERROR)
         edit_->SlotFillTextEditWithText(QString::fromStdString(*decrypted));
 
       if (verify_result_analyse.GetStatus() == -2)
@@ -666,7 +666,7 @@ void MainWindow::slot_append_keys_fingerprint() {
   }
 
   auto fingerprint_format_str =
-      beautify_fingerprint(key.GetFingerprint()) + "\n";
+      BeautifyFingerprint(key.GetFingerprint()) + "\n";
 
   edit_->CurTextPage()->GetTextPage()->appendPlainText(
       QString::fromStdString(fingerprint_format_str));
