@@ -36,10 +36,13 @@ class Event::Impl {
  public:
   Impl(std::string event_id, std::initializer_list<ParameterInitializer> params,
        EventCallback callback)
-      : event_identifier_(std::move(event_id)), callback_(std::move(callback)) {
+      : event_identifier_(std::move(event_id)),
+        callback_(std::move(callback)),
+        callback_thread_(QThread::currentThread()) {
     for (const auto& param : params) {
       AddParameter(param);
     }
+    SPDLOG_DEBUG("create event {}", event_identifier_);
   }
 
   auto operator[](const std::string& key) const
@@ -75,10 +78,28 @@ class Event::Impl {
     AddParameter(param.key, param.value);
   }
 
+  void ExecuteCallback(ListenerIdentifier listener_id,
+                       const DataObjectPtr& data_object) {
+    if (callback_) {
+      SPDLOG_DEBUG("execute callback for event {} with listener {}",
+                   event_identifier_, listener_id);
+      if (!QMetaObject::invokeMethod(
+              callback_thread_,
+              [callback = callback_, event_identifier = event_identifier_,
+               listener_id, data_object]() {
+                callback(event_identifier, listener_id, data_object);
+              })) {
+        SPDLOG_ERROR("failed to invoke callback for event {} with listener {}",
+                     event_identifier_, listener_id);
+      }
+    }
+  }
+
  private:
   EventIdentifier event_identifier_;
   std::map<std::string, ParameterValue> data_;
   EventCallback callback_;
+  QThread* callback_thread_ = nullptr;  ///<
 };
 
 Event::Event(const std::string& event_id,
@@ -110,6 +131,10 @@ auto Event::Event::GetIdentifier() -> EventIdentifier {
 
 void Event::AddParameter(const std::string& key, const ParameterValue& value) {
   p_->AddParameter(key, value);
+}
+
+void Event::ExecuteCallback(ListenerIdentifier l_id, DataObjectPtr d_o) {
+  p_->ExecuteCallback(std::move(l_id), d_o);
 }
 
 }  // namespace GpgFrontend::Module

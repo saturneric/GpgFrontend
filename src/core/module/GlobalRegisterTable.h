@@ -43,13 +43,13 @@ class GlobalRegisterTable : public QObject {
  public:
   GlobalRegisterTable();
 
-  ~GlobalRegisterTable();
+  ~GlobalRegisterTable() override;
 
-  bool PublishKV(Namespace, Key, std::any);
+  auto PublishKV(Namespace, Key, std::any) -> bool;
 
-  std::optional<std::any> LookupKV(Namespace, Key);
+  auto LookupKV(Namespace, Key) -> std::optional<std::any>;
 
-  bool ListenPublish(QObject *, Namespace, Key, LPCallback);
+  auto ListenPublish(QObject *, Namespace, Key, LPCallback) -> bool;
 
  signals:
   void SignalPublish(Namespace, Key, int, std::any);

@@ -241,19 +241,20 @@ void InitGpgFrontendCore() {
           },
           "default_channel_ctx_init"));
 
-  Module::ListenRTPublishEvent(
-      &default_ctx,
-      Module::GetRealModuleIdentifier(
-          "com.bktus.gpgfrontend.module.integrated.gnupginfogathering"),
-      "gnupg.gathering_done",
-      [=](Module::Namespace, Module::Key, int, std::any) {
-        SPDLOG_DEBUG(
-            "gnupginfogathering gnupg.gathering_done changed, restarting gpg "
-            "components");
-        // try to restart all components
-        GpgFrontend::GpgAdvancedOperator::RestartGpgComponents();
+  Module::TriggerEvent(
+      "GPGFRONTEND_CORE_INITLIZED",
+      [](const Module::EventIdentifier& /*e*/,
+         const Module::Event::ListenerIdentifier& l_id, DataObjectPtr o) {
+        if (l_id == Module::GetRealModuleIdentifier(
+                        "com.bktus.gpgfrontend.module.integrated."
+                        "gnupginfogathering")) {
+          SPDLOG_DEBUG(
+              "gnupginfogathering gnupg.gathering_done changed, restarting gpg "
+              "components");
+          // try to restart all components
+          GpgFrontend::GpgAdvancedOperator::RestartGpgComponents();
+        }
       });
-  Module::TriggerEvent("GPGFRONTEND_CORE_INITLIZED");
 }
 
 void reset_gpgfrontend_core() { SingletonStorageCollection::GetInstance(true); }

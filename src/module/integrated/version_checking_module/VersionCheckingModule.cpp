@@ -30,6 +30,8 @@
 
 #include <qobject.h>
 
+#include <utility>
+
 #include "Log.h"
 #include "SoftwareVersion.h"
 #include "VersionCheckTask.h"
@@ -41,37 +43,40 @@ namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 VersionCheckingModule::VersionCheckingModule()
     : Module("com.bktus.gpgfrontend.module.integrated.versionchecking", "1.0.0",
              ModuleMetaData{{"description", "try to check gpgfrontend version"},
-                            {"author", "saturneric"}}) {
-  connect(this, &VersionCheckingModule::SignalVersionCheckDone, this,
-          &VersionCheckingModule::SlotVersionCheckDone);
-}
+                            {"author", "saturneric"}}) {}
 
 VersionCheckingModule::~VersionCheckingModule() = default;
 
-bool VersionCheckingModule::Register() {
+auto VersionCheckingModule::Register() -> bool {
   MODULE_LOG_INFO("version checking module registering");
   listenEvent("APPLICATION_LOADED");
   listenEvent("CHECK_APPLICATION_VERSION");
   return true;
 }
 
-bool VersionCheckingModule::Active() {
+auto VersionCheckingModule::Active() -> bool {
   MODULE_LOG_INFO("version checking module activating");
   return true;
 }
 
-int VersionCheckingModule::Exec(EventRefrernce event) {
+auto VersionCheckingModule::Exec(EventRefrernce event) -> int {
   MODULE_LOG_INFO("version checking module executing, event id: {}",
                   event->GetIdentifier());
 
   auto* task = new VersionCheckTask();
   connect(task, &VersionCheckTask::SignalUpgradeVersion, this,
           &VersionCheckingModule::SignalVersionCheckDone);
+  connect(this, &VersionCheckingModule::SignalVersionCheckDone, this,
+          [this, event](SoftwareVersion version) {
+            SlotVersionCheckDone(std::move(version));
+            event->ExecuteCallback(GetModuleIdentifier(),
+                                   TransferParams(version.loading_done));
+          });
   getTaskRunner()->PostTask(task);
   return 0;
 }
 
-bool VersionCheckingModule::Deactive() { return true; }
+auto VersionCheckingModule::Deactive() -> bool { return true; }
 
 void VersionCheckingModule::SlotVersionCheckDone(SoftwareVersion version) {
   MODULE_LOG_DEBUG("registering software information info to rt");

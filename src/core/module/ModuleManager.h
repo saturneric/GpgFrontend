@@ -52,15 +52,15 @@ using Namespace = std::string;
 using Key = std::string;
 using LPCallback = std::function<void(Namespace, Key, int, std::any)>;
 
-ModuleIdentifier GPGFRONTEND_CORE_EXPORT
-GetRealModuleIdentifier(const ModuleIdentifier& id);
+auto GPGFRONTEND_CORE_EXPORT GetRealModuleIdentifier(const ModuleIdentifier& id)
+    -> ModuleIdentifier;
 
 class GPGFRONTEND_CORE_EXPORT ModuleManager : public QObject {
   Q_OBJECT
  public:
-  ~ModuleManager();
+  ~ModuleManager() override;
 
-  static ModuleMangerPtr GetInstance();
+  static auto GetInstance() -> ModuleMangerPtr;
 
   void RegisterModule(ModulePtr);
 
@@ -70,13 +70,13 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager : public QObject {
 
   void DeactiveModule(ModuleIdentifier);
 
-  std::optional<TaskRunnerPtr> GetTaskRunner(ModuleIdentifier);
+  auto GetTaskRunner(ModuleIdentifier) -> std::optional<TaskRunnerPtr>;
 
-  bool UpsertRTValue(Namespace, Key, std::any);
+  auto UpsertRTValue(Namespace, Key, std::any) -> bool;
 
-  std::optional<std::any> RetrieveRTValue(Namespace, Key);
+  auto RetrieveRTValue(Namespace, Key) -> std::optional<std::any>;
 
-  bool ListenRTPublish(QObject*, Namespace, Key, LPCallback);
+  auto ListenRTPublish(QObject*, Namespace, Key, LPCallback) -> bool;
 
  private:
   class Impl;
@@ -101,21 +101,22 @@ void RegisterAndActivateModule(Args&&... args) {
 }
 
 template <typename... Args>
-void TriggerEvent(const EventIdentifier& event_id, Args&&... args) {
+void TriggerEvent(const EventIdentifier& event_id, Args&&... args,
+                  Event::EventCallback e_cb = nullptr) {
   ModuleManager::GetInstance()->TriggerEvent(
-      std::move(MakeEvent(event_id, std::forward<Args>(args)...)));
+      std::move(MakeEvent(event_id, std::forward<Args>(args)..., e_cb)));
 }
 
-bool GPGFRONTEND_CORE_EXPORT UpsertRTValue(const std::string& namespace_,
+auto GPGFRONTEND_CORE_EXPORT UpsertRTValue(const std::string& namespace_,
                                            const std::string& key,
-                                           const std::any& value);
+                                           const std::any& value) -> bool;
 
-bool GPGFRONTEND_CORE_EXPORT ListenRTPublishEvent(QObject*, Namespace, Key,
-                                                  LPCallback);
+auto GPGFRONTEND_CORE_EXPORT ListenRTPublishEvent(QObject*, Namespace, Key,
+                                                  LPCallback) -> bool;
 
 template <typename T>
-std::optional<T> RetrieveRTValueTyped(const std::string& namespace_,
-                                      const std::string& key) {
+auto RetrieveRTValueTyped(const std::string& namespace_, const std::string& key)
+    -> std::optional<T> {
   auto any_value =
       ModuleManager::GetInstance()->RetrieveRTValue(namespace_, key);
   if (any_value && any_value->type() == typeid(T)) {
@@ -125,8 +126,9 @@ std::optional<T> RetrieveRTValueTyped(const std::string& namespace_,
 }
 
 template <typename T>
-T RetrieveRTValueTypedOrDefault(const std::string& namespace_,
-                                const std::string& key, const T& defaultValue) {
+auto RetrieveRTValueTypedOrDefault(const std::string& namespace_,
+                                   const std::string& key,
+                                   const T& defaultValue) -> T {
   auto any_value =
       ModuleManager::GetInstance()->RetrieveRTValue(namespace_, key);
   if (any_value && any_value->type() == typeid(T)) {

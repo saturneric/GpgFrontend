@@ -74,11 +74,11 @@ auto GpgFrontend::GpgKeyImportExporter::ExportKeys(KeyIdArgsListPtr& uid_list,
                                                    bool secret) const -> bool {
   if (uid_list->empty()) return false;
 
-  int _mode = 0;
-  if (secret) _mode |= GPGME_EXPORT_MODE_SECRET;
+  int mode = 0;
+  if (secret) mode |= GPGME_EXPORT_MODE_SECRET;
 
   auto keys = GpgKeyGetter::GetInstance().GetKeys(uid_list);
-  auto keys_array = new gpgme_key_t[keys->size() + 1];
+  auto* keys_array = new gpgme_key_t[keys->size() + 1];
 
   int index = 0;
   for (const auto& key : *keys) {
@@ -87,7 +87,7 @@ auto GpgFrontend::GpgKeyImportExporter::ExportKeys(KeyIdArgsListPtr& uid_list,
   keys_array[index] = nullptr;
 
   GpgData data_out;
-  auto err = gpgme_op_export_keys(ctx_, keys_array, _mode, data_out);
+  auto err = gpgme_op_export_keys(ctx_, keys_array, mode, data_out);
   if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return false;
 
   delete[] keys_array;
@@ -126,11 +126,13 @@ auto GpgFrontend::GpgKeyImportExporter::ExportAllKeys(
     KeyIdArgsListPtr& uid_list, ByteArrayPtr& out_buffer, bool secret) const
     -> bool {
   bool result = true;
-  result = ExportKeys(uid_list, out_buffer, false) & result;
+  result = ((static_cast<int>(ExportKeys(uid_list, out_buffer, false)) &
+             static_cast<int>(result)) != 0);
 
   ByteArrayPtr temp_buffer;
   if (secret) {
-    result = ExportKeys(uid_list, temp_buffer, true) & result;
+    result = ((static_cast<int>(ExportKeys(uid_list, temp_buffer, true)) &
+               static_cast<int>(result)) != 0);
   }
   out_buffer->append(*temp_buffer);
   return result;

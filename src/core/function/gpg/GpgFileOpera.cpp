@@ -245,10 +245,11 @@ auto GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
   auto err = GpgBasicOperator::GetInstance(_channel).EncryptSymmetric(
       in_buffer, out_buffer, result);
 
-  if (CheckGpgError(err) == GPG_ERR_NO_ERROR)
+  if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
     if (!FileOperator::WriteFileStd(out_path_std, *out_buffer)) {
       throw std::runtime_error("WriteBufferToFile error");
-    };
+    }
+  };
 
   return err;
 }

@@ -49,7 +49,7 @@ class GPGFRONTEND_CORE_EXPORT Event {
   using EventIdentifier = std::string;
   using ListenerIdentifier = std::string;
   using EventCallback =
-      std::function<void(EventIdentifier, ListenerIdentifier, DataObject)>;
+      std::function<void(EventIdentifier, ListenerIdentifier, DataObjectPtr)>;
   struct ParameterInitializer {
     std::string key;
     ParameterValue value;
@@ -78,17 +78,19 @@ class GPGFRONTEND_CORE_EXPORT Event {
 
   void AddParameter(const std::string& key, const ParameterValue& value);
 
+  void ExecuteCallback(ListenerIdentifier, DataObjectPtr);
+
  private:
   class Impl;
   std::unique_ptr<Impl> p_;
 };
 
 template <typename... Args>
-auto MakeEvent(const EventIdentifier& event_id, Args&&... args)
-    -> EventRefrernce {
+auto MakeEvent(const EventIdentifier& event_id, Args&&... args,
+               Event::EventCallback e_cb) -> EventRefrernce {
   std::initializer_list<Event::ParameterInitializer> params = {
       Event::ParameterInitializer{std::forward<Args>(args)}...};
-  return std::make_shared<Event>(event_id, params);
+  return std::make_shared<Event>(event_id, params, e_cb);
 }
 
 }  // namespace GpgFrontend::Module

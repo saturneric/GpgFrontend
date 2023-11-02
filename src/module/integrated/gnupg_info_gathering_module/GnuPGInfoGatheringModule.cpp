@@ -389,11 +389,12 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
             info.value = option_value;
 
             nlohmann::json jsonlized_option_info = info;
-            UpsertRTValue(GetModuleIdentifier(),
-                          (boost::format("gnupg.components.%1%.options.%2%") %
-                           component_info.name % option_name)
-                              .str(),
-                          std::string(jsonlized_option_info.dump()));
+            UpsertRTValue(
+                GetModuleIdentifier(),
+                (boost::format("gnupg.components.%1%.options.%2%") %
+                 component_info.name % option_name)
+                    .str(),
+                static_cast<std::string>(jsonlized_option_info.dump()));
             options_infos.push_back(info);
           }
 
@@ -401,22 +402,24 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
           for (auto &option_info : options_infos) {
             jsonlized_options_info.emplace_back(option_info);
           }
-          UpsertRTValue(GetModuleIdentifier(),
-                        (boost::format("gnupg.components.%1%"
-                                       ".options_info") %
-                         component_info.name)
-                            .str(),
-                        std::string(jsonlized_options_info.dump()));
+          UpsertRTValue(
+              GetModuleIdentifier(),
+              (boost::format("gnupg.components.%1%"
+                             ".options_info") %
+               component_info.name)
+                  .str(),
+              static_cast<std::string>(jsonlized_options_info.dump()));
         },
         getTaskRunner()});
   }
 
   GpgCommandExecutor::ExecuteConcurrentlySync(exec_contexts);
   UpsertRTValue(GetModuleIdentifier(), "gnupg.gathering_done", true);
+  event->ExecuteCallback(GetModuleIdentifier(), TransferParams(true));
 
   return 0;
 }
 
-bool GnuPGInfoGatheringModule::Deactive() { return true; }
+auto GnuPGInfoGatheringModule::Deactive() -> bool { return true; }
 
 }  // namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule

@@ -32,6 +32,7 @@
 #include <optional>
 #include <shared_mutex>
 #include <unordered_map>
+#include <utility>
 
 namespace GpgFrontend::Module {
 
@@ -44,10 +45,9 @@ class GlobalRegisterTable::Impl {
     const std::type_info* type = nullptr;
   };
 
-  Impl(GlobalRegisterTable* parent)
-      : parent_(parent), global_register_table_() {}
+  explicit Impl(GlobalRegisterTable* parent) : parent_(parent) {}
 
-  bool PublishKV(Namespace n, Key k, std::any v) {
+  auto PublishKV(Namespace n, Key k, std::any v) -> bool {
     SPDLOG_DEBUG("publishing kv to rt, n: {}, k: {}, v type: {}", n, k,
                  v.type().name());
 
@@ -77,7 +77,7 @@ class GlobalRegisterTable::Impl {
     return true;
   }
 
-  std::optional<std::any> LookupKV(Namespace n, Key k) {
+  auto LookupKV(Namespace n, Key k) -> std::optional<std::any> {
     SPDLOG_DEBUG("looking up kv in rt, n: {}, k: {}", n, k);
 
     std::istringstream iss(k);
@@ -100,15 +100,15 @@ class GlobalRegisterTable::Impl {
     return rtn;
   }
 
-  bool ListenPublish(QObject* o, Namespace n, Key k, LPCallback c) {
+  auto ListenPublish(QObject* o, Namespace n, Key k, LPCallback c) -> bool {
     if (o == nullptr) return false;
-    return QObject::connect(
-               parent_, &GlobalRegisterTable::SignalPublish, o,
-               [n, k, c](Namespace pn, Key pk, int ver, std::any value) {
-                 if (pn == n && pk == k) {
-                   c(pn, pk, ver, value);
-                 }
-               }) == nullptr;
+    return QObject::connect(parent_, &GlobalRegisterTable::SignalPublish, o,
+                            [n, k, c](const Namespace& pn, const Key& pk,
+                                      int ver, std::any value) {
+                              if (pn == n && pk == k) {
+                                c(pn, pk, ver, std::move(value));
+                              }
+                            }) == nullptr;
   }
 
  private:
@@ -123,16 +123,17 @@ GlobalRegisterTable::GlobalRegisterTable() : p_(std::make_unique<Impl>(this)) {}
 
 GlobalRegisterTable::~GlobalRegisterTable() = default;
 
-bool GlobalRegisterTable::PublishKV(Namespace n, Key k, std::any v) {
+auto GlobalRegisterTable::PublishKV(Namespace n, Key k, std::any v) -> bool {
   return p_->PublishKV(n, k, v);
 }
 
-std::optional<std::any> GlobalRegisterTable::LookupKV(Namespace n, Key v) {
+auto GlobalRegisterTable::LookupKV(Namespace n, Key v)
+    -> std::optional<std::any> {
   return p_->LookupKV(n, v);
 }
 
-bool GlobalRegisterTable::ListenPublish(QObject* o, Namespace n, Key k,
-                                        LPCallback c) {
+auto GlobalRegisterTable::ListenPublish(QObject* o, Namespace n, Key k,
+                                        LPCallback c) -> bool {
   return p_->ListenPublish(o, n, k, c);
 }
 

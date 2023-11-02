@@ -97,8 +97,8 @@ void VersionCheckTask::slot_parse_latest_version_info() {
         SPDLOG_WARN("latest version unknown");
       }
 
-      bool prerelease = latest_reply_json["prerelease"],
-           draft = latest_reply_json["draft"];
+      bool prerelease = latest_reply_json["prerelease"];
+      bool draft = latest_reply_json["draft"];
       std::string publish_date = latest_reply_json["published_at"];
       std::string release_note = latest_reply_json["body"];
       version_.latest_version = latest_version;
@@ -152,8 +152,8 @@ void VersionCheckTask::slot_parse_current_version_info() {
       MODULE_LOG_DEBUG("current version: {}", current_reply_bytes_.size());
       auto current_reply_json =
           nlohmann::json::parse(current_reply_bytes_.toStdString());
-      bool current_prerelease = current_reply_json["prerelease"],
-           current_draft = current_reply_json["draft"];
+      bool current_prerelease = current_reply_json["prerelease"];
+      bool current_draft = current_reply_json["draft"];
       version_.latest_prerelease_version_from_remote = current_prerelease;
       version_.latest_draft_from_remote = current_draft;
       version_.loading_done = true;

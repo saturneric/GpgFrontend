@@ -47,10 +47,10 @@ class GPGFRONTEND_CORE_EXPORT TaskRunnerGetter
     kTaskRunnerType_External_Process,
   };
 
-  TaskRunnerGetter(int channel = SingletonFunctionObject::GetDefaultChannel());
+  explicit TaskRunnerGetter(int channel = SingletonFunctionObject::GetDefaultChannel());
 
-  TaskRunnerPtr GetTaskRunner(
-      TaskRunnerType runner_type = kTaskRunnerType_Default);
+  auto GetTaskRunner(
+      TaskRunnerType runner_type = kTaskRunnerType_Default) -> TaskRunnerPtr;
 
  private:
   std::map<TaskRunnerType, TaskRunnerPtr> task_runners_;

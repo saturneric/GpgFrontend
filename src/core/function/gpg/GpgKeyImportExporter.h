@@ -122,7 +122,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
    * @return true
    * @return false
    */
-  auto ExportKeys(const KeyArgsList& keys, ByteArrayPtr& out_buffer,
+  auto ExportKeys(const KeyArgsList& keys, ByteArrayPtr& outBuffer,
                   bool secret = false) const -> bool;
 
   /**

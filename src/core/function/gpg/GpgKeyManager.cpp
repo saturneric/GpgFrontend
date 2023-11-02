@@ -31,8 +31,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/date_time/posix_time/conversion.hpp>
 
-#include "GpgBasicOperator.h"
-#include "GpgKeyGetter.h"
+#include "core/function/gpg/GpgBasicOperator.h"
+#include "core/function/gpg/GpgKeyGetter.h"
 
 GpgFrontend::GpgKeyManager::GpgKeyManager(int channel)
     : SingletonFunctionObject<GpgKeyManager>(channel) {}
