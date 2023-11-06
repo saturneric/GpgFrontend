@@ -34,7 +34,7 @@
 #include <shared_mutex>
 
 #include "core/GpgConstants.h"
-#include "core/GpgContext.h"
+#include "core/function/gpg/GpgContext.h"
 
 namespace GpgFrontend {
 

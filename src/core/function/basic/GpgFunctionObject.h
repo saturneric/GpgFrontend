@@ -28,118 +28,12 @@
 
 #pragma once
 
-#include <shared_mutex>
+#include "core/function/basic/ChannelObject.h"
+#include "core/function/basic/SingletonStorage.h"
+#include "core/function/basic/SingletonStorageCollection.h"
 
 namespace GpgFrontend {
 
-static constexpr int kGpgFrontendDefaultChannel =
-    0;  ///< the default channel id
-
-/**
- * @brief object which in channel system
- *
- */
-class GPGFRONTEND_CORE_EXPORT ChannelObject {
- public:
-  /**
-   * @brief Construct a new Default Channel Object object
-   *
-   */
-  ChannelObject() noexcept;
-
-  /**
-   * @brief Construct a new Channel Object object
-   *
-   * @param channel
-   */
-  explicit ChannelObject(int channel);
-
-  /**
-   * @brief Get the Default Channel object
-   *
-   * @return int
-   */
-  static auto GetDefaultChannel() -> int;
-
-  /**
-   * @brief Get the Channel object
-   *
-   * @return int
-   */
-  [[nodiscard]] auto GetChannel() const -> int;
-
-  /**
-   * @brief Set the Channel object
-   *
-   * @param channel
-   */
-  void SetChannel(int channel);
-
- private:
-  int channel_ = kGpgFrontendDefaultChannel;  ///< The channel id
-};
-
-class GPGFRONTEND_CORE_EXPORT SingletonStorage {
- public:
-  /**
-   * @brief
-   *
-   * @param channel
-   */
-  void ReleaseChannel(int channel);
-
-  /**
-   * @brief
-   *
-   * @param channel
-   * @return T*
-   */
-  auto FindObjectInChannel(int channel) -> ChannelObject*;
-
-  /**
-   * @brief Get all the channel ids
-   *
-   * @return std::vector<int>
-   */
-  auto GetAllChannelId() -> std::vector<int>;
-
-  /**
-   * @brief Set a new object in channel object
-   *
-   * @param channel
-   * @param p_obj
-   * @return T*
-   */
-  auto SetObjectInChannel(int channel, std::unique_ptr<ChannelObject> p_obj)
-      -> ChannelObject*;
-
- private:
-  std::shared_mutex instances_mutex_;  ///< mutex for _instances_map
-  std::map<int, std::unique_ptr<ChannelObject>>
-      instances_map_;  ///< map of singleton instances
-};
-
-class GPGFRONTEND_CORE_EXPORT SingletonStorageCollection {
- public:
-  /**
-   * @brief Get the Instance object
-   *
-   * @return SingletonStorageCollection*
-   */
-  static auto GetInstance(bool force_refresh) -> SingletonStorageCollection*;
-
-  /**
-   * @brief Get the Singleton Storage object
-   *
-   * @param singleton_function_object
-   * @return SingletonStorage*
-   */
-  auto GetSingletonStorage(const std::type_info&) -> SingletonStorage*;
-
- private:
-  std::shared_mutex storages_mutex_;  ///< mutex for storages_map_
-  std::map<size_t, std::unique_ptr<SingletonStorage>> storages_map_;
-};
 /**
  * @brief
  *

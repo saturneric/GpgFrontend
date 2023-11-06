@@ -28,53 +28,56 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
-#include "ui/GpgFrontendUI.h"
-#include "ui/dialog/GeneralDialog.h"
+#include "core/function/basic/GpgFunctionObject.h"
 
-namespace GpgFrontend::UI {
+namespace GpgFrontend {
 
 /**
  * @brief
  *
  */
-class KeyUploadDialog : public GeneralDialog {
-  Q_OBJECT
- public:
-  /**
-   * @brief Construct a new Key Upload Dialog object
-   *
-   * @param keys_ids
-   * @param parent
-   */
-  explicit KeyUploadDialog(const KeyIdArgsListPtr& keys_ids, QWidget* parent);
+struct GpgContextInitArgs {
+  std::string db_path = {};
 
- public slots:
+  bool test_mode = false;
+  bool ascii = true;
+  bool offline_mode = false;
+  bool auto_import_missing_key = false;
 
-  /**
-   * @brief
-   *
-   */
-  void SlotUpload();
+  bool custom_gpgconf = false;
+  std::string custom_gpgconf_path;
 
- private slots:
-
-  /**
-   * @brief
-   *
-   * @param keys_data
-   */
-  void slot_upload_key_to_server(const GpgFrontend::ByteArray& keys_data);
-
-  /**
-   * @brief
-   *
-   */
-  void slot_upload_finished();
-
- private:
-  KeyListPtr m_keys_;      ///<
-  QByteArray m_key_data_;  ///<
+  bool use_pinentry = false;
 };
 
-}  // namespace GpgFrontend::UI
+/**
+ * @brief
+ *
+ */
+class GPGFRONTEND_CORE_EXPORT GpgContext
+    : public QObject,
+      public SingletonFunctionObject<GpgContext> {
+  Q_OBJECT
+ public:
+  explicit GpgContext(int channel);
+
+  explicit GpgContext(const GpgContextInitArgs &args, int channel);
+
+  ~GpgContext() override;
+
+  [[nodiscard]] auto Good() const -> bool;
+
+  operator gpgme_ctx_t() const;
+
+  void SetPassphraseCb(gpgme_passphrase_cb_t passphrase_cb) const;
+
+  auto ShowPasswordInputDialog() -> std::string;
+
+ signals:
+  void SignalNeedUserInputPassphrase();
+
+ private:
+  class Impl;
+  std::unique_ptr<Impl> p_;
+};
+}  // namespace GpgFrontend

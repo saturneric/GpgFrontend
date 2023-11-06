@@ -32,7 +32,7 @@
 #include <string>
 
 #include "KeyImportDetailDialog.h"
-#include "core/GpgContext.h"
+#include "core/function/gpg/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
 #include "ui/widgets/KeyList.h"

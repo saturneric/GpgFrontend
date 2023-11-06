@@ -26,55 +26,20 @@
  *
  */
 
-#pragma once
+#include "ChannelObject.h"
 
-#include "core/function/gpg/GpgContext.h"
-#include "ui/GpgFrontendUI.h"
-#include "ui/dialog/GeneralDialog.h"
+namespace GpgFrontend {
 
-namespace GpgFrontend::UI {
+ChannelObject::ChannelObject() noexcept = default;
 
-/**
- * @brief
- *
- */
-class KeyUploadDialog : public GeneralDialog {
-  Q_OBJECT
- public:
-  /**
-   * @brief Construct a new Key Upload Dialog object
-   *
-   * @param keys_ids
-   * @param parent
-   */
-  explicit KeyUploadDialog(const KeyIdArgsListPtr& keys_ids, QWidget* parent);
+ChannelObject::ChannelObject(int channel) : channel_(channel) {}
 
- public slots:
+void ChannelObject::SetChannel(int channel) { this->channel_ = channel; }
 
-  /**
-   * @brief
-   *
-   */
-  void SlotUpload();
+auto ChannelObject::GetChannel() const -> int { return channel_; }
 
- private slots:
+auto ChannelObject::GetDefaultChannel() -> int {
+  return kGpgFrontendDefaultChannel;
+}
 
-  /**
-   * @brief
-   *
-   * @param keys_data
-   */
-  void slot_upload_key_to_server(const GpgFrontend::ByteArray& keys_data);
-
-  /**
-   * @brief
-   *
-   */
-  void slot_upload_finished();
-
- private:
-  KeyListPtr m_keys_;      ///<
-  QByteArray m_key_data_;  ///<
-};
-
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend

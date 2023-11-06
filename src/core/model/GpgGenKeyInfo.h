@@ -32,8 +32,6 @@
 #include <boost/date_time/gregorian/greg_duration_types.hpp>
 #include <boost/format.hpp>
 
-#include "GpgFrontend.h"
-
 namespace GpgFrontend {
 
 class GPGFRONTEND_CORE_EXPORT GenKeyInfo {

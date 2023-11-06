@@ -28,56 +28,59 @@
 
 #pragma once
 
-#include "GpgFunctionObject.h"
-
 namespace GpgFrontend {
 
-/**
- * @brief
- *
- */
-struct GpgContextInitArgs {
-  std::string db_path = {};
+class ChannelObject;
 
-  bool test_mode = false;
-  bool ascii = true;
-  bool offline_mode = false;
-  bool auto_import_missing_key = false;
-
-  bool custom_gpgconf = false;
-  std::string custom_gpgconf_path;
-
-  bool use_pinentry = false;
-};
-
-/**
- * @brief
- *
- */
-class GPGFRONTEND_CORE_EXPORT GpgContext
-    : public QObject,
-      public SingletonFunctionObject<GpgContext> {
-  Q_OBJECT
+class GPGFRONTEND_CORE_EXPORT SingletonStorage {
  public:
-  explicit GpgContext(int channel);
+  /**
+   * @brief
+   *
+   */
+  SingletonStorage() noexcept;
 
-  explicit GpgContext(const GpgContextInitArgs &args, int channel);
+  /**
+   * @brief
+   *
+   */
+  ~SingletonStorage();
 
-  ~GpgContext() override;
+  /**
+   * @brief
+   *
+   * @param channel
+   */
+  void ReleaseChannel(int channel);
 
-  [[nodiscard]] auto Good() const -> bool;
+  /**
+   * @brief
+   *
+   * @param channel
+   * @return T*
+   */
+  auto FindObjectInChannel(int channel) -> ChannelObject*;
 
-  operator gpgme_ctx_t() const;
+  /**
+   * @brief Get all the channel ids
+   *
+   * @return std::vector<int>
+   */
+  auto GetAllChannelId() -> std::vector<int>;
 
-  void SetPassphraseCb(gpgme_passphrase_cb_t passphrase_cb) const;
-
-  auto ShowPasswordInputDialog() -> std::string;
-
- signals:
-  void SignalNeedUserInputPassphrase();
+  /**
+   * @brief Set a new object in channel object
+   *
+   * @param channel
+   * @param p_obj
+   * @return T*
+   */
+  auto SetObjectInChannel(int channel, std::unique_ptr<ChannelObject> p_obj)
+      -> ChannelObject*;
 
  private:
   class Impl;
   std::unique_ptr<Impl> p_;
 };
+
 }  // namespace GpgFrontend

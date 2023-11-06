@@ -30,7 +30,7 @@
 
 #include <libconfig.h++>
 
-#include "core/GpgFunctionObject.h"
+#include "core/function/basic/GpgFunctionObject.h"
 
 namespace GpgFrontend {
 

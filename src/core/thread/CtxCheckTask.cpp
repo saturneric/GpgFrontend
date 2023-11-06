@@ -28,9 +28,9 @@
 
 #include "core/thread/CtxCheckTask.h"
 
-#include "core/GpgContext.h"
 #include "core/GpgCoreInit.h"
 #include "core/common/CoreCommonUtil.h"
+#include "core/function/gpg/GpgContext.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "thread/Task.h"
 

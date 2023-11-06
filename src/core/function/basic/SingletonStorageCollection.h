@@ -28,53 +28,42 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
-#include "ui/GpgFrontendUI.h"
-#include "ui/dialog/GeneralDialog.h"
+namespace GpgFrontend {
 
-namespace GpgFrontend::UI {
+class SingletonStorage;
 
-/**
- * @brief
- *
- */
-class KeyUploadDialog : public GeneralDialog {
-  Q_OBJECT
+class GPGFRONTEND_CORE_EXPORT SingletonStorageCollection {
  public:
   /**
-   * @brief Construct a new Key Upload Dialog object
+   * @brief Get the Instance object
    *
-   * @param keys_ids
-   * @param parent
+   * @return SingletonStorageCollection*
    */
-  explicit KeyUploadDialog(const KeyIdArgsListPtr& keys_ids, QWidget* parent);
-
- public slots:
+  static auto GetInstance(bool force_refresh) -> SingletonStorageCollection*;
 
   /**
-   * @brief
+   * @brief Get the Singleton Storage object
    *
+   * @param singleton_function_object
+   * @return SingletonStorage*
    */
-  void SlotUpload();
-
- private slots:
-
-  /**
-   * @brief
-   *
-   * @param keys_data
-   */
-  void slot_upload_key_to_server(const GpgFrontend::ByteArray& keys_data);
-
-  /**
-   * @brief
-   *
-   */
-  void slot_upload_finished();
+  auto GetSingletonStorage(const std::type_info&) -> SingletonStorage*;
 
  private:
-  KeyListPtr m_keys_;      ///<
-  QByteArray m_key_data_;  ///<
+  class Impl;
+  std::unique_ptr<Impl> p_;
+
+  /**
+   * @brief
+   *
+   */
+  SingletonStorageCollection() noexcept;
+
+  /**
+   * @brief
+   *
+   */
+  ~SingletonStorageCollection();
 };
 
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend

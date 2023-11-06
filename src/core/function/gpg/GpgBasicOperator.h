@@ -29,9 +29,9 @@
 #pragma once
 
 #include "core/GpgConstants.h"
-#include "core/GpgContext.h"
-#include "core/GpgFunctionObject.h"
 #include "core/GpgModel.h"
+#include "core/function/basic/GpgFunctionObject.h"
+#include "core/function/gpg/GpgContext.h"
 
 namespace GpgFrontend {
 

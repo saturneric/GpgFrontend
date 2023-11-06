@@ -28,7 +28,7 @@
 
 #include "SettingsGeneral.h"
 
-#include "core/GpgContext.h"
+#include "core/function/gpg/GpgContext.h"
 
 #ifdef SUPPORT_MULTI_LANG
 #include "SettingsDialog.h"

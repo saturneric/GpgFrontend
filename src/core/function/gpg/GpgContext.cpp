@@ -26,16 +26,16 @@
  *
  */
 
-#include "core/GpgContext.h"
+#include "core/function/gpg/GpgContext.h"
 
 #include <gpg-error.h>
 #include <gpgme.h>
 #include <unistd.h>
 
 #include "core/GpgConstants.h"
-#include "core/GpgFunctionObject.h"
 #include "core/common/CoreCommonUtil.h"
 #include "core/function/CoreSignalStation.h"
+#include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/module/ModuleManager.h"

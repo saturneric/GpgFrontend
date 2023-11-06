@@ -28,8 +28,8 @@
 
 #pragma once
 
-#include "core/GpgContext.h"
 #include "core/GpgModel.h"
+#include "core/function/gpg/GpgContext.h"
 
 namespace GpgFrontend {
 /**
@@ -53,7 +53,7 @@ class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
    * @param uid uid args(combine name&comment&email)
    * @return if successful
    */
-  bool AddUID(const GpgKey& key, const std::string& uid);
+  auto AddUID(const GpgKey& key, const std::string& uid) -> bool;
 
   /**
    * create a new uid in certain key pair
@@ -63,8 +63,8 @@ class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
    * @param email
    * @return
    */
-  bool AddUID(const GpgKey& key, const std::string& name,
-              const std::string& comment, const std::string& email);
+  auto AddUID(const GpgKey& key, const std::string& name,
+              const std::string& comment, const std::string& email) -> bool;
 
   /**
    * Revoke(Delete) UID from certain key pair
@@ -72,7 +72,7 @@ class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
    * @param uid target uid
    * @return if successful
    */
-  bool RevUID(const GpgKey& key, const std::string& uid);
+  auto RevUID(const GpgKey& key, const std::string& uid) -> bool;
 
   /**
    * Set one of a uid of a key pair as primary
@@ -80,7 +80,7 @@ class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
    * @param uid target uid
    * @return if successful
    */
-  bool SetPrimaryUID(const GpgKey& key, const std::string& uid);
+  auto SetPrimaryUID(const GpgKey& key, const std::string& uid) -> bool;
 
  private:
   GpgContext& ctx_ =

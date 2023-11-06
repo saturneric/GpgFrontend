@@ -28,53 +28,53 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
-#include "ui/GpgFrontendUI.h"
-#include "ui/dialog/GeneralDialog.h"
+namespace GpgFrontend {
 
-namespace GpgFrontend::UI {
+static constexpr int kGpgFrontendDefaultChannel =
+    0;  ///< the default channel id
 
 /**
- * @brief
+ * @brief object which in channel system is called "channel"
  *
  */
-class KeyUploadDialog : public GeneralDialog {
-  Q_OBJECT
+class GPGFRONTEND_CORE_EXPORT ChannelObject {
  public:
   /**
-   * @brief Construct a new Key Upload Dialog object
+   * @brief Construct a new Default Channel Object object
    *
-   * @param keys_ids
-   * @param parent
    */
-  explicit KeyUploadDialog(const KeyIdArgsListPtr& keys_ids, QWidget* parent);
-
- public slots:
+  ChannelObject() noexcept;
 
   /**
-   * @brief
+   * @brief Construct a new Channel Object object
    *
+   * @param channel
    */
-  void SlotUpload();
-
- private slots:
-
-  /**
-   * @brief
-   *
-   * @param keys_data
-   */
-  void slot_upload_key_to_server(const GpgFrontend::ByteArray& keys_data);
+  explicit ChannelObject(int channel);
 
   /**
-   * @brief
+   * @brief Get the Default Channel object
    *
+   * @return int
    */
-  void slot_upload_finished();
+  static auto GetDefaultChannel() -> int;
+
+  /**
+   * @brief Get the Channel object
+   *
+   * @return int
+   */
+  [[nodiscard]] auto GetChannel() const -> int;
+
+  /**
+   * @brief Set the Channel object
+   *
+   * @param channel
+   */
+  void SetChannel(int channel);
 
  private:
-  KeyListPtr m_keys_;      ///<
-  QByteArray m_key_data_;  ///<
+  int channel_ = kGpgFrontendDefaultChannel;  ///< The channel id
 };
 
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend

@@ -30,7 +30,7 @@
 #include <boost/format.hpp>
 #include <utility>
 
-#include "GpgFunctionObject.h"
+#include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/DataObject.h"
 #include "core/module/Module.h"
 #include "core/thread/Task.h"

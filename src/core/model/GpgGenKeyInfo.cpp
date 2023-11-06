@@ -26,7 +26,7 @@
  *
  */
 
-#include "core/GpgGenKeyInfo.h"
+#include "GpgGenKeyInfo.h"
 
 #include <algorithm>
 #include <boost/date_time/gregorian/greg_date.hpp>

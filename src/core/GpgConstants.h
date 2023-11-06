@@ -66,7 +66,7 @@ using GpgGenKeyResult = std::shared_ptr<struct _gpgme_op_genkey_result>;  ///<
  * @param result
  * @return GpgEncrResult
  */
-GPGFRONTEND_CORE_EXPORT auto NewResult(gpgme_encrypt_result_t&& result)
+auto GPGFRONTEND_CORE_EXPORT NewResult(gpgme_encrypt_result_t&& result)
     -> GpgEncrResult;
 
 /**
@@ -75,7 +75,7 @@ GPGFRONTEND_CORE_EXPORT auto NewResult(gpgme_encrypt_result_t&& result)
  * @param result
  * @return GpgDecrResult
  */
-GPGFRONTEND_CORE_EXPORT auto NewResult(gpgme_decrypt_result_t&& result)
+auto GPGFRONTEND_CORE_EXPORT NewResult(gpgme_decrypt_result_t&& result)
     -> GpgDecrResult;
 
 /**
@@ -84,7 +84,7 @@ GPGFRONTEND_CORE_EXPORT auto NewResult(gpgme_decrypt_result_t&& result)
  * @param result
  * @return GpgSignResult
  */
-GPGFRONTEND_CORE_EXPORT auto NewResult(gpgme_sign_result_t&& result)
+auto GPGFRONTEND_CORE_EXPORT NewResult(gpgme_sign_result_t&& result)
     -> GpgSignResult;
 
 /**
@@ -93,7 +93,7 @@ GPGFRONTEND_CORE_EXPORT auto NewResult(gpgme_sign_result_t&& result)
  * @param result
  * @return GpgVerifyResult
  */
-GPGFRONTEND_CORE_EXPORT auto NewResult(gpgme_verify_result_t&& result)
+auto GPGFRONTEND_CORE_EXPORT NewResult(gpgme_verify_result_t&& result)
     -> GpgVerifyResult;
 
 /**
@@ -102,7 +102,7 @@ GPGFRONTEND_CORE_EXPORT auto NewResult(gpgme_verify_result_t&& result)
  * @param result
  * @return GpgGenKeyResult
  */
-GPGFRONTEND_CORE_EXPORT auto NewResult(gpgme_genkey_result_t&& result)
+auto GPGFRONTEND_CORE_EXPORT NewResult(gpgme_genkey_result_t&& result)
     -> GpgGenKeyResult;
 
 // Error Info Printer
@@ -113,7 +113,7 @@ GPGFRONTEND_CORE_EXPORT auto NewResult(gpgme_genkey_result_t&& result)
  * @param err
  * @return GpgError
  */
-GPGFRONTEND_CORE_EXPORT auto CheckGpgError(GpgError err) -> GpgError;
+auto GPGFRONTEND_CORE_EXPORT CheckGpgError(GpgError err) -> GpgError;
 
 /**
  * @brief
@@ -122,7 +122,7 @@ GPGFRONTEND_CORE_EXPORT auto CheckGpgError(GpgError err) -> GpgError;
  * @param comment
  * @return GpgError
  */
-GPGFRONTEND_CORE_EXPORT auto CheckGpgError(GpgError gpgmeError,
+auto GPGFRONTEND_CORE_EXPORT CheckGpgError(GpgError gpgmeError,
                                            const std::string& comment)
     -> GpgError;
 
@@ -133,7 +133,7 @@ GPGFRONTEND_CORE_EXPORT auto CheckGpgError(GpgError gpgmeError,
  * @param predict
  * @return gpg_err_code_t
  */
-GPGFRONTEND_CORE_EXPORT auto CheckGpgError2ErrCode(
+auto GPGFRONTEND_CORE_EXPORT CheckGpgError2ErrCode(
     gpgme_error_t err, gpgme_error_t predict = GPG_ERR_NO_ERROR)
     -> gpg_err_code_t;
 
@@ -145,7 +145,7 @@ GPGFRONTEND_CORE_EXPORT auto CheckGpgError2ErrCode(
  * @param fingerprint
  * @return std::string
  */
-GPGFRONTEND_CORE_EXPORT auto BeautifyFingerprint(BypeArrayConstRef fingerprint)
+auto GPGFRONTEND_CORE_EXPORT BeautifyFingerprint(BypeArrayConstRef fingerprint)
     -> std::string;
 
 // File Operation

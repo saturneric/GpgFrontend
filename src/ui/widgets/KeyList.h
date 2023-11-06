@@ -31,7 +31,7 @@
 #include <string>
 #include <utility>
 
-#include "core/GpgContext.h"
+#include "core/function/gpg/GpgContext.h"
 #include "ui/dialog/import_export/KeyImportDetailDialog.h"
 
 class Ui_KeyList;

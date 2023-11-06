@@ -29,8 +29,8 @@
 #pragma once
 
 #include "core/GpgConstants.h"
-#include "core/GpgContext.h"
 #include "core/GpgModel.h"
+#include "core/function/gpg/GpgContext.h"
 
 namespace GpgFrontend {
 /**
@@ -76,8 +76,9 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param expires
    * @return GpgError
    */
-  GpgError SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
-                     std::unique_ptr<boost::posix_time::ptime>& expires);
+  auto SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
+                 std::unique_ptr<boost::posix_time::ptime>& expires)
+      -> GpgError;
 
   /**
    * @brief
@@ -85,8 +86,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param key
    * @param output_file_name
    */
-  void GenerateRevokeCert(const GpgKey& key,
-                          const std::string& output_file_name);
+  void GenerateRevokeCert(const GpgKey& key, const std::string& output_path);
 
   /**
    * @brief
@@ -94,7 +94,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param key
    * @return GpgFrontend::GpgError
    */
-  GpgFrontend::GpgError ModifyPassword(const GpgKey& key);
+  auto ModifyPassword(const GpgKey& key) -> GpgFrontend::GpgError;
 
   /**
    * @brief
@@ -103,8 +103,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param tofu_policy
    * @return GpgFrontend::GpgError
    */
-  GpgFrontend::GpgError ModifyTOFUPolicy(const GpgKey& key,
-                                         gpgme_tofu_policy_t tofu_policy);
+  auto ModifyTOFUPolicy(const GpgKey& key, gpgme_tofu_policy_t tofu_policy)
+      -> GpgFrontend::GpgError;
   /**
    * @brief
    *
@@ -112,8 +112,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param result
    * @return GpgFrontend::GpgError
    */
-  GpgFrontend::GpgError GenerateKey(const std::unique_ptr<GenKeyInfo>& params,
-                                    GpgGenKeyResult& result);
+  auto GenerateKey(const std::unique_ptr<GenKeyInfo>& params,
+                   GpgGenKeyResult& result) -> GpgFrontend::GpgError;
 
   /**
    * @brief
@@ -122,8 +122,9 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param params
    * @return GpgFrontend::GpgError
    */
-  GpgFrontend::GpgError GenerateSubkey(
-      const GpgKey& key, const std::unique_ptr<GenKeyInfo>& params);
+  auto GenerateSubkey(const GpgKey& key,
+                      const std::unique_ptr<GenKeyInfo>& params)
+      -> GpgFrontend::GpgError;
 
  private:
   GpgContext& ctx_ =

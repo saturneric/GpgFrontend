@@ -30,7 +30,7 @@
 
 #include "KeyNewUIDDialog.h"
 #include "KeyUIDSignDialog.h"
-#include "core/GpgContext.h"
+#include "core/function/gpg/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {

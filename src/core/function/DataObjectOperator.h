@@ -32,8 +32,8 @@
 #include <nlohmann/json.hpp>
 #include <optional>
 
-#include "core/GpgFunctionObject.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/basic/GpgFunctionObject.h"
 
 namespace GpgFrontend {
 

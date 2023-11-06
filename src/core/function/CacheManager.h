@@ -32,7 +32,7 @@
 #include <optional>
 #include <shared_mutex>
 
-#include "core/GpgFunctionObject.h"
+#include "core/function/basic/GpgFunctionObject.h"
 
 namespace GpgFrontend {
 

@@ -41,8 +41,6 @@ auto GpgFrontend::GpgKeyManager::SignKey(
     const GpgFrontend::GpgKey& target, GpgFrontend::KeyArgsList& keys,
     const std::string& uid,
     const std::unique_ptr<boost::posix_time::ptime>& expires) -> bool {
-  using namespace boost::posix_time;
-
   GpgBasicOperator::GetInstance().SetSigners(keys);
 
   unsigned int flags = 0;

@@ -29,7 +29,7 @@
 #pragma once
 
 #include "core/GpgFrontendCore.h"
-#include "core/GpgFunctionObject.h"
+#include "core/function/basic/GpgFunctionObject.h"
 
 namespace GpgFrontend {
 

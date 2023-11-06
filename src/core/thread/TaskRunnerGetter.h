@@ -29,7 +29,7 @@
 #pragma once
 
 #include "core/GpgFrontendCore.h"
-#include "core/GpgFunctionObject.h"
+#include "core/function/basic/GpgFunctionObject.h"
 #include "core/thread/TaskRunner.h"
 
 namespace GpgFrontend::Thread {
@@ -47,10 +47,11 @@ class GPGFRONTEND_CORE_EXPORT TaskRunnerGetter
     kTaskRunnerType_External_Process,
   };
 
-  explicit TaskRunnerGetter(int channel = SingletonFunctionObject::GetDefaultChannel());
+  explicit TaskRunnerGetter(
+      int channel = SingletonFunctionObject::GetDefaultChannel());
 
-  auto GetTaskRunner(
-      TaskRunnerType runner_type = kTaskRunnerType_Default) -> TaskRunnerPtr;
+  auto GetTaskRunner(TaskRunnerType runner_type = kTaskRunnerType_Default)
+      -> TaskRunnerPtr;
 
  private:
   std::map<TaskRunnerType, TaskRunnerPtr> task_runners_;

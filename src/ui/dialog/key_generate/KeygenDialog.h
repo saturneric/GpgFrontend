@@ -28,8 +28,8 @@
 
 #pragma once
 
-#include "core/GpgContext.h"
-#include "core/GpgGenKeyInfo.h"
+#include "core/function/gpg/GpgContext.h"
+#include "core/model/GpgGenKeyInfo.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
 

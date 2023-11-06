@@ -24,6 +24,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
+aux_source_directory(./function/basic CORE_SOURCE)
 aux_source_directory(./function/result_analyse CORE_SOURCE)
 aux_source_directory(./function/gpg CORE_SOURCE)
 aux_source_directory(./function/aes CORE_SOURCE)

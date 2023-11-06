@@ -32,7 +32,7 @@
 
 #pragma once
 
-#include "core/GpgContext.h"
+#include "core/function/gpg/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
 
 class Ui_GnuPGInfo;
