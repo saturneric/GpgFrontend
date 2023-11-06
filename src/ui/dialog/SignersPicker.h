@@ -29,6 +29,7 @@
 #pragma once
 
 #include "GpgFrontendUI.h"
+#include "core/GpgModel.h"
 #include "ui/dialog//GeneralDialog.h"
 
 namespace GpgFrontend::UI {
@@ -55,7 +56,7 @@ class SignersPicker : public GeneralDialog {
    *
    * @return GpgFrontend::KeyIdArgsListPtr
    */
-  GpgFrontend::KeyIdArgsListPtr GetCheckedSigners();
+  KeyIdArgsListPtr GetCheckedSigners();
 
   /**
    *

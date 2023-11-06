@@ -26,29 +26,33 @@
  *
  */
 
-#pragma once
+#include "FilesystemUtils.h"
 
 namespace GpgFrontend {
 
-constexpr int kRestartCode = 1000;      ///< only refresh ui
-constexpr int kDeepRestartCode = 1001;  // refresh core and ui
+auto GetOnlyFileNameWithPath(const std::string& path) -> std::string {
+  // Create a path object from given string
+  std::filesystem::path path_obj(path);
+  // Check if file name in the path object has extension
+  if (path_obj.has_filename()) {
+    // Fetch the extension from path object and return
+    return (path_obj.parent_path() / path_obj.stem()).u8string();
+  }
+  // In case of no extension return empty string
+  return {};
+}
 
-// Channels
-constexpr int kGpgfrontendDefaultChannel = 0;   ///<
-constexpr int kGpgfrontendNonAsciiChannel = 2;  ///<
+auto GetFileExtension(const std::string& path) -> std::string {
+  // Create a path object from given string
+  std::filesystem::path path_obj(path);
 
-// HEADER
-constexpr const char* PGP_CRYPT_BEGIN = "-----BEGIN PGP MESSAGE-----";  ///<
-constexpr const char* PGP_CRYPT_END = "-----END PGP MESSAGE-----";      ///<
-constexpr const char* PGP_SIGNED_BEGIN =
-    "-----BEGIN PGP SIGNED MESSAGE-----";                              ///<
-constexpr const char* PGP_SIGNED_END = "-----END PGP SIGNATURE-----";  ///<
-constexpr const char* PGP_SIGNATURE_BEGIN =
-    "-----BEGIN PGP SIGNATURE-----";                                      ///<
-constexpr const char* PGP_SIGNATURE_END = "-----END PGP SIGNATURE-----";  ///<
-constexpr const char* PGP_PUBLIC_KEY_BEGIN =
-    "-----BEGIN PGP PUBLIC KEY BLOCK-----";  ///<
-constexpr const char* PGP_PRIVATE_KEY_BEGIN =
-    "-----BEGIN PGP PRIVATE KEY BLOCK-----";  ///<
+  // Check if file name in the path object has extension
+  if (path_obj.has_extension()) {
+    // Fetch the extension from path object and return
+    return path_obj.extension().u8string();
+  }
+  // In case of no extension return empty string
+  return {};
+}
 
 }  // namespace GpgFrontend

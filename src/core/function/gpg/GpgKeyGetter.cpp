@@ -33,8 +33,8 @@
 #include <mutex>
 #include <shared_mutex>
 
-#include "core/GpgConstants.h"
 #include "core/function/gpg/GpgContext.h"
+#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
 

@@ -153,8 +153,8 @@ void MainWindow::slot_add_pgp_header() {
   QString content =
       edit_->CurTextPage()->GetTextPage()->toPlainText().trimmed();
 
-  content.prepend("\n\n").prepend(GpgConstants::PGP_CRYPT_BEGIN);
-  content.append("\n").append(GpgConstants::PGP_CRYPT_END);
+  content.prepend("\n\n").prepend(PGP_CRYPT_BEGIN);
+  content.append("\n").append(PGP_CRYPT_END);
 
   edit_->SlotFillTextEditWithText(content);
 }
@@ -165,8 +165,8 @@ void MainWindow::slot_cut_pgp_header() {
   }
 
   QString content = edit_->CurTextPage()->GetTextPage()->toPlainText();
-  int start = content.indexOf(GpgConstants::PGP_CRYPT_BEGIN);
-  int end = content.indexOf(GpgConstants::PGP_CRYPT_END);
+  int start = content.indexOf(PGP_CRYPT_BEGIN);
+  int end = content.indexOf(PGP_CRYPT_END);
 
   if (start < 0 || end < 0) {
     return;
@@ -177,8 +177,8 @@ void MainWindow::slot_cut_pgp_header() {
   content.remove(start, headEnd - start);
 
   // remove tail
-  end = content.indexOf(GpgConstants::PGP_CRYPT_END);
-  content.remove(end, QString(GpgConstants::PGP_CRYPT_END).size());
+  end = content.indexOf(PGP_CRYPT_END);
+  content.remove(end, QString(PGP_CRYPT_END).size());
 
   edit_->SlotFillTextEditWithText(content.trimmed());
 }

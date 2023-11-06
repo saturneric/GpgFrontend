@@ -132,10 +132,9 @@ void PlainTextEditorPage::slot_format_gpg_header() {
   QString content = ui_->textPage->toPlainText();
 
   // Get positions of the gpg-headers, if they exist
-  int start = content.indexOf(GpgFrontend::GpgConstants::PGP_SIGNED_BEGIN);
-  int startSig =
-      content.indexOf(GpgFrontend::GpgConstants::PGP_SIGNATURE_BEGIN);
-  int endSig = content.indexOf(GpgFrontend::GpgConstants::PGP_SIGNATURE_END);
+  int start = content.indexOf(GpgFrontend::PGP_SIGNED_BEGIN);
+  int startSig = content.indexOf(GpgFrontend::PGP_SIGNATURE_BEGIN);
+  int endSig = content.indexOf(GpgFrontend::PGP_SIGNATURE_END);
 
   if (start < 0 || startSig < 0 || endSig < 0 || sign_marked_) {
     return;

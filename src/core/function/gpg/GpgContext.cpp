@@ -32,7 +32,6 @@
 #include <gpgme.h>
 #include <unistd.h>
 
-#include "core/GpgConstants.h"
 #include "core/common/CoreCommonUtil.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/basic/GpgFunctionObject.h"
@@ -41,6 +40,8 @@
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "core/utils/CommonUtils.h"
+#include "core/utils/GpgUtils.h"
 
 #ifdef _WIN32
 #include <windows.h>

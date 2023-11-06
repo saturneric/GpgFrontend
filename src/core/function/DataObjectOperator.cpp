@@ -32,13 +32,13 @@
 
 #include <boost/date_time.hpp>
 
-#include "core/function/FileOperator.h"
 #include "core/function/PassphraseGenerator.h"
+#include "core/utils/IOUtils.h"
 
 void GpgFrontend::DataObjectOperator::init_app_secure_key() {
   SPDLOG_DEBUG("initializing application secure key");
-  FileOperator::WriteFileStd(app_secure_key_path_,
-                             PassphraseGenerator::GetInstance().Generate(256));
+  WriteFileStd(app_secure_key_path_,
+               PassphraseGenerator::GetInstance().Generate(256));
   std::filesystem::permissions(
       app_secure_key_path_,
       std::filesystem::perms::owner_read | std::filesystem::perms::owner_write);
@@ -53,7 +53,7 @@ GpgFrontend::DataObjectOperator::DataObjectOperator(int channel)
   }
 
   std::string key;
-  if (!FileOperator::ReadFileStd(app_secure_key_path_.u8string(), key)) {
+  if (!ReadFileStd(app_secure_key_path_.u8string(), key)) {
     SPDLOG_ERROR("failed to read app secure key file: {}",
                  app_secure_key_path_.u8string());
     throw std::runtime_error("failed to read app secure key file");
@@ -96,7 +96,7 @@ std::string GpgFrontend::DataObjectOperator::SaveDataObj(
   SPDLOG_DEBUG("saving data object {} to {} , size: {} bytes", _hash_obj_key,
                obj_path.u8string(), encoded.size());
 
-  FileOperator::WriteFileStd(obj_path.u8string(), encoded.toStdString());
+  WriteFileStd(obj_path.u8string(), encoded.toStdString());
 
   return _key.empty() ? _hash_obj_key : std::string();
 }
@@ -119,7 +119,7 @@ std::optional<nlohmann::json> GpgFrontend::DataObjectOperator::GetDataObject(
     }
 
     std::string buffer;
-    if (!FileOperator::ReadFileStd(obj_path.u8string(), buffer)) {
+    if (!ReadFileStd(obj_path.u8string(), buffer)) {
       SPDLOG_ERROR("failed to read data object: {}", _key);
       return {};
     }
@@ -156,7 +156,7 @@ GpgFrontend::DataObjectOperator::GetDataObjectByRef(const std::string& _ref) {
     if (!std::filesystem::exists(obj_path)) return {};
 
     std::string buffer;
-    if (!FileOperator::ReadFileStd(obj_path.u8string(), buffer)) return {};
+    if (!ReadFileStd(obj_path.u8string(), buffer)) return {};
     auto encoded = QByteArray::fromStdString(buffer);
 
     QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,

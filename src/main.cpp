@@ -164,7 +164,8 @@ int main(int argc, char* argv[]) {
 
     SPDLOG_DEBUG("restart loop refresh, event loop code: {}, restart count: {}",
                  return_from_event_loop_code, restart_count);
-  } while (return_from_event_loop_code == kRestartCode && restart_count < 3);
+  } while (return_from_event_loop_code == GpgFrontend::kRestartCode &&
+           restart_count < 3);
 
   // shutdown the logging system for core
   GpgFrontend::Module::ShutdownGpgFrontendModules();
@@ -179,7 +180,7 @@ int main(int argc, char* argv[]) {
   SPDLOG_INFO("GpgFrontend about to exit.");
 
   // deep restart mode
-  if (return_from_event_loop_code == kRestartCode ||
+  if (return_from_event_loop_code == GpgFrontend::kRestartCode ||
       return_from_event_loop_code == CRASH_CODE) {
     // log for debug
     SPDLOG_DEBUG(

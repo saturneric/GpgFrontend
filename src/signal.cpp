@@ -27,6 +27,7 @@
  */
 
 #include <csetjmp>
+#include <iostream>
 
 #include "GpgFrontend.h"
 
@@ -52,8 +53,8 @@ void handle_signal(int sig) {
     _repeat_handle_num = 1, last_sig = sig;
 
   if (_repeat_handle_num > 3) {
-      std::cout << "The same signal appears three times,"
-      << "execute the termination operation." << sig;
+    std::cout << "The same signal appears three times,"
+              << "execute the termination operation." << sig;
     exit(-1);
   }
 

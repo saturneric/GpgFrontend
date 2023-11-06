@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/GpgModel.h"
 #include "core/function/gpg/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"

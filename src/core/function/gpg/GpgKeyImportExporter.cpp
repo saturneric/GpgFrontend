@@ -28,8 +28,8 @@
 
 #include "GpgKeyImportExporter.h"
 
-#include "core/GpgConstants.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/utils/GpgUtils.h"
 
 GpgFrontend::GpgKeyImportExporter::GpgKeyImportExporter(int channel)
     : SingletonFunctionObject<GpgKeyImportExporter>(channel),

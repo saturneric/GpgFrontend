@@ -28,7 +28,7 @@
 
 #include "SoftwareVersion.h"
 
-#include "core/GpgConstants.h"
+#include "core/utils/CommonUtils.h"
 
 namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 

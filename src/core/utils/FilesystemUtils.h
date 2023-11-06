@@ -28,27 +28,18 @@
 
 #pragma once
 
-namespace GpgFrontend {
+/**
+ * @brief Get the file extension object
+ *
+ * @param path
+ * @return std::string
+ */
+auto GetFileExtension(const std::string& path) -> std::string;
 
-constexpr int kRestartCode = 1000;      ///< only refresh ui
-constexpr int kDeepRestartCode = 1001;  // refresh core and ui
-
-// Channels
-constexpr int kGpgfrontendDefaultChannel = 0;   ///<
-constexpr int kGpgfrontendNonAsciiChannel = 2;  ///<
-
-// HEADER
-constexpr const char* PGP_CRYPT_BEGIN = "-----BEGIN PGP MESSAGE-----";  ///<
-constexpr const char* PGP_CRYPT_END = "-----END PGP MESSAGE-----";      ///<
-constexpr const char* PGP_SIGNED_BEGIN =
-    "-----BEGIN PGP SIGNED MESSAGE-----";                              ///<
-constexpr const char* PGP_SIGNED_END = "-----END PGP SIGNATURE-----";  ///<
-constexpr const char* PGP_SIGNATURE_BEGIN =
-    "-----BEGIN PGP SIGNATURE-----";                                      ///<
-constexpr const char* PGP_SIGNATURE_END = "-----END PGP SIGNATURE-----";  ///<
-constexpr const char* PGP_PUBLIC_KEY_BEGIN =
-    "-----BEGIN PGP PUBLIC KEY BLOCK-----";  ///<
-constexpr const char* PGP_PRIVATE_KEY_BEGIN =
-    "-----BEGIN PGP PRIVATE KEY BLOCK-----";  ///<
-
-}  // namespace GpgFrontend
+/**
+ * @brief Get the only file name with path object
+ *
+ * @param path
+ * @return std::string
+ */
+auto GetOnlyFileNameWithPath(const std::string& path) -> std::string;

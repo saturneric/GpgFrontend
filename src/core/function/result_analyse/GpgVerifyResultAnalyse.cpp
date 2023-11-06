@@ -32,7 +32,8 @@
 
 #include "GpgFrontend.h"
 #include "core/GpgConstants.h"
-#include "function/gpg/GpgKeyGetter.h"
+#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/utils/CommonUtils.h"
 
 GpgFrontend::GpgVerifyResultAnalyse::GpgVerifyResultAnalyse(
     GpgError error, GpgVerifyResult result)

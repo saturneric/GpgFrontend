@@ -30,8 +30,6 @@
 
 #include <boost/date_time.hpp>
 
-#include "core/GpgConstants.h"
-
 namespace GpgFrontend {
 
 /**

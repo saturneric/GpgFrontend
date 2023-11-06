@@ -28,27 +28,21 @@
 
 #pragma once
 
+#include "core/CoreTypedef.h"
+
 namespace GpgFrontend {
 
-constexpr int kRestartCode = 1000;      ///< only refresh ui
-constexpr int kDeepRestartCode = 1001;  // refresh core and ui
+/**
+ * @brief
+ *
+ * @param fingerprint
+ * @return std::string
+ */
+auto GPGFRONTEND_CORE_EXPORT BeautifyFingerprint(BypeArrayConstRef fingerprint)
+    -> std::string;
 
-// Channels
-constexpr int kGpgfrontendDefaultChannel = 0;   ///<
-constexpr int kGpgfrontendNonAsciiChannel = 2;  ///<
-
-// HEADER
-constexpr const char* PGP_CRYPT_BEGIN = "-----BEGIN PGP MESSAGE-----";  ///<
-constexpr const char* PGP_CRYPT_END = "-----END PGP MESSAGE-----";      ///<
-constexpr const char* PGP_SIGNED_BEGIN =
-    "-----BEGIN PGP SIGNED MESSAGE-----";                              ///<
-constexpr const char* PGP_SIGNED_END = "-----END PGP SIGNATURE-----";  ///<
-constexpr const char* PGP_SIGNATURE_BEGIN =
-    "-----BEGIN PGP SIGNATURE-----";                                      ///<
-constexpr const char* PGP_SIGNATURE_END = "-----END PGP SIGNATURE-----";  ///<
-constexpr const char* PGP_PUBLIC_KEY_BEGIN =
-    "-----BEGIN PGP PUBLIC KEY BLOCK-----";  ///<
-constexpr const char* PGP_PRIVATE_KEY_BEGIN =
-    "-----BEGIN PGP PRIVATE KEY BLOCK-----";  ///<
+auto GPGFRONTEND_CORE_EXPORT CompareSoftwareVersion(const std::string& a,
+                                                    const std::string& b)
+    -> int;
 
 }  // namespace GpgFrontend

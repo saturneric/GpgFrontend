@@ -29,7 +29,7 @@
 #include "GlobalSettingStation.h"
 
 #include "GpgFrontendBuildInstallInfo.h"
-#include "core/function/FileOperator.h"
+#include "core/utils/IOUtils.h"
 
 namespace GpgFrontend {
 

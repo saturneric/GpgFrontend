@@ -28,6 +28,8 @@
 
 #include "GpgBasicOperator.h"
 
+#include "core/utils/GpgUtils.h"
+
 GpgFrontend::GpgBasicOperator::GpgBasicOperator(int channel)
     : SingletonFunctionObject<GpgBasicOperator>(channel) {}
 

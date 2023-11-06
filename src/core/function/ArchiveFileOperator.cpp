@@ -170,10 +170,10 @@ void GpgFrontend::ArchiveFileOperator::CreateArchive(
       if (r > ARCHIVE_FAILED) {
         QByteArray buff;
 #ifdef WINDOWS
-        FileOperator::ReadFile(
-            QString::fromStdWString(archive_entry_sourcepath_w(entry)), buff);
+        ReadFile(QString::fromStdWString(archive_entry_sourcepath_w(entry)),
+                 buff);
 #else
-        FileOperator::ReadFile(archive_entry_sourcepath(entry), buff);
+        ReadFile(archive_entry_sourcepath(entry), buff);
 #endif
         archive_write_data(a, buff.data(), buff.size());
       }

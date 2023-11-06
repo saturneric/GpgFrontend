@@ -30,25 +30,12 @@
 
 namespace GpgFrontend {
 
-constexpr int kRestartCode = 1000;      ///< only refresh ui
-constexpr int kDeepRestartCode = 1001;  // refresh core and ui
-
-// Channels
-constexpr int kGpgfrontendDefaultChannel = 0;   ///<
-constexpr int kGpgfrontendNonAsciiChannel = 2;  ///<
-
-// HEADER
-constexpr const char* PGP_CRYPT_BEGIN = "-----BEGIN PGP MESSAGE-----";  ///<
-constexpr const char* PGP_CRYPT_END = "-----END PGP MESSAGE-----";      ///<
-constexpr const char* PGP_SIGNED_BEGIN =
-    "-----BEGIN PGP SIGNED MESSAGE-----";                              ///<
-constexpr const char* PGP_SIGNED_END = "-----END PGP SIGNATURE-----";  ///<
-constexpr const char* PGP_SIGNATURE_BEGIN =
-    "-----BEGIN PGP SIGNATURE-----";                                      ///<
-constexpr const char* PGP_SIGNATURE_END = "-----END PGP SIGNATURE-----";  ///<
-constexpr const char* PGP_PUBLIC_KEY_BEGIN =
-    "-----BEGIN PGP PUBLIC KEY BLOCK-----";  ///<
-constexpr const char* PGP_PRIVATE_KEY_BEGIN =
-    "-----BEGIN PGP PRIVATE KEY BLOCK-----";  ///<
-
+using ByteArray = std::string;                                    ///<
+using ByteArrayPtr = std::shared_ptr<ByteArray>;                  ///<
+using StdBypeArrayPtr = std::shared_ptr<ByteArray>;               ///<
+using BypeArrayRef = ByteArray&;                                  ///<
+using BypeArrayConstRef = const ByteArray&;                       ///<
+using StringArgsPtr = std::unique_ptr<std::vector<std::string>>;  ///<
+using StringArgsRef = std::vector<std::string>&;                  ///<
+                                                                  ///
 }  // namespace GpgFrontend

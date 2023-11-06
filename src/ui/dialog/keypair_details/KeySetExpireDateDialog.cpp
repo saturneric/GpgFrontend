@@ -33,6 +33,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
+#include "core/utils/GpgUtils.h"
 #include "ui/SignalStation.h"
 #include "ui_ModifiedExpirationDateTime.h"
 

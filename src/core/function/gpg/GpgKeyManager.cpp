@@ -33,6 +33,7 @@
 
 #include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/utils/GpgUtils.h"
 
 GpgFrontend::GpgKeyManager::GpgKeyManager(int channel)
     : SingletonFunctionObject<GpgKeyManager>(channel) {}

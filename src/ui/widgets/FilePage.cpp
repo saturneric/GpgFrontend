@@ -417,7 +417,7 @@ void FilePage::slot_delete_item() {
 }
 
 void FilePage::slot_calculate_hash() {
-  auto info_str = FileOperator::CalculateHash(selected_path_);
+  auto info_str = CalculateHash(selected_path_);
   emit SignalRefreshInfoBoard(info_str.c_str(), InfoBoardStatus::INFO_ERROR_OK);
 }
 

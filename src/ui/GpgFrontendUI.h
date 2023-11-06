@@ -37,5 +37,5 @@
  * Project internal dependencies
  */
 #include "GpgFrontend.h"
-#include "core/GpgModel.h"
+#include "core/GpgFrontendCore.h"
 #include "ui/GpgFrontendUIExport.h"

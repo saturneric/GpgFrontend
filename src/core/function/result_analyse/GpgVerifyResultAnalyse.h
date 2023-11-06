@@ -29,7 +29,7 @@
 #pragma once
 
 #include "GpgResultAnalyse.h"
-#include "core/model/GpgKeySignature.h"
+
 
 namespace GpgFrontend {
 /**

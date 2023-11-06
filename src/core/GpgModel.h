@@ -28,12 +28,13 @@
 
 #pragma once
 
-#include "core/GpgConstants.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgSignature.h"
 
 namespace GpgFrontend {
+
+using GpgError = gpgme_error_t;  ///<
 
 using KeyId = std::string;                                                ///<
 using SubkeyId = std::string;                                             ///<
@@ -46,7 +47,7 @@ using SignIdArgsListPtr = std::unique_ptr<SignIdArgsList>;                ///<
 using KeyFprArgsListPtr = std::unique_ptr<std::vector<std::string>>;      ///<
 using KeyArgsList = std::vector<GpgKey>;                                  ///<
 using KeyListPtr = std::shared_ptr<KeyArgsList>;                          ///<
-using GpgKeyLinkList = std::list<GpgFrontend::GpgKey>;                    ///<
+using GpgKeyLinkList = std::list<GpgKey>;                                 ///<
 using KeyLinkListPtr = std::unique_ptr<GpgKeyLinkList>;                   ///<
 using KeyPtr = std::unique_ptr<GpgKey>;                                   ///<
 using KeyPtrArgsList = const std::initializer_list<KeyPtr>;               ///<

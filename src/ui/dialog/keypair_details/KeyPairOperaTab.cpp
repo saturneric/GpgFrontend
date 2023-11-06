@@ -33,6 +33,8 @@
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyManager.h"
 #include "core/function/gpg/GpgKeyOpera.h"
+#include "core/utils/GpgUtils.h"
+#include "core/utils/IOUtils.h"
 #include "ui/SignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/import_export/KeyUploadDialog.h"

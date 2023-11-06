@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/widgets/PlainTextEditorPage.h"
 #include "ui/widgets/VerifyKeyDetailBox.h"

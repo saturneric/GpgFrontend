@@ -28,7 +28,9 @@
 
 #include "GpgUIDOperator.h"
 
-#include "boost/format.hpp"
+#include <boost/format.hpp>
+
+#include "core/utils/GpgUtils.h"
 
 GpgFrontend::GpgUIDOperator::GpgUIDOperator(int channel)
     : SingletonFunctionObject<GpgUIDOperator>(channel) {}

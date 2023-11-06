@@ -26,12 +26,15 @@
  *
  */
 
-#include "FileOperator.h"
+#include "IOUtils.h"
 
 #include <sstream>
 
-bool GpgFrontend::FileOperator::ReadFile(const QString& file_name,
-                                         QByteArray& data) {
+#include "GpgModel.h"
+
+namespace GpgFrontend {
+
+auto ReadFile(const QString& file_name, QByteArray& data) -> bool {
   QFile file(file_name);
   if (!file.open(QIODevice::ReadOnly)) {
     SPDLOG_ERROR("failed to open file: {}", file_name.toStdString());
@@ -42,8 +45,7 @@ bool GpgFrontend::FileOperator::ReadFile(const QString& file_name,
   return true;
 }
 
-bool GpgFrontend::FileOperator::WriteFile(const QString& file_name,
-                                          const QByteArray& data) {
+auto WriteFile(const QString& file_name, const QByteArray& data) -> bool {
   QFile file(file_name);
   if (!file.open(QIODevice::WriteOnly)) {
     SPDLOG_ERROR("failed to open file: {}", file_name.toStdString());
@@ -54,8 +56,8 @@ bool GpgFrontend::FileOperator::WriteFile(const QString& file_name,
   return true;
 }
 
-bool GpgFrontend::FileOperator::ReadFileStd(
-    const std::filesystem::path& file_name, std::string& data) {
+auto ReadFileStd(const std::filesystem::path& file_name, std::string& data)
+    -> bool {
   QByteArray byte_data;
 #ifdef WINDOWS
   bool res = ReadFile(QString::fromStdU16String(file_name.u16string()).toUtf8(),
@@ -68,14 +70,13 @@ bool GpgFrontend::FileOperator::ReadFileStd(
   return res;
 }
 
-bool GpgFrontend::FileOperator::WriteFileStd(
-    const std::filesystem::path& file_name, const std::string& data) {
+auto WriteFileStd(const std::filesystem::path& file_name,
+                  const std::string& data) -> bool {
   return WriteFile(QString::fromStdString(file_name.u8string()).toUtf8(),
                    QByteArray::fromStdString(data));
 }
 
-std::string GpgFrontend::FileOperator::CalculateHash(
-    const std::filesystem::path& file_path) {
+auto CalculateHash(const std::filesystem::path& file_path) -> std::string {
   // Returns empty QByteArray() on failure.
   QFileInfo info(QString::fromStdString(file_path.string()));
   std::stringstream ss;
@@ -124,3 +125,15 @@ std::string GpgFrontend::FileOperator::CalculateHash(
 
   return ss.str();
 }
+
+auto ReadAllDataInFile(const std::string& utf8_path) -> std::string {
+  std::string data;
+  ReadFileStd(utf8_path, data);
+  return data;
+}
+
+auto WriteBufferToFile(const std::string& utf8_path,
+                       const std::string& out_buffer) -> bool {
+  return WriteFileStd(utf8_path, out_buffer);
+}
+}  // namespace GpgFrontend

@@ -42,6 +42,8 @@
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/DataObject.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/CommonUtils.h"
+#include "core/utils/GpgUtils.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SignersPicker.h"
 #include "ui/dialog/help/AboutDialog.h"
@@ -259,13 +261,6 @@ void MainWindow::slot_decrypt() {
   }
 
   QByteArray text = edit_->CurTextPage()->GetTextPage()->toPlainText().toUtf8();
-
-  if (text.trimmed().startsWith(GpgConstants::GPG_FRONTEND_SHORT_CRYPTO_HEAD)) {
-    QMessageBox::critical(
-        this, _("Notice"),
-        _("Short Crypto Text only supports Decrypt & Verify."));
-    return;
-  }
 
   // data to transfer into task
   auto data_object = TransferParams(

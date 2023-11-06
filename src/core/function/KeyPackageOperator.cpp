@@ -32,11 +32,11 @@
 
 #include <boost/format.hpp>
 
-#include "core/function/FileOperator.h"
 #include "core/function/KeyPackageOperator.h"
 #include "core/function/PassphraseGenerator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/utils/IOUtils.h"
 
 namespace GpgFrontend {
 
@@ -44,7 +44,7 @@ bool KeyPackageOperator::GeneratePassphrase(
     const std::filesystem::path& phrase_path, std::string& phrase) {
   phrase = PassphraseGenerator::GetInstance().Generate(256);
   SPDLOG_DEBUG("generated passphrase: {} bytes", phrase.size());
-  return FileOperator::WriteFileStd(phrase_path, phrase);
+  return WriteFileStd(phrase_path, phrase);
 }
 
 bool KeyPackageOperator::GenerateKeyPackage(
@@ -69,7 +69,7 @@ bool KeyPackageOperator::GenerateKeyPackage(
   auto encoded = encryption.encode(data, hash_key);
 
   SPDLOG_DEBUG("writing key package: {}", key_package_name);
-  return FileOperator::WriteFileStd(key_package_path, encoded.toStdString());
+  return WriteFileStd(key_package_path, encoded.toStdString());
 }
 
 bool KeyPackageOperator::ImportKeyPackage(
@@ -79,7 +79,7 @@ bool KeyPackageOperator::ImportKeyPackage(
   SPDLOG_DEBUG("importing key package: {]", key_package_path.u8string());
 
   std::string encrypted_data;
-  FileOperator::ReadFileStd(key_package_path, encrypted_data);
+  ReadFileStd(key_package_path, encrypted_data);
 
   if (encrypted_data.empty()) {
     SPDLOG_ERROR("failed to read key package: {}", key_package_path.u8string());
@@ -87,7 +87,7 @@ bool KeyPackageOperator::ImportKeyPackage(
   };
 
   std::string passphrase;
-  FileOperator::ReadFileStd(phrase_path, passphrase);
+  ReadFileStd(phrase_path, passphrase);
   SPDLOG_DEBUG("passphrase: {} bytes", passphrase.size());
   if (passphrase.size() != 256) {
     SPDLOG_ERROR("failed to read passphrase: {}", phrase_path.u8string());
@@ -105,8 +105,8 @@ bool KeyPackageOperator::ImportKeyPackage(
   auto key_data = QByteArray::fromBase64(decoded);
 
   SPDLOG_DEBUG("key data size: {}", key_data.size());
-  if (!key_data.startsWith(GpgConstants::PGP_PUBLIC_KEY_BEGIN) &&
-      !key_data.startsWith(GpgConstants::PGP_PRIVATE_KEY_BEGIN)) {
+  if (!key_data.startsWith(PGP_PUBLIC_KEY_BEGIN) &&
+      !key_data.startsWith(PGP_PRIVATE_KEY_BEGIN)) {
     return false;
   }
 

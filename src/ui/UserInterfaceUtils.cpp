@@ -37,13 +37,13 @@
 #include "core/common/CoreCommonUtil.h"
 #include "core/function/CacheManager.h"
 #include "core/function/CoreSignalStation.h"
-#include "core/function/FileOperator.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunner.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "core/utils/IOUtils.h"
 #include "ui/SignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
 #include "ui/dialog/gnupg/GnuPGControllerDialog.h"
@@ -236,7 +236,7 @@ void CommonUtils::SlotImportKeyFromFile(QWidget *parent) {
           " (*.gpg);;All Files (*)");
   if (!file_name.isNull()) {
     QByteArray key_buffer;
-    if (!FileOperator::ReadFile(file_name, key_buffer)) {
+    if (!ReadFile(file_name, key_buffer)) {
       QMessageBox::critical(nullptr, _("File Open Failed"),
                             _("Failed to open file: ") + file_name);
       return;
