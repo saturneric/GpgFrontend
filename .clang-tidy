@@ -37,6 +37,7 @@ Checks: >
   -readability-identifier-length
   -bugprone-easily-swappable-parameters
   -readability-redundant-access-specifiers
+  -readability-identifier-length
 
 CheckOptions:
   - { key: readability-identifier-naming.NamespaceCase,          value: CamelCase  }

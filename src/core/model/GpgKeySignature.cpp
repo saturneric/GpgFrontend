@@ -28,67 +28,55 @@
 
 #include "core/model/GpgKeySignature.h"
 
-GpgFrontend::GpgKeySignature::GpgKeySignature() = default;
+namespace GpgFrontend {
 
-GpgFrontend::GpgKeySignature::~GpgKeySignature() = default;
+GpgKeySignature::GpgKeySignature() = default;
 
-GpgFrontend::GpgKeySignature::GpgKeySignature(gpgme_key_sig_t sig)
+GpgKeySignature::~GpgKeySignature() = default;
+
+GpgKeySignature::GpgKeySignature(gpgme_key_sig_t sig)
     : signature_ref_(sig, [&](gpgme_key_sig_t signature) {}) {}
 
-GpgFrontend::GpgKeySignature::GpgKeySignature(GpgKeySignature &&) noexcept =
+GpgKeySignature::GpgKeySignature(GpgKeySignature &&) noexcept = default;
+
+GpgKeySignature &GpgKeySignature::operator=(GpgKeySignature &&) noexcept =
     default;
 
-GpgFrontend::GpgKeySignature &GpgFrontend::GpgKeySignature::operator=(
-    GpgKeySignature &&) noexcept = default;
+bool GpgKeySignature::IsRevoked() const { return signature_ref_->revoked; }
 
-bool GpgFrontend::GpgKeySignature::IsRevoked() const {
-  return signature_ref_->revoked;
-}
+bool GpgKeySignature::IsExpired() const { return signature_ref_->expired; }
 
-bool GpgFrontend::GpgKeySignature::IsExpired() const {
-  return signature_ref_->expired;
-}
+bool GpgKeySignature::IsInvalid() const { return signature_ref_->invalid; }
 
-bool GpgFrontend::GpgKeySignature::IsInvalid() const {
-  return signature_ref_->invalid;
-}
-
-bool GpgFrontend::GpgKeySignature::IsExportable() const {
+bool GpgKeySignature::IsExportable() const {
   return signature_ref_->exportable;
 }
 
-gpgme_error_t GpgFrontend::GpgKeySignature::GetStatus() const {
+gpgme_error_t GpgKeySignature::GetStatus() const {
   return signature_ref_->status;
 }
 
-std::string GpgFrontend::GpgKeySignature::GetKeyID() const {
-  return signature_ref_->keyid;
-}
+std::string GpgKeySignature::GetKeyID() const { return signature_ref_->keyid; }
 
-std::string GpgFrontend::GpgKeySignature::GetPubkeyAlgo() const {
+std::string GpgKeySignature::GetPubkeyAlgo() const {
   return gpgme_pubkey_algo_name(signature_ref_->pubkey_algo);
 }
 
-boost::posix_time::ptime GpgFrontend::GpgKeySignature::GetCreateTime() const {
+boost::posix_time::ptime GpgKeySignature::GetCreateTime() const {
   return boost::posix_time::from_time_t(signature_ref_->timestamp);
 }
 
-boost::posix_time::ptime GpgFrontend::GpgKeySignature::GetExpireTime() const {
+boost::posix_time::ptime GpgKeySignature::GetExpireTime() const {
   return boost::posix_time::from_time_t(signature_ref_->expires);
 }
 
-std::string GpgFrontend::GpgKeySignature::GetUID() const {
-  return signature_ref_->uid;
-}
+std::string GpgKeySignature::GetUID() const { return signature_ref_->uid; }
 
-std::string GpgFrontend::GpgKeySignature::GetName() const {
-  return signature_ref_->name;
-}
+std::string GpgKeySignature::GetName() const { return signature_ref_->name; }
 
-std::string GpgFrontend::GpgKeySignature::GetEmail() const {
-  return signature_ref_->email;
-}
+std::string GpgKeySignature::GetEmail() const { return signature_ref_->email; }
 
-std::string GpgFrontend::GpgKeySignature::GetComment() const {
+std::string GpgKeySignature::GetComment() const {
   return signature_ref_->comment;
 }
+}  // namespace GpgFrontend

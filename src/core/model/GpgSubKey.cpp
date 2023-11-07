@@ -25,79 +25,76 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
-#include "core/model/GpgSubKey.h"
+#include "GpgSubKey.h"
 
-GpgFrontend::GpgSubKey::GpgSubKey() = default;
+namespace GpgFrontend {
 
-GpgFrontend::GpgSubKey::GpgSubKey(gpgme_subkey_t subkey)
-    : _subkey_ref(subkey, [&](gpgme_subkey_t subkey) {}) {}
+GpgSubKey::GpgSubKey() = default;
 
-GpgFrontend::GpgSubKey::GpgSubKey(GpgSubKey&& o) noexcept {
-  swap(_subkey_ref, o._subkey_ref);
+GpgSubKey::GpgSubKey(gpgme_subkey_t subkey)
+    : subkey_ref_(subkey, [&](gpgme_subkey_t subkey) {}) {}
+
+GpgSubKey::GpgSubKey(GpgSubKey&& o) noexcept {
+  swap(subkey_ref_, o.subkey_ref_);
 }
 
-GpgFrontend::GpgSubKey& GpgFrontend::GpgSubKey::operator=(
-    GpgSubKey&& o) noexcept {
-  swap(_subkey_ref, o._subkey_ref);
+auto GpgSubKey::operator=(GpgSubKey&& o) noexcept -> GpgSubKey& {
+  swap(subkey_ref_, o.subkey_ref_);
   return *this;
 };
 
-bool GpgFrontend::GpgSubKey::operator==(const GpgSubKey& o) const {
+auto GpgSubKey::operator==(const GpgSubKey& o) const -> bool {
   return GetFingerprint() == o.GetFingerprint();
 }
 
-std::string GpgFrontend::GpgSubKey::GetID() const { return _subkey_ref->keyid; }
+auto GpgSubKey::GetID() const -> std::string { return subkey_ref_->keyid; }
 
-std::string GpgFrontend::GpgSubKey::GetFingerprint() const {
-  return _subkey_ref->fpr;
+auto GpgSubKey::GetFingerprint() const -> std::string {
+  return subkey_ref_->fpr;
 }
 
-std::string GpgFrontend::GpgSubKey::GetPubkeyAlgo() const {
-  return gpgme_pubkey_algo_name(_subkey_ref->pubkey_algo);
+auto GpgSubKey::GetPubkeyAlgo() const -> std::string {
+  return gpgme_pubkey_algo_name(subkey_ref_->pubkey_algo);
 }
 
-unsigned int GpgFrontend::GpgSubKey::GetKeyLength() const {
-  return _subkey_ref->length;
+auto GpgSubKey::GetKeyLength() const -> unsigned int {
+  return subkey_ref_->length;
 }
 
-bool GpgFrontend::GpgSubKey::IsHasEncryptionCapability() const {
-  return _subkey_ref->can_encrypt;
+auto GpgSubKey::IsHasEncryptionCapability() const -> bool {
+  return subkey_ref_->can_encrypt;
 }
 
-bool GpgFrontend::GpgSubKey::IsHasSigningCapability() const {
-  return _subkey_ref->can_sign;
+auto GpgSubKey::IsHasSigningCapability() const -> bool {
+  return subkey_ref_->can_sign;
 }
 
-bool GpgFrontend::GpgSubKey::IsHasCertificationCapability() const {
-  return _subkey_ref->can_certify;
+auto GpgSubKey::IsHasCertificationCapability() const -> bool {
+  return subkey_ref_->can_certify;
 }
 
-bool GpgFrontend::GpgSubKey::IsHasAuthenticationCapability() const {
-  return _subkey_ref->can_authenticate;
+auto GpgSubKey::IsHasAuthenticationCapability() const -> bool {
+  return subkey_ref_->can_authenticate;
 }
 
-bool GpgFrontend::GpgSubKey::IsPrivateKey() const {
-  return _subkey_ref->secret;
+auto GpgSubKey::IsPrivateKey() const -> bool { return subkey_ref_->secret; }
+
+auto GpgSubKey::IsExpired() const -> bool { return subkey_ref_->expired; }
+
+auto GpgSubKey::IsRevoked() const -> bool { return subkey_ref_->revoked; }
+
+auto GpgSubKey::IsDisabled() const -> bool { return subkey_ref_->disabled; }
+
+auto GpgSubKey::IsSecretKey() const -> bool { return subkey_ref_->secret; }
+
+auto GpgSubKey::IsCardKey() const -> bool { return subkey_ref_->is_cardkey; }
+
+auto GpgSubKey::GetCreateTime() const -> boost::posix_time::ptime {
+  return boost::posix_time::from_time_t(subkey_ref_->timestamp);
 }
 
-bool GpgFrontend::GpgSubKey::IsExpired() const { return _subkey_ref->expired; }
-
-bool GpgFrontend::GpgSubKey::IsRevoked() const { return _subkey_ref->revoked; }
-
-bool GpgFrontend::GpgSubKey::IsDisabled() const {
-  return _subkey_ref->disabled;
+auto GpgSubKey::GetExpireTime() const -> boost::posix_time::ptime {
+  return boost::posix_time::from_time_t(subkey_ref_->expires);
 }
 
-bool GpgFrontend::GpgSubKey::IsSecretKey() const { return _subkey_ref->secret; }
-
-bool GpgFrontend::GpgSubKey::IsCardKey() const {
-  return _subkey_ref->is_cardkey;
-}
-
-boost::posix_time::ptime GpgFrontend::GpgSubKey::GetCreateTime() const {
-  return boost::posix_time::from_time_t(_subkey_ref->timestamp);
-}
-
-boost::posix_time::ptime GpgFrontend::GpgSubKey::GetExpireTime() const {
-  return boost::posix_time::from_time_t(_subkey_ref->expires);
-}
+}  // namespace GpgFrontend

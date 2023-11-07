@@ -29,25 +29,26 @@
 #include "DataObject.h"
 
 #include <stack>
+#include <utility>
 
 namespace GpgFrontend {
 
 class DataObject::Impl {
  public:
-  Impl() {}
+  Impl() = default;
 
   Impl(std::initializer_list<std::any> init_list) : params_(init_list) {}
 
-  void AppendObject(std::any obj) { params_.push_back(obj); }
+  void AppendObject(const std::any& obj) { params_.push_back(obj); }
 
-  std::any GetParameter(size_t index) {
+  auto GetParameter(size_t index) -> std::any {
     if (index >= params_.size()) {
       throw std::out_of_range("index out of range");
     }
     return params_[index];
   }
 
-  size_t GetObjectSize() { return params_.size(); }
+  auto GetObjectSize() -> size_t { return params_.size(); }
 
  private:
   std::vector<std::any> params_;
@@ -62,17 +63,17 @@ DataObject::~DataObject() = default;
 
 DataObject::DataObject(DataObject&&) noexcept = default;
 
-std::any DataObject::operator[](size_t index) const {
+auto DataObject::operator[](size_t index) const -> std::any {
   return p_->GetParameter(index);
 }
 
-std::any DataObject::GetParameter(size_t index) const {
+auto DataObject::GetParameter(size_t index) const -> std::any {
   return p_->GetParameter(index);
 }
 
 void DataObject::AppendObject(std::any obj) { return p_->AppendObject(obj); }
 
-size_t DataObject::GetObjectSize() const { return p_->GetObjectSize(); }
+auto DataObject::GetObjectSize() const -> size_t { return p_->GetObjectSize(); }
 
 void DataObject::Swap(DataObject& other) noexcept { std::swap(p_, other.p_); }
 

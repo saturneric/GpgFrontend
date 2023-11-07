@@ -64,21 +64,20 @@ class GpgData {
    *
    * @return ByteArrayPtr
    */
-  ByteArrayPtr Read2Buffer();
+  auto Read2Buffer() -> ByteArrayPtr;
 
  private:
   /**
    * @brief
    *
    */
-  struct _data_ref_deleter {
+  struct DataRefDeleter {
     void operator()(gpgme_data_t _data) {
       if (_data != nullptr) gpgme_data_release(_data);
     }
   };
 
-  std::unique_ptr<struct gpgme_data, _data_ref_deleter> data_ref_ =
-      nullptr;  ///<
+  std::unique_ptr<struct gpgme_data, DataRefDeleter> data_ref_ = nullptr;  ///<
 };
 
 }  // namespace GpgFrontend

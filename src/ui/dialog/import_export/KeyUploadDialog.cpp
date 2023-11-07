@@ -101,10 +101,10 @@ void KeyUploadDialog::slot_upload_key_to_server(
   }
 
   QUrl req_url(QString::fromStdString(target_keyserver + "/pks/add"));
-  auto qnam = new QNetworkAccessManager(this);
+  auto* qnam = new QNetworkAccessManager(this);
 
   // Building Post Data
-  QByteArray postData;
+  QByteArray post_data;
 
   auto data = std::string(keys_data);
 
@@ -122,11 +122,11 @@ void KeyUploadDialog::slot_upload_key_to_server(
   request.setHeader(QNetworkRequest::ContentTypeHeader,
                     "application/x-www-form-urlencoded");
 
-  postData.append("keytext").append("=").append(
+  post_data.append("keytext").append("=").append(
       QString::fromStdString(data).toUtf8());
 
   // Send Post Data
-  QNetworkReply* reply = qnam->post(request, postData);
+  QNetworkReply* reply = qnam->post(request, post_data);
   connect(reply, &QNetworkReply::finished, this,
           &KeyUploadDialog::slot_upload_finished);
 

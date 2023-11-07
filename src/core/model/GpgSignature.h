@@ -28,10 +28,9 @@
 
 #pragma once
 
-#include <boost/date_time/gregorian/greg_date.hpp>
-#include <boost/date_time/posix_time/conversion.hpp>
+#include <boost/date_time.hpp>
 
-#include "core/GpgConstants.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
@@ -46,56 +45,56 @@ class GPGFRONTEND_CORE_EXPORT GpgSignature {
    *
    * @return gpgme_validity_t
    */
-  [[nodiscard]] gpgme_validity_t GetValidity() const;
+  [[nodiscard]] auto GetValidity() const -> gpgme_validity_t;
 
   /**
    * @brief
    *
    * @return gpgme_error_t
    */
-  [[nodiscard]] gpgme_error_t GetStatus() const;
+  [[nodiscard]] auto GetStatus() const -> GpgError;
 
   /**
    * @brief
    *
    * @return gpgme_error_t
    */
-  [[nodiscard]] gpgme_error_t GetSummary() const;
+  [[nodiscard]] auto GetSummary() const -> GpgError;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetPubkeyAlgo() const;
+  [[nodiscard]] auto GetPubkeyAlgo() const -> std::string;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetHashAlgo() const;
+  [[nodiscard]] auto GetHashAlgo() const -> std::string;
 
   /**
    * @brief Create a time object
    *
    * @return boost::posix_time::ptime
    */
-  [[nodiscard]] boost::posix_time::ptime GetCreateTime() const;
+  [[nodiscard]] auto GetCreateTime() const -> boost::posix_time::ptime;
 
   /**
    * @brief
    *
    * @return boost::posix_time::ptime
    */
-  [[nodiscard]] boost::posix_time::ptime GetExpireTime() const;
+  [[nodiscard]] auto GetExpireTime() const -> boost::posix_time::ptime;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetFingerprint() const;
+  [[nodiscard]] auto GetFingerprint() const -> std::string;
 
   /**
    * @brief Construct a new Gpg Signature object
@@ -133,14 +132,14 @@ class GPGFRONTEND_CORE_EXPORT GpgSignature {
    *
    * @return GpgSignature&
    */
-  GpgSignature &operator=(GpgSignature &&) noexcept;
+  auto operator=(GpgSignature &&) noexcept -> GpgSignature &;
 
   /**
    * @brief
    *
    * @return GpgSignature&
    */
-  GpgSignature &operator=(const GpgSignature &) = delete;
+  auto operator=(const GpgSignature &) -> GpgSignature & = delete;
 
  private:
   using KeySignatrueRefHandler =

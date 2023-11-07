@@ -30,7 +30,7 @@
 
 #include <boost/date_time.hpp>
 
-#include "core/GpgConstants.h"
+#include "core/typedef/GpgTypedef.h"
 
 /**
  * @brief
@@ -50,7 +50,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeySignature {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsRevoked() const;
+  [[nodiscard]] auto IsRevoked() const -> bool;
 
   /**
    * @brief
@@ -58,7 +58,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeySignature {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsExpired() const;
+  [[nodiscard]] auto IsExpired() const -> bool;
 
   /**
    * @brief
@@ -66,7 +66,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeySignature {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsInvalid() const;
+  [[nodiscard]] auto IsInvalid() const -> bool;
 
   /**
    * @brief
@@ -74,70 +74,70 @@ class GPGFRONTEND_CORE_EXPORT GpgKeySignature {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsExportable() const;
+  [[nodiscard]] auto IsExportable() const -> bool;
 
   /**
    * @brief
    *
    * @return gpgme_error_t
    */
-  [[nodiscard]] gpgme_error_t GetStatus() const;
+  [[nodiscard]] auto GetStatus() const -> GpgError;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetKeyID() const;
+  [[nodiscard]] auto GetKeyID() const -> std::string;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetPubkeyAlgo() const;
+  [[nodiscard]] auto GetPubkeyAlgo() const -> std::string;
 
   /**
    * @brief Create a time object
    *
    * @return boost::posix_time::ptime
    */
-  [[nodiscard]] boost::posix_time::ptime GetCreateTime() const;
+  [[nodiscard]] auto GetCreateTime() const -> boost::posix_time::ptime;
 
   /**
    * @brief
    *
    * @return boost::posix_time::ptime
    */
-  [[nodiscard]] boost::posix_time::ptime GetExpireTime() const;
+  [[nodiscard]] auto GetExpireTime() const -> boost::posix_time::ptime;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetUID() const;
+  [[nodiscard]] auto GetUID() const -> std::string;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetName() const;
+  [[nodiscard]] auto GetName() const -> std::string;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetEmail() const;
+  [[nodiscard]] auto GetEmail() const -> std::string;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetComment() const;
+  [[nodiscard]] auto GetComment() const -> std::string;
 
   /**
    * @brief Construct a new Gpg Key Signature object
@@ -175,14 +175,14 @@ class GPGFRONTEND_CORE_EXPORT GpgKeySignature {
    *
    * @return GpgKeySignature&
    */
-  GpgKeySignature &operator=(GpgKeySignature &&) noexcept;
+  auto operator=(GpgKeySignature &&) noexcept -> GpgKeySignature &;
 
   /**
    * @brief
    *
    * @return GpgKeySignature&
    */
-  GpgKeySignature &operator=(const GpgKeySignature &) = delete;
+  auto operator=(const GpgKeySignature &) -> GpgKeySignature & = delete;
 
  private:
   using KeySignatrueRefHandler =

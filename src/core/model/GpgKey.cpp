@@ -30,52 +30,46 @@
 
 #include <mutex>
 
-GpgFrontend::GpgKey::GpgKey(gpgme_key_t &&key) : key_ref_(std::move(key)) {}
+namespace GpgFrontend {
 
-GpgFrontend::GpgKey::GpgKey(GpgKey &&k) noexcept { swap(key_ref_, k.key_ref_); }
+GpgKey::GpgKey(gpgme_key_t &&key) : key_ref_(key) {}
 
-GpgFrontend::GpgKey &GpgFrontend::GpgKey::operator=(GpgKey &&k) noexcept {
+GpgKey::GpgKey(GpgKey &&k) noexcept { swap(key_ref_, k.key_ref_); }
+
+auto GpgKey::operator=(GpgKey &&k) noexcept -> GpgKey & {
   swap(key_ref_, k.key_ref_);
   return *this;
 }
 
-bool GpgFrontend::GpgKey::operator==(const GpgKey &o) const {
+auto GpgKey::operator==(const GpgKey &o) const -> bool {
   return o.GetId() == this->GetId();
 }
 
-bool GpgFrontend::GpgKey::operator<=(const GpgKey &o) const {
+auto GpgKey::operator<=(const GpgKey &o) const -> bool {
   return this->GetId() < o.GetId();
 }
 
-GpgFrontend::GpgKey::operator gpgme_key_t() const { return key_ref_.get(); }
+GpgKey::operator gpgme_key_t() const { return key_ref_.get(); }
 
-bool GpgFrontend::GpgKey::IsGood() const { return key_ref_ != nullptr; }
+auto GpgKey::IsGood() const -> bool { return key_ref_ != nullptr; }
 
-std::string GpgFrontend::GpgKey::GetId() const {
-  return key_ref_->subkeys->keyid;
-}
+auto GpgKey::GetId() const -> std::string { return key_ref_->subkeys->keyid; }
 
-std::string GpgFrontend::GpgKey::GetName() const {
-  return key_ref_->uids->name;
-};
+auto GpgKey::GetName() const -> std::string { return key_ref_->uids->name; };
 
-std::string GpgFrontend::GpgKey::GetEmail() const {
-  return key_ref_->uids->email;
-}
+auto GpgKey::GetEmail() const -> std::string { return key_ref_->uids->email; }
 
-std::string GpgFrontend::GpgKey::GetComment() const {
+auto GpgKey::GetComment() const -> std::string {
   return key_ref_->uids->comment;
 }
 
-std::string GpgFrontend::GpgKey::GetFingerprint() const {
-  return key_ref_->fpr;
-}
+auto GpgKey::GetFingerprint() const -> std::string { return key_ref_->fpr; }
 
-std::string GpgFrontend::GpgKey::GetProtocol() const {
+auto GpgKey::GetProtocol() const -> std::string {
   return gpgme_get_protocol_name(key_ref_->protocol);
 }
 
-std::string GpgFrontend::GpgKey::GetOwnerTrust() const {
+auto GpgKey::GetOwnerTrust() const -> std::string {
   switch (key_ref_->owner_trust) {
     case GPGME_VALIDITY_UNKNOWN:
       return _("Unknown");
@@ -93,7 +87,7 @@ std::string GpgFrontend::GpgKey::GetOwnerTrust() const {
   return "Invalid";
 }
 
-int GpgFrontend::GpgKey::GetOwnerTrustLevel() const {
+auto GpgKey::GetOwnerTrustLevel() const -> int {
   switch (key_ref_->owner_trust) {
     case GPGME_VALIDITY_UNKNOWN:
       return 0;
@@ -111,66 +105,65 @@ int GpgFrontend::GpgKey::GetOwnerTrustLevel() const {
   return 0;
 }
 
-std::string GpgFrontend::GpgKey::GetPublicKeyAlgo() const {
+auto GpgKey::GetPublicKeyAlgo() const -> std::string {
   return gpgme_pubkey_algo_name(key_ref_->subkeys->pubkey_algo);
 }
 
-boost::posix_time::ptime GpgFrontend::GpgKey::GetLastUpdateTime() const {
+auto GpgKey::GetLastUpdateTime() const -> boost::posix_time::ptime {
   return boost::posix_time::from_time_t(
       static_cast<time_t>(key_ref_->last_update));
 }
 
-boost::posix_time::ptime GpgFrontend::GpgKey::GetExpireTime() const {
+auto GpgKey::GetExpireTime() const -> boost::posix_time::ptime {
   return boost::posix_time::from_time_t(key_ref_->subkeys->expires);
 };
 
-boost::posix_time::ptime GpgFrontend::GpgKey::GetCreateTime() const {
+auto GpgKey::GetCreateTime() const -> boost::posix_time::ptime {
   return boost::posix_time::from_time_t(key_ref_->subkeys->timestamp);
 };
 
-unsigned int GpgFrontend::GpgKey::GetPrimaryKeyLength() const {
+auto GpgKey::GetPrimaryKeyLength() const -> unsigned int {
   return key_ref_->subkeys->length;
 }
 
-bool GpgFrontend::GpgKey::IsHasEncryptionCapability() const {
+auto GpgKey::IsHasEncryptionCapability() const -> bool {
   return key_ref_->can_encrypt;
 }
 
-bool GpgFrontend::GpgKey::IsHasSigningCapability() const {
+auto GpgKey::IsHasSigningCapability() const -> bool {
   return key_ref_->can_sign;
 }
 
-bool GpgFrontend::GpgKey::IsHasCertificationCapability() const {
+auto GpgKey::IsHasCertificationCapability() const -> bool {
   return key_ref_->can_certify;
 }
 
-bool GpgFrontend::GpgKey::IsHasAuthenticationCapability() const {
+auto GpgKey::IsHasAuthenticationCapability() const -> bool {
   return key_ref_->can_authenticate;
 }
 
-bool GpgFrontend::GpgKey::IsHasCardKey() const {
+auto GpgKey::IsHasCardKey() const -> bool {
   auto subkeys = GetSubKeys();
   return std::any_of(
       subkeys->begin(), subkeys->end(),
       [](const GpgSubKey &subkey) -> bool { return subkey.IsCardKey(); });
 }
 
-bool GpgFrontend::GpgKey::IsPrivateKey() const { return key_ref_->secret; }
+auto GpgKey::IsPrivateKey() const -> bool { return key_ref_->secret; }
 
-bool GpgFrontend::GpgKey::IsExpired() const { return key_ref_->expired; }
+auto GpgKey::IsExpired() const -> bool { return key_ref_->expired; }
 
-bool GpgFrontend::GpgKey::IsRevoked() const { return key_ref_->revoked; }
+auto GpgKey::IsRevoked() const -> bool { return key_ref_->revoked; }
 
-bool GpgFrontend::GpgKey::IsDisabled() const { return key_ref_->disabled; }
+auto GpgKey::IsDisabled() const -> bool { return key_ref_->disabled; }
 
-bool GpgFrontend::GpgKey::IsHasMasterKey() const {
+auto GpgKey::IsHasMasterKey() const -> bool {
   return key_ref_->subkeys->secret;
 }
 
-std::unique_ptr<std::vector<GpgFrontend::GpgSubKey>>
-GpgFrontend::GpgKey::GetSubKeys() const {
+auto GpgKey::GetSubKeys() const -> std::unique_ptr<std::vector<GpgSubKey>> {
   auto p_keys = std::make_unique<std::vector<GpgSubKey>>();
-  auto next = key_ref_->subkeys;
+  auto *next = key_ref_->subkeys;
   while (next != nullptr) {
     p_keys->push_back(GpgSubKey(next));
     next = next->next;
@@ -178,10 +171,9 @@ GpgFrontend::GpgKey::GetSubKeys() const {
   return p_keys;
 }
 
-std::unique_ptr<std::vector<GpgFrontend::GpgUID>> GpgFrontend::GpgKey::GetUIDs()
-    const {
+auto GpgKey::GetUIDs() const -> std::unique_ptr<std::vector<GpgUID>> {
   auto p_uids = std::make_unique<std::vector<GpgUID>>();
-  auto uid_next = key_ref_->uids;
+  auto *uid_next = key_ref_->uids;
   while (uid_next != nullptr) {
     p_uids->push_back(GpgUID(uid_next));
     uid_next = uid_next->next;
@@ -189,32 +181,24 @@ std::unique_ptr<std::vector<GpgFrontend::GpgUID>> GpgFrontend::GpgKey::GetUIDs()
   return p_uids;
 }
 
-bool GpgFrontend::GpgKey::IsHasActualSigningCapability() const {
+auto GpgKey::IsHasActualSigningCapability() const -> bool {
   auto subkeys = GetSubKeys();
-  if (std::any_of(subkeys->begin(), subkeys->end(),
-                  [](const GpgSubKey &subkey) -> bool {
-                    return subkey.IsSecretKey() &&
-                           subkey.IsHasSigningCapability() &&
-                           !subkey.IsDisabled() && !subkey.IsRevoked() &&
-                           !subkey.IsExpired();
-                  }))
-    return true;
-  else
-    return false;
+  return std::any_of(
+      subkeys->begin(), subkeys->end(), [](const GpgSubKey &subkey) -> bool {
+        return subkey.IsSecretKey() && subkey.IsHasSigningCapability() &&
+               !subkey.IsDisabled() && !subkey.IsRevoked() &&
+               !subkey.IsExpired();
+      });
 }
 
-bool GpgFrontend::GpgKey::IsHasActualAuthenticationCapability() const {
+auto GpgKey::IsHasActualAuthenticationCapability() const -> bool {
   auto subkeys = GetSubKeys();
-  if (std::any_of(subkeys->begin(), subkeys->end(),
-                  [](const GpgSubKey &subkey) -> bool {
-                    return subkey.IsSecretKey() &&
-                           subkey.IsHasAuthenticationCapability() &&
-                           !subkey.IsDisabled() && !subkey.IsRevoked() &&
-                           !subkey.IsExpired();
-                  }))
-    return true;
-  else
-    return false;
+  return std::any_of(
+      subkeys->begin(), subkeys->end(), [](const GpgSubKey &subkey) -> bool {
+        return subkey.IsSecretKey() && subkey.IsHasAuthenticationCapability() &&
+               !subkey.IsDisabled() && !subkey.IsRevoked() &&
+               !subkey.IsExpired();
+      });
 }
 
 /**
@@ -222,7 +206,7 @@ bool GpgFrontend::GpgKey::IsHasActualAuthenticationCapability() const {
  * @param key target key
  * @return if key certify
  */
-bool GpgFrontend::GpgKey::IsHasActualCertificationCapability() const {
+auto GpgKey::IsHasActualCertificationCapability() const -> bool {
   return IsHasMasterKey() && !IsExpired() && !IsRevoked() && !IsDisabled();
 }
 
@@ -231,28 +215,26 @@ bool GpgFrontend::GpgKey::IsHasActualCertificationCapability() const {
  * @param key target key
  * @return if key encrypt
  */
-bool GpgFrontend::GpgKey::IsHasActualEncryptionCapability() const {
+auto GpgKey::IsHasActualEncryptionCapability() const -> bool {
   auto subkeys = GetSubKeys();
-  if (std::any_of(subkeys->begin(), subkeys->end(),
-                  [](const GpgSubKey &subkey) -> bool {
-                    return subkey.IsHasEncryptionCapability() &&
-                           !subkey.IsDisabled() && !subkey.IsRevoked() &&
-                           !subkey.IsExpired();
-                  }))
-    return true;
-  else
-    return false;
+  return std::any_of(
+      subkeys->begin(), subkeys->end(), [](const GpgSubKey &subkey) -> bool {
+        return subkey.IsHasEncryptionCapability() && !subkey.IsDisabled() &&
+               !subkey.IsRevoked() && !subkey.IsExpired();
+      });
 }
 
-GpgFrontend::GpgKey GpgFrontend::GpgKey::Copy() const {
+auto GpgKey::Copy() const -> GpgKey {
   {
-    const std::lock_guard<std::mutex> guard(gpgme_key_opera_mutex);
+    const std::lock_guard<std::mutex> guard(gpgme_key_opera_mutex_);
     gpgme_key_ref(key_ref_.get());
   }
-  auto *_new_key_ref = key_ref_.get();
-  return GpgKey(std::move(_new_key_ref));
+  auto *new_key_ref = key_ref_.get();
+  return GpgKey(std::move(new_key_ref));
 }
 
-void GpgFrontend::GpgKey::_key_ref_deleter::operator()(gpgme_key_t _key) {
+void GpgKey::KeyRefDeleter::operator()(gpgme_key_t _key) {
   if (_key != nullptr) gpgme_key_unref(_key);
 }
+
+}  // namespace GpgFrontend

@@ -28,48 +28,40 @@
 
 #include "GpgTOFUInfo.h"
 
-GpgFrontend::GpgTOFUInfo::GpgTOFUInfo() = default;
+namespace GpgFrontend {
 
-GpgFrontend::GpgTOFUInfo::GpgTOFUInfo(gpgme_tofu_info_t tofu_info)
-    : _tofu_info_ref(tofu_info, [&](gpgme_tofu_info_t tofu_info) {}) {}
+GpgTOFUInfo::GpgTOFUInfo() = default;
 
-GpgFrontend::GpgTOFUInfo::GpgTOFUInfo(GpgTOFUInfo&& o) noexcept {
-  swap(_tofu_info_ref, o._tofu_info_ref);
+GpgTOFUInfo::GpgTOFUInfo(gpgme_tofu_info_t tofu_info)
+    : tofu_info_ref_(tofu_info, [&](gpgme_tofu_info_t tofu_info) {}) {}
+
+GpgTOFUInfo::GpgTOFUInfo(GpgTOFUInfo&& o) noexcept {
+  swap(tofu_info_ref_, o.tofu_info_ref_);
 }
 
-GpgFrontend::GpgTOFUInfo& GpgFrontend::GpgTOFUInfo::operator=(
-    GpgTOFUInfo&& o) noexcept {
-  swap(_tofu_info_ref, o._tofu_info_ref);
+auto GpgTOFUInfo::operator=(GpgTOFUInfo&& o) noexcept -> GpgTOFUInfo& {
+  swap(tofu_info_ref_, o.tofu_info_ref_);
   return *this;
 };
 
-unsigned GpgFrontend::GpgTOFUInfo::GetValidity() const {
-  return _tofu_info_ref->validity;
+auto GpgTOFUInfo::GetValidity() const -> unsigned {
+  return tofu_info_ref_->validity;
 }
 
-unsigned GpgFrontend::GpgTOFUInfo::GetPolicy() const {
-  return _tofu_info_ref->policy;
+auto GpgTOFUInfo::GetPolicy() const -> unsigned {
+  return tofu_info_ref_->policy;
 }
 
-unsigned long GpgFrontend::GpgTOFUInfo::GetSignCount() const {
-  return _tofu_info_ref->signcount;
+auto GpgTOFUInfo::GetSignCount() const -> unsigned long {
+  return tofu_info_ref_->signcount;
 }
 
-unsigned long GpgFrontend::GpgTOFUInfo::GetEncrCount() const {
-  return _tofu_info_ref->encrcount;
+auto GpgTOFUInfo::GetEncrCount() const -> unsigned long {
+  return tofu_info_ref_->encrcount;
 }
 
-unsigned long GpgFrontend::GpgTOFUInfo::GetSignFirst() const {
-  return _tofu_info_ref->signfirst;
-}
-
-/**
- * @brief
- *
- * @return unsigned long
- */
-unsigned long GpgFrontend::GpgTOFUInfo::GetSignLast() const {
-  return _tofu_info_ref->signlast;
+auto GpgTOFUInfo::GetSignFirst() const -> unsigned long {
+  return tofu_info_ref_->signfirst;
 }
 
 /**
@@ -77,8 +69,17 @@ unsigned long GpgFrontend::GpgTOFUInfo::GetSignLast() const {
  *
  * @return unsigned long
  */
-unsigned long GpgFrontend::GpgTOFUInfo::GetEncrLast() const {
-  return _tofu_info_ref->encrlast;
+auto GpgTOFUInfo::GetSignLast() const -> unsigned long {
+  return tofu_info_ref_->signlast;
+}
+
+/**
+ * @brief
+ *
+ * @return unsigned long
+ */
+auto GpgTOFUInfo::GetEncrLast() const -> unsigned long {
+  return tofu_info_ref_->encrlast;
 }
 
 /**
@@ -86,6 +87,8 @@ unsigned long GpgFrontend::GpgTOFUInfo::GetEncrLast() const {
  *
  * @return std::string
  */
-std::string GpgFrontend::GpgTOFUInfo::GetDescription() const {
-  return _tofu_info_ref->description;
+auto GpgTOFUInfo::GetDescription() const -> std::string {
+  return tofu_info_ref_->description;
 }
+
+}  // namespace GpgFrontend

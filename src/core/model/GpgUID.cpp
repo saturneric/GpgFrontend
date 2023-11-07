@@ -28,31 +28,30 @@
 
 #include "core/model/GpgUID.h"
 
-GpgFrontend::GpgUID::GpgUID() = default;
+namespace GpgFrontend {
 
-GpgFrontend::GpgUID::GpgUID(gpgme_user_id_t uid)
+GpgUID::GpgUID() = default;
+
+GpgUID::GpgUID(gpgme_user_id_t uid)
     : uid_ref_(uid, [&](gpgme_user_id_t uid) {}) {}
 
-GpgFrontend::GpgUID::GpgUID(GpgUID &&o) noexcept { swap(uid_ref_, o.uid_ref_); }
+GpgUID::GpgUID(GpgUID &&o) noexcept { swap(uid_ref_, o.uid_ref_); }
 
-std::string GpgFrontend::GpgUID::GetName() const { return uid_ref_->name; }
+auto GpgUID::GetName() const -> std::string { return uid_ref_->name; }
 
-std::string GpgFrontend::GpgUID::GetEmail() const { return uid_ref_->email; }
+auto GpgUID::GetEmail() const -> std::string { return uid_ref_->email; }
 
-std::string GpgFrontend::GpgUID::GetComment() const {
-  return uid_ref_->comment;
-}
+auto GpgUID::GetComment() const -> std::string { return uid_ref_->comment; }
 
-std::string GpgFrontend::GpgUID::GetUID() const { return uid_ref_->uid; }
+auto GpgUID::GetUID() const -> std::string { return uid_ref_->uid; }
 
-bool GpgFrontend::GpgUID::GetRevoked() const { return uid_ref_->revoked; }
+auto GpgUID::GetRevoked() const -> bool { return uid_ref_->revoked; }
 
-bool GpgFrontend::GpgUID::GetInvalid() const { return uid_ref_->invalid; }
+auto GpgUID::GetInvalid() const -> bool { return uid_ref_->invalid; }
 
-std::unique_ptr<std::vector<GpgFrontend::GpgTOFUInfo>>
-GpgFrontend::GpgUID::GetTofuInfos() const {
+auto GpgUID::GetTofuInfos() const -> std::unique_ptr<std::vector<GpgTOFUInfo>> {
   auto infos = std::make_unique<std::vector<GpgTOFUInfo>>();
-  auto info_next = uid_ref_->tofu;
+  auto *info_next = uid_ref_->tofu;
   while (info_next != nullptr) {
     infos->push_back(GpgTOFUInfo(info_next));
     info_next = info_next->next;
@@ -60,13 +59,15 @@ GpgFrontend::GpgUID::GetTofuInfos() const {
   return infos;
 }
 
-std::unique_ptr<std::vector<GpgFrontend::GpgKeySignature>>
-GpgFrontend::GpgUID::GetSignatures() const {
+auto GpgUID::GetSignatures() const
+    -> std::unique_ptr<std::vector<GpgKeySignature>> {
   auto sigs = std::make_unique<std::vector<GpgKeySignature>>();
-  auto sig_next = uid_ref_->signatures;
+  auto *sig_next = uid_ref_->signatures;
   while (sig_next != nullptr) {
     sigs->push_back(GpgKeySignature(sig_next));
     sig_next = sig_next->next;
   }
   return sigs;
 }
+
+}  // namespace GpgFrontend

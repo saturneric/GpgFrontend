@@ -28,21 +28,28 @@
 
 #include "GpgSignature.h"
 
+namespace GpgFrontend {
+
 /**
  * @brief Construct a new Gpg Signature object
  *
  */
-GpgFrontend::GpgSignature::GpgSignature(GpgSignature &&) noexcept = default;
+GpgSignature::GpgSignature(GpgSignature &&) noexcept = default;
 
 /**
  * @brief
  *
  * @return GpgSignature&
  */
-GpgFrontend::GpgSignature &GpgFrontend::GpgSignature::operator=(
-    GpgFrontend::GpgSignature &&) noexcept = default;
+auto GpgSignature::operator=(GpgSignature &&) noexcept
+    -> GpgSignature & = default;
 
-GpgFrontend::GpgSignature::GpgSignature(gpgme_signature_t sig)
+/**
+ * @brief Construct a new Gpg Signature:: Gpg Signature object
+ *
+ * @param sig
+ */
+GpgSignature::GpgSignature(gpgme_signature_t sig)
     : signature_ref_(sig, [&](gpgme_signature_t signature) {}) {}
 
 /**
@@ -50,7 +57,7 @@ GpgFrontend::GpgSignature::GpgSignature(gpgme_signature_t sig)
  *
  * @return gpgme_validity_t
  */
-gpgme_validity_t GpgFrontend::GpgSignature::GetValidity() const {
+auto GpgSignature::GetValidity() const -> gpgme_validity_t {
   return signature_ref_->validity;
 }
 
@@ -59,7 +66,7 @@ gpgme_validity_t GpgFrontend::GpgSignature::GetValidity() const {
  *
  * @return gpgme_error_t
  */
-gpgme_error_t GpgFrontend::GpgSignature::GetStatus() const {
+auto GpgSignature::GetStatus() const -> gpgme_error_t {
   return signature_ref_->status;
 }
 
@@ -68,7 +75,7 @@ gpgme_error_t GpgFrontend::GpgSignature::GetStatus() const {
  *
  * @return gpgme_error_t
  */
-gpgme_error_t GpgFrontend::GpgSignature::GetSummary() const {
+auto GpgSignature::GetSummary() const -> gpgme_error_t {
   return signature_ref_->summary;
 }
 
@@ -77,7 +84,7 @@ gpgme_error_t GpgFrontend::GpgSignature::GetSummary() const {
  *
  * @return std::string
  */
-std::string GpgFrontend::GpgSignature::GetPubkeyAlgo() const {
+auto GpgSignature::GetPubkeyAlgo() const -> std::string {
   return gpgme_pubkey_algo_name(signature_ref_->pubkey_algo);
 }
 
@@ -86,7 +93,7 @@ std::string GpgFrontend::GpgSignature::GetPubkeyAlgo() const {
  *
  * @return std::string
  */
-std::string GpgFrontend::GpgSignature::GetHashAlgo() const {
+auto GpgSignature::GetHashAlgo() const -> std::string {
   return gpgme_hash_algo_name(signature_ref_->hash_algo);
 }
 
@@ -95,7 +102,7 @@ std::string GpgFrontend::GpgSignature::GetHashAlgo() const {
  *
  * @return boost::posix_time::ptime
  */
-boost::posix_time::ptime GpgFrontend::GpgSignature::GetCreateTime() const {
+auto GpgSignature::GetCreateTime() const -> boost::posix_time::ptime {
   return boost::posix_time::from_time_t(signature_ref_->timestamp);
 }
 
@@ -104,7 +111,7 @@ boost::posix_time::ptime GpgFrontend::GpgSignature::GetCreateTime() const {
  *
  * @return boost::posix_time::ptime
  */
-boost::posix_time::ptime GpgFrontend::GpgSignature::GetExpireTime() const {
+auto GpgSignature::GetExpireTime() const -> boost::posix_time::ptime {
   return boost::posix_time::from_time_t(signature_ref_->exp_timestamp);
 }
 
@@ -113,7 +120,7 @@ boost::posix_time::ptime GpgFrontend::GpgSignature::GetExpireTime() const {
  *
  * @return std::string
  */
-std::string GpgFrontend::GpgSignature::GetFingerprint() const {
+auto GpgSignature::GetFingerprint() const -> std::string {
   return signature_ref_->fpr;
 }
 
@@ -121,10 +128,12 @@ std::string GpgFrontend::GpgSignature::GetFingerprint() const {
  * @brief Construct a new Gpg Signature object
  *
  */
-GpgFrontend::GpgSignature::GpgSignature() = default;
+GpgSignature::GpgSignature() = default;
 
 /**
  * @brief Destroy the Gpg Signature object
  *
  */
-GpgFrontend::GpgSignature::~GpgSignature() = default;
+GpgSignature::~GpgSignature() = default;
+
+}  // namespace GpgFrontend

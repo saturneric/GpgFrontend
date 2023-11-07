@@ -101,33 +101,34 @@ KeyServerImportDialog::KeyServerImportDialog(bool automatic, QWidget* parent)
   waiting_bar_->setFixedWidth(200);
   message_layout->addWidget(waiting_bar_);
 
-  auto* mainLayout = new QGridLayout;
+  auto* main_layout = new QGridLayout;
 
   // 自动化调用界面布局
   if (automatic) {
-    mainLayout->addLayout(message_layout, 0, 0, 1, 3);
+    main_layout->addLayout(message_layout, 0, 0, 1, 3);
   } else {
-    mainLayout->addWidget(search_label_, 1, 0);
-    mainLayout->addWidget(search_line_edit_, 1, 1);
-    mainLayout->addWidget(search_button_, 1, 2);
-    mainLayout->addWidget(key_server_label_, 2, 0);
-    mainLayout->addWidget(key_server_combo_box_, 2, 1);
-    mainLayout->addWidget(keys_table_, 3, 0, 1, 3);
-    mainLayout->addLayout(message_layout, 4, 0, 1, 3);
+    main_layout->addWidget(search_label_, 1, 0);
+    main_layout->addWidget(search_line_edit_, 1, 1);
+    main_layout->addWidget(search_button_, 1, 2);
+    main_layout->addWidget(key_server_label_, 2, 0);
+    main_layout->addWidget(key_server_combo_box_, 2, 1);
+    main_layout->addWidget(keys_table_, 3, 0, 1, 3);
+    main_layout->addLayout(message_layout, 4, 0, 1, 3);
 
     // Layout for import and close button
-    auto* buttonsLayout = new QHBoxLayout;
-    buttonsLayout->addStretch();
-    buttonsLayout->addWidget(import_button_);
-    buttonsLayout->addWidget(close_button_);
-    mainLayout->addLayout(buttonsLayout, 6, 0, 1, 3);
+    auto* buttons_layout = new QHBoxLayout;
+    buttons_layout->addStretch();
+    buttons_layout->addWidget(import_button_);
+    buttons_layout->addWidget(close_button_);
+    main_layout->addLayout(buttons_layout, 6, 0, 1, 3);
   }
 
-  this->setLayout(mainLayout);
-  if (automatic)
+  this->setLayout(main_layout);
+  if (automatic) {
     this->setWindowTitle(_("Update Keys from Keyserver"));
-  else
+  } else {
     this->setWindowTitle(_("Import Keys from Keyserver"));
+  }
 
   if (automatic) {
     this->setFixedSize(240, 42);
@@ -165,9 +166,9 @@ KeyServerImportDialog::KeyServerImportDialog(QWidget* parent)
   this->setModal(true);
 }
 
-QComboBox* KeyServerImportDialog::create_comboBox() {
-  auto* comboBox = new QComboBox;
-  comboBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+auto KeyServerImportDialog::create_comboBox() -> QComboBox* {
+  auto* combo_box = new QComboBox;
+  combo_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
   try {
     SettingsObject key_server_json("key_server");
@@ -177,7 +178,7 @@ QComboBox* KeyServerImportDialog::create_comboBox() {
 
     for (const auto& key_server : key_server_list) {
       const auto key_server_str = key_server.get<std::string>();
-      comboBox->addItem(key_server_str.c_str());
+      combo_box->addItem(key_server_str.c_str());
     }
 
     size_t default_key_server_index =
@@ -185,15 +186,15 @@ QComboBox* KeyServerImportDialog::create_comboBox() {
     if (default_key_server_index >= key_server_list.size()) {
       throw std::runtime_error("default_server index out of range");
     }
-    std::string default_key_server =
+    auto default_key_server =
         key_server_list[default_key_server_index].get<std::string>();
 
-    comboBox->setCurrentText(default_key_server.c_str());
+    combo_box->setCurrentText(default_key_server.c_str());
   } catch (...) {
     SPDLOG_ERROR("setting operation error", "server_list", "default_server");
   }
 
-  return comboBox;
+  return combo_box;
 }
 
 void KeyServerImportDialog::create_keys_table() {
@@ -317,13 +318,13 @@ void KeyServerImportDialog::slot_search_finished(
         search_line_edit_->setText(query.prepend("0x"));
         this->slot_search();
         return;
-      } else {
-        set_message(
-            "<h4>" + QString(_("No keys found containing the search string!")) +
-                "</h4>",
-            true);
-        return;
       }
+      set_message(
+          "<h4>" + QString(_("No keys found containing the search string!")) +
+              "</h4>",
+          true);
+      return;
+
     } else if (text.contains("Insufficiently specific words")) {
       set_message("<h4>" +
                       QString(_("Insufficiently specific search string!")) +
@@ -457,7 +458,7 @@ void KeyServerImportDialog::SlotImport(const KeyIdArgsListPtr& keys) {
       if (default_key_server_index >= key_server_list.size()) {
         throw std::runtime_error("default_server index out of range");
       }
-      std::string default_key_server =
+      auto default_key_server =
           key_server_list[default_key_server_index].get<std::string>();
 
       target_keyserver = default_key_server;
@@ -479,7 +480,8 @@ void KeyServerImportDialog::SlotImport(const KeyIdArgsListPtr& keys) {
 
 void KeyServerImportDialog::SlotImport(std::vector<std::string> key_ids,
                                        std::string keyserver_url) {
-  auto* task = new KeyServerImportTask(keyserver_url, key_ids);
+  auto* task =
+      new KeyServerImportTask(std::move(keyserver_url), std::move(key_ids));
 
   connect(task, &KeyServerImportTask::SignalKeyServerImportResult, this,
           &KeyServerImportDialog::slot_import_finished);
@@ -547,13 +549,13 @@ void KeyServerImportDialog::import_keys(ByteArrayPtr in_data) {
   // refresh the key database
   emit SignalKeyImported();
 
-  QWidget* _parent = qobject_cast<QWidget*>(parent());
+  QWidget* p_parent = qobject_cast<QWidget*>(parent());
   if (m_automatic_) {
-    auto dialog = new KeyImportDetailDialog(result, true, _parent);
+    auto* dialog = new KeyImportDetailDialog(result, true, p_parent);
     dialog->show();
     this->accept();
   } else {
-    auto dialog = new KeyImportDetailDialog(result, false, this);
+    auto* dialog = new KeyImportDetailDialog(result, false, this);
     dialog->exec();
   }
 }

@@ -47,20 +47,20 @@ class GPGFRONTEND_CORE_EXPORT DataObject {
 
   DataObject(DataObject&&) noexcept;
 
-  std::any operator[](size_t index) const;
+  auto operator[](size_t index) const -> std::any;
 
   void AppendObject(std::any);
 
-  std::any GetParameter(size_t index) const;
+  [[nodiscard]] auto GetParameter(size_t index) const -> std::any;
 
-  size_t GetObjectSize() const;
+  [[nodiscard]] auto GetObjectSize() const -> size_t;
 
   void Swap(DataObject& other) noexcept;
 
   void Swap(DataObject&& other) noexcept;
 
   template <typename... Args>
-  bool Check() {
+  auto Check() -> bool {
     if (sizeof...(Args) != GetObjectSize()) return false;
 
     std::vector<std::type_info const*> type_list = {&typeid(Args)...};
@@ -76,12 +76,12 @@ class GPGFRONTEND_CORE_EXPORT DataObject {
 };
 
 template <typename... Args>
-std::shared_ptr<DataObject> TransferParams(Args&&... args) {
+auto TransferParams(Args&&... args) -> std::shared_ptr<DataObject> {
   return std::make_shared<DataObject>(DataObject{std::forward<Args>(args)...});
 }
 
 template <typename T>
-T ExtractParams(const std::shared_ptr<DataObject>& d_o, int index) {
+auto ExtractParams(const std::shared_ptr<DataObject>& d_o, int index) -> T {
   if (!d_o) {
     throw std::invalid_argument("nullptr provided for DataObjectPtr");
   }

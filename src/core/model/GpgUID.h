@@ -43,28 +43,28 @@ class GPGFRONTEND_CORE_EXPORT GpgUID {
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetName() const;
+  [[nodiscard]] auto GetName() const -> std::string;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetEmail() const;
+  [[nodiscard]] auto GetEmail() const -> std::string;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetComment() const;
+  [[nodiscard]] auto GetComment() const -> std::string;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetUID() const;
+  [[nodiscard]] auto GetUID() const -> std::string;
 
   /**
    * @brief
@@ -72,7 +72,7 @@ class GPGFRONTEND_CORE_EXPORT GpgUID {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool GetRevoked() const;
+  [[nodiscard]] auto GetRevoked() const -> bool;
 
   /**
    * @brief
@@ -80,22 +80,23 @@ class GPGFRONTEND_CORE_EXPORT GpgUID {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool GetInvalid() const;
+  [[nodiscard]] auto GetInvalid() const -> bool;
 
   /**
    * @brief
    *
    * @return std::unique_ptr<std::vector<GpgTOFUInfo>>
    */
-  [[nodiscard]] std::unique_ptr<std::vector<GpgTOFUInfo>> GetTofuInfos() const;
+  [[nodiscard]] auto GetTofuInfos() const
+      -> std::unique_ptr<std::vector<GpgTOFUInfo>>;
 
   /**
    * @brief
    *
    * @return std::unique_ptr<std::vector<GpgKeySignature>>
    */
-  [[nodiscard]] std::unique_ptr<std::vector<GpgKeySignature>> GetSignatures()
-      const;
+  [[nodiscard]] auto GetSignatures() const
+      -> std::unique_ptr<std::vector<GpgKeySignature>>;
 
   /**
    * @brief Construct a new Gpg U I D object
@@ -129,14 +130,14 @@ class GPGFRONTEND_CORE_EXPORT GpgUID {
    * @param o
    * @return GpgUID&
    */
-  GpgUID &operator=(GpgUID &&o) noexcept;
+  auto operator=(GpgUID &&o) noexcept -> GpgUID &;
 
   /**
    * @brief
    *
    * @return GpgUID&
    */
-  GpgUID &operator=(const GpgUID &) = delete;
+  auto operator=(const GpgUID &) -> GpgUID & = delete;
 
  private:
   using UidRefHandler =

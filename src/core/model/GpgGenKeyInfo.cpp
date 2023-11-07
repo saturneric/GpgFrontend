@@ -29,47 +29,46 @@
 #include "GpgGenKeyInfo.h"
 
 #include <algorithm>
-#include <boost/date_time/gregorian/greg_date.hpp>
-#include <boost/date_time/gregorian/greg_duration.hpp>
-#include <boost/date_time/gregorian/gregorian_types.hpp>
+#include <boost/format.hpp>
 #include <cassert>
 
-void GpgFrontend::GenKeyInfo::SetAlgo(
-    const GpgFrontend::GenKeyInfo::KeyGenAlgo &m_algo) {
+namespace GpgFrontend {
+
+void GenKeyInfo::SetAlgo(const GenKeyInfo::KeyGenAlgo &m_algo) {
   SPDLOG_DEBUG("set algo name: {}", m_algo.first);
   // Check algo if supported
   std::string algo_args = m_algo.second;
   if (standalone_) {
     if (!subkey_) {
       auto support_algo = GetSupportedKeyAlgoStandalone();
-      auto it = std::find_if(
+      auto algo_it = std::find_if(
           support_algo.begin(), support_algo.end(),
           [=](const KeyGenAlgo &o) { return o.second == algo_args; });
       // Algo Not Supported
-      if (it == support_algo.end()) return;
+      if (algo_it == support_algo.end()) return;
     } else {
       auto support_algo = GetSupportedSubkeyAlgoStandalone();
-      auto it = std::find_if(
+      auto algo_it = std::find_if(
           support_algo.begin(), support_algo.end(),
           [=](const KeyGenAlgo &o) { return o.second == algo_args; });
       // Algo Not Supported
-      if (it == support_algo.end()) return;
+      if (algo_it == support_algo.end()) return;
     }
   } else {
     if (!subkey_) {
       auto support_algo = GetSupportedKeyAlgo();
-      auto it = std::find_if(
+      auto algo_it = std::find_if(
           support_algo.begin(), support_algo.end(),
           [=](const KeyGenAlgo &o) { return o.second == algo_args; });
       // Algo Not Supported
-      if (it == support_algo.end()) return;
+      if (algo_it == support_algo.end()) return;
     } else {
       auto support_algo = GetSupportedSubkeyAlgo();
-      auto it = std::find_if(
+      auto algo_it = std::find_if(
           support_algo.begin(), support_algo.end(),
           [=](const KeyGenAlgo &o) { return o.second == algo_args; });
       // Algo Not Supported
-      if (it == support_algo.end()) return;
+      if (algo_it == support_algo.end()) return;
     }
   }
 
@@ -172,7 +171,7 @@ void GpgFrontend::GenKeyInfo::SetAlgo(
   this->algo_ = algo_args;
 }
 
-void GpgFrontend::GenKeyInfo::reset_options() {
+void GenKeyInfo::reset_options() {
   allow_change_encryption_ = true;
   SetAllowEncryption(true);
 
@@ -188,15 +187,14 @@ void GpgFrontend::GenKeyInfo::reset_options() {
   passphrase_.clear();
 }
 
-std::string GpgFrontend::GenKeyInfo::GetKeySizeStr() const {
+auto GenKeyInfo::GetKeySizeStr() const -> std::string {
   if (key_size_ > 0) {
     return std::to_string(key_size_);
-  } else {
-    return {};
   }
+  return {};
 }
 
-void GpgFrontend::GenKeyInfo::SetKeyLength(int m_key_size) {
+void GenKeyInfo::SetKeyLength(int m_key_size) {
   if (m_key_size < suggest_min_key_size_ ||
       m_key_size > suggest_max_key_size_) {
     return;
@@ -204,79 +202,365 @@ void GpgFrontend::GenKeyInfo::SetKeyLength(int m_key_size) {
   GenKeyInfo::key_size_ = m_key_size;
 }
 
-void GpgFrontend::GenKeyInfo::SetExpireTime(
-    const boost::posix_time::ptime &m_expired) {
-  using namespace boost::gregorian;
+void GenKeyInfo::SetExpireTime(const boost::posix_time::ptime &m_expired) {
   if (!IsNonExpired()) {
     GenKeyInfo::expired_ = m_expired;
   }
 }
 
-void GpgFrontend::GenKeyInfo::SetNonExpired(bool m_non_expired) {
-  using namespace boost::posix_time;
-  if (!m_non_expired) this->expired_ = from_time_t(0);
+void GenKeyInfo::SetNonExpired(bool m_non_expired) {
+  if (!m_non_expired) this->expired_ = boost::posix_time::from_time_t(0);
   GenKeyInfo::non_expired_ = m_non_expired;
 }
 
-void GpgFrontend::GenKeyInfo::SetAllowEncryption(bool m_allow_encryption) {
-  if (allow_change_encryption_)
+void GenKeyInfo::SetAllowEncryption(bool m_allow_encryption) {
+  if (allow_change_encryption_) {
     GenKeyInfo::allow_encryption_ = m_allow_encryption;
+  }
 }
 
-void GpgFrontend::GenKeyInfo::SetAllowCertification(
-    bool m_allow_certification) {
-  if (allow_change_certification_)
+void GenKeyInfo::SetAllowCertification(bool m_allow_certification) {
+  if (allow_change_certification_) {
     GenKeyInfo::allow_certification_ = m_allow_certification;
+  }
 }
 
-GpgFrontend::GenKeyInfo::GenKeyInfo(bool m_is_sub_key, bool m_standalone)
+GenKeyInfo::GenKeyInfo(bool m_is_sub_key, bool m_standalone)
     : standalone_(m_standalone), subkey_(m_is_sub_key) {
-  assert(GetSupportedKeyAlgo().size() > 0);
+  assert(!GetSupportedKeyAlgo().empty());
   SetAlgo(GetSupportedKeyAlgo()[0]);
 }
 
-const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo> &
-GpgFrontend::GenKeyInfo::GetSupportedKeyAlgo() {
-  static const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
-      support_key_algo = {
-          {"RSA", "RSA"},
-          {"DSA", "DSA"},
-          {"ECDSA", "ED25519"},
-      };
-  return support_key_algo;
+auto GenKeyInfo::GetSupportedKeyAlgo()
+    -> const std::vector<GenKeyInfo::KeyGenAlgo> & {
+  static const std::vector<GenKeyInfo::KeyGenAlgo> kSupportKeyAlgo = {
+      {"RSA", "RSA"},
+      {"DSA", "DSA"},
+      {"ECDSA", "ED25519"},
+  };
+  return kSupportKeyAlgo;
 }
 
-const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo> &
-GpgFrontend::GenKeyInfo::GetSupportedSubkeyAlgo() {
-  static const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
-      support_subkey_algo = {
-          {"RSA", "RSA"},
-          {"DSA", "DSA"},
-          {"ECDSA", "ED25519"},
-          {"ECDH NIST P-256", "NISTP256"},
-          {"ECDH NIST P-384", "NISTP384"},
-          {"ECDH NIST P-521", "NISTP521"},
-          // {"ECDH BrainPool P-256", "BRAINPOOlP256R1"}
-      };
-  return support_subkey_algo;
+auto GenKeyInfo::GetSupportedSubkeyAlgo()
+    -> const std::vector<GenKeyInfo::KeyGenAlgo> & {
+  static const std::vector<GenKeyInfo::KeyGenAlgo> kSupportSubkeyAlgo = {
+      {"RSA", "RSA"},
+      {"DSA", "DSA"},
+      {"ECDSA", "ED25519"},
+      {"ECDH NIST P-256", "NISTP256"},
+      {"ECDH NIST P-384", "NISTP384"},
+      {"ECDH NIST P-521", "NISTP521"},
+      // {"ECDH BrainPool P-256", "BRAINPOOlP256R1"}
+  };
+  return kSupportSubkeyAlgo;
 }
 
-const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo> &
-GpgFrontend::GenKeyInfo::GetSupportedKeyAlgoStandalone() {
-  static const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
-      support_subkey_algo_standalone = {
+auto GenKeyInfo::GetSupportedKeyAlgoStandalone()
+    -> const std::vector<GenKeyInfo::KeyGenAlgo> & {
+  static const std::vector<GenKeyInfo::KeyGenAlgo>
+      kSupportSubkeyAlgoStandalone = {
           {"RSA", "RSA"},
           {"DSA", "DSA"},
       };
-  return support_subkey_algo_standalone;
+  return kSupportSubkeyAlgoStandalone;
 }
 
-const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo> &
-GpgFrontend::GenKeyInfo::GetSupportedSubkeyAlgoStandalone() {
-  static const std::vector<GpgFrontend::GenKeyInfo::KeyGenAlgo>
-      support_subkey_algo_standalone = {
+auto GenKeyInfo::GetSupportedSubkeyAlgoStandalone()
+    -> const std::vector<GenKeyInfo::KeyGenAlgo> & {
+  static const std::vector<GenKeyInfo::KeyGenAlgo>
+      kSupportSubkeyAlgoStandalone = {
           {"RSA", "RSA"},
           {"DSA", "DSA"},
       };
-  return support_subkey_algo_standalone;
+  return kSupportSubkeyAlgoStandalone;
 }
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+[[nodiscard]] auto GenKeyInfo::IsSubKey() const -> bool { return subkey_; }
+
+/**
+ * @brief Set the Is Sub Key object
+ *
+ * @param m_sub_key
+ */
+void GenKeyInfo::SetIsSubKey(bool m_sub_key) {
+  GenKeyInfo::subkey_ = m_sub_key;
+}
+
+/**
+ * @brief Get the Userid object
+ *
+ * @return std::string
+ */
+[[nodiscard]] auto GenKeyInfo::GetUserid() const -> std::string {
+  auto uid_format = boost::format("%1%(%2%)<%3%>") % this->name_ %
+                    this->comment_ % this->email_;
+  return uid_format.str();
+}
+
+/**
+ * @brief Set the Name object
+ *
+ * @param m_name
+ */
+void GenKeyInfo::SetName(const std::string &m_name) { this->name_ = m_name; }
+
+/**
+ * @brief Set the Email object
+ *
+ * @param m_email
+ */
+void GenKeyInfo::SetEmail(const std::string &m_email) {
+  this->email_ = m_email;
+}
+
+/**
+ * @brief Set the Comment object
+ *
+ * @param m_comment
+ */
+void GenKeyInfo::SetComment(const std::string &m_comment) {
+  this->comment_ = m_comment;
+}
+
+/**
+ * @brief Get the Name object
+ *
+ * @return std::string
+ */
+[[nodiscard]] auto GenKeyInfo::GetName() const -> std::string { return name_; }
+
+/**
+ * @brief Get the Email object
+ *
+ * @return std::string
+ */
+[[nodiscard]] auto GenKeyInfo::GetEmail() const -> std::string {
+  return email_;
+}
+
+/**
+ * @brief Get the Comment object
+ *
+ * @return std::string
+ */
+[[nodiscard]] auto GenKeyInfo::GetComment() const -> std::string {
+  return comment_;
+}
+
+/**
+ * @brief Get the Algo object
+ *
+ * @return const std::string&
+ */
+[[nodiscard]] auto GenKeyInfo::GetAlgo() const -> const std::string & {
+  return algo_;
+}
+
+/**
+ * @brief Get the Key Size object
+ *
+ * @return int
+ */
+[[nodiscard]] auto GenKeyInfo::GetKeyLength() const -> int { return key_size_; }
+
+/**
+ * @brief Get the Expired object
+ *
+ * @return const boost::posix_time::ptime&
+ */
+[[nodiscard]] auto GenKeyInfo::GetExpireTime() const
+    -> const boost::posix_time::ptime & {
+  return expired_;
+}
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+[[nodiscard]] auto GenKeyInfo::IsNonExpired() const -> bool {
+  return non_expired_;
+}
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+[[nodiscard]] auto GenKeyInfo::IsNoPassPhrase() const -> bool {
+  return this->no_passphrase_;
+}
+
+/**
+ * @brief Set the Non Pass Phrase object
+ *
+ * @param m_non_pass_phrase
+ */
+void GenKeyInfo::SetNonPassPhrase(bool m_non_pass_phrase) {
+  GenKeyInfo::no_passphrase_ = m_non_pass_phrase;
+}
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+[[nodiscard]] auto GenKeyInfo::IsAllowSigning() const -> bool {
+  return allow_signing_;
+}
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+[[nodiscard]] auto GenKeyInfo::IsAllowNoPassPhrase() const -> bool {
+  return allow_no_pass_phrase_;
+}
+
+/**
+ * @brief Set the Allow Signing object
+ *
+ * @param m_allow_signing
+ */
+void GenKeyInfo::SetAllowSigning(bool m_allow_signing) {
+  if (allow_change_signing_) GenKeyInfo::allow_signing_ = m_allow_signing;
+}
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+[[nodiscard]] auto GenKeyInfo::IsAllowEncryption() const -> bool {
+  return allow_encryption_;
+}
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+[[nodiscard]] auto GenKeyInfo::IsAllowCertification() const -> bool {
+  return allow_certification_;
+}
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+[[nodiscard]] auto GenKeyInfo::IsAllowAuthentication() const -> bool {
+  return allow_authentication_;
+}
+
+/**
+ * @brief Set the Allow Authentication object
+ *
+ * @param m_allow_authentication
+ */
+void GenKeyInfo::SetAllowAuthentication(bool m_allow_authentication) {
+  if (allow_change_authentication_) {
+    GenKeyInfo::allow_authentication_ = m_allow_authentication;
+  }
+}
+
+/**
+ * @brief Get the Pass Phrase object
+ *
+ * @return const std::string&
+ */
+[[nodiscard]] auto GenKeyInfo::GetPassPhrase() const -> const std::string & {
+  return passphrase_;
+}
+
+/**
+ * @brief Set the Pass Phrase object
+ *
+ * @param m_pass_phrase
+ */
+void GenKeyInfo::SetPassPhrase(const std::string &m_pass_phrase) {
+  GenKeyInfo::passphrase_ = m_pass_phrase;
+}
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+[[nodiscard]] auto GenKeyInfo::IsAllowChangeSigning() const -> bool {
+  return allow_change_signing_;
+}
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+[[nodiscard]] auto GenKeyInfo::IsAllowChangeEncryption() const -> bool {
+  return allow_change_encryption_;
+}
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+[[nodiscard]] auto GenKeyInfo::IsAllowChangeCertification() const -> bool {
+  return allow_change_certification_;
+}
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+[[nodiscard]] auto GenKeyInfo::IsAllowChangeAuthentication() const -> bool {
+  return allow_change_authentication_;
+}
+
+/**
+ * @brief Get the Suggest Max Key Size object
+ *
+ * @return int
+ */
+[[nodiscard]] auto GenKeyInfo::GetSuggestMaxKeySize() const -> int {
+  return suggest_max_key_size_;
+}
+
+/**
+ * @brief Get the Suggest Min Key Size object
+ *
+ * @return int
+ */
+[[nodiscard]] auto GenKeyInfo::GetSuggestMinKeySize() const -> int {
+  return suggest_min_key_size_;
+}
+
+/**
+ * @brief Get the Size Change Step object
+ *
+ * @return int
+ */
+[[nodiscard]] auto GenKeyInfo::GetSizeChangeStep() const -> int {
+  return suggest_size_addition_step_;
+}
+
+}  // namespace GpgFrontend

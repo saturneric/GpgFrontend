@@ -43,28 +43,28 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetID() const;
+  [[nodiscard]] auto GetID() const -> std::string;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetFingerprint() const;
+  [[nodiscard]] auto GetFingerprint() const -> std::string;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetPubkeyAlgo() const;
+  [[nodiscard]] auto GetPubkeyAlgo() const -> std::string;
 
   /**
    * @brief
    *
    * @return unsigned int
    */
-  [[nodiscard]] unsigned int GetKeyLength() const;
+  [[nodiscard]] auto GetKeyLength() const -> unsigned int;
 
   /**
    * @brief
@@ -72,7 +72,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsHasEncryptionCapability() const;
+  [[nodiscard]] auto IsHasEncryptionCapability() const -> bool;
 
   /**
    * @brief
@@ -80,7 +80,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsHasSigningCapability() const;
+  [[nodiscard]] auto IsHasSigningCapability() const -> bool;
 
   /**
    * @brief
@@ -88,7 +88,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsHasCertificationCapability() const;
+  [[nodiscard]] auto IsHasCertificationCapability() const -> bool;
 
   /**
    * @brief
@@ -96,7 +96,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsHasAuthenticationCapability() const;
+  [[nodiscard]] auto IsHasAuthenticationCapability() const -> bool;
 
   /**
    * @brief
@@ -104,7 +104,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsPrivateKey() const;
+  [[nodiscard]] auto IsPrivateKey() const -> bool;
 
   /**
    * @brief
@@ -112,7 +112,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsExpired() const;
+  [[nodiscard]] auto IsExpired() const -> bool;
 
   /**
    * @brief
@@ -120,7 +120,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsRevoked() const;
+  [[nodiscard]] auto IsRevoked() const -> bool;
 
   /**
    * @brief
@@ -128,7 +128,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsDisabled() const;
+  [[nodiscard]] auto IsDisabled() const -> bool;
 
   /**
    * @brief
@@ -136,7 +136,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsSecretKey() const;
+  [[nodiscard]] auto IsSecretKey() const -> bool;
 
   /**
    * @brief
@@ -144,14 +144,14 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsCardKey() const;
+  [[nodiscard]] auto IsCardKey() const -> bool;
 
   /**
    * @brief
    *
    * @return boost::posix_time::ptime
    */
-  [[nodiscard]] boost::posix_time::ptime GetCreateTime() const;
+  [[nodiscard]] auto GetCreateTime() const -> boost::posix_time::ptime;
 
   /**
    * @brief
@@ -192,14 +192,14 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @param o
    * @return GpgSubKey&
    */
-  GpgSubKey& operator=(GpgSubKey&& o) noexcept;
+  auto operator=(GpgSubKey&& o) noexcept -> GpgSubKey&;
 
   /**
    * @brief
    *
    * @return GpgSubKey&
    */
-  GpgSubKey& operator=(const GpgSubKey&) = delete;
+  auto operator=(const GpgSubKey&) -> GpgSubKey& = delete;
 
   /**
    * @brief
@@ -208,14 +208,14 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  bool operator==(const GpgSubKey& o) const;
+  auto operator==(const GpgSubKey& o) const -> bool;
 
  private:
   using SubkeyRefHandler =
       std::unique_ptr<struct _gpgme_subkey,
                       std::function<void(gpgme_subkey_t)>>;  ///<
 
-  SubkeyRefHandler _subkey_ref = nullptr;  ///<
+  SubkeyRefHandler subkey_ref_ = nullptr;  ///<
 };
 
 }  // namespace GpgFrontend

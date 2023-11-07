@@ -40,55 +40,55 @@ class GPGFRONTEND_CORE_EXPORT GpgTOFUInfo {
    *
    * @return unsigned
    */
-  [[nodiscard]] unsigned GetValidity() const;
+  [[nodiscard]] auto GetValidity() const -> unsigned;
   /**
    * @brief
    *
    * @return unsigned
    */
-  [[nodiscard]] unsigned GetPolicy() const;
+  [[nodiscard]] auto GetPolicy() const -> unsigned;
 
   /**
    * @brief
    *
    * @return unsigned long
    */
-  [[nodiscard]] unsigned long GetSignCount() const;
+  [[nodiscard]] auto GetSignCount() const -> unsigned long;
 
   /**
    * @brief
    *
    * @return unsigned long
    */
-  [[nodiscard]] unsigned long GetEncrCount() const;
+  [[nodiscard]] auto GetEncrCount() const -> unsigned long;
 
   /**
    * @brief
    *
    * @return unsigned long
    */
-  [[nodiscard]] unsigned long GetSignFirst() const;
+  [[nodiscard]] auto GetSignFirst() const -> unsigned long;
 
   /**
    * @brief
    *
    * @return unsigned long
    */
-  [[nodiscard]] unsigned long GetSignLast() const;
+  [[nodiscard]] auto GetSignLast() const -> unsigned long;
 
   /**
    * @brief
    *
    * @return unsigned long
    */
-  [[nodiscard]] unsigned long GetEncrLast() const;
+  [[nodiscard]] auto GetEncrLast() const -> unsigned long;
 
   /**
    * @brief
    *
    * @return std::string
    */
-  [[nodiscard]] std::string GetDescription() const;
+  [[nodiscard]] auto GetDescription() const -> std::string;
 
   /**
    * @brief Construct a new Gpg T O F U Info object
@@ -122,21 +122,21 @@ class GPGFRONTEND_CORE_EXPORT GpgTOFUInfo {
    * @param o
    * @return GpgTOFUInfo&
    */
-  GpgTOFUInfo& operator=(GpgTOFUInfo&& o) noexcept;
+  auto operator=(GpgTOFUInfo&& o) noexcept -> GpgTOFUInfo&;
 
   /**
    * @brief
    *
    * @return GpgTOFUInfo&
    */
-  GpgTOFUInfo& operator=(const GpgTOFUInfo&) = delete;
+  auto operator=(const GpgTOFUInfo&) -> GpgTOFUInfo& = delete;
 
  private:
   using SubkeyRefHandler =
       std::unique_ptr<struct _gpgme_tofu_info,
                       std::function<void(gpgme_tofu_info_t)>>;  ///<
 
-  SubkeyRefHandler _tofu_info_ref = nullptr;  ///<
+  SubkeyRefHandler tofu_info_ref_ = nullptr;  ///<
 };
 
 }  // namespace GpgFrontend
