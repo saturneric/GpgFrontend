@@ -39,7 +39,7 @@ struct ArchiveStruct {
   std::string name;
 };
 
-int copy_data(struct archive *ar, struct archive *aw) {
+auto copy_data(struct archive *ar, struct archive *aw) -> int {
   int r;
   const void *buff;
   size_t size;
@@ -112,8 +112,9 @@ void GpgFrontend::ArchiveFileOperator::CreateArchive(
 
   auto u8_filename = relative_archive_path.u8string();
 
-  if (!u8_filename.empty() && u8_filename == u8"-")
+  if (!u8_filename.empty() && u8_filename == u8"-") {
     throw std::runtime_error("cannot write to stdout");
+  }
 
 #ifdef WINDOWS
   archive_write_open_filename_w(a, relative_archive_path.wstring().c_str());

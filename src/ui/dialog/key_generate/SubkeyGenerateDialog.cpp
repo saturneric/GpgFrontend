@@ -31,10 +31,10 @@
 #include <cassert>
 #include <cstddef>
 
-#include "core/common/CoreCommonUtil.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
+#include "core/utils/CacheUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/SignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
@@ -294,8 +294,8 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
     }
 
     if (!use_pinentry_ && !gen_key_info_->IsNoPassPhrase()) {
-      CoreCommonUtil::GetInstance()->SetTempCacheValue(
-          "__key_passphrase", this->passphrase_edit_->text().toStdString());
+      SetTempCacheValue("__key_passphrase",
+                        this->passphrase_edit_->text().toStdString());
     }
 
     GpgError error;
@@ -315,7 +315,7 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
     waiting_dialog->close();
 
     if (!use_pinentry_ && !gen_key_info_->IsNoPassPhrase()) {
-      CoreCommonUtil::GetInstance()->ResetTempCacheValue("__key_passphrase");
+      ResetTempCacheValue("__key_passphrase");
     }
 
     if (CheckGpgError(error) == GPG_ERR_NO_ERROR) {

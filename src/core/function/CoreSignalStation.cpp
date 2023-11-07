@@ -29,11 +29,12 @@
 #include "core/function/CoreSignalStation.h"
 
 std::unique_ptr<GpgFrontend::CoreSignalStation>
-    GpgFrontend::CoreSignalStation::_instance = nullptr;
+    GpgFrontend::CoreSignalStation::instance = nullptr;
 
-GpgFrontend::CoreSignalStation* GpgFrontend::CoreSignalStation::GetInstance() {
-  if (_instance == nullptr) {
-    _instance = std::make_unique<CoreSignalStation>();
+auto GpgFrontend::CoreSignalStation::GetInstance()
+    -> GpgFrontend::CoreSignalStation* {
+  if (instance == nullptr) {
+    instance = std::make_unique<CoreSignalStation>();
   }
-  return _instance.get();
+  return instance.get();
 }

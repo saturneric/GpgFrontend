@@ -27,12 +27,12 @@
 aux_source_directory(./function/basic CORE_SOURCE)
 aux_source_directory(./function/result_analyse CORE_SOURCE)
 aux_source_directory(./function/gpg CORE_SOURCE)
-aux_source_directory(./function/aes CORE_SOURCE)
 aux_source_directory(./function CORE_SOURCE)
 aux_source_directory(./thread CORE_SOURCE)
 aux_source_directory(./model CORE_SOURCE)
 aux_source_directory(./common CORE_SOURCE)
 aux_source_directory(./module CORE_SOURCE)
+aux_source_directory(./utils/aes CORE_SOURCE)
 aux_source_directory(./utils CORE_SOURCE)
 aux_source_directory(. CORE_SOURCE)
 

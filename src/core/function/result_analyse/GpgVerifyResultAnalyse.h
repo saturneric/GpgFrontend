@@ -30,7 +30,6 @@
 
 #include "GpgResultAnalyse.h"
 
-
 namespace GpgFrontend {
 /**
  * @brief
@@ -51,21 +50,21 @@ class GPGFRONTEND_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
    *
    * @return gpgme_signature_t
    */
-  gpgme_signature_t GetSignatures() const;
+  auto GetSignatures() const -> gpgme_signature_t;
 
   /**
    * @brief
    *
    * @return GpgVerifyResult
    */
-  GpgVerifyResult TakeChargeOfResult();
+  auto TakeChargeOfResult() -> GpgVerifyResult;
 
- private:
+ protected:
   /**
    * @brief
    *
    */
-  void do_analyse();
+  void doAnalyse() final;
 
  private:
   /**
@@ -76,7 +75,7 @@ class GPGFRONTEND_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
    * @return true
    * @return false
    */
-  bool print_signer(std::stringstream &stream, gpgme_signature_t sign);
+  auto print_signer(std::stringstream &stream, gpgme_signature_t sign) -> bool;
 
   GpgError error_;          ///<
   GpgVerifyResult result_;  ///<

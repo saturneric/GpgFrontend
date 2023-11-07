@@ -35,7 +35,9 @@
 #include "core/function/PassphraseGenerator.h"
 #include "core/utils/IOUtils.h"
 
-void GpgFrontend::DataObjectOperator::init_app_secure_key() {
+namespace GpgFrontend {
+
+void DataObjectOperator::init_app_secure_key() {
   SPDLOG_DEBUG("initializing application secure key");
   WriteFileStd(app_secure_key_path_,
                PassphraseGenerator::GetInstance().Generate(256));
@@ -44,7 +46,7 @@ void GpgFrontend::DataObjectOperator::init_app_secure_key() {
       std::filesystem::perms::owner_read | std::filesystem::perms::owner_write);
 }
 
-GpgFrontend::DataObjectOperator::DataObjectOperator(int channel)
+DataObjectOperator::DataObjectOperator(int channel)
     : SingletonFunctionObject<DataObjectOperator>(channel) {
   if (!is_directory(app_secure_path_)) create_directory(app_secure_path_);
 
@@ -65,11 +67,12 @@ GpgFrontend::DataObjectOperator::DataObjectOperator(int channel)
   if (!exists(app_data_objs_path_)) create_directory(app_data_objs_path_);
 }
 
-std::string GpgFrontend::DataObjectOperator::SaveDataObj(
-    const std::string& _key, const nlohmann::json& value) {
-  std::string _hash_obj_key = {};
+auto DataObjectOperator::SaveDataObj(const std::string& _key,
+                                     const nlohmann::json& value)
+    -> std::string {
+  std::string hash_obj_key = {};
   if (_key.empty()) {
-    _hash_obj_key =
+    hash_obj_key =
         QCryptographicHash::hash(
             hash_key_ + QByteArray::fromStdString(
                             PassphraseGenerator::GetInstance().Generate(32) +
@@ -79,39 +82,39 @@ std::string GpgFrontend::DataObjectOperator::SaveDataObj(
             .toHex()
             .toStdString();
   } else {
-    _hash_obj_key =
+    hash_obj_key =
         QCryptographicHash::hash(hash_key_ + QByteArray::fromStdString(_key),
                                  QCryptographicHash::Sha256)
             .toHex()
             .toStdString();
   }
 
-  const auto obj_path = app_data_objs_path_ / _hash_obj_key;
+  const auto obj_path = app_data_objs_path_ / hash_obj_key;
 
   QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
                             QAESEncryption::Padding::ISO);
   auto encoded =
       encryption.encode(QByteArray::fromStdString(to_string(value)), hash_key_);
 
-  SPDLOG_DEBUG("saving data object {} to {} , size: {} bytes", _hash_obj_key,
+  SPDLOG_DEBUG("saving data object {} to {} , size: {} bytes", hash_obj_key,
                obj_path.u8string(), encoded.size());
 
   WriteFileStd(obj_path.u8string(), encoded.toStdString());
 
-  return _key.empty() ? _hash_obj_key : std::string();
+  return _key.empty() ? hash_obj_key : std::string();
 }
 
-std::optional<nlohmann::json> GpgFrontend::DataObjectOperator::GetDataObject(
-    const std::string& _key) {
+auto DataObjectOperator::GetDataObject(const std::string& _key)
+    -> std::optional<nlohmann::json> {
   try {
     SPDLOG_DEBUG("get data object {}", _key);
-    auto _hash_obj_key =
+    auto hash_obj_key =
         QCryptographicHash::hash(hash_key_ + QByteArray::fromStdString(_key),
                                  QCryptographicHash::Sha256)
             .toHex()
             .toStdString();
 
-    const auto obj_path = app_data_objs_path_ / _hash_obj_key;
+    const auto obj_path = app_data_objs_path_ / hash_obj_key;
 
     if (!std::filesystem::exists(obj_path)) {
       SPDLOG_ERROR("data object not found :{}", _key);
@@ -145,13 +148,13 @@ std::optional<nlohmann::json> GpgFrontend::DataObjectOperator::GetDataObject(
   }
 }
 
-std::optional<nlohmann::json>
-GpgFrontend::DataObjectOperator::GetDataObjectByRef(const std::string& _ref) {
+auto DataObjectOperator::GetDataObjectByRef(const std::string& _ref)
+    -> std::optional<nlohmann::json> {
   if (_ref.size() != 64) return {};
 
   try {
-    const auto& _hash_obj_key = _ref;
-    const auto obj_path = app_data_objs_path_ / _hash_obj_key;
+    const auto& hash_obj_key = _ref;
+    const auto obj_path = app_data_objs_path_ / hash_obj_key;
 
     if (!std::filesystem::exists(obj_path)) return {};
 
@@ -170,3 +173,4 @@ GpgFrontend::DataObjectOperator::GetDataObjectByRef(const std::string& _ref) {
     return {};
   }
 }
+}  // namespace GpgFrontend

@@ -482,7 +482,11 @@ void TextEdit::SlotPrint() {
   if (dlg->exec() != QDialog::Accepted) {
     return;
   }
-  document->print(&printer);
+  if (document != nullptr) {
+    document->print(&printer);
+  } else {
+    QMessageBox::warning(this, _("Warning"), _("No document to print"));
+  }
 
   // statusBar()->showMessage(_("Ready"), 2000);
 #endif

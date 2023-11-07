@@ -32,11 +32,11 @@
 
 namespace GpgFrontend {
 
-std::string PassphraseGenerator::Generate(int len) {
+auto PassphraseGenerator::Generate(int len) -> std::string {
   std::uniform_int_distribution<int> dist(999, 99999);
 
   auto file_string = boost::format("KeyPackage_%1%") % dist(mt_);
-  static const char alphanum[] =
+  static const char kAlphanum[] =
       "0123456789"
       "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
       "abcdefghijklmnopqrstuvwxyz";
@@ -44,7 +44,7 @@ std::string PassphraseGenerator::Generate(int len) {
   tmp_str.reserve(len);
 
   for (int i = 0; i < len; ++i) {
-    tmp_str += alphanum[dist(mt_) % (sizeof(alphanum) - 1)];
+    tmp_str += kAlphanum[dist(mt_) % (sizeof(kAlphanum) - 1)];
   }
   return tmp_str;
 }

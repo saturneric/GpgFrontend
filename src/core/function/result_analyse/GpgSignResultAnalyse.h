@@ -51,7 +51,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSignResultAnalyse : public GpgResultAnalyse {
    * @brief
    *
    */
-  void do_analyse();
+  void doAnalyse() override;
 
  private:
   GpgError error_;  ///<

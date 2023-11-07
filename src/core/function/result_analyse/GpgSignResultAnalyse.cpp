@@ -34,24 +34,24 @@ GpgFrontend::GpgSignResultAnalyse::GpgSignResultAnalyse(GpgError error,
                                                         GpgSignResult result)
     : error_(error), result_(std::move(result)) {}
 
-void GpgFrontend::GpgSignResultAnalyse::do_analyse() {
+void GpgFrontend::GpgSignResultAnalyse::doAnalyse() {
   SPDLOG_DEBUG("start sign result analyse");
 
   stream_ << "[#] " << _("Sign Operation") << " ";
 
-  if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR)
+  if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
     stream_ << "[" << _("Success") << "]" << std::endl;
-  else {
+  } else {
     stream_ << "[" << _("Failed") << "] " << gpgme_strerror(error_)
             << std::endl;
-    set_status(-1);
+    setStatus(-1);
   }
 
   if (result_ != nullptr &&
       (result_->signatures != nullptr || result_->invalid_signers != nullptr)) {
     SPDLOG_DEBUG("sign result analyse getting result");
     stream_ << "------------>" << std::endl;
-    auto new_sign = result_->signatures;
+    auto *new_sign = result_->signatures;
 
     while (new_sign != nullptr) {
       stream_ << "[>]" << _("New Signature") << ": " << std::endl;
@@ -59,20 +59,21 @@ void GpgFrontend::GpgSignResultAnalyse::do_analyse() {
       SPDLOG_DEBUG("signers fingerprint: ", new_sign->fpr);
 
       stream_ << "    " << _("Sign Mode") << ": ";
-      if (new_sign->type == GPGME_SIG_MODE_NORMAL)
+      if (new_sign->type == GPGME_SIG_MODE_NORMAL) {
         stream_ << _("Normal");
-      else if (new_sign->type == GPGME_SIG_MODE_CLEAR)
+      } else if (new_sign->type == GPGME_SIG_MODE_CLEAR) {
         stream_ << _("Clear");
-      else if (new_sign->type == GPGME_SIG_MODE_DETACH)
+      } else if (new_sign->type == GPGME_SIG_MODE_DETACH) {
         stream_ << _("Detach");
+      }
 
       stream_ << std::endl;
 
-      auto singerKey =
+      auto singer_key =
           GpgFrontend::GpgKeyGetter::GetInstance().GetKey(new_sign->fpr);
-      if (singerKey.IsGood()) {
+      if (singer_key.IsGood()) {
         stream_ << "    " << _("Signer") << ": "
-                << singerKey.GetUIDs()->front().GetUID() << std::endl;
+                << singer_key.GetUIDs()->front().GetUID() << std::endl;
       } else {
         stream_ << "    " << _("Signer") << ": "
                 << "<unknown>" << std::endl;
@@ -94,13 +95,14 @@ void GpgFrontend::GpgSignResultAnalyse::do_analyse() {
 
     SPDLOG_DEBUG("sign result analyse getting invalid signer");
 
-    auto invalid_signer = result_->invalid_signers;
+    auto *invalid_signer = result_->invalid_signers;
 
-    if (invalid_signer != nullptr)
+    if (invalid_signer != nullptr) {
       stream_ << _("Invalid Signers") << ": " << std::endl;
+    }
 
     while (invalid_signer != nullptr) {
-      set_status(0);
+      setStatus(0);
       stream_ << "[>] " << _("Signer") << ": " << std::endl;
       stream_ << "      " << _("Fingerprint") << ": " << invalid_signer->fpr
               << std::endl;

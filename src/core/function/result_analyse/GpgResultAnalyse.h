@@ -52,14 +52,14 @@ class GPGFRONTEND_CORE_EXPORT GpgResultAnalyse {
    *
    * @return const std::string
    */
-  [[nodiscard]] const std::string GetResultReport() const;
+  [[nodiscard]] auto GetResultReport() const -> const std::string;
 
   /**
    * @brief Get the Status object
    *
    * @return int
    */
-  [[nodiscard]] int GetStatus() const;
+  [[nodiscard]] auto GetStatus() const -> int;
 
   /**
    * @brief
@@ -72,14 +72,14 @@ class GPGFRONTEND_CORE_EXPORT GpgResultAnalyse {
    * @brief
    *
    */
-  virtual void do_analyse() = 0;
+  virtual void doAnalyse() = 0;
 
   /**
    * @brief Set the status object
    *
    * @param m_status
    */
-  void set_status(int m_status);
+  void setStatus(int m_status);
 
   std::stringstream stream_;  ///<
   int status_ = 1;            ///<

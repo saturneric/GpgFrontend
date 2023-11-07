@@ -34,7 +34,6 @@
 #include <vector>
 
 #include "core/GpgConstants.h"
-#include "core/common/CoreCommonUtil.h"
 #include "core/function/CacheManager.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
@@ -155,8 +154,9 @@ CommonUtils *CommonUtils::GetInstance() {
 }
 
 CommonUtils::CommonUtils() : QWidget(nullptr) {
-  connect(CoreCommonUtil::GetInstance(), &CoreCommonUtil::SignalGnupgNotInstall,
-          this, &CommonUtils::SignalGnupgNotInstall);
+  connect(CoreSignalStation::GetInstance(),
+          &CoreSignalStation::SignalGnupgNotInstall, this,
+          &CommonUtils::SignalGnupgNotInstall);
   connect(this, &CommonUtils::SignalKeyStatusUpdated,
           SignalStation::GetInstance(),
           &SignalStation::SignalKeyDatabaseRefresh);

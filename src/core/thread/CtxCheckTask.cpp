@@ -29,18 +29,20 @@
 #include "core/thread/CtxCheckTask.h"
 
 #include "core/GpgCoreInit.h"
-#include "core/common/CoreCommonUtil.h"
+#include "core/function/CoreSignalStation.h"
 #include "core/function/gpg/GpgContext.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "thread/Task.h"
 
-GpgFrontend::Thread::CoreInitTask::CoreInitTask() : Task("ctx_check_task") {
+namespace GpgFrontend {
+
+Thread::CoreInitTask::CoreInitTask() : Task("ctx_check_task") {
   connect(this, &CoreInitTask::SignalGnupgNotInstall,
-          CoreCommonUtil::GetInstance(),
-          &CoreCommonUtil::SignalGnupgNotInstall);
+          CoreSignalStation::GetInstance(),
+          &CoreSignalStation::SignalGnupgNotInstall);
 }
 
-void GpgFrontend::Thread::CoreInitTask::Run() {
+void Thread::CoreInitTask::Run() {
   // Init GpgFrontend Core
   InitGpgFrontendCore();
 
@@ -49,8 +51,10 @@ void GpgFrontend::Thread::CoreInitTask::Run() {
     emit SignalGnupgNotInstall();
   }
   // Try flushing key cache
-  else
-    GpgFrontend::GpgKeyGetter::GetInstance().FlushKeyCache();
+  else {
+    GpgKeyGetter::GetInstance().FlushKeyCache();
+  }
 
   SPDLOG_DEBUG("ctx check task runnable done");
 }
+}  // namespace GpgFrontend

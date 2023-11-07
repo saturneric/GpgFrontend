@@ -28,19 +28,20 @@
 
 #include "GpgResultAnalyse.h"
 
-const std::string GpgFrontend::GpgResultAnalyse::GetResultReport() const {
+auto GpgFrontend::GpgResultAnalyse::GetResultReport() const
+    -> const std::string {
   return stream_.str();
 }
 
-int GpgFrontend::GpgResultAnalyse::GetStatus() const { return status_; }
+auto GpgFrontend::GpgResultAnalyse::GetStatus() const -> int { return status_; }
 
-void GpgFrontend::GpgResultAnalyse::set_status(int m_status) {
+void GpgFrontend::GpgResultAnalyse::setStatus(int m_status) {
   if (m_status < status_) status_ = m_status;
 }
 
 void GpgFrontend::GpgResultAnalyse::Analyse() {
   if (!analysed_) {
-    do_analyse();
+    doAnalyse();
     analysed_ = true;
   }
 }

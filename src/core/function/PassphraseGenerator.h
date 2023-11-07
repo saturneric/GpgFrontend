@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "core/GpgFrontendCore.h"
 #include "core/function/basic/GpgFunctionObject.h"
 
 namespace GpgFrontend {
@@ -56,8 +55,9 @@ class GPGFRONTEND_CORE_EXPORT PassphraseGenerator
    * @param len length of the passphrase
    * @return std::string passphrase
    */
-  std::string Generate(int len);
+  auto Generate(int len) -> std::string;
 
+ private:
   std::random_device rd_;                  ///< Random device
   std::mt19937 mt_ = std::mt19937(rd_());  ///< Mersenne twister
 };

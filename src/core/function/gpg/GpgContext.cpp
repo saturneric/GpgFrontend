@@ -32,7 +32,6 @@
 #include <gpgme.h>
 #include <unistd.h>
 
-#include "core/common/CoreCommonUtil.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
@@ -40,6 +39,7 @@
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "core/utils/CacheUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 
@@ -251,8 +251,7 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
       return gpgme_error_from_errno(GPG_ERR_CANCELED);
     }
 
-    std::string passphrase =
-        CoreCommonUtil::GetInstance()->GetTempCacheValue("__key_passphrase");
+    std::string passphrase = GetTempCacheValue("__key_passphrase");
     // no pawword is an error situation
     if (passphrase.empty()) {
       // user input passphrase

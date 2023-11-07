@@ -62,71 +62,79 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
    *
    * @return libconfig::Setting&
    */
-  libconfig::Setting &GetMainSettings() noexcept;
+  auto GetMainSettings() noexcept -> libconfig::Setting &;
 
   /**
    * @brief Get the App Dir object
    *
    * @return std::filesystem::path
    */
-  [[nodiscard]] std::filesystem::path GetAppDir() const;
+  [[nodiscard]] auto GetAppDir() const -> std::filesystem::path;
 
   /**
    * @brief Gets the application data directory.
    * @return Path to the application data directory.
    */
-  [[nodiscard]] std::filesystem::path GetAppDataPath() const;
+  [[nodiscard]] auto GetAppDataPath() const -> std::filesystem::path;
 
   /**
    * @brief Get the Log Dir object
    *
    * @return std::filesystem::path
    */
-  [[nodiscard]] std::filesystem::path GetLogDir() const;
+  [[nodiscard]] auto GetLogDir() const -> std::filesystem::path;
 
   /**
    * @brief Get the Standalone Database Dir object
    *
    * @return std::filesystem::path
    */
-  [[nodiscard]] std::filesystem::path GetStandaloneDatabaseDir() const;
+  [[nodiscard]] auto GetStandaloneDatabaseDir() const -> std::filesystem::path;
 
-  [[nodiscard]] std::filesystem::path GetAppConfigPath() const;
+  [[nodiscard]] auto GetAppConfigPath() const -> std::filesystem::path;
 
   /**
    * @brief Get the Standalone Gpg Bin Dir object
    *
    * @return std::filesystem::path
    */
-  [[nodiscard]] std::filesystem::path GetStandaloneGpgBinDir() const;
+  [[nodiscard]] auto GetStandaloneGpgBinDir() const -> std::filesystem::path;
 
   /**
    * @brief Get the Locale Dir object
    *
    * @return std::filesystem::path
    */
-  [[nodiscard]] std::filesystem::path GetLocaleDir() const;
+  [[nodiscard]] auto GetLocaleDir() const -> std::filesystem::path;
 
   /**
    * @brief Get the Resource Dir object
    *
    * @return std::filesystem::path
    */
-  [[nodiscard]] std::filesystem::path GetResourceDir() const;
+  [[nodiscard]] auto GetResourceDir() const -> std::filesystem::path;
 
   /**
    * @brief Get the Certs Dir object
    *
    * @return std::filesystem::path
    */
-  [[nodiscard]] std::filesystem::path GetCertsDir() const;
+  [[nodiscard]] auto GetCertsDir() const -> std::filesystem::path;
 
-  [[nodiscard]] std::string GetLogFilesSize() const;
+  [[nodiscard]] auto GetLogFilesSize() const -> std::string;
 
-  [[nodiscard]] std::string GetDataObjectsFilesSize() const;
+  [[nodiscard]] auto GetDataObjectsFilesSize() const -> std::string;
 
+  /**
+   * @brief clear all log files
+   *
+   */
   void ClearAllLogFiles() const;
 
+  /**
+   * @brief clear all data objects
+   *
+   */
   void ClearAllDataObjects() const;
 
   /**
@@ -142,7 +150,7 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
    * @return The setting value.
    */
   template <typename T>
-  T LookupSettings(std::string path, T default_value) noexcept {
+  auto LookupSettings(std::string path, T default_value) noexcept -> T {
     T value = default_value;
     try {
       value = static_cast<T>(GetMainSettings().lookup(path));

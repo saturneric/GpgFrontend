@@ -26,35 +26,25 @@
  *
  */
 
-#pragma once
+#include "CacheUtils.h"
 
-#include "GpgResultAnalyse.h"
+#include "core/function/CacheManager.h"
 
 namespace GpgFrontend {
-/**
- * @brief
- *
- */
-class GPGFRONTEND_CORE_EXPORT GpgEncryptResultAnalyse
-    : public GpgResultAnalyse {
- public:
-  /**
-   * @brief Construct a new Encrypt Result Analyse object
-   *
-   * @param error
-   * @param result
-   */
-  explicit GpgEncryptResultAnalyse(GpgError error, GpgEncrResult result);
 
- protected:
-  /**
-   * @brief
-   *
-   */
-  void doAnalyse() final;
+void SetTempCacheValue(const std::string& key, const std::string& value) {
+  nlohmann::json cache_json = value;
+  CacheManager::GetInstance().SaveCache(key, cache_json);
+}
 
- private:
-  GpgError error_;        ///<
-  GpgEncrResult result_;  ///<
-};
+auto GetTempCacheValue(const std::string& key) -> std::string {
+  nlohmann::json cache_json = "";
+  cache_json = CacheManager::GetInstance().LoadCache(key, cache_json);
+  return cache_json.template get<std::string>();
+}
+
+void ResetTempCacheValue(const std::string& key) {
+  CacheManager::GetInstance().ResetCache(key);
+}
+
 }  // namespace GpgFrontend

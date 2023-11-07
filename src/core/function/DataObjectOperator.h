@@ -48,11 +48,13 @@ class GPGFRONTEND_CORE_EXPORT DataObjectOperator
   explicit DataObjectOperator(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
-  std::string SaveDataObj(const std::string &_key, const nlohmann::json &value);
+  auto SaveDataObj(const std::string &_key, const nlohmann::json &value)
+      -> std::string;
 
-  std::optional<nlohmann::json> GetDataObject(const std::string &_key);
+  auto GetDataObject(const std::string &_key) -> std::optional<nlohmann::json>;
 
-  std::optional<nlohmann::json> GetDataObjectByRef(const std::string &_ref);
+  auto GetDataObjectByRef(const std::string &_ref)
+      -> std::optional<nlohmann::json>;
 
  private:
   /**

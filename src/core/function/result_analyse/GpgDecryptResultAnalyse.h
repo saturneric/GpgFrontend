@@ -29,7 +29,6 @@
 #pragma once
 
 #include "GpgResultAnalyse.h"
-#include "core/GpgConstants.h"
 
 namespace GpgFrontend {
 
@@ -53,7 +52,7 @@ class GPGFRONTEND_CORE_EXPORT GpgDecryptResultAnalyse
    * @brief
    *
    */
-  void do_analyse() final;
+  void doAnalyse() final;
 
  private:
   /**

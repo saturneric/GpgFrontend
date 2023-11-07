@@ -32,24 +32,24 @@ GpgFrontend::GpgEncryptResultAnalyse::GpgEncryptResultAnalyse(
     GpgError error, GpgEncrResult result)
     : error_(error), result_(std::move(result)) {}
 
-void GpgFrontend::GpgEncryptResultAnalyse::do_analyse() {
+void GpgFrontend::GpgEncryptResultAnalyse::doAnalyse() {
   SPDLOG_DEBUG("start encrypt result analyse");
 
   stream_ << "[#] " << _("Encrypt Operation") << " ";
 
-  if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR)
+  if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
     stream_ << "[" << _("Success") << "]" << std::endl;
-  else {
+  } else {
     stream_ << "[" << _("Failed") << "] " << gpgme_strerror(error_)
             << std::endl;
-    set_status(-1);
+    setStatus(-1);
   }
 
-  if (!~status_) {
+  if ((~status_) == 0) {
     stream_ << "------------>" << std::endl;
     if (result_ != nullptr) {
       stream_ << _("Invalid Recipients") << ": " << std::endl;
-      auto inv_reci = result_->invalid_recipients;
+      auto *inv_reci = result_->invalid_recipients;
       while (inv_reci != nullptr) {
         stream_ << _("Fingerprint") << ": " << inv_reci->fpr << std::endl;
         stream_ << _("Reason") << ": " << gpgme_strerror(inv_reci->reason)

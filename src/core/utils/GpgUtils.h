@@ -128,6 +128,6 @@ auto GPGFRONTEND_CORE_EXPORT CheckGpgError2ErrCode(
  * @param text
  * @return int
  */
-auto TextIsSigned(BypeArrayRef text) -> int;
+auto GPGFRONTEND_CORE_EXPORT TextIsSigned(BypeArrayRef text) -> int;
 
 }  // namespace GpgFrontend

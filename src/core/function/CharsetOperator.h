@@ -36,9 +36,9 @@ class GPGFRONTEND_CORE_EXPORT CharsetOperator {
  public:
   using CharsetInfo = std::tuple<std::string, std::string, int>;
 
-  static CharsetInfo Detect(const std::string &buffer);
+  static auto Detect(const std::string &buffer) -> CharsetInfo;
 
-  static bool Convert2Utf8(const std::string &buffer, std::string &out_buffer,
-                           std::string from_charset_name);
+  static auto Convert2Utf8(const std::string &buffer, std::string &out_buffer,
+                           std::string from_charset_name) -> bool;
 };
 }  // namespace GpgFrontend

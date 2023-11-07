@@ -28,13 +28,16 @@
 
 #pragma once
 
+namespace GpgFrontend {
+
 /**
  * @brief Get the file extension object
  *
  * @param path
  * @return std::string
  */
-auto GetFileExtension(const std::string& path) -> std::string;
+auto GPGFRONTEND_CORE_EXPORT GetFileExtension(const std::string& path)
+    -> std::string;
 
 /**
  * @brief Get the only file name with path object
@@ -42,4 +45,36 @@ auto GetFileExtension(const std::string& path) -> std::string;
  * @param path
  * @return std::string
  */
-auto GetOnlyFileNameWithPath(const std::string& path) -> std::string;
+auto GPGFRONTEND_CORE_EXPORT GetOnlyFileNameWithPath(const std::string& path)
+    -> std::string;
+
+/**
+ * @brief Get the File Size By Path object
+ *
+ * @param path The path of the file
+ * @param filename_pattern The pattern of the file name, e.g. "*.txt"
+ * @return int64_t
+ */
+auto GPGFRONTEND_CORE_EXPORT GetFileSizeByPath(
+    const std::filesystem::path& path, const std::string& filename_pattern)
+    -> int64_t;
+
+/**
+ * @brief Get the Human Readable File Size object
+ *
+ * @param size
+ * @return std::string
+ */
+auto GPGFRONTEND_CORE_EXPORT GetHumanFriendlyFileSize(int64_t size)
+    -> std::string;
+
+/**
+ * @brief
+ *
+ * @param path
+ * @param filename_pattern
+ */
+void GPGFRONTEND_CORE_EXPORT DeleteAllFilesByPattern(
+    const std::filesystem::path& path, const std::string& filename_pattern);
+
+}  // namespace GpgFrontend

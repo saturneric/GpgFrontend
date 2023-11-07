@@ -28,33 +28,29 @@
 
 #pragma once
 
-#include "GpgResultAnalyse.h"
-
 namespace GpgFrontend {
+
 /**
- * @brief
+ * @brief set a temp cache under a certain key
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgEncryptResultAnalyse
-    : public GpgResultAnalyse {
- public:
-  /**
-   * @brief Construct a new Encrypt Result Analyse object
-   *
-   * @param error
-   * @param result
-   */
-  explicit GpgEncryptResultAnalyse(GpgError error, GpgEncrResult result);
+void GPGFRONTEND_CORE_EXPORT SetTempCacheValue(const std::string &,
+                                               const std::string &);
 
- protected:
-  /**
-   * @brief
-   *
-   */
-  void doAnalyse() final;
+/**
+ * @brief after get the temp cache, its value will be imediately ease in
+ * storage
+ *
+ * @return std::string
+ */
+auto GPGFRONTEND_CORE_EXPORT GetTempCacheValue(const std::string &)
+    -> std::string;
 
- private:
-  GpgError error_;        ///<
-  GpgEncrResult result_;  ///<
-};
+/**
+ * @brief imediately ease temp cache in storage
+ *
+ * @return std::string
+ */
+void GPGFRONTEND_CORE_EXPORT ResetTempCacheValue(const std::string &);
+
 }  // namespace GpgFrontend

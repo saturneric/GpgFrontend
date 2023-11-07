@@ -30,9 +30,9 @@
 
 #include <qobject.h>
 
-#include "core/common/CoreCommonUtil.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyOpera.h"
+#include "core/utils/CacheUtils.h"
 #include "dialog/WaitingDialog.h"
 #include "ui/SignalStation.h"
 
@@ -141,8 +141,8 @@ void KeyGenDialog::slot_key_gen_accept() {
     }
 
     if (!use_pinentry_ && !gen_key_info_->IsNoPassPhrase()) {
-      CoreCommonUtil::GetInstance()->SetTempCacheValue(
-          "__key_passphrase", this->passphrase_edit_->text().toStdString());
+      SetTempCacheValue("__key_passphrase",
+                        this->passphrase_edit_->text().toStdString());
     }
 
     GpgGenKeyResult result;
@@ -162,7 +162,7 @@ void KeyGenDialog::slot_key_gen_accept() {
     dialog->close();
 
     if (!use_pinentry_ && !gen_key_info_->IsNoPassPhrase()) {
-      CoreCommonUtil::GetInstance()->ResetTempCacheValue("__key_passphrase");
+      ResetTempCacheValue("__key_passphrase");
     }
 
     SPDLOG_DEBUG("generate done");

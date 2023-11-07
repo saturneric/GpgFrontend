@@ -40,17 +40,17 @@
 
 namespace GpgFrontend {
 
-bool KeyPackageOperator::GeneratePassphrase(
-    const std::filesystem::path& phrase_path, std::string& phrase) {
+auto KeyPackageOperator::GeneratePassphrase(
+    const std::filesystem::path& phrase_path, std::string& phrase) -> bool {
   phrase = PassphraseGenerator::GetInstance().Generate(256);
   SPDLOG_DEBUG("generated passphrase: {} bytes", phrase.size());
   return WriteFileStd(phrase_path, phrase);
 }
 
-bool KeyPackageOperator::GenerateKeyPackage(
+auto KeyPackageOperator::GenerateKeyPackage(
     const std::filesystem::path& key_package_path,
     const std::string& key_package_name, KeyIdArgsListPtr& key_ids,
-    std::string& phrase, bool secret) {
+    std::string& phrase, bool secret) -> bool {
   SPDLOG_DEBUG("generating key package: {}", key_package_name);
 
   ByteArrayPtr key_export_data = nullptr;
@@ -72,10 +72,10 @@ bool KeyPackageOperator::GenerateKeyPackage(
   return WriteFileStd(key_package_path, encoded.toStdString());
 }
 
-bool KeyPackageOperator::ImportKeyPackage(
+auto KeyPackageOperator::ImportKeyPackage(
     const std::filesystem::path& key_package_path,
-    const std::filesystem::path& phrase_path,
-    GpgFrontend::GpgImportInformation& import_info) {
+    const std::filesystem::path& phrase_path, GpgImportInformation& import_info)
+    -> bool {
   SPDLOG_DEBUG("importing key package: {]", key_package_path.u8string());
 
   std::string encrypted_data;
@@ -116,7 +116,7 @@ bool KeyPackageOperator::ImportKeyPackage(
   return true;
 }
 
-std::string KeyPackageOperator::GenerateKeyPackageName() {
+auto KeyPackageOperator::GenerateKeyPackageName() -> std::string {
   return generate_key_package_name();
 }
 
@@ -125,7 +125,7 @@ std::string KeyPackageOperator::GenerateKeyPackageName() {
  *
  * @return std::string key package name
  */
-std::string KeyPackageOperator::generate_key_package_name() {
+auto KeyPackageOperator::generate_key_package_name() -> std::string {
   std::random_device rd_;          ///< Random device
   auto mt_ = std::mt19937(rd_());  ///< Mersenne twister
 

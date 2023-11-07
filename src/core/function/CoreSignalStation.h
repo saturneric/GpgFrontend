@@ -38,7 +38,7 @@ namespace GpgFrontend {
  */
 class GPGFRONTEND_CORE_EXPORT CoreSignalStation : public QObject {
   Q_OBJECT
-  static std::unique_ptr<CoreSignalStation> _instance;
+  static std::unique_ptr<CoreSignalStation> instance;
 
  public:
   /**
@@ -46,7 +46,7 @@ class GPGFRONTEND_CORE_EXPORT CoreSignalStation : public QObject {
    *
    * @return SignalStation*
    */
-  static CoreSignalStation* GetInstance();
+  static auto GetInstance() -> CoreSignalStation*;
 
  signals:
 
@@ -61,6 +61,12 @@ class GPGFRONTEND_CORE_EXPORT CoreSignalStation : public QObject {
    *
    */
   void SignalNeedUserInputPassphrase();
+
+  /**
+   * @brief
+   *
+   */
+  void SignalGnupgNotInstall();
 };
 
 }  // namespace GpgFrontend

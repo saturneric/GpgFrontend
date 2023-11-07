@@ -35,7 +35,7 @@ GpgFrontend::GpgDecryptResultAnalyse::GpgDecryptResultAnalyse(
     GpgError m_error, GpgDecrResult m_result)
     : error_(m_error), result_(std::move(m_result)) {}
 
-void GpgFrontend::GpgDecryptResultAnalyse::do_analyse() {
+void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
   stream_ << "[#] " << _("Decrypt Operation");
 
   if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
@@ -43,7 +43,7 @@ void GpgFrontend::GpgDecryptResultAnalyse::do_analyse() {
   } else {
     stream_ << "[" << _("Failed") << "] " << gpgme_strerror(error_)
             << std::endl;
-    set_status(-1);
+    setStatus(-1);
     if (result_ != nullptr && result_->unsupported_algorithm != nullptr) {
       stream_ << "------------>" << std::endl;
       stream_ << _("Unsupported Algo") << ": " << result_->unsupported_algorithm
@@ -61,7 +61,7 @@ void GpgFrontend::GpgDecryptResultAnalyse::do_analyse() {
       stream_ << _("MIME") << ": " << _("true") << std::endl;
     }
 
-    auto recipient = result_->recipients;
+    auto *recipient = result_->recipients;
     if (recipient != nullptr) stream_ << _("Recipient(s)") << ": " << std::endl;
     while (recipient != nullptr) {
       print_recipient(stream_, recipient);
@@ -87,7 +87,7 @@ void GpgFrontend::GpgDecryptResultAnalyse::print_recipient(
     }
   } else {
     stream << "<" << _("Unknown") << ">";
-    set_status(0);
+    setStatus(0);
   }
 
   stream << std::endl;

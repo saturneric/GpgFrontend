@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "core/GpgFrontendCore.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 
 namespace GpgFrontend {
@@ -47,15 +46,15 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    * @return true if passphrase was generated and saved
    * @return false if passphrase was not generated and saved
    */
-  static bool GeneratePassphrase(const std::filesystem::path &phrase_path,
-                                 std::string &phrase);
+  static auto GeneratePassphrase(const std::filesystem::path &phrase_path,
+                                 std::string &phrase) -> bool;
 
   /**
    * @brief generate the name of the key package
    *
    * @return std::string name of the key package
    */
-  static std::string GenerateKeyPackageName();
+  static auto GenerateKeyPackageName() -> std::string;
 
   /**
    * @brief generate key package
@@ -68,10 +67,10 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    * @return true if key package was generated
    * @return false if key package was not generated
    */
-  static bool GenerateKeyPackage(const std::filesystem::path &key_package_path,
+  static auto GenerateKeyPackage(const std::filesystem::path &key_package_path,
                                  const std::string &key_package_name,
                                  KeyIdArgsListPtr &key_ids, std::string &phrase,
-                                 bool secret);
+                                 bool secret) -> bool;
 
   /**
    * @brief import key package
@@ -82,9 +81,10 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    * @return true if key package was imported
    * @return false if key package was not imported
    */
-  static bool ImportKeyPackage(const std::filesystem::path &key_package_path,
+  static auto ImportKeyPackage(const std::filesystem::path &key_package_path,
                                const std::filesystem::path &phrase_path,
-                               GpgFrontend::GpgImportInformation &import_info);
+                               GpgFrontend::GpgImportInformation &import_info)
+      -> bool;
 
  private:
   /**
@@ -92,6 +92,6 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    *
    * @return std::string key package name
    */
-  static std::string generate_key_package_name();
+  static auto generate_key_package_name() -> std::string;
 };
 }  // namespace GpgFrontend
