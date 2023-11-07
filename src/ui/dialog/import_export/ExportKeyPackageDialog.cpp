@@ -30,6 +30,7 @@
 
 #include <boost/format.hpp>
 
+#include "core/GpgModel.h"
 #include "core/function/KeyPackageOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "ui_ExportKeyPackageDialog.h"

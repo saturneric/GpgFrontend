@@ -28,6 +28,7 @@
 
 #include "ui/widgets/VerifyKeyDetailBox.h"
 
+#include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/utils/CommonUtils.h"

@@ -28,13 +28,15 @@
 
 #include "GpgSignResultAnalyse.h"
 
-#include "function/gpg/GpgKeyGetter.h"
+#include "core/GpgModel.h"
+#include "core/function/gpg/GpgKeyGetter.h"
 
-GpgFrontend::GpgSignResultAnalyse::GpgSignResultAnalyse(GpgError error,
-                                                        GpgSignResult result)
+namespace GpgFrontend {
+
+GpgSignResultAnalyse::GpgSignResultAnalyse(GpgError error, GpgSignResult result)
     : error_(error), result_(std::move(result)) {}
 
-void GpgFrontend::GpgSignResultAnalyse::doAnalyse() {
+void GpgSignResultAnalyse::doAnalyse() {
   SPDLOG_DEBUG("start sign result analyse");
 
   stream_ << "[#] " << _("Sign Operation") << " ";
@@ -69,8 +71,7 @@ void GpgFrontend::GpgSignResultAnalyse::doAnalyse() {
 
       stream_ << std::endl;
 
-      auto singer_key =
-          GpgFrontend::GpgKeyGetter::GetInstance().GetKey(new_sign->fpr);
+      auto singer_key = GpgKeyGetter::GetInstance().GetKey(new_sign->fpr);
       if (singer_key.IsGood()) {
         stream_ << "    " << _("Signer") << ": "
                 << singer_key.GetUIDs()->front().GetUID() << std::endl;
@@ -115,3 +116,5 @@ void GpgFrontend::GpgSignResultAnalyse::doAnalyse() {
     stream_ << "<------------" << std::endl;
   }
 }
+
+}  // namespace GpgFrontend

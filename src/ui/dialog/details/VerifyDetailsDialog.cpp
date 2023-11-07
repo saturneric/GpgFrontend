@@ -30,6 +30,8 @@
 
 #include <boost/format.hpp>
 
+#include "core/GpgModel.h"
+
 namespace GpgFrontend::UI {
 
 VerifyDetailsDialog::VerifyDetailsDialog(QWidget* parent, GpgError error,

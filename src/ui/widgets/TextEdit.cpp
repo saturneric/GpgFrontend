@@ -34,6 +34,7 @@
 #include <tuple>
 #include <vector>
 
+#include "core/GpgModel.h"
 #include "core/function/CacheManager.h"
 #include "core/function/GlobalSettingStation.h"
 

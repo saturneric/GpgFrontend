@@ -28,6 +28,8 @@
 
 #include "GpgUtils.h"
 
+#include <boost/algorithm/string.hpp>
+
 #include "core/utils/IOUtils.h"
 
 namespace GpgFrontend {

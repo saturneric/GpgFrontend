@@ -28,13 +28,14 @@
 
 #include "SettingsDialog.h"
 
-#include "SettingsAdvanced.h"
-#include "SettingsAppearance.h"
-#include "SettingsGeneral.h"
-#include "SettingsKeyServer.h"
-#include "SettingsNetwork.h"
 #include "core/GpgConstants.h"
+#include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
+#include "ui/dialog/settings/SettingsAdvanced.h"
+#include "ui/dialog/settings/SettingsAppearance.h"
+#include "ui/dialog/settings/SettingsGeneral.h"
+#include "ui/dialog/settings/SettingsKeyServer.h"
+#include "ui/dialog/settings/SettingsNetwork.h"
 #include "ui/main_window/MainWindow.h"
 
 namespace GpgFrontend::UI {

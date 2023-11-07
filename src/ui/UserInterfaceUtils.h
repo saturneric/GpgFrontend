@@ -28,10 +28,10 @@
 
 #pragma once
 
-#include "core/GpgModel.h"
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/GpgKey.h"
 #include "core/thread/ThreadingModel.h"
+#include "core/typedef/GpgTypedef.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend {

@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/CoreTypedef.h"
+#include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
 

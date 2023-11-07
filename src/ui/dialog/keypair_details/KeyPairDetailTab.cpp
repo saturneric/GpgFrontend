@@ -28,6 +28,7 @@
 
 #include "KeyPairDetailTab.h"
 
+#include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/model/GpgKey.h"

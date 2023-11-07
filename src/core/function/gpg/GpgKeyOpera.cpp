@@ -35,6 +35,7 @@
 #include <boost/process/async_pipe.hpp>
 
 #include "core/GpgConstants.h"
+#include "core/GpgModel.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/result_analyse/GpgResultAnalyse.h"

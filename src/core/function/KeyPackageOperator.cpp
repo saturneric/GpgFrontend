@@ -36,6 +36,7 @@
 #include "core/function/PassphraseGenerator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/typedef/CoreTypedef.h"
 #include "core/utils/IOUtils.h"
 
 namespace GpgFrontend {

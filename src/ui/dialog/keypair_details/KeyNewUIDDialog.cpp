@@ -28,6 +28,7 @@
 
 #include "KeyNewUIDDialog.h"
 
+#include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgUIDOperator.h"
 #include "ui/SignalStation.h"

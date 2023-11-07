@@ -28,6 +28,7 @@
 
 #include "SignersPicker.h"
 
+#include "core/GpgModel.h"
 #include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {

@@ -31,6 +31,7 @@
 #include <QtNetwork>
 #include <algorithm>
 
+#include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"

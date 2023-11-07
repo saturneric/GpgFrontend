@@ -32,6 +32,7 @@
 
 #include "GpgFrontend.h"
 #include "core/GpgConstants.h"
+#include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/utils/CommonUtils.h"
 

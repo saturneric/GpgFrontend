@@ -28,6 +28,8 @@
 
 #include "SettingsGeneral.h"
 
+#include "core/GpgModel.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgContext.h"
 
 #ifdef SUPPORT_MULTI_LANG
@@ -36,7 +38,6 @@
 
 #include <boost/format.hpp>
 
-#include "core/function/GlobalSettingStation.h"
 #include "ui_GeneralSettings.h"
 
 namespace GpgFrontend::UI {

@@ -28,6 +28,7 @@
 
 #include "ui/widgets/InfoBoardWidget.h"
 
+#include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
 #include "ui/SignalStation.h"
 #include "ui/struct/SettingsObject.h"

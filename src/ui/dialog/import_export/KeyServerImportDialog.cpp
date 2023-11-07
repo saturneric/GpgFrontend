@@ -32,11 +32,12 @@
 #include <string>
 #include <utility>
 
+#include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
-#include "thread/KeyServerImportTask.h"
 #include "ui/SignalStation.h"
 #include "ui/struct/SettingsObject.h"
+#include "ui/thread/KeyServerImportTask.h"
 #include "ui/thread/KeyServerSearchTask.h"
 
 namespace GpgFrontend::UI {

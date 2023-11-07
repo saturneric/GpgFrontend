@@ -30,6 +30,7 @@
 
 #include <string>
 
+#include "core/GpgModel.h"
 #include "core/function/ArchiveFileOperator.h"
 #include "core/function/gpg/GpgFileOpera.h"
 #include "ui/SignalStation.h"

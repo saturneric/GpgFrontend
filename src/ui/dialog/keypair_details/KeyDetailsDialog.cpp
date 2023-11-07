@@ -28,10 +28,11 @@
 
 #include "KeyDetailsDialog.h"
 
-#include "KeyPairDetailTab.h"
-#include "KeyPairOperaTab.h"
-#include "KeyPairSubkeyTab.h"
-#include "KeyPairUIDTab.h"
+#include "core/GpgModel.h"
+#include "ui/dialog/keypair_details/KeyPairDetailTab.h"
+#include "ui/dialog/keypair_details/KeyPairOperaTab.h"
+#include "ui/dialog/keypair_details/KeyPairSubkeyTab.h"
+#include "ui/dialog/keypair_details/KeyPairUIDTab.h"
 
 namespace GpgFrontend::UI {
 KeyDetailsDialog::KeyDetailsDialog(const GpgKey& key, QWidget* parent)
@@ -45,14 +46,14 @@ KeyDetailsDialog::KeyDetailsDialog(const GpgKey& key, QWidget* parent)
   tab_widget_->addTab(new KeyPairOperaTab(key.GetId(), tab_widget_),
                       _("Operations"));
 
-  auto* mainLayout = new QVBoxLayout;
-  mainLayout->addWidget(tab_widget_);
+  auto* main_layout = new QVBoxLayout;
+  main_layout->addWidget(tab_widget_);
 
 #ifdef MACOS
   setAttribute(Qt::WA_LayoutUsesWidgetRect);
 #endif
   this->setAttribute(Qt::WA_DeleteOnClose, true);
-  this->setLayout(mainLayout);
+  this->setLayout(main_layout);
   this->setWindowTitle(_("Key Details"));
   this->setModal(true);
 

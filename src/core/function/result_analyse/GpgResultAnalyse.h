@@ -29,7 +29,7 @@
 
 #include <sstream>
 
-#include "core/GpgModel.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 

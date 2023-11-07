@@ -33,6 +33,7 @@
 #include <mutex>
 #include <shared_mutex>
 
+#include "core/GpgModel.h"
 #include "core/function/gpg/GpgContext.h"
 #include "core/utils/GpgUtils.h"
 

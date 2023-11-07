@@ -28,6 +28,7 @@
 
 #include "KeyUIDSignDialog.h"
 
+#include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyManager.h"
 #include "ui/SignalStation.h"
@@ -45,12 +46,9 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
       _("Signers"), "signers", KeyListRow::ONLY_SECRET_KEY,
       KeyListColumn::NAME | KeyListColumn::EmailAddress,
       [key_id](const GpgKey& key, const KeyTable&) -> bool {
-        if (key.IsDisabled() || !key.IsHasCertificationCapability() ||
-            !key.IsHasMasterKey() || key.IsExpired() || key.IsRevoked() ||
-            key_id == key.GetId())
-          return false;
-        else
-          return true;
+        return !(key.IsDisabled() || !key.IsHasCertificationCapability() ||
+                 !key.IsHasMasterKey() || key.IsExpired() || key.IsRevoked() ||
+                 key_id == key.GetId());
       });
   m_key_list_->SlotRefresh();
 

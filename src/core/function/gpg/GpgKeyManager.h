@@ -31,9 +31,13 @@
 #include <functional>
 #include <utility>
 
-#include "core/GpgModel.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/gpg/GpgContext.h"
+#include "core/typedef/GpgTypedef.h"
+
+namespace boost::posix_time {
+class ptime;
+}
 
 namespace GpgFrontend {
 

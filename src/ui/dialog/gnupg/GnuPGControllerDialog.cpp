@@ -28,9 +28,10 @@
 
 #include "GnuPGControllerDialog.h"
 
-#include "SignalStation.h"
+#include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
+#include "ui/SignalStation.h"
 #include "ui/dialog/GeneralDialog.h"
 #include "ui_GnuPGControllerDialog.h"
 

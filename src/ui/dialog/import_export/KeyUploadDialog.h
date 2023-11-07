@@ -28,8 +28,9 @@
 
 #pragma once
 
-#include "core/GpgModel.h"
 #include "core/function/gpg/GpgContext.h"
+#include "core/typedef/CoreTypedef.h"
+#include "core/typedef/GpgTypedef.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
 
@@ -65,7 +66,7 @@ class KeyUploadDialog : public GeneralDialog {
    *
    * @param keys_data
    */
-  void slot_upload_key_to_server(const GpgFrontend::ByteArray& keys_data);
+  void slot_upload_key_to_server(const ByteArray& keys_data);
 
   /**
    * @brief

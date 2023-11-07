@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/model/GpgKey.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {

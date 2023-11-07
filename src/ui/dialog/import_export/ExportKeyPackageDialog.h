@@ -29,7 +29,7 @@
 #pragma once
 
 #include "GpgFrontendUI.h"
-#include "core/GpgModel.h"
+#include "core/typedef/GpgTypedef.h"
 #include "ui/dialog/GeneralDialog.h"
 
 class Ui_exportKeyPackageDialog;

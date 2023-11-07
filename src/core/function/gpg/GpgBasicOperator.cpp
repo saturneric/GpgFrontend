@@ -28,6 +28,7 @@
 
 #include "GpgBasicOperator.h"
 
+#include "core/GpgModel.h"
 #include "core/utils/GpgUtils.h"
 
 GpgFrontend::GpgBasicOperator::GpgBasicOperator(int channel)

@@ -29,7 +29,7 @@
 #include "TOFUInfoPage.h"
 
 GpgFrontend::UI::TOFUInfoPage::TOFUInfoPage(
-    const GpgFrontend::GpgTOFUInfo &tofu_info, QWidget *parent)
+    const GpgFrontend::GpgTOFUInfo & /*tofu_info*/, QWidget *parent)
     : QWidget(parent) {
   auto grid_layout = new QGridLayout();
 

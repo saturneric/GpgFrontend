@@ -28,9 +28,13 @@
 
 #pragma once
 
-#include "core/GpgModel.h"
 #include "core/function/gpg/GpgContext.h"
 #include "core/function/result_analyse/GpgResultAnalyse.h"
+#include "core/typedef/GpgTypedef.h"
+
+namespace boost::posix_time {
+class ptime;
+}  // namespace boost::posix_time
 
 namespace GpgFrontend {
 /**

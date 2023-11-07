@@ -28,9 +28,10 @@
 
 #pragma once
 
-#include "core/GpgModel.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/gpg/GpgContext.h"
+#include "core/typedef/CoreTypedef.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 

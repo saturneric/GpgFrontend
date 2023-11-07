@@ -83,8 +83,7 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    */
   static auto ImportKeyPackage(const std::filesystem::path &key_package_path,
                                const std::filesystem::path &phrase_path,
-                               GpgFrontend::GpgImportInformation &import_info)
-      -> bool;
+                               GpgImportInformation &import_info) -> bool;
 
  private:
   /**
