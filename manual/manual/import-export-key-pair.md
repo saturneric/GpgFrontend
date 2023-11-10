@@ -9,13 +9,13 @@ To access the import options, navigate to the toolbar and select the desired
 method based on your specific requirements. Additionally, you can access
 additional options by selecting the action menu in the key management section.
 
-![image-20220110194143231](https://www.bktus.com/wp-content/uploads/2023/08/image-20220110194143231.png)
+![image-20220110194143231](https://cdn.bktus.com/wp-content/uploads/2023/08/image-20220110194143231.png)
 
 In fact, you can find the action menu in the key management section, which
 provides access to additional key management options beyond those available in
 the toolbar.
 
-![image-20220110200530182](https://www.bktus.com/wp-content/uploads/2023/08/image-20220110200530182.png)
+![image-20220110200530182](https://cdn.bktus.com/wp-content/uploads/2023/08/image-20220110200530182.png)
 
 ### File
 
@@ -80,7 +80,7 @@ shown in the screenshot below. This will save the data to a file. Before
 proceeding, please make sure to choose a suitable directory to store the file
 containing the public key data.
 
-![image-20220110194707813](https://www.bktus.com/wp-content/uploads/2023/08/image-20220110194707813.png)
+![image-20220110194707813](https://cdn.bktus.com/wp-content/uploads/2023/08/image-20220110194707813.png)
 
 ### Export multiple public keys at once
 
@@ -89,7 +89,7 @@ pairs on the key management interface and click on the "Export to Clipboard"
 option. This will copy the data to your system clipboard, which you can then
 paste into any application or file.
 
-![image-20220110195325342](https://www.bktus.com/wp-content/uploads/2023/08/image-20220110195325342.png)
+![image-20220110195325342](https://cdn.bktus.com/wp-content/uploads/2023/08/image-20220110195325342.png)
 
 ### Export Private Key
 
@@ -98,7 +98,7 @@ contains the private key (either the primary key or subkey). From there, you can
 select a destination and GpgFrontend will export the corresponding private key
 content to that location.
 
-![image-20220110200109284](https://www.bktus.com/wp-content/uploads/2023/08/image-20220110200109284.png)
+![image-20220110200109284](https://cdn.bktus.com/wp-content/uploads/2023/08/image-20220110200109284.png)
 
 Exporting the private key also exports both the public key and private key data,
 as the private key data alone is meaningless without the corresponding public

@@ -16,7 +16,7 @@ ASCII format. However, beginning with version 2.0.4, GpgFrontend now generates
 ciphertext files in binary format by default. This setting can be adjusted in
 the program's settings.
 
-![image-20220112073548736](https://www.bktus.com/wp-content/uploads/2023/08/image-20220112073548736.png)
+![image-20220112073548736](https://cdn.bktus.com/wp-content/uploads/2023/08/image-20220112073548736.png)
 
 ## File Browser
 
@@ -25,7 +25,7 @@ Ctrl/Command + B. By using the file browser, you can navigate to your working
 directory and right-click on the file you wish to work with. This will open a
 pop-up menu, where you can select the operation you want to perform on the file.
 
-![image-20220112072034647](https://www.bktus.com/wp-content/uploads/2023/08/image-20220112072034647.png)
+![image-20220112072034647](https://cdn.bktus.com/wp-content/uploads/2023/08/image-20220112072034647.png)
 
 Located at the top of the file tab are two control buttons. The button on the
 left allows you to navigate up one level in the directory hierarchy, while the
@@ -35,7 +35,7 @@ path.
 On the far right of the file tab, there is a button with useful options that you
 can select to show system files or hidden files.
 
-![image-20220112072335503](https://www.bktus.com/wp-content/uploads/2023/08/image-20220112072335503.png)
+![image-20220112072335503](https://cdn.bktus.com/wp-content/uploads/2023/08/image-20220112072335503.png)
 
 ### Encrypt & Sign
 
@@ -47,7 +47,7 @@ private key to complete this operation.
 When the operation is complete, a file with the ".gpg" extension is generated.
 This file contains both encrypted content and signed content.
 
-![Peek 2022-01-12 07-26](https://www.bktus.com/wp-content/uploads/2023/08/Peek-2022-01-12-07-26.gif)
+![Peek 2022-01-12 07-26](https://cdn.bktus.com/wp-content/uploads/2023/08/Peek-2022-01-12-07-26.gif)
 
 ### Decrypt & Verify
 
@@ -61,4 +61,4 @@ To encourage users to verify whether the ciphertext is signed or not when
 decrypting, Gpg Frontend does not provide a separate decryption operation for
 this.
 
-![Peek 2022-01-12 07-24](https://www.bktus.com/wp-content/uploads/2023/08/Peek-2022-01-12-07-24.gif)
+![Peek 2022-01-12 07-24](https://cdn.bktus.com/wp-content/uploads/2023/08/Peek-2022-01-12-07-24.gif)

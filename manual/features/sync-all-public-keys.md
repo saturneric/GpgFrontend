@@ -13,7 +13,7 @@ local information about the subkey.
 The utilization of this feature is straightforward. By clicking the Sync Public
 Key button in the Key Management interface, the process is automated.
 
-![image-20220109194459557](https://www.bktus.com/wp-content/uploads/2023/08/image-20220109194459557.png)
+![image-20220109194459557](https://cdn.bktus.com/wp-content/uploads/2023/08/image-20220109194459557.png)
 
 This functionality checks all the public keys you currently possess (only public
 keys, no private keys are involved). It then seeks it on the key server. If the
@@ -27,4 +27,4 @@ GpgFrontend exchanges keys using the default key server that you've configured.
 If you need to modify the key server you wish to access, you merely need to add
 your key server in the settings and set it as the default.
 
-![image-20220109194546570](https://www.bktus.com/wp-content/uploads/2023/08/image-20220109194546570.png)
+![image-20220109194546570](https://cdn.bktus.com/wp-content/uploads/2023/08/image-20220109194546570.png)

@@ -104,7 +104,7 @@ Upon clicking the
 will see an interface displaying the current version number of the latest
 release, its release date, and more.
 
-![image-20220101225029218](https://www.bktus.com/wp-content/uploads/2023/08/image-20220101225029218.png)
+![image-20220101225029218](https://cdn.bktus.com/wp-content/uploads/2023/08/image-20220101225029218.png)
 
 In the main text, you can find some significant features or fixes for the
 version. If you're a programmer, you can also view the change log to see how the
@@ -118,7 +118,7 @@ separators. The second section (e.g., 6171479) is a unique identification number
 for the version's source code. When pointing out problems with a version,
 remember to provide this 7-digit unique identification number.
 
-![image-20220101225652736](https://www.bktus.com/wp-content/uploads/2023/08/image-20220101225652736.png)
+![image-20220101225652736](https://cdn.bktus.com/wp-content/uploads/2023/08/image-20220101225652736.png)
 
 Files with 'signature' as the suffix are GPG separate signatures for the
 corresponding released version of the file. You can use GPG to verify whether

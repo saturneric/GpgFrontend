@@ -1,4 +1,4 @@
-![gpgfrontend-logo](https://www.bktus.com/wp-content/uploads/2023/08/gpgfrontend-logo.png)
+![gpgfrontend-logo](https://cdn.bktus.com/wp-content/uploads/2023/08/gpgfrontend-logo.png)
 
 # GpgFrontend
 
