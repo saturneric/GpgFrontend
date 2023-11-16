@@ -1,4 +1,4 @@
-<img width="100" height="100" align="right" style="position: absolute;right: 0;padding: 12px;top:12px;" src="https://github.com/saturneric/Blob/blob/master/logos/icon.png?raw=true" alt="ICON"/>
+<img width="100" height="100" align="right" style="position: absolute;right: 0;padding: 12px;top:12px;" src="https://image.cdn.bktus.com/i/2023/11/16/8e64ecab-434f-8c3f-901c-2bb2339d4bb7.webp" alt="ICON"/>
 
 # GpgFrontend
 
@@ -314,7 +314,7 @@ to use GitHub. For anonymous users, Git patches can be delivered by [mail](mailt
 
 ### Project's LOGO
 
-![logo](https://github.com/saturneric/Blob/blob/master/logos/gpgfrontend-logo.jpg?raw=true)
+![logo](https://image.cdn.bktus.com/i/2023/11/16/b327a096-5b85-c1b7-ecfc-53efb8573f7c.webp)
 
 ## LICENSES
 

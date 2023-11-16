@@ -15,7 +15,7 @@ authority for this text. You can simply sign the text without encrypting it as
 follows:
 
 ![Peek 2022-01-12
-06-50](https://cdn.bktus.com/wp-content/uploads/2023/08/Peek-2022-01-12-06-50.gif)
+06-50](https://image.cdn.bktus.com/i/2023/11/16/9c95a381-52b9-4d2b-c21d-38fdc6cbc76d.gif)
 
 To check whether a key can be used for signing, please review the 'Usage' column
 in the key toolbox on the right (the letter 'S' stands for signature).
@@ -32,7 +32,7 @@ security as it assures the recipient that the message hasn't been altered and it
 came from the sender whose identity is verified by the digital signature.
 
 ![Peek 2022-01-12
-06-54](https://cdn.bktus.com/wp-content/uploads/2023/08/Peek-2022-01-12-06-54-16419417228411.gif)
+06-54](https://image.cdn.bktus.com/i/2023/11/16/fd98e968-5e59-7bee-abea-99ab234be7a6.gif)
 
 ## Verification
 
@@ -41,13 +41,13 @@ signature using the signer's public key. However, this type of signature isn't
 suitable for emails as it can make the email less readable.
 
 ![Peek 2022-01-12
-06-56](https://cdn.bktus.com/wp-content/uploads/2023/08/Peek-2022-01-12-06-56.gif)
+06-56](https://image.cdn.bktus.com/i/2023/11/16/fbde7130-72c3-1fce-8366-47643fc0e804.gif)
 
 To verify a signature with text, you need to have the corresponding public key
 for all included signatures. If a suitable public key for a signature isn't
 found locally during verification, GpgFrontend will prompt you to import it.
 
-![image-20220112070325556](https://cdn.bktus.com/wp-content/uploads/2023/08/image-20220112070325556.png)
+![image-20220112070325556](https://image.cdn.bktus.com/i/2023/11/16/5ab80063-dbf7-0394-5c44-4c23f7b4702b.webp)
 
 ## Verification with Decryption
 
@@ -58,4 +58,4 @@ good habit to always perform decryption operations with verification whenever
 possible.
 
 ![Peek 2022-01-12
-07-10](https://cdn.bktus.com/wp-content/uploads/2023/08/Peek-2022-01-12-07-10.gif)
+07-10](https://image.cdn.bktus.com/i/2023/11/16/9e06ce22-f98d-47f1-ea76-e4e23b6dd32d.gif)

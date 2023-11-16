@@ -31,7 +31,7 @@ usage.
 You can quickly understand the process of generating a key pair by watching the
 following animation.
 
-![GIF](https://github.com/saturneric/Blob/blob/master/gif/generate-key-pair.gif?raw=true)
+![GIF](https://image.cdn.bktus.com/i/2023/11/16/711f0379-eea6-ee25-2072-8e77d07d2ad5.gif)
 
 ### Name & Email & Comment
 
@@ -43,7 +43,7 @@ It is important to note that the name should be at least 5 characters long, and
 the email should follow the correct format (no actual email account is
 required).
 
-![uid](https://github.com/saturneric/Blob/blob/master/screenshots/uid.png?raw=true)
+![uid](https://image.cdn.bktus.com/i/2023/11/16/3ad515e0-6d9e-6507-552c-55101da16836.webp)
 
 ### Expiration Date
 
@@ -58,7 +58,7 @@ It's important to note that this option can be changed at any time after
 generation, even after the expiration date has passed, as long as the primary
 key still exists.
 
-![expiration-date](https://github.com/saturneric/Blob/blob/master/screenshots/expriation-date.png?raw=true)
+![expiration-date](https://image.cdn.bktus.com/i/2023/11/16/ce9b446d-a7a0-2944-b8e4-3517c0d3a861.webp)
 
 ### Key Size & Algo
 
@@ -73,7 +73,7 @@ It's important to note that this option can be changed at any time after
 generation, even after the expiration date has passed, as long as the primary
 key still exists.
 
-![keysize-algo](https://github.com/saturneric/Blob/blob/master/screenshots/keysize-algo.png?raw=true)
+![keysize-algo](https://image.cdn.bktus.com/i/2023/11/16/4ce5ecfa-7ad0-7a81-cbe1-2ea93f7872ea.webp)
 
 ### Passphrase
 
@@ -93,7 +93,7 @@ security concerns.
 When generating a key pair, you can specify the usage for the first subkey,
 which is the primary key. There are four options:
 
-![usages](https://github.com/saturneric/Blob/blob/master/screenshots/usages.png?raw=true)
+![usages](https://image.cdn.bktus.com/i/2023/11/16/f9bae59d-9181-2cb8-53a6-b51c0698c613.webp)
 
 - Encryption: Once generated, this key can be used for encryption purposes.
 
@@ -116,7 +116,7 @@ It is possible to append subkeys to an existing key pair. The subkey does not
 require the input of a name, email, or comment, as the remaining steps are
 essentially identical to those for generating a key pair.
 
-![GIF](https://github.com/saturneric/Blob/blob/master/gif/generate-subkey.gif?raw=true)
+![GIF](https://image.cdn.bktus.com/i/2023/11/16/4871ee77-5da5-5473-a2be-2d9c29d6b842.gif)
 
 ### Extra note
 

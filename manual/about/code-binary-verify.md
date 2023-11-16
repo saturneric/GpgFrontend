@@ -52,7 +52,7 @@ There is an About interface under the help option in the top menu.You can check 
 file. More importantly, you can view the github repository branch and commit hash code corresponding to the source code
 used for compilation of this binary version on the second line.
 
-![About Interface](https://github.com/saturneric/Blob/blob/master/screenshots/check-build.png?raw=true)
+![About Interface](https://image.cdn.bktus.com/i/2023/11/16/b460a4ce-6d9e-b3e1-236f-92d97ad5f87e.webp)
 
 ## Pubkey Mentioned Above
 
