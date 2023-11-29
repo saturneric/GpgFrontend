@@ -28,24 +28,8 @@
 
 #pragma once
 
-#include "module/GpgFrontendModule.h"
-
-namespace GpgFrontend::Module {
-
-struct ModuleInitArgs {
+struct InitArgs {
+  int argc;
+  char **argv;
   spdlog::level::level_enum log_level;
 };
-
-/**
- * @brief init the module library
- *
- */
-void GPGFRONTEND_MODULE_EXPORT LoadGpgFrontendModules(ModuleInitArgs);
-
-/**
- * @brief shutdown the module library
- *
- */
-void GPGFRONTEND_MODULE_EXPORT ShutdownGpgFrontendModules();
-
-};  // namespace GpgFrontend::Module

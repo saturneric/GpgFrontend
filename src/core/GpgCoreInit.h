@@ -36,7 +36,8 @@ namespace GpgFrontend {
  * @brief
  *
  */
-void GPGFRONTEND_CORE_EXPORT InitCoreLoggingSystem();
+void GPGFRONTEND_CORE_EXPORT
+InitCoreLoggingSystem(spdlog::level::level_enum level);
 
 /**
  * @brief

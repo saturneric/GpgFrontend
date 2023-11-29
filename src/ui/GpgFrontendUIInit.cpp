@@ -50,12 +50,11 @@
 
 namespace GpgFrontend::UI {
 
-extern void init_logging_system();
-extern void init_locale();
+extern void InitLocale();
 
 void InitGpgFrontendUI(QApplication* app) {
   // init locale
-  init_locale();
+  InitLocale();
 
 #if !defined(RELEASE) && defined(WINDOWS)
   // css
@@ -198,7 +197,7 @@ int RunGpgFrontendUI(QApplication* app) {
   return app->exec();
 }
 
-void InitUILoggingSystem() {
+void InitUILoggingSystem(spdlog::level::level_enum level) {
   using namespace boost::posix_time;
   using namespace boost::gregorian;
 
@@ -221,11 +220,8 @@ void InitUILoggingSystem() {
   ui_logger->set_pattern(
       "[%H:%M:%S.%e] [T:%t] [%=6n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
 
-#ifdef DEBUG
-  ui_logger->set_level(spdlog::level::trace);
-#else
-  ui_logger->set_level(spdlog::level::info);
-#endif
+  // set the level of logger
+  ui_logger->set_level(level);
 
   // flush policy
   ui_logger->flush_on(spdlog::level::err);
@@ -248,7 +244,7 @@ void ShutdownUILoggingSystem() {
  * @brief setup the locale and load the translations
  *
  */
-void init_locale() {
+void InitLocale() {
   // get the instance of the GlobalSettingStation
   auto& settings =
       GpgFrontend::GlobalSettingStation::GetInstance().GetMainSettings();

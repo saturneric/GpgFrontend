@@ -37,7 +37,7 @@
 
 namespace GpgFrontend::Module::SDK {
 
-void InitModuleLoggingSystem() {
+void InitModuleLoggingSystem(spdlog::level::level_enum level) {
   // get the log directory
   auto log_file_path =
       (GpgFrontend::GlobalSettingStation::GetInstance().GetLogDir() / "module");
@@ -58,11 +58,8 @@ void InitModuleLoggingSystem() {
   module_logger->set_pattern(
       "[%H:%M:%S.%e] [T:%t] [%=6n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
 
-#ifdef DEBUG
-  module_logger->set_level(spdlog::level::trace);
-#else
-  module_logger->set_level(spdlog::level::info);
-#endif
+  // set the level of logger
+  module_logger->set_level(level);
 
   // flush policy
   module_logger->flush_on(spdlog::level::err);

@@ -37,8 +37,8 @@
 
 namespace GpgFrontend::Module {
 
-void LoadGpgFrontendModules() {
-  SDK::InitModuleLoggingSystem();
+void LoadGpgFrontendModules(ModuleInitArgs args) {
+  SDK::InitModuleLoggingSystem(args.log_level);
 
   MODULE_LOG_INFO("loading integrated module...");
 

@@ -28,24 +28,12 @@
 
 #pragma once
 
-#include "module/GpgFrontendModule.h"
+// boost
+#include <boost/program_options.hpp>
 
-namespace GpgFrontend::Module {
+// functions
 
-struct ModuleInitArgs {
-  spdlog::level::level_enum log_level;
-};
+auto PrintVersion() -> int;
 
-/**
- * @brief init the module library
- *
- */
-void GPGFRONTEND_MODULE_EXPORT LoadGpgFrontendModules(ModuleInitArgs);
-
-/**
- * @brief shutdown the module library
- *
- */
-void GPGFRONTEND_MODULE_EXPORT ShutdownGpgFrontendModules();
-
-};  // namespace GpgFrontend::Module
+auto ParseLogLevel(const boost::program_options::variables_map&)
+    -> spdlog::level::level_enum;

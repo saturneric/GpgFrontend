@@ -42,7 +42,7 @@ void GPGFRONTEND_UI_EXPORT InitGpgFrontendUI(QApplication *);
  * @brief
  *
  */
-void GPGFRONTEND_UI_EXPORT InitUILoggingSystem();
+void GPGFRONTEND_UI_EXPORT InitUILoggingSystem(spdlog::level::level_enum level);
 
 /**
  * @brief
@@ -53,6 +53,6 @@ void GPGFRONTEND_UI_EXPORT ShutdownUILoggingSystem();
 /**
  * @brief run main window
  */
-int GPGFRONTEND_UI_EXPORT RunGpgFrontendUI(QApplication *);
+auto GPGFRONTEND_UI_EXPORT RunGpgFrontendUI(QApplication *) -> int;
 
 };  // namespace GpgFrontend::UI

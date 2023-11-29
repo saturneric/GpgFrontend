@@ -28,24 +28,35 @@
 
 #pragma once
 
-#include "module/GpgFrontendModule.h"
-
-namespace GpgFrontend::Module {
-
-struct ModuleInitArgs {
-  spdlog::level::level_enum log_level;
-};
+struct InitArgs;
 
 /**
- * @brief init the module library
+ * @brief handle the signal SIGSEGV
  *
+ * @param sig
  */
-void GPGFRONTEND_MODULE_EXPORT LoadGpgFrontendModules(ModuleInitArgs);
+void HandleSignal(int sig);
 
 /**
- * @brief shutdown the module library
+ * @brief processes before exit the program.
  *
  */
-void GPGFRONTEND_MODULE_EXPORT ShutdownGpgFrontendModules();
+void BeforeExit();
 
-};  // namespace GpgFrontend::Module
+/**
+ * @brief initialize the logging system.
+ *
+ */
+void InitModules(InitArgs);
+
+/**
+ * @brief initialize the logging system.
+ *
+ */
+void ShutdownModules();
+
+/**
+ * @brief init global PATH env
+ *
+ */
+void InitGlobalPathEnv();

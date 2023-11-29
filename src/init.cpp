@@ -26,6 +26,8 @@
  *
  */
 
+#include "init.h"
+
 #include <spdlog/async.h>
 #include <spdlog/common.h>
 #include <spdlog/sinks/rotating_file_sink.h>
@@ -37,7 +39,13 @@
 
 #include "GpgFrontend.h"
 #include "GpgFrontendBuildInfo.h"
+#include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
+#include "module/GpgFrontendModuleInit.h"
+#include "ui/GpgFrontendUIInit.h"
+
+// main
+#include "type.h"
 
 #ifdef WINDOWS
 int setenv(const char *name, const char *value, int overwrite) {
@@ -51,10 +59,7 @@ int setenv(const char *name, const char *value, int overwrite) {
 }
 #endif
 
-void init_logging_system() {
-  using namespace boost::posix_time;
-  using namespace boost::gregorian;
-
+void InitMainLoggingSystem(spdlog::level::level_enum level) {
   // sinks
   std::vector<spdlog::sink_ptr> sinks;
   sinks.push_back(std::make_shared<spdlog::sinks::stderr_color_sink_mt>());
@@ -68,11 +73,8 @@ void init_logging_system() {
   main_logger->set_pattern(
       "[%H:%M:%S.%e] [T:%t] [%=6n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
 
-#ifdef DEBUG
-  main_logger->set_level(spdlog::level::trace);
-#else
-  main_logger->set_level(spdlog::level::info);
-#endif
+  // set the level of logger
+  main_logger->set_level(level);
 
   // flush policy
   main_logger->flush_on(spdlog::level::err);
@@ -82,7 +84,33 @@ void init_logging_system() {
   spdlog::set_default_logger(main_logger);
 }
 
-void shutdown_logging_system() {
+void InitModules(InitArgs args) {
+  // init the logging system for main
+  InitMainLoggingSystem(args.log_level);
+
+  // init the logging system for core
+  GpgFrontend::InitCoreLoggingSystem(args.log_level);
+
+  // init the logging system for ui
+  GpgFrontend::UI::InitUILoggingSystem(args.log_level);
+
+  // init the logging system for modules
+  GpgFrontend::Module::ModuleInitArgs module_init_args;
+  module_init_args.log_level = args.log_level;
+  //
+  GpgFrontend::Module::LoadGpgFrontendModules(module_init_args);
+}
+
+void ShutdownModules() {
+  // shutdown the logging system for core
+  GpgFrontend::Module::ShutdownGpgFrontendModules();
+
+  // shutdown the logging system for ui
+  GpgFrontend::UI::ShutdownUILoggingSystem();
+
+  // shutdown the logging system for core
+  GpgFrontend::ShutdownCoreLoggingSystem();
+
 #ifdef WINDOWS
   // Under VisualStudio, this must be called before main finishes to workaround
   // a known VS issue
@@ -91,7 +119,7 @@ void shutdown_logging_system() {
 #endif
 }
 
-void init_global_path_env() {
+void InitGlobalPathEnv() {
   // read settings
   bool use_custom_gnupg_install_path =
       GpgFrontend::GlobalSettingStation::GetInstance().LookupSettings(

@@ -49,7 +49,7 @@ namespace GpgFrontend {
  * @brief setup logging system and do proper initialization
  *
  */
-void InitCoreLoggingSystem() {
+void InitCoreLoggingSystem(spdlog::level::level_enum level) {
   // get the log directory
   auto logfile_path =
       (GlobalSettingStation::GetInstance().GetLogDir() / "core");
@@ -70,11 +70,8 @@ void InitCoreLoggingSystem() {
   core_logger->set_pattern(
       "[%H:%M:%S.%e] [T:%t] [%=6n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
 
-#ifdef DEBUG
-  core_logger->set_level(spdlog::level::trace);
-#else
-  core_logger->set_level(spdlog::level::info);
-#endif
+  // set the level of logger
+  core_logger->set_level(level);
 
   // flush policy
 #ifdef DEBUG

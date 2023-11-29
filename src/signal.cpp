@@ -42,7 +42,7 @@ extern jmp_buf recover_env;
  *
  * @param sig signal number
  */
-void handle_signal(int sig) {
+void HandleSignal(int sig) {
   static int _repeat_handle_num = 1, last_sig = sig;
   // SPDLOG_DEBUG("signal caught {}", sig);
   std::cout << "signal caught" << sig;

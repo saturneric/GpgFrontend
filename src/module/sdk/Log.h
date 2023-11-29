@@ -51,7 +51,8 @@ namespace GpgFrontend::Module::SDK {
  * @brief
  *
  */
-void GPGFRONTEND_MODULE_SDK_EXPORT InitModuleLoggingSystem();
+void GPGFRONTEND_MODULE_SDK_EXPORT
+    InitModuleLoggingSystem(spdlog::level::level_enum);
 
 /**
  * @brief
@@ -63,7 +64,8 @@ void GPGFRONTEND_MODULE_SDK_EXPORT ShutdownModuleLoggingSystem();
  * @brief
  *
  */
-std::shared_ptr<spdlog::logger> GPGFRONTEND_MODULE_SDK_EXPORT GetModuleLogger();
+auto GPGFRONTEND_MODULE_SDK_EXPORT GetModuleLogger()
+    -> std::shared_ptr<spdlog::logger>;
 
 template <typename... Args>
 void ModuleLogTrace(const char* fmt, const Args&... args) {
