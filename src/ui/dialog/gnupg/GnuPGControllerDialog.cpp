@@ -245,8 +245,7 @@ void GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label(
   this->slot_set_restart_needed(kDeepRestartCode);
 
   const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
-      Module::GetRealModuleIdentifier(
-          "com.bktus.gpgfrontend.module.integrated.gnupginfogathering"),
+      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
       "gnupg.home_path", std::string{});
   SPDLOG_DEBUG("got gnupg home path from rt: {}", home_path);
 

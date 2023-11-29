@@ -29,6 +29,7 @@
 #include "PlainTextEditorPage.h"
 
 #include <boost/format.hpp>
+#include <sstream>
 #include <string>
 #include <utility>
 

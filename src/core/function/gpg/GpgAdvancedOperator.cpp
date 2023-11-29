@@ -176,14 +176,12 @@ auto GpgFrontend::GpgAdvancedOperator::StartGpgAgent() -> bool {
   bool success = false;
 
   const auto gpg_agent_path = Module::RetrieveRTValueTypedOrDefault<>(
-      Module::GetRealModuleIdentifier(
-          "com.bktus.gpgfrontend.module.integrated.gnupginfogathering"),
+      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
       "gnupg.gpg_agent_path", std::string{});
   SPDLOG_DEBUG("got gnupg agent path from rt: {}", gpg_agent_path);
 
   const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
-      Module::GetRealModuleIdentifier(
-          "com.bktus.gpgfrontend.module.integrated.gnupginfogathering"),
+      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
       "gnupg.home_path", std::string{});
   SPDLOG_DEBUG("got gnupg home path from rt: {}", home_path);
 
@@ -218,14 +216,12 @@ auto GpgFrontend::GpgAdvancedOperator::StartDirmngr() -> bool {
   bool success = false;
 
   const auto dirmngr_path = Module::RetrieveRTValueTypedOrDefault<>(
-      Module::GetRealModuleIdentifier(
-          "com.bktus.gpgfrontend.module.integrated.gnupginfogathering"),
+      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
       "gnupg.dirmngr_path", std::string{});
   SPDLOG_DEBUG("got gnupg dirmngr path from rt: {}", dirmngr_path);
 
   const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
-      Module::GetRealModuleIdentifier(
-          "com.bktus.gpgfrontend.module.integrated.gnupginfogathering"),
+      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
       "gnupg.home_path", std::string{});
   SPDLOG_DEBUG("got gnupg home path from rt: {}", home_path);
 
@@ -259,14 +255,12 @@ auto GpgFrontend::GpgAdvancedOperator::StartKeyBoxd() -> bool {
   bool success = false;
 
   const auto keyboxd_path = Module::RetrieveRTValueTypedOrDefault<>(
-      Module::GetRealModuleIdentifier(
-          "com.bktus.gpgfrontend.module.integrated.gnupginfogathering"),
+      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
       "gnupg.keyboxd_path", std::string{});
   SPDLOG_DEBUG("got gnupg keyboxd path from rt: {}", keyboxd_path);
 
   const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
-      Module::GetRealModuleIdentifier(
-          "com.bktus.gpgfrontend.module.integrated.gnupginfogathering"),
+      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
       "gnupg.home_path", std::string{});
   SPDLOG_DEBUG("got gnupg home path from rt: {}", home_path);
 

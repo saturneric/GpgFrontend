@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "core/module/Event.h"
 
 namespace GpgFrontend::Thread {
@@ -52,9 +54,6 @@ using Namespace = std::string;
 using Key = std::string;
 using LPCallback = std::function<void(Namespace, Key, int, std::any)>;
 
-auto GPGFRONTEND_CORE_EXPORT GetRealModuleIdentifier(const ModuleIdentifier& id)
-    -> ModuleIdentifier;
-
 class GPGFRONTEND_CORE_EXPORT ModuleManager : public QObject {
   Q_OBJECT
  public:
@@ -77,6 +76,9 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager : public QObject {
   auto RetrieveRTValue(Namespace, Key) -> std::optional<std::any>;
 
   auto ListenRTPublish(QObject*, Namespace, Key, LPCallback) -> bool;
+
+  auto ListRTChildKeys(const std::string&, const std::string&)
+      -> std::vector<Key>;
 
  private:
   class Impl;
@@ -113,6 +115,10 @@ auto GPGFRONTEND_CORE_EXPORT UpsertRTValue(const std::string& namespace_,
 
 auto GPGFRONTEND_CORE_EXPORT ListenRTPublishEvent(QObject*, Namespace, Key,
                                                   LPCallback) -> bool;
+
+auto GPGFRONTEND_CORE_EXPORT ListRTChildKeys(const std::string& namespace_,
+                                             const std::string& key)
+    -> std::vector<Key>;
 
 template <typename T>
 auto RetrieveRTValueTyped(const std::string& namespace_, const std::string& key)

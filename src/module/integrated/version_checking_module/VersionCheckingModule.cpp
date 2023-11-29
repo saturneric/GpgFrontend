@@ -41,7 +41,8 @@
 namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 
 VersionCheckingModule::VersionCheckingModule()
-    : Module("com.bktus.gpgfrontend.module.integrated.versionchecking", "1.0.0",
+    : Module("com.bktus.gpgfrontend.module.integrated.version-checking",
+             "1.0.0",
              ModuleMetaData{{"description", "try to check gpgfrontend version"},
                             {"author", "saturneric"}}) {}
 

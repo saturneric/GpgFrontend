@@ -43,7 +43,7 @@ class Module::Impl {
   Impl(ModuleRawPtr m_ptr, ModuleIdentifier id, ModuleVersion version,
        ModuleMetaData meta_data)
       : m_ptr_(m_ptr),
-        identifier_((boost::format("__module_%1%") % id).str()),
+        identifier_(id),
         version_(version),
         meta_data_(meta_data) {}
 

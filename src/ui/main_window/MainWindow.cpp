@@ -133,8 +133,7 @@ void MainWindow::Init() noexcept {
 
     Module::ListenRTPublishEvent(
         this,
-        Module::GetRealModuleIdentifier(
-            "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+            "com.bktus.gpgfrontend.module.integrated.version-checking",
         "version.loading_done",
         [=](Module::Namespace, Module::Key, int, std::any) {
           SPDLOG_DEBUG(

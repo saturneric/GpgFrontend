@@ -51,6 +51,8 @@ class GlobalRegisterTable : public QObject {
 
   auto ListenPublish(QObject *, Namespace, Key, LPCallback) -> bool;
 
+  auto ListChildKeys(Namespace n, Key k) -> std::vector<Key>;
+
  signals:
   void SignalPublish(Namespace, Key, int, std::any);
 

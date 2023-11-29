@@ -74,7 +74,8 @@ std::optional<std::string> check_binary_chacksum(std::filesystem::path path) {
 
 GnuPGInfoGatheringModule::GnuPGInfoGatheringModule()
     : Module(
-          "com.bktus.gpgfrontend.module.integrated.gnupginfogathering", "1.0.0",
+          "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+          "1.0.0",
           ModuleMetaData{{"description", "try to gathering gnupg informations"},
                          {"author", "saturneric"}}) {}
 
@@ -127,7 +128,7 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
          GpgComponentInfo c_i_gpgme;
          c_i_gpgme.name = "gpgme";
          c_i_gpgme.desc = "GPG Made Easy";
-         c_i_gpgme.version = "gpgme_version";
+         c_i_gpgme.version = gpgme_version;
          c_i_gpgme.path = _("Embedded In");
          c_i_gpgme.binary_checksum = "/";
 
@@ -146,10 +147,12 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
 
          nlohmann::json jsonlized_gpgme_component_info = c_i_gpgme;
          nlohmann::json jsonlized_gpgconf_component_info = c_i_gpgconf;
-         UpsertRTValue(GetModuleIdentifier(), "gnupg.components.gpgme",
-                       std::string(jsonlized_gpgme_component_info.dump()));
-         UpsertRTValue(GetModuleIdentifier(), "gnupg.components.gpgconf",
-                       std::string(jsonlized_gpgme_component_info.dump()));
+         UpsertRTValue(
+             GetModuleIdentifier(), "gnupg.components.gpgme",
+             static_cast<std::string>(jsonlized_gpgme_component_info.dump()));
+         UpsertRTValue(
+             GetModuleIdentifier(), "gnupg.components.gpgconf",
+             static_cast<std::string>(jsonlized_gpgme_component_info.dump()));
 
          std::vector<std::string> line_split_list;
          boost::split(line_split_list, p_out, boost::is_any_of("\n"));
@@ -213,19 +216,11 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
              UpsertRTValue(
                  GetModuleIdentifier(),
                  (boost::format("gnupg.components.%1%") % component_name).str(),
-                 std::string(jsonlized_component_info.dump()));
+                 static_cast<std::string>(jsonlized_component_info.dump()));
 
              component_infos.push_back(c_i);
            }
          }
-
-         nlohmann::json jsonlized_components_info;
-         for (auto &component_info : component_infos) {
-           jsonlized_components_info.emplace_back(component_info);
-         }
-
-         UpsertRTValue(GetModuleIdentifier(), "gnupg.components_info",
-                       std::string(jsonlized_components_info.dump()));
        },
        getTaskRunner()});
 
@@ -283,32 +278,25 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
       },
       getTaskRunner()});
 
-  const std::string components_info_json = RetrieveRTValueTypedOrDefault(
-      GetModuleIdentifier(), "gnupg.components_info", std::string{});
-  if (components_info_json.empty()) {
-    MODULE_LOG_ERROR("cannot get components inforamtion of gnupg from rt");
-    return -1;
-  }
+  auto components = ListRTChildKeys(
+      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+      "gnupg.components");
 
-  nlohmann::json jsonlized_components_info = nlohmann::json::parse(
-      components_info_json, nullptr, false, true);  // parse without exception
-  MODULE_LOG_DEBUG("start to check components options info, components: {}",
-                   jsonlized_components_info);
+  for (const auto &component : components) {
+    auto component_info_json = RetrieveRTValueTypedOrDefault(
+        "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+        (boost::format("gnupg.components.%1%") % component).str(),
+        std::string{});
 
-  if (!jsonlized_components_info.is_array()) {
-    MODULE_LOG_ERROR(
-        "cannot parse components inforamtion of gnupg to json from rt");
-    return -1;
-  }
-
-  for (const auto &jsonlized_component_info : jsonlized_components_info) {
+    auto jsonlized_component_info = nlohmann::json::parse(component_info_json);
     GpgComponentInfo component_info =
         jsonlized_component_info.get<GpgComponentInfo>();
     MODULE_LOG_DEBUG("gpgconf check options ready, component: {}",
                      component_info.name);
 
-    if (component_info.name == "gpgme" || component_info.name == "gpgconf")
+    if (component_info.name == "gpgme" || component_info.name == "gpgconf") {
       continue;
+    }
 
     exec_contexts.emplace_back(GpgCommandExecutor::ExecuteContext{
         gpgconf_path,
@@ -397,18 +385,6 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
                 static_cast<std::string>(jsonlized_option_info.dump()));
             options_infos.push_back(info);
           }
-
-          nlohmann::json jsonlized_options_info;
-          for (auto &option_info : options_infos) {
-            jsonlized_options_info.emplace_back(option_info);
-          }
-          UpsertRTValue(
-              GetModuleIdentifier(),
-              (boost::format("gnupg.components.%1%"
-                             ".options_info") %
-               component_info.name)
-                  .str(),
-              static_cast<std::string>(jsonlized_options_info.dump()));
         },
         getTaskRunner()});
   }

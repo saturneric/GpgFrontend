@@ -810,8 +810,7 @@ void MainWindow::slot_version_upgrade_nofity() {
   SPDLOG_DEBUG(
       "slot version upgrade notify called, checking version info from rt...");
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
-      Module::GetRealModuleIdentifier(
-          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "com.bktus.gpgfrontend.module.integrated.version-checking",
       "version.loading_done", false);
 
   SPDLOG_DEBUG("checking version info from rt, is loading done state: {}",
@@ -822,23 +821,19 @@ void MainWindow::slot_version_upgrade_nofity() {
   }
 
   auto is_need_upgrade = Module::RetrieveRTValueTypedOrDefault<>(
-      Module::GetRealModuleIdentifier(
-          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "com.bktus.gpgfrontend.module.integrated.version-checking",
       "version.need_upgrade", false);
 
   auto is_current_a_withdrawn_version = Module::RetrieveRTValueTypedOrDefault<>(
-      Module::GetRealModuleIdentifier(
-          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "com.bktus.gpgfrontend.module.integrated.version-checking",
       "version.current_a_withdrawn_version", false);
 
   auto is_current_version_released = Module::RetrieveRTValueTypedOrDefault<>(
-      Module::GetRealModuleIdentifier(
-          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "com.bktus.gpgfrontend.module.integrated.version-checking",
       "version.current_version_released", false);
 
   auto latest_version = Module::RetrieveRTValueTypedOrDefault<>(
-      Module::GetRealModuleIdentifier(
-          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "com.bktus.gpgfrontend.module.integrated.version-checking",
       "version.latest_version", std::string{});
 
   SPDLOG_DEBUG(

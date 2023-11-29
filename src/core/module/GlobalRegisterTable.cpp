@@ -31,8 +31,10 @@
 #include <any>
 #include <optional>
 #include <shared_mutex>
+#include <sstream>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 namespace GpgFrontend::Module {
 
@@ -47,10 +49,7 @@ class GlobalRegisterTable::Impl {
 
   explicit Impl(GlobalRegisterTable* parent) : parent_(parent) {}
 
-  auto PublishKV(Namespace n, Key k, std::any v) -> bool {
-    SPDLOG_DEBUG("publishing kv to rt, n: {}, k: {}, v type: {}", n, k,
-                 v.type().name());
-
+  auto PublishKV(const Namespace& n, const Key& k, std::any v) -> bool {
     std::istringstream iss(k);
     std::string segment;
 
@@ -77,9 +76,7 @@ class GlobalRegisterTable::Impl {
     return true;
   }
 
-  auto LookupKV(Namespace n, Key k) -> std::optional<std::any> {
-    SPDLOG_DEBUG("looking up kv in rt, n: {}, k: {}", n, k);
-
+  auto LookupKV(const Namespace& n, const Key& k) -> std::optional<std::any> {
     std::istringstream iss(k);
     std::string segment;
 
@@ -100,7 +97,32 @@ class GlobalRegisterTable::Impl {
     return rtn;
   }
 
-  auto ListenPublish(QObject* o, Namespace n, Key k, LPCallback c) -> bool {
+  auto ListChildKeys(const Namespace& n, const Key& k) -> std::vector<Key> {
+    std::istringstream iss(k);
+    std::string segment;
+
+    std::vector<Key> rtn;
+    {
+      std::shared_lock lock(lock_);
+      auto it = global_register_table_.find(n);
+      if (it == global_register_table_.end()) return {};
+
+      RTNode* current = it->second.get();
+      while (std::getline(iss, segment, '.')) {
+        auto it = current->children.find(segment);
+        if (it == current->children.end()) return {};
+        current = it->second.get();
+      }
+
+      for (auto& it : current->children) {
+        rtn.emplace_back(it.first);
+      }
+    }
+    return rtn;
+  }
+
+  auto ListenPublish(QObject* o, const Namespace& n, const Key& k, LPCallback c)
+      -> bool {
     if (o == nullptr) return false;
     return QObject::connect(parent_, &GlobalRegisterTable::SignalPublish, o,
                             [n, k, c](const Namespace& pn, const Key& pk,
@@ -135,6 +157,11 @@ auto GlobalRegisterTable::LookupKV(Namespace n, Key v)
 auto GlobalRegisterTable::ListenPublish(QObject* o, Namespace n, Key k,
                                         LPCallback c) -> bool {
   return p_->ListenPublish(o, n, k, c);
+}
+
+auto GlobalRegisterTable::ListChildKeys(Namespace n, Key k)
+    -> std::vector<Key> {
+  return p_->ListChildKeys(n, k);
 }
 
 }  // namespace GpgFrontend::Module

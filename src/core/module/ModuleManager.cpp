@@ -95,6 +95,11 @@ class ModuleManager::Impl {
     return grt_->ListenPublish(o, n, k, c);
   }
 
+  auto ListRTChildKeys(const std::string& n, const std::string& k)
+      -> std::vector<Key> {
+    return grt_->ListChildKeys(n, k);
+  }
+
  private:
   static ModuleMangerPtr global_module_manager;
   TaskRunnerPtr task_runner_;
@@ -108,9 +113,14 @@ auto UpsertRTValue(const std::string& namespace_, const std::string& key,
                                                      std::any(value));
 }
 
-auto GPGFRONTEND_CORE_EXPORT ListenRTPublishEvent(QObject* o, Namespace n,
-                                                  Key k, LPCallback c) -> bool {
+auto ListenRTPublishEvent(QObject* o, Namespace n, Key k, LPCallback c)
+    -> bool {
   return ModuleManager::GetInstance()->ListenRTPublish(o, n, k, c);
+}
+
+auto ListRTChildKeys(const std::string& namespace_, const std::string& key)
+    -> std::vector<Key> {
+  return ModuleManager::GetInstance()->ListRTChildKeys(namespace_, key);
 }
 
 ModuleManager::ModuleManager() : p_(std::make_unique<Impl>()) {}
@@ -130,13 +140,13 @@ void ModuleManager::TriggerEvent(EventRefrernce event) {
   return p_->TriggerEvent(event);
 }
 
-void ModuleManager::ActiveModule(ModuleIdentifier identifier) {
-  return p_->ActiveModule(identifier);
+void ModuleManager::ActiveModule(ModuleIdentifier id) {
+  return p_->ActiveModule(id);
 }
 
-auto ModuleManager::GetTaskRunner(ModuleIdentifier module_id)
+auto ModuleManager::GetTaskRunner(ModuleIdentifier id)
     -> std::optional<TaskRunnerPtr> {
-  return p_->GetTaskRunner(std::move(module_id));
+  return p_->GetTaskRunner(std::move(id));
 }
 
 auto ModuleManager::UpsertRTValue(Namespace n, Key k, std::any v) -> bool {
@@ -153,10 +163,9 @@ auto ModuleManager::ListenRTPublish(QObject* o, Namespace n, Key k,
   return p_->ListenPublish(o, n, k, c);
 }
 
-auto GetRealModuleIdentifier(const ModuleIdentifier& m_id) -> ModuleIdentifier {
-  // WARNING: when YOU need to CHANGE this line, YOU SHOULD change the same code
-  // in Module.cpp as well.
-  return (boost::format("__module_%1%") % m_id).str();
+auto ModuleManager::ListRTChildKeys(const std::string& n, const std::string& k)
+    -> std::vector<Key> {
+  return p_->ListRTChildKeys(n, k);
 }
 
 }  // namespace GpgFrontend::Module

@@ -32,6 +32,8 @@
 
 #include "GnupgTab.h"
 
+#include <boost/format.hpp>
+#include <nlohmann/json.hpp>
 #include <shared_mutex>
 
 #include "core/module/ModuleManager.h"
@@ -57,7 +59,9 @@ GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
       QAbstractItemView::SelectRows);
 
   QStringList configurations_column_titles;
-  configurations_column_titles << _("Key") << _("Value");
+  configurations_column_titles << _("Component") << _("Group") << _("Key")
+                               << _("Description") << _("Default Value")
+                               << _("Value");
 
   ui_->configurationDetailsTable->setColumnCount(
       configurations_column_titles.length());
@@ -88,59 +92,146 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
   ui_->gnupgVersionLabel->setText(
       QString::fromStdString(fmt::format("Version: {}", gnupg_version)));
 
-  //   ui_->componentDetailsTable->setRowCount(ctx_info.ComponentsInfo.size());
+  auto components = Module::ListRTChildKeys(
+      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+      "gnupg.components");
+  SPDLOG_DEBUG("got gnupg components from rt, size: {}", components.size());
 
-  //   int row = 0;
-  //   for (const auto& info : ctx_info.ComponentsInfo) {
-  //     if (info.second.size() != 4) continue;
+  ui_->componentDetailsTable->setRowCount(components.size());
 
-  //     auto* tmp0 = new QTableWidgetItem(QString::fromStdString(info.first));
-  //     tmp0->setTextAlignment(Qt::AlignCenter);
-  //     ui_->componentDetailsTable->setItem(row, 0, tmp0);
+  int row = 0;
+  for (auto& component : components) {
+    auto component_info_json = Module::RetrieveRTValueTypedOrDefault(
+        "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+        (boost::format("gnupg.components.%1%") % component).str(),
+        std::string{});
+    SPDLOG_DEBUG("got gnupg component {} info from rt, info: {}", component,
+                 component_info_json);
 
-  //     auto* tmp1 = new
-  //     QTableWidgetItem(QString::fromStdString(info.second[0]));
-  //     tmp1->setTextAlignment(Qt::AlignCenter);
-  //     ui_->componentDetailsTable->setItem(row, 1, tmp1);
+    auto component_info = nlohmann::json::parse(component_info_json);
 
-  //     auto* tmp2 = new
-  //     QTableWidgetItem(QString::fromStdString(info.second[1]));
-  //     tmp2->setTextAlignment(Qt::AlignCenter);
-  //     ui_->componentDetailsTable->setItem(row, 2, tmp2);
+    if (!component_info.contains("name")) {
+      SPDLOG_WARN("illegal gnupg component info, json: {}",
+                  component_info_json);
+      continue;
+    }
 
-  //     auto* tmp3 = new
-  //     QTableWidgetItem(QString::fromStdString(info.second[3]));
-  //     tmp3->setTextAlignment(Qt::AlignCenter);
-  //     ui_->componentDetailsTable->setItem(row, 3, tmp3);
+    auto* tmp0 = new QTableWidgetItem(
+        QString::fromStdString(component_info.value("name", "")));
+    tmp0->setTextAlignment(Qt::AlignCenter);
+    ui_->componentDetailsTable->setItem(row, 0, tmp0);
 
-  //     auto* tmp4 = new
-  //     QTableWidgetItem(QString::fromStdString(info.second[2]));
-  //     tmp4->setTextAlignment(Qt::AlignLeft);
-  //     ui_->componentDetailsTable->setItem(row, 4, tmp4);
+    auto* tmp1 = new QTableWidgetItem(
+        QString::fromStdString(component_info.value("desc", "")));
+    tmp1->setTextAlignment(Qt::AlignCenter);
+    ui_->componentDetailsTable->setItem(row, 1, tmp1);
 
-  //     row++;
-  //   }
+    auto* tmp2 = new QTableWidgetItem(
+        QString::fromStdString(component_info.value("version", "")));
+    tmp2->setTextAlignment(Qt::AlignCenter);
+    ui_->componentDetailsTable->setItem(row, 2, tmp2);
 
-  //   ui_->componentDetailsTable->resizeColumnsToContents();
+    auto* tmp3 = new QTableWidgetItem(
+        QString::fromStdString(component_info.value("binary_checksum", "")));
+    tmp3->setTextAlignment(Qt::AlignCenter);
+    ui_->componentDetailsTable->setItem(row, 3, tmp3);
 
-  //   ui_->configurationDetailsTable->setRowCount(
-  //       ctx_info.ConfigurationsInfo.size());
+    auto* tmp4 = new QTableWidgetItem(
+        QString::fromStdString(component_info.value("path", "")));
+    tmp4->setTextAlignment(Qt::AlignLeft);
+    ui_->componentDetailsTable->setItem(row, 4, tmp4);
 
-  //   row = 0;
-  //   for (const auto& info : ctx_info.ConfigurationsInfo) {
-  //     if (info.second.size() != 1) continue;
+    row++;
+  }
 
-  //     auto* tmp0 = new QTableWidgetItem(QString::fromStdString(info.first));
-  //     tmp0->setTextAlignment(Qt::AlignCenter);
-  //     ui_->configurationDetailsTable->setItem(row, 0, tmp0);
+  ui_->componentDetailsTable->resizeColumnsToContents();
 
-  //     auto* tmp1 = new
-  //     QTableWidgetItem(QString::fromStdString(info.second[0]));
-  //     tmp1->setTextAlignment(Qt::AlignCenter);
-  //     ui_->configurationDetailsTable->setItem(row, 1, tmp1);
+  // calcualte the total row number of configuration table
+  row = 0;
+  for (auto& component : components) {
+    auto options = Module::ListRTChildKeys(
+        "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+        (boost::format("gnupg.components.%1%.options") % component).str());
+    for (auto& option : options) {
+      const auto option_info =
+          nlohmann::json::parse(Module::RetrieveRTValueTypedOrDefault(
+              "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+              (boost::format("gnupg.components.%1%.options.%2%") % component %
+               option)
+                  .str(),
+              std::string{}));
+      if (!option_info.contains("name") ||
+          option_info.value("flags", "1") == "1") {
+        continue;
+      }
+      row++;
+    }
+  }
+  ui_->configurationDetailsTable->setRowCount(row);
 
-  //     row++;
-  //   }
+  row = 0;
+  std::string configuration_group;
+  for (auto& component : components) {
+    auto options = Module::ListRTChildKeys(
+        "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+        (boost::format("gnupg.components.%1%.options") % component).str());
 
-  //   ui_->configurationDetailsTable->resizeColumnsToContents();
+    for (auto& option : options) {
+      auto option_info_json = Module::RetrieveRTValueTypedOrDefault(
+          "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+          (boost::format("gnupg.components.%1%.options.%2%") % component %
+           option)
+              .str(),
+          std::string{});
+      SPDLOG_DEBUG("got gnupg component's option {} info from rt, info: {}",
+                   component, option_info_json);
+
+      auto option_info = nlohmann::json::parse(option_info_json);
+
+      if (!option_info.contains("name")) {
+        SPDLOG_WARN("illegal gnupg configuation info, json: {}",
+                    option_info_json);
+        continue;
+      }
+
+      if (option_info.value("flags", "1") == "1") {
+        configuration_group = option_info.value("name", "");
+        continue;
+      }
+
+      auto* tmp0 = new QTableWidgetItem(QString::fromStdString(component));
+      tmp0->setTextAlignment(Qt::AlignCenter);
+      ui_->configurationDetailsTable->setItem(row, 0, tmp0);
+
+      auto* tmp1 =
+          new QTableWidgetItem(QString::fromStdString(configuration_group));
+      tmp1->setTextAlignment(Qt::AlignCenter);
+      ui_->configurationDetailsTable->setItem(row, 1, tmp1);
+
+      auto* tmp2 = new QTableWidgetItem(
+          QString::fromStdString(option_info.value("name", "")));
+      tmp2->setTextAlignment(Qt::AlignCenter);
+      ui_->configurationDetailsTable->setItem(row, 2, tmp2);
+
+      auto* tmp3 = new QTableWidgetItem(
+          QString::fromStdString(option_info.value("description", "")));
+
+      tmp3->setTextAlignment(Qt::AlignLeft);
+      ui_->configurationDetailsTable->setItem(row, 3, tmp3);
+
+      auto* tmp4 = new QTableWidgetItem(
+          QString::fromStdString(option_info.value("default_value", "")));
+      tmp4->setTextAlignment(Qt::AlignLeft);
+      ui_->configurationDetailsTable->setItem(row, 4, tmp4);
+
+      auto* tmp5 = new QTableWidgetItem(
+          QString::fromStdString(option_info.value("value", "")));
+      tmp5->setTextAlignment(Qt::AlignLeft);
+      ui_->configurationDetailsTable->setItem(row, 5, tmp5);
+
+      row++;
+    }
+  }
+  // ui_->configurationDetailsTable->resizeColumnsToContents();
+  
 }

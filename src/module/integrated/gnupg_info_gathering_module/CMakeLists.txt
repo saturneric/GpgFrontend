@@ -23,7 +23,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# com.bktus.gpgfrontend.module.integrated.gnupginfogathering
+# com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering
 
 aux_source_directory(. INTEGRATED_MODULE_SOURCE)
 

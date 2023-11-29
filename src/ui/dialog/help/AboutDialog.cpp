@@ -37,7 +37,6 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/Module.h"
 #include "core/module/ModuleManager.h"
-#include "core/thread/TaskRunnerGetter.h"
 #include "ui/dialog/help/GnupgTab.h"
 
 namespace GpgFrontend::UI {
@@ -64,13 +63,13 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent)
     tab_widget->setCurrentIndex(defaultIndex);
   }
 
-  auto* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok);
-  connect(buttonBox, &QDialogButtonBox::accepted, this, &AboutDialog::close);
+  auto* button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
+  connect(button_box, &QDialogButtonBox::accepted, this, &AboutDialog::close);
 
-  auto* mainLayout = new QVBoxLayout;
-  mainLayout->addWidget(tab_widget);
-  mainLayout->addWidget(buttonBox);
-  setLayout(mainLayout);
+  auto* main_layout = new QVBoxLayout;
+  main_layout->addWidget(tab_widget);
+  main_layout->addWidget(button_box);
+  setLayout(main_layout);
 
   this->resize(550, 650);
   this->setMinimumWidth(450);
@@ -106,14 +105,14 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
       _("Built at") + " " + BUILD_TIMESTAMP + "</center>");
 
   auto* layout = new QGridLayout();
-  auto* pixmapLabel = new QLabel();
-  pixmapLabel->setPixmap(*pixmap);
-  layout->addWidget(pixmapLabel, 0, 0, 1, -1, Qt::AlignCenter);
-  auto* aboutLabel = new QLabel();
-  aboutLabel->setText(*text);
-  aboutLabel->setWordWrap(true);
-  aboutLabel->setOpenExternalLinks(true);
-  layout->addWidget(aboutLabel, 1, 0, 1, -1);
+  auto* pixmap_label = new QLabel();
+  pixmap_label->setPixmap(*pixmap);
+  layout->addWidget(pixmap_label, 0, 0, 1, -1, Qt::AlignCenter);
+  auto* about_label = new QLabel();
+  about_label->setText(*text);
+  about_label->setWordWrap(true);
+  about_label->setOpenExternalLinks(true);
+  layout->addWidget(about_label, 1, 0, 1, -1);
   layout->addItem(
       new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed), 2, 1,
       1, 1);
@@ -141,7 +140,7 @@ TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
   main_layout->addWidget(label);
   main_layout->addStretch();
 
-  auto notice_label = new QLabel(
+  auto* notice_label = new QLabel(
       _("If you think there are any problems with the translation, why not "
         "participate in the translation work? If you want to participate, "
         "please "
@@ -163,7 +162,7 @@ UpdateTab::UpdateTab(QWidget* parent) : QWidget(parent) {
   current_version_ =
       QString("v") + VERSION_MAJOR + "." + VERSION_MINOR + "." + VERSION_PATCH;
 
-  auto tips_label = new QLabel();
+  auto* tips_label = new QLabel();
   tips_label->setText(
       "<center>" +
       QString(_("It is recommended that you always check the version "
@@ -209,15 +208,12 @@ void UpdateTab::showEvent(QShowEvent* event) {
   SPDLOG_DEBUG("loading version loading info from rt");
 
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
-      Module::GetRealModuleIdentifier(
-          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "com.bktus.gpgfrontend.module.integrated.version-checking",
       "version.loading_done", false);
 
   if (!is_loading_done) {
     Module::ListenRTPublishEvent(
-        this,
-        Module::GetRealModuleIdentifier(
-            "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+        this, "com.bktus.gpgfrontend.module.integrated.version-checking",
         "version.loading_done",
         [=](Module::Namespace, Module::Key, int, std::any) {
           SPDLOG_DEBUG(
@@ -236,8 +232,7 @@ void UpdateTab::slot_show_version_status() {
   this->pb_->setHidden(true);
 
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
-      Module::GetRealModuleIdentifier(
-          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "com.bktus.gpgfrontend.module.integrated.version-checking",
       "version.loading_done", false);
 
   if (!is_loading_done) {
@@ -246,23 +241,19 @@ void UpdateTab::slot_show_version_status() {
   }
 
   auto is_need_upgrade = Module::RetrieveRTValueTypedOrDefault<>(
-      Module::GetRealModuleIdentifier(
-          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "com.bktus.gpgfrontend.module.integrated.version-checking",
       "version.need_upgrade", false);
 
   auto is_current_a_withdrawn_version = Module::RetrieveRTValueTypedOrDefault<>(
-      Module::GetRealModuleIdentifier(
-          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "com.bktus.gpgfrontend.module.integrated.version-checking",
       "version.current_a_withdrawn_version", false);
 
   auto is_current_version_released = Module::RetrieveRTValueTypedOrDefault<>(
-      Module::GetRealModuleIdentifier(
-          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "com.bktus.gpgfrontend.module.integrated.version-checking",
       "version.current_version_released", false);
 
   auto latest_version = Module::RetrieveRTValueTypedOrDefault<>(
-      Module::GetRealModuleIdentifier(
-          "com.bktus.gpgfrontend.module.integrated.versionchecking"),
+      "com.bktus.gpgfrontend.module.integrated.version-checking",
       "version.latest_version", std::string{});
 
   latest_version_label_->setText(
