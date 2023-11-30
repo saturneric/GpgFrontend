@@ -124,6 +124,9 @@ auto StartApplication(InitArgs args) -> int {
   } while (return_from_event_loop_code == GpgFrontend::kRestartCode &&
            restart_count < 3);
 
+  // close logging system
+  ShutdownModules();
+
   // log for debug
   SPDLOG_INFO("GpgFrontend is about to exit.");
 
@@ -135,9 +138,6 @@ auto StartApplication(InitArgs args) -> int {
         "deep restart or cash loop status caught, restart a new application");
     QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
   };
-
-  // close logging system
-  ShutdownModules();
 
   // exit the program
   return return_from_event_loop_code;
