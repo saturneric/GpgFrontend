@@ -131,7 +131,7 @@ auto StartApplication(InitArgs args) -> int {
   SPDLOG_INFO("GpgFrontend is about to exit.");
 
   // deep restart mode
-  if (return_from_event_loop_code == GpgFrontend::kRestartCode ||
+  if (return_from_event_loop_code == GpgFrontend::kDeepRestartCode ||
       return_from_event_loop_code == kCrashCode) {
     // log for debug
     SPDLOG_DEBUG(

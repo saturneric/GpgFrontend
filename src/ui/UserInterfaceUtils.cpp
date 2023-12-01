@@ -36,13 +36,14 @@
 #include "core/GpgConstants.h"
 #include "core/function/CacheManager.h"
 #include "core/function/CoreSignalStation.h"
-#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunner.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "core/utils/CacheUtils.h"
 #include "core/utils/IOUtils.h"
+#include "spdlog/spdlog.h"
 #include "ui/SignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
 #include "ui/dialog/gnupg/GnuPGControllerDialog.h"
@@ -436,7 +437,7 @@ void CommonUtils::SlotImportKeyFromKeyServer(
 }
 
 void CommonUtils::slot_update_key_status() {
-  auto refresh_task = new Thread::Task(
+  auto *refresh_task = new Thread::Task(
       [](DataObjectPtr) -> int {
         // flush key cache for all GpgKeyGetter Intances.
         for (const auto &channel_id : GpgKeyGetter::GetAllChannelId()) {
@@ -446,8 +447,7 @@ void CommonUtils::slot_update_key_status() {
       },
       "update_key_database_task");
   connect(refresh_task, &Thread::Task::SignalTaskEnd, this,
-          &CommonUtils::SignalKeyDatabaseRefreshDone,
-          Qt::BlockingQueuedConnection);
+          &CommonUtils::SignalKeyDatabaseRefreshDone);
 
   // post the task to the default task runner
   Thread::TaskRunnerGetter::GetInstance().GetTaskRunner()->PostTask(
@@ -464,11 +464,10 @@ void CommonUtils::slot_popup_passphrase_input_dialog() {
   dialog->resize(500, 80);
   dialog->exec();
 
-  QString password = dialog->textValue();
-  dialog->deleteLater();
+  SetTempCacheValue("__key_passphrase", dialog->textValue().toStdString());
 
   // send signal
-  emit SignalUserInputPassphraseDone(password);
+  emit SignalUserInputPassphraseDone();
 }
 
 void CommonUtils::SlotRestartApplication(int code) {

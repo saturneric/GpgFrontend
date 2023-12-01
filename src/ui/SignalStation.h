@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "ui/GpgFrontendUI.h"
 #include "ui/widgets/InfoBoardWidget.h"
 
 namespace GpgFrontend::UI {
@@ -39,7 +38,7 @@ namespace GpgFrontend::UI {
  */
 class SignalStation : public QObject {
   Q_OBJECT
-  static std::unique_ptr<SignalStation> _instance;
+  static std::unique_ptr<SignalStation> instance;
 
  public:
   /**
@@ -47,7 +46,7 @@ class SignalStation : public QObject {
    *
    * @return SignalStation*
    */
-  static SignalStation* GetInstance();
+  static auto GetInstance() -> SignalStation*;
 
  signals:
   /**

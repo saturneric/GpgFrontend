@@ -71,7 +71,7 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
 
   void SetPassphraseCb(gpgme_passphrase_cb_t passphrase_cb) const;
 
-  auto ShowPasswordInputDialog() -> std::string;
+  void ShowPasswordInputDialog();
 
  signals:
   void SignalNeedUserInputPassphrase();

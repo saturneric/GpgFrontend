@@ -198,7 +198,7 @@ class CommonUtils : public QWidget {
    * @brief
    *
    */
-  void SignalUserInputPassphraseDone(QString passphrase);
+  void SignalUserInputPassphraseDone();
 
   /**
    * @brief

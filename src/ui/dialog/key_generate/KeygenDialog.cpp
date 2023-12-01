@@ -166,7 +166,7 @@ void KeyGenDialog::slot_key_gen_accept() {
       ResetTempCacheValue("__key_passphrase");
     }
 
-    SPDLOG_DEBUG("generate done");
+    SPDLOG_DEBUG("key generation done");
 
     if (gpgme_err_code(error) == GPG_ERR_NO_ERROR) {
       auto* msg_box = new QMessageBox(qobject_cast<QWidget*>(this->parent()));
@@ -177,13 +177,14 @@ void KeyGenDialog::slot_key_gen_accept() {
       msg_box->setModal(true);
       msg_box->open();
 
-      SPDLOG_DEBUG("generate success");
+      SPDLOG_DEBUG("key generate successful");
 
       emit SignalKeyGenerated();
-      this->close();
     } else {
       QMessageBox::critical(this, _("Failure"), _("Key generation failed."));
     }
+
+    this->done(0);
 
   } else {
     /**
@@ -200,7 +201,7 @@ void KeyGenDialog::slot_key_gen_accept() {
 }
 
 void KeyGenDialog::slot_expire_box_changed() {
-  if (expire_check_box_->checkState()) {
+  if (expire_check_box_->checkState() != 0U) {
     date_edit_->setEnabled(false);
   } else {
     date_edit_->setEnabled(true);

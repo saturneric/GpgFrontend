@@ -30,6 +30,8 @@
 
 #include <gpg-error.h>
 #include <gpgme.h>
+#include <qeventloop.h>
+#include <qobject.h>
 #include <unistd.h>
 
 #include "core/function/CoreSignalStation.h"
@@ -42,6 +44,7 @@
 #include "core/utils/CacheUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "spdlog/spdlog.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -256,8 +259,15 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
     if (passphrase.empty()) {
       // user input passphrase
       SPDLOG_DEBUG("might need user to input passparase");
-      passphrase = p_ctx->ShowPasswordInputDialog();
+
+      p_ctx->ShowPasswordInputDialog();
+      passphrase = GetTempCacheValue("__key_passphrase");
+
+      SPDLOG_DEBUG("use may has inputed the passphrase");
+
       if (passphrase.empty()) {
+        SPDLOG_ERROR("cannot get passphrase from use or passphrase is empty");
+
         gpgme_io_write(fd, "\n", 1);
         return gpgme_error_from_errno(GPG_ERR_CANCELED);
       }
@@ -285,27 +295,16 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
     return GPG_ERR_NO_ERROR;
   }
 
-  auto ShowPasswordInputDialog() -> std::string {
+  void ShowPasswordInputDialog() {
     emit parent_->SignalNeedUserInputPassphrase();
 
-    std::string final_passphrase;
-    bool input_done = false;
-    SPDLOG_DEBUG("loop start to wait from user");
-    auto connection = QObject::connect(
-        CoreSignalStation::GetInstance(),
-        &CoreSignalStation::SignalUserInputPassphraseDone, parent_,
-        [&](const QString &passphrase) {
-          SPDLOG_DEBUG("SignalUserInputPassphraseDone emitted");
-          final_passphrase = passphrase.toStdString();
-          input_done = true;
-        });
-    while (!input_done) {
-      QCoreApplication::processEvents(QEventLoop::AllEvents, 800);
-    }
-    QObject::disconnect(connection);
+    QEventLoop looper;
+    QObject::connect(CoreSignalStation::GetInstance(),
+                     &CoreSignalStation::SignalUserInputPassphraseDone, &looper,
+                     &QEventLoop::quit);
+    looper.exec();
 
-    SPDLOG_DEBUG("lopper end");
-    return final_passphrase;
+    SPDLOG_DEBUG("show password input dialog done");
   }
 
  private:
@@ -390,7 +389,7 @@ GpgContext::operator gpgme_ctx_t() const {
   return static_cast<gpgme_ctx_t>(*p_);
 }
 
-auto GpgContext::ShowPasswordInputDialog() -> std::string {
+void GpgContext::ShowPasswordInputDialog() {
   return p_->ShowPasswordInputDialog();
 }
 
