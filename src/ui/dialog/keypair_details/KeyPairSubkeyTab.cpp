@@ -31,7 +31,7 @@
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/utils/CommonUtils.h"
-#include "ui/SignalStation.h"
+#include "ui/UISignalStation.h"
 
 namespace GpgFrontend::UI {
 
@@ -125,11 +125,11 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
           &KeyPairSubkeyTab::slot_refresh_subkey_detail);
 
   // key database refresh signal
-  connect(SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefreshDone, this,
+  connect(UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefreshDone, this,
           &KeyPairSubkeyTab::slot_refresh_key_info);
-  connect(SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefreshDone, this,
+  connect(UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefreshDone, this,
           &KeyPairSubkeyTab::slot_refresh_subkey_list);
 
   baseLayout->setContentsMargins(0, 0, 0, 0);

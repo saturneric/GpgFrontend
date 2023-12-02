@@ -31,7 +31,7 @@
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgUIDOperator.h"
-#include "ui/SignalStation.h"
+#include "ui/UISignalStation.h"
 
 namespace GpgFrontend::UI {
 KeyNewUIDDialog::KeyNewUIDDialog(const KeyId& key_id, QWidget* parent)
@@ -70,8 +70,8 @@ KeyNewUIDDialog::KeyNewUIDDialog(const KeyId& key_id, QWidget* parent)
   this->setModal(true);
 
   connect(this, &KeyNewUIDDialog::SignalUIDCreated,
-          SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefresh);
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefresh);
 }
 
 void KeyNewUIDDialog::slot_create_new_uid() {

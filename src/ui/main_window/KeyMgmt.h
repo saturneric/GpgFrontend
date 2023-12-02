@@ -169,7 +169,8 @@ class KeyMgmt : public GeneralMainWindow {
   QAction* import_keys_from_key_package_act_{};  ///<
   QAction* close_act_{};                         ///<
   QAction* show_key_details_act_{};              ///<
-  KeyServerImportDialog* import_dialog_{};       ///<
+  QAction* set_owner_trust_of_key_act_{};
+  KeyServerImportDialog* import_dialog_{};  ///<
 };
 
 }  // namespace GpgFrontend::UI

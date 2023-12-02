@@ -33,7 +33,7 @@
 #include "core/GpgModel.h"
 #include "core/function/ArchiveFileOperator.h"
 #include "core/function/gpg/GpgFileOpera.h"
-#include "ui/SignalStation.h"
+#include "ui/UISignalStation.h"
 #include "ui/main_window/MainWindow.h"
 #include "ui_FilePage.h"
 
@@ -95,8 +95,9 @@ FilePage::FilePage(QWidget* parent)
     }
   });
 
-  connect(this, &FilePage::SignalRefreshInfoBoard, SignalStation::GetInstance(),
-          &SignalStation::SignalRefreshInfoBoard);
+  connect(this, &FilePage::SignalRefreshInfoBoard,
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalRefreshInfoBoard);
 }
 
 void FilePage::slot_file_tree_view_item_clicked(const QModelIndex& index) {

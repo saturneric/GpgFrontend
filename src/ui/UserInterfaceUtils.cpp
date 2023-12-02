@@ -44,7 +44,7 @@
 #include "core/utils/CacheUtils.h"
 #include "core/utils/IOUtils.h"
 #include "spdlog/spdlog.h"
-#include "ui/SignalStation.h"
+#include "ui/UISignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
 #include "ui/dialog/gnupg/GnuPGControllerDialog.h"
 #include "ui/struct/SettingsObject.h"
@@ -159,11 +159,11 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
           &CoreSignalStation::SignalGnupgNotInstall, this,
           &CommonUtils::SignalGnupgNotInstall);
   connect(this, &CommonUtils::SignalKeyStatusUpdated,
-          SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefresh);
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefresh);
   connect(this, &CommonUtils::SignalKeyDatabaseRefreshDone,
-          SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefreshDone);
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefreshDone);
   connect(this, &CommonUtils::SignalUserInputPassphraseDone,
           CoreSignalStation::GetInstance(),
           &CoreSignalStation::SignalUserInputPassphraseDone);
@@ -171,8 +171,8 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
   // directly connect to SignalKeyStatusUpdated
   // to avoid the delay of signal emitting
   // when the key database is refreshed
-  connect(SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefresh, this,
+  connect(UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefresh, this,
           &CommonUtils::slot_update_key_status);
 
   connect(CoreSignalStation::GetInstance(),
@@ -180,11 +180,11 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
           &CommonUtils::slot_popup_passphrase_input_dialog);
 
   connect(this, &CommonUtils::SignalRestartApplication,
-          SignalStation::GetInstance(),
-          &SignalStation::SignalRestartApplication);
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalRestartApplication);
 
-  connect(SignalStation::GetInstance(),
-          &SignalStation::SignalRestartApplication, this,
+  connect(UISignalStation::GetInstance(),
+          &UISignalStation::SignalRestartApplication, this,
           &CommonUtils::SlotRestartApplication);
 
   connect(this, &CommonUtils::SignalGnupgNotInstall, this, [=]() {

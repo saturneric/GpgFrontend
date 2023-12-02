@@ -36,7 +36,7 @@
 #include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "ui/SignalStation.h"
+#include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui_KeyList.h"
 #include "widgets/TextEdit.h"
@@ -71,13 +71,13 @@ void KeyList::init() {
   if (forbid_all_gnupg_connection) ui_->syncButton->setDisabled(true);
 
   // register key database refresh signal
-  connect(this, &KeyList::SignalRefreshDatabase, SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefresh);
-  connect(SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefreshDone, this,
+  connect(this, &KeyList::SignalRefreshDatabase, UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefresh);
+  connect(UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefreshDone, this,
           &KeyList::SlotRefresh);
-  connect(SignalStation::GetInstance(), &SignalStation::SignalUIRefresh, this,
-          &KeyList::SlotRefreshUI);
+  connect(UISignalStation::GetInstance(), &UISignalStation::SignalUIRefresh,
+          this, &KeyList::SlotRefreshUI);
 
   // register key database sync signal for refresh button
   connect(ui_->refreshKeyListButton, &QPushButton::clicked, this,
@@ -91,8 +91,9 @@ void KeyList::init() {
           &KeyList::slot_sync_with_key_server);
   connect(ui_->searchBarEdit, &QLineEdit::textChanged, this,
           &KeyList::filter_by_keyword);
-  connect(this, &KeyList::SignalRefreshStatusBar, SignalStation::GetInstance(),
-          &SignalStation::SignalRefreshStatusBar);
+  connect(this, &KeyList::SignalRefreshStatusBar,
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalRefreshStatusBar);
 
   setAcceptDrops(true);
 

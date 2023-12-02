@@ -35,7 +35,7 @@
 #include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
-#include "ui/SignalStation.h"
+#include "ui/UISignalStation.h"
 #include "ui/struct/SettingsObject.h"
 #include "ui/thread/KeyServerImportTask.h"
 #include "ui/thread/KeyServerSearchTask.h"
@@ -137,8 +137,8 @@ KeyServerImportDialog::KeyServerImportDialog(bool automatic, QWidget* parent)
   this->setModal(true);
 
   connect(this, &KeyServerImportDialog::SignalKeyImported,
-          SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefresh);
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefresh);
 }
 
 KeyServerImportDialog::KeyServerImportDialog(QWidget* parent)

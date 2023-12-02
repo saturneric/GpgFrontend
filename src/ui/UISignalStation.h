@@ -36,9 +36,9 @@ namespace GpgFrontend::UI {
  * @brief
  *
  */
-class SignalStation : public QObject {
+class UISignalStation : public QObject {
   Q_OBJECT
-  static std::unique_ptr<SignalStation> instance;
+  static std::unique_ptr<UISignalStation> instance;
 
  public:
   /**
@@ -46,7 +46,7 @@ class SignalStation : public QObject {
    *
    * @return SignalStation*
    */
-  static auto GetInstance() -> SignalStation*;
+  static auto GetInstance() -> UISignalStation*;
 
  signals:
   /**

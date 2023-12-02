@@ -31,13 +31,12 @@
 #include "KeySetExpireDateDialog.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
-#include "core/function/gpg/GpgKeyManager.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
-#include "ui/SignalStation.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/UISignalStation.h"
 #include "ui/dialog/import_export/KeyUploadDialog.h"
+#include "ui/function/SetOwnerTrustLevel.h"
 
 namespace GpgFrontend::UI {
 
@@ -127,8 +126,8 @@ KeyPairOperaTab::KeyPairOperaTab(const std::string& key_id, QWidget* parent)
 
   // set up signal
   connect(this, &KeyPairOperaTab::SignalKeyDatabaseRefresh,
-          SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefresh);
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefresh);
 }
 
 void KeyPairOperaTab::CreateOperaMenu() {
@@ -383,50 +382,9 @@ void KeyPairOperaTab::slot_modify_tofu_policy() {
 }
 
 void KeyPairOperaTab::slot_set_owner_trust_level() {
-  QStringList items;
-
-  items << _("Unknown") << _("Undefined") << _("Never") << _("Marginal")
-        << _("Full") << _("Ultimate");
-  bool ok;
-  QString item = QInputDialog::getItem(this, _("Modify Owner Trust Level"),
-                                       _("Trust for the Key Pair:"), items,
-                                       m_key_.GetOwnerTrustLevel(), false, &ok);
-
-  if (ok && !item.isEmpty()) {
-    SPDLOG_DEBUG("selected policy: {}", item.toStdString());
-    int trust_level = 0;  // Unknown Level
-    if (item == _("Ultimate")) {
-      trust_level = 5;
-    } else if (item == _("Full")) {
-      trust_level = 4;
-    } else if (item == _("Marginal")) {
-      trust_level = 3;
-    } else if (item == _("Never")) {
-      trust_level = 2;
-    } else if (item == _("Undefined")) {
-      trust_level = 1;
-    }
-
-    if (trust_level == 0) {
-      QMessageBox::warning(
-          this, _("Warning"),
-          QString(_("Owner Trust Level cannot set to Unknown level, automately "
-                    "changing it into Undefined level.")));
-      trust_level = 1;
-    }
-
-    bool status =
-        GpgKeyManager::GetInstance().SetOwnerTrustLevel(m_key_, trust_level);
-    if (!status) {
-      QMessageBox::critical(this, _("Failed"),
-                            QString(_("Modify Owner Trust Level failed.")));
-    } else {
-      QMessageBox::information(this, _("Success"),
-                               QString(_("Set Owner Trust Level successful.")));
-      // update key database and refresh ui
-      emit SignalKeyDatabaseRefresh();
-    }
-  }
+  auto* function = new SetOwnerTrustLevel(this);
+  function->Exec(m_key_.GetId());
+  function->deleteLater();
 }
 
 }  // namespace GpgFrontend::UI

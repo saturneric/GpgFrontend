@@ -33,7 +33,7 @@
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/model/GpgKey.h"
 #include "core/utils/CommonUtils.h"
-#include "ui/SignalStation.h"
+#include "ui/UISignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
 
 namespace GpgFrontend::UI {
@@ -160,8 +160,8 @@ KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
   mvbox->setContentsMargins(0, 0, 0, 0);
 
   // when key database updated
-  connect(SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefreshDone, this,
+  connect(UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefreshDone, this,
           &KeyPairDetailTab::slot_refresh_key);
 
   slot_refresh_key_info();

@@ -40,7 +40,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/thread/CtxCheckTask.h"
 #include "core/thread/TaskRunnerGetter.h"
-#include "ui/SignalStation.h"
+#include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/main_window/MainWindow.h"
 
@@ -69,7 +69,7 @@ void InitGpgFrontendUI(QApplication* app) {
 #endif
 
   // init signal station
-  SignalStation::GetInstance();
+  UISignalStation::GetInstance();
 
   // init common utils
   CommonUtils::GetInstance();

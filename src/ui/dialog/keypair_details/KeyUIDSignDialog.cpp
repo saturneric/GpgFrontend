@@ -31,7 +31,7 @@
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyManager.h"
-#include "ui/SignalStation.h"
+#include "ui/UISignalStation.h"
 
 namespace GpgFrontend::UI {
 
@@ -99,8 +99,8 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
   setAttribute(Qt::WA_DeleteOnClose, true);
 
   connect(this, &KeyUIDSignDialog::SignalKeyUIDSignUpdate,
-          SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefresh);
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefresh);
 }
 
 void KeyUIDSignDialog::slot_sign_key(bool clicked) {

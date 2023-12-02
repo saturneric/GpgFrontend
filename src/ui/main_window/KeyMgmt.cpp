@@ -36,7 +36,8 @@
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/utils/IOUtils.h"
-#include "ui/SignalStation.h"
+#include "function/SetOwnerTrustLevel.h"
+#include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/import_export/ExportKeyPackageDialog.h"
 #include "ui/dialog/key_generate/SubkeyGenerateDialog.h"
@@ -116,12 +117,16 @@ KeyMgmt::KeyMgmt(QWidget* parent)
   key_list_->AddMenuAction(generate_subkey_act_);
   key_list_->AddMenuAction(delete_selected_keys_act_);
   key_list_->AddSeparator();
+  key_list_->AddMenuAction(set_owner_trust_of_key_act_);
+  key_list_->AddSeparator();
   key_list_->AddMenuAction(show_key_details_act_);
 
-  connect(this, &KeyMgmt::SignalKeyStatusUpdated, SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefresh);
-  connect(SignalStation::GetInstance(), &SignalStation::SignalRefreshStatusBar,
-          this, [=](const QString& message, int timeout) {
+  connect(this, &KeyMgmt::SignalKeyStatusUpdated,
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefresh);
+  connect(UISignalStation::GetInstance(),
+          &UISignalStation::SignalRefreshStatusBar, this,
+          [=](const QString& message, int timeout) {
             statusBar()->showMessage(message, timeout);
           });
 }
@@ -178,7 +183,7 @@ void KeyMgmt::create_actions() {
   import_key_from_key_server_act_->setToolTip(
       _("Import New Key From Keyserver"));
   import_key_from_key_server_act_->setDisabled(forbid_all_gnupg_connection);
-  connect(import_key_from_key_server_act_, &QAction::triggered, this, [&]() {
+  connect(import_key_from_key_server_act_, &QAction::triggered, this, [this]() {
     CommonUtils::GetInstance()->SlotImportKeyFromKeyServer(this);
   });
 
@@ -225,6 +230,18 @@ void KeyMgmt::create_actions() {
   show_key_details_act_->setToolTip(_("Show Details for this Key"));
   connect(show_key_details_act_, &QAction::triggered, this,
           &KeyMgmt::SlotShowKeyDetails);
+
+  set_owner_trust_of_key_act_ = new QAction(_("Set Owner Trust Level"), this);
+  set_owner_trust_of_key_act_->setToolTip(_("Set Owner Trust Level"));
+  set_owner_trust_of_key_act_->setData(QVariant("set_owner_trust_level"));
+  connect(set_owner_trust_of_key_act_, &QAction::triggered, this, [this]() {
+    auto keys_selected = key_list_->GetSelected();
+    if (keys_selected->empty()) return;
+
+    auto* function = new SetOwnerTrustLevel(this);
+    function->Exec(keys_selected->front());
+    function->deleteLater();
+  });
 }
 
 void KeyMgmt::create_menus() {

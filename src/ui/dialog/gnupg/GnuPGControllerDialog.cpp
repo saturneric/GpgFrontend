@@ -31,7 +31,7 @@
 #include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
-#include "ui/SignalStation.h"
+#include "ui/UISignalStation.h"
 #include "ui/dialog/GeneralDialog.h"
 #include "ui_GnuPGControllerDialog.h"
 
@@ -65,8 +65,8 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
 
   // announce main window
   connect(this, &GnuPGControllerDialog::SignalRestartNeeded,
-          SignalStation::GetInstance(),
-          &SignalStation::SignalRestartApplication);
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalRestartApplication);
 
   connect(ui_->keyDatabseUseCustomCheckBox, &QCheckBox::stateChanged, this,
           [=](int state) {

@@ -32,7 +32,7 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyManager.h"
 #include "core/function/gpg/GpgUIDOperator.h"
-#include "ui/SignalStation.h"
+#include "ui/UISignalStation.h"
 #include "ui/widgets/TOFUInfoPage.h"
 
 namespace GpgFrontend::UI {
@@ -104,13 +104,13 @@ KeyPairUIDTab::KeyPairUIDTab(const std::string& key_id, QWidget* parent)
           &KeyPairUIDTab::slot_refresh_sig_list);
 
   // Key Database Refresh
-  connect(SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefreshDone, this,
+  connect(UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefreshDone, this,
           &KeyPairUIDTab::slot_refresh_key);
 
   connect(this, &KeyPairUIDTab::SignalUpdateUIDInfo,
-          SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefresh);
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefresh);
 
   setLayout(vbox_layout);
   setAttribute(Qt::WA_DeleteOnClose, true);

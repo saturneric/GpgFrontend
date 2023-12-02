@@ -34,7 +34,7 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/utils/GpgUtils.h"
-#include "ui/SignalStation.h"
+#include "ui/UISignalStation.h"
 #include "ui_ModifiedExpirationDateTime.h"
 
 namespace GpgFrontend::UI {
@@ -138,8 +138,8 @@ void KeySetExpireDateDialog::init() {
   connect(ui_->button_box_, &QDialogButtonBox::accepted, this,
           &KeySetExpireDateDialog::slot_confirm);
   connect(this, &KeySetExpireDateDialog::SignalKeyExpireDateUpdated,
-          SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefresh);
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefresh);
 
   ui_->titleLabel->setText(_("Modified Expiration Date (Local Time)"));
   ui_->label->setText(

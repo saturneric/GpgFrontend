@@ -35,7 +35,7 @@
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/utils/CacheUtils.h"
 #include "dialog/WaitingDialog.h"
-#include "ui/SignalStation.h"
+#include "ui/UISignalStation.h"
 
 namespace GpgFrontend::UI {
 
@@ -61,8 +61,9 @@ KeyGenDialog::KeyGenDialog(QWidget* parent)
   this->setWindowTitle(_("Generate Key"));
   this->setModal(true);
 
-  connect(this, &KeyGenDialog::SignalKeyGenerated, SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefresh);
+  connect(this, &KeyGenDialog::SignalKeyGenerated,
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefresh);
 
   generate_key_dialog();
 }

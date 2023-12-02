@@ -33,7 +33,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/module/ModuleManager.h"
-#include "ui/SignalStation.h"
+#include "ui/UISignalStation.h"
 #include "ui/main_window/GeneralMainWindow.h"
 #include "ui/struct/SettingsObject.h"
 #include "ui/widgets/KeyList.h"
@@ -81,19 +81,19 @@ void MainWindow::Init() noexcept {
     this->menuBar()->show();
 
     connect(this, &MainWindow::SignalRestartApplication,
-            SignalStation::GetInstance(),
-            &SignalStation::SignalRestartApplication);
+            UISignalStation::GetInstance(),
+            &UISignalStation::SignalRestartApplication);
 
-    connect(this, &MainWindow::SignalUIRefresh, SignalStation::GetInstance(),
-            &SignalStation::SignalUIRefresh);
+    connect(this, &MainWindow::SignalUIRefresh, UISignalStation::GetInstance(),
+            &UISignalStation::SignalUIRefresh);
     connect(this, &MainWindow::SignalKeyDatabaseRefresh,
-            SignalStation::GetInstance(),
-            &SignalStation::SignalKeyDatabaseRefresh);
+            UISignalStation::GetInstance(),
+            &UISignalStation::SignalKeyDatabaseRefresh);
 
     connect(edit_->tab_widget_, &QTabWidget::currentChanged, this,
             &MainWindow::slot_disable_tab_actions);
-    connect(SignalStation::GetInstance(),
-            &SignalStation::SignalRefreshStatusBar, this,
+    connect(UISignalStation::GetInstance(),
+            &UISignalStation::SignalRefreshStatusBar, this,
             [=](const QString &message, int timeout) {
               statusBar()->showMessage(message, timeout);
             });
@@ -132,8 +132,7 @@ void MainWindow::Init() noexcept {
     });
 
     Module::ListenRTPublishEvent(
-        this,
-            "com.bktus.gpgfrontend.module.integrated.version-checking",
+        this, "com.bktus.gpgfrontend.module.integrated.version-checking",
         "version.loading_done",
         [=](Module::Namespace, Module::Key, int, std::any) {
           SPDLOG_DEBUG(

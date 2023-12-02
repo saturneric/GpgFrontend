@@ -30,7 +30,7 @@
 
 #include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
-#include "ui/SignalStation.h"
+#include "ui/UISignalStation.h"
 #include "ui/struct/SettingsObject.h"
 #include "ui_InfoBoard.h"
 
@@ -52,8 +52,9 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent)
   connect(ui_->clearButton, &QPushButton::clicked, this,
           &InfoBoardWidget::SlotReset);
 
-  connect(SignalStation::GetInstance(), &SignalStation::SignalRefreshInfoBoard,
-          this, &InfoBoardWidget::SlotRefresh);
+  connect(UISignalStation::GetInstance(),
+          &UISignalStation::SignalRefreshInfoBoard, this,
+          &InfoBoardWidget::SlotRefresh);
 }
 
 void InfoBoardWidget::SetInfoBoard(const QString& text,

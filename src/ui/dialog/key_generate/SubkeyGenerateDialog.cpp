@@ -36,7 +36,7 @@
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/utils/CacheUtils.h"
 #include "core/utils/GpgUtils.h"
-#include "ui/SignalStation.h"
+#include "ui/UISignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
 
 namespace GpgFrontend::UI {
@@ -85,8 +85,8 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent)
   this->setModal(true);
 
   connect(this, &SubkeyGenerateDialog::SignalSubKeyGenerated,
-          SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefresh);
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefresh);
 
   set_signal_slot();
   refresh_widgets_state();

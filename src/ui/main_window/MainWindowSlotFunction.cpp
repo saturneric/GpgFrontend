@@ -49,6 +49,7 @@
 #include "ui/dialog/help/AboutDialog.h"
 #include "ui/dialog/import_export/KeyUploadDialog.h"
 #include "ui/dialog/keypair_details/KeyDetailsDialog.h"
+#include "ui/function/SetOwnerTrustLevel.h"
 #include "ui/widgets/FindWidget.h"
 
 namespace GpgFrontend::UI {
@@ -751,50 +752,9 @@ void MainWindow::slot_set_owner_trust_level_of_key() {
   auto key_ids = m_key_list_->GetSelected();
   if (key_ids->empty()) return;
 
-  auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
-
-  QStringList items;
-
-  items << _("Unknown") << _("Undefined") << _("Never") << _("Marginal")
-        << _("Full") << _("Ultimate");
-  bool ok;
-  QString item = QInputDialog::getItem(this, _("Modify Owner Trust Level"),
-                                       _("Trust for the Key Pair:"), items,
-                                       key.GetOwnerTrustLevel(), false, &ok);
-
-  if (ok && !item.isEmpty()) {
-    SPDLOG_DEBUG("selected policy: {}", item.toStdString());
-    int trust_level = 0;  // Unknown Level
-    if (item == _("Ultimate")) {
-      trust_level = 5;
-    } else if (item == _("Full")) {
-      trust_level = 4;
-    } else if (item == _("Marginal")) {
-      trust_level = 3;
-    } else if (item == _("Never")) {
-      trust_level = 2;
-    } else if (item == _("Undefined")) {
-      trust_level = 1;
-    }
-
-    if (trust_level == 0) {
-      QMessageBox::warning(
-          this, _("Warning"),
-          QString(_("Owner Trust Level cannot set to Unknown level, automately "
-                    "changing it into Undefined level.")));
-      trust_level = 1;
-    }
-
-    bool status =
-        GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, trust_level);
-    if (!status) {
-      QMessageBox::critical(this, _("Failed"),
-                            QString(_("Modify Owner Trust Level failed.")));
-    } else {
-      // update key database and refresh ui
-      emit SignalKeyDatabaseRefresh();
-    }
-  }
+  auto* function = new SetOwnerTrustLevel(this);
+  function->Exec(key_ids->front());
+  function->deleteLater();
 }
 
 void MainWindow::upload_key_to_server() {

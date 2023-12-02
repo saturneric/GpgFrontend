@@ -26,15 +26,15 @@
  *
  */
 
-#include "SignalStation.h"
+#include "UISignalStation.h"
 
 namespace GpgFrontend::UI {
 
-std::unique_ptr<SignalStation> SignalStation::instance = nullptr;
+std::unique_ptr<UISignalStation> UISignalStation::instance = nullptr;
 
-auto SignalStation::GetInstance() -> SignalStation* {
+auto UISignalStation::GetInstance() -> UISignalStation* {
   if (instance == nullptr) {
-    instance = std::make_unique<SignalStation>();
+    instance = std::make_unique<UISignalStation>();
   }
   return instance.get();
 }
