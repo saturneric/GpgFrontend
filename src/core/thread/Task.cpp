@@ -89,7 +89,7 @@ class Task::Impl : public QObject {
   std::string GetUUID() const { return uuid_; }
 
   void Run() {
-    SPDLOG_DEBUG("task {} is using default runnable and callback mode",
+    SPDLOG_TRACE("task {} is using default runnable and callback mode",
                  GetFullID());
     if (runnable_) {
       SetRTN(runnable_(data_object_));
@@ -184,27 +184,27 @@ class Task::Impl : public QObject {
 
     try {
       if (callback_) {
-        SPDLOG_DEBUG("task {} has a callback function", GetFullID());
+        SPDLOG_TRACE("task {} has a callback function", GetFullID());
         if (callback_thread_ == QThread::currentThread()) {
-          SPDLOG_DEBUG("for task {}, the callback thread is the same thread",
+          SPDLOG_TRACE("for task {}, the callback thread is the same thread",
                        GetFullID(), callback_thread_->currentThreadId());
 
           callback_(rtn, data_object_);
 
           // raise signal, announcing this task comes to an end
-          SPDLOG_DEBUG(
+          SPDLOG_TRACE(
               "for task {}, its life comes to an end in the same thread after "
               "its callback executed.",
               parent_->GetFullID());
           emit parent_->SignalTaskEnd();
         } else {
-          SPDLOG_DEBUG("for task {}, callback thread is a different thread: {}",
+          SPDLOG_TRACE("for task {}, callback thread is a different thread: {}",
                        GetFullID(), callback_thread_->currentThreadId());
           if (!QMetaObject::invokeMethod(
                   callback_thread_,
                   [callback = callback_, rtn = rtn_, data_object = data_object_,
                    parent_ = this->parent_]() {
-                    SPDLOG_DEBUG("calling callback of task {}",
+                    SPDLOG_TRACE("calling callback of task {}",
                                  parent_->GetFullID());
                     try {
                       callback(rtn, data_object);
@@ -215,7 +215,7 @@ class Task::Impl : public QObject {
                           parent_->GetFullID());
                     }
                     // raise signal, announcing this task comes to an end
-                    SPDLOG_DEBUG(
+                    SPDLOG_TRACE(
                         "for task {}, its life comes to an end whether its "
                         "callback function fails or not.",
                         parent_->GetFullID());
@@ -225,7 +225,7 @@ class Task::Impl : public QObject {
                 "task {} had failed to invoke the callback function to target "
                 "thread",
                 GetFullID());
-            SPDLOG_DEBUG(
+            SPDLOG_TRACE(
                 "for task {}, its life must come to an end now, although it "
                 "has something not done yet.",
                 GetFullID());
@@ -234,7 +234,7 @@ class Task::Impl : public QObject {
         }
       } else {
         // raise signal, announcing this task comes to an end
-        SPDLOG_DEBUG(
+        SPDLOG_TRACE(
             "for task {}, its life comes to an end without callback "
             "peacefully.",
             GetFullID());
@@ -246,7 +246,7 @@ class Task::Impl : public QObject {
           "stacktrace of the exception: {}",
           boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
       // raise signal, announcing this task comes to an end
-      SPDLOG_DEBUG("for task {}, its life comes to an end at chaos.",
+      SPDLOG_TRACE("for task {}, its life comes to an end at chaos.",
                    GetFullID());
       emit parent_->SignalTaskEnd();
     } catch (...) {
@@ -255,7 +255,7 @@ class Task::Impl : public QObject {
           "stacktrace of the exception: {}",
           boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
       // raise signal, announcing this task comes to an end
-      SPDLOG_DEBUG("for task {}, its life comes to an end at unknown chaos.",
+      SPDLOG_TRACE("for task {}, its life comes to an end at unknown chaos.",
                    GetFullID());
       emit parent_->SignalTaskEnd();
     }
@@ -291,7 +291,7 @@ void Task::SafelyRun() { emit SignalRun(); }
 void Task::Run() { p_->Run(); }
 
 void Task::run() {
-  SPDLOG_DEBUG("interface run() of task {} was called by thread: {}",
+  SPDLOG_TRACE("interface run() of task {} was called by thread: {}",
                GetFullID(), QThread::currentThread()->currentThreadId());
   this->SafelyRun();
 }

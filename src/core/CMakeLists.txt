@@ -24,8 +24,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 
-aux_source_directory(./function/basic CORE_SOURCE)
 aux_source_directory(./function/result_analyse CORE_SOURCE)
+aux_source_directory(./function/basic CORE_SOURCE)
 aux_source_directory(./function/gpg CORE_SOURCE)
 aux_source_directory(./function CORE_SOURCE)
 aux_source_directory(./thread CORE_SOURCE)
@@ -42,6 +42,9 @@ set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 add_library(gpgfrontend_core SHARED ${CORE_SOURCE})
 set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendCoreExport.h")
 generate_export_header(gpgfrontend_core EXPORT_FILE_NAME "${_export_file}")
+
+# link buddled pinentry
+target_link_libraries(gpgfrontend_core PRIVATE gpgfrontend_pinentry)
 
 # link third-party libraries
 target_link_libraries(gpgfrontend_core PUBLIC config++)

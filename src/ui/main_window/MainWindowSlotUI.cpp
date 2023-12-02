@@ -26,9 +26,15 @@
  *
  */
 
+#include <qnamespace.h>
+
 #include "MainWindow.h"
+#include "UISignalStation.h"
 #include "core/GpgConstants.h"
+#include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
+#include "pinentry/pinentrydialog.h"
+#include "spdlog/spdlog.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/Wizard.h"
 #include "ui/main_window/KeyMgmt.h"
@@ -221,6 +227,54 @@ void MainWindow::SetCryptoMenuStatus(
   if (type & MainWindow::CryptoMenu::DecryptAndVerify) {
     decrypt_verify_act_->setDisabled(false);
   }
+}
+
+void MainWindow::SlotRaisePinentry() {
+  auto* pinentry =
+      new PinEntryDialog(this, 0, 0, true, false, QString(),
+                         QString::fromStdString(_("Show passphrase")),
+                         QString::fromStdString(_("Hide passphrase")));
+
+  SPDLOG_DEBUG("setting pinetry's arguments");
+
+  pinentry->setPinentryInfo(new struct pinentry());
+  pinentry->setPrompt(QString::fromStdString(_("PIN:")));
+  pinentry->setDescription(QString());
+  pinentry->setRepeatErrorText(
+      QString::fromStdString(_("Passphrases do not match")));
+  pinentry->setGenpinLabel(QString());
+  pinentry->setGenpinTT(QString());
+  pinentry->setCapsLockHint(QString::fromStdString(_("Caps Lock is on")));
+  pinentry->setFormattedPassphrase({false, QString()});
+  pinentry->setConstraintsOptions({false, QString(), QString(), QString()});
+
+  pinentry->setWindowTitle(_("Pinentry"));
+
+  /* If we reuse the same dialog window.  */
+  pinentry->setPin(QString());
+
+  pinentry->setOkText(_("Confirm"));
+  pinentry->setCancelText(_("Cancel"));
+
+  SPDLOG_DEBUG("pinentry is ready to start");
+
+  connect(pinentry, &PinEntryDialog::finished, this, [pinentry](int result) {
+    bool ret = result != 0;
+    SPDLOG_DEBUG("PinEntryDialog finished, ret: {}", ret);
+
+    if (!ret) {
+      emit CoreSignalStation::GetInstance()->SignalUserInputPassphraseCallback(
+          {});
+      return -1;
+    }
+
+    auto pin = pinentry->pin().toUtf8();
+    emit CoreSignalStation::GetInstance()->SignalUserInputPassphraseCallback(
+        pin);
+    return 0;
+  });
+
+  pinentry->open();
 }
 
 }  // namespace GpgFrontend::UI

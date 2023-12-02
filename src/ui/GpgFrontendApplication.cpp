@@ -73,6 +73,7 @@ GpgFrontendApplication *GpgFrontendApplication::GetInstance(int argc,
 }
 
 bool GpgFrontendApplication::notify(QObject *receiver, QEvent *event) {
+#ifdef RELEASE
   try {
     return QApplication::notify(receiver, event);
   } catch (const std::exception &ex) {
@@ -97,6 +98,9 @@ bool GpgFrontendApplication::notify(QObject *receiver, QEvent *event) {
           "please report this problem if you can."));
   }
   return -1;
+#else
+  return QApplication::notify(receiver, event);
+#endif
 }
 
 }  // namespace GpgFrontend::UI

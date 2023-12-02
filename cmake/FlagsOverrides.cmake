@@ -1,3 +1,5 @@
+SET (CMAKE_GENERATOR "Ninja")
+
 SET (CMAKE_C_FLAGS_INIT                "-Wall -std=c11")
 SET (CMAKE_C_FLAGS_DEBUG_INIT          "-g")
 SET (CMAKE_C_FLAGS_MINSIZEREL_INIT     "-Os -DNDEBUG")

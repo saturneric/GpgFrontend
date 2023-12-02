@@ -44,7 +44,7 @@ find_package(Gpgme REQUIRED)
 find_package(Config++ REQUIRED)
 
 # Introduce OpenSSL
-if(APPLE)
+if (APPLE)
     set(OPENSSL_ROOT_DIR /usr/local/opt/openssl@3)
 endif()
 find_package(OpenSSL REQUIRED)
@@ -86,6 +86,10 @@ if (BUILD_APPLICATION)
 endif ()
 
 if (BUILD_CORE)
+    # core depends pinentry
+    message("[+] Build Pinentry")
+    add_subdirectory(pinentry)
+
     message("[+] Build Core")
     add_subdirectory(core)
 endif ()

@@ -54,13 +54,13 @@ class GPGFRONTEND_CORE_EXPORT CoreSignalStation : public QObject {
    * @brief
    *
    */
-  void SignalUserInputPassphraseDone();
+  void SignalNeedUserInputPassphrase();
 
   /**
    * @brief
    *
    */
-  void SignalNeedUserInputPassphrase();
+  void SignalUserInputPassphraseCallback(QByteArray);
 
   /**
    * @brief

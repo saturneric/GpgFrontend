@@ -28,6 +28,9 @@
 
 #include "GpgKeyOpera.h"
 
+#include <gpg-error.h>
+#include <qeventloop.h>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
 #include <boost/date_time/posix_time/conversion.hpp>
@@ -41,8 +44,12 @@
 #include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/model/GpgGenKeyInfo.h"
 #include "core/module/ModuleManager.h"
+#include "core/thread/Task.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "model/DataObject.h"
+#include "spdlog/spdlog.h"
 
 namespace GpgFrontend {
 
@@ -271,17 +278,33 @@ auto GpgKeyOpera::GenerateSubkey(const GpgKey& key,
   return CheckGpgError(err);
 }
 
-auto GpgKeyOpera::ModifyPassword(const GpgKey& key) -> GpgError {
+void GpgKeyOpera::ModifyPassword(const GpgKey& key,
+                                 std::function<void(gpgme_error_t)> callback) {
   const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gnupg_version", std::string{"2.0.0"});
   SPDLOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
 
   if (CompareSoftwareVersion(gnupg_version, "2.0.15") < 0) {
     SPDLOG_ERROR("operator not support");
-    return GPG_ERR_NOT_SUPPORTED;
+    callback(GPG_ERR_NOT_SUPPORTED);
+    return;
   }
-  auto err = gpgme_op_passwd(ctx_, static_cast<gpgme_key_t>(key), 0);
-  return CheckGpgError(err);
+
+  auto *task = new Thread::Task(
+      [&](const DataObjectPtr& data_object) -> int {
+        auto err = gpgme_op_passwd(ctx_, static_cast<gpgme_key_t>(key), 0);
+        data_object->Swap({err});
+        return 0;
+      },
+      "gpgme_op_passwd", TransferParams(),
+      [=](int, const DataObjectPtr& data_object) {
+        SPDLOG_DEBUG("callback called");
+        callback(ExtractParams<gpgme_error_t>(data_object, 0));
+      });
+
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
+      ->PostTask(task);
 }
 
 auto GpgKeyOpera::ModifyTOFUPolicy(const GpgKey& key,

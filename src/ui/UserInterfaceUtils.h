@@ -192,18 +192,6 @@ class CommonUtils : public QWidget {
    * @brief
    *
    */
-  void SignalNeedUserInputPassphrase();
-
-  /**
-   * @brief
-   *
-   */
-  void SignalUserInputPassphraseDone();
-
-  /**
-   * @brief
-   *
-   */
   void SignalRestartApplication(int);
 
  public slots:

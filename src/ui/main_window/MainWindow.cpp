@@ -30,6 +30,7 @@
 
 #include "core/GpgModel.h"
 #include "core/function/CacheManager.h"
+#include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/module/ModuleManager.h"
@@ -43,6 +44,10 @@ namespace GpgFrontend::UI {
 MainWindow::MainWindow() : GeneralMainWindow("main_window") {
   this->setMinimumSize(1200, 700);
   this->setWindowTitle(qApp->applicationName());
+
+  connect(CoreSignalStation::GetInstance(),
+          &CoreSignalStation::SignalNeedUserInputPassphrase, this,
+          &MainWindow::SlotRaisePinentry);
 }
 
 void MainWindow::Init() noexcept {

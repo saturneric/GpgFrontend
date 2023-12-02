@@ -28,15 +28,21 @@
 
 #include "UISignalStation.h"
 
+#include <memory>
+
+#include "core/function/CoreSignalStation.h"
+
 namespace GpgFrontend::UI {
 
 std::unique_ptr<UISignalStation> UISignalStation::instance = nullptr;
 
 auto UISignalStation::GetInstance() -> UISignalStation* {
   if (instance == nullptr) {
-    instance = std::make_unique<UISignalStation>();
+    instance = std::unique_ptr<UISignalStation>(new UISignalStation());
   }
   return instance.get();
 }
+
+UISignalStation::UISignalStation() = default;
 
 }  // namespace GpgFrontend::UI

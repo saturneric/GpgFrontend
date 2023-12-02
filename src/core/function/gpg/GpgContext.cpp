@@ -30,9 +30,18 @@
 
 #include <gpg-error.h>
 #include <gpgme.h>
+#include <qapplication.h>
+#include <qcoreapplication.h>
+#include <qeasingcurve.h>
 #include <qeventloop.h>
+#include <qlabel.h>
 #include <qobject.h>
+#include <qtmetamacros.h>
+#include <qwindowdefs.h>
+#include <sys/types.h>
 #include <unistd.h>
+
+#include <cstring>
 
 #include "core/function/CoreSignalStation.h"
 #include "core/function/basic/GpgFunctionObject.h"
@@ -44,6 +53,7 @@
 #include "core/utils/CacheUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "function/CacheManager.h"
 #include "spdlog/spdlog.h"
 
 #ifdef _WIN32
@@ -247,36 +257,28 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
                                  const char *passphrase_info, int last_was_bad,
                                  int fd) -> gpgme_error_t {
     auto *p_ctx = static_cast<GpgContext *>(hook);
-    SPDLOG_DEBUG("custom passphrase cb called, bad times: {}", last_was_bad);
+    std::string passphrase;
 
-    if (last_was_bad > 3) {
-      SPDLOG_WARN("failure_counts is over three times");
-      return gpgme_error_from_errno(GPG_ERR_CANCELED);
-    }
+    SPDLOG_DEBUG(
+        "custom passphrase cb called, uid: {}, info: {}, last_was_bad: {}",
+        uid_hint == nullptr ? "<empty>" : std::string{uid_hint},
+        passphrase_info == nullptr ? "<empty>" : std::string{passphrase_info},
+        last_was_bad);
 
-    std::string passphrase = GetTempCacheValue("__key_passphrase");
-    // no pawword is an error situation
-    if (passphrase.empty()) {
-      // user input passphrase
-      SPDLOG_DEBUG("might need user to input passparase");
+    emit CoreSignalStation::GetInstance()->SignalNeedUserInputPassphrase();
 
-      p_ctx->ShowPasswordInputDialog();
-      passphrase = GetTempCacheValue("__key_passphrase");
+    QEventLoop looper;
+    QObject::connect(
+        CoreSignalStation::GetInstance(),
+        &CoreSignalStation::SignalUserInputPassphraseCallback, &looper,
+        [&](const QByteArray &buffer) { passphrase = buffer.toStdString(); });
+    QObject::connect(CoreSignalStation::GetInstance(),
+                     &CoreSignalStation::SignalUserInputPassphraseCallback,
+                     &looper, &QEventLoop::quit);
+    looper.exec();
 
-      SPDLOG_DEBUG("use may has inputed the passphrase");
-
-      if (passphrase.empty()) {
-        SPDLOG_ERROR("cannot get passphrase from use or passphrase is empty");
-
-        gpgme_io_write(fd, "\n", 1);
-        return gpgme_error_from_errno(GPG_ERR_CANCELED);
-      }
-    }
-
-    // the user must at least write a newline character before returning from
-    // the callback.
-    passphrase = passphrase.append("\n");
     auto passpahrase_size = passphrase.size();
+    SPDLOG_DEBUG("get passphrase from pinentry size: {}", passpahrase_size);
 
     size_t off = 0;
     size_t res = 0;
@@ -285,26 +287,18 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
       if (res > 0) off += res;
     } while (res > 0 && off != passpahrase_size);
 
-    return off == passpahrase_size ? 0
-                                   : gpgme_error_from_errno(GPG_ERR_CANCELED);
+    res += gpgme_io_write(fd, "\n", 1);
+
+    SPDLOG_DEBUG("custom passphrase cd is about to return, res: {}", res);
+    return res == passpahrase_size + 1
+               ? 0
+               : gpgme_error_from_errno(GPG_ERR_CANCELED);
   }
 
   static auto TestStatusCb(void *hook, const char *keyword, const char *args)
       -> gpgme_error_t {
     SPDLOG_DEBUG("keyword {}", keyword);
     return GPG_ERR_NO_ERROR;
-  }
-
-  void ShowPasswordInputDialog() {
-    emit parent_->SignalNeedUserInputPassphrase();
-
-    QEventLoop looper;
-    QObject::connect(CoreSignalStation::GetInstance(),
-                     &CoreSignalStation::SignalUserInputPassphraseDone, &looper,
-                     &QEventLoop::quit);
-    looper.exec();
-
-    SPDLOG_DEBUG("show password input dialog done");
   }
 
  private:
@@ -364,10 +358,6 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
       SPDLOG_DEBUG("ctx set custom key db path: {}", database_path);
       assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
     }
-
-    QObject::connect(parent_, &GpgContext::SignalNeedUserInputPassphrase,
-                     CoreSignalStation::GetInstance(),
-                     &CoreSignalStation::SignalNeedUserInputPassphrase);
   }
 };
 
@@ -387,10 +377,6 @@ void GpgContext::SetPassphraseCb(gpgme_passphrase_cb_t passphrase_cb) const {
 
 GpgContext::operator gpgme_ctx_t() const {
   return static_cast<gpgme_ctx_t>(*p_);
-}
-
-void GpgContext::ShowPasswordInputDialog() {
-  return p_->ShowPasswordInputDialog();
 }
 
 GpgContext::~GpgContext() = default;

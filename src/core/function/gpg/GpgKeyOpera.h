@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "core/function/gpg/GpgContext.h"
 #include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/typedef/GpgTypedef.h"
@@ -98,7 +100,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param key
    * @return GpgFrontend::GpgError
    */
-  auto ModifyPassword(const GpgKey& key) -> GpgFrontend::GpgError;
+  void ModifyPassword(const GpgKey& key, std::function<void(gpgme_error_t)>);
 
   /**
    * @brief

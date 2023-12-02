@@ -164,9 +164,6 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
   connect(this, &CommonUtils::SignalKeyDatabaseRefreshDone,
           UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefreshDone);
-  connect(this, &CommonUtils::SignalUserInputPassphraseDone,
-          CoreSignalStation::GetInstance(),
-          &CoreSignalStation::SignalUserInputPassphraseDone);
 
   // directly connect to SignalKeyStatusUpdated
   // to avoid the delay of signal emitting
@@ -174,10 +171,6 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
   connect(UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefresh, this,
           &CommonUtils::slot_update_key_status);
-
-  connect(CoreSignalStation::GetInstance(),
-          &CoreSignalStation::SignalNeedUserInputPassphrase, this,
-          &CommonUtils::slot_popup_passphrase_input_dialog);
 
   connect(this, &CommonUtils::SignalRestartApplication,
           UISignalStation::GetInstance(),
@@ -467,7 +460,7 @@ void CommonUtils::slot_popup_passphrase_input_dialog() {
   SetTempCacheValue("__key_passphrase", dialog->textValue().toStdString());
 
   // send signal
-  emit SignalUserInputPassphraseDone();
+  // emit SignalUserInputPassphraseDone();
 }
 
 void CommonUtils::SlotRestartApplication(int code) {

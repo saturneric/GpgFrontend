@@ -32,6 +32,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
+#include "core/typedef/GpgTypedef.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "ui/UISignalStation.h"
@@ -343,11 +344,12 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
 }
 
 void KeyPairOperaTab::slot_modify_password() {
-  auto err = GpgKeyOpera::GetInstance().ModifyPassword(m_key_);
-  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-    QMessageBox::critical(this, _("Not Successful"),
-                          QString(_("Modify password not successfully.")));
-  }
+  GpgKeyOpera::GetInstance().ModifyPassword(m_key_, [this](GpgError err) {
+    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+      QMessageBox::critical(this, _("Not Successful"),
+                            QString(_("Modify password not successfully.")));
+    }
+  });
 }
 
 void KeyPairOperaTab::slot_modify_tofu_policy() {

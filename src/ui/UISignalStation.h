@@ -88,19 +88,22 @@ class UISignalStation : public QObject {
    * @brief
    *
    */
-  void SignalUserInputPassphraseDone(QString passparase);
-
-  /**
-   * @brief
-   *
-   */
   void SignalNeedUserInputPassphrase();
 
   /**
    * @brief
    *
    */
+  void SignalUserInputPassphraseCallback(QByteArray);
+
+  /**
+   * @brief
+   *
+   */
   void SignalRestartApplication(int);
+
+ private:
+  UISignalStation();
 };
 
 }  // namespace GpgFrontend::UI
