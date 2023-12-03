@@ -33,7 +33,8 @@
 #include "ui_NetworkSettings.h"
 
 GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
-    : QWidget(parent), ui_(std::make_shared<Ui_NetworkSettings>()) {
+    : QWidget(parent),
+      ui_(GpgFrontend::SecureCreateSharedObject<Ui_NetworkSettings>()) {
   ui_->setupUi(this);
 
   connect(ui_->enableProxyCheckBox, &QCheckBox::stateChanged, this,

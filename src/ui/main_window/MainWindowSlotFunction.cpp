@@ -112,7 +112,7 @@ void MainWindow::slot_encrypt() {
       auto buffer = ExtractParams<std::string>(data_object, 0);
       try {
         GpgEncrResult result = nullptr;
-        auto tmp = std::make_shared<ByteArray>();
+        auto tmp = GpgFrontend::SecureCreateSharedObject<ByteArray>();
         GpgError error =
             GpgFrontend::GpgBasicOperator::GetInstance().EncryptSymmetric(
                 buffer, tmp, result);
@@ -154,7 +154,7 @@ void MainWindow::slot_encrypt() {
       auto keys = ExtractParams<KeyListPtr>(data_object, 1);
       try {
         GpgEncrResult result = nullptr;
-        auto tmp = std::make_shared<ByteArray>();
+        auto tmp = GpgFrontend::SecureCreateSharedObject<ByteArray>();
         GpgError error = GpgFrontend::GpgBasicOperator::GetInstance().Encrypt(
             std::move(keys), buffer, tmp, result);
 
@@ -220,7 +220,7 @@ void MainWindow::slot_sign() {
 
     try {
       GpgSignResult result = nullptr;
-      auto tmp = std::make_shared<ByteArray>();
+      auto tmp = GpgFrontend::SecureCreateSharedObject<ByteArray>();
       GpgError error = GpgFrontend::GpgBasicOperator::GetInstance().Sign(
           std::move(keys), buffer, tmp, GPGME_SIG_MODE_CLEAR, result);
 
@@ -275,7 +275,7 @@ void MainWindow::slot_decrypt() {
     auto buffer = ExtractParams<std::string>(data_object, 0);
     try {
       GpgDecrResult result = nullptr;
-      auto decrypted = std::make_shared<ByteArray>();
+      auto decrypted = GpgFrontend::SecureCreateSharedObject<ByteArray>();
       GpgError error = GpgFrontend::GpgBasicOperator::GetInstance().Decrypt(
           buffer, decrypted, result);
 
@@ -444,7 +444,7 @@ void MainWindow::slot_encrypt_sign() {
     try {
       GpgEncrResult encr_result = nullptr;
       GpgSignResult sign_result = nullptr;
-      auto tmp = std::make_shared<ByteArray>();
+      auto tmp = GpgFrontend::SecureCreateSharedObject<ByteArray>();
       GpgError error = GpgFrontend::GpgBasicOperator::GetInstance().EncryptSign(
           std::move(keys), std::move(signer_keys), buffer, tmp, encr_result,
           sign_result);
@@ -511,7 +511,8 @@ void MainWindow::slot_decrypt_verify() {
     try {
       GpgDecrResult decrypt_result = nullptr;
       GpgVerifyResult verify_result = nullptr;
-      auto decrypted_buffer = std::make_shared<ByteArray>();
+      auto decrypted_buffer =
+          GpgFrontend::SecureCreateSharedObject<ByteArray>();
       GpgError error = GpgBasicOperator::GetInstance().DecryptVerify(
           buffer, decrypted_buffer, decrypt_result, verify_result);
 
@@ -583,7 +584,7 @@ void MainWindow::slot_append_selected_keys() {
     return;
   }
 
-  auto exported = std::make_shared<ByteArray>();
+  auto exported = GpgFrontend::SecureCreateSharedObject<ByteArray>();
   auto key_ids = m_key_list_->GetSelected();
 
   if (key_ids->empty()) {

@@ -44,7 +44,7 @@ namespace GpgFrontend::UI {
 
 PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
     : QWidget(parent),
-      ui_(std::make_shared<Ui_PlainTextEditor>()),
+      ui_(GpgFrontend::SecureCreateSharedObject<Ui_PlainTextEditor>()),
       full_file_path_(std::move(file_path)) {
   ui_->setupUi(this);
 

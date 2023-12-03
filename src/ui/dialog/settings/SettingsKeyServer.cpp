@@ -40,7 +40,8 @@
 namespace GpgFrontend::UI {
 
 KeyserverTab::KeyserverTab(QWidget* parent)
-    : QWidget(parent), ui_(std::make_shared<Ui_KeyServerSettings>()) {
+    : QWidget(parent),
+      ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyServerSettings>()) {
   ui_->setupUi(this);
   ui_->keyServerListTable->setSizeAdjustPolicy(
       QAbstractScrollArea::AdjustToContents);

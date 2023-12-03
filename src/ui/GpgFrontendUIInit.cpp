@@ -207,15 +207,17 @@ void InitUILoggingSystem(spdlog::level::level_enum level) {
 
   // sinks
   std::vector<spdlog::sink_ptr> sinks;
-  sinks.push_back(std::make_shared<spdlog::sinks::stderr_color_sink_mt>());
-  sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
-      logfile_path.u8string(), 1048576 * 32, 32));
+  sinks.push_back(GpgFrontend::SecureCreateSharedObject<
+                  spdlog::sinks::stderr_color_sink_mt>());
+  sinks.push_back(GpgFrontend::SecureCreateSharedObject<
+                  spdlog::sinks::rotating_file_sink_mt>(logfile_path.u8string(),
+                                                        1048576 * 32, 32));
 
   // thread pool
   spdlog::init_thread_pool(1024, 2);
 
   // logger
-  auto ui_logger = std::make_shared<spdlog::async_logger>(
+  auto ui_logger = GpgFrontend::SecureCreateSharedObject<spdlog::async_logger>(
       "ui", begin(sinks), end(sinks), spdlog::thread_pool());
   ui_logger->set_pattern(
       "[%H:%M:%S.%e] [T:%t] [%=6n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");

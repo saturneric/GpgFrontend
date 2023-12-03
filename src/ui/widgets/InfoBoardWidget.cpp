@@ -37,7 +37,8 @@
 namespace GpgFrontend::UI {
 
 InfoBoardWidget::InfoBoardWidget(QWidget* parent)
-    : QWidget(parent), ui_(std::make_shared<Ui_InfoBoard>()) {
+    : QWidget(parent),
+      ui_(GpgFrontend::SecureCreateSharedObject<Ui_InfoBoard>()) {
   ui_->setupUi(this);
 
   ui_->actionButtonLayout->addStretch();

@@ -39,7 +39,7 @@ namespace GpgFrontend::UI {
 
 GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
     : GeneralDialog("GnuPGControllerDialog", parent),
-      ui_(std::make_shared<Ui_GnuPGControllerDialog>()) {
+      ui_(GpgFrontend::SecureCreateSharedObject<Ui_GnuPGControllerDialog>()) {
   ui_->setupUi(this);
 
   ui_->generalBox->setTitle(_("General"));

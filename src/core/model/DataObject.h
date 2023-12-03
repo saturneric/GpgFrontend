@@ -31,6 +31,7 @@
 #include <any>
 
 #include "core/GpgFrontendCoreExport.h"
+#include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
 
@@ -77,7 +78,8 @@ class GPGFRONTEND_CORE_EXPORT DataObject {
 
 template <typename... Args>
 auto TransferParams(Args&&... args) -> std::shared_ptr<DataObject> {
-  return std::make_shared<DataObject>(DataObject{std::forward<Args>(args)...});
+  return GpgFrontend::SecureCreateSharedObject<DataObject>(
+      DataObject{std::forward<Args>(args)...});
 }
 
 template <typename T>

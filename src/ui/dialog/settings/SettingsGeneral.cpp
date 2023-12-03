@@ -43,7 +43,8 @@
 namespace GpgFrontend::UI {
 
 GeneralTab::GeneralTab(QWidget* parent)
-    : QWidget(parent), ui_(std::make_shared<Ui_GeneralSettings>()) {
+    : QWidget(parent),
+      ui_(GpgFrontend::SecureCreateSharedObject<Ui_GeneralSettings>()) {
   ui_->setupUi(this);
 
   ui_->cacheBox->setTitle(_("Cache"));

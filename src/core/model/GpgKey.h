@@ -299,7 +299,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    *
    * @param k
    */
-  GpgKey(GpgKey&& k) noexcept;
+  GpgKey(GpgKey&&) noexcept;
 
   /**
    * @brief
@@ -307,7 +307,22 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @param k
    * @return GpgKey&
    */
-  auto operator=(GpgKey&& k) noexcept -> GpgKey&;
+  auto operator=(GpgKey&&) noexcept -> GpgKey&;
+
+  /**
+   * @brief Construct a new Gpg Key object
+   *
+   * @param k
+   */
+  GpgKey(const GpgKey&) noexcept;
+
+  /**
+   * @brief
+   *
+   * @param k
+   * @return GpgKey&
+   */
+  auto operator=(const GpgKey&) -> GpgKey&;
 
   /**
    * @brief
@@ -315,7 +330,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @param key
    * @return GpgKey&
    */
-  auto operator=(const gpgme_key_t& key) -> GpgKey& = delete;
+  auto operator=(const gpgme_key_t&) -> GpgKey& = delete;
 
   /**
    * @brief
@@ -324,7 +339,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  auto operator==(const GpgKey& o) const -> bool;
+  auto operator==(const GpgKey&) const -> bool;
 
   /**
    * @brief
@@ -333,7 +348,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  auto operator<=(const GpgKey& o) const -> bool;
+  auto operator<=(const GpgKey&) const -> bool;
 
   /**
    * @brief

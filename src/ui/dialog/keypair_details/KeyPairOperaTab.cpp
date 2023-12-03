@@ -306,7 +306,7 @@ void KeyPairOperaTab::slot_export_private_key() {
 }
 
 void KeyPairOperaTab::slot_modify_edit_datetime() {
-  auto dialog = new KeySetExpireDateDialog(m_key_.GetId(), this);
+  auto* dialog = new KeySetExpireDateDialog(m_key_.GetId(), this);
   dialog->show();
 }
 
@@ -330,8 +330,16 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
   auto literal = QString("%1 (*.rev)").arg(_("Revocation Certificates"));
   QString m_output_file_name;
 
-  QFileDialog dialog(this, "Generate revocation certificate", QString(),
-                     literal);
+#ifndef WINDOWS
+  auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
+                     m_key_.GetId() + ").rev";
+#else
+  auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
+                     m_key_.GetId() + ").rev";
+#endif
+
+  QFileDialog dialog(this, "Generate revocation certificate",
+                     QString::fromStdString(file_string), literal);
   dialog.setDefaultSuffix(".rev");
   dialog.setAcceptMode(QFileDialog::AcceptSave);
 
@@ -344,12 +352,14 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
 }
 
 void KeyPairOperaTab::slot_modify_password() {
-  GpgKeyOpera::GetInstance().ModifyPassword(m_key_, [this](GpgError err) {
-    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-      QMessageBox::critical(this, _("Not Successful"),
-                            QString(_("Modify password not successfully.")));
-    }
-  });
+  GpgKeyOpera::GetInstance().ModifyPassword(
+      m_key_, [this](GpgError err, const DataObjectPtr&) {
+        if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+          QMessageBox::critical(
+              this, _("Not Successful"),
+              QString(_("Modify password not successfully.")));
+        }
+      });
 }
 
 void KeyPairOperaTab::slot_modify_tofu_policy() {

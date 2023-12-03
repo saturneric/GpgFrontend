@@ -35,7 +35,8 @@
 namespace GpgFrontend::UI {
 
 AppearanceTab::AppearanceTab(QWidget* parent)
-    : QWidget(parent), ui_(std::make_shared<Ui_AppearanceSettings>()) {
+    : QWidget(parent),
+      ui_(GpgFrontend::SecureCreateSharedObject<Ui_AppearanceSettings>()) {
   ui_->setupUi(this);
 
   ui_->iconSizeBox->setTitle(_("Icon Size"));

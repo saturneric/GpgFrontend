@@ -28,8 +28,10 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
+#include <memory>
+
 #include "core/model/GpgGenKeyInfo.h"
+#include "core/utils/MemoryUtils.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
 
@@ -87,24 +89,22 @@ class KeyGenDialog : public GeneralDialog {
    */
   QStringList error_messages_;  ///< List of errors occurring when checking
                                 ///< entries of line edits
-  std::unique_ptr<GenKeyInfo> gen_key_info_ =
-      std::make_unique<GenKeyInfo>();  ///<
-  QDialogButtonBox* button_box_;       ///< Box for standard buttons
-  QLabel* error_label_{};              ///< Label containing error message
-  QLineEdit* name_edit_{};             ///< Line edit for the keys name
-  QLineEdit* email_edit_{};            ///< Line edit for the keys email
-  QLineEdit* comment_edit_{};          ///< Line edit for the keys comment
-  QLineEdit* passphrase_edit_{};       ///<
-  QSpinBox* key_size_spin_box_{};      ///< Spinbox for the keys size (in bit)
-  QComboBox* key_type_combo_box_{};    ///< Combobox for Key type
-  QDateTimeEdit* date_edit_{};         ///< Date edit for expiration date
-  QCheckBox* expire_check_box_{};      ///< Checkbox, if key should expire
+  std::shared_ptr<GenKeyInfo> gen_key_info_ =
+      SecureCreateSharedObject<GenKeyInfo>();  ///<
+  QDialogButtonBox* button_box_;               ///< Box for standard buttons
+  QLabel* error_label_{};            ///< Label containing error message
+  QLineEdit* name_edit_{};           ///< Line edit for the keys name
+  QLineEdit* email_edit_{};          ///< Line edit for the keys email
+  QLineEdit* comment_edit_{};        ///< Line edit for the keys comment
+  QSpinBox* key_size_spin_box_{};    ///< Spinbox for the keys size (in bit)
+  QComboBox* key_type_combo_box_{};  ///< Combobox for Key type
+  QDateTimeEdit* date_edit_{};       ///< Date edit for expiration date
+  QCheckBox* expire_check_box_{};    ///< Checkbox, if key should expire
   QCheckBox* no_pass_phrase_check_box_{};
   QGroupBox* key_usage_group_box_{};  ///< Group of Widgets detecting the usage
                                       ///< of the Key
   QDateTime max_date_time_;           ///<
   std::vector<QCheckBox*> key_usage_check_boxes_;  ///< ENCR, SIGN, CERT, AUTH
-  bool use_pinentry_ = false;
 
   /**
    * @brief

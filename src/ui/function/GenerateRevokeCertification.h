@@ -28,39 +28,17 @@
 
 #pragma once
 
-#include "GpgConstants.h"
+#include "core/GpgModel.h"
+#include "ui/GpgFrontendUI.h"
 
-namespace GpgFrontend {
+namespace GpgFrontend::UI {
 
-/**
- * @brief
- *
- */
-void GPGFRONTEND_CORE_EXPORT
-InitCoreLoggingSystem(spdlog::level::level_enum level);
+class GenerateRevokeCertification : public QWidget {
+  Q_OBJECT
+ public:
+  explicit GenerateRevokeCertification(QWidget* parent);
 
-/**
- * @brief
- *
- */
-void GPGFRONTEND_CORE_EXPORT ShutdownCoreLoggingSystem();
+  auto Exec(const GpgKey& key, const std::string& output_path) -> int;
+};
 
-/**
- * @brief
- *
- */
-void GPGFRONTEND_CORE_EXPORT ResetGpgFrontendCore();
-
-/**
- * @brief
- *
- */
-void GPGFRONTEND_CORE_EXPORT InitGpgFrontendCore();
-
-/**
- * @brief
- *
- */
-void reset_gpgfrontend_core();
-
-}  // namespace GpgFrontend
+}  // namespace GpgFrontend::UI

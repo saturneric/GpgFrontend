@@ -203,6 +203,8 @@ GpgKeyGetter::GpgKeyGetter(int channel)
   SPDLOG_DEBUG("called channel: {}", channel);
 }
 
+GpgKeyGetter::~GpgKeyGetter() = default;
+
 auto GpgKeyGetter::GetKey(const std::string& key_id, bool use_cache) -> GpgKey {
   return p_->GetKey(key_id, use_cache);
 }

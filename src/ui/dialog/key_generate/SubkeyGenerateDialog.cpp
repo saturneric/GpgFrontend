@@ -28,15 +28,16 @@
 
 #include "SubkeyGenerateDialog.h"
 
+#include <boost/format/format_fwd.hpp>
 #include <cassert>
 #include <cstddef>
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
-#include "core/utils/CacheUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/WaitingDialog.h"
 
 namespace GpgFrontend::UI {
@@ -47,12 +48,6 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent)
   bool longer_expiration_date =
       GlobalSettingStation::GetInstance().LookupSettings(
           "general.longer_expiration_date", false);
-
-  bool use_pinentry_as_password_input_dialog =
-      GlobalSettingStation::GetInstance().LookupSettings(
-          "general.use_pinentry_as_password_input_dialog", false);
-
-  use_pinentry_ = use_pinentry_as_password_input_dialog;
 
   max_date_time_ = longer_expiration_date
                        ? QDateTime::currentDateTime().toLocalTime().addYears(30)
@@ -84,30 +79,26 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent)
   this->setLayout(vbox2);
   this->setModal(true);
 
-  connect(this, &SubkeyGenerateDialog::SignalSubKeyGenerated,
-          UISignalStation::GetInstance(),
-          &UISignalStation::SignalKeyDatabaseRefresh);
-
   set_signal_slot();
   refresh_widgets_state();
 }
 
 QGroupBox* SubkeyGenerateDialog::create_key_usage_group_box() {
-  auto* groupBox = new QGroupBox(this);
+  auto* group_box = new QGroupBox(this);
   auto* grid = new QGridLayout(this);
 
-  groupBox->setTitle(_("Key Usage"));
+  group_box->setTitle(_("Key Usage"));
 
-  auto* encrypt = new QCheckBox(_("Encryption"), groupBox);
+  auto* encrypt = new QCheckBox(_("Encryption"), group_box);
   encrypt->setTristate(false);
 
-  auto* sign = new QCheckBox(_("Signing"), groupBox);
+  auto* sign = new QCheckBox(_("Signing"), group_box);
   sign->setTristate(false);
 
-  auto* cert = new QCheckBox(_("Certification"), groupBox);
+  auto* cert = new QCheckBox(_("Certification"), group_box);
   cert->setTristate(false);
 
-  auto* auth = new QCheckBox(_("Authentication"), groupBox);
+  auto* auth = new QCheckBox(_("Authentication"), group_box);
   auth->setTristate(false);
 
   key_usage_check_boxes_.push_back(encrypt);
@@ -120,9 +111,9 @@ QGroupBox* SubkeyGenerateDialog::create_key_usage_group_box() {
   grid->addWidget(cert, 1, 0);
   grid->addWidget(auth, 1, 1);
 
-  groupBox->setLayout(grid);
+  group_box->setLayout(grid);
 
-  return groupBox;
+  return group_box;
 }
 
 QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
@@ -130,9 +121,8 @@ QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
   key_size_spin_box_ = new QSpinBox(this);
   key_type_combo_box_ = new QComboBox(this);
   no_pass_phrase_check_box_ = new QCheckBox(this);
-  passphrase_edit_ = new QLineEdit(this);
 
-  for (auto& algo : GenKeyInfo::GetSupportedSubkeyAlgo()) {
+  for (const auto& algo : GenKeyInfo::GetSupportedSubkeyAlgo()) {
     key_type_combo_box_->addItem(QString::fromStdString(algo.first));
   }
   if (!GenKeyInfo::GetSupportedSubkeyAlgo().empty()) {
@@ -150,31 +140,25 @@ QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
   expire_check_box_ = new QCheckBox(this);
   expire_check_box_->setCheckState(Qt::Unchecked);
 
-  passphrase_edit_->setEchoMode(QLineEdit::Password);
-  passphrase_edit_->setHidden(use_pinentry_);
-
   auto* vbox1 = new QGridLayout;
 
   vbox1->addWidget(new QLabel(QString(_("Key Type")) + ": "), 0, 0);
   vbox1->addWidget(new QLabel(QString(_("KeySize (in Bit)")) + ": "), 1, 0);
   vbox1->addWidget(new QLabel(QString(_("Expiration Date")) + ": "), 2, 0);
   vbox1->addWidget(new QLabel(QString(_("Never Expire"))), 2, 3);
-  if (!use_pinentry_)
-    vbox1->addWidget(new QLabel(QString(_("Password")) + ": "), 3, 0);
-  vbox1->addWidget(new QLabel(QString(_("Non Pass Phrase"))), 3, 3);
+  vbox1->addWidget(new QLabel(QString(_("Non Pass Phrase"))), 3, 0);
 
   vbox1->addWidget(key_type_combo_box_, 0, 1);
   vbox1->addWidget(key_size_spin_box_, 1, 1);
   vbox1->addWidget(date_edit_, 2, 1);
   vbox1->addWidget(expire_check_box_, 2, 2);
-  if (!use_pinentry_) vbox1->addWidget(passphrase_edit_, 3, 1);
-  vbox1->addWidget(no_pass_phrase_check_box_, 3, 2);
+  vbox1->addWidget(no_pass_phrase_check_box_, 3, 1);
 
-  auto basicInfoGroupBox = new QGroupBox();
-  basicInfoGroupBox->setLayout(vbox1);
-  basicInfoGroupBox->setTitle(_("Basic Information"));
+  auto* basic_info_group_box = new QGroupBox();
+  basic_info_group_box->setLayout(vbox1);
+  basic_info_group_box->setTitle(_("Basic Information"));
 
-  return basicInfoGroupBox;
+  return basic_info_group_box;
 }
 
 void SubkeyGenerateDialog::set_signal_slot() {
@@ -201,12 +185,11 @@ void SubkeyGenerateDialog::set_signal_slot() {
   connect(no_pass_phrase_check_box_, &QCheckBox::stateChanged, this,
           [this](int state) -> void {
             gen_key_info_->SetNonPassPhrase(state != 0);
-            passphrase_edit_->setDisabled(state != 0);
           });
 }
 
 void SubkeyGenerateDialog::slot_expire_box_changed() {
-  if (expire_check_box_->checkState()) {
+  if (expire_check_box_->checkState() != 0U) {
     date_edit_->setEnabled(false);
   } else {
     date_edit_->setEnabled(true);
@@ -214,45 +197,53 @@ void SubkeyGenerateDialog::slot_expire_box_changed() {
 }
 
 void SubkeyGenerateDialog::refresh_widgets_state() {
-  if (gen_key_info_->IsAllowEncryption())
+  if (gen_key_info_->IsAllowEncryption()) {
     key_usage_check_boxes_[0]->setCheckState(Qt::CheckState::Checked);
-  else
+  } else {
     key_usage_check_boxes_[0]->setCheckState(Qt::CheckState::Unchecked);
+  }
 
-  if (gen_key_info_->IsAllowChangeEncryption())
+  if (gen_key_info_->IsAllowChangeEncryption()) {
     key_usage_check_boxes_[0]->setDisabled(false);
-  else
+  } else {
     key_usage_check_boxes_[0]->setDisabled(true);
+  }
 
-  if (gen_key_info_->IsAllowSigning())
+  if (gen_key_info_->IsAllowSigning()) {
     key_usage_check_boxes_[1]->setCheckState(Qt::CheckState::Checked);
-  else
+  } else {
     key_usage_check_boxes_[1]->setCheckState(Qt::CheckState::Unchecked);
+  }
 
-  if (gen_key_info_->IsAllowChangeSigning())
+  if (gen_key_info_->IsAllowChangeSigning()) {
     key_usage_check_boxes_[1]->setDisabled(false);
-  else
+  } else {
     key_usage_check_boxes_[1]->setDisabled(true);
+  }
 
-  if (gen_key_info_->IsAllowCertification())
+  if (gen_key_info_->IsAllowCertification()) {
     key_usage_check_boxes_[2]->setCheckState(Qt::CheckState::Checked);
-  else
+  } else {
     key_usage_check_boxes_[2]->setCheckState(Qt::CheckState::Unchecked);
+  }
 
-  if (gen_key_info_->IsAllowChangeCertification())
+  if (gen_key_info_->IsAllowChangeCertification()) {
     key_usage_check_boxes_[2]->setDisabled(false);
-  else
+  } else {
     key_usage_check_boxes_[2]->setDisabled(true);
+  }
 
-  if (gen_key_info_->IsAllowAuthentication())
+  if (gen_key_info_->IsAllowAuthentication()) {
     key_usage_check_boxes_[3]->setCheckState(Qt::CheckState::Checked);
-  else
+  } else {
     key_usage_check_boxes_[3]->setCheckState(Qt::CheckState::Unchecked);
+  }
 
-  if (gen_key_info_->IsAllowChangeAuthentication())
+  if (gen_key_info_->IsAllowChangeAuthentication()) {
     key_usage_check_boxes_[3]->setDisabled(false);
-  else
+  } else {
     key_usage_check_boxes_[3]->setDisabled(true);
+  }
 
   key_size_spin_box_->setRange(gen_key_info_->GetSuggestMinKeySize(),
                                gen_key_info_->GetSuggestMaxKeySize());
@@ -271,17 +262,12 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
     err_stream << "  " << _("Expiration time no more than 2 years.") << "  ";
   }
 
-  if (!use_pinentry_ && passphrase_edit_->isEnabled() &&
-      passphrase_edit_->text().size() == 0) {
-    err_stream << "  " << _("Password is empty.") << std::endl;
-  }
-
   auto err_string = err_stream.str();
 
   if (err_string.empty()) {
     gen_key_info_->SetKeyLength(key_size_spin_box_->value());
 
-    if (expire_check_box_->checkState()) {
+    if (expire_check_box_->checkState() != 0U) {
       gen_key_info_->SetNonExpired(true);
     } else {
 #ifdef GPGFRONTEND_GUI_QT6
@@ -293,45 +279,22 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
 #endif
     }
 
-    if (!use_pinentry_ && !gen_key_info_->IsNoPassPhrase()) {
-      SetTempCacheValue("__key_passphrase",
-                        this->passphrase_edit_->text().toStdString());
-    }
-
-    GpgError error;
-    // TODO: remove plain qt thread usage
-    auto thread = QThread::create([&]() {
-      SPDLOG_DEBUG("thread started");
-      error = GpgKeyOpera::GetInstance().GenerateSubkey(key_, gen_key_info_);
-    });
-    thread->start();
-
-    auto* waiting_dialog = new WaitingDialog(_("Generating"), this);
-    waiting_dialog->show();
-
-    while (thread->isRunning()) {
-      QCoreApplication::processEvents();
-    }
-    waiting_dialog->close();
-
-    if (!use_pinentry_ && !gen_key_info_->IsNoPassPhrase()) {
-      ResetTempCacheValue("__key_passphrase");
-    }
-
-    if (CheckGpgError(error) == GPG_ERR_NO_ERROR) {
-      auto* msg_box = new QMessageBox(qobject_cast<QWidget*>(this->parent()));
-      msg_box->setAttribute(Qt::WA_DeleteOnClose);
-      msg_box->setStandardButtons(QMessageBox::Ok);
-      msg_box->setWindowTitle(_("Success"));
-      msg_box->setText(_("The new subkey has been generated."));
-      msg_box->setModal(true);
-      msg_box->open();
-
-      emit SignalSubKeyGenerated();
-      this->close();
-    } else {
-      QMessageBox::critical(this, _("Failure"), _("Failed to generate key."));
-    }
+    CommonUtils::WaitForOpera(
+        this, _("Generating"),
+        [this, key = this->key_,
+         gen_key_info = this->gen_key_info_](const OperaWaitingHd& hd) {
+          GpgKeyOpera::GetInstance().GenerateSubkey(
+              key, gen_key_info,
+              [this, hd](GpgError err, const DataObjectPtr&) {
+                GpgGenKeyResult result;
+                CommonUtils::RaiseMessageBox(this, err);
+                if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+                  emit UISignalStation::GetInstance()
+                      ->SignalKeyDatabaseRefresh();
+                }
+                hd();
+              });
+        });
 
   } else {
     /**

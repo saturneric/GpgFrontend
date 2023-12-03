@@ -45,7 +45,7 @@ namespace GpgFrontend::UI {
 
 KeyList::KeyList(KeyMenuAbility::AbilityType menu_ability, QWidget* parent)
     : QWidget(parent),
-      ui_(std::make_shared<Ui_KeyList>()),
+      ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyList>()),
       menu_ability_(menu_ability) {
   init();
 }

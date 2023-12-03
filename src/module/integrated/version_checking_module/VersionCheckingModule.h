@@ -30,8 +30,6 @@
 
 #include <module/sdk/GpgFrontendModuleSDK.h>
 
-#include <memory>
-
 #include "SoftwareVersion.h"
 
 namespace GpgFrontend::Module::Integrated::VersionCheckingModule {

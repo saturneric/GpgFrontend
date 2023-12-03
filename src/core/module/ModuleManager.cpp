@@ -44,9 +44,11 @@ ModuleMangerPtr ModuleManager::g_ = nullptr;
 class ModuleManager::Impl {
  public:
   Impl()
-      : task_runner_(std::make_shared<Thread::TaskRunner>()),
-        gmc_(std::make_shared<GlobalModuleContext>(task_runner_)),
-        grt_(std::make_shared<GlobalRegisterTable>()) {
+      : task_runner_(
+            GpgFrontend::SecureCreateSharedObject<Thread::TaskRunner>()),
+        gmc_(GpgFrontend::SecureCreateSharedObject<GlobalModuleContext>(
+            task_runner_)),
+        grt_(GpgFrontend::SecureCreateSharedObject<GlobalRegisterTable>()) {
     task_runner_->Start();
   }
 

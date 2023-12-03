@@ -41,7 +41,8 @@
 #include "ui_GnuPGInfo.h"
 
 GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
-    : QWidget(parent), ui_(std::make_shared<Ui_GnuPGInfo>()) {
+    : QWidget(parent),
+      ui_(GpgFrontend::SecureCreateSharedObject<Ui_GnuPGInfo>()) {
   ui_->setupUi(this);
 
   QStringList components_column_titles;
@@ -233,5 +234,4 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
     }
   }
   // ui_->configurationDetailsTable->resizeColumnsToContents();
-  
 }

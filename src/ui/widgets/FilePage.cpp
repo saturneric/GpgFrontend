@@ -40,7 +40,8 @@
 namespace GpgFrontend::UI {
 
 FilePage::FilePage(QWidget* parent)
-    : QWidget(parent), ui_(std::make_shared<Ui_FilePage>()) {
+    : QWidget(parent),
+      ui_(GpgFrontend::SecureCreateSharedObject<Ui_FilePage>()) {
   ui_->setupUi(this);
 
   first_parent_ = parent;

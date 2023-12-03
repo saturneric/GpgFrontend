@@ -31,7 +31,6 @@
 #include <functional>
 
 #include "core/function/gpg/GpgContext.h"
-#include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace boost::posix_time {
@@ -100,7 +99,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param key
    * @return GpgFrontend::GpgError
    */
-  void ModifyPassword(const GpgKey& key, std::function<void(gpgme_error_t)>);
+  void ModifyPassword(const GpgKey& key, const GpgOperationCallback&);
 
   /**
    * @brief
@@ -118,8 +117,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param result
    * @return GpgFrontend::GpgError
    */
-  auto GenerateKey(const std::unique_ptr<GenKeyInfo>& params,
-                   GpgGenKeyResult& result) -> GpgFrontend::GpgError;
+  void GenerateKey(const std::shared_ptr<GenKeyInfo>&,
+                   const GpgOperationCallback&);
 
   /**
    * @brief
@@ -128,9 +127,9 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param params
    * @return GpgFrontend::GpgError
    */
-  auto GenerateSubkey(const GpgKey& key,
-                      const std::unique_ptr<GenKeyInfo>& params)
-      -> GpgFrontend::GpgError;
+  void GenerateSubkey(const GpgKey& key,
+                      const std::shared_ptr<GenKeyInfo>& params,
+                      const GpgOperationCallback&);
 
  private:
   GpgContext& ctx_ =

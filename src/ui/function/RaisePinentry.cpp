@@ -28,6 +28,8 @@
 
 #include "RaisePinentry.h"
 
+#include <qwidget.h>
+
 #include "core/function/CoreSignalStation.h"
 #include "pinentry/pinentrydialog.h"
 
@@ -43,7 +45,6 @@ auto RaisePinentry::Exec() -> int {
 
   SPDLOG_DEBUG("setting pinetry's arguments");
 
-  pinentry->setPinentryInfo(new struct pinentry());
   pinentry->setPrompt(QString::fromStdString(_("PIN:")));
   pinentry->setDescription(QString());
   pinentry->setRepeatErrorText(
@@ -65,7 +66,7 @@ auto RaisePinentry::Exec() -> int {
 
   connect(pinentry, &PinEntryDialog::finished, this, [pinentry](int result) {
     bool ret = result != 0;
-    SPDLOG_DEBUG("PinEntryDialog finished, ret: {}", ret);
+    SPDLOG_DEBUG("pinentry finished, ret: {}", ret);
 
     if (!ret) {
       emit CoreSignalStation::GetInstance()->SignalUserInputPassphraseCallback(
@@ -78,7 +79,9 @@ auto RaisePinentry::Exec() -> int {
         pin);
     return 0;
   });
+  connect(pinentry, &PinEntryDialog::finished, this, &QWidget::deleteLater);
 
   pinentry->open();
+  return 0;
 }
 }  // namespace GpgFrontend::UI

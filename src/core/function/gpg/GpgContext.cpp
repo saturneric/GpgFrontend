@@ -243,7 +243,6 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
   static auto CustomPassphraseCb(void *hook, const char *uid_hint,
                                  const char *passphrase_info, int last_was_bad,
                                  int fd) -> gpgme_error_t {
-    auto *p_ctx = static_cast<GpgContext *>(hook);
     std::string passphrase;
 
     SPDLOG_DEBUG(

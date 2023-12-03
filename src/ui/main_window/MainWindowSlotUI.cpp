@@ -229,8 +229,8 @@ void MainWindow::SetCryptoMenuStatus(
 }
 
 void MainWindow::SlotRaisePinentry() {
-  auto function = RaisePinentry(this);
-  function.Exec();
+  auto* function = new RaisePinentry(this);
+  function->Exec();
 }
 
 }  // namespace GpgFrontend::UI

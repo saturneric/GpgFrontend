@@ -29,26 +29,25 @@
 #include "GpgKeyOpera.h"
 
 #include <gpg-error.h>
-#include <qeventloop.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
 #include <boost/date_time/posix_time/conversion.hpp>
 #include <boost/format.hpp>
 #include <boost/process/async_pipe.hpp>
+#include <memory>
 
-#include "core/GpgConstants.h"
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/result_analyse/GpgResultAnalyse.h"
+#include "core/model/DataObject.h"
 #include "core/model/GpgGenKeyInfo.h"
 #include "core/module/ModuleManager.h"
-#include "core/thread/Task.h"
-#include "core/thread/TaskRunnerGetter.h"
+#include "core/utils/AsyncUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
-#include "model/DataObject.h"
+#include "typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
@@ -165,78 +164,46 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
  * @param params key generation args
  * @return error information
  */
-auto GpgKeyOpera::GenerateKey(const std::unique_ptr<GenKeyInfo>& params,
-                              GpgGenKeyResult& result) -> GpgError {
-  auto userid_utf8 = params->GetUserid();
-  const char* userid = userid_utf8.c_str();
-  auto algo_utf8 = params->GetAlgo() + params->GetKeySizeStr();
+void GpgKeyOpera::GenerateKey(const std::shared_ptr<GenKeyInfo>& params,
+                              const GpgOperationCallback& callback) {
+  RunGpgOperaAsync(
+      [&ctx = ctx_, params](const DataObjectPtr& data_object) -> GpgError {
+        auto userid_utf8 = params->GetUserid();
+        const char* userid = userid_utf8.c_str();
+        auto algo_utf8 = params->GetAlgo() + params->GetKeySizeStr();
 
-  SPDLOG_DEBUG("params: {} {}", params->GetAlgo(), params->GetKeySizeStr());
+        SPDLOG_DEBUG("params: {} {}", params->GetAlgo(),
+                     params->GetKeySizeStr());
 
-  const char* algo = algo_utf8.c_str();
-  unsigned long expires = 0;
-  expires =
-      to_time_t(boost::posix_time::ptime(params->GetExpireTime())) -
-      std::chrono::system_clock::to_time_t(std::chrono ::system_clock::now());
+        const char* algo = algo_utf8.c_str();
+        unsigned long expires = 0;
+        expires = to_time_t(boost::posix_time::ptime(params->GetExpireTime())) -
+                  std::chrono::system_clock::to_time_t(
+                      std::chrono ::system_clock::now());
 
-  GpgError err;
+        GpgError err;
+        unsigned int flags = 0;
 
-  const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gnupg_version", std::string{"2.0.0"});
-  SPDLOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
+        if (!params->IsSubKey()) flags |= GPGME_CREATE_CERT;
+        if (params->IsAllowEncryption()) flags |= GPGME_CREATE_ENCR;
+        if (params->IsAllowSigning()) flags |= GPGME_CREATE_SIGN;
+        if (params->IsAllowAuthentication()) flags |= GPGME_CREATE_AUTH;
+        if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
+        if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
 
-  if (CompareSoftwareVersion(gnupg_version, "2.1.0") >= 0) {
-    unsigned int flags = 0;
+        SPDLOG_DEBUG("key generation args: {}", userid, algo, expires, flags);
+        err = gpgme_op_createkey(ctx, userid, algo, 0, expires, nullptr, flags);
 
-    if (!params->IsSubKey()) flags |= GPGME_CREATE_CERT;
-    if (params->IsAllowEncryption()) flags |= GPGME_CREATE_ENCR;
-    if (params->IsAllowSigning()) flags |= GPGME_CREATE_SIGN;
-    if (params->IsAllowAuthentication()) flags |= GPGME_CREATE_AUTH;
-    if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
-    if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
+        GpgGenKeyResult result;
+        if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+          auto temp_result = NewResult(gpgme_op_genkey_result(ctx));
+          std::swap(temp_result, result);
+        }
+        data_object->Swap({result});
 
-    SPDLOG_DEBUG("args: {}", userid, algo, expires, flags);
-
-    err = gpgme_op_createkey(ctx_, userid, algo, 0, expires, nullptr, flags);
-
-  } else {
-    std::stringstream ss;
-    auto param_format =
-        boost::format{
-            "<GnupgKeyParms format=\"internal\">\n"
-            "Key-Type: %1%\n"
-            "Key-Usage: sign\n"
-            "Key-Length: %2%\n"
-            "Name-Real: %3%\n"
-            "Name-Comment: %4%\n"
-            "Name-Email: %5%\n"} %
-        params->GetAlgo() % params->GetKeyLength() % params->GetName() %
-        params->GetComment() % params->GetEmail();
-    ss << param_format;
-
-    if (!params->IsNonExpired()) {
-      auto date = params->GetExpireTime().date();
-      ss << boost::format{"Expire-Date: %1%\n"} % to_iso_string(date);
-    } else {
-      ss << boost::format{"Expire-Date: 0\n"};
-    }
-    if (!params->IsNoPassPhrase()) {
-      ss << boost::format{"Passphrase: %1%\n"} % params->GetPassPhrase();
-    }
-
-    ss << "</GnupgKeyParms>";
-
-    SPDLOG_DEBUG("params: {}", ss.str());
-
-    err = gpgme_op_genkey(ctx_, ss.str().c_str(), nullptr, nullptr);
-  }
-
-  if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-    auto temp_result = NewResult(gpgme_op_genkey_result(ctx_));
-    std::swap(temp_result, result);
-  }
-
-  return CheckGpgError(err);
+        return CheckGpgError(err);
+      },
+      callback, "gpgme_op_passwd", "2.1.0");
 }
 
 /**
@@ -245,65 +212,50 @@ auto GpgKeyOpera::GenerateKey(const std::unique_ptr<GenKeyInfo>& params,
  * @param params opera args
  * @return error info
  */
-auto GpgKeyOpera::GenerateSubkey(const GpgKey& key,
-                                 const std::unique_ptr<GenKeyInfo>& params)
-    -> GpgError {
-  if (!params->IsSubKey()) return GPG_ERR_CANCELED;
+void GpgKeyOpera::GenerateSubkey(const GpgKey& key,
+                                 const std::shared_ptr<GenKeyInfo>& params,
+                                 const GpgOperationCallback& callback) {
+  RunGpgOperaAsync(
+      [key = key.Copy(), &ctx = ctx_,
+       params](const DataObjectPtr&) -> GpgError {
+        if (!params->IsSubKey()) return GPG_ERR_CANCELED;
 
-  SPDLOG_DEBUG("generate subkey algo {} key size {}", params->GetAlgo(),
-               params->GetKeySizeStr());
+        SPDLOG_DEBUG("generate subkey algo {} key size {}", params->GetAlgo(),
+                     params->GetKeySizeStr());
 
-  auto algo_utf8 = (params->GetAlgo() + params->GetKeySizeStr());
-  const char* algo = algo_utf8.c_str();
-  unsigned long expires = 0;
+        auto algo_utf8 = (params->GetAlgo() + params->GetKeySizeStr());
+        const char* algo = algo_utf8.c_str();
+        unsigned long expires = 0;
 
-  expires =
-      to_time_t(boost::posix_time::ptime(params->GetExpireTime())) -
-      std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+        expires = to_time_t(boost::posix_time::ptime(params->GetExpireTime())) -
+                  std::chrono::system_clock::to_time_t(
+                      std::chrono::system_clock::now());
 
-  unsigned int flags = 0;
+        unsigned int flags = 0;
 
-  if (!params->IsSubKey()) flags |= GPGME_CREATE_CERT;
-  if (params->IsAllowEncryption()) flags |= GPGME_CREATE_ENCR;
-  if (params->IsAllowSigning()) flags |= GPGME_CREATE_SIGN;
-  if (params->IsAllowAuthentication()) flags |= GPGME_CREATE_AUTH;
-  if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
-  if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
+        if (!params->IsSubKey()) flags |= GPGME_CREATE_CERT;
+        if (params->IsAllowEncryption()) flags |= GPGME_CREATE_ENCR;
+        if (params->IsAllowSigning()) flags |= GPGME_CREATE_SIGN;
+        if (params->IsAllowAuthentication()) flags |= GPGME_CREATE_AUTH;
+        if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
+        if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
 
-  SPDLOG_DEBUG("args: {} {} {} {}", key.GetId(), algo, expires, flags);
+        SPDLOG_DEBUG("args: {} {} {} {}", key.GetId(), algo, expires, flags);
 
-  auto err = gpgme_op_createsubkey(ctx_, static_cast<gpgme_key_t>(key), algo, 0,
-                                   expires, flags);
-  return CheckGpgError(err);
+        auto err = gpgme_op_createsubkey(ctx, static_cast<gpgme_key_t>(key),
+                                         algo, 0, expires, flags);
+        return CheckGpgError(err);
+      },
+      callback, "gpgme_op_createsubkey", "2.1.13");
 }
 
 void GpgKeyOpera::ModifyPassword(const GpgKey& key,
-                                 std::function<void(gpgme_error_t)> callback) {
-  const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gnupg_version", std::string{"2.0.0"});
-  SPDLOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
-
-  if (CompareSoftwareVersion(gnupg_version, "2.0.15") < 0) {
-    SPDLOG_ERROR("operator not support");
-    callback(GPG_ERR_NOT_SUPPORTED);
-    return;
-  }
-
-  auto* task = new Thread::Task(
-      [&](const DataObjectPtr& data_object) -> int {
-        auto err = gpgme_op_passwd(ctx_, static_cast<gpgme_key_t>(key), 0);
-        data_object->Swap({err});
-        return 0;
+                                 const GpgOperationCallback& callback) {
+  RunGpgOperaAsync(
+      [&key, &ctx = ctx_](const DataObjectPtr&) -> GpgError {
+        return gpgme_op_passwd(ctx, static_cast<gpgme_key_t>(key), 0);
       },
-      "gpgme_op_passwd", TransferParams(),
-      [=](int, const DataObjectPtr& data_object) {
-        SPDLOG_DEBUG("callback called");
-        callback(ExtractParams<gpgme_error_t>(data_object, 0));
-      });
-
-  Thread::TaskRunnerGetter::GetInstance()
-      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
-      ->PostTask(task);
+      callback, "gpgme_op_passwd", "2.0.15");
 }
 
 auto GpgKeyOpera::ModifyTOFUPolicy(const GpgKey& key,

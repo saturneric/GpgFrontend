@@ -28,6 +28,8 @@
 
 #include "UserInterfaceUtils.h"
 
+#include <gpg-error.h>
+
 #include <QtNetwork>
 #include <string>
 #include <utility>
@@ -41,7 +43,9 @@
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunner.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "core/typedef/GpgTypedef.h"
 #include "core/utils/CacheUtils.h"
+#include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
@@ -212,6 +216,44 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
         break;
     }
   });
+}
+
+void CommonUtils::WaitForOpera(QWidget *parent,
+                               const std::string &waiting_dialog_title,
+                               const OperaWaitingCb &opera) {
+  QEventLoop looper;
+  auto *dialog = new WaitingDialog(_("Generating"), parent);
+  connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
+
+  opera([dialog]() { dialog->accept(); });
+
+  dialog->show();
+  looper.exec();
+}
+
+void CommonUtils::RaiseMessageBox(QWidget *parent, GpgError err) {
+  GpgErrorDesc desc = DescribeGpgErrCode(err);
+  GpgErrorCode err_code = CheckGpgError2ErrCode(err);
+
+  if (err_code == GPG_ERR_NO_ERROR) {
+    QMessageBox::information(parent, _("Success"),
+                             QString::fromStdString(_("Operation succeed.")));
+  } else {
+    RaiseFailureMessageBox(parent, err);
+  }
+}
+
+void CommonUtils::RaiseFailureMessageBox(QWidget *parent, GpgError err) {
+  GpgErrorDesc desc = DescribeGpgErrCode(err);
+  GpgErrorCode err_code = CheckGpgError2ErrCode(err);
+
+  QMessageBox::critical(
+      parent, _("Failure"),
+      QString::fromStdString(
+          (boost::format(_("Operation failed.\n\nError code: %1%\nSource: "
+                           " %2%\nDEscription: %3%")) %
+           err_code % desc.first % desc.second)
+              .str()));
 }
 
 void CommonUtils::SlotImportKeys(QWidget *parent,

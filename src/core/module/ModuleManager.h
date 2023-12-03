@@ -91,13 +91,14 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager : public QObject {
 template <typename T, typename... Args>
 void RegisterModule(Args&&... args) {
   ModuleManager::GetInstance()->RegisterModule(
-      std::make_shared<T>(std::forward<Args>(args)...));
+      GpgFrontend::SecureCreateSharedObject<T>(std::forward<Args>(args)...));
 }
 
 template <typename T, typename... Args>
 void RegisterAndActivateModule(Args&&... args) {
   auto manager = ModuleManager::GetInstance();
-  auto module = std::make_shared<T>(std::forward<Args>(args)...);
+  auto module =
+      GpgFrontend::SecureCreateSharedObject<T>(std::forward<Args>(args)...);
   manager->RegisterModule(module);
   manager->ActiveModule(module->GetModuleIdentifier());
 }

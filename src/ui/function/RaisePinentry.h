@@ -28,10 +28,11 @@
 
 #pragma once
 
-#include <qwidget.h>
+#include "ui/GpgFrontendUI.h"
+
 namespace GpgFrontend::UI {
 
-class RaisePinentry : QWidget {
+class RaisePinentry : public QWidget {
   Q_OBJECT
  public:
   explicit RaisePinentry(QWidget *parent);

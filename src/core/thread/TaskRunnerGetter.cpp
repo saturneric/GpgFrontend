@@ -42,7 +42,7 @@ TaskRunnerPtr GpgFrontend::Thread::TaskRunnerGetter::GetTaskRunner(
     if (it != task_runners_.end()) {
       return it->second;
     } else {
-      auto runner = std::make_shared<TaskRunner>();
+      auto runner = GpgFrontend::SecureCreateSharedObject<TaskRunner>();
       task_runners_[runner_type] = runner;
       runner->Start();
       continue;

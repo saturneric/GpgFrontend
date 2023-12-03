@@ -34,6 +34,7 @@
 #include <utility>
 
 #include "core/function/DataObjectOperator.h"
+#include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
 
@@ -45,13 +46,13 @@ class ThreadSafeMap {
 
   void insert(const Key& key, const Value& value) {
     std::unique_lock lock(mutex_);
-    map_[key] = value;
+    (*map_)[key] = value;
   }
 
   auto get(const Key& key) -> std::optional<Value> {
     std::shared_lock lock(mutex_);
-    auto it = map_.find(key);
-    if (it != map_.end()) {
+    auto it = map_->find(key);
+    if (it != map_->end()) {
       return it->second;
     }
     return std::nullopt;
@@ -59,32 +60,34 @@ class ThreadSafeMap {
 
   auto exists(const Key& key) -> bool {
     std::shared_lock lock(mutex_);
-    return map_.count(key) > 0;
+    return map_->count(key) > 0;
   }
 
-  auto begin() -> IteratorType { return map_mirror_.begin(); }
+  auto begin() -> IteratorType { return map_mirror_->begin(); }
 
-  auto end() -> IteratorType { return map_mirror_.end(); }
+  auto end() -> IteratorType { return map_mirror_->end(); }
 
   auto mirror() -> ThreadSafeMap& {
     std::shared_lock lock(mutex_);
-    map_mirror_ = map_;
+    *map_mirror_ = *map_;
     return *this;
   }
 
   auto remove(std::string key) -> bool {
     std::unique_lock lock(mutex_);
-    auto it = map_.find(key);
-    if (it != map_.end()) {
-      map_.erase(it);
+    auto it = map_->find(key);
+    if (it != map_->end()) {
+      map_->erase(it);
       return true;
     }
     return false;
   }
 
  private:
-  MapType map_mirror_;
-  MapType map_;
+  std::unique_ptr<MapType, SecureObjectDeleter<MapType>> map_mirror_ =
+      std::move(SecureCreateUniqueObject<MapType>());
+  std::unique_ptr<MapType, SecureObjectDeleter<MapType>> map_ =
+      std::move(SecureCreateUniqueObject<MapType>());
   mutable std::shared_mutex mutex_;
 };
 

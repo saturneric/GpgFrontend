@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <qwidget.h>
+
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/GpgKey.h"
 #include "core/thread/ThreadingModel.h"
@@ -42,6 +44,9 @@ namespace GpgFrontend::UI {
 
 class InfoBoardWidget;
 class TextEdit;
+
+using OperaWaitingHd = std::function<void()>;
+using OperaWaitingCb = const std::function<void(OperaWaitingHd)>;
 
 /**
  * @brief
@@ -144,6 +149,28 @@ class CommonUtils : public QWidget {
    * @return CommonUtils*
    */
   static CommonUtils* GetInstance();
+
+  /**
+   * @brief
+   *
+   * @param err
+   */
+  static void WaitForOpera(QWidget* parent, const std::string&,
+                           const OperaWaitingCb&);
+
+  /**
+   * @brief
+   *
+   * @param err
+   */
+  static void RaiseMessageBox(QWidget* parent, GpgError err);
+
+  /**
+   * @brief
+   *
+   * @param err
+   */
+  static void RaiseFailureMessageBox(QWidget* parent, GpgError err);
 
   /**
    * @brief

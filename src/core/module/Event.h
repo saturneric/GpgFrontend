@@ -90,7 +90,7 @@ auto MakeEvent(const EventIdentifier& event_id, Args&&... args,
                Event::EventCallback e_cb) -> EventRefrernce {
   std::initializer_list<Event::ParameterInitializer> params = {
       Event::ParameterInitializer{std::forward<Args>(args)}...};
-  return std::make_shared<Event>(event_id, params, e_cb);
+  return GpgFrontend::SecureCreateSharedObject<Event>(event_id, params, e_cb);
 }
 
 }  // namespace GpgFrontend::Module

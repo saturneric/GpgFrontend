@@ -119,7 +119,8 @@ class GlobalModuleContext::Impl {
     ModuleRegisterInfo register_info;
     register_info.module = module;
     register_info.channel = acquire_new_unique_channel();
-    register_info.task_runner = std::make_shared<Thread::TaskRunner>();
+    register_info.task_runner =
+        GpgFrontend::SecureCreateSharedObject<Thread::TaskRunner>();
     register_info.task_runner->Start();
 
     // move module to its task runner' thread
@@ -128,7 +129,8 @@ class GlobalModuleContext::Impl {
 
     // Register the module with its identifier.
     module_register_table_[module->GetModuleIdentifier()] =
-        std::make_shared<ModuleRegisterInfo>(std::move(register_info));
+        GpgFrontend::SecureCreateSharedObject<ModuleRegisterInfo>(
+            std::move(register_info));
 
     SPDLOG_DEBUG("successfully registered module: {}",
                  module->GetModuleIdentifier());

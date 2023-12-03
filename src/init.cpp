@@ -37,11 +37,11 @@
 #include <filesystem>
 #include <string>
 
-#include "GpgFrontend.h"
-#include "GpgFrontendBuildInfo.h"
 #include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/utils/MemoryUtils.h"
 #include "module/GpgFrontendModuleInit.h"
+#include "spdlog/logger.h"
 #include "ui/GpgFrontendUIInit.h"
 
 // main
@@ -62,23 +62,27 @@ int setenv(const char *name, const char *value, int overwrite) {
 void InitMainLoggingSystem(spdlog::level::level_enum level) {
   // sinks
   std::vector<spdlog::sink_ptr> sinks;
-  sinks.push_back(std::make_shared<spdlog::sinks::stderr_color_sink_mt>());
-
-  // thread pool
-  spdlog::init_thread_pool(1024, 2);
+  sinks.push_back(GpgFrontend::SecureCreateSharedObject<
+                  spdlog::sinks::stderr_color_sink_mt>());
 
   // logger
-  auto main_logger = std::make_shared<spdlog::async_logger>(
-      "main", begin(sinks), end(sinks), spdlog::thread_pool());
+  auto main_logger = GpgFrontend::SecureCreateSharedObject<spdlog::logger>(
+      "main", begin(sinks), end(sinks));
   main_logger->set_pattern(
       "[%H:%M:%S.%e] [T:%t] [%=6n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
 
   // set the level of logger
   main_logger->set_level(level);
 
+#ifdef DEBUG
+  // flush policy
+  main_logger->flush_on(spdlog::level::trace);
+#else
   // flush policy
   main_logger->flush_on(spdlog::level::err);
-  spdlog::flush_every(std::chrono::seconds(5));
+#endif
+
+  spdlog::flush_every(std::chrono::seconds(3));
 
   // register it as default logger
   spdlog::set_default_logger(main_logger);

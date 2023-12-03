@@ -41,6 +41,30 @@ auto GpgKey::operator=(GpgKey &&k) noexcept -> GpgKey & {
   return *this;
 }
 
+GpgKey::GpgKey(const GpgKey &key) noexcept {
+  {
+    const std::lock_guard<std::mutex> guard(gpgme_key_opera_mutex_);
+    gpgme_key_ref(key.key_ref_.get());
+  }
+  auto *new_key_ref = key_ref_.get();
+  this->key_ref_ = KeyRefHandler(std::move(new_key_ref));
+}
+
+auto GpgKey::operator=(const GpgKey &key) -> GpgKey & {
+  if (this == &key) {
+    return *this;
+  }
+
+  {
+    const std::lock_guard<std::mutex> guard(gpgme_key_opera_mutex_);
+    gpgme_key_ref(key.key_ref_.get());
+  }
+  auto *new_key_ref = key_ref_.get();
+  this->key_ref_ = KeyRefHandler(std::move(new_key_ref));
+
+  return *this;
+}
+
 auto GpgKey::operator==(const GpgKey &o) const -> bool {
   return o.GetId() == this->GetId();
 }

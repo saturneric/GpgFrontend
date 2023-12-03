@@ -61,7 +61,7 @@ KeyUploadDialog::KeyUploadDialog(const KeyIdArgsListPtr& keys_ids,
 }
 
 void KeyUploadDialog::SlotUpload() {
-  auto out_data = std::make_shared<ByteArray>();
+  auto out_data = GpgFrontend::SecureCreateSharedObject<ByteArray>();
   GpgKeyImportExporter::GetInstance().ExportKeys(*m_keys_, out_data);
   slot_upload_key_to_server(*out_data);
 

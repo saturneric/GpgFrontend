@@ -48,6 +48,12 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
   explicit GpgKeyGetter(int channel = kGpgFrontendDefaultChannel);
 
   /**
+   * @brief Destroy the Gpg Key Getter object
+   *
+   */
+  ~GpgKeyGetter();
+
+  /**
    * @brief Get the Key object
    *
    * @param fpr

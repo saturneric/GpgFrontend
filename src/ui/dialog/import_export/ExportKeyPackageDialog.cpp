@@ -38,7 +38,7 @@
 GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
     KeyIdArgsListPtr key_ids, QWidget* parent)
     : GeneralDialog(typeid(ExportKeyPackageDialog).name(), parent),
-      ui_(std::make_shared<Ui_exportKeyPackageDialog>()),
+      ui_(GpgFrontend::SecureCreateSharedObject<Ui_exportKeyPackageDialog>()),
       key_ids_(std::move(key_ids)) {
   ui_->setupUi(this);
 

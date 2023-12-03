@@ -35,13 +35,15 @@
 #include <boost/date_time.hpp>
 
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/function/gpg/GpgContext.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunner.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "core/utils/MemoryUtils.h"
+#include "function/basic/ChannelObject.h"
+#include "function/basic/SingletonStorage.h"
 
 namespace GpgFrontend {
 
@@ -57,16 +59,19 @@ void InitCoreLoggingSystem(spdlog::level::level_enum level) {
 
   // sinks
   std::vector<spdlog::sink_ptr> sinks;
-  sinks.push_back(std::make_shared<spdlog::sinks::stderr_color_sink_mt>());
-  sinks.push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
-      logfile_path.u8string(), 1048576 * 32, 8));
+  sinks.push_back(GpgFrontend::SecureCreateSharedObject<
+                  spdlog::sinks::stderr_color_sink_mt>());
+  sinks.push_back(GpgFrontend::SecureCreateSharedObject<
+                  spdlog::sinks::rotating_file_sink_mt>(logfile_path.u8string(),
+                                                        1048576 * 32, 8));
 
   // thread pool
   spdlog::init_thread_pool(1024, 2);
 
   // logger
-  auto core_logger = std::make_shared<spdlog::async_logger>(
-      "core", begin(sinks), end(sinks), spdlog::thread_pool());
+  auto core_logger =
+      GpgFrontend::SecureCreateSharedObject<spdlog::async_logger>(
+          "core", begin(sinks), end(sinks), spdlog::thread_pool());
   core_logger->set_pattern(
       "[%H:%M:%S.%e] [T:%t] [%=6n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
 
@@ -75,7 +80,7 @@ void InitCoreLoggingSystem(spdlog::level::level_enum level) {
 
   // flush policy
 #ifdef DEBUG
-  core_logger->flush_on(spdlog::level::debug);
+  core_logger->flush_on(spdlog::level::trace);
 #else
   core_logger->flush_on(spdlog::level::err);
 #endif
@@ -175,7 +180,7 @@ void InitGpgFrontendCore() {
 
   // init default channel
   auto& default_ctx = GpgFrontend::GpgContext::CreateInstance(
-      kGpgfrontendDefaultChannel, [=]() -> std::unique_ptr<ChannelObject> {
+      kGpgfrontendDefaultChannel, [=]() -> ChannelObjectPtr {
         GpgFrontend::GpgContextInitArgs args;
 
         // set key database path
@@ -192,8 +197,8 @@ void InitGpgFrontendCore() {
         args.auto_import_missing_key = auto_import_missing_key;
         args.use_pinentry = use_pinentry_as_password_input_dialog;
 
-        return std::unique_ptr<ChannelObject>(
-            new GpgContext(args, kGpgfrontendDefaultChannel));
+        return ConvertToChannelObjectPtr<>(SecureCreateUniqueObject<GpgContext>(
+            args, kGpgFrontendDefaultChannel));
       });
 
   // exit if failed
@@ -201,15 +206,14 @@ void InitGpgFrontendCore() {
     SPDLOG_ERROR("default gnupg context init error");
   };
 
-  // async init no-ascii channel
+  // async init no-ascii(binary output) channel
   Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
       ->PostTask(new Thread::Task(
           [=](const DataObjectPtr& /*data_obj*/) -> int {
             // init non-ascii channel
             auto& ctx = GpgFrontend::GpgContext::CreateInstance(
-                kGpgfrontendNonAsciiChannel,
-                [=]() -> std::unique_ptr<ChannelObject> {
+                kGpgfrontendNonAsciiChannel, [=]() -> ChannelObjectPtr {
                   GpgFrontend::GpgContextInitArgs args;
                   args.ascii = false;
 
@@ -229,8 +233,9 @@ void InitGpgFrontendCore() {
                   args.auto_import_missing_key = auto_import_missing_key;
                   args.use_pinentry = use_pinentry_as_password_input_dialog;
 
-                  return std::unique_ptr<ChannelObject>(
-                      new GpgContext(args, kGpgfrontendDefaultChannel));
+                  return ConvertToChannelObjectPtr<>(
+                      SecureCreateUniqueObject<GpgContext>(
+                          args, kGpgfrontendNonAsciiChannel));
                 });
 
             if (!ctx.Good()) SPDLOG_ERROR("no-ascii channel init error");
@@ -256,14 +261,5 @@ void InitGpgFrontendCore() {
 }
 
 void reset_gpgfrontend_core() { SingletonStorageCollection::GetInstance(true); }
-
-void new_default_settings_channel(int channel) {
-  GpgFrontend::GpgContext::CreateInstance(
-      channel, [&]() -> std::unique_ptr<ChannelObject> {
-        GpgFrontend::GpgContextInitArgs args;
-        return std::unique_ptr<ChannelObject>(
-            new GpgContext(args, kGpgFrontendDefaultChannel));
-      });
-}
 
 }  // namespace GpgFrontend
