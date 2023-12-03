@@ -36,6 +36,7 @@
 
 // GpgFrontend
 #include "GpgFrontendBuildInfo.h"
+#include "spdlog/common.h"
 
 namespace po = boost::program_options;
 
@@ -61,13 +62,19 @@ auto ParseLogLevel(const po::variables_map& vm) -> spdlog::level::level_enum {
 
   if (log_level == "trace") {
     return spdlog::level::trace;
-  } else if (log_level == "debug") {
+  }
+  if (log_level == "debug") {
     return spdlog::level::debug;
-  } else if (log_level == "info") {
+  }
+  if (log_level == "info") {
     return spdlog::level::info;
-  } else if (log_level == "warn") {
+  }
+  if (log_level == "warn") {
     return spdlog::level::warn;
-  } else if (log_level == "error") {
+  }
+  if (log_level == "error") {
     return spdlog::level::err;
   }
+
+  return spdlog::level::info;
 }

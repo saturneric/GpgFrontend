@@ -35,6 +35,7 @@
 #include "core/module/Module.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "spdlog/spdlog.h"
 
 namespace GpgFrontend {
 
@@ -231,6 +232,9 @@ void GpgCommandExecutor::ExecuteConcurrentlyAsync(ExecuteContexts contexts) {
 void GpgCommandExecutor::ExecuteConcurrentlySync(ExecuteContexts contexts) {
   QEventLoop looper;
   auto remaining_tasks = contexts.size();
+  Thread::TaskRunnerPtr target_task_runner = nullptr;
+
+  bool need_looper = true;
 
   for (auto &context : contexts) {
     const auto &cmd = context.cmd;
@@ -240,22 +244,37 @@ void GpgCommandExecutor::ExecuteConcurrentlySync(ExecuteContexts contexts) {
 
     QObject::connect(task, &Thread::Task::SignalTaskEnd, [&]() {
       --remaining_tasks;
+      SPDLOG_DEBUG("remaining tasks: {}", remaining_tasks);
       if (remaining_tasks <= 0) {
+        SPDLOG_DEBUG("no remaining task, quit");
         looper.quit();
       }
     });
 
     if (context.task_runner != nullptr) {
-      context.task_runner->PostTask(task);
+      target_task_runner = context.task_runner;
     } else {
-      GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
-          .GetTaskRunner(
-              Thread::TaskRunnerGetter::kTaskRunnerType_External_Process)
-          ->PostTask(task);
+      target_task_runner =
+          GpgFrontend::Thread::TaskRunnerGetter::GetInstance().GetTaskRunner(
+              Thread::TaskRunnerGetter::kTaskRunnerType_External_Process);
+    }
+
+    target_task_runner->PostTask(task);
+
+    // to arvoid dead lock issue we need to check if current thread is the same
+    // as
+    // target thread. if it is, we can't call exec() because it will block the
+    // current thread.
+    if (QThread::currentThread() == target_task_runner->GetThread()) {
+      need_looper = false;
     }
   }
 
-  looper.exec();
+  if (need_looper) {
+    // block until task finished
+    // this is to keep reference vaild until task finished
+    looper.exec();
+  }
 }
 
 }  // namespace GpgFrontend

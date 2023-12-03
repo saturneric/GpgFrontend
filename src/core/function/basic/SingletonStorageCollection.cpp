@@ -28,12 +28,17 @@
 
 #include "SingletonStorageCollection.h"
 
+#include <memory>
 #include <shared_mutex>
 
 #include "core/function/basic/SingletonStorage.h"
 #include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
+
+std::unique_ptr<SingletonStorageCollection,
+                SecureObjectDeleter<SingletonStorageCollection>>
+    instance = nullptr;
 
 class SingletonStorageCollection::Impl {
  public:
@@ -43,16 +48,20 @@ class SingletonStorageCollection::Impl {
    * @return SingletonStorageCollection*
    */
   static auto GetInstance(bool force_refresh) -> SingletonStorageCollection* {
-    static SingletonStorageCollection* instance = nullptr;
-
     if (force_refresh || instance == nullptr) {
-      instance = new SingletonStorageCollection();
-      SPDLOG_TRACE("new single storage collection created: {}",
-                   static_cast<void*>(instance));
+      instance = SecureCreateUniqueObject<SingletonStorageCollection>();
+      SPDLOG_TRACE("a new single storage collection created, address: {}",
+                   static_cast<void*>(instance.get()));
     }
-
-    return instance;
+    return instance.get();
   }
+
+  /**
+   * @brief Get the Instance object
+   *
+   * @return SingletonStorageCollection*
+   */
+  static void Destroy() { instance = nullptr; }
 
   /**
    * @brief Get the Singleton Storage object
@@ -95,14 +104,18 @@ SingletonStorageCollection::SingletonStorageCollection() noexcept
 
 SingletonStorageCollection::~SingletonStorageCollection() = default;
 
+auto GpgFrontend::SingletonStorageCollection::GetInstance(bool force_refresh)
+    -> GpgFrontend::SingletonStorageCollection* {
+  return Impl::GetInstance(force_refresh);
+}
+
+void SingletonStorageCollection::Destroy() {
+  return SingletonStorageCollection::Impl::Destroy();
+}
+
 auto SingletonStorageCollection::GetSingletonStorage(
     const std::type_info& type_id) -> GpgFrontend::SingletonStorage* {
   return p_->GetSingletonStorage(type_id);
-}
-
-auto GpgFrontend::SingletonStorageCollection::GetInstance(
-    bool force_refresh = false) -> GpgFrontend::SingletonStorageCollection* {
-  return Impl::GetInstance(force_refresh);
 }
 
 }  // namespace GpgFrontend

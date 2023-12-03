@@ -41,7 +41,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/utils/MemoryUtils.h"
 #include "module/GpgFrontendModuleInit.h"
-#include "spdlog/logger.h"
+#include "module/sdk/Log.h"
 #include "ui/GpgFrontendUIInit.h"
 
 // main
@@ -88,7 +88,7 @@ void InitMainLoggingSystem(spdlog::level::level_enum level) {
   spdlog::set_default_logger(main_logger);
 }
 
-void InitModules(InitArgs args) {
+void InitLoggingSystem(InitArgs args) {
   // init the logging system for main
   InitMainLoggingSystem(args.log_level);
 
@@ -97,20 +97,14 @@ void InitModules(InitArgs args) {
 
   // init the logging system for ui
   GpgFrontend::UI::InitUILoggingSystem(args.log_level);
-
-  // init the logging system for modules
-  GpgFrontend::Module::ModuleInitArgs module_init_args;
-  module_init_args.log_level = args.log_level;
-  //
-  GpgFrontend::Module::LoadGpgFrontendModules(module_init_args);
 }
 
-void ShutdownModules() {
-  // shutdown the logging system for core
-  GpgFrontend::Module::ShutdownGpgFrontendModules();
-
+void ShutdownLoggingSystem() {
   // shutdown the logging system for ui
   GpgFrontend::UI::ShutdownUILoggingSystem();
+
+  // shutdown the logging system for modules
+  GpgFrontend::Module::ShutdownGpgFrontendModulesLoggingSystem();
 
   // shutdown the logging system for core
   GpgFrontend::ShutdownCoreLoggingSystem();

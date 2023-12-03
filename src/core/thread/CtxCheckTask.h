@@ -50,7 +50,7 @@ class GPGFRONTEND_CORE_EXPORT CoreInitTask : public Task {
    * @brief
    *
    */
-  void SignalGnupgNotInstall();
+  void SignalBadGnupgEnv();
 
  protected:
   /**

@@ -44,16 +44,17 @@ void HandleSignal(int sig);
 void BeforeExit();
 
 /**
- * @brief initialize the logging system.
+ * @brief
  *
+ * @param args
  */
-void InitModules(InitArgs);
+void InitLoggingSystem(InitArgs args);
 
 /**
  * @brief initialize the logging system.
  *
  */
-void ShutdownModules();
+void ShutdownLoggingSystem();
 
 /**
  * @brief init global PATH env

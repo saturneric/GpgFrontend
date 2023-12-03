@@ -37,17 +37,16 @@ namespace GpgFrontend {
  *
  */
 struct GpgContextInitArgs {
-  std::string db_path = {};
+  std::string db_path = {};  ///<
 
-  bool test_mode = false;
-  bool ascii = true;
-  bool offline_mode = false;
-  bool auto_import_missing_key = false;
+  bool test_mode = false;                ///<
+  bool offline_mode = false;             ///<
+  bool auto_import_missing_key = false;  ///<
 
-  bool custom_gpgconf = false;
-  std::string custom_gpgconf_path;
+  bool custom_gpgconf = false;      ///<
+  std::string custom_gpgconf_path;  ///<
 
-  bool use_pinentry = false;
+  bool use_pinentry = false;  ///<
 };
 
 /**
@@ -67,9 +66,9 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
 
   [[nodiscard]] auto Good() const -> bool;
 
-  operator gpgme_ctx_t() const;
+  auto BinaryContext() -> gpgme_ctx_t;
 
-  void SetPassphraseCb(gpgme_passphrase_cb_t passphrase_cb) const;
+  auto DefaultContext() -> gpgme_ctx_t;
 
  private:
   class Impl;

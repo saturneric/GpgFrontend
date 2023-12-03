@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <core/function/SecureMemoryAllocator.h>
-
 #include "core/function/SecureMemoryAllocator.h"
 
 namespace GpgFrontend {
@@ -41,11 +39,29 @@ using SingletonStoragePtr =
 class GPGFRONTEND_CORE_EXPORT SingletonStorageCollection {
  public:
   /**
+   * @brief
+   *
+   */
+  SingletonStorageCollection() noexcept;
+
+  /**
+   * @brief
+   *
+   */
+  ~SingletonStorageCollection();
+
+  /**
    * @brief Get the Instance object
    *
    * @return SingletonStorageCollection*
    */
   static auto GetInstance(bool force_refresh) -> SingletonStorageCollection*;
+
+  /**
+   * @brief
+   *
+   */
+  static void Destroy();
 
   /**
    * @brief Get the Singleton Storage object
@@ -58,18 +74,6 @@ class GPGFRONTEND_CORE_EXPORT SingletonStorageCollection {
  private:
   class Impl;
   std::unique_ptr<Impl> p_;
-
-  /**
-   * @brief
-   *
-   */
-  SingletonStorageCollection() noexcept;
-
-  /**
-   * @brief
-   *
-   */
-  ~SingletonStorageCollection();
 };
 
 }  // namespace GpgFrontend

@@ -79,7 +79,7 @@ auto StartApplication(InitArgs args) -> int {
       args.argc, args.argv, true);
 
   // init the logging system for main
-  InitModules(args);
+  InitLoggingSystem(args);
 
   // change path to search for related
   InitGlobalPathEnv();
@@ -98,10 +98,18 @@ auto StartApplication(InitArgs args) -> int {
     int r = setjmp(recover_env);
 #endif
     if (!r) {
-      // init ui library
+      // should load module system first
+      GpgFrontend::Module::ModuleInitArgs module_init_args;
+      module_init_args.log_level = args.log_level;
+      GpgFrontend::Module::LoadGpgFrontendModules(module_init_args);
+
+      // then load core
+      GpgFrontend::InitGpgFrontendCore();
+
+      // after that load ui library
       GpgFrontend::UI::InitGpgFrontendUI(app);
 
-      // create main window
+      // finally create main window
       return_from_event_loop_code = GpgFrontend::UI::RunGpgFrontendUI(app);
     } else {
       SPDLOG_ERROR("recover from a crash");
@@ -117,6 +125,16 @@ auto StartApplication(InitArgs args) -> int {
       return_from_event_loop_code = kCrashCode;
     }
 
+    SPDLOG_DEBUG("try to destroy modules system and core");
+
+    // first should shutdown the module system
+    GpgFrontend::Module::ShutdownGpgFrontendModules();
+
+    // then shutdown the core
+    GpgFrontend::DestroyGpgFrontendCore();
+
+    SPDLOG_DEBUG("core and modules system destroyed");
+
     restart_count++;
 
     SPDLOG_DEBUG("restart loop refresh, event loop code: {}, restart count: {}",
@@ -125,7 +143,7 @@ auto StartApplication(InitArgs args) -> int {
            restart_count < 3);
 
   // close logging system
-  ShutdownModules();
+  ShutdownLoggingSystem();
 
   // log for debug
   SPDLOG_INFO("GpgFrontend is about to exit.");

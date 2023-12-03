@@ -102,12 +102,20 @@ class ModuleManager::Impl {
     return grt_->ListChildKeys(n, k);
   }
 
+  auto IsModuleActivated(ModuleIdentifier id) -> bool {
+    return gmc_->IsModuleActivated(id);
+  }
+
  private:
   static ModuleMangerPtr global_module_manager;
   TaskRunnerPtr task_runner_;
   GMCPtr gmc_;
   GRTPtr grt_;
 };
+
+auto IsModuleAcivate(ModuleIdentifier id) -> bool {
+  return ModuleManager::GetInstance()->IsModuleActivated(id);
+}
 
 auto UpsertRTValue(const std::string& namespace_, const std::string& key,
                    const std::any& value) -> bool {
@@ -168,6 +176,10 @@ auto ModuleManager::ListenRTPublish(QObject* o, Namespace n, Key k,
 auto ModuleManager::ListRTChildKeys(const std::string& n, const std::string& k)
     -> std::vector<Key> {
   return p_->ListRTChildKeys(n, k);
+}
+
+auto ModuleManager::IsModuleActivated(ModuleIdentifier id) -> bool {
+  return p_->IsModuleActivated(id);
 }
 
 }  // namespace GpgFrontend::Module

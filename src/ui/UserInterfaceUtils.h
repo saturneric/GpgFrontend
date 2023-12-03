@@ -207,7 +207,7 @@ class CommonUtils : public QWidget {
    * @brief
    *
    */
-  void SignalGnupgNotInstall();
+  void SignalBadGnupgEnv();
 
   /**
    * @brief emit when the key database is refreshed

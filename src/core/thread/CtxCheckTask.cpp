@@ -37,9 +37,9 @@
 namespace GpgFrontend {
 
 Thread::CoreInitTask::CoreInitTask() : Task("ctx_check_task") {
-  connect(this, &CoreInitTask::SignalGnupgNotInstall,
+  connect(this, &CoreInitTask::SignalBadGnupgEnv,
           CoreSignalStation::GetInstance(),
-          &CoreSignalStation::SignalGnupgNotInstall);
+          &CoreSignalStation::SignalBadGnupgEnv);
 }
 
 void Thread::CoreInitTask::Run() {
@@ -48,7 +48,7 @@ void Thread::CoreInitTask::Run() {
 
   // Create & Check Gnupg Context Status
   if (!GpgContext::GetInstance().Good()) {
-    emit SignalGnupgNotInstall();
+    emit SignalBadGnupgEnv();
   }
   // Try flushing key cache
   else {

@@ -54,7 +54,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     }
 
     gpgme_key_t p_key = nullptr;
-    gpgme_get_key(ctx_, fpr.c_str(), &p_key, 1);
+    gpgme_get_key(ctx_.DefaultContext(), fpr.c_str(), &p_key, 1);
     if (p_key == nullptr) {
       SPDLOG_WARN("GpgKeyGetter GetKey Private _p_key Null fpr", fpr);
       return GetPubkey(fpr, true);
@@ -70,7 +70,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     }
 
     gpgme_key_t p_key = nullptr;
-    gpgme_get_key(ctx_, fpr.c_str(), &p_key, 0);
+    gpgme_get_key(ctx_.DefaultContext(), fpr.c_str(), &p_key, 0);
     if (p_key == nullptr) SPDLOG_WARN("GpgKeyGetter GetKey _p_key Null", fpr);
     return GpgKey(std::move(p_key));
   }
@@ -88,13 +88,13 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
   }
 
   void FlushKeyCache() {
-    SPDLOG_DEBUG("called channel id: {}", GetChannel());
+    SPDLOG_DEBUG("flush key channel called, channel: {}", GetChannel());
 
     // clear the keys cache
     keys_cache_.clear();
 
     // init
-    GpgError err = gpgme_op_keylist_start(ctx_, nullptr, 0);
+    GpgError err = gpgme_op_keylist_start(ctx_.DefaultContext(), nullptr, 0);
 
     // for debug
     assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
@@ -106,7 +106,8 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
       // get the lock
       std::lock_guard<std::mutex> lock(keys_cache_mutex_);
       gpgme_key_t key;
-      while ((err = gpgme_op_keylist_next(ctx_, &key)) == GPG_ERR_NO_ERROR) {
+      while ((err = gpgme_op_keylist_next(ctx_.DefaultContext(), &key)) ==
+             GPG_ERR_NO_ERROR) {
         auto gpg_key = GpgKey(std::move(key));
 
         // detect if the key is in a smartcard
@@ -120,14 +121,16 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
       }
     }
 
-    SPDLOG_DEBUG("cache address: {} object address: {}",
+    SPDLOG_DEBUG("flush key channel cache address: {} object address: {}",
                  static_cast<void*>(&keys_cache_), static_cast<void*>(this));
 
     // for debug
     assert(CheckGpgError2ErrCode(err, GPG_ERR_EOF) == GPG_ERR_EOF);
 
-    err = gpgme_op_keylist_end(ctx_);
+    err = gpgme_op_keylist_end(ctx_.DefaultContext());
     assert(CheckGpgError2ErrCode(err, GPG_ERR_EOF) == GPG_ERR_NO_ERROR);
+
+    SPDLOG_DEBUG("flush key channel done, channel: {}", GetChannel());
   }
 
   auto GetKeys(const KeyIdArgsListPtr& ids) -> KeyListPtr {

@@ -28,6 +28,7 @@
 
 #include "GpgFrontendUIInit.h"
 
+#include <qapplication.h>
 #include <spdlog/async.h>
 #include <spdlog/common.h>
 #include <spdlog/sinks/rotating_file_sink.h>
@@ -37,9 +38,12 @@
 #include <string>
 
 #include "core/GpgConstants.h"
+#include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/module/ModuleManager.h"
 #include "core/thread/CtxCheckTask.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "spdlog/spdlog.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/main_window/MainWindow.h"
@@ -51,6 +55,65 @@
 namespace GpgFrontend::UI {
 
 extern void InitLocale();
+
+void WaitEnvCheckingProcess() {
+  SPDLOG_DEBUG("need to waiting for env checking process");
+
+  // create and show loading window before starting the main window
+  auto* waiting_dialog = new QProgressDialog();
+  waiting_dialog->setMaximum(0);
+  waiting_dialog->setMinimum(0);
+  auto* waiting_dialog_label =
+      new QLabel(QString(_("Loading Gnupg Info...")) + "<br /><br />" +
+                 _("If this process is too slow, please set the key "
+                   "server address appropriately in the gnupg configuration "
+                   "file (depending "
+                   "on the network situation in your country or region)."));
+  waiting_dialog_label->setWordWrap(true);
+  waiting_dialog->setLabel(waiting_dialog_label);
+  waiting_dialog->resize(420, 120);
+  QApplication::connect(CoreSignalStation::GetInstance(),
+                        &CoreSignalStation::SignalGoodGnupgEnv, waiting_dialog,
+                        [=]() {
+                          SPDLOG_DEBUG("gpg env loaded successfuly");
+                          waiting_dialog->finished(0);
+                          waiting_dialog->deleteLater();
+                        });
+
+  // new local event looper
+  QEventLoop looper;
+  QApplication::connect(CoreSignalStation::GetInstance(),
+                        &CoreSignalStation::SignalGoodGnupgEnv, &looper,
+                        &QEventLoop::quit);
+
+  QApplication::connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
+    SPDLOG_DEBUG("cancel clicked on wairing dialog");
+    QApplication::quit();
+    exit(0);
+  });
+
+  auto env_state = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "env.state.basic", std::string{"0"});
+
+  SPDLOG_DEBUG("ui is ready to wating for env initialized, env_state: {}",
+               env_state);
+
+  // check twice to avoid some unlucky sitations
+  if (env_state == "1") {
+    SPDLOG_DEBUG("env state turned initialized before the looper start");
+    waiting_dialog->finished(0);
+    waiting_dialog->deleteLater();
+    return;
+  }
+
+  // show the loading window
+  waiting_dialog->setModal(true);
+  waiting_dialog->setFocus();
+  waiting_dialog->show();
+
+  // block the main thread until the gpg context is loaded
+  looper.exec();
+}
 
 void InitGpgFrontendUI(QApplication* app) {
   // init locale
@@ -132,51 +195,10 @@ void InitGpgFrontendUI(QApplication* app) {
     QNetworkProxy::setApplicationProxy(QNetworkProxy::NoProxy);
   }
 
-  // create the thread to load the gpg context
-  auto* init_ctx_task = new Thread::CoreInitTask();
-
-  // create and show loading window before starting the main window
-  auto* waiting_dialog = new QProgressDialog();
-  waiting_dialog->setMaximum(0);
-  waiting_dialog->setMinimum(0);
-  auto waiting_dialog_label =
-      new QLabel(QString(_("Loading Gnupg Info...")) + "<br /><br />" +
-                 _("If this process is too slow, please set the key "
-                   "server address appropriately in the gnupg configuration "
-                   "file (depending "
-                   "on the network situation in your country or region)."));
-  waiting_dialog_label->setWordWrap(true);
-  waiting_dialog->setLabel(waiting_dialog_label);
-  waiting_dialog->resize(420, 120);
-  app->connect(init_ctx_task, &Thread::CoreInitTask::SignalTaskEnd,
-               waiting_dialog, [=]() {
-                 SPDLOG_DEBUG("gpg context loaded");
-                 waiting_dialog->finished(0);
-                 waiting_dialog->deleteLater();
-               });
-
-  app->connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
-    SPDLOG_DEBUG("cancel clicked");
-    app->quit();
-    exit(0);
-  });
-
-  // show the loading window
-  waiting_dialog->setModal(true);
-  waiting_dialog->setFocus();
-  waiting_dialog->show();
-
-  // new local event looper
-  QEventLoop looper;
-  app->connect(init_ctx_task, &Thread::CoreInitTask::SignalTaskEnd, &looper,
-               &QEventLoop::quit);
-
-  // start the thread to load the gpg context
-  Thread::TaskRunnerGetter::GetInstance().GetTaskRunner()->PostTask(
-      init_ctx_task);
-
-  // block the main thread until the gpg context is loaded
-  looper.exec();
+  if (Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.basic",
+                                              std::string{"0"}) == "0") {
+    WaitEnvCheckingProcess();
+  }
 }
 
 int RunGpgFrontendUI(QApplication* app) {
@@ -187,11 +209,14 @@ int RunGpgFrontendUI(QApplication* app) {
   if (CommonUtils::GetInstance()->isApplicationNeedRestart()) {
     SPDLOG_DEBUG("application need to restart, before mian window init");
     return kDeepRestartCode;
-  } else {
-    main_window->Init();
-    SPDLOG_DEBUG("main window inited");
-    main_window->show();
   }
+
+  // init main window
+  main_window->Init();
+
+  // show main windows
+  SPDLOG_DEBUG("main window is ready to show");
+  main_window->show();
 
   // start the main event loop
   return app->exec();
@@ -241,6 +266,8 @@ void ShutdownUILoggingSystem() {
   spdlog::shutdown();
 #endif
 }
+
+void GPGFRONTEND_UI_EXPORT DestroyGpgFrontendUI() { ShutdownUILoggingSystem(); }
 
 /**
  * @brief setup the locale and load the translations

@@ -31,23 +31,28 @@
 #include <gpg-error.h>
 #include <gpgme.h>
 
+#include <cassert>
+
 #include "core/function/CoreSignalStation.h"
 #include "core/function/basic/GpgFunctionObject.h"
-#include "core/function/gpg/GpgCommandExecutor.h"
-#include "core/function/gpg/GpgKeyGetter.h"
 #include "core/module/ModuleManager.h"
-#include "core/thread/Task.h"
-#include "core/thread/TaskRunnerGetter.h"
-#include "core/utils/CacheUtils.h"
-#include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
-#include "function/CacheManager.h"
+#include "spdlog/spdlog.h"
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
 namespace GpgFrontend {
+
+struct CtxRefDeleter {
+  void operator()(gpgme_ctx_t _ctx) {
+    if (_ctx != nullptr) gpgme_release(_ctx);
+  }
+};
+
+using CtxRefHandler =
+    std::unique_ptr<struct gpgme_context, CtxRefDeleter>;  ///<
 
 class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
  public:
@@ -58,169 +63,29 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
   Impl(GpgContext *parent, const GpgContextInitArgs &args, int channel)
       : SingletonFunctionObject<GpgContext::Impl>(channel),
         parent_(parent),
-        args_(args) {
-    gpgme_ctx_t p_ctx;
+        args_(args),
+        good_(default_ctx_initialize(args) && binary_ctx_initialize(args)) {}
 
-    // get gpgme library version
-    Module::UpsertRTValue("core", "gpgme.version",
-                          std::string(gpgme_check_version(nullptr)));
-
-    // create a new context
-    CheckGpgError(gpgme_new(&p_ctx));
-    ctx_ref_ = CtxRefHandler(p_ctx);
-
-    if (args.custom_gpgconf && !args.custom_gpgconf_path.empty()) {
-      SPDLOG_DEBUG("set custom gpgconf path: {}", args.custom_gpgconf_path);
-      auto err =
-          gpgme_ctx_set_engine_info(ctx_ref_.get(), GPGME_PROTOCOL_GPGCONF,
-                                    args.custom_gpgconf_path.c_str(), nullptr);
-      assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
-    }
-
-    // set context offline mode
-    SPDLOG_DEBUG("gpg context offline mode: {}", args_.offline_mode);
-    gpgme_set_offline(ctx_ref_.get(), args_.offline_mode ? 1 : 0);
-
-    // set option auto import missing key
-    // invalid at offline mode
-    SPDLOG_DEBUG("gpg context auto import missing key: {}", args_.offline_mode);
-    if (!args.offline_mode && args.auto_import_missing_key) {
-      CheckGpgError(gpgme_set_ctx_flag(ctx_ref_.get(), "auto-key-import", "1"));
-    }
-
-    // get engine info
-    auto *engine_info = gpgme_ctx_get_engine_info(*this);
-    // Check ENV before running
-    bool check_passed = false;
-    bool find_openpgp = false;
-    bool find_gpgconf = false;
-    bool find_cms = false;
-
-    while (engine_info != nullptr) {
-      if (strcmp(engine_info->version, "1.0.0") == 0) {
-        engine_info = engine_info->next;
-        continue;
-      }
-
-      SPDLOG_DEBUG(
-          "gpg context engine info: {} {} {} {}",
-          gpgme_get_protocol_name(engine_info->protocol),
-          std::string(engine_info->file_name == nullptr
-                          ? "null"
-                          : engine_info->file_name),
-          std::string(engine_info->home_dir == nullptr ? "null"
-                                                       : engine_info->home_dir),
-          std::string(engine_info->version ? "null" : engine_info->version));
-
-      switch (engine_info->protocol) {
-        case GPGME_PROTOCOL_OpenPGP:
-          find_openpgp = true;
-
-          Module::UpsertRTValue("core", "gpgme.ctx.app_path",
-                                std::string(engine_info->file_name));
-          Module::UpsertRTValue("core", "gpgme.ctx.gnupg_version",
-                                std::string(engine_info->version));
-          Module::UpsertRTValue("core", "gpgme.ctx.database_path",
-                                std::string(engine_info->home_dir == nullptr
-                                                ? "default"
-                                                : engine_info->home_dir));
-          break;
-        case GPGME_PROTOCOL_CMS:
-          find_cms = true;
-          Module::UpsertRTValue("core", "gpgme.ctx.cms_path",
-                                std::string(engine_info->file_name));
-
-          break;
-        case GPGME_PROTOCOL_GPGCONF:
-          find_gpgconf = true;
-          Module::UpsertRTValue("core", "gpgme.ctx.gpgconf_path",
-                                std::string(engine_info->file_name));
-          break;
-        case GPGME_PROTOCOL_ASSUAN:
-          Module::UpsertRTValue("core", "gpgme.ctx.assuan_path",
-                                std::string(engine_info->file_name));
-          break;
-        case GPGME_PROTOCOL_G13:
-          break;
-        case GPGME_PROTOCOL_UISERVER:
-          break;
-        case GPGME_PROTOCOL_SPAWN:
-          break;
-        case GPGME_PROTOCOL_DEFAULT:
-          break;
-        case GPGME_PROTOCOL_UNKNOWN:
-          break;
-      }
-      engine_info = engine_info->next;
-    }
-
-    const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
-        "core", "gpgme.ctx.gnupg_version", std::string{"0.0.0"});
-    SPDLOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
-
-    // conditional check: only support gpg 2.x now
-    if ((CompareSoftwareVersion(gnupg_version, "2.0.0") >= 0 && find_gpgconf &&
-         find_openpgp && find_cms)) {
-      check_passed = true;
-    }
-
-    if (!check_passed) {
-      this->good_ = false;
-      SPDLOG_ERROR("env check failed");
-      return;
-    }
-
-    // speed up loading process
-    gpgme_set_offline(*this, 1);
-
-    // set keylist mode
-    if (gnupg_version >= "2.0.0") {
-      CheckGpgError(gpgme_set_keylist_mode(
-          *this, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_WITH_SECRET |
-                     GPGME_KEYLIST_MODE_SIGS |
-                     GPGME_KEYLIST_MODE_SIG_NOTATIONS |
-                     GPGME_KEYLIST_MODE_WITH_TOFU));
-    } else {
-      CheckGpgError(gpgme_set_keylist_mode(
-          *this, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_SIGS |
-                     GPGME_KEYLIST_MODE_SIG_NOTATIONS |
-                     GPGME_KEYLIST_MODE_WITH_TOFU));
-    }
-
-    // async, init context
-    Thread::TaskRunnerGetter::GetInstance()
-        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
-        ->PostTask(new Thread::Task(
-            [=](const DataObjectPtr &) -> int {
-              ctx_post_initialize();
-              return 0;
-            },
-            "ctx_post_initialize"));
-
-    good_ = true;
+  [[nodiscard]] auto BinaryContext() const -> gpgme_ctx_t {
+    return binary_ctx_ref_.get();
   }
 
-  /**
-   * @brief
-   *
-   * @return gpgme_ctx_t
-   */
-  operator gpgme_ctx_t() const { return ctx_ref_.get(); }
+  [[nodiscard]] auto DefaultContext() const -> gpgme_ctx_t {
+    return ctx_ref_.get();
+  }
 
   [[nodiscard]] auto Good() const -> bool { return good_; }
 
-  void SetPassphraseCb(gpgme_passphrase_cb_t cb) {
-    const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
-        "core", "gpgme.ctx.gnupg_version", std::string{"2.0.0"});
-
-    if (CompareSoftwareVersion(gnupg_version, "2.1.0") >= 0) {
-      if (gpgme_get_pinentry_mode(*this) != GPGME_PINENTRY_MODE_LOOPBACK) {
-        gpgme_set_pinentry_mode(*this, GPGME_PINENTRY_MODE_LOOPBACK);
+  auto SetPassphraseCb(const CtxRefHandler &ctx, gpgme_passphrase_cb_t cb)
+      -> bool {
+    if (gpgme_get_pinentry_mode(ctx.get()) != GPGME_PINENTRY_MODE_LOOPBACK) {
+      if (CheckGpgError(gpgme_set_pinentry_mode(
+              ctx.get(), GPGME_PINENTRY_MODE_LOOPBACK)) != GPG_ERR_NO_ERROR) {
+        return false;
       }
-      gpgme_set_passphrase_cb(*this, cb, reinterpret_cast<void *>(parent_));
-    } else {
-      SPDLOG_ERROR("not supported for gnupg version: {}", gnupg_version);
     }
+    gpgme_set_passphrase_cb(ctx.get(), cb, reinterpret_cast<void *>(parent_));
+    return true;
   }
 
   static auto TestPassphraseCb(void *opaque, const char *uid_hint,
@@ -288,47 +153,82 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
   }
 
  private:
-  struct CtxRefDeleter {
-    void operator()(gpgme_ctx_t _ctx) {
-      if (_ctx != nullptr) gpgme_release(_ctx);
-    }
-  };
-
-  using CtxRefHandler =
-      std::unique_ptr<struct gpgme_context, CtxRefDeleter>;  ///<
-
   GpgContext *parent_;
-  GpgContextInitArgs args_{};        ///<
-  CtxRefHandler ctx_ref_ = nullptr;  ///<
+  GpgContextInitArgs args_{};               ///<
+  CtxRefHandler ctx_ref_ = nullptr;         ///<
+  CtxRefHandler binary_ctx_ref_ = nullptr;  ///<
   bool good_ = true;
 
-  void ctx_post_initialize() {
-    const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
-        "core", "gpgme.ctx.gnupg_version", std::string{"2.0.0"});
+  static auto set_ctx_key_list_mode(const CtxRefHandler &ctx) -> bool {
+    assert(ctx.get() != nullptr);
 
-    if (args_.ascii) {
-      /** Setting the output type must be done at the beginning */
-      /** think this means ascii-armor --> ? */
-      gpgme_set_armor(*this, 1);
-    } else {
-      /** Setting the output type must be done at the beginning */
-      /** think this means ascii-armor --> ? */
-      gpgme_set_armor(*this, 0);
+    const auto gpgme_version = Module::RetrieveRTValueTypedOrDefault<>(
+        "core", "gpgme.version", std::string{"0.0.0"});
+    SPDLOG_DEBUG("got gpgme version version from rt: {}", gpgme_version);
+
+    if (gpgme_get_keylist_mode(ctx.get()) == 0) {
+      SPDLOG_ERROR(
+          "ctx is not a valid pointer, reported by gpgme_get_keylist_mode");
+      return false;
+    }
+
+    // set keylist mode
+    return CheckGpgError(gpgme_set_keylist_mode(
+               ctx.get(),
+               GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_WITH_SECRET |
+                   GPGME_KEYLIST_MODE_SIGS | GPGME_KEYLIST_MODE_SIG_NOTATIONS |
+                   GPGME_KEYLIST_MODE_WITH_TOFU)) == GPG_ERR_NO_ERROR;
+  }
+
+  auto common_ctx_initialize(const CtxRefHandler &ctx,
+                             const GpgContextInitArgs &args) -> bool {
+    assert(ctx.get() != nullptr);
+
+    if (args.custom_gpgconf && !args.custom_gpgconf_path.empty()) {
+      SPDLOG_DEBUG("set custom gpgconf path: {}", args.custom_gpgconf_path);
+      auto err =
+          gpgme_ctx_set_engine_info(ctx.get(), GPGME_PROTOCOL_GPGCONF,
+                                    args.custom_gpgconf_path.c_str(), nullptr);
+
+      assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
+      if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+        return false;
+      }
+    }
+
+    // set context offline mode
+    SPDLOG_DEBUG("gpg context offline mode: {}", args_.offline_mode);
+    gpgme_set_offline(ctx.get(), args_.offline_mode ? 1 : 0);
+
+    // set option auto import missing key
+    // invalid at offline mode
+    SPDLOG_DEBUG("gpg context auto import missing key: {}", args_.offline_mode);
+    if (!args.offline_mode && args.auto_import_missing_key) {
+      if (CheckGpgError(gpgme_set_ctx_flag(ctx.get(), "auto-key-import",
+                                           "1")) != GPG_ERR_NO_ERROR) {
+        return false;
+      }
+    }
+
+    if (!set_ctx_key_list_mode(ctx)) {
+      SPDLOG_DEBUG("set ctx key list mode failed");
+      return false;
     }
 
     // for unit test
     if (args_.test_mode) {
-      if (CompareSoftwareVersion(gnupg_version, "2.1.0") >= 0) {
-        SetPassphraseCb(TestPassphraseCb);
+      if (!SetPassphraseCb(ctx, TestPassphraseCb)) {
+        SPDLOG_ERROR("set passphrase cb failed, test");
+        return false;
+      };
+    } else if (!args_.use_pinentry) {
+      if (!SetPassphraseCb(ctx, CustomPassphraseCb)) {
+        SPDLOG_DEBUG("set passphrase cb failed, custom");
+        return false;
       }
-      gpgme_set_status_cb(*this, TestStatusCb, nullptr);
     }
 
-    if (!args_.use_pinentry) {
-      SetPassphraseCb(CustomPassphraseCb);
-    }
-
-    // set custom key db path
+    // set custom gpg key db path
     if (!args_.db_path.empty()) {
       Module::UpsertRTValue("core", "gpgme.ctx.database_path",
                             std::string(args_.db_path));
@@ -342,8 +242,50 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
           gpgme_ctx_set_engine_info(ctx_ref_.get(), GPGME_PROTOCOL_OpenPGP,
                                     app_path.c_str(), database_path.c_str());
       SPDLOG_DEBUG("ctx set custom key db path: {}", database_path);
+
       assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
+      if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+        return false;
+      }
     }
+
+    return true;
+  }
+
+  auto binary_ctx_initialize(const GpgContextInitArgs &args) -> bool {
+    gpgme_ctx_t p_ctx;
+    if (CheckGpgError(gpgme_new(&p_ctx)) != GPG_ERR_NO_ERROR) {
+      return false;
+    }
+    assert(p_ctx != nullptr);
+    binary_ctx_ref_ = CtxRefHandler(p_ctx);
+
+    if (!common_ctx_initialize(binary_ctx_ref_, args)) {
+      SPDLOG_ERROR("get new ctx failed, binary");
+      return false;
+    }
+
+    /** Setting the output type must be done at the beginning */
+    /** think this means ascii-armor --> ? */
+    gpgme_set_armor(binary_ctx_ref_.get(), 0);
+    return true;
+  }
+
+  auto default_ctx_initialize(const GpgContextInitArgs &args) -> bool {
+    gpgme_ctx_t p_ctx;
+    if (CheckGpgError(gpgme_new(&p_ctx)) != GPG_ERR_NO_ERROR) {
+      SPDLOG_ERROR("get new ctx failed, default");
+      return false;
+    }
+    assert(p_ctx != nullptr);
+    ctx_ref_ = CtxRefHandler(p_ctx);
+
+    if (!common_ctx_initialize(ctx_ref_, args)) {
+      return false;
+    }
+
+    gpgme_set_armor(ctx_ref_.get(), 1);
+    return true;
   }
 };
 
@@ -357,12 +299,10 @@ GpgContext::GpgContext(const GpgContextInitArgs &args, int channel)
 
 auto GpgContext::Good() const -> bool { return p_->Good(); }
 
-void GpgContext::SetPassphraseCb(gpgme_passphrase_cb_t passphrase_cb) const {
-  p_->SetPassphraseCb(passphrase_cb);
-}
+auto GpgContext::BinaryContext() -> gpgme_ctx_t { return p_->BinaryContext(); }
 
-GpgContext::operator gpgme_ctx_t() const {
-  return static_cast<gpgme_ctx_t>(*p_);
+auto GpgContext::DefaultContext() -> gpgme_ctx_t {
+  return p_->DefaultContext();
 }
 
 GpgContext::~GpgContext() = default;

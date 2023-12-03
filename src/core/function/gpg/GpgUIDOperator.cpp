@@ -39,21 +39,22 @@ GpgUIDOperator::GpgUIDOperator(int channel)
     : SingletonFunctionObject<GpgUIDOperator>(channel) {}
 
 auto GpgUIDOperator::AddUID(const GpgKey& key, const std::string& uid) -> bool {
-  auto err =
-      gpgme_op_adduid(ctx_, static_cast<gpgme_key_t>(key), uid.c_str(), 0);
+  auto err = gpgme_op_adduid(ctx_.DefaultContext(),
+                             static_cast<gpgme_key_t>(key), uid.c_str(), 0);
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
 auto GpgUIDOperator::RevUID(const GpgKey& key, const std::string& uid) -> bool {
-  auto err = CheckGpgError(
-      gpgme_op_revuid(ctx_, static_cast<gpgme_key_t>(key), uid.c_str(), 0));
+  auto err = CheckGpgError(gpgme_op_revuid(
+      ctx_.DefaultContext(), static_cast<gpgme_key_t>(key), uid.c_str(), 0));
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
 auto GpgUIDOperator::SetPrimaryUID(const GpgKey& key, const std::string& uid)
     -> bool {
   auto err = CheckGpgError(gpgme_op_set_uid_flag(
-      ctx_, static_cast<gpgme_key_t>(key), uid.c_str(), "primary", nullptr));
+      ctx_.DefaultContext(), static_cast<gpgme_key_t>(key), uid.c_str(),
+      "primary", nullptr));
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 auto GpgUIDOperator::AddUID(const GpgKey& key, const std::string& name,

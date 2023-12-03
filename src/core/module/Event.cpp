@@ -80,8 +80,10 @@ class Event::Impl {
 
   void ExecuteCallback(ListenerIdentifier listener_id,
                        const DataObjectPtr& data_object) {
+    SPDLOG_DEBUG("try to execute callback for event {} with listener {}",
+                 event_identifier_, listener_id);
     if (callback_) {
-      SPDLOG_DEBUG("execute callback for event {} with listener {}",
+      SPDLOG_DEBUG("executing callback for event {} with listener {}",
                    event_identifier_, listener_id);
       if (!QMetaObject::invokeMethod(
               callback_thread_,

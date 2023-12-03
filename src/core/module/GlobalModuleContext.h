@@ -77,7 +77,7 @@ class GPGFRONTEND_CORE_EXPORT GlobalModuleContext : public QObject {
 
   auto TriggerEvent(EventRefrernce) -> bool;
 
-  auto IsModuleExists(ModuleIdentifier) -> bool;
+  auto IsModuleActivated(ModuleIdentifier) -> bool;
 
  private:
   class Impl;

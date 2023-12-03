@@ -63,6 +63,8 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager : public QObject {
 
   void RegisterModule(ModulePtr);
 
+  auto IsModuleActivated(ModuleIdentifier) -> bool;
+
   void TriggerEvent(EventRefrernce);
 
   void ActiveModule(ModuleIdentifier);
@@ -110,13 +112,43 @@ void TriggerEvent(const EventIdentifier& event_id, Args&&... args,
       std::move(MakeEvent(event_id, std::forward<Args>(args)..., e_cb)));
 }
 
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+auto GPGFRONTEND_CORE_EXPORT IsModuleAcivate(ModuleIdentifier) -> bool;
+
+/**
+ * @brief
+ *
+ * @param namespace_
+ * @param key
+ * @param value
+ * @return true
+ * @return false
+ */
 auto GPGFRONTEND_CORE_EXPORT UpsertRTValue(const std::string& namespace_,
                                            const std::string& key,
                                            const std::any& value) -> bool;
 
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
 auto GPGFRONTEND_CORE_EXPORT ListenRTPublishEvent(QObject*, Namespace, Key,
                                                   LPCallback) -> bool;
 
+/**
+ * @brief
+ *
+ * @param namespace_
+ * @param key
+ * @return std::vector<Key>
+ */
 auto GPGFRONTEND_CORE_EXPORT ListRTChildKeys(const std::string& namespace_,
                                              const std::string& key)
     -> std::vector<Key>;

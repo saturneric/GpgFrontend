@@ -33,6 +33,8 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
+#include <stdexcept>
+
 #include "core/function/GlobalSettingStation.h"
 
 namespace GpgFrontend::Module::SDK {
@@ -81,7 +83,13 @@ void ShutdownModuleLoggingSystem() {
 #endif
 }
 
-std::shared_ptr<spdlog::logger> GetModuleLogger() {
+auto GetModuleLogger() -> std::shared_ptr<spdlog::logger> {
+  // check if logging system is initalized
+  auto ptr = spdlog::get("module");
+  if (ptr == nullptr) {
+    throw std::runtime_error("logging system of modules is not initialized");
+  }
+
   return spdlog::get("module");
 }
 

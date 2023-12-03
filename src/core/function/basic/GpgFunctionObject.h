@@ -79,7 +79,7 @@ class SingletonFunctionObject : public ChannelObject {
       }
     }
 
-    static_assert(std::is_base_of<SingletonFunctionObject<T>, T>::value,
+    static_assert(std::is_base_of_v<SingletonFunctionObject<T>, T>,
                   "T not derived from SingletonFunctionObject<T>");
 
     auto* p_storage =
@@ -123,7 +123,7 @@ class SingletonFunctionObject : public ChannelObject {
    */
   static auto CreateInstance(
       int channel, const std::function<ChannelObjectPtr(void)>& factory) -> T& {
-    static_assert(std::is_base_of<SingletonFunctionObject<T>, T>::value,
+    static_assert(std::is_base_of_v<SingletonFunctionObject<T>, T>,
                   "T not derived from SingletonFunctionObject<T>");
 
     auto* p_storage =

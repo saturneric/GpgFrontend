@@ -48,11 +48,11 @@ auto GpgKeyImportExporter::ImportKey(StdBypeArrayPtr in_buffer)
   if (in_buffer->empty()) return {};
 
   GpgData data_in(in_buffer->data(), in_buffer->size());
-  auto err = CheckGpgError(gpgme_op_import(ctx_, data_in));
+  auto err = CheckGpgError(gpgme_op_import(ctx_.DefaultContext(), data_in));
   if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
 
   gpgme_import_result_t result;
-  result = gpgme_op_import_result(ctx_);
+  result = gpgme_op_import_result(ctx_.DefaultContext());
   gpgme_import_status_t status = result->imports;
   auto import_info = std::make_unique<GpgImportInformation>(result);
   while (status != nullptr) {
@@ -90,7 +90,8 @@ auto GpgKeyImportExporter::ExportKeys(KeyIdArgsListPtr& uid_list,
   keys_array[index] = nullptr;
 
   GpgData data_out;
-  auto err = gpgme_op_export_keys(ctx_, keys_array, mode, data_out);
+  auto err =
+      gpgme_op_export_keys(ctx_.DefaultContext(), keys_array, mode, data_out);
   if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return false;
 
   delete[] keys_array;
@@ -156,7 +157,7 @@ auto GpgKeyImportExporter::ExportSecretKey(const GpgKey& key,
 
   GpgData data_out;
   // export private key to outBuffer
-  gpgme_error_t err = gpgme_op_export_keys(ctx_, target_key,
+  gpgme_error_t err = gpgme_op_export_keys(ctx_.DefaultContext(), target_key,
                                            GPGME_EXPORT_MODE_SECRET, data_out);
 
   auto temp_out_buffer = data_out.Read2Buffer();
@@ -168,7 +169,8 @@ auto GpgKeyImportExporter::ExportSecretKey(const GpgKey& key,
 auto GpgKeyImportExporter::ExportKey(const GpgKey& key,
                                      ByteArrayPtr& out_buffer) const -> bool {
   GpgData data_out;
-  auto err = gpgme_op_export(ctx_, key.GetId().c_str(), 0, data_out);
+  auto err =
+      gpgme_op_export(ctx_.DefaultContext(), key.GetId().c_str(), 0, data_out);
 
   SPDLOG_DEBUG("export keys read_bytes: {}",
                gpgme_data_seek(data_out, 0, SEEK_END));
@@ -182,8 +184,8 @@ auto GpgKeyImportExporter::ExportKeyOpenSSH(const GpgKey& key,
                                             ByteArrayPtr& out_buffer) const
     -> bool {
   GpgData data_out;
-  auto err = gpgme_op_export(ctx_, key.GetId().c_str(), GPGME_EXPORT_MODE_SSH,
-                             data_out);
+  auto err = gpgme_op_export(ctx_.DefaultContext(), key.GetId().c_str(),
+                             GPGME_EXPORT_MODE_SSH, data_out);
 
   SPDLOG_DEBUG("read_bytes: {}", gpgme_data_seek(data_out, 0, SEEK_END));
 
@@ -195,7 +197,7 @@ auto GpgKeyImportExporter::ExportKeyOpenSSH(const GpgKey& key,
 auto GpgKeyImportExporter::ExportSecretKeyShortest(
     const GpgKey& key, ByteArrayPtr& out_buffer) const -> bool {
   GpgData data_out;
-  auto err = gpgme_op_export(ctx_, key.GetId().c_str(),
+  auto err = gpgme_op_export(ctx_.DefaultContext(), key.GetId().c_str(),
                              GPGME_EXPORT_MODE_MINIMAL, data_out);
 
   SPDLOG_DEBUG("read_bytes: {}", gpgme_data_seek(data_out, 0, SEEK_END));

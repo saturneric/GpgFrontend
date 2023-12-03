@@ -37,10 +37,24 @@ struct ModuleInitArgs {
 };
 
 /**
+ * @brief
+ *
+ * @param args
+ */
+void GPGFRONTEND_MODULE_EXPORT
+LoadGpgFrontendModulesLoggingSystem(ModuleInitArgs args);
+
+/**
+ * @brief
+ *
+ */
+void GPGFRONTEND_MODULE_EXPORT ShutdownGpgFrontendModulesLoggingSystem();
+
+/**
  * @brief init the module library
  *
  */
-void GPGFRONTEND_MODULE_EXPORT LoadGpgFrontendModules(ModuleInitArgs);
+void GPGFRONTEND_MODULE_EXPORT LoadGpgFrontendModules(ModuleInitArgs args);
 
 /**
  * @brief shutdown the module library

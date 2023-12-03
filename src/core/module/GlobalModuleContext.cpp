@@ -273,8 +273,9 @@ class GlobalModuleContext::Impl {
     return true;
   }
 
-  auto IsModuleExists(const ModuleIdentifier& m_id) const -> bool {
-    return search_module_register_table(m_id).has_value();
+  auto IsModuleActivated(const ModuleIdentifier& m_id) const -> bool {
+    auto m = search_module_register_table(m_id);
+    return m.has_value() && m->get()->activate;
   }
 
  private:
@@ -374,8 +375,8 @@ auto GlobalModuleContext::GetDefaultChannel(ModuleRawPtr channel) -> int {
   return GlobalModuleContext::Impl::GetDefaultChannel(channel);
 }
 
-auto GlobalModuleContext::IsModuleExists(ModuleIdentifier m_id) -> bool {
-  return p_->IsModuleExists(std::move(m_id));
+auto GlobalModuleContext::IsModuleActivated(ModuleIdentifier m_id) -> bool {
+  return p_->IsModuleActivated(std::move(m_id));
 }
 
 }  // namespace GpgFrontend::Module

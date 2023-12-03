@@ -49,18 +49,12 @@ void GPGFRONTEND_CORE_EXPORT ShutdownCoreLoggingSystem();
  * @brief
  *
  */
-void GPGFRONTEND_CORE_EXPORT ResetGpgFrontendCore();
+void GPGFRONTEND_CORE_EXPORT DestroyGpgFrontendCore();
 
 /**
  * @brief
  *
  */
 void GPGFRONTEND_CORE_EXPORT InitGpgFrontendCore();
-
-/**
- * @brief
- *
- */
-void reset_gpgfrontend_core();
 
 }  // namespace GpgFrontend

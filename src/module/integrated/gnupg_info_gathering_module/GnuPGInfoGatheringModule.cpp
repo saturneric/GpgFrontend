@@ -97,7 +97,7 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
                   event->GetIdentifier());
 
   const auto gpgme_version = RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.version", std::string{"2.0.0"});
+      "core", "gpgme.version", std::string{"0.0.0"});
   MODULE_LOG_DEBUG("got gpgme version from rt: {}", gpgme_version);
 
   const auto gpgconf_path = RetrieveRTValueTypedOrDefault<>(
@@ -289,8 +289,7 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
         std::string{});
 
     auto jsonlized_component_info = nlohmann::json::parse(component_info_json);
-    GpgComponentInfo component_info =
-        jsonlized_component_info.get<GpgComponentInfo>();
+    auto component_info = jsonlized_component_info.get<GpgComponentInfo>();
     MODULE_LOG_DEBUG("gpgconf check options ready, component: {}",
                      component_info.name);
 
@@ -392,6 +391,8 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
   GpgCommandExecutor::ExecuteConcurrentlySync(exec_contexts);
   UpsertRTValue(GetModuleIdentifier(), "gnupg.gathering_done", true);
   event->ExecuteCallback(GetModuleIdentifier(), TransferParams(true));
+
+  SPDLOG_INFO("gnupg external info gathering done");
 
   return 0;
 }

@@ -45,6 +45,12 @@ void GPGFRONTEND_UI_EXPORT InitGpgFrontendUI(QApplication *);
 void GPGFRONTEND_UI_EXPORT InitUILoggingSystem(spdlog::level::level_enum level);
 
 /**
+ * @brief init the UI library
+ *
+ */
+void GPGFRONTEND_UI_EXPORT DestroyGpgFrontendUI();
+
+/**
  * @brief
  *
  */

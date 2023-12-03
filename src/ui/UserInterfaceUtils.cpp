@@ -160,8 +160,8 @@ CommonUtils *CommonUtils::GetInstance() {
 
 CommonUtils::CommonUtils() : QWidget(nullptr) {
   connect(CoreSignalStation::GetInstance(),
-          &CoreSignalStation::SignalGnupgNotInstall, this,
-          &CommonUtils::SignalGnupgNotInstall);
+          &CoreSignalStation::SignalBadGnupgEnv, this,
+          &CommonUtils::SignalBadGnupgEnv);
   connect(this, &CommonUtils::SignalKeyStatusUpdated,
           UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefresh);
@@ -184,7 +184,7 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
           &UISignalStation::SignalRestartApplication, this,
           &CommonUtils::SlotRestartApplication);
 
-  connect(this, &CommonUtils::SignalGnupgNotInstall, this, [=]() {
+  connect(this, &CommonUtils::SignalBadGnupgEnv, this, [=]() {
     QMessageBox msgBox;
     msgBox.setText(_("GnuPG Context Loading Failed"));
     msgBox.setInformativeText(

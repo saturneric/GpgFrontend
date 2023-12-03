@@ -55,8 +55,9 @@ static inline auto Trim(std::string& s) -> std::string {
 
 auto CheckGpgError(GpgError err) -> GpgError {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
-    SPDLOG_ERROR("[error: {}] source: {} description: {}", gpg_err_code(err),
-                 gpgme_strsource(err), gpgme_strerror(err));
+    SPDLOG_ERROR(
+        "gpg operation failed [error code: {}], source: {} description: {}",
+        gpg_err_code(err), gpgme_strsource(err), gpgme_strerror(err));
   }
   return err;
 }

@@ -54,9 +54,9 @@ auto GpgFrontend::GpgKeyManager::SignKey(
     expires_time_t = to_time_t(*expires);
   }
 
-  auto err =
-      CheckGpgError(gpgme_op_keysign(ctx_, static_cast<gpgme_key_t>(target),
-                                     uid.c_str(), expires_time_t, flags));
+  auto err = CheckGpgError(
+      gpgme_op_keysign(ctx_.DefaultContext(), static_cast<gpgme_key_t>(target),
+                       uid.c_str(), expires_time_t, flags));
 
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
@@ -69,9 +69,9 @@ auto GpgFrontend::GpgKeyManager::RevSign(
   for (const auto& sign_id : *signature_id) {
     auto signing_key = key_getter.GetKey(sign_id.first);
     assert(signing_key.IsGood());
-    auto err = CheckGpgError(gpgme_op_revsig(ctx_, gpgme_key_t(key),
-                                             gpgme_key_t(signing_key),
-                                             sign_id.second.c_str(), 0));
+    auto err = CheckGpgError(
+        gpgme_op_revsig(ctx_.DefaultContext(), gpgme_key_t(key),
+                        gpgme_key_t(signing_key), sign_id.second.c_str(), 0));
     if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return false;
   }
   return true;
@@ -90,8 +90,9 @@ auto GpgFrontend::GpgKeyManager::SetExpire(
 
   if (subkey != nullptr) sub_fprs = subkey->GetFingerprint().c_str();
 
-  auto err = CheckGpgError(gpgme_op_setexpire(
-      ctx_, static_cast<gpgme_key_t>(key), expires_time, sub_fprs, 0));
+  auto err = CheckGpgError(gpgme_op_setexpire(ctx_.DefaultContext(),
+                                              static_cast<gpgme_key_t>(key),
+                                              expires_time, sub_fprs, 0));
 
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
@@ -180,9 +181,9 @@ auto GpgFrontend::GpgKeyManager::SetOwnerTrustLevel(const GpgKey& key,
 
   GpgData data_out;
 
-  auto err = gpgme_op_interact(ctx_, static_cast<gpgme_key_t>(key), 0,
-                               GpgKeyManager::interactor_cb_fnc,
-                               (void*)&handel_struct, data_out);
+  auto err = gpgme_op_interact(
+      ctx_.DefaultContext(), static_cast<gpgme_key_t>(key), 0,
+      GpgKeyManager::interactor_cb_fnc, (void*)&handel_struct, data_out);
   if (err != GPG_ERR_NO_ERROR) {
     SPDLOG_ERROR("fail to set owner trust level {} to key {}, err: {}",
                  trust_level, key.GetId(), gpgme_strerror(err));

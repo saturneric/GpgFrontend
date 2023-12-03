@@ -29,7 +29,9 @@
 #include "GpgFrontendModuleInit.h"
 
 #include <core/module/ModuleManager.h>
-#include <module/sdk/Log.h>
+
+#include "core/thread/Task.h"
+#include "core/thread/TaskRunnerGetter.h"
 
 // integrated modules
 #include "integrated/gnupg_info_gathering_module/GnuPGInfoGatheringModule.h"
@@ -37,8 +39,17 @@
 
 namespace GpgFrontend::Module {
 
+void LoadGpgFrontendModulesLoggingSystem(ModuleInitArgs args) {
+  GpgFrontend::Module::SDK::InitModuleLoggingSystem(args.log_level);
+}
+
+void ShutdownGpgFrontendModulesLoggingSystem() {
+  GpgFrontend::Module::SDK::ShutdownModuleLoggingSystem();
+}
+
 void LoadGpgFrontendModules(ModuleInitArgs args) {
-  SDK::InitModuleLoggingSystem(args.log_level);
+  // init the logging system for module system
+  LoadGpgFrontendModulesLoggingSystem(args);
 
   MODULE_LOG_INFO("loading integrated module...");
 
@@ -51,8 +62,13 @@ void LoadGpgFrontendModules(ModuleInitArgs args) {
       Integrated::GnuPGInfoGatheringModule::GnuPGInfoGatheringModule>();
 
   MODULE_LOG_INFO("load integrated module done.");
+
+  // must init at default thread before core
+  Thread::TaskRunnerGetter::GetInstance().GetTaskRunner()->PostTask(
+      new Thread::Task([](const DataObjectPtr&) -> int { return 0; },
+                       "modules_system_init_task"));
 }
 
-void ShutdownGpgFrontendModules() { SDK::ShutdownModuleLoggingSystem(); }
+void ShutdownGpgFrontendModules() {}
 
 }  // namespace GpgFrontend::Module

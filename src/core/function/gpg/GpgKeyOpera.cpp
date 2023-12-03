@@ -63,9 +63,9 @@ void GpgKeyOpera::DeleteKeys(GpgFrontend::KeyIdArgsListPtr key_ids) {
   for (const auto& tmp : *key_ids) {
     auto key = GpgKeyGetter::GetInstance().GetKey(tmp);
     if (key.IsGood()) {
-      err = CheckGpgError(
-          gpgme_op_delete_ext(ctx_, static_cast<gpgme_key_t>(key),
-                              GPGME_DELETE_ALLOW_SECRET | GPGME_DELETE_FORCE));
+      err = CheckGpgError(gpgme_op_delete_ext(
+          ctx_.DefaultContext(), static_cast<gpgme_key_t>(key),
+          GPGME_DELETE_ALLOW_SECRET | GPGME_DELETE_FORCE));
       assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
     } else {
       SPDLOG_WARN("GpgKeyOpera DeleteKeys get key failed", tmp);
@@ -95,11 +95,13 @@ auto GpgKeyOpera::SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
 
   GpgError err;
   if (key.GetFingerprint() == subkey_fpr || subkey_fpr.empty()) {
-    err = gpgme_op_setexpire(ctx_, static_cast<gpgme_key_t>(key), expires_time,
-                             nullptr, 0);
+    err =
+        gpgme_op_setexpire(ctx_.DefaultContext(), static_cast<gpgme_key_t>(key),
+                           expires_time, nullptr, 0);
   } else {
-    err = gpgme_op_setexpire(ctx_, static_cast<gpgme_key_t>(key), expires_time,
-                             subkey_fpr.c_str(), 0);
+    err =
+        gpgme_op_setexpire(ctx_.DefaultContext(), static_cast<gpgme_key_t>(key),
+                           expires_time, subkey_fpr.c_str(), 0);
   }
 
   return err;
@@ -192,11 +194,13 @@ void GpgKeyOpera::GenerateKey(const std::shared_ptr<GenKeyInfo>& params,
         if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
 
         SPDLOG_DEBUG("key generation args: {}", userid, algo, expires, flags);
-        err = gpgme_op_createkey(ctx, userid, algo, 0, expires, nullptr, flags);
+        err = gpgme_op_createkey(ctx.DefaultContext(), userid, algo, 0, expires,
+                                 nullptr, flags);
 
         GpgGenKeyResult result;
         if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-          auto temp_result = NewResult(gpgme_op_genkey_result(ctx));
+          auto temp_result =
+              NewResult(gpgme_op_genkey_result(ctx.DefaultContext()));
           std::swap(temp_result, result);
         }
         data_object->Swap({result});
@@ -241,8 +245,9 @@ void GpgKeyOpera::GenerateSubkey(const GpgKey& key,
 
         SPDLOG_DEBUG("args: {} {} {} {}", key.GetId(), algo, expires, flags);
 
-        auto err = gpgme_op_createsubkey(ctx, static_cast<gpgme_key_t>(key),
-                                         algo, 0, expires, flags);
+        auto err = gpgme_op_createsubkey(ctx.DefaultContext(),
+                                         static_cast<gpgme_key_t>(key), algo, 0,
+                                         expires, flags);
         return CheckGpgError(err);
       },
       callback, "gpgme_op_createsubkey", "2.1.13");
@@ -252,7 +257,8 @@ void GpgKeyOpera::ModifyPassword(const GpgKey& key,
                                  const GpgOperationCallback& callback) {
   RunGpgOperaAsync(
       [&key, &ctx = ctx_](const DataObjectPtr&) -> GpgError {
-        return gpgme_op_passwd(ctx, static_cast<gpgme_key_t>(key), 0);
+        return gpgme_op_passwd(ctx.DefaultContext(),
+                               static_cast<gpgme_key_t>(key), 0);
       },
       callback, "gpgme_op_passwd", "2.0.15");
 }
@@ -269,8 +275,8 @@ auto GpgKeyOpera::ModifyTOFUPolicy(const GpgKey& key,
     return GPG_ERR_NOT_SUPPORTED;
   }
 
-  auto err =
-      gpgme_op_tofu_policy(ctx_, static_cast<gpgme_key_t>(key), tofu_policy);
+  auto err = gpgme_op_tofu_policy(ctx_.DefaultContext(),
+                                  static_cast<gpgme_key_t>(key), tofu_policy);
   return CheckGpgError(err);
 }
 
