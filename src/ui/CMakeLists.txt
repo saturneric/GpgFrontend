@@ -50,14 +50,17 @@ generate_export_header(gpgfrontend_ui EXPORT_FILE_NAME "${_export_file}")
 # link Qt
 if(Qt6_DIR)
         target_link_libraries(gpgfrontend_ui
-                Qt6::Network Qt6::PrintSupport Qt6::Widgets Qt6::Test Qt6::Core5Compat Qt6::Core)
+                Qt6::Network Qt6::PrintSupport Qt6::Test Qt6::Core5Compat)
 else()
         target_link_libraries(gpgfrontend_ui
-                Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
+                Qt5::Network Qt5::PrintSupport Qt5::Test)
 endif()
 
 # link gpgfrontend_core
 target_link_libraries(gpgfrontend_ui gpgfrontend_core)
+
+# link buddled pinentry
+target_link_libraries(gpgfrontend_ui gpgfrontend_pinentry)
 
 # set up pch
 target_precompile_headers(gpgfrontend_ui PUBLIC GpgFrontendUI.h)

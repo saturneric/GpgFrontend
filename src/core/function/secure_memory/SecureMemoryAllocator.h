@@ -28,28 +28,17 @@
 
 #pragma once
 
-#include "GpgFrontendUI.h"
+#include <cstdint>
 
-namespace GpgFrontend::UI {
+namespace GpgFrontend {
 
-class SetOwnerTrustLevel : public QWidget {
-  Q_OBJECT
+class GPGFRONTEND_CORE_EXPORT SecurityMemoryAllocator {
  public:
-  /**
-   * @brief Set the Owner Trust Level object
-   *
-   * @param parent
-   */
-  explicit SetOwnerTrustLevel(QWidget* parent);
+  static auto Allocate(std::size_t) -> void*;
 
-  /**
-   * @brief
-   *
-   * @param key_id
-   * @return true
-   * @return false
-   */
-  auto Exec(const std::string& key_id) -> bool;
+  static auto Reallocate(void*, std::size_t) -> void*;
+
+  static void Deallocate(void*);
 };
 
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend

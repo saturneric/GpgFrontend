@@ -28,28 +28,15 @@
 
 #pragma once
 
-#include "GpgFrontendUI.h"
-
+#include <qwidget.h>
 namespace GpgFrontend::UI {
 
-class SetOwnerTrustLevel : public QWidget {
+class RaisePinentry : QWidget {
   Q_OBJECT
  public:
-  /**
-   * @brief Set the Owner Trust Level object
-   *
-   * @param parent
-   */
-  explicit SetOwnerTrustLevel(QWidget* parent);
+  explicit RaisePinentry(QWidget *parent);
 
-  /**
-   * @brief
-   *
-   * @param key_id
-   * @return true
-   * @return false
-   */
-  auto Exec(const std::string& key_id) -> bool;
+  auto Exec() -> int;
 };
 
 }  // namespace GpgFrontend::UI

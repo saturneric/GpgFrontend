@@ -29,3 +29,6 @@ set(JSON_BuildTests OFF CACHE INTERNAL "")
 
 add_subdirectory(json EXCLUDE_FROM_ALL)
 add_subdirectory(spdlog EXCLUDE_FROM_ALL)
+
+set(MI_SECURE ON)
+add_subdirectory(mimalloc EXCLUDE_FROM_ALL)

@@ -30,6 +30,7 @@
 #include <QDialog>
 #include <QStyle>
 #include <QTimer>
+#include <memory>
 
 #include "pinentry.h"
 
@@ -163,7 +164,8 @@ class PinEntryDialog : public QDialog
   bool _disable_echo_allowed = true;
   bool mEnforceConstraints = false;
   bool mFormatPassphrase = false;
-  pinentry_t _pinentry_info = nullptr;
+  std::unique_ptr<struct pinentry> _pinentry_info =
+      std::make_unique<struct pinentry>();
   QTimer *_timer = nullptr;
   QString mVisibilityTT;
   QString mHideTT;

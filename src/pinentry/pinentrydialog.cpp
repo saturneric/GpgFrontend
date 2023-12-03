@@ -24,6 +24,8 @@
  */
 
 #include <qnamespace.h>
+
+#include "pinentry.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -504,7 +506,8 @@ void PinEntryDialog::updateQuality(const QString &txt) {
   const QByteArray utf8_pin = txt.toUtf8();
   const char *pin = utf8_pin.constData();
   length = strlen(pin);
-  percent = length ? pinentry_inq_quality(_pinentry_info, pin, length) : 0;
+  percent =
+      length ? pinentry_inq_quality(_pinentry_info.get(), pin, length) : 0;
   if (!length) {
     _quality_bar->reset();
   } else {
@@ -521,7 +524,7 @@ void PinEntryDialog::updateQuality(const QString &txt) {
 }
 
 void PinEntryDialog::setPinentryInfo(pinentry_t peinfo) {
-  _pinentry_info = peinfo;
+  _pinentry_info = std::unique_ptr<struct pinentry>(peinfo);
 }
 
 void PinEntryDialog::focusChanged(QWidget *old, QWidget *now) {
@@ -557,7 +560,7 @@ void PinEntryDialog::textChanged(const QString &text) {
 }
 
 void PinEntryDialog::generatePin() {
-  unique_malloced_ptr<char> pin{pinentry_inq_genpin(_pinentry_info)};
+  unique_malloced_ptr<char> pin{pinentry_inq_genpin(_pinentry_info.get())};
   if (pin) {
     if (_edit->echoMode() == QLineEdit::Password) {
       if (mVisiActionEdit) {
@@ -685,7 +688,7 @@ PinEntryDialog::PassphraseCheckResult PinEntryDialog::checkConstraints() {
 
   const auto passphrase = _edit->pin().toUtf8();
   unique_malloced_ptr<char> error{pinentry_inq_checkpin(
-      _pinentry_info, passphrase.constData(), passphrase.size())};
+      _pinentry_info.get(), passphrase.constData(), passphrase.size())};
 
   if (!error) {
     return PassphraseOk;

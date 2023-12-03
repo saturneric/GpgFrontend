@@ -21,7 +21,7 @@
 #ifndef PINENTRY_H
 #define PINENTRY_H
 
-#include "secmem.h"
+#include <cstdint>
 
 #ifdef __cplusplus
 extern "C" {
@@ -298,30 +298,19 @@ typedef struct pinentry *pinentry_t;
    and 1 otherwise.  */
 typedef int (*pinentry_cmd_handler_t)(pinentry_t pin);
 
-/* Start the pinentry event loop.  The program will start to process
-   Assuan commands until it is finished or an error occurs.  If an
-   error occurs, -1 is returned and errno indicates the type of an
-   error.  Otherwise, 0 is returned.  */
-int pinentry_loop(void);
-
-/* The same as above but allows to specify the i/o descriptors.
- * infd and outfd will be duplicated in this function so the caller
- * still has to close them if necessary.
- */
-int pinentry_loop2(int infd, int outfd);
-
 const char *pinentry_get_pgmname(void);
 
 char *pinentry_get_title(pinentry_t pe);
 
 /* Run a quality inquiry for PASSPHRASE of LENGTH. */
-int pinentry_inq_quality(pinentry_t pin, const char *passphrase, size_t length);
+int pinentry_inq_quality(pinentry_t pin, const char *passphrase,
+                         std::size_t length);
 
 /* Run a checkpin inquiry for PASSPHRASE of LENGTH.  Returns NULL, if the
    passphrase satisfies the constraints.  Otherwise, returns a malloced error
    string. */
 char *pinentry_inq_checkpin(pinentry_t pin, const char *passphrase,
-                            size_t length);
+                            std::size_t length);
 
 /* Run a genpin iquriry. Returns a malloced string or NULL */
 char *pinentry_inq_genpin(pinentry_t pin);
@@ -350,9 +339,6 @@ void pinentry_parse_opts(int argc, char *argv[]);
 
 /* Set the optional flag used with getinfo. */
 void pinentry_set_flavor_flag(const char *string);
-
-/* The caller must define this variable to process assuan commands.  */
-extern pinentry_cmd_handler_t pinentry_cmd_handler;
 
 #ifdef WINDOWS
 /* Windows declares sleep as obsolete, but provides a definition for

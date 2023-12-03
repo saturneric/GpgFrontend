@@ -26,30 +26,7 @@
  *
  */
 
-#pragma once
+#include "core/GpgFrontendCore.h"
 
-#include "GpgFrontendUI.h"
-
-namespace GpgFrontend::UI {
-
-class SetOwnerTrustLevel : public QWidget {
-  Q_OBJECT
- public:
-  /**
-   * @brief Set the Owner Trust Level object
-   *
-   * @param parent
-   */
-  explicit SetOwnerTrustLevel(QWidget* parent);
-
-  /**
-   * @brief
-   *
-   * @param key_id
-   * @return true
-   * @return false
-   */
-  auto Exec(const std::string& key_id) -> bool;
-};
-
-}  // namespace GpgFrontend::UI
+// mimalloc
+#include <mimalloc-new-delete.h>

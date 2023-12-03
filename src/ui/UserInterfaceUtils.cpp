@@ -43,7 +43,6 @@
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/CacheUtils.h"
 #include "core/utils/IOUtils.h"
-#include "spdlog/spdlog.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
 #include "ui/dialog/gnupg/GnuPGControllerDialog.h"

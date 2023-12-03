@@ -26,30 +26,17 @@
  *
  */
 
-#pragma once
+#include "MemoryUtils.h"
 
-#include "GpgFrontendUI.h"
+namespace GpgFrontend {
 
-namespace GpgFrontend::UI {
+auto SecureMalloc(std::size_t size) -> void * {
+  return SecurityMemoryAllocator::Allocate(size);
+}
 
-class SetOwnerTrustLevel : public QWidget {
-  Q_OBJECT
- public:
-  /**
-   * @brief Set the Owner Trust Level object
-   *
-   * @param parent
-   */
-  explicit SetOwnerTrustLevel(QWidget* parent);
+auto SecureRealloc(void *ptr, std::size_t size) -> void * {
+  return SecurityMemoryAllocator::Reallocate(ptr, size);
+}
 
-  /**
-   * @brief
-   *
-   * @param key_id
-   * @return true
-   * @return false
-   */
-  auto Exec(const std::string& key_id) -> bool;
-};
-
-}  // namespace GpgFrontend::UI
+void SecureFree(void *ptr) { SecurityMemoryAllocator::Deallocate(ptr); }
+}  // namespace GpgFrontend

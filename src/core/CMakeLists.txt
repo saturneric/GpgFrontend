@@ -27,6 +27,7 @@
 aux_source_directory(./function/result_analyse CORE_SOURCE)
 aux_source_directory(./function/basic CORE_SOURCE)
 aux_source_directory(./function/gpg CORE_SOURCE)
+aux_source_directory(./function/secure_memory CORE_SOURCE)
 aux_source_directory(./function CORE_SOURCE)
 aux_source_directory(./thread CORE_SOURCE)
 aux_source_directory(./model CORE_SOURCE)
@@ -43,8 +44,7 @@ add_library(gpgfrontend_core SHARED ${CORE_SOURCE})
 set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendCoreExport.h")
 generate_export_header(gpgfrontend_core EXPORT_FILE_NAME "${_export_file}")
 
-# link buddled pinentry
-target_link_libraries(gpgfrontend_core PRIVATE gpgfrontend_pinentry)
+target_link_libraries(gpgfrontend_core PUBLIC mimalloc)
 
 # link third-party libraries
 target_link_libraries(gpgfrontend_core PUBLIC config++)
@@ -83,7 +83,7 @@ if (MINGW)
 endif ()
 
 # spdlog
-target_link_libraries(gpgfrontend_core PRIVATE spdlog)
+target_link_libraries(gpgfrontend_core PUBLIC spdlog)
 
 # link libarchive
 if(APPLE)

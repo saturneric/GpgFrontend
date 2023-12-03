@@ -49,7 +49,6 @@
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "model/DataObject.h"
-#include "spdlog/spdlog.h"
 
 namespace GpgFrontend {
 
@@ -290,7 +289,7 @@ void GpgKeyOpera::ModifyPassword(const GpgKey& key,
     return;
   }
 
-  auto *task = new Thread::Task(
+  auto* task = new Thread::Task(
       [&](const DataObjectPtr& data_object) -> int {
         auto err = gpgme_op_passwd(ctx_, static_cast<gpgme_key_t>(key), 0);
         data_object->Swap({err});

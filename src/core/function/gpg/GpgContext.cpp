@@ -30,18 +30,6 @@
 
 #include <gpg-error.h>
 #include <gpgme.h>
-#include <qapplication.h>
-#include <qcoreapplication.h>
-#include <qeasingcurve.h>
-#include <qeventloop.h>
-#include <qlabel.h>
-#include <qobject.h>
-#include <qtmetamacros.h>
-#include <qwindowdefs.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-#include <cstring>
 
 #include "core/function/CoreSignalStation.h"
 #include "core/function/basic/GpgFunctionObject.h"
@@ -54,7 +42,6 @@
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "function/CacheManager.h"
-#include "spdlog/spdlog.h"
 
 #ifdef _WIN32
 #include <windows.h>

@@ -23,41 +23,39 @@
 #define _PINLINEEDIT_H_
 
 #include <QLineEdit>
-
 #include <memory>
 
-class PinLineEdit : public QLineEdit
-{
-    Q_OBJECT
+class PinLineEdit : public QLineEdit {
+  Q_OBJECT
 
-public:
-    explicit PinLineEdit(QWidget *parent = nullptr);
-    ~PinLineEdit() override;
+ public:
+  explicit PinLineEdit(QWidget *parent = nullptr);
+  ~PinLineEdit() override;
 
-    void setPin(const QString &pin);
-    QString pin() const;
+  void setPin(const QString &pin);
+  QString pin() const;
 
-public Q_SLOTS:
-    void setFormattedPassphrase(bool on);
-    void copy() const;
-    void cut();
+ public Q_SLOTS:
+  void setFormattedPassphrase(bool on);
+  void copy() const;
+  void cut();
 
-Q_SIGNALS:
-    void backspacePressed();
+ Q_SIGNALS:
+  void backspacePressed();
 
-protected:
-    void keyPressEvent(QKeyEvent *) override;
+ protected:
+  void keyPressEvent(QKeyEvent *) override;
 
-private:
-    using QLineEdit::setText;
-    using QLineEdit::text;
+ private:
+  using QLineEdit::setText;
+  using QLineEdit::text;
 
-private Q_SLOTS:
-    void textEdited();
+ private Q_SLOTS:
+  void textEdited();
 
-private:
-    class Private;
-    std::unique_ptr<Private> d;
+ private:
+  class Private;
+  std::unique_ptr<Private> d;
 };
 
-#endif // _PINLINEEDIT_H_
+#endif  // _PINLINEEDIT_H_

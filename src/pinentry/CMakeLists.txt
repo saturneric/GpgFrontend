@@ -33,14 +33,15 @@ else()
   list(APPEND PINENTRY_SOURCE "capslock/capslock_unix.cpp")
 endif()
 
-message(STATUS "PINENTRY_SOURCE: ${PINENTRY_SOURCE}")
 add_library(gpgfrontend_pinentry SHARED ${PINENTRY_SOURCE})
+
+target_link_libraries(gpgfrontend_pinentry PUBLIC gpgfrontend_core)
 
 # link Qt core
 if(Qt6_DIR)
-    target_link_libraries(gpgfrontend_pinentry PUBLIC Qt6::Core Qt6::Widgets)
+    target_link_libraries(gpgfrontend_pinentry PUBLIC Qt6::Widgets)
 else()
-    target_link_libraries(gpgfrontend_pinentry PUBLIC Qt5::Core Qt5::Widgets)
+    target_link_libraries(gpgfrontend_pinentry PUBLIC Qt5::Widgets)
 endif()
 
 # using std c++ 17

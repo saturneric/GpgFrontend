@@ -346,7 +346,7 @@ if (LINUX)
     endif()
 
     if(USING_COMPILER_CLANG)
-        add_compile_options(-stdlib=libstdc++)
+        add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-stdlib=libstdc++>)
     endif()
 
     if(SYSTEM_NAME STREQUAL "FreeBSD")
