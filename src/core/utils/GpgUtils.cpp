@@ -53,7 +53,7 @@ static inline auto Trim(std::string& s) -> std::string {
   return s;
 }
 
-auto CheckGpgError(gpgme_error_t err) -> gpgme_error_t {
+auto CheckGpgError(GpgError err) -> GpgError {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
     SPDLOG_ERROR("[error: {}] source: {} description: {}", gpg_err_code(err),
                  gpgme_strsource(err), gpgme_strerror(err));
@@ -61,8 +61,7 @@ auto CheckGpgError(gpgme_error_t err) -> gpgme_error_t {
   return err;
 }
 
-auto CheckGpgError2ErrCode(gpgme_error_t err, gpgme_error_t predict)
-    -> gpg_err_code_t {
+auto CheckGpgError2ErrCode(GpgError err, GpgError predict) -> GpgErrorCode {
   auto err_code = gpg_err_code(err);
   if (err_code != gpg_err_code(predict)) {
     if (err_code == GPG_ERR_NO_ERROR)
@@ -77,8 +76,11 @@ auto CheckGpgError2ErrCode(gpgme_error_t err, gpgme_error_t predict)
   return err_code;
 }
 
-auto CheckGpgError(gpgme_error_t err, const std::string& comment)
-    -> gpgme_error_t {
+auto DescribeGpgErrCode(GpgError err) -> GpgErrorDesc {
+  return {gpgme_strsource(err), gpgme_strerror(err)};
+}
+
+auto CheckGpgError(GpgError err, const std::string& /*comment*/) -> GpgError {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
     SPDLOG_WARN("[Error {}] Source: {} description: {} predict: {}",
                 gpg_err_code(err), gpgme_strsource(err), gpgme_strerror(err),

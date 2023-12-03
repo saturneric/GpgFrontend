@@ -121,6 +121,14 @@ auto GPGFRONTEND_CORE_EXPORT CheckGpgError2ErrCode(
     gpgme_error_t err, gpgme_error_t predict = GPG_ERR_NO_ERROR)
     -> gpg_err_code_t;
 
+/**
+ * @brief
+ *
+ * @param err
+ * @return GpgErrorDesc
+ */
+auto GPGFRONTEND_CORE_EXPORT DescribeGpgErrCode(GpgError err) -> GpgErrorDesc;
+
 // Check
 
 /**

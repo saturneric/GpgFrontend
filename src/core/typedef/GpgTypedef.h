@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/model/DataObject.h"
 namespace GpgFrontend {
 
 class GpgKey;  ///< forward declaration
@@ -35,7 +36,9 @@ class GpgSubKey;
 class GpgSignature;
 class GpgTOFUInfo;
 
-using GpgError = gpgme_error_t;  ///< gpgme error code
+using GpgError = gpgme_error_t;  ///< gpgme error
+using GpgErrorCode = gpg_err_code_t;
+using GpgErrorDesc = std::pair<std::string, std::string>;
 
 using KeyId = std::string;                                                ///<
 using SubkeyId = std::string;                                             ///<
@@ -52,5 +55,7 @@ using GpgKeyLinkList = std::list<GpgKey>;                                 ///<
 using KeyLinkListPtr = std::unique_ptr<GpgKeyLinkList>;                   ///<
 using KeyPtr = std::unique_ptr<GpgKey>;                                   ///<
 using KeyPtrArgsList = const std::initializer_list<KeyPtr>;               ///<
-                                                                          ///
+
+using GpgOperaRunnable = std::function<GpgError(DataObjectPtr)>;
+using GpgOperationCallback = std::function<void(GpgError, DataObjectPtr)>;
 }  // namespace GpgFrontend
