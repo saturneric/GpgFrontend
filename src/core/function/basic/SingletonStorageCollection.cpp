@@ -31,6 +31,7 @@
 #include <shared_mutex>
 
 #include "core/function/basic/SingletonStorage.h"
+#include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
 
@@ -46,7 +47,7 @@ class SingletonStorageCollection::Impl {
 
     if (force_refresh || instance == nullptr) {
       instance = new SingletonStorageCollection();
-      SPDLOG_DEBUG("new single storage collection created: {}",
+      SPDLOG_TRACE("new single storage collection created: {}",
                    static_cast<void*>(instance));
     }
 
@@ -69,12 +70,15 @@ class SingletonStorageCollection::Impl {
         ins_it = storages_map_.find(hash);
       }
       if (ins_it == storages_map_.end()) {
+        auto storage = SecureCreateUniqueObject<SingletonStorage>();
+        SPDLOG_TRACE(
+            "hash: {} created, singleton storage address: {} type_name: {}",
+            hash, static_cast<void*>(storage.get()), type_id.name());
+
         {
           std::unique_lock<std::shared_mutex> lock(storages_mutex_);
-          storages_map_.insert({hash, std::make_unique<SingletonStorage>()});
+          storages_map_.insert({hash, std::move(storage)});
         }
-        SPDLOG_TRACE("hash: {} created, storage address: {} type_name: {}",
-                     hash, static_cast<void*>(&storages_map_), type_id.name());
         continue;
       }
       return ins_it->second.get();
@@ -83,7 +87,7 @@ class SingletonStorageCollection::Impl {
 
  private:
   std::shared_mutex storages_mutex_;  ///< mutex for storages_map_
-  std::map<size_t, std::unique_ptr<SingletonStorage>> storages_map_;
+  std::map<size_t, SingletonStoragePtr> storages_map_;
 };
 
 SingletonStorageCollection::SingletonStorageCollection() noexcept

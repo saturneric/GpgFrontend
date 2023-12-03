@@ -31,6 +31,8 @@
 #include "core/function/basic/ChannelObject.h"
 #include "core/function/basic/SingletonStorage.h"
 #include "core/function/basic/SingletonStorageCollection.h"
+#include "core/utils/MemoryUtils.h"
+#include "spdlog/spdlog.h"
 
 namespace GpgFrontend {
 
@@ -67,6 +69,9 @@ class SingletonFunctionObject : public ChannelObject {
     static std::mutex g_channel_mutex_map_lock;
     static std::map<int, std::mutex> g_channel_mutex_map;
 
+    SPDLOG_TRACE("try to get instance of type: {} at channel: {}",
+                 typeid(T).name(), channel);
+
     {
       std::lock_guard<std::mutex> guard(g_channel_mutex_map_lock);
       if (g_channel_mutex_map.find(channel) == g_channel_mutex_map.end()) {
@@ -80,9 +85,17 @@ class SingletonFunctionObject : public ChannelObject {
     auto* p_storage =
         SingletonStorageCollection::GetInstance(false)->GetSingletonStorage(
             typeid(T));
+    SPDLOG_TRACE("get singleton storage result, p_storage: {}",
+                 static_cast<void*>(p_storage));
+
     auto* p_pbj = static_cast<T*>(p_storage->FindObjectInChannel(channel));
+    SPDLOG_TRACE("find channel object result, channel {}, p_pbj: {}", channel,
+                 static_cast<void*>(p_pbj));
 
     if (p_pbj == nullptr) {
+      SPDLOG_TRACE("create channel object, channel {}, type: {}", channel,
+                   typeid(T).name());
+
       // lock this channel
       std::lock_guard<std::mutex> guard(g_channel_mutex_map[channel]);
 
@@ -93,7 +106,8 @@ class SingletonFunctionObject : public ChannelObject {
       }
 
       // do create object of this channel
-      auto new_obj = std::unique_ptr<ChannelObject>(new T(channel));
+      auto new_obj =
+          ConvertToChannelObjectPtr<>(SecureCreateUniqueObject<T>(channel));
       return *static_cast<T*>(
           p_storage->SetObjectInChannel(channel, std::move(new_obj)));
     }
@@ -108,19 +122,23 @@ class SingletonFunctionObject : public ChannelObject {
    * @return T&
    */
   static auto CreateInstance(
-      int channel,
-      const std::function<std::unique_ptr<ChannelObject>(void)>& factory)
-      -> T& {
+      int channel, const std::function<ChannelObjectPtr(void)>& factory) -> T& {
     static_assert(std::is_base_of<SingletonFunctionObject<T>, T>::value,
                   "T not derived from SingletonFunctionObject<T>");
 
     auto* p_storage =
         SingletonStorageCollection::GetInstance(false)->GetSingletonStorage(
             typeid(T));
+    SPDLOG_TRACE("get singleton storage result, p_storage: {}",
+                 static_cast<void*>(p_storage));
 
     auto p_pbj = static_cast<T*>(p_storage->FindObjectInChannel(channel));
+    SPDLOG_TRACE("find channel object result, channel {}, p_pbj: {}", channel,
+                 static_cast<void*>(p_pbj));
 
     if (p_pbj == nullptr) {
+      SPDLOG_TRACE("create channel object, channel {}, type: {}", channel,
+                   typeid(T).name());
       return *static_cast<T*>(
           p_storage->SetObjectInChannel(channel, factory()));
     }

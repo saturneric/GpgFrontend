@@ -28,9 +28,15 @@
 
 #pragma once
 
-namespace GpgFrontend {
+#include <core/function/SecureMemoryAllocator.h>
 
+#include "core/function/SecureMemoryAllocator.h"
+
+namespace GpgFrontend {
 class SingletonStorage;
+
+using SingletonStoragePtr =
+    std::unique_ptr<SingletonStorage, SecureObjectDeleter<SingletonStorage>>;
 
 class GPGFRONTEND_CORE_EXPORT SingletonStorageCollection {
  public:

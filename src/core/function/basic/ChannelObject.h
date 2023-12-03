@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/function/SecureMemoryAllocator.h"
 namespace GpgFrontend {
 
 static constexpr int kGpgFrontendDefaultChannel =
@@ -44,6 +45,12 @@ class GPGFRONTEND_CORE_EXPORT ChannelObject {
    *
    */
   ChannelObject() noexcept;
+
+  /**
+   * @brief Destroy the Channel Object object
+   *
+   */
+  virtual ~ChannelObject() noexcept;
 
   /**
    * @brief Construct a new Channel Object object
@@ -76,5 +83,17 @@ class GPGFRONTEND_CORE_EXPORT ChannelObject {
  private:
   int channel_ = kGpgFrontendDefaultChannel;  ///< The channel id
 };
+
+template <typename Derived>
+auto ConvertToChannelObjectPtr(
+    std::unique_ptr<Derived, SecureObjectDeleter<Derived>> derivedPtr)
+    -> std::unique_ptr<ChannelObject, SecureObjectDeleter<ChannelObject>> {
+  static_assert(std::is_base_of_v<ChannelObject, Derived>,
+                "Derived must be a subclass of ChannelObject");
+
+  ChannelObject* base_ptr = derivedPtr.release();
+  return std::unique_ptr<ChannelObject, SecureObjectDeleter<ChannelObject>>(
+      base_ptr);
+}
 
 }  // namespace GpgFrontend

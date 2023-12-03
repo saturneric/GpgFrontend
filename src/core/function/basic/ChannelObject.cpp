@@ -34,6 +34,8 @@ ChannelObject::ChannelObject() noexcept = default;
 
 ChannelObject::ChannelObject(int channel) : channel_(channel) {}
 
+ChannelObject::~ChannelObject() noexcept = default;
+
 void ChannelObject::SetChannel(int channel) { this->channel_ = channel; }
 
 auto ChannelObject::GetChannel() const -> int { return channel_; }

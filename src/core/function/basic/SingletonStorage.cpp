@@ -52,6 +52,7 @@ class SingletonStorage::Impl {
       std::shared_lock<std::shared_mutex> lock(instances_mutex_);
       ins_it = instances_map_.find(channel);
       if (ins_it == instances_map_.end()) {
+        SPDLOG_TRACE("cannot find channel object, channel :{}", channel);
         return nullptr;
       }
       return ins_it->second.get();
@@ -67,28 +68,34 @@ class SingletonStorage::Impl {
     return channels;
   }
 
-  auto SetObjectInChannel(int channel, std::unique_ptr<ChannelObject> p_obj)
+  auto SetObjectInChannel(int channel, ChannelObjectPtr p_obj)
       -> GpgFrontend::ChannelObject* {
     {
-      SPDLOG_TRACE("set channel: {} instance address: {}", channel,
-                   static_cast<void*>(&instances_map_));
+      SPDLOG_TRACE("set channel: {}, channel object address: {}", channel,
+                   static_cast<void*>(p_obj.get()));
 
       assert(p_obj != nullptr);
-      if (p_obj == nullptr) return nullptr;
+      if (p_obj == nullptr) {
+        return nullptr;
+      }
 
-      auto* raw_obj = p_obj.get();
       p_obj->SetChannel(channel);
+      auto* raw_obj = p_obj.get();
       {
         std::unique_lock<std::shared_mutex> lock(instances_mutex_);
         instances_map_.insert({channel, std::move(p_obj)});
       }
+
+      SPDLOG_TRACE(
+          "set channel: {} success, current channel object address: {}",
+          channel, static_cast<void*>(raw_obj));
       return raw_obj;
     }
   }
 
  private:
   std::shared_mutex instances_mutex_;  ///< mutex for _instances_map
-  std::map<int, std::unique_ptr<ChannelObject>>
+  std::map<int, ChannelObjectPtr>
       instances_map_;  ///< map of singleton instances
 };
 
@@ -109,8 +116,7 @@ auto SingletonStorage::GetAllChannelId() -> std::vector<int> {
   return p_->GetAllChannelId();
 }
 
-auto SingletonStorage::SetObjectInChannel(int channel,
-                                          std::unique_ptr<ChannelObject> p_obj)
+auto SingletonStorage::SetObjectInChannel(int channel, ChannelObjectPtr p_obj)
     -> GpgFrontend::ChannelObject* {
   return p_->SetObjectInChannel(channel, std::move(p_obj));
 }

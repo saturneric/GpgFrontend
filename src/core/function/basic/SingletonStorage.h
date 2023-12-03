@@ -28,9 +28,14 @@
 
 #pragma once
 
+#include "core/function/SecureMemoryAllocator.h"
+
 namespace GpgFrontend {
 
 class ChannelObject;
+
+using ChannelObjectPtr =
+    std::unique_ptr<ChannelObject, SecureObjectDeleter<ChannelObject>>;
 
 class GPGFRONTEND_CORE_EXPORT SingletonStorage {
  public:
@@ -75,7 +80,7 @@ class GPGFRONTEND_CORE_EXPORT SingletonStorage {
    * @param p_obj
    * @return T*
    */
-  auto SetObjectInChannel(int channel, std::unique_ptr<ChannelObject> p_obj)
+  auto SetObjectInChannel(int channel, ChannelObjectPtr p_obj)
       -> ChannelObject*;
 
  private:
