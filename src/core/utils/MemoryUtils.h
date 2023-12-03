@@ -29,7 +29,8 @@
 #pragma once
 
 #include "core/GpgFrontendCoreExport.h"
-#include "core/function/secure_memory/SecureMemoryAllocator.h"
+#include "core/function/SecureMemoryAllocator.h"
+#include "spdlog/spdlog.h"
 
 /* To avoid that a compiler optimizes certain memset calls away, these
    macros may be used instead. */
@@ -107,20 +108,11 @@ auto SecureReallocAsType(T *ptr, std::size_t size) -> T * {
  */
 void GPGFRONTEND_CORE_EXPORT SecureFree(void *);
 
-template <typename T>
-struct SecureObjectDeleter {
-  void operator()(T *ptr) {
-    if (ptr) {
-      ptr->~T();
-      SecurityMemoryAllocator::Deallocate(ptr);
-    }
-  }
-};
-
 template <typename T, typename... Args>
 static auto SecureCreateObject(Args &&...args) -> T * {
   void *mem = SecurityMemoryAllocator::Allocate(sizeof(T));
   if (!mem) return nullptr;
+  SPDLOG_TRACE("alloc secure memnory success, mem: {}", static_cast<void *>(mem));
 
   try {
     return new (mem) T(std::forward<Args>(args)...);
@@ -133,6 +125,8 @@ static auto SecureCreateObject(Args &&...args) -> T * {
 template <typename T>
 static void SecureDestroyObject(T *obj) {
   if (!obj) return;
+
+  SPDLOG_TRACE("try to free object, obj: {}", static_cast<void *>(obj));
   obj->~T();
   SecurityMemoryAllocator::Deallocate(obj);
 }
@@ -142,6 +136,7 @@ static auto SecureCreateUniqueObject(Args &&...args)
     -> std::unique_ptr<T, SecureObjectDeleter<T>> {
   void *mem = SecurityMemoryAllocator::Allocate(sizeof(T));
   if (!mem) throw std::bad_alloc();
+  SPDLOG_TRACE("alloc secure memnory success, unique, mem: {}", mem);
 
   try {
     return std::unique_ptr<T, SecureObjectDeleter<T>>(
@@ -156,6 +151,7 @@ template <typename T, typename... Args>
 auto SecureCreateSharedObject(Args &&...args) -> std::shared_ptr<T> {
   void *mem = SecurityMemoryAllocator::Allocate(sizeof(T));
   if (!mem) throw std::bad_alloc();
+  SPDLOG_TRACE("alloc secure memnory success, shared, mem: {}", mem);
 
   try {
     T *obj = new (mem) T(std::forward<Args>(args)...);
