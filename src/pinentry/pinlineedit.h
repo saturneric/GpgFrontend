@@ -23,7 +23,6 @@
 #define _PINLINEEDIT_H_
 
 #include <QLineEdit>
-#include <memory>
 
 class PinLineEdit : public QLineEdit {
   Q_OBJECT

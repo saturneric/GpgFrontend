@@ -30,7 +30,6 @@
 #include <QDialog>
 #include <QStyle>
 #include <QTimer>
-#include <memory>
 
 #include "pinentry.h"
 
@@ -48,12 +47,7 @@ QPixmap applicationIconPixmap(const QIcon &overlayIcon = {});
 
 void raiseWindow(QWidget *w);
 
-class PinEntryDialog : public QDialog
-#ifndef QT_NO_ACCESSIBILITY
-    ,
-                       public QAccessible::ActivationObserver
-#endif
-{
+class PinEntryDialog : public QDialog {
   Q_OBJECT
 
   Q_PROPERTY(QString description READ description WRITE setDescription)
@@ -78,7 +72,6 @@ class PinEntryDialog : public QDialog
                           const QString &repeatString = QString(),
                           const QString &visibiltyTT = QString(),
                           const QString &hideTT = QString());
-  ~PinEntryDialog() override;
 
   void setDescription(const QString &);
   QString description() const;
@@ -135,10 +128,6 @@ class PinEntryDialog : public QDialog
   void onAccept();
 
  private:
-#ifndef QT_NO_ACCESSIBILITY
-  void accessibilityActiveChanged(bool active) override;
-#endif
-
   enum PassphraseCheckResult {
     PassphraseNotChecked = -1,
     PassphraseNotOk = 0,
@@ -146,7 +135,6 @@ class PinEntryDialog : public QDialog
   };
   PassphraseCheckResult checkConstraints();
 
- private:
   QLabel *_icon = nullptr;
   QLabel *_desc = nullptr;
   QLabel *_error = nullptr;

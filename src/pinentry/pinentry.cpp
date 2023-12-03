@@ -593,11 +593,6 @@ static void pinentry_setbuffer_clear(pinentry_t pin) {
   pin->pin_len = 0;
 }
 
-static void pinentry_setbuffer_init(pinentry_t pin) {
-  pinentry_setbuffer_clear(pin);
-  pinentry_setbufferlen(pin, 0);
-}
-
 /* passphrase better be alloced with secmem_alloc.  */
 void pinentry_setbuffer_use(pinentry_t pin, char *passphrase, int len) {
   if (!passphrase) {
@@ -923,22 +918,6 @@ static void strcpy_escaped(char *d, const char *s) {
   *d = 0;
 }
 
-static void write_status_error(assuan_context_t ctx, pinentry_t pe) {
-  char buf[500];
-  const char *pgm;
-
-  pgm = strchr(this_pgmname, '-');
-  if (pgm && pgm[1])
-    pgm++;
-  else
-    pgm = this_pgmname;
-
-  snprintf(buf, sizeof buf, "%s.%s %d %s", pgm,
-           pe->specific_err_loc ? pe->specific_err_loc : "?", pe->specific_err,
-           pe->specific_err_info ? pe->specific_err_info : "");
-  assuan_write_status(ctx, "ERROR", buf);
-}
-
 /* Return a staically allocated string with information on the mode,
  * uid, and gid of DEVICE.  On error "?" is returned if DEVICE is
  * NULL, "-" is returned.  */
@@ -956,60 +935,4 @@ static const char *device_stat_string(const char *device) {
 #else
   return "-";
 #endif
-}
-
-/* GETINFO <what>
-
-   Multipurpose function to return a variety of information.
-   Supported values for WHAT are:
-
-     version     - Return the version of the program.
-     pid         - Return the process id of the server.
-     flavor      - Return information about the used pinentry flavor
-     ttyinfo     - Return DISPLAY, ttyinfo and an emacs pinentry status
- */
-static gpg_error_t cmd_getinfo(assuan_context_t ctx, char *line) {
-  int rc;
-  const char *s;
-  char buffer[150];
-
-  if (!strcmp(line, "version")) {
-    s = 0;
-    rc = assuan_send_data(ctx, s, strlen(s));
-  } else if (!strcmp(line, "pid")) {
-    snprintf(buffer, sizeof buffer, "%lu", (unsigned long)getpid());
-    rc = assuan_send_data(ctx, buffer, strlen(buffer));
-  } else if (!strcmp(line, "flavor")) {
-    if (!strncmp(this_pgmname, "pinentry-", 9) && this_pgmname[9])
-      s = this_pgmname + 9;
-    else
-      s = this_pgmname;
-
-    snprintf(buffer, sizeof buffer, "%s%s%s", s, flavor_flag ? ":" : "",
-             flavor_flag ? flavor_flag : "");
-    rc = assuan_send_data(ctx, buffer, strlen(buffer));
-    /* if (!rc) */
-    /*   rc = assuan_write_status (ctx, "FEATURES", "tabbing foo bar"); */
-  } else if (!strcmp(line, "ttyinfo")) {
-    char emacs_status[10];
-#ifdef INSIDE_EMACS
-    snprintf(emacs_status, sizeof emacs_status, "%d", pinentry_emacs_status());
-#else
-    strcpy(emacs_status, "-");
-#endif
-    snprintf(buffer, sizeof buffer, "%s %s %s %s %lu/%lu %s",
-             pinentry.ttyname ? pinentry.ttyname : "-",
-             pinentry.ttytype_l ? pinentry.ttytype_l : "-",
-             pinentry.display ? pinentry.display : "-",
-             device_stat_string(pinentry.ttyname),
-#ifdef HAVE_DOSISH_SYSTEM
-             0l, 0l,
-#else
-             (unsigned long)geteuid(), (unsigned long)getegid(),
-#endif
-             emacs_status);
-    rc = assuan_send_data(ctx, buffer, strlen(buffer));
-  } else
-    rc = gpg_error(GPG_ERR_ASS_PARAMETER);
-  return rc;
 }

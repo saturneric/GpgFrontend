@@ -21,20 +21,15 @@
 #ifndef __PINENTRY_QT_UTIL_H__
 #define __PINENTRY_QT_UTIL_H__
 
-#include <memory>
-
 #include <stdlib.h>
 
-namespace _detail
-{
+namespace _detail {
 struct FreeDeleter {
-    void operator()(void *ptr) const {
-        free(ptr);
-    }
+  void operator()(void *ptr) const { free(ptr); }
 };
-}
+}  // namespace _detail
 
-template<class T>
+template <class T>
 using unique_malloced_ptr = std::unique_ptr<T, _detail::FreeDeleter>;
 
-#endif // __PINENTRY_QT_UTIL_H__
+#endif  // __PINENTRY_QT_UTIL_H__

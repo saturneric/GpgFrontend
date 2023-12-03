@@ -26,8 +26,6 @@
 #include <QLocale>
 #include <QTranslator>
 
-#include <memory>
-
 static bool loadCatalog(const QString &catalog, const QLocale &locale)
 {
     auto translator = new QTranslator(QCoreApplication::instance());

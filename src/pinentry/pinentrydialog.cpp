@@ -113,7 +113,7 @@ PinEntryDialog::PinEntryDialog(QWidget *parent, const char *name, int timeout,
   QPalette redTextPalette;
   redTextPalette.setColor(QPalette::WindowText, Qt::red);
 
-  auto *const mainLayout = new QVBoxLayout{this};
+  auto *const main_layout = new QVBoxLayout{this};
 
   auto *const hbox = new QHBoxLayout;
 
@@ -155,7 +155,7 @@ PinEntryDialog::PinEntryDialog(QWidget *parent, const char *name, int timeout,
     _prompt->hide();
     grid->addWidget(_prompt, row, 1);
 
-    const auto l = new QHBoxLayout;
+    auto *const l = new QHBoxLayout;
     _edit = new PinLineEdit(this);
     _edit->setMaxLength(256);
     _edit->setMinimumWidth(_edit->fontMetrics().averageCharWidth() * 20 + 48);
@@ -173,12 +173,12 @@ PinEntryDialog::PinEntryDialog(QWidget *parent, const char *name, int timeout,
   }
 
   /* Set up the show password action */
-  const QIcon visibilityIcon = QIcon(QLatin1String(":/visibility.svg"));
-  const QIcon hideIcon = QIcon(QLatin1String(":/hint.svg"));
+  const QIcon visibility_icon = QIcon(QLatin1String(":/visibility.svg"));
+  const QIcon hide_icon = QIcon(QLatin1String(":/hint.svg"));
 #if QT_VERSION >= 0x050200
-  if (!visibilityIcon.isNull() && !hideIcon.isNull()) {
+  if (!visibility_icon.isNull() && !hide_icon.isNull()) {
     mVisiActionEdit =
-        _edit->addAction(visibilityIcon, QLineEdit::TrailingPosition);
+        _edit->addAction(visibility_icon, QLineEdit::TrailingPosition);
     mVisiActionEdit->setVisible(false);
     mVisiActionEdit->setToolTip(mVisibilityTT);
   } else
@@ -246,7 +246,7 @@ PinEntryDialog::PinEntryDialog(QWidget *parent, const char *name, int timeout,
   }
 
   hbox->addLayout(grid, 1);
-  mainLayout->addLayout(hbox);
+  main_layout->addLayout(hbox);
 
   QDialogButtonBox *const buttons = new QDialogButtonBox(this);
   buttons->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
@@ -258,9 +258,9 @@ PinEntryDialog::PinEntryDialog(QWidget *parent, const char *name, int timeout,
     _cancel->setIcon(style()->standardIcon(QStyle::SP_DialogCancelButton));
   }
 
-  mainLayout->addStretch(1);
-  mainLayout->addWidget(buttons);
-  mainLayout->setSizeConstraint(QLayout::SetFixedSize);
+  main_layout->addStretch(1);
+  main_layout->addWidget(buttons);
+  main_layout->setSizeConstraint(QLayout::SetFixedSize);
 
   if (timeout > 0) {
     _timer = new QTimer(this);
@@ -275,25 +275,25 @@ PinEntryDialog::PinEntryDialog(QWidget *parent, const char *name, int timeout,
   connect(_edit, &QLineEdit::textChanged, this, &PinEntryDialog::textChanged);
   connect(_edit, &PinLineEdit::backspacePressed, this,
           &PinEntryDialog::onBackspace);
-  if (mGenerateButton) {
+  if (mGenerateButton != nullptr) {
     connect(mGenerateButton, &QPushButton::clicked, this,
             &PinEntryDialog::generatePin);
   }
-  if (mVisiActionEdit) {
+  if (mVisiActionEdit != nullptr) {
     connect(mVisiActionEdit, &QAction::triggered, this,
             &PinEntryDialog::toggleVisibility);
   }
-  if (mVisiCB) {
+  if (mVisiCB != nullptr) {
     connect(mVisiCB, &QCheckBox::toggled, this,
             &PinEntryDialog::toggleVisibility);
   }
-  if (mRepeat) {
+  if (mRepeat != nullptr) {
     connect(mRepeat, &QLineEdit::textChanged, this,
             &PinEntryDialog::textChanged);
   }
 
-  auto capsLockWatcher = new CapsLockWatcher{this};
-  connect(capsLockWatcher, &CapsLockWatcher::stateChanged, this,
+  auto *caps_lock_watcher = new CapsLockWatcher{this};
+  connect(caps_lock_watcher, &CapsLockWatcher::stateChanged, this,
           [this](bool locked) { mCapsLockHint->setVisible(locked); });
 
   connect(qApp, &QApplication::focusChanged, this,
@@ -304,12 +304,6 @@ PinEntryDialog::PinEntryDialog(QWidget *parent, const char *name, int timeout,
 
   setAttribute(Qt::WA_DeleteOnClose);
 
-#ifndef QT_NO_ACCESSIBILITY
-  QAccessible::installActivationObserver(this);
-  accessibilityActiveChanged(QAccessible::isActive());
-#endif
-
-#if QT_VERSION >= 0x050000
   /* This is mostly an issue on Windows where this results
      in the pinentry popping up nicely with an animation and
      comes to front. It is not ifdefed for Windows only since
@@ -321,24 +315,14 @@ PinEntryDialog::PinEntryDialog(QWidget *parent, const char *name, int timeout,
     setWindowState(Qt::WindowMinimized);
     QTimer::singleShot(0, this, [this]() { raiseWindow(this); });
   }
-#else
-  activateWindow();
-  raise();
-#endif
-}
-
-PinEntryDialog::~PinEntryDialog() {
-#ifndef QT_NO_ACCESSIBILITY
-  QAccessible::removeActivationObserver(this);
-#endif
 }
 
 void PinEntryDialog::keyPressEvent(QKeyEvent *e) {
-  const auto returnPressed =
+  const auto return_pressed =
       (!e->modifiers() &&
        (e->key() == Qt::Key_Enter || e->key() == Qt::Key_Return)) ||
       (e->modifiers() & Qt::KeypadModifier && e->key() == Qt::Key_Enter);
-  if (returnPressed && _edit->hasFocus() && mRepeat) {
+  if (return_pressed && _edit->hasFocus() && (mRepeat != nullptr)) {
     // if the user pressed Return in the first input field, then move the
     // focus to the repeat input field and prevent further event processing
     // by QDialog (which would trigger the default button)
@@ -415,7 +399,7 @@ void PinEntryDialog::setQualityBarTT(const QString &txt) {
 }
 
 void PinEntryDialog::setGenpinLabel(const QString &txt) {
-  if (!mGenerateButton) {
+  if (mGenerateButton == nullptr) {
     return;
   }
   mGenerateButton->setVisible(!txt.isEmpty());
@@ -425,7 +409,7 @@ void PinEntryDialog::setGenpinLabel(const QString &txt) {
 }
 
 void PinEntryDialog::setGenpinTT(const QString &txt) {
-  if (mGenerateButton) {
+  if (mGenerateButton != nullptr) {
     mGenerateButton->setToolTip(txt);
   }
 }
@@ -463,22 +447,22 @@ void PinEntryDialog::setConstraintsOptions(const ConstraintsOptions &options) {
 }
 
 void PinEntryDialog::toggleFormattedPassphrase() {
-  const bool enableFormatting =
+  const bool enable_formatting =
       mFormatPassphrase && _edit->echoMode() == QLineEdit::Normal;
-  _edit->setFormattedPassphrase(enableFormatting);
-  if (mRepeat) {
-    mRepeat->setFormattedPassphrase(enableFormatting);
-    const bool hintAboutToBeHidden =
-        mFormattedPassphraseHint->isVisible() && !enableFormatting;
-    if (hintAboutToBeHidden) {
+  _edit->setFormattedPassphrase(enable_formatting);
+  if (mRepeat != nullptr) {
+    mRepeat->setFormattedPassphrase(enable_formatting);
+    const bool hint_about_to_be_hidden =
+        mFormattedPassphraseHint->isVisible() && !enable_formatting;
+    if (hint_about_to_be_hidden) {
       // set hint spacer to current height of hint label before hiding the hint
       mFormattedPassphraseHintSpacer->setMinimumHeight(
           mFormattedPassphraseHint->height());
       mFormattedPassphraseHintSpacer->setVisible(true);
-    } else if (enableFormatting) {
+    } else if (enable_formatting) {
       mFormattedPassphraseHintSpacer->setVisible(false);
     }
-    mFormattedPassphraseHint->setVisible(enableFormatting);
+    mFormattedPassphraseHint->setVisible(enable_formatting);
   }
 }
 
@@ -487,7 +471,7 @@ void PinEntryDialog::onBackspace() {
 
   if (_disable_echo_allowed) {
     _edit->setEchoMode(QLineEdit::NoEcho);
-    if (mRepeat) {
+    if (mRepeat != nullptr) {
       mRepeat->setEchoMode(QLineEdit::NoEcho);
     }
   }
@@ -507,8 +491,8 @@ void PinEntryDialog::updateQuality(const QString &txt) {
   const char *pin = utf8_pin.constData();
   length = strlen(pin);
   percent =
-      length ? pinentry_inq_quality(_pinentry_info.get(), pin, length) : 0;
-  if (!length) {
+      length != 0 ? pinentry_inq_quality(_pinentry_info.get(), pin, length) : 0;
+  if (length == 0) {
     _quality_bar->reset();
   } else {
     pal = _quality_bar->palette();
@@ -530,12 +514,12 @@ void PinEntryDialog::setPinentryInfo(pinentry_t peinfo) {
 void PinEntryDialog::focusChanged(QWidget *old, QWidget *now) {
   // Grab keyboard. It might be a little weird to do it here, but it works!
   // Previously this code was in showEvent, but that did not work in Qt4.
-  if (!_pinentry_info || _pinentry_info->grab) {
-    if (_grabbed && old && (old == _edit || old == mRepeat)) {
+  if (!_pinentry_info || (_pinentry_info->grab != 0)) {
+    if (_grabbed && (old != nullptr) && (old == _edit || old == mRepeat)) {
       old->releaseKeyboard();
       _grabbed = false;
     }
-    if (!_grabbed && now && (now == _edit || now == mRepeat)) {
+    if (!_grabbed && (now != nullptr) && (now == _edit || now == mRepeat)) {
       now->grabKeyboard();
       _grabbed = true;
     }
@@ -547,10 +531,10 @@ void PinEntryDialog::textChanged(const QString &text) {
 
   cancelTimeout();
 
-  if (mVisiActionEdit && sender() == _edit) {
+  if ((mVisiActionEdit != nullptr) && sender() == _edit) {
     mVisiActionEdit->setVisible(!_edit->pin().isEmpty());
   }
-  if (mGenerateButton) {
+  if (mGenerateButton != nullptr) {
     mGenerateButton->setVisible(_edit->pin().isEmpty()
 #ifndef QT_NO_ACCESSIBILITY
                                 && !mGenerateButton->accessibleName().isEmpty()
@@ -563,16 +547,16 @@ void PinEntryDialog::generatePin() {
   unique_malloced_ptr<char> pin{pinentry_inq_genpin(_pinentry_info.get())};
   if (pin) {
     if (_edit->echoMode() == QLineEdit::Password) {
-      if (mVisiActionEdit) {
+      if (mVisiActionEdit != nullptr) {
         mVisiActionEdit->trigger();
       }
-      if (mVisiCB) {
+      if (mVisiCB != nullptr) {
         mVisiCB->setChecked(true);
       }
     }
-    const auto pinStr = QString::fromUtf8(pin.get());
-    _edit->setPin(pinStr);
-    mRepeat->setPin(pinStr);
+    const auto pin_str = QString::fromUtf8(pin.get());
+    _edit->setPin(pin_str);
+    mRepeat->setPin(pin_str);
     // explicitly focus the first input field and select the generated password
     _edit->setFocus();
     _edit->selectAll();
@@ -582,32 +566,32 @@ void PinEntryDialog::generatePin() {
 void PinEntryDialog::toggleVisibility() {
   if (sender() != mVisiCB) {
     if (_edit->echoMode() == QLineEdit::Password) {
-      if (mVisiActionEdit) {
+      if (mVisiActionEdit != nullptr) {
         mVisiActionEdit->setIcon(QIcon(QLatin1String(":/hint.svg")));
         mVisiActionEdit->setToolTip(mHideTT);
       }
       _edit->setEchoMode(QLineEdit::Normal);
-      if (mRepeat) {
+      if (mRepeat != nullptr) {
         mRepeat->setEchoMode(QLineEdit::Normal);
       }
     } else {
-      if (mVisiActionEdit) {
+      if (mVisiActionEdit != nullptr) {
         mVisiActionEdit->setIcon(QIcon(QLatin1String(":/visibility.svg")));
         mVisiActionEdit->setToolTip(mVisibilityTT);
       }
       _edit->setEchoMode(QLineEdit::Password);
-      if (mRepeat) {
+      if (mRepeat != nullptr) {
         mRepeat->setEchoMode(QLineEdit::Password);
       }
     }
   } else {
     if (mVisiCB->isChecked()) {
-      if (mRepeat) {
+      if (mRepeat != nullptr) {
         mRepeat->setEchoMode(QLineEdit::Normal);
       }
       _edit->setEchoMode(QLineEdit::Normal);
     } else {
-      if (mRepeat) {
+      if (mRepeat != nullptr) {
         mRepeat->setEchoMode(QLineEdit::Password);
       }
       _edit->setEchoMode(QLineEdit::Password);
@@ -617,7 +601,7 @@ void PinEntryDialog::toggleVisibility() {
 }
 
 QString PinEntryDialog::repeatedPin() const {
-  if (mRepeat) {
+  if (mRepeat != nullptr) {
     return mRepeat->pin();
   }
   return QString();
@@ -626,13 +610,13 @@ QString PinEntryDialog::repeatedPin() const {
 bool PinEntryDialog::timedOut() const { return _timed_out; }
 
 void PinEntryDialog::setRepeatErrorText(const QString &err) {
-  if (mRepeatError) {
+  if (mRepeatError != nullptr) {
     mRepeatError->setText(err);
   }
 }
 
 void PinEntryDialog::cancelTimeout() {
-  if (_timer) {
+  if (_timer != nullptr) {
     _timer->stop();
   }
 }
@@ -647,7 +631,7 @@ void PinEntryDialog::checkCapsLock() {
 void PinEntryDialog::onAccept() {
   cancelTimeout();
 
-  if (mRepeat && mRepeat->pin() != _edit->pin()) {
+  if ((mRepeat != nullptr) && mRepeat->pin() != _edit->pin()) {
 #ifndef QT_NO_ACCESSIBILITY
     if (QAccessible::isActive()) {
       QMessageBox::information(this, mRepeatError->text(),
@@ -666,21 +650,6 @@ void PinEntryDialog::onAccept() {
   }
 }
 
-#ifndef QT_NO_ACCESSIBILITY
-void PinEntryDialog::accessibilityActiveChanged(bool active) {
-  // Allow text labels to get focus if accessibility is active
-  const auto focusPolicy = active ? Qt::StrongFocus : Qt::ClickFocus;
-  _error->setFocusPolicy(focusPolicy);
-  _desc->setFocusPolicy(focusPolicy);
-  mCapsLockHint->setFocusPolicy(focusPolicy);
-  mConstraintsHint->setFocusPolicy(focusPolicy);
-  mFormattedPassphraseHint->setFocusPolicy(focusPolicy);
-  if (mRepeatError) {
-    mRepeatError->setFocusPolicy(focusPolicy);
-  }
-}
-#endif
-
 PinEntryDialog::PassphraseCheckResult PinEntryDialog::checkConstraints() {
   if (!mEnforceConstraints) {
     return PassphraseNotChecked;
@@ -694,28 +663,28 @@ PinEntryDialog::PassphraseCheckResult PinEntryDialog::checkConstraints() {
     return PassphraseOk;
   }
 
-  const auto messageLines =
+  const auto message_lines =
       QString::fromUtf8(QByteArray::fromPercentEncoding(error.get()))
           .split(QChar{'\n'});
-  if (messageLines.isEmpty()) {
+  if (message_lines.isEmpty()) {
     // shouldn't happen because pinentry_inq_checkpin() either returns NULL or a
     // non-empty string
     return PassphraseOk;
   }
-  const auto firstLine = messageLines.first();
-  const auto indexOfFirstNonEmptyAdditionalLine =
-      messageLines.indexOf(QRegularExpression{QStringLiteral(".*\\S.*")}, 1);
-  const auto additionalLines =
-      indexOfFirstNonEmptyAdditionalLine > 0
-          ? messageLines.mid(indexOfFirstNonEmptyAdditionalLine)
+  const auto &first_line = message_lines.first();
+  const auto index_of_first_non_empty_additional_line =
+      message_lines.indexOf(QRegularExpression{QStringLiteral(".*\\S.*")}, 1);
+  const auto additional_lines =
+      index_of_first_non_empty_additional_line > 0
+          ? message_lines.mid(index_of_first_non_empty_additional_line)
                 .join(QChar{'\n'})
           : QString{};
-  QMessageBox messageBox{this};
-  messageBox.setIcon(QMessageBox::Information);
-  messageBox.setWindowTitle(mConstraintsErrorTitle);
-  messageBox.setText(firstLine);
-  messageBox.setInformativeText(additionalLines);
-  messageBox.setStandardButtons(QMessageBox::Ok);
-  messageBox.exec();
+  QMessageBox message_box{this};
+  message_box.setIcon(QMessageBox::Information);
+  message_box.setWindowTitle(mConstraintsErrorTitle);
+  message_box.setText(first_line);
+  message_box.setInformativeText(additional_lines);
+  message_box.setStandardButtons(QMessageBox::Ok);
+  message_box.exec();
   return PassphraseNotOk;
 }

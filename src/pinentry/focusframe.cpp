@@ -26,47 +26,47 @@
 #include <QStyleOptionFocusRect>
 #include <QStylePainter>
 
-static QRect effectiveWidgetRect(const QWidget *w)
-{
-    // based on QWidgetPrivate::effectiveRectFor
+static QRect effectiveWidgetRect(const QWidget *w) {
+  // based on QWidgetPrivate::effectiveRectFor
 #if QT_CONFIG(graphicseffect)
-    const auto* const graphicsEffect = w->graphicsEffect();
-    if (graphicsEffect && graphicsEffect->isEnabled())
-        return graphicsEffect->boundingRectFor(w->rect()).toAlignedRect();
-#endif // QT_CONFIG(graphicseffect)
-    return w->rect();
+  const auto *const graphicsEffect = w->graphicsEffect();
+  if (graphicsEffect && graphicsEffect->isEnabled())
+    return graphicsEffect->boundingRectFor(w->rect()).toAlignedRect();
+#endif  // QT_CONFIG(graphicseffect)
+  return w->rect();
 }
 
-static QRect clipRect(const QWidget *w)
-{
-    // based on QWidgetPrivate::clipRect
-    if (!w->isVisible()) {
-        return QRect();
-    }
-    QRect r = effectiveWidgetRect(w);
-    int ox = 0;
-    int oy = 0;
-    while (w && w->isVisible() && !w->isWindow() && w->parentWidget()) {
-        ox -= w->x();
-        oy -= w->y();
-        w = w->parentWidget();
-        r &= QRect(ox, oy, w->width(), w->height());
-    }
-    return r;
+static QRect clipRect(const QWidget *w) {
+  // based on QWidgetPrivate::clipRect
+  if (!w->isVisible()) {
+    return QRect();
+  }
+  QRect r = effectiveWidgetRect(w);
+  int ox = 0;
+  int oy = 0;
+  while (w && w->isVisible() && !w->isWindow() && w->parentWidget()) {
+    ox -= w->x();
+    oy -= w->y();
+    w = w->parentWidget();
+    r &= QRect(ox, oy, w->width(), w->height());
+  }
+  return r;
 }
 
-void FocusFrame::paintEvent(QPaintEvent *)
-{
-    if (!widget()) {
-        return;
-    }
+void FocusFrame::paintEvent(QPaintEvent *) {
+  if (!widget()) {
+    return;
+  }
 
-    QStylePainter p{this};
-    QStyleOptionFocusRect option;
-    initStyleOption(&option);
-    const int vmargin = style()->pixelMetric(QStyle::PM_FocusFrameVMargin, &option);
-    const int hmargin = style()->pixelMetric(QStyle::PM_FocusFrameHMargin, &option);
-    const QRect rect = clipRect(widget()).adjusted(0, 0, hmargin*2, vmargin*2);
-    p.setClipRect(rect);
-    p.drawPrimitive(QStyle::PE_FrameFocusRect, option);
+  QStylePainter p{this};
+  QStyleOptionFocusRect option;
+  initStyleOption(&option);
+  const int vmargin =
+      style()->pixelMetric(QStyle::PM_FocusFrameVMargin, &option);
+  const int hmargin =
+      style()->pixelMetric(QStyle::PM_FocusFrameHMargin, &option);
+  const QRect rect =
+      clipRect(widget()).adjusted(0, 0, hmargin * 2, vmargin * 2);
+  p.setClipRect(rect);
+  p.drawPrimitive(QStyle::PE_FrameFocusRect, option);
 }
