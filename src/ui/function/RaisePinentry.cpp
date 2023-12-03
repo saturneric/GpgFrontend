@@ -32,14 +32,27 @@
 
 #include "core/function/CoreSignalStation.h"
 #include "pinentry/pinentrydialog.h"
+#include "spdlog/spdlog.h"
 
 namespace GpgFrontend::UI {
+
+auto FindTopMostWindow(QWidget* fallback) -> QWidget* {
+  QList<QWidget*> top_widgets = QApplication::topLevelWidgets();
+  foreach (QWidget* widget, top_widgets) {
+    if (widget->isActiveWindow()) {
+      SPDLOG_TRACE("find a topmost widget, address: {}",
+                   static_cast<void*>(widget));
+      return widget;
+    }
+  }
+  return fallback;
+}
 
 RaisePinentry::RaisePinentry(QWidget* parent) : QWidget(parent) {}
 
 auto RaisePinentry::Exec() -> int {
   auto* pinentry =
-      new PinEntryDialog(this, 0, 0, true, false, QString(),
+      new PinEntryDialog(FindTopMostWindow(this), 0, 0, true, false, QString(),
                          QString::fromStdString(_("Show passphrase")),
                          QString::fromStdString(_("Hide passphrase")));
 

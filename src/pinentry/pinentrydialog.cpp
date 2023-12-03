@@ -107,11 +107,12 @@ PinEntryDialog::PinEntryDialog(QWidget *parent, const char *name, int timeout,
   Q_UNUSED(name)
 
   if (modal) {
+    setWindowModality(Qt::ApplicationModal);
     setModal(true);
   }
 
-  QPalette redTextPalette;
-  redTextPalette.setColor(QPalette::WindowText, Qt::red);
+  QPalette red_text_palette;
+  red_text_palette.setColor(QPalette::WindowText, Qt::red);
 
   auto *const main_layout = new QVBoxLayout{this};
 
@@ -127,7 +128,7 @@ PinEntryDialog::PinEntryDialog(QWidget *parent, const char *name, int timeout,
   _error = new QLabel{this};
   _error->setTextFormat(Qt::PlainText);
   _error->setTextInteractionFlags(Qt::TextSelectableByMouse);
-  _error->setPalette(redTextPalette);
+  _error->setPalette(red_text_palette);
   _error->hide();
   grid->addWidget(_error, row, 1, 1, 2);
 
@@ -142,7 +143,7 @@ PinEntryDialog::PinEntryDialog(QWidget *parent, const char *name, int timeout,
   mCapsLockHint = new QLabel{this};
   mCapsLockHint->setTextFormat(Qt::PlainText);
   mCapsLockHint->setTextInteractionFlags(Qt::TextSelectableByMouse);
-  mCapsLockHint->setPalette(redTextPalette);
+  mCapsLockHint->setPalette(red_text_palette);
   mCapsLockHint->setAlignment(Qt::AlignCenter);
   mCapsLockHint->setVisible(false);
   grid->addWidget(mCapsLockHint, row, 1, 1, 2);
@@ -210,23 +211,23 @@ PinEntryDialog::PinEntryDialog(QWidget *parent, const char *name, int timeout,
 
   if (!repeatString.isNull()) {
     row++;
-    auto repeatLabel = new QLabel{this};
-    repeatLabel->setTextFormat(Qt::PlainText);
-    repeatLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    repeatLabel->setText(repeatString);
-    grid->addWidget(repeatLabel, row, 1);
+    auto *repeat_label = new QLabel{this};
+    repeat_label->setTextFormat(Qt::PlainText);
+    repeat_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    repeat_label->setText(repeatString);
+    grid->addWidget(repeat_label, row, 1);
 
     mRepeat = new PinLineEdit(this);
     mRepeat->setMaxLength(256);
     mRepeat->setEchoMode(QLineEdit::Password);
-    repeatLabel->setBuddy(mRepeat);
+    repeat_label->setBuddy(mRepeat);
     grid->addWidget(mRepeat, row, 2);
 
     row++;
     mRepeatError = new QLabel{this};
     mRepeatError->setTextFormat(Qt::PlainText);
     mRepeatError->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    mRepeatError->setPalette(redTextPalette);
+    mRepeatError->setPalette(red_text_palette);
     mRepeatError->hide();
     grid->addWidget(mRepeatError, row, 2);
   }
@@ -248,7 +249,7 @@ PinEntryDialog::PinEntryDialog(QWidget *parent, const char *name, int timeout,
   hbox->addLayout(grid, 1);
   main_layout->addLayout(hbox);
 
-  QDialogButtonBox *const buttons = new QDialogButtonBox(this);
+  auto *const buttons = new QDialogButtonBox(this);
   buttons->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
   _ok = buttons->button(QDialogButtonBox::Ok);
   _cancel = buttons->button(QDialogButtonBox::Cancel);
@@ -314,6 +315,8 @@ PinEntryDialog::PinEntryDialog(QWidget *parent, const char *name, int timeout,
   if (qApp->platformName() != QLatin1String("wayland")) {
     setWindowState(Qt::WindowMinimized);
     QTimer::singleShot(0, this, [this]() { raiseWindow(this); });
+  } else {
+    raiseWindow(this);
   }
 }
 

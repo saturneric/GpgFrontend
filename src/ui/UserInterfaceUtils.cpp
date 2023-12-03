@@ -29,6 +29,7 @@
 #include "UserInterfaceUtils.h"
 
 #include <gpg-error.h>
+#include <qdialog.h>
 
 #include <QtNetwork>
 #include <string>
@@ -224,6 +225,7 @@ void CommonUtils::WaitForOpera(QWidget *parent,
   QEventLoop looper;
   auto *dialog = new WaitingDialog(_("Generating"), parent);
   connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
+  connect(dialog, &QDialog::finished, dialog, &QDialog::deleteLater);
 
   opera([dialog]() { dialog->accept(); });
 

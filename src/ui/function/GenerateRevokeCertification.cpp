@@ -83,6 +83,7 @@ auto GenerateRevokeCertification::Exec(const GpgKey& key,
            }
          }
        }});
+  return 0;
 }
 
 }  // namespace GpgFrontend::UI

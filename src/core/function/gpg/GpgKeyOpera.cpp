@@ -216,8 +216,7 @@ void GpgKeyOpera::GenerateSubkey(const GpgKey& key,
                                  const std::shared_ptr<GenKeyInfo>& params,
                                  const GpgOperationCallback& callback) {
   RunGpgOperaAsync(
-      [key = key.Copy(), &ctx = ctx_,
-       params](const DataObjectPtr&) -> GpgError {
+      [key, &ctx = ctx_, params](const DataObjectPtr&) -> GpgError {
         if (!params->IsSubKey()) return GPG_ERR_CANCELED;
 
         SPDLOG_DEBUG("generate subkey algo {} key size {}", params->GetAlgo(),

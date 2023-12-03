@@ -35,8 +35,18 @@ namespace GpgFrontend::UI {
 class RaisePinentry : public QWidget {
   Q_OBJECT
  public:
+  /**
+   * @brief Construct a new Raise Pinentry object
+   *
+   * @param parent
+   */
   explicit RaisePinentry(QWidget *parent);
 
+  /**
+   * @brief
+   *
+   * @return int
+   */
   auto Exec() -> int;
 };
 

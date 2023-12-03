@@ -41,13 +41,13 @@ auto GpgKey::operator=(GpgKey &&k) noexcept -> GpgKey & {
   return *this;
 }
 
-GpgKey::GpgKey(const GpgKey &key) noexcept {
+GpgKey::GpgKey(const GpgKey &key) {
+  auto *key_ref = key.key_ref_.get();
   {
     const std::lock_guard<std::mutex> guard(gpgme_key_opera_mutex_);
-    gpgme_key_ref(key.key_ref_.get());
+    gpgme_key_ref(key_ref);
   }
-  auto *new_key_ref = key_ref_.get();
-  this->key_ref_ = KeyRefHandler(std::move(new_key_ref));
+  this->key_ref_ = KeyRefHandler(key_ref);
 }
 
 auto GpgKey::operator=(const GpgKey &key) -> GpgKey & {
@@ -55,13 +55,12 @@ auto GpgKey::operator=(const GpgKey &key) -> GpgKey & {
     return *this;
   }
 
+  auto *key_ref = key.key_ref_.get();
   {
     const std::lock_guard<std::mutex> guard(gpgme_key_opera_mutex_);
-    gpgme_key_ref(key.key_ref_.get());
+    gpgme_key_ref(key_ref);
   }
-  auto *new_key_ref = key_ref_.get();
-  this->key_ref_ = KeyRefHandler(std::move(new_key_ref));
-
+  this->key_ref_ = KeyRefHandler(key_ref);
   return *this;
 }
 
@@ -246,15 +245,6 @@ auto GpgKey::IsHasActualEncryptionCapability() const -> bool {
         return subkey.IsHasEncryptionCapability() && !subkey.IsDisabled() &&
                !subkey.IsRevoked() && !subkey.IsExpired();
       });
-}
-
-auto GpgKey::Copy() const -> GpgKey {
-  {
-    const std::lock_guard<std::mutex> guard(gpgme_key_opera_mutex_);
-    gpgme_key_ref(key_ref_.get());
-  }
-  auto *new_key_ref = key_ref_.get();
-  return GpgKey(std::move(new_key_ref));
 }
 
 void GpgKey::KeyRefDeleter::operator()(gpgme_key_t _key) {

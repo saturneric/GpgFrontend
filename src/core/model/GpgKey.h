@@ -314,7 +314,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    *
    * @param k
    */
-  GpgKey(const GpgKey&) noexcept;
+  GpgKey(const GpgKey&);
 
   /**
    * @brief
@@ -356,13 +356,6 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return gpgme_key_t
    */
   explicit operator gpgme_key_t() const;
-
-  /**
-   * @brief
-   *
-   * @return GpgKey
-   */
-  [[nodiscard]] auto Copy() const -> GpgKey;
 
  private:
   /**

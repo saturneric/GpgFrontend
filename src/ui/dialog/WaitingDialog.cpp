@@ -28,7 +28,7 @@
 
 #include "WaitingDialog.h"
 
-#include "dialog/GeneralDialog.h"
+#include "ui/dialog/GeneralDialog.h"
 
 namespace GpgFrontend::UI {
 
@@ -52,6 +52,9 @@ WaitingDialog::WaitingDialog(const QString& title, QWidget* parent)
   this->setWindowTitle(title);
   this->setAttribute(Qt::WA_DeleteOnClose);
   this->setFixedSize(240, 42);
+
+  // move to a proper position
+  this->movePosition2CenterOfParent();
 
   this->show();
 }

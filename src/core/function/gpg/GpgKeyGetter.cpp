@@ -82,7 +82,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     auto keys_list = std::make_unique<GpgKeyLinkList>();
 
     for (const auto& [key, value] : keys_cache_) {
-      keys_list->push_back(value.Copy());
+      keys_list->push_back(value);
     }
     return keys_list;
   }
@@ -140,7 +140,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     // get the lock
     std::lock_guard<std::mutex> lock(ctx_mutex_);
     auto keys_copy = std::make_unique<GpgKeyLinkList>();
-    for (const auto& key : *keys) keys_copy->emplace_back(key.Copy());
+    for (const auto& key : *keys) keys_copy->emplace_back(key);
     return keys_copy;
   }
 
@@ -148,7 +148,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     // get the lock
     std::lock_guard<std::mutex> lock(ctx_mutex_);
     auto keys_copy = std::make_unique<KeyArgsList>();
-    for (const auto& key : *keys) keys_copy->emplace_back(key.Copy());
+    for (const auto& key : *keys) keys_copy->emplace_back(key);
     return keys_copy;
   }
 
@@ -189,7 +189,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     if (keys_cache_.find(key_id) != keys_cache_.end()) {
       std::lock_guard<std::mutex> lock(ctx_mutex_);
       // return a copy of the key in cache
-      return keys_cache_[key_id].Copy();
+      return keys_cache_[key_id];
     }
 
     // return a bad key
