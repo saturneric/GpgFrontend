@@ -228,7 +228,8 @@ void CommonUtils::WaitForOpera(QWidget *parent,
                                const std::string &waiting_dialog_title,
                                const OperaWaitingCb &opera) {
   QEventLoop looper;
-  auto *dialog = new WaitingDialog(_("Generating"), parent);
+  auto *dialog =
+      new WaitingDialog(QString::fromStdString(waiting_dialog_title), parent);
   connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
   connect(dialog, &QDialog::finished, dialog, &QDialog::deleteLater);
 
@@ -243,8 +244,9 @@ void CommonUtils::RaiseMessageBox(QWidget *parent, GpgError err) {
   GpgErrorCode err_code = CheckGpgError2ErrCode(err);
 
   if (err_code == GPG_ERR_NO_ERROR) {
-    QMessageBox::information(parent, _("Success"),
-                             QString::fromStdString(_("Operation succeed.")));
+    QMessageBox::information(
+        parent, _("Success"),
+        QString::fromStdString(_("Gpg Operation succeed.")));
   } else {
     RaiseFailureMessageBox(parent, err);
   }
@@ -257,8 +259,8 @@ void CommonUtils::RaiseFailureMessageBox(QWidget *parent, GpgError err) {
   QMessageBox::critical(
       parent, _("Failure"),
       QString::fromStdString(
-          (boost::format(_("Operation failed.\n\nError code: %1%\nSource: "
-                           " %2%\nDEscription: %3%")) %
+          (boost::format(_("Gpg Operation failed.\n\nError code: %1%\nSource: "
+                           " %2%\nDescription: %3%")) %
            err_code % desc.first % desc.second)
               .str()));
 }
@@ -288,7 +290,7 @@ void CommonUtils::SlotImportKeyFromFile(QWidget *parent) {
 }
 
 void CommonUtils::SlotImportKeyFromKeyServer(QWidget *parent) {
-  auto dialog = new KeyServerImportDialog(false, parent);
+  auto *dialog = new KeyServerImportDialog(false, parent);
   dialog->show();
 }
 
@@ -413,12 +415,14 @@ void CommonUtils::SlotImportKeyFromKeyServer(
     return;
   }
 
-  auto thread = QThread::create([target_keyserver, key_ids, callback]() {
+  auto *thread = QThread::create([target_keyserver, key_ids, callback]() {
     QUrl target_keyserver_url(target_keyserver.c_str());
 
     auto network_manager = std::make_unique<QNetworkAccessManager>();
     // LOOP
-    decltype(key_ids.size()) current_index = 1, all_index = key_ids.size();
+    decltype(key_ids.size()) current_index = 1;
+    decltype(key_ids.size()) all_index = key_ids.size();
+
     for (const auto &key_id : key_ids) {
       // New Req Url
       QUrl req_url(

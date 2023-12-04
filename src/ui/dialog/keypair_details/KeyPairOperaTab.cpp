@@ -36,6 +36,7 @@
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/import_export/KeyUploadDialog.h"
 #include "ui/function/SetOwnerTrustLevel.h"
 
@@ -343,7 +344,7 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
   dialog.setDefaultSuffix(".rev");
   dialog.setAcceptMode(QFileDialog::AcceptSave);
 
-  if (dialog.exec()) m_output_file_name = dialog.selectedFiles().front();
+  if (dialog.exec() != 0) m_output_file_name = dialog.selectedFiles().front();
 
   if (!m_output_file_name.isEmpty()) {
     GpgKeyOpera::GetInstance().GenerateRevokeCert(
@@ -354,11 +355,7 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
 void KeyPairOperaTab::slot_modify_password() {
   GpgKeyOpera::GetInstance().ModifyPassword(
       m_key_, [this](GpgError err, const DataObjectPtr&) {
-        if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-          QMessageBox::critical(
-              this, _("Not Successful"),
-              QString(_("Modify password not successfully.")));
-        }
+        CommonUtils::RaiseMessageBox(this, err);
       });
 }
 
