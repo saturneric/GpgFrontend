@@ -103,10 +103,13 @@ auto StartApplication(InitArgs args) -> int {
       module_init_args.log_level = args.log_level;
       GpgFrontend::Module::LoadGpgFrontendModules(module_init_args);
 
+      // then preload ui
+      GpgFrontend::UI::PreInitGpgFrontendUI();
+
       // then load core
       GpgFrontend::InitGpgFrontendCore();
 
-      // after that load ui library
+      // after that load ui totally
       GpgFrontend::UI::InitGpgFrontendUI(app);
 
       // finally create main window

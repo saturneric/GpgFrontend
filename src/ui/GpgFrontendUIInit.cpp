@@ -29,6 +29,7 @@
 #include "GpgFrontendUIInit.h"
 
 #include <qapplication.h>
+#include <qcoreapplication.h>
 #include <spdlog/async.h>
 #include <spdlog/common.h>
 #include <spdlog/sinks/rotating_file_sink.h>
@@ -43,9 +44,9 @@
 #include "core/module/ModuleManager.h"
 #include "core/thread/CtxCheckTask.h"
 #include "core/thread/TaskRunnerGetter.h"
-#include "spdlog/spdlog.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/dialog/gnupg/GnuPGControllerDialog.h"
 #include "ui/main_window/MainWindow.h"
 
 #if !defined(RELEASE) && defined(WINDOWS)
@@ -114,6 +115,8 @@ void WaitEnvCheckingProcess() {
   // block the main thread until the gpg context is loaded
   looper.exec();
 }
+
+void PreInitGpgFrontendUI() { CommonUtils::GetInstance(); }
 
 void InitGpgFrontendUI(QApplication* app) {
   // init locale
@@ -201,7 +204,7 @@ void InitGpgFrontendUI(QApplication* app) {
   }
 }
 
-int RunGpgFrontendUI(QApplication* app) {
+auto RunGpgFrontendUI(QApplication* app) -> int {
   // create main window and show it
   auto main_window = std::make_unique<GpgFrontend::UI::MainWindow>();
 

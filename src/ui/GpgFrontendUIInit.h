@@ -33,6 +33,12 @@
 namespace GpgFrontend::UI {
 
 /**
+ * @brief
+ *
+ */
+void GPGFRONTEND_UI_EXPORT PreInitGpgFrontendUI();
+
+/**
  * @brief init the UI library
  *
  */

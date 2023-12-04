@@ -185,9 +185,9 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
           &CommonUtils::SlotRestartApplication);
 
   connect(this, &CommonUtils::SignalBadGnupgEnv, this, [=]() {
-    QMessageBox msgBox;
-    msgBox.setText(_("GnuPG Context Loading Failed"));
-    msgBox.setInformativeText(
+    QMessageBox msg_box;
+    msg_box.setText(_("GnuPG Context Loading Failed"));
+    msg_box.setInformativeText(
         _("Gnupg(gpg) is not installed correctly, please follow "
           "<a href='https://www.gpgfrontend.bktus.com/#/"
           "faq?id=how-to-deal-with-39env-loading-failed39'>this notes</a>"
@@ -195,9 +195,9 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
           "GpgFrontend. Or, you can open GnuPG Controller to set a custom "
           "GnuPG "
           "which GpgFrontend should use. Then, GpgFrontend will restart."));
-    msgBox.setStandardButtons(QMessageBox::Open | QMessageBox::Cancel);
-    msgBox.setDefaultButton(QMessageBox::Save);
-    int ret = msgBox.exec();
+    msg_box.setStandardButtons(QMessageBox::Open | QMessageBox::Cancel);
+    msg_box.setDefaultButton(QMessageBox::Save);
+    int ret = msg_box.exec();
 
     switch (ret) {
       case QMessageBox::Open:
