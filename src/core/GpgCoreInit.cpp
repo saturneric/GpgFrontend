@@ -221,7 +221,8 @@ void InitGpgFrontendCore() {
 
   // initialize library gpgme
   if (!InitGpgME()) {
-    CoreSignalStation::GetInstance()->SignalBadGnupgEnv();
+    CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+        _("GpgME inilization failed"));
     return;
   }
 
@@ -330,7 +331,8 @@ void InitGpgFrontendCore() {
             // exit if failed
             if (!ctx.Good()) {
               SPDLOG_ERROR("default gnupg context init error, abort");
-              CoreSignalStation::GetInstance()->SignalBadGnupgEnv();
+              CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+                  _("GpgME Context inilization failed"));
               return -1;
             }
             Module::UpsertRTValue("core", "env.state.ctx", std::string{"1"});
@@ -376,7 +378,10 @@ void InitGpgFrontendCore() {
               Module::UpsertRTValue("core", "env.state.all", std::string{"1"});
             }
 
-            GpgKeyGetter::GetInstance().FlushKeyCache();
+            if (!GpgKeyGetter::GetInstance().FlushKeyCache()) {
+              CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+                  _("Gpg Key Detabase inilization failed"));
+            };
             SPDLOG_INFO(
                 "basic env checking finished, including gpgme, ctx, and key "
                 "infos");

@@ -88,7 +88,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    * @brief flush the keys in the cache
    *
    */
-  void FlushKeyCache();
+  auto FlushKeyCache() -> bool;
 
   /**
    * @brief Get the Keys Copy object

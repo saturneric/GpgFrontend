@@ -87,7 +87,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     return keys_list;
   }
 
-  void FlushKeyCache() {
+  auto FlushKeyCache() -> bool {
     SPDLOG_DEBUG("flush key channel called, channel: {}", GetChannel());
 
     // clear the keys cache
@@ -100,7 +100,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
 
     // return when error
-    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return;
+    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return false;
 
     {
       // get the lock
@@ -131,6 +131,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     assert(CheckGpgError2ErrCode(err, GPG_ERR_EOF) == GPG_ERR_NO_ERROR);
 
     SPDLOG_DEBUG("flush key channel done, channel: {}", GetChannel());
+    return true;
   }
 
   auto GetKeys(const KeyIdArgsListPtr& ids) -> KeyListPtr {
@@ -217,7 +218,7 @@ auto GpgKeyGetter::GetPubkey(const std::string& key_id, bool use_cache)
   return p_->GetPubkey(key_id, use_cache);
 }
 
-void GpgKeyGetter::FlushKeyCache() { p_->FlushKeyCache(); }
+auto GpgKeyGetter::FlushKeyCache() -> bool { return p_->FlushKeyCache(); }
 
 auto GpgKeyGetter::GetKeys(const KeyIdArgsListPtr& ids) -> KeyListPtr {
   return p_->GetKeys(ids);

@@ -32,6 +32,7 @@
 #include <qdialog.h>
 
 #include <QtNetwork>
+#include <boost/format/format_fwd.hpp>
 #include <string>
 #include <utility>
 #include <vector>
@@ -184,39 +185,43 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
           &UISignalStation::SignalRestartApplication, this,
           &CommonUtils::SlotRestartApplication);
 
-  connect(this, &CommonUtils::SignalBadGnupgEnv, this, [=]() {
-    QMessageBox msg_box;
-    msg_box.setText(_("GnuPG Context Loading Failed"));
-    msg_box.setInformativeText(
-        _("Gnupg(gpg) is not installed correctly, please follow "
-          "<a href='https://www.gpgfrontend.bktus.com/#/"
-          "faq?id=how-to-deal-with-39env-loading-failed39'>this notes</a>"
-          " in FAQ to install Gnupg and then open "
-          "GpgFrontend. Or, you can open GnuPG Controller to set a custom "
-          "GnuPG "
-          "which GpgFrontend should use. Then, GpgFrontend will restart."));
-    msg_box.setStandardButtons(QMessageBox::Open | QMessageBox::Cancel);
-    msg_box.setDefaultButton(QMessageBox::Save);
-    int ret = msg_box.exec();
+  connect(
+      this, &CommonUtils::SignalBadGnupgEnv, this, [=](const QString &reason) {
+        QMessageBox msg_box;
+        msg_box.setText(_("GnuPG Context Loading Failed"));
+        msg_box.setInformativeText(
+            QString(_("Gnupg(gpg) is not installed correctly, please follow "
+                      "<a href='https://www.gpgfrontend.bktus.com/#/"
+                      "faq?id=how-to-deal-with-39env-loading-failed39'>this "
+                      "notes</a> in FAQ to install Gnupg and then open "
+                      "GpgFrontend. <br />"
+                      "Or, you can open GnuPG Controller to set a "
+                      "custom GnuPG which GpgFrontend should use. Then, "
+                      "GpgFrontend will restart. <br /><br />"
+                      "Breif Reason: %1"))
+                .arg(reason));
+        msg_box.setStandardButtons(QMessageBox::Open | QMessageBox::Cancel);
+        msg_box.setDefaultButton(QMessageBox::Save);
+        int ret = msg_box.exec();
 
-    switch (ret) {
-      case QMessageBox::Open:
-        (new GnuPGControllerDialog(this))->exec();
-        // restart application when loop start
-        application_need_to_restart_at_once_ = true;
-        // restart application, core and ui
-        emit SignalRestartApplication(kDeepRestartCode);
-        break;
-      case QMessageBox::Cancel:
-        // close application
-        emit SignalRestartApplication(0);
-        break;
-      default:
-        // close application
-        emit SignalRestartApplication(0);
-        break;
-    }
-  });
+        switch (ret) {
+          case QMessageBox::Open:
+            (new GnuPGControllerDialog(this))->exec();
+            // restart application when loop start
+            application_need_to_restart_at_once_ = true;
+            // restart application, core and ui
+            emit SignalRestartApplication(kDeepRestartCode);
+            break;
+          case QMessageBox::Cancel:
+            // close application
+            emit SignalRestartApplication(0);
+            break;
+          default:
+            // close application
+            emit SignalRestartApplication(0);
+            break;
+        }
+      });
 }
 
 void CommonUtils::WaitForOpera(QWidget *parent,

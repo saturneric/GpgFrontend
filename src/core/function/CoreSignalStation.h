@@ -66,7 +66,7 @@ class GPGFRONTEND_CORE_EXPORT CoreSignalStation : public QObject {
    * @brief
    *
    */
-  void SignalBadGnupgEnv();
+  void SignalBadGnupgEnv(QString);
 
   /**
    * @brief

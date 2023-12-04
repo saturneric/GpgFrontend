@@ -42,7 +42,6 @@
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
-#include "core/thread/CtxCheckTask.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
@@ -118,7 +117,7 @@ void WaitEnvCheckingProcess() {
 
 void PreInitGpgFrontendUI() { CommonUtils::GetInstance(); }
 
-void InitGpgFrontendUI(QApplication* app) {
+void InitGpgFrontendUI(QApplication* /*app*/) {
   // init locale
   InitLocale();
 
@@ -179,10 +178,12 @@ void InitGpgFrontendUI(QApplication* app) {
         proxy.setType(proxy_type_qt);
         proxy.setHostName(QString::fromStdString(proxy_host));
         proxy.setPort(proxy_port);
-        if (!proxy_username.empty())
+        if (!proxy_username.empty()) {
           proxy.setUser(QString::fromStdString(proxy_username));
-        if (!proxy_password.empty())
+        }
+        if (!proxy_password.empty()) {
           proxy.setPassword(QString::fromStdString(proxy_password));
+        }
       } else {
         proxy.setType(proxy_type_qt);
       }
@@ -226,9 +227,6 @@ auto RunGpgFrontendUI(QApplication* app) -> int {
 }
 
 void InitUILoggingSystem(spdlog::level::level_enum level) {
-  using namespace boost::posix_time;
-  using namespace boost::gregorian;
-
   // get the log directory
   auto logfile_path = (GlobalSettingStation::GetInstance().GetLogDir() / "ui");
   logfile_path.replace_extension(".log");
@@ -283,13 +281,15 @@ void InitLocale() {
 
   // create general settings if not exist
   if (!settings.exists("general") ||
-      settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
+      settings.lookup("general").getType() != libconfig::Setting::TypeGroup) {
     settings.add("general", libconfig::Setting::TypeGroup);
+  }
 
   // set system default at first
   auto& general = settings["general"];
-  if (!general.exists("lang"))
+  if (!general.exists("lang")) {
     general.add("lang", libconfig::Setting::TypeString) = "";
+  }
 
   // sync the settings to the file
   GpgFrontend::GlobalSettingStation::GetInstance().SyncSettings();
@@ -316,12 +316,12 @@ void InitLocale() {
     // set LC_ALL
     auto* locale_name = setlocale(LC_ALL, lc.c_str());
     if (locale_name == nullptr) SPDLOG_WARN("set LC_ALL failed, lc: {}", lc);
-    auto language = getenv("LANGUAGE");
+    auto* language = getenv("LANGUAGE");
     // set LANGUAGE
     std::string language_env = language == nullptr ? "en" : language;
     language_env.insert(0, lang + ":");
     SPDLOG_DEBUG("language env: {}", language_env);
-    if (setenv("LANGUAGE", language_env.c_str(), 1)) {
+    if (setenv("LANGUAGE", language_env.c_str(), 1) != 0) {
       SPDLOG_WARN("set LANGUAGE {} failed", language_env);
     };
   }
