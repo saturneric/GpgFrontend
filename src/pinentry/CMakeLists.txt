@@ -44,6 +44,9 @@ else()
     target_link_libraries(gpgfrontend_pinentry PUBLIC Qt5::Widgets)
 endif()
 
+# spdlog
+target_link_libraries(gpgfrontend_pinentry PRIVATE spdlog)
+
 # using std c++ 17
 target_compile_features(gpgfrontend_pinentry PUBLIC cxx_std_17)
 

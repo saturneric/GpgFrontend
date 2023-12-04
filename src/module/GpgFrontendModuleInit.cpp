@@ -48,25 +48,27 @@ void ShutdownGpgFrontendModulesLoggingSystem() {
 }
 
 void LoadGpgFrontendModules(ModuleInitArgs args) {
-  // init the logging system for module system
-  LoadGpgFrontendModulesLoggingSystem(args);
-
-  MODULE_LOG_INFO("loading integrated module...");
-
-  // VersionCheckingModule
-  RegisterAndActivateModule<
-      Integrated::VersionCheckingModule::VersionCheckingModule>();
-
-  // VersionCheckingModule
-  RegisterAndActivateModule<
-      Integrated::GnuPGInfoGatheringModule::GnuPGInfoGatheringModule>();
-
-  MODULE_LOG_INFO("load integrated module done.");
-
   // must init at default thread before core
   Thread::TaskRunnerGetter::GetInstance().GetTaskRunner()->PostTask(
-      new Thread::Task([](const DataObjectPtr&) -> int { return 0; },
-                       "modules_system_init_task"));
+      new Thread::Task(
+          [args](const DataObjectPtr&) -> int {
+            // init the logging system for module system
+            LoadGpgFrontendModulesLoggingSystem(args);
+
+            MODULE_LOG_INFO("loading integrated module...");
+
+            // VersionCheckingModule
+            RegisterAndActivateModule<
+                Integrated::VersionCheckingModule::VersionCheckingModule>();
+
+            // VersionCheckingModule
+            RegisterAndActivateModule<Integrated::GnuPGInfoGatheringModule::
+                                          GnuPGInfoGatheringModule>();
+
+            MODULE_LOG_INFO("load integrated module done.");
+            return 0;
+          },
+          "modules_system_init_task"));
 }
 
 void ShutdownGpgFrontendModules() {}
