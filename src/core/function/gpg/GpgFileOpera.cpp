@@ -36,32 +36,32 @@ auto GpgFrontend::GpgFileOpera::EncryptFile(KeyListPtr keys,
                                             const std::string& out_path,
                                             GpgEncrResult& result, int _channel)
     -> GpgFrontend::GpgError {
-#ifdef WINDOWS
-  auto in_path_std =
-      std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
-  auto out_path_std =
-      std::filesystem::path(QString::fromStdString(out_path).toStdU16String());
-#else
-  auto in_path_std = std::filesystem::path(in_path);
-  auto out_path_std = std::filesystem::path(out_path);
-#endif
+  // #ifdef WINDOWS
+  //   auto in_path_std =
+  //       std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
+  //   auto out_path_std =
+  //       std::filesystem::path(QString::fromStdString(out_path).toStdU16String());
+  // #else
+  //   auto in_path_std = std::filesystem::path(in_path);
+  //   auto out_path_std = std::filesystem::path(out_path);
+  // #endif
 
-  std::string in_buffer;
-  if (!ReadFileStd(in_path_std, in_buffer)) {
-    throw std::runtime_error("read file error");
-  }
+  //   std::string in_buffer;
+  //   if (!ReadFileStd(in_path_std, in_buffer)) {
+  //     throw std::runtime_error("read file error");
+  //   }
 
-  ByteArrayPtr out_buffer = nullptr;
+  //   ByteArrayPtr out_buffer = nullptr;
 
-  auto err = GpgBasicOperator::GetInstance(_channel).Encrypt(
-      std::move(keys), in_buffer, out_buffer, result);
+  //   auto err = GpgBasicOperator::GetInstance(_channel).Encrypt(
+  //       std::move(keys), in_buffer, out_buffer, result);
 
-  if (CheckGpgError(err) == GPG_ERR_NO_ERROR)
-    if (!WriteFileStd(out_path_std, *out_buffer)) {
-      throw std::runtime_error("WriteBufferToFile error");
-    };
+  //   if (CheckGpgError(err) == GPG_ERR_NO_ERROR)
+  //     if (!WriteFileStd(out_path_std, *out_buffer)) {
+  //       throw std::runtime_error("WriteBufferToFile error");
+  //     };
 
-  return err;
+  //   return err;
 }
 
 auto GpgFrontend::GpgFileOpera::DecryptFile(const std::string& in_path,

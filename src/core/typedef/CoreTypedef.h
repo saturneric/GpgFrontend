@@ -34,6 +34,7 @@ using ByteArray = std::string;                                    ///<
 using ByteArrayPtr = std::shared_ptr<ByteArray>;                  ///<
 using StdBypeArrayPtr = std::shared_ptr<ByteArray>;               ///<
 using BypeArrayRef = ByteArray&;                                  ///<
+using ConstBypeArrayRef = const ByteArray&;                       ///<
 using BypeArrayConstRef = const ByteArray&;                       ///<
 using StringArgsPtr = std::unique_ptr<std::vector<std::string>>;  ///<
 using StringArgsRef = std::vector<std::string>&;                  ///<

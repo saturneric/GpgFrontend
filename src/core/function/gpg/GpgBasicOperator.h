@@ -63,8 +63,7 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param result the result of the operation
    * @return error code
    */
-  auto Encrypt(KeyListPtr keys, BypeArrayRef in_buffer,
-               ByteArrayPtr& out_buffer, GpgEncrResult& result) -> gpg_error_t;
+  void Encrypt(KeyListPtr, ConstBypeArrayRef, const GpgOperationCallback&);
 
   /**
    * @brief Call the interface provided by GPGME to symmetrical encryption
@@ -72,10 +71,10 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param in_buffer Data for encryption
    * @param out_buffer Encrypted data
    * @param result Encrypted results
-   * @return gpg_error_t
+   * @return GpgError
    */
   auto EncryptSymmetric(BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
-                        GpgEncrResult& result) -> gpg_error_t;
+                        GpgEncrResult& result) -> GpgError;
 
   /**
    *
@@ -92,7 +91,7 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    */
   auto EncryptSign(KeyListPtr keys, KeyListPtr signers, BypeArrayRef in_buffer,
                    ByteArrayPtr& out_buffer, GpgEncrResult& encr_result,
-                   GpgSignResult& sign_result) -> gpgme_error_t;
+                   GpgSignResult& sign_result) -> GpgError;
 
   /**
    * @brief Call the interface provided by gpgme for decryption operation
@@ -103,7 +102,7 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @return error code
    */
   auto Decrypt(BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
-               GpgDecrResult& result) -> gpgme_error_t;
+               GpgDecrResult& result) -> GpgError;
 
   /**
    * @brief  Call the interface provided by gpgme to perform decryption and
@@ -117,7 +116,7 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    */
   auto DecryptVerify(BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
                      GpgDecrResult& decrypt_result,
-                     GpgVerifyResult& verify_result) -> gpgme_error_t;
+                     GpgVerifyResult& verify_result) -> GpgError;
 
   /**
    * @brief Call the interface provided by gpgme for verification operation
@@ -128,7 +127,7 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @return error code
    */
   auto Verify(BypeArrayRef in_buffer, ByteArrayPtr& sig_buffer,
-              GpgVerifyResult& result) const -> gpgme_error_t;
+              GpgVerifyResult& result) const -> GpgError;
 
   /**
    * @brief  Call the interface provided by gpgme for signing operation
@@ -152,7 +151,7 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    */
   auto Sign(KeyListPtr signers, BypeArrayRef in_buffer,
             ByteArrayPtr& out_buffer, gpgme_sig_mode_t mode,
-            GpgSignResult& result) -> gpg_error_t;
+            GpgSignResult& result) -> GpgError;
 
   /**
    * @brief  Set the private key for signatures, this operation is a global

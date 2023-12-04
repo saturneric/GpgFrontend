@@ -50,7 +50,7 @@ class GpgData {
    * @param size
    * @param copy
    */
-  GpgData(void* buffer, size_t size, bool copy = true);
+  GpgData(const void* buffer, size_t size, bool copy = true);
 
   /**
    * @brief

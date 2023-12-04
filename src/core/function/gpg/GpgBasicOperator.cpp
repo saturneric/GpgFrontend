@@ -28,47 +28,51 @@
 
 #include "GpgBasicOperator.h"
 
+#include <gpg-error.h>
+
 #include "core/GpgModel.h"
+#include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
+
+namespace GpgFrontend {
 
 GpgFrontend::GpgBasicOperator::GpgBasicOperator(int channel)
     : SingletonFunctionObject<GpgBasicOperator>(channel) {}
 
-auto GpgFrontend::GpgBasicOperator::Encrypt(
-    KeyListPtr keys, GpgFrontend::BypeArrayRef in_buffer,
-    GpgFrontend::ByteArrayPtr& out_buffer, GpgFrontend::GpgEncrResult& result)
-    -> GpgFrontend::GpgError {
-  // gpgme_encrypt_result_t e_result;
-  gpgme_key_t recipients[keys->size() + 1];
+void GpgFrontend::GpgBasicOperator::Encrypt(KeyListPtr keys,
+                                            ConstBypeArrayRef in_buffer,
+                                            const GpgOperationCallback& cb) {
+  RunGpgOperaAsync(
+      [&](const DataObjectPtr& data_object) -> GpgError {
+        SPDLOG_DEBUG("key size: {}", keys->size());
+        std::vector<gpgme_key_t> recipients(keys->size() + 1);
 
-  int index = 0;
-  for (const auto& key : *keys) {
-    recipients[index++] = static_cast<gpgme_key_t>(key);
-  }
+        for (const auto& key : *keys) {
+          recipients.emplace_back(key);
+        }
 
-  // Last entry data_in array has to be nullptr
-  recipients[keys->size()] = nullptr;
+        // Last entry data_in array has to be nullptr
+        recipients.emplace_back(nullptr);
 
-  GpgData data_in(in_buffer.data(), in_buffer.size());
-  GpgData data_out;
+        GpgData data_in(in_buffer.data(), in_buffer.size());
+        GpgData data_out;
 
-  gpgme_error_t err = CheckGpgError(
-      gpgme_op_encrypt(ctx_.DefaultContext(), recipients,
-                       GPGME_ENCRYPT_ALWAYS_TRUST, data_in, data_out));
+        auto err = CheckGpgError(
+            gpgme_op_encrypt(ctx_.DefaultContext(), recipients.data(),
+                             GPGME_ENCRYPT_ALWAYS_TRUST, data_in, data_out));
+        data_object->Swap(
+            {NewResult(gpgme_op_encrypt_result(ctx_.DefaultContext())),
+             data_out.Read2Buffer()});
 
-  auto temp_data_out = data_out.Read2Buffer();
-  std::swap(temp_data_out, out_buffer);
-
-  auto temp_result = NewResult(gpgme_op_encrypt_result(ctx_.DefaultContext()));
-  std::swap(result, temp_result);
-
-  return err;
+        return err;
+      },
+      cb, "gpgme_op_encrypt", "2.1.0");
 }
 
 auto GpgFrontend::GpgBasicOperator::Decrypt(
     BypeArrayRef in_buffer, GpgFrontend::ByteArrayPtr& out_buffer,
     GpgFrontend::GpgDecrResult& result) -> GpgFrontend::GpgError {
-  gpgme_error_t err;
+  GpgError err;
 
   GpgData data_in(in_buffer.data(), in_buffer.size());
   GpgData data_out;
@@ -88,7 +92,7 @@ auto GpgFrontend::GpgBasicOperator::Verify(BypeArrayRef& in_buffer,
                                            ByteArrayPtr& sig_buffer,
                                            GpgVerifyResult& result) const
     -> GpgFrontend::GpgError {
-  gpgme_error_t err;
+  GpgError err;
 
   GpgData data_in(in_buffer.data(), in_buffer.size());
   GpgData data_out;
@@ -111,7 +115,7 @@ auto GpgFrontend::GpgBasicOperator::Verify(BypeArrayRef& in_buffer,
 auto GpgFrontend::GpgBasicOperator::Sign(
     KeyListPtr signers, BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
     gpgme_sig_mode_t mode, GpgSignResult& result) -> GpgFrontend::GpgError {
-  gpgme_error_t err;
+  GpgError err;
 
   // Set Singers of this opera
   SetSigners(*signers);
@@ -134,9 +138,8 @@ auto GpgFrontend::GpgBasicOperator::Sign(
 
 auto GpgFrontend::GpgBasicOperator::DecryptVerify(
     BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
-    GpgDecrResult& decrypt_result, GpgVerifyResult& verify_result)
-    -> gpgme_error_t {
-  gpgme_error_t err;
+    GpgDecrResult& decrypt_result, GpgVerifyResult& verify_result) -> GpgError {
+  GpgError err;
 
   GpgData data_in(in_buffer.data(), in_buffer.size());
   GpgData data_out;
@@ -161,8 +164,8 @@ auto GpgFrontend::GpgBasicOperator::DecryptVerify(
 auto GpgFrontend::GpgBasicOperator::EncryptSign(
     KeyListPtr keys, KeyListPtr signers, BypeArrayRef in_buffer,
     ByteArrayPtr& out_buffer, GpgEncrResult& encr_result,
-    GpgSignResult& sign_result) -> gpgme_error_t {
-  gpgme_error_t err;
+    GpgSignResult& sign_result) -> GpgError {
+  GpgError err;
   SetSigners(*signers);
 
   // gpgme_encrypt_result_t e_result;
@@ -230,9 +233,9 @@ auto GpgFrontend::GpgBasicOperator::EncryptSymmetric(
   GpgData data_in(in_buffer.data(), in_buffer.size());
   GpgData data_out;
 
-  gpgme_error_t err = CheckGpgError(
-      gpgme_op_encrypt(ctx_.DefaultContext(), nullptr, GPGME_ENCRYPT_SYMMETRIC,
-                       data_in, data_out));
+  GpgError err = CheckGpgError(gpgme_op_encrypt(ctx_.DefaultContext(), nullptr,
+                                                GPGME_ENCRYPT_SYMMETRIC,
+                                                data_in, data_out));
 
   auto temp_data_out = data_out.Read2Buffer();
   std::swap(temp_data_out, out_buffer);
@@ -246,3 +249,4 @@ auto GpgFrontend::GpgBasicOperator::EncryptSymmetric(
 
   return err;
 }
+}  // namespace GpgFrontend

@@ -37,7 +37,7 @@ GpgFrontend::GpgData::GpgData() {
   data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
 }
 
-GpgFrontend::GpgData::GpgData(void* buffer, size_t size, bool copy) {
+GpgFrontend::GpgData::GpgData(const void* buffer, size_t size, bool copy) {
   gpgme_data_t data;
 
   auto err = gpgme_data_new_from_mem(&data, static_cast<const char*>(buffer),

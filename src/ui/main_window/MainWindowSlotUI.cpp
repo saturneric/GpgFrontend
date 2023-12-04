@@ -26,16 +26,14 @@
  *
  */
 
-#include <qnamespace.h>
-
 #include "MainWindow.h"
-#include "UISignalStation.h"
 #include "core/GpgConstants.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
-#include "function/RaisePinentry.h"
+#include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/Wizard.h"
+#include "ui/function/RaisePinentry.h"
 #include "ui/main_window/KeyMgmt.h"
 #include "ui/struct/SettingsObject.h"
 
