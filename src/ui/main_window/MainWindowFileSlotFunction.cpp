@@ -183,10 +183,10 @@ void MainWindow::SlotFileEncrypt() {
     path = path + (file_info.isDir() ? ".tar" : "");
   }
 
-  auto _channel = kGpgfrontendDefaultChannel;
+  auto _channel = kGpgFrontendDefaultChannel;
   auto _extension = ".asc";
   if (non_ascii_when_export || file_info.isDir()) {
-    _channel = kGpgfrontendNonAsciiChannel;
+    _channel = kGpgFrontendNonAsciiChannel;
     _extension = ".gpg";
   }
 
@@ -391,10 +391,10 @@ void MainWindow::SlotFileSign() {
       GlobalSettingStation::GetInstance().LookupSettings(
           "general.non_ascii_when_export", true);
 
-  auto _channel = kGpgfrontendDefaultChannel;
+  auto _channel = kGpgFrontendDefaultChannel;
   auto _extension = ".asc";
   if (non_ascii_when_export) {
-    _channel = kGpgfrontendNonAsciiChannel;
+    _channel = kGpgFrontendNonAsciiChannel;
     _extension = ".sig";
   }
 
@@ -464,9 +464,9 @@ void MainWindow::SlotFileVerify() {
       GlobalSettingStation::GetInstance().LookupSettings(
           "general.non_ascii_when_export", true);
 
-  auto _channel = kGpgfrontendDefaultChannel;
+  auto _channel = kGpgFrontendDefaultChannel;
   if (non_ascii_when_export) {
-    _channel = kGpgfrontendNonAsciiChannel;
+    _channel = kGpgFrontendNonAsciiChannel;
   }
 
   if (in_path.extension() == ".gpg") {
@@ -579,10 +579,10 @@ void MainWindow::SlotFileEncryptSign() {
     path = path + (file_info.isDir() ? ".tar" : "");
   }
 
-  auto channel = kGpgfrontendDefaultChannel;
+  auto channel = kGpgFrontendDefaultChannel;
   const auto* extension = ".asc";
   if (non_ascii_when_export || file_info.isDir()) {
-    channel = kGpgfrontendNonAsciiChannel;
+    channel = kGpgFrontendNonAsciiChannel;
     extension = ".gpg";
   }
 

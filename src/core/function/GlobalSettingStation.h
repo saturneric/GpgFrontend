@@ -91,6 +91,11 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
    */
   [[nodiscard]] auto GetStandaloneDatabaseDir() const -> std::filesystem::path;
 
+  /**
+   * @brief Get the App Config Path object
+   *
+   * @return std::filesystem::path
+   */
   [[nodiscard]] auto GetAppConfigPath() const -> std::filesystem::path;
 
   /**
@@ -121,8 +126,18 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
    */
   [[nodiscard]] auto GetCertsDir() const -> std::filesystem::path;
 
+  /**
+   * @brief Get the Log Files Size object
+   *
+   * @return std::string
+   */
   [[nodiscard]] auto GetLogFilesSize() const -> std::string;
 
+  /**
+   * @brief Get the Data Objects Files Size object
+   *
+   * @return std::string
+   */
   [[nodiscard]] auto GetDataObjectsFilesSize() const -> std::string;
 
   /**

@@ -36,23 +36,23 @@
 
 // GpgFrontend
 #include "GpgFrontendBuildInfo.h"
-#include "spdlog/common.h"
+#include "type.h"
 
 namespace po = boost::program_options;
 
 auto PrintVersion() -> int {
   std::cout << PROJECT_NAME << " "
             << "v" << VERSION_MAJOR << "." << VERSION_MINOR << "."
-            << VERSION_PATCH << std::endl;
+            << VERSION_PATCH << '\n';
   std::cout
-      << "Copyright (C) 2021 Saturneric <eric@bktus.com>" << std::endl
+      << "Copyright (C) 2021 Saturneric <eric@bktus.com>" << '\n'
       << _("This is free software; see the source for copying conditions.")
-      << std::endl
-      << std::endl;
+      << '\n'
+      << '\n';
 
-  std::cout << _("Build Timestamp: ") << BUILD_TIMESTAMP << std::endl
-            << _("Build Version: ") << BUILD_VERSION << std::endl
-            << _("Source Code Version: ") << GIT_VERSION << std::endl;
+  std::cout << _("Build Timestamp: ") << BUILD_TIMESTAMP << '\n'
+            << _("Build Version: ") << BUILD_VERSION << '\n'
+            << _("Source Code Version: ") << GIT_VERSION << '\n';
 
   return 0;
 }
@@ -78,3 +78,5 @@ auto ParseLogLevel(const po::variables_map& vm) -> spdlog::level::level_enum {
 
   return spdlog::level::info;
 }
+
+auto RunTest(int argc, char** argv) {}

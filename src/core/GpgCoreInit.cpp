@@ -303,7 +303,7 @@ void InitGpgFrontendCore() {
 
             // init ctx, also checking the basical env
             auto& ctx = GpgFrontend::GpgContext::CreateInstance(
-                kGpgfrontendDefaultChannel, [=]() -> ChannelObjectPtr {
+                kGpgFrontendDefaultChannel, [=]() -> ChannelObjectPtr {
                   GpgFrontend::GpgContextInitArgs args;
 
                   // set key database path

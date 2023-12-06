@@ -52,8 +52,8 @@ class GlobalModuleContext::Impl {
                 .total_milliseconds()),
         default_task_runner_(std::move(task_runner)) {
     // Initialize acquired channels with default values.
-    acquired_channel_.insert(kGpgfrontendDefaultChannel);
-    acquired_channel_.insert(kGpgfrontendNonAsciiChannel);
+    acquired_channel_.insert(kGpgFrontendDefaultChannel);
+    acquired_channel_.insert(kGpgFrontendNonAsciiChannel);
   }
 
   auto GetChannel(ModuleRawPtr module) -> int {
@@ -74,7 +74,7 @@ class GlobalModuleContext::Impl {
   }
 
   static auto GetDefaultChannel(ModuleRawPtr) -> int {
-    return kGpgfrontendDefaultChannel;
+    return kGpgFrontendDefaultChannel;
   }
 
   auto GetTaskRunner(ModuleRawPtr module) -> std::optional<TaskRunnerPtr> {

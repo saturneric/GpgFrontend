@@ -28,6 +28,8 @@
 
 #include "GlobalSettingStation.h"
 
+#include <qcoreapplication.h>
+
 #include "core/utils/FilesystemUtils.h"
 #include "core/utils/IOUtils.h"
 
@@ -216,11 +218,14 @@ class GlobalSettingStation::Impl
  private:
   std::filesystem::path app_path_ = QCoreApplication::applicationDirPath()
                                         .toStdString();  ///< Program Location
+
   std::filesystem::path app_data_path_ =
       QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
           .toStdString();  ///< Program Data Location
+
   std::filesystem::path app_log_path_ =
       app_data_path_ / "logs";  ///< Program Data Location
+
   std::filesystem::path app_data_objs_path_ =
       app_data_path_ / "data_objs";  ///< Object storage path
 

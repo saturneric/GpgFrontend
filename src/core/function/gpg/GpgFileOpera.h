@@ -52,7 +52,7 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    */
   static auto EncryptFile(KeyListPtr keys, const std::string& in_path,
                           const std::string& out_path, GpgEncrResult& result,
-                          int channel = kGpgfrontendDefaultChannel)
+                          int channel = kGpgFrontendDefaultChannel)
       -> unsigned int;
 
   /**
@@ -67,7 +67,7 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
   static auto EncryptFileSymmetric(const std::string& in_path,
                                    const std::string& out_path,
                                    GpgEncrResult& result,
-                                   int channel = kGpgfrontendDefaultChannel)
+                                   int channel = kGpgFrontendDefaultChannel)
       -> unsigned int;
 
   /**
@@ -94,7 +94,7 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    */
   static auto SignFile(KeyListPtr keys, const std::string& in_path,
                        const std::string& out_path, GpgSignResult& result,
-                       int channel = kGpgfrontendDefaultChannel) -> GpgError;
+                       int channel = kGpgFrontendDefaultChannel) -> GpgError;
 
   /**
    * @brief Verify file with public key
@@ -107,7 +107,7 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    */
   static auto VerifyFile(const std::string& data_path,
                          const std::string& sign_path, GpgVerifyResult& result,
-                         int channel = kGpgfrontendDefaultChannel) -> GpgError;
+                         int channel = kGpgFrontendDefaultChannel) -> GpgError;
 
   /**
    * @brief Encrypt and sign file with public key and private key
@@ -125,7 +125,7 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
                               const std::string& in_path,
                               const std::string& out_path,
                               GpgEncrResult& encr_res, GpgSignResult& sign_res,
-                              int channel = kGpgfrontendDefaultChannel)
+                              int channel = kGpgFrontendDefaultChannel)
       -> GpgError;
 
   /**

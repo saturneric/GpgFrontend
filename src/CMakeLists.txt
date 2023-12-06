@@ -104,6 +104,13 @@ if (BUILD_MODULE)
     add_subdirectory(module)
 endif ()
 
+# build to test gpgfrontend core
+if (BUILD_TEST)
+    include(CTest)
+    enable_testing()
+    add_subdirectory(test)
+endif ()
+
 if (BUILD_APPLICATION)
     # Set Resource Output Path
     if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
@@ -476,7 +483,7 @@ endif ()
 
 # link options for GpgFrontend
 if (BUILD_APPLICATION)
-    target_link_libraries(${AppName} gpgfrontend_ui gpgfrontend_module)
+    target_link_libraries(${AppName} gpgfrontend_ui gpgfrontend_module gpgfrontend_test)
     if (MINGW)
         message(STATUS "Link Application Library For MINGW")
         target_link_libraries(${AppName} crypto)

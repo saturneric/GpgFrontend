@@ -28,11 +28,9 @@
 
 #pragma once
 
+#include "core/GpgConstants.h"
 #include "core/function/SecureMemoryAllocator.h"
 namespace GpgFrontend {
-
-static constexpr int kGpgFrontendDefaultChannel =
-    0;  ///< the default channel id
 
 /**
  * @brief object which in channel system is called "channel"

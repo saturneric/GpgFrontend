@@ -32,3 +32,6 @@ add_subdirectory(spdlog EXCLUDE_FROM_ALL)
 
 set(MI_SECURE ON)
 add_subdirectory(mimalloc EXCLUDE_FROM_ALL)
+
+set(INSTALL_GTEST OFF)
+add_subdirectory(googletest EXCLUDE_FROM_ALL)

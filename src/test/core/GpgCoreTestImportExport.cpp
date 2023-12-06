@@ -29,10 +29,11 @@
 #include <string>
 #include <vector>
 
-#include "GpgFrontendTest.h"
-#include "gpg/GpgConstants.h"
-#include "gpg/function/GpgKeyGetter.h"
-#include "gpg/function/GpgKeyImportExporter.h"
-#include "gpg/model/GpgKey.h"
+#include "GpgCoreTest.h"
+#include "core/GpgConstants.h"
+
+namespace GpgFrontend::Test {
 
 TEST_F(GpgCoreTest, CoreExportSecretTest) {}
+
+}  // namespace GpgFrontend::Test

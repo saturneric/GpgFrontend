@@ -26,7 +26,16 @@
  *
  */
 
-#include "GpgFrontendTest.h"
+#pragma once
 
-// Should be used once and once-only
-INITIALIZE_EASYLOGGINGPP
+#include <gtest/gtest.h>
+#include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
+
+
+#include <libconfig.h++>
+
+#include "GpgFrontendTestExport.h"
+
+namespace GpgFrontend::Test {}  // namespace GpgFrontend::Test

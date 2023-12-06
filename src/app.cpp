@@ -27,11 +27,9 @@
  */
 
 #include <csetjmp>
-#include <csignal>
 
 #include "core/GpgConstants.h"
 #include "core/GpgCoreInit.h"
-#include "core/function/GlobalSettingStation.h"
 #include "module/GpgFrontendModuleInit.h"
 #include "ui/GpgFrontendApplication.h"
 #include "ui/GpgFrontendUIInit.h"

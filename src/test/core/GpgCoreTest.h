@@ -28,27 +28,35 @@
 
 #pragma once
 
-namespace GpgFrontend {
+#include <boost/date_time.hpp>
+#include <boost/dll.hpp>
+#include <boost/dll/runtime_symbol_info.hpp>
+#include <filesystem>
 
-constexpr int kRestartCode = 1000;      ///< only refresh ui
-constexpr int kDeepRestartCode = 1001;  // refresh core and ui
+#include "GpgFrontendTest.h"
+#include "core/function/GlobalSettingStation.h"
+#include "core/typedef/CoreTypedef.h"
 
-// Channels
-constexpr int kGpgFrontendDefaultChannel = 0;   ///<
-constexpr int kGpgFrontendNonAsciiChannel = 2;  ///<
+namespace GpgFrontend::Test {
 
-// HEADER
-constexpr const char* PGP_CRYPT_BEGIN = "-----BEGIN PGP MESSAGE-----";  ///<
-constexpr const char* PGP_CRYPT_END = "-----END PGP MESSAGE-----";      ///<
-constexpr const char* PGP_SIGNED_BEGIN =
-    "-----BEGIN PGP SIGNED MESSAGE-----";                              ///<
-constexpr const char* PGP_SIGNED_END = "-----END PGP SIGNATURE-----";  ///<
-constexpr const char* PGP_SIGNATURE_BEGIN =
-    "-----BEGIN PGP SIGNATURE-----";                                      ///<
-constexpr const char* PGP_SIGNATURE_END = "-----END PGP SIGNATURE-----";  ///<
-constexpr const char* PGP_PUBLIC_KEY_BEGIN =
-    "-----BEGIN PGP PUBLIC KEY BLOCK-----";  ///<
-constexpr const char* PGP_PRIVATE_KEY_BEGIN =
-    "-----BEGIN PGP PRIVATE KEY BLOCK-----";  ///<
+class GpgCoreTest : public ::testing::Test {
+ public:
+  void SetUp() override;
 
-}  // namespace GpgFrontend
+  void TearDown() override;
+
+ private:
+  void import_private_keys(const libconfig::Setting& root);
+
+  // Configure File Location
+  std::filesystem::path config_path_ =
+      GlobalSettingStation::GetInstance().GetAppDir() / "test" / "conf" /
+      "core.cfg";
+
+  // Data File Directory Location
+  std::filesystem::path data_path_ =
+      GlobalSettingStation::GetInstance().GetAppDir() / "test" / "data";
+
+};
+
+}  // namespace GpgFrontend::Test
