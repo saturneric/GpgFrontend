@@ -31,12 +31,12 @@
 namespace GpgFrontend {
 
 auto SecureMalloc(std::size_t size) -> void * {
-  return SecurityMemoryAllocator::Allocate(size);
+  return SecureMemoryAllocator::Allocate(size);
 }
 
 auto SecureRealloc(void *ptr, std::size_t size) -> void * {
-  return SecurityMemoryAllocator::Reallocate(ptr, size);
+  return SecureMemoryAllocator::Reallocate(ptr, size);
 }
 
-void SecureFree(void *ptr) { SecurityMemoryAllocator::Deallocate(ptr); }
+void SecureFree(void *ptr) { SecureMemoryAllocator::Deallocate(ptr); }
 }  // namespace GpgFrontend

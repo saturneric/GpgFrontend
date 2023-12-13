@@ -76,6 +76,8 @@ class SingletonStorage::Impl {
 
       assert(p_obj != nullptr);
       if (p_obj == nullptr) {
+        SPDLOG_ERROR("cannot set a nullptr as a channel obejct of channel: {}",
+                     channel);
         return nullptr;
       }
 

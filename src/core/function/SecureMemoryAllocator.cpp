@@ -32,14 +32,14 @@
 
 namespace GpgFrontend {
 
-auto SecurityMemoryAllocator::Allocate(std::size_t size) -> void* {
+auto SecureMemoryAllocator::Allocate(std::size_t size) -> void* {
   auto* addr = mi_malloc(size);
   SPDLOG_TRACE("secure memory allocator trys to alloc memory, address: {}",
                static_cast<void*>(addr));
   return addr;
 }
 
-auto SecurityMemoryAllocator::Reallocate(void* ptr, std::size_t size) -> void* {
+auto SecureMemoryAllocator::Reallocate(void* ptr, std::size_t size) -> void* {
   auto* addr = mi_realloc(ptr, size);
   SPDLOG_TRACE(
       "secure memory allocator trys to realloc memory, "
@@ -48,7 +48,7 @@ auto SecurityMemoryAllocator::Reallocate(void* ptr, std::size_t size) -> void* {
   return addr;
 }
 
-void SecurityMemoryAllocator::Deallocate(void* p) {
+void SecureMemoryAllocator::Deallocate(void* p) {
   SPDLOG_TRACE("secure memory allocator trys to free memory, address: {}",
                static_cast<void*>(p));
   mi_free(p);

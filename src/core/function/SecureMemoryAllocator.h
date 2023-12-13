@@ -32,7 +32,7 @@
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT SecurityMemoryAllocator {
+class GPGFRONTEND_CORE_EXPORT SecureMemoryAllocator {
  public:
   static auto Allocate(std::size_t) -> void *;
 
@@ -45,9 +45,10 @@ template <typename T>
 struct SecureObjectDeleter {
   void operator()(T *ptr) {
     if (ptr) {
-      SPDLOG_TRACE("secure object deleter trys to free object, obj: {}", static_cast<void *>(ptr));
+      SPDLOG_TRACE("secure object deleter trys to free object, obj: {}",
+                   static_cast<void *>(ptr));
       ptr->~T();
-      SecurityMemoryAllocator::Deallocate(ptr);
+      SecureMemoryAllocator::Deallocate(ptr);
     }
   }
 };

@@ -88,7 +88,7 @@ auto GPGFRONTEND_CORE_EXPORT SecureRealloc(void *, std::size_t) -> void *;
  */
 template <typename T>
 auto SecureMallocAsType(std::size_t size) -> T * {
-  return PointerConverter<T>(SecurityMemoryAllocator::Allocate(size)).AsType();
+  return PointerConverter<T>(SecureMemoryAllocator::Allocate(size)).AsType();
 }
 
 /**
@@ -98,7 +98,7 @@ auto SecureMallocAsType(std::size_t size) -> T * {
  */
 template <typename T>
 auto SecureReallocAsType(T *ptr, std::size_t size) -> T * {
-  return PointerConverter<T>(SecurityMemoryAllocator::Reallocate(ptr, size))
+  return PointerConverter<T>(SecureMemoryAllocator::Reallocate(ptr, size))
       .AsType();
 }
 
@@ -110,7 +110,7 @@ void GPGFRONTEND_CORE_EXPORT SecureFree(void *);
 
 template <typename T, typename... Args>
 static auto SecureCreateObject(Args &&...args) -> T * {
-  void *mem = SecurityMemoryAllocator::Allocate(sizeof(T));
+  void *mem = SecureMemoryAllocator::Allocate(sizeof(T));
   if (!mem) return nullptr;
   SPDLOG_TRACE("alloc secure memnory success, mem: {}",
                static_cast<void *>(mem));
@@ -118,7 +118,7 @@ static auto SecureCreateObject(Args &&...args) -> T * {
   try {
     return new (mem) T(std::forward<Args>(args)...);
   } catch (...) {
-    SecurityMemoryAllocator::Deallocate(mem);
+    SecureMemoryAllocator::Deallocate(mem);
     throw;
   }
 }
@@ -129,13 +129,13 @@ static void SecureDestroyObject(T *obj) {
 
   SPDLOG_TRACE("try to free object, obj: {}", static_cast<void *>(obj));
   obj->~T();
-  SecurityMemoryAllocator::Deallocate(obj);
+  SecureMemoryAllocator::Deallocate(obj);
 }
 
 template <typename T, typename... Args>
 static auto SecureCreateUniqueObject(Args &&...args)
     -> std::unique_ptr<T, SecureObjectDeleter<T>> {
-  void *mem = SecurityMemoryAllocator::Allocate(sizeof(T));
+  void *mem = SecureMemoryAllocator::Allocate(sizeof(T));
   if (!mem) throw std::bad_alloc();
   SPDLOG_TRACE("alloc secure memnory success, unique ptr, type: {}, mem: {}",
                typeid(T).name(), mem);
@@ -144,14 +144,14 @@ static auto SecureCreateUniqueObject(Args &&...args)
     return std::unique_ptr<T, SecureObjectDeleter<T>>(
         new (mem) T(std::forward<Args>(args)...));
   } catch (...) {
-    SecurityMemoryAllocator::Deallocate(mem);
+    SecureMemoryAllocator::Deallocate(mem);
     throw;
   }
 }
 
 template <typename T, typename... Args>
 auto SecureCreateSharedObject(Args &&...args) -> std::shared_ptr<T> {
-  void *mem = SecurityMemoryAllocator::Allocate(sizeof(T));
+  void *mem = SecureMemoryAllocator::Allocate(sizeof(T));
   if (!mem) throw std::bad_alloc();
   SPDLOG_TRACE("alloc secure memnory success, shared ptr, type: {}, mem: {}",
                typeid(T).name(), mem);
@@ -160,10 +160,10 @@ auto SecureCreateSharedObject(Args &&...args) -> std::shared_ptr<T> {
     T *obj = new (mem) T(std::forward<Args>(args)...);
     return std::shared_ptr<T>(obj, [](T *ptr) {
       ptr->~T();
-      SecurityMemoryAllocator::Deallocate(ptr);
+      SecureMemoryAllocator::Deallocate(ptr);
     });
   } catch (...) {
-    SecurityMemoryAllocator::Deallocate(mem);
+    SecureMemoryAllocator::Deallocate(mem);
     throw;
   }
 }
