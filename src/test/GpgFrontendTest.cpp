@@ -28,14 +28,18 @@
 
 #include "GpgFrontendTest.h"
 
+#include <gtest/gtest.h>
+#include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 #include <boost/date_time.hpp>
 #include <boost/dll.hpp>
 #include <filesystem>
 
+#include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgContext.h"
 #include "spdlog/spdlog.h"
-#include "type.h"
 
 namespace GpgFrontend::Test {
 
@@ -66,6 +70,15 @@ void InitTestLoggingSystem(spdlog::level::level_enum level) {
   spdlog::set_default_logger(test_logger);
 }
 
+void ShutdownTestLoggingSystem() {
+#ifdef WINDOWS
+  // Under VisualStudio, this must be called before main finishes to workaround
+  // a known VS issue
+  spdlog::drop_all();
+  spdlog::shutdown();
+#endif
+}
+
 auto GenerateRandomString(size_t length) -> std::string {
   const std::string characters =
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -94,6 +107,8 @@ void ConfigureGpgContext() {
     std::filesystem::create_directory(db_path);
   }
 
+  SPDLOG_DEBUG("DEBUG--------<");
+
   GpgContext::CreateInstance(
       kGpgFrontendDefaultChannel, [&]() -> ChannelObjectPtr {
         GpgContextInitArgs args;
@@ -104,11 +119,15 @@ void ConfigureGpgContext() {
         return ConvertToChannelObjectPtr<>(SecureCreateUniqueObject<GpgContext>(
             args, kGpgFrontendDefaultChannel));
       });
+
+  SPDLOG_DEBUG("DEBUG-------->");
 }
 
-void ExecuteAllTestCase(InitArgs args) {
-  InitTestLoggingSystem(args.log_level);
+auto ExecuteAllTestCase(GpgFrontendContext args) -> int {
   ConfigureGpgContext();
+
+  testing::InitGoogleTest(&args.argc, args.argv);
+  return RUN_ALL_TESTS();
 }
 
 }  // namespace GpgFrontend::Test

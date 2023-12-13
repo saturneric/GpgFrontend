@@ -112,7 +112,8 @@ template <typename T, typename... Args>
 static auto SecureCreateObject(Args &&...args) -> T * {
   void *mem = SecurityMemoryAllocator::Allocate(sizeof(T));
   if (!mem) return nullptr;
-  SPDLOG_TRACE("alloc secure memnory success, mem: {}", static_cast<void *>(mem));
+  SPDLOG_TRACE("alloc secure memnory success, mem: {}",
+               static_cast<void *>(mem));
 
   try {
     return new (mem) T(std::forward<Args>(args)...);
@@ -136,7 +137,8 @@ static auto SecureCreateUniqueObject(Args &&...args)
     -> std::unique_ptr<T, SecureObjectDeleter<T>> {
   void *mem = SecurityMemoryAllocator::Allocate(sizeof(T));
   if (!mem) throw std::bad_alloc();
-  SPDLOG_TRACE("alloc secure memnory success, unique, mem: {}", mem);
+  SPDLOG_TRACE("alloc secure memnory success, unique ptr, type: {}, mem: {}",
+               typeid(T).name(), mem);
 
   try {
     return std::unique_ptr<T, SecureObjectDeleter<T>>(
@@ -151,7 +153,8 @@ template <typename T, typename... Args>
 auto SecureCreateSharedObject(Args &&...args) -> std::shared_ptr<T> {
   void *mem = SecurityMemoryAllocator::Allocate(sizeof(T));
   if (!mem) throw std::bad_alloc();
-  SPDLOG_TRACE("alloc secure memnory success, shared, mem: {}", mem);
+  SPDLOG_TRACE("alloc secure memnory success, shared ptr, type: {}, mem: {}",
+               typeid(T).name(), mem);
 
   try {
     T *obj = new (mem) T(std::forward<Args>(args)...);

@@ -28,12 +28,13 @@
 
 #pragma once
 
+#include <gtest/gtest.h>
+
 #include <boost/date_time.hpp>
 #include <boost/dll.hpp>
 #include <boost/dll/runtime_symbol_info.hpp>
 #include <filesystem>
 
-#include "GpgFrontendTest.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/typedef/CoreTypedef.h"
 
@@ -56,7 +57,6 @@ class GpgCoreTest : public ::testing::Test {
   // Data File Directory Location
   std::filesystem::path data_path_ =
       GlobalSettingStation::GetInstance().GetAppDir() / "test" / "data";
-
 };
 
 }  // namespace GpgFrontend::Test

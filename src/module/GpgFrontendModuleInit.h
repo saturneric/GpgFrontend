@@ -42,7 +42,7 @@ struct ModuleInitArgs {
  * @param args
  */
 void GPGFRONTEND_MODULE_EXPORT
-LoadGpgFrontendModulesLoggingSystem(ModuleInitArgs args);
+LoadGpgFrontendModulesLoggingSystem(spdlog::level::level_enum log_level);
 
 /**
  * @brief

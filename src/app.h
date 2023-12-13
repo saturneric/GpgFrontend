@@ -28,6 +28,10 @@
 
 #pragma once
 
-#include "init.h"
+#include "GpgFrontendContext.h"
 
-auto StartApplication(InitArgs args) -> int;
+namespace GpgFrontend {
+
+auto StartApplication(const GFCxtWPtr& p_ctx) -> int;
+
+}

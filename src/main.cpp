@@ -35,9 +35,11 @@
 #include <iostream>
 #include <string>
 
+#include "GpgFrontendContext.h"
 #include "app.h"
 #include "cmd.h"
-#include "type.h"
+#include "init.h"
+#include "spdlog/spdlog.h"
 
 namespace po = boost::program_options;
 
@@ -48,21 +50,36 @@ namespace po = boost::program_options;
  * @return
  */
 auto main(int argc, char* argv[]) -> int {
+#ifdef RELEASE
+  // re
+  signal(SIGSEGV, HandleSignal);
+  signal(SIGFPE, HandleSignal);
+  signal(SIGILL, HandleSignal);
+#endif
+
+  // initialize qt resources
+  Q_INIT_RESOURCE(gpgfrontend);
+
   po::options_description desc("Allowed options");
 
   desc.add_options()("help,h", "produce help message")(
       "version,v", "show version information")(
       "log-level,l", po::value<std::string>()->default_value("info"),
-      "set log level (trace, debug, info, warn, error)");
+      "set log level (trace, debug, info, warn, error)")(
+      "test,t", "run all unit test cases");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);
   po::notify(vm);
 
-  InitArgs args;
-  args.argc = argc;
-  args.argv = argv;
-  args.log_level = spdlog::level::info;
+  auto p_ctx = GpgFrontend::GpgFrontendContext::CreateInstance(argc, argv);
+  GpgFrontend::GFCxtSPtr ctx = p_ctx.lock();
+  if (ctx == nullptr) {
+    SPDLOG_ERROR("cannot get gpgfrontend context");
+    return -1;
+  }
+  ctx->log_level = spdlog::level::info;
+  ctx->load_ui_env = false;
 
   if (vm.count("help") != 0U) {
     std::cout << desc << "\n";
@@ -70,12 +87,25 @@ auto main(int argc, char* argv[]) -> int {
   }
 
   if (vm.count("version") != 0U) {
-    return PrintVersion();
+    return GpgFrontend::PrintVersion();
   }
 
   if (vm.count("log-level") != 0U) {
-    args.log_level = ParseLogLevel(vm);
+    ctx->log_level = GpgFrontend::ParseLogLevel(vm);
   }
 
-  return StartApplication(args);
+  if (vm.count("log-level") != 0U) {
+    ctx->log_level = GpgFrontend::ParseLogLevel(vm);
+  }
+
+  if (vm.count("test") != 0U) {
+    InitGlobalBasicalEnv(p_ctx);
+    return RunTest(ctx);
+  }
+
+  // default mode
+  ctx->load_ui_env = true;
+  InitGlobalBasicalEnv(p_ctx);
+
+  return StartApplication(p_ctx);
 }

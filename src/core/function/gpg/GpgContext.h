@@ -62,7 +62,7 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
 
   explicit GpgContext(const GpgContextInitArgs &args, int channel);
 
-  ~GpgContext() override;
+  virtual ~GpgContext() override;
 
   [[nodiscard]] auto Good() const -> bool;
 

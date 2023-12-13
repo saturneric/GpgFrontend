@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/GpgFrontendCoreExport.h"
 #include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
@@ -35,7 +36,7 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GpgData {
+class GPGFRONTEND_CORE_EXPORT GpgData {
  public:
   /**
    * @brief Construct a new Gpg Data object

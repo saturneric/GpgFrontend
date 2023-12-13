@@ -49,15 +49,6 @@ class GPGFRONTEND_UI_EXPORT GpgFrontendApplication : public QApplication {
    */
   ~GpgFrontendApplication() override = default;
 
-  /**
-   * @brief Get the GpgFrontend Application object
-   *
-   * @return GpgFrontendApplication*
-   */
-  static GpgFrontendApplication *GetInstance(int argc = 0,
-                                             char *argv[] = nullptr,
-                                             bool new_instance = false);
-
  protected:
   /**
    * @brief

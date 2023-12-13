@@ -36,11 +36,12 @@
 // integrated modules
 #include "integrated/gnupg_info_gathering_module/GnuPGInfoGatheringModule.h"
 #include "integrated/version_checking_module/VersionCheckingModule.h"
+#include "spdlog/common.h"
 
 namespace GpgFrontend::Module {
 
-void LoadGpgFrontendModulesLoggingSystem(ModuleInitArgs args) {
-  GpgFrontend::Module::SDK::InitModuleLoggingSystem(args.log_level);
+void LoadGpgFrontendModulesLoggingSystem(spdlog::level::level_enum log_level) {
+  GpgFrontend::Module::SDK::InitModuleLoggingSystem(log_level);
 }
 
 void ShutdownGpgFrontendModulesLoggingSystem() {
@@ -52,9 +53,6 @@ void LoadGpgFrontendModules(ModuleInitArgs args) {
   Thread::TaskRunnerGetter::GetInstance().GetTaskRunner()->PostTask(
       new Thread::Task(
           [args](const DataObjectPtr&) -> int {
-            // init the logging system for module system
-            LoadGpgFrontendModulesLoggingSystem(args);
-
             MODULE_LOG_INFO("loading integrated module...");
 
             // VersionCheckingModule

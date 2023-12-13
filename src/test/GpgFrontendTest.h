@@ -28,14 +28,23 @@
 
 #pragma once
 
-#include <gtest/gtest.h>
-#include <spdlog/sinks/rotating_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
-
-
-#include <libconfig.h++>
 
 #include "GpgFrontendTestExport.h"
 
-namespace GpgFrontend::Test {}  // namespace GpgFrontend::Test
+namespace GpgFrontend::Test {
+
+struct GpgFrontendContext {
+  int argc;
+  char **argv;
+  spdlog::level::level_enum log_level;
+};
+
+void GPGFRONTEND_TEST_EXPORT
+InitTestLoggingSystem(spdlog::level::level_enum level);
+
+void GPGFRONTEND_TEST_EXPORT ShutdownTestLoggingSystem();
+
+auto GPGFRONTEND_TEST_EXPORT ExecuteAllTestCase(GpgFrontendContext args) -> int;
+
+}  // namespace GpgFrontend::Test

@@ -30,6 +30,7 @@
 
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/utils/IOUtils.h"
+#include "spdlog/spdlog.h"
 
 namespace GpgFrontend::Test {
 
@@ -54,7 +55,8 @@ void GpgCoreTest::TearDown() {}
 
 void GpgCoreTest::SetUp() {
   libconfig::Config cfg;
-  ASSERT_NO_THROW(cfg.readFile(config_path_.c_str()));
+  SPDLOG_INFO("test case config file path: {}", config_path_.string());
+  ASSERT_NO_THROW(cfg.readFile(config_path_.string()));
   auto& root = cfg.getRoot();
   import_private_keys(root);
 }

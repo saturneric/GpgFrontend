@@ -28,6 +28,7 @@
 
 #include "init.h"
 
+#include <qcoreapplication.h>
 #include <spdlog/async.h>
 #include <spdlog/common.h>
 #include <spdlog/sinks/rotating_file_sink.h>
@@ -42,10 +43,13 @@
 #include "core/utils/MemoryUtils.h"
 #include "module/GpgFrontendModuleInit.h"
 #include "module/sdk/Log.h"
+#include "test/GpgFrontendTest.h"
 #include "ui/GpgFrontendUIInit.h"
 
 // main
-#include "type.h"
+#include "GpgFrontendContext.h"
+
+namespace GpgFrontend {
 
 #ifdef WINDOWS
 int setenv(const char *name, const char *value, int overwrite) {
@@ -62,11 +66,11 @@ int setenv(const char *name, const char *value, int overwrite) {
 void InitMainLoggingSystem(spdlog::level::level_enum level) {
   // sinks
   std::vector<spdlog::sink_ptr> sinks;
-  sinks.push_back(GpgFrontend::SecureCreateSharedObject<
-                  spdlog::sinks::stderr_color_sink_mt>());
+  sinks.push_back(
+      SecureCreateSharedObject<spdlog::sinks::stderr_color_sink_mt>());
 
   // logger
-  auto main_logger = GpgFrontend::SecureCreateSharedObject<spdlog::logger>(
+  auto main_logger = SecureCreateSharedObject<spdlog::logger>(
       "main", begin(sinks), end(sinks));
   main_logger->set_pattern(
       "[%H:%M:%S.%e] [T:%t] [%=6n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
@@ -88,26 +92,39 @@ void InitMainLoggingSystem(spdlog::level::level_enum level) {
   spdlog::set_default_logger(main_logger);
 }
 
-void InitLoggingSystem(InitArgs args) {
+void InitLoggingSystem(const GFCxtSPtr &ctx) {
   // init the logging system for main
-  InitMainLoggingSystem(args.log_level);
+  InitMainLoggingSystem(ctx->log_level);
 
   // init the logging system for core
-  GpgFrontend::InitCoreLoggingSystem(args.log_level);
-
-  // init the logging system for ui
-  GpgFrontend::UI::InitUILoggingSystem(args.log_level);
-}
-
-void ShutdownLoggingSystem() {
-  // shutdown the logging system for ui
-  GpgFrontend::UI::ShutdownUILoggingSystem();
+  InitCoreLoggingSystem(ctx->log_level);
 
   // shutdown the logging system for modules
-  GpgFrontend::Module::ShutdownGpgFrontendModulesLoggingSystem();
+  Module::LoadGpgFrontendModulesLoggingSystem(ctx->log_level);
+
+  // init the logging system for test
+  Test::InitTestLoggingSystem(ctx->log_level);
+
+  if (ctx->load_ui_env) {
+    // init the logging system for ui
+    UI::InitUILoggingSystem(ctx->log_level);
+  }
+}
+
+void ShutdownLoggingSystem(const GFCxtSPtr &ctx) {
+  if (ctx->load_ui_env) {
+    // shutdown the logging system for ui
+    UI::ShutdownUILoggingSystem();
+  }
+
+  // shutdown the logging system for test
+  Test::ShutdownTestLoggingSystem();
+
+  // shutdown the logging system for modules
+  Module::ShutdownGpgFrontendModulesLoggingSystem();
 
   // shutdown the logging system for core
-  GpgFrontend::ShutdownCoreLoggingSystem();
+  ShutdownCoreLoggingSystem();
 
 #ifdef WINDOWS
   // Under VisualStudio, this must be called before main finishes to workaround
@@ -120,11 +137,11 @@ void ShutdownLoggingSystem() {
 void InitGlobalPathEnv() {
   // read settings
   bool use_custom_gnupg_install_path =
-      GpgFrontend::GlobalSettingStation::GetInstance().LookupSettings(
+      GlobalSettingStation::GetInstance().LookupSettings(
           "general.use_custom_gnupg_install_path", false);
 
   std::string custom_gnupg_install_path =
-      GpgFrontend::GlobalSettingStation::GetInstance().LookupSettings(
+      GlobalSettingStation::GetInstance().LookupSettings(
           "general.custom_gnupg_install_path", std::string{});
 
   // add custom gnupg install path into env $PATH
@@ -140,3 +157,46 @@ void InitGlobalPathEnv() {
     SPDLOG_DEBUG("Modified System PATH: {}", modified_path_value);
   }
 }
+
+void InitGlobalBasicalEnv(const GFCxtWPtr &p_ctx) {
+  GFCxtSPtr ctx = p_ctx.lock();
+  if (ctx == nullptr) {
+    return;
+  }
+
+  // initialize logging system
+  InitLoggingSystem(ctx);
+
+  // change path to search for related
+  InitGlobalPathEnv();
+
+  if (ctx->load_ui_env) {
+    ctx->InitGUIApplication();
+  } else {
+    ctx->InitCoreApplication();
+  }
+
+  // should load module system first
+  Module::ModuleInitArgs module_init_args;
+  module_init_args.log_level = ctx->log_level;
+  Module::LoadGpgFrontendModules(module_init_args);
+
+  if (ctx->load_ui_env) {
+    // then preload ui
+    UI::PreInitGpgFrontendUI();
+  }
+
+  // then load core
+  InitGpgFrontendCore();
+}
+
+void ShutdownGlobalBasicalEnv(const GFCxtWPtr &p_ctx) {
+  GFCxtSPtr ctx = p_ctx.lock();
+  if (ctx == nullptr) {
+    return;
+  }
+
+  ShutdownLoggingSystem(ctx);
+}
+
+}  // namespace GpgFrontend

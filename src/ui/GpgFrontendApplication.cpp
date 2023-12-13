@@ -53,25 +53,6 @@ GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
   QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
 }
 
-GpgFrontendApplication *GpgFrontendApplication::GetInstance(int argc,
-                                                            char *argv[],
-                                                            bool new_instance) {
-  static GpgFrontendApplication *instance = nullptr;
-  static int static_argc = argc;
-  static char **static_argv = argv;
-
-  if (new_instance || !instance) {
-    if (instance != nullptr) {
-      SPDLOG_DEBUG("old application exists, quitting...");
-      instance->quit();
-      delete instance;
-    }
-    SPDLOG_DEBUG("creating new application instance, argc: {}", argc);
-    instance = new GpgFrontendApplication(static_argc, static_argv);
-  }
-  return instance;
-}
-
 bool GpgFrontendApplication::notify(QObject *receiver, QEvent *event) {
 #ifdef RELEASE
   try {

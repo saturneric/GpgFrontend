@@ -28,15 +28,15 @@
 
 #include <csetjmp>
 
+#include "GpgFrontendContext.h"
 #include "core/GpgConstants.h"
 #include "core/GpgCoreInit.h"
 #include "module/GpgFrontendModuleInit.h"
-#include "ui/GpgFrontendApplication.h"
+#include "spdlog/spdlog.h"
 #include "ui/GpgFrontendUIInit.h"
 
 // main
 #include "init.h"
-#include "type.h"
 
 /**
  * \brief Store the jump buff and make it possible to recover from a crash.
@@ -47,6 +47,8 @@ sigjmp_buf recover_env;
 jmp_buf recover_env;
 #endif
 
+namespace GpgFrontend {
+
 constexpr int kCrashCode = ~0;  ///<
 
 /**
@@ -56,31 +58,25 @@ constexpr int kCrashCode = ~0;  ///<
  * @param argv
  * @return int
  */
-auto StartApplication(InitArgs args) -> int {
-  SPDLOG_INFO("start running application");
+auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
+  GFCxtSPtr ctx = p_ctx.lock();
+  if (ctx == nullptr) {
+    SPDLOG_ERROR("cannot get gpgfrontend context.");
+    return -1;
+  }
 
-#ifdef RELEASE
-  // re
-  signal(SIGSEGV, HandleSignal);
-  signal(SIGFPE, HandleSignal);
-  signal(SIGILL, HandleSignal);
-#endif
+  if (!ctx->load_ui_env) {
+    SPDLOG_ERROR("the loading of gui application is forbidden.");
+    return -1;
+  }
 
-  // clean something before exit
-  atexit(BeforeExit);
+  auto* app = qobject_cast<QApplication*>(ctx->app.get());
+  if (app == nullptr) {
+    SPDLOG_ERROR("cannot get qapplication from gpgfrontend context.");
+    return -1;
+  }
 
-  // initialize qt resources
-  Q_INIT_RESOURCE(gpgfrontend);
-
-  // create qt application
-  auto* app = GpgFrontend::UI::GpgFrontendApplication::GetInstance(
-      args.argc, args.argv, true);
-
-  // init the logging system for main
-  InitLoggingSystem(args);
-
-  // change path to search for related
-  InitGlobalPathEnv();
+  SPDLOG_INFO("start running gui application");
 
   /**
    * internationalisation. loop to restart main window
@@ -96,17 +92,6 @@ auto StartApplication(InitArgs args) -> int {
     int r = setjmp(recover_env);
 #endif
     if (!r) {
-      // should load module system first
-      GpgFrontend::Module::ModuleInitArgs module_init_args;
-      module_init_args.log_level = args.log_level;
-      GpgFrontend::Module::LoadGpgFrontendModules(module_init_args);
-
-      // then preload ui
-      GpgFrontend::UI::PreInitGpgFrontendUI();
-
-      // then load core
-      GpgFrontend::InitGpgFrontendCore();
-
       // after that load ui totally
       GpgFrontend::UI::InitGpgFrontendUI(app);
 
@@ -143,9 +128,6 @@ auto StartApplication(InitArgs args) -> int {
   } while (return_from_event_loop_code == GpgFrontend::kRestartCode &&
            restart_count < 3);
 
-  // close logging system
-  ShutdownLoggingSystem();
-
   // log for debug
   SPDLOG_INFO("GpgFrontend is about to exit.");
 
@@ -161,3 +143,5 @@ auto StartApplication(InitArgs args) -> int {
   // exit the program
   return return_from_event_loop_code;
 }
+
+}  // namespace GpgFrontend

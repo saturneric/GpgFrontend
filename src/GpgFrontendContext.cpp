@@ -26,10 +26,37 @@
  *
  */
 
-#include "core/function/GlobalSettingStation.h"
+#include "GpgFrontendContext.h"
 
-/**
- * @brief Actions performed before exiting the application
- *
- */
-void BeforeExit() {}
+#include <qcoreapplication.h>
+
+#include <memory>
+
+#include "ui/GpgFrontendApplication.h"
+
+namespace GpgFrontend {
+
+std::shared_ptr<GpgFrontendContext> GpgFrontendContext::global_context =
+    nullptr;
+
+auto GpgFrontendContext::CreateInstance(int argc, char** argv)
+    -> std::weak_ptr<GpgFrontendContext> {
+  global_context = std::make_shared<GpgFrontendContext>();
+  global_context->argc = argc;
+  global_context->argv = argv;
+  return global_context;
+}
+
+auto GpgFrontendContext::GetInstance() -> std::weak_ptr<GpgFrontendContext> {
+  return global_context;
+}
+
+void GpgFrontendContext::InitCoreApplication() {
+  app = std::make_unique<QCoreApplication>(argc, argv);
+}
+
+void GpgFrontendContext::InitGUIApplication() {
+  app = std::make_unique<UI::GpgFrontendApplication>(argc, argv);
+}
+
+}  // namespace GpgFrontend

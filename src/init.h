@@ -28,7 +28,9 @@
 
 #pragma once
 
-struct InitArgs;
+#include "GpgFrontendContext.h"
+
+namespace GpgFrontend {
 
 /**
  * @brief handle the signal SIGSEGV
@@ -38,26 +40,29 @@ struct InitArgs;
 void HandleSignal(int sig);
 
 /**
- * @brief processes before exit the program.
- *
- */
-void BeforeExit();
-
-/**
  * @brief
  *
  * @param args
  */
-void InitLoggingSystem(InitArgs args);
+void InitLoggingSystem(const GFCxtSPtr&);
 
 /**
  * @brief initialize the logging system.
  *
  */
-void ShutdownLoggingSystem();
+void ShutdownLoggingSystem(const GFCxtSPtr&);
 
 /**
  * @brief init global PATH env
  *
  */
 void InitGlobalPathEnv();
+
+/**
+ * @brief
+ *
+ * @param args
+ */
+void InitGlobalBasicalEnv(const GFCxtWPtr&);
+
+}  // namespace GpgFrontend

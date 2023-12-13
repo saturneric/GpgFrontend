@@ -28,8 +28,50 @@
 
 #pragma once
 
-struct InitArgs {
+namespace GpgFrontend {
+
+struct GpgFrontendContext {
   int argc;
-  char **argv;
+  char** argv;
   spdlog::level::level_enum log_level;
+
+  bool load_ui_env;
+  std::unique_ptr<QCoreApplication> app;
+
+  /**
+   * @brief Create a Instance object
+   *
+   * @param argc
+   * @param argv
+   * @return std::weak_ptr<GpgFrontendContext>
+   */
+  static auto CreateInstance(int argc, char** argv)
+      -> std::weak_ptr<GpgFrontendContext>;
+
+  /**
+   * @brief Get the Instance object
+   *
+   * @return std::weak_ptr<GpgFrontendContext>
+   */
+  static auto GetInstance() -> std::weak_ptr<GpgFrontendContext>;
+
+  /**
+   * @brief
+   *
+   */
+  void InitGUIApplication();
+
+  /**
+   * @brief
+   *
+   */
+  void InitCoreApplication();
+
+ private:
+  static std::shared_ptr<GpgFrontendContext> global_context;
 };
+
+using GFCxtWPtr = std::weak_ptr<GpgFrontendContext>;
+using GFCxtSPtr = std::shared_ptr<GpgFrontendContext>;
+
+}  // namespace GpgFrontend

@@ -36,9 +36,12 @@
 
 // GpgFrontend
 #include "GpgFrontendBuildInfo.h"
-#include "type.h"
+#include "GpgFrontendContext.h"
+#include "test/GpgFrontendTest.h"
 
 namespace po = boost::program_options;
+
+namespace GpgFrontend {
 
 auto PrintVersion() -> int {
   std::cout << PROJECT_NAME << " "
@@ -79,4 +82,19 @@ auto ParseLogLevel(const po::variables_map& vm) -> spdlog::level::level_enum {
   return spdlog::level::info;
 }
 
-auto RunTest(int argc, char** argv) {}
+auto RunTest(const GFCxtWPtr& p_ctx) -> int {
+  GpgFrontend::GFCxtSPtr ctx = p_ctx.lock();
+  if (ctx == nullptr) {
+    SPDLOG_ERROR("cannot get gpgfrontend context for test running");
+    return -1;
+  }
+
+  GpgFrontend::Test::GpgFrontendContext test_init_args;
+  test_init_args.argc = ctx->argc;
+  test_init_args.argv = ctx->argv;
+  test_init_args.log_level = ctx->log_level;
+
+  return GpgFrontend::Test::ExecuteAllTestCase(test_init_args);
+}
+
+}  // namespace GpgFrontend
