@@ -116,21 +116,21 @@ class GlobalModuleContext::Impl {
       return false;
     }
 
-    ModuleRegisterInfo register_info;
-    register_info.module = module;
-    register_info.channel = acquire_new_unique_channel();
-    register_info.task_runner =
+    auto register_info =
+        GpgFrontend::SecureCreateSharedObject<ModuleRegisterInfo>();
+    register_info->module = module;
+    register_info->channel = acquire_new_unique_channel();
+    register_info->task_runner =
         GpgFrontend::SecureCreateSharedObject<Thread::TaskRunner>();
-    register_info.task_runner->Start();
+    register_info->task_runner->Start();
 
     // move module to its task runner' thread
-    register_info.module->setParent(nullptr);
-    register_info.module->moveToThread(register_info.task_runner->GetThread());
+    register_info->module->setParent(nullptr);
+    register_info->module->moveToThread(
+        register_info->task_runner->GetThread());
 
     // Register the module with its identifier.
-    module_register_table_[module->GetModuleIdentifier()] =
-        GpgFrontend::SecureCreateSharedObject<ModuleRegisterInfo>(
-            std::move(register_info));
+    module_register_table_[module->GetModuleIdentifier()] = register_info;
 
     SPDLOG_DEBUG("successfully registered module: {}",
                  module->GetModuleIdentifier());
@@ -148,8 +148,19 @@ class GlobalModuleContext::Impl {
     }
 
     auto module_info = module_info_opt.value();
+
+    // try to get module from module info
+    auto module = module_info->module;
+    if (module == nullptr) {
+      SPDLOG_ERROR(
+          "module id {} at register table is releated to a null module",
+          module_id);
+      return false;
+    }
+
     // Activate the module if it is not already active.
-    if (!module_info->activate && module_info->module->Active()) {
+    if (!module_info->activate) {
+      module->Active();
       module_info->activate = true;
     }
 
