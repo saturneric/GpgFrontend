@@ -71,7 +71,8 @@ class SingletonStorage::Impl {
   auto SetObjectInChannel(int channel, ChannelObjectPtr p_obj)
       -> GpgFrontend::ChannelObject* {
     {
-      SPDLOG_TRACE("set channel object in channel: {}, address: {}", channel,
+      SPDLOG_TRACE("set channel object, type: {} in channel: {}, address: {}",
+                   typeid(p_obj.get()).name(), channel,
                    static_cast<void*>(p_obj.get()));
 
       assert(p_obj != nullptr);
@@ -84,12 +85,14 @@ class SingletonStorage::Impl {
       p_obj->SetChannel(channel);
       auto* raw_obj = p_obj.get();
 
-      SPDLOG_TRACE(
-          "register channel object to instances map, "
-          "channel: {}, address: {}",
-          channel, static_cast<void*>(p_obj.get()));
-      std::unique_lock<std::shared_mutex> lock(instances_mutex_);
-      instances_map_.insert({channel, std::move(p_obj)});
+      {
+        SPDLOG_TRACE(
+            "register channel object to instances map, "
+            "channel: {}, address: {}",
+            channel, static_cast<void*>(p_obj.get()));
+        std::unique_lock<std::shared_mutex> lock(instances_mutex_);
+        instances_map_[channel] = std::move(p_obj);
+      }
 
       SPDLOG_TRACE(
           "set channel: {} success, current channel object address: {}",

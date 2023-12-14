@@ -36,10 +36,9 @@
 #include "core/module/Module.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunner.h"
+#include "utils/MemoryUtils.h"
 
 namespace GpgFrontend::Module {
-
-ModuleMangerPtr ModuleManager::g_ = nullptr;
 
 class ModuleManager::Impl {
  public:
@@ -138,8 +137,8 @@ ModuleManager::ModuleManager() : p_(std::make_unique<Impl>()) {}
 ModuleManager::~ModuleManager() = default;
 
 auto ModuleManager::GetInstance() -> ModuleMangerPtr {
-  if (g_ == nullptr) g_ = std::shared_ptr<ModuleManager>(new ModuleManager());
-  return g_;
+  static ModuleMangerPtr g = SecureCreateSharedObject<ModuleManager>();
+  return g;
 }
 
 void ModuleManager::RegisterModule(ModulePtr module) {

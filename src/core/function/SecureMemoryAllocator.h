@@ -29,6 +29,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 namespace GpgFrontend {
 
@@ -45,12 +46,17 @@ template <typename T>
 struct SecureObjectDeleter {
   void operator()(T *ptr) {
     if (ptr) {
-      SPDLOG_TRACE("secure object deleter trys to free object, obj: {}",
-                   static_cast<void *>(ptr));
+      SPDLOG_TRACE(
+          "secure object deleter trys to deconstruct and free object, "
+          "type: {}, addr: {}",
+          typeid(T).name(), static_cast<void *>(ptr));
       ptr->~T();
       SecureMemoryAllocator::Deallocate(ptr);
     }
   }
 };
+
+template <typename T>
+using UniquePtrWithSecureDeleter = std::unique_ptr<T, SecureObjectDeleter<T>>;
 
 }  // namespace GpgFrontend

@@ -186,8 +186,10 @@ void InitGlobalBasicalEnv(const GFCxtWPtr &p_ctx) {
     UI::PreInitGpgFrontendUI();
   }
 
+  CoreInitArgs core_init_args;
+  core_init_args.gather_external_gnupg_info = ctx->gather_external_gnupg_info;
   // then load core
-  InitGpgFrontendCore();
+  InitGpgFrontendCore(core_init_args);
 }
 
 void ShutdownGlobalBasicalEnv(const GFCxtWPtr &p_ctx) {

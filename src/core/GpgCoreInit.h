@@ -32,6 +32,10 @@
 
 namespace GpgFrontend {
 
+struct CoreInitArgs {
+  bool gather_external_gnupg_info;
+};
+
 /**
  * @brief
  *
@@ -55,6 +59,6 @@ void GPGFRONTEND_CORE_EXPORT DestroyGpgFrontendCore();
  * @brief
  *
  */
-void GPGFRONTEND_CORE_EXPORT InitGpgFrontendCore();
+void GPGFRONTEND_CORE_EXPORT InitGpgFrontendCore(CoreInitArgs);
 
 }  // namespace GpgFrontend

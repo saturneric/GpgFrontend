@@ -28,7 +28,9 @@
 
 #pragma once
 
+#include <QtWidgets/qapplication.h>
 #include <gtest/gtest.h>
+#include <qcoreapplication.h>
 
 #include <boost/date_time.hpp>
 #include <boost/dll.hpp>
@@ -49,14 +51,14 @@ class GpgCoreTest : public ::testing::Test {
  private:
   void import_private_keys(const libconfig::Setting& root);
 
+  std::filesystem::path app_path_ = std::filesystem::path{
+      QCoreApplication::applicationDirPath().toStdString()};
+
   // Configure File Location
-  std::filesystem::path config_path_ =
-      GlobalSettingStation::GetInstance().GetAppDir() / "test" / "conf" /
-      "core.cfg";
+  std::filesystem::path config_path_ = app_path_ / "test" / "conf" / "core.cfg";
 
   // Data File Directory Location
-  std::filesystem::path data_path_ =
-      GlobalSettingStation::GetInstance().GetAppDir() / "test" / "data";
+  std::filesystem::path data_path_ = app_path_ / "test" / "data";
 };
 
 }  // namespace GpgFrontend::Test

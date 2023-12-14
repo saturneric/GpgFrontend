@@ -57,7 +57,9 @@ using LPCallback = std::function<void(Namespace, Key, int, std::any)>;
 class GPGFRONTEND_CORE_EXPORT ModuleManager : public QObject {
   Q_OBJECT
  public:
-  ~ModuleManager() override;
+  ModuleManager();
+
+  virtual ~ModuleManager() override;
 
   static auto GetInstance() -> ModuleMangerPtr;
 
@@ -85,9 +87,6 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager : public QObject {
  private:
   class Impl;
   std::unique_ptr<Impl> p_;
-  static ModuleMangerPtr g_;
-
-  ModuleManager();
 };
 
 template <typename T, typename... Args>

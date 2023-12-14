@@ -99,6 +99,7 @@ auto main(int argc, char* argv[]) -> int {
   }
 
   if (vm.count("test") != 0U) {
+    ctx->gather_external_gnupg_info = false;
     InitGlobalBasicalEnv(p_ctx);
     return RunTest(ctx);
   }

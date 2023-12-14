@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/function/SecureMemoryAllocator.h"
 #include "core/function/basic/GpgFunctionObject.h"
 
 namespace GpgFrontend {
@@ -72,6 +73,6 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
 
  private:
   class Impl;
-  std::unique_ptr<Impl> p_;
+  UniquePtrWithSecureDeleter<Impl> p_;
 };
 }  // namespace GpgFrontend

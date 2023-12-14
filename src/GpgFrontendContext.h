@@ -38,6 +38,8 @@ struct GpgFrontendContext {
   bool load_ui_env;
   std::unique_ptr<QCoreApplication> app;
 
+  bool gather_external_gnupg_info;
+
   /**
    * @brief Create a Instance object
    *

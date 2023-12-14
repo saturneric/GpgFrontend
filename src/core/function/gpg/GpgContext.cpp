@@ -38,21 +38,13 @@
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
 #include "spdlog/spdlog.h"
+#include "utils/MemoryUtils.h"
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
 namespace GpgFrontend {
-
-struct CtxRefDeleter {
-  void operator()(gpgme_ctx_t _ctx) {
-    if (_ctx != nullptr) gpgme_release(_ctx);
-  }
-};
-
-using CtxRefHandler =
-    std::unique_ptr<struct gpgme_context, CtxRefDeleter>;  ///<
 
 class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
  public:
@@ -66,25 +58,33 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
         args_(args),
         good_(default_ctx_initialize(args) && binary_ctx_initialize(args)) {}
 
-  [[nodiscard]] auto BinaryContext() const -> gpgme_ctx_t {
-    return binary_ctx_ref_.get();
+  ~Impl() {
+    if (ctx_ref_ != nullptr) {
+      gpgme_release(ctx_ref_);
+    }
+
+    if (binary_ctx_ref_ != nullptr) {
+      gpgme_release(binary_ctx_ref_);
+    }
   }
 
-  [[nodiscard]] auto DefaultContext() const -> gpgme_ctx_t {
-    return ctx_ref_.get();
+  [[nodiscard]] auto BinaryContext() const -> gpgme_ctx_t {
+    return binary_ctx_ref_;
   }
+
+  [[nodiscard]] auto DefaultContext() const -> gpgme_ctx_t { return ctx_ref_; }
 
   [[nodiscard]] auto Good() const -> bool { return good_; }
 
-  auto SetPassphraseCb(const CtxRefHandler &ctx, gpgme_passphrase_cb_t cb)
+  auto SetPassphraseCb(const gpgme_ctx_t &ctx, gpgme_passphrase_cb_t cb)
       -> bool {
-    if (gpgme_get_pinentry_mode(ctx.get()) != GPGME_PINENTRY_MODE_LOOPBACK) {
+    if (gpgme_get_pinentry_mode(ctx) != GPGME_PINENTRY_MODE_LOOPBACK) {
       if (CheckGpgError(gpgme_set_pinentry_mode(
-              ctx.get(), GPGME_PINENTRY_MODE_LOOPBACK)) != GPG_ERR_NO_ERROR) {
+              ctx, GPGME_PINENTRY_MODE_LOOPBACK)) != GPG_ERR_NO_ERROR) {
         return false;
       }
     }
-    gpgme_set_passphrase_cb(ctx.get(), cb, reinterpret_cast<void *>(parent_));
+    gpgme_set_passphrase_cb(ctx, cb, reinterpret_cast<void *>(parent_));
     return true;
   }
 
@@ -154,19 +154,19 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
 
  private:
   GpgContext *parent_;
-  GpgContextInitArgs args_{};               ///<
-  CtxRefHandler ctx_ref_ = nullptr;         ///<
-  CtxRefHandler binary_ctx_ref_ = nullptr;  ///<
+  GpgContextInitArgs args_{};             ///<
+  gpgme_ctx_t ctx_ref_ = nullptr;         ///<
+  gpgme_ctx_t binary_ctx_ref_ = nullptr;  ///<
   bool good_ = true;
 
-  static auto set_ctx_key_list_mode(const CtxRefHandler &ctx) -> bool {
-    assert(ctx.get() != nullptr);
+  static auto set_ctx_key_list_mode(const gpgme_ctx_t &ctx) -> bool {
+    assert(ctx != nullptr);
 
     const auto gpgme_version = Module::RetrieveRTValueTypedOrDefault<>(
         "core", "gpgme.version", std::string{"0.0.0"});
     SPDLOG_DEBUG("got gpgme version version from rt: {}", gpgme_version);
 
-    if (gpgme_get_keylist_mode(ctx.get()) == 0) {
+    if (gpgme_get_keylist_mode(ctx) == 0) {
       SPDLOG_ERROR(
           "ctx is not a valid pointer, reported by gpgme_get_keylist_mode");
       return false;
@@ -174,20 +174,47 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
 
     // set keylist mode
     return CheckGpgError(gpgme_set_keylist_mode(
-               ctx.get(),
-               GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_WITH_SECRET |
-                   GPGME_KEYLIST_MODE_SIGS | GPGME_KEYLIST_MODE_SIG_NOTATIONS |
-                   GPGME_KEYLIST_MODE_WITH_TOFU)) == GPG_ERR_NO_ERROR;
+               ctx, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_WITH_SECRET |
+                        GPGME_KEYLIST_MODE_SIGS |
+                        GPGME_KEYLIST_MODE_SIG_NOTATIONS |
+                        GPGME_KEYLIST_MODE_WITH_TOFU)) == GPG_ERR_NO_ERROR;
   }
 
-  auto common_ctx_initialize(const CtxRefHandler &ctx,
+  static auto set_ctx_openpgp_engine_info(gpgme_ctx_t ctx) -> bool {
+    const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
+        "core", "gpgme.ctx.app_path", std::string{});
+    const auto database_path = Module::RetrieveRTValueTypedOrDefault<>(
+        "core", "gpgme.ctx.database_path", std::string{});
+
+    SPDLOG_DEBUG("ctx set engine info, db path: {}, app path: {}",
+                 database_path, app_path);
+
+    const char *app_path_c_str = app_path.c_str();
+    const char *db_path_c_str = database_path.c_str();
+
+    if (app_path.empty()) {
+      app_path_c_str = nullptr;
+    }
+
+    if (database_path.empty()) {
+      db_path_c_str = nullptr;
+    }
+
+    auto err = gpgme_ctx_set_engine_info(ctx, GPGME_PROTOCOL_OpenPGP,
+                                         app_path_c_str, db_path_c_str);
+
+    assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
+    return CheckGpgError(err) == GPG_ERR_NO_ERROR;
+  }
+
+  auto common_ctx_initialize(const gpgme_ctx_t &ctx,
                              const GpgContextInitArgs &args) -> bool {
-    assert(ctx.get() != nullptr);
+    assert(ctx != nullptr);
 
     if (args.custom_gpgconf && !args.custom_gpgconf_path.empty()) {
       SPDLOG_DEBUG("set custom gpgconf path: {}", args.custom_gpgconf_path);
       auto err =
-          gpgme_ctx_set_engine_info(ctx.get(), GPGME_PROTOCOL_GPGCONF,
+          gpgme_ctx_set_engine_info(ctx, GPGME_PROTOCOL_GPGCONF,
                                     args.custom_gpgconf_path.c_str(), nullptr);
 
       assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
@@ -198,14 +225,14 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
 
     // set context offline mode
     SPDLOG_DEBUG("gpg context offline mode: {}", args_.offline_mode);
-    gpgme_set_offline(ctx.get(), args_.offline_mode ? 1 : 0);
+    gpgme_set_offline(ctx, args_.offline_mode ? 1 : 0);
 
     // set option auto import missing key
     // invalid at offline mode
     SPDLOG_DEBUG("gpg context auto import missing key: {}", args_.offline_mode);
     if (!args.offline_mode && args.auto_import_missing_key) {
-      if (CheckGpgError(gpgme_set_ctx_flag(ctx.get(), "auto-key-import",
-                                           "1")) != GPG_ERR_NO_ERROR) {
+      if (CheckGpgError(gpgme_set_ctx_flag(ctx, "auto-key-import", "1")) !=
+          GPG_ERR_NO_ERROR) {
         return false;
       }
     }
@@ -232,21 +259,11 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
     if (!args_.db_path.empty()) {
       Module::UpsertRTValue("core", "gpgme.ctx.database_path",
                             std::string(args_.db_path));
+    }
 
-      const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
-          "core", "gpgme.ctx.app_path", std::string{});
-      const auto database_path = Module::RetrieveRTValueTypedOrDefault<>(
-          "core", "gpgme.ctx.database_path", std::string{});
-
-      auto err =
-          gpgme_ctx_set_engine_info(ctx_ref_.get(), GPGME_PROTOCOL_OpenPGP,
-                                    app_path.c_str(), database_path.c_str());
-      SPDLOG_DEBUG("ctx set custom key db path: {}", database_path);
-
-      assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
-      if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-        return false;
-      }
+    if (!set_ctx_openpgp_engine_info(ctx)) {
+      SPDLOG_ERROR("set gpgme context openpgp engine info failed");
+      return false;
     }
 
     return true;
@@ -258,7 +275,7 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
       return false;
     }
     assert(p_ctx != nullptr);
-    binary_ctx_ref_ = CtxRefHandler(p_ctx);
+    binary_ctx_ref_ = p_ctx;
 
     if (!common_ctx_initialize(binary_ctx_ref_, args)) {
       SPDLOG_ERROR("get new ctx failed, binary");
@@ -267,7 +284,7 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
 
     /** Setting the output type must be done at the beginning */
     /** think this means ascii-armor --> ? */
-    gpgme_set_armor(binary_ctx_ref_.get(), 0);
+    gpgme_set_armor(binary_ctx_ref_, 0);
     return true;
   }
 
@@ -278,24 +295,24 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
       return false;
     }
     assert(p_ctx != nullptr);
-    ctx_ref_ = CtxRefHandler(p_ctx);
+    ctx_ref_ = p_ctx;
 
-    if (!common_ctx_initialize(ctx_ref_, args)) {
-      return false;
-    }
+    // if (!common_ctx_initialize(ctx_ref_, args)) {
+    //   return false;
+    // }
 
-    gpgme_set_armor(ctx_ref_.get(), 1);
+    // gpgme_set_armor(ctx_ref_, 1);
     return true;
   }
 };
 
 GpgContext::GpgContext(int channel)
     : SingletonFunctionObject<GpgContext>(channel),
-      p_(std::make_unique<Impl>(this, GpgContextInitArgs{}, channel)) {}
+      p_(SecureCreateUniqueObject<Impl>(this, GpgContextInitArgs{}, channel)) {}
 
 GpgContext::GpgContext(const GpgContextInitArgs &args, int channel)
     : SingletonFunctionObject<GpgContext>(channel),
-      p_(std::make_unique<Impl>(this, args, channel)) {}
+      p_(SecureCreateUniqueObject<Impl>(this, args, channel)) {}
 
 auto GpgContext::Good() const -> bool { return p_->Good(); }
 

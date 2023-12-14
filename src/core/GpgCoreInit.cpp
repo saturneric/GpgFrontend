@@ -193,6 +193,9 @@ auto InitGpgME() -> bool {
     engine_info = engine_info->next;
   }
 
+  // release gpgme context
+  gpgme_release(p_ctx);
+
   const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gnupg_version", std::string{"0.0.0"});
   SPDLOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
@@ -208,7 +211,7 @@ auto InitGpgME() -> bool {
   return true;
 }
 
-void InitGpgFrontendCore() {
+void InitGpgFrontendCore(CoreInitArgs args) {
   // initialize global register table
   Module::UpsertRTValue("core", "env.state.gpgme", std::string{"0"});
   Module::UpsertRTValue("core", "env.state.ctx", std::string{"0"});
@@ -231,7 +234,7 @@ void InitGpgFrontendCore() {
   GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner()
       ->PostTask(new Thread::Task(
-          [](const DataObjectPtr&) -> int {
+          [args](const DataObjectPtr&) -> int {
             // read settings from config file
             auto forbid_all_gnupg_connection =
                 GlobalSettingStation::GetInstance().LookupSettings(
@@ -338,7 +341,8 @@ void InitGpgFrontendCore() {
             Module::UpsertRTValue("core", "env.state.ctx", std::string{"1"});
 
             // if gnupg-info-gathering module activated
-            if (Module::IsModuleAcivate("com.bktus.gpgfrontend.module."
+            if (args.gather_external_gnupg_info &&
+                Module::IsModuleAcivate("com.bktus.gpgfrontend.module."
                                         "integrated.gnupg-info-gathering")) {
               SPDLOG_DEBUG("gnupg-info-gathering is activated");
 
