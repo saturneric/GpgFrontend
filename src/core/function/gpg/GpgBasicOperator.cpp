@@ -43,8 +43,7 @@ void GpgFrontend::GpgBasicOperator::Encrypt(KeyListPtr keys,
                                             ConstBypeArrayRef in_buffer,
                                             const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
-      [&](const DataObjectPtr& data_object) -> GpgError {
-        SPDLOG_DEBUG("key size: {}", keys->size());
+      [=](const DataObjectPtr& data_object) -> GpgError {
         std::vector<gpgme_key_t> recipients(keys->size() + 1);
 
         for (const auto& key : *keys) {

@@ -24,7 +24,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 cmake_minimum_required(VERSION 3.16)
-set(CMAKE_USER_MAKE_RULES_OVERRIDE "cmake/FlagsOverrides.cmake")
+set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_SOURCE_DIR}/cmake/FlagsOverrides.cmake")
 
 # define project
 project(GpgFrontend 

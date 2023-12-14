@@ -32,6 +32,7 @@
 
 #include <memory>
 
+#include "core/utils/MemoryUtils.h"
 #include "ui/GpgFrontendApplication.h"
 
 namespace GpgFrontend {
@@ -52,11 +53,11 @@ auto GpgFrontendContext::GetInstance() -> std::weak_ptr<GpgFrontendContext> {
 }
 
 void GpgFrontendContext::InitCoreApplication() {
-  app = std::make_unique<QCoreApplication>(argc, argv);
+  app = SecureCreateUniqueObject<QCoreApplication>(argc, argv);
 }
 
 void GpgFrontendContext::InitGUIApplication() {
-  app = std::make_unique<UI::GpgFrontendApplication>(argc, argv);
+  app = SecureCreateUniqueObject<UI::GpgFrontendApplication>(argc, argv);
 }
 
 }  // namespace GpgFrontend

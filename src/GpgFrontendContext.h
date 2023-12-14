@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "core/function/SecureMemoryAllocator.h"
+
 namespace GpgFrontend {
 
 struct GpgFrontendContext {
@@ -36,9 +38,10 @@ struct GpgFrontendContext {
   spdlog::level::level_enum log_level;
 
   bool load_ui_env;
-  std::unique_ptr<QCoreApplication> app;
+  SecureUniquePtr<QCoreApplication> app;
 
   bool gather_external_gnupg_info;
+  bool load_default_gpg_context;
 
   /**
    * @brief Create a Instance object

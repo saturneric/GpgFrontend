@@ -304,41 +304,43 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                            custom_key_database_fs_path.u8string());
             }
 
-            // init ctx, also checking the basical env
-            auto& ctx = GpgFrontend::GpgContext::CreateInstance(
-                kGpgFrontendDefaultChannel, [=]() -> ChannelObjectPtr {
-                  GpgFrontend::GpgContextInitArgs args;
+            if (args.load_default_gpg_context) {
+              // init ctx, also checking the basical env
+              auto& ctx = GpgFrontend::GpgContext::CreateInstance(
+                  kGpgFrontendDefaultChannel, [=]() -> ChannelObjectPtr {
+                    GpgFrontend::GpgContextInitArgs args;
 
-                  // set key database path
-                  if (use_custom_key_database_path &&
-                      !custom_key_database_path.empty()) {
-                    args.db_path = custom_key_database_path;
-                  }
+                    // set key database path
+                    if (use_custom_key_database_path &&
+                        !custom_key_database_path.empty()) {
+                      args.db_path = custom_key_database_path;
+                    }
 
-                  // set custom gnupg path
-                  if (use_custom_gnupg_install_path) {
-                    args.custom_gpgconf = true;
-                    args.custom_gpgconf_path =
-                        custom_gnupg_install_fs_path.u8string();
-                  }
+                    // set custom gnupg path
+                    if (use_custom_gnupg_install_path) {
+                      args.custom_gpgconf = true;
+                      args.custom_gpgconf_path =
+                          custom_gnupg_install_fs_path.u8string();
+                    }
 
-                  args.offline_mode = forbid_all_gnupg_connection;
-                  args.auto_import_missing_key = auto_import_missing_key;
-                  args.use_pinentry = use_pinentry_as_password_input_dialog;
+                    args.offline_mode = forbid_all_gnupg_connection;
+                    args.auto_import_missing_key = auto_import_missing_key;
+                    args.use_pinentry = use_pinentry_as_password_input_dialog;
 
-                  return ConvertToChannelObjectPtr<>(
-                      SecureCreateUniqueObject<GpgContext>(
-                          args, kGpgFrontendDefaultChannel));
-                });
+                    return ConvertToChannelObjectPtr<>(
+                        SecureCreateUniqueObject<GpgContext>(
+                            args, kGpgFrontendDefaultChannel));
+                  });
 
-            // exit if failed
-            if (!ctx.Good()) {
-              SPDLOG_ERROR("default gnupg context init error, abort");
-              CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-                  _("GpgME Context inilization failed"));
-              return -1;
+              // exit if failed
+              if (!ctx.Good()) {
+                SPDLOG_ERROR("default gnupg context init error, abort");
+                CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+                    _("GpgME Context inilization failed"));
+                return -1;
+              }
+              Module::UpsertRTValue("core", "env.state.ctx", std::string{"1"});
             }
-            Module::UpsertRTValue("core", "env.state.ctx", std::string{"1"});
 
             // if gnupg-info-gathering module activated
             if (args.gather_external_gnupg_info &&
@@ -371,8 +373,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                       // announce that all checkings were finished
                       SPDLOG_INFO(
                           "all env checking finished, including gpgme, "
-                          "ctx and "
-                          "gnupg");
+                          "ctx and gnupg");
                       Module::UpsertRTValue("core", "env.state.all",
                                             std::string{"1"});
                     }
@@ -382,10 +383,12 @@ void InitGpgFrontendCore(CoreInitArgs args) {
               Module::UpsertRTValue("core", "env.state.all", std::string{"1"});
             }
 
-            if (!GpgKeyGetter::GetInstance().FlushKeyCache()) {
-              CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-                  _("Gpg Key Detabase inilization failed"));
-            };
+            if (args.load_default_gpg_context) {
+              if (!GpgKeyGetter::GetInstance().FlushKeyCache()) {
+                CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+                    _("Gpg Key Detabase inilization failed"));
+              };
+            }
             SPDLOG_INFO(
                 "basic env checking finished, including gpgme, ctx, and key "
                 "infos");

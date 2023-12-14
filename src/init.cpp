@@ -188,6 +188,8 @@ void InitGlobalBasicalEnv(const GFCxtWPtr &p_ctx) {
 
   CoreInitArgs core_init_args;
   core_init_args.gather_external_gnupg_info = ctx->gather_external_gnupg_info;
+  core_init_args.load_default_gpg_context = ctx->load_default_gpg_context;
+
   // then load core
   InitGpgFrontendCore(core_init_args);
 }

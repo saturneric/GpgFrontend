@@ -200,7 +200,7 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
       db_path_c_str = nullptr;
     }
 
-    auto err = gpgme_ctx_set_engine_info(ctx, GPGME_PROTOCOL_OpenPGP,
+    auto err = gpgme_ctx_set_engine_info(ctx, gpgme_get_protocol(ctx),
                                          app_path_c_str, db_path_c_str);
 
     assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
@@ -297,11 +297,11 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
     assert(p_ctx != nullptr);
     ctx_ref_ = p_ctx;
 
-    // if (!common_ctx_initialize(ctx_ref_, args)) {
-    //   return false;
-    // }
+    if (!common_ctx_initialize(ctx_ref_, args)) {
+      return false;
+    }
 
-    // gpgme_set_armor(ctx_ref_, 1);
+    gpgme_set_armor(ctx_ref_, 1);
     return true;
   }
 };

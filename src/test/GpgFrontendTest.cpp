@@ -107,8 +107,6 @@ void ConfigureGpgContext() {
     std::filesystem::create_directory(db_path);
   }
 
-  SPDLOG_DEBUG("DEBUG--------<");
-
   GpgContext::CreateInstance(
       kGpgFrontendDefaultChannel, [&]() -> ChannelObjectPtr {
         GpgContextInitArgs args;
@@ -119,8 +117,6 @@ void ConfigureGpgContext() {
         return ConvertToChannelObjectPtr<>(SecureCreateUniqueObject<GpgContext>(
             args, kGpgFrontendDefaultChannel));
       });
-
-  SPDLOG_DEBUG("DEBUG-------->");
 }
 
 auto ExecuteAllTestCase(GpgFrontendContext args) -> int {

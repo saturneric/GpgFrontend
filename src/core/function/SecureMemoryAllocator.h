@@ -57,6 +57,6 @@ struct SecureObjectDeleter {
 };
 
 template <typename T>
-using UniquePtrWithSecureDeleter = std::unique_ptr<T, SecureObjectDeleter<T>>;
+using SecureUniquePtr = std::unique_ptr<T, SecureObjectDeleter<T>>;
 
 }  // namespace GpgFrontend

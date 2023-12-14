@@ -73,6 +73,6 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
 
  private:
   class Impl;
-  UniquePtrWithSecureDeleter<Impl> p_;
+  SecureUniquePtr<Impl> p_;
 };
 }  // namespace GpgFrontend

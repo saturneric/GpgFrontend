@@ -31,7 +31,10 @@ add_subdirectory(json EXCLUDE_FROM_ALL)
 add_subdirectory(spdlog EXCLUDE_FROM_ALL)
 
 set(MI_SECURE ON)
-set(MI_TRACK_VALGRIND ON)
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+  # set(MI_TRACK_VALGRIND ON)
+  set(MI_TRACK_ASAN ON)
+endif()
 add_subdirectory(mimalloc EXCLUDE_FROM_ALL)
 
 set(INSTALL_GTEST OFF)

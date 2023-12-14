@@ -30,6 +30,7 @@
 
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/utils/IOUtils.h"
+#include "core/utils/MemoryUtils.h"
 #include "spdlog/spdlog.h"
 
 namespace GpgFrontend::Test {
@@ -43,9 +44,9 @@ void GpgCoreTest::import_private_keys(const libconfig::Setting& root) {
         private_key.lookupValue("filename", filename);
         auto data_file_path = data_path_ / filename;
         std::string data = ReadAllDataInFile(data_file_path.string());
-        auto secret_key_copy = std::make_unique<std::string>(data);
+        auto secret_key_copy = SecureCreateSharedObject<std::string>(data);
         GpgKeyImportExporter::GetInstance(kGpgFrontendDefaultChannel)
-            .ImportKey(std::move(secret_key_copy));
+            .ImportKey(secret_key_copy);
       }
     }
   }

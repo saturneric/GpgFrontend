@@ -34,6 +34,7 @@ namespace GpgFrontend {
 
 struct CoreInitArgs {
   bool gather_external_gnupg_info;
+  bool load_default_gpg_context;
 };
 
 /**
