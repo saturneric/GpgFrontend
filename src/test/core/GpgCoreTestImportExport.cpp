@@ -34,6 +34,6 @@
 
 namespace GpgFrontend::Test {
 
-TEST_F(GpgCoreTest, CoreExportSecretTest) {}
+// TEST_F(GpgCoreTest, CoreExportSecretTest) {}
 
 }  // namespace GpgFrontend::Test

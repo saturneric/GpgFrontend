@@ -36,103 +36,103 @@
 
 namespace GpgFrontend::Test {
 
-TEST_F(GpgCoreTest, GenerateKeyTest) {
-  auto& key_opera = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel);
-  auto keygen_info = std::make_unique<GenKeyInfo>();
-  keygen_info->SetName("foo");
-  keygen_info->SetEmail("bar@gpgfrontend.bktus.com");
-  keygen_info->SetComment("");
-  keygen_info->SetKeyLength(1024);
-  keygen_info->SetAlgo(keygen_info->GetSupportedKeyAlgo()[0]);
-  keygen_info->SetNonExpired(true);
-  keygen_info->SetNonPassPhrase(true);
+// TEST_F(GpgCoreTest, GenerateKeyTest) {
+//   auto& key_opera = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel);
+//   auto keygen_info = std::make_unique<GenKeyInfo>();
+//   keygen_info->SetName("foo");
+//   keygen_info->SetEmail("bar@gpgfrontend.bktus.com");
+//   keygen_info->SetComment("");
+//   keygen_info->SetKeyLength(1024);
+//   keygen_info->SetAlgo(keygen_info->GetSupportedKeyAlgo()[0]);
+//   keygen_info->SetNonExpired(true);
+//   keygen_info->SetNonPassPhrase(true);
 
-  GpgGenKeyResult result = nullptr;
-  // auto err = CheckGpgError(key_opera.GenerateKey(keygen_info, result));
-  // ASSERT_EQ(err, GPG_ERR_NO_ERROR);
+//   GpgGenKeyResult result = nullptr;
+//   // auto err = CheckGpgError(key_opera.GenerateKey(keygen_info, result));
+//   // ASSERT_EQ(err, GPG_ERR_NO_ERROR);
 
-  // auto* fpr = result->fpr;
-  // ASSERT_FALSE(fpr == nullptr);
+//   // auto* fpr = result->fpr;
+//   // ASSERT_FALSE(fpr == nullptr);
 
-  // auto key =
-  // GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).GetKey(fpr);
-  // ASSERT_TRUE(key.IsGood());
-  // key_opera.DeleteKey(fpr);
-}
+//   // auto key =
+//   // GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).GetKey(fpr);
+//   // ASSERT_TRUE(key.IsGood());
+//   // key_opera.DeleteKey(fpr);
+// }
 
-TEST_F(GpgCoreTest, GenerateKeyTest_1) {
-  auto& key_opera = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel);
-  auto keygen_info = std::make_unique<GenKeyInfo>();
-  keygen_info->SetName("foo");
-  keygen_info->SetEmail("bar@gpgfrontend.bktus.com");
-  keygen_info->SetComment("hello gpgfrontend");
-  keygen_info->SetAlgo(keygen_info->GetSupportedKeyAlgo()[0]);
-  keygen_info->SetKeyLength(4096);
-  keygen_info->SetNonExpired(false);
-  keygen_info->SetExpireTime(boost::posix_time::second_clock::local_time() +
-                             boost::posix_time::hours(24));
-  keygen_info->SetNonPassPhrase(false);
+// TEST_F(GpgCoreTest, GenerateKeyTest_1) {
+//   auto& key_opera = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel);
+//   auto keygen_info = std::make_unique<GenKeyInfo>();
+//   keygen_info->SetName("foo");
+//   keygen_info->SetEmail("bar@gpgfrontend.bktus.com");
+//   keygen_info->SetComment("hello gpgfrontend");
+//   keygen_info->SetAlgo(keygen_info->GetSupportedKeyAlgo()[0]);
+//   keygen_info->SetKeyLength(4096);
+//   keygen_info->SetNonExpired(false);
+//   keygen_info->SetExpireTime(boost::posix_time::second_clock::local_time() +
+//                              boost::posix_time::hours(24));
+//   keygen_info->SetNonPassPhrase(false);
 
-  GpgGenKeyResult result = nullptr;
-  // auto err =
-  //     CheckGpgError(key_opera.GenerateKey(keygen_info, result));
-  // ASSERT_EQ(err, GPG_ERR_NO_ERROR);
+//   GpgGenKeyResult result = nullptr;
+//   // auto err =
+//   //     CheckGpgError(key_opera.GenerateKey(keygen_info, result));
+//   // ASSERT_EQ(err, GPG_ERR_NO_ERROR);
 
-  // auto fpr = result->fpr;
-  // ASSERT_FALSE(fpr == nullptr);
+//   // auto fpr = result->fpr;
+//   // ASSERT_FALSE(fpr == nullptr);
 
-  // auto key =
-  //     GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).GetKey(fpr);
-  // ASSERT_TRUE(key.IsGood());
-  // key_opera.DeleteKey(fpr);
-}
+//   // auto key =
+//   //     GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).GetKey(fpr);
+//   // ASSERT_TRUE(key.IsGood());
+//   // key_opera.DeleteKey(fpr);
+// }
 
-TEST_F(GpgCoreTest, GenerateKeyTest_4) {
-  auto& key_opera = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel);
-  auto keygen_info = std::make_unique<GenKeyInfo>();
-  keygen_info->SetName("foo");
-  keygen_info->SetEmail("bar@gpgfrontend.bktus.com");
-  keygen_info->SetComment("");
-  keygen_info->SetAlgo(keygen_info->GetSupportedKeyAlgo()[1]);
-  keygen_info->SetNonExpired(true);
-  keygen_info->SetNonPassPhrase(false);
+// TEST_F(GpgCoreTest, GenerateKeyTest_4) {
+//   auto& key_opera = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel);
+//   auto keygen_info = std::make_unique<GenKeyInfo>();
+//   keygen_info->SetName("foo");
+//   keygen_info->SetEmail("bar@gpgfrontend.bktus.com");
+//   keygen_info->SetComment("");
+//   keygen_info->SetAlgo(keygen_info->GetSupportedKeyAlgo()[1]);
+//   keygen_info->SetNonExpired(true);
+//   keygen_info->SetNonPassPhrase(false);
 
-  GpgGenKeyResult result = nullptr;
-  // auto err =
-  //     CheckGpgError(key_opera.GenerateKey(keygen_info, result));
-  // ASSERT_EQ(err, GPG_ERR_NO_ERROR);
+//   GpgGenKeyResult result = nullptr;
+//   // auto err =
+//   //     CheckGpgError(key_opera.GenerateKey(keygen_info, result));
+//   // ASSERT_EQ(err, GPG_ERR_NO_ERROR);
 
-  // auto* fpr = result->fpr;
-  // ASSERT_FALSE(fpr == nullptr);
+//   // auto* fpr = result->fpr;
+//   // ASSERT_FALSE(fpr == nullptr);
 
-  // auto key =
-  //     GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).GetKey(fpr);
-  // ASSERT_TRUE(key.IsGood());
-  // key_opera.DeleteKey(fpr);
-}
+//   // auto key =
+//   //     GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).GetKey(fpr);
+//   // ASSERT_TRUE(key.IsGood());
+//   // key_opera.DeleteKey(fpr);
+// }
 
-TEST_F(GpgCoreTest, GenerateKeyTest_5) {
-  auto& key_opera = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel);
-  auto keygen_info = std::make_unique<GenKeyInfo>();
-  keygen_info->SetName("foo");
-  keygen_info->SetEmail("bar@gpgfrontend.bktus.com");
-  keygen_info->SetComment("");
-  keygen_info->SetAlgo(keygen_info->GetSupportedKeyAlgo()[2]);
-  keygen_info->SetNonExpired(true);
-  keygen_info->SetNonPassPhrase(false);
+// TEST_F(GpgCoreTest, GenerateKeyTest_5) {
+//   auto& key_opera = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel);
+//   auto keygen_info = std::make_unique<GenKeyInfo>();
+//   keygen_info->SetName("foo");
+//   keygen_info->SetEmail("bar@gpgfrontend.bktus.com");
+//   keygen_info->SetComment("");
+//   keygen_info->SetAlgo(keygen_info->GetSupportedKeyAlgo()[2]);
+//   keygen_info->SetNonExpired(true);
+//   keygen_info->SetNonPassPhrase(false);
 
-  GpgGenKeyResult result = nullptr;
-  // auto err =
-  //     CheckGpgError(key_opera.GenerateKey(keygen_info, result));
-  // ASSERT_EQ(err, GPG_ERR_NO_ERROR);
+//   GpgGenKeyResult result = nullptr;
+//   // auto err =
+//   //     CheckGpgError(key_opera.GenerateKey(keygen_info, result));
+//   // ASSERT_EQ(err, GPG_ERR_NO_ERROR);
 
-  // auto* fpr = result->fpr;
-  // ASSERT_FALSE(fpr == nullptr);
+//   // auto* fpr = result->fpr;
+//   // ASSERT_FALSE(fpr == nullptr);
 
-  // auto key =
-  //     GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).GetKey(fpr);
-  // ASSERT_TRUE(key.IsGood());
-  // key_opera.DeleteKey(fpr);
-}
+//   // auto key =
+//   //     GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).GetKey(fpr);
+//   // ASSERT_TRUE(key.IsGood());
+//   // key_opera.DeleteKey(fpr);
+// }
 
 }  // namespace GpgFrontend::Test

@@ -184,11 +184,6 @@ auto GpgFrontend::GpgKeyManager::SetOwnerTrustLevel(const GpgKey& key,
   auto err = gpgme_op_interact(
       ctx_.DefaultContext(), static_cast<gpgme_key_t>(key), 0,
       GpgKeyManager::interactor_cb_fnc, (void*)&handel_struct, data_out);
-  if (err != GPG_ERR_NO_ERROR) {
-    SPDLOG_ERROR("fail to set owner trust level {} to key {}, err: {}",
-                 trust_level, key.GetId(), gpgme_strerror(err));
-  }
-
   return CheckGpgError(err) == GPG_ERR_NO_ERROR && handel_struct.Success();
 }
 

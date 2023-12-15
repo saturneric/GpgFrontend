@@ -70,7 +70,7 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
     return -1;
   }
 
-  auto* app = qobject_cast<QApplication*>(ctx->app.get());
+  auto* app = ctx->GetGuiApp();
   if (app == nullptr) {
     SPDLOG_ERROR("cannot get qapplication from gpgfrontend context.");
     return -1;

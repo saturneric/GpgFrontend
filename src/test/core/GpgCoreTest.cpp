@@ -56,7 +56,6 @@ void GpgCoreTest::TearDown() {}
 
 void GpgCoreTest::SetUp() {
   libconfig::Config cfg;
-  SPDLOG_INFO("test case config file path: {}", config_path_.string());
   ASSERT_NO_THROW(cfg.readFile(config_path_.string()));
   auto& root = cfg.getRoot();
   import_private_keys(root);

@@ -28,13 +28,20 @@
 
 #include "ChannelObject.h"
 
+#include <ostream>
+#include <utility>
+#include <iostream>
+
 namespace GpgFrontend {
 
 ChannelObject::ChannelObject() noexcept = default;
 
-ChannelObject::ChannelObject(int channel) : channel_(channel) {}
+ChannelObject::ChannelObject(int channel, std::string type)
+    : channel_(channel), type_(std::move(type)) {}
 
-ChannelObject::~ChannelObject() noexcept = default;
+ChannelObject::~ChannelObject() noexcept {
+  std::cout << "deleting channel object: " << type_ << std::endl;
+}
 
 void ChannelObject::SetChannel(int channel) { this->channel_ = channel; }
 

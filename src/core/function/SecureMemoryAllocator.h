@@ -31,6 +31,8 @@
 #include <cstdint>
 #include <memory>
 
+#include "core/utils/LogUtils.h"
+
 namespace GpgFrontend {
 
 class GPGFRONTEND_CORE_EXPORT SecureMemoryAllocator {
@@ -46,10 +48,6 @@ template <typename T>
 struct SecureObjectDeleter {
   void operator()(T *ptr) {
     if (ptr) {
-      SPDLOG_TRACE(
-          "secure object deleter trys to deconstruct and free object, "
-          "type: {}, addr: {}",
-          typeid(T).name(), static_cast<void *>(ptr));
       ptr->~T();
       SecureMemoryAllocator::Deallocate(ptr);
     }

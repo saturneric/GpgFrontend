@@ -26,10 +26,10 @@
 
 # Introduce boost
 if(NOT BOOST_ROOT)
-    find_package(Boost COMPONENTS date_time system program_options REQUIRED)
+    find_package(Boost COMPONENTS date_time system program_options filesystem REQUIRED)
 else()
     find_package(Boost
-            COMPONENTS date_time system program_options REQUIRED
+            COMPONENTS date_time system program_options filesystem REQUIRED
             PATHS ${BOOST_ROOT} NO_DEFAULT_PATH)
 endif()
 

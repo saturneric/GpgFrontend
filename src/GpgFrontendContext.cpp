@@ -28,36 +28,37 @@
 
 #include "GpgFrontendContext.h"
 
+#include <qapplication.h>
 #include <qcoreapplication.h>
-
-#include <memory>
+#include <qobject.h>
+#include <qthread.h>
 
 #include "core/utils/MemoryUtils.h"
 #include "ui/GpgFrontendApplication.h"
 
 namespace GpgFrontend {
 
-std::shared_ptr<GpgFrontendContext> GpgFrontendContext::global_context =
-    nullptr;
-
-auto GpgFrontendContext::CreateInstance(int argc, char** argv)
-    -> std::weak_ptr<GpgFrontendContext> {
-  global_context = std::make_shared<GpgFrontendContext>();
-  global_context->argc = argc;
-  global_context->argv = argv;
-  return global_context;
+void GpgFrontendContext::InitApplication(bool gui_mode) {
+  if (!gui_mode) {
+    app_ = SecureCreateObject<QCoreApplication>(argc, argv);
+  } else {
+    app_ = SecureCreateObject<QApplication>(argc, argv);
+  }
+  this->load_ui_env = gui_mode;
 }
 
-auto GpgFrontendContext::GetInstance() -> std::weak_ptr<GpgFrontendContext> {
-  return global_context;
+auto GpgFrontendContext::GetApp() -> QCoreApplication* { return app_; }
+
+auto GpgFrontendContext::GetGuiApp() -> QApplication* {
+  return qobject_cast<QApplication*>(app_);
 }
 
-void GpgFrontendContext::InitCoreApplication() {
-  app = SecureCreateUniqueObject<QCoreApplication>(argc, argv);
-}
+GpgFrontendContext::GpgFrontendContext(int argc, char** argv)
+    : argc(argc), argv(argv) {}
 
-void GpgFrontendContext::InitGUIApplication() {
-  app = SecureCreateUniqueObject<UI::GpgFrontendApplication>(argc, argv);
+GpgFrontendContext::~GpgFrontendContext() {
+  if (app_ != nullptr) {
+    SecureDestroyObject(app_);
+  }
 }
-
 }  // namespace GpgFrontend

@@ -30,7 +30,6 @@
 
 #include "core/GpgFrontendCoreExport.h"
 #include "core/function/SecureMemoryAllocator.h"
-#include "spdlog/spdlog.h"
 
 /* To avoid that a compiler optimizes certain memset calls away, these
    macros may be used instead. */
@@ -112,6 +111,7 @@ template <typename T, typename... Args>
 static auto SecureCreateObject(Args &&...args) -> T * {
   void *mem = SecureMemoryAllocator::Allocate(sizeof(T));
   if (!mem) return nullptr;
+
   SPDLOG_TRACE("alloc secure memnory success, type: {}, size: {}, addr: {}",
                typeid(T).name(), sizeof(T), mem);
 
@@ -126,8 +126,6 @@ static auto SecureCreateObject(Args &&...args) -> T * {
 template <typename T>
 static void SecureDestroyObject(T *obj) {
   if (!obj) return;
-
-  SPDLOG_TRACE("try to free object, obj: {}", static_cast<void *>(obj));
   obj->~T();
   SecureMemoryAllocator::Deallocate(obj);
 }
@@ -137,8 +135,10 @@ static auto SecureCreateUniqueObject(Args &&...args)
     -> std::unique_ptr<T, SecureObjectDeleter<T>> {
   void *mem = SecureMemoryAllocator::Allocate(sizeof(T));
   if (!mem) throw std::bad_alloc();
+
   SPDLOG_TRACE(
-      "alloc secure memnory success, unique ptr, type: {}, size: {}, addr: {}",
+      "alloc secure memnory success, unique ptr, "
+      "type: {}, size: {}, addr: {}",
       typeid(T).name(), sizeof(T), mem);
 
   try {
@@ -154,8 +154,10 @@ template <typename T, typename... Args>
 auto SecureCreateSharedObject(Args &&...args) -> std::shared_ptr<T> {
   void *mem = SecureMemoryAllocator::Allocate(sizeof(T));
   if (!mem) throw std::bad_alloc();
+
   SPDLOG_TRACE(
-      "alloc secure memnory success, shared ptr, type: {}, size: {}, addr: {}",
+      "alloc secure memnory success, shared ptr, "
+      "type: {}, size: {}, addr: {}",
       typeid(T).name(), sizeof(T), mem);
 
   try {

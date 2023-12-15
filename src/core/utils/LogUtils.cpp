@@ -26,28 +26,8 @@
  *
  */
 
-#include "SecureMemoryAllocator.h"
+#include "LogUtils.h"
 
-#include <mimalloc.h>
-
-namespace GpgFrontend {
-
-auto SecureMemoryAllocator::Allocate(std::size_t size) -> void* {
-  auto* addr = mi_malloc(size);
-  SPDLOG_TRACE("secure memory allocator trys to alloc memory, address: {}",
-               static_cast<void*>(addr));
-  return addr;
+auto GetCoreLogger() -> std::shared_ptr<spdlog::logger> {
+  return spdlog::get("core");
 }
-
-auto SecureMemoryAllocator::Reallocate(void* ptr, std::size_t size) -> void* {
-  auto* addr = mi_realloc(ptr, size);
-  SPDLOG_TRACE(
-      "secure memory allocator trys to realloc memory, "
-      "old address: {}, new address: {}",
-      static_cast<void*>(ptr), static_cast<void*>(addr));
-  return addr;
-}
-
-void SecureMemoryAllocator::Deallocate(void* p) { mi_free(p); }
-
-}  // namespace GpgFrontend

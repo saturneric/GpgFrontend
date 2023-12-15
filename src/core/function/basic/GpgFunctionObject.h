@@ -216,7 +216,8 @@ class SingletonFunctionObject : public ChannelObject {
    *
    * @param channel
    */
-  explicit SingletonFunctionObject(int channel) : ChannelObject(channel) {}
+  explicit SingletonFunctionObject(int channel)
+      : ChannelObject(channel, typeid(T).name()) {}
 
   /**
    * @brief Destroy the Singleton Function Object object

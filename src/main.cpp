@@ -33,11 +33,13 @@
 #include <cstddef>
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <string>
 
 #include "GpgFrontendContext.h"
 #include "app.h"
 #include "cmd.h"
+#include "core/utils/MemoryUtils.h"
 #include "init.h"
 #include "spdlog/spdlog.h"
 
@@ -57,6 +59,10 @@ auto main(int argc, char* argv[]) -> int {
   signal(SIGILL, HandleSignal);
 #endif
 
+  GpgFrontend::GFCxtSPtr ctx =
+      GpgFrontend::SecureCreateSharedObject<GpgFrontend::GpgFrontendContext>(
+          argc, argv);
+
   // initialize qt resources
   Q_INIT_RESOURCE(gpgfrontend);
 
@@ -72,14 +78,7 @@ auto main(int argc, char* argv[]) -> int {
   po::store(po::parse_command_line(argc, argv, desc), vm);
   po::notify(vm);
 
-  auto p_ctx = GpgFrontend::GpgFrontendContext::CreateInstance(argc, argv);
-  GpgFrontend::GFCxtSPtr ctx = p_ctx.lock();
-  if (ctx == nullptr) {
-    SPDLOG_ERROR("cannot get gpgfrontend context");
-    return -1;
-  }
   ctx->log_level = spdlog::level::info;
-  ctx->load_ui_env = false;
 
   if (vm.count("help") != 0U) {
     std::cout << desc << "\n";
@@ -101,13 +100,11 @@ auto main(int argc, char* argv[]) -> int {
   if (vm.count("test") != 0U) {
     ctx->gather_external_gnupg_info = false;
     ctx->load_default_gpg_context = false;
-    InitGlobalBasicalEnv(p_ctx);
+
+    InitGlobalBasicalEnv(ctx, false);
     return RunTest(ctx);
   }
 
-  // default mode
-  ctx->load_ui_env = true;
-  InitGlobalBasicalEnv(p_ctx);
-
-  return StartApplication(p_ctx);
+  InitGlobalBasicalEnv(ctx, true);
+  return StartApplication(ctx);
 }

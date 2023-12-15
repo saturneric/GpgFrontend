@@ -28,9 +28,17 @@
 
 #pragma once
 
+#include <qapplication.h>
+#include <qcoreapplication.h>
+
 #include "core/function/SecureMemoryAllocator.h"
 
 namespace GpgFrontend {
+
+struct GpgFrontendContext;
+
+using GFCxtWPtr = std::weak_ptr<GpgFrontendContext>;
+using GFCxtSPtr = std::shared_ptr<GpgFrontendContext>;
 
 struct GpgFrontendContext {
   int argc;
@@ -38,45 +46,35 @@ struct GpgFrontendContext {
   spdlog::level::level_enum log_level;
 
   bool load_ui_env;
-  SecureUniquePtr<QCoreApplication> app;
-
   bool gather_external_gnupg_info;
   bool load_default_gpg_context;
 
-  /**
-   * @brief Create a Instance object
-   *
-   * @param argc
-   * @param argv
-   * @return std::weak_ptr<GpgFrontendContext>
-   */
-  static auto CreateInstance(int argc, char** argv)
-      -> std::weak_ptr<GpgFrontendContext>;
+  GpgFrontendContext(int argc, char** argv);
 
-  /**
-   * @brief Get the Instance object
-   *
-   * @return std::weak_ptr<GpgFrontendContext>
-   */
-  static auto GetInstance() -> std::weak_ptr<GpgFrontendContext>;
+  ~GpgFrontendContext();
 
   /**
    * @brief
    *
    */
-  void InitGUIApplication();
+  void InitApplication(bool);
 
   /**
-   * @brief
+   * @brief Get the App object
    *
+   * @return QCoreApplication*
    */
-  void InitCoreApplication();
+  auto GetApp() -> QCoreApplication*;
+
+  /**
+   * @brief Get the Gui App object
+   *
+   * @return QApplication*
+   */
+  auto GetGuiApp() -> QApplication*;
 
  private:
-  static std::shared_ptr<GpgFrontendContext> global_context;
+  QCoreApplication* app_ = nullptr;
 };
-
-using GFCxtWPtr = std::weak_ptr<GpgFrontendContext>;
-using GFCxtSPtr = std::shared_ptr<GpgFrontendContext>;
 
 }  // namespace GpgFrontend

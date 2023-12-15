@@ -32,12 +32,12 @@
 #include <gpgme.h>
 
 #include <cassert>
+#include <mutex>
 
 #include "core/function/CoreSignalStation.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
-#include "spdlog/spdlog.h"
 #include "utils/MemoryUtils.h"
 
 #ifdef _WIN32
@@ -158,6 +158,8 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
   gpgme_ctx_t ctx_ref_ = nullptr;         ///<
   gpgme_ctx_t binary_ctx_ref_ = nullptr;  ///<
   bool good_ = true;
+  std::mutex ctx_ref_lock_;
+  std::mutex binary_ctx_ref_lock_;
 
   static auto set_ctx_key_list_mode(const gpgme_ctx_t &ctx) -> bool {
     assert(ctx != nullptr);
@@ -205,6 +207,8 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
 
     assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
     return CheckGpgError(err) == GPG_ERR_NO_ERROR;
+
+    return true;
   }
 
   auto common_ctx_initialize(const gpgme_ctx_t &ctx,

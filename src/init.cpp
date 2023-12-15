@@ -158,7 +158,7 @@ void InitGlobalPathEnv() {
   }
 }
 
-void InitGlobalBasicalEnv(const GFCxtWPtr &p_ctx) {
+void InitGlobalBasicalEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
   GFCxtSPtr ctx = p_ctx.lock();
   if (ctx == nullptr) {
     return;
@@ -170,11 +170,7 @@ void InitGlobalBasicalEnv(const GFCxtWPtr &p_ctx) {
   // change path to search for related
   InitGlobalPathEnv();
 
-  if (ctx->load_ui_env) {
-    ctx->InitGUIApplication();
-  } else {
-    ctx->InitCoreApplication();
-  }
+  ctx->InitApplication(gui_mode);
 
   // should load module system first
   Module::ModuleInitArgs module_init_args;

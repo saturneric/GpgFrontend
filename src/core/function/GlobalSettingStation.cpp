@@ -28,7 +28,8 @@
 
 #include "GlobalSettingStation.h"
 
-#include <qcoreapplication.h>
+#include <boost/dll.hpp>
+#include <filesystem>
 
 #include "core/utils/FilesystemUtils.h"
 #include "core/utils/IOUtils.h"
@@ -216,8 +217,9 @@ class GlobalSettingStation::Impl
   }
 
  private:
-  std::filesystem::path app_path_ = QCoreApplication::applicationDirPath()
-                                        .toStdString();  ///< Program Location
+  std::filesystem::path app_path_ =
+      std::filesystem::path(boost::dll::program_location().string())
+          .parent_path();
 
   std::filesystem::path app_data_path_ =
       QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)

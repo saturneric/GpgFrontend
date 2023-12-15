@@ -100,7 +100,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
    * @param inBuffer
    * @return GpgImportInformation
    */
-  auto ImportKey(StdBypeArrayPtr inBuffer) -> GpgImportInformation;
+  auto ImportKey(StdBypeArrayPtr) -> GpgImportInformation;
 
   /**
    * @brief

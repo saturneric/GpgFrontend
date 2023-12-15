@@ -53,11 +53,26 @@ static inline auto Trim(std::string& s) -> std::string {
   return s;
 }
 
+auto GetGpgmeErrorString(size_t buffer_size, gpgme_error_t err) -> std::string {
+  std::vector<char> buffer(buffer_size);
+
+  gpgme_error_t ret = gpgme_strerror_r(err, buffer.data(), buffer.size());
+  if (ret == ERANGE && buffer_size < 1024) {
+    return GetGpgmeErrorString(buffer_size * 2, err);
+  }
+
+  return std::string(buffer.data());
+}
+
+auto GetGpgmeErrorString(gpgme_error_t err) -> std::string {
+  return GetGpgmeErrorString(64, err);
+}
+
 auto CheckGpgError(GpgError err) -> GpgError {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
     SPDLOG_ERROR(
         "gpg operation failed [error code: {}], source: {} description: {}",
-        gpg_err_code(err), gpgme_strsource(err), gpgme_strerror(err));
+        gpg_err_code(err), gpgme_strsource(err), GetGpgmeErrorString(err));
   }
   return err;
 }
@@ -65,27 +80,27 @@ auto CheckGpgError(GpgError err) -> GpgError {
 auto CheckGpgError2ErrCode(GpgError err, GpgError predict) -> GpgErrorCode {
   auto err_code = gpg_err_code(err);
   if (err_code != gpg_err_code(predict)) {
-    if (err_code == GPG_ERR_NO_ERROR)
+    if (err_code == GPG_ERR_NO_ERROR) {
       SPDLOG_WARN("[Warning {}] Source: {} description: {} predict: {}",
-                  gpg_err_code(err), gpgme_strsource(err), gpgme_strerror(err),
-                  gpgme_strerror(err));
-    else
+                  gpg_err_code(err), gpgme_strsource(err),
+                  GetGpgmeErrorString(err), GetGpgmeErrorString(predict));
+    } else {
       SPDLOG_ERROR("[Error {}] Source: {} description: {} predict: {}",
-                   gpg_err_code(err), gpgme_strsource(err), gpgme_strerror(err),
-                   gpgme_strerror(err));
+                   gpg_err_code(err), gpgme_strsource(err),
+                   GetGpgmeErrorString(err), GetGpgmeErrorString(predict));
+    }
   }
   return err_code;
 }
 
 auto DescribeGpgErrCode(GpgError err) -> GpgErrorDesc {
-  return {gpgme_strsource(err), gpgme_strerror(err)};
+  return {gpgme_strsource(err), GetGpgmeErrorString(err)};
 }
 
 auto CheckGpgError(GpgError err, const std::string& /*comment*/) -> GpgError {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
-    SPDLOG_WARN("[Error {}] Source: {} description: {} predict: {}",
-                gpg_err_code(err), gpgme_strsource(err), gpgme_strerror(err),
-                gpgme_strerror(err));
+    SPDLOG_WARN("[Error {}] Source: {} description: {}", gpg_err_code(err),
+                gpgme_strsource(err), GetGpgmeErrorString(err));
   }
   return err;
 }

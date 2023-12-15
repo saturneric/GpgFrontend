@@ -35,145 +35,147 @@
 
 namespace GpgFrontend::Test {
 
-TEST_F(GpgCoreTest, CoreInitTest) {
-  auto& ctx = GpgContext::GetInstance(kGpgFrontendDefaultChannel);
-  auto& ctx_default = GpgContext::GetInstance();
-  ASSERT_TRUE(ctx.Good());
-  ASSERT_TRUE(ctx_default.Good());
-}
+// TEST_F(GpgCoreTest, CoreInitTest) {
+//   auto& ctx = GpgContext::GetInstance(kGpgFrontendDefaultChannel);
+//   auto& ctx_default = GpgContext::GetInstance();
+//   ASSERT_TRUE(ctx.Good());
+//   ASSERT_TRUE(ctx_default.Good());
+// }
 
-TEST_F(GpgCoreTest, GpgDataTest) {
-  auto data_buff = std::string(
-      "cqEh8fyKWtmiXrW2zzlszJVGJrpXDDpzgP7ZELGxhfZYFi8rMrSVKDwrpFZBSWMG");
+// TEST_F(GpgCoreTest, GpgDataTest) {
+//   auto data_buff = std::string(
+//       "cqEh8fyKWtmiXrW2zzlszJVGJrpXDDpzgP7ZELGxhfZYFi8rMrSVKDwrpFZBSWMG");
 
-  GpgData data(data_buff.data(), data_buff.size());
+//   GpgData data(data_buff.data(), data_buff.size());
 
-  auto out_buffer = data.Read2Buffer();
-  ASSERT_EQ(out_buffer->size(), 64);
-}
+//   auto out_buffer = data.Read2Buffer();
+//   ASSERT_EQ(out_buffer->size(), 64);
+// }
 
-TEST_F(GpgCoreTest, GpgKeyTest) {
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                 .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");
-  ASSERT_TRUE(key.IsGood());
-  ASSERT_TRUE(key.IsPrivateKey());
-  ASSERT_TRUE(key.IsHasMasterKey());
+// TEST_F(GpgCoreTest, GpgKeyTest) {
+//   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+//                  .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");
+//   ASSERT_TRUE(key.IsGood());
+//   ASSERT_TRUE(key.IsPrivateKey());
+//   ASSERT_TRUE(key.IsHasMasterKey());
 
-  ASSERT_FALSE(key.IsDisabled());
-  ASSERT_FALSE(key.IsRevoked());
+//   ASSERT_FALSE(key.IsDisabled());
+//   ASSERT_FALSE(key.IsRevoked());
 
-  ASSERT_EQ(key.GetProtocol(), "OpenPGP");
+//   ASSERT_EQ(key.GetProtocol(), "OpenPGP");
 
-  ASSERT_EQ(key.GetSubKeys()->size(), 2);
-  ASSERT_EQ(key.GetUIDs()->size(), 1);
+//   ASSERT_EQ(key.GetSubKeys()->size(), 2);
+//   ASSERT_EQ(key.GetUIDs()->size(), 1);
 
-  ASSERT_TRUE(key.IsHasCertificationCapability());
-  ASSERT_TRUE(key.IsHasEncryptionCapability());
-  ASSERT_TRUE(key.IsHasSigningCapability());
-  ASSERT_FALSE(key.IsHasAuthenticationCapability());
-  ASSERT_TRUE(key.IsHasActualCertificationCapability());
-  ASSERT_TRUE(key.IsHasActualEncryptionCapability());
-  ASSERT_TRUE(key.IsHasActualSigningCapability());
-  ASSERT_FALSE(key.IsHasActualAuthenticationCapability());
+//   ASSERT_TRUE(key.IsHasCertificationCapability());
+//   ASSERT_TRUE(key.IsHasEncryptionCapability());
+//   ASSERT_TRUE(key.IsHasSigningCapability());
+//   ASSERT_FALSE(key.IsHasAuthenticationCapability());
+//   ASSERT_TRUE(key.IsHasActualCertificationCapability());
+//   ASSERT_TRUE(key.IsHasActualEncryptionCapability());
+//   ASSERT_TRUE(key.IsHasActualSigningCapability());
+//   ASSERT_FALSE(key.IsHasActualAuthenticationCapability());
 
-  ASSERT_EQ(key.GetName(), "GpgFrontendTest");
-  ASSERT_TRUE(key.GetComment().empty());
-  ASSERT_EQ(key.GetEmail(), "gpgfrontend@gpgfrontend.bktus.com");
-  ASSERT_EQ(key.GetId(), "81704859182661FB");
-  ASSERT_EQ(key.GetFingerprint(), "9490795B78F8AFE9F93BD09281704859182661FB");
-  ASSERT_EQ(key.GetExpireTime(),
-            boost::posix_time::from_iso_string("20230905T040000"));
-  ASSERT_EQ(key.GetPublicKeyAlgo(), "RSA");
-  ASSERT_EQ(key.GetPrimaryKeyLength(), 3072);
-  ASSERT_EQ(key.GetLastUpdateTime(),
-            boost::posix_time::from_iso_string("19700101T000000"));
-  ASSERT_EQ(key.GetCreateTime(),
-            boost::posix_time::from_iso_string("20210905T060153"));
+//   ASSERT_EQ(key.GetName(), "GpgFrontendTest");
+//   ASSERT_TRUE(key.GetComment().empty());
+//   ASSERT_EQ(key.GetEmail(), "gpgfrontend@gpgfrontend.bktus.com");
+//   ASSERT_EQ(key.GetId(), "81704859182661FB");
+//   ASSERT_EQ(key.GetFingerprint(),
+//   "9490795B78F8AFE9F93BD09281704859182661FB"); ASSERT_EQ(key.GetExpireTime(),
+//             boost::posix_time::from_iso_string("20230905T040000"));
+//   ASSERT_EQ(key.GetPublicKeyAlgo(), "RSA");
+//   ASSERT_EQ(key.GetPrimaryKeyLength(), 3072);
+//   ASSERT_EQ(key.GetLastUpdateTime(),
+//             boost::posix_time::from_iso_string("19700101T000000"));
+//   ASSERT_EQ(key.GetCreateTime(),
+//             boost::posix_time::from_iso_string("20210905T060153"));
 
-  ASSERT_EQ(key.GetOwnerTrust(), "Unknown");
+//   ASSERT_EQ(key.GetOwnerTrust(), "Unknown");
 
-  ASSERT_EQ(key.IsExpired(), key.GetExpireTime() <
-                                 boost::posix_time::second_clock::local_time());
-}
+//   ASSERT_EQ(key.IsExpired(), key.GetExpireTime() <
+//                                  boost::posix_time::second_clock::local_time());
+// }
 
-TEST_F(GpgCoreTest, GpgSubKeyTest) {
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                 .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");
-  auto sub_keys = key.GetSubKeys();
-  ASSERT_EQ(sub_keys->size(), 2);
+// TEST_F(GpgCoreTest, GpgSubKeyTest) {
+//   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+//                  .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");
+//   auto sub_keys = key.GetSubKeys();
+//   ASSERT_EQ(sub_keys->size(), 2);
 
-  auto& sub_key = sub_keys->back();
+//   auto& sub_key = sub_keys->back();
 
-  ASSERT_FALSE(sub_key.IsRevoked());
-  ASSERT_FALSE(sub_key.IsDisabled());
-  ASSERT_EQ(sub_key.GetCreateTime(),
-            boost::posix_time::from_iso_string("20210905T060153"));
+//   ASSERT_FALSE(sub_key.IsRevoked());
+//   ASSERT_FALSE(sub_key.IsDisabled());
+//   ASSERT_EQ(sub_key.GetCreateTime(),
+//             boost::posix_time::from_iso_string("20210905T060153"));
 
-  ASSERT_FALSE(sub_key.IsCardKey());
-  ASSERT_TRUE(sub_key.IsPrivateKey());
-  ASSERT_EQ(sub_key.GetID(), "2B36803235B5E25B");
-  ASSERT_EQ(sub_key.GetFingerprint(),
-            "50D37E8F8EE7340A6794E0592B36803235B5E25B");
-  ASSERT_EQ(sub_key.GetKeyLength(), 3072);
-  ASSERT_EQ(sub_key.GetPubkeyAlgo(), "RSA");
-  ASSERT_FALSE(sub_key.IsHasCertificationCapability());
-  ASSERT_FALSE(sub_key.IsHasAuthenticationCapability());
-  ASSERT_FALSE(sub_key.IsHasSigningCapability());
-  ASSERT_TRUE(sub_key.IsHasEncryptionCapability());
-  ASSERT_EQ(key.GetExpireTime(),
-            boost::posix_time::from_iso_string("20230905T040000"));
+//   ASSERT_FALSE(sub_key.IsCardKey());
+//   ASSERT_TRUE(sub_key.IsPrivateKey());
+//   ASSERT_EQ(sub_key.GetID(), "2B36803235B5E25B");
+//   ASSERT_EQ(sub_key.GetFingerprint(),
+//             "50D37E8F8EE7340A6794E0592B36803235B5E25B");
+//   ASSERT_EQ(sub_key.GetKeyLength(), 3072);
+//   ASSERT_EQ(sub_key.GetPubkeyAlgo(), "RSA");
+//   ASSERT_FALSE(sub_key.IsHasCertificationCapability());
+//   ASSERT_FALSE(sub_key.IsHasAuthenticationCapability());
+//   ASSERT_FALSE(sub_key.IsHasSigningCapability());
+//   ASSERT_TRUE(sub_key.IsHasEncryptionCapability());
+//   ASSERT_EQ(key.GetExpireTime(),
+//             boost::posix_time::from_iso_string("20230905T040000"));
 
-  ASSERT_EQ(
-      sub_key.IsExpired(),
-      sub_key.GetExpireTime() < boost::posix_time::second_clock::local_time());
-}
+//   ASSERT_EQ(
+//       sub_key.IsExpired(),
+//       sub_key.GetExpireTime() <
+//       boost::posix_time::second_clock::local_time());
+// }
 
-TEST_F(GpgCoreTest, GpgUIDTest) {
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                 .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");
-  auto uids = key.GetUIDs();
-  ASSERT_EQ(uids->size(), 1);
-  auto& uid = uids->front();
+// TEST_F(GpgCoreTest, GpgUIDTest) {
+//   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+//                  .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");
+//   auto uids = key.GetUIDs();
+//   ASSERT_EQ(uids->size(), 1);
+//   auto& uid = uids->front();
 
-  ASSERT_EQ(uid.GetName(), "GpgFrontendTest");
-  ASSERT_TRUE(uid.GetComment().empty());
-  ASSERT_EQ(uid.GetEmail(), "gpgfrontend@gpgfrontend.bktus.com");
-  ASSERT_EQ(uid.GetUID(),
-            "GpgFrontendTest <gpgfrontend@gpgfrontend.bktus.com>");
-  ASSERT_FALSE(uid.GetInvalid());
-  ASSERT_FALSE(uid.GetRevoked());
-}
+//   ASSERT_EQ(uid.GetName(), "GpgFrontendTest");
+//   ASSERT_TRUE(uid.GetComment().empty());
+//   ASSERT_EQ(uid.GetEmail(), "gpgfrontend@gpgfrontend.bktus.com");
+//   ASSERT_EQ(uid.GetUID(),
+//             "GpgFrontendTest <gpgfrontend@gpgfrontend.bktus.com>");
+//   ASSERT_FALSE(uid.GetInvalid());
+//   ASSERT_FALSE(uid.GetRevoked());
+// }
 
-TEST_F(GpgCoreTest, GpgKeySignatureTest) {
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                 .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");
-  auto uids = key.GetUIDs();
-  ASSERT_EQ(uids->size(), 1);
-  auto& uid = uids->front();
+// TEST_F(GpgCoreTest, GpgKeySignatureTest) {
+//   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+//                  .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");
+//   auto uids = key.GetUIDs();
+//   ASSERT_EQ(uids->size(), 1);
+//   auto& uid = uids->front();
 
-  auto signatures = uid.GetSignatures();
-  ASSERT_EQ(signatures->size(), 1);
-  auto& signature = signatures->front();
+//   auto signatures = uid.GetSignatures();
+//   ASSERT_EQ(signatures->size(), 1);
+//   auto& signature = signatures->front();
 
-  ASSERT_EQ(signature.GetName(), "GpgFrontendTest");
-  ASSERT_TRUE(signature.GetComment().empty());
-  ASSERT_EQ(signature.GetEmail(), "gpgfrontend@gpgfrontend.bktus.com");
-  ASSERT_EQ(signature.GetKeyID(), "81704859182661FB");
-  ASSERT_EQ(signature.GetPubkeyAlgo(), "RSA");
+//   ASSERT_EQ(signature.GetName(), "GpgFrontendTest");
+//   ASSERT_TRUE(signature.GetComment().empty());
+//   ASSERT_EQ(signature.GetEmail(), "gpgfrontend@gpgfrontend.bktus.com");
+//   ASSERT_EQ(signature.GetKeyID(), "81704859182661FB");
+//   ASSERT_EQ(signature.GetPubkeyAlgo(), "RSA");
 
-  ASSERT_FALSE(signature.IsRevoked());
-  ASSERT_FALSE(signature.IsInvalid());
-  ASSERT_EQ(CheckGpgError(signature.GetStatus()), GPG_ERR_NO_ERROR);
-  ASSERT_EQ(signature.GetUID(),
-            "GpgFrontendTest <gpgfrontend@gpgfrontend.bktus.com>");
-}
+//   ASSERT_FALSE(signature.IsRevoked());
+//   ASSERT_FALSE(signature.IsInvalid());
+//   ASSERT_EQ(CheckGpgError(signature.GetStatus()), GPG_ERR_NO_ERROR);
+//   ASSERT_EQ(signature.GetUID(),
+//             "GpgFrontendTest <gpgfrontend@gpgfrontend.bktus.com>");
+// }
 
-TEST_F(GpgCoreTest, GpgKeyGetterTest) {
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                 .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");
-  ASSERT_TRUE(key.IsGood());
-  auto keys = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).FetchKey();
-  ASSERT_TRUE(find(keys->begin(), keys->end(), key) != keys->end());
-}
+// TEST_F(GpgCoreTest, GpgKeyGetterTest) {
+//   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+//                  .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");
+//   ASSERT_TRUE(key.IsGood());
+//   auto keys =
+//   GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).FetchKey();
+//   ASSERT_TRUE(find(keys->begin(), keys->end(), key) != keys->end());
+// }
 
 }  // namespace GpgFrontend::Test

@@ -63,6 +63,6 @@ void InitGlobalPathEnv();
  *
  * @param args
  */
-void InitGlobalBasicalEnv(const GFCxtWPtr&);
+void InitGlobalBasicalEnv(const GFCxtWPtr&, bool);
 
 }  // namespace GpgFrontend
