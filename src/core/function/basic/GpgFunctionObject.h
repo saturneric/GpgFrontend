@@ -28,13 +28,26 @@
 
 #pragma once
 
+#include <mutex>
+#include <stdexcept>
+
+#include "core/GpgFrontendCoreExport.h"
 #include "core/function/basic/ChannelObject.h"
 #include "core/function/basic/SingletonStorage.h"
 #include "core/function/basic/SingletonStorageCollection.h"
 #include "core/utils/MemoryUtils.h"
-#include "spdlog/spdlog.h"
 
 namespace GpgFrontend {
+
+auto GPGFRONTEND_CORE_EXPORT GetChannelObjectInstance(
+    const std::type_info& type, int channel) -> ChannelObject*;
+
+auto GPGFRONTEND_CORE_EXPORT CreateChannelObjectInstance(
+    const std::type_info& type, int channel,
+    SecureUniquePtr<ChannelObject> channel_object) -> ChannelObject*;
+
+auto GPGFRONTEND_CORE_EXPORT
+GetGlobalFunctionObjectTypeLock(const std::type_info& type) -> std::mutex&;
 
 /**
  * @brief
@@ -66,52 +79,18 @@ class SingletonFunctionObject : public ChannelObject {
    */
   static auto GetInstance(int channel = GpgFrontend::kGpgFrontendDefaultChannel)
       -> T& {
-    static std::mutex g_channel_mutex_map_lock;
-    static std::map<int, std::mutex> g_channel_mutex_map;
-
-    SPDLOG_TRACE("try to get instance of type: {} at channel: {}",
-                 typeid(T).name(), channel);
-
-    {
-      std::lock_guard<std::mutex> guard(g_channel_mutex_map_lock);
-      if (g_channel_mutex_map.find(channel) == g_channel_mutex_map.end()) {
-        g_channel_mutex_map[channel];
-      }
-    }
-
     static_assert(std::is_base_of_v<SingletonFunctionObject<T>, T>,
                   "T not derived from SingletonFunctionObject<T>");
 
-    auto* p_storage =
-        SingletonStorageCollection::GetInstance(false)->GetSingletonStorage(
-            typeid(T));
-    SPDLOG_TRACE("get singleton storage result, p_storage: {}",
-                 static_cast<void*>(p_storage));
-
-    auto* p_pbj = static_cast<T*>(p_storage->FindObjectInChannel(channel));
-    SPDLOG_TRACE("find channel object result, channel {}, p_pbj: {}", channel,
-                 static_cast<void*>(p_pbj));
-
-    if (p_pbj == nullptr) {
-      SPDLOG_TRACE("create channel object, channel {}, type: {}", channel,
-                   typeid(T).name());
-
-      // lock this channel
-      std::lock_guard<std::mutex> guard(g_channel_mutex_map[channel]);
-
-      // double check
-      if (p_pbj = static_cast<T*>(p_storage->FindObjectInChannel(channel));
-          p_pbj != nullptr) {
-        return *p_pbj;
-      }
-
-      // do create object of this channel
-      auto new_obj =
-          ConvertToChannelObjectPtr<>(SecureCreateUniqueObject<T>(channel));
-      return *static_cast<T*>(
-          p_storage->SetObjectInChannel(channel, std::move(new_obj)));
+    const auto& type = typeid(T);
+    std::lock_guard<std::mutex> guard(GetGlobalFunctionObjectTypeLock(type));
+    auto* channel_object = GetChannelObjectInstance(type, channel);
+    if (channel_object == nullptr) {
+      channel_object = CreateChannelObjectInstance(
+          type, channel,
+          ConvertToChannelObjectPtr(SecureCreateUniqueObject<T>(channel)));
     }
-    return *p_pbj;
+    return *static_cast<T*>(channel_object);
   }
 
   /**
@@ -126,23 +105,10 @@ class SingletonFunctionObject : public ChannelObject {
     static_assert(std::is_base_of_v<SingletonFunctionObject<T>, T>,
                   "T not derived from SingletonFunctionObject<T>");
 
-    auto* p_storage =
-        SingletonStorageCollection::GetInstance(false)->GetSingletonStorage(
-            typeid(T));
-    SPDLOG_TRACE("get singleton storage result, p_storage: {}",
-                 static_cast<void*>(p_storage));
-
-    auto p_pbj = static_cast<T*>(p_storage->FindObjectInChannel(channel));
-    SPDLOG_TRACE("find channel object result, channel {}, p_pbj: {}", channel,
-                 static_cast<void*>(p_pbj));
-
-    if (p_pbj == nullptr) {
-      SPDLOG_TRACE("create channel object, channel {}, type: {}", channel,
-                   typeid(T).name());
-      return *static_cast<T*>(
-          p_storage->SetObjectInChannel(channel, factory()));
-    }
-    return *p_pbj;
+    const auto& type = typeid(T);
+    std::lock_guard<std::mutex> guard(GetGlobalFunctionObjectTypeLock(type));
+    return *static_cast<T*>(
+        CreateChannelObjectInstance(type, channel, factory()));
   }
 
   /**

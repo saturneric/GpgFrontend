@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <mutex>
+
 #include "core/GpgFrontendCore.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/thread/TaskRunner.h"
@@ -44,6 +46,7 @@ class GPGFRONTEND_CORE_EXPORT TaskRunnerGetter
     kTaskRunnerType_GPG,
     kTaskRunnerType_IO,
     kTaskRunnerType_Network,
+    kTaskRunnerType_Module,
     kTaskRunnerType_External_Process,
   };
 
@@ -53,8 +56,11 @@ class GPGFRONTEND_CORE_EXPORT TaskRunnerGetter
   auto GetTaskRunner(TaskRunnerType runner_type = kTaskRunnerType_Default)
       -> TaskRunnerPtr;
 
+  void StopAllTeakRunner();
+
  private:
   std::map<TaskRunnerType, TaskRunnerPtr> task_runners_;
+  std::mutex task_runners_map_lock_;
 };
 
 }  // namespace GpgFrontend::Thread

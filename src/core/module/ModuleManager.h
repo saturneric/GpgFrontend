@@ -28,8 +28,10 @@
 
 #pragma once
 
+#include <mutex>
 #include <vector>
 
+#include "core/function/basic/GpgFunctionObject.h"
 #include "core/module/Event.h"
 
 namespace GpgFrontend::Thread {
@@ -54,14 +56,12 @@ using Namespace = std::string;
 using Key = std::string;
 using LPCallback = std::function<void(Namespace, Key, int, std::any)>;
 
-class GPGFRONTEND_CORE_EXPORT ModuleManager : public QObject {
-  Q_OBJECT
+class GPGFRONTEND_CORE_EXPORT ModuleManager
+    : public SingletonFunctionObject<ModuleManager> {
  public:
-  ModuleManager();
+  explicit ModuleManager(int channel);
 
   virtual ~ModuleManager() override;
-
-  static auto GetInstance() -> ModuleMangerPtr;
 
   void RegisterModule(ModulePtr);
 
@@ -91,23 +91,23 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager : public QObject {
 
 template <typename T, typename... Args>
 void RegisterModule(Args&&... args) {
-  ModuleManager::GetInstance()->RegisterModule(
+  ModuleManager::GetInstance().RegisterModule(
       GpgFrontend::SecureCreateSharedObject<T>(std::forward<Args>(args)...));
 }
 
 template <typename T, typename... Args>
 void RegisterAndActivateModule(Args&&... args) {
-  auto manager = ModuleManager::GetInstance();
+  auto& manager = ModuleManager::GetInstance();
   auto module =
       GpgFrontend::SecureCreateSharedObject<T>(std::forward<Args>(args)...);
-  manager->RegisterModule(module);
-  manager->ActiveModule(module->GetModuleIdentifier());
+  manager.RegisterModule(module);
+  manager.ActiveModule(module->GetModuleIdentifier());
 }
 
 template <typename... Args>
 void TriggerEvent(const EventIdentifier& event_id, Args&&... args,
                   Event::EventCallback e_cb = nullptr) {
-  ModuleManager::GetInstance()->TriggerEvent(
+  ModuleManager::GetInstance().TriggerEvent(
       std::move(MakeEvent(event_id, std::forward<Args>(args)..., e_cb)));
 }
 
@@ -156,7 +156,7 @@ template <typename T>
 auto RetrieveRTValueTyped(const std::string& namespace_, const std::string& key)
     -> std::optional<T> {
   auto any_value =
-      ModuleManager::GetInstance()->RetrieveRTValue(namespace_, key);
+      ModuleManager::GetInstance().RetrieveRTValue(namespace_, key);
   if (any_value && any_value->type() == typeid(T)) {
     return std::any_cast<T>(*any_value);
   }
@@ -168,7 +168,7 @@ auto RetrieveRTValueTypedOrDefault(const std::string& namespace_,
                                    const std::string& key,
                                    const T& defaultValue) -> T {
   auto any_value =
-      ModuleManager::GetInstance()->RetrieveRTValue(namespace_, key);
+      ModuleManager::GetInstance().RetrieveRTValue(namespace_, key);
   if (any_value && any_value->type() == typeid(T)) {
     return std::any_cast<T>(*any_value);
   }

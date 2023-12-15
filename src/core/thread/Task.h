@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/GpgFrontendCore.h"
+#include "core/function/SecureMemoryAllocator.h"
 #include "core/model/DataObject.h"
 
 namespace GpgFrontend::Thread {
@@ -90,7 +91,7 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
 
  private:
   class Impl;
-  Impl* p_;
+  SecureUniquePtr<Impl> p_;
 
   void run() override;
 };

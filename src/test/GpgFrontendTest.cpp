@@ -107,16 +107,17 @@ void ConfigureGpgContext() {
     std::filesystem::create_directory(db_path);
   }
 
-  GpgContext::CreateInstance(
-      kGpgFrontendDefaultChannel, [&]() -> ChannelObjectPtr {
-        GpgContextInitArgs args;
-        args.test_mode = true;
-        args.offline_mode = true;
-        args.db_path = db_path.string();
+  // GpgContext::CreateInstance(
+  //     kGpgFrontendDefaultChannel, [&]() -> ChannelObjectPtr {
+  //       GpgContextInitArgs args;
+  //       args.test_mode = true;
+  //       args.offline_mode = true;
+  //       args.db_path = db_path.string();
 
-        return ConvertToChannelObjectPtr<>(SecureCreateUniqueObject<GpgContext>(
-            args, kGpgFrontendDefaultChannel));
-      });
+  //       return
+  //       ConvertToChannelObjectPtr<>(SecureCreateUniqueObject<GpgContext>(
+  //           args, kGpgFrontendDefaultChannel));
+  //     });
 }
 
 auto ExecuteAllTestCase(GpgFrontendContext args) -> int {

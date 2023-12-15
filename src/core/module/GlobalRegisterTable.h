@@ -32,6 +32,8 @@
 #include <functional>
 #include <optional>
 
+#include "function/SecureMemoryAllocator.h"
+
 namespace GpgFrontend::Module {
 
 using Namespace = std::string;
@@ -58,7 +60,7 @@ class GlobalRegisterTable : public QObject {
 
  private:
   class Impl;
-  std::unique_ptr<Impl> p_;
+  SecureUniquePtr<Impl> p_;
 };
 
 }  // namespace GpgFrontend::Module

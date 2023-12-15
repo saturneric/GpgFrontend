@@ -29,13 +29,18 @@
 #include "ModuleManager.h"
 
 #include <boost/format.hpp>
+#include <memory>
 #include <utility>
 
+#include "GpgConstants.h"
 #include "core/module/GlobalModuleContext.h"
 #include "core/module/GlobalRegisterTable.h"
 #include "core/module/Module.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunner.h"
+#include "function/SecureMemoryAllocator.h"
+#include "function/basic/GpgFunctionObject.h"
+#include "thread/TaskRunnerGetter.h"
 #include "utils/MemoryUtils.h"
 
 namespace GpgFrontend::Module {
@@ -43,40 +48,43 @@ namespace GpgFrontend::Module {
 class ModuleManager::Impl {
  public:
   Impl()
-      : task_runner_(
-            GpgFrontend::SecureCreateSharedObject<Thread::TaskRunner>()),
-        gmc_(GpgFrontend::SecureCreateSharedObject<GlobalModuleContext>(
-            task_runner_)),
-        grt_(GpgFrontend::SecureCreateSharedObject<GlobalRegisterTable>()) {
-    task_runner_->Start();
-  }
+      : gmc_(GpgFrontend::SecureCreateUniqueObject<GlobalModuleContext>()),
+        grt_(GpgFrontend::SecureCreateUniqueObject<GlobalRegisterTable>()) {}
+
+  ~Impl() = default;
 
   void RegisterModule(const ModulePtr& module) {
-    task_runner_->PostTask(new Thread::Task(
-        [=](GpgFrontend::DataObjectPtr) -> int {
-          module->SetGPC(gmc_);
-          gmc_->RegisterModule(module);
-          return 0;
-        },
-        __func__, nullptr));
+    Thread::TaskRunnerGetter::GetInstance()
+        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
+        ->PostTask(new Thread::Task(
+            [=](GpgFrontend::DataObjectPtr) -> int {
+              module->SetGPC(gmc_.get());
+              gmc_->RegisterModule(module);
+              return 0;
+            },
+            __func__, nullptr));
   }
 
   void TriggerEvent(const EventRefrernce& event) {
-    task_runner_->PostTask(new Thread::Task(
-        [=](const GpgFrontend::DataObjectPtr&) -> int {
-          gmc_->TriggerEvent(event);
-          return 0;
-        },
-        __func__, nullptr));
+    Thread::TaskRunnerGetter::GetInstance()
+        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
+        ->PostTask(new Thread::Task(
+            [=](const GpgFrontend::DataObjectPtr&) -> int {
+              gmc_->TriggerEvent(event);
+              return 0;
+            },
+            __func__, nullptr));
   }
 
   void ActiveModule(const ModuleIdentifier& identifier) {
-    task_runner_->PostTask(new Thread::Task(
-        [=](const GpgFrontend::DataObjectPtr&) -> int {
-          gmc_->ActiveModule(identifier);
-          return 0;
-        },
-        __func__, nullptr));
+    Thread::TaskRunnerGetter::GetInstance()
+        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
+        ->PostTask(new Thread::Task(
+            [=](const GpgFrontend::DataObjectPtr&) -> int {
+              gmc_->ActiveModule(identifier);
+              return 0;
+            },
+            __func__, nullptr));
   }
 
   auto GetTaskRunner(ModuleIdentifier module_id)
@@ -107,39 +115,35 @@ class ModuleManager::Impl {
 
  private:
   static ModuleMangerPtr global_module_manager;
-  TaskRunnerPtr task_runner_;
-  GMCPtr gmc_;
-  GRTPtr grt_;
+  SecureUniquePtr<GlobalModuleContext> gmc_;
+  SecureUniquePtr<GlobalRegisterTable> grt_;
 };
 
 auto IsModuleAcivate(ModuleIdentifier id) -> bool {
-  return ModuleManager::GetInstance()->IsModuleActivated(id);
+  return ModuleManager::GetInstance().IsModuleActivated(id);
 }
 
 auto UpsertRTValue(const std::string& namespace_, const std::string& key,
                    const std::any& value) -> bool {
-  return ModuleManager::GetInstance()->UpsertRTValue(namespace_, key,
-                                                     std::any(value));
+  return ModuleManager::GetInstance().UpsertRTValue(namespace_, key,
+                                                    std::any(value));
 }
 
 auto ListenRTPublishEvent(QObject* o, Namespace n, Key k, LPCallback c)
     -> bool {
-  return ModuleManager::GetInstance()->ListenRTPublish(o, n, k, c);
+  return ModuleManager::GetInstance().ListenRTPublish(o, n, k, c);
 }
 
 auto ListRTChildKeys(const std::string& namespace_, const std::string& key)
     -> std::vector<Key> {
-  return ModuleManager::GetInstance()->ListRTChildKeys(namespace_, key);
+  return ModuleManager::GetInstance().ListRTChildKeys(namespace_, key);
 }
 
-ModuleManager::ModuleManager() : p_(std::make_unique<Impl>()) {}
+ModuleManager::ModuleManager(int channel)
+    : SingletonFunctionObject<ModuleManager>(channel),
+      p_(std::make_unique<Impl>()) {}
 
 ModuleManager::~ModuleManager() = default;
-
-auto ModuleManager::GetInstance() -> ModuleMangerPtr {
-  static ModuleMangerPtr g = SecureCreateSharedObject<ModuleManager>();
-  return g;
-}
 
 void ModuleManager::RegisterModule(ModulePtr module) {
   return p_->RegisterModule(module);

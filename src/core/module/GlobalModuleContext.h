@@ -32,6 +32,7 @@
 
 #include "core/module/Event.h"
 #include "core/thread/TaskRunner.h"
+#include "function/SecureMemoryAllocator.h"
 #include "module/GlobalRegisterTable.h"
 
 namespace GpgFrontend::Module {
@@ -53,7 +54,7 @@ using TaskRunnerPtr = std::shared_ptr<Thread::TaskRunner>;
 class GPGFRONTEND_CORE_EXPORT GlobalModuleContext : public QObject {
   Q_OBJECT
  public:
-  explicit GlobalModuleContext(TaskRunnerPtr);
+  explicit GlobalModuleContext();
 
   ~GlobalModuleContext() override;
 
@@ -81,7 +82,7 @@ class GPGFRONTEND_CORE_EXPORT GlobalModuleContext : public QObject {
 
  private:
   class Impl;
-  std::unique_ptr<Impl> p_;
+  SecureUniquePtr<Impl> p_;
 };
 
 }  // namespace GpgFrontend::Module

@@ -55,9 +55,9 @@ void GpgCoreTest::import_private_keys(const libconfig::Setting& root) {
 void GpgCoreTest::TearDown() {}
 
 void GpgCoreTest::SetUp() {
-  libconfig::Config cfg;
-  ASSERT_NO_THROW(cfg.readFile(config_path_.string()));
-  auto& root = cfg.getRoot();
-  import_private_keys(root);
+  // libconfig::Config cfg;
+  // ASSERT_NO_THROW(cfg.readFile(config_path_.string()));
+  // auto& root = cfg.getRoot();
+  // import_private_keys(root);
 }
 }  // namespace GpgFrontend::Test

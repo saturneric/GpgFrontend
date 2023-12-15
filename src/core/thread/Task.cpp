@@ -28,28 +28,29 @@
 
 #include "core/thread/Task.h"
 
+#include <qscopedpointer.h>
+
 #include <boost/stacktrace.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <utility>
 
+#include "utils/MemoryUtils.h"
+
 namespace GpgFrontend::Thread {
 
-class Task::Impl : public QObject {
-  Q_OBJECT
-
+class Task::Impl {
  public:
   Impl(Task *parent, std::string name)
-      : QObject(parent), parent_(parent), uuid_(generate_uuid()), name_(name) {
+      : parent_(parent), uuid_(generate_uuid()), name_(name) {
     SPDLOG_TRACE("task {} created", GetFullID());
     init();
   }
 
   Impl(Task *parent, TaskRunnable runnable, std::string name,
        DataObjectPtr data_object)
-      : QObject(parent),
-        parent_(parent),
+      : parent_(parent),
         uuid_(generate_uuid()),
         name_(std::move(name)),
         runnable_(std::move(runnable)),
@@ -63,8 +64,7 @@ class Task::Impl : public QObject {
 
   Impl(Task *parent, TaskRunnable runnable, std::string name,
        DataObjectPtr data_object, TaskCallback callback)
-      : QObject(parent),
-        parent_(parent),
+      : parent_(parent),
         uuid_(generate_uuid()),
         name_(std::move(name)),
         runnable_(std::move(runnable)),
@@ -112,28 +112,6 @@ class Task::Impl : public QObject {
    */
   void SetRTN(int rtn) { this->rtn_ = rtn; }
 
- private slots:
-
-  /**
-   * @brief
-   *
-   */
-  void slot_run() {
-    try {
-      SPDLOG_TRACE("task {} is starting...", GetFullID());
-      // Run() will set rtn by itself
-      parent_->Run();
-      SPDLOG_TRACE("task {} was end.", GetFullID());
-    } catch (std::exception &e) {
-      SPDLOG_ERROR("exception was caught at task: {}", e.what());
-      SPDLOG_ERROR(
-          "stacktrace of the exception: {}",
-          boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
-    }
-    // raise signal to anounce after runnable returned
-    if (parent_->autoDelete()) emit parent_->SignalTaskShouldEnd(rtn_);
-  }
-
  private:
   Task *const parent_;
   const std::string uuid_;
@@ -152,11 +130,11 @@ class Task::Impl : public QObject {
     HoldOnLifeCycle(false);
 
     //
-    connect(parent_, &Task::SignalRun, this, &Task::Impl::slot_run);
+    connect(parent_, &Task::SignalRun, [=]() { inner_run(); });
 
     //
-    connect(parent_, &Task::SignalTaskShouldEnd, this,
-            &Impl::slot_task_should_end);
+    connect(parent_, &Task::SignalTaskShouldEnd,
+            [=](int rtn) { slot_task_should_end(rtn); });
 
     //
     connect(parent_, &Task::SignalTaskEnd, parent_, &Task::deleteLater);
@@ -165,13 +143,31 @@ class Task::Impl : public QObject {
   /**
    * @brief
    *
-   * @return std::string
    */
-  std::string generate_uuid() {
-    return boost::uuids::to_string(boost::uuids::random_generator()());
+  void inner_run() {
+    try {
+      SPDLOG_TRACE("task {} is starting...", GetFullID());
+      // Run() will set rtn by itself
+      parent_->Run();
+      SPDLOG_TRACE("task {} was end.", GetFullID());
+    } catch (std::exception &e) {
+      SPDLOG_ERROR("exception was caught at task: {}", e.what());
+      SPDLOG_ERROR(
+          "stacktrace of the exception: {}",
+          boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
+    }
+    // raise signal to anounce after runnable returned
+    if (parent_->autoDelete()) emit parent_->SignalTaskShouldEnd(rtn_);
   }
 
- private slots:
+  /**
+   * @brief
+   *
+   * @return std::string
+   */
+  static auto generate_uuid() -> std::string {
+    return boost::uuids::to_string(boost::uuids::random_generator()());
+  }
 
   /**
    * @brief
@@ -265,11 +261,12 @@ class Task::Impl : public QObject {
 Task::Task(std::string name) : p_(new Impl(this, name)) {}
 
 Task::Task(TaskRunnable runnable, std::string name, DataObjectPtr data_object)
-    : p_(new Impl(this, runnable, name, data_object)) {}
+    : p_(SecureCreateUniqueObject<Impl>(this, runnable, name, data_object)) {}
 
 Task::Task(TaskRunnable runnable, std::string name, DataObjectPtr data_object,
            TaskCallback callback)
-    : p_(new Impl(this, runnable, name, data_object, callback)) {}
+    : p_(SecureCreateUniqueObject<Impl>(this, runnable, name, data_object,
+                                        callback)) {}
 
 Task::~Task() = default;
 
@@ -297,5 +294,3 @@ void Task::run() {
 }
 
 }  // namespace GpgFrontend::Thread
-
-#include "Task.moc"

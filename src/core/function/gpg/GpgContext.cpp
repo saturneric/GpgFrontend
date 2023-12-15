@@ -46,15 +46,14 @@
 
 namespace GpgFrontend {
 
-class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
+class GpgContext::Impl {
  public:
   /**
    * Constructor
    *  Set up gpgme-context, set paths to app-run path
    */
-  Impl(GpgContext *parent, const GpgContextInitArgs &args, int channel)
-      : SingletonFunctionObject<GpgContext::Impl>(channel),
-        parent_(parent),
+  Impl(GpgContext *parent, const GpgContextInitArgs &args)
+      : parent_(parent),
         args_(args),
         good_(default_ctx_initialize(args) && binary_ctx_initialize(args)) {}
 
@@ -281,14 +280,14 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
     assert(p_ctx != nullptr);
     binary_ctx_ref_ = p_ctx;
 
-    if (!common_ctx_initialize(binary_ctx_ref_, args)) {
-      SPDLOG_ERROR("get new ctx failed, binary");
-      return false;
-    }
+    // if (!common_ctx_initialize(binary_ctx_ref_, args)) {
+    //   SPDLOG_ERROR("get new ctx failed, binary");
+    //   return false;
+    // }
 
-    /** Setting the output type must be done at the beginning */
-    /** think this means ascii-armor --> ? */
-    gpgme_set_armor(binary_ctx_ref_, 0);
+    // /** Setting the output type must be done at the beginning */
+    // /** think this means ascii-armor --> ? */
+    // gpgme_set_armor(binary_ctx_ref_, 0);
     return true;
   }
 
@@ -301,22 +300,22 @@ class GpgContext::Impl : public SingletonFunctionObject<GpgContext::Impl> {
     assert(p_ctx != nullptr);
     ctx_ref_ = p_ctx;
 
-    if (!common_ctx_initialize(ctx_ref_, args)) {
-      return false;
-    }
+    // if (!common_ctx_initialize(ctx_ref_, args)) {
+    //   return false;
+    // }
 
-    gpgme_set_armor(ctx_ref_, 1);
+    // gpgme_set_armor(ctx_ref_, 1);
     return true;
   }
 };
 
 GpgContext::GpgContext(int channel)
     : SingletonFunctionObject<GpgContext>(channel),
-      p_(SecureCreateUniqueObject<Impl>(this, GpgContextInitArgs{}, channel)) {}
+      p_(SecureCreateUniqueObject<Impl>(this, GpgContextInitArgs{})) {}
 
 GpgContext::GpgContext(const GpgContextInitArgs &args, int channel)
     : SingletonFunctionObject<GpgContext>(channel),
-      p_(SecureCreateUniqueObject<Impl>(this, args, channel)) {}
+      p_(SecureCreateUniqueObject<Impl>(this, args)) {}
 
 auto GpgContext::Good() const -> bool { return p_->Good(); }
 

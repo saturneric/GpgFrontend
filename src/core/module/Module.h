@@ -41,7 +41,6 @@ using ModuleIdentifier = std::string;
 using ModuleVersion = std::string;
 using ModuleMetaData = std::map<std::string, std::string>;
 using ModulePtr = std::shared_ptr<Module>;
-using GMCPtr = std::shared_ptr<GlobalModuleContext>;
 
 using TaskRunnerPtr = std::shared_ptr<Thread::TaskRunner>;
 
@@ -52,26 +51,26 @@ class GPGFRONTEND_CORE_EXPORT Module : public QObject {
 
   ~Module();
 
-  virtual bool Register() = 0;
+  virtual auto Register() -> bool = 0;
 
-  virtual bool Active() = 0;
+  virtual auto Active() -> bool = 0;
 
-  virtual int Exec(EventRefrernce) = 0;
+  virtual auto Exec(EventRefrernce) -> int = 0;
 
-  virtual bool Deactive() = 0;
+  virtual auto Deactive() -> bool = 0;
 
-  ModuleIdentifier GetModuleIdentifier() const;
+  [[nodiscard]] auto GetModuleIdentifier() const -> ModuleIdentifier;
 
-  void SetGPC(GMCPtr);
+  void SetGPC(GlobalModuleContext*);
 
  protected:
-  int getChannel();
+  auto getChannel() -> int;
 
-  int getDefaultChannel();
+  auto getDefaultChannel() -> int;
 
-  TaskRunnerPtr getTaskRunner();
+  auto getTaskRunner() -> TaskRunnerPtr;
 
-  bool listenEvent(EventIdentifier);
+  auto listenEvent(EventIdentifier) -> bool;
 
  private:
   class Impl;

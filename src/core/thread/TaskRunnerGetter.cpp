@@ -28,25 +28,37 @@
 
 #include "core/thread/TaskRunnerGetter.h"
 
-#include "thread/TaskRunner.h"
+#include <mutex>
+
+#include "core/GpgConstants.h"
+#include "core/thread/TaskRunner.h"
 
 namespace GpgFrontend::Thread {
 
-TaskRunnerGetter::TaskRunnerGetter(int channel)
-    : SingletonFunctionObject<TaskRunnerGetter>(channel) {}
+TaskRunnerGetter::TaskRunnerGetter(int)
+    : SingletonFunctionObject<TaskRunnerGetter>(kGpgFrontendDefaultChannel) {}
 
-TaskRunnerPtr GpgFrontend::Thread::TaskRunnerGetter::GetTaskRunner(
-    TaskRunnerType runner_type) {
+auto TaskRunnerGetter::GetTaskRunner(TaskRunnerType runner_type)
+    -> TaskRunnerPtr {
+  std::lock_guard<std::mutex> lock_guard(task_runners_map_lock_);
   while (true) {
     auto it = task_runners_.find(runner_type);
     if (it != task_runners_.end()) {
       return it->second;
-    } else {
-      auto runner = GpgFrontend::SecureCreateSharedObject<TaskRunner>();
-      task_runners_[runner_type] = runner;
-      runner->Start();
-      continue;
+    }
+
+    auto runner = GpgFrontend::SecureCreateSharedObject<TaskRunner>();
+    task_runners_[runner_type] = runner;
+    runner->Start();
+  }
+}
+
+void TaskRunnerGetter::StopAllTeakRunner() {
+  for (const auto& [key, value] : task_runners_) {
+    if (value->IsRunning()) {
+      value->Stop();
     }
   }
 }
+
 }  // namespace GpgFrontend::Thread

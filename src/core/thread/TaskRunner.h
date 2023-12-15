@@ -49,11 +49,32 @@ class GPGFRONTEND_CORE_EXPORT TaskRunner : public QObject {
    */
   virtual ~TaskRunner() override;
 
+  /**
+   * @brief
+   *
+   */
   void Start();
 
-  QThread* GetThread();
+  /**
+   * @brief
+   *
+   */
+  void Stop();
 
-  bool IsRunning();
+  /**
+   * @brief Get the Thread object
+   *
+   * @return QThread*
+   */
+  auto GetThread() -> QThread*;
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  auto IsRunning() -> bool;
 
  public slots:
 

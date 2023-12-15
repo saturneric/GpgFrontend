@@ -29,6 +29,7 @@
 #include "Module.h"
 
 #include <boost/format.hpp>
+#include <utility>
 
 #include "core/module/GlobalModuleContext.h"
 
@@ -43,34 +44,38 @@ class Module::Impl {
   Impl(ModuleRawPtr m_ptr, ModuleIdentifier id, ModuleVersion version,
        ModuleMetaData meta_data)
       : m_ptr_(m_ptr),
-        identifier_(id),
-        version_(version),
-        meta_data_(meta_data) {}
+        identifier_(std::move(id)),
+        version_(std::move(version)),
+        meta_data_(std::move(meta_data)) {}
 
-  int GetChannel() { return get_gpc()->GetChannel(m_ptr_); }
+  auto GetChannel() -> int { return get_gpc()->GetChannel(m_ptr_); }
 
-  int GetDefaultChannel() { return get_gpc()->GetDefaultChannel(m_ptr_); }
+  auto GetDefaultChannel() -> int {
+    return get_gpc()->GetDefaultChannel(m_ptr_);
+  }
 
-  std::optional<TaskRunnerPtr> GetTaskRunner() {
+  auto GetTaskRunner() -> std::optional<TaskRunnerPtr> {
     return get_gpc()->GetTaskRunner(m_ptr_);
   }
 
-  bool ListenEvent(EventIdentifier event) {
-    return get_gpc()->ListenEvent(GetModuleIdentifier(), event);
+  auto ListenEvent(EventIdentifier event) -> bool {
+    return get_gpc()->ListenEvent(GetModuleIdentifier(), std::move(event));
   }
 
-  ModuleIdentifier GetModuleIdentifier() const { return identifier_; }
+  [[nodiscard]] auto GetModuleIdentifier() const -> ModuleIdentifier {
+    return identifier_;
+  }
 
-  void SetGPC(GMCPtr gpc) { gpc_ = gpc; }
+  void SetGPC(GlobalModuleContext* gpc) { gpc_ = gpc; }
 
  private:
-  GMCPtr gpc_;
+  GlobalModuleContext* gpc_;
   Module* m_ptr_;
   const ModuleIdentifier identifier_;
   const ModuleVersion version_;
   const ModuleMetaData meta_data_;
 
-  const GMCPtr get_gpc() {
+  auto get_gpc() -> GlobalModuleContext* {
     if (gpc_ == nullptr) {
       throw std::runtime_error("module is not registered by module manager");
     }
@@ -84,21 +89,21 @@ Module::Module(ModuleIdentifier id, ModuleVersion version,
 
 Module::~Module() = default;
 
-int Module::getChannel() { return p_->GetChannel(); }
+auto Module::getChannel() -> int { return p_->GetChannel(); }
 
-int Module::getDefaultChannel() { return p_->GetDefaultChannel(); }
+auto Module::getDefaultChannel() -> int { return p_->GetDefaultChannel(); }
 
-TaskRunnerPtr Module::getTaskRunner() {
+auto Module::getTaskRunner() -> TaskRunnerPtr {
   return p_->GetTaskRunner().value_or(nullptr);
 }
 
-bool Module::listenEvent(EventIdentifier event) {
-  return p_->ListenEvent(event);
+auto Module::listenEvent(EventIdentifier event) -> bool {
+  return p_->ListenEvent(std::move(event));
 }
 
-ModuleIdentifier Module::GetModuleIdentifier() const {
+auto Module::GetModuleIdentifier() const -> ModuleIdentifier {
   return p_->GetModuleIdentifier();
 }
 
-void Module::SetGPC(GMCPtr gpc) { p_->SetGPC(gpc); }
+void Module::SetGPC(GlobalModuleContext* gpc) { p_->SetGPC(gpc); }
 }  // namespace GpgFrontend::Module

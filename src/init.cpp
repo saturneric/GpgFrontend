@@ -40,6 +40,7 @@
 
 #include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/MemoryUtils.h"
 #include "module/GpgFrontendModuleInit.h"
 #include "module/sdk/Log.h"
@@ -195,6 +196,8 @@ void ShutdownGlobalBasicalEnv(const GFCxtWPtr &p_ctx) {
   if (ctx == nullptr) {
     return;
   }
+
+  Thread::TaskRunnerGetter::GetInstance().StopAllTeakRunner();
 
   ShutdownLoggingSystem(ctx);
 }

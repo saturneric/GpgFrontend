@@ -36,6 +36,9 @@
 #include <utility>
 #include <vector>
 
+#include "function/SecureMemoryAllocator.h"
+#include "utils/MemoryUtils.h"
+
 namespace GpgFrontend::Module {
 
 class GlobalRegisterTable::Impl {
@@ -141,7 +144,8 @@ class GlobalRegisterTable::Impl {
   Table global_register_table_;
 };
 
-GlobalRegisterTable::GlobalRegisterTable() : p_(std::make_unique<Impl>(this)) {}
+GlobalRegisterTable::GlobalRegisterTable()
+    : p_(SecureCreateUniqueObject<Impl>(this)) {}
 
 GlobalRegisterTable::~GlobalRegisterTable() = default;
 

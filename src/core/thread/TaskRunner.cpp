@@ -86,7 +86,11 @@ class TaskRunner::Impl : public QThread {
 
 GpgFrontend::Thread::TaskRunner::TaskRunner() : p_(std::make_unique<Impl>()) {}
 
-GpgFrontend::Thread::TaskRunner::~TaskRunner() = default;
+GpgFrontend::Thread::TaskRunner::~TaskRunner() {
+  if (p_->isRunning()) {
+    Stop();
+  }
+}
 
 void GpgFrontend::Thread::TaskRunner::PostTask(Task* task) {
   p_->PostTask(task);
@@ -102,8 +106,13 @@ void TaskRunner::PostScheduleTask(Task* task, size_t seconds) {
 
 void TaskRunner::Start() { p_->start(); }
 
-QThread* TaskRunner::GetThread() { return p_.get(); }
+void TaskRunner::Stop() {
+  p_->quit();
+  p_->wait();
+}
 
-bool TaskRunner::IsRunning() { return p_->isRunning(); }
+auto TaskRunner::GetThread() -> QThread* { return p_.get(); }
+
+auto TaskRunner::IsRunning() -> bool { return p_->isRunning(); }
 
 }  // namespace GpgFrontend::Thread

@@ -232,7 +232,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
   // start the thread to check ctx and gnupg state
   // it may take a few seconds or minutes
   GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
-      .GetTaskRunner()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
       ->PostTask(new Thread::Task(
           [args](const DataObjectPtr&) -> int {
             // read settings from config file

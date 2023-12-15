@@ -40,17 +40,18 @@
 #include "core/module/Module.h"
 #include "core/thread/Task.h"
 #include "model/DataObject.h"
+#include "thread/TaskRunnerGetter.h"
+#include "utils/MemoryUtils.h"
 
 namespace GpgFrontend::Module {
 
 class GlobalModuleContext::Impl {
  public:
-  explicit Impl(TaskRunnerPtr task_runner)
+  explicit Impl()
       : random_gen_(
             (boost::posix_time::microsec_clock::universal_time() -
              boost::posix_time::ptime(boost::gregorian::date(1970, 1, 1)))
-                .total_milliseconds()),
-        default_task_runner_(std::move(task_runner)) {
+                .total_milliseconds()) {
     // Initialize acquired channels with default values.
     acquired_channel_.insert(kGpgFrontendDefaultChannel);
     acquired_channel_.insert(kGpgFrontendNonAsciiChannel);
@@ -77,23 +78,15 @@ class GlobalModuleContext::Impl {
     return kGpgFrontendDefaultChannel;
   }
 
-  auto GetTaskRunner(ModuleRawPtr module) -> std::optional<TaskRunnerPtr> {
-    auto opt = search_module_register_table(module->GetModuleIdentifier());
-    if (!opt.has_value()) {
-      return std::nullopt;
-    }
-    return opt.value()->task_runner;
+  auto GetTaskRunner(ModuleRawPtr /*module*/) -> std::optional<TaskRunnerPtr> {
+    return Thread::TaskRunnerGetter::GetInstance().GetTaskRunner(
+        Thread::TaskRunnerGetter::kTaskRunnerType_Module);
   }
 
-  auto GetTaskRunner(ModuleIdentifier module_id)
+  auto GetTaskRunner(ModuleIdentifier /*module_id*/)
       -> std::optional<TaskRunnerPtr> {
-    // Search for the module in the register table.
-    auto module_info_opt = search_module_register_table(module_id);
-    if (!module_info_opt.has_value()) {
-      SPDLOG_ERROR("cannot find module id {} at register table", module_id);
-      return std::nullopt;
-    }
-    return module_info_opt.value()->task_runner;
+    return Thread::TaskRunnerGetter::GetInstance().GetTaskRunner(
+        Thread::TaskRunnerGetter::kTaskRunnerType_Module);
   }
 
   auto GetGlobalTaskRunner() -> std::optional<TaskRunnerPtr> {
@@ -120,14 +113,13 @@ class GlobalModuleContext::Impl {
         GpgFrontend::SecureCreateSharedObject<ModuleRegisterInfo>();
     register_info->module = module;
     register_info->channel = acquire_new_unique_channel();
-    register_info->task_runner =
-        GpgFrontend::SecureCreateSharedObject<Thread::TaskRunner>();
-    register_info->task_runner->Start();
 
     // move module to its task runner' thread
     register_info->module->setParent(nullptr);
     register_info->module->moveToThread(
-        register_info->task_runner->GetThread());
+        Thread::TaskRunnerGetter::GetInstance()
+            .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
+            ->GetThread());
 
     // Register the module with its identifier.
     module_register_table_[module->GetModuleIdentifier()] = register_info;
@@ -250,11 +242,9 @@ class GlobalModuleContext::Impl {
       auto module_info = module_info_opt.value();
       auto module = module_info->module;
 
-      SPDLOG_DEBUG(
-          "module {} is listening to event {}, activate state: {}, task runner "
-          "running state: {}",
-          module_info->module->GetModuleIdentifier(), event->GetIdentifier(),
-          module_info->activate, module_info->task_runner->IsRunning());
+      SPDLOG_DEBUG("module {} is listening to event {}, activate state: {}",
+                   module_info->module->GetModuleIdentifier(),
+                   event->GetIdentifier(), module_info->activate);
 
       // Check if the module is activated
       if (!module_info->activate) continue;
@@ -272,12 +262,14 @@ class GlobalModuleContext::Impl {
         }
       };
 
-      module_info->task_runner->PostTask(
-          new Thread::Task(exec_runnerable,
-                           (boost::format("event/%1%/module/exec/%2%") %
-                            event_id % listener_module_id)
-                               .str(),
-                           nullptr, exec_callback));
+      Thread::TaskRunnerGetter::GetInstance()
+          .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
+          ->PostTask(
+              new Thread::Task(exec_runnerable,
+                               (boost::format("event/%1%/module/exec/%2%") %
+                                event_id % listener_module_id)
+                                   .str(),
+                               nullptr, exec_callback));
     }
 
     // Return true to indicate successful execution of all modules
@@ -292,7 +284,6 @@ class GlobalModuleContext::Impl {
  private:
   struct ModuleRegisterInfo {
     int channel;
-    TaskRunnerPtr task_runner;
     ModulePtr module;
     bool activate;
   };
@@ -334,8 +325,8 @@ class GlobalModuleContext::Impl {
 };
 
 // Constructor for GlobalModuleContext, takes a TaskRunnerPtr as an argument.
-GlobalModuleContext::GlobalModuleContext(TaskRunnerPtr task_runner)
-    : p_(std::make_unique<Impl>(std::move(task_runner))) {}
+GlobalModuleContext::GlobalModuleContext()
+    : p_(SecureCreateUniqueObject<Impl>()) {}
 
 GlobalModuleContext::~GlobalModuleContext() = default;
 
