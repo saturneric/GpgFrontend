@@ -69,12 +69,13 @@ auto GetGpgmeErrorString(gpgme_error_t err) -> std::string {
 }
 
 auto CheckGpgError(GpgError err) -> GpgError {
-  if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
+  auto err_code = gpg_err_code(err);
+  if (err_code != GPG_ERR_NO_ERROR) {
     SPDLOG_ERROR(
         "gpg operation failed [error code: {}], source: {} description: {}",
-        gpg_err_code(err), gpgme_strsource(err), GetGpgmeErrorString(err));
+        err_code, gpgme_strsource(err), GetGpgmeErrorString(err));
   }
-  return err;
+  return err_code;
 }
 
 auto CheckGpgError2ErrCode(GpgError err, GpgError predict) -> GpgErrorCode {

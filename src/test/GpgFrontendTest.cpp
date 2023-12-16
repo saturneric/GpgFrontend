@@ -41,6 +41,8 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/basic/ChannelObject.h"
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/utils/IOUtils.h"
 #include "spdlog/spdlog.h"
 
 namespace GpgFrontend::Test {
@@ -121,8 +123,43 @@ void ConfigureGpgContext() {
       });
 }
 
+void ImportPrivateKeys(std::filesystem::path data_path,
+                       const libconfig::Setting& config) {
+  if (config.exists("load_keys.private_keys")) {
+    auto& private_keys = config.lookup("load_keys.private_keys");
+    for (auto& private_key : private_keys) {
+      if (private_key.exists("filename")) {
+        std::string filename;
+        private_key.lookupValue("filename", filename);
+        auto data_file_path = data_path / filename;
+        std::string data = ReadAllDataInFile(data_file_path.string());
+        auto secret_key_copy = SecureCreateSharedObject<std::string>(data);
+        GpgKeyImportExporter::GetInstance(kGpgFrontendDefaultChannel)
+            .ImportKey(secret_key_copy);
+      }
+    }
+  }
+}
+
+void SetupGlobalTestEnv() {
+  auto app_path = GlobalSettingStation::GetInstance().GetAppDir();
+  auto test_path = app_path / "test";
+  auto test_config_path = test_path / "conf" / "test.cfg";
+  auto test_data_path = test_path / "data";
+
+  SPDLOG_INFO("test config file path: {}", test_config_path.string());
+  SPDLOG_INFO("test data file path: {}", test_data_path.string());
+
+  libconfig::Config cfg;
+  ASSERT_NO_THROW(cfg.readFile(test_config_path.c_str()));
+
+  auto& root = cfg.getRoot();
+  ImportPrivateKeys(test_data_path, root);
+}
+
 auto ExecuteAllTestCase(GpgFrontendContext args) -> int {
   ConfigureGpgContext();
+  SetupGlobalTestEnv();
 
   testing::InitGoogleTest(&args.argc, args.argv);
   return RUN_ALL_TESTS();

@@ -76,13 +76,18 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
   }
 
   auto FetchKey() -> KeyLinkListPtr {
-    // get the lock
-    std::lock_guard<std::mutex> lock(keys_cache_mutex_);
+    if (keys_cache_.empty()) {
+      FlushKeyCache();
+    }
 
     auto keys_list = std::make_unique<GpgKeyLinkList>();
 
-    for (const auto& [key, value] : keys_cache_) {
-      keys_list->push_back(value);
+    {
+      // get the lock
+      std::lock_guard<std::mutex> lock(keys_cache_mutex_);
+      for (const auto& [key, value] : keys_cache_) {
+        keys_list->push_back(value);
+      }
     }
     return keys_list;
   }

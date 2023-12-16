@@ -33,6 +33,7 @@
 #include "core/GpgModel.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "spdlog/spdlog.h"
 
 namespace GpgFrontend {
 
@@ -44,8 +45,7 @@ void GpgFrontend::GpgBasicOperator::Encrypt(KeyListPtr keys,
                                             const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
-        std::vector<gpgme_key_t> recipients(keys->size() + 1);
-
+        std::vector<gpgme_key_t> recipients;
         for (const auto& key : *keys) {
           recipients.emplace_back(key);
         }

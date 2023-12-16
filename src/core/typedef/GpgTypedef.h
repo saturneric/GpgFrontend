@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <tuple>
+
 #include "core/model/DataObject.h"
 namespace GpgFrontend {
 
@@ -58,4 +60,5 @@ using KeyPtrArgsList = const std::initializer_list<KeyPtr>;               ///<
 
 using GpgOperaRunnable = std::function<GpgError(DataObjectPtr)>;
 using GpgOperationCallback = std::function<void(GpgError, DataObjectPtr)>;
+using GpgOperationFuture = std::future<std::tuple<GpgError, DataObjectPtr>>;
 }  // namespace GpgFrontend

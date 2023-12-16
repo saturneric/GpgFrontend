@@ -35,29 +35,9 @@
 
 namespace GpgFrontend::Test {
 
-void GpgCoreTest::import_private_keys(const libconfig::Setting& root) {
-  if (root.exists("load_keys.private_keys")) {
-    auto& private_keys = root.lookup("load_keys.private_keys");
-    for (auto& private_key : private_keys) {
-      if (private_key.exists("filename")) {
-        std::string filename;
-        private_key.lookupValue("filename", filename);
-        auto data_file_path = data_path_ / filename;
-        std::string data = ReadAllDataInFile(data_file_path.string());
-        auto secret_key_copy = SecureCreateSharedObject<std::string>(data);
-        GpgKeyImportExporter::GetInstance(kGpgFrontendDefaultChannel)
-            .ImportKey(secret_key_copy);
-      }
-    }
-  }
-}
-
 void GpgCoreTest::TearDown() {}
 
 void GpgCoreTest::SetUp() {
-  // libconfig::Config cfg;
-  // ASSERT_NO_THROW(cfg.readFile(config_path_.string()));
-  // auto& root = cfg.getRoot();
-  // import_private_keys(root);
+
 }
 }  // namespace GpgFrontend::Test

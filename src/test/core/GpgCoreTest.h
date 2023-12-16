@@ -28,17 +28,9 @@
 
 #pragma once
 
-#include <QtWidgets/qapplication.h>
 #include <gtest/gtest.h>
-#include <qcoreapplication.h>
 
 #include <boost/date_time.hpp>
-#include <boost/dll.hpp>
-#include <boost/dll/runtime_symbol_info.hpp>
-#include <filesystem>
-
-#include "core/function/GlobalSettingStation.h"
-#include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend::Test {
 
@@ -47,18 +39,6 @@ class GpgCoreTest : public ::testing::Test {
   void SetUp() override;
 
   void TearDown() override;
-
- private:
-  void import_private_keys(const libconfig::Setting& root);
-
-  std::filesystem::path app_path_ = std::filesystem::path{
-      QCoreApplication::applicationDirPath().toStdString()};
-
-  // Configure File Location
-  std::filesystem::path config_path_ = app_path_ / "test" / "conf" / "core.cfg";
-
-  // Data File Directory Location
-  std::filesystem::path data_path_ = app_path_ / "test" / "data";
 };
 
 }  // namespace GpgFrontend::Test
