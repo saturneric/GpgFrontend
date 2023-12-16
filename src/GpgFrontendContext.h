@@ -28,9 +28,6 @@
 
 #pragma once
 
-#include <qapplication.h>
-#include <qcoreapplication.h>
-
 #include "core/function/SecureMemoryAllocator.h"
 
 namespace GpgFrontend {

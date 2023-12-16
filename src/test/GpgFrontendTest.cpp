@@ -36,8 +36,10 @@
 #include <boost/dll.hpp>
 #include <filesystem>
 
+#include "core/GpgConstants.h"
 #include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/basic/ChannelObject.h"
 #include "core/function/gpg/GpgContext.h"
 #include "spdlog/spdlog.h"
 
@@ -107,17 +109,16 @@ void ConfigureGpgContext() {
     std::filesystem::create_directory(db_path);
   }
 
-  // GpgContext::CreateInstance(
-  //     kGpgFrontendDefaultChannel, [&]() -> ChannelObjectPtr {
-  //       GpgContextInitArgs args;
-  //       args.test_mode = true;
-  //       args.offline_mode = true;
-  //       args.db_path = db_path.string();
+  GpgContext::CreateInstance(
+      kGpgFrontendDefaultChannel, [=]() -> ChannelObjectPtr {
+        GpgContextInitArgs args;
+        args.test_mode = true;
+        args.offline_mode = true;
+        args.db_path = db_path.string();
 
-  //       return
-  //       ConvertToChannelObjectPtr<>(SecureCreateUniqueObject<GpgContext>(
-  //           args, kGpgFrontendDefaultChannel));
-  //     });
+        return ConvertToChannelObjectPtr<>(SecureCreateUniqueObject<GpgContext>(
+            args, kGpgFrontendDefaultChannel));
+      });
 }
 
 auto ExecuteAllTestCase(GpgFrontendContext args) -> int {

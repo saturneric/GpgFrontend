@@ -36,15 +36,13 @@
 
 namespace GpgFrontend {
 
-class GlobalSettingStation::Impl
-    : SingletonFunctionObject<GlobalSettingStation::Impl> {
+class GlobalSettingStation::Impl {
  public:
   /**
    * @brief Construct a new Global Setting Station object
    *
    */
-  explicit Impl(int channel) noexcept
-      : SingletonFunctionObject<GlobalSettingStation::Impl>(channel) {
+  explicit Impl() noexcept {
     SPDLOG_INFO("app path: {}", app_path_.u8string());
     SPDLOG_INFO("app configure path: {}", app_configure_path_.u8string());
     SPDLOG_INFO("app data path: {}", app_data_path_.u8string());
@@ -269,7 +267,7 @@ class GlobalSettingStation::Impl
 
 GlobalSettingStation::GlobalSettingStation(int channel) noexcept
     : SingletonFunctionObject<GlobalSettingStation>(channel),
-      p_(std::make_unique<Impl>(channel)) {}
+      p_(std::make_unique<Impl>()) {}
 
 GlobalSettingStation::~GlobalSettingStation() noexcept = default;
 

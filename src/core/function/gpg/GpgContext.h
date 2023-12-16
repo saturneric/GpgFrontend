@@ -55,13 +55,11 @@ struct GpgContextInitArgs {
  *
  */
 class GPGFRONTEND_CORE_EXPORT GpgContext
-    : public QObject,
-      public SingletonFunctionObject<GpgContext> {
-  Q_OBJECT
+    : public SingletonFunctionObject<GpgContext> {
  public:
   explicit GpgContext(int channel);
 
-  explicit GpgContext(const GpgContextInitArgs &args, int channel);
+  explicit GpgContext(GpgContextInitArgs args, int channel);
 
   virtual ~GpgContext() override;
 
