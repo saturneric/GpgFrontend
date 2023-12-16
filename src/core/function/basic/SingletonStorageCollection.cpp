@@ -31,14 +31,13 @@
 #include <memory>
 #include <shared_mutex>
 
+#include "core/function/SecureMemoryAllocator.h"
 #include "core/function/basic/SingletonStorage.h"
 #include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
 
-std::unique_ptr<SingletonStorageCollection,
-                SecureObjectDeleter<SingletonStorageCollection>>
-    instance = nullptr;
+SecureUniquePtr<SingletonStorageCollection> global_instance = nullptr;
 
 class SingletonStorageCollection::Impl {
  public:
@@ -48,12 +47,13 @@ class SingletonStorageCollection::Impl {
    * @return SingletonStorageCollection*
    */
   static auto GetInstance(bool force_refresh) -> SingletonStorageCollection* {
-    if (force_refresh || instance == nullptr) {
-      instance = SecureCreateUniqueObject<SingletonStorageCollection>();
-      SPDLOG_TRACE("a new single storage collection created, address: {}",
-                   static_cast<void*>(instance.get()));
+    if (force_refresh || global_instance == nullptr) {
+      global_instance = SecureCreateUniqueObject<SingletonStorageCollection>();
+      SPDLOG_TRACE(
+          "a new global singleton storage collection created, address: {}",
+          static_cast<void*>(global_instance.get()));
     }
-    return instance.get();
+    return global_instance.get();
   }
 
   /**
@@ -61,7 +61,7 @@ class SingletonStorageCollection::Impl {
    *
    * @return SingletonStorageCollection*
    */
-  static void Destroy() { instance = nullptr; }
+  static void Destroy() { global_instance = nullptr; }
 
   /**
    * @brief Get the Singleton Storage object
@@ -100,7 +100,7 @@ class SingletonStorageCollection::Impl {
 };
 
 SingletonStorageCollection::SingletonStorageCollection() noexcept
-    : p_(std::make_unique<Impl>()) {}
+    : p_(SecureCreateUniqueObject<Impl>()) {}
 
 SingletonStorageCollection::~SingletonStorageCollection() = default;
 
@@ -110,6 +110,9 @@ auto GpgFrontend::SingletonStorageCollection::GetInstance(bool force_refresh)
 }
 
 void SingletonStorageCollection::Destroy() {
+  SPDLOG_TRACE(
+      "global singleton storage collection is about to destroy, address: {}",
+      static_cast<void*>(global_instance.get()));
   return SingletonStorageCollection::Impl::Destroy();
 }
 

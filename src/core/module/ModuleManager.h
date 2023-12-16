@@ -31,8 +31,10 @@
 #include <mutex>
 #include <vector>
 
+#include "core/function/SecureMemoryAllocator.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/module/Event.h"
+#include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend::Thread {
 class TaskRunner;
@@ -86,7 +88,7 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager
 
  private:
   class Impl;
-  std::unique_ptr<Impl> p_;
+  SecureUniquePtr<Impl> p_;
 };
 
 template <typename T, typename... Args>

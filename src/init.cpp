@@ -199,6 +199,8 @@ void ShutdownGlobalBasicalEnv(const GFCxtWPtr &p_ctx) {
 
   Thread::TaskRunnerGetter::GetInstance().StopAllTeakRunner();
 
+  DestroyGpgFrontendCore();
+
   ShutdownLoggingSystem(ctx);
 }
 

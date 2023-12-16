@@ -45,7 +45,7 @@ class GlobalRegisterTable::Impl {
  public:
   struct RTNode {
     std::optional<std::any> value = std::nullopt;
-    std::unordered_map<std::string, std::unique_ptr<RTNode>> children;
+    std::unordered_map<std::string, SecureUniquePtr<RTNode>> children;
     int version = 0;
     const std::type_info* type = nullptr;
   };
@@ -61,12 +61,13 @@ class GlobalRegisterTable::Impl {
     {
       std::unique_lock lock(lock_);
       auto& root_rt_node =
-          global_register_table_.emplace(n, std::make_unique<RTNode>())
+          global_register_table_.emplace(n, SecureCreateUniqueObject<RTNode>())
               .first->second;
 
       RTNode* current = root_rt_node.get();
       while (std::getline(iss, segment, '.')) {
-        current = current->children.emplace(segment, std::make_unique<RTNode>())
+        current = current->children
+                      .emplace(segment, SecureCreateUniqueObject<RTNode>())
                       .first->second.get();
       }
 
@@ -137,7 +138,7 @@ class GlobalRegisterTable::Impl {
   }
 
  private:
-  using Table = std::map<Namespace, std::unique_ptr<RTNode>>;
+  using Table = std::map<Namespace, SecureUniquePtr<RTNode>>;
   std::shared_mutex lock_;
   GlobalRegisterTable* parent_;
 

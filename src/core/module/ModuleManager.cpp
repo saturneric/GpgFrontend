@@ -141,7 +141,7 @@ auto ListRTChildKeys(const std::string& namespace_, const std::string& key)
 
 ModuleManager::ModuleManager(int channel)
     : SingletonFunctionObject<ModuleManager>(channel),
-      p_(std::make_unique<Impl>()) {}
+      p_(SecureCreateUniqueObject<Impl>()) {}
 
 ModuleManager::~ModuleManager() = default;
 

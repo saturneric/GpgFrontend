@@ -44,13 +44,13 @@ void HandleSignal(int sig);
  *
  * @param args
  */
-void InitLoggingSystem(const GFCxtSPtr&);
+void InitLoggingSystem(const GFCxtSPtr &);
 
 /**
  * @brief initialize the logging system.
  *
  */
-void ShutdownLoggingSystem(const GFCxtSPtr&);
+void ShutdownLoggingSystem(const GFCxtSPtr &);
 
 /**
  * @brief init global PATH env
@@ -63,6 +63,13 @@ void InitGlobalPathEnv();
  *
  * @param args
  */
-void InitGlobalBasicalEnv(const GFCxtWPtr&, bool);
+void InitGlobalBasicalEnv(const GFCxtWPtr &, bool);
+
+/**
+ * @brief 
+ * 
+ * @param p_ctx 
+ */
+void ShutdownGlobalBasicalEnv(const GFCxtWPtr &p_ctx);
 
 }  // namespace GpgFrontend

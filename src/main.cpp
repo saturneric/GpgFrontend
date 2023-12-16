@@ -62,6 +62,7 @@ auto main(int argc, char* argv[]) -> int {
   GpgFrontend::GFCxtSPtr ctx =
       GpgFrontend::SecureCreateSharedObject<GpgFrontend::GpgFrontendContext>(
           argc, argv);
+  auto rtn = 0;
 
   // initialize qt resources
   Q_INIT_RESOURCE(gpgfrontend);
@@ -102,9 +103,14 @@ auto main(int argc, char* argv[]) -> int {
     ctx->load_default_gpg_context = false;
 
     InitGlobalBasicalEnv(ctx, false);
-    return RunTest(ctx);
+    rtn = RunTest(ctx);
+    ShutdownGlobalBasicalEnv(ctx);
+    return rtn;
   }
 
   InitGlobalBasicalEnv(ctx, true);
-  return StartApplication(ctx);
+  rtn = StartApplication(ctx);
+  ShutdownGlobalBasicalEnv(ctx);
+
+  return rtn;
 }
