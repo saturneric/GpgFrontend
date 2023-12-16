@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/GpgFrontendCore.h"
+#include "core/function/SecureMemoryAllocator.h"
 
 namespace GpgFrontend::Thread {
 
@@ -102,6 +103,6 @@ class GPGFRONTEND_CORE_EXPORT TaskRunner : public QObject {
 
  private:
   class Impl;
-  std::unique_ptr<Impl> p_;
+  SecureUniquePtr<Impl> p_;
 };
 }  // namespace GpgFrontend::Thread

@@ -74,7 +74,7 @@ class GPGFRONTEND_CORE_EXPORT Module : public QObject {
 
  private:
   class Impl;
-  std::unique_ptr<Impl> p_;
+  SecureUniquePtr<Impl> p_;
 };
 
 }  // namespace GpgFrontend::Module

@@ -45,7 +45,8 @@ class GlobalRegisterTable::Impl {
  public:
   struct RTNode {
     std::optional<std::any> value = std::nullopt;
-    std::unordered_map<std::string, SecureUniquePtr<RTNode>> children;
+    std::unordered_map<std::string, SecureUniquePtr<RTNode>>
+        children;
     int version = 0;
     const std::type_info* type = nullptr;
   };

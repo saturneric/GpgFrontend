@@ -56,7 +56,7 @@ class GPGFRONTEND_CORE_EXPORT CacheManager
 
  private:
   class Impl;
-  std::unique_ptr<Impl> p_;
+  SecureUniquePtr<Impl> p_;
 };
 
 }  // namespace GpgFrontend

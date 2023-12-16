@@ -245,7 +245,7 @@ class CacheManager::Impl : public SingletonFunctionObject<CacheManager::Impl> {
 
 CacheManager::CacheManager(int channel)
     : SingletonFunctionObject<CacheManager>(channel),
-      p_(std::make_unique<Impl>(this, channel)) {}
+      p_(SecureCreateUniqueObject<Impl>(this, channel)) {}
 
 CacheManager::~CacheManager() = default;
 

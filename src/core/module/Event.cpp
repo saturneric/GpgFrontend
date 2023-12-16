@@ -107,7 +107,8 @@ class Event::Impl {
 Event::Event(const std::string& event_id,
              std::initializer_list<ParameterInitializer> params,
              EventCallback callback)
-    : p_(std::make_unique<Impl>(event_id, params, std::move(callback))) {}
+    : p_(SecureCreateUniqueObject<Impl>(event_id, params,
+                                        std::move(callback))) {}
 
 Event::~Event() = default;
 

@@ -203,7 +203,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
 
 GpgKeyGetter::GpgKeyGetter(int channel)
     : SingletonFunctionObject<GpgKeyGetter>(channel),
-      p_(std::make_unique<Impl>(channel)) {
+      p_(SecureCreateUniqueObject<Impl>(channel)) {
   SPDLOG_DEBUG("called channel: {}", channel);
 }
 

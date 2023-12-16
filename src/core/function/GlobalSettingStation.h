@@ -177,6 +177,6 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
 
  private:
   class Impl;
-  std::unique_ptr<Impl> p_;
+  SecureUniquePtr<Impl> p_;
 };
 }  // namespace GpgFrontend

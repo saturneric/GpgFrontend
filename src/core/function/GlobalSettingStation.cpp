@@ -267,7 +267,7 @@ class GlobalSettingStation::Impl {
 
 GlobalSettingStation::GlobalSettingStation(int channel) noexcept
     : SingletonFunctionObject<GlobalSettingStation>(channel),
-      p_(std::make_unique<Impl>()) {}
+      p_(SecureCreateUniqueObject<Impl>()) {}
 
 GlobalSettingStation::~GlobalSettingStation() noexcept = default;
 

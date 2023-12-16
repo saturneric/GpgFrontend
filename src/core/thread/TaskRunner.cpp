@@ -84,7 +84,8 @@ class TaskRunner::Impl : public QThread {
   }
 };
 
-GpgFrontend::Thread::TaskRunner::TaskRunner() : p_(std::make_unique<Impl>()) {}
+GpgFrontend::Thread::TaskRunner::TaskRunner()
+    : p_(SecureCreateUniqueObject<Impl>()) {}
 
 GpgFrontend::Thread::TaskRunner::~TaskRunner() {
   if (p_->isRunning()) {

@@ -54,10 +54,10 @@ class DataObject::Impl {
   std::vector<std::any> params_;
 };
 
-DataObject::DataObject() : p_(std::make_unique<Impl>()) {}
+DataObject::DataObject() : p_(SecureCreateUniqueObject<Impl>()) {}
 
 DataObject::DataObject(std::initializer_list<std::any> i)
-    : p_(std::make_unique<Impl>(i)) {}
+    : p_(SecureCreateUniqueObject<Impl>(i)) {}
 
 DataObject::~DataObject() = default;
 

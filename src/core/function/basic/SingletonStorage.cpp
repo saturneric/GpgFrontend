@@ -31,6 +31,7 @@
 #include <shared_mutex>
 
 #include "core/function/basic/ChannelObject.h"
+#include "utils/MemoryUtils.h"
 
 namespace GpgFrontend {
 
@@ -104,7 +105,8 @@ class SingletonStorage::Impl {
       instances_map_;  ///< map of singleton instances
 };
 
-SingletonStorage::SingletonStorage() noexcept : p_(std::make_unique<Impl>()) {}
+SingletonStorage::SingletonStorage() noexcept
+    : p_(SecureCreateUniqueObject<Impl>()) {}
 
 SingletonStorage::~SingletonStorage() = default;
 

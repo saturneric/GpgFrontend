@@ -85,7 +85,7 @@ class Module::Impl {
 
 Module::Module(ModuleIdentifier id, ModuleVersion version,
                ModuleMetaData meta_data)
-    : p_(std::make_unique<Impl>(this, id, version, meta_data)) {}
+    : p_(SecureCreateUniqueObject<Impl>(this, id, version, meta_data)) {}
 
 Module::~Module() = default;
 

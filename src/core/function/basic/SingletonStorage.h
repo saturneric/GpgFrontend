@@ -34,8 +34,7 @@ namespace GpgFrontend {
 
 class ChannelObject;
 
-using ChannelObjectPtr =
-    std::unique_ptr<ChannelObject, SecureObjectDeleter<ChannelObject>>;
+using ChannelObjectPtr = SecureUniquePtr<ChannelObject>;
 
 class GPGFRONTEND_CORE_EXPORT SingletonStorage {
  public:
@@ -85,7 +84,7 @@ class GPGFRONTEND_CORE_EXPORT SingletonStorage {
 
  private:
   class Impl;
-  std::unique_ptr<Impl> p_;
+  SecureUniquePtr<Impl> p_;
 };
 
 }  // namespace GpgFrontend
