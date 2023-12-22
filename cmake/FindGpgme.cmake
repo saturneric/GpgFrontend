@@ -197,7 +197,7 @@ else() # not WIN32
 
       message( STATUS "Found gpgme-config at ${_GPGMECONFIG_EXECUTABLE}" )
 
-      exec_program( ${_GPGMECONFIG_EXECUTABLE} ARGS --version OUTPUT_VARIABLE GPGME_VERSION )
+      execute_process(COMMAND ${_GPGMECONFIG_EXECUTABLE} --version OUTPUT_VARIABLE GPGME_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
 
       set( _GPGME_MIN_VERSION "1.4.3" )
 
@@ -209,38 +209,33 @@ else() # not WIN32
 
         message( STATUS "Found gpgme v${GPGME_VERSION}, checking for flavors..." )
 
-        exec_program( ${_GPGMECONFIG_EXECUTABLE} ARGS                  --libs OUTPUT_VARIABLE _gpgme_config_vanilla_libs RETURN_VALUE _ret )
+        execute_process(COMMAND ${_GPGMECONFIG_EXECUTABLE} --libs OUTPUT_VARIABLE _gpgme_config_vanilla_libs RESULT_VARIABLE _ret OUTPUT_STRIP_TRAILING_WHITESPACE)
         if ( _ret )
           set( _gpgme_config_vanilla_libs )
         endif()
 
-        exec_program( ${_GPGMECONFIG_EXECUTABLE} ARGS --thread=pthread --libs OUTPUT_VARIABLE _gpgme_config_pthread_libs RETURN_VALUE _ret )
+        execute_process(COMMAND ${_GPGMECONFIG_EXECUTABLE} --thread=pthread --libs OUTPUT_VARIABLE _gpgme_config_pthread_libs RESULT_VARIABLE _ret OUTPUT_STRIP_TRAILING_WHITESPACE)
         if ( _ret )
           set( _gpgme_config_pthread_libs )
         endif()
 
-        exec_program( ${_GPGMECONFIG_EXECUTABLE} ARGS --thread=pth     --libs OUTPUT_VARIABLE _gpgme_config_pth_libs     RETURN_VALUE _ret )
-        if ( _ret )
-          set( _gpgme_config_pth_libs )
-        endif()
-
         # append -lgpg-error to the list of libraries, if necessary
-        foreach ( _flavour vanilla pthread pth )
-          if ( _gpgme_config_${_flavour}_libs AND NOT _gpgme_config_${_flavour}_libs MATCHES "lgpg-error" )
+        foreach ( _flavour vanilla pthread )
+          if ( _gpgme_config_${_flavour}_libs AND NOT _gpgme_config_${_flavour}_libs MATCHES "lgpg-error")
             set( _gpgme_config_${_flavour}_libs "${_gpgme_config_${_flavour}_libs} -lgpg-error" )
           endif()
         endforeach()
 
-        if ( _gpgme_config_vanilla_libs OR _gpgme_config_pthread_libs OR _gpgme_config_pth_libs )
+        if ( _gpgme_config_vanilla_libs OR _gpgme_config_pthread_libs )
 
-          exec_program( ${_GPGMECONFIG_EXECUTABLE} ARGS --cflags OUTPUT_VARIABLE _GPGME_CFLAGS )
+          execute_process(COMMAND ${_GPGMECONFIG_EXECUTABLE} --cflags OUTPUT_VARIABLE _GPGME_CFLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
 
           if ( _GPGME_CFLAGS )
             string( REGEX REPLACE "(\r?\n)+$" " " _GPGME_CFLAGS  "${_GPGME_CFLAGS}" )
             string( REGEX REPLACE " *-I"      ";" GPGME_INCLUDES "${_GPGME_CFLAGS}" )
           endif()
 
-          foreach ( _flavour vanilla pthread pth )
+          foreach ( _flavour vanilla pthread )
             if ( _gpgme_config_${_flavour}_libs )
 
               set( _gpgme_library_dirs )
@@ -283,7 +278,7 @@ else() # not WIN32
                   endif()
                 endif()
 
-                set( GPGME_${_FLAVOUR}_LIBRARIES ${GPGME_${_FLAVOUR}_LIBRARIES} "${_gpgme_${_name}_lib}" )
+                set( _gpgme_${_flavour}_lib ${_gpgme_${_flavour}_lib} "${_gpgme_${_name}_lib}" )
               endforeach()
 
               #check_c_library_exists_explicit( gpgme         gpgme_check_version "${_GPGME_CFLAGS}" "${GPGME_LIBRARIES}"         GPGME_FOUND         )
@@ -421,10 +416,10 @@ endif()
 if(NOT GPGME_LIBRARIES)
   # determine the library in one of the found flavors, can be reused e.g. by FindQgpgme.cmake, Alex
   set(GPGME_LIBRARIES "")
-  foreach(_currentFlavour vanilla glib qt pth pthread)
+  foreach(_current_flavour vanilla glib qt pth pthread)
     if(NOT GPGME_LIBRARY_DIR)
-        get_filename_component(GPGME_LIBRARY_DIR "${_gpgme_${_currentFlavour}_lib}" PATH)
-        list(APPEND GPGME_LIBRARIES "${_gpgme_${_currentFlavour}_lib}")
+        get_filename_component(GPGME_LIBRARY_DIR "${_gpgme_${_current_flavour}_lib}" PATH)
+        list(APPEND GPGME_LIBRARIES "${_gpgme_${_current_flavour}_lib}")
     endif()
   endforeach()
 

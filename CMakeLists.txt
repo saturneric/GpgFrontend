@@ -291,9 +291,11 @@ if (APPLE)
             ${CMAKE_CURRENT_SOURCE_DIR}/src
             ${CMAKE_CURRENT_SOURCE_DIR}/third_party
             /usr/local/include
+            /opt/homebrew/include
     )
     link_directories(
             /usr/local/lib
+            /opt/homebrew/lib
     )
 endif ()
 

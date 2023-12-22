@@ -45,7 +45,24 @@ find_package(Config++ REQUIRED)
 
 # Introduce OpenSSL
 if (APPLE)
-    set(OPENSSL_ROOT_DIR /usr/local/opt/openssl@3)
+    # Define possible OpenSSL directories
+    set(OPENSSL_DIR_CANDIDATES 
+        /usr/local/opt/openssl@3
+        /opt/homebrew/opt/openssl@3
+    )
+
+    # Find the valid OpenSSL directory
+    foreach(DIR IN LISTS OPENSSL_DIR_CANDIDATES)
+        if(IS_DIRECTORY "${DIR}" OR EXISTS "${DIR}")
+            set(OPENSSL_ROOT_DIR "${DIR}")
+            break() # Stop loop once a valid directory is found
+        endif()
+    endforeach()
+
+    # If not found, throw an error or warning
+    if(NOT OPENSSL_ROOT_DIR)
+        message(FATAL_ERROR "OpenSSL not found in the standard directories. Please install it or set OPENSSL_ROOT_DIR manually.")
+    endif()
 endif()
 find_package(OpenSSL REQUIRED)
 
