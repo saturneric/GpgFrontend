@@ -28,5 +28,7 @@
 
 #include "core/GpgFrontendCore.h"
 
+#ifndef MACOS
 // mimalloc
 #include <mimalloc-new-delete.h>
+#endif

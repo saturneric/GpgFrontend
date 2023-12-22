@@ -44,7 +44,9 @@ add_library(gpgfrontend_core SHARED ${CORE_SOURCE})
 set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendCoreExport.h")
 generate_export_header(gpgfrontend_core EXPORT_FILE_NAME "${_export_file}")
 
-target_link_libraries(gpgfrontend_core PUBLIC mimalloc)
+if(NOT APPLE)
+    target_link_libraries(gpgfrontend_core PUBLIC mimalloc)
+endif()
 
 # link third-party libraries
 target_link_libraries(gpgfrontend_core PUBLIC config++)
@@ -72,7 +74,7 @@ else ()
 endif ()
 
 # link gnupg libraries
-target_link_libraries(gpgfrontend_core PRIVATE gpgme assuan gpg-error)
+target_link_libraries(gpgfrontend_core PUBLIC gpgme assuan gpg-error)
 # link openssl
 target_link_libraries(gpgfrontend_core PUBLIC OpenSSL::SSL OpenSSL::Crypto)
 # link boost libraries

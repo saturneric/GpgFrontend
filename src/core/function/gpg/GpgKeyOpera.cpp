@@ -199,9 +199,7 @@ void GpgKeyOpera::GenerateKey(const std::shared_ptr<GenKeyInfo>& params,
 
         GpgGenKeyResult result;
         if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-          auto temp_result =
-              NewResult(gpgme_op_genkey_result(ctx.DefaultContext()));
-          std::swap(temp_result, result);
+          result = NewResult(gpgme_op_genkey_result(ctx.DefaultContext()));
         }
         data_object->Swap({result});
 

@@ -41,7 +41,7 @@ namespace GpgFrontend::Test {
 
 TEST_F(GpgCoreTest, GenerateKeyTest) {
   auto keygen_info = SecureCreateSharedObject<GenKeyInfo>();
-  keygen_info->SetName("foo");
+  keygen_info->SetName("foo_0");
   keygen_info->SetEmail("bar@gpgfrontend.bktus.com");
   keygen_info->SetComment("");
   keygen_info->SetKeyLength(1024);
@@ -57,6 +57,7 @@ TEST_F(GpgCoreTest, GenerateKeyTest) {
                                     const DataObjectPtr& data_object) {
         ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
 
+        ASSERT_EQ(data_object->GetObjectSize(), 1);
         auto result = ExtractParams<GpgGenKeyResult>(data_object, 0);
         auto* fpr = result->fpr;
         auto key =
@@ -79,7 +80,7 @@ TEST_F(GpgCoreTest, GenerateKeyTest) {
 
 TEST_F(GpgCoreTest, GenerateKeyTest_1) {
   auto keygen_info = SecureCreateSharedObject<GenKeyInfo>();
-  keygen_info->SetName("foo");
+  keygen_info->SetName("foo_1");
   keygen_info->SetEmail("bar@gpgfrontend.bktus.com");
   keygen_info->SetComment("hello gpgfrontend");
   keygen_info->SetAlgo(keygen_info->GetSupportedKeyAlgo()[0]);
@@ -119,7 +120,7 @@ TEST_F(GpgCoreTest, GenerateKeyTest_1) {
 
 TEST_F(GpgCoreTest, GenerateKeyTest_4) {
   auto keygen_info = SecureCreateSharedObject<GenKeyInfo>();
-  keygen_info->SetName("foo");
+  keygen_info->SetName("foo_2");
   keygen_info->SetEmail("bar@gpgfrontend.bktus.com");
   keygen_info->SetComment("");
   keygen_info->SetAlgo(keygen_info->GetSupportedKeyAlgo()[1]);
@@ -156,7 +157,7 @@ TEST_F(GpgCoreTest, GenerateKeyTest_4) {
 
 TEST_F(GpgCoreTest, GenerateKeyTest_5) {
   auto keygen_info = SecureCreateSharedObject<GenKeyInfo>();
-  keygen_info->SetName("foo");
+  keygen_info->SetName("foo_3");
   keygen_info->SetEmail("bar@gpgfrontend.bktus.com");
   keygen_info->SetComment("");
   keygen_info->SetAlgo(keygen_info->GetSupportedKeyAlgo()[2]);

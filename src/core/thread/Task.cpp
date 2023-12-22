@@ -177,8 +177,9 @@ class Task::Impl {
     SPDLOG_TRACE("task runnable {} finished, rtn: {}", GetFullID(), rtn);
     // set return value
     this->SetRTN(rtn);
-
+#ifdef RELEASE
     try {
+#endif
       if (callback_) {
         SPDLOG_TRACE("task {} has a callback function", GetFullID());
         if (callback_thread_ == QThread::currentThread()) {
@@ -236,6 +237,7 @@ class Task::Impl {
             GetFullID());
         emit parent_->SignalTaskEnd();
       }
+#ifdef RELEASE
     } catch (std::exception &e) {
       SPDLOG_ERROR("exception was caught at task callback: {}", e.what());
       SPDLOG_ERROR(
@@ -255,6 +257,7 @@ class Task::Impl {
                    GetFullID());
       emit parent_->SignalTaskEnd();
     }
+#endif
   }
 };
 

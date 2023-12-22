@@ -30,12 +30,17 @@ set(JSON_BuildTests OFF CACHE INTERNAL "")
 add_subdirectory(json EXCLUDE_FROM_ALL)
 add_subdirectory(spdlog EXCLUDE_FROM_ALL)
 
-set(MI_SECURE ON)
-if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-  # set(MI_TRACK_VALGRIND ON)
-  set(MI_TRACK_ASAN ON)
+# not working at macOS
+if(NOT APPLE)
+  set(MI_SECURE ON)
+  if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    # set(MI_TRACK_VALGRIND ON)
+    set(MI_TRACK_ASAN ON)
+  endif()
+  add_subdirectory(mimalloc EXCLUDE_FROM_ALL)
 endif()
-add_subdirectory(mimalloc EXCLUDE_FROM_ALL)
+
+
 
 set(INSTALL_GTEST OFF)
 add_subdirectory(googletest EXCLUDE_FROM_ALL)
