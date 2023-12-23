@@ -369,8 +369,6 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
   using KeyRefHandler = std::unique_ptr<struct _gpgme_key, KeyRefDeleter>;  ///<
 
   KeyRefHandler key_ref_ = nullptr;  ///<
-
-  mutable std::mutex gpgme_key_opera_mutex_;  // mutex for gpgme key operations
 };
 
 }  // namespace GpgFrontend

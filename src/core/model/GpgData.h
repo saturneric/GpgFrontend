@@ -55,6 +55,12 @@ class GPGFRONTEND_CORE_EXPORT GpgData {
   GpgData(const void* buffer, size_t size, bool copy = true);
 
   /**
+   * @brief Construct a new Gpg Data object
+   *
+   */
+  explicit GpgData(GFBuffer);
+
+  /**
    * @brief
    *
    * @return gpgme_data_t
@@ -85,6 +91,8 @@ class GPGFRONTEND_CORE_EXPORT GpgData {
       if (_data != nullptr) gpgme_data_release(_data);
     }
   };
+
+  GFBuffer cached_buffer_;
 
   std::unique_ptr<struct gpgme_data, DataRefDeleter> data_ref_ = nullptr;  ///<
 };

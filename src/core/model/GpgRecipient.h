@@ -29,30 +29,23 @@
 #pragma once
 
 #include "core/GpgFrontendCoreExport.h"
-#include "core/utils/MemoryUtils.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GFBuffer {
- public:
-  GFBuffer();
+struct GPGFRONTEND_CORE_EXPORT GpgRecipient {
+  /* The key ID of key for which the text was encrypted.  */
+  std::string keyid;
 
-  explicit GFBuffer(const std::string& str);
+  /* The public key algorithm of the recipient key.  */
+  std::string pubkey_algo;
 
-  explicit GFBuffer(const char* c_str);
+  /* The status of the recipient.  */
+  GpgError status;
 
-  explicit GFBuffer(QByteArray buffer);
+  GpgRecipient();
 
-  auto operator==(const GFBuffer& o) const -> bool;
-
-  auto Data() -> std::byte*;
-
-  void Resize(size_t size);
-
-  auto Size() -> size_t;
-
- private:
-  std::shared_ptr<std::vector<std::byte>> buffer_;
+  explicit GpgRecipient(gpgme_recipient_t r);
 };
 
 }  // namespace GpgFrontend

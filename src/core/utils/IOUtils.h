@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "core/model/GFBuffer.h"
+
 namespace GpgFrontend {
 
 /**
@@ -42,6 +44,15 @@ auto GPGFRONTEND_CORE_EXPORT ReadFileStd(const std::filesystem::path &file_name,
                                          std::string &data) -> bool;
 
 /**
+ * @brief
+ *
+ * @param file_name
+ * @return GFBuffer
+ */
+auto GPGFRONTEND_CORE_EXPORT ReadFileGFBuffer(
+    const std::filesystem::path &file_name) -> std::tuple<bool, GFBuffer>;
+
+/**
  * @brief write file content using std struct
  *
  * @param file_name file name
@@ -50,6 +61,17 @@ auto GPGFRONTEND_CORE_EXPORT ReadFileStd(const std::filesystem::path &file_name,
  */
 auto GPGFRONTEND_CORE_EXPORT WriteFileStd(
     const std::filesystem::path &file_name, const std::string &data) -> bool;
+
+/**
+ * @brief
+ *
+ * @param file_name
+ * @param data
+ * @return true
+ * @return false
+ */
+auto GPGFRONTEND_CORE_EXPORT WriteFileGFBuffer(
+    const std::filesystem::path &file_name, GFBuffer data) -> bool;
 
 /**
  * @brief read file content

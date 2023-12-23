@@ -38,6 +38,7 @@ GFBuffer::GFBuffer(const std::string& str)
   std::transform(str.begin(), str.end(), buffer_->begin(),
                  [](const char c) { return static_cast<std::byte>(c); });
 }
+
 GFBuffer::GFBuffer(const char* c_str)
     : buffer_(SecureCreateSharedObject<std::vector<std::byte>>()) {
   if (c_str == nullptr) {
@@ -49,6 +50,17 @@ GFBuffer::GFBuffer(const char* c_str)
   buffer_->assign(reinterpret_cast<const std::byte*>(c_str),
                   reinterpret_cast<const std::byte*>(c_str) + length);
 }
+
+GFBuffer::GFBuffer(QByteArray buffer)
+    : buffer_(SecureCreateSharedObject<std::vector<std::byte>>()) {
+  std::transform(buffer.begin(), buffer.end(), buffer_->begin(),
+                 [](const char c) { return static_cast<std::byte>(c); });
+}
+
+auto GFBuffer::operator==(const GFBuffer& o) const -> bool {
+  return equal(buffer_->begin(), buffer_->end(), o.buffer_->begin());
+}
+
 auto GFBuffer::Data() -> std::byte* { return buffer_->data(); }
 
 void GFBuffer::Resize(size_t size) { buffer_->resize(size); }

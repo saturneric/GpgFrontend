@@ -64,7 +64,8 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param result the result of the operation
    * @return error code
    */
-  void Encrypt(KeyListPtr, ConstBypeArrayRef, const GpgOperationCallback&);
+  void Encrypt(std::vector<GpgKey>, GFBuffer, bool,
+               const GpgOperationCallback&);
 
   /**
    * @brief Call the interface provided by GPGME to symmetrical encryption
@@ -102,8 +103,7 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param result the result of the operation
    * @return error code
    */
-  auto Decrypt(GFBuffer in_buffer, ByteArrayPtr& out_buffer,
-               GpgDecrResult& result) -> GpgError;
+  void Decrypt(GFBuffer in_buffer, const GpgOperationCallback& cb);
 
   /**
    * @brief  Call the interface provided by gpgme to perform decryption and

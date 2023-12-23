@@ -26,33 +26,36 @@
  *
  */
 
-#pragma once
-
-#include "core/GpgFrontendCoreExport.h"
-#include "core/utils/MemoryUtils.h"
+#include "GpgDecryptResult.h"
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GFBuffer {
- public:
-  GFBuffer();
+GpgDecryptResult::GpgDecryptResult(gpgme_decrypt_result_t r)
+    : result_ref_(std::shared_ptr<struct _gpgme_op_decrypt_result>(
+          (gpgme_result_ref(r), r), [](gpgme_decrypt_result_t p) {
+            if (p != nullptr) {
+              gpgme_result_unref(p);
+            }
+          })) {}
 
-  explicit GFBuffer(const std::string& str);
+GpgDecryptResult::GpgDecryptResult() = default;
 
-  explicit GFBuffer(const char* c_str);
+GpgDecryptResult::~GpgDecryptResult() = default;
 
-  explicit GFBuffer(QByteArray buffer);
+auto GpgDecryptResult::IsGood() -> bool { return result_ref_ != nullptr; }
 
-  auto operator==(const GFBuffer& o) const -> bool;
-
-  auto Data() -> std::byte*;
-
-  void Resize(size_t size);
-
-  auto Size() -> size_t;
-
- private:
-  std::shared_ptr<std::vector<std::byte>> buffer_;
-};
-
+auto GpgDecryptResult::Recipients() -> std::vector<GpgRecipient> {
+  std::vector<GpgRecipient> result;
+  for (auto* reci = result_ref_->recipients; reci != nullptr;
+       reci = reci->next) {
+    try {
+      result.emplace_back(reci);
+    } catch (...) {
+      SPDLOG_ERROR(
+          "caught exception when processing invalid_recipients, "
+          "maybe nullptr of fpr");
+    }
+  }
+  return result;
+}
 }  // namespace GpgFrontend

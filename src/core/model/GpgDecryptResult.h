@@ -28,31 +28,25 @@
 
 #pragma once
 
-#include "core/GpgFrontendCoreExport.h"
-#include "core/utils/MemoryUtils.h"
+#include "core/model/GpgRecipient.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GFBuffer {
+class GPGFRONTEND_CORE_EXPORT GpgDecryptResult {
  public:
-  GFBuffer();
+  auto IsGood() -> bool;
 
-  explicit GFBuffer(const std::string& str);
+  auto Recipients() -> std::vector<GpgRecipient>;
 
-  explicit GFBuffer(const char* c_str);
+  explicit GpgDecryptResult(gpgme_decrypt_result_t);
 
-  explicit GFBuffer(QByteArray buffer);
+  GpgDecryptResult();
 
-  auto operator==(const GFBuffer& o) const -> bool;
-
-  auto Data() -> std::byte*;
-
-  void Resize(size_t size);
-
-  auto Size() -> size_t;
+  virtual ~GpgDecryptResult();
 
  private:
-  std::shared_ptr<std::vector<std::byte>> buffer_;
+  std::shared_ptr<struct _gpgme_op_decrypt_result> result_ref_ = nullptr;  ///<
 };
 
 }  // namespace GpgFrontend

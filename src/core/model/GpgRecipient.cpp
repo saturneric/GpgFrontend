@@ -26,33 +26,15 @@
  *
  */
 
-#pragma once
-
-#include "core/GpgFrontendCoreExport.h"
-#include "core/utils/MemoryUtils.h"
+#include "GpgRecipient.h"
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GFBuffer {
- public:
-  GFBuffer();
+GpgRecipient::GpgRecipient() = default;
 
-  explicit GFBuffer(const std::string& str);
-
-  explicit GFBuffer(const char* c_str);
-
-  explicit GFBuffer(QByteArray buffer);
-
-  auto operator==(const GFBuffer& o) const -> bool;
-
-  auto Data() -> std::byte*;
-
-  void Resize(size_t size);
-
-  auto Size() -> size_t;
-
- private:
-  std::shared_ptr<std::vector<std::byte>> buffer_;
-};
-
+GpgRecipient::GpgRecipient(gpgme_recipient_t r) {
+  this->keyid = std::string{r->keyid};
+  this->pubkey_algo = std::string{gpgme_pubkey_algo_name(r->pubkey_algo)};
+  this->status = r->status;
+}
 }  // namespace GpgFrontend

@@ -70,10 +70,32 @@ auto ReadFileStd(const std::filesystem::path& file_name, std::string& data)
   return res;
 }
 
+auto GPGFRONTEND_CORE_EXPORT ReadFileGFBuffer(
+    const std::filesystem::path& file_name) -> std::tuple<bool, GFBuffer> {
+  QByteArray byte_data;
+#ifdef WINDOWS
+  const bool res = ReadFile(
+      QString::fromStdU16String(file_name.u16string()).toUtf8(), byte_data);
+#else
+  const bool res = ReadFile(
+      QString::fromStdString(file_name.u8string()).toUtf8(), byte_data);
+#endif
+
+  return {res, GFBuffer(byte_data)};
+}
+
 auto WriteFileStd(const std::filesystem::path& file_name,
                   const std::string& data) -> bool {
   return WriteFile(QString::fromStdString(file_name.u8string()).toUtf8(),
                    QByteArray::fromStdString(data));
+}
+
+auto GPGFRONTEND_CORE_EXPORT WriteFileGFBuffer(
+    const std::filesystem::path& file_name, GFBuffer data) -> bool {
+  return WriteFile(
+      QString::fromStdString(file_name.u8string()).toUtf8(),
+      QByteArray::fromRawData(reinterpret_cast<const char*>(data.Data()),
+                              static_cast<qsizetype>(data.Size())));
 }
 
 auto CalculateHash(const std::filesystem::path& file_path) -> std::string {

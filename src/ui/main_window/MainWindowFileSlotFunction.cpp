@@ -256,9 +256,11 @@ void MainWindow::SlotFileEncrypt() {
 
     process_operation(this, _("Encrypting"), [&](DataObjectPtr) -> int {
       try {
-        error =
-            GpgFileOpera::EncryptFile(std::move(p_keys), path.toStdString(),
-                                      out_path.toStdString(), result, _channel);
+        // TODO
+        // error =
+        //     GpgFileOpera::EncryptFile(std::move(p_keys), path.toStdString(),
+        //                               out_path.toStdString(), result,
+        //                               _channel);
       } catch (const std::runtime_error& e) {
         if_error = true;
       }
@@ -319,8 +321,10 @@ void MainWindow::SlotFileDecrypt() {
   bool if_error = false;
   process_operation(this, _("Decrypting"), [&](DataObjectPtr) -> int {
     try {
-      error = GpgFileOpera::DecryptFile(path.toStdString(), out_path.u8string(),
-                                        result);
+      // TODO
+      // error = GpgFileOpera::DecryptFile(path.toStdString(),
+      // out_path.u8string(),
+      //                                   result);
     } catch (const std::runtime_error& e) {
       if_error = true;
     }

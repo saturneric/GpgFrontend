@@ -65,7 +65,8 @@ void MainWindow::slot_encrypt() {
   }
 
   auto key_ids = m_key_list_->GetChecked();
-  auto buffer = edit_->CurTextPage()->GetTextPage()->toPlainText();
+  auto buffer = GFBuffer(
+      edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString());
 
   if (key_ids->empty()) {
     // Symmetric Encrypt
@@ -139,9 +140,8 @@ void MainWindow::slot_encrypt() {
 
     CommonUtils::WaitForOpera(
         this, _("Encrypting"), [this, keys, buffer](const OperaWaitingHd& hd) {
-          SPDLOG_DEBUG("[*] size of gpg key list: {}", keys->size());
           GpgFrontend::GpgBasicOperator::GetInstance().Encrypt(
-              keys, buffer.toStdString(),
+              {keys->begin(), keys->end()}, buffer, true,
               [this, hd](GpgError err, const DataObjectPtr& data_obj) {
                 auto result = ExtractParams<GpgEncrResult>(data_obj, 0);
                 auto buffer = ExtractParams<ByteArrayPtr>(data_obj, 1);
@@ -270,8 +270,9 @@ void MainWindow::slot_decrypt() {
     try {
       GpgDecrResult result = nullptr;
       auto decrypted = GpgFrontend::SecureCreateSharedObject<ByteArray>();
-      GpgError error = GpgFrontend::GpgBasicOperator::GetInstance().Decrypt(
-          GFBuffer(buffer), decrypted, result);
+      // GpgError error = GpgFrontend::GpgBasicOperator::GetInstance().Decrypt(
+      //     GFBuffer(buffer), decrypted, result);
+      GpgError error;
 
       data_object->Swap({error, result, decrypted});
     } catch (const std::runtime_error& e) {

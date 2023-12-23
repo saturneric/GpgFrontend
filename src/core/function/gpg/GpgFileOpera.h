@@ -50,10 +50,9 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param channel Channel in context
    * @return unsigned int error code
    */
-  static auto EncryptFile(KeyListPtr keys, const std::string& in_path,
-                          const std::string& out_path, GpgEncrResult& result,
-                          int channel = kGpgFrontendDefaultChannel)
-      -> unsigned int;
+  static void EncryptFile(std::vector<GpgKey> keys, const std::string& in_path,
+                          const std::string& out_path, bool ascii,
+                          const GpgOperationCallback& cb);
 
   /**
    * @brief Encrypted file symmetrically (with password)
@@ -78,9 +77,9 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param result
    * @return GpgError
    */
-  static auto DecryptFile(const std::string& in_path,
-                          const std::string& out_path, GpgDecrResult& result)
-      -> GpgError;
+  static void DecryptFile(const std::string& in_path,
+                          const std::string& out_path,
+                          const GpgOperationCallback& cb);
 
   /**
    * @brief Sign file with private key

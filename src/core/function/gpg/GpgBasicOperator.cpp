@@ -31,6 +31,7 @@
 #include <gpg-error.h>
 
 #include "core/GpgModel.h"
+#include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
@@ -40,25 +41,22 @@ namespace GpgFrontend {
 GpgFrontend::GpgBasicOperator::GpgBasicOperator(int channel)
     : SingletonFunctionObject<GpgBasicOperator>(channel) {}
 
-void GpgFrontend::GpgBasicOperator::Encrypt(KeyListPtr keys,
-                                            ConstBypeArrayRef in_buffer,
+void GpgFrontend::GpgBasicOperator::Encrypt(std::vector<GpgKey> keys,
+                                            GFBuffer in_buffer, bool ascii,
                                             const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
-        std::vector<gpgme_key_t> recipients;
-        for (const auto& key : *keys) {
-          recipients.emplace_back(key);
-        }
+        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
 
         // Last entry data_in array has to be nullptr
         recipients.emplace_back(nullptr);
 
-        GpgData data_in(in_buffer.data(), in_buffer.size());
+        GpgData data_in(in_buffer);
         GpgData data_out;
 
-        auto err = CheckGpgError(
-            gpgme_op_encrypt(ctx_.DefaultContext(), recipients.data(),
-                             GPGME_ENCRYPT_ALWAYS_TRUST, data_in, data_out));
+        auto err = CheckGpgError(gpgme_op_encrypt(
+            ascii ? ctx_.DefaultContext() : ctx_.BinaryContext(),
+            recipients.data(), GPGME_ENCRYPT_ALWAYS_TRUST, data_in, data_out));
         data_object->Swap(
             {GpgEncryptResult(gpgme_op_encrypt_result(ctx_.DefaultContext())),
              data_out.Read2GFBuffer()});
@@ -68,23 +66,22 @@ void GpgFrontend::GpgBasicOperator::Encrypt(KeyListPtr keys,
       cb, "gpgme_op_encrypt", "2.1.0");
 }
 
-auto GpgFrontend::GpgBasicOperator::Decrypt(
-    GFBuffer in_buffer, GpgFrontend::ByteArrayPtr& out_buffer,
-    GpgFrontend::GpgDecrResult& result) -> GpgFrontend::GpgError {
-  GpgError err;
+void GpgFrontend::GpgBasicOperator::Decrypt(GFBuffer in_buffer,
+                                            const GpgOperationCallback& cb) {
+  RunGpgOperaAsync(
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        GpgData data_in(in_buffer);
+        GpgData data_out;
 
-  GpgData data_in(in_buffer.Data(), in_buffer.Size());
-  GpgData data_out;
-  err =
-      CheckGpgError(gpgme_op_decrypt(ctx_.DefaultContext(), data_in, data_out));
+        auto err = CheckGpgError(
+            gpgme_op_decrypt(ctx_.DefaultContext(), data_in, data_out));
+        data_object->Swap(
+            {GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext())),
+             data_out.Read2GFBuffer()});
 
-  auto temp_data_out = data_out.Read2Buffer();
-  std::swap(temp_data_out, out_buffer);
-
-  auto temp_result = NewResult(gpgme_op_decrypt_result(ctx_.DefaultContext()));
-  std::swap(result, temp_result);
-
-  return err;
+        return err;
+      },
+      cb, "gpgme_op_decrypt", "2.1.0");
 }
 
 auto GpgFrontend::GpgBasicOperator::Verify(BypeArrayRef& in_buffer,

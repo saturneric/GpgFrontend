@@ -34,7 +34,7 @@ namespace GpgFrontend {
 
 constexpr size_t kBufferSize = 32 * 1024;
 
-GpgFrontend::GpgData::GpgData() {
+GpgData::GpgData() {
   gpgme_data_t data;
 
   auto err = gpgme_data_new(&data);
@@ -43,7 +43,17 @@ GpgFrontend::GpgData::GpgData() {
   data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
 }
 
-GpgFrontend::GpgData::GpgData(const void* buffer, size_t size, bool copy) {
+GpgData::GpgData(GFBuffer buffer) : cached_buffer_(buffer) {
+  gpgme_data_t data;
+
+  auto err = gpgme_data_new_from_mem(
+      &data, reinterpret_cast<const char*>(buffer.Data()), buffer.Size(), 0);
+  assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
+
+  data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
+}
+
+GpgData::GpgData(const void* buffer, size_t size, bool copy) {
   gpgme_data_t data;
 
   auto err = gpgme_data_new_from_mem(&data, static_cast<const char*>(buffer),
@@ -53,7 +63,7 @@ GpgFrontend::GpgData::GpgData(const void* buffer, size_t size, bool copy) {
   data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
 }
 
-auto GpgFrontend::GpgData::Read2Buffer() -> GpgFrontend::ByteArrayPtr {
+auto GpgData::Read2Buffer() -> ByteArrayPtr {
   gpgme_off_t ret = gpgme_data_seek(*this, 0, SEEK_SET);
   ByteArrayPtr out_buffer = std::make_unique<std::string>();
 
@@ -99,6 +109,6 @@ auto GpgData::Read2GFBuffer() -> GFBuffer {
   return out_buffer;
 }
 
-GpgFrontend::GpgData::operator gpgme_data_t() { return data_ref_.get(); }
+GpgData::operator gpgme_data_t() { return data_ref_.get(); }
 
 }  // namespace GpgFrontend
