@@ -26,6 +26,7 @@
  *
  */
 
+#include <gtest/gtest.h>
 #include <qeventloop.h>
 
 #include "GpgCoreTest.h"
@@ -33,6 +34,7 @@
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/model/GpgGenKeyInfo.h"
+#include "core/model/GpgGenerateKeyResult.h"
 #include "core/model/GpgKey.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
@@ -58,8 +60,12 @@ TEST_F(GpgCoreTest, GenerateKeyTest) {
         ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
 
         ASSERT_EQ(data_object->GetObjectSize(), 1);
-        auto result = ExtractParams<GpgGenKeyResult>(data_object, 0);
-        auto* fpr = result->fpr;
+        ASSERT_TRUE(data_object->Check<GpgGenerateKeyResult>());
+
+        auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
+        ASSERT_TRUE(result.IsGood());
+        auto fpr = result.GetFingerprint();
+
         auto key =
             GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).GetKey(fpr);
         ASSERT_TRUE(key.IsGood());
@@ -67,7 +73,7 @@ TEST_F(GpgCoreTest, GenerateKeyTest) {
         GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(fpr);
 
         callback_called_flag = true;
-        ASSERT_FALSE(fpr == nullptr);
+        ASSERT_FALSE(fpr.empty());
       });
 
   int retry_count = 1000;
@@ -98,8 +104,13 @@ TEST_F(GpgCoreTest, GenerateKeyTest_1) {
                                     const DataObjectPtr& data_object) {
         ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
 
-        auto result = ExtractParams<GpgGenKeyResult>(data_object, 0);
-        auto* fpr = result->fpr;
+        ASSERT_EQ(data_object->GetObjectSize(), 1);
+        ASSERT_TRUE(data_object->Check<GpgGenerateKeyResult>());
+
+        auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
+        ASSERT_TRUE(result.IsGood());
+        auto fpr = result.GetFingerprint();
+
         auto key =
             GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).GetKey(fpr);
         ASSERT_TRUE(key.IsGood());
@@ -107,7 +118,7 @@ TEST_F(GpgCoreTest, GenerateKeyTest_1) {
         GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(fpr);
 
         callback_called_flag = true;
-        ASSERT_FALSE(fpr == nullptr);
+        ASSERT_FALSE(fpr.empty());
       });
 
   int retry_count = 2000;
@@ -135,8 +146,10 @@ TEST_F(GpgCoreTest, GenerateKeyTest_4) {
                                     const DataObjectPtr& data_object) {
         ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
 
-        auto result = ExtractParams<GpgGenKeyResult>(data_object, 0);
-        auto* fpr = result->fpr;
+        auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
+        ASSERT_TRUE(result.IsGood());
+        auto fpr = result.GetFingerprint();
+
         auto key =
             GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).GetKey(fpr);
         ASSERT_TRUE(key.IsGood());
@@ -144,7 +157,7 @@ TEST_F(GpgCoreTest, GenerateKeyTest_4) {
         GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(fpr);
 
         callback_called_flag = true;
-        ASSERT_FALSE(fpr == nullptr);
+        ASSERT_FALSE(fpr.empty());
       });
 
   int retry_count = 2000;
@@ -172,8 +185,10 @@ TEST_F(GpgCoreTest, GenerateKeyTest_5) {
                                     const DataObjectPtr& data_object) {
         ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
 
-        auto result = ExtractParams<GpgGenKeyResult>(data_object, 0);
-        auto* fpr = result->fpr;
+        auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
+        ASSERT_TRUE(result.IsGood());
+        auto fpr = result.GetFingerprint();
+
         auto key =
             GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).GetKey(fpr);
         ASSERT_TRUE(key.IsGood());
@@ -181,7 +196,7 @@ TEST_F(GpgCoreTest, GenerateKeyTest_5) {
         GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(fpr);
 
         callback_called_flag = true;
-        ASSERT_FALSE(fpr == nullptr);
+        ASSERT_FALSE(fpr.empty());
       });
 
   int retry_count = 1000;

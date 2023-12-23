@@ -47,6 +47,7 @@
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "model/GpgGenerateKeyResult.h"
 #include "typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
@@ -197,11 +198,12 @@ void GpgKeyOpera::GenerateKey(const std::shared_ptr<GenKeyInfo>& params,
         err = gpgme_op_createkey(ctx.DefaultContext(), userid, algo, 0, expires,
                                  nullptr, flags);
 
-        GpgGenKeyResult result;
         if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-          result = NewResult(gpgme_op_genkey_result(ctx.DefaultContext()));
+          data_object->Swap({GpgGenerateKeyResult{
+              gpgme_op_genkey_result(ctx.DefaultContext())}});
+        } else {
+          data_object->Swap({GpgGenerateKeyResult{}});
         }
-        data_object->Swap({result});
 
         return CheckGpgError(err);
       },
