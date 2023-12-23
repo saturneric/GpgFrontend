@@ -32,6 +32,7 @@
 #include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
+#include "core/model/GpgEncryptResult.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::Test {
@@ -46,15 +47,16 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest) {
   GpgBasicOperator::GetInstance().Encrypt(
       keys, encrypt_text,
       [encrypt_text](GpgError err, const DataObjectPtr& data_obj) {
-        auto result = ExtractParams<GpgEncrResult>(data_obj, 0);
-        auto encr_out_buffer = ExtractParams<ByteArrayPtr>(data_obj, 1);
-        ASSERT_EQ(result->invalid_recipients, nullptr);
+        ASSERT_TRUE((data_obj->Check<GpgEncryptResult, GFBuffer>()));
+        auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
+        auto encr_out_buffer = ExtractParams<GFBuffer>(data_obj, 1);
+        ASSERT_TRUE(result.InvalidRecipients().empty());
         ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
 
         GpgDecrResult d_result;
         ByteArrayPtr decr_out_data;
         err = GpgBasicOperator::GetInstance(kGpgFrontendDefaultChannel)
-                  .Decrypt(*encr_out_buffer, decr_out_data, d_result);
+                  .Decrypt(encr_out_buffer, decr_out_data, d_result);
         ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
         ASSERT_NE(d_result->recipients, nullptr);
         ASSERT_EQ(std::string(d_result->recipients->keyid), "6A2764F8298DEB29");
@@ -63,7 +65,7 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest) {
 }
 
 TEST_F(GpgCoreTest, CoreEncryptDecrTest_KeyNotFound_1) {
-  ByteArrayPtr encr_out_data = std::make_unique<ByteArray>(
+  auto encr_out_data = GFBuffer(
       "-----BEGIN PGP MESSAGE-----\n"
       "\n"
       "hQEMA6UM/S9sZ32MAQf9Fb6gp6nvgKTQBv2mmjXia6ODXYq6kNeLsPVzLCbHyWOs\n"
@@ -79,14 +81,14 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest_KeyNotFound_1) {
   GpgDecrResult d_result;
   ByteArrayPtr decr_out_data;
   auto err = GpgBasicOperator::GetInstance(kGpgFrontendDefaultChannel)
-                 .Decrypt(*encr_out_data, decr_out_data, d_result);
+                 .Decrypt(encr_out_data, decr_out_data, d_result);
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_SECKEY);
   ASSERT_NE(d_result->recipients, nullptr);
   ASSERT_EQ(std::string(d_result->recipients->keyid), "A50CFD2F6C677D8C");
 }
 
 TEST_F(GpgCoreTest, CoreEncryptDecrTest_KeyNotFound_ResultAnalyse) {
-  ByteArrayPtr encr_out_data = std::make_unique<ByteArray>(
+  auto encr_out_data = GFBuffer(
       "-----BEGIN PGP MESSAGE-----\n"
       "\n"
       "hQEMA6UM/S9sZ32MAQf9Fb6gp6nvgKTQBv2mmjXia6ODXYq6kNeLsPVzLCbHyWOs\n"
@@ -102,7 +104,7 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest_KeyNotFound_ResultAnalyse) {
   GpgDecrResult d_result;
   ByteArrayPtr decr_out_data;
   auto err = GpgBasicOperator::GetInstance(kGpgFrontendDefaultChannel)
-                 .Decrypt(*encr_out_data, decr_out_data, d_result);
+                 .Decrypt(encr_out_data, decr_out_data, d_result);
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_SECKEY);
   ASSERT_NE(d_result->recipients, nullptr);
   ASSERT_EQ(std::string(d_result->recipients->keyid), "A50CFD2F6C677D8C");

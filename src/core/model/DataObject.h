@@ -34,7 +34,6 @@
 
 #include "core/GpgFrontendCoreExport.h"
 #include "core/utils/MemoryUtils.h"
-#include "spdlog/spdlog.h"
 
 namespace GpgFrontend {
 

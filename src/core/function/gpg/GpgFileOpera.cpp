@@ -84,8 +84,8 @@ auto GpgFrontend::GpgFileOpera::DecryptFile(const std::string& in_path,
   }
   ByteArrayPtr out_buffer;
 
-  auto err =
-      GpgBasicOperator::GetInstance().Decrypt(in_buffer, out_buffer, result);
+  auto err = GpgBasicOperator::GetInstance().Decrypt(GFBuffer(in_buffer),
+                                                     out_buffer, result);
 
   assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
 

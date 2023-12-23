@@ -26,15 +26,33 @@
  *
  */
 
-#include "GpgCoreTest.h"
+#include "GFBuffer.h"
 
-#include "core/function/gpg/GpgKeyImportExporter.h"
-#include "core/utils/IOUtils.h"
-#include "core/utils/MemoryUtils.h"
+namespace GpgFrontend {
 
-namespace GpgFrontend::Test {
+GFBuffer::GFBuffer()
+    : buffer_(SecureCreateSharedObject<std::vector<std::byte>>()) {}
 
-void GpgCoreTest::TearDown() {}
+GFBuffer::GFBuffer(const std::string& str)
+    : buffer_(SecureCreateSharedObject<std::vector<std::byte>>()) {
+  std::transform(str.begin(), str.end(), buffer_->begin(),
+                 [](const char c) { return static_cast<std::byte>(c); });
+}
+GFBuffer::GFBuffer(const char* c_str)
+    : buffer_(SecureCreateSharedObject<std::vector<std::byte>>()) {
+  if (c_str == nullptr) {
+    return;
+  }
 
-void GpgCoreTest::SetUp() {}
-}  // namespace GpgFrontend::Test
+  size_t const length = std::strlen(c_str);
+  buffer_->reserve(length);
+  buffer_->assign(reinterpret_cast<const std::byte*>(c_str),
+                  reinterpret_cast<const std::byte*>(c_str) + length);
+}
+auto GFBuffer::Data() -> std::byte* { return buffer_->data(); }
+
+void GFBuffer::Resize(size_t size) { buffer_->resize(size); }
+
+auto GFBuffer::Size() -> size_t { return buffer_->size(); }
+
+}  // namespace GpgFrontend

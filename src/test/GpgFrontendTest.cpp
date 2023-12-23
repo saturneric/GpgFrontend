@@ -43,7 +43,6 @@
 #include "core/function/gpg/GpgContext.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/utils/IOUtils.h"
-#include "spdlog/spdlog.h"
 
 namespace GpgFrontend::Test {
 

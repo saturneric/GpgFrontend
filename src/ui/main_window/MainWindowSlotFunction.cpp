@@ -45,7 +45,6 @@
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
-#include "spdlog/spdlog.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SignersPicker.h"
 #include "ui/dialog/help/AboutDialog.h"
@@ -272,7 +271,7 @@ void MainWindow::slot_decrypt() {
       GpgDecrResult result = nullptr;
       auto decrypted = GpgFrontend::SecureCreateSharedObject<ByteArray>();
       GpgError error = GpgFrontend::GpgBasicOperator::GetInstance().Decrypt(
-          buffer, decrypted, result);
+          GFBuffer(buffer), decrypted, result);
 
       data_object->Swap({error, result, decrypted});
     } catch (const std::runtime_error& e) {

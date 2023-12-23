@@ -26,67 +26,36 @@
  *
  */
 
-#pragma once
-
-#include "core/GpgFrontendCoreExport.h"
-#include "core/model/GFBuffer.h"
-#include "core/typedef/CoreTypedef.h"
+#include "GpgEncryptResult.h"
 
 namespace GpgFrontend {
-/**
- * @brief
- *
- */
-class GPGFRONTEND_CORE_EXPORT GpgData {
- public:
-  /**
-   * @brief Construct a new Gpg Data object
-   *
-   */
-  GpgData();
+GpgEncryptResult::GpgEncryptResult(gpgme_encrypt_result_t r)
+    : result_ref_(std::shared_ptr<struct _gpgme_op_encrypt_result>(
+          (gpgme_result_ref(r), r), [](gpgme_encrypt_result_t p) {
+            if (p != nullptr) {
+              gpgme_result_unref(p);
+            }
+          })) {}
 
-  /**
-   * @brief Construct a new Gpg Data object
-   *
-   * @param buffer
-   * @param size
-   * @param copy
-   */
-  GpgData(const void* buffer, size_t size, bool copy = true);
+GpgEncryptResult::GpgEncryptResult() = default;
 
-  /**
-   * @brief
-   *
-   * @return gpgme_data_t
-   */
-  operator gpgme_data_t();
+GpgEncryptResult::~GpgEncryptResult() = default;
 
-  /**
-   * @brief
-   *
-   * @return ByteArrayPtr
-   */
-  auto Read2Buffer() -> ByteArrayPtr;
+auto GpgEncryptResult::IsGood() -> bool { return result_ref_ != nullptr; }
 
-  /**
-   * @brief
-   *
-   * @return ByteArrayPtr
-   */
-  auto Read2GFBuffer() -> GFBuffer;
-
- private:
-  /**
-   * @brief
-   *
-   */
-  struct DataRefDeleter {
-    void operator()(gpgme_data_t _data) {
-      if (_data != nullptr) gpgme_data_release(_data);
+auto GpgEncryptResult::InvalidRecipients()
+    -> std::vector<std::tuple<std::string, GpgError>> {
+  std::vector<std::tuple<std::string, GpgError>> result;
+  for (auto* invalid_key = result_ref_->invalid_recipients;
+       invalid_key != nullptr; invalid_key = invalid_key->next) {
+    try {
+      result.emplace_back(std::string{invalid_key->fpr}, invalid_key->reason);
+    } catch (...) {
+      SPDLOG_ERROR(
+          "caught exception when processing invalid_recipients, "
+          "maybe nullptr of fpr");
     }
-  };
-
-  std::unique_ptr<struct gpgme_data, DataRefDeleter> data_ref_ = nullptr;  ///<
-};
-
+  }
+  return result;
+}
 }  // namespace GpgFrontend

@@ -32,7 +32,6 @@
 
 #include "core/function/CoreSignalStation.h"
 #include "pinentry/pinentrydialog.h"
-#include "spdlog/spdlog.h"
 
 namespace GpgFrontend::UI {
 

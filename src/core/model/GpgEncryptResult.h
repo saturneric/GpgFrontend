@@ -26,15 +26,26 @@
  *
  */
 
-#include "GpgCoreTest.h"
+#pragma once
 
-#include "core/function/gpg/GpgKeyImportExporter.h"
-#include "core/utils/IOUtils.h"
-#include "core/utils/MemoryUtils.h"
+#include "core/typedef/GpgTypedef.h"
 
-namespace GpgFrontend::Test {
+namespace GpgFrontend {
 
-void GpgCoreTest::TearDown() {}
+class GPGFRONTEND_CORE_EXPORT GpgEncryptResult {
+ public:
+  auto IsGood() -> bool;
 
-void GpgCoreTest::SetUp() {}
-}  // namespace GpgFrontend::Test
+  auto InvalidRecipients() -> std::vector<std::tuple<std::string, GpgError>>;
+
+  explicit GpgEncryptResult(gpgme_encrypt_result_t);
+
+  GpgEncryptResult();
+
+  virtual ~GpgEncryptResult();
+
+ private:
+  std::shared_ptr<struct _gpgme_op_encrypt_result> result_ref_ = nullptr;  ///<
+};
+
+}  // namespace GpgFrontend

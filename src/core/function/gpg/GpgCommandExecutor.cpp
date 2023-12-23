@@ -35,7 +35,6 @@
 #include "core/module/Module.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
-#include "spdlog/spdlog.h"
 
 namespace GpgFrontend {
 

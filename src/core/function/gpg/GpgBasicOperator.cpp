@@ -31,9 +31,9 @@
 #include <gpg-error.h>
 
 #include "core/GpgModel.h"
+#include "core/model/GpgEncryptResult.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
-#include "spdlog/spdlog.h"
 
 namespace GpgFrontend {
 
@@ -60,8 +60,8 @@ void GpgFrontend::GpgBasicOperator::Encrypt(KeyListPtr keys,
             gpgme_op_encrypt(ctx_.DefaultContext(), recipients.data(),
                              GPGME_ENCRYPT_ALWAYS_TRUST, data_in, data_out));
         data_object->Swap(
-            {NewResult(gpgme_op_encrypt_result(ctx_.DefaultContext())),
-             data_out.Read2Buffer()});
+            {GpgEncryptResult(gpgme_op_encrypt_result(ctx_.DefaultContext())),
+             data_out.Read2GFBuffer()});
 
         return err;
       },
@@ -69,11 +69,11 @@ void GpgFrontend::GpgBasicOperator::Encrypt(KeyListPtr keys,
 }
 
 auto GpgFrontend::GpgBasicOperator::Decrypt(
-    BypeArrayRef in_buffer, GpgFrontend::ByteArrayPtr& out_buffer,
+    GFBuffer in_buffer, GpgFrontend::ByteArrayPtr& out_buffer,
     GpgFrontend::GpgDecrResult& result) -> GpgFrontend::GpgError {
   GpgError err;
 
-  GpgData data_in(in_buffer.data(), in_buffer.size());
+  GpgData data_in(in_buffer.Data(), in_buffer.Size());
   GpgData data_out;
   err =
       CheckGpgError(gpgme_op_decrypt(ctx_.DefaultContext(), data_in, data_out));

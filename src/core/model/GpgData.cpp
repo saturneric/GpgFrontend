@@ -28,6 +28,12 @@
 
 #include "core/model/GpgData.h"
 
+#include "core/typedef/GpgTypedef.h"
+
+namespace GpgFrontend {
+
+constexpr size_t kBufferSize = 32 * 1024;
+
 GpgFrontend::GpgData::GpgData() {
   gpgme_data_t data;
 
@@ -47,29 +53,46 @@ GpgFrontend::GpgData::GpgData(const void* buffer, size_t size, bool copy) {
   data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
 }
 
-/**
- * Read gpgme-Data to QByteArray
- *   mainly from http://basket.kde.org/ (kgpgme.cpp)
- */
-#define BUF_SIZE (32 * 1024)
-
-GpgFrontend::ByteArrayPtr GpgFrontend::GpgData::Read2Buffer() {
+auto GpgFrontend::GpgData::Read2Buffer() -> GpgFrontend::ByteArrayPtr {
   gpgme_off_t ret = gpgme_data_seek(*this, 0, SEEK_SET);
   ByteArrayPtr out_buffer = std::make_unique<std::string>();
 
-  if (ret) {
-    gpgme_error_t err = gpgme_err_code_from_errno(errno);
+  if (ret != 0) {
+    GpgError const err = gpgme_err_code_from_errno(errno);
     assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
   } else {
-    char buf[BUF_SIZE + 2];
+    std::array<std::byte, kBufferSize + 2> buf;
 
-    while ((ret = gpgme_data_read(*this, buf, BUF_SIZE)) > 0) {
+    while ((ret = gpgme_data_read(*this, buf.data(), kBufferSize)) > 0) {
       const size_t size = out_buffer->size();
       out_buffer->resize(static_cast<int>(size + ret));
-      memcpy(out_buffer->data() + size, buf, ret);
+      memcpy(out_buffer->data() + size, buf.data(), ret);
     }
     if (ret < 0) {
-      gpgme_error_t err = gpgme_err_code_from_errno(errno);
+      GpgError const err = gpgme_err_code_from_errno(errno);
+      assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
+    }
+  }
+  return out_buffer;
+}
+
+auto GpgData::Read2GFBuffer() -> GFBuffer {
+  gpgme_off_t ret = gpgme_data_seek(*this, 0, SEEK_SET);
+  GFBuffer out_buffer;
+
+  if (ret != 0) {
+    const GpgError err = gpgme_err_code_from_errno(errno);
+    assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
+  } else {
+    std::array<std::byte, kBufferSize + 2> buf;
+
+    while ((ret = gpgme_data_read(*this, buf.data(), kBufferSize)) > 0) {
+      const size_t size = out_buffer.Size();
+      out_buffer.Resize(static_cast<int>(size + ret));
+      memcpy(out_buffer.Data() + size, buf.data(), ret);
+    }
+    if (ret < 0) {
+      const GpgError err = gpgme_err_code_from_errno(errno);
       assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
     }
   }
@@ -77,3 +100,5 @@ GpgFrontend::ByteArrayPtr GpgFrontend::GpgData::Read2Buffer() {
 }
 
 GpgFrontend::GpgData::operator gpgme_data_t() { return data_ref_.get(); }
+
+}  // namespace GpgFrontend

@@ -41,7 +41,6 @@
 #include "cmd.h"
 #include "core/utils/MemoryUtils.h"
 #include "init.h"
-#include "spdlog/spdlog.h"
 
 namespace po = boost::program_options;
 

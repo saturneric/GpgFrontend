@@ -26,15 +26,29 @@
  *
  */
 
-#include "GpgCoreTest.h"
+#pragma once
 
-#include "core/function/gpg/GpgKeyImportExporter.h"
-#include "core/utils/IOUtils.h"
+#include "core/GpgFrontendCoreExport.h"
 #include "core/utils/MemoryUtils.h"
 
-namespace GpgFrontend::Test {
+namespace GpgFrontend {
 
-void GpgCoreTest::TearDown() {}
+class GPGFRONTEND_CORE_EXPORT GFBuffer {
+ public:
+  GFBuffer();
 
-void GpgCoreTest::SetUp() {}
-}  // namespace GpgFrontend::Test
+  explicit GFBuffer(const std::string& str);
+
+  explicit GFBuffer(const char* c_str);
+
+  auto Data() -> std::byte*;
+
+  void Resize(size_t size);
+
+  auto Size() -> size_t;
+
+ private:
+  std::shared_ptr<std::vector<std::byte>> buffer_;
+};
+
+}  // namespace GpgFrontend

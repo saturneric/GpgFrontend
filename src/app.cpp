@@ -32,7 +32,6 @@
 #include "core/GpgConstants.h"
 #include "core/GpgCoreInit.h"
 #include "module/GpgFrontendModuleInit.h"
-#include "spdlog/spdlog.h"
 #include "ui/GpgFrontendUIInit.h"
 
 // main
