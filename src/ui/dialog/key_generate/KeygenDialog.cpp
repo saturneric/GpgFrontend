@@ -141,12 +141,13 @@ void KeyGenDialog::slot_key_gen_accept() {
         [this, gen_key_info = this->gen_key_info_](const OperaWaitingHd& hd) {
           GpgKeyOpera::GetInstance().GenerateKey(
               gen_key_info, [this, hd](GpgError err, const DataObjectPtr&) {
-                GpgGenKeyResult result;
+                // stop showing waiting dialog
+                hd();
+
                 CommonUtils::RaiseMessageBox(this, err);
                 if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
                   emit SignalKeyGenerated();
                 }
-                hd();
               });
         });
 

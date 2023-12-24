@@ -107,9 +107,11 @@ auto main(int argc, char* argv[]) -> int {
     return rtn;
   }
 
+  ctx->gather_external_gnupg_info = true;
+  ctx->load_default_gpg_context = true;
   InitGlobalBasicalEnv(ctx, true);
+
   rtn = StartApplication(ctx);
   ShutdownGlobalBasicalEnv(ctx);
-
   return rtn;
 }

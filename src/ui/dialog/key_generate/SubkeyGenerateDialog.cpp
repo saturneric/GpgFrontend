@@ -286,13 +286,14 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
           GpgKeyOpera::GetInstance().GenerateSubkey(
               key, gen_key_info,
               [this, hd](GpgError err, const DataObjectPtr&) {
-                GpgGenKeyResult result;
+                // stop showing waiting dialog
+                hd();
+
                 CommonUtils::RaiseMessageBox(this, err);
                 if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
                   emit UISignalStation::GetInstance()
                       ->SignalKeyDatabaseRefresh();
                 }
-                hd();
               });
         });
 

@@ -109,6 +109,41 @@ void DestroyGpgFrontendCore() {
   ShutdownCoreLoggingSystem();
 }
 
+auto VerifyGpgconfPath(const std::filesystem::path& gnupg_install_fs_path)
+    -> bool {
+  return gnupg_install_fs_path.is_absolute() &&
+         std::filesystem::exists(gnupg_install_fs_path) &&
+         std::filesystem::is_regular_file(gnupg_install_fs_path);
+}
+
+auto VerifyKeyDatabasePath(const std::filesystem::path& key_database_fs_path)
+    -> bool {
+  return key_database_fs_path.is_absolute() &&
+         std::filesystem::exists(key_database_fs_path) &&
+         std::filesystem::is_directory(key_database_fs_path);
+}
+
+auto SearchGpgconfPath(const std::vector<std::string>& candidate_paths)
+    -> std::filesystem::path {
+  for (const auto& path : candidate_paths) {
+    if (VerifyGpgconfPath(std::filesystem::path{path})) {
+      return std::filesystem::path{path};
+    }
+  }
+  return {};
+}
+
+auto SearchKeyDatabasePath(const std::vector<std::string>& candidate_paths)
+    -> std::filesystem::path {
+  for (const auto& path : candidate_paths) {
+    SPDLOG_DEBUG("searh for candidate key database path: {}", path);
+    if (VerifyKeyDatabasePath(std::filesystem::path{path})) {
+      return std::filesystem::path{path};
+    }
+  }
+  return {};
+}
+
 auto InitGpgME() -> bool {
   // init gpgme subsystem and get gpgme library version
   Module::UpsertRTValue("core", "gpgme.version",
@@ -269,39 +304,57 @@ void InitGpgFrontendCore(CoreInitArgs args) {
             SPDLOG_DEBUG("core loaded custom key databse path: {}",
                          custom_key_database_path);
 
-            // check gpgconf path
-            std::filesystem::path custom_gnupg_install_fs_path =
-                custom_gnupg_install_path;
+            std::filesystem::path gnupg_install_fs_path;
+            // user defined
+            if (!custom_gnupg_install_path.empty()) {
+              // check gpgconf path
+              gnupg_install_fs_path = custom_gnupg_install_path;
 #ifdef WINDOWS
-            custom_gnupg_install_fs_path /= "gpgconf.exe";
+              custom_gnupg_install_fs_path /= "gpgconf.exe";
 #else
-            custom_gnupg_install_fs_path /= "gpgconf";
+              gnupg_install_fs_path /= "gpgconf";
 #endif
 
-            if (!custom_gnupg_install_fs_path.is_absolute() ||
-                !std::filesystem::exists(custom_gnupg_install_fs_path) ||
-                !std::filesystem::is_regular_file(
-                    custom_gnupg_install_fs_path)) {
-              use_custom_gnupg_install_path = false;
-              SPDLOG_ERROR("core loaded custom gpgconf path is illegal: {}",
-                           custom_gnupg_install_fs_path.u8string());
+              if (!VerifyGpgconfPath(gnupg_install_fs_path)) {
+                use_custom_gnupg_install_path = false;
+                SPDLOG_ERROR("core loaded custom gpgconf path is illegal: {}",
+                             gnupg_install_fs_path.u8string());
+              } else {
+                SPDLOG_DEBUG("core loaded custom gpgconf path: {}",
+                             gnupg_install_fs_path.u8string());
+              }
             } else {
-              SPDLOG_DEBUG("core loaded custom gpgconf path: {}",
-                           custom_gnupg_install_fs_path.u8string());
+#ifdef MACOS
+              use_custom_gnupg_install_path = true;
+              gnupg_install_fs_path = SearchGpgconfPath(
+                  {"/usr/local/bin/gpgconf", "/opt/homebrew/bin/gpgconf"});
+              SPDLOG_DEBUG("core loaded searched gpgconf path: {}",
+                           gnupg_install_fs_path.u8string());
+#endif
             }
 
             // check key database path
-            std::filesystem::path custom_key_database_fs_path =
-                custom_key_database_path;
-            if (!custom_key_database_fs_path.is_absolute() ||
-                !std::filesystem::exists(custom_key_database_fs_path) ||
-                !std::filesystem::is_directory(custom_key_database_fs_path)) {
-              use_custom_key_database_path = false;
-              SPDLOG_ERROR("core loaded custom gpg key database is illegal: {}",
-                           custom_key_database_fs_path.u8string());
+            std::filesystem::path key_database_fs_path;
+            // user defined
+            if (!custom_key_database_path.empty()) {
+              key_database_fs_path = custom_key_database_path;
+              if (VerifyKeyDatabasePath(key_database_fs_path)) {
+                SPDLOG_ERROR(
+                    "core loaded custom gpg key database is illegal: {}",
+                    key_database_fs_path.u8string());
+              } else {
+                use_custom_key_database_path = true;
+                SPDLOG_DEBUG("core loaded custom gpg key database path: {}",
+                             key_database_fs_path.u8string());
+              }
             } else {
-              SPDLOG_DEBUG("core loaded custom gpg key database path: {}",
-                           custom_key_database_fs_path.u8string());
+#ifdef MACOS
+              use_custom_key_database_path = true;
+              key_database_fs_path = SearchKeyDatabasePath(
+                  {QDir::home().filesystemPath() / ".gnupg"});
+              SPDLOG_DEBUG("core loaded searched key database path: {}",
+                           key_database_fs_path.u8string());
+#endif
             }
 
             if (args.load_default_gpg_context) {
@@ -312,15 +365,15 @@ void InitGpgFrontendCore(CoreInitArgs args) {
 
                     // set key database path
                     if (use_custom_key_database_path &&
-                        !custom_key_database_path.empty()) {
-                      args.db_path = custom_key_database_path;
+                        !key_database_fs_path.empty()) {
+                      args.db_path = key_database_fs_path.u8string();
                     }
 
                     // set custom gnupg path
                     if (use_custom_gnupg_install_path) {
                       args.custom_gpgconf = true;
                       args.custom_gpgconf_path =
-                          custom_gnupg_install_fs_path.u8string();
+                          gnupg_install_fs_path.u8string();
                     }
 
                     args.offline_mode = forbid_all_gnupg_connection;

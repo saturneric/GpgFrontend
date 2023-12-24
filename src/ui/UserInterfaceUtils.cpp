@@ -233,9 +233,15 @@ void CommonUtils::WaitForOpera(QWidget *parent,
   connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
   connect(dialog, &QDialog::finished, dialog, &QDialog::deleteLater);
 
-  opera([dialog]() { dialog->accept(); });
-
   dialog->show();
+
+  opera([dialog]() {
+    SPDLOG_DEBUG("called operating waiting cb, dialog: {}",
+                 static_cast<void *>(dialog));
+    dialog->close();
+    dialog->accept();
+  });
+
   looper.exec();
 }
 
