@@ -29,6 +29,7 @@
 #pragma once
 
 #include "GpgResultAnalyse.h"
+#include "core/model/GpgEncryptResult.h"
 
 namespace GpgFrontend {
 /**
@@ -44,7 +45,7 @@ class GPGFRONTEND_CORE_EXPORT GpgEncryptResultAnalyse
    * @param error
    * @param result
    */
-  explicit GpgEncryptResultAnalyse(GpgError error, GpgEncrResult result);
+  explicit GpgEncryptResultAnalyse(GpgError error, GpgEncryptResult result);
 
  protected:
   /**
@@ -54,7 +55,7 @@ class GPGFRONTEND_CORE_EXPORT GpgEncryptResultAnalyse
   void doAnalyse() final;
 
  private:
-  GpgError error_;        ///<
-  GpgEncrResult result_;  ///<
+  GpgError error_;           ///<
+  GpgEncryptResult result_;  ///<
 };
 }  // namespace GpgFrontend

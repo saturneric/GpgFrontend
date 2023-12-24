@@ -28,9 +28,13 @@
 
 #include "GpgEncryptResultAnalyse.h"
 
+#include "core/model/GpgEncryptResult.h"
+
+namespace GpgFrontend {
+
 GpgFrontend::GpgEncryptResultAnalyse::GpgEncryptResultAnalyse(
-    GpgError error, GpgEncrResult result)
-    : error_(error), result_(std::move(result)) {}
+    GpgError error, GpgEncryptResult result)
+    : error_(error), result_(result) {}
 
 void GpgFrontend::GpgEncryptResultAnalyse::doAnalyse() {
   SPDLOG_DEBUG("start encrypt result analyse");
@@ -47,9 +51,11 @@ void GpgFrontend::GpgEncryptResultAnalyse::doAnalyse() {
 
   if ((~status_) == 0) {
     stream_ << "------------>" << std::endl;
-    if (result_ != nullptr) {
+
+    const auto *result = result_.GetRaw();
+    if (result != nullptr) {
       stream_ << _("Invalid Recipients") << ": " << std::endl;
-      auto *inv_reci = result_->invalid_recipients;
+      auto *inv_reci = result->invalid_recipients;
       while (inv_reci != nullptr) {
         stream_ << _("Fingerprint") << ": " << inv_reci->fpr << std::endl;
         stream_ << _("Reason") << ": " << gpgme_strerror(inv_reci->reason)
@@ -64,3 +70,5 @@ void GpgFrontend::GpgEncryptResultAnalyse::doAnalyse() {
 
   stream_ << std::endl;
 }
+
+}  // namespace GpgFrontend

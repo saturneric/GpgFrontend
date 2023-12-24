@@ -58,4 +58,8 @@ auto GpgEncryptResult::InvalidRecipients()
   }
   return result;
 }
+
+auto GpgEncryptResult::GetRaw() -> gpgme_encrypt_result_t {
+  return result_ref_.get();
+}
 }  // namespace GpgFrontend

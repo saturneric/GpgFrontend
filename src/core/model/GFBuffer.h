@@ -43,6 +43,8 @@ class GPGFRONTEND_CORE_EXPORT GFBuffer {
 
   explicit GFBuffer(QByteArray buffer);
 
+  explicit GFBuffer(QString str);
+
   auto operator==(const GFBuffer& o) const -> bool;
 
   auto Data() -> std::byte*;
@@ -50,6 +52,8 @@ class GPGFRONTEND_CORE_EXPORT GFBuffer {
   void Resize(size_t size);
 
   auto Size() -> size_t;
+
+  auto ConvertToQByteArray() -> QByteArray;
 
  private:
   std::shared_ptr<std::vector<std::byte>> buffer_;

@@ -41,6 +41,7 @@
 #include "core/function/result_analyse/GpgSignResultAnalyse.h"
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/DataObject.h"
+#include "core/model/GpgEncryptResult.h"
 #include "core/module/ModuleManager.h"
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/CommonUtils.h"
@@ -65,8 +66,6 @@ void MainWindow::slot_encrypt() {
   }
 
   auto key_ids = m_key_list_->GetChecked();
-  auto buffer = GFBuffer(
-      edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString());
 
   if (key_ids->empty()) {
     // Symmetric Encrypt
@@ -99,10 +98,11 @@ void MainWindow::slot_encrypt() {
     //   return 0;
     // };
 
+    auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
     // CommonUtils::WaitForOpera(
     //     this, _("Symmetrically Encrypting"),
-    //     [this, keys, buffer](const OperaWaitingHd& hd) {
-    //       GpgFrontend::GpgBasicOperator::GetInstance().Encrypt(
+    //     [this, buffer](const OperaWaitingHd& hd) {
+    //       GpgFrontend::GpgBasicOperator::GetInstance().EncryptSymmetric(
     //           std::move(keys), buffer.toStdString(),
     //           [this, hd](GpgError err, const DataObjectPtr& data_obj) {
     //             auto result = ExtractParams<GpgEncrResult>(data_obj, 0);
@@ -123,45 +123,45 @@ void MainWindow::slot_encrypt() {
     //           });
     //     });
 
-  } else {
-    auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
-    for (const auto& key : *keys) {
-      if (!key.IsHasActualEncryptionCapability()) {
-        QMessageBox::information(
-            this, _("Invalid Operation"),
-            QString(_(
-                "The selected key contains a key that does not actually have a "
-                "encrypt usage.")) +
-                "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
-                QString::fromStdString(key.GetUIDs()->front().GetUID()));
-        return;
-      }
-    }
-
-    CommonUtils::WaitForOpera(
-        this, _("Encrypting"), [this, keys, buffer](const OperaWaitingHd& hd) {
-          GpgFrontend::GpgBasicOperator::GetInstance().Encrypt(
-              {keys->begin(), keys->end()}, buffer, true,
-              [this, hd](GpgError err, const DataObjectPtr& data_obj) {
-                auto result = ExtractParams<GpgEncrResult>(data_obj, 0);
-                auto buffer = ExtractParams<ByteArrayPtr>(data_obj, 1);
-
-                auto result_analyse =
-                    GpgEncryptResultAnalyse(err, std::move(result));
-                result_analyse.Analyse();
-                process_result_analyse(edit_, info_board_, result_analyse);
-
-                if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-                  edit_->SlotFillTextEditWithText(
-                      QString::fromStdString(*buffer));
-                }
-                info_board_->ResetOptionActionsMenu();
-
-                // stop waiting
-                hd();
-              });
-        });
+    return;
   }
+
+  auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
+  for (const auto& key : *keys) {
+    if (!key.IsHasActualEncryptionCapability()) {
+      QMessageBox::information(
+          this, _("Invalid Operation"),
+          QString(
+              _("The selected key contains a key that does not actually have a "
+                "encrypt usage.")) +
+              "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
+              QString::fromStdString(key.GetUIDs()->front().GetUID()));
+      return;
+    }
+  }
+
+  auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
+  CommonUtils::WaitForOpera(
+      this, _("Encrypting"), [this, keys, buffer](const OperaWaitingHd& hd) {
+        GpgFrontend::GpgBasicOperator::GetInstance().Encrypt(
+            {keys->begin(), keys->end()}, buffer, true,
+            [this, hd](GpgError err, const DataObjectPtr& data_obj) {
+              // stop waiting
+              hd();
+
+              auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
+              auto buffer = ExtractParams<GFBuffer>(data_obj, 1);
+
+              auto result_analyse = GpgEncryptResultAnalyse(err, result);
+              result_analyse.Analyse();
+              process_result_analyse(edit_, info_board_, result_analyse);
+
+              if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+                edit_->SlotFillTextEditWithText(buffer.ConvertToQByteArray());
+              }
+              info_board_->ResetOptionActionsMenu();
+            });
+      });
 }
 
 void MainWindow::slot_sign() {
@@ -463,8 +463,8 @@ void MainWindow::slot_encrypt_sign() {
       auto sign_result = ExtractParams<GpgSignResult>(data_object, 2);
       auto tmp = ExtractParams<ByteArrayPtr>(data_object, 3);
 
-      auto encrypt_result_analyse =
-          GpgEncryptResultAnalyse(error, std::move(encrypt_result));
+      auto encrypt_result_analyse = GpgEncryptResultAnalyse(
+          error, GpgEncryptResult(encrypt_result.get()));
       auto sign_result_analyse =
           GpgSignResultAnalyse(error, std::move(sign_result));
       encrypt_result_analyse.Analyse();

@@ -278,10 +278,10 @@ void MainWindow::SlotFileEncrypt() {
   }
 
   if (!if_error) {
-    auto resultAnalyse = GpgEncryptResultAnalyse(error, std::move(result));
-    resultAnalyse.Analyse();
-    process_result_analyse(edit_, info_board_, resultAnalyse);
-    fileTreeView->update();
+    // auto resultAnalyse = GpgEncryptResultAnalyse(error, std::move(result));
+    // resultAnalyse.Analyse();
+    // process_result_analyse(edit_, info_board_, resultAnalyse);
+    // fileTreeView->update();
   } else {
     QMessageBox::critical(this, _("Error"),
                           _("An error occurred during operation."));
@@ -641,14 +641,14 @@ void MainWindow::SlotFileEncryptSign() {
       });
 
   if (!if_error) {
-    auto encrypt_result =
-        GpgEncryptResultAnalyse(error, std::move(encr_result));
-    auto sign_res = GpgSignResultAnalyse(error, std::move(sign_result));
-    encrypt_result.Analyse();
-    sign_res.Analyse();
-    process_result_analyse(edit_, info_board_, encrypt_result, sign_res);
+    // auto encrypt_result =
+    //     GpgEncryptResultAnalyse(error, std::move(encr_result));
+    // auto sign_res = GpgSignResultAnalyse(error, std::move(sign_result));
+    // encrypt_result.Analyse();
+    // sign_res.Analyse();
+    // process_result_analyse(edit_, info_board_, encrypt_result, sign_res);
 
-    file_tree_view->update();
+    // file_tree_view->update();
 
   } else {
     QMessageBox::critical(this, _("Error"),
