@@ -232,14 +232,15 @@ void CommonUtils::WaitForOpera(QWidget *parent,
       new WaitingDialog(QString::fromStdString(waiting_dialog_title), parent);
   connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
   connect(dialog, &QDialog::finished, dialog, &QDialog::deleteLater);
-
   dialog->show();
 
-  opera([dialog]() {
-    SPDLOG_DEBUG("called operating waiting cb, dialog: {}",
-                 static_cast<void *>(dialog));
-    dialog->close();
-    dialog->accept();
+  QTimer::singleShot(64, parent, [=]() {
+    opera([dialog]() {
+      SPDLOG_DEBUG("called operating waiting cb, dialog: {}",
+                   static_cast<void *>(dialog));
+      dialog->close();
+      dialog->accept();
+    });
   });
 
   looper.exec();

@@ -54,12 +54,12 @@ void GpgFrontend::GpgBasicOperator::Encrypt(std::vector<GpgKey> keys,
         GpgData data_in(in_buffer);
         GpgData data_out;
 
-        auto err = CheckGpgError(gpgme_op_encrypt(
-            ascii ? ctx_.DefaultContext() : ctx_.BinaryContext(),
-            recipients.data(), GPGME_ENCRYPT_ALWAYS_TRUST, data_in, data_out));
-        data_object->Swap(
-            {GpgEncryptResult(gpgme_op_encrypt_result(ctx_.DefaultContext())),
-             data_out.Read2GFBuffer()});
+        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+        auto err = CheckGpgError(gpgme_op_encrypt(ctx, recipients.data(),
+                                                  GPGME_ENCRYPT_ALWAYS_TRUST,
+                                                  data_in, data_out));
+        data_object->Swap({GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
+                           data_out.Read2GFBuffer()});
 
         return err;
       },
@@ -222,27 +222,21 @@ auto GpgFrontend::GpgBasicOperator::GetSigners()
   return signers;
 }
 
-auto GpgFrontend::GpgBasicOperator::EncryptSymmetric(
-    GpgFrontend::ByteArray& in_buffer, GpgFrontend::ByteArrayPtr& out_buffer,
-    GpgFrontend::GpgEncrResult& result) -> gpg_error_t {
-  // deepcopy from ByteArray to GpgData
-  GpgData data_in(in_buffer.data(), in_buffer.size());
-  GpgData data_out;
+void GpgFrontend::GpgBasicOperator::EncryptSymmetric(
+    GFBuffer in_buffer, bool ascii, const GpgOperationCallback& cb) {
+  RunGpgOperaAsync(
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        GpgData data_in(in_buffer);
+        GpgData data_out;
 
-  GpgError err = CheckGpgError(gpgme_op_encrypt(ctx_.DefaultContext(), nullptr,
-                                                GPGME_ENCRYPT_SYMMETRIC,
-                                                data_in, data_out));
+        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+        auto err = CheckGpgError(gpgme_op_encrypt(
+            ctx, nullptr, GPGME_ENCRYPT_SYMMETRIC, data_in, data_out));
+        data_object->Swap({GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
+                           data_out.Read2GFBuffer()});
 
-  auto temp_data_out = data_out.Read2Buffer();
-  std::swap(temp_data_out, out_buffer);
-
-  // TODO(Saturneric): maybe a bug of gpgme
-  if (gpgme_err_code(err) == GPG_ERR_NO_ERROR) {
-    auto temp_result =
-        NewResult(gpgme_op_encrypt_result(ctx_.DefaultContext()));
-    std::swap(result, temp_result);
-  }
-
-  return err;
+        return err;
+      },
+      cb, "gpgme_op_encrypt_symmetric", "2.1.0");
 }
 }  // namespace GpgFrontend

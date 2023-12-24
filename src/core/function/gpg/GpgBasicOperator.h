@@ -75,8 +75,8 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param result Encrypted results
    * @return GpgError
    */
-  auto EncryptSymmetric(BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
-                        GpgEncrResult& result) -> GpgError;
+  void EncryptSymmetric(GFBuffer in_buffer, bool ascii,
+                        const GpgOperationCallback& cb);
 
   /**
    *

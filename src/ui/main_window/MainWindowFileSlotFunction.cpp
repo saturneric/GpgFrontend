@@ -227,16 +227,18 @@ void MainWindow::SlotFileEncrypt() {
 
     if (ret == QMessageBox::Cancel) return;
 
-    process_operation(
-        this, _("Symmetrically Encrypting"), [&](DataObjectPtr) -> int {
-          try {
-            error = GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
-                path.toStdString(), out_path.toStdString(), result, _channel);
-          } catch (const std::runtime_error& e) {
-            if_error = true;
-          }
-          return 0;
-        });
+    process_operation(this, _("Symmetrically Encrypting"),
+                      [&](DataObjectPtr) -> int {
+                        try {
+                          // error =
+                          // GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
+                          //     path.toStdString(), out_path.toStdString(),
+                          //     result, _channel);
+                        } catch (const std::runtime_error& e) {
+                          if_error = true;
+                        }
+                        return 0;
+                      });
   } else {
     auto p_keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 

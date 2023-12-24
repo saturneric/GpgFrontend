@@ -77,51 +77,29 @@ void MainWindow::slot_encrypt() {
 
     if (ret == QMessageBox::Cancel) return;
 
-    // encrypt_type = ;
-    // encrypt_runner = [](const DataObjectPtr& data_object) -> int {
-    //   if (data_object == nullptr || !data_object->Check<std::string>()) {
-    //     throw std::runtime_error("data object doesn't pass checking");
-    //   }
-    //   auto buffer = ExtractParams<std::string>(data_object, 0);
-    //   try {
-    //     GpgEncrResult result = nullptr;
-    //     auto tmp = GpgFrontend::SecureCreateSharedObject<ByteArray>();
-    //     GpgError error =
-    //         GpgFrontend::GpgBasicOperator::GetInstance().EncryptSymmetric(
-    //             buffer, tmp, result);
-
-    //     data_object->Swap(DataObject{error, std::move(result),
-    //     std::move(tmp)});
-    //   } catch (const std::runtime_error& e) {
-    //     return -1;
-    //   }
-    //   return 0;
-    // };
-
     auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
-    // CommonUtils::WaitForOpera(
-    //     this, _("Symmetrically Encrypting"),
-    //     [this, buffer](const OperaWaitingHd& hd) {
-    //       GpgFrontend::GpgBasicOperator::GetInstance().EncryptSymmetric(
-    //           std::move(keys), buffer.toStdString(),
-    //           [this, hd](GpgError err, const DataObjectPtr& data_obj) {
-    //             auto result = ExtractParams<GpgEncrResult>(data_obj, 0);
-    //             auto buffer = ExtractParams<ByteArrayPtr>(data_obj, 1);
+    CommonUtils::WaitForOpera(
+        this, _("Symmetrically Encrypting"),
+        [this, buffer](const OperaWaitingHd& hd) {
+          GpgFrontend::GpgBasicOperator::GetInstance().EncryptSymmetric(
+              buffer, true,
+              [this, hd](GpgError err, const DataObjectPtr& data_obj) {
+                // stop waiting
+                hd();
 
-    //             auto resultAnalyse =
-    //                 GpgEncryptResultAnalyse(err, std::move(result));
-    //             resultAnalyse.Analyse();
-    //             process_result_analyse(edit_, info_board_, resultAnalyse);
+                auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
+                auto buffer = ExtractParams<GFBuffer>(data_obj, 1);
 
-    //             if (CheckGpgError(err) == GPG_ERR_NO_ERROR)
-    //               edit_->SlotFillTextEditWithText(
-    //                   QString::fromStdString(*buffer));
-    //             info_board_->ResetOptionActionsMenu();
+                auto result_analyse = GpgEncryptResultAnalyse(err, result);
+                result_analyse.Analyse();
+                process_result_analyse(edit_, info_board_, result_analyse);
 
-    //             // stop waiting
-    //             hd();
-    //           });
-    //     });
+                if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+                  edit_->SlotFillTextEditWithText(buffer.ConvertToQByteArray());
+                }
+                info_board_->ResetOptionActionsMenu();
+              });
+        });
 
     return;
   }

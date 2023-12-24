@@ -237,9 +237,9 @@ auto GpgFrontend::GpgFileOpera::DecryptVerifyFile(const std::string& in_path,
 
   return err;
 }
-auto GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
-    const std::string& in_path, const std::string& out_path,
-    GpgFrontend::GpgEncrResult& result, int _channel) -> unsigned int {
+void GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
+    const std::string& in_path, const std::string& out_path, bool ascii,
+    const GpgOperationCallback& cb) {
 #ifdef WINDOWS
   auto in_path_std =
       std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
@@ -250,20 +250,26 @@ auto GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
   auto out_path_std = std::filesystem::path(out_path);
 #endif
 
-  std::string in_buffer;
-  if (!ReadFileStd(in_path_std, in_buffer)) {
+  auto read_result = ReadFileGFBuffer(in_path_std);
+  if (!std::get<0>(read_result)) {
     throw std::runtime_error("read file error");
   }
 
-  ByteArrayPtr out_buffer;
-  auto err = GpgBasicOperator::GetInstance(_channel).EncryptSymmetric(
-      in_buffer, out_buffer, result);
+  GpgBasicOperator::GetInstance().EncryptSymmetric(
+      std::get<1>(read_result), ascii,
+      [=](GpgError err, const DataObjectPtr& data_object) {
+        if (!data_object->Check<GpgEncryptResult, GFBuffer>()) {
+          throw std::runtime_error("data object transfers wrong arguments");
+        }
+        auto result = ExtractParams<GpgEncryptResult>(data_object, 0);
+        auto buffer = ExtractParams<GFBuffer>(data_object, 1);
+        if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+          cb(err, TransferParams(result));
+          return;
+        }
 
-  if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-    if (!WriteFileStd(out_path_std, *out_buffer)) {
-      throw std::runtime_error("WriteBufferToFile error");
-    }
-  };
-
-  return err;
+        if (!WriteFileGFBuffer(out_path_std, buffer)) {
+          throw std::runtime_error("write buffer to file error");
+        }
+      });
 }

@@ -63,11 +63,9 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param channel
    * @return unsigned int
    */
-  static auto EncryptFileSymmetric(const std::string& in_path,
-                                   const std::string& out_path,
-                                   GpgEncrResult& result,
-                                   int channel = kGpgFrontendDefaultChannel)
-      -> unsigned int;
+  static void EncryptFileSymmetric(const std::string& in_path,
+                                   const std::string& out_path, bool ascii,
+                                   const GpgOperationCallback& cb);
 
   /**
    * @brief
