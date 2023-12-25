@@ -29,6 +29,7 @@
 #pragma once
 
 #include "GpgResultAnalyse.h"
+#include "core/model/GpgDecryptResult.h"
 
 namespace GpgFrontend {
 
@@ -45,7 +46,7 @@ class GPGFRONTEND_CORE_EXPORT GpgDecryptResultAnalyse
    * @param m_error
    * @param m_result
    */
-  explicit GpgDecryptResultAnalyse(GpgError m_error, GpgDecrResult m_result);
+  explicit GpgDecryptResultAnalyse(GpgError m_error, GpgDecryptResult m_result);
 
  protected:
   /**
@@ -63,8 +64,8 @@ class GPGFRONTEND_CORE_EXPORT GpgDecryptResultAnalyse
    */
   void print_recipient(std::stringstream &stream, gpgme_recipient_t recipient);
 
-  GpgError error_;        ///<
-  GpgDecrResult result_;  ///<
+  GpgError error_;           ///<
+  GpgDecryptResult result_;  ///<
 };
 
 }  // namespace GpgFrontend

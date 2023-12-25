@@ -121,34 +121,4 @@ auto TextIsSigned(BypeArrayRef text) -> int {
   }
   return 0;
 }
-
-auto NewResult(gpgme_encrypt_result_t&& result) -> GpgEncrResult {
-  gpgme_result_ref(result);
-  return {result, ResultRefDeletor()};
-}
-
-auto NewResult(gpgme_decrypt_result_t&& result) -> GpgDecrResult {
-  gpgme_result_ref(result);
-  return {result, ResultRefDeletor()};
-}
-
-auto NewResult(gpgme_sign_result_t&& result) -> GpgSignResult {
-  gpgme_result_ref(result);
-  return {result, ResultRefDeletor()};
-}
-
-auto NewResult(gpgme_verify_result_t&& result) -> GpgVerifyResult {
-  gpgme_result_ref(result);
-  return {result, ResultRefDeletor()};
-}
-
-auto NewResult(gpgme_genkey_result_t&& result) -> GpgGenKeyResult {
-  gpgme_result_ref(result);
-  return {result, ResultRefDeletor()};
-}
-
-void ResultRefDeletor::operator()(void* _result) {
-  SPDLOG_TRACE("gpgme unref {}", _result);
-  if (_result != nullptr) gpgme_result_unref(_result);
-}
 }  // namespace GpgFrontend

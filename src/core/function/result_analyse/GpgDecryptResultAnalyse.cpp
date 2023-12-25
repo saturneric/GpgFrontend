@@ -32,10 +32,12 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 
 GpgFrontend::GpgDecryptResultAnalyse::GpgDecryptResultAnalyse(
-    GpgError m_error, GpgDecrResult m_result)
-    : error_(m_error), result_(std::move(m_result)) {}
+    GpgError m_error, GpgDecryptResult m_result)
+    : error_(m_error), result_(m_result) {}
 
 void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
+  auto *result = result_.GetRaw();
+
   stream_ << "[#] " << _("Decrypt Operation");
 
   if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
@@ -44,24 +46,24 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
     stream_ << "[" << _("Failed") << "] " << gpgme_strerror(error_)
             << std::endl;
     setStatus(-1);
-    if (result_ != nullptr && result_->unsupported_algorithm != nullptr) {
+    if (result != nullptr && result->unsupported_algorithm != nullptr) {
       stream_ << "------------>" << std::endl;
-      stream_ << _("Unsupported Algo") << ": " << result_->unsupported_algorithm
+      stream_ << _("Unsupported Algo") << ": " << result->unsupported_algorithm
               << std::endl;
     }
   }
 
-  if (result_ != nullptr && result_->recipients != nullptr) {
+  if (result != nullptr && result->recipients != nullptr) {
     stream_ << "------------>" << std::endl;
-    if (result_->file_name != nullptr) {
-      stream_ << _("File Name") << ": " << result_->file_name << std::endl;
+    if (result->file_name != nullptr) {
+      stream_ << _("File Name") << ": " << result->file_name << std::endl;
       stream_ << std::endl;
     }
-    if (result_->is_mime) {
+    if (result->is_mime) {
       stream_ << _("MIME") << ": " << _("true") << std::endl;
     }
 
-    auto *recipient = result_->recipients;
+    auto *recipient = result->recipients;
     if (recipient != nullptr) stream_ << _("Recipient(s)") << ": " << std::endl;
     while (recipient != nullptr) {
       print_recipient(stream_, recipient);

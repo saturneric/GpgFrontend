@@ -31,16 +31,20 @@
 
 #include "core/function/gpg/GpgBasicOperator.h"
 #include "core/model/GFBuffer.h"
+#include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgKey.h"
+#include "core/model/GpgSignResult.h"
+#include "core/model/GpgVerifyResult.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 
-void GpgFrontend::GpgFileOpera::EncryptFile(std::vector<GpgKey> keys,
-                                            const std::string& in_path,
-                                            const std::string& out_path,
-                                            bool ascii,
-                                            const GpgOperationCallback& cb) {
+namespace GpgFrontend {
+
+void GpgFileOpera::EncryptFile(std::vector<GpgKey> keys,
+                               const std::string& in_path,
+                               const std::string& out_path, bool ascii,
+                               const GpgOperationCallback& cb) {
 #ifdef WINDOWS
   auto in_path_std =
       std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
@@ -64,20 +68,18 @@ void GpgFrontend::GpgFileOpera::EncryptFile(std::vector<GpgKey> keys,
         }
         auto result = ExtractParams<GpgEncryptResult>(data_object, 0);
         auto buffer = ExtractParams<GFBuffer>(data_object, 1);
-        if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-          cb(err, TransferParams(result));
-          return;
+        if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+          if (!WriteFileGFBuffer(out_path_std, buffer)) {
+            throw std::runtime_error("write buffer to file error");
+          }
         }
-
-        if (!WriteFileGFBuffer(out_path_std, buffer)) {
-          throw std::runtime_error("write buffer to file error");
-        }
+        cb(err, TransferParams(result));
       });
 }
 
-void GpgFrontend::GpgFileOpera::DecryptFile(const std::string& in_path,
-                                            const std::string& out_path,
-                                            const GpgOperationCallback& cb) {
+void GpgFileOpera::DecryptFile(const std::string& in_path,
+                               const std::string& out_path,
+                               const GpgOperationCallback& cb) {
 #ifdef WINDOWS
   auto in_path_std =
       std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
@@ -96,10 +98,10 @@ void GpgFrontend::GpgFileOpera::DecryptFile(const std::string& in_path,
   GpgBasicOperator::GetInstance().Decrypt(
       std::get<1>(read_result),
       [=](GpgError err, const DataObjectPtr& data_object) {
-        if (!data_object->Check<GpgEncryptResult, GFBuffer>()) {
+        if (!data_object->Check<GpgDecryptResult, GFBuffer>()) {
           throw std::runtime_error("data object transfers wrong arguments");
         }
-        auto result = ExtractParams<GpgEncryptResult>(data_object, 0);
+        auto result = ExtractParams<GpgDecryptResult>(data_object, 0);
         auto buffer = ExtractParams<GFBuffer>(data_object, 1);
 
         if (CheckGpgError(err) == GPG_ERR_NO_ERROR &&
@@ -111,11 +113,9 @@ void GpgFrontend::GpgFileOpera::DecryptFile(const std::string& in_path,
       });
 }
 
-auto GpgFrontend::GpgFileOpera::SignFile(KeyListPtr keys,
-                                         const std::string& in_path,
-                                         const std::string& out_path,
-                                         GpgSignResult& result, int _channel)
-    -> gpgme_error_t {
+void GpgFileOpera::SignFile(KeyArgsList keys, const std::string& in_path,
+                            const std::string& out_path, bool ascii,
+                            const GpgOperationCallback& cb) {
 #ifdef WINDOWS
   auto in_path_std =
       std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
@@ -126,27 +126,31 @@ auto GpgFrontend::GpgFileOpera::SignFile(KeyListPtr keys,
   auto out_path_std = std::filesystem::path(out_path);
 #endif
 
-  std::string in_buffer;
-  if (!ReadFileStd(in_path_std, in_buffer)) {
+  auto read_result = ReadFileGFBuffer(in_path_std);
+  if (!std::get<0>(read_result)) {
     throw std::runtime_error("read file error");
   }
-  ByteArrayPtr out_buffer;
 
-  auto err = GpgBasicOperator::GetInstance(_channel).Sign(
-      std::move(keys), in_buffer, out_buffer, GPGME_SIG_MODE_DETACH, result);
+  GpgBasicOperator::GetInstance().Sign(
+      std::move(keys), std::get<1>(read_result), GPGME_SIG_MODE_DETACH, ascii,
+      [=](GpgError err, const DataObjectPtr& data_object) {
+        if (!data_object->Check<GpgSignResult, GFBuffer>()) {
+          throw std::runtime_error("data object transfers wrong arguments");
+        }
+        auto result = ExtractParams<GpgSignResult>(data_object, 0);
+        auto buffer = ExtractParams<GFBuffer>(data_object, 1);
 
-  if (CheckGpgError(err) == GPG_ERR_NO_ERROR)
-    if (!WriteFileStd(out_path_std, *out_buffer)) {
-      throw std::runtime_error("WriteBufferToFile error");
-    };
-
-  return err;
+        if (CheckGpgError(err) == GPG_ERR_NO_ERROR &&
+            !WriteFileGFBuffer(out_path_std, buffer)) {
+          throw std::runtime_error("write buffer to file error");
+        }
+        cb(err, TransferParams(result));
+      });
 }
 
-auto GpgFrontend::GpgFileOpera::VerifyFile(const std::string& data_path,
-                                           const std::string& sign_path,
-                                           GpgVerifyResult& result,
-                                           int _channel) -> gpgme_error_t {
+void GpgFileOpera::VerifyFile(const std::string& data_path,
+                              const std::string& sign_path,
+                              const GpgOperationCallback& cb) {
 #ifdef WINDOWS
   auto data_path_std =
       std::filesystem::path(QString::fromStdString(data_path).toStdU16String());
@@ -157,27 +161,35 @@ auto GpgFrontend::GpgFileOpera::VerifyFile(const std::string& data_path,
   auto sign_path_std = std::filesystem::path(sign_path);
 #endif
 
-  std::string in_buffer;
-  if (!ReadFileStd(data_path_std, in_buffer)) {
+  auto read_result = ReadFileGFBuffer(data_path_std);
+  if (!std::get<0>(read_result)) {
     throw std::runtime_error("read file error");
   }
-  ByteArrayPtr sign_buffer = nullptr;
+
+  GFBuffer sign_buffer;
   if (!sign_path.empty()) {
-    std::string sign_buffer_str;
-    if (!ReadFileStd(sign_path_std, sign_buffer_str)) {
+    auto read_result = ReadFileGFBuffer(sign_path_std);
+    if (!std::get<0>(read_result)) {
       throw std::runtime_error("read file error");
     }
-    sign_buffer = std::make_unique<std::string>(sign_buffer_str);
+    sign_buffer = std::get<1>(read_result);
   }
-  auto err = GpgBasicOperator::GetInstance(_channel).Verify(
-      in_buffer, sign_buffer, result);
-  return err;
+
+  GpgBasicOperator::GetInstance().Verify(
+      std::get<1>(read_result), sign_buffer,
+      [=](GpgError err, const DataObjectPtr& data_object) {
+        if (!data_object->Check<GpgVerifyResult>()) {
+          throw std::runtime_error("data object transfers wrong arguments");
+        }
+        auto result = ExtractParams<GpgVerifyResult>(data_object, 0);
+        cb(err, TransferParams(result));
+      });
 }
 
-auto GpgFrontend::GpgFileOpera::EncryptSignFile(
-    KeyListPtr keys, KeyListPtr signer_keys, const std::string& in_path,
-    const std::string& out_path, GpgEncrResult& encr_res,
-    GpgSignResult& sign_res, int _channel) -> gpg_error_t {
+void GpgFileOpera::EncryptSignFile(KeyArgsList keys, KeyArgsList signer_keys,
+                                   const std::string& in_path,
+                                   const std::string& out_path, bool ascii,
+                                   const GpgOperationCallback& cb) {
 #ifdef WINDOWS
   auto in_path_std =
       std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
@@ -188,29 +200,32 @@ auto GpgFrontend::GpgFileOpera::EncryptSignFile(
   auto out_path_std = std::filesystem::path(out_path);
 #endif
 
-  std::string in_buffer;
-  if (!ReadFileStd(in_path_std, in_buffer)) {
+  auto read_result = ReadFileGFBuffer(in_path_std);
+  if (!std::get<0>(read_result)) {
     throw std::runtime_error("read file error");
   }
-  ByteArrayPtr out_buffer = nullptr;
 
-  auto err = GpgBasicOperator::GetInstance(_channel).EncryptSign(
-      std::move(keys), std::move(signer_keys), in_buffer, out_buffer, encr_res,
-      sign_res);
-
-  if (CheckGpgError(err) == GPG_ERR_NO_ERROR)
-    if (!WriteFileStd(out_path_std, *out_buffer)) {
-      throw std::runtime_error("WriteBufferToFile error");
-    };
-
-  return err;
+  GpgBasicOperator::GetInstance().EncryptSign(
+      std::move(keys), std::move(signer_keys), std::get<1>(read_result), ascii,
+      [=](GpgError err, const DataObjectPtr& data_object) {
+        if (!data_object->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()) {
+          throw std::runtime_error("data object transfers wrong arguments");
+        }
+        auto encrypt_result = ExtractParams<GpgEncryptResult>(data_object, 0);
+        auto sign_result = ExtractParams<GpgSignResult>(data_object, 1);
+        auto buffer = ExtractParams<GFBuffer>(data_object, 2);
+        if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+          if (!WriteFileGFBuffer(out_path_std, buffer)) {
+            throw std::runtime_error("write buffer to file error");
+          }
+        }
+        cb(err, TransferParams(encrypt_result, sign_result));
+      });
 }
 
-auto GpgFrontend::GpgFileOpera::DecryptVerifyFile(const std::string& in_path,
-                                                  const std::string& out_path,
-                                                  GpgDecrResult& decr_res,
-                                                  GpgVerifyResult& verify_res)
-    -> gpg_error_t {
+void GpgFileOpera::DecryptVerifyFile(const std::string& in_path,
+                                     const std::string& out_path,
+                                     const GpgOperationCallback& cb) {
 #ifdef WINDOWS
   auto in_path_std =
       std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
@@ -221,25 +236,32 @@ auto GpgFrontend::GpgFileOpera::DecryptVerifyFile(const std::string& in_path,
   auto out_path_std = std::filesystem::path(out_path);
 #endif
 
-  std::string in_buffer;
-  if (!ReadFileStd(in_path_std, in_buffer)) {
+  auto read_result = ReadFileGFBuffer(in_path_std);
+  if (!std::get<0>(read_result)) {
     throw std::runtime_error("read file error");
   }
 
-  ByteArrayPtr out_buffer = nullptr;
-  auto err = GpgBasicOperator::GetInstance().DecryptVerify(
-      in_buffer, out_buffer, decr_res, verify_res);
-
-  if (CheckGpgError(err) == GPG_ERR_NO_ERROR)
-    if (!WriteFileStd(out_path_std, *out_buffer)) {
-      throw std::runtime_error("write file error");
-    };
-
-  return err;
+  GpgBasicOperator::GetInstance().DecryptVerify(
+      std::get<1>(read_result),
+      [=](GpgError err, const DataObjectPtr& data_object) {
+        if (!data_object
+                 ->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()) {
+          throw std::runtime_error("data object transfers wrong arguments");
+        }
+        auto decrypt_result = ExtractParams<GpgDecryptResult>(data_object, 0);
+        auto verify_result = ExtractParams<GpgVerifyResult>(data_object, 1);
+        auto buffer = ExtractParams<GFBuffer>(data_object, 2);
+        if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+          if (!WriteFileGFBuffer(out_path_std, buffer)) {
+            throw std::runtime_error("write buffer to file error");
+          }
+        }
+        cb(err, TransferParams(decrypt_result, verify_result));
+      });
 }
-void GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
-    const std::string& in_path, const std::string& out_path, bool ascii,
-    const GpgOperationCallback& cb) {
+void GpgFileOpera::EncryptFileSymmetric(const std::string& in_path,
+                                        const std::string& out_path, bool ascii,
+                                        const GpgOperationCallback& cb) {
 #ifdef WINDOWS
   auto in_path_std =
       std::filesystem::path(QString::fromStdString(in_path).toStdU16String());
@@ -273,3 +295,5 @@ void GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
         }
       });
 }
+
+}  // namespace GpgFrontend

@@ -58,6 +58,8 @@ using KeyLinkListPtr = std::unique_ptr<GpgKeyLinkList>;                   ///<
 using KeyPtr = std::unique_ptr<GpgKey>;                                   ///<
 using KeyPtrArgsList = const std::initializer_list<KeyPtr>;               ///<
 
+using GpgSignMode = gpgme_sig_mode_t;
+
 using GpgOperaRunnable = std::function<GpgError(DataObjectPtr)>;
 using GpgOperationCallback = std::function<void(GpgError, DataObjectPtr)>;
 using GpgOperationFuture = std::future<std::tuple<GpgError, DataObjectPtr>>;

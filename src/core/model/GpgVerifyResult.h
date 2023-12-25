@@ -28,58 +28,26 @@
 
 #pragma once
 
-#include "GpgResultAnalyse.h"
-#include "core/model/GpgVerifyResult.h"
+#include "core/GpgFrontendCoreExport.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
-/**
- * @brief
- *
- */
-class GPGFRONTEND_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
+
+class GPGFRONTEND_CORE_EXPORT GpgVerifyResult {
  public:
-  /**
-   * @brief Construct a new Verify Result Analyse object
-   *
-   * @param error
-   * @param result
-   */
-  explicit GpgVerifyResultAnalyse(GpgError error, GpgVerifyResult result);
+  [[nodiscard]] auto IsGood() const -> bool;
 
-  /**
-   * @brief Get the Signatures object
-   *
-   * @return gpgme_signature_t
-   */
-  auto GetSignatures() const -> gpgme_signature_t;
+  [[nodiscard]] auto GetRaw() const -> gpgme_verify_result_t;
 
-  /**
-   * @brief
-   *
-   * @return GpgVerifyResult
-   */
-  auto TakeChargeOfResult() -> GpgVerifyResult;
+  [[nodiscard]] auto GetSignature() const -> std::vector<GpgSignature>;
 
- protected:
-  /**
-   * @brief
-   *
-   */
-  void doAnalyse() final;
+  explicit GpgVerifyResult(gpgme_verify_result_t);
+
+  GpgVerifyResult();
+
+  virtual ~GpgVerifyResult();
 
  private:
-  /**
-   * @brief
-   *
-   * @param stream
-   * @param sign
-   * @return true
-   * @return false
-   */
-  auto print_signer(std::stringstream &stream, gpgme_signature_t sign) -> bool;
-
-  GpgError error_;          ///<
-  GpgVerifyResult result_;  ///<
+  std::shared_ptr<struct _gpgme_op_verify_result> result_ref_ = nullptr;  ///<
 };
-
 }  // namespace GpgFrontend

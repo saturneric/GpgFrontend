@@ -72,10 +72,12 @@ auto GFBuffer::Data() -> std::byte* { return buffer_->data(); }
 
 void GFBuffer::Resize(size_t size) { buffer_->resize(size); }
 
-auto GFBuffer::Size() -> size_t { return buffer_->size(); }
+auto GFBuffer::Size() const -> size_t { return buffer_->size(); }
 
 auto GFBuffer::ConvertToQByteArray() -> QByteArray {
   return QByteArray::fromRawData(reinterpret_cast<const char*>(Data()),
                                  static_cast<qsizetype>(Size()));
 }
+
+auto GFBuffer::Empty() const -> bool { return this->Size() == 0; }
 }  // namespace GpgFrontend

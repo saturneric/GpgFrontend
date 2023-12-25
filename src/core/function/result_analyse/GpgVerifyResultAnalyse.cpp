@@ -38,9 +38,11 @@
 
 GpgFrontend::GpgVerifyResultAnalyse::GpgVerifyResultAnalyse(
     GpgError error, GpgVerifyResult result)
-    : error_(error), result_(std::move(result)) {}
+    : error_(error), result_(result) {}
 
 void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
+  auto *result = this->result_.GetRaw();
+
   SPDLOG_DEBUG("started");
 
   stream_ << "[#] " << _("Verify Operation") << " ";
@@ -53,9 +55,9 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
     setStatus(-1);
   }
 
-  if (result_ != nullptr && result_->signatures != nullptr) {
+  if (result != nullptr && result->signatures != nullptr) {
     stream_ << "------------>" << std::endl;
-    auto *sign = result_->signatures;
+    auto *sign = result->signatures;
 
     stream_ << "[>] " << _("Signed On") << "(" << _("UTC") << ")"
             << " "
@@ -210,13 +212,13 @@ auto GpgFrontend::GpgVerifyResultAnalyse::print_signer(
 
 auto GpgFrontend::GpgVerifyResultAnalyse::GetSignatures() const
     -> gpgme_signature_t {
-  if (result_) {
-    return result_->signatures;
+  if (result_.IsGood()) {
+    return result_.GetRaw()->signatures;
   }
   return nullptr;
 }
 
 auto GpgFrontend::GpgVerifyResultAnalyse::TakeChargeOfResult()
     -> GpgFrontend::GpgVerifyResult {
-  return std::move(result_);
+  return result_;
 }

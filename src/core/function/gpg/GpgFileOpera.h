@@ -50,7 +50,7 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param channel Channel in context
    * @return unsigned int error code
    */
-  static void EncryptFile(std::vector<GpgKey> keys, const std::string& in_path,
+  static void EncryptFile(KeyArgsList keys, const std::string& in_path,
                           const std::string& out_path, bool ascii,
                           const GpgOperationCallback& cb);
 
@@ -89,9 +89,9 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param channel
    * @return GpgError
    */
-  static auto SignFile(KeyListPtr keys, const std::string& in_path,
-                       const std::string& out_path, GpgSignResult& result,
-                       int channel = kGpgFrontendDefaultChannel) -> GpgError;
+  static void SignFile(KeyArgsList keys, const std::string& in_path,
+                       const std::string& out_path, bool ascii,
+                       const GpgOperationCallback& cb);
 
   /**
    * @brief Verify file with public key
@@ -102,9 +102,9 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param channel Channel in context
    * @return GpgError
    */
-  static auto VerifyFile(const std::string& data_path,
-                         const std::string& sign_path, GpgVerifyResult& result,
-                         int channel = kGpgFrontendDefaultChannel) -> GpgError;
+  static void VerifyFile(const std::string& data_path,
+                         const std::string& sign_path,
+                         const GpgOperationCallback& cb);
 
   /**
    * @brief Encrypt and sign file with public key and private key
@@ -118,12 +118,10 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param channel
    * @return GpgError
    */
-  static auto EncryptSignFile(KeyListPtr keys, KeyListPtr signer_keys,
+  static void EncryptSignFile(KeyArgsList keys, KeyArgsList signer_keys,
                               const std::string& in_path,
-                              const std::string& out_path,
-                              GpgEncrResult& encr_res, GpgSignResult& sign_res,
-                              int channel = kGpgFrontendDefaultChannel)
-      -> GpgError;
+                              const std::string& out_path, bool ascii,
+                              const GpgOperationCallback& cb);
 
   /**
    * @brief
@@ -134,10 +132,9 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param verify_res
    * @return GpgError
    */
-  static auto DecryptVerifyFile(const std::string& in_path,
+  static void DecryptVerifyFile(const std::string& in_path,
                                 const std::string& out_path,
-                                GpgDecrResult& decr_res,
-                                GpgVerifyResult& verify_res) -> GpgError;
+                                const GpgOperationCallback& cb);
 };
 
 }  // namespace GpgFrontend

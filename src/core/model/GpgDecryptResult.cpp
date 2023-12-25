@@ -44,6 +44,10 @@ GpgDecryptResult::~GpgDecryptResult() = default;
 
 auto GpgDecryptResult::IsGood() -> bool { return result_ref_ != nullptr; }
 
+auto GpgDecryptResult::GetRaw() -> gpgme_decrypt_result_t {
+  return result_ref_.get();
+}
+
 auto GpgDecryptResult::Recipients() -> std::vector<GpgRecipient> {
   std::vector<GpgRecipient> result;
   for (auto* reci = result_ref_->recipients; reci != nullptr;

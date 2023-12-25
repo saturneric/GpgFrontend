@@ -51,7 +51,9 @@ class GPGFRONTEND_CORE_EXPORT GFBuffer {
 
   void Resize(size_t size);
 
-  auto Size() -> size_t;
+  [[nodiscard]] auto Size() const -> size_t;
+
+  [[nodiscard]] auto Empty() const -> bool;
 
   auto ConvertToQByteArray() -> QByteArray;
 

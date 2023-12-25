@@ -37,6 +37,8 @@ class GPGFRONTEND_CORE_EXPORT GpgDecryptResult {
  public:
   auto IsGood() -> bool;
 
+  auto GetRaw() -> gpgme_decrypt_result_t;
+
   auto Recipients() -> std::vector<GpgRecipient>;
 
   explicit GpgDecryptResult(gpgme_decrypt_result_t);

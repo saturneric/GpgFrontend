@@ -33,12 +33,6 @@
 
 namespace GpgFrontend {
 
-using GpgEncrResult = std::shared_ptr<struct _gpgme_op_encrypt_result>;   ///<
-using GpgDecrResult = std::shared_ptr<struct _gpgme_op_decrypt_result>;   ///<
-using GpgSignResult = std::shared_ptr<struct _gpgme_op_sign_result>;      ///<
-using GpgVerifyResult = std::shared_ptr<struct _gpgme_op_verify_result>;  ///<
-using GpgGenKeyResult = std::shared_ptr<struct _gpgme_op_genkey_result>;  ///<
-
 class GPGFRONTEND_CORE_EXPORT GpgResultAnalyse {
  public:
   /**

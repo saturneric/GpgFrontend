@@ -53,19 +53,13 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
-   * @brief Call the interface provided by gpgme for encryption operation
+   * @brief
    *
    * All incoming data pointers out_buffer will be replaced with new valid
    * values
    *
-   * @param keys list of public keys
-   * @param in_buffer data that needs to be encrypted
-   * @param out_buffer encrypted data
-   * @param result the result of the operation
-   * @return error code
    */
-  void Encrypt(std::vector<GpgKey>, GFBuffer, bool,
-               const GpgOperationCallback&);
+  void Encrypt(KeyArgsList, GFBuffer, bool, const GpgOperationCallback&);
 
   /**
    * @brief Call the interface provided by GPGME to symmetrical encryption
@@ -91,9 +85,8 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param sign_result Signature result
    * @return
    */
-  auto EncryptSign(KeyListPtr keys, KeyListPtr signers, BypeArrayRef in_buffer,
-                   ByteArrayPtr& out_buffer, GpgEncrResult& encr_result,
-                   GpgSignResult& sign_result) -> GpgError;
+  void EncryptSign(KeyArgsList keys, KeyArgsList signers, GFBuffer in_buffer,
+                   bool ascii, const GpgOperationCallback& cb);
 
   /**
    * @brief Call the interface provided by gpgme for decryption operation
@@ -115,9 +108,7 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param verify_result the result of the verifying operation
    * @return error code
    */
-  auto DecryptVerify(BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
-                     GpgDecrResult& decrypt_result,
-                     GpgVerifyResult& verify_result) -> GpgError;
+  void DecryptVerify(GFBuffer in_buffer, const GpgOperationCallback& cb);
 
   /**
    * @brief Call the interface provided by gpgme for verification operation
@@ -127,8 +118,8 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param result the result of the operation
    * @return error code
    */
-  auto Verify(BypeArrayRef in_buffer, ByteArrayPtr& sig_buffer,
-              GpgVerifyResult& result) const -> GpgError;
+  void Verify(GFBuffer in_buffer, GFBuffer sig_buffer,
+              const GpgOperationCallback& cb);
 
   /**
    * @brief  Call the interface provided by gpgme for signing operation
@@ -150,9 +141,8 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param result the result of the operation
    * @return error code
    */
-  auto Sign(KeyListPtr signers, BypeArrayRef in_buffer,
-            ByteArrayPtr& out_buffer, gpgme_sig_mode_t mode,
-            GpgSignResult& result) -> GpgError;
+  void Sign(KeyArgsList signers, GFBuffer in_buffer, GpgSignMode mode,
+            bool ascii, const GpgOperationCallback& cb);
 
   /**
    * @brief  Set the private key for signatures, this operation is a global
@@ -160,14 +150,14 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    *
    * @param keys
    */
-  void SetSigners(KeyArgsList& signers);
+  void SetSigners(const KeyArgsList& signers, bool ascii);
 
   /**
    * @brief Get a global signature private keys that has been set.
    *
    * @return Intelligent pointer pointing to the private key list
    */
-  auto GetSigners() -> std::unique_ptr<KeyArgsList>;
+  auto GetSigners(bool ascii) -> std::unique_ptr<KeyArgsList>;
 
  private:
   GpgContext& ctx_ = GpgContext::GetInstance(

@@ -34,61 +34,6 @@
 
 namespace GpgFrontend {
 
-/**
- * @brief Result Deleter
- *
- */
-struct ResultRefDeletor {
-  void operator()(void* _result);
-};
-
-// Convert from  gpgme_xxx_result to GpgXXXResult
-
-/**
- * @brief
- *
- * @param result
- * @return GpgEncrResult
- */
-auto GPGFRONTEND_CORE_EXPORT NewResult(gpgme_encrypt_result_t&& result)
-    -> GpgEncrResult;
-
-/**
- * @brief
- *
- * @param result
- * @return GpgDecrResult
- */
-auto GPGFRONTEND_CORE_EXPORT NewResult(gpgme_decrypt_result_t&& result)
-    -> GpgDecrResult;
-
-/**
- * @brief
- *
- * @param result
- * @return GpgSignResult
- */
-auto GPGFRONTEND_CORE_EXPORT NewResult(gpgme_sign_result_t&& result)
-    -> GpgSignResult;
-
-/**
- * @brief
- *
- * @param result
- * @return GpgVerifyResult
- */
-auto GPGFRONTEND_CORE_EXPORT NewResult(gpgme_verify_result_t&& result)
-    -> GpgVerifyResult;
-
-/**
- * @brief
- *
- * @param result
- * @return GpgGenKeyResult
- */
-auto GPGFRONTEND_CORE_EXPORT NewResult(gpgme_genkey_result_t&& result)
-    -> GpgGenKeyResult;
-
 // Error Info Printer
 
 /**

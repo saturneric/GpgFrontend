@@ -33,17 +33,18 @@
 #include "core/GpgModel.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
+#include "core/model/GpgSignResult.h"
+#include "core/model/GpgVerifyResult.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
 
-GpgFrontend::GpgBasicOperator::GpgBasicOperator(int channel)
+GpgBasicOperator::GpgBasicOperator(int channel)
     : SingletonFunctionObject<GpgBasicOperator>(channel) {}
 
-void GpgFrontend::GpgBasicOperator::Encrypt(std::vector<GpgKey> keys,
-                                            GFBuffer in_buffer, bool ascii,
-                                            const GpgOperationCallback& cb) {
+void GpgBasicOperator::Encrypt(KeyArgsList keys, GFBuffer in_buffer, bool ascii,
+                               const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
         std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
@@ -66,8 +67,8 @@ void GpgFrontend::GpgBasicOperator::Encrypt(std::vector<GpgKey> keys,
       cb, "gpgme_op_encrypt", "2.1.0");
 }
 
-void GpgFrontend::GpgBasicOperator::Decrypt(GFBuffer in_buffer,
-                                            const GpgOperationCallback& cb) {
+void GpgBasicOperator::Decrypt(GFBuffer in_buffer,
+                               const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
         GpgData data_in(in_buffer);
@@ -84,126 +85,117 @@ void GpgFrontend::GpgBasicOperator::Decrypt(GFBuffer in_buffer,
       cb, "gpgme_op_decrypt", "2.1.0");
 }
 
-auto GpgFrontend::GpgBasicOperator::Verify(BypeArrayRef& in_buffer,
-                                           ByteArrayPtr& sig_buffer,
-                                           GpgVerifyResult& result) const
-    -> GpgFrontend::GpgError {
-  GpgError err;
+void GpgBasicOperator::Verify(GFBuffer in_buffer, GFBuffer sig_buffer,
+                              const GpgOperationCallback& cb) {
+  RunGpgOperaAsync(
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        GpgError err;
 
-  GpgData data_in(in_buffer.data(), in_buffer.size());
-  GpgData data_out;
+        GpgData data_in(in_buffer);
+        GpgData data_out;
 
-  if (sig_buffer != nullptr && !sig_buffer->empty()) {
-    GpgData sig_data(sig_buffer->data(), sig_buffer->size());
-    err = CheckGpgError(
-        gpgme_op_verify(ctx_.DefaultContext(), sig_data, data_in, nullptr));
-  } else {
-    err = CheckGpgError(
-        gpgme_op_verify(ctx_.DefaultContext(), data_in, nullptr, data_out));
-  }
+        if (!sig_buffer.Empty()) {
+          GpgData sig_data(sig_buffer);
+          err = CheckGpgError(gpgme_op_verify(ctx_.DefaultContext(), sig_data,
+                                              data_in, nullptr));
+        } else {
+          err = CheckGpgError(gpgme_op_verify(ctx_.DefaultContext(), data_in,
+                                              nullptr, data_out));
+        }
 
-  auto temp_result = NewResult(gpgme_op_verify_result(ctx_.DefaultContext()));
-  std::swap(result, temp_result);
+        data_object->Swap({
+            GpgVerifyResult(gpgme_op_verify_result(ctx_.DefaultContext())),
+        });
 
-  return err;
+        return err;
+      },
+      cb, "gpgme_op_verify", "2.1.0");
 }
 
-auto GpgFrontend::GpgBasicOperator::Sign(
-    KeyListPtr signers, BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
-    gpgme_sig_mode_t mode, GpgSignResult& result) -> GpgFrontend::GpgError {
-  GpgError err;
+void GpgBasicOperator::Sign(KeyArgsList signers, GFBuffer in_buffer,
+                            GpgSignMode mode, bool ascii,
+                            const GpgOperationCallback& cb) {
+  RunGpgOperaAsync(
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        GpgError err;
 
-  // Set Singers of this opera
-  SetSigners(*signers);
+        // Set Singers of this opera
+        SetSigners(signers, ascii);
 
-  GpgData data_in(in_buffer.data(), in_buffer.size());
-  GpgData data_out;
+        GpgData data_in(in_buffer);
+        GpgData data_out;
 
-  err = CheckGpgError(
-      gpgme_op_sign(ctx_.DefaultContext(), data_in, data_out, mode));
+        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+        err = CheckGpgError(gpgme_op_sign(ctx, data_in, data_out, mode));
 
-  auto temp_data_out = data_out.Read2Buffer();
-  std::swap(temp_data_out, out_buffer);
-
-  auto temp_result = NewResult(gpgme_op_sign_result(ctx_.DefaultContext()));
-
-  std::swap(result, temp_result);
-
-  return err;
+        data_object->Swap({GpgSignResult(gpgme_op_sign_result(ctx)),
+                           data_out.Read2GFBuffer()});
+        return err;
+      },
+      cb, "gpgme_op_sign", "2.1.0");
 }
 
-auto GpgFrontend::GpgBasicOperator::DecryptVerify(
-    BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
-    GpgDecrResult& decrypt_result, GpgVerifyResult& verify_result) -> GpgError {
-  GpgError err;
+void GpgBasicOperator::DecryptVerify(GFBuffer in_buffer,
+                                     const GpgOperationCallback& cb) {
+  RunGpgOperaAsync(
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        GpgError err;
 
-  GpgData data_in(in_buffer.data(), in_buffer.size());
-  GpgData data_out;
+        GpgData data_in(in_buffer);
+        GpgData data_out;
 
-  err = CheckGpgError(
-      gpgme_op_decrypt_verify(ctx_.DefaultContext(), data_in, data_out));
+        err = CheckGpgError(
+            gpgme_op_decrypt_verify(ctx_.DefaultContext(), data_in, data_out));
 
-  auto temp_data_out = data_out.Read2Buffer();
-  std::swap(temp_data_out, out_buffer);
+        data_object->Swap(
+            {GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext())),
+             GpgVerifyResult(gpgme_op_verify_result(ctx_.DefaultContext())),
+             data_out.Read2GFBuffer()});
 
-  auto temp_decr_result =
-      NewResult(gpgme_op_decrypt_result(ctx_.DefaultContext()));
-  std::swap(decrypt_result, temp_decr_result);
-
-  auto temp_verify_result =
-      NewResult(gpgme_op_verify_result(ctx_.DefaultContext()));
-  std::swap(verify_result, temp_verify_result);
-
-  return err;
+        return err;
+      },
+      cb, "gpgme_op_decrypt_verify", "2.1.0");
 }
 
-auto GpgFrontend::GpgBasicOperator::EncryptSign(
-    KeyListPtr keys, KeyListPtr signers, BypeArrayRef in_buffer,
-    ByteArrayPtr& out_buffer, GpgEncrResult& encr_result,
-    GpgSignResult& sign_result) -> GpgError {
-  GpgError err;
-  SetSigners(*signers);
+void GpgBasicOperator::EncryptSign(KeyArgsList keys, KeyArgsList signers,
+                                   GFBuffer in_buffer, bool ascii,
+                                   const GpgOperationCallback& cb) {
+  RunGpgOperaAsync(
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        GpgError err;
+        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
 
-  // gpgme_encrypt_result_t e_result;
-  gpgme_key_t recipients[keys->size() + 1];
+        // Last entry data_in array has to be nullptr
+        recipients.emplace_back(nullptr);
 
-  // set key for user
-  int index = 0;
-  for (const auto& key : *keys) {
-    recipients[index++] = static_cast<gpgme_key_t>(key);
-  }
+        SetSigners(signers, ascii);
 
-  // Last entry dataIn array has to be nullptr
-  recipients[keys->size()] = nullptr;
+        GpgData data_in(in_buffer);
+        GpgData data_out;
 
-  GpgData data_in(in_buffer.data(), in_buffer.size());
-  GpgData data_out;
+        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+        err = CheckGpgError(gpgme_op_encrypt_sign(ctx, recipients.data(),
+                                                  GPGME_ENCRYPT_ALWAYS_TRUST,
+                                                  data_in, data_out));
 
-  // If the last parameter isnt 0, a private copy of data is made
-  err = CheckGpgError(gpgme_op_encrypt_sign(ctx_.DefaultContext(), recipients,
-                                            GPGME_ENCRYPT_ALWAYS_TRUST, data_in,
-                                            data_out));
-
-  auto temp_data_out = data_out.Read2Buffer();
-  std::swap(temp_data_out, out_buffer);
-
-  auto temp_encr_result =
-      NewResult(gpgme_op_encrypt_result(ctx_.DefaultContext()));
-  swap(encr_result, temp_encr_result);
-  auto temp_sign_result =
-      NewResult(gpgme_op_sign_result(ctx_.DefaultContext()));
-  swap(sign_result, temp_sign_result);
-
-  return err;
+        data_object->Swap({GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
+                           GpgSignResult(gpgme_op_sign_result(ctx)),
+                           data_out.Read2GFBuffer()});
+        return err;
+      },
+      cb, "gpgme_op_encrypt_sign", "2.1.0");
 }
 
-void GpgFrontend::GpgBasicOperator::SetSigners(KeyArgsList& signers) {
-  gpgme_signers_clear(ctx_.DefaultContext());
+void GpgBasicOperator::SetSigners(const KeyArgsList& signers, bool ascii) {
+  auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+
+  gpgme_signers_clear(ctx);
+
   for (const GpgKey& key : signers) {
     SPDLOG_DEBUG("key fpr: {}", key.GetFingerprint());
     if (key.IsHasActualSigningCapability()) {
       SPDLOG_DEBUG("signer");
-      auto error = gpgme_signers_add(ctx_.DefaultContext(), gpgme_key_t(key));
+      auto error = gpgme_signers_add(ctx, gpgme_key_t(key));
       CheckGpgError(error);
     }
   }
@@ -211,19 +203,20 @@ void GpgFrontend::GpgBasicOperator::SetSigners(KeyArgsList& signers) {
     SPDLOG_DEBUG("not all signers added");
 }
 
-auto GpgFrontend::GpgBasicOperator::GetSigners()
-    -> std::unique_ptr<GpgFrontend::KeyArgsList> {
-  auto count = gpgme_signers_count(ctx_.DefaultContext());
+auto GpgBasicOperator::GetSigners(bool ascii) -> std::unique_ptr<KeyArgsList> {
+  auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+
+  auto count = gpgme_signers_count(ctx);
   auto signers = std::make_unique<std::vector<GpgKey>>();
   for (auto i = 0U; i < count; i++) {
-    auto key = GpgKey(gpgme_signers_enum(ctx_.DefaultContext(), i));
+    auto key = GpgKey(gpgme_signers_enum(ctx, i));
     signers->push_back(GpgKey(std::move(key)));
   }
   return signers;
 }
 
-void GpgFrontend::GpgBasicOperator::EncryptSymmetric(
-    GFBuffer in_buffer, bool ascii, const GpgOperationCallback& cb) {
+void GpgBasicOperator::EncryptSymmetric(GFBuffer in_buffer, bool ascii,
+                                        const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
         GpgData data_in(in_buffer);

@@ -34,6 +34,8 @@
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
+#include "core/model/GpgSignResult.h"
+#include "core/model/GpgVerifyResult.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::Test {
@@ -41,11 +43,9 @@ namespace GpgFrontend::Test {
 TEST_F(GpgCoreTest, CoreEncryptDecrTest) {
   auto encrypt_key = GpgKeyGetter::GetInstance().GetPubkey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  auto encrypt_text = GFBuffer("Hello GpgFrontend!");
-  auto const keys = std::vector<GpgKey>{encrypt_key};
 
   GpgBasicOperator::GetInstance().Encrypt(
-      keys, encrypt_text, true,
+      {encrypt_key}, GFBuffer("Hello GpgFrontend!"), true,
       [](GpgError err, const DataObjectPtr& data_obj) {
         ASSERT_TRUE((data_obj->Check<GpgEncryptResult, GFBuffer>()));
         auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
@@ -53,15 +53,36 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest) {
         ASSERT_TRUE(result.InvalidRecipients().empty());
         ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
 
-        GpgBasicOperator::GetInstance(kGpgFrontendDefaultChannel)
-            .Decrypt(encr_out_buffer, [](GpgError err,
-                                         const DataObjectPtr& data_obj) {
+        GpgBasicOperator::GetInstance().Decrypt(
+            encr_out_buffer, [](GpgError err, const DataObjectPtr& data_obj) {
               auto d_result = ExtractParams<GpgDecryptResult>(data_obj, 0);
               auto decr_out_buffer = ExtractParams<GFBuffer>(data_obj, 1);
               ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
               ASSERT_FALSE(d_result.Recipients().empty());
               ASSERT_EQ(d_result.Recipients()[0].keyid, "6A2764F8298DEB29");
 
+              ASSERT_EQ(decr_out_buffer, GFBuffer("Hello GpgFrontend!"));
+            });
+      });
+}
+
+TEST_F(GpgCoreTest, CoreEncryptSymmetricDecrTest) {
+  auto encrypt_text = GFBuffer("Hello GpgFrontend!");
+
+  GpgBasicOperator::GetInstance().EncryptSymmetric(
+      encrypt_text, true, [](GpgError err, const DataObjectPtr& data_obj) {
+        ASSERT_TRUE((data_obj->Check<GpgEncryptResult, GFBuffer>()));
+        auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
+        auto encr_out_buffer = ExtractParams<GFBuffer>(data_obj, 1);
+        ASSERT_TRUE(result.InvalidRecipients().empty());
+        ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+
+        GpgBasicOperator::GetInstance().Decrypt(
+            encr_out_buffer, [](GpgError err, const DataObjectPtr& data_obj) {
+              auto d_result = ExtractParams<GpgDecryptResult>(data_obj, 0);
+              auto decr_out_buffer = ExtractParams<GFBuffer>(data_obj, 1);
+              ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+              ASSERT_TRUE(d_result.Recipients().empty());
               ASSERT_EQ(decr_out_buffer, GFBuffer("Hello GpgFrontend!"));
             });
       });
@@ -81,8 +102,8 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest_KeyNotFound_1) {
       "=8n2H\n"
       "-----END PGP MESSAGE-----");
 
-  GpgBasicOperator::GetInstance(kGpgFrontendDefaultChannel)
-      .Decrypt(encr_out_data, [=](GpgError err, const DataObjectPtr& data_obj) {
+  GpgBasicOperator::GetInstance().Decrypt(
+      encr_out_data, [=](GpgError err, const DataObjectPtr& data_obj) {
         auto d_result = ExtractParams<GpgDecryptResult>(data_obj, 0);
         auto decr_out_buffer = ExtractParams<GFBuffer>(data_obj, 1);
         ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_SECKEY);
@@ -105,137 +126,143 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest_KeyNotFound_ResultAnalyse) {
       "=8n2H\n"
       "-----END PGP MESSAGE-----");
 
-  GpgDecrResult d_result;
-  ByteArrayPtr decr_out_data;
-  GpgBasicOperator::GetInstance(kGpgFrontendDefaultChannel)
-      .Decrypt(encr_out_data, [=](GpgError err, const DataObjectPtr& data_obj) {
+  GpgBasicOperator::GetInstance().Decrypt(
+      encr_out_data, [=](GpgError err, const DataObjectPtr& data_obj) {
         auto d_result = ExtractParams<GpgDecryptResult>(data_obj, 0);
         auto decr_out_buffer = ExtractParams<GFBuffer>(data_obj, 1);
         ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_SECKEY);
         ASSERT_FALSE(d_result.Recipients().empty());
         ASSERT_EQ(d_result.Recipients()[0].keyid, "A50CFD2F6C677D8C");
 
-        // GpgDecryptResultAnalyse analyse{err, d_result};
-        // analyse.Analyse();
-        // ASSERT_EQ(analyse.GetStatus(), -1);
-        // ASSERT_FALSE(analyse.GetResultReport().empty());
+        GpgDecryptResultAnalyse analyse{err, d_result};
+        analyse.Analyse();
+        ASSERT_EQ(analyse.GetStatus(), -1);
+        ASSERT_FALSE(analyse.GetResultReport().empty());
       });
 }
 
 TEST_F(GpgCoreTest, CoreSignVerifyNormalTest) {
-  auto encrypt_key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                         .GetPubkey("467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
-  ByteArray sign_text = "Hello GpgFrontend!";
-  ByteArrayPtr sign_out_data;
-  GpgSignResult s_result;
-  KeyListPtr keys = std::make_unique<KeyArgsList>();
-  keys->push_back(std::move(encrypt_key));
-  auto err = GpgBasicOperator::GetInstance(kGpgFrontendDefaultChannel)
-                 .Sign(std::move(keys), sign_text, sign_out_data,
-                       GPGME_SIG_MODE_NORMAL, s_result);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
-  ASSERT_EQ(s_result->invalid_signers, nullptr);
+  auto sign_key = GpgKeyGetter::GetInstance().GetPubkey(
+      "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
+  auto sign_text = GFBuffer("Hello GpgFrontend!");
 
-  GpgVerifyResult v_result;
-  ByteArrayPtr sign_buff = nullptr;
-  err = GpgBasicOperator::GetInstance(kGpgFrontendDefaultChannel)
-            .Verify(*sign_out_data, sign_buff, v_result);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
-  ASSERT_NE(v_result->signatures, nullptr);
-  ASSERT_EQ(std::string(v_result->signatures->fpr),
-            "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
-  ASSERT_EQ(v_result->signatures->next, nullptr);
+  GpgBasicOperator::GetInstance().Sign(
+      {sign_key}, sign_text, GPGME_SIG_MODE_NORMAL, true,
+      [](GpgError err, const DataObjectPtr& data_obj) {
+        ASSERT_TRUE((data_obj->Check<GpgSignResult, GFBuffer>()));
+        auto result = ExtractParams<GpgSignResult>(data_obj, 0);
+        auto sign_out_buffer = ExtractParams<GFBuffer>(data_obj, 1);
+        ASSERT_TRUE(result.InvalidSigners().empty());
+        ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+
+        GpgBasicOperator::GetInstance().Verify(
+            sign_out_buffer, GFBuffer(),
+            [](GpgError err, const DataObjectPtr& data_obj) {
+              auto d_result = ExtractParams<GpgVerifyResult>(data_obj, 0);
+              ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+              ASSERT_FALSE(d_result.GetSignature().empty());
+              ASSERT_EQ(d_result.GetSignature().at(0),
+                        "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
+            });
+      });
 }
 
 TEST_F(GpgCoreTest, CoreSignVerifyDetachTest) {
-  auto encrypt_key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                         .GetPubkey("467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
-  ByteArray sign_text = "Hello GpgFrontend!";
-  ByteArrayPtr sign_out_data;
-  GpgSignResult s_result;
-  KeyListPtr keys = std::make_unique<KeyArgsList>();
-  keys->push_back(std::move(encrypt_key));
-  auto err = GpgBasicOperator::GetInstance(kGpgFrontendDefaultChannel)
-                 .Sign(std::move(keys), sign_text, sign_out_data,
-                       GPGME_SIG_MODE_DETACH, s_result);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
-  ASSERT_EQ(s_result->invalid_signers, nullptr);
+  auto sign_key = GpgKeyGetter::GetInstance().GetPubkey(
+      "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
+  auto sign_text = GFBuffer("Hello GpgFrontend!");
 
-  GpgVerifyResult v_result;
-  err = GpgBasicOperator::GetInstance(kGpgFrontendDefaultChannel)
-            .Verify(sign_text, sign_out_data, v_result);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
-  ASSERT_NE(v_result->signatures, nullptr);
-  ASSERT_EQ(std::string(v_result->signatures->fpr),
-            "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
-  ASSERT_EQ(v_result->signatures->next, nullptr);
+  GpgBasicOperator::GetInstance().Sign(
+      {sign_key}, sign_text, GPGME_SIG_MODE_DETACH, true,
+      [=](GpgError err, const DataObjectPtr& data_obj) {
+        ASSERT_TRUE((data_obj->Check<GpgSignResult, GFBuffer>()));
+        auto result = ExtractParams<GpgSignResult>(data_obj, 0);
+        auto sign_out_buffer = ExtractParams<GFBuffer>(data_obj, 1);
+        ASSERT_TRUE(result.InvalidSigners().empty());
+        ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+
+        GpgBasicOperator::GetInstance().Verify(
+            sign_text, sign_out_buffer,
+            [](GpgError err, const DataObjectPtr& data_obj) {
+              auto d_result = ExtractParams<GpgVerifyResult>(data_obj, 0);
+              ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+              ASSERT_FALSE(d_result.GetSignature().empty());
+              ASSERT_EQ(d_result.GetSignature().at(0),
+                        "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
+            });
+      });
 }
 
 TEST_F(GpgCoreTest, CoreSignVerifyClearTest) {
-  auto sign_key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                      .GetKey("467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
-  ByteArray sign_text = "Hello GpgFrontend!";
-  ByteArrayPtr sign_out_data;
-  GpgSignResult s_result;
-  KeyListPtr keys = std::make_unique<KeyArgsList>();
-  keys->push_back(std::move(sign_key));
-  auto err = GpgBasicOperator::GetInstance(kGpgFrontendDefaultChannel)
-                 .Sign(std::move(keys), sign_text, sign_out_data,
-                       GPGME_SIG_MODE_CLEAR, s_result);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
-  ASSERT_EQ(s_result->invalid_signers, nullptr);
+  auto sign_key = GpgKeyGetter::GetInstance().GetPubkey(
+      "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
+  auto sign_text = GFBuffer("Hello GpgFrontend!");
 
-  GpgVerifyResult v_result;
-  ByteArrayPtr sign_buff = nullptr;
-  err = GpgBasicOperator::GetInstance(kGpgFrontendDefaultChannel)
-            .Verify(*sign_out_data, sign_buff, v_result);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
-  ASSERT_NE(v_result->signatures, nullptr);
-  ASSERT_EQ(std::string(v_result->signatures->fpr),
-            "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
-  ASSERT_EQ(v_result->signatures->next, nullptr);
+  GpgBasicOperator::GetInstance().Sign(
+      {sign_key}, sign_text, GPGME_SIG_MODE_CLEAR, true,
+      [](GpgError err, const DataObjectPtr& data_obj) {
+        ASSERT_TRUE((data_obj->Check<GpgSignResult, GFBuffer>()));
+        auto result = ExtractParams<GpgSignResult>(data_obj, 0);
+        auto sign_out_buffer = ExtractParams<GFBuffer>(data_obj, 1);
+        ASSERT_TRUE(result.InvalidSigners().empty());
+        ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+
+        GpgBasicOperator::GetInstance().Verify(
+            sign_out_buffer, GFBuffer(),
+            [](GpgError err, const DataObjectPtr& data_obj) {
+              auto verify_reult = ExtractParams<GpgVerifyResult>(data_obj, 0);
+              ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+              ASSERT_FALSE(verify_reult.GetSignature().empty());
+              ASSERT_EQ(verify_reult.GetSignature().at(0),
+                        "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
+            });
+      });
 }
 
 TEST_F(GpgCoreTest, CoreEncryptSignDecrVerifyTest) {
-  auto encrypt_key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                         .GetPubkey("467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
-  auto sign_key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                      .GetKey("8933EB283A18995F45D61DAC021D89771B680FFB");
-  //   Question?
-  //   ASSERT_FALSE(encrypt_key.is_private_key());
+  auto encrypt_key = GpgKeyGetter::GetInstance().GetPubkey(
+      "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
+  auto sign_key = GpgKeyGetter::GetInstance().GetKey(
+      "8933EB283A18995F45D61DAC021D89771B680FFB");
+  auto encrypt_text = GFBuffer("Hello GpgFrontend!");
+
   ASSERT_TRUE(sign_key.IsPrivateKey());
   ASSERT_TRUE(sign_key.IsHasActualSigningCapability());
-  ByteArray encrypt_text = "Hello GpgFrontend!";
-  ByteArrayPtr encr_out_data;
-  GpgEncrResult e_result;
-  GpgSignResult s_result;
 
-  KeyListPtr keys = std::make_unique<KeyArgsList>();
-  KeyListPtr sign_keys = std::make_unique<KeyArgsList>();
+  GpgBasicOperator::GetInstance().EncryptSign(
+      {encrypt_key}, {sign_key}, encrypt_text, true,
+      [](GpgError err, const DataObjectPtr& data_obj) {
+        ASSERT_TRUE(
+            (data_obj->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()));
+        auto encr_result = ExtractParams<GpgEncryptResult>(data_obj, 0);
+        auto sign_result = ExtractParams<GpgSignResult>(data_obj, 1);
+        auto encr_out_buffer = ExtractParams<GFBuffer>(data_obj, 2);
+        ASSERT_TRUE(encr_result.InvalidRecipients().empty());
+        ASSERT_TRUE(sign_result.InvalidSigners().empty());
+        ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
 
-  keys->push_back(std::move(encrypt_key));
-  sign_keys->push_back(std::move(sign_key));
+        GpgBasicOperator::GetInstance().DecryptVerify(
+            encr_out_buffer, [](GpgError err, const DataObjectPtr& data_obj) {
+              ASSERT_TRUE(
+                  (data_obj
+                       ->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()));
+              auto decrypt_result =
+                  ExtractParams<GpgDecryptResult>(data_obj, 0);
+              auto verify_reult = ExtractParams<GpgVerifyResult>(data_obj, 1);
+              auto decr_out_buffer = ExtractParams<GFBuffer>(data_obj, 2);
 
-  auto err = GpgBasicOperator::GetInstance(kGpgFrontendDefaultChannel)
-                 .EncryptSign(std::move(keys), std::move(sign_keys),
-                              encrypt_text, encr_out_data, e_result, s_result);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
-  ASSERT_EQ(e_result->invalid_recipients, nullptr);
-  ASSERT_EQ(s_result->invalid_signers, nullptr);
+              ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
 
-  GpgDecrResult d_result;
-  GpgVerifyResult v_result;
-  ByteArrayPtr decr_out_data = nullptr;
-  err = GpgBasicOperator::GetInstance(kGpgFrontendDefaultChannel)
-            .DecryptVerify(*encr_out_data, decr_out_data, d_result, v_result);
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
-  ASSERT_NE(d_result->recipients, nullptr);
-  ASSERT_EQ(std::string(d_result->recipients->keyid), "F89C95A05088CC93");
-  ASSERT_EQ(*decr_out_data, encrypt_text);
-  ASSERT_NE(v_result->signatures, nullptr);
-  ASSERT_EQ(std::string(v_result->signatures->fpr),
-            "8933EB283A18995F45D61DAC021D89771B680FFB");
-  ASSERT_EQ(v_result->signatures->next, nullptr);
+              ASSERT_FALSE(decrypt_result.Recipients().empty());
+              ASSERT_EQ(decr_out_buffer, GFBuffer("Hello GpgFrontend!"));
+
+              ASSERT_EQ(decrypt_result.Recipients()[0].keyid,
+                        "F89C95A05088CC93");
+              ASSERT_FALSE(verify_reult.GetSignature().empty());
+              ASSERT_EQ(verify_reult.GetSignature().at(0),
+                        "8933EB283A18995F45D61DAC021D89771B680FFB");
+            });
+      });
 }
 
 }  // namespace GpgFrontend::Test

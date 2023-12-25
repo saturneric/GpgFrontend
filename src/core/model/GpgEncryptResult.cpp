@@ -43,6 +43,10 @@ GpgEncryptResult::~GpgEncryptResult() = default;
 
 auto GpgEncryptResult::IsGood() -> bool { return result_ref_ != nullptr; }
 
+auto GpgEncryptResult::GetRaw() -> gpgme_encrypt_result_t {
+  return result_ref_.get();
+}
+
 auto GpgEncryptResult::InvalidRecipients()
     -> std::vector<std::tuple<std::string, GpgError>> {
   std::vector<std::tuple<std::string, GpgError>> result;
@@ -59,7 +63,4 @@ auto GpgEncryptResult::InvalidRecipients()
   return result;
 }
 
-auto GpgEncryptResult::GetRaw() -> gpgme_encrypt_result_t {
-  return result_ref_.get();
-}
 }  // namespace GpgFrontend

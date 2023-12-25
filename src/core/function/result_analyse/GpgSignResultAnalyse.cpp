@@ -37,6 +37,8 @@ GpgSignResultAnalyse::GpgSignResultAnalyse(GpgError error, GpgSignResult result)
     : error_(error), result_(std::move(result)) {}
 
 void GpgSignResultAnalyse::doAnalyse() {
+  auto *result = this->result_.GetRaw();
+
   SPDLOG_DEBUG("start sign result analyse");
 
   stream_ << "[#] " << _("Sign Operation") << " ";
@@ -49,11 +51,11 @@ void GpgSignResultAnalyse::doAnalyse() {
     setStatus(-1);
   }
 
-  if (result_ != nullptr &&
-      (result_->signatures != nullptr || result_->invalid_signers != nullptr)) {
+  if (result != nullptr &&
+      (result->signatures != nullptr || result->invalid_signers != nullptr)) {
     SPDLOG_DEBUG("sign result analyse getting result");
     stream_ << "------------>" << std::endl;
-    auto *new_sign = result_->signatures;
+    auto *new_sign = result->signatures;
 
     while (new_sign != nullptr) {
       stream_ << "[>]" << _("New Signature") << ": " << std::endl;
@@ -96,7 +98,7 @@ void GpgSignResultAnalyse::doAnalyse() {
 
     SPDLOG_DEBUG("sign result analyse getting invalid signer");
 
-    auto *invalid_signer = result_->invalid_signers;
+    auto *invalid_signer = result->invalid_signers;
 
     if (invalid_signer != nullptr) {
       stream_ << _("Invalid Signers") << ": " << std::endl;

@@ -26,28 +26,40 @@
  *
  */
 
-#pragma once
-
-#include "core/typedef/GpgTypedef.h"
+#include "GpgSignResult.h"
 
 namespace GpgFrontend {
+GpgSignResult::GpgSignResult(gpgme_sign_result_t r)
+    : result_ref_(std::shared_ptr<struct _gpgme_op_sign_result>(
+          (gpgme_result_ref(r), r), [](gpgme_sign_result_t p) {
+            if (p != nullptr) {
+              gpgme_result_unref(p);
+            }
+          })) {}
 
-class GPGFRONTEND_CORE_EXPORT GpgEncryptResult {
- public:
-  auto IsGood() -> bool;
+GpgSignResult::GpgSignResult() = default;
 
-  auto GetRaw() -> gpgme_encrypt_result_t;
+GpgSignResult::~GpgSignResult() = default;
 
-  auto InvalidRecipients() -> std::vector<std::tuple<std::string, GpgError>>;
+auto GpgSignResult::IsGood() -> bool { return result_ref_ != nullptr; }
 
-  explicit GpgEncryptResult(gpgme_encrypt_result_t);
+auto GpgSignResult::GetRaw() -> gpgme_sign_result_t {
+  return result_ref_.get();
+}
 
-  GpgEncryptResult();
-
-  virtual ~GpgEncryptResult();
-
- private:
-  std::shared_ptr<struct _gpgme_op_encrypt_result> result_ref_ = nullptr;  ///<
-};
-
+auto GpgSignResult::InvalidSigners()
+    -> std::vector<std::tuple<std::string, GpgError>> {
+  std::vector<std::tuple<std::string, GpgError>> result;
+  for (auto* invalid_key = result_ref_->invalid_signers; invalid_key != nullptr;
+       invalid_key = invalid_key->next) {
+    try {
+      result.emplace_back(std::string{invalid_key->fpr}, invalid_key->reason);
+    } catch (...) {
+      SPDLOG_ERROR(
+          "caught exception when processing invalid_signers, "
+          "maybe nullptr of fpr");
+    }
+  }
+  return result;
+}
 }  // namespace GpgFrontend
