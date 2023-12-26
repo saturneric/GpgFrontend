@@ -50,8 +50,9 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param channel Channel in context
    * @return unsigned int error code
    */
-  static void EncryptFile(KeyArgsList keys, const std::string& in_path,
-                          const std::string& out_path, bool ascii,
+  static void EncryptFile(KeyArgsList keys,
+                          const std::filesystem::path& in_path, bool ascii,
+                          const std::filesystem::path& out_path,
                           const GpgOperationCallback& cb);
 
   /**
@@ -63,8 +64,9 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param channel
    * @return unsigned int
    */
-  static void EncryptFileSymmetric(const std::string& in_path,
-                                   const std::string& out_path, bool ascii,
+  static void EncryptFileSymmetric(const std::filesystem::path& in_path,
+                                   bool ascii,
+                                   const std::filesystem::path& out_path,
                                    const GpgOperationCallback& cb);
 
   /**
@@ -75,8 +77,8 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param result
    * @return GpgError
    */
-  static void DecryptFile(const std::string& in_path,
-                          const std::string& out_path,
+  static void DecryptFile(const std::filesystem::path& in_path,
+                          const std::filesystem::path& out_path,
                           const GpgOperationCallback& cb);
 
   /**
@@ -89,8 +91,8 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param channel
    * @return GpgError
    */
-  static void SignFile(KeyArgsList keys, const std::string& in_path,
-                       const std::string& out_path, bool ascii,
+  static void SignFile(KeyArgsList keys, const std::filesystem::path& in_path,
+                       bool ascii, const std::filesystem::path& out_path,
                        const GpgOperationCallback& cb);
 
   /**
@@ -102,8 +104,8 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param channel Channel in context
    * @return GpgError
    */
-  static void VerifyFile(const std::string& data_path,
-                         const std::string& sign_path,
+  static void VerifyFile(const std::filesystem::path& data_path,
+                         const std::filesystem::path& sign_path,
                          const GpgOperationCallback& cb);
 
   /**
@@ -119,8 +121,8 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @return GpgError
    */
   static void EncryptSignFile(KeyArgsList keys, KeyArgsList signer_keys,
-                              const std::string& in_path,
-                              const std::string& out_path, bool ascii,
+                              const std::filesystem::path& in_path, bool ascii,
+                              const std::filesystem::path& out_path,
                               const GpgOperationCallback& cb);
 
   /**
@@ -132,8 +134,8 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param verify_res
    * @return GpgError
    */
-  static void DecryptVerifyFile(const std::string& in_path,
-                                const std::string& out_path,
+  static void DecryptVerifyFile(const std::filesystem::path& in_path,
+                                const std::filesystem::path& out_path,
                                 const GpgOperationCallback& cb);
 };
 

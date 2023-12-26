@@ -123,4 +123,38 @@ auto GPGFRONTEND_CORE_EXPORT ReadAllDataInFile(const std::string &path)
 auto GPGFRONTEND_CORE_EXPORT WriteBufferToFile(const std::string &path,
                                                const std::string &out_buffer)
     -> bool;
+
+/**
+ * @brief
+ *
+ * @param path
+ * @return std::filesystem::path
+ */
+auto GPGFRONTEND_CORE_EXPORT ConvertPathByOS(const std::string &path)
+    -> std::filesystem::path;
+
+/**
+ * @brief
+ *
+ * @return std::filesystem::path
+ */
+auto GPGFRONTEND_CORE_EXPORT ConvertPathByOS(const QString &)
+    -> std::filesystem::path;
+
+/**
+ * @brief
+ *
+ * @return std::filesystem::path
+ */
+auto GPGFRONTEND_CORE_EXPORT GetTempFilePath() -> std::filesystem::path;
+
+/**
+ * @brief
+ *
+ * @param data
+ * @return std::filesystem::path
+ */
+auto GPGFRONTEND_CORE_EXPORT CreateTempFileAndWriteData(const std::string &data)
+    -> std::filesystem::path;
+
 }  // namespace GpgFrontend

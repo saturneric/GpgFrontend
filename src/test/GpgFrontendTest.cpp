@@ -122,7 +122,7 @@ void ConfigureGpgContext() {
       });
 }
 
-void ImportPrivateKeys(std::filesystem::path data_path,
+void ImportPrivateKeys(const std::filesystem::path& data_path,
                        const libconfig::Setting& config) {
   if (config.exists("load_keys.private_keys")) {
     auto& private_keys = config.lookup("load_keys.private_keys");

@@ -28,6 +28,9 @@
 
 #include "IOUtils.h"
 
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <sstream>
 
 #include "GpgModel.h"
@@ -157,5 +160,41 @@ auto ReadAllDataInFile(const std::string& utf8_path) -> std::string {
 auto WriteBufferToFile(const std::string& utf8_path,
                        const std::string& out_buffer) -> bool {
   return WriteFileStd(utf8_path, out_buffer);
+}
+
+auto ConvertPathByOS(const std::string& path) -> std::filesystem::path {
+#ifdef WINDOWS
+  return {QString::fromStdString(path).toStdU16String()};
+#else
+  return {path};
+#endif
+}
+
+auto ConvertPathByOS(const QString& path) -> std::filesystem::path {
+#ifdef WINDOWS
+  return {path.toStdU16String()};
+#else
+  return {path.toStdString()};
+#endif
+}
+
+auto GetTempFilePath() -> std::filesystem::path {
+  std::filesystem::path const temp_dir = std::filesystem::temp_directory_path();
+  boost::uuids::uuid const uuid = boost::uuids::random_generator()();
+  std::string const filename = boost::uuids::to_string(uuid) + ".data";
+  std::filesystem::path const temp_file = temp_dir / filename;
+  return temp_dir / filename;
+}
+
+auto CreateTempFileAndWriteData(const std::string& data)
+    -> std::filesystem::path {
+  auto temp_file = GetTempFilePath();
+  std::ofstream file_stream(temp_file, std::ios::out | std::ios::trunc);
+  if (!file_stream.is_open()) {
+    throw std::runtime_error("Unable to open temporary file.");
+  }
+  file_stream << data;
+  file_stream.close();
+  return temp_file.string();
 }
 }  // namespace GpgFrontend

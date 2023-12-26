@@ -43,12 +43,14 @@
 
 namespace GpgFrontend::UI {
 
-bool path_pre_check(QWidget* parent, const QString& path) {
-  QFileInfo file_info(path);
-  QFileInfo path_info(file_info.absolutePath());
+auto PathPreCheck(QWidget* parent, const std::filesystem::path& path) -> bool {
+  QFileInfo const file_info(path);
+  QFileInfo const path_info(file_info.absolutePath());
+
   if (!path_info.exists()) {
-    QMessageBox::critical(parent, _("Error"),
-                          QString(_("The path %1 does not exist.")).arg(path));
+    QMessageBox::critical(
+        parent, _("Error"),
+        QString(_("The path %1 does not exist.")).arg(path.c_str()));
     return false;
   }
   if (!file_info.isReadable()) {
@@ -119,27 +121,21 @@ auto ProcessTarballIntoDirectory(QWidget* parent,
  * @param parent parent widget
  * @param path the tarball to be converted
  */
-bool process_directory_into_tarball(QWidget* parent, QString& path) {
-#ifdef WINDOWS
-  std::filesystem::path selected_dir_path = path.toStdU16String();
-#else
-  std::filesystem::path selected_dir_path = path.toStdString();
-#endif
-
+auto ProcessDirectoryIntoTarball(QWidget* parent, std::filesystem::path path)
+    -> bool {
   try {
-    auto base_path = selected_dir_path.parent_path();
-    auto target_path = selected_dir_path;
-    selected_dir_path.replace_extension("");
+    auto base_path = path.parent_path();
+    auto target_path = path;
+    path = path.replace_extension("");
 
     SPDLOG_DEBUG("base path: {} target archive path: {} selected_dir_path: {}",
-                 base_path.u8string(), target_path.u8string(),
-                 selected_dir_path.u8string());
+                 base_path.u8string(), target_path.u8string(), path.u8string());
 
     bool if_error = false;
     process_operation(parent, _("Making Tarball"), [&](DataObjectPtr) -> int {
       try {
         GpgFrontend::ArchiveFileOperator::CreateArchive(base_path, target_path,
-                                                        0, {selected_dir_path});
+                                                        0, {path});
       } catch (const std::runtime_error& e) {
         if_error = true;
       }
@@ -159,9 +155,10 @@ bool process_directory_into_tarball(QWidget* parent, QString& path) {
 
 void MainWindow::SlotFileEncrypt() {
   auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-  auto path = file_tree_view->GetSelected();
+  auto path_qstr = file_tree_view->GetSelected();
 
-  if (!path_pre_check(this, path)) {
+  auto path = ConvertPathByOS(path_qstr);
+  if (!PathPreCheck(this, path)) {
     SPDLOG_ERROR("path pre check failed");
     return;
   }
@@ -175,7 +172,7 @@ void MainWindow::SlotFileEncrypt() {
   // get file info
   QFileInfo const file_info(path);
   if (file_info.isDir()) {
-    path = path + (file_info.isDir() ? ".tar" : "");
+    path = path.replace_extension(".tar");
   }
 
   const auto* extension = ".asc";
@@ -183,16 +180,11 @@ void MainWindow::SlotFileEncrypt() {
     extension = ".gpg";
   }
 
-  auto out_path = path + extension;
+  auto out_path = path.replace_extension(path.extension().string() + extension);
   if (QFile::exists(out_path)) {
-#ifdef WINDOWS
-    std::filesystem::path _out_path = out_path.toStdU16String();
-#else
-    std::filesystem::path _out_path = out_path.toStdString();
-#endif
     auto out_file_name = boost::format(_("The target file %1% already exists, "
                                          "do you need to overwrite it?")) %
-                         _out_path.filename();
+                         out_path.filename();
     auto ret =
         QMessageBox::warning(this, _("Warning"), out_file_name.str().c_str(),
                              QMessageBox::Ok | QMessageBox::Cancel);
@@ -202,7 +194,7 @@ void MainWindow::SlotFileEncrypt() {
 
   if (file_info.isDir()) {
     // stop if the process making tarball failed
-    if (!process_directory_into_tarball(this, path)) {
+    if (!ProcessDirectoryIntoTarball(this, path)) {
       QMessageBox::critical(this, _("Error"),
                             _("Unable to convert the folder into tarball."));
       return;
@@ -221,8 +213,7 @@ void MainWindow::SlotFileEncrypt() {
     CommonUtils::WaitForOpera(
         this, _("Symmetrically Encrypting"), [=](const OperaWaitingHd& op_hd) {
           GpgFileOpera::EncryptFileSymmetric(
-              path.toStdString(), out_path.toStdString(),
-              !non_ascii_when_export,
+              path, !non_ascii_when_export, out_path,
               [=](GpgError err, const DataObjectPtr& data_obj) {
                 // stop waiting
                 op_hd();
@@ -241,8 +232,7 @@ void MainWindow::SlotFileEncrypt() {
 
                 // remove xxx.tar and only left xxx.tar.gpg
                 if (file_info.isDir()) {
-                  auto selected_dir_path =
-                      std::filesystem::path(path.toStdString());
+                  auto selected_dir_path = path;
                   auto target_path =
                       selected_dir_path.replace_extension(".tar");
                   if (exists(target_path)) {
@@ -273,9 +263,8 @@ void MainWindow::SlotFileEncrypt() {
   CommonUtils::WaitForOpera(
       this, _("Encrypting"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::EncryptFile(
-            {p_keys->begin(), p_keys->end()}, path.toStdString(),
-            out_path.toStdString(), !non_ascii_when_export,
-            [=](GpgError err, const DataObjectPtr& data_obj) {
+            {p_keys->begin(), p_keys->end()}, path, !non_ascii_when_export,
+            out_path, [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
 
@@ -292,8 +281,7 @@ void MainWindow::SlotFileEncrypt() {
 
               // remove xxx.tar and only left xxx.tar.gpg
               if (file_info.isDir()) {
-                auto selected_dir_path =
-                    std::filesystem::path(path.toStdString());
+                auto selected_dir_path = path;
                 auto target_path = selected_dir_path.replace_extension(".tar");
                 if (exists(target_path)) {
                   std::filesystem::remove(target_path);
@@ -305,16 +293,11 @@ void MainWindow::SlotFileEncrypt() {
 
 void MainWindow::SlotFileDecrypt() {
   auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-  auto path = file_tree_view->GetSelected();
+  auto path_qstr = file_tree_view->GetSelected();
+  auto path = ConvertPathByOS(path_qstr);
+  if (!PathPreCheck(this, path)) return;
 
-  if (!path_pre_check(this, path)) return;
-
-#ifdef WINDOWS
-  std::filesystem::path out_path = path.toStdU16String();
-#else
-  std::filesystem::path out_path = path.toStdString();
-#endif
-
+  auto out_path = path;
   if (out_path.extension() == ".asc" || out_path.extension() == ".gpg") {
     out_path = out_path.parent_path() / out_path.stem();
   } else {
@@ -333,16 +316,15 @@ void MainWindow::SlotFileDecrypt() {
   CommonUtils::WaitForOpera(
       this, _("Decrypting"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::DecryptFile(
-            path.toStdString(), out_path.u8string(),
-            [=](GpgError err, const DataObjectPtr& data_obj) {
+            path, out_path, [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
-
-              auto result = ExtractParams<GpgDecryptResult>(data_obj, 0);
 
               if (data_obj == nullptr || !data_obj->Check<GpgDecryptResult>()) {
                 throw std::runtime_error("data object doesn't pass checking");
               }
+
+              auto result = ExtractParams<GpgDecryptResult>(data_obj, 0);
 
               auto result_analyse = GpgDecryptResultAnalyse(err, result);
               result_analyse.Analyse();
@@ -379,9 +361,9 @@ void MainWindow::SlotFileDecrypt() {
 
 void MainWindow::SlotFileSign() {
   auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-  auto path = file_tree_view->GetSelected();
-
-  if (!path_pre_check(this, path)) return;
+  auto path_qstr = file_tree_view->GetSelected();
+  auto path = ConvertPathByOS(path_qstr);
+  if (!PathPreCheck(this, path)) return;
 
   auto key_ids = m_key_list_->GetChecked();
   auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
@@ -405,7 +387,7 @@ void MainWindow::SlotFileSign() {
     }
   }
 
-  bool non_ascii_when_export =
+  bool const non_ascii_when_export =
       GlobalSettingStation::GetInstance().LookupSettings(
           "general.non_ascii_when_export", true);
 
@@ -414,13 +396,7 @@ void MainWindow::SlotFileSign() {
     extension = ".sig";
   }
 
-#ifdef WINDOWS
-  std::filesystem::path in_path = path.toStdU16String();
-#else
-  std::filesystem::path in_path = path.toStdString();
-#endif
-
-  auto sig_file_path = in_path;
+  auto sig_file_path = path;
   sig_file_path += extension;
   if (exists(sig_file_path)) {
     auto ret = QMessageBox::warning(
@@ -436,9 +412,8 @@ void MainWindow::SlotFileSign() {
   CommonUtils::WaitForOpera(
       this, _("Signing"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::EncryptFile(
-            {keys->begin(), keys->end()}, in_path.u8string(),
-            sig_file_path.u8string(), !non_ascii_when_export,
-            [=](GpgError err, const DataObjectPtr& data_obj) {
+            {keys->begin(), keys->end()}, path, !non_ascii_when_export,
+            sig_file_path, [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
 
@@ -533,9 +508,9 @@ void MainWindow::SlotFileVerify() {
 
 void MainWindow::SlotFileEncryptSign() {
   auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-  auto path = file_tree_view->GetSelected();
-
-  if (!path_pre_check(this, path)) return;
+  auto path_qstr = file_tree_view->GetSelected();
+  auto path = ConvertPathByOS(path_qstr);
+  if (!PathPreCheck(this, path)) return;
 
   // check selected keys
   auto key_ids = m_key_list_->GetChecked();
@@ -550,7 +525,7 @@ void MainWindow::SlotFileEncryptSign() {
 
   // check key abilities
   for (const auto& key : *p_keys) {
-    bool key_can_encrypt = key.IsHasActualEncryptionCapability();
+    bool const key_can_encrypt = key.IsHasActualEncryptionCapability();
 
     if (!key_can_encrypt) {
       QMessageBox::critical(
@@ -568,9 +543,8 @@ void MainWindow::SlotFileEncryptSign() {
 
   // get file info
   QFileInfo const file_info(path);
-
   if (file_info.isDir()) {
-    path = path + (file_info.isDir() ? ".tar" : "");
+    path = path.replace_extension(".tar");
   }
 
   const auto* extension = ".asc";
@@ -578,8 +552,7 @@ void MainWindow::SlotFileEncryptSign() {
     extension = ".gpg";
   }
 
-  auto out_path = path + extension;
-
+  auto out_path = path.replace_extension(path.extension().string() + extension);
   if (QFile::exists(out_path)) {
     auto ret = QMessageBox::warning(
         this, _("Warning"),
@@ -603,7 +576,7 @@ void MainWindow::SlotFileEncryptSign() {
   // convert directory into tarball
   if (file_info.isDir()) {
     // stop if the process making tarball failed
-    if (!process_directory_into_tarball(this, path)) {
+    if (!ProcessDirectoryIntoTarball(this, path)) {
       QMessageBox::critical(this, _("Error"),
                             _("Unable to convert the folder into tarball."));
       return;
@@ -614,8 +587,8 @@ void MainWindow::SlotFileEncryptSign() {
       this, _("Encrypting and Signing"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::EncryptSignFile(
             {p_keys->begin(), p_keys->end()},
-            {p_signer_keys->begin(), p_signer_keys->end()}, path.toStdString(),
-            out_path.toStdString(), !non_ascii_when_export,
+            {p_signer_keys->begin(), p_signer_keys->end()}, path,
+            !non_ascii_when_export, out_path,
             [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
@@ -642,8 +615,7 @@ void MainWindow::SlotFileEncryptSign() {
 
               // remove xxx.tar and only left xxx.tar.gpg
               if (file_info.isDir()) {
-                auto selected_dir_path =
-                    std::filesystem::path(path.toStdString());
+                auto selected_dir_path = path;
                 auto target_path = selected_dir_path.replace_extension(".tar");
                 if (exists(target_path)) {
                   std::filesystem::remove(target_path);
@@ -655,19 +627,13 @@ void MainWindow::SlotFileEncryptSign() {
 
 void MainWindow::SlotFileDecryptVerify() {
   auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-  auto path = file_tree_view->GetSelected();
+  auto path_qstr = file_tree_view->GetSelected();
+  auto path = ConvertPathByOS(path_qstr);
+  if (!PathPreCheck(this, path)) return;
 
-  if (!path_pre_check(this, path)) return;
-
-#ifdef WINDOWS
-  std::filesystem::path in_path = path.toStdU16String();
-#else
-  std::filesystem::path in_path = path.toStdString();
-#endif
-
-  std::filesystem::path out_path = in_path;
-  if (in_path.extension() == ".asc" || in_path.extension() == ".gpg") {
-    out_path = in_path.parent_path() / out_path.stem();
+  std::filesystem::path out_path = path;
+  if (path.extension() == ".asc" || path.extension() == ".gpg") {
+    out_path = path.parent_path() / out_path.stem();
   } else {
     out_path += ".out";
   }
@@ -687,8 +653,7 @@ void MainWindow::SlotFileDecryptVerify() {
   CommonUtils::WaitForOpera(
       this, _("Decrypting and Verifying"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::DecryptVerifyFile(
-            path.toStdString(), out_path.u8string(),
-            [=](GpgError err, const DataObjectPtr& data_obj) {
+            path, out_path, [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
 
