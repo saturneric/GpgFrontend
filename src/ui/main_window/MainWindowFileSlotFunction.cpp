@@ -71,14 +71,15 @@ bool path_pre_check(QWidget* parent, const QString& path) {
  * @param path the directory to be converted
  * @return
  */
-bool process_tarball_into_directory(QWidget* parent,
-                                    std::filesystem::path& path) {
+auto ProcessTarballIntoDirectory(QWidget* parent,
+                                 const std::filesystem::path& path)
+    -> std::tuple<bool, std::filesystem::path> {
   SPDLOG_DEBUG("converting directory into tarball: {}", path.u8string());
   auto selected_dir_path = std::filesystem::path(path);
 
   if (selected_dir_path.extension() != ".tar") {
     QMessageBox::critical(parent, _("Error"), _("The file is not a tarball."));
-    return false;
+    return {false, path};
   }
 
   try {
@@ -105,12 +106,11 @@ bool process_tarball_into_directory(QWidget* parent,
     if (if_error || !exists(target_path)) {
       throw std::runtime_error("Decompress Failed");
     }
-    path = target_path.u8string().c_str();
+    return {true, target_path.u8string()};
   } catch (...) {
     SPDLOG_ERROR("decompress error");
-    return false;
+    return {false, path};
   }
-  return true;
 }
 
 /**
@@ -158,8 +158,8 @@ bool process_directory_into_tarball(QWidget* parent, QString& path) {
 }
 
 void MainWindow::SlotFileEncrypt() {
-  auto fileTreeView = edit_->SlotCurPageFileTreeView();
-  auto path = fileTreeView->GetSelected();
+  auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+  auto path = file_tree_view->GetSelected();
 
   if (!path_pre_check(this, path)) {
     SPDLOG_ERROR("path pre check failed");
@@ -168,30 +168,22 @@ void MainWindow::SlotFileEncrypt() {
 
   // check selected keys
   auto key_ids = m_key_list_->GetChecked();
-  GpgEncrResult result = nullptr;
-  GpgError error;
-  bool if_error = false;
-
-  bool non_ascii_when_export =
+  bool const non_ascii_when_export =
       GlobalSettingStation::GetInstance().LookupSettings(
           "general.non_ascii_when_export", true);
 
   // get file info
-  QFileInfo file_info(path);
-
+  QFileInfo const file_info(path);
   if (file_info.isDir()) {
     path = path + (file_info.isDir() ? ".tar" : "");
   }
 
-  auto _channel = kGpgFrontendDefaultChannel;
-  auto _extension = ".asc";
+  const auto* extension = ".asc";
   if (non_ascii_when_export || file_info.isDir()) {
-    _channel = kGpgFrontendNonAsciiChannel;
-    _extension = ".gpg";
+    extension = ".gpg";
   }
 
-  auto out_path = path + _extension;
-
+  auto out_path = path + extension;
   if (QFile::exists(out_path)) {
 #ifdef WINDOWS
     std::filesystem::path _out_path = out_path.toStdU16String();
@@ -224,76 +216,96 @@ void MainWindow::SlotFileEncrypt() {
         _("No Key Selected. Do you want to encrypt with a "
           "symmetric cipher using a passphrase?"),
         QMessageBox::Ok | QMessageBox::Cancel);
-
     if (ret == QMessageBox::Cancel) return;
 
-    process_operation(this, _("Symmetrically Encrypting"),
-                      [&](DataObjectPtr) -> int {
-                        try {
-                          // error =
-                          // GpgFrontend::GpgFileOpera::EncryptFileSymmetric(
-                          //     path.toStdString(), out_path.toStdString(),
-                          //     result, _channel);
-                        } catch (const std::runtime_error& e) {
-                          if_error = true;
-                        }
-                        return 0;
-                      });
-  } else {
-    auto p_keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
+    CommonUtils::WaitForOpera(
+        this, _("Symmetrically Encrypting"), [=](const OperaWaitingHd& op_hd) {
+          GpgFileOpera::EncryptFileSymmetric(
+              path.toStdString(), out_path.toStdString(),
+              !non_ascii_when_export,
+              [=](GpgError err, const DataObjectPtr& data_obj) {
+                // stop waiting
+                op_hd();
 
-    // check key abilities
-    for (const auto& key : *p_keys) {
-      bool key_can_encrypt = key.IsHasActualEncryptionCapability();
+                if (data_obj == nullptr ||
+                    !data_obj->Check<GpgEncryptResult>()) {
+                  throw std::runtime_error("data object doesn't pass checking");
+                }
 
-      if (!key_can_encrypt) {
-        QMessageBox::critical(
-            nullptr, _("Invalid KeyPair"),
-            QString(_("The selected keypair cannot be used for encryption.")) +
-                "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
-                QString::fromStdString(key.GetUIDs()->front().GetUID()));
-        return;
-      }
-    }
+                auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
+                auto result_analyse = GpgEncryptResultAnalyse(err, result);
+                result_analyse.Analyse();
 
-    process_operation(this, _("Encrypting"), [&](DataObjectPtr) -> int {
-      try {
-        // TODO
-        // error =
-        //     GpgFileOpera::EncryptFile(std::move(p_keys), path.toStdString(),
-        //                               out_path.toStdString(), result,
-        //                               _channel);
-      } catch (const std::runtime_error& e) {
-        if_error = true;
-      }
-      return 0;
-    });
-  }
+                process_result_analyse(edit_, info_board_, result_analyse);
+                file_tree_view->update();
 
-  // remove xxx.tar and only left xxx.tar.gpg
-  if (file_info.isDir()) {
-    auto selected_dir_path = std::filesystem::path(path.toStdString());
-    auto target_path = selected_dir_path.replace_extension(".tar");
-    if (exists(target_path)) {
-      std::filesystem::remove(target_path);
-    }
-  }
+                // remove xxx.tar and only left xxx.tar.gpg
+                if (file_info.isDir()) {
+                  auto selected_dir_path =
+                      std::filesystem::path(path.toStdString());
+                  auto target_path =
+                      selected_dir_path.replace_extension(".tar");
+                  if (exists(target_path)) {
+                    std::filesystem::remove(target_path);
+                  }
+                }
+              });
+        });
 
-  if (!if_error) {
-    // auto resultAnalyse = GpgEncryptResultAnalyse(error, std::move(result));
-    // resultAnalyse.Analyse();
-    // process_result_analyse(edit_, info_board_, resultAnalyse);
-    // fileTreeView->update();
-  } else {
-    QMessageBox::critical(this, _("Error"),
-                          _("An error occurred during operation."));
     return;
   }
+  auto p_keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
+
+  // check key abilities
+  for (const auto& key : *p_keys) {
+    bool const key_can_encrypt = key.IsHasActualEncryptionCapability();
+
+    if (!key_can_encrypt) {
+      QMessageBox::critical(
+          nullptr, _("Invalid KeyPair"),
+          QString(_("The selected keypair cannot be used for encryption.")) +
+              "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
+              QString::fromStdString(key.GetUIDs()->front().GetUID()));
+      return;
+    }
+  }
+
+  CommonUtils::WaitForOpera(
+      this, _("Encrypting"), [=](const OperaWaitingHd& op_hd) {
+        GpgFileOpera::EncryptFile(
+            {p_keys->begin(), p_keys->end()}, path.toStdString(),
+            out_path.toStdString(), !non_ascii_when_export,
+            [=](GpgError err, const DataObjectPtr& data_obj) {
+              // stop waiting
+              op_hd();
+
+              if (data_obj == nullptr || !data_obj->Check<GpgEncryptResult>()) {
+                throw std::runtime_error("data object doesn't pass checking");
+              }
+
+              auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
+              auto result_analyse = GpgEncryptResultAnalyse(err, result);
+              result_analyse.Analyse();
+
+              process_result_analyse(edit_, info_board_, result_analyse);
+              file_tree_view->update();
+
+              // remove xxx.tar and only left xxx.tar.gpg
+              if (file_info.isDir()) {
+                auto selected_dir_path =
+                    std::filesystem::path(path.toStdString());
+                auto target_path = selected_dir_path.replace_extension(".tar");
+                if (exists(target_path)) {
+                  std::filesystem::remove(target_path);
+                }
+              }
+            });
+      });
 }
 
 void MainWindow::SlotFileDecrypt() {
-  auto fileTreeView = edit_->SlotCurPageFileTreeView();
-  auto path = fileTreeView->GetSelected();
+  auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+  auto path = file_tree_view->GetSelected();
 
   if (!path_pre_check(this, path)) return;
 
@@ -318,56 +330,56 @@ void MainWindow::SlotFileDecrypt() {
     if (ret == QMessageBox::Cancel) return;
   }
 
-  GpgDecrResult result = nullptr;
-  gpgme_error_t error;
-  bool if_error = false;
-  process_operation(this, _("Decrypting"), [&](DataObjectPtr) -> int {
-    try {
-      // TODO
-      // error = GpgFileOpera::DecryptFile(path.toStdString(),
-      // out_path.u8string(),
-      //                                   result);
-    } catch (const std::runtime_error& e) {
-      if_error = true;
-    }
-    return 0;
-  });
+  CommonUtils::WaitForOpera(
+      this, _("Decrypting"), [=](const OperaWaitingHd& op_hd) {
+        GpgFileOpera::DecryptFile(
+            path.toStdString(), out_path.u8string(),
+            [=](GpgError err, const DataObjectPtr& data_obj) {
+              // stop waiting
+              op_hd();
 
-  if (!if_error) {
-    auto resultAnalyse = GpgDecryptResultAnalyse(error, std::move(result));
-    resultAnalyse.Analyse();
-    process_result_analyse(edit_, info_board_, resultAnalyse);
+              auto result = ExtractParams<GpgDecryptResult>(data_obj, 0);
 
-    fileTreeView->update();
-  } else {
-    QMessageBox::critical(this, _("Error"),
-                          _("An error occurred during operation."));
-    return;
-  }
+              if (data_obj == nullptr || !data_obj->Check<GpgDecryptResult>()) {
+                throw std::runtime_error("data object doesn't pass checking");
+              }
 
-  // extract the tarball
-  if (out_path.extension() == ".tar" && exists(out_path)) {
-    bool ret = QMessageBox::information(
-        this, _("Decrypting"),
-        _("Do you want to extract and delete the decrypted tarball?"),
-        QMessageBox::Ok | QMessageBox::Cancel);
-    if (ret) {
-      if (process_tarball_into_directory(this, out_path)) {
-        QMessageBox::information(this, _("Decrypting"),
-                                 _("Extracting tarball succeeded."));
-        // remove tarball
-        std::filesystem::remove(out_path);
-      } else {
-        QMessageBox::critical(this, _("Decrypting"),
-                              _("Extracting tarball failed."));
-      }
-    }
-  }
+              auto result_analyse = GpgDecryptResultAnalyse(err, result);
+              result_analyse.Analyse();
+
+              process_result_analyse(edit_, info_board_, result_analyse);
+              file_tree_view->update();
+
+              // extract the tarball
+              if (out_path.extension() == ".tar" && exists(out_path)) {
+                bool const ret =
+                    QMessageBox::information(
+                        this, _("Decrypting"),
+                        _("Do you want to extract and delete the decrypted "
+                          "tarball?"),
+                        QMessageBox::Ok | QMessageBox::Cancel) != 0;
+                if (ret) {
+                  auto archieve_result =
+                      ProcessTarballIntoDirectory(this, out_path);
+                  if (std::get<0>(archieve_result)) {
+                    QMessageBox::information(
+                        this, _("Decrypting"),
+                        _("Extracting tarball succeeded."));
+                    // remove tarball
+                    std::filesystem::remove(out_path);
+                  } else {
+                    QMessageBox::critical(this, _("Decrypting"),
+                                          _("Extracting tarball failed."));
+                  }
+                }
+              }
+            });
+      });
 }
 
 void MainWindow::SlotFileSign() {
-  auto fileTreeView = edit_->SlotCurPageFileTreeView();
-  auto path = fileTreeView->GetSelected();
+  auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+  auto path = file_tree_view->GetSelected();
 
   if (!path_pre_check(this, path)) return;
 
@@ -397,11 +409,9 @@ void MainWindow::SlotFileSign() {
       GlobalSettingStation::GetInstance().LookupSettings(
           "general.non_ascii_when_export", true);
 
-  auto _channel = kGpgFrontendDefaultChannel;
-  auto _extension = ".asc";
+  const auto* extension = ".asc";
   if (non_ascii_when_export) {
-    _channel = kGpgFrontendNonAsciiChannel;
-    _extension = ".sig";
+    extension = ".sig";
   }
 
 #ifdef WINDOWS
@@ -411,7 +421,7 @@ void MainWindow::SlotFileSign() {
 #endif
 
   auto sig_file_path = in_path;
-  sig_file_path += _extension;
+  sig_file_path += extension;
   if (exists(sig_file_path)) {
     auto ret = QMessageBox::warning(
         this, _("Warning"),
@@ -423,40 +433,32 @@ void MainWindow::SlotFileSign() {
     if (ret == QMessageBox::Cancel) return;
   }
 
-  GpgSignResult result = nullptr;
-  gpgme_error_t error;
-  bool if_error = false;
+  CommonUtils::WaitForOpera(
+      this, _("Signing"), [=](const OperaWaitingHd& op_hd) {
+        GpgFileOpera::EncryptFile(
+            {keys->begin(), keys->end()}, in_path.u8string(),
+            sig_file_path.u8string(), !non_ascii_when_export,
+            [=](GpgError err, const DataObjectPtr& data_obj) {
+              // stop waiting
+              op_hd();
 
-  process_operation(this, _("Signing"), [&](DataObjectPtr) -> int {
-    try {
-      error =
-          GpgFileOpera::SignFile(std::move(keys), in_path.u8string(),
-                                 sig_file_path.u8string(), result, _channel);
-    } catch (const std::runtime_error& e) {
-      if_error = true;
-    }
-    return 0;
-  });
+              if (data_obj == nullptr || !data_obj->Check<GpgSignResult>()) {
+                throw std::runtime_error("data object doesn't pass checking");
+              }
 
-  if (!if_error) {
-    auto resultAnalyse = GpgSignResultAnalyse(error, std::move(result));
-    resultAnalyse.Analyse();
-    process_result_analyse(edit_, info_board_, resultAnalyse);
+              auto result = ExtractParams<GpgSignResult>(data_obj, 0);
+              auto result_analyse = GpgSignResultAnalyse(err, result);
+              result_analyse.Analyse();
 
-    fileTreeView->update();
-
-  } else {
-    QMessageBox::critical(this, _("Error"),
-                          _("An error occurred during operation."));
-    return;
-  }
-
-  fileTreeView->update();
+              process_result_analyse(edit_, info_board_, result_analyse);
+              file_tree_view->update();
+            });
+      });
 }
 
 void MainWindow::SlotFileVerify() {
-  auto fileTreeView = edit_->SlotCurPageFileTreeView();
-  auto path = fileTreeView->GetSelected();
+  auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+  auto path = file_tree_view->GetSelected();
 
 #ifdef WINDOWS
   std::filesystem::path in_path = path.toStdU16String();
@@ -464,16 +466,8 @@ void MainWindow::SlotFileVerify() {
   std::filesystem::path in_path = path.toStdString();
 #endif
 
-  std::filesystem::path sign_file_path = in_path, data_file_path;
-
-  bool non_ascii_when_export =
-      GlobalSettingStation::GetInstance().LookupSettings(
-          "general.non_ascii_when_export", true);
-
-  auto _channel = kGpgFrontendDefaultChannel;
-  if (non_ascii_when_export) {
-    _channel = kGpgFrontendNonAsciiChannel;
-  }
+  std::filesystem::path sign_file_path = in_path;
+  std::filesystem::path data_file_path;
 
   if (in_path.extension() == ".gpg") {
     swap(data_file_path, sign_file_path);
@@ -486,7 +480,7 @@ void MainWindow::SlotFileVerify() {
 
   if (in_path.extension() != ".gpg") {
     bool ok;
-    QString text = QInputDialog::getText(
+    QString const text = QInputDialog::getText(
         this, _("Origin file to verify"), _("Filepath"), QLineEdit::Normal,
         data_file_path.u8string().c_str(), &ok);
     if (ok && !text.isEmpty()) {
@@ -508,39 +502,33 @@ void MainWindow::SlotFileVerify() {
   SPDLOG_DEBUG("data path: {}", data_file_path.u8string());
   SPDLOG_DEBUG("sign path: {}", sign_file_path.u8string());
 
-  GpgVerifyResult result = nullptr;
-  gpgme_error_t error;
-  bool if_error = false;
-  process_operation(this, _("Verifying"), [&](DataObjectPtr) -> int {
-    try {
-      error =
-          GpgFileOpera::VerifyFile(data_file_path.u8string(),
-                                   sign_file_path.u8string(), result, _channel);
-    } catch (const std::runtime_error& e) {
-      if_error = true;
-    }
-    return 0;
-  });
+  CommonUtils::WaitForOpera(
+      this, _("Verifying"), [=](const OperaWaitingHd& op_hd) {
+        GpgFileOpera::DecryptFile(
+            data_file_path.u8string(), sign_file_path.u8string(),
+            [=](GpgError err, const DataObjectPtr& data_obj) {
+              // stop waiting
+              op_hd();
 
-  if (!if_error) {
-    auto result_analyse = GpgVerifyResultAnalyse(error, result);
-    result_analyse.Analyse();
-    process_result_analyse(edit_, info_board_, result_analyse);
+              if (data_obj == nullptr || !data_obj->Check<GpgVerifyResult>()) {
+                throw std::runtime_error("data object doesn't pass checking");
+              }
 
-    if (result_analyse.GetStatus() == -2) {
-      import_unknown_key_from_keyserver(this, result_analyse);
-    }
+              auto result = ExtractParams<GpgVerifyResult>(data_obj, 0);
+              auto result_analyse = GpgVerifyResultAnalyse(err, result);
+              result_analyse.Analyse();
 
-    if (result_analyse.GetStatus() >= 0) {
-      show_verify_details(this, info_board_, error, result);
-    }
+              process_result_analyse(edit_, info_board_, result_analyse);
+              if (result_analyse.GetStatus() == -2) {
+                import_unknown_key_from_keyserver(this, result_analyse);
+              }
+              if (result_analyse.GetStatus() >= 0) {
+                show_verify_details(this, info_board_, err, result);
+              }
 
-    fileTreeView->update();
-  } else {
-    QMessageBox::critical(this, _("Error"),
-                          _("An error occurred during operation."));
-    return;
-  }
+              file_tree_view->update();
+            });
+      });
 }
 
 void MainWindow::SlotFileEncryptSign() {
@@ -574,21 +562,19 @@ void MainWindow::SlotFileEncryptSign() {
     }
   }
 
-  bool non_ascii_when_export =
+  bool const non_ascii_when_export =
       GlobalSettingStation::GetInstance().LookupSettings(
           "general.non_ascii_when_export", true);
 
   // get file info
-  QFileInfo file_info(path);
+  QFileInfo const file_info(path);
 
   if (file_info.isDir()) {
     path = path + (file_info.isDir() ? ".tar" : "");
   }
 
-  auto channel = kGpgFrontendDefaultChannel;
   const auto* extension = ".asc";
   if (non_ascii_when_export || file_info.isDir()) {
-    channel = kGpgFrontendNonAsciiChannel;
     extension = ".gpg";
   }
 
@@ -624,48 +610,47 @@ void MainWindow::SlotFileEncryptSign() {
     }
   }
 
-  GpgEncrResult encr_result = nullptr;
-  GpgSignResult sign_result = nullptr;
+  CommonUtils::WaitForOpera(
+      this, _("Encrypting and Signing"), [=](const OperaWaitingHd& op_hd) {
+        GpgFileOpera::EncryptSignFile(
+            {p_keys->begin(), p_keys->end()},
+            {p_signer_keys->begin(), p_signer_keys->end()}, path.toStdString(),
+            out_path.toStdString(), !non_ascii_when_export,
+            [=](GpgError err, const DataObjectPtr& data_obj) {
+              // stop waiting
+              op_hd();
 
-  gpgme_error_t error;
-  bool if_error = false;
+              if (data_obj == nullptr ||
+                  !data_obj->Check<GpgEncryptResult, GpgSignResult>()) {
+                throw std::runtime_error("data object doesn't pass checking");
+              }
+              auto encrypt_result =
+                  ExtractParams<GpgEncryptResult>(data_obj, 0);
+              auto sign_result = ExtractParams<GpgSignResult>(data_obj, 1);
 
-  process_operation(
-      this, _("Encrypting and Signing"), [&](DataObjectPtr) -> int {
-        try {
-          error = GpgFileOpera::EncryptSignFile(
-              std::move(p_keys), std::move(p_signer_keys), path.toStdString(),
-              out_path.toStdString(), encr_result, sign_result, channel);
-        } catch (const std::runtime_error& e) {
-          if_error = true;
-        }
-        return 0;
+              auto encrypt_result_analyse =
+                  GpgEncryptResultAnalyse(err, encrypt_result);
+              encrypt_result_analyse.Analyse();
+
+              auto sign_result_analyse = GpgSignResultAnalyse(err, sign_result);
+              sign_result_analyse.Analyse();
+
+              process_result_analyse(edit_, info_board_, encrypt_result_analyse,
+                                     sign_result_analyse);
+
+              file_tree_view->update();
+
+              // remove xxx.tar and only left xxx.tar.gpg
+              if (file_info.isDir()) {
+                auto selected_dir_path =
+                    std::filesystem::path(path.toStdString());
+                auto target_path = selected_dir_path.replace_extension(".tar");
+                if (exists(target_path)) {
+                  std::filesystem::remove(target_path);
+                }
+              }
+            });
       });
-
-  if (!if_error) {
-    // auto encrypt_result =
-    //     GpgEncryptResultAnalyse(error, std::move(encr_result));
-    // auto sign_res = GpgSignResultAnalyse(error, std::move(sign_result));
-    // encrypt_result.Analyse();
-    // sign_res.Analyse();
-    // process_result_analyse(edit_, info_board_, encrypt_result, sign_res);
-
-    // file_tree_view->update();
-
-  } else {
-    QMessageBox::critical(this, _("Error"),
-                          _("An error occurred during operation."));
-    return;
-  }
-
-  // remove xxx.tar and only left xxx.tar.gpg
-  if (file_info.isDir()) {
-    auto selected_dir_path = std::filesystem::path(path.toStdString());
-    auto target_path = selected_dir_path.replace_extension(".tar");
-    if (exists(target_path)) {
-      std::filesystem::remove(target_path);
-    }
-  }
 }
 
 void MainWindow::SlotFileDecryptVerify() {
@@ -699,62 +684,65 @@ void MainWindow::SlotFileDecryptVerify() {
     if (ret == QMessageBox::Cancel) return;
   }
 
-  GpgDecrResult d_result = nullptr;
-  GpgVerifyResult v_result = nullptr;
-  gpgme_error_t error;
-  bool if_error = false;
-  process_operation(
-      this, _("Decrypting and Verifying"), [&](DataObjectPtr) -> int {
-        try {
-          error = GpgFileOpera::DecryptVerifyFile(
-              path.toStdString(), out_path.u8string(), d_result, v_result);
-        } catch (const std::runtime_error& e) {
-          if_error = true;
-        }
-        return 0;
+  CommonUtils::WaitForOpera(
+      this, _("Decrypting and Verifying"), [=](const OperaWaitingHd& op_hd) {
+        GpgFileOpera::DecryptVerifyFile(
+            path.toStdString(), out_path.u8string(),
+            [=](GpgError err, const DataObjectPtr& data_obj) {
+              // stop waiting
+              op_hd();
+
+              if (data_obj == nullptr ||
+                  !data_obj->Check<GpgDecryptResult, GpgVerifyResult>()) {
+                throw std::runtime_error("data object doesn't pass checking");
+              }
+              auto decrypt_result =
+                  ExtractParams<GpgDecryptResult>(data_obj, 0);
+              auto verify_result = ExtractParams<GpgVerifyResult>(data_obj, 1);
+
+              auto decrypt_result_analyse =
+                  GpgDecryptResultAnalyse(err, decrypt_result);
+              decrypt_result_analyse.Analyse();
+
+              auto verify_result_analyse =
+                  GpgVerifyResultAnalyse(err, verify_result);
+              verify_result_analyse.Analyse();
+
+              process_result_analyse(edit_, info_board_, decrypt_result_analyse,
+                                     verify_result_analyse);
+              if (verify_result_analyse.GetStatus() == -2) {
+                import_unknown_key_from_keyserver(this, verify_result_analyse);
+              }
+              if (verify_result_analyse.GetStatus() >= 0) {
+                show_verify_details(this, info_board_, err, verify_result);
+              }
+              file_tree_view->update();
+
+              // extract the tarball
+              if (out_path.extension() == ".tar" && exists(out_path)) {
+                bool const ret =
+                    QMessageBox::information(
+                        this, _("Decrypting"),
+                        _("Do you want to extract and delete the decrypted "
+                          "tarball?"),
+                        QMessageBox::Ok | QMessageBox::Cancel) != 0;
+                if (ret) {
+                  auto archieve_result =
+                      ProcessTarballIntoDirectory(this, out_path);
+                  if (std::get<0>(archieve_result)) {
+                    QMessageBox::information(
+                        this, _("Decrypting"),
+                        _("Extracting tarball succeeded."));
+                    // remove tarball
+                    std::filesystem::remove(out_path);
+                  } else {
+                    QMessageBox::critical(this, _("Decrypting"),
+                                          _("Extracting tarball failed."));
+                  }
+                }
+              }
+            });
       });
-
-  if (!if_error) {
-    auto decrypt_res = GpgDecryptResultAnalyse(error, std::move(d_result));
-    auto verify_res = GpgVerifyResultAnalyse(error, v_result);
-    decrypt_res.Analyse();
-    verify_res.Analyse();
-    process_result_analyse(edit_, info_board_, decrypt_res, verify_res);
-
-    if (verify_res.GetStatus() == -2) {
-      import_unknown_key_from_keyserver(this, verify_res);
-    }
-
-    if (verify_res.GetStatus() >= 0) {
-      show_verify_details(this, info_board_, error, v_result);
-    }
-
-    file_tree_view->update();
-  } else {
-    QMessageBox::critical(this, _("Error"),
-                          _("An error occurred during operation."));
-    return;
-  }
-
-  // extract the tarball
-  if (out_path.extension() == ".tar" && exists(out_path)) {
-    bool ret =
-        QMessageBox::information(
-            this, _("Decrypting"),
-            _("Do you want to extract and delete the decrypted tarball?"),
-            QMessageBox::Ok | QMessageBox::Cancel) != 0;
-    if (ret) {
-      if (process_tarball_into_directory(this, out_path)) {
-        QMessageBox::information(this, _("Decrypting"),
-                                 _("Extracting tarball succeeded."));
-        // remove tarball
-        std::filesystem::remove(out_path);
-      } else {
-        QMessageBox::critical(this, _("Decrypting"),
-                              _("Extracting tarball failed."));
-      }
-    }
-  }
 }
 
 }  // namespace GpgFrontend::UI

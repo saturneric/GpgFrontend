@@ -161,7 +161,7 @@ TEST_F(GpgCoreTest, CoreSignVerifyNormalTest) {
               auto d_result = ExtractParams<GpgVerifyResult>(data_obj, 0);
               ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
               ASSERT_FALSE(d_result.GetSignature().empty());
-              ASSERT_EQ(d_result.GetSignature().at(0),
+              ASSERT_EQ(d_result.GetSignature().at(0).GetFingerprint(),
                         "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
             });
       });
@@ -187,7 +187,7 @@ TEST_F(GpgCoreTest, CoreSignVerifyDetachTest) {
               auto d_result = ExtractParams<GpgVerifyResult>(data_obj, 0);
               ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
               ASSERT_FALSE(d_result.GetSignature().empty());
-              ASSERT_EQ(d_result.GetSignature().at(0),
+              ASSERT_EQ(d_result.GetSignature().at(0).GetFingerprint(),
                         "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
             });
       });
@@ -213,7 +213,7 @@ TEST_F(GpgCoreTest, CoreSignVerifyClearTest) {
               auto verify_reult = ExtractParams<GpgVerifyResult>(data_obj, 0);
               ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
               ASSERT_FALSE(verify_reult.GetSignature().empty());
-              ASSERT_EQ(verify_reult.GetSignature().at(0),
+              ASSERT_EQ(verify_reult.GetSignature().at(0).GetFingerprint(),
                         "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
             });
       });
@@ -259,7 +259,7 @@ TEST_F(GpgCoreTest, CoreEncryptSignDecrVerifyTest) {
               ASSERT_EQ(decrypt_result.Recipients()[0].keyid,
                         "F89C95A05088CC93");
               ASSERT_FALSE(verify_reult.GetSignature().empty());
-              ASSERT_EQ(verify_reult.GetSignature().at(0),
+              ASSERT_EQ(verify_reult.GetSignature().at(0).GetFingerprint(),
                         "8933EB283A18995F45D61DAC021D89771B680FFB");
             });
       });

@@ -57,5 +57,6 @@ auto GpgVerifyResult::GetSignature() const -> std::vector<GpgSignature> {
     sigatures.emplace_back(signature);
     signature = signature->next;
   }
+  return sigatures;
 }
 }  // namespace GpgFrontend

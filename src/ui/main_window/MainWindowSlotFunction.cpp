@@ -80,12 +80,17 @@ void MainWindow::slot_encrypt() {
     auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
     CommonUtils::WaitForOpera(
         this, _("Symmetrically Encrypting"),
-        [this, buffer](const OperaWaitingHd& hd) {
+        [this, buffer](const OperaWaitingHd& op_hd) {
           GpgFrontend::GpgBasicOperator::GetInstance().EncryptSymmetric(
               buffer, true,
-              [this, hd](GpgError err, const DataObjectPtr& data_obj) {
+              [this, op_hd](GpgError err, const DataObjectPtr& data_obj) {
                 // stop waiting
-                hd();
+                op_hd();
+
+                if (data_obj == nullptr ||
+                    !data_obj->Check<GpgEncryptResult, GFBuffer>()) {
+                  throw std::runtime_error("data object doesn't pass checking");
+                }
 
                 auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
                 auto buffer = ExtractParams<GFBuffer>(data_obj, 1);
@@ -120,12 +125,17 @@ void MainWindow::slot_encrypt() {
 
   auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
   CommonUtils::WaitForOpera(
-      this, _("Encrypting"), [this, keys, buffer](const OperaWaitingHd& hd) {
+      this, _("Encrypting"), [this, keys, buffer](const OperaWaitingHd& op_hd) {
         GpgFrontend::GpgBasicOperator::GetInstance().Encrypt(
             {keys->begin(), keys->end()}, buffer, true,
-            [this, hd](GpgError err, const DataObjectPtr& data_obj) {
+            [this, op_hd](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
-              hd();
+              op_hd();
+
+              if (data_obj == nullptr ||
+                  !data_obj->Check<GpgEncryptResult, GFBuffer>()) {
+                throw std::runtime_error("data object doesn't pass checking");
+              }
 
               auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
               auto buffer = ExtractParams<GFBuffer>(data_obj, 1);
@@ -171,60 +181,32 @@ void MainWindow::slot_sign() {
     }
   }
 
-  // data to transfer into task
-  auto data_object = TransferParams();
-
   // set input buffer
-  auto buffer =
-      edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString();
-  data_object->AppendObject(std::move(buffer));
+  auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
+  CommonUtils::WaitForOpera(
+      this, _("Signing"), [this, keys, buffer](const OperaWaitingHd& hd) {
+        GpgFrontend::GpgBasicOperator::GetInstance().Sign(
+            {keys->begin(), keys->end()}, buffer, GPGME_SIG_MODE_CLEAR, true,
+            [this, hd](GpgError err, const DataObjectPtr& data_obj) {
+              // stop waiting
+              hd();
 
-  // push the keys into data object
-  data_object->AppendObject(std::move(keys));
+              if (data_obj == nullptr ||
+                  !data_obj->Check<GpgSignResult, GFBuffer>()) {
+                throw std::runtime_error("data object doesn't pass checking");
+              }
+              auto sign_result = ExtractParams<GpgSignResult>(data_obj, 0);
+              auto sign_out_buffer = ExtractParams<GFBuffer>(data_obj, 1);
+              auto result_analyse = GpgSignResultAnalyse(err, sign_result);
+              result_analyse.Analyse();
+              process_result_analyse(edit_, info_board_, result_analyse);
 
-  auto sign_ruunner = [](DataObjectPtr data_object) -> int {
-    // check the size of the data object
-    if (data_object == nullptr || data_object->GetObjectSize() != 2)
-      throw std::runtime_error("data object doesn't pass checking");
-
-    auto buffer = ExtractParams<std::string>(data_object, 0);
-    auto keys = ExtractParams<KeyListPtr>(data_object, 1);
-
-    try {
-      GpgSignResult result = nullptr;
-      auto tmp = GpgFrontend::SecureCreateSharedObject<ByteArray>();
-      GpgError error = GpgFrontend::GpgBasicOperator::GetInstance().Sign(
-          std::move(keys), buffer, tmp, GPGME_SIG_MODE_CLEAR, result);
-
-      data_object->Swap({error, result, tmp});
-    } catch (const std::runtime_error& e) {
-      return -1;
-    }
-    return 0;
-  };
-
-  auto result_callback = [this](int rtn, DataObjectPtr data_object) {
-    if (!rtn) {
-      if (data_object == nullptr || data_object->GetObjectSize() != 3)
-        throw std::runtime_error("data object doesn't pass checking");
-      auto error = ExtractParams<GpgError>(data_object, 0);
-      auto result = ExtractParams<GpgSignResult>(data_object, 1);
-      auto tmp = ExtractParams<ByteArrayPtr>(data_object, 2);
-      auto resultAnalyse = GpgSignResultAnalyse(error, std::move(result));
-      resultAnalyse.Analyse();
-      process_result_analyse(edit_, info_board_, resultAnalyse);
-
-      if (CheckGpgError(error) == GPG_ERR_NO_ERROR)
-        edit_->SlotFillTextEditWithText(QString::fromStdString(*tmp));
-    } else {
-      QMessageBox::critical(this, _("Error"),
-                            _("An error occurred during operation."));
-      return;
-    }
-  };
-
-  process_operation(this, _("Signing"), std::move(sign_ruunner),
-                    std::move(result_callback), data_object);
+              if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+                edit_->SlotFillTextEditWithText(
+                    sign_out_buffer.ConvertToQByteArray());
+              }
+            });
+      });
 }
 
 void MainWindow::slot_decrypt() {
@@ -233,55 +215,34 @@ void MainWindow::slot_decrypt() {
     return;
   }
 
-  QByteArray text = edit_->CurTextPage()->GetTextPage()->toPlainText().toUtf8();
-
   // data to transfer into task
-  auto data_object = TransferParams(
-      edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString());
+  auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
 
-  auto decrypt_runner = [](DataObjectPtr data_object) -> int {
-    // check the size of the data object
-    if (data_object == nullptr || data_object->GetObjectSize() != 1)
-      throw std::runtime_error("data object doesn't pass checking");
+  CommonUtils::WaitForOpera(
+      this, _("Decrypting"), [this, buffer](const OperaWaitingHd& hd) {
+        GpgFrontend::GpgBasicOperator::GetInstance().Decrypt(
+            buffer, [this, hd](GpgError err, const DataObjectPtr& data_obj) {
+              // stop waiting
+              hd();
 
-    auto buffer = ExtractParams<std::string>(data_object, 0);
-    try {
-      GpgDecrResult result = nullptr;
-      auto decrypted = GpgFrontend::SecureCreateSharedObject<ByteArray>();
-      // GpgError error = GpgFrontend::GpgBasicOperator::GetInstance().Decrypt(
-      //     GFBuffer(buffer), decrypted, result);
-      GpgError error;
+              if (data_obj == nullptr ||
+                  !data_obj->Check<GpgDecryptResult, GFBuffer>()) {
+                throw std::runtime_error("data object doesn't pass checking");
+              }
+              auto decrypt_result =
+                  ExtractParams<GpgDecryptResult>(data_obj, 0);
+              auto out_buffer = ExtractParams<GFBuffer>(data_obj, 1);
+              auto result_analyse =
+                  GpgDecryptResultAnalyse(err, decrypt_result);
+              result_analyse.Analyse();
+              process_result_analyse(edit_, info_board_, result_analyse);
 
-      data_object->Swap({error, result, decrypted});
-    } catch (const std::runtime_error& e) {
-      return -1;
-    }
-    return 0;
-  };
-
-  auto result_callback = [this](int rtn, DataObjectPtr data_object) {
-    if (!rtn) {
-      if (data_object == nullptr ||
-          !data_object->Check<GpgError, GpgDecrResult, ByteArrayPtr>())
-        throw std::runtime_error("data object doesn't pass checking");
-      auto error = ExtractParams<GpgError>(data_object, 0);
-      auto result = ExtractParams<GpgDecrResult>(data_object, 1);
-      auto decrypted = ExtractParams<ByteArrayPtr>(data_object, 2);
-      auto resultAnalyse = GpgDecryptResultAnalyse(error, std::move(result));
-      resultAnalyse.Analyse();
-      process_result_analyse(edit_, info_board_, resultAnalyse);
-
-      if (CheckGpgError(error) == GPG_ERR_NO_ERROR)
-        edit_->SlotFillTextEditWithText(QString::fromStdString(*decrypted));
-    } else {
-      QMessageBox::critical(this, _("Error"),
-                            _("An error occurred during operation."));
-      return;
-    }
-  };
-
-  process_operation(this, _("Decrypting"), std::move(decrypt_runner),
-                    std::move(result_callback), data_object);
+              if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+                edit_->SlotFillTextEditWithText(
+                    out_buffer.ConvertToQByteArray());
+              }
+            });
+      });
 }
 
 void MainWindow::slot_verify() {
@@ -290,64 +251,28 @@ void MainWindow::slot_verify() {
     return;
   }
 
-  // data to transfer into task
-  auto data_object = TransferParams();
-
   // set input buffer
-  auto buffer =
-      edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString();
-  data_object->AppendObject(std::move(buffer));
+  auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
 
-  auto verify_runner = [](DataObjectPtr data_object) -> int {
-    // check the size of the data object
-    if (data_object == nullptr || !data_object->Check<std::string>())
-      throw std::runtime_error("data object doesn't pass checking");
+  CommonUtils::WaitForOpera(
+      this, _("Verifying"), [this, buffer](const OperaWaitingHd& hd) {
+        GpgFrontend::GpgBasicOperator::GetInstance().Verify(
+            buffer, GFBuffer(),
+            [this, hd](GpgError err, const DataObjectPtr& data_obj) {
+              // stop waiting
+              hd();
 
-    auto buffer = ExtractParams<std::string>(data_object, 0);
+              if (data_obj == nullptr || !data_obj->Check<GpgVerifyResult>()) {
+                throw std::runtime_error("data object doesn't pass checking");
+              }
+              auto verify_result = ExtractParams<GpgVerifyResult>(data_obj, 0);
 
-    SPDLOG_DEBUG("verify buffer size: {}", buffer.size());
-
-    try {
-      GpgVerifyResult verify_result = nullptr;
-      auto sig_buffer = ByteArrayPtr(nullptr);
-      GpgError error = GpgFrontend::GpgBasicOperator::GetInstance().Verify(
-          buffer, sig_buffer, verify_result);
-
-      data_object->Swap({error, verify_result});
-    } catch (const std::runtime_error& e) {
-      return -1;
-    }
-    return 0;
-  };
-
-  auto result_callback = [this](int rtn, DataObjectPtr data_object) {
-    if (!rtn) {
-      if (data_object == nullptr ||
-          !data_object->Check<GpgError, GpgVerifyResult>())
-        throw std::runtime_error("data object doesn't pass checking");
-      auto error = ExtractParams<GpgError>(data_object, 0);
-      auto verify_result = ExtractParams<GpgVerifyResult>(data_object, 1);
-
-      auto result_analyse = GpgVerifyResultAnalyse(error, verify_result);
-      result_analyse.Analyse();
-      process_result_analyse(edit_, info_board_, result_analyse);
-
-      if (CheckGpgError(error) == GPG_ERR_NO_ERROR) {
-        if (result_analyse.GetStatus() == -2)
-          import_unknown_key_from_keyserver(this, result_analyse);
-
-        if (result_analyse.GetStatus() >= 0)
-          show_verify_details(this, info_board_, error, verify_result);
-      }
-    } else {
-      QMessageBox::critical(this, _("Error"),
-                            _("An error occurred during operation."));
-      return;
-    }
-  };
-
-  process_operation(this, _("Verifying"), verify_runner, result_callback,
-                    data_object);
+              // analyse result
+              auto result_analyse = GpgVerifyResultAnalyse(err, verify_result);
+              result_analyse.Analyse();
+              process_result_analyse(edit_, info_board_, result_analyse);
+            });
+      });
 }
 
 void MainWindow::slot_encrypt_sign() {
@@ -381,15 +306,15 @@ void MainWindow::slot_encrypt_sign() {
     }
   }
 
-  auto signersPicker = new SignersPicker(this);
+  auto* signers_picker = new SignersPicker(this);
   QEventLoop loop;
-  connect(signersPicker, &SignersPicker::finished, &loop, &QEventLoop::quit);
+  connect(signers_picker, &SignersPicker::finished, &loop, &QEventLoop::quit);
   loop.exec();
 
   // return when canceled
-  if (!signersPicker->GetStatus()) return;
+  if (!signers_picker->GetStatus()) return;
 
-  auto signer_key_ids = signersPicker->GetCheckedSigners();
+  auto signer_key_ids = signers_picker->GetCheckedSigners();
   auto signer_keys = GpgKeyGetter::GetInstance().GetKeys(signer_key_ids);
 
   for (const auto& key : *keys) {
@@ -401,67 +326,46 @@ void MainWindow::slot_encrypt_sign() {
   }
 
   // data to transfer into task
-  auto data_object = TransferParams(
-      std::move(signer_keys), std::move(keys),
-      edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString());
+  auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
 
-  auto encrypt_sign_runner = [](DataObjectPtr data_object) -> int {
-    // check the size of the data object
-    if (data_object == nullptr ||
-        !data_object->Check<KeyListPtr, KeyListPtr, std::string>())
-      throw std::runtime_error("data object doesn't pass checking");
+  CommonUtils::WaitForOpera(
+      this, _("Encrypting and Signing"),
+      [this, keys, signer_keys, buffer](const OperaWaitingHd& hd) {
+        GpgFrontend::GpgBasicOperator::GetInstance().EncryptSign(
+            {keys->begin(), keys->end()},
+            {signer_keys->begin(), signer_keys->end()}, buffer, true,
+            [this, hd](GpgError err, const DataObjectPtr& data_obj) {
+              // stop waiting
+              hd();
 
-    auto signer_keys = ExtractParams<KeyListPtr>(data_object, 0);
-    auto keys = ExtractParams<KeyListPtr>(data_object, 1);
-    auto buffer = ExtractParams<std::string>(data_object, 2);
-    try {
-      GpgEncrResult encr_result = nullptr;
-      GpgSignResult sign_result = nullptr;
-      auto tmp = GpgFrontend::SecureCreateSharedObject<ByteArray>();
-      GpgError error = GpgFrontend::GpgBasicOperator::GetInstance().EncryptSign(
-          std::move(keys), std::move(signer_keys), buffer, tmp, encr_result,
-          sign_result);
+              if (data_obj == nullptr ||
+                  !data_obj
+                       ->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()) {
+                throw std::runtime_error("data object doesn't pass checking");
+              }
+              auto encrypt_result =
+                  ExtractParams<GpgEncryptResult>(data_obj, 0);
+              auto sign_result = ExtractParams<GpgSignResult>(data_obj, 1);
+              auto out_buffer = ExtractParams<GFBuffer>(data_obj, 2);
 
-      data_object->Swap({error, encr_result, sign_result, tmp});
+              // analyse result
+              auto encrypt_result_analyse =
+                  GpgEncryptResultAnalyse(err, encrypt_result);
+              encrypt_result_analyse.Analyse();
 
-    } catch (const std::runtime_error& e) {
-      return -1;
-    }
-    return 0;
-  };
+              auto sign_result_analyse = GpgSignResultAnalyse(err, sign_result);
+              sign_result_analyse.Analyse();
 
-  auto result_callback = [this](int rtn, DataObjectPtr data_object) {
-    if (!rtn) {
-      if (data_object == nullptr ||
-          !data_object
-               ->Check<GpgError, GpgEncrResult, GpgSignResult, ByteArrayPtr>())
-        throw std::runtime_error("data object doesn't pass checking");
-      auto error = ExtractParams<GpgError>(data_object, 0);
-      auto encrypt_result = ExtractParams<GpgEncrResult>(data_object, 1);
-      auto sign_result = ExtractParams<GpgSignResult>(data_object, 2);
-      auto tmp = ExtractParams<ByteArrayPtr>(data_object, 3);
+              // show analyse result
+              process_result_analyse(edit_, info_board_, encrypt_result_analyse,
+                                     sign_result_analyse);
 
-      auto encrypt_result_analyse = GpgEncryptResultAnalyse(
-          error, GpgEncryptResult(encrypt_result.get()));
-      auto sign_result_analyse =
-          GpgSignResultAnalyse(error, std::move(sign_result));
-      encrypt_result_analyse.Analyse();
-      sign_result_analyse.Analyse();
-      process_result_analyse(edit_, info_board_, encrypt_result_analyse,
-                             sign_result_analyse);
-      if (CheckGpgError(error) == GPG_ERR_NO_ERROR)
-        edit_->SlotFillTextEditWithText(QString::fromStdString(*tmp));
-
-      info_board_->ResetOptionActionsMenu();
-    } else {
-      QMessageBox::critical(this, _("Error"),
-                            _("An error occurred during operation."));
-      return;
-    }
-  };
-
-  process_operation(this, _("Encrypting and Signing"), encrypt_sign_runner,
-                    result_callback, data_object);
+              if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+                edit_->SlotFillTextEditWithText(
+                    out_buffer.ConvertToQByteArray());
+              }
+            });
+      });
 }
 
 void MainWindow::slot_decrypt_verify() {
@@ -472,69 +376,45 @@ void MainWindow::slot_decrypt_verify() {
   }
 
   // data to transfer into task
-  auto data_object = TransferParams(
-      edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString());
+  auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
 
-  auto decrypt_verify_runner = [](DataObjectPtr data_object) -> int {
-    // check the size of the data object
-    if (data_object == nullptr || !data_object->Check<std::string>())
-      throw std::runtime_error("data object doesn't pass checking");
+  CommonUtils::WaitForOpera(
+      this, _("Decrypting and Verifying"),
+      [this, buffer](const OperaWaitingHd& hd) {
+        GpgFrontend::GpgBasicOperator::GetInstance().DecryptVerify(
+            buffer, [this, hd](GpgError err, const DataObjectPtr& data_obj) {
+              // stop waiting
+              hd();
 
-    auto buffer = ExtractParams<std::string>(data_object, 0);
-    try {
-      GpgDecrResult decrypt_result = nullptr;
-      GpgVerifyResult verify_result = nullptr;
-      auto decrypted_buffer =
-          GpgFrontend::SecureCreateSharedObject<ByteArray>();
-      GpgError error = GpgBasicOperator::GetInstance().DecryptVerify(
-          buffer, decrypted_buffer, decrypt_result, verify_result);
+              if (data_obj == nullptr ||
+                  !data_obj
+                       ->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()) {
+                throw std::runtime_error("data object doesn't pass checking");
+              }
+              auto decrypt_result =
+                  ExtractParams<GpgDecryptResult>(data_obj, 0);
+              auto verify_result = ExtractParams<GpgVerifyResult>(data_obj, 1);
+              auto out_buffer = ExtractParams<GFBuffer>(data_obj, 2);
 
-      data_object->Swap(
-          {error, decrypt_result, verify_result, decrypted_buffer});
-    } catch (const std::runtime_error& e) {
-      SPDLOG_ERROR(e.what());
-      return -1;
-    }
-    return 0;
-  };
+              // analyse result
+              auto decrypt_result_analyse =
+                  GpgDecryptResultAnalyse(err, decrypt_result);
+              decrypt_result_analyse.Analyse();
 
-  auto result_callback = [this](int rtn, DataObjectPtr data_object) {
-    if (!rtn) {
-      if (data_object == nullptr ||
-          !data_object->Check<GpgError, GpgDecrResult, GpgVerifyResult,
-                              ByteArrayPtr>())
-        throw std::runtime_error("data object doesn't pass checking");
+              auto verify_result_analyse =
+                  GpgVerifyResultAnalyse(err, verify_result);
+              verify_result_analyse.Analyse();
 
-      auto error = ExtractParams<GpgError>(data_object, 0);
-      auto decrypt_result = ExtractParams<GpgDecrResult>(data_object, 1);
-      auto verify_result = ExtractParams<GpgVerifyResult>(data_object, 2);
-      auto decrypted = ExtractParams<ByteArrayPtr>(data_object, 3);
+              // show analyse result
+              process_result_analyse(edit_, info_board_, decrypt_result_analyse,
+                                     verify_result_analyse);
 
-      auto decrypt_result_analyse =
-          GpgDecryptResultAnalyse(error, std::move(decrypt_result));
-      auto verify_result_analyse = GpgVerifyResultAnalyse(error, verify_result);
-      decrypt_result_analyse.Analyse();
-      verify_result_analyse.Analyse();
-      process_result_analyse(edit_, info_board_, decrypt_result_analyse,
-                             verify_result_analyse);
-      if (CheckGpgError(error) == GPG_ERR_NO_ERROR)
-        edit_->SlotFillTextEditWithText(QString::fromStdString(*decrypted));
-
-      if (verify_result_analyse.GetStatus() == -2)
-        import_unknown_key_from_keyserver(this, verify_result_analyse);
-
-      if (verify_result_analyse.GetStatus() >= 0)
-        show_verify_details(this, info_board_, error, verify_result);
-
-    } else {
-      QMessageBox::critical(this, _("Error"),
-                            _("An error occurred during operation."));
-      return;
-    }
-  };
-
-  process_operation(this, _("Decrypting and Verifying"), decrypt_verify_runner,
-                    result_callback, data_object);
+              if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+                edit_->SlotFillTextEditWithText(
+                    out_buffer.ConvertToQByteArray());
+              }
+            });
+      });
 }
 
 void MainWindow::slot_find() {

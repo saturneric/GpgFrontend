@@ -36,7 +36,7 @@ namespace GpgFrontend::UI {
 
 VerifyDetailsDialog::VerifyDetailsDialog(QWidget* parent, GpgError error,
                                          GpgVerifyResult result)
-    : QDialog(parent), m_result_(std::move(result)), error_(error) {
+    : QDialog(parent), m_result_(result), error_(error) {
   this->setWindowTitle(_("Signatures Details"));
 
   main_layout_ = new QHBoxLayout();
@@ -49,7 +49,7 @@ VerifyDetailsDialog::VerifyDetailsDialog(QWidget* parent, GpgError error,
 
 void VerifyDetailsDialog::slot_refresh() {
   m_vbox_ = new QWidget();
-  auto* mVboxLayout = new QVBoxLayout(m_vbox_);
+  auto* m_vbox_layout = new QVBoxLayout(m_vbox_);
   main_layout_->addWidget(m_vbox_);
 
   // Button Box for close button
@@ -57,47 +57,45 @@ void VerifyDetailsDialog::slot_refresh() {
   connect(button_box_, &QDialogButtonBox::rejected, this,
           &VerifyDetailsDialog::close);
 
-  auto sign = m_result_->signatures;
+  auto signatures = m_result_.GetSignature();
 
-  if (sign == nullptr) {
-    mVboxLayout->addWidget(new QLabel(_("No valid input found")));
-    mVboxLayout->addWidget(button_box_);
+  if (signatures.empty()) {
+    m_vbox_layout->addWidget(new QLabel(_("No valid input found")));
+    m_vbox_layout->addWidget(button_box_);
     return;
   }
 
   // Get timestamp of signature of current text
   QDateTime timestamp;
 #ifdef GPGFRONTEND_GUI_QT6
-  timestamp.setSecsSinceEpoch(sign->timestamp);
+  timestamp.setSecsSinceEpoch(to_time_t(signatures[0].GetCreateTime()));
 #else
   timestamp.setTime_t(sign->timestamp);
 #endif
 
   // Set the title widget depending on sign status
-  if (gpg_err_code(sign->status) == GPG_ERR_BAD_SIGNATURE) {
-    mVboxLayout->addWidget(new QLabel(_("Error Validating signature")));
+  if (gpg_err_code(signatures[0].GetStatus()) == GPG_ERR_BAD_SIGNATURE) {
+    m_vbox_layout->addWidget(new QLabel(_("Error Validating signature")));
   } else if (input_signature_ != nullptr) {
     const auto info = (boost::format(_("File was signed on %1%")) %
                        QLocale::system().toString(timestamp).toStdString())
                           .str() +
                       "<br/>" + _("It Contains") + ": " + "<br/><br/>";
-    mVboxLayout->addWidget(new QLabel(info.c_str()));
+    m_vbox_layout->addWidget(new QLabel(info.c_str()));
   } else {
     const auto info = (boost::format(_("Signed on %1%")) %
                        QLocale::system().toString(timestamp).toStdString())
                           .str() +
                       "<br/>" + _("It Contains") + ": " + "<br/><br/>";
-    mVboxLayout->addWidget(new QLabel(info.c_str()));
+    m_vbox_layout->addWidget(new QLabel(info.c_str()));
   }
   // Add information box for every single key
-  while (sign) {
-    GpgSignature signature(sign);
-    auto* sign_box = new VerifyKeyDetailBox(signature, this);
-    sign = sign->next;
-    mVboxLayout->addWidget(sign_box);
+  for (const auto& signature : signatures) {
+    auto* detail_box = new VerifyKeyDetailBox(signature, this);
+    m_vbox_layout->addWidget(detail_box);
   }
 
-  mVboxLayout->addWidget(button_box_);
+  m_vbox_layout->addWidget(button_box_);
 }
 
 }  // namespace GpgFrontend::UI
