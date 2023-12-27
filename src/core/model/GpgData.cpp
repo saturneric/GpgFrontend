@@ -28,6 +28,8 @@
 
 #include "core/model/GpgData.h"
 
+#include <unistd.h>
+
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
@@ -61,6 +63,35 @@ GpgData::GpgData(const void* buffer, size_t size, bool copy) {
   assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
 
   data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
+}
+
+GpgData::GpgData(int fd) : fd_(fd) {
+  gpgme_data_t data;
+
+  auto err = gpgme_data_new_from_fd(&data, fd);
+  assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
+
+  data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
+}
+
+GpgData::GpgData(const std::filesystem::path& path, bool read) {
+  gpgme_data_t data;
+
+  fp_ = fopen(path.string().c_str(), read ? "rb" : "wb");
+  auto err = gpgme_data_new_from_stream(&data, fp_);
+  assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
+
+  data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
+}
+
+GpgData::~GpgData() {
+  if (fp_ != nullptr) {
+    fclose(fp_);
+  }
+
+  if (fd_ >= 0) {
+    close(fd_);
+  }
 }
 
 auto GpgData::Read2Buffer() -> ByteArrayPtr {
@@ -110,5 +141,4 @@ auto GpgData::Read2GFBuffer() -> GFBuffer {
 }
 
 GpgData::operator gpgme_data_t() { return data_ref_.get(); }
-
 }  // namespace GpgFrontend

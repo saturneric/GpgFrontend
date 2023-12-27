@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "core/function/basic/GpgFunctionObject.h"
+#include "core/function/gpg/GpgContext.h"
 #include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/typedef/GpgTypedef.h"
 
@@ -38,8 +40,17 @@ namespace GpgFrontend {
  *
  * @class class: GpgBasicOperator
  */
-class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
+class GPGFRONTEND_CORE_EXPORT GpgFileOpera
+    : public SingletonFunctionObject<GpgFileOpera> {
  public:
+  /**
+   * @brief Construct a new Gpg File Opera object
+   *
+   * @param channel
+   */
+  explicit GpgFileOpera(
+      int channel = SingletonFunctionObject::GetDefaultChannel());
+
   /**
    * @brief Encrypted file with public key
    *
@@ -50,10 +61,9 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param channel Channel in context
    * @return unsigned int error code
    */
-  static void EncryptFile(KeyArgsList keys,
-                          const std::filesystem::path& in_path, bool ascii,
-                          const std::filesystem::path& out_path,
-                          const GpgOperationCallback& cb);
+  void EncryptFile(KeyArgsList keys, const std::filesystem::path& in_path,
+                   bool ascii, const std::filesystem::path& out_path,
+                   const GpgOperationCallback& cb);
 
   /**
    * @brief Encrypted file symmetrically (with password)
@@ -64,10 +74,9 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param channel
    * @return unsigned int
    */
-  static void EncryptFileSymmetric(const std::filesystem::path& in_path,
-                                   bool ascii,
-                                   const std::filesystem::path& out_path,
-                                   const GpgOperationCallback& cb);
+  void EncryptFileSymmetric(const std::filesystem::path& in_path, bool ascii,
+                            const std::filesystem::path& out_path,
+                            const GpgOperationCallback& cb);
 
   /**
    * @brief
@@ -77,9 +86,9 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param result
    * @return GpgError
    */
-  static void DecryptFile(const std::filesystem::path& in_path,
-                          const std::filesystem::path& out_path,
-                          const GpgOperationCallback& cb);
+  void DecryptFile(const std::filesystem::path& in_path,
+                   const std::filesystem::path& out_path,
+                   const GpgOperationCallback& cb);
 
   /**
    * @brief Sign file with private key
@@ -91,9 +100,9 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param channel
    * @return GpgError
    */
-  static void SignFile(KeyArgsList keys, const std::filesystem::path& in_path,
-                       bool ascii, const std::filesystem::path& out_path,
-                       const GpgOperationCallback& cb);
+  void SignFile(KeyArgsList keys, const std::filesystem::path& in_path,
+                bool ascii, const std::filesystem::path& out_path,
+                const GpgOperationCallback& cb);
 
   /**
    * @brief Verify file with public key
@@ -104,9 +113,9 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param channel Channel in context
    * @return GpgError
    */
-  static void VerifyFile(const std::filesystem::path& data_path,
-                         const std::filesystem::path& sign_path,
-                         const GpgOperationCallback& cb);
+  void VerifyFile(const std::filesystem::path& data_path,
+                  const std::filesystem::path& sign_path,
+                  const GpgOperationCallback& cb);
 
   /**
    * @brief Encrypt and sign file with public key and private key
@@ -120,10 +129,10 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param channel
    * @return GpgError
    */
-  static void EncryptSignFile(KeyArgsList keys, KeyArgsList signer_keys,
-                              const std::filesystem::path& in_path, bool ascii,
-                              const std::filesystem::path& out_path,
-                              const GpgOperationCallback& cb);
+  void EncryptSignFile(KeyArgsList keys, KeyArgsList signer_keys,
+                       const std::filesystem::path& in_path, bool ascii,
+                       const std::filesystem::path& out_path,
+                       const GpgOperationCallback& cb);
 
   /**
    * @brief
@@ -134,9 +143,13 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera {
    * @param verify_res
    * @return GpgError
    */
-  static void DecryptVerifyFile(const std::filesystem::path& in_path,
-                                const std::filesystem::path& out_path,
-                                const GpgOperationCallback& cb);
+  void DecryptVerifyFile(const std::filesystem::path& in_path,
+                         const std::filesystem::path& out_path,
+                         const GpgOperationCallback& cb);
+
+ private:
+  GpgContext& ctx_ = GpgContext::GetInstance(
+      SingletonFunctionObject::GetChannel());  ///< Corresponding context
 };
 
 }  // namespace GpgFrontend

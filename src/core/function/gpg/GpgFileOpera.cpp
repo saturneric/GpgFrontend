@@ -31,120 +31,129 @@
 
 #include "core/function/gpg/GpgBasicOperator.h"
 #include "core/model/GFBuffer.h"
+#include "core/model/GpgData.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgSignResult.h"
 #include "core/model/GpgVerifyResult.h"
+#include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 
 namespace GpgFrontend {
 
+auto PathPreCheck(const std::filesystem::path& path, bool read)
+    -> std::tuple<bool, std::string> {
+  QFileInfo const file_info(path);
+  QFileInfo const path_info(file_info.absolutePath());
+
+  if (!path_info.exists()) {
+    return {false, _("")};
+  }
+  if (read ? !file_info.isReadable() : !path_info.isWritable()) {
+    return {false, _("")};
+  }
+  return {true, _("")};
+}
+
+GpgFileOpera::GpgFileOpera(int channel)
+    : SingletonFunctionObject<GpgFileOpera>(channel) {}
+
 void GpgFileOpera::EncryptFile(std::vector<GpgKey> keys,
                                const std::filesystem::path& in_path, bool ascii,
                                const std::filesystem::path& out_path,
                                const GpgOperationCallback& cb) {
-  auto read_result = ReadFileGFBuffer(in_path);
-  if (!std::get<0>(read_result)) {
-    throw std::runtime_error("read file error");
-  }
+  RunGpgOperaAsync(
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
 
-  GpgBasicOperator::GetInstance().Encrypt(
-      std::move(keys), std::get<1>(read_result), ascii,
-      [=](GpgError err, const DataObjectPtr& data_object) {
-        if (!data_object->Check<GpgEncryptResult, GFBuffer>()) {
-          throw std::runtime_error("data object transfers wrong arguments");
-        }
-        auto result = ExtractParams<GpgEncryptResult>(data_object, 0);
-        auto buffer = ExtractParams<GFBuffer>(data_object, 1);
-        if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-          if (!WriteFileGFBuffer(out_path, buffer)) {
-            throw std::runtime_error("write buffer to file error");
-          }
-        }
-        cb(err, TransferParams(result));
-      });
+        // Last entry data_in array has to be nullptr
+        recipients.emplace_back(nullptr);
+
+        GpgData data_in(in_path, true);
+        GpgData data_out(out_path, false);
+
+        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+        auto err = CheckGpgError(gpgme_op_encrypt(ctx, recipients.data(),
+                                                  GPGME_ENCRYPT_ALWAYS_TRUST,
+                                                  data_in, data_out));
+        data_object->Swap({GpgEncryptResult(gpgme_op_encrypt_result(ctx))});
+
+        return err;
+      },
+      cb, "gpgme_op_encrypt", "2.1.0");
 }
 
 void GpgFileOpera::DecryptFile(const std::filesystem::path& in_path,
                                const std::filesystem::path& out_path,
                                const GpgOperationCallback& cb) {
-  auto read_result = ReadFileGFBuffer(in_path);
-  if (!std::get<0>(read_result)) {
-    throw std::runtime_error("read file error");
-  }
+  RunGpgOperaAsync(
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        GpgData data_in(in_path, true);
+        GpgData data_out(out_path, false);
 
-  GpgBasicOperator::GetInstance().Decrypt(
-      std::get<1>(read_result),
-      [=](GpgError err, const DataObjectPtr& data_object) {
-        if (!data_object->Check<GpgDecryptResult, GFBuffer>()) {
-          throw std::runtime_error("data object transfers wrong arguments");
-        }
-        auto result = ExtractParams<GpgDecryptResult>(data_object, 0);
-        auto buffer = ExtractParams<GFBuffer>(data_object, 1);
+        auto err = CheckGpgError(
+            gpgme_op_decrypt(ctx_.DefaultContext(), data_in, data_out));
+        data_object->Swap(
+            {GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext()))});
 
-        if (CheckGpgError(err) == GPG_ERR_NO_ERROR &&
-            !WriteFileGFBuffer(out_path, buffer)) {
-          throw std::runtime_error("write buffer to file error");
-        }
-
-        cb(err, TransferParams(result));
-      });
+        return err;
+      },
+      cb, "gpgme_op_decrypt", "2.1.0");
 }
 
 void GpgFileOpera::SignFile(KeyArgsList keys,
                             const std::filesystem::path& in_path, bool ascii,
                             const std::filesystem::path& out_path,
                             const GpgOperationCallback& cb) {
-  auto read_result = ReadFileGFBuffer(in_path);
-  if (!std::get<0>(read_result)) {
-    throw std::runtime_error("read file error");
-  }
+  RunGpgOperaAsync(
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        GpgError err;
 
-  GpgBasicOperator::GetInstance().Sign(
-      std::move(keys), std::get<1>(read_result), GPGME_SIG_MODE_DETACH, ascii,
-      [=](GpgError err, const DataObjectPtr& data_object) {
-        if (!data_object->Check<GpgSignResult, GFBuffer>()) {
-          throw std::runtime_error("data object transfers wrong arguments");
-        }
-        auto result = ExtractParams<GpgSignResult>(data_object, 0);
-        auto buffer = ExtractParams<GFBuffer>(data_object, 1);
+        // Set Singers of this opera
+        GpgBasicOperator::GetInstance().SetSigners(keys, ascii);
 
-        if (CheckGpgError(err) == GPG_ERR_NO_ERROR &&
-            !WriteFileGFBuffer(out_path, buffer)) {
-          throw std::runtime_error("write buffer to file error");
-        }
-        cb(err, TransferParams(result));
-      });
+        GpgData data_in(in_path, true);
+        GpgData data_out(out_path, false);
+
+        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+        err = CheckGpgError(
+            gpgme_op_sign(ctx, data_in, data_out, GPGME_SIG_MODE_DETACH));
+
+        data_object->Swap({
+            GpgSignResult(gpgme_op_sign_result(ctx)),
+        });
+        return err;
+      },
+      cb, "gpgme_op_sign", "2.1.0");
 }
 
 void GpgFileOpera::VerifyFile(const std::filesystem::path& data_path,
                               const std::filesystem::path& sign_path,
                               const GpgOperationCallback& cb) {
-  auto read_result = ReadFileGFBuffer(data_path);
-  if (!std::get<0>(read_result)) {
-    throw std::runtime_error("read file error");
-  }
+  RunGpgOperaAsync(
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        GpgError err;
 
-  GFBuffer sign_buffer;
-  if (!sign_path.empty()) {
-    auto read_result = ReadFileGFBuffer(sign_path);
-    if (!std::get<0>(read_result)) {
-      throw std::runtime_error("read file error");
-    }
-    sign_buffer = std::get<1>(read_result);
-  }
-
-  GpgBasicOperator::GetInstance().Verify(
-      std::get<1>(read_result), sign_buffer,
-      [=](GpgError err, const DataObjectPtr& data_object) {
-        if (!data_object->Check<GpgVerifyResult>()) {
-          throw std::runtime_error("data object transfers wrong arguments");
+        GpgData data_in(data_path, true);
+        GpgData data_out;
+        if (!sign_path.empty()) {
+          GpgData sig_data(sign_path, true);
+          err = CheckGpgError(gpgme_op_verify(ctx_.DefaultContext(), sig_data,
+                                              data_in, nullptr));
+        } else {
+          err = CheckGpgError(gpgme_op_verify(ctx_.DefaultContext(), data_in,
+                                              nullptr, data_out));
         }
-        auto result = ExtractParams<GpgVerifyResult>(data_object, 0);
-        cb(err, TransferParams(result));
-      });
+
+        data_object->Swap({
+            GpgVerifyResult(gpgme_op_verify_result(ctx_.DefaultContext())),
+        });
+
+        return err;
+      },
+      cb, "gpgme_op_verify", "2.1.0");
 }
 
 void GpgFileOpera::EncryptSignFile(KeyArgsList keys, KeyArgsList signer_keys,
@@ -152,83 +161,74 @@ void GpgFileOpera::EncryptSignFile(KeyArgsList keys, KeyArgsList signer_keys,
                                    bool ascii,
                                    const std::filesystem::path& out_path,
                                    const GpgOperationCallback& cb) {
-  auto read_result = ReadFileGFBuffer(in_path);
-  if (!std::get<0>(read_result)) {
-    throw std::runtime_error("read file error");
-  }
+  RunGpgOperaAsync(
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        GpgError err;
+        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
 
-  GpgBasicOperator::GetInstance().EncryptSign(
-      std::move(keys), std::move(signer_keys), std::get<1>(read_result), ascii,
-      [=](GpgError err, const DataObjectPtr& data_object) {
-        if (!data_object->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()) {
-          throw std::runtime_error("data object transfers wrong arguments");
-        }
-        auto encrypt_result = ExtractParams<GpgEncryptResult>(data_object, 0);
-        auto sign_result = ExtractParams<GpgSignResult>(data_object, 1);
-        auto buffer = ExtractParams<GFBuffer>(data_object, 2);
-        if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-          if (!WriteFileGFBuffer(out_path, buffer)) {
-            throw std::runtime_error("write buffer to file error");
-          }
-        }
-        cb(err, TransferParams(encrypt_result, sign_result));
-      });
+        // Last entry data_in array has to be nullptr
+        recipients.emplace_back(nullptr);
+
+        GpgBasicOperator::GetInstance().SetSigners(signer_keys, ascii);
+
+        GpgData data_in(in_path, true);
+        GpgData data_out(out_path, false);
+
+        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+        err = CheckGpgError(gpgme_op_encrypt_sign(ctx, recipients.data(),
+                                                  GPGME_ENCRYPT_ALWAYS_TRUST,
+                                                  data_in, data_out));
+
+        data_object->Swap({
+            GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
+            GpgSignResult(gpgme_op_sign_result(ctx)),
+        });
+        return err;
+      },
+      cb, "gpgme_op_encrypt_sign", "2.1.0");
 }
 
 void GpgFileOpera::DecryptVerifyFile(const std::filesystem::path& in_path,
                                      const std::filesystem::path& out_path,
                                      const GpgOperationCallback& cb) {
-  auto read_result = ReadFileGFBuffer(in_path);
-  if (!std::get<0>(read_result)) {
-    throw std::runtime_error("read file error");
-  }
+  RunGpgOperaAsync(
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        GpgError err;
 
-  GpgBasicOperator::GetInstance().DecryptVerify(
-      std::get<1>(read_result),
-      [=](GpgError err, const DataObjectPtr& data_object) {
-        if (!data_object
-                 ->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()) {
-          throw std::runtime_error("data object transfers wrong arguments");
-        }
-        auto decrypt_result = ExtractParams<GpgDecryptResult>(data_object, 0);
-        auto verify_result = ExtractParams<GpgVerifyResult>(data_object, 1);
-        auto buffer = ExtractParams<GFBuffer>(data_object, 2);
-        if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-          if (!WriteFileGFBuffer(out_path, buffer)) {
-            throw std::runtime_error("write buffer to file error");
-          }
-        }
-        cb(err, TransferParams(decrypt_result, verify_result));
-      });
+        GpgData data_in(in_path, true);
+        GpgData data_out(out_path, false);
+
+        err = CheckGpgError(
+            gpgme_op_decrypt_verify(ctx_.DefaultContext(), data_in, data_out));
+
+        data_object->Swap({
+            GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext())),
+            GpgVerifyResult(gpgme_op_verify_result(ctx_.DefaultContext())),
+        });
+
+        return err;
+      },
+      cb, "gpgme_op_decrypt_verify", "2.1.0");
 }
+
 void GpgFileOpera::EncryptFileSymmetric(const std::filesystem::path& in_path,
                                         bool ascii,
                                         const std::filesystem::path& out_path,
                                         const GpgOperationCallback& cb) {
-  auto read_result = ReadFileGFBuffer(in_path);
-  if (!std::get<0>(read_result)) {
-    throw std::runtime_error("read file error");
-  }
+  RunGpgOperaAsync(
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        GpgData data_in(in_path, true);
+        GpgData data_out(out_path, false);
 
-  GpgBasicOperator::GetInstance().EncryptSymmetric(
-      std::get<1>(read_result), ascii,
-      [=](GpgError err, const DataObjectPtr& data_object) {
-        if (!data_object->Check<GpgEncryptResult, GFBuffer>()) {
-          throw std::runtime_error("data object transfers wrong arguments");
-        }
-        auto result = ExtractParams<GpgEncryptResult>(data_object, 0);
-        auto buffer = ExtractParams<GFBuffer>(data_object, 1);
-        if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-          cb(err, TransferParams(result));
-          return;
-        }
+        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+        auto err = CheckGpgError(gpgme_op_encrypt(
+            ctx, nullptr, GPGME_ENCRYPT_SYMMETRIC, data_in, data_out));
+        data_object->Swap({
+            GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
+        });
 
-        if (!WriteFileGFBuffer(out_path, buffer)) {
-          throw std::runtime_error("write buffer to file error");
-        }
-
-        cb(err, TransferParams(result));
-      });
+        return err;
+      },
+      cb, "gpgme_op_encrypt_symmetric", "2.1.0");
 }
-
 }  // namespace GpgFrontend

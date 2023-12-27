@@ -57,8 +57,28 @@ class GPGFRONTEND_CORE_EXPORT GpgData {
   /**
    * @brief Construct a new Gpg Data object
    *
+   * @param fd
+   */
+  explicit GpgData(int fd);
+
+  /**
+   * @brief Construct a new Gpg Data object
+   *
+   * @param path
+   */
+  explicit GpgData(const std::filesystem::path& path, bool read);
+
+  /**
+   * @brief Construct a new Gpg Data object
+   *
    */
   explicit GpgData(GFBuffer);
+
+  /**
+   * @brief Destroy the Gpg Data object
+   *
+   */
+  ~GpgData();
 
   /**
    * @brief
@@ -95,6 +115,8 @@ class GPGFRONTEND_CORE_EXPORT GpgData {
   GFBuffer cached_buffer_;
 
   std::unique_ptr<struct gpgme_data, DataRefDeleter> data_ref_ = nullptr;  ///<
+  FILE* fp_ = nullptr;
+  int fd_ = -1;
 };
 
 }  // namespace GpgFrontend
