@@ -27,8 +27,9 @@
  */
 #include "GpgFileOpera.h"
 
-#include <utility>
+#include <unistd.h>
 
+#include "core/function/ArchiveFileOperator.h"
 #include "core/function/gpg/GpgBasicOperator.h"
 #include "core/model/GFBuffer.h"
 #include "core/model/GpgData.h"
@@ -42,20 +43,6 @@
 #include "core/utils/IOUtils.h"
 
 namespace GpgFrontend {
-
-auto PathPreCheck(const std::filesystem::path& path, bool read)
-    -> std::tuple<bool, std::string> {
-  QFileInfo const file_info(path);
-  QFileInfo const path_info(file_info.absolutePath());
-
-  if (!path_info.exists()) {
-    return {false, _("")};
-  }
-  if (read ? !file_info.isReadable() : !path_info.isWritable()) {
-    return {false, _("")};
-  }
-  return {true, _("")};
-}
 
 GpgFileOpera::GpgFileOpera(int channel)
     : SingletonFunctionObject<GpgFileOpera>(channel) {}
@@ -85,6 +72,44 @@ void GpgFileOpera::EncryptFile(std::vector<GpgKey> keys,
       cb, "gpgme_op_encrypt", "2.1.0");
 }
 
+void GpgFileOpera::EncryptDirectory(std::vector<GpgKey> keys,
+                                    const std::filesystem::path& in_path,
+                                    bool ascii,
+                                    const std::filesystem::path& out_path,
+                                    const GpgOperationCallback& cb) {
+  RunGpgOperaAsync(
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        std::array<int, 2> pipe_fds;
+        if (pipe(pipe_fds.data()) != 0) {
+          SPDLOG_ERROR(
+              "cannot create pipe for directory archive and encryt process");
+          return GPG_ERR_EPIPE;
+        }
+
+        ArchiveFileOperator::NewArchive2Fd(
+            in_path, pipe_fds[1], [](GFError err, const DataObjectPtr&) {
+              SPDLOG_DEBUG("new archive 2 fd operation, err: {}", err);
+            });
+
+        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
+
+        // Last entry data_in array has to be nullptr
+        recipients.emplace_back(nullptr);
+
+        GpgData data_in(pipe_fds[0]);
+        GpgData data_out(out_path, false);
+
+        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+        auto err = CheckGpgError(gpgme_op_encrypt(ctx, recipients.data(),
+                                                  GPGME_ENCRYPT_ALWAYS_TRUST,
+                                                  data_in, data_out));
+        data_object->Swap({GpgEncryptResult(gpgme_op_encrypt_result(ctx))});
+
+        return err;
+      },
+      cb, "gpgme_op_encrypt", "2.1.0");
+}
+
 void GpgFileOpera::DecryptFile(const std::filesystem::path& in_path,
                                const std::filesystem::path& out_path,
                                const GpgOperationCallback& cb) {
@@ -98,6 +123,42 @@ void GpgFileOpera::DecryptFile(const std::filesystem::path& in_path,
         data_object->Swap(
             {GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext()))});
 
+        return err;
+      },
+      cb, "gpgme_op_decrypt", "2.1.0");
+}
+
+void GpgFileOpera::DecryptArchive(const std::filesystem::path& in_path,
+                                  const std::filesystem::path& out_path,
+                                  const GpgOperationCallback& cb) {
+  SPDLOG_DEBUG("decrypt archive start, cuurent thread: {}",
+               QThread::currentThread()->currentThreadId());
+  RunGpgOperaAsync(
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        std::array<int, 2> pipe_fds;
+        if (pipe(pipe_fds.data()) != 0) {
+          SPDLOG_ERROR(
+              "cannot create pipe for directory archive and encryt process");
+          return GPG_ERR_EPIPE;
+        }
+
+        SPDLOG_DEBUG("decrypt archive processing, cuurent thread: {}",
+                     QThread::currentThread()->currentThreadId());
+        ArchiveFileOperator::ExtractArchiveFromFd(
+            pipe_fds[0], out_path, [](GFError err, const DataObjectPtr&) {
+              SPDLOG_DEBUG("extract archive from fd operation, err: {}", err);
+            });
+
+        GpgData data_in(in_path, true);
+        GpgData data_out(pipe_fds[1]);
+
+        SPDLOG_DEBUG("start to decrypt archive: {}", in_path.string());
+        auto err = CheckGpgError(
+            gpgme_op_decrypt(ctx_.DefaultContext(), data_in, data_out));
+        SPDLOG_DEBUG("decryption of archive done: {}", in_path.string());
+
+        data_object->Swap(
+            {GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext()))});
         return err;
       },
       cb, "gpgme_op_decrypt", "2.1.0");

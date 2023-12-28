@@ -32,6 +32,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/IOUtils.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/gnupg/GnuPGControllerDialog.h"
 #include "ui/dialog/help/AboutDialog.h"
@@ -183,7 +184,23 @@ void MainWindow::create_actions() {
 #else
 #endif
   encrypt_act_->setToolTip(_("Encrypt Message"));
-  connect(encrypt_act_, &QAction::triggered, this, &MainWindow::slot_encrypt);
+  connect(encrypt_act_, &QAction::triggered, this, [this]() {
+    if (edit_->SlotCurPageFileTreeView() != nullptr) {
+      const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+      const auto path_qstr = file_tree_view->GetSelected();
+      const auto path = ConvertPathByOS(path_qstr);
+
+      const auto file_info = QFileInfo(path);
+      if (file_info.isFile()) {
+        this->SlotFileEncrypt(path);
+      } else if (file_info.isDir()) {
+        this->SlotDirectoryEncrypt(path);
+      }
+    }
+    if (edit_->SlotCurPageTextEdit() != nullptr) {
+      this->SlotEncrypt();
+    }
+  });
 
   encrypt_sign_act_ = new QAction(_("Encrypt Sign"), this);
   encrypt_sign_act_->setIcon(QIcon(":encrypted_signed.png"));
@@ -205,7 +222,29 @@ void MainWindow::create_actions() {
   encrypt_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
 #endif
   decrypt_act_->setToolTip(_("Decrypt Message"));
-  connect(decrypt_act_, &QAction::triggered, this, &MainWindow::slot_decrypt);
+  connect(decrypt_act_, &QAction::triggered, this, [this]() {
+    if (edit_->SlotCurPageFileTreeView() != nullptr) {
+      const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+      const auto path_qstr = file_tree_view->GetSelected();
+      const auto path = ConvertPathByOS(path_qstr);
+
+      const auto file_info = QFileInfo(path);
+      if (file_info.isFile()) {
+        const std::string filename = path.filename().string();
+        const std::string extension(
+            std::find(filename.begin(), filename.end(), '.'), filename.end());
+
+        if (extension == ".tar.gpg" || extension == ".tar.asc") {
+          this->SlotArchiveDecrypt(path);
+        } else {
+          this->SlotFileDecrypt(path);
+        }
+      }
+    }
+    if (edit_->SlotCurPageTextEdit() != nullptr) {
+      this->SlotDecrypt();
+    }
+  });
 
   decrypt_verify_act_ = new QAction(_("Decrypt Verify"), this);
   decrypt_verify_act_->setIcon(QIcon(":decrypted_verified.png"));

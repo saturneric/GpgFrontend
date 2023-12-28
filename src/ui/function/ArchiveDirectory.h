@@ -28,22 +28,26 @@
 
 #pragma once
 
-#include "core/model/DataObject.h"
+#include "core/model/GFBuffer.h"
+#include "ui/GpgFrontendUI.h"
 
-namespace GpgFrontend {
+namespace GpgFrontend::UI {
+class ArchiveDirectory : public QWidget {
+  Q_OBJECT
+ public:
+  /**
+   * @brief Construct a new Raise Pinentry object
+   *
+   * @param parent
+   */
+  explicit ArchiveDirectory(QWidget* parent);
 
-using GFError = uint32_t;
-using ByteArray = std::string;                                    ///<
-using ByteArrayPtr = std::shared_ptr<ByteArray>;                  ///<
-using StdBypeArrayPtr = std::shared_ptr<ByteArray>;               ///<
-using BypeArrayRef = ByteArray&;                                  ///<
-using ConstBypeArrayRef = const ByteArray&;                       ///<
-using BypeArrayConstRef = const ByteArray&;                       ///<
-using StringArgsPtr = std::unique_ptr<std::vector<std::string>>;  ///<
-using StringArgsRef = std::vector<std::string>&;                  ///<
-                                                                  ///
-                                                                  ///
-
-using OperaRunnable = std::function<GFError(DataObjectPtr)>;
-using OperationCallback = std::function<void(GFError, DataObjectPtr)>;
-}  // namespace GpgFrontend
+  /**
+   * @brief
+   *
+   * @return int
+   */
+  auto Exec(const std::filesystem::path& target_directory)
+      -> std::tuple<bool, GFBuffer>;
+};
+}  // namespace GpgFrontend::UI

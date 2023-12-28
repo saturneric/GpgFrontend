@@ -39,10 +39,7 @@ namespace GpgFrontend::Thread {
 
 class TaskRunner::Impl : public QThread {
  public:
-  Impl() {
-    SPDLOG_TRACE("task runner created, thread id: {}",
-                 QThread::currentThread()->currentThreadId());
-  }
+  Impl() : QThread(nullptr) {}
 
   void PostTask(Task* task) {
     if (task == nullptr) {
@@ -53,7 +50,8 @@ class TaskRunner::Impl : public QThread {
     task->setParent(nullptr);
     task->moveToThread(this);
 
-    SPDLOG_TRACE("runner starts task: {}", task->GetFullID());
+    SPDLOG_TRACE("runner starts task: {} at thread: {}", task->GetFullID(),
+                 this->currentThreadId());
     task->SafelyRun();
   }
 

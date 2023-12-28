@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/GpgFrontendCore.h"
+#include "core/typedef/CoreTypedef.h"
 #include "core/utils/IOUtils.h"
 
 namespace GpgFrontend {
@@ -50,10 +51,8 @@ class GPGFRONTEND_CORE_EXPORT ArchiveFileOperator {
    * @param compress
    * @param files
    */
-  static void CreateArchive(const std::filesystem::path &base_path,
-                            const std::filesystem::path &archive_path,
-                            int compress,
-                            const std::vector<std::filesystem::path> &files);
+  static void NewArchive2Fd(const std::filesystem::path &target_directory,
+                            int fd, const OperationCallback &cb);
 
   /**
    * @brief
@@ -61,7 +60,8 @@ class GPGFRONTEND_CORE_EXPORT ArchiveFileOperator {
    * @param archive_path
    * @param base_path
    */
-  static void ExtractArchive(const std::filesystem::path &archive_path,
-                             const std::filesystem::path &base_path);
+  static void ExtractArchiveFromFd(int fd,
+                                   const std::filesystem::path &target_path,
+                                   const OperationCallback &cb);
 };
 }  // namespace GpgFrontend

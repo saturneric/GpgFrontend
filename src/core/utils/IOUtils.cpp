@@ -73,8 +73,8 @@ auto ReadFileStd(const std::filesystem::path& file_name, std::string& data)
   return res;
 }
 
-auto GPGFRONTEND_CORE_EXPORT ReadFileGFBuffer(
-    const std::filesystem::path& file_name) -> std::tuple<bool, GFBuffer> {
+auto ReadFileGFBuffer(const std::filesystem::path& file_name)
+    -> std::tuple<bool, GFBuffer> {
   QByteArray byte_data;
 #ifdef WINDOWS
   const bool res = ReadFile(
@@ -93,8 +93,8 @@ auto WriteFileStd(const std::filesystem::path& file_name,
                    QByteArray::fromStdString(data));
 }
 
-auto GPGFRONTEND_CORE_EXPORT WriteFileGFBuffer(
-    const std::filesystem::path& file_name, GFBuffer data) -> bool {
+auto WriteFileGFBuffer(const std::filesystem::path& file_name, GFBuffer data)
+    -> bool {
   return WriteFile(
       QString::fromStdString(file_name.u8string()).toUtf8(),
       QByteArray::fromRawData(reinterpret_cast<const char*>(data.Data()),
@@ -197,4 +197,34 @@ auto CreateTempFileAndWriteData(const std::string& data)
   file_stream.close();
   return temp_file.string();
 }
+
+auto TargetFilePreCheck(const std::filesystem::path& path, bool read)
+    -> std::tuple<bool, std::string> {
+  QFileInfo const file_info(path);
+
+  if (read) {
+    if (!file_info.exists()) {
+      return {false, _("target path doesn't exists")};
+    }
+  } else {
+    QFileInfo const path_info(file_info.absolutePath());
+    if (!path_info.isWritable()) {
+      return {false, _("do NOT have permission to write path")};
+    }
+  }
+
+  if (read ? !file_info.isReadable() : false) {
+    return {false, _("do NOT have permission to read/write file")};
+  }
+
+  return {true, _("")};
+}
+
+auto GetFullExtension(std::filesystem::path path) -> std::string {
+  const auto filename = path.filename().string();
+  std::string extension(std::find(filename.begin(), filename.end(), '.'),
+                        filename.end());
+  return extension;
+}
+
 }  // namespace GpgFrontend

@@ -157,4 +157,24 @@ auto GPGFRONTEND_CORE_EXPORT GetTempFilePath() -> std::filesystem::path;
 auto GPGFRONTEND_CORE_EXPORT CreateTempFileAndWriteData(const std::string &data)
     -> std::filesystem::path;
 
+/**
+ * @brief
+ *
+ * @param path
+ * @param read
+ * @return std::tuple<bool, std::string>
+ */
+auto GPGFRONTEND_CORE_EXPORT
+TargetFilePreCheck(const std::filesystem::path &path, bool read)
+    -> std::tuple<bool, std::string>;
+
+/**
+ * @brief
+ *
+ * @param path
+ * @return std::string
+ */
+auto GPGFRONTEND_CORE_EXPORT GetFullExtension(std::filesystem::path path)
+    -> std::string;
+
 }  // namespace GpgFrontend

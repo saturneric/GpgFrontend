@@ -121,4 +121,67 @@ auto TextIsSigned(BypeArrayRef text) -> int {
   }
   return 0;
 }
+
+auto SetExtensionOfOutputFile(std::filesystem::path path, GpgOperation opera,
+                              bool ascii) -> std::filesystem::path {
+  std::string extension;
+
+  if (ascii) {
+    switch (opera) {
+      case kENCRYPT:
+      case kSIGN:
+      case kENCRYPT_SIGN:
+        extension += ".asc";
+        break;
+      default:
+        break;
+    }
+  } else {
+    switch (opera) {
+      case kENCRYPT:
+      case kENCRYPT_SIGN:
+        extension += ".gpg";
+        break;
+      case kSIGN:
+        extension = ".sig";
+        break;
+      default:
+        break;
+    }
+  }
+  return path.replace_extension(extension);
+}
+
+auto SetExtensionOfOutputFileForArchive(std::filesystem::path path,
+                                        GpgOperation opera, bool ascii)
+    -> std::filesystem::path {
+  std::string extension;
+
+  if (ascii) {
+    switch (opera) {
+      case kENCRYPT:
+      case kENCRYPT_SIGN:
+        extension += ".tar.asc";
+        return path.replace_extension(extension);
+      case kDECRYPT:
+      case kDECRYPT_VERIFY:
+        return path.parent_path();
+      default:
+        break;
+    }
+  } else {
+    switch (opera) {
+      case kENCRYPT:
+      case kENCRYPT_SIGN:
+        extension += ".tar.gpg";
+        return path.replace_extension(extension);
+      case kDECRYPT:
+      case kDECRYPT_VERIFY:
+        return path.parent_path();
+      default:
+        break;
+    }
+  }
+}
+
 }  // namespace GpgFrontend

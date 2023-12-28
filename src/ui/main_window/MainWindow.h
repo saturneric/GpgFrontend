@@ -119,12 +119,25 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @details Open dialog for encrypting file.
    */
-  void SlotFileEncrypt();
+  void SlotFileEncrypt(std::filesystem::path);
+
+  /**
+   * @brief
+   *
+   */
+  void SlotDirectoryEncrypt(std::filesystem::path);
 
   /**
    * @details Open dialog for decrypting file.
    */
-  void SlotFileDecrypt();
+  void SlotFileDecrypt(std::filesystem::path path);
+
+  /**
+   * @brief
+   *
+   * @param path
+   */
+  void SlotArchiveDecrypt(std::filesystem::path path);
 
   /**
    * @details Open dialog for signing file.
@@ -163,7 +176,7 @@ class MainWindow : public GeneralMainWindow {
    * @details encrypt the text of currently active textedit-page
    * with the currently checked keys
    */
-  void slot_encrypt();
+  void SlotEncrypt();
 
   /**
    * @details encrypt and sign the text of currently active textedit-page
@@ -175,7 +188,7 @@ class MainWindow : public GeneralMainWindow {
    * @details Show a passphrase dialog and decrypt the text of currently active
    * tab.
    */
-  void slot_decrypt();
+  void SlotDecrypt();
 
   /**
    * @details Sign the text of currently active tab with the checked private

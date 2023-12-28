@@ -59,9 +59,9 @@ namespace GpgFrontend::UI {
 /**
  * Encrypt Entry(Text & File)
  */
-void MainWindow::slot_encrypt() {
-  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
-    if (edit_->SlotCurPageFileTreeView() != nullptr) this->SlotFileEncrypt();
+void MainWindow::SlotEncrypt() {
+  if (edit_->SlotCurPageTextEdit() == nullptr) {
+    // ignore
     return;
   }
 
@@ -209,9 +209,8 @@ void MainWindow::slot_sign() {
       });
 }
 
-void MainWindow::slot_decrypt() {
-  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
-    if (edit_->SlotCurPageFileTreeView() != nullptr) this->SlotFileDecrypt();
+void MainWindow::SlotDecrypt() {
+  if (edit_->SlotCurPageTextEdit() == nullptr) {
     return;
   }
 

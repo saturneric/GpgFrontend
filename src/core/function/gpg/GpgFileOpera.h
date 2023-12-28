@@ -66,6 +66,19 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
                    const GpgOperationCallback& cb);
 
   /**
+   * @brief
+   *
+   * @param keys
+   * @param in_path
+   * @param ascii
+   * @param out_path
+   * @param cb
+   */
+  void EncryptDirectory(KeyArgsList keys, const std::filesystem::path& in_path,
+                        bool ascii, const std::filesystem::path& out_path,
+                        const GpgOperationCallback& cb);
+
+  /**
    * @brief Encrypted file symmetrically (with password)
    *
    * @param in_path
@@ -89,6 +102,17 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
   void DecryptFile(const std::filesystem::path& in_path,
                    const std::filesystem::path& out_path,
                    const GpgOperationCallback& cb);
+
+  /**
+   * @brief
+   *
+   * @param in_path
+   * @param out_path
+   * @param cb
+   */
+  void DecryptArchive(const std::filesystem::path& in_path,
+                      const std::filesystem::path& out_path,
+                      const GpgOperationCallback& cb);
 
   /**
    * @brief Sign file with private key

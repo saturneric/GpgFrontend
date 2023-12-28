@@ -29,11 +29,31 @@
 #pragma once
 
 #include "core/GpgFrontendCore.h"
+#include "core/typedef/CoreTypedef.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
+/**
+ * @brief
+ *
+ * @param runnable
+ * @param callback
+ * @param operation
+ * @param minial_version
+ */
 void GPGFRONTEND_CORE_EXPORT RunGpgOperaAsync(
     GpgOperaRunnable runnable, GpgOperationCallback callback,
     const std::string& operation, const std::string& minial_version);
+
+/**
+ * @brief
+ *
+ * @param runnable
+ * @param callback
+ * @param operation
+ */
+void GPGFRONTEND_CORE_EXPORT RunIOOperaAsync(OperaRunnable runnable,
+                                             OperationCallback callback,
+                                             const std::string& operation);
 }  // namespace GpgFrontend

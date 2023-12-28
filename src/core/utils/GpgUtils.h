@@ -84,4 +84,28 @@ auto GPGFRONTEND_CORE_EXPORT DescribeGpgErrCode(GpgError err) -> GpgErrorDesc;
  */
 auto GPGFRONTEND_CORE_EXPORT TextIsSigned(BypeArrayRef text) -> int;
 
+/**
+ * @brief
+ *
+ * @param opera
+ * @param ascii
+ * @return std::filesystem::path
+ */
+auto GPGFRONTEND_CORE_EXPORT SetExtensionOfOutputFile(std::filesystem::path,
+                                                      GpgOperation opera,
+                                                      bool ascii)
+    -> std::filesystem::path;
+
+/**
+ * @brief
+ *
+ * @param path
+ * @param opera
+ * @param ascii
+ * @return std::filesystem::path
+ */
+auto GPGFRONTEND_CORE_EXPORT SetExtensionOfOutputFileForArchive(
+    std::filesystem::path path, GpgOperation opera, bool ascii)
+    -> std::filesystem::path;
+
 }  // namespace GpgFrontend

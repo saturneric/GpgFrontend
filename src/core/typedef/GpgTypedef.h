@@ -31,6 +31,7 @@
 #include <tuple>
 
 #include "core/model/DataObject.h"
+
 namespace GpgFrontend {
 
 class GpgKey;  ///< forward declaration
@@ -63,4 +64,13 @@ using GpgSignMode = gpgme_sig_mode_t;
 using GpgOperaRunnable = std::function<GpgError(DataObjectPtr)>;
 using GpgOperationCallback = std::function<void(GpgError, DataObjectPtr)>;
 using GpgOperationFuture = std::future<std::tuple<GpgError, DataObjectPtr>>;
+
+enum GpgOperation {
+  kENCRYPT,
+  kDECRYPT,
+  kSIGN,
+  kVERIFY,
+  kENCRYPT_SIGN,
+  kDECRYPT_VERIFY
+};
 }  // namespace GpgFrontend

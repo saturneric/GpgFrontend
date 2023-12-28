@@ -31,6 +31,12 @@
 #include <archive.h>
 #include <archive_entry.h>
 
+#include <fstream>
+
+#include "core/utils/AsyncUtils.h"
+
+namespace GpgFrontend {
+
 struct ArchiveStruct {
   struct archive *archive;
   struct archive_entry *entry;
@@ -39,7 +45,7 @@ struct ArchiveStruct {
   std::string name;
 };
 
-auto copy_data(struct archive *ar, struct archive *aw) -> int {
+auto CopyData(struct archive *ar, struct archive *aw) -> int {
   int r;
   const void *buff;
   size_t size;
@@ -62,216 +68,132 @@ auto copy_data(struct archive *ar, struct archive *aw) -> int {
   }
 }
 
-void GpgFrontend::ArchiveFileOperator::CreateArchive(
-    const std::filesystem::path &base_path,
-    const std::filesystem::path &archive_path, int compress,
-    const std::vector<std::filesystem::path> &files) {
-  SPDLOG_DEBUG("CreateArchive: {}", archive_path.u8string());
+void ArchiveFileOperator::NewArchive2Fd(
+    const std::filesystem::path &target_directory, int fd,
+    const OperationCallback &cb) {
+  RunIOOperaAsync(
+      [=](const DataObjectPtr &data_object) -> GFError {
+        struct archive *archive;
+        struct archive_entry *entry;
+        std::array<char, 8192> buff{};
 
-  auto current_base_path_backup = QDir::currentPath();
-  QDir::setCurrent(base_path.u8string().c_str());
+        archive = archive_write_new();
+        archive_write_add_filter_none(archive);
+        archive_write_set_format_pax_restricted(archive);
+        archive_write_open_fd(archive, fd);
 
-  auto relative_archive_path =
-      std::filesystem::relative(archive_path, base_path);
+        for (const auto &file :
+             std::filesystem::recursive_directory_iterator(target_directory)) {
+          entry = archive_entry_new();
 
-  std::vector<std::filesystem::path> relative_files;
-  relative_files.reserve(files.size());
-  for (const auto &file : files) {
-    relative_files.push_back(std::filesystem::relative(file, base_path));
-  }
+          auto file_path = file.path().string();
+          archive_entry_set_pathname(entry, file_path.c_str());
+          archive_entry_set_filetype(entry, AE_IFREG);
+          archive_entry_set_perm(entry, 0644);
 
-  struct archive *a;
-  struct archive_entry *entry;
+          std::ifstream target_file(file_path, std::ifstream::binary);
+          if (!target_file) {
+            SPDLOG_ERROR("cannot open file: {}, abort...", file_path);
+            archive_entry_free(entry);
+            continue;
+          }
 
-  SPDLOG_DEBUG("compress: {}", compress);
+          target_file.seekg(0, std::ios::end);
+          auto file_size = target_file.tellg();
+          target_file.seekg(0, std::ios::beg);
+          archive_entry_set_size(entry, file_size);
 
-  a = archive_write_new();
-  switch (compress) {
-#ifndef NO_BZIP2_CREATE
-    case 'j':
-    case 'y':
-      archive_write_add_filter_bzip2(a);
-      break;
-#endif
-#ifndef NO_COMPRESS_CREATE
-    case 'Z':
-      archive_write_add_filter_compress(a);
-      break;
-#endif
-#ifndef NO_GZIP_CREATE
-    case 'z':
-      archive_write_add_filter_gzip(a);
-      break;
-#endif
-    default:
-      archive_write_add_filter_none(a);
-      break;
-  }
-  archive_write_set_format_ustar(a);
-  archive_write_set_format_pax_restricted(a);
+          archive_write_header(archive, entry);
 
-  auto u8_filename = relative_archive_path.u8string();
+          while (!target_file.eof()) {
+            target_file.read(buff.data(), buff.size());
+            std::streamsize const bytes_read = target_file.gcount();
+            archive_write_data(archive, buff.data(), bytes_read);
+          }
 
-  if (!u8_filename.empty() && u8_filename == u8"-") {
-    throw std::runtime_error("cannot write to stdout");
-  }
+          archive_entry_free(entry);
+        }
 
-#ifdef WINDOWS
-  archive_write_open_filename_w(a, relative_archive_path.wstring().c_str());
-#else
-  archive_write_open_filename(a, u8_filename.c_str());
-#endif
-
-  for (const auto &file : relative_files) {
-    struct archive *disk = archive_read_disk_new();
-#ifndef NO_LOOKUP
-    archive_read_disk_set_standard_lookup(disk);
-#endif
-    int r;
-
-    SPDLOG_DEBUG("reading file: {}", file.u8string());
-
-#ifdef WINDOWS
-    r = archive_read_disk_open_w(disk, file.wstring().c_str());
-#else
-    r = archive_read_disk_open(disk, file.u8string().c_str());
-#endif
-
-    SPDLOG_DEBUG("read file done: {}", file.u8string());
-
-    if (r != ARCHIVE_OK) {
-      SPDLOG_ERROR("{archive_read_disk_open() failed: {}",
-                   archive_error_string(disk));
-      throw std::runtime_error("archive_read_disk_open() failed");
-    }
-
-    for (;;) {
-      entry = archive_entry_new();
-      r = archive_read_next_header2(disk, entry);
-
-      if (r == ARCHIVE_EOF) break;
-      if (r != ARCHIVE_OK) {
-        SPDLOG_ERROR("archive_read_next_header2() failed: {}",
-                     archive_error_string(disk));
-        throw std::runtime_error("archive_read_next_header2() failed");
-      }
-      archive_read_disk_descend(disk);
-
-      SPDLOG_DEBUG("Adding: {} size: {} bytes: {} file type: {}",
-                   archive_entry_pathname_utf8(entry),
-                   archive_entry_size(entry), archive_entry_filetype(entry));
-
-      r = archive_write_header(a, entry);
-      if (r < ARCHIVE_OK) {
-        SPDLOG_ERROR("archive_write_header() failed: {}",
-                     archive_error_string(a));
-        throw std::runtime_error("archive_write_header() failed");
-      }
-      if (r == ARCHIVE_FATAL) throw std::runtime_error("archive fatal");
-      if (r > ARCHIVE_FAILED) {
-        QByteArray buff;
-#ifdef WINDOWS
-        ReadFile(QString::fromStdWString(archive_entry_sourcepath_w(entry)),
-                 buff);
-#else
-        ReadFile(archive_entry_sourcepath(entry), buff);
-#endif
-        archive_write_data(a, buff.data(), buff.size());
-      }
-      archive_entry_free(entry);
-    }
-    archive_read_close(disk);
-    archive_read_free(disk);
-  }
-  archive_write_close(a);
-  archive_write_free(a);
-
-  QDir::setCurrent(current_base_path_backup);
+        archive_write_close(archive);
+        archive_write_free(archive);
+        close(fd);
+        return 0;
+      },
+      cb, "archive_write_new");
 }
 
-void GpgFrontend::ArchiveFileOperator::ExtractArchive(
-    const std::filesystem::path &archive_path,
-    const std::filesystem::path &base_path) {
-  SPDLOG_DEBUG("ExtractArchive: {}", archive_path.u8string());
+void ArchiveFileOperator::ExtractArchiveFromFd(
+    int fd, const std::filesystem::path &target_path,
+    const OperationCallback &cb) {
+  SPDLOG_DEBUG("extract archive from fd start, cuurent thread: {}",
+               QThread::currentThread()->currentThreadId());
+  RunIOOperaAsync(
+      [=](const DataObjectPtr &data_object) -> GFError {
+        SPDLOG_DEBUG("extract archive from fd processing, cuurent thread: {}",
+                     QThread::currentThread()->currentThreadId());
+        struct archive *archive;
+        struct archive *ext;
+        struct archive_entry *entry;
 
-  auto current_base_path_backup = QDir::currentPath();
-  QDir::setCurrent(base_path.u8string().c_str());
+        archive = archive_read_new();
+        ext = archive_write_disk_new();
+        archive_write_disk_set_options(ext, 0);
 
-  struct archive *a;
-  struct archive *ext;
-  struct archive_entry *entry;
-
-  a = archive_read_new();
-  ext = archive_write_disk_new();
-  archive_write_disk_set_options(ext, 0);
 #ifndef NO_BZIP2_EXTRACT
-  archive_read_support_filter_bzip2(a);
+        archive_read_support_filter_bzip2(archive);
 #endif
 #ifndef NO_GZIP_EXTRACT
-  archive_read_support_filter_gzip(a);
+        archive_read_support_filter_gzip(archive);
 #endif
 #ifndef NO_COMPRESS_EXTRACT
-  archive_read_support_filter_compress(a);
+        archive_read_support_filter_compress(archive);
 #endif
 #ifndef NO_TAR_EXTRACT
-  archive_read_support_format_tar(a);
+        archive_read_support_format_tar(archive);
 #endif
 #ifndef NO_CPIO_EXTRACT
-  archive_read_support_format_cpio(a);
+        archive_read_support_format_cpio(archive);
 #endif
 #ifndef NO_LOOKUP
-  archive_write_disk_set_standard_lookup(ext);
+        archive_write_disk_set_standard_lookup(ext);
 #endif
 
-  auto filename = archive_path.u8string();
+        archive_read_open_fd(archive, fd, 8192);
+        SPDLOG_ERROR("archive_read_open_fd() failed: {}",
+                     archive_error_string(archive));
 
-  if (!filename.empty() && filename == u8"-") {
-    SPDLOG_ERROR("cannot read from stdin");
-  }
-#ifdef WINDOWS
-  if (archive_read_open_filename_w(a, archive_path.wstring().c_str(), 10240) !=
-      ARCHIVE_OK) {
-#else
-  if (archive_read_open_filename(a, archive_path.u8string().c_str(), 10240) !=
-      ARCHIVE_OK) {
-#endif
-    SPDLOG_ERROR("archive_read_open_filename() failed: {}",
-                 archive_error_string(a));
-    throw std::runtime_error("archive_read_open_filename() failed");
-  }
+        while (archive_read_next_header(archive, &entry) == ARCHIVE_OK) {
+          SPDLOG_DEBUG("add file: {}, size: {}, bytes: {}, file type: {}",
+                       archive_entry_pathname_utf8(entry),
+                       archive_entry_size(entry),
+                       archive_entry_filetype(entry));
 
-  for (;;) {
-    int r = archive_read_next_header(a, &entry);
-    if (r == ARCHIVE_EOF) break;
-    if (r != ARCHIVE_OK) {
-      SPDLOG_ERROR("archive_read_next_header() failed: {}",
-                   archive_error_string(a));
-      throw std::runtime_error("archive_read_next_header() failed");
-    }
-    SPDLOG_DEBUG("Adding: {} size: {} bytes: {} file type: {}",
-                 archive_entry_pathname_utf8(entry), archive_entry_size(entry),
-                 archive_entry_filetype(entry));
-    r = archive_write_header(ext, entry);
-    if (r != ARCHIVE_OK) {
-      SPDLOG_ERROR("archive_write_header() failed: {}",
-                   archive_error_string(ext));
-    } else {
-      r = copy_data(a, ext);
-      if (r != ARCHIVE_OK) {
-        SPDLOG_ERROR("copy_data() failed: {}", archive_error_string(ext));
-      }
-    }
-  }
-  archive_read_close(a);
-  archive_read_free(a);
+          auto file_path =
+              std::filesystem::path(archive_entry_pathname_utf8(entry));
+          auto target_file_path = target_path / file_path;
+          archive_entry_set_pathname(entry, file_path.c_str());
 
-  archive_write_close(ext);
-  archive_write_free(ext);
+          auto r = archive_write_header(ext, entry);
+          if (r != ARCHIVE_OK) {
+            SPDLOG_ERROR("archive_write_header() failed: {}",
+                         archive_error_string(ext));
+          }
 
-  QDir::setCurrent(current_base_path_backup);
+          r = CopyData(archive, ext);
+          if (r != ARCHIVE_OK) {
+            SPDLOG_ERROR("copy_data() failed: {}", archive_error_string(ext));
+          }
+        }
+
+        archive_read_free(archive);
+        archive_write_free(ext);
+        close(fd);
+        return 0;
+      },
+      cb, "archive_read_new");
 }
 
-void GpgFrontend::ArchiveFileOperator::ListArchive(
+void ArchiveFileOperator::ListArchive(
     const std::filesystem::path &archive_path) {
   struct archive *a;
   struct archive_entry *entry;
@@ -291,3 +213,5 @@ void GpgFrontend::ArchiveFileOperator::ListArchive(
   r = archive_read_free(a);  // Note 3
   if (r != ARCHIVE_OK) return;
 }
+
+}  // namespace GpgFrontend
