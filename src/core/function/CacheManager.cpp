@@ -226,7 +226,7 @@ class CacheManager::Impl : public SingletonFunctionObject<CacheManager::Impl> {
   void flush_cache_storage() {
     for (const auto& cache : cache_storage_.mirror()) {
       auto key = get_data_object_key(cache.first);
-      SPDLOG_DEBUG("save cache into filesystem, key {}, value size: {}", key,
+      SPDLOG_TRACE("save cache into filesystem, key {}, value size: {}", key,
                    cache.second.size());
       GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(key,
                                                                  cache.second);

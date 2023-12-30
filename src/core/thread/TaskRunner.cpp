@@ -28,10 +28,11 @@
 
 #include "core/thread/TaskRunner.h"
 
-#include <qobject.h>
-#include <qobjectdefs.h>
-#include <qthread.h>
-#include <qthreadpool.h>
+#include <QtConcurrent>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <utility>
 
 #include "core/thread/Task.h"
 
@@ -53,6 +54,61 @@ class TaskRunner::Impl : public QThread {
     SPDLOG_TRACE("runner starts task: {} at thread: {}", task->GetFullID(),
                  this->currentThreadId());
     task->SafelyRun();
+  }
+
+  static void PostTask(const Task::TaskRunnable& runner,
+                       const Task::TaskCallback& cb, DataObjectPtr p_obj) {
+    auto* callback_thread = QThread::currentThread();
+    auto data_object = std::move(p_obj);
+    const auto task_uuid = generate_uuid();
+
+    QtConcurrent::run(runner, data_object).then([=](int rtn) {
+      if (!cb) {
+        SPDLOG_TRACE("task {} doesn't have a callback function", task_uuid);
+        return;
+      }
+
+      if (callback_thread == QThread::currentThread()) {
+        SPDLOG_TRACE("for task {}, the callback thread is the same thread: {}",
+                     task_uuid, static_cast<void*>(callback_thread));
+
+        cb(rtn, data_object);
+
+        // raise signal, announcing this task comes to an end
+        SPDLOG_TRACE(
+            "for task {}, its life comes to an end in the same thread "
+            "after its callback executed.",
+            task_uuid);
+      } else {
+        SPDLOG_TRACE("for task {}, callback thread is a different thread: {}",
+                     task_uuid, static_cast<void*>(callback_thread));
+        if (!QMetaObject::invokeMethod(callback_thread, [=]() {
+              SPDLOG_TRACE("calling callback of task {}", task_uuid);
+              try {
+                cb(rtn, data_object);
+              } catch (...) {
+                SPDLOG_ERROR(
+                    "unknown exception was caught when execute "
+                    "callback of task {}",
+                    task_uuid);
+              }
+              // raise signal, announcing this task comes to an end
+              SPDLOG_TRACE(
+                  "for task {}, its life comes to an end whether its "
+                  "callback function fails or not.",
+                  task_uuid);
+            })) {
+          SPDLOG_ERROR(
+              "task {} had failed to invoke the callback function to "
+              "target thread",
+              task_uuid);
+          SPDLOG_TRACE(
+              "for task {}, its life must come to an end now, although it "
+              "has something not done yet.",
+              task_uuid);
+        }
+      }
+    });
   }
 
   void PostConcurrentTask(Task* task) {
@@ -80,22 +136,29 @@ class TaskRunner::Impl : public QThread {
     if (task == nullptr) return;
     // TODO
   }
+
+ private:
+  static auto generate_uuid() -> std::string {
+    return boost::uuids::to_string(boost::uuids::random_generator()());
+  }
 };
 
-GpgFrontend::Thread::TaskRunner::TaskRunner()
-    : p_(SecureCreateUniqueObject<Impl>()) {}
+TaskRunner::TaskRunner() : p_(SecureCreateUniqueObject<Impl>()) {}
 
-GpgFrontend::Thread::TaskRunner::~TaskRunner() {
+TaskRunner::~TaskRunner() {
   if (p_->isRunning()) {
     Stop();
   }
 }
 
-void GpgFrontend::Thread::TaskRunner::PostTask(Task* task) {
-  p_->PostTask(task);
+void TaskRunner::PostTask(Task* task) { p_->PostTask(task); }
+
+void TaskRunner::PostTask(const Task::TaskRunnable& runner,
+                          const Task::TaskCallback& cb, DataObjectPtr p_obj) {
+  p_->PostTask(runner, cb, p_obj);
 }
 
-void GpgFrontend::Thread::TaskRunner::PostConcurrentTask(Task* task) {
+void TaskRunner::PostConcurrentTask(Task* task) {
   p_->PostConcurrentTask(task);
 }
 

@@ -30,11 +30,29 @@
 
 #include <unistd.h>
 
+#include <utility>
+
+#include "core/model/GFDataExchanger.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
 constexpr size_t kBufferSize = 32 * 1024;
+
+auto GFReadExCb(void* handle, void* buffer, size_t size) -> ssize_t {
+  auto* ex = static_cast<GFDataExchanger*>(handle);
+  return ex->Read(static_cast<std::byte*>(buffer), size);
+}
+
+auto GFWriteExCb(void* handle, const void* buffer, size_t size) -> ssize_t {
+  auto* ex = static_cast<GFDataExchanger*>(handle);
+  return ex->Write(static_cast<const std::byte*>(buffer), size);
+}
+
+void GFReleaseExCb(void* handle) {
+  auto* ex = static_cast<GFDataExchanger*>(handle);
+  ex->CloseWrite();
+}
 
 GpgData::GpgData() {
   gpgme_data_t data;
@@ -65,10 +83,10 @@ GpgData::GpgData(const void* buffer, size_t size, bool copy) {
   data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
 }
 
-GpgData::GpgData(int fd) : fd_(fd) {
+GpgData::GpgData(int fd) : fd_(fd), data_cbs_() {
   gpgme_data_t data;
 
-  auto err = gpgme_data_new_from_fd(&data, fd);
+  auto err = gpgme_data_new_from_fd(&data, fd_);
   assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
 
   data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
@@ -79,6 +97,21 @@ GpgData::GpgData(const std::filesystem::path& path, bool read) {
 
   fp_ = fopen(path.string().c_str(), read ? "rb" : "wb");
   auto err = gpgme_data_new_from_stream(&data, fp_);
+  assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
+
+  data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
+}
+
+GpgData::GpgData(std::shared_ptr<GFDataExchanger> ex)
+    : data_cbs_(), data_ex_(std::move(ex)) {
+  gpgme_data_t data;
+
+  data_cbs_.read = GFReadExCb;
+  data_cbs_.write = GFWriteExCb;
+  data_cbs_.seek = nullptr;
+  data_cbs_.release = GFReleaseExCb;
+
+  auto err = gpgme_data_new_from_cbs(&data, &data_cbs_, data_ex_.get());
   assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
 
   data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);

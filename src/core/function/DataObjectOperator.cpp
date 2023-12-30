@@ -95,8 +95,7 @@ auto DataObjectOperator::SaveDataObj(const std::string& _key,
                             QAESEncryption::Padding::ISO);
   auto encoded =
       encryption.encode(QByteArray::fromStdString(to_string(value)), hash_key_);
-
-  SPDLOG_DEBUG("saving data object {} to {} , size: {} bytes", hash_obj_key,
+  SPDLOG_TRACE("saving data object {} to {} , size: {} bytes", hash_obj_key,
                obj_path.u8string(), encoded.size());
 
   WriteFileStd(obj_path.u8string(), encoded.toStdString());

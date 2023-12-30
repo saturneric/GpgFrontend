@@ -69,9 +69,9 @@ find_package(OpenSSL REQUIRED)
 # Introduce Qt
 if (QT5_ENV_SUPPORT)
     # Support Qt version: 6.x, 5.12.x and 5.15.x
-    find_package(Qt6 6 COMPONENTS Core Test Widgets PrintSupport Network Core5Compat)
+    find_package(Qt6 6 COMPONENTS Core Test Widgets PrintSupport Network Core5Compat Concurrent)
     if(NOT Qt6_DIR)
-        find_package(Qt5 5 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
+        find_package(Qt5 5 COMPONENTS Core Test Widgets PrintSupport Network Concurrent REQUIRED)
         message(STATUS "Use Qt5 for application building ${Qt5_DIR}")
     else()
         message(STATUS "Use Qt6 for application building ${Qt6_DIR}")

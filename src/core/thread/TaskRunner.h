@@ -30,10 +30,9 @@
 
 #include "core/GpgFrontendCore.h"
 #include "core/function/SecureMemoryAllocator.h"
+#include "core/thread/Task.h"
 
 namespace GpgFrontend::Thread {
-
-class Task;
 
 class GPGFRONTEND_CORE_EXPORT TaskRunner : public QObject {
   Q_OBJECT
@@ -85,6 +84,15 @@ class GPGFRONTEND_CORE_EXPORT TaskRunner : public QObject {
    * @param task
    */
   void PostTask(Task* task);
+
+  /**
+   * @brief
+   *
+   * @param runner
+   * @param cb
+   */
+  void PostTask(const Task::TaskRunnable& runner, const Task::TaskCallback& cb,
+                DataObjectPtr p_obj);
 
   /**
    * @brief

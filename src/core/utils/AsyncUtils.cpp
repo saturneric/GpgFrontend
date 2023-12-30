@@ -49,43 +49,39 @@ void RunGpgOperaAsync(GpgOperaRunnable runnable, GpgOperationCallback callback,
     return;
   }
 
-  auto* task = new Thread::Task(
-      [=](const DataObjectPtr& data_object) -> int {
-        auto custom_data_object = TransferParams();
-        GpgError err = runnable(custom_data_object);
-
-        data_object->Swap({err, custom_data_object});
-        return 0;
-      },
-      operation, TransferParams(),
-      [=](int, const DataObjectPtr& data_object) {
-        callback(ExtractParams<GpgError>(data_object, 0),
-                 ExtractParams<DataObjectPtr>(data_object, 1));
-      });
-
   Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
-      ->PostTask(task);
+      ->PostTask(
+          [=](const DataObjectPtr& data_object) -> int {
+            auto custom_data_object = TransferParams();
+            GpgError err = runnable(custom_data_object);
+
+            data_object->Swap({err, custom_data_object});
+            return 0;
+          },
+          [=](int, const DataObjectPtr& data_object) {
+            callback(ExtractParams<GpgError>(data_object, 0),
+                     ExtractParams<DataObjectPtr>(data_object, 1));
+          },
+          TransferParams());
 }
 
 void RunIOOperaAsync(OperaRunnable runnable, OperationCallback callback,
                      const std::string& operation) {
-  auto* task = new Thread::Task(
-      [=](const DataObjectPtr& data_object) -> int {
-        auto custom_data_object = TransferParams();
-        GpgError err = runnable(custom_data_object);
-
-        data_object->Swap({err, custom_data_object});
-        return 0;
-      },
-      operation, TransferParams(),
-      [=](int, const DataObjectPtr& data_object) {
-        callback(ExtractParams<GFError>(data_object, 0),
-                 ExtractParams<DataObjectPtr>(data_object, 1));
-      });
-
   Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_IO)
-      ->PostTask(task);
+      ->PostTask(
+          [=](const DataObjectPtr& data_object) -> int {
+            auto custom_data_object = TransferParams();
+            GpgError err = runnable(custom_data_object);
+
+            data_object->Swap({err, custom_data_object});
+            return 0;
+          },
+          [=](int, const DataObjectPtr& data_object) {
+            callback(ExtractParams<GFError>(data_object, 0),
+                     ExtractParams<DataObjectPtr>(data_object, 1));
+          },
+          TransferParams());
 }
 }  // namespace GpgFrontend

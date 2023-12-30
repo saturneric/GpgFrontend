@@ -101,9 +101,9 @@ target_link_libraries(gpgfrontend_core
         
 # link Qt core
 if(Qt6_DIR)
-    target_link_libraries(gpgfrontend_core PUBLIC Qt6::Core)
+    target_link_libraries(gpgfrontend_core PUBLIC Qt6::Core Qt6::Concurrent)
 else()
-    target_link_libraries(gpgfrontend_core PUBLIC Qt5::Core)
+    target_link_libraries(gpgfrontend_core PUBLIC Qt5::Core Qt5::Concurrent)
 endif()
 
 # set up pch

@@ -28,42 +28,26 @@
 
 #pragma once
 
-#include "core/GpgFrontendCore.h"
-#include "core/model/GFDataExchanger.h"
-#include "core/typedef/CoreTypedef.h"
-#include "core/utils/IOUtils.h"
+#include <queue>
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT ArchiveFileOperator {
+class GFDataExchanger {
  public:
-  /**
-   * @brief
-   *
-   * @param archive_path
-   */
-  static void ListArchive(const std::filesystem::path &archive_path);
+  explicit GFDataExchanger(ssize_t size);
 
-  /**
-   * @brief Create a Archive object
-   *
-   * @param base_path
-   * @param archive_path
-   * @param compress
-   * @param files
-   */
-  static void NewArchive2DataExchanger(
-      const std::filesystem::path &target_directory,
-      std::shared_ptr<GFDataExchanger>, const OperationCallback &cb);
+  auto Write(const std::byte* buffer, size_t size) -> ssize_t;
 
-  /**
-   * @brief
-   *
-   * @param archive_path
-   * @param base_path
-   */
-  static void ExtractArchiveFromDataExchanger(
-      std::shared_ptr<GFDataExchanger> fd,
-      const std::filesystem::path &target_path, const OperationCallback &cb);
+  auto Read(std::byte* buffer, size_t size) -> ssize_t;
+
+  void CloseWrite();
+
+ private:
+  std::condition_variable not_full_, not_empty_;
+  std::queue<std::byte> queue_;
+  std::mutex mutex_;
+  const ssize_t queue_max_size_;
+  bool close_ = false;
 };
+
 }  // namespace GpgFrontend

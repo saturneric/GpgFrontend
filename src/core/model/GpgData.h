@@ -33,6 +33,9 @@
 #include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
+
+class GFDataExchanger;
+
 /**
  * @brief
  *
@@ -60,6 +63,13 @@ class GPGFRONTEND_CORE_EXPORT GpgData {
    * @param fd
    */
   explicit GpgData(int fd);
+
+  /**
+   * @brief Construct a new Gpg Data object
+   *
+   * @param fd
+   */
+  explicit GpgData(std::shared_ptr<GFDataExchanger>);
 
   /**
    * @brief Construct a new Gpg Data object
@@ -117,6 +127,9 @@ class GPGFRONTEND_CORE_EXPORT GpgData {
   std::unique_ptr<struct gpgme_data, DataRefDeleter> data_ref_ = nullptr;  ///<
   FILE* fp_ = nullptr;
   int fd_ = -1;
+
+  struct gpgme_data_cbs data_cbs_;
+  std::shared_ptr<GFDataExchanger> data_ex_;
 };
 
 }  // namespace GpgFrontend
