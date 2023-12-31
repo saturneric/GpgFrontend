@@ -128,7 +128,46 @@ class MainWindow : public GeneralMainWindow {
   void SlotDirectoryEncrypt(std::filesystem::path);
 
   /**
-   * @details Open dialog for decrypting file.
+   * @details encrypt the text of currently active textedit-page
+   * with the currently checked keys
+   */
+  void SlotEncrypt();
+
+  /**
+   * @details encrypt and sign the text of currently active textedit-page
+   * with the currently checked keys
+   */
+  void SlotEncryptSign();
+
+  /**
+   * @details Show a passphrase dialog and decrypt the text of currently active
+   * tab.
+   */
+  void SlotDecrypt();
+
+  /**
+   * @details Sign the text of currently active tab with the checked private
+   * keys
+   */
+  void SlotSign();
+
+  /**
+   * @details Verify the text of currently active tab and show verify
+   * information. If document is signed with a key, which is not in keylist,
+   * show import missing key from keyserver in Menu of verifynotification.
+   */
+  void SlotVerify();
+
+  /**
+   * @details decrypt and verify the text of currently active textedit-page
+   * with the currently checked keys
+   */
+  void SlotDecryptVerify();
+
+  /**
+   * @brief
+   *
+   * @param path
    */
   void SlotFileDecrypt(std::filesystem::path path);
 
@@ -140,24 +179,46 @@ class MainWindow : public GeneralMainWindow {
   void SlotArchiveDecrypt(std::filesystem::path path);
 
   /**
-   * @details Open dialog for signing file.
+   * @brief
+   *
+   * @param path
    */
-  void SlotFileSign();
+  void SlotFileSign(std::filesystem::path path);
 
   /**
-   * @details Open dialog for verifying file.
+   * @brief
+   *
+   * @param path
    */
-  void SlotFileVerify();
+  void SlotFileVerify(std::filesystem::path path);
 
   /**
-   * @details Open dialog for signing file.
+   * @brief
+   *
+   * @param path
    */
-  void SlotFileEncryptSign();
+  void SlotFileEncryptSign(std::filesystem::path path);
 
   /**
-   * @details Open dialog for verifying file.
+   * @brief
+   *
+   * @param path
    */
-  void SlotFileDecryptVerify();
+  void SlotDirectoryEncryptSign(std::filesystem::path path);
+
+  /**
+   * @brief
+   *
+   * @param path
+   */
+  void SlotFileDecryptVerify(std::filesystem::path path);
+
+  /**
+   * @brief
+   *
+   * @param path
+   */
+  void SlotArchiveDecryptVerify(std::filesystem::path path);
 
   /**
    * @details get value of member restartNeeded to needed.
@@ -173,41 +234,10 @@ class MainWindow : public GeneralMainWindow {
  private slots:
 
   /**
-   * @details encrypt the text of currently active textedit-page
-   * with the currently checked keys
+   * @brief
+   *
    */
-  void SlotEncrypt();
-
-  /**
-   * @details encrypt and sign the text of currently active textedit-page
-   * with the currently checked keys
-   */
-  void slot_encrypt_sign();
-
-  /**
-   * @details Show a passphrase dialog and decrypt the text of currently active
-   * tab.
-   */
-  void SlotDecrypt();
-
-  /**
-   * @details Sign the text of currently active tab with the checked private
-   * keys
-   */
-  void slot_sign();
-
-  /**
-   * @details Verify the text of currently active tab and show verify
-   * information. If document is signed with a key, which is not in keylist,
-   * show import missing key from keyserver in Menu of verifynotification.
-   */
-  void slot_verify();
-
-  /**
-   * @details decrypt and verify the text of currently active textedit-page
-   * with the currently checked keys
-   */
-  void slot_decrypt_verify();
+  void slot_refresh_current_file_view();
 
   /**
    * @details Show the details of the first of the first of selected keys

@@ -220,6 +220,11 @@ void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
             break;
           }
 
+          archive_entry_set_pathname(
+              entry, (target_path /
+                      std::filesystem::path(archive_entry_pathname(entry)))
+                         .c_str());
+
           r = archive_write_header(ext, entry);
           if (r != ARCHIVE_OK) {
             SPDLOG_ERROR("archive_write_header(), ret: {}, reason: {}", r,

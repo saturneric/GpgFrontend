@@ -38,7 +38,7 @@
 namespace GpgFrontend {
 
 void DataObjectOperator::init_app_secure_key() {
-  SPDLOG_DEBUG("initializing application secure key");
+  SPDLOG_TRACE("initializing application secure key");
   WriteFileStd(app_secure_key_path_,
                PassphraseGenerator::GetInstance().Generate(256));
   std::filesystem::permissions(
@@ -62,7 +62,7 @@ DataObjectOperator::DataObjectOperator(int channel)
   }
   hash_key_ = QCryptographicHash::hash(QByteArray::fromStdString(key),
                                        QCryptographicHash::Sha256);
-  SPDLOG_DEBUG("app secure key loaded {} bytes", hash_key_.size());
+  SPDLOG_TRACE("app secure key loaded {} bytes", hash_key_.size());
 
   if (!exists(app_data_objs_path_)) create_directory(app_data_objs_path_);
 }
@@ -106,7 +106,7 @@ auto DataObjectOperator::SaveDataObj(const std::string& _key,
 auto DataObjectOperator::GetDataObject(const std::string& _key)
     -> std::optional<nlohmann::json> {
   try {
-    SPDLOG_DEBUG("get data object {}", _key);
+    SPDLOG_TRACE("get data object {}", _key);
     auto hash_obj_key =
         QCryptographicHash::hash(hash_key_ + QByteArray::fromStdString(_key),
                                  QCryptographicHash::Sha256)
@@ -126,19 +126,19 @@ auto DataObjectOperator::GetDataObject(const std::string& _key)
       return {};
     }
 
-    SPDLOG_DEBUG("data object found {}", _key);
+    SPDLOG_TRACE("data object found {}", _key);
 
     auto encoded = QByteArray::fromStdString(buffer);
     QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
                               QAESEncryption::Padding::ISO);
 
-    SPDLOG_DEBUG("decrypting data object {} , hash key size: {}",
+    SPDLOG_TRACE("decrypting data object {} , hash key size: {}",
                  encoded.size(), hash_key_.size());
 
     auto decoded =
         encryption.removePadding(encryption.decode(encoded, hash_key_));
 
-    SPDLOG_DEBUG("data object decoded: {}", _key);
+    SPDLOG_TRACE("data object decoded: {}", _key);
 
     return nlohmann::json::parse(decoded.toStdString());
   } catch (...) {

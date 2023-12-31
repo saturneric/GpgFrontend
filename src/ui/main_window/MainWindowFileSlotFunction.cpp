@@ -45,7 +45,6 @@
 namespace GpgFrontend::UI {
 
 void MainWindow::SlotFileEncrypt(std::filesystem::path path) {
-  auto* file_tree_view = edit_->SlotCurPageFileTreeView();
   auto check_result = TargetFilePreCheck(path, true);
   if (!std::get<0>(check_result)) {
     QMessageBox::critical(
@@ -53,9 +52,6 @@ void MainWindow::SlotFileEncrypt(std::filesystem::path path) {
         QString(_("Cannot read from file: %1")).arg(path.filename().c_str()));
     return;
   }
-
-  // check selected keys
-  auto key_ids = m_key_list_->GetChecked();
 
   bool const non_ascii_when_export =
       GlobalSettingStation::GetInstance().LookupSettings(
@@ -82,6 +78,8 @@ void MainWindow::SlotFileEncrypt(std::filesystem::path path) {
     return;
   }
 
+  // check selected keys
+  auto key_ids = m_key_list_->GetChecked();
   if (key_ids->empty()) {
     // Symmetric Encrypt
     auto ret = QMessageBox::information(
@@ -109,7 +107,7 @@ void MainWindow::SlotFileEncrypt(std::filesystem::path path) {
                 result_analyse.Analyse();
 
                 process_result_analyse(edit_, info_board_, result_analyse);
-                file_tree_view->update();
+                this->slot_refresh_current_file_view();
               });
         });
 
@@ -149,13 +147,12 @@ void MainWindow::SlotFileEncrypt(std::filesystem::path path) {
               result_analyse.Analyse();
 
               process_result_analyse(edit_, info_board_, result_analyse);
-              file_tree_view->update();
+              this->slot_refresh_current_file_view();
             });
       });
 }
 
 void MainWindow::SlotDirectoryEncrypt(std::filesystem::path path) {
-  auto* file_tree_view = edit_->SlotCurPageFileTreeView();
   auto check_result = TargetFilePreCheck(path, true);
   if (!std::get<0>(check_result)) {
     QMessageBox::critical(
@@ -164,8 +161,6 @@ void MainWindow::SlotDirectoryEncrypt(std::filesystem::path path) {
     return;
   }
 
-  // check selected keys
-  auto key_ids = m_key_list_->GetChecked();
   bool const non_ascii_when_export =
       GlobalSettingStation::GetInstance().LookupSettings(
           "general.non_ascii_when_export", true);
@@ -191,8 +186,40 @@ void MainWindow::SlotDirectoryEncrypt(std::filesystem::path path) {
     return;
   }
 
+  // check selected keys
+  auto key_ids = m_key_list_->GetChecked();
+  // symmetric encrypt
   if (key_ids->empty()) {
-    // TODO
+    auto ret = QMessageBox::information(
+        this, _("Symmetric Encryption"),
+        _("No Key Selected. Do you want to encrypt with a "
+          "symmetric cipher using a passphrase?"),
+        QMessageBox::Ok | QMessageBox::Cancel);
+    if (ret == QMessageBox::Cancel) return;
+
+    CommonUtils::WaitForOpera(
+        this, _("Archiving & Symmetrically Encrypting"),
+        [=](const OperaWaitingHd& op_hd) {
+          GpgFileOpera::GetInstance().EncryptDerectorySymmetric(
+              path, !non_ascii_when_export, out_path,
+              [=](GpgError err, const DataObjectPtr& data_obj) {
+                // stop waiting
+                op_hd();
+
+                if (data_obj == nullptr ||
+                    !data_obj->Check<GpgEncryptResult>()) {
+                  throw std::runtime_error("data object doesn't pass checking");
+                }
+
+                auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
+                auto result_analyse = GpgEncryptResultAnalyse(err, result);
+                result_analyse.Analyse();
+
+                process_result_analyse(edit_, info_board_, result_analyse);
+                this->slot_refresh_current_file_view();
+              });
+        });
+
     return;
   }
 
@@ -229,13 +256,12 @@ void MainWindow::SlotDirectoryEncrypt(std::filesystem::path path) {
               result_analyse.Analyse();
 
               process_result_analyse(edit_, info_board_, result_analyse);
-              file_tree_view->update();
+              this->slot_refresh_current_file_view();
             });
       });
 }
 
 void MainWindow::SlotFileDecrypt(std::filesystem::path path) {
-  auto* file_tree_view = edit_->SlotCurPageFileTreeView();
   auto check_result = TargetFilePreCheck(path, true);
   if (!std::get<0>(check_result)) {
     QMessageBox::critical(
@@ -274,18 +300,16 @@ void MainWindow::SlotFileDecrypt(std::filesystem::path path) {
               }
 
               auto result = ExtractParams<GpgDecryptResult>(data_obj, 0);
-
               auto result_analyse = GpgDecryptResultAnalyse(err, result);
               result_analyse.Analyse();
 
               process_result_analyse(edit_, info_board_, result_analyse);
-              file_tree_view->update();
+              this->slot_refresh_current_file_view();
             });
       });
 }
 
 void MainWindow::SlotArchiveDecrypt(std::filesystem::path path) {
-  auto* file_tree_view = edit_->SlotCurPageFileTreeView();
   auto check_result = TargetFilePreCheck(path, true);
   if (!std::get<0>(check_result)) {
     QMessageBox::critical(
@@ -324,20 +348,16 @@ void MainWindow::SlotArchiveDecrypt(std::filesystem::path path) {
               }
 
               auto result = ExtractParams<GpgDecryptResult>(data_obj, 0);
-
               auto result_analyse = GpgDecryptResultAnalyse(err, result);
               result_analyse.Analyse();
 
               process_result_analyse(edit_, info_board_, result_analyse);
-              file_tree_view->update();
+              this->slot_refresh_current_file_view();
             });
       });
 }
 
-void MainWindow::SlotFileSign() {
-  auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-  auto path_qstr = file_tree_view->GetSelected();
-  auto path = ConvertPathByOS(path_qstr);
+void MainWindow::SlotFileSign(std::filesystem::path path) {
   auto check_result = TargetFilePreCheck(path, true);
   if (!std::get<0>(check_result)) {
     QMessageBox::critical(
@@ -402,15 +422,12 @@ void MainWindow::SlotFileSign() {
               result_analyse.Analyse();
 
               process_result_analyse(edit_, info_board_, result_analyse);
-              file_tree_view->update();
+              this->slot_refresh_current_file_view();
             });
       });
 }
 
-void MainWindow::SlotFileVerify() {
-  auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-  auto path_qstr = file_tree_view->GetSelected();
-  auto path = ConvertPathByOS(path_qstr);
+void MainWindow::SlotFileVerify(std::filesystem::path path) {
   auto check_result = TargetFilePreCheck(path, true);
   if (!std::get<0>(check_result)) {
     QMessageBox::critical(
@@ -428,10 +445,7 @@ void MainWindow::SlotFileVerify() {
     data_file_path = sign_file_path.parent_path() / sign_file_path.stem();
   }
 
-  SPDLOG_DEBUG("sign_file_path: {} {}", sign_file_path.u8string(),
-               sign_file_path.extension().u8string());
-
-  if (path.extension() != ".gpg") {
+  if (path.extension() != ".gpg" && !std::filesystem::exists(data_file_path)) {
     bool ok;
     QString const text = QInputDialog::getText(
         this, _("Origin file to verify"), _("Filepath"), QLineEdit::Normal,
@@ -479,15 +493,12 @@ void MainWindow::SlotFileVerify() {
                 show_verify_details(this, info_board_, err, result);
               }
 
-              file_tree_view->update();
+              this->slot_refresh_current_file_view();
             });
       });
 }
 
-void MainWindow::SlotFileEncryptSign() {
-  auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-  auto path_qstr = file_tree_view->GetSelected();
-  auto path = ConvertPathByOS(path_qstr);
+void MainWindow::SlotFileEncryptSign(std::filesystem::path path) {
   auto check_result = TargetFilePreCheck(path, true);
   if (!std::get<0>(check_result)) {
     QMessageBox::critical(
@@ -524,20 +535,17 @@ void MainWindow::SlotFileEncryptSign() {
   bool const non_ascii_when_export =
       GlobalSettingStation::GetInstance().LookupSettings(
           "general.non_ascii_when_export", true);
+  auto out_path =
+      SetExtensionOfOutputFile(path, kENCRYPT_SIGN, !non_ascii_when_export);
 
-  // get file info
-  QFileInfo const file_info(path);
-  if (file_info.isDir()) {
-    path = path.replace_extension(".tar");
+  check_result = TargetFilePreCheck(out_path, false);
+  if (!std::get<0>(check_result)) {
+    QMessageBox::critical(this, _("Error"),
+                          QString(_("Cannot write to file: %1"))
+                              .arg(out_path.filename().c_str()));
+    return;
   }
 
-  const auto* extension = ".asc";
-  if (non_ascii_when_export || file_info.isDir()) {
-    extension = ".gpg";
-  }
-
-  auto out_path = path;
-  out_path = out_path.replace_extension(path.extension().string() + extension);
   if (QFile::exists(out_path)) {
     auto ret = QMessageBox::warning(
         this, _("Warning"),
@@ -586,15 +594,12 @@ void MainWindow::SlotFileEncryptSign() {
               process_result_analyse(edit_, info_board_, encrypt_result_analyse,
                                      sign_result_analyse);
 
-              file_tree_view->update();
+              this->slot_refresh_current_file_view();
             });
       });
 }
 
-void MainWindow::SlotFileDecryptVerify() {
-  auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-  auto path_qstr = file_tree_view->GetSelected();
-  auto path = ConvertPathByOS(path_qstr);
+void MainWindow::SlotDirectoryEncryptSign(std::filesystem::path path) {
   auto check_result = TargetFilePreCheck(path, true);
   if (!std::get<0>(check_result)) {
     QMessageBox::critical(
@@ -603,13 +608,117 @@ void MainWindow::SlotFileDecryptVerify() {
     return;
   }
 
-  std::filesystem::path out_path = path;
-  if (path.extension() == ".asc" || path.extension() == ".gpg") {
-    out_path = path.parent_path() / out_path.stem();
-  } else {
-    out_path += ".out";
+  // check selected keys
+  auto key_ids = m_key_list_->GetChecked();
+  auto p_keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
+
+  if (p_keys->empty()) {
+    QMessageBox::critical(
+        this, _("No Key Checked"),
+        _("Please check the key in the key toolbox on the right."));
+    return;
   }
-  SPDLOG_DEBUG("out path: {}", out_path.u8string());
+
+  // check key abilities
+  for (const auto& key : *p_keys) {
+    bool const key_can_encrypt = key.IsHasActualEncryptionCapability();
+
+    if (!key_can_encrypt) {
+      QMessageBox::critical(
+          nullptr, _("Invalid KeyPair"),
+          QString(_("The selected keypair cannot be used for encryption.")) +
+              "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
+              QString::fromStdString(key.GetUIDs()->front().GetUID()));
+      return;
+    }
+  }
+
+  bool const non_ascii_when_export =
+      GlobalSettingStation::GetInstance().LookupSettings(
+          "general.non_ascii_when_export", true);
+  auto out_path = SetExtensionOfOutputFileForArchive(path, kENCRYPT_SIGN,
+                                                     !non_ascii_when_export);
+
+  check_result = TargetFilePreCheck(out_path, false);
+  if (!std::get<0>(check_result)) {
+    QMessageBox::critical(this, _("Error"),
+                          QString(_("Cannot write to file: %1"))
+                              .arg(out_path.filename().c_str()));
+    return;
+  }
+
+  if (QFile::exists(out_path)) {
+    auto ret = QMessageBox::warning(
+        this, _("Warning"),
+        _("The target file already exists, do you need to overwrite it?"),
+        QMessageBox::Ok | QMessageBox::Cancel);
+
+    if (ret == QMessageBox::Cancel) return;
+  }
+
+  auto* signers_picker = new SignersPicker(this);
+  QEventLoop loop;
+  connect(signers_picker, &SignersPicker::finished, &loop, &QEventLoop::quit);
+  loop.exec();
+
+  // return when canceled
+  if (!signers_picker->GetStatus()) return;
+
+  auto signer_key_ids = signers_picker->GetCheckedSigners();
+  auto p_signer_keys = GpgKeyGetter::GetInstance().GetKeys(signer_key_ids);
+
+  CommonUtils::WaitForOpera(
+      this, _("Archiving & Encrypting & Signing"),
+      [=](const OperaWaitingHd& op_hd) {
+        GpgFileOpera::GetInstance().EncryptSignDirectory(
+            {p_keys->begin(), p_keys->end()},
+            {p_signer_keys->begin(), p_signer_keys->end()}, path,
+            !non_ascii_when_export, out_path,
+            [=](GpgError err, const DataObjectPtr& data_obj) {
+              // stop waiting
+              op_hd();
+
+              if (data_obj == nullptr ||
+                  !data_obj->Check<GpgEncryptResult, GpgSignResult>()) {
+                throw std::runtime_error("data object doesn't pass checking");
+              }
+              auto encrypt_result =
+                  ExtractParams<GpgEncryptResult>(data_obj, 0);
+              auto sign_result = ExtractParams<GpgSignResult>(data_obj, 1);
+
+              auto encrypt_result_analyse =
+                  GpgEncryptResultAnalyse(err, encrypt_result);
+              encrypt_result_analyse.Analyse();
+
+              auto sign_result_analyse = GpgSignResultAnalyse(err, sign_result);
+              sign_result_analyse.Analyse();
+
+              process_result_analyse(edit_, info_board_, encrypt_result_analyse,
+                                     sign_result_analyse);
+
+              this->slot_refresh_current_file_view();
+            });
+      });
+}
+
+void MainWindow::SlotFileDecryptVerify(std::filesystem::path path) {
+  auto check_result = TargetFilePreCheck(path, true);
+  if (!std::get<0>(check_result)) {
+    QMessageBox::critical(
+        this, _("Error"),
+        QString(_("Cannot read from file: %1")).arg(path.filename().c_str()));
+    return;
+  }
+
+  auto out_path = SetExtensionOfOutputFile(path, kDECRYPT_VERIFY, true);
+
+  check_result = TargetFilePreCheck(out_path, false);
+  if (!std::get<0>(check_result)) {
+    QMessageBox::critical(this, _("Error"),
+                          QString(_("Cannot write to file: %1"))
+                              .arg(out_path.filename().c_str()));
+    return;
+  }
 
   if (QFile::exists(out_path.u8string().c_str())) {
     auto ret =
@@ -653,7 +762,77 @@ void MainWindow::SlotFileDecryptVerify() {
               if (verify_result_analyse.GetStatus() >= 0) {
                 show_verify_details(this, info_board_, err, verify_result);
               }
-              file_tree_view->update();
+
+              this->slot_refresh_current_file_view();
+            });
+      });
+}
+
+void MainWindow::SlotArchiveDecryptVerify(std::filesystem::path path) {
+  auto check_result = TargetFilePreCheck(path, true);
+  if (!std::get<0>(check_result)) {
+    QMessageBox::critical(
+        this, _("Error"),
+        QString(_("Cannot read from file: %1")).arg(path.filename().c_str()));
+    return;
+  }
+
+  auto out_path =
+      SetExtensionOfOutputFileForArchive(path, kDECRYPT_VERIFY, true);
+
+  check_result = TargetFilePreCheck(out_path, false);
+  if (!std::get<0>(check_result)) {
+    QMessageBox::critical(this, _("Error"),
+                          QString(_("Cannot write to file: %1"))
+                              .arg(out_path.filename().c_str()));
+    return;
+  }
+
+  if (QFile::exists(out_path.u8string().c_str())) {
+    auto ret =
+        QMessageBox::warning(this, _("Warning"),
+                             QString(_("The output file %1 already exists, do "
+                                       "you need to overwrite it?"))
+                                 .arg(out_path.filename().u8string().c_str()),
+                             QMessageBox::Ok | QMessageBox::Cancel);
+
+    if (ret == QMessageBox::Cancel) return;
+  }
+
+  CommonUtils::WaitForOpera(
+      this, _("Decrypting & Verifying & Extracting"),
+      [=](const OperaWaitingHd& op_hd) {
+        GpgFileOpera::GetInstance().DecryptVerifyArchive(
+            path, out_path, [=](GpgError err, const DataObjectPtr& data_obj) {
+              // stop waiting
+              op_hd();
+
+              if (data_obj == nullptr ||
+                  !data_obj->Check<GpgDecryptResult, GpgVerifyResult>()) {
+                throw std::runtime_error("data object doesn't pass checking");
+              }
+              auto decrypt_result =
+                  ExtractParams<GpgDecryptResult>(data_obj, 0);
+              auto verify_result = ExtractParams<GpgVerifyResult>(data_obj, 1);
+
+              auto decrypt_result_analyse =
+                  GpgDecryptResultAnalyse(err, decrypt_result);
+              decrypt_result_analyse.Analyse();
+
+              auto verify_result_analyse =
+                  GpgVerifyResultAnalyse(err, verify_result);
+              verify_result_analyse.Analyse();
+
+              process_result_analyse(edit_, info_board_, decrypt_result_analyse,
+                                     verify_result_analyse);
+              if (verify_result_analyse.GetStatus() == -2) {
+                import_unknown_key_from_keyserver(this, verify_result_analyse);
+              }
+              if (verify_result_analyse.GetStatus() >= 0) {
+                show_verify_details(this, info_board_, err, verify_result);
+              }
+
+              this->slot_refresh_current_file_view();
             });
       });
 }

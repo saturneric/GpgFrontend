@@ -211,8 +211,23 @@ void MainWindow::create_actions() {
   encrypt_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
 #endif
   encrypt_sign_act_->setToolTip(_("Encrypt and Sign Message"));
-  connect(encrypt_sign_act_, &QAction::triggered, this,
-          &MainWindow::slot_encrypt_sign);
+  connect(encrypt_sign_act_, &QAction::triggered, this, [this]() {
+    if (edit_->SlotCurPageFileTreeView() != nullptr) {
+      const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+      const auto path_qstr = file_tree_view->GetSelected();
+      const auto path = ConvertPathByOS(path_qstr);
+
+      const auto file_info = QFileInfo(path);
+      if (file_info.isFile()) {
+        this->SlotFileEncryptSign(path);
+      } else if (file_info.isDir()) {
+        this->SlotDirectoryEncryptSign(path);
+      }
+    }
+    if (edit_->SlotCurPageTextEdit() != nullptr) {
+      this->SlotEncryptSign();
+    }
+  });
 
   decrypt_act_ = new QAction(_("Decrypt"), this);
   decrypt_act_->setIcon(QIcon(":decrypted.png"));
@@ -255,8 +270,29 @@ void MainWindow::create_actions() {
   encrypt_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
 #endif
   decrypt_verify_act_->setToolTip(_("Decrypt and Verify Message"));
-  connect(decrypt_verify_act_, &QAction::triggered, this,
-          &MainWindow::slot_decrypt_verify);
+  connect(decrypt_verify_act_, &QAction::triggered, this, [this]() {
+    if (edit_->SlotCurPageFileTreeView() != nullptr) {
+      const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+      const auto path_qstr = file_tree_view->GetSelected();
+      const auto path = ConvertPathByOS(path_qstr);
+
+      const auto file_info = QFileInfo(path);
+      if (file_info.isFile()) {
+        const std::string filename = path.filename().string();
+        const std::string extension(
+            std::find(filename.begin(), filename.end(), '.'), filename.end());
+
+        if (extension == ".tar.gpg" || extension == ".tar.asc") {
+          this->SlotArchiveDecryptVerify(path);
+        } else {
+          this->SlotFileDecryptVerify(path);
+        }
+      }
+    }
+    if (edit_->SlotCurPageTextEdit() != nullptr) {
+      this->SlotDecryptVerify();
+    }
+  });
 
   sign_act_ = new QAction(_("Sign"), this);
   sign_act_->setIcon(QIcon(":signature.png"));
@@ -266,7 +302,17 @@ void MainWindow::create_actions() {
   encrypt_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
 #endif
   sign_act_->setToolTip(_("Sign Message"));
-  connect(sign_act_, &QAction::triggered, this, &MainWindow::slot_sign);
+  connect(sign_act_, &QAction::triggered, this, [this]() {
+    if (edit_->SlotCurPageFileTreeView() != nullptr) {
+      const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+      const auto path_qstr = file_tree_view->GetSelected();
+      const auto path = ConvertPathByOS(path_qstr);
+
+      const auto file_info = QFileInfo(path);
+      if (file_info.isFile()) this->SlotFileSign(path);
+    }
+    if (edit_->SlotCurPageTextEdit() != nullptr) this->SlotSign();
+  });
 
   verify_act_ = new QAction(_("Verify"), this);
   verify_act_->setIcon(QIcon(":verify.png"));
@@ -276,7 +322,17 @@ void MainWindow::create_actions() {
   encrypt_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
 #endif
   verify_act_->setToolTip(_("Verify Message"));
-  connect(verify_act_, &QAction::triggered, this, &MainWindow::slot_verify);
+  connect(verify_act_, &QAction::triggered, this, [this]() {
+    if (edit_->SlotCurPageFileTreeView() != nullptr) {
+      const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+      const auto path_qstr = file_tree_view->GetSelected();
+      const auto path = ConvertPathByOS(path_qstr);
+
+      const auto file_info = QFileInfo(path);
+      if (file_info.isFile()) this->SlotFileVerify(path);
+    }
+    if (edit_->SlotCurPageTextEdit() != nullptr) this->SlotVerify();
+  });
 
   /* Key Menu
    */
