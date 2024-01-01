@@ -103,7 +103,7 @@ auto WriteFileGFBuffer(const std::filesystem::path& file_name, GFBuffer data)
 
 auto CalculateHash(const std::filesystem::path& file_path) -> std::string {
   // Returns empty QByteArray() on failure.
-  QFileInfo info(QString::fromStdString(file_path.string()));
+  QFileInfo const info(QString::fromStdString(file_path.string()));
   std::stringstream ss;
 
   if (info.isFile() && info.isReadable()) {

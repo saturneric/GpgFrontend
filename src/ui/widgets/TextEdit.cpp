@@ -118,7 +118,8 @@ void TextEdit::SlotNewFileTab() const {
 
 void TextEdit::SlotOpenFile(const QString& path) {
   QFile file(path);
-  SPDLOG_DEBUG("path: {}", path.toStdString());
+  SPDLOG_DEBUG("main window editor is opening file at path: {}",
+               path.toStdString());
   auto result = file.open(QIODevice::ReadOnly | QIODevice::Text);
   if (result) {
     auto* page = new PlainTextEditorPage(path);

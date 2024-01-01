@@ -31,12 +31,11 @@
 namespace GpgFrontend {
 
 auto GFDataExchanger::Write(const std::byte* buffer, size_t size) -> ssize_t {
-  std::unique_lock<std::mutex> lock(mutex_);
   if (close_) return -1;
-
   if (size == 0) return 0;
-  ssize_t write_bytes = 0;
 
+  std::atomic<ssize_t> write_bytes = 0;
+  std::unique_lock<std::mutex> lock(mutex_);
   try {
     for (size_t i = 0; i < size; i++) {
       if (queue_.size() == queue_max_size_) not_empty_.notify_all();
@@ -48,7 +47,8 @@ auto GFDataExchanger::Write(const std::byte* buffer, size_t size) -> ssize_t {
       write_bytes++;
     }
   } catch (...) {
-    return write_bytes;
+    SPDLOG_ERROR(
+        "gf data exchanger caught exception when it writes to queue, abort...");
   }
 
   if (!queue_.empty()) not_empty_.notify_all();
@@ -57,10 +57,9 @@ auto GFDataExchanger::Write(const std::byte* buffer, size_t size) -> ssize_t {
 
 auto GFDataExchanger::Read(std::byte* buffer, size_t size) -> ssize_t {
   std::unique_lock<std::mutex> lock(mutex_);
-
   if (size <= 0 || (close_ && queue_.empty())) return 0;
-  ssize_t read_bytes = 0;
 
+  std::atomic<ssize_t> read_bytes = 0;
   for (size_t i = 0; i < size; ++i) {
     if (queue_.empty()) not_full_.notify_all();
     not_empty_.wait(lock, [=] { return !queue_.empty() || close_; });
@@ -79,8 +78,8 @@ void GFDataExchanger::CloseWrite() {
   std::unique_lock<std::mutex> const lock(mutex_);
 
   close_ = true;
-
-  not_full_.notify_one();
+  not_full_.notify_all();
+  not_empty_.notify_all();
 }
 
 GFDataExchanger::GFDataExchanger(ssize_t size) : queue_max_size_(size) {}

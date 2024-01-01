@@ -114,7 +114,7 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @details Open a new tab for path
    */
-  void SlotOpenFile(QString& path);
+  void SlotOpenFile(const QString& path);
 
   /**
    * @details Open dialog for encrypting file.

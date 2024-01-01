@@ -47,7 +47,7 @@ class GFDataExchanger {
   std::queue<std::byte> queue_;
   std::mutex mutex_;
   const ssize_t queue_max_size_;
-  bool close_ = false;
+  std::atomic_bool close_ = false;
 };
 
 }  // namespace GpgFrontend

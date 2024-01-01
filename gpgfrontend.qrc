@@ -80,5 +80,6 @@
         <file alias="hint.svg">resource/lfs/icons/hint.svg</file>
         <file alias="password-generate.svg">resource/lfs/icons/password-generate.svg</file>
         <file alias="visibility.svg">resource/lfs/icons/visibility.svg</file>
+        <file alias="new_directory.png">resource/lfs/icons/new_directory.png</file>
     </qresource>
 </RCC>
