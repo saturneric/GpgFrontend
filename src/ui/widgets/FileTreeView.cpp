@@ -47,15 +47,8 @@ FileTreeView::FileTreeView(QWidget* parent) : QTreeView(parent) {
   this->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(this, &QWidget::customContextMenuRequested, this,
           &FileTreeView::slot_show_custom_context_menu);
-
-  connect(this, &QTreeView::clicked, this,
-          &FileTreeView::slot_file_tree_view_item_selected);
   connect(this, &QTreeView::doubleClicked, this,
           &FileTreeView::slot_file_tree_view_item_double_clicked);
-}
-
-void FileTreeView::slot_file_tree_view_item_selected(const QModelIndex& index) {
-
 }
 
 void FileTreeView::selectionChanged(const QItemSelection& selected,

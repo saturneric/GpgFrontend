@@ -439,22 +439,27 @@ void MainWindow::SlotFileVerify(std::filesystem::path path) {
   std::filesystem::path sign_file_path = path;
   std::filesystem::path data_file_path;
 
-  if (path.extension() == ".gpg") {
+  bool const prossible_singleton_target =
+      path.extension() == ".gpg" || path.extension() == ".pgp";
+  if (prossible_singleton_target) {
     swap(data_file_path, sign_file_path);
-  } else if (path.extension() == ".sig" || path.extension() == ".asc") {
+  } else {
     data_file_path = sign_file_path.parent_path() / sign_file_path.stem();
   }
 
-  if (path.extension() != ".gpg" && !std::filesystem::exists(data_file_path)) {
+  if (!prossible_singleton_target && !std::filesystem::exists(data_file_path)) {
     bool ok;
     QString const text = QInputDialog::getText(
-        this, _("Origin file to verify"), _("Filepath"), QLineEdit::Normal,
-        data_file_path.u8string().c_str(), &ok);
-    if (ok && !text.isEmpty()) {
-      data_file_path = text.toStdString();
-    } else {
-      return;
-    }
+        this, _("File to be Verified"),
+        _("Please provide An ABSOLUTE Path \n"
+          "If Data And Signature is COMBINED within a single file, "
+          "KEEP THIS EMPTY: "),
+        QLineEdit::Normal, data_file_path.u8string().c_str(), &ok);
+
+    if (!ok) return;
+
+    data_file_path =
+        text.isEmpty() ? path : std::filesystem::path{text.toStdString()};
   }
 
   if (!is_regular_file(data_file_path) ||
@@ -466,8 +471,9 @@ void MainWindow::SlotFileVerify(std::filesystem::path path) {
     return;
   }
 
-  SPDLOG_DEBUG("data path: {}", data_file_path.u8string());
-  SPDLOG_DEBUG("sign path: {}", sign_file_path.u8string());
+  SPDLOG_DEBUG("verification data file path: {}", data_file_path.u8string());
+  SPDLOG_DEBUG("verification signature file path: {}",
+               sign_file_path.u8string());
 
   CommonUtils::WaitForOpera(
       this, _("Verifying"), [=](const OperaWaitingHd& op_hd) {

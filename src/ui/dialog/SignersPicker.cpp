@@ -35,8 +35,8 @@ namespace GpgFrontend::UI {
 
 SignersPicker::SignersPicker(QWidget* parent)
     : GeneralDialog(typeid(SignersPicker).name(), parent) {
-  auto confirm_button = new QPushButton(_("Confirm"));
-  auto cancel_button = new QPushButton(_("Cancel"));
+  auto* confirm_button = new QPushButton(_("Confirm"));
+  auto* cancel_button = new QPushButton(_("Cancel"));
 
   connect(confirm_button, &QPushButton::clicked,
           [=]() { this->accepted_ = true; });
@@ -44,7 +44,7 @@ SignersPicker::SignersPicker(QWidget* parent)
   connect(cancel_button, &QPushButton::clicked, this, &QDialog::reject);
 
   /*Setup KeyList*/
-  key_list_ = new KeyList(false, this);
+  key_list_ = new KeyList(0U, this);
   key_list_->AddListGroupTab(
       _("Signers"), "signers", KeyListRow::ONLY_SECRET_KEY,
       KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage,
@@ -70,15 +70,17 @@ SignersPicker::SignersPicker(QWidget* parent)
                        Qt::CustomizeWindowHint);
 
   this->setModal(true);
-  this->setWindowTitle("Signers Picker");
+  this->setWindowTitle(_("Signers Picker"));
   this->setMinimumWidth(480);
+
+  movePosition2CenterOfParent();
   this->show();
 }
 
-GpgFrontend::KeyIdArgsListPtr SignersPicker::GetCheckedSigners() {
+auto SignersPicker::GetCheckedSigners() -> GpgFrontend::KeyIdArgsListPtr {
   return key_list_->GetPrivateChecked();
 }
 
-bool SignersPicker::GetStatus() const { return this->accepted_; }
+auto SignersPicker::GetStatus() const -> bool { return this->accepted_; }
 
 }  // namespace GpgFrontend::UI

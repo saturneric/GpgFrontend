@@ -30,8 +30,6 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include "core/utils/IOUtils.h"
-
 namespace GpgFrontend {
 
 static inline void Ltrim(std::string& s) {
@@ -131,7 +129,7 @@ auto SetExtensionOfOutputFile(std::filesystem::path path, GpgOperation opera,
       case kENCRYPT:
       case kSIGN:
       case kENCRYPT_SIGN:
-        extension += ".asc";
+        extension = path.extension().string() + ".asc";
         break;
       default:
         break;
@@ -140,10 +138,10 @@ auto SetExtensionOfOutputFile(std::filesystem::path path, GpgOperation opera,
     switch (opera) {
       case kENCRYPT:
       case kENCRYPT_SIGN:
-        extension += ".gpg";
+        extension = path.extension().string() + ".gpg";
         break;
       case kSIGN:
-        extension = ".sig";
+        extension = path.extension().string() + ".sig";
         break;
       default:
         break;

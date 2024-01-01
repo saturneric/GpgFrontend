@@ -53,8 +53,6 @@ FilePage::FilePage(QWidget* parent)
   connect(this->ui_->newDirButton, &QPushButton::clicked, file_tree_view_,
           &FileTreeView::SlotMkdir);
 
-  ui_->optionsButton->setMenu(option_popup_menu_);
-
   ui_->pathEdit->setText(
       QString::fromStdString(file_tree_view_->GetCurrentPath().u8string()));
 
@@ -67,7 +65,6 @@ FilePage::FilePage(QWidget* parent)
   ui_->pathEdit->setCompleter(path_edit_completer_);
 
   option_popup_menu_ = new QMenu(this);
-
   auto* show_hidden_act = new QAction(_("Show Hidden File"), this);
   show_hidden_act->setCheckable(true);
   connect(show_hidden_act, &QAction::triggered, file_tree_view_,
@@ -79,6 +76,7 @@ FilePage::FilePage(QWidget* parent)
   connect(show_system_act, &QAction::triggered, file_tree_view_,
           &FileTreeView::SlotShowSystemFile);
   option_popup_menu_->addAction(show_system_act);
+  ui_->optionsButton->setMenu(option_popup_menu_);
 
   connect(ui_->pathEdit, &QLineEdit::textChanged, [=]() {
     auto path = ui_->pathEdit->text();

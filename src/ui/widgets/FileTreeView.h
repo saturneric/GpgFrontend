@@ -185,13 +185,6 @@ class FileTreeView : public QTreeView {
    *
    * @param index
    */
-  void slot_file_tree_view_item_selected(const QModelIndex& index);
-
-  /**
-   * @brief
-   *
-   * @param index
-   */
   void slot_file_tree_view_item_double_clicked(const QModelIndex& index);
 
   /**
