@@ -44,6 +44,21 @@ class GlobalSettingStation::Impl {
    */
   explicit Impl() noexcept {
     SPDLOG_INFO("app path: {}", app_path_.u8string());
+    auto protable_file_path = app_path_ / "PORTABLE.txt";
+    if (std::filesystem::exists(protable_file_path)) {
+      SPDLOG_INFO(
+          "dectected protable mode, reconfiguring config and data path...");
+
+      app_configure_path_ = app_path_.parent_path();
+      config_dir_path_ = app_configure_path_ / "conf";
+      main_config_path_ = config_dir_path_ / "main.cfg";
+      module_config_path_ = config_dir_path_ / "module.cfg";
+
+      app_data_path_ = app_path_.parent_path();
+      app_log_path_ = app_data_path_ / "logs";
+      app_data_objs_path_ = app_data_path_ / "data_objs";
+    }
+
     SPDLOG_INFO("app configure path: {}", app_configure_path_.u8string());
     SPDLOG_INFO("app data path: {}", app_data_path_.u8string());
     SPDLOG_INFO("app log path: {}", app_log_path_.u8string());
@@ -163,15 +178,6 @@ class GlobalSettingStation::Impl {
   }
 
   /**
-   * @brief Get the Standalone Gpg Bin Dir object
-   *
-   * @return std::filesystem::path
-   */
-  [[nodiscard]] auto GetStandaloneGpgBinDir() const -> std::filesystem::path {
-    return app_resource_path_ / "gpg1.4" / "gpg";
-  }
-
-  /**
    * @brief Get the Locale Dir object
    *
    * @return std::filesystem::path
@@ -220,8 +226,10 @@ class GlobalSettingStation::Impl {
           .parent_path();
 
   std::filesystem::path app_data_path_ =
-      QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
-          .toStdString();  ///< Program Data Location
+      std::filesystem::path{
+          QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
+              .toStdString()} /
+      "GpgFrontend";  ///< Program Data Location
 
   std::filesystem::path app_log_path_ =
       app_data_path_ / "logs";  ///< Program Data Location
@@ -247,8 +255,10 @@ class GlobalSettingStation::Impl {
 #endif
 
   std::filesystem::path app_configure_path_ =
-      QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
-          .toStdString();  ///< Program Configure Location
+      std::filesystem::path{
+          QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
+              .toStdString()} /
+      "GpgFrontend";  ///< Program Configure Location
   std::filesystem::path config_dir_path_ =
       app_configure_path_ / "conf";  ///< Configure File Directory Location
   std::filesystem::path main_config_path_ =
@@ -297,11 +307,6 @@ auto GlobalSettingStation::GetStandaloneDatabaseDir() const
 
 auto GlobalSettingStation::GetAppConfigPath() const -> std::filesystem::path {
   return p_->GetAppConfigPath();
-}
-
-auto GlobalSettingStation::GetStandaloneGpgBinDir() const
-    -> std::filesystem::path {
-  return p_->GetStandaloneGpgBinDir();
 }
 
 auto GlobalSettingStation::GetLocaleDir() const -> std::filesystem::path {

@@ -99,13 +99,6 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
   [[nodiscard]] auto GetAppConfigPath() const -> std::filesystem::path;
 
   /**
-   * @brief Get the Standalone Gpg Bin Dir object
-   *
-   * @return std::filesystem::path
-   */
-  [[nodiscard]] auto GetStandaloneGpgBinDir() const -> std::filesystem::path;
-
-  /**
    * @brief Get the Locale Dir object
    *
    * @return std::filesystem::path
