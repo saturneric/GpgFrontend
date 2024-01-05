@@ -37,30 +37,58 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
-           <widget class="QPushButton" name="refreshKeyListButton">
+           <widget class="QToolButton" name="refreshKeyListButton">
+            <property name="toolTip">
+             <string>Refresh</string>
+            </property>
             <property name="text">
              <string>Refresh</string>
             </property>
+            <property name="icon">
+             <iconset resource="../gpgfrontend.qrc">
+              <normaloff>:/refresh.png</normaloff>:/refresh.png</iconset>
+            </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="syncButton">
+           <widget class="QToolButton" name="syncButton">
+            <property name="toolTip">
+             <string>Sync Public Key</string>
+            </property>
             <property name="text">
              <string>Sync Public Key</string>
             </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="uncheckButton">
-            <property name="text">
-             <string>Uncheck ALL</string>
+            <property name="icon">
+             <iconset resource="../gpgfrontend.qrc">
+              <normaloff>:/cloud_sync.png</normaloff>:/cloud_sync.png</iconset>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="checkALLButton">
+           <widget class="QToolButton" name="checkALLButton">
+            <property name="toolTip">
+             <string>Check ALL</string>
+            </property>
             <property name="text">
              <string>Check ALL</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../gpgfrontend.qrc">
+              <normaloff>:/total_selection.png</normaloff>:/total_selection.png</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="uncheckButton">
+            <property name="toolTip">
+             <string>Uncheck ALL</string>
+            </property>
+            <property name="text">
+             <string>Uncheck ALL</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../gpgfrontend.qrc">
+              <normaloff>:/none.png</normaloff>:/none.png</iconset>
             </property>
            </widget>
           </item>
@@ -119,6 +147,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../gpgfrontend.qrc"/>
+ </resources>
  <connections/>
 </ui>

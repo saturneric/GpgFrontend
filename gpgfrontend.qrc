@@ -81,5 +81,10 @@
         <file alias="password-generate.svg">resource/lfs/icons/password-generate.svg</file>
         <file alias="visibility.svg">resource/lfs/icons/visibility.svg</file>
         <file alias="new_directory.png">resource/lfs/icons/new_directory.png</file>
+        <file alias="copy.png">resource/lfs/icons/copy.png</file>
+        <file alias="none.png">resource/lfs/icons/none.png</file>
+        <file alias="clear.png">resource/lfs/icons/clear.png</file>
+        <file alias="cloud_sync.png">resource/lfs/icons/cloud_sync.png</file>
+        <file alias="total_selection.png">resource/lfs/icons/total_selection.png</file>
     </qresource>
 </RCC>

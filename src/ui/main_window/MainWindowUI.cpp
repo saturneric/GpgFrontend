@@ -644,7 +644,6 @@ void MainWindow::create_tool_bars() {
   file_tool_bar_->setObjectName("fileToolBar");
   file_tool_bar_->addAction(new_tab_act_);
   file_tool_bar_->addAction(open_act_);
-  file_tool_bar_->addAction(save_act_);
   file_tool_bar_->addAction(browser_act_);
   view_menu_->addAction(file_tool_bar_->toggleViewAction());
 

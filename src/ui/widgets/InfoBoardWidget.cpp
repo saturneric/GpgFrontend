@@ -42,15 +42,15 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent)
   ui_->setupUi(this);
 
   ui_->actionButtonLayout->addStretch();
-  ui_->copyButton->setText(_("Copy"));
-  ui_->saveButton->setText(_("Save File"));
-  ui_->clearButton->setText(_("Clear"));
+  ui_->copyToolButton->setToolTip(_("Copy"));
+  ui_->saveToolButton->setToolTip(_("Save File"));
+  ui_->clearToolButton->setToolTip(_("Clear"));
 
-  connect(ui_->copyButton, &QPushButton::clicked, this,
+  connect(ui_->copyToolButton, &QToolButton::clicked, this,
           &InfoBoardWidget::slot_copy);
-  connect(ui_->saveButton, &QPushButton::clicked, this,
+  connect(ui_->saveToolButton, &QToolButton::clicked, this,
           &InfoBoardWidget::slot_save);
-  connect(ui_->clearButton, &QPushButton::clicked, this,
+  connect(ui_->clearToolButton, &QToolButton::clicked, this,
           &InfoBoardWidget::SlotReset);
 
   connect(UISignalStation::GetInstance(),

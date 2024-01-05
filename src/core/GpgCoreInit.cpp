@@ -28,18 +28,16 @@
 #include "GpgCoreInit.h"
 
 #include <gpgme.h>
-#include <spdlog/async.h>
-#include <spdlog/common.h>
-#include <spdlog/sinks/rotating_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <boost/date_time.hpp>
 
+#include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/basic/ChannelObject.h"
 #include "core/function/basic/SingletonStorage.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgKeyGetter.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunner.h"
@@ -47,8 +45,6 @@
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
-#include "function/CoreSignalStation.h"
-#include "function/gpg/GpgKeyGetter.h"
 
 namespace GpgFrontend {
 

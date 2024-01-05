@@ -54,7 +54,7 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,0,0,0">
          <property name="spacing">
-          <number>0</number>
+          <number>5</number>
          </property>
          <property name="sizeConstraint">
           <enum>QLayout::SetDefaultConstraint</enum>
@@ -65,6 +65,23 @@
          <property name="rightMargin">
           <number>5</number>
          </property>
+         <item>
+          <widget class="QToolButton" name="newDirButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="../gpgfrontend.qrc">
+             <normaloff>:/new_directory.png</normaloff>:/new_directory.png</iconset>
+           </property>
+          </widget>
+         </item>
          <item>
           <widget class="QLineEdit" name="pathEdit">
            <property name="sizePolicy">
@@ -85,27 +102,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="newDirButton">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="icon">
-            <iconset resource="../gpgfrontend.qrc">
-             <normaloff>:/new_directory.png</normaloff>:/new_directory.png</iconset>
-           </property>
-           <property name="flat">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="refreshButton">
+          <widget class="QToolButton" name="refreshButton">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -119,13 +116,10 @@
             <iconset resource="../gpgfrontend.qrc">
              <normaloff>:/refresh.png</normaloff>:/refresh.png</iconset>
            </property>
-           <property name="flat">
-            <bool>true</bool>
-           </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="upPathButton">
+          <widget class="QToolButton" name="upPathButton">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -138,12 +132,6 @@
            <property name="icon">
             <iconset resource="../gpgfrontend.qrc">
              <normaloff>:/up.png</normaloff>:/up.png</iconset>
-           </property>
-           <property name="default">
-            <bool>false</bool>
-           </property>
-           <property name="flat">
-            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -163,7 +151,7 @@
              <normaloff>:/configure.png</normaloff>:/configure.png</iconset>
            </property>
            <property name="popupMode">
-            <enum>QToolButton::MenuButtonPopup</enum>
+            <enum>QToolButton::InstantPopup</enum>
            </property>
            <property name="toolButtonStyle">
             <enum>Qt::ToolButtonIconOnly</enum>
