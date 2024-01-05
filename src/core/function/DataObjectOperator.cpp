@@ -106,7 +106,7 @@ auto DataObjectOperator::SaveDataObj(const std::string& _key,
 auto DataObjectOperator::GetDataObject(const std::string& _key)
     -> std::optional<nlohmann::json> {
   try {
-    SPDLOG_TRACE("get data object {}", _key);
+    SPDLOG_TRACE("get data object from disk {}", _key);
     auto hash_obj_key =
         QCryptographicHash::hash(hash_key_ + QByteArray::fromStdString(_key),
                                  QCryptographicHash::Sha256)
@@ -116,17 +116,15 @@ auto DataObjectOperator::GetDataObject(const std::string& _key)
     const auto obj_path = app_data_objs_path_ / hash_obj_key;
 
     if (!std::filesystem::exists(obj_path)) {
-      SPDLOG_ERROR("data object not found :{}", _key);
+      SPDLOG_WARN("data object not found, key: {}", _key);
       return {};
     }
 
     std::string buffer;
     if (!ReadFileStd(obj_path.u8string(), buffer)) {
-      SPDLOG_ERROR("failed to read data object: {}", _key);
+      SPDLOG_ERROR("failed to read data object, key: {}", _key);
       return {};
     }
-
-    SPDLOG_TRACE("data object found {}", _key);
 
     auto encoded = QByteArray::fromStdString(buffer);
     QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
@@ -142,7 +140,7 @@ auto DataObjectOperator::GetDataObject(const std::string& _key)
 
     return nlohmann::json::parse(decoded.toStdString());
   } catch (...) {
-    SPDLOG_ERROR("failed to get data object: {}", _key);
+    SPDLOG_ERROR("failed to get data object, caught exception: {}", _key);
     return {};
   }
 }

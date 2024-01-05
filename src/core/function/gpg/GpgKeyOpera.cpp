@@ -40,7 +40,6 @@
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/model/DataObject.h"
 #include "core/model/GpgGenKeyInfo.h"
 #include "core/module/ModuleManager.h"

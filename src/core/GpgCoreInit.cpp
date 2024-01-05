@@ -184,7 +184,7 @@ auto InitGpgME() -> bool {
       case GPGME_PROTOCOL_OpenPGP:
         find_openpgp = true;
 
-        Module::UpsertRTValue("core", "gpgme.engine.openpgp", "1");
+        Module::UpsertRTValue("core", "gpgme.engine.openpgp", 1);
         Module::UpsertRTValue("core", "gpgme.ctx.app_path",
                               std::string(engine_info->file_name));
         Module::UpsertRTValue("core", "gpgme.ctx.gnupg_version",
@@ -196,7 +196,7 @@ auto InitGpgME() -> bool {
         break;
       case GPGME_PROTOCOL_CMS:
         find_cms = true;
-        Module::UpsertRTValue("core", "gpgme.engine.cms", "1");
+        Module::UpsertRTValue("core", "gpgme.engine.cms", 1);
         Module::UpsertRTValue("core", "gpgme.ctx.cms_path",
                               std::string(engine_info->file_name));
 
@@ -204,13 +204,13 @@ auto InitGpgME() -> bool {
       case GPGME_PROTOCOL_GPGCONF:
         find_gpgconf = true;
 
-        Module::UpsertRTValue("core", "gpgme.engine.gpgconf", "1");
+        Module::UpsertRTValue("core", "gpgme.engine.gpgconf", 1);
         Module::UpsertRTValue("core", "gpgme.ctx.gpgconf_path",
                               std::string(engine_info->file_name));
         break;
       case GPGME_PROTOCOL_ASSUAN:
 
-        Module::UpsertRTValue("core", "gpgme.engine.assuan", "1");
+        Module::UpsertRTValue("core", "gpgme.engine.assuan", 1);
         Module::UpsertRTValue("core", "gpgme.ctx.assuan_path",
                               std::string(engine_info->file_name));
         break;
@@ -242,17 +242,17 @@ auto InitGpgME() -> bool {
     return false;
   }
 
-  Module::UpsertRTValue("core", "env.state.gpgme", std::string{"1"});
+  Module::UpsertRTValue("core", "env.state.gpgme", 1);
   return true;
 }
 
 void InitGpgFrontendCore(CoreInitArgs args) {
   // initialize global register table
-  Module::UpsertRTValue("core", "env.state.gpgme", std::string{"0"});
-  Module::UpsertRTValue("core", "env.state.ctx", std::string{"0"});
-  Module::UpsertRTValue("core", "env.state.gnupg", std::string{"0"});
-  Module::UpsertRTValue("core", "env.state.basic", std::string{"0"});
-  Module::UpsertRTValue("core", "env.state.all", std::string{"0"});
+  Module::UpsertRTValue("core", "env.state.gpgme", 0);
+  Module::UpsertRTValue("core", "env.state.ctx", 0);
+  Module::UpsertRTValue("core", "env.state.gnupg", 0);
+  Module::UpsertRTValue("core", "env.state.basic", 0);
+  Module::UpsertRTValue("core", "env.state.all", 0);
 
   // initialize locale environment
   SPDLOG_DEBUG("locale: {}", setlocale(LC_CTYPE, nullptr));
@@ -392,7 +392,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                     _("GpgME Context inilization failed"));
                 return -1;
               }
-              Module::UpsertRTValue("core", "env.state.ctx", std::string{"1"});
+              Module::UpsertRTValue("core", "env.state.ctx", 1);
             }
 
             // if gnupg-info-gathering module activated
@@ -420,20 +420,18 @@ void InitGpgFrontendCore(CoreInitArgs args) {
 
                       // try to restart all components
                       GpgFrontend::GpgAdvancedOperator::RestartGpgComponents();
-                      Module::UpsertRTValue("core", "env.state.gnupg",
-                                            std::string{"1"});
+                      Module::UpsertRTValue("core", "env.state.gnupg", 1);
 
                       // announce that all checkings were finished
                       SPDLOG_INFO(
                           "all env checking finished, including gpgme, "
                           "ctx and gnupg");
-                      Module::UpsertRTValue("core", "env.state.all",
-                                            std::string{"1"});
+                      Module::UpsertRTValue("core", "env.state.all", 1);
                     }
                   });
             } else {
               SPDLOG_DEBUG("gnupg-info-gathering is not activated");
-              Module::UpsertRTValue("core", "env.state.all", std::string{"1"});
+              Module::UpsertRTValue("core", "env.state.all", 1);
             }
 
             if (args.load_default_gpg_context) {
@@ -445,7 +443,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
             SPDLOG_INFO(
                 "basic env checking finished, including gpgme, ctx, and key "
                 "infos");
-            Module::UpsertRTValue("core", "env.state.basic", std::string{"1"});
+            Module::UpsertRTValue("core", "env.state.basic", 1);
             CoreSignalStation::GetInstance()->SignalGoodGnupgEnv();
 
             return 0;

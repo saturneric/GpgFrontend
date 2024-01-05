@@ -54,7 +54,6 @@ class GPGFRONTEND_CORE_EXPORT FileReadTask : public GpgFrontend::Thread::Task {
  private:
   std::filesystem::path read_file_path_;
   QFile target_file_;
-  const size_t buffer_size_ = 4096;
   QEventLoop looper;
 
  private slots:

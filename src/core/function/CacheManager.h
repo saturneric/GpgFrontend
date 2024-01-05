@@ -35,9 +35,7 @@
 namespace GpgFrontend {
 
 class GPGFRONTEND_CORE_EXPORT CacheManager
-    : public QObject,
-      public SingletonFunctionObject<CacheManager> {
-  Q_OBJECT
+    : public SingletonFunctionObject<CacheManager> {
  public:
   explicit CacheManager(
       int channel = SingletonFunctionObject::GetDefaultChannel());

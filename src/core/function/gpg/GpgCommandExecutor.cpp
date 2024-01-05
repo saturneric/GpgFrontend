@@ -54,29 +54,27 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
   SPDLOG_DEBUG("building task: called cmd {} arguments size: {}", cmd,
                arguments.size());
 
-  Thread::Task::TaskCallback result_callback =
-      [cmd, joined_argument](int /*rtn*/, const DataObjectPtr &data_object) {
-        SPDLOG_DEBUG(
-            "data object args count of cmd executor result callback: {}",
-            data_object->GetObjectSize());
-        if (!data_object->Check<int, std::string, std::string,
-                                GpgCommandExecutorCallback>()) {
-          throw std::runtime_error("invalid data object size");
-        }
+  Thread::Task::TaskCallback result_callback = [cmd, joined_argument](
+                                                   int /*rtn*/,
+                                                   const DataObjectPtr
+                                                       &data_object) {
+    SPDLOG_DEBUG("data object args count of cmd executor result callback: {}",
+                 data_object->GetObjectSize());
+    if (!data_object->Check<int, std::string, GpgCommandExecutorCallback>()) {
+      throw std::runtime_error("invalid data object size");
+    }
 
-        auto exit_code = ExtractParams<int>(data_object, 0);
-        auto process_stdout = ExtractParams<std::string>(data_object, 1);
-        auto process_stderr = ExtractParams<std::string>(data_object, 2);
-        auto callback =
-            ExtractParams<GpgCommandExecutorCallback>(data_object, 3);
+    auto exit_code = ExtractParams<int>(data_object, 0);
+    auto process_stdout = ExtractParams<std::string>(data_object, 1);
+    auto callback = ExtractParams<GpgCommandExecutorCallback>(data_object, 2);
 
-        // call callback
-        SPDLOG_DEBUG(
-            "calling custom callback from caller of cmd {} {}, "
-            "exit_code: {}",
-            cmd, joined_argument, exit_code);
-        callback(exit_code, process_stdout, process_stderr);
-      };
+    // call callback
+    SPDLOG_DEBUG(
+        "calling custom callback from caller of cmd {} {}, "
+        "exit_code: {}",
+        cmd, joined_argument, exit_code);
+    callback(exit_code, process_stdout, {});
+  };
 
   Thread::Task::TaskRunnable runner =
       [joined_argument](const DataObjectPtr &data_object) -> int {
@@ -140,8 +138,6 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
 
     std::string process_stdout =
         cmd_process->readAllStandardOutput().toStdString();
-    std::string process_stderr =
-        cmd_process->readAllStandardError().toStdString();
     int exit_code = cmd_process->exitCode();
 
     SPDLOG_DEBUG(
@@ -151,15 +147,13 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
         "Exit Code: {}\n"
         "---- Standard Output ----\n"
         "{}\n"
-        "---- Standard Error ----\n"
-        "{}\n"
         "===============================",
-        cmd, joined_argument, exit_code, process_stdout, process_stderr);
+        cmd, joined_argument, exit_code, process_stdout);
 
     cmd_process->close();
     cmd_process->deleteLater();
 
-    data_object->Swap({exit_code, process_stdout, process_stderr, callback});
+    data_object->Swap({exit_code, process_stdout, callback});
     return 0;
   };
 

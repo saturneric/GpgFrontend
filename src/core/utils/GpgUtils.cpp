@@ -32,20 +32,20 @@
 
 namespace GpgFrontend {
 
-static inline void Ltrim(std::string& s) {
+inline void Ltrim(std::string& s) {
   s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
             return !std::isspace(ch);
           }));
 }
 
-static inline void Rtrim(std::string& s) {
+inline void Rtrim(std::string& s) {
   s.erase(std::find_if(s.rbegin(), s.rend(),
                        [](unsigned char ch) { return !std::isspace(ch); })
               .base(),
           s.end());
 }
 
-static inline auto Trim(std::string& s) -> std::string {
+inline auto Trim(std::string& s) -> std::string {
   Ltrim(s);
   Rtrim(s);
   return s;
@@ -54,12 +54,12 @@ static inline auto Trim(std::string& s) -> std::string {
 auto GetGpgmeErrorString(size_t buffer_size, gpgme_error_t err) -> std::string {
   std::vector<char> buffer(buffer_size);
 
-  gpgme_error_t ret = gpgme_strerror_r(err, buffer.data(), buffer.size());
+  gpgme_error_t const ret = gpgme_strerror_r(err, buffer.data(), buffer.size());
   if (ret == ERANGE && buffer_size < 1024) {
     return GetGpgmeErrorString(buffer_size * 2, err);
   }
 
-  return std::string(buffer.data());
+  return {buffer.data()};
 }
 
 auto GetGpgmeErrorString(gpgme_error_t err) -> std::string {
@@ -161,9 +161,6 @@ auto SetExtensionOfOutputFileForArchive(std::filesystem::path path,
       case kENCRYPT_SIGN:
         extension += ".tar.asc";
         return path.replace_extension(extension);
-      case kDECRYPT:
-      case kDECRYPT_VERIFY:
-        return path.parent_path();
       default:
         break;
     }
@@ -173,13 +170,11 @@ auto SetExtensionOfOutputFileForArchive(std::filesystem::path path,
       case kENCRYPT_SIGN:
         extension += ".tar.gpg";
         return path.replace_extension(extension);
-      case kDECRYPT:
-      case kDECRYPT_VERIFY:
-        return path.parent_path();
       default:
         break;
     }
   }
+  return path.parent_path();
 }
 
 }  // namespace GpgFrontend

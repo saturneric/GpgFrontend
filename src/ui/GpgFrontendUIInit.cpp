@@ -92,14 +92,14 @@ void WaitEnvCheckingProcess() {
     exit(0);
   });
 
-  auto env_state = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "env.state.basic", std::string{"0"});
+  auto env_state =
+      Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.basic", 0);
 
   SPDLOG_DEBUG("ui is ready to wating for env initialized, env_state: {}",
                env_state);
 
   // check twice to avoid some unlucky sitations
-  if (env_state == "1") {
+  if (env_state == 1) {
     SPDLOG_DEBUG("env state turned initialized before the looper start");
     waiting_dialog->finished(0);
     waiting_dialog->deleteLater();
@@ -199,8 +199,8 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
     QNetworkProxy::setApplicationProxy(QNetworkProxy::NoProxy);
   }
 
-  if (Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.basic",
-                                              std::string{"0"}) == "0") {
+  if (Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.basic", 0) ==
+      0) {
     WaitEnvCheckingProcess();
   }
 }

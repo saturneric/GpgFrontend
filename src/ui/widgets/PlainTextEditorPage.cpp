@@ -95,10 +95,7 @@ bool PlainTextEditorPage::WillCharsetChange() const {
   if (is_crlf_) return true;
 
   // detect if the charset of the file will change
-  if (charset_name_ != "UTF-8" && charset_name_ != "ISO-8859-1")
-    return true;
-  else
-    return false;
+  return charset_name_ != "UTF-8" && charset_name_ != "ISO-8859-1";
 }
 
 void PlainTextEditorPage::NotifyFileSaved() {
@@ -170,7 +167,7 @@ void PlainTextEditorPage::ReadFile() {
   ui_->loadingLabel->setHidden(false);
   ui_->textPage->document()->blockSignals(true);
 
-  auto text_page = this->GetTextPage();
+  auto *text_page = this->GetTextPage();
   text_page->setReadOnly(true);
 
   const auto target_path = this->full_file_path_.toStdString();
@@ -202,7 +199,7 @@ void PlainTextEditorPage::ReadFile() {
   task_runner->PostTask(read_task);
 }
 
-std::string binary_to_string(const std::string &source) {
+auto BinaryToString(const std::string &source) -> std::string {
   static char syms[] = "0123456789ABCDEF";
   std::stringstream ss;
   for (unsigned char c : source)
@@ -212,7 +209,8 @@ std::string binary_to_string(const std::string &source) {
 
 void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
   std::string data = bytes_data.toStdString();
-  SPDLOG_DEBUG("data size: {}", data.size());
+
+  SPDLOG_TRACE("inserting data read to editor, data size: {}", data.size());
   read_bytes_ += data.size();
   // If binary format is detected, the entire file is converted to binary
   // format for display.
@@ -227,13 +225,12 @@ void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
       auto text_buffer =
           ui_->textPage->document()->toRawText().toLocal8Bit().toStdString();
       ui_->textPage->clear();
-      this->GetTextPage()->insertPlainText(
-          binary_to_string(text_buffer).c_str());
+      this->GetTextPage()->insertPlainText(BinaryToString(text_buffer).c_str());
       this->ui_->lfLabel->setText("None");
     }
 
     // insert new data
-    this->GetTextPage()->insertPlainText(binary_to_string(data).c_str());
+    this->GetTextPage()->insertPlainText(BinaryToString(data).c_str());
 
     // update the size of the file
     auto str = boost::format(_("%1% byte(s)")) % read_bytes_;

@@ -28,7 +28,7 @@
 
 #include "ChannelObject.h"
 
-#include <utility>
+#include <iostream>
 
 namespace GpgFrontend {
 
@@ -37,7 +37,15 @@ ChannelObject::ChannelObject() noexcept = default;
 ChannelObject::ChannelObject(int channel, std::string type)
     : channel_(channel), type_(std::move(type)) {}
 
+#ifdef DEBUG
+ChannelObject::~ChannelObject() noexcept {
+  // using iostream instead of spdlog bacause at this time spdlog may have
+  // already been destroyed.
+  std::cout << "releasing channel object: " << this->type_ << std::endl;
+}
+#else
 ChannelObject::~ChannelObject() noexcept = default;
+#endif
 
 void ChannelObject::SetChannel(int channel) { this->channel_ = channel; }
 

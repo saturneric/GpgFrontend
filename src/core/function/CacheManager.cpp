@@ -91,15 +91,13 @@ class ThreadSafeMap {
   mutable std::shared_mutex mutex_;
 };
 
-class CacheManager::Impl : public SingletonFunctionObject<CacheManager::Impl> {
+class CacheManager::Impl : public QObject {
+  Q_OBJECT
  public:
-  Impl(CacheManager* parent, int channel)
-      : SingletonFunctionObject<CacheManager::Impl>(channel),
-        parent_(parent),
-        m_timer_(new QTimer(parent)) {
-    connect(m_timer_, &QTimer::timeout, parent_,
-            [this]() { flush_cache_storage(); });
-    m_timer_->start(15000);
+  Impl() : flush_timer_(new QTimer(this)) {
+    connect(flush_timer_, &QTimer::timeout, this,
+            &Impl::slot_flush_cache_storage);
+    flush_timer_->start(15000);
 
     load_all_cache_storage();
   }
@@ -115,7 +113,7 @@ class CacheManager::Impl : public SingletonFunctionObject<CacheManager::Impl> {
     }
 
     if (flush) {
-      flush_cache_storage();
+      slot_flush_cache_storage();
     }
   }
 
@@ -153,11 +151,28 @@ class CacheManager::Impl : public SingletonFunctionObject<CacheManager::Impl> {
     return cache_storage_.remove(key);
   }
 
+ private slots:
+
+  /**
+   * @brief
+   *
+   */
+  void slot_flush_cache_storage() {
+    for (const auto& cache : cache_storage_.mirror()) {
+      auto key = get_data_object_key(cache.first);
+      SPDLOG_TRACE("save cache into filesystem, key {}, value size: {}", key,
+                   cache.second.size());
+      GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(key,
+                                                                 cache.second);
+    }
+    GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(drk_key_,
+                                                               key_storage_);
+  }
+
  private:
-  CacheManager* parent_;
   ThreadSafeMap<std::string, nlohmann::json> cache_storage_;
   nlohmann::json key_storage_;
-  QTimer* m_timer_;
+  QTimer* flush_timer_;
   const std::string drk_key_ = "__cache_manage_data_register_key_list";
 
   /**
@@ -222,22 +237,6 @@ class CacheManager::Impl : public SingletonFunctionObject<CacheManager::Impl> {
   /**
    * @brief
    *
-   */
-  void flush_cache_storage() {
-    for (const auto& cache : cache_storage_.mirror()) {
-      auto key = get_data_object_key(cache.first);
-      SPDLOG_TRACE("save cache into filesystem, key {}, value size: {}", key,
-                   cache.second.size());
-      GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(key,
-                                                                 cache.second);
-    }
-    GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(drk_key_,
-                                                               key_storage_);
-  }
-
-  /**
-   * @brief
-   *
    * @param key
    */
   void register_cache_key(const std::string& key) {}
@@ -245,7 +244,7 @@ class CacheManager::Impl : public SingletonFunctionObject<CacheManager::Impl> {
 
 CacheManager::CacheManager(int channel)
     : SingletonFunctionObject<CacheManager>(channel),
-      p_(SecureCreateUniqueObject<Impl>(this, channel)) {}
+      p_(SecureCreateUniqueObject<Impl>()) {}
 
 CacheManager::~CacheManager() = default;
 
@@ -268,3 +267,5 @@ auto CacheManager::ResetCache(std::string key) -> bool {
 }
 
 }  // namespace GpgFrontend
+
+#include "CacheManager.moc"

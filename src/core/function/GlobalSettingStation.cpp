@@ -31,8 +31,8 @@
 #include <boost/dll.hpp>
 #include <filesystem>
 
+#include "core/module/ModuleManager.h"
 #include "core/utils/FilesystemUtils.h"
-#include "core/utils/IOUtils.h"
 
 namespace GpgFrontend {
 
@@ -44,10 +44,11 @@ class GlobalSettingStation::Impl {
    */
   explicit Impl() noexcept {
     SPDLOG_INFO("app path: {}", app_path_.u8string());
-    auto protable_file_path = app_path_ / "PORTABLE.txt";
-    if (std::filesystem::exists(protable_file_path)) {
+    auto portable_file_path = app_path_ / "PORTABLE.txt";
+    if (std::filesystem::exists(portable_file_path)) {
       SPDLOG_INFO(
-          "dectected protable mode, reconfiguring config and data path...");
+          "dectected portable mode, reconfiguring config and data path...");
+      Module::UpsertRTValue("core", "env.state.portable", 1);
 
       app_configure_path_ = app_path_.parent_path();
       config_dir_path_ = app_configure_path_ / "conf";

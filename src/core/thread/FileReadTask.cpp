@@ -30,6 +30,8 @@
 
 namespace GpgFrontend::UI {
 
+constexpr size_t kBufferSize = 8192;
+
 FileReadTask::FileReadTask(std::string path) : Task("file_read_task") {
   HoldOnLifeCycle(true);
   connect(this, &FileReadTask::SignalFileBytesReadNext, this,
@@ -68,11 +70,11 @@ void FileReadTask::Run() {
 void FileReadTask::read_bytes() {
   QByteArray read_buffer;
   if (!target_file_.atEnd() &&
-      (read_buffer = target_file_.read(buffer_size_)).size() > 0) {
-    SPDLOG_DEBUG("read bytes: {}", read_buffer.size());
+      (read_buffer = target_file_.read(kBufferSize)).size() > 0) {
+    SPDLOG_DEBUG("io thread read bytes: {}", read_buffer.size());
     emit SignalFileBytesRead(std::move(read_buffer));
   } else {
-    SPDLOG_DEBUG("read bytes end");
+    SPDLOG_DEBUG("io read bytes end");
     emit SignalFileBytesReadEnd();
     // announce finish task
     emit SignalTaskShouldEnd(0);

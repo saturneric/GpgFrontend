@@ -49,8 +49,6 @@ auto CharsetOperator::Detect(const std::string &buffer)
     return {"unknown", "unknown", 0};
   }
 
-  SPDLOG_DEBUG("detecting charset buffer: {} bytes", buffer.size());
-
   status = U_ZERO_ERROR;
   ucsdet_setText(csd, buffer.data(), buffer.size(), &status);
   if (U_FAILURE(status) != 0) {
@@ -76,7 +74,7 @@ auto CharsetOperator::Detect(const std::string &buffer)
   const char *language = ucsdet_getLanguage(ucm, &status);
   if (U_FAILURE(status) != 0) return {name, "unknown", confidence};
 
-  SPDLOG_DEBUG("Detected charset: {} {} {}", name, language, confidence);
+  SPDLOG_DEBUG("detected charset: {} {} {}", name, language, confidence);
   return {name, language, confidence};
 }
 
