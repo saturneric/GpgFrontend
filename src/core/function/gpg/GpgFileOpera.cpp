@@ -89,7 +89,7 @@ void GpgFileOpera::EncryptDirectory(std::vector<GpgKey> keys,
         GpgData data_in(ex);
         GpgData data_out(out_path, false);
 
-        SPDLOG_DEBUG("encrypt directory start");
+        GF_CORE_LOG_DEBUG("encrypt directory start");
 
         auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
         auto err = CheckGpgError(gpgme_op_encrypt(ctx, recipients.data(),
@@ -97,14 +97,14 @@ void GpgFileOpera::EncryptDirectory(std::vector<GpgKey> keys,
                                                   data_in, data_out));
         data_object->Swap({GpgEncryptResult(gpgme_op_encrypt_result(ctx))});
 
-        SPDLOG_DEBUG("encrypt directory finished, err: {}", err);
+        GF_CORE_LOG_DEBUG("encrypt directory finished, err: {}", err);
         return err;
       },
       cb, "gpgme_op_encrypt", "2.1.0");
 
   ArchiveFileOperator::NewArchive2DataExchanger(
       in_path, ex, [=](GFError err, const DataObjectPtr&) {
-        SPDLOG_DEBUG("new archive 2 fd operation, err: {}", err);
+        GF_CORE_LOG_DEBUG("new archive 2 fd operation, err: {}", err);
       });
 }
 
@@ -133,7 +133,7 @@ void GpgFileOpera::DecryptArchive(const std::filesystem::path& in_path,
 
   ArchiveFileOperator::ExtractArchiveFromDataExchanger(
       ex, out_path, [](GFError err, const DataObjectPtr&) {
-        SPDLOG_DEBUG("extract archive from fd operation, err: {}", err);
+        GF_CORE_LOG_DEBUG("extract archive from fd operation, err: {}", err);
       });
 
   RunGpgOperaAsync(
@@ -272,7 +272,7 @@ void GpgFileOpera::EncryptSignDirectory(KeyArgsList keys,
 
   ArchiveFileOperator::NewArchive2DataExchanger(
       in_path, ex, [=](GFError err, const DataObjectPtr&) {
-        SPDLOG_DEBUG("new archive 2 fd operation, err: {}", err);
+        GF_CORE_LOG_DEBUG("new archive 2 fd operation, err: {}", err);
       });
 }
 
@@ -306,7 +306,7 @@ void GpgFileOpera::DecryptVerifyArchive(const std::filesystem::path& in_path,
 
   ArchiveFileOperator::ExtractArchiveFromDataExchanger(
       ex, out_path, [](GFError err, const DataObjectPtr&) {
-        SPDLOG_DEBUG("extract archive from ex operation, err: {}", err);
+        GF_CORE_LOG_DEBUG("extract archive from ex operation, err: {}", err);
       });
 
   RunGpgOperaAsync(
@@ -373,7 +373,7 @@ void GpgFileOpera::EncryptDerectorySymmetric(
 
   ArchiveFileOperator::NewArchive2DataExchanger(
       in_path, ex, [=](GFError err, const DataObjectPtr&) {
-        SPDLOG_DEBUG("new archive 2 fd operation, err: {}", err);
+        GF_CORE_LOG_DEBUG("new archive 2 fd operation, err: {}", err);
       });
 }
 }  // namespace GpgFrontend

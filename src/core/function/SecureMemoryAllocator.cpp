@@ -40,9 +40,6 @@ auto SecureMemoryAllocator::Allocate(std::size_t size) -> void* {
 #else
   auto* addr = malloc(size);
 #endif
-
-  SPDLOG_TRACE("secure memory allocator trys to alloc memory, address: {}",
-               static_cast<void*>(addr));
   return addr;
 }
 
@@ -52,11 +49,6 @@ auto SecureMemoryAllocator::Reallocate(void* ptr, std::size_t size) -> void* {
 #else
   auto* addr = realloc(ptr, size);
 #endif
-
-  SPDLOG_TRACE(
-      "secure memory allocator trys to realloc memory, "
-      "old address: {}, new address: {}",
-      static_cast<void*>(ptr), static_cast<void*>(addr));
   return addr;
 }
 

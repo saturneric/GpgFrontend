@@ -40,7 +40,7 @@ namespace GpgFrontend {
 auto ReadFile(const QString& file_name, QByteArray& data) -> bool {
   QFile file(file_name);
   if (!file.open(QIODevice::ReadOnly)) {
-    SPDLOG_ERROR("failed to open file: {}", file_name.toStdString());
+    GF_CORE_LOG_ERROR("failed to open file: {}", file_name.toStdString());
     return false;
   }
   data = file.readAll();
@@ -51,7 +51,7 @@ auto ReadFile(const QString& file_name, QByteArray& data) -> bool {
 auto WriteFile(const QString& file_name, const QByteArray& data) -> bool {
   QFile file(file_name);
   if (!file.open(QIODevice::WriteOnly)) {
-    SPDLOG_ERROR("failed to open file: {}", file_name.toStdString());
+    GF_CORE_LOG_ERROR("failed to open file: {}", file_name.toStdString());
     return false;
   }
   file.write(data);
@@ -122,7 +122,7 @@ auto CalculateHash(const std::filesystem::path& file_path) -> std::string {
       auto hash_md5 = QCryptographicHash(QCryptographicHash::Md5);
       hash_md5.addData(buffer);
       auto md5 = hash_md5.result().toHex().toStdString();
-      SPDLOG_DEBUG("md5 {}", md5);
+      GF_CORE_LOG_DEBUG("md5 {}", md5);
       ss << "    "
          << "md5" << _(": ") << md5 << std::endl;
 
@@ -130,7 +130,7 @@ auto CalculateHash(const std::filesystem::path& file_path) -> std::string {
       auto hash_sha1 = QCryptographicHash(QCryptographicHash::Sha1);
       hash_sha1.addData(buffer);
       auto sha1 = hash_sha1.result().toHex().toStdString();
-      SPDLOG_DEBUG("sha1 {}", sha1);
+      GF_CORE_LOG_DEBUG("sha1 {}", sha1);
       ss << "    "
          << "sha1" << _(": ") << sha1 << std::endl;
 
@@ -138,7 +138,7 @@ auto CalculateHash(const std::filesystem::path& file_path) -> std::string {
       auto hash_sha256 = QCryptographicHash(QCryptographicHash::Sha256);
       hash_sha256.addData(buffer);
       auto sha256 = hash_sha256.result().toHex().toStdString();
-      SPDLOG_DEBUG("sha256 {}", sha256);
+      GF_CORE_LOG_DEBUG("sha256 {}", sha256);
       ss << "    "
          << "sha256" << _(": ") << sha256 << std::endl;
 

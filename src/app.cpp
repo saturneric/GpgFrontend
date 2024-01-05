@@ -35,7 +35,7 @@
 #include "ui/GpgFrontendUIInit.h"
 
 // main
-#include "init.h"
+#include "main.h"
 
 /**
  * \brief Store the jump buff and make it possible to recover from a crash.
@@ -60,22 +60,22 @@ constexpr int kCrashCode = ~0;  ///<
 auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
   GFCxtSPtr ctx = p_ctx.lock();
   if (ctx == nullptr) {
-    SPDLOG_ERROR("cannot get gpgfrontend context.");
+    GF_MAIN_LOG_ERROR("cannot get gpgfrontend context.");
     return -1;
   }
 
   if (!ctx->load_ui_env) {
-    SPDLOG_ERROR("the loading of gui application is forbidden.");
+    GF_MAIN_LOG_ERROR("the loading of gui application is forbidden.");
     return -1;
   }
 
   auto* app = ctx->GetGuiApp();
   if (app == nullptr) {
-    SPDLOG_ERROR("cannot get qapplication from gpgfrontend context.");
+    GF_MAIN_LOG_ERROR("cannot get qapplication from gpgfrontend context.");
     return -1;
   }
 
-  SPDLOG_INFO("start running gui application");
+  GF_MAIN_LOG_INFO("start running gui application");
 
   /**
    * internationalisation. loop to restart main window
@@ -97,7 +97,7 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
       // finally create main window
       return_from_event_loop_code = GpgFrontend::UI::RunGpgFrontendUI(app);
     } else {
-      SPDLOG_ERROR("recover from a crash");
+      GF_MAIN_LOG_ERROR("recover from a crash");
       // when signal is caught, restart the main window
       auto* message_box = new QMessageBox(
           QMessageBox::Critical, _("A serious error has occurred"),
@@ -110,7 +110,7 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
       return_from_event_loop_code = kCrashCode;
     }
 
-    SPDLOG_DEBUG("try to destroy modules system and core");
+    GF_MAIN_LOG_DEBUG("try to destroy modules system and core");
 
     // first should shutdown the module system
     GpgFrontend::Module::ShutdownGpgFrontendModules();
@@ -118,23 +118,24 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
     // then shutdown the core
     GpgFrontend::DestroyGpgFrontendCore();
 
-    SPDLOG_DEBUG("core and modules system destroyed");
+    GF_MAIN_LOG_DEBUG("core and modules system destroyed");
 
     restart_count++;
 
-    SPDLOG_DEBUG("restart loop refresh, event loop code: {}, restart count: {}",
-                 return_from_event_loop_code, restart_count);
+    GF_MAIN_LOG_DEBUG(
+        "restart loop refresh, event loop code: {}, restart count: {}",
+        return_from_event_loop_code, restart_count);
   } while (return_from_event_loop_code == GpgFrontend::kRestartCode &&
            restart_count < 3);
 
   // log for debug
-  SPDLOG_INFO("GpgFrontend is about to exit.");
+  GF_MAIN_LOG_INFO("GpgFrontend is about to exit.");
 
   // deep restart mode
   if (return_from_event_loop_code == GpgFrontend::kDeepRestartCode ||
       return_from_event_loop_code == kCrashCode) {
     // log for debug
-    SPDLOG_DEBUG(
+    GF_MAIN_LOG_DEBUG(
         "deep restart or cash loop status caught, restart a new application");
     QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
   };

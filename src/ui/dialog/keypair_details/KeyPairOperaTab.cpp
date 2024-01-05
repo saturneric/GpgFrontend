@@ -89,7 +89,7 @@ KeyPairOperaTab::KeyPairOperaTab(const std::string& key_id, QWidget* parent)
     forbid_all_gnupg_connection =
         settings.lookup("network.forbid_all_gnupg_connection");
   } catch (...) {
-    SPDLOG_ERROR("setting operation error: forbid_all_gnupg_connection");
+    GF_UI_LOG_ERROR("setting operation error: forbid_all_gnupg_connection");
   }
 
   auto* key_server_opera_button =
@@ -369,7 +369,7 @@ void KeyPairOperaTab::slot_modify_tofu_policy() {
       this, _("Modify TOFU Policy(Default is Auto)"),
       _("Policy for the Key Pair:"), items, 0, false, &ok);
   if (ok && !item.isEmpty()) {
-    SPDLOG_DEBUG("selected policy: {}", item.toStdString());
+    GF_UI_LOG_DEBUG("selected policy: {}", item.toStdString());
     gpgme_tofu_policy_t tofu_policy = GPGME_TOFU_POLICY_AUTO;
     if (item == _("Policy Auto")) {
       tofu_policy = GPGME_TOFU_POLICY_AUTO;

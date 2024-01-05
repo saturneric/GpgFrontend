@@ -62,7 +62,7 @@ class GlobalModuleContext::Impl {
     auto module_info_opt =
         search_module_register_table(module->GetModuleIdentifier());
     if (!module_info_opt.has_value()) {
-      SPDLOG_ERROR(
+      GF_CORE_LOG_ERROR(
           "cannot find module id {} at register table, fallbacking to "
           "default "
           "channel",
@@ -94,18 +94,20 @@ class GlobalModuleContext::Impl {
   }
 
   auto RegisterModule(const ModulePtr& module) -> bool {
-    SPDLOG_DEBUG("attempting to register module: {}",
-                 module->GetModuleIdentifier());
+    GF_CORE_LOG_DEBUG("attempting to register module: {}",
+                      module->GetModuleIdentifier());
     // Check if the module is null or already registered.
     if (module == nullptr ||
         module_register_table_.find(module->GetModuleIdentifier()) !=
             module_register_table_.end()) {
-      SPDLOG_ERROR("module is null or have already registered this module");
+      GF_CORE_LOG_ERROR(
+          "module is null or have already registered this module");
       return false;
     }
 
     if (!module->Register()) {
-      SPDLOG_ERROR("register module {} failed", module->GetModuleIdentifier());
+      GF_CORE_LOG_ERROR("register module {} failed",
+                        module->GetModuleIdentifier());
       return false;
     }
 
@@ -124,18 +126,19 @@ class GlobalModuleContext::Impl {
     // Register the module with its identifier.
     module_register_table_[module->GetModuleIdentifier()] = register_info;
 
-    SPDLOG_DEBUG("successfully registered module: {}",
-                 module->GetModuleIdentifier());
+    GF_CORE_LOG_DEBUG("successfully registered module: {}",
+                      module->GetModuleIdentifier());
     return true;
   }
 
   auto ActiveModule(ModuleIdentifier module_id) -> bool {
-    SPDLOG_DEBUG("attempting to activate module: {}", module_id);
+    GF_CORE_LOG_DEBUG("attempting to activate module: {}", module_id);
 
     // Search for the module in the register table.
     auto module_info_opt = search_module_register_table(module_id);
     if (!module_info_opt.has_value()) {
-      SPDLOG_ERROR("cannot find module id {} at register table", module_id);
+      GF_CORE_LOG_ERROR("cannot find module id {} at register table",
+                        module_id);
       return false;
     }
 
@@ -144,7 +147,7 @@ class GlobalModuleContext::Impl {
     // try to get module from module info
     auto module = module_info->module;
     if (module == nullptr) {
-      SPDLOG_ERROR(
+      GF_CORE_LOG_ERROR(
           "module id {} at register table is releated to a null module",
           module_id);
       return false;
@@ -156,19 +159,19 @@ class GlobalModuleContext::Impl {
       module_info->activate = true;
     }
 
-    SPDLOG_DEBUG("module activation status: {}", module_info->activate);
+    GF_CORE_LOG_DEBUG("module activation status: {}", module_info->activate);
     return module_info->activate;
   }
 
   auto ListenEvent(ModuleIdentifier module_id, EventIdentifier event) -> bool {
-    SPDLOG_DEBUG("module: {} is attempting to listen to event {}", module_id,
-                 event);
+    GF_CORE_LOG_DEBUG("module: {} is attempting to listen to event {}",
+                      module_id, event);
     // Check if the event exists, if not, create it.
     auto met_it = module_events_table_.find(event);
     if (met_it == module_events_table_.end()) {
       module_events_table_[event] = std::unordered_set<ModuleIdentifier>();
       met_it = module_events_table_.find(event);
-      SPDLOG_INFO("new event {} of module system created", event);
+      GF_CORE_LOG_INFO("new event {} of module system created", event);
     }
 
     auto& listeners_set = met_it->second;
@@ -184,7 +187,8 @@ class GlobalModuleContext::Impl {
     // Search for the module in the register table.
     auto module_info_opt = search_module_register_table(module_id);
     if (!module_info_opt.has_value()) {
-      SPDLOG_ERROR("cannot find module id {} at register table", module_id);
+      GF_CORE_LOG_ERROR("cannot find module id {} at register table",
+                        module_id);
       return false;
     }
 
@@ -199,13 +203,13 @@ class GlobalModuleContext::Impl {
 
   auto TriggerEvent(const EventRefrernce& event) -> bool {
     auto event_id = event->GetIdentifier();
-    SPDLOG_DEBUG("attempting to trigger event: {}", event_id);
+    GF_CORE_LOG_DEBUG("attempting to trigger event: {}", event_id);
 
     // Find the set of listeners associated with the given event in the table
     auto met_it = module_events_table_.find(event_id);
     if (met_it == module_events_table_.end()) {
       // Log a warning if the event is not registered and nobody is listening
-      SPDLOG_WARN(
+      GF_CORE_LOG_WARN(
           "event {} is not listening by anyone and not registered as well",
           event_id);
       return false;
@@ -217,14 +221,14 @@ class GlobalModuleContext::Impl {
     // Check if the set of listeners is empty
     if (listeners_set.empty()) {
       // Log a warning if nobody is listening to this event
-      SPDLOG_WARN("event {} is not listening by anyone",
-                  event->GetIdentifier());
+      GF_CORE_LOG_WARN("event {} is not listening by anyone",
+                       event->GetIdentifier());
       return false;
     }
 
     // Log the number of listeners for this event
-    SPDLOG_DEBUG("event {}'s current listeners size: {}",
-                 event->GetIdentifier(), listeners_set.size());
+    GF_CORE_LOG_DEBUG("event {}'s current listeners size: {}",
+                      event->GetIdentifier(), listeners_set.size());
 
     // Iterate through each listener and execute the corresponding module
     for (const auto& listener_module_id : listeners_set) {
@@ -233,8 +237,8 @@ class GlobalModuleContext::Impl {
 
       // Log an error if the module is not found in the registration table
       if (!module_info_opt.has_value()) {
-        SPDLOG_ERROR("cannot find module id {} at register table",
-                     listener_module_id);
+        GF_CORE_LOG_ERROR("cannot find module id {} at register table",
+                          listener_module_id);
         continue;
       }
 
@@ -242,9 +246,10 @@ class GlobalModuleContext::Impl {
       auto module_info = module_info_opt.value();
       auto module = module_info->module;
 
-      SPDLOG_DEBUG("module {} is listening to event {}, activate state: {}",
-                   module_info->module->GetModuleIdentifier(),
-                   event->GetIdentifier(), module_info->activate);
+      GF_CORE_LOG_DEBUG(
+          "module {} is listening to event {}, activate state: {}",
+          module_info->module->GetModuleIdentifier(), event->GetIdentifier(),
+          module_info->activate);
 
       // Check if the module is activated
       if (!module_info->activate) continue;
@@ -256,7 +261,7 @@ class GlobalModuleContext::Impl {
                                                      int code, DataObjectPtr) {
         if (code < 0) {
           // Log an error if the module execution fails
-          SPDLOG_ERROR(
+          GF_CORE_LOG_ERROR(
               "module {} execution failed of event {}: exec return code {}",
               listener_module_id, event_id, code);
         }

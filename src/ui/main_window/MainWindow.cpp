@@ -124,14 +124,14 @@ void MainWindow::Init() noexcept {
 
     // before application exit
     connect(qApp, &QCoreApplication::aboutToQuit, this, []() {
-      SPDLOG_DEBUG("about to quit process started");
+      GF_UI_LOG_DEBUG("about to quit process started");
 
       if (GlobalSettingStation::GetInstance().LookupSettings(
               "general.clear_gpg_password_cache", false)) {
         if (GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache()) {
-          SPDLOG_DEBUG("clear gpg password cache done");
+          GF_UI_LOG_DEBUG("clear gpg password cache done");
         } else {
-          SPDLOG_ERROR("clear gpg password cache error");
+          GF_UI_LOG_ERROR("clear gpg password cache error");
         }
       }
     });
@@ -140,7 +140,7 @@ void MainWindow::Init() noexcept {
         this, "com.bktus.gpgfrontend.module.integrated.version-checking",
         "version.loading_done",
         [=](Module::Namespace, Module::Key, int, std::any) {
-          SPDLOG_DEBUG(
+          GF_UI_LOG_DEBUG(
               "versionchecking version.loading_done changed, calling slot "
               "version upgrade");
           this->slot_version_upgrade_nofity();
@@ -171,14 +171,14 @@ void MainWindow::Init() noexcept {
     bool show_wizard = true;
     wizard.lookupValue("show_wizard", show_wizard);
 
-    SPDLOG_DEBUG("wizard show_wizard: {}", show_wizard);
+    GF_UI_LOG_DEBUG("wizard show_wizard: {}", show_wizard);
 
     if (show_wizard) {
       slot_start_wizard();
     }
 
   } catch (...) {
-    SPDLOG_ERROR(_("Critical error occur while loading GpgFrontend."));
+    GF_UI_LOG_ERROR(_("Critical error occur while loading GpgFrontend."));
     QMessageBox::critical(nullptr, _("Loading Failed"),
                           _("Critical error occur while loading GpgFrontend."));
     QCoreApplication::quit();
@@ -188,7 +188,7 @@ void MainWindow::Init() noexcept {
 
 void MainWindow::restore_settings() {
   try {
-    SPDLOG_DEBUG("restore settings key_server");
+    GF_UI_LOG_DEBUG("restore settings key_server");
 
     SettingsObject key_server_json("key_server");
     if (!key_server_json.contains("server_list") ||
@@ -224,7 +224,7 @@ void MainWindow::restore_settings() {
     import_button_->setToolButtonStyle(icon_style_);
 
     try {
-      SPDLOG_DEBUG("restore settings default_key_checked");
+      GF_UI_LOG_DEBUG("restore settings default_key_checked");
 
       // Checked Keys
       SettingsObject default_key_checked("default_key_checked");
@@ -232,13 +232,13 @@ void MainWindow::restore_settings() {
         auto key_ids_ptr = std::make_unique<KeyIdArgsList>();
         for (auto &it : default_key_checked) {
           std::string key_id = it;
-          SPDLOG_DEBUG("get checked key id: {}", key_id);
+          GF_UI_LOG_DEBUG("get checked key id: {}", key_id);
           key_ids_ptr->push_back(key_id);
         }
         m_key_list_->SetChecked(std::move(key_ids_ptr));
       }
     } catch (...) {
-      SPDLOG_ERROR("restore default_key_checked failed");
+      GF_UI_LOG_ERROR("restore default_key_checked failed");
     }
 
     prohibit_update_checking_ = false;
@@ -246,15 +246,15 @@ void MainWindow::restore_settings() {
       prohibit_update_checking_ =
           settings.lookup("network.prohibit_update_checking");
     } catch (...) {
-      SPDLOG_ERROR("setting operation error: prohibit_update_checking");
+      GF_UI_LOG_ERROR("setting operation error: prohibit_update_checking");
     }
 
   } catch (...) {
-    SPDLOG_ERROR("cannot resolve settings");
+    GF_UI_LOG_ERROR("cannot resolve settings");
   }
 
   GlobalSettingStation::GetInstance().SyncSettings();
-  SPDLOG_DEBUG("settings restored");
+  GF_UI_LOG_DEBUG("settings restored");
 }
 
 void MainWindow::recover_editor_unsaved_pages_from_cache() {
@@ -265,8 +265,8 @@ void MainWindow::recover_editor_unsaved_pages_from_cache() {
     return;
   }
 
-  SPDLOG_DEBUG("plan ot recover unsaved page from cache, page array: {}",
-               unsaved_page_array.dump());
+  GF_UI_LOG_DEBUG("plan ot recover unsaved page from cache, page array: {}",
+                  unsaved_page_array.dump());
 
   bool first = true;
 
@@ -278,7 +278,7 @@ void MainWindow::recover_editor_unsaved_pages_from_cache() {
     std::string title = unsaved_page_json["title"];
     std::string content = unsaved_page_json["content"];
 
-    SPDLOG_DEBUG(
+    GF_UI_LOG_DEBUG(
         "recovering unsaved page from cache, page title: {}, content size",
         title, content.size());
 

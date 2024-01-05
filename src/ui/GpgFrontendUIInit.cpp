@@ -30,10 +30,6 @@
 
 #include <qapplication.h>
 #include <qcoreapplication.h>
-#include <spdlog/async.h>
-#include <spdlog/common.h>
-#include <spdlog/sinks/rotating_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <QtNetwork>
 #include <string>
@@ -42,22 +38,16 @@
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
-#include "core/thread/TaskRunnerGetter.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
-#include "ui/dialog/gnupg/GnuPGControllerDialog.h"
 #include "ui/main_window/MainWindow.h"
-
-#if !defined(RELEASE) && defined(WINDOWS)
-#include "core/function/GlobalSettingStation.h"
-#endif
 
 namespace GpgFrontend::UI {
 
 extern void InitLocale();
 
 void WaitEnvCheckingProcess() {
-  SPDLOG_DEBUG("need to waiting for env checking process");
+  GF_UI_LOG_DEBUG("need to waiting for env checking process");
 
   // create and show loading window before starting the main window
   auto* waiting_dialog = new QProgressDialog();
@@ -75,7 +65,7 @@ void WaitEnvCheckingProcess() {
   QApplication::connect(CoreSignalStation::GetInstance(),
                         &CoreSignalStation::SignalGoodGnupgEnv, waiting_dialog,
                         [=]() {
-                          SPDLOG_DEBUG("gpg env loaded successfuly");
+                          GF_UI_LOG_DEBUG("gpg env loaded successfuly");
                           waiting_dialog->finished(0);
                           waiting_dialog->deleteLater();
                         });
@@ -87,7 +77,7 @@ void WaitEnvCheckingProcess() {
                         &QEventLoop::quit);
 
   QApplication::connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
-    SPDLOG_DEBUG("cancel clicked on wairing dialog");
+    GF_UI_LOG_DEBUG("cancel clicked on wairing dialog");
     QApplication::quit();
     exit(0);
   });
@@ -95,12 +85,12 @@ void WaitEnvCheckingProcess() {
   auto env_state =
       Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.basic", 0);
 
-  SPDLOG_DEBUG("ui is ready to wating for env initialized, env_state: {}",
-               env_state);
+  GF_UI_LOG_DEBUG("ui is ready to wating for env initialized, env_state: {}",
+                  env_state);
 
   // check twice to avoid some unlucky sitations
   if (env_state == 1) {
-    SPDLOG_DEBUG("env state turned initialized before the looper start");
+    GF_UI_LOG_DEBUG("env state turned initialized before the looper start");
     waiting_dialog->finished(0);
     waiting_dialog->deleteLater();
     return;
@@ -160,8 +150,8 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
       std::string proxy_password =
           GlobalSettingStation::GetInstance().LookupSettings("proxy.password",
                                                              std::string{});
-      SPDLOG_DEBUG("proxy settings: type {}, host {}, port: {}", proxy_type,
-                   proxy_host, proxy_port);
+      GF_UI_LOG_DEBUG("proxy settings: type {}, host {}, port: {}", proxy_type,
+                      proxy_host, proxy_port);
 
       QNetworkProxy::ProxyType proxy_type_qt = QNetworkProxy::NoProxy;
       if (proxy_type == "HTTP") {
@@ -190,7 +180,7 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
       QNetworkProxy::setApplicationProxy(proxy);
 
     } catch (...) {
-      SPDLOG_ERROR("setting operation error: proxy setings");
+      GF_UI_LOG_ERROR("setting operation error: proxy setings");
       // no proxy by default
       QNetworkProxy::setApplicationProxy(QNetworkProxy::NoProxy);
     }
@@ -211,7 +201,7 @@ auto RunGpgFrontendUI(QApplication* app) -> int {
 
   // pre-check, if application need to restart
   if (CommonUtils::GetInstance()->isApplicationNeedRestart()) {
-    SPDLOG_DEBUG("application need to restart, before mian window init");
+    GF_UI_LOG_DEBUG("application need to restart, before mian window init");
     return kDeepRestartCode;
   }
 
@@ -219,56 +209,14 @@ auto RunGpgFrontendUI(QApplication* app) -> int {
   main_window->Init();
 
   // show main windows
-  SPDLOG_DEBUG("main window is ready to show");
+  GF_UI_LOG_DEBUG("main window is ready to show");
   main_window->show();
 
   // start the main event loop
   return app->exec();
 }
 
-void InitUILoggingSystem(spdlog::level::level_enum level) {
-  // get the log directory
-  auto logfile_path = (GlobalSettingStation::GetInstance().GetLogDir() / "ui");
-  logfile_path.replace_extension(".log");
-
-  // sinks
-  std::vector<spdlog::sink_ptr> sinks;
-  sinks.push_back(GpgFrontend::SecureCreateSharedObject<
-                  spdlog::sinks::stderr_color_sink_mt>());
-  sinks.push_back(GpgFrontend::SecureCreateSharedObject<
-                  spdlog::sinks::rotating_file_sink_mt>(logfile_path.u8string(),
-                                                        1048576 * 32, 32));
-
-  // thread pool
-  spdlog::init_thread_pool(1024, 2);
-
-  // logger
-  auto ui_logger = GpgFrontend::SecureCreateSharedObject<spdlog::async_logger>(
-      "ui", begin(sinks), end(sinks), spdlog::thread_pool());
-  ui_logger->set_pattern(
-      "[%H:%M:%S.%e] [T:%t] [%=6n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
-
-  // set the level of logger
-  ui_logger->set_level(level);
-
-  // flush policy
-  ui_logger->flush_on(spdlog::level::err);
-  spdlog::flush_every(std::chrono::seconds(5));
-
-  // register it as default logger
-  spdlog::set_default_logger(ui_logger);
-}
-
-void ShutdownUILoggingSystem() {
-#ifdef WINDOWS
-  // Under VisualStudio, this must be called before main finishes to workaround
-  // a known VS issue
-  spdlog::drop_all();
-  spdlog::shutdown();
-#endif
-}
-
-void GPGFRONTEND_UI_EXPORT DestroyGpgFrontendUI() { ShutdownUILoggingSystem(); }
+void GPGFRONTEND_UI_EXPORT DestroyGpgFrontendUI() {}
 
 /**
  * @brief setup the locale and load the translations
@@ -294,20 +242,20 @@ void InitLocale() {
   // sync the settings to the file
   GpgFrontend::GlobalSettingStation::GetInstance().SyncSettings();
 
-  SPDLOG_DEBUG("current system locale: {}", setlocale(LC_ALL, nullptr));
+  GF_UI_LOG_DEBUG("current system locale: {}", setlocale(LC_ALL, nullptr));
 
   // read from settings file
   std::string lang;
   if (!general.lookupValue("lang", lang)) {
-    SPDLOG_ERROR(_("could not read properly from configure file"));
+    GF_UI_LOG_ERROR(_("could not read properly from configure file"));
   };
 
-  SPDLOG_DEBUG("lang from settings: {}", lang);
-  SPDLOG_DEBUG("project name: {}", PROJECT_NAME);
-  SPDLOG_DEBUG("locales path: {}",
-               GpgFrontend::GlobalSettingStation::GetInstance()
-                   .GetLocaleDir()
-                   .u8string());
+  GF_UI_LOG_DEBUG("lang from settings: {}", lang);
+  GF_UI_LOG_DEBUG("project name: {}", PROJECT_NAME);
+  GF_UI_LOG_DEBUG("locales path: {}",
+                  GpgFrontend::GlobalSettingStation::GetInstance()
+                      .GetLocaleDir()
+                      .u8string());
 
 #ifndef WINDOWS
   if (!lang.empty()) {
@@ -315,14 +263,14 @@ void InitLocale() {
 
     // set LC_ALL
     auto* locale_name = setlocale(LC_ALL, lc.c_str());
-    if (locale_name == nullptr) SPDLOG_WARN("set LC_ALL failed, lc: {}", lc);
+    if (locale_name == nullptr) GF_UI_LOG_WARN("set LC_ALL failed, lc: {}", lc);
     auto* language = getenv("LANGUAGE");
     // set LANGUAGE
     std::string language_env = language == nullptr ? "en" : language;
     language_env.insert(0, lang + ":");
-    SPDLOG_DEBUG("language env: {}", language_env);
+    GF_UI_LOG_DEBUG("language env: {}", language_env);
     if (setenv("LANGUAGE", language_env.c_str(), 1) != 0) {
-      SPDLOG_WARN("set LANGUAGE {} failed", language_env);
+      GF_UI_LOG_WARN("set LANGUAGE {} failed", language_env);
     };
   }
 #else
@@ -331,16 +279,16 @@ void InitLocale() {
 
     // set LC_ALL
     auto* locale_name = setlocale(LC_ALL, lc.c_str());
-    if (locale_name == nullptr) SPDLOG_WARN("set LC_ALL failed, lc: {}", lc);
+    if (locale_name == nullptr) GF_UI_LOG_WARN("set LC_ALL failed, lc: {}", lc);
 
     auto language = getenv("LANGUAGE");
     // set LANGUAGE
     std::string language_env = language == nullptr ? "en" : language;
     language_env.insert(0, lang + ":");
     language_env.insert(0, "LANGUAGE=");
-    SPDLOG_DEBUG("language env: {}", language_env);
+    GF_UI_LOG_DEBUG("language env: {}", language_env);
     if (putenv(language_env.c_str())) {
-      SPDLOG_WARN("set LANGUAGE {} failed", language_env);
+      GF_UI_LOG_WARN("set LANGUAGE {} failed", language_env);
     };
   }
 #endif

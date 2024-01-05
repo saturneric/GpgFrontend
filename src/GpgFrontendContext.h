@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include "core/function/SecureMemoryAllocator.h"
-
 namespace GpgFrontend {
 
 struct GpgFrontendContext;

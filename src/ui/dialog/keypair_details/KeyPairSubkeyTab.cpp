@@ -37,8 +37,8 @@ namespace GpgFrontend::UI {
 
 KeyPairSubkeyTab::KeyPairSubkeyTab(const std::string& key_id, QWidget* parent)
     : QWidget(parent), key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
-  SPDLOG_DEBUG(key_.GetEmail(), key_.IsPrivateKey(), key_.IsHasMasterKey(),
-               key_.GetSubKeys()->front().IsPrivateKey());
+  GF_UI_LOG_DEBUG(key_.GetEmail(), key_.IsPrivateKey(), key_.IsHasMasterKey(),
+                  key_.GetSubKeys()->front().IsPrivateKey());
 
   create_subkey_list();
   create_subkey_opera_menu();
@@ -178,8 +178,8 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
     this->buffered_subkeys_.push_back(std::move(sub_key));
   }
 
-  SPDLOG_DEBUG("buffered_subkeys_ refreshed size",
-               this->buffered_subkeys_.size());
+  GF_UI_LOG_DEBUG("buffered_subkeys_ refreshed size",
+                  this->buffered_subkeys_.size());
 
   subkey_list_->setRowCount(buffered_subkeys_.size());
 
@@ -216,12 +216,12 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
       }
     }
 
-    SPDLOG_DEBUG("subkey_list_ item {} refreshed", row);
+    GF_UI_LOG_DEBUG("subkey_list_ item {} refreshed", row);
 
     row++;
   }
 
-  SPDLOG_DEBUG("subkey_list_ refreshed");
+  GF_UI_LOG_DEBUG("subkey_list_ refreshed");
 
   if (subkey_list_->rowCount() > 0) {
     subkey_list_->selectRow(0);
@@ -327,7 +327,7 @@ void KeyPairSubkeyTab::create_subkey_opera_menu() {
 }
 
 void KeyPairSubkeyTab::slot_edit_subkey() {
-  SPDLOG_DEBUG("fpr {}", get_selected_subkey().GetFingerprint());
+  GF_UI_LOG_DEBUG("fpr {}", get_selected_subkey().GetFingerprint());
 
   auto dialog = new KeySetExpireDateDialog(
       key_.GetId(), get_selected_subkey().GetFingerprint(), this);

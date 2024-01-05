@@ -104,28 +104,28 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
     std::string proxy_host = settings.lookup("proxy.proxy_host");
     ui_->proxyServerAddressEdit->setText(proxy_host.c_str());
   } catch (...) {
-    SPDLOG_ERROR("setting operation error: proxy_host");
+    GF_UI_LOG_ERROR("setting operation error: proxy_host");
   }
 
   try {
     std::string std_username = settings.lookup("proxy.username");
     ui_->usernameEdit->setText(std_username.c_str());
   } catch (...) {
-    SPDLOG_ERROR("setting operation error: username");
+    GF_UI_LOG_ERROR("setting operation error: username");
   }
 
   try {
     std::string std_password = settings.lookup("proxy.password");
     ui_->passwordEdit->setText(std_password.c_str());
   } catch (...) {
-    SPDLOG_ERROR("setting operation error: password");
+    GF_UI_LOG_ERROR("setting operation error: password");
   }
 
   try {
     int port = settings.lookup("proxy.port");
     ui_->portSpin->setValue(port);
   } catch (...) {
-    SPDLOG_ERROR("setting operation error: port");
+    GF_UI_LOG_ERROR("setting operation error: port");
   }
 
   ui_->proxyTypeComboBox->setCurrentText("HTTP");
@@ -133,7 +133,7 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
     std::string proxy_type = settings.lookup("proxy.proxy_type");
     ui_->proxyTypeComboBox->setCurrentText(proxy_type.c_str());
   } catch (...) {
-    SPDLOG_ERROR("setting operation error: proxy_type");
+    GF_UI_LOG_ERROR("setting operation error: proxy_type");
   }
   switch_ui_proxy_type(ui_->proxyTypeComboBox->currentText());
 
@@ -145,7 +145,7 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
     else
       ui_->enableProxyCheckBox->setCheckState(Qt::Unchecked);
   } catch (...) {
-    SPDLOG_ERROR("setting operation error: proxy_enable");
+    GF_UI_LOG_ERROR("setting operation error: proxy_enable");
   }
 
   ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(Qt::Unchecked);
@@ -158,7 +158,7 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
       ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(
           Qt::Unchecked);
   } catch (...) {
-    SPDLOG_ERROR("setting operation error: forbid_all_gnupg_connection");
+    GF_UI_LOG_ERROR("setting operation error: forbid_all_gnupg_connection");
   }
 
   ui_->prohibitUpdateCheck->setCheckState(Qt::Unchecked);
@@ -170,7 +170,7 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
     else
       ui_->prohibitUpdateCheck->setCheckState(Qt::Unchecked);
   } catch (...) {
-    SPDLOG_ERROR("setting operation error: prohibit_update_checking");
+    GF_UI_LOG_ERROR("setting operation error: prohibit_update_checking");
   }
 
   ui_->autoImportMissingKeyCheckBox->setCheckState(Qt::Unchecked);
@@ -182,7 +182,7 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
     else
       ui_->autoImportMissingKeyCheckBox->setCheckState(Qt::Unchecked);
   } catch (...) {
-    SPDLOG_ERROR("setting operation error: auto_import_missing_key");
+    GF_UI_LOG_ERROR("setting operation error: auto_import_missing_key");
   }
 
   switch_ui_enabled(ui_->enableProxyCheckBox->isChecked());

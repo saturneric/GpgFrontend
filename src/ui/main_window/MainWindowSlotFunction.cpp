@@ -73,7 +73,7 @@ void MainWindow::slot_append_selected_keys() {
   auto key_ids = m_key_list_->GetSelected();
 
   if (key_ids->empty()) {
-    SPDLOG_ERROR("no key is selected");
+    GF_UI_LOG_ERROR("no key is selected");
     return;
   }
 
@@ -93,7 +93,7 @@ void MainWindow::slot_append_keys_create_datetime() {
   auto key_ids = m_key_list_->GetSelected();
 
   if (key_ids->empty()) {
-    SPDLOG_ERROR("no key is selected");
+    GF_UI_LOG_ERROR("no key is selected");
     return;
   }
 
@@ -119,7 +119,7 @@ void MainWindow::slot_append_keys_expire_datetime() {
   auto key_ids = m_key_list_->GetSelected();
 
   if (key_ids->empty()) {
-    SPDLOG_ERROR("no key is selected");
+    GF_UI_LOG_ERROR("no key is selected");
     return;
   }
 
@@ -271,16 +271,16 @@ void MainWindow::SlotOpenFile(const QString& path) {
 }
 
 void MainWindow::slot_version_upgrade_nofity() {
-  SPDLOG_DEBUG(
+  GF_UI_LOG_DEBUG(
       "slot version upgrade notify called, checking version info from rt...");
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
       "com.bktus.gpgfrontend.module.integrated.version-checking",
       "version.loading_done", false);
 
-  SPDLOG_DEBUG("checking version info from rt, is loading done state: {}",
-               is_loading_done);
+  GF_UI_LOG_DEBUG("checking version info from rt, is loading done state: {}",
+                  is_loading_done);
   if (!is_loading_done) {
-    SPDLOG_ERROR("invalid version info from rt, loading hasn't done yet");
+    GF_UI_LOG_ERROR("invalid version info from rt, loading hasn't done yet");
     return;
   }
 
@@ -300,7 +300,7 @@ void MainWindow::slot_version_upgrade_nofity() {
       "com.bktus.gpgfrontend.module.integrated.version-checking",
       "version.latest_version", std::string{});
 
-  SPDLOG_DEBUG(
+  GF_UI_LOG_DEBUG(
       "got version info from rt, need upgrade: {}, with drawn: {}, current "
       "version "
       "released: {}",

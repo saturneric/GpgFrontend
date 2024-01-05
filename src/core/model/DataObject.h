@@ -70,7 +70,7 @@ class GPGFRONTEND_CORE_EXPORT DataObject {
     for (size_t i = 0; i < type_list.size(); ++i) {
       if (std::type_index(*type_list[i]) !=
           std::type_index((*this)[i].type())) {
-        SPDLOG_ERROR(
+        GF_CORE_LOG_ERROR(
             "value of index {} in data object is type: {}, "
             "not expected type: {}",
             i, ((*this)[i]).type().name(), type_list[i]->name());

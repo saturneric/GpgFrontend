@@ -58,8 +58,8 @@ void FileTreeView::selectionChanged(const QItemSelection& selected,
   if (!selected.indexes().empty()) {
     selected_path_ = dir_model_->fileInfo(selected.indexes().first())
                          .filesystemAbsoluteFilePath();
-    SPDLOG_DEBUG("file tree view selected target path: {}",
-                 selected_path_.u8string());
+    GF_UI_LOG_DEBUG("file tree view selected target path: {}",
+                    selected_path_.u8string());
     emit SignalSelectedChanged(QString::fromStdString(selected_path_));
   } else {
     selected_path_ = std::filesystem::path{};
@@ -70,8 +70,8 @@ void FileTreeView::SlotGoPath(const std::filesystem::path& target_path) {
   auto file_info = QFileInfo(target_path);
   if (file_info.isDir() && file_info.isReadable() && file_info.isExecutable()) {
     current_path_ = file_info.filesystemAbsoluteFilePath();
-    SPDLOG_DEBUG("file tree view set target path: {}",
-                 current_path_.u8string());
+    GF_UI_LOG_DEBUG("file tree view set target path: {}",
+                    current_path_.u8string());
     this->setRootIndex(dir_model_->index(file_info.filePath()));
     dir_model_->setRootPath(file_info.filePath());
     for (int i = 1; i < dir_model_->columnCount(); ++i) {
@@ -107,7 +107,8 @@ void FileTreeView::SlotUpLevel() {
       dir_model_->fileInfo(current_root).filesystemAbsoluteFilePath();
   if (target_path.has_parent_path() && !target_path.parent_path().empty()) {
     target_path = target_path.parent_path();
-    SPDLOG_DEBUG("file tree view go parent path: {}", target_path.u8string());
+    GF_UI_LOG_DEBUG("file tree view go parent path: {}",
+                    target_path.u8string());
     this->SlotGoPath(target_path);
   }
   current_path_ = target_path;
@@ -140,7 +141,7 @@ auto FileTreeView::GetPathByClickPoint(const QPoint& point)
   }
 
   auto index_path = dir_model_->fileInfo(index).filesystemAbsoluteFilePath();
-  SPDLOG_DEBUG("file tree view right click on: {}", index_path.string());
+  GF_UI_LOG_DEBUG("file tree view right click on: {}", index_path.string());
   return index_path;
 }
 
@@ -158,7 +159,7 @@ auto FileTreeView::SlotDeleteSelectedItem() -> void {
 
   if (ret == QMessageBox::Cancel) return;
 
-  SPDLOG_DEBUG("delete item: {}", data.toString().toStdString());
+  GF_UI_LOG_DEBUG("delete item: {}", data.toString().toStdString());
 
   if (!dir_model_->remove(index)) {
     QMessageBox::critical(this, _("Error"),
@@ -278,14 +279,14 @@ void FileTreeView::SlotRenameSelectedItem() {
 #else
       auto new_name_path = selected_path_.parent_path() / text.toStdString();
 #endif
-      SPDLOG_DEBUG("new name path: {}", new_name_path.u8string());
+      GF_UI_LOG_DEBUG("new name path: {}", new_name_path.u8string());
       std::filesystem::rename(selected_path_, new_name_path);
 
       // refresh
       SlotGoPath(current_path_);
     } catch (...) {
-      SPDLOG_ERROR("file tree view rename error: {}",
-                   selected_path_.u8string());
+      GF_UI_LOG_ERROR("file tree view rename error: {}",
+                      selected_path_.u8string());
       QMessageBox::critical(this, _("Error"),
                             _("Unable to rename the file or folder."));
     }

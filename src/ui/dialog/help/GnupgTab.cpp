@@ -88,7 +88,7 @@ GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
 void GpgFrontend::UI::GnupgTab::process_software_info() {
   const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gnupg_version", std::string{"2.0.0"});
-  SPDLOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
+  GF_UI_LOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
 
   ui_->gnupgVersionLabel->setText(
       QString::fromStdString(fmt::format("Version: {}", gnupg_version)));
@@ -96,7 +96,7 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
   auto components = Module::ListRTChildKeys(
       "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
       "gnupg.components");
-  SPDLOG_DEBUG("got gnupg components from rt, size: {}", components.size());
+  GF_UI_LOG_DEBUG("got gnupg components from rt, size: {}", components.size());
 
   ui_->componentDetailsTable->setRowCount(components.size());
 
@@ -106,14 +106,14 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
         "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
         (boost::format("gnupg.components.%1%") % component).str(),
         std::string{});
-    SPDLOG_DEBUG("got gnupg component {} info from rt, info: {}", component,
-                 component_info_json);
+    GF_UI_LOG_DEBUG("got gnupg component {} info from rt, info: {}", component,
+                    component_info_json);
 
     auto component_info = nlohmann::json::parse(component_info_json);
 
     if (!component_info.contains("name")) {
-      SPDLOG_WARN("illegal gnupg component info, json: {}",
-                  component_info_json);
+      GF_UI_LOG_WARN("illegal gnupg component info, json: {}",
+                     component_info_json);
       continue;
     }
 
@@ -184,14 +184,14 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
            option)
               .str(),
           std::string{});
-      SPDLOG_DEBUG("got gnupg component's option {} info from rt, info: {}",
-                   component, option_info_json);
+      GF_UI_LOG_DEBUG("got gnupg component's option {} info from rt, info: {}",
+                      component, option_info_json);
 
       auto option_info = nlohmann::json::parse(option_info_json);
 
       if (!option_info.contains("name")) {
-        SPDLOG_WARN("illegal gnupg configuation info, json: {}",
-                    option_info_json);
+        GF_UI_LOG_WARN("illegal gnupg configuation info, json: {}",
+                       option_info_json);
         continue;
       }
 

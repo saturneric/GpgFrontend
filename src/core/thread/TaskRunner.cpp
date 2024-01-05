@@ -44,15 +44,15 @@ class TaskRunner::Impl : public QThread {
 
   void PostTask(Task* task) {
     if (task == nullptr) {
-      SPDLOG_ERROR("task posted is null");
+      GF_CORE_LOG_ERROR("task posted is null");
       return;
     }
 
     task->setParent(nullptr);
     task->moveToThread(this);
 
-    SPDLOG_TRACE("runner starts task: {} at thread: {}", task->GetFullID(),
-                 this->currentThreadId());
+    GF_CORE_LOG_TRACE("runner starts task: {} at thread: {}", task->GetFullID(),
+                      this->currentThreadId());
     task->SafelyRun();
   }
 
@@ -64,45 +64,48 @@ class TaskRunner::Impl : public QThread {
 
     QtConcurrent::run(runner, data_object).then([=](int rtn) {
       if (!cb) {
-        SPDLOG_TRACE("task {} doesn't have a callback function", task_uuid);
+        GF_CORE_LOG_TRACE("task {} doesn't have a callback function",
+                          task_uuid);
         return;
       }
 
       if (callback_thread == QThread::currentThread()) {
-        SPDLOG_TRACE("for task {}, the callback thread is the same thread: {}",
-                     task_uuid, static_cast<void*>(callback_thread));
+        GF_CORE_LOG_TRACE(
+            "for task {}, the callback thread is the same thread: {}",
+            task_uuid, static_cast<void*>(callback_thread));
 
         cb(rtn, data_object);
 
         // raise signal, announcing this task comes to an end
-        SPDLOG_TRACE(
+        GF_CORE_LOG_TRACE(
             "for task {}, its life comes to an end in the same thread "
             "after its callback executed.",
             task_uuid);
       } else {
-        SPDLOG_TRACE("for task {}, callback thread is a different thread: {}",
-                     task_uuid, static_cast<void*>(callback_thread));
+        GF_CORE_LOG_TRACE(
+            "for task {}, callback thread is a different thread: {}", task_uuid,
+            static_cast<void*>(callback_thread));
         if (!QMetaObject::invokeMethod(callback_thread, [=]() {
-              SPDLOG_TRACE("calling callback of task {}", task_uuid);
+              GF_CORE_LOG_TRACE("calling callback of task {}", task_uuid);
               try {
                 cb(rtn, data_object);
               } catch (...) {
-                SPDLOG_ERROR(
+                GF_CORE_LOG_ERROR(
                     "unknown exception was caught when execute "
                     "callback of task {}",
                     task_uuid);
               }
               // raise signal, announcing this task comes to an end
-              SPDLOG_TRACE(
+              GF_CORE_LOG_TRACE(
                   "for task {}, its life comes to an end whether its "
                   "callback function fails or not.",
                   task_uuid);
             })) {
-          SPDLOG_ERROR(
+          GF_CORE_LOG_ERROR(
               "task {} had failed to invoke the callback function to "
               "target thread",
               task_uuid);
-          SPDLOG_TRACE(
+          GF_CORE_LOG_TRACE(
               "for task {}, its life must come to an end now, although it "
               "has something not done yet.",
               task_uuid);
@@ -113,7 +116,7 @@ class TaskRunner::Impl : public QThread {
 
   void PostConcurrentTask(Task* task) {
     if (task == nullptr) {
-      SPDLOG_ERROR("task posted is null");
+      GF_CORE_LOG_ERROR("task posted is null");
       return;
     }
 
@@ -128,7 +131,8 @@ class TaskRunner::Impl : public QThread {
 
     concurrent_thread->start();
 
-    SPDLOG_TRACE("runner starts task concurrenctly: {}", task->GetFullID());
+    GF_CORE_LOG_TRACE("runner starts task concurrenctly: {}",
+                      task->GetFullID());
     task->SafelyRun();
   }
 

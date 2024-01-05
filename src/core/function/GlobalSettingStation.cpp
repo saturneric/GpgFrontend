@@ -43,10 +43,10 @@ class GlobalSettingStation::Impl {
    *
    */
   explicit Impl() noexcept {
-    SPDLOG_INFO("app path: {}", app_path_.u8string());
+    GF_CORE_LOG_INFO("app path: {}", app_path_.u8string());
     auto portable_file_path = app_path_ / "PORTABLE.txt";
     if (std::filesystem::exists(portable_file_path)) {
-      SPDLOG_INFO(
+      GF_CORE_LOG_INFO(
           "dectected portable mode, reconfiguring config and data path...");
       Module::UpsertRTValue("core", "env.state.portable", 1);
 
@@ -60,15 +60,15 @@ class GlobalSettingStation::Impl {
       app_data_objs_path_ = app_data_path_ / "data_objs";
     }
 
-    SPDLOG_INFO("app configure path: {}", app_configure_path_.u8string());
-    SPDLOG_INFO("app data path: {}", app_data_path_.u8string());
-    SPDLOG_INFO("app log path: {}", app_log_path_.u8string());
-    SPDLOG_INFO("app locale path: {}", app_locale_path_.u8string());
-    SPDLOG_INFO("app conf path: {}", main_config_path_.u8string());
+    GF_CORE_LOG_INFO("app configure path: {}", app_configure_path_.u8string());
+    GF_CORE_LOG_INFO("app data path: {}", app_data_path_.u8string());
+    GF_CORE_LOG_INFO("app log path: {}", app_log_path_.u8string());
+    GF_CORE_LOG_INFO("app locale path: {}", app_locale_path_.u8string());
+    GF_CORE_LOG_INFO("app conf path: {}", main_config_path_.u8string());
 
-    SPDLOG_INFO("app log files total size: {}", GetLogFilesSize());
-    SPDLOG_INFO("app data objects files total size: {}",
-                GetDataObjectsFilesSize());
+    GF_CORE_LOG_INFO("app log files total size: {}", GetLogFilesSize());
+    GF_CORE_LOG_INFO("app data objects files total size: {}",
+                     GetDataObjectsFilesSize());
 
     if (!is_directory(app_configure_path_)) {
       create_directory(app_configure_path_);
@@ -80,24 +80,27 @@ class GlobalSettingStation::Impl {
     if (!exists(main_config_path_)) {
       try {
         this->ui_cfg_.writeFile(main_config_path_.u8string().c_str());
-        SPDLOG_DEBUG("user interface configuration successfully written to {}",
-                     main_config_path_.u8string());
+        GF_CORE_LOG_DEBUG(
+            "user interface configuration successfully written to {}",
+            main_config_path_.u8string());
 
       } catch (const libconfig::FileIOException &fioex) {
-        SPDLOG_DEBUG(
+        GF_CORE_LOG_DEBUG(
             "i/o error while writing UserInterface configuration file {}",
             main_config_path_.u8string());
       }
     } else {
       try {
         this->ui_cfg_.readFile(main_config_path_.u8string().c_str());
-        SPDLOG_DEBUG("user interface configuration successfully read from {}",
-                     main_config_path_.u8string());
+        GF_CORE_LOG_DEBUG(
+            "user interface configuration successfully read from {}",
+            main_config_path_.u8string());
       } catch (const libconfig::FileIOException &fioex) {
-        SPDLOG_ERROR("i/o error while reading UserInterface configure file");
+        GF_CORE_LOG_ERROR(
+            "i/o error while reading UserInterface configure file");
       } catch (const libconfig::ParseException &pex) {
-        SPDLOG_ERROR("parse error at {} : {} - {}", pex.getFile(),
-                     pex.getLine(), pex.getError());
+        GF_CORE_LOG_ERROR("parse error at {} : {} - {}", pex.getFile(),
+                          pex.getLine(), pex.getError());
       }
     }
   }
@@ -134,7 +137,7 @@ class GlobalSettingStation::Impl {
     try {
       value = static_cast<T>(GetMainSettings().lookup(path));
     } catch (...) {
-      SPDLOG_WARN("setting not found: {}", path);
+      GF_CORE_LOG_WARN("setting not found: {}", path);
     }
     return value;
   }
@@ -212,12 +215,12 @@ class GlobalSettingStation::Impl {
   void SyncSettings() noexcept {
     try {
       ui_cfg_.writeFile(main_config_path_.u8string().c_str());
-      SPDLOG_DEBUG("updated ui configuration successfully written to {}",
-                   main_config_path_.u8string());
+      GF_CORE_LOG_DEBUG("updated ui configuration successfully written to {}",
+                        main_config_path_.u8string());
 
     } catch (const libconfig::FileIOException &fioex) {
-      SPDLOG_ERROR("i/o error while writing ui configuration file: {}",
-                   main_config_path_.u8string());
+      GF_CORE_LOG_ERROR("i/o error while writing ui configuration file: {}",
+                        main_config_path_.u8string());
     }
   }
 

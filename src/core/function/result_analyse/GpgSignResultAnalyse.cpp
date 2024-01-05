@@ -39,7 +39,7 @@ GpgSignResultAnalyse::GpgSignResultAnalyse(GpgError error, GpgSignResult result)
 void GpgSignResultAnalyse::doAnalyse() {
   auto *result = this->result_.GetRaw();
 
-  SPDLOG_DEBUG("start sign result analyse");
+  GF_CORE_LOG_DEBUG("start sign result analyse");
 
   stream_ << "[#] " << _("Sign Operation") << " ";
 
@@ -53,14 +53,14 @@ void GpgSignResultAnalyse::doAnalyse() {
 
   if (result != nullptr &&
       (result->signatures != nullptr || result->invalid_signers != nullptr)) {
-    SPDLOG_DEBUG("sign result analyse getting result");
+    GF_CORE_LOG_DEBUG("sign result analyse getting result");
     stream_ << "------------>" << std::endl;
     auto *new_sign = result->signatures;
 
     while (new_sign != nullptr) {
       stream_ << "[>]" << _("New Signature") << ": " << std::endl;
 
-      SPDLOG_DEBUG("signers fingerprint: ", new_sign->fpr);
+      GF_CORE_LOG_DEBUG("signers fingerprint: ", new_sign->fpr);
 
       stream_ << "    " << _("Sign Mode") << ": ";
       if (new_sign->type == GPGME_SIG_MODE_NORMAL) {
@@ -96,7 +96,7 @@ void GpgSignResultAnalyse::doAnalyse() {
       new_sign = new_sign->next;
     }
 
-    SPDLOG_DEBUG("sign result analyse getting invalid signer");
+    GF_CORE_LOG_DEBUG("sign result analyse getting invalid signer");
 
     auto *invalid_signer = result->invalid_signers;
 

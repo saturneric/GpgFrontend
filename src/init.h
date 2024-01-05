@@ -47,12 +47,6 @@ void HandleSignal(int sig);
 void InitLoggingSystem(const GFCxtSPtr &);
 
 /**
- * @brief initialize the logging system.
- *
- */
-void ShutdownLoggingSystem(const GFCxtSPtr &);
-
-/**
  * @brief init global PATH env
  *
  */
@@ -66,9 +60,9 @@ void InitGlobalPathEnv();
 void InitGlobalBasicalEnv(const GFCxtWPtr &, bool);
 
 /**
- * @brief 
- * 
- * @param p_ctx 
+ * @brief
+ *
+ * @param p_ctx
  */
 void ShutdownGlobalBasicalEnv(const GFCxtWPtr &p_ctx);
 

@@ -28,44 +28,38 @@
 
 #pragma once
 
-#include "core/utils/LogUtils.h"
-#include "module/sdk/GpgFrontendModuleSDK.h"
-
-#define MODULE_LOG_TRACE(...) GF_LOG_TRACE("module", __VA_ARGS__)
-#define MODULE_LOG_DEBUG(...) GF_LOG_DEBUG("module", __VA_ARGS__)
-#define MODULE_LOG_INFO(...) GF_LOG_INFO("module", __VA_ARGS__)
-#define MODULE_LOG_WARN(...) GF_LOG_WARN("module", __VA_ARGS__)
-#define MODULE_LOG_ERROR(...) GF_LOG_ERROR("module", __VA_ARGS__)
+#include "core/function/basic/GpgFunctionObject.h"
 
 namespace spdlog {
 class logger;
 }
 
-namespace GpgFrontend::Module::SDK {
+namespace GpgFrontend {
 
-template <typename... Args>
-void ModuleLogTrace(const char* fmt, const Args&... args) {
-  MODULE_LOG_TRACE(fmt, args...);
-}
+class GPGFRONTEND_CORE_EXPORT LoggerManager
+    : public SingletonFunctionObject<LoggerManager> {
+ public:
+  explicit LoggerManager(int channel);
 
-template <typename... Args>
-void ModuleLogDebug(const char* fmt, const Args&... args) {
-  MODULE_LOG_DEBUG(fmt, args...);
-}
+  ~LoggerManager() override;
 
-template <typename... Args>
-void ModuleLogInfo(const char* fmt, const Args&... args) {
-  MODULE_LOG_INFO(fmt, args...);
-}
+  auto RegisterAsyncLogger(const std::string& id, spdlog::level::level_enum)
+      -> std::shared_ptr<spdlog::logger>;
 
-template <typename... Args>
-void ModuleLogWarn(const char* fmt, const Args&... args) {
-  MODULE_LOG_WARN(fmt, args...);
-}
+  auto RegisterSyncLogger(const std::string& id, spdlog::level::level_enum)
+      -> std::shared_ptr<spdlog::logger>;
 
-template <typename... Args>
-void ModuleLogError(const char* fmt, const Args&... args) {
-  MODULE_LOG_ERROR(fmt, args...);
-}
+  auto GetLogger(const std::string& id) -> std::shared_ptr<spdlog::logger>;
 
-}  // namespace GpgFrontend::Module::SDK
+  static auto GetDefaultLogger() -> std::shared_ptr<spdlog::logger>;
+
+  static void SetDefaultLogLevel(spdlog::level::level_enum);
+
+ private:
+  static spdlog::level::level_enum default_log_level;
+  static std::shared_ptr<spdlog::logger> default_logger;
+
+  std::map<std::string, std::shared_ptr<spdlog::logger>> logger_map_;
+};
+
+}  // namespace GpgFrontend

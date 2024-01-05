@@ -54,7 +54,7 @@ auto SetOwnerTrustLevel::Exec(const std::string& key_id) -> bool {
                                        key.GetOwnerTrustLevel(), false, &ok);
 
   if (ok && !item.isEmpty()) {
-    SPDLOG_DEBUG("selected owner trust policy: {}", item.toStdString());
+    GF_UI_LOG_DEBUG("selected owner trust policy: {}", item.toStdString());
     int trust_level = 0;  // Unknown Level
     if (item == _("Ultimate")) {
       trust_level = 5;

@@ -116,7 +116,7 @@ void KeyList::AddListGroupTab(const QString& name, const QString& id,
                               KeyListRow::KeyType selectType,
                               KeyListColumn::InfoType infoType,
                               const KeyTable::KeyTableFilter filter) {
-  SPDLOG_DEBUG("add tab: {}", name.toStdString());
+  GF_UI_LOG_DEBUG("add tab: {}", name.toStdString());
 
   auto key_list = new QTableWidget(this);
   if (m_key_list_ == nullptr) {
@@ -176,7 +176,7 @@ void KeyList::AddListGroupTab(const QString& name, const QString& id,
 }
 
 void KeyList::SlotRefresh() {
-  SPDLOG_DEBUG("refresh, address: {}", static_cast<void*>(this));
+  GF_UI_LOG_DEBUG("refresh, address: {}", static_cast<void*>(this));
 
   ui_->refreshKeyListButton->setDisabled(true);
   ui_->syncButton->setDisabled(true);
@@ -187,7 +187,7 @@ void KeyList::SlotRefresh() {
 }
 
 void KeyList::SlotRefreshUI() {
-  SPDLOG_DEBUG("refresh, address: {}", static_cast<void*>(this));
+  GF_UI_LOG_DEBUG("refresh, address: {}", static_cast<void*>(this));
   this->slot_refresh_ui();
 }
 
@@ -315,8 +315,8 @@ void KeyList::contextMenuEvent(QContextMenuEvent* event) {
 
   QString current_tab_widget_obj_name =
       ui_->keyGroupTab->widget(ui_->keyGroupTab->currentIndex())->objectName();
-  SPDLOG_DEBUG("current tab widget object name: {}",
-               current_tab_widget_obj_name.toStdString());
+  GF_UI_LOG_DEBUG("current tab widget object name: {}",
+                  current_tab_widget_obj_name.toStdString());
   if (current_tab_widget_obj_name == "favourite") {
     QList<QAction*> actions = popup_menu_->actions();
     for (QAction* action : actions) {
@@ -401,7 +401,7 @@ void KeyList::dropEvent(QDropEvent* event) {
       QFile file;
       file.setFileName(tmp.toLocalFile());
       if (!file.open(QIODevice::ReadOnly)) {
-        SPDLOG_ERROR("couldn't open file: {}", tmp.toString().toStdString());
+        GF_UI_LOG_ERROR("couldn't open file: {}", tmp.toString().toStdString());
       }
       QByteArray inBuffer = file.readAll();
       this->import_keys(inBuffer);
@@ -463,7 +463,7 @@ std::string KeyList::GetSelectedKey() {
 }
 
 void KeyList::slot_refresh_ui() {
-  SPDLOG_DEBUG("refresh: {}", static_cast<void*>(buffered_keys_list_.get()));
+  GF_UI_LOG_DEBUG("refresh: {}", static_cast<void*>(buffered_keys_list_.get()));
   if (buffered_keys_list_ != nullptr) {
     std::lock_guard<std::mutex> guard(buffered_key_list_mutex_);
 
@@ -496,8 +496,8 @@ void KeyList::slot_sync_with_key_server() {
   CommonUtils::SlotImportKeyFromKeyServer(
       key_ids, [=](const std::string& key_id, const std::string& status,
                    size_t current_index, size_t all_index) {
-        SPDLOG_DEBUG("import key: {} {} {} {}", key_id, status, current_index,
-                     all_index);
+        GF_UI_LOG_DEBUG("import key: {} {} {} {}", key_id, status,
+                        current_index, all_index);
         auto key = GpgKeyGetter::GetInstance().GetKey(key_id);
 
         boost::format status_str = boost::format(_("Sync [%1%/%2%] %3% %4%")) %
@@ -518,7 +518,7 @@ void KeyList::filter_by_keyword() {
   auto keyword = ui_->searchBarEdit->text();
   keyword = keyword.trimmed();
 
-  SPDLOG_DEBUG("get new keyword of search bar: {}", keyword.toStdString());
+  GF_UI_LOG_DEBUG("get new keyword of search bar: {}", keyword.toStdString());
   for (auto& table : m_key_tables_) {
     // refresh arguments
     table.SetFilterKeyword(keyword.toLower().toStdString());

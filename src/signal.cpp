@@ -44,7 +44,7 @@ extern jmp_buf recover_env;
  */
 void HandleSignal(int sig) {
   static int _repeat_handle_num = 1, last_sig = sig;
-  // SPDLOG_DEBUG("signal caught {}", sig);
+  // GF_MAIN_LOG_DEBUG("signal caught {}", sig);
   std::cout << "signal caught" << sig;
 
   if (last_sig == sig)

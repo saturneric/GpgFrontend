@@ -68,7 +68,7 @@ void GpgKeyOpera::DeleteKeys(GpgFrontend::KeyIdArgsListPtr key_ids) {
           GPGME_DELETE_ALLOW_SECRET | GPGME_DELETE_FORCE));
       assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
     } else {
-      SPDLOG_WARN("GpgKeyOpera DeleteKeys get key failed", tmp);
+      GF_CORE_LOG_WARN("GpgKeyOpera DeleteKeys get key failed", tmp);
     }
   }
 }
@@ -91,7 +91,7 @@ auto GpgKeyOpera::SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
                                              std::chrono::system_clock::now());
   }
 
-  SPDLOG_DEBUG(key.GetId(), subkey_fpr, expires_time);
+  GF_CORE_LOG_DEBUG(key.GetId(), subkey_fpr, expires_time);
 
   GpgError err;
   if (key.GetFingerprint() == subkey_fpr || subkey_fpr.empty()) {
@@ -124,12 +124,12 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
         "--gen-revoke", key.GetFingerprint()},
        [=](int exit_code, const std::string& p_out, const std::string& p_err) {
          if (exit_code != 0) {
-           SPDLOG_ERROR(
+           GF_CORE_LOG_ERROR(
                "gnupg gen revoke execute error, process stderr: {}, process "
                "stdout: {}",
                p_err, p_out);
          } else {
-           SPDLOG_DEBUG(
+           GF_CORE_LOG_DEBUG(
                "gnupg gen revoke exit_code: {}, process stdout size: {}",
                exit_code, p_out.size());
          }
@@ -139,7 +139,7 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
          // Code From Gpg4Win
          while (proc->canReadLine()) {
            const QString line = QString::fromUtf8(proc->readLine()).trimmed();
-           SPDLOG_DEBUG("line: {}", line.toStdString());
+           GF_CORE_LOG_DEBUG("line: {}", line.toStdString());
            if (line == QLatin1String("[GNUPG:] GET_BOOL gen_revoke.okay")) {
              proc->write("y\n");
            } else if (line == QLatin1String("[GNUPG:] GET_LINE "
@@ -174,8 +174,8 @@ void GpgKeyOpera::GenerateKey(const std::shared_ptr<GenKeyInfo>& params,
         const char* userid = userid_utf8.c_str();
         auto algo_utf8 = params->GetAlgo() + params->GetKeySizeStr();
 
-        SPDLOG_DEBUG("params: {} {}", params->GetAlgo(),
-                     params->GetKeySizeStr());
+        GF_CORE_LOG_DEBUG("params: {} {}", params->GetAlgo(),
+                          params->GetKeySizeStr());
 
         const char* algo = algo_utf8.c_str();
         unsigned long expires = 0;
@@ -193,7 +193,8 @@ void GpgKeyOpera::GenerateKey(const std::shared_ptr<GenKeyInfo>& params,
         if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
         if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
 
-        SPDLOG_DEBUG("key generation args: {}", userid, algo, expires, flags);
+        GF_CORE_LOG_DEBUG("key generation args: {}", userid, algo, expires,
+                          flags);
         err = gpgme_op_createkey(ctx.DefaultContext(), userid, algo, 0, expires,
                                  nullptr, flags);
 
@@ -222,8 +223,8 @@ void GpgKeyOpera::GenerateSubkey(const GpgKey& key,
       [key, &ctx = ctx_, params](const DataObjectPtr&) -> GpgError {
         if (!params->IsSubKey()) return GPG_ERR_CANCELED;
 
-        SPDLOG_DEBUG("generate subkey algo {} key size {}", params->GetAlgo(),
-                     params->GetKeySizeStr());
+        GF_CORE_LOG_DEBUG("generate subkey algo {} key size {}",
+                          params->GetAlgo(), params->GetKeySizeStr());
 
         auto algo_utf8 = (params->GetAlgo() + params->GetKeySizeStr());
         const char* algo = algo_utf8.c_str();
@@ -242,7 +243,8 @@ void GpgKeyOpera::GenerateSubkey(const GpgKey& key,
         if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
         if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
 
-        SPDLOG_DEBUG("args: {} {} {} {}", key.GetId(), algo, expires, flags);
+        GF_CORE_LOG_DEBUG("args: {} {} {} {}", key.GetId(), algo, expires,
+                          flags);
 
         auto err = gpgme_op_createsubkey(ctx.DefaultContext(),
                                          static_cast<gpgme_key_t>(key), algo, 0,
@@ -267,10 +269,10 @@ auto GpgKeyOpera::ModifyTOFUPolicy(const GpgKey& key,
     -> GpgError {
   const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gnupg_version", std::string{"2.0.0"});
-  SPDLOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
+  GF_CORE_LOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
 
   if (CompareSoftwareVersion(gnupg_version, "2.1.10") < 0) {
-    SPDLOG_ERROR("operator not support");
+    GF_CORE_LOG_ERROR("operator not support");
     return GPG_ERR_NOT_SUPPORTED;
   }
 

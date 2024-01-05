@@ -60,7 +60,7 @@ auto GpgUIDOperator::SetPrimaryUID(const GpgKey& key, const std::string& uid)
 auto GpgUIDOperator::AddUID(const GpgKey& key, const std::string& name,
                             const std::string& comment,
                             const std::string& email) -> bool {
-  SPDLOG_DEBUG("new uuid: {} {} {}", name, comment, email);
+  GF_CORE_LOG_DEBUG("new uuid: {} {} {}", name, comment, email);
   auto uid = boost::format("%1%(%2%)<%3%>") % name % comment % email;
   return AddUID(key, uid.str());
 }

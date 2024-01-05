@@ -44,7 +44,7 @@ namespace GpgFrontend {
 auto KeyPackageOperator::GeneratePassphrase(
     const std::filesystem::path& phrase_path, std::string& phrase) -> bool {
   phrase = PassphraseGenerator::GetInstance().Generate(256);
-  SPDLOG_DEBUG("generated passphrase: {} bytes", phrase.size());
+  GF_CORE_LOG_DEBUG("generated passphrase: {} bytes", phrase.size());
   return WriteFileStd(phrase_path, phrase);
 }
 
@@ -52,12 +52,12 @@ auto KeyPackageOperator::GenerateKeyPackage(
     const std::filesystem::path& key_package_path,
     const std::string& key_package_name, KeyIdArgsListPtr& key_ids,
     std::string& phrase, bool secret) -> bool {
-  SPDLOG_DEBUG("generating key package: {}", key_package_name);
+  GF_CORE_LOG_DEBUG("generating key package: {}", key_package_name);
 
   ByteArrayPtr key_export_data = nullptr;
   if (!GpgKeyImportExporter::GetInstance().ExportAllKeys(
           key_ids, key_export_data, secret)) {
-    SPDLOG_ERROR("failed to export keys");
+    GF_CORE_LOG_ERROR("failed to export keys");
     return false;
   }
 
@@ -69,7 +69,7 @@ auto KeyPackageOperator::GenerateKeyPackage(
                             QAESEncryption::Padding::ISO);
   auto encoded = encryption.encode(data, hash_key);
 
-  SPDLOG_DEBUG("writing key package: {}", key_package_name);
+  GF_CORE_LOG_DEBUG("writing key package: {}", key_package_name);
   return WriteFileStd(key_package_path, encoded.toStdString());
 }
 
@@ -77,21 +77,22 @@ auto KeyPackageOperator::ImportKeyPackage(
     const std::filesystem::path& key_package_path,
     const std::filesystem::path& phrase_path, GpgImportInformation& import_info)
     -> bool {
-  SPDLOG_DEBUG("importing key package: {]", key_package_path.u8string());
+  GF_CORE_LOG_DEBUG("importing key package: {]", key_package_path.u8string());
 
   std::string encrypted_data;
   ReadFileStd(key_package_path, encrypted_data);
 
   if (encrypted_data.empty()) {
-    SPDLOG_ERROR("failed to read key package: {}", key_package_path.u8string());
+    GF_CORE_LOG_ERROR("failed to read key package: {}",
+                      key_package_path.u8string());
     return false;
   };
 
   std::string passphrase;
   ReadFileStd(phrase_path, passphrase);
-  SPDLOG_DEBUG("passphrase: {} bytes", passphrase.size());
+  GF_CORE_LOG_DEBUG("passphrase: {} bytes", passphrase.size());
   if (passphrase.size() != 256) {
-    SPDLOG_ERROR("failed to read passphrase: {}", phrase_path.u8string());
+    GF_CORE_LOG_ERROR("failed to read passphrase: {}", phrase_path.u8string());
     return false;
   }
 
@@ -105,7 +106,7 @@ auto KeyPackageOperator::ImportKeyPackage(
   auto decoded = encryption.removePadding(encryption.decode(encoded, hash_key));
   auto key_data = QByteArray::fromBase64(decoded);
 
-  SPDLOG_DEBUG("key data size: {}", key_data.size());
+  GF_CORE_LOG_DEBUG("key data size: {}", key_data.size());
   if (!key_data.startsWith(PGP_PUBLIC_KEY_BEGIN) &&
       !key_data.startsWith(PGP_PRIVATE_KEY_BEGIN)) {
     return false;

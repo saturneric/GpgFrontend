@@ -93,7 +93,7 @@ void VersionCheckTask::slot_parse_latest_version_info() {
         MODULE_LOG_DEBUG("latest version matched: {}", latest_version);
       } else {
         latest_version = current_version_;
-        SPDLOG_WARN("latest version unknown");
+        MODULE_LOG_WARN("latest version unknown");
       }
 
       bool prerelease = latest_reply_json["prerelease"];

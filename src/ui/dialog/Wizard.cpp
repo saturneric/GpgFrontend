@@ -70,7 +70,7 @@ void Wizard::slot_wizard_accepted() {
     }
     GlobalSettingStation::GetInstance().SyncSettings();
   } catch (...) {
-    SPDLOG_ERROR("setting operation error");
+    GF_UI_LOG_ERROR("setting operation error");
   }
   if (field("openHelp").toBool()) {
     emit SignalOpenHelp("docu.html#content");

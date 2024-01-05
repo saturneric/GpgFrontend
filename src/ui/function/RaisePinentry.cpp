@@ -39,8 +39,8 @@ auto FindTopMostWindow(QWidget* fallback) -> QWidget* {
   QList<QWidget*> top_widgets = QApplication::topLevelWidgets();
   foreach (QWidget* widget, top_widgets) {
     if (widget->isActiveWindow()) {
-      SPDLOG_TRACE("find a topmost widget, address: {}",
-                   static_cast<void*>(widget));
+      GF_UI_LOG_TRACE("find a topmost widget, address: {}",
+                      static_cast<void*>(widget));
       return widget;
     }
   }
@@ -55,7 +55,7 @@ auto RaisePinentry::Exec() -> int {
                          QString::fromStdString(_("Show passphrase")),
                          QString::fromStdString(_("Hide passphrase")));
 
-  SPDLOG_DEBUG("setting pinetry's arguments");
+  GF_UI_LOG_DEBUG("setting pinetry's arguments");
 
   pinentry->setPrompt(QString::fromStdString(_("PIN:")));
   pinentry->setDescription(QString());
@@ -74,11 +74,11 @@ auto RaisePinentry::Exec() -> int {
   pinentry->setOkText(_("Confirm"));
   pinentry->setCancelText(_("Cancel"));
 
-  SPDLOG_DEBUG("pinentry is ready to start");
+  GF_UI_LOG_DEBUG("pinentry is ready to start");
 
   connect(pinentry, &PinEntryDialog::finished, this, [pinentry](int result) {
     bool ret = result != 0;
-    SPDLOG_DEBUG("pinentry finished, ret: {}", ret);
+    GF_UI_LOG_DEBUG("pinentry finished, ret: {}", ret);
 
     if (!ret) {
       emit CoreSignalStation::GetInstance()->SignalUserInputPassphraseCallback(

@@ -113,7 +113,7 @@ void MainWindow::slot_open_settings_dialog() {
 
     int width = general_settings_state.Check("icon_size").Check("width", 24),
         height = general_settings_state.Check("icon_size").Check("height", 24);
-    SPDLOG_DEBUG("icon_size: {} {}", width, height);
+    GF_UI_LOG_DEBUG("icon_size: {} {}", width, height);
 
     general_settings_state.Check("info_font_size", 10);
 
@@ -187,7 +187,7 @@ void MainWindow::slot_cut_pgp_header() {
 }
 
 void MainWindow::SlotSetRestartNeeded(int mode) {
-  SPDLOG_DEBUG("restart mode: {}", mode);
+  GF_UI_LOG_DEBUG("restart mode: {}", mode);
   this->restart_needed_ = mode;
 }
 
@@ -195,7 +195,7 @@ int MainWindow::get_restart_needed() const { return this->restart_needed_; }
 
 void MainWindow::SetCryptoMenuStatus(
     MainWindow::CryptoMenu::OperationType type) {
-  SPDLOG_DEBUG("type: {}", type);
+  GF_UI_LOG_DEBUG("type: {}", type);
 
   // refresh status to disable all
   verify_act_->setDisabled(true);

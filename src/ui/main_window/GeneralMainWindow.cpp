@@ -41,7 +41,8 @@ GpgFrontend::UI::GeneralMainWindow::GeneralMainWindow(std::string name,
 GpgFrontend::UI::GeneralMainWindow::~GeneralMainWindow() = default;
 
 void GpgFrontend::UI::GeneralMainWindow::closeEvent(QCloseEvent *event) {
-  SPDLOG_DEBUG("main window close event caught, event type: {}", event->type());
+  GF_UI_LOG_DEBUG("main window close event caught, event type: {}",
+                  event->type());
   slot_save_settings();
 
   QMainWindow::closeEvent(event);
@@ -53,7 +54,7 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
 
     std::string window_state = general_windows_state.Check(
         "window_state", saveState().toBase64().toStdString());
-    SPDLOG_DEBUG("restore main window state: {}", window_state);
+    GF_UI_LOG_DEBUG("restore main window state: {}", window_state);
 
     // state sets pos & size of dock-widgets
     this->restoreState(
@@ -76,7 +77,8 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
       size_ = {width, height};
 
       if (this->parent() != nullptr) {
-        SPDLOG_DEBUG("parent address: {}", static_cast<void *>(this->parent()));
+        GF_UI_LOG_DEBUG("parent address: {}",
+                        static_cast<void *>(this->parent()));
 
         QPoint parent_pos = {0, 0};
         QSize parent_size = {0, 0};
@@ -93,10 +95,11 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
           parent_size = parent_window->size();
         }
 
-        SPDLOG_DEBUG("parent pos x: {} y: {}", parent_pos.x(), parent_pos.y());
+        GF_UI_LOG_DEBUG("parent pos x: {} y: {}", parent_pos.x(),
+                        parent_pos.y());
 
-        SPDLOG_DEBUG("parent size width: {} height: {}", parent_size.width(),
-                     parent_size.height());
+        GF_UI_LOG_DEBUG("parent size width: {} height: {}", parent_size.width(),
+                        parent_size.height());
 
         if (parent_pos != QPoint{0, 0}) {
           QPoint parent_center{parent_pos.x() + parent_size.width() / 2,
@@ -116,7 +119,7 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
 
     int width = general_settings_state.Check("icon_size").Check("width", 24),
         height = general_settings_state.Check("icon_size").Check("height", 24);
-    SPDLOG_DEBUG("icon size: {} {}", width, height);
+    GF_UI_LOG_DEBUG("icon size: {} {}", width, height);
 
     icon_size_ = {width, height};
     font_size_ = general_settings_state.Check("font_size", 10);
@@ -130,13 +133,13 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
     icon_style_ = toolButtonStyle();
 
   } catch (...) {
-    SPDLOG_ERROR(name_, "error");
+    GF_UI_LOG_ERROR(name_, "error");
   }
 }
 
 void GpgFrontend::UI::GeneralMainWindow::slot_save_settings() noexcept {
   try {
-    SPDLOG_DEBUG("save main window state, name: {}", name_);
+    GF_UI_LOG_DEBUG("save main window state, name: {}", name_);
     SettingsObject general_windows_state(name_ + "_state");
 
     // window position and size
@@ -165,6 +168,6 @@ void GpgFrontend::UI::GeneralMainWindow::slot_save_settings() noexcept {
     general_settings_state["icon_style"] = this->toolButtonStyle();
 
   } catch (...) {
-    SPDLOG_ERROR(name_, "error");
+    GF_UI_LOG_ERROR(name_, "error");
   }
 }

@@ -83,7 +83,7 @@ void import_unknown_key_from_keyserver(
     auto key_ids = std::make_unique<KeyIdArgsList>();
     auto *signature = verify_res.GetSignatures();
     while (signature != nullptr) {
-      SPDLOG_DEBUG("signature fpr: {}", signature->fpr);
+      GF_UI_LOG_DEBUG("signature fpr: {}", signature->fpr);
       key_ids->push_back(signature->fpr);
       signature = signature->next;
     }
@@ -236,8 +236,8 @@ void CommonUtils::WaitForOpera(QWidget *parent,
 
   QTimer::singleShot(64, parent, [=]() {
     opera([dialog]() {
-      SPDLOG_DEBUG("called operating waiting cb, dialog: {}",
-                   static_cast<void *>(dialog));
+      GF_UI_LOG_DEBUG("called operating waiting cb, dialog: {}",
+                      static_cast<void *>(dialog));
       dialog->close();
       dialog->accept();
     });
@@ -319,18 +319,18 @@ void CommonUtils::SlotExecuteCommand(
           &QEventLoop::quit);
   connect(cmd_process, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
   connect(cmd_process, &QProcess::started,
-          []() -> void { SPDLOG_DEBUG("process started"); });
+          []() -> void { GF_UI_LOG_DEBUG("process started"); });
   connect(cmd_process, &QProcess::readyReadStandardOutput,
           [interact_func, cmd_process]() { interact_func(cmd_process); });
   connect(cmd_process, &QProcess::errorOccurred, this,
-          [=]() -> void { SPDLOG_ERROR("error in process"); });
+          [=]() -> void { GF_UI_LOG_ERROR("error in process"); });
   connect(cmd_process,
           qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
           [=](int, QProcess::ExitStatus status) {
             if (status == QProcess::NormalExit)
-              SPDLOG_DEBUG("succeed in executing command: {}", cmd);
+              GF_UI_LOG_DEBUG("succeed in executing command: {}", cmd);
             else
-              SPDLOG_WARN("error in executing command: {}", cmd);
+              GF_UI_LOG_WARN("error in executing command: {}", cmd);
           });
 
   cmd_process->setProgram(QString::fromStdString(cmd));
@@ -356,11 +356,11 @@ void CommonUtils::SlotExecuteGpgCommand(
           &WaitingDialog::deleteLater);
   connect(gpg_process, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
   connect(gpg_process, &QProcess::started,
-          []() -> void { SPDLOG_DEBUG("gpg process started"); });
+          []() -> void { GF_UI_LOG_DEBUG("gpg process started"); });
   connect(gpg_process, &QProcess::readyReadStandardOutput,
           [interact_func, gpg_process]() { interact_func(gpg_process); });
   connect(gpg_process, &QProcess::errorOccurred, this, [=]() -> void {
-    SPDLOG_ERROR("Error in Process");
+    GF_UI_LOG_ERROR("Error in Process");
     dialog->close();
     QMessageBox::critical(nullptr, _("Failure"),
                           _("Failed to execute command."));
@@ -379,7 +379,7 @@ void CommonUtils::SlotExecuteGpgCommand(
 
   const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.app_path", std::string{});
-  SPDLOG_DEBUG("got gnupg app path from rt: {}", app_path);
+  GF_UI_LOG_DEBUG("got gnupg app path from rt: {}", app_path);
 
   gpg_process->setProgram(app_path.c_str());
   gpg_process->setArguments(arguments);
@@ -412,10 +412,10 @@ void CommonUtils::SlotImportKeyFromKeyServer(
     target_keyserver =
         key_server_list[target_key_server_index].get<std::string>();
 
-    SPDLOG_DEBUG("set target key server to default Key Server: {}",
-                 target_keyserver);
+    GF_UI_LOG_DEBUG("set target key server to default Key Server: {}",
+                    target_keyserver);
   } catch (...) {
-    SPDLOG_ERROR(_("Cannot read default_keyserver From Settings"));
+    GF_UI_LOG_ERROR(_("Cannot read default_keyserver From Settings"));
     QMessageBox::critical(nullptr, _("Default Keyserver Not Found"),
                           _("Cannot read default keyserver from your settings, "
                             "please set a default keyserver first"));
@@ -436,7 +436,7 @@ void CommonUtils::SlotImportKeyFromKeyServer(
           target_keyserver_url.scheme() + "://" + target_keyserver_url.host() +
           "/pks/lookup?op=get&search=0x" + key_id.c_str() + "&options=mr");
 
-      SPDLOG_DEBUG("request url: {}", req_url.toString().toStdString());
+      GF_UI_LOG_DEBUG("request url: {}", req_url.toString().toStdString());
 
       // Waiting for reply
       QNetworkReply *reply = network_manager->get(QNetworkRequest(req_url));
@@ -523,7 +523,7 @@ void CommonUtils::slot_popup_passphrase_input_dialog() {
 }
 
 void CommonUtils::SlotRestartApplication(int code) {
-  SPDLOG_DEBUG("application need restart, code: {}", code);
+  GF_UI_LOG_DEBUG("application need restart, code: {}", code);
 
   if (code == 0) {
     std::exit(0);

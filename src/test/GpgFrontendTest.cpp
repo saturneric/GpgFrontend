@@ -29,8 +29,6 @@
 #include "GpgFrontendTest.h"
 
 #include <gtest/gtest.h>
-#include <spdlog/sinks/rotating_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <boost/date_time.hpp>
 #include <boost/dll.hpp>
@@ -45,42 +43,6 @@
 #include "core/utils/IOUtils.h"
 
 namespace GpgFrontend::Test {
-
-void InitTestLoggingSystem(spdlog::level::level_enum level) {
-  // get the log directory
-  auto logfile_path =
-      (GlobalSettingStation::GetInstance().GetLogDir() / "test");
-  logfile_path.replace_extension(".log");
-
-  // sinks
-  std::vector<spdlog::sink_ptr> sinks;
-  sinks.push_back(
-      SecureCreateSharedObject<spdlog::sinks::stderr_color_sink_mt>());
-  sinks.push_back(
-      SecureCreateSharedObject<spdlog::sinks::rotating_file_sink_mt>(
-          logfile_path.u8string(), 1048576 * 32, 8));
-
-  // logger
-  auto test_logger = SecureCreateSharedObject<spdlog::logger>(
-      "test", begin(sinks), end(sinks));
-  test_logger->set_pattern(
-      "[%H:%M:%S.%e] [T:%t] [%=6n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
-
-  // set the level of logger
-  test_logger->set_level(level);
-
-  // register it as default logger
-  spdlog::set_default_logger(test_logger);
-}
-
-void ShutdownTestLoggingSystem() {
-#ifdef WINDOWS
-  // Under VisualStudio, this must be called before main finishes to workaround
-  // a known VS issue
-  spdlog::drop_all();
-  spdlog::shutdown();
-#endif
-}
 
 auto GenerateRandomString(size_t length) -> std::string {
   const std::string characters =
@@ -100,8 +62,8 @@ auto GenerateRandomString(size_t length) -> std::string {
 void ConfigureGpgContext() {
   auto db_path =
       std::filesystem::temp_directory_path() / GenerateRandomString(12);
-  SPDLOG_DEBUG("setting up new database path for test case: {}",
-               db_path.string());
+  GF_TEST_LOG_DEBUG("setting up new database path for test case: {}",
+                    db_path.string());
 
   if (!std::filesystem::exists(db_path)) {
     std::filesystem::create_directory(db_path);
@@ -146,8 +108,8 @@ void SetupGlobalTestEnv() {
   auto test_config_path = test_path / "conf" / "test.cfg";
   auto test_data_path = test_path / "data";
 
-  SPDLOG_INFO("test config file path: {}", test_config_path.string());
-  SPDLOG_INFO("test data file path: {}", test_data_path.string());
+  GF_TEST_LOG_INFO("test config file path: {}", test_config_path.string());
+  GF_TEST_LOG_INFO("test data file path: {}", test_data_path.string());
 
   libconfig::Config cfg;
   ASSERT_NO_THROW(cfg.readFile(test_config_path.c_str()));

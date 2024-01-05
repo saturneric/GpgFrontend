@@ -41,14 +41,13 @@
 #include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/thread/TaskRunnerGetter.h"
-#include "core/utils/MemoryUtils.h"
+#include "core/utils/LogUtils.h"
 #include "module/GpgFrontendModuleInit.h"
-#include "module/sdk/Log.h"
-#include "test/GpgFrontendTest.h"
 #include "ui/GpgFrontendUIInit.h"
 
 // main
 #include "GpgFrontendContext.h"
+#include "main.h"
 
 namespace GpgFrontend {
 
@@ -64,75 +63,19 @@ int setenv(const char *name, const char *value, int overwrite) {
 }
 #endif
 
-void InitMainLoggingSystem(spdlog::level::level_enum level) {
-  // sinks
-  std::vector<spdlog::sink_ptr> sinks;
-  sinks.push_back(
-      SecureCreateSharedObject<spdlog::sinks::stderr_color_sink_mt>());
-
-  // logger
-  auto main_logger = SecureCreateSharedObject<spdlog::logger>(
-      "main", begin(sinks), end(sinks));
-  main_logger->set_pattern(
-      "[%H:%M:%S.%e] [T:%t] [%=6n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
-
-  // set the level of logger
-  main_logger->set_level(level);
-
-#ifdef DEBUG
-  // flush policy
-  main_logger->flush_on(spdlog::level::trace);
-#else
-  // flush policy
-  main_logger->flush_on(spdlog::level::err);
-#endif
-
-  spdlog::flush_every(std::chrono::seconds(3));
-
-  // register it as default logger
-  spdlog::set_default_logger(main_logger);
-}
-
 void InitLoggingSystem(const GFCxtSPtr &ctx) {
-  // init the logging system for main
-  InitMainLoggingSystem(ctx->log_level);
+  RegisterSyncLogger("core", ctx->log_level);
 
-  // init the logging system for core
-  InitCoreLoggingSystem(ctx->log_level);
+  RegisterSyncLogger("main", ctx->log_level);
 
-  // shutdown the logging system for modules
-  Module::LoadGpgFrontendModulesLoggingSystem(ctx->log_level);
-
-  // init the logging system for test
-  Test::InitTestLoggingSystem(ctx->log_level);
+  RegisterSyncLogger("module", ctx->log_level);
 
   if (ctx->load_ui_env) {
     // init the logging system for ui
-    UI::InitUILoggingSystem(ctx->log_level);
+    RegisterSyncLogger("ui", ctx->log_level);
+  } else {
+    RegisterSyncLogger("test", ctx->log_level);
   }
-}
-
-void ShutdownLoggingSystem(const GFCxtSPtr &ctx) {
-  if (ctx->load_ui_env) {
-    // shutdown the logging system for ui
-    UI::ShutdownUILoggingSystem();
-  }
-
-  // shutdown the logging system for test
-  Test::ShutdownTestLoggingSystem();
-
-  // shutdown the logging system for modules
-  Module::ShutdownGpgFrontendModulesLoggingSystem();
-
-  // shutdown the logging system for core
-  ShutdownCoreLoggingSystem();
-
-#ifdef WINDOWS
-  // Under VisualStudio, this must be called before main finishes to workaround
-  // a known VS issue
-  spdlog::drop_all();
-  spdlog::shutdown();
-#endif
 }
 
 void InitGlobalPathEnv() {
@@ -148,14 +91,14 @@ void InitGlobalPathEnv() {
   // add custom gnupg install path into env $PATH
   if (use_custom_gnupg_install_path && !custom_gnupg_install_path.empty()) {
     std::string path_value = getenv("PATH");
-    SPDLOG_DEBUG("Current System PATH: {}", path_value);
+    GF_MAIN_LOG_DEBUG("Current System PATH: {}", path_value);
     setenv("PATH",
            ((std::filesystem::path{custom_gnupg_install_path}).u8string() +
             ":" + path_value)
                .c_str(),
            1);
     std::string modified_path_value = getenv("PATH");
-    SPDLOG_DEBUG("Modified System PATH: {}", modified_path_value);
+    GF_MAIN_LOG_DEBUG("Modified System PATH: {}", modified_path_value);
   }
 }
 
@@ -166,6 +109,7 @@ void InitGlobalBasicalEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
   }
 
   // initialize logging system
+  SetDefaultLogLevel(ctx->log_level);
   InitLoggingSystem(ctx);
 
   // change path to search for related
@@ -200,8 +144,6 @@ void ShutdownGlobalBasicalEnv(const GFCxtWPtr &p_ctx) {
   Thread::TaskRunnerGetter::GetInstance().StopAllTeakRunner();
 
   DestroyGpgFrontendCore();
-
-  ShutdownLoggingSystem(ctx);
 }
 
 }  // namespace GpgFrontend

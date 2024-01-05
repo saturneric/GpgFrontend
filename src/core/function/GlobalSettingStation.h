@@ -163,7 +163,7 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
     try {
       value = static_cast<T>(GetMainSettings().lookup(path));
     } catch (...) {
-      SPDLOG_WARN("setting not found: {}", path);
+      GF_CORE_LOG_WARN("setting not found: {}", path);
     }
     return value;
   }

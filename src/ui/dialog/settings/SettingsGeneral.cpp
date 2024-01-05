@@ -127,7 +127,7 @@ void GeneralTab::SetSettings() {
     if (save_key_checked)
       ui_->saveCheckedKeysCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
-    SPDLOG_ERROR("setting operation error: save_key_checked");
+    GF_UI_LOG_ERROR("setting operation error: save_key_checked");
   }
 
   try {
@@ -136,7 +136,7 @@ void GeneralTab::SetSettings() {
     if (clear_gpg_password_cache)
       ui_->clearGpgPasswordCacheCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
-    SPDLOG_ERROR("setting operation error: clear_gpg_password_cache");
+    GF_UI_LOG_ERROR("setting operation error: clear_gpg_password_cache");
   }
 
   try {
@@ -145,24 +145,24 @@ void GeneralTab::SetSettings() {
     if (restore_text_editor_page)
       ui_->restoreTextEditorPageCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
-    SPDLOG_ERROR("setting operation error: restore_text_editor_page");
+    GF_UI_LOG_ERROR("setting operation error: restore_text_editor_page");
   }
 
   try {
     bool longer_expiration_date =
         settings.lookup("general.longer_expiration_date");
-    SPDLOG_DEBUG("longer_expiration_date: {}", longer_expiration_date);
+    GF_UI_LOG_DEBUG("longer_expiration_date: {}", longer_expiration_date);
     if (longer_expiration_date)
       ui_->longerKeyExpirationDateCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
-    SPDLOG_ERROR("setting operation error: longer_expiration_date");
+    GF_UI_LOG_ERROR("setting operation error: longer_expiration_date");
   }
 
 #ifdef SUPPORT_MULTI_LANG
   try {
     std::string lang_key = settings.lookup("general.lang");
     QString lang_value = lang_.value(lang_key.c_str());
-    SPDLOG_DEBUG("lang settings current: {}", lang_value.toStdString());
+    GF_UI_LOG_DEBUG("lang settings current: {}", lang_value.toStdString());
     if (!lang_.empty()) {
       ui_->langSelectBox->setCurrentIndex(
           ui_->langSelectBox->findText(lang_value));
@@ -170,17 +170,17 @@ void GeneralTab::SetSettings() {
       ui_->langSelectBox->setCurrentIndex(0);
     }
   } catch (...) {
-    SPDLOG_ERROR("setting operation error: lang");
+    GF_UI_LOG_ERROR("setting operation error: lang");
   }
 #endif
 
   try {
     bool confirm_import_keys = settings.lookup("general.confirm_import_keys");
-    SPDLOG_DEBUG("confirm_import_keys: {}", confirm_import_keys);
+    GF_UI_LOG_DEBUG("confirm_import_keys: {}", confirm_import_keys);
     if (confirm_import_keys)
       ui_->importConfirmationCheckBox->setCheckState(Qt::Checked);
   } catch (...) {
-    SPDLOG_ERROR("setting operation error: confirm_import_keys");
+    GF_UI_LOG_ERROR("setting operation error: confirm_import_keys");
   }
 }
 

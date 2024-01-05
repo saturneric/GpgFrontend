@@ -28,6 +28,34 @@
 
 #include "LogUtils.h"
 
-auto GetCoreLogger() -> std::shared_ptr<spdlog::logger> {
-  return spdlog::get("core");
+#include "core/function/LoggerManager.h"
+
+namespace GpgFrontend {
+
+auto GetDefaultLogger() -> std::shared_ptr<spdlog::logger> {
+  return LoggerManager::GetDefaultLogger();
 }
+
+auto GetCoreLogger() -> std::shared_ptr<spdlog::logger> {
+  return LoggerManager::GetInstance().GetLogger("core");
+}
+
+auto GetLogger(const std::string& id) -> std::shared_ptr<spdlog::logger> {
+  return LoggerManager::GetInstance().GetLogger(id);
+}
+
+void SetDefaultLogLevel(spdlog::level::level_enum level) {
+  return LoggerManager::SetDefaultLogLevel(level);
+}
+
+void RegisterAsyncLogger(const std::string& id,
+                         spdlog::level::level_enum level) {
+  LoggerManager::GetInstance().RegisterAsyncLogger(id, level);
+}
+
+void RegisterSyncLogger(const std::string& id,
+                        spdlog::level::level_enum level) {
+  LoggerManager::GetInstance().RegisterSyncLogger(id, level);
+}
+
+}  // namespace GpgFrontend

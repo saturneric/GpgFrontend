@@ -28,4 +28,85 @@
 
 #pragma once
 
+namespace GpgFrontend {
+
+/**
+ * @brief
+ *
+ * @return std::shared_ptr<spdlog::logger>
+ */
+auto GPGFRONTEND_CORE_EXPORT GetDefaultLogger()
+    -> std::shared_ptr<spdlog::logger>;
+
+/**
+ * @brief
+ *
+ * @return std::shared_ptr<spdlog::logger>
+ */
 auto GPGFRONTEND_CORE_EXPORT GetCoreLogger() -> std::shared_ptr<spdlog::logger>;
+
+/**
+ * @brief
+ *
+ * @return std::shared_ptr<spdlog::logger>
+ */
+auto GPGFRONTEND_CORE_EXPORT GetLogger(const std::string &)
+    -> std::shared_ptr<spdlog::logger>;
+
+/**
+ * @brief Set the Default Log Level object
+ *
+ * @return auto
+ */
+void GPGFRONTEND_CORE_EXPORT SetDefaultLogLevel(spdlog::level::level_enum);
+
+/**
+ * @brief
+ *
+ * @return auto
+ */
+void GPGFRONTEND_CORE_EXPORT RegisterAsyncLogger(const std::string &,
+                                                 spdlog::level::level_enum);
+
+/**
+ * @brief
+ *
+ * @return auto
+ */
+void GPGFRONTEND_CORE_EXPORT RegisterSyncLogger(const std::string &,
+                                                spdlog::level::level_enum);
+
+}  // namespace GpgFrontend
+
+#define GF_DEFAULT_LOG_TRACE(...) \
+  SPDLOG_LOGGER_TRACE(GpgFrontend::GetDefaultLogger(), __VA_ARGS__)
+#define GF_DEFAULT_LOG_DEBUG(...) \
+  SPDLOG_LOGGER_DEBUG(GpgFrontend::GetDefaultLogger(), __VA_ARGS__)
+#define GF_DEFAULT_LOG_INFO(...) \
+  SPDLOG_LOGGER_INFO(GpgFrontend::GetDefaultLogger(), __VA_ARGS__)
+#define GF_DEFAULT_LOG_WARN(...) \
+  SPDLOG_LOGGER_WARN(GpgFrontend::GetDefaultLogger(), __VA_ARGS__)
+#define GF_DEFAULT_LOG_ERROR(...) \
+  SPDLOG_LOGGER_ERROR(GpgFrontend::GetDefaultLogger(), __VA_ARGS__)
+
+#define GF_CORE_LOG_TRACE(...) \
+  SPDLOG_LOGGER_TRACE(GpgFrontend::GetCoreLogger(), __VA_ARGS__)
+#define GF_CORE_LOG_DEBUG(...) \
+  SPDLOG_LOGGER_DEBUG(GpgFrontend::GetCoreLogger(), __VA_ARGS__)
+#define GF_CORE_LOG_INFO(...) \
+  SPDLOG_LOGGER_INFO(GpgFrontend::GetCoreLogger(), __VA_ARGS__)
+#define GF_CORE_LOG_WARN(...) \
+  SPDLOG_LOGGER_WARN(GpgFrontend::GetCoreLogger(), __VA_ARGS__)
+#define GF_CORE_LOG_ERROR(...) \
+  SPDLOG_LOGGER_ERROR(GpgFrontend::GetCoreLogger(), __VA_ARGS__)
+
+#define GF_LOG_TRACE(ID, ...) \
+  SPDLOG_LOGGER_TRACE(GpgFrontend::GetLogger(ID), __VA_ARGS__)
+#define GF_LOG_DEBUG(ID, ...) \
+  SPDLOG_LOGGER_DEBUG(GpgFrontend::GetLogger(ID), __VA_ARGS__)
+#define GF_LOG_INFO(ID, ...) \
+  SPDLOG_LOGGER_INFO(GpgFrontend::GetLogger(ID), __VA_ARGS__)
+#define GF_LOG_WARN(ID, ...) \
+  SPDLOG_LOGGER_WARN(GpgFrontend::GetLogger(ID), __VA_ARGS__)
+#define GF_LOG_ERROR(ID, ...) \
+  SPDLOG_LOGGER_ERROR(GpgFrontend::GetLogger(ID), __VA_ARGS__)

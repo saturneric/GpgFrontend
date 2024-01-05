@@ -28,25 +28,10 @@
 
 #pragma once
 
-#include "GpgConstants.h"
+#include "core/utils/LogUtils.h"
 
-namespace GpgFrontend {
-
-struct CoreInitArgs {
-  bool gather_external_gnupg_info;
-  bool load_default_gpg_context;
-};
-
-/**
- * @brief
- *
- */
-void GPGFRONTEND_CORE_EXPORT DestroyGpgFrontendCore();
-
-/**
- * @brief
- *
- */
-void GPGFRONTEND_CORE_EXPORT InitGpgFrontendCore(CoreInitArgs);
-
-}  // namespace GpgFrontend
+#define GF_MAIN_LOG_TRACE(...) GF_LOG_TRACE("main", __VA_ARGS__)
+#define GF_MAIN_LOG_DEBUG(...) GF_LOG_DEBUG("main", __VA_ARGS__)
+#define GF_MAIN_LOG_INFO(...) GF_LOG_INFO("main", __VA_ARGS__)
+#define GF_MAIN_LOG_WARN(...) GF_LOG_WARN("main", __VA_ARGS__)
+#define GF_MAIN_LOG_ERROR(...) GF_LOG_ERROR("main", __VA_ARGS__)

@@ -43,7 +43,7 @@ GpgFrontend::GpgVerifyResultAnalyse::GpgVerifyResultAnalyse(
 void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
   auto *result = this->result_.GetRaw();
 
-  SPDLOG_DEBUG("started");
+  GF_CORE_LOG_DEBUG("started");
 
   stream_ << "[#] " << _("Verify Operation") << " ";
 

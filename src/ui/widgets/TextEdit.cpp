@@ -118,8 +118,8 @@ void TextEdit::SlotNewFileTab() const {
 
 void TextEdit::SlotOpenFile(const QString& path) {
   QFile file(path);
-  SPDLOG_DEBUG("main window editor is opening file at path: {}",
-               path.toStdString());
+  GF_UI_LOG_DEBUG("main window editor is opening file at path: {}",
+                  path.toStdString());
   auto result = file.open(QIODevice::ReadOnly | QIODevice::Text);
   if (result) {
     auto* page = new PlainTextEditorPage(path);
@@ -541,7 +541,7 @@ QHash<int, QString> TextEdit::UnsavedDocuments() const {
     if (ep != nullptr && ep->ReadDone() &&
         ep->GetTextPage()->document()->isModified()) {
       QString doc_name = tab_widget_->tabText(i);
-      SPDLOG_DEBUG("unsaved: {}", doc_name.toStdString());
+      GF_UI_LOG_DEBUG("unsaved: {}", doc_name.toStdString());
 
       // remove * before name of modified doc
       doc_name.remove(0, 2);
@@ -642,16 +642,16 @@ void TextEdit::slot_save_status_to_cache_for_revovery() {
     restore_text_editor_page =
         settings.lookup("general.restore_text_editor_page");
   } catch (...) {
-    SPDLOG_ERROR("setting operation error: restore_text_editor_page");
+    GF_UI_LOG_ERROR("setting operation error: restore_text_editor_page");
   }
 
   if (!restore_text_editor_page) {
-    SPDLOG_DEBUG("restore_text_editor_page is false, ignoring...");
+    GF_UI_LOG_DEBUG("restore_text_editor_page is false, ignoring...");
     return;
   }
 
   int tab_count = tab_widget_->count();
-  SPDLOG_DEBUG(
+  GF_UI_LOG_DEBUG(
       "restore_text_editor_page is true, pan to save pages, current tabs "
       "count: "
       "{}",
@@ -676,8 +676,8 @@ void TextEdit::slot_save_status_to_cache_for_revovery() {
     }
 
     auto raw_text = document->toRawText().toStdString();
-    SPDLOG_DEBUG("unsaved page index: {}, tab title: {} tab content: {}", i,
-                 tab_title, raw_text.size());
+    GF_UI_LOG_DEBUG("unsaved page index: {}, tab title: {} tab content: {}", i,
+                    tab_title, raw_text.size());
     unsaved_pages.push_back({i, tab_title, raw_text});
   }
 
@@ -691,7 +691,7 @@ void TextEdit::slot_save_status_to_cache_for_revovery() {
     unsaved_page_array.push_back(page_json);
   }
 
-  SPDLOG_DEBUG("unsaved page json array: {}", unsaved_page_array.dump());
+  GF_UI_LOG_DEBUG("unsaved page json array: {}", unsaved_page_array.dump());
   CacheManager::GetInstance().SaveCache("editor_unsaved_pages",
                                         unsaved_page_array);
 }

@@ -40,14 +40,6 @@
 
 namespace GpgFrontend::Module {
 
-void LoadGpgFrontendModulesLoggingSystem(spdlog::level::level_enum log_level) {
-  GpgFrontend::Module::SDK::InitModuleLoggingSystem(log_level);
-}
-
-void ShutdownGpgFrontendModulesLoggingSystem() {
-  GpgFrontend::Module::SDK::ShutdownModuleLoggingSystem();
-}
-
 void LoadGpgFrontendModules(ModuleInitArgs args) {
   // must init at default thread before core
   Thread::TaskRunnerGetter::GetInstance().GetTaskRunner()->PostTask(

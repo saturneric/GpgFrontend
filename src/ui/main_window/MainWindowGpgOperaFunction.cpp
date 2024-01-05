@@ -284,11 +284,11 @@ void MainWindow::SlotEncryptSign() {
   auto signer_keys = GpgKeyGetter::GetInstance().GetKeys(signer_key_ids);
 
   for (const auto& key : *keys) {
-    SPDLOG_DEBUG("keys {}", key.GetEmail());
+    GF_UI_LOG_DEBUG("keys {}", key.GetEmail());
   }
 
   for (const auto& signer : *signer_keys) {
-    SPDLOG_DEBUG("signers {}", signer.GetEmail());
+    GF_UI_LOG_DEBUG("signers {}", signer.GetEmail());
   }
 
   // data to transfer into task

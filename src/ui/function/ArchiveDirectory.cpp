@@ -71,13 +71,13 @@ auto ArchiveDirectory::Exec(const std::filesystem::path& target_directory)
     auto target_path = target_directory;
     target_path = target_path.replace_extension("");
 
-    SPDLOG_DEBUG("archive directory, base path: {}, target path: {}",
-                 base_path.string(), target_path.string());
+    GF_UI_LOG_DEBUG("archive directory, base path: {}, target path: {}",
+                    base_path.string(), target_path.string());
 
     // ArchiveFileOperator::CreateArchive(base_path, target_path, 0, );
 
   } catch (...) {
-    SPDLOG_ERROR("archive caught exception error");
+    GF_UI_LOG_ERROR("archive caught exception error");
     return {false, {}};
   }
 }

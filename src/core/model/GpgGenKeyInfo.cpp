@@ -32,10 +32,12 @@
 #include <boost/format.hpp>
 #include <cassert>
 
+#include "core/utils/LogUtils.h"
+
 namespace GpgFrontend {
 
 void GenKeyInfo::SetAlgo(const GenKeyInfo::KeyGenAlgo &m_algo) {
-  SPDLOG_DEBUG("set algo name: {}", m_algo.first);
+  GF_CORE_LOG_DEBUG("set algo name: {}", m_algo.first);
   // Check algo if supported
   std::string algo_args = m_algo.second;
   if (standalone_) {

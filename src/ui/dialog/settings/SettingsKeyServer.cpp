@@ -77,7 +77,7 @@ KeyserverTab::KeyserverTab(QWidget* parent)
 
   connect(ui_->keyServerListTable, &QTableWidget::itemChanged,
           [=](QTableWidgetItem* item) {
-            SPDLOG_DEBUG("item edited: {}", item->column());
+            GF_UI_LOG_DEBUG("item edited: {}", item->column());
             if (item->column() != 1) return;
             const auto row_size = ui_->keyServerListTable->rowCount();
             // Update Actions
@@ -141,7 +141,7 @@ void KeyserverTab::SetSettings() {
       key_server_str_list_.append(default_key_server.c_str());
     default_key_server_ = QString::fromStdString(default_key_server);
   } catch (const std::exception& e) {
-    SPDLOG_ERROR("Error reading key-server settings: ", e.what());
+    GF_UI_LOG_ERROR("Error reading key-server settings: ", e.what());
   }
 }
 
@@ -192,7 +192,7 @@ void KeyserverTab::ApplySettings() {
 }
 
 void KeyserverTab::slot_refresh_table() {
-  SPDLOG_INFO("start refreshing key server table");
+  GF_UI_LOG_INFO("start refreshing key server table");
 
   ui_->keyServerListTable->blockSignals(true);
   ui_->keyServerListTable->setRowCount(key_server_str_list_.size());

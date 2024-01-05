@@ -182,7 +182,7 @@ void PlainTextEditorPage::ReadFile() {
           &FileReadTask::SignalFileBytesReadNext, Qt::QueuedConnection);
 
   connect(read_task, &FileReadTask::SignalTaskShouldEnd, this,
-          []() { SPDLOG_DEBUG("read thread closed"); });
+          []() { GF_UI_LOG_DEBUG("read thread closed"); });
   connect(this, &PlainTextEditorPage::close, read_task,
           [=]() { read_task->SignalTaskShouldEnd(0); });
   connect(read_task, &FileReadTask::SignalFileBytesReadEnd, this, [=]() {
@@ -210,7 +210,7 @@ auto BinaryToString(const std::string &source) -> std::string {
 void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
   std::string data = bytes_data.toStdString();
 
-  SPDLOG_TRACE("inserting data read to editor, data size: {}", data.size());
+  GF_UI_LOG_TRACE("inserting data read to editor, data size: {}", data.size());
   read_bytes_ += data.size();
   // If binary format is detected, the entire file is converted to binary
   // format for display.

@@ -32,8 +32,8 @@
 #include <mutex>
 #include <typeinfo>
 
-#include "function/SecureMemoryAllocator.h"
-#include "function/basic/ChannelObject.h"
+#include "core/function/SecureMemoryAllocator.h"
+#include "core/function/basic/ChannelObject.h"
 
 struct FunctionObjectTypeLockInfo {
   std::map<int, std::mutex> channel_lock_map;
@@ -66,8 +66,8 @@ auto GetGlobalFunctionObjectTypeLock(const std::type_info& type)
  */
 auto GetChannelObjectInstance(const std::type_info& type, int channel)
     -> ChannelObject* {
-  SPDLOG_TRACE("try to get instance of type: {} at channel: {}", type.name(),
-               channel);
+  GF_DEFAULT_LOG_TRACE("try to get instance of type: {} at channel: {}",
+                       type.name(), channel);
 
   // lock this channel
   std::lock_guard<std::mutex> guard(
@@ -75,13 +75,13 @@ auto GetChannelObjectInstance(const std::type_info& type, int channel)
 
   auto* p_storage =
       SingletonStorageCollection::GetInstance(false)->GetSingletonStorage(type);
-  SPDLOG_TRACE("get singleton storage result, p_storage: {}",
-               static_cast<void*>(p_storage));
+  GF_DEFAULT_LOG_TRACE("get singleton storage result, p_storage: {}",
+                       static_cast<void*>(p_storage));
 
   auto* p_pbj =
       static_cast<ChannelObject*>(p_storage->FindObjectInChannel(channel));
-  SPDLOG_TRACE("find channel object result, channel {}, p_pbj: {}", channel,
-               static_cast<void*>(p_pbj));
+  GF_DEFAULT_LOG_TRACE("find channel object result, channel {}, p_pbj: {}",
+                       channel, static_cast<void*>(p_pbj));
 
   return p_pbj;
 }
@@ -95,8 +95,8 @@ auto CreateChannelObjectInstance(const std::type_info& type, int channel,
 
   auto* p_storage =
       SingletonStorageCollection::GetInstance(false)->GetSingletonStorage(type);
-  SPDLOG_TRACE("create channel object, channel {}, type: {}", channel,
-               type.name());
+  GF_DEFAULT_LOG_TRACE("create channel object, channel {}, type: {}", channel,
+                       type.name());
 
   // do create object of this channel
   return p_storage->SetObjectInChannel(channel, std::move(channel_object));

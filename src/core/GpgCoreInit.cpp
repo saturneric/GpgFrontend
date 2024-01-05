@@ -52,62 +52,7 @@
 
 namespace GpgFrontend {
 
-/**
- * @brief setup logging system and do proper initialization
- *
- */
-void InitCoreLoggingSystem(spdlog::level::level_enum level) {
-  // get the log directory
-  auto logfile_path =
-      (GlobalSettingStation::GetInstance().GetLogDir() / "core");
-  logfile_path.replace_extension(".log");
-
-  // sinks
-  std::vector<spdlog::sink_ptr> sinks;
-  sinks.push_back(GpgFrontend::SecureCreateSharedObject<
-                  spdlog::sinks::stderr_color_sink_mt>());
-  sinks.push_back(GpgFrontend::SecureCreateSharedObject<
-                  spdlog::sinks::rotating_file_sink_mt>(logfile_path.u8string(),
-                                                        1048576 * 32, 8));
-
-  // thread pool
-  spdlog::init_thread_pool(1024, 2);
-
-  // logger
-  auto core_logger =
-      GpgFrontend::SecureCreateSharedObject<spdlog::async_logger>(
-          "core", begin(sinks), end(sinks), spdlog::thread_pool());
-  core_logger->set_pattern(
-      "[%H:%M:%S.%e] [T:%t] [%=6n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
-
-  // set the level of logger
-  core_logger->set_level(level);
-
-  // flush policy
-#ifdef DEBUG
-  core_logger->flush_on(spdlog::level::trace);
-#else
-  core_logger->flush_on(spdlog::level::err);
-#endif
-  spdlog::flush_every(std::chrono::seconds(5));
-
-  // register it as default logger
-  spdlog::set_default_logger(core_logger);
-}
-
-void ShutdownCoreLoggingSystem() {
-#ifdef WINDOWS
-  // Under VisualStudio, this must be called before main finishes to workaround
-  // a known VS issue
-  spdlog::drop_all();
-  spdlog::shutdown();
-#endif
-}
-
-void DestroyGpgFrontendCore() {
-  SingletonStorageCollection::Destroy();
-  ShutdownCoreLoggingSystem();
-}
+void DestroyGpgFrontendCore() { SingletonStorageCollection::Destroy(); }
 
 auto VerifyGpgconfPath(const std::filesystem::path& gnupg_install_fs_path)
     -> bool {
@@ -136,7 +81,7 @@ auto SearchGpgconfPath(const std::vector<std::string>& candidate_paths)
 auto SearchKeyDatabasePath(const std::vector<std::string>& candidate_paths)
     -> std::filesystem::path {
   for (const auto& path : candidate_paths) {
-    SPDLOG_DEBUG("searh for candidate key database path: {}", path);
+    GF_CORE_LOG_DEBUG("searh for candidate key database path: {}", path);
     if (VerifyKeyDatabasePath(std::filesystem::path{path})) {
       return std::filesystem::path{path};
     }
@@ -171,7 +116,7 @@ auto InitGpgME() -> bool {
       continue;
     }
 
-    SPDLOG_DEBUG(
+    GF_CORE_LOG_DEBUG(
         "gpg context engine info: {} {} {} {}",
         gpgme_get_protocol_name(engine_info->protocol),
         std::string(engine_info->file_name == nullptr ? "null"
@@ -233,12 +178,12 @@ auto InitGpgME() -> bool {
 
   const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gnupg_version", std::string{"0.0.0"});
-  SPDLOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
+  GF_CORE_LOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
 
   // conditional check: only support gpg 2.1.x now
   if (!(CompareSoftwareVersion(gnupg_version, "2.1.0") >= 0 && find_gpgconf &&
         find_openpgp && find_cms)) {
-    SPDLOG_ERROR("gpgme env check failed, abort");
+    GF_CORE_LOG_ERROR("gpgme env check failed, abort");
     return false;
   }
 
@@ -255,7 +200,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
   Module::UpsertRTValue("core", "env.state.all", 0);
 
   // initialize locale environment
-  SPDLOG_DEBUG("locale: {}", setlocale(LC_CTYPE, nullptr));
+  GF_CORE_LOG_DEBUG("locale: {}", setlocale(LC_CTYPE, nullptr));
 
   // initialize library gpgme
   if (!InitGpgME()) {
@@ -299,10 +244,10 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                 GpgFrontend::GlobalSettingStation::GetInstance().LookupSettings(
                     "general.use_pinentry_as_password_input_dialog", false);
 
-            SPDLOG_DEBUG("core loaded if use custom key databse path: {}",
-                         use_custom_key_database_path);
-            SPDLOG_DEBUG("core loaded custom key databse path: {}",
-                         custom_key_database_path);
+            GF_CORE_LOG_DEBUG("core loaded if use custom key databse path: {}",
+                              use_custom_key_database_path);
+            GF_CORE_LOG_DEBUG("core loaded custom key databse path: {}",
+                              custom_key_database_path);
 
             std::filesystem::path gnupg_install_fs_path;
             // user defined
@@ -317,19 +262,20 @@ void InitGpgFrontendCore(CoreInitArgs args) {
 
               if (!VerifyGpgconfPath(gnupg_install_fs_path)) {
                 use_custom_gnupg_install_path = false;
-                SPDLOG_ERROR("core loaded custom gpgconf path is illegal: {}",
-                             gnupg_install_fs_path.u8string());
+                GF_CORE_LOG_ERROR(
+                    "core loaded custom gpgconf path is illegal: {}",
+                    gnupg_install_fs_path.u8string());
               } else {
-                SPDLOG_DEBUG("core loaded custom gpgconf path: {}",
-                             gnupg_install_fs_path.u8string());
+                GF_CORE_LOG_DEBUG("core loaded custom gpgconf path: {}",
+                                  gnupg_install_fs_path.u8string());
               }
             } else {
 #ifdef MACOS
               use_custom_gnupg_install_path = true;
               gnupg_install_fs_path = SearchGpgconfPath(
                   {"/usr/local/bin/gpgconf", "/opt/homebrew/bin/gpgconf"});
-              SPDLOG_DEBUG("core loaded searched gpgconf path: {}",
-                           gnupg_install_fs_path.u8string());
+              GF_CORE_LOG_DEBUG("core loaded searched gpgconf path: {}",
+                                gnupg_install_fs_path.u8string());
 #endif
             }
 
@@ -339,21 +285,22 @@ void InitGpgFrontendCore(CoreInitArgs args) {
             if (!custom_key_database_path.empty()) {
               key_database_fs_path = custom_key_database_path;
               if (VerifyKeyDatabasePath(key_database_fs_path)) {
-                SPDLOG_ERROR(
+                GF_CORE_LOG_ERROR(
                     "core loaded custom gpg key database is illegal: {}",
                     key_database_fs_path.u8string());
               } else {
                 use_custom_key_database_path = true;
-                SPDLOG_DEBUG("core loaded custom gpg key database path: {}",
-                             key_database_fs_path.u8string());
+                GF_CORE_LOG_DEBUG(
+                    "core loaded custom gpg key database path: {}",
+                    key_database_fs_path.u8string());
               }
             } else {
 #ifdef MACOS
               use_custom_key_database_path = true;
               key_database_fs_path = SearchKeyDatabasePath(
                   {QDir::home().filesystemPath() / ".gnupg"});
-              SPDLOG_DEBUG("core loaded searched key database path: {}",
-                           key_database_fs_path.u8string());
+              GF_CORE_LOG_DEBUG("core loaded searched key database path: {}",
+                                key_database_fs_path.u8string());
 #endif
             }
 
@@ -387,7 +334,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
 
               // exit if failed
               if (!ctx.Good()) {
-                SPDLOG_ERROR("default gnupg context init error, abort");
+                GF_CORE_LOG_ERROR("default gnupg context init error, abort");
                 CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
                     _("GpgME Context inilization failed"));
                 return -1;
@@ -399,7 +346,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
             if (args.gather_external_gnupg_info &&
                 Module::IsModuleAcivate("com.bktus.gpgfrontend.module."
                                         "integrated.gnupg-info-gathering")) {
-              SPDLOG_DEBUG("gnupg-info-gathering is activated");
+              GF_CORE_LOG_DEBUG("gnupg-info-gathering is activated");
 
               // gather external gnupg info
               Module::TriggerEvent(
@@ -407,7 +354,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                   [](const Module::EventIdentifier& /*e*/,
                      const Module::Event::ListenerIdentifier& l_id,
                      DataObjectPtr o) {
-                    SPDLOG_DEBUG(
+                    GF_CORE_LOG_DEBUG(
                         "received event GPGFRONTEND_CORE_INITLIZED callback "
                         "from module: {}",
                         l_id);
@@ -415,7 +362,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                     if (l_id ==
                         "com.bktus.gpgfrontend.module.integrated.gnupg-info-"
                         "gathering") {
-                      SPDLOG_DEBUG(
+                      GF_CORE_LOG_DEBUG(
                           "received callback from gnupg-info-gathering ");
 
                       // try to restart all components
@@ -423,14 +370,14 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                       Module::UpsertRTValue("core", "env.state.gnupg", 1);
 
                       // announce that all checkings were finished
-                      SPDLOG_INFO(
+                      GF_CORE_LOG_INFO(
                           "all env checking finished, including gpgme, "
                           "ctx and gnupg");
                       Module::UpsertRTValue("core", "env.state.all", 1);
                     }
                   });
             } else {
-              SPDLOG_DEBUG("gnupg-info-gathering is not activated");
+              GF_CORE_LOG_DEBUG("gnupg-info-gathering is not activated");
               Module::UpsertRTValue("core", "env.state.all", 1);
             }
 
@@ -440,7 +387,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                     _("Gpg Key Detabase inilization failed"));
               };
             }
-            SPDLOG_INFO(
+            GF_CORE_LOG_INFO(
                 "basic env checking finished, including gpgme, ctx, and key "
                 "infos");
             Module::UpsertRTValue("core", "env.state.basic", 1);

@@ -39,8 +39,8 @@
 namespace GpgFrontend::UI {
 KeyPairDetailTab::KeyPairDetailTab(const std::string& key_id, QWidget* parent)
     : QWidget(parent), key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
-  SPDLOG_DEBUG(key_.GetEmail(), key_.IsPrivateKey(), key_.IsHasMasterKey(),
-               key_.GetSubKeys()->front().IsPrivateKey());
+  GF_UI_LOG_DEBUG(key_.GetEmail(), key_.IsPrivateKey(), key_.IsHasMasterKey(),
+                  key_.GetSubKeys()->front().IsPrivateKey());
 
   owner_box_ = new QGroupBox(_("Owner"));
   key_box_ = new QGroupBox(_("Primary Key"));

@@ -344,7 +344,7 @@ void SubkeyGenerateDialog::slot_authentication_box_changed(int state) {
 }
 
 void SubkeyGenerateDialog::slot_activated_key_type(int index) {
-  SPDLOG_DEBUG("key type index changed: {}", index);
+  GF_UI_LOG_DEBUG("key type index changed: {}", index);
 
   // check
   assert(gen_key_info_->GetSupportedSubkeyAlgo().size() >

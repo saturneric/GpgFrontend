@@ -89,11 +89,11 @@ void KeyUploadDialog::slot_upload_key_to_server(
     target_keyserver =
         key_server_list[default_key_server_index].get<std::string>();
 
-    SPDLOG_DEBUG("set target key server to default key server: {}",
-                 target_keyserver);
+    GF_UI_LOG_DEBUG("set target key server to default key server: {}",
+                    target_keyserver);
 
   } catch (...) {
-    SPDLOG_ERROR(_("Cannot read default_keyserver From Settings"));
+    GF_UI_LOG_ERROR(_("Cannot read default_keyserver From Settings"));
     QMessageBox::critical(nullptr, _("Default Keyserver Not Found"),
                           _("Cannot read default keyserver from your settings, "
                             "please set a default keyserver first"));
@@ -140,11 +140,11 @@ void KeyUploadDialog::slot_upload_finished() {
   auto* reply = qobject_cast<QNetworkReply*>(sender());
 
   QByteArray response = reply->readAll();
-  SPDLOG_DEBUG("response: {}", response.toStdString());
+  GF_UI_LOG_DEBUG("response: {}", response.toStdString());
 
   auto error = reply->error();
   if (error != QNetworkReply::NoError) {
-    SPDLOG_DEBUG("error from reply: {}", reply->errorString().toStdString());
+    GF_UI_LOG_DEBUG("error from reply: {}", reply->errorString().toStdString());
     QString message;
     switch (error) {
       case QNetworkReply::ContentNotFoundError:
@@ -164,7 +164,7 @@ void KeyUploadDialog::slot_upload_finished() {
   } else {
     QMessageBox::information(this, _("Upload Success"),
                              _("Upload Public Key Successfully"));
-    SPDLOG_DEBUG("success while contacting keyserver!");
+    GF_UI_LOG_DEBUG("success while contacting keyserver!");
   }
   reply->deleteLater();
 }

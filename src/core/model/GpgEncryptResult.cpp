@@ -55,7 +55,7 @@ auto GpgEncryptResult::InvalidRecipients()
     try {
       result.emplace_back(std::string{invalid_key->fpr}, invalid_key->reason);
     } catch (...) {
-      SPDLOG_ERROR(
+      GF_CORE_LOG_ERROR(
           "caught exception when processing invalid_recipients, "
           "maybe nullptr of fpr");
     }

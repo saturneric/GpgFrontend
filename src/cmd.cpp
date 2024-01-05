@@ -28,6 +28,8 @@
 
 #include "cmd.h"
 
+#include "main.h"
+
 // std
 #include <iostream>
 
@@ -83,16 +85,15 @@ auto ParseLogLevel(const po::variables_map& vm) -> spdlog::level::level_enum {
 }
 
 auto RunTest(const GFCxtWPtr& p_ctx) -> int {
-  GpgFrontend::GFCxtSPtr ctx = p_ctx.lock();
+  GpgFrontend::GFCxtSPtr const ctx = p_ctx.lock();
   if (ctx == nullptr) {
-    SPDLOG_ERROR("cannot get gpgfrontend context for test running");
+    GF_MAIN_LOG_ERROR("cannot get gpgfrontend context for test running");
     return -1;
   }
 
   GpgFrontend::Test::GpgFrontendContext test_init_args;
   test_init_args.argc = ctx->argc;
   test_init_args.argv = ctx->argv;
-  test_init_args.log_level = ctx->log_level;
 
   return GpgFrontend::Test::ExecuteAllTestCase(test_init_args);
 }

@@ -43,7 +43,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
  public:
   explicit Impl(int channel)
       : SingletonFunctionObject<GpgKeyGetter::Impl>(channel) {
-    SPDLOG_DEBUG("called channel: {}", channel);
+    GF_CORE_LOG_DEBUG("called channel: {}", channel);
   }
 
   auto GetKey(const std::string& fpr, bool use_cache) -> GpgKey {
@@ -56,7 +56,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     gpgme_key_t p_key = nullptr;
     gpgme_get_key(ctx_.DefaultContext(), fpr.c_str(), &p_key, 1);
     if (p_key == nullptr) {
-      SPDLOG_WARN("GpgKeyGetter GetKey Private _p_key Null fpr", fpr);
+      GF_CORE_LOG_WARN("GpgKeyGetter GetKey Private _p_key Null fpr", fpr);
       return GetPubkey(fpr, true);
     }
     return GpgKey(std::move(p_key));
@@ -71,7 +71,8 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
 
     gpgme_key_t p_key = nullptr;
     gpgme_get_key(ctx_.DefaultContext(), fpr.c_str(), &p_key, 0);
-    if (p_key == nullptr) SPDLOG_WARN("GpgKeyGetter GetKey _p_key Null", fpr);
+    if (p_key == nullptr)
+      GF_CORE_LOG_WARN("GpgKeyGetter GetKey _p_key Null", fpr);
     return GpgKey(std::move(p_key));
   }
 
@@ -93,7 +94,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
   }
 
   auto FlushKeyCache() -> bool {
-    SPDLOG_DEBUG("flush key channel called, channel: {}", GetChannel());
+    GF_CORE_LOG_DEBUG("flush key channel called, channel: {}", GetChannel());
 
     // clear the keys cache
     keys_cache_.clear();
@@ -126,8 +127,9 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
       }
     }
 
-    SPDLOG_DEBUG("flush key channel cache address: {} object address: {}",
-                 static_cast<void*>(&keys_cache_), static_cast<void*>(this));
+    GF_CORE_LOG_DEBUG("flush key channel cache address: {} object address: {}",
+                      static_cast<void*>(&keys_cache_),
+                      static_cast<void*>(this));
 
     // for debug
     assert(CheckGpgError2ErrCode(err, GPG_ERR_EOF) == GPG_ERR_EOF);
@@ -135,7 +137,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     err = gpgme_op_keylist_end(ctx_.DefaultContext());
     assert(CheckGpgError2ErrCode(err, GPG_ERR_EOF) == GPG_ERR_NO_ERROR);
 
-    SPDLOG_DEBUG("flush key channel done, channel: {}", GetChannel());
+    GF_CORE_LOG_DEBUG("flush key channel done, channel: {}", GetChannel());
     return true;
   }
 
@@ -209,7 +211,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
 GpgKeyGetter::GpgKeyGetter(int channel)
     : SingletonFunctionObject<GpgKeyGetter>(channel),
       p_(SecureCreateUniqueObject<Impl>(channel)) {
-  SPDLOG_DEBUG("called channel: {}", channel);
+  GF_CORE_LOG_DEBUG("called channel: {}", channel);
 }
 
 GpgKeyGetter::~GpgKeyGetter() = default;

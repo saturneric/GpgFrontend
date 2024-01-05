@@ -108,7 +108,7 @@ class CacheManager::Impl : public QObject {
 
     if (std::find(key_storage_.begin(), key_storage_.end(), key) ==
         key_storage_.end()) {
-      SPDLOG_DEBUG("register new key of cache", key);
+      GF_CORE_LOG_DEBUG("register new key of cache", key);
       key_storage_.push_back(key);
     }
 
@@ -160,8 +160,8 @@ class CacheManager::Impl : public QObject {
   void slot_flush_cache_storage() {
     for (const auto& cache : cache_storage_.mirror()) {
       auto key = get_data_object_key(cache.first);
-      SPDLOG_TRACE("save cache into filesystem, key {}, value size: {}", key,
-                   cache.second.size());
+      GF_CORE_LOG_TRACE("save cache into filesystem, key {}, value size: {}",
+                        key, cache.second.size());
       GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(key,
                                                                  cache.second);
     }
@@ -210,7 +210,7 @@ class CacheManager::Impl : public QObject {
    *
    */
   void load_all_cache_storage() {
-    SPDLOG_DEBUG("start to load all cache from file system");
+    GF_CORE_LOG_DEBUG("start to load all cache from file system");
     auto stored_data =
         GpgFrontend::DataObjectOperator::GetInstance().GetDataObject(drk_key_);
 
@@ -223,7 +223,7 @@ class CacheManager::Impl : public QObject {
     if (!registered_key_list.is_array()) {
       GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(
           drk_key_, nlohmann::json::array());
-      SPDLOG_ERROR("drk_key_ is not an array, abort.");
+      GF_CORE_LOG_ERROR("drk_key_ is not an array, abort.");
       return;
     }
 

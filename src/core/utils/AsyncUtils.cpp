@@ -41,10 +41,10 @@ void RunGpgOperaAsync(GpgOperaRunnable runnable, GpgOperationCallback callback,
                       const std::string& minial_version) {
   const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gnupg_version", minial_version);
-  SPDLOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
+  GF_CORE_LOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
 
   if (CompareSoftwareVersion(gnupg_version, "2.0.15") < 0) {
-    SPDLOG_ERROR("operator not support");
+    GF_CORE_LOG_ERROR("operator not support");
     callback(GPG_ERR_NOT_SUPPORTED, TransferParams());
     return;
   }

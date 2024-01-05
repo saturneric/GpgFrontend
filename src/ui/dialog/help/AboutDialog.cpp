@@ -57,7 +57,7 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent)
   tab_widget->addTab(update_tab_, _("Update"));
 
   connect(tab_widget, &QTabWidget::currentChanged, this,
-          [&](int index) { SPDLOG_DEBUG("current index: {}", index); });
+          [&](int index) { GF_UI_LOG_DEBUG("current index: {}", index); });
 
   if (defaultIndex < tab_widget->count() && defaultIndex >= 0) {
     tab_widget->setCurrentIndex(defaultIndex);
@@ -81,7 +81,7 @@ void AboutDialog::showEvent(QShowEvent* ev) { QDialog::showEvent(ev); }
 InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
   const auto gpgme_version = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.version", std::string{"2.0.0"});
-  SPDLOG_DEBUG("got gpgme version from rt: {}", gpgme_version);
+  GF_UI_LOG_DEBUG("got gpgme version from rt: {}", gpgme_version);
 
   auto* pixmap = new QPixmap(":gpgfrontend-logo.png");
   auto* text = new QString(
@@ -205,7 +205,7 @@ UpdateTab::UpdateTab(QWidget* parent) : QWidget(parent) {
 
 void UpdateTab::showEvent(QShowEvent* event) {
   QWidget::showEvent(event);
-  SPDLOG_DEBUG("loading version loading info from rt");
+  GF_UI_LOG_DEBUG("loading version loading info from rt");
 
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
       "com.bktus.gpgfrontend.module.integrated.version-checking",
@@ -216,7 +216,7 @@ void UpdateTab::showEvent(QShowEvent* event) {
         this, "com.bktus.gpgfrontend.module.integrated.version-checking",
         "version.loading_done",
         [=](Module::Namespace, Module::Key, int, std::any) {
-          SPDLOG_DEBUG(
+          GF_UI_LOG_DEBUG(
               "versionchecking version.loading_done changed, calling slot "
               "version upgrade");
           this->slot_show_version_status();
@@ -228,7 +228,7 @@ void UpdateTab::showEvent(QShowEvent* event) {
 }
 
 void UpdateTab::slot_show_version_status() {
-  SPDLOG_DEBUG("loading version info from rt");
+  GF_UI_LOG_DEBUG("loading version info from rt");
   this->pb_->setHidden(true);
 
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
@@ -236,7 +236,7 @@ void UpdateTab::slot_show_version_status() {
       "version.loading_done", false);
 
   if (!is_loading_done) {
-    SPDLOG_DEBUG("version info loading havn't been done yet.");
+    GF_UI_LOG_DEBUG("version info loading havn't been done yet.");
     return;
   }
 

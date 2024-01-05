@@ -51,35 +51,36 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
         return a + (a.length() > 0 ? " " : "") + b;
       });
 
-  SPDLOG_DEBUG("building task: called cmd {} arguments size: {}", cmd,
-               arguments.size());
+  GF_CORE_LOG_DEBUG("building task: called cmd {} arguments size: {}", cmd,
+                    arguments.size());
 
-  Thread::Task::TaskCallback result_callback = [cmd, joined_argument](
-                                                   int /*rtn*/,
-                                                   const DataObjectPtr
-                                                       &data_object) {
-    SPDLOG_DEBUG("data object args count of cmd executor result callback: {}",
-                 data_object->GetObjectSize());
-    if (!data_object->Check<int, std::string, GpgCommandExecutorCallback>()) {
-      throw std::runtime_error("invalid data object size");
-    }
+  Thread::Task::TaskCallback result_callback =
+      [cmd, joined_argument](int /*rtn*/, const DataObjectPtr &data_object) {
+        GF_CORE_LOG_DEBUG(
+            "data object args count of cmd executor result callback: {}",
+            data_object->GetObjectSize());
+        if (!data_object
+                 ->Check<int, std::string, GpgCommandExecutorCallback>()) {
+          throw std::runtime_error("invalid data object size");
+        }
 
-    auto exit_code = ExtractParams<int>(data_object, 0);
-    auto process_stdout = ExtractParams<std::string>(data_object, 1);
-    auto callback = ExtractParams<GpgCommandExecutorCallback>(data_object, 2);
+        auto exit_code = ExtractParams<int>(data_object, 0);
+        auto process_stdout = ExtractParams<std::string>(data_object, 1);
+        auto callback =
+            ExtractParams<GpgCommandExecutorCallback>(data_object, 2);
 
-    // call callback
-    SPDLOG_DEBUG(
-        "calling custom callback from caller of cmd {} {}, "
-        "exit_code: {}",
-        cmd, joined_argument, exit_code);
-    callback(exit_code, process_stdout, {});
-  };
+        // call callback
+        GF_CORE_LOG_DEBUG(
+            "calling custom callback from caller of cmd {} {}, "
+            "exit_code: {}",
+            cmd, joined_argument, exit_code);
+        callback(exit_code, process_stdout, {});
+      };
 
   Thread::Task::TaskRunnable runner =
       [joined_argument](const DataObjectPtr &data_object) -> int {
-    SPDLOG_DEBUG("process runner called, data object size: {}",
-                 data_object->GetObjectSize());
+    GF_CORE_LOG_DEBUG("process runner called, data object size: {}",
+                      data_object->GetObjectSize());
 
     if (!data_object->Check<std::string, std::vector<std::string>,
                             GpgCommandExecutorInteractor,
@@ -113,7 +114,7 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
 
     QObject::connect(
         cmd_process, &QProcess::started, [cmd, joined_argument]() -> void {
-          SPDLOG_DEBUG(
+          GF_CORE_LOG_DEBUG(
               "\n== Process Execute Started ==\nCommand: {}\nArguments: "
               "{}\n========================",
               cmd, joined_argument);
@@ -124,11 +125,12 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
     QObject::connect(
         cmd_process, &QProcess::errorOccurred,
         [=](QProcess::ProcessError error) {
-          SPDLOG_ERROR("caught error while executing command: {} {}, error: {}",
-                       cmd, joined_argument, error);
+          GF_CORE_LOG_ERROR(
+              "caught error while executing command: {} {}, error: {}", cmd,
+              joined_argument, error);
         });
 
-    SPDLOG_DEBUG(
+    GF_CORE_LOG_DEBUG(
         "\n== Process Execute Ready ==\nCommand: {}\nArguments: "
         "{}\n========================",
         cmd, joined_argument);
@@ -140,7 +142,7 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
         cmd_process->readAllStandardOutput().toStdString();
     int exit_code = cmd_process->exitCode();
 
-    SPDLOG_DEBUG(
+    GF_CORE_LOG_DEBUG(
         "\n==== Process Execution Summary ====\n"
         "Command: {}\n"
         "Arguments: {}\n"
@@ -198,7 +200,7 @@ void GpgCommandExecutor::ExecuteSync(ExecuteContext context) {
   // current thread.
   if (QThread::currentThread()->currentThreadId() !=
       target_task_runner->GetThread()->currentThreadId()) {
-    SPDLOG_TRACE("blocking until gpg command finish...");
+    GF_CORE_LOG_TRACE("blocking until gpg command finish...");
     // block until task finished
     // this is to keep reference vaild until task finished
     looper.exec();
@@ -208,7 +210,7 @@ void GpgCommandExecutor::ExecuteSync(ExecuteContext context) {
 void GpgCommandExecutor::ExecuteConcurrentlyAsync(ExecuteContexts contexts) {
   for (auto &context : contexts) {
     const auto &cmd = context.cmd;
-    SPDLOG_INFO("gpg concurrently called cmd {}", cmd);
+    GF_CORE_LOG_INFO("gpg concurrently called cmd {}", cmd);
 
     Thread::Task *task = BuildTaskFromExecCtx(context);
 
@@ -232,15 +234,15 @@ void GpgCommandExecutor::ExecuteConcurrentlySync(ExecuteContexts contexts) {
 
   for (auto &context : contexts) {
     const auto &cmd = context.cmd;
-    SPDLOG_INFO("gpg concurrently called cmd {}", cmd);
+    GF_CORE_LOG_DEBUG("gpg concurrently called cmd {}", cmd);
 
     Thread::Task *task = BuildTaskFromExecCtx(context);
 
     QObject::connect(task, &Thread::Task::SignalTaskEnd, [&]() {
       --remaining_tasks;
-      SPDLOG_DEBUG("remaining tasks: {}", remaining_tasks);
+      GF_CORE_LOG_DEBUG("remaining tasks: {}", remaining_tasks);
       if (remaining_tasks <= 0) {
-        SPDLOG_DEBUG("no remaining task, quit");
+        GF_CORE_LOG_DEBUG("no remaining task, quit");
         looper.quit();
       }
     });
@@ -265,7 +267,7 @@ void GpgCommandExecutor::ExecuteConcurrentlySync(ExecuteContexts contexts) {
   }
 
   if (need_looper) {
-    SPDLOG_TRACE("blocking until concurrent gpg commands finish...");
+    GF_CORE_LOG_TRACE("blocking until concurrent gpg commands finish...");
     // block until task finished
     // this is to keep reference vaild until task finished
     looper.exec();

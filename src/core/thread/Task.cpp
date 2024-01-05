@@ -44,7 +44,7 @@ class Task::Impl {
  public:
   Impl(Task *parent, std::string name)
       : parent_(parent), uuid_(generate_uuid()), name_(name) {
-    SPDLOG_TRACE("task {} created", GetFullID());
+    GF_CORE_LOG_TRACE("task {} created", GetFullID());
     init();
   }
 
@@ -57,8 +57,8 @@ class Task::Impl {
         callback_([](int, const DataObjectPtr &) {}),
         callback_thread_(QThread::currentThread()),
         data_object_(std::move(data_object)) {
-    SPDLOG_TRACE("task {} created with runnable, callback_thread_: {}",
-                 GetFullID(), static_cast<void *>(callback_thread_));
+    GF_CORE_LOG_TRACE("task {} created with runnable, callback_thread_: {}",
+                      GetFullID(), static_cast<void *>(callback_thread_));
     init();
   }
 
@@ -71,13 +71,13 @@ class Task::Impl {
         callback_(std::move(callback)),
         callback_thread_(QThread::currentThread()),
         data_object_(std::move(data_object)) {
-    SPDLOG_TRACE(
+    GF_CORE_LOG_TRACE(
         "task {} created with runnable and callback, callback_thread_: {}",
         GetFullID(), static_cast<void *>(callback_thread_));
     init();
   }
 
-  ~Impl() { SPDLOG_TRACE("task {} destroyed", GetFullID()); }
+  ~Impl() { GF_CORE_LOG_TRACE("task {} destroyed", GetFullID()); }
 
   /**
    * @brief
@@ -89,12 +89,12 @@ class Task::Impl {
   std::string GetUUID() const { return uuid_; }
 
   void Run() {
-    SPDLOG_TRACE("task {} is using default runnable and callback mode",
-                 GetFullID());
+    GF_CORE_LOG_TRACE("task {} is using default runnable and callback mode",
+                      GetFullID());
     if (runnable_) {
       SetRTN(runnable_(data_object_));
     } else {
-      SPDLOG_WARN("no runnable in task, do callback operation");
+      GF_CORE_LOG_WARN("no runnable in task, do callback operation");
     }
   }
 
@@ -123,8 +123,8 @@ class Task::Impl {
   DataObjectPtr data_object_ = nullptr;  ///<
 
   void init() {
-    SPDLOG_TRACE("task {} created, parent: {}, impl: {}", name_,
-                 (void *)parent_, (void *)this);
+    GF_CORE_LOG_TRACE("task {} created, parent: {}, impl: {}", name_,
+                      (void *)parent_, (void *)this);
 
     //
     HoldOnLifeCycle(false);
@@ -146,13 +146,13 @@ class Task::Impl {
    */
   void inner_run() {
     try {
-      SPDLOG_TRACE("task {} is starting...", GetFullID());
+      GF_CORE_LOG_TRACE("task {} is starting...", GetFullID());
       // Run() will set rtn by itself
       parent_->Run();
-      SPDLOG_TRACE("task {} was end.", GetFullID());
+      GF_CORE_LOG_TRACE("task {} was end.", GetFullID());
     } catch (std::exception &e) {
-      SPDLOG_ERROR("exception was caught at task: {}", e.what());
-      SPDLOG_ERROR(
+      GF_CORE_LOG_ERROR("exception was caught at task: {}", e.what());
+      GF_CORE_LOG_ERROR(
           "stacktrace of the exception: {}",
           boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
     }
@@ -174,55 +174,57 @@ class Task::Impl {
    *
    */
   void slot_task_should_end(int rtn) {
-    SPDLOG_TRACE("task runnable {} finished, rtn: {}", GetFullID(), rtn);
+    GF_CORE_LOG_TRACE("task runnable {} finished, rtn: {}", GetFullID(), rtn);
     // set return value
     this->SetRTN(rtn);
 #ifdef RELEASE
     try {
 #endif
       if (callback_) {
-        SPDLOG_TRACE("task {} has a callback function", GetFullID());
+        GF_CORE_LOG_TRACE("task {} has a callback function", GetFullID());
         if (callback_thread_ == QThread::currentThread()) {
-          SPDLOG_TRACE("for task {}, the callback thread is the same thread",
-                       GetFullID(), callback_thread_->currentThreadId());
+          GF_CORE_LOG_TRACE(
+              "for task {}, the callback thread is the same thread",
+              GetFullID(), callback_thread_->currentThreadId());
 
           callback_(rtn, data_object_);
 
           // raise signal, announcing this task comes to an end
-          SPDLOG_TRACE(
+          GF_CORE_LOG_TRACE(
               "for task {}, its life comes to an end in the same thread after "
               "its callback executed.",
               parent_->GetFullID());
           emit parent_->SignalTaskEnd();
         } else {
-          SPDLOG_TRACE("for task {}, callback thread is a different thread: {}",
-                       GetFullID(), callback_thread_->currentThreadId());
+          GF_CORE_LOG_TRACE(
+              "for task {}, callback thread is a different thread: {}",
+              GetFullID(), callback_thread_->currentThreadId());
           if (!QMetaObject::invokeMethod(
                   callback_thread_,
                   [callback = callback_, rtn = rtn_, data_object = data_object_,
                    parent_ = this->parent_]() {
-                    SPDLOG_TRACE("calling callback of task {}",
-                                 parent_->GetFullID());
+                    GF_CORE_LOG_TRACE("calling callback of task {}",
+                                      parent_->GetFullID());
                     try {
                       callback(rtn, data_object);
                     } catch (...) {
-                      SPDLOG_ERROR(
+                      GF_CORE_LOG_ERROR(
                           "unknown exception was caught when execute "
                           "callback of task {}",
                           parent_->GetFullID());
                     }
                     // raise signal, announcing this task comes to an end
-                    SPDLOG_TRACE(
+                    GF_CORE_LOG_TRACE(
                         "for task {}, its life comes to an end whether its "
                         "callback function fails or not.",
                         parent_->GetFullID());
                     emit parent_->SignalTaskEnd();
                   })) {
-            SPDLOG_ERROR(
+            GF_CORE_LOG_ERROR(
                 "task {} had failed to invoke the callback function to target "
                 "thread",
                 GetFullID());
-            SPDLOG_TRACE(
+            GF_CORE_LOG_TRACE(
                 "for task {}, its life must come to an end now, although it "
                 "has something not done yet.",
                 GetFullID());
@@ -231,7 +233,7 @@ class Task::Impl {
         }
       } else {
         // raise signal, announcing this task comes to an end
-        SPDLOG_TRACE(
+        GF_CORE_LOG_TRACE(
             "for task {}, its life comes to an end without callback "
             "peacefully.",
             GetFullID());
@@ -239,22 +241,23 @@ class Task::Impl {
       }
 #ifdef RELEASE
     } catch (std::exception &e) {
-      SPDLOG_ERROR("exception was caught at task callback: {}", e.what());
-      SPDLOG_ERROR(
+      GF_CORE_LOG_ERROR("exception was caught at task callback: {}", e.what());
+      GF_CORE_LOG_ERROR(
           "stacktrace of the exception: {}",
           boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
       // raise signal, announcing this task comes to an end
-      SPDLOG_TRACE("for task {}, its life comes to an end at chaos.",
-                   GetFullID());
+      GF_CORE_LOG_TRACE("for task {}, its life comes to an end at chaos.",
+                        GetFullID());
       emit parent_->SignalTaskEnd();
     } catch (...) {
-      SPDLOG_ERROR("unknown exception was caught");
-      SPDLOG_ERROR(
+      GF_CORE_LOG_ERROR("unknown exception was caught");
+      GF_CORE_LOG_ERROR(
           "stacktrace of the exception: {}",
           boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
       // raise signal, announcing this task comes to an end
-      SPDLOG_TRACE("for task {}, its life comes to an end at unknown chaos.",
-                   GetFullID());
+      GF_CORE_LOG_TRACE(
+          "for task {}, its life comes to an end at unknown chaos.",
+          GetFullID());
       emit parent_->SignalTaskEnd();
     }
 #endif
@@ -291,8 +294,8 @@ void Task::SafelyRun() { emit SignalRun(); }
 void Task::Run() { p_->Run(); }
 
 void Task::run() {
-  SPDLOG_TRACE("interface run() of task {} was called by thread: {}",
-               GetFullID(), QThread::currentThread()->currentThreadId());
+  GF_CORE_LOG_TRACE("interface run() of task {} was called by thread: {}",
+                    GetFullID(), QThread::currentThread()->currentThreadId());
   this->SafelyRun();
 }
 

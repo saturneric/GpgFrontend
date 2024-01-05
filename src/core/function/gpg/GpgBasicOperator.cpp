@@ -192,15 +192,15 @@ void GpgBasicOperator::SetSigners(const KeyArgsList& signers, bool ascii) {
   gpgme_signers_clear(ctx);
 
   for (const GpgKey& key : signers) {
-    SPDLOG_DEBUG("key fpr: {}", key.GetFingerprint());
+    GF_CORE_LOG_DEBUG("key fpr: {}", key.GetFingerprint());
     if (key.IsHasActualSigningCapability()) {
-      SPDLOG_DEBUG("signer");
+      GF_CORE_LOG_DEBUG("signer");
       auto error = gpgme_signers_add(ctx, gpgme_key_t(key));
       CheckGpgError(error);
     }
   }
   if (signers.size() != gpgme_signers_count(ctx_.DefaultContext()))
-    SPDLOG_DEBUG("not all signers added");
+    GF_CORE_LOG_DEBUG("not all signers added");
 }
 
 auto GpgBasicOperator::GetSigners(bool ascii) -> std::unique_ptr<KeyArgsList> {

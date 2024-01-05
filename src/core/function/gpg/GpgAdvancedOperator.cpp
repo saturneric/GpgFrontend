@@ -40,10 +40,10 @@ auto GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache() -> bool {
 
   const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", std::string{});
-  SPDLOG_DEBUG("got gpgconf path from rt: {}", gpgconf_path);
+  GF_CORE_LOG_DEBUG("got gpgconf path from rt: {}", gpgconf_path);
 
   if (gpgconf_path.empty()) {
-    SPDLOG_ERROR("cannot get valid gpgconf path from rt, abort.");
+    GF_CORE_LOG_ERROR("cannot get valid gpgconf path from rt, abort.");
     return false;
   }
 
@@ -53,7 +53,7 @@ auto GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache() -> bool {
        [&](int exit_code, const std::string & /*p_out*/,
            const std::string & /*p_err*/) {
          if (exit_code == 0) {
-           SPDLOG_DEBUG("gpgconf reload exit code: {}", exit_code);
+           GF_CORE_LOG_DEBUG("gpgconf reload exit code: {}", exit_code);
            success = true;
          }
        }});
@@ -65,10 +65,10 @@ auto GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents() -> bool {
 
   const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", std::string{});
-  SPDLOG_DEBUG("got gpgconf path from rt: {}", gpgconf_path);
+  GF_CORE_LOG_DEBUG("got gpgconf path from rt: {}", gpgconf_path);
 
   if (gpgconf_path.empty()) {
-    SPDLOG_ERROR("cannot get valid gpgconf path from rt, abort.");
+    GF_CORE_LOG_ERROR("cannot get valid gpgconf path from rt, abort.");
     return false;
   }
 
@@ -79,7 +79,7 @@ auto GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents() -> bool {
          if (exit_code == 0) {
            success = true;
          } else {
-           SPDLOG_ERROR(
+           GF_CORE_LOG_ERROR(
                "gpgconf execute error, process stderr: {}, process stdout: {}",
                p_err, p_out);
            return;
@@ -91,10 +91,10 @@ auto GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents() -> bool {
 void GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
   const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", std::string{});
-  SPDLOG_DEBUG("got gpgconf path from rt: {}", gpgconf_path);
+  GF_CORE_LOG_DEBUG("got gpgconf path from rt: {}", gpgconf_path);
 
   if (gpgconf_path.empty()) {
-    SPDLOG_ERROR("cannot get valid gpgconf path from rt, abort.");
+    GF_CORE_LOG_ERROR("cannot get valid gpgconf path from rt, abort.");
     return;
   }
 
@@ -102,19 +102,20 @@ void GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
       {gpgconf_path,
        {"--verbose", "--kill", "all"},
        [&](int exit_code, const std::string &p_out, const std::string &p_err) {
-         SPDLOG_DEBUG("gpgconf --kill all command got exit code: {}",
-                      exit_code);
+         GF_CORE_LOG_DEBUG("gpgconf --kill all command got exit code: {}",
+                           exit_code);
          bool success = true;
          if (exit_code != 0) {
            success = false;
-           SPDLOG_ERROR(
+           GF_CORE_LOG_ERROR(
                "gpgconf execute error, process stderr: {}, process stdout: {}",
                p_err, p_out);
          }
 
-         SPDLOG_DEBUG("gpgconf --kill --all execute result: {}", success);
+         GF_CORE_LOG_DEBUG("gpgconf --kill --all execute result: {}", success);
          if (!success) {
-           SPDLOG_ERROR("restart all component after core initilized failed");
+           GF_CORE_LOG_ERROR(
+               "restart all component after core initilized failed");
            Module::UpsertRTValue(
                "core", "gpg_advanced_operator.restart_gpg_components", false);
            return;
@@ -123,19 +124,19 @@ void GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
          success &= StartGpgAgent();
 
          if (!success) {
-           SPDLOG_ERROR("start gpg agent after core initilized failed");
+           GF_CORE_LOG_ERROR("start gpg agent after core initilized failed");
          }
 
          success &= StartDirmngr();
 
          if (!success) {
-           SPDLOG_ERROR("start dirmngr after core initilized failed");
+           GF_CORE_LOG_ERROR("start dirmngr after core initilized failed");
          }
 
          success &= StartKeyBoxd();
 
          if (!success) {
-           SPDLOG_ERROR("start keyboxd after core initilized failed");
+           GF_CORE_LOG_ERROR("start keyboxd after core initilized failed");
          }
 
          Module::UpsertRTValue(
@@ -148,10 +149,10 @@ auto GpgFrontend::GpgAdvancedOperator::ResetConfigures() -> bool {
 
   const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", std::string{});
-  SPDLOG_DEBUG("got gpgconf path from rt: {}", gpgconf_path);
+  GF_CORE_LOG_DEBUG("got gpgconf path from rt: {}", gpgconf_path);
 
   if (gpgconf_path.empty()) {
-    SPDLOG_ERROR("cannot get valid gpgconf path from rt, abort.");
+    GF_CORE_LOG_ERROR("cannot get valid gpgconf path from rt, abort.");
     return false;
   }
 
@@ -162,7 +163,7 @@ auto GpgFrontend::GpgAdvancedOperator::ResetConfigures() -> bool {
          if (exit_code == 0) {
            success = true;
          } else {
-           SPDLOG_ERROR(
+           GF_CORE_LOG_ERROR(
                "gpgconf execute error, process stderr: {}, process stdout: {}",
                p_err, p_out);
            return;
@@ -178,15 +179,15 @@ auto GpgFrontend::GpgAdvancedOperator::StartGpgAgent() -> bool {
   const auto gpg_agent_path = Module::RetrieveRTValueTypedOrDefault<>(
       "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
       "gnupg.gpg_agent_path", std::string{});
-  SPDLOG_DEBUG("got gnupg agent path from rt: {}", gpg_agent_path);
+  GF_CORE_LOG_DEBUG("got gnupg agent path from rt: {}", gpg_agent_path);
 
   const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
       "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
       "gnupg.home_path", std::string{});
-  SPDLOG_DEBUG("got gnupg home path from rt: {}", home_path);
+  GF_CORE_LOG_DEBUG("got gnupg home path from rt: {}", home_path);
 
   if (gpg_agent_path.empty()) {
-    SPDLOG_ERROR("cannot get valid gpg agent path from rt, abort.");
+    GF_CORE_LOG_ERROR("cannot get valid gpg agent path from rt, abort.");
     return false;
   }
 
@@ -196,12 +197,12 @@ auto GpgFrontend::GpgAdvancedOperator::StartGpgAgent() -> bool {
        [&](int exit_code, const std::string &p_out, const std::string &p_err) {
          if (exit_code == 0) {
            success = true;
-           SPDLOG_INFO("start gpg-agent successfully");
+           GF_CORE_LOG_INFO("start gpg-agent successfully");
          } else if (exit_code == 2) {
            success = true;
-           SPDLOG_INFO("gpg-agent already started");
+           GF_CORE_LOG_INFO("gpg-agent already started");
          } else {
-           SPDLOG_ERROR(
+           GF_CORE_LOG_ERROR(
                "gpg-agent execute error, process stderr: {}, process stdout: "
                "{}",
                p_err, p_out);
@@ -218,15 +219,15 @@ auto GpgFrontend::GpgAdvancedOperator::StartDirmngr() -> bool {
   const auto dirmngr_path = Module::RetrieveRTValueTypedOrDefault<>(
       "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
       "gnupg.dirmngr_path", std::string{});
-  SPDLOG_DEBUG("got gnupg dirmngr path from rt: {}", dirmngr_path);
+  GF_CORE_LOG_DEBUG("got gnupg dirmngr path from rt: {}", dirmngr_path);
 
   const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
       "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
       "gnupg.home_path", std::string{});
-  SPDLOG_DEBUG("got gnupg home path from rt: {}", home_path);
+  GF_CORE_LOG_DEBUG("got gnupg home path from rt: {}", home_path);
 
   if (dirmngr_path.empty()) {
-    SPDLOG_ERROR("cannot get valid dirmngr path from rt, abort.");
+    GF_CORE_LOG_ERROR("cannot get valid dirmngr path from rt, abort.");
     return false;
   }
 
@@ -236,12 +237,12 @@ auto GpgFrontend::GpgAdvancedOperator::StartDirmngr() -> bool {
        [&](int exit_code, const std::string &p_out, const std::string &p_err) {
          if (exit_code == 0) {
            success = true;
-           SPDLOG_INFO("start dirmngr successfully");
+           GF_CORE_LOG_INFO("start dirmngr successfully");
          } else if (exit_code == 2) {
            success = true;
-           SPDLOG_INFO("dirmngr already started");
+           GF_CORE_LOG_INFO("dirmngr already started");
          } else {
-           SPDLOG_ERROR(
+           GF_CORE_LOG_ERROR(
                "dirmngr execute error, process stderr: {}, process stdout: {}",
                p_err, p_out);
            return;
@@ -257,15 +258,15 @@ auto GpgFrontend::GpgAdvancedOperator::StartKeyBoxd() -> bool {
   const auto keyboxd_path = Module::RetrieveRTValueTypedOrDefault<>(
       "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
       "gnupg.keyboxd_path", std::string{});
-  SPDLOG_DEBUG("got gnupg keyboxd path from rt: {}", keyboxd_path);
+  GF_CORE_LOG_DEBUG("got gnupg keyboxd path from rt: {}", keyboxd_path);
 
   const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
       "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
       "gnupg.home_path", std::string{});
-  SPDLOG_DEBUG("got gnupg home path from rt: {}", home_path);
+  GF_CORE_LOG_DEBUG("got gnupg home path from rt: {}", home_path);
 
   if (keyboxd_path.empty()) {
-    SPDLOG_ERROR("cannot get valid keyboxd path from rt, abort.");
+    GF_CORE_LOG_ERROR("cannot get valid keyboxd path from rt, abort.");
     return false;
   }
 
@@ -275,12 +276,12 @@ auto GpgFrontend::GpgAdvancedOperator::StartKeyBoxd() -> bool {
        [&](int exit_code, const std::string &p_out, const std::string &p_err) {
          if (exit_code == 0) {
            success = true;
-           SPDLOG_INFO("start keyboxd successfully");
+           GF_CORE_LOG_INFO("start keyboxd successfully");
          } else if (exit_code == 2) {
            success = true;
-           SPDLOG_INFO("keyboxd already started");
+           GF_CORE_LOG_INFO("keyboxd already started");
          } else {
-           SPDLOG_ERROR(
+           GF_CORE_LOG_ERROR(
                "keyboxd execute error, process stderr: {}, process stdout: {}",
                p_err, p_out);
            return;

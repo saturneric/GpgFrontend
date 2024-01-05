@@ -151,7 +151,7 @@ void KeyGenDialog::slot_key_gen_accept() {
               });
         });
 
-    SPDLOG_DEBUG("key generation done");
+    GF_UI_LOG_DEBUG("key generation done");
     this->done(0);
 
   } else {
@@ -242,7 +242,7 @@ void KeyGenDialog::slot_authentication_box_changed(int state) {
 }
 
 void KeyGenDialog::slot_activated_key_type(int index) {
-  SPDLOG_DEBUG("key type index changed: {}", index);
+  GF_UI_LOG_DEBUG("key type index changed: {}", index);
 
   // check
   assert(gen_key_info_->GetSupportedKeyAlgo().size() >

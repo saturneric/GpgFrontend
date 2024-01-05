@@ -100,58 +100,59 @@ auto GpgFrontend::GpgKeyManager::SetExpire(
 auto GpgFrontend::GpgKeyManager::SetOwnerTrustLevel(const GpgKey& key,
                                                     int trust_level) -> bool {
   if (trust_level < 0 || trust_level > 5) {
-    SPDLOG_ERROR("illegal owner trust level: {}", trust_level);
+    GF_CORE_LOG_ERROR("illegal owner trust level: {}", trust_level);
   }
 
-  AutomatonNextStateHandler next_state_handler =
-      [](AutomatonState state, std::string status, std::string args) {
-        SPDLOG_DEBUG("next_state_handler state: {}, gpg_status: {}, args: {}",
-                     state, status, args);
-        std::vector<std::string> tokens;
-        boost::split(tokens, args, boost::is_any_of(" "));
+  AutomatonNextStateHandler next_state_handler = [](AutomatonState state,
+                                                    std::string status,
+                                                    std::string args) {
+    GF_CORE_LOG_DEBUG("next_state_handler state: {}, gpg_status: {}, args: {}",
+                      state, status, args);
+    std::vector<std::string> tokens;
+    boost::split(tokens, args, boost::is_any_of(" "));
 
-        switch (state) {
-          case AS_START:
-            if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return AS_COMMAND;
-            }
-            return AS_ERROR;
-          case AS_COMMAND:
-            if (status == "GET_LINE" && args == "edit_ownertrust.value") {
-              return AS_VALUE;
-            }
-            return AS_ERROR;
-          case AS_VALUE:
-            if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return AS_QUIT;
-            } else if (status == "GET_BOOL" &&
-                       args == "edit_ownertrust.set_ultimate.okay") {
-              return AS_REALLY_ULTIMATE;
-            }
-            return AS_ERROR;
-          case AS_REALLY_ULTIMATE:
-            if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return AS_QUIT;
-            }
-            return AS_ERROR;
-          case AS_QUIT:
-            if (status == "GET_LINE" && args == "keyedit.save.okay") {
-              return AS_SAVE;
-            }
-            return AS_ERROR;
-          case AS_ERROR:
-            if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return AS_QUIT;
-            }
-            return AS_ERROR;
-          default:
-            return AS_ERROR;
-        };
-      };
+    switch (state) {
+      case AS_START:
+        if (status == "GET_LINE" && args == "keyedit.prompt") {
+          return AS_COMMAND;
+        }
+        return AS_ERROR;
+      case AS_COMMAND:
+        if (status == "GET_LINE" && args == "edit_ownertrust.value") {
+          return AS_VALUE;
+        }
+        return AS_ERROR;
+      case AS_VALUE:
+        if (status == "GET_LINE" && args == "keyedit.prompt") {
+          return AS_QUIT;
+        } else if (status == "GET_BOOL" &&
+                   args == "edit_ownertrust.set_ultimate.okay") {
+          return AS_REALLY_ULTIMATE;
+        }
+        return AS_ERROR;
+      case AS_REALLY_ULTIMATE:
+        if (status == "GET_LINE" && args == "keyedit.prompt") {
+          return AS_QUIT;
+        }
+        return AS_ERROR;
+      case AS_QUIT:
+        if (status == "GET_LINE" && args == "keyedit.save.okay") {
+          return AS_SAVE;
+        }
+        return AS_ERROR;
+      case AS_ERROR:
+        if (status == "GET_LINE" && args == "keyedit.prompt") {
+          return AS_QUIT;
+        }
+        return AS_ERROR;
+      default:
+        return AS_ERROR;
+    };
+  };
 
   AutomatonActionHandler action_handler =
       [trust_level](AutomatonHandelStruct& handler, AutomatonState state) {
-        SPDLOG_DEBUG("action_handler state: {}", state);
+        GF_CORE_LOG_DEBUG("action_handler state: {}", state);
         switch (state) {
           case AS_COMMAND:
             return std::string("trust");
@@ -194,16 +195,17 @@ auto GpgFrontend::GpgKeyManager::interactor_cb_fnc(void* handle,
   auto handle_struct = static_cast<AutomatonHandelStruct*>(handle);
   std::string status_s = status;
   std::string args_s = args;
-  SPDLOG_DEBUG("cb start status: {}, args: {}, fd: {}, handle struct state: {}",
-               status_s, args_s, fd, handle_struct->CuurentStatus());
+  GF_CORE_LOG_DEBUG(
+      "cb start status: {}, args: {}, fd: {}, handle struct state: {}",
+      status_s, args_s, fd, handle_struct->CuurentStatus());
 
   if (status_s == "KEY_CONSIDERED") {
     std::vector<std::string> tokens;
     boost::split(tokens, args, boost::is_any_of(" "));
 
     if (tokens.empty() || tokens[0] != handle_struct->KeyFpr()) {
-      SPDLOG_ERROR("handle struct key fpr {} mismatch token: {}, exit...",
-                   handle_struct->KeyFpr(), tokens[0]);
+      GF_CORE_LOG_ERROR("handle struct key fpr {} mismatch token: {}, exit...",
+                        handle_struct->KeyFpr(), tokens[0]);
       return -1;
     }
 
@@ -211,13 +213,13 @@ auto GpgFrontend::GpgKeyManager::interactor_cb_fnc(void* handle,
   }
 
   if (status_s == "GOT_IT" || status_s.empty()) {
-    SPDLOG_DEBUG("status GOT_IT, continue...");
+    GF_CORE_LOG_DEBUG("status GOT_IT, continue...");
     return 0;
   }
 
   AutomatonState next_state = handle_struct->NextState(status_s, args_s);
   if (next_state == AS_ERROR) {
-    SPDLOG_DEBUG("handle struct next state caught error, skipping...");
+    GF_CORE_LOG_DEBUG("handle struct next state caught error, skipping...");
     return GPG_ERR_FALSE;
   }
 
@@ -228,8 +230,8 @@ auto GpgFrontend::GpgKeyManager::interactor_cb_fnc(void* handle,
   // set state and preform action
   handle_struct->SetStatus(next_state);
   Command cmd = handle_struct->Action();
-  SPDLOG_DEBUG("handle struct action done, next state: {}, action cmd: {}",
-               next_state, cmd);
+  GF_CORE_LOG_DEBUG("handle struct action done, next state: {}, action cmd: {}",
+                    next_state, cmd);
   if (!cmd.empty()) {
     gpgme_io_write(fd, cmd.c_str(), cmd.size());
     gpgme_io_write(fd, "\n", 1);

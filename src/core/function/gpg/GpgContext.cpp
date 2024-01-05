@@ -109,7 +109,7 @@ class GpgContext::Impl {
                                  int fd) -> gpgme_error_t {
     std::string passphrase;
 
-    SPDLOG_DEBUG(
+    GF_CORE_LOG_DEBUG(
         "custom passphrase cb called, uid: {}, info: {}, last_was_bad: {}",
         uid_hint == nullptr ? "<empty>" : std::string{uid_hint},
         passphrase_info == nullptr ? "<empty>" : std::string{passphrase_info},
@@ -128,7 +128,8 @@ class GpgContext::Impl {
     looper.exec();
 
     auto passpahrase_size = passphrase.size();
-    SPDLOG_DEBUG("get passphrase from pinentry size: {}", passpahrase_size);
+    GF_CORE_LOG_DEBUG("get passphrase from pinentry size: {}",
+                      passpahrase_size);
 
     size_t off = 0;
     size_t res = 0;
@@ -139,7 +140,7 @@ class GpgContext::Impl {
 
     res += gpgme_io_write(fd, "\n", 1);
 
-    SPDLOG_DEBUG("custom passphrase cd is about to return, res: {}", res);
+    GF_CORE_LOG_DEBUG("custom passphrase cd is about to return, res: {}", res);
     return res == passpahrase_size + 1
                ? 0
                : gpgme_error_from_errno(GPG_ERR_CANCELED);
@@ -147,7 +148,7 @@ class GpgContext::Impl {
 
   static auto TestStatusCb(void *hook, const char *keyword, const char *args)
       -> gpgme_error_t {
-    SPDLOG_DEBUG("keyword {}", keyword);
+    GF_CORE_LOG_DEBUG("keyword {}", keyword);
     return GPG_ERR_NO_ERROR;
   }
 
@@ -165,10 +166,10 @@ class GpgContext::Impl {
 
     const auto gpgme_version = Module::RetrieveRTValueTypedOrDefault<>(
         "core", "gpgme.version", std::string{"0.0.0"});
-    SPDLOG_DEBUG("got gpgme version version from rt: {}", gpgme_version);
+    GF_CORE_LOG_DEBUG("got gpgme version version from rt: {}", gpgme_version);
 
     if (gpgme_get_keylist_mode(ctx) == 0) {
-      SPDLOG_ERROR(
+      GF_CORE_LOG_ERROR(
           "ctx is not a valid pointer, reported by gpgme_get_keylist_mode");
       return false;
     }
@@ -187,8 +188,8 @@ class GpgContext::Impl {
     const auto database_path = Module::RetrieveRTValueTypedOrDefault<>(
         "core", "gpgme.ctx.database_path", std::string{});
 
-    SPDLOG_DEBUG("ctx set engine info, db path: {}, app path: {}",
-                 database_path, app_path);
+    GF_CORE_LOG_DEBUG("ctx set engine info, db path: {}, app path: {}",
+                      database_path, app_path);
 
     const char *app_path_c_str = app_path.c_str();
     const char *db_path_c_str = database_path.c_str();
@@ -215,7 +216,8 @@ class GpgContext::Impl {
     assert(ctx != nullptr);
 
     if (args.custom_gpgconf && !args.custom_gpgconf_path.empty()) {
-      SPDLOG_DEBUG("set custom gpgconf path: {}", args.custom_gpgconf_path);
+      GF_CORE_LOG_DEBUG("set custom gpgconf path: {}",
+                        args.custom_gpgconf_path);
       auto err =
           gpgme_ctx_set_engine_info(ctx, GPGME_PROTOCOL_GPGCONF,
                                     args.custom_gpgconf_path.c_str(), nullptr);
@@ -227,12 +229,13 @@ class GpgContext::Impl {
     }
 
     // set context offline mode
-    SPDLOG_DEBUG("gpg context offline mode: {}", args_.offline_mode);
+    GF_CORE_LOG_DEBUG("gpg context offline mode: {}", args_.offline_mode);
     gpgme_set_offline(ctx, args_.offline_mode ? 1 : 0);
 
     // set option auto import missing key
     // invalid at offline mode
-    SPDLOG_DEBUG("gpg context auto import missing key: {}", args_.offline_mode);
+    GF_CORE_LOG_DEBUG("gpg context auto import missing key: {}",
+                      args_.offline_mode);
     if (!args.offline_mode && args.auto_import_missing_key) {
       if (CheckGpgError(gpgme_set_ctx_flag(ctx, "auto-key-import", "1")) !=
           GPG_ERR_NO_ERROR) {
@@ -241,19 +244,19 @@ class GpgContext::Impl {
     }
 
     if (!set_ctx_key_list_mode(ctx)) {
-      SPDLOG_DEBUG("set ctx key list mode failed");
+      GF_CORE_LOG_DEBUG("set ctx key list mode failed");
       return false;
     }
 
     // for unit test
     if (args_.test_mode) {
       if (!SetPassphraseCb(ctx, TestPassphraseCb)) {
-        SPDLOG_ERROR("set passphrase cb failed, test");
+        GF_CORE_LOG_ERROR("set passphrase cb failed, test");
         return false;
       };
     } else if (!args_.use_pinentry) {
       if (!SetPassphraseCb(ctx, CustomPassphraseCb)) {
-        SPDLOG_DEBUG("set passphrase cb failed, custom");
+        GF_CORE_LOG_DEBUG("set passphrase cb failed, custom");
         return false;
       }
     }
@@ -265,7 +268,7 @@ class GpgContext::Impl {
     }
 
     if (!set_ctx_openpgp_engine_info(ctx)) {
-      SPDLOG_ERROR("set gpgme context openpgp engine info failed");
+      GF_CORE_LOG_ERROR("set gpgme context openpgp engine info failed");
       return false;
     }
 
@@ -281,7 +284,7 @@ class GpgContext::Impl {
     binary_ctx_ref_ = p_ctx;
 
     if (!common_ctx_initialize(binary_ctx_ref_, args)) {
-      SPDLOG_ERROR("get new ctx failed, binary");
+      GF_CORE_LOG_ERROR("get new ctx failed, binary");
       return false;
     }
 
@@ -292,7 +295,7 @@ class GpgContext::Impl {
   auto default_ctx_initialize(const GpgContextInitArgs &args) -> bool {
     gpgme_ctx_t p_ctx;
     if (CheckGpgError(gpgme_new(&p_ctx)) != GPG_ERR_NO_ERROR) {
-      SPDLOG_ERROR("get new ctx failed, default");
+      GF_CORE_LOG_ERROR("get new ctx failed, default");
       return false;
     }
     assert(p_ctx != nullptr);

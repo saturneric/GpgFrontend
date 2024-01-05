@@ -471,9 +471,9 @@ void MainWindow::SlotFileVerify(std::filesystem::path path) {
     return;
   }
 
-  SPDLOG_DEBUG("verification data file path: {}", data_file_path.u8string());
-  SPDLOG_DEBUG("verification signature file path: {}",
-               sign_file_path.u8string());
+  GF_UI_LOG_DEBUG("verification data file path: {}", data_file_path.u8string());
+  GF_UI_LOG_DEBUG("verification signature file path: {}",
+                  sign_file_path.u8string());
 
   CommonUtils::WaitForOpera(
       this, _("Verifying"), [=](const OperaWaitingHd& op_hd) {

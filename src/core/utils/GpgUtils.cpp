@@ -69,7 +69,7 @@ auto GetGpgmeErrorString(gpgme_error_t err) -> std::string {
 auto CheckGpgError(GpgError err) -> GpgError {
   auto err_code = gpg_err_code(err);
   if (err_code != GPG_ERR_NO_ERROR) {
-    SPDLOG_ERROR(
+    GF_CORE_LOG_ERROR(
         "gpg operation failed [error code: {}], source: {} description: {}",
         err_code, gpgme_strsource(err), GetGpgmeErrorString(err));
   }
@@ -80,13 +80,13 @@ auto CheckGpgError2ErrCode(GpgError err, GpgError predict) -> GpgErrorCode {
   auto err_code = gpg_err_code(err);
   if (err_code != gpg_err_code(predict)) {
     if (err_code == GPG_ERR_NO_ERROR) {
-      SPDLOG_WARN("[Warning {}] Source: {} description: {} predict: {}",
-                  gpg_err_code(err), gpgme_strsource(err),
-                  GetGpgmeErrorString(err), GetGpgmeErrorString(predict));
+      GF_CORE_LOG_WARN("[Warning {}] Source: {} description: {} predict: {}",
+                       gpg_err_code(err), gpgme_strsource(err),
+                       GetGpgmeErrorString(err), GetGpgmeErrorString(predict));
     } else {
-      SPDLOG_ERROR("[Error {}] Source: {} description: {} predict: {}",
-                   gpg_err_code(err), gpgme_strsource(err),
-                   GetGpgmeErrorString(err), GetGpgmeErrorString(predict));
+      GF_CORE_LOG_ERROR("[Error {}] Source: {} description: {} predict: {}",
+                        gpg_err_code(err), gpgme_strsource(err),
+                        GetGpgmeErrorString(err), GetGpgmeErrorString(predict));
     }
   }
   return err_code;
@@ -98,8 +98,8 @@ auto DescribeGpgErrCode(GpgError err) -> GpgErrorDesc {
 
 auto CheckGpgError(GpgError err, const std::string& /*comment*/) -> GpgError {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
-    SPDLOG_WARN("[Error {}] Source: {} description: {}", gpg_err_code(err),
-                gpgme_strsource(err), GetGpgmeErrorString(err));
+    GF_CORE_LOG_WARN("[Error {}] Source: {} description: {}", gpg_err_code(err),
+                     gpgme_strsource(err), GetGpgmeErrorString(err));
   }
   return err;
 }

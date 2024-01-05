@@ -55,7 +55,7 @@ auto GpgDecryptResult::Recipients() -> std::vector<GpgRecipient> {
     try {
       result.emplace_back(reci);
     } catch (...) {
-      SPDLOG_ERROR(
+      GF_CORE_LOG_ERROR(
           "caught exception when processing invalid_recipients, "
           "maybe nullptr of fpr");
     }

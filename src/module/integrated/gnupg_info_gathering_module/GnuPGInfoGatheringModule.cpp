@@ -392,8 +392,7 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
   UpsertRTValue(GetModuleIdentifier(), "gnupg.gathering_done", true);
   event->ExecuteCallback(GetModuleIdentifier(), TransferParams(true));
 
-  SPDLOG_INFO("gnupg external info gathering done");
-
+  MODULE_LOG_DEBUG("gnupg external info gathering done");
   return 0;
 }
 

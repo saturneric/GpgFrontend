@@ -47,20 +47,20 @@ void GpgFrontend::UI::ListedKeyServerTestTask::run() {
   size_t index = 0;
   for (const auto& url : urls_) {
     auto key_url = QUrl{url};
-    SPDLOG_DEBUG("key server request: {}", key_url.host().toStdString());
+    GF_UI_LOG_DEBUG("key server request: {}", key_url.host().toStdString());
 
     auto* network_reply = network_manager_->get(QNetworkRequest{key_url});
     auto* timer = new QTimer(this);
 
     connect(network_reply, &QNetworkReply::finished, this,
             [this, index, network_reply]() {
-              SPDLOG_DEBUG("key server domain reply: {}",
-                           urls_[index].toStdString());
+              GF_UI_LOG_DEBUG("key server domain reply: {}",
+                              urls_[index].toStdString());
               this->slot_process_network_reply(index, network_reply);
             });
 
     connect(timer, &QTimer::timeout, this, [this, index, network_reply]() {
-      SPDLOG_DEBUG("timeout for key server: {}", urls_[index].toStdString());
+      GF_UI_LOG_DEBUG("timeout for key server: {}", urls_[index].toStdString());
       if (network_reply->isRunning()) {
         network_reply->abort();
         this->slot_process_network_reply(index, network_reply);
