@@ -234,7 +234,7 @@ void GpgCommandExecutor::ExecuteConcurrentlySync(ExecuteContexts contexts) {
 
   for (auto &context : contexts) {
     const auto &cmd = context.cmd;
-    GF_CORE_LOG_DEBUG("gpg concurrently called cmd {}", cmd);
+    GF_CORE_LOG_DEBUG("gpg concurrently called cmd: {}", cmd);
 
     Thread::Task *task = BuildTaskFromExecCtx(context);
 

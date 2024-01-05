@@ -56,62 +56,9 @@ class TaskRunner::Impl : public QThread {
     task->SafelyRun();
   }
 
-  static void PostTask(const Task::TaskRunnable& runner,
-                       const Task::TaskCallback& cb, DataObjectPtr p_obj) {
-    auto* callback_thread = QThread::currentThread();
-    auto data_object = std::move(p_obj);
-    const auto task_uuid = generate_uuid();
-
-    QtConcurrent::run(runner, data_object).then([=](int rtn) {
-      if (!cb) {
-        GF_CORE_LOG_TRACE("task {} doesn't have a callback function",
-                          task_uuid);
-        return;
-      }
-
-      if (callback_thread == QThread::currentThread()) {
-        GF_CORE_LOG_TRACE(
-            "for task {}, the callback thread is the same thread: {}",
-            task_uuid, static_cast<void*>(callback_thread));
-
-        cb(rtn, data_object);
-
-        // raise signal, announcing this task comes to an end
-        GF_CORE_LOG_TRACE(
-            "for task {}, its life comes to an end in the same thread "
-            "after its callback executed.",
-            task_uuid);
-      } else {
-        GF_CORE_LOG_TRACE(
-            "for task {}, callback thread is a different thread: {}", task_uuid,
-            static_cast<void*>(callback_thread));
-        if (!QMetaObject::invokeMethod(callback_thread, [=]() {
-              GF_CORE_LOG_TRACE("calling callback of task {}", task_uuid);
-              try {
-                cb(rtn, data_object);
-              } catch (...) {
-                GF_CORE_LOG_ERROR(
-                    "unknown exception was caught when execute "
-                    "callback of task {}",
-                    task_uuid);
-              }
-              // raise signal, announcing this task comes to an end
-              GF_CORE_LOG_TRACE(
-                  "for task {}, its life comes to an end whether its "
-                  "callback function fails or not.",
-                  task_uuid);
-            })) {
-          GF_CORE_LOG_ERROR(
-              "task {} had failed to invoke the callback function to "
-              "target thread",
-              task_uuid);
-          GF_CORE_LOG_TRACE(
-              "for task {}, its life must come to an end now, although it "
-              "has something not done yet.",
-              task_uuid);
-        }
-      }
-    });
+  void PostTask(const std::string& name, const Task::TaskRunnable& runnerable,
+                const Task::TaskCallback& cb, DataObjectPtr params) {
+    PostTask(new Task(runnerable, name, std::move(params), cb));
   }
 
   void PostConcurrentTask(Task* task) {
@@ -157,9 +104,10 @@ TaskRunner::~TaskRunner() {
 
 void TaskRunner::PostTask(Task* task) { p_->PostTask(task); }
 
-void TaskRunner::PostTask(const Task::TaskRunnable& runner,
-                          const Task::TaskCallback& cb, DataObjectPtr p_obj) {
-  p_->PostTask(runner, cb, p_obj);
+void TaskRunner::PostTask(const std::string& name,
+                          const Task::TaskRunnable& runner,
+                          const Task::TaskCallback& cb, DataObjectPtr params) {
+  p_->PostTask(name, runner, cb, std::move(params));
 }
 
 void TaskRunner::PostConcurrentTask(Task* task) {

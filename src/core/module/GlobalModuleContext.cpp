@@ -254,18 +254,18 @@ class GlobalModuleContext::Impl {
       // Check if the module is activated
       if (!module_info->activate) continue;
 
-      Thread::Task::TaskRunnable exec_runnerable =
+      Thread::Task::TaskRunnable const exec_runnerable =
           [module, event](DataObjectPtr) -> int { return module->Exec(event); };
 
-      Thread::Task::TaskCallback exec_callback = [listener_module_id, event_id](
-                                                     int code, DataObjectPtr) {
-        if (code < 0) {
-          // Log an error if the module execution fails
-          GF_CORE_LOG_ERROR(
-              "module {} execution failed of event {}: exec return code {}",
-              listener_module_id, event_id, code);
-        }
-      };
+      Thread::Task::TaskCallback const exec_callback =
+          [listener_module_id, event_id](int code, DataObjectPtr) {
+            if (code < 0) {
+              // Log an error if the module execution fails
+              GF_CORE_LOG_ERROR(
+                  "module {} execution failed of event {}: exec return code {}",
+                  listener_module_id, event_id, code);
+            }
+          };
 
       Thread::TaskRunnerGetter::GetInstance()
           .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)

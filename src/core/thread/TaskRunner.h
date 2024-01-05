@@ -91,8 +91,8 @@ class GPGFRONTEND_CORE_EXPORT TaskRunner : public QObject {
    * @param runner
    * @param cb
    */
-  void PostTask(const Task::TaskRunnable& runner, const Task::TaskCallback& cb,
-                DataObjectPtr p_obj);
+  void PostTask(const std::string&, const Task::TaskRunnable&,
+                const Task::TaskCallback&, DataObjectPtr);
 
   /**
    * @brief

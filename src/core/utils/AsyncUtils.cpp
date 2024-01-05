@@ -52,6 +52,7 @@ void RunGpgOperaAsync(GpgOperaRunnable runnable, GpgOperationCallback callback,
   Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
       ->PostTask(
+          operation,
           [=](const DataObjectPtr& data_object) -> int {
             auto custom_data_object = TransferParams();
             GpgError err = runnable(custom_data_object);
@@ -71,6 +72,7 @@ void RunIOOperaAsync(OperaRunnable runnable, OperationCallback callback,
   Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_IO)
       ->PostTask(
+          operation,
           [=](const DataObjectPtr& data_object) -> int {
             auto custom_data_object = TransferParams();
             GpgError err = runnable(custom_data_object);

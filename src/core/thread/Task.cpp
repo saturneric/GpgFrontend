@@ -130,10 +130,10 @@ class Task::Impl {
     HoldOnLifeCycle(false);
 
     //
-    connect(parent_, &Task::SignalRun, [=]() { inner_run(); });
+    connect(parent_, &Task::SignalRun, parent_, [=]() { inner_run(); });
 
     //
-    connect(parent_, &Task::SignalTaskShouldEnd,
+    connect(parent_, &Task::SignalTaskShouldEnd, parent_,
             [=](int rtn) { slot_task_should_end(rtn); });
 
     //
