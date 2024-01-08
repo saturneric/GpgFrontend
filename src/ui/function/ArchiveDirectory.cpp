@@ -80,6 +80,7 @@ auto ArchiveDirectory::Exec(const std::filesystem::path& target_directory)
     GF_UI_LOG_ERROR("archive caught exception error");
     return {false, {}};
   }
+  return {true, {}};
 }
 
 }  // namespace GpgFrontend::UI

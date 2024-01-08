@@ -108,7 +108,8 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
             stream_ << _("Signature Fully Valid.") << std::endl;
           } else {
             stream_ << _("Signature Not Fully Valid.") << std::endl;
-            stream_ << _("(May used a subkey to sign)") << std::endl;
+            stream_ << _("(Adjust Trust Level to make it Fully Vaild)")
+                    << std::endl;
           }
 
           if ((sign->status & GPGME_SIGSUM_KEY_MISSING) == 0U) {

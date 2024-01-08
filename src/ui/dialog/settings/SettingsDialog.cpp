@@ -31,7 +31,6 @@
 #include "core/GpgConstants.h"
 #include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
-#include "ui/dialog/settings/SettingsAdvanced.h"
 #include "ui/dialog/settings/SettingsAppearance.h"
 #include "ui/dialog/settings/SettingsGeneral.h"
 #include "ui/dialog/settings/SettingsKeyServer.h"
@@ -48,9 +47,9 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   key_server_tab_ = new KeyserverTab();
   network_tab_ = new NetworkTab();
 
-  auto* mainLayout = new QVBoxLayout;
-  mainLayout->addWidget(tab_widget_);
-  mainLayout->stretch(0);
+  auto* main_layout = new QVBoxLayout();
+  main_layout->addWidget(tab_widget_);
+  main_layout->stretch(0);
 
   tab_widget_->addTab(general_tab_, _("General"));
   tab_widget_->addTab(appearance_tab_, _("Appearance"));
@@ -73,7 +72,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   setWindowTitle(_("Preference"));
 #endif
 
-  setLayout(mainLayout);
+  setLayout(main_layout);
 
   // slots for handling the restart needed member
   this->slot_set_restart_needed(0);
@@ -89,8 +88,9 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   // restart core and ui
   connect(general_tab_, &GeneralTab::SignalDeepRestartNeeded, this,
           [=](bool needed) {
-            if (needed && restart_needed_ < kDeepRestartCode)
+            if (needed && restart_needed_ < kDeepRestartCode) {
               this->restart_needed_ = kDeepRestartCode;
+            }
           });
 
   // announce main window
@@ -102,7 +102,9 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   this->show();
 }
 
-int SettingsDialog::get_restart_needed() const { return this->restart_needed_; }
+auto SettingsDialog::get_restart_needed() const -> int {
+  return this->restart_needed_;
+}
 
 void SettingsDialog::slot_set_restart_needed(int mode) {
   this->restart_needed_ = mode;
@@ -114,19 +116,17 @@ void SettingsDialog::SlotAccept() {
   key_server_tab_->ApplySettings();
   network_tab_->ApplySettings();
 
-  GF_UI_LOG_DEBUG("apply done");
-
   // write settings to filesystem
   GlobalSettingStation::GetInstance().SyncSettings();
 
   GF_UI_LOG_DEBUG("restart needed: {}", get_restart_needed());
-  if (get_restart_needed()) {
+  if (get_restart_needed() != 0) {
     emit SignalRestartNeeded(get_restart_needed());
   }
   close();
 }
 
-QHash<QString, QString> SettingsDialog::ListLanguages() {
+auto SettingsDialog::ListLanguages() -> QHash<QString, QString> {
   QHash<QString, QString> languages;
 
   languages.insert(QString(), _("System Default"));
@@ -136,21 +136,15 @@ QHash<QString, QString> SettingsDialog::ListLanguages() {
   auto locale_dir = QDir(QString::fromStdString(locale_path.string()));
   QStringList file_names = locale_dir.entryList(QStringList("*"));
 
-  for (int i = 0; i < file_names.size(); ++i) {
-    QString locale = file_names[i];
-    GF_UI_LOG_DEBUG("locale: {}", locale.toStdString());
+  for (const auto& locale : file_names) {
+    GF_UI_LOG_DEBUG("get locale from locale directory: {}",
+                    locale.toStdString());
     if (locale == "." || locale == "..") continue;
 
-    // this works in qt 4.8
-    QLocale q_locale(locale);
+    QLocale const q_locale(locale);
     if (q_locale.nativeCountryName().isEmpty()) continue;
-#if QT_VERSION < 0x040800
-    QString language =
-        QLocale::languageToString(q_locale.language()) + " (" + locale +
-        ")";  //+ " (" + QLocale::languageToString(q_locale.language()) + ")";
-#else
+
     auto language = q_locale.nativeLanguageName() + " (" + locale + ")";
-#endif
     languages.insert(locale, language);
   }
   return languages;

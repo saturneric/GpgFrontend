@@ -40,25 +40,34 @@ Checks: >
   -readability-identifier-length
 
 CheckOptions:
-  - { key: readability-identifier-naming.NamespaceCase,          value: CamelCase  }
-  - { key: readability-identifier-naming.ClassCase,              value: CamelCase  }
-  - { key: readability-identifier-naming.StructCase,             value: CamelCase  }
-  - { key: readability-identifier-naming.TemplateParameterCase,  value: CamelCase  }
-  - { key: readability-identifier-naming.FunctionCase,           value: CamelCase  }
-  - { key: readability-identifier-naming.VariableCase,           value: lower_case }
-  - { key: readability-identifier-naming.PrivateMethodCase,      value: lower_case }
-  - { key: readability-identifier-naming.ProtectedMethodCase,    value: camelBack  }
-  - { key: readability-identifier-naming.PublicMethodCase,       value: CamelCase  }
-  - { key: readability-identifier-naming.PrivateMemberSuffix,    value: _          }
-  - { key: readability-identifier-naming.ProtectedMemberSuffix,  value: _          }
-  - { key: readability-identifier-naming.MacroDefinitionCase,    value: UPPER_CASE }
-  - { key: readability-identifier-naming.EnumConstantCase,       value: UPPER_CASE }
-  - { key: readability-identifier-naming.EnumConstantPrefix,       value: k         }
-  - { key: readability-identifier-naming.ConstexprVariableCase,    value: CamelCase }
-  - { key: readability-identifier-naming.ConstexprVariablePrefix,  value: k         }
-  - { key: readability-identifier-naming.GlobalConstantCase,       value: CamelCase }
-  - { key: readability-identifier-naming.GlobalConstantPrefix,     value: k         }
-  - { key: readability-identifier-naming.MemberConstantCase,       value: CamelCase }
-  - { key: readability-identifier-naming.MemberConstantPrefix,     value: k         }
-  - { key: readability-identifier-naming.StaticConstantCase,       value: CamelCase }
-  - { key: readability-identifier-naming.StaticConstantPrefix,     value: k         }
+  - { key: readability-identifier-naming.NamespaceCase, value: CamelCase }
+  - { key: readability-identifier-naming.ClassCase, value: CamelCase }
+  - { key: readability-identifier-naming.StructCase, value: CamelCase }
+  - {
+      key: readability-identifier-naming.TemplateParameterCase,
+      value: CamelCase,
+    }
+  - { key: readability-identifier-naming.FunctionCase, value: CamelCase }
+  - { key: readability-identifier-naming.VariableCase, value: lower_case }
+  - { key: readability-identifier-naming.PrivateMethodCase, value: lower_case }
+  - { key: readability-identifier-naming.ProtectedMethodCase, value: camelBack }
+  - { key: readability-identifier-naming.PublicMethodCase, value: CamelCase }
+  - { key: readability-identifier-naming.PrivateMemberSuffix, value: _ }
+  - { key: readability-identifier-naming.ProtectedMemberSuffix, value: _ }
+  - {
+      key: readability-identifier-naming.MacroDefinitionCase,
+      value: UPPER_CASE,
+    }
+  - { key: readability-identifier-naming.EnumConstantCase, value: UPPER_CASE }
+  - { key: readability-identifier-naming.EnumConstantPrefix, value: k }
+  - {
+      key: readability-identifier-naming.ConstexprVariableCase,
+      value: CamelCase,
+    }
+  - { key: readability-identifier-naming.ConstexprVariablePrefix, value: k }
+  - { key: readability-identifier-naming.GlobalConstantCase, value: CamelCase }
+  - { key: readability-identifier-naming.GlobalConstantPrefix, value: k }
+  - { key: readability-identifier-naming.MemberConstantCase, value: CamelCase }
+  - { key: readability-identifier-naming.MemberConstantPrefix, value: k }
+  - { key: readability-identifier-naming.StaticConstantCase, value: CamelCase }
+  - { key: readability-identifier-naming.StaticConstantPrefix, value: k }

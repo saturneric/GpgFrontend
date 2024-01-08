@@ -81,20 +81,20 @@ GnuPGInfoGatheringModule::GnuPGInfoGatheringModule()
 
 GnuPGInfoGatheringModule::~GnuPGInfoGatheringModule() = default;
 
-bool GnuPGInfoGatheringModule::Register() {
-  MODULE_LOG_INFO("gnupg info gathering module registering");
+auto GnuPGInfoGatheringModule::Register() -> bool {
+  MODULE_LOG_DEBUG("gnupg info gathering module registering");
   listenEvent("GPGFRONTEND_CORE_INITLIZED");
   return true;
 }
 
-bool GnuPGInfoGatheringModule::Active() {
-  MODULE_LOG_INFO("gnupg info gathering module activating");
+auto GnuPGInfoGatheringModule::Active() -> bool {
+  MODULE_LOG_DEBUG("gnupg info gathering module activating");
   return true;
 }
 
-int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
-  MODULE_LOG_INFO("gnupg info gathering module executing, event id: {}",
-                  event->GetIdentifier());
+auto GnuPGInfoGatheringModule::Exec(EventRefrernce event) -> int {
+  MODULE_LOG_DEBUG("gnupg info gathering module executing, event id: {}",
+                   event->GetIdentifier());
 
   const auto gpgme_version = RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.version", std::string{"0.0.0"});
@@ -145,8 +145,8 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
          component_infos.push_back(c_i_gpgme);
          component_infos.push_back(c_i_gpgconf);
 
-         nlohmann::json jsonlized_gpgme_component_info = c_i_gpgme;
-         nlohmann::json jsonlized_gpgconf_component_info = c_i_gpgconf;
+         nlohmann::json const jsonlized_gpgme_component_info = c_i_gpgme;
+         nlohmann::json const jsonlized_gpgconf_component_info = c_i_gpgconf;
          UpsertRTValue(
              GetModuleIdentifier(), "gnupg.components.gpgme",
              static_cast<std::string>(jsonlized_gpgme_component_info.dump()));
@@ -212,7 +212,7 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
              c_i.binary_checksum =
                  binary_checksum.has_value() ? binary_checksum.value() : "/";
 
-             nlohmann::json jsonlized_component_info = c_i;
+             nlohmann::json const jsonlized_component_info = c_i;
              UpsertRTValue(
                  GetModuleIdentifier(),
                  (boost::format("gnupg.components.%1%") % component_name).str(),
@@ -375,7 +375,7 @@ int GnuPGInfoGatheringModule::Exec(EventRefrernce event) {
             info.argdef = option_argdef;
             info.value = option_value;
 
-            nlohmann::json jsonlized_option_info = info;
+            nlohmann::json const jsonlized_option_info = info;
             UpsertRTValue(
                 GetModuleIdentifier(),
                 (boost::format("gnupg.components.%1%.options.%2%") %

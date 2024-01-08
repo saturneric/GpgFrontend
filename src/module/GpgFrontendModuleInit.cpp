@@ -40,11 +40,11 @@
 
 namespace GpgFrontend::Module {
 
-void LoadGpgFrontendModules(ModuleInitArgs args) {
+void LoadGpgFrontendModules(ModuleInitArgs) {
   // must init at default thread before core
   Thread::TaskRunnerGetter::GetInstance().GetTaskRunner()->PostTask(
       new Thread::Task(
-          [args](const DataObjectPtr&) -> int {
+          [](const DataObjectPtr&) -> int {
             MODULE_LOG_INFO("loading integrated module...");
 
             // VersionCheckingModule

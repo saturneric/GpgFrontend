@@ -110,6 +110,7 @@ void GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
            GF_CORE_LOG_ERROR(
                "gpgconf execute error, process stderr: {}, process stdout: {}",
                p_err, p_out);
+           return;
          }
 
          GF_CORE_LOG_DEBUG("gpgconf --kill --all execute result: {}", success);
@@ -125,18 +126,21 @@ void GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
 
          if (!success) {
            GF_CORE_LOG_ERROR("start gpg agent after core initilized failed");
+           return;
          }
 
          success &= StartDirmngr();
 
          if (!success) {
            GF_CORE_LOG_ERROR("start dirmngr after core initilized failed");
+           return;
          }
 
          success &= StartKeyBoxd();
 
          if (!success) {
            GF_CORE_LOG_ERROR("start keyboxd after core initilized failed");
+           return;
          }
 
          Module::UpsertRTValue(
@@ -198,16 +202,19 @@ auto GpgFrontend::GpgAdvancedOperator::StartGpgAgent() -> bool {
          if (exit_code == 0) {
            success = true;
            GF_CORE_LOG_INFO("start gpg-agent successfully");
-         } else if (exit_code == 2) {
-           success = true;
-           GF_CORE_LOG_INFO("gpg-agent already started");
-         } else {
-           GF_CORE_LOG_ERROR(
-               "gpg-agent execute error, process stderr: {}, process stdout: "
-               "{}",
-               p_err, p_out);
            return;
          }
+
+         if (exit_code == 2) {
+           success = true;
+           GF_CORE_LOG_INFO("gpg-agent already started");
+           return;
+         }
+
+         GF_CORE_LOG_ERROR(
+             "gpg-agent execute error, "
+             "process stderr: {}, process stdout: {}",
+             p_err, p_out);
        }});
 
   return success;
@@ -238,22 +245,25 @@ auto GpgFrontend::GpgAdvancedOperator::StartDirmngr() -> bool {
          if (exit_code == 0) {
            success = true;
            GF_CORE_LOG_INFO("start dirmngr successfully");
-         } else if (exit_code == 2) {
-           success = true;
-           GF_CORE_LOG_INFO("dirmngr already started");
-         } else {
-           GF_CORE_LOG_ERROR(
-               "dirmngr execute error, process stderr: {}, process stdout: {}",
-               p_err, p_out);
            return;
          }
+
+         if (exit_code == 2) {
+           success = true;
+           GF_CORE_LOG_INFO("dirmngr already started");
+           return;
+         }
+
+         GF_CORE_LOG_ERROR(
+             "dirmngr execute error, process stderr: {}, process stdout: {}",
+             p_err, p_out);
        }});
 
   return success;
 }
 
 auto GpgFrontend::GpgAdvancedOperator::StartKeyBoxd() -> bool {
-  bool success = false;
+  auto success = false;
 
   const auto keyboxd_path = Module::RetrieveRTValueTypedOrDefault<>(
       "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
@@ -277,15 +287,18 @@ auto GpgFrontend::GpgAdvancedOperator::StartKeyBoxd() -> bool {
          if (exit_code == 0) {
            success = true;
            GF_CORE_LOG_INFO("start keyboxd successfully");
-         } else if (exit_code == 2) {
-           success = true;
-           GF_CORE_LOG_INFO("keyboxd already started");
-         } else {
-           GF_CORE_LOG_ERROR(
-               "keyboxd execute error, process stderr: {}, process stdout: {}",
-               p_err, p_out);
            return;
          }
+
+         if (exit_code == 2) {
+           success = true;
+           GF_CORE_LOG_INFO("keyboxd already started");
+           return;
+         }
+
+         GF_CORE_LOG_ERROR(
+             "keyboxd execute error, process stderr: {}, process stdout: {}",
+             p_err, p_out);
        }});
 
   return success;

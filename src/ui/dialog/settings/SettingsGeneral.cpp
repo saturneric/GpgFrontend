@@ -48,8 +48,6 @@ GeneralTab::GeneralTab(QWidget* parent)
   ui_->setupUi(this);
 
   ui_->cacheBox->setTitle(_("Cache"));
-  ui_->saveCheckedKeysCheckBox->setText(
-      _("Save checked private keys on exit and restore them on next start."));
   ui_->clearGpgPasswordCacheCheckBox->setText(
       _("Clear gpg password cache when closing GpgFrontend."));
   ui_->restoreTextEditorPageCheckBox->setText(

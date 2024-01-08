@@ -55,15 +55,17 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
 }
 
 void AdvancedTab::SetSettings() {
-  int stegano_checked = GlobalSettingStation::GetInstance().LookupSettings(
-      "advanced.stegano_checked", false);
+  auto const stegano_checked =
+      GlobalSettingStation::GetInstance().LookupSettings(
+          "advanced.stegano_checked", false);
   if (stegano_checked) stegano_check_box_->setCheckState(Qt::Checked);
 
-  int auto_pubkey_exchange_checked =
+  auto const auto_pubkey_exchange_checked =
       GlobalSettingStation::GetInstance().LookupSettings(
           "advanced.auto_pubkey_exchange_checked", false);
-  if (auto_pubkey_exchange_checked)
+  if (auto_pubkey_exchange_checked) {
     auto_pubkey_exchange_check_box_->setCheckState(Qt::Checked);
+  }
 }
 
 void AdvancedTab::ApplySettings() {
@@ -71,23 +73,24 @@ void AdvancedTab::ApplySettings() {
       GpgFrontend::GlobalSettingStation::GetInstance().GetMainSettings();
 
   if (!settings.exists("advanced") ||
-      settings.lookup("advanced").getType() != libconfig::Setting::TypeGroup)
+      settings.lookup("advanced").getType() != libconfig::Setting::TypeGroup) {
     settings.add("advanced", libconfig::Setting::TypeGroup);
+  }
 
   auto& advanced = settings["advanced"];
 
-  if (!advanced.exists("stegano_checked"))
+  if (!advanced.exists("stegano_checked")) {
     advanced.add("stegano_checked", libconfig::Setting::TypeBoolean) =
         stegano_check_box_->isChecked();
-  else {
+  } else {
     advanced["stegano_checked"] = stegano_check_box_->isChecked();
   }
 
-  if (!advanced.exists("auto_pubkey_exchange_checked"))
+  if (!advanced.exists("auto_pubkey_exchange_checked")) {
     advanced.add("auto_pubkey_exchange_checked",
                  libconfig::Setting::TypeBoolean) =
         auto_pubkey_exchange_check_box_->isChecked();
-  else {
+  } else {
     advanced["auto_pubkey_exchange_checked"] =
         auto_pubkey_exchange_check_box_->isChecked();
   }

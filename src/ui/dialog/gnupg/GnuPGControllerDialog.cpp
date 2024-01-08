@@ -279,47 +279,33 @@ void GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label(
 }
 
 void GnuPGControllerDialog::set_settings() {
-  auto& settings = GlobalSettingStation::GetInstance().GetMainSettings();
+  auto& settings_station = GlobalSettingStation::GetInstance();
 
-  try {
-    bool non_ascii_when_export =
-        settings.lookup("general.non_ascii_when_export");
-    GF_UI_LOG_DEBUG("non_ascii_when_export: {}", non_ascii_when_export);
-    if (non_ascii_when_export)
-      ui_->asciiModeCheckBox->setCheckState(Qt::Checked);
-  } catch (...) {
-    GF_UI_LOG_ERROR("setting operation error: non_ascii_when_export");
-  }
+  bool non_ascii_when_export =
+      settings_station.LookupSettings("general.non_ascii_when_export", true);
+  GF_UI_LOG_DEBUG("non_ascii_when_export: {}", non_ascii_when_export);
+  if (non_ascii_when_export) ui_->asciiModeCheckBox->setCheckState(Qt::Checked);
 
-  try {
-    bool use_custom_key_database_path =
-        settings.lookup("general.use_custom_key_database_path");
-    if (use_custom_key_database_path)
-      ui_->keyDatabseUseCustomCheckBox->setCheckState(Qt::Checked);
-  } catch (...) {
-    GF_UI_LOG_ERROR("setting operation error: use_custom_key_database_path");
+  bool const use_custom_key_database_path = settings_station.LookupSettings(
+      "general.use_custom_key_database_path", false);
+  if (use_custom_key_database_path) {
+    ui_->keyDatabseUseCustomCheckBox->setCheckState(Qt::Checked);
   }
 
   this->slot_update_custom_key_database_path_label(
       ui_->keyDatabseUseCustomCheckBox->checkState());
 
-  try {
-    bool use_custom_gnupg_install_path =
-        settings.lookup("general.use_custom_gnupg_install_path");
-    if (use_custom_gnupg_install_path)
-      ui_->useCustomGnuPGInstallPathCheckBox->setCheckState(Qt::Checked);
-  } catch (...) {
-    GF_UI_LOG_ERROR("setting operation error: use_custom_gnupg_install_path");
+  bool const use_custom_gnupg_install_path = settings_station.LookupSettings(
+      "general.use_custom_gnupg_install_path", false);
+  if (use_custom_gnupg_install_path) {
+    ui_->useCustomGnuPGInstallPathCheckBox->setCheckState(Qt::Checked);
   }
 
-  try {
-    bool use_pinentry_as_password_input_dialog =
-        settings.lookup("general.use_pinentry_as_password_input_dialog");
-    if (use_pinentry_as_password_input_dialog)
-      ui_->usePinentryAsPasswordInputDialogCheckBox->setCheckState(Qt::Checked);
-  } catch (...) {
-    GF_UI_LOG_ERROR(
-        "setting operation error: use_pinentry_as_password_input_dialog");
+  bool const use_pinentry_as_password_input_dialog =
+      settings_station.LookupSettings(
+          "general.use_pinentry_as_password_input_dialog", false);
+  if (use_pinentry_as_password_input_dialog) {
+    ui_->usePinentryAsPasswordInputDialogCheckBox->setCheckState(Qt::Checked);
   }
 
   this->slot_update_custom_gnupg_install_path_label(

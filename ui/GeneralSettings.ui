@@ -25,13 +25,6 @@
         <item row="0" column="0">
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
-           <widget class="QCheckBox" name="saveCheckedKeysCheckBox">
-            <property name="text">
-             <string>Save checked keys in Key ToolBox on exit and restore them on next start.</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QCheckBox" name="clearGpgPasswordCacheCheckBox">
             <property name="text">
              <string>Clear gpg password cache when closing GpgFrontend.</string>

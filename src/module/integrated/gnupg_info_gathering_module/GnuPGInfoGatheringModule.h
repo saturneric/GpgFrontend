@@ -41,14 +41,14 @@ class GPGFRONTEND_MODULE_SDK_EXPORT GnuPGInfoGatheringModule : public Module {
  public:
   GnuPGInfoGatheringModule();
 
-  ~GnuPGInfoGatheringModule();
+  ~GnuPGInfoGatheringModule() override;
 
-  virtual bool Register() override;
+  auto Register() -> bool override;
 
-  virtual bool Active() override;
+  auto Active() -> bool override;
 
-  virtual int Exec(EventRefrernce) override;
+  auto Exec(EventRefrernce) -> int override;
 
-  virtual bool Deactive() override;
+  auto Deactive() -> bool override;
 };
 }  // namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule

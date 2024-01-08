@@ -28,7 +28,6 @@
 
 #include "SettingsAppearance.h"
 
-#include "core/function/GlobalSettingStation.h"
 #include "ui/struct/SettingsObject.h"
 #include "ui_AppearanceSettings.h"
 
@@ -76,8 +75,10 @@ AppearanceTab::AppearanceTab(QWidget* parent)
 void AppearanceTab::SetSettings() {
   SettingsObject general_settings_state("general_settings_state");
 
-  int width = general_settings_state.Check("icon_size").Check("width", 24),
-      height = general_settings_state.Check("icon_size").Check("height", 24);
+  int const width =
+      general_settings_state.Check("icon_size").Check("width", 24);
+  int const height =
+      general_settings_state.Check("icon_size").Check("height", 24);
 
   auto icon_size = QSize(width, height);
 
@@ -94,7 +95,7 @@ void AppearanceTab::SetSettings() {
   }
 
   // icon_style
-  int s_icon_style =
+  int const s_icon_style =
       general_settings_state.Check("icon_style", Qt::ToolButtonTextUnderIcon);
   auto icon_style = static_cast<Qt::ToolButtonStyle>(s_icon_style);
 
@@ -112,19 +113,21 @@ void AppearanceTab::SetSettings() {
       break;
   }
 
-  bool window_save = general_settings_state.Check("window_save", true);
+  bool const window_save = general_settings_state.Check("window_save", true);
   if (window_save) ui_->windowStateCheckBox->setCheckState(Qt::Checked);
 
   auto info_board_info_font_size =
       general_settings_state.Check("info_board").Check("font_size", 10);
-  if (info_board_info_font_size < 9 || info_board_info_font_size > 18)
+  if (info_board_info_font_size < 9 || info_board_info_font_size > 18) {
     info_board_info_font_size = 10;
+  }
   ui_->fontSizeInformationBoardSpinBox->setValue(info_board_info_font_size);
 
   auto text_editor_info_font_size =
       general_settings_state.Check("text_editor").Check("font_size", 10);
-  if (text_editor_info_font_size < 9 || text_editor_info_font_size > 18)
+  if (text_editor_info_font_size < 9 || text_editor_info_font_size > 18) {
     text_editor_info_font_size = 10;
+  }
   ui_->fontSizeTextEditorLabelSpinBox->setValue(text_editor_info_font_size);
 }
 

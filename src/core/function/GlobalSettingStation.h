@@ -168,6 +168,26 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
     return value;
   }
 
+  /**
+   * @brief Looks up a setting by path.
+   * @param path The path to the setting.
+   * @param default_value The default value to return if setting is not found.
+   * @return The setting value.
+   */
+  template <typename T>
+  auto SaveSettings(std::string path, libconfig::Setting::Type type,
+                    T value) noexcept -> T {
+    try {
+      if (!GetMainSettings().exists(path)) {
+        // TODO
+        GetMainSettings().add(path, type);
+      }
+    } catch (...) {
+      GF_CORE_LOG_WARN("setting not found: {}", path);
+    }
+    return value;
+  }
+
  private:
   class Impl;
   SecureUniquePtr<Impl> p_;
