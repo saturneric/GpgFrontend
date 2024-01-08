@@ -86,7 +86,7 @@ void InfoBoardWidget::SetInfoBoard(const QString& text,
 
   // info board font size
   auto info_font_size =
-      general_settings_state.Check("text_editor").Check("font_size", 10);
+      general_settings_state.Check("info_board").Check("font_size", 10);
   ui_->infoBoard->setFont(QFont("Times", info_font_size));
 }
 
