@@ -55,14 +55,14 @@ class QuitDialog : public GeneralDialog {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsDiscarded() const;
+  [[nodiscard]] auto IsDiscarded() const -> bool;
 
   /**
    * @brief Get the Tab Ids To Save object
    *
    * @return QList<int>
    */
-  QList<int> GetTabIdsToSave();
+  auto GetTabIdsToSave() -> QList<int>;
 
  private slots:
 

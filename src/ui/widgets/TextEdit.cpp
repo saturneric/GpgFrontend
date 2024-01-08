@@ -361,32 +361,29 @@ bool TextEdit::MaybeSaveAnyTab() {
    * more than one unsaved documents
    */
   if (unsaved_docs.size() > 1) {
-    QHashIterator<int, QString> i(unsaved_docs);
+    QHashIterator<int, QString> const i(unsaved_docs);
 
     QuitDialog* dialog;
-    dialog = new QuitDialog(this, unsaved_docs);
-    int result = dialog->exec();
+    dialog = new QuitDialog(
+        this->parentWidget() != nullptr ? this->parentWidget() : this,
+        unsaved_docs);
+    int const result = dialog->exec();
 
     // if result is QDialog::Rejected, discard or cancel was clicked
     if (result == QDialog::Rejected) {
       // return true, if discard is clicked, so app can be closed
-      if (dialog->IsDiscarded()) {
-        return true;
-      } else {
-        return false;
-      }
-    } else {
-      bool all_saved = true;
-      QList<int> tabIdsToSave = dialog->GetTabIdsToSave();
-
-      for (const auto& tabId : tabIdsToSave) {
-        tab_widget_->setCurrentIndex(tabId);
-        if (!maybe_save_current_tab(false)) {
-          all_saved = false;
-        }
-      }
-      return all_saved;
+      return dialog->IsDiscarded();
     }
+
+    bool all_saved = true;
+    QList<int> const tab_ids_to_save = dialog->GetTabIdsToSave();
+    for (const auto& tab_id : tab_ids_to_save) {
+      tab_widget_->setCurrentIndex(tab_id);
+      if (!maybe_save_current_tab(false)) {
+        all_saved = false;
+      }
+    }
+    return all_saved;
   }
   // code should never reach this statement
   return false;
