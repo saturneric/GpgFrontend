@@ -28,9 +28,6 @@
 
 #include "MainWindow.h"
 #include "core/GpgConstants.h"
-#include "core/function/CoreSignalStation.h"
-#include "core/function/GlobalSettingStation.h"
-#include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/Wizard.h"
 #include "ui/function/RaisePinentry.h"
@@ -66,10 +63,7 @@ void MainWindow::slot_open_file_tab() { edit_->SlotNewFileTab(); }
 void MainWindow::slot_disable_tab_actions(int number) {
   bool disable;
 
-  if (number == -1)
-    disable = true;
-  else
-    disable = false;
+  disable = number == -1;
 
   if (edit_->CurFilePage() != nullptr) {
     disable = true;
@@ -98,7 +92,6 @@ void MainWindow::slot_disable_tab_actions(int number) {
   zoom_in_act_->setDisabled(disable);
   clean_double_line_breaks_act_->setDisabled(disable);
   quote_act_->setDisabled(disable);
-  append_selected_keys_act_->setDisabled(disable);
   import_key_from_edit_act_->setDisabled(disable);
 
   cut_pgp_header_act_->setDisabled(disable);
@@ -111,8 +104,8 @@ void MainWindow::slot_open_settings_dialog() {
   connect(dialog, &SettingsDialog::finished, this, [&]() -> void {
     SettingsObject general_settings_state("general_settings_state");
 
-    int width = general_settings_state.Check("icon_size").Check("width", 24),
-        height = general_settings_state.Check("icon_size").Check("height", 24);
+    int width = general_settings_state.Check("icon_size").Check("width", 24);
+    int height = general_settings_state.Check("icon_size").Check("height", 24);
     GF_UI_LOG_DEBUG("icon_size: {} {}", width, height);
 
     general_settings_state.Check("info_font_size", 10);

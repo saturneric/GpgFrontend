@@ -65,10 +65,6 @@ void MainWindow::slot_find() {
  * Append the selected (not checked!) Key(s) To Textedit
  */
 void MainWindow::slot_append_selected_keys() {
-  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
-    return;
-  }
-
   auto exported = GpgFrontend::SecureCreateSharedObject<ByteArray>();
   auto key_ids = m_key_list_->GetSelected();
 
@@ -81,15 +77,11 @@ void MainWindow::slot_append_selected_keys() {
     QMessageBox::critical(this, _("Error"), _("Key Export Operation Failed."));
     return;
   }
-  edit_->CurTextPage()->GetTextPage()->appendPlainText(
-      QString::fromStdString(*exported));
+
+  edit_->SlotAppendText2CurTextPage(QString::fromStdString(*exported));
 }
 
 void MainWindow::slot_append_keys_create_datetime() {
-  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
-    return;
-  }
-
   auto key_ids = m_key_list_->GetSelected();
 
   if (key_ids->empty()) {
@@ -107,15 +99,11 @@ void MainWindow::slot_append_keys_create_datetime() {
       boost::posix_time::to_iso_extended_string(key.GetCreateTime()) +
       " (UTC) " + "\n";
 
-  edit_->CurTextPage()->GetTextPage()->appendPlainText(
+  edit_->SlotAppendText2CurTextPage(
       QString::fromStdString(create_datetime_format_str));
 }
 
 void MainWindow::slot_append_keys_expire_datetime() {
-  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
-    return;
-  }
-
   auto key_ids = m_key_list_->GetSelected();
 
   if (key_ids->empty()) {
@@ -133,7 +121,7 @@ void MainWindow::slot_append_keys_expire_datetime() {
       boost::posix_time::to_iso_extended_string(key.GetCreateTime()) +
       " (UTC) " + "\n";
 
-  edit_->CurTextPage()->GetTextPage()->appendPlainText(
+  edit_->SlotAppendText2CurTextPage(
       QString::fromStdString(create_datetime_format_str));
 }
 
@@ -150,7 +138,7 @@ void MainWindow::slot_append_keys_fingerprint() {
   auto fingerprint_format_str =
       BeautifyFingerprint(key.GetFingerprint()) + "\n";
 
-  edit_->CurTextPage()->GetTextPage()->appendPlainText(
+  edit_->SlotAppendText2CurTextPage(
       QString::fromStdString(fingerprint_format_str));
 }
 

@@ -282,6 +282,13 @@ class TextEdit : public QWidget {
    */
   void SlotSelectAll() const;
 
+  /**
+   * @brief
+   *
+   * @param text
+   */
+  void SlotAppendText2CurTextPage(const QString& text);
+
  protected:
   /**
    * @brief Saves the content of currentTab to the file filename

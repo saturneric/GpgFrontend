@@ -396,6 +396,11 @@ PlainTextEditorPage* TextEdit::CurTextPage() const {
   return qobject_cast<PlainTextEditorPage*>(tab_widget_->currentWidget());
 }
 
+void TextEdit::SlotAppendText2CurTextPage(const QString& text) {
+  if (CurTextPage() == nullptr) SlotNewTab();
+  CurTextPage()->GetTextPage()->appendPlainText(text);
+}
+
 FilePage* TextEdit::CurFilePage() const {
   auto* curFilePage = qobject_cast<FilePage*>(tab_widget_->currentWidget());
   if (curFilePage != nullptr) {
