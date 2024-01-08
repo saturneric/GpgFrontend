@@ -123,14 +123,6 @@ void GeneralTab::SetSettings() {
   auto& settings = GlobalSettingStation::GetInstance().GetMainSettings();
 
   try {
-    bool save_key_checked = settings.lookup("general.save_key_checked");
-    if (save_key_checked)
-      ui_->saveCheckedKeysCheckBox->setCheckState(Qt::Checked);
-  } catch (...) {
-    GF_UI_LOG_ERROR("setting operation error: save_key_checked");
-  }
-
-  try {
     bool clear_gpg_password_cache =
         settings.lookup("general.clear_gpg_password_cache");
     if (clear_gpg_password_cache)
@@ -206,19 +198,12 @@ void GeneralTab::ApplySettings() {
         ui_->longerKeyExpirationDateCheckBox->isChecked();
   }
 
-  if (!general.exists("save_key_checked"))
-    general.add("save_key_checked", libconfig::Setting::TypeBoolean) =
-        ui_->saveCheckedKeysCheckBox->isChecked();
-  else {
-    general["save_key_checked"] = ui_->saveCheckedKeysCheckBox->isChecked();
-  }
-
   if (!general.exists("clear_gpg_password_cache"))
     general.add("clear_gpg_password_cache", libconfig::Setting::TypeBoolean) =
         ui_->clearGpgPasswordCacheCheckBox->isChecked();
   else {
     general["clear_gpg_password_cache"] =
-        ui_->saveCheckedKeysCheckBox->isChecked();
+        ui_->clearGpgPasswordCacheCheckBox->isChecked();
   }
 
   if (!general.exists("restore_text_editor_page"))

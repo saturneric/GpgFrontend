@@ -208,38 +208,13 @@ void MainWindow::restore_settings() {
 
     auto &general = settings["general"];
 
-    if (!general.exists("save_key_checked")) {
-      general.add("save_key_checked", libconfig::Setting::TypeBoolean) = true;
-    }
-
     if (!general.exists("non_ascii_when_export")) {
       general.add("non_ascii_when_export", libconfig::Setting::TypeBoolean) =
           true;
     }
 
-    bool save_key_checked = true;
-    general.lookupValue("save_key_checked", save_key_checked);
-
     // set appearance
     import_button_->setToolButtonStyle(icon_style_);
-
-    try {
-      GF_UI_LOG_DEBUG("restore settings default_key_checked");
-
-      // Checked Keys
-      SettingsObject default_key_checked("default_key_checked");
-      if (save_key_checked) {
-        auto key_ids_ptr = std::make_unique<KeyIdArgsList>();
-        for (auto &it : default_key_checked) {
-          std::string key_id = it;
-          GF_UI_LOG_DEBUG("get checked key id: {}", key_id);
-          key_ids_ptr->push_back(key_id);
-        }
-        m_key_list_->SetChecked(std::move(key_ids_ptr));
-      }
-    } catch (...) {
-      GF_UI_LOG_ERROR("restore default_key_checked failed");
-    }
 
     prohibit_update_checking_ = false;
     try {
@@ -292,23 +267,6 @@ void MainWindow::recover_editor_unsaved_pages_from_cache() {
 }
 
 void MainWindow::save_settings() {
-  bool save_key_checked = GlobalSettingStation::GetInstance().LookupSettings(
-      "general.save_key_checked", false);
-
-  // keyid-list of private checked keys
-  if (save_key_checked) {
-    auto key_ids_need_to_store = m_key_list_->GetChecked();
-
-    SettingsObject default_key_checked("default_key_checked");
-    default_key_checked.clear();
-
-    for (const auto &key_id : *key_ids_need_to_store)
-      default_key_checked.push_back(key_id);
-  } else {
-    auto &settings = GlobalSettingStation::GetInstance().GetMainSettings();
-    settings["general"].remove("save_key_checked");
-  }
-
   GlobalSettingStation::GetInstance().SyncSettings();
 }
 
