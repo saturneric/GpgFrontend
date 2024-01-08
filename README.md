@@ -186,8 +186,8 @@ Install and compile dependencies.
 
 ```shell
 $ sudo apt-get update
-$ sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
-$ sudo apt-get -y install gcc-8 g++-8 ninja-build
+$ sudo apt-get -y install build-essential binutils git autoconf automake gcc-8 g++-8 ninja-build
+$ sudo apt-get -y install gettext texinfo qt6-base-dev libqt6core5compat6-dev libgpgme-dev
 $ sudo apt-get -y install libconfig++-dev libboost-all-dev libarchive-dev libssl-dev
 $ sudo apt-get -y install gpg # If you need to run directly after building.
 ```
