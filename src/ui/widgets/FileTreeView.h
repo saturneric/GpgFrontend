@@ -33,7 +33,7 @@ namespace GpgFrontend::UI {
 class FileTreeView : public QTreeView {
   Q_OBJECT
  public:
-  explicit FileTreeView(QWidget* parent);
+  explicit FileTreeView(QWidget* parent, const QString& target_path);
 
   /**
    * @brief Get the Current Path object

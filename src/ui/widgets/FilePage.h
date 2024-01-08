@@ -48,7 +48,7 @@ class FilePage : public QWidget {
    *
    * @param parent
    */
-  explicit FilePage(QWidget* parent = nullptr);
+  explicit FilePage(QWidget* parent, const QString&);
 
   /**
    * @brief Get the Selected object

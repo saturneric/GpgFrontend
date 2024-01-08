@@ -106,8 +106,13 @@ void TextEdit::slotNewHelpTab(const QString& title, const QString& path) const {
   tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
 }
 
-void TextEdit::SlotNewFileTab() const {
-  auto* page = new FilePage(qobject_cast<QWidget*>(parent()));
+void TextEdit::SlotNewFileTab() {
+  auto const target_dir = QFileDialog::getExistingDirectory(
+      this, _("Open Directory"), QDir::home().path(),
+      QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+  if (target_dir.isEmpty()) return;
+
+  auto* page = new FilePage(qobject_cast<QWidget*>(parent()), target_dir);
   auto index = tab_widget_->addTab(page, QString());
   tab_widget_->setTabIcon(index, QIcon(":file-browser.png"));
   tab_widget_->setCurrentIndex(tab_widget_->count() - 1);

@@ -171,7 +171,7 @@ class TextEdit : public QWidget {
   /**
    * New File Tab to do file operation
    */
-  void SlotNewFileTab() const;
+  void SlotNewFileTab();
 
   /**
    * @details put a * in front of current tabs title, if current textedit is

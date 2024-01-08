@@ -39,10 +39,10 @@
 
 namespace GpgFrontend::UI {
 
-FilePage::FilePage(QWidget* parent)
+FilePage::FilePage(QWidget* parent, const QString& target_path)
     : QWidget(parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_FilePage>()),
-      file_tree_view_(new FileTreeView(this)) {
+      file_tree_view_(new FileTreeView(this, target_path)) {
   ui_->setupUi(this);
   ui_->trewViewLayout->addWidget(file_tree_view_);
 

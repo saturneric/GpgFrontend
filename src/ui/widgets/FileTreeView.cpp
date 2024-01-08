@@ -33,9 +33,11 @@
 
 namespace GpgFrontend::UI {
 
-FileTreeView::FileTreeView(QWidget* parent) : QTreeView(parent) {
+FileTreeView::FileTreeView(QWidget* parent, const QString& target_path)
+    : QTreeView(parent) {
   dir_model_ = new QFileSystemModel();
-  dir_model_->setRootPath(QDir::currentPath());
+  dir_model_->setRootPath(target_path.isEmpty() ? QDir::currentPath()
+                                                : target_path);
   dir_model_->setFilter(QDir::AllDirs | QDir::Files | QDir::NoDotAndDotDot);
 
   this->setModel(dir_model_);
