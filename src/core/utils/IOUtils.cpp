@@ -217,7 +217,7 @@ auto TargetFilePreCheck(const std::filesystem::path& path, bool read)
     return {false, _("do NOT have permission to read/write file")};
   }
 
-  return {true, _("")};
+  return {true, _("Success")};
 }
 
 auto GetFullExtension(std::filesystem::path path) -> std::string {
