@@ -37,35 +37,41 @@ GpgFrontend::GpgEncryptResultAnalyse::GpgEncryptResultAnalyse(
     : error_(error), result_(result) {}
 
 void GpgFrontend::GpgEncryptResultAnalyse::doAnalyse() {
-  GF_CORE_LOG_DEBUG("start encrypt result analyse");
-
-  stream_ << "[#] " << _("Encrypt Operation") << " ";
+  stream_ << "# " << _("Encrypt Operation") << " ";
 
   if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
-    stream_ << "[" << _("Success") << "]" << std::endl;
+    stream_ << "- " << _("Success") << " " << std::endl;
   } else {
-    stream_ << "[" << _("Failed") << "] " << gpgme_strerror(error_)
+    stream_ << "- " << _("Failed") << ": " << gpgme_strerror(error_)
             << std::endl;
     setStatus(-1);
   }
 
   if ((~status_) == 0) {
-    stream_ << "------------>" << std::endl;
+    stream_ << std::endl;
 
     const auto *result = result_.GetRaw();
+
     if (result != nullptr) {
-      stream_ << _("Invalid Recipients") << ": " << std::endl;
+      stream_ << "## " << _("Invalid Recipients") << ": " << std::endl
+              << std::endl;
+
       auto *inv_reci = result->invalid_recipients;
+      auto index = 0;
+
       while (inv_reci != nullptr) {
-        stream_ << _("Fingerprint") << ": " << inv_reci->fpr << std::endl;
-        stream_ << _("Reason") << ": " << gpgme_strerror(inv_reci->reason)
+        stream_ << "### " << _("Recipients") << " " << ++index << ": "
                 << std::endl;
-        stream_ << std::endl;
+        stream_ << "- " << _("Fingerprint") << ": " << inv_reci->fpr
+                << std::endl;
+        stream_ << "- " << _("Reason") << ": "
+                << gpgme_strerror(inv_reci->reason) << std::endl;
+        stream_ << std::endl << std::endl;
 
         inv_reci = inv_reci->next;
       }
     }
-    stream_ << "<------------" << std::endl;
+    stream_ << std::endl;
   }
 
   stream_ << std::endl;

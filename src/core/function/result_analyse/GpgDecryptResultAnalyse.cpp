@@ -38,38 +38,71 @@ GpgFrontend::GpgDecryptResultAnalyse::GpgDecryptResultAnalyse(
 void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
   auto *result = result_.GetRaw();
 
-  stream_ << "[#] " << _("Decrypt Operation");
+  stream_ << "# " << _("Decrypt Operation") << " ";
 
   if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
-    stream_ << "[" << _("Success") << "]" << std::endl;
+    stream_ << "- " << _("Success") << " " << std::endl;
   } else {
-    stream_ << "[" << _("Failed") << "] " << gpgme_strerror(error_)
+    stream_ << "- " << _("Failed") << ": " << gpgme_strerror(error_)
             << std::endl;
     setStatus(-1);
     if (result != nullptr && result->unsupported_algorithm != nullptr) {
-      stream_ << "------------>" << std::endl;
-      stream_ << _("Unsupported Algo") << ": " << result->unsupported_algorithm
-              << std::endl;
+      stream_ << std::endl;
+      stream_ << "## " << _("Unsupported Algo") << ": "
+              << result->unsupported_algorithm << std::endl;
     }
   }
 
   if (result != nullptr && result->recipients != nullptr) {
-    stream_ << "------------>" << std::endl;
+    stream_ << std::endl;
+
+    stream_ << "## " << _("Gernal State") << ": " << std::endl;
+
     if (result->file_name != nullptr) {
-      stream_ << _("File Name") << ": " << result->file_name << std::endl;
-      stream_ << std::endl;
+      stream_ << "- " << _("File Name") << ": " << result->file_name
+              << std::endl;
     }
-    if (result->is_mime) {
-      stream_ << _("MIME") << ": " << _("true") << std::endl;
+    stream_ << "- " << _("MIME") << ": "
+            << (result->is_mime == 0 ? _("false") : _("true")) << std::endl;
+
+    stream_ << "- " << _("Message Integrity Protection") << ": "
+            << (result->legacy_cipher_nomdc == 0 ? _("true") : _("false"))
+            << std::endl;
+    if (result->legacy_cipher_nomdc == 1) setStatus(0);  /// < unsafe situation
+
+    if (result->symkey_algo != nullptr) {
+      stream_ << "- " << _("Symmetric Encryption Algorithm") << ": "
+              << result->symkey_algo << std::endl;
     }
 
+    if (result->session_key != nullptr) {
+      stream_ << "- " << _("Session Key") << ": " << result->session_key
+              << std::endl;
+    }
+
+    stream_ << "- " << _("German Encryption Standards") << ": "
+            << (result->is_de_vs == 0 ? _("false") : _("true")) << std::endl;
+
+    stream_ << std::endl << std::endl;
+
     auto *recipient = result->recipients;
-    if (recipient != nullptr) stream_ << _("Recipient(s)") << ": " << std::endl;
+    auto index = 0;
+    if (recipient != nullptr) {
+      stream_ << "## " << _("Recipient(s)") << ": " << std::endl << std::endl;
+    }
+
     while (recipient != nullptr) {
+      // check
+      if (recipient->keyid == nullptr) return;
+      stream_ << "### " << _("Recipient") << " [" << ++index << "]: ";
       print_recipient(stream_, recipient);
+      stream_ << std::endl
+              << "---------------------------------------" << std::endl
+              << std::endl;
       recipient = recipient->next;
     }
-    stream_ << "<------------" << std::endl;
+
+    stream_ << std::endl;
   }
 
   stream_ << std::endl;
@@ -77,24 +110,21 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
 
 void GpgFrontend::GpgDecryptResultAnalyse::print_recipient(
     std::stringstream &stream, gpgme_recipient_t recipient) {
-  // check
-  if (recipient->keyid == nullptr) return;
-
-  stream << "  {>} " << _("Recipient") << ": ";
   auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(recipient->keyid);
   if (key.IsGood()) {
-    stream << key.GetName().c_str();
-    if (!key.GetEmail().empty()) {
-      stream << "<" << key.GetEmail().c_str() << ">";
-    }
+    stream << key.GetName();
+    if (!key.GetComment().empty()) stream << "(" << key.GetComment() << ")";
+    if (!key.GetEmail().empty()) stream << "<" << key.GetEmail() << ">";
   } else {
-    stream << "<" << _("Unknown") << ">";
+    stream << "<" << _("unknown") << ">";
     setStatus(0);
   }
 
   stream << std::endl;
 
-  stream << "         " << _("Key ID") << ": " << recipient->keyid << std::endl;
-  stream << "         " << _("Public Key Algo") << ": "
+  stream << "- " << _("Key ID") << ": " << recipient->keyid << std::endl;
+  stream << "- " << _("Public Key Algo") << ": "
          << gpgme_pubkey_algo_name(recipient->pubkey_algo) << std::endl;
+  stream << "- " << _("Status") << ": " << gpgme_strerror(recipient->status)
+         << std::endl;
 }

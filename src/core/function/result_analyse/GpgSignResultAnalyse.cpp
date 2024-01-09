@@ -30,6 +30,7 @@
 
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/utils/LocalizedUtils.h"
 
 namespace GpgFrontend {
 
@@ -39,30 +40,27 @@ GpgSignResultAnalyse::GpgSignResultAnalyse(GpgError error, GpgSignResult result)
 void GpgSignResultAnalyse::doAnalyse() {
   auto *result = this->result_.GetRaw();
 
-  GF_CORE_LOG_DEBUG("start sign result analyse");
-
-  stream_ << "[#] " << _("Sign Operation") << " ";
+  stream_ << "# " << _("Sign Operation") << " ";
 
   if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
-    stream_ << "[" << _("Success") << "]" << std::endl;
+    stream_ << "- " << _("Success") << " " << std::endl;
   } else {
-    stream_ << "[" << _("Failed") << "] " << gpgme_strerror(error_)
+    stream_ << "- " << _("Failed") << " " << gpgme_strerror(error_)
             << std::endl;
     setStatus(-1);
   }
 
   if (result != nullptr &&
       (result->signatures != nullptr || result->invalid_signers != nullptr)) {
-    GF_CORE_LOG_DEBUG("sign result analyse getting result");
-    stream_ << "------------>" << std::endl;
+    stream_ << std::endl;
     auto *new_sign = result->signatures;
+    auto index = 0;
 
     while (new_sign != nullptr) {
-      stream_ << "[>]" << _("New Signature") << ": " << std::endl;
+      stream_ << "## " << _("New Signature") << " [" << ++index
+              << "]: " << std::endl;
 
-      GF_CORE_LOG_DEBUG("signers fingerprint: ", new_sign->fpr);
-
-      stream_ << "    " << _("Sign Mode") << ": ";
+      stream_ << "- " << _("Sign Mode") << ": ";
       if (new_sign->type == GPGME_SIG_MODE_NORMAL) {
         stream_ << _("Normal");
       } else if (new_sign->type == GPGME_SIG_MODE_CLEAR) {
@@ -75,47 +73,53 @@ void GpgSignResultAnalyse::doAnalyse() {
 
       auto singer_key = GpgKeyGetter::GetInstance().GetKey(new_sign->fpr);
       if (singer_key.IsGood()) {
-        stream_ << "    " << _("Signer") << ": "
+        stream_ << "- " << _("Signer") << ": "
                 << singer_key.GetUIDs()->front().GetUID() << std::endl;
       } else {
-        stream_ << "    " << _("Signer") << ": "
+        stream_ << "- " << _("Signer") << ": "
                 << "<unknown>" << std::endl;
       }
-      stream_ << "    " << _("Public Key Algo") << ": "
+      stream_ << "- " << _("Public Key Algo") << ": "
               << gpgme_pubkey_algo_name(new_sign->pubkey_algo) << std::endl;
-      stream_ << "    " << _("Hash Algo") << ": "
+      stream_ << "- " << _("Hash Algo") << ": "
               << gpgme_hash_algo_name(new_sign->hash_algo) << std::endl;
-      stream_ << "    " << _("Date") << "(" << _("UTC") << ")"
+      stream_ << "- " << _("Date") << "(" << _("UTC") << ")"
               << ": "
               << boost::posix_time::to_iso_extended_string(
                      boost::posix_time::from_time_t(new_sign->timestamp))
               << std::endl;
+      stream_ << "- " << _("Date") << "(" << _("Localized") << ")"
+              << ": " << GetFormatedDateByTimestamp(new_sign->timestamp)
+              << std::endl;
 
-      stream_ << std::endl;
+      stream_ << std::endl
+              << "---------------------------------------" << std::endl
+              << std::endl;
 
       new_sign = new_sign->next;
     }
 
-    GF_CORE_LOG_DEBUG("sign result analyse getting invalid signer");
-
     auto *invalid_signer = result->invalid_signers;
+    stream_ << std::endl;
 
     if (invalid_signer != nullptr) {
-      stream_ << _("Invalid Signers") << ": " << std::endl;
+      stream_ << "## " << _("Invalid Signers") << ": " << std::endl;
     }
 
+    index = 0;
     while (invalid_signer != nullptr) {
       setStatus(0);
-      stream_ << "[>] " << _("Signer") << ": " << std::endl;
-      stream_ << "      " << _("Fingerprint") << ": " << invalid_signer->fpr
+      stream_ << "### " << _("Signer") << " [" << ++index << "]: " << std::endl
               << std::endl;
-      stream_ << "      " << _("Reason") << ": "
+      stream_ << "- " << _("Fingerprint") << ": " << invalid_signer->fpr
+              << std::endl;
+      stream_ << "- " << _("Reason") << ": "
               << gpgme_strerror(invalid_signer->reason) << std::endl;
-      stream_ << std::endl;
+      stream_ << "---------------------------------------" << std::endl;
 
       invalid_signer = invalid_signer->next;
     }
-    stream_ << "<------------" << std::endl;
+    stream_ << std::endl;
   }
 }
 

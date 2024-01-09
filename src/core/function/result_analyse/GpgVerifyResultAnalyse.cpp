@@ -31,10 +31,10 @@
 #include <boost/format.hpp>
 
 #include "GpgFrontend.h"
-#include "core/GpgConstants.h"
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/utils/CommonUtils.h"
+#include "core/utils/LocalizedUtils.h"
 
 GpgFrontend::GpgVerifyResultAnalyse::GpgVerifyResultAnalyse(
     GpgError error, GpgVerifyResult result)
@@ -43,35 +43,39 @@ GpgFrontend::GpgVerifyResultAnalyse::GpgVerifyResultAnalyse(
 void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
   auto *result = this->result_.GetRaw();
 
-  GF_CORE_LOG_DEBUG("started");
-
-  stream_ << "[#] " << _("Verify Operation") << " ";
+  stream_ << "# " << _("Verify Operation") << " ";
 
   if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
-    stream_ << "[" << _("Success") << "]" << std::endl;
+    stream_ << " - " << _("Success") << " " << std::endl;
   } else {
-    stream_ << "[" << _("Failed") << "] " << gpgme_strerror(error_)
+    stream_ << " - " << _("Failed") << ": " << gpgme_strerror(error_)
             << std::endl;
     setStatus(-1);
   }
 
   if (result != nullptr && result->signatures != nullptr) {
-    stream_ << "------------>" << std::endl;
+    stream_ << std::endl;
     auto *sign = result->signatures;
 
-    stream_ << "[>] " << _("Signed On") << "(" << _("UTC") << ")"
+    stream_ << "-> " << _("Signed On") << "(" << _("UTC") << ")"
             << " "
             << boost::posix_time::to_iso_extended_string(
                    boost::posix_time::from_time_t(sign->timestamp))
             << std::endl;
 
-    stream_ << std::endl << "[>] " << _("Signatures List") << ":" << std::endl;
+    stream_ << "-> " << _("Signed On") << "(" << _("Localized") << ")"
+            << " " << GetFormatedDateByTimestamp(sign->timestamp) << std::endl;
+
+    stream_ << std::endl << "## " << _("Signatures List") << ":" << std::endl;
+    stream_ << std::endl;
 
     bool can_continue = true;
 
     int count = 1;
     while ((sign != nullptr) && can_continue) {
-      stream_ << boost::format(_("Signature [%1%]:")) % count++ << std::endl;
+      stream_ << "### " << boost::format(_("Signature [%1%]:")) % count++
+              << std::endl;
+      stream_ << "- " << _("Status") << ": ";
       switch (gpg_err_code(sign->status)) {
         case GPG_ERR_BAD_SIGNATURE:
           stream_ << _("A Bad Signature.") << std::endl;
@@ -167,10 +171,10 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
       stream_ << std::endl;
       sign = sign->next;
     }
-    stream_ << "<------------" << std::endl;
+    stream_ << std::endl;
   } else {
     stream_
-        << "[>] "
+        << "-> "
         << _("Could not find information that can be used for verification.")
         << std::endl;
     setStatus(0);
@@ -184,28 +188,31 @@ auto GpgFrontend::GpgVerifyResultAnalyse::print_signer(
   auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(sign->fpr);
 
   if (!key.IsGood()) {
-    stream << "    " << _("Signed By") << ": "
+    stream << "- " << _("Signed By") << ": "
            << "<" << _("Unknown") << ">" << std::endl;
     setStatus(0);
     key_found = false;
   } else {
-    stream << "    " << _("Signed By") << ": "
-           << key.GetUIDs()->front().GetUID() << std::endl;
+    stream << "- " << _("Signed By") << ": " << key.GetUIDs()->front().GetUID()
+           << std::endl;
   }
   if (sign->pubkey_algo != 0U) {
-    stream << "    " << _("Public Key Algo") << ": "
+    stream << "- " << _("Public Key Algo") << ": "
            << gpgme_pubkey_algo_name(sign->pubkey_algo) << std::endl;
   }
   if (sign->hash_algo != 0U) {
-    stream << "    " << _("Hash Algo") << ": "
+    stream << "- " << _("Hash Algo") << ": "
            << gpgme_hash_algo_name(sign->hash_algo) << std::endl;
   }
   if (sign->timestamp != 0U) {
-    stream << "    " << _("Date") << "(" << _("UTC") << ")"
+    stream << "- " << _("Date") << "(" << _("UTC") << ")"
            << ": "
            << boost::posix_time::to_iso_extended_string(
                   boost::posix_time::from_time_t(sign->timestamp))
            << std::endl;
+
+    stream << "- " << _("Date") << "(" << _("Localized") << ")"
+           << ": " << GetFormatedDateByTimestamp(sign->timestamp) << std::endl;
   }
   stream << std::endl;
   return key_found;
