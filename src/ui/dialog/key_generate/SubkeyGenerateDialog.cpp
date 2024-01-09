@@ -38,7 +38,6 @@
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
-#include "ui/dialog/WaitingDialog.h"
 
 namespace GpgFrontend::UI {
 
@@ -65,6 +64,7 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent)
   auto* tipps_label = new QLabel(
       QString(_("Tipps: if the key pair has a passphrase, the subkey's "
                 "passphrase must be equal to it.")));
+  tipps_label->setWordWrap(true);
   group_grid->addWidget(tipps_label);
 
   auto* name_list = new QWidget(this);
@@ -77,6 +77,7 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent)
 
   this->setWindowTitle(_("Generate New Subkey"));
   this->setLayout(vbox2);
+  this->setAttribute(Qt::WA_DeleteOnClose);
   this->setModal(true);
 
   set_signal_slot();
@@ -123,7 +124,7 @@ QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
   no_pass_phrase_check_box_ = new QCheckBox(this);
 
   for (const auto& algo : GenKeyInfo::GetSupportedSubkeyAlgo()) {
-    key_type_combo_box_->addItem(QString::fromStdString(algo.first));
+    key_type_combo_box_->addItem(QString::fromStdString(std::get<0>(algo)));
   }
   if (!GenKeyInfo::GetSupportedSubkeyAlgo().empty()) {
     key_type_combo_box_->setCurrentIndex(0);
@@ -245,10 +246,19 @@ void SubkeyGenerateDialog::refresh_widgets_state() {
     key_usage_check_boxes_[3]->setDisabled(true);
   }
 
-  key_size_spin_box_->setRange(gen_key_info_->GetSuggestMinKeySize(),
-                               gen_key_info_->GetSuggestMaxKeySize());
-  key_size_spin_box_->setValue(gen_key_info_->GetKeyLength());
-  key_size_spin_box_->setSingleStep(gen_key_info_->GetSizeChangeStep());
+  if (gen_key_info_->GetSuggestMinKeySize() == -1 ||
+      gen_key_info_->GetSuggestMaxKeySize() == -1) {
+    key_size_spin_box_->setDisabled(true);
+    key_size_spin_box_->setRange(0, 0);
+    key_size_spin_box_->setValue(0);
+    key_size_spin_box_->setSingleStep(0);
+  } else {
+    key_size_spin_box_->setDisabled(false);
+    key_size_spin_box_->setRange(gen_key_info_->GetSuggestMinKeySize(),
+                                 gen_key_info_->GetSuggestMaxKeySize());
+    key_size_spin_box_->setValue(gen_key_info_->GetKeyLength());
+    key_size_spin_box_->setSingleStep(gen_key_info_->GetSizeChangeStep());
+  }
 }
 
 void SubkeyGenerateDialog::slot_key_gen_accept() {
@@ -296,6 +306,7 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
                 }
               });
         });
+    this->done(0);
 
   } else {
     /**
@@ -349,7 +360,8 @@ void SubkeyGenerateDialog::slot_activated_key_type(int index) {
   // check
   assert(gen_key_info_->GetSupportedSubkeyAlgo().size() >
          static_cast<size_t>(index));
-  gen_key_info_->SetAlgo(gen_key_info_->GetSupportedSubkeyAlgo()[index]);
+  gen_key_info_->SetAlgo(
+      std::get<2>(gen_key_info_->GetSupportedSubkeyAlgo()[index]));
   refresh_widgets_state();
 }
 

@@ -47,7 +47,7 @@ TEST_F(GpgCoreTest, GenerateKeyTest) {
   keygen_info->SetEmail("bar@gpgfrontend.bktus.com");
   keygen_info->SetComment("");
   keygen_info->SetKeyLength(1024);
-  keygen_info->SetAlgo(keygen_info->GetSupportedKeyAlgo()[0]);
+  keygen_info->SetAlgo(std::get<1>(keygen_info->GetSupportedKeyAlgo()[0]));
   keygen_info->SetNonExpired(true);
   keygen_info->SetNonPassPhrase(true);
 
@@ -89,7 +89,7 @@ TEST_F(GpgCoreTest, GenerateKeyTest_1) {
   keygen_info->SetName("foo_1");
   keygen_info->SetEmail("bar@gpgfrontend.bktus.com");
   keygen_info->SetComment("hello gpgfrontend");
-  keygen_info->SetAlgo(keygen_info->GetSupportedKeyAlgo()[0]);
+  keygen_info->SetAlgo(std::get<1>(keygen_info->GetSupportedKeyAlgo()[0]));
   keygen_info->SetKeyLength(4096);
   keygen_info->SetNonExpired(false);
   keygen_info->SetExpireTime(boost::posix_time::second_clock::local_time() +
@@ -134,7 +134,7 @@ TEST_F(GpgCoreTest, GenerateKeyTest_4) {
   keygen_info->SetName("foo_2");
   keygen_info->SetEmail("bar@gpgfrontend.bktus.com");
   keygen_info->SetComment("");
-  keygen_info->SetAlgo(keygen_info->GetSupportedKeyAlgo()[1]);
+  keygen_info->SetAlgo(std::get<1>(keygen_info->GetSupportedKeyAlgo()[1]));
   keygen_info->SetNonExpired(true);
   keygen_info->SetNonPassPhrase(false);
 
@@ -173,7 +173,7 @@ TEST_F(GpgCoreTest, GenerateKeyTest_5) {
   keygen_info->SetName("foo_3");
   keygen_info->SetEmail("bar@gpgfrontend.bktus.com");
   keygen_info->SetComment("");
-  keygen_info->SetAlgo(keygen_info->GetSupportedKeyAlgo()[2]);
+  keygen_info->SetAlgo(std::get<1>(keygen_info->GetSupportedKeyAlgo()[2]));
   keygen_info->SetNonExpired(true);
   keygen_info->SetNonPassPhrase(false);
 

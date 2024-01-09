@@ -42,7 +42,7 @@ GpgGenerateKeyResult::GpgGenerateKeyResult(gpgme_genkey_result_t r)
 
 auto GpgGenerateKeyResult::IsGood() -> bool { return result_ref_ != nullptr; }
 
-auto GpgGenerateKeyResult::GetFingerprint() -> std::string {
+auto GpgGenerateKeyResult::GetFingerprint() -> std::string const {
   return result_ref_->fpr;
 }
 

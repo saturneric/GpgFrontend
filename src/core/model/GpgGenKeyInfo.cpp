@@ -36,43 +36,10 @@
 
 namespace GpgFrontend {
 
-void GenKeyInfo::SetAlgo(const GenKeyInfo::KeyGenAlgo &m_algo) {
-  GF_CORE_LOG_DEBUG("set algo name: {}", m_algo.first);
-  // Check algo if supported
-  std::string algo_args = m_algo.second;
-  if (standalone_) {
-    if (!subkey_) {
-      auto support_algo = GetSupportedKeyAlgoStandalone();
-      auto algo_it = std::find_if(
-          support_algo.begin(), support_algo.end(),
-          [=](const KeyGenAlgo &o) { return o.second == algo_args; });
-      // Algo Not Supported
-      if (algo_it == support_algo.end()) return;
-    } else {
-      auto support_algo = GetSupportedSubkeyAlgoStandalone();
-      auto algo_it = std::find_if(
-          support_algo.begin(), support_algo.end(),
-          [=](const KeyGenAlgo &o) { return o.second == algo_args; });
-      // Algo Not Supported
-      if (algo_it == support_algo.end()) return;
-    }
-  } else {
-    if (!subkey_) {
-      auto support_algo = GetSupportedKeyAlgo();
-      auto algo_it = std::find_if(
-          support_algo.begin(), support_algo.end(),
-          [=](const KeyGenAlgo &o) { return o.second == algo_args; });
-      // Algo Not Supported
-      if (algo_it == support_algo.end()) return;
-    } else {
-      auto support_algo = GetSupportedSubkeyAlgo();
-      auto algo_it = std::find_if(
-          support_algo.begin(), support_algo.end(),
-          [=](const KeyGenAlgo &o) { return o.second == algo_args; });
-      // Algo Not Supported
-      if (algo_it == support_algo.end()) return;
-    }
-  }
+void GenKeyInfo::SetAlgo(const std::string &t_algo_args) {
+  auto algo_args = t_algo_args;
+  boost::algorithm::to_lower(algo_args);
+  GF_CORE_LOG_DEBUG("set algo args: {}", algo_args);
 
   // reset all options
   reset_options();
@@ -84,8 +51,6 @@ void GenKeyInfo::SetAlgo(const GenKeyInfo::KeyGenAlgo &m_algo) {
   }
 
   this->allow_change_certification_ = false;
-
-  if (!standalone_) boost::algorithm::to_lower(algo_args);
 
   if (algo_args == "rsa") {
     /**
@@ -125,22 +90,10 @@ void GenKeyInfo::SetAlgo(const GenKeyInfo::KeyGenAlgo &m_algo) {
     suggest_max_key_size_ = -1;
     suggest_size_addition_step_ = -1;
     SetKeyLength(-1);
-  } else if (algo_args == "cv25519") {
-    SetAllowAuthentication(false);
-    allow_change_authentication_ = false;
-
-    SetAllowSigning(false);
-    allow_change_signing_ = false;
-
-    SetAllowCertification(false);
-    allow_change_certification_ = false;
-
-    suggest_min_key_size_ = 1024;
-    suggest_max_key_size_ = 4096;
-    suggest_size_addition_step_ = 1024;
-    SetKeyLength(2048);
-  } else if (algo_args == "nistp256" || algo_args == "nistp384" ||
-             algo_args == "nistp521") {
+  } else if (algo_args == "cv25519" || algo_args == "nistp256" ||
+             algo_args == "nistp384" || algo_args == "nistp521" ||
+             algo_args == "brainpoolp256r1" || algo_args == "brainpoolp384r1" ||
+             algo_args == "brainpoolp512r1") {
     SetAllowAuthentication(false);
     allow_change_authentication_ = false;
 
@@ -154,20 +107,9 @@ void GenKeyInfo::SetAlgo(const GenKeyInfo::KeyGenAlgo &m_algo) {
     suggest_max_key_size_ = -1;
     suggest_size_addition_step_ = -1;
     SetKeyLength(-1);
-  } else if (algo_args == "brainpoolp256r1") {
-    SetAllowAuthentication(false);
-    allow_change_authentication_ = false;
-
-    SetAllowSigning(false);
-    allow_change_signing_ = false;
-
-    SetAllowCertification(false);
-    allow_change_certification_ = false;
-
-    suggest_min_key_size_ = -1;
-    suggest_max_key_size_ = -1;
-    suggest_size_addition_step_ = -1;
-    SetKeyLength(-1);
+  } else {
+    SPDLOG_ERROR("unsupported gen key algo arguments: {}", algo_args);
+    return;
   }
 
   this->algo_ = algo_args;
@@ -227,18 +169,20 @@ void GenKeyInfo::SetAllowCertification(bool m_allow_certification) {
   }
 }
 
-GenKeyInfo::GenKeyInfo(bool m_is_sub_key, bool m_standalone)
-    : standalone_(m_standalone), subkey_(m_is_sub_key) {
+GenKeyInfo::GenKeyInfo(bool m_is_sub_key) : subkey_(m_is_sub_key) {
   assert(!GetSupportedKeyAlgo().empty());
-  SetAlgo(GetSupportedKeyAlgo()[0]);
+  SetAlgo(std::get<0>(GetSupportedKeyAlgo()[0]));
 }
 
 auto GenKeyInfo::GetSupportedKeyAlgo()
     -> const std::vector<GenKeyInfo::KeyGenAlgo> & {
   static const std::vector<GenKeyInfo::KeyGenAlgo> kSupportKeyAlgo = {
-      {"RSA", "RSA"},
-      {"DSA", "DSA"},
-      {"ECDSA", "ED25519"},
+      {"RSA", "RSA", ""},
+      {"DSA", "DSA", ""},
+      {"ECDSA", "ED25519", ""},
+      {"ECDSA + ECDH", "ED25519", "CV25519"},
+      {"ECDSA + ECDH NIST P-256", "ED25519", "NISTP256"},
+      {"ECDSA + ECDH BrainPool P-256", "ED25519", "BRAINPOOlP256R1"},
   };
   return kSupportKeyAlgo;
 }
@@ -246,35 +190,18 @@ auto GenKeyInfo::GetSupportedKeyAlgo()
 auto GenKeyInfo::GetSupportedSubkeyAlgo()
     -> const std::vector<GenKeyInfo::KeyGenAlgo> & {
   static const std::vector<GenKeyInfo::KeyGenAlgo> kSupportSubkeyAlgo = {
-      {"RSA", "RSA"},
-      {"DSA", "DSA"},
-      {"ECDSA", "ED25519"},
-      {"ECDH NIST P-256", "NISTP256"},
-      {"ECDH NIST P-384", "NISTP384"},
-      {"ECDH NIST P-521", "NISTP521"},
-      // {"ECDH BrainPool P-256", "BRAINPOOlP256R1"}
-  };
+      {"RSA", "", "RSA"},
+      {"DSA", "", "DSA"},
+      {"ECDSA", "", "ED25519"},
+      {"ECDH", "", "CV25519"},
+      {"ECDH NIST P-256", "", "NISTP256"},
+      {"ECDH NIST P-384", "", "NISTP384"},
+      {"ECDH NIST P-521", "", "NISTP521"},
+      {"ECDH BrainPool P-256", "", "BRAINPOOlP256R1"},
+      {"ECDH BrainPool P-384", "", "BRAINPOOlP384R1"},
+      {"ECDH BrainPool P-512", "", "BRAINPOOlP512R1"}};
+
   return kSupportSubkeyAlgo;
-}
-
-auto GenKeyInfo::GetSupportedKeyAlgoStandalone()
-    -> const std::vector<GenKeyInfo::KeyGenAlgo> & {
-  static const std::vector<GenKeyInfo::KeyGenAlgo>
-      kSupportSubkeyAlgoStandalone = {
-          {"RSA", "RSA"},
-          {"DSA", "DSA"},
-      };
-  return kSupportSubkeyAlgoStandalone;
-}
-
-auto GenKeyInfo::GetSupportedSubkeyAlgoStandalone()
-    -> const std::vector<GenKeyInfo::KeyGenAlgo> & {
-  static const std::vector<GenKeyInfo::KeyGenAlgo>
-      kSupportSubkeyAlgoStandalone = {
-          {"RSA", "RSA"},
-          {"DSA", "DSA"},
-      };
-  return kSupportSubkeyAlgoStandalone;
 }
 
 /**

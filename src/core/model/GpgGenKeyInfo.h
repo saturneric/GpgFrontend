@@ -34,7 +34,7 @@ namespace GpgFrontend {
 
 class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
  public:
-  using KeyGenAlgo = std::pair<std::string, std::string>;
+  using KeyGenAlgo = std::tuple<std::string, std::string, std::string>;
 
   /**
    * @brief Construct a new Gen Key Info object
@@ -42,7 +42,7 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    * @param m_is_sub_key
    * @param m_standalone
    */
-  explicit GenKeyInfo(bool m_is_sub_key = false, bool m_standalone = false);
+  explicit GenKeyInfo(bool m_is_sub_key = false);
 
   /**
    * @brief Get the Supported Key Algo object
@@ -57,22 +57,6 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    * @return const std::vector<std::string>&
    */
   static auto GetSupportedSubkeyAlgo() -> const std::vector<KeyGenAlgo> &;
-
-  /**
-   * @brief Get the Supported Key Algo Standalone object
-   *
-   * @return const std::vector<std::string>&
-   */
-  static auto GetSupportedKeyAlgoStandalone()
-      -> const std::vector<KeyGenAlgo> &;
-
-  /**
-   * @brief Get the Supported Subkey Algo Standalone object
-   *
-   * @return const std::vector<std::string>&
-   */
-  static auto GetSupportedSubkeyAlgoStandalone()
-      -> const std::vector<KeyGenAlgo> &;
 
   /**
    * @brief
@@ -150,7 +134,7 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    *
    * @param m_algo
    */
-  void SetAlgo(const GenKeyInfo::KeyGenAlgo &m_algo);
+  void SetAlgo(const std::string &);
 
   /**
    * @brief Get the Key Size Str object
@@ -353,11 +337,10 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
   [[nodiscard]] auto GetSizeChangeStep() const -> int;
 
  private:
-  bool standalone_ = false;  ///<
-  bool subkey_ = false;      ///<
-  std::string name_;         ///<
-  std::string email_;        ///<
-  std::string comment_;      ///<
+  bool subkey_ = false;  ///<
+  std::string name_;     ///<
+  std::string email_;    ///<
+  std::string comment_;  ///<
 
   std::string algo_;  ///<
   int key_size_ = 2048;

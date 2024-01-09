@@ -89,9 +89,13 @@ class KeyGenDialog : public GeneralDialog {
    */
   QStringList error_messages_;  ///< List of errors occurring when checking
                                 ///< entries of line edits
+
   std::shared_ptr<GenKeyInfo> gen_key_info_ =
       SecureCreateSharedObject<GenKeyInfo>();  ///<
-  QDialogButtonBox* button_box_;               ///< Box for standard buttons
+  std::shared_ptr<GenKeyInfo> gen_subkey_info_ =
+      SecureCreateSharedObject<GenKeyInfo>();  ///<
+
+  QDialogButtonBox* button_box_;     ///< Box for standard buttons
   QLabel* error_label_{};            ///< Label containing error message
   QLineEdit* name_edit_{};           ///< Line edit for the keys name
   QLineEdit* email_edit_{};          ///< Line edit for the keys email
