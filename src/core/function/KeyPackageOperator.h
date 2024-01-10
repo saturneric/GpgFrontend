@@ -67,10 +67,10 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    * @return true if key package was generated
    * @return false if key package was not generated
    */
-  static auto GenerateKeyPackage(const std::filesystem::path &key_package_path,
+  static void GenerateKeyPackage(const std::filesystem::path &key_package_path,
                                  const std::string &key_package_name,
-                                 KeyIdArgsListPtr &key_ids, std::string &phrase,
-                                 bool secret) -> bool;
+                                 const KeyArgsList &keys, std::string &phrase,
+                                 bool secret, const OperationCallback &cb);
 
   /**
    * @brief import key package

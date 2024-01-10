@@ -30,6 +30,7 @@
 
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/gpg/GpgContext.h"
+#include "core/model/GFBuffer.h"
 #include "core/typedef/CoreTypedef.h"
 #include "core/typedef/GpgTypedef.h"
 
@@ -105,48 +106,26 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
   /**
    * @brief
    *
-   * @param uid_list
-   * @param out_buffer
-   * @param secret
-   * @return true
-   * @return false
-   */
-  auto ExportKeys(KeyIdArgsListPtr& uid_list, ByteArrayPtr& out_buffer,
-                  bool secret = false) const -> bool;
-
-  /**
-   * @brief
-   *
-   * @param keys
-   * @param outBuffer
-   * @param secret
-   * @return true
-   * @return false
-   */
-  auto ExportKeys(const KeyArgsList& keys, ByteArrayPtr& outBuffer,
-                  bool secret = false) const -> bool;
-
-  /**
-   * @brief
-   *
-   * @param keys
-   * @param outBuffer
-   * @param secret
-   * @return true
-   * @return false
-   */
-  auto ExportAllKeys(KeyIdArgsListPtr& uid_list, ByteArrayPtr& out_buffer,
-                     bool secret) const -> bool;
-
-  /**
-   * @brief
-   *
    * @param key
-   * @param out_buffer
+   * @param secret
+   * @param ascii
+   * @return std::tuple<GpgError, GFBuffer>
+   */
+  [[nodiscard]] auto ExportKey(const GpgKey& key, bool secret, bool ascii,
+                               bool shortest) const
+      -> std::tuple<GpgError, GFBuffer>;
+
+  /**
+   * @brief
+   *
+   * @param keys
+   * @param outBuffer
+   * @param secret
    * @return true
    * @return false
    */
-  auto ExportKey(const GpgKey& key, ByteArrayPtr& out_buffer) const -> bool;
+  void ExportKeys(const KeyArgsList& keys, bool secret, bool ascii,
+                  const GpgOperationCallback& cb) const;
 
   /**
    * @brief
@@ -157,28 +136,6 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
    * @return false
    */
   auto ExportKeyOpenSSH(const GpgKey& key, ByteArrayPtr& out_buffer) const
-      -> bool;
-
-  /**
-   * @brief
-   *
-   * @param key
-   * @param outBuffer
-   * @return true
-   * @return false
-   */
-  auto ExportSecretKey(const GpgKey& key, ByteArrayPtr& outBuffer) const
-      -> bool;
-
-  /**
-   * @brief
-   *
-   * @param key
-   * @param outBuffer
-   * @return true
-   * @return false
-   */
-  auto ExportSecretKeyShortest(const GpgKey& key, ByteArrayPtr& outBuffer) const
       -> bool;
 
  private:

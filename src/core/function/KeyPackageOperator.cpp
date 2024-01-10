@@ -37,6 +37,7 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/typedef/CoreTypedef.h"
+#include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 
 namespace GpgFrontend {
@@ -48,36 +49,46 @@ auto KeyPackageOperator::GeneratePassphrase(
   return WriteFileStd(phrase_path, phrase);
 }
 
-auto KeyPackageOperator::GenerateKeyPackage(
+void KeyPackageOperator::GenerateKeyPackage(
     const std::filesystem::path& key_package_path,
-    const std::string& key_package_name, KeyIdArgsListPtr& key_ids,
-    std::string& phrase, bool secret) -> bool {
+    const std::string& key_package_name, const KeyArgsList& keys,
+    std::string& phrase, bool secret, const OperationCallback& cb) {
   GF_CORE_LOG_DEBUG("generating key package: {}", key_package_name);
 
-  ByteArrayPtr key_export_data = nullptr;
-  if (!GpgKeyImportExporter::GetInstance().ExportAllKeys(
-          key_ids, key_export_data, secret)) {
-    GF_CORE_LOG_ERROR("failed to export keys");
-    return false;
-  }
+  GpgKeyImportExporter::GetInstance().ExportKeys(
+      keys, secret, true, [=](GpgError err, const DataObjectPtr& data_obj) {
+        if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+          GF_LOG_ERROR("export keys error, reason: {}",
+                       DescribeGpgErrCode(err).second);
+          cb(-1, data_obj);
+          return;
+        }
 
-  auto key = QByteArray::fromStdString(phrase);
-  auto data = QString::fromStdString(*key_export_data).toLocal8Bit().toBase64();
+        if (data_obj == nullptr || !data_obj->Check<GFBuffer>()) {
+          throw std::runtime_error("data object doesn't pass checking");
+        }
 
-  auto hash_key = QCryptographicHash::hash(key, QCryptographicHash::Sha256);
-  QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
-                            QAESEncryption::Padding::ISO);
-  auto encoded = encryption.encode(data, hash_key);
+        auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
+        auto key = QByteArray::fromStdString(phrase);
+        auto data = gf_buffer.ConvertToQByteArray().toBase64();
+        auto hash_key =
+            QCryptographicHash::hash(key, QCryptographicHash::Sha256);
+        QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
+                                  QAESEncryption::Padding::ISO);
+        auto encoded_data = encryption.encode(data, hash_key);
+        GF_CORE_LOG_DEBUG("writing key package, name: {}", key_package_name);
 
-  GF_CORE_LOG_DEBUG("writing key package: {}", key_package_name);
-  return WriteFileStd(key_package_path, encoded.toStdString());
+        cb(WriteFileStd(key_package_path, encoded_data.toStdString()) ? 0 : -1,
+           TransferParams());
+        return;
+      });
 }
 
 auto KeyPackageOperator::ImportKeyPackage(
     const std::filesystem::path& key_package_path,
     const std::filesystem::path& phrase_path, GpgImportInformation& import_info)
     -> bool {
-  GF_CORE_LOG_DEBUG("importing key package: {]", key_package_path.u8string());
+  GF_CORE_LOG_DEBUG("importing key package: {}", key_package_path.u8string());
 
   std::string encrypted_data;
   ReadFileStd(key_package_path, encrypted_data);

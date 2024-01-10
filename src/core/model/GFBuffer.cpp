@@ -68,16 +68,21 @@ auto GFBuffer::operator==(const GFBuffer& o) const -> bool {
   return equal(buffer_->begin(), buffer_->end(), o.buffer_->begin());
 }
 
-auto GFBuffer::Data() -> std::byte* { return buffer_->data(); }
+auto GFBuffer::Data() const -> std::byte* { return buffer_->data(); }
 
 void GFBuffer::Resize(size_t size) { buffer_->resize(size); }
 
 auto GFBuffer::Size() const -> size_t { return buffer_->size(); }
 
-auto GFBuffer::ConvertToQByteArray() -> QByteArray {
+auto GFBuffer::ConvertToQByteArray() const -> QByteArray {
   return QByteArray::fromRawData(reinterpret_cast<const char*>(Data()),
                                  static_cast<qsizetype>(Size()));
 }
 
 auto GFBuffer::Empty() const -> bool { return this->Size() == 0; }
+
+auto GFBuffer::ConvertToStdString() const -> std::string {
+  return {reinterpret_cast<const char*>(buffer_->data()), buffer_->size()};
+}
+
 }  // namespace GpgFrontend

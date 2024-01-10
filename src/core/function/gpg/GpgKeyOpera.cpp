@@ -207,7 +207,7 @@ void GpgKeyOpera::GenerateKey(const std::shared_ptr<GenKeyInfo>& params,
 
         return CheckGpgError(err);
       },
-      callback, "gpgme_op_passwd", "2.1.0");
+      callback, "gpgme_op_createkey", "2.1.0");
 }
 
 /**
@@ -252,6 +252,97 @@ void GpgKeyOpera::GenerateSubkey(const GpgKey& key,
         return CheckGpgError(err);
       },
       callback, "gpgme_op_createsubkey", "2.1.13");
+}
+
+void GpgKeyOpera::GenerateKeyWithSubkey(
+    const std::shared_ptr<GenKeyInfo>& params,
+    const std::shared_ptr<GenKeyInfo>& subkey_params,
+    const GpgOperationCallback& callback) {
+  RunGpgOperaAsync(
+      [&ctx = ctx_, params,
+       subkey_params](const DataObjectPtr& data_object) -> GpgError {
+        auto userid_utf8 = params->GetUserid();
+        const char* userid = userid_utf8.c_str();
+        auto algo_utf8 = params->GetAlgo() + params->GetKeySizeStr();
+
+        const char* algo = algo_utf8.c_str();
+        unsigned long expires = 0;
+        expires = to_time_t(boost::posix_time::ptime(params->GetExpireTime())) -
+                  std::chrono::system_clock::to_time_t(
+                      std::chrono ::system_clock::now());
+
+        GpgError err;
+        unsigned int flags = 0;
+
+        if (!params->IsSubKey()) flags |= GPGME_CREATE_CERT;
+        if (params->IsAllowEncryption()) flags |= GPGME_CREATE_ENCR;
+        if (params->IsAllowSigning()) flags |= GPGME_CREATE_SIGN;
+        if (params->IsAllowAuthentication()) flags |= GPGME_CREATE_AUTH;
+        if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
+        if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
+
+        GF_CORE_LOG_DEBUG("key generation args: {}", userid, algo, expires,
+                          flags);
+        err = gpgme_op_createkey(ctx.DefaultContext(), userid, algo, 0, expires,
+                                 nullptr, flags);
+
+        if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+          data_object->Swap({GpgGenerateKeyResult{}});
+          return err;
+        }
+
+        auto genkey_result =
+            GpgGenerateKeyResult{gpgme_op_genkey_result(ctx.DefaultContext())};
+
+        auto key =
+            GpgKeyGetter::GetInstance().GetKey(genkey_result.GetFingerprint());
+        if (!key.IsGood()) {
+          GF_CORE_LOG_ERROR("cannot get key which has been generate, fpr: {}",
+                            genkey_result.GetFingerprint());
+          return err;
+        }
+
+        if (subkey_params == nullptr || !subkey_params->IsSubKey()) return err;
+
+        GF_CORE_LOG_DEBUG(
+            "try to generate subkey of key: {}, algo {} key size {}",
+            key.GetId(), subkey_params->GetAlgo(),
+            subkey_params->GetKeySizeStr());
+
+        algo_utf8 = (subkey_params->GetAlgo() + subkey_params->GetKeySizeStr());
+        algo = algo_utf8.c_str();
+        expires = 0;
+
+        expires = to_time_t(boost::posix_time::ptime(
+                      subkey_params->GetExpireTime())) -
+                  std::chrono::system_clock::to_time_t(
+                      std::chrono::system_clock::now());
+
+        flags = 0;
+        if (subkey_params->IsAllowEncryption()) flags |= GPGME_CREATE_ENCR;
+        if (subkey_params->IsAllowSigning()) flags |= GPGME_CREATE_SIGN;
+        if (subkey_params->IsAllowAuthentication()) flags |= GPGME_CREATE_AUTH;
+        if (subkey_params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
+        if (subkey_params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
+
+        GF_CORE_LOG_DEBUG("subkey generation args: {} {} {} {}", key.GetId(),
+                          algo, expires, flags);
+
+        err = gpgme_op_createsubkey(ctx.DefaultContext(),
+                                    static_cast<gpgme_key_t>(key), algo, 0,
+                                    expires, flags);
+
+        if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+          data_object->Swap(
+              {genkey_result, GpgGenerateKeyResult{gpgme_op_genkey_result(
+                                  ctx.DefaultContext())}});
+        } else {
+          data_object->Swap({genkey_result, GpgGenerateKeyResult{}});
+        }
+
+        return CheckGpgError(err);
+      },
+      callback, "gpgme_op_createkey&gpgme_op_createsubkey", "2.1.0");
 }
 
 void GpgKeyOpera::ModifyPassword(const GpgKey& key,

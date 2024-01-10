@@ -131,6 +131,17 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
                       const std::shared_ptr<GenKeyInfo>& params,
                       const GpgOperationCallback&);
 
+  /**
+   * @brief
+   *
+   * @param params
+   * @param subkey_params
+   * @param callback
+   */
+  void GenerateKeyWithSubkey(const std::shared_ptr<GenKeyInfo>& params,
+                             const std::shared_ptr<GenKeyInfo>& subkey_params,
+                             const GpgOperationCallback& callback);
+
  private:
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
