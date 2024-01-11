@@ -155,26 +155,25 @@ void KeyPairOperaTab::CreateOperaMenu() {
 
   secret_key_export_opera_menu_ = new QMenu(this);
 
-  auto* exportFullSecretKey = new QAction(_("Export Full Secret Key"), this);
-  connect(exportFullSecretKey, &QAction::triggered, this,
+  auto* export_full_secret_key = new QAction(_("Export Full Secret Key"), this);
+  connect(export_full_secret_key, &QAction::triggered, this,
           &KeyPairOperaTab::slot_export_private_key);
-  if (!m_key_.IsPrivateKey()) exportFullSecretKey->setDisabled(true);
+  if (!m_key_.IsPrivateKey()) export_full_secret_key->setDisabled(true);
 
-  auto* exportShortestSecretKey =
+  auto* export_shortest_secret_key =
       new QAction(_("Export Shortest Secret Key"), this);
-  connect(exportShortestSecretKey, &QAction::triggered, this,
+  connect(export_shortest_secret_key, &QAction::triggered, this,
           &KeyPairOperaTab::slot_export_short_private_key);
 
-  secret_key_export_opera_menu_->addAction(exportFullSecretKey);
-  secret_key_export_opera_menu_->addAction(exportShortestSecretKey);
+  secret_key_export_opera_menu_->addAction(export_full_secret_key);
+  secret_key_export_opera_menu_->addAction(export_shortest_secret_key);
 }
 
 void KeyPairOperaTab::slot_export_public_key() {
-  ByteArrayPtr keyArray = nullptr;
-
-  if (!GpgKeyImportExporter::GetInstance().ExportKey(m_key_, keyArray)) {
-    QMessageBox::critical(this, _("Error"),
-                          _("An error occurred during the export operation."));
+  auto [err, gf_buffer] =
+      GpgKeyImportExporter::GetInstance().ExportKey(m_key_, false, true, false);
+  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+    CommonUtils::RaiseMessageBox(this, err);
     return;
   }
 
@@ -196,7 +195,7 @@ void KeyPairOperaTab::slot_export_public_key() {
 
   if (file_name.empty()) return;
 
-  if (!WriteBufferToFile(file_name, *keyArray)) {
+  if (!WriteFileGFBuffer(file_name, gf_buffer)) {
     QMessageBox::critical(
         this, _("Export Error"),
         QString(_("Couldn't open %1 for writing")).arg(file_name.c_str()));
@@ -220,13 +219,10 @@ void KeyPairOperaTab::slot_export_short_private_key() {
 
   // export key, if ok was clicked
   if (ret == QMessageBox::Ok) {
-    ByteArrayPtr keyArray = nullptr;
-
-    if (!GpgKeyImportExporter::GetInstance().ExportSecretKeyShortest(
-            m_key_, keyArray)) {
-      QMessageBox::critical(
-          this, _("Error"),
-          _("An error occurred during the export operation."));
+    auto [err, gf_buffer] =
+        GpgKeyImportExporter::GetInstance().ExportKey(m_key_, true, true, true);
+    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+      CommonUtils::RaiseMessageBox(this, err);
       return;
     }
 
@@ -248,7 +244,7 @@ void KeyPairOperaTab::slot_export_short_private_key() {
 
     if (file_name.empty()) return;
 
-    if (!WriteBufferToFile(file_name, *keyArray)) {
+    if (!WriteFileGFBuffer(file_name, gf_buffer)) {
       QMessageBox::critical(
           this, _("Export Error"),
           QString(_("Couldn't open %1 for writing")).arg(file_name.c_str()));
@@ -269,13 +265,10 @@ void KeyPairOperaTab::slot_export_private_key() {
 
   // export key, if ok was clicked
   if (ret == QMessageBox::Ok) {
-    ByteArrayPtr keyArray = nullptr;
-
-    if (!GpgKeyImportExporter::GetInstance().ExportSecretKey(m_key_,
-                                                             keyArray)) {
-      QMessageBox::critical(
-          this, _("Error"),
-          _("An error occurred during the export operation."));
+    auto [err, gf_buffer] = GpgKeyImportExporter::GetInstance().ExportKey(
+        m_key_, true, true, false);
+    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+      CommonUtils::RaiseMessageBox(this, err);
       return;
     }
 
@@ -297,7 +290,7 @@ void KeyPairOperaTab::slot_export_private_key() {
 
     if (file_name.empty()) return;
 
-    if (!WriteBufferToFile(file_name, *keyArray)) {
+    if (!WriteFileGFBuffer(file_name, gf_buffer)) {
       QMessageBox::critical(
           this, _("Export Error"),
           QString(_("Couldn't open %1 for writing")).arg(file_name.c_str()));

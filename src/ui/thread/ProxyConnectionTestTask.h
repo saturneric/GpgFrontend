@@ -52,6 +52,12 @@ class ProxyConnectionTestTask : public Thread::Task {
    */
   explicit ProxyConnectionTestTask(QString url, int timeout);
 
+  /**
+   * @brief
+   *
+   */
+  void Run() override;
+
  signals:
   /**
    * @brief
@@ -60,14 +66,13 @@ class ProxyConnectionTestTask : public Thread::Task {
    */
   void SignalProxyConnectionTestResult(const QString& result);
 
- protected:
+ private slots:
+
   /**
    * @brief
    *
+   * @param reply
    */
-  void run() override;
-
- private slots:
   void slot_process_network_reply(QNetworkReply* reply);
 
  private:

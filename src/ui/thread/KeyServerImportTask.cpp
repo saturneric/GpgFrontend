@@ -28,7 +28,8 @@
 
 #include "ui/thread/KeyServerImportTask.h"
 
-#include <vector>
+#include "core/function/gpg/GpgKeyImportExporter.h"
+#include "ui/struct/SettingsObject.h"
 
 GpgFrontend::UI::KeyServerImportTask::KeyServerImportTask(
     std::string keyserver_url, std::vector<std::string> keyids)
@@ -37,29 +38,74 @@ GpgFrontend::UI::KeyServerImportTask::KeyServerImportTask(
       keyids_(std::move(keyids)),
       manager_(new QNetworkAccessManager(this)) {
   HoldOnLifeCycle(true);
+
+  if (keyserver_url_.empty()) {
+    try {
+      SettingsObject key_server_json("key_server");
+      const auto key_server_list =
+          key_server_json.Check("server_list", nlohmann::json::array());
+
+      size_t const default_key_server_index =
+          key_server_json.Check("default_server", 0);
+      if (default_key_server_index >= key_server_list.size()) {
+        throw std::runtime_error("default_server index out of range");
+      }
+      auto default_key_server =
+          key_server_list[default_key_server_index].get<std::string>();
+
+      keyserver_url_ = default_key_server;
+    } catch (...) {
+      GF_UI_LOG_ERROR("setting operation error", "server_list",
+                      "default_server");
+      keyserver_url_ = "https://keys.openpgp.org";
+      return;
+    }
+
+    GF_UI_LOG_DEBUG("key server import task sets key server url: {}",
+                    keyserver_url_);
+  }
 }
 
-void GpgFrontend::UI::KeyServerImportTask::run() {
-  QUrl keyserver_url = QUrl(keyserver_url_.c_str());
+void GpgFrontend::UI::KeyServerImportTask::Run() {
+  QUrl const keyserver_url = QUrl(keyserver_url_.c_str());
   for (const auto& key_id : keyids_) {
-    QUrl req_url(keyserver_url.scheme() + "://" + keyserver_url.host() +
-                 "/pks/lookup?op=get&search=0x" + key_id.c_str() +
-                 "&options=mr");
+    QUrl const req_url(keyserver_url.scheme() + "://" + keyserver_url.host() +
+                       "/pks/lookup?op=get&search=0x" + key_id.c_str() +
+                       "&options=mr");
 
     reply_ = manager_->get(QNetworkRequest(req_url));
-
     connect(reply_, &QNetworkReply::finished, this,
             &KeyServerImportTask::dealing_reply_from_server);
   }
 }
 
 void GpgFrontend::UI::KeyServerImportTask::dealing_reply_from_server() {
-  QByteArray buffer;
-  QNetworkReply::NetworkError network_reply = reply_->error();
-  if (network_reply == QNetworkReply::NoError) {
-    buffer = reply_->readAll();
+  auto const network_reply = reply_->error();
+  auto buffer = reply_->readAll();
+
+  if (network_reply != QNetworkReply::NoError) {
+    GF_UI_LOG_ERROR("key import error, message from key server reply: ",
+                    buffer);
+    QString err_msg;
+    switch (network_reply) {
+      case QNetworkReply::ContentNotFoundError:
+        err_msg = QString(_("Key not found in the Keyserver."));
+        break;
+      case QNetworkReply::TimeoutError:
+        err_msg = QString(_("Network connection timeout."));
+        break;
+      case QNetworkReply::HostNotFoundError:
+        err_msg =
+            QString(_("Cannot resolve the address of target key server."));
+        break;
+      default:
+        err_msg = QString(_("General connection error occurred."));
+    }
+    emit SignalKeyServerImportResult(false, err_msg, buffer, nullptr);
   }
-  emit SignalKeyServerImportResult(network_reply, buffer);
+
+  auto info = GpgKeyImportExporter::GetInstance().ImportKey(GFBuffer(buffer));
+  emit SignalKeyServerImportResult(true, _("Success"), buffer, info);
 
   if (static_cast<size_t>(result_count_++) == keyids_.size() - 1) {
     emit SignalTaskShouldEnd(0);

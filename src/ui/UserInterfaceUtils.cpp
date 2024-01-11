@@ -41,6 +41,7 @@
 #include "core/function/CacheManager.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/model/GpgImportInformation.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunner.h"
@@ -79,7 +80,7 @@ void import_unknown_key_from_keyserver(
         "import the public key from Keyserver now?"),
       QMessageBox::Yes | QMessageBox::No);
   if (reply == QMessageBox::Yes) {
-    auto dialog = KeyServerImportDialog(true, parent);
+    auto dialog = KeyServerImportDialog(parent);
     auto key_ids = std::make_unique<KeyIdArgsList>();
     auto *signature = verify_res.GetSignatures();
     while (signature != nullptr) {
@@ -228,7 +229,7 @@ void CommonUtils::WaitForOpera(QWidget *parent,
                                const std::string &waiting_dialog_title,
                                const OperaWaitingCb &opera) {
   QEventLoop looper;
-  auto *dialog =
+  QPointer<WaitingDialog> const dialog =
       new WaitingDialog(QString::fromStdString(waiting_dialog_title), parent);
   connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
   connect(dialog, &QDialog::finished, dialog, &QDialog::deleteLater);
@@ -236,11 +237,24 @@ void CommonUtils::WaitForOpera(QWidget *parent,
 
   QTimer::singleShot(64, parent, [=]() {
     opera([dialog]() {
-      GF_UI_LOG_DEBUG("called operating waiting cb, dialog: {}",
-                      static_cast<void *>(dialog));
-      dialog->close();
-      dialog->accept();
+      if (dialog != nullptr) {
+        GF_UI_LOG_DEBUG("called operating waiting cb, dialog: {}",
+                        static_cast<void *>(dialog));
+        dialog->close();
+        dialog->accept();
+      }
     });
+  });
+
+  // handling timeout, default 30s
+  QTimer::singleShot(30000, parent, [parent, dialog]() {
+    if (dialog != nullptr) {
+      dialog->close();
+      dialog->reject();
+
+      QMessageBox::critical(parent, _("Timeout"),
+                            _("Operation has timeout, aborted..."));
+    }
   });
 
   looper.exec();
@@ -274,14 +288,15 @@ void CommonUtils::RaiseFailureMessageBox(QWidget *parent, GpgError err) {
 
 void CommonUtils::SlotImportKeys(QWidget *parent,
                                  const std::string &in_buffer) {
-  GpgImportInformation result = GpgKeyImportExporter::GetInstance().ImportKey(
-      std::make_unique<ByteArray>(in_buffer));
+  auto info =
+      GpgKeyImportExporter::GetInstance().ImportKey(GFBuffer(in_buffer));
   emit SignalKeyStatusUpdated();
-  new KeyImportDetailDialog(result, false, parent);
+
+  (new KeyImportDetailDialog(info, parent))->exec();
 }
 
 void CommonUtils::SlotImportKeyFromFile(QWidget *parent) {
-  QString file_name = QFileDialog::getOpenFileName(
+  auto file_name = QFileDialog::getOpenFileName(
       this, _("Open Key"), QString(),
       QString(_("Key Files")) + " (*.asc *.txt);;" + _("Keyring files") +
           " (*.gpg);;All Files (*)");
@@ -297,7 +312,7 @@ void CommonUtils::SlotImportKeyFromFile(QWidget *parent) {
 }
 
 void CommonUtils::SlotImportKeyFromKeyServer(QWidget *parent) {
-  auto *dialog = new KeyServerImportDialog(false, parent);
+  auto *dialog = new KeyServerImportDialog(parent);
   dialog->show();
 }
 
@@ -444,11 +459,6 @@ void CommonUtils::SlotImportKeyFromKeyServer(
       connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
       loop.exec();
 
-      // Get Data
-      auto key_data = reply->readAll();
-      auto key_data_ptr =
-          std::make_unique<ByteArray>(key_data.data(), key_data.size());
-
       // Detect status
       std::string status;
       auto error = reply->error();
@@ -471,11 +481,10 @@ void CommonUtils::SlotImportKeyFromKeyServer(
       reply->deleteLater();
 
       // Try importing
-      GpgImportInformation result =
-          GpgKeyImportExporter::GetInstance().ImportKey(
-              std::move(key_data_ptr));
+      auto result = GpgKeyImportExporter::GetInstance().ImportKey(
+          GFBuffer(reply->readAll()));
 
-      if (result.imported == 1) {
+      if (result->imported == 1) {
         status = _("The key has been updated");
       } else {
         status = _("No need to update the key");

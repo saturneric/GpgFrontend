@@ -42,131 +42,86 @@
 
 namespace GpgFrontend::UI {
 
-KeyServerImportDialog::KeyServerImportDialog(bool automatic, QWidget* parent)
-    : GeneralDialog("key_server_import_dialog", parent),
-      m_automatic_(automatic) {
-  // Layout for messagebox
-  auto* message_layout = new QHBoxLayout();
-
-  bool forbid_all_gnupg_connection =
+KeyServerImportDialog::KeyServerImportDialog(QWidget* parent)
+    : GeneralDialog("key_server_import_dialog", parent) {
+  auto forbid_all_gnupg_connection =
       GlobalSettingStation::GetInstance().LookupSettings(
           "network.forbid_all_gnupg_connection", false);
-
   if (forbid_all_gnupg_connection) {
     QMessageBox::critical(this, "Forbidden", "GnuPG is in offline mode now.");
     this->close();
     this->deleteLater();
   }
 
-  if (automatic) {
-    setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
-  } else {
-    // Buttons
+  // Buttons
+  close_button_ = new QPushButton(_("Close"));
+  connect(close_button_, &QPushButton::clicked, this,
+          &KeyServerImportDialog::close);
+  import_button_ = new QPushButton(_("Import ALL"));
+  connect(import_button_, &QPushButton::clicked, this,
+          &KeyServerImportDialog::slot_import);
+  import_button_->setDisabled(true);
+  search_button_ = new QPushButton(_("Search"));
+  connect(search_button_, &QPushButton::clicked, this,
+          &KeyServerImportDialog::slot_search);
 
-    close_button_ = new QPushButton(_("Close"));
-    connect(close_button_, &QPushButton::clicked, this,
-            &KeyServerImportDialog::close);
-    import_button_ = new QPushButton(_("Import ALL"));
-    connect(import_button_, &QPushButton::clicked, this,
-            &KeyServerImportDialog::slot_import);
-    import_button_->setDisabled(true);
-    search_button_ = new QPushButton(_("Search"));
-    connect(search_button_, &QPushButton::clicked, this,
-            &KeyServerImportDialog::slot_search);
+  // Line edits for search string
+  search_label_ = new QLabel(QString(_("Search String")) + _(": "));
+  search_line_edit_ = new QLineEdit();
 
-    // Line edits for search string
-    search_label_ = new QLabel(QString(_("Search String")) + _(": "));
-    search_line_edit_ = new QLineEdit();
+  // combobox for keyserver list
+  key_server_label_ = new QLabel(QString(_("Key Server")) + _(": "));
+  key_server_combo_box_ = create_combo_box();
 
-    // combobox for keyserver list
-    key_server_label_ = new QLabel(QString(_("Key Server")) + _(": "));
-    key_server_combo_box_ = create_comboBox();
+  // table containing the keys found
+  create_keys_table();
+  message_ = new QLabel();
+  message_->setFixedHeight(24);
+  icon_ = new QLabel();
+  icon_->setFixedHeight(24);
 
-    // table containing the keys found
-    create_keys_table();
-    message_ = new QLabel();
-    message_->setFixedHeight(24);
-    icon_ = new QLabel();
-    icon_->setFixedHeight(24);
-
-    message_layout->addWidget(icon_);
-    message_layout->addWidget(message_);
-    message_layout->addStretch();
-  }
+  // Layout for messagebox
+  message_layout_ = new QHBoxLayout();
+  message_layout_->addWidget(icon_);
+  message_layout_->addWidget(message_);
+  message_layout_->addStretch();
 
   // Network Waiting
   waiting_bar_ = new QProgressBar();
   waiting_bar_->setVisible(false);
   waiting_bar_->setRange(0, 0);
   waiting_bar_->setFixedWidth(200);
-  message_layout->addWidget(waiting_bar_);
 
-  auto* main_layout = new QGridLayout;
+  auto* main_layout = new QGridLayout();
 
-  // 自动化调用界面布局
-  if (automatic) {
-    main_layout->addLayout(message_layout, 0, 0, 1, 3);
-  } else {
-    main_layout->addWidget(search_label_, 1, 0);
-    main_layout->addWidget(search_line_edit_, 1, 1);
-    main_layout->addWidget(search_button_, 1, 2);
-    main_layout->addWidget(key_server_label_, 2, 0);
-    main_layout->addWidget(key_server_combo_box_, 2, 1);
-    main_layout->addWidget(keys_table_, 3, 0, 1, 3);
-    main_layout->addLayout(message_layout, 4, 0, 1, 3);
+  main_layout->addWidget(search_label_, 1, 0);
+  main_layout->addWidget(search_line_edit_, 1, 1);
+  main_layout->addWidget(search_button_, 1, 2);
+  main_layout->addWidget(key_server_label_, 2, 0);
+  main_layout->addWidget(key_server_combo_box_, 2, 1);
+  main_layout->addWidget(keys_table_, 3, 0, 1, 3);
+  main_layout->addWidget(waiting_bar_, 4, 0, 1, 3);
+  main_layout->addLayout(message_layout_, 5, 0, 1, 3);
 
-    // Layout for import and close button
-    auto* buttons_layout = new QHBoxLayout;
-    buttons_layout->addStretch();
-    buttons_layout->addWidget(import_button_);
-    buttons_layout->addWidget(close_button_);
-    main_layout->addLayout(buttons_layout, 6, 0, 1, 3);
-  }
+  // Layout for import and close button
+  auto* buttons_layout = new QHBoxLayout();
+  buttons_layout->addStretch();
+  buttons_layout->addWidget(import_button_);
+  buttons_layout->addWidget(close_button_);
+  main_layout->addLayout(buttons_layout, 6, 0, 1, 3);
 
   this->setLayout(main_layout);
-  if (automatic) {
-    this->setWindowTitle(_("Update Keys from Keyserver"));
-  } else {
-    this->setWindowTitle(_("Import Keys from Keyserver"));
-  }
-
-  if (automatic) {
-    this->setFixedSize(240, 42);
-  }
-
+  this->setWindowTitle(_("Import Keys from Keyserver"));
   this->setModal(true);
+
+  movePosition2CenterOfParent();
 
   connect(this, &KeyServerImportDialog::SignalKeyImported,
           UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefresh);
 }
 
-KeyServerImportDialog::KeyServerImportDialog(QWidget* parent)
-    : GeneralDialog("key_server_import_dialog", parent), m_automatic_(true) {
-  setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::CustomizeWindowHint);
-
-  // Network Waiting
-  waiting_bar_ = new QProgressBar();
-  waiting_bar_->setVisible(false);
-  waiting_bar_->setRange(0, 0);
-  waiting_bar_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-  waiting_bar_->setTextVisible(false);
-
-  // Layout for messagebox
-  auto* layout = new QHBoxLayout();
-  layout->setContentsMargins(0, 0, 0, 0);
-  layout->setSpacing(0);
-  layout->addWidget(waiting_bar_);
-
-  key_server_combo_box_ = create_comboBox();
-
-  this->setLayout(layout);
-  this->setWindowTitle(_("Update Keys from Keyserver"));
-  this->setFixedSize(240, 42);
-  this->setModal(true);
-}
-
-auto KeyServerImportDialog::create_comboBox() -> QComboBox* {
+auto KeyServerImportDialog::create_combo_box() -> QComboBox* {
   auto* combo_box = new QComboBox;
   combo_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
@@ -220,8 +175,6 @@ void KeyServerImportDialog::create_keys_table() {
 }
 
 void KeyServerImportDialog::set_message(const QString& text, bool error) {
-  if (m_automatic_) return;
-
   message_->setText(text);
   if (error) {
     icon_->setPixmap(
@@ -436,8 +389,9 @@ void KeyServerImportDialog::slot_import() {
       key_ids.push_back(keyid.toStdString());
     }
   }
-  if (!key_ids.empty())
+  if (!key_ids.empty()) {
     SlotImport(key_ids, key_server_combo_box_->currentText().toStdString());
+  }
 }
 
 void KeyServerImportDialog::SlotImport(const KeyIdArgsListPtr& keys) {
@@ -487,86 +441,35 @@ void KeyServerImportDialog::SlotImport(std::vector<std::string> key_ids,
   connect(task, &KeyServerImportTask::SignalKeyServerImportResult, this,
           &KeyServerImportDialog::slot_import_finished);
 
+  set_loading(true);
   Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
       ->PostTask(task);
 }
 
 void KeyServerImportDialog::slot_import_finished(
-    QNetworkReply::NetworkError error, QByteArray buffer) {
-  if (error != QNetworkReply::NoError) {
+    bool success, QString err_msg, QByteArray buffer,
+    std::shared_ptr<GpgImportInformation> info) {
+  set_loading(false);
+
+  if (!success) {
     GF_UI_LOG_ERROR("Error From Reply", buffer.toStdString());
-    if (!m_automatic_) {
-      switch (error) {
-        case QNetworkReply::ContentNotFoundError:
-          set_message(_("Key Not Found"), true);
-          break;
-        case QNetworkReply::TimeoutError:
-          set_message(_("Timeout"), true);
-          break;
-        case QNetworkReply::HostNotFoundError:
-          set_message(_("Key Server Not Found"), true);
-          break;
-        default:
-          set_message(_("Connection Error"), true);
-      }
-    } else {
-      switch (error) {
-        case QNetworkReply::ContentNotFoundError:
-          QMessageBox::critical(nullptr, _("Key Not Found"),
-                                QString(_("key not found in the Keyserver")));
-          break;
-        case QNetworkReply::TimeoutError:
-          QMessageBox::critical(nullptr, _("Timeout"), "Connection timeout");
-          break;
-        case QNetworkReply::HostNotFoundError:
-          QMessageBox::critical(nullptr, _("Host Not Found"),
-                                "cannot resolve the default Keyserver");
-          break;
-        default:
-          QMessageBox::critical(nullptr, _("Connection Error"),
-                                _("General Connection Error"));
-      }
-    }
-    if (m_automatic_) {
-      setWindowFlags(Qt::Window | Qt::WindowTitleHint |
-                     Qt::CustomizeWindowHint | Qt::WindowCloseButtonHint);
-    }
+    set_message(err_msg, true);
     return;
   }
 
-  this->import_keys(
-      std::make_unique<ByteArray>(buffer.constData(), buffer.length()));
-
-  if (!m_automatic_) {
-    set_message(QString("<h4>") + _("Key Imported") + "</h4>", false);
-  }
-}
-
-void KeyServerImportDialog::import_keys(ByteArrayPtr in_data) {
-  GpgImportInformation result =
-      GpgKeyImportExporter::GetInstance().ImportKey(std::move(in_data));
+  set_message(_("Key Imported"), false);
 
   // refresh the key database
   emit SignalKeyImported();
 
-  QWidget* p_parent = qobject_cast<QWidget*>(parent());
-  if (m_automatic_) {
-    auto* dialog = new KeyImportDetailDialog(result, true, p_parent);
-    dialog->show();
-    this->accept();
-  } else {
-    auto* dialog = new KeyImportDetailDialog(result, false, this);
-    dialog->exec();
-  }
+  // show details
+  (new KeyImportDetailDialog(std::move(info), this))->exec();
 }
 
 void KeyServerImportDialog::set_loading(bool status) {
   waiting_bar_->setVisible(status);
-  if (!m_automatic_) {
-    icon_->setVisible(!status);
-    message_->setVisible(!status);
-  }
+  if (status) set_message(_("Processing ..."), false);
 }
 
 }  // namespace GpgFrontend::UI

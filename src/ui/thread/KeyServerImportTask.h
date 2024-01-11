@@ -31,10 +31,14 @@
 #include <qnetworkaccessmanager.h>
 #include <qnetworkreply.h>
 
-#include "GpgFrontendUI.h"
-#include "core/thread/ThreadingModel.h"
+#include "core/thread/Task.h"
+
+namespace GpgFrontend {
+class GpgImportInformation;
+}
 
 namespace GpgFrontend::UI {
+
 class KeyServerImportTask : public Thread::Task {
   Q_OBJECT
  public:
@@ -47,6 +51,12 @@ class KeyServerImportTask : public Thread::Task {
   KeyServerImportTask(std::string keyserver_url,
                       std::vector<std::string> keyid);
 
+  /**
+   * @brief
+   *
+   */
+  void Run() override;
+
  signals:
 
   /**
@@ -54,15 +64,8 @@ class KeyServerImportTask : public Thread::Task {
    *
    * @param result
    */
-  void SignalKeyServerImportResult(QNetworkReply::NetworkError reply,
-                                   QByteArray buffer);
-
- protected:
-  /**
-   * @brief
-   *
-   */
-  void run() override;
+  void SignalKeyServerImportResult(bool, QString, QByteArray,
+                                   std::shared_ptr<GpgImportInformation>);
 
  private slots:
 

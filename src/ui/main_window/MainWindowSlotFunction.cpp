@@ -65,20 +65,28 @@ void MainWindow::slot_find() {
  * Append the selected (not checked!) Key(s) To Textedit
  */
 void MainWindow::slot_append_selected_keys() {
-  auto exported = GpgFrontend::SecureCreateSharedObject<ByteArray>();
   auto key_ids = m_key_list_->GetSelected();
 
   if (key_ids->empty()) {
-    GF_UI_LOG_ERROR("no key is selected");
+    GF_UI_LOG_ERROR("no key is selected to export");
     return;
   }
 
-  if (!GpgKeyImportExporter::GetInstance().ExportKeys(key_ids, exported)) {
-    QMessageBox::critical(this, _("Error"), _("Key Export Operation Failed."));
+  auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
+  if (!key.IsGood()) {
+    GF_UI_LOG_ERROR("selected key for exporting is invalid, key id: {}",
+                    key_ids->front());
     return;
   }
 
-  edit_->SlotAppendText2CurTextPage(QString::fromStdString(*exported));
+  auto [err, gf_buffer] =
+      GpgKeyImportExporter::GetInstance().ExportKey(key, false, true, false);
+  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+    CommonUtils::RaiseMessageBox(this, err);
+    return;
+  }
+
+  edit_->SlotAppendText2CurTextPage(gf_buffer.ConvertToQByteArray());
 }
 
 void MainWindow::slot_append_keys_create_datetime() {
@@ -300,7 +308,7 @@ void MainWindow::slot_version_upgrade_nofity() {
         QString(_("GpgFrontend Upgradeable (New Version: %1)."))
             .arg(latest_version.c_str()),
         30000);
-    auto update_button = new QPushButton("Update GpgFrontend", this);
+    auto* update_button = new QPushButton("Update GpgFrontend", this);
     connect(update_button, &QPushButton::clicked, [=]() {
       auto* about_dialog = new AboutDialog(2, this);
       about_dialog->show();

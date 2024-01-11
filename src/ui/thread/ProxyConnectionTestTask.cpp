@@ -39,7 +39,7 @@ GpgFrontend::UI::ProxyConnectionTestTask::ProxyConnectionTestTask(QString url,
   HoldOnLifeCycle(true);
 }
 
-void GpgFrontend::UI::ProxyConnectionTestTask::run() {
+void GpgFrontend::UI::ProxyConnectionTestTask::Run() {
   auto* network_reply = network_manager_->get(QNetworkRequest{url_});
   auto* timer = new QTimer(this);
 

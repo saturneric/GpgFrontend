@@ -28,10 +28,12 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
-#include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
+
+namespace GpgFrontend {
+class GpgImportInformation;
+}
 
 namespace GpgFrontend::UI {
 
@@ -50,8 +52,8 @@ class KeyImportDetailDialog : public GeneralDialog {
    * @param automatic
    * @param parent
    */
-  KeyImportDetailDialog(GpgImportInformation result, bool automatic,
-                        QWidget* parent = nullptr);
+  explicit KeyImportDetailDialog(std::shared_ptr<GpgImportInformation> result,
+                                 QWidget* parent = nullptr);
 
  private:
   /**
@@ -84,6 +86,7 @@ class KeyImportDetailDialog : public GeneralDialog {
   QGroupBox* general_info_box_{};   ///<
   QGroupBox* key_info_box_{};       ///<
   QDialogButtonBox* button_box_{};  ///<
-  GpgImportInformation m_result_;   ///<
+
+  std::shared_ptr<GpgImportInformation> m_result_;  ///<
 };
 }  // namespace GpgFrontend::UI

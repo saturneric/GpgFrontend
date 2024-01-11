@@ -149,11 +149,13 @@ class KeyMgmt : public GeneralMainWindow {
    */
   void delete_keys_with_warning(GpgFrontend::KeyIdArgsListPtr uidList);
 
-  KeyList* key_list_;                            ///<
-  QMenu* file_menu_{};                           ///<
-  QMenu* key_menu_{};                            ///<
-  QMenu* generate_key_menu_{};                   ///<
-  QMenu* import_key_menu_{};                     ///<
+  KeyList* key_list_;           ///<
+  QMenu* file_menu_{};          ///<
+  QMenu* key_menu_{};           ///<
+  QMenu* generate_key_menu_{};  ///<
+  QMenu* import_key_menu_{};    ///<
+  QMenu* export_key_menu_{};    /// <
+
   QAction* open_key_file_act_{};                 ///<
   QAction* export_key_to_file_act_{};            ///<
   QAction* export_key_as_open_ssh_format_{};     ///<

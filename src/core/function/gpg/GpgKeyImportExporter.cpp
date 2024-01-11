@@ -29,6 +29,7 @@
 #include "GpgKeyImportExporter.h"
 
 #include "core/GpgModel.h"
+#include "core/model/GpgImportInformation.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
 
@@ -43,27 +44,27 @@ GpgKeyImportExporter::GpgKeyImportExporter(int channel)
  * @param inBuffer input byte array
  * @return Import information
  */
-auto GpgKeyImportExporter::ImportKey(StdBypeArrayPtr in_buffer)
-    -> GpgImportInformation {
-  if (in_buffer->empty()) return {};
+auto GpgKeyImportExporter::ImportKey(const GFBuffer& in_buffer)
+    -> std::shared_ptr<GpgImportInformation> {
+  if (in_buffer.Empty()) return {};
 
-  GpgData data_in(in_buffer->data(), in_buffer->size());
+  GpgData data_in(in_buffer);
   auto err = CheckGpgError(gpgme_op_import(ctx_.DefaultContext(), data_in));
   if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
 
   gpgme_import_result_t result;
   result = gpgme_op_import_result(ctx_.DefaultContext());
   gpgme_import_status_t status = result->imports;
-  auto import_info = std::make_unique<GpgImportInformation>(result);
+  auto import_info = SecureCreateSharedObject<GpgImportInformation>(result);
   while (status != nullptr) {
-    GpgImportedKey key;
+    GpgImportInformation::GpgImportedKey key;
     key.import_status = static_cast<int>(status->status);
     key.fpr = status->fpr;
     import_info->imported_keys.emplace_back(key);
     status = status->next;
   }
 
-  return *import_info;
+  return import_info;
 }
 
 /**
@@ -73,13 +74,14 @@ auto GpgKeyImportExporter::ImportKey(StdBypeArrayPtr in_buffer)
  * @return if success
  */
 auto GpgKeyImportExporter::ExportKey(const GpgKey& key, bool secret, bool ascii,
-                                     bool shortest) const
+                                     bool shortest, bool ssh_mode) const
     -> std::tuple<GpgError, GFBuffer> {
   if (!key.IsGood()) return {GPG_ERR_CANCELED, {}};
 
   int mode = 0;
   if (secret) mode |= GPGME_EXPORT_MODE_SECRET;
   if (shortest) mode |= GPGME_EXPORT_MODE_MINIMAL;
+  if (ssh_mode) mode |= GPGME_EXPORT_MODE_SSH;
 
   std::vector<gpgme_key_t> keys_array;
 
@@ -105,7 +107,7 @@ auto GpgKeyImportExporter::ExportKey(const GpgKey& key, bool secret, bool ascii,
  * @return if success
  */
 void GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys, bool secret,
-                                      bool ascii,
+                                      bool ascii, bool shortest, bool ssh_mode,
                                       const GpgOperationCallback& cb) const {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
@@ -113,6 +115,8 @@ void GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys, bool secret,
 
         int mode = 0;
         if (secret) mode |= GPGME_EXPORT_MODE_SECRET;
+        if (shortest) mode |= GPGME_EXPORT_MODE_MINIMAL;
+        if (ssh_mode) mode |= GPGME_EXPORT_MODE_SSH;
 
         std::vector<gpgme_key_t> keys_array(keys.begin(), keys.end());
 
@@ -132,41 +136,6 @@ void GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys, bool secret,
         return err;
       },
       cb, "gpgme_op_export_keys", "2.1.0");
-}
-
-auto GpgKeyImportExporter::ExportKeyOpenSSH(const GpgKey& key,
-                                            ByteArrayPtr& out_buffer) const
-    -> bool {
-  GpgData data_out;
-  auto err = gpgme_op_export(ctx_.DefaultContext(), key.GetId().c_str(),
-                             GPGME_EXPORT_MODE_SSH, data_out);
-
-  GF_CORE_LOG_DEBUG("read_bytes: {}", gpgme_data_seek(data_out, 0, SEEK_END));
-
-  auto temp_out_buffer = data_out.Read2Buffer();
-  std::swap(out_buffer, temp_out_buffer);
-  return CheckGpgError(err) == GPG_ERR_NO_ERROR;
-}
-
-GpgImportInformation::GpgImportInformation() = default;
-
-GpgImportInformation::GpgImportInformation(gpgme_import_result_t result) {
-  if (result->unchanged != 0) unchanged = result->unchanged;
-  if (result->considered != 0) considered = result->considered;
-  if (result->no_user_id != 0) no_user_id = result->no_user_id;
-  if (result->imported != 0) imported = result->imported;
-  if (result->imported_rsa != 0) imported_rsa = result->imported_rsa;
-  if (result->unchanged != 0) unchanged = result->unchanged;
-  if (result->new_user_ids != 0) new_user_ids = result->new_user_ids;
-  if (result->new_sub_keys != 0) new_sub_keys = result->new_sub_keys;
-  if (result->new_signatures != 0) new_signatures = result->new_signatures;
-  if (result->new_revocations != 0) new_revocations = result->new_revocations;
-  if (result->secret_read != 0) secret_read = result->secret_read;
-  if (result->secret_imported != 0) secret_imported = result->secret_imported;
-  if (result->secret_unchanged != 0) {
-    secret_unchanged = result->secret_unchanged;
-  }
-  if (result->not_imported != 0) not_imported = result->not_imported;
 }
 
 }  // namespace GpgFrontend

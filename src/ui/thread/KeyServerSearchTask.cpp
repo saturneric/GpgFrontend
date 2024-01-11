@@ -39,7 +39,7 @@ GpgFrontend::UI::KeyServerSearchTask::KeyServerSearchTask(
   HoldOnLifeCycle(true);
 }
 
-void GpgFrontend::UI::KeyServerSearchTask::run() {
+void GpgFrontend::UI::KeyServerSearchTask::Run() {
   QUrl url_from_remote =
       QString::fromStdString(keyserver_url_) +
       "/pks/lookup?search=" + QString::fromStdString(search_string_) +

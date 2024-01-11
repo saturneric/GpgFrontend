@@ -28,54 +28,53 @@
 
 #pragma once
 
-#include "core/model/GFBuffer.h"
-#include "core/typedef/GpgTypedef.h"
-#include "ui/GpgFrontendUI.h"
-#include "ui/dialog/GeneralDialog.h"
-
-namespace GpgFrontend::UI {
+namespace GpgFrontend {
 
 /**
  * @brief
  *
  */
-class KeyUploadDialog : public GeneralDialog {
-  Q_OBJECT
+class GPGFRONTEND_CORE_EXPORT GpgImportInformation {
  public:
   /**
-   * @brief Construct a new Key Upload Dialog object
-   *
-   * @param keys_ids
-   * @param parent
-   */
-  explicit KeyUploadDialog(const KeyIdArgsListPtr& keys_ids, QWidget* parent);
-
- public slots:
-
-  /**
    * @brief
    *
    */
-  void SlotUpload();
+  class GpgImportedKey {
+   public:
+    std::string fpr;    ///<
+    int import_status;  ///<
+  };
 
- private slots:
-
-  /**
-   * @brief
-   *
-   * @param keys_data
-   */
-  void slot_upload_key_to_server(const GFBuffer&);
+  using GpgImportedKeyList = std::list<GpgImportedKey>;  ///<
 
   /**
-   * @brief
+   * @brief Construct a new Gpg Import Information object
    *
    */
-  void slot_upload_finished();
+  GpgImportInformation();
 
- private:
-  KeyListPtr m_keys_;      ///<
-  QByteArray m_key_data_;  ///<
+  /**
+   * @brief Construct a new Gpg Import Information object
+   *
+   * @param result
+   */
+  explicit GpgImportInformation(gpgme_import_result_t result);
+
+  int considered = 0;        ///<
+  int no_user_id = 0;        ///<
+  int imported = 0;          ///<
+  int imported_rsa = 0;      ///<
+  int unchanged = 0;         ///<
+  int new_user_ids = 0;      ///<
+  int new_sub_keys = 0;      ///<
+  int new_signatures = 0;    ///<
+  int new_revocations = 0;   ///<
+  int secret_read = 0;       ///<
+  int secret_imported = 0;   ///<
+  int secret_unchanged = 0;  ///<
+  int not_imported = 0;      ///<
+
+  GpgImportedKeyList imported_keys;  ///<
 };
-
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend

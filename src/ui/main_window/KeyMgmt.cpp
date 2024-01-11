@@ -35,6 +35,8 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
+#include "core/model/GpgImportInformation.h"
+#include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "function/SetOwnerTrustLevel.h"
 #include "ui/UISignalStation.h"
@@ -96,9 +98,10 @@ KeyMgmt::KeyMgmt(QWidget* parent)
       });
 
   setCentralWidget(key_list_);
-  key_list_->SetDoubleClickedAction([this](const GpgKey& key, QWidget* parent) {
-    new KeyDetailsDialog(key, this);
-  });
+  key_list_->SetDoubleClickedAction(
+      [this](const GpgKey& key, QWidget* /*parent*/) {
+        new KeyDetailsDialog(key, this);
+      });
 
   key_list_->SlotRefresh();
 
@@ -173,7 +176,7 @@ void KeyMgmt::create_actions() {
     CommonUtils::GetInstance()->SlotImportKeyFromClipboard(this);
   });
 
-  bool forbid_all_gnupg_connection =
+  bool const forbid_all_gnupg_connection =
       GlobalSettingStation::GetInstance().LookupSettings(
           "network.forbid_all_gnupg_connection", false);
 
@@ -197,11 +200,11 @@ void KeyMgmt::create_actions() {
   export_key_to_clipboard_act_ = new QAction(_("Export To Clipboard"), this);
   export_key_to_clipboard_act_->setIcon(QIcon(":export_key_to_clipboard.png"));
   export_key_to_clipboard_act_->setToolTip(
-      _("Export Selected Key(s) To Clipboard"));
+      _("Export Checked Key(s) To Clipboard"));
   connect(export_key_to_clipboard_act_, &QAction::triggered, this,
           &KeyMgmt::SlotExportKeyToClipboard);
 
-  export_key_to_file_act_ = new QAction(_("Export To Key Package"), this);
+  export_key_to_file_act_ = new QAction(_("Export As Key Package"), this);
   export_key_to_file_act_->setIcon(QIcon(":key_package.png"));
   export_key_to_file_act_->setToolTip(
       _("Export Checked Key(s) To a Key Package"));
@@ -211,7 +214,7 @@ void KeyMgmt::create_actions() {
   export_key_as_open_ssh_format_ = new QAction(_("Export As OpenSSH"), this);
   export_key_as_open_ssh_format_->setIcon(QIcon(":ssh-key.png"));
   export_key_as_open_ssh_format_->setToolTip(
-      _("Export Selected Key(s) As OpenSSH Format to File"));
+      _("Export Checked Key As OpenSSH Format to File"));
   connect(export_key_as_open_ssh_format_, &QAction::triggered, this,
           &KeyMgmt::SlotExportAsOpenSSHFormat);
 
@@ -260,9 +263,10 @@ void KeyMgmt::create_menus() {
   import_key_menu_->addAction(import_key_from_key_server_act_);
   import_key_menu_->addAction(import_keys_from_key_package_act_);
 
-  key_menu_->addAction(export_key_to_file_act_);
-  key_menu_->addAction(export_key_to_clipboard_act_);
-  key_menu_->addAction(export_key_as_open_ssh_format_);
+  export_key_menu_ = key_menu_->addMenu(_("Export Key"));
+  export_key_menu_->addAction(export_key_to_file_act_);
+  export_key_menu_->addAction(export_key_to_clipboard_act_);
+  export_key_menu_->addAction(export_key_as_open_ssh_format_);
   key_menu_->addSeparator();
   key_menu_->addAction(delete_checked_keys_act_);
 }
@@ -273,23 +277,28 @@ void KeyMgmt::create_tool_bars() {
 
   // genrate key pair
   key_tool_bar->addAction(generate_key_pair_act_);
+  key_tool_bar->addSeparator();
 
   // add button with popup menu for import
-  auto* tool_button = new QToolButton(this);
-  tool_button->setMenu(import_key_menu_);
-  tool_button->setPopupMode(QToolButton::InstantPopup);
-  tool_button->setIcon(QIcon(":key_import.png"));
-  tool_button->setToolTip(_("Import key"));
-  tool_button->setText(_("Import Key"));
-  tool_button->setToolButtonStyle(icon_style_);
-  key_tool_bar->addWidget(tool_button);
+  auto* import_tool_button = new QToolButton(this);
+  import_tool_button->setMenu(import_key_menu_);
+  import_tool_button->setPopupMode(QToolButton::InstantPopup);
+  import_tool_button->setIcon(QIcon(":key_import.png"));
+  import_tool_button->setToolTip(_("Import key"));
+  import_tool_button->setText(_("Import Key"));
+  import_tool_button->setToolButtonStyle(icon_style_);
+  key_tool_bar->addWidget(import_tool_button);
 
-  key_tool_bar->addSeparator();
+  auto* export_tool_button = new QToolButton(this);
+  export_tool_button->setMenu(export_key_menu_);
+  export_tool_button->setPopupMode(QToolButton::InstantPopup);
+  export_tool_button->setIcon(QIcon(":key_export.png"));
+  export_tool_button->setToolTip(_("Export key"));
+  export_tool_button->setText(_("Export Key"));
+  export_tool_button->setToolButtonStyle(icon_style_);
+  key_tool_bar->addWidget(export_tool_button);
+
   key_tool_bar->addAction(delete_checked_keys_act_);
-  key_tool_bar->addSeparator();
-  key_tool_bar->addAction(export_key_to_file_act_);
-  key_tool_bar->addAction(export_key_to_clipboard_act_);
-  key_tool_bar->addAction(export_key_as_open_ssh_format_);
 }
 
 void KeyMgmt::SlotDeleteSelectedKeys() {
@@ -317,7 +326,7 @@ void KeyMgmt::delete_keys_with_warning(KeyIdArgsListPtr uidList) {
     keynames.append("&gt; </i><br/>");
   }
 
-  int ret = QMessageBox::warning(
+  int const ret = QMessageBox::warning(
       this, _("Deleting Keys"),
       "<b>" +
           QString(
@@ -354,7 +363,7 @@ void KeyMgmt::SlotExportKeyToKeyPackage() {
         _("Please check some keys before doing this operation."));
     return;
   }
-  auto dialog = new ExportKeyPackageDialog(std::move(keys_checked), this);
+  auto* dialog = new ExportKeyPackageDialog(std::move(keys_checked), this);
   dialog->exec();
   emit SignalStatusBarChanged(QString(_("key(s) exported")));
 }
@@ -368,17 +377,45 @@ void KeyMgmt::SlotExportKeyToClipboard() {
     return;
   }
 
-  ByteArrayPtr key_export_data = nullptr;
-  if (!GpgKeyImportExporter::GetInstance().ExportKeys(keys_checked,
-                                                      key_export_data)) {
-    return;
+  if (keys_checked->size() == 1) {
+    auto key = GpgKeyGetter::GetInstance().GetKey(keys_checked->front());
+    auto [err, gf_buffer] =
+        GpgKeyImportExporter::GetInstance().ExportKey(key, false, true, false);
+    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+      CommonUtils::RaiseMessageBox(this, err);
+      return;
+    }
+    QApplication::clipboard()->setText(gf_buffer.ConvertToQByteArray());
+  } else {
+    auto keys = GpgKeyGetter::GetInstance().GetKeys(keys_checked);
+    CommonUtils::WaitForOpera(
+        this, _("Exporting"), [=](const OperaWaitingHd& op_hd) {
+          GpgKeyImportExporter::GetInstance().ExportKeys(
+              *keys, false, true, false, false,
+              [=](GpgError err, const DataObjectPtr& data_obj) {
+                // stop waiting
+                op_hd();
+
+                if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                  CommonUtils::RaiseMessageBox(this, err);
+                  return;
+                }
+
+                if (data_obj == nullptr || !data_obj->Check<GFBuffer>()) {
+                  throw std::runtime_error("data object doesn't pass checking");
+                }
+
+                auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
+                QApplication::clipboard()->setText(
+                    gf_buffer.ConvertToQByteArray());
+              });
+        });
   }
-  QApplication::clipboard()->setText(QString::fromStdString(*key_export_data));
 }
 
 void KeyMgmt::SlotGenerateKeyDialog() {
-  auto* keyGenDialog = new KeyGenDialog(this);
-  keyGenDialog->show();
+  (new KeyGenDialog(this))->exec();
+  this->raise();
 }
 
 void KeyMgmt::SlotGenerateSubKey() {
@@ -401,53 +438,68 @@ void KeyMgmt::SlotGenerateSubKey() {
     return;
   }
 
-  auto dialog = new SubkeyGenerateDialog(key.GetId(), this);
-  dialog->show();
+  (new SubkeyGenerateDialog(key.GetId(), this))->exec();
+  this->raise();
 }
 
 void KeyMgmt::SlotExportAsOpenSSHFormat() {
-  ByteArrayPtr key_export_data = nullptr;
   auto keys_checked = key_list_->GetChecked();
-
   if (keys_checked->empty()) {
     QMessageBox::critical(
         this, _("Forbidden"),
-        _("Please select a key before performing this operation. If you select "
-          "multiple keys, only the first key will be exported."));
+        _("Please check a key before performing this operation."));
     return;
   }
 
-  auto key = GpgKeyGetter::GetInstance().GetKey(keys_checked->front());
-  if (!GpgKeyImportExporter::GetInstance().ExportKeyOpenSSH(key,
-                                                            key_export_data)) {
-    QMessageBox::critical(this, _("Error"), _("An error occur in exporting."));
+  if (keys_checked->size() > 1) {
+    QMessageBox::critical(this, _("Forbidden"),
+                          _("This operation accepts just a single key."));
     return;
   }
 
-  if (key_export_data->empty()) {
-    QMessageBox::critical(
-        this, _("Error"),
-        _("This key may not be able to export as OpenSSH format. Please check "
-          "the key-size of the subkey(s) used to sign."));
-    return;
-  }
+  auto keys = GpgKeyGetter::GetInstance().GetKeys(keys_checked);
+  CommonUtils::WaitForOpera(
+      this, _("Exporting"), [this, keys](const OperaWaitingHd& op_hd) {
+        GpgKeyImportExporter::GetInstance().ExportKeys(
+            *keys, false, true, false, true,
+            [=](GpgError err, const DataObjectPtr& data_obj) {
+              // stop waiting
+              op_hd();
 
-  key = GpgKeyGetter::GetInstance().GetKey(keys_checked->front());
-  if (!key.IsGood()) {
-    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
-    return;
-  }
-  QString fileString = QString::fromStdString(
-      key.GetName() + " " + key.GetEmail() + "(" + key.GetId() + ").pub");
+              if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                CommonUtils::RaiseMessageBox(this, err);
+                return;
+              }
 
-  QString file_name = QFileDialog::getSaveFileName(
-      this, _("Export OpenSSH Key To File"), fileString,
-      QString(_("OpenSSH Public Key Files")) + " (*.pub);;All Files (*)");
+              if (data_obj == nullptr || !data_obj->Check<GFBuffer>()) {
+                throw std::runtime_error("data object doesn't pass checking");
+              }
 
-  if (!file_name.isEmpty()) {
-    WriteBufferToFile(file_name.toStdString(), *key_export_data);
-    emit SignalStatusBarChanged(QString(_("key(s) exported")));
-  }
+              auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
+              if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                CommonUtils::RaiseMessageBox(this, err);
+                return;
+              }
+
+              if (gf_buffer.Empty()) {
+                QMessageBox::critical(
+                    this, _("Error"),
+                    _("This key may not be able to export as OpenSSH format. "
+                      "Please check the key-size of the subkey(s) used to "
+                      "sign."));
+                return;
+              }
+
+              QString const file_name = QFileDialog::getSaveFileName(
+                  this, _("Export OpenSSH Key To File"), "authorized_keys",
+                  QString(_("OpenSSH Public Key Files")) + "All Files (*)");
+
+              if (!file_name.isEmpty()) {
+                WriteFileGFBuffer(file_name.toStdString(), gf_buffer);
+                emit SignalStatusBarChanged(QString(_("key(s) exported")));
+              }
+            });
+      });
 }
 
 void KeyMgmt::SlotImportKeyPackage() {
@@ -463,17 +515,17 @@ void KeyMgmt::SlotImportKeyPackage() {
 
   if (key_package_file_name.isEmpty() || key_file_name.isEmpty()) return;
 
-  GpgImportInformation info;
-
   GF_UI_LOG_INFO("importing key package: {}",
                  key_package_file_name.toStdString());
 
-  if (KeyPackageOperator::ImportKeyPackage(key_package_file_name.toStdString(),
-                                           key_file_name.toStdString(), info)) {
+  const auto [success, info] = KeyPackageOperator::ImportKeyPackage(
+      key_package_file_name.toStdString(), key_file_name.toStdString());
+
+  if (success) {
     emit SignalStatusBarChanged(QString(_("key(s) imported")));
     emit SignalKeyStatusUpdated();
 
-    auto dialog = new KeyImportDetailDialog(info, false, this);
+    auto* dialog = new KeyImportDetailDialog(info, this);
     dialog->exec();
   } else {
     QMessageBox::critical(this, _("Error"),

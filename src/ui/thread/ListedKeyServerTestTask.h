@@ -52,6 +52,12 @@ class ListedKeyServerTestTask : public Thread::Task {
   explicit ListedKeyServerTestTask(const QStringList& urls, int timeout,
                                    QWidget* parent = nullptr);
 
+  /**
+   * @brief
+   *
+   */
+  void Run() override;
+
  signals:
   /**
    * @brief
@@ -60,13 +66,6 @@ class ListedKeyServerTestTask : public Thread::Task {
    */
   void SignalKeyServerListTestResult(
       std::vector<KeyServerTestResultType> result);
-
- protected:
-  /**
-   * @brief
-   *
-   */
-  void run() override;
 
  private:
   QStringList urls_;                             ///<

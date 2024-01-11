@@ -32,9 +32,10 @@
 #include <algorithm>
 
 #include "core/GpgModel.h"
-#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/utils/GpgUtils.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/struct/SettingsObject.h"
 
 namespace GpgFrontend::UI {
@@ -61,17 +62,29 @@ KeyUploadDialog::KeyUploadDialog(const KeyIdArgsListPtr& keys_ids,
 }
 
 void KeyUploadDialog::SlotUpload() {
-  auto out_data = GpgFrontend::SecureCreateSharedObject<ByteArray>();
-  GpgKeyImportExporter::GetInstance().ExportKeys(*m_keys_, out_data);
-  slot_upload_key_to_server(*out_data);
+  GpgKeyImportExporter::GetInstance().ExportKeys(
+      *m_keys_, false, true, false, false,
+      [=](GpgError err, const DataObjectPtr& data_obj) {
+        if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+          CommonUtils::RaiseMessageBox(this, err);
+          return;
+        }
 
-  // Done
-  this->hide();
-  this->close();
+        if (data_obj == nullptr || !data_obj->Check<GFBuffer>()) {
+          throw std::runtime_error("data object doesn't pass checking");
+        }
+
+        auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
+        slot_upload_key_to_server(gf_buffer);
+
+        // Done
+        this->hide();
+        this->close();
+      });
 }
 
 void KeyUploadDialog::slot_upload_key_to_server(
-    const GpgFrontend::ByteArray& keys_data) {
+    const GpgFrontend::GFBuffer& keys_data) {
   std::string target_keyserver;
 
   try {
@@ -106,7 +119,7 @@ void KeyUploadDialog::slot_upload_key_to_server(
   // Building Post Data
   QByteArray post_data;
 
-  auto data = std::string(keys_data);
+  auto data = keys_data.ConvertToStdString();
 
   boost::algorithm::replace_all(data, "\n", "%0A");
   boost::algorithm::replace_all(data, "\r", "%0D");

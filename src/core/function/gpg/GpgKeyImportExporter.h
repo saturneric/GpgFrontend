@@ -36,49 +36,7 @@
 
 namespace GpgFrontend {
 
-/**
- * @brief
- *
- */
-class GpgImportedKey {
- public:
-  std::string fpr;    ///<
-  int import_status;  ///<
-};
-
-using GpgImportedKeyList = std::list<GpgImportedKey>;  ///<
-
-/**
- * @brief
- *
- */
-class GPGFRONTEND_CORE_EXPORT GpgImportInformation {
- public:
-  GpgImportInformation();
-
-  /**
-   * @brief Construct a new Gpg Import Information object
-   *
-   * @param result
-   */
-  explicit GpgImportInformation(gpgme_import_result_t result);
-
-  int considered = 0;        ///<
-  int no_user_id = 0;        ///<
-  int imported = 0;          ///<
-  int imported_rsa = 0;      ///<
-  int unchanged = 0;         ///<
-  int new_user_ids = 0;      ///<
-  int new_sub_keys = 0;      ///<
-  int new_signatures = 0;    ///<
-  int new_revocations = 0;   ///<
-  int secret_read = 0;       ///<
-  int secret_imported = 0;   ///<
-  int secret_unchanged = 0;  ///<
-  int not_imported = 0;      ///<
-
-  GpgImportedKeyList imported_keys;  ///<
-};
+class GpgImportInformation;
 
 /**
  * @brief
@@ -101,7 +59,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
    * @param inBuffer
    * @return GpgImportInformation
    */
-  auto ImportKey(StdBypeArrayPtr) -> GpgImportInformation;
+  auto ImportKey(const GFBuffer&) -> std::shared_ptr<GpgImportInformation>;
 
   /**
    * @brief
@@ -112,7 +70,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
    * @return std::tuple<GpgError, GFBuffer>
    */
   [[nodiscard]] auto ExportKey(const GpgKey& key, bool secret, bool ascii,
-                               bool shortest) const
+                               bool shortest, bool ssh_mode = false) const
       -> std::tuple<GpgError, GFBuffer>;
 
   /**
@@ -125,18 +83,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
    * @return false
    */
   void ExportKeys(const KeyArgsList& keys, bool secret, bool ascii,
+                  bool shortest, bool ssh_mode,
                   const GpgOperationCallback& cb) const;
-
-  /**
-   * @brief
-   *
-   * @param key
-   * @param out_buffer
-   * @return true
-   * @return false
-   */
-  auto ExportKeyOpenSSH(const GpgKey& key, ByteArrayPtr& out_buffer) const
-      -> bool;
 
  private:
   GpgContext& ctx_;

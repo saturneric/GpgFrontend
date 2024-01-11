@@ -36,6 +36,7 @@
 #include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/model/GpgImportInformation.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui_KeyList.h"
@@ -417,20 +418,10 @@ void KeyList::dragEnterEvent(QDragEnterEvent* event) {
   event->acceptProposedAction();
 }
 
-/** set background color for Keys and put them to top
- *
- */
-[[maybe_unused]] void KeyList::MarkKeys(QStringList* keyIds) {
-  foreach (QString id, *keyIds) {
-    spdlog::debug("marked: ", id.toStdString());
-  }
-}
-
-void KeyList::import_keys(const QByteArray& inBuffer) {
-  auto std_buffer = std::make_unique<ByteArray>(inBuffer.toStdString());
-  GpgImportInformation result =
-      GpgKeyImportExporter::GetInstance().ImportKey(std::move(std_buffer));
-  new KeyImportDetailDialog(result, false, this);
+void KeyList::import_keys(const QByteArray& in_buffer) {
+  auto result =
+      GpgKeyImportExporter::GetInstance().ImportKey(GFBuffer(in_buffer));
+  (new KeyImportDetailDialog(result, this))->exec();
 }
 
 void KeyList::slot_double_clicked(const QModelIndex& index) {

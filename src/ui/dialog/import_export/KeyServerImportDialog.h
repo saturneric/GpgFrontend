@@ -53,14 +53,7 @@ class KeyServerImportDialog : public GeneralDialog {
    * @param automatic
    * @param parent
    */
-  KeyServerImportDialog(bool automatic, QWidget* parent);
-
-  /**
-   * @brief Construct a new Key Server Import Dialog object
-   *
-   * @param parent
-   */
-  explicit KeyServerImportDialog(QWidget* parent);
+  KeyServerImportDialog(QWidget* parent);
 
  public slots:
 
@@ -108,8 +101,8 @@ class KeyServerImportDialog : public GeneralDialog {
    *
    * @param keyid
    */
-  void slot_import_finished(QNetworkReply::NetworkError error,
-                            QByteArray buffer);
+  void slot_import_finished(bool success, QString err_msg, QByteArray buffer,
+                            std::shared_ptr<GpgImportInformation> info);
 
   /**
    * @brief
@@ -160,9 +153,10 @@ class KeyServerImportDialog : public GeneralDialog {
    *
    * @return QComboBox*
    */
-  QComboBox* create_comboBox();
+  QComboBox* create_combo_box();
 
-  bool m_automatic_ = false;  ///<
+
+  QHBoxLayout* message_layout_;  ///<
 
   QLineEdit* search_line_edit_{};      ///<
   QComboBox* key_server_combo_box_{};  ///<

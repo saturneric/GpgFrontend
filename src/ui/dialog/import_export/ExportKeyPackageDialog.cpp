@@ -33,6 +33,7 @@
 #include "core/GpgModel.h"
 #include "core/function/KeyPackageOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui_ExportKeyPackageDialog.h"
 
 GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
@@ -98,36 +99,52 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
     }
 
     // get suitable key ids
-    auto key_id_exported = std::make_unique<KeyIdArgsList>();
     auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids_);
-    for (const auto& key : *keys) {
-      if (ui_->noPublicKeyCheckBox->isChecked() && !key.IsPrivateKey())
-        continue;
-      key_id_exported->push_back(key.GetId());
+    auto keys_new_end =
+        std::remove_if(keys->begin(), keys->end(), [this](const auto& key) {
+          return ui_->noPublicKeyCheckBox->isChecked() && !key.IsPrivateKey();
+        });
+    keys->erase(keys_new_end, keys->end());
+
+    if (keys->empty()) {
+      QMessageBox::critical(this, _("Error"),
+                            _("No key is suitable to export."));
+      return;
     }
 
-    if (KeyPackageOperator::GenerateKeyPackage(
-            ui_->outputPathLabel->text().toStdString(),
-            ui_->nameValueLabel->text().toStdString(), key_id_exported,
-            passphrase_, ui_->includeSecretKeyCheckBox->isChecked())) {
-      QMessageBox::information(
-          this, _("Success"),
-          QString(
-              _("The Key Package has been successfully generated and has been "
-                "protected by encryption algorithms(AES-256-ECB). You can "
-                "safely transfer your Key Package.")) +
-              "<br /><br />" + "<b>" +
-              _("But the key file cannot be leaked under any "
-                "circumstances. Please delete the Key Package and key file as "
-                "soon "
-                "as possible after completing the transfer operation.") +
-              "</b>");
-      accept();
-    } else {
-      QMessageBox::critical(
-          this, _("Error"),
-          _("An error occurred while exporting the key package."));
-    }
+    CommonUtils::WaitForOpera(
+        this, _("Generating"), [this, keys](const OperaWaitingHd& op_hd) {
+          KeyPackageOperator::GenerateKeyPackage(
+              ui_->outputPathLabel->text().toStdString(),
+              ui_->nameValueLabel->text().toStdString(), *keys, passphrase_,
+              ui_->includeSecretKeyCheckBox->isChecked(),
+              [=](GFError err, const DataObjectPtr&) {
+                // stop waiting
+                op_hd();
+
+                if (err >= 0) {
+                  QMessageBox::information(
+                      this, _("Success"),
+                      QString(
+                          _("The Key Package has been successfully generated "
+                            "and has been protected by encryption "
+                            "algorithms(AES-256-ECB). You can safely transfer "
+                            "your Key Package.")) +
+                          "<br /><br />" + "<b>" +
+                          _("But the key file cannot be leaked under any "
+                            "circumstances. Please delete the Key Package and "
+                            "key file as soon as possible after completing the "
+                            "transfer "
+                            "operation.") +
+                          "</b>");
+                  accept();
+                } else {
+                  QMessageBox::critical(
+                      this, _("Error"),
+                      _("An error occurred while exporting the key package."));
+                }
+              });
+        });
   });
 
   connect(ui_->button_box_, &QDialogButtonBox::rejected, this,

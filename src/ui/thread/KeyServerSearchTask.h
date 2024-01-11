@@ -46,6 +46,12 @@ class KeyServerSearchTask : public Thread::Task {
    */
   KeyServerSearchTask(std::string keyserver_url, std::string search_string);
 
+  /**
+   * @brief
+   *
+   */
+  void Run() override;
+
  signals:
 
   /**
@@ -55,13 +61,6 @@ class KeyServerSearchTask : public Thread::Task {
    */
   void SignalKeyServerSearchResult(QNetworkReply::NetworkError reply,
                                    QByteArray buffer);
-
- protected:
-  /**
-   * @brief
-   *
-   */
-  void run() override;
 
  private slots:
 

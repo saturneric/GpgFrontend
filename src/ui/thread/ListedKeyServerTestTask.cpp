@@ -43,7 +43,7 @@ GpgFrontend::UI::ListedKeyServerTestTask::ListedKeyServerTestTask(
       "std::vector<KeyServerTestResultType>");
 }
 
-void GpgFrontend::UI::ListedKeyServerTestTask::run() {
+void GpgFrontend::UI::ListedKeyServerTestTask::Run() {
   size_t index = 0;
   for (const auto& url : urls_) {
     auto key_url = QUrl{url};

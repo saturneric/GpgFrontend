@@ -56,7 +56,8 @@ void KeyPackageOperator::GenerateKeyPackage(
   GF_CORE_LOG_DEBUG("generating key package: {}", key_package_name);
 
   GpgKeyImportExporter::GetInstance().ExportKeys(
-      keys, secret, true, [=](GpgError err, const DataObjectPtr& data_obj) {
+      keys, secret, true, false, false,
+      [=](GpgError err, const DataObjectPtr& data_obj) {
         if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
           GF_LOG_ERROR("export keys error, reason: {}",
                        DescribeGpgErrCode(err).second);
@@ -86,8 +87,8 @@ void KeyPackageOperator::GenerateKeyPackage(
 
 auto KeyPackageOperator::ImportKeyPackage(
     const std::filesystem::path& key_package_path,
-    const std::filesystem::path& phrase_path, GpgImportInformation& import_info)
-    -> bool {
+    const std::filesystem::path& phrase_path)
+    -> std::tuple<bool, std::shared_ptr<GpgImportInformation>> {
   GF_CORE_LOG_DEBUG("importing key package: {}", key_package_path.u8string());
 
   std::string encrypted_data;
@@ -96,7 +97,7 @@ auto KeyPackageOperator::ImportKeyPackage(
   if (encrypted_data.empty()) {
     GF_CORE_LOG_ERROR("failed to read key package: {}",
                       key_package_path.u8string());
-    return false;
+    return {false, nullptr};
   };
 
   std::string passphrase;
@@ -104,7 +105,7 @@ auto KeyPackageOperator::ImportKeyPackage(
   GF_CORE_LOG_DEBUG("passphrase: {} bytes", passphrase.size());
   if (passphrase.size() != 256) {
     GF_CORE_LOG_ERROR("failed to read passphrase: {}", phrase_path.u8string());
-    return false;
+    return {false, nullptr};
   }
 
   auto hash_key = QCryptographicHash::hash(
@@ -117,16 +118,16 @@ auto KeyPackageOperator::ImportKeyPackage(
   auto decoded = encryption.removePadding(encryption.decode(encoded, hash_key));
   auto key_data = QByteArray::fromBase64(decoded);
 
-  GF_CORE_LOG_DEBUG("key data size: {}", key_data.size());
+  GF_CORE_LOG_DEBUG("import key package, read key data size: {}",
+                    key_data.size());
   if (!key_data.startsWith(PGP_PUBLIC_KEY_BEGIN) &&
       !key_data.startsWith(PGP_PRIVATE_KEY_BEGIN)) {
-    return false;
+    return {false, nullptr};
   }
 
-  auto key_data_ptr = std::make_unique<ByteArray>(key_data.toStdString());
-  import_info =
-      GpgKeyImportExporter::GetInstance().ImportKey(std::move(key_data_ptr));
-  return true;
+  auto import_info =
+      GpgKeyImportExporter::GetInstance().ImportKey(GFBuffer(key_data));
+  return {true, import_info};
 }
 
 auto KeyPackageOperator::GenerateKeyPackageName() -> std::string {
