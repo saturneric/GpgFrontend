@@ -43,13 +43,13 @@ class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor {
  public:
   struct ExecuteContext {
     QString cmd;
-    QList<QString> arguments;
+    QStringList arguments;
     GpgCommandExecutorCallback cb_func;
     GpgCommandExecutorInteractor int_func;
     Module::TaskRunnerPtr task_runner = nullptr;
 
     ExecuteContext(
-        QString cmd, QList<QString> arguments,
+        QString cmd, QStringList arguments,
         GpgCommandExecutorCallback callback = [](int, const QString &,
                                                  const QString &) {},
         Module::TaskRunnerPtr task_runner = nullptr,

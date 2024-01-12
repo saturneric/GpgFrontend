@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <boost/date_time.hpp>
-
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
@@ -78,16 +76,16 @@ class GPGFRONTEND_CORE_EXPORT GpgSignature {
   /**
    * @brief Create a time object
    *
-   * @return boost::posix_time::ptime
+   * @return QDateTime
    */
-  [[nodiscard]] auto GetCreateTime() const -> boost::posix_time::ptime;
+  [[nodiscard]] auto GetCreateTime() const -> QDateTime;
 
   /**
    * @brief
    *
-   * @return boost::posix_time::ptime
+   * @return QDateTime
    */
-  [[nodiscard]] auto GetExpireTime() const -> boost::posix_time::ptime;
+  [[nodiscard]] auto GetExpireTime() const -> QDateTime;
 
   /**
    * @brief

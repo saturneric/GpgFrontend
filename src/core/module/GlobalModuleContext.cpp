@@ -28,8 +28,6 @@
 
 #include "GlobalModuleContext.h"
 
-#include <boost/date_time.hpp>
-#include <boost/random.hpp>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
@@ -46,11 +44,7 @@ namespace GpgFrontend::Module {
 
 class GlobalModuleContext::Impl {
  public:
-  explicit Impl()
-      : random_gen_(
-            (boost::posix_time::microsec_clock::universal_time() -
-             boost::posix_time::ptime(boost::gregorian::date(1970, 1, 1)))
-                .total_milliseconds()) {
+  explicit Impl() {
     // Initialize acquired channels with default values.
     acquired_channel_.insert(kGpgFrontendDefaultChannel);
     acquired_channel_.insert(kGpgFrontendNonAsciiChannel);
@@ -299,16 +293,13 @@ class GlobalModuleContext::Impl {
       module_events_table_;
 
   std::set<int> acquired_channel_;
-  boost::random::mt19937 random_gen_;
   TaskRunnerPtr default_task_runner_;
 
   auto acquire_new_unique_channel() -> int {
-    boost::random::uniform_int_distribution<> dist(1, 65535);
-
-    int random_channel = dist(random_gen_);
+    int random_channel = QRandomGenerator::global()->bounded(65535);
     // Ensure the acquired channel is unique.
     while (acquired_channel_.find(random_channel) != acquired_channel_.end()) {
-      random_channel = dist(random_gen_);
+      random_channel = QRandomGenerator::global()->bounded(65535);
     }
 
     // Add the acquired channel to the set.

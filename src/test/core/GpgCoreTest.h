@@ -30,8 +30,6 @@
 
 #include <gtest/gtest.h>
 
-#include <boost/date_time.hpp>
-
 namespace GpgFrontend::Test {
 
 class GpgCoreTest : public ::testing::Test {

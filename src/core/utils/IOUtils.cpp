@@ -28,12 +28,7 @@
 
 #include "IOUtils.h"
 
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <sstream>
-
-#include "GpgModel.h"
+#include "core/GpgModel.h"
 
 namespace GpgFrontend {
 
@@ -51,7 +46,7 @@ auto ReadFile(const QString& file_name, QByteArray& data) -> bool {
 auto WriteFile(const QString& file_name, const QByteArray& data) -> bool {
   QFile file(file_name);
   if (!file.open(QIODevice::WriteOnly)) {
-    GF_CORE_LOG_ERROR("failed to open file: {}", file_name);
+    GF_CORE_LOG_ERROR("failed to open file for writing: {}", file_name);
     return false;
   }
   file.write(data);

@@ -29,7 +29,6 @@
 
 #include "core/function/ArchiveFileOperator.h"
 #include "core/function/gpg/GpgBasicOperator.h"
-#include "core/model/GFBuffer.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
@@ -38,7 +37,6 @@
 #include "core/model/GpgVerifyResult.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
-#include "core/utils/IOUtils.h"
 
 namespace GpgFrontend {
 
@@ -47,9 +45,8 @@ constexpr ssize_t kDataExchangerSize = 8192;
 GpgFileOpera::GpgFileOpera(int channel)
     : SingletonFunctionObject<GpgFileOpera>(channel) {}
 
-void GpgFileOpera::EncryptFile(std::vector<GpgKey> keys,
-                               const std::filesystem::path& in_path, bool ascii,
-                               const std::filesystem::path& out_path,
+void GpgFileOpera::EncryptFile(std::vector<GpgKey> keys, const QString& in_path,
+                               bool ascii, const QString& out_path,
                                const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
@@ -73,9 +70,8 @@ void GpgFileOpera::EncryptFile(std::vector<GpgKey> keys,
 }
 
 void GpgFileOpera::EncryptDirectory(std::vector<GpgKey> keys,
-                                    const std::filesystem::path& in_path,
-                                    bool ascii,
-                                    const std::filesystem::path& out_path,
+                                    const QString& in_path, bool ascii,
+                                    const QString& out_path,
                                     const GpgOperationCallback& cb) {
   auto ex = std::make_shared<GFDataExchanger>(kDataExchangerSize);
 
@@ -108,8 +104,7 @@ void GpgFileOpera::EncryptDirectory(std::vector<GpgKey> keys,
       });
 }
 
-void GpgFileOpera::DecryptFile(const std::filesystem::path& in_path,
-                               const std::filesystem::path& out_path,
+void GpgFileOpera::DecryptFile(const QString& in_path, const QString& out_path,
                                const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
@@ -126,8 +121,8 @@ void GpgFileOpera::DecryptFile(const std::filesystem::path& in_path,
       cb, "gpgme_op_decrypt", "2.1.0");
 }
 
-void GpgFileOpera::DecryptArchive(const std::filesystem::path& in_path,
-                                  const std::filesystem::path& out_path,
+void GpgFileOpera::DecryptArchive(const QString& in_path,
+                                  const QString& out_path,
                                   const GpgOperationCallback& cb) {
   auto ex = std::make_shared<GFDataExchanger>(kDataExchangerSize);
 
@@ -151,9 +146,8 @@ void GpgFileOpera::DecryptArchive(const std::filesystem::path& in_path,
       cb, "gpgme_op_decrypt", "2.1.0");
 }
 
-void GpgFileOpera::SignFile(KeyArgsList keys,
-                            const std::filesystem::path& in_path, bool ascii,
-                            const std::filesystem::path& out_path,
+void GpgFileOpera::SignFile(KeyArgsList keys, const QString& in_path,
+                            bool ascii, const QString& out_path,
                             const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
@@ -177,8 +171,8 @@ void GpgFileOpera::SignFile(KeyArgsList keys,
       cb, "gpgme_op_sign", "2.1.0");
 }
 
-void GpgFileOpera::VerifyFile(const std::filesystem::path& data_path,
-                              const std::filesystem::path& sign_path,
+void GpgFileOpera::VerifyFile(const QString& data_path,
+                              const QString& sign_path,
                               const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
@@ -186,7 +180,7 @@ void GpgFileOpera::VerifyFile(const std::filesystem::path& data_path,
 
         GpgData data_in(data_path, true);
         GpgData data_out;
-        if (!sign_path.empty()) {
+        if (!sign_path.isEmpty()) {
           GpgData sig_data(sign_path, true);
           err = CheckGpgError(gpgme_op_verify(ctx_.DefaultContext(), sig_data,
                                               data_in, nullptr));
@@ -205,9 +199,8 @@ void GpgFileOpera::VerifyFile(const std::filesystem::path& data_path,
 }
 
 void GpgFileOpera::EncryptSignFile(KeyArgsList keys, KeyArgsList signer_keys,
-                                   const std::filesystem::path& in_path,
-                                   bool ascii,
-                                   const std::filesystem::path& out_path,
+                                   const QString& in_path, bool ascii,
+                                   const QString& out_path,
                                    const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
@@ -238,9 +231,8 @@ void GpgFileOpera::EncryptSignFile(KeyArgsList keys, KeyArgsList signer_keys,
 
 void GpgFileOpera::EncryptSignDirectory(KeyArgsList keys,
                                         KeyArgsList signer_keys,
-                                        const std::filesystem::path& in_path,
-                                        bool ascii,
-                                        const std::filesystem::path& out_path,
+                                        const QString& in_path, bool ascii,
+                                        const QString& out_path,
                                         const GpgOperationCallback& cb) {
   auto ex = std::make_shared<GFDataExchanger>(kDataExchangerSize);
 
@@ -276,8 +268,8 @@ void GpgFileOpera::EncryptSignDirectory(KeyArgsList keys,
       });
 }
 
-void GpgFileOpera::DecryptVerifyFile(const std::filesystem::path& in_path,
-                                     const std::filesystem::path& out_path,
+void GpgFileOpera::DecryptVerifyFile(const QString& in_path,
+                                     const QString& out_path,
                                      const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
@@ -299,8 +291,8 @@ void GpgFileOpera::DecryptVerifyFile(const std::filesystem::path& in_path,
       cb, "gpgme_op_decrypt_verify", "2.1.0");
 }
 
-void GpgFileOpera::DecryptVerifyArchive(const std::filesystem::path& in_path,
-                                        const std::filesystem::path& out_path,
+void GpgFileOpera::DecryptVerifyArchive(const QString& in_path,
+                                        const QString& out_path,
                                         const GpgOperationCallback& cb) {
   auto ex = std::make_shared<GFDataExchanger>(kDataExchangerSize);
 
@@ -329,9 +321,8 @@ void GpgFileOpera::DecryptVerifyArchive(const std::filesystem::path& in_path,
       cb, "gpgme_op_decrypt_verify", "2.1.0");
 }
 
-void GpgFileOpera::EncryptFileSymmetric(const std::filesystem::path& in_path,
-                                        bool ascii,
-                                        const std::filesystem::path& out_path,
+void GpgFileOpera::EncryptFileSymmetric(const QString& in_path, bool ascii,
+                                        const QString& out_path,
                                         const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
@@ -350,9 +341,9 @@ void GpgFileOpera::EncryptFileSymmetric(const std::filesystem::path& in_path,
       cb, "gpgme_op_encrypt_symmetric", "2.1.0");
 }
 
-void GpgFileOpera::EncryptDerectorySymmetric(
-    const std::filesystem::path& in_path, bool ascii,
-    const std::filesystem::path& out_path, const GpgOperationCallback& cb) {
+void GpgFileOpera::EncryptDerectorySymmetric(const QString& in_path, bool ascii,
+                                             const QString& out_path,
+                                             const GpgOperationCallback& cb) {
   auto ex = std::make_shared<GFDataExchanger>(kDataExchangerSize);
 
   RunGpgOperaAsync(

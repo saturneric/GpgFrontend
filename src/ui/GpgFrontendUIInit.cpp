@@ -253,10 +253,9 @@ void InitLocale() {
 
   GF_UI_LOG_DEBUG("lang from settings: {}", lang);
   GF_UI_LOG_DEBUG("project name: {}", PROJECT_NAME);
-  GF_UI_LOG_DEBUG("locales path: {}",
-                  GpgFrontend::GlobalSettingStation::GetInstance()
-                      .GetLocaleDir()
-                      .u8string());
+  GF_UI_LOG_DEBUG(
+      "locales path: {}",
+      GpgFrontend::GlobalSettingStation::GetInstance().GetLocaleDir());
 
 #ifndef WINDOWS
   if (!lang.empty()) {
@@ -294,10 +293,9 @@ void InitLocale() {
   }
 #endif
 
-  bindtextdomain(PROJECT_NAME, GpgFrontend::GlobalSettingStation::GetInstance()
-                                   .GetLocaleDir()
-                                   .u8string()
-                                   .c_str());
+  bindtextdomain(
+      PROJECT_NAME,
+      GpgFrontend::GlobalSettingStation::GetInstance().GetLocaleDir().toUtf8());
   bind_textdomain_codeset(PROJECT_NAME, "utf-8");
   textdomain(PROJECT_NAME);
 }

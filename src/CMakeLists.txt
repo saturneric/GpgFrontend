@@ -23,16 +23,6 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-
-# Introduce boost
-if(NOT BOOST_ROOT)
-    find_package(Boost COMPONENTS date_time system program_options filesystem REQUIRED)
-else()
-    find_package(Boost
-            COMPONENTS date_time system program_options filesystem REQUIRED
-            PATHS ${BOOST_ROOT} NO_DEFAULT_PATH)
-endif()
-
 if(APPLE)
   add_compile_definitions("_GNU_SOURCE")
 endif()

@@ -40,17 +40,18 @@
 
 namespace GpgFrontend {
 
-auto KeyPackageOperator::GeneratePassphrase(
-    const std::filesystem::path& phrase_path, QString& phrase) -> bool {
+auto KeyPackageOperator::GeneratePassphrase(const QString& phrase_path,
+                                            QString& phrase) -> bool {
   phrase = PassphraseGenerator::GetInstance().Generate(256);
   GF_CORE_LOG_DEBUG("generated passphrase: {} bytes", phrase.size());
-  return WriteFile(phrase_path.c_str(), phrase.toUtf8());
+  return WriteFile(phrase_path, phrase.toUtf8());
 }
 
-void KeyPackageOperator::GenerateKeyPackage(
-    const std::filesystem::path& key_package_path,
-    const QString& key_package_name, const KeyArgsList& keys, QString& phrase,
-    bool secret, const OperationCallback& cb) {
+void KeyPackageOperator::GenerateKeyPackage(const QString& key_package_path,
+                                            const QString& key_package_name,
+                                            const KeyArgsList& keys,
+                                            QString& phrase, bool secret,
+                                            const OperationCallback& cb) {
   GF_CORE_LOG_DEBUG("generating key package: {}", key_package_name);
 
   GpgKeyImportExporter::GetInstance().ExportKeys(
@@ -77,32 +78,30 @@ void KeyPackageOperator::GenerateKeyPackage(
         auto encoded_data = encryption.encode(data, hash_key);
         GF_CORE_LOG_DEBUG("writing key package, name: {}", key_package_name);
 
-        cb(WriteFile(key_package_path.c_str(), encoded_data) ? 0 : -1,
+        cb(WriteFile(key_package_path, encoded_data) ? 0 : -1,
            TransferParams());
         return;
       });
 }
 
-auto KeyPackageOperator::ImportKeyPackage(
-    const std::filesystem::path& key_package_path,
-    const std::filesystem::path& phrase_path)
+auto KeyPackageOperator::ImportKeyPackage(const QString& key_package_path,
+                                          const QString& phrase_path)
     -> std::tuple<bool, std::shared_ptr<GpgImportInformation>> {
-  GF_CORE_LOG_DEBUG("importing key package: {}", key_package_path.u8string());
+  GF_CORE_LOG_DEBUG("importing key package: {}", key_package_path);
 
   QByteArray encrypted_data;
-  ReadFile(key_package_path.c_str(), encrypted_data);
+  ReadFile(key_package_path, encrypted_data);
 
   if (encrypted_data.isEmpty()) {
-    GF_CORE_LOG_ERROR("failed to read key package: {}",
-                      key_package_path.u8string());
+    GF_CORE_LOG_ERROR("failed to read key package: {}", key_package_path);
     return {false, nullptr};
   };
 
   QByteArray passphrase;
-  ReadFile(phrase_path.c_str(), passphrase);
+  ReadFile(phrase_path, passphrase);
   GF_CORE_LOG_DEBUG("passphrase: {} bytes", passphrase.size());
   if (passphrase.size() != 256) {
-    GF_CORE_LOG_ERROR("failed to read passphrase: {}", phrase_path.u8string());
+    GF_CORE_LOG_ERROR("failed to read passphrase: {}", phrase_path);
     return {false, nullptr};
   }
 
@@ -138,7 +137,7 @@ auto KeyPackageOperator::GenerateKeyPackageName() -> QString {
  * @return QString key package name
  */
 auto KeyPackageOperator::generate_key_package_name() -> QString {
-  return QString("KeyPackage_%1%")
+  return QString("KeyPackage_%1")
       .arg(QRandomGenerator::global()->bounded(999, 99999));
 }
 

@@ -69,7 +69,7 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
     if (!read_done_) return;
 
     auto text = ui_->textPage->document()->toPlainText();
-    auto str = QString(_("%1% character(s)")).arg(text.size());
+    auto str = QString(_("%1 character(s)")).arg(text.size());
     this->ui_->characterLabel->setText(str);
   });
 

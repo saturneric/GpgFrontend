@@ -67,8 +67,7 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
     // check path
     if (file_name.isEmpty()) return;
 
-    if (!KeyPackageOperator::GeneratePassphrase(file_name.toStdString(),
-                                                passphrase_)) {
+    if (!KeyPackageOperator::GeneratePassphrase(file_name, passphrase_)) {
       QMessageBox::critical(
           this, _("Error"),
           _("An error occurred while generating the passphrase file."));
@@ -111,9 +110,8 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
     CommonUtils::WaitForOpera(
         this, _("Generating"), [this, keys](const OperaWaitingHd& op_hd) {
           KeyPackageOperator::GenerateKeyPackage(
-              ui_->outputPathLabel->text().toStdString(),
-              ui_->nameValueLabel->text(), *keys, passphrase_,
-              ui_->includeSecretKeyCheckBox->isChecked(),
+              ui_->outputPathLabel->text(), ui_->nameValueLabel->text(), *keys,
+              passphrase_, ui_->includeSecretKeyCheckBox->isChecked(),
               [=](GFError err, const DataObjectPtr&) {
                 // stop waiting
                 op_hd();

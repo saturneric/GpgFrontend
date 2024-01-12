@@ -28,17 +28,15 @@
 
 #include "CommonUtils.h"
 
-#include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
-
 namespace GpgFrontend {
 
 auto BeautifyFingerprint(QString fingerprint) -> QString {
   auto len = fingerprint.size();
-  QTextStream out;
+  QString buffer;
+  QTextStream out(&buffer);
   decltype(len) count = 0;
   while (count < len) {
-    if ((count != 0U) && !(count % 5)) out << " ";
+    if ((count != 0U) && ((count % 5) == 0)) out << " ";
     out << fingerprint[count];
     count++;
   }

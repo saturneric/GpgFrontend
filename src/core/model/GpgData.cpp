@@ -92,10 +92,14 @@ GpgData::GpgData(int fd) : fd_(fd), data_cbs_() {
   data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
 }
 
-GpgData::GpgData(const std::filesystem::path& path, bool read) {
+GpgData::GpgData(const QString& path, bool read) {
   gpgme_data_t data;
 
-  fp_ = fopen(path.string().c_str(), read ? "rb" : "wb");
+  // support unicode path
+  QFile file(path);
+  file.open(read ? QIODevice::ReadOnly : QIODevice::WriteOnly);
+  fp_ = fdopen(dup(file.handle()), read ? "rb" : "wb");
+
   auto err = gpgme_data_new_from_stream(&data, fp_);
   assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
 

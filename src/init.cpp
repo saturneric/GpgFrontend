@@ -30,7 +30,6 @@
 
 #include <qcoreapplication.h>
 
-#include <boost/date_time.hpp>
 #include <filesystem>
 #include <string>
 
@@ -111,7 +110,7 @@ void InitGlobalBasicalEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
   // change path to search for related
   InitGlobalPathEnv();
 
-  ctx->InitApplication(gui_mode);
+  ctx->InitApplication();
 
   // should load module system first
   Module::ModuleInitArgs module_init_args;

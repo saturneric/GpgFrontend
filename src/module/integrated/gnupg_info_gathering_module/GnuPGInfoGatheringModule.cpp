@@ -28,8 +28,6 @@
 
 #include "GnuPGInfoGatheringModule.h"
 
-#include <boost/algorithm/string.hpp>
-#include <boost/format/format_fwd.hpp>
 #include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
@@ -114,8 +112,8 @@ auto GnuPGInfoGatheringModule::Exec(EventRefrernce event) -> int {
 
          if (exit_code != 0) {
            MODULE_LOG_ERROR(
-               "gpgconf execute error, process stderr: {} ,process stdout: "
-               "{}",
+               "gpgconf execute error, process stderr: {}, "
+               "process stdout: {}",
                p_err, p_out);
            return;
          }
@@ -343,7 +341,7 @@ auto GnuPGInfoGatheringModule::Exec(EventRefrernce event) -> int {
 
             nlohmann::json const jsonlized_option_info = info;
             UpsertRTValue(GetModuleIdentifier(),
-                          QString("gnupg.components.%1%.options.%2%")
+                          QString("gnupg.components.%1.options.%2")
                               .arg(component_info.name.c_str())
                               .arg(option_name),
                           QString::fromStdString(static_cast<std::string>(

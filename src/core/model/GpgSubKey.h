@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <boost/date_time.hpp>
-
 namespace GpgFrontend {
 
 /**
@@ -149,16 +147,16 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
   /**
    * @brief
    *
-   * @return boost::posix_time::ptime
+   * @return QDateTime
    */
-  [[nodiscard]] auto GetCreateTime() const -> boost::posix_time::ptime;
+  [[nodiscard]] auto GetCreateTime() const -> QDateTime;
 
   /**
    * @brief
    *
-   * @return boost::posix_time::ptime
+   * @return QDateTime
    */
-  [[nodiscard]] boost::posix_time::ptime GetExpireTime() const;
+  [[nodiscard]] QDateTime GetExpireTime() const;
 
   /**
    * @brief Construct a new Gpg Sub Key object

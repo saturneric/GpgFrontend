@@ -61,9 +61,8 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param channel Channel in context
    * @return unsigned int error code
    */
-  void EncryptFile(KeyArgsList keys, const std::filesystem::path& in_path,
-                   bool ascii, const std::filesystem::path& out_path,
-                   const GpgOperationCallback& cb);
+  void EncryptFile(KeyArgsList keys, const QString& in_path, bool ascii,
+                   const QString& out_path, const GpgOperationCallback& cb);
 
   /**
    * @brief
@@ -74,8 +73,8 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param out_path
    * @param cb
    */
-  void EncryptDirectory(KeyArgsList keys, const std::filesystem::path& in_path,
-                        bool ascii, const std::filesystem::path& out_path,
+  void EncryptDirectory(KeyArgsList keys, const QString& in_path, bool ascii,
+                        const QString& out_path,
                         const GpgOperationCallback& cb);
 
   /**
@@ -87,8 +86,8 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param channel
    * @return unsigned int
    */
-  void EncryptFileSymmetric(const std::filesystem::path& in_path, bool ascii,
-                            const std::filesystem::path& out_path,
+  void EncryptFileSymmetric(const QString& in_path, bool ascii,
+                            const QString& out_path,
                             const GpgOperationCallback& cb);
 
   /**
@@ -99,9 +98,8 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param out_path
    * @param cb
    */
-  void EncryptDerectorySymmetric(const std::filesystem::path& in_path,
-                                 bool ascii,
-                                 const std::filesystem::path& out_path,
+  void EncryptDerectorySymmetric(const QString& in_path, bool ascii,
+                                 const QString& out_path,
                                  const GpgOperationCallback& cb);
 
   /**
@@ -112,8 +110,7 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param result
    * @return GpgError
    */
-  void DecryptFile(const std::filesystem::path& in_path,
-                   const std::filesystem::path& out_path,
+  void DecryptFile(const QString& in_path, const QString& out_path,
                    const GpgOperationCallback& cb);
 
   /**
@@ -123,8 +120,7 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param out_path
    * @param cb
    */
-  void DecryptArchive(const std::filesystem::path& in_path,
-                      const std::filesystem::path& out_path,
+  void DecryptArchive(const QString& in_path, const QString& out_path,
                       const GpgOperationCallback& cb);
 
   /**
@@ -137,9 +133,8 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param channel
    * @return GpgError
    */
-  void SignFile(KeyArgsList keys, const std::filesystem::path& in_path,
-                bool ascii, const std::filesystem::path& out_path,
-                const GpgOperationCallback& cb);
+  void SignFile(KeyArgsList keys, const QString& in_path, bool ascii,
+                const QString& out_path, const GpgOperationCallback& cb);
 
   /**
    * @brief Verify file with public key
@@ -150,8 +145,7 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param channel Channel in context
    * @return GpgError
    */
-  void VerifyFile(const std::filesystem::path& data_path,
-                  const std::filesystem::path& sign_path,
+  void VerifyFile(const QString& data_path, const QString& sign_path,
                   const GpgOperationCallback& cb);
 
   /**
@@ -165,9 +159,8 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param cb
    */
   void EncryptSignFile(KeyArgsList keys, KeyArgsList signer_keys,
-                       const std::filesystem::path& in_path, bool ascii,
-                       const std::filesystem::path& out_path,
-                       const GpgOperationCallback& cb);
+                       const QString& in_path, bool ascii,
+                       const QString& out_path, const GpgOperationCallback& cb);
 
   /**
    * @brief
@@ -180,8 +173,8 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param cb
    */
   void EncryptSignDirectory(KeyArgsList keys, KeyArgsList signer_keys,
-                            const std::filesystem::path& in_path, bool ascii,
-                            const std::filesystem::path& out_path,
+                            const QString& in_path, bool ascii,
+                            const QString& out_path,
                             const GpgOperationCallback& cb);
 
   /**
@@ -193,8 +186,7 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param verify_res
    * @return GpgError
    */
-  void DecryptVerifyFile(const std::filesystem::path& in_path,
-                         const std::filesystem::path& out_path,
+  void DecryptVerifyFile(const QString& in_path, const QString& out_path,
                          const GpgOperationCallback& cb);
 
   /**
@@ -204,8 +196,7 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param out_path
    * @param cb
    */
-  void DecryptVerifyArchive(const std::filesystem::path& in_path,
-                            const std::filesystem::path& out_path,
+  void DecryptVerifyArchive(const QString& in_path, const QString& out_path,
                             const GpgOperationCallback& cb);
 
  private:

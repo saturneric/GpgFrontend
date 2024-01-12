@@ -28,9 +28,6 @@
 
 #include "GpgKeyManager.h"
 
-#include <boost/algorithm/string.hpp>
-#include <boost/date_time/posix_time/conversion.hpp>
-
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
@@ -41,8 +38,7 @@ GpgFrontend::GpgKeyManager::GpgKeyManager(int channel)
 
 auto GpgFrontend::GpgKeyManager::SignKey(
     const GpgFrontend::GpgKey& target, GpgFrontend::KeyArgsList& keys,
-    const QString& uid,
-    const std::unique_ptr<boost::posix_time::ptime>& expires) -> bool {
+    const QString& uid, const std::unique_ptr<QDateTime>& expires) -> bool {
   GpgBasicOperator::GetInstance().SetSigners(keys, true);
 
   unsigned int flags = 0;
@@ -51,7 +47,7 @@ auto GpgFrontend::GpgKeyManager::SignKey(
   if (expires == nullptr) {
     flags |= GPGME_KEYSIGN_NOEXPIRE;
   } else {
-    expires_time_t = to_time_t(*expires);
+    expires_time_t = expires->toSecsSinceEpoch();
   }
 
   auto err = CheckGpgError(
@@ -77,14 +73,13 @@ auto GpgFrontend::GpgKeyManager::RevSign(
   return true;
 }
 
-auto GpgFrontend::GpgKeyManager::SetExpire(
-    const GpgFrontend::GpgKey& key, std::unique_ptr<GpgSubKey>& subkey,
-    std::unique_ptr<boost::posix_time::ptime>& expires) -> bool {
-  using namespace boost::posix_time;
-
+auto GpgFrontend::GpgKeyManager::SetExpire(const GpgFrontend::GpgKey& key,
+                                           std::unique_ptr<GpgSubKey>& subkey,
+                                           std::unique_ptr<QDateTime>& expires)
+    -> bool {
   unsigned long expires_time = 0;
 
-  if (expires != nullptr) expires_time = to_time_t(ptime(*expires));
+  if (expires != nullptr) expires_time = expires->toSecsSinceEpoch();
 
   const char* sub_fprs = nullptr;
 
@@ -191,7 +186,7 @@ auto GpgFrontend::GpgKeyManager::interactor_cb_fnc(void* handle,
                                                    const char* status,
                                                    const char* args, int fd)
     -> gpgme_error_t {
-  auto handle_struct = static_cast<AutomatonHandelStruct*>(handle);
+  auto* handle_struct = static_cast<AutomatonHandelStruct*>(handle);
   QString status_s = status;
   QString args_s = args;
   GF_CORE_LOG_DEBUG(

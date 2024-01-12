@@ -84,18 +84,18 @@ TEST_F(GpgCoreTest, GpgKeyTest) {
   ASSERT_EQ(key.GetId(), "81704859182661FB");
   ASSERT_EQ(key.GetFingerprint(), "9490795B78F8AFE9F93BD09281704859182661FB");
   ASSERT_EQ(key.GetExpireTime(),
-            boost::posix_time::from_iso_string("20230905T040000"));
+            QDateTime::fromString("20230905T040000", Qt::ISODate));
   ASSERT_EQ(key.GetPublicKeyAlgo(), "RSA");
   ASSERT_EQ(key.GetPrimaryKeyLength(), 3072);
   ASSERT_EQ(key.GetLastUpdateTime(),
-            boost::posix_time::from_iso_string("19700101T000000"));
+            QDateTime::fromString("19700101T000000", Qt::ISODate));
   ASSERT_EQ(key.GetCreateTime(),
-            boost::posix_time::from_iso_string("20210905T060153"));
+            QDateTime::fromString("20210905T060153", Qt::ISODate));
 
   ASSERT_EQ(key.GetOwnerTrust(), "Unknown");
 
-  ASSERT_EQ(key.IsExpired(), key.GetExpireTime() <
-                                 boost::posix_time::second_clock::local_time());
+  ASSERT_EQ(key.IsExpired(),
+            key.GetExpireTime() < QDateTime::currentDateTime());
 }
 
 TEST_F(GpgCoreTest, GpgSubKeyTest) {
@@ -109,7 +109,7 @@ TEST_F(GpgCoreTest, GpgSubKeyTest) {
   ASSERT_FALSE(sub_key.IsRevoked());
   ASSERT_FALSE(sub_key.IsDisabled());
   ASSERT_EQ(sub_key.GetCreateTime(),
-            boost::posix_time::from_iso_string("20210905T060153"));
+            QDateTime::fromString("20210905T060153", Qt::ISODate));
 
   ASSERT_FALSE(sub_key.IsCardKey());
   ASSERT_TRUE(sub_key.IsPrivateKey());
@@ -123,11 +123,10 @@ TEST_F(GpgCoreTest, GpgSubKeyTest) {
   ASSERT_FALSE(sub_key.IsHasSigningCapability());
   ASSERT_TRUE(sub_key.IsHasEncryptionCapability());
   ASSERT_EQ(key.GetExpireTime(),
-            boost::posix_time::from_iso_string("20230905T040000"));
+            QDateTime::fromString("20230905T040000", Qt::ISODate));
 
-  ASSERT_EQ(
-      sub_key.IsExpired(),
-      sub_key.GetExpireTime() < boost::posix_time::second_clock::local_time());
+  ASSERT_EQ(sub_key.IsExpired(),
+            sub_key.GetExpireTime() < QDateTime::currentDateTime());
 }
 
 TEST_F(GpgCoreTest, GpgUIDTest) {

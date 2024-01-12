@@ -32,7 +32,6 @@
 #include <qdialog.h>
 
 #include <QtNetwork>
-#include <boost/format/format_fwd.hpp>
 #include <string>
 #include <utility>
 #include <vector>
@@ -276,8 +275,8 @@ void CommonUtils::RaiseFailureMessageBox(QWidget *parent, GpgError err) {
 
   QMessageBox::critical(
       parent, _("Failure"),
-      QString(_("Gpg Operation failed.\n\nError code: %1%\nSource: "
-                " %2%\nDescription: %3%"))
+      QString(_("Gpg Operation failed.\n\nError code: %1\nSource: "
+                " %2\nDescription: %3"))
           .arg(err_code)
           .arg(desc.first)
           .arg(desc.second));

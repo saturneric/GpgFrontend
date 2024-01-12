@@ -87,8 +87,7 @@ void MainWindow::SlotFileEncrypt(const QString& path) {
     CommonUtils::WaitForOpera(
         this, _("Symmetrically Encrypting"), [=](const OperaWaitingHd& op_hd) {
           GpgFileOpera::GetInstance().EncryptFileSymmetric(
-              path.toStdString(), !non_ascii_when_export,
-              out_path.toStdString(),
+              path, !non_ascii_when_export, out_path,
               [=](GpgError err, const DataObjectPtr& data_obj) {
                 // stop waiting
                 op_hd();
@@ -129,9 +128,8 @@ void MainWindow::SlotFileEncrypt(const QString& path) {
   CommonUtils::WaitForOpera(
       this, _("Encrypting"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().EncryptFile(
-            {p_keys->begin(), p_keys->end()}, path.toStdString(),
-            !non_ascii_when_export, out_path.toStdString(),
-            [=](GpgError err, const DataObjectPtr& data_obj) {
+            {p_keys->begin(), p_keys->end()}, path, !non_ascii_when_export,
+            out_path, [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
 
@@ -196,8 +194,7 @@ void MainWindow::SlotDirectoryEncrypt(const QString& path) {
         this, _("Archiving & Symmetrically Encrypting"),
         [=](const OperaWaitingHd& op_hd) {
           GpgFileOpera::GetInstance().EncryptDerectorySymmetric(
-              path.toStdString(), !non_ascii_when_export,
-              out_path.toStdString(),
+              path, !non_ascii_when_export, out_path,
               [=](GpgError err, const DataObjectPtr& data_obj) {
                 // stop waiting
                 op_hd();
@@ -238,9 +235,8 @@ void MainWindow::SlotDirectoryEncrypt(const QString& path) {
   CommonUtils::WaitForOpera(
       this, _("Archiving & Encrypting"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().EncryptDirectory(
-            {p_keys->begin(), p_keys->end()}, path.toStdString(),
-            !non_ascii_when_export, out_path.toStdString(),
-            [=](GpgError err, const DataObjectPtr& data_obj) {
+            {p_keys->begin(), p_keys->end()}, path, !non_ascii_when_export,
+            out_path, [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
 
@@ -287,8 +283,7 @@ void MainWindow::SlotFileDecrypt(const QString& path) {
   CommonUtils::WaitForOpera(
       this, _("Decrypting"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().DecryptFile(
-            path.toStdString(), out_path.toStdString(),
-            [=](GpgError err, const DataObjectPtr& data_obj) {
+            path, out_path, [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
 
@@ -334,8 +329,7 @@ void MainWindow::SlotArchiveDecrypt(const QString& path) {
   CommonUtils::WaitForOpera(
       this, _("Decrypting & Extrating"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().DecryptArchive(
-            path.toStdString(), out_path.toStdString(),
-            [=](GpgError err, const DataObjectPtr& data_obj) {
+            path, out_path, [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
 
@@ -404,9 +398,8 @@ void MainWindow::SlotFileSign(const QString& path) {
   CommonUtils::WaitForOpera(
       this, _("Signing"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().SignFile(
-            {keys->begin(), keys->end()}, path.toStdString(),
-            !non_ascii_when_export, sig_file_path.toStdString(),
-            [=](GpgError err, const DataObjectPtr& data_obj) {
+            {keys->begin(), keys->end()}, path, !non_ascii_when_export,
+            sig_file_path, [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
 
@@ -475,7 +468,7 @@ void MainWindow::SlotFileVerify(const QString& path) {
   CommonUtils::WaitForOpera(
       this, _("Verifying"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().VerifyFile(
-            data_file_path.toStdString(), sign_file_path.toStdString(),
+            data_file_path, sign_file_path,
             [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
@@ -571,8 +564,8 @@ void MainWindow::SlotFileEncryptSign(const QString& path) {
       this, _("Encrypting and Signing"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().EncryptSignFile(
             {p_keys->begin(), p_keys->end()},
-            {p_signer_keys->begin(), p_signer_keys->end()}, path.toStdString(),
-            !non_ascii_when_export, out_path.toStdString(),
+            {p_signer_keys->begin(), p_signer_keys->end()}, path,
+            !non_ascii_when_export, out_path,
             [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
@@ -671,8 +664,8 @@ void MainWindow::SlotDirectoryEncryptSign(const QString& path) {
       [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().EncryptSignDirectory(
             {p_keys->begin(), p_keys->end()},
-            {p_signer_keys->begin(), p_signer_keys->end()}, path.toStdString(),
-            !non_ascii_when_export, out_path.toStdString(),
+            {p_signer_keys->begin(), p_signer_keys->end()}, path,
+            !non_ascii_when_export, out_path,
             [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
@@ -731,8 +724,7 @@ void MainWindow::SlotFileDecryptVerify(const QString& path) {
   CommonUtils::WaitForOpera(
       this, _("Decrypting and Verifying"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().DecryptVerifyFile(
-            path.toStdString(), out_path.toStdString(),
-            [=](GpgError err, const DataObjectPtr& data_obj) {
+            path, out_path, [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
 
@@ -799,8 +791,7 @@ void MainWindow::SlotArchiveDecryptVerify(const QString& path) {
       this, _("Decrypting & Verifying & Extracting"),
       [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().DecryptVerifyArchive(
-            path.toStdString(), out_path.toStdString(),
-            [=](GpgError err, const DataObjectPtr& data_obj) {
+            path, out_path, [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
 

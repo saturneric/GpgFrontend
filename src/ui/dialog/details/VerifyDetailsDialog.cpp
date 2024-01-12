@@ -64,8 +64,7 @@ void VerifyDetailsDialog::slot_refresh() {
   }
 
   // Get timestamp of signature of current text
-  QDateTime timestamp;
-  timestamp.setSecsSinceEpoch(to_time_t(signatures[0].GetCreateTime()));
+  QDateTime timestamp = signatures[0].GetCreateTime();
 
   // Set the title widget depending on sign status
   if (gpg_err_code(signatures[0].GetStatus()) == GPG_ERR_BAD_SIGNATURE) {
@@ -77,7 +76,7 @@ void VerifyDetailsDialog::slot_refresh() {
     m_vbox_layout->addWidget(new QLabel(info));
   } else {
     const auto info =
-        QString(_("Signed on %1%")).arg(QLocale::system().toString(timestamp)) +
+        QString(_("Signed on %1")).arg(QLocale::system().toString(timestamp)) +
         "<br/>" + _("It Contains") + ": " + "<br/><br/>";
     m_vbox_layout->addWidget(new QLabel(info));
   }

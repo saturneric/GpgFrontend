@@ -29,6 +29,8 @@
 #include <gtest/gtest.h>
 #include <qeventloop.h>
 
+#include <cstddef>
+
 #include "GpgCoreTest.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
@@ -92,8 +94,8 @@ TEST_F(GpgCoreTest, GenerateKeyTest_1) {
   keygen_info->SetAlgo(std::get<1>(keygen_info->GetSupportedKeyAlgo()[0]));
   keygen_info->SetKeyLength(4096);
   keygen_info->SetNonExpired(false);
-  keygen_info->SetExpireTime(boost::posix_time::second_clock::local_time() +
-                             boost::posix_time::hours(24));
+  keygen_info->SetExpireTime(
+      QDateTime::currentDateTime().addSecs(static_cast<qint64>(24 * 3600)));
   keygen_info->SetNonPassPhrase(false);
 
   std::atomic_bool callback_called_flag{false};

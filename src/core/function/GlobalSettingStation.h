@@ -67,57 +67,50 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
   /**
    * @brief Get the App Dir object
    *
-   * @return std::filesystem::path
+   * @return QString
    */
-  [[nodiscard]] auto GetAppDir() const -> std::filesystem::path;
+  [[nodiscard]] auto GetAppDir() const -> QString;
 
   /**
    * @brief Gets the application data directory.
    * @return Path to the application data directory.
    */
-  [[nodiscard]] auto GetAppDataPath() const -> std::filesystem::path;
+  [[nodiscard]] auto GetAppDataPath() const -> QString;
 
   /**
    * @brief Get the Log Dir object
    *
-   * @return std::filesystem::path
+   * @return QString
    */
-  [[nodiscard]] auto GetLogDir() const -> std::filesystem::path;
-
-  /**
-   * @brief Get the Standalone Database Dir object
-   *
-   * @return std::filesystem::path
-   */
-  [[nodiscard]] auto GetStandaloneDatabaseDir() const -> std::filesystem::path;
+  [[nodiscard]] auto GetLogDir() const -> QString;
 
   /**
    * @brief Get the App Config Path object
    *
-   * @return std::filesystem::path
+   * @return QString
    */
-  [[nodiscard]] auto GetAppConfigPath() const -> std::filesystem::path;
+  [[nodiscard]] auto GetAppConfigPath() const -> QString;
 
   /**
    * @brief Get the Locale Dir object
    *
-   * @return std::filesystem::path
+   * @return QString
    */
-  [[nodiscard]] auto GetLocaleDir() const -> std::filesystem::path;
+  [[nodiscard]] auto GetLocaleDir() const -> QString;
 
   /**
    * @brief Get the Resource Dir object
    *
-   * @return std::filesystem::path
+   * @return QString
    */
-  [[nodiscard]] auto GetResourceDir() const -> std::filesystem::path;
+  [[nodiscard]] auto GetResourceDir() const -> QString;
 
   /**
    * @brief Get the Certs Dir object
    *
-   * @return std::filesystem::path
+   * @return QString
    */
-  [[nodiscard]] auto GetCertsDir() const -> std::filesystem::path;
+  [[nodiscard]] auto GetCertsDir() const -> QString;
 
   /**
    * @brief Get the Log Files Size object

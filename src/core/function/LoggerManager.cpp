@@ -70,8 +70,7 @@ auto LoggerManager::RegisterAsyncLogger(const QString& id,
     -> std::shared_ptr<spdlog::logger> {
   // get the log directory
   auto log_file_path =
-      (GlobalSettingStation::GetInstance().GetLogDir() / id.toStdString());
-  log_file_path.replace_extension(".log");
+      GlobalSettingStation::GetInstance().GetLogDir() + "/" + id + ".log";
 
   // sinks
   std::vector<spdlog::sink_ptr> sinks;
@@ -79,7 +78,7 @@ auto LoggerManager::RegisterAsyncLogger(const QString& id,
                   spdlog::sinks::stderr_color_sink_mt>());
   sinks.push_back(GpgFrontend::SecureCreateSharedObject<
                   spdlog::sinks::rotating_file_sink_mt>(
-      log_file_path.u8string(), 1048576 * 32, 8));
+      log_file_path.toUtf8().constData(), 1048576 * 32, 8));
 
   // logger
   auto logger = GpgFrontend::SecureCreateSharedObject<spdlog::async_logger>(
@@ -106,8 +105,7 @@ auto LoggerManager::RegisterSyncLogger(const QString& id,
     -> std::shared_ptr<spdlog::logger> {
   // get the log directory
   auto log_file_path =
-      (GlobalSettingStation::GetInstance().GetLogDir() / id.toStdString());
-  log_file_path.replace_extension(".log");
+      GlobalSettingStation::GetInstance().GetLogDir() + "/" + id + ".log";
 
   // sinks
   std::vector<spdlog::sink_ptr> sinks;
@@ -115,7 +113,7 @@ auto LoggerManager::RegisterSyncLogger(const QString& id,
                   spdlog::sinks::stderr_color_sink_mt>());
   sinks.push_back(GpgFrontend::SecureCreateSharedObject<
                   spdlog::sinks::rotating_file_sink_mt>(
-      log_file_path.u8string(), 1048576 * 32, 8));
+      log_file_path.toUtf8().constData(), 1048576 * 32, 8));
 
   // logger
   auto logger = GpgFrontend::SecureCreateSharedObject<spdlog::logger>(

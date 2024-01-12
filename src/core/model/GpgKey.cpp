@@ -125,17 +125,17 @@ auto GpgKey::GetPublicKeyAlgo() const -> QString {
   return gpgme_pubkey_algo_name(key_ref_->subkeys->pubkey_algo);
 }
 
-auto GpgKey::GetLastUpdateTime() const -> boost::posix_time::ptime {
-  return boost::posix_time::from_time_t(
+auto GpgKey::GetLastUpdateTime() const -> QDateTime {
+  return QDateTime::fromSecsSinceEpoch(
       static_cast<time_t>(key_ref_->last_update));
 }
 
-auto GpgKey::GetExpireTime() const -> boost::posix_time::ptime {
-  return boost::posix_time::from_time_t(key_ref_->subkeys->expires);
+auto GpgKey::GetExpireTime() const -> QDateTime {
+  return QDateTime::fromSecsSinceEpoch(key_ref_->subkeys->expires);
 };
 
-auto GpgKey::GetCreateTime() const -> boost::posix_time::ptime {
-  return boost::posix_time::from_time_t(key_ref_->subkeys->timestamp);
+auto GpgKey::GetCreateTime() const -> QDateTime {
+  return QDateTime::fromSecsSinceEpoch(key_ref_->subkeys->timestamp);
 };
 
 auto GpgKey::GetPrimaryKeyLength() const -> unsigned int {

@@ -76,7 +76,7 @@ class GPGFRONTEND_CORE_EXPORT GpgData {
    *
    * @param path
    */
-  explicit GpgData(const std::filesystem::path& path, bool read);
+  explicit GpgData(const QString& path, bool read);
 
   /**
    * @brief Construct a new Gpg Data object

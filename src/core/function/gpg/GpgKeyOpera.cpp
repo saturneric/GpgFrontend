@@ -30,10 +30,6 @@
 
 #include <gpg-error.h>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/asio.hpp>
-#include <boost/date_time/posix_time/conversion.hpp>
-#include <boost/process/async_pipe.hpp>
 #include <memory>
 
 #include "core/GpgModel.h"
@@ -41,12 +37,12 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/model/DataObject.h"
 #include "core/model/GpgGenKeyInfo.h"
+#include "core/model/GpgGenerateKeyResult.h"
 #include "core/module/ModuleManager.h"
+#include "core/typedef/GpgTypedef.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
-#include "model/GpgGenerateKeyResult.h"
-#include "typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
@@ -81,13 +77,11 @@ void GpgKeyOpera::DeleteKeys(GpgFrontend::KeyIdArgsListPtr key_ids) {
  * @return if successful
  */
 auto GpgKeyOpera::SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
-                            std::unique_ptr<boost::posix_time::ptime>& expires)
-    -> GpgError {
+                            std::unique_ptr<QDateTime>& expires) -> GpgError {
   unsigned long expires_time = 0;
 
   if (expires != nullptr) {
-    expires_time = to_time_t(*expires) - std::chrono::system_clock::to_time_t(
-                                             std::chrono::system_clock::now());
+    expires_time = QDateTime::currentDateTime().secsTo(*expires);
   }
 
   GpgError err;
@@ -176,9 +170,8 @@ void GpgKeyOpera::GenerateKey(const std::shared_ptr<GenKeyInfo>& params,
 
         const char* algo = algo_utf8.toUtf8();
         unsigned long expires = 0;
-        expires = to_time_t(boost::posix_time::ptime(params->GetExpireTime())) -
-                  std::chrono::system_clock::to_time_t(
-                      std::chrono ::system_clock::now());
+
+        expires = QDateTime::currentDateTime().secsTo(params->GetExpireTime());
 
         GpgError err;
         unsigned int flags = 0;
@@ -227,9 +220,7 @@ void GpgKeyOpera::GenerateSubkey(const GpgKey& key,
         const char* algo = algo_utf8.toUtf8();
         unsigned long expires = 0;
 
-        expires = to_time_t(boost::posix_time::ptime(params->GetExpireTime())) -
-                  std::chrono::system_clock::to_time_t(
-                      std::chrono::system_clock::now());
+        expires = QDateTime::currentDateTime().secsTo(params->GetExpireTime());
 
         unsigned int flags = 0;
 
@@ -264,9 +255,8 @@ void GpgKeyOpera::GenerateKeyWithSubkey(
 
         const char* algo = algo_utf8.toUtf8();
         unsigned long expires = 0;
-        expires = to_time_t(boost::posix_time::ptime(params->GetExpireTime())) -
-                  std::chrono::system_clock::to_time_t(
-                      std::chrono ::system_clock::now());
+
+        expires = QDateTime::currentDateTime().secsTo(params->GetExpireTime());
 
         GpgError err;
         unsigned int flags = 0;
@@ -310,10 +300,8 @@ void GpgKeyOpera::GenerateKeyWithSubkey(
         algo = algo_utf8.toUtf8();
         expires = 0;
 
-        expires = to_time_t(boost::posix_time::ptime(
-                      subkey_params->GetExpireTime())) -
-                  std::chrono::system_clock::to_time_t(
-                      std::chrono::system_clock::now());
+        expires =
+            QDateTime::currentDateTime().secsTo(subkey_params->GetExpireTime());
 
         flags = 0;
         if (subkey_params->IsAllowEncryption()) flags |= GPGME_CREATE_ENCR;

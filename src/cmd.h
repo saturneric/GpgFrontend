@@ -28,9 +28,6 @@
 
 #pragma once
 
-// boost
-#include <boost/program_options.hpp>
-
 #include "GpgFrontendContext.h"
 
 namespace GpgFrontend {
@@ -39,8 +36,7 @@ namespace GpgFrontend {
 
 auto PrintVersion() -> int;
 
-auto ParseLogLevel(const boost::program_options::variables_map&)
-    -> spdlog::level::level_enum;
+auto ParseLogLevel(const QString& level) -> spdlog::level::level_enum;
 
 auto RunTest(const GFCxtWPtr&) -> int;
 

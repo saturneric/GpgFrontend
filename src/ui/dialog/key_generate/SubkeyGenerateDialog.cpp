@@ -28,7 +28,6 @@
 
 #include "SubkeyGenerateDialog.h"
 
-#include <boost/format/format_fwd.hpp>
 #include <cassert>
 #include <cstddef>
 
@@ -280,13 +279,7 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
     if (expire_check_box_->checkState() != 0U) {
       gen_key_info_->SetNonExpired(true);
     } else {
-#ifdef GPGFRONTEND_GUI_QT6
-      gen_key_info_->SetExpireTime(boost::posix_time::from_time_t(
-          date_edit_->dateTime().toSecsSinceEpoch()));
-#else
-      gen_key_info_->SetExpireTime(
-          boost::posix_time::from_time_t(date_edit_->dateTime().toTime_t()));
-#endif
+      gen_key_info_->SetExpireTime(date_edit_->dateTime());
     }
 
     CommonUtils::WaitForOpera(

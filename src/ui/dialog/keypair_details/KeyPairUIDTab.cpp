@@ -160,8 +160,8 @@ void KeyPairUIDTab::create_sign_list() {
   sig_list_->setAlternatingRowColors(true);
 
   QStringList labels;
-  labels << _("Key ID") << _("Name") << _("Email") << _("Create Date (UTC)")
-         << _("Expired Date (UTC)");
+  labels << _("Key ID") << _("Name") << _("Email") << _("Create Date")
+         << _("Expired Date");
   sig_list_->setHorizontalHeaderLabels(labels);
   sig_list_->horizontalHeader()->setStretchLastSection(false);
 }
@@ -220,11 +220,11 @@ void KeyPairUIDTab::slot_refresh_uid_list() {
 void KeyPairUIDTab::slot_refresh_tofu_info() {
   if (this->tofu_tabs_ == nullptr) return;
 
-  int uidRow = 0;
+  int uid_row = 0;
   tofu_tabs_->clear();
   for (const auto& uid : buffered_uids_) {
     // Only Show Selected UID Signatures
-    if (!uid_list_->item(uidRow++, 0)->isSelected()) {
+    if (!uid_list_->item(uid_row++, 0)->isSelected()) {
       continue;
     }
     auto tofu_infos = uid.GetTofuInfos();
@@ -279,29 +279,14 @@ void KeyPairUIDTab::slot_refresh_sig_list() {
         auto* tmp3 = new QTableWidgetItem(sig.GetEmail());
         sig_list_->setItem(sig_row, 2, tmp3);
       }
-#ifdef GPGFRONTEND_GUI_QT6
-      auto* tmp4 = new QTableWidgetItem(QLocale::system().toString(
-          QDateTime::fromSecsSinceEpoch(to_time_t(sig.GetCreateTime()))));
-#else
-      auto* tmp4 = new QTableWidgetItem(QLocale::system().toString(
-          QDateTime::fromTime_t(to_time_t(sig.GetCreateTime()))));
-#endif
+      auto* tmp4 =
+          new QTableWidgetItem(QLocale::system().toString(sig.GetCreateTime()));
       sig_list_->setItem(sig_row, 3, tmp4);
 
-#ifdef GPGFRONTEND_GUI_QT6
       auto* tmp5 = new QTableWidgetItem(
-          boost::posix_time::to_time_t(sig.GetExpireTime()) == 0
+          sig.GetExpireTime().toSecsSinceEpoch() == 0
               ? _("Never Expires")
-              : QLocale::system().toString(QDateTime::fromSecsSinceEpoch(
-                    to_time_t(sig.GetExpireTime()))));
-#else
-      auto* tmp5 = new QTableWidgetItem(
-          boost::posix_time::to_time_t(
-              boost::posix_time::ptime(sig.GetExpireTime())) == 0
-              ? _("Never Expires")
-              : QLocale::system().toString(
-                    QDateTime::fromTime_t(to_time_t(sig.GetExpireTime()))));
-#endif
+              : QLocale::system().toString(sig.GetExpireTime()));
       tmp5->setTextAlignment(Qt::AlignCenter);
       sig_list_->setItem(sig_row, 4, tmp5);
 

@@ -30,10 +30,6 @@
 
 #include <qscopedpointer.h>
 
-#include <boost/stacktrace.hpp>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
 #include <utility>
 
 #include "utils/MemoryUtils.h"
@@ -154,9 +150,6 @@ class Task::Impl {
       GF_CORE_LOG_TRACE("task {} was end.", GetFullID());
     } catch (std::exception &e) {
       GF_CORE_LOG_ERROR("exception was caught at task: {}", e.what());
-      GF_CORE_LOG_ERROR(
-          "stacktrace of the exception: {}",
-          boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
     }
     // raise signal to anounce after runnable returned
     if (parent_->autoDelete()) emit parent_->SignalTaskShouldEnd(rtn_);
@@ -248,18 +241,12 @@ class Task::Impl {
 #ifdef RELEASE
     } catch (std::exception &e) {
       GF_CORE_LOG_ERROR("exception was caught at task callback: {}", e.what());
-      GF_CORE_LOG_ERROR(
-          "stacktrace of the exception: {}",
-          boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
       // raise signal, announcing this task comes to an end
       GF_CORE_LOG_TRACE("for task {}, its life comes to an end at chaos.",
                         GetFullID());
       emit parent_->SignalTaskEnd();
     } catch (...) {
       GF_CORE_LOG_ERROR("unknown exception was caught");
-      GF_CORE_LOG_ERROR(
-          "stacktrace of the exception: {}",
-          boost::stacktrace::to_string(boost::stacktrace::stacktrace()));
       // raise signal, announcing this task comes to an end
       GF_CORE_LOG_TRACE(
           "for task {}, its life comes to an end at unknown chaos.",

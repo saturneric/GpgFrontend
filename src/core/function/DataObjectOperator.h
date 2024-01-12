@@ -62,15 +62,16 @@ class GPGFRONTEND_CORE_EXPORT DataObjectOperator
 
   GlobalSettingStation &global_setting_station_ =
       GlobalSettingStation::GetInstance();  ///< GlobalSettingStation
-  std::filesystem::path app_secure_path_ =
-      global_setting_station_.GetAppConfigPath() /
-      "secure";  ///< Where sensitive information is stored
-  std::filesystem::path app_secure_key_path_ =
-      app_secure_path_ / "app.key";  ///< Where the key of data object is stored
-  std::filesystem::path app_data_objs_path_ =
-      global_setting_station_.GetAppDataPath() / "data_objs";  ///< Where data
-                                                               ///< object is
-                                                               ///< stored
+  QString app_secure_path_ =
+      global_setting_station_.GetAppConfigPath() +
+      "/secure";  ///< Where sensitive information is stored
+  QString app_secure_key_path_ =
+      app_secure_path_ +
+      "/app.key";  ///< Where the key of data object is stored
+  QString app_data_objs_path_ =
+      global_setting_station_.GetAppDataPath() + "/data_objs";  ///< Where data
+                                                                ///< object is
+                                                                ///< stored
 
   QByteArray hash_key_;  ///< Hash key
 };

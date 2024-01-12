@@ -30,10 +30,6 @@
 
 #include <gtest/gtest.h>
 
-#include <boost/date_time.hpp>
-#include <boost/dll.hpp>
-#include <filesystem>
-
 #include "core/GpgConstants.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/basic/ChannelObject.h"
@@ -64,7 +60,7 @@ void ConfigureGpgContext() {
                     db_path.path());
 
   if (db_path.exists()) db_path.rmdir(".");
-  db_path.mkdir(".");
+  db_path.mkpath(".");
 
   GpgContext::CreateInstance(
       kGpgFrontendDefaultChannel, [=]() -> ChannelObjectPtr {
@@ -103,18 +99,18 @@ void ImportPrivateKeys(const QString& data_path,
 
 void SetupGlobalTestEnv() {
   auto app_path = GlobalSettingStation::GetInstance().GetAppDir();
-  auto test_path = app_path / "test";
-  auto test_config_path = test_path / "conf" / "test.cfg";
-  auto test_data_path = test_path / "data";
+  auto test_path = app_path + "/test";
+  auto test_config_path = test_path + "/conf/test.cfg";
+  auto test_data_path = test_path + "/data";
 
-  GF_TEST_LOG_INFO("test config file path: {}", test_config_path.string());
-  GF_TEST_LOG_INFO("test data file path: {}", test_data_path.string());
+  GF_TEST_LOG_INFO("test config file path: {}", test_config_path);
+  GF_TEST_LOG_INFO("test data file path: {}", test_data_path);
 
   libconfig::Config cfg;
-  ASSERT_NO_THROW(cfg.readFile(test_config_path.c_str()));
+  ASSERT_NO_THROW(cfg.readFile(test_config_path.toUtf8()));
 
   auto& root = cfg.getRoot();
-  ImportPrivateKeys(test_data_path.c_str(), root);
+  ImportPrivateKeys(test_data_path, root);
 }
 
 auto ExecuteAllTestCase(GpgFrontendContext args) -> int {

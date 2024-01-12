@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <boost/date_time.hpp>
-
 namespace GpgFrontend {
 
 class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
@@ -160,16 +158,16 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
   /**
    * @brief Get the Expired object
    *
-   * @return const boost::posix_time::ptime&
+   * @return const QDateTime&
    */
-  [[nodiscard]] auto GetExpireTime() const -> const boost::posix_time::ptime &;
+  [[nodiscard]] auto GetExpireTime() const -> const QDateTime &;
 
   /**
    * @brief Set the Expired object
    *
    * @param m_expired
    */
-  void SetExpireTime(const boost::posix_time::ptime &m_expired);
+  void SetExpireTime(const QDateTime &m_expired);
 
   /**
    * @brief
@@ -344,10 +342,8 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
 
   QString algo_;  ///<
   int key_size_ = 2048;
-  boost::posix_time::ptime expired_ =
-      boost::posix_time::second_clock::local_time() +
-      boost::gregorian::years(2);  ///<
-  bool non_expired_ = false;       ///<
+  QDateTime expired_ = QDateTime::currentDateTime().addYears(2);
+  bool non_expired_ = false;  ///<
 
   bool no_passphrase_ = false;        ///<
   bool allow_no_pass_phrase_ = true;  ///<

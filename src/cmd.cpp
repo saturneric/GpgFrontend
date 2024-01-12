@@ -33,15 +33,10 @@
 // std
 #include <iostream>
 
-// boost
-#include <boost/program_options.hpp>
-
 // GpgFrontend
 #include "GpgFrontendBuildInfo.h"
 #include "GpgFrontendContext.h"
 #include "test/GpgFrontendTest.h"
-
-namespace po = boost::program_options;
 
 namespace GpgFrontend {
 
@@ -62,9 +57,7 @@ auto PrintVersion() -> int {
   return 0;
 }
 
-auto ParseLogLevel(const po::variables_map& vm) -> spdlog::level::level_enum {
-  std::string log_level = vm["log-level"].as<std::string>();
-
+auto ParseLogLevel(const QString& log_level) -> spdlog::level::level_enum {
   if (log_level == "trace") {
     return spdlog::level::trace;
   }

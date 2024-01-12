@@ -109,14 +109,7 @@ void KeyUIDSignDialog::slot_sign_key(bool clicked) {
   auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
   GF_UI_LOG_DEBUG("key info got");
-#ifdef GPGFRONTEND_GUI_QT6
-  auto expires =
-      std::make_unique<boost::posix_time::ptime>(boost::posix_time::from_time_t(
-          expires_edit_->dateTime().toSecsSinceEpoch()));
-#else
-  auto expires = std::make_unique<boost::posix_time::ptime>(
-      boost::posix_time::from_time_t(expires_edit_->dateTime().toTime_t()));
-#endif
+  auto expires = std::make_unique<QDateTime>(expires_edit_->dateTime());
 
   GF_UI_LOG_DEBUG("sign start");
   for (const auto& uid : *m_uids_) {

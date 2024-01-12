@@ -515,11 +515,10 @@ void KeyMgmt::SlotImportKeyPackage() {
 
   if (key_package_file_name.isEmpty() || key_file_name.isEmpty()) return;
 
-  GF_UI_LOG_INFO("importing key package: {}",
-                 key_package_file_name.toStdString());
+  GF_UI_LOG_INFO("importing key package: {}", key_package_file_name);
 
   const auto [success, info] = KeyPackageOperator::ImportKeyPackage(
-      key_package_file_name.toStdString(), key_file_name.toStdString());
+      key_package_file_name, key_file_name);
 
   if (success) {
     emit SignalStatusBarChanged(QString(_("key(s) imported")));

@@ -34,24 +34,14 @@
 #include <qthread.h>
 
 #include "core/utils/MemoryUtils.h"
-#include "ui/GpgFrontendApplication.h"
 
 namespace GpgFrontend {
 
-void GpgFrontendContext::InitApplication(bool gui_mode) {
-  if (!gui_mode) {
-    app_ = SecureCreateObject<QCoreApplication>(argc, argv);
-  } else {
-    app_ = SecureCreateObject<QApplication>(argc, argv);
-  }
-  this->load_ui_env = gui_mode;
+void GpgFrontendContext::InitApplication() {
+  app_ = SecureCreateObject<QApplication>(argc, argv);
 }
 
-auto GpgFrontendContext::GetApp() -> QCoreApplication* { return app_; }
-
-auto GpgFrontendContext::GetGuiApp() -> QApplication* {
-  return qobject_cast<QApplication*>(app_);
-}
+auto GpgFrontendContext::GetApp() -> QApplication* { return app_; }
 
 GpgFrontendContext::GpgFrontendContext(int argc, char** argv)
     : argc(argc), argv(argv) {}

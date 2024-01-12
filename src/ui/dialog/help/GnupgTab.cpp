@@ -101,7 +101,7 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
   for (auto& component : components) {
     auto component_info_json = Module::RetrieveRTValueTypedOrDefault(
         "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-        QString("gnupg.components.%1%").arg(component), QString{});
+        QString("gnupg.components.%1").arg(component), QString{});
     GF_UI_LOG_DEBUG("got gnupg component {} info from rt, info: {}", component,
                     component_info_json);
 
@@ -148,12 +148,12 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
   for (auto& component : components) {
     auto options = Module::ListRTChildKeys(
         "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-        QString("gnupg.components.%1%.options").arg(component));
+        QString("gnupg.components.%1.options").arg(component));
     for (auto& option : options) {
       const auto option_info = nlohmann::json::parse(
           Module::RetrieveRTValueTypedOrDefault(
               "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-              QString("gnupg.components.%1%.options.%2%")
+              QString("gnupg.components.%1.options.%2")
                   .arg(component)
                   .arg(option),
               QString{})
@@ -172,12 +172,12 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
   for (auto& component : components) {
     auto options = Module::ListRTChildKeys(
         "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-        QString("gnupg.components.%1%.options").arg(component));
+        QString("gnupg.components.%1.options").arg(component));
 
     for (auto& option : options) {
       auto option_info_json = Module::RetrieveRTValueTypedOrDefault(
           "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-          QString("gnupg.components.%1%.options.%2%")
+          QString("gnupg.components.%1.options.%2")
               .arg(component)
               .arg(option),
           QString{});

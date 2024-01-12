@@ -32,36 +32,27 @@ namespace GpgFrontend {
 
 auto GetOnlyFileNameWithPath(const QString &path) -> QString {
   // Create a path object from given string
-  std::filesystem::path path_obj(path.toStdString());
+  QFileInfo file_info(path);
   // Check if file name in the path object has extension
-  if (path_obj.has_filename()) {
+  if (!file_info.fileName().isEmpty()) {
     // Fetch the extension from path object and return
-    return (path_obj.parent_path() / path_obj.stem()).c_str();
+    return file_info.path() + "/" + file_info.baseName();
   }
   // In case of no extension return empty string
   return {};
 }
 
 auto GetFileExtension(const QString &path) -> QString {
-  // Create a path object from given string
-  std::filesystem::path path_obj(path.toStdString());
-
-  // Check if file name in the path object has extension
-  if (path_obj.has_extension()) {
-    // Fetch the extension from path object and return
-    return path_obj.extension().c_str();
-  }
-  // In case of no extension return empty string
-  return {};
+  return QFileInfo(path).suffix();
 }
 
 /**
  * @brief
  *
  */
-auto GetFileSizeByPath(const std::filesystem::path &path,
-                       const QString &filename_pattern) -> int64_t {
-  auto dir = QDir(QString::fromStdString(path.u8string()));
+auto GetFileSizeByPath(const QString &path, const QString &filename_pattern)
+    -> int64_t {
+  auto dir = QDir(path);
   QFileInfoList const file_list =
       dir.entryInfoList(QStringList() << filename_pattern, QDir::Files);
   qint64 total_size = 0;
@@ -98,9 +89,9 @@ auto GetHumanFriendlyFileSize(int64_t size) -> QString {
  * @brief
  *
  */
-void DeleteAllFilesByPattern(const std::filesystem::path &path,
+void DeleteAllFilesByPattern(const QString &path,
                              const QString &filename_pattern) {
-  auto dir = QDir(QString::fromStdString(path.u8string()));
+  auto dir = QDir(path);
 
   QStringList const log_files =
       dir.entryList(QStringList() << filename_pattern, QDir::Files);

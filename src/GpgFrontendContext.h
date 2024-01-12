@@ -44,32 +44,35 @@ struct GpgFrontendContext {
   bool gather_external_gnupg_info;
   bool load_default_gpg_context;
 
+  /**
+   * @brief Construct a new Gpg Frontend Context object
+   *
+   * @param argc
+   * @param argv
+   */
   GpgFrontendContext(int argc, char** argv);
 
+  /**
+   * @brief Destroy the Gpg Frontend Context object
+   *
+   */
   ~GpgFrontendContext();
 
   /**
    * @brief
    *
    */
-  void InitApplication(bool);
+  void InitApplication();
 
   /**
    * @brief Get the App object
    *
    * @return QCoreApplication*
    */
-  auto GetApp() -> QCoreApplication*;
-
-  /**
-   * @brief Get the Gui App object
-   *
-   * @return QApplication*
-   */
-  auto GetGuiApp() -> QApplication*;
+  auto GetApp() -> QApplication*;
 
  private:
-  QCoreApplication* app_ = nullptr;
+  QApplication* app_ = nullptr;
 };
 
 }  // namespace GpgFrontend

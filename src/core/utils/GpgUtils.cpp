@@ -28,8 +28,6 @@
 
 #include "GpgUtils.h"
 
-#include <boost/algorithm/string.hpp>
-
 namespace GpgFrontend {
 
 inline auto Trim(QString& s) -> QString { return s.trimmed(); }
@@ -88,12 +86,9 @@ auto CheckGpgError(GpgError err, const QString& /*comment*/) -> GpgError {
 }
 
 auto TextIsSigned(QString text) -> int {
-  using boost::algorithm::ends_with;
-  using boost::algorithm::starts_with;
-
   auto trim_text = Trim(text);
-  if (starts_with(trim_text, PGP_SIGNED_BEGIN) &&
-      ends_with(trim_text, PGP_SIGNED_END)) {
+  if (trim_text.startsWith(PGP_SIGNED_BEGIN) &&
+      trim_text.endsWith(PGP_SIGNED_END)) {
     return 2;
   }
   if (text.contains(PGP_SIGNED_BEGIN) && text.contains(PGP_SIGNED_END)) {

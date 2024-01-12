@@ -47,8 +47,8 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    * @return true if passphrase was generated and saved
    * @return false if passphrase was not generated and saved
    */
-  static auto GeneratePassphrase(const std::filesystem::path &phrase_path,
-                                 QString &phrase) -> bool;
+  static auto GeneratePassphrase(const QString &phrase_path, QString &phrase)
+      -> bool;
 
   /**
    * @brief generate the name of the key package
@@ -68,7 +68,7 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    * @return true if key package was generated
    * @return false if key package was not generated
    */
-  static void GenerateKeyPackage(const std::filesystem::path &key_package_path,
+  static void GenerateKeyPackage(const QString &key_package_path,
                                  const QString &key_package_name,
                                  const KeyArgsList &keys, QString &phrase,
                                  bool secret, const OperationCallback &cb);
@@ -82,8 +82,8 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    * @return true if key package was imported
    * @return false if key package was not imported
    */
-  static auto ImportKeyPackage(const std::filesystem::path &key_package_path,
-                               const std::filesystem::path &phrase_path)
+  static auto ImportKeyPackage(const QString &key_package_path,
+                               const QString &phrase_path)
       -> std::tuple<bool, std::shared_ptr<GpgImportInformation>>;
 
  private:

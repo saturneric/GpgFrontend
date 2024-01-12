@@ -220,7 +220,7 @@ bool TextEdit::save_file(const QString& fileName) {
     return true;
   }
   QMessageBox::warning(this, _("Warning"),
-                       QString(_("Cannot read file %1%:\n%2%."))
+                       QString(_("Cannot read file %1:\n%2."))
                            .arg(fileName)
                            .arg(file.errorString()));
   return false;

@@ -144,14 +144,14 @@ void GenKeyInfo::SetKeyLength(int m_key_size) {
   GenKeyInfo::key_size_ = m_key_size;
 }
 
-void GenKeyInfo::SetExpireTime(const boost::posix_time::ptime &m_expired) {
+void GenKeyInfo::SetExpireTime(const QDateTime &m_expired) {
   if (!IsNonExpired()) {
     GenKeyInfo::expired_ = m_expired;
   }
 }
 
 void GenKeyInfo::SetNonExpired(bool m_non_expired) {
-  if (!m_non_expired) this->expired_ = boost::posix_time::from_time_t(0);
+  if (!m_non_expired) this->expired_ = QDateTime::fromSecsSinceEpoch(0);
   GenKeyInfo::non_expired_ = m_non_expired;
 }
 
@@ -293,10 +293,9 @@ void GenKeyInfo::SetComment(const QString &m_comment) {
 /**
  * @brief Get the Expired object
  *
- * @return const boost::posix_time::ptime&
+ * @return const QDateTime&
  */
-[[nodiscard]] auto GenKeyInfo::GetExpireTime() const
-    -> const boost::posix_time::ptime & {
+[[nodiscard]] auto GenKeyInfo::GetExpireTime() const -> const QDateTime & {
   return expired_;
 }
 

@@ -76,15 +76,14 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
     GF_CORE_LOG_DEBUG("process runner called, data object size: {}",
                       data_object->GetObjectSize());
 
-    if (!data_object->Check<QString, std::vector<QString>,
-                            GpgCommandExecutorInteractor,
+    if (!data_object->Check<QString, QStringList, GpgCommandExecutorInteractor,
                             GpgCommandExecutorCallback>()) {
       throw std::runtime_error("invalid data object size");
     }
 
     // get arguments
     auto cmd = ExtractParams<QString>(data_object, 0);
-    auto arguments = ExtractParams<std::vector<QString>>(data_object, 1);
+    auto arguments = ExtractParams<QStringList>(data_object, 1);
     auto interact_func =
         ExtractParams<GpgCommandExecutorInteractor>(data_object, 2);
     auto callback = ExtractParams<GpgCommandExecutorCallback>(data_object, 3);

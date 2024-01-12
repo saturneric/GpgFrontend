@@ -64,12 +64,7 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
     return -1;
   }
 
-  if (!ctx->load_ui_env) {
-    GF_MAIN_LOG_ERROR("the loading of gui application is forbidden.");
-    return -1;
-  }
-
-  auto* app = ctx->GetGuiApp();
+  auto* app = ctx->GetApp();
   if (app == nullptr) {
     GF_MAIN_LOG_ERROR("cannot get qapplication from gpgfrontend context.");
     return -1;

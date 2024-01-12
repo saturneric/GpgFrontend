@@ -134,21 +134,10 @@ void KeyGenDialog::slot_key_gen_accept() {
       gen_key_info_->SetNonExpired(true);
       if (gen_subkey_info_ != nullptr) gen_subkey_info_->SetNonExpired(true);
     } else {
-#ifdef GPGFRONTEND_GUI_QT6
-      gen_key_info_->SetExpireTime(boost::posix_time::from_time_t(
-          date_edit_->dateTime().toSecsSinceEpoch()));
+      gen_key_info_->SetExpireTime(date_edit_->dateTime());
       if (gen_subkey_info_ != nullptr) {
-        gen_subkey_info_->SetExpireTime(boost::posix_time::from_time_t(
-            date_edit_->dateTime().toSecsSinceEpoch()));
+        gen_subkey_info_->SetExpireTime(date_edit_->dateTime());
       }
-#else
-      gen_key_info_->SetExpireTime(
-          boost::posix_time::from_time_t(date_edit_->dateTime().toTime_t()));
-      if (gen_subkey_info_ != nullptr) {
-        gen_subkey_info_->SetExpireTime(
-            boost::posix_time::from_time_t(date_edit_->dateTime().toTime_t()));
-      }
-#endif
     }
 
     CommonUtils::WaitForOpera(

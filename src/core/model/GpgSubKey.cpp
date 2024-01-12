@@ -87,12 +87,12 @@ auto GpgSubKey::IsSecretKey() const -> bool { return subkey_ref_->secret; }
 
 auto GpgSubKey::IsCardKey() const -> bool { return subkey_ref_->is_cardkey; }
 
-auto GpgSubKey::GetCreateTime() const -> boost::posix_time::ptime {
-  return boost::posix_time::from_time_t(subkey_ref_->timestamp);
+auto GpgSubKey::GetCreateTime() const -> QDateTime {
+  return QDateTime::fromSecsSinceEpoch(subkey_ref_->timestamp);
 }
 
-auto GpgSubKey::GetExpireTime() const -> boost::posix_time::ptime {
-  return boost::posix_time::from_time_t(subkey_ref_->expires);
+auto GpgSubKey::GetExpireTime() const -> QDateTime {
+  return QDateTime::fromSecsSinceEpoch(subkey_ref_->expires);
 }
 
 }  // namespace GpgFrontend

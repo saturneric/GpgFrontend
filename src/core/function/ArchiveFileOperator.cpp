@@ -87,13 +87,13 @@ auto ArchiveCloseWriteCallback(struct archive *, void *client_data) -> int {
 }
 
 void ArchiveFileOperator::NewArchive2DataExchanger(
-    const std::filesystem::path &target_directory,
-    std::shared_ptr<GFDataExchanger> exchanger, const OperationCallback &cb) {
+    const QString &target_directory, std::shared_ptr<GFDataExchanger> exchanger,
+    const OperationCallback &cb) {
   RunIOOperaAsync(
       [=](const DataObjectPtr &data_object) -> GFError {
         std::array<char, 1024> buff{};
         auto ret = 0;
-        const auto base_path = target_directory.parent_path();
+        const auto base_path = QDir(QDir(target_directory).absolutePath());
 
         auto *archive = archive_write_new();
         archive_write_add_filter_none(archive);
@@ -104,7 +104,13 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
 
         auto *disk = archive_read_disk_new();
         archive_read_disk_set_standard_lookup(disk);
-        auto r = archive_read_disk_open(disk, target_directory.c_str());
+
+#ifdef WINDOWS
+        auto r = archive_read_disk_open_w(
+            disk, target_directory.toStdWString().c_str());
+#else
+        auto r = archive_read_disk_open(disk, target_directory.toUtf8());
+#endif
 
         if (r != ARCHIVE_OK) {
           GF_CORE_LOG_ERROR("archive_read_disk_open() failed: {}, abort...",
@@ -130,10 +136,9 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
 
           // turn absolute path to relative path
           archive_entry_set_pathname(
-              entry, std::filesystem::relative(
-                         std::filesystem::path(archive_entry_pathname(entry)),
-                         base_path)
-                         .c_str());
+              entry,
+              base_path.relativeFilePath(QString(archive_entry_pathname(entry)))
+                  .toUtf8());
 
           r = archive_write_header(archive, entry);
           if (r < ARCHIVE_OK) {
@@ -172,8 +177,8 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
 }
 
 void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
-    std::shared_ptr<GFDataExchanger> ex,
-    const std::filesystem::path &target_path, const OperationCallback &cb) {
+    std::shared_ptr<GFDataExchanger> ex, const QString &target_path,
+    const OperationCallback &cb) {
   RunIOOperaAsync(
       [=](const DataObjectPtr &data_object) -> GFError {
         auto *archive = archive_read_new();
@@ -225,9 +230,8 @@ void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
           }
 
           archive_entry_set_pathname(
-              entry, (target_path /
-                      std::filesystem::path(archive_entry_pathname(entry)))
-                         .c_str());
+              entry,
+              (target_path + "/" + archive_entry_pathname(entry)).toUtf8());
 
           r = archive_write_header(ext, entry);
           if (r != ARCHIVE_OK) {
@@ -254,8 +258,7 @@ void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
       cb, "archive_read_new");
 }
 
-void ArchiveFileOperator::ListArchive(
-    const std::filesystem::path &archive_path) {
+void ArchiveFileOperator::ListArchive(const QString &archive_path) {
   struct archive *a;
   struct archive_entry *entry;
   int r;
@@ -263,7 +266,7 @@ void ArchiveFileOperator::ListArchive(
   a = archive_read_new();
   archive_read_support_filter_all(a);
   archive_read_support_format_all(a);
-  r = archive_read_open_filename(a, archive_path.u8string().c_str(),
+  r = archive_read_open_filename(a, archive_path.toUtf8(),
                                  10240);  // Note 1
   if (r != ARCHIVE_OK) return;
   while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {

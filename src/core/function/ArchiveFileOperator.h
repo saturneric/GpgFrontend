@@ -42,7 +42,7 @@ class GPGFRONTEND_CORE_EXPORT ArchiveFileOperator {
    *
    * @param archive_path
    */
-  static void ListArchive(const std::filesystem::path &archive_path);
+  static void ListArchive(const QString &archive_path);
 
   /**
    * @brief Create a Archive object
@@ -52,9 +52,9 @@ class GPGFRONTEND_CORE_EXPORT ArchiveFileOperator {
    * @param compress
    * @param files
    */
-  static void NewArchive2DataExchanger(
-      const std::filesystem::path &target_directory,
-      std::shared_ptr<GFDataExchanger>, const OperationCallback &cb);
+  static void NewArchive2DataExchanger(const QString &target_directory,
+                                       std::shared_ptr<GFDataExchanger>,
+                                       const OperationCallback &cb);
 
   /**
    * @brief
@@ -63,7 +63,7 @@ class GPGFRONTEND_CORE_EXPORT ArchiveFileOperator {
    * @param base_path
    */
   static void ExtractArchiveFromDataExchanger(
-      std::shared_ptr<GFDataExchanger> fd,
-      const std::filesystem::path &target_path, const OperationCallback &cb);
+      std::shared_ptr<GFDataExchanger> fd, const QString &target_path,
+      const OperationCallback &cb);
 };
 }  // namespace GpgFrontend

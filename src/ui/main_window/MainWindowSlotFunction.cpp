@@ -26,16 +26,10 @@
  *
  */
 
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/date_time/posix_time/posix_time_io.hpp>
-#include <cstddef>
-
 #include "MainWindow.h"
-#include "core/GpgConstants.h"
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
-#include "core/function/gpg/GpgKeyManager.h"
 #include "core/module/ModuleManager.h"
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/CommonUtils.h"
@@ -103,12 +97,10 @@ void MainWindow::slot_append_keys_create_datetime() {
     return;
   }
 
-  auto create_datetime_format_str =
-      QString::fromStdString(
-          boost::posix_time::to_iso_extended_string(key.GetCreateTime())) +
-      " (UTC) " + "\n";
-
-  edit_->SlotAppendText2CurTextPage(create_datetime_format_str);
+  auto create_datetime_format_str_local =
+      QLocale::system().toString(key.GetCreateTime()) + _(" (Local Time) ") +
+      "\n";
+  edit_->SlotAppendText2CurTextPage(create_datetime_format_str_local);
 }
 
 void MainWindow::slot_append_keys_expire_datetime() {
@@ -126,9 +118,7 @@ void MainWindow::slot_append_keys_expire_datetime() {
   }
 
   auto create_datetime_format_str =
-      QString::fromStdString(
-          boost::posix_time::to_iso_extended_string(key.GetCreateTime())) +
-      " (UTC) " + "\n";
+      key.GetCreateTime().toString() + " (UTC) " + "\n";
 
   edit_->SlotAppendText2CurTextPage(create_datetime_format_str);
 }

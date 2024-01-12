@@ -88,7 +88,7 @@ auto GPGFRONTEND_CORE_EXPORT TextIsSigned(BypeArrayRef text) -> int;
  *
  * @param opera
  * @param ascii
- * @return std::filesystem::path
+ * @return QString
  */
 auto GPGFRONTEND_CORE_EXPORT SetExtensionOfOutputFile(const QString& path,
                                                       GpgOperation opera,
@@ -100,7 +100,7 @@ auto GPGFRONTEND_CORE_EXPORT SetExtensionOfOutputFile(const QString& path,
  * @param path
  * @param opera
  * @param ascii
- * @return std::filesystem::path
+ * @return QString
  */
 auto GPGFRONTEND_CORE_EXPORT SetExtensionOfOutputFileForArchive(
     const QString& path, GpgOperation opera, bool ascii) -> QString;

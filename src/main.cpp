@@ -30,19 +30,13 @@
  * \mainpage GpgFrontend Develop Document Main Page
  */
 
-#include <cstddef>
-#include <cstdlib>
-#include <iostream>
 #include <memory>
-#include <string>
 
 #include "GpgFrontendContext.h"
 #include "app.h"
 #include "cmd.h"
 #include "core/utils/MemoryUtils.h"
 #include "init.h"
-
-namespace po = boost::program_options;
 
 /**
  *
@@ -61,43 +55,36 @@ auto main(int argc, char* argv[]) -> int {
   GpgFrontend::GFCxtSPtr ctx =
       GpgFrontend::SecureCreateSharedObject<GpgFrontend::GpgFrontendContext>(
           argc, argv);
+  ctx->InitApplication();
+
   auto rtn = 0;
 
   // initialize qt resources
   Q_INIT_RESOURCE(gpgfrontend);
 
-  po::options_description desc("Allowed options");
+  QCommandLineParser parser;
+  parser.addHelpOption();
+  parser.addOptions({
+      {{"v", "version"}, "show version information"},
+      {{"t", "test"}, "run all unit test cases"},
+      {{"l", "log-level"},
+       "set log level (trace, debug, info, warn, error)",
+       "debug"},
+  });
 
-  desc.add_options()("help,h", "produce help message")(
-      "version,v", "show version information")(
-      "log-level,l", po::value<std::string>()->default_value("info"),
-      "set log level (trace, debug, info, warn, error)")(
-      "test,t", "run all unit test cases");
-
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, desc), vm);
-  po::notify(vm);
+  parser.process(*ctx->GetApp());
 
   ctx->log_level = spdlog::level::info;
 
-  if (vm.count("help") != 0U) {
-    std::cout << desc << "\n";
-    return 0;
-  }
-
-  if (vm.count("version") != 0U) {
+  if (parser.isSet("v")) {
     return GpgFrontend::PrintVersion();
   }
 
-  if (vm.count("log-level") != 0U) {
-    ctx->log_level = GpgFrontend::ParseLogLevel(vm);
+  if (parser.isSet("l")) {
+    ctx->log_level = GpgFrontend::ParseLogLevel(parser.value("l"));
   }
 
-  if (vm.count("log-level") != 0U) {
-    ctx->log_level = GpgFrontend::ParseLogLevel(vm);
-  }
-
-  if (vm.count("test") != 0U) {
+  if (parser.isSet("t")) {
     ctx->gather_external_gnupg_info = false;
     ctx->load_default_gpg_context = false;
 

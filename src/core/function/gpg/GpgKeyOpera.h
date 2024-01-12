@@ -33,10 +33,6 @@
 #include "core/function/gpg/GpgContext.h"
 #include "core/typedef/GpgTypedef.h"
 
-namespace boost::posix_time {
-class ptime;
-}  // namespace boost::posix_time
-
 namespace GpgFrontend {
 /**
  * @brief
@@ -82,8 +78,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @return GpgError
    */
   auto SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
-                 std::unique_ptr<boost::posix_time::ptime>& expires)
-      -> GpgError;
+                 std::unique_ptr<QDateTime>& expires) -> GpgError;
 
   /**
    * @brief

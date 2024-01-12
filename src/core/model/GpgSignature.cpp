@@ -100,19 +100,19 @@ auto GpgSignature::GetHashAlgo() const -> QString {
 /**
  * @brief Create a time object
  *
- * @return boost::posix_time::ptime
+ * @return QDateTime
  */
-auto GpgSignature::GetCreateTime() const -> boost::posix_time::ptime {
-  return boost::posix_time::from_time_t(signature_ref_->timestamp);
+auto GpgSignature::GetCreateTime() const -> QDateTime {
+  return QDateTime::fromSecsSinceEpoch(signature_ref_->timestamp);
 }
 
 /**
  * @brief
  *
- * @return boost::posix_time::ptime
+ * @return QDateTime
  */
-auto GpgSignature::GetExpireTime() const -> boost::posix_time::ptime {
-  return boost::posix_time::from_time_t(signature_ref_->exp_timestamp);
+auto GpgSignature::GetExpireTime() const -> QDateTime {
+  return QDateTime::fromSecsSinceEpoch(signature_ref_->exp_timestamp);
 }
 
 /**

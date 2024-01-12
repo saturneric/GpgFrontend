@@ -115,23 +115,23 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
   /**
    * @brief
    *
-   * @return boost::posix_time::ptime
+   * @return QDateTime
    */
-  [[nodiscard]] auto GetLastUpdateTime() const -> boost::posix_time::ptime;
+  [[nodiscard]] auto GetLastUpdateTime() const -> QDateTime;
 
   /**
    * @brief
    *
-   * @return boost::posix_time::ptime
+   * @return QDateTime
    */
-  [[nodiscard]] auto GetExpireTime() const -> boost::posix_time::ptime;
+  [[nodiscard]] auto GetExpireTime() const -> QDateTime;
 
   /**
    * @brief Create a time object
    *
-   * @return boost::posix_time::ptime
+   * @return QDateTime
    */
-  [[nodiscard]] auto GetCreateTime() const -> boost::posix_time::ptime;
+  [[nodiscard]] auto GetCreateTime() const -> QDateTime;
 
   /**
    * @brief s

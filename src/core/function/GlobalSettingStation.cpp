@@ -28,7 +28,6 @@
 
 #include "GlobalSettingStation.h"
 
-#include <boost/dll.hpp>
 #include <filesystem>
 
 #include "core/module/ModuleManager.h"
@@ -43,58 +42,58 @@ class GlobalSettingStation::Impl {
    *
    */
   explicit Impl() noexcept {
-    GF_CORE_LOG_INFO("app path: {}", app_path_.u8string());
-    auto portable_file_path = app_path_ / "PORTABLE.txt";
-    if (std::filesystem::exists(portable_file_path)) {
+    GF_CORE_LOG_INFO("app path: {}", working_path_);
+    auto portable_file_path = working_path_ + "/PORTABLE.txt";
+    if (QFileInfo(portable_file_path).exists()) {
       GF_CORE_LOG_INFO(
           "dectected portable mode, reconfiguring config and data path...");
       Module::UpsertRTValue("core", "env.state.portable", 1);
 
-      app_configure_path_ = app_path_.parent_path();
-      config_dir_path_ = app_configure_path_ / "conf";
-      main_config_path_ = config_dir_path_ / "main.cfg";
-      module_config_path_ = config_dir_path_ / "module.cfg";
+      app_configure_path_ = working_path_;
+      config_dir_path_ = app_configure_path_ + "/conf";
+      main_config_path_ = config_dir_path_ + "/main.cfg";
+      module_config_path_ = config_dir_path_ + "/module.cfg";
 
-      app_data_path_ = app_path_.parent_path();
-      app_log_path_ = app_data_path_ / "logs";
-      app_data_objs_path_ = app_data_path_ / "data_objs";
+      app_data_path_ = working_path_;
+      app_log_path_ = app_data_path_ + "/logs";
+      app_data_objs_path_ = app_data_path_ + "/data_objs";
     }
 
-    GF_CORE_LOG_INFO("app configure path: {}", app_configure_path_.u8string());
-    GF_CORE_LOG_INFO("app data path: {}", app_data_path_.u8string());
-    GF_CORE_LOG_INFO("app log path: {}", app_log_path_.u8string());
-    GF_CORE_LOG_INFO("app locale path: {}", app_locale_path_.u8string());
-    GF_CORE_LOG_INFO("app conf path: {}", main_config_path_.u8string());
+    GF_CORE_LOG_INFO("app configure path: {}", app_configure_path_);
+    GF_CORE_LOG_INFO("app data path: {}", app_data_path_);
+    GF_CORE_LOG_INFO("app log path: {}", app_log_path_);
+    GF_CORE_LOG_INFO("app locale path: {}", app_locale_path_);
+    GF_CORE_LOG_INFO("app conf path: {}", main_config_path_);
 
     GF_CORE_LOG_INFO("app log files total size: {}", GetLogFilesSize());
     GF_CORE_LOG_INFO("app data objects files total size: {}",
                      GetDataObjectsFilesSize());
 
-    if (!is_directory(app_configure_path_)) {
-      create_directory(app_configure_path_);
+    if (!QDir(app_configure_path_).exists()) {
+      QDir(app_configure_path_).mkpath(".");
     }
-    if (!is_directory(app_data_path_)) create_directory(app_data_path_);
-    if (!is_directory(app_log_path_)) create_directory(app_log_path_);
-    if (!is_directory(config_dir_path_)) create_directory(config_dir_path_);
+    if (!QDir(app_data_path_).exists()) QDir(app_data_path_).mkpath(".");
+    if (!QDir(app_log_path_).exists()) QDir(app_log_path_).mkpath(".");
+    if (!QDir(config_dir_path_).exists()) QDir(config_dir_path_).mkpath(".");
 
-    if (!exists(main_config_path_)) {
+    if (!QDir(main_config_path_).exists()) {
       try {
-        this->ui_cfg_.writeFile(main_config_path_.u8string().c_str());
+        this->ui_cfg_.writeFile(main_config_path_.toUtf8());
         GF_CORE_LOG_DEBUG(
             "user interface configuration successfully written to {}",
-            main_config_path_.u8string());
+            main_config_path_);
 
       } catch (const libconfig::FileIOException &fioex) {
         GF_CORE_LOG_DEBUG(
             "i/o error while writing UserInterface configuration file {}",
-            main_config_path_.u8string());
+            main_config_path_);
       }
     } else {
       try {
-        this->ui_cfg_.readFile(main_config_path_.u8string().c_str());
+        this->ui_cfg_.readFile(main_config_path_.toUtf8());
         GF_CORE_LOG_DEBUG(
             "user interface configuration successfully read from {}",
-            main_config_path_.u8string());
+            main_config_path_);
       } catch (const libconfig::FileIOException &fioex) {
         GF_CORE_LOG_ERROR(
             "i/o error while reading UserInterface configure file");
@@ -145,67 +144,55 @@ class GlobalSettingStation::Impl {
   /**
    * @brief Get the App Dir object
    *
-   * @return std::filesystem::path
+   * @return QString
    */
-  [[nodiscard]] auto GetAppDir() const -> std::filesystem::path {
-    return app_path_;
-  }
+  [[nodiscard]] auto GetAppDir() const -> QString { return working_path_; }
 
-  [[nodiscard]] auto GetAppDataPath() const -> std::filesystem::path {
+  [[nodiscard]] auto GetAppDataPath() const -> QString {
     return app_data_path_;
   }
 
   /**
    * @brief Get the Log Dir object
    *
-   * @return std::filesystem::path
+   * @return QString
    */
-  [[nodiscard]] auto GetLogDir() const -> std::filesystem::path {
-    return app_log_path_;
-  }
+  [[nodiscard]] auto GetLogDir() const -> QString { return app_log_path_; }
 
   /**
-   * @brief Get the Standalone Database Dir object
+   * @brief Get the App Config Path object
    *
-   * @return std::filesystem::path
+   * @return QString
    */
-  [[nodiscard]] auto GetStandaloneDatabaseDir() const -> std::filesystem::path {
-    auto db_path = app_configure_path_ / "db";
-    if (!std::filesystem::exists(db_path)) {
-      std::filesystem::create_directory(db_path);
-    }
-    return db_path;
-  }
-
-  [[nodiscard]] auto GetAppConfigPath() const -> std::filesystem::path {
+  [[nodiscard]] auto GetAppConfigPath() const -> QString {
     return app_configure_path_;
   }
 
   /**
    * @brief Get the Locale Dir object
    *
-   * @return std::filesystem::path
+   * @return QString
    */
-  [[nodiscard]] auto GetLocaleDir() const -> std::filesystem::path {
+  [[nodiscard]] auto GetLocaleDir() const -> QString {
     return app_locale_path_;
   }
 
   /**
    * @brief Get the Resource Dir object
    *
-   * @return std::filesystem::path
+   * @return QString
    */
-  [[nodiscard]] auto GetResourceDir() const -> std::filesystem::path {
+  [[nodiscard]] auto GetResourceDir() const -> QString {
     return app_resource_path_;
   }
 
   /**
    * @brief Get the Certs Dir object
    *
-   * @return std::filesystem::path
+   * @return QString
    */
-  [[nodiscard]] auto GetCertsDir() const -> std::filesystem::path {
-    return app_resource_path_ / "certs";
+  [[nodiscard]] auto GetCertsDir() const -> QString {
+    return app_resource_path_ + "/certs";
   }
 
   /**
@@ -214,61 +201,53 @@ class GlobalSettingStation::Impl {
    */
   void SyncSettings() noexcept {
     try {
-      ui_cfg_.writeFile(main_config_path_.u8string().c_str());
+      ui_cfg_.writeFile(main_config_path_.toUtf8());
       GF_CORE_LOG_DEBUG("updated ui configuration successfully written to {}",
-                        main_config_path_.u8string());
+                        main_config_path_);
 
     } catch (const libconfig::FileIOException &fioex) {
       GF_CORE_LOG_ERROR("i/o error while writing ui configuration file: {}",
-                        main_config_path_.u8string());
+                        main_config_path_);
     }
   }
 
  private:
-  std::filesystem::path app_path_ =
-      std::filesystem::path(boost::dll::program_location().string())
-          .parent_path();
+  QString working_path_ = QDir::currentPath();
 
-  std::filesystem::path app_data_path_ =
-      std::filesystem::path{
-          QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
-              .toStdString()} /
-      "GpgFrontend";  ///< Program Data Location
+  QString app_data_path_ = QString{QStandardPaths::writableLocation(
+                               QStandardPaths::AppLocalDataLocation)} +
+                           "/GpgFrontend";  ///< Program Data Location
 
-  std::filesystem::path app_log_path_ =
-      app_data_path_ / "logs";  ///< Program Data Location
+  QString app_log_path_ = app_data_path_ + "/logs";  ///< Program Data Location
 
-  std::filesystem::path app_data_objs_path_ =
-      app_data_path_ / "data_objs";  ///< Object storage path
+  QString app_data_objs_path_ =
+      app_data_path_ + "/data_objs";  ///< Object storage path
 
 #ifdef LINUX_INSTALL_BUILD
-  std::filesystem::path app_resource_path_ =
-      std::filesystem::path(APP_LOCALSTATE_PATH) /
-      "gpgfrontend";  ///< Program Data Location
+  QString app_resource_path_ =
+      QString(APP_LOCALSTATE_PATH) / "gpgfrontend";  ///< Program Data Location
 #else
-  std::filesystem::path app_resource_path_ =
-      RESOURCE_DIR_BOOST_PATH(app_path_);  ///< Program Data Location
+  QString app_resource_path_ =
+      RESOURCE_DIR_BOOST_PATH(working_path_);  ///< Program Data Location
 #endif
 
 #ifdef LINUX_INSTALL_BUILD
-  std::filesystem::path app_locale_path_ =
+  QString app_locale_path_ =
       QString(APP_LOCALE_PATH);  ///< Program Data Location
 #else
-  std::filesystem::path app_locale_path_ =
-      app_resource_path_ / "locales";  ///< Program Data Location
+  QString app_locale_path_ =
+      app_resource_path_ + "/locales";  ///< Program Data Location
 #endif
 
-  std::filesystem::path app_configure_path_ =
-      std::filesystem::path{
-          QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
-              .toStdString()} /
-      "GpgFrontend";  ///< Program Configure Location
-  std::filesystem::path config_dir_path_ =
-      app_configure_path_ / "conf";  ///< Configure File Directory Location
-  std::filesystem::path main_config_path_ =
-      config_dir_path_ / "main.cfg";  ///< Main Configure File Location
-  std::filesystem::path module_config_path_ =
-      config_dir_path_ / "module.cfg";  ///< Main Configure File Location
+  QString app_configure_path_ = QString{QStandardPaths::writableLocation(
+                                    QStandardPaths::AppConfigLocation)} +
+                                "/GpgFrontend";  ///< Program Configure Location
+  QString config_dir_path_ =
+      app_configure_path_ + "/conf";  ///< Configure File Directory Location
+  QString main_config_path_ =
+      config_dir_path_ + "/main.cfg";  ///< Main Configure File Location
+  QString module_config_path_ =
+      config_dir_path_ + "/module.cfg";  ///< Main Configure File Location
 
   libconfig::Config ui_cfg_;  ///< UI Configure File
 
@@ -291,37 +270,31 @@ auto GlobalSettingStation::GetMainSettings() noexcept -> libconfig::Setting & {
   return p_->GetMainSettings();
 }
 
-auto GlobalSettingStation::GetAppDir() const -> std::filesystem::path {
+auto GlobalSettingStation::GetAppDir() const -> QString {
   return p_->GetAppDir();
 }
 
-auto GlobalSettingStation::GetAppDataPath() const -> std::filesystem::path {
+auto GlobalSettingStation::GetAppDataPath() const -> QString {
   return p_->GetAppDataPath();
 }
 
-[[nodiscard]] auto GlobalSettingStation::GetLogDir() const
-    -> std::filesystem::path {
+[[nodiscard]] auto GlobalSettingStation::GetLogDir() const -> QString {
   return p_->GetLogDir();
 }
 
-auto GlobalSettingStation::GetStandaloneDatabaseDir() const
-    -> std::filesystem::path {
-  return p_->GetStandaloneDatabaseDir();
-}
-
-auto GlobalSettingStation::GetAppConfigPath() const -> std::filesystem::path {
+auto GlobalSettingStation::GetAppConfigPath() const -> QString {
   return p_->GetAppConfigPath();
 }
 
-auto GlobalSettingStation::GetLocaleDir() const -> std::filesystem::path {
+auto GlobalSettingStation::GetLocaleDir() const -> QString {
   return p_->GetLocaleDir();
 }
 
-auto GlobalSettingStation::GetResourceDir() const -> std::filesystem::path {
+auto GlobalSettingStation::GetResourceDir() const -> QString {
   return p_->GetResourceDir();
 }
 
-auto GlobalSettingStation::GetCertsDir() const -> std::filesystem::path {
+auto GlobalSettingStation::GetCertsDir() const -> QString {
   return p_->GetCertsDir();
 }
 

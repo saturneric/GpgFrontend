@@ -121,10 +121,8 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
 }
 
 TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
-  QFile translators_qfile;
-  auto translators_file =
-      GlobalSettingStation::GetInstance().GetResourceDir() / "TRANSLATORS";
-  translators_qfile.setFileName(translators_file);
+  QFile translators_qfile(GlobalSettingStation::GetInstance().GetResourceDir() +
+                          "/TRANSLATORS");
 #ifdef LINUX
   if (!translators_qfile.exists()) {
     translators_qfile.setFileName("/usr/local/share/GpgFrontend/TRANSLATORS");
@@ -143,8 +141,7 @@ TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
   auto* notice_label = new QLabel(
       _("If you think there are any problems with the translation, why not "
         "participate in the translation work? If you want to participate, "
-        "please "
-        "read the document or contact me via email."),
+        "please read the document or contact me via email."),
       this);
   notice_label->setWordWrap(true);
   main_layout->addWidget(notice_label);

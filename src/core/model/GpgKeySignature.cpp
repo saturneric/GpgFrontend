@@ -62,12 +62,12 @@ QString GpgKeySignature::GetPubkeyAlgo() const {
   return gpgme_pubkey_algo_name(signature_ref_->pubkey_algo);
 }
 
-boost::posix_time::ptime GpgKeySignature::GetCreateTime() const {
-  return boost::posix_time::from_time_t(signature_ref_->timestamp);
+QDateTime GpgKeySignature::GetCreateTime() const {
+  return QDateTime::fromSecsSinceEpoch(signature_ref_->timestamp);
 }
 
-boost::posix_time::ptime GpgKeySignature::GetExpireTime() const {
-  return boost::posix_time::from_time_t(signature_ref_->expires);
+QDateTime GpgKeySignature::GetExpireTime() const {
+  return QDateTime::fromSecsSinceEpoch(signature_ref_->expires);
 }
 
 QString GpgKeySignature::GetUID() const { return signature_ref_->uid; }

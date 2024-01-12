@@ -157,8 +157,8 @@ void KeyPairSubkeyTab::create_subkey_list() {
   subkey_list_->setAlternatingRowColors(true);
 
   QStringList labels;
-  labels << _("Subkey ID") << _("Key Size") << _("Algo")
-         << _("Create Date (UTC)") << _("Expire Date (UTC)");
+  labels << _("Subkey ID") << _("Key Size") << _("Algo") << _("Create Date")
+         << _("Expire Date");
 
   subkey_list_->setHorizontalHeaderLabels(labels);
   subkey_list_->horizontalHeader()->setStretchLastSection(false);
@@ -194,16 +194,14 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
     tmp2->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 2, tmp2);
 
-    auto* tmp3 = new QTableWidgetItem(
-        QString::fromStdString(to_iso_string(subkeys.GetCreateTime())));
+    auto* tmp3 = new QTableWidgetItem(subkeys.GetCreateTime().toString());
     tmp3->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 3, tmp3);
 
-    auto* tmp4 = new QTableWidgetItem(
-        boost::posix_time::to_time_t(
-            boost::posix_time::ptime(subkeys.GetExpireTime())) == 0
-            ? _("Never Expire")
-            : QString::fromStdString(to_iso_string(subkeys.GetExpireTime())));
+    auto* tmp4 =
+        new QTableWidgetItem(subkeys.GetExpireTime().toSecsSinceEpoch() == 0
+                                 ? _("Never Expire")
+                                 : subkeys.GetExpireTime().toString());
     tmp4->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 4, tmp4);
 
@@ -236,17 +234,14 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   key_id_var_label_->setText(subkey.GetID());
   key_size_var_label_->setText(QString::number(subkey.GetKeyLength()));
 
-  time_t subkey_time_t = boost::posix_time::to_time_t(
-      boost::posix_time::ptime(subkey.GetExpireTime()));
+  time_t subkey_time_t = subkey.GetExpireTime().toSecsSinceEpoch();
 
   expire_var_label_->setText(
-      subkey_time_t == 0
-          ? _("Never Expires")
-          : QLocale::system().toString(QDateTime::fromSecsSinceEpoch(
-                to_time_t(subkey.GetExpireTime()))));
+      subkey_time_t == 0 ? _("Never Expires")
+                         : QLocale::system().toString(subkey.GetExpireTime()));
 
   if (subkey_time_t != 0 &&
-      subkey.GetExpireTime() < boost::posix_time::second_clock::local_time()) {
+      subkey.GetExpireTime() < QDateTime::currentDateTime()) {
     auto palette_expired = expire_var_label_->palette();
     palette_expired.setColor(expire_var_label_->foregroundRole(), Qt::red);
     expire_var_label_->setPalette(palette_expired);
@@ -257,8 +252,8 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   }
 
   algorithm_var_label_->setText(subkey.GetPubkeyAlgo());
-  created_var_label_->setText(QLocale::system().toString(
-      QDateTime::fromSecsSinceEpoch(to_time_t(subkey.GetCreateTime()))));
+  created_var_label_->setText(
+      QLocale::system().toString(subkey.GetCreateTime()));
 
   std::stringstream usage_steam;
 
@@ -328,7 +323,7 @@ void KeyPairSubkeyTab::contextMenuEvent(QContextMenuEvent* event) {
   }
 }
 
-const GpgSubKey& KeyPairSubkeyTab::get_selected_subkey() {
+auto KeyPairSubkeyTab::get_selected_subkey() -> const GpgSubKey& {
   int row = 0;
 
   for (int i = 0; i < subkey_list_->rowCount(); i++) {

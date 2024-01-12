@@ -82,7 +82,7 @@ GeneralTab::GeneralTab(QWidget* parent)
   connect(ui_->clearAllLogFilesButton, &QPushButton::clicked, this, [=]() {
     GlobalSettingStation::GetInstance().ClearAllLogFiles();
     ui_->clearAllLogFilesButton->setText(
-        QString(_("Clear All Log (Total Size: %s)"))
+        QString(_("Clear All Log (Total Size: %1)"))
             .arg(GlobalSettingStation::GetInstance().GetLogFilesSize()));
   });
 
@@ -97,7 +97,7 @@ GeneralTab::GeneralTab(QWidget* parent)
     if (reply == QMessageBox::Yes) {
       GlobalSettingStation::GetInstance().ClearAllDataObjects();
       ui_->clearAllDataObjectsButton->setText(
-          QString(_("Clear All Data Objects (Total Size: %s)"))
+          QString(_("Clear All Data Objects (Total Size: %1)"))
               .arg(GlobalSettingStation::GetInstance()
                        .GetDataObjectsFilesSize()));
     }

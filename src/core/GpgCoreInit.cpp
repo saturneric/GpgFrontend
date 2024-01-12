@@ -29,8 +29,6 @@
 
 #include <gpgme.h>
 
-#include <boost/date_time.hpp>
-
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/basic/ChannelObject.h"
