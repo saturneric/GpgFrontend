@@ -196,19 +196,13 @@ class GpgContext::Impl {
     GF_CORE_LOG_DEBUG("ctx set engine info, db path: {}, app path: {}",
                       database_path, app_path);
 
-    const char *app_path_c_str = app_path.toUtf8();
-    const char *db_path_c_str = database_path.toUtf8();
+    auto app_path_buffer = app_path.toUtf8();
+    auto database_path_buffer = database_path.toUtf8();
 
-    if (app_path.isEmpty()) {
-      app_path_c_str = nullptr;
-    }
-
-    if (database_path.isEmpty()) {
-      db_path_c_str = nullptr;
-    }
-
-    auto err = gpgme_ctx_set_engine_info(ctx, gpgme_get_protocol(ctx),
-                                         app_path_c_str, db_path_c_str);
+    auto err = gpgme_ctx_set_engine_info(
+        ctx, gpgme_get_protocol(ctx),
+        app_path.isEmpty() ? nullptr : app_path_buffer,
+        database_path.isEmpty() ? nullptr : database_path_buffer);
 
     assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
     return CheckGpgError(err) == GPG_ERR_NO_ERROR;
