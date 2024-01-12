@@ -85,7 +85,7 @@ class GeneralTab : public QWidget {
   QHash<QString, QString> lang_;  ///<
 #endif
 
-  std::vector<std::string> key_ids_list_;  ///<
+  std::vector<QString> key_ids_list_;  ///<
 
   KeyList* m_key_list_{};  ///<
 

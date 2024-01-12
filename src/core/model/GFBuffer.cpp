@@ -33,12 +33,6 @@ namespace GpgFrontend {
 GFBuffer::GFBuffer()
     : buffer_(SecureCreateSharedObject<std::vector<std::byte>>()) {}
 
-GFBuffer::GFBuffer(const std::string& str)
-    : buffer_(SecureCreateSharedObject<std::vector<std::byte>>()) {
-  std::transform(str.begin(), str.end(), std::back_inserter(*buffer_),
-                 [](const char c) { return static_cast<std::byte>(c); });
-}
-
 GFBuffer::GFBuffer(const char* c_str)
     : buffer_(SecureCreateSharedObject<std::vector<std::byte>>()) {
   if (c_str == nullptr) {
@@ -80,9 +74,5 @@ auto GFBuffer::ConvertToQByteArray() const -> QByteArray {
 }
 
 auto GFBuffer::Empty() const -> bool { return this->Size() == 0; }
-
-auto GFBuffer::ConvertToStdString() const -> std::string {
-  return {reinterpret_cast<const char*>(buffer_->data()), buffer_->size()};
-}
 
 }  // namespace GpgFrontend

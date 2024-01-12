@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include <boost/format.hpp>
 #include <nlohmann/json.hpp>
 #include <optional>
 
@@ -48,13 +47,11 @@ class GPGFRONTEND_CORE_EXPORT DataObjectOperator
   explicit DataObjectOperator(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
-  auto SaveDataObj(const std::string &_key, const nlohmann::json &value)
-      -> std::string;
+  auto SaveDataObj(const QString &_key, const nlohmann::json &value) -> QString;
 
-  auto GetDataObject(const std::string &_key) -> std::optional<nlohmann::json>;
+  auto GetDataObject(const QString &_key) -> std::optional<nlohmann::json>;
 
-  auto GetDataObjectByRef(const std::string &_ref)
-      -> std::optional<nlohmann::json>;
+  auto GetDataObjectByRef(const QString &_ref) -> std::optional<nlohmann::json>;
 
  private:
   /**
@@ -75,9 +72,7 @@ class GPGFRONTEND_CORE_EXPORT DataObjectOperator
                                                                ///< object is
                                                                ///< stored
 
-  std::random_device rd_;                  ///< Random device
-  std::mt19937 mt_ = std::mt19937(rd_());  ///< Mersenne twister
-  QByteArray hash_key_;                    ///< Hash key
+  QByteArray hash_key_;  ///< Hash key
 };
 
 }  // namespace GpgFrontend

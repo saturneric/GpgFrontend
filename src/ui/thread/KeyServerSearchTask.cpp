@@ -30,8 +30,8 @@
 
 #include <utility>
 
-GpgFrontend::UI::KeyServerSearchTask::KeyServerSearchTask(
-    std::string keyserver_url, std::string search_string)
+GpgFrontend::UI::KeyServerSearchTask::KeyServerSearchTask(QString keyserver_url,
+                                                          QString search_string)
     : Task("key_server_search_task"),
       keyserver_url_(std::move(keyserver_url)),
       search_string_(std::move(search_string)),
@@ -40,10 +40,9 @@ GpgFrontend::UI::KeyServerSearchTask::KeyServerSearchTask(
 }
 
 void GpgFrontend::UI::KeyServerSearchTask::Run() {
-  QUrl url_from_remote =
-      QString::fromStdString(keyserver_url_) +
-      "/pks/lookup?search=" + QString::fromStdString(search_string_) +
-      "&op=index&options=mr";
+  QUrl url_from_remote = keyserver_url_ +
+                         "/pks/lookup?search=" + search_string_ +
+                         "&op=index&options=mr";
 
   reply_ = manager_->get(QNetworkRequest(url_from_remote));
 

@@ -36,16 +36,16 @@ namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
  *
  */
 struct SoftwareVersion {
-  std::string latest_version;                          ///<
-  std::string current_version;                         ///<
+  QString latest_version;                              ///<
+  QString current_version;                             ///<
   bool latest_prerelease_version_from_remote = false;  ///<
   bool latest_draft_from_remote = false;               ///<
   bool current_version_is_a_prerelease = false;        ///<
   bool current_version_is_drafted = false;             ///<
   bool loading_done = false;                           ///<
   bool current_version_publish_in_remote = false;      ///<
-  std::string publish_date;                            ///<
-  std::string release_note;                            ///<
+  QString publish_date;                                ///<
+  QString release_note;                                ///<
 
   /**
    * @brief
@@ -80,6 +80,6 @@ struct SoftwareVersion {
   [[nodiscard]] bool CurrentVersionReleased() const;
 
  private:
-  static int version_compare(const std::string& a, const std::string& b);
+  static int version_compare(const QString& a, const QString& b);
 };
 }  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule

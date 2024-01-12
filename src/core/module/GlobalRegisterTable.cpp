@@ -45,8 +45,7 @@ class GlobalRegisterTable::Impl {
  public:
   struct RTNode {
     std::optional<std::any> value = std::nullopt;
-    std::unordered_map<std::string, SecureUniquePtr<RTNode>>
-        children;
+    std::unordered_map<QString, SecureUniquePtr<RTNode>> children;
     int version = 0;
     const std::type_info* type = nullptr;
   };
@@ -54,9 +53,7 @@ class GlobalRegisterTable::Impl {
   explicit Impl(GlobalRegisterTable* parent) : parent_(parent) {}
 
   auto PublishKV(const Namespace& n, const Key& k, std::any v) -> bool {
-    std::istringstream iss(k);
-    std::string segment;
-
+    QStringList const segments = k.split('.');
     int version = 0;
 
     {
@@ -66,7 +63,7 @@ class GlobalRegisterTable::Impl {
               .first->second;
 
       RTNode* current = root_rt_node.get();
-      while (std::getline(iss, segment, '.')) {
+      for (const QString& segment : segments) {
         current = current->children
                       .emplace(segment, SecureCreateUniqueObject<RTNode>())
                       .first->second.get();
@@ -74,7 +71,7 @@ class GlobalRegisterTable::Impl {
 
       current->value = v;
       current->type = &v.type();
-      current->version++;
+      version = ++current->version;
     }
 
     emit parent_->SignalPublish(n, k, version, v);
@@ -82,17 +79,16 @@ class GlobalRegisterTable::Impl {
   }
 
   auto LookupKV(const Namespace& n, const Key& k) -> std::optional<std::any> {
-    std::istringstream iss(k);
-    std::string segment;
+    QStringList const segments = k.split('.');
 
     std::optional<std::any> rtn = std::nullopt;
     {
-      std::shared_lock lock(lock_);
+      std::shared_lock const lock(lock_);
       auto it = global_register_table_.find(n);
       if (it == global_register_table_.end()) return std::nullopt;
 
       RTNode* current = it->second.get();
-      while (std::getline(iss, segment, '.')) {
+      for (const QString& segment : segments) {
         auto it = current->children.find(segment);
         if (it == current->children.end()) return std::nullopt;
         current = it->second.get();
@@ -103,8 +99,7 @@ class GlobalRegisterTable::Impl {
   }
 
   auto ListChildKeys(const Namespace& n, const Key& k) -> std::vector<Key> {
-    std::istringstream iss(k);
-    std::string segment;
+    QStringList const segments = k.split('.');
 
     std::vector<Key> rtn;
     {
@@ -113,7 +108,7 @@ class GlobalRegisterTable::Impl {
       if (it == global_register_table_.end()) return {};
 
       RTNode* current = it->second.get();
-      while (std::getline(iss, segment, '.')) {
+      for (const QString& segment : segments) {
         auto it = current->children.find(segment);
         if (it == current->children.end()) return {};
         current = it->second.get();

@@ -136,20 +136,18 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
   // if enable proxy for application
   if (proxy_enable) {
     try {
-      std::string proxy_type =
-          GlobalSettingStation::GetInstance().LookupSettings("proxy.proxy_type",
-                                                             std::string{});
-      std::string proxy_host =
-          GlobalSettingStation::GetInstance().LookupSettings("proxy.proxy_host",
-                                                             std::string{});
+      QString proxy_type = GlobalSettingStation::GetInstance().LookupSettings(
+          "proxy.proxy_type", QString{});
+      QString proxy_host = GlobalSettingStation::GetInstance().LookupSettings(
+          "proxy.proxy_host", QString{});
       int proxy_port =
           GlobalSettingStation::GetInstance().LookupSettings("proxy.port", 0);
-      std::string proxy_username =
+      QString proxy_username =
           GlobalSettingStation::GetInstance().LookupSettings("proxy.username",
-                                                             std::string{});
-      std::string proxy_password =
+                                                             QString{});
+      QString proxy_password =
           GlobalSettingStation::GetInstance().LookupSettings("proxy.password",
-                                                             std::string{});
+                                                             QString{});
       GF_UI_LOG_DEBUG("proxy settings: type {}, host {}, port: {}", proxy_type,
                       proxy_host, proxy_port);
 
@@ -166,13 +164,13 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
       QNetworkProxy proxy;
       if (proxy_type_qt != QNetworkProxy::DefaultProxy) {
         proxy.setType(proxy_type_qt);
-        proxy.setHostName(QString::fromStdString(proxy_host));
+        proxy.setHostName(proxy_host);
         proxy.setPort(proxy_port);
-        if (!proxy_username.empty()) {
-          proxy.setUser(QString::fromStdString(proxy_username));
+        if (!proxy_username.isEmpty()) {
+          proxy.setUser(proxy_username);
         }
-        if (!proxy_password.empty()) {
-          proxy.setPassword(QString::fromStdString(proxy_password));
+        if (!proxy_password.isEmpty()) {
+          proxy.setPassword(proxy_password);
         }
       } else {
         proxy.setType(proxy_type_qt);
@@ -193,6 +191,9 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
       0) {
     WaitEnvCheckingProcess();
   }
+
+  qRegisterMetaType<QSharedPointer<GpgPassphraseContext> >(
+      "QSharedPointer<GpgPassphraseContext>");
 }
 
 auto RunGpgFrontendUI(QApplication* app) -> int {
@@ -259,35 +260,35 @@ void InitLocale() {
 
 #ifndef WINDOWS
   if (!lang.empty()) {
-    std::string lc = lang + ".UTF-8";
+    QString lc = QString::fromStdString(lang) + ".UTF-8";
 
     // set LC_ALL
-    auto* locale_name = setlocale(LC_ALL, lc.c_str());
+    auto* locale_name = setlocale(LC_ALL, lc.toUtf8());
     if (locale_name == nullptr) GF_UI_LOG_WARN("set LC_ALL failed, lc: {}", lc);
     auto* language = getenv("LANGUAGE");
     // set LANGUAGE
-    std::string language_env = language == nullptr ? "en" : language;
+    QString language_env = language == nullptr ? "en" : language;
     language_env.insert(0, lang + ":");
     GF_UI_LOG_DEBUG("language env: {}", language_env);
-    if (setenv("LANGUAGE", language_env.c_str(), 1) != 0) {
+    if (setenv("LANGUAGE", language_env.toUtf8(), 1) != 0) {
       GF_UI_LOG_WARN("set LANGUAGE {} failed", language_env);
     };
   }
 #else
   if (!lang.empty()) {
-    std::string lc = lang;
+    QString lc = QString::fromStdString(lang);
 
     // set LC_ALL
-    auto* locale_name = setlocale(LC_ALL, lc.c_str());
+    auto* locale_name = setlocale(LC_ALL, lc.toUtf8());
     if (locale_name == nullptr) GF_UI_LOG_WARN("set LC_ALL failed, lc: {}", lc);
 
     auto language = getenv("LANGUAGE");
     // set LANGUAGE
-    std::string language_env = language == nullptr ? "en" : language;
+    QString language_env = language == nullptr ? "en" : language;
     language_env.insert(0, lang + ":");
     language_env.insert(0, "LANGUAGE=");
     GF_UI_LOG_DEBUG("language env: {}", language_env);
-    if (putenv(language_env.c_str())) {
+    if (putenv(language_env.toUtf8())) {
       GF_UI_LOG_WARN("set LANGUAGE {} failed", language_env);
     };
   }

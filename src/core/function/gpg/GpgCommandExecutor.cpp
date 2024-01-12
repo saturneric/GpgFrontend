@@ -27,7 +27,6 @@
  */
 #include "GpgCommandExecutor.h"
 
-#include <boost/format.hpp>
 #include <utility>
 
 #include "core/function/basic/GpgFunctionObject.h"
@@ -45,11 +44,7 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
   const auto &interact_function = context.int_func;
   const auto &cmd_executor_callback = context.cb_func;
 
-  const std::string joined_argument = std::accumulate(
-      std::begin(arguments), std::end(arguments), std::string(),
-      [](const std::string &a, const std::string &b) -> std::string {
-        return a + (a.length() > 0 ? " " : "") + b;
-      });
+  const QString joined_argument = QStringList::fromVector(arguments).join(" ");
 
   GF_CORE_LOG_DEBUG("building task: called cmd {} arguments size: {}", cmd,
                     arguments.size());
@@ -59,13 +54,12 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
         GF_CORE_LOG_DEBUG(
             "data object args count of cmd executor result callback: {}",
             data_object->GetObjectSize());
-        if (!data_object
-                 ->Check<int, std::string, GpgCommandExecutorCallback>()) {
+        if (!data_object->Check<int, QString, GpgCommandExecutorCallback>()) {
           throw std::runtime_error("invalid data object size");
         }
 
         auto exit_code = ExtractParams<int>(data_object, 0);
-        auto process_stdout = ExtractParams<std::string>(data_object, 1);
+        auto process_stdout = ExtractParams<QString>(data_object, 1);
         auto callback =
             ExtractParams<GpgCommandExecutorCallback>(data_object, 2);
 
@@ -82,15 +76,15 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
     GF_CORE_LOG_DEBUG("process runner called, data object size: {}",
                       data_object->GetObjectSize());
 
-    if (!data_object->Check<std::string, std::vector<std::string>,
+    if (!data_object->Check<QString, std::vector<QString>,
                             GpgCommandExecutorInteractor,
                             GpgCommandExecutorCallback>()) {
       throw std::runtime_error("invalid data object size");
     }
 
     // get arguments
-    auto cmd = ExtractParams<std::string>(data_object, 0);
-    auto arguments = ExtractParams<std::vector<std::string>>(data_object, 1);
+    auto cmd = ExtractParams<QString>(data_object, 0);
+    auto arguments = ExtractParams<std::vector<QString>>(data_object, 1);
     auto interact_func =
         ExtractParams<GpgCommandExecutorInteractor>(data_object, 2);
     auto callback = ExtractParams<GpgCommandExecutorCallback>(data_object, 3);
@@ -103,12 +97,12 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
     // set process channel mode
     // this is to make sure we can get all output from stdout and stderr
     cmd_process->setProcessChannelMode(QProcess::MergedChannels);
-    cmd_process->setProgram(QString::fromStdString(cmd));
+    cmd_process->setProgram(cmd);
 
     // set arguments
     QStringList q_arguments;
     for (const auto &argument : arguments) {
-      q_arguments.append(QString::fromStdString(argument));
+      q_arguments.append(argument);
     }
     cmd_process->setArguments(q_arguments);
 
@@ -138,8 +132,7 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
     cmd_process->start();
     cmd_process->waitForFinished();
 
-    std::string process_stdout =
-        cmd_process->readAllStandardOutput().toStdString();
+    QString process_stdout = cmd_process->readAllStandardOutput();
     int exit_code = cmd_process->exitCode();
 
     GF_CORE_LOG_DEBUG(
@@ -160,17 +153,14 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
   };
 
   return new Thread::Task(
-      std::move(runner),
-      (boost::format("GpgCommamdExecutor(%1%){%2%}") % cmd % joined_argument)
-          .str(),
+      std::move(runner), QString("GpgCommamdExecutor(%1){%2}").arg(cmd),
       TransferParams(cmd, arguments, interact_function, cmd_executor_callback),
       std::move(result_callback));
 }
 
 GpgCommandExecutor::ExecuteContext::ExecuteContext(
-    std::string cmd, std::vector<std::string> arguments,
-    GpgCommandExecutorCallback callback, Module::TaskRunnerPtr task_runner,
-    GpgCommandExecutorInteractor int_func)
+    QString cmd, QList<QString> arguments, GpgCommandExecutorCallback callback,
+    Module::TaskRunnerPtr task_runner, GpgCommandExecutorInteractor int_func)
     : cmd(std::move(cmd)),
       arguments(std::move(arguments)),
       cb_func(std::move(callback)),

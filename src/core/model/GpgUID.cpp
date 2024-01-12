@@ -37,13 +37,13 @@ GpgUID::GpgUID(gpgme_user_id_t uid)
 
 GpgUID::GpgUID(GpgUID &&o) noexcept { swap(uid_ref_, o.uid_ref_); }
 
-auto GpgUID::GetName() const -> std::string { return uid_ref_->name; }
+auto GpgUID::GetName() const -> QString { return uid_ref_->name; }
 
-auto GpgUID::GetEmail() const -> std::string { return uid_ref_->email; }
+auto GpgUID::GetEmail() const -> QString { return uid_ref_->email; }
 
-auto GpgUID::GetComment() const -> std::string { return uid_ref_->comment; }
+auto GpgUID::GetComment() const -> QString { return uid_ref_->comment; }
 
-auto GpgUID::GetUID() const -> std::string { return uid_ref_->uid; }
+auto GpgUID::GetUID() const -> QString { return uid_ref_->uid; }
 
 auto GpgUID::GetRevoked() const -> bool { return uid_ref_->revoked; }
 

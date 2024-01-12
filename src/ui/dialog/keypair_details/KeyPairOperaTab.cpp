@@ -42,16 +42,16 @@
 
 namespace GpgFrontend::UI {
 
-KeyPairOperaTab::KeyPairOperaTab(const std::string& key_id, QWidget* parent)
+KeyPairOperaTab::KeyPairOperaTab(const QString& key_id, QWidget* parent)
     : QWidget(parent), m_key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
   // Set Menu
   CreateOperaMenu();
-  auto m_vbox = new QVBoxLayout(this);
+  auto* m_vbox = new QVBoxLayout(this);
 
   auto* opera_key_box = new QGroupBox(_("General Operations"));
   auto* vbox_p_k = new QVBoxLayout();
 
-  auto export_h_box_layout = new QHBoxLayout();
+  auto* export_h_box_layout = new QHBoxLayout();
   vbox_p_k->addLayout(export_h_box_layout);
 
   auto* export_public_button = new QPushButton(_("Export Public Key"));
@@ -79,7 +79,7 @@ KeyPairOperaTab::KeyPairOperaTab(const std::string& key_id, QWidget* parent)
     }
   }
 
-  auto advance_h_box_layout = new QHBoxLayout();
+  auto* advance_h_box_layout = new QHBoxLayout();
 
   // get settings
   auto& settings = GlobalSettingStation::GetInstance().GetMainSettings();
@@ -135,23 +135,24 @@ KeyPairOperaTab::KeyPairOperaTab(const std::string& key_id, QWidget* parent)
 void KeyPairOperaTab::CreateOperaMenu() {
   key_server_opera_menu_ = new QMenu(this);
 
-  auto* uploadKeyPair = new QAction(_("Upload Key Pair to Key Server"), this);
-  connect(uploadKeyPair, &QAction::triggered, this,
+  auto* upload_key_pair = new QAction(_("Upload Key Pair to Key Server"), this);
+  connect(upload_key_pair, &QAction::triggered, this,
           &KeyPairOperaTab::slot_upload_key_to_server);
-  if (!(m_key_.IsPrivateKey() && m_key_.IsHasMasterKey()))
-    uploadKeyPair->setDisabled(true);
+  if (!(m_key_.IsPrivateKey() && m_key_.IsHasMasterKey())) {
+    upload_key_pair->setDisabled(true);
+  }
 
-  auto* updateKeyPair = new QAction(_("Sync Key Pair From Key Server"), this);
-  connect(updateKeyPair, &QAction::triggered, this,
+  auto* update_key_pair = new QAction(_("Sync Key Pair From Key Server"), this);
+  connect(update_key_pair, &QAction::triggered, this,
           &KeyPairOperaTab::slot_update_key_from_server);
 
   // when a key has primary key, it should always upload to keyserver.
   if (m_key_.IsHasMasterKey()) {
-    updateKeyPair->setDisabled(true);
+    update_key_pair->setDisabled(true);
   }
 
-  key_server_opera_menu_->addAction(uploadKeyPair);
-  key_server_opera_menu_->addAction(updateKeyPair);
+  key_server_opera_menu_->addAction(upload_key_pair);
+  key_server_opera_menu_->addAction(update_key_pair);
 
   secret_key_export_opera_menu_ = new QMenu(this);
 
@@ -187,18 +188,16 @@ void KeyPairOperaTab::slot_export_public_key() {
 #endif
   std::replace(file_string.begin(), file_string.end(), ' ', '_');
 
-  auto file_name =
-      QFileDialog::getSaveFileName(
-          this, _("Export Key To File"), QString::fromStdString(file_string),
-          QString(_("Key Files")) + " (*.asc *.txt);;All Files (*)")
-          .toStdString();
+  auto file_name = QFileDialog::getSaveFileName(
+      this, _("Export Key To File"), file_string,
+      QString(_("Key Files")) + " (*.asc *.txt);;All Files (*)");
 
-  if (file_name.empty()) return;
+  if (file_name.isEmpty()) return;
 
   if (!WriteFileGFBuffer(file_name, gf_buffer)) {
     QMessageBox::critical(
         this, _("Export Error"),
-        QString(_("Couldn't open %1 for writing")).arg(file_name.c_str()));
+        QString(_("Couldn't open %1 for writing")).arg(file_name));
     return;
   }
 }
@@ -236,18 +235,16 @@ void KeyPairOperaTab::slot_export_short_private_key() {
 #endif
     std::replace(file_string.begin(), file_string.end(), ' ', '_');
 
-    auto file_name =
-        QFileDialog::getSaveFileName(
-            this, _("Export Key To File"), QString::fromStdString(file_string),
-            QString(_("Key Files")) + " (*.asc *.txt);;All Files (*)")
-            .toStdString();
+    auto file_name = QFileDialog::getSaveFileName(
+        this, _("Export Key To File"), file_string,
+        QString(_("Key Files")) + " (*.asc *.txt);;All Files (*)");
 
-    if (file_name.empty()) return;
+    if (file_name.isEmpty()) return;
 
     if (!WriteFileGFBuffer(file_name, gf_buffer)) {
       QMessageBox::critical(
           this, _("Export Error"),
-          QString(_("Couldn't open %1 for writing")).arg(file_name.c_str()));
+          QString(_("Couldn't open %1 for writing")).arg(file_name));
       return;
     }
   }
@@ -282,18 +279,16 @@ void KeyPairOperaTab::slot_export_private_key() {
 #endif
     std::replace(file_string.begin(), file_string.end(), ' ', '_');
 
-    auto file_name =
-        QFileDialog::getSaveFileName(
-            this, _("Export Key To File"), QString::fromStdString(file_string),
-            QString(_("Key Files")) + " (*.asc *.txt);;All Files (*)")
-            .toStdString();
+    auto file_name = QFileDialog::getSaveFileName(
+        this, _("Export Key To File"), file_string,
+        QString(_("Key Files")) + " (*.asc *.txt);;All Files (*)");
 
-    if (file_name.empty()) return;
+    if (file_name.isEmpty()) return;
 
     if (!WriteFileGFBuffer(file_name, gf_buffer)) {
       QMessageBox::critical(
           this, _("Export Error"),
-          QString(_("Couldn't open %1 for writing")).arg(file_name.c_str()));
+          QString(_("Couldn't open %1 for writing")).arg(file_name));
       return;
     }
   }
@@ -332,16 +327,15 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
                      m_key_.GetId() + ").rev";
 #endif
 
-  QFileDialog dialog(this, "Generate revocation certificate",
-                     QString::fromStdString(file_string), literal);
+  QFileDialog dialog(this, _("Generate revocation certificate"), file_string,
+                     literal);
   dialog.setDefaultSuffix(".rev");
   dialog.setAcceptMode(QFileDialog::AcceptSave);
 
   if (dialog.exec() != 0) m_output_file_name = dialog.selectedFiles().front();
 
   if (!m_output_file_name.isEmpty()) {
-    GpgKeyOpera::GetInstance().GenerateRevokeCert(
-        m_key_, m_output_file_name.toStdString());
+    GpgKeyOpera::GetInstance().GenerateRevokeCert(m_key_, m_output_file_name);
   }
 }
 

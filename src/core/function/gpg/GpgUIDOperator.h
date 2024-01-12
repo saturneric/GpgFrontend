@@ -53,7 +53,7 @@ class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
    * @param uid uid args(combine name&comment&email)
    * @return if successful
    */
-  auto AddUID(const GpgKey& key, const std::string& uid) -> bool;
+  auto AddUID(const GpgKey& key, const QString& uid) -> bool;
 
   /**
    * create a new uid in certain key pair
@@ -63,8 +63,8 @@ class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
    * @param email
    * @return
    */
-  auto AddUID(const GpgKey& key, const std::string& name,
-              const std::string& comment, const std::string& email) -> bool;
+  auto AddUID(const GpgKey& key, const QString& name, const QString& comment,
+              const QString& email) -> bool;
 
   /**
    * Revoke(Delete) UID from certain key pair
@@ -72,7 +72,7 @@ class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
    * @param uid target uid
    * @return if successful
    */
-  auto RevUID(const GpgKey& key, const std::string& uid) -> bool;
+  auto RevUID(const GpgKey& key, const QString& uid) -> bool;
 
   /**
    * Set one of a uid of a key pair as primary
@@ -80,7 +80,7 @@ class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
    * @param uid target uid
    * @return if successful
    */
-  auto SetPrimaryUID(const GpgKey& key, const std::string& uid) -> bool;
+  auto SetPrimaryUID(const GpgKey& key, const QString& uid) -> bool;
 
  private:
   GpgContext& ctx_ =

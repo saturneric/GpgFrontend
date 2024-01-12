@@ -33,44 +33,34 @@
 
 namespace GpgFrontend {
 
-auto BeautifyFingerprint(BypeArrayConstRef fingerprint) -> std::string {
+auto BeautifyFingerprint(QString fingerprint) -> QString {
   auto len = fingerprint.size();
-  std::stringstream out;
+  QTextStream out;
   decltype(len) count = 0;
   while (count < len) {
     if ((count != 0U) && !(count % 5)) out << " ";
     out << fingerprint[count];
     count++;
   }
-  return out.str();
+  return out.readAll();
 }
 
-auto CompareSoftwareVersion(const std::string& a, const std::string& b) -> int {
-  auto remove_prefix = [](const std::string& version) {
-    return version.front() == 'v' ? version.substr(1) : version;
+auto CompareSoftwareVersion(const QString& a, const QString& b) -> int {
+  auto remove_prefix = [](const QString& version) {
+    return version.startsWith('v') ? version.mid(1) : version;
   };
 
-  std::string real_version_a = remove_prefix(a);
-  std::string real_version_b = remove_prefix(b);
+  auto real_version_a = remove_prefix(a);
+  auto real_version_b = remove_prefix(b);
 
-  std::vector<std::string> split_a;
-  std::vector<std::string> split_b;
-  boost::split(split_a, real_version_a, boost::is_any_of("."));
-  boost::split(split_b, real_version_b, boost::is_any_of("."));
+  QStringList split_a = real_version_a.split('.');
+  QStringList split_b = real_version_b.split('.');
 
   const auto min_depth = std::min(split_a.size(), split_b.size());
 
-  for (auto i = 0U; i < min_depth; ++i) {
-    int num_a = 0;
-    int num_b = 0;
-
-    try {
-      num_a = boost::lexical_cast<int>(split_a[i]);
-      num_b = boost::lexical_cast<int>(split_b[i]);
-    } catch (boost::bad_lexical_cast&) {
-      // Handle exception if needed
-      return 0;
-    }
+  for (int i = 0; i < min_depth; ++i) {
+    int const num_a = split_a[i].toInt();
+    int const num_b = split_b[i].toInt();
 
     if (num_a != num_b) {
       return (num_a > num_b) ? 1 : -1;

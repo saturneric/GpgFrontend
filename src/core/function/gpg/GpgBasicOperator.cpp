@@ -47,6 +47,8 @@ void GpgBasicOperator::Encrypt(KeyArgsList keys, GFBuffer in_buffer, bool ascii,
                                const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
+        if (keys.empty()) return GPG_ERR_CANCELED;
+
         std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
 
         // Last entry data_in array has to be nullptr
@@ -117,6 +119,8 @@ void GpgBasicOperator::Sign(KeyArgsList signers, GFBuffer in_buffer,
                             const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
+        if (signers.empty()) return GPG_ERR_CANCELED;
+
         GpgError err;
 
         // Set Singers of this opera
@@ -162,6 +166,8 @@ void GpgBasicOperator::EncryptSign(KeyArgsList keys, KeyArgsList signers,
                                    const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
+        if (keys.empty() || signers.empty()) return GPG_ERR_CANCELED;
+
         GpgError err;
         std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
 

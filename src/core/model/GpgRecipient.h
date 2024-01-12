@@ -35,10 +35,10 @@ namespace GpgFrontend {
 
 struct GPGFRONTEND_CORE_EXPORT GpgRecipient {
   /* The key ID of key for which the text was encrypted.  */
-  std::string keyid;
+  QString keyid;
 
   /* The public key algorithm of the recipient key.  */
-  std::string pubkey_algo;
+  QString pubkey_algo;
 
   /* The status of the recipient.  */
   GpgError status;

@@ -180,7 +180,7 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest_KeyNotFound_ResultAnalyse) {
         GpgDecryptResultAnalyse analyse{err, d_result};
         analyse.Analyse();
         ASSERT_EQ(analyse.GetStatus(), -1);
-        ASSERT_FALSE(analyse.GetResultReport().empty());
+        ASSERT_FALSE(analyse.GetResultReport().isEmpty());
 
         // stop waiting
         callback_called_flag = true;

@@ -62,7 +62,7 @@ class GPGFRONTEND_CORE_EXPORT GpgDecryptResultAnalyse
    * @param stream
    * @param recipient
    */
-  void print_recipient(std::stringstream &stream, gpgme_recipient_t recipient);
+  void print_recipient(QTextStream &stream, gpgme_recipient_t recipient);
 
   GpgError error_;           ///<
   GpgDecryptResult result_;  ///<

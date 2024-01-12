@@ -32,26 +32,9 @@
 
 namespace GpgFrontend {
 
-inline void Ltrim(std::string& s) {
-  s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
-            return !std::isspace(ch);
-          }));
-}
+inline auto Trim(QString& s) -> QString { return s.trimmed(); }
 
-inline void Rtrim(std::string& s) {
-  s.erase(std::find_if(s.rbegin(), s.rend(),
-                       [](unsigned char ch) { return !std::isspace(ch); })
-              .base(),
-          s.end());
-}
-
-inline auto Trim(std::string& s) -> std::string {
-  Ltrim(s);
-  Rtrim(s);
-  return s;
-}
-
-auto GetGpgmeErrorString(size_t buffer_size, gpgme_error_t err) -> std::string {
+auto GetGpgmeErrorString(size_t buffer_size, gpgme_error_t err) -> QString {
   std::vector<char> buffer(buffer_size);
 
   gpgme_error_t const ret = gpgme_strerror_r(err, buffer.data(), buffer.size());
@@ -62,7 +45,7 @@ auto GetGpgmeErrorString(size_t buffer_size, gpgme_error_t err) -> std::string {
   return {buffer.data()};
 }
 
-auto GetGpgmeErrorString(gpgme_error_t err) -> std::string {
+auto GetGpgmeErrorString(gpgme_error_t err) -> QString {
   return GetGpgmeErrorString(64, err);
 }
 
@@ -96,7 +79,7 @@ auto DescribeGpgErrCode(GpgError err) -> GpgErrorDesc {
   return {gpgme_strsource(err), GetGpgmeErrorString(err)};
 }
 
-auto CheckGpgError(GpgError err, const std::string& /*comment*/) -> GpgError {
+auto CheckGpgError(GpgError err, const QString& /*comment*/) -> GpgError {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
     GF_CORE_LOG_WARN("[Error {}] Source: {} description: {}", gpg_err_code(err),
                      gpgme_strsource(err), GetGpgmeErrorString(err));
@@ -104,7 +87,7 @@ auto CheckGpgError(GpgError err, const std::string& /*comment*/) -> GpgError {
   return err;
 }
 
-auto TextIsSigned(BypeArrayRef text) -> int {
+auto TextIsSigned(QString text) -> int {
   using boost::algorithm::ends_with;
   using boost::algorithm::starts_with;
 
@@ -113,23 +96,23 @@ auto TextIsSigned(BypeArrayRef text) -> int {
       ends_with(trim_text, PGP_SIGNED_END)) {
     return 2;
   }
-  if (text.find(PGP_SIGNED_BEGIN) != std::string::npos &&
-      text.find(PGP_SIGNED_END) != std::string::npos) {
+  if (text.contains(PGP_SIGNED_BEGIN) && text.contains(PGP_SIGNED_END)) {
     return 1;
   }
   return 0;
 }
 
-auto SetExtensionOfOutputFile(std::filesystem::path path, GpgOperation opera,
-                              bool ascii) -> std::filesystem::path {
-  std::string extension;
+auto SetExtensionOfOutputFile(const QString& path, GpgOperation opera,
+                              bool ascii) -> QString {
+  QString new_extension;
+  QString current_extension = QFileInfo(path).suffix();
 
   if (ascii) {
     switch (opera) {
       case kENCRYPT:
       case kSIGN:
       case kENCRYPT_SIGN:
-        extension = path.extension().string() + ".asc";
+        new_extension = current_extension + ".asc";
         break;
       default:
         break;
@@ -138,29 +121,34 @@ auto SetExtensionOfOutputFile(std::filesystem::path path, GpgOperation opera,
     switch (opera) {
       case kENCRYPT:
       case kENCRYPT_SIGN:
-        extension = path.extension().string() + ".gpg";
+        new_extension = current_extension + ".gpg";
         break;
       case kSIGN:
-        extension = path.extension().string() + ".sig";
+        new_extension = current_extension + ".sig";
         break;
       default:
         break;
     }
   }
-  return path.replace_extension(extension);
+
+  if (!new_extension.isEmpty()) {
+    return QFileInfo(path).path() + "/" + QFileInfo(path).completeBaseName() +
+           "." + new_extension;
+  }
+
+  return path;
 }
 
-auto SetExtensionOfOutputFileForArchive(std::filesystem::path path,
-                                        GpgOperation opera, bool ascii)
-    -> std::filesystem::path {
-  std::string extension;
+auto SetExtensionOfOutputFileForArchive(const QString& path, GpgOperation opera,
+                                        bool ascii) -> QString {
+  QString extension;
 
   if (ascii) {
     switch (opera) {
       case kENCRYPT:
       case kENCRYPT_SIGN:
-        extension += ".tar.asc";
-        return path.replace_extension(extension);
+        extension = ".tar.asc";
+        break;
       default:
         break;
     }
@@ -168,13 +156,22 @@ auto SetExtensionOfOutputFileForArchive(std::filesystem::path path,
     switch (opera) {
       case kENCRYPT:
       case kENCRYPT_SIGN:
-        extension += ".tar.gpg";
-        return path.replace_extension(extension);
+        extension = ".tar.gpg";
+        break;
       default:
         break;
     }
   }
-  return path.parent_path();
+
+  if (!extension.isEmpty()) {
+    auto last_dot_index = path.lastIndexOf('.');
+    if (last_dot_index != -1) {
+      return path.left(last_dot_index) + extension;
+    }
+    return path + extension;
+  }
+
+  return path;  // 如果没有匹配的操作，则返回原始路径
 }
 
 }  // namespace GpgFrontend

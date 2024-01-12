@@ -52,8 +52,7 @@ auto GPGFRONTEND_CORE_EXPORT CheckGpgError(GpgError err) -> GpgError;
  * @return GpgError
  */
 auto GPGFRONTEND_CORE_EXPORT CheckGpgError(GpgError gpgmeError,
-                                           const std::string& comment)
-    -> GpgError;
+                                           const QString& comment) -> GpgError;
 
 /**
  * @brief
@@ -91,10 +90,9 @@ auto GPGFRONTEND_CORE_EXPORT TextIsSigned(BypeArrayRef text) -> int;
  * @param ascii
  * @return std::filesystem::path
  */
-auto GPGFRONTEND_CORE_EXPORT SetExtensionOfOutputFile(std::filesystem::path,
+auto GPGFRONTEND_CORE_EXPORT SetExtensionOfOutputFile(const QString& path,
                                                       GpgOperation opera,
-                                                      bool ascii)
-    -> std::filesystem::path;
+                                                      bool ascii) -> QString;
 
 /**
  * @brief
@@ -105,7 +103,6 @@ auto GPGFRONTEND_CORE_EXPORT SetExtensionOfOutputFile(std::filesystem::path,
  * @return std::filesystem::path
  */
 auto GPGFRONTEND_CORE_EXPORT SetExtensionOfOutputFileForArchive(
-    std::filesystem::path path, GpgOperation opera, bool ascii)
-    -> std::filesystem::path;
+    const QString& path, GpgOperation opera, bool ascii) -> QString;
 
 }  // namespace GpgFrontend

@@ -63,7 +63,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
    * @param expires expire date and time of the signature
    * @return if successful
    */
-  auto SignKey(const GpgKey& target, KeyArgsList& keys, const std::string& uid,
+  auto SignKey(const GpgKey& target, KeyArgsList& keys, const QString& uid,
                const std::unique_ptr<boost::posix_time::ptime>& expires)
       -> bool;
 
@@ -101,7 +101,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
   static auto interactor_cb_fnc(void* handle, const char* status,
                                 const char* args, int fd) -> gpgme_error_t;
 
-  using Command = std::string;
+  using Command = QString;
   using AutomatonState = enum {
     AS_START,
     AS_COMMAND,
@@ -117,7 +117,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
   using AutomatonActionHandler =
       std::function<Command(AutomatonHandelStruct&, AutomatonState)>;
   using AutomatonNextStateHandler =
-      std::function<AutomatonState(AutomatonState, std::string, std::string)>;
+      std::function<AutomatonState(AutomatonState, QString, QString)>;
 
   struct AutomatonHandelStruct {
     void SetStatus(AutomatonState next_state) { current_state_ = next_state; }
@@ -127,7 +127,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
       next_state_handler_ = std::move(next_state_handler);
       action_handler_ = std::move(action_handler);
     }
-    auto NextState(std::string gpg_status, std::string args) -> AutomatonState {
+    auto NextState(QString gpg_status, QString args) -> AutomatonState {
       return next_state_handler_(current_state_, std::move(gpg_status),
                                  std::move(args));
     }
@@ -137,9 +137,9 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
 
     [[nodiscard]] auto Success() const -> bool { return success_; }
 
-    auto KeyFpr() -> std::string { return key_fpr_; }
+    auto KeyFpr() -> QString { return key_fpr_; }
 
-    explicit AutomatonHandelStruct(std::string key_fpr)
+    explicit AutomatonHandelStruct(QString key_fpr)
         : key_fpr_(std::move(key_fpr)) {}
 
    private:
@@ -147,7 +147,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
     AutomatonNextStateHandler next_state_handler_;
     AutomatonActionHandler action_handler_;
     bool success_ = false;
-    std::string key_fpr_;
+    QString key_fpr_;
   };
 
   GpgContext& ctx_ =

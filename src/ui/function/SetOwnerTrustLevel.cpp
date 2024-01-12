@@ -37,8 +37,8 @@ namespace GpgFrontend::UI {
 
 SetOwnerTrustLevel::SetOwnerTrustLevel(QWidget* parent) : QWidget(parent) {}
 
-auto SetOwnerTrustLevel::Exec(const std::string& key_id) -> bool {
-  if (key_id.empty()) {
+auto SetOwnerTrustLevel::Exec(const QString& key_id) -> bool {
+  if (key_id.isEmpty()) {
     return false;
   }
 

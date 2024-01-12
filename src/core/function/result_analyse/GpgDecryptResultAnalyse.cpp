@@ -41,54 +41,54 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
   stream_ << "# " << _("Decrypt Operation") << " ";
 
   if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
-    stream_ << "- " << _("Success") << " " << std::endl;
+    stream_ << "- " << _("Success") << " " << Qt::endl;
   } else {
     stream_ << "- " << _("Failed") << ": " << gpgme_strerror(error_)
-            << std::endl;
+            << Qt::endl;
     setStatus(-1);
     if (result != nullptr && result->unsupported_algorithm != nullptr) {
-      stream_ << std::endl;
+      stream_ << Qt::endl;
       stream_ << "## " << _("Unsupported Algo") << ": "
-              << result->unsupported_algorithm << std::endl;
+              << result->unsupported_algorithm << Qt::endl;
     }
   }
 
   if (result != nullptr && result->recipients != nullptr) {
-    stream_ << std::endl;
+    stream_ << Qt::endl;
 
-    stream_ << "## " << _("Gernal State") << ": " << std::endl;
+    stream_ << "## " << _("Gernal State") << ": " << Qt::endl;
 
     if (result->file_name != nullptr) {
       stream_ << "- " << _("File Name") << ": " << result->file_name
-              << std::endl;
+              << Qt::endl;
     }
     stream_ << "- " << _("MIME") << ": "
-            << (result->is_mime == 0 ? _("false") : _("true")) << std::endl;
+            << (result->is_mime == 0 ? _("false") : _("true")) << Qt::endl;
 
     stream_ << "- " << _("Message Integrity Protection") << ": "
             << (result->legacy_cipher_nomdc == 0 ? _("true") : _("false"))
-            << std::endl;
+            << Qt::endl;
     if (result->legacy_cipher_nomdc == 1) setStatus(0);  /// < unsafe situation
 
     if (result->symkey_algo != nullptr) {
       stream_ << "- " << _("Symmetric Encryption Algorithm") << ": "
-              << result->symkey_algo << std::endl;
+              << result->symkey_algo << Qt::endl;
     }
 
     if (result->session_key != nullptr) {
       stream_ << "- " << _("Session Key") << ": " << result->session_key
-              << std::endl;
+              << Qt::endl;
     }
 
     stream_ << "- " << _("German Encryption Standards") << ": "
-            << (result->is_de_vs == 0 ? _("false") : _("true")) << std::endl;
+            << (result->is_de_vs == 0 ? _("false") : _("true")) << Qt::endl;
 
-    stream_ << std::endl << std::endl;
+    stream_ << Qt::endl << Qt::endl;
 
     auto *recipient = result->recipients;
     auto index = 0;
     if (recipient != nullptr) {
-      stream_ << "## " << _("Recipient(s)") << ": " << std::endl << std::endl;
+      stream_ << "## " << _("Recipient(s)") << ": " << Qt::endl << Qt::endl;
     }
 
     while (recipient != nullptr) {
@@ -96,35 +96,35 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
       if (recipient->keyid == nullptr) return;
       stream_ << "### " << _("Recipient") << " [" << ++index << "]: ";
       print_recipient(stream_, recipient);
-      stream_ << std::endl
-              << "---------------------------------------" << std::endl
-              << std::endl;
+      stream_ << Qt::endl
+              << "---------------------------------------" << Qt::endl
+              << Qt::endl;
       recipient = recipient->next;
     }
 
-    stream_ << std::endl;
+    stream_ << Qt::endl;
   }
 
-  stream_ << std::endl;
+  stream_ << Qt::endl;
 }
 
 void GpgFrontend::GpgDecryptResultAnalyse::print_recipient(
-    std::stringstream &stream, gpgme_recipient_t recipient) {
+    QTextStream &stream, gpgme_recipient_t recipient) {
   auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(recipient->keyid);
   if (key.IsGood()) {
     stream << key.GetName();
-    if (!key.GetComment().empty()) stream << "(" << key.GetComment() << ")";
-    if (!key.GetEmail().empty()) stream << "<" << key.GetEmail() << ">";
+    if (!key.GetComment().isEmpty()) stream << "(" << key.GetComment() << ")";
+    if (!key.GetEmail().isEmpty()) stream << "<" << key.GetEmail() << ">";
   } else {
     stream << "<" << _("unknown") << ">";
     setStatus(0);
   }
 
-  stream << std::endl;
+  stream << Qt::endl;
 
-  stream << "- " << _("Key ID") << ": " << recipient->keyid << std::endl;
+  stream << "- " << _("Key ID") << ": " << recipient->keyid << Qt::endl;
   stream << "- " << _("Public Key Algo") << ": "
-         << gpgme_pubkey_algo_name(recipient->pubkey_algo) << std::endl;
+         << gpgme_pubkey_algo_name(recipient->pubkey_algo) << Qt::endl;
   stream << "- " << _("Status") << ": " << gpgme_strerror(recipient->status)
-         << std::endl;
+         << Qt::endl;
 }

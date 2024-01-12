@@ -40,29 +40,28 @@ namespace GpgFrontend::Module {
 class Event;
 
 using EventRefrernce = std::shared_ptr<Event>;
-using EventIdentifier = std::string;
+using EventIdentifier = QString;
 using Evnets = std::vector<Event>;
 
 class GPGFRONTEND_CORE_EXPORT Event {
  public:
   using ParameterValue = std::any;
-  using EventIdentifier = std::string;
-  using ListenerIdentifier = std::string;
+  using EventIdentifier = QString;
+  using ListenerIdentifier = QString;
   using EventCallback =
       std::function<void(EventIdentifier, ListenerIdentifier, DataObjectPtr)>;
   struct ParameterInitializer {
-    std::string key;
+    QString key;
     ParameterValue value;
   };
 
-  explicit Event(const std::string&,
+  explicit Event(const QString&,
                  std::initializer_list<ParameterInitializer> = {},
                  EventCallback = nullptr);
 
   ~Event();
 
-  auto operator[](const std::string& key) const
-      -> std::optional<ParameterValue>;
+  auto operator[](const QString& key) const -> std::optional<ParameterValue>;
 
   auto operator==(const Event& other) const -> bool;
 
@@ -72,11 +71,11 @@ class GPGFRONTEND_CORE_EXPORT Event {
 
   auto operator<=(const Event& other) const -> bool;
 
-  explicit operator std::string() const;
+  explicit operator QString() const;
 
   auto GetIdentifier() -> EventIdentifier;
 
-  void AddParameter(const std::string& key, const ParameterValue& value);
+  void AddParameter(const QString& key, const ParameterValue& value);
 
   void ExecuteCallback(ListenerIdentifier, DataObjectPtr);
 

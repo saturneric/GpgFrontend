@@ -32,7 +32,7 @@
 
 #include "ui/struct/SettingsObject.h"
 
-GpgFrontend::UI::GeneralMainWindow::GeneralMainWindow(std::string name,
+GpgFrontend::UI::GeneralMainWindow::GeneralMainWindow(QString name,
                                                       QWidget *parent)
     : QMainWindow(parent), name_(std::move(name)) {
   slot_restore_settings();
@@ -52,27 +52,26 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
   try {
     SettingsObject general_windows_state(name_ + "_state");
 
-    std::string window_state = general_windows_state.Check(
-        "window_state", saveState().toBase64().toStdString());
+    QString window_state = QString::fromStdString(general_windows_state.Check(
+        "window_state", saveState().toBase64().toStdString()));
     GF_UI_LOG_DEBUG("restore main window state: {}", window_state);
 
     // state sets pos & size of dock-widgets
-    this->restoreState(
-        QByteArray::fromBase64(QByteArray::fromStdString(window_state)));
+    this->restoreState(QByteArray::fromBase64(window_state.toUtf8()));
 
     bool window_save = general_windows_state.Check("window_save", true);
 
     // Restore window size & location
     if (window_save) {
-      int x = general_windows_state.Check("window_pos").Check("x", 100),
-          y = general_windows_state.Check("window_pos").Check("y", 100);
+      int x = general_windows_state.Check("window_pos").Check("x", 100);
+      int y = general_windows_state.Check("window_pos").Check("y", 100);
 
       pos_ = {x, y};
 
       int width =
-              general_windows_state.Check("window_size").Check("width", 800),
-          height =
-              general_windows_state.Check("window_size").Check("height", 450);
+          general_windows_state.Check("window_size").Check("width", 800);
+      int height =
+          general_windows_state.Check("window_size").Check("height", 450);
 
       size_ = {width, height};
 
@@ -117,8 +116,8 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
     // appearance
     SettingsObject general_settings_state("general_settings_state");
 
-    int width = general_settings_state.Check("icon_size").Check("width", 24),
-        height = general_settings_state.Check("icon_size").Check("height", 24);
+    int width = general_settings_state.Check("icon_size").Check("width", 24);
+    int height = general_settings_state.Check("icon_size").Check("height", 24);
     GF_UI_LOG_DEBUG("icon size: {} {}", width, height);
 
     icon_size_ = {width, height};
@@ -133,7 +132,7 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
     icon_style_ = toolButtonStyle();
 
   } catch (...) {
-    GF_UI_LOG_ERROR(name_, "error");
+    GF_UI_LOG_ERROR("gernal main window: {}, caught exception", name_);
   }
 }
 
@@ -168,6 +167,6 @@ void GpgFrontend::UI::GeneralMainWindow::slot_save_settings() noexcept {
     general_settings_state["icon_style"] = this->toolButtonStyle();
 
   } catch (...) {
-    GF_UI_LOG_ERROR(name_, "error");
+    GF_UI_LOG_ERROR("gernal main window: {}, caught exception", name_);
   }
 }

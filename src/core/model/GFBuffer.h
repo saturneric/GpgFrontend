@@ -37,8 +37,6 @@ class GPGFRONTEND_CORE_EXPORT GFBuffer {
  public:
   GFBuffer();
 
-  explicit GFBuffer(const std::string& str);
-
   explicit GFBuffer(const char* c_str);
 
   explicit GFBuffer(QByteArray buffer);
@@ -56,8 +54,6 @@ class GPGFRONTEND_CORE_EXPORT GFBuffer {
   [[nodiscard]] auto Empty() const -> bool;
 
   [[nodiscard]] auto ConvertToQByteArray() const -> QByteArray;
-
-  [[nodiscard]] auto ConvertToStdString() const -> std::string;
 
  private:
   std::shared_ptr<std::vector<std::byte>> buffer_;

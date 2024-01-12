@@ -45,13 +45,13 @@ TEST_F(GpgCoreTest, CoreInitTest) {
 }
 
 TEST_F(GpgCoreTest, GpgDataTest) {
-  auto data_buff = std::string(
+  auto data_buff = QString(
       "cqEh8fyKWtmiXrW2zzlszJVGJrpXDDpzgP7ZELGxhfZYFi8rMrSVKDwrpFZBSWMG");
 
   GpgData data(data_buff.data(), data_buff.size());
 
-  auto out_buffer = data.Read2Buffer();
-  ASSERT_EQ(out_buffer->size(), 64);
+  auto out_buffer = data.Read2GFBuffer();
+  ASSERT_EQ(out_buffer.Size(), 64);
 }
 
 TEST_F(GpgCoreTest, GpgKeyTest) {
@@ -79,7 +79,7 @@ TEST_F(GpgCoreTest, GpgKeyTest) {
   ASSERT_FALSE(key.IsHasActualAuthenticationCapability());
 
   ASSERT_EQ(key.GetName(), "GpgFrontendTest");
-  ASSERT_TRUE(key.GetComment().empty());
+  ASSERT_TRUE(key.GetComment().isEmpty());
   ASSERT_EQ(key.GetEmail(), "gpgfrontend@gpgfrontend.pub");
   ASSERT_EQ(key.GetId(), "81704859182661FB");
   ASSERT_EQ(key.GetFingerprint(), "9490795B78F8AFE9F93BD09281704859182661FB");
@@ -138,7 +138,7 @@ TEST_F(GpgCoreTest, GpgUIDTest) {
   auto& uid = uids->front();
 
   ASSERT_EQ(uid.GetName(), "GpgFrontendTest");
-  ASSERT_TRUE(uid.GetComment().empty());
+  ASSERT_TRUE(uid.GetComment().isEmpty());
   ASSERT_EQ(uid.GetEmail(), "gpgfrontend@gpgfrontend.pub");
   ASSERT_EQ(uid.GetUID(), "GpgFrontendTest <gpgfrontend@gpgfrontend.pub>");
   ASSERT_FALSE(uid.GetInvalid());
@@ -157,7 +157,7 @@ TEST_F(GpgCoreTest, GpgKeySignatureTest) {
   auto& signature = signatures->front();
 
   ASSERT_EQ(signature.GetName(), "GpgFrontendTest");
-  ASSERT_TRUE(signature.GetComment().empty());
+  ASSERT_TRUE(signature.GetComment().isEmpty());
   ASSERT_EQ(signature.GetEmail(), "gpgfrontend@gpgfrontend.pub");
   ASSERT_EQ(signature.GetKeyID(), "81704859182661FB");
   ASSERT_EQ(signature.GetPubkeyAlgo(), "RSA");

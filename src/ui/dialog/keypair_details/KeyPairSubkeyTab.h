@@ -45,7 +45,7 @@ class KeyPairSubkeyTab : public QWidget {
    * @param key
    * @param parent
    */
-  KeyPairSubkeyTab(const std::string& key, QWidget* parent);
+  KeyPairSubkeyTab(const QString& key, QWidget* parent);
 
  private:
   /**

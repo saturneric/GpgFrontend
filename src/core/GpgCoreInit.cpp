@@ -50,36 +50,30 @@ namespace GpgFrontend {
 
 void DestroyGpgFrontendCore() { SingletonStorageCollection::Destroy(); }
 
-auto VerifyGpgconfPath(const std::filesystem::path& gnupg_install_fs_path)
-    -> bool {
-  return gnupg_install_fs_path.is_absolute() &&
-         std::filesystem::exists(gnupg_install_fs_path) &&
-         std::filesystem::is_regular_file(gnupg_install_fs_path);
+auto VerifyGpgconfPath(const QFileInfo& gnupg_install_fs_path) -> bool {
+  return gnupg_install_fs_path.isAbsolute() && gnupg_install_fs_path.exists() &&
+         gnupg_install_fs_path.isFile();
 }
 
-auto VerifyKeyDatabasePath(const std::filesystem::path& key_database_fs_path)
-    -> bool {
-  return key_database_fs_path.is_absolute() &&
-         std::filesystem::exists(key_database_fs_path) &&
-         std::filesystem::is_directory(key_database_fs_path);
+auto VerifyKeyDatabasePath(const QFileInfo& key_database_fs_path) -> bool {
+  return key_database_fs_path.isAbsolute() && key_database_fs_path.exists() &&
+         key_database_fs_path.isDir();
 }
 
-auto SearchGpgconfPath(const std::vector<std::string>& candidate_paths)
-    -> std::filesystem::path {
+auto SearchGpgconfPath(const QList<QString>& candidate_paths) -> QString {
   for (const auto& path : candidate_paths) {
-    if (VerifyGpgconfPath(std::filesystem::path{path})) {
-      return std::filesystem::path{path};
+    if (VerifyGpgconfPath(QFileInfo(path))) {
+      return path;
     }
   }
   return {};
 }
 
-auto SearchKeyDatabasePath(const std::vector<std::string>& candidate_paths)
-    -> std::filesystem::path {
+auto SearchKeyDatabasePath(const QList<QString>& candidate_paths) -> QString {
   for (const auto& path : candidate_paths) {
     GF_CORE_LOG_DEBUG("searh for candidate key database path: {}", path);
-    if (VerifyKeyDatabasePath(std::filesystem::path{path})) {
-      return std::filesystem::path{path};
+    if (VerifyKeyDatabasePath(QFileInfo(path))) {
+      return path;
     }
   }
   return {};
@@ -88,7 +82,7 @@ auto SearchKeyDatabasePath(const std::vector<std::string>& candidate_paths)
 auto InitGpgME() -> bool {
   // init gpgme subsystem and get gpgme library version
   Module::UpsertRTValue("core", "gpgme.version",
-                        std::string(gpgme_check_version(nullptr)));
+                        QString(gpgme_check_version(nullptr)));
 
   gpgme_set_locale(nullptr, LC_CTYPE, setlocale(LC_CTYPE, nullptr));
 #ifdef LC_MESSAGES
@@ -115,11 +109,11 @@ auto InitGpgME() -> bool {
     GF_CORE_LOG_DEBUG(
         "gpg context engine info: {} {} {} {}",
         gpgme_get_protocol_name(engine_info->protocol),
-        std::string(engine_info->file_name == nullptr ? "null"
-                                                      : engine_info->file_name),
-        std::string(engine_info->home_dir == nullptr ? "null"
-                                                     : engine_info->home_dir),
-        std::string(engine_info->version ? "null" : engine_info->version));
+        QString(engine_info->file_name == nullptr ? "null"
+                                                  : engine_info->file_name),
+        QString(engine_info->home_dir == nullptr ? "null"
+                                                 : engine_info->home_dir),
+        QString(engine_info->version ? "null" : engine_info->version));
 
     switch (engine_info->protocol) {
       case GPGME_PROTOCOL_OpenPGP:
@@ -127,19 +121,19 @@ auto InitGpgME() -> bool {
 
         Module::UpsertRTValue("core", "gpgme.engine.openpgp", 1);
         Module::UpsertRTValue("core", "gpgme.ctx.app_path",
-                              std::string(engine_info->file_name));
+                              QString(engine_info->file_name));
         Module::UpsertRTValue("core", "gpgme.ctx.gnupg_version",
-                              std::string(engine_info->version));
-        Module::UpsertRTValue("core", "gpgme.ctx.database_path",
-                              std::string(engine_info->home_dir == nullptr
-                                              ? "default"
-                                              : engine_info->home_dir));
+                              QString(engine_info->version));
+        Module::UpsertRTValue(
+            "core", "gpgme.ctx.database_path",
+            QString(engine_info->home_dir == nullptr ? "default"
+                                                     : engine_info->home_dir));
         break;
       case GPGME_PROTOCOL_CMS:
         find_cms = true;
         Module::UpsertRTValue("core", "gpgme.engine.cms", 1);
         Module::UpsertRTValue("core", "gpgme.ctx.cms_path",
-                              std::string(engine_info->file_name));
+                              QString(engine_info->file_name));
 
         break;
       case GPGME_PROTOCOL_GPGCONF:
@@ -147,13 +141,13 @@ auto InitGpgME() -> bool {
 
         Module::UpsertRTValue("core", "gpgme.engine.gpgconf", 1);
         Module::UpsertRTValue("core", "gpgme.ctx.gpgconf_path",
-                              std::string(engine_info->file_name));
+                              QString(engine_info->file_name));
         break;
       case GPGME_PROTOCOL_ASSUAN:
 
         Module::UpsertRTValue("core", "gpgme.engine.assuan", 1);
         Module::UpsertRTValue("core", "gpgme.ctx.assuan_path",
-                              std::string(engine_info->file_name));
+                              QString(engine_info->file_name));
         break;
       case GPGME_PROTOCOL_G13:
         break;
@@ -173,7 +167,7 @@ auto InitGpgME() -> bool {
   gpgme_release(p_ctx);
 
   const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gnupg_version", std::string{"0.0.0"});
+      "core", "gpgme.ctx.gnupg_version", QString{"0.0.0"});
   GF_CORE_LOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
 
   // conditional check: only support gpg 2.1.x now
@@ -226,7 +220,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
 
             auto custom_key_database_path =
                 GlobalSettingStation::GetInstance().LookupSettings(
-                    "general.custom_key_database_path", std::string{});
+                    "general.custom_key_database_path", QString{});
 
             auto use_custom_gnupg_install_path =
                 GlobalSettingStation::GetInstance().LookupSettings(
@@ -234,7 +228,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
 
             auto custom_gnupg_install_path =
                 GlobalSettingStation::GetInstance().LookupSettings(
-                    "general.custom_gnupg_install_path", std::string{});
+                    "general.custom_gnupg_install_path", QString{});
 
             auto use_pinentry_as_password_input_dialog =
                 GpgFrontend::GlobalSettingStation::GetInstance().LookupSettings(
@@ -245,25 +239,25 @@ void InitGpgFrontendCore(CoreInitArgs args) {
             GF_CORE_LOG_DEBUG("core loaded custom key databse path: {}",
                               custom_key_database_path);
 
-            std::filesystem::path gnupg_install_fs_path;
+            QString gnupg_install_fs_path;
             // user defined
-            if (!custom_gnupg_install_path.empty()) {
+            if (!custom_gnupg_install_path.isEmpty()) {
               // check gpgconf path
               gnupg_install_fs_path = custom_gnupg_install_path;
 #ifdef WINDOWS
-              custom_gnupg_install_fs_path /= "gpgconf.exe";
+              gnupg_install_fs_path += "/gpgconf.exe";
 #else
-              gnupg_install_fs_path /= "gpgconf";
+              gnupg_install_fs_path += "/gpgconf";
 #endif
 
-              if (!VerifyGpgconfPath(gnupg_install_fs_path)) {
+              if (!VerifyGpgconfPath(QFileInfo(gnupg_install_fs_path))) {
                 use_custom_gnupg_install_path = false;
                 GF_CORE_LOG_ERROR(
                     "core loaded custom gpgconf path is illegal: {}",
-                    gnupg_install_fs_path.u8string());
+                    gnupg_install_fs_path);
               } else {
                 GF_CORE_LOG_DEBUG("core loaded custom gpgconf path: {}",
-                                  gnupg_install_fs_path.u8string());
+                                  gnupg_install_fs_path);
               }
             } else {
 #ifdef MACOS
@@ -271,32 +265,32 @@ void InitGpgFrontendCore(CoreInitArgs args) {
               gnupg_install_fs_path = SearchGpgconfPath(
                   {"/usr/local/bin/gpgconf", "/opt/homebrew/bin/gpgconf"});
               GF_CORE_LOG_DEBUG("core loaded searched gpgconf path: {}",
-                                gnupg_install_fs_path.u8string());
+                                gnupg_install_fs_path);
 #endif
             }
 
             // check key database path
-            std::filesystem::path key_database_fs_path;
+            QString key_database_fs_path;
             // user defined
-            if (!custom_key_database_path.empty()) {
+            if (!custom_key_database_path.isEmpty()) {
               key_database_fs_path = custom_key_database_path;
-              if (VerifyKeyDatabasePath(key_database_fs_path)) {
+              if (VerifyKeyDatabasePath(QFileInfo(key_database_fs_path))) {
                 GF_CORE_LOG_ERROR(
                     "core loaded custom gpg key database is illegal: {}",
-                    key_database_fs_path.u8string());
+                    key_database_fs_path);
               } else {
                 use_custom_key_database_path = true;
                 GF_CORE_LOG_DEBUG(
                     "core loaded custom gpg key database path: {}",
-                    key_database_fs_path.u8string());
+                    key_database_fs_path);
               }
             } else {
 #ifdef MACOS
               use_custom_key_database_path = true;
-              key_database_fs_path = SearchKeyDatabasePath(
-                  {QDir::home().filesystemPath() / ".gnupg"});
+              key_database_fs_path =
+                  SearchKeyDatabasePath({QDir::home().path() + "/.gnupg"});
               GF_CORE_LOG_DEBUG("core loaded searched key database path: {}",
-                                key_database_fs_path.u8string());
+                                key_database_fs_path);
 #endif
             }
 
@@ -308,15 +302,14 @@ void InitGpgFrontendCore(CoreInitArgs args) {
 
                     // set key database path
                     if (use_custom_key_database_path &&
-                        !key_database_fs_path.empty()) {
-                      args.db_path = key_database_fs_path.u8string();
+                        !key_database_fs_path.isEmpty()) {
+                      args.db_path = key_database_fs_path;
                     }
 
                     // set custom gnupg path
                     if (use_custom_gnupg_install_path) {
                       args.custom_gpgconf = true;
-                      args.custom_gpgconf_path =
-                          gnupg_install_fs_path.u8string();
+                      args.custom_gpgconf_path = gnupg_install_fs_path;
                     }
 
                     args.offline_mode = forbid_all_gnupg_connection;

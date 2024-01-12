@@ -43,19 +43,20 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
 
   using TaskRunnable = std::function<int(DataObjectPtr)>;        ///<
   using TaskCallback = std::function<void(int, DataObjectPtr)>;  ///<
+  using TaskTrigger = std::function<void()>;
 
   /**
    * @brief Construct a new Task object
    *
    */
-  explicit Task(std::string name);
+  explicit Task(QString name);
 
   /**
    * @brief Construct a new Task object
    *
    * @param callback The callback function to be executed.
    */
-  explicit Task(TaskRunnable runnable, std::string name,
+  explicit Task(TaskRunnable runnable, QString name,
                 DataObjectPtr data_object = nullptr);
 
   /**
@@ -63,14 +64,14 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    *
    * @param runnable
    */
-  explicit Task(TaskRunnable runnable, std::string name, DataObjectPtr data,
+  explicit Task(TaskRunnable runnable, QString name, DataObjectPtr data,
                 TaskCallback callback);
 
   ~Task() override;
 
-  [[nodiscard]] auto GetUUID() const -> std::string;
+  [[nodiscard]] auto GetUUID() const -> QString;
 
-  [[nodiscard]] auto GetFullID() const -> std::string;
+  [[nodiscard]] auto GetFullID() const -> QString;
 
   void HoldOnLifeCycle(bool hold_on);
 

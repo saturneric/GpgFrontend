@@ -73,7 +73,7 @@ TEST_F(GpgCoreTest, GenerateKeyTest) {
         GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(fpr);
 
         callback_called_flag = true;
-        ASSERT_FALSE(fpr.empty());
+        ASSERT_FALSE(fpr.isEmpty());
       });
 
   int retry_count = 1000;
@@ -118,7 +118,7 @@ TEST_F(GpgCoreTest, GenerateKeyTest_1) {
         GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(fpr);
 
         callback_called_flag = true;
-        ASSERT_FALSE(fpr.empty());
+        ASSERT_FALSE(fpr.isEmpty());
       });
 
   int retry_count = 2000;
@@ -157,7 +157,7 @@ TEST_F(GpgCoreTest, GenerateKeyTest_4) {
         GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(fpr);
 
         callback_called_flag = true;
-        ASSERT_FALSE(fpr.empty());
+        ASSERT_FALSE(fpr.isEmpty());
       });
 
   int retry_count = 2000;
@@ -196,7 +196,7 @@ TEST_F(GpgCoreTest, GenerateKeyTest_5) {
         GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(fpr);
 
         callback_called_flag = true;
-        ASSERT_FALSE(fpr.empty());
+        ASSERT_FALSE(fpr.isEmpty());
       });
 
   int retry_count = 1000;

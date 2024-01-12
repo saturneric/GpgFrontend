@@ -32,18 +32,18 @@
 
 namespace GpgFrontend {
 
-void SetTempCacheValue(const std::string& key, const std::string& value) {
-  nlohmann::json cache_json = value;
+void SetTempCacheValue(const QString& key, const QString& value) {
+  nlohmann::json cache_json = value.toStdString();
   CacheManager::GetInstance().SaveCache(key, cache_json);
 }
 
-auto GetTempCacheValue(const std::string& key) -> std::string {
+auto GetTempCacheValue(const QString& key) -> QString {
   nlohmann::json cache_json = "";
   cache_json = CacheManager::GetInstance().LoadCache(key, cache_json);
-  return cache_json.template get<std::string>();
+  return QString::fromStdString(cache_json.template get<std::string>());
 }
 
-void ResetTempCacheValue(const std::string& key) {
+void ResetTempCacheValue(const QString& key) {
   CacheManager::GetInstance().ResetCache(key);
 }
 

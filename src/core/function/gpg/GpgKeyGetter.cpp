@@ -46,7 +46,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     GF_CORE_LOG_DEBUG("called channel: {}", channel);
   }
 
-  auto GetKey(const std::string& fpr, bool use_cache) -> GpgKey {
+  auto GetKey(const QString& fpr, bool use_cache) -> GpgKey {
     // find in cache first
     if (use_cache) {
       auto key = get_key_in_cache(fpr);
@@ -54,7 +54,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     }
 
     gpgme_key_t p_key = nullptr;
-    gpgme_get_key(ctx_.DefaultContext(), fpr.c_str(), &p_key, 1);
+    gpgme_get_key(ctx_.DefaultContext(), fpr.toUtf8(), &p_key, 1);
     if (p_key == nullptr) {
       GF_CORE_LOG_WARN("GpgKeyGetter GetKey Private _p_key Null fpr", fpr);
       return GetPubkey(fpr, true);
@@ -62,7 +62,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     return GpgKey(std::move(p_key));
   }
 
-  auto GetPubkey(const std::string& fpr, bool use_cache) -> GpgKey {
+  auto GetPubkey(const QString& fpr, bool use_cache) -> GpgKey {
     // find in cache first
     if (use_cache) {
       auto key = get_key_in_cache(fpr);
@@ -70,7 +70,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     }
 
     gpgme_key_t p_key = nullptr;
-    gpgme_get_key(ctx_.DefaultContext(), fpr.c_str(), &p_key, 0);
+    gpgme_get_key(ctx_.DefaultContext(), fpr.toUtf8(), &p_key, 0);
     if (p_key == nullptr)
       GF_CORE_LOG_WARN("GpgKeyGetter GetKey _p_key Null", fpr);
     return GpgKey(std::move(p_key));
@@ -181,7 +181,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
    * @brief cache the keys with key id
    *
    */
-  std::map<std::string, GpgKey> keys_cache_;
+  std::map<QString, GpgKey> keys_cache_;
 
   /**
    * @brief shared mutex for the keys cache
@@ -195,7 +195,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
    * @param id
    * @return GpgKey
    */
-  auto get_key_in_cache(const std::string& key_id) -> GpgKey {
+  auto get_key_in_cache(const QString& key_id) -> GpgKey {
     std::lock_guard<std::mutex> lock(keys_cache_mutex_);
     if (keys_cache_.find(key_id) != keys_cache_.end()) {
       std::lock_guard<std::mutex> lock(ctx_mutex_);
@@ -216,12 +216,11 @@ GpgKeyGetter::GpgKeyGetter(int channel)
 
 GpgKeyGetter::~GpgKeyGetter() = default;
 
-auto GpgKeyGetter::GetKey(const std::string& key_id, bool use_cache) -> GpgKey {
+auto GpgKeyGetter::GetKey(const QString& key_id, bool use_cache) -> GpgKey {
   return p_->GetKey(key_id, use_cache);
 }
 
-auto GpgKeyGetter::GetPubkey(const std::string& key_id, bool use_cache)
-    -> GpgKey {
+auto GpgKeyGetter::GetPubkey(const QString& key_id, bool use_cache) -> GpgKey {
   return p_->GetPubkey(key_id, use_cache);
 }
 

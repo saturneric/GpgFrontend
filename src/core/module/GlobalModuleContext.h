@@ -42,7 +42,7 @@ class GlobalRegisterTable;
 
 class Module;
 class ModuleManager;
-using ModuleIdentifier = std::string;
+using ModuleIdentifier = QString;
 using ModulePtr = std::shared_ptr<Module>;
 using ModuleRawPtr = Module*;
 

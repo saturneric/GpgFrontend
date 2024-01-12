@@ -28,8 +28,6 @@
 
 #include "QuitDialog.h"
 
-#include <boost/format.hpp>
-
 namespace GpgFrontend::UI {
 
 QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
@@ -83,10 +81,10 @@ QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
   warn_icon->setPixmap(pixmap);
 
   const auto info =
-      boost::format(_("%1% files contain unsaved information.<br/>Save the "
-                      "changes before closing?")) %
-      std::to_string(row);
-  auto* warn_label = new QLabel(QString::fromStdString(info.str()));
+      QString(_("%1 files contain unsaved information.<br/>Save the "
+                "changes before closing?"))
+          .arg(row);
+  auto* warn_label = new QLabel(info);
   auto* warn_box_layout = new QHBoxLayout();
   warn_box_layout->addWidget(warn_icon);
   warn_box_layout->addWidget(warn_label);

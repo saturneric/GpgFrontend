@@ -104,11 +104,11 @@ void MainWindow::slot_append_keys_create_datetime() {
   }
 
   auto create_datetime_format_str =
-      boost::posix_time::to_iso_extended_string(key.GetCreateTime()) +
+      QString::fromStdString(
+          boost::posix_time::to_iso_extended_string(key.GetCreateTime())) +
       " (UTC) " + "\n";
 
-  edit_->SlotAppendText2CurTextPage(
-      QString::fromStdString(create_datetime_format_str));
+  edit_->SlotAppendText2CurTextPage(create_datetime_format_str);
 }
 
 void MainWindow::slot_append_keys_expire_datetime() {
@@ -126,11 +126,11 @@ void MainWindow::slot_append_keys_expire_datetime() {
   }
 
   auto create_datetime_format_str =
-      boost::posix_time::to_iso_extended_string(key.GetCreateTime()) +
+      QString::fromStdString(
+          boost::posix_time::to_iso_extended_string(key.GetCreateTime())) +
       " (UTC) " + "\n";
 
-  edit_->SlotAppendText2CurTextPage(
-      QString::fromStdString(create_datetime_format_str));
+  edit_->SlotAppendText2CurTextPage(create_datetime_format_str);
 }
 
 void MainWindow::slot_append_keys_fingerprint() {
@@ -146,8 +146,7 @@ void MainWindow::slot_append_keys_fingerprint() {
   auto fingerprint_format_str =
       BeautifyFingerprint(key.GetFingerprint()) + "\n";
 
-  edit_->SlotAppendText2CurTextPage(
-      QString::fromStdString(fingerprint_format_str));
+  edit_->SlotAppendText2CurTextPage(fingerprint_format_str);
 }
 
 void MainWindow::slot_copy_mail_address_to_clipboard() {
@@ -160,7 +159,7 @@ void MainWindow::slot_copy_mail_address_to_clipboard() {
     return;
   }
   QClipboard* cb = QApplication::clipboard();
-  cb->setText(QString::fromStdString(key.GetEmail()));
+  cb->setText(key.GetEmail());
 }
 
 void MainWindow::slot_copy_default_uid_to_clipboard() {
@@ -173,7 +172,7 @@ void MainWindow::slot_copy_default_uid_to_clipboard() {
     return;
   }
   QClipboard* cb = QApplication::clipboard();
-  cb->setText(QString::fromStdString(key.GetUIDs()->front().GetUID()));
+  cb->setText(key.GetUIDs()->front().GetUID());
 }
 
 void MainWindow::slot_copy_key_id_to_clipboard() {
@@ -186,7 +185,7 @@ void MainWindow::slot_copy_key_id_to_clipboard() {
     return;
   }
   QClipboard* cb = QApplication::clipboard();
-  cb->setText(QString::fromStdString(key.GetId()));
+  cb->setText(key.GetId());
 }
 
 void MainWindow::slot_show_key_details() {
@@ -294,7 +293,7 @@ void MainWindow::slot_version_upgrade_nofity() {
 
   auto latest_version = Module::RetrieveRTValueTypedOrDefault<>(
       "com.bktus.gpgfrontend.module.integrated.version-checking",
-      "version.latest_version", std::string{});
+      "version.latest_version", QString{});
 
   GF_UI_LOG_DEBUG(
       "got version info from rt, need upgrade: {}, with drawn: {}, current "
@@ -306,7 +305,7 @@ void MainWindow::slot_version_upgrade_nofity() {
   if (is_need_upgrade) {
     statusBar()->showMessage(
         QString(_("GpgFrontend Upgradeable (New Version: %1)."))
-            .arg(latest_version.c_str()),
+            .arg(latest_version),
         30000);
     auto* update_button = new QPushButton("Update GpgFrontend", this);
     connect(update_button, &QPushButton::clicked, [=]() {
@@ -321,16 +320,16 @@ void MainWindow::slot_version_upgrade_nofity() {
             _("This version(%1) may have been withdrawn by the developer due "
               "to serious problems. Please stop using this version "
               "immediately and use the latest stable version."))
-                .arg(latest_version.c_str()) +
+                .arg(latest_version) +
             "<br/>" +
             QString(_("You can download the latest stable version(%1) on "
                       "Github Releases "
                       "Page.<br/>"))
-                .arg(latest_version.c_str()));
+                .arg(latest_version));
   } else if (!is_current_version_released) {
     statusBar()->showMessage(
         QString(_("This maybe a BETA Version (Latest Stable Version: %1)."))
-            .arg(latest_version.c_str()),
+            .arg(latest_version),
         30000);
   }
 }

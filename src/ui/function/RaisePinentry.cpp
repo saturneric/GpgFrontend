@@ -28,9 +28,8 @@
 
 #include "RaisePinentry.h"
 
-#include <qwidget.h>
-
 #include "core/function/CoreSignalStation.h"
+#include "core/model/GpgPassphraseContext.h"
 #include "pinentry/pinentrydialog.h"
 
 namespace GpgFrontend::UI {
@@ -47,50 +46,73 @@ auto FindTopMostWindow(QWidget* fallback) -> QWidget* {
   return fallback;
 }
 
-RaisePinentry::RaisePinentry(QWidget* parent) : QWidget(parent) {}
+RaisePinentry::RaisePinentry(QWidget* parent,
+                             QSharedPointer<GpgPassphraseContext> context)
+    : QWidget(parent), context_(std::move(context)) {}
 
 auto RaisePinentry::Exec() -> int {
-  auto* pinentry =
-      new PinEntryDialog(FindTopMostWindow(this), 0, 0, true, false, QString(),
-                         QString::fromStdString(_("Show passphrase")),
-                         QString::fromStdString(_("Hide passphrase")));
+  GF_UI_LOG_DEBUG(
+      "setting pinetry's arguments, context uids: {}, passphrase info: {}, "
+      "prev_was_bad: {}",
+      context_->GetUidsInfo().toStdString(),
+      context_->GetPassphraseInfo().toStdString(), context_->IsPreWasBad());
 
-  GF_UI_LOG_DEBUG("setting pinetry's arguments");
+  bool ask_for_new = context_->GetPassphraseInfo().isEmpty() &&
+                     context_->GetUidsInfo().isEmpty();
 
-  pinentry->setPrompt(QString::fromStdString(_("PIN:")));
-  pinentry->setDescription(QString());
+  auto* pinentry = new PinEntryDialog(
+      FindTopMostWindow(this), 0, 15, true, ask_for_new,
+      ask_for_new ? QString(_("Repeat PIN:")) : QString(),
+      QString(_("Show passphrase")), QString(_("Hide passphrase")));
+
+  if (context_->IsPreWasBad()) {
+    pinentry->setError(QString(_("Given PIN was wrong. Please retry.")));
+  }
+
+  pinentry->setPrompt(QString(_("PIN:")));
+
+  if (!context_->GetUidsInfo().isEmpty()) {
+    pinentry->setDescription(QString("Please provide PIN of Key:\n%1\n")
+                                 .arg(context_->GetUidsInfo()));
+  }
+
+  struct pinentry pinentry_info;
+  pinentry->setPinentryInfo(pinentry_info);
+
   pinentry->setRepeatErrorText(
       QString::fromStdString(_("Passphrases do not match")));
-  pinentry->setGenpinLabel(QString());
-  pinentry->setGenpinTT(QString());
-  pinentry->setCapsLockHint(QString::fromStdString(_("Caps Lock is on")));
+  pinentry->setGenpinLabel(QString("BBBBBBBBB"));
+  pinentry->setGenpinTT(QString("AAAAAAAA"));
+  pinentry->setCapsLockHint(QString(_("Caps Lock is on")));
   pinentry->setFormattedPassphrase({false, QString()});
   pinentry->setConstraintsOptions({false, QString(), QString(), QString()});
 
-  pinentry->setWindowTitle(_("Pinentry"));
+  pinentry->setWindowTitle(_("Buddled Pinentry"));
 
   /* If we reuse the same dialog window.  */
   pinentry->setPin(QString());
   pinentry->setOkText(_("Confirm"));
   pinentry->setCancelText(_("Cancel"));
 
-  GF_UI_LOG_DEBUG("pinentry is ready to start");
+  GF_UI_LOG_DEBUG("buddled pinentry is ready to start...");
+  connect(pinentry, &PinEntryDialog::finished, this,
+          [pinentry, this](int result) {
+            bool ret = result != 0;
+            GF_UI_LOG_DEBUG("buddled pinentry finished, ret: {}", ret);
 
-  connect(pinentry, &PinEntryDialog::finished, this, [pinentry](int result) {
-    bool ret = result != 0;
-    GF_UI_LOG_DEBUG("pinentry finished, ret: {}", ret);
+            if (!ret) {
+              emit CoreSignalStation::GetInstance()
+                  ->SignalUserInputPassphraseCallback({});
+              return -1;
+            }
 
-    if (!ret) {
-      emit CoreSignalStation::GetInstance()->SignalUserInputPassphraseCallback(
-          {});
-      return -1;
-    }
+            auto pin = pinentry->pin().toUtf8();
 
-    auto pin = pinentry->pin().toUtf8();
-    emit CoreSignalStation::GetInstance()->SignalUserInputPassphraseCallback(
-        pin);
-    return 0;
-  });
+            context_->SetPassphrase(pin);
+            emit CoreSignalStation::GetInstance()
+                ->SignalUserInputPassphraseCallback(context_);
+            return 0;
+          });
   connect(pinentry, &PinEntryDialog::finished, this, &QWidget::deleteLater);
 
   pinentry->open();

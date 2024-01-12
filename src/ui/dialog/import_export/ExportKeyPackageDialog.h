@@ -55,6 +55,6 @@ class ExportKeyPackageDialog : public GeneralDialog {
  private:
   std::shared_ptr<Ui_exportKeyPackageDialog> ui_;  ///<
   KeyIdArgsListPtr key_ids_;                       ///<
-  std::string passphrase_;                         ///<
+  QString passphrase_;                             ///<
 };
 }  // namespace GpgFrontend::UI

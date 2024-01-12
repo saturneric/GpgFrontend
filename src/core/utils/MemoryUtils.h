@@ -159,4 +159,21 @@ auto SecureCreateSharedObject(Args &&...args) -> std::shared_ptr<T> {
   }
 }
 
+template <typename T, typename... Args>
+auto SecureCreateQSharedObject(Args &&...args) -> QSharedPointer<T> {
+  void *mem = SecureMemoryAllocator::Allocate(sizeof(T));
+  if (!mem) throw std::bad_alloc();
+
+  try {
+    T *obj = new (mem) T(std::forward<Args>(args)...);
+    return QSharedPointer<T>(obj, [](T *ptr) {
+      ptr->~T();
+      SecureMemoryAllocator::Deallocate(ptr);
+    });
+  } catch (...) {
+    SecureMemoryAllocator::Deallocate(mem);
+    throw;
+  }
+}
+
 };  // namespace GpgFrontend

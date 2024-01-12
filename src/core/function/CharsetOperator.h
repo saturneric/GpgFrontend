@@ -34,11 +34,11 @@ namespace GpgFrontend {
 
 class GPGFRONTEND_CORE_EXPORT CharsetOperator {
  public:
-  using CharsetInfo = std::tuple<std::string, std::string, int>;
+  using CharsetInfo = std::tuple<QString, QString, int>;
 
-  static auto Detect(const std::string &buffer) -> CharsetInfo;
+  static auto Detect(const QString &buffer) -> CharsetInfo;
 
-  static auto Convert2Utf8(const std::string &buffer, std::string &out_buffer,
-                           std::string from_charset_name) -> bool;
+  static auto Convert2Utf8(const QString &buffer, QString &out_buffer,
+                           QString from_charset_name) -> bool;
 };
 }  // namespace GpgFrontend

@@ -42,15 +42,13 @@ class GPGFRONTEND_CORE_EXPORT CacheManager
 
   ~CacheManager() override;
 
-  void SaveCache(std::string key, const nlohmann::json& value,
-                 bool flush = false);
+  void SaveCache(QString key, const nlohmann::json& value, bool flush = false);
 
-  auto LoadCache(std::string key) -> nlohmann::json;
+  auto LoadCache(QString key) -> nlohmann::json;
 
-  auto LoadCache(std::string key, nlohmann::json default_value)
-      -> nlohmann::json;
+  auto LoadCache(QString key, nlohmann::json default_value) -> nlohmann::json;
 
-  auto ResetCache(std::string key) -> bool;
+  auto ResetCache(QString key) -> bool;
 
  private:
   class Impl;

@@ -250,8 +250,8 @@ void MainWindow::recover_editor_unsaved_pages_from_cache() {
         !unsaved_page_json.contains("content")) {
       continue;
     }
-    std::string title = unsaved_page_json["title"];
-    std::string content = unsaved_page_json["content"];
+    QString title = QString::fromStdString(unsaved_page_json["title"]);
+    QString content = QString::fromStdString(unsaved_page_json["content"]);
 
     GF_UI_LOG_DEBUG(
         "recovering unsaved page from cache, page title: {}, content size",

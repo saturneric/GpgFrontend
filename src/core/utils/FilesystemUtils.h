@@ -34,19 +34,18 @@ namespace GpgFrontend {
  * @brief Get the file extension object
  *
  * @param path
- * @return std::string
+ * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetFileExtension(const std::string& path)
-    -> std::string;
+auto GPGFRONTEND_CORE_EXPORT GetFileExtension(const QString& path) -> QString;
 
 /**
  * @brief Get the only file name with path object
  *
  * @param path
- * @return std::string
+ * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetOnlyFileNameWithPath(const std::string& path)
-    -> std::string;
+auto GPGFRONTEND_CORE_EXPORT GetOnlyFileNameWithPath(const QString& path)
+    -> QString;
 
 /**
  * @brief Get the File Size By Path object
@@ -56,17 +55,16 @@ auto GPGFRONTEND_CORE_EXPORT GetOnlyFileNameWithPath(const std::string& path)
  * @return int64_t
  */
 auto GPGFRONTEND_CORE_EXPORT GetFileSizeByPath(
-    const std::filesystem::path& path, const std::string& filename_pattern)
+    const std::filesystem::path& path, const QString& filename_pattern)
     -> int64_t;
 
 /**
  * @brief Get the Human Readable File Size object
  *
  * @param size
- * @return std::string
+ * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetHumanFriendlyFileSize(int64_t size)
-    -> std::string;
+auto GPGFRONTEND_CORE_EXPORT GetHumanFriendlyFileSize(int64_t size) -> QString;
 
 /**
  * @brief
@@ -75,6 +73,6 @@ auto GPGFRONTEND_CORE_EXPORT GetHumanFriendlyFileSize(int64_t size)
  * @param filename_pattern
  */
 void GPGFRONTEND_CORE_EXPORT DeleteAllFilesByPattern(
-    const std::filesystem::path& path, const std::string& filename_pattern);
+    const std::filesystem::path& path, const QString& filename_pattern);
 
 }  // namespace GpgFrontend

@@ -41,6 +41,9 @@
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
 #include <spdlog/spdlog.h>
 
+// logger fmt
+#include "log/QtLoggerFmt.h"
+
 // gpgme library
 #include <gpgme.h>
 

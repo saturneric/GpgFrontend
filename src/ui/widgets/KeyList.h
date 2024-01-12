@@ -94,7 +94,7 @@ struct KeyTable {
   KeyTableFilter filter_;                ///<
   KeyIdArgsListPtr checked_key_ids_;     ///<
   KeyMenuAbility::AbilityType ability_;  ///<
-  std::string keyword_;                  ///<
+  QString keyword_;                      ///<
 
   /**
    * @brief Construct a new Key Table object
@@ -158,7 +158,7 @@ struct KeyTable {
    * @brief
    *
    */
-  void SetFilterKeyword(std::string keyword);
+  void SetFilterKeyword(QString keyword);
 };
 
 /**
@@ -277,16 +277,9 @@ class KeyList : public QWidget {
   /**
    * @brief Get the Selected Key object
    *
-   * @return std::string
+   * @return QString
    */
-  std::string GetSelectedKey();
-
-  /**
-   * @brief
-   *
-   * @param keyIds
-   */
-  [[maybe_unused]] static void MarkKeys(QStringList* keyIds);
+  QString GetSelectedKey();
 
   /**
    * @brief

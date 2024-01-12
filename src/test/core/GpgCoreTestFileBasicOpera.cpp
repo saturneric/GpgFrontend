@@ -51,7 +51,7 @@ TEST_F(GpgCoreTest, CoreFileEncryptDecrTest) {
   auto output_file = GetTempFilePath();
 
   GpgFileOpera::GetInstance().EncryptFile(
-      {encrypt_key}, input_file, true, output_file,
+      {encrypt_key}, input_file.toStdString(), true, output_file.toStdString(),
       [output_file, &callback_called_flag](GpgError err,
                                            const DataObjectPtr& data_obj) {
         ASSERT_TRUE((data_obj->Check<GpgEncryptResult>()));
@@ -62,7 +62,7 @@ TEST_F(GpgCoreTest, CoreFileEncryptDecrTest) {
 
         auto decrpypt_output_file = GetTempFilePath();
         GpgFileOpera::GetInstance().DecryptFile(
-            output_file, decrpypt_output_file,
+            output_file.toStdString(), decrpypt_output_file.toStdString(),
             [decrpypt_output_file, &callback_called_flag](
                 GpgError err, const DataObjectPtr& data_obj) {
               auto d_result = ExtractParams<GpgDecryptResult>(data_obj, 0);
@@ -96,7 +96,7 @@ TEST_F(GpgCoreTest, CoreFileEncryptSymmetricDecrTest) {
   auto output_file = GetTempFilePath();
 
   GpgFileOpera::GetInstance().EncryptFileSymmetric(
-      input_file, true, output_file,
+      input_file.toStdString(), true, output_file.toStdString(),
       [&callback_called_flag, output_file](GpgError err,
                                            const DataObjectPtr& data_obj) {
         ASSERT_TRUE((data_obj->Check<GpgEncryptResult>()));
@@ -106,7 +106,7 @@ TEST_F(GpgCoreTest, CoreFileEncryptSymmetricDecrTest) {
 
         auto decrpypt_output_file = GetTempFilePath();
         GpgFileOpera::GetInstance().DecryptFile(
-            output_file, decrpypt_output_file,
+            output_file.toStdString(), decrpypt_output_file.toStdString(),
             [&callback_called_flag, decrpypt_output_file](
                 GpgError err, const DataObjectPtr& data_obj) {
               ASSERT_TRUE((data_obj->Check<GpgDecryptResult>()));
@@ -143,7 +143,7 @@ TEST_F(GpgCoreTest, CoreFileSignVerifyNormalTest) {
   auto output_file = GetTempFilePath();
 
   GpgFileOpera::GetInstance().SignFile(
-      {sign_key}, input_file, true, output_file,
+      {sign_key}, input_file.toStdString(), true, output_file.toStdString(),
       [&callback_called_flag, input_file, output_file](
           GpgError err, const DataObjectPtr& data_obj) {
         ASSERT_TRUE((data_obj->Check<GpgSignResult>()));
@@ -152,7 +152,7 @@ TEST_F(GpgCoreTest, CoreFileSignVerifyNormalTest) {
         ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
 
         GpgFileOpera::GetInstance().VerifyFile(
-            input_file, output_file,
+            input_file.toStdString(), output_file.toStdString(),
             [&callback_called_flag](GpgError err,
                                     const DataObjectPtr& data_obj) {
               auto d_result = ExtractParams<GpgVerifyResult>(data_obj, 0);
@@ -188,7 +188,8 @@ TEST_F(GpgCoreTest, CoreFileEncryptSignDecrVerifyTest) {
   ASSERT_TRUE(sign_key.IsHasActualSigningCapability());
 
   GpgFileOpera::GetInstance().EncryptSignFile(
-      {encrypt_key}, {sign_key}, input_file, true, output_file,
+      {encrypt_key}, {sign_key}, input_file.toStdString(), true,
+      output_file.toStdString(),
       [&callback_called_flag, output_file](GpgError err,
                                            const DataObjectPtr& data_obj) {
         ASSERT_TRUE((data_obj->Check<GpgEncryptResult, GpgSignResult>()));
@@ -200,7 +201,7 @@ TEST_F(GpgCoreTest, CoreFileEncryptSignDecrVerifyTest) {
 
         auto decrpypt_output_file = GetTempFilePath();
         GpgFileOpera::GetInstance().DecryptVerifyFile(
-            output_file, decrpypt_output_file,
+            output_file.toStdString(), decrpypt_output_file.toStdString(),
             [&callback_called_flag, decrpypt_output_file](
                 GpgError err, const DataObjectPtr& data_obj) {
               ASSERT_TRUE(

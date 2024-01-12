@@ -26,21 +26,32 @@
  *
  */
 
-#include "core/function/CharsetOperator.h"
-
-#include "core/utils/LogUtils.h"
+#include "GpgPassphraseContext.h"
 
 namespace GpgFrontend {
 
-auto CharsetOperator::Detect(const QString &buffer)
-    -> CharsetOperator::CharsetInfo {
-  // TODO
-  return {"", "", 0};
+GpgPassphraseContext::GpgPassphraseContext(const QString& uids_info,
+                                           const QString& passphrase_info,
+                                           bool prev_was_bad)
+    : passphrase_info_(passphrase_info),
+      uids_info_(uids_info),
+      prev_was_bad_(prev_was_bad) {}
+
+GpgPassphraseContext::GpgPassphraseContext() = default;
+
+auto GpgPassphraseContext::GetPassphrase() const -> QString {
+  return passphrase_;
 }
 
-auto CharsetOperator::Convert2Utf8(const QString &buffer, QString &out_buffer,
-                                   QString from_charset_name) -> bool {
-  // TODO
+void GpgPassphraseContext::SetPassphrase(const QString& passphrase) {
+  passphrase_ = passphrase;
 }
 
+auto GpgPassphraseContext::GetUidsInfo() const -> QString { return uids_info_; }
+
+auto GpgPassphraseContext::GetPassphraseInfo() const -> QString {
+  return passphrase_info_;
+}
+
+auto GpgPassphraseContext::IsPreWasBad() const -> bool { return prev_was_bad_; }
 }  // namespace GpgFrontend

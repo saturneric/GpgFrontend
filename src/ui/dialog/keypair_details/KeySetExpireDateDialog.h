@@ -57,7 +57,7 @@ class KeySetExpireDateDialog : public GeneralDialog {
    * @param subkey_fpr
    * @param parent
    */
-  explicit KeySetExpireDateDialog(const KeyId& key_id, std::string subkey_fpr,
+  explicit KeySetExpireDateDialog(const KeyId& key_id, QString subkey_fpr,
                                   QWidget* parent = nullptr);
 
  signals:

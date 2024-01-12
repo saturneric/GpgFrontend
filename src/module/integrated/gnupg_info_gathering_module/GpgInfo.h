@@ -37,12 +37,12 @@ namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule {
  */
 class GpgInfo {
  public:
-  std::string GnuPGHomePath;  ///< value of ---homedir
+  QString GnuPGHomePath;  ///< value of ---homedir
 
-  std::map<std::string, std::vector<std::string>> ComponentsInfo;        ///<
-  std::map<std::string, std::vector<std::string>> ConfigurationsInfo;    ///<
-  std::map<std::string, std::vector<std::string>> OptionsInfo;           ///<
-  std::map<std::string, std::vector<std::string>> AvailableOptionsInfo;  ///<
+  std::map<QString, std::vector<QString>> ComponentsInfo;        ///<
+  std::map<QString, std::vector<QString>> ConfigurationsInfo;    ///<
+  std::map<QString, std::vector<QString>> OptionsInfo;           ///<
+  std::map<QString, std::vector<QString>> AvailableOptionsInfo;  ///<
 };
 
 /**

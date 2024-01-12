@@ -109,11 +109,11 @@ class GlobalSettingStation::Impl {
     return ui_cfg_.getRoot();
   }
 
-  [[nodiscard]] auto GetLogFilesSize() const -> std::string {
+  [[nodiscard]] auto GetLogFilesSize() const -> QString {
     return GetHumanFriendlyFileSize(GetFileSizeByPath(app_log_path_, "*.log"));
   }
 
-  [[nodiscard]] auto GetDataObjectsFilesSize() const -> std::string {
+  [[nodiscard]] auto GetDataObjectsFilesSize() const -> QString {
     return GetHumanFriendlyFileSize(
         GetFileSizeByPath(app_data_objs_path_, "*"));
   }
@@ -132,10 +132,10 @@ class GlobalSettingStation::Impl {
    * @return libconfig::Setting&
    */
   template <typename T>
-  auto LookupSettings(std::string path, T default_value) noexcept -> T {
+  auto LookupSettings(QString path, T default_value) noexcept -> T {
     T value = default_value;
     try {
-      value = static_cast<T>(GetMainSettings().lookup(path));
+      value = static_cast<T>(GetMainSettings().lookup(path.toStdString()));
     } catch (...) {
       GF_CORE_LOG_WARN("setting not found: {}", path);
     }
@@ -252,7 +252,7 @@ class GlobalSettingStation::Impl {
 
 #ifdef LINUX_INSTALL_BUILD
   std::filesystem::path app_locale_path_ =
-      std::string(APP_LOCALE_PATH);  ///< Program Data Location
+      QString(APP_LOCALE_PATH);  ///< Program Data Location
 #else
   std::filesystem::path app_locale_path_ =
       app_resource_path_ / "locales";  ///< Program Data Location
@@ -325,11 +325,11 @@ auto GlobalSettingStation::GetCertsDir() const -> std::filesystem::path {
   return p_->GetCertsDir();
 }
 
-auto GlobalSettingStation::GetLogFilesSize() const -> std::string {
+auto GlobalSettingStation::GetLogFilesSize() const -> QString {
   return p_->GetLogFilesSize();
 }
 
-auto GlobalSettingStation::GetDataObjectsFilesSize() const -> std::string {
+auto GlobalSettingStation::GetDataObjectsFilesSize() const -> QString {
   return p_->GetDataObjectsFilesSize();
 }
 

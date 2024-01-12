@@ -126,8 +126,8 @@ class PlainTextEditorPage : public QWidget {
   bool read_done_ = false;        ///<
   bool binary_mode_ = false;      ///<
   size_t read_bytes_ = 0;         ///<
-  std::string charset_name_;      ///<
-  std::string language_name_;     ///<
+  QString charset_name_;          ///<
+  QString language_name_;         ///<
   int32_t charset_confidence_{};  ///<
   bool is_crlf_ = false;          ///<
 
@@ -136,14 +136,14 @@ class PlainTextEditorPage : public QWidget {
    *
    * @param data
    */
-  void detect_encoding(const std::string& data);
+  void detect_encoding(const QString& data);
 
   /**
    * @brief
    *
    * @param data
    */
-  void detect_cr_lf(const std::string& data);
+  void detect_cr_lf(const QString& data);
 
  private slots:
 

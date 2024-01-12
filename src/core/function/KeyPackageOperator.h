@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
 
@@ -47,14 +48,14 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    * @return false if passphrase was not generated and saved
    */
   static auto GeneratePassphrase(const std::filesystem::path &phrase_path,
-                                 std::string &phrase) -> bool;
+                                 QString &phrase) -> bool;
 
   /**
    * @brief generate the name of the key package
    *
-   * @return std::string name of the key package
+   * @return QString name of the key package
    */
-  static auto GenerateKeyPackageName() -> std::string;
+  static auto GenerateKeyPackageName() -> QString;
 
   /**
    * @brief generate key package
@@ -68,8 +69,8 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    * @return false if key package was not generated
    */
   static void GenerateKeyPackage(const std::filesystem::path &key_package_path,
-                                 const std::string &key_package_name,
-                                 const KeyArgsList &keys, std::string &phrase,
+                                 const QString &key_package_name,
+                                 const KeyArgsList &keys, QString &phrase,
                                  bool secret, const OperationCallback &cb);
 
   /**
@@ -89,8 +90,8 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
   /**
    * @brief generate key package name
    *
-   * @return std::string key package name
+   * @return QString key package name
    */
-  static auto generate_key_package_name() -> std::string;
+  static auto generate_key_package_name() -> QString;
 };
 }  // namespace GpgFrontend

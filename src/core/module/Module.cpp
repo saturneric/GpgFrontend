@@ -28,7 +28,6 @@
 
 #include "Module.h"
 
-#include <boost/format.hpp>
 #include <utility>
 
 #include "core/module/GlobalModuleContext.h"

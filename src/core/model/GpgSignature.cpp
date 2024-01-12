@@ -82,18 +82,18 @@ auto GpgSignature::GetSummary() const -> gpgme_error_t {
 /**
  * @brief
  *
- * @return std::string
+ * @return QString
  */
-auto GpgSignature::GetPubkeyAlgo() const -> std::string {
+auto GpgSignature::GetPubkeyAlgo() const -> QString {
   return gpgme_pubkey_algo_name(signature_ref_->pubkey_algo);
 }
 
 /**
  * @brief
  *
- * @return std::string
+ * @return QString
  */
-auto GpgSignature::GetHashAlgo() const -> std::string {
+auto GpgSignature::GetHashAlgo() const -> QString {
   return gpgme_hash_algo_name(signature_ref_->hash_algo);
 }
 
@@ -118,9 +118,9 @@ auto GpgSignature::GetExpireTime() const -> boost::posix_time::ptime {
 /**
  * @brief
  *
- * @return std::string
+ * @return QString
  */
-auto GpgSignature::GetFingerprint() const -> std::string {
+auto GpgSignature::GetFingerprint() const -> QString {
   return signature_ref_->fpr;
 }
 

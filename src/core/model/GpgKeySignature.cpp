@@ -56,9 +56,9 @@ gpgme_error_t GpgKeySignature::GetStatus() const {
   return signature_ref_->status;
 }
 
-std::string GpgKeySignature::GetKeyID() const { return signature_ref_->keyid; }
+QString GpgKeySignature::GetKeyID() const { return signature_ref_->keyid; }
 
-std::string GpgKeySignature::GetPubkeyAlgo() const {
+QString GpgKeySignature::GetPubkeyAlgo() const {
   return gpgme_pubkey_algo_name(signature_ref_->pubkey_algo);
 }
 
@@ -70,13 +70,11 @@ boost::posix_time::ptime GpgKeySignature::GetExpireTime() const {
   return boost::posix_time::from_time_t(signature_ref_->expires);
 }
 
-std::string GpgKeySignature::GetUID() const { return signature_ref_->uid; }
+QString GpgKeySignature::GetUID() const { return signature_ref_->uid; }
 
-std::string GpgKeySignature::GetName() const { return signature_ref_->name; }
+QString GpgKeySignature::GetName() const { return signature_ref_->name; }
 
-std::string GpgKeySignature::GetEmail() const { return signature_ref_->email; }
+QString GpgKeySignature::GetEmail() const { return signature_ref_->email; }
 
-std::string GpgKeySignature::GetComment() const {
-  return signature_ref_->comment;
-}
+QString GpgKeySignature::GetComment() const { return signature_ref_->comment; }
 }  // namespace GpgFrontend

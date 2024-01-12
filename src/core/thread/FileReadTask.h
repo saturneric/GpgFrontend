@@ -40,7 +40,7 @@ namespace GpgFrontend::UI {
 class GPGFRONTEND_CORE_EXPORT FileReadTask : public GpgFrontend::Thread::Task {
   Q_OBJECT
  public:
-  explicit FileReadTask(std::string path);
+  explicit FileReadTask(QString path);
 
   virtual ~FileReadTask() override;
 
@@ -52,7 +52,7 @@ class GPGFRONTEND_CORE_EXPORT FileReadTask : public GpgFrontend::Thread::Task {
   void SignalFileBytesReadNext();
 
  private:
-  std::filesystem::path read_file_path_;
+  QString read_file_path_;
   QFile target_file_;
   QEventLoop looper;
 

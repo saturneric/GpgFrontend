@@ -92,8 +92,7 @@ class KeyPairDetailTab : public QWidget {
    * @param key_id
    * @param parent
    */
-  explicit KeyPairDetailTab(const std::string& key_id,
-                            QWidget* parent = nullptr);
+  explicit KeyPairDetailTab(const QString& key_id, QWidget* parent = nullptr);
 };
 
 }  // namespace GpgFrontend::UI

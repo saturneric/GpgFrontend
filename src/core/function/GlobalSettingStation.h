@@ -122,16 +122,16 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
   /**
    * @brief Get the Log Files Size object
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetLogFilesSize() const -> std::string;
+  [[nodiscard]] auto GetLogFilesSize() const -> QString;
 
   /**
    * @brief Get the Data Objects Files Size object
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetDataObjectsFilesSize() const -> std::string;
+  [[nodiscard]] auto GetDataObjectsFilesSize() const -> QString;
 
   /**
    * @brief clear all log files
@@ -158,10 +158,10 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
    * @return The setting value.
    */
   template <typename T>
-  auto LookupSettings(std::string path, T default_value) noexcept -> T {
+  auto LookupSettings(QString path, T default_value) noexcept -> T {
     T value = default_value;
     try {
-      value = static_cast<T>(GetMainSettings().lookup(path));
+      value = static_cast<T>(GetMainSettings().lookup(path.toStdString()));
     } catch (...) {
       GF_CORE_LOG_WARN("setting not found: {}", path);
     }
@@ -175,12 +175,12 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
    * @return The setting value.
    */
   template <typename T>
-  auto SaveSettings(std::string path, libconfig::Setting::Type type,
+  auto SaveSettings(QString path, libconfig::Setting::Type type,
                     T value) noexcept -> T {
     try {
-      if (!GetMainSettings().exists(path)) {
+      if (!GetMainSettings().exists(path.toStdString())) {
         // TODO
-        GetMainSettings().add(path, type);
+        GetMainSettings().add(path.toStdString(), type);
       }
     } catch (...) {
       GF_CORE_LOG_WARN("setting not found: {}", path);

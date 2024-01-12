@@ -191,9 +191,8 @@ void KeyServerImportDialog::slot_search() {
     return;
   }
 
-  auto* task = new KeyServerSearchTask(
-      key_server_combo_box_->currentText().toStdString(),
-      search_line_edit_->text().toStdString());
+  auto* task = new KeyServerSearchTask(key_server_combo_box_->currentText(),
+                                       search_line_edit_->text());
 
   connect(task, &KeyServerSearchTask::SignalKeyServerSearchResult, this,
           &KeyServerImportDialog::slot_search_finished);
@@ -381,27 +380,27 @@ void KeyServerImportDialog::slot_search_finished(
 }
 
 void KeyServerImportDialog::slot_import() {
-  std::vector<std::string> key_ids;
+  std::vector<QString> key_ids;
   const int row_count = keys_table_->rowCount();
   for (int i = 0; i < row_count; ++i) {
     if (keys_table_->item(i, 2)->isSelected()) {
       QString keyid = keys_table_->item(i, 2)->text();
-      key_ids.push_back(keyid.toStdString());
+      key_ids.push_back(keyid);
     }
   }
   if (!key_ids.empty()) {
-    SlotImport(key_ids, key_server_combo_box_->currentText().toStdString());
+    SlotImport(key_ids, key_server_combo_box_->currentText());
   }
 }
 
 void KeyServerImportDialog::SlotImport(const KeyIdArgsListPtr& keys) {
   // keyserver host url
-  std::string target_keyserver;
+  QString target_keyserver;
 
   if (key_server_combo_box_ != nullptr) {
-    target_keyserver = key_server_combo_box_->currentText().toStdString();
+    target_keyserver = key_server_combo_box_->currentText();
   }
-  if (target_keyserver.empty()) {
+  if (target_keyserver.isEmpty()) {
     try {
       SettingsObject key_server_json("key_server");
       const auto key_server_list =
@@ -415,7 +414,7 @@ void KeyServerImportDialog::SlotImport(const KeyIdArgsListPtr& keys) {
       auto default_key_server =
           key_server_list[default_key_server_index].get<std::string>();
 
-      target_keyserver = default_key_server;
+      target_keyserver = QString::fromStdString(default_key_server);
     } catch (...) {
       GF_UI_LOG_ERROR("setting operation error", "server_list",
                       "default_server");
@@ -426,15 +425,15 @@ void KeyServerImportDialog::SlotImport(const KeyIdArgsListPtr& keys) {
       return;
     }
   }
-  std::vector<std::string> key_ids;
+  std::vector<QString> key_ids;
   for (const auto& key_id : *keys) {
     key_ids.push_back(key_id);
   }
   SlotImport(key_ids, target_keyserver);
 }
 
-void KeyServerImportDialog::SlotImport(std::vector<std::string> key_ids,
-                                       std::string keyserver_url) {
+void KeyServerImportDialog::SlotImport(std::vector<QString> key_ids,
+                                       QString keyserver_url) {
   auto* task =
       new KeyServerImportTask(std::move(keyserver_url), std::move(key_ids));
 

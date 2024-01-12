@@ -29,16 +29,14 @@
 #include "GpgGenKeyInfo.h"
 
 #include <algorithm>
-#include <boost/format.hpp>
 #include <cassert>
 
 #include "core/utils/LogUtils.h"
 
 namespace GpgFrontend {
 
-void GenKeyInfo::SetAlgo(const std::string &t_algo_args) {
-  auto algo_args = t_algo_args;
-  boost::algorithm::to_lower(algo_args);
+void GenKeyInfo::SetAlgo(const QString &t_algo_args) {
+  auto algo_args = t_algo_args.toLower();
   GF_CORE_LOG_DEBUG("set algo args: {}", algo_args);
 
   // reset all options
@@ -131,9 +129,9 @@ void GenKeyInfo::reset_options() {
   passphrase_.clear();
 }
 
-auto GenKeyInfo::GetKeySizeStr() const -> std::string {
+auto GenKeyInfo::GetKeySizeStr() const -> QString {
   if (key_size_ > 0) {
-    return std::to_string(key_size_);
+    return QString::number(key_size_);
   }
   return {};
 }
@@ -224,12 +222,10 @@ void GenKeyInfo::SetIsSubKey(bool m_sub_key) {
 /**
  * @brief Get the Userid object
  *
- * @return std::string
+ * @return QString
  */
-[[nodiscard]] auto GenKeyInfo::GetUserid() const -> std::string {
-  auto uid_format = boost::format("%1%(%2%)<%3%>") % this->name_ %
-                    this->comment_ % this->email_;
-  return uid_format.str();
+[[nodiscard]] auto GenKeyInfo::GetUserid() const -> QString {
+  return QString("%1(%2)<%3>").arg(name_).arg(comment_).arg(email_);
 }
 
 /**
@@ -237,57 +233,53 @@ void GenKeyInfo::SetIsSubKey(bool m_sub_key) {
  *
  * @param m_name
  */
-void GenKeyInfo::SetName(const std::string &m_name) { this->name_ = m_name; }
+void GenKeyInfo::SetName(const QString &m_name) { this->name_ = m_name; }
 
 /**
  * @brief Set the Email object
  *
  * @param m_email
  */
-void GenKeyInfo::SetEmail(const std::string &m_email) {
-  this->email_ = m_email;
-}
+void GenKeyInfo::SetEmail(const QString &m_email) { this->email_ = m_email; }
 
 /**
  * @brief Set the Comment object
  *
  * @param m_comment
  */
-void GenKeyInfo::SetComment(const std::string &m_comment) {
+void GenKeyInfo::SetComment(const QString &m_comment) {
   this->comment_ = m_comment;
 }
 
 /**
  * @brief Get the Name object
  *
- * @return std::string
+ * @return QString
  */
-[[nodiscard]] auto GenKeyInfo::GetName() const -> std::string { return name_; }
+[[nodiscard]] auto GenKeyInfo::GetName() const -> QString { return name_; }
 
 /**
  * @brief Get the Email object
  *
- * @return std::string
+ * @return QString
  */
-[[nodiscard]] auto GenKeyInfo::GetEmail() const -> std::string {
-  return email_;
-}
+[[nodiscard]] auto GenKeyInfo::GetEmail() const -> QString { return email_; }
 
 /**
  * @brief Get the Comment object
  *
- * @return std::string
+ * @return QString
  */
-[[nodiscard]] auto GenKeyInfo::GetComment() const -> std::string {
+[[nodiscard]] auto GenKeyInfo::GetComment() const -> QString {
   return comment_;
 }
 
 /**
  * @brief Get the Algo object
  *
- * @return const std::string&
+ * @return const QString&
  */
-[[nodiscard]] auto GenKeyInfo::GetAlgo() const -> const std::string & {
+[[nodiscard]] auto GenKeyInfo::GetAlgo() const -> const QString & {
   return algo_;
 }
 
@@ -410,9 +402,9 @@ void GenKeyInfo::SetAllowAuthentication(bool m_allow_authentication) {
 /**
  * @brief Get the Pass Phrase object
  *
- * @return const std::string&
+ * @return const QString&
  */
-[[nodiscard]] auto GenKeyInfo::GetPassPhrase() const -> const std::string & {
+[[nodiscard]] auto GenKeyInfo::GetPassPhrase() const -> const QString & {
   return passphrase_;
 }
 
@@ -421,7 +413,7 @@ void GenKeyInfo::SetAllowAuthentication(bool m_allow_authentication) {
  *
  * @param m_pass_phrase
  */
-void GenKeyInfo::SetPassPhrase(const std::string &m_pass_phrase) {
+void GenKeyInfo::SetPassPhrase(const QString &m_pass_phrase) {
   GenKeyInfo::passphrase_ = m_pass_phrase;
 }
 

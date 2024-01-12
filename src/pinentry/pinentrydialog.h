@@ -31,6 +31,7 @@
 #include <QStyle>
 #include <QTimer>
 
+#include "core/function/SecureMemoryAllocator.h"
 #include "pinentry.h"
 
 class QIcon;
@@ -103,7 +104,7 @@ class PinEntryDialog : public QDialog {
 
   void setConstraintsOptions(const ConstraintsOptions &options);
 
-  void setPinentryInfo(pinentry_t);
+  void setPinentryInfo(struct pinentry);
 
   bool timedOut() const;
 
@@ -152,8 +153,8 @@ class PinEntryDialog : public QDialog {
   bool _disable_echo_allowed = true;
   bool mEnforceConstraints = false;
   bool mFormatPassphrase = false;
-  std::unique_ptr<struct pinentry> _pinentry_info =
-      std::make_unique<struct pinentry>();
+
+  GpgFrontend::SecureUniquePtr<struct pinentry> _pinentry_info = nullptr;
   QTimer *_timer = nullptr;
   QString mVisibilityTT;
   QString mHideTT;

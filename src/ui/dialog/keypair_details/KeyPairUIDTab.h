@@ -45,7 +45,7 @@ class KeyPairUIDTab : public QWidget {
    * @param key_id
    * @param parent
    */
-  KeyPairUIDTab(const std::string& key_id, QWidget* parent);
+  KeyPairUIDTab(const QString& key_id, QWidget* parent);
 
  signals:
 

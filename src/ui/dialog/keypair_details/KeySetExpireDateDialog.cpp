@@ -49,7 +49,7 @@ KeySetExpireDateDialog::KeySetExpireDateDialog(const KeyId& key_id,
 }
 
 KeySetExpireDateDialog::KeySetExpireDateDialog(const KeyId& key_id,
-                                               std::string subkey_fpr,
+                                               QString subkey_fpr,
                                                QWidget* parent)
     : GeneralDialog(typeid(KeySetExpireDateDialog).name(), parent),
       ui_(GpgFrontend::SecureCreateSharedObject<

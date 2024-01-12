@@ -41,23 +41,23 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetID() const -> std::string;
+  [[nodiscard]] auto GetID() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetFingerprint() const -> std::string;
+  [[nodiscard]] auto GetFingerprint() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetPubkeyAlgo() const -> std::string;
+  [[nodiscard]] auto GetPubkeyAlgo() const -> QString;
 
   /**
    * @brief

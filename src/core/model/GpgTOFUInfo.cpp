@@ -85,9 +85,9 @@ auto GpgTOFUInfo::GetEncrLast() const -> unsigned long {
 /**
  * @brief
  *
- * @return std::string
+ * @return QString
  */
-auto GpgTOFUInfo::GetDescription() const -> std::string {
+auto GpgTOFUInfo::GetDescription() const -> QString {
   return tofu_info_ref_->description;
 }
 

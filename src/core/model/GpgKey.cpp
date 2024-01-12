@@ -71,23 +71,21 @@ GpgKey::operator gpgme_key_t() const { return key_ref_.get(); }
 
 auto GpgKey::IsGood() const -> bool { return key_ref_ != nullptr; }
 
-auto GpgKey::GetId() const -> std::string { return key_ref_->subkeys->keyid; }
+auto GpgKey::GetId() const -> QString { return key_ref_->subkeys->keyid; }
 
-auto GpgKey::GetName() const -> std::string { return key_ref_->uids->name; };
+auto GpgKey::GetName() const -> QString { return key_ref_->uids->name; };
 
-auto GpgKey::GetEmail() const -> std::string { return key_ref_->uids->email; }
+auto GpgKey::GetEmail() const -> QString { return key_ref_->uids->email; }
 
-auto GpgKey::GetComment() const -> std::string {
-  return key_ref_->uids->comment;
-}
+auto GpgKey::GetComment() const -> QString { return key_ref_->uids->comment; }
 
-auto GpgKey::GetFingerprint() const -> std::string { return key_ref_->fpr; }
+auto GpgKey::GetFingerprint() const -> QString { return key_ref_->fpr; }
 
-auto GpgKey::GetProtocol() const -> std::string {
+auto GpgKey::GetProtocol() const -> QString {
   return gpgme_get_protocol_name(key_ref_->protocol);
 }
 
-auto GpgKey::GetOwnerTrust() const -> std::string {
+auto GpgKey::GetOwnerTrust() const -> QString {
   switch (key_ref_->owner_trust) {
     case GPGME_VALIDITY_UNKNOWN:
       return _("Unknown");
@@ -123,7 +121,7 @@ auto GpgKey::GetOwnerTrustLevel() const -> int {
   return 0;
 }
 
-auto GpgKey::GetPublicKeyAlgo() const -> std::string {
+auto GpgKey::GetPublicKeyAlgo() const -> QString {
   return gpgme_pubkey_algo_name(key_ref_->subkeys->pubkey_algo);
 }
 

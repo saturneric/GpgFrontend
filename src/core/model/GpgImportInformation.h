@@ -42,7 +42,7 @@ class GPGFRONTEND_CORE_EXPORT GpgImportInformation {
    */
   class GpgImportedKey {
    public:
-    std::string fpr;    ///<
+    QString fpr;        ///<
     int import_status;  ///<
   };
 

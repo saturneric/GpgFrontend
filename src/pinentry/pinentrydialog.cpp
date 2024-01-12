@@ -23,12 +23,9 @@
  * SPDX-License-Identifier: GPL-2.0+
  */
 
-#include <qnamespace.h>
+#include "pinentrydialog.h"
 
-#include "pinentry.h"
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <qnamespace.h>
 
 #include <QAccessible>
 #include <QAction>
@@ -53,7 +50,8 @@
 
 #include "accessibility.h"
 #include "capslock/capslock.h"
-#include "pinentrydialog.h"
+#include "core/utils/MemoryUtils.h"
+#include "pinentry.h"
 #include "pinlineedit.h"
 #include "util.h"
 
@@ -166,7 +164,7 @@ PinEntryDialog::PinEntryDialog(QWidget *parent, const char *name, int timeout,
 
     if (!repeatString.isNull()) {
       mGenerateButton = new QPushButton{this};
-      mGenerateButton->setIcon(QIcon(QLatin1String(":/password-generate.svg")));
+      mGenerateButton->setIcon(QIcon(QLatin1String(":password-generate.svg")));
       mGenerateButton->setVisible(false);
       l->addWidget(mGenerateButton);
     }
@@ -174,8 +172,8 @@ PinEntryDialog::PinEntryDialog(QWidget *parent, const char *name, int timeout,
   }
 
   /* Set up the show password action */
-  const QIcon visibility_icon = QIcon(QLatin1String(":/visibility.svg"));
-  const QIcon hide_icon = QIcon(QLatin1String(":/hint.svg"));
+  const QIcon visibility_icon = QIcon(QLatin1String(":visibility.svg"));
+  const QIcon hide_icon = QIcon(QLatin1String(":hint.svg"));
 #if QT_VERSION >= 0x050200
   if (!visibility_icon.isNull() && !hide_icon.isNull()) {
     mVisiActionEdit =
@@ -304,6 +302,7 @@ PinEntryDialog::PinEntryDialog(QWidget *parent, const char *name, int timeout,
   checkCapsLock();
 
   setAttribute(Qt::WA_DeleteOnClose);
+  setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
 
   /* This is mostly an issue on Windows where this results
      in the pinentry popping up nicely with an animation and
@@ -359,7 +358,7 @@ QString PinEntryDialog::description() const { return _desc->text(); }
 void PinEntryDialog::setError(const QString &txt) {
   if (!txt.isNull()) {
     _icon->setPixmap(
-        applicationIconPixmap(QIcon{QStringLiteral(":/data-error.svg")}));
+        applicationIconPixmap(QIcon{QStringLiteral(":data-error.svg")}));
   }
   _error->setText(txt);
   _error->setVisible(!txt.isEmpty());
@@ -487,14 +486,13 @@ void PinEntryDialog::updateQuality(const QString &txt) {
 
   _disable_echo_allowed = false;
 
-  if (!_have_quality_bar || !_pinentry_info) {
+  if (!_have_quality_bar) {
     return;
   }
   const QByteArray utf8_pin = txt.toUtf8();
   const char *pin = utf8_pin.constData();
   length = strlen(pin);
-  percent =
-      length != 0 ? pinentry_inq_quality(_pinentry_info.get(), pin, length) : 0;
+  percent = length != 0 ? pinentry_inq_quality(txt) : 0;
   if (length == 0) {
     _quality_bar->reset();
   } else {
@@ -510,8 +508,9 @@ void PinEntryDialog::updateQuality(const QString &txt) {
   }
 }
 
-void PinEntryDialog::setPinentryInfo(pinentry_t peinfo) {
-  _pinentry_info = std::unique_ptr<struct pinentry>(peinfo);
+void PinEntryDialog::setPinentryInfo(struct pinentry peinfo) {
+  _pinentry_info =
+      GpgFrontend::SecureCreateUniqueObject<struct pinentry>(peinfo);
 }
 
 void PinEntryDialog::focusChanged(QWidget *old, QWidget *now) {
@@ -570,7 +569,7 @@ void PinEntryDialog::toggleVisibility() {
   if (sender() != mVisiCB) {
     if (_edit->echoMode() == QLineEdit::Password) {
       if (mVisiActionEdit != nullptr) {
-        mVisiActionEdit->setIcon(QIcon(QLatin1String(":/hint.svg")));
+        mVisiActionEdit->setIcon(QIcon(QLatin1String(":hint.svg")));
         mVisiActionEdit->setToolTip(mHideTT);
       }
       _edit->setEchoMode(QLineEdit::Normal);
@@ -579,7 +578,7 @@ void PinEntryDialog::toggleVisibility() {
       }
     } else {
       if (mVisiActionEdit != nullptr) {
-        mVisiActionEdit->setIcon(QIcon(QLatin1String(":/visibility.svg")));
+        mVisiActionEdit->setIcon(QIcon(QLatin1String(":visibility.svg")));
         mVisiActionEdit->setToolTip(mVisibilityTT);
       }
       _edit->setEchoMode(QLineEdit::Password);

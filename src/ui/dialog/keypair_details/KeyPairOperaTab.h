@@ -42,7 +42,7 @@ class KeyPairOperaTab : public QWidget {
    * @param key_id
    * @param parent
    */
-  KeyPairOperaTab(const std::string& key_id, QWidget* parent);
+  KeyPairOperaTab(const QString& key_id, QWidget* parent);
 
   /**
    * @brief Create a Opera Menu object

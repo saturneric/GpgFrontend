@@ -32,9 +32,7 @@
 
 namespace GpgFrontend {
 
-auto GetFormatedDateByTimestamp(time_t timestamp) -> std::string {
-  QDateTime date;
-  date.setSecsSinceEpoch(timestamp);
-  return QLocale::system().toString(date).toStdString();
+auto GetFormatedDateByTimestamp(time_t timestamp) -> QString {
+  return QLocale::system().toString(QDateTime::fromSecsSinceEpoch(timestamp));
 }
 }  // namespace GpgFrontend

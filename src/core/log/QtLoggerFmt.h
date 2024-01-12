@@ -26,21 +26,26 @@
  *
  */
 
-#include "core/function/CharsetOperator.h"
+#pragma once
 
-#include "core/utils/LogUtils.h"
+template <>
+struct fmt::formatter<QString> {
+  // Parses format specifications.
+  constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
+    auto it = std::find(ctx.begin(), ctx.end(), '}');
+    if (it != ctx.end() && *it != '}') {
+      throw fmt::format_error("invalid format specifier for QString");
+    }
+    return it;
+  }
 
-namespace GpgFrontend {
-
-auto CharsetOperator::Detect(const QString &buffer)
-    -> CharsetOperator::CharsetInfo {
-  // TODO
-  return {"", "", 0};
-}
-
-auto CharsetOperator::Convert2Utf8(const QString &buffer, QString &out_buffer,
-                                   QString from_charset_name) -> bool {
-  // TODO
-}
-
-}  // namespace GpgFrontend
+  // Formats the QString qstr and writes it to the output.
+  template <typename FormatContext>
+  auto format(const QString& qstr, FormatContext& ctx) const
+      -> decltype(ctx.out()) {
+    // Convert QString to UTF-8 QString (to handle Unicode characters
+    // correctly)
+    QByteArray utf8Str = qstr.toUtf8();
+    return fmt::format_to(ctx.out(), "{}", utf8Str.constData());
+  }
+};

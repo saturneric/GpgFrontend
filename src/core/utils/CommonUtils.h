@@ -36,13 +36,19 @@ namespace GpgFrontend {
  * @brief
  *
  * @param fingerprint
- * @return std::string
+ * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT BeautifyFingerprint(BypeArrayConstRef fingerprint)
-    -> std::string;
+auto GPGFRONTEND_CORE_EXPORT BeautifyFingerprint(QString fingerprint)
+    -> QString;
 
-auto GPGFRONTEND_CORE_EXPORT CompareSoftwareVersion(const std::string& a,
-                                                    const std::string& b)
-    -> int;
+/**
+ * @brief
+ *
+ * @param a
+ * @param b
+ * @return int
+ */
+auto GPGFRONTEND_CORE_EXPORT CompareSoftwareVersion(const QString& a,
+                                                    const QString& b) -> int;
 
 }  // namespace GpgFrontend

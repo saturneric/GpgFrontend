@@ -90,12 +90,12 @@ void KeyNewUIDDialog::slot_create_new_uid() {
   auto error_string = error_stream.str();
   if (error_string.empty()) {
     if (GpgUIDOperator::GetInstance().AddUID(
-            m_key_, name_->text().toStdString(), comment_->text().toStdString(),
-            email_->text().toStdString())) {
+            m_key_, name_->text(), comment_->text(), email_->text())) {
       emit finished(1);
       emit SignalUIDCreated();
-    } else
+    } else {
       emit finished(-1);
+    }
 
   } else {
     /**

@@ -55,7 +55,7 @@ class GPGFRONTEND_CORE_EXPORT ChannelObject {
    *
    * @param channel
    */
-  explicit ChannelObject(int channel, std::string type);
+  explicit ChannelObject(int channel, QString type);
 
   /**
    * @brief Get the Default Channel object
@@ -80,7 +80,7 @@ class GPGFRONTEND_CORE_EXPORT ChannelObject {
 
  private:
   int channel_ = kGpgFrontendDefaultChannel;  ///< The channel id
-  std::string type_;
+  QString type_;
 };
 
 template <typename Derived>

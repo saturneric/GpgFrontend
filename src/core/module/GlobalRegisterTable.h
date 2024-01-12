@@ -36,8 +36,8 @@
 
 namespace GpgFrontend::Module {
 
-using Namespace = std::string;
-using Key = std::string;
+using Namespace = QString;
+using Key = QString;
 using LPCallback = std::function<void(Namespace, Key, int, std::any)>;
 
 class GlobalRegisterTable : public QObject {

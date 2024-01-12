@@ -33,7 +33,6 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
 #include <boost/date_time/posix_time/conversion.hpp>
-#include <boost/format.hpp>
 #include <boost/process/async_pipe.hpp>
 #include <memory>
 
@@ -91,17 +90,15 @@ auto GpgKeyOpera::SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
                                              std::chrono::system_clock::now());
   }
 
-  GF_CORE_LOG_DEBUG(key.GetId(), subkey_fpr, expires_time);
-
   GpgError err;
-  if (key.GetFingerprint() == subkey_fpr || subkey_fpr.empty()) {
+  if (key.GetFingerprint() == subkey_fpr || subkey_fpr.isEmpty()) {
     err =
         gpgme_op_setexpire(ctx_.DefaultContext(), static_cast<gpgme_key_t>(key),
                            expires_time, nullptr, 0);
   } else {
     err =
         gpgme_op_setexpire(ctx_.DefaultContext(), static_cast<gpgme_key_t>(key),
-                           expires_time, subkey_fpr.c_str(), 0);
+                           expires_time, subkey_fpr.toUtf8(), 0);
   }
 
   return err;
@@ -114,15 +111,15 @@ auto GpgKeyOpera::SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
  * @return the process doing this job
  */
 void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
-                                     const std::string& output_path) {
+                                     const QString& output_path) {
   const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.app_path", std::string{});
+      "core", "gpgme.ctx.app_path", QString{});
   // get all components
   GpgCommandExecutor::ExecuteSync(
       {app_path,
        {"--command-fd", "0", "--status-fd", "1", "--no-tty", "-o", output_path,
         "--gen-revoke", key.GetFingerprint()},
-       [=](int exit_code, const std::string& p_out, const std::string& p_err) {
+       [=](int exit_code, const QString& p_out, const QString& p_err) {
          if (exit_code != 0) {
            GF_CORE_LOG_ERROR(
                "gnupg gen revoke execute error, process stderr: {}, process "
@@ -171,13 +168,13 @@ void GpgKeyOpera::GenerateKey(const std::shared_ptr<GenKeyInfo>& params,
   RunGpgOperaAsync(
       [&ctx = ctx_, params](const DataObjectPtr& data_object) -> GpgError {
         auto userid_utf8 = params->GetUserid();
-        const char* userid = userid_utf8.c_str();
+        const char* userid = userid_utf8.toUtf8();
         auto algo_utf8 = params->GetAlgo() + params->GetKeySizeStr();
 
         GF_CORE_LOG_DEBUG("params: {} {}", params->GetAlgo(),
                           params->GetKeySizeStr());
 
-        const char* algo = algo_utf8.c_str();
+        const char* algo = algo_utf8.toUtf8();
         unsigned long expires = 0;
         expires = to_time_t(boost::posix_time::ptime(params->GetExpireTime())) -
                   std::chrono::system_clock::to_time_t(
@@ -227,7 +224,7 @@ void GpgKeyOpera::GenerateSubkey(const GpgKey& key,
                           params->GetAlgo(), params->GetKeySizeStr());
 
         auto algo_utf8 = (params->GetAlgo() + params->GetKeySizeStr());
-        const char* algo = algo_utf8.c_str();
+        const char* algo = algo_utf8.toUtf8();
         unsigned long expires = 0;
 
         expires = to_time_t(boost::posix_time::ptime(params->GetExpireTime())) -
@@ -262,10 +259,10 @@ void GpgKeyOpera::GenerateKeyWithSubkey(
       [&ctx = ctx_, params,
        subkey_params](const DataObjectPtr& data_object) -> GpgError {
         auto userid_utf8 = params->GetUserid();
-        const char* userid = userid_utf8.c_str();
+        const char* userid = userid_utf8.toUtf8();
         auto algo_utf8 = params->GetAlgo() + params->GetKeySizeStr();
 
-        const char* algo = algo_utf8.c_str();
+        const char* algo = algo_utf8.toUtf8();
         unsigned long expires = 0;
         expires = to_time_t(boost::posix_time::ptime(params->GetExpireTime())) -
                   std::chrono::system_clock::to_time_t(
@@ -310,7 +307,7 @@ void GpgKeyOpera::GenerateKeyWithSubkey(
             subkey_params->GetKeySizeStr());
 
         algo_utf8 = (subkey_params->GetAlgo() + subkey_params->GetKeySizeStr());
-        algo = algo_utf8.c_str();
+        algo = algo_utf8.toUtf8();
         expires = 0;
 
         expires = to_time_t(boost::posix_time::ptime(
@@ -359,7 +356,7 @@ auto GpgKeyOpera::ModifyTOFUPolicy(const GpgKey& key,
                                    gpgme_tofu_policy_t tofu_policy)
     -> GpgError {
   const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gnupg_version", std::string{"2.0.0"});
+      "core", "gpgme.ctx.gnupg_version", QString{"2.0.0"});
   GF_CORE_LOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
 
   if (CompareSoftwareVersion(gnupg_version, "2.1.10") < 0) {

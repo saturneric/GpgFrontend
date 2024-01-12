@@ -44,9 +44,9 @@ class GPGFRONTEND_CORE_EXPORT GpgResultAnalyse {
   /**
    * @brief Get the Result Report object
    *
-   * @return const std::string
+   * @return const QString
    */
-  [[nodiscard]] auto GetResultReport() const -> const std::string;
+  [[nodiscard]] auto GetResultReport() const -> const QString;
 
   /**
    * @brief Get the Status object
@@ -75,9 +75,10 @@ class GPGFRONTEND_CORE_EXPORT GpgResultAnalyse {
    */
   void setStatus(int m_status);
 
-  std::stringstream stream_;  ///<
-  int status_ = 1;            ///<
-  bool analysed_ = false;     ///<
+  QString buffer_;
+  QTextStream stream_ = QTextStream(&buffer_);  ///<
+  int status_ = 1;                              ///<
+  bool analysed_ = false;                       ///<
 };
 
 }  // namespace GpgFrontend

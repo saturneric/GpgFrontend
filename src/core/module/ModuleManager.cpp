@@ -28,7 +28,6 @@
 
 #include "ModuleManager.h"
 
-#include <boost/format.hpp>
 #include <memory>
 #include <utility>
 
@@ -104,8 +103,7 @@ class ModuleManager::Impl {
     return grt_->ListenPublish(o, n, k, c);
   }
 
-  auto ListRTChildKeys(const std::string& n, const std::string& k)
-      -> std::vector<Key> {
+  auto ListRTChildKeys(const QString& n, const QString& k) -> std::vector<Key> {
     return grt_->ListChildKeys(n, k);
   }
 
@@ -123,7 +121,7 @@ auto IsModuleAcivate(ModuleIdentifier id) -> bool {
   return ModuleManager::GetInstance().IsModuleActivated(id);
 }
 
-auto UpsertRTValue(const std::string& namespace_, const std::string& key,
+auto UpsertRTValue(const QString& namespace_, const QString& key,
                    const std::any& value) -> bool {
   return ModuleManager::GetInstance().UpsertRTValue(namespace_, key,
                                                     std::any(value));
@@ -134,7 +132,7 @@ auto ListenRTPublishEvent(QObject* o, Namespace n, Key k, LPCallback c)
   return ModuleManager::GetInstance().ListenRTPublish(o, n, k, c);
 }
 
-auto ListRTChildKeys(const std::string& namespace_, const std::string& key)
+auto ListRTChildKeys(const QString& namespace_, const QString& key)
     -> std::vector<Key> {
   return ModuleManager::GetInstance().ListRTChildKeys(namespace_, key);
 }
@@ -176,7 +174,7 @@ auto ModuleManager::ListenRTPublish(QObject* o, Namespace n, Key k,
   return p_->ListenPublish(o, n, k, c);
 }
 
-auto ModuleManager::ListRTChildKeys(const std::string& n, const std::string& k)
+auto ModuleManager::ListRTChildKeys(const QString& n, const QString& k)
     -> std::vector<Key> {
   return p_->ListRTChildKeys(n, k);
 }

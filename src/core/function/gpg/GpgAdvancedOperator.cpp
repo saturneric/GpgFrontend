@@ -39,10 +39,10 @@ auto GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache() -> bool {
   bool success = false;
 
   const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gpgconf_path", std::string{});
+      "core", "gpgme.ctx.gpgconf_path", QString{});
   GF_CORE_LOG_DEBUG("got gpgconf path from rt: {}", gpgconf_path);
 
-  if (gpgconf_path.empty()) {
+  if (gpgconf_path.isEmpty()) {
     GF_CORE_LOG_ERROR("cannot get valid gpgconf path from rt, abort.");
     return false;
   }
@@ -50,8 +50,8 @@ auto GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache() -> bool {
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {gpgconf_path,
        {"--reload", "gpg-agent"},
-       [&](int exit_code, const std::string & /*p_out*/,
-           const std::string & /*p_err*/) {
+       [&](int exit_code, const QString & /*p_out*/,
+           const QString & /*p_err*/) {
          if (exit_code == 0) {
            GF_CORE_LOG_DEBUG("gpgconf reload exit code: {}", exit_code);
            success = true;
@@ -64,10 +64,10 @@ auto GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents() -> bool {
   bool success = false;
 
   const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gpgconf_path", std::string{});
+      "core", "gpgme.ctx.gpgconf_path", QString{});
   GF_CORE_LOG_DEBUG("got gpgconf path from rt: {}", gpgconf_path);
 
-  if (gpgconf_path.empty()) {
+  if (gpgconf_path.isEmpty()) {
     GF_CORE_LOG_ERROR("cannot get valid gpgconf path from rt, abort.");
     return false;
   }
@@ -75,7 +75,7 @@ auto GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents() -> bool {
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {gpgconf_path,
        {"--reload"},
-       [&](int exit_code, const std::string &p_out, const std::string &p_err) {
+       [&](int exit_code, const QString &p_out, const QString &p_err) {
          if (exit_code == 0) {
            success = true;
          } else {
@@ -90,10 +90,10 @@ auto GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents() -> bool {
 
 void GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
   const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gpgconf_path", std::string{});
+      "core", "gpgme.ctx.gpgconf_path", QString{});
   GF_CORE_LOG_DEBUG("got gpgconf path from rt: {}", gpgconf_path);
 
-  if (gpgconf_path.empty()) {
+  if (gpgconf_path.isEmpty()) {
     GF_CORE_LOG_ERROR("cannot get valid gpgconf path from rt, abort.");
     return;
   }
@@ -101,7 +101,7 @@ void GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {gpgconf_path,
        {"--verbose", "--kill", "all"},
-       [&](int exit_code, const std::string &p_out, const std::string &p_err) {
+       [&](int exit_code, const QString &p_out, const QString &p_err) {
          GF_CORE_LOG_DEBUG("gpgconf --kill all command got exit code: {}",
                            exit_code);
          bool success = true;
@@ -152,10 +152,10 @@ auto GpgFrontend::GpgAdvancedOperator::ResetConfigures() -> bool {
   bool success = false;
 
   const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gpgconf_path", std::string{});
+      "core", "gpgme.ctx.gpgconf_path", QString{});
   GF_CORE_LOG_DEBUG("got gpgconf path from rt: {}", gpgconf_path);
 
-  if (gpgconf_path.empty()) {
+  if (gpgconf_path.isEmpty()) {
     GF_CORE_LOG_ERROR("cannot get valid gpgconf path from rt, abort.");
     return false;
   }
@@ -163,7 +163,7 @@ auto GpgFrontend::GpgAdvancedOperator::ResetConfigures() -> bool {
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {gpgconf_path,
        {"--apply-defaults"},
-       [&](int exit_code, const std::string &p_out, const std::string &p_err) {
+       [&](int exit_code, const QString &p_out, const QString &p_err) {
          if (exit_code == 0) {
            success = true;
          } else {
@@ -182,15 +182,15 @@ auto GpgFrontend::GpgAdvancedOperator::StartGpgAgent() -> bool {
 
   const auto gpg_agent_path = Module::RetrieveRTValueTypedOrDefault<>(
       "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      "gnupg.gpg_agent_path", std::string{});
+      "gnupg.gpg_agent_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg agent path from rt: {}", gpg_agent_path);
 
   const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
       "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      "gnupg.home_path", std::string{});
+      "gnupg.home_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg home path from rt: {}", home_path);
 
-  if (gpg_agent_path.empty()) {
+  if (gpg_agent_path.isEmpty()) {
     GF_CORE_LOG_ERROR("cannot get valid gpg agent path from rt, abort.");
     return false;
   }
@@ -198,7 +198,7 @@ auto GpgFrontend::GpgAdvancedOperator::StartGpgAgent() -> bool {
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {gpg_agent_path,
        {"--homedir", home_path, "--daemon"},
-       [&](int exit_code, const std::string &p_out, const std::string &p_err) {
+       [&](int exit_code, const QString &p_out, const QString &p_err) {
          if (exit_code == 0) {
            success = true;
            GF_CORE_LOG_INFO("start gpg-agent successfully");
@@ -225,15 +225,15 @@ auto GpgFrontend::GpgAdvancedOperator::StartDirmngr() -> bool {
 
   const auto dirmngr_path = Module::RetrieveRTValueTypedOrDefault<>(
       "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      "gnupg.dirmngr_path", std::string{});
+      "gnupg.dirmngr_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg dirmngr path from rt: {}", dirmngr_path);
 
   const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
       "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      "gnupg.home_path", std::string{});
+      "gnupg.home_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg home path from rt: {}", home_path);
 
-  if (dirmngr_path.empty()) {
+  if (dirmngr_path.isEmpty()) {
     GF_CORE_LOG_ERROR("cannot get valid dirmngr path from rt, abort.");
     return false;
   }
@@ -241,7 +241,7 @@ auto GpgFrontend::GpgAdvancedOperator::StartDirmngr() -> bool {
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {dirmngr_path,
        {"--homedir", home_path, "--daemon"},
-       [&](int exit_code, const std::string &p_out, const std::string &p_err) {
+       [&](int exit_code, const QString &p_out, const QString &p_err) {
          if (exit_code == 0) {
            success = true;
            GF_CORE_LOG_INFO("start dirmngr successfully");
@@ -267,15 +267,15 @@ auto GpgFrontend::GpgAdvancedOperator::StartKeyBoxd() -> bool {
 
   const auto keyboxd_path = Module::RetrieveRTValueTypedOrDefault<>(
       "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      "gnupg.keyboxd_path", std::string{});
+      "gnupg.keyboxd_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg keyboxd path from rt: {}", keyboxd_path);
 
   const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
       "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      "gnupg.home_path", std::string{});
+      "gnupg.home_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg home path from rt: {}", home_path);
 
-  if (keyboxd_path.empty()) {
+  if (keyboxd_path.isEmpty()) {
     GF_CORE_LOG_ERROR("cannot get valid keyboxd path from rt, abort.");
     return false;
   }
@@ -283,7 +283,7 @@ auto GpgFrontend::GpgAdvancedOperator::StartKeyBoxd() -> bool {
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {keyboxd_path,
        {"--homedir", home_path, "--daemon"},
-       [&](int exit_code, const std::string &p_out, const std::string &p_err) {
+       [&](int exit_code, const QString &p_out, const QString &p_err) {
          if (exit_code == 0) {
            success = true;
            GF_CORE_LOG_INFO("start keyboxd successfully");

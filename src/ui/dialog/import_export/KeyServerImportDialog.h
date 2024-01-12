@@ -70,8 +70,7 @@ class KeyServerImportDialog : public GeneralDialog {
    * @param keyIds
    * @param keyserverUrl
    */
-  void SlotImport(std::vector<std::string> key_ids_list,
-                  std::string keyserver_url);
+  void SlotImport(std::vector<QString> key_ids_list, QString keyserver_url);
 
  signals:
 
@@ -154,7 +153,6 @@ class KeyServerImportDialog : public GeneralDialog {
    * @return QComboBox*
    */
   QComboBox* create_combo_box();
-
 
   QHBoxLayout* message_layout_;  ///<
 

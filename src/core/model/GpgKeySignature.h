@@ -86,16 +86,16 @@ class GPGFRONTEND_CORE_EXPORT GpgKeySignature {
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetKeyID() const -> std::string;
+  [[nodiscard]] auto GetKeyID() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetPubkeyAlgo() const -> std::string;
+  [[nodiscard]] auto GetPubkeyAlgo() const -> QString;
 
   /**
    * @brief Create a time object
@@ -114,30 +114,30 @@ class GPGFRONTEND_CORE_EXPORT GpgKeySignature {
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetUID() const -> std::string;
+  [[nodiscard]] auto GetUID() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetName() const -> std::string;
+  [[nodiscard]] auto GetName() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetEmail() const -> std::string;
+  [[nodiscard]] auto GetEmail() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetComment() const -> std::string;
+  [[nodiscard]] auto GetComment() const -> QString;
 
   /**
    * @brief Construct a new Gpg Key Signature object

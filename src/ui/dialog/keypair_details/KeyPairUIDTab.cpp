@@ -37,7 +37,7 @@
 
 namespace GpgFrontend::UI {
 
-KeyPairUIDTab::KeyPairUIDTab(const std::string& key_id, QWidget* parent)
+KeyPairUIDTab::KeyPairUIDTab(const QString& key_id, QWidget* parent)
     : QWidget(parent), m_key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
   create_uid_list();
   create_sign_list();
@@ -48,7 +48,7 @@ KeyPairUIDTab::KeyPairUIDTab(const std::string& key_id, QWidget* parent)
   auto* uid_buttons_layout = new QGridLayout();
 
   auto* add_uid_button = new QPushButton(_("New UID"));
-  auto manage_uid_button = new QPushButton(_("UID Management"));
+  auto* manage_uid_button = new QPushButton(_("UID Management"));
 
   if (m_key_.IsHasMasterKey()) {
     manage_uid_button->setMenu(manage_selected_uid_menu_);
@@ -184,13 +184,13 @@ void KeyPairUIDTab::slot_refresh_uid_list() {
   uid_list_->setRowCount(buffered_uids_.size());
 
   for (const auto& uid : buffered_uids_) {
-    auto* tmp0 = new QTableWidgetItem(QString::fromStdString(uid.GetName()));
+    auto* tmp0 = new QTableWidgetItem(uid.GetName());
     uid_list_->setItem(row, 1, tmp0);
 
-    auto* tmp1 = new QTableWidgetItem(QString::fromStdString(uid.GetEmail()));
+    auto* tmp1 = new QTableWidgetItem(uid.GetEmail());
     uid_list_->setItem(row, 2, tmp1);
 
-    auto* tmp2 = new QTableWidgetItem(QString::fromStdString(uid.GetComment()));
+    auto* tmp2 = new QTableWidgetItem(uid.GetComment());
     uid_list_->setItem(row, 3, tmp2);
 
     auto* tmp3 = new QTableWidgetItem(QString::number(row));
@@ -263,7 +263,7 @@ void KeyPairUIDTab::slot_refresh_sig_list() {
     sig_list_->setRowCount(buffered_signatures_.size());
 
     for (const auto& sig : buffered_signatures_) {
-      auto* tmp0 = new QTableWidgetItem(QString::fromStdString(sig.GetKeyID()));
+      auto* tmp0 = new QTableWidgetItem(sig.GetKeyID());
       sig_list_->setItem(sig_row, 0, tmp0);
 
       if (gpgme_err_code(sig.GetStatus()) == GPG_ERR_NO_PUBKEY) {
@@ -273,12 +273,10 @@ void KeyPairUIDTab::slot_refresh_sig_list() {
         auto* tmp3 = new QTableWidgetItem("<Unknown>");
         sig_list_->setItem(sig_row, 2, tmp3);
       } else {
-        auto* tmp2 =
-            new QTableWidgetItem(QString::fromStdString(sig.GetName()));
+        auto* tmp2 = new QTableWidgetItem(sig.GetName());
         sig_list_->setItem(sig_row, 1, tmp2);
 
-        auto* tmp3 =
-            new QTableWidgetItem(QString::fromStdString(sig.GetEmail()));
+        auto* tmp3 = new QTableWidgetItem(sig.GetEmail());
         sig_list_->setItem(sig_row, 2, tmp3);
       }
 #ifdef GPGFRONTEND_GUI_QT6
@@ -385,7 +383,7 @@ void KeyPairUIDTab::slot_del_uid() {
 
   QString keynames;
   for (auto& uid : *selected_uids) {
-    keynames.append(QString::fromStdString(uid));
+    keynames.append(uid);
     keynames.append("<br/>");
   }
 
@@ -405,7 +403,7 @@ void KeyPairUIDTab::slot_del_uid() {
         QMessageBox::critical(
             nullptr, _("Operation Failed"),
             QString(_("An error occurred during the delete %1 operation."))
-                .arg(uid.c_str()));
+                .arg(uid));
       }
     }
     emit SignalUpdateUIDInfo();
@@ -425,7 +423,7 @@ void KeyPairUIDTab::slot_set_primary_uid() {
 
   QString keynames;
 
-  keynames.append(QString::fromStdString(selected_uids->front()));
+  keynames.append(selected_uids->front());
   keynames.append("<br/>");
 
   int ret = QMessageBox::warning(
@@ -521,7 +519,7 @@ void KeyPairUIDTab::slot_del_uid_single() {
 
   QString keynames;
 
-  keynames.append(QString::fromStdString(selected_uids->front()));
+  keynames.append(selected_uids->front());
   keynames.append("<br/>");
 
   int ret = QMessageBox::warning(
@@ -574,7 +572,7 @@ void KeyPairUIDTab::slot_del_sign() {
 
   QString keynames;
 
-  keynames.append(QString::fromStdString(selected_signs->front().second));
+  keynames.append(selected_signs->front().second);
   keynames.append("<br/>");
 
   int ret =

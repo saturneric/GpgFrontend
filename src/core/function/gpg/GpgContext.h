@@ -38,14 +38,14 @@ namespace GpgFrontend {
  *
  */
 struct GpgContextInitArgs {
-  std::string db_path = {};  ///<
+  QString db_path = {};  ///<
 
   bool test_mode = false;                ///<
   bool offline_mode = false;             ///<
   bool auto_import_missing_key = false;  ///<
 
-  bool custom_gpgconf = false;      ///<
-  std::string custom_gpgconf_path;  ///<
+  bool custom_gpgconf = false;  ///<
+  QString custom_gpgconf_path;  ///<
 
   bool use_pinentry = false;  ///<
 };

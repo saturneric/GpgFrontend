@@ -38,15 +38,15 @@ GenerateRevokeCertification::GenerateRevokeCertification(QWidget* parent)
     : QWidget(parent) {}
 
 auto GenerateRevokeCertification::Exec(const GpgKey& key,
-                                       const std::string& output_path) -> int {
+                                       const QString& output_path) -> int {
   const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.app_path", std::string{});
+      "core", "gpgme.ctx.app_path", QString{});
   // get all components
   GpgCommandExecutor::ExecuteSync(
       {app_path,
        {"--command-fd", "0", "--status-fd", "1", "--no-tty", "-o",
         std::move(output_path), "--gen-revoke", key.GetFingerprint()},
-       [=](int exit_code, const std::string& p_out, const std::string& p_err) {
+       [=](int exit_code, const QString& p_out, const QString& p_err) {
          if (exit_code != 0) {
            GF_UI_LOG_ERROR(
                "gnupg gen revoke execute error, process stderr: {}, process "

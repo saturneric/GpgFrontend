@@ -30,8 +30,6 @@
 
 #include <qt-aes/qaesencryption.h>
 
-#include <boost/format.hpp>
-
 #include "core/function/KeyPackageOperator.h"
 #include "core/function/PassphraseGenerator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
@@ -43,16 +41,16 @@
 namespace GpgFrontend {
 
 auto KeyPackageOperator::GeneratePassphrase(
-    const std::filesystem::path& phrase_path, std::string& phrase) -> bool {
+    const std::filesystem::path& phrase_path, QString& phrase) -> bool {
   phrase = PassphraseGenerator::GetInstance().Generate(256);
   GF_CORE_LOG_DEBUG("generated passphrase: {} bytes", phrase.size());
-  return WriteFileStd(phrase_path, phrase);
+  return WriteFile(phrase_path.c_str(), phrase.toUtf8());
 }
 
 void KeyPackageOperator::GenerateKeyPackage(
     const std::filesystem::path& key_package_path,
-    const std::string& key_package_name, const KeyArgsList& keys,
-    std::string& phrase, bool secret, const OperationCallback& cb) {
+    const QString& key_package_name, const KeyArgsList& keys, QString& phrase,
+    bool secret, const OperationCallback& cb) {
   GF_CORE_LOG_DEBUG("generating key package: {}", key_package_name);
 
   GpgKeyImportExporter::GetInstance().ExportKeys(
@@ -70,16 +68,16 @@ void KeyPackageOperator::GenerateKeyPackage(
         }
 
         auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
-        auto key = QByteArray::fromStdString(phrase);
+
         auto data = gf_buffer.ConvertToQByteArray().toBase64();
-        auto hash_key =
-            QCryptographicHash::hash(key, QCryptographicHash::Sha256);
+        auto hash_key = QCryptographicHash::hash(phrase.toUtf8(),
+                                                 QCryptographicHash::Sha256);
         QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
                                   QAESEncryption::Padding::ISO);
         auto encoded_data = encryption.encode(data, hash_key);
         GF_CORE_LOG_DEBUG("writing key package, name: {}", key_package_name);
 
-        cb(WriteFileStd(key_package_path, encoded_data.toStdString()) ? 0 : -1,
+        cb(WriteFile(key_package_path.c_str(), encoded_data) ? 0 : -1,
            TransferParams());
         return;
       });
@@ -91,26 +89,26 @@ auto KeyPackageOperator::ImportKeyPackage(
     -> std::tuple<bool, std::shared_ptr<GpgImportInformation>> {
   GF_CORE_LOG_DEBUG("importing key package: {}", key_package_path.u8string());
 
-  std::string encrypted_data;
-  ReadFileStd(key_package_path, encrypted_data);
+  QByteArray encrypted_data;
+  ReadFile(key_package_path.c_str(), encrypted_data);
 
-  if (encrypted_data.empty()) {
+  if (encrypted_data.isEmpty()) {
     GF_CORE_LOG_ERROR("failed to read key package: {}",
                       key_package_path.u8string());
     return {false, nullptr};
   };
 
-  std::string passphrase;
-  ReadFileStd(phrase_path, passphrase);
+  QByteArray passphrase;
+  ReadFile(phrase_path.c_str(), passphrase);
   GF_CORE_LOG_DEBUG("passphrase: {} bytes", passphrase.size());
   if (passphrase.size() != 256) {
     GF_CORE_LOG_ERROR("failed to read passphrase: {}", phrase_path.u8string());
     return {false, nullptr};
   }
 
-  auto hash_key = QCryptographicHash::hash(
-      QByteArray::fromStdString(passphrase), QCryptographicHash::Sha256);
-  auto encoded = QByteArray::fromStdString(encrypted_data);
+  auto hash_key =
+      QCryptographicHash::hash(passphrase, QCryptographicHash::Sha256);
+  auto encoded = encrypted_data;
 
   QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
                             QAESEncryption::Padding::ISO);
@@ -130,22 +128,18 @@ auto KeyPackageOperator::ImportKeyPackage(
   return {true, import_info};
 }
 
-auto KeyPackageOperator::GenerateKeyPackageName() -> std::string {
+auto KeyPackageOperator::GenerateKeyPackageName() -> QString {
   return generate_key_package_name();
 }
 
 /**
  * @brief generate key package name
  *
- * @return std::string key package name
+ * @return QString key package name
  */
-auto KeyPackageOperator::generate_key_package_name() -> std::string {
-  std::random_device rd_;          ///< Random device
-  auto mt_ = std::mt19937(rd_());  ///< Mersenne twister
-
-  std::uniform_int_distribution<int> dist(999, 99999);
-  auto file_string = boost::format("KeyPackage_%1%") % dist(mt_);
-  return file_string.str();
+auto KeyPackageOperator::generate_key_package_name() -> QString {
+  return QString("KeyPackage_%1%")
+      .arg(QRandomGenerator::global()->bounded(999, 99999));
 }
 
 }  // namespace GpgFrontend

@@ -94,15 +94,13 @@ void import_unknown_key_from_keyserver(
 }
 
 void refresh_info_board(InfoBoardWidget *info_board, int status,
-                        const std::string &report_text) {
+                        const QString &report_text) {
   if (status < 0)
-    info_board->SlotRefresh(QString::fromStdString(report_text),
-                            INFO_ERROR_CRITICAL);
+    info_board->SlotRefresh(report_text, INFO_ERROR_CRITICAL);
   else if (status > 0)
-    info_board->SlotRefresh(QString::fromStdString(report_text), INFO_ERROR_OK);
+    info_board->SlotRefresh(report_text, INFO_ERROR_OK);
   else
-    info_board->SlotRefresh(QString::fromStdString(report_text),
-                            INFO_ERROR_WARN);
+    info_board->SlotRefresh(report_text, INFO_ERROR_WARN);
 }
 
 void process_result_analyse(TextEdit *edit, InfoBoardWidget *info_board,
@@ -123,12 +121,11 @@ void process_result_analyse(TextEdit *edit, InfoBoardWidget *info_board,
       result_analyse_a.GetResultReport() + result_analyse_b.GetResultReport());
 }
 
-void process_operation(QWidget *parent, const std::string &waiting_title,
+void process_operation(QWidget *parent, const QString &waiting_title,
                        const Thread::Task::TaskRunnable func,
                        const Thread::Task::TaskCallback callback,
                        DataObjectPtr data_object) {
-  auto *dialog =
-      new WaitingDialog(QString::fromStdString(waiting_title), parent);
+  auto *dialog = new WaitingDialog(waiting_title, parent);
 
   auto *process_task = new Thread::Task(std::move(func), waiting_title,
                                         data_object, std::move(callback));
@@ -226,11 +223,11 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
 }
 
 void CommonUtils::WaitForOpera(QWidget *parent,
-                               const std::string &waiting_dialog_title,
+                               const QString &waiting_dialog_title,
                                const OperaWaitingCb &opera) {
   QEventLoop looper;
   QPointer<WaitingDialog> const dialog =
-      new WaitingDialog(QString::fromStdString(waiting_dialog_title), parent);
+      new WaitingDialog(waiting_dialog_title, parent);
   connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
   connect(dialog, &QDialog::finished, dialog, &QDialog::deleteLater);
   dialog->show();
@@ -279,15 +276,14 @@ void CommonUtils::RaiseFailureMessageBox(QWidget *parent, GpgError err) {
 
   QMessageBox::critical(
       parent, _("Failure"),
-      QString::fromStdString(
-          (boost::format(_("Gpg Operation failed.\n\nError code: %1%\nSource: "
-                           " %2%\nDescription: %3%")) %
-           err_code % desc.first % desc.second)
-              .str()));
+      QString(_("Gpg Operation failed.\n\nError code: %1%\nSource: "
+                " %2%\nDescription: %3%"))
+          .arg(err_code)
+          .arg(desc.first)
+          .arg(desc.second));
 }
 
-void CommonUtils::SlotImportKeys(QWidget *parent,
-                                 const std::string &in_buffer) {
+void CommonUtils::SlotImportKeys(QWidget *parent, const QString &in_buffer) {
   auto info =
       GpgKeyImportExporter::GetInstance().ImportKey(GFBuffer(in_buffer));
   emit SignalKeyStatusUpdated();
@@ -307,7 +303,7 @@ void CommonUtils::SlotImportKeyFromFile(QWidget *parent) {
                             _("Failed to open file: ") + file_name);
       return;
     }
-    SlotImportKeys(parent, key_buffer.toStdString());
+    SlotImportKeys(parent, key_buffer);
   }
 }
 
@@ -318,12 +314,11 @@ void CommonUtils::SlotImportKeyFromKeyServer(QWidget *parent) {
 
 void CommonUtils::SlotImportKeyFromClipboard(QWidget *parent) {
   QClipboard *cb = QApplication::clipboard();
-  SlotImportKeys(parent,
-                 cb->text(QClipboard::Clipboard).toUtf8().toStdString());
+  SlotImportKeys(parent, cb->text(QClipboard::Clipboard));
 }
 
 void CommonUtils::SlotExecuteCommand(
-    const std::string &cmd, const QStringList &arguments,
+    const QString &cmd, const QStringList &arguments,
     const std::function<void(QProcess *)> &interact_func) {
   QEventLoop looper;
   auto *cmd_process = new QProcess(&looper);
@@ -348,7 +343,7 @@ void CommonUtils::SlotExecuteCommand(
               GF_UI_LOG_WARN("error in executing command: {}", cmd);
           });
 
-  cmd_process->setProgram(QString::fromStdString(cmd));
+  cmd_process->setProgram(cmd);
   cmd_process->setArguments(arguments);
   cmd_process->start();
   looper.exec();
@@ -393,10 +388,10 @@ void CommonUtils::SlotExecuteGpgCommand(
           });
 
   const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.app_path", std::string{});
+      "core", "gpgme.ctx.app_path", QString{});
   GF_UI_LOG_DEBUG("got gnupg app path from rt: {}", app_path);
 
-  gpg_process->setProgram(app_path.c_str());
+  gpg_process->setProgram(app_path);
   gpg_process->setArguments(arguments);
   gpg_process->start();
   looper.exec();
@@ -407,7 +402,7 @@ void CommonUtils::SlotExecuteGpgCommand(
 void CommonUtils::SlotImportKeyFromKeyServer(
     const KeyIdArgsList &key_ids, const ImportCallbackFunctiopn &callback) {
   // target key server that we need to import key from it
-  std::string target_keyserver;
+  QString target_keyserver;
 
   try {
     SettingsObject key_server_json("key_server");
@@ -425,7 +420,7 @@ void CommonUtils::SlotImportKeyFromKeyServer(
       throw std::runtime_error("default_server index out of range");
     }
     target_keyserver =
-        key_server_list[target_key_server_index].get<std::string>();
+        key_server_list[target_key_server_index].get<std::string>().c_str();
 
     GF_UI_LOG_DEBUG("set target key server to default Key Server: {}",
                     target_keyserver);
@@ -438,7 +433,7 @@ void CommonUtils::SlotImportKeyFromKeyServer(
   }
 
   auto *thread = QThread::create([target_keyserver, key_ids, callback]() {
-    QUrl target_keyserver_url(target_keyserver.c_str());
+    QUrl target_keyserver_url(target_keyserver);
 
     auto network_manager = std::make_unique<QNetworkAccessManager>();
     // LOOP
@@ -447,9 +442,9 @@ void CommonUtils::SlotImportKeyFromKeyServer(
 
     for (const auto &key_id : key_ids) {
       // New Req Url
-      QUrl req_url(
-          target_keyserver_url.scheme() + "://" + target_keyserver_url.host() +
-          "/pks/lookup?op=get&search=0x" + key_id.c_str() + "&options=mr");
+      QUrl req_url(target_keyserver_url.scheme() + "://" +
+                   target_keyserver_url.host() +
+                   "/pks/lookup?op=get&search=0x" + key_id + "&options=mr");
 
       GF_UI_LOG_DEBUG("request url: {}", req_url.toString().toStdString());
 
@@ -460,7 +455,7 @@ void CommonUtils::SlotImportKeyFromKeyServer(
       loop.exec();
 
       // Detect status
-      std::string status;
+      QString status;
       auto error = reply->error();
       if (error != QNetworkReply::NoError) {
         switch (error) {
@@ -525,7 +520,7 @@ void CommonUtils::slot_popup_passphrase_input_dialog() {
   dialog->resize(500, 80);
   dialog->exec();
 
-  SetTempCacheValue("__key_passphrase", dialog->textValue().toStdString());
+  SetTempCacheValue("__key_passphrase", dialog->textValue());
 
   // send signal
   // emit SignalUserInputPassphraseDone();
@@ -552,8 +547,8 @@ bool CommonUtils::KeyExistsinFavouriteList(const GpgKey &key) {
     CacheManager::GetInstance().SaveCache("favourite_key_pair",
                                           nlohmann::json::array());
   }
-  return std::find(key_array.begin(), key_array.end(), key.GetFingerprint()) !=
-         key_array.end();
+  return std::find(key_array.begin(), key_array.end(),
+                   key.GetFingerprint().toStdString()) != key_array.end();
 }
 
 void CommonUtils::AddKey2Favourtie(const GpgKey &key) {
@@ -562,7 +557,7 @@ void CommonUtils::AddKey2Favourtie(const GpgKey &key) {
     CacheManager::GetInstance().SaveCache("favourite_key_pair",
                                           nlohmann::json::array());
   }
-  key_array.push_back(key.GetFingerprint());
+  key_array.push_back(key.GetFingerprint().toStdString());
   CacheManager::GetInstance().SaveCache("favourite_key_pair", key_array, true);
 }
 
@@ -573,10 +568,11 @@ void CommonUtils::RemoveKeyFromFavourite(const GpgKey &key) {
                                           nlohmann::json::array(), true);
     return;
   }
-  auto it = std::find(key_array.begin(), key_array.end(), key.GetFingerprint());
+  auto it = std::find(key_array.begin(), key_array.end(),
+                      key.GetFingerprint().toStdString());
   if (it != key_array.end()) {
-    auto rm_it =
-        std::remove(key_array.begin(), key_array.end(), key.GetFingerprint());
+    auto rm_it = std::remove(key_array.begin(), key_array.end(),
+                             key.GetFingerprint().toStdString());
     key_array.erase(rm_it, key_array.end());
     CacheManager::GetInstance().SaveCache("favourite_key_pair", key_array);
   }

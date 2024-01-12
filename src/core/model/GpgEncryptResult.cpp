@@ -48,12 +48,12 @@ auto GpgEncryptResult::GetRaw() -> gpgme_encrypt_result_t {
 }
 
 auto GpgEncryptResult::InvalidRecipients()
-    -> std::vector<std::tuple<std::string, GpgError>> {
-  std::vector<std::tuple<std::string, GpgError>> result;
+    -> std::vector<std::tuple<QString, GpgError>> {
+  std::vector<std::tuple<QString, GpgError>> result;
   for (auto* invalid_key = result_ref_->invalid_recipients;
        invalid_key != nullptr; invalid_key = invalid_key->next) {
     try {
-      result.emplace_back(std::string{invalid_key->fpr}, invalid_key->reason);
+      result.emplace_back(QString{invalid_key->fpr}, invalid_key->reason);
     } catch (...) {
       GF_CORE_LOG_ERROR(
           "caught exception when processing invalid_recipients, "

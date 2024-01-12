@@ -36,6 +36,7 @@
 
 #include "core/function/CoreSignalStation.h"
 #include "core/function/basic/GpgFunctionObject.h"
+#include "core/model/GpgPassphraseContext.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
 #include "utils/MemoryUtils.h"
@@ -91,7 +92,7 @@ class GpgContext::Impl {
                                const char *passphrase_info, int last_was_bad,
                                int fd) -> gpgme_error_t {
     size_t res;
-    std::string pass = "abcdefg\n";
+    QString pass = "abcdefg\n";
     auto pass_len = pass.size();
 
     size_t off = 0;
@@ -105,38 +106,42 @@ class GpgContext::Impl {
   }
 
   static auto CustomPassphraseCb(void *hook, const char *uid_hint,
-                                 const char *passphrase_info, int last_was_bad,
+                                 const char *passphrase_info, int prev_was_bad,
                                  int fd) -> gpgme_error_t {
-    std::string passphrase;
+    auto context =
+        QSharedPointer<GpgPassphraseContext>(new GpgPassphraseContext(
+            uid_hint != nullptr ? uid_hint : "",
+            passphrase_info != nullptr ? passphrase_info : "",
+            prev_was_bad != 0));
 
     GF_CORE_LOG_DEBUG(
         "custom passphrase cb called, uid: {}, info: {}, last_was_bad: {}",
-        uid_hint == nullptr ? "<empty>" : std::string{uid_hint},
-        passphrase_info == nullptr ? "<empty>" : std::string{passphrase_info},
-        last_was_bad);
-
-    emit CoreSignalStation::GetInstance()->SignalNeedUserInputPassphrase();
+        uid_hint == nullptr ? "<empty>" : QString{uid_hint},
+        passphrase_info == nullptr ? "<empty>" : QString{passphrase_info},
+        prev_was_bad);
 
     QEventLoop looper;
-    QObject::connect(
-        CoreSignalStation::GetInstance(),
-        &CoreSignalStation::SignalUserInputPassphraseCallback, &looper,
-        [&](const QByteArray &buffer) { passphrase = buffer.toStdString(); });
     QObject::connect(CoreSignalStation::GetInstance(),
                      &CoreSignalStation::SignalUserInputPassphraseCallback,
                      &looper, &QEventLoop::quit);
+
+    emit CoreSignalStation::GetInstance()->SignalNeedUserInputPassphrase(
+        context);
     looper.exec();
 
+    auto passphrase = context->GetPassphrase().toStdString();
     auto passpahrase_size = passphrase.size();
     GF_CORE_LOG_DEBUG("get passphrase from pinentry size: {}",
                       passpahrase_size);
 
-    size_t off = 0;
     size_t res = 0;
-    do {
-      res = gpgme_io_write(fd, &passphrase[off], passpahrase_size - off);
-      if (res > 0) off += res;
-    } while (res > 0 && off != passpahrase_size);
+    if (passpahrase_size > 0) {
+      size_t off = 0;
+      do {
+        res = gpgme_io_write(fd, &passphrase[off], passpahrase_size - off);
+        if (res > 0) off += res;
+      } while (res > 0 && off != passpahrase_size);
+    }
 
     res += gpgme_io_write(fd, "\n", 1);
 
@@ -165,7 +170,7 @@ class GpgContext::Impl {
     assert(ctx != nullptr);
 
     const auto gpgme_version = Module::RetrieveRTValueTypedOrDefault<>(
-        "core", "gpgme.version", std::string{"0.0.0"});
+        "core", "gpgme.version", QString{"0.0.0"});
     GF_CORE_LOG_DEBUG("got gpgme version version from rt: {}", gpgme_version);
 
     if (gpgme_get_keylist_mode(ctx) == 0) {
@@ -184,21 +189,21 @@ class GpgContext::Impl {
 
   static auto set_ctx_openpgp_engine_info(gpgme_ctx_t ctx) -> bool {
     const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
-        "core", "gpgme.ctx.app_path", std::string{});
+        "core", "gpgme.ctx.app_path", QString{});
     const auto database_path = Module::RetrieveRTValueTypedOrDefault<>(
-        "core", "gpgme.ctx.database_path", std::string{});
+        "core", "gpgme.ctx.database_path", QString{});
 
     GF_CORE_LOG_DEBUG("ctx set engine info, db path: {}, app path: {}",
                       database_path, app_path);
 
-    const char *app_path_c_str = app_path.c_str();
-    const char *db_path_c_str = database_path.c_str();
+    const char *app_path_c_str = app_path.toUtf8();
+    const char *db_path_c_str = database_path.toUtf8();
 
-    if (app_path.empty()) {
+    if (app_path.isEmpty()) {
       app_path_c_str = nullptr;
     }
 
-    if (database_path.empty()) {
+    if (database_path.isEmpty()) {
       db_path_c_str = nullptr;
     }
 
@@ -215,12 +220,12 @@ class GpgContext::Impl {
                              const GpgContextInitArgs &args) -> bool {
     assert(ctx != nullptr);
 
-    if (args.custom_gpgconf && !args.custom_gpgconf_path.empty()) {
+    if (args.custom_gpgconf && !args.custom_gpgconf_path.isEmpty()) {
       GF_CORE_LOG_DEBUG("set custom gpgconf path: {}",
                         args.custom_gpgconf_path);
       auto err =
           gpgme_ctx_set_engine_info(ctx, GPGME_PROTOCOL_GPGCONF,
-                                    args.custom_gpgconf_path.c_str(), nullptr);
+                                    args.custom_gpgconf_path.toUtf8(), nullptr);
 
       assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
       if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
@@ -262,9 +267,8 @@ class GpgContext::Impl {
     }
 
     // set custom gpg key db path
-    if (!args_.db_path.empty()) {
-      Module::UpsertRTValue("core", "gpgme.ctx.database_path",
-                            std::string(args_.db_path));
+    if (!args_.db_path.isEmpty()) {
+      Module::UpsertRTValue("core", "gpgme.ctx.database_path", args_.db_path);
     }
 
     if (!set_ctx_openpgp_engine_info(ctx)) {

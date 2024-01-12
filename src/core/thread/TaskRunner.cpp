@@ -28,12 +28,6 @@
 
 #include "core/thread/TaskRunner.h"
 
-#include <QtConcurrent>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <utility>
-
 #include "core/thread/Task.h"
 
 namespace GpgFrontend::Thread {
@@ -56,7 +50,32 @@ class TaskRunner::Impl : public QThread {
     task->SafelyRun();
   }
 
-  void PostTask(const std::string& name, const Task::TaskRunnable& runnerable,
+  std::tuple<QPointer<Task>, Task::TaskTrigger> RegisterTask(
+      const QString& name, const Task::TaskRunnable& runnerable,
+      const Task::TaskCallback& cb, DataObjectPtr params) {
+    auto raw_task = SecureCreateQSharedObject<Task>(runnerable, name,
+                                                    std::move(params), cb);
+    raw_task->setParent(nullptr);
+    raw_task->moveToThread(this);
+
+    connect(raw_task.get(), &Task::SignalRun, this, [this, raw_task]() {
+      pending_tasks_[raw_task->GetFullID()] = raw_task;
+    });
+
+    connect(raw_task.get(), &Task::SignalTaskEnd, this, [this, raw_task]() {
+      pending_tasks_.remove(raw_task->GetFullID());
+    });
+
+    GF_CORE_LOG_TRACE("runner starts task: {} at thread: {}",
+                      raw_task->GetFullID(), this->currentThreadId());
+
+    QPointer<Task> const task = raw_task.get();
+    return {nullptr, [task]() {
+              if (task != nullptr) task->SafelyRun();
+            }};
+  }
+
+  void PostTask(const QString& name, const Task::TaskRunnable& runnerable,
                 const Task::TaskCallback& cb, DataObjectPtr params) {
     PostTask(new Task(runnerable, name, std::move(params), cb));
   }
@@ -89,9 +108,7 @@ class TaskRunner::Impl : public QThread {
   }
 
  private:
-  static auto generate_uuid() -> std::string {
-    return boost::uuids::to_string(boost::uuids::random_generator()());
-  }
+  QMap<QString, QSharedPointer<Task>> pending_tasks_;
 };
 
 TaskRunner::TaskRunner() : p_(SecureCreateUniqueObject<Impl>()) {}
@@ -104,8 +121,7 @@ TaskRunner::~TaskRunner() {
 
 void TaskRunner::PostTask(Task* task) { p_->PostTask(task); }
 
-void TaskRunner::PostTask(const std::string& name,
-                          const Task::TaskRunnable& runner,
+void TaskRunner::PostTask(const QString& name, const Task::TaskRunnable& runner,
                           const Task::TaskCallback& cb, DataObjectPtr params) {
   p_->PostTask(name, runner, cb, std::move(params));
 }
@@ -129,4 +145,9 @@ auto TaskRunner::GetThread() -> QThread* { return p_.get(); }
 
 auto TaskRunner::IsRunning() -> bool { return p_->isRunning(); }
 
+std::tuple<QPointer<Task>, Task::TaskTrigger> TaskRunner::RegisterTask(
+    const QString& name, const Task::TaskRunnable& runnable,
+    const Task::TaskCallback& cb, DataObjectPtr p_pbj) {
+  return p_->RegisterTask(name, runnable, cb, p_pbj);
+}
 }  // namespace GpgFrontend::Thread

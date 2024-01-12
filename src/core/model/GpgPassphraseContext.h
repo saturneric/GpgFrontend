@@ -1,3 +1,5 @@
+#include <utility>
+
 /**
  * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
@@ -26,21 +28,33 @@
  *
  */
 
-#include "core/function/CharsetOperator.h"
-
-#include "core/utils/LogUtils.h"
+#pragma once
 
 namespace GpgFrontend {
 
-auto CharsetOperator::Detect(const QString &buffer)
-    -> CharsetOperator::CharsetInfo {
-  // TODO
-  return {"", "", 0};
-}
+class GPGFRONTEND_CORE_EXPORT GpgPassphraseContext : public QObject {
+  Q_OBJECT
+ public:
+  GpgPassphraseContext(const QString& uids_info, const QString& passphrase_info,
+                       bool prev_was_bad);
 
-auto CharsetOperator::Convert2Utf8(const QString &buffer, QString &out_buffer,
-                                   QString from_charset_name) -> bool {
-  // TODO
-}
+  GpgPassphraseContext();
+
+  void SetPassphrase(const QString& passphrase);
+
+  [[nodiscard]] auto GetPassphrase() const -> QString;
+
+  [[nodiscard]] auto GetUidsInfo() const -> QString;
+
+  [[nodiscard]] auto GetPassphraseInfo() const -> QString;
+
+  [[nodiscard]] auto IsPreWasBad() const -> bool;
+
+ private:
+  QString passphrase_info_;
+  QString uids_info_;
+  QString passphrase_;
+  bool prev_was_bad_;
+};
 
 }  // namespace GpgFrontend

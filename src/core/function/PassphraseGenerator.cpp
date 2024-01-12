@@ -28,23 +28,21 @@
 
 #include "PassphraseGenerator.h"
 
-#include <boost/format.hpp>
-
 namespace GpgFrontend {
 
-auto PassphraseGenerator::Generate(int len) -> std::string {
-  std::uniform_int_distribution<int> dist(999, 99999);
-
-  auto file_string = boost::format("KeyPackage_%1%") % dist(mt_);
+auto PassphraseGenerator::Generate(int len) -> QString {
+  auto file_string = QString("KeyPackage_%1")
+                         .arg(QRandomGenerator::global()->bounded(999, 99999));
   static const char kAlphanum[] =
       "0123456789"
       "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
       "abcdefghijklmnopqrstuvwxyz";
-  std::string tmp_str;
+  QString tmp_str;
   tmp_str.reserve(len);
 
   for (int i = 0; i < len; ++i) {
-    tmp_str += kAlphanum[dist(mt_) % (sizeof(kAlphanum) - 1)];
+    tmp_str += kAlphanum[QRandomGenerator::global()->bounded(
+        static_cast<quint32>(sizeof(kAlphanum)))];
   }
   return tmp_str;
 }

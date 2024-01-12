@@ -88,7 +88,7 @@ class VersionCheckTask : public Thread::Task {
   QNetworkReply* latest_reply_ = nullptr;   ///< latest version info reply
   QNetworkReply* current_reply_ = nullptr;  ///< current version info reply
   QNetworkAccessManager* network_manager_;  ///<
-  std::string current_version_;
+  QString current_version_;
   SoftwareVersion version_;
 };
 

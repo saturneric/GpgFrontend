@@ -138,14 +138,11 @@ void KeyImportDetailDialog::create_keys_table() {
     keys_table_->setRowCount(row + 1);
     auto key = GpgKeyGetter::GetInstance().GetKey(imp_key.fpr);
     if (!key.IsGood()) continue;
-    keys_table_->setItem(
-        row, 0, new QTableWidgetItem(QString::fromStdString(key.GetName())));
-    keys_table_->setItem(
-        row, 1, new QTableWidgetItem(QString::fromStdString(key.GetEmail())));
+    keys_table_->setItem(row, 0, new QTableWidgetItem(key.GetName()));
+    keys_table_->setItem(row, 1, new QTableWidgetItem(key.GetEmail()));
     keys_table_->setItem(
         row, 2, new QTableWidgetItem(get_status_string(imp_key.import_status)));
-    keys_table_->setItem(
-        row, 3, new QTableWidgetItem(QString::fromStdString(imp_key.fpr)));
+    keys_table_->setItem(row, 3, new QTableWidgetItem(imp_key.fpr));
     row++;
   }
   keys_table_->horizontalHeader()->setSectionResizeMode(

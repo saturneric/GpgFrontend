@@ -117,9 +117,9 @@ void KeyGenDialog::slot_key_gen_accept() {
     /**
      * create the string for key generation
      */
-    gen_key_info_->SetName(name_edit_->text().toStdString());
-    gen_key_info_->SetEmail(email_edit_->text().toStdString());
-    gen_key_info_->SetComment(comment_edit_->text().toStdString());
+    gen_key_info_->SetName(name_edit_->text());
+    gen_key_info_->SetEmail(email_edit_->text());
+    gen_key_info_->SetComment(comment_edit_->text());
 
     gen_key_info_->SetKeyLength(key_size_spin_box_->value());
 
@@ -263,10 +263,10 @@ void KeyGenDialog::slot_activated_key_type(int index) {
   const auto [name, key_algo, subkey_algo] =
       gen_key_info_->GetSupportedKeyAlgo()[index];
 
-  assert(!key_algo.empty());
+  assert(!key_algo.isEmpty());
   gen_key_info_->SetAlgo(key_algo);
 
-  if (!subkey_algo.empty()) {
+  if (!subkey_algo.isEmpty()) {
     if (gen_subkey_info_ == nullptr) {
       gen_subkey_info_ = SecureCreateSharedObject<GenKeyInfo>(true);
     }
@@ -393,7 +393,7 @@ QGroupBox* KeyGenDialog::create_basic_info_group_box() {
   key_type_combo_box_ = new QComboBox(this);
 
   for (const auto& algo : GenKeyInfo::GetSupportedKeyAlgo()) {
-    key_type_combo_box_->addItem(QString::fromStdString(std::get<0>(algo)));
+    key_type_combo_box_->addItem(std::get<0>(algo));
   }
   if (!GenKeyInfo::GetSupportedKeyAlgo().empty()) {
     key_type_combo_box_->setCurrentIndex(0);

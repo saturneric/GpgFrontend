@@ -34,7 +34,7 @@ namespace GpgFrontend {
 
 class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
  public:
-  using KeyGenAlgo = std::tuple<std::string, std::string, std::string>;
+  using KeyGenAlgo = std::tuple<QString, QString, QString>;
 
   /**
    * @brief Construct a new Gen Key Info object
@@ -47,14 +47,14 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
   /**
    * @brief Get the Supported Key Algo object
    *
-   * @return const std::vector<std::string>&
+   * @return const std::vector<QString>&
    */
   static auto GetSupportedKeyAlgo() -> const std::vector<KeyGenAlgo> &;
 
   /**
    * @brief Get the Supported Subkey Algo object
    *
-   * @return const std::vector<std::string>&
+   * @return const std::vector<QString>&
    */
   static auto GetSupportedSubkeyAlgo() -> const std::vector<KeyGenAlgo> &;
 
@@ -76,72 +76,72 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
   /**
    * @brief Get the Userid object
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetUserid() const -> std::string;
+  [[nodiscard]] auto GetUserid() const -> QString;
 
   /**
    * @brief Set the Name object
    *
    * @param m_name
    */
-  void SetName(const std::string &m_name);
+  void SetName(const QString &m_name);
 
   /**
    * @brief Set the Email object
    *
    * @param m_email
    */
-  void SetEmail(const std::string &m_email);
+  void SetEmail(const QString &m_email);
 
   /**
    * @brief Set the Comment object
    *
    * @param m_comment
    */
-  void SetComment(const std::string &m_comment);
+  void SetComment(const QString &m_comment);
 
   /**
    * @brief Get the Name object
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetName() const -> std::string;
+  [[nodiscard]] auto GetName() const -> QString;
 
   /**
    * @brief Get the Email object
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetEmail() const -> std::string;
+  [[nodiscard]] auto GetEmail() const -> QString;
 
   /**
    * @brief Get the Comment object
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetComment() const -> std::string;
+  [[nodiscard]] auto GetComment() const -> QString;
 
   /**
    * @brief Get the Algo object
    *
-   * @return const std::string&
+   * @return const QString&
    */
-  [[nodiscard]] auto GetAlgo() const -> const std::string &;
+  [[nodiscard]] auto GetAlgo() const -> const QString &;
 
   /**
    * @brief Set the Algo object
    *
    * @param m_algo
    */
-  void SetAlgo(const std::string &);
+  void SetAlgo(const QString &);
 
   /**
    * @brief Get the Key Size Str object
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetKeySizeStr() const -> std::string;
+  [[nodiscard]] auto GetKeySizeStr() const -> QString;
 
   /**
    * @brief Get the Key Size object
@@ -272,16 +272,16 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
   /**
    * @brief Get the Pass Phrase object
    *
-   * @return const std::string&
+   * @return const QString&
    */
-  [[nodiscard]] auto GetPassPhrase() const -> const std::string &;
+  [[nodiscard]] auto GetPassPhrase() const -> const QString &;
 
   /**
    * @brief Set the Pass Phrase object
    *
    * @param m_pass_phrase
    */
-  void SetPassPhrase(const std::string &m_pass_phrase);
+  void SetPassPhrase(const QString &m_pass_phrase);
 
   /**
    * @brief
@@ -338,11 +338,11 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
 
  private:
   bool subkey_ = false;  ///<
-  std::string name_;     ///<
-  std::string email_;    ///<
-  std::string comment_;  ///<
+  QString name_;         ///<
+  QString email_;        ///<
+  QString comment_;      ///<
 
-  std::string algo_;  ///<
+  QString algo_;  ///<
   int key_size_ = 2048;
   boost::posix_time::ptime expired_ =
       boost::posix_time::second_clock::local_time() +
@@ -356,7 +356,7 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
   int suggest_size_addition_step_ = 1024;  ///<
   int suggest_min_key_size_ = 1024;        ///<
 
-  std::string passphrase_;  ///<
+  QString passphrase_;  ///<
 
   bool allow_encryption_ = true;             ///<
   bool allow_change_encryption_ = true;      ///<

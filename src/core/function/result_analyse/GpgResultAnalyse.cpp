@@ -28,9 +28,8 @@
 
 #include "GpgResultAnalyse.h"
 
-auto GpgFrontend::GpgResultAnalyse::GetResultReport() const
-    -> const std::string {
-  return stream_.str();
+auto GpgFrontend::GpgResultAnalyse::GetResultReport() const -> const QString {
+  return *stream_.string();
 }
 
 auto GpgFrontend::GpgResultAnalyse::GetStatus() const -> int { return status_; }

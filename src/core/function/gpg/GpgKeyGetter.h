@@ -59,7 +59,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    * @param fpr
    * @return GpgKey
    */
-  auto GetKey(const std::string& key_id, bool use_cache = true) -> GpgKey;
+  auto GetKey(const QString& key_id, bool use_cache = true) -> GpgKey;
 
   /**
    * @brief Get the Keys object
@@ -75,7 +75,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    * @param fpr
    * @return GpgKey
    */
-  auto GetPubkey(const std::string& key_id, bool use_cache = true) -> GpgKey;
+  auto GetPubkey(const QString& key_id, bool use_cache = true) -> GpgKey;
 
   /**
    * @brief Get all the keys by receiving a linked list

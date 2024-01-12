@@ -30,7 +30,7 @@
 
 #include "ui/struct/SettingsObject.h"
 
-GpgFrontend::UI::GeneralDialog::GeneralDialog(std::string name, QWidget *parent)
+GpgFrontend::UI::GeneralDialog::GeneralDialog(QString name, QWidget *parent)
     : QDialog(parent), name_(std::move(name)) {
   slot_restore_settings();
   connect(this, &QDialog::finished, this, &GeneralDialog::slot_save_settings);
@@ -47,8 +47,8 @@ void GpgFrontend::UI::GeneralDialog::slot_restore_settings() noexcept {
 
     // Restore window size & location
     if (window_save) {
-      int x = general_windows_state.Check("window_pos").Check("x", 0),
-          y = general_windows_state.Check("window_pos").Check("y", 0);
+      int x = general_windows_state.Check("window_pos").Check("x", 0);
+      int y = general_windows_state.Check("window_pos").Check("y", 0);
       GF_UI_LOG_DEBUG("stored dialog pos, x: {}, y: {}", x, y);
 
       QPoint relative_pos = {x, y};
@@ -56,19 +56,19 @@ void GpgFrontend::UI::GeneralDialog::slot_restore_settings() noexcept {
       GF_UI_LOG_DEBUG("relative dialog pos, x: {}, y: {}", relative_pos.x(),
                       relative_pos.y());
 
-      int width = general_windows_state.Check("window_size").Check("width", 0),
-          height =
-              general_windows_state.Check("window_size").Check("height", 0);
+      int width = general_windows_state.Check("window_size").Check("width", 0);
+      int height =
+          general_windows_state.Check("window_size").Check("height", 0);
       GF_UI_LOG_DEBUG("stored dialog size, width: {}, height: {}", width,
                       height);
 
-      QRect target_rect_ = {pos.x(), pos.y(), width, height};
+      QRect target_rect = {pos.x(), pos.y(), width, height};
       GF_UI_LOG_DEBUG("dialog stored target rect, width: {}, height: {}", width,
                       height);
 
       // check for valid
-      if (width > 0 && height > 0 && screen_rect_.contains(target_rect_)) {
-        this->setGeometry(target_rect_);
+      if (width > 0 && height > 0 && screen_rect_.contains(target_rect)) {
+        this->setGeometry(target_rect);
         this->rect_restored_ = true;
       }
     }
@@ -101,7 +101,7 @@ void GpgFrontend::UI::GeneralDialog::slot_save_settings() noexcept {
     general_windows_state["window_save"] = true;
 
   } catch (...) {
-    GF_UI_LOG_ERROR(name_, "error");
+    GF_UI_LOG_ERROR("general dialog: {}, caught exception", name_);
   }
 }
 
@@ -194,7 +194,9 @@ void GpgFrontend::UI::GeneralDialog::update_rect_cache() {
  * @brief
  *
  */
-bool GpgFrontend::UI::GeneralDialog::isRectRestored() { return rect_restored_; }
+auto GpgFrontend::UI::GeneralDialog::isRectRestored() -> bool {
+  return rect_restored_;
+}
 
 /**
  * @brief
@@ -207,5 +209,5 @@ void GpgFrontend::UI::GeneralDialog::showEvent(QShowEvent *event) {
   // default position strategy
   if (!isRectRestored()) movePosition2CenterOfParent();
 
-  QWidget::showEvent(event);
+  QDialog::showEvent(event);
 }

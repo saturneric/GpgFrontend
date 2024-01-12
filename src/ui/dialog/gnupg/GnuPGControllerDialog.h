@@ -100,8 +100,8 @@ class GnuPGControllerDialog : public GeneralDialog {
 
   void apply_settings();
 
-  bool check_custom_gnupg_path(std::string);
+  bool check_custom_gnupg_path(QString);
 
-  bool check_custom_gnupg_key_database_path(std::string);
+  bool check_custom_gnupg_key_database_path(QString);
 };
 }  // namespace GpgFrontend::UI

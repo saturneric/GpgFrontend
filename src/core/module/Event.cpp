@@ -34,7 +34,7 @@ namespace GpgFrontend::Module {
 
 class Event::Impl {
  public:
-  Impl(std::string event_id, std::initializer_list<ParameterInitializer> params,
+  Impl(QString event_id, std::initializer_list<ParameterInitializer> params,
        EventCallback callback)
       : event_identifier_(std::move(event_id)),
         callback_(std::move(callback)),
@@ -45,8 +45,7 @@ class Event::Impl {
     GF_CORE_LOG_DEBUG("create event {}", event_identifier_);
   }
 
-  auto operator[](const std::string& key) const
-      -> std::optional<ParameterValue> {
+  auto operator[](const QString& key) const -> std::optional<ParameterValue> {
     auto it_data = data_.find(key);
     if (it_data != data_.end()) {
       return it_data->second;
@@ -66,11 +65,11 @@ class Event::Impl {
     return this->event_identifier_ < other.p_->event_identifier_;
   }
 
-  explicit operator std::string() const { return event_identifier_; }
+  explicit operator QString() const { return event_identifier_; }
 
   auto GetIdentifier() -> EventIdentifier { return event_identifier_; }
 
-  void AddParameter(const std::string& key, const ParameterValue& value) {
+  void AddParameter(const QString& key, const ParameterValue& value) {
     data_[key] = value;
   }
 
@@ -100,12 +99,12 @@ class Event::Impl {
 
  private:
   EventIdentifier event_identifier_;
-  std::map<std::string, ParameterValue> data_;
+  std::map<QString, ParameterValue> data_;
   EventCallback callback_;
   QThread* callback_thread_ = nullptr;  ///<
 };
 
-Event::Event(const std::string& event_id,
+Event::Event(const QString& event_id,
              std::initializer_list<ParameterInitializer> params,
              EventCallback callback)
     : p_(SecureCreateUniqueObject<Impl>(event_id, params,
@@ -125,15 +124,13 @@ auto Event::Event::operator<(const Event& other) const -> bool {
   return this->p_ < other.p_;
 }
 
-Event::Event::operator std::string() const {
-  return static_cast<std::string>(*p_);
-}
+Event::Event::operator QString() const { return static_cast<QString>(*p_); }
 
 auto Event::Event::GetIdentifier() -> EventIdentifier {
   return p_->GetIdentifier();
 }
 
-void Event::AddParameter(const std::string& key, const ParameterValue& value) {
+void Event::AddParameter(const QString& key, const ParameterValue& value) {
   p_->AddParameter(key, value);
 }
 

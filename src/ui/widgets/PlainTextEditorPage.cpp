@@ -28,7 +28,6 @@
 
 #include "PlainTextEditorPage.h"
 
-#include <boost/format.hpp>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -70,8 +69,8 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
     if (!read_done_) return;
 
     auto text = ui_->textPage->document()->toPlainText();
-    auto str = boost::format(_("%1% character(s)")) % text.size();
-    this->ui_->characterLabel->setText(str.str().c_str());
+    auto str = QString(_("%1% character(s)")).arg(text.size());
+    this->ui_->characterLabel->setText(str);
   });
 
   if (full_file_path_.isEmpty()) {
@@ -170,7 +169,7 @@ void PlainTextEditorPage::ReadFile() {
   auto *text_page = this->GetTextPage();
   text_page->setReadOnly(true);
 
-  const auto target_path = this->full_file_path_.toStdString();
+  const auto target_path = this->full_file_path_;
 
   auto task_runner =
       GpgFrontend::Thread::TaskRunnerGetter::GetInstance().GetTaskRunner();
@@ -199,74 +198,72 @@ void PlainTextEditorPage::ReadFile() {
   task_runner->PostTask(read_task);
 }
 
-auto BinaryToString(const std::string &source) -> std::string {
-  static char syms[] = "0123456789ABCDEF";
-  std::stringstream ss;
-  for (unsigned char c : source)
-    ss << syms[((c >> 4) & 0xf)] << syms[c & 0xf] << " ";
-  return ss.str();
+auto BinaryToString(const QByteArray &source) -> QString {
+  static const char kSyms[] = "0123456789ABCDEF";
+  QString buffer;
+  QTextStream ss(&buffer);
+  for (auto c : source) ss << kSyms[((c >> 4) & 0xf)] << kSyms[c & 0xf] << " ";
+  return buffer;
 }
 
 void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
-  std::string data = bytes_data.toStdString();
-
-  GF_UI_LOG_TRACE("inserting data read to editor, data size: {}", data.size());
-  read_bytes_ += data.size();
+  GF_UI_LOG_TRACE("inserting data read to editor, data size: {}",
+                  bytes_data.size());
+  read_bytes_ += bytes_data.size();
   // If binary format is detected, the entire file is converted to binary
   // format for display.
   bool if_last_binary_mode = binary_mode_;
   if (!binary_mode_ && !read_done_) {
-    detect_encoding(data);
+    detect_encoding(bytes_data);
   }
 
   if (binary_mode_) {
     // change formery displayed text to binary format
     if (if_last_binary_mode != binary_mode_) {
-      auto text_buffer =
-          ui_->textPage->document()->toRawText().toLocal8Bit().toStdString();
+      auto text_buffer = ui_->textPage->document()->toRawText().toLocal8Bit();
       ui_->textPage->clear();
-      this->GetTextPage()->insertPlainText(BinaryToString(text_buffer).c_str());
+      this->GetTextPage()->insertPlainText(BinaryToString(text_buffer));
       this->ui_->lfLabel->setText("None");
     }
 
     // insert new data
-    this->GetTextPage()->insertPlainText(BinaryToString(data).c_str());
+    this->GetTextPage()->insertPlainText(BinaryToString(bytes_data));
 
     // update the size of the file
-    auto str = boost::format(_("%1% byte(s)")) % read_bytes_;
-    this->ui_->characterLabel->setText(str.str().c_str());
+    auto str = QString(_("%1 byte(s)")).arg(read_bytes_);
+    this->ui_->characterLabel->setText(str);
   } else {
     // detect crlf/lf line ending
-    detect_cr_lf(data);
+    detect_cr_lf(bytes_data);
 
     // when reding from a text file
     // try convert the any of thetext to utf8
-    std::string utf8_data;
+    QString utf8_data;
     if (!read_done_ && charset_confidence_ > 25) {
-      CharsetOperator::Convert2Utf8(data, utf8_data, charset_name_);
+      CharsetOperator::Convert2Utf8(bytes_data, utf8_data, charset_name_);
     } else {
       // when editing a text file, do nothing.
-      utf8_data = data;
+      utf8_data = bytes_data;
     }
 
     // insert the text to the text page
-    this->GetTextPage()->insertPlainText(utf8_data.c_str());
+    this->GetTextPage()->insertPlainText(utf8_data);
 
     auto text = this->GetTextPage()->toPlainText();
-    auto str = boost::format(_("%1% character(s)")) % text.size();
-    this->ui_->characterLabel->setText(str.str().c_str());
+    auto str = QString(_("%1 character(s)")).arg(text.size());
+    this->ui_->characterLabel->setText(str);
   }
   QTimer::singleShot(25, this, &PlainTextEditorPage::SignalUIBytesDisplayed);
 }
 
-void PlainTextEditorPage::detect_encoding(const std::string &data) {
+void PlainTextEditorPage::detect_encoding(const QString &data) {
   // skip the binary data to avoid the false detection of the encoding
   if (binary_mode_) return;
 
   // detect the encoding
   auto charset = CharsetOperator::Detect(data);
-  this->charset_name_ = std::get<0>(charset).c_str();
-  this->language_name_ = std::get<1>(charset).c_str();
+  this->charset_name_ = std::get<0>(charset);
+  this->language_name_ = std::get<1>(charset);
   this->charset_confidence_ = std::get<2>(charset);
 
   // probably there is no need to detect the encoding again
@@ -279,11 +276,11 @@ void PlainTextEditorPage::detect_encoding(const std::string &data) {
     this->ui_->lfLabel->setHidden(true);
     this->ui_->encodingLabel->setText(_("binary"));
   } else {
-    ui_->encodingLabel->setText(this->charset_name_.c_str());
+    ui_->encodingLabel->setText(this->charset_name_);
   }
 }
 
-void PlainTextEditorPage::detect_cr_lf(const std::string &data) {
+void PlainTextEditorPage::detect_cr_lf(const QString &data) {
   if (binary_mode_) {
     return;
   }
@@ -291,7 +288,7 @@ void PlainTextEditorPage::detect_cr_lf(const std::string &data) {
   // if contain crlf, set the label to crlf
   if (is_crlf_) return;
 
-  if (data.find("\r\n") != std::string::npos) {
+  if (data.contains("\r\n")) {
     this->ui_->lfLabel->setText("crlf");
     is_crlf_ = true;
   } else {

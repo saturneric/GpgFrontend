@@ -102,13 +102,6 @@ class GPGFRONTEND_CORE_EXPORT GpgData {
    *
    * @return ByteArrayPtr
    */
-  auto Read2Buffer() -> ByteArrayPtr;
-
-  /**
-   * @brief
-   *
-   * @return ByteArrayPtr
-   */
   auto Read2GFBuffer() -> GFBuffer;
 
  private:

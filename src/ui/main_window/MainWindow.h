@@ -32,6 +32,10 @@
 #include "ui/widgets/InfoBoardWidget.h"
 #include "ui/widgets/TextEdit.h"
 
+namespace GpgFrontend {
+class GpgPassphraseContext;
+}
+
 namespace GpgFrontend::UI {
 /**
  * @brief
@@ -117,17 +121,6 @@ class MainWindow : public GeneralMainWindow {
   void SlotOpenFile(const QString& path);
 
   /**
-   * @details Open dialog for encrypting file.
-   */
-  void SlotFileEncrypt(std::filesystem::path);
-
-  /**
-   * @brief
-   *
-   */
-  void SlotDirectoryEncrypt(std::filesystem::path);
-
-  /**
    * @details encrypt the text of currently active textedit-page
    * with the currently checked keys
    */
@@ -165,60 +158,71 @@ class MainWindow : public GeneralMainWindow {
   void SlotDecryptVerify();
 
   /**
+   * @details Open dialog for encrypting file.
+   */
+  void SlotFileEncrypt(const QString&);
+
+  /**
    * @brief
    *
-   * @param path
    */
-  void SlotFileDecrypt(std::filesystem::path path);
+  void SlotDirectoryEncrypt(const QString&);
 
   /**
    * @brief
    *
    * @param path
    */
-  void SlotArchiveDecrypt(std::filesystem::path path);
+  void SlotFileDecrypt(const QString& path);
 
   /**
    * @brief
    *
    * @param path
    */
-  void SlotFileSign(std::filesystem::path path);
+  void SlotArchiveDecrypt(const QString& path);
 
   /**
    * @brief
    *
    * @param path
    */
-  void SlotFileVerify(std::filesystem::path path);
+  void SlotFileSign(const QString& path);
 
   /**
    * @brief
    *
    * @param path
    */
-  void SlotFileEncryptSign(std::filesystem::path path);
+  void SlotFileVerify(const QString& path);
 
   /**
    * @brief
    *
    * @param path
    */
-  void SlotDirectoryEncryptSign(std::filesystem::path path);
+  void SlotFileEncryptSign(const QString& path);
 
   /**
    * @brief
    *
    * @param path
    */
-  void SlotFileDecryptVerify(std::filesystem::path path);
+  void SlotDirectoryEncryptSign(const QString& path);
 
   /**
    * @brief
    *
    * @param path
    */
-  void SlotArchiveDecryptVerify(std::filesystem::path path);
+  void SlotFileDecryptVerify(const QString& path);
+
+  /**
+   * @brief
+   *
+   * @param path
+   */
+  void SlotArchiveDecryptVerify(const QString& path);
 
   /**
    * @details get value of member restartNeeded to needed.
@@ -229,7 +233,7 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @details Open a new tab for path
    */
-  void SlotRaisePinentry();
+  void SlotRaisePinentry(QSharedPointer<GpgPassphraseContext>);
 
  private slots:
 

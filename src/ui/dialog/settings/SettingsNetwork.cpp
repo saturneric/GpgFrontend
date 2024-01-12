@@ -101,22 +101,25 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
   auto &settings = GlobalSettingStation::GetInstance().GetMainSettings();
 
   try {
-    std::string proxy_host = settings.lookup("proxy.proxy_host");
-    ui_->proxyServerAddressEdit->setText(proxy_host.c_str());
+    QString proxy_host =
+        QString::fromStdString(settings.lookup("proxy.proxy_host"));
+    ui_->proxyServerAddressEdit->setText(proxy_host);
   } catch (...) {
     GF_UI_LOG_ERROR("setting operation error: proxy_host");
   }
 
   try {
-    std::string std_username = settings.lookup("proxy.username");
-    ui_->usernameEdit->setText(std_username.c_str());
+    QString std_username =
+        QString::fromStdString(settings.lookup("proxy.username"));
+    ui_->usernameEdit->setText(std_username);
   } catch (...) {
     GF_UI_LOG_ERROR("setting operation error: username");
   }
 
   try {
-    std::string std_password = settings.lookup("proxy.password");
-    ui_->passwordEdit->setText(std_password.c_str());
+    QString std_password =
+        QString::fromStdString(settings.lookup("proxy.password"));
+    ui_->passwordEdit->setText(std_password);
   } catch (...) {
     GF_UI_LOG_ERROR("setting operation error: password");
   }
@@ -130,8 +133,9 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
 
   ui_->proxyTypeComboBox->setCurrentText("HTTP");
   try {
-    std::string proxy_type = settings.lookup("proxy.proxy_type");
-    ui_->proxyTypeComboBox->setCurrentText(proxy_type.c_str());
+    QString proxy_type =
+        QString::fromStdString(settings.lookup("proxy.proxy_type"));
+    ui_->proxyTypeComboBox->setCurrentText(proxy_type);
   } catch (...) {
     GF_UI_LOG_ERROR("setting operation error: proxy_type");
   }

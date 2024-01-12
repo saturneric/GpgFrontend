@@ -28,8 +28,6 @@
 
 #include "GpgVerifyResultAnalyse.h"
 
-#include <boost/format.hpp>
-
 #include "GpgFrontend.h"
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
@@ -46,41 +44,39 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
   stream_ << "# " << _("Verify Operation") << " ";
 
   if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
-    stream_ << " - " << _("Success") << " " << std::endl;
+    stream_ << " - " << _("Success") << " " << Qt::endl;
   } else {
     stream_ << " - " << _("Failed") << ": " << gpgme_strerror(error_)
-            << std::endl;
+            << Qt::endl;
     setStatus(-1);
   }
 
   if (result != nullptr && result->signatures != nullptr) {
-    stream_ << std::endl;
+    stream_ << Qt::endl;
     auto *sign = result->signatures;
 
     stream_ << "-> " << _("Signed On") << "(" << _("UTC") << ")"
-            << " "
-            << boost::posix_time::to_iso_extended_string(
-                   boost::posix_time::from_time_t(sign->timestamp))
-            << std::endl;
+            << " " << QDateTime::fromSecsSinceEpoch(sign->timestamp).toString()
+            << Qt::endl;
 
     stream_ << "-> " << _("Signed On") << "(" << _("Localized") << ")"
-            << " " << GetFormatedDateByTimestamp(sign->timestamp) << std::endl;
+            << " " << GetFormatedDateByTimestamp(sign->timestamp) << Qt::endl;
 
-    stream_ << std::endl << "## " << _("Signatures List") << ":" << std::endl;
-    stream_ << std::endl;
+    stream_ << Qt::endl << "## " << _("Signatures List") << ":" << Qt::endl;
+    stream_ << Qt::endl;
 
     bool can_continue = true;
 
     int count = 1;
     while ((sign != nullptr) && can_continue) {
-      stream_ << "### " << boost::format(_("Signature [%1%]:")) % count++
-              << std::endl;
+      stream_ << "### " << QString(_("Signature [%1]:")).arg(count++)
+              << Qt::endl;
       stream_ << "- " << _("Status") << ": ";
       switch (gpg_err_code(sign->status)) {
         case GPG_ERR_BAD_SIGNATURE:
-          stream_ << _("A Bad Signature.") << std::endl;
+          stream_ << _("A Bad Signature.") << Qt::endl;
           print_signer(stream_, sign);
-          stream_ << _("This Signature is invalid.") << std::endl;
+          stream_ << _("This Signature is invalid.") << Qt::endl;
           can_continue = false;
           setStatus(-1);
           break;
@@ -109,18 +105,18 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
           }
 
           if ((sign->summary & GPGME_SIGSUM_VALID) != 0) {
-            stream_ << _("Signature Fully Valid.") << std::endl;
+            stream_ << _("Signature Fully Valid.") << Qt::endl;
           } else {
-            stream_ << _("Signature Not Fully Valid.") << std::endl;
+            stream_ << _("Signature Not Fully Valid.") << Qt::endl;
             stream_ << _("(Adjust Trust Level to make it Fully Vaild)")
-                    << std::endl;
+                    << Qt::endl;
           }
 
           if ((sign->status & GPGME_SIGSUM_KEY_MISSING) == 0U) {
             if (!print_signer(stream_, sign)) setStatus(0);
           } else {
             stream_ << _("Key is NOT present with ID 0x") << sign->fpr
-                    << std::endl;
+                    << Qt::endl;
           }
 
           setStatus(1);
@@ -128,20 +124,20 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
           break;
         case GPG_ERR_NO_PUBKEY:
           stream_ << _("A signature could NOT be verified due to a Missing Key")
-                  << std::endl;
+                  << Qt::endl;
           setStatus(-2);
           break;
         case GPG_ERR_CERT_REVOKED:
           stream_ << _("A signature is valid but the key used to verify the "
                        "signature has been revoked")
-                  << std::endl;
+                  << Qt::endl;
           if (!print_signer(stream_, sign)) {
             setStatus(0);
           }
           setStatus(-1);
           break;
         case GPG_ERR_SIG_EXPIRED:
-          stream_ << _("A signature is valid but expired") << std::endl;
+          stream_ << _("A signature is valid but expired") << Qt::endl;
           if (!print_signer(stream_, sign)) {
             setStatus(0);
           }
@@ -150,7 +146,7 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
         case GPG_ERR_KEY_EXPIRED:
           stream_ << _("A signature is valid but the key used to "
                        "verify the signature has expired.")
-                  << std::endl;
+                  << Qt::endl;
           if (!print_signer(stream_, sign)) {
             setStatus(0);
           }
@@ -158,63 +154,62 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
         case GPG_ERR_GENERAL:
           stream_ << _("There was some other error which prevented "
                        "the signature verification.")
-                  << std::endl;
+                  << Qt::endl;
           status_ = -1;
           can_continue = false;
           break;
         default:
-          auto fpr = std::string(sign->fpr);
+          auto fpr = QString(sign->fpr);
           stream_ << _("Error for key with fingerprint") << " "
                   << GpgFrontend::BeautifyFingerprint(fpr);
           setStatus(-1);
       }
-      stream_ << std::endl;
+      stream_ << Qt::endl;
       sign = sign->next;
     }
-    stream_ << std::endl;
+    stream_ << Qt::endl;
   } else {
     stream_
         << "-> "
         << _("Could not find information that can be used for verification.")
-        << std::endl;
+        << Qt::endl;
     setStatus(0);
     return;
   }
 }
 
-auto GpgFrontend::GpgVerifyResultAnalyse::print_signer(
-    std::stringstream &stream, gpgme_signature_t sign) -> bool {
+auto GpgFrontend::GpgVerifyResultAnalyse::print_signer(QTextStream &stream,
+                                                       gpgme_signature_t sign)
+    -> bool {
   bool key_found = true;
   auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(sign->fpr);
 
   if (!key.IsGood()) {
     stream << "- " << _("Signed By") << ": "
-           << "<" << _("Unknown") << ">" << std::endl;
+           << "<" << _("Unknown") << ">" << Qt::endl;
     setStatus(0);
     key_found = false;
   } else {
     stream << "- " << _("Signed By") << ": " << key.GetUIDs()->front().GetUID()
-           << std::endl;
+           << Qt::endl;
   }
   if (sign->pubkey_algo != 0U) {
     stream << "- " << _("Public Key Algo") << ": "
-           << gpgme_pubkey_algo_name(sign->pubkey_algo) << std::endl;
+           << gpgme_pubkey_algo_name(sign->pubkey_algo) << Qt::endl;
   }
   if (sign->hash_algo != 0U) {
     stream << "- " << _("Hash Algo") << ": "
-           << gpgme_hash_algo_name(sign->hash_algo) << std::endl;
+           << gpgme_hash_algo_name(sign->hash_algo) << Qt::endl;
   }
   if (sign->timestamp != 0U) {
     stream << "- " << _("Date") << "(" << _("UTC") << ")"
-           << ": "
-           << boost::posix_time::to_iso_extended_string(
-                  boost::posix_time::from_time_t(sign->timestamp))
-           << std::endl;
+           << ": " << QDateTime::fromSecsSinceEpoch(sign->timestamp).toString()
+           << Qt::endl;
 
     stream << "- " << _("Date") << "(" << _("Localized") << ")"
-           << ": " << GetFormatedDateByTimestamp(sign->timestamp) << std::endl;
+           << ": " << GetFormatedDateByTimestamp(sign->timestamp) << Qt::endl;
   }
-  stream << std::endl;
+  stream << Qt::endl;
   return key_found;
 }
 

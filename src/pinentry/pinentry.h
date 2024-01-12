@@ -303,8 +303,7 @@ const char *pinentry_get_pgmname(void);
 char *pinentry_get_title(pinentry_t pe);
 
 /* Run a quality inquiry for PASSPHRASE of LENGTH. */
-int pinentry_inq_quality(pinentry_t pin, const char *passphrase,
-                         std::size_t length);
+int pinentry_inq_quality(const QString &passphrase);
 
 /* Run a checkpin inquiry for PASSPHRASE of LENGTH.  Returns NULL, if the
    passphrase satisfies the constraints.  Otherwise, returns a malloced error

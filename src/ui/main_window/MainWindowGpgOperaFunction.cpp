@@ -98,7 +98,7 @@ void MainWindow::SlotEncrypt() {
               _("The selected key contains a key that does not actually have a "
                 "encrypt usage.")) +
               "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
-              QString::fromStdString(key.GetUIDs()->front().GetUID()));
+              key.GetUIDs()->front().GetUID());
       return;
     }
   }
@@ -152,7 +152,7 @@ void MainWindow::SlotSign() {
               _("The selected key contains a key that does not actually have a "
                 "signature usage.")) +
               "<br/><br/>" + _("For example the Following Key:") + "<br/>" +
-              key.GetUIDs()->front().GetUID().c_str());
+              key.GetUIDs()->front().GetUID());
       return;
     }
   }
@@ -267,7 +267,7 @@ void MainWindow::SlotEncryptSign() {
           this, _("Invalid KeyPair"),
           QString(_("The selected keypair cannot be used for encryption.")) +
               "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
-              QString::fromStdString(key.GetUIDs()->front().GetUID()));
+              key.GetUIDs()->front().GetUID());
       return;
     }
   }

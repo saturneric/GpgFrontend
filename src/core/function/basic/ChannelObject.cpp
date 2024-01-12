@@ -34,14 +34,15 @@ namespace GpgFrontend {
 
 ChannelObject::ChannelObject() noexcept = default;
 
-ChannelObject::ChannelObject(int channel, std::string type)
+ChannelObject::ChannelObject(int channel, QString type)
     : channel_(channel), type_(std::move(type)) {}
 
 #ifdef DEBUG
 ChannelObject::~ChannelObject() noexcept {
   // using iostream instead of spdlog bacause at this time spdlog may have
   // already been destroyed.
-  std::cout << "releasing channel object: " << this->type_ << std::endl;
+  QTextStream(stdout) << "releasing channel object: " << this->type_
+                      << Qt::endl;
 }
 #else
 ChannelObject::~ChannelObject() noexcept = default;

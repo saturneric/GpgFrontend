@@ -50,7 +50,7 @@ auto GPGFRONTEND_CORE_EXPORT GetCoreLogger() -> std::shared_ptr<spdlog::logger>;
  *
  * @return std::shared_ptr<spdlog::logger>
  */
-auto GPGFRONTEND_CORE_EXPORT GetLogger(const std::string &)
+auto GPGFRONTEND_CORE_EXPORT GetLogger(const QString &)
     -> std::shared_ptr<spdlog::logger>;
 
 /**
@@ -65,7 +65,7 @@ void GPGFRONTEND_CORE_EXPORT SetDefaultLogLevel(spdlog::level::level_enum);
  *
  * @return auto
  */
-void GPGFRONTEND_CORE_EXPORT RegisterAsyncLogger(const std::string &,
+void GPGFRONTEND_CORE_EXPORT RegisterAsyncLogger(const QString &,
                                                  spdlog::level::level_enum);
 
 /**
@@ -73,7 +73,7 @@ void GPGFRONTEND_CORE_EXPORT RegisterAsyncLogger(const std::string &,
  *
  * @return auto
  */
-void GPGFRONTEND_CORE_EXPORT RegisterSyncLogger(const std::string &,
+void GPGFRONTEND_CORE_EXPORT RegisterSyncLogger(const QString &,
                                                 spdlog::level::level_enum);
 
 }  // namespace GpgFrontend

@@ -38,7 +38,7 @@ class GeneralDialog : public QDialog {
    *
    * @param name
    */
-  explicit GeneralDialog(std::string name, QWidget* parent = nullptr);
+  explicit GeneralDialog(QString name, QWidget* parent = nullptr);
 
   /**
    *
@@ -86,7 +86,7 @@ class GeneralDialog : public QDialog {
    */
   void update_rect_cache();
 
-  std::string name_;  ///<
+  QString name_;  ///<
   QRect rect_;
   QRect parent_rect_;
   QRect screen_rect_;

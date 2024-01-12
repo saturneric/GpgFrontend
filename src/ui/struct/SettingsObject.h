@@ -46,7 +46,7 @@ class SettingsObject : public nlohmann::json {
    *
    * @param settings_name The name of the settings object
    */
-  explicit SettingsObject(std::string settings_name);
+  explicit SettingsObject(QString settings_name);
 
   /**
    * @brief Construct a new Settings Object object
@@ -68,7 +68,7 @@ class SettingsObject : public nlohmann::json {
    * @param default_value
    * @return nlohmann::json&
    */
-  nlohmann::json& Check(const std::string& key,
+  nlohmann::json& Check(const QString& key,
                         const nlohmann::json& default_value);
 
   /**
@@ -77,9 +77,9 @@ class SettingsObject : public nlohmann::json {
    * @param key
    * @return SettingsObject
    */
-  SettingsObject Check(const std::string& key);
+  SettingsObject Check(const QString& key);
 
  private:
-  std::string settings_name_;  ///<
+  QString settings_name_;  ///<
 };
 }  // namespace GpgFrontend::UI

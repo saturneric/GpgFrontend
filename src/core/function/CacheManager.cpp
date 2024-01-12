@@ -29,7 +29,6 @@
 #include "CacheManager.h"
 
 #include <algorithm>
-#include <boost/format.hpp>
 #include <shared_mutex>
 #include <utility>
 
@@ -73,7 +72,7 @@ class ThreadSafeMap {
     return *this;
   }
 
-  auto remove(std::string key) -> bool {
+  auto remove(QString key) -> bool {
     std::unique_lock lock(mutex_);
     auto it = map_->find(key);
     if (it != map_->end()) {
@@ -102,14 +101,14 @@ class CacheManager::Impl : public QObject {
     load_all_cache_storage();
   }
 
-  void SaveCache(std::string key, const nlohmann::json& value, bool flush) {
+  void SaveCache(QString key, const nlohmann::json& value, bool flush) {
     auto data_object_key = get_data_object_key(key);
     cache_storage_.insert(key, value);
 
-    if (std::find(key_storage_.begin(), key_storage_.end(), key) ==
-        key_storage_.end()) {
+    if (std::find(key_storage_.begin(), key_storage_.end(),
+                  key.toStdString()) == key_storage_.end()) {
       GF_CORE_LOG_DEBUG("register new key of cache", key);
-      key_storage_.push_back(key);
+      key_storage_.push_back(key.toStdString());
     }
 
     if (flush) {
@@ -117,7 +116,7 @@ class CacheManager::Impl : public QObject {
     }
   }
 
-  auto LoadCache(const std::string& key) -> nlohmann::json {
+  auto LoadCache(const QString& key) -> nlohmann::json {
     auto data_object_key = get_data_object_key(key);
 
     if (!cache_storage_.exists(key)) {
@@ -131,7 +130,7 @@ class CacheManager::Impl : public QObject {
     return {};
   }
 
-  auto LoadCache(const std::string& key, nlohmann::json default_value)
+  auto LoadCache(const QString& key, nlohmann::json default_value)
       -> nlohmann::json {
     auto data_object_key = get_data_object_key(key);
     if (!cache_storage_.exists(key)) {
@@ -146,7 +145,7 @@ class CacheManager::Impl : public QObject {
     return {};
   }
 
-  auto ResetCache(const std::string& key) -> bool {
+  auto ResetCache(const QString& key) -> bool {
     auto data_object_key = get_data_object_key(key);
     return cache_storage_.remove(key);
   }
@@ -170,19 +169,19 @@ class CacheManager::Impl : public QObject {
   }
 
  private:
-  ThreadSafeMap<std::string, nlohmann::json> cache_storage_;
+  ThreadSafeMap<QString, nlohmann::json> cache_storage_;
   nlohmann::json key_storage_;
   QTimer* flush_timer_;
-  const std::string drk_key_ = "__cache_manage_data_register_key_list";
+  const QString drk_key_ = "__cache_manage_data_register_key_list";
 
   /**
    * @brief Get the data object key object
    *
    * @param key
-   * @return std::string
+   * @return QString
    */
-  static auto get_data_object_key(std::string key) -> std::string {
-    return (boost::format("__cache_data_%1%") % key).str();
+  static auto get_data_object_key(QString key) -> QString {
+    return QString("__cache_data_%1").arg(key);
   }
 
   /**
@@ -192,7 +191,7 @@ class CacheManager::Impl : public QObject {
    * @param default_value
    * @return nlohmann::json
    */
-  static auto load_cache_storage(std::string key, nlohmann::json default_value)
+  static auto load_cache_storage(QString key, nlohmann::json default_value)
       -> nlohmann::json {
     auto data_object_key = get_data_object_key(std::move(key));
     auto stored_data =
@@ -228,7 +227,7 @@ class CacheManager::Impl : public QObject {
     }
 
     for (const auto& key : registered_key_list) {
-      load_cache_storage(key, {});
+      load_cache_storage(QString::fromStdString(key), {});
     }
 
     key_storage_ = registered_key_list;
@@ -239,7 +238,7 @@ class CacheManager::Impl : public QObject {
    *
    * @param key
    */
-  void register_cache_key(const std::string& key) {}
+  void register_cache_key(const QString& key) {}
 };
 
 CacheManager::CacheManager(int channel)
@@ -248,21 +247,21 @@ CacheManager::CacheManager(int channel)
 
 CacheManager::~CacheManager() = default;
 
-void CacheManager::SaveCache(std::string key, const nlohmann::json& value,
+void CacheManager::SaveCache(QString key, const nlohmann::json& value,
                              bool flush) {
   p_->SaveCache(std::move(key), value, flush);
 }
 
-auto CacheManager::LoadCache(std::string key) -> nlohmann::json {
+auto CacheManager::LoadCache(QString key) -> nlohmann::json {
   return p_->LoadCache(key);
 }
 
-auto CacheManager::LoadCache(std::string key, nlohmann::json default_value)
+auto CacheManager::LoadCache(QString key, nlohmann::json default_value)
     -> nlohmann::json {
   return p_->LoadCache(key, std::move(default_value));
 }
 
-auto CacheManager::ResetCache(std::string key) -> bool {
+auto CacheManager::ResetCache(QString key) -> bool {
   return p_->ResetCache(key);
 }
 

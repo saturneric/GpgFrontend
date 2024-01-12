@@ -85,7 +85,7 @@ void KeyUploadDialog::SlotUpload() {
 
 void KeyUploadDialog::slot_upload_key_to_server(
     const GpgFrontend::GFBuffer& keys_data) {
-  std::string target_keyserver;
+  QString target_keyserver;
 
   try {
     SettingsObject key_server_json("key_server");
@@ -99,8 +99,8 @@ void KeyUploadDialog::slot_upload_key_to_server(
       throw std::runtime_error("default_server index out of range");
     }
 
-    target_keyserver =
-        key_server_list[default_key_server_index].get<std::string>();
+    target_keyserver = QString::fromStdString(
+        key_server_list[default_key_server_index].get<std::string>());
 
     GF_UI_LOG_DEBUG("set target key server to default key server: {}",
                     target_keyserver);
@@ -113,30 +113,29 @@ void KeyUploadDialog::slot_upload_key_to_server(
     return;
   }
 
-  QUrl req_url(QString::fromStdString(target_keyserver + "/pks/add"));
+  QUrl req_url(target_keyserver + "/pks/add");
   auto* qnam = new QNetworkAccessManager(this);
 
   // Building Post Data
   QByteArray post_data;
 
-  auto data = keys_data.ConvertToStdString();
+  auto data = keys_data.ConvertToQByteArray();
 
-  boost::algorithm::replace_all(data, "\n", "%0A");
-  boost::algorithm::replace_all(data, "\r", "%0D");
-  boost::algorithm::replace_all(data, "(", "%28");
-  boost::algorithm::replace_all(data, ")", "%29");
-  boost::algorithm::replace_all(data, "/", "%2F");
-  boost::algorithm::replace_all(data, ":", "%3A");
-  boost::algorithm::replace_all(data, "+", "%2B");
-  boost::algorithm::replace_all(data, "=", "%3D");
-  boost::algorithm::replace_all(data, " ", "+");
+  data.replace("\n", "%0A");
+  data.replace("\r", "%0D");
+  data.replace("(", "%28");
+  data.replace(")", "%29");
+  data.replace("/", "%2F");
+  data.replace(":", "%3A");
+  data.replace("+", "%2B");
+  data.replace("=", "%3D");
+  data.replace(" ", "+");
 
   QNetworkRequest request(req_url);
   request.setHeader(QNetworkRequest::ContentTypeHeader,
                     "application/x-www-form-urlencoded");
 
-  post_data.append("keytext").append("=").append(
-      QString::fromStdString(data).toUtf8());
+  post_data.append("keytext").append("=").append(data);
 
   // Send Post Data
   QNetworkReply* reply = qnam->post(request, post_data);
@@ -174,11 +173,11 @@ void KeyUploadDialog::slot_upload_finished() {
     }
     QMessageBox::critical(this, "Upload Failed", message);
     return;
-  } else {
-    QMessageBox::information(this, _("Upload Success"),
-                             _("Upload Public Key Successfully"));
-    GF_UI_LOG_DEBUG("success while contacting keyserver!");
   }
+  QMessageBox::information(this, _("Upload Success"),
+                           _("Upload Public Key Successfully"));
+  GF_UI_LOG_DEBUG("success while contacting keyserver!");
+
   reply->deleteLater();
 }
 

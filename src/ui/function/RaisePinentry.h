@@ -30,6 +30,10 @@
 
 #include "ui/GpgFrontendUI.h"
 
+namespace GpgFrontend {
+class GpgPassphraseContext;
+}
+
 namespace GpgFrontend::UI {
 
 class RaisePinentry : public QWidget {
@@ -40,7 +44,7 @@ class RaisePinentry : public QWidget {
    *
    * @param parent
    */
-  explicit RaisePinentry(QWidget *parent);
+  explicit RaisePinentry(QWidget *parent, QSharedPointer<GpgPassphraseContext>);
 
   /**
    * @brief
@@ -48,6 +52,9 @@ class RaisePinentry : public QWidget {
    * @return int
    */
   auto Exec() -> int;
+
+ private:
+  QSharedPointer<GpgPassphraseContext> context_;
 };
 
 }  // namespace GpgFrontend::UI

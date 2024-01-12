@@ -41,7 +41,7 @@ class GeneralMainWindow : public QMainWindow {
    *
    * @param name
    */
-  explicit GeneralMainWindow(std::string name, QWidget* parent = nullptr);
+  explicit GeneralMainWindow(QString name, QWidget* parent = nullptr);
 
   /**
    *
@@ -71,8 +71,8 @@ class GeneralMainWindow : public QMainWindow {
   void slot_save_settings() noexcept;
 
  private:
-  std::string name_;  ///<
-  QPoint pos_;        ///<
-  QSize size_;        ///<
+  QString name_;  ///<
+  QPoint pos_;    ///<
+  QSize size_;    ///<
 };
 }  // namespace GpgFrontend::UI

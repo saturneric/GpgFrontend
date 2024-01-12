@@ -28,8 +28,6 @@
 
 #include "GpgUIDOperator.h"
 
-#include <boost/format.hpp>
-
 #include "core/GpgModel.h"
 #include "core/utils/GpgUtils.h"
 
@@ -38,31 +36,30 @@ namespace GpgFrontend {
 GpgUIDOperator::GpgUIDOperator(int channel)
     : SingletonFunctionObject<GpgUIDOperator>(channel) {}
 
-auto GpgUIDOperator::AddUID(const GpgKey& key, const std::string& uid) -> bool {
+auto GpgUIDOperator::AddUID(const GpgKey& key, const QString& uid) -> bool {
   auto err = gpgme_op_adduid(ctx_.DefaultContext(),
-                             static_cast<gpgme_key_t>(key), uid.c_str(), 0);
+                             static_cast<gpgme_key_t>(key), uid.toUtf8(), 0);
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
-auto GpgUIDOperator::RevUID(const GpgKey& key, const std::string& uid) -> bool {
+auto GpgUIDOperator::RevUID(const GpgKey& key, const QString& uid) -> bool {
   auto err = CheckGpgError(gpgme_op_revuid(
-      ctx_.DefaultContext(), static_cast<gpgme_key_t>(key), uid.c_str(), 0));
+      ctx_.DefaultContext(), static_cast<gpgme_key_t>(key), uid.toUtf8(), 0));
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
-auto GpgUIDOperator::SetPrimaryUID(const GpgKey& key, const std::string& uid)
+auto GpgUIDOperator::SetPrimaryUID(const GpgKey& key, const QString& uid)
     -> bool {
   auto err = CheckGpgError(gpgme_op_set_uid_flag(
-      ctx_.DefaultContext(), static_cast<gpgme_key_t>(key), uid.c_str(),
+      ctx_.DefaultContext(), static_cast<gpgme_key_t>(key), uid.toUtf8(),
       "primary", nullptr));
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
-auto GpgUIDOperator::AddUID(const GpgKey& key, const std::string& name,
-                            const std::string& comment,
-                            const std::string& email) -> bool {
+auto GpgUIDOperator::AddUID(const GpgKey& key, const QString& name,
+                            const QString& comment, const QString& email)
+    -> bool {
   GF_CORE_LOG_DEBUG("new uuid: {} {} {}", name, comment, email);
-  auto uid = boost::format("%1%(%2%)<%3%>") % name % comment % email;
-  return AddUID(key, uid.str());
+  return AddUID(key, QString("%1(%2)<%3>").arg(name).arg(comment).arg(email));
 }
 
 }  // namespace GpgFrontend

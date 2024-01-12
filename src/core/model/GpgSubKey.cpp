@@ -47,13 +47,11 @@ auto GpgSubKey::operator==(const GpgSubKey& o) const -> bool {
   return GetFingerprint() == o.GetFingerprint();
 }
 
-auto GpgSubKey::GetID() const -> std::string { return subkey_ref_->keyid; }
+auto GpgSubKey::GetID() const -> QString { return subkey_ref_->keyid; }
 
-auto GpgSubKey::GetFingerprint() const -> std::string {
-  return subkey_ref_->fpr;
-}
+auto GpgSubKey::GetFingerprint() const -> QString { return subkey_ref_->fpr; }
 
-auto GpgSubKey::GetPubkeyAlgo() const -> std::string {
+auto GpgSubKey::GetPubkeyAlgo() const -> QString {
   return gpgme_pubkey_algo_name(subkey_ref_->pubkey_algo);
 }
 

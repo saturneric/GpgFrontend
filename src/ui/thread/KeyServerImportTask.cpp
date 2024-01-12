@@ -32,14 +32,14 @@
 #include "ui/struct/SettingsObject.h"
 
 GpgFrontend::UI::KeyServerImportTask::KeyServerImportTask(
-    std::string keyserver_url, std::vector<std::string> keyids)
+    QString keyserver_url, std::vector<QString> keyids)
     : Task("key_server_import_task"),
       keyserver_url_(std::move(keyserver_url)),
       keyids_(std::move(keyids)),
       manager_(new QNetworkAccessManager(this)) {
   HoldOnLifeCycle(true);
 
-  if (keyserver_url_.empty()) {
+  if (keyserver_url_.isEmpty()) {
     try {
       SettingsObject key_server_json("key_server");
       const auto key_server_list =
@@ -53,7 +53,7 @@ GpgFrontend::UI::KeyServerImportTask::KeyServerImportTask(
       auto default_key_server =
           key_server_list[default_key_server_index].get<std::string>();
 
-      keyserver_url_ = default_key_server;
+      keyserver_url_ = QString::fromStdString(default_key_server);
     } catch (...) {
       GF_UI_LOG_ERROR("setting operation error", "server_list",
                       "default_server");
@@ -67,11 +67,10 @@ GpgFrontend::UI::KeyServerImportTask::KeyServerImportTask(
 }
 
 void GpgFrontend::UI::KeyServerImportTask::Run() {
-  QUrl const keyserver_url = QUrl(keyserver_url_.c_str());
+  QUrl const keyserver_url = QUrl(keyserver_url_);
   for (const auto& key_id : keyids_) {
     QUrl const req_url(keyserver_url.scheme() + "://" + keyserver_url.host() +
-                       "/pks/lookup?op=get&search=0x" + key_id.c_str() +
-                       "&options=mr");
+                       "/pks/lookup?op=get&search=0x" + key_id + "&options=mr");
 
     reply_ = manager_->get(QNetworkRequest(req_url));
     connect(reply_, &QNetworkReply::finished, this,

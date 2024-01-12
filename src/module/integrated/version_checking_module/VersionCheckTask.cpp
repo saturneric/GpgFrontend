@@ -39,7 +39,7 @@ namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 VersionCheckTask::VersionCheckTask()
     : Task("version_check_task"),
       network_manager_(new QNetworkAccessManager(this)),
-      current_version_(std::string("v") + VERSION_MAJOR + "." + VERSION_MINOR +
+      current_version_(QString("v") + VERSION_MAJOR + "." + VERSION_MINOR +
                        "." + VERSION_PATCH) {
   HoldOnLifeCycle(true);
   qRegisterMetaType<SoftwareVersion>("SoftwareVersion");
@@ -50,11 +50,11 @@ void VersionCheckTask::Run() {
   try {
     using namespace nlohmann;
     MODULE_LOG_DEBUG("current version: {}", current_version_);
-    std::string latest_version_url =
+    QString latest_version_url =
         "https://api.github.com/repos/saturneric/gpgfrontend/releases/latest";
 
     QNetworkRequest latest_request;
-    latest_request.setUrl(QUrl(latest_version_url.c_str()));
+    latest_request.setUrl(QUrl(latest_version_url));
     latest_reply_ = network_manager_->get(latest_request);
     connect(latest_reply_, &QNetworkReply::finished, this,
             &VersionCheckTask::slot_parse_latest_version_info);
@@ -82,14 +82,15 @@ void VersionCheckTask::slot_parse_latest_version_info() {
       auto latest_reply_json =
           nlohmann::json::parse(latest_reply_bytes_.toStdString());
 
-      std::string latest_version = latest_reply_json["tag_name"];
+      QString latest_version =
+          QString::fromStdString(latest_reply_json["tag_name"]);
 
       MODULE_LOG_INFO("latest version from Github: {}", latest_version);
 
       QRegularExpression re(R"(^[vV](\d+\.)?(\d+\.)?(\*|\d+))");
-      auto version_match = re.match(latest_version.c_str());
+      auto version_match = re.match(latest_version);
       if (version_match.hasMatch()) {
-        latest_version = version_match.captured(0).toStdString();
+        latest_version = version_match.captured(0);
         MODULE_LOG_DEBUG("latest version matched: {}", latest_version);
       } else {
         latest_version = current_version_;
@@ -98,8 +99,9 @@ void VersionCheckTask::slot_parse_latest_version_info() {
 
       bool prerelease = latest_reply_json["prerelease"];
       bool draft = latest_reply_json["draft"];
-      std::string publish_date = latest_reply_json["published_at"];
-      std::string release_note = latest_reply_json["body"];
+      auto publish_date =
+          QString::fromStdString(latest_reply_json["published_at"]);
+      auto release_note = QString::fromStdString(latest_reply_json["body"]);
       version_.latest_version = latest_version;
       version_.latest_prerelease_version_from_remote = prerelease;
       version_.latest_draft_from_remote = draft;
@@ -116,12 +118,12 @@ void VersionCheckTask::slot_parse_latest_version_info() {
   }
 
   try {
-    std::string current_version_url =
+    QString current_version_url =
         "https://api.github.com/repos/saturneric/gpgfrontend/releases/tags/" +
         current_version_;
 
     QNetworkRequest current_request;
-    current_request.setUrl(QUrl(current_version_url.c_str()));
+    current_request.setUrl(QUrl(current_version_url));
     current_reply_ = network_manager_->get(current_request);
 
     connect(current_reply_, &QNetworkReply::finished, this,

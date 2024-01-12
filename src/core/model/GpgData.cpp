@@ -127,29 +127,6 @@ GpgData::~GpgData() {
   }
 }
 
-auto GpgData::Read2Buffer() -> ByteArrayPtr {
-  gpgme_off_t ret = gpgme_data_seek(*this, 0, SEEK_SET);
-  ByteArrayPtr out_buffer = std::make_unique<std::string>();
-
-  if (ret != 0) {
-    GpgError const err = gpgme_err_code_from_errno(errno);
-    assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
-  } else {
-    std::array<std::byte, kBufferSize + 2> buf;
-
-    while ((ret = gpgme_data_read(*this, buf.data(), kBufferSize)) > 0) {
-      const size_t size = out_buffer->size();
-      out_buffer->resize(static_cast<int>(size + ret));
-      memcpy(out_buffer->data() + size, buf.data(), ret);
-    }
-    if (ret < 0) {
-      GpgError const err = gpgme_err_code_from_errno(errno);
-      assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
-    }
-  }
-  return out_buffer;
-}
-
 auto GpgData::Read2GFBuffer() -> GFBuffer {
   gpgme_off_t ret = gpgme_data_seek(*this, 0, SEEK_SET);
   GFBuffer out_buffer;

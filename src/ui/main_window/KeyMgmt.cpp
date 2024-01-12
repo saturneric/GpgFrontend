@@ -320,9 +320,9 @@ void KeyMgmt::delete_keys_with_warning(KeyIdArgsListPtr uidList) {
   for (const auto& key_id : *uidList) {
     auto key = GpgKeyGetter::GetInstance().GetKey(key_id);
     if (!key.IsGood()) continue;
-    keynames.append(QString::fromStdString(key.GetName()));
+    keynames.append(key.GetName());
     keynames.append("<i> &lt;");
-    keynames.append(QString::fromStdString(key.GetEmail()));
+    keynames.append(key.GetEmail());
     keynames.append("&gt; </i><br/>");
   }
 
@@ -495,7 +495,7 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
                   QString(_("OpenSSH Public Key Files")) + "All Files (*)");
 
               if (!file_name.isEmpty()) {
-                WriteFileGFBuffer(file_name.toStdString(), gf_buffer);
+                WriteFileGFBuffer(file_name, gf_buffer);
                 emit SignalStatusBarChanged(QString(_("key(s) exported")));
               }
             });

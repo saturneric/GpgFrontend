@@ -50,12 +50,12 @@ class GlobalModuleContext;
 class ModuleManager;
 
 using EventRefrernce = std::shared_ptr<Event>;
-using ModuleIdentifier = std::string;
+using ModuleIdentifier = QString;
 using ModulePtr = std::shared_ptr<Module>;
 using ModuleMangerPtr = std::shared_ptr<ModuleManager>;
 using GMCPtr = std::shared_ptr<GlobalModuleContext>;
-using Namespace = std::string;
-using Key = std::string;
+using Namespace = QString;
+using Key = QString;
 using LPCallback = std::function<void(Namespace, Key, int, std::any)>;
 
 class GPGFRONTEND_CORE_EXPORT ModuleManager
@@ -83,8 +83,7 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager
 
   auto ListenRTPublish(QObject*, Namespace, Key, LPCallback) -> bool;
 
-  auto ListRTChildKeys(const std::string&, const std::string&)
-      -> std::vector<Key>;
+  auto ListRTChildKeys(const QString&, const QString&) -> std::vector<Key>;
 
  private:
   class Impl;
@@ -130,8 +129,8 @@ auto GPGFRONTEND_CORE_EXPORT IsModuleAcivate(ModuleIdentifier) -> bool;
  * @return true
  * @return false
  */
-auto GPGFRONTEND_CORE_EXPORT UpsertRTValue(const std::string& namespace_,
-                                           const std::string& key,
+auto GPGFRONTEND_CORE_EXPORT UpsertRTValue(const QString& namespace_,
+                                           const QString& key,
                                            const std::any& value) -> bool;
 
 /**
@@ -150,12 +149,12 @@ auto GPGFRONTEND_CORE_EXPORT ListenRTPublishEvent(QObject*, Namespace, Key,
  * @param key
  * @return std::vector<Key>
  */
-auto GPGFRONTEND_CORE_EXPORT ListRTChildKeys(const std::string& namespace_,
-                                             const std::string& key)
+auto GPGFRONTEND_CORE_EXPORT ListRTChildKeys(const QString& namespace_,
+                                             const QString& key)
     -> std::vector<Key>;
 
 template <typename T>
-auto RetrieveRTValueTyped(const std::string& namespace_, const std::string& key)
+auto RetrieveRTValueTyped(const QString& namespace_, const QString& key)
     -> std::optional<T> {
   auto any_value =
       ModuleManager::GetInstance().RetrieveRTValue(namespace_, key);
@@ -166,9 +165,9 @@ auto RetrieveRTValueTyped(const std::string& namespace_, const std::string& key)
 }
 
 template <typename T>
-auto RetrieveRTValueTypedOrDefault(const std::string& namespace_,
-                                   const std::string& key,
-                                   const T& defaultValue) -> T {
+auto RetrieveRTValueTypedOrDefault(const QString& namespace_,
+                                   const QString& key, const T& defaultValue)
+    -> T {
   auto any_value =
       ModuleManager::GetInstance().RetrieveRTValue(namespace_, key);
   if (any_value && any_value->type() == typeid(T)) {

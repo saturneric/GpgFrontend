@@ -134,11 +134,12 @@ void KeyserverTab::SetSettings() {
     if (default_key_server_index >= key_server_list.size()) {
       throw std::runtime_error("default_server index out of range");
     }
-    std::string default_key_server =
+    const auto default_key_server =
         key_server_list[default_key_server_index].get<std::string>();
 
-    if (!key_server_str_list_.contains(default_key_server.c_str()))
+    if (!key_server_str_list_.contains(default_key_server.c_str())) {
       key_server_str_list_.append(default_key_server.c_str());
+    }
     default_key_server_ = QString::fromStdString(default_key_server);
   } catch (const std::exception& e) {
     GF_UI_LOG_ERROR("Error reading key-server settings: ", e.what());

@@ -29,8 +29,6 @@
 #include "ui/widgets/TextEdit.h"
 
 #include <QtPrintSupport>
-#include <boost/format.hpp>
-#include <string>
 #include <tuple>
 #include <vector>
 
@@ -73,16 +71,15 @@ void TextEdit::SlotNewTab() {
           this, &TextEdit::slot_save_status_to_cache_for_revovery);
 }
 
-void TextEdit::SlotNewTabWithContent(std::string title,
-                                     const std::string& content) {
+void TextEdit::SlotNewTabWithContent(QString title, const QString& content) {
   QString header = _("untitled") + QString::number(++count_page_) + ".txt";
-  if (!title.empty()) {
+  if (!title.isEmpty()) {
     // modify title
-    if (!title.empty() && title[0] == '*') {
-      title.erase(0, 1);
+    if (!title.isEmpty() && title[0] == '*') {
+      title.remove(0, 1);
     }
     // set title
-    header = QString::fromStdString(title);
+    header = title;
   }
 
   auto* page = new PlainTextEditorPage();
@@ -96,8 +93,7 @@ void TextEdit::SlotNewTabWithContent(std::string title,
           this, &TextEdit::slot_save_status_to_cache_for_revovery);
 
   // set content with modified status
-  page->GetTextPage()->document()->setPlainText(
-      QString::fromStdString(content));
+  page->GetTextPage()->document()->setPlainText(content);
 }
 
 void TextEdit::slotNewHelpTab(const QString& title, const QString& path) const {
@@ -144,10 +140,9 @@ void TextEdit::SlotOpenFile(const QString& path) {
     page->ReadFile();
   } else {
     QMessageBox::warning(this, _("Warning"),
-                         (boost::format(_("Cannot read file %1%:\n%2%.")) %
-                          path.toStdString() % file.errorString().toStdString())
-                             .str()
-                             .c_str());
+                         QString(_("Cannot read file %1:\n%2."))
+                             .arg(path)
+                             .arg(file.errorString()));
   }
 
   file.close();
@@ -168,14 +163,14 @@ void TextEdit::SlotSave() {
     return;
   }
 
-  QString fileName = SlotCurPageTextEdit()->GetFilePath();
+  QString file_name = SlotCurPageTextEdit()->GetFilePath();
 
-  if (fileName.isEmpty()) {
+  if (file_name.isEmpty()) {
     // QString docname = tabWidget->tabText(tabWidget->currentIndex());
     // docname.remove(0,2);
     SlotSaveAs();
   } else {
-    save_file(fileName);
+    save_file(file_name);
   }
 }
 
@@ -208,33 +203,30 @@ bool TextEdit::save_file(const QString& fileName) {
   QFile file(fileName);
 
   if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-    QTextStream outputStream(&file);
+    QTextStream output_stream(&file);
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    outputStream << page->GetTextPage()->toPlainText();
+    output_stream << page->GetTextPage()->toPlainText();
     QApplication::restoreOverrideCursor();
     QTextDocument* document = page->GetTextPage()->document();
 
     document->setModified(false);
 
-    int curIndex = tab_widget_->currentIndex();
-    tab_widget_->setTabText(curIndex, stripped_name(fileName));
+    int cur_index = tab_widget_->currentIndex();
+    tab_widget_->setTabText(cur_index, stripped_name(fileName));
     page->SetFilePath(fileName);
     page->NotifyFileSaved();
 
     file.close();
     return true;
-  } else {
-    QMessageBox::warning(
-        this, _("Warning"),
-        (boost::format(_("Cannot read file %1%:\n%2%.")) %
-         fileName.toStdString() % file.errorString().toStdString())
-            .str()
-            .c_str());
-    return false;
   }
+  QMessageBox::warning(this, _("Warning"),
+                       QString(_("Cannot read file %1%:\n%2%."))
+                           .arg(fileName)
+                           .arg(file.errorString()));
+  return false;
 }
 
-bool TextEdit::SlotSaveAs() {
+auto TextEdit::SlotSaveAs() -> bool {
   if (tab_widget_->count() == 0 || SlotCurPageTextEdit() == nullptr) {
     return true;
   }
@@ -247,8 +239,7 @@ bool TextEdit::SlotSaveAs() {
     path = tab_widget_->tabText(tab_widget_->currentIndex()).remove(0, 2);
   }
 
-  QString fileName = QFileDialog::getSaveFileName(this, _("Save file"), path);
-  return save_file(fileName);
+  return save_file(QFileDialog::getSaveFileName(this, _("Save file"), path));
 }
 
 void TextEdit::SlotCloseTab() {
@@ -324,20 +315,16 @@ bool TextEdit::maybe_save_current_tab(bool askToSave) {
         // QString docname = tabWidget->tabText(tabWidget->currentIndex());
         // docname.remove(0,2);
         return SlotSaveAs();
-      } else {
-        return save_file(file_path);
       }
-    } else if (result == QMessageBox::Discard) {
-      return true;
-    } else {
-      return false;
+      return save_file(file_path);
     }
+    return result == QMessageBox::Discard;
   }
   page->deleteLater();
   return true;
 }
 
-bool TextEdit::MaybeSaveAnyTab() {
+auto TextEdit::MaybeSaveAnyTab() -> bool {
   // get a list of all unsaved documents and their tabids
   QHash<int, QString> unsaved_docs = this->UnsavedDocuments();
 
@@ -352,8 +339,8 @@ bool TextEdit::MaybeSaveAnyTab() {
    * and show normal unsaved doc dialog
    */
   if (unsaved_docs.size() == 1) {
-    int modifiedTab = unsaved_docs.keys().at(0);
-    tab_widget_->setCurrentIndex(modifiedTab);
+    int modified_tab = unsaved_docs.keys().at(0);
+    tab_widget_->setCurrentIndex(modified_tab);
     return maybe_save_current_tab(true);
   }
 
@@ -410,14 +397,14 @@ FilePage* TextEdit::CurFilePage() const {
 int TextEdit::TabCount() const { return tab_widget_->count(); }
 
 PlainTextEditorPage* TextEdit::SlotCurPageTextEdit() const {
-  auto* curPage =
+  auto* cur_page =
       qobject_cast<PlainTextEditorPage*>(tab_widget_->currentWidget());
-  return curPage;
+  return cur_page;
 }
 
 FilePage* TextEdit::SlotCurPageFileTreeView() const {
-  auto* curPage = qobject_cast<FilePage*>(tab_widget_->currentWidget());
-  return curPage;
+  auto* cur_page = qobject_cast<FilePage*>(tab_widget_->currentWidget());
+  return cur_page;
 }
 
 void TextEdit::SlotQuote() const {
@@ -453,12 +440,10 @@ void TextEdit::SlotFillTextEditWithText(const QString& text) const {
 void TextEdit::LoadFile(const QString& fileName) {
   QFile file(fileName);
   if (!file.open(QFile::ReadOnly | QFile::Text)) {
-    QMessageBox::warning(
-        this, _("Warning"),
-        (boost::format(_("Cannot read file %1%:\n%2%.")) %
-         fileName.toStdString() % file.errorString().toStdString())
-            .str()
-            .c_str());
+    QMessageBox::warning(this, _("Warning"),
+                         QString(_("Cannot read file %1:\n%2."))
+                             .arg(fileName)
+                             .arg(file.errorString()));
     return;
   }
   QTextStream in(&file);
@@ -540,8 +525,8 @@ void TextEdit::SlotSwitchTabDown() const {
  *   return a hash of tabindexes and title of unsaved tabs
  */
 QHash<int, QString> TextEdit::UnsavedDocuments() const {
-  QHash<int, QString> unsavedDocs;  // this list could be used to implement
-                                    // gedit like "unsaved changed"-dialog
+  QHash<int, QString> unsaved_docs;  // this list could be used to implement
+                                     // gedit like "unsaved changed"-dialog
 
   for (int i = 0; i < tab_widget_->count(); i++) {
     auto* ep = qobject_cast<PlainTextEditorPage*>(tab_widget_->widget(i));
@@ -552,10 +537,10 @@ QHash<int, QString> TextEdit::UnsavedDocuments() const {
 
       // remove * before name of modified doc
       doc_name.remove(0, 2);
-      unsavedDocs.insert(i, doc_name);
+      unsaved_docs.insert(i, doc_name);
     }
   }
-  return unsavedDocs;
+  return unsaved_docs;
 }
 
 void TextEdit::SlotCut() const {
@@ -629,15 +614,15 @@ void TextEdit::SlotSelectAll() const {
 
 void TextEdit::slot_file_page_path_changed(const QString& path) const {
   int index = tab_widget_->currentIndex();
-  QString mPath;
-  QFileInfo fileInfo(path);
-  QString tPath = fileInfo.absoluteFilePath();
+  QString m_path;
+  QFileInfo file_info(path);
+  QString t_path = file_info.absoluteFilePath();
   if (path.size() > 18) {
-    mPath = tPath.mid(tPath.size() - 18, 18).prepend("...");
+    m_path = t_path.mid(t_path.size() - 18, 18).prepend("...");
   } else {
-    mPath = tPath;
+    m_path = t_path;
   }
-  tab_widget_->setTabText(index, mPath);
+  tab_widget_->setTabText(index, m_path);
 }
 
 void TextEdit::slot_save_status_to_cache_for_revovery() {
@@ -664,7 +649,7 @@ void TextEdit::slot_save_status_to_cache_for_revovery() {
       "{}",
       tab_count);
 
-  std::vector<std::tuple<int, std::string, std::string>> unsaved_pages;
+  std::vector<std::tuple<int, QString, QString>> unsaved_pages;
 
   for (int i = 0; i < tab_count; i++) {
     auto* target_page =
@@ -676,24 +661,26 @@ void TextEdit::slot_save_status_to_cache_for_revovery() {
     }
 
     auto* document = target_page->GetTextPage()->document();
-    auto tab_title = tab_widget_->tabText(i).toStdString();
+    auto tab_title = tab_widget_->tabText(i);
     if (!target_page->ReadDone() || !target_page->isEnabled() ||
         !document->isModified()) {
       continue;
     }
 
-    auto raw_text = document->toRawText().toStdString();
+    auto raw_text = document->toRawText();
     GF_UI_LOG_DEBUG("unsaved page index: {}, tab title: {} tab content: {}", i,
                     tab_title, raw_text.size());
-    unsaved_pages.push_back({i, tab_title, raw_text});
+    unsaved_pages.emplace_back(i, tab_title, raw_text);
   }
 
   nlohmann::json unsaved_page_array = nlohmann::json::array();
   for (const auto& page : unsaved_pages) {
+    const auto [index, title, content] = page;
+
     nlohmann::json page_json;
-    page_json["index"] = std::get<0>(page);
-    page_json["title"] = std::get<1>(page);
-    page_json["content"] = std::get<2>(page);
+    page_json["index"] = index;
+    page_json["title"] = title.toStdString();
+    page_json["content"] = content.toStdString();
 
     unsaved_page_array.push_back(page_json);
   }

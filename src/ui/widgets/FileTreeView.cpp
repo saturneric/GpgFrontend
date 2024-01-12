@@ -386,7 +386,7 @@ void FileTreeView::slot_show_custom_context_menu(const QPoint& point) {
 
 void FileTreeView::slot_calculate_hash() {
   emit UISignalStation::GetInstance()->SignalRefreshInfoBoard(
-      QString::fromStdString(CalculateHash(this->GetSelectedPath())),
+      CalculateHash(this->GetSelectedPath().c_str()),
       InfoBoardStatus::INFO_ERROR_OK);
 }
 

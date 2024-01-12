@@ -396,62 +396,50 @@ char *pinentry_get_title(pinentry_t pe) {
    just one data line which should not be escaped in any represent a
    numeric signed decimal value.  Extra data is currently ignored but
    should not be send at all.  */
-int pinentry_inq_quality(pinentry_t pin, const char *passphrase,
-                         size_t length) {
-  assuan_context_t ctx = (assuan_context_t)pin->ctx_assuan;
-  const char prefix[] = "INQUIRE QUALITY ";
-  char *command;
-  char *line;
-  size_t linelen;
-  int gotvalue = 0;
-  int value = 0;
-  int rc;
+int pinentry_inq_quality(const QString &passphrase) {
+  int score = 0;
 
-  if (!ctx) return 0; /* Can't run the callback.  */
+  score += std::min(40, static_cast<int>(passphrase.length()) * 2);
 
-  if (length > 300)
-    length = 300; /* Limit so that it definitely fits into an Assuan
-                     line.  */
-
-  command =
-      GpgFrontend::SecureMallocAsType<char>(strlen(prefix) + 3 * length + 1);
-  if (!command) return 0;
-  strcpy(command, prefix);
-  copy_and_escape(command + strlen(command), passphrase, length);
-  rc = assuan_write_line(ctx, command);
-  GpgFrontend::SecureFree(command);
-  if (rc) {
-    fprintf(stderr, "ASSUAN WRITE LINE failed: rc=%d\n", rc);
-    return 0;
+  bool has_upper = false;
+  bool has_lower = false;
+  bool has_digit = false;
+  bool has_special = false;
+  for (const auto ch : passphrase) {
+    if (ch.isUpper()) has_upper = true;
+    if (ch.isLower()) has_lower = true;
+    if (ch.isDigit()) has_digit = true;
+    if (!ch.isLetterOrNumber()) has_special = true;
   }
 
-  for (;;) {
-    do {
-      rc = assuan_read_line(ctx, &line, &linelen);
-      if (rc) {
-        fprintf(stderr, "ASSUAN READ LINE failed: rc=%d\n", rc);
-        return 0;
-      }
-    } while (*line == '#' || !linelen);
-    if (line[0] == 'E' && line[1] == 'N' && line[2] == 'D' &&
-        (!line[3] || line[3] == ' '))
-      break; /* END command received*/
-    if (line[0] == 'C' && line[1] == 'A' && line[2] == 'N' &&
-        (!line[3] || line[3] == ' '))
-      break; /* CAN command received*/
-    if (line[0] == 'E' && line[1] == 'R' && line[2] == 'R' &&
-        (!line[3] || line[3] == ' '))
-      break; /* ERR command received*/
-    if (line[0] != 'D' || line[1] != ' ' || linelen < 3 || gotvalue) continue;
-    gotvalue = 1;
-    value = atoi(line + 2);
-  }
-  if (value < -100)
-    value = -100;
-  else if (value > 100)
-    value = 100;
+  int const variety_count =
+      static_cast<int>(has_upper) + static_cast<int>(has_lower) +
+      static_cast<int>(has_digit) + static_cast<int>(has_special);
+  score += variety_count * 10;
 
-  return value;
+  for (size_t i = 0; i < passphrase.length() - 1; ++i) {
+    if (passphrase[i] == passphrase[i + 1]) {
+      score -= 5;
+    }
+  }
+
+  std::unordered_map<QChar, int> char_count;
+  for (const auto ch : passphrase) {
+    char_count[ch]++;
+  }
+  for (auto &p : char_count) {
+    if (p.second > 1) {
+      score -= (p.second - 1) * 3;
+    }
+  }
+
+  QString const lower_password = passphrase.toLower();
+  if (lower_password.contains("password") ||
+      lower_password.contains("123456")) {
+    score -= 30;
+  }
+
+  return std::max(-100, std::min(100, score));
 }
 
 /* Run a checkpin inquiry */

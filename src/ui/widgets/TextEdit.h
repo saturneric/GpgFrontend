@@ -153,7 +153,7 @@ class TextEdit : public QWidget {
    * @details
    *
    */
-  void SlotNewTabWithContent(std::string title, const std::string& content);
+  void SlotNewTabWithContent(QString title, const QString& content);
 
   /**
    * @details Adds a new tab with opening file by path

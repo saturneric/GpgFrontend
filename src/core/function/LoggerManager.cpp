@@ -58,18 +58,19 @@ LoggerManager::~LoggerManager() {
   if (default_logger) default_logger = nullptr;
 }
 
-auto LoggerManager::GetLogger(const std::string& id)
+auto LoggerManager::GetLogger(const QString& id)
     -> std::shared_ptr<spdlog::logger> {
   auto m_it = logger_map_.find(id);
   if (m_it == logger_map_.end()) return GetDefaultLogger();
   return m_it->second;
 }
 
-auto LoggerManager::RegisterAsyncLogger(const std::string& id,
+auto LoggerManager::RegisterAsyncLogger(const QString& id,
                                         spdlog::level::level_enum level)
     -> std::shared_ptr<spdlog::logger> {
   // get the log directory
-  auto log_file_path = (GlobalSettingStation::GetInstance().GetLogDir() / id);
+  auto log_file_path =
+      (GlobalSettingStation::GetInstance().GetLogDir() / id.toStdString());
   log_file_path.replace_extension(".log");
 
   // sinks
@@ -82,7 +83,7 @@ auto LoggerManager::RegisterAsyncLogger(const std::string& id,
 
   // logger
   auto logger = GpgFrontend::SecureCreateSharedObject<spdlog::async_logger>(
-      id, begin(sinks), end(sinks), spdlog::thread_pool());
+      id.toStdString(), begin(sinks), end(sinks), spdlog::thread_pool());
   logger->set_pattern(
       "[%H:%M:%S.%e] [T:%t] [%=6n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
 
@@ -100,11 +101,12 @@ auto LoggerManager::RegisterAsyncLogger(const std::string& id,
   return logger;
 }
 
-auto LoggerManager::RegisterSyncLogger(const std::string& id,
+auto LoggerManager::RegisterSyncLogger(const QString& id,
                                        spdlog::level::level_enum level)
     -> std::shared_ptr<spdlog::logger> {
   // get the log directory
-  auto log_file_path = (GlobalSettingStation::GetInstance().GetLogDir() / id);
+  auto log_file_path =
+      (GlobalSettingStation::GetInstance().GetLogDir() / id.toStdString());
   log_file_path.replace_extension(".log");
 
   // sinks
@@ -117,7 +119,7 @@ auto LoggerManager::RegisterSyncLogger(const std::string& id,
 
   // logger
   auto logger = GpgFrontend::SecureCreateSharedObject<spdlog::logger>(
-      id, begin(sinks), end(sinks));
+      id.toStdString(), begin(sinks), end(sinks));
   logger->set_pattern(
       "[%H:%M:%S.%e] [T:%t] [%=6n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
 

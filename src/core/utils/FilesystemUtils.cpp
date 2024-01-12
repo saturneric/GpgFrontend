@@ -30,26 +30,26 @@
 
 namespace GpgFrontend {
 
-auto GetOnlyFileNameWithPath(const std::string &path) -> std::string {
+auto GetOnlyFileNameWithPath(const QString &path) -> QString {
   // Create a path object from given string
-  std::filesystem::path path_obj(path);
+  std::filesystem::path path_obj(path.toStdString());
   // Check if file name in the path object has extension
   if (path_obj.has_filename()) {
     // Fetch the extension from path object and return
-    return (path_obj.parent_path() / path_obj.stem()).u8string();
+    return (path_obj.parent_path() / path_obj.stem()).c_str();
   }
   // In case of no extension return empty string
   return {};
 }
 
-auto GetFileExtension(const std::string &path) -> std::string {
+auto GetFileExtension(const QString &path) -> QString {
   // Create a path object from given string
-  std::filesystem::path path_obj(path);
+  std::filesystem::path path_obj(path.toStdString());
 
   // Check if file name in the path object has extension
   if (path_obj.has_extension()) {
     // Fetch the extension from path object and return
-    return path_obj.extension().u8string();
+    return path_obj.extension().c_str();
   }
   // In case of no extension return empty string
   return {};
@@ -60,10 +60,10 @@ auto GetFileExtension(const std::string &path) -> std::string {
  *
  */
 auto GetFileSizeByPath(const std::filesystem::path &path,
-                       const std::string &filename_pattern) -> int64_t {
+                       const QString &filename_pattern) -> int64_t {
   auto dir = QDir(QString::fromStdString(path.u8string()));
-  QFileInfoList file_list = dir.entryInfoList(
-      QStringList() << QString::fromStdString(filename_pattern), QDir::Files);
+  QFileInfoList const file_list =
+      dir.entryInfoList(QStringList() << filename_pattern, QDir::Files);
   qint64 total_size = 0;
 
   for (const QFileInfo &file_info : file_list) {
@@ -76,7 +76,7 @@ auto GetFileSizeByPath(const std::filesystem::path &path,
  * @brief
  *
  */
-auto GetHumanFriendlyFileSize(int64_t size) -> std::string {
+auto GetHumanFriendlyFileSize(int64_t size) -> QString {
   auto num = static_cast<double>(size);
   QStringList list;
   list << "KB"
@@ -91,7 +91,7 @@ auto GetHumanFriendlyFileSize(int64_t size) -> std::string {
     unit = i.next();
     num /= 1024.0;
   }
-  return (QString().setNum(num, 'f', 2) + " " + unit).toStdString();
+  return (QString().setNum(num, 'f', 2) + " " + unit);
 }
 
 /**
@@ -99,11 +99,11 @@ auto GetHumanFriendlyFileSize(int64_t size) -> std::string {
  *
  */
 void DeleteAllFilesByPattern(const std::filesystem::path &path,
-                             const std::string &filename_pattern) {
+                             const QString &filename_pattern) {
   auto dir = QDir(QString::fromStdString(path.u8string()));
 
-  QStringList log_files = dir.entryList(
-      QStringList() << QString::fromStdString(filename_pattern), QDir::Files);
+  QStringList const log_files =
+      dir.entryList(QStringList() << filename_pattern, QDir::Files);
 
   for (const auto &file : log_files) {
     QFile::remove(dir.absoluteFilePath(file));

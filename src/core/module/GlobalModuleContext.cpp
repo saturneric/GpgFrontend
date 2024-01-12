@@ -29,7 +29,6 @@
 #include "GlobalModuleContext.h"
 
 #include <boost/date_time.hpp>
-#include <boost/format.hpp>
 #include <boost/random.hpp>
 #include <set>
 #include <unordered_map>
@@ -269,12 +268,11 @@ class GlobalModuleContext::Impl {
 
       Thread::TaskRunnerGetter::GetInstance()
           .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
-          ->PostTask(
-              new Thread::Task(exec_runnerable,
-                               (boost::format("event/%1%/module/exec/%2%") %
-                                event_id % listener_module_id)
-                                   .str(),
-                               nullptr, exec_callback));
+          ->PostTask(new Thread::Task(exec_runnerable,
+                                      QString("event/%1/module/exec/%2")
+                                          .arg(event_id)
+                                          .arg(listener_module_id),
+                                      nullptr, exec_callback));
     }
 
     // Return true to indicate successful execution of all modules

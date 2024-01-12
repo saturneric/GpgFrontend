@@ -40,41 +40,41 @@ void GpgFrontend::GpgEncryptResultAnalyse::doAnalyse() {
   stream_ << "# " << _("Encrypt Operation") << " ";
 
   if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
-    stream_ << "- " << _("Success") << " " << std::endl;
+    stream_ << "- " << _("Success") << " " << Qt::endl;
   } else {
     stream_ << "- " << _("Failed") << ": " << gpgme_strerror(error_)
-            << std::endl;
+            << Qt::endl;
     setStatus(-1);
   }
 
   if ((~status_) == 0) {
-    stream_ << std::endl;
+    stream_ << Qt::endl;
 
     const auto *result = result_.GetRaw();
 
     if (result != nullptr) {
-      stream_ << "## " << _("Invalid Recipients") << ": " << std::endl
-              << std::endl;
+      stream_ << "## " << _("Invalid Recipients") << ": " << Qt::endl
+              << Qt::endl;
 
       auto *inv_reci = result->invalid_recipients;
       auto index = 0;
 
       while (inv_reci != nullptr) {
         stream_ << "### " << _("Recipients") << " " << ++index << ": "
-                << std::endl;
+                << Qt::endl;
         stream_ << "- " << _("Fingerprint") << ": " << inv_reci->fpr
-                << std::endl;
+                << Qt::endl;
         stream_ << "- " << _("Reason") << ": "
-                << gpgme_strerror(inv_reci->reason) << std::endl;
-        stream_ << std::endl << std::endl;
+                << gpgme_strerror(inv_reci->reason) << Qt::endl;
+        stream_ << Qt::endl << Qt::endl;
 
         inv_reci = inv_reci->next;
       }
     }
-    stream_ << std::endl;
+    stream_ << Qt::endl;
   }
 
-  stream_ << std::endl;
+  stream_ << Qt::endl;
 }
 
 }  // namespace GpgFrontend

@@ -30,6 +30,6 @@
 
 namespace GpgFrontend {
 
-auto GPGFRONTEND_CORE_EXPORT GetFormatedDateByTimestamp(time_t) -> std::string;
+auto GPGFRONTEND_CORE_EXPORT GetFormatedDateByTimestamp(time_t) -> QString;
 
 }

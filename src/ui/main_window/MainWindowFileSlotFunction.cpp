@@ -26,10 +26,7 @@
  *
  */
 
-#include <boost/format.hpp>
-
 #include "MainWindow.h"
-#include "core/function/ArchiveFileOperator.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgFileOpera.h"
 #include "core/function/gpg/GpgKeyGetter.h"
@@ -37,19 +34,19 @@
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgSignResultAnalyse.h"
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
-#include "core/thread/Task.h"
 #include "core/utils/GpgUtils.h"
+#include "core/utils/IOUtils.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SignersPicker.h"
 
 namespace GpgFrontend::UI {
 
-void MainWindow::SlotFileEncrypt(std::filesystem::path path) {
+void MainWindow::SlotFileEncrypt(const QString& path) {
   auto check_result = TargetFilePreCheck(path, true);
   if (!std::get<0>(check_result)) {
-    QMessageBox::critical(
-        this, _("Error"),
-        QString(_("Cannot read from file: %1")).arg(path.filename().c_str()));
+    QMessageBox::critical(this, _("Error"),
+                          QString(_("Cannot read from file: %1"))
+                              .arg(QFileInfo(path).fileName()));
     return;
   }
 
@@ -60,12 +57,11 @@ void MainWindow::SlotFileEncrypt(std::filesystem::path path) {
       SetExtensionOfOutputFile(path, kENCRYPT, !non_ascii_when_export);
 
   if (QFile::exists(out_path)) {
-    auto out_file_name = boost::format(_("The target file %1% already exists, "
-                                         "do you need to overwrite it?")) %
-                         out_path.filename();
-    auto ret =
-        QMessageBox::warning(this, _("Warning"), out_file_name.str().c_str(),
-                             QMessageBox::Ok | QMessageBox::Cancel);
+    auto out_file_name = QString(_("The target file %1 already exists, "
+                                   "do you need to overwrite it?"))
+                             .arg(out_path);
+    auto ret = QMessageBox::warning(this, _("Warning"), out_file_name,
+                                    QMessageBox::Ok | QMessageBox::Cancel);
 
     if (ret == QMessageBox::Cancel) return;
   }
@@ -73,8 +69,7 @@ void MainWindow::SlotFileEncrypt(std::filesystem::path path) {
   check_result = TargetFilePreCheck(out_path, false);
   if (!std::get<0>(check_result)) {
     QMessageBox::critical(this, _("Error"),
-                          QString(_("Cannot write to file: %1"))
-                              .arg(out_path.filename().c_str()));
+                          QString(_("Cannot write to file: %1")).arg(out_path));
     return;
   }
 
@@ -92,7 +87,8 @@ void MainWindow::SlotFileEncrypt(std::filesystem::path path) {
     CommonUtils::WaitForOpera(
         this, _("Symmetrically Encrypting"), [=](const OperaWaitingHd& op_hd) {
           GpgFileOpera::GetInstance().EncryptFileSymmetric(
-              path, !non_ascii_when_export, out_path,
+              path.toStdString(), !non_ascii_when_export,
+              out_path.toStdString(),
               [=](GpgError err, const DataObjectPtr& data_obj) {
                 // stop waiting
                 op_hd();
@@ -125,7 +121,7 @@ void MainWindow::SlotFileEncrypt(std::filesystem::path path) {
           nullptr, _("Invalid KeyPair"),
           QString(_("The selected keypair cannot be used for encryption.")) +
               "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
-              QString::fromStdString(key.GetUIDs()->front().GetUID()));
+              key.GetUIDs()->front().GetUID());
       return;
     }
   }
@@ -133,8 +129,9 @@ void MainWindow::SlotFileEncrypt(std::filesystem::path path) {
   CommonUtils::WaitForOpera(
       this, _("Encrypting"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().EncryptFile(
-            {p_keys->begin(), p_keys->end()}, path, !non_ascii_when_export,
-            out_path, [=](GpgError err, const DataObjectPtr& data_obj) {
+            {p_keys->begin(), p_keys->end()}, path.toStdString(),
+            !non_ascii_when_export, out_path.toStdString(),
+            [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
 
@@ -152,12 +149,12 @@ void MainWindow::SlotFileEncrypt(std::filesystem::path path) {
       });
 }
 
-void MainWindow::SlotDirectoryEncrypt(std::filesystem::path path) {
+void MainWindow::SlotDirectoryEncrypt(const QString& path) {
   auto check_result = TargetFilePreCheck(path, true);
   if (!std::get<0>(check_result)) {
-    QMessageBox::critical(
-        this, _("Error"),
-        QString(_("Cannot read from file: %1")).arg(path.filename().c_str()));
+    QMessageBox::critical(this, _("Error"),
+                          QString(_("Cannot read from file: %1"))
+                              .arg(QFileInfo(path).fileName()));
     return;
   }
 
@@ -168,12 +165,11 @@ void MainWindow::SlotDirectoryEncrypt(std::filesystem::path path) {
                                                      !non_ascii_when_export);
 
   if (QFile::exists(out_path)) {
-    auto out_file_name = boost::format(_("The target file %1% already exists, "
-                                         "do you need to overwrite it?")) %
-                         out_path.filename();
-    auto ret =
-        QMessageBox::warning(this, _("Warning"), out_file_name.str().c_str(),
-                             QMessageBox::Ok | QMessageBox::Cancel);
+    auto out_file_name = QString(_("The target file %1 already exists, "
+                                   "do you need to overwrite it?"))
+                             .arg(out_path);
+    auto ret = QMessageBox::warning(this, _("Warning"), out_file_name,
+                                    QMessageBox::Ok | QMessageBox::Cancel);
 
     if (ret == QMessageBox::Cancel) return;
   }
@@ -181,8 +177,7 @@ void MainWindow::SlotDirectoryEncrypt(std::filesystem::path path) {
   check_result = TargetFilePreCheck(out_path, false);
   if (!std::get<0>(check_result)) {
     QMessageBox::critical(this, _("Error"),
-                          QString(_("Cannot write to file: %1"))
-                              .arg(out_path.filename().c_str()));
+                          QString(_("Cannot write to file: %1")).arg(out_path));
     return;
   }
 
@@ -201,7 +196,8 @@ void MainWindow::SlotDirectoryEncrypt(std::filesystem::path path) {
         this, _("Archiving & Symmetrically Encrypting"),
         [=](const OperaWaitingHd& op_hd) {
           GpgFileOpera::GetInstance().EncryptDerectorySymmetric(
-              path, !non_ascii_when_export, out_path,
+              path.toStdString(), !non_ascii_when_export,
+              out_path.toStdString(),
               [=](GpgError err, const DataObjectPtr& data_obj) {
                 // stop waiting
                 op_hd();
@@ -234,7 +230,7 @@ void MainWindow::SlotDirectoryEncrypt(std::filesystem::path path) {
           nullptr, _("Invalid KeyPair"),
           QString(_("The selected keypair cannot be used for encryption.")) +
               "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
-              QString::fromStdString(key.GetUIDs()->front().GetUID()));
+              key.GetUIDs()->front().GetUID());
       return;
     }
   }
@@ -242,8 +238,9 @@ void MainWindow::SlotDirectoryEncrypt(std::filesystem::path path) {
   CommonUtils::WaitForOpera(
       this, _("Archiving & Encrypting"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().EncryptDirectory(
-            {p_keys->begin(), p_keys->end()}, path, !non_ascii_when_export,
-            out_path, [=](GpgError err, const DataObjectPtr& data_obj) {
+            {p_keys->begin(), p_keys->end()}, path.toStdString(),
+            !non_ascii_when_export, out_path.toStdString(),
+            [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
 
@@ -261,17 +258,17 @@ void MainWindow::SlotDirectoryEncrypt(std::filesystem::path path) {
       });
 }
 
-void MainWindow::SlotFileDecrypt(std::filesystem::path path) {
+void MainWindow::SlotFileDecrypt(const QString& path) {
   auto check_result = TargetFilePreCheck(path, true);
   if (!std::get<0>(check_result)) {
-    QMessageBox::critical(
-        this, _("Error"),
-        QString(_("Cannot read from file: %1")).arg(path.filename().c_str()));
+    QMessageBox::critical(this, _("Error"),
+                          QString(_("Cannot read from file: %1"))
+                              .arg(QFileInfo(path).fileName()));
     return;
   }
 
   auto out_path = SetExtensionOfOutputFile(path, kDECRYPT, true);
-  if (exists(out_path)) {
+  if (QFileInfo(out_path).exists()) {
     auto ret = QMessageBox::warning(
         this, _("Warning"),
         _("The target file already exists, do you need to overwrite it?"),
@@ -283,15 +280,15 @@ void MainWindow::SlotFileDecrypt(std::filesystem::path path) {
   check_result = TargetFilePreCheck(out_path, false);
   if (!std::get<0>(check_result)) {
     QMessageBox::critical(this, _("Error"),
-                          QString(_("Cannot write to file: %1"))
-                              .arg(out_path.filename().c_str()));
+                          QString(_("Cannot write to file: %1")).arg(out_path));
     return;
   }
 
   CommonUtils::WaitForOpera(
       this, _("Decrypting"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().DecryptFile(
-            path, out_path, [=](GpgError err, const DataObjectPtr& data_obj) {
+            path.toStdString(), out_path.toStdString(),
+            [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
 
@@ -309,17 +306,16 @@ void MainWindow::SlotFileDecrypt(std::filesystem::path path) {
       });
 }
 
-void MainWindow::SlotArchiveDecrypt(std::filesystem::path path) {
+void MainWindow::SlotArchiveDecrypt(const QString& path) {
   auto check_result = TargetFilePreCheck(path, true);
   if (!std::get<0>(check_result)) {
-    QMessageBox::critical(
-        this, _("Error"),
-        QString(_("Cannot read from file: %1")).arg(path.filename().c_str()));
+    QMessageBox::critical(this, _("Error"),
+                          QString(_("Cannot read from file: %1")).arg(path));
     return;
   }
 
   auto out_path = SetExtensionOfOutputFileForArchive(path, kDECRYPT, true);
-  if (exists(out_path)) {
+  if (QFileInfo(out_path).exists()) {
     auto ret = QMessageBox::warning(
         this, _("Warning"),
         _("The target file already exists, do you need to overwrite it?"),
@@ -331,15 +327,15 @@ void MainWindow::SlotArchiveDecrypt(std::filesystem::path path) {
   check_result = TargetFilePreCheck(out_path, false);
   if (!std::get<0>(check_result)) {
     QMessageBox::critical(this, _("Error"),
-                          QString(_("Cannot write to file: %1"))
-                              .arg(out_path.filename().c_str()));
+                          QString(_("Cannot write to file: %1")).arg(out_path));
     return;
   }
 
   CommonUtils::WaitForOpera(
       this, _("Decrypting & Extrating"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().DecryptArchive(
-            path, out_path, [=](GpgError err, const DataObjectPtr& data_obj) {
+            path.toStdString(), out_path.toStdString(),
+            [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
 
@@ -357,12 +353,12 @@ void MainWindow::SlotArchiveDecrypt(std::filesystem::path path) {
       });
 }
 
-void MainWindow::SlotFileSign(std::filesystem::path path) {
+void MainWindow::SlotFileSign(const QString& path) {
   auto check_result = TargetFilePreCheck(path, true);
   if (!std::get<0>(check_result)) {
-    QMessageBox::critical(
-        this, _("Error"),
-        QString(_("Cannot read from file: %1")).arg(path.filename().c_str()));
+    QMessageBox::critical(this, _("Error"),
+                          QString(_("Cannot read from file: %1"))
+                              .arg(QFileInfo(path).fileName()));
     return;
   }
 
@@ -383,7 +379,7 @@ void MainWindow::SlotFileSign(std::filesystem::path path) {
           QString(_("The selected key contains a key that does not actually "
                     "have a sign usage.")) +
               "<br/><br/>" + _("for example the Following Key:") + " <br/>" +
-              QString::fromStdString(key.GetUIDs()->front().GetUID()));
+              key.GetUIDs()->front().GetUID());
       return;
     }
   }
@@ -394,13 +390,13 @@ void MainWindow::SlotFileSign(std::filesystem::path path) {
   auto sig_file_path =
       SetExtensionOfOutputFile(path, kSIGN, !non_ascii_when_export);
 
-  if (exists(sig_file_path)) {
-    auto ret = QMessageBox::warning(
-        this, _("Warning"),
-        QString(_("The signature file \"%1\" exists, "
-                  "do you need to overwrite it?"))
-            .arg(sig_file_path.filename().u8string().c_str()),
-        QMessageBox::Ok | QMessageBox::Cancel);
+  if (QFileInfo(sig_file_path).exists()) {
+    auto ret =
+        QMessageBox::warning(this, _("Warning"),
+                             QString(_("The signature file \"%1\" exists, "
+                                       "do you need to overwrite it?"))
+                                 .arg(sig_file_path),
+                             QMessageBox::Ok | QMessageBox::Cancel);
 
     if (ret == QMessageBox::Cancel) return;
   }
@@ -408,8 +404,9 @@ void MainWindow::SlotFileSign(std::filesystem::path path) {
   CommonUtils::WaitForOpera(
       this, _("Signing"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().SignFile(
-            {keys->begin(), keys->end()}, path, !non_ascii_when_export,
-            sig_file_path, [=](GpgError err, const DataObjectPtr& data_obj) {
+            {keys->begin(), keys->end()}, path.toStdString(),
+            !non_ascii_when_export, sig_file_path.toStdString(),
+            [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
 
@@ -427,43 +424,44 @@ void MainWindow::SlotFileSign(std::filesystem::path path) {
       });
 }
 
-void MainWindow::SlotFileVerify(std::filesystem::path path) {
+void MainWindow::SlotFileVerify(const QString& path) {
   auto check_result = TargetFilePreCheck(path, true);
   if (!std::get<0>(check_result)) {
-    QMessageBox::critical(
-        this, _("Error"),
-        QString(_("Cannot read from file: %1")).arg(path.filename().c_str()));
+    QMessageBox::critical(this, _("Error"),
+                          QString(_("Cannot read from file: %1"))
+                              .arg(QFileInfo(path).fileName()));
     return;
   }
 
-  std::filesystem::path sign_file_path = path;
-  std::filesystem::path data_file_path;
+  auto file_info = QFileInfo(path);
+  QString sign_file_path = path;
+  QString data_file_path;
 
   bool const prossible_singleton_target =
-      path.extension() == ".gpg" || path.extension() == ".pgp";
+      file_info.suffix() == "gpg" || file_info.suffix() == "pgp";
   if (prossible_singleton_target) {
     swap(data_file_path, sign_file_path);
   } else {
-    data_file_path = sign_file_path.parent_path() / sign_file_path.stem();
+    data_file_path = file_info.path() + "/" + file_info.baseName();
   }
 
-  if (!prossible_singleton_target && !std::filesystem::exists(data_file_path)) {
+  auto data_file_info = QFileInfo(data_file_path);
+  if (!prossible_singleton_target && !data_file_info.exists()) {
     bool ok;
     QString const text = QInputDialog::getText(
         this, _("File to be Verified"),
         _("Please provide An ABSOLUTE Path \n"
           "If Data And Signature is COMBINED within a single file, "
           "KEEP THIS EMPTY: "),
-        QLineEdit::Normal, data_file_path.u8string().c_str(), &ok);
+        QLineEdit::Normal, data_file_path, &ok);
 
     if (!ok) return;
 
-    data_file_path =
-        text.isEmpty() ? path : std::filesystem::path{text.toStdString()};
+    data_file_path = text.isEmpty() ? path : text;
   }
 
-  if (!is_regular_file(data_file_path) ||
-      (!sign_file_path.empty() && !is_regular_file(sign_file_path))) {
+  if (!data_file_info.isFile() ||
+      (!sign_file_path.isEmpty() && !QFileInfo(sign_file_path).isFile())) {
     QMessageBox::critical(
         this, _("Error"),
         _("Please select the appropriate origin file or signature file. "
@@ -471,14 +469,13 @@ void MainWindow::SlotFileVerify(std::filesystem::path path) {
     return;
   }
 
-  GF_UI_LOG_DEBUG("verification data file path: {}", data_file_path.u8string());
-  GF_UI_LOG_DEBUG("verification signature file path: {}",
-                  sign_file_path.u8string());
+  GF_UI_LOG_DEBUG("verification data file path: {}", data_file_path);
+  GF_UI_LOG_DEBUG("verification signature file path: {}", sign_file_path);
 
   CommonUtils::WaitForOpera(
       this, _("Verifying"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().VerifyFile(
-            data_file_path.u8string(), sign_file_path.u8string(),
+            data_file_path.toStdString(), sign_file_path.toStdString(),
             [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
@@ -504,12 +501,11 @@ void MainWindow::SlotFileVerify(std::filesystem::path path) {
       });
 }
 
-void MainWindow::SlotFileEncryptSign(std::filesystem::path path) {
+void MainWindow::SlotFileEncryptSign(const QString& path) {
   auto check_result = TargetFilePreCheck(path, true);
   if (!std::get<0>(check_result)) {
-    QMessageBox::critical(
-        this, _("Error"),
-        QString(_("Cannot read from file: %1")).arg(path.filename().c_str()));
+    QMessageBox::critical(this, _("Error"),
+                          QString(_("Cannot read from file: %1")).arg(path));
     return;
   }
 
@@ -533,7 +529,7 @@ void MainWindow::SlotFileEncryptSign(std::filesystem::path path) {
           nullptr, _("Invalid KeyPair"),
           QString(_("The selected keypair cannot be used for encryption.")) +
               "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
-              QString::fromStdString(key.GetUIDs()->front().GetUID()));
+              key.GetUIDs()->front().GetUID());
       return;
     }
   }
@@ -547,8 +543,7 @@ void MainWindow::SlotFileEncryptSign(std::filesystem::path path) {
   check_result = TargetFilePreCheck(out_path, false);
   if (!std::get<0>(check_result)) {
     QMessageBox::critical(this, _("Error"),
-                          QString(_("Cannot write to file: %1"))
-                              .arg(out_path.filename().c_str()));
+                          QString(_("Cannot write to file: %1")).arg(out_path));
     return;
   }
 
@@ -576,8 +571,8 @@ void MainWindow::SlotFileEncryptSign(std::filesystem::path path) {
       this, _("Encrypting and Signing"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().EncryptSignFile(
             {p_keys->begin(), p_keys->end()},
-            {p_signer_keys->begin(), p_signer_keys->end()}, path,
-            !non_ascii_when_export, out_path,
+            {p_signer_keys->begin(), p_signer_keys->end()}, path.toStdString(),
+            !non_ascii_when_export, out_path.toStdString(),
             [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
@@ -605,12 +600,11 @@ void MainWindow::SlotFileEncryptSign(std::filesystem::path path) {
       });
 }
 
-void MainWindow::SlotDirectoryEncryptSign(std::filesystem::path path) {
+void MainWindow::SlotDirectoryEncryptSign(const QString& path) {
   auto check_result = TargetFilePreCheck(path, true);
   if (!std::get<0>(check_result)) {
-    QMessageBox::critical(
-        this, _("Error"),
-        QString(_("Cannot read from file: %1")).arg(path.filename().c_str()));
+    QMessageBox::critical(this, _("Error"),
+                          QString(_("Cannot read from file: %1")).arg(path));
     return;
   }
 
@@ -634,7 +628,7 @@ void MainWindow::SlotDirectoryEncryptSign(std::filesystem::path path) {
           nullptr, _("Invalid KeyPair"),
           QString(_("The selected keypair cannot be used for encryption.")) +
               "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
-              QString::fromStdString(key.GetUIDs()->front().GetUID()));
+              key.GetUIDs()->front().GetUID());
       return;
     }
   }
@@ -648,8 +642,7 @@ void MainWindow::SlotDirectoryEncryptSign(std::filesystem::path path) {
   check_result = TargetFilePreCheck(out_path, false);
   if (!std::get<0>(check_result)) {
     QMessageBox::critical(this, _("Error"),
-                          QString(_("Cannot write to file: %1"))
-                              .arg(out_path.filename().c_str()));
+                          QString(_("Cannot write to file: %1")).arg(out_path));
     return;
   }
 
@@ -678,8 +671,8 @@ void MainWindow::SlotDirectoryEncryptSign(std::filesystem::path path) {
       [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().EncryptSignDirectory(
             {p_keys->begin(), p_keys->end()},
-            {p_signer_keys->begin(), p_signer_keys->end()}, path,
-            !non_ascii_when_export, out_path,
+            {p_signer_keys->begin(), p_signer_keys->end()}, path.toStdString(),
+            !non_ascii_when_export, out_path.toStdString(),
             [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
@@ -707,12 +700,11 @@ void MainWindow::SlotDirectoryEncryptSign(std::filesystem::path path) {
       });
 }
 
-void MainWindow::SlotFileDecryptVerify(std::filesystem::path path) {
+void MainWindow::SlotFileDecryptVerify(const QString& path) {
   auto check_result = TargetFilePreCheck(path, true);
   if (!std::get<0>(check_result)) {
-    QMessageBox::critical(
-        this, _("Error"),
-        QString(_("Cannot read from file: %1")).arg(path.filename().c_str()));
+    QMessageBox::critical(this, _("Error"),
+                          QString(_("Cannot read from file: %1")).arg(path));
     return;
   }
 
@@ -721,17 +713,16 @@ void MainWindow::SlotFileDecryptVerify(std::filesystem::path path) {
   check_result = TargetFilePreCheck(out_path, false);
   if (!std::get<0>(check_result)) {
     QMessageBox::critical(this, _("Error"),
-                          QString(_("Cannot write to file: %1"))
-                              .arg(out_path.filename().c_str()));
+                          QString(_("Cannot write to file: %1")).arg(out_path));
     return;
   }
 
-  if (QFile::exists(out_path.u8string().c_str())) {
+  if (QFile::exists(out_path)) {
     auto ret =
         QMessageBox::warning(this, _("Warning"),
                              QString(_("The output file %1 already exists, do "
                                        "you need to overwrite it?"))
-                                 .arg(out_path.filename().u8string().c_str()),
+                                 .arg(out_path),
                              QMessageBox::Ok | QMessageBox::Cancel);
 
     if (ret == QMessageBox::Cancel) return;
@@ -740,7 +731,8 @@ void MainWindow::SlotFileDecryptVerify(std::filesystem::path path) {
   CommonUtils::WaitForOpera(
       this, _("Decrypting and Verifying"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().DecryptVerifyFile(
-            path, out_path, [=](GpgError err, const DataObjectPtr& data_obj) {
+            path.toStdString(), out_path.toStdString(),
+            [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
 
@@ -774,12 +766,11 @@ void MainWindow::SlotFileDecryptVerify(std::filesystem::path path) {
       });
 }
 
-void MainWindow::SlotArchiveDecryptVerify(std::filesystem::path path) {
+void MainWindow::SlotArchiveDecryptVerify(const QString& path) {
   auto check_result = TargetFilePreCheck(path, true);
   if (!std::get<0>(check_result)) {
-    QMessageBox::critical(
-        this, _("Error"),
-        QString(_("Cannot read from file: %1")).arg(path.filename().c_str()));
+    QMessageBox::critical(this, _("Error"),
+                          QString(_("Cannot read from file: %1")).arg(path));
     return;
   }
 
@@ -789,17 +780,16 @@ void MainWindow::SlotArchiveDecryptVerify(std::filesystem::path path) {
   check_result = TargetFilePreCheck(out_path, false);
   if (!std::get<0>(check_result)) {
     QMessageBox::critical(this, _("Error"),
-                          QString(_("Cannot write to file: %1"))
-                              .arg(out_path.filename().c_str()));
+                          QString(_("Cannot write to file: %1")).arg(out_path));
     return;
   }
 
-  if (QFile::exists(out_path.u8string().c_str())) {
+  if (QFile::exists(out_path)) {
     auto ret =
         QMessageBox::warning(this, _("Warning"),
                              QString(_("The output file %1 already exists, do "
                                        "you need to overwrite it?"))
-                                 .arg(out_path.filename().u8string().c_str()),
+                                 .arg(out_path),
                              QMessageBox::Ok | QMessageBox::Cancel);
 
     if (ret == QMessageBox::Cancel) return;
@@ -809,7 +799,8 @@ void MainWindow::SlotArchiveDecryptVerify(std::filesystem::path path) {
       this, _("Decrypting & Verifying & Extracting"),
       [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().DecryptVerifyArchive(
-            path, out_path, [=](GpgError err, const DataObjectPtr& data_obj) {
+            path.toStdString(), out_path.toStdString(),
+            [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
 

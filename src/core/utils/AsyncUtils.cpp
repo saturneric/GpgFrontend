@@ -36,9 +36,9 @@
 
 namespace GpgFrontend {
 
-void RunGpgOperaAsync(GpgOperaRunnable runnable, GpgOperationCallback callback,
-                      const std::string& operation,
-                      const std::string& minial_version) {
+auto RunGpgOperaAsync(GpgOperaRunnable runnable, GpgOperationCallback callback,
+                      const QString& operation, const QString& minial_version)
+    -> std::tuple<QPointer<Thread::Task>, Thread::Task::TaskTrigger> {
   const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gnupg_version", minial_version);
   GF_CORE_LOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
@@ -46,12 +46,12 @@ void RunGpgOperaAsync(GpgOperaRunnable runnable, GpgOperationCallback callback,
   if (CompareSoftwareVersion(gnupg_version, "2.0.15") < 0) {
     GF_CORE_LOG_ERROR("operator not support");
     callback(GPG_ERR_NOT_SUPPORTED, TransferParams());
-    return;
+    return {nullptr, {}};
   }
 
-  Thread::TaskRunnerGetter::GetInstance()
+  return Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
-      ->PostTask(
+      ->RegisterTask(
           operation,
           [=](const DataObjectPtr& data_object) -> int {
             auto custom_data_object = TransferParams();
@@ -67,11 +67,12 @@ void RunGpgOperaAsync(GpgOperaRunnable runnable, GpgOperationCallback callback,
           TransferParams());
 }
 
-void RunIOOperaAsync(OperaRunnable runnable, OperationCallback callback,
-                     const std::string& operation) {
-  Thread::TaskRunnerGetter::GetInstance()
+auto RunIOOperaAsync(OperaRunnable runnable, OperationCallback callback,
+                     const QString& operation)
+    -> std::tuple<QPointer<Thread::Task>, Thread::Task::TaskTrigger> {
+  return Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_IO)
-      ->PostTask(
+      ->RegisterTask(
           operation,
           [=](const DataObjectPtr& data_object) -> int {
             auto custom_data_object = TransferParams();

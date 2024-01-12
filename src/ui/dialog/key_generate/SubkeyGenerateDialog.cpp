@@ -124,7 +124,7 @@ QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
   no_pass_phrase_check_box_ = new QCheckBox(this);
 
   for (const auto& algo : GenKeyInfo::GetSupportedSubkeyAlgo()) {
-    key_type_combo_box_->addItem(QString::fromStdString(std::get<0>(algo)));
+    key_type_combo_box_->addItem(std::get<0>(algo));
   }
   if (!GenKeyInfo::GetSupportedSubkeyAlgo().empty()) {
     key_type_combo_box_->setCurrentIndex(0);

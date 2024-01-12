@@ -28,8 +28,6 @@
 
 #include "VerifyDetailsDialog.h"
 
-#include <boost/format.hpp>
-
 #include "core/GpgModel.h"
 
 namespace GpgFrontend::UI {
@@ -67,27 +65,21 @@ void VerifyDetailsDialog::slot_refresh() {
 
   // Get timestamp of signature of current text
   QDateTime timestamp;
-#ifdef GPGFRONTEND_GUI_QT6
   timestamp.setSecsSinceEpoch(to_time_t(signatures[0].GetCreateTime()));
-#else
-  timestamp.setTime_t(sign->timestamp);
-#endif
 
   // Set the title widget depending on sign status
   if (gpg_err_code(signatures[0].GetStatus()) == GPG_ERR_BAD_SIGNATURE) {
     m_vbox_layout->addWidget(new QLabel(_("Error Validating signature")));
   } else if (input_signature_ != nullptr) {
-    const auto info = (boost::format(_("File was signed on %1%")) %
-                       QLocale::system().toString(timestamp).toStdString())
-                          .str() +
+    const auto info = QString(_("File was signed on %1"))
+                          .arg(QLocale::system().toString(timestamp)) +
                       "<br/>" + _("It Contains") + ": " + "<br/><br/>";
-    m_vbox_layout->addWidget(new QLabel(info.c_str()));
+    m_vbox_layout->addWidget(new QLabel(info));
   } else {
-    const auto info = (boost::format(_("Signed on %1%")) %
-                       QLocale::system().toString(timestamp).toStdString())
-                          .str() +
-                      "<br/>" + _("It Contains") + ": " + "<br/><br/>";
-    m_vbox_layout->addWidget(new QLabel(info.c_str()));
+    const auto info =
+        QString(_("Signed on %1%")).arg(QLocale::system().toString(timestamp)) +
+        "<br/>" + _("It Contains") + ": " + "<br/><br/>";
+    m_vbox_layout->addWidget(new QLabel(info));
   }
   // Add information box for every single key
   for (const auto& signature : signatures) {

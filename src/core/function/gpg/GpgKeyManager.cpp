@@ -41,7 +41,7 @@ GpgFrontend::GpgKeyManager::GpgKeyManager(int channel)
 
 auto GpgFrontend::GpgKeyManager::SignKey(
     const GpgFrontend::GpgKey& target, GpgFrontend::KeyArgsList& keys,
-    const std::string& uid,
+    const QString& uid,
     const std::unique_ptr<boost::posix_time::ptime>& expires) -> bool {
   GpgBasicOperator::GetInstance().SetSigners(keys, true);
 
@@ -56,7 +56,7 @@ auto GpgFrontend::GpgKeyManager::SignKey(
 
   auto err = CheckGpgError(
       gpgme_op_keysign(ctx_.DefaultContext(), static_cast<gpgme_key_t>(target),
-                       uid.c_str(), expires_time_t, flags));
+                       uid.toUtf8(), expires_time_t, flags));
 
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
@@ -71,7 +71,7 @@ auto GpgFrontend::GpgKeyManager::RevSign(
     assert(signing_key.IsGood());
     auto err = CheckGpgError(
         gpgme_op_revsig(ctx_.DefaultContext(), gpgme_key_t(key),
-                        gpgme_key_t(signing_key), sign_id.second.c_str(), 0));
+                        gpgme_key_t(signing_key), sign_id.second.toUtf8(), 0));
     if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return false;
   }
   return true;
@@ -88,7 +88,7 @@ auto GpgFrontend::GpgKeyManager::SetExpire(
 
   const char* sub_fprs = nullptr;
 
-  if (subkey != nullptr) sub_fprs = subkey->GetFingerprint().c_str();
+  if (subkey != nullptr) sub_fprs = subkey->GetFingerprint().toUtf8();
 
   auto err = CheckGpgError(gpgme_op_setexpire(ctx_.DefaultContext(),
                                               static_cast<gpgme_key_t>(key),
@@ -104,12 +104,11 @@ auto GpgFrontend::GpgKeyManager::SetOwnerTrustLevel(const GpgKey& key,
   }
 
   AutomatonNextStateHandler next_state_handler = [](AutomatonState state,
-                                                    std::string status,
-                                                    std::string args) {
+                                                    QString status,
+                                                    QString args) {
     GF_CORE_LOG_DEBUG("next_state_handler state: {}, gpg_status: {}, args: {}",
                       state, status, args);
-    std::vector<std::string> tokens;
-    boost::split(tokens, args, boost::is_any_of(" "));
+    auto tokens = args.split(' ');
 
     switch (state) {
       case AS_START:
@@ -155,25 +154,25 @@ auto GpgFrontend::GpgKeyManager::SetOwnerTrustLevel(const GpgKey& key,
         GF_CORE_LOG_DEBUG("action_handler state: {}", state);
         switch (state) {
           case AS_COMMAND:
-            return std::string("trust");
+            return QString("trust");
           case AS_VALUE:
             handler.SetSuccess(true);
-            return std::to_string(trust_level);
+            return QString::number(trust_level);
           case AS_REALLY_ULTIMATE:
             handler.SetSuccess(true);
-            return std::string("Y");
+            return QString("Y");
           case AS_QUIT:
-            return std::string("quit");
+            return QString("quit");
           case AS_SAVE:
             handler.SetSuccess(true);
-            return std::string("Y");
+            return QString("Y");
           case AS_START:
           case AS_ERROR:
-            return std::string("");
+            return QString("");
           default:
-            return std::string("");
+            return QString("");
         }
-        return std::string("");
+        return QString("");
       };
 
   auto key_fpr = key.GetFingerprint();
@@ -193,15 +192,14 @@ auto GpgFrontend::GpgKeyManager::interactor_cb_fnc(void* handle,
                                                    const char* args, int fd)
     -> gpgme_error_t {
   auto handle_struct = static_cast<AutomatonHandelStruct*>(handle);
-  std::string status_s = status;
-  std::string args_s = args;
+  QString status_s = status;
+  QString args_s = args;
   GF_CORE_LOG_DEBUG(
       "cb start status: {}, args: {}, fd: {}, handle struct state: {}",
       status_s, args_s, fd, handle_struct->CuurentStatus());
 
   if (status_s == "KEY_CONSIDERED") {
-    std::vector<std::string> tokens;
-    boost::split(tokens, args, boost::is_any_of(" "));
+    auto tokens = QString(args).split(' ');
 
     if (tokens.empty() || tokens[0] != handle_struct->KeyFpr()) {
       GF_CORE_LOG_ERROR("handle struct key fpr {} mismatch token: {}, exit...",
@@ -212,7 +210,7 @@ auto GpgFrontend::GpgKeyManager::interactor_cb_fnc(void* handle,
     return 0;
   }
 
-  if (status_s == "GOT_IT" || status_s.empty()) {
+  if (status_s == "GOT_IT" || status_s.isEmpty()) {
     GF_CORE_LOG_DEBUG("status GOT_IT, continue...");
     return 0;
   }
@@ -232,8 +230,9 @@ auto GpgFrontend::GpgKeyManager::interactor_cb_fnc(void* handle,
   Command cmd = handle_struct->Action();
   GF_CORE_LOG_DEBUG("handle struct action done, next state: {}, action cmd: {}",
                     next_state, cmd);
-  if (!cmd.empty()) {
-    gpgme_io_write(fd, cmd.c_str(), cmd.size());
+  if (!cmd.isEmpty()) {
+    auto btye_array = cmd.toUtf8();
+    gpgme_io_write(fd, btye_array, btye_array.size());
     gpgme_io_write(fd, "\n", 1);
   } else if (status_s == "GET_LINE") {
     // avoid trapping in this state

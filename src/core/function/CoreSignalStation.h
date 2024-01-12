@@ -32,6 +32,8 @@
 
 namespace GpgFrontend {
 
+class GpgPassphraseContext;
+
 /**
  * @brief
  *
@@ -54,13 +56,13 @@ class GPGFRONTEND_CORE_EXPORT CoreSignalStation : public QObject {
    * @brief
    *
    */
-  void SignalNeedUserInputPassphrase();
+  void SignalNeedUserInputPassphrase(QSharedPointer<GpgPassphraseContext>);
 
   /**
    * @brief
    *
    */
-  void SignalUserInputPassphraseCallback(QByteArray);
+  void SignalUserInputPassphraseCallback(QSharedPointer<GpgPassphraseContext>);
 
   /**
    * @brief

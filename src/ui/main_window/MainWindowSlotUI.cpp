@@ -28,6 +28,7 @@
 
 #include "MainWindow.h"
 #include "core/GpgConstants.h"
+#include "core/model/GpgPassphraseContext.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/Wizard.h"
 #include "ui/function/RaisePinentry.h"
@@ -49,7 +50,7 @@ void MainWindow::slot_start_wizard() {
 void MainWindow::slot_import_key_from_edit() {
   if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
   CommonUtils::GetInstance()->SlotImportKeys(
-      this, edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString());
+      this, edit_->CurTextPage()->GetTextPage()->toPlainText());
 }
 
 void MainWindow::slot_open_key_management() {
@@ -219,8 +220,9 @@ void MainWindow::SetCryptoMenuStatus(
   }
 }
 
-void MainWindow::SlotRaisePinentry() {
-  auto* function = new RaisePinentry(this);
+void MainWindow::SlotRaisePinentry(
+    QSharedPointer<GpgPassphraseContext> context) {
+  auto* function = new RaisePinentry(this, context);
   function->Exec();
 }
 

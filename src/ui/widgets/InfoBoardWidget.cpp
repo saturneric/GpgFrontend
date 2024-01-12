@@ -29,7 +29,6 @@
 #include "ui/widgets/InfoBoardWidget.h"
 
 #include "core/GpgModel.h"
-#include "core/function/GlobalSettingStation.h"
 #include "ui/UISignalStation.h"
 #include "ui/struct/SettingsObject.h"
 #include "ui_InfoBoard.h"
@@ -97,9 +96,10 @@ void InfoBoardWidget::SlotRefresh(const QString& text, InfoBoardStatus status) {
 }
 
 void InfoBoardWidget::AssociateTextEdit(QTextEdit* edit) {
-  if (m_text_page_ != nullptr)
+  if (m_text_page_ != nullptr) {
     disconnect(m_text_page_, &QTextEdit::textChanged, this,
                &InfoBoardWidget::SlotReset);
+  }
   this->m_text_page_ = edit;
   connect(edit, &QTextEdit::textChanged, this, &InfoBoardWidget::SlotReset);
 }
@@ -117,14 +117,14 @@ void InfoBoardWidget::AssociateTabWidget(QTabWidget* tab) {
 void InfoBoardWidget::AddOptionalAction(const QString& name,
                                         const std::function<void()>& action) {
   GF_UI_LOG_DEBUG("add option: {}", name.toStdString());
-  auto actionButton = new QPushButton(name);
-  auto layout = new QHBoxLayout();
+  auto* action_button = new QPushButton(name);
+  auto* layout = new QHBoxLayout();
   layout->setContentsMargins(5, 0, 5, 0);
   ui_->infoBoard->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   // set margin from surroundings
-  layout->addWidget(actionButton);
+  layout->addWidget(action_button);
   ui_->actionButtonLayout->addLayout(layout);
-  connect(actionButton, &QPushButton::clicked, this, [=]() { action(); });
+  connect(action_button, &QPushButton::clicked, this, [=]() { action(); });
 }
 
 /**
@@ -149,10 +149,11 @@ void InfoBoardWidget::delete_widgets_in_layout(QLayout* layout,
   QLayoutItem* item;
   while ((item = layout->layout()->takeAt(start_index)) != nullptr) {
     layout->removeItem(item);
-    if (item->layout() != nullptr)
+    if (item->layout() != nullptr) {
       delete_widgets_in_layout(item->layout());
-    else if (item->widget() != nullptr)
+    } else if (item->widget() != nullptr) {
       delete item->widget();
+    }
     delete item;
   }
 }

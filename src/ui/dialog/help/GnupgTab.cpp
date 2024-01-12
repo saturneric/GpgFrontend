@@ -32,12 +32,9 @@
 
 #include "GnupgTab.h"
 
-#include <boost/format.hpp>
 #include <nlohmann/json.hpp>
-#include <shared_mutex>
 
 #include "core/module/ModuleManager.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui_GnuPGInfo.h"
 
 GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
@@ -87,7 +84,7 @@ GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
 
 void GpgFrontend::UI::GnupgTab::process_software_info() {
   const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gnupg_version", std::string{"2.0.0"});
+      "core", "gpgme.ctx.gnupg_version", QString{"2.0.0"});
   GF_UI_LOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
 
   ui_->gnupgVersionLabel->setText(
@@ -104,13 +101,12 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
   for (auto& component : components) {
     auto component_info_json = Module::RetrieveRTValueTypedOrDefault(
         "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-        (boost::format("gnupg.components.%1%") % component).str(),
-        std::string{});
+        QString("gnupg.components.%1%").arg(component), QString{});
     GF_UI_LOG_DEBUG("got gnupg component {} info from rt, info: {}", component,
                     component_info_json);
 
-    auto component_info = nlohmann::json::parse(component_info_json);
-
+    auto component_info =
+        nlohmann::json::parse(component_info_json.toStdString());
     if (!component_info.contains("name")) {
       GF_UI_LOG_WARN("illegal gnupg component info, json: {}",
                      component_info_json);
@@ -152,15 +148,16 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
   for (auto& component : components) {
     auto options = Module::ListRTChildKeys(
         "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-        (boost::format("gnupg.components.%1%.options") % component).str());
+        QString("gnupg.components.%1%.options").arg(component));
     for (auto& option : options) {
-      const auto option_info =
-          nlohmann::json::parse(Module::RetrieveRTValueTypedOrDefault(
+      const auto option_info = nlohmann::json::parse(
+          Module::RetrieveRTValueTypedOrDefault(
               "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-              (boost::format("gnupg.components.%1%.options.%2%") % component %
-               option)
-                  .str(),
-              std::string{}));
+              QString("gnupg.components.%1%.options.%2%")
+                  .arg(component)
+                  .arg(option),
+              QString{})
+              .toStdString());
       if (!option_info.contains("name") ||
           option_info.value("flags", "1") == "1") {
         continue;
@@ -171,23 +168,23 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
   ui_->configurationDetailsTable->setRowCount(row);
 
   row = 0;
-  std::string configuration_group;
+  QString configuration_group;
   for (auto& component : components) {
     auto options = Module::ListRTChildKeys(
         "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-        (boost::format("gnupg.components.%1%.options") % component).str());
+        QString("gnupg.components.%1%.options").arg(component));
 
     for (auto& option : options) {
       auto option_info_json = Module::RetrieveRTValueTypedOrDefault(
           "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-          (boost::format("gnupg.components.%1%.options.%2%") % component %
-           option)
-              .str(),
-          std::string{});
+          QString("gnupg.components.%1%.options.%2%")
+              .arg(component)
+              .arg(option),
+          QString{});
       GF_UI_LOG_DEBUG("got gnupg component's option {} info from rt, info: {}",
                       component, option_info_json);
 
-      auto option_info = nlohmann::json::parse(option_info_json);
+      auto option_info = nlohmann::json::parse(option_info_json.toStdString());
 
       if (!option_info.contains("name")) {
         GF_UI_LOG_WARN("illegal gnupg configuation info, json: {}",
@@ -196,16 +193,16 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
       }
 
       if (option_info.value("flags", "1") == "1") {
-        configuration_group = option_info.value("name", "");
+        configuration_group =
+            QString::fromStdString(option_info.value("name", ""));
         continue;
       }
 
-      auto* tmp0 = new QTableWidgetItem(QString::fromStdString(component));
+      auto* tmp0 = new QTableWidgetItem(component);
       tmp0->setTextAlignment(Qt::AlignCenter);
       ui_->configurationDetailsTable->setItem(row, 0, tmp0);
 
-      auto* tmp1 =
-          new QTableWidgetItem(QString::fromStdString(configuration_group));
+      auto* tmp1 = new QTableWidgetItem(configuration_group);
       tmp1->setTextAlignment(Qt::AlignCenter);
       ui_->configurationDetailsTable->setItem(row, 1, tmp1);
 

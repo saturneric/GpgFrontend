@@ -38,7 +38,7 @@ class GenerateRevokeCertification : public QWidget {
  public:
   explicit GenerateRevokeCertification(QWidget* parent);
 
-  auto Exec(const GpgKey& key, const std::string& output_path) -> int;
+  auto Exec(const GpgKey& key, const QString& output_path) -> int;
 };
 
 }  // namespace GpgFrontend::UI

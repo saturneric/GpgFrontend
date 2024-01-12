@@ -33,8 +33,8 @@ namespace GpgFrontend {
 GpgRecipient::GpgRecipient() = default;
 
 GpgRecipient::GpgRecipient(gpgme_recipient_t r) {
-  this->keyid = std::string{r->keyid};
-  this->pubkey_algo = std::string{gpgme_pubkey_algo_name(r->pubkey_algo)};
+  this->keyid = QString{r->keyid};
+  this->pubkey_algo = QString{gpgme_pubkey_algo_name(r->pubkey_algo)};
   this->status = r->status;
 }
 }  // namespace GpgFrontend

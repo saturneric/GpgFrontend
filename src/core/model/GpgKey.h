@@ -52,51 +52,51 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetId() const -> std::string;
+  [[nodiscard]] auto GetId() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetName() const -> std::string;
+  [[nodiscard]] auto GetName() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetEmail() const -> std::string;
+  [[nodiscard]] auto GetEmail() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetComment() const -> std::string;
+  [[nodiscard]] auto GetComment() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetFingerprint() const -> std::string;
+  [[nodiscard]] auto GetFingerprint() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetProtocol() const -> std::string;
+  [[nodiscard]] auto GetProtocol() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetOwnerTrust() const -> std::string;
+  [[nodiscard]] auto GetOwnerTrust() const -> QString;
 
   /**
    * @brief
@@ -108,9 +108,9 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetPublicKeyAlgo() const -> std::string;
+  [[nodiscard]] auto GetPublicKeyAlgo() const -> QString;
 
   /**
    * @brief

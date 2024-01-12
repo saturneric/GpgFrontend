@@ -47,7 +47,7 @@ class GPGFRONTEND_CORE_EXPORT TaskRunner : public QObject {
    * @brief Destroy the Task Runner object
    *
    */
-  virtual ~TaskRunner() override;
+  ~TaskRunner() override;
 
   /**
    * @brief
@@ -91,8 +91,17 @@ class GPGFRONTEND_CORE_EXPORT TaskRunner : public QObject {
    * @param runner
    * @param cb
    */
-  void PostTask(const std::string&, const Task::TaskRunnable&,
+  void PostTask(const QString&, const Task::TaskRunnable&,
                 const Task::TaskCallback&, DataObjectPtr);
+
+  /**
+   * @brief
+   *
+   * @return std::tuple<QPointer<Task>, TaskTrigger>
+   */
+  std::tuple<QPointer<Task>, Task::TaskTrigger> RegisterTask(
+      const QString&, const Task::TaskRunnable&, const Task::TaskCallback&,
+      DataObjectPtr);
 
   /**
    * @brief

@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/GpgFrontendCore.h"
+#include "core/thread/Task.h"
 #include "core/typedef/CoreTypedef.h"
 #include "core/typedef/GpgTypedef.h"
 
@@ -42,9 +43,11 @@ namespace GpgFrontend {
  * @param operation
  * @param minial_version
  */
-void GPGFRONTEND_CORE_EXPORT RunGpgOperaAsync(
-    GpgOperaRunnable runnable, GpgOperationCallback callback,
-    const std::string& operation, const std::string& minial_version);
+auto GPGFRONTEND_CORE_EXPORT RunGpgOperaAsync(GpgOperaRunnable runnable,
+                                              GpgOperationCallback callback,
+                                              const QString& operation,
+                                              const QString& minial_version)
+    -> std::tuple<QPointer<Thread::Task>, Thread::Task::TaskTrigger>;
 
 /**
  * @brief
@@ -53,7 +56,8 @@ void GPGFRONTEND_CORE_EXPORT RunGpgOperaAsync(
  * @param callback
  * @param operation
  */
-void GPGFRONTEND_CORE_EXPORT RunIOOperaAsync(OperaRunnable runnable,
+auto GPGFRONTEND_CORE_EXPORT RunIOOperaAsync(OperaRunnable runnable,
                                              OperationCallback callback,
-                                             const std::string& operation);
+                                             const QString& operation)
+    -> std::tuple<QPointer<Thread::Task>, Thread::Task::TaskTrigger>;
 }  // namespace GpgFrontend

@@ -64,16 +64,16 @@ class GPGFRONTEND_CORE_EXPORT GpgSignature {
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetPubkeyAlgo() const -> std::string;
+  [[nodiscard]] auto GetPubkeyAlgo() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetHashAlgo() const -> std::string;
+  [[nodiscard]] auto GetHashAlgo() const -> QString;
 
   /**
    * @brief Create a time object
@@ -92,9 +92,9 @@ class GPGFRONTEND_CORE_EXPORT GpgSignature {
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetFingerprint() const -> std::string;
+  [[nodiscard]] auto GetFingerprint() const -> QString;
 
   /**
    * @brief Construct a new Gpg Signature object

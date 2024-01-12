@@ -40,7 +40,7 @@ namespace GpgFrontend {
 auto ReadFile(const QString& file_name, QByteArray& data) -> bool {
   QFile file(file_name);
   if (!file.open(QIODevice::ReadOnly)) {
-    GF_CORE_LOG_ERROR("failed to open file: {}", file_name.toStdString());
+    GF_CORE_LOG_ERROR("failed to open file: {}", file_name);
     return false;
   }
   data = file.readAll();
@@ -51,7 +51,7 @@ auto ReadFile(const QString& file_name, QByteArray& data) -> bool {
 auto WriteFile(const QString& file_name, const QByteArray& data) -> bool {
   QFile file(file_name);
   if (!file.open(QIODevice::WriteOnly)) {
-    GF_CORE_LOG_ERROR("failed to open file: {}", file_name.toStdString());
+    GF_CORE_LOG_ERROR("failed to open file: {}", file_name);
     return false;
   }
   file.write(data);
@@ -59,147 +59,81 @@ auto WriteFile(const QString& file_name, const QByteArray& data) -> bool {
   return true;
 }
 
-auto ReadFileStd(const std::filesystem::path& file_name, std::string& data)
-    -> bool {
+auto ReadFileGFBuffer(const QString& file_name) -> std::tuple<bool, GFBuffer> {
   QByteArray byte_data;
-#ifdef WINDOWS
-  bool res = ReadFile(QString::fromStdU16String(file_name.u16string()).toUtf8(),
-                      byte_data);
-#else
-  bool res = ReadFile(QString::fromStdString(file_name.u8string()).toUtf8(),
-                      byte_data);
-#endif
-  data = byte_data.toStdString();
-  return res;
-}
-
-auto ReadFileGFBuffer(const std::filesystem::path& file_name)
-    -> std::tuple<bool, GFBuffer> {
-  QByteArray byte_data;
-#ifdef WINDOWS
-  const bool res = ReadFile(
-      QString::fromStdU16String(file_name.u16string()).toUtf8(), byte_data);
-#else
-  const bool res = ReadFile(
-      QString::fromStdString(file_name.u8string()).toUtf8(), byte_data);
-#endif
+  const bool res = ReadFile(file_name, byte_data);
 
   return {res, GFBuffer(byte_data)};
 }
 
-auto WriteFileStd(const std::filesystem::path& file_name,
-                  const std::string& data) -> bool {
-  return WriteFile(QString::fromStdString(file_name.u8string()).toUtf8(),
-                   QByteArray::fromStdString(data));
+auto WriteFileGFBuffer(const QString& file_name, GFBuffer data) -> bool {
+  return WriteFile(file_name, data.ConvertToQByteArray());
 }
 
-auto WriteFileGFBuffer(const std::filesystem::path& file_name, GFBuffer data)
-    -> bool {
-  return WriteFile(
-      QString::fromStdString(file_name.u8string()).toUtf8(),
-      QByteArray::fromRawData(reinterpret_cast<const char*>(data.Data()),
-                              static_cast<qsizetype>(data.Size())));
-}
-
-auto CalculateHash(const std::filesystem::path& file_path) -> std::string {
+auto CalculateHash(const QString& file_path) -> QString {
   // Returns empty QByteArray() on failure.
-  QFileInfo const info(QString::fromStdString(file_path.string()));
-  std::stringstream ss;
+  QFileInfo const info(file_path);
+  QString buffer;
+  QTextStream ss(&buffer);
 
   if (info.isFile() && info.isReadable()) {
-    ss << "[#] " << _("File Hash Information") << std::endl;
-    ss << "    " << _("filename") << _(": ")
-       << file_path.filename().u8string().c_str() << std::endl;
+    ss << "[#] " << _("File Hash Information") << Qt::endl;
+    ss << "    " << _("filename") << _(": ") << info.fileName() << Qt::endl;
 
     QFile f(info.filePath());
     if (f.open(QFile::ReadOnly)) {
       // read all data
       auto buffer = f.readAll();
       ss << "    " << _("file size(bytes)") << _(": ") << buffer.size()
-         << std::endl;
+         << Qt::endl;
 
       // md5
       auto hash_md5 = QCryptographicHash(QCryptographicHash::Md5);
       hash_md5.addData(buffer);
-      auto md5 = hash_md5.result().toHex().toStdString();
+      auto md5 = hash_md5.result().toHex();
       GF_CORE_LOG_DEBUG("md5 {}", md5);
       ss << "    "
-         << "md5" << _(": ") << md5 << std::endl;
+         << "md5" << _(": ") << md5 << Qt::endl;
 
       // sha1
       auto hash_sha1 = QCryptographicHash(QCryptographicHash::Sha1);
       hash_sha1.addData(buffer);
-      auto sha1 = hash_sha1.result().toHex().toStdString();
+      auto sha1 = hash_sha1.result().toHex();
       GF_CORE_LOG_DEBUG("sha1 {}", sha1);
       ss << "    "
-         << "sha1" << _(": ") << sha1 << std::endl;
+         << "sha1" << _(": ") << sha1 << Qt::endl;
 
       // sha1
       auto hash_sha256 = QCryptographicHash(QCryptographicHash::Sha256);
       hash_sha256.addData(buffer);
-      auto sha256 = hash_sha256.result().toHex().toStdString();
+      auto sha256 = hash_sha256.result().toHex();
       GF_CORE_LOG_DEBUG("sha256 {}", sha256);
       ss << "    "
-         << "sha256" << _(": ") << sha256 << std::endl;
+         << "sha256" << _(": ") << sha256 << Qt::endl;
 
-      ss << std::endl;
+      ss << Qt::endl;
     }
   } else {
-    ss << "[#] " << _("Error in Calculating File Hash ") << std::endl;
+    ss << "[#] " << _("Error in Calculating File Hash ") << Qt::endl;
   }
 
-  return ss.str();
+  return ss.readAll();
 }
 
-auto ReadAllDataInFile(const std::string& utf8_path) -> std::string {
-  std::string data;
-  ReadFileStd(utf8_path, data);
-  return data;
+auto GetTempFilePath() -> QString {
+  QString const temp_dir = QDir::tempPath();
+  QString const filename = QUuid::createUuid().toString() + ".data";
+  return temp_dir + "/" + filename;
 }
 
-auto WriteBufferToFile(const std::string& utf8_path,
-                       const std::string& out_buffer) -> bool {
-  return WriteFileStd(utf8_path, out_buffer);
-}
-
-auto ConvertPathByOS(const std::string& path) -> std::filesystem::path {
-#ifdef WINDOWS
-  return {QString::fromStdString(path).toStdU16String()};
-#else
-  return {path};
-#endif
-}
-
-auto ConvertPathByOS(const QString& path) -> std::filesystem::path {
-#ifdef WINDOWS
-  return {path.toStdU16String()};
-#else
-  return {path.toStdString()};
-#endif
-}
-
-auto GetTempFilePath() -> std::filesystem::path {
-  std::filesystem::path const temp_dir = std::filesystem::temp_directory_path();
-  boost::uuids::uuid const uuid = boost::uuids::random_generator()();
-  std::string const filename = boost::uuids::to_string(uuid) + ".data";
-  std::filesystem::path const temp_file = temp_dir / filename;
-  return temp_dir / filename;
-}
-
-auto CreateTempFileAndWriteData(const std::string& data)
-    -> std::filesystem::path {
+auto CreateTempFileAndWriteData(const QString& data) -> QString {
   auto temp_file = GetTempFilePath();
-  std::ofstream file_stream(temp_file, std::ios::out | std::ios::trunc);
-  if (!file_stream.is_open()) {
-    throw std::runtime_error("Unable to open temporary file.");
-  }
-  file_stream << data;
-  file_stream.close();
-  return temp_file.string();
+  WriteFile(temp_file, data.toUtf8());
+  return temp_file;
 }
 
-auto TargetFilePreCheck(const std::filesystem::path& path, bool read)
-    -> std::tuple<bool, std::string> {
+auto TargetFilePreCheck(const QString& path, bool read)
+    -> std::tuple<bool, QString> {
   QFileInfo const file_info(path);
 
   if (read) {
@@ -220,11 +154,13 @@ auto TargetFilePreCheck(const std::filesystem::path& path, bool read)
   return {true, _("Success")};
 }
 
-auto GetFullExtension(std::filesystem::path path) -> std::string {
-  const auto filename = path.filename().string();
-  std::string extension(std::find(filename.begin(), filename.end(), '.'),
-                        filename.end());
-  return extension;
+auto GetFullExtension(const QString& path) -> QString {
+  QString const filename = QFileInfo(path).fileName();
+
+  auto const dot_index = filename.indexOf('.');
+  if (dot_index == -1) return {};
+
+  return filename.mid(dot_index);
 }
 
 }  // namespace GpgFrontend

@@ -86,9 +86,9 @@ class GPGFRONTEND_CORE_EXPORT GpgTOFUInfo {
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetDescription() const -> std::string;
+  [[nodiscard]] auto GetDescription() const -> QString;
 
   /**
    * @brief Construct a new Gpg T O F U Info object

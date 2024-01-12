@@ -44,7 +44,7 @@ class KeyServerSearchTask : public Thread::Task {
    * @param keyserver_url
    * @param search_string
    */
-  KeyServerSearchTask(std::string keyserver_url, std::string search_string);
+  KeyServerSearchTask(QString keyserver_url, QString search_string);
 
   /**
    * @brief
@@ -67,8 +67,8 @@ class KeyServerSearchTask : public Thread::Task {
   void dealing_reply_from_server();
 
  private:
-  std::string keyserver_url_;  ///<
-  std::string search_string_;  ///<
+  QString keyserver_url_;  ///<
+  QString search_string_;  ///<
 
   QNetworkAccessManager *manager_;  ///<
   QNetworkReply *reply_;            ///<

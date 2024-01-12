@@ -42,13 +42,13 @@ namespace GpgFrontend::Thread {
 
 class Task::Impl {
  public:
-  Impl(Task *parent, std::string name)
+  Impl(Task *parent, QString name)
       : parent_(parent), uuid_(generate_uuid()), name_(name) {
     GF_CORE_LOG_TRACE("task {} created", GetFullID());
     init();
   }
 
-  Impl(Task *parent, TaskRunnable runnable, std::string name,
+  Impl(Task *parent, TaskRunnable runnable, QString name,
        DataObjectPtr data_object)
       : parent_(parent),
         uuid_(generate_uuid()),
@@ -62,7 +62,7 @@ class Task::Impl {
     init();
   }
 
-  Impl(Task *parent, TaskRunnable runnable, std::string name,
+  Impl(Task *parent, TaskRunnable runnable, QString name,
        DataObjectPtr data_object, TaskCallback callback)
       : parent_(parent),
         uuid_(generate_uuid()),
@@ -82,11 +82,13 @@ class Task::Impl {
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  std::string GetFullID() const { return uuid_ + "/" + name_; }
+  [[nodiscard]] auto GetFullID() const -> QString {
+    return uuid_ + "/" + name_;
+  }
 
-  std::string GetUUID() const { return uuid_; }
+  auto GetUUID() const -> QString { return uuid_; }
 
   void Run() {
     GF_CORE_LOG_TRACE("task {} is using default runnable and callback mode",
@@ -114,8 +116,8 @@ class Task::Impl {
 
  private:
   Task *const parent_;
-  const std::string uuid_;
-  const std::string name_;
+  const QString uuid_;
+  const QString name_;
   TaskRunnable runnable_;                ///<
   TaskCallback callback_;                ///<
   int rtn_ = 0;                          ///<
@@ -163,10 +165,10 @@ class Task::Impl {
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  static auto generate_uuid() -> std::string {
-    return boost::uuids::to_string(boost::uuids::random_generator()());
+  static auto generate_uuid() -> QString {
+    return QUuid::createUuid().toString();
   }
 
   /**
@@ -205,14 +207,18 @@ class Task::Impl {
                    parent_ = this->parent_]() {
                     GF_CORE_LOG_TRACE("calling callback of task {}",
                                       parent_->GetFullID());
+#ifdef RELEASE
                     try {
+#endif
                       callback(rtn, data_object);
+#ifdef RELEASE
                     } catch (...) {
                       GF_CORE_LOG_ERROR(
                           "unknown exception was caught when execute "
                           "callback of task {}",
                           parent_->GetFullID());
                     }
+#endif
                     // raise signal, announcing this task comes to an end
                     GF_CORE_LOG_TRACE(
                         "for task {}, its life comes to an end whether its "
@@ -264,12 +270,12 @@ class Task::Impl {
   }
 };
 
-Task::Task(std::string name) : p_(new Impl(this, name)) {}
+Task::Task(QString name) : p_(new Impl(this, name)) {}
 
-Task::Task(TaskRunnable runnable, std::string name, DataObjectPtr data_object)
+Task::Task(TaskRunnable runnable, QString name, DataObjectPtr data_object)
     : p_(SecureCreateUniqueObject<Impl>(this, runnable, name, data_object)) {}
 
-Task::Task(TaskRunnable runnable, std::string name, DataObjectPtr data_object,
+Task::Task(TaskRunnable runnable, QString name, DataObjectPtr data_object,
            TaskCallback callback)
     : p_(SecureCreateUniqueObject<Impl>(this, runnable, name, data_object,
                                         callback)) {}
@@ -279,11 +285,11 @@ Task::~Task() = default;
 /**
  * @brief
  *
- * @return std::string
+ * @return QString
  */
-std::string Task::GetFullID() const { return p_->GetFullID(); }
+QString Task::GetFullID() const { return p_->GetFullID(); }
 
-std::string Task::GetUUID() const { return p_->GetUUID(); }
+QString Task::GetUUID() const { return p_->GetUUID(); }
 
 void Task::HoldOnLifeCycle(bool hold_on) { p_->HoldOnLifeCycle(hold_on); }
 

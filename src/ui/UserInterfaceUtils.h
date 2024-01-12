@@ -76,7 +76,7 @@ void import_unknown_key_from_keyserver(
  * @param report_text
  */
 void refresh_info_board(InfoBoardWidget* info_board, int status,
-                        const std::string& report_text);
+                        const QString& report_text);
 
 /**
  * @brief
@@ -108,7 +108,7 @@ void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
  * @param func
  */
 void process_operation(
-    QWidget* parent, const std::string& waiting_title,
+    QWidget* parent, const QString& waiting_title,
     GpgFrontend::Thread::Task::TaskRunnable func,
     GpgFrontend::Thread::Task::TaskCallback callback = nullptr,
     DataObjectPtr data_object = nullptr);
@@ -120,8 +120,8 @@ void process_operation(
  * @param key_id
  * @param key_server
  */
-void import_key_from_keyserver(QWidget* parent, const std::string& key_id,
-                               const std::string& key_server);
+void import_key_from_keyserver(QWidget* parent, const QString& key_id,
+                               const QString& key_server);
 
 /**
  * @brief
@@ -135,7 +135,7 @@ class CommonUtils : public QWidget {
    *
    */
   using ImportCallbackFunctiopn = std::function<void(
-      const std::string&, const std::string&, size_t, size_t)>;
+      const QString&, const QString&, size_t, size_t)>;
 
   /**
    * @brief Construct a new Common Utils object
@@ -155,7 +155,7 @@ class CommonUtils : public QWidget {
    *
    * @param err
    */
-  static void WaitForOpera(QWidget* parent, const std::string&,
+  static void WaitForOpera(QWidget* parent, const QString&,
                            const OperaWaitingCb&);
 
   /**
@@ -228,7 +228,7 @@ class CommonUtils : public QWidget {
    * @param parent
    * @param in_buffer
    */
-  void SlotImportKeys(QWidget* parent, const std::string& in_buffer);
+  void SlotImportKeys(QWidget* parent, const QString& in_buffer);
 
   /**
    * @brief
@@ -278,7 +278,7 @@ class CommonUtils : public QWidget {
    * @param arguments
    * @param interact_func
    */
-  void SlotExecuteCommand(const std::string& cmd, const QStringList& arguments,
+  void SlotExecuteCommand(const QString& cmd, const QStringList& arguments,
                           const std::function<void(QProcess*)>& interact_func);
 
   /**

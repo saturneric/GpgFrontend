@@ -28,8 +28,6 @@
 
 #include "ExportKeyPackageDialog.h"
 
-#include <boost/format.hpp>
-
 #include "core/GpgModel.h"
 #include "core/function/KeyPackageOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
@@ -43,12 +41,10 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
       key_ids_(std::move(key_ids)) {
   ui_->setupUi(this);
 
-  ui_->nameValueLabel->setText(
-      KeyPackageOperator::GenerateKeyPackageName().c_str());
+  ui_->nameValueLabel->setText(KeyPackageOperator::GenerateKeyPackageName());
 
   connect(ui_->gnerateNameButton, &QPushButton::clicked, this, [=]() {
-    ui_->nameValueLabel->setText(
-        KeyPackageOperator::GenerateKeyPackageName().c_str());
+    ui_->nameValueLabel->setText(KeyPackageOperator::GenerateKeyPackageName());
   });
 
   connect(ui_->setOutputPathButton, &QPushButton::clicked, this, [=]() {
@@ -116,7 +112,7 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
         this, _("Generating"), [this, keys](const OperaWaitingHd& op_hd) {
           KeyPackageOperator::GenerateKeyPackage(
               ui_->outputPathLabel->text().toStdString(),
-              ui_->nameValueLabel->text().toStdString(), *keys, passphrase_,
+              ui_->nameValueLabel->text(), *keys, passphrase_,
               ui_->includeSecretKeyCheckBox->isChecked(),
               [=](GFError err, const DataObjectPtr&) {
                 // stop waiting

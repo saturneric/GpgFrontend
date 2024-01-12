@@ -33,34 +33,13 @@
 namespace GpgFrontend {
 
 /**
- * @brief read file content using std struct
- *
- *
- * @param file_name file name
- * @param data data read from file
- * @return
- */
-auto GPGFRONTEND_CORE_EXPORT ReadFileStd(const std::filesystem::path &file_name,
-                                         std::string &data) -> bool;
-
-/**
  * @brief
  *
  * @param file_name
  * @return GFBuffer
  */
-auto GPGFRONTEND_CORE_EXPORT ReadFileGFBuffer(
-    const std::filesystem::path &file_name) -> std::tuple<bool, GFBuffer>;
-
-/**
- * @brief write file content using std struct
- *
- * @param file_name file name
- * @param data data to write to file
- * @return
- */
-auto GPGFRONTEND_CORE_EXPORT WriteFileStd(
-    const std::filesystem::path &file_name, const std::string &data) -> bool;
+auto GPGFRONTEND_CORE_EXPORT ReadFileGFBuffer(const QString &file_name)
+    -> std::tuple<bool, GFBuffer>;
 
 /**
  * @brief
@@ -70,8 +49,8 @@ auto GPGFRONTEND_CORE_EXPORT WriteFileStd(
  * @return true
  * @return false
  */
-auto GPGFRONTEND_CORE_EXPORT WriteFileGFBuffer(
-    const std::filesystem::path &file_name, GFBuffer data) -> bool;
+auto GPGFRONTEND_CORE_EXPORT WriteFileGFBuffer(const QString &file_name,
+                                               GFBuffer data) -> bool;
 
 /**
  * @brief read file content
@@ -100,17 +79,7 @@ auto GPGFRONTEND_CORE_EXPORT WriteFile(const QString &file_name,
  * @param file_path
  * @return
  */
-auto GPGFRONTEND_CORE_EXPORT
-CalculateHash(const std::filesystem::path &file_path) -> std::string;
-
-/**
- * @brief
- *
- * @param path
- * @return std::string
- */
-auto GPGFRONTEND_CORE_EXPORT ReadAllDataInFile(const std::string &path)
-    -> std::string;
+auto GPGFRONTEND_CORE_EXPORT CalculateHash(const QString &file_path) -> QString;
 
 /**
  * @brief
@@ -120,61 +89,42 @@ auto GPGFRONTEND_CORE_EXPORT ReadAllDataInFile(const std::string &path)
  * @return true
  * @return false
  */
-auto GPGFRONTEND_CORE_EXPORT WriteBufferToFile(const std::string &path,
-                                               const std::string &out_buffer)
+auto GPGFRONTEND_CORE_EXPORT WriteBufferToFile(const QString &path,
+                                               const QString &out_buffer)
     -> bool;
 
 /**
  * @brief
  *
- * @param path
- * @return std::filesystem::path
+ * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT ConvertPathByOS(const std::string &path)
-    -> std::filesystem::path;
-
-/**
- * @brief
- *
- * @return std::filesystem::path
- */
-auto GPGFRONTEND_CORE_EXPORT ConvertPathByOS(const QString &)
-    -> std::filesystem::path;
-
-/**
- * @brief
- *
- * @return std::filesystem::path
- */
-auto GPGFRONTEND_CORE_EXPORT GetTempFilePath() -> std::filesystem::path;
+auto GPGFRONTEND_CORE_EXPORT GetTempFilePath() -> QString;
 
 /**
  * @brief
  *
  * @param data
- * @return std::filesystem::path
+ * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT CreateTempFileAndWriteData(const std::string &data)
-    -> std::filesystem::path;
+auto GPGFRONTEND_CORE_EXPORT CreateTempFileAndWriteData(const QString &data)
+    -> QString;
 
 /**
  * @brief
  *
  * @param path
  * @param read
- * @return std::tuple<bool, std::string>
+ * @return std::tuple<bool, QString>
  */
-auto GPGFRONTEND_CORE_EXPORT
-TargetFilePreCheck(const std::filesystem::path &path, bool read)
-    -> std::tuple<bool, std::string>;
+auto GPGFRONTEND_CORE_EXPORT TargetFilePreCheck(const QString &path, bool read)
+    -> std::tuple<bool, QString>;
 
 /**
  * @brief
  *
  * @param path
- * @return std::string
+ * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetFullExtension(std::filesystem::path path)
-    -> std::string;
+auto GPGFRONTEND_CORE_EXPORT GetFullExtension(QString path) -> QString;
 
 }  // namespace GpgFrontend

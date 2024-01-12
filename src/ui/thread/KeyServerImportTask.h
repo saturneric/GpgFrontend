@@ -48,8 +48,7 @@ class KeyServerImportTask : public Thread::Task {
    * @param keyserver_url
    * @param search_string
    */
-  KeyServerImportTask(std::string keyserver_url,
-                      std::vector<std::string> keyid);
+  KeyServerImportTask(QString keyserver_url, std::vector<QString> keyid);
 
   /**
    * @brief
@@ -76,8 +75,8 @@ class KeyServerImportTask : public Thread::Task {
   void dealing_reply_from_server();
 
  private:
-  std::string keyserver_url_;        ///<
-  std::vector<std::string> keyids_;  ///<
+  QString keyserver_url_;        ///<
+  std::vector<QString> keyids_;  ///<
   int result_count_ = 0;
 
   QNetworkAccessManager *manager_;  ///<

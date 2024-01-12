@@ -30,6 +30,10 @@
 
 #include "ui/widgets/InfoBoardWidget.h"
 
+namespace GpgFrontend {
+class GpgPassphraseContext;
+}
+
 namespace GpgFrontend::UI {
 
 /**
@@ -88,13 +92,13 @@ class UISignalStation : public QObject {
    * @brief
    *
    */
-  void SignalNeedUserInputPassphrase();
+  void SignalNeedUserInputPassphrase(QSharedPointer<GpgPassphraseContext>);
 
   /**
    * @brief
    *
    */
-  void SignalUserInputPassphraseCallback(QByteArray);
+  void SignalUserInputPassphraseCallback(QSharedPointer<GpgPassphraseContext>);
 
   /**
    * @brief

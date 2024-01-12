@@ -37,7 +37,7 @@ class GPGFRONTEND_CORE_EXPORT GpgGenerateKeyResult {
  public:
   auto IsGood() -> bool;
 
-  auto GetFingerprint() -> std::string const;
+  auto GetFingerprint() -> QString const;
 
   explicit GpgGenerateKeyResult(gpgme_genkey_result_t);
 

@@ -53,9 +53,9 @@ class GPGFRONTEND_CORE_EXPORT PassphraseGenerator
    * @brief generate passphrase
    *
    * @param len length of the passphrase
-   * @return std::string passphrase
+   * @return QString passphrase
    */
-  auto Generate(int len) -> std::string;
+  auto Generate(int len) -> QString;
 
  private:
   std::random_device rd_;                  ///< Random device

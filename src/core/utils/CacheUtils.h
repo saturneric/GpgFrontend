@@ -34,23 +34,22 @@ namespace GpgFrontend {
  * @brief set a temp cache under a certain key
  *
  */
-void GPGFRONTEND_CORE_EXPORT SetTempCacheValue(const std::string &,
-                                               const std::string &);
+void GPGFRONTEND_CORE_EXPORT SetTempCacheValue(const QString &,
+                                               const QString &);
 
 /**
  * @brief after get the temp cache, its value will be imediately ease in
  * storage
  *
- * @return std::string
+ * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetTempCacheValue(const std::string &)
-    -> std::string;
+auto GPGFRONTEND_CORE_EXPORT GetTempCacheValue(const QString &) -> QString;
 
 /**
  * @brief imediately ease temp cache in storage
  *
- * @return std::string
+ * @return QString
  */
-void GPGFRONTEND_CORE_EXPORT ResetTempCacheValue(const std::string &);
+void GPGFRONTEND_CORE_EXPORT ResetTempCacheValue(const QString &);
 
 }  // namespace GpgFrontend

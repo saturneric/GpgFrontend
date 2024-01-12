@@ -187,8 +187,7 @@ void MainWindow::create_actions() {
   connect(encrypt_act_, &QAction::triggered, this, [this]() {
     if (edit_->SlotCurPageFileTreeView() != nullptr) {
       const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-      const auto path_qstr = file_tree_view->GetSelected();
-      const auto path = ConvertPathByOS(path_qstr);
+      const auto path = file_tree_view->GetSelected();
 
       const auto file_info = QFileInfo(path);
       if (file_info.isFile()) {
@@ -214,8 +213,7 @@ void MainWindow::create_actions() {
   connect(encrypt_sign_act_, &QAction::triggered, this, [this]() {
     if (edit_->SlotCurPageFileTreeView() != nullptr) {
       const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-      const auto path_qstr = file_tree_view->GetSelected();
-      const auto path = ConvertPathByOS(path_qstr);
+      const auto path = file_tree_view->GetSelected();
 
       const auto file_info = QFileInfo(path);
       if (file_info.isFile()) {
@@ -240,16 +238,13 @@ void MainWindow::create_actions() {
   connect(decrypt_act_, &QAction::triggered, this, [this]() {
     if (edit_->SlotCurPageFileTreeView() != nullptr) {
       const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-      const auto path_qstr = file_tree_view->GetSelected();
-      const auto path = ConvertPathByOS(path_qstr);
+      const auto path = file_tree_view->GetSelected();
 
       const auto file_info = QFileInfo(path);
       if (file_info.isFile()) {
-        const std::string filename = path.filename().string();
-        const std::string extension(
-            std::find(filename.begin(), filename.end(), '.'), filename.end());
+        const QString extension = file_info.completeSuffix();
 
-        if (extension == ".tar.gpg" || extension == ".tar.asc") {
+        if (extension == "tar.gpg" || extension == "tar.asc") {
           this->SlotArchiveDecrypt(path);
         } else {
           this->SlotFileDecrypt(path);
@@ -273,14 +268,11 @@ void MainWindow::create_actions() {
   connect(decrypt_verify_act_, &QAction::triggered, this, [this]() {
     if (edit_->SlotCurPageFileTreeView() != nullptr) {
       const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-      const auto path_qstr = file_tree_view->GetSelected();
-      const auto path = ConvertPathByOS(path_qstr);
+      const auto path = file_tree_view->GetSelected();
 
       const auto file_info = QFileInfo(path);
       if (file_info.isFile()) {
-        const std::string filename = path.filename().string();
-        const std::string extension(
-            std::find(filename.begin(), filename.end(), '.'), filename.end());
+        const QString extension = file_info.completeSuffix();
 
         if (extension == ".tar.gpg" || extension == ".tar.asc") {
           this->SlotArchiveDecryptVerify(path);
@@ -305,8 +297,7 @@ void MainWindow::create_actions() {
   connect(sign_act_, &QAction::triggered, this, [this]() {
     if (edit_->SlotCurPageFileTreeView() != nullptr) {
       const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-      const auto path_qstr = file_tree_view->GetSelected();
-      const auto path = ConvertPathByOS(path_qstr);
+      const auto path = file_tree_view->GetSelected();
 
       const auto file_info = QFileInfo(path);
       if (file_info.isFile()) this->SlotFileSign(path);
@@ -325,8 +316,7 @@ void MainWindow::create_actions() {
   connect(verify_act_, &QAction::triggered, this, [this]() {
     if (edit_->SlotCurPageFileTreeView() != nullptr) {
       const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-      const auto path_qstr = file_tree_view->GetSelected();
-      const auto path = ConvertPathByOS(path_qstr);
+      const auto path = file_tree_view->GetSelected();
 
       const auto file_info = QFileInfo(path);
       if (file_info.isFile()) this->SlotFileVerify(path);

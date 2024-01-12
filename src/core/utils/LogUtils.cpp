@@ -40,7 +40,7 @@ auto GetCoreLogger() -> std::shared_ptr<spdlog::logger> {
   return LoggerManager::GetInstance().GetLogger("core");
 }
 
-auto GetLogger(const std::string& id) -> std::shared_ptr<spdlog::logger> {
+auto GetLogger(const QString& id) -> std::shared_ptr<spdlog::logger> {
   return LoggerManager::GetInstance().GetLogger(id);
 }
 
@@ -48,13 +48,11 @@ void SetDefaultLogLevel(spdlog::level::level_enum level) {
   return LoggerManager::SetDefaultLogLevel(level);
 }
 
-void RegisterAsyncLogger(const std::string& id,
-                         spdlog::level::level_enum level) {
+void RegisterAsyncLogger(const QString& id, spdlog::level::level_enum level) {
   LoggerManager::GetInstance().RegisterAsyncLogger(id, level);
 }
 
-void RegisterSyncLogger(const std::string& id,
-                        spdlog::level::level_enum level) {
+void RegisterSyncLogger(const QString& id, spdlog::level::level_enum level) {
   LoggerManager::GetInstance().RegisterSyncLogger(id, level);
 }
 

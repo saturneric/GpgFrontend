@@ -32,27 +32,18 @@ namespace GpgFrontend::UI {
 
 constexpr size_t kBufferSize = 8192;
 
-FileReadTask::FileReadTask(std::string path) : Task("file_read_task") {
+FileReadTask::FileReadTask(QString path) : Task("file_read_task") {
   HoldOnLifeCycle(true);
   connect(this, &FileReadTask::SignalFileBytesReadNext, this,
           &FileReadTask::read_bytes);
-
-#ifdef WINDOWS
-  std::filesystem::path read_file_path(
-      QString::fromStdString(path).toStdU16String());
-#else
-  std::filesystem::path read_file_path(
-      QString::fromStdString(path).toStdString());
-#endif
-  read_file_path_ = read_file_path;
+  read_file_path_ = path;
 }
 
 void FileReadTask::Run() {
-  if (is_regular_file(read_file_path_)) {
-    GF_CORE_LOG_DEBUG("read open file: {}", read_file_path_.u8string());
+  if (QFileInfo(read_file_path_).isFile()) {
+    GF_CORE_LOG_DEBUG("read open file: {}", read_file_path_);
 
-    target_file_.setFileName(
-        QString::fromStdString(read_file_path_.u8string()));
+    target_file_.setFileName(read_file_path_);
     target_file_.open(QIODevice::ReadOnly);
 
     if (!(target_file_.isOpen() && target_file_.isReadable())) {
@@ -60,7 +51,7 @@ void FileReadTask::Run() {
       if (target_file_.isOpen()) target_file_.close();
       return;
     }
-    GF_CORE_LOG_DEBUG("started reading: {}", read_file_path_.u8string());
+    GF_CORE_LOG_DEBUG("started reading: {}", read_file_path_);
     read_bytes();
   } else {
     emit SignalFileBytesReadEnd();
@@ -82,7 +73,7 @@ void FileReadTask::read_bytes() {
 }
 
 FileReadTask::~FileReadTask() {
-  GF_CORE_LOG_DEBUG("close file: {}", read_file_path_.u8string());
+  GF_CORE_LOG_DEBUG("close file: {}", read_file_path_);
   if (target_file_.isOpen()) target_file_.close();
 }
 

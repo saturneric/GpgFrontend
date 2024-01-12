@@ -35,7 +35,6 @@
 #include <filesystem>
 
 #include "core/GpgConstants.h"
-#include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/basic/ChannelObject.h"
 #include "core/function/gpg/GpgContext.h"
@@ -44,14 +43,14 @@
 
 namespace GpgFrontend::Test {
 
-auto GenerateRandomString(size_t length) -> std::string {
-  const std::string characters =
+auto GenerateRandomString(size_t length) -> QString {
+  const QString characters =
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   std::random_device random_device;
   std::mt19937 generator(random_device());
   std::uniform_int_distribution<> distribution(0, characters.size() - 1);
 
-  std::string random_string;
+  QString random_string;
   for (size_t i = 0; i < length; ++i) {
     random_string += characters[distribution(generator)];
   }
@@ -60,31 +59,26 @@ auto GenerateRandomString(size_t length) -> std::string {
 }
 
 void ConfigureGpgContext() {
-  auto db_path =
-      std::filesystem::temp_directory_path() / GenerateRandomString(12);
+  auto db_path = QDir(QDir::tempPath() + "/" + GenerateRandomString(12));
   GF_TEST_LOG_DEBUG("setting up new database path for test case: {}",
-                    db_path.string());
+                    db_path.path());
 
-  if (!std::filesystem::exists(db_path)) {
-    std::filesystem::create_directory(db_path);
-  } else {
-    std::filesystem::remove_all(db_path);
-    std::filesystem::create_directory(db_path);
-  }
+  if (db_path.exists()) db_path.rmdir(".");
+  db_path.mkdir(".");
 
   GpgContext::CreateInstance(
       kGpgFrontendDefaultChannel, [=]() -> ChannelObjectPtr {
         GpgContextInitArgs args;
         args.test_mode = true;
         args.offline_mode = true;
-        args.db_path = db_path.string();
+        args.db_path = db_path.path();
 
         return ConvertToChannelObjectPtr<>(SecureCreateUniqueObject<GpgContext>(
             args, kGpgFrontendDefaultChannel));
       });
 }
 
-void ImportPrivateKeys(const std::filesystem::path& data_path,
+void ImportPrivateKeys(const QString& data_path,
                        const libconfig::Setting& config) {
   if (config.exists("load_keys.private_keys")) {
     auto& private_keys = config.lookup("load_keys.private_keys");
@@ -92,11 +86,16 @@ void ImportPrivateKeys(const std::filesystem::path& data_path,
       if (private_key.exists("filename")) {
         std::string filename;
         private_key.lookupValue("filename", filename);
-        auto data_file_path = data_path / filename;
-        std::string data = ReadAllDataInFile(data_file_path.string());
-        auto secret_key_copy = SecureCreateSharedObject<std::string>(data);
-        GpgKeyImportExporter::GetInstance(kGpgFrontendDefaultChannel)
-            .ImportKey(secret_key_copy);
+        auto data_file_path =
+            data_path + "/" + QString::fromStdString(filename);
+
+        auto [success, gf_buffer] = ReadFileGFBuffer(data_file_path);
+        if (success) {
+          GpgKeyImportExporter::GetInstance(kGpgFrontendDefaultChannel)
+              .ImportKey(gf_buffer);
+        } else {
+          GF_TEST_LOG_ERROR("read from file faild: {}", data_file_path);
+        }
       }
     }
   }
@@ -115,7 +114,7 @@ void SetupGlobalTestEnv() {
   ASSERT_NO_THROW(cfg.readFile(test_config_path.c_str()));
 
   auto& root = cfg.getRoot();
-  ImportPrivateKeys(test_data_path, root);
+  ImportPrivateKeys(test_data_path.c_str(), root);
 }
 
 auto ExecuteAllTestCase(GpgFrontendContext args) -> int {

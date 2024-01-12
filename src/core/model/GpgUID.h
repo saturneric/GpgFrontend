@@ -41,30 +41,30 @@ class GPGFRONTEND_CORE_EXPORT GpgUID {
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetName() const -> std::string;
+  [[nodiscard]] auto GetName() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetEmail() const -> std::string;
+  [[nodiscard]] auto GetEmail() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetComment() const -> std::string;
+  [[nodiscard]] auto GetComment() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] auto GetUID() const -> std::string;
+  [[nodiscard]] auto GetUID() const -> QString;
 
   /**
    * @brief

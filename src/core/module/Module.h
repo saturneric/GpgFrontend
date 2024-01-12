@@ -37,9 +37,9 @@ class Module;
 class GlobalModuleContext;
 class ModuleManager;
 
-using ModuleIdentifier = std::string;
-using ModuleVersion = std::string;
-using ModuleMetaData = std::map<std::string, std::string>;
+using ModuleIdentifier = QString;
+using ModuleVersion = QString;
+using ModuleMetaData = std::map<QString, QString>;
 using ModulePtr = std::shared_ptr<Module>;
 
 using TaskRunnerPtr = std::shared_ptr<Thread::TaskRunner>;

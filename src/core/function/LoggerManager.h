@@ -43,13 +43,13 @@ class GPGFRONTEND_CORE_EXPORT LoggerManager
 
   ~LoggerManager() override;
 
-  auto RegisterAsyncLogger(const std::string& id, spdlog::level::level_enum)
+  auto RegisterAsyncLogger(const QString& id, spdlog::level::level_enum)
       -> std::shared_ptr<spdlog::logger>;
 
-  auto RegisterSyncLogger(const std::string& id, spdlog::level::level_enum)
+  auto RegisterSyncLogger(const QString& id, spdlog::level::level_enum)
       -> std::shared_ptr<spdlog::logger>;
 
-  auto GetLogger(const std::string& id) -> std::shared_ptr<spdlog::logger>;
+  auto GetLogger(const QString& id) -> std::shared_ptr<spdlog::logger>;
 
   static auto GetDefaultLogger() -> std::shared_ptr<spdlog::logger>;
 
@@ -59,7 +59,7 @@ class GPGFRONTEND_CORE_EXPORT LoggerManager
   static spdlog::level::level_enum default_log_level;
   static std::shared_ptr<spdlog::logger> default_logger;
 
-  std::map<std::string, std::shared_ptr<spdlog::logger>> logger_map_;
+  std::map<QString, std::shared_ptr<spdlog::logger>> logger_map_;
 };
 
 }  // namespace GpgFrontend

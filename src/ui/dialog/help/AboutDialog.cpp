@@ -80,7 +80,7 @@ void AboutDialog::showEvent(QShowEvent* ev) { QDialog::showEvent(ev); }
 
 InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
   const auto gpgme_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.version", std::string{"2.0.0"});
+      "core", "gpgme.version", QString{"2.0.0"});
   GF_UI_LOG_DEBUG("got gpgme version from rt: {}", gpgme_version);
 
   auto* pixmap = new QPixmap(":gpgfrontend-logo.png");
@@ -101,7 +101,7 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
       _("or send a mail to my mailing list at") + " <a " +
       "href=\"mailto:eric@bktus.com\">eric@bktus.com</a>." + "<br><br> " +
       _("Built with Qt") + " " + qVersion() + ", " + OPENSSL_VERSION_TEXT +
-      " " + _("and") + " " + "GPGME" + " " + gpgme_version.c_str() + "<br>" +
+      " " + _("and") + " " + "GPGME" + " " + gpgme_version + "<br>" +
       _("Built at") + " " + BUILD_TIMESTAMP + "</center>");
 
   auto* layout = new QGridLayout();
@@ -124,7 +124,7 @@ TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
   QFile translators_qfile;
   auto translators_file =
       GlobalSettingStation::GetInstance().GetResourceDir() / "TRANSLATORS";
-  translators_qfile.setFileName(translators_file.u8string().c_str());
+  translators_qfile.setFileName(translators_file);
 #ifdef LINUX
   if (!translators_qfile.exists()) {
     translators_qfile.setFileName("/usr/local/share/GpgFrontend/TRANSLATORS");
@@ -254,11 +254,11 @@ void UpdateTab::slot_show_version_status() {
 
   auto latest_version = Module::RetrieveRTValueTypedOrDefault<>(
       "com.bktus.gpgfrontend.module.integrated.version-checking",
-      "version.latest_version", std::string{});
+      "version.latest_version", QString{});
 
-  latest_version_label_->setText(
-      "<center><b>" + QString(_("Latest Version From Github")) + ": " +
-      latest_version.c_str() + "</b></center>");
+  latest_version_label_->setText("<center><b>" +
+                                 QString(_("Latest Version From Github")) +
+                                 ": " + latest_version + "</b></center>");
 
   if (is_need_upgrade) {
     upgrade_label_->setText(
