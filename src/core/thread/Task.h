@@ -43,7 +43,20 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
 
   using TaskRunnable = std::function<int(DataObjectPtr)>;        ///<
   using TaskCallback = std::function<void(int, DataObjectPtr)>;  ///<
-  using TaskTrigger = std::function<void()>;
+
+  class TaskHandler {
+   public:
+    explicit TaskHandler(Task*);
+
+    void Start();
+
+    void Cancel();
+
+    auto GetTask() -> Task*;
+
+   private:
+    QPointer<Task> task_;
+  };
 
   /**
    * @brief Construct a new Task object
@@ -83,7 +96,7 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
  signals:
   void SignalRun();
 
-  void SignalTaskShouldEnd(int rtn);
+  void SignalTaskShouldEnd(int);
 
   void SignalTaskEnd();
 

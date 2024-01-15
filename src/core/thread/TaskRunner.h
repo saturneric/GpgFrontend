@@ -99,9 +99,9 @@ class GPGFRONTEND_CORE_EXPORT TaskRunner : public QObject {
    *
    * @return std::tuple<QPointer<Task>, TaskTrigger>
    */
-  std::tuple<QPointer<Task>, Task::TaskTrigger> RegisterTask(
-      const QString&, const Task::TaskRunnable&, const Task::TaskCallback&,
-      DataObjectPtr);
+  auto RegisterTask(const QString&, const Task::TaskRunnable&,
+                    const Task::TaskCallback&, DataObjectPtr)
+      -> Task::TaskHandler;
 
   /**
    * @brief

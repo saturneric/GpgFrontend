@@ -39,7 +39,7 @@ namespace GpgFrontend::Thread {
 class Task::Impl {
  public:
   Impl(Task *parent, QString name)
-      : parent_(parent), uuid_(generate_uuid()), name_(name) {
+      : parent_(parent), uuid_(generate_uuid()), name_(std::move(name)) {
     GF_CORE_LOG_TRACE("task {} created", GetFullID());
     init();
   }
@@ -131,8 +131,29 @@ class Task::Impl {
     connect(parent_, &Task::SignalRun, parent_, [=]() { inner_run(); });
 
     //
-    connect(parent_, &Task::SignalTaskShouldEnd, parent_,
-            [=](int rtn) { slot_task_should_end(rtn); });
+    connect(parent_, &Task::SignalTaskShouldEnd, QThread::currentThread(),
+            [this](int rtn) {
+#ifdef RELEASE
+              try {
+#endif
+                if (callback_) {
+                  GF_CORE_LOG_TRACE(
+                      "task callback {} is starting with runnerable rtn: {}",
+                      GetFullID(), rtn);
+
+                  callback_(rtn_, data_object_);
+                  GF_CORE_LOG_TRACE("task callback {} finished, rtn: {}",
+                                    GetFullID(), rtn);
+                }
+
+#ifdef RELEASE
+              } catch (...) {
+                GF_CORE_LOG_ERROR("task callback {} finished, rtn: {}",
+                                  GetFullID(), rtn);
+              }
+#endif
+              emit parent_->SignalTaskEnd();
+            });
 
     //
     connect(parent_, &Task::SignalTaskEnd, parent_, &Task::deleteLater);
@@ -144,15 +165,17 @@ class Task::Impl {
    */
   void inner_run() {
     try {
-      GF_CORE_LOG_TRACE("task {} is starting...", GetFullID());
+      GF_CORE_LOG_TRACE("task runnable {} is starting...", GetFullID());
       // Run() will set rtn by itself
       parent_->Run();
-      GF_CORE_LOG_TRACE("task {} was end.", GetFullID());
+      GF_CORE_LOG_TRACE("task runnable {} finished, rtn: {}", GetFullID());
     } catch (std::exception &e) {
       GF_CORE_LOG_ERROR("exception was caught at task: {}", e.what());
     }
     // raise signal to anounce after runnable returned
-    if (parent_->autoDelete()) emit parent_->SignalTaskShouldEnd(rtn_);
+    if (parent_->autoDelete()) {
+      emit parent_->SignalTaskShouldEnd(rtn_);
+    }
   }
 
   /**
@@ -162,98 +185,6 @@ class Task::Impl {
    */
   static auto generate_uuid() -> QString {
     return QUuid::createUuid().toString();
-  }
-
-  /**
-   * @brief
-   *
-   */
-  void slot_task_should_end(int rtn) {
-    GF_CORE_LOG_TRACE("task runnable {} finished, rtn: {}", GetFullID(), rtn);
-    // set return value
-    this->SetRTN(rtn);
-#ifdef RELEASE
-    try {
-#endif
-      if (callback_) {
-        GF_CORE_LOG_TRACE("task {} has a callback function", GetFullID());
-        if (callback_thread_ == QThread::currentThread()) {
-          GF_CORE_LOG_TRACE(
-              "for task {}, the callback thread is the same thread",
-              GetFullID(), callback_thread_->currentThreadId());
-
-          callback_(rtn, data_object_);
-
-          // raise signal, announcing this task comes to an end
-          GF_CORE_LOG_TRACE(
-              "for task {}, its life comes to an end in the same thread after "
-              "its callback executed.",
-              parent_->GetFullID());
-          emit parent_->SignalTaskEnd();
-        } else {
-          GF_CORE_LOG_TRACE(
-              "for task {}, callback thread is a different thread: {}",
-              GetFullID(), callback_thread_->currentThreadId());
-          if (!QMetaObject::invokeMethod(
-                  callback_thread_,
-                  [callback = callback_, rtn = rtn_, data_object = data_object_,
-                   parent_ = this->parent_]() {
-                    GF_CORE_LOG_TRACE("calling callback of task {}",
-                                      parent_->GetFullID());
-#ifdef RELEASE
-                    try {
-#endif
-                      callback(rtn, data_object);
-#ifdef RELEASE
-                    } catch (...) {
-                      GF_CORE_LOG_ERROR(
-                          "unknown exception was caught when execute "
-                          "callback of task {}",
-                          parent_->GetFullID());
-                    }
-#endif
-                    // raise signal, announcing this task comes to an end
-                    GF_CORE_LOG_TRACE(
-                        "for task {}, its life comes to an end whether its "
-                        "callback function fails or not.",
-                        parent_->GetFullID());
-                    emit parent_->SignalTaskEnd();
-                  })) {
-            GF_CORE_LOG_ERROR(
-                "task {} had failed to invoke the callback function to target "
-                "thread",
-                GetFullID());
-            GF_CORE_LOG_TRACE(
-                "for task {}, its life must come to an end now, although it "
-                "has something not done yet.",
-                GetFullID());
-            emit parent_->SignalTaskEnd();
-          }
-        }
-      } else {
-        // raise signal, announcing this task comes to an end
-        GF_CORE_LOG_TRACE(
-            "for task {}, its life comes to an end without callback "
-            "peacefully.",
-            GetFullID());
-        emit parent_->SignalTaskEnd();
-      }
-#ifdef RELEASE
-    } catch (std::exception &e) {
-      GF_CORE_LOG_ERROR("exception was caught at task callback: {}", e.what());
-      // raise signal, announcing this task comes to an end
-      GF_CORE_LOG_TRACE("for task {}, its life comes to an end at chaos.",
-                        GetFullID());
-      emit parent_->SignalTaskEnd();
-    } catch (...) {
-      GF_CORE_LOG_ERROR("unknown exception was caught");
-      // raise signal, announcing this task comes to an end
-      GF_CORE_LOG_TRACE(
-          "for task {}, its life comes to an end at unknown chaos.",
-          GetFullID());
-      emit parent_->SignalTaskEnd();
-    }
-#endif
   }
 };
 
@@ -292,4 +223,18 @@ void Task::run() {
   this->SafelyRun();
 }
 
+Task::TaskHandler::TaskHandler(Task *task) : task_(task) {}
+
+void Task::TaskHandler::Start() {
+  if (task_ != nullptr) task_->SafelyRun();
+}
+
+void Task::TaskHandler::Cancel() {
+  if (task_ != nullptr) emit task_->SignalTaskEnd();
+}
+
+auto Task::TaskHandler::GetTask() -> Task * {
+  if (task_ != nullptr) return task_;
+  return nullptr;
+}
 }  // namespace GpgFrontend::Thread

@@ -47,7 +47,7 @@ auto GPGFRONTEND_CORE_EXPORT RunGpgOperaAsync(GpgOperaRunnable runnable,
                                               GpgOperationCallback callback,
                                               const QString& operation,
                                               const QString& minial_version)
-    -> std::tuple<QPointer<Thread::Task>, Thread::Task::TaskTrigger>;
+    -> Thread::Task::TaskHandler;
 
 /**
  * @brief
@@ -59,5 +59,5 @@ auto GPGFRONTEND_CORE_EXPORT RunGpgOperaAsync(GpgOperaRunnable runnable,
 auto GPGFRONTEND_CORE_EXPORT RunIOOperaAsync(OperaRunnable runnable,
                                              OperationCallback callback,
                                              const QString& operation)
-    -> std::tuple<QPointer<Thread::Task>, Thread::Task::TaskTrigger>;
+    -> Thread::Task::TaskHandler;
 }  // namespace GpgFrontend

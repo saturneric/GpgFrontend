@@ -50,29 +50,25 @@ class TaskRunner::Impl : public QThread {
     task->SafelyRun();
   }
 
-  std::tuple<QPointer<Task>, Task::TaskTrigger> RegisterTask(
-      const QString& name, const Task::TaskRunnable& runnerable,
-      const Task::TaskCallback& cb, DataObjectPtr params) {
-    auto raw_task = SecureCreateQSharedObject<Task>(runnerable, name,
-                                                    std::move(params), cb);
+  auto RegisterTask(const QString& name, const Task::TaskRunnable& runnerable,
+                    const Task::TaskCallback& cb, DataObjectPtr params)
+      -> Task::TaskHandler {
+    auto* raw_task = new Task(runnerable, name, std::move(params), cb);
     raw_task->setParent(nullptr);
     raw_task->moveToThread(this);
 
-    connect(raw_task.get(), &Task::SignalRun, this, [this, raw_task]() {
+    connect(raw_task, &Task::SignalRun, this, [this, raw_task]() {
       pending_tasks_[raw_task->GetFullID()] = raw_task;
     });
 
-    connect(raw_task.get(), &Task::SignalTaskEnd, this, [this, raw_task]() {
+    connect(raw_task, &Task::SignalTaskEnd, this, [this, raw_task]() {
       pending_tasks_.remove(raw_task->GetFullID());
     });
 
     GF_CORE_LOG_TRACE("runner starts task: {} at thread: {}",
                       raw_task->GetFullID(), this->currentThreadId());
 
-    QPointer<Task> const task = raw_task.get();
-    return {nullptr, [task]() {
-              if (task != nullptr) task->SafelyRun();
-            }};
+    return Task::TaskHandler(raw_task);
   }
 
   void PostTask(const QString& name, const Task::TaskRunnable& runnerable,
@@ -108,7 +104,7 @@ class TaskRunner::Impl : public QThread {
   }
 
  private:
-  QMap<QString, QSharedPointer<Task>> pending_tasks_;
+  QMap<QString, Task*> pending_tasks_;
 };
 
 TaskRunner::TaskRunner() : p_(SecureCreateUniqueObject<Impl>()) {}
@@ -145,9 +141,10 @@ auto TaskRunner::GetThread() -> QThread* { return p_.get(); }
 
 auto TaskRunner::IsRunning() -> bool { return p_->isRunning(); }
 
-std::tuple<QPointer<Task>, Task::TaskTrigger> TaskRunner::RegisterTask(
-    const QString& name, const Task::TaskRunnable& runnable,
-    const Task::TaskCallback& cb, DataObjectPtr p_pbj) {
+auto TaskRunner::RegisterTask(const QString& name,
+                              const Task::TaskRunnable& runnable,
+                              const Task::TaskCallback& cb, DataObjectPtr p_pbj)
+    -> Task::TaskHandler {
   return p_->RegisterTask(name, runnable, cb, p_pbj);
 }
 }  // namespace GpgFrontend::Thread
