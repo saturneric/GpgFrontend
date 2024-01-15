@@ -26,8 +26,6 @@
  *
  */
 
-#include <csetjmp>
-
 #include "GpgFrontendContext.h"
 #include "core/GpgConstants.h"
 #include "core/GpgCoreInit.h"
@@ -36,15 +34,6 @@
 
 // main
 #include "main.h"
-
-/**
- * \brief Store the jump buff and make it possible to recover from a crash.
- */
-#ifdef FREEBSD
-sigjmp_buf recover_env;
-#else
-jmp_buf recover_env;
-#endif
 
 namespace GpgFrontend {
 
@@ -80,30 +69,11 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
   int restart_count = 0;
 
   do {
-#ifndef WINDOWS
-    int r = sigsetjmp(recover_env, 1);
-#else
-    int r = setjmp(recover_env);
-#endif
-    if (!r) {
-      // after that load ui totally
-      GpgFrontend::UI::InitGpgFrontendUI(app);
+    // after that load ui totally
+    GpgFrontend::UI::InitGpgFrontendUI(app);
 
-      // finally create main window
-      return_from_event_loop_code = GpgFrontend::UI::RunGpgFrontendUI(app);
-    } else {
-      GF_MAIN_LOG_ERROR("recover from a crash");
-      // when signal is caught, restart the main window
-      auto* message_box = new QMessageBox(
-          QMessageBox::Critical, _("A serious error has occurred"),
-          _("Oh no! GpgFrontend caught a serious error in the software, so "
-            "it needs to be restarted. If the problem recurs, please "
-            "manually terminate the program and report the problem to the "
-            "developer."),
-          QMessageBox::Ok, nullptr);
-      message_box->exec();
-      return_from_event_loop_code = kCrashCode;
-    }
+    // finally create main window
+    return_from_event_loop_code = GpgFrontend::UI::RunGpgFrontendUI(app);
 
     GF_MAIN_LOG_DEBUG("try to destroy modules system and core");
 

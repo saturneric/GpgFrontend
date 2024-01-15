@@ -45,13 +45,6 @@
  * @return
  */
 auto main(int argc, char* argv[]) -> int {
-#ifdef RELEASE
-  // re
-  signal(SIGSEGV, HandleSignal);
-  signal(SIGFPE, HandleSignal);
-  signal(SIGILL, HandleSignal);
-#endif
-
   GpgFrontend::GFCxtSPtr ctx =
       GpgFrontend::SecureCreateSharedObject<GpgFrontend::GpgFrontendContext>(
           argc, argv);

@@ -33,13 +33,6 @@
 namespace GpgFrontend {
 
 /**
- * @brief handle the signal SIGSEGV
- *
- * @param sig
- */
-void HandleSignal(int sig);
-
-/**
  * @brief
  *
  * @param args

@@ -26,41 +26,4 @@
  *
  */
 
-#include <csetjmp>
-#include <iostream>
-
 #include "GpgFrontend.h"
-
-#ifdef FREEBSD
-extern sigjmp_buf recover_env;
-#else
-extern jmp_buf recover_env;
-#endif
-
-/**
- * @brief handle the signal caught.
- *
- * @param sig signal number
- */
-void HandleSignal(int sig) {
-  static int _repeat_handle_num = 1, last_sig = sig;
-  // GF_MAIN_LOG_DEBUG("signal caught {}", sig);
-  std::cout << "signal caught" << sig;
-
-  if (last_sig == sig)
-    _repeat_handle_num++;
-  else
-    _repeat_handle_num = 1, last_sig = sig;
-
-  if (_repeat_handle_num > 3) {
-    std::cout << "The same signal appears three times,"
-              << "execute the termination operation." << sig;
-    exit(-1);
-  }
-
-#ifndef WINDOWS
-  siglongjmp(recover_env, 1);
-#else
-  longjmp(recover_env, 1);
-#endif
-}
