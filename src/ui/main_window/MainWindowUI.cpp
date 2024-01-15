@@ -44,13 +44,10 @@ void MainWindow::create_actions() {
    */
   new_tab_act_ = new QAction(_("New"), this);
   new_tab_act_->setIcon(QIcon(":misc_doc.png"));
-  QList<QKeySequence> newTabActShortcutList;
-#ifdef GPGFRONTEND_GUI_QT6
-  newTabActShortcutList.append(QKeySequence(Qt::CTRL | Qt::Key_N));
-  newTabActShortcutList.append(QKeySequence(Qt::CTRL | Qt::Key_T));
-#else
-#endif
-  new_tab_act_->setShortcuts(newTabActShortcutList);
+  QList<QKeySequence> new_tab_act_shortcut_list;
+  new_tab_act_shortcut_list.append(QKeySequence(Qt::CTRL | Qt::Key_N));
+  new_tab_act_shortcut_list.append(QKeySequence(Qt::CTRL | Qt::Key_T));
+  new_tab_act_->setShortcuts(new_tab_act_shortcut_list);
   new_tab_act_->setToolTip(_("Open a new file"));
   connect(new_tab_act_, &QAction::triggered, edit_, &TextEdit::SlotNewTab);
 
@@ -62,11 +59,7 @@ void MainWindow::create_actions() {
 
   browser_act_ = new QAction(_("File Browser"), this);
   browser_act_->setIcon(QIcon(":file-browser.png"));
-#ifdef GPGFRONTEND_GUI_QT6
   browser_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_B));
-#else
-  browser_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_B));
-#endif
   browser_act_->setToolTip(_("Open a file browser"));
   connect(browser_act_, &QAction::triggered, this,
           &MainWindow::slot_open_file_tab);
@@ -179,10 +172,8 @@ void MainWindow::create_actions() {
    */
   encrypt_act_ = new QAction(_("Encrypt"), this);
   encrypt_act_->setIcon(QIcon(":encrypted.png"));
-#ifdef GPGFRONTEND_GUI_QT6
   encrypt_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_E));
-#else
-#endif
+
   encrypt_act_->setToolTip(_("Encrypt Message"));
   connect(encrypt_act_, &QAction::triggered, this, [this]() {
     if (edit_->SlotCurPageFileTreeView() != nullptr) {
@@ -203,12 +194,9 @@ void MainWindow::create_actions() {
 
   encrypt_sign_act_ = new QAction(_("Encrypt Sign"), this);
   encrypt_sign_act_->setIcon(QIcon(":encrypted_signed.png"));
-#ifdef GPGFRONTEND_GUI_QT6
   encrypt_sign_act_->setShortcut(
       QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_E));
-#else
-  encrypt_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
-#endif
+
   encrypt_sign_act_->setToolTip(_("Encrypt and Sign Message"));
   connect(encrypt_sign_act_, &QAction::triggered, this, [this]() {
     if (edit_->SlotCurPageFileTreeView() != nullptr) {
@@ -229,11 +217,7 @@ void MainWindow::create_actions() {
 
   decrypt_act_ = new QAction(_("Decrypt"), this);
   decrypt_act_->setIcon(QIcon(":decrypted.png"));
-#ifdef GPGFRONTEND_GUI_QT6
   decrypt_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_D));
-#else
-  encrypt_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
-#endif
   decrypt_act_->setToolTip(_("Decrypt Message"));
   connect(decrypt_act_, &QAction::triggered, this, [this]() {
     if (edit_->SlotCurPageFileTreeView() != nullptr) {
@@ -258,12 +242,8 @@ void MainWindow::create_actions() {
 
   decrypt_verify_act_ = new QAction(_("Decrypt Verify"), this);
   decrypt_verify_act_->setIcon(QIcon(":decrypted_verified.png"));
-#ifdef GPGFRONTEND_GUI_QT6
   decrypt_verify_act_->setShortcut(
       QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_D));
-#else
-  encrypt_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
-#endif
   decrypt_verify_act_->setToolTip(_("Decrypt and Verify Message"));
   connect(decrypt_verify_act_, &QAction::triggered, this, [this]() {
     if (edit_->SlotCurPageFileTreeView() != nullptr) {
@@ -288,11 +268,7 @@ void MainWindow::create_actions() {
 
   sign_act_ = new QAction(_("Sign"), this);
   sign_act_->setIcon(QIcon(":signature.png"));
-#ifdef GPGFRONTEND_GUI_QT6
   sign_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_I));
-#else
-  encrypt_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
-#endif
   sign_act_->setToolTip(_("Sign Message"));
   connect(sign_act_, &QAction::triggered, this, [this]() {
     if (edit_->SlotCurPageFileTreeView() != nullptr) {
@@ -307,11 +283,7 @@ void MainWindow::create_actions() {
 
   verify_act_ = new QAction(_("Verify"), this);
   verify_act_->setIcon(QIcon(":verify.png"));
-#ifdef GPGFRONTEND_GUI_QT6
   verify_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_V));
-#else
-  encrypt_act_->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
-#endif
   verify_act_->setToolTip(_("Verify Message"));
   connect(verify_act_, &QAction::triggered, this, [this]() {
     if (edit_->SlotCurPageFileTreeView() != nullptr) {
@@ -678,8 +650,8 @@ void MainWindow::create_tool_bars() {
 }
 
 void MainWindow::create_status_bar() {
-  auto* statusBarBox = new QWidget();
-  auto* statusBarBoxLayout = new QHBoxLayout();
+  auto* status_bar_box = new QWidget();
+  auto* status_bar_box_layout = new QHBoxLayout();
   // QPixmap* pixmap;
 
   // icon which should be shown if there are files in attachments-folder
@@ -690,7 +662,7 @@ void MainWindow::create_status_bar() {
   //  statusBarIcon->setPixmap(*pixmap);
   //  statusBar()->insertPermanentWidget(0, statusBarIcon, 0);
   statusBar()->showMessage(_("Ready"), 2000);
-  statusBarBox->setLayout(statusBarBoxLayout);
+  status_bar_box->setLayout(status_bar_box_layout);
 }
 
 void MainWindow::create_dock_windows() {

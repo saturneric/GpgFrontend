@@ -277,8 +277,6 @@ if (APPLE)
     set(OS_PLATFORM 1)
     ADD_DEFINITIONS(-DMACOS)
 
-    set(ENV{Qt5_DIR} /usr/local/opt/qt5/lib/cmake)
-
     if (XCODE_BUILD)
         set(XCODE_CODE_SIGN_IDENTITY "\"${XCODE_CODE_SIGN_IDENTITY}\"")
         message(STATUS "XCODE_CODE_SIGN_IDENTITY ${XCODE_CODE_SIGN_IDENTITY}")
@@ -358,7 +356,6 @@ set(QT_MOC_CONFIG 1)
 
 if (STABLE_BUILD_APPLICATION)
     message("[+] Build Stable Application")
-    set(QT5_ENV_SUPPORT 1)
     set(BUILD_CORE 1)
     set(BUILD_UI 1)
     set(BUILD_MODULE 1)

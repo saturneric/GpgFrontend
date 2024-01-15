@@ -69,9 +69,9 @@ later, and Ubuntu 20.04 LTS or other equivalent Linux distributions.
 
 ### Software Dependencies
 
-Qt5 or Later: GpgFrontend is developed using the Qt framework. Therefore, a
-runtime of Qt5 or later is required for the software to function correctly.
-Please note, the Qt5 runtime is integrated into the Release Package for Linux,
+Qt6 or Later: GpgFrontend is developed using the Qt framework. Therefore, a
+runtime of Qt6 or later is required for the software to function correctly.
+Please note, the Qt6 runtime is integrated into the Release Package for Linux,
 macOS, and Windows, so it generally does not need to be considered separately.
 This allows for easier setup and ensures compatibility across different systems.
 
@@ -130,7 +130,7 @@ MSYS2 directory, and execute the following commands:
 ```shell
 pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf
 pacman --noconfirm -S --needed make texinfo mingw-w64-x86_64-libconfig mingw-w64-x86_64-boost automake
-pacman --noconfirm -S --needed mingw-w64-x86_64-qt5 libintl msys2-runtime-devel gettext-devel mingw-w64-x86_64-gpgme
+pacman --noconfirm -S --needed mingw-w64-x86_64-qt6 libintl msys2-runtime-devel gettext-devel mingw-w64-x86_64-gpgme
 pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg mingw-w64-x86_64-libarchive
 ```
 

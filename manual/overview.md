@@ -51,9 +51,9 @@ later, and Ubuntu 20.04 LTS or other equivalent Linux distributions.
 
 ### Software Dependencies
 
-Qt5 or Later: GpgFrontend is developed using the Qt framework. Therefore, a
-runtime of Qt5 or later is required for the software to function correctly.
-Please note, the Qt5 runtime is integrated into the Release Package for Linux,
+Qt6 or Later: GpgFrontend is developed using the Qt framework. Therefore, a
+runtime of Qt6 or later is required for the software to function correctly.
+Please note, the Qt6 runtime is integrated into the Release Package for Linux,
 macOS, and Windows, so it generally does not need to be considered separately.
 This allows for easier setup and ensures compatibility across different systems.
 

@@ -35,11 +35,7 @@ target_link_libraries(gpgfrontend_integrated_module_version_checking PRIVATE
         gpgfrontend_module_sdk)
 
 # link Qt
-if(Qt6_DIR)
-        target_link_libraries(gpgfrontend_integrated_module_version_checking PRIVATE Qt6::Network)
-else()
-        target_link_libraries(gpgfrontend_integrated_module_version_checking PRIVATE Qt5::Network)
-endif()
+target_link_libraries(gpgfrontend_integrated_module_version_checking PRIVATE Qt6::Network)
 
 # using std c++ 17
 target_compile_features(gpgfrontend_integrated_module_version_checking PRIVATE cxx_std_17)

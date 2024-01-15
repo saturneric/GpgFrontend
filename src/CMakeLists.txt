@@ -57,25 +57,17 @@ endif()
 find_package(OpenSSL REQUIRED)
 
 # Introduce Qt
-if (QT5_ENV_SUPPORT)
-    # Support Qt version: 6.x, 5.12.x and 5.15.x
-    find_package(Qt6 6 COMPONENTS Core Test Widgets PrintSupport Network Core5Compat Concurrent)
-    if(NOT Qt6_DIR)
-        find_package(Qt5 5 COMPONENTS Core Test Widgets PrintSupport Network Concurrent REQUIRED)
-        message(STATUS "Use Qt5 for application building ${Qt5_DIR}")
-    else()
-        message(STATUS "Use Qt6 for application building ${Qt6_DIR}")
-        add_definitions(-DGPGFRONTEND_GUI_QT6)
-    endif()
-    
-    # Qt configuration
-    set(CMAKE_AUTOMOC ON)
-    set(CMAKE_AUTORCC ON)
-    set(CMAKE_AUTOUIC ON)
+# Support Qt version: 6.x
+find_package(Qt6 6 COMPONENTS Core Test Widgets PrintSupport Network Core5Compat Concurrent REQUIRED)
 
-    set(CMAKE_AUTORCC_OPTIONS "--compress;9")
-    set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${CMAKE_SOURCE_DIR}/ui)
-endif ()
+# Qt configuration
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
+set(CMAKE_AUTORCC_OPTIONS "--compress;9")
+set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${CMAKE_SOURCE_DIR}/ui)
+
 
 # configure for output path and resources
 if (BUILD_APPLICATION)
@@ -374,7 +366,7 @@ endif ()
 if (BUILD_APPLICATION)
     if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
         if (MINGW)
-            add_executable(${AppName} WIN32 ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+            add_executable(${AppName} WIN32 ${BASE_SOURCE} ${RESOURCE_FILES})
             # include qt dependencies
             if(NOT Qt6_DIR)
                 add_custom_command(TARGET ${AppName} POST_BUILD
@@ -385,7 +377,7 @@ if (BUILD_APPLICATION)
             endif()
         elseif (APPLE AND NOT XCODE_BUILD)
             # custom app bundle packing
-            add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+            add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES})
             set_target_properties(${AppName} PROPERTIES
                     BUNDLE True
                     MACOSX_BUNDLE_GUI_IDENTIFIER com.bktus.gpgfrontend
@@ -403,7 +395,7 @@ if (BUILD_APPLICATION)
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                     COMMENT "Copying Resources into App Bundle Resource")
         elseif (LINUX AND NOT LINUX_INSTALL_SOFTWARE)
-            add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+            add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
             add_custom_command(TARGET ${AppName} POST_BUILD
                     COMMAND /bin/mkdir -p ./gpgfrontend/usr/bin && /bin/mv -f ./${AppName} ./gpgfrontend/usr/bin/
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
@@ -415,7 +407,7 @@ if (BUILD_APPLICATION)
             # app bundle packing using xcode
         elseif (APPLE AND XCODE_BUILD)
             # standard app bundle packing
-            add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+            add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES})
             set_target_properties(${AppName} PROPERTIES
                     BUNDLE True
                     MACOSX_BUNDLE_GUI_IDENTIFIER com.bktus.gpgfrontend
@@ -466,11 +458,11 @@ if (BUILD_APPLICATION)
                     XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}"
                     )
         else ()
-            add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+            add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
         endif ()
     else ()
         # if the status is debug
-        add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+        add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
         if(MINGW)
             # include qt dependencies
             if(NOT Qt6_DIR)
@@ -549,61 +541,6 @@ if (LINUX AND LINUX_INSTALL_SOFTWARE)
     if (SUPPORT_MULTI_LANG)
         install(DIRECTORY ${LOCALE_OUTPUT_PATH}/
                 DESTINATION ${CMAKE_INSTALL_FULL_LOCALEDIR})
-    endif ()
-
-    if (APP_PACKAGE_DEB)
-        message(STATUS "Configure DEB Package")
-        SET(CPACK_GENERATOR "DEB")
-        set(CPACK_INSTALL_PREFIX "/usr/local/")
-        set(CPACK_PACKAGE_NAME "gpgfrontend")
-        set(CPACK_DEBIAN_PACKAGE_NAME "gpgfrontend")
-        set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
-        set(CPACK_PACKAGE_CONTACT "eric@bktus.com")
-        SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Saturneric")
-
-        if (${DISTRO_NAME} MATCHES "Ubuntu")
-            if (${DISTRO_VERSION_ID} STREQUAL "22.04")
-                set(CPACK_DEBIAN_PACKAGE_DEPENDS "gpg (>= 2.2), libqt5core5a (>= 5.9), libqt5gui5 (>= 5.9), libqt5widgets5 (>= 5.9), libqt5network5 (>= 5.9), libqt5printsupport5 (>= 5.9), libconfig++9v5 (>=1.5), libarchive13(>= 3.4), openssl(>= 1.1.1), libicu70")
-            elseif (${DISTRO_VERSION_ID} STREQUAL "20.04")
-                set(CPACK_DEBIAN_PACKAGE_DEPENDS "gpg (>= 2.2), libqt5core5a (>= 5.9), libqt5gui5 (>= 5.9), libqt5widgets5 (>= 5.9), libqt5network5 (>= 5.9), libqt5printsupport5 (>= 5.9), libconfig++9v5 (>=1.5), libarchive13(>= 3.4), openssl(>= 1.1.1), libicu66")
-            endif ()
-        endif ()
-
-        set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
-        set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
-        set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
-        include(CPack)
-    endif ()
-
-    if (APP_PACKAGE_RPM)
-        message(STATUS "Configure RPM Package")
-        SET(CPACK_GENERATOR "RPM")
-        set(CPACK_INSTALL_PREFIX "/usr/local/")
-        set(CPACK_PACKAGE_NAME "gpgfrontend")
-        set(CPACK_DEBIAN_PACKAGE_NAME "gpgfrontend")
-        set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
-        set(CPACK_PACKAGE_CONTACT "eric@bktus.com")
-        SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Saturneric")
-
-        set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
-        set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
-        set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
-        include(CPack)
-    endif ()
-
-    if (APP_PACKAGE_FREEBSD)
-        message(STATUS "Configure PKG Package")
-        SET(CPACK_GENERATOR "FREEBSD")
-        set(CPACK_INSTALL_PREFIX "/usr/local/")
-        set(CPACK_FREEBSD_PACKAGE_NAME "gpgfrontend")
-        set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
-        set(CPACK_PACKAGE_CONTACT "eric@bktus.com")
-        SET(CPACK_FREEBSD_PACKAGE_MAINTAINER "Saturneric")
-
-        set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
-        set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
-        set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
-        include(CPack)
     endif ()
 endif ()
 
