@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <nlohmann/json.hpp>
-
 namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule {
 /**
  * @brief  Use to record some info about gnupg

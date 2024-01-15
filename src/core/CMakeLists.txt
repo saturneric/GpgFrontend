@@ -92,10 +92,6 @@ endif()
 find_package(LibArchive REQUIRED)
 target_include_directories(gpgfrontend_core PRIVATE ${LibArchive_INCLUDE_DIR})
 target_link_libraries(gpgfrontend_core PRIVATE archive)
-
-# link json
-target_link_libraries(gpgfrontend_core
-        PUBLIC nlohmann_json::nlohmann_json)
         
 # link Qt core
 if(Qt6_DIR)

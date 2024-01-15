@@ -28,10 +28,6 @@
 
 #include "VersionCheckingModule.h"
 
-#include <qobject.h>
-
-#include <utility>
-
 #include "Log.h"
 #include "SoftwareVersion.h"
 #include "VersionCheckTask.h"
