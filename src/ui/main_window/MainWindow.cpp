@@ -127,8 +127,10 @@ void MainWindow::Init() noexcept {
     connect(qApp, &QCoreApplication::aboutToQuit, this, []() {
       GF_UI_LOG_DEBUG("about to quit process started");
 
-      if (GlobalSettingStation::GetInstance().LookupSettings(
-              "general.clear_gpg_password_cache", false)) {
+      if (GlobalSettingStation::GetInstance()
+              .GetSettings()
+              .value("general/clear_gpg_password_cache", false)
+              .toBool()) {
         if (GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache()) {
           GF_UI_LOG_DEBUG("clear gpg password cache done");
         } else {
@@ -155,28 +157,9 @@ void MainWindow::Init() noexcept {
     recover_editor_unsaved_pages_from_cache();
 
     // check if need to open wizard window
-    auto &settings = GlobalSettingStation::GetInstance().GetMainSettings();
-
-    if (!settings.exists("wizard") ||
-        settings.lookup("wizard").getType() != libconfig::Setting::TypeGroup)
-      settings.add("wizard", libconfig::Setting::TypeGroup);
-
-    auto &wizard = settings["wizard"];
-
-    // Show wizard, if the don't show wizard message box wasn't checked
-    // and keylist doesn't contain a private key
-
-    if (!wizard.exists("show_wizard"))
-      wizard.add("show_wizard", libconfig::Setting::TypeBoolean) = true;
-
-    bool show_wizard = true;
-    wizard.lookupValue("show_wizard", show_wizard);
-
-    GF_UI_LOG_DEBUG("wizard show_wizard: {}", show_wizard);
-
-    if (show_wizard) {
-      slot_start_wizard();
-    }
+    auto settings = GlobalSettingStation::GetInstance().GetSettings();
+    bool show_wizard = settings.value("wizard/show_wizard", true).toBool();
+    if (show_wizard) slot_start_wizard();
 
   } catch (...) {
     GF_UI_LOG_ERROR(_("Critical error occur while loading GpgFrontend."));
@@ -188,44 +171,23 @@ void MainWindow::Init() noexcept {
 }
 
 void MainWindow::restore_settings() {
-  try {
-    GF_UI_LOG_DEBUG("restore settings key_server");
+  GF_UI_LOG_DEBUG("restore settings for main windows");
 
-    KeyServerSO key_server(SettingsObject("key_server"));
+  KeyServerSO key_server(SettingsObject("key_server"));
+  if (key_server.server_list.empty()) key_server.ResetDefaultServerList();
+  if (key_server.default_server < 0) key_server.default_server = 0;
 
-    if (key_server.server_list.empty()) key_server.ResetDefaultServerList();
-    if (key_server.default_server < 0) key_server.default_server = 0;
-
-    auto &settings = GlobalSettingStation::GetInstance().GetMainSettings();
-
-    if (!settings.exists("general") ||
-        settings.lookup("general").getType() != libconfig::Setting::TypeGroup) {
-      settings.add("general", libconfig::Setting::TypeGroup);
-    }
-
-    auto &general = settings["general"];
-
-    if (!general.exists("non_ascii_when_export")) {
-      general.add("non_ascii_when_export", libconfig::Setting::TypeBoolean) =
-          true;
-    }
-
-    // set appearance
-    import_button_->setToolButtonStyle(icon_style_);
-
-    prohibit_update_checking_ = false;
-    try {
-      prohibit_update_checking_ =
-          settings.lookup("network.prohibit_update_checking");
-    } catch (...) {
-      GF_UI_LOG_ERROR("setting operation error: prohibit_update_checking");
-    }
-
-  } catch (...) {
-    GF_UI_LOG_ERROR("cannot resolve settings");
+  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  if (!settings.contains("general/non_ascii_when_export")) {
+    settings.setValue("general/non_ascii_when_export", true);
   }
 
-  GlobalSettingStation::GetInstance().SyncSettings();
+  // set appearance
+  import_button_->setToolButtonStyle(icon_style_);
+
+  prohibit_update_checking_ =
+      settings.value("network/prohibit_update_check").toBool();
+
   GF_UI_LOG_DEBUG("settings restored");
 }
 
@@ -268,10 +230,6 @@ void MainWindow::recover_editor_unsaved_pages_from_cache() {
   }
 }
 
-void MainWindow::save_settings() {
-  GlobalSettingStation::GetInstance().SyncSettings();
-}
-
 void MainWindow::close_attachment_dock() {
   if (!attachment_dock_created_) {
     return;
@@ -287,7 +245,6 @@ void MainWindow::closeEvent(QCloseEvent *event) {
    * modified documents in any tab
    */
   if (edit_->MaybeSaveAnyTab()) {
-    save_settings();
     event->accept();
   } else {
     event->ignore();

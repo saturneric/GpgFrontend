@@ -419,11 +419,6 @@ class MainWindow : public GeneralMainWindow {
   void recover_editor_unsaved_pages_from_cache();
 
   /**
-   * @details Save settings to ini-file.
-   */
-  void save_settings();
-
-  /**
    * @brief return true, if restart is needed
    */
   [[nodiscard]] int get_restart_needed() const;

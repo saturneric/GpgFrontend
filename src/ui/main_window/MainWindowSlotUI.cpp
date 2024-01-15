@@ -121,7 +121,6 @@ void MainWindow::slot_open_settings_dialog() {
     // restart mainwindow if necessary
     if (get_restart_needed() != 0) {
       if (edit_->MaybeSaveAnyTab()) {
-        save_settings();
         emit SignalRestartApplication(get_restart_needed());
       }
     }

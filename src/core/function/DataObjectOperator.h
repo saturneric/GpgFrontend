@@ -62,7 +62,7 @@ class GPGFRONTEND_CORE_EXPORT DataObjectOperator
   GlobalSettingStation &global_setting_station_ =
       GlobalSettingStation::GetInstance();  ///< GlobalSettingStation
   QString app_secure_path_ =
-      global_setting_station_.GetAppConfigPath() +
+      global_setting_station_.GetAppDataPath() +
       "/secure";  ///< Where sensitive information is stored
   QString app_secure_key_path_ =
       app_secure_path_ +

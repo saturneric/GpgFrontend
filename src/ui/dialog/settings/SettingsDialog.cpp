@@ -116,9 +116,6 @@ void SettingsDialog::SlotAccept() {
   key_server_tab_->ApplySettings();
   network_tab_->ApplySettings();
 
-  // write settings to filesystem
-  GlobalSettingStation::GetInstance().SyncSettings();
-
   GF_UI_LOG_DEBUG("restart needed: {}", get_restart_needed());
   if (get_restart_needed() != 0) {
     emit SignalRestartNeeded(get_restart_needed());

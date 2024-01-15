@@ -177,8 +177,10 @@ void KeyMgmt::create_actions() {
   });
 
   bool const forbid_all_gnupg_connection =
-      GlobalSettingStation::GetInstance().LookupSettings(
-          "network.forbid_all_gnupg_connection", false);
+      GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("network/forbid_all_gnupg_connection", false)
+          .toBool();
 
   import_key_from_key_server_act_ = new QAction(_("Keyserver"), this);
   import_key_from_key_server_act_->setIcon(

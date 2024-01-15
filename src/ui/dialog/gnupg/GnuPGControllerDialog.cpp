@@ -103,17 +103,12 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
           return;
         }
 
-        auto& settings = GlobalSettingStation::GetInstance().GetMainSettings();
-        auto& general = settings["general"];
+        auto settings = GlobalSettingStation::GetInstance().GetSettings();
 
         // update settings
-        if (!general.exists("custom_key_database_path"))
-          general.add("custom_key_database_path",
-                      libconfig::Setting::TypeString) =
-              selected_custom_key_database_path.toStdString();
-        else {
-          general["custom_key_database_path"] =
-              selected_custom_key_database_path.toStdString();
+        if (!settings.contains("general/custom_key_database_path")) {
+          settings.setValue("general/custom_key_database_path",
+                            selected_custom_key_database_path);
         }
 
         // announce the restart
@@ -139,17 +134,10 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
           return;
         }
 
-        auto& settings = GlobalSettingStation::GetInstance().GetMainSettings();
-        auto& general = settings["general"];
-
-        // update settings
-        if (!general.exists("custom_gnupg_install_path"))
-          general.add("custom_gnupg_install_path",
-                      libconfig::Setting::TypeString) =
-              selected_custom_gnupg_install_path.toStdString();
-        else {
-          general["custom_gnupg_install_path"] =
-              selected_custom_gnupg_install_path.toStdString();
+        auto settings = GlobalSettingStation::GetInstance().GetSettings();
+        if (!settings.contains("general/custom_gnupg_install_path")) {
+          settings.setValue("general/custom_gnupg_install_path",
+                            selected_custom_gnupg_install_path);
         }
 
         // announce the restart
@@ -189,12 +177,8 @@ void GnuPGControllerDialog::SlotAccept() {
   apply_settings();
 
   GF_UI_LOG_DEBUG("gnupg controller apply done");
-
-  // write settings to filesystem
-  GlobalSettingStation::GetInstance().SyncSettings();
-
   GF_UI_LOG_DEBUG("restart needed: {}", get_restart_needed());
-  if (get_restart_needed()) {
+  if (get_restart_needed() != 0) {
     emit SignalRestartNeeded(get_restart_needed());
   }
   close();
@@ -217,8 +201,10 @@ void GnuPGControllerDialog::slot_update_custom_key_database_path_label(
   } else {
     // read from settings file
     QString custom_key_database_path =
-        GlobalSettingStation::GetInstance().LookupSettings(
-            "general.custom_key_database_path", QString{});
+        GlobalSettingStation::GetInstance()
+            .GetSettings()
+            .value("general/custom_key_database_path")
+            .toString();
 
     GF_UI_LOG_DEBUG("selected_custom_key_database_path from settings: {}",
                     custom_key_database_path);
@@ -254,8 +240,10 @@ void GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label(
   } else {
     // read from settings file
     QString custom_gnupg_install_path =
-        GlobalSettingStation::GetInstance().LookupSettings(
-            "general.custom_gnupg_install_path", QString{});
+        GlobalSettingStation::GetInstance()
+            .GetSettings()
+            .value("general/custom_gnupg_install_path")
+            .toString();
 
     GF_UI_LOG_DEBUG("custom_gnupg_install_path from settings: {}",
                     custom_gnupg_install_path);
@@ -277,13 +265,16 @@ void GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label(
 void GnuPGControllerDialog::set_settings() {
   auto& settings_station = GlobalSettingStation::GetInstance();
 
-  bool non_ascii_when_export =
-      settings_station.LookupSettings("general.non_ascii_when_export", true);
+  bool non_ascii_when_export = settings_station.GetSettings()
+                                   .value("general/non_ascii_when_export", true)
+                                   .toBool();
   GF_UI_LOG_DEBUG("non_ascii_when_export: {}", non_ascii_when_export);
   if (non_ascii_when_export) ui_->asciiModeCheckBox->setCheckState(Qt::Checked);
 
-  bool const use_custom_key_database_path = settings_station.LookupSettings(
-      "general.use_custom_key_database_path", false);
+  bool const use_custom_key_database_path =
+      settings_station.GetSettings()
+          .value("general/use_custom_key_database_path", false)
+          .toBool();
   if (use_custom_key_database_path) {
     ui_->keyDatabseUseCustomCheckBox->setCheckState(Qt::Checked);
   }
@@ -291,15 +282,18 @@ void GnuPGControllerDialog::set_settings() {
   this->slot_update_custom_key_database_path_label(
       ui_->keyDatabseUseCustomCheckBox->checkState());
 
-  bool const use_custom_gnupg_install_path = settings_station.LookupSettings(
-      "general.use_custom_gnupg_install_path", false);
+  bool const use_custom_gnupg_install_path =
+      settings_station.GetSettings()
+          .value("general/use_custom_gnupg_install_path", false)
+          .toBool();
   if (use_custom_gnupg_install_path) {
     ui_->useCustomGnuPGInstallPathCheckBox->setCheckState(Qt::Checked);
   }
 
   bool const use_pinentry_as_password_input_dialog =
-      settings_station.LookupSettings(
-          "general.use_pinentry_as_password_input_dialog", false);
+      settings_station.GetSettings()
+          .value("general/use_pinentry_as_password_input_dialog", false)
+          .toBool();
   if (use_pinentry_as_password_input_dialog) {
     ui_->usePinentryAsPasswordInputDialogCheckBox->setCheckState(Qt::Checked);
   }
@@ -311,48 +305,17 @@ void GnuPGControllerDialog::set_settings() {
 }
 
 void GnuPGControllerDialog::apply_settings() {
-  auto& settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetMainSettings();
+  auto settings =
+      GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
 
-  if (!settings.exists("general") ||
-      settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
-    settings.add("general", libconfig::Setting::TypeGroup);
-
-  auto& general = settings["general"];
-
-  if (!general.exists("non_ascii_when_export"))
-    general.add("non_ascii_when_export", libconfig::Setting::TypeBoolean) =
-        ui_->asciiModeCheckBox->isChecked();
-  else {
-    general["non_ascii_when_export"] = ui_->asciiModeCheckBox->isChecked();
-  }
-
-  if (!general.exists("use_custom_key_database_path"))
-    general.add("use_custom_key_database_path",
-                libconfig::Setting::TypeBoolean) =
-        ui_->keyDatabseUseCustomCheckBox->isChecked();
-  else {
-    general["use_custom_key_database_path"] =
-        ui_->keyDatabseUseCustomCheckBox->isChecked();
-  }
-
-  if (!general.exists("use_custom_gnupg_install_path"))
-    general.add("use_custom_gnupg_install_path",
-                libconfig::Setting::TypeBoolean) =
-        ui_->useCustomGnuPGInstallPathCheckBox->isChecked();
-  else {
-    general["use_custom_gnupg_install_path"] =
-        ui_->useCustomGnuPGInstallPathCheckBox->isChecked();
-  }
-
-  if (!general.exists("use_pinentry_as_password_input_dialog"))
-    general.add("use_pinentry_as_password_input_dialog",
-                libconfig::Setting::TypeBoolean) =
-        ui_->usePinentryAsPasswordInputDialogCheckBox->isChecked();
-  else {
-    general["use_pinentry_as_password_input_dialog"] =
-        ui_->usePinentryAsPasswordInputDialogCheckBox->isChecked();
-  }
+  settings.setValue("general/non_ascii_when_export",
+                    ui_->asciiModeCheckBox->isChecked());
+  settings.setValue("general/use_custom_key_database_path",
+                    ui_->keyDatabseUseCustomCheckBox->isChecked());
+  settings.setValue("general/use_custom_gnupg_install_path",
+                    ui_->useCustomGnuPGInstallPathCheckBox->isChecked());
+  settings.setValue("general/use_pinentry_as_password_input_dialog",
+                    ui_->usePinentryAsPasswordInputDialogCheckBox->isChecked());
 }
 
 int GnuPGControllerDialog::get_restart_needed() const {

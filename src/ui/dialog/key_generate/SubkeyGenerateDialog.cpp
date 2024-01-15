@@ -44,8 +44,10 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent)
     : GeneralDialog(typeid(SubkeyGenerateDialog).name(), parent),
       key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
   bool longer_expiration_date =
-      GlobalSettingStation::GetInstance().LookupSettings(
-          "general.longer_expiration_date", false);
+      GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("general/longer_expiration_date", false)
+          .toBool();
 
   max_date_time_ = longer_expiration_date
                        ? QDateTime::currentDateTime().toLocalTime().addYears(30)

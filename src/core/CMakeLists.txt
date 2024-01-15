@@ -49,9 +49,8 @@ if(NOT APPLE)
 endif()
 
 # link third-party libraries
-target_link_libraries(gpgfrontend_core PUBLIC config++)
 if (NOT LINUX)
-    target_link_libraries(gpgfrontend_core PUBLIC config++ intl)
+    target_link_libraries(gpgfrontend_core PUBLIC intl)
 endif ()
 
 # qt-aes

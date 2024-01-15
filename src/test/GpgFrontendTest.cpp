@@ -74,43 +74,36 @@ void ConfigureGpgContext() {
       });
 }
 
-void ImportPrivateKeys(const QString& data_path,
-                       const libconfig::Setting& config) {
-  if (config.exists("load_keys.private_keys")) {
-    auto& private_keys = config.lookup("load_keys.private_keys");
-    for (auto& private_key : private_keys) {
-      if (private_key.exists("filename")) {
-        std::string filename;
-        private_key.lookupValue("filename", filename);
-        auto data_file_path =
-            data_path + "/" + QString::fromStdString(filename);
-
-        auto [success, gf_buffer] = ReadFileGFBuffer(data_file_path);
-        if (success) {
-          GpgKeyImportExporter::GetInstance(kGpgFrontendDefaultChannel)
-              .ImportKey(gf_buffer);
-        } else {
-          GF_TEST_LOG_ERROR("read from file faild: {}", data_file_path);
-        }
+void ImportPrivateKeys(const QString& data_path, QSettings settings) {
+  if (settings.contains("load_keys/private_keys")) {
+    int size = settings.beginReadArray("load_keys/private_keys");
+    for (int i = 0; i < size; ++i) {
+      settings.setArrayIndex(i);
+      auto key_filename = settings.value("filename").toString();
+      auto target_file_path = data_path + "/" + key_filename;
+      auto [success, gf_buffer] = ReadFileGFBuffer(target_file_path);
+      if (success) {
+        GpgKeyImportExporter::GetInstance(kGpgFrontendDefaultChannel)
+            .ImportKey(gf_buffer);
+      } else {
+        GF_TEST_LOG_ERROR("read from file faild: {}", target_file_path);
       }
     }
+    settings.endArray();
   }
 }
 
 void SetupGlobalTestEnv() {
   auto app_path = GlobalSettingStation::GetInstance().GetAppDir();
   auto test_path = app_path + "/test";
-  auto test_config_path = test_path + "/conf/test.cfg";
+  auto test_config_path = test_path + "/conf/test.ini";
   auto test_data_path = test_path + "/data";
 
   GF_TEST_LOG_INFO("test config file path: {}", test_config_path);
   GF_TEST_LOG_INFO("test data file path: {}", test_data_path);
 
-  libconfig::Config cfg;
-  ASSERT_NO_THROW(cfg.readFile(test_config_path.toUtf8()));
-
-  auto& root = cfg.getRoot();
-  ImportPrivateKeys(test_data_path, root);
+  ImportPrivateKeys(test_data_path,
+                    QSettings(test_config_path, QSettings::IniFormat));
 }
 
 auto ExecuteAllTestCase(GpgFrontendContext args) -> int {

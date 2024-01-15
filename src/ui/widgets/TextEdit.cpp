@@ -368,12 +368,11 @@ void TextEdit::SlotAppendText2CurTextPage(const QString& text) {
 }
 
 FilePage* TextEdit::CurFilePage() const {
-  auto* curFilePage = qobject_cast<FilePage*>(tab_widget_->currentWidget());
-  if (curFilePage != nullptr) {
-    return curFilePage;
-  } else {
-    return nullptr;
+  auto* cur_file_page = qobject_cast<FilePage*>(tab_widget_->currentWidget());
+  if (cur_file_page != nullptr) {
+    return cur_file_page;
   }
+  return nullptr;
 }
 
 int TextEdit::TabCount() const { return tab_widget_->count(); }
@@ -610,15 +609,11 @@ void TextEdit::slot_file_page_path_changed(const QString& path) const {
 void TextEdit::slot_save_status_to_cache_for_revovery() {
   if (this->text_page_data_modified_count_++ % 8 != 0) return;
 
-  auto& settings = GlobalSettingStation::GetInstance().GetMainSettings();
-  bool restore_text_editor_page = false;
-  try {
-    restore_text_editor_page =
-        settings.lookup("general.restore_text_editor_page");
-  } catch (...) {
-    GF_UI_LOG_ERROR("setting operation error: restore_text_editor_page");
-  }
+  auto settings =
+      GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
 
+  bool restore_text_editor_page =
+      settings.value("general/restore_text_editor_page", false).toBool();
   if (!restore_text_editor_page) {
     GF_UI_LOG_DEBUG("restore_text_editor_page is false, ignoring...");
     return;

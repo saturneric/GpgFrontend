@@ -223,10 +223,6 @@ if (BUILD_APPLICATION)
         list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
         unset(_libDllPath)
-        file(GLOB _libDllPath "${_libDllBinPath}/libconfig++-*.dll")
-        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-        unset(_libDllPath)
         file(GLOB _libDllPath "${_libDllBinPath}/libarchive-*.dll")
         list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 

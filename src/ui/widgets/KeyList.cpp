@@ -62,8 +62,10 @@ void KeyList::init() {
   popup_menu_ = new QMenu(this);
 
   bool forbid_all_gnupg_connection =
-      GlobalSettingStation::GetInstance().LookupSettings(
-          "network.forbid_all_gnupg_connection", false);
+      GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("network/forbid_all_gnupg_connection", false)
+          .toBool();
 
   // forbidden networks connections
   if (forbid_all_gnupg_connection) ui_->syncButton->setDisabled(true);
@@ -358,8 +360,10 @@ void KeyList::dropEvent(QDropEvent* event) {
   // "always import keys"-CheckBox
   auto* check_box = new QCheckBox(_("Always import without bothering."));
 
-  bool confirm_import_keys = GlobalSettingStation::GetInstance().LookupSettings(
-      "general.confirm_import_keys", true);
+  bool confirm_import_keys = GlobalSettingStation::GetInstance()
+                                 .GetSettings()
+                                 .value("general/confirm_import_keys", true)
+                                 .toBool();
   if (confirm_import_keys) check_box->setCheckState(Qt::Checked);
 
   // Buttons for ok and cancel
@@ -379,20 +383,8 @@ void KeyList::dropEvent(QDropEvent* event) {
     dialog->exec();
     if (dialog->result() == QDialog::Rejected) return;
 
-    auto& settings = GlobalSettingStation::GetInstance().GetMainSettings();
-
-    if (!settings.exists("general") ||
-        settings.lookup("general").getType() != libconfig::Setting::TypeGroup) {
-      settings.add("general", libconfig::Setting::TypeGroup);
-    }
-    auto& general = settings["general"];
-    if (!general.exists("confirm_import_keys")) {
-      general.add("confirm_import_keys", libconfig::Setting::TypeBoolean) =
-          check_box->isChecked();
-    } else {
-      general["confirm_import_keys"] = check_box->isChecked();
-    }
-    GlobalSettingStation::GetInstance().SyncSettings();
+    auto settings = GlobalSettingStation::GetInstance().GetSettings();
+    settings.setValue("general/confirm_import_keys", check_box->isChecked());
   }
 
   if (event->mimeData()->hasUrls()) {

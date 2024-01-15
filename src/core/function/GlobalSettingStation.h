@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <libconfig.h++>
-
 #include "core/function/basic/GpgFunctionObject.h"
 
 namespace GpgFrontend {
@@ -58,11 +56,11 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
   ~GlobalSettingStation() noexcept override;
 
   /**
-   * @brief
+   * @brief Get the Settings object
    *
-   * @return libconfig::Setting&
+   * @return QSettings
    */
-  auto GetMainSettings() noexcept -> libconfig::Setting &;
+  [[nodiscard]] auto GetSettings() const -> QSettings;
 
   /**
    * @brief Get the App Dir object
@@ -83,13 +81,6 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
    * @return QString
    */
   [[nodiscard]] auto GetLogDir() const -> QString;
-
-  /**
-   * @brief Get the App Config Path object
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetAppConfigPath() const -> QString;
 
   /**
    * @brief Get the Locale Dir object
@@ -137,49 +128,6 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
    *
    */
   void ClearAllDataObjects() const;
-
-  /**
-   * @brief sync the settings to the file
-   *
-   */
-  void SyncSettings() noexcept;
-
-  /**
-   * @brief Looks up a setting by path.
-   * @param path The path to the setting.
-   * @param default_value The default value to return if setting is not found.
-   * @return The setting value.
-   */
-  template <typename T>
-  auto LookupSettings(QString path, T default_value) noexcept -> T {
-    T value = default_value;
-    try {
-      value = static_cast<T>(GetMainSettings().lookup(path.toStdString()));
-    } catch (...) {
-      GF_CORE_LOG_WARN("setting not found: {}", path);
-    }
-    return value;
-  }
-
-  /**
-   * @brief Looks up a setting by path.
-   * @param path The path to the setting.
-   * @param default_value The default value to return if setting is not found.
-   * @return The setting value.
-   */
-  template <typename T>
-  auto SaveSettings(QString path, libconfig::Setting::Type type,
-                    T value) noexcept -> T {
-    try {
-      if (!GetMainSettings().exists(path.toStdString())) {
-        // TODO
-        GetMainSettings().add(path.toStdString(), type);
-      }
-    } catch (...) {
-      GF_CORE_LOG_WARN("setting not found: {}", path);
-    }
-    return value;
-  }
 
  private:
   class Impl;

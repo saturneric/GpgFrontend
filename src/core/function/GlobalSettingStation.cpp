@@ -28,10 +28,20 @@
 
 #include "GlobalSettingStation.h"
 
-#include <filesystem>
-
 #include "core/module/ModuleManager.h"
 #include "core/utils/FilesystemUtils.h"
+
+// macros to find resource files
+#if defined(MACOS) && defined(RELEASE)
+#define RESOURCE_DIR(appDir) (appDir + "/../Resources/")
+#define RESOURCE_DIR_PATH(appDir) (appDir / ".." / "Resources")
+#elif defined(LINUX) && defined(RELEASE)
+#define RESOURCE_DIR(appDir) (appDir + "/../share/")
+#define RESOURCE_DIR_PATH(appDir) (appDir / ".." / "share")
+#else
+#define RESOURCE_DIR(appDir) (appDir)
+#define RESOURCE_DIR_PATH(appDir) (appDir)
+#endif
 
 namespace GpgFrontend {
 
@@ -42,70 +52,37 @@ class GlobalSettingStation::Impl {
    *
    */
   explicit Impl() noexcept {
-    GF_CORE_LOG_INFO("app path: {}", working_path_);
+    GF_CORE_LOG_INFO("app path: {}", GetAppDir());
+    GF_CORE_LOG_INFO("app working path: {}", working_path_);
+
     auto portable_file_path = working_path_ + "/PORTABLE.txt";
     if (QFileInfo(portable_file_path).exists()) {
       GF_CORE_LOG_INFO(
           "dectected portable mode, reconfiguring config and data path...");
       Module::UpsertRTValue("core", "env.state.portable", 1);
 
-      app_configure_path_ = working_path_;
-      config_dir_path_ = app_configure_path_ + "/conf";
-      main_config_path_ = config_dir_path_ + "/main.cfg";
-      module_config_path_ = config_dir_path_ + "/module.cfg";
-
       app_data_path_ = working_path_;
       app_log_path_ = app_data_path_ + "/logs";
       app_data_objs_path_ = app_data_path_ + "/data_objs";
+
+      portable_mode_ = true;
     }
 
-    GF_CORE_LOG_INFO("app configure path: {}", app_configure_path_);
     GF_CORE_LOG_INFO("app data path: {}", app_data_path_);
     GF_CORE_LOG_INFO("app log path: {}", app_log_path_);
     GF_CORE_LOG_INFO("app locale path: {}", app_locale_path_);
-    GF_CORE_LOG_INFO("app conf path: {}", main_config_path_);
 
     GF_CORE_LOG_INFO("app log files total size: {}", GetLogFilesSize());
     GF_CORE_LOG_INFO("app data objects files total size: {}",
                      GetDataObjectsFilesSize());
 
-    if (!QDir(app_configure_path_).exists()) {
-      QDir(app_configure_path_).mkpath(".");
-    }
     if (!QDir(app_data_path_).exists()) QDir(app_data_path_).mkpath(".");
     if (!QDir(app_log_path_).exists()) QDir(app_log_path_).mkpath(".");
-    if (!QDir(config_dir_path_).exists()) QDir(config_dir_path_).mkpath(".");
-
-    if (!QDir(main_config_path_).exists()) {
-      try {
-        this->ui_cfg_.writeFile(main_config_path_.toUtf8());
-        GF_CORE_LOG_DEBUG(
-            "user interface configuration successfully written to {}",
-            main_config_path_);
-
-      } catch (const libconfig::FileIOException &fioex) {
-        GF_CORE_LOG_DEBUG(
-            "i/o error while writing UserInterface configuration file {}",
-            main_config_path_);
-      }
-    } else {
-      try {
-        this->ui_cfg_.readFile(main_config_path_.toUtf8());
-        GF_CORE_LOG_DEBUG(
-            "user interface configuration successfully read from {}",
-            main_config_path_);
-      } catch (const libconfig::FileIOException &fioex) {
-        GF_CORE_LOG_ERROR(
-            "i/o error while reading UserInterface configure file");
-      } catch (const libconfig::ParseException &pex) {
-        GF_CORE_LOG_ERROR("parse error at {} : {} - {}", pex.getFile(),
-                          pex.getLine(), pex.getError());
-      }
-    }
   }
 
-  auto GetMainSettings() noexcept -> libconfig::Setting & {
-    return ui_cfg_.getRoot();
+  [[nodiscard]] auto GetSettings() -> QSettings {
+    if (!portable_mode_) return QSettings();
+    return {app_portable_config_path_, QSettings::IniFormat};
   }
 
   [[nodiscard]] auto GetLogFilesSize() const -> QString {
@@ -126,28 +103,19 @@ class GlobalSettingStation::Impl {
   }
 
   /**
-   * @brief
-   *
-   * @return libconfig::Setting&
-   */
-  template <typename T>
-  auto LookupSettings(QString path, T default_value) noexcept -> T {
-    T value = default_value;
-    try {
-      value = static_cast<T>(GetMainSettings().lookup(path.toStdString()));
-    } catch (...) {
-      GF_CORE_LOG_WARN("setting not found: {}", path);
-    }
-    return value;
-  }
-
-  /**
    * @brief Get the App Dir object
    *
    * @return QString
    */
-  [[nodiscard]] auto GetAppDir() const -> QString { return working_path_; }
+  [[nodiscard]] auto GetAppDir() const -> QString {
+    return QCoreApplication::applicationDirPath();
+  }
 
+  /**
+   * @brief Get the App Data Path object
+   *
+   * @return QString
+   */
   [[nodiscard]] auto GetAppDataPath() const -> QString {
     return app_data_path_;
   }
@@ -158,15 +126,6 @@ class GlobalSettingStation::Impl {
    * @return QString
    */
   [[nodiscard]] auto GetLogDir() const -> QString { return app_log_path_; }
-
-  /**
-   * @brief Get the App Config Path object
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetAppConfigPath() const -> QString {
-    return app_configure_path_;
-  }
 
   /**
    * @brief Get the Locale Dir object
@@ -195,22 +154,6 @@ class GlobalSettingStation::Impl {
     return app_resource_path_ + "/certs";
   }
 
-  /**
-   * @brief sync the settings to the file
-   *
-   */
-  void SyncSettings() noexcept {
-    try {
-      ui_cfg_.writeFile(main_config_path_.toUtf8());
-      GF_CORE_LOG_DEBUG("updated ui configuration successfully written to {}",
-                        main_config_path_);
-
-    } catch (const libconfig::FileIOException &fioex) {
-      GF_CORE_LOG_ERROR("i/o error while writing ui configuration file: {}",
-                        main_config_path_);
-    }
-  }
-
  private:
   QString working_path_ = QDir::currentPath();
 
@@ -228,7 +171,7 @@ class GlobalSettingStation::Impl {
       QString(APP_LOCALSTATE_PATH) / "gpgfrontend";  ///< Program Data Location
 #else
   QString app_resource_path_ =
-      RESOURCE_DIR_BOOST_PATH(working_path_);  ///< Program Data Location
+      RESOURCE_DIR_PATH(GetAppDir());  ///< Program Data Location
 #endif
 
 #ifdef LINUX_INSTALL_BUILD
@@ -239,17 +182,9 @@ class GlobalSettingStation::Impl {
       app_resource_path_ + "/locales";  ///< Program Data Location
 #endif
 
-  QString app_configure_path_ = QString{QStandardPaths::writableLocation(
-                                    QStandardPaths::AppConfigLocation)} +
-                                "/GpgFrontend";  ///< Program Configure Location
-  QString config_dir_path_ =
-      app_configure_path_ + "/conf";  ///< Configure File Directory Location
-  QString main_config_path_ =
-      config_dir_path_ + "/main.cfg";  ///< Main Configure File Location
-  QString module_config_path_ =
-      config_dir_path_ + "/module.cfg";  ///< Main Configure File Location
-
-  libconfig::Config ui_cfg_;  ///< UI Configure File
+  bool portable_mode_ = true;  ///<
+  QString app_portable_config_path_ =
+      working_path_ + "/config.ini";  ///< take effect only in portable mode
 
   /**
    * @brief
@@ -264,10 +199,8 @@ GlobalSettingStation::GlobalSettingStation(int channel) noexcept
 
 GlobalSettingStation::~GlobalSettingStation() noexcept = default;
 
-void GlobalSettingStation::SyncSettings() noexcept { p_->SyncSettings(); }
-
-auto GlobalSettingStation::GetMainSettings() noexcept -> libconfig::Setting & {
-  return p_->GetMainSettings();
+auto GlobalSettingStation::GetSettings() const -> QSettings {
+  return p_->GetSettings();
 }
 
 auto GlobalSettingStation::GetAppDir() const -> QString {
@@ -280,10 +213,6 @@ auto GlobalSettingStation::GetAppDataPath() const -> QString {
 
 [[nodiscard]] auto GlobalSettingStation::GetLogDir() const -> QString {
   return p_->GetLogDir();
-}
-
-auto GlobalSettingStation::GetAppConfigPath() const -> QString {
-  return p_->GetAppConfigPath();
 }
 
 auto GlobalSettingStation::GetLocaleDir() const -> QString {

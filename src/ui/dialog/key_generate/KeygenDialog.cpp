@@ -49,8 +49,10 @@ KeyGenDialog::KeyGenDialog(QWidget* parent)
       new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 
   bool const longer_expiration_date =
-      GlobalSettingStation::GetInstance().LookupSettings(
-          "general.longer_expiration_date", false);
+      GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("general/longer_expiration_date", false)
+          .toBool();
 
   max_date_time_ = longer_expiration_date
                        ? QDateTime::currentDateTime().toLocalTime().addYears(30)

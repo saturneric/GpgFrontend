@@ -98,181 +98,67 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
 }
 
 void GpgFrontend::UI::NetworkTab::SetSettings() {
-  auto &settings = GlobalSettingStation::GetInstance().GetMainSettings();
+  auto settings = GlobalSettingStation::GetInstance().GetSettings();
 
-  try {
-    QString proxy_host =
-        QString::fromStdString(settings.lookup("proxy.proxy_host"));
-    ui_->proxyServerAddressEdit->setText(proxy_host);
-  } catch (...) {
-    GF_UI_LOG_ERROR("setting operation error: proxy_host");
-  }
+  QString proxy_host = settings.value("proxy/proxy_host").toString();
+  ui_->proxyServerAddressEdit->setText(proxy_host);
+  QString username = settings.value("proxy/username").toString();
+  ui_->usernameEdit->setText(username);
+  QString password = settings.value("proxy/password").toString();
+  ui_->passwordEdit->setText(password);
 
-  try {
-    QString std_username =
-        QString::fromStdString(settings.lookup("proxy.username"));
-    ui_->usernameEdit->setText(std_username);
-  } catch (...) {
-    GF_UI_LOG_ERROR("setting operation error: username");
-  }
-
-  try {
-    QString std_password =
-        QString::fromStdString(settings.lookup("proxy.password"));
-    ui_->passwordEdit->setText(std_password);
-  } catch (...) {
-    GF_UI_LOG_ERROR("setting operation error: password");
-  }
-
-  try {
-    int port = settings.lookup("proxy.port");
-    ui_->portSpin->setValue(port);
-  } catch (...) {
-    GF_UI_LOG_ERROR("setting operation error: port");
-  }
+  int port = settings.value("proxy/port", 0).toInt();
+  ui_->portSpin->setValue(port);
 
   ui_->proxyTypeComboBox->setCurrentText("HTTP");
-  try {
-    QString proxy_type =
-        QString::fromStdString(settings.lookup("proxy.proxy_type"));
-    ui_->proxyTypeComboBox->setCurrentText(proxy_type);
-  } catch (...) {
-    GF_UI_LOG_ERROR("setting operation error: proxy_type");
-  }
+
+  QString proxy_type = settings.value("proxy/proxy_type").toString();
+  ui_->proxyTypeComboBox->setCurrentText(proxy_type);
+
   switch_ui_proxy_type(ui_->proxyTypeComboBox->currentText());
 
   ui_->enableProxyCheckBox->setCheckState(Qt::Unchecked);
-  try {
-    bool proxy_enable = settings.lookup("proxy.enable");
-    if (proxy_enable)
-      ui_->enableProxyCheckBox->setCheckState(Qt::Checked);
-    else
-      ui_->enableProxyCheckBox->setCheckState(Qt::Unchecked);
-  } catch (...) {
-    GF_UI_LOG_ERROR("setting operation error: proxy_enable");
-  }
 
-  ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(Qt::Unchecked);
-  try {
-    bool forbid_all_gnupg_connection =
-        settings.lookup("network.forbid_all_gnupg_connection");
-    if (forbid_all_gnupg_connection)
-      ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(Qt::Checked);
-    else
-      ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(
-          Qt::Unchecked);
-  } catch (...) {
-    GF_UI_LOG_ERROR("setting operation error: forbid_all_gnupg_connection");
-  }
+  bool proxy_enable = settings.value("proxy/enable", false).toBool();
+  ui_->enableProxyCheckBox->setCheckState(proxy_enable ? Qt::Checked
+                                                       : Qt::Unchecked);
 
-  ui_->prohibitUpdateCheck->setCheckState(Qt::Unchecked);
-  try {
-    bool prohibit_update_checking =
-        settings.lookup("network.prohibit_update_checking");
-    if (prohibit_update_checking)
-      ui_->prohibitUpdateCheck->setCheckState(Qt::Checked);
-    else
-      ui_->prohibitUpdateCheck->setCheckState(Qt::Unchecked);
-  } catch (...) {
-    GF_UI_LOG_ERROR("setting operation error: prohibit_update_checking");
-  }
+  bool forbid_all_gnupg_connection =
+      settings.value("network/forbid_all_gnupg_connection").toBool();
+  ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(
+      forbid_all_gnupg_connection ? Qt::Checked : Qt::Unchecked);
 
-  ui_->autoImportMissingKeyCheckBox->setCheckState(Qt::Unchecked);
-  try {
-    bool auto_import_missing_key =
-        settings.lookup("network.auto_import_missing_key");
-    if (auto_import_missing_key)
-      ui_->autoImportMissingKeyCheckBox->setCheckState(Qt::Checked);
-    else
-      ui_->autoImportMissingKeyCheckBox->setCheckState(Qt::Unchecked);
-  } catch (...) {
-    GF_UI_LOG_ERROR("setting operation error: auto_import_missing_key");
-  }
+  bool prohibit_update_checking =
+      settings.value("network/prohibit_update_checking").toBool();
+  ui_->prohibitUpdateCheck->setCheckState(
+      prohibit_update_checking ? Qt::Checked : Qt::Unchecked);
+
+  bool auto_import_missing_key =
+      settings.value("network/auto_import_missing_key", true).toBool();
+  ui_->autoImportMissingKeyCheckBox->setCheckState(
+      auto_import_missing_key ? Qt::Checked : Qt::Unchecked);
 
   switch_ui_enabled(ui_->enableProxyCheckBox->isChecked());
   switch_ui_proxy_type(ui_->proxyTypeComboBox->currentText());
 }
 
 void GpgFrontend::UI::NetworkTab::ApplySettings() {
-  auto &settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetMainSettings();
+  auto settings =
+      GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
 
-  if (!settings.exists("proxy") ||
-      settings.lookup("proxy").getType() != libconfig::Setting::TypeGroup)
-    settings.add("proxy", libconfig::Setting::TypeGroup);
+  settings.setValue("proxy/proxy_host", ui_->proxyServerAddressEdit->text());
+  settings.setValue("proxy/username", ui_->usernameEdit->text());
+  settings.setValue("proxy/password", ui_->passwordEdit->text());
+  settings.setValue("proxy/port", ui_->portSpin->value());
+  settings.setValue("proxy/proxy_type", ui_->proxyTypeComboBox->currentText());
+  settings.setValue("proxy/enable", ui_->enableProxyCheckBox->isChecked());
 
-  auto &proxy = settings["proxy"];
-
-  if (!proxy.exists("proxy_host"))
-    proxy.add("proxy_host", libconfig::Setting::TypeString) =
-        ui_->proxyServerAddressEdit->text().toStdString();
-  else {
-    proxy["proxy_host"] = ui_->proxyServerAddressEdit->text().toStdString();
-  }
-
-  if (!proxy.exists("username"))
-    proxy.add("username", libconfig::Setting::TypeString) =
-        ui_->usernameEdit->text().toStdString();
-  else {
-    proxy["username"] = ui_->usernameEdit->text().toStdString();
-  }
-
-  if (!proxy.exists("password"))
-    proxy.add("password", libconfig::Setting::TypeString) =
-        ui_->passwordEdit->text().toStdString();
-  else {
-    proxy["password"] = ui_->passwordEdit->text().toStdString();
-  }
-
-  if (!proxy.exists("port"))
-    proxy.add("port", libconfig::Setting::TypeInt) = ui_->portSpin->value();
-  else {
-    proxy["port"] = ui_->portSpin->value();
-  }
-
-  if (!proxy.exists("proxy_type"))
-    proxy.add("proxy_type", libconfig::Setting::TypeString) =
-        ui_->proxyTypeComboBox->currentText().toStdString();
-  else {
-    proxy["proxy_type"] = ui_->proxyTypeComboBox->currentText().toStdString();
-  }
-
-  if (!proxy.exists("enable"))
-    proxy.add("enable", libconfig::Setting::TypeBoolean) =
-        ui_->enableProxyCheckBox->isChecked();
-  else {
-    proxy["enable"] = ui_->enableProxyCheckBox->isChecked();
-  }
-
-  if (!settings.exists("network") ||
-      settings.lookup("network").getType() != libconfig::Setting::TypeGroup)
-    settings.add("network", libconfig::Setting::TypeGroup);
-
-  auto &network = settings["network"];
-
-  if (!network.exists("forbid_all_gnupg_connection"))
-    network.add("forbid_all_gnupg_connection",
-                libconfig::Setting::TypeBoolean) =
-        ui_->forbidALLGnuPGNetworkConnectionCheckBox->isChecked();
-  else {
-    network["forbid_all_gnupg_connection"] =
-        ui_->forbidALLGnuPGNetworkConnectionCheckBox->isChecked();
-  }
-
-  if (!network.exists("prohibit_update_checking"))
-    network.add("prohibit_update_checking", libconfig::Setting::TypeBoolean) =
-        ui_->prohibitUpdateCheck->isChecked();
-  else {
-    network["prohibit_update_checking"] = ui_->prohibitUpdateCheck->isChecked();
-  }
-
-  if (!network.exists("auto_import_missing_key"))
-    network.add("auto_import_missing_key", libconfig::Setting::TypeBoolean) =
-        ui_->autoImportMissingKeyCheckBox->isChecked();
-  else {
-    network["auto_import_missing_key"] =
-        ui_->autoImportMissingKeyCheckBox->isChecked();
-  }
+  settings.setValue("network/forbid_all_gnupg_connection",
+                    ui_->forbidALLGnuPGNetworkConnectionCheckBox->isChecked());
+  settings.setValue("network/prohibit_update_checking",
+                    ui_->prohibitUpdateCheck->isChecked());
+  settings.setValue("network/auto_import_missing_key",
+                    ui_->autoImportMissingKeyCheckBox->isChecked());
 
   apply_proxy_settings();
 }

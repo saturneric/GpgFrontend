@@ -29,8 +29,6 @@
 #include "KeyServerImportDialog.h"
 
 #include <QRegExp>
-#include <string>
-#include <utility>
 
 #include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
@@ -46,8 +44,10 @@ namespace GpgFrontend::UI {
 KeyServerImportDialog::KeyServerImportDialog(QWidget* parent)
     : GeneralDialog("key_server_import_dialog", parent) {
   auto forbid_all_gnupg_connection =
-      GlobalSettingStation::GetInstance().LookupSettings(
-          "network.forbid_all_gnupg_connection", false);
+      GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("network/forbid_all_gnupg_connection", false)
+          .toBool();
   if (forbid_all_gnupg_connection) {
     QMessageBox::critical(this, "Forbidden", "GnuPG is in offline mode now.");
     this->close();

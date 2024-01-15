@@ -203,34 +203,37 @@ void InitGpgFrontendCore(CoreInitArgs args) {
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
       ->PostTask(new Thread::Task(
           [args](const DataObjectPtr&) -> int {
+            auto settings = GlobalSettingStation::GetInstance().GetSettings();
             // read settings from config file
             auto forbid_all_gnupg_connection =
-                GlobalSettingStation::GetInstance().LookupSettings(
-                    "network.forbid_all_gnupg_connection", false);
+                settings.value("network/forbid_all_gnupg_connection", false)
+                    .toBool();
 
             auto auto_import_missing_key =
-                GlobalSettingStation::GetInstance().LookupSettings(
-                    "network.auto_import_missing_key", false);
+                settings.value("network/auto_import_missing_key", false)
+                    .toBool();
 
             auto use_custom_key_database_path =
-                GlobalSettingStation::GetInstance().LookupSettings(
-                    "general.use_custom_key_database_path", false);
+                settings.value("general/use_custom_key_database_path", false)
+                    .toBool();
 
             auto custom_key_database_path =
-                GlobalSettingStation::GetInstance().LookupSettings(
-                    "general.custom_key_database_path", QString{});
+                settings.value("general/custom_key_database_path", QString{})
+                    .toString();
 
             auto use_custom_gnupg_install_path =
-                GlobalSettingStation::GetInstance().LookupSettings(
-                    "general.use_custom_gnupg_install_path", false);
+                settings.value("general/use_custom_gnupg_install_path", false)
+                    .toBool();
 
             auto custom_gnupg_install_path =
-                GlobalSettingStation::GetInstance().LookupSettings(
-                    "general.custom_gnupg_install_path", QString{});
+                settings.value("general/custom_gnupg_install_path", QString{})
+                    .toString();
 
             auto use_pinentry_as_password_input_dialog =
-                GpgFrontend::GlobalSettingStation::GetInstance().LookupSettings(
-                    "general.use_pinentry_as_password_input_dialog", false);
+                settings
+                    .value("general/use_pinentry_as_password_input_dialog",
+                           false)
+                    .toBool();
 
             GF_CORE_LOG_DEBUG("core loaded if use custom key databse path: {}",
                               use_custom_key_database_path);

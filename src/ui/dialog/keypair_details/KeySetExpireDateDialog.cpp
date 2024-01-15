@@ -98,16 +98,11 @@ void KeySetExpireDateDialog::slot_confirm() {
 void KeySetExpireDateDialog::init() {
   ui_->setupUi(this);
 
-  auto& settings = GlobalSettingStation::GetInstance().GetMainSettings();
+  auto settings =
+      GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
 
-  bool longer_expiration_date = false;
-  try {
-    longer_expiration_date = settings.lookup("general.longer_expiration_date");
-    GF_UI_LOG_DEBUG("longer_expiration_date: {}", longer_expiration_date);
-
-  } catch (...) {
-    GF_UI_LOG_ERROR("setting operation error: longer_expiration_date");
-  }
+  bool longer_expiration_date = longer_expiration_date =
+      settings.value("general/longer_expiration_date").toBool();
 
   auto max_date_time =
       longer_expiration_date

@@ -84,7 +84,6 @@ void WaitEnvCheckingProcess() {
 
   auto env_state =
       Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.basic", 0);
-
   GF_UI_LOG_DEBUG("ui is ready to wating for env initialized, env_state: {}",
                   env_state);
 
@@ -129,25 +128,23 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
   // init common utils
   CommonUtils::GetInstance();
 
+  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+
   // application proxy configure
-  bool proxy_enable =
-      GlobalSettingStation::GetInstance().LookupSettings("proxy.enable", false);
+  bool proxy_enable = settings.value("proxy/enable", false).toBool();
 
   // if enable proxy for application
   if (proxy_enable) {
     try {
-      QString proxy_type = GlobalSettingStation::GetInstance().LookupSettings(
-          "proxy.proxy_type", QString{});
-      QString proxy_host = GlobalSettingStation::GetInstance().LookupSettings(
-          "proxy.proxy_host", QString{});
-      int proxy_port =
-          GlobalSettingStation::GetInstance().LookupSettings("proxy.port", 0);
+      QString proxy_type =
+          settings.value("proxy/proxy_type", QString{}).toString();
+      QString proxy_host =
+          settings.value("proxy/proxy_host", QString{}).toString();
+      int proxy_port = settings.value("prox/port", 0).toInt();
       QString proxy_username =
-          GlobalSettingStation::GetInstance().LookupSettings("proxy.username",
-                                                             QString{});
+          settings.value("proxy/username", QString{}).toString();
       QString proxy_password =
-          GlobalSettingStation::GetInstance().LookupSettings("proxy.password",
-                                                             QString{});
+          settings.value("proxy/password", QString{}).toString();
       GF_UI_LOG_DEBUG("proxy settings: type {}, host {}, port: {}", proxy_type,
                       proxy_host, proxy_port);
 
@@ -225,31 +222,13 @@ void GPGFRONTEND_UI_EXPORT DestroyGpgFrontendUI() {}
  */
 void InitLocale() {
   // get the instance of the GlobalSettingStation
-  auto& settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetMainSettings();
-
-  // create general settings if not exist
-  if (!settings.exists("general") ||
-      settings.lookup("general").getType() != libconfig::Setting::TypeGroup) {
-    settings.add("general", libconfig::Setting::TypeGroup);
-  }
-
-  // set system default at first
-  auto& general = settings["general"];
-  if (!general.exists("lang")) {
-    general.add("lang", libconfig::Setting::TypeString) = "";
-  }
-
-  // sync the settings to the file
-  GpgFrontend::GlobalSettingStation::GetInstance().SyncSettings();
+  auto settings =
+      GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
 
   GF_UI_LOG_DEBUG("current system locale: {}", setlocale(LC_ALL, nullptr));
 
   // read from settings file
-  std::string lang;
-  if (!general.lookupValue("lang", lang)) {
-    GF_UI_LOG_ERROR(_("could not read properly from configure file"));
-  };
+  auto lang = settings.value("general/lang", QString{}).toString();
 
   GF_UI_LOG_DEBUG("lang from settings: {}", lang);
   GF_UI_LOG_DEBUG("project name: {}", PROJECT_NAME);
@@ -258,8 +237,8 @@ void InitLocale() {
       GpgFrontend::GlobalSettingStation::GetInstance().GetLocaleDir());
 
 #ifndef WINDOWS
-  if (!lang.empty()) {
-    QString lc = QString::fromStdString(lang) + ".UTF-8";
+  if (!lang.isEmpty()) {
+    QString lc = lang + ".UTF-8";
 
     // set LC_ALL
     auto* locale_name = setlocale(LC_ALL, lc.toUtf8());
@@ -275,7 +254,7 @@ void InitLocale() {
   }
 #else
   if (!lang.empty()) {
-    QString lc = QString::fromStdString(lang);
+    QString lc = lang;
 
     // set LC_ALL
     auto* locale_name = setlocale(LC_ALL, lc.toUtf8());

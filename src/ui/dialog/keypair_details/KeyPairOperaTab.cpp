@@ -81,16 +81,12 @@ KeyPairOperaTab::KeyPairOperaTab(const QString& key_id, QWidget* parent)
 
   auto* advance_h_box_layout = new QHBoxLayout();
 
-  // get settings
-  auto& settings = GlobalSettingStation::GetInstance().GetMainSettings();
+  auto settings =
+      GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
+
   // read settings
-  bool forbid_all_gnupg_connection = false;
-  try {
-    forbid_all_gnupg_connection =
-        settings.lookup("network.forbid_all_gnupg_connection");
-  } catch (...) {
-    GF_UI_LOG_ERROR("setting operation error: forbid_all_gnupg_connection");
-  }
+  bool forbid_all_gnupg_connection =
+      settings.value("network/forbid_all_gnupg_connection").toBool();
 
   auto* key_server_opera_button =
       new QPushButton(_("Key Server Operation (Pubkey)"));

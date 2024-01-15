@@ -51,8 +51,10 @@ void MainWindow::SlotFileEncrypt(const QString& path) {
   }
 
   bool const non_ascii_when_export =
-      GlobalSettingStation::GetInstance().LookupSettings(
-          "general.non_ascii_when_export", true);
+      GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("general/non_ascii_when_export", true)
+          .toBool();
   auto out_path =
       SetExtensionOfOutputFile(path, kENCRYPT, !non_ascii_when_export);
 
@@ -157,8 +159,10 @@ void MainWindow::SlotDirectoryEncrypt(const QString& path) {
   }
 
   bool const non_ascii_when_export =
-      GlobalSettingStation::GetInstance().LookupSettings(
-          "general.non_ascii_when_export", true);
+      GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("general/non_ascii_when_export", true)
+          .toBool();
   auto out_path = SetExtensionOfOutputFileForArchive(path, kENCRYPT,
                                                      !non_ascii_when_export);
 
@@ -379,8 +383,10 @@ void MainWindow::SlotFileSign(const QString& path) {
   }
 
   bool const non_ascii_when_export =
-      GlobalSettingStation::GetInstance().LookupSettings(
-          "general.non_ascii_when_export", true);
+      GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("general/non_ascii_when_export", true)
+          .toBool();
   auto sig_file_path =
       SetExtensionOfOutputFile(path, kSIGN, !non_ascii_when_export);
 
@@ -528,8 +534,10 @@ void MainWindow::SlotFileEncryptSign(const QString& path) {
   }
 
   bool const non_ascii_when_export =
-      GlobalSettingStation::GetInstance().LookupSettings(
-          "general.non_ascii_when_export", true);
+      GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("general/non_ascii_when_export", true)
+          .toBool();
   auto out_path =
       SetExtensionOfOutputFile(path, kENCRYPT_SIGN, !non_ascii_when_export);
 
@@ -627,8 +635,10 @@ void MainWindow::SlotDirectoryEncryptSign(const QString& path) {
   }
 
   bool const non_ascii_when_export =
-      GlobalSettingStation::GetInstance().LookupSettings(
-          "general.non_ascii_when_export", true);
+      GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("general/non_ascii_when_export", true)
+          .toBool();
   auto out_path = SetExtensionOfOutputFileForArchive(path, kENCRYPT_SIGN,
                                                      !non_ascii_when_export);
 

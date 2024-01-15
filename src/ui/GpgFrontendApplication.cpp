@@ -41,12 +41,14 @@ GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
 #endif
 
   // set the extra information of the build
-  this->setApplicationVersion(BUILD_VERSION);
-  this->setApplicationName(PROJECT_NAME);
-  this->setQuitOnLastWindowClosed(true);
+  GpgFrontendApplication::setApplicationVersion(BUILD_VERSION);
+  GpgFrontendApplication::setApplicationName(PROJECT_NAME);
+  GpgFrontendApplication::setApplicationDisplayName(PROJECT_NAME);
+  GpgFrontendApplication::setOrganizationName(PROJECT_NAME);
+  GpgFrontendApplication::setQuitOnLastWindowClosed(true);
 
   // don't show icons in menus
-  this->setAttribute(Qt::AA_DontShowIconsInMenus);
+  GpgFrontendApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
 
   // unicode in source
   QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));

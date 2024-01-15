@@ -76,21 +76,24 @@ void InitLoggingSystem(const GFCxtSPtr &ctx) {
 void InitGlobalPathEnv() {
   // read settings
   bool use_custom_gnupg_install_path =
-      GlobalSettingStation::GetInstance().LookupSettings(
-          "general.use_custom_gnupg_install_path", false);
+      GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("general/use_custom_gnupg_install_path", false)
+          .toBool();
 
-  std::string custom_gnupg_install_path =
-      GlobalSettingStation::GetInstance().LookupSettings(
-          "general.custom_gnupg_install_path", std::string{});
+  QString custom_gnupg_install_path =
+      GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("general/custom_gnupg_install_path")
+          .toString();
 
   // add custom gnupg install path into env $PATH
-  if (use_custom_gnupg_install_path && !custom_gnupg_install_path.empty()) {
-    std::string path_value = getenv("PATH");
+  if (use_custom_gnupg_install_path && !custom_gnupg_install_path.isEmpty()) {
+    QString path_value = getenv("PATH");
     GF_MAIN_LOG_DEBUG("Current System PATH: {}", path_value);
     setenv("PATH",
-           ((std::filesystem::path{custom_gnupg_install_path}).u8string() +
-            ":" + path_value)
-               .c_str(),
+           (QDir(custom_gnupg_install_path).absolutePath() + ":" + path_value)
+               .toUtf8(),
            1);
     std::string modified_path_value = getenv("PATH");
     GF_MAIN_LOG_DEBUG("Modified System PATH: {}", modified_path_value);

@@ -45,8 +45,10 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
       this->setTitle("A Error Signature");
 
       bool forbid_all_gnupg_connection =
-          GlobalSettingStation::GetInstance().LookupSettings(
-              "network.forbid_all_gnupg_connection", false);
+          GlobalSettingStation::GetInstance()
+              .GetSettings()
+              .value("network/forbid_all_gnupg_connection", false)
+              .toBool();
 
       auto* import_button = new QPushButton(_("Import from keyserver"));
       import_button->setDisabled(forbid_all_gnupg_connection);

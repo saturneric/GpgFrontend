@@ -48,8 +48,10 @@ Wizard::Wizard(QWidget* parent) : QWizard(parent) {
   setPixmap(QWizard::LogoPixmap, QPixmap(":/logo_small.png"));
   setPixmap(QWizard::BannerPixmap, QPixmap(":/banner.png"));
 
-  int next_page_id = GlobalSettingStation::GetInstance().LookupSettings(
-      "wizard.next_page", -1);
+  int next_page_id = GlobalSettingStation::GetInstance()
+                         .GetSettings()
+                         .value("wizard.next_page", -1)
+                         .toInt();
   setStartId(next_page_id);
 
   connect(this, &Wizard::accepted, this, &Wizard::slot_wizard_accepted);
@@ -58,17 +60,8 @@ Wizard::Wizard(QWidget* parent) : QWizard(parent) {
 void Wizard::slot_wizard_accepted() {
   // Don't show is mapped to show -> negation
   try {
-    auto& settings = GlobalSettingStation::GetInstance().GetMainSettings();
-    if (!settings.exists("wizard")) {
-      settings.add("wizard", libconfig::Setting::TypeGroup);
-    }
-    auto& wizard = settings["wizard"];
-    if (!wizard.exists("show_wizard")) {
-      wizard.add("show_wizard", libconfig::Setting::TypeBoolean) = false;
-    } else {
-      wizard["show_wizard"] = false;
-    }
-    GlobalSettingStation::GetInstance().SyncSettings();
+    auto settings = GlobalSettingStation::GetInstance().GetSettings();
+    settings.setValue("wizard/show_wizard", false);
   } catch (...) {
     GF_UI_LOG_ERROR("setting operation error");
   }
