@@ -61,17 +61,6 @@ target_sources(gpgfrontend_core PRIVATE
 aux_source_directory(${CMAKE_SOURCE_DIR}/third_party/encoding-detect ENCODING_DETECT_SOURCE_CODE)
 target_sources(gpgfrontend_core PUBLIC ${ENCODING_DETECT_SOURCE_CODE})
 
-# icu
-if (APPLE)
-    target_include_directories(gpgfrontend_core PRIVATE /usr/local/opt/icu4c/include)
-    target_link_directories(gpgfrontend_core PRIVATE /usr/local/opt/icu4c/lib)
-    target_link_libraries(gpgfrontend_core PRIVATE icui18n icuuc icudata)
-else ()
-    find_package(ICU REQUIRED COMPONENTS i18n uc data)
-    target_include_directories(gpgfrontend_core PRIVATE ${ICU_INCLUDE_DIRS})
-    target_link_libraries(gpgfrontend_core PRIVATE ${ICU_LIBRARIES})
-endif ()
-
 # link gnupg libraries
 target_link_libraries(gpgfrontend_core PUBLIC gpgme assuan gpg-error)
 # link openssl
