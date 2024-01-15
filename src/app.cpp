@@ -77,14 +77,6 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
 
     GF_MAIN_LOG_DEBUG("try to destroy modules system and core");
 
-    // first should shutdown the module system
-    GpgFrontend::Module::ShutdownGpgFrontendModules();
-
-    // then shutdown the core
-    GpgFrontend::DestroyGpgFrontendCore();
-
-    GF_MAIN_LOG_DEBUG("core and modules system destroyed");
-
     restart_count++;
 
     GF_MAIN_LOG_DEBUG(
@@ -92,6 +84,13 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
         return_from_event_loop_code, restart_count);
   } while (return_from_event_loop_code == GpgFrontend::kRestartCode &&
            restart_count < 3);
+
+  // first should shutdown the module system
+  GpgFrontend::Module::ShutdownGpgFrontendModules();
+
+  // then shutdown the core
+  GpgFrontend::DestroyGpgFrontendCore();
+  GF_MAIN_LOG_DEBUG("core and modules system destroyed");
 
   // log for debug
   GF_MAIN_LOG_INFO("GpgFrontend is about to exit.");
