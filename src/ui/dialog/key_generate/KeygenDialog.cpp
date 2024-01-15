@@ -51,7 +51,7 @@ KeyGenDialog::KeyGenDialog(QWidget* parent)
   bool const longer_expiration_date =
       GlobalSettingStation::GetInstance()
           .GetSettings()
-          .value("general/longer_expiration_date", false)
+          .value("basic/longer_expiration_date", false)
           .toBool();
 
   max_date_time_ = longer_expiration_date

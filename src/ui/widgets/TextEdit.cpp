@@ -613,7 +613,7 @@ void TextEdit::slot_save_status_to_cache_for_revovery() {
       GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
 
   bool restore_text_editor_page =
-      settings.value("general/restore_text_editor_page", false).toBool();
+      settings.value("basic/restore_text_editor_page", false).toBool();
   if (!restore_text_editor_page) {
     GF_UI_LOG_DEBUG("restore_text_editor_page is false, ignoring...");
     return;

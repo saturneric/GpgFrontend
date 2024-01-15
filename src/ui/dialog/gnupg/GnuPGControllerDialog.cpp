@@ -106,8 +106,8 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
         auto settings = GlobalSettingStation::GetInstance().GetSettings();
 
         // update settings
-        if (!settings.contains("general/custom_key_database_path")) {
-          settings.setValue("general/custom_key_database_path",
+        if (!settings.contains("basic/custom_key_database_path")) {
+          settings.setValue("basic/custom_key_database_path",
                             selected_custom_key_database_path);
         }
 
@@ -135,8 +135,8 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
         }
 
         auto settings = GlobalSettingStation::GetInstance().GetSettings();
-        if (!settings.contains("general/custom_gnupg_install_path")) {
-          settings.setValue("general/custom_gnupg_install_path",
+        if (!settings.contains("basic/custom_gnupg_install_path")) {
+          settings.setValue("basic/custom_gnupg_install_path",
                             selected_custom_gnupg_install_path);
         }
 
@@ -203,7 +203,7 @@ void GnuPGControllerDialog::slot_update_custom_key_database_path_label(
     QString custom_key_database_path =
         GlobalSettingStation::GetInstance()
             .GetSettings()
-            .value("general/custom_key_database_path")
+            .value("basic/custom_key_database_path")
             .toString();
 
     GF_UI_LOG_DEBUG("selected_custom_key_database_path from settings: {}",
@@ -242,7 +242,7 @@ void GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label(
     QString custom_gnupg_install_path =
         GlobalSettingStation::GetInstance()
             .GetSettings()
-            .value("general/custom_gnupg_install_path")
+            .value("basic/custom_gnupg_install_path")
             .toString();
 
     GF_UI_LOG_DEBUG("custom_gnupg_install_path from settings: {}",
@@ -266,14 +266,14 @@ void GnuPGControllerDialog::set_settings() {
   auto& settings_station = GlobalSettingStation::GetInstance();
 
   bool non_ascii_when_export = settings_station.GetSettings()
-                                   .value("general/non_ascii_when_export", true)
+                                   .value("basic/non_ascii_when_export", true)
                                    .toBool();
   GF_UI_LOG_DEBUG("non_ascii_when_export: {}", non_ascii_when_export);
   if (non_ascii_when_export) ui_->asciiModeCheckBox->setCheckState(Qt::Checked);
 
   bool const use_custom_key_database_path =
       settings_station.GetSettings()
-          .value("general/use_custom_key_database_path", false)
+          .value("basic/use_custom_key_database_path", false)
           .toBool();
   if (use_custom_key_database_path) {
     ui_->keyDatabseUseCustomCheckBox->setCheckState(Qt::Checked);
@@ -284,7 +284,7 @@ void GnuPGControllerDialog::set_settings() {
 
   bool const use_custom_gnupg_install_path =
       settings_station.GetSettings()
-          .value("general/use_custom_gnupg_install_path", false)
+          .value("basic/use_custom_gnupg_install_path", false)
           .toBool();
   if (use_custom_gnupg_install_path) {
     ui_->useCustomGnuPGInstallPathCheckBox->setCheckState(Qt::Checked);
@@ -292,7 +292,7 @@ void GnuPGControllerDialog::set_settings() {
 
   bool const use_pinentry_as_password_input_dialog =
       settings_station.GetSettings()
-          .value("general/use_pinentry_as_password_input_dialog", false)
+          .value("basic/use_pinentry_as_password_input_dialog", false)
           .toBool();
   if (use_pinentry_as_password_input_dialog) {
     ui_->usePinentryAsPasswordInputDialogCheckBox->setCheckState(Qt::Checked);
@@ -308,13 +308,13 @@ void GnuPGControllerDialog::apply_settings() {
   auto settings =
       GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
 
-  settings.setValue("general/non_ascii_when_export",
+  settings.setValue("basic/non_ascii_when_export",
                     ui_->asciiModeCheckBox->isChecked());
-  settings.setValue("general/use_custom_key_database_path",
+  settings.setValue("basic/use_custom_key_database_path",
                     ui_->keyDatabseUseCustomCheckBox->isChecked());
-  settings.setValue("general/use_custom_gnupg_install_path",
+  settings.setValue("basic/use_custom_gnupg_install_path",
                     ui_->useCustomGnuPGInstallPathCheckBox->isChecked());
-  settings.setValue("general/use_pinentry_as_password_input_dialog",
+  settings.setValue("basic/use_pinentry_as_password_input_dialog",
                     ui_->usePinentryAsPasswordInputDialogCheckBox->isChecked());
 }
 

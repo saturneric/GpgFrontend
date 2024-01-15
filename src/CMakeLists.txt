@@ -132,47 +132,45 @@ endif ()
 file(GLOB_RECURSE ALL_SOURCE_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/src/*.cpp)
 
 # i18n
-if (SUPPORT_MULTI_LANG)
-    message(STATUS "Build Multiply Languages Support")
-    # Set Translation Files
-    find_package(Gettext REQUIRED)
-    FIND_PROGRAM(GETTEXT_MSGFMT_EXECUTABLE msgfmt)
-    FIND_PROGRAM(GETTEXT_XGETTEXT_EXECUTABLE xgettext)
+message(STATUS "Build Multiply Languages Support")
+# Set Translation Files
+find_package(Gettext REQUIRED)
+FIND_PROGRAM(GETTEXT_MSGFMT_EXECUTABLE msgfmt)
+FIND_PROGRAM(GETTEXT_XGETTEXT_EXECUTABLE xgettext)
 
-    set(LOCALE_OUTPUT_PATH ${RESOURCE_OUTPUT_DIRECTORY}/locales)
+set(LOCALE_OUTPUT_PATH ${RESOURCE_OUTPUT_DIRECTORY}/locales)
 
-    if (NOT GETTEXT_MSGFMT_EXECUTABLE OR NOT GETTEXT_XGETTEXT_EXECUTABLE)
-        message(ERROR "msgfmt or xgettext not found. Translations will *not* be installed")
-    else()
-        message(STATUS "Setting target translations")
-        add_custom_target(translations)
-        set(OUTPUT_POT_PATH ${CMAKE_SOURCE_DIR}/resource/lfs/locale/template/${PROJECT_NAME}.pot)
+if (NOT GETTEXT_MSGFMT_EXECUTABLE OR NOT GETTEXT_XGETTEXT_EXECUTABLE)
+    message(ERROR "msgfmt or xgettext not found. Translations will *not* be installed")
+else()
+    message(STATUS "Setting target translations")
+    add_custom_target(translations)
+    set(OUTPUT_POT_PATH ${CMAKE_SOURCE_DIR}/resource/lfs/locale/template/${PROJECT_NAME}.pot)
+    add_custom_command(
+            TARGET translations
+            COMMAND find ${CMAKE_SOURCE_DIR}/src -iname \"*.cpp\" | xargs xgettext --package-name=${PROJECT_NAME} --copyright-holder=Saturneric --package-version=${PROJECT_VERSION} --msgid-bugs-address=eric@bktus.com --add-comments="/*" --c++ -k_ -o ${OUTPUT_POT_PATH}
+    )
+
+    file(GLOB ALL_PO_FILES ${CMAKE_SOURCE_DIR}/resource/lfs/locale/po/*.po)
+    SET(GMO_FILES)
+
+    foreach (_poFile ${ALL_PO_FILES})
+        GET_FILENAME_COMPONENT(_poFileName ${_poFile} NAME)
+        string(REGEX REPLACE "\\.[^.]*$" "" _langName ${_poFileName})
+        message(STATUS "GNU gettext po file ${_langName}")
+        make_directory(${RESOURCE_OUTPUT_DIRECTORY}/locales)
+        make_directory(${RESOURCE_OUTPUT_DIRECTORY}/locales/${_langName}/LC_MESSAGES)
         add_custom_command(
                 TARGET translations
-                COMMAND find ${CMAKE_SOURCE_DIR}/src -iname \"*.cpp\" | xargs xgettext --package-name=${PROJECT_NAME} --copyright-holder=Saturneric --package-version=${PROJECT_VERSION} --msgid-bugs-address=eric@bktus.com --add-comments="/*" --c++ -k_ -o ${OUTPUT_POT_PATH}
+                COMMAND echo Processing po LANG ${_langName}
         )
-
-        file(GLOB ALL_PO_FILES ${CMAKE_SOURCE_DIR}/resource/lfs/locale/po/*.po)
-        SET(GMO_FILES)
-
-        foreach (_poFile ${ALL_PO_FILES})
-            GET_FILENAME_COMPONENT(_poFileName ${_poFile} NAME)
-            string(REGEX REPLACE "\\.[^.]*$" "" _langName ${_poFileName})
-            message(STATUS "GNU gettext po file ${_langName}")
-            make_directory(${RESOURCE_OUTPUT_DIRECTORY}/locales)
-            make_directory(${RESOURCE_OUTPUT_DIRECTORY}/locales/${_langName}/LC_MESSAGES)
-            add_custom_command(
-                    TARGET translations
-                    COMMAND echo Processing po LANG ${_langName}
-            )
-            add_custom_command(
-                    TARGET translations
-                    COMMAND msgfmt --check --verbose --output-file ${LOCALE_OUTPUT_PATH}/${_langName}/LC_MESSAGES/GpgFrontend.mo ${_poFile}
-            )
-        endforeach ()
-
-    endif ()
+        add_custom_command(
+                TARGET translations
+                COMMAND msgfmt --check --verbose --output-file ${LOCALE_OUTPUT_PATH}/${_langName}/LC_MESSAGES/GpgFrontend.mo ${_poFile}
+        )
+    endforeach ()
 endif ()
+
 
 if (BASIC_ENV_CONFIG)
     # Set Build Information
@@ -354,9 +352,7 @@ endif ()
 if (BUILD_APPLICATION)
     set(RESOURCE_FILES ${CMAKE_SOURCE_DIR}/gpgfrontend.qrc ${APP_ICON_RESOURCE_WINDOWS} ${QON_QM_FILES})
     add_custom_target(resources ALL DEPENDS ${RESOURCE_FILES})
-    if (SUPPORT_MULTI_LANG)
-        add_dependencies(resources translations)
-    endif ()
+    add_dependencies(resources translations)
 endif ()
 
 if (BUILD_APPLICATION)
@@ -534,10 +530,8 @@ if (LINUX AND LINUX_INSTALL_SOFTWARE)
         install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/
                 DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/icons/hicolor/)
     endif ()
-    if (SUPPORT_MULTI_LANG)
-        install(DIRECTORY ${LOCALE_OUTPUT_PATH}/
-                DESTINATION ${CMAKE_INSTALL_FULL_LOCALEDIR})
-    endif ()
+    install(DIRECTORY ${LOCALE_OUTPUT_PATH}/
+            DESTINATION ${CMAKE_INSTALL_FULL_LOCALEDIR})
 endif ()
 
 message(STATUS "Resource Files: ${RESOURCE_OUTPUT_DIRECTORY}")

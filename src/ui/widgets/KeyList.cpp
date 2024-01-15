@@ -362,7 +362,7 @@ void KeyList::dropEvent(QDropEvent* event) {
 
   bool confirm_import_keys = GlobalSettingStation::GetInstance()
                                  .GetSettings()
-                                 .value("general/confirm_import_keys", true)
+                                 .value("basic/confirm_import_keys", true)
                                  .toBool();
   if (confirm_import_keys) check_box->setCheckState(Qt::Checked);
 
@@ -384,7 +384,7 @@ void KeyList::dropEvent(QDropEvent* event) {
     if (dialog->result() == QDialog::Rejected) return;
 
     auto settings = GlobalSettingStation::GetInstance().GetSettings();
-    settings.setValue("general/confirm_import_keys", check_box->isChecked());
+    settings.setValue("basic/confirm_import_keys", check_box->isChecked());
   }
 
   if (event->mimeData()->hasUrls()) {

@@ -80,23 +80,16 @@ class GeneralTab : public QWidget {
 
  private:
   std::shared_ptr<Ui_GeneralSettings> ui_;  ///<
-
-#ifdef SUPPORT_MULTI_LANG
-  QHash<QString, QString> lang_;  ///<
-#endif
-
-  std::vector<QString> key_ids_list_;  ///<
-
-  KeyList* m_key_list_{};  ///<
+  QHash<QString, QString> lang_;            ///<
+  std::vector<QString> key_ids_list_;       ///<
+  KeyList* m_key_list_{};                   ///<
 
  private slots:
 
-#ifdef SUPPORT_MULTI_LANG
   /**
    * @brief
    *
    */
   void slot_language_changed();
-#endif
 };
 }  // namespace GpgFrontend::UI

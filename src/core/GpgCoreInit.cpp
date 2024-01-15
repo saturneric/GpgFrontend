@@ -214,25 +214,24 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                     .toBool();
 
             auto use_custom_key_database_path =
-                settings.value("general/use_custom_key_database_path", false)
+                settings.value("basic/use_custom_key_database_path", false)
                     .toBool();
 
             auto custom_key_database_path =
-                settings.value("general/custom_key_database_path", QString{})
+                settings.value("basic/custom_key_database_path", QString{})
                     .toString();
 
             auto use_custom_gnupg_install_path =
-                settings.value("general/use_custom_gnupg_install_path", false)
+                settings.value("basic/use_custom_gnupg_install_path", false)
                     .toBool();
 
             auto custom_gnupg_install_path =
-                settings.value("general/custom_gnupg_install_path", QString{})
+                settings.value("basic/custom_gnupg_install_path", QString{})
                     .toString();
 
             auto use_pinentry_as_password_input_dialog =
                 settings
-                    .value("general/use_pinentry_as_password_input_dialog",
-                           false)
+                    .value("basic/use_pinentry_as_password_input_dialog", false)
                     .toBool();
 
             GF_CORE_LOG_DEBUG("core loaded if use custom key databse path: {}",

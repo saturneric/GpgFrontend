@@ -32,7 +32,6 @@
 #include <qcoreapplication.h>
 
 #include <QtNetwork>
-#include <string>
 
 #include "core/GpgConstants.h"
 #include "core/function/CoreSignalStation.h"
@@ -225,15 +224,13 @@ void InitLocale() {
   auto settings =
       GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
 
-  GF_UI_LOG_DEBUG("current system locale: {}", setlocale(LC_ALL, nullptr));
+  GF_UI_LOG_INFO("current system locale: {}", setlocale(LC_ALL, nullptr));
 
   // read from settings file
-  auto lang = settings.value("general/lang", QString{}).toString();
-
-  GF_UI_LOG_DEBUG("lang from settings: {}", lang);
-  GF_UI_LOG_DEBUG("project name: {}", PROJECT_NAME);
-  GF_UI_LOG_DEBUG(
-      "locales path: {}",
+  auto lang = settings.value("basic/lang").toString();
+  GF_UI_LOG_INFO("current language settings: {}", lang);
+  GF_UI_LOG_INFO(
+      "current locales path: {}",
       GpgFrontend::GlobalSettingStation::GetInstance().GetLocaleDir());
 
 #ifndef WINDOWS

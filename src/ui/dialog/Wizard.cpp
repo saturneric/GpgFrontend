@@ -91,18 +91,16 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
   topLabel->setWordWrap(true);
 
   // QComboBox for language selection
-  auto* langLabel =
+  auto* lang_label =
       new QLabel(_("If it supports the language currently being used in your "
                    "system, GpgFrontend will automatically set it."));
-  langLabel->setWordWrap(true);
+  lang_label->setWordWrap(true);
 
   // set layout and add widgets
   auto* layout = new QVBoxLayout;
   layout->addWidget(topLabel);
   layout->addStretch();
-#ifdef SUPPORT_MULTI_LANG
-  layout->addWidget(langLabel);
-#endif
+  layout->addWidget(lang_label);
 
   setLayout(layout);
 }

@@ -129,7 +129,7 @@ void MainWindow::Init() noexcept {
 
       if (GlobalSettingStation::GetInstance()
               .GetSettings()
-              .value("general/clear_gpg_password_cache", false)
+              .value("basic/clear_gpg_password_cache", false)
               .toBool()) {
         if (GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache()) {
           GF_UI_LOG_DEBUG("clear gpg password cache done");
@@ -178,8 +178,8 @@ void MainWindow::restore_settings() {
   if (key_server.default_server < 0) key_server.default_server = 0;
 
   auto settings = GlobalSettingStation::GetInstance().GetSettings();
-  if (!settings.contains("general/non_ascii_when_export")) {
-    settings.setValue("general/non_ascii_when_export", true);
+  if (!settings.contains("basic/non_ascii_when_export")) {
+    settings.setValue("basic/non_ascii_when_export", true);
   }
 
   // set appearance

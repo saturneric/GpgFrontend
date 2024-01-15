@@ -78,13 +78,13 @@ void InitGlobalPathEnv() {
   bool use_custom_gnupg_install_path =
       GlobalSettingStation::GetInstance()
           .GetSettings()
-          .value("general/use_custom_gnupg_install_path", false)
+          .value("basic/use_custom_gnupg_install_path", false)
           .toBool();
 
   QString custom_gnupg_install_path =
       GlobalSettingStation::GetInstance()
           .GetSettings()
-          .value("general/custom_gnupg_install_path")
+          .value("basic/custom_gnupg_install_path")
           .toString();
 
   // add custom gnupg install path into env $PATH
