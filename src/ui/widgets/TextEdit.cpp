@@ -183,26 +183,7 @@ bool TextEdit::save_file(const QString& fileName) {
   PlainTextEditorPage* page = SlotCurPageTextEdit();
   if (page == nullptr) return false;
 
-  if (page->WillCharsetChange()) {
-    auto result = QMessageBox::warning(
-        this, _("Save"),
-        QString("<p>") +
-            _("After saving, the encoding of the current file will be "
-              "converted to UTF-8 and the line endings will be changed to "
-              "LF. ") +
-            "</p>" + "<p>" +
-            _("If this is not the result you expect, please use \"save "
-              "as\".") +
-            "</p>",
-        QMessageBox::Save | QMessageBox::Cancel, QMessageBox::Cancel);
-
-    if (result == QMessageBox::Cancel) {
-      return false;
-    }
-  }
-
   QFile file(fileName);
-
   if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
     QTextStream output_stream(&file);
     QApplication::setOverrideCursor(Qt::WaitCursor);

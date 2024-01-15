@@ -100,12 +100,6 @@ class PlainTextEditorPage : public QWidget {
   [[nodiscard]] bool ReadDone() const { return this->read_done_; }
 
   /**
-   * @brief detect if the charset of the file will change
-   *
-   */
-  bool WillCharsetChange() const;
-
-  /**
    * @brief notify the user that the file has been saved.
    *
    */
@@ -123,27 +117,9 @@ class PlainTextEditorPage : public QWidget {
   std::shared_ptr<Ui_PlainTextEditor> ui_;  ///<
   QString full_file_path_;  ///< The path to the file handled in the tab
   bool sign_marked_{};  ///< true, if the signed header is marked, false if not
-  bool read_done_ = false;        ///<
-  bool binary_mode_ = false;      ///<
-  size_t read_bytes_ = 0;         ///<
-  QString charset_name_;          ///<
-  QString language_name_;         ///<
-  int32_t charset_confidence_{};  ///<
-  bool is_crlf_ = false;          ///<
-
-  /**
-   * @brief
-   *
-   * @param data
-   */
-  void detect_encoding(const QString& data);
-
-  /**
-   * @brief
-   *
-   * @param data
-   */
-  void detect_cr_lf(const QString& data);
+  bool read_done_ = false;  ///<
+  size_t read_bytes_ = 0;   ///<
+  bool is_crlf_ = false;    ///<
 
  private slots:
 

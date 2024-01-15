@@ -128,7 +128,6 @@ void SettingsDialog::SlotAccept() {
 
 auto SettingsDialog::ListLanguages() -> QHash<QString, QString> {
   QHash<QString, QString> languages;
-
   languages.insert(QString(), _("System Default"));
 
   auto locale_path = GlobalSettingStation::GetInstance().GetLocaleDir();
@@ -142,7 +141,7 @@ auto SettingsDialog::ListLanguages() -> QHash<QString, QString> {
     if (locale == "." || locale == "..") continue;
 
     QLocale const q_locale(locale);
-    if (q_locale.nativeCountryName().isEmpty()) continue;
+    if (q_locale.nativeTerritoryName().isEmpty()) continue;
 
     auto language = q_locale.nativeLanguageName() + " (" + locale + ")";
     languages.insert(locale, language);

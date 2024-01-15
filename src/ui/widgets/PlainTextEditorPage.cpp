@@ -30,9 +30,7 @@
 
 #include <utility>
 
-#include "core/function/CharsetOperator.h"
 #include "core/thread/FileReadTask.h"
-#include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "ui/struct/SettingsObject.h"
 #include "ui/struct/settings/AppearanceSO.h"
@@ -56,8 +54,8 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
   this->setAttribute(Qt::WA_DeleteOnClose);
 
   this->ui_->characterLabel->setText(_("0 character"));
-  this->ui_->lfLabel->setText(_("lf"));
-  this->ui_->encodingLabel->setText(_("utf-8"));
+  this->ui_->lfLabel->setHidden(true);
+  this->ui_->encodingLabel->setText("Unicode");
 
   connect(ui_->textPage, &QPlainTextEdit::textChanged, this, [=]() {
     // if file is loading
@@ -84,18 +82,8 @@ const QString &PlainTextEditorPage::GetFilePath() const {
 
 QPlainTextEdit *PlainTextEditorPage::GetTextPage() { return ui_->textPage; }
 
-bool PlainTextEditorPage::WillCharsetChange() const {
-  // detect if the line-ending will change
-  if (is_crlf_) return true;
-
-  // detect if the charset of the file will change
-  return charset_name_ != "UTF-8" && charset_name_ != "ISO-8859-1";
-}
-
 void PlainTextEditorPage::NotifyFileSaved() {
   this->is_crlf_ = false;
-  this->charset_confidence_ = 100;
-  this->charset_name_ = "UTF-8";
 
   this->ui_->lfLabel->setText(_("lf"));
   this->ui_->encodingLabel->setText(_("UTF-8"));
@@ -181,7 +169,6 @@ void PlainTextEditorPage::ReadFile() {
           [=]() { read_task->SignalTaskShouldEnd(0); });
   connect(read_task, &FileReadTask::SignalFileBytesReadEnd, this, [=]() {
     // set the UI
-    if (!binary_mode_) text_page->setReadOnly(false);
     this->read_done_ = true;
     this->ui_->textPage->setEnabled(true);
     text_page->document()->setModified(false);
@@ -205,90 +192,15 @@ void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
   GF_UI_LOG_TRACE("inserting data read to editor, data size: {}",
                   bytes_data.size());
   read_bytes_ += bytes_data.size();
-  // If binary format is detected, the entire file is converted to binary
-  // format for display.
-  bool if_last_binary_mode = binary_mode_;
-  if (!binary_mode_ && !read_done_) {
-    detect_encoding(bytes_data);
-  }
 
-  if (binary_mode_) {
-    // change formery displayed text to binary format
-    if (if_last_binary_mode != binary_mode_) {
-      auto text_buffer = ui_->textPage->document()->toRawText().toLocal8Bit();
-      ui_->textPage->clear();
-      this->GetTextPage()->insertPlainText(BinaryToString(text_buffer));
-      this->ui_->lfLabel->setText("None");
-    }
+  // insert the text to the text page
+  this->GetTextPage()->insertPlainText(bytes_data);
 
-    // insert new data
-    this->GetTextPage()->insertPlainText(BinaryToString(bytes_data));
+  auto text = this->GetTextPage()->toPlainText();
+  auto str = QString(_("%1 character(s)")).arg(text.size());
+  this->ui_->characterLabel->setText(str);
 
-    // update the size of the file
-    auto str = QString(_("%1 byte(s)")).arg(read_bytes_);
-    this->ui_->characterLabel->setText(str);
-  } else {
-    // detect crlf/lf line ending
-    detect_cr_lf(bytes_data);
-
-    // when reding from a text file
-    // try convert the any of thetext to utf8
-    QString utf8_data;
-    if (!read_done_ && charset_confidence_ > 25) {
-      CharsetOperator::Convert2Utf8(bytes_data, utf8_data, charset_name_);
-    } else {
-      // when editing a text file, do nothing.
-      utf8_data = bytes_data;
-    }
-
-    // insert the text to the text page
-    this->GetTextPage()->insertPlainText(utf8_data);
-
-    auto text = this->GetTextPage()->toPlainText();
-    auto str = QString(_("%1 character(s)")).arg(text.size());
-    this->ui_->characterLabel->setText(str);
-  }
   QTimer::singleShot(25, this, &PlainTextEditorPage::SignalUIBytesDisplayed);
-}
-
-void PlainTextEditorPage::detect_encoding(const QString &data) {
-  // skip the binary data to avoid the false detection of the encoding
-  if (binary_mode_) return;
-
-  // detect the encoding
-  auto charset = CharsetOperator::Detect(data);
-  this->charset_name_ = std::get<0>(charset);
-  this->language_name_ = std::get<1>(charset);
-  this->charset_confidence_ = std::get<2>(charset);
-
-  // probably there is no need to detect the encoding again
-  if (this->charset_confidence_ < 10) {
-    binary_mode_ = true;
-  }
-
-  if (binary_mode_) {
-    // hide the line ending label, when the file is binary
-    this->ui_->lfLabel->setHidden(true);
-    this->ui_->encodingLabel->setText(_("binary"));
-  } else {
-    ui_->encodingLabel->setText(this->charset_name_);
-  }
-}
-
-void PlainTextEditorPage::detect_cr_lf(const QString &data) {
-  if (binary_mode_) {
-    return;
-  }
-
-  // if contain crlf, set the label to crlf
-  if (is_crlf_) return;
-
-  if (data.contains("\r\n")) {
-    this->ui_->lfLabel->setText("crlf");
-    is_crlf_ = true;
-  } else {
-    this->ui_->lfLabel->setText("lf");
-  }
 }
 
 }  // namespace GpgFrontend::UI
