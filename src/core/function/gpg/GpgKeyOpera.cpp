@@ -168,10 +168,9 @@ void GpgKeyOpera::GenerateKey(const std::shared_ptr<GenKeyInfo>& params,
         GF_CORE_LOG_DEBUG("params: {} {}", params->GetAlgo(),
                           params->GetKeySizeStr());
 
-        const char* algo = algo_utf8.toUtf8();
-        unsigned long expires = 0;
-
-        expires = QDateTime::currentDateTime().secsTo(params->GetExpireTime());
+        auto algo = algo_utf8.toUtf8();
+        unsigned long expires =
+            QDateTime::currentDateTime().secsTo(params->GetExpireTime());
 
         GpgError err;
         unsigned int flags = 0;
@@ -216,12 +215,9 @@ void GpgKeyOpera::GenerateSubkey(const GpgKey& key,
         GF_CORE_LOG_DEBUG("generate subkey algo {} key size {}",
                           params->GetAlgo(), params->GetKeySizeStr());
 
-        auto algo_utf8 = (params->GetAlgo() + params->GetKeySizeStr());
-        const char* algo = algo_utf8.toUtf8();
-        unsigned long expires = 0;
-
-        expires = QDateTime::currentDateTime().secsTo(params->GetExpireTime());
-
+        auto algo = (params->GetAlgo() + params->GetKeySizeStr()).toUtf8();
+        unsigned long expires =
+            QDateTime::currentDateTime().secsTo(params->GetExpireTime());
         unsigned int flags = 0;
 
         if (!params->IsSubKey()) flags |= GPGME_CREATE_CERT;
@@ -249,14 +245,10 @@ void GpgKeyOpera::GenerateKeyWithSubkey(
   RunGpgOperaAsync(
       [&ctx = ctx_, params,
        subkey_params](const DataObjectPtr& data_object) -> GpgError {
-        auto userid_utf8 = params->GetUserid();
-        const char* userid = userid_utf8.toUtf8();
-        auto algo_utf8 = params->GetAlgo() + params->GetKeySizeStr();
-
-        const char* algo = algo_utf8.toUtf8();
-        unsigned long expires = 0;
-
-        expires = QDateTime::currentDateTime().secsTo(params->GetExpireTime());
+        auto userid = params->GetUserid().toUtf8();
+        auto algo = (params->GetAlgo() + params->GetKeySizeStr()).toUtf8();
+        unsigned long expires = expires =
+            QDateTime::currentDateTime().secsTo(params->GetExpireTime());
 
         GpgError err;
         unsigned int flags = 0;
@@ -296,10 +288,8 @@ void GpgKeyOpera::GenerateKeyWithSubkey(
             key.GetId(), subkey_params->GetAlgo(),
             subkey_params->GetKeySizeStr());
 
-        algo_utf8 = (subkey_params->GetAlgo() + subkey_params->GetKeySizeStr());
-        algo = algo_utf8.toUtf8();
-        expires = 0;
-
+        algo = (subkey_params->GetAlgo() + subkey_params->GetKeySizeStr())
+                   .toUtf8();
         expires =
             QDateTime::currentDateTime().secsTo(subkey_params->GetExpireTime());
 
