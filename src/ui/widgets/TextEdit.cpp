@@ -35,6 +35,7 @@
 #include "core/GpgModel.h"
 #include "core/function/CacheManager.h"
 #include "core/function/GlobalSettingStation.h"
+#include "ui/struct/CacheObject.h"
 
 namespace GpgFrontend::UI {
 
@@ -668,26 +669,24 @@ void TextEdit::slot_save_status_to_cache_for_revovery() {
     }
 
     auto raw_text = document->toRawText();
-    GF_UI_LOG_DEBUG("unsaved page index: {}, tab title: {} tab content: {}", i,
-                    tab_title, raw_text.size());
+    GF_UI_LOG_DEBUG("unsaved page index: {}, tab title: {}", i, tab_title);
     unsaved_pages.emplace_back(i, tab_title, raw_text);
   }
 
-  nlohmann::json unsaved_page_array = nlohmann::json::array();
+  CacheObject cache("editor_unsaved_pages");
+  QJsonArray unsaved_page_array;
   for (const auto& page : unsaved_pages) {
     const auto [index, title, content] = page;
 
-    nlohmann::json page_json;
+    QJsonObject page_json;
     page_json["index"] = index;
-    page_json["title"] = title.toStdString();
-    page_json["content"] = content.toStdString();
+    page_json["title"] = title;
+    page_json["content"] = content;
 
     unsaved_page_array.push_back(page_json);
   }
 
-  GF_UI_LOG_DEBUG("unsaved page json array: {}", unsaved_page_array.dump());
-  CacheManager::GetInstance().SaveCache("editor_unsaved_pages",
-                                        unsaved_page_array);
+  cache.setArray(unsaved_page_array);
 }
 
 }  // namespace GpgFrontend::UI

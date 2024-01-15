@@ -28,14 +28,15 @@
 
 #include "SettingsAppearance.h"
 
+#include "core/utils/MemoryUtils.h"
 #include "ui/struct/SettingsObject.h"
+#include "ui/struct/settings/AppearanceSO.h"
 #include "ui_AppearanceSettings.h"
 
 namespace GpgFrontend::UI {
 
 AppearanceTab::AppearanceTab(QWidget* parent)
-    : QWidget(parent),
-      ui_(GpgFrontend::SecureCreateSharedObject<Ui_AppearanceSettings>()) {
+    : QWidget(parent), ui_(SecureCreateSharedObject<Ui_AppearanceSettings>()) {
   ui_->setupUi(this);
 
   ui_->iconSizeBox->setTitle(_("Icon Size"));
@@ -73,14 +74,10 @@ AppearanceTab::AppearanceTab(QWidget* parent)
 }
 
 void AppearanceTab::SetSettings() {
-  SettingsObject general_settings_state("general_settings_state");
+  AppearanceSO appearance(SettingsObject("general_settings_state"));
 
-  int const width =
-      general_settings_state.Check("icon_size").Check("width", 24);
-  int const height =
-      general_settings_state.Check("icon_size").Check("height", 24);
-
-  auto icon_size = QSize(width, height);
+  auto icon_size =
+      QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height);
 
   switch (icon_size.width()) {
     case 12:
@@ -92,14 +89,12 @@ void AppearanceTab::SetSettings() {
     case 32:
       ui_->largeRadioButton->setChecked(true);
       break;
+    default:
+      ui_->smallRadioButton->setChecked(true);
+      break;
   }
 
-  // icon_style
-  int const s_icon_style =
-      general_settings_state.Check("icon_style", Qt::ToolButtonTextUnderIcon);
-  auto icon_style = static_cast<Qt::ToolButtonStyle>(s_icon_style);
-
-  switch (icon_style) {
+  switch (appearance.tool_bar_button_style) {
     case Qt::ToolButtonTextOnly:
       ui_->justTextRadioButton->setChecked(true);
       break;
@@ -113,18 +108,17 @@ void AppearanceTab::SetSettings() {
       break;
   }
 
-  bool const window_save = general_settings_state.Check("window_save", true);
-  if (window_save) ui_->windowStateCheckBox->setCheckState(Qt::Checked);
+  if (appearance.save_window_state) {
+    ui_->windowStateCheckBox->setCheckState(Qt::Checked);
+  }
 
-  auto info_board_info_font_size =
-      general_settings_state.Check("info_board").Check("font_size", 10);
+  auto info_board_info_font_size = appearance.info_board_font_size;
   if (info_board_info_font_size < 9 || info_board_info_font_size > 18) {
     info_board_info_font_size = 10;
   }
   ui_->fontSizeInformationBoardSpinBox->setValue(info_board_info_font_size);
 
-  auto text_editor_info_font_size =
-      general_settings_state.Check("text_editor").Check("font_size", 10);
+  auto text_editor_info_font_size = appearance.text_editor_font_size;
   if (text_editor_info_font_size < 9 || text_editor_info_font_size > 18) {
     text_editor_info_font_size = 10;
   }
@@ -133,6 +127,7 @@ void AppearanceTab::SetSettings() {
 
 void AppearanceTab::ApplySettings() {
   SettingsObject general_settings_state("general_settings_state");
+  AppearanceSO appearance(general_settings_state);
 
   int icon_size = 24;
   switch (icon_size_group_->checkedId()) {
@@ -147,8 +142,8 @@ void AppearanceTab::ApplySettings() {
       break;
   }
 
-  general_settings_state["icon_size"]["width"] = icon_size;
-  general_settings_state["icon_size"]["height"] = icon_size;
+  appearance.tool_bar_icon_height = icon_size;
+  appearance.tool_bar_icon_width = icon_size;
 
   auto icon_style = Qt::ToolButtonTextUnderIcon;
   switch (icon_style_group_->checkedId()) {
@@ -161,17 +156,19 @@ void AppearanceTab::ApplySettings() {
     case 3:
       icon_style = Qt::ToolButtonTextUnderIcon;
       break;
+    default:
+      icon_style = Qt::ToolButtonTextOnly;
+      break;
   }
+  appearance.tool_bar_button_style = icon_style;
 
-  general_settings_state["icon_style"] = icon_style;
-
-  general_settings_state["window_save"] = ui_->windowStateCheckBox->isChecked();
-
-  general_settings_state["info_board"]["font_size"] =
+  appearance.save_window_state = ui_->windowStateCheckBox->isChecked();
+  appearance.info_board_font_size =
       ui_->fontSizeInformationBoardSpinBox->value();
-
-  general_settings_state["text_editor"]["font_size"] =
+  appearance.text_editor_font_size =
       ui_->fontSizeTextEditorLabelSpinBox->value();
+
+  general_settings_state.Store(appearance.ToJson());
 }
 
 }  // namespace GpgFrontend::UI

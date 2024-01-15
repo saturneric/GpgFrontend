@@ -31,6 +31,7 @@
 #include "core/GpgModel.h"
 #include "ui/UISignalStation.h"
 #include "ui/struct/SettingsObject.h"
+#include "ui/struct/settings/AppearanceSO.h"
 #include "ui_InfoBoard.h"
 
 namespace GpgFrontend::UI {
@@ -81,12 +82,10 @@ void InfoBoardWidget::SetInfoBoard(const QString& text,
   status.setColor(QPalette::Text, color);
   ui_->infoBoard->setPalette(status);
 
-  SettingsObject general_settings_state("general_settings_state");
+  AppearanceSO appearance(SettingsObject("general_settings_state"));
 
   // info board font size
-  auto info_font_size =
-      general_settings_state.Check("info_board").Check("font_size", 10);
-  ui_->infoBoard->setFont(QFont("Times", info_font_size));
+  ui_->infoBoard->setFont(QFont("Times", appearance.info_board_font_size));
 }
 
 void InfoBoardWidget::SlotRefresh(const QString& text, InfoBoardStatus status) {

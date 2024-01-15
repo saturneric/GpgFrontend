@@ -37,6 +37,7 @@
 #include "core/utils/GpgUtils.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/struct/SettingsObject.h"
+#include "ui/struct/settings/KeyServerSO.h"
 
 namespace GpgFrontend::UI {
 
@@ -85,33 +86,8 @@ void KeyUploadDialog::SlotUpload() {
 
 void KeyUploadDialog::slot_upload_key_to_server(
     const GpgFrontend::GFBuffer& keys_data) {
-  QString target_keyserver;
-
-  try {
-    SettingsObject key_server_json("key_server");
-
-    const auto key_server_list =
-        key_server_json.Check("server_list", nlohmann::json::array());
-
-    size_t default_key_server_index =
-        key_server_json.Check("default_server", 0);
-    if (default_key_server_index >= key_server_list.size()) {
-      throw std::runtime_error("default_server index out of range");
-    }
-
-    target_keyserver = QString::fromStdString(
-        key_server_list[default_key_server_index].get<std::string>());
-
-    GF_UI_LOG_DEBUG("set target key server to default key server: {}",
-                    target_keyserver);
-
-  } catch (...) {
-    GF_UI_LOG_ERROR(_("Cannot read default_keyserver From Settings"));
-    QMessageBox::critical(nullptr, _("Default Keyserver Not Found"),
-                          _("Cannot read default keyserver from your settings, "
-                            "please set a default keyserver first"));
-    return;
-  }
+  KeyServerSO key_server(SettingsObject("general_settings_state"));
+  auto target_keyserver = key_server.GetTargetServer();
 
   QUrl req_url(target_keyserver + "/pks/add");
   auto* qnam = new QNetworkAccessManager(this);

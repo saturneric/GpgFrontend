@@ -29,6 +29,9 @@
 #include "GeneralDialog.h"
 
 #include "ui/struct/SettingsObject.h"
+#include "ui/struct/settings/WindowStateSO.h"
+
+namespace GpgFrontend {
 
 GpgFrontend::UI::GeneralDialog::GeneralDialog(QString name, QWidget *parent)
     : QDialog(parent), name_(std::move(name)) {
@@ -43,12 +46,12 @@ void GpgFrontend::UI::GeneralDialog::slot_restore_settings() noexcept {
     update_rect_cache();
 
     SettingsObject general_windows_state(name_ + "_dialog_state");
-    bool window_save = general_windows_state.Check("window_save", false);
+    auto window_state = WindowStateSO(general_windows_state);
 
     // Restore window size & location
-    if (window_save) {
-      int x = general_windows_state.Check("window_pos").Check("x", 0);
-      int y = general_windows_state.Check("window_pos").Check("y", 0);
+    if (window_state.window_save) {
+      int x = window_state.x;
+      int y = window_state.y;
       GF_UI_LOG_DEBUG("stored dialog pos, x: {}, y: {}", x, y);
 
       QPoint relative_pos = {x, y};
@@ -56,9 +59,8 @@ void GpgFrontend::UI::GeneralDialog::slot_restore_settings() noexcept {
       GF_UI_LOG_DEBUG("relative dialog pos, x: {}, y: {}", relative_pos.x(),
                       relative_pos.y());
 
-      int width = general_windows_state.Check("window_size").Check("width", 0);
-      int height =
-          general_windows_state.Check("window_size").Check("height", 0);
+      int width = window_state.width;
+      int height = window_state.height;
       GF_UI_LOG_DEBUG("stored dialog size, width: {}, height: {}", width,
                       height);
 
@@ -93,12 +95,14 @@ void GpgFrontend::UI::GeneralDialog::slot_save_settings() noexcept {
     GF_UI_LOG_DEBUG("store dialog pos, x: {}, y: {}", relative_pos.x(),
                     relative_pos.y());
 
-    general_windows_state["window_pos"]["x"] = relative_pos.x();
-    general_windows_state["window_pos"]["y"] = relative_pos.y();
+    WindowStateSO window_state;
+    window_state.x = relative_pos.x();
+    window_state.y = relative_pos.y();
+    window_state.width = rect_.width();
+    window_state.height = rect_.height();
+    window_state.window_save = true;
 
-    general_windows_state["window_size"]["width"] = rect_.width();
-    general_windows_state["window_size"]["height"] = rect_.height();
-    general_windows_state["window_save"] = true;
+    general_windows_state.Store(window_state.Json());
 
   } catch (...) {
     GF_UI_LOG_ERROR("general dialog: {}, caught exception", name_);
@@ -211,3 +215,5 @@ void GpgFrontend::UI::GeneralDialog::showEvent(QShowEvent *event) {
 
   QDialog::showEvent(event);
 }
+
+}  // namespace GpgFrontend

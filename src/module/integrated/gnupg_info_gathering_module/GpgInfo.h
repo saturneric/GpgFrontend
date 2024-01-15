@@ -50,35 +50,40 @@ class GpgInfo {
  *
  */
 struct GpgComponentInfo {
-  std::string name;
-  std::string desc;
-  std::string version;
-  std::string path;
-  std::string binary_checksum;
-};
+  QString name;
+  QString desc;
+  QString version;
+  QString path;
+  QString binary_checksum;
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(GpgComponentInfo, name, desc, version, path,
-                                   binary_checksum);
+  GpgComponentInfo() = default;
+
+  explicit GpgComponentInfo(const QJsonObject &j);
+
+  [[nodiscard]] auto Json() const -> QJsonObject;
+};
 
 /**
  * The format of each line is:
  * name:flags:level:description:type:alt-type:argname:default:argdef:value
  */
 struct GpgOptionsInfo {
-  std::string name;
-  std::string flags;
-  std::string level;
-  std::string description;
-  std::string type;
-  std::string alt_type;
-  std::string argname;
-  std::string default_value;
-  std::string argdef;
-  std::string value;
-};
+  QString name;
+  QString flags;
+  QString level;
+  QString description;
+  QString type;
+  QString alt_type;
+  QString argname;
+  QString default_value;
+  QString argdef;
+  QString value;
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(GpgOptionsInfo, name, flags, level,
-                                   description, type, alt_type, argname,
-                                   default_value, argdef, value);
+  GpgOptionsInfo() = default;
+
+  explicit GpgOptionsInfo(const QJsonObject &j);
+
+  [[nodiscard]] auto Json() const -> QJsonObject;
+};
 
 }  // namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule

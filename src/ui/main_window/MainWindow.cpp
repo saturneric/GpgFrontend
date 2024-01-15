@@ -37,6 +37,7 @@
 #include "ui/UISignalStation.h"
 #include "ui/main_window/GeneralMainWindow.h"
 #include "ui/struct/SettingsObject.h"
+#include "ui/struct/settings/KeyServerSO.h"
 #include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
@@ -190,21 +191,17 @@ void MainWindow::restore_settings() {
   try {
     GF_UI_LOG_DEBUG("restore settings key_server");
 
-    SettingsObject key_server_json("key_server");
-    if (!key_server_json.contains("server_list") ||
-        key_server_json["server_list"].empty()) {
-      key_server_json["server_list"] = {"https://keyserver.ubuntu.com",
-                                        "https://keys.openpgp.org"};
-    }
-    if (!key_server_json.contains("default_server")) {
-      key_server_json["default_server"] = 0;
-    }
+    KeyServerSO key_server(SettingsObject("key_server"));
+
+    if (key_server.server_list.empty()) key_server.ResetDefaultServerList();
+    if (key_server.default_server < 0) key_server.default_server = 0;
 
     auto &settings = GlobalSettingStation::GetInstance().GetMainSettings();
 
     if (!settings.exists("general") ||
-        settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
+        settings.lookup("general").getType() != libconfig::Setting::TypeGroup) {
       settings.add("general", libconfig::Setting::TypeGroup);
+    }
 
     auto &general = settings["general"];
 
@@ -233,25 +230,30 @@ void MainWindow::restore_settings() {
 }
 
 void MainWindow::recover_editor_unsaved_pages_from_cache() {
-  auto unsaved_page_array =
+  auto json_data =
       CacheManager::GetInstance().LoadCache("editor_unsaved_pages");
 
-  if (!unsaved_page_array.is_array() || unsaved_page_array.empty()) {
+  if (json_data.isEmpty() || !json_data.isArray()) {
     return;
   }
 
   GF_UI_LOG_DEBUG("plan ot recover unsaved page from cache, page array: {}",
-                  unsaved_page_array.dump());
+                  json_data.toJson());
 
   bool first = true;
 
-  for (auto &unsaved_page_json : unsaved_page_array) {
+  QJsonArray unsaved_page_array = json_data.array();
+  for (const auto &value_ref : unsaved_page_array) {
+    if (!value_ref.isObject()) continue;
+    auto unsaved_page_json = value_ref.toObject();
+
     if (!unsaved_page_json.contains("title") ||
         !unsaved_page_json.contains("content")) {
       continue;
     }
-    QString title = QString::fromStdString(unsaved_page_json["title"]);
-    QString content = QString::fromStdString(unsaved_page_json["content"]);
+
+    QString title = unsaved_page_json["title"].toString();
+    QString content = unsaved_page_json["content"].toString();
 
     GF_UI_LOG_DEBUG(
         "recovering unsaved page from cache, page title: {}, content size",
@@ -294,7 +296,7 @@ void MainWindow::closeEvent(QCloseEvent *event) {
   if (event->isAccepted()) {
     // clear cache of unsaved page
     CacheManager::GetInstance().SaveCache("editor_unsaved_pages",
-                                          nlohmann::json::array(), true);
+                                          QJsonDocument(QJsonArray()), true);
 
     // clear password from memory
     //  GpgContext::GetInstance().clearPasswordCache();

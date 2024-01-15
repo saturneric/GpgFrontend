@@ -36,7 +36,7 @@
 namespace GpgFrontend {
 
 void DataObjectOperator::init_app_secure_key() {
-  GF_CORE_LOG_TRACE("initializing application secure key");
+  GF_CORE_LOG_INFO("initializing application secure key...");
   WriteFile(app_secure_key_path_,
             PassphraseGenerator::GetInstance().Generate(256).toUtf8());
   QFile::setPermissions(app_secure_key_path_,
@@ -46,97 +46,95 @@ void DataObjectOperator::init_app_secure_key() {
 DataObjectOperator::DataObjectOperator(int channel)
     : SingletonFunctionObject<DataObjectOperator>(channel) {
   if (!QDir(app_secure_path_).exists()) QDir(app_secure_path_).mkdir(".");
-
-  if (!QDir(app_secure_key_path_).exists()) {
-    init_app_secure_key();
-  }
+  if (!QFileInfo(app_secure_key_path_).exists()) init_app_secure_key();
 
   QByteArray key;
   if (!ReadFile(app_secure_key_path_, key)) {
     GF_CORE_LOG_ERROR("failed to read app secure key file: {}",
                       app_secure_key_path_);
-    throw std::runtime_error("failed to read app secure key file");
+    // unsafe mode
+    key = {};
   }
-  hash_key_ = QCryptographicHash::hash(key, QCryptographicHash::Sha256);
-  GF_CORE_LOG_TRACE("app secure key loaded {} bytes", hash_key_.size());
 
-  if (!QDir(app_data_objs_path_).exists()) QDir(app_data_objs_path_).mkpath(".");
+  hash_key_ = QCryptographicHash::hash(key, QCryptographicHash::Sha256);
+
+  if (!QDir(app_data_objs_path_).exists()) {
+    QDir(app_data_objs_path_).mkpath(".");
+  }
 }
 
-auto DataObjectOperator::SaveDataObj(const QString& _key,
-                                     const nlohmann::json& value) -> QString {
+auto DataObjectOperator::SaveDataObj(const QString& key,
+                                     const QJsonDocument& value) -> QString {
   QByteArray hash_obj_key = {};
-  if (_key.isEmpty()) {
+  if (key.isEmpty()) {
     hash_obj_key =
         QCryptographicHash::hash(
-            hash_key_
-                .append(
-                    PassphraseGenerator::GetInstance().Generate(32).toUtf8())
-                .append(QDateTime::currentDateTime().toString().toUtf8()),
+            hash_key_ +
+                PassphraseGenerator::GetInstance().Generate(32).toUtf8() +
+                QDateTime::currentDateTime().toString().toUtf8(),
             QCryptographicHash::Sha256)
             .toHex();
   } else {
-    hash_obj_key = QCryptographicHash::hash(hash_key_.append(_key.toUtf8()),
+    hash_obj_key = QCryptographicHash::hash(hash_key_ + key.toUtf8(),
                                             QCryptographicHash::Sha256)
                        .toHex();
   }
 
-  const auto obj_path = app_data_objs_path_ + "/" + hash_obj_key;
+  const auto target_obj_path = app_data_objs_path_ + "/" + hash_obj_key;
+  auto encoded_data =
+      QAESEncryption(QAESEncryption::AES_256, QAESEncryption::ECB,
+                     QAESEncryption::Padding::ISO)
+          .encode(value.toJson(), hash_key_);
+  GF_CORE_LOG_TRACE("saving data object {} to disk {} , size: {} bytes",
+                    hash_obj_key, target_obj_path, encoded_data.size());
 
-  QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
-                            QAESEncryption::Padding::ISO);
-  auto encoded =
-      encryption.encode(QByteArray::fromStdString(to_string(value)), hash_key_);
-  GF_CORE_LOG_TRACE("saving data object {} to {} , size: {} bytes",
-                    hash_obj_key, obj_path, encoded.size());
+  // recreate if not exists
+  if (!QDir(app_data_objs_path_).exists()) {
+    QDir(app_data_objs_path_).mkpath(".");
+  }
 
-  WriteFile(obj_path, encoded);
-
-  return _key.isEmpty() ? hash_obj_key : QString();
+  if (!WriteFile(target_obj_path, encoded_data)) {
+    GF_CORE_LOG_ERROR("failed to write data object to disk: {}", key);
+  }
+  return key.isEmpty() ? hash_obj_key : QString();
 }
 
-auto DataObjectOperator::GetDataObject(const QString& _key)
-    -> std::optional<nlohmann::json> {
+auto DataObjectOperator::GetDataObject(const QString& key)
+    -> std::optional<QJsonDocument> {
   try {
-    GF_CORE_LOG_TRACE("get data object from disk {}", _key);
-    auto hash_obj_key =
-        QCryptographicHash::hash(hash_key_.append(_key.toUtf8()),
-                                 QCryptographicHash::Sha256)
-            .toHex();
+    GF_CORE_LOG_TRACE("try to get data object from disk, key: {}", key);
+    auto hash_obj_key = QCryptographicHash::hash(hash_key_ + key.toUtf8(),
+                                                 QCryptographicHash::Sha256)
+                            .toHex();
 
     const auto obj_path = app_data_objs_path_ + "/" + hash_obj_key;
-
     if (!QFileInfo(obj_path).exists()) {
-      GF_CORE_LOG_WARN("data object not found, key: {}", _key);
+      GF_CORE_LOG_WARN("data object not found from disk, key: {}", key);
       return {};
     }
 
     QByteArray encoded_data;
     if (!ReadFile(obj_path, encoded_data)) {
-      GF_CORE_LOG_ERROR("failed to read data object, key: {}", _key);
+      GF_CORE_LOG_ERROR("failed to read data object from disk, key: {}", key);
       return {};
     }
 
     QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
                               QAESEncryption::Padding::ISO);
 
-    GF_CORE_LOG_TRACE("decrypting data object {} , hash key size: {}",
-                      encoded_data.size(), hash_key_.size());
-
-    auto decoded =
+    auto decoded_data =
         encryption.removePadding(encryption.decode(encoded_data, hash_key_));
-
-    GF_CORE_LOG_TRACE("data object decoded: {}", _key);
-
-    return nlohmann::json::parse(decoded.toStdString());
+    GF_CORE_LOG_TRACE("data object has been decoded, key: {}, data: {}", key,
+                      decoded_data);
+    return QJsonDocument::fromJson(decoded_data);
   } catch (...) {
-    GF_CORE_LOG_ERROR("failed to get data object, caught exception: {}", _key);
+    GF_CORE_LOG_ERROR("failed to get data object, caught exception: {}", key);
     return {};
   }
 }
 
 auto DataObjectOperator::GetDataObjectByRef(const QString& _ref)
-    -> std::optional<nlohmann::json> {
+    -> std::optional<QJsonDocument> {
   if (_ref.size() != 64) return {};
 
   try {
@@ -151,10 +149,10 @@ auto DataObjectOperator::GetDataObjectByRef(const QString& _ref)
     QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
                               QAESEncryption::Padding::ISO);
 
-    auto decoded =
+    auto decoded_data =
         encryption.removePadding(encryption.decode(encoded_data, hash_key_));
 
-    return nlohmann::json::parse(decoded.toStdString());
+    return QJsonDocument::fromJson(decoded_data);
   } catch (...) {
     return {};
   }

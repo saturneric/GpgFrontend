@@ -34,6 +34,7 @@
 #include "ui/function/RaisePinentry.h"
 #include "ui/main_window/KeyMgmt.h"
 #include "ui/struct/SettingsObject.h"
+#include "ui/struct/settings/AppearanceSO.h"
 
 namespace GpgFrontend::UI {
 
@@ -100,30 +101,25 @@ void MainWindow::slot_disable_tab_actions(int number) {
 }
 
 void MainWindow::slot_open_settings_dialog() {
-  auto dialog = new SettingsDialog(this);
+  auto* dialog = new SettingsDialog(this);
 
   connect(dialog, &SettingsDialog::finished, this, [&]() -> void {
-    SettingsObject general_settings_state("general_settings_state");
+    AppearanceSO appearance(SettingsObject("general_settings_state"));
+    GF_UI_LOG_DEBUG("tool bar icon_size: {}, {}",
+                    appearance.tool_bar_icon_width,
+                    appearance.tool_bar_icon_height);
 
-    int width = general_settings_state.Check("icon_size").Check("width", 24);
-    int height = general_settings_state.Check("icon_size").Check("height", 24);
-    GF_UI_LOG_DEBUG("icon_size: {} {}", width, height);
-
-    general_settings_state.Check("info_font_size", 10);
-
-    // icon_style
-    int s_icon_style =
-        general_settings_state.Check("icon_style", Qt::ToolButtonTextUnderIcon);
-    auto icon_style = static_cast<Qt::ToolButtonStyle>(s_icon_style);
-    this->setToolButtonStyle(icon_style);
-    import_button_->setToolButtonStyle(icon_style);
+    this->setToolButtonStyle(appearance.tool_bar_button_style);
+    import_button_->setToolButtonStyle(appearance.tool_bar_button_style);
 
     // icons ize
-    this->setIconSize(QSize(width, height));
-    import_button_->setIconSize(QSize(width, height));
+    this->setIconSize(
+        QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
+    import_button_->setIconSize(
+        QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
 
     // restart mainwindow if necessary
-    if (get_restart_needed()) {
+    if (get_restart_needed() != 0) {
       if (edit_->MaybeSaveAnyTab()) {
         save_settings();
         emit SignalRestartApplication(get_restart_needed());

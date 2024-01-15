@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include <nlohmann/json.hpp>
 #include <optional>
 
 #include "core/function/GlobalSettingStation.h"
@@ -47,11 +46,11 @@ class GPGFRONTEND_CORE_EXPORT DataObjectOperator
   explicit DataObjectOperator(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
-  auto SaveDataObj(const QString &_key, const nlohmann::json &value) -> QString;
+  auto SaveDataObj(const QString &_key, const QJsonDocument &value) -> QString;
 
-  auto GetDataObject(const QString &_key) -> std::optional<nlohmann::json>;
+  auto GetDataObject(const QString &_key) -> std::optional<QJsonDocument>;
 
-  auto GetDataObjectByRef(const QString &_ref) -> std::optional<nlohmann::json>;
+  auto GetDataObjectByRef(const QString &_ref) -> std::optional<QJsonDocument>;
 
  private:
   /**
@@ -69,9 +68,7 @@ class GPGFRONTEND_CORE_EXPORT DataObjectOperator
       app_secure_path_ +
       "/app.key";  ///< Where the key of data object is stored
   QString app_data_objs_path_ =
-      global_setting_station_.GetAppDataPath() + "/data_objs";  ///< Where data
-                                                                ///< object is
-                                                                ///< stored
+      global_setting_station_.GetAppDataPath() + "/data_objs";
 
   QByteArray hash_key_;  ///< Hash key
 };

@@ -26,28 +26,40 @@
  *
  */
 
-#include "CacheUtils.h"
+#pragma once
 
-#include "core/function/CacheManager.h"
+namespace GpgFrontend::UI {
 
-namespace GpgFrontend {
+struct WindowStateSO {
+  bool window_save = false;
+  QString window_state_data;
+  int x = 100;
+  int y = 100;
+  int width = 400;
+  int height = 200;
 
-void SetTempCacheValue(const QString& key, const QString& value) {
-  QJsonDocument json;
-  json.setObject(QJsonObject({{key, value}}));
-  CacheManager::GetInstance().SaveCache(key, json);
-}
+  WindowStateSO() = default;
 
-auto GetTempCacheValue(const QString& key) -> QString {
-  QJsonDocument json = CacheManager::GetInstance().LoadCache(key);
-  if (!json.isObject()) return {};
-  auto json_object = json.object();
-  if (!json_object.contains(key) && json_object[key].isString()) return {};
-  return json_object[key].toString();
-}
+  explicit WindowStateSO(const QJsonObject &j) {
+    if (const auto v = j["window_save"]; v.isBool()) window_save = v.toBool();
+    if (const auto v = j["window_state_data"]; v.isString()) {
+      window_state_data = v.toString();
+    }
+    if (const auto v = j["x"]; v.isDouble()) x = v.toInt();
+    if (const auto v = j["y"]; v.isDouble()) y = v.toInt();
+    if (const auto v = j["width"]; v.isDouble()) width = v.toInt();
+    if (const auto v = j["height"]; v.isDouble()) height = v.toInt();
+  }
 
-void ResetTempCacheValue(const QString& key) {
-  CacheManager::GetInstance().ResetCache(key);
-}
-
-}  // namespace GpgFrontend
+  [[nodiscard]] auto Json() const -> QJsonObject {
+    QJsonObject j;
+    j["window_save"] = window_save;
+    j["window_state_data"] = window_state_data;
+    j["x"] = x;
+    j["y"] = y;
+    j["width"] = width;
+    j["height"] = height;
+    return j;
+  }
+};
+}  // namespace GpgFrontend::UI

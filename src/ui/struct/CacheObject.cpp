@@ -26,28 +26,23 @@
  *
  */
 
-#include "CacheUtils.h"
+#include "CacheObject.h"
+
+#include <utility>
 
 #include "core/function/CacheManager.h"
 
-namespace GpgFrontend {
+namespace GpgFrontend::UI {
 
-void SetTempCacheValue(const QString& key, const QString& value) {
-  QJsonDocument json;
-  json.setObject(QJsonObject({{key, value}}));
-  CacheManager::GetInstance().SaveCache(key, json);
+CacheObject::CacheObject(QString cache_name)
+    : cache_name_(std::move(cache_name)) {
+  GF_UI_LOG_DEBUG("loading cache from: {}", this->cache_name_);
+  this->QJsonDocument::operator=(
+      CacheManager::GetInstance().LoadCache(cache_name_));
 }
 
-auto GetTempCacheValue(const QString& key) -> QString {
-  QJsonDocument json = CacheManager::GetInstance().LoadCache(key);
-  if (!json.isObject()) return {};
-  auto json_object = json.object();
-  if (!json_object.contains(key) && json_object[key].isString()) return {};
-  return json_object[key].toString();
+CacheObject::~CacheObject() {
+  CacheManager::GetInstance().SaveCache(cache_name_, *this);
 }
 
-void ResetTempCacheValue(const QString& key) {
-  CacheManager::GetInstance().ResetCache(key);
-}
-
-}  // namespace GpgFrontend
+}  // namespace GpgFrontend::UI

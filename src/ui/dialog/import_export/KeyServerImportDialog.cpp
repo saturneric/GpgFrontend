@@ -37,6 +37,7 @@
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "ui/UISignalStation.h"
 #include "ui/struct/SettingsObject.h"
+#include "ui/struct/settings/KeyServerSO.h"
 #include "ui/thread/KeyServerImportTask.h"
 #include "ui/thread/KeyServerSearchTask.h"
 
@@ -126,25 +127,12 @@ auto KeyServerImportDialog::create_combo_box() -> QComboBox* {
   combo_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
   try {
-    SettingsObject key_server_json("key_server");
-
-    const auto key_server_list =
-        key_server_json.Check("server_list", nlohmann::json::array());
-
+    KeyServerSO key_server(SettingsObject("general_settings_state"));
+    const auto& key_server_list = key_server.server_list;
     for (const auto& key_server : key_server_list) {
-      const auto key_server_str = key_server.get<std::string>();
-      combo_box->addItem(key_server_str.c_str());
+      combo_box->addItem(key_server);
     }
-
-    size_t default_key_server_index =
-        key_server_json.Check("default_server", 0);
-    if (default_key_server_index >= key_server_list.size()) {
-      throw std::runtime_error("default_server index out of range");
-    }
-    auto default_key_server =
-        key_server_list[default_key_server_index].get<std::string>();
-
-    combo_box->setCurrentText(default_key_server.c_str());
+    combo_box->setCurrentText(key_server.GetTargetServer());
   } catch (...) {
     GF_UI_LOG_ERROR("setting operation error", "server_list", "default_server");
   }
@@ -401,29 +389,8 @@ void KeyServerImportDialog::SlotImport(const KeyIdArgsListPtr& keys) {
     target_keyserver = key_server_combo_box_->currentText();
   }
   if (target_keyserver.isEmpty()) {
-    try {
-      SettingsObject key_server_json("key_server");
-      const auto key_server_list =
-          key_server_json.Check("server_list", nlohmann::json::array());
-
-      size_t default_key_server_index =
-          key_server_json.Check("default_server", 0);
-      if (default_key_server_index >= key_server_list.size()) {
-        throw std::runtime_error("default_server index out of range");
-      }
-      auto default_key_server =
-          key_server_list[default_key_server_index].get<std::string>();
-
-      target_keyserver = QString::fromStdString(default_key_server);
-    } catch (...) {
-      GF_UI_LOG_ERROR("setting operation error", "server_list",
-                      "default_server");
-      QMessageBox::critical(
-          nullptr, _("Default Keyserver Not Found"),
-          _("Cannot read default keyserver from your settings, "
-            "please set a default keyserver first"));
-      return;
-    }
+    KeyServerSO key_server(SettingsObject("general_settings_state"));
+    target_keyserver = key_server.GetTargetServer();
   }
   std::vector<QString> key_ids;
   for (const auto& key_id : *keys) {

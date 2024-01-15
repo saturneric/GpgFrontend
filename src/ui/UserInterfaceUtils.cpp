@@ -32,8 +32,6 @@
 #include <qdialog.h>
 
 #include <QtNetwork>
-#include <string>
-#include <utility>
 #include <vector>
 
 #include "core/GpgConstants.h"
@@ -43,7 +41,6 @@
 #include "core/model/GpgImportInformation.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
-#include "core/thread/TaskRunner.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/CacheUtils.h"
@@ -52,7 +49,9 @@
 #include "ui/UISignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
 #include "ui/dialog/gnupg/GnuPGControllerDialog.h"
+#include "ui/struct/CacheObject.h"
 #include "ui/struct/SettingsObject.h"
+#include "ui/struct/settings/KeyServerSO.h"
 #include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
@@ -400,36 +399,16 @@ void CommonUtils::SlotExecuteGpgCommand(
 
 void CommonUtils::SlotImportKeyFromKeyServer(
     const KeyIdArgsList &key_ids, const ImportCallbackFunctiopn &callback) {
-  // target key server that we need to import key from it
-  QString target_keyserver;
-
-  try {
-    SettingsObject key_server_json("key_server");
-
-    // get key servers from settings
-    const auto key_server_list =
-        key_server_json.Check("server_list", nlohmann::json::array());
-    if (key_server_list.empty()) {
-      throw std::runtime_error("No key server configured");
-    }
-
-    const size_t target_key_server_index =
-        key_server_json.Check("default_server", 0);
-    if (target_key_server_index >= key_server_list.size()) {
-      throw std::runtime_error("default_server index out of range");
-    }
-    target_keyserver =
-        key_server_list[target_key_server_index].get<std::string>().c_str();
-
-    GF_UI_LOG_DEBUG("set target key server to default Key Server: {}",
-                    target_keyserver);
-  } catch (...) {
-    GF_UI_LOG_ERROR(_("Cannot read default_keyserver From Settings"));
+  auto target_keyserver =
+      KeyServerSO(SettingsObject("key_server")).GetTargetServer();
+  if (target_keyserver.isEmpty()) {
     QMessageBox::critical(nullptr, _("Default Keyserver Not Found"),
                           _("Cannot read default keyserver from your settings, "
                             "please set a default keyserver first"));
     return;
   }
+  GF_UI_LOG_DEBUG("set target key server to default Key Server: {}",
+                  target_keyserver);
 
   auto *thread = QThread::create([target_keyserver, key_ids, callback]() {
     QUrl target_keyserver_url(target_keyserver);
@@ -541,40 +520,37 @@ bool CommonUtils::isApplicationNeedRestart() {
 
 bool CommonUtils::KeyExistsinFavouriteList(const GpgKey &key) {
   // load cache
-  auto key_array = CacheManager::GetInstance().LoadCache("favourite_key_pair");
-  if (!key_array.is_array()) {
-    CacheManager::GetInstance().SaveCache("favourite_key_pair",
-                                          nlohmann::json::array());
-  }
-  return std::find(key_array.begin(), key_array.end(),
-                   key.GetFingerprint().toStdString()) != key_array.end();
+  auto json_data = CacheObject("favourite_key_pair");
+  if (!json_data.isArray()) json_data.setArray(QJsonArray());
+
+  auto key_array = json_data.array();
+  return std::find(key_array.begin(), key_array.end(), key.GetFingerprint()) !=
+         key_array.end();
 }
 
 void CommonUtils::AddKey2Favourtie(const GpgKey &key) {
-  auto key_array = CacheManager::GetInstance().LoadCache("favourite_key_pair");
-  if (!key_array.is_array()) {
-    CacheManager::GetInstance().SaveCache("favourite_key_pair",
-                                          nlohmann::json::array());
-  }
-  key_array.push_back(key.GetFingerprint().toStdString());
-  CacheManager::GetInstance().SaveCache("favourite_key_pair", key_array, true);
+  auto json_data = CacheObject("favourite_key_pair");
+  QJsonArray key_array;
+  if (json_data.isArray()) key_array = json_data.array();
+
+  key_array.push_back(key.GetFingerprint());
+  json_data.setArray(key_array);
 }
 
 void CommonUtils::RemoveKeyFromFavourite(const GpgKey &key) {
-  auto key_array = CacheManager::GetInstance().LoadCache("favourite_key_pair");
-  if (!key_array.is_array()) {
-    CacheManager::GetInstance().SaveCache("favourite_key_pair",
-                                          nlohmann::json::array(), true);
-    return;
+  auto json_data = CacheObject("favourite_key_pair");
+  QJsonArray key_array;
+  if (json_data.isArray()) key_array = json_data.array();
+
+  QString fingerprint = key.GetFingerprint();
+  QJsonArray new_key_array;
+  for (auto &&item : key_array) {
+    if (item.isString() && item.toString() != fingerprint) {
+      new_key_array.append(item);
+    }
   }
-  auto it = std::find(key_array.begin(), key_array.end(),
-                      key.GetFingerprint().toStdString());
-  if (it != key_array.end()) {
-    auto rm_it = std::remove(key_array.begin(), key_array.end(),
-                             key.GetFingerprint().toStdString());
-    key_array.erase(rm_it, key_array.end());
-    CacheManager::GetInstance().SaveCache("favourite_key_pair", key_array);
-  }
+
+  json_data.setArray(new_key_array);
 }
 
 }  // namespace GpgFrontend::UI

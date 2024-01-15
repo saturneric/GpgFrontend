@@ -28,8 +28,6 @@
 
 #include "GnuPGInfoGatheringModule.h"
 
-#include <nlohmann/json.hpp>
-#include <string>
 #include <vector>
 
 #include "GpgInfo.h"
@@ -43,8 +41,8 @@ auto CheckBinaryChacksum(QString path) -> std::optional<QString> {
   // check file info and access rights
   QFileInfo info(path);
   if (!info.exists() || !info.isFile() || !info.isReadable()) {
-    MODULE_LOG_ERROR("get info for file {} error, exists: {}",
-                     info.filePath().toStdString(), info.exists());
+    MODULE_LOG_ERROR("get info for file {} error, exists: {}", info.filePath(),
+                     info.exists());
     return {};
   }
 
@@ -52,7 +50,7 @@ auto CheckBinaryChacksum(QString path) -> std::optional<QString> {
   QFile f(info.filePath());
   if (!f.open(QIODevice::ReadOnly)) {
     MODULE_LOG_ERROR("open {} to calculate check sum error: {}", path,
-                     f.errorString().toStdString());
+                     f.errorString());
     return {};
   }
 
@@ -122,7 +120,7 @@ auto GnuPGInfoGatheringModule::Exec(EventRefrernce event) -> int {
          GpgComponentInfo c_i_gpgme;
          c_i_gpgme.name = "gpgme";
          c_i_gpgme.desc = "GPG Made Easy";
-         c_i_gpgme.version = gpgme_version.toStdString();
+         c_i_gpgme.version = gpgme_version;
          c_i_gpgme.path = _("Embedded In");
          c_i_gpgme.binary_checksum = "/";
 
@@ -130,24 +128,22 @@ auto GnuPGInfoGatheringModule::Exec(EventRefrernce event) -> int {
          c_i_gpgconf.name = "gpgconf";
          c_i_gpgconf.desc = "GPG Configure";
          c_i_gpgconf.version = "/";
-         c_i_gpgconf.path = gpgconf_path.toStdString();
+         c_i_gpgconf.path = gpgconf_path;
          auto gpgconf_binary_checksum = CheckBinaryChacksum(gpgconf_path);
          c_i_gpgconf.binary_checksum = (gpgconf_binary_checksum.has_value()
                                             ? gpgconf_binary_checksum.value()
-                                            : QString("/"))
-                                           .toStdString();
+                                            : QString("/"));
 
          component_infos.push_back(c_i_gpgme);
          component_infos.push_back(c_i_gpgconf);
 
-         nlohmann::json const jsonlized_gpgme_component_info = c_i_gpgme;
-         nlohmann::json const jsonlized_gpgconf_component_info = c_i_gpgconf;
+         auto const jsonlized_gpgme_component_info = c_i_gpgme.Json();
+         auto const jsonlized_gpgconf_component_info = c_i_gpgconf.Json();
          UpsertRTValue(GetModuleIdentifier(), "gnupg.components.gpgme",
-                       QString::fromStdString(static_cast<std::string>(
-                           jsonlized_gpgme_component_info.dump())));
-         UpsertRTValue(GetModuleIdentifier(), "gnupg.components.gpgconf",
-                       QString::fromStdString(static_cast<std::string>(
-                           jsonlized_gpgme_component_info.dump())));
+                       QJsonDocument(jsonlized_gpgme_component_info).toJson());
+         UpsertRTValue(
+             GetModuleIdentifier(), "gnupg.components.gpgconf",
+             QJsonDocument(jsonlized_gpgconf_component_info).toJson());
 
          auto line_split_list = p_out.split("\n");
 
@@ -194,20 +190,18 @@ auto GnuPGInfoGatheringModule::Exec(EventRefrernce event) -> int {
 
            {
              GpgComponentInfo c_i;
-             c_i.name = component_name.toStdString();
-             c_i.desc = component_desc.toStdString();
-             c_i.version = version.toStdString();
-             c_i.path = component_path.toStdString();
+             c_i.name = component_name;
+             c_i.desc = component_desc;
+             c_i.version = version;
+             c_i.path = component_path;
              c_i.binary_checksum =
                  (binary_checksum.has_value() ? binary_checksum.value()
-                                              : QString("/"))
-                     .toStdString();
+                                              : QString("/"));
 
-             nlohmann::json const jsonlized_component_info = c_i;
+             auto const jsonlized_component_info = c_i.Json();
              UpsertRTValue(GetModuleIdentifier(),
                            QString("gnupg.components.%1").arg(component_name),
-                           QString::fromStdString(static_cast<std::string>(
-                               jsonlized_component_info.dump())));
+                           QJsonDocument(jsonlized_component_info).toJson());
 
              component_infos.push_back(c_i);
            }
@@ -270,11 +264,13 @@ auto GnuPGInfoGatheringModule::Exec(EventRefrernce event) -> int {
   for (const auto &component : components) {
     auto component_info_json = RetrieveRTValueTypedOrDefault(
         "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-        QString("gnupg.components.%1").arg(component), QString{});
+        QString("gnupg.components.%1").arg(component), QByteArray{});
 
     auto jsonlized_component_info =
-        nlohmann::json::parse(component_info_json.toStdString());
-    auto component_info = jsonlized_component_info.get<GpgComponentInfo>();
+        QJsonDocument::fromJson(component_info_json);
+    assert(jsonlized_component_info.isObject());
+
+    auto component_info = GpgComponentInfo(jsonlized_component_info.object());
     MODULE_LOG_DEBUG("gpgconf check options ready, component: {}",
                      component_info.name);
 
@@ -284,7 +280,7 @@ auto GnuPGInfoGatheringModule::Exec(EventRefrernce event) -> int {
 
     exec_contexts.emplace_back(GpgCommandExecutor::ExecuteContext{
         gpgconf_path,
-        {"--list-options", component_info.name.c_str()},
+        {"--list-options", component_info.name},
         [this, component_info](int exit_code, const QString &p_out,
                                const QString &p_err) {
           MODULE_LOG_DEBUG(
@@ -328,24 +324,23 @@ auto GnuPGInfoGatheringModule::Exec(EventRefrernce event) -> int {
             auto option_value = info_split_list[9].trimmed();
 
             GpgOptionsInfo info;
-            info.name = option_name.toStdString();
-            info.flags = option_flags.toStdString();
-            info.level = option_level.toStdString();
-            info.description = option_desc.toStdString();
-            info.type = option_type.toStdString();
-            info.alt_type = option_alt_type.toStdString();
-            info.argname = option_argname.toStdString();
-            info.default_value = option_default.toStdString();
-            info.argdef = option_argdef.toStdString();
-            info.value = option_value.toStdString();
+            info.name = option_name;
+            info.flags = option_flags;
+            info.level = option_level;
+            info.description = option_desc;
+            info.type = option_type;
+            info.alt_type = option_alt_type;
+            info.argname = option_argname;
+            info.default_value = option_default;
+            info.argdef = option_argdef;
+            info.value = option_value;
 
-            nlohmann::json const jsonlized_option_info = info;
+            auto const jsonlized_option_info = info.Json();
             UpsertRTValue(GetModuleIdentifier(),
                           QString("gnupg.components.%1.options.%2")
-                              .arg(component_info.name.c_str())
+                              .arg(component_info.name)
                               .arg(option_name),
-                          QString::fromStdString(static_cast<std::string>(
-                              jsonlized_option_info.dump())));
+                          QJsonDocument(jsonlized_option_info).toJson());
             options_infos.push_back(info);
           }
         },

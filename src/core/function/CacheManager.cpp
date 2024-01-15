@@ -98,25 +98,23 @@ class CacheManager::Impl : public QObject {
             &Impl::slot_flush_cache_storage);
     flush_timer_->start(15000);
 
+    // load data from storage
     load_all_cache_storage();
   }
 
-  void SaveCache(QString key, const nlohmann::json& value, bool flush) {
+  void SaveCache(QString key, const QJsonDocument& value, bool flush) {
     auto data_object_key = get_data_object_key(key);
     cache_storage_.insert(key, value);
 
-    if (std::find(key_storage_.begin(), key_storage_.end(),
-                  key.toStdString()) == key_storage_.end()) {
+    if (!key_storage_.contains(key)) {
       GF_CORE_LOG_DEBUG("register new key of cache", key);
-      key_storage_.push_back(key.toStdString());
+      key_storage_.push_back(key);
     }
 
-    if (flush) {
-      slot_flush_cache_storage();
-    }
+    if (flush) slot_flush_cache_storage();
   }
 
-  auto LoadCache(const QString& key) -> nlohmann::json {
+  auto LoadCache(const QString& key) -> QJsonDocument {
     auto data_object_key = get_data_object_key(key);
 
     if (!cache_storage_.exists(key)) {
@@ -124,14 +122,12 @@ class CacheManager::Impl : public QObject {
     }
 
     auto cache = cache_storage_.get(key);
-    if (cache) {
-      return *cache;
-    }
+    if (cache.has_value()) return cache.value();
     return {};
   }
 
-  auto LoadCache(const QString& key, nlohmann::json default_value)
-      -> nlohmann::json {
+  auto LoadCache(const QString& key, QJsonDocument default_value)
+      -> QJsonDocument {
     auto data_object_key = get_data_object_key(key);
     if (!cache_storage_.exists(key)) {
       cache_storage_.insert(key,
@@ -139,9 +135,7 @@ class CacheManager::Impl : public QObject {
     }
 
     auto cache = cache_storage_.get(key);
-    if (cache) {
-      return *cache;
-    }
+    if (cache.has_value()) return cache.value();
     return {};
   }
 
@@ -159,18 +153,17 @@ class CacheManager::Impl : public QObject {
   void slot_flush_cache_storage() {
     for (const auto& cache : cache_storage_.mirror()) {
       auto key = get_data_object_key(cache.first);
-      GF_CORE_LOG_TRACE("save cache into filesystem, key {}, value size: {}",
-                        key, cache.second.size());
-      GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(key,
-                                                                 cache.second);
+      GF_CORE_LOG_TRACE("save cache into filesystem, key {}", key);
+      GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(
+          key, QJsonDocument(cache.second));
     }
-    GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(drk_key_,
-                                                               key_storage_);
+    GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(
+        drk_key_, QJsonDocument(key_storage_));
   }
 
  private:
-  ThreadSafeMap<QString, nlohmann::json> cache_storage_;
-  nlohmann::json key_storage_;
+  ThreadSafeMap<QString, QJsonDocument> cache_storage_;
+  QJsonArray key_storage_;
   QTimer* flush_timer_;
   const QString drk_key_ = "__cache_manage_data_register_key_list";
 
@@ -189,18 +182,16 @@ class CacheManager::Impl : public QObject {
    *
    * @param key
    * @param default_value
-   * @return nlohmann::json
+   * @return QJsonObject
    */
-  static auto load_cache_storage(QString key, nlohmann::json default_value)
-      -> nlohmann::json {
+  static auto load_cache_storage(QString key, QJsonDocument default_value)
+      -> QJsonDocument {
     auto data_object_key = get_data_object_key(std::move(key));
     auto stored_data =
         GpgFrontend::DataObjectOperator::GetInstance().GetDataObject(
             data_object_key);
 
-    if (stored_data.has_value()) {
-      return stored_data.value();
-    }
+    if (stored_data.has_value()) return stored_data.value();
     return default_value;
   }
 
@@ -214,20 +205,16 @@ class CacheManager::Impl : public QObject {
         GpgFrontend::DataObjectOperator::GetInstance().GetDataObject(drk_key_);
 
     // get cache data list from file system
-    nlohmann::json registered_key_list;
-    if (stored_data.has_value()) {
-      registered_key_list = std::move(stored_data.value());
-    }
-
-    if (!registered_key_list.is_array()) {
+    QJsonArray registered_key_list;
+    if (stored_data->isArray()) {
+      registered_key_list = stored_data->array();
+    } else {
       GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(
-          drk_key_, nlohmann::json::array());
-      GF_CORE_LOG_ERROR("drk_key_ is not an array, abort.");
-      return;
+          drk_key_, QJsonDocument(QJsonArray()));
     }
 
     for (const auto& key : registered_key_list) {
-      load_cache_storage(QString::fromStdString(key), {});
+      load_cache_storage(key.toString(), {});
     }
 
     key_storage_ = registered_key_list;
@@ -247,17 +234,17 @@ CacheManager::CacheManager(int channel)
 
 CacheManager::~CacheManager() = default;
 
-void CacheManager::SaveCache(QString key, const nlohmann::json& value,
+void CacheManager::SaveCache(QString key, const QJsonDocument& value,
                              bool flush) {
   p_->SaveCache(std::move(key), value, flush);
 }
 
-auto CacheManager::LoadCache(QString key) -> nlohmann::json {
+auto CacheManager::LoadCache(QString key) -> QJsonDocument {
   return p_->LoadCache(key);
 }
 
-auto CacheManager::LoadCache(QString key, nlohmann::json default_value)
-    -> nlohmann::json {
+auto CacheManager::LoadCache(QString key, QJsonDocument default_value)
+    -> QJsonDocument {
   return p_->LoadCache(key, std::move(default_value));
 }
 

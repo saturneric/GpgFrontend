@@ -28,8 +28,6 @@
 
 #include "PlainTextEditorPage.h"
 
-#include <sstream>
-#include <string>
 #include <utility>
 
 #include "core/function/CharsetOperator.h"
@@ -37,6 +35,7 @@
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "ui/struct/SettingsObject.h"
+#include "ui/struct/settings/AppearanceSO.h"
 #include "ui_PlainTextEditor.h"
 
 namespace GpgFrontend::UI {
@@ -50,13 +49,9 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
   ui_->textPage->setFocus();
   ui_->loadingLabel->setHidden(true);
 
-  // Front in same width
-  SettingsObject general_settings_state("general_settings_state");
-
   // font size
-  auto editor_font_size =
-      general_settings_state.Check("text_editor").Check("font_size", 10);
-  ui_->textPage->setFont(QFont("Courier", editor_font_size));
+  AppearanceSO appearance(SettingsObject("general_settings_state"));
+  ui_->textPage->setFont(QFont("Courier", appearance.text_editor_font_size));
 
   this->setAttribute(Qt::WA_DeleteOnClose);
 

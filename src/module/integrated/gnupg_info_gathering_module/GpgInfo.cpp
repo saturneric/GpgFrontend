@@ -28,4 +28,53 @@
 
 #include "module/integrated/gnupg_info_gathering_module/GpgInfo.h"
 
-namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule {}
+namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule {
+
+GpgOptionsInfo::GpgOptionsInfo(const QJsonObject &j) {
+  if (const auto v = j["name"]; v.isString()) name = v.toString();
+  if (const auto v = j["flags"]; v.isString()) flags = v.toString();
+  if (const auto v = j["level"]; v.isString()) level = v.toString();
+  if (const auto v = j["description"]; v.isString()) description = v.toString();
+  if (const auto v = j["type"]; v.isString()) type = v.toString();
+  if (const auto v = j["alt_type"]; v.isString()) alt_type = v.toString();
+  if (const auto v = j["argname"]; v.isString()) argname = v.toString();
+  if (const auto v = j["default_value"]; v.isString())
+    default_value = v.toString();
+  if (const auto v = j["argdef"]; v.isString()) argdef = v.toString();
+  if (const auto v = j["value"]; v.isString()) value = v.toString();
+}
+
+auto GpgOptionsInfo::Json() const -> QJsonObject {
+  QJsonObject j;
+  j["name"] = name;
+  j["flags"] = flags;
+  j["level"] = level;
+  j["description"] = description;
+  j["type"] = type;
+  j["alt_type"] = alt_type;
+  j["argname"] = argname;
+  j["default_value"] = default_value;
+  j["argdef"] = argdef;
+  j["value"] = value;
+  return j;
+}
+
+auto GpgComponentInfo::Json() const -> QJsonObject {
+  QJsonObject j;
+  j["name"] = name;
+  j["desc"] = desc;
+  j["version"] = version;
+  j["path"] = path;
+  j["binary_checksum"] = binary_checksum;
+  return j;
+}
+
+GpgComponentInfo::GpgComponentInfo(const QJsonObject &j) {
+  if (const auto v = j["name"]; v.isString()) name = v.toString();
+  if (const auto v = j["desc"]; v.isString()) desc = v.toString();
+  if (const auto v = j["version"]; v.isString()) version = v.toString();
+  if (const auto v = j["path"]; v.isString()) path = v.toString();
+  if (const auto v = j["binary_checksum"]; v.isString())
+    binary_checksum = v.toString();
+}
+}  // namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule

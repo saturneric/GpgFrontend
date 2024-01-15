@@ -34,6 +34,7 @@
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "ui/struct/SettingsObject.h"
+#include "ui/struct/settings/KeyServerSO.h"
 #include "ui/thread/ListedKeyServerTestTask.h"
 #include "ui_KeyServerSettings.h"
 
@@ -118,32 +119,18 @@ KeyserverTab::KeyserverTab(QWidget* parent)
 }
 
 void KeyserverTab::SetSettings() {
-  try {
-    SettingsObject key_server_json("key_server");
+  KeyServerSO key_server(SettingsObject("key_server"));
 
-    const auto key_server_list =
-        key_server_json.Check("server_list", nlohmann::json::array());
-
-    for (const auto& key_server : key_server_list) {
-      const auto key_server_str = key_server.get<std::string>();
-      this->key_server_str_list_.append(key_server_str.c_str());
-    }
-
-    size_t default_key_server_index =
-        key_server_json.Check("default_server", 0);
-    if (default_key_server_index >= key_server_list.size()) {
-      throw std::runtime_error("default_server index out of range");
-    }
-    const auto default_key_server =
-        key_server_list[default_key_server_index].get<std::string>();
-
-    if (!key_server_str_list_.contains(default_key_server.c_str())) {
-      key_server_str_list_.append(default_key_server.c_str());
-    }
-    default_key_server_ = QString::fromStdString(default_key_server);
-  } catch (const std::exception& e) {
-    GF_UI_LOG_ERROR("Error reading key-server settings: ", e.what());
+  if (key_server.server_list.empty()) key_server.ResetDefaultServerList();
+  for (const auto& key_server : key_server.server_list) {
+    this->key_server_str_list_.append(key_server);
   }
+
+  const auto default_key_server = key_server.GetTargetServer();
+  if (!key_server_str_list_.contains(default_key_server)) {
+    key_server_str_list_.append(default_key_server);
+  }
+  default_key_server_ = default_key_server;
 }
 
 void KeyserverTab::slot_add_key_server() {
@@ -170,26 +157,26 @@ void KeyserverTab::slot_add_key_server() {
           "that want to add it into the keyserver list?"),
         QMessageBox::Ok | QMessageBox::Cancel);
 
-    if (ret == QMessageBox::Cancel)
-      return;
-    else
-      key_server_str_list_.append(ui_->addKeyServerEdit->text());
+    if (ret == QMessageBox::Cancel) return;
+    key_server_str_list_.append(ui_->addKeyServerEdit->text());
   }
   slot_refresh_table();
 }
 
 void KeyserverTab::ApplySettings() {
   SettingsObject key_server_json("key_server");
-  key_server_json["server_list"] = nlohmann::json::array();
-  auto& key_server_list = key_server_json["server_list"];
+  KeyServerSO key_server;
 
+  auto& key_server_list = key_server.server_list;
   const auto list_size = key_server_str_list_.size();
   for (int i = 0; i < list_size; i++) {
     const auto key_server = key_server_str_list_[i];
-    if (default_key_server_ == key_server)
+    if (default_key_server_ == key_server) {
       key_server_json["default_server"] = i;
-    key_server_list.insert(key_server_list.end(), key_server.toStdString());
+    }
+    key_server_list << key_server;
   }
+  key_server_json.Store(key_server.ToJson());
 }
 
 void KeyserverTab::slot_refresh_table() {

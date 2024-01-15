@@ -30,6 +30,7 @@
 
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "ui/struct/SettingsObject.h"
+#include "ui/struct/settings/KeyServerSO.h"
 
 GpgFrontend::UI::KeyServerImportTask::KeyServerImportTask(
     QString keyserver_url, std::vector<QString> keyids)
@@ -40,27 +41,8 @@ GpgFrontend::UI::KeyServerImportTask::KeyServerImportTask(
   HoldOnLifeCycle(true);
 
   if (keyserver_url_.isEmpty()) {
-    try {
-      SettingsObject key_server_json("key_server");
-      const auto key_server_list =
-          key_server_json.Check("server_list", nlohmann::json::array());
-
-      size_t const default_key_server_index =
-          key_server_json.Check("default_server", 0);
-      if (default_key_server_index >= key_server_list.size()) {
-        throw std::runtime_error("default_server index out of range");
-      }
-      auto default_key_server =
-          key_server_list[default_key_server_index].get<std::string>();
-
-      keyserver_url_ = QString::fromStdString(default_key_server);
-    } catch (...) {
-      GF_UI_LOG_ERROR("setting operation error", "server_list",
-                      "default_server");
-      keyserver_url_ = "https://keys.openpgp.org";
-      return;
-    }
-
+    KeyServerSO key_server(SettingsObject("general_settings_state"));
+    keyserver_url_ = key_server.GetTargetServer();
     GF_UI_LOG_DEBUG("key server import task sets key server url: {}",
                     keyserver_url_);
   }

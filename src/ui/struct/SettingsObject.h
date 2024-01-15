@@ -28,18 +28,14 @@
 
 #pragma once
 
-#include <utility>
-
-#include "core/function/DataObjectOperator.h"
-
 namespace GpgFrontend::UI {
 
 /**
  * @brief The SettingsObject class
- * This class is used to store settings for the application securely.
+ * This class is used to store data for the application securely.
  *
  */
-class SettingsObject : public nlohmann::json {
+class SettingsObject : public QJsonObject {
  public:
   /**
    * @brief Construct a new Settings Object object
@@ -53,7 +49,7 @@ class SettingsObject : public nlohmann::json {
    *
    * @param _sub_json
    */
-  explicit SettingsObject(nlohmann::json _sub_json, bool);
+  explicit SettingsObject(QJsonObject sub_json);
 
   /**
    * @brief Destroy the Settings Object object
@@ -64,20 +60,8 @@ class SettingsObject : public nlohmann::json {
   /**
    * @brief
    *
-   * @param key
-   * @param default_value
-   * @return nlohmann::json&
    */
-  nlohmann::json& Check(const QString& key,
-                        const nlohmann::json& default_value);
-
-  /**
-   * @brief
-   *
-   * @param key
-   * @return SettingsObject
-   */
-  SettingsObject Check(const QString& key);
+  void Store(const QJsonObject&);
 
  private:
   QString settings_name_;  ///<

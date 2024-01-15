@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <nlohmann/json.hpp>
-
 #include "core/function/basic/GpgFunctionObject.h"
 
 namespace GpgFrontend {
@@ -42,11 +40,11 @@ class GPGFRONTEND_CORE_EXPORT CacheManager
 
   ~CacheManager() override;
 
-  void SaveCache(QString key, const nlohmann::json& value, bool flush = false);
+  void SaveCache(QString key, const QJsonDocument& value, bool flush = false);
 
-  auto LoadCache(QString key) -> nlohmann::json;
+  auto LoadCache(QString key) -> QJsonDocument;
 
-  auto LoadCache(QString key, nlohmann::json default_value) -> nlohmann::json;
+  auto LoadCache(QString key, QJsonDocument default_value) -> QJsonDocument;
 
   auto ResetCache(QString key) -> bool;
 

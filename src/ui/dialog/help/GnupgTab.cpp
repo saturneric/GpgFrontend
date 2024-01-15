@@ -32,8 +32,6 @@
 
 #include "GnupgTab.h"
 
-#include <nlohmann/json.hpp>
-
 #include "core/module/ModuleManager.h"
 #include "ui_GnuPGInfo.h"
 
@@ -99,42 +97,45 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
 
   int row = 0;
   for (auto& component : components) {
-    auto component_info_json = Module::RetrieveRTValueTypedOrDefault(
+    auto component_info_json_bytes = Module::RetrieveRTValueTypedOrDefault(
         "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-        QString("gnupg.components.%1").arg(component), QString{});
-    GF_UI_LOG_DEBUG("got gnupg component {} info from rt, info: {}", component,
-                    component_info_json);
+        QString("gnupg.components.%1").arg(component), QByteArray{});
+    GF_UI_LOG_DEBUG("got gnupg component {} info from rt", component);
 
-    auto component_info =
-        nlohmann::json::parse(component_info_json.toStdString());
-    if (!component_info.contains("name")) {
+    auto component_info_json =
+        QJsonDocument::fromJson(component_info_json_bytes);
+    if (!component_info_json.isObject()) {
       GF_UI_LOG_WARN("illegal gnupg component info, json: {}",
-                     component_info_json);
+                     QString(component_info_json_bytes));
       continue;
     }
 
-    auto* tmp0 = new QTableWidgetItem(
-        QString::fromStdString(component_info.value("name", "")));
+    auto component_info = component_info_json.object();
+    if (!component_info.contains("name")) {
+      GF_UI_LOG_WARN(
+          "illegal gnupg component info. it doesn't have a name, json: {}",
+          QString(component_info_json_bytes));
+      continue;
+    }
+
+    auto* tmp0 = new QTableWidgetItem(component_info["name"].toString());
     tmp0->setTextAlignment(Qt::AlignCenter);
     ui_->componentDetailsTable->setItem(row, 0, tmp0);
 
-    auto* tmp1 = new QTableWidgetItem(
-        QString::fromStdString(component_info.value("desc", "")));
+    auto* tmp1 = new QTableWidgetItem(component_info["desc"].toString());
     tmp1->setTextAlignment(Qt::AlignCenter);
     ui_->componentDetailsTable->setItem(row, 1, tmp1);
 
-    auto* tmp2 = new QTableWidgetItem(
-        QString::fromStdString(component_info.value("version", "")));
+    auto* tmp2 = new QTableWidgetItem(component_info["version"].toString());
     tmp2->setTextAlignment(Qt::AlignCenter);
     ui_->componentDetailsTable->setItem(row, 2, tmp2);
 
-    auto* tmp3 = new QTableWidgetItem(
-        QString::fromStdString(component_info.value("binary_checksum", "")));
+    auto* tmp3 =
+        new QTableWidgetItem(component_info["binary_checksum"].toString());
     tmp3->setTextAlignment(Qt::AlignCenter);
     ui_->componentDetailsTable->setItem(row, 3, tmp3);
 
-    auto* tmp4 = new QTableWidgetItem(
-        QString::fromStdString(component_info.value("path", "")));
+    auto* tmp4 = new QTableWidgetItem(component_info["path"].toString());
     tmp4->setTextAlignment(Qt::AlignLeft);
     ui_->componentDetailsTable->setItem(row, 4, tmp4);
 
@@ -150,16 +151,18 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
         "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
         QString("gnupg.components.%1.options").arg(component));
     for (auto& option : options) {
-      const auto option_info = nlohmann::json::parse(
-          Module::RetrieveRTValueTypedOrDefault(
+      const auto option_info_json =
+          QJsonDocument::fromJson(Module::RetrieveRTValueTypedOrDefault(
               "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
               QString("gnupg.components.%1.options.%2")
                   .arg(component)
                   .arg(option),
-              QString{})
-              .toStdString());
-      if (!option_info.contains("name") ||
-          option_info.value("flags", "1") == "1") {
+              QByteArray{}));
+
+      if (!option_info_json.isObject()) continue;
+
+      auto option_info = option_info_json.object();
+      if (!option_info.contains("name") || option_info["flags"] == "1") {
         continue;
       }
       row++;
@@ -175,26 +178,31 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
         QString("gnupg.components.%1.options").arg(component));
 
     for (auto& option : options) {
-      auto option_info_json = Module::RetrieveRTValueTypedOrDefault(
+      auto option_info_json_bytes = Module::RetrieveRTValueTypedOrDefault(
           "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-          QString("gnupg.components.%1.options.%2")
-              .arg(component)
-              .arg(option),
-          QString{});
+          QString("gnupg.components.%1.options.%2").arg(component).arg(option),
+          QByteArray{});
       GF_UI_LOG_DEBUG("got gnupg component's option {} info from rt, info: {}",
-                      component, option_info_json);
+                      component, option_info_json_bytes);
 
-      auto option_info = nlohmann::json::parse(option_info_json.toStdString());
+      auto option_info_json = QJsonDocument::fromJson(option_info_json_bytes);
 
-      if (!option_info.contains("name")) {
-        GF_UI_LOG_WARN("illegal gnupg configuation info, json: {}",
-                       option_info_json);
+      if (!option_info_json.isObject()) {
+        GF_UI_LOG_WARN("illegal gnupg option info, json: {}",
+                       QString(option_info_json_bytes));
         continue;
       }
 
-      if (option_info.value("flags", "1") == "1") {
-        configuration_group =
-            QString::fromStdString(option_info.value("name", ""));
+      auto option_info = option_info_json.object();
+      if (!option_info.contains("name")) {
+        GF_UI_LOG_WARN(
+            "illegal gnupg configuation info. it doesn't have a name, json: {}",
+            QString(option_info_json_bytes));
+        continue;
+      }
+
+      if (option_info["flags"] == "1") {
+        configuration_group = option_info["name"].toString();
         continue;
       }
 
@@ -206,24 +214,21 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
       tmp1->setTextAlignment(Qt::AlignCenter);
       ui_->configurationDetailsTable->setItem(row, 1, tmp1);
 
-      auto* tmp2 = new QTableWidgetItem(
-          QString::fromStdString(option_info.value("name", "")));
+      auto* tmp2 = new QTableWidgetItem(option_info["name"].toString());
       tmp2->setTextAlignment(Qt::AlignCenter);
       ui_->configurationDetailsTable->setItem(row, 2, tmp2);
 
-      auto* tmp3 = new QTableWidgetItem(
-          QString::fromStdString(option_info.value("description", "")));
+      auto* tmp3 = new QTableWidgetItem(option_info["description"].toString());
 
       tmp3->setTextAlignment(Qt::AlignLeft);
       ui_->configurationDetailsTable->setItem(row, 3, tmp3);
 
-      auto* tmp4 = new QTableWidgetItem(
-          QString::fromStdString(option_info.value("default_value", "")));
+      auto* tmp4 =
+          new QTableWidgetItem(option_info["default_value"].toString());
       tmp4->setTextAlignment(Qt::AlignLeft);
       ui_->configurationDetailsTable->setItem(row, 4, tmp4);
 
-      auto* tmp5 = new QTableWidgetItem(
-          QString::fromStdString(option_info.value("value", "")));
+      auto* tmp5 = new QTableWidgetItem(option_info["value"].toString());
       tmp5->setTextAlignment(Qt::AlignLeft);
       ui_->configurationDetailsTable->setItem(row, 5, tmp5);
 
