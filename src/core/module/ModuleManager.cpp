@@ -29,7 +29,6 @@
 #include "ModuleManager.h"
 
 #include <memory>
-#include <utility>
 
 #include "GpgConstants.h"
 #include "core/module/GlobalModuleContext.h"

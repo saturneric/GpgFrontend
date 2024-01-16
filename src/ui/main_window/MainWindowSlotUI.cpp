@@ -56,6 +56,7 @@ void MainWindow::slot_import_key_from_edit() {
 
 void MainWindow::slot_open_key_management() {
   auto* dialog = new KeyMgmt(this);
+  dialog->setWindowModality(Qt::ApplicationModal);
   dialog->show();
   dialog->raise();
 }

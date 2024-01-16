@@ -28,8 +28,6 @@
 
 #include "ui/thread/KeyServerSearchTask.h"
 
-#include <utility>
-
 GpgFrontend::UI::KeyServerSearchTask::KeyServerSearchTask(QString keyserver_url,
                                                           QString search_string)
     : Task("key_server_search_task"),
@@ -39,15 +37,16 @@ GpgFrontend::UI::KeyServerSearchTask::KeyServerSearchTask(QString keyserver_url,
   HoldOnLifeCycle(true);
 }
 
-void GpgFrontend::UI::KeyServerSearchTask::Run() {
+auto GpgFrontend::UI::KeyServerSearchTask::Run() -> int {
   QUrl url_from_remote = keyserver_url_ +
                          "/pks/lookup?search=" + search_string_ +
                          "&op=index&options=mr";
 
   reply_ = manager_->get(QNetworkRequest(url_from_remote));
-
   connect(reply_, &QNetworkReply::finished, this,
           &KeyServerSearchTask::dealing_reply_from_server);
+
+  return 0;
 }
 
 void GpgFrontend::UI::KeyServerSearchTask::dealing_reply_from_server() {

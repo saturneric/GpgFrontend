@@ -30,7 +30,6 @@
 
 #include <cstddef>
 #include <mutex>
-#include <utility>
 
 #include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"

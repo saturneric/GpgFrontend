@@ -28,10 +28,7 @@
 
 #include "GpgFrontendUIInit.h"
 
-#include <qapplication.h>
-#include <qcoreapplication.h>
-
-#include <QtNetwork>
+#include <clocale>
 
 #include "core/GpgConstants.h"
 #include "core/function/CoreSignalStation.h"
@@ -235,10 +232,10 @@ void InitLocale() {
 
 #ifndef WINDOWS
   if (!lang.isEmpty()) {
-    QString lc = lang + ".UTF-8";
+    auto lc = (lang + ".UTF-8").toUtf8();
 
     // set LC_ALL
-    auto* locale_name = setlocale(LC_ALL, lc.toUtf8());
+    auto* locale_name = std::setlocale(LC_ALL, lc.constData());
     if (locale_name == nullptr) GF_UI_LOG_WARN("set LC_ALL failed, lc: {}", lc);
     auto* language = getenv("LANGUAGE");
     // set LANGUAGE
@@ -251,10 +248,10 @@ void InitLocale() {
   }
 #else
   if (!lang.empty()) {
-    QString lc = lang;
+    auto lc = lang.toUtf8();
 
     // set LC_ALL
-    auto* locale_name = setlocale(LC_ALL, lc.toUtf8());
+    auto* locale_name = setlocale(LC_ALL, lc);
     if (locale_name == nullptr) GF_UI_LOG_WARN("set LC_ALL failed, lc: {}", lc);
 
     auto language = getenv("LANGUAGE");

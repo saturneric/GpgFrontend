@@ -54,7 +54,7 @@ class KeyServerImportTask : public Thread::Task {
    * @brief
    *
    */
-  void Run() override;
+  auto Run() -> int override;
 
  signals:
 

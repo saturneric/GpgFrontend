@@ -29,7 +29,6 @@
 #pragma once
 
 #include <string>
-#include <utility>
 
 #include "core/GpgModel.h"
 

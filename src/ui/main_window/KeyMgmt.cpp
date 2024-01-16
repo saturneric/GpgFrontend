@@ -28,8 +28,6 @@
 
 #include "KeyMgmt.h"
 
-#include <utility>
-
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/KeyPackageOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"

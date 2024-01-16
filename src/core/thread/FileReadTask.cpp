@@ -32,14 +32,14 @@ namespace GpgFrontend::UI {
 
 constexpr size_t kBufferSize = 8192;
 
-FileReadTask::FileReadTask(QString path) : Task("file_read_task") {
+FileReadTask::FileReadTask(QString path)
+    : Task("file_read_task"), read_file_path_(std::move(path)) {
   HoldOnLifeCycle(true);
   connect(this, &FileReadTask::SignalFileBytesReadNext, this,
-          &FileReadTask::read_bytes);
-  read_file_path_ = path;
+          &FileReadTask::slot_read_bytes);
 }
 
-void FileReadTask::Run() {
+auto FileReadTask::Run() -> int {
   if (QFileInfo(read_file_path_).isFile()) {
     GF_CORE_LOG_DEBUG("read open file: {}", read_file_path_);
 
@@ -49,23 +49,24 @@ void FileReadTask::Run() {
     if (!(target_file_.isOpen() && target_file_.isReadable())) {
       GF_CORE_LOG_ERROR("file not open or not readable");
       if (target_file_.isOpen()) target_file_.close();
-      return;
+      return -1;
     }
     GF_CORE_LOG_DEBUG("started reading: {}", read_file_path_);
-    read_bytes();
+    slot_read_bytes();
   } else {
     emit SignalFileBytesReadEnd();
   }
+  return 0;
 }
 
-void FileReadTask::read_bytes() {
+void FileReadTask::slot_read_bytes() {
   QByteArray read_buffer;
   if (!target_file_.atEnd() &&
       (read_buffer = target_file_.read(kBufferSize)).size() > 0) {
     GF_CORE_LOG_DEBUG("io thread read bytes: {}", read_buffer.size());
     emit SignalFileBytesRead(std::move(read_buffer));
   } else {
-    GF_CORE_LOG_DEBUG("io read bytes end");
+    GF_CORE_LOG_DEBUG("io thread read bytes end");
     emit SignalFileBytesReadEnd();
     // announce finish task
     emit SignalTaskShouldEnd(0);

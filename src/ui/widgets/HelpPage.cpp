@@ -28,8 +28,6 @@
 
 #include "ui/widgets/HelpPage.h"
 
-#include <utility>
-
 namespace GpgFrontend::UI {
 
 HelpPage::HelpPage(const QString& path, QWidget* parent) : QWidget(parent) {

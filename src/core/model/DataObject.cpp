@@ -29,7 +29,6 @@
 #include "DataObject.h"
 
 #include <stack>
-#include <utility>
 
 namespace GpgFrontend {
 

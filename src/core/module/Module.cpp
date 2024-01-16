@@ -28,8 +28,6 @@
 
 #include "Module.h"
 
-#include <utility>
-
 #include "core/module/GlobalModuleContext.h"
 
 namespace GpgFrontend::Module {

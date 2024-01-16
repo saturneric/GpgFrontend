@@ -31,7 +31,6 @@
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
-#include <utility>
 
 #include "core/module/Event.h"
 #include "core/module/Module.h"

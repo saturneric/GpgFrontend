@@ -28,8 +28,6 @@
 
 #include "Event.h"
 
-#include <utility>
-
 namespace GpgFrontend::Module {
 
 class Event::Impl {

@@ -44,19 +44,19 @@ class ListedKeyServerTestTask : public Thread::Task {
   Q_OBJECT
  public:
   enum KeyServerTestResultType {
-    kTestResultType_Success,
-    kTestResultType_Timeout,
-    kTestResultType_Error,
+    kTEST_RESULT_TYPE_SUCCESS,
+    kTEST_RESULT_TYPE_TIMEOUT,
+    kTEST_RESULT_TYPE_ERROR,
   };
 
-  explicit ListedKeyServerTestTask(const QStringList& urls, int timeout,
+  explicit ListedKeyServerTestTask(QStringList urls, int timeout,
                                    QWidget* parent = nullptr);
 
   /**
    * @brief
    *
    */
-  void Run() override;
+  auto Run() -> int override;
 
  signals:
   /**

@@ -27,8 +27,6 @@
  */
 #include "GpgCommandExecutor.h"
 
-#include <utility>
-
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/DataObject.h"
 #include "core/module/Module.h"

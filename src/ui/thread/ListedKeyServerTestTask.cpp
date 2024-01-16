@@ -32,10 +32,10 @@
 #include <vector>
 
 GpgFrontend::UI::ListedKeyServerTestTask::ListedKeyServerTestTask(
-    const QStringList& urls, int timeout, QWidget* parent)
+    QStringList urls, int timeout, QWidget* /*parent*/)
     : Task("listed_key_server_test_task"),
-      urls_(urls),
-      result_(urls_.size(), kTestResultType_Error),
+      urls_(std::move(urls)),
+      result_(urls_.size(), kTEST_RESULT_TYPE_ERROR),
       network_manager_(new QNetworkAccessManager(this)),
       timeout_(timeout) {
   HoldOnLifeCycle(true);
@@ -43,7 +43,7 @@ GpgFrontend::UI::ListedKeyServerTestTask::ListedKeyServerTestTask(
       "std::vector<KeyServerTestResultType>");
 }
 
-void GpgFrontend::UI::ListedKeyServerTestTask::Run() {
+auto GpgFrontend::UI::ListedKeyServerTestTask::Run() -> int {
   size_t index = 0;
   for (const auto& url : urls_) {
     auto key_url = QUrl{url};
@@ -68,20 +68,22 @@ void GpgFrontend::UI::ListedKeyServerTestTask::Run() {
     });
 
     timer->start(timeout_);
-
     index++;
   }
+
+  return 0;
 }
 
 void GpgFrontend::UI::ListedKeyServerTestTask::slot_process_network_reply(
     int index, QNetworkReply* reply) {
   if (!reply->isRunning() && reply->error() == QNetworkReply::NoError) {
-    result_[index] = kTestResultType_Success;
+    result_[index] = kTEST_RESULT_TYPE_SUCCESS;
   } else {
-    if (!reply->isFinished())
-      result_[index] = kTestResultType_Timeout;
-    else
-      result_[index] = kTestResultType_Error;
+    if (!reply->isFinished()) {
+      result_[index] = kTEST_RESULT_TYPE_TIMEOUT;
+    } else {
+      result_[index] = kTEST_RESULT_TYPE_ERROR;
+    }
   }
 
   if (++result_count_ == urls_.size()) {

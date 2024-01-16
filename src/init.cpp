@@ -113,6 +113,7 @@ void InitGlobalBasicalEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
   // change path to search for related
   InitGlobalPathEnv();
 
+  // init application
   ctx->InitApplication();
 
   // should load module system first

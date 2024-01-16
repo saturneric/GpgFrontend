@@ -197,194 +197,197 @@ void InitGpgFrontendCore(CoreInitArgs args) {
     return;
   }
 
+  auto* task = new Thread::Task(
+      [args](const DataObjectPtr&) -> int {
+        auto settings = GlobalSettingStation::GetInstance().GetSettings();
+        // read settings from config file
+        auto forbid_all_gnupg_connection =
+            settings.value("network/forbid_all_gnupg_connection", false)
+                .toBool();
+
+        auto auto_import_missing_key =
+            settings.value("network/auto_import_missing_key", false).toBool();
+
+        auto use_custom_key_database_path =
+            settings.value("basic/use_custom_key_database_path", false)
+                .toBool();
+
+        auto custom_key_database_path =
+            settings.value("basic/custom_key_database_path", QString{})
+                .toString();
+
+        auto use_custom_gnupg_install_path =
+            settings.value("basic/use_custom_gnupg_install_path", false)
+                .toBool();
+
+        auto custom_gnupg_install_path =
+            settings.value("basic/custom_gnupg_install_path", QString{})
+                .toString();
+
+        auto use_pinentry_as_password_input_dialog =
+            settings.value("basic/use_pinentry_as_password_input_dialog", false)
+                .toBool();
+
+        GF_CORE_LOG_DEBUG("core loaded if use custom key databse path: {}",
+                          use_custom_key_database_path);
+        GF_CORE_LOG_DEBUG("core loaded custom key databse path: {}",
+                          custom_key_database_path);
+
+        QString gnupg_install_fs_path;
+        // user defined
+        if (!custom_gnupg_install_path.isEmpty()) {
+          // check gpgconf path
+          gnupg_install_fs_path = custom_gnupg_install_path;
+#ifdef WINDOWS
+          gnupg_install_fs_path += "/gpgconf.exe";
+#else
+          gnupg_install_fs_path += "/gpgconf";
+#endif
+
+          if (!VerifyGpgconfPath(QFileInfo(gnupg_install_fs_path))) {
+            use_custom_gnupg_install_path = false;
+            GF_CORE_LOG_ERROR("core loaded custom gpgconf path is illegal: {}",
+                              gnupg_install_fs_path);
+          } else {
+            GF_CORE_LOG_DEBUG("core loaded custom gpgconf path: {}",
+                              gnupg_install_fs_path);
+          }
+        } else {
+#ifdef MACOS
+          use_custom_gnupg_install_path = true;
+          gnupg_install_fs_path = SearchGpgconfPath(
+              {"/usr/local/bin/gpgconf", "/opt/homebrew/bin/gpgconf"});
+          GF_CORE_LOG_DEBUG("core loaded searched gpgconf path: {}",
+                            gnupg_install_fs_path);
+#endif
+        }
+
+        // check key database path
+        QString key_database_fs_path;
+        // user defined
+        if (!custom_key_database_path.isEmpty()) {
+          key_database_fs_path = custom_key_database_path;
+          if (VerifyKeyDatabasePath(QFileInfo(key_database_fs_path))) {
+            GF_CORE_LOG_ERROR(
+                "core loaded custom gpg key database is illegal: {}",
+                key_database_fs_path);
+          } else {
+            use_custom_key_database_path = true;
+            GF_CORE_LOG_DEBUG("core loaded custom gpg key database path: {}",
+                              key_database_fs_path);
+          }
+        } else {
+#ifdef MACOS
+          use_custom_key_database_path = true;
+          key_database_fs_path =
+              SearchKeyDatabasePath({QDir::home().path() + "/.gnupg"});
+          GF_CORE_LOG_DEBUG("core loaded searched key database path: {}",
+                            key_database_fs_path);
+#endif
+        }
+
+        if (args.load_default_gpg_context) {
+          // init ctx, also checking the basical env
+          auto& ctx = GpgFrontend::GpgContext::CreateInstance(
+              kGpgFrontendDefaultChannel, [=]() -> ChannelObjectPtr {
+                GpgFrontend::GpgContextInitArgs args;
+
+                // set key database path
+                if (use_custom_key_database_path &&
+                    !key_database_fs_path.isEmpty()) {
+                  args.db_path = key_database_fs_path;
+                }
+
+                // set custom gnupg path
+                if (use_custom_gnupg_install_path) {
+                  args.custom_gpgconf = true;
+                  args.custom_gpgconf_path = gnupg_install_fs_path;
+                }
+
+                args.offline_mode = forbid_all_gnupg_connection;
+                args.auto_import_missing_key = auto_import_missing_key;
+                args.use_pinentry = use_pinentry_as_password_input_dialog;
+
+                return ConvertToChannelObjectPtr<>(
+                    SecureCreateUniqueObject<GpgContext>(
+                        args, kGpgFrontendDefaultChannel));
+              });
+
+          // exit if failed
+          if (!ctx.Good()) {
+            GF_CORE_LOG_ERROR("default gnupg context init error, abort");
+            CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+                _("GpgME Context inilization failed"));
+            return -1;
+          }
+          Module::UpsertRTValue("core", "env.state.ctx", 1);
+        }
+
+        if (args.load_default_gpg_context) {
+          if (!GpgKeyGetter::GetInstance().FlushKeyCache()) {
+            CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+                _("Gpg Key Detabase inilization failed"));
+          };
+        }
+        GF_CORE_LOG_INFO(
+            "basic env checking finished, "
+            "including gpgme, ctx, and key infos");
+        Module::UpsertRTValue("core", "env.state.basic", 1);
+        CoreSignalStation::GetInstance()->SignalGoodGnupgEnv();
+
+        // if gnupg-info-gathering module activated
+        if (args.gather_external_gnupg_info &&
+            Module::IsModuleAcivate("com.bktus.gpgfrontend.module."
+                                    "integrated.gnupg-info-gathering")) {
+          GF_CORE_LOG_DEBUG(
+              "module gnupg-info-gathering is activated, "
+              "loading external gnupg info...");
+
+          // gather external gnupg info
+          Module::TriggerEvent(
+              "GPGFRONTEND_CORE_INITLIZED",
+              [](const Module::EventIdentifier& /*e*/,
+                 const Module::Event::ListenerIdentifier& l_id,
+                 DataObjectPtr o) {
+                GF_CORE_LOG_DEBUG(
+                    "received event GPGFRONTEND_CORE_INITLIZED callback "
+                    "from module: {}",
+                    l_id);
+
+                if (l_id ==
+                    "com.bktus.gpgfrontend.module.integrated.gnupg-info-"
+                    "gathering") {
+                  GF_CORE_LOG_DEBUG(
+                      "received callback from gnupg-info-gathering ");
+
+                  // try to restart all components
+                  GpgFrontend::GpgAdvancedOperator::RestartGpgComponents();
+                  Module::UpsertRTValue("core", "env.state.gnupg", 1);
+
+                  // announce that all checkings were finished
+                  GF_CORE_LOG_INFO(
+                      "all env checking finished, including gpgme, "
+                      "ctx and gnupg");
+                  Module::UpsertRTValue("core", "env.state.all", 1);
+                }
+              });
+        } else {
+          GF_CORE_LOG_DEBUG("gnupg-info-gathering is not activated");
+          Module::UpsertRTValue("core", "env.state.all", 1);
+        }
+        return 0;
+      },
+      "core_init_task");
+
+  QObject::connect(task, &Thread::Task::SignalTaskEnd, []() {
+      
+  });
+
   // start the thread to check ctx and gnupg state
   // it may take a few seconds or minutes
   GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
-      ->PostTask(new Thread::Task(
-          [args](const DataObjectPtr&) -> int {
-            auto settings = GlobalSettingStation::GetInstance().GetSettings();
-            // read settings from config file
-            auto forbid_all_gnupg_connection =
-                settings.value("network/forbid_all_gnupg_connection", false)
-                    .toBool();
-
-            auto auto_import_missing_key =
-                settings.value("network/auto_import_missing_key", false)
-                    .toBool();
-
-            auto use_custom_key_database_path =
-                settings.value("basic/use_custom_key_database_path", false)
-                    .toBool();
-
-            auto custom_key_database_path =
-                settings.value("basic/custom_key_database_path", QString{})
-                    .toString();
-
-            auto use_custom_gnupg_install_path =
-                settings.value("basic/use_custom_gnupg_install_path", false)
-                    .toBool();
-
-            auto custom_gnupg_install_path =
-                settings.value("basic/custom_gnupg_install_path", QString{})
-                    .toString();
-
-            auto use_pinentry_as_password_input_dialog =
-                settings
-                    .value("basic/use_pinentry_as_password_input_dialog", false)
-                    .toBool();
-
-            GF_CORE_LOG_DEBUG("core loaded if use custom key databse path: {}",
-                              use_custom_key_database_path);
-            GF_CORE_LOG_DEBUG("core loaded custom key databse path: {}",
-                              custom_key_database_path);
-
-            QString gnupg_install_fs_path;
-            // user defined
-            if (!custom_gnupg_install_path.isEmpty()) {
-              // check gpgconf path
-              gnupg_install_fs_path = custom_gnupg_install_path;
-#ifdef WINDOWS
-              gnupg_install_fs_path += "/gpgconf.exe";
-#else
-              gnupg_install_fs_path += "/gpgconf";
-#endif
-
-              if (!VerifyGpgconfPath(QFileInfo(gnupg_install_fs_path))) {
-                use_custom_gnupg_install_path = false;
-                GF_CORE_LOG_ERROR(
-                    "core loaded custom gpgconf path is illegal: {}",
-                    gnupg_install_fs_path);
-              } else {
-                GF_CORE_LOG_DEBUG("core loaded custom gpgconf path: {}",
-                                  gnupg_install_fs_path);
-              }
-            } else {
-#ifdef MACOS
-              use_custom_gnupg_install_path = true;
-              gnupg_install_fs_path = SearchGpgconfPath(
-                  {"/usr/local/bin/gpgconf", "/opt/homebrew/bin/gpgconf"});
-              GF_CORE_LOG_DEBUG("core loaded searched gpgconf path: {}",
-                                gnupg_install_fs_path);
-#endif
-            }
-
-            // check key database path
-            QString key_database_fs_path;
-            // user defined
-            if (!custom_key_database_path.isEmpty()) {
-              key_database_fs_path = custom_key_database_path;
-              if (VerifyKeyDatabasePath(QFileInfo(key_database_fs_path))) {
-                GF_CORE_LOG_ERROR(
-                    "core loaded custom gpg key database is illegal: {}",
-                    key_database_fs_path);
-              } else {
-                use_custom_key_database_path = true;
-                GF_CORE_LOG_DEBUG(
-                    "core loaded custom gpg key database path: {}",
-                    key_database_fs_path);
-              }
-            } else {
-#ifdef MACOS
-              use_custom_key_database_path = true;
-              key_database_fs_path =
-                  SearchKeyDatabasePath({QDir::home().path() + "/.gnupg"});
-              GF_CORE_LOG_DEBUG("core loaded searched key database path: {}",
-                                key_database_fs_path);
-#endif
-            }
-
-            if (args.load_default_gpg_context) {
-              // init ctx, also checking the basical env
-              auto& ctx = GpgFrontend::GpgContext::CreateInstance(
-                  kGpgFrontendDefaultChannel, [=]() -> ChannelObjectPtr {
-                    GpgFrontend::GpgContextInitArgs args;
-
-                    // set key database path
-                    if (use_custom_key_database_path &&
-                        !key_database_fs_path.isEmpty()) {
-                      args.db_path = key_database_fs_path;
-                    }
-
-                    // set custom gnupg path
-                    if (use_custom_gnupg_install_path) {
-                      args.custom_gpgconf = true;
-                      args.custom_gpgconf_path = gnupg_install_fs_path;
-                    }
-
-                    args.offline_mode = forbid_all_gnupg_connection;
-                    args.auto_import_missing_key = auto_import_missing_key;
-                    args.use_pinentry = use_pinentry_as_password_input_dialog;
-
-                    return ConvertToChannelObjectPtr<>(
-                        SecureCreateUniqueObject<GpgContext>(
-                            args, kGpgFrontendDefaultChannel));
-                  });
-
-              // exit if failed
-              if (!ctx.Good()) {
-                GF_CORE_LOG_ERROR("default gnupg context init error, abort");
-                CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-                    _("GpgME Context inilization failed"));
-                return -1;
-              }
-              Module::UpsertRTValue("core", "env.state.ctx", 1);
-            }
-
-            // if gnupg-info-gathering module activated
-            if (args.gather_external_gnupg_info &&
-                Module::IsModuleAcivate("com.bktus.gpgfrontend.module."
-                                        "integrated.gnupg-info-gathering")) {
-              GF_CORE_LOG_DEBUG("gnupg-info-gathering is activated");
-
-              // gather external gnupg info
-              Module::TriggerEvent(
-                  "GPGFRONTEND_CORE_INITLIZED",
-                  [](const Module::EventIdentifier& /*e*/,
-                     const Module::Event::ListenerIdentifier& l_id,
-                     DataObjectPtr o) {
-                    GF_CORE_LOG_DEBUG(
-                        "received event GPGFRONTEND_CORE_INITLIZED callback "
-                        "from module: {}",
-                        l_id);
-
-                    if (l_id ==
-                        "com.bktus.gpgfrontend.module.integrated.gnupg-info-"
-                        "gathering") {
-                      GF_CORE_LOG_DEBUG(
-                          "received callback from gnupg-info-gathering ");
-
-                      // try to restart all components
-                      GpgFrontend::GpgAdvancedOperator::RestartGpgComponents();
-                      Module::UpsertRTValue("core", "env.state.gnupg", 1);
-
-                      // announce that all checkings were finished
-                      GF_CORE_LOG_INFO(
-                          "all env checking finished, including gpgme, "
-                          "ctx and gnupg");
-                      Module::UpsertRTValue("core", "env.state.all", 1);
-                    }
-                  });
-            } else {
-              GF_CORE_LOG_DEBUG("gnupg-info-gathering is not activated");
-              Module::UpsertRTValue("core", "env.state.all", 1);
-            }
-
-            if (args.load_default_gpg_context) {
-              if (!GpgKeyGetter::GetInstance().FlushKeyCache()) {
-                CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-                    _("Gpg Key Detabase inilization failed"));
-              };
-            }
-            GF_CORE_LOG_INFO(
-                "basic env checking finished, including gpgme, ctx, and key "
-                "infos");
-            Module::UpsertRTValue("core", "env.state.basic", 1);
-            CoreSignalStation::GetInstance()->SignalGoodGnupgEnv();
-
-            return 0;
-          },
-          "core_init_task"));
+      ->PostTask(task);
 }
 
 }  // namespace GpgFrontend

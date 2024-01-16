@@ -221,8 +221,9 @@ class GpgContext::Impl {
           gpgme_ctx_set_engine_info(ctx, GPGME_PROTOCOL_GPGCONF,
                                     args.custom_gpgconf_path.toUtf8(), nullptr);
 
-      assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
       if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+        GF_CORE_LOG_ERROR("set gpg context engine info error: {}",
+                          DescribeGpgErrCode(err).second);
         return false;
       }
     }
@@ -275,7 +276,9 @@ class GpgContext::Impl {
 
   auto binary_ctx_initialize(const GpgContextInitArgs &args) -> bool {
     gpgme_ctx_t p_ctx;
-    if (CheckGpgError(gpgme_new(&p_ctx)) != GPG_ERR_NO_ERROR) {
+    if (auto err = CheckGpgError(gpgme_new(&p_ctx)); err != GPG_ERR_NO_ERROR) {
+      GF_CORE_LOG_ERROR("get new gpg context error: {}",
+                        DescribeGpgErrCode(err).second);
       return false;
     }
     assert(p_ctx != nullptr);

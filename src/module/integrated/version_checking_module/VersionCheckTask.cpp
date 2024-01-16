@@ -45,8 +45,8 @@ VersionCheckTask::VersionCheckTask()
   version_.current_version = current_version_;
 }
 
-void VersionCheckTask::Run() {
-  MODULE_LOG_DEBUG("current version: {}", current_version_);
+auto VersionCheckTask::Run() -> int {
+  MODULE_LOG_DEBUG("current project version: {}", current_version_);
   QString latest_version_url =
       "https://api.github.com/repos/saturneric/gpgfrontend/releases/latest";
 
@@ -55,6 +55,7 @@ void VersionCheckTask::Run() {
   latest_reply_ = network_manager_->get(latest_request);
   connect(latest_reply_, &QNetworkReply::finished, this,
           &VersionCheckTask::slot_parse_latest_version_info);
+  return 0;
 }
 
 void VersionCheckTask::slot_parse_latest_version_info() {

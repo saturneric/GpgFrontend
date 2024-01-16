@@ -28,8 +28,6 @@
 
 #include "PlainTextEditorPage.h"
 
-#include <utility>
-
 #include "core/thread/FileReadTask.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "ui/struct/SettingsObject.h"

@@ -30,7 +30,6 @@
 
 #include <algorithm>
 #include <shared_mutex>
-#include <utility>
 
 #include "core/function/DataObjectOperator.h"
 #include "core/utils/MemoryUtils.h"

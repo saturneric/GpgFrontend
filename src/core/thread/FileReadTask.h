@@ -44,7 +44,7 @@ class GPGFRONTEND_CORE_EXPORT FileReadTask : public GpgFrontend::Thread::Task {
 
   virtual ~FileReadTask() override;
 
-  void Run() override;
+  int Run() override;
 
  signals:
   void SignalFileBytesRead(QByteArray bytes);
@@ -57,7 +57,7 @@ class GPGFRONTEND_CORE_EXPORT FileReadTask : public GpgFrontend::Thread::Task {
   QEventLoop looper;
 
  private slots:
-  void read_bytes();
+  void slot_read_bytes();
 };
 
 }  // namespace GpgFrontend::UI

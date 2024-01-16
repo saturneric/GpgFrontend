@@ -66,7 +66,7 @@ class VersionCheckTask : public Thread::Task {
 
    *
    */
-  void Run() override;
+  auto Run() -> int override;
 
  private slots:
 

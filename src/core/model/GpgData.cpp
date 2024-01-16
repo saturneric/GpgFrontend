@@ -30,8 +30,6 @@
 
 #include <unistd.h>
 
-#include <utility>
-
 #include "core/model/GFDataExchanger.h"
 #include "core/typedef/GpgTypedef.h"
 

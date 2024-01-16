@@ -28,8 +28,6 @@
 
 #include "CacheObject.h"
 
-#include <utility>
-
 #include "core/function/CacheManager.h"
 
 namespace GpgFrontend::UI {

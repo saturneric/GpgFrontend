@@ -30,8 +30,6 @@
 
 #include <qscopedpointer.h>
 
-#include <utility>
-
 #include "utils/MemoryUtils.h"
 
 namespace GpgFrontend::Thread {
@@ -84,16 +82,27 @@ class Task::Impl {
     return uuid_ + "/" + name_;
   }
 
-  auto GetUUID() const -> QString { return uuid_; }
+  /**
+   * @brief
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto GetUUID() const -> QString { return uuid_; }
 
-  void Run() {
-    GF_CORE_LOG_TRACE("task {} is using default runnable and callback mode",
+  /**
+   * @brief
+   *
+   * @return int
+   */
+  auto Run() -> int {
+    GF_CORE_LOG_TRACE("task {} is in classical runnable and callback mode",
                       GetFullID());
-    if (runnable_) {
-      SetRTN(runnable_(data_object_));
-    } else {
-      GF_CORE_LOG_WARN("no runnable in task, do callback operation");
-    }
+
+    if (runnable_) return runnable_(data_object_);
+
+    GF_CORE_LOG_WARN("no runnable in task, do callback operation, task: {}",
+                     GetFullID());
+    return 0;
   }
 
   /**
@@ -110,13 +119,20 @@ class Task::Impl {
    */
   void SetRTN(int rtn) { this->rtn_ = rtn; }
 
+  /**
+   * @brief
+   *
+   * @return auto
+   */
+  [[nodiscard]] auto GetRTN() const { return this->rtn_; }
+
  private:
   Task *const parent_;
   const QString uuid_;
   const QString name_;
   TaskRunnable runnable_;                ///<
   TaskCallback callback_;                ///<
-  int rtn_ = 0;                          ///<
+  int rtn_ = -99;                        ///<
   QThread *callback_thread_ = nullptr;   ///<
   DataObjectPtr data_object_ = nullptr;  ///<
 
@@ -128,14 +144,14 @@ class Task::Impl {
     HoldOnLifeCycle(false);
 
     //
-    connect(parent_, &Task::SignalRun, parent_, [=]() { inner_run(); });
+    connect(parent_, &Task::SignalRun, parent_, &Task::slot_exception_safe_run);
 
     //
     connect(parent_, &Task::SignalTaskShouldEnd, QThread::currentThread(),
             [this](int rtn) {
-#ifdef RELEASE
+              // set task returning code
+              SetRTN(rtn);
               try {
-#endif
                 if (callback_) {
                   GF_CORE_LOG_TRACE(
                       "task callback {} is starting with runnerable rtn: {}",
@@ -145,37 +161,15 @@ class Task::Impl {
                   GF_CORE_LOG_TRACE("task callback {} finished, rtn: {}",
                                     GetFullID(), rtn);
                 }
-
-#ifdef RELEASE
               } catch (...) {
-                GF_CORE_LOG_ERROR("task callback {} finished, rtn: {}",
+                GF_CORE_LOG_ERROR("task {} callback caught exception, rtn: {}",
                                   GetFullID(), rtn);
               }
-#endif
               emit parent_->SignalTaskEnd();
             });
 
     //
     connect(parent_, &Task::SignalTaskEnd, parent_, &Task::deleteLater);
-  }
-
-  /**
-   * @brief
-   *
-   */
-  void inner_run() {
-    try {
-      GF_CORE_LOG_TRACE("task runnable {} is starting...", GetFullID());
-      // Run() will set rtn by itself
-      parent_->Run();
-      GF_CORE_LOG_TRACE("task runnable {} finished, rtn: {}", GetFullID());
-    } catch (std::exception &e) {
-      GF_CORE_LOG_ERROR("exception was caught at task: {}", e.what());
-    }
-    // raise signal to anounce after runnable returned
-    if (parent_->autoDelete()) {
-      emit parent_->SignalTaskShouldEnd(rtn_);
-    }
   }
 
   /**
@@ -211,11 +205,11 @@ QString Task::GetUUID() const { return p_->GetUUID(); }
 
 void Task::HoldOnLifeCycle(bool hold_on) { p_->HoldOnLifeCycle(hold_on); }
 
-void Task::SetRTN(int rtn) { p_->SetRTN(rtn); }
+void Task::setRTN(int rtn) { p_->SetRTN(rtn); }
 
 void Task::SafelyRun() { emit SignalRun(); }
 
-void Task::Run() { p_->Run(); }
+int Task::Run() { return p_->Run(); }
 
 void Task::run() {
   GF_CORE_LOG_TRACE("interface run() of task {} was called by thread: {}",
@@ -237,4 +231,22 @@ auto Task::TaskHandler::GetTask() -> Task * {
   if (task_ != nullptr) return task_;
   return nullptr;
 }
+
+void Task::slot_exception_safe_run() noexcept {
+  auto rtn = p_->GetRTN();
+  try {
+    GF_CORE_LOG_TRACE("task runnable {} is starting...", GetFullID());
+
+    // Run() will set rtn by itself
+    rtn = this->Run();
+
+    GF_CORE_LOG_TRACE("task runnable {} finished, rtn: {}", GetFullID());
+  } catch (...) {
+    GF_CORE_LOG_ERROR("exception was caught at task: {}", GetFullID());
+  }
+
+  // raise signal to anounce after runnable returned
+  if (this->autoDelete()) emit this->SignalTaskShouldEnd(rtn);
+}
+auto Task::GetRTN() { return p_->GetRTN(); }
 }  // namespace GpgFrontend::Thread

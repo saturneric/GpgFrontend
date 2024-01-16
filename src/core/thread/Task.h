@@ -80,28 +80,90 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
   explicit Task(TaskRunnable runnable, QString name, DataObjectPtr data,
                 TaskCallback callback);
 
+  /**
+   * @brief Destroy the Task object
+   *
+   */
   ~Task() override;
 
+  /**
+   * @brief
+   *
+   * @return QString
+   */
   [[nodiscard]] auto GetUUID() const -> QString;
 
+  /**
+   * @brief Get the Full I D object
+   *
+   * @return QString
+   */
   [[nodiscard]] auto GetFullID() const -> QString;
 
+  /**
+   * @brief
+   *
+   * @param hold_on
+   */
   void HoldOnLifeCycle(bool hold_on);
 
-  virtual void Run();
+  /**
+   * @brief can be overwrite by subclass
+   *
+   * @return int
+   */
+  virtual auto Run() -> int;
+
+  /**
+   * @brief
+   *
+   * @return auto
+   */
+  [[nodiscard]] auto GetRTN();
 
  public slots:
+
+  /**
+   * @brief shouldn't be overwrite by subclass
+   *
+   */
   void SafelyRun();
 
  signals:
+
+  /**
+   * @brief
+   *
+   */
   void SignalRun();
 
+  /**
+   * @brief
+   *
+   */
   void SignalTaskShouldEnd(int);
 
+  /**
+   * @brief
+   *
+   */
   void SignalTaskEnd();
 
  protected:
-  void SetRTN(int rtn);
+  /**
+   * @brief
+   *
+   * @param rtn
+   */
+  void setRTN(int rtn);
+
+ private slots:
+
+  /**
+   * @brief
+   *
+   */
+  void slot_exception_safe_run() noexcept;
 
  private:
   class Impl;

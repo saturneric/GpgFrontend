@@ -48,7 +48,7 @@ GpgFrontend::UI::KeyServerImportTask::KeyServerImportTask(
   }
 }
 
-void GpgFrontend::UI::KeyServerImportTask::Run() {
+auto GpgFrontend::UI::KeyServerImportTask::Run() -> int {
   QUrl const keyserver_url = QUrl(keyserver_url_);
   for (const auto& key_id : keyids_) {
     QUrl const req_url(keyserver_url.scheme() + "://" + keyserver_url.host() +
@@ -58,6 +58,7 @@ void GpgFrontend::UI::KeyServerImportTask::Run() {
     connect(reply_, &QNetworkReply::finished, this,
             &KeyServerImportTask::dealing_reply_from_server);
   }
+  return 0;
 }
 
 void GpgFrontend::UI::KeyServerImportTask::dealing_reply_from_server() {

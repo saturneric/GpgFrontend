@@ -240,8 +240,8 @@ void KeyserverTab::slot_test_listed_key_server() {
         ui_->keyServerListTable->blockSignals(true);
         for (size_t i = 0; i < row_size; i++) {
           const auto status = result[i];
-          auto status_iem = ui_->keyServerListTable->item(i, 3);
-          if (status == ListedKeyServerTestTask::kTestResultType_Success) {
+          auto* status_iem = ui_->keyServerListTable->item(i, 3);
+          if (status == ListedKeyServerTestTask::kTEST_RESULT_TYPE_SUCCESS) {
             status_iem->setText(_("Reachable"));
             status_iem->setForeground(QBrush(QColor::fromRgb(0, 255, 0)));
           } else {
@@ -256,7 +256,7 @@ void KeyserverTab::slot_test_listed_key_server() {
   auto* waiting_dialog = new QProgressDialog(this);
   waiting_dialog->setMaximum(0);
   waiting_dialog->setMinimum(0);
-  auto waiting_dialog_label =
+  auto* waiting_dialog_label =
       new QLabel(QString(_("Test Key Server Connection...")) + "<br /><br />" +
                  _("This test only tests the network connectivity of the key "
                    "server. Passing the test does not mean that the key server "
