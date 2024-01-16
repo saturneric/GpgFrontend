@@ -40,12 +40,13 @@ GpgSignResultAnalyse::GpgSignResultAnalyse(GpgError error, GpgSignResult result)
 void GpgSignResultAnalyse::doAnalyse() {
   auto *result = this->result_.GetRaw();
 
-  stream_ << "# " << _("Sign Operation") << " ";
+  stream_ << "# " << tr("Sign Operation") << " ";
 
   if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
-    stream_ << "- " << _("Success") << " " << Qt::endl;
+    stream_ << "- " << tr("Success") << " " << Qt::endl;
   } else {
-    stream_ << "- " << _("Failed") << " " << gpgme_strerror(error_) << Qt::endl;
+    stream_ << "- " << tr("Failed") << " " << gpgme_strerror(error_)
+            << Qt::endl;
     setStatus(-1);
   }
 
@@ -56,37 +57,37 @@ void GpgSignResultAnalyse::doAnalyse() {
     auto index = 0;
 
     while (new_sign != nullptr) {
-      stream_ << "## " << _("New Signature") << " [" << ++index
+      stream_ << "## " << tr("New Signature") << " [" << ++index
               << "]: " << Qt::endl;
 
-      stream_ << "- " << _("Sign Mode") << ": ";
+      stream_ << "- " << tr("Sign Mode") << ": ";
       if (new_sign->type == GPGME_SIG_MODE_NORMAL) {
-        stream_ << _("Normal");
+        stream_ << tr("Normal");
       } else if (new_sign->type == GPGME_SIG_MODE_CLEAR) {
-        stream_ << _("Clear");
+        stream_ << tr("Clear");
       } else if (new_sign->type == GPGME_SIG_MODE_DETACH) {
-        stream_ << _("Detach");
+        stream_ << tr("Detach");
       }
 
       stream_ << Qt::endl;
 
       auto singer_key = GpgKeyGetter::GetInstance().GetKey(new_sign->fpr);
       if (singer_key.IsGood()) {
-        stream_ << "- " << _("Signer") << ": "
+        stream_ << "- " << tr("Signer") << ": "
                 << singer_key.GetUIDs()->front().GetUID() << Qt::endl;
       } else {
-        stream_ << "- " << _("Signer") << ": "
+        stream_ << "- " << tr("Signer") << ": "
                 << "<unknown>" << Qt::endl;
       }
-      stream_ << "- " << _("Public Key Algo") << ": "
+      stream_ << "- " << tr("Public Key Algo") << ": "
               << gpgme_pubkey_algo_name(new_sign->pubkey_algo) << Qt::endl;
-      stream_ << "- " << _("Hash Algo") << ": "
+      stream_ << "- " << tr("Hash Algo") << ": "
               << gpgme_hash_algo_name(new_sign->hash_algo) << Qt::endl;
-      stream_ << "- " << _("Date") << "(" << _("UTC") << ")"
+      stream_ << "- " << tr("Date") << "(" << tr("UTC") << ")"
               << ": "
               << QDateTime::fromSecsSinceEpoch(new_sign->timestamp).toString()
               << Qt::endl;
-      stream_ << "- " << _("Date") << "(" << _("Localized") << ")"
+      stream_ << "- " << tr("Date") << "(" << tr("Localized") << ")"
               << ": " << GetFormatedDateByTimestamp(new_sign->timestamp)
               << Qt::endl;
 
@@ -101,17 +102,17 @@ void GpgSignResultAnalyse::doAnalyse() {
     stream_ << Qt::endl;
 
     if (invalid_signer != nullptr) {
-      stream_ << "## " << _("Invalid Signers") << ": " << Qt::endl;
+      stream_ << "## " << tr("Invalid Signers") << ": " << Qt::endl;
     }
 
     index = 0;
     while (invalid_signer != nullptr) {
       setStatus(0);
-      stream_ << "### " << _("Signer") << " [" << ++index << "]: " << Qt::endl
+      stream_ << "### " << tr("Signer") << " [" << ++index << "]: " << Qt::endl
               << Qt::endl;
-      stream_ << "- " << _("Fingerprint") << ": " << invalid_signer->fpr
+      stream_ << "- " << tr("Fingerprint") << ": " << invalid_signer->fpr
               << Qt::endl;
-      stream_ << "- " << _("Reason") << ": "
+      stream_ << "- " << tr("Reason") << ": "
               << gpgme_strerror(invalid_signer->reason) << Qt::endl;
       stream_ << "---------------------------------------" << Qt::endl;
 

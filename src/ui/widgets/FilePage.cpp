@@ -65,13 +65,13 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
   ui_->pathEdit->setCompleter(path_edit_completer_);
 
   option_popup_menu_ = new QMenu(this);
-  auto* show_hidden_act = new QAction(_("Show Hidden File"), this);
+  auto* show_hidden_act = new QAction(tr("Show Hidden File"), this);
   show_hidden_act->setCheckable(true);
   connect(show_hidden_act, &QAction::triggered, file_tree_view_,
           &FileTreeView::SlotShowHiddenFile);
   option_popup_menu_->addAction(show_hidden_act);
 
-  auto* show_system_act = new QAction(_("Show System File"), this);
+  auto* show_system_act = new QAction(tr("Show System File"), this);
   show_system_act->setCheckable(true);
   connect(show_system_act, &QAction::triggered, file_tree_view_,
           &FileTreeView::SlotShowSystemFile);

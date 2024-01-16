@@ -1225,8 +1225,8 @@ msgid "Error Validating signature"
 msgstr "验证签名时出错"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:78
-msgid "File was signed on %1%"
-msgstr "文件已在 %1% 上签名"
+msgid "File was signed on %1"
+msgstr "文件已在 %1 上签名"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:81
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:87
@@ -1234,8 +1234,8 @@ msgid "It Contains"
 msgstr "它包含了"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/details/VerifyDetailsDialog.cpp:84
-msgid "Signed on %1%"
-msgstr "已在 %1% 上签名"
+msgid "Signed on %1"
+msgstr "已在 %1 上签名"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/SignersPicker.cpp:37
 msgid "Cancel"
@@ -1259,8 +1259,8 @@ msgstr "未保存的文件"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/QuitDialog.cpp:86
 msgid ""
-"%1% files contain unsaved information.<br/>Save the changes before closing?"
-msgstr "%1% 个文件包含未保存的信息。<br/>要在关闭前保存更改吗？"
+"%1 files contain unsaved information.<br/>Save the changes before closing?"
+msgstr "%1 个文件包含未保存的信息。<br/>要在关闭前保存更改吗？"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/dialog/QuitDialog.cpp:100
 msgid "Check the files you want to save:"
@@ -2382,8 +2382,8 @@ msgid "Making Tarball"
 msgstr "制作压缩包"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:196
-msgid "The target file %1% already exists, do you need to overwrite it?"
-msgstr "目标文件 %1% 已经存在，是否需要覆盖？"
+msgid "The target file %1 already exists, do you need to overwrite it?"
+msgstr "目标文件 %1 已经存在，是否需要覆盖？"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:210
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/main_window/MainWindowFileSlotFunction.cpp:614
@@ -3242,8 +3242,8 @@ msgid "Syncing Key List..."
 msgstr "正在同步密钥列表..."
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:502
-msgid "Sync [%1%/%2%] %3% %4%"
-msgstr "同步 [%1%/%2%] %3% %4%"
+msgid "Sync [%1/%2] %3 %4"
+msgstr "同步 [%1/%2] %3 %4"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/KeyList.cpp:510
 msgid "Key List Sync Done."
@@ -3264,8 +3264,8 @@ msgstr "UTF-8"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:70
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:257
-msgid "%1% character(s)"
-msgstr "%1% 个字符"
+msgid "%1 character(s)"
+msgstr "%1 个字符"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:79
 msgid "Loading..."
@@ -3276,8 +3276,8 @@ msgid "UTF-8"
 msgstr "UTF-8"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:237
-msgid "%1% byte(s)"
-msgstr "%1% 字节"
+msgid "%1 byte(s)"
+msgstr "%1 字节"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/PlainTextEditorPage.cpp:281
 msgid "binary"
@@ -3292,11 +3292,11 @@ msgstr "无标题"
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:223
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:450
 msgid ""
-"Cannot read file %1%:\n"
-"%2%."
+"Cannot read file %1:\n"
+"%2."
 msgstr ""
-"无法读取文件 %1%:\n"
-"%2%。"
+"无法读取文件 %1:\n"
+"%2。"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/ui/widgets/TextEdit.cpp:152
 msgid "Open file"
@@ -3617,8 +3617,8 @@ msgid "Signatures List"
 msgstr "签名列表"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:70
-msgid "Signature [%1%]:"
-msgstr "签名 [%1%]:"
+msgid "Signature [%1]:"
+msgstr "签名 [%1]:"
 
 #: /home/eric/develop/cpp/GpgFrontend/src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp:73
 msgid "A Bad Signature."

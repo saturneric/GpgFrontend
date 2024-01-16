@@ -43,7 +43,7 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
   const auto key_id = m_key_.GetId();
   m_key_list_ = new KeyList(KeyMenuAbility::NONE, this);
   m_key_list_->AddListGroupTab(
-      _("Signers"), "signers", KeyListRow::ONLY_SECRET_KEY,
+      tr("Signers"), "signers", KeyListRow::ONLY_SECRET_KEY,
       KeyListColumn::NAME | KeyListColumn::EmailAddress,
       [key_id](const GpgKey& key, const KeyTable&) -> bool {
         return !(key.IsDisabled() || !key.IsHasCertificationCapability() ||
@@ -83,7 +83,7 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
 
   layout->addWidget(m_key_list_, 0, 0);
   layout->addWidget(sign_key_button_, 2, 0, Qt::AlignRight);
-  timeLayout->addWidget(new QLabel(_("Expire Date")), 0, 0);
+  timeLayout->addWidget(new QLabel(tr("Expire Date")), 0, 0);
   timeLayout->addWidget(expires_edit_, 0, 1);
   timeLayout->addWidget(non_expire_check_, 0, 2);
   layout->addLayout(timeLayout, 1, 0);
@@ -93,7 +93,7 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
 
   this->setLayout(layout);
   this->setModal(true);
-  this->setWindowTitle(_("Sign For Key's UID(s)"));
+  this->setWindowTitle(tr("Sign For Key's UID(s)"));
   this->adjustSize();
 
   setAttribute(Qt::WA_DeleteOnClose, true);
@@ -117,13 +117,14 @@ void KeyUIDSignDialog::slot_sign_key(bool clicked) {
     // Sign For mKey
     if (!GpgKeyManager::GetInstance().SignKey(m_key_, *keys, uid, expires)) {
       QMessageBox::critical(
-          nullptr, _("Unsuccessful Operation"),
-          QString(_("Signature operation failed for UID %1")).arg(uid));
+          nullptr, tr("Unsuccessful Operation"),
+          tr("Signature operation failed for UID %1").arg(uid));
     }
   }
 
-  QMessageBox::information(nullptr, _("Operation Complete"),
-                           _("The signature operation of the UID is complete"));
+  QMessageBox::information(
+      nullptr, tr("Operation Complete"),
+      tr("The signature operation of the UID is complete"));
   this->close();
   emit SignalKeyUIDSignUpdate();
 }

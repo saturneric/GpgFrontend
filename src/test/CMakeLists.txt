@@ -39,8 +39,4 @@ target_link_libraries(gpgfrontend_test PRIVATE gtest)
 target_link_libraries(gpgfrontend_test PRIVATE gpgfrontend_core)
 target_link_libraries(gpgfrontend_test PRIVATE spdlog)
 
-if (APPLE)
-    target_link_libraries(gpgfrontend_test PRIVATE intl)
-endif ()
-
 add_test(AllTestsInGpgFrontend gpgfrontend_test)

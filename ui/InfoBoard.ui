@@ -78,7 +78,7 @@
             </property>
             <property name="icon">
              <iconset resource="../gpgfrontend.qrc">
-              <normaloff>:/copy.png</normaloff>:/copy.png</iconset>
+              <normaloff>:/icons/copy.png</normaloff>:/icons/copy.png</iconset>
             </property>
             <property name="autoRaise">
              <bool>false</bool>
@@ -95,7 +95,7 @@
             </property>
             <property name="icon">
              <iconset resource="../gpgfrontend.qrc">
-              <normaloff>:/filesave.png</normaloff>:/filesave.png</iconset>
+              <normaloff>:/icons/filesave.png</normaloff>:/icons/filesave.png</iconset>
             </property>
            </widget>
           </item>
@@ -109,7 +109,7 @@
             </property>
             <property name="icon">
              <iconset resource="../gpgfrontend.qrc">
-              <normaloff>:/clear.png</normaloff>:/clear.png</iconset>
+              <normaloff>:/icons/clear.png</normaloff>:/icons/clear.png</iconset>
             </property>
            </widget>
           </item>

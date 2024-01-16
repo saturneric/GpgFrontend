@@ -39,6 +39,7 @@ namespace GpgFrontend {
  */
 class GPGFRONTEND_CORE_EXPORT GpgDecryptResultAnalyse
     : public GpgResultAnalyse {
+  Q_OBJECT
  public:
   /**
    * @brief Construct a new Decrypt Result Analyse object

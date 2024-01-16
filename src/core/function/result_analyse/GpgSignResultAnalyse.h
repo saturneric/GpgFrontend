@@ -38,6 +38,7 @@ namespace GpgFrontend {
  *
  */
 class GPGFRONTEND_CORE_EXPORT GpgSignResultAnalyse : public GpgResultAnalyse {
+  Q_OBJECT
  public:
   /**
    * @brief Construct a new Sign Result Analyse object

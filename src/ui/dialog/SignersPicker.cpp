@@ -35,8 +35,8 @@ namespace GpgFrontend::UI {
 
 SignersPicker::SignersPicker(QWidget* parent)
     : GeneralDialog(typeid(SignersPicker).name(), parent) {
-  auto* confirm_button = new QPushButton(_("Confirm"));
-  auto* cancel_button = new QPushButton(_("Cancel"));
+  auto* confirm_button = new QPushButton(tr("Confirm"));
+  auto* cancel_button = new QPushButton(tr("Cancel"));
 
   connect(confirm_button, &QPushButton::clicked,
           [=]() { this->accepted_ = true; });
@@ -46,7 +46,7 @@ SignersPicker::SignersPicker(QWidget* parent)
   /*Setup KeyList*/
   key_list_ = new KeyList(0U, this);
   key_list_->AddListGroupTab(
-      _("Signers"), "signers", KeyListRow::ONLY_SECRET_KEY,
+      tr("Signers"), "signers", KeyListRow::ONLY_SECRET_KEY,
       KeyListColumn::NAME | KeyListColumn::EmailAddress | KeyListColumn::Usage,
       [](const GpgKey& key, const KeyTable&) -> bool {
         return key.IsHasActualSigningCapability();
@@ -54,13 +54,13 @@ SignersPicker::SignersPicker(QWidget* parent)
   key_list_->SlotRefresh();
 
   auto* vbox2 = new QVBoxLayout();
-  vbox2->addWidget(new QLabel(QString(_("Select Signer(s)")) + ": "));
+  vbox2->addWidget(new QLabel(tr("Select Signer(s)") + ": "));
   vbox2->addWidget(key_list_);
   vbox2->addWidget(new QLabel(
       QString(
-          _("Please select one or more private keys you use for signing.")) +
+          tr("Please select one or more private keys you use for signing.")) +
       "\n" +
-      _("If no key is selected, the default key will be used for signing.")));
+      tr("If no key is selected, the default key will be used for signing.")));
   vbox2->addWidget(confirm_button);
   vbox2->addWidget(cancel_button);
   vbox2->addStretch(0);
@@ -70,7 +70,7 @@ SignersPicker::SignersPicker(QWidget* parent)
                        Qt::CustomizeWindowHint);
 
   this->setModal(true);
-  this->setWindowTitle(_("Signers Picker"));
+  this->setWindowTitle(tr("Signers Picker"));
   this->setMinimumWidth(480);
 
   movePosition2CenterOfParent();

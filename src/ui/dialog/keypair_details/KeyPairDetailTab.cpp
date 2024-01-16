@@ -37,10 +37,10 @@
 namespace GpgFrontend::UI {
 KeyPairDetailTab::KeyPairDetailTab(const QString& key_id, QWidget* parent)
     : QWidget(parent), key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
-  owner_box_ = new QGroupBox(_("Owner"));
-  key_box_ = new QGroupBox(_("Primary Key"));
-  fingerprint_box_ = new QGroupBox(_("Fingerprint"));
-  additional_uid_box_ = new QGroupBox(_("Additional UIDs"));
+  owner_box_ = new QGroupBox(tr("Owner"));
+  key_box_ = new QGroupBox(tr("Primary Key"));
+  fingerprint_box_ = new QGroupBox(tr("Fingerprint"));
+  additional_uid_box_ = new QGroupBox(tr("Additional UIDs"));
 
   name_var_label_ = new QLabel();
   name_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
@@ -67,27 +67,23 @@ KeyPairDetailTab::KeyPairDetailTab(const QString& key_id, QWidget* parent)
   auto* vbox_kd = new QGridLayout();
   auto* vbox_od = new QGridLayout();
 
-  vbox_od->addWidget(new QLabel(QString(_("Name")) + ": "), 0, 0);
-  vbox_od->addWidget(new QLabel(QString(_("Email Address")) + ": "), 1, 0);
-  vbox_od->addWidget(new QLabel(QString(_("Comment")) + ": "), 2, 0);
+  vbox_od->addWidget(new QLabel(tr("Name") + ": "), 0, 0);
+  vbox_od->addWidget(new QLabel(tr("Email Address") + ": "), 1, 0);
+  vbox_od->addWidget(new QLabel(tr("Comment") + ": "), 2, 0);
   vbox_od->addWidget(name_var_label_, 0, 1);
   vbox_od->addWidget(email_var_label_, 1, 1);
   vbox_od->addWidget(comment_var_label_, 2, 1);
 
-  vbox_kd->addWidget(new QLabel(QString(_("Key ID")) + ": "), 0, 0);
-  vbox_kd->addWidget(new QLabel(QString(_("Algorithm")) + ": "), 1, 0);
-  vbox_kd->addWidget(new QLabel(QString(_("Key Size")) + ": "), 2, 0);
-  vbox_kd->addWidget(new QLabel(QString(_("Nominal Usage")) + ": "), 3, 0);
-  vbox_kd->addWidget(new QLabel(QString(_("Actual Usage")) + ": "), 4, 0);
-  vbox_kd->addWidget(new QLabel(QString(_("Owner Trust Level")) + ": "), 5, 0);
-  vbox_kd->addWidget(new QLabel(QString(_("Create Date (Local Time)")) + ": "),
-                     6, 0);
-  vbox_kd->addWidget(new QLabel(QString(_("Expires on (Local Time)")) + ": "),
-                     7, 0);
-  vbox_kd->addWidget(new QLabel(QString(_("Last Update (Local Time)")) + ": "),
-                     8, 0);
-  vbox_kd->addWidget(new QLabel(QString(_("Primary Key Existence")) + ": "), 9,
-                     0);
+  vbox_kd->addWidget(new QLabel(tr("Key ID") + ": "), 0, 0);
+  vbox_kd->addWidget(new QLabel(tr("Algorithm") + ": "), 1, 0);
+  vbox_kd->addWidget(new QLabel(tr("Key Size") + ": "), 2, 0);
+  vbox_kd->addWidget(new QLabel(tr("Nominal Usage") + ": "), 3, 0);
+  vbox_kd->addWidget(new QLabel(tr("Actual Usage") + ": "), 4, 0);
+  vbox_kd->addWidget(new QLabel(tr("Owner Trust Level") + ": "), 5, 0);
+  vbox_kd->addWidget(new QLabel(tr("Create Date (Local Time)") + ": "), 6, 0);
+  vbox_kd->addWidget(new QLabel(tr("Expires on (Local Time)") + ": "), 7, 0);
+  vbox_kd->addWidget(new QLabel(tr("Last Update (Local Time)") + ": "), 8, 0);
+  vbox_kd->addWidget(new QLabel(tr("Primary Key Existence") + ": "), 9, 0);
 
   key_id_var_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   vbox_kd->addWidget(key_id_var_label, 0, 1, 1, 1);
@@ -101,7 +97,7 @@ KeyPairDetailTab::KeyPairDetailTab(const QString& key_id, QWidget* parent)
   vbox_kd->addWidget(last_update_var_label_, 8, 1, 1, 2);
   vbox_kd->addWidget(primary_key_exist_var_label_, 9, 1, 1, 2);
 
-  auto* copy_key_id_button = new QPushButton(_("Copy"));
+  auto* copy_key_id_button = new QPushButton(tr("Copy"));
   copy_key_id_button->setFlat(true);
   copy_key_id_button->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   vbox_kd->addWidget(copy_key_id_button, 0, 2);
@@ -126,9 +122,9 @@ KeyPairDetailTab::KeyPairDetailTab(const QString& key_id, QWidget* parent)
   hbox_fp->addStretch();
   hbox_fp->addWidget(fingerprint_var_label_);
 
-  auto* copy_fingerprint_button = new QPushButton(_("Copy"));
+  auto* copy_fingerprint_button = new QPushButton(tr("Copy"));
   copy_fingerprint_button->setFlat(true);
-  copy_fingerprint_button->setToolTip(_("copy fingerprint to clipboard"));
+  copy_fingerprint_button->setToolTip(tr("copy fingerprint to clipboard"));
   connect(copy_fingerprint_button, &QPushButton::clicked, this,
           &KeyPairDetailTab::slot_copy_fingerprint);
 
@@ -140,7 +136,7 @@ KeyPairDetailTab::KeyPairDetailTab(const QString& key_id, QWidget* parent)
   mvbox->addStretch();
 
   auto* expBox = new QHBoxLayout();
-  QPixmap pixmap(":warning.png");
+  QPixmap pixmap(":/icons/warning.png");
 
   exp_label_ = new QLabel();
   icon_label_ = new QLabel();
@@ -174,7 +170,7 @@ void KeyPairDetailTab::slot_copy_fingerprint() {
 void KeyPairDetailTab::slot_refresh_key_info() {
   // Show the situation that primary key not exists.
   primary_key_exist_var_label_->setText(
-      key_.IsHasMasterKey() ? _("Exists") : _("Not Exists"));
+      key_.IsHasMasterKey() ? tr("Exists") : tr("Not Exists"));
   if (!key_.IsHasMasterKey()) {
     auto palette_expired = primary_key_exist_var_label_->palette();
     palette_expired.setColor(primary_key_exist_var_label_->foregroundRole(),
@@ -207,11 +203,11 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   QTextStream usage_steam(&buffer);
 
   if (key_.IsHasCertificationCapability()) {
-    usage_steam << _("Certificate") << " ";
+    usage_steam << tr("Certificate") << " ";
   }
-  if (key_.IsHasEncryptionCapability()) usage_steam << _("Encrypt") << " ";
-  if (key_.IsHasSigningCapability()) usage_steam << _("Sign") << " ";
-  if (key_.IsHasAuthenticationCapability()) usage_steam << _("Auth") << " ";
+  if (key_.IsHasEncryptionCapability()) usage_steam << tr("Encrypt") << " ";
+  if (key_.IsHasSigningCapability()) usage_steam << tr("Sign") << " ";
+  if (key_.IsHasAuthenticationCapability()) usage_steam << tr("Auth") << " ";
 
   usage_var_label_->setText(usage_steam.readAll());
 
@@ -219,16 +215,16 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   QTextStream actual_usage_steam(&buffer_2);
 
   if (key_.IsHasActualCertificationCapability()) {
-    actual_usage_steam << _("Certificate") << " ";
+    actual_usage_steam << tr("Certificate") << " ";
   }
   if (key_.IsHasActualEncryptionCapability()) {
-    actual_usage_steam << _("Encrypt") << " ";
+    actual_usage_steam << tr("Encrypt") << " ";
   }
   if (key_.IsHasActualSigningCapability()) {
-    actual_usage_steam << _("Sign") << " ";
+    actual_usage_steam << tr("Sign") << " ";
   }
   if (key_.IsHasActualAuthenticationCapability()) {
-    actual_usage_steam << _("Auth") << " ";
+    actual_usage_steam << tr("Auth") << " ";
   }
 
   actual_usage_var_label_->setText(actual_usage_steam.readAll());
@@ -243,7 +239,7 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   key_size_val = QString::number(key_.GetPrimaryKeyLength());
 
   if (key_.GetExpireTime().toSecsSinceEpoch() == 0) {
-    expire_var_label_->setText(_("Never Expire"));
+    expire_var_label_->setText(tr("Never Expire"));
   } else {
     expire_var_label_->setText(
         QLocale::system().toString((key_.GetExpireTime())));
@@ -254,7 +250,7 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   created_var_label_->setText(QLocale::system().toString(key_.GetCreateTime()));
 
   if (key_.GetLastUpdateTime().toSecsSinceEpoch() == 0) {
-    last_update_var_label_->setText(_("No Data"));
+    last_update_var_label_->setText(tr("No Data"));
   } else {
     last_update_var_label_->setText(
         QLocale::system().toString(key_.GetLastUpdateTime()));
@@ -270,12 +266,12 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   if (key_.IsExpired()) {
     icon_label_->show();
     exp_label_->show();
-    exp_label_->setText(_("Warning: The primary key has expired."));
+    exp_label_->setText(tr("Warning: The primary key has expired."));
   }
   if (key_.IsRevoked()) {
     icon_label_->show();
     exp_label_->show();
-    exp_label_->setText(_("Warning: The primary key has been revoked."));
+    exp_label_->setText(tr("Warning: The primary key has been revoked."));
   }
 }
 

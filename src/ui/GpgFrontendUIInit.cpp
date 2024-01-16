@@ -49,12 +49,12 @@ void WaitEnvCheckingProcess() {
   auto* waiting_dialog = new QProgressDialog();
   waiting_dialog->setMaximum(0);
   waiting_dialog->setMinimum(0);
-  auto* waiting_dialog_label =
-      new QLabel(QString(_("Loading Gnupg Info...")) + "<br /><br />" +
-                 _("If this process is too slow, please set the key "
-                   "server address appropriately in the gnupg configuration "
-                   "file (depending "
-                   "on the network situation in your country or region)."));
+  auto* waiting_dialog_label = new QLabel(
+      QObject::tr("Loading Gnupg Info...") + "<br /><br />" +
+      QObject::tr("If this process is too slow, please set the key "
+                  "server address appropriately in the gnupg configuration "
+                  "file (depending "
+                  "on the network situation in your country or region)."));
   waiting_dialog_label->setWordWrap(true);
   waiting_dialog->setLabel(waiting_dialog_label);
   waiting_dialog->resize(420, 120);
@@ -221,56 +221,23 @@ void InitLocale() {
   auto settings =
       GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
 
-  GF_UI_LOG_INFO("current system locale: {}", setlocale(LC_ALL, nullptr));
+  GF_UI_LOG_INFO("current system locale: {}", QLocale().name());
 
   // read from settings file
   auto lang = settings.value("basic/lang").toString();
-  GF_UI_LOG_INFO("current language settings: {}", lang);
+  GF_UI_LOG_INFO("current custom locale settings: {}", lang);
   GF_UI_LOG_INFO(
       "current locales path: {}",
       GpgFrontend::GlobalSettingStation::GetInstance().GetLocaleDir());
 
-#ifndef WINDOWS
-  if (!lang.isEmpty()) {
-    auto lc = (lang + ".UTF-8").toUtf8();
-
-    // set LC_ALL
-    auto* locale_name = std::setlocale(LC_ALL, lc.constData());
-    if (locale_name == nullptr) GF_UI_LOG_WARN("set LC_ALL failed, lc: {}", lc);
-    auto* language = getenv("LANGUAGE");
-    // set LANGUAGE
-    QString language_env = language == nullptr ? "en" : language;
-    language_env.insert(0, lang + ":");
-    GF_UI_LOG_DEBUG("language env: {}", language_env);
-    if (setenv("LANGUAGE", language_env.toUtf8(), 1) != 0) {
-      GF_UI_LOG_WARN("set LANGUAGE {} failed", language_env);
-    };
+  auto target_locale = lang.isEmpty() ? QLocale() : QLocale(lang);
+  auto* translator = new QTranslator(QCoreApplication::instance());
+  if (translator->load(target_locale, QLatin1String(PROJECT_NAME),
+                       QLatin1String("."), QLatin1String(":/i18n"),
+                       QLatin1String(".qm"))) {
+    GF_UI_LOG_INFO("load target translation file done");
+    QCoreApplication::installTranslator(translator);
   }
-#else
-  if (!lang.empty()) {
-    auto lc = lang.toUtf8();
-
-    // set LC_ALL
-    auto* locale_name = setlocale(LC_ALL, lc);
-    if (locale_name == nullptr) GF_UI_LOG_WARN("set LC_ALL failed, lc: {}", lc);
-
-    auto language = getenv("LANGUAGE");
-    // set LANGUAGE
-    QString language_env = language == nullptr ? "en" : language;
-    language_env.insert(0, lang + ":");
-    language_env.insert(0, "LANGUAGE=");
-    GF_UI_LOG_DEBUG("language env: {}", language_env);
-    if (putenv(language_env.toUtf8())) {
-      GF_UI_LOG_WARN("set LANGUAGE {} failed", language_env);
-    };
-  }
-#endif
-
-  bindtextdomain(
-      PROJECT_NAME,
-      GpgFrontend::GlobalSettingStation::GetInstance().GetLocaleDir().toUtf8());
-  bind_textdomain_codeset(PROJECT_NAME, "utf-8");
-  textdomain(PROJECT_NAME);
 }
 
 }  // namespace GpgFrontend::UI

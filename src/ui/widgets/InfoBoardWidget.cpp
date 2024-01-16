@@ -42,9 +42,9 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent)
   ui_->setupUi(this);
 
   ui_->actionButtonLayout->addStretch();
-  ui_->copyToolButton->setToolTip(_("Copy"));
-  ui_->saveToolButton->setToolTip(_("Save File"));
-  ui_->clearToolButton->setToolTip(_("Clear"));
+  ui_->copyToolButton->setToolTip(tr("Copy"));
+  ui_->saveToolButton->setToolTip(tr("Save File"));
+  ui_->clearToolButton->setToolTip(tr("Clear"));
 
   connect(ui_->copyToolButton, &QToolButton::clicked, this,
           &InfoBoardWidget::slot_copy);
@@ -164,7 +164,7 @@ void InfoBoardWidget::slot_copy() {
 
 void InfoBoardWidget::slot_save() {
   auto file_path = QFileDialog::getSaveFileName(
-      this, _("Save Information Board's Content"), {}, tr("Text (*.txt)"));
+      this, tr("Save Information Board's Content"), {}, tr("Text (*.txt)"));
   GF_UI_LOG_DEBUG("file path: {}", file_path.toStdString());
   if (file_path.isEmpty()) return;
 
@@ -173,8 +173,8 @@ void InfoBoardWidget::slot_save() {
     file.write(ui_->infoBoard->toPlainText().toUtf8());
   } else {
     QMessageBox::critical(
-        this, _("Error"),
-        _("The file path is not exists, unprivileged or unreachable."));
+        this, tr("Error"),
+        tr("The file path is not exists, unprivileged or unreachable."));
   }
   file.close();
 }

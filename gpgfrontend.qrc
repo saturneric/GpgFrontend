@@ -1,6 +1,6 @@
 <!DOCTYPE RCC>
 <RCC>
-    <qresource prefix="/">
+    <qresource prefix="/icons">
         <file alias="keymgmt.png">resource/lfs/icons/keymgmt.png</file>
         <file alias="help.png">resource/lfs/icons/help.png</file>
         <file alias="button_copy.png">resource/lfs/icons/button_copy.png</file>

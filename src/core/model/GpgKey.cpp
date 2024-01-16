@@ -88,17 +88,17 @@ auto GpgKey::GetProtocol() const -> QString {
 auto GpgKey::GetOwnerTrust() const -> QString {
   switch (key_ref_->owner_trust) {
     case GPGME_VALIDITY_UNKNOWN:
-      return _("Unknown");
+      return tr("Unknown");
     case GPGME_VALIDITY_UNDEFINED:
-      return _("Undefined");
+      return tr("Undefined");
     case GPGME_VALIDITY_NEVER:
-      return _("Never");
+      return tr("Never");
     case GPGME_VALIDITY_MARGINAL:
-      return _("Marginal");
+      return tr("Marginal");
     case GPGME_VALIDITY_FULL:
-      return _("Full");
+      return tr("Full");
     case GPGME_VALIDITY_ULTIMATE:
-      return _("Ultimate");
+      return tr("Ultimate");
   }
   return "Invalid";
 }

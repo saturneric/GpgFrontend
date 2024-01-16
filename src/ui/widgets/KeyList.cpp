@@ -96,19 +96,19 @@ void KeyList::init() {
 
   setAcceptDrops(true);
 
-  ui_->refreshKeyListButton->setText(_("Refresh"));
+  ui_->refreshKeyListButton->setText(tr("Refresh"));
   ui_->refreshKeyListButton->setToolTip(
-      _("Refresh the key list to synchronize changes."));
-  ui_->syncButton->setText(_("Sync Public Key"));
+      tr("Refresh the key list to synchronize changes."));
+  ui_->syncButton->setText(tr("Sync Public Key"));
   ui_->syncButton->setToolTip(
-      _("Sync public key with your default keyserver."));
-  ui_->uncheckButton->setText(_("Uncheck ALL"));
+      tr("Sync public key with your default keyserver."));
+  ui_->uncheckButton->setText(tr("Uncheck ALL"));
   ui_->uncheckButton->setToolTip(
-      _("Cancel all checked items in the current tab at once."));
-  ui_->checkALLButton->setText(_("Check ALL"));
+      tr("Cancel all checked items in the current tab at once."));
+  ui_->checkALLButton->setText(tr("Check ALL"));
   ui_->checkALLButton->setToolTip(
-      _("Check all items in the current tab at once"));
-  ui_->searchBarEdit->setPlaceholderText(_("Search for keys..."));
+      tr("Check all items in the current tab at once"));
+  ui_->searchBarEdit->setPlaceholderText(tr("Search for keys..."));
 }
 
 void KeyList::AddListGroupTab(const QString& name, const QString& id,
@@ -164,8 +164,8 @@ void KeyList::AddListGroupTab(const QString& name, const QString& id,
   }
 
   QStringList labels;
-  labels << _("Select") << _("Type") << _("Name") << _("Email Address")
-         << _("Usage") << _("Trust") << _("Finger Print");
+  labels << tr("Select") << tr("Type") << tr("Name") << tr("Email Address")
+         << tr("Usage") << tr("Trust") << tr("Finger Print");
 
   key_list->setHorizontalHeaderLabels(labels);
   key_list->horizontalHeader()->setStretchLastSection(false);
@@ -180,7 +180,7 @@ void KeyList::SlotRefresh() {
   ui_->refreshKeyListButton->setDisabled(true);
   ui_->syncButton->setDisabled(true);
 
-  emit SignalRefreshStatusBar(_("Refreshing Key List..."), 3000);
+  emit SignalRefreshStatusBar(tr("Refreshing Key List..."), 3000);
   this->buffered_keys_list_ = GpgKeyGetter::GetInstance().FetchKey();
   this->slot_refresh_ui();
 }
@@ -348,16 +348,13 @@ void KeyList::AddMenuAction(QAction* act) { popup_menu_->addAction(act); }
 void KeyList::dropEvent(QDropEvent* event) {
   auto* dialog = new QDialog();
 
-  dialog->setWindowTitle(_("Import Keys"));
+  dialog->setWindowTitle(tr("Import Keys"));
   QLabel* label;
-  label =
-      new QLabel(QString(_("You've dropped something on the table.")) + "\n " +
-                 _("GpgFrontend "
-                   "will now try to import key(s).") +
-                 "\n");
+  label = new QLabel(tr("You've dropped something on the table.") + "\n " +
+                     tr("GpgFrontend will now try to import key(s).") + "\n");
 
   // "always import keys"-CheckBox
-  auto* check_box = new QCheckBox(_("Always import without bothering."));
+  auto* check_box = new QCheckBox(tr("Always import without bothering."));
 
   bool confirm_import_keys = GlobalSettingStation::GetInstance()
                                  .GetSettings()
@@ -452,7 +449,7 @@ void KeyList::slot_refresh_ui() {
           GpgKeyGetter::GetInstance().GetKeysCopy(buffered_keys_list_));
     }
   }
-  emit SignalRefreshStatusBar(_("Key List Refreshed."), 1000);
+  emit SignalRefreshStatusBar(tr("Key List Refreshed."), 1000);
   ui_->refreshKeyListButton->setDisabled(false);
   ui_->syncButton->setDisabled(false);
 }
@@ -473,7 +470,7 @@ void KeyList::slot_sync_with_key_server() {
   ui_->refreshKeyListButton->setDisabled(true);
   ui_->syncButton->setDisabled(true);
 
-  emit SignalRefreshStatusBar(_("Syncing Key List..."), 3000);
+  emit SignalRefreshStatusBar(tr("Syncing Key List..."), 3000);
   CommonUtils::SlotImportKeyFromKeyServer(
       key_ids, [=](const QString& key_id, const QString& status,
                    size_t current_index, size_t all_index) {
@@ -481,7 +478,7 @@ void KeyList::slot_sync_with_key_server() {
                         current_index, all_index);
         auto key = GpgKeyGetter::GetInstance().GetKey(key_id);
 
-        auto status_str = QString(_("Sync [%1/%2] %3 %4"))
+        auto status_str = tr("Sync [%1/%2] %3 %4")
                               .arg(current_index)
                               .arg(all_index)
                               .arg(key.GetUIDs()->front().GetUID())
@@ -491,7 +488,7 @@ void KeyList::slot_sync_with_key_server() {
         if (current_index == all_index) {
           ui_->syncButton->setDisabled(false);
           ui_->refreshKeyListButton->setDisabled(false);
-          emit SignalRefreshStatusBar(_("Key List Sync Done."), 3000);
+          emit SignalRefreshStatusBar(tr("Key List Sync Done."), 3000);
           emit this->SignalRefreshDatabase();
         }
       });

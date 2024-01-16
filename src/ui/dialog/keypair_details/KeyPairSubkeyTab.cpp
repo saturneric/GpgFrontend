@@ -40,12 +40,12 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(const QString& key_id, QWidget* parent)
   create_subkey_list();
   create_subkey_opera_menu();
 
-  list_box_ = new QGroupBox(_("Subkey List"));
-  detail_box_ = new QGroupBox(_("Detail of Selected Subkey"));
+  list_box_ = new QGroupBox(tr("Subkey List"));
+  detail_box_ = new QGroupBox(tr("Detail of Selected Subkey"));
 
   auto* uid_buttons_layout = new QGridLayout();
 
-  auto* add_subkey_button = new QPushButton(_("Generate A New Subkey"));
+  auto* add_subkey_button = new QPushButton(tr("Generate A New Subkey"));
   if (!key_.IsPrivateKey() || !key_.IsHasMasterKey()) {
     add_subkey_button->setDisabled(true);
     setHidden(add_subkey_button);
@@ -62,23 +62,18 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(const QString& key_id, QWidget* parent)
 
   auto* subkey_detail_layout = new QGridLayout();
 
-  subkey_detail_layout->addWidget(new QLabel(QString(_("Key ID")) + ": "), 0,
-                                  0);
-  subkey_detail_layout->addWidget(new QLabel(QString(_("Algorithm")) + ": "), 1,
-                                  0);
-  subkey_detail_layout->addWidget(new QLabel(QString(_("Key Size")) + ": "), 2,
-                                  0);
-  subkey_detail_layout->addWidget(new QLabel(QString(_("Usage")) + ": "), 3, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Key ID") + ": "), 0, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Algorithm") + ": "), 1, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Key Size") + ": "), 2, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Usage") + ": "), 3, 0);
   subkey_detail_layout->addWidget(
-      new QLabel(QString(_("Expires On (Local Time)")) + ": "), 4, 0);
+      new QLabel(tr("Expires On (Local Time)") + ": "), 4, 0);
   subkey_detail_layout->addWidget(
-      new QLabel(QString(_("Create Date (Local Time)")) + ": "), 5, 0);
-  subkey_detail_layout->addWidget(new QLabel(QString(_("Existence")) + ": "), 6,
+      new QLabel(tr("Create Date (Local Time)") + ": "), 5, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Existence") + ": "), 6, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Key in Smart Card") + ": "), 7,
                                   0);
-  subkey_detail_layout->addWidget(
-      new QLabel(QString(_("Key in Smart Card")) + ": "), 7, 0);
-  subkey_detail_layout->addWidget(new QLabel(QString(_("Fingerprint")) + ": "),
-                                  8, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Fingerprint") + ": "), 8, 0);
 
   key_id_var_label_ = new QLabel(this);
   key_size_var_label_ = new QLabel(this);
@@ -100,7 +95,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(const QString& key_id, QWidget* parent)
   subkey_detail_layout->addWidget(card_key_label_, 7, 1, 1, 2);
   subkey_detail_layout->addWidget(fingerprint_var_label_, 8, 1, 1, 2);
 
-  auto* copy_key_id_button = new QPushButton(_("Copy"));
+  auto* copy_key_id_button = new QPushButton(tr("Copy"));
   copy_key_id_button->setFlat(true);
   subkey_detail_layout->addWidget(copy_key_id_button, 0, 2);
   connect(copy_key_id_button, &QPushButton::clicked, this, [=]() {
@@ -157,8 +152,8 @@ void KeyPairSubkeyTab::create_subkey_list() {
   subkey_list_->setAlternatingRowColors(true);
 
   QStringList labels;
-  labels << _("Subkey ID") << _("Key Size") << _("Algo") << _("Create Date")
-         << _("Expire Date");
+  labels << tr("Subkey ID") << tr("Key Size") << tr("Algo") << tr("Create Date")
+         << tr("Expire Date");
 
   subkey_list_->setHorizontalHeaderLabels(labels);
   subkey_list_->horizontalHeader()->setStretchLastSection(false);
@@ -200,7 +195,7 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
 
     auto* tmp4 =
         new QTableWidgetItem(subkeys.GetExpireTime().toSecsSinceEpoch() == 0
-                                 ? _("Never Expire")
+                                 ? tr("Never Expire")
                                  : subkeys.GetExpireTime().toString());
     tmp4->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 4, tmp4);
@@ -229,7 +224,7 @@ void KeyPairSubkeyTab::slot_add_subkey() {
 }
 
 void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
-  auto& subkey = get_selected_subkey();
+  const auto& subkey = get_selected_subkey();
 
   key_id_var_label_->setText(subkey.GetID());
   key_size_var_label_->setText(QString::number(subkey.GetKeyLength()));
@@ -237,7 +232,7 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   time_t subkey_time_t = subkey.GetExpireTime().toSecsSinceEpoch();
 
   expire_var_label_->setText(
-      subkey_time_t == 0 ? _("Never Expires")
+      subkey_time_t == 0 ? tr("Never Expires")
                          : QLocale::system().toString(subkey.GetExpireTime()));
 
   if (subkey_time_t != 0 &&
@@ -255,23 +250,24 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   created_var_label_->setText(
       QLocale::system().toString(subkey.GetCreateTime()));
 
-  std::stringstream usage_steam;
+  QString buffer;
+  QTextStream usage_steam(&buffer);
 
   if (subkey.IsHasCertificationCapability()) {
-    usage_steam << _("Certificate") << " ";
+    usage_steam << tr("Certificate") << " ";
   }
-  if (subkey.IsHasEncryptionCapability()) usage_steam << _("Encrypt") << " ";
-  if (subkey.IsHasSigningCapability()) usage_steam << _("Sign") << " ";
-  if (subkey.IsHasAuthenticationCapability()) usage_steam << _("Auth") << " ";
+  if (subkey.IsHasEncryptionCapability()) usage_steam << tr("Encrypt") << " ";
+  if (subkey.IsHasSigningCapability()) usage_steam << tr("Sign") << " ";
+  if (subkey.IsHasAuthenticationCapability()) usage_steam << tr("Auth") << " ";
 
-  usage_var_label_->setText(usage_steam.str().c_str());
+  usage_var_label_->setText(usage_steam.readAll());
 
   // Show the situation that secret key not exists.
-  master_key_exist_var_label_->setText(subkey.IsSecretKey() ? _("Exists")
-                                                            : _("Not Exists"));
+  master_key_exist_var_label_->setText(subkey.IsSecretKey() ? tr("Exists")
+                                                            : tr("Not Exists"));
 
   // Show the situation if key in a smart card.
-  card_key_label_->setText(subkey.IsCardKey() ? _("Yes") : _("No"));
+  card_key_label_->setText(subkey.IsCardKey() ? tr("Yes") : tr("No"));
 
   if (!subkey.IsSecretKey()) {
     auto palette_expired = master_key_exist_var_label_->palette();
@@ -300,7 +296,7 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
 
 void KeyPairSubkeyTab::create_subkey_opera_menu() {
   subkey_opera_menu_ = new QMenu(this);
-  auto* edit_subkey_act = new QAction(_("Edit Expire Date"));
+  auto* edit_subkey_act = new QAction(tr("Edit Expire Date"));
   connect(edit_subkey_act, &QAction::triggered, this,
           &KeyPairSubkeyTab::slot_edit_subkey);
 

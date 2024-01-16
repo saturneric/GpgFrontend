@@ -50,18 +50,18 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
               .value("network/forbid_all_gnupg_connection", false)
               .toBool();
 
-      auto* import_button = new QPushButton(_("Import from keyserver"));
+      auto* import_button = new QPushButton(tr("Import from keyserver"));
       import_button->setDisabled(forbid_all_gnupg_connection);
       connect(import_button, &QPushButton::clicked, this,
               &VerifyKeyDetailBox::slot_import_form_key_server);
 
-      this->setTitle(QString(_("Key not present with id 0x")) + fpr_);
+      this->setTitle(tr("Key not present with id 0x") + fpr_);
 
       auto* grid = new QGridLayout();
 
-      grid->addWidget(new QLabel(QString(_("Status")) + _(":")), 0, 0);
-      // grid->addWidget(new QLabel(_("Fingerprint:")), 1, 0);
-      grid->addWidget(new QLabel(_("Key not present in key list")), 0, 1);
+      grid->addWidget(new QLabel(tr("Status") + tr(":")), 0, 0);
+      // grid->addWidget(new QLabel(tr("Fingerprint:")), 1, 0);
+      grid->addWidget(new QLabel(tr("Key not present in key list")), 0, 1);
       // grid->addWidget(new QLabel(signature->fpr), 1, 1);
       grid->addWidget(import_button, 2, 0, 2, 1);
 
@@ -69,14 +69,14 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
       break;
     }
     case GPG_ERR_NO_ERROR: {
-      this->setTitle(QString(_("A Signature")) + ":");
+      this->setTitle(tr("A Signature") + ":");
       auto* gird = create_key_info_grid(signature);
       if (gird != nullptr) {
         vbox->addLayout(gird);
       } else {
-        vbox->addWidget(new QLabel(_("Key Information is NOT Available")));
+        vbox->addWidget(new QLabel(tr("Key Information is NOT Available")));
         if (!signature.GetFingerprint().isEmpty()) {
-          vbox->addWidget(new QLabel(QString(_("Fingerprint")) + ": " +
+          vbox->addWidget(new QLabel(tr("Fingerprint") + ": " +
                                      signature.GetFingerprint()));
         }
       }
@@ -84,15 +84,14 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
     }
     case GPG_ERR_CERT_REVOKED: {
       this->setTitle("An Error Signature");
-      vbox->addWidget(
-          new QLabel(QString(_("Status")) + ":" + _("Cert Revoked")));
+      vbox->addWidget(new QLabel(tr("Status") + ":" + tr("Cert Revoked")));
       auto* gird = create_key_info_grid(signature);
       if (gird != nullptr) {
         vbox->addLayout(gird);
       } else {
-        vbox->addWidget(new QLabel(_("Key Information is NOT Available")));
+        vbox->addWidget(new QLabel(tr("Key Information is NOT Available")));
         if (!signature.GetFingerprint().isEmpty()) {
-          vbox->addWidget(new QLabel(QString(_("Fingerprint")) + ": " +
+          vbox->addWidget(new QLabel(tr("Fingerprint") + ": " +
                                      signature.GetFingerprint()));
         }
       }
@@ -100,15 +99,14 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
     }
     case GPG_ERR_SIG_EXPIRED: {
       this->setTitle("An Error Signature");
-      vbox->addWidget(
-          new QLabel(QString(_("Status")) + ":" + _("Signature Expired")));
+      vbox->addWidget(new QLabel(tr("Status") + ":" + tr("Signature Expired")));
       auto* gird = create_key_info_grid(signature);
       if (gird != nullptr) {
         vbox->addLayout(gird);
       } else {
-        vbox->addWidget(new QLabel(_("Key Information is NOT Available")));
+        vbox->addWidget(new QLabel(tr("Key Information is NOT Available")));
         if (!signature.GetFingerprint().isEmpty()) {
-          vbox->addWidget(new QLabel(QString(_("Fingerprint")) + ": " +
+          vbox->addWidget(new QLabel(tr("Fingerprint") + ": " +
                                      signature.GetFingerprint()));
         }
       }
@@ -116,17 +114,15 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
     }
     case GPG_ERR_KEY_EXPIRED: {
       this->setTitle("An Error Signature");
-      vbox->addWidget(
-          new QLabel(QString(_("Status")) + ":" + _("Key Expired")));
-      vbox->addWidget(
-          new QLabel(QString(_("Status")) + ":" + _("Key Expired")));
+      vbox->addWidget(new QLabel(tr("Status") + ":" + tr("Key Expired")));
+      vbox->addWidget(new QLabel(tr("Status") + ":" + tr("Key Expired")));
       auto* gird = create_key_info_grid(signature);
       if (gird != nullptr) {
         vbox->addLayout(gird);
       } else {
-        vbox->addWidget(new QLabel(_("Key Information is NOT Available")));
+        vbox->addWidget(new QLabel(tr("Key Information is NOT Available")));
         if (!signature.GetFingerprint().isEmpty()) {
-          vbox->addWidget(new QLabel(QString(_("Fingerprint")) + ": " +
+          vbox->addWidget(new QLabel(tr("Fingerprint") + ": " +
                                      signature.GetFingerprint()));
         }
       }
@@ -134,15 +130,14 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
     }
     case GPG_ERR_GENERAL: {
       this->setTitle("An Error Signature");
-      vbox->addWidget(
-          new QLabel(QString(_("Status")) + ":" + _("General Error")));
+      vbox->addWidget(new QLabel(tr("Status") + ":" + tr("General Error")));
       auto* gird = create_key_info_grid(signature);
       if (gird != nullptr) {
         vbox->addLayout(gird);
       } else {
-        vbox->addWidget(new QLabel(_("Key Information is NOT Available")));
+        vbox->addWidget(new QLabel(tr("Key Information is NOT Available")));
         if (!signature.GetFingerprint().isEmpty()) {
-          vbox->addWidget(new QLabel(QString(_("Fingerprint")) + ": " +
+          vbox->addWidget(new QLabel(tr("Fingerprint") + ": " +
                                      signature.GetFingerprint()));
         }
       }
@@ -150,14 +145,14 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
     }
     default: {
       this->setTitle("An Error Signature");
-      this->setTitle(QString(_("Status")) + ":" + _("Unknown Error "));
+      this->setTitle(tr("Status") + ":" + tr("Unknown Error "));
       auto* gird = create_key_info_grid(signature);
       if (gird != nullptr) {
         vbox->addLayout(gird);
       } else {
-        vbox->addWidget(new QLabel(_("Key Information is NOT Available")));
+        vbox->addWidget(new QLabel(tr("Key Information is NOT Available")));
         if (!signature.GetFingerprint().isEmpty()) {
-          vbox->addWidget(new QLabel(QString(_("Fingerprint")) + ": " +
+          vbox->addWidget(new QLabel(tr("Fingerprint") + ": " +
                                      signature.GetFingerprint()));
         }
       }
@@ -180,45 +175,45 @@ auto VerifyKeyDetailBox::create_key_info_grid(const GpgSignature& signature)
   auto key = GpgKeyGetter::GetInstance().GetKey(fpr_);
 
   if (!key.IsGood()) return nullptr;
-  grid->addWidget(new QLabel(QString(_("Signer Name")) + ":"), 0, 0);
-  grid->addWidget(new QLabel(QString(_("Signer Email")) + ":"), 1, 0);
-  grid->addWidget(new QLabel(QString(_("Key's Fingerprint")) + ":"), 2, 0);
-  grid->addWidget(new QLabel(QString(_("Valid")) + ":"), 3, 0);
-  grid->addWidget(new QLabel(QString(_("Flags")) + ":"), 4, 0);
+  grid->addWidget(new QLabel(tr("Signer Name") + ":"), 0, 0);
+  grid->addWidget(new QLabel(tr("Signer Email") + ":"), 1, 0);
+  grid->addWidget(new QLabel(tr("Key's Fingerprint") + ":"), 2, 0);
+  grid->addWidget(new QLabel(tr("Valid") + ":"), 3, 0);
+  grid->addWidget(new QLabel(tr("Flags") + ":"), 4, 0);
 
   grid->addWidget(new QLabel(key.GetName()), 0, 1);
   grid->addWidget(new QLabel(key.GetEmail()), 1, 1);
   grid->addWidget(new QLabel(BeautifyFingerprint(fpr_)), 2, 1);
 
   if ((signature.GetSummary() & GPGME_SIGSUM_VALID) != 0U) {
-    grid->addWidget(new QLabel(_("Fully Valid")), 3, 1);
+    grid->addWidget(new QLabel(tr("Fully Valid")), 3, 1);
   } else {
-    grid->addWidget(new QLabel(_("NOT Fully Valid")), 3, 1);
+    grid->addWidget(new QLabel(tr("NOT Fully Valid")), 3, 1);
   }
 
   QString buffer;
   QTextStream text_stream(&buffer);
 
   if ((signature.GetSummary() & GPGME_SIGSUM_GREEN) != 0U) {
-    text_stream << _("Good") << " ";
+    text_stream << tr("Good") << " ";
   }
   if ((signature.GetSummary() & GPGME_SIGSUM_RED) != 0U) {
-    text_stream << _("Bad") << " ";
+    text_stream << tr("Bad") << " ";
   }
   if ((signature.GetSummary() & GPGME_SIGSUM_SIG_EXPIRED) != 0U) {
-    text_stream << _("Expired") << " ";
+    text_stream << tr("Expired") << " ";
   }
   if ((signature.GetSummary() & GPGME_SIGSUM_KEY_MISSING) != 0U) {
-    text_stream << _("Missing Key") << " ";
+    text_stream << tr("Missing Key") << " ";
   }
   if ((signature.GetSummary() & GPGME_SIGSUM_KEY_REVOKED) != 0U) {
-    text_stream << _("Revoked Key") << " ";
+    text_stream << tr("Revoked Key") << " ";
   }
   if ((signature.GetSummary() & GPGME_SIGSUM_KEY_EXPIRED) != 0U) {
-    text_stream << _("Expired Key") << " ";
+    text_stream << tr("Expired Key") << " ";
   }
   if ((signature.GetSummary() & GPGME_SIGSUM_CRL_MISSING) != 0U) {
-    text_stream << _("Missing CRL") << " ";
+    text_stream << tr("Missing CRL") << " ";
   }
 
   grid->addWidget(new QLabel(text_stream.readAll()), 4, 1);

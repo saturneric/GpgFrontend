@@ -38,6 +38,7 @@ namespace GpgFrontend {
  */
 class GPGFRONTEND_CORE_EXPORT GpgEncryptResultAnalyse
     : public GpgResultAnalyse {
+  Q_OBJECT
  public:
   /**
    * @brief Construct a new Encrypt Result Analyse object

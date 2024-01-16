@@ -32,7 +32,7 @@ namespace GpgFrontend::UI {
 
 QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
     : GeneralDialog("quit_dialog", parent) {
-  setWindowTitle(_("Unsaved Files"));
+  setWindowTitle(tr("Unsaved Files"));
   setModal(true);
   discarded_ = false;
 
@@ -75,15 +75,14 @@ QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
   /*
    *  Warnbox with icon and text
    */
-  auto pixmap = QPixmap(":error.png");
+  auto pixmap = QPixmap(":/icons/error.png");
   pixmap = pixmap.scaled(50, 50, Qt::KeepAspectRatio, Qt::SmoothTransformation);
   auto* warn_icon = new QLabel();
   warn_icon->setPixmap(pixmap);
 
-  const auto info =
-      QString(_("%1 files contain unsaved information.<br/>Save the "
-                "changes before closing?"))
-          .arg(row);
+  const auto info = tr("%1 files contain unsaved information.<br/>Save the "
+                       "changes before closing?")
+                        .arg(row);
   auto* warn_label = new QLabel(info);
   auto* warn_box_layout = new QHBoxLayout();
   warn_box_layout->addWidget(warn_icon);
@@ -95,10 +94,10 @@ QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
   /*
    *  Two labels on top and under the filelist
    */
-  auto* check_label = new QLabel(_("Check the files you want to save:"));
+  auto* check_label = new QLabel(tr("Check the files you want to save:"));
   auto* note_label = new QLabel(
-      "<b>" + QString(_("Note")) + ":</b>" +
-      _("If you don't save these files, all changes are lost.") + "<br/>");
+      "<b>" + tr("Note") + ":</b>" +
+      tr("If you don't save these files, all changes are lost.") + "<br/>");
 
   /*
    *  Buttonbox

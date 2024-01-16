@@ -33,28 +33,31 @@ namespace GpgFrontend::UI {
 FindWidget::FindWidget(QWidget* parent, PlainTextEditorPage* edit)
     : QWidget(parent), m_text_page_(edit) {
   find_edit_ = new QLineEdit(this);
-  auto* closeButton = new QPushButton(
+  auto* close_button = new QPushButton(
       this->style()->standardIcon(QStyle::SP_TitleBarCloseButton), QString(),
       this);
-  auto* nextButton = new QPushButton(QIcon(":button_next.png"), QString());
-  auto* previousButton = new QPushButton(QIcon(":button_previous.png"), "");
+  auto* next_button =
+      new QPushButton(QIcon(":/icons/button_next.png"), QString());
+  auto* previous_button =
+      new QPushButton(QIcon(":/icons/button_previous.png"), "");
 
-  auto* notificationWidgetLayout = new QHBoxLayout(this);
-  notificationWidgetLayout->setContentsMargins(10, 0, 0, 0);
-  notificationWidgetLayout->addWidget(new QLabel(QString(_("Find")) + ": "));
-  notificationWidgetLayout->addWidget(find_edit_, 2);
-  notificationWidgetLayout->addWidget(nextButton);
-  notificationWidgetLayout->addWidget(previousButton);
-  notificationWidgetLayout->addWidget(closeButton);
+  auto* notification_widget_layout = new QHBoxLayout(this);
+  notification_widget_layout->setContentsMargins(10, 0, 0, 0);
+  notification_widget_layout->addWidget(new QLabel(tr("Find") + ": "));
+  notification_widget_layout->addWidget(find_edit_, 2);
+  notification_widget_layout->addWidget(next_button);
+  notification_widget_layout->addWidget(previous_button);
+  notification_widget_layout->addWidget(close_button);
 
-  this->setLayout(notificationWidgetLayout);
+  this->setLayout(notification_widget_layout);
   connect(find_edit_, &QLineEdit::textEdited, this, &FindWidget::slot_find);
   connect(find_edit_, &QLineEdit::returnPressed, this,
           &FindWidget::slot_find_next);
-  connect(nextButton, &QPushButton::clicked, this, &FindWidget::slot_find_next);
-  connect(previousButton, &QPushButton::clicked, this,
+  connect(next_button, &QPushButton::clicked, this,
+          &FindWidget::slot_find_next);
+  connect(previous_button, &QPushButton::clicked, this,
           &FindWidget::slot_find_previous);
-  connect(closeButton, &QPushButton::clicked, this, &FindWidget::slot_close);
+  connect(close_button, &QPushButton::clicked, this, &FindWidget::slot_close);
 
   // The timer is necessary for setting the focus
   QTimer::singleShot(0, find_edit_, SLOT(setFocus()));
@@ -63,17 +66,17 @@ FindWidget::FindWidget(QWidget* parent, PlainTextEditorPage* edit)
 void FindWidget::set_background() {
   // auto cursor = m_text_page_->GetTextPage()->textCursor();
   // if match is found set background of QLineEdit to white, otherwise to red
-  QPalette bgPalette(find_edit_->palette());
+  QPalette bg_palette(find_edit_->palette());
 
   if (!find_edit_->text().isEmpty() && m_text_page_->GetTextPage()
                                                ->document()
                                                ->find(find_edit_->text())
                                                .position() < 0) {
-    bgPalette.setColor(QPalette::Base, "#ececba");
+    bg_palette.setColor(QPalette::Base, "#ececba");
   } else {
-    bgPalette.setColor(QPalette::Base, Qt::white);
+    bg_palette.setColor(QPalette::Base, Qt::white);
   }
-  find_edit_->setPalette(bgPalette);
+  find_edit_->setPalette(bg_palette);
 }
 
 void FindWidget::slot_find_next() {

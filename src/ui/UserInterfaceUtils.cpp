@@ -63,7 +63,7 @@ void show_verify_details(QWidget *parent, InfoBoardWidget *info_board,
                          GpgError error, const GpgVerifyResult &verify_result) {
   // take out result
   info_board->ResetOptionActionsMenu();
-  info_board->AddOptionalAction(_("Show Verify Details"), [=]() {
+  info_board->AddOptionalAction(QObject::tr("Show Verify Details"), [=]() {
     VerifyDetailsDialog(parent, error, verify_result);
   });
 }
@@ -72,10 +72,11 @@ void import_unknown_key_from_keyserver(
     QWidget *parent, const GpgVerifyResultAnalyse &verify_res) {
   QMessageBox::StandardButton reply;
   reply = QMessageBox::question(
-      parent, _("Public key not found locally"),
-      _("There is no target public key content in local for GpgFrontend to "
-        "gather enough information about this Signature. Do you want to "
-        "import the public key from Keyserver now?"),
+      parent, QObject::tr("Public key not found locally"),
+      QObject::tr(
+          "There is no target public key content in local for GpgFrontend to "
+          "gather enough information about this Signature. Do you want to "
+          "import the public key from Keyserver now?"),
       QMessageBox::Yes | QMessageBox::No);
   if (reply == QMessageBox::Yes) {
     auto dialog = KeyServerImportDialog(parent);
@@ -181,43 +182,43 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
           &UISignalStation::SignalRestartApplication, this,
           &CommonUtils::SlotRestartApplication);
 
-  connect(
-      this, &CommonUtils::SignalBadGnupgEnv, this, [=](const QString &reason) {
-        QMessageBox msg_box;
-        msg_box.setText(_("GnuPG Context Loading Failed"));
-        msg_box.setInformativeText(
-            QString(_("Gnupg(gpg) is not installed correctly, please follow "
-                      "<a href='https://www.gpgfrontend.bktus.com/#/"
-                      "faq?id=how-to-deal-with-39env-loading-failed39'>this "
-                      "notes</a> in FAQ to install Gnupg and then open "
-                      "GpgFrontend. <br />"
-                      "Or, you can open GnuPG Controller to set a "
-                      "custom GnuPG which GpgFrontend should use. Then, "
-                      "GpgFrontend will restart. <br /><br />"
-                      "Breif Reason: %1"))
-                .arg(reason));
-        msg_box.setStandardButtons(QMessageBox::Open | QMessageBox::Cancel);
-        msg_box.setDefaultButton(QMessageBox::Save);
-        int ret = msg_box.exec();
+  connect(this, &CommonUtils::SignalBadGnupgEnv, this,
+          [=](const QString &reason) {
+            QMessageBox msg_box;
+            msg_box.setText(tr("GnuPG Context Loading Failed"));
+            msg_box.setInformativeText(
+                tr("Gnupg(gpg) is not installed correctly, please follow "
+                   "<a href='https://www.gpgfrontend.bktus.com/#/"
+                   "faq?id=how-to-deal-with-39env-loading-failed39'>this "
+                   "notes</a> in FAQ to install Gnupg and then open "
+                   "GpgFrontend. <br />"
+                   "Or, you can open GnuPG Controller to set a "
+                   "custom GnuPG which GpgFrontend should use. Then, "
+                   "GpgFrontend will restart. <br /><br />"
+                   "Breif Reason: %1")
+                    .arg(reason));
+            msg_box.setStandardButtons(QMessageBox::Open | QMessageBox::Cancel);
+            msg_box.setDefaultButton(QMessageBox::Save);
+            int ret = msg_box.exec();
 
-        switch (ret) {
-          case QMessageBox::Open:
-            (new GnuPGControllerDialog(this))->exec();
-            // restart application when loop start
-            application_need_to_restart_at_once_ = true;
-            // restart application, core and ui
-            emit SignalRestartApplication(kDeepRestartCode);
-            break;
-          case QMessageBox::Cancel:
-            // close application
-            emit SignalRestartApplication(0);
-            break;
-          default:
-            // close application
-            emit SignalRestartApplication(0);
-            break;
-        }
-      });
+            switch (ret) {
+              case QMessageBox::Open:
+                (new GnuPGControllerDialog(this))->exec();
+                // restart application when loop start
+                application_need_to_restart_at_once_ = true;
+                // restart application, core and ui
+                emit SignalRestartApplication(kDeepRestartCode);
+                break;
+              case QMessageBox::Cancel:
+                // close application
+                emit SignalRestartApplication(0);
+                break;
+              default:
+                // close application
+                emit SignalRestartApplication(0);
+                break;
+            }
+          });
 }
 
 void CommonUtils::WaitForOpera(QWidget *parent,
@@ -247,8 +248,8 @@ void CommonUtils::WaitForOpera(QWidget *parent,
       dialog->close();
       dialog->reject();
 
-      QMessageBox::critical(parent, _("Timeout"),
-                            _("Operation has timeout, aborted..."));
+      QMessageBox::critical(parent, tr("Timeout"),
+                            tr("Operation has timeout, aborted..."));
     }
   });
 
@@ -260,9 +261,8 @@ void CommonUtils::RaiseMessageBox(QWidget *parent, GpgError err) {
   GpgErrorCode err_code = CheckGpgError2ErrCode(err);
 
   if (err_code == GPG_ERR_NO_ERROR) {
-    QMessageBox::information(
-        parent, _("Success"),
-        QString::fromStdString(_("Gpg Operation succeed.")));
+    QMessageBox::information(parent, tr("Success"),
+                             tr("Gpg Operation succeed."));
   } else {
     RaiseFailureMessageBox(parent, err);
   }
@@ -272,13 +272,12 @@ void CommonUtils::RaiseFailureMessageBox(QWidget *parent, GpgError err) {
   GpgErrorDesc desc = DescribeGpgErrCode(err);
   GpgErrorCode err_code = CheckGpgError2ErrCode(err);
 
-  QMessageBox::critical(
-      parent, _("Failure"),
-      QString(_("Gpg Operation failed.\n\nError code: %1\nSource: "
-                " %2\nDescription: %3"))
-          .arg(err_code)
-          .arg(desc.first)
-          .arg(desc.second));
+  QMessageBox::critical(parent, tr("Failure"),
+                        tr("Gpg Operation failed.\n\nError code: %1\nSource: "
+                           " %2\nDescription: %3")
+                            .arg(err_code)
+                            .arg(desc.first)
+                            .arg(desc.second));
 }
 
 void CommonUtils::SlotImportKeys(QWidget *parent, const QString &in_buffer) {
@@ -290,15 +289,15 @@ void CommonUtils::SlotImportKeys(QWidget *parent, const QString &in_buffer) {
 }
 
 void CommonUtils::SlotImportKeyFromFile(QWidget *parent) {
-  auto file_name = QFileDialog::getOpenFileName(
-      this, _("Open Key"), QString(),
-      QString(_("Key Files")) + " (*.asc *.txt);;" + _("Keyring files") +
-          " (*.gpg);;All Files (*)");
+  auto file_name = QFileDialog::getOpenFileName(this, tr("Open Key"), QString(),
+                                                tr("Key Files")) +
+                   " (*.asc *.txt);;" + tr("Keyring files") +
+                   " (*.gpg);;All Files (*)";
   if (!file_name.isNull()) {
     QByteArray key_buffer;
     if (!ReadFile(file_name, key_buffer)) {
-      QMessageBox::critical(nullptr, _("File Open Failed"),
-                            _("Failed to open file: ") + file_name);
+      QMessageBox::critical(nullptr, tr("File Open Failed"),
+                            tr("Failed to open file: ") + file_name);
       return;
     }
     SlotImportKeys(parent, key_buffer);
@@ -351,7 +350,7 @@ void CommonUtils::SlotExecuteGpgCommand(
     const QStringList &arguments,
     const std::function<void(QProcess *)> &interact_func) {
   QEventLoop looper;
-  auto dialog = new WaitingDialog(_("Processing"), nullptr);
+  auto dialog = new WaitingDialog(tr("Processing"), nullptr);
   dialog->show();
   auto *gpg_process = new QProcess(&looper);
   gpg_process->setProcessChannelMode(QProcess::MergedChannels);
@@ -370,19 +369,19 @@ void CommonUtils::SlotExecuteGpgCommand(
   connect(gpg_process, &QProcess::errorOccurred, this, [=]() -> void {
     GF_UI_LOG_ERROR("Error in Process");
     dialog->close();
-    QMessageBox::critical(nullptr, _("Failure"),
-                          _("Failed to execute command."));
+    QMessageBox::critical(nullptr, tr("Failure"),
+                          tr("Failed to execute command."));
   });
   connect(gpg_process,
           qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
           [=](int, QProcess::ExitStatus status) {
             dialog->close();
             if (status == QProcess::NormalExit)
-              QMessageBox::information(nullptr, _("Success"),
-                                       _("Succeed in executing command."));
+              QMessageBox::information(nullptr, tr("Success"),
+                                       tr("Succeed in executing command."));
             else
-              QMessageBox::information(nullptr, _("Warning"),
-                                       _("Finished executing command."));
+              QMessageBox::information(nullptr, tr("Warning"),
+                                       tr("Finished executing command."));
           });
 
   const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
@@ -402,9 +401,10 @@ void CommonUtils::SlotImportKeyFromKeyServer(
   auto target_keyserver =
       KeyServerSO(SettingsObject("key_server")).GetTargetServer();
   if (target_keyserver.isEmpty()) {
-    QMessageBox::critical(nullptr, _("Default Keyserver Not Found"),
-                          _("Cannot read default keyserver from your settings, "
-                            "please set a default keyserver first"));
+    QMessageBox::critical(
+        nullptr, tr("Default Keyserver Not Found"),
+        tr("Cannot read default keyserver from your settings, "
+           "please set a default keyserver first"));
     return;
   }
   GF_UI_LOG_DEBUG("set target key server to default Key Server: {}",
@@ -438,16 +438,16 @@ void CommonUtils::SlotImportKeyFromKeyServer(
       if (error != QNetworkReply::NoError) {
         switch (error) {
           case QNetworkReply::ContentNotFoundError:
-            status = _("Key Not Found");
+            status = tr("Key Not Found");
             break;
           case QNetworkReply::TimeoutError:
-            status = _("Timeout");
+            status = tr("Timeout");
             break;
           case QNetworkReply::HostNotFoundError:
-            status = _("Key Server Not Found");
+            status = tr("Key Server Not Found");
             break;
           default:
-            status = _("Connection Error");
+            status = tr("Connection Error");
         }
       }
 
@@ -458,9 +458,9 @@ void CommonUtils::SlotImportKeyFromKeyServer(
           GFBuffer(reply->readAll()));
 
       if (result->imported == 1) {
-        status = _("The key has been updated");
+        status = tr("The key has been updated");
       } else {
-        status = _("No need to update the key");
+        status = tr("No need to update the key");
       }
       callback(key_id, status, current_index, all_index);
       current_index++;
@@ -491,10 +491,10 @@ void CommonUtils::slot_update_key_status() {
 void CommonUtils::slot_popup_passphrase_input_dialog() {
   auto *dialog = new QInputDialog(QApplication::activeWindow(), Qt::Dialog);
   dialog->setModal(true);
-  dialog->setWindowTitle(_("Password Input Dialog"));
+  dialog->setWindowTitle(tr("Password Input Dialog"));
   dialog->setInputMode(QInputDialog::TextInput);
   dialog->setTextEchoMode(QLineEdit::Password);
-  dialog->setLabelText(_("Please Input The Password"));
+  dialog->setLabelText(tr("Please Input The Password"));
   dialog->resize(500, 80);
   dialog->exec();
 

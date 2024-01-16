@@ -41,11 +41,11 @@ GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
   ui_->setupUi(this);
 
   QStringList components_column_titles;
-  components_column_titles << _("Name") << _("Description") << _("Version")
-                           << _("Checksum") << _("Binary Path");
+  components_column_titles << tr("Name") << tr("Description") << tr("Version")
+                           << tr("Checksum") << tr("Binary Path");
 
-  ui_->tabWidget->setTabText(0, _("Components"));
-  ui_->tabWidget->setTabText(1, _("Configurations"));
+  ui_->tabWidget->setTabText(0, tr("Components"));
+  ui_->tabWidget->setTabText(1, tr("Configurations"));
 
   ui_->componentDetailsTable->setColumnCount(components_column_titles.length());
   ui_->componentDetailsTable->setHorizontalHeaderLabels(
@@ -55,9 +55,9 @@ GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
       QAbstractItemView::SelectRows);
 
   QStringList configurations_column_titles;
-  configurations_column_titles << _("Component") << _("Group") << _("Key")
-                               << _("Description") << _("Default Value")
-                               << _("Value");
+  configurations_column_titles << tr("Component") << tr("Group") << tr("Key")
+                               << tr("Description") << tr("Default Value")
+                               << tr("Value");
 
   ui_->configurationDetailsTable->setColumnCount(
       configurations_column_titles.length());

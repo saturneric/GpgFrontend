@@ -81,8 +81,8 @@ void FileTreeView::SlotGoPath(const std::filesystem::path& target_path) {
     }
   } else {
     QMessageBox::critical(
-        this, _("Error"),
-        _("The path is not exists, unprivileged or unreachable."));
+        this, tr("Error"),
+        tr("The path is not exists, unprivileged or unreachable."));
   }
   emit SignalPathChanged(QString::fromStdString(current_path_.u8string()));
 }
@@ -94,8 +94,8 @@ void FileTreeView::slot_file_tree_view_item_double_clicked(
     if (file_info.isReadable()) {
       emit SignalOpenFile(file_info.absoluteFilePath());
     } else {
-      QMessageBox::critical(this, _("Error"),
-                            _("The file is unprivileged or unreachable."));
+      QMessageBox::critical(this, tr("Error"),
+                            tr("The file is unprivileged or unreachable."));
     }
   } else {
     SlotGoPath(file_info.filesystemAbsoluteFilePath());
@@ -155,8 +155,8 @@ auto FileTreeView::SlotDeleteSelectedItem() -> void {
   QModelIndex const index = this->currentIndex();
   QVariant const data = this->model()->data(index);
 
-  auto ret = QMessageBox::warning(this, _("Warning"),
-                                  _("Are you sure you want to delete it?"),
+  auto ret = QMessageBox::warning(this, tr("Warning"),
+                                  tr("Are you sure you want to delete it?"),
                                   QMessageBox::Ok | QMessageBox::Cancel);
 
   if (ret == QMessageBox::Cancel) return;
@@ -164,8 +164,8 @@ auto FileTreeView::SlotDeleteSelectedItem() -> void {
   GF_UI_LOG_DEBUG("delete item: {}", data.toString().toStdString());
 
   if (!dir_model_->remove(index)) {
-    QMessageBox::critical(this, _("Error"),
-                          _("Unable to delete the file or folder."));
+    QMessageBox::critical(this, tr("Error"),
+                          tr("Unable to delete the file or folder."));
   }
 }
 
@@ -174,9 +174,9 @@ void FileTreeView::SlotMkdir() {
 
   QString new_dir_name;
   bool ok;
-  new_dir_name =
-      QInputDialog::getText(this, _("Make New Directory"), _("Directory Name"),
-                            QLineEdit::Normal, new_dir_name, &ok);
+  new_dir_name = QInputDialog::getText(this, tr("Make New Directory"),
+                                       tr("Directory Name"), QLineEdit::Normal,
+                                       new_dir_name, &ok);
   if (ok && !new_dir_name.isEmpty()) {
     dir_model_->mkdir(index, new_dir_name);
   }
@@ -187,9 +187,9 @@ void FileTreeView::SlotMkdirBelowAtSelectedItem() {
 
   QString new_dir_name;
   bool ok;
-  new_dir_name =
-      QInputDialog::getText(this, _("Make New Directory"), _("Directory Name"),
-                            QLineEdit::Normal, new_dir_name, &ok);
+  new_dir_name = QInputDialog::getText(this, tr("Make New Directory"),
+                                       tr("Directory Name"), QLineEdit::Normal,
+                                       new_dir_name, &ok);
   if (ok && !new_dir_name.isEmpty()) {
     dir_model_->mkdir(index, new_dir_name);
   }
@@ -205,9 +205,9 @@ void FileTreeView::SlotTouch() {
 
   QString new_file_name;
   bool ok;
-  new_file_name = QInputDialog::getText(this, _("Create Empty File"),
-                                        _("Filename (you can given extension)"),
-                                        QLineEdit::Normal, new_file_name, &ok);
+  new_file_name = QInputDialog::getText(
+      this, tr("Create Empty File"), tr("Filename (you can given extension)"),
+      QLineEdit::Normal, new_file_name, &ok);
   if (ok && !new_file_name.isEmpty()) {
 #ifdef WINDOWS
     auto file_path = root_path / new_file_name.toStdU16String();
@@ -216,7 +216,8 @@ void FileTreeView::SlotTouch() {
 #endif
     QFile new_file(file_path.u8string().c_str());
     if (!new_file.open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
-      QMessageBox::critical(this, _("Error"), _("Unable to create the file."));
+      QMessageBox::critical(this, tr("Error"),
+                            tr("Unable to create the file."));
     }
     new_file.close();
   }
@@ -227,9 +228,9 @@ void FileTreeView::SlotTouchBelowAtSelectedItem() {
 
   QString new_file_name;
   bool ok;
-  new_file_name = QInputDialog::getText(this, _("Create Empty File"),
-                                        _("Filename (you can given extension)"),
-                                        QLineEdit::Normal, new_file_name, &ok);
+  new_file_name = QInputDialog::getText(
+      this, tr("Create Empty File"), tr("Filename (you can given extension)"),
+      QLineEdit::Normal, new_file_name, &ok);
   if (ok && !new_file_name.isEmpty()) {
 #ifdef WINDOWS
     auto file_path = root_path / new_file_name.toStdU16String();
@@ -238,7 +239,8 @@ void FileTreeView::SlotTouchBelowAtSelectedItem() {
 #endif
     QFile new_file(file_path.u8string().c_str());
     if (!new_file.open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
-      QMessageBox::critical(this, _("Error"), _("Unable to create the file."));
+      QMessageBox::critical(this, tr("Error"),
+                            tr("Unable to create the file."));
     }
     new_file.close();
   }
@@ -272,7 +274,7 @@ void FileTreeView::SlotOpenSelectedItemBySystemApplication() {
 void FileTreeView::SlotRenameSelectedItem() {
   bool ok;
   auto text = QInputDialog::getText(
-      this, _("Rename"), _("New Filename"), QLineEdit::Normal,
+      this, tr("Rename"), tr("New Filename"), QLineEdit::Normal,
       QString::fromStdString(selected_path_.filename().u8string()), &ok);
   if (ok && !text.isEmpty()) {
     try {
@@ -289,8 +291,8 @@ void FileTreeView::SlotRenameSelectedItem() {
     } catch (...) {
       GF_UI_LOG_ERROR("file tree view rename error: {}",
                       selected_path_.u8string());
-      QMessageBox::critical(this, _("Error"),
-                            _("Unable to rename the file or folder."));
+      QMessageBox::critical(this, tr("Error"),
+                            tr("Unable to rename the file or folder."));
     }
   }
 }
@@ -303,50 +305,50 @@ void FileTreeView::slot_create_popup_menu() {
   popup_menu_ = new QMenu();
 
   action_open_file_ = new QAction(this);
-  action_open_file_->setText(_("Open"));
+  action_open_file_->setText(tr("Open"));
   connect(action_open_file_, &QAction::triggered, this, [this](bool) {
     emit SignalOpenFile(QString::fromStdString(GetSelectedPath()));
   });
 
   action_rename_file_ = new QAction(this);
-  action_rename_file_->setText(_("Rename"));
+  action_rename_file_->setText(tr("Rename"));
   connect(action_rename_file_, &QAction::triggered, this,
           &FileTreeView::SlotRenameSelectedItem);
 
   action_delete_file_ = new QAction(this);
-  action_delete_file_->setText(_("Delete"));
+  action_delete_file_->setText(tr("Delete"));
   connect(action_delete_file_, &QAction::triggered, this,
           &FileTreeView::SlotDeleteSelectedItem);
 
   action_calculate_hash_ = new QAction(this);
-  action_calculate_hash_->setText(_("Calculate Hash"));
+  action_calculate_hash_->setText(tr("Calculate Hash"));
   connect(action_calculate_hash_, &QAction::triggered, this,
           &FileTreeView::slot_calculate_hash);
 
   action_make_directory_ = new QAction(this);
-  action_make_directory_->setText(_("Directory"));
+  action_make_directory_->setText(tr("Directory"));
   connect(action_make_directory_, &QAction::triggered, this,
           &FileTreeView::SlotMkdirBelowAtSelectedItem);
 
   action_create_empty_file_ = new QAction(this);
-  action_create_empty_file_->setText(_("File"));
+  action_create_empty_file_->setText(tr("File"));
   connect(action_create_empty_file_, &QAction::triggered, this,
           &FileTreeView::SlotTouchBelowAtSelectedItem);
 
   action_compress_files_ = new QAction(this);
-  action_compress_files_->setText(_("Compress..."));
+  action_compress_files_->setText(tr("Compress..."));
   action_compress_files_->setVisible(false);
   connect(action_compress_files_, &QAction::triggered, this,
           &FileTreeView::slot_compress_files);
 
   auto* action_open_with_system_default_application = new QAction(this);
   action_open_with_system_default_application->setText(
-      _("Open with Default System Application"));
+      tr("Open with Default System Application"));
   connect(action_open_with_system_default_application, &QAction::triggered,
           this, &FileTreeView::SlotOpenSelectedItemBySystemApplication);
 
   auto* new_item_action_menu = new QMenu(this);
-  new_item_action_menu->setTitle(_("New"));
+  new_item_action_menu->setTitle(tr("New"));
   new_item_action_menu->addAction(action_create_empty_file_);
   new_item_action_menu->addAction(action_make_directory_);
 

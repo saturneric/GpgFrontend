@@ -78,8 +78,8 @@ void KeySetExpireDateDialog::slot_confirm() {
     auto* msg_box = new QMessageBox(qobject_cast<QWidget*>(this->parent()));
     msg_box->setAttribute(Qt::WA_DeleteOnClose);
     msg_box->setStandardButtons(QMessageBox::Ok);
-    msg_box->setWindowTitle(_("Success"));
-    msg_box->setText(_("The expire date of the key pair has been updated."));
+    msg_box->setWindowTitle(tr("Success"));
+    msg_box->setText(tr("The expire date of the key pair has been updated."));
     msg_box->setModal(true);
     msg_box->open();
 
@@ -88,8 +88,8 @@ void KeySetExpireDateDialog::slot_confirm() {
     this->close();
   } else {
     QMessageBox::critical(
-        this, _("Failure"),
-        _("Failed to update the expire date of the key pair."));
+        this, tr("Failure"),
+        tr("Failed to update the expire date of the key pair."));
   }
 }
 
@@ -126,13 +126,13 @@ void KeySetExpireDateDialog::init() {
           UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefresh);
 
-  ui_->titleLabel->setText(_("Modified Expiration Date (Local Time)"));
-  ui_->label->setText(
-      _("Tips: For the sake of security, the key is valid for up to two years. "
-        "If you are an expert user, please unlock it for a longer time in the "
-        "settings."));
-  ui_->noExpirationCheckBox->setText(_("No Expiration"));
-  this->setWindowTitle(_("Modified Expiration Date"));
+  ui_->titleLabel->setText(tr("Modified Expiration Date (Local Time)"));
+  ui_->label->setText(tr(
+      "Tips: For the sake of security, the key is valid for up to two years. "
+      "If you are an expert user, please unlock it for a longer time in the "
+      "settings."));
+  ui_->noExpirationCheckBox->setText(tr("No Expiration"));
+  this->setWindowTitle(tr("Modified Expiration Date"));
 }
 
 void KeySetExpireDateDialog::slot_non_expired_checked(int state) {

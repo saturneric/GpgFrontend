@@ -41,12 +41,12 @@ Wizard::Wizard(QWidget* parent) : QWizard(parent) {
 #ifndef Q_WS_MAC
   setWizardStyle(ModernStyle);
 #endif
-  setWindowTitle(_("First Start Wizard"));
+  setWindowTitle(tr("First Start Wizard"));
 
   // http://www.flickr.com/photos/laureenp/6141822934/
-  setPixmap(QWizard::WatermarkPixmap, QPixmap(":/keys2.jpg"));
-  setPixmap(QWizard::LogoPixmap, QPixmap(":/logo_small.png"));
-  setPixmap(QWizard::BannerPixmap, QPixmap(":/banner.png"));
+  setPixmap(QWizard::WatermarkPixmap, QPixmap(":/icons/keys2.jpg"));
+  setPixmap(QWizard::LogoPixmap, QPixmap(":/icons/logo_small.png"));
+  setPixmap(QWizard::BannerPixmap, QPixmap(":/icons/banner.png"));
 
   int next_page_id = GlobalSettingStation::GetInstance()
                          .GetSettings()
@@ -71,19 +71,20 @@ void Wizard::slot_wizard_accepted() {
 }
 
 IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
-  setTitle(_("Getting Started..."));
-  setSubTitle(_("... with GpgFrontend"));
+  setTitle(tr("Getting Started..."));
+  setSubTitle(tr("... with GpgFrontend"));
 
   auto* topLabel = new QLabel(
-      QString(_("Welcome to use GpgFrontend for decrypting and signing text or "
-                "file!")) +
+      QString(
+          tr("Welcome to use GpgFrontend for decrypting and signing text or "
+             "file!")) +
       " <br><br><a href='https://gpgfrontend.bktus.com'>GpgFrontend</a> " +
-      _("is a Powerful, Easy-to-Use, Compact, Cross-Platform, and "
-        "Installation-Free OpenPGP Crypto Tool.") +
-      _("For brief information have a look at the") +
+      tr("is a Powerful, Easy-to-Use, Compact, Cross-Platform, and "
+         "Installation-Free OpenPGP Crypto Tool.") +
+      tr("For brief information have a look at the") +
       " <a href='https://gpgfrontend.bktus.com/index.html#/overview'>" +
-      _("Overview") + "</a> (" +
-      _("by clicking the link, the page will open in the web browser") +
+      tr("Overview") + "</a> (" +
+      tr("by clicking the link, the page will open in the web browser") +
       "). <br>");
   topLabel->setTextFormat(Qt::RichText);
   topLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
@@ -92,8 +93,8 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
 
   // QComboBox for language selection
   auto* lang_label =
-      new QLabel(_("If it supports the language currently being used in your "
-                   "system, GpgFrontend will automatically set it."));
+      new QLabel(tr("If it supports the language currently being used in your "
+                    "system, GpgFrontend will automatically set it."));
   lang_label->setWordWrap(true);
 
   // set layout and add widgets
@@ -108,60 +109,56 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
 int IntroPage::nextId() const { return Wizard::Page_Choose; }
 
 ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
-  setTitle(_("Choose your action..."));
-  setSubTitle(_("...by clicking on the appropriate link."));
+  setTitle(tr("Choose your action..."));
+  setSubTitle(tr("...by clicking on the appropriate link."));
 
-  auto* keygenLabel = new QLabel(
-      QString(_(
-          "If you have never used GpgFrontend before and also don't own a gpg "
-          "key yet you "
-          "may possibly want to read how to")) +
-      " <a "
-      "href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
+  auto* keygen_label = new QLabel(
+      tr("If you have never used GpgFrontend before and also don't own a gpg "
+         "key yet you may possibly want to read how to") +
+      " <a href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
       "generate-key\">" +
-      _("Generate Key") + "</a><hr>");
-  keygenLabel->setTextFormat(Qt::RichText);
-  keygenLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
-  keygenLabel->setOpenExternalLinks(true);
-  keygenLabel->setWordWrap(true);
+      tr("Generate Key") + "</a><hr>");
+  keygen_label->setTextFormat(Qt::RichText);
+  keygen_label->setTextInteractionFlags(Qt::TextBrowserInteraction);
+  keygen_label->setOpenExternalLinks(true);
+  keygen_label->setWordWrap(true);
 
-  auto* encrDecyTextLabel = new QLabel(
-      QString(_(
-          "If you want to learn how to encrypt, decrypt, sign and verify text, "
-          "you can read ")) +
+  auto* encr_decy_text_label = new QLabel(
+      tr("If you want to learn how to encrypt, decrypt, sign and verify text, "
+         "you can read ") +
       "<a "
       "href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
       "encrypt-decrypt-text\">" +
-      _("Encrypt & Decrypt Text") + "</a> " + _("or") +
+      tr("Encrypt & Decrypt Text") + "</a> " + tr("or") +
       " <a "
       "href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
       "sign-verify-text\">" +
-      _("Sign & Verify Text") + "</a><hr>");
+      tr("Sign & Verify Text") + "</a><hr>");
 
-  encrDecyTextLabel->setTextFormat(Qt::RichText);
-  encrDecyTextLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
-  encrDecyTextLabel->setOpenExternalLinks(true);
-  encrDecyTextLabel->setWordWrap(true);
+  encr_decy_text_label->setTextFormat(Qt::RichText);
+  encr_decy_text_label->setTextInteractionFlags(Qt::TextBrowserInteraction);
+  encr_decy_text_label->setOpenExternalLinks(true);
+  encr_decy_text_label->setWordWrap(true);
 
-  auto* signVerifyTextLabel =
-      new QLabel(QString(_("If you want to operate file, you can read ")) +
+  auto* sign_verify_text_label =
+      new QLabel(tr("If you want to operate file, you can read ") +
                  "<a "
                  "href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
                  "encrypt-decrypt-file\">" +
-                 _("Encrypt & Sign File") + "</a> " + _("or") +
+                 tr("Encrypt & Sign File") + "</a> " + tr("or") +
                  " <a "
                  "href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
                  "sign-verify-file\">" +
-                 _("Sign & Verify File") + "</a><hr>");
-  signVerifyTextLabel->setTextFormat(Qt::RichText);
-  signVerifyTextLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
-  signVerifyTextLabel->setOpenExternalLinks(true);
-  signVerifyTextLabel->setWordWrap(true);
+                 tr("Sign & Verify File") + "</a><hr>");
+  sign_verify_text_label->setTextFormat(Qt::RichText);
+  sign_verify_text_label->setTextInteractionFlags(Qt::TextBrowserInteraction);
+  sign_verify_text_label->setOpenExternalLinks(true);
+  sign_verify_text_label->setWordWrap(true);
 
   auto* layout = new QVBoxLayout();
-  layout->addWidget(keygenLabel);
-  layout->addWidget(encrDecyTextLabel);
-  layout->addWidget(signVerifyTextLabel);
+  layout->addWidget(keygen_label);
+  layout->addWidget(encr_decy_text_label);
+  layout->addWidget(sign_verify_text_label);
   setLayout(layout);
   next_page_ = Wizard::Page_Conclusion;
 }
@@ -178,33 +175,33 @@ void ChoosePage::slot_jump_page(const QString& page) {
 }
 
 KeyGenPage::KeyGenPage(QWidget* parent) : QWizardPage(parent) {
-  setTitle(_("Create a keypair..."));
-  setSubTitle(_("...for decrypting and signing messages"));
-  auto* topLabel = new QLabel(
-      _("You should create a new keypair."
-        "The pair consists of a public and a private key.<br>"
-        "Other users can use the public key to encrypt messages for you "
-        "and verify messages signed by you."
-        "You can use the private key to decrypt and sign messages.<br>"
-        "For more information have a look at the offline tutorial (which then "
-        "is shown in the main window):"));
-  topLabel->setWordWrap(true);
-  auto* linkLabel = new QLabel(
+  setTitle(tr("Create a keypair..."));
+  setSubTitle(tr("...for decrypting and signing messages"));
+  auto* top_label = new QLabel(
+      tr("You should create a new keypair."
+         "The pair consists of a public and a private key.<br>"
+         "Other users can use the public key to encrypt messages for you "
+         "and verify messages signed by you."
+         "You can use the private key to decrypt and sign messages.<br>"
+         "For more information have a look at the offline tutorial (which then "
+         "is shown in the main window):"));
+  top_label->setWordWrap(true);
+  auto* link_label = new QLabel(
       "<a href="
       "docu_keygen.html#content"
       ">" +
-      QString(_("Offline tutorial")) + "</a>");
+      tr("Offline tutorial") + "</a>");
 
-  auto* createKeyButtonBox = new QWidget(this);
-  auto* createKeyButtonBoxLayout = new QHBoxLayout(createKeyButtonBox);
-  auto* createKeyButton = new QPushButton(_("Create New Key"));
-  createKeyButtonBoxLayout->addWidget(createKeyButton);
-  createKeyButtonBoxLayout->addStretch(1);
+  auto* create_key_button_box = new QWidget(this);
+  auto* create_key_button_box_layout = new QHBoxLayout(create_key_button_box);
+  auto* create_key_button = new QPushButton(tr("Create New Key"));
+  create_key_button_box_layout->addWidget(create_key_button);
+  create_key_button_box_layout->addStretch(1);
   auto* layout = new QVBoxLayout();
-  layout->addWidget(topLabel);
-  layout->addWidget(linkLabel);
-  layout->addWidget(createKeyButtonBox);
-  connect(createKeyButton, &QPushButton::clicked, this,
+  layout->addWidget(top_label);
+  layout->addWidget(link_label);
+  layout->addWidget(create_key_button_box);
+  connect(create_key_button, &QPushButton::clicked, this,
           &KeyGenPage::slot_generate_key_dialog);
 
   setLayout(layout);
@@ -218,17 +215,17 @@ void KeyGenPage::slot_generate_key_dialog() {
 }
 
 ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
-  setTitle(_("Ready."));
-  setSubTitle(_("Have fun with GpgFrontend!"));
+  setTitle(tr("Ready."));
+  setSubTitle(tr("Have fun with GpgFrontend!"));
 
   auto* bottomLabel = new QLabel(
-      QString(_("You are ready to use GpgFrontend now.<br><br>")) +
+      tr("You are ready to use GpgFrontend now.<br><br>") +
       "<a "
       "href=\"https://saturneric.github.io/GpgFrontend/index.html#/"
       "overview\">" +
-      _("The Online Document") + "</a>" +
-      _(" will get you started with GpgFrontend. Anytime you encounter "
-        "problems, please try to find help from the documentation") +
+      tr("The Online Document") + "</a>" +
+      tr(" will get you started with GpgFrontend. Anytime you encounter "
+         "problems, please try to find help from the documentation") +
       "<br>");
 
   bottomLabel->setTextFormat(Qt::RichText);
@@ -236,10 +233,10 @@ ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
   bottomLabel->setOpenExternalLinks(true);
   bottomLabel->setWordWrap(true);
 
-  open_help_check_box_ = new QCheckBox(_("Open offline help."));
+  open_help_check_box_ = new QCheckBox(tr("Open offline help."));
   open_help_check_box_->setChecked(true);
 
-  dont_show_wizard_checkbox_ = new QCheckBox(_("Dont show the wizard again."));
+  dont_show_wizard_checkbox_ = new QCheckBox(tr("Dont show the wizard again."));
   dont_show_wizard_checkbox_->setChecked(true);
 
   registerField("showWizard", dont_show_wizard_checkbox_);

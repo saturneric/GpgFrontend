@@ -37,6 +37,7 @@ namespace GpgFrontend {
  *
  */
 class GPGFRONTEND_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
+  Q_OBJECT
  public:
   /**
    * @brief Construct a new Verify Result Analyse object

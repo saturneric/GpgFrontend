@@ -31,11 +31,9 @@
 #include <openssl/opensslv.h>
 
 #include <any>
-#include <string>
 
 #include "GpgFrontendBuildInfo.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/module/Module.h"
 #include "core/module/ModuleManager.h"
 #include "ui/dialog/help/GnupgTab.h"
 
@@ -43,7 +41,7 @@ namespace GpgFrontend::UI {
 
 AboutDialog::AboutDialog(int defaultIndex, QWidget* parent)
     : GeneralDialog(typeid(AboutDialog).name(), parent) {
-  this->setWindowTitle(QString(_("About")) + " " + qApp->applicationName());
+  this->setWindowTitle(tr("About") + " " + qApp->applicationName());
 
   auto* tab_widget = new QTabWidget;
   auto* info_tab = new InfoTab();
@@ -51,10 +49,10 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent)
   auto* translators_tab = new TranslatorsTab();
   update_tab_ = new UpdateTab();
 
-  tab_widget->addTab(info_tab, _("About GpgFrontend"));
-  tab_widget->addTab(gnupg_tab, _("GnuPG"));
-  tab_widget->addTab(translators_tab, _("Translators"));
-  tab_widget->addTab(update_tab_, _("Update"));
+  tab_widget->addTab(info_tab, tr("About GpgFrontend"));
+  tab_widget->addTab(gnupg_tab, tr("GnuPG"));
+  tab_widget->addTab(translators_tab, tr("Translators"));
+  tab_widget->addTab(update_tab_, tr("Update"));
 
   connect(tab_widget, &QTabWidget::currentChanged, this,
           [&](int index) { GF_UI_LOG_DEBUG("current index: {}", index); });
@@ -83,26 +81,26 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
       "core", "gpgme.version", QString{"2.0.0"});
   GF_UI_LOG_DEBUG("got gpgme version from rt: {}", gpgme_version);
 
-  auto* pixmap = new QPixmap(":gpgfrontend-logo.png");
+  auto* pixmap = new QPixmap(":/icons/gpgfrontend-logo.png");
   auto* text = new QString(
       "<center><h2>" + qApp->applicationName() + "</h2></center>" +
       "<center><b>" + qApp->applicationVersion() + "</b></center>" +
       "<center>" + GIT_VERSION + "</center>" + "<br><center>" +
-      _("GpgFrontend is an easy-to-use, compact, cross-platform, "
-        "and installation-free GnuPG Frontend."
-        "It visualizes most of the common operations of GnuPG."
-        "GpgFrontend is licensed under the GPLv3") +
+      tr("GpgFrontend is an easy-to-use, compact, cross-platform, "
+         "and installation-free GnuPG Frontend."
+         "It visualizes most of the common operations of GnuPG."
+         "GpgFrontend is licensed under the GPLv3") +
       "<br><br>"
       "<b>" +
-      _("Developer:") + "</b><br>" + "Saturneric" + "<br><br>" +
-      _("If you have any questions or suggestions, raise an issue at") +
+      tr("Developer:") + "</b><br>" + "Saturneric" + "<br><br>" +
+      tr("If you have any questions or suggestions, raise an issue at") +
       "<br/>"
       " <a href=\"https://github.com/saturneric/GpgFrontend\">GitHub</a> " +
-      _("or send a mail to my mailing list at") + " <a " +
+      tr("or send a mail to my mailing list at") + " <a " +
       "href=\"mailto:eric@bktus.com\">eric@bktus.com</a>." + "<br><br> " +
-      _("Built with Qt") + " " + qVersion() + ", " + OPENSSL_VERSION_TEXT +
-      " " + _("and") + " " + "GPGME" + " " + gpgme_version + "<br>" +
-      _("Built at") + " " + BUILD_TIMESTAMP + "</center>");
+      tr("Built with Qt") + " " + qVersion() + ", " + OPENSSL_VERSION_TEXT +
+      " " + tr("and") + " " + "GPGME" + " " + gpgme_version + "<br>" +
+      tr("Built at") + " " + BUILD_TIMESTAMP + "</center>");
 
   auto* layout = new QGridLayout();
   auto* pixmap_label = new QLabel();
@@ -139,9 +137,9 @@ TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
   main_layout->addStretch();
 
   auto* notice_label = new QLabel(
-      _("If you think there are any problems with the translation, why not "
-        "participate in the translation work? If you want to participate, "
-        "please read the document or contact me via email."),
+      tr("If you think there are any problems with the translation, why not "
+         "participate in the translation work? If you want to participate, "
+         "please read the document or contact me via email."),
       this);
   notice_label->setWordWrap(true);
   main_layout->addWidget(notice_label);
@@ -150,7 +148,7 @@ TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
 }
 
 UpdateTab::UpdateTab(QWidget* parent) : QWidget(parent) {
-  auto* pixmap = new QPixmap(":gpgfrontend-logo.png");
+  auto* pixmap = new QPixmap(":/icons/gpgfrontend-logo.png");
   auto* layout = new QGridLayout();
   auto* pixmap_label = new QLabel();
   pixmap_label->setPixmap(*pixmap);
@@ -162,17 +160,17 @@ UpdateTab::UpdateTab(QWidget* parent) : QWidget(parent) {
   auto* tips_label = new QLabel();
   tips_label->setText(
       "<center>" +
-      QString(_("It is recommended that you always check the version "
-                "of GpgFrontend and upgrade to the latest version.")) +
+      tr("It is recommended that you always check the version "
+         "of GpgFrontend and upgrade to the latest version.") +
       "</center><center>" +
-      _("New versions not only represent new features, but "
-        "also often represent functional and security fixes.") +
+      tr("New versions not only represent new features, but "
+         "also often represent functional and security fixes.") +
       "</center>");
   tips_label->setWordWrap(true);
 
   current_version_label_ = new QLabel();
-  current_version_label_->setText("<center>" + QString(_("Current Version")) +
-                                  _(": ") + "<b>" + current_version_ +
+  current_version_label_->setText("<center>" + tr("Current Version") +
+                                  tr(": ") + "<b>" + current_version_ +
                                   "</b></center>");
   current_version_label_->setWordWrap(true);
 
@@ -254,41 +252,41 @@ void UpdateTab::slot_show_version_status() {
       "version.latest_version", QString{});
 
   latest_version_label_->setText("<center><b>" +
-                                 QString(_("Latest Version From Github")) +
-                                 ": " + latest_version + "</b></center>");
+                                 tr("Latest Version From Github") + ": " +
+                                 latest_version + "</b></center>");
 
   if (is_need_upgrade) {
     upgrade_label_->setText(
         "<center>" +
-        QString(_("The current version is less than the latest version on "
-                  "github.")) +
-        "</center><center>" + _("Please click") +
+        tr("The current version is less than the latest version on "
+           "github.") +
+        "</center><center>" + tr("Please click") +
         " <a "
         "href=\"https://www.gpgfrontend.bktus.com/#/downloads\">" +
-        _("Here") + "</a> " + _("to download the latest stable version.") +
+        tr("Here") + "</a> " + tr("to download the latest stable version.") +
         "</center>");
     upgrade_label_->show();
   } else if (is_current_a_withdrawn_version) {
     upgrade_label_->setText(
         "<center>" +
-        QString(_("This version has serious problems and has been withdrawn. "
-                  "Please stop using it immediately.")) +
-        "</center><center>" + _("Please click") +
+        tr("This version has serious problems and has been withdrawn. "
+           "Please stop using it immediately.") +
+        "</center><center>" + tr("Please click") +
         " <a "
         "href=\"https://github.com/saturneric/GpgFrontend/releases\">" +
-        _("Here") + "</a> " + _("to download the latest stable version.") +
+        tr("Here") + "</a> " + tr("to download the latest stable version.") +
         "</center>");
     upgrade_label_->show();
   } else if (!is_current_version_released) {
     upgrade_label_->setText(
         "<center>" +
-        QString(_("This version has not been released yet, it may be a beta "
-                  "version. If you are not a tester and care about version "
-                  "stability, please do not use this version.")) +
-        "</center><center>" + _("Please click") +
+        tr("This version has not been released yet, it may be a beta "
+           "version. If you are not a tester and care about version "
+           "stability, please do not use this version.") +
+        "</center><center>" + tr("Please click") +
         " <a "
         "href=\"https://www.gpgfrontend.bktus.com/#/downloads\">" +
-        _("Here") + "</a> " + _("to download the latest stable version.") +
+        tr("Here") + "</a> " + tr("to download the latest stable version.") +
         "</center>");
     upgrade_label_->show();
   }

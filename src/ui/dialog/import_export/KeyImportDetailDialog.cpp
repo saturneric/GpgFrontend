@@ -39,8 +39,8 @@ KeyImportDetailDialog::KeyImportDetailDialog(
       m_result_(std::move(result)) {
   // If no key for import found, just show a message
   if (m_result_->considered == 0) {
-    QMessageBox::information(parent, _("Key Import Details"),
-                             _("No keys found to import"));
+    QMessageBox::information(parent, tr("Key Import Details"),
+                             tr("No keys found to import"));
     emit finished(0);
     this->close();
     this->deleteLater();
@@ -55,7 +55,7 @@ KeyImportDetailDialog::KeyImportDetailDialog(
     mv_box->addWidget(button_box_);
 
     this->setLayout(mv_box);
-    this->setWindowTitle(_("Key Import Details"));
+    this->setWindowTitle(tr("Key Import Details"));
 
     this->setMinimumSize(QSize(600, 300));
     this->adjustSize();
@@ -69,52 +69,51 @@ KeyImportDetailDialog::KeyImportDetailDialog(
 
 void KeyImportDetailDialog::create_general_info_box() {
   // GridBox for general import information
-  general_info_box_ = new QGroupBox(_("General key info"));
+  general_info_box_ = new QGroupBox(tr("General key info"));
   auto* general_info_box_layout = new QGridLayout(general_info_box_);
 
-  general_info_box_layout->addWidget(
-      new QLabel(QString(_("Considered")) + ": "), 1, 0);
+  general_info_box_layout->addWidget(new QLabel(tr("Considered") + ": "), 1, 0);
   general_info_box_layout->addWidget(
       new QLabel(QString::number(m_result_->considered)), 1, 1);
   int row = 2;
   if (m_result_->unchanged != 0) {
     general_info_box_layout->addWidget(
-        new QLabel(QString(_("Public unchanged")) + ": "), row, 0);
+        new QLabel(tr("Public unchanged") + ": "), row, 0);
     general_info_box_layout->addWidget(
         new QLabel(QString::number(m_result_->unchanged)), row, 1);
     row++;
   }
   if (m_result_->imported != 0) {
-    general_info_box_layout->addWidget(
-        new QLabel(QString(_("Imported")) + ": "), row, 0);
+    general_info_box_layout->addWidget(new QLabel(tr("Imported") + ": "), row,
+                                       0);
     general_info_box_layout->addWidget(
         new QLabel(QString::number(m_result_->imported)), row, 1);
     row++;
   }
   if (m_result_->not_imported != 0) {
-    general_info_box_layout->addWidget(
-        new QLabel(QString(_("Not Imported")) + ": "), row, 0);
+    general_info_box_layout->addWidget(new QLabel(tr("Not Imported") + ": "),
+                                       row, 0);
     general_info_box_layout->addWidget(
         new QLabel(QString::number(m_result_->not_imported)), row, 1);
     row++;
   }
   if (m_result_->secret_read != 0) {
-    general_info_box_layout->addWidget(
-        new QLabel(QString(_("Private Read")) + ": "), row, 0);
+    general_info_box_layout->addWidget(new QLabel(tr("Private Read") + ": "),
+                                       row, 0);
     general_info_box_layout->addWidget(
         new QLabel(QString::number(m_result_->secret_read)), row, 1);
     row++;
   }
   if (m_result_->secret_imported != 0) {
     general_info_box_layout->addWidget(
-        new QLabel(QString(_("Private Imported")) + ": "), row, 0);
+        new QLabel(tr("Private Imported") + ": "), row, 0);
     general_info_box_layout->addWidget(
         new QLabel(QString::number(m_result_->secret_imported)), row, 1);
     row++;
   }
   if (m_result_->secret_unchanged != 0) {
     general_info_box_layout->addWidget(
-        new QLabel(QString(_("Private Unchanged")) + ": "), row, 0);
+        new QLabel(tr("Private Unchanged") + ": "), row, 0);
     general_info_box_layout->addWidget(
         new QLabel(QString::number(m_result_->secret_unchanged)), row, 1);
   }
@@ -129,7 +128,8 @@ void KeyImportDetailDialog::create_keys_table() {
   keys_table_->setSelectionMode(QAbstractItemView::NoSelection);
 
   QStringList header_labels;
-  header_labels << _("Name") << _("Email") << _("Status") << _("Fingerprint");
+  header_labels << tr("Name") << tr("Email") << tr("Status")
+                << tr("Fingerprint");
   keys_table_->verticalHeader()->hide();
 
   keys_table_->setHorizontalHeaderLabels(header_labels);
@@ -155,27 +155,27 @@ QString KeyImportDetailDialog::get_status_string(int key_status) {
   QString status_string;
   // keystatus is greater than 15, if key is private
   if (key_status > 15) {
-    status_string.append(_("Private"));
+    status_string.append(tr("Private"));
     key_status = key_status - 16;
   } else {
-    status_string.append(_("Public"));
+    status_string.append(tr("Public"));
   }
   if (key_status == 0) {
-    status_string.append(", " + QString(_("Unchanged")));
+    status_string.append(", " + tr("Unchanged"));
   } else {
     if (key_status == 1) {
-      status_string.append(", " + QString(_("New Key")));
+      status_string.append(", " + tr("New Key"));
     } else {
       if (key_status > 7) {
-        status_string.append(", " + QString(_("New Subkey")));
+        status_string.append(", " + tr("New Subkey"));
         return status_string;
       }
       if (key_status > 3) {
-        status_string.append(", " + QString(_("New Signature")));
+        status_string.append(", " + tr("New Signature"));
         return status_string;
       }
       if (key_status > 1) {
-        status_string.append(", " + QString(_("New UID")));
+        status_string.append(", " + tr("New UID"));
         return status_string;
       }
     }

@@ -37,7 +37,7 @@ namespace GpgFrontend::UI {
 GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
     : QApplication(argc, argv) {
 #ifndef MACOS
-  this->setWindowIcon(QIcon(":gpgfrontend.png"));
+  this->setWindowIcon(QIcon(":/icons/gpgfrontend.png"));
 #endif
 
   // set the extra information of the build
@@ -60,20 +60,21 @@ bool GpgFrontendApplication::notify(QObject *receiver, QEvent *event) {
     return QApplication::notify(receiver, event);
   } catch (const std::exception &ex) {
     GF_UI_LOG_ERROR("exception was caught in notify: {}", ex.what());
-    QMessageBox::information(nullptr, _("Standard Exception Thrown"),
-                             _("Oops, an standard exception was thrown "
-                               "during the running of the "
-                               "program. This is not a serious problem, it may "
-                               "be the negligence of the programmer, "
-                               "please report this problem if you can."));
+    QMessageBox::information(
+        nullptr, tr("Standard Exception Thrown"),
+        tr("Oops, an standard exception was thrown "
+           "during the running of the "
+           "program. This is not a serious problem, it may "
+           "be the negligence of the programmer, "
+           "please report this problem if you can."));
   } catch (...) {
     GF_UI_LOG_ERROR("unknown exception was caught in notify");
     QMessageBox::information(
-        nullptr, _("Unhandled Exception Thrown"),
-        _("Oops, an unhandled exception was thrown "
-          "during the running of the program. This is not a "
-          "serious problem, it may be the negligence of the programmer, "
-          "please report this problem if you can."));
+        nullptr, tr("Unhandled Exception Thrown"),
+        tr("Oops, an unhandled exception was thrown "
+           "during the running of the program. This is not a "
+           "serious problem, it may be the negligence of the programmer, "
+           "please report this problem if you can."));
   }
   return -1;
 #else

@@ -42,26 +42,26 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_GnuPGControllerDialog>()) {
   ui_->setupUi(this);
 
-  ui_->generalBox->setTitle(_("General"));
-  ui_->keyDatabaseGroupBox->setTitle(_("Key Database"));
-  ui_->advanceGroupBox->setTitle(_("Advanced"));
+  ui_->generalBox->setTitle(tr("General"));
+  ui_->keyDatabaseGroupBox->setTitle(tr("Key Database"));
+  ui_->advanceGroupBox->setTitle(tr("Advanced"));
 
-  ui_->asciiModeCheckBox->setText(_("No ASCII Mode"));
+  ui_->asciiModeCheckBox->setText(tr("No ASCII Mode"));
   ui_->usePinentryAsPasswordInputDialogCheckBox->setText(
-      _("Use Pinentry as Password Input Dialog"));
-  ui_->useCustomGnuPGInstallPathCheckBox->setText(_("Use Custom GnuPG"));
-  ui_->useCustomGnuPGInstallPathButton->setText(_("Select GnuPG Path"));
+      tr("Use Pinentry as Password Input Dialog"));
+  ui_->useCustomGnuPGInstallPathCheckBox->setText(tr("Use Custom GnuPG"));
+  ui_->useCustomGnuPGInstallPathButton->setText(tr("Select GnuPG Path"));
   ui_->keyDatabseUseCustomCheckBox->setText(
-      _("Use Custom GnuPG Key Database Path"));
+      tr("Use Custom GnuPG Key Database Path"));
   ui_->customKeyDatabasePathSelectButton->setText(
-      _("Select Key Database Path"));
+      tr("Select Key Database Path"));
 
   // tips
   ui_->customGnuPGPathTipsLabel->setText(
-      _("Tips: please select a directroy where \"gpgconf\" is located in."));
+      tr("Tips: please select a directroy where \"gpgconf\" is located in."));
   ui_->restartTipsLabel->setText(
-      _("Tips: notice that modify any of these settings will cause an "
-        "Application restart."));
+      tr("Tips: notice that modify any of these settings will cause an "
+         "Application restart."));
 
   // announce main window
   connect(this, &GnuPGControllerDialog::SignalRestartNeeded,
@@ -92,7 +92,7 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
       [=]() {
         QString selected_custom_key_database_path =
             QFileDialog::getExistingDirectory(
-                this, _("Open Directory"), {},
+                this, tr("Open Directory"), {},
                 QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
         GF_UI_LOG_DEBUG("key databse path selected: {}",
@@ -123,7 +123,7 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
       ui_->useCustomGnuPGInstallPathButton, &QPushButton::clicked, this, [=]() {
         QString selected_custom_gnupg_install_path =
             QFileDialog::getExistingDirectory(
-                this, _("Open Directory"), {},
+                this, tr("Open Directory"), {},
                 QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
         GF_UI_LOG_DEBUG("gnupg install path selected: {}",
@@ -169,7 +169,7 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
   connect(this, &QDialog::finished, this, &GnuPGControllerDialog::deleteLater);
 #endif
 
-  setWindowTitle(_("GnuPG Controller"));
+  setWindowTitle(tr("GnuPG Controller"));
   set_settings();
 }
 
@@ -328,23 +328,23 @@ void GnuPGControllerDialog::slot_set_restart_needed(int mode) {
 
 bool GnuPGControllerDialog::check_custom_gnupg_path(QString path) {
   if (path.isEmpty()) {
-    QMessageBox::critical(this, _("Illegal GnuPG Path"),
-                          _("Target GnuPG Path is empty."));
+    QMessageBox::critical(this, tr("Illegal GnuPG Path"),
+                          tr("Target GnuPG Path is empty."));
     return false;
   }
 
   QFileInfo dir_info(path);
   if (!dir_info.exists() || !dir_info.isReadable() || !dir_info.isDir()) {
     QMessageBox::critical(
-        this, _("Illegal GnuPG Path"),
-        _("Target GnuPG Path is not an exists readable directory."));
+        this, tr("Illegal GnuPG Path"),
+        tr("Target GnuPG Path is not an exists readable directory."));
     return false;
   }
 
   QDir dir(path);
   if (!dir.isAbsolute()) {
-    QMessageBox::critical(this, _("Illegal GnuPG Path"),
-                          _("Target GnuPG Path is not an absolute path."));
+    QMessageBox::critical(this, tr("Illegal GnuPG Path"),
+                          tr("Target GnuPG Path is not an absolute path."));
   }
 #ifdef WINDOWS
   QFileInfo gpgconf_info(path + "/gpgconf.exe");
@@ -355,8 +355,8 @@ bool GnuPGControllerDialog::check_custom_gnupg_path(QString path) {
   if (!gpgconf_info.exists() || !gpgconf_info.isExecutable() ||
       !gpgconf_info.isFile()) {
     QMessageBox::critical(
-        this, _("Illegal GnuPG Path"),
-        _("Target GnuPG Path contains no \"gpgconf\" executable."));
+        this, tr("Illegal GnuPG Path"),
+        tr("Target GnuPG Path contains no \"gpgconf\" executable."));
     return false;
   }
 
@@ -366,16 +366,16 @@ bool GnuPGControllerDialog::check_custom_gnupg_path(QString path) {
 auto GnuPGControllerDialog::check_custom_gnupg_key_database_path(QString path)
     -> bool {
   if (path.isEmpty()) {
-    QMessageBox::critical(this, _("Illegal GnuPG Key Database Path"),
-                          _("Target GnuPG Key Database Path is empty."));
+    QMessageBox::critical(this, tr("Illegal GnuPG Key Database Path"),
+                          tr("Target GnuPG Key Database Path is empty."));
     return false;
   }
 
   QFileInfo dir_info(path);
   if (!dir_info.exists() || !dir_info.isReadable() || !dir_info.isDir()) {
-    QMessageBox::critical(this, _("Illegal GnuPG Key Database Path"),
-                          _("Target GnuPG Key Database Path is not an "
-                            "exists readable directory."));
+    QMessageBox::critical(this, tr("Illegal GnuPG Key Database Path"),
+                          tr("Target GnuPG Key Database Path is not an "
+                             "exists readable directory."));
     return false;
   }
 

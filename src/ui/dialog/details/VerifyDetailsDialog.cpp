@@ -35,7 +35,7 @@ namespace GpgFrontend::UI {
 VerifyDetailsDialog::VerifyDetailsDialog(QWidget* parent, GpgError error,
                                          GpgVerifyResult result)
     : QDialog(parent), m_result_(result), error_(error) {
-  this->setWindowTitle(_("Signatures Details"));
+  this->setWindowTitle(tr("Signatures Details"));
 
   main_layout_ = new QHBoxLayout();
   this->setLayout(main_layout_);
@@ -58,7 +58,7 @@ void VerifyDetailsDialog::slot_refresh() {
   auto signatures = m_result_.GetSignature();
 
   if (signatures.empty()) {
-    m_vbox_layout->addWidget(new QLabel(_("No valid input found")));
+    m_vbox_layout->addWidget(new QLabel(tr("No valid input found")));
     m_vbox_layout->addWidget(button_box_);
     return;
   }
@@ -68,16 +68,16 @@ void VerifyDetailsDialog::slot_refresh() {
 
   // Set the title widget depending on sign status
   if (gpg_err_code(signatures[0].GetStatus()) == GPG_ERR_BAD_SIGNATURE) {
-    m_vbox_layout->addWidget(new QLabel(_("Error Validating signature")));
+    m_vbox_layout->addWidget(new QLabel(tr("Error Validating signature")));
   } else if (input_signature_ != nullptr) {
-    const auto info = QString(_("File was signed on %1"))
-                          .arg(QLocale::system().toString(timestamp)) +
-                      "<br/>" + _("It Contains") + ": " + "<br/><br/>";
+    const auto info =
+        tr("File was signed on %1").arg(QLocale::system().toString(timestamp)) +
+        "<br/>" + tr("It Contains") + ": " + "<br/><br/>";
     m_vbox_layout->addWidget(new QLabel(info));
   } else {
     const auto info =
-        QString(_("Signed on %1")).arg(QLocale::system().toString(timestamp)) +
-        "<br/>" + _("It Contains") + ": " + "<br/><br/>";
+        tr("Signed on %1").arg(QLocale::system().toString(timestamp)) +
+        "<br/>" + tr("It Contains") + ": " + "<br/><br/>";
     m_vbox_layout->addWidget(new QLabel(info));
   }
   // Add information box for every single key

@@ -33,7 +33,8 @@
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GpgResultAnalyse {
+class GPGFRONTEND_CORE_EXPORT GpgResultAnalyse : public QObject {
+  Q_OBJECT
  public:
   /**
    * @brief Construct a new Result Analyse object

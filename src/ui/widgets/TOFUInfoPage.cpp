@@ -33,15 +33,14 @@ GpgFrontend::UI::TOFUInfoPage::TOFUInfoPage(
     : QWidget(parent) {
   auto grid_layout = new QGridLayout();
 
-  grid_layout->addWidget(new QLabel(QString(_("Key ID")) + ": "), 0, 0);
-  grid_layout->addWidget(new QLabel(QString(_("Algorithm")) + ": "), 1, 0);
-  grid_layout->addWidget(new QLabel(QString(_("Key Size")) + ": "), 2, 0);
-  grid_layout->addWidget(new QLabel(QString(_("Nominal Usage")) + ": "), 3, 0);
-  grid_layout->addWidget(new QLabel(QString(_("Actual Usage")) + ": "), 4, 0);
-  grid_layout->addWidget(new QLabel(QString(_("Expires on")) + ": "), 5, 0);
-  grid_layout->addWidget(new QLabel(QString(_("Last Update")) + ": "), 6, 0);
-  grid_layout->addWidget(new QLabel(QString(_("Secret Key Existence")) + ": "),
-                         7, 0);
+  grid_layout->addWidget(new QLabel(tr("Key ID") + ": "), 0, 0);
+  grid_layout->addWidget(new QLabel(tr("Algorithm") + ": "), 1, 0);
+  grid_layout->addWidget(new QLabel(tr("Key Size") + ": "), 2, 0);
+  grid_layout->addWidget(new QLabel(tr("Nominal Usage") + ": "), 3, 0);
+  grid_layout->addWidget(new QLabel(tr("Actual Usage") + ": "), 4, 0);
+  grid_layout->addWidget(new QLabel(tr("Expires on") + ": "), 5, 0);
+  grid_layout->addWidget(new QLabel(tr("Last Update") + ": "), 6, 0);
+  grid_layout->addWidget(new QLabel(tr("Secret Key Existence") + ": "), 7, 0);
 
   setLayout(grid_layout);
 }

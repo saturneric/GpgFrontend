@@ -93,12 +93,12 @@ void MainWindow::slot_append_keys_create_datetime() {
 
   auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
   if (!key.IsGood()) {
-    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
+    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
     return;
   }
 
   auto create_datetime_format_str_local =
-      QLocale::system().toString(key.GetCreateTime()) + _(" (Local Time) ") +
+      QLocale::system().toString(key.GetCreateTime()) + tr(" (Local Time) ") +
       "\n";
   edit_->SlotAppendText2CurTextPage(create_datetime_format_str_local);
 }
@@ -113,7 +113,7 @@ void MainWindow::slot_append_keys_expire_datetime() {
 
   auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
   if (!key.IsGood()) {
-    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
+    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
     return;
   }
 
@@ -129,7 +129,7 @@ void MainWindow::slot_append_keys_fingerprint() {
 
   auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
   if (!key.IsGood()) {
-    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
+    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
     return;
   }
 
@@ -145,7 +145,7 @@ void MainWindow::slot_copy_mail_address_to_clipboard() {
 
   auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
   if (!key.IsGood()) {
-    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
+    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
     return;
   }
   QClipboard* cb = QApplication::clipboard();
@@ -158,7 +158,7 @@ void MainWindow::slot_copy_default_uid_to_clipboard() {
 
   auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
   if (!key.IsGood()) {
-    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
+    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
     return;
   }
   QClipboard* cb = QApplication::clipboard();
@@ -171,7 +171,7 @@ void MainWindow::slot_copy_key_id_to_clipboard() {
 
   auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
   if (!key.IsGood()) {
-    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
+    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
     return;
   }
   QClipboard* cb = QApplication::clipboard();
@@ -186,7 +186,7 @@ void MainWindow::slot_show_key_details() {
   if (key.IsGood()) {
     new KeyDetailsDialog(key, this);
   } else {
-    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
+    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
   }
 }
 
@@ -238,17 +238,18 @@ void MainWindow::upload_key_to_server() {
 void MainWindow::SlotOpenFile(const QString& path) {
   QFileInfo const info(path);
   if (!info.isFile() || !info.isReadable()) {
-    QMessageBox::critical(this, _("Error"),
-                          _("Cannot open this file. Please make sure that this "
-                            "is a regular file and it's readable."));
+    QMessageBox::critical(
+        this, tr("Error"),
+        tr("Cannot open this file. Please make sure that this "
+           "is a regular file and it's readable."));
     return;
   }
 
   if (info.size() > static_cast<qint64>(1024 * 1024)) {
     QMessageBox::critical(
-        this, _("Error"),
-        _("Cannot open this file. The file is TOO LARGE (>1MB) for "
-          "GpgFrontend Text Editor."));
+        this, tr("Error"),
+        tr("Cannot open this file. The file is TOO LARGE (>1MB) for "
+           "GpgFrontend Text Editor."));
     return;
   }
 
@@ -286,16 +287,14 @@ void MainWindow::slot_version_upgrade_nofity() {
       "version.latest_version", QString{});
 
   GF_UI_LOG_DEBUG(
-      "got version info from rt, need upgrade: {}, with drawn: {}, current "
-      "version "
-      "released: {}",
+      "got version info from rt, need upgrade: {}, with drawn: {}, "
+      "current version released: {}",
       is_need_upgrade, is_current_a_withdrawn_version,
       is_current_version_released);
 
   if (is_need_upgrade) {
     statusBar()->showMessage(
-        QString(_("GpgFrontend Upgradeable (New Version: %1)."))
-            .arg(latest_version),
+        tr("GpgFrontend Upgradeable (New Version: %1).").arg(latest_version),
         30000);
     auto* update_button = new QPushButton("Update GpgFrontend", this);
     connect(update_button, &QPushButton::clicked, [=]() {
@@ -305,20 +304,19 @@ void MainWindow::slot_version_upgrade_nofity() {
     statusBar()->addPermanentWidget(update_button, 0);
   } else if (is_current_a_withdrawn_version) {
     QMessageBox::warning(
-        this, _("Withdrawn Version"),
-        QString(
-            _("This version(%1) may have been withdrawn by the developer due "
-              "to serious problems. Please stop using this version "
-              "immediately and use the latest stable version."))
+        this, tr("Withdrawn Version"),
+
+        tr("This version(%1) may have been withdrawn by the developer due "
+           "to serious problems. Please stop using this version "
+           "immediately and use the latest stable version.")
                 .arg(latest_version) +
             "<br/>" +
-            QString(_("You can download the latest stable version(%1) on "
-                      "Github Releases "
-                      "Page.<br/>"))
+            tr("You can download the latest stable version(%1) on "
+               "Github Releases Page.<br/>")
                 .arg(latest_version));
   } else if (!is_current_version_released) {
     statusBar()->showMessage(
-        QString(_("This maybe a BETA Version (Latest Stable Version: %1)."))
+        tr("This maybe a BETA Version (Latest Stable Version: %1).")
             .arg(latest_version),
         30000);
   }

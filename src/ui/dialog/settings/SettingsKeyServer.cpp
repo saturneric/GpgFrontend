@@ -52,25 +52,25 @@ KeyserverTab::KeyserverTab(QWidget* parent)
   connect(ui_->testKeyServerButton, &QPushButton::clicked, this,
           &KeyserverTab::slot_test_listed_key_server);
 
-  ui_->keyServerListGroupBox->setTitle(_("Keyserver List"));
-  ui_->operationsGroupBox->setTitle(_("Operations"));
+  ui_->keyServerListGroupBox->setTitle(tr("Keyserver List"));
+  ui_->operationsGroupBox->setTitle(tr("Operations"));
 
-  ui_->keyServerListTable->horizontalHeaderItem(0)->setText(_("Default"));
+  ui_->keyServerListTable->horizontalHeaderItem(0)->setText(tr("Default"));
   ui_->keyServerListTable->horizontalHeaderItem(1)->setText(
-      _("Keyserver Address"));
-  ui_->keyServerListTable->horizontalHeaderItem(2)->setText(_("Security"));
-  ui_->keyServerListTable->horizontalHeaderItem(3)->setText(_("Available"));
+      tr("Keyserver Address"));
+  ui_->keyServerListTable->horizontalHeaderItem(2)->setText(tr("Security"));
+  ui_->keyServerListTable->horizontalHeaderItem(3)->setText(tr("Available"));
 
-  ui_->addKeyServerPushButton->setText(_("Add"));
-  ui_->testKeyServerButton->setText(_("Test Listed Keyserver"));
+  ui_->addKeyServerPushButton->setText(tr("Add"));
+  ui_->testKeyServerButton->setText(tr("Test Listed Keyserver"));
 
   ui_->tipsLabel->setText(
-      _("Tips: Please Double-click table item to edit it."));
-  ui_->actionDelete_Selected_Key_Server->setText(_("Delete Selected"));
+      tr("Tips: Please Double-click table item to edit it."));
+  ui_->actionDelete_Selected_Key_Server->setText(tr("Delete Selected"));
   ui_->actionDelete_Selected_Key_Server->setToolTip(
-      _("Delete Selected Key Server"));
-  ui_->actionSet_As_Default->setText(_("Set As Default"));
-  ui_->actionSet_As_Default->setToolTip(_("Set As Default"));
+      tr("Delete Selected Key Server"));
+  ui_->actionSet_As_Default->setText(tr("Set As Default"));
+  ui_->actionSet_As_Default->setToolTip(tr("Set As Default"));
 
   popup_menu_ = new QMenu(this);
   popup_menu_->addAction(ui_->actionSet_As_Default);
@@ -140,21 +140,21 @@ void KeyserverTab::slot_add_key_server() {
       ;
     } else if (target_url.startsWith("http://")) {
       QMessageBox::warning(
-          this, _("Insecure keyserver address"),
-          _("For security reasons, using HTTP as the communication protocol "
-            "with "
-            "the key server is not recommended. It is recommended to use "
-            "HTTPS."));
+          this, tr("Insecure keyserver address"),
+          tr("For security reasons, using HTTP as the communication protocol "
+             "with "
+             "the key server is not recommended. It is recommended to use "
+             "HTTPS."));
     }
     key_server_str_list_.append(ui_->addKeyServerEdit->text());
   } else {
     auto ret = QMessageBox::warning(
-        this, _("Warning"),
-        _("You may not use HTTPS or HTTP as the protocol for communicating "
-          "with the key server, which may not be wrong. But please check the "
-          "address you entered again to make sure it is correct. Are you "
-          "sure "
-          "that want to add it into the keyserver list?"),
+        this, tr("Warning"),
+        tr("You may not use HTTPS or HTTP as the protocol for communicating "
+           "with the key server, which may not be wrong. But please check the "
+           "address you entered again to make sure it is correct. Are you "
+           "sure "
+           "that want to add it into the keyserver list?"),
         QMessageBox::Ok | QMessageBox::Cancel);
 
     if (ret == QMessageBox::Cancel) return;
@@ -197,13 +197,13 @@ void KeyserverTab::slot_refresh_table() {
     tmp2->setTextAlignment(Qt::AlignCenter);
     ui_->keyServerListTable->setItem(index, 1, tmp2);
 
-    auto* tmp3 = new QTableWidgetItem(server.startsWith("https") ? _("true")
-                                                                 : _("false"));
+    auto* tmp3 = new QTableWidgetItem(server.startsWith("https") ? tr("true")
+                                                                 : tr("false"));
     tmp3->setTextAlignment(Qt::AlignCenter);
     ui_->keyServerListTable->setItem(index, 2, tmp3);
     tmp3->setFlags(tmp3->flags() ^ Qt::ItemIsEditable);
 
-    auto* tmp4 = new QTableWidgetItem(_("unknown"));
+    auto* tmp4 = new QTableWidgetItem(tr("unknown"));
     tmp4->setTextAlignment(Qt::AlignCenter);
     ui_->keyServerListTable->setItem(index, 3, tmp4);
     tmp4->setFlags(tmp3->flags() ^ Qt::ItemIsEditable);
@@ -217,7 +217,7 @@ void KeyserverTab::slot_refresh_table() {
 }
 
 void KeyserverTab::slot_test_listed_key_server() {
-  auto timeout = QInputDialog::getInt(this, _("Set TCP Timeout"),
+  auto timeout = QInputDialog::getInt(this, tr("Set TCP Timeout"),
                                       tr("timeout(ms): "), 2500, 200, 16000);
 
   QStringList urls;
@@ -242,10 +242,10 @@ void KeyserverTab::slot_test_listed_key_server() {
           const auto status = result[i];
           auto* status_iem = ui_->keyServerListTable->item(i, 3);
           if (status == ListedKeyServerTestTask::kTEST_RESULT_TYPE_SUCCESS) {
-            status_iem->setText(_("Reachable"));
+            status_iem->setText(tr("Reachable"));
             status_iem->setForeground(QBrush(QColor::fromRgb(0, 255, 0)));
           } else {
-            status_iem->setText(_("Not Reachable"));
+            status_iem->setText(tr("Not Reachable"));
             status_iem->setForeground(QBrush(QColor::fromRgb(255, 0, 0)));
           }
         }
@@ -256,11 +256,11 @@ void KeyserverTab::slot_test_listed_key_server() {
   auto* waiting_dialog = new QProgressDialog(this);
   waiting_dialog->setMaximum(0);
   waiting_dialog->setMinimum(0);
-  auto* waiting_dialog_label =
-      new QLabel(QString(_("Test Key Server Connection...")) + "<br /><br />" +
-                 _("This test only tests the network connectivity of the key "
-                   "server. Passing the test does not mean that the key server "
-                   "is functionally available."));
+  auto* waiting_dialog_label = new QLabel(
+      tr("Test Key Server Connection...") + "<br /><br />" +
+      tr("This test only tests the network connectivity of the key "
+         "server. Passing the test does not mean that the key server "
+         "is functionally available."));
   waiting_dialog_label->setWordWrap(true);
   waiting_dialog->setLabel(waiting_dialog_label);
   waiting_dialog->resize(420, 120);

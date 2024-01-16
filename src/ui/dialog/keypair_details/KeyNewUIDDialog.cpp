@@ -47,9 +47,9 @@ KeyNewUIDDialog::KeyNewUIDDialog(const KeyId& key_id, QWidget* parent)
   error_label_ = new QLabel();
 
   auto gridLayout = new QGridLayout();
-  gridLayout->addWidget(new QLabel(_("Name")), 0, 0);
-  gridLayout->addWidget(new QLabel(_("Email")), 1, 0);
-  gridLayout->addWidget(new QLabel(_("Comment")), 2, 0);
+  gridLayout->addWidget(new QLabel(tr("Name")), 0, 0);
+  gridLayout->addWidget(new QLabel(tr("Email")), 1, 0);
+  gridLayout->addWidget(new QLabel(tr("Comment")), 2, 0);
 
   gridLayout->addWidget(name_, 0, 1);
   gridLayout->addWidget(email_, 1, 1);
@@ -57,7 +57,7 @@ KeyNewUIDDialog::KeyNewUIDDialog(const KeyId& key_id, QWidget* parent)
 
   gridLayout->addWidget(create_button_, 3, 0, 1, 2);
   gridLayout->addWidget(
-      new QLabel(_("Notice: The New UID Created will be set as Primary.")), 4,
+      new QLabel(tr("Notice: The New UID Created will be set as Primary.")), 4,
       0, 1, 2);
   gridLayout->addWidget(error_label_, 5, 0, 1, 2);
 
@@ -65,7 +65,7 @@ KeyNewUIDDialog::KeyNewUIDDialog(const KeyId& key_id, QWidget* parent)
           &KeyNewUIDDialog::slot_create_new_uid);
 
   this->setLayout(gridLayout);
-  this->setWindowTitle(_("Create New UID"));
+  this->setWindowTitle(tr("Create New UID"));
   this->setAttribute(Qt::WA_DeleteOnClose, true);
   this->setModal(true);
 
@@ -75,20 +75,21 @@ KeyNewUIDDialog::KeyNewUIDDialog(const KeyId& key_id, QWidget* parent)
 }
 
 void KeyNewUIDDialog::slot_create_new_uid() {
-  std::stringstream error_stream;
+  QString buffer;
+  QTextStream error_stream(&buffer);
 
   /**
    * check for errors in keygen dialog input
    */
   if ((name_->text()).size() < 5) {
-    error_stream << "  " << _("Name must contain at least five characters.")
-                 << std::endl;
+    error_stream << "  " << tr("Name must contain at least five characters.")
+                 << Qt::endl;
   }
   if (email_->text().isEmpty() || !check_email_address(email_->text())) {
-    error_stream << "  " << _("Please give a email address.") << std::endl;
+    error_stream << "  " << tr("Please give a email address.") << Qt::endl;
   }
-  auto error_string = error_stream.str();
-  if (error_string.empty()) {
+  auto error_string = error_stream.readAll();
+  if (error_string.isEmpty()) {
     if (GpgUIDOperator::GetInstance().AddUID(
             m_key_, name_->text(), comment_->text(), email_->text())) {
       emit finished(1);
@@ -105,7 +106,7 @@ void KeyNewUIDDialog::slot_create_new_uid() {
     QPalette error = error_label_->palette();
     error.setColor(QPalette::Window, "#ff8080");
     error_label_->setPalette(error);
-    error_label_->setText(error_string.c_str());
+    error_label_->setText(error_string);
 
     this->show();
   }

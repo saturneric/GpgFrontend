@@ -49,8 +49,9 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
 
   connect(ui_->setOutputPathButton, &QPushButton::clicked, this, [=]() {
     auto file_name = QFileDialog::getSaveFileName(
-        this, _("Export Key Package"), ui_->nameValueLabel->text() + ".gfepack",
-        QString(_("Key Package")) + " (*.gfepack);;All Files (*)");
+        this, tr("Export Key Package"),
+        ui_->nameValueLabel->text() + ".gfepack",
+        tr("Key Package") + " (*.gfepack);;All Files (*)");
 
     // check path
     if (file_name.isEmpty()) return;
@@ -60,17 +61,17 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
 
   connect(ui_->generatePassphraseButton, &QPushButton::clicked, this, [=]() {
     auto file_name = QFileDialog::getSaveFileName(
-        this, _("Export Key Package Passphrase"),
+        this, tr("Export Key Package Passphrase"),
         ui_->nameValueLabel->text() + ".key",
-        QString(_("Key File")) + " (*.key);;All Files (*)");
+        tr("Key File") + " (*.key);;All Files (*)");
 
     // check path
     if (file_name.isEmpty()) return;
 
     if (!KeyPackageOperator::GeneratePassphrase(file_name, passphrase_)) {
       QMessageBox::critical(
-          this, _("Error"),
-          _("An error occurred while generating the passphrase file."));
+          this, tr("Error"),
+          tr("An error occurred while generating the passphrase file."));
       return;
     }
     ui_->passphraseValueLabel->setText(file_name);
@@ -79,17 +80,17 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
   connect(ui_->button_box_, &QDialogButtonBox::accepted, this, [=]() {
     if (ui_->outputPathLabel->text().isEmpty()) {
       QMessageBox::critical(
-          this, _("Forbidden"),
-          _("Please select an output path before exporting."));
+          this, tr("Forbidden"),
+          tr("Please select an output path before exporting."));
       return;
     }
 
     if (ui_->passphraseValueLabel->text().isEmpty()) {
       QMessageBox::critical(
-          this, _("Forbidden"),
-          _("Please generate a password to protect your key before exporting, "
-            "it is very important. Don't forget to back up your password in a "
-            "safe place."));
+          this, tr("Forbidden"),
+          tr("Please generate a password to protect your key before exporting, "
+             "it is very important. Don't forget to back up your password in a "
+             "safe place."));
       return;
     }
 
@@ -102,13 +103,13 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
     keys->erase(keys_new_end, keys->end());
 
     if (keys->empty()) {
-      QMessageBox::critical(this, _("Error"),
-                            _("No key is suitable to export."));
+      QMessageBox::critical(this, tr("Error"),
+                            tr("No key is suitable to export."));
       return;
     }
 
     CommonUtils::WaitForOpera(
-        this, _("Generating"), [this, keys](const OperaWaitingHd& op_hd) {
+        this, tr("Generating"), [this, keys](const OperaWaitingHd& op_hd) {
           KeyPackageOperator::GenerateKeyPackage(
               ui_->outputPathLabel->text(), ui_->nameValueLabel->text(), *keys,
               passphrase_, ui_->includeSecretKeyCheckBox->isChecked(),
@@ -118,24 +119,25 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
 
                 if (err >= 0) {
                   QMessageBox::information(
-                      this, _("Success"),
+                      this, tr("Success"),
                       QString(
-                          _("The Key Package has been successfully generated "
-                            "and has been protected by encryption "
-                            "algorithms(AES-256-ECB). You can safely transfer "
-                            "your Key Package.")) +
+                          tr("The Key Package has been successfully generated "
+                             "and has been protected by encryption "
+                             "algorithms(AES-256-ECB). You can safely transfer "
+                             "your Key Package.")) +
                           "<br /><br />" + "<b>" +
-                          _("But the key file cannot be leaked under any "
-                            "circumstances. Please delete the Key Package and "
-                            "key file as soon as possible after completing the "
-                            "transfer "
-                            "operation.") +
+                          tr("But the key file cannot be leaked under any "
+                             "circumstances. Please delete the Key Package and "
+                             "key file as soon as possible after completing "
+                             "the "
+                             "transfer "
+                             "operation.") +
                           "</b>");
                   accept();
                 } else {
                   QMessageBox::critical(
-                      this, _("Error"),
-                      _("An error occurred while exporting the key package."));
+                      this, tr("Error"),
+                      tr("An error occurred while exporting the key package."));
                 }
               });
         });
@@ -144,21 +146,21 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
   connect(ui_->button_box_, &QDialogButtonBox::rejected, this,
           [=]() { this->close(); });
 
-  ui_->nameLabel->setText(_("Key Package Name"));
-  ui_->selectOutputPathLabel->setText(_("Output Path"));
-  ui_->passphraseLabel->setText(_("Passphrase"));
+  ui_->nameLabel->setText(tr("Key Package Name"));
+  ui_->selectOutputPathLabel->setText(tr("Output Path"));
+  ui_->passphraseLabel->setText(tr("Passphrase"));
   ui_->tipsLabel->setText(
-      _("Tips: You can use Key Package to safely and conveniently transfer "
-        "your public and private keys between devices."));
-  ui_->generatePassphraseButton->setText(_("Generate and Save Passphrase"));
-  ui_->gnerateNameButton->setText(_("Generate Key Package Name"));
-  ui_->setOutputPathButton->setText(_("Select Output Path"));
+      tr("Tips: You can use Key Package to safely and conveniently transfer "
+         "your public and private keys between devices."));
+  ui_->generatePassphraseButton->setText(tr("Generate and Save Passphrase"));
+  ui_->gnerateNameButton->setText(tr("Generate Key Package Name"));
+  ui_->setOutputPathButton->setText(tr("Select Output Path"));
 
   ui_->includeSecretKeyCheckBox->setText(
-      _("Include secret key (Think twice before acting)"));
+      tr("Include secret key (Think twice before acting)"));
   ui_->noPublicKeyCheckBox->setText(
-      _("Exclude keys that do not have a private key"));
+      tr("Exclude keys that do not have a private key"));
 
   setAttribute(Qt::WA_DeleteOnClose);
-  setWindowTitle(_("Export As Key Package"));
+  setWindowTitle(tr("Export As Key Package"));
 }

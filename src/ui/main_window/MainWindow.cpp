@@ -162,9 +162,10 @@ void MainWindow::Init() noexcept {
     if (show_wizard) slot_start_wizard();
 
   } catch (...) {
-    GF_UI_LOG_ERROR(_("Critical error occur while loading GpgFrontend."));
-    QMessageBox::critical(nullptr, _("Loading Failed"),
-                          _("Critical error occur while loading GpgFrontend."));
+    GF_UI_LOG_ERROR(tr("Critical error occur while loading GpgFrontend."));
+    QMessageBox::critical(
+        nullptr, tr("Loading Failed"),
+        tr("Critical error occur while loading GpgFrontend."));
     QCoreApplication::quit();
     exit(0);
   }

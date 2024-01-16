@@ -78,7 +78,7 @@
            </property>
            <property name="icon">
             <iconset resource="../gpgfrontend.qrc">
-             <normaloff>:/new_directory.png</normaloff>:/new_directory.png</iconset>
+             <normaloff>:/icons/new_directory.png</normaloff>:/icons/new_directory.png</iconset>
            </property>
           </widget>
          </item>
@@ -114,7 +114,7 @@
            </property>
            <property name="icon">
             <iconset resource="../gpgfrontend.qrc">
-             <normaloff>:/refresh.png</normaloff>:/refresh.png</iconset>
+             <normaloff>:/icons/refresh.png</normaloff>:/icons/refresh.png</iconset>
            </property>
           </widget>
          </item>
@@ -131,7 +131,7 @@
            </property>
            <property name="icon">
             <iconset resource="../gpgfrontend.qrc">
-             <normaloff>:/up.png</normaloff>:/up.png</iconset>
+             <normaloff>:/icons/up.png</normaloff>:/icons/up.png</iconset>
            </property>
           </widget>
          </item>
@@ -148,7 +148,7 @@
            </property>
            <property name="icon">
             <iconset resource="../gpgfrontend.qrc">
-             <normaloff>:/configure.png</normaloff>:/configure.png</iconset>
+             <normaloff>:/icons/configure.png</normaloff>:/icons/configure.png</iconset>
            </property>
            <property name="popupMode">
             <enum>QToolButton::InstantPopup</enum>

@@ -51,7 +51,7 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
 
   this->setAttribute(Qt::WA_DeleteOnClose);
 
-  this->ui_->characterLabel->setText(_("0 character"));
+  this->ui_->characterLabel->setText(tr("0 character"));
   this->ui_->lfLabel->setHidden(true);
   this->ui_->encodingLabel->setText("Unicode");
 
@@ -60,7 +60,7 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
     if (!read_done_) return;
 
     auto text = ui_->textPage->document()->toPlainText();
-    auto str = QString(_("%1 character(s)")).arg(text.size());
+    auto str = tr("%1 character(s)").arg(text.size());
     this->ui_->characterLabel->setText(str);
   });
 
@@ -69,7 +69,7 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
     ui_->loadingLabel->setHidden(true);
   } else {
     read_done_ = false;
-    ui_->loadingLabel->setText(_("Loading..."));
+    ui_->loadingLabel->setText(tr("Loading..."));
     ui_->loadingLabel->setHidden(false);
   }
 }
@@ -83,8 +83,8 @@ QPlainTextEdit *PlainTextEditorPage::GetTextPage() { return ui_->textPage; }
 void PlainTextEditorPage::NotifyFileSaved() {
   this->is_crlf_ = false;
 
-  this->ui_->lfLabel->setText(_("lf"));
-  this->ui_->encodingLabel->setText(_("UTF-8"));
+  this->ui_->lfLabel->setText(tr("lf"));
+  this->ui_->encodingLabel->setText(tr("UTF-8"));
 }
 
 void PlainTextEditorPage::SetFilePath(const QString &filePath) {
@@ -195,7 +195,7 @@ void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
   this->GetTextPage()->insertPlainText(bytes_data);
 
   auto text = this->GetTextPage()->toPlainText();
-  auto str = QString(_("%1 character(s)")).arg(text.size());
+  auto str = tr("%1 character(s)").arg(text.size());
   this->ui_->characterLabel->setText(str);
 
   QTimer::singleShot(25, this, &PlainTextEditorPage::SignalUIBytesDisplayed);

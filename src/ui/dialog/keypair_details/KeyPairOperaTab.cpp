@@ -48,29 +48,29 @@ KeyPairOperaTab::KeyPairOperaTab(const QString& key_id, QWidget* parent)
   CreateOperaMenu();
   auto* m_vbox = new QVBoxLayout(this);
 
-  auto* opera_key_box = new QGroupBox(_("General Operations"));
+  auto* opera_key_box = new QGroupBox(tr("General Operations"));
   auto* vbox_p_k = new QVBoxLayout();
 
   auto* export_h_box_layout = new QHBoxLayout();
   vbox_p_k->addLayout(export_h_box_layout);
 
-  auto* export_public_button = new QPushButton(_("Export Public Key"));
+  auto* export_public_button = new QPushButton(tr("Export Public Key"));
   export_h_box_layout->addWidget(export_public_button);
   connect(export_public_button, &QPushButton::clicked, this,
           &KeyPairOperaTab::slot_export_public_key);
 
   if (m_key_.IsPrivateKey()) {
-    auto* export_private_button = new QPushButton(_("Export Private Key"));
+    auto* export_private_button = new QPushButton(tr("Export Private Key"));
     export_private_button->setStyleSheet("text-align:center;");
     export_private_button->setMenu(secret_key_export_opera_menu_);
     export_h_box_layout->addWidget(export_private_button);
 
     if (m_key_.IsHasMasterKey()) {
       auto* edit_expires_button =
-          new QPushButton(_("Modify Expiration Datetime (Primary Key)"));
+          new QPushButton(tr("Modify Expiration Datetime (Primary Key)"));
       connect(edit_expires_button, &QPushButton::clicked, this,
               &KeyPairOperaTab::slot_modify_edit_datetime);
-      auto* edit_password_button = new QPushButton(_("Modify Password"));
+      auto* edit_password_button = new QPushButton(tr("Modify Password"));
       connect(edit_password_button, &QPushButton::clicked, this,
               &KeyPairOperaTab::slot_modify_password);
 
@@ -89,7 +89,7 @@ KeyPairOperaTab::KeyPairOperaTab(const QString& key_id, QWidget* parent)
       settings.value("network/forbid_all_gnupg_connection").toBool();
 
   auto* key_server_opera_button =
-      new QPushButton(_("Key Server Operation (Pubkey)"));
+      new QPushButton(tr("Key Server Operation (Pubkey)"));
   key_server_opera_button->setStyleSheet("text-align:center;");
   key_server_opera_button->setMenu(key_server_opera_menu_);
   key_server_opera_button->setDisabled(forbid_all_gnupg_connection);
@@ -97,18 +97,18 @@ KeyPairOperaTab::KeyPairOperaTab(const QString& key_id, QWidget* parent)
 
   if (m_key_.IsPrivateKey() && m_key_.IsHasMasterKey()) {
     auto* revoke_cert_gen_button =
-        new QPushButton(_("Generate Revoke Certificate"));
+        new QPushButton(tr("Generate Revoke Certificate"));
     connect(revoke_cert_gen_button, &QPushButton::clicked, this,
             &KeyPairOperaTab::slot_gen_revoke_cert);
     advance_h_box_layout->addWidget(revoke_cert_gen_button);
   }
 
-  auto* modify_tofu_button = new QPushButton(_("Modify TOFU Policy"));
+  auto* modify_tofu_button = new QPushButton(tr("Modify TOFU Policy"));
   connect(modify_tofu_button, &QPushButton::clicked, this,
           &KeyPairOperaTab::slot_modify_tofu_policy);
 
   auto* set_owner_trust_level_button =
-      new QPushButton(_("Set Owner Trust Level"));
+      new QPushButton(tr("Set Owner Trust Level"));
   connect(set_owner_trust_level_button, &QPushButton::clicked, this,
           &KeyPairOperaTab::slot_set_owner_trust_level);
 
@@ -131,14 +131,16 @@ KeyPairOperaTab::KeyPairOperaTab(const QString& key_id, QWidget* parent)
 void KeyPairOperaTab::CreateOperaMenu() {
   key_server_opera_menu_ = new QMenu(this);
 
-  auto* upload_key_pair = new QAction(_("Upload Key Pair to Key Server"), this);
+  auto* upload_key_pair =
+      new QAction(tr("Upload Key Pair to Key Server"), this);
   connect(upload_key_pair, &QAction::triggered, this,
           &KeyPairOperaTab::slot_upload_key_to_server);
   if (!(m_key_.IsPrivateKey() && m_key_.IsHasMasterKey())) {
     upload_key_pair->setDisabled(true);
   }
 
-  auto* update_key_pair = new QAction(_("Sync Key Pair From Key Server"), this);
+  auto* update_key_pair =
+      new QAction(tr("Sync Key Pair From Key Server"), this);
   connect(update_key_pair, &QAction::triggered, this,
           &KeyPairOperaTab::slot_update_key_from_server);
 
@@ -152,13 +154,14 @@ void KeyPairOperaTab::CreateOperaMenu() {
 
   secret_key_export_opera_menu_ = new QMenu(this);
 
-  auto* export_full_secret_key = new QAction(_("Export Full Secret Key"), this);
+  auto* export_full_secret_key =
+      new QAction(tr("Export Full Secret Key"), this);
   connect(export_full_secret_key, &QAction::triggered, this,
           &KeyPairOperaTab::slot_export_private_key);
   if (!m_key_.IsPrivateKey()) export_full_secret_key->setDisabled(true);
 
   auto* export_shortest_secret_key =
-      new QAction(_("Export Shortest Secret Key"), this);
+      new QAction(tr("Export Shortest Secret Key"), this);
   connect(export_shortest_secret_key, &QAction::triggered, this,
           &KeyPairOperaTab::slot_export_short_private_key);
 
@@ -185,15 +188,14 @@ void KeyPairOperaTab::slot_export_public_key() {
   std::replace(file_string.begin(), file_string.end(), ' ', '_');
 
   auto file_name = QFileDialog::getSaveFileName(
-      this, _("Export Key To File"), file_string,
-      QString(_("Key Files")) + " (*.asc *.txt);;All Files (*)");
+      this, tr("Export Key To File"), file_string,
+      tr("Key Files") + " (*.asc *.txt);;All Files (*)");
 
   if (file_name.isEmpty()) return;
 
   if (!WriteFileGFBuffer(file_name, gf_buffer)) {
-    QMessageBox::critical(
-        this, _("Export Error"),
-        QString(_("Couldn't open %1 for writing")).arg(file_name));
+    QMessageBox::critical(this, tr("Export Error"),
+                          tr("Couldn't open %1 for writing").arg(file_name));
     return;
   }
 }
@@ -201,15 +203,15 @@ void KeyPairOperaTab::slot_export_public_key() {
 void KeyPairOperaTab::slot_export_short_private_key() {
   // Show a information box with explanation about private key
   int ret = QMessageBox::information(
-      this, _("Exporting short private Key"),
-      "<h3>" + QString(_("You are about to export your")) +
-          "<font color=\"red\">" + _(" PRIVATE KEY ") + "</font>!</h3>\n" +
-          _("This is NOT your Public Key, so DON'T give it away.") + "<br />" +
-          _("Do you REALLY want to export your PRIVATE KEY in a Minimum "
-            "Size?") +
+      this, tr("Exporting short private Key"),
+      "<h3>" + tr("You are about to export your") + "<font color=\"red\">" +
+          tr(" PRIVATE KEY ") + "</font>!</h3>\n" +
+          tr("This is NOT your Public Key, so DON'T give it away.") + "<br />" +
+          tr("Do you REALLY want to export your PRIVATE KEY in a Minimum "
+             "Size?") +
           "<br />" +
-          _("For OpenPGP keys it removes all signatures except for the latest "
-            "self-signatures."),
+          tr("For OpenPGP keys it removes all signatures except for the latest "
+             "self-signatures."),
       QMessageBox::Cancel | QMessageBox::Ok);
 
   // export key, if ok was clicked
@@ -232,15 +234,14 @@ void KeyPairOperaTab::slot_export_short_private_key() {
     std::replace(file_string.begin(), file_string.end(), ' ', '_');
 
     auto file_name = QFileDialog::getSaveFileName(
-        this, _("Export Key To File"), file_string,
-        QString(_("Key Files")) + " (*.asc *.txt);;All Files (*)");
+        this, tr("Export Key To File"), file_string,
+        tr("Key Files") + " (*.asc *.txt);;All Files (*)");
 
     if (file_name.isEmpty()) return;
 
     if (!WriteFileGFBuffer(file_name, gf_buffer)) {
-      QMessageBox::critical(
-          this, _("Export Error"),
-          QString(_("Couldn't open %1 for writing")).arg(file_name));
+      QMessageBox::critical(this, tr("Export Error"),
+                            tr("Couldn't open %1 for writing").arg(file_name));
       return;
     }
   }
@@ -249,11 +250,11 @@ void KeyPairOperaTab::slot_export_short_private_key() {
 void KeyPairOperaTab::slot_export_private_key() {
   // Show a information box with explanation about private key
   int ret = QMessageBox::information(
-      this, _("Exporting private Key"),
-      "<h3>" + QString(_("You are about to export your")) +
-          "<font color=\"red\">" + _(" PRIVATE KEY ") + "</font>!</h3>\n" +
-          _("This is NOT your Public Key, so DON'T give it away.") + "<br />" +
-          _("Do you REALLY want to export your PRIVATE KEY?"),
+      this, tr("Exporting private Key"),
+      "<h3>" + tr("You are about to export your") + "<font color=\"red\">" +
+          tr(" PRIVATE KEY ") + "</font>!</h3>\n" +
+          tr("This is NOT your Public Key, so DON'T give it away.") + "<br />" +
+          tr("Do you REALLY want to export your PRIVATE KEY?"),
       QMessageBox::Cancel | QMessageBox::Ok);
 
   // export key, if ok was clicked
@@ -276,15 +277,14 @@ void KeyPairOperaTab::slot_export_private_key() {
     std::replace(file_string.begin(), file_string.end(), ' ', '_');
 
     auto file_name = QFileDialog::getSaveFileName(
-        this, _("Export Key To File"), file_string,
-        QString(_("Key Files")) + " (*.asc *.txt);;All Files (*)");
+        this, tr("Export Key To File"), file_string,
+        tr("Key Files") + " (*.asc *.txt);;All Files (*)");
 
     if (file_name.isEmpty()) return;
 
     if (!WriteFileGFBuffer(file_name, gf_buffer)) {
-      QMessageBox::critical(
-          this, _("Export Error"),
-          QString(_("Couldn't open %1 for writing")).arg(file_name));
+      QMessageBox::critical(this, tr("Export Error"),
+                            tr("Couldn't open %1 for writing").arg(file_name));
       return;
     }
   }
@@ -312,7 +312,7 @@ void KeyPairOperaTab::slot_update_key_from_server() {
 }
 
 void KeyPairOperaTab::slot_gen_revoke_cert() {
-  auto literal = QString("%1 (*.rev)").arg(_("Revocation Certificates"));
+  auto literal = QString("%1 (*.rev)").arg(tr("Revocation Certificates"));
   QString m_output_file_name;
 
 #ifndef WINDOWS
@@ -323,7 +323,7 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
                      m_key_.GetId() + ").rev";
 #endif
 
-  QFileDialog dialog(this, _("Generate revocation certificate"), file_string,
+  QFileDialog dialog(this, tr("Generate revocation certificate"), file_string,
                      literal);
   dialog.setDefaultSuffix(".rev");
   dialog.setAcceptMode(QFileDialog::AcceptSave);
@@ -344,31 +344,31 @@ void KeyPairOperaTab::slot_modify_password() {
 
 void KeyPairOperaTab::slot_modify_tofu_policy() {
   QStringList items;
-  items << _("Policy Auto") << _("Policy Good") << _("Policy Bad")
-        << _("Policy Ask") << _("Policy Unknown");
+  items << tr("Policy Auto") << tr("Policy Good") << tr("Policy Bad")
+        << tr("Policy Ask") << tr("Policy Unknown");
 
   bool ok;
   QString item = QInputDialog::getItem(
-      this, _("Modify TOFU Policy(Default is Auto)"),
-      _("Policy for the Key Pair:"), items, 0, false, &ok);
+      this, tr("Modify TOFU Policy(Default is Auto)"),
+      tr("Policy for the Key Pair:"), items, 0, false, &ok);
   if (ok && !item.isEmpty()) {
     GF_UI_LOG_DEBUG("selected policy: {}", item.toStdString());
     gpgme_tofu_policy_t tofu_policy = GPGME_TOFU_POLICY_AUTO;
-    if (item == _("Policy Auto")) {
+    if (item == tr("Policy Auto")) {
       tofu_policy = GPGME_TOFU_POLICY_AUTO;
-    } else if (item == _("Policy Good")) {
+    } else if (item == tr("Policy Good")) {
       tofu_policy = GPGME_TOFU_POLICY_GOOD;
-    } else if (item == _("Policy Bad")) {
+    } else if (item == tr("Policy Bad")) {
       tofu_policy = GPGME_TOFU_POLICY_BAD;
-    } else if (item == _("Policy Ask")) {
+    } else if (item == tr("Policy Ask")) {
       tofu_policy = GPGME_TOFU_POLICY_ASK;
-    } else if (item == _("Policy Unknown")) {
+    } else if (item == tr("Policy Unknown")) {
       tofu_policy = GPGME_TOFU_POLICY_UNKNOWN;
     }
     auto err = GpgKeyOpera::GetInstance().ModifyTOFUPolicy(m_key_, tofu_policy);
     if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-      QMessageBox::critical(this, _("Not Successful"),
-                            QString(_("Modify TOFU policy not successfully.")));
+      QMessageBox::critical(this, tr("Not Successful"),
+                            tr("Modify TOFU policy not successfully."));
     }
   }
 }

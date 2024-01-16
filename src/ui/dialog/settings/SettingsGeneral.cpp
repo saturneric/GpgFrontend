@@ -40,30 +40,30 @@ GeneralTab::GeneralTab(QWidget* parent)
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_GeneralSettings>()) {
   ui_->setupUi(this);
 
-  ui_->cacheBox->setTitle(_("Cache"));
+  ui_->cacheBox->setTitle(tr("Cache"));
   ui_->clearGpgPasswordCacheCheckBox->setText(
-      _("Clear gpg password cache when closing GpgFrontend."));
+      tr("Clear gpg password cache when closing GpgFrontend."));
   ui_->restoreTextEditorPageCheckBox->setText(
-      _("Automatically restore unsaved Text Editor pages after an application "
-        "crash."));
+      tr("Automatically restore unsaved Text Editor pages after an application "
+         "crash."));
 
-  ui_->importConfirmationBox->setTitle(_("Operation"));
+  ui_->importConfirmationBox->setTitle(tr("Operation"));
   ui_->longerKeyExpirationDateCheckBox->setText(
-      _("Enable to use longer key expiration date."));
+      tr("Enable to use longer key expiration date."));
   ui_->importConfirmationCheckBox->setText(
-      _("Import files dropped on the Key List without confirmation."));
+      tr("Import files dropped on the Key List without confirmation."));
 
-  ui_->langBox->setTitle(_("Language"));
+  ui_->langBox->setTitle(tr("Language"));
   ui_->langNoteLabel->setText(
-      "<b>" + QString(_("NOTE")) + _(": ") + "</b>" +
-      _("GpgFrontend will restart automatically if you change the language!"));
+      "<b>" + tr("NOTE") + tr(": ") + "</b>" +
+      tr("GpgFrontend will restart automatically if you change the language!"));
 
-  ui_->dataBox->setTitle(_("Data"));
+  ui_->dataBox->setTitle(tr("Data"));
   ui_->clearAllLogFilesButton->setText(
-      QString(_("Clear All Log (Total Size: %1)")) %
-      GlobalSettingStation::GetInstance().GetLogFilesSize());
+      tr("Clear All Log (Total Size: %1)")
+          .arg(GlobalSettingStation::GetInstance().GetLogFilesSize()));
   ui_->clearAllDataObjectsButton->setText(
-      QString(_("Clear All Data Objects (Total Size: %1)"))
+      tr("Clear All Data Objects (Total Size: %1)")
           .arg(GlobalSettingStation::GetInstance().GetDataObjectsFilesSize()));
 
   lang_ = SettingsDialog::ListLanguages();
@@ -76,22 +76,21 @@ GeneralTab::GeneralTab(QWidget* parent)
   connect(ui_->clearAllLogFilesButton, &QPushButton::clicked, this, [=]() {
     GlobalSettingStation::GetInstance().ClearAllLogFiles();
     ui_->clearAllLogFilesButton->setText(
-        QString(_("Clear All Log (Total Size: %1)"))
+        tr("Clear All Log (Total Size: %1)")
             .arg(GlobalSettingStation::GetInstance().GetLogFilesSize()));
   });
 
   connect(ui_->clearAllDataObjectsButton, &QPushButton::clicked, this, [=]() {
     QMessageBox::StandardButton reply;
     reply = QMessageBox::question(
-        this, _("Confirm"),
-        _("Are you sure you want to clear all data objects?\nThis will result "
-          "in "
-          "loss of all cached form positions, statuses, key servers, etc."),
+        this, tr("Confirm"),
+        tr("Are you sure you want to clear all data objects?\nThis will result "
+           "in loss of all cached form positions, statuses, key servers, etc."),
         QMessageBox::Yes | QMessageBox::No);
     if (reply == QMessageBox::Yes) {
       GlobalSettingStation::GetInstance().ClearAllDataObjects();
       ui_->clearAllDataObjectsButton->setText(
-          QString(_("Clear All Data Objects (Total Size: %1)"))
+          tr("Clear All Data Objects (Total Size: %1)")
               .arg(GlobalSettingStation::GetInstance()
                        .GetDataObjectsFilesSize()));
     }

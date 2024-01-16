@@ -193,7 +193,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
   // initialize library gpgme
   if (!InitGpgME()) {
     CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-        _("GpgME inilization failed"));
+        QObject::tr("GpgME inilization failed"));
     return;
   }
 
@@ -317,7 +317,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
           if (!ctx.Good()) {
             GF_CORE_LOG_ERROR("default gnupg context init error, abort");
             CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-                _("GpgME Context inilization failed"));
+                QObject::tr("GpgME Context inilization failed"));
             return -1;
           }
           Module::UpsertRTValue("core", "env.state.ctx", 1);
@@ -326,7 +326,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
         if (args.load_default_gpg_context) {
           if (!GpgKeyGetter::GetInstance().FlushKeyCache()) {
             CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-                _("Gpg Key Detabase inilization failed"));
+                QObject::tr("Gpg Key Detabase inilization failed"));
           };
         }
         GF_CORE_LOG_INFO(
@@ -380,7 +380,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
       "core_init_task");
 
   QObject::connect(task, &Thread::Task::SignalTaskEnd, []() {
-      
+
   });
 
   // start the thread to check ctx and gnupg state

@@ -121,7 +121,7 @@ auto GnuPGInfoGatheringModule::Exec(EventRefrernce event) -> int {
          c_i_gpgme.name = "gpgme";
          c_i_gpgme.desc = "GPG Made Easy";
          c_i_gpgme.version = gpgme_version;
-         c_i_gpgme.path = _("Embedded In");
+         c_i_gpgme.path = tr("Embedded In");
          c_i_gpgme.binary_checksum = "/";
 
          GpgComponentInfo c_i_gpgconf;

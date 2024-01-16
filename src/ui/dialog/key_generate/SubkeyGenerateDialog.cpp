@@ -62,9 +62,9 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent)
   group_grid->addWidget(create_basic_info_group_box(), 0, 0);
   group_grid->addWidget(key_usage_group_box_, 1, 0);
 
-  auto* tipps_label = new QLabel(
-      QString(_("Tipps: if the key pair has a passphrase, the subkey's "
-                "passphrase must be equal to it.")));
+  auto* tipps_label =
+      new QLabel(tr("Tipps: if the key pair has a passphrase, the subkey's "
+                    "passphrase must be equal to it."));
   tipps_label->setWordWrap(true);
   group_grid->addWidget(tipps_label);
 
@@ -76,7 +76,7 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent)
   vbox2->addWidget(error_label_);
   vbox2->addWidget(button_box_);
 
-  this->setWindowTitle(_("Generate New Subkey"));
+  this->setWindowTitle(tr("Generate New Subkey"));
   this->setLayout(vbox2);
   this->setAttribute(Qt::WA_DeleteOnClose);
   this->setModal(true);
@@ -89,18 +89,18 @@ QGroupBox* SubkeyGenerateDialog::create_key_usage_group_box() {
   auto* group_box = new QGroupBox(this);
   auto* grid = new QGridLayout(this);
 
-  group_box->setTitle(_("Key Usage"));
+  group_box->setTitle(tr("Key Usage"));
 
-  auto* encrypt = new QCheckBox(_("Encryption"), group_box);
+  auto* encrypt = new QCheckBox(tr("Encryption"), group_box);
   encrypt->setTristate(false);
 
-  auto* sign = new QCheckBox(_("Signing"), group_box);
+  auto* sign = new QCheckBox(tr("Signing"), group_box);
   sign->setTristate(false);
 
-  auto* cert = new QCheckBox(_("Certification"), group_box);
+  auto* cert = new QCheckBox(tr("Certification"), group_box);
   cert->setTristate(false);
 
-  auto* auth = new QCheckBox(_("Authentication"), group_box);
+  auto* auth = new QCheckBox(tr("Authentication"), group_box);
   auth->setTristate(false);
 
   key_usage_check_boxes_.push_back(encrypt);
@@ -144,11 +144,11 @@ QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
 
   auto* vbox1 = new QGridLayout;
 
-  vbox1->addWidget(new QLabel(QString(_("Key Type")) + ": "), 0, 0);
-  vbox1->addWidget(new QLabel(QString(_("KeySize (in Bit)")) + ": "), 1, 0);
-  vbox1->addWidget(new QLabel(QString(_("Expiration Date")) + ": "), 2, 0);
-  vbox1->addWidget(new QLabel(QString(_("Never Expire"))), 2, 3);
-  vbox1->addWidget(new QLabel(QString(_("Non Pass Phrase"))), 3, 0);
+  vbox1->addWidget(new QLabel(tr("Key Type") + ": "), 0, 0);
+  vbox1->addWidget(new QLabel(tr("KeySize (in Bit)") + ": "), 1, 0);
+  vbox1->addWidget(new QLabel(tr("Expiration Date") + ": "), 2, 0);
+  vbox1->addWidget(new QLabel(tr("Never Expire")), 2, 3);
+  vbox1->addWidget(new QLabel(tr("Non Pass Phrase")), 3, 0);
 
   vbox1->addWidget(key_type_combo_box_, 0, 1);
   vbox1->addWidget(key_size_spin_box_, 1, 1);
@@ -158,7 +158,7 @@ QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
 
   auto* basic_info_group_box = new QGroupBox();
   basic_info_group_box->setLayout(vbox1);
-  basic_info_group_box->setTitle(_("Basic Information"));
+  basic_info_group_box->setTitle(tr("Basic Information"));
 
   return basic_info_group_box;
 }
@@ -263,19 +263,20 @@ void SubkeyGenerateDialog::refresh_widgets_state() {
 }
 
 void SubkeyGenerateDialog::slot_key_gen_accept() {
-  std::stringstream err_stream;
+  QString buffer;
+  QTextStream err_stream(&buffer);
 
   /**
    * primary keys should have a reasonable expiration date (no more than 2 years
    * in the future)
    */
   if (date_edit_->dateTime() > QDateTime::currentDateTime().addYears(2)) {
-    err_stream << "  " << _("Expiration time no more than 2 years.") << "  ";
+    err_stream << "  " << tr("Expiration time no more than 2 years.") << "  ";
   }
 
-  auto err_string = err_stream.str();
+  auto err_string = err_stream.readAll();
 
-  if (err_string.empty()) {
+  if (err_string.isEmpty()) {
     gen_key_info_->SetKeyLength(key_size_spin_box_->value());
 
     if (expire_check_box_->checkState() != 0U) {
@@ -285,7 +286,7 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
     }
 
     CommonUtils::WaitForOpera(
-        this, _("Generating"),
+        this, tr("Generating"),
         [this, key = this->key_,
          gen_key_info = this->gen_key_info_](const OperaWaitingHd& hd) {
           GpgKeyOpera::GetInstance().GenerateSubkey(
@@ -311,7 +312,7 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
     QPalette error = error_label_->palette();
     error.setColor(QPalette::Window, "#ff8080");
     error_label_->setPalette(error);
-    error_label_->setText(err_string.c_str());
+    error_label_->setText(err_string);
 
     this->show();
   }

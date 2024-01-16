@@ -71,23 +71,22 @@ void GpgFrontend::UI::KeyServerImportTask::dealing_reply_from_server() {
     QString err_msg;
     switch (network_reply) {
       case QNetworkReply::ContentNotFoundError:
-        err_msg = QString(_("Key not found in the Keyserver."));
+        err_msg = tr("Key not found in the Keyserver.");
         break;
       case QNetworkReply::TimeoutError:
-        err_msg = QString(_("Network connection timeout."));
+        err_msg = tr("Network connection timeout.");
         break;
       case QNetworkReply::HostNotFoundError:
-        err_msg =
-            QString(_("Cannot resolve the address of target key server."));
+        err_msg = tr("Cannot resolve the address of target key server.");
         break;
       default:
-        err_msg = QString(_("General connection error occurred."));
+        err_msg = tr("General connection error occurred.");
     }
     emit SignalKeyServerImportResult(false, err_msg, buffer, nullptr);
   }
 
   auto info = GpgKeyImportExporter::GetInstance().ImportKey(GFBuffer(buffer));
-  emit SignalKeyServerImportResult(true, _("Success"), buffer, info);
+  emit SignalKeyServerImportResult(true, tr("Success"), buffer, info);
 
   if (static_cast<size_t>(result_count_++) == keyids_.size() - 1) {
     emit SignalTaskShouldEnd(0);

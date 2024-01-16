@@ -57,7 +57,7 @@ KeyUploadDialog::KeyUploadDialog(const KeyIdArgsListPtr& keys_ids,
   this->setLayout(layout);
 
   this->setModal(true);
-  this->setWindowTitle(_("Uploading Public Key"));
+  this->setWindowTitle(tr("Uploading Public Key"));
   this->setFixedSize(240, 42);
   this->setPosCenterOfScreen();
 }
@@ -136,22 +136,22 @@ void KeyUploadDialog::slot_upload_finished() {
     QString message;
     switch (error) {
       case QNetworkReply::ContentNotFoundError:
-        message = _("Key Not Found");
+        message = tr("Key Not Found");
         break;
       case QNetworkReply::TimeoutError:
-        message = _("Timeout");
+        message = tr("Timeout");
         break;
       case QNetworkReply::HostNotFoundError:
-        message = _("Key Server Not Found");
+        message = tr("Key Server Not Found");
         break;
       default:
-        message = _("Connection Error");
+        message = tr("Connection Error");
     }
     QMessageBox::critical(this, "Upload Failed", message);
     return;
   }
-  QMessageBox::information(this, _("Upload Success"),
-                           _("Upload Public Key Successfully"));
+  QMessageBox::information(this, tr("Upload Success"),
+                           tr("Upload Public Key Successfully"));
   GF_UI_LOG_DEBUG("success while contacting keyserver!");
 
   reply->deleteLater();

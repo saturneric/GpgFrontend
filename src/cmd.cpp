@@ -41,18 +41,21 @@
 namespace GpgFrontend {
 
 auto PrintVersion() -> int {
-  std::cout << PROJECT_NAME << " "
-            << "v" << VERSION_MAJOR << "." << VERSION_MINOR << "."
-            << VERSION_PATCH << '\n';
-  std::cout
-      << "Copyright (C) 2021 Saturneric <eric@bktus.com>" << '\n'
-      << _("This is free software; see the source for copying conditions.")
-      << '\n'
-      << '\n';
+  QTextStream stream(stdin);
+  stream << PROJECT_NAME << " "
+         << "v" << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH
+         << '\n';
+  stream << "Copyright (C) 2021 Saturneric <eric@bktus.com>" << '\n'
+         << QObject::tr(
+                "This is free software; see the source for copying conditions.")
+         << '\n'
+         << '\n';
 
-  std::cout << _("Build Timestamp: ") << BUILD_TIMESTAMP << '\n'
-            << _("Build Version: ") << BUILD_VERSION << '\n'
-            << _("Source Code Version: ") << GIT_VERSION << '\n';
+  stream << QObject::tr("Build Timestamp: ") << BUILD_TIMESTAMP << '\n'
+         << QObject::tr("Build Version: ") << BUILD_VERSION << '\n'
+         << QObject::tr("Source Code Version: ") << GIT_VERSION << '\n';
+
+  stream << Qt::endl;
 
   return 0;
 }

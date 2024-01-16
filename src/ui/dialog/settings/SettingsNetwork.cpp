@@ -68,31 +68,31 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
   connect(ui_->checkProxyConnectionButton, &QPushButton::clicked, this,
           &NetworkTab::slot_test_proxy_connection_result);
 
-  ui_->proxyGroupBox->setTitle(_("Proxy"));
-  ui_->capabilityGroupBox->setTitle(_("Network Ability"));
-  ui_->operationsGroupBox->setTitle(_("Operations"));
+  ui_->proxyGroupBox->setTitle(tr("Proxy"));
+  ui_->capabilityGroupBox->setTitle(tr("Network Ability"));
+  ui_->operationsGroupBox->setTitle(tr("Operations"));
 
-  ui_->enableProxyCheckBox->setText(_("Enable Proxy"));
-  ui_->proxyServerPortLabel->setText(_("Port"));
+  ui_->enableProxyCheckBox->setText(tr("Enable Proxy"));
+  ui_->proxyServerPortLabel->setText(tr("Port"));
 
-  ui_->proxyServerAddressLabel->setText(_("Host Address"));
-  ui_->proxyServerPortLabel->setText(_("Port"));
-  ui_->proxyTypeLabel->setText(_("Proxy Type"));
-  ui_->usernameLabel->setText(_("Username"));
-  ui_->passwordLabel->setText(_("Password"));
+  ui_->proxyServerAddressLabel->setText(tr("Host Address"));
+  ui_->proxyServerPortLabel->setText(tr("Port"));
+  ui_->proxyTypeLabel->setText(tr("Proxy Type"));
+  ui_->usernameLabel->setText(tr("Username"));
+  ui_->passwordLabel->setText(tr("Password"));
 
   ui_->checkProxyConnectionButton->setText(
-      _("Apply Proxy Settings and Check Proxy Connection"));
+      tr("Apply Proxy Settings and Check Proxy Connection"));
 
   ui_->forbidALLGnuPGNetworkConnectionCheckBox->setText(
-      _("Forbid all GnuPG network connection."));
+      tr("Forbid all GnuPG network connection."));
   ui_->prohibitUpdateCheck->setText(
-      _("Prohibit checking for version updates when the program starts."));
+      tr("Prohibit checking for version updates when the program starts."));
   ui_->autoImportMissingKeyCheckBox->setText(
-      _("Automatically import a missing key for signature verification."));
+      tr("Automatically import a missing key for signature verification."));
   ui_->networkAbilityTipsLabel->setText(
-      _("Tips: These Option Changes take effect only after the "
-        "application restart."));
+      tr("Tips: These Option Changes take effect only after the "
+         "application restart."));
 
   SetSettings();
 }
@@ -167,7 +167,7 @@ void GpgFrontend::UI::NetworkTab::slot_test_proxy_connection_result() {
   apply_proxy_settings();
 
   bool ok;
-  auto url = QInputDialog::getText(this, _("Test Server Url Accessibility"),
+  auto url = QInputDialog::getText(this, tr("Test Server Url Accessibility"),
                                    tr("Server Url"), QLineEdit::Normal,
                                    "https://", &ok);
   if (ok && !url.isEmpty()) {
@@ -177,14 +177,15 @@ void GpgFrontend::UI::NetworkTab::slot_test_proxy_connection_result() {
                 SignalProxyConnectionTestResult,
             this, [=](const QString &result) {
               if (result == "Reachable") {
-                QMessageBox::information(this, _("Success"),
-                                         _("Successfully connect to the target "
-                                           "server through the proxy server."));
+                QMessageBox::information(
+                    this, tr("Success"),
+                    tr("Successfully connect to the target "
+                       "server through the proxy server."));
               } else {
                 QMessageBox::critical(
-                    this, _("Failed"),
-                    _("Unable to connect to the target server through the "
-                      "proxy server. Proxy settings may be invalid."));
+                    this, tr("Failed"),
+                    tr("Unable to connect to the target server through the "
+                       "proxy server. Proxy settings may be invalid."));
               }
             });
 
@@ -193,9 +194,10 @@ void GpgFrontend::UI::NetworkTab::slot_test_proxy_connection_result() {
     waiting_dialog->setMaximum(0);
     waiting_dialog->setMinimum(0);
     auto waiting_dialog_label = new QLabel(
-        QString(_("Test Proxy Server Connection...")) + "<br /><br />" +
-        _("Is using your proxy settings to access the url. Note that this test "
-          "operation will apply your proxy settings to the entire software."));
+        tr("Test Proxy Server Connection...") + "<br /><br />" +
+        tr("Is using your proxy settings to access the url. Note that this "
+           "test "
+           "operation will apply your proxy settings to the entire software."));
     waiting_dialog_label->setWordWrap(true);
     waiting_dialog->setLabel(waiting_dialog_label);
     waiting_dialog->resize(420, 120);

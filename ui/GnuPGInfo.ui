@@ -43,7 +43,7 @@
         <string/>
        </property>
        <property name="pixmap">
-        <pixmap resource="../gpgfrontend.qrc">:/gnupg.png</pixmap>
+        <pixmap resource="../gpgfrontend.qrc">:/icons/gnupg.png</pixmap>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>

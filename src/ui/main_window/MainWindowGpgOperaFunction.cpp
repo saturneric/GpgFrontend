@@ -35,7 +35,6 @@
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/DataObject.h"
 #include "core/model/GpgEncryptResult.h"
-#include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SignersPicker.h"
@@ -50,16 +49,16 @@ void MainWindow::SlotEncrypt() {
   if (key_ids->empty()) {
     // Symmetric Encrypt
     auto ret = QMessageBox::information(
-        this, _("Symmetric Encryption"),
-        _("No Key Checked. Do you want to encrypt with a "
-          "symmetric cipher using a passphrase?"),
+        this, tr("Symmetric Encryption"),
+        tr("No Key Checked. Do you want to encrypt with a "
+           "symmetric cipher using a passphrase?"),
         QMessageBox::Ok | QMessageBox::Cancel);
 
     if (ret == QMessageBox::Cancel) return;
 
     auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
     CommonUtils::WaitForOpera(
-        this, _("Symmetrically Encrypting"),
+        this, tr("Symmetrically Encrypting"),
         [this, buffer](const OperaWaitingHd& op_hd) {
           GpgFrontend::GpgBasicOperator::GetInstance().EncryptSymmetric(
               buffer, true,
@@ -93,11 +92,10 @@ void MainWindow::SlotEncrypt() {
   for (const auto& key : *keys) {
     if (!key.IsHasActualEncryptionCapability()) {
       QMessageBox::information(
-          this, _("Invalid Operation"),
-          QString(
-              _("The selected key contains a key that does not actually have a "
-                "encrypt usage.")) +
-              "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
+          this, tr("Invalid Operation"),
+          tr("The selected key contains a key that does not actually have a "
+             "encrypt usage.") +
+              "<br/><br/>" + tr("For example the Following Key:") + " <br/>" +
               key.GetUIDs()->front().GetUID());
       return;
     }
@@ -105,7 +103,8 @@ void MainWindow::SlotEncrypt() {
 
   auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
   CommonUtils::WaitForOpera(
-      this, _("Encrypting"), [this, keys, buffer](const OperaWaitingHd& op_hd) {
+      this, tr("Encrypting"),
+      [this, keys, buffer](const OperaWaitingHd& op_hd) {
         GpgFrontend::GpgBasicOperator::GetInstance().Encrypt(
             {keys->begin(), keys->end()}, buffer, true,
             [this, op_hd](GpgError err, const DataObjectPtr& data_obj) {
@@ -138,8 +137,8 @@ void MainWindow::SlotSign() {
   auto key_ids = m_key_list_->GetPrivateChecked();
   if (key_ids->empty()) {
     QMessageBox::critical(
-        this, _("No Key Checked"),
-        _("Please check the key in the key toolbox on the right."));
+        this, tr("No Key Checked"),
+        tr("Please check the key in the key toolbox on the right."));
     return;
   }
 
@@ -147,11 +146,10 @@ void MainWindow::SlotSign() {
   for (const auto& key : *keys) {
     if (!key.IsHasActualSigningCapability()) {
       QMessageBox::information(
-          this, _("Invalid Operation"),
-          QString(
-              _("The selected key contains a key that does not actually have a "
-                "signature usage.")) +
-              "<br/><br/>" + _("For example the Following Key:") + "<br/>" +
+          this, tr("Invalid Operation"),
+          tr("The selected key contains a key that does not actually have a "
+             "signature usage.") +
+              "<br/><br/>" + tr("For example the Following Key:") + "<br/>" +
               key.GetUIDs()->front().GetUID());
       return;
     }
@@ -160,7 +158,7 @@ void MainWindow::SlotSign() {
   // set input buffer
   auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
   CommonUtils::WaitForOpera(
-      this, _("Signing"), [this, keys, buffer](const OperaWaitingHd& hd) {
+      this, tr("Signing"), [this, keys, buffer](const OperaWaitingHd& hd) {
         GpgFrontend::GpgBasicOperator::GetInstance().Sign(
             {keys->begin(), keys->end()}, buffer, GPGME_SIG_MODE_CLEAR, true,
             [this, hd](GpgError err, const DataObjectPtr& data_obj) {
@@ -192,7 +190,7 @@ void MainWindow::SlotDecrypt() {
   auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
 
   CommonUtils::WaitForOpera(
-      this, _("Decrypting"), [this, buffer](const OperaWaitingHd& hd) {
+      this, tr("Decrypting"), [this, buffer](const OperaWaitingHd& hd) {
         GpgFrontend::GpgBasicOperator::GetInstance().Decrypt(
             buffer, [this, hd](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
@@ -225,7 +223,7 @@ void MainWindow::SlotVerify() {
   auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
 
   CommonUtils::WaitForOpera(
-      this, _("Verifying"), [this, buffer](const OperaWaitingHd& hd) {
+      this, tr("Verifying"), [this, buffer](const OperaWaitingHd& hd) {
         GpgFrontend::GpgBasicOperator::GetInstance().Verify(
             buffer, GFBuffer(),
             [this, hd](GpgError err, const DataObjectPtr& data_obj) {
@@ -252,8 +250,8 @@ void MainWindow::SlotEncryptSign() {
 
   if (key_ids->empty()) {
     QMessageBox::critical(
-        this, _("No Key Checked"),
-        _("Please check some key in the key toolbox on the right."));
+        this, tr("No Key Checked"),
+        tr("Please check some key in the key toolbox on the right."));
     return;
   }
 
@@ -264,9 +262,9 @@ void MainWindow::SlotEncryptSign() {
 
     if (!key_can_encrypt) {
       QMessageBox::critical(
-          this, _("Invalid KeyPair"),
-          QString(_("The selected keypair cannot be used for encryption.")) +
-              "<br/><br/>" + _("For example the Following Key:") + " <br/>" +
+          this, tr("Invalid KeyPair"),
+          tr("The selected keypair cannot be used for encryption.") +
+              "<br/><br/>" + tr("For example the Following Key:") + " <br/>" +
               key.GetUIDs()->front().GetUID());
       return;
     }
@@ -295,7 +293,7 @@ void MainWindow::SlotEncryptSign() {
   auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
 
   CommonUtils::WaitForOpera(
-      this, _("Encrypting and Signing"),
+      this, tr("Encrypting and Signing"),
       [this, keys, signer_keys, buffer](const OperaWaitingHd& hd) {
         GpgFrontend::GpgBasicOperator::GetInstance().EncryptSign(
             {keys->begin(), keys->end()},
@@ -341,7 +339,7 @@ void MainWindow::SlotDecryptVerify() {
   auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
 
   CommonUtils::WaitForOpera(
-      this, _("Decrypting and Verifying"),
+      this, tr("Decrypting and Verifying"),
       [this, buffer](const OperaWaitingHd& hd) {
         GpgFrontend::GpgBasicOperator::GetInstance().DecryptVerify(
             buffer, [this, hd](GpgError err, const DataObjectPtr& data_obj) {

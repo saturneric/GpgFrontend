@@ -39,26 +39,26 @@ AppearanceTab::AppearanceTab(QWidget* parent)
     : QWidget(parent), ui_(SecureCreateSharedObject<Ui_AppearanceSettings>()) {
   ui_->setupUi(this);
 
-  ui_->iconSizeBox->setTitle(_("Icon Size"));
-  ui_->smallRadioButton->setText(_("small"));
-  ui_->mediumRadioButton->setText(_("medium"));
-  ui_->largeRadioButton->setText(_("large"));
+  ui_->iconSizeBox->setTitle(tr("Icon Size"));
+  ui_->smallRadioButton->setText(tr("small"));
+  ui_->mediumRadioButton->setText(tr("medium"));
+  ui_->largeRadioButton->setText(tr("large"));
 
-  ui_->iconStyleBox->setTitle(_("Icon Style"));
-  ui_->justTextRadioButton->setText(_("just text"));
-  ui_->justIconRadioButton->setText(_("just icons"));
-  ui_->textAndIconsRadioButton->setText(_("text and icons"));
+  ui_->iconStyleBox->setTitle(tr("Icon Style"));
+  ui_->justTextRadioButton->setText(tr("just text"));
+  ui_->justIconRadioButton->setText(tr("just icons"));
+  ui_->textAndIconsRadioButton->setText(tr("text and icons"));
 
-  ui_->windowStateBox->setTitle(_("Window State"));
+  ui_->windowStateBox->setTitle(tr("Window State"));
   ui_->windowStateCheckBox->setText(
-      _("Save window size and position on exit."));
+      tr("Save window size and position on exit."));
 
-  ui_->textEditorBox->setTitle(_("Text Editor"));
-  ui_->fontSizeTextEditorLabel->setText(_("Font Size in Text Editor"));
+  ui_->textEditorBox->setTitle(tr("Text Editor"));
+  ui_->fontSizeTextEditorLabel->setText(tr("Font Size in Text Editor"));
 
-  ui_->informationBoardBox->setTitle(_("Information Board"));
+  ui_->informationBoardBox->setTitle(tr("Information Board"));
   ui_->fontSizeInformationBoardLabel->setText(
-      _("Font Size in Information Board"));
+      tr("Font Size in Information Board"));
 
   icon_size_group_ = new QButtonGroup(this);
   icon_size_group_->addButton(ui_->smallRadioButton, 1);

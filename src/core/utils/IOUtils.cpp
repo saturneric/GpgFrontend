@@ -72,15 +72,16 @@ auto CalculateHash(const QString& file_path) -> QString {
   QTextStream ss(&buffer);
 
   if (info.isFile() && info.isReadable()) {
-    ss << "[#] " << _("File Hash Information") << Qt::endl;
-    ss << "    " << _("filename") << _(": ") << info.fileName() << Qt::endl;
+    ss << "[#] " << QObject::tr("File Hash Information") << Qt::endl;
+    ss << "    " << QObject::tr("filename") << QObject::tr(": ")
+       << info.fileName() << Qt::endl;
 
     QFile f(info.filePath());
     if (f.open(QFile::ReadOnly)) {
       // read all data
       auto buffer = f.readAll();
-      ss << "    " << _("file size(bytes)") << _(": ") << buffer.size()
-         << Qt::endl;
+      ss << "    " << QObject::tr("file size(bytes)") << QObject::tr(": ")
+         << buffer.size() << Qt::endl;
 
       // md5
       auto hash_md5 = QCryptographicHash(QCryptographicHash::Md5);
@@ -88,7 +89,7 @@ auto CalculateHash(const QString& file_path) -> QString {
       auto md5 = hash_md5.result().toHex();
       GF_CORE_LOG_DEBUG("md5 {}", md5);
       ss << "    "
-         << "md5" << _(": ") << md5 << Qt::endl;
+         << "md5" << QObject::tr(": ") << md5 << Qt::endl;
 
       // sha1
       auto hash_sha1 = QCryptographicHash(QCryptographicHash::Sha1);
@@ -96,7 +97,7 @@ auto CalculateHash(const QString& file_path) -> QString {
       auto sha1 = hash_sha1.result().toHex();
       GF_CORE_LOG_DEBUG("sha1 {}", sha1);
       ss << "    "
-         << "sha1" << _(": ") << sha1 << Qt::endl;
+         << "sha1" << QObject::tr(": ") << sha1 << Qt::endl;
 
       // sha1
       auto hash_sha256 = QCryptographicHash(QCryptographicHash::Sha256);
@@ -104,12 +105,12 @@ auto CalculateHash(const QString& file_path) -> QString {
       auto sha256 = hash_sha256.result().toHex();
       GF_CORE_LOG_DEBUG("sha256 {}", sha256);
       ss << "    "
-         << "sha256" << _(": ") << sha256 << Qt::endl;
+         << "sha256" << QObject::tr(": ") << sha256 << Qt::endl;
 
       ss << Qt::endl;
     }
   } else {
-    ss << "[#] " << _("Error in Calculating File Hash ") << Qt::endl;
+    ss << "[#] " << QObject::tr("Error in Calculating File Hash ") << Qt::endl;
   }
 
   return ss.readAll();
@@ -133,20 +134,20 @@ auto TargetFilePreCheck(const QString& path, bool read)
 
   if (read) {
     if (!file_info.exists()) {
-      return {false, _("target path doesn't exists")};
+      return {false, QObject::tr("target path doesn't exists")};
     }
   } else {
     QFileInfo const path_info(file_info.absolutePath());
     if (!path_info.isWritable()) {
-      return {false, _("do NOT have permission to write path")};
+      return {false, QObject::tr("do NOT have permission to write path")};
     }
   }
 
   if (read ? !file_info.isReadable() : false) {
-    return {false, _("do NOT have permission to read/write file")};
+    return {false, QObject::tr("do NOT have permission to read/write file")};
   }
 
-  return {true, _("Success")};
+  return {true, QObject::tr("Success")};
 }
 
 auto GetFullExtension(const QString& path) -> QString {

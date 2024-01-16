@@ -59,11 +59,11 @@ TextEdit::TextEdit(QWidget* parent) : QWidget(parent) {
 }
 
 void TextEdit::SlotNewTab() {
-  QString header = _("untitled") + QString::number(++count_page_) + ".txt";
+  QString header = tr("untitled") + QString::number(++count_page_) + ".txt";
 
   auto* page = new PlainTextEditorPage();
   auto index = tab_widget_->addTab(page, header);
-  tab_widget_->setTabIcon(index, QIcon(":file.png"));
+  tab_widget_->setTabIcon(index, QIcon(":/icons/file.png"));
   tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
   page->GetTextPage()->setFocus();
   connect(page->GetTextPage()->document(), &QTextDocument::modificationChanged,
@@ -73,7 +73,7 @@ void TextEdit::SlotNewTab() {
 }
 
 void TextEdit::SlotNewTabWithContent(QString title, const QString& content) {
-  QString header = _("untitled") + QString::number(++count_page_) + ".txt";
+  QString header = tr("untitled") + QString::number(++count_page_) + ".txt";
   if (!title.isEmpty()) {
     // modify title
     if (!title.isEmpty() && title[0] == '*') {
@@ -85,7 +85,7 @@ void TextEdit::SlotNewTabWithContent(QString title, const QString& content) {
 
   auto* page = new PlainTextEditorPage();
   auto index = tab_widget_->addTab(page, header);
-  tab_widget_->setTabIcon(index, QIcon(":file.png"));
+  tab_widget_->setTabIcon(index, QIcon(":/icons/file.png"));
   tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
   page->GetTextPage()->setFocus();
   connect(page->GetTextPage()->document(), &QTextDocument::modificationChanged,
@@ -105,13 +105,13 @@ void TextEdit::slotNewHelpTab(const QString& title, const QString& path) const {
 
 void TextEdit::SlotNewFileTab() {
   auto const target_dir = QFileDialog::getExistingDirectory(
-      this, _("Open Directory"), QDir::home().path(),
+      this, tr("Open Directory"), QDir::home().path(),
       QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
   if (target_dir.isEmpty()) return;
 
   auto* page = new FilePage(qobject_cast<QWidget*>(parent()), target_dir);
   auto index = tab_widget_->addTab(page, QString());
-  tab_widget_->setTabIcon(index, QIcon(":file-browser.png"));
+  tab_widget_->setTabIcon(index, QIcon(":/icons/file-browser.png"));
   tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
   connect(page, &FilePage::SignalPathChanged, this,
           &TextEdit::slot_file_page_path_changed);
@@ -134,16 +134,15 @@ void TextEdit::SlotOpenFile(const QString& path) {
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
     auto index = tab_widget_->addTab(page, stripped_name(path));
-    tab_widget_->setTabIcon(index, QIcon(":file.png"));
+    tab_widget_->setTabIcon(index, QIcon(":/icons/file.png"));
     tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
     QApplication::restoreOverrideCursor();
     page->GetTextPage()->setFocus();
     page->ReadFile();
   } else {
-    QMessageBox::warning(this, _("Warning"),
-                         QString(_("Cannot read file %1:\n%2."))
-                             .arg(path)
-                             .arg(file.errorString()));
+    QMessageBox::warning(
+        this, tr("Warning"),
+        tr("Cannot read file %1:\n%2.").arg(path).arg(file.errorString()));
   }
 
   file.close();
@@ -151,7 +150,7 @@ void TextEdit::SlotOpenFile(const QString& path) {
 
 void TextEdit::SlotOpen() {
   QStringList file_names =
-      QFileDialog::getOpenFileNames(this, _("Open file"), QDir::currentPath());
+      QFileDialog::getOpenFileNames(this, tr("Open file"), QDir::currentPath());
   for (const auto& file_name : file_names) {
     if (!file_name.isEmpty()) {
       SlotOpenFile(file_name);
@@ -201,10 +200,9 @@ bool TextEdit::save_file(const QString& fileName) {
     file.close();
     return true;
   }
-  QMessageBox::warning(this, _("Warning"),
-                       QString(_("Cannot read file %1:\n%2."))
-                           .arg(fileName)
-                           .arg(file.errorString()));
+  QMessageBox::warning(
+      this, tr("Warning"),
+      tr("Cannot read file %1:\n%2.").arg(fileName).arg(file.errorString()));
   return false;
 }
 
@@ -221,7 +219,7 @@ auto TextEdit::SlotSaveAs() -> bool {
     path = tab_widget_->tabText(tab_widget_->currentIndex()).remove(0, 2);
   }
 
-  return save_file(QFileDialog::getSaveFileName(this, _("Save file"), path));
+  return save_file(QFileDialog::getSaveFileName(this, tr("Save file"), path));
 }
 
 void TextEdit::SlotCloseTab() {
@@ -282,13 +280,13 @@ bool TextEdit::maybe_save_current_tab(bool askToSave) {
     const QString& file_path = page->GetFilePath();
     if (askToSave) {
       result = QMessageBox::warning(
-          this, _("Unsaved document"),
-          QString(_("The document \"%1\" has been modified. Do you want to "
-                    "save your changes?"))
+          this, tr("Unsaved document"),
+          tr("The document \"%1\" has been modified. Do you want to "
+             "save your changes?")
                   .arg(doc_name) +
-              "<br/><b>" + _("Note:") + "</b>" +
-              _("If you don't save these files, all changes are "
-                "lost.") +
+              "<br/><b>" + tr("Note:") + "</b>" +
+              tr("If you don't save these files, all changes are "
+                 "lost.") +
               "<br/>",
           QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     }
@@ -421,10 +419,9 @@ void TextEdit::SlotFillTextEditWithText(const QString& text) const {
 void TextEdit::LoadFile(const QString& fileName) {
   QFile file(fileName);
   if (!file.open(QFile::ReadOnly | QFile::Text)) {
-    QMessageBox::warning(this, _("Warning"),
-                         QString(_("Cannot read file %1:\n%2."))
-                             .arg(fileName)
-                             .arg(file.errorString()));
+    QMessageBox::warning(
+        this, tr("Warning"),
+        tr("Cannot read file %1:\n%2.").arg(fileName).arg(file.errorString()));
     return;
   }
   QTextStream in(&file);
@@ -434,7 +431,7 @@ void TextEdit::LoadFile(const QString& fileName) {
   SlotCurPageTextEdit()->SetFilePath(fileName);
   tab_widget_->setTabText(tab_widget_->currentIndex(), stripped_name(fileName));
   file.close();
-  // statusBar()->showMessage(_("File loaded"), 2000);
+  // statusBar()->showMessage(tr("File loaded"), 2000);
 }
 
 QString TextEdit::stripped_name(const QString& full_file_name) {
@@ -460,10 +457,10 @@ void TextEdit::SlotPrint() {
   if (document != nullptr) {
     document->print(&printer);
   } else {
-    QMessageBox::warning(this, _("Warning"), _("No document to print"));
+    QMessageBox::warning(this, tr("Warning"), tr("No document to print"));
   }
 
-  // statusBar()->showMessage(_("Ready"), 2000);
+  // statusBar()->showMessage(tr("Ready"), 2000);
 #endif
 }
 

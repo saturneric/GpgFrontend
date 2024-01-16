@@ -60,16 +60,16 @@ auto RaisePinentry::Exec() -> int {
   bool ask_for_new = context_->GetPassphraseInfo().isEmpty() &&
                      context_->GetUidsInfo().isEmpty();
 
-  auto* pinentry = new PinEntryDialog(
-      FindTopMostWindow(this), 0, 15, true, ask_for_new,
-      ask_for_new ? QString(_("Repeat PIN:")) : QString(),
-      QString(_("Show passphrase")), QString(_("Hide passphrase")));
+  auto* pinentry =
+      new PinEntryDialog(FindTopMostWindow(this), 0, 15, true, ask_for_new,
+                         ask_for_new ? tr("Repeat PIN:") : QString(),
+                         tr("Show passphrase"), tr("Hide passphrase"));
 
   if (context_->IsPreWasBad()) {
-    pinentry->setError(QString(_("Given PIN was wrong. Please retry.")));
+    pinentry->setError(tr("Given PIN was wrong. Please retry."));
   }
 
-  pinentry->setPrompt(QString(_("PIN:")));
+  pinentry->setPrompt(tr("PIN:"));
 
   if (!context_->GetUidsInfo().isEmpty()) {
     pinentry->setDescription(QString("Please provide PIN of Key:\n%1\n")
@@ -79,20 +79,19 @@ auto RaisePinentry::Exec() -> int {
   struct pinentry pinentry_info;
   pinentry->setPinentryInfo(pinentry_info);
 
-  pinentry->setRepeatErrorText(
-      QString::fromStdString(_("Passphrases do not match")));
+  pinentry->setRepeatErrorText(tr("Passphrases do not match"));
   pinentry->setGenpinLabel(QString("BBBBBBBBB"));
   pinentry->setGenpinTT(QString("AAAAAAAA"));
-  pinentry->setCapsLockHint(QString(_("Caps Lock is on")));
+  pinentry->setCapsLockHint(tr("Caps Lock is on"));
   pinentry->setFormattedPassphrase({false, QString()});
   pinentry->setConstraintsOptions({false, QString(), QString(), QString()});
 
-  pinentry->setWindowTitle(_("Buddled Pinentry"));
+  pinentry->setWindowTitle(tr("Buddled Pinentry"));
 
   /* If we reuse the same dialog window.  */
   pinentry->setPin(QString());
-  pinentry->setOkText(_("Confirm"));
-  pinentry->setCancelText(_("Cancel"));
+  pinentry->setOkText(tr("Confirm"));
+  pinentry->setCancelText(tr("Cancel"));
 
   GF_UI_LOG_DEBUG("buddled pinentry is ready to start...");
   connect(pinentry, &PinEntryDialog::finished, this,

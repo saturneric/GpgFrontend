@@ -48,11 +48,6 @@ if(NOT APPLE)
     target_link_libraries(gpgfrontend_core PUBLIC mimalloc)
 endif()
 
-# link third-party libraries
-if (NOT LINUX)
-    target_link_libraries(gpgfrontend_core PUBLIC intl)
-endif ()
-
 # qt-aes
 target_sources(gpgfrontend_core PRIVATE
         ${CMAKE_SOURCE_DIR}/third_party/qt-aes/qaesencryption.cpp)
@@ -82,7 +77,7 @@ target_include_directories(gpgfrontend_core PRIVATE ${LibArchive_INCLUDE_DIR})
 target_link_libraries(gpgfrontend_core PRIVATE archive)
         
 # link Qt core
-target_link_libraries(gpgfrontend_core PUBLIC Qt6::Core Qt6::Concurrent)
+target_link_libraries(gpgfrontend_core PUBLIC Qt6::Core)
 
 # set up pch
 target_precompile_headers(gpgfrontend_core

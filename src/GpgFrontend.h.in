@@ -33,20 +33,6 @@
 #include <winsock2.h>
 #endif
 
-// i18n support
-#include <libintl.h>
-#define _(String) gettext(String)
-#define gettext_noop(String) String
-#define N_(String) gettext_noop(String)
-
-// fix macro bugs in mingw
-#ifdef WINDOWS
-#include <clocale>
-#undef vsnprintf
-#undef sprintf
-#undef snprintf
-#endif
-
 // build info
 #define PROJECT_NAME "@CMAKE_PROJECT_NAME@"
 #define OS_PLATFORM "@OS_PLATFORM@"

@@ -39,12 +39,12 @@ KeyDetailsDialog::KeyDetailsDialog(const GpgKey& key, QWidget* parent)
     : GeneralDialog(typeid(KeyDetailsDialog).name(), parent) {
   tab_widget_ = new QTabWidget();
   tab_widget_->addTab(new KeyPairDetailTab(key.GetId(), tab_widget_),
-                      _("KeyPair"));
-  tab_widget_->addTab(new KeyPairUIDTab(key.GetId(), tab_widget_), _("UIDs"));
+                      tr("KeyPair"));
+  tab_widget_->addTab(new KeyPairUIDTab(key.GetId(), tab_widget_), tr("UIDs"));
   tab_widget_->addTab(new KeyPairSubkeyTab(key.GetId(), tab_widget_),
-                      _("Subkeys"));
+                      tr("Subkeys"));
   tab_widget_->addTab(new KeyPairOperaTab(key.GetId(), tab_widget_),
-                      _("Operations"));
+                      tr("Operations"));
 
   auto* main_layout = new QVBoxLayout;
   main_layout->addWidget(tab_widget_);
@@ -54,7 +54,7 @@ KeyDetailsDialog::KeyDetailsDialog(const GpgKey& key, QWidget* parent)
 #endif
   this->setAttribute(Qt::WA_DeleteOnClose, true);
   this->setLayout(main_layout);
-  this->setWindowTitle(_("Key Details"));
+  this->setWindowTitle(tr("Key Details"));
   this->setModal(true);
 
   this->show();

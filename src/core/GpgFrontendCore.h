@@ -33,8 +33,6 @@
 
 // std
 #include <cstdint>
-#include <filesystem>
-#include <string>
 #include <vector>
 
 // spdlog library configuration

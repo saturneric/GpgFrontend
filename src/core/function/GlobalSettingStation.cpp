@@ -182,7 +182,7 @@ class GlobalSettingStation::Impl {
       app_resource_path_ + "/locales";  ///< Program Data Location
 #endif
 
-  bool portable_mode_ = true;  ///<
+  bool portable_mode_ = false;  ///<
   QString app_portable_config_path_ =
       working_path_ + "/config.ini";  ///< take effect only in portable mode
 

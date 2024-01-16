@@ -55,23 +55,23 @@ KeyServerImportDialog::KeyServerImportDialog(QWidget* parent)
   }
 
   // Buttons
-  close_button_ = new QPushButton(_("Close"));
+  close_button_ = new QPushButton(tr("Close"));
   connect(close_button_, &QPushButton::clicked, this,
           &KeyServerImportDialog::close);
-  import_button_ = new QPushButton(_("Import ALL"));
+  import_button_ = new QPushButton(tr("Import ALL"));
   connect(import_button_, &QPushButton::clicked, this,
           &KeyServerImportDialog::slot_import);
   import_button_->setDisabled(true);
-  search_button_ = new QPushButton(_("Search"));
+  search_button_ = new QPushButton(tr("Search"));
   connect(search_button_, &QPushButton::clicked, this,
           &KeyServerImportDialog::slot_search);
 
   // Line edits for search string
-  search_label_ = new QLabel(QString(_("Search String")) + _(": "));
+  search_label_ = new QLabel(tr("Search String") + tr(": "));
   search_line_edit_ = new QLineEdit();
 
   // combobox for keyserver list
-  key_server_label_ = new QLabel(QString(_("Key Server")) + _(": "));
+  key_server_label_ = new QLabel(tr("Key Server") + tr(": "));
   key_server_combo_box_ = create_combo_box();
 
   // table containing the keys found
@@ -112,7 +112,7 @@ KeyServerImportDialog::KeyServerImportDialog(QWidget* parent)
   main_layout->addLayout(buttons_layout, 6, 0, 1, 3);
 
   this->setLayout(main_layout);
-  this->setWindowTitle(_("Import Keys from Keyserver"));
+  this->setWindowTitle(tr("Import Keys from Keyserver"));
   this->setModal(true);
 
   movePosition2CenterOfParent();
@@ -152,7 +152,7 @@ void KeyServerImportDialog::create_keys_table() {
   keys_table_->setSelectionMode(QAbstractItemView::SingleSelection);
 
   QStringList labels;
-  labels << _("UID") << _("Creation date") << _("KeyID") << _("Tag");
+  labels << tr("UID") << tr("Creation date") << tr("KeyID") << tr("Tag");
   keys_table_->horizontalHeader()->setSectionResizeMode(
       0, QHeaderView::ResizeToContents);
   keys_table_->setHorizontalHeaderLabels(labels);
@@ -165,17 +165,17 @@ void KeyServerImportDialog::create_keys_table() {
 void KeyServerImportDialog::set_message(const QString& text, bool error) {
   message_->setText(text);
   if (error) {
-    icon_->setPixmap(
-        QPixmap(":error.png").scaled(QSize(24, 24), Qt::KeepAspectRatio));
+    icon_->setPixmap(QPixmap(":/icons/error.png")
+                         .scaled(QSize(24, 24), Qt::KeepAspectRatio));
   } else {
     icon_->setPixmap(
-        QPixmap(":info.png").scaled(QSize(24, 24), Qt::KeepAspectRatio));
+        QPixmap(":/icons/info.png").scaled(QSize(24, 24), Qt::KeepAspectRatio));
   }
 }
 
 void KeyServerImportDialog::slot_search() {
   if (search_line_edit_->text().isEmpty()) {
-    set_message("<h4>" + QString(_("Text is empty.")) + "</h4>", false);
+    set_message("<h4>" + tr("Text is empty.") + "</h4>", false);
     return;
   }
 
@@ -222,16 +222,16 @@ void KeyServerImportDialog::slot_search_finished(
 
     switch (error) {
       case QNetworkReply::ContentNotFoundError:
-        set_message(_("Not Key Found"), true);
+        set_message(tr("Not Key Found"), true);
         break;
       case QNetworkReply::TimeoutError:
-        set_message(_("Timeout"), true);
+        set_message(tr("Timeout"), true);
         break;
       case QNetworkReply::HostNotFoundError:
-        set_message(_("Key Server Not Found"), true);
+        set_message(tr("Key Server Not Found"), true);
         break;
       default:
-        set_message(_("Connection Error"), true);
+        set_message(tr("Connection Error"), true);
     }
     return;
   }
@@ -240,36 +240,32 @@ void KeyServerImportDialog::slot_search_finished(
     auto text = stream.readLine(1024);
 
     if (text.contains("Too many responses")) {
-      set_message(
-          "<h4>" + QString(_("Too many responses from keyserver!")) + "</h4>",
-          true);
+      set_message("<h4>" + tr("Too many responses from keyserver!") + "</h4>",
+                  true);
       return;
     } else if (text.contains("No keys found")) {
       // if string looks like hex string, search again with 0x prepended
       QRegExp rx("[0-9A-Fa-f]*");
       QString query = search_line_edit_->text();
       if (rx.exactMatch(query)) {
-        set_message(
-            "<h4>" +
-                QString(_("No keys found, input may be kexId, retrying search "
-                          "with 0x.")) +
-                "</h4>",
-            true);
+        set_message("<h4>" +
+                        tr("No keys found, input may be kexId, retrying search "
+                           "with 0x.") +
+                        "</h4>",
+                    true);
         search_line_edit_->setText(query.prepend("0x"));
         this->slot_search();
         return;
       }
       set_message(
-          "<h4>" + QString(_("No keys found containing the search string!")) +
-              "</h4>",
+          "<h4>" + tr("No keys found containing the search string!") + "</h4>",
           true);
       return;
 
     } else if (text.contains("Insufficiently specific words")) {
-      set_message("<h4>" +
-                      QString(_("Insufficiently specific search string!")) +
-                      "</h4>",
-                  true);
+      set_message(
+          "<h4>" + tr("Insufficiently specific search string!") + "</h4>",
+          true);
       return;
     } else {
       set_message(text, true);
@@ -302,12 +298,10 @@ void KeyServerImportDialog::slot_search_finished(
                                  new QTableWidgetItem(QString("expired")));
           }
           if (flags.contains("r")) {
-            keys_table_->setItem(row, 3,
-                                 new QTableWidgetItem(QString(_("revoked"))));
+            keys_table_->setItem(row, 3, new QTableWidgetItem(tr("revoked")));
           }
           if (flags.contains("d")) {
-            keys_table_->setItem(row, 3,
-                                 new QTableWidgetItem(QString(_("disabled"))));
+            keys_table_->setItem(row, 3, new QTableWidgetItem(tr("disabled")));
           }
         }
 
@@ -352,8 +346,7 @@ void KeyServerImportDialog::slot_search_finished(
       }
       set_message(
           QString("<h4>") +
-              QString(_("%1 keys found. Double click a key to import it."))
-                  .arg(row) +
+              tr("%1 keys found. Double click a key to import it.").arg(row) +
               "</h4>",
           false);
     }
@@ -419,7 +412,7 @@ void KeyServerImportDialog::slot_import_finished(
     return;
   }
 
-  set_message(_("Key Imported"), false);
+  set_message(tr("Key Imported"), false);
 
   // refresh the key database
   emit SignalKeyImported();
@@ -430,7 +423,7 @@ void KeyServerImportDialog::slot_import_finished(
 
 void KeyServerImportDialog::set_loading(bool status) {
   waiting_bar_->setVisible(status);
-  if (status) set_message(_("Processing ..."), false);
+  if (status) set_message(tr("Processing ..."), false);
 }
 
 }  // namespace GpgFrontend::UI

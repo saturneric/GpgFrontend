@@ -51,10 +51,10 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   main_layout->addWidget(tab_widget_);
   main_layout->stretch(0);
 
-  tab_widget_->addTab(general_tab_, _("General"));
-  tab_widget_->addTab(appearance_tab_, _("Appearance"));
-  tab_widget_->addTab(key_server_tab_, _("Key Server"));
-  tab_widget_->addTab(network_tab_, _("Network"));
+  tab_widget_->addTab(general_tab_, tr("General"));
+  tab_widget_->addTab(appearance_tab_, tr("Appearance"));
+  tab_widget_->addTab(key_server_tab_, tr("Key Server"));
+  tab_widget_->addTab(network_tab_, tr("Network"));
 
 #ifndef MACOS
   button_box_ =
@@ -65,11 +65,11 @@ SettingsDialog::SettingsDialog(QWidget* parent)
           &SettingsDialog::reject);
   mainLayout->addWidget(button_box_);
   mainLayout->stretch(0);
-  setWindowTitle(_("Settings"));
+  setWindowTitle(tr("Settings"));
 #else
   connect(this, &QDialog::finished, this, &SettingsDialog::SlotAccept);
   connect(this, &QDialog::finished, this, &SettingsDialog::deleteLater);
-  setWindowTitle(_("Preference"));
+  setWindowTitle(tr("Preference"));
 #endif
 
   setLayout(main_layout);
@@ -125,23 +125,22 @@ void SettingsDialog::SlotAccept() {
 
 auto SettingsDialog::ListLanguages() -> QHash<QString, QString> {
   QHash<QString, QString> languages;
-  languages.insert(QString(), _("System Default"));
+  languages.insert(QString(), tr("System Default"));
 
-  auto locale_path = GlobalSettingStation::GetInstance().GetLocaleDir();
+  QStringList filenames = QDir(QLatin1String(":/i18n")).entryList();
+  for (const auto& file : filenames) {
+    GF_UI_LOG_DEBUG("get locale from locale directory: {}", file.toStdString());
 
-  auto locale_dir = QDir(locale_path);
-  QStringList file_names = locale_dir.entryList(QStringList("*"));
+    auto start = file.indexOf('.') + 1;
+    auto end = file.lastIndexOf('.');
+    if (start < 0 || end < 0 || start >= end) continue;
 
-  for (const auto& locale : file_names) {
-    GF_UI_LOG_DEBUG("get locale from locale directory: {}",
-                    locale.toStdString());
-    if (locale == "." || locale == "..") continue;
-
+    auto locale = file.mid(start, end - start);
     QLocale const q_locale(locale);
     if (q_locale.nativeTerritoryName().isEmpty()) continue;
 
     auto language = q_locale.nativeLanguageName() + " (" + locale + ")";
-    languages.insert(locale, language);
+    languages.insert(q_locale.name(), language);
   }
   return languages;
 }
