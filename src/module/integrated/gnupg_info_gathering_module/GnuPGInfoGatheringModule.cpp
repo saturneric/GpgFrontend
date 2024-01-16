@@ -257,14 +257,12 @@ auto GnuPGInfoGatheringModule::Exec(EventRefrernce event) -> int {
       },
       getTaskRunner()});
 
-  auto components = ListRTChildKeys(
-      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      "gnupg.components");
+  auto components = ListRTChildKeys(GetModuleIdentifier(), "gnupg.components");
 
   for (const auto &component : components) {
     auto component_info_json = RetrieveRTValueTypedOrDefault(
-        "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-        QString("gnupg.components.%1").arg(component), QByteArray{});
+        GetModuleIdentifier(), QString("gnupg.components.%1").arg(component),
+        QByteArray{});
 
     auto jsonlized_component_info =
         QJsonDocument::fromJson(component_info_json);

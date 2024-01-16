@@ -185,13 +185,10 @@ void GpgCommandExecutor::ExecuteSync(ExecuteContext context) {
   // to arvoid dead lock issue we need to check if current thread is the same as
   // target thread. if it is, we can't call exec() because it will block the
   // current thread.
-  if (QThread::currentThread()->currentThreadId() !=
-      target_task_runner->GetThread()->currentThreadId()) {
-    GF_CORE_LOG_TRACE("blocking until gpg command finish...");
-    // block until task finished
-    // this is to keep reference vaild until task finished
-    looper.exec();
-  }
+  GF_CORE_LOG_TRACE("blocking until gpg command finish...");
+  // block until task finished
+  // this is to keep reference vaild until task finished
+  looper.exec();
 }
 
 void GpgCommandExecutor::ExecuteConcurrentlyAsync(ExecuteContexts contexts) {
@@ -217,8 +214,6 @@ void GpgCommandExecutor::ExecuteConcurrentlySync(ExecuteContexts contexts) {
   auto remaining_tasks = contexts.size();
   Thread::TaskRunnerPtr target_task_runner = nullptr;
 
-  bool need_looper = false;
-
   for (auto &context : contexts) {
     const auto &cmd = context.cmd;
     GF_CORE_LOG_DEBUG("gpg concurrently called cmd: {}", cmd);
@@ -243,22 +238,12 @@ void GpgCommandExecutor::ExecuteConcurrentlySync(ExecuteContexts contexts) {
     }
 
     target_task_runner->PostTask(task);
-
-    // to arvoid dead lock issue we need to check if current thread is the same
-    // as target thread. if it is, we can't call exec() because it will block
-    // the current thread.
-    if (QThread::currentThread()->currentThreadId() !=
-        target_task_runner->GetThread()->currentThreadId()) {
-      need_looper = true;
-    }
   }
 
-  if (need_looper) {
-    GF_CORE_LOG_TRACE("blocking until concurrent gpg commands finish...");
-    // block until task finished
-    // this is to keep reference vaild until task finished
-    looper.exec();
-  }
+  GF_CORE_LOG_TRACE("blocking until concurrent gpg commands finish...");
+  // block until task finished
+  // this is to keep reference vaild until task finished
+  looper.exec();
 }
 
 }  // namespace GpgFrontend

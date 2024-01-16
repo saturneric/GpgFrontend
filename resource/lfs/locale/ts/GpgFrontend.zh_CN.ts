@@ -1277,27 +1277,27 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/help/GnupgTab.cpp" line="58"/>
         <source>Component</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">组件</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/GnupgTab.cpp" line="58"/>
         <source>Group</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">组</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/GnupgTab.cpp" line="58"/>
         <source>Key</source>
-        <translation type="unfinished">密钥</translation>
+        <translation type="unfinished">键</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/GnupgTab.cpp" line="59"/>
         <source>Default Value</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">默认值</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/GnupgTab.cpp" line="60"/>
         <source>Value</source>
-        <translation type="unfinished">价值</translation>
+        <translation type="unfinished">值</translation>
     </message>
 </context>
 <context>

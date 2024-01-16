@@ -415,7 +415,7 @@ void MainWindow::create_actions() {
           [=]() { new AboutDialog(0, this); });
 
   gnupg_act_ = new QAction(tr("GnuPG"), this);
-  gnupg_act_->setIcon(QIcon(":/icons/:help.png"));
+  gnupg_act_->setIcon(QIcon(":/icons/help.png"));
   gnupg_act_->setToolTip(tr("Information about Gnupg"));
   connect(gnupg_act_, &QAction::triggered, this,
           [=]() { new AboutDialog(1, this); });
