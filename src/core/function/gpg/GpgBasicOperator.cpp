@@ -45,8 +45,7 @@ GpgBasicOperator::GpgBasicOperator(int channel)
 
 void GpgBasicOperator::Encrypt(KeyArgsList keys, GFBuffer in_buffer, bool ascii,
                                const GpgOperationCallback& cb) {
-  RunGpgOperaAsync(
-      [=](const DataObjectPtr& data_object) -> GpgError {
+  RunGpgOperaAsync([=](const DataObjectPtr& data_object) -> GpgError {
         if (keys.empty()) return GPG_ERR_CANCELED;
 
         std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());

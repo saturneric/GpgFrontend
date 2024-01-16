@@ -75,21 +75,17 @@ void ConfigureGpgContext() {
 }
 
 void ImportPrivateKeys(const QString& data_path, QSettings settings) {
-  if (settings.contains("load_keys/private_keys")) {
-    int size = settings.beginReadArray("load_keys/private_keys");
-    for (int i = 0; i < size; ++i) {
-      settings.setArrayIndex(i);
-      auto key_filename = settings.value("filename").toString();
-      auto target_file_path = data_path + "/" + key_filename;
-      auto [success, gf_buffer] = ReadFileGFBuffer(target_file_path);
-      if (success) {
-        GpgKeyImportExporter::GetInstance(kGpgFrontendDefaultChannel)
-            .ImportKey(gf_buffer);
-      } else {
-        GF_TEST_LOG_ERROR("read from file faild: {}", target_file_path);
-      }
+  auto key_files = QDir(":/test/key").entryList();
+
+  for (const auto& key_file : key_files) {
+    auto [success, gf_buffer] =
+        ReadFileGFBuffer(QString(":/test/key") + "/" + key_file);
+    if (success) {
+      GpgKeyImportExporter::GetInstance(kGpgFrontendDefaultChannel)
+          .ImportKey(gf_buffer);
+    } else {
+      GF_TEST_LOG_ERROR("read from key file failed: {}", key_file);
     }
-    settings.endArray();
   }
 }
 

@@ -35,7 +35,6 @@
 #include <vector>
 
 #include "core/GpgConstants.h"
-#include "core/function/CacheManager.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/model/GpgImportInformation.h"
@@ -94,12 +93,13 @@ void import_unknown_key_from_keyserver(
 
 void refresh_info_board(InfoBoardWidget *info_board, int status,
                         const QString &report_text) {
-  if (status < 0)
+  if (status < 0) {
     info_board->SlotRefresh(report_text, INFO_ERROR_CRITICAL);
-  else if (status > 0)
+  } else if (status > 0) {
     info_board->SlotRefresh(report_text, INFO_ERROR_OK);
-  else
+  } else {
     info_board->SlotRefresh(report_text, INFO_ERROR_WARN);
+  }
 }
 
 void process_result_analyse(TextEdit *edit, InfoBoardWidget *info_board,
@@ -149,7 +149,7 @@ void process_operation(QWidget *parent, const QString &waiting_title,
   looper.exec();
 }
 
-CommonUtils *CommonUtils::GetInstance() {
+auto CommonUtils::GetInstance() -> CommonUtils * {
   if (instance_ == nullptr) {
     instance_ = std::make_unique<CommonUtils>();
   }
@@ -240,17 +240,6 @@ void CommonUtils::WaitForOpera(QWidget *parent,
         dialog->accept();
       }
     });
-  });
-
-  // handling timeout, default 30s
-  QTimer::singleShot(30000, parent, [parent, dialog]() {
-    if (dialog != nullptr) {
-      dialog->close();
-      dialog->reject();
-
-      QMessageBox::critical(parent, tr("Timeout"),
-                            tr("Operation has timeout, aborted..."));
-    }
   });
 
   looper.exec();

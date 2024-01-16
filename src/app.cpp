@@ -83,7 +83,7 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
         "restart loop refresh, event loop code: {}, restart count: {}",
         return_from_event_loop_code, restart_count);
   } while (return_from_event_loop_code == GpgFrontend::kRestartCode &&
-           restart_count < 3);
+           restart_count < 99);
 
   // first should shutdown the module system
   GpgFrontend::Module::ShutdownGpgFrontendModules();

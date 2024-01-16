@@ -96,7 +96,9 @@ void MainWindow::SlotFileEncrypt(const QString& path) {
 
                 if (data_obj == nullptr ||
                     !data_obj->Check<GpgEncryptResult>()) {
-                  throw std::runtime_error("data object doesn't pass checking");
+                  QMessageBox::critical(this, tr("Error"),
+                                        tr("Unknown error occurred"));
+                  return;
                 }
 
                 auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
@@ -136,7 +138,9 @@ void MainWindow::SlotFileEncrypt(const QString& path) {
               op_hd();
 
               if (data_obj == nullptr || !data_obj->Check<GpgEncryptResult>()) {
-                throw std::runtime_error("data object doesn't pass checking");
+                QMessageBox::critical(this, tr("Error"),
+                                      tr("Unknown error occurred"));
+                return;
               }
 
               auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
@@ -205,7 +209,9 @@ void MainWindow::SlotDirectoryEncrypt(const QString& path) {
 
                 if (data_obj == nullptr ||
                     !data_obj->Check<GpgEncryptResult>()) {
-                  throw std::runtime_error("data object doesn't pass checking");
+                  QMessageBox::critical(this, tr("Error"),
+                                        tr("Unknown error occurred"));
+                  return;
                 }
 
                 auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
@@ -245,7 +251,9 @@ void MainWindow::SlotDirectoryEncrypt(const QString& path) {
               op_hd();
 
               if (data_obj == nullptr || !data_obj->Check<GpgEncryptResult>()) {
-                throw std::runtime_error("data object doesn't pass checking");
+                QMessageBox::critical(this, tr("Error"),
+                                      tr("Unknown error occurred"));
+                return;
               }
 
               auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
@@ -292,7 +300,9 @@ void MainWindow::SlotFileDecrypt(const QString& path) {
               op_hd();
 
               if (data_obj == nullptr || !data_obj->Check<GpgDecryptResult>()) {
-                throw std::runtime_error("data object doesn't pass checking");
+                QMessageBox::critical(this, tr("Error"),
+                                      tr("Unknown error occurred"));
+                return;
               }
 
               auto result = ExtractParams<GpgDecryptResult>(data_obj, 0);
@@ -338,7 +348,9 @@ void MainWindow::SlotArchiveDecrypt(const QString& path) {
               op_hd();
 
               if (data_obj == nullptr || !data_obj->Check<GpgDecryptResult>()) {
-                throw std::runtime_error("data object doesn't pass checking");
+                QMessageBox::critical(this, tr("Error"),
+                                      tr("Unknown error occurred"));
+                return;
               }
 
               auto result = ExtractParams<GpgDecryptResult>(data_obj, 0);
@@ -409,7 +421,9 @@ void MainWindow::SlotFileSign(const QString& path) {
               op_hd();
 
               if (data_obj == nullptr || !data_obj->Check<GpgSignResult>()) {
-                throw std::runtime_error("data object doesn't pass checking");
+                QMessageBox::critical(this, tr("Error"),
+                                      tr("Unknown error occurred"));
+                return;
               }
 
               auto result = ExtractParams<GpgSignResult>(data_obj, 0);
@@ -479,7 +493,9 @@ void MainWindow::SlotFileVerify(const QString& path) {
               op_hd();
 
               if (data_obj == nullptr || !data_obj->Check<GpgVerifyResult>()) {
-                throw std::runtime_error("data object doesn't pass checking");
+                QMessageBox::critical(this, tr("Error"),
+                                      tr("Unknown error occurred"));
+                return;
               }
 
               auto result = ExtractParams<GpgVerifyResult>(data_obj, 0);
@@ -579,7 +595,9 @@ void MainWindow::SlotFileEncryptSign(const QString& path) {
 
               if (data_obj == nullptr ||
                   !data_obj->Check<GpgEncryptResult, GpgSignResult>()) {
-                throw std::runtime_error("data object doesn't pass checking");
+                QMessageBox::critical(this, tr("Error"),
+                                      tr("Unknown error occurred"));
+                return;
               }
               auto encrypt_result =
                   ExtractParams<GpgEncryptResult>(data_obj, 0);
@@ -681,7 +699,9 @@ void MainWindow::SlotDirectoryEncryptSign(const QString& path) {
 
               if (data_obj == nullptr ||
                   !data_obj->Check<GpgEncryptResult, GpgSignResult>()) {
-                throw std::runtime_error("data object doesn't pass checking");
+                QMessageBox::critical(this, tr("Error"),
+                                      tr("Unknown error occurred"));
+                return;
               }
               auto encrypt_result =
                   ExtractParams<GpgEncryptResult>(data_obj, 0);
@@ -738,7 +758,9 @@ void MainWindow::SlotFileDecryptVerify(const QString& path) {
 
               if (data_obj == nullptr ||
                   !data_obj->Check<GpgDecryptResult, GpgVerifyResult>()) {
-                throw std::runtime_error("data object doesn't pass checking");
+                QMessageBox::critical(this, tr("Error"),
+                                      tr("Unknown error occurred"));
+                return;
               }
               auto decrypt_result =
                   ExtractParams<GpgDecryptResult>(data_obj, 0);
@@ -804,7 +826,9 @@ void MainWindow::SlotArchiveDecryptVerify(const QString& path) {
 
               if (data_obj == nullptr ||
                   !data_obj->Check<GpgDecryptResult, GpgVerifyResult>()) {
-                throw std::runtime_error("data object doesn't pass checking");
+                QMessageBox::critical(this, tr("Error"),
+                                      tr("Unknown error occurred"));
+                return;
               }
               auto decrypt_result =
                   ExtractParams<GpgDecryptResult>(data_obj, 0);

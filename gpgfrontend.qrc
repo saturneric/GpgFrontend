@@ -87,4 +87,14 @@
         <file alias="cloud_sync.png">resource/lfs/icons/cloud_sync.png</file>
         <file alias="total_selection.png">resource/lfs/icons/total_selection.png</file>
     </qresource>
+    <qresource prefix="/test/key">
+        <file alias="pv1.key">resource/lfs/test/data/pv1.key</file>
+        <file alias="pv2.key">resource/lfs/test/data/pv2.key</file>
+        <file alias="pv3.key">resource/lfs/test/data/pv3.key</file>
+        <file alias="pv4.key">resource/lfs/test/data/pv4.key</file>
+        <file alias="tester.key">resource/lfs/test/data/tester.key</file>
+    </qresource>
+    <qresource prefix="/">
+        <file alias="TRANSLATORS">TRANSLATORS</file>
+    </qresource>
 </RCC>

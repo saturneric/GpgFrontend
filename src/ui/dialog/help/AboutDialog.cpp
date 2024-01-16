@@ -119,19 +119,10 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
 }
 
 TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
-  QFile translators_qfile(GlobalSettingStation::GetInstance().GetResourceDir() +
-                          "/TRANSLATORS");
-#ifdef LINUX
-  if (!translators_qfile.exists()) {
-    translators_qfile.setFileName("/usr/local/share/GpgFrontend/TRANSLATORS");
-  }
-#endif
+  QFile translators_file(":/TRANSLATORS");
 
-  translators_qfile.open(QIODevice::ReadOnly);
-  QByteArray in_buffer = translators_qfile.readAll();
-
-  auto* label = new QLabel(in_buffer);
-
+  translators_file.open(QIODevice::ReadOnly);
+  auto* label = new QLabel(translators_file.readAll());
   auto* main_layout = new QVBoxLayout(this);
   main_layout->addWidget(label);
   main_layout->addStretch();

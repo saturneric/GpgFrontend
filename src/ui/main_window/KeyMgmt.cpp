@@ -333,9 +333,7 @@ void KeyMgmt::delete_keys_with_warning(KeyIdArgsListPtr uidList) {
 
   int const ret = QMessageBox::warning(
       this, tr("Deleting Keys"),
-      "<b>" +
-          QString(
-              tr("Are you sure that you want to delete the following keys?")) +
+      "<b>" + tr("Are you sure that you want to delete the following keys?") +
           "</b><br/><br/>" + keynames + +"<br/>" +
           tr("The action can not be undone."),
       QMessageBox::No | QMessageBox::Yes);

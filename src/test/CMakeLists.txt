@@ -24,8 +24,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # Set configure for test
-file(COPY ${CMAKE_SOURCE_DIR}/resource/lfs/test/conf DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test/ FOLLOW_SYMLINK_CHAIN)
-file(COPY ${CMAKE_SOURCE_DIR}/resource/lfs/test/data DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test/ FOLLOW_SYMLINK_CHAIN)
 
 aux_source_directory(./core TEST_SOURCE)
 aux_source_directory(. TEST_SOURCE)

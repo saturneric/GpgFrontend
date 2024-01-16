@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <mutex>
-
 #include "core/model/GpgSubKey.h"
 #include "core/model/GpgUID.h"
 
