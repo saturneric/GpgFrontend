@@ -32,6 +32,8 @@
 
 #pragma once
 
+#include "core/typedef/CoreTypedef.h"
+
 namespace GpgFrontend {
 
 class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator {
@@ -42,7 +44,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator {
    * @return true
    * @return false
    */
-  static auto ClearGpgPasswordCache() -> bool;
+  static void ClearGpgPasswordCache(OperationCallback);
 
   /**
    * @brief
@@ -50,7 +52,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator {
    * @return true
    * @return false
    */
-  static auto ReloadGpgComponents() -> bool;
+  static void ReloadGpgComponents(OperationCallback cb);
 
   /**
    * @brief
@@ -66,7 +68,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator {
    * @return true
    * @return false
    */
-  static auto ResetConfigures() -> bool;
+  static void ResetConfigures(OperationCallback cb);
 
   /**
    * @brief
@@ -74,7 +76,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator {
    * @return true
    * @return false
    */
-  static auto StartGpgAgent() -> bool;
+  static void StartGpgAgent(OperationCallback cb);
 
   /**
    * @brief
@@ -82,7 +84,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator {
    * @return true
    * @return false
    */
-  static auto StartDirmngr() -> bool;
+  static void StartDirmngr(OperationCallback cb);
 
   /**
    * @brief
@@ -90,7 +92,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator {
    * @return true
    * @return false
    */
-  static auto StartKeyBoxd() -> bool;
+  static void StartKeyBoxd(OperationCallback cb);
 };
 
 }  // namespace GpgFrontend

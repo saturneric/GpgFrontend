@@ -158,8 +158,7 @@ class GlobalSettingStation::Impl {
   QString working_path_ = QDir::currentPath();
 
   QString app_data_path_ = QString{QStandardPaths::writableLocation(
-                               QStandardPaths::AppLocalDataLocation)} +
-                           "/GpgFrontend";  ///< Program Data Location
+      QStandardPaths::AppLocalDataLocation)};  ///< Program Data Location
 
   QString app_log_path_ = app_data_path_ + "/logs";  ///< Program Data Location
 

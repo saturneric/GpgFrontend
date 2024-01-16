@@ -62,7 +62,13 @@
          <property name="leftMargin">
           <number>5</number>
          </property>
+         <property name="topMargin">
+          <number>5</number>
+         </property>
          <property name="rightMargin">
+          <number>5</number>
+         </property>
+         <property name="bottomMargin">
           <number>5</number>
          </property>
          <item>

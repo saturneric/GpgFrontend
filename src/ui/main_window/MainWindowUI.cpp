@@ -347,28 +347,34 @@ void MainWindow::create_actions() {
   clean_gpg_password_cache_act_->setToolTip(
       tr("Clear Password Cache of GnuPG"));
   connect(clean_gpg_password_cache_act_, &QAction::triggered, this, [=]() {
-    if (GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache()) {
-      QMessageBox::information(this, tr("Successful Operation"),
-                               tr("Clear password cache successfully"));
-    } else {
-      QMessageBox::critical(this, tr("Failed Operation"),
-                            tr("Failed to clear password cache of GnuPG"));
-    }
+    GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache([=](int err,
+                                                                DataObjectPtr) {
+      if (err >= 0) {
+        QMessageBox::information(this, tr("Successful Operation"),
+                                 tr("Clear password cache successfully"));
+      } else {
+        QMessageBox::critical(this, tr("Failed Operation"),
+                              tr("Failed to clear password cache of GnuPG"));
+      }
+    });
   });
 
   reload_components_act_ = new QAction(tr("Reload All Components"), this);
   reload_components_act_->setIcon(QIcon(":/icons/configure.png"));
   reload_components_act_->setToolTip(tr("Reload All GnuPG's Components"));
   connect(reload_components_act_, &QAction::triggered, this, [=]() {
-    if (GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents()) {
-      QMessageBox::information(
-          this, tr("Successful Operation"),
-          tr("Reload all the GnuPG's components successfully"));
-    } else {
-      QMessageBox::critical(
-          this, tr("Failed Operation"),
-          tr("Failed to reload all or one of the GnuPG's component(s)"));
-    }
+    GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents(
+        [=](int err, DataObjectPtr) {
+          if (err >= 0) {
+            QMessageBox::information(
+                this, tr("Successful Operation"),
+                tr("Reload all the GnuPG's components successfully"));
+          } else {
+            QMessageBox::critical(
+                this, tr("Failed Operation"),
+                tr("Failed to reload all or one of the GnuPG's component(s)"));
+          }
+        });
   });
 
   restart_components_act_ = new QAction(tr("Restart All Components"), this);

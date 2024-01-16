@@ -235,7 +235,8 @@ void InitGpgFrontendCore(CoreInitArgs args) {
 
         QString gnupg_install_fs_path;
         // user defined
-        if (!custom_gnupg_install_path.isEmpty()) {
+        if (use_custom_gnupg_install_path &&
+            !custom_gnupg_install_path.isEmpty()) {
           // check gpgconf path
           gnupg_install_fs_path = custom_gnupg_install_path;
 #ifdef WINDOWS
@@ -265,7 +266,8 @@ void InitGpgFrontendCore(CoreInitArgs args) {
         // check key database path
         QString key_database_fs_path;
         // user defined
-        if (!custom_key_database_path.isEmpty()) {
+        if (use_custom_key_database_path &&
+            !custom_key_database_path.isEmpty()) {
           key_database_fs_path = custom_key_database_path;
           if (VerifyKeyDatabasePath(QFileInfo(key_database_fs_path))) {
             GF_CORE_LOG_ERROR(

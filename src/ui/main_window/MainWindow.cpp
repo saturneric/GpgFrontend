@@ -131,11 +131,10 @@ void MainWindow::Init() noexcept {
               .GetSettings()
               .value("basic/clear_gpg_password_cache", false)
               .toBool()) {
-        if (GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache()) {
-          GF_UI_LOG_DEBUG("clear gpg password cache done");
-        } else {
-          GF_UI_LOG_ERROR("clear gpg password cache error");
-        }
+        GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache(
+            [](int, DataObjectPtr) {
+
+            });
       }
     });
 

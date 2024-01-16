@@ -146,8 +146,11 @@ class Task::Impl {
     //
     connect(parent_, &Task::SignalRun, parent_, &Task::slot_exception_safe_run);
 
+    auto *callback_thread = callback_thread_ != nullptr
+                                ? callback_thread_
+                                : QCoreApplication::instance()->thread();
     //
-    connect(parent_, &Task::SignalTaskShouldEnd, QThread::currentThread(),
+    connect(parent_, &Task::SignalTaskShouldEnd, callback_thread,
             [this](int rtn) {
               // set task returning code
               SetRTN(rtn);

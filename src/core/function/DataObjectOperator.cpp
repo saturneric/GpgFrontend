@@ -45,7 +45,7 @@ void DataObjectOperator::init_app_secure_key() {
 
 DataObjectOperator::DataObjectOperator(int channel)
     : SingletonFunctionObject<DataObjectOperator>(channel) {
-  if (!QDir(app_secure_path_).exists()) QDir(app_secure_path_).mkdir(".");
+  if (!QDir(app_secure_path_).exists()) QDir(app_secure_path_).mkpath(".");
   if (!QFileInfo(app_secure_key_path_).exists()) init_app_secure_key();
 
   QByteArray key;
