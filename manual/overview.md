@@ -29,7 +29,7 @@ Note: For different operating system and system style settings, GpgFrontend may
 look different.Documentation can also vary widely from release to release.
 Please check the corresponding program release version for the document.
 
-![image-20220109192100901](https://www.bktus.com/wp-content/uploads/2023/08/image-20220109192100901.png)
+![image-20220109192100901](https://image.cdn.bktus.com/i/2023/11/16/0bc36253-4963-19ca-7302-f11998d63680.webp)
 
 ## System Requirement
 

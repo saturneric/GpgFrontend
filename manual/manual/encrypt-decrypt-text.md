@@ -37,7 +37,7 @@ After the encryption operation, no additional information will be displayed in
 the information board except for a prompt indicating whether the operation was
 successful.
 
-![Peek 2022-01-12 07-16](https://www.bktus.com/wp-content/uploads/2023/08/Peek-2022-01-12-07-16.gif)
+![Peek 2022-01-12 07-16](https://image.cdn.bktus.com/i/2023/11/16/07c99019-318a-3b85-ea63-0d473ebcd7ec.gif)
 
 ### Encrypt Sign
 
@@ -70,7 +70,7 @@ To verify the authenticity of the ciphertext before decryption, you can use the
 validate operation. Once the ciphertext is verified, you can proceed with
 decryption using your private key.
 
-![GIF](https://github.com/saturneric/Blob/blob/master/gif/encrypt-sign.gif?raw=true)
+![GIF](https://image.cdn.bktus.com/i/2023/11/16/cb4ac40a-9830-7429-8447-7ada6bc6571b.gif)
 
 ## Decrypt
 
@@ -79,7 +79,7 @@ into GpgFrontend, and it will automatically select the appropriate private key
 for decryption. It is important to note that decryption must be performed with
 the private key associated with the public key used for encryption.
 
-![Peek 2022-01-12 07-18](https://www.bktus.com/wp-content/uploads/2023/08/Peek-2022-01-12-07-18.gif)
+![Peek 2022-01-12 07-18](https://image.cdn.bktus.com/i/2023/11/16/a4ded61d-fb5b-cbf2-f0ec-e3b26e79f172.gif)
 
 When decrypting a ciphertext, it is not necessary to check the usage column in
 the key toolbox to determine if the key is valid for decryption. Instead, you
@@ -108,4 +108,4 @@ always verify the signature during decryption, regardless of whether the
 encryptor has signed in advance. This helps to ensure the authenticity and
 integrity of the decrypted message.
 
-![Peek 2022-01-12 07-10](https://www.bktus.com/wp-content/uploads/2023/08/Peek-2022-01-12-07-10.gif)
+![Peek 2022-01-12 07-10](https://image.cdn.bktus.com/i/2023/11/16/9e06ce22-f98d-47f1-ea76-e4e23b6dd32d.gif)

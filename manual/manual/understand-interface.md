@@ -5,7 +5,7 @@ of the page. The exploration that follows will gradually unveil additional
 functionalities. Bear in mind that interfaces may vary across different
 versions.
 
-![Interface](https://github.com/saturneric/Blob/blob/master/screenshots/interface-introduce.png?raw=true)
+![Interface](https://image.cdn.bktus.com/i/2023/11/16/27c0bd12-8a1d-b9ae-2ecd-dbde5f96e36f.webp)
 
 ## Text Editor
 
