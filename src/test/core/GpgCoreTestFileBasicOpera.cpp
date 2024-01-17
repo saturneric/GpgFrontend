@@ -74,7 +74,7 @@ TEST_F(GpgCoreTest, CoreFileEncryptDecrTest) {
               const auto [read_success, buffer] =
                   ReadFileGFBuffer(decrpypt_output_file);
               ASSERT_TRUE(read_success);
-              ASSERT_EQ(buffer, GFBuffer("Hello GpgFrontend!"));
+              ASSERT_EQ(buffer, GFBuffer(QString("Hello GpgFrontend!")));
 
               // stop waiting
               callback_called_flag = true;
@@ -119,7 +119,7 @@ TEST_F(GpgCoreTest, CoreFileEncryptSymmetricDecrTest) {
               const auto [read_success, buffer] =
                   ReadFileGFBuffer(decrpypt_output_file);
               ASSERT_TRUE(read_success);
-              ASSERT_EQ(buffer, GFBuffer("Hello GpgFrontend!"));
+              ASSERT_EQ(buffer, GFBuffer(QString("Hello GpgFrontend!")));
 
               // stop waiting
               callback_called_flag = true;
@@ -221,7 +221,7 @@ TEST_F(GpgCoreTest, CoreFileEncryptSignDecrVerifyTest) {
               const auto [read_success, buffer] =
                   ReadFileGFBuffer(decrpypt_output_file);
               ASSERT_TRUE(read_success);
-              ASSERT_EQ(buffer, GFBuffer("Hello GpgFrontend!"));
+              ASSERT_EQ(buffer, GFBuffer(QString("Hello GpgFrontend!")));
 
               // stop waiting
               callback_called_flag = true;

@@ -30,9 +30,6 @@ endif()
 # Introduce GpgME
 find_package(Gpgme REQUIRED)
 
-# Introduce Config++
-find_package(Config++ REQUIRED)
-
 # Introduce OpenSSL
 if (APPLE)
     # Define possible OpenSSL directories
@@ -421,7 +418,7 @@ if (BUILD_APPLICATION)
 
     # Make app build with resources
     add_dependencies(${AppName} resources)
-    
+
     # using c++ standard 17
     target_compile_features(${AppName} PUBLIC cxx_std_17)
 

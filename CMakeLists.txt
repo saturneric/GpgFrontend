@@ -234,10 +234,6 @@ IF (MINGW)
     set(OS_PLATFORM 0)
     add_definitions(-DWINDOWS)
 
-    set(Boost_USE_STATIC_LIBS OFF)
-    set(Boost_USE_MULTITHREADED ON)
-    set(Boost_USE_STATIC_RUNTIME OFF)
-
     include_directories(
             ${CMAKE_CURRENT_SOURCE_DIR}/src
             ${CMAKE_CURRENT_SOURCE_DIR}/third_party
@@ -324,7 +320,6 @@ if (LINUX_INSTALL_SOFTWARE)
     set(INSTALL_GPGFRONTEND_APP 1)
     set(APP_INSTALL_FLAG LINUX_INSTALL)
     add_compile_definitions(LINUX_INSTALL_BUILD)
-    set(Boost_USE_STATIC_LIBS ON)
 else ()
     set(APP_INSTALL_FLAG BUNDLE)
 endif ()

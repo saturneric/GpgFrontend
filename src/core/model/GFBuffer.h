@@ -37,8 +37,6 @@ class GPGFRONTEND_CORE_EXPORT GFBuffer {
  public:
   GFBuffer();
 
-  explicit GFBuffer(const char* c_str);
-
   explicit GFBuffer(QByteArray buffer);
 
   explicit GFBuffer(QString str);

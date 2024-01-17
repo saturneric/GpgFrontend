@@ -47,7 +47,7 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest) {
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
 
   GpgBasicOperator::GetInstance().Encrypt(
-      {encrypt_key}, GFBuffer("Hello GpgFrontend!"), true,
+      {encrypt_key}, GFBuffer(QString("Hello GpgFrontend!")), true,
       [&callback_called_flag](GpgError err, const DataObjectPtr& data_obj) {
         ASSERT_TRUE((data_obj->Check<GpgEncryptResult, GFBuffer>()));
         auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
@@ -64,7 +64,8 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest) {
               ASSERT_FALSE(d_result.Recipients().empty());
               ASSERT_EQ(d_result.Recipients()[0].keyid, "6A2764F8298DEB29");
 
-              ASSERT_EQ(decr_out_buffer, GFBuffer("Hello GpgFrontend!"));
+              ASSERT_EQ(decr_out_buffer,
+                        GFBuffer(QString("Hello GpgFrontend!")));
 
               // stop waiting
               callback_called_flag = true;
@@ -82,7 +83,7 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest) {
 TEST_F(GpgCoreTest, CoreEncryptSymmetricDecrTest) {
   std::atomic_bool callback_called_flag{false};
 
-  auto encrypt_text = GFBuffer("Hello GpgFrontend!");
+  auto encrypt_text = GFBuffer(QString("Hello GpgFrontend!"));
 
   GpgBasicOperator::GetInstance().EncryptSymmetric(
       encrypt_text, true,
@@ -100,7 +101,8 @@ TEST_F(GpgCoreTest, CoreEncryptSymmetricDecrTest) {
               auto decr_out_buffer = ExtractParams<GFBuffer>(data_obj, 1);
               ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
               ASSERT_TRUE(d_result.Recipients().empty());
-              ASSERT_EQ(decr_out_buffer, GFBuffer("Hello GpgFrontend!"));
+              ASSERT_EQ(decr_out_buffer,
+                        GFBuffer(QString("Hello GpgFrontend!")));
 
               // stop waiting
               callback_called_flag = true;
@@ -118,7 +120,7 @@ TEST_F(GpgCoreTest, CoreEncryptSymmetricDecrTest) {
 TEST_F(GpgCoreTest, CoreEncryptDecrTest_KeyNotFound_1) {
   std::atomic_bool callback_called_flag{false};
 
-  auto encr_out_data = GFBuffer(
+  auto encr_out_data = GFBuffer(QString(
       "-----BEGIN PGP MESSAGE-----\n"
       "\n"
       "hQEMA6UM/S9sZ32MAQf9Fb6gp6nvgKTQBv2mmjXia6ODXYq6kNeLsPVzLCbHyWOs\n"
@@ -129,7 +131,7 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest_KeyNotFound_1) {
       "dIORyt5wugqAtgE4qEGTvr/pJ/oXPw4Wve/trece/9I/AR38vW8ntVmDa/hV75iZ\n"
       "4QGAhQ8grD4kq31GHXHUOmBX51XXW9SINmplC8elEx3R460EUZJjjb0OvTih+eZH\n"
       "=8n2H\n"
-      "-----END PGP MESSAGE-----");
+      "-----END PGP MESSAGE-----"));
 
   GpgBasicOperator::GetInstance().Decrypt(
       encr_out_data,
@@ -155,7 +157,7 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest_KeyNotFound_1) {
 TEST_F(GpgCoreTest, CoreEncryptDecrTest_KeyNotFound_ResultAnalyse) {
   std::atomic_bool callback_called_flag{false};
 
-  auto encr_out_data = GFBuffer(
+  auto encr_out_data = GFBuffer(QString(
       "-----BEGIN PGP MESSAGE-----\n"
       "\n"
       "hQEMA6UM/S9sZ32MAQf9Fb6gp6nvgKTQBv2mmjXia6ODXYq6kNeLsPVzLCbHyWOs\n"
@@ -166,7 +168,7 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest_KeyNotFound_ResultAnalyse) {
       "dIORyt5wugqAtgE4qEGTvr/pJ/oXPw4Wve/trece/9I/AR38vW8ntVmDa/hV75iZ\n"
       "4QGAhQ8grD4kq31GHXHUOmBX51XXW9SINmplC8elEx3R460EUZJjjb0OvTih+eZH\n"
       "=8n2H\n"
-      "-----END PGP MESSAGE-----");
+      "-----END PGP MESSAGE-----"));
 
   GpgBasicOperator::GetInstance().Decrypt(
       encr_out_data,
@@ -199,7 +201,7 @@ TEST_F(GpgCoreTest, CoreSignVerifyNormalTest) {
 
   auto sign_key = GpgKeyGetter::GetInstance().GetPubkey(
       "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
-  auto sign_text = GFBuffer("Hello GpgFrontend!");
+  auto sign_text = GFBuffer(QString("Hello GpgFrontend!"));
 
   GpgBasicOperator::GetInstance().Sign(
       {sign_key}, sign_text, GPGME_SIG_MODE_NORMAL, true,
@@ -238,7 +240,7 @@ TEST_F(GpgCoreTest, CoreSignVerifyDetachTest) {
 
   auto sign_key = GpgKeyGetter::GetInstance().GetPubkey(
       "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
-  auto sign_text = GFBuffer("Hello GpgFrontend!");
+  auto sign_text = GFBuffer(QString("Hello GpgFrontend!"));
 
   GpgBasicOperator::GetInstance().Sign(
       {sign_key}, sign_text, GPGME_SIG_MODE_DETACH, true,
@@ -277,7 +279,7 @@ TEST_F(GpgCoreTest, CoreSignVerifyClearTest) {
 
   auto sign_key = GpgKeyGetter::GetInstance().GetPubkey(
       "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
-  auto sign_text = GFBuffer("Hello GpgFrontend!");
+  auto sign_text = GFBuffer(QString("Hello GpgFrontend!"));
 
   GpgBasicOperator::GetInstance().Sign(
       {sign_key}, sign_text, GPGME_SIG_MODE_CLEAR, true,
@@ -318,7 +320,7 @@ TEST_F(GpgCoreTest, CoreEncryptSignDecrVerifyTest) {
       "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
   auto sign_key = GpgKeyGetter::GetInstance().GetKey(
       "8933EB283A18995F45D61DAC021D89771B680FFB");
-  auto encrypt_text = GFBuffer("Hello GpgFrontend!");
+  auto encrypt_text = GFBuffer(QString("Hello GpgFrontend!"));
 
   ASSERT_TRUE(sign_key.IsPrivateKey());
   ASSERT_TRUE(sign_key.IsHasActualSigningCapability());
@@ -349,7 +351,8 @@ TEST_F(GpgCoreTest, CoreEncryptSignDecrVerifyTest) {
               ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
 
               ASSERT_FALSE(decrypt_result.Recipients().empty());
-              ASSERT_EQ(decr_out_buffer, GFBuffer("Hello GpgFrontend!"));
+              ASSERT_EQ(decr_out_buffer,
+                        GFBuffer(QString("Hello GpgFrontend!")));
 
               ASSERT_EQ(decrypt_result.Recipients()[0].keyid,
                         "F89C95A05088CC93");

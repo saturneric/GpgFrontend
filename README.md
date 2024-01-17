@@ -129,7 +129,7 @@ MSYS2 directory, and execute the following commands:
 
 ```shell
 pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf
-pacman --noconfirm -S --needed make texinfo mingw-w64-x86_64-libconfig mingw-w64-x86_64-boost automake
+pacman --noconfirm -S --needed make texinfo automake
 pacman --noconfirm -S --needed mingw-w64-x86_64-qt6 libintl msys2-runtime-devel gettext-devel mingw-w64-x86_64-gpgme
 pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg mingw-w64-x86_64-libarchive
 ```
@@ -155,7 +155,7 @@ Install and compile dependencies.
 
 ```shell
 $ brew install cmake git autoconf automake qt@6 texinfo gettext openssl@1.1 libarchive
-$ brew install boost ninja
+$ brew install ninja
 $ brew unlink gettext && brew link --force gettext
 $ brew link qt@5
 ```
@@ -188,7 +188,7 @@ Install and compile dependencies.
 $ sudo apt-get update
 $ sudo apt-get -y install build-essential binutils git autoconf automake gcc-8 g++-8 ninja-build
 $ sudo apt-get -y install gettext texinfo qt6-base-dev libqt6core5compat6-dev libgpgme-dev
-$ sudo apt-get -y install libconfig++-dev libboost-all-dev libarchive-dev libssl-dev
+$ sudo apt-get -y install libarchive-dev libssl-dev
 $ sudo apt-get -y install gpg # If you need to run directly after building.
 ```
 

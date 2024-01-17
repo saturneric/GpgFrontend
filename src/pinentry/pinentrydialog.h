@@ -134,7 +134,6 @@ class PinEntryDialog : public QDialog {
     PassphraseNotOk = 0,
     PassphraseOk
   };
-  PassphraseCheckResult checkConstraints();
 
   QLabel *_icon = nullptr;
   QLabel *_desc = nullptr;

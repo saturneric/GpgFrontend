@@ -40,7 +40,6 @@ struct GpgFrontendContext {
   char** argv;
   spdlog::level::level_enum log_level;
 
-  bool load_ui_env;
   bool gather_external_gnupg_info;
   bool load_default_gpg_context;
 

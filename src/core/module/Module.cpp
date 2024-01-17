@@ -40,7 +40,8 @@ class Module::Impl {
 
   Impl(ModuleRawPtr m_ptr, ModuleIdentifier id, ModuleVersion version,
        ModuleMetaData meta_data)
-      : m_ptr_(m_ptr),
+      : gpc_(nullptr),
+        m_ptr_(m_ptr),
         identifier_(std::move(id)),
         version_(std::move(version)),
         meta_data_(std::move(meta_data)) {}

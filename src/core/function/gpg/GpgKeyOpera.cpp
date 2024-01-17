@@ -247,7 +247,7 @@ void GpgKeyOpera::GenerateKeyWithSubkey(
        subkey_params](const DataObjectPtr& data_object) -> GpgError {
         auto userid = params->GetUserid().toUtf8();
         auto algo = (params->GetAlgo() + params->GetKeySizeStr()).toUtf8();
-        unsigned long expires = expires =
+        unsigned long expires =
             QDateTime::currentDateTime().secsTo(params->GetExpireTime());
 
         GpgError err;

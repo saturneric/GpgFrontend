@@ -176,9 +176,10 @@ auto GpgFrontend::GpgKeyManager::SetOwnerTrustLevel(const GpgKey& key,
 
   GpgData data_out;
 
-  auto err = gpgme_op_interact(
-      ctx_.DefaultContext(), static_cast<gpgme_key_t>(key), 0,
-      GpgKeyManager::interactor_cb_fnc, (void*)&handel_struct, data_out);
+  auto err =
+      gpgme_op_interact(ctx_.DefaultContext(), static_cast<gpgme_key_t>(key), 0,
+                        GpgKeyManager::interactor_cb_fnc,
+                        static_cast<void*>(&handel_struct), data_out);
   return CheckGpgError(err) == GPG_ERR_NO_ERROR && handel_struct.Success();
 }
 

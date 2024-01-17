@@ -65,7 +65,7 @@ DataObjectOperator::DataObjectOperator(int channel)
 
 auto DataObjectOperator::SaveDataObj(const QString& key,
                                      const QJsonDocument& value) -> QString {
-  QByteArray hash_obj_key = {};
+  QByteArray hash_obj_key;
   if (key.isEmpty()) {
     hash_obj_key =
         QCryptographicHash::hash(

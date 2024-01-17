@@ -305,24 +305,12 @@ char *pinentry_get_title(pinentry_t pe);
 /* Run a quality inquiry for PASSPHRASE of LENGTH. */
 int pinentry_inq_quality(const QString &passphrase);
 
-/* Run a checkpin inquiry for PASSPHRASE of LENGTH.  Returns NULL, if the
-   passphrase satisfies the constraints.  Otherwise, returns a malloced error
-   string. */
-char *pinentry_inq_checkpin(pinentry_t pin, const char *passphrase,
-                            std::size_t length);
-
 /* Run a genpin iquriry. Returns a malloced string or NULL */
 char *pinentry_inq_genpin(pinentry_t pin);
 
 /* Try to make room for at least LEN bytes for the pin in the pinentry
    PIN.  Returns new buffer on success and 0 on failure.  */
 char *pinentry_setbufferlen(pinentry_t pin, int len);
-
-/* Use the buffer at BUFFER for PIN->PIN.  BUFFER must be NULL or
-   allocated using secmem_alloc.  LEN is the size of the buffer.  If
-   it is unknown, but BUFFER is a NUL terminated string, you pass 0 to
-   just use strlen(buffer)+1.  */
-void pinentry_setbuffer_use(pinentry_t pin, char *buffer, int len);
 
 /* Initialize the secure memory subsystem, drop privileges and
    return.  Must be called early.  */

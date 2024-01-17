@@ -59,7 +59,7 @@ auto GFDataExchanger::Write(const std::byte* buffer, size_t size) -> ssize_t {
 
 auto GFDataExchanger::Read(std::byte* buffer, size_t size) -> ssize_t {
   std::unique_lock<std::mutex> lock(mutex_);
-  if (size <= 0 || (close_ && queue_.empty())) return 0;
+  if (size == 0 || (close_ && queue_.empty())) return 0;
 
   std::atomic<ssize_t> read_bytes = 0;
   for (size_t i = 0; i < size; ++i) {

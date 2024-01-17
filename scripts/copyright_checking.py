@@ -57,11 +57,10 @@ copyright_text_script = """# Copyright (C) 2021 Saturneric <eric@bktus.com>
 """
 
 def check_copright_by_path(path, copyright_text, suffix):
-  for root, dirs, files in os.walk(path):
+  for root, _, files in os.walk(path):
       for file in files:
-          if file.endswith(suffix): 
+          if file.endswith(suffix):
               file_path = os.path.join(root, file)
-              
               with open(file_path, 'r', encoding='utf-8') as f:
                   content = f.read()
                   

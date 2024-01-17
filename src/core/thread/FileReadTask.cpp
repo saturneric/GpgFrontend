@@ -61,7 +61,8 @@ auto FileReadTask::Run() -> int {
 
 void FileReadTask::slot_read_bytes() {
   QByteArray read_buffer;
-  if (!target_file_.atEnd() &&
+  if (QByteArray read_buffer;
+      !target_file_.atEnd() &&
       (read_buffer = target_file_.read(kBufferSize)).size() > 0) {
     GF_CORE_LOG_DEBUG("io thread read bytes: {}", read_buffer.size());
     emit SignalFileBytesRead(std::move(read_buffer));

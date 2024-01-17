@@ -55,17 +55,10 @@ int setenv(const char *name, const char *value, int overwrite) {
 
 void InitLoggingSystem(const GFCxtSPtr &ctx) {
   RegisterSyncLogger("core", ctx->log_level);
-
   RegisterSyncLogger("main", ctx->log_level);
-
   RegisterSyncLogger("module", ctx->log_level);
-
-  if (ctx->load_ui_env) {
-    // init the logging system for ui
-    RegisterSyncLogger("ui", ctx->log_level);
-  } else {
-    RegisterSyncLogger("test", ctx->log_level);
-  }
+  RegisterSyncLogger("ui", ctx->log_level);
+  RegisterSyncLogger("test", ctx->log_level);
 }
 
 void InitGlobalPathEnv() {
@@ -116,10 +109,8 @@ void InitGlobalBasicalEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
   module_init_args.log_level = ctx->log_level;
   Module::LoadGpgFrontendModules(module_init_args);
 
-  if (ctx->load_ui_env) {
-    // then preload ui
-    UI::PreInitGpgFrontendUI();
-  }
+  // then preload ui
+  UI::PreInitGpgFrontendUI();
 
   CoreInitArgs core_init_args;
   core_init_args.gather_external_gnupg_info = ctx->gather_external_gnupg_info;

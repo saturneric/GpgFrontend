@@ -158,9 +158,11 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
           if (r > ARCHIVE_FAILED) {
             auto fd = open(archive_entry_sourcepath(entry), O_RDONLY);
             auto len = read(fd, buff.data(), buff.size());
+            assert(len <= buff.size() && len > 0);
             while (len > 0) {
               archive_write_data(archive, buff.data(), len);
               len = read(fd, buff.data(), buff.size());
+              assert(len <= buff.size() && len > 0);
             }
             close(fd);
           }

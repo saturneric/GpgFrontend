@@ -442,61 +442,6 @@ int pinentry_inq_quality(const QString &passphrase) {
   return std::max(-100, std::min(100, score));
 }
 
-/* Run a checkpin inquiry */
-char *pinentry_inq_checkpin(pinentry_t pin, const char *passphrase,
-                            size_t length) {
-  assuan_context_t ctx = (assuan_context_t)pin->ctx_assuan;
-  const char prefix[] = "INQUIRE CHECKPIN ";
-  char *command;
-  char *line;
-  size_t linelen;
-  int gotvalue = 0;
-  char *value = NULL;
-  int rc;
-
-  if (!ctx) return 0; /* Can't run the callback.  */
-
-  if (length > 300)
-    length = 300; /* Limit so that it definitely fits into an Assuan
-                     line.  */
-
-  command =
-      GpgFrontend::SecureMallocAsType<char>(strlen(prefix) + 3 * length + 1);
-  if (!command) return 0;
-  strcpy(command, prefix);
-  copy_and_escape(command + strlen(command), passphrase, length);
-  rc = assuan_write_line(ctx, command);
-  GpgFrontend::SecureFree(command);
-  if (rc) {
-    fprintf(stderr, "ASSUAN WRITE LINE failed: rc=%d\n", rc);
-    return 0;
-  }
-
-  for (;;) {
-    do {
-      rc = assuan_read_line(ctx, &line, &linelen);
-      if (rc) {
-        fprintf(stderr, "ASSUAN READ LINE failed: rc=%d\n", rc);
-        return 0;
-      }
-    } while (*line == '#' || !linelen);
-    if (line[0] == 'E' && line[1] == 'N' && line[2] == 'D' &&
-        (!line[3] || line[3] == ' '))
-      break; /* END command received*/
-    if (line[0] == 'C' && line[1] == 'A' && line[2] == 'N' &&
-        (!line[3] || line[3] == ' '))
-      break; /* CAN command received*/
-    if (line[0] == 'E' && line[1] == 'R' && line[2] == 'R' &&
-        (!line[3] || line[3] == ' '))
-      break; /* ERR command received*/
-    if (line[0] != 'D' || line[1] != ' ' || linelen < 3 || gotvalue) continue;
-    gotvalue = 1;
-    value = strdup(line + 2);
-  }
-
-  return value;
-}
-
 /* Run a genpin inquiry */
 char *pinentry_inq_genpin(pinentry_t pin) {
   assuan_context_t ctx = (assuan_context_t)pin->ctx_assuan;
@@ -581,23 +526,6 @@ static void pinentry_setbuffer_clear(pinentry_t pin) {
   pin->pin_len = 0;
 }
 
-/* passphrase better be alloced with secmem_alloc.  */
-void pinentry_setbuffer_use(pinentry_t pin, char *passphrase, int len) {
-  if (!passphrase) {
-    assert(len == 0);
-    pinentry_setbuffer_clear(pin);
-
-    return;
-  }
-
-  if (passphrase && len == 0) len = strlen(passphrase) + 1;
-
-  if (pin->pin) GpgFrontend::SecureFree(pin->pin);
-
-  pin->pin = passphrase;
-  pin->pin_len = len;
-}
-
 static struct assuan_malloc_hooks assuan_malloc_hooks = {
     GpgFrontend::SecureMalloc, GpgFrontend::SecureRealloc,
     GpgFrontend::SecureFree};
@@ -657,93 +585,6 @@ int pinentry_have_display(int argc, char **argv) {
 #endif
 
   return found;
-}
-
-/* Print usage information and and provide strings for help. */
-static const char *my_strusage(int level) {
-  const char *p;
-
-  switch (level) {
-    case 11:
-      p = this_pgmname;
-      break;
-    case 12:
-      p = "pinentry";
-      break;
-    case 13:
-      p = 0;
-      break;
-    case 14:
-      p = "Copyright (C) 2023 Saturneric";
-      break;
-    case 19:
-      p = "Please report bugs to <eric@bktus.com>.\n";
-      break;
-    case 1:
-    case 40: {
-      static char *str;
-
-      if (!str) {
-        size_t n = 50 + strlen(this_pgmname);
-        str = static_cast<char *>(malloc(n));
-        if (str) {
-          snprintf(str, n, "Usage: %s [options] (-h for help)", this_pgmname);
-        }
-      }
-      p = str;
-    } break;
-    case 41:
-      p = "Ask securely for a secret and print it to stdout.";
-      break;
-
-    case 42:
-      p = "1"; /* Flag print 40 as part of 41. */
-      break;
-
-    default:
-      p = NULL;
-      break;
-  }
-  return p;
-}
-
-char *parse_color(char *arg, pinentry_color_t *color_p, int *bright_p) {
-  static struct {
-    const char *name;
-    pinentry_color_t color;
-  } colors[] = {
-      {"none", PINENTRY_COLOR_NONE},   {"default", PINENTRY_COLOR_DEFAULT},
-      {"black", PINENTRY_COLOR_BLACK}, {"red", PINENTRY_COLOR_RED},
-      {"green", PINENTRY_COLOR_GREEN}, {"yellow", PINENTRY_COLOR_YELLOW},
-      {"blue", PINENTRY_COLOR_BLUE},   {"magenta", PINENTRY_COLOR_MAGENTA},
-      {"cyan", PINENTRY_COLOR_CYAN},   {"white", PINENTRY_COLOR_WHITE}};
-
-  int i;
-  char *new_arg;
-  pinentry_color_t color = PINENTRY_COLOR_DEFAULT;
-
-  if (!arg) return NULL;
-
-  new_arg = strchr(arg, ',');
-  if (new_arg) new_arg++;
-
-  if (bright_p) {
-    const char *bname[] = {"bright-", "bright", "bold-", "bold"};
-
-    *bright_p = 0;
-    for (i = 0; i < sizeof(bname) / sizeof(bname[0]); i++)
-      if (!strncasecmp(arg, bname[i], strlen(bname[i]))) {
-        *bright_p = 1;
-        arg += strlen(bname[i]);
-      }
-  }
-
-  for (i = 0; i < sizeof(colors) / sizeof(colors[0]); i++)
-    if (!strncasecmp(arg, colors[i].name, strlen(colors[i].name)))
-      color = colors[i].color;
-
-  *color_p = color;
-  return new_arg;
 }
 
 /* Set the optional flag used with getinfo. */

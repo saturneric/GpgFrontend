@@ -645,47 +645,5 @@ void PinEntryDialog::onAccept() {
     return;
   }
 
-  const auto result = checkConstraints();
-  if (result != PassphraseNotOk) {
-    accept();
-  }
-}
-
-PinEntryDialog::PassphraseCheckResult PinEntryDialog::checkConstraints() {
-  if (!mEnforceConstraints) {
-    return PassphraseNotChecked;
-  }
-
-  const auto passphrase = _edit->pin().toUtf8();
-  unique_malloced_ptr<char> error{pinentry_inq_checkpin(
-      _pinentry_info.get(), passphrase.constData(), passphrase.size())};
-
-  if (!error) {
-    return PassphraseOk;
-  }
-
-  const auto message_lines =
-      QString::fromUtf8(QByteArray::fromPercentEncoding(error.get()))
-          .split(QChar{'\n'});
-  if (message_lines.isEmpty()) {
-    // shouldn't happen because pinentry_inq_checkpin() either returns NULL or a
-    // non-empty string
-    return PassphraseOk;
-  }
-  const auto &first_line = message_lines.first();
-  const auto index_of_first_non_empty_additional_line =
-      message_lines.indexOf(QRegularExpression{QStringLiteral(".*\\S.*")}, 1);
-  const auto additional_lines =
-      index_of_first_non_empty_additional_line > 0
-          ? message_lines.mid(index_of_first_non_empty_additional_line)
-                .join(QChar{'\n'})
-          : QString{};
-  QMessageBox message_box{this};
-  message_box.setIcon(QMessageBox::Information);
-  message_box.setWindowTitle(mConstraintsErrorTitle);
-  message_box.setText(first_line);
-  message_box.setInformativeText(additional_lines);
-  message_box.setStandardButtons(QMessageBox::Ok);
-  message_box.exec();
-  return PassphraseNotOk;
+  accept();
 }
