@@ -126,6 +126,13 @@ void KeySetExpireDateDialog::init() {
           UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefresh);
 
+  if (m_key_.GetExpireTime().toSecsSinceEpoch() == 0) {
+    ui_->noExpirationCheckBox->setCheckState(Qt::Checked);
+  } else {
+    ui_->dateEdit->setDateTime(m_key_.GetExpireTime());
+    ui_->timeEdit->setDateTime(m_key_.GetExpireTime());
+  }
+
   ui_->titleLabel->setText(tr("Modified Expiration Date (Local Time)"));
   ui_->label->setText(tr(
       "Tips: For the sake of security, the key is valid for up to two years. "
@@ -133,6 +140,8 @@ void KeySetExpireDateDialog::init() {
       "settings."));
   ui_->noExpirationCheckBox->setText(tr("No Expiration"));
   this->setWindowTitle(tr("Modified Expiration Date"));
+  this->setAttribute(Qt::WA_DeleteOnClose);
+  this->setModal(true);
 }
 
 void KeySetExpireDateDialog::slot_non_expired_checked(int state) {

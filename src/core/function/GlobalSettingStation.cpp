@@ -70,7 +70,6 @@ class GlobalSettingStation::Impl {
 
     GF_CORE_LOG_INFO("app data path: {}", app_data_path_);
     GF_CORE_LOG_INFO("app log path: {}", app_log_path_);
-    GF_CORE_LOG_INFO("app locale path: {}", app_locale_path_);
 
     GF_CORE_LOG_INFO("app log files total size: {}", GetLogFilesSize());
     GF_CORE_LOG_INFO("app data objects files total size: {}",
@@ -127,33 +126,6 @@ class GlobalSettingStation::Impl {
    */
   [[nodiscard]] auto GetLogDir() const -> QString { return app_log_path_; }
 
-  /**
-   * @brief Get the Locale Dir object
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetLocaleDir() const -> QString {
-    return app_locale_path_;
-  }
-
-  /**
-   * @brief Get the Resource Dir object
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetResourceDir() const -> QString {
-    return app_resource_path_;
-  }
-
-  /**
-   * @brief Get the Certs Dir object
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetCertsDir() const -> QString {
-    return app_resource_path_ + "/certs";
-  }
-
  private:
   QString working_path_ = QDir::currentPath();
 
@@ -164,22 +136,6 @@ class GlobalSettingStation::Impl {
 
   QString app_data_objs_path_ =
       app_data_path_ + "/data_objs";  ///< Object storage path
-
-#ifdef LINUX_INSTALL_BUILD
-  QString app_resource_path_ =
-      QString(APP_LOCALSTATE_PATH) / "gpgfrontend";  ///< Program Data Location
-#else
-  QString app_resource_path_ =
-      RESOURCE_DIR_PATH(GetAppDir());  ///< Program Data Location
-#endif
-
-#ifdef LINUX_INSTALL_BUILD
-  QString app_locale_path_ =
-      QString(APP_LOCALE_PATH);  ///< Program Data Location
-#else
-  QString app_locale_path_ =
-      app_resource_path_ + "/locales";  ///< Program Data Location
-#endif
 
   bool portable_mode_ = false;  ///<
   QString app_portable_config_path_ =
@@ -212,18 +168,6 @@ auto GlobalSettingStation::GetAppDataPath() const -> QString {
 
 [[nodiscard]] auto GlobalSettingStation::GetLogDir() const -> QString {
   return p_->GetLogDir();
-}
-
-auto GlobalSettingStation::GetLocaleDir() const -> QString {
-  return p_->GetLocaleDir();
-}
-
-auto GlobalSettingStation::GetResourceDir() const -> QString {
-  return p_->GetResourceDir();
-}
-
-auto GlobalSettingStation::GetCertsDir() const -> QString {
-  return p_->GetCertsDir();
 }
 
 auto GlobalSettingStation::GetLogFilesSize() const -> QString {

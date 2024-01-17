@@ -193,7 +193,7 @@ void MainWindow::restore_settings() {
 
 void MainWindow::recover_editor_unsaved_pages_from_cache() {
   auto json_data =
-      CacheManager::GetInstance().LoadCache("editor_unsaved_pages");
+      CacheManager::GetInstance().LoadDurableCache("editor_unsaved_pages");
 
   if (json_data.isEmpty() || !json_data.isArray()) {
     return;
@@ -252,8 +252,8 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 
   if (event->isAccepted()) {
     // clear cache of unsaved page
-    CacheManager::GetInstance().SaveCache("editor_unsaved_pages",
-                                          QJsonDocument(QJsonArray()), true);
+    CacheManager::GetInstance().SaveDurableCache(
+        "editor_unsaved_pages", QJsonDocument(QJsonArray()), true);
 
     // clear password from memory
     //  GpgContext::GetInstance().clearPasswordCache();

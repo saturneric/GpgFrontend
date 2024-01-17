@@ -28,9 +28,6 @@
 
 #pragma once
 
-#include <string>
-
-#include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
 
 class Ui_GnuPGControllerDialog;
@@ -94,14 +91,34 @@ class GnuPGControllerDialog : public GeneralDialog {
    * @return true
    * @return false
    */
-  int get_restart_needed() const;
+  [[nodiscard]] auto get_restart_needed() const -> int;
 
+  /**
+   * @brief Set the settings object
+   *
+   */
   void set_settings();
 
+  /**
+   * @brief
+   *
+   */
   void apply_settings();
 
-  bool check_custom_gnupg_path(QString);
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  auto check_custom_gnupg_path(QString) -> bool;
 
-  bool check_custom_gnupg_key_database_path(QString);
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  auto check_custom_gnupg_key_database_path(QString) -> bool;
 };
 }  // namespace GpgFrontend::UI

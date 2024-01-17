@@ -34,8 +34,7 @@ namespace GpgFrontend {
  * @brief set a temp cache under a certain key
  *
  */
-void GPGFRONTEND_CORE_EXPORT SetTempCacheValue(const QString &,
-                                               const QString &);
+void GPGFRONTEND_CORE_EXPORT SetCacheValue(const QString &key, QString value);
 
 /**
  * @brief after get the temp cache, its value will be imediately ease in
@@ -43,13 +42,13 @@ void GPGFRONTEND_CORE_EXPORT SetTempCacheValue(const QString &,
  *
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetTempCacheValue(const QString &) -> QString;
+auto GPGFRONTEND_CORE_EXPORT GetCacheValue(const QString &key) -> QString;
 
 /**
  * @brief imediately ease temp cache in storage
  *
  * @return QString
  */
-void GPGFRONTEND_CORE_EXPORT ResetTempCacheValue(const QString &);
+void GPGFRONTEND_CORE_EXPORT ResetCacheValue(const QString &);
 
 }  // namespace GpgFrontend

@@ -117,6 +117,7 @@ KeyMgmt::KeyMgmt(QWidget* parent)
   this->statusBar()->show();
 
   setWindowTitle(tr("KeyPair Management"));
+  setMinimumSize(QSize(600, 400));
 
   key_list_->AddMenuAction(generate_subkey_act_);
   key_list_->AddMenuAction(delete_selected_keys_act_);
@@ -399,13 +400,22 @@ void KeyMgmt::SlotExportKeyToClipboard() {
                 // stop waiting
                 op_hd();
 
+                if (CheckGpgError(err) == GPG_ERR_USER_1) {
+                  QMessageBox::critical(this, tr("Error"),
+                                        tr("Unknown error occurred"));
+                  return;
+                }
+
                 if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
                   CommonUtils::RaiseMessageBox(this, err);
                   return;
                 }
 
                 if (data_obj == nullptr || !data_obj->Check<GFBuffer>()) {
-                  throw std::runtime_error("data object doesn't pass checking");
+                  GF_CORE_LOG_ERROR("data object checking failed");
+                  QMessageBox::critical(this, tr("Error"),
+                                        tr("Unknown error occurred"));
+                  return;
                 }
 
                 auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
@@ -469,13 +479,21 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
               // stop waiting
               op_hd();
 
+              if (CheckGpgError(err) == GPG_ERR_USER_1) {
+                QMessageBox::critical(this, tr("Error"),
+                                      tr("Unknown error occurred"));
+                return;
+              }
+
               if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
                 CommonUtils::RaiseMessageBox(this, err);
                 return;
               }
 
               if (data_obj == nullptr || !data_obj->Check<GFBuffer>()) {
-                throw std::runtime_error("data object doesn't pass checking");
+                QMessageBox::critical(this, tr("Error"),
+                                      tr("Unknown error occurred"));
+                return;
               }
 
               auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);

@@ -106,18 +106,6 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
   // init locale
   InitLocale();
 
-#if !defined(RELEASE) && defined(WINDOWS)
-  // css
-  std::filesystem::path css_path =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetResourceDir() /
-      "css" / "default.qss";
-  QFile file(css_path.u8string().c_str());
-  file.open(QFile::ReadOnly);
-  QString styleSheet = QLatin1String(file.readAll());
-  qApp->setStyleSheet(styleSheet);
-  file.close();
-#endif
-
   // init signal station
   UISignalStation::GetInstance();
 
@@ -221,14 +209,10 @@ void InitLocale() {
   auto settings =
       GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
 
-  GF_UI_LOG_INFO("current system locale: {}", QLocale().name());
-
   // read from settings file
   auto lang = settings.value("basic/lang").toString();
+  GF_UI_LOG_INFO("current system locale: {}", QLocale().name());
   GF_UI_LOG_INFO("current custom locale settings: {}", lang);
-  GF_UI_LOG_INFO(
-      "current locales path: {}",
-      GpgFrontend::GlobalSettingStation::GetInstance().GetLocaleDir());
 
   auto target_locale = lang.isEmpty() ? QLocale() : QLocale(lang);
   auto* translator = new QTranslator(QCoreApplication::instance());

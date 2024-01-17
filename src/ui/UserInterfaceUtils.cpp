@@ -42,7 +42,6 @@
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/typedef/GpgTypedef.h"
-#include "core/utils/CacheUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "ui/UISignalStation.h"
@@ -477,22 +476,6 @@ void CommonUtils::slot_update_key_status() {
       refresh_task);
 }
 
-void CommonUtils::slot_popup_passphrase_input_dialog() {
-  auto *dialog = new QInputDialog(QApplication::activeWindow(), Qt::Dialog);
-  dialog->setModal(true);
-  dialog->setWindowTitle(tr("Password Input Dialog"));
-  dialog->setInputMode(QInputDialog::TextInput);
-  dialog->setTextEchoMode(QLineEdit::Password);
-  dialog->setLabelText(tr("Please Input The Password"));
-  dialog->resize(500, 80);
-  dialog->exec();
-
-  SetTempCacheValue("__key_passphrase", dialog->textValue());
-
-  // send signal
-  // emit SignalUserInputPassphraseDone();
-}
-
 void CommonUtils::SlotRestartApplication(int code) {
   GF_UI_LOG_DEBUG("application need restart, code: {}", code);
 
@@ -507,7 +490,7 @@ bool CommonUtils::isApplicationNeedRestart() {
   return application_need_to_restart_at_once_;
 }
 
-bool CommonUtils::KeyExistsinFavouriteList(const GpgKey &key) {
+auto CommonUtils::KeyExistsinFavouriteList(const GpgKey &key) -> bool {
   // load cache
   auto json_data = CacheObject("favourite_key_pair");
   if (!json_data.isArray()) json_data.setArray(QJsonArray());

@@ -34,13 +34,12 @@ namespace GpgFrontend::UI {
 
 CacheObject::CacheObject(QString cache_name)
     : cache_name_(std::move(cache_name)) {
-  GF_UI_LOG_DEBUG("loading cache from: {}", this->cache_name_);
   this->QJsonDocument::operator=(
-      CacheManager::GetInstance().LoadCache(cache_name_));
+      CacheManager::GetInstance().LoadDurableCache(cache_name_));
 }
 
 CacheObject::~CacheObject() {
-  CacheManager::GetInstance().SaveCache(cache_name_, *this);
+  CacheManager::GetInstance().SaveDurableCache(cache_name_, *this);
 }
 
 }  // namespace GpgFrontend::UI

@@ -134,8 +134,8 @@ class CommonUtils : public QWidget {
    * @brief
    *
    */
-  using ImportCallbackFunctiopn = std::function<void(
-      const QString&, const QString&, size_t, size_t)>;
+  using ImportCallbackFunctiopn =
+      std::function<void(const QString&, const QString&, size_t, size_t)>;
 
   /**
    * @brief Construct a new Common Utils object
@@ -294,12 +294,6 @@ class CommonUtils : public QWidget {
    *
    */
   void slot_update_key_status();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_popup_passphrase_input_dialog();
 
  private:
   static std::unique_ptr<CommonUtils> instance_;  ///<

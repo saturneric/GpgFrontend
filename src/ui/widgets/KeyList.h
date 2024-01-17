@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <string>
-
 #include "core/GpgModel.h"
 
 class Ui_KeyList;

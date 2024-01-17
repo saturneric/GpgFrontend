@@ -34,6 +34,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
+#include "core/utils/CacheUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
@@ -294,6 +295,12 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
               [this, hd](GpgError err, const DataObjectPtr&) {
                 // stop showing waiting dialog
                 hd();
+
+                if (CheckGpgError(err) == GPG_ERR_USER_1) {
+                  QMessageBox::critical(this, tr("Error"),
+                                        tr("Unknown error occurred"));
+                  return;
+                }
 
                 CommonUtils::RaiseMessageBox(this, err);
                 if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {

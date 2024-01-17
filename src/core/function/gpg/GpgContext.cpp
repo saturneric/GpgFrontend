@@ -38,8 +38,9 @@
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/GpgPassphraseContext.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/CacheUtils.h"
 #include "core/utils/GpgUtils.h"
-#include "utils/MemoryUtils.h"
+#include "core/utils/MemoryUtils.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -108,11 +109,13 @@ class GpgContext::Impl {
   static auto CustomPassphraseCb(void *hook, const char *uid_hint,
                                  const char *passphrase_info, int prev_was_bad,
                                  int fd) -> gpgme_error_t {
+    auto context_cache = GetCacheValue("PinentryContext");
+    bool ask_for_new = context_cache == "NEW_PASSPHRASE";
     auto context =
         QSharedPointer<GpgPassphraseContext>(new GpgPassphraseContext(
             uid_hint != nullptr ? uid_hint : "",
             passphrase_info != nullptr ? passphrase_info : "",
-            prev_was_bad != 0));
+            prev_was_bad != 0, ask_for_new));
 
     GF_CORE_LOG_DEBUG(
         "custom passphrase cb called, uid: {}, info: {}, last_was_bad: {}",
@@ -129,6 +132,7 @@ class GpgContext::Impl {
         context);
     looper.exec();
 
+    ResetCacheValue("PinentryContext");
     auto passphrase = context->GetPassphrase().toStdString();
     auto passpahrase_size = passphrase.size();
     GF_CORE_LOG_DEBUG("get passphrase from pinentry size: {}",

@@ -100,7 +100,8 @@ void GpgFileOpera::EncryptDirectory(std::vector<GpgKey> keys,
 
   ArchiveFileOperator::NewArchive2DataExchanger(
       in_path, ex, [=](GFError err, const DataObjectPtr&) {
-        GF_CORE_LOG_DEBUG("new archive 2 fd operation, err: {}", err);
+        GF_CORE_LOG_DEBUG("new archive 2 data exchanger operation, err: {}",
+                          err);
       });
 }
 
@@ -128,7 +129,8 @@ void GpgFileOpera::DecryptArchive(const QString& in_path,
 
   ArchiveFileOperator::ExtractArchiveFromDataExchanger(
       ex, out_path, [](GFError err, const DataObjectPtr&) {
-        GF_CORE_LOG_DEBUG("extract archive from fd operation, err: {}", err);
+        GF_CORE_LOG_DEBUG(
+            "extract archive from data exchanger operation, err: {}", err);
       });
 
   RunGpgOperaAsync(

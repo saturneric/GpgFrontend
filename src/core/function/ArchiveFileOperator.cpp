@@ -32,8 +32,6 @@
 #include <archive_entry.h>
 #include <sys/fcntl.h>
 
-#include <fstream>
-
 #include "core/utils/AsyncUtils.h"
 
 namespace GpgFrontend {

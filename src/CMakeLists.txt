@@ -421,6 +421,9 @@ if (BUILD_APPLICATION)
 
     # Make app build with resources
     add_dependencies(${AppName} resources)
+    
+    # using c++ standard 17
+    target_compile_features(${AppName} PUBLIC cxx_std_17)
 
 endif ()
 
@@ -435,30 +438,24 @@ if (BUILD_APPLICATION)
     else ()
         message(STATUS "Link Application Library For Linux")
         target_link_libraries(${AppName} crypto pthread)
-        # issue on filesystem support of gcc
-        if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 9.0)
-            target_link_libraries(${AppName} stdc++fs)
-        endif ()
     endif ()
 endif ()
 
-# using c++ standard 17
-target_compile_features(${AppName} PUBLIC cxx_std_17)
-
-# build i18n support
-set(LOCALE_TS_PATH ${CMAKE_SOURCE_DIR}/resource/lfs/locale/ts)
-set(LOCALE_OUTPUT_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/locales)
-set(TS_FILES "${LOCALE_TS_PATH}/GpgFrontend.de_DE.ts"
-             "${LOCALE_TS_PATH}/GpgFrontend.fr_FR.ts"
-             "${LOCALE_TS_PATH}/GpgFrontend.zh_CN.ts"
-             "${LOCALE_TS_PATH}/GpgFrontend.zh_TW.ts"
-             "${LOCALE_TS_PATH}/GpgFrontend.it_IT.ts")
-file(GLOB_RECURSE ALL_SOURCE_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/src/*.cpp)
-qt_add_translations(${AppName} 
-    RESOURCE_PREFIX "/i18n"
-    TS_FILES ${TS_FILES}
-    SOURCES ${ALL_SOURCE_FILES}
-    INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/src)
+# add i18n support
+if (BUILD_APPLICATION)
+    set(LOCALE_TS_PATH ${CMAKE_SOURCE_DIR}/resource/lfs/locale/ts)
+    set(TS_FILES "${LOCALE_TS_PATH}/GpgFrontend.de_DE.ts"
+                "${LOCALE_TS_PATH}/GpgFrontend.fr_FR.ts"
+                "${LOCALE_TS_PATH}/GpgFrontend.zh_CN.ts"
+                "${LOCALE_TS_PATH}/GpgFrontend.zh_TW.ts"
+                "${LOCALE_TS_PATH}/GpgFrontend.it_IT.ts")
+    file(GLOB_RECURSE ALL_SOURCE_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/src/*.cpp)
+    qt_add_translations(${AppName} 
+        RESOURCE_PREFIX "/i18n"
+        TS_FILES ${TS_FILES}
+        SOURCES ${ALL_SOURCE_FILES}
+        INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/src)
+endif()
 
 # if building linux package
 if (LINUX AND LINUX_INSTALL_SOFTWARE)
@@ -492,10 +489,7 @@ if (LINUX AND LINUX_INSTALL_SOFTWARE)
         install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/
                 DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/icons/hicolor/)
     endif ()
-    install(DIRECTORY ${LOCALE_OUTPUT_PATH}/
-            DESTINATION ${CMAKE_INSTALL_FULL_LOCALEDIR})
 endif ()
 
 message(STATUS "Resource Files: ${RESOURCE_OUTPUT_DIRECTORY}")
-message(STATUS "Locale Files: ${LOCALE_OUTPUT_PATH}")
 message(STATUS "Runtime Files: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")

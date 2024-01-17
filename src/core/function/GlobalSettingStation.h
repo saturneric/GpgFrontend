@@ -83,27 +83,6 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
   [[nodiscard]] auto GetLogDir() const -> QString;
 
   /**
-   * @brief Get the Locale Dir object
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetLocaleDir() const -> QString;
-
-  /**
-   * @brief Get the Resource Dir object
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetResourceDir() const -> QString;
-
-  /**
-   * @brief Get the Certs Dir object
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetCertsDir() const -> QString;
-
-  /**
    * @brief Get the Log Files Size object
    *
    * @return QString

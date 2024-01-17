@@ -35,18 +35,80 @@ namespace GpgFrontend {
 class GPGFRONTEND_CORE_EXPORT CacheManager
     : public SingletonFunctionObject<CacheManager> {
  public:
+  /**
+   * @brief Construct a new Cache Manager object
+   *
+   * @param channel
+   */
   explicit CacheManager(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
+  /**
+   * @brief Destroy the Cache Manager object
+   *
+   */
   ~CacheManager() override;
 
-  void SaveCache(QString key, const QJsonDocument& value, bool flush = false);
+  /**
+   * @brief
+   *
+   * @param key
+   * @param value
+   */
+  void SaveCache(const QString& key, QString value);
 
-  auto LoadCache(QString key) -> QJsonDocument;
+  /**
+   * @brief
+   *
+   * @param key
+   * @param value
+   * @param flush
+   */
+  void SaveDurableCache(const QString& key, const QJsonDocument& value,
+                        bool flush = false);
 
-  auto LoadCache(QString key, QJsonDocument default_value) -> QJsonDocument;
+  /**
+   * @brief
+   *
+   * @param key
+   * @param value
+   */
+  auto LoadCache(const QString& key) -> QString;
 
-  auto ResetCache(QString key) -> bool;
+  /**
+   * @brief
+   *
+   * @param key
+   * @return QJsonDocument
+   */
+  auto LoadDurableCache(const QString& key) -> QJsonDocument;
+
+  /**
+   * @brief
+   *
+   * @param key
+   * @param default_value
+   * @return QJsonDocument
+   */
+  auto LoadDurableCache(const QString& key, QJsonDocument default_value)
+      -> QJsonDocument;
+
+  /**
+   * @brief
+   *
+   * @param key
+   * @return auto
+   */
+  void ResetCache(const QString& key);
+
+  /**
+   * @brief
+   *
+   * @param key
+   * @return true
+   * @return false
+   */
+  auto ResetDurableCache(const QString& key) -> bool;
 
  private:
   class Impl;

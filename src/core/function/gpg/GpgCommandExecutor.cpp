@@ -27,7 +27,6 @@
  */
 #include "GpgCommandExecutor.h"
 
-#include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/DataObject.h"
 #include "core/module/Module.h"
 #include "core/thread/Task.h"
@@ -53,7 +52,8 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
             "data object args count of cmd executor result callback: {}",
             data_object->GetObjectSize());
         if (!data_object->Check<int, QString, GpgCommandExecutorCallback>()) {
-          throw std::runtime_error("invalid data object size");
+          GF_CORE_LOG_ERROR("data object checking failed");
+          return;
         }
 
         auto exit_code = ExtractParams<int>(data_object, 0);
@@ -76,7 +76,8 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
 
     if (!data_object->Check<QString, QStringList, GpgCommandExecutorInteractor,
                             GpgCommandExecutorCallback>()) {
-      throw std::runtime_error("invalid data object size");
+      GF_CORE_LOG_ERROR("data object checking failed");
+      return -1;
     }
 
     // get arguments

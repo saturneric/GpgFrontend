@@ -32,21 +32,15 @@
 
 namespace GpgFrontend {
 
-void SetTempCacheValue(const QString& key, const QString& value) {
-  QJsonDocument json;
-  json.setObject(QJsonObject({{key, value}}));
-  CacheManager::GetInstance().SaveCache(key, json);
+void SetCacheValue(const QString& key, QString value) {
+  CacheManager::GetInstance().SaveCache(key, std::move(value));
 }
 
-auto GetTempCacheValue(const QString& key) -> QString {
-  QJsonDocument json = CacheManager::GetInstance().LoadCache(key);
-  if (!json.isObject()) return {};
-  auto json_object = json.object();
-  if (!json_object.contains(key) && json_object[key].isString()) return {};
-  return json_object[key].toString();
+auto GetCacheValue(const QString& key) -> QString {
+  return CacheManager::GetInstance().LoadCache(key);
 }
 
-void ResetTempCacheValue(const QString& key) {
+void ResetCacheValue(const QString& key) {
   CacheManager::GetInstance().ResetCache(key);
 }
 

@@ -32,10 +32,11 @@ namespace GpgFrontend {
 
 GpgPassphraseContext::GpgPassphraseContext(const QString& uids_info,
                                            const QString& passphrase_info,
-                                           bool prev_was_bad)
+                                           bool prev_was_bad, bool ask_for_new)
     : passphrase_info_(passphrase_info),
       uids_info_(uids_info),
-      prev_was_bad_(prev_was_bad) {}
+      prev_was_bad_(prev_was_bad),
+      ask_for_new_(ask_for_new) {}
 
 GpgPassphraseContext::GpgPassphraseContext() = default;
 
@@ -54,4 +55,6 @@ auto GpgPassphraseContext::GetPassphraseInfo() const -> QString {
 }
 
 auto GpgPassphraseContext::IsPreWasBad() const -> bool { return prev_was_bad_; }
+
+auto GpgPassphraseContext::IsAskForNew() const -> bool { return ask_for_new_; }
 }  // namespace GpgFrontend

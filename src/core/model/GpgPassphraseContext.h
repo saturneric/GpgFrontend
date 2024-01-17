@@ -36,7 +36,7 @@ class GPGFRONTEND_CORE_EXPORT GpgPassphraseContext : public QObject {
   Q_OBJECT
  public:
   GpgPassphraseContext(const QString& uids_info, const QString& passphrase_info,
-                       bool prev_was_bad);
+                       bool prev_was_bad, bool ask_for_new);
 
   GpgPassphraseContext();
 
@@ -50,11 +50,14 @@ class GPGFRONTEND_CORE_EXPORT GpgPassphraseContext : public QObject {
 
   [[nodiscard]] auto IsPreWasBad() const -> bool;
 
+  [[nodiscard]] auto IsAskForNew() const -> bool;
+
  private:
   QString passphrase_info_;
   QString uids_info_;
   QString passphrase_;
   bool prev_was_bad_;
+  bool ask_for_new_;
 };
 
 }  // namespace GpgFrontend

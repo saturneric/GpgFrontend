@@ -91,9 +91,8 @@ class KeyGenDialog : public GeneralDialog {
                                 ///< entries of line edits
 
   std::shared_ptr<GenKeyInfo> gen_key_info_ =
-      SecureCreateSharedObject<GenKeyInfo>();  ///<
-  std::shared_ptr<GenKeyInfo> gen_subkey_info_ =
-      SecureCreateSharedObject<GenKeyInfo>();  ///<
+      SecureCreateSharedObject<GenKeyInfo>();              ///<
+  std::shared_ptr<GenKeyInfo> gen_subkey_info_ = nullptr;  ///<
 
   QDialogButtonBox* button_box_;     ///< Box for standard buttons
   QLabel* error_label_{};            ///< Label containing error message

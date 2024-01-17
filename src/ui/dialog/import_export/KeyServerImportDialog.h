@@ -29,13 +29,10 @@
 #pragma once
 
 #include <QtNetwork>
-#include <string>
 
 #include "KeyImportDetailDialog.h"
-#include "core/function/gpg/GpgContext.h"
-#include "ui/GpgFrontendUI.h"
+#include "core/typedef/CoreTypedef.h"
 #include "ui/dialog/GeneralDialog.h"
-#include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
 
@@ -53,7 +50,7 @@ class KeyServerImportDialog : public GeneralDialog {
    * @param automatic
    * @param parent
    */
-  KeyServerImportDialog(QWidget* parent);
+  explicit KeyServerImportDialog(QWidget* parent);
 
  public slots:
 

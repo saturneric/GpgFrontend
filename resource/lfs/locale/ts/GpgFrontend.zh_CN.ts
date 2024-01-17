@@ -1966,7 +1966,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="215"/>
         <source>Export Checked Key(s) To a Key Package</source>
-        <translation type="unfinished">将检查的密钥导出到密钥包</translation>
+        <translation type="unfinished">将勾选的密钥导出到密钥包</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="219"/>
@@ -2088,7 +2088,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="366"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="379"/>
         <source>Please check some keys before doing this operation.</source>
-        <translation type="unfinished">请在执行此操作之前检查一些密钥。</translation>
+        <translation type="unfinished">请在执行此操作之前勾选一些密钥。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="371"/>
@@ -3505,7 +3505,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="140"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="253"/>
         <source>No Key Checked</source>
-        <translation type="unfinished">未检查密钥</translation>
+        <translation type="unfinished">未勾选任何密钥</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="369"/>
@@ -3513,7 +3513,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="618"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="141"/>
         <source>Please check the key in the key toolbox on the right.</source>
-        <translation type="unfinished">请检查右侧密钥工具箱中的密钥。</translation>
+        <translation type="unfinished">请勾选右侧密钥工具箱中的密钥。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="376"/>
@@ -3611,7 +3611,7 @@ If Data And Signature is COMBINED within a single file, KEEP THIS EMPTY: </sourc
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="254"/>
         <source>Please check some key in the key toolbox on the right.</source>
-        <translation type="unfinished">请检查右侧密钥工具箱中的一些密钥。</translation>
+        <translation type="unfinished">请勾选右侧密钥工具箱中的一些密钥。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="96"/>

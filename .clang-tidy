@@ -33,10 +33,10 @@ Checks: >
   -readability-named-parameter,
   -readability-braces-around-statements,
   -readability-magic-numbers,
-  -readability-named-parameter
-  -readability-identifier-length
-  -bugprone-easily-swappable-parameters
-  -readability-redundant-access-specifiers
+  -readability-named-parameter,
+  -readability-identifier-length,
+  -bugprone-easily-swappable-parameters,
+  -readability-redundant-access-specifiers,
   -readability-identifier-length
 
 CheckOptions:

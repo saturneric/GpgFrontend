@@ -216,16 +216,6 @@ $ ./configure --enable-maintainer-mode --enable-languages=cpp && make -j$(nproc)
 $ sudo make install
 ```
 
-Build the code and make the deb package(Please use Ubuntu 20.04 or later).
-
-```shell
-$ cd GpgFrontend
-$ mkdir build && cd build
-$ cmake -G Ninja  -DCMAKE_BUILD_TYPE="Release" -DGPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE=ON ..
-$ ninja
-$ ninja package
-```
-
 Build the code separately for debug(Please use ubuntu 18.04 or later).
 
 ```shell

@@ -30,6 +30,7 @@
 
 #include "core/function/CoreSignalStation.h"
 #include "core/model/GpgPassphraseContext.h"
+#include "core/utils/CacheUtils.h"
 #include "pinentry/pinentrydialog.h"
 
 namespace GpgFrontend::UI {
@@ -57,7 +58,8 @@ auto RaisePinentry::Exec() -> int {
       context_->GetUidsInfo().toStdString(),
       context_->GetPassphraseInfo().toStdString(), context_->IsPreWasBad());
 
-  bool ask_for_new = context_->GetPassphraseInfo().isEmpty() &&
+  bool ask_for_new = context_->IsAskForNew() &&
+                     context_->GetPassphraseInfo().isEmpty() &&
                      context_->GetUidsInfo().isEmpty();
 
   auto* pinentry =
@@ -80,8 +82,8 @@ auto RaisePinentry::Exec() -> int {
   pinentry->setPinentryInfo(pinentry_info);
 
   pinentry->setRepeatErrorText(tr("Passphrases do not match"));
-  pinentry->setGenpinLabel(QString("BBBBBBBBB"));
-  pinentry->setGenpinTT(QString("AAAAAAAA"));
+  pinentry->setGenpinLabel(QString(""));
+  pinentry->setGenpinTT(QString(""));
   pinentry->setCapsLockHint(tr("Caps Lock is on"));
   pinentry->setFormattedPassphrase({false, QString()});
   pinentry->setConstraintsOptions({false, QString(), QString(), QString()});

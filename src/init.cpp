@@ -28,11 +28,6 @@
 
 #include "init.h"
 
-#include <qcoreapplication.h>
-
-#include <filesystem>
-#include <string>
-
 #include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -95,7 +90,7 @@ void InitGlobalPathEnv() {
            (QDir(custom_gnupg_install_path).absolutePath() + ":" + path_value)
                .toUtf8(),
            1);
-    std::string modified_path_value = getenv("PATH");
+    QString modified_path_value = getenv("PATH");
     GF_MAIN_LOG_DEBUG("Modified System PATH: {}", modified_path_value);
   }
 }

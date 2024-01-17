@@ -35,7 +35,6 @@
 #include "core/module/GlobalRegisterTable.h"
 #include "core/module/Module.h"
 #include "core/thread/Task.h"
-#include "core/thread/TaskRunner.h"
 #include "function/SecureMemoryAllocator.h"
 #include "function/basic/GpgFunctionObject.h"
 #include "thread/TaskRunnerGetter.h"

@@ -29,7 +29,6 @@
 #include "KeyUploadDialog.h"
 
 #include <QtNetwork>
-#include <algorithm>
 
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
@@ -59,7 +58,8 @@ KeyUploadDialog::KeyUploadDialog(const KeyIdArgsListPtr& keys_ids,
   this->setModal(true);
   this->setWindowTitle(tr("Uploading Public Key"));
   this->setFixedSize(240, 42);
-  this->setPosCenterOfScreen();
+  this->movePosition2CenterOfParent();
+  this->setAttribute(Qt::WA_DeleteOnClose);
 }
 
 void KeyUploadDialog::SlotUpload() {
@@ -71,8 +71,15 @@ void KeyUploadDialog::SlotUpload() {
           return;
         }
 
-        if (data_obj == nullptr || !data_obj->Check<GFBuffer>()) {
-          throw std::runtime_error("data object doesn't pass checking");
+        if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+            !data_obj->Check<GFBuffer>()) {
+          GF_CORE_LOG_ERROR("data object checking failed");
+          QMessageBox::critical(this, tr("Error"),
+                                tr("Unknown error occurred"));
+          // Done
+          this->hide();
+          this->close();
+          return;
         }
 
         auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
@@ -127,6 +134,7 @@ void KeyUploadDialog::slot_upload_key_to_server(
 void KeyUploadDialog::slot_upload_finished() {
   auto* reply = qobject_cast<QNetworkReply*>(sender());
 
+  this->close();
   QByteArray response = reply->readAll();
   GF_UI_LOG_DEBUG("response: {}", response.toStdString());
 
@@ -147,14 +155,12 @@ void KeyUploadDialog::slot_upload_finished() {
       default:
         message = tr("Connection Error");
     }
-    QMessageBox::critical(this, "Upload Failed", message);
+    QMessageBox::critical(this->parentWidget(), tr("Upload Failed"), message);
     return;
   }
-  QMessageBox::information(this, tr("Upload Success"),
-                           tr("Upload Public Key Successfully"));
-  GF_UI_LOG_DEBUG("success while contacting keyserver!");
 
-  reply->deleteLater();
+  QMessageBox::information(this->parentWidget(), tr("Upload Success"),
+                           tr("Upload Public Key Successfully"));
 }
 
 }  // namespace GpgFrontend::UI

@@ -30,6 +30,7 @@
 
 #include <algorithm>
 #include <shared_mutex>
+#include <utility>
 
 #include "core/function/DataObjectOperator.h"
 #include "core/utils/MemoryUtils.h"
@@ -101,9 +102,9 @@ class CacheManager::Impl : public QObject {
     load_all_cache_storage();
   }
 
-  void SaveCache(QString key, const QJsonDocument& value, bool flush) {
+  void SaveDurableCache(QString key, const QJsonDocument& value, bool flush) {
     auto data_object_key = get_data_object_key(key);
-    cache_storage_.insert(key, value);
+    durable_cache_storage_.insert(key, value);
 
     if (!key_storage_.contains(key)) {
       GF_CORE_LOG_DEBUG("register new key of cache", key);
@@ -113,35 +114,49 @@ class CacheManager::Impl : public QObject {
     if (flush) slot_flush_cache_storage();
   }
 
-  auto LoadCache(const QString& key) -> QJsonDocument {
+  auto LoadDurableCache(const QString& key) -> QJsonDocument {
     auto data_object_key = get_data_object_key(key);
 
-    if (!cache_storage_.exists(key)) {
-      cache_storage_.insert(key, load_cache_storage(key, {}));
+    if (!durable_cache_storage_.exists(key)) {
+      durable_cache_storage_.insert(key, load_cache_storage(key, {}));
     }
 
-    auto cache = cache_storage_.get(key);
+    auto cache = durable_cache_storage_.get(key);
     if (cache.has_value()) return cache.value();
     return {};
   }
 
-  auto LoadCache(const QString& key, QJsonDocument default_value)
+  auto LoadDurableCache(const QString& key, QJsonDocument default_value)
       -> QJsonDocument {
     auto data_object_key = get_data_object_key(key);
-    if (!cache_storage_.exists(key)) {
-      cache_storage_.insert(key,
-                            load_cache_storage(key, std::move(default_value)));
+    if (!durable_cache_storage_.exists(key)) {
+      durable_cache_storage_.insert(
+          key, load_cache_storage(key, std::move(default_value)));
     }
 
-    auto cache = cache_storage_.get(key);
+    auto cache = durable_cache_storage_.get(key);
     if (cache.has_value()) return cache.value();
     return {};
   }
 
-  auto ResetCache(const QString& key) -> bool {
+  auto ResetDurableCache(const QString& key) -> bool {
     auto data_object_key = get_data_object_key(key);
-    return cache_storage_.remove(key);
+    return durable_cache_storage_.remove(key);
   }
+
+  void FlushCacheStorage() { this->slot_flush_cache_storage(); }
+
+  void SaveCache(const QString& key, QString value) {
+    runtime_cache_storage_.insert(key, new QString(std::move(value)));
+  }
+
+  auto LoadCache(const QString& key) -> QString {
+    auto* value = runtime_cache_storage_.object(key);
+    if (value == nullptr) return {};
+    return *value;
+  }
+
+  void ResetCache(const QString& key) { runtime_cache_storage_.remove(key); }
 
  private slots:
 
@@ -150,7 +165,7 @@ class CacheManager::Impl : public QObject {
    *
    */
   void slot_flush_cache_storage() {
-    for (const auto& cache : cache_storage_.mirror()) {
+    for (const auto& cache : durable_cache_storage_.mirror()) {
       auto key = get_data_object_key(cache.first);
       GF_CORE_LOG_TRACE("save cache into filesystem, key {}", key);
       GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(
@@ -161,7 +176,8 @@ class CacheManager::Impl : public QObject {
   }
 
  private:
-  ThreadSafeMap<QString, QJsonDocument> cache_storage_;
+  QCache<QString, QString> runtime_cache_storage_;
+  ThreadSafeMap<QString, QJsonDocument> durable_cache_storage_;
   QJsonArray key_storage_;
   QTimer* flush_timer_;
   const QString drk_key_ = "__cache_manage_data_register_key_list";
@@ -172,7 +188,7 @@ class CacheManager::Impl : public QObject {
    * @param key
    * @return QString
    */
-  static auto get_data_object_key(QString key) -> QString {
+  static auto get_data_object_key(const QString& key) -> QString {
     return QString("__cache_data_%1").arg(key);
   }
 
@@ -183,9 +199,9 @@ class CacheManager::Impl : public QObject {
    * @param default_value
    * @return QJsonObject
    */
-  static auto load_cache_storage(QString key, QJsonDocument default_value)
-      -> QJsonDocument {
-    auto data_object_key = get_data_object_key(std::move(key));
+  static auto load_cache_storage(const QString& key,
+                                 QJsonDocument default_value) -> QJsonDocument {
+    auto data_object_key = get_data_object_key(key);
     auto stored_data =
         GpgFrontend::DataObjectOperator::GetInstance().GetDataObject(
             data_object_key);
@@ -231,26 +247,38 @@ CacheManager::CacheManager(int channel)
     : SingletonFunctionObject<CacheManager>(channel),
       p_(SecureCreateUniqueObject<Impl>()) {}
 
-CacheManager::~CacheManager() = default;
+CacheManager::~CacheManager() { p_->FlushCacheStorage(); }
 
-void CacheManager::SaveCache(QString key, const QJsonDocument& value,
-                             bool flush) {
-  p_->SaveCache(std::move(key), value, flush);
+void CacheManager::SaveDurableCache(const QString& key,
+                                    const QJsonDocument& value, bool flush) {
+  p_->SaveDurableCache(key, value, flush);
 }
 
-auto CacheManager::LoadCache(QString key) -> QJsonDocument {
+auto CacheManager::LoadDurableCache(const QString& key) -> QJsonDocument {
+  return p_->LoadDurableCache(key);
+}
+
+auto CacheManager::LoadDurableCache(const QString& key,
+                                    QJsonDocument default_value)
+    -> QJsonDocument {
+  return p_->LoadDurableCache(key, std::move(default_value));
+}
+
+auto CacheManager::ResetDurableCache(const QString& key) -> bool {
+  return p_->ResetDurableCache(key);
+}
+
+void CacheManager::SaveCache(const QString& key, QString value) {
+  p_->SaveCache(key, std::move(value));
+}
+
+auto CacheManager::LoadCache(const QString& key) -> QString {
   return p_->LoadCache(key);
 }
 
-auto CacheManager::LoadCache(QString key, QJsonDocument default_value)
-    -> QJsonDocument {
-  return p_->LoadCache(key, std::move(default_value));
-}
-
-auto CacheManager::ResetCache(QString key) -> bool {
+void CacheManager::ResetCache(const QString& key) {
   return p_->ResetCache(key);
 }
-
 }  // namespace GpgFrontend
 
 #include "CacheManager.moc"

@@ -94,7 +94,8 @@ void MainWindow::SlotFileEncrypt(const QString& path) {
                 // stop waiting
                 op_hd();
 
-                if (data_obj == nullptr ||
+                if (CheckGpgError(err) == GPG_ERR_USER_1 ||
+                    data_obj == nullptr ||
                     !data_obj->Check<GpgEncryptResult>()) {
                   QMessageBox::critical(this, tr("Error"),
                                         tr("Unknown error occurred"));
@@ -137,7 +138,8 @@ void MainWindow::SlotFileEncrypt(const QString& path) {
               // stop waiting
               op_hd();
 
-              if (data_obj == nullptr || !data_obj->Check<GpgEncryptResult>()) {
+              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+                  !data_obj->Check<GpgEncryptResult>()) {
                 QMessageBox::critical(this, tr("Error"),
                                       tr("Unknown error occurred"));
                 return;
@@ -250,7 +252,8 @@ void MainWindow::SlotDirectoryEncrypt(const QString& path) {
               // stop waiting
               op_hd();
 
-              if (data_obj == nullptr || !data_obj->Check<GpgEncryptResult>()) {
+              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+                  !data_obj->Check<GpgEncryptResult>()) {
                 QMessageBox::critical(this, tr("Error"),
                                       tr("Unknown error occurred"));
                 return;
@@ -299,7 +302,8 @@ void MainWindow::SlotFileDecrypt(const QString& path) {
               // stop waiting
               op_hd();
 
-              if (data_obj == nullptr || !data_obj->Check<GpgDecryptResult>()) {
+              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+                  !data_obj->Check<GpgDecryptResult>()) {
                 QMessageBox::critical(this, tr("Error"),
                                       tr("Unknown error occurred"));
                 return;
@@ -347,7 +351,8 @@ void MainWindow::SlotArchiveDecrypt(const QString& path) {
               // stop waiting
               op_hd();
 
-              if (data_obj == nullptr || !data_obj->Check<GpgDecryptResult>()) {
+              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+                  !data_obj->Check<GpgDecryptResult>()) {
                 QMessageBox::critical(this, tr("Error"),
                                       tr("Unknown error occurred"));
                 return;
@@ -420,7 +425,8 @@ void MainWindow::SlotFileSign(const QString& path) {
               // stop waiting
               op_hd();
 
-              if (data_obj == nullptr || !data_obj->Check<GpgSignResult>()) {
+              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+                  !data_obj->Check<GpgSignResult>()) {
                 QMessageBox::critical(this, tr("Error"),
                                       tr("Unknown error occurred"));
                 return;
@@ -492,7 +498,8 @@ void MainWindow::SlotFileVerify(const QString& path) {
               // stop waiting
               op_hd();
 
-              if (data_obj == nullptr || !data_obj->Check<GpgVerifyResult>()) {
+              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+                  !data_obj->Check<GpgVerifyResult>()) {
                 QMessageBox::critical(this, tr("Error"),
                                       tr("Unknown error occurred"));
                 return;
@@ -593,7 +600,7 @@ void MainWindow::SlotFileEncryptSign(const QString& path) {
               // stop waiting
               op_hd();
 
-              if (data_obj == nullptr ||
+              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
                   !data_obj->Check<GpgEncryptResult, GpgSignResult>()) {
                 QMessageBox::critical(this, tr("Error"),
                                       tr("Unknown error occurred"));
@@ -697,7 +704,7 @@ void MainWindow::SlotDirectoryEncryptSign(const QString& path) {
               // stop waiting
               op_hd();
 
-              if (data_obj == nullptr ||
+              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
                   !data_obj->Check<GpgEncryptResult, GpgSignResult>()) {
                 QMessageBox::critical(this, tr("Error"),
                                       tr("Unknown error occurred"));
@@ -756,7 +763,7 @@ void MainWindow::SlotFileDecryptVerify(const QString& path) {
               // stop waiting
               op_hd();
 
-              if (data_obj == nullptr ||
+              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
                   !data_obj->Check<GpgDecryptResult, GpgVerifyResult>()) {
                 QMessageBox::critical(this, tr("Error"),
                                       tr("Unknown error occurred"));
@@ -824,7 +831,7 @@ void MainWindow::SlotArchiveDecryptVerify(const QString& path) {
               // stop waiting
               op_hd();
 
-              if (data_obj == nullptr ||
+              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
                   !data_obj->Check<GpgDecryptResult, GpgVerifyResult>()) {
                 QMessageBox::critical(this, tr("Error"),
                                       tr("Unknown error occurred"));

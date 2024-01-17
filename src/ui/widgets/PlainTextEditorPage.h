@@ -28,11 +28,6 @@
 
 #pragma once
 
-#include <string>
-
-#include "core/GpgConstants.h"
-#include "ui/GpgFrontendUI.h"
-
 class Ui_PlainTextEditor;
 
 namespace GpgFrontend::UI {

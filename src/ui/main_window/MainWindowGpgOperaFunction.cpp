@@ -66,7 +66,8 @@ void MainWindow::SlotEncrypt() {
                 // stop waiting
                 op_hd();
 
-                if (data_obj == nullptr ||
+                if (CheckGpgError(err) == GPG_ERR_USER_1 ||
+                    data_obj == nullptr ||
                     !data_obj->Check<GpgEncryptResult, GFBuffer>()) {
                   QMessageBox::critical(this, tr("Error"),
                                         tr("Unknown error occurred"));
@@ -169,7 +170,7 @@ void MainWindow::SlotSign() {
               // stop waiting
               hd();
 
-              if (data_obj == nullptr ||
+              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
                   !data_obj->Check<GpgSignResult, GFBuffer>()) {
                 QMessageBox::critical(this, tr("Error"),
                                       tr("Unknown error occurred"));
@@ -202,7 +203,7 @@ void MainWindow::SlotDecrypt() {
               // stop waiting
               hd();
 
-              if (data_obj == nullptr ||
+              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
                   !data_obj->Check<GpgDecryptResult, GFBuffer>()) {
                 QMessageBox::critical(this, tr("Error"),
                                       tr("Unknown error occurred"));
@@ -238,7 +239,8 @@ void MainWindow::SlotVerify() {
               // stop waiting
               hd();
 
-              if (data_obj == nullptr || !data_obj->Check<GpgVerifyResult>()) {
+              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+                  !data_obj->Check<GpgVerifyResult>()) {
                 QMessageBox::critical(this, tr("Error"),
                                       tr("Unknown error occurred"));
                 return;
@@ -312,7 +314,7 @@ void MainWindow::SlotEncryptSign() {
               // stop waiting
               hd();
 
-              if (data_obj == nullptr ||
+              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
                   !data_obj
                        ->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()) {
                 QMessageBox::critical(this, tr("Error"),
@@ -358,7 +360,7 @@ void MainWindow::SlotDecryptVerify() {
               // stop waiting
               hd();
 
-              if (data_obj == nullptr ||
+              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
                   !data_obj
                        ->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()) {
                 QMessageBox::critical(this, tr("Error"),

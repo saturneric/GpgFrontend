@@ -64,8 +64,10 @@ void KeyPackageOperator::GenerateKeyPackage(const QString& key_package_path,
           return;
         }
 
-        if (data_obj == nullptr || !data_obj->Check<GFBuffer>()) {
-          throw std::runtime_error("data object doesn't pass checking");
+        if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+            !data_obj->Check<GFBuffer>()) {
+          cb(-1, data_obj);
+          return;
         }
 
         auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);

@@ -56,14 +56,18 @@ auto RunGpgOperaAsync(GpgOperaRunnable runnable, GpgOperationCallback callback,
               operation,
               [=](const DataObjectPtr& data_object) -> int {
                 auto custom_data_object = TransferParams();
-                GpgError err = runnable(custom_data_object);
-
+                auto err = runnable(custom_data_object);
                 data_object->Swap({err, custom_data_object});
                 return 0;
               },
-              [=](int, const DataObjectPtr& data_object) {
-                callback(ExtractParams<GpgError>(data_object, 0),
-                         ExtractParams<DataObjectPtr>(data_object, 1));
+              [=](int rtn, const DataObjectPtr& data_object) {
+                if (rtn < 0) {
+                  callback(GPG_ERR_USER_1,
+                           ExtractParams<DataObjectPtr>(data_object, 1));
+                } else {
+                  callback(ExtractParams<GpgError>(data_object, 0),
+                           ExtractParams<DataObjectPtr>(data_object, 1));
+                }
               },
               TransferParams());
   handler.Start();
@@ -84,9 +88,13 @@ auto RunIOOperaAsync(OperaRunnable runnable, OperationCallback callback,
                 data_object->Swap({err, custom_data_object});
                 return 0;
               },
-              [=](int, const DataObjectPtr& data_object) {
-                callback(ExtractParams<GFError>(data_object, 0),
-                         ExtractParams<DataObjectPtr>(data_object, 1));
+              [=](int rtn, const DataObjectPtr& data_object) {
+                if (rtn < 0) {
+                  callback(-1, ExtractParams<DataObjectPtr>(data_object, 1));
+                } else {
+                  callback(ExtractParams<GFError>(data_object, 0),
+                           ExtractParams<DataObjectPtr>(data_object, 1));
+                }
               },
               TransferParams());
   handler.Start();

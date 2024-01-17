@@ -28,15 +28,12 @@
 
 #include "KeygenDialog.h"
 
-#include <qdialog.h>
-#include <qeventloop.h>
-#include <qobject.h>
-
 #include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/model/DataObject.h"
 #include "core/typedef/GpgTypedef.h"
+#include "core/utils/CacheUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
@@ -142,6 +139,14 @@ void KeyGenDialog::slot_key_gen_accept() {
       }
     }
 
+    if (!GlobalSettingStation::GetInstance()
+             .GetSettings()
+             .value("basic/use_pinentry_as_password_input_dialog", false)
+             .toBool() &&
+        !no_pass_phrase_check_box_->isChecked()) {
+      SetCacheValue("PinentryContext", "NEW_PASSPHRASE");
+    }
+
     CommonUtils::WaitForOpera(
         this, tr("Generating"),
         [this, gen_key_info = this->gen_key_info_](const OperaWaitingHd& hd) {
@@ -150,6 +155,12 @@ void KeyGenDialog::slot_key_gen_accept() {
               [this, hd](GpgError err, const DataObjectPtr&) {
                 // stop showing waiting dialog
                 hd();
+
+                if (CheckGpgError(err) == GPG_ERR_USER_1) {
+                  QMessageBox::critical(this, tr("Error"),
+                                        tr("Unknown error occurred"));
+                  return;
+                }
 
                 CommonUtils::RaiseMessageBox(this->parentWidget() != nullptr
                                                  ? this->parentWidget()
@@ -253,6 +264,8 @@ void KeyGenDialog::slot_activated_key_type(int index) {
 
   const auto [name, key_algo, subkey_algo] =
       gen_key_info_->GetSupportedKeyAlgo()[index];
+  GF_UI_LOG_DEBUG("target key algo changed, name: {}, key: {}, subkey: {}",
+                  name, key_algo, subkey_algo);
 
   assert(!key_algo.isEmpty());
   gen_key_info_->SetAlgo(key_algo);
@@ -261,7 +274,6 @@ void KeyGenDialog::slot_activated_key_type(int index) {
     if (gen_subkey_info_ == nullptr) {
       gen_subkey_info_ = SecureCreateSharedObject<GenKeyInfo>(true);
     }
-
     gen_subkey_info_->SetAlgo(subkey_algo);
   } else {
     gen_subkey_info_ = nullptr;
