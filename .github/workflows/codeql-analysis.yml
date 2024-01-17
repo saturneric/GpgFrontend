@@ -64,7 +64,7 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
           sudo apt-get -y install gcc g++ ninja-build
-          sudo apt-get -y install libarchive-dev libconfig++-dev libboost-all-dev
+          sudo apt-get -y install libarchive-dev
           sudo apt-get -y install gpg
 
       - name: Build gpg-error (Linux)
@@ -94,7 +94,7 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
         with:
-          version: '6.4.3'
+          version: '6.6.1'
           cache: 'true'
           modules: 'qt5compat'
 

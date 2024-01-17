@@ -47,32 +47,15 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
           sudo apt-get -y install gcc-11 g++-11 ninja-build
-          sudo apt-get -y install libconfig++-dev libarchive-dev libssl-dev
+          sudo apt-get -y install libarchive-dev libssl-dev
           sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-icccm4-dev libcups2-dev libdrm-dev libegl1-mesa-dev
           sudo apt-get -y install libgcrypt20-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev gyp
-          sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-image0
-          sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libicu-dev libxcb-* libxkbcommon-x11-0
+          sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-image0
+          sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-* libxkbcommon-x11-0
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11
           sudo update-alternatives --set gcc "/usr/bin/gcc-11"
           sudo update-alternatives --set g++ "/usr/bin/g++-11"
-        if: matrix.os == 'ubuntu-20.04'
-
-      - name: Install Boost (Linux)
-        uses: MarkusJx/install-boost@v2.4.1
-        id: install-boost
-        with:
-            # REQUIRED: Specify the required boost version
-            # A list of supported versions can be found here:
-            # https://github.com/MarkusJx/prebuilt-boost/blob/main/versions-manifest.json
-            boost_version: 1.81.0
-            # OPTIONAL: Specify a platform version
-            platform_version: 20.04
-            # OPTIONAL: Specify an architecture
-            arch: x86
-
-            # NOTE: If a boost version matching all requirements cannot be found,
-            # this build step will fail
         if: matrix.os == 'ubuntu-20.04'
 
       - name: Codesign Configuration (macOS)
@@ -98,7 +81,7 @@ jobs:
       - name: Install Qt6
         uses: jurplel/install-qt-action@v3
         with:
-          version: '6.4.3'
+          version: '6.6.1'
           modules: 'qt5compat'
           cache: 'true'
         if: matrix.os == 'ubuntu-20.04' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
@@ -106,8 +89,7 @@ jobs:
       - name: Install Dependence (macOS)
         run: |
           brew install cmake autoconf automake texinfo gettext openssl@3
-          brew install boost ninja libarchive libconfig gpgme
-          brew unlink gettext && brew link --force gettext
+          brew install ninja libarchive gpgme
           brew link openssl@3 --force
         if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
@@ -152,16 +134,15 @@ jobs:
         shell: msys2 {0}
         run: |
           pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf 
-          pacman --noconfirm -S --needed make texinfo mingw-w64-x86_64-libconfig mingw-w64-x86_64-boost automake 
+          pacman --noconfirm -S --needed make texinfo automake 
           pacman --noconfirm -S --needed mingw-w64-x86_64-qt6 libintl msys2-runtime-devel gettext-devel mingw-w64-x86_64-gpgme
           pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg mingw-w64-x86_64-libarchive
-          pacman --noconfirm -S --needed mingw-w64-x86_64-icu mingw-w64-x86_64-icu-debug-libs
         if: matrix.os == 'windows-2019'
 
       - name: Build GpgFrontend (Linux)
         # Build your GpgFrontend with the given configuration
         run: |
-          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBOOST_ROOT=${{steps.install-boost.outputs.BOOST_ROOT}}
+          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
         if: matrix.os == 'ubuntu-20.04'
 
