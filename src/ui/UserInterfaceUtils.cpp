@@ -273,7 +273,7 @@ void CommonUtils::SlotImportKeys(QWidget *parent, const QString &in_buffer) {
       GpgKeyImportExporter::GetInstance().ImportKey(GFBuffer(in_buffer));
   emit SignalKeyStatusUpdated();
 
-  (new KeyImportDetailDialog(info, parent))->exec();
+  (new KeyImportDetailDialog(info, parent));
 }
 
 void CommonUtils::SlotImportKeyFromFile(QWidget *parent) {

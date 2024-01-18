@@ -407,7 +407,7 @@ void KeyList::dragEnterEvent(QDragEnterEvent* event) {
 void KeyList::import_keys(const QByteArray& in_buffer) {
   auto result =
       GpgKeyImportExporter::GetInstance().ImportKey(GFBuffer(in_buffer));
-  (new KeyImportDetailDialog(result, this))->exec();
+  (new KeyImportDetailDialog(result, this));
 }
 
 void KeyList::slot_double_clicked(const QModelIndex& index) {

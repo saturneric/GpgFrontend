@@ -64,10 +64,9 @@ QUrl HelpPage::localized_help(const QUrl& url) {
   QStringList fileparts = filename.split(".");
 
   // QSettings settings;
-  QString lang =
-      QSettings().value("int/lang", QLocale::system().name()).toString();
+  QString lang = QSettings().value("int/lang", QLocale().name()).toString();
   if (lang.isEmpty()) {
-    lang = QLocale::system().name();
+    lang = QLocale().name();
   }
 
   fileparts.insert(1, lang);

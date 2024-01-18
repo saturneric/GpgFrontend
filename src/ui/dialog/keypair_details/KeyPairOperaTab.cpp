@@ -104,6 +104,8 @@ KeyPairOperaTab::KeyPairOperaTab(const QString& key_id, QWidget* parent)
   }
 
   auto* modify_tofu_button = new QPushButton(tr("Modify TOFU Policy"));
+  // do not show, useless
+  modify_tofu_button->setHidden(true);
   connect(modify_tofu_button, &QPushButton::clicked, this,
           &KeyPairOperaTab::slot_modify_tofu_policy);
 

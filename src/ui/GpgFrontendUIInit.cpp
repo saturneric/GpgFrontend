@@ -211,10 +211,12 @@ void InitLocale() {
 
   // read from settings file
   auto lang = settings.value("basic/lang").toString();
-  GF_UI_LOG_INFO("current system locale: {}", QLocale().name());
-  GF_UI_LOG_INFO("current custom locale settings: {}", lang);
+  GF_UI_LOG_INFO("current system default locale: {}", QLocale().name());
 
   auto target_locale = lang.isEmpty() ? QLocale() : QLocale(lang);
+  QLocale::setDefault(target_locale);
+  GF_UI_LOG_INFO("target locale settings: {}", target_locale.name());
+
   auto* translator = new QTranslator(QCoreApplication::instance());
   if (translator->load(target_locale, QLatin1String(PROJECT_NAME),
                        QLatin1String("."), QLatin1String(":/i18n"),

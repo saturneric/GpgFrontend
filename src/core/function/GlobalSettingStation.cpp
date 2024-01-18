@@ -31,18 +31,6 @@
 #include "core/module/ModuleManager.h"
 #include "core/utils/FilesystemUtils.h"
 
-// macros to find resource files
-#if defined(MACOS) && defined(RELEASE)
-#define RESOURCE_DIR(appDir) (appDir + "/../Resources/")
-#define RESOURCE_DIR_PATH(appDir) (appDir / ".." / "Resources")
-#elif defined(LINUX) && defined(RELEASE)
-#define RESOURCE_DIR(appDir) (appDir + "/../share/")
-#define RESOURCE_DIR_PATH(appDir) (appDir / ".." / "share")
-#else
-#define RESOURCE_DIR(appDir) (appDir)
-#define RESOURCE_DIR_PATH(appDir) (appDir)
-#endif
-
 namespace GpgFrontend {
 
 class GlobalSettingStation::Impl {

@@ -71,13 +71,12 @@ void VerifyDetailsDialog::slot_refresh() {
     m_vbox_layout->addWidget(new QLabel(tr("Error Validating signature")));
   } else if (input_signature_ != nullptr) {
     const auto info =
-        tr("File was signed on %1").arg(QLocale::system().toString(timestamp)) +
+        tr("File was signed on %1").arg(QLocale().toString(timestamp)) +
         "<br/>" + tr("It Contains") + ": " + "<br/><br/>";
     m_vbox_layout->addWidget(new QLabel(info));
   } else {
-    const auto info =
-        tr("Signed on %1").arg(QLocale::system().toString(timestamp)) +
-        "<br/>" + tr("It Contains") + ": " + "<br/><br/>";
+    const auto info = tr("Signed on %1").arg(QLocale().toString(timestamp)) +
+                      "<br/>" + tr("It Contains") + ": " + "<br/><br/>";
     m_vbox_layout->addWidget(new QLabel(info));
   }
   // Add information box for every single key

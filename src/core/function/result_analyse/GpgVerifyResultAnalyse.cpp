@@ -56,11 +56,11 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
     auto *sign = result->signatures;
 
     stream_ << "-> " << tr("Signed On") << "(" << tr("UTC") << ")"
-            << " " << QDateTime::fromSecsSinceEpoch(sign->timestamp).toString()
+            << ": " << QDateTime::fromSecsSinceEpoch(sign->timestamp).toString()
             << Qt::endl;
 
     stream_ << "-> " << tr("Signed On") << "(" << tr("Localized") << ")"
-            << " " << GetFormatedDateByTimestamp(sign->timestamp) << Qt::endl;
+            << ": " << GetFormatedDateByTimestamp(sign->timestamp) << Qt::endl;
 
     stream_ << Qt::endl << "## " << tr("Signatures List") << ":" << Qt::endl;
     stream_ << Qt::endl;

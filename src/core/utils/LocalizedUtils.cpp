@@ -33,6 +33,6 @@
 namespace GpgFrontend {
 
 auto GetFormatedDateByTimestamp(time_t timestamp) -> QString {
-  return QLocale::system().toString(QDateTime::fromSecsSinceEpoch(timestamp));
+  return QLocale().toString(QDateTime::fromSecsSinceEpoch(timestamp));
 }
 }  // namespace GpgFrontend

@@ -98,8 +98,7 @@ void MainWindow::slot_append_keys_create_datetime() {
   }
 
   auto create_datetime_format_str_local =
-      QLocale::system().toString(key.GetCreateTime()) + tr(" (Local Time) ") +
-      "\n";
+      QLocale().toString(key.GetCreateTime()) + tr(" (Local Time) ") + "\n";
   edit_->SlotAppendText2CurTextPage(create_datetime_format_str_local);
 }
 

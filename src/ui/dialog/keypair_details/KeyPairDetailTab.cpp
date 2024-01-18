@@ -49,8 +49,8 @@ KeyPairDetailTab::KeyPairDetailTab(const QString& key_id, QWidget* parent)
 
   comment_var_label_ = new QLabel();
   comment_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
-  key_id_var_label = new QLabel();
-  key_id_var_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+  key_id_var_label_ = new QLabel();
+  key_id_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
   usage_var_label_ = new QLabel();
   actual_usage_var_label_ = new QLabel();
@@ -87,8 +87,8 @@ KeyPairDetailTab::KeyPairDetailTab(const QString& key_id, QWidget* parent)
   vbox_kd->addWidget(new QLabel(tr("Last Update (Local Time)") + ": "), 9, 0);
   vbox_kd->addWidget(new QLabel(tr("Primary Key Existence") + ": "), 10, 0);
 
-  key_id_var_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-  vbox_kd->addWidget(key_id_var_label, 0, 1, 1, 1);
+  key_id_var_label_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  vbox_kd->addWidget(key_id_var_label_, 0, 1, 1, 1);
   vbox_kd->addWidget(algorithm_var_label_, 1, 1, 1, 2);
   vbox_kd->addWidget(algorithm_detail_var_label_, 2, 1, 1, 2);
   vbox_kd->addWidget(key_size_var_label_, 3, 1, 1, 2);
@@ -105,7 +105,7 @@ KeyPairDetailTab::KeyPairDetailTab(const QString& key_id, QWidget* parent)
   copy_key_id_button->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   vbox_kd->addWidget(copy_key_id_button, 0, 2);
   connect(copy_key_id_button, &QPushButton::clicked, this, [=]() {
-    QString fpr = key_id_var_label->text().trimmed();
+    QString fpr = key_id_var_label_->text().trimmed();
     QClipboard* cb = QApplication::clipboard();
     cb->setText(fpr);
   });
@@ -138,7 +138,7 @@ KeyPairDetailTab::KeyPairDetailTab(const QString& key_id, QWidget* parent)
   mvbox->addWidget(fingerprint_box_);
   mvbox->addStretch();
 
-  auto* expBox = new QHBoxLayout();
+  auto* exp_box = new QHBoxLayout();
   QPixmap pixmap(":/icons/warning.png");
 
   exp_label_ = new QLabel();
@@ -146,11 +146,11 @@ KeyPairDetailTab::KeyPairDetailTab(const QString& key_id, QWidget* parent)
 
   icon_label_->setPixmap(pixmap.scaled(24, 24, Qt::KeepAspectRatio));
   exp_label_->setAlignment(Qt::AlignCenter);
-  expBox->addStretch();
-  expBox->addWidget(icon_label_);
-  expBox->addWidget(exp_label_);
-  expBox->addStretch();
-  mvbox->addLayout(expBox);
+  exp_box->addStretch();
+  exp_box->addWidget(icon_label_);
+  exp_box->addWidget(exp_label_);
+  exp_box->addStretch();
+  mvbox->addLayout(exp_box);
   mvbox->setContentsMargins(0, 0, 0, 0);
 
   // when key database updated
@@ -200,7 +200,7 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   email_var_label_->setText(key_.GetEmail());
 
   comment_var_label_->setText(key_.GetComment());
-  key_id_var_label->setText(key_.GetId());
+  key_id_var_label_->setText(key_.GetId());
 
   QString buffer;
   QTextStream usage_steam(&buffer);
@@ -245,20 +245,19 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   if (key_.GetExpireTime().toSecsSinceEpoch() == 0) {
     expire_var_label_->setText(tr("Never Expire"));
   } else {
-    expire_var_label_->setText(
-        QLocale::system().toString((key_.GetExpireTime())));
+    expire_var_label_->setText(QLocale().toString((key_.GetExpireTime())));
   }
 
   key_algo_val = key_.GetPublicKeyAlgo();
   key_algo_detail_val = key_.GetKeyAlgo();
 
-  created_var_label_->setText(QLocale::system().toString(key_.GetCreateTime()));
+  created_var_label_->setText(QLocale().toString(key_.GetCreateTime()));
 
   if (key_.GetLastUpdateTime().toSecsSinceEpoch() == 0) {
     last_update_var_label_->setText(tr("No Data"));
   } else {
     last_update_var_label_->setText(
-        QLocale::system().toString(key_.GetLastUpdateTime()));
+        QLocale().toString(key_.GetLastUpdateTime()));
   }
 
   key_size_var_label_->setText(key_size_val);

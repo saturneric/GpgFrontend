@@ -235,9 +235,9 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
 
   time_t subkey_time_t = subkey.GetExpireTime().toSecsSinceEpoch();
 
-  expire_var_label_->setText(
-      subkey_time_t == 0 ? tr("Never Expires")
-                         : QLocale::system().toString(subkey.GetExpireTime()));
+  expire_var_label_->setText(subkey_time_t == 0
+                                 ? tr("Never Expires")
+                                 : QLocale().toString(subkey.GetExpireTime()));
 
   if (subkey_time_t != 0 &&
       subkey.GetExpireTime() < QDateTime::currentDateTime()) {
@@ -252,8 +252,7 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
 
   algorithm_var_label_->setText(subkey.GetPubkeyAlgo());
   algorithm_detail_var_label_->setText(subkey.GetKeyAlgo());
-  created_var_label_->setText(
-      QLocale::system().toString(subkey.GetCreateTime()));
+  created_var_label_->setText(QLocale().toString(subkey.GetCreateTime()));
 
   QString buffer;
   QTextStream usage_steam(&buffer);

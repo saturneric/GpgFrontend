@@ -37,34 +37,35 @@ KeyImportDetailDialog::KeyImportDetailDialog(
     std::shared_ptr<GpgImportInformation> result, QWidget* parent)
     : GeneralDialog(typeid(KeyImportDetailDialog).name(), parent),
       m_result_(std::move(result)) {
+  this->setAttribute(Qt::WA_DeleteOnClose);
+
   // If no key for import found, just show a message
-  if (m_result_->considered == 0) {
+  if (m_result_ == nullptr || m_result_->considered == 0) {
     QMessageBox::information(parent, tr("Key Import Details"),
                              tr("No keys found to import"));
-    emit finished(0);
+
     this->close();
-    this->deleteLater();
-  } else {
-    auto* mv_box = new QVBoxLayout();
-
-    this->create_general_info_box();
-    mv_box->addWidget(general_info_box_);
-    this->create_keys_table();
-    mv_box->addWidget(keys_table_);
-    this->create_button_box();
-    mv_box->addWidget(button_box_);
-
-    this->setLayout(mv_box);
-    this->setWindowTitle(tr("Key Import Details"));
-
-    this->setMinimumSize(QSize(600, 300));
-    this->adjustSize();
-
-    movePosition2CenterOfParent();
-
-    this->setModal(true);
-    this->show();
+    return;
   }
+
+  auto* mv_box = new QVBoxLayout();
+
+  this->create_general_info_box();
+  mv_box->addWidget(general_info_box_);
+  this->create_keys_table();
+  mv_box->addWidget(keys_table_);
+  this->create_button_box();
+  mv_box->addWidget(button_box_);
+
+  this->setLayout(mv_box);
+  this->setWindowTitle(tr("Key Import Details"));
+
+  this->setMinimumSize(QSize(600, 300));
+  this->adjustSize();
+
+  movePosition2CenterOfParent();
+  this->setModal(true);
+  this->show();
 }
 
 void KeyImportDetailDialog::create_general_info_box() {

@@ -280,13 +280,13 @@ void KeyPairUIDTab::slot_refresh_sig_list() {
         sig_list_->setItem(sig_row, 2, tmp3);
       }
       auto* tmp4 =
-          new QTableWidgetItem(QLocale::system().toString(sig.GetCreateTime()));
+          new QTableWidgetItem(QLocale().toString(sig.GetCreateTime()));
       sig_list_->setItem(sig_row, 3, tmp4);
 
-      auto* tmp5 = new QTableWidgetItem(
-          sig.GetExpireTime().toSecsSinceEpoch() == 0
-              ? tr("Never Expires")
-              : QLocale::system().toString(sig.GetExpireTime()));
+      auto* tmp5 =
+          new QTableWidgetItem(sig.GetExpireTime().toSecsSinceEpoch() == 0
+                                   ? tr("Never Expires")
+                                   : QLocale().toString(sig.GetExpireTime()));
       tmp5->setTextAlignment(Qt::AlignCenter);
       sig_list_->setItem(sig_row, 4, tmp5);
 
