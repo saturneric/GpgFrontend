@@ -138,7 +138,7 @@ class Task::Impl {
 
   void init() {
     GF_CORE_LOG_TRACE("task {} created, parent: {}, impl: {}", name_,
-                      (void *)parent_, (void *)this);
+                      static_cast<void *>(parent_), static_cast<void *>(this));
 
     //
     HoldOnLifeCycle(false);

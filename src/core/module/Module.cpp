@@ -40,8 +40,7 @@ class Module::Impl {
 
   Impl(ModuleRawPtr m_ptr, ModuleIdentifier id, ModuleVersion version,
        ModuleMetaData meta_data)
-      : gpc_(nullptr),
-        m_ptr_(m_ptr),
+      : m_ptr_(m_ptr),
         identifier_(std::move(id)),
         version_(std::move(version)),
         meta_data_(std::move(meta_data)) {}
@@ -49,7 +48,7 @@ class Module::Impl {
   auto GetChannel() -> int { return get_gpc()->GetChannel(m_ptr_); }
 
   auto GetDefaultChannel() -> int {
-    return get_gpc()->GetDefaultChannel(m_ptr_);
+    return GlobalModuleContext::GetDefaultChannel(m_ptr_);
   }
 
   auto GetTaskRunner() -> std::optional<TaskRunnerPtr> {
@@ -67,7 +66,7 @@ class Module::Impl {
   void SetGPC(GlobalModuleContext* gpc) { gpc_ = gpc; }
 
  private:
-  GlobalModuleContext* gpc_;
+  GlobalModuleContext* gpc_{};
   Module* m_ptr_;
   const ModuleIdentifier identifier_;
   const ModuleVersion version_;
@@ -82,7 +81,7 @@ class Module::Impl {
 };
 
 Module::Module(ModuleIdentifier id, ModuleVersion version,
-               ModuleMetaData meta_data)
+               const ModuleMetaData& meta_data)
     : p_(SecureCreateUniqueObject<Impl>(this, id, version, meta_data)) {}
 
 Module::~Module() = default;

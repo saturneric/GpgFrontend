@@ -63,13 +63,11 @@ def check_copright_by_path(path, copyright_text, suffix):
               file_path = os.path.join(root, file)
               with open(file_path, 'r', encoding='utf-8') as f:
                   content = f.read()
-                  
               if copyright_text not in content:
                   print(f"copyright declaration missing: {file_path}")
 
 check_copright_by_path("src", copyright_text_source, ('.c', '.cpp', '.h', '.hpp'))
 check_copright_by_path("test", copyright_text_source, ('.c', '.cpp', '.h', '.hpp'))
-
 check_copright_by_path("src", copyright_text_script, ('.txt'))
 check_copright_by_path("src", copyright_text_script, ('.txt'))
 print("check done")

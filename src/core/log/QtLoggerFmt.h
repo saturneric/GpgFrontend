@@ -32,11 +32,7 @@ template <>
 struct fmt::formatter<QString> {
   // Parses format specifications.
   constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
-    auto it = std::find(ctx.begin(), ctx.end(), '}');
-    if (it != ctx.end() && *it != '}') {
-      throw fmt::format_error("invalid format specifier for QString");
-    }
-    return it;
+    return ctx.begin();
   }
 
   // Formats the QString qstr and writes it to the output.

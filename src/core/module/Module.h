@@ -47,7 +47,7 @@ using TaskRunnerPtr = std::shared_ptr<Thread::TaskRunner>;
 class GPGFRONTEND_CORE_EXPORT Module : public QObject {
   Q_OBJECT
  public:
-  Module(ModuleIdentifier, ModuleVersion, ModuleMetaData);
+  Module(ModuleIdentifier, ModuleVersion, const ModuleMetaData&);
 
   ~Module();
 
