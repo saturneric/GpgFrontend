@@ -28,7 +28,6 @@
 
 #include "GpgGenKeyInfo.h"
 
-#include <algorithm>
 #include <cassert>
 
 #include "core/utils/LogUtils.h"
@@ -106,7 +105,7 @@ void GenKeyInfo::SetAlgo(const QString &t_algo_args) {
     suggest_size_addition_step_ = -1;
     SetKeyLength(-1);
   } else {
-    SPDLOG_ERROR("unsupported gen key algo arguments: {}", algo_args);
+    SPDLOG_ERROR("unsupported genkey algo arguments: {}", algo_args);
     return;
   }
 
@@ -180,7 +179,7 @@ auto GenKeyInfo::GetSupportedKeyAlgo()
       {"ECDSA", "ED25519", ""},
       {"ECDSA + ECDH", "ED25519", "CV25519"},
       {"ECDSA + ECDH NIST P-256", "ED25519", "NISTP256"},
-      {"ECDSA + ECDH BrainPool P-256", "ED25519", "BRAINPOOlP256R1"},
+      {"ECDSA + ECDH BrainPooL P-256", "ED25519", "BRAINPOOLP256R1"},
   };
   return kSupportKeyAlgo;
 }
@@ -195,9 +194,9 @@ auto GenKeyInfo::GetSupportedSubkeyAlgo()
       {"ECDH NIST P-256", "", "NISTP256"},
       {"ECDH NIST P-384", "", "NISTP384"},
       {"ECDH NIST P-521", "", "NISTP521"},
-      {"ECDH BrainPool P-256", "", "BRAINPOOlP256R1"},
-      {"ECDH BrainPool P-384", "", "BRAINPOOlP384R1"},
-      {"ECDH BrainPool P-512", "", "BRAINPOOlP512R1"}};
+      {"ECDH BrainPooL P-256", "", "BRAINPOOLP256R1"},
+      {"ECDH BrainPooL P-384", "", "BRAINPOOLP384R1"},
+      {"ECDH BrainPooL P-512", "", "BRAINPOOLP512R1"}};
 
   return kSupportSubkeyAlgo;
 }

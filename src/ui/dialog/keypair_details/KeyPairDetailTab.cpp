@@ -61,6 +61,7 @@ KeyPairDetailTab::KeyPairDetailTab(const QString& key_id, QWidget* parent)
   created_var_label_ = new QLabel();
   last_update_var_label_ = new QLabel();
   algorithm_var_label_ = new QLabel();
+  algorithm_detail_var_label_ = new QLabel();
   primary_key_exist_var_label_ = new QLabel();
 
   auto* mvbox = new QVBoxLayout();
@@ -76,26 +77,28 @@ KeyPairDetailTab::KeyPairDetailTab(const QString& key_id, QWidget* parent)
 
   vbox_kd->addWidget(new QLabel(tr("Key ID") + ": "), 0, 0);
   vbox_kd->addWidget(new QLabel(tr("Algorithm") + ": "), 1, 0);
-  vbox_kd->addWidget(new QLabel(tr("Key Size") + ": "), 2, 0);
-  vbox_kd->addWidget(new QLabel(tr("Nominal Usage") + ": "), 3, 0);
-  vbox_kd->addWidget(new QLabel(tr("Actual Usage") + ": "), 4, 0);
-  vbox_kd->addWidget(new QLabel(tr("Owner Trust Level") + ": "), 5, 0);
-  vbox_kd->addWidget(new QLabel(tr("Create Date (Local Time)") + ": "), 6, 0);
-  vbox_kd->addWidget(new QLabel(tr("Expires on (Local Time)") + ": "), 7, 0);
-  vbox_kd->addWidget(new QLabel(tr("Last Update (Local Time)") + ": "), 8, 0);
-  vbox_kd->addWidget(new QLabel(tr("Primary Key Existence") + ": "), 9, 0);
+  vbox_kd->addWidget(new QLabel(tr("Algorithm Detail") + ": "), 2, 0);
+  vbox_kd->addWidget(new QLabel(tr("Key Size") + ": "), 3, 0);
+  vbox_kd->addWidget(new QLabel(tr("Nominal Usage") + ": "), 4, 0);
+  vbox_kd->addWidget(new QLabel(tr("Actual Usage") + ": "), 5, 0);
+  vbox_kd->addWidget(new QLabel(tr("Owner Trust Level") + ": "), 6, 0);
+  vbox_kd->addWidget(new QLabel(tr("Create Date (Local Time)") + ": "), 7, 0);
+  vbox_kd->addWidget(new QLabel(tr("Expires on (Local Time)") + ": "), 8, 0);
+  vbox_kd->addWidget(new QLabel(tr("Last Update (Local Time)") + ": "), 9, 0);
+  vbox_kd->addWidget(new QLabel(tr("Primary Key Existence") + ": "), 10, 0);
 
   key_id_var_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   vbox_kd->addWidget(key_id_var_label, 0, 1, 1, 1);
   vbox_kd->addWidget(algorithm_var_label_, 1, 1, 1, 2);
-  vbox_kd->addWidget(key_size_var_label_, 2, 1, 1, 2);
-  vbox_kd->addWidget(usage_var_label_, 3, 1, 1, 2);
-  vbox_kd->addWidget(actual_usage_var_label_, 4, 1, 1, 2);
-  vbox_kd->addWidget(owner_trust_var_label_, 5, 1, 1, 2);
-  vbox_kd->addWidget(created_var_label_, 6, 1, 1, 2);
-  vbox_kd->addWidget(expire_var_label_, 7, 1, 1, 2);
-  vbox_kd->addWidget(last_update_var_label_, 8, 1, 1, 2);
-  vbox_kd->addWidget(primary_key_exist_var_label_, 9, 1, 1, 2);
+  vbox_kd->addWidget(algorithm_detail_var_label_, 2, 1, 1, 2);
+  vbox_kd->addWidget(key_size_var_label_, 3, 1, 1, 2);
+  vbox_kd->addWidget(usage_var_label_, 4, 1, 1, 2);
+  vbox_kd->addWidget(actual_usage_var_label_, 5, 1, 1, 2);
+  vbox_kd->addWidget(owner_trust_var_label_, 6, 1, 1, 2);
+  vbox_kd->addWidget(created_var_label_, 7, 1, 1, 2);
+  vbox_kd->addWidget(expire_var_label_, 8, 1, 1, 2);
+  vbox_kd->addWidget(last_update_var_label_, 9, 1, 1, 2);
+  vbox_kd->addWidget(primary_key_exist_var_label_, 10, 1, 1, 2);
 
   auto* copy_key_id_button = new QPushButton(tr("Copy"));
   copy_key_id_button->setFlat(true);
@@ -234,6 +237,7 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   QString key_expire_val;
   QString key_create_time_val;
   QString key_algo_val;
+  QString key_algo_detail_val;
   QString key_last_update_val;
 
   key_size_val = QString::number(key_.GetPrimaryKeyLength());
@@ -246,6 +250,7 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   }
 
   key_algo_val = key_.GetPublicKeyAlgo();
+  key_algo_detail_val = key_.GetKeyAlgo();
 
   created_var_label_->setText(QLocale::system().toString(key_.GetCreateTime()));
 
@@ -258,6 +263,7 @@ void KeyPairDetailTab::slot_refresh_key_info() {
 
   key_size_var_label_->setText(key_size_val);
   algorithm_var_label_->setText(key_algo_val);
+  algorithm_detail_var_label_->setText(key_algo_detail_val);
   fingerprint_var_label_->setText(BeautifyFingerprint(key_.GetFingerprint()));
 
   icon_label_->hide();

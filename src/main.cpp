@@ -30,8 +30,6 @@
  * \mainpage GpgFrontend Develop Document Main Page
  */
 
-#include <memory>
-
 #include "GpgFrontendContext.h"
 #include "app.h"
 #include "cmd.h"

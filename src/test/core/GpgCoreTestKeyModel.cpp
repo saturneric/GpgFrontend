@@ -84,16 +84,16 @@ TEST_F(GpgCoreTest, GpgKeyTest) {
   ASSERT_EQ(key.GetId(), "81704859182661FB");
   ASSERT_EQ(key.GetFingerprint(), "9490795B78F8AFE9F93BD09281704859182661FB");
   ASSERT_EQ(key.GetExpireTime(),
-            QDateTime::fromString("20230905T040000", Qt::ISODate));
+            QDateTime::fromString("2023-09-05T04:00:00Z", Qt::ISODate));
   ASSERT_EQ(key.GetPublicKeyAlgo(), "RSA");
+  ASSERT_EQ(key.GetKeyAlgo(), "RSA3072");
   ASSERT_EQ(key.GetPrimaryKeyLength(), 3072);
   ASSERT_EQ(key.GetLastUpdateTime(),
-            QDateTime::fromString("19700101T000000", Qt::ISODate));
+            QDateTime::fromString("1970-01-01T00:00:00Z", Qt::ISODate));
   ASSERT_EQ(key.GetCreateTime(),
-            QDateTime::fromString("20210905T060153", Qt::ISODate));
+            QDateTime::fromString("2021-09-05T06:01:53Z", Qt::ISODate));
 
   ASSERT_EQ(key.GetOwnerTrust(), "Unknown");
-
   ASSERT_EQ(key.IsExpired(),
             key.GetExpireTime() < QDateTime::currentDateTime());
 }
@@ -104,12 +104,26 @@ TEST_F(GpgCoreTest, GpgSubKeyTest) {
   auto sub_keys = key.GetSubKeys();
   ASSERT_EQ(sub_keys->size(), 2);
 
+  auto& main_key = sub_keys->front();
+
+  ASSERT_EQ(main_key.GetID(), "81704859182661FB");
+  ASSERT_EQ(main_key.GetFingerprint(),
+            "9490795B78F8AFE9F93BD09281704859182661FB");
+  ASSERT_EQ(main_key.GetExpireTime(),
+            QDateTime::fromString("2023-09-05T04:00:00Z", Qt::ISODate));
+  ASSERT_EQ(main_key.GetPubkeyAlgo(), "RSA");
+  ASSERT_EQ(main_key.GetKeyAlgo(), "RSA3072");
+  ASSERT_EQ(main_key.GetKeyLength(), 3072);
+  ASSERT_EQ(main_key.GetCreateTime(),
+            QDateTime::fromString("2021-09-05T06:01:53Z", Qt::ISODate));
+  ASSERT_FALSE(main_key.IsCardKey());
+
   auto& sub_key = sub_keys->back();
 
   ASSERT_FALSE(sub_key.IsRevoked());
   ASSERT_FALSE(sub_key.IsDisabled());
   ASSERT_EQ(sub_key.GetCreateTime(),
-            QDateTime::fromString("20210905T060153", Qt::ISODate));
+            QDateTime::fromString("2021-09-05T06:01:53Z", Qt::ISODate));
 
   ASSERT_FALSE(sub_key.IsCardKey());
   ASSERT_TRUE(sub_key.IsPrivateKey());
@@ -117,13 +131,14 @@ TEST_F(GpgCoreTest, GpgSubKeyTest) {
   ASSERT_EQ(sub_key.GetFingerprint(),
             "50D37E8F8EE7340A6794E0592B36803235B5E25B");
   ASSERT_EQ(sub_key.GetKeyLength(), 3072);
+  ASSERT_EQ(sub_key.GetKeyAlgo(), "RSA3072");
   ASSERT_EQ(sub_key.GetPubkeyAlgo(), "RSA");
   ASSERT_FALSE(sub_key.IsHasCertificationCapability());
   ASSERT_FALSE(sub_key.IsHasAuthenticationCapability());
   ASSERT_FALSE(sub_key.IsHasSigningCapability());
   ASSERT_TRUE(sub_key.IsHasEncryptionCapability());
-  ASSERT_EQ(key.GetExpireTime(),
-            QDateTime::fromString("20230905T040000", Qt::ISODate));
+  ASSERT_EQ(sub_key.GetExpireTime(),
+            QDateTime::fromString("2023-09-05T04:00:00Z", Qt::ISODate));
 
   ASSERT_EQ(sub_key.IsExpired(),
             sub_key.GetExpireTime() < QDateTime::currentDateTime());

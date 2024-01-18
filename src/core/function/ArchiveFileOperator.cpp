@@ -159,21 +159,10 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
             auto fd = open(archive_entry_sourcepath(entry), O_RDONLY);
             auto len = read(fd, buff.data(), buff.size());
             assert(len <= buff.size() && len > 0);
-            if (len == -1) {
-              GF_CORE_LOG_ERROR("read() failed, ret: {}, abort ...", len);
-              archive_entry_free(entry);
-              close(fd);
-              break;
-            }
-
             while (len > 0) {
               archive_write_data(archive, buff.data(), len);
               len = read(fd, buff.data(), buff.size());
               assert(len <= buff.size() && len > 0);
-              if (len == -1) {
-                GF_CORE_LOG_ERROR("read() failed, ret: {}, abort ...", len);
-                break;
-              }
             }
             close(fd);
           }

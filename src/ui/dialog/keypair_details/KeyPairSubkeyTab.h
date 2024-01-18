@@ -80,7 +80,8 @@ class KeyPairSubkeyTab : public QWidget {
   QLabel* expire_var_label_;     ///< Label containing the keys expiration date
   QLabel* created_var_label_;    ///< Label containing the keys creation date
   QLabel* algorithm_var_label_;  ///< Label containing the keys algorithm
-  QLabel* key_id_var_label_;     ///< Label containing the keys keyid
+  QLabel* algorithm_detail_var_label_;  ///<
+  QLabel* key_id_var_label_;            ///< Label containing the keys keyid
   QLabel* fingerprint_var_label_;  ///< Label containing the keys fingerprint
   QLabel* usage_var_label_;        ///<
   QLabel* master_key_exist_var_label_;  ///<

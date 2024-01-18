@@ -114,6 +114,13 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
   /**
    * @brief
    *
+   * @return QString
+   */
+  [[nodiscard]] auto GetKeyAlgo() const -> QString;
+
+  /**
+   * @brief
+   *
    * @return QDateTime
    */
   [[nodiscard]] auto GetLastUpdateTime() const -> QDateTime;

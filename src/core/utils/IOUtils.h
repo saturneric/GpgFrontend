@@ -112,6 +112,15 @@ auto GPGFRONTEND_CORE_EXPORT CreateTempFileAndWriteData(const QString &data)
 /**
  * @brief
  *
+ * @param data
+ * @return QString
+ */
+auto GPGFRONTEND_CORE_EXPORT CreateTempFileAndWriteData(const GFBuffer &data)
+    -> QString;
+
+/**
+ * @brief
+ *
  * @param path
  * @param read
  * @return std::tuple<bool, QString>

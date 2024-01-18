@@ -64,21 +64,24 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(const QString& key_id, QWidget* parent)
 
   subkey_detail_layout->addWidget(new QLabel(tr("Key ID") + ": "), 0, 0);
   subkey_detail_layout->addWidget(new QLabel(tr("Algorithm") + ": "), 1, 0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Key Size") + ": "), 2, 0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Usage") + ": "), 3, 0);
-  subkey_detail_layout->addWidget(
-      new QLabel(tr("Expires On (Local Time)") + ": "), 4, 0);
-  subkey_detail_layout->addWidget(
-      new QLabel(tr("Create Date (Local Time)") + ": "), 5, 0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Existence") + ": "), 6, 0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Key in Smart Card") + ": "), 7,
+  subkey_detail_layout->addWidget(new QLabel(tr("Algorithm Detail") + ": "), 2,
                                   0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Fingerprint") + ": "), 8, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Key Size") + ": "), 3, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Usage") + ": "), 4, 0);
+  subkey_detail_layout->addWidget(
+      new QLabel(tr("Expires On (Local Time)") + ": "), 5, 0);
+  subkey_detail_layout->addWidget(
+      new QLabel(tr("Create Date (Local Time)") + ": "), 6, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Existence") + ": "), 7, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Key in Smart Card") + ": "), 8,
+                                  0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Fingerprint") + ": "), 9, 0);
 
   key_id_var_label_ = new QLabel(this);
   key_size_var_label_ = new QLabel(this);
   expire_var_label_ = new QLabel(this);
   algorithm_var_label_ = new QLabel(this);
+  algorithm_detail_var_label_ = new QLabel(this);
   created_var_label_ = new QLabel(this);
   usage_var_label_ = new QLabel(this);
   master_key_exist_var_label_ = new QLabel(this);
@@ -86,14 +89,15 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(const QString& key_id, QWidget* parent)
   card_key_label_ = new QLabel(this);
 
   subkey_detail_layout->addWidget(key_id_var_label_, 0, 1, 1, 1);
-  subkey_detail_layout->addWidget(key_size_var_label_, 2, 1, 1, 2);
-  subkey_detail_layout->addWidget(expire_var_label_, 4, 1, 1, 2);
   subkey_detail_layout->addWidget(algorithm_var_label_, 1, 1, 1, 2);
-  subkey_detail_layout->addWidget(created_var_label_, 5, 1, 1, 2);
-  subkey_detail_layout->addWidget(usage_var_label_, 3, 1, 1, 2);
-  subkey_detail_layout->addWidget(master_key_exist_var_label_, 6, 1, 1, 2);
-  subkey_detail_layout->addWidget(card_key_label_, 7, 1, 1, 2);
-  subkey_detail_layout->addWidget(fingerprint_var_label_, 8, 1, 1, 2);
+  subkey_detail_layout->addWidget(algorithm_detail_var_label_, 2, 1, 1, 2);
+  subkey_detail_layout->addWidget(key_size_var_label_, 3, 1, 1, 2);
+  subkey_detail_layout->addWidget(usage_var_label_, 4, 1, 1, 2);
+  subkey_detail_layout->addWidget(expire_var_label_, 5, 1, 1, 2);
+  subkey_detail_layout->addWidget(created_var_label_, 6, 1, 1, 2);
+  subkey_detail_layout->addWidget(master_key_exist_var_label_, 7, 1, 1, 2);
+  subkey_detail_layout->addWidget(card_key_label_, 8, 1, 1, 2);
+  subkey_detail_layout->addWidget(fingerprint_var_label_, 9, 1, 1, 2);
 
   auto* copy_key_id_button = new QPushButton(tr("Copy"));
   copy_key_id_button->setFlat(true);
@@ -247,6 +251,7 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   }
 
   algorithm_var_label_->setText(subkey.GetPubkeyAlgo());
+  algorithm_detail_var_label_->setText(subkey.GetKeyAlgo());
   created_var_label_->setText(
       QLocale::system().toString(subkey.GetCreateTime()));
 

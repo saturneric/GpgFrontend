@@ -94,16 +94,19 @@ class GpgContext::Impl {
                                int fd) -> gpgme_error_t {
     size_t res;
     QString pass = "abcdefg\n";
-    auto pass_len = pass.size();
+    auto passpahrase_size = pass.size();
 
     size_t off = 0;
 
     do {
-      res = gpgme_io_write(fd, &pass[off], pass_len - off);
+      res = gpgme_io_write(fd, &pass[off], passpahrase_size - off);
       if (res > 0) off += res;
-    } while (res > 0 && off != pass_len);
+    } while (res > 0 && off != passpahrase_size);
 
-    return off == pass_len ? 0 : gpgme_error_from_errno(errno);
+    res += gpgme_io_write(fd, "\n", 1);
+    return res == passpahrase_size + 1
+               ? 0
+               : gpgme_error_from_errno(GPG_ERR_CANCELED);
   }
 
   static auto CustomPassphraseCb(void *hook, const char *uid_hint,

@@ -283,49 +283,63 @@ void KeyGenDialog::slot_activated_key_type(int index) {
 }
 
 void KeyGenDialog::refresh_widgets_state() {
-  if (gen_key_info_->IsAllowEncryption()) {
+  if (gen_key_info_->IsAllowEncryption() ||
+      (gen_subkey_info_ != nullptr && gen_subkey_info_->IsAllowEncryption())) {
     key_usage_check_boxes_[0]->setCheckState(Qt::CheckState::Checked);
   } else {
     key_usage_check_boxes_[0]->setCheckState(Qt::CheckState::Unchecked);
   }
 
-  if (gen_key_info_->IsAllowChangeEncryption()) {
+  if (gen_key_info_->IsAllowChangeEncryption() ||
+      (gen_subkey_info_ != nullptr &&
+       gen_subkey_info_->IsAllowChangeEncryption())) {
     key_usage_check_boxes_[0]->setDisabled(false);
   } else {
     key_usage_check_boxes_[0]->setDisabled(true);
   }
 
-  if (gen_key_info_->IsAllowSigning()) {
+  if (gen_key_info_->IsAllowSigning() ||
+      (gen_subkey_info_ != nullptr && gen_subkey_info_->IsAllowSigning())) {
     key_usage_check_boxes_[1]->setCheckState(Qt::CheckState::Checked);
   } else {
     key_usage_check_boxes_[1]->setCheckState(Qt::CheckState::Unchecked);
   }
 
-  if (gen_key_info_->IsAllowChangeSigning()) {
+  if (gen_key_info_->IsAllowChangeSigning() ||
+      (gen_subkey_info_ != nullptr &&
+       gen_subkey_info_->IsAllowChangeSigning())) {
     key_usage_check_boxes_[1]->setDisabled(false);
   } else {
     key_usage_check_boxes_[1]->setDisabled(true);
   }
 
-  if (gen_key_info_->IsAllowCertification()) {
+  if (gen_key_info_->IsAllowCertification() ||
+      (gen_subkey_info_ != nullptr &&
+       gen_subkey_info_->IsAllowCertification())) {
     key_usage_check_boxes_[2]->setCheckState(Qt::CheckState::Checked);
   } else {
     key_usage_check_boxes_[2]->setCheckState(Qt::CheckState::Unchecked);
   }
 
-  if (gen_key_info_->IsAllowChangeCertification()) {
+  if (gen_key_info_->IsAllowChangeCertification() ||
+      (gen_subkey_info_ != nullptr &&
+       gen_subkey_info_->IsAllowChangeCertification())) {
     key_usage_check_boxes_[2]->setDisabled(false);
   } else {
     key_usage_check_boxes_[2]->setDisabled(true);
   }
 
-  if (gen_key_info_->IsAllowAuthentication()) {
+  if (gen_key_info_->IsAllowAuthentication() ||
+      (gen_subkey_info_ != nullptr &&
+       gen_subkey_info_->IsAllowAuthentication())) {
     key_usage_check_boxes_[3]->setCheckState(Qt::CheckState::Checked);
   } else {
     key_usage_check_boxes_[3]->setCheckState(Qt::CheckState::Unchecked);
   }
 
-  if (gen_key_info_->IsAllowChangeAuthentication()) {
+  if (gen_key_info_->IsAllowChangeAuthentication() ||
+      (gen_subkey_info_ != nullptr &&
+       gen_subkey_info_->IsAllowChangeAuthentication())) {
     key_usage_check_boxes_[3]->setDisabled(false);
   } else {
     key_usage_check_boxes_[3]->setDisabled(true);

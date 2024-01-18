@@ -128,6 +128,12 @@ auto CreateTempFileAndWriteData(const QString& data) -> QString {
   return temp_file;
 }
 
+auto CreateTempFileAndWriteData(const GFBuffer& data) -> QString {
+  auto temp_file = GetTempFilePath();
+  WriteFile(temp_file, data.ConvertToQByteArray());
+  return temp_file;
+}
+
 auto TargetFilePreCheck(const QString& path, bool read)
     -> std::tuple<bool, QString> {
   QFileInfo const file_info(path);

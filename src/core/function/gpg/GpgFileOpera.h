@@ -61,8 +61,21 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param channel Channel in context
    * @return unsigned int error code
    */
-  void EncryptFile(KeyArgsList keys, const QString& in_path, bool ascii,
+  void EncryptFile(const KeyArgsList& keys, const QString& in_path, bool ascii,
                    const QString& out_path, const GpgOperationCallback& cb);
+
+  /**
+   * @brief
+   *
+   * @param keys
+   * @param in_path
+   * @param ascii
+   * @param out_path
+   * @return std::tuple<GpgError, DataObjectPtr>
+   */
+  auto EncryptFileSync(const KeyArgsList& keys, const QString& in_path,
+                       bool ascii, const QString& out_path)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief
@@ -73,8 +86,8 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param out_path
    * @param cb
    */
-  void EncryptDirectory(KeyArgsList keys, const QString& in_path, bool ascii,
-                        const QString& out_path,
+  void EncryptDirectory(const KeyArgsList& keys, const QString& in_path,
+                        bool ascii, const QString& out_path,
                         const GpgOperationCallback& cb);
 
   /**
@@ -98,9 +111,32 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param out_path
    * @param cb
    */
+  auto EncryptFileSymmetricSync(const QString& in_path, bool ascii,
+                                const QString& out_path)
+      -> std::tuple<GpgError, DataObjectPtr>;
+
+  /**
+   * @brief
+   *
+   * @param in_path
+   * @param ascii
+   * @param out_path
+   * @param cb
+   */
   void EncryptDerectorySymmetric(const QString& in_path, bool ascii,
                                  const QString& out_path,
                                  const GpgOperationCallback& cb);
+
+  /**
+   * @brief
+   *
+   * @param in_path
+   * @param ascii
+   * @param out_path
+   */
+  auto EncryptDerectorySymmetricSync(const QString& in_path, bool ascii,
+                                     const QString& out_path)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief
@@ -112,6 +148,17 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    */
   void DecryptFile(const QString& in_path, const QString& out_path,
                    const GpgOperationCallback& cb);
+
+  /**
+   * @brief
+   *
+   * @param in_path
+   * @param out_path
+   * @param cb
+   * @return std::tuple<GpgError, DataObjectPtr>
+   */
+  auto DecryptFileSync(const QString& in_path, const QString& out_path)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief
@@ -133,8 +180,21 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param channel
    * @return GpgError
    */
-  void SignFile(KeyArgsList keys, const QString& in_path, bool ascii,
+  void SignFile(const KeyArgsList& keys, const QString& in_path, bool ascii,
                 const QString& out_path, const GpgOperationCallback& cb);
+
+  /**
+   * @brief
+   *
+   * @param keys
+   * @param in_path
+   * @param ascii
+   * @param out_path
+   * @return std::tuple<GpgError, DataObjectPtr>
+   */
+  auto SignFileSync(const KeyArgsList& keys, const QString& in_path, bool ascii,
+                    const QString& out_path)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief Verify file with public key
@@ -151,16 +211,12 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
   /**
    * @brief
    *
-   * @param keys
-   * @param signer_keys
-   * @param in_path
-   * @param ascii
-   * @param out_path
-   * @param cb
+   * @param data_path
+   * @param sign_path
+   * @return std::tuple<GpgError, DataObjectPtr>
    */
-  void EncryptSignFile(KeyArgsList keys, KeyArgsList signer_keys,
-                       const QString& in_path, bool ascii,
-                       const QString& out_path, const GpgOperationCallback& cb);
+  auto VerifyFileSync(const QString& data_path, const QString& sign_path)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief
@@ -172,7 +228,37 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param out_path
    * @param cb
    */
-  void EncryptSignDirectory(KeyArgsList keys, KeyArgsList signer_keys,
+  void EncryptSignFile(const KeyArgsList& keys, const KeyArgsList& signer_keys,
+                       const QString& in_path, bool ascii,
+                       const QString& out_path, const GpgOperationCallback& cb);
+
+  /**
+   * @brief
+   *
+   * @param keys
+   * @param signer_keys
+   * @param in_path
+   * @param ascii
+   * @param out_path
+   */
+  auto EncryptSignFileSync(const KeyArgsList& keys,
+                           const KeyArgsList& signer_keys,
+                           const QString& in_path, bool ascii,
+                           const QString& out_path)
+      -> std::tuple<GpgError, DataObjectPtr>;
+
+  /**
+   * @brief
+   *
+   * @param keys
+   * @param signer_keys
+   * @param in_path
+   * @param ascii
+   * @param out_path
+   * @param cb
+   */
+  void EncryptSignDirectory(const KeyArgsList& keys,
+                            const KeyArgsList& signer_keys,
                             const QString& in_path, bool ascii,
                             const QString& out_path,
                             const GpgOperationCallback& cb);
@@ -188,6 +274,15 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    */
   void DecryptVerifyFile(const QString& in_path, const QString& out_path,
                          const GpgOperationCallback& cb);
+
+  /**
+   * @brief
+   *
+   * @param in_path
+   * @param out_path
+   */
+  auto DecryptVerifyFileSync(const QString& in_path, const QString& out_path)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief

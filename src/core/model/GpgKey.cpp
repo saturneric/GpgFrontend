@@ -125,6 +125,13 @@ auto GpgKey::GetPublicKeyAlgo() const -> QString {
   return gpgme_pubkey_algo_name(key_ref_->subkeys->pubkey_algo);
 }
 
+auto GpgKey::GetKeyAlgo() const -> QString {
+  auto *buffer = gpgme_pubkey_algo_string(key_ref_->subkeys);
+  auto algo = QString(buffer);
+  gpgme_free(buffer);
+  return algo.toUpper();
+}
+
 auto GpgKey::GetLastUpdateTime() const -> QDateTime {
   return QDateTime::fromSecsSinceEpoch(
       static_cast<time_t>(key_ref_->last_update));

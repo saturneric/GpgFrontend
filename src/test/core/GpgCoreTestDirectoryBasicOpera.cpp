@@ -26,13 +26,4 @@
  *
  */
 
-#include <vector>
-
 #include "GpgCoreTest.h"
-#include "core/GpgConstants.h"
-
-namespace GpgFrontend::Test {
-
-// TEST_F(GpgCoreTest, CoreExportSecretTest) {}
-
-}  // namespace GpgFrontend::Test

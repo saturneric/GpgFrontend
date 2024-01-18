@@ -60,6 +60,13 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
   /**
    * @brief
    *
+   * @return QString
+   */
+  [[nodiscard]] auto GetKeyAlgo() const -> QString;
+
+  /**
+   * @brief
+   *
    * @return unsigned int
    */
   [[nodiscard]] auto GetKeyLength() const -> unsigned int;

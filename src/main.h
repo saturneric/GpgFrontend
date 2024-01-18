@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/utils/LogUtils.h"
+#include "core/utils/MemoryUtils.h"
 
 #define GF_MAIN_LOG_TRACE(...) GF_LOG_TRACE("main", __VA_ARGS__)
 #define GF_MAIN_LOG_DEBUG(...) GF_LOG_DEBUG("main", __VA_ARGS__)

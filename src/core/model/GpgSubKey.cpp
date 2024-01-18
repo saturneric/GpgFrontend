@@ -55,6 +55,13 @@ auto GpgSubKey::GetPubkeyAlgo() const -> QString {
   return gpgme_pubkey_algo_name(subkey_ref_->pubkey_algo);
 }
 
+auto GpgSubKey::GetKeyAlgo() const -> QString {
+  auto* buffer = gpgme_pubkey_algo_string(subkey_ref_.get());
+  auto algo = QString(buffer);
+  gpgme_free(buffer);
+  return algo.toUpper();
+}
+
 auto GpgSubKey::GetKeyLength() const -> unsigned int {
   return subkey_ref_->length;
 }

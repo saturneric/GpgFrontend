@@ -55,11 +55,16 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
   /**
    * @brief
    *
-   * All incoming data pointers out_buffer will be replaced with new valid
-   * values
+   */
+  void Encrypt(const KeyArgsList&, const GFBuffer&, bool,
+               const GpgOperationCallback&);
+
+  /**
+   * @brief
    *
    */
-  void Encrypt(KeyArgsList, GFBuffer, bool, const GpgOperationCallback&);
+  auto EncryptSync(const KeyArgsList&, const GFBuffer&, bool)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief Call the interface provided by GPGME to symmetrical encryption
@@ -69,8 +74,19 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param result Encrypted results
    * @return GpgError
    */
-  void EncryptSymmetric(GFBuffer in_buffer, bool ascii,
+  void EncryptSymmetric(const GFBuffer& in_buffer, bool ascii,
                         const GpgOperationCallback& cb);
+
+  /**
+   * @brief
+   *
+   * @param in_buffer
+   * @param ascii
+   * @param cb
+   * @return std::tuple<GpgError, DataObjectPtr>
+   */
+  auto EncryptSymmetricSync(const GFBuffer& in_buffer, bool ascii)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    *
@@ -80,13 +96,25 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param keys List of public keys
    * @param signers Private key for signatures
    * @param in_buffer Data for operation
-   * @param out_buffer Encrypted data
-   * @param encr_result Encrypted results
-   * @param sign_result Signature result
+   * @param ascii ascii mode
    * @return
    */
-  void EncryptSign(KeyArgsList keys, KeyArgsList signers, GFBuffer in_buffer,
-                   bool ascii, const GpgOperationCallback& cb);
+  void EncryptSign(const KeyArgsList& keys, const KeyArgsList& signers,
+                   const GFBuffer& in_buffer, bool ascii,
+                   const GpgOperationCallback& cb);
+
+  /**
+   * @brief
+   *
+   * @param keys
+   * @param signers
+   * @param in_buffer
+   * @param ascii
+   * @param cb
+   */
+  auto EncryptSignSync(const KeyArgsList& keys, const KeyArgsList& signers,
+                       const GFBuffer& in_buffer, bool ascii)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief Call the interface provided by gpgme for decryption operation
@@ -96,7 +124,15 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param result the result of the operation
    * @return error code
    */
-  void Decrypt(GFBuffer in_buffer, const GpgOperationCallback& cb);
+  void Decrypt(const GFBuffer& in_buffer, const GpgOperationCallback& cb);
+
+  /**
+   * @brief
+   *
+   * @param in_buffer
+   */
+  auto DecryptSync(const GFBuffer& in_buffer)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief  Call the interface provided by gpgme to perform decryption and
@@ -108,7 +144,15 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param verify_result the result of the verifying operation
    * @return error code
    */
-  void DecryptVerify(GFBuffer in_buffer, const GpgOperationCallback& cb);
+  void DecryptVerify(const GFBuffer& in_buffer, const GpgOperationCallback& cb);
+
+  /**
+   * @brief
+   *
+   * @param in_buffer
+   */
+  auto DecryptVerifySync(const GFBuffer& in_buffer)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief Call the interface provided by gpgme for verification operation
@@ -118,8 +162,19 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param result the result of the operation
    * @return error code
    */
-  void Verify(GFBuffer in_buffer, GFBuffer sig_buffer,
+  void Verify(const GFBuffer& in_buffer, const GFBuffer& sig_buffer,
               const GpgOperationCallback& cb);
+
+  /**
+   * @brief
+   *
+   * @param in_buffer
+   * @param sig_buffer
+   * @param cb
+   * @return std::tuple<GpgError, DataObjectPtr>
+   */
+  auto VerifySync(const GFBuffer& in_buffer, const GFBuffer& sig_buffer)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief  Call the interface provided by gpgme for signing operation
@@ -141,8 +196,22 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param result the result of the operation
    * @return error code
    */
-  void Sign(KeyArgsList signers, GFBuffer in_buffer, GpgSignMode mode,
-            bool ascii, const GpgOperationCallback& cb);
+  void Sign(const KeyArgsList& signers, const GFBuffer& in_buffer,
+            GpgSignMode mode, bool ascii, const GpgOperationCallback& cb);
+
+  /**
+   * @brief
+   *
+   * @param signers
+   * @param in_buffer
+   * @param mode
+   * @param ascii
+   * @param cb
+   * @return std::tuple<GpgError, DataObjectPtr>
+   */
+  auto SignSync(const KeyArgsList& signers, const GFBuffer& in_buffer,
+                GpgSignMode mode, bool ascii)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief  Set the private key for signatures, this operation is a global

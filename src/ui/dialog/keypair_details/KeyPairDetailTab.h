@@ -75,8 +75,10 @@ class KeyPairDetailTab : public QWidget {
   QLabel* created_var_label_;   ///< Label containing the keys creation date
   QLabel* last_update_var_label_;  ///<
   QLabel* algorithm_var_label_;    ///< Label containing the keys algorithm
-  QLabel* key_id_var_label;        ///< Label containing the keys keyid
-  QLabel* fingerprint_var_label_;  ///< Label containing the keys fingerprint
+  QLabel*
+      algorithm_detail_var_label_;  ///< containing the keys algorithm detail
+  QLabel* key_id_var_label;         ///< Label containing the keys keyid
+  QLabel* fingerprint_var_label_;   ///< Label containing the keys fingerprint
   QLabel* usage_var_label_;
   QLabel* actual_usage_var_label_;
   QLabel* primary_key_exist_var_label_;

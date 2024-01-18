@@ -118,6 +118,14 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
   /**
    * @brief
    *
+   * @param params
+   */
+  auto GenerateKeySync(const std::shared_ptr<GenKeyInfo>& params)
+      -> std::tuple<GpgError, DataObjectPtr>;
+
+  /**
+   * @brief
+   *
    * @param key
    * @param params
    * @return GpgFrontend::GpgError
@@ -129,6 +137,16 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
   /**
    * @brief
    *
+   * @param key
+   * @param params
+   */
+  auto GenerateSubkeySync(const GpgKey& key,
+                          const std::shared_ptr<GenKeyInfo>& params)
+      -> std::tuple<GpgError, DataObjectPtr>;
+
+  /**
+   * @brief
+   *
    * @param params
    * @param subkey_params
    * @param callback
@@ -136,6 +154,18 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
   void GenerateKeyWithSubkey(const std::shared_ptr<GenKeyInfo>& params,
                              const std::shared_ptr<GenKeyInfo>& subkey_params,
                              const GpgOperationCallback& callback);
+
+  /**
+   * @brief
+   *
+   * @param params
+   * @param subkey_params
+   * @param callback
+   */
+  auto GenerateKeyWithSubkeySync(
+      const std::shared_ptr<GenKeyInfo>& params,
+      const std::shared_ptr<GenKeyInfo>& subkey_params)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
  private:
   GpgContext& ctx_ =

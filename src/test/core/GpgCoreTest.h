@@ -30,6 +30,8 @@
 
 #include <gtest/gtest.h>
 
+#include "GpgFrontendTest.h"
+
 namespace GpgFrontend::Test {
 
 class GpgCoreTest : public ::testing::Test {

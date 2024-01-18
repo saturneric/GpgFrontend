@@ -36,15 +36,18 @@
 
 namespace GpgFrontend {
 
-auto RunGpgOperaAsync(GpgOperaRunnable runnable, GpgOperationCallback callback,
+auto RunGpgOperaAsync(const GpgOperaRunnable& runnable,
+                      const GpgOperationCallback& callback,
                       const QString& operation, const QString& minial_version)
     -> Thread::Task::TaskHandler {
   const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gnupg_version", minial_version);
-  GF_CORE_LOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
+  GF_CORE_LOG_DEBUG("got gnupg version from rt: {}, operation: {}",
+                    gnupg_version, operation);
 
-  if (CompareSoftwareVersion(gnupg_version, "2.0.15") < 0) {
-    GF_CORE_LOG_ERROR("operator not support");
+  if (CompareSoftwareVersion(gnupg_version, minial_version) < 0) {
+    GF_CORE_LOG_ERROR("operaton {} not support for gnupg version: {}",
+                      operation, gnupg_version);
     callback(GPG_ERR_NOT_SUPPORTED, TransferParams());
     return Thread::Task::TaskHandler(nullptr);
   }
@@ -74,7 +77,27 @@ auto RunGpgOperaAsync(GpgOperaRunnable runnable, GpgOperationCallback callback,
   return handler;
 }
 
-auto RunIOOperaAsync(OperaRunnable runnable, OperationCallback callback,
+auto RunGpgOperaSync(const GpgOperaRunnable& runnable, const QString& operation,
+                     const QString& minial_version)
+    -> std::tuple<GpgError, DataObjectPtr> {
+  const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.gnupg_version", minial_version);
+  GF_CORE_LOG_DEBUG("got gnupg version from rt: {}, operation: {}",
+                    gnupg_version, operation);
+
+  if (CompareSoftwareVersion(gnupg_version, minial_version) < 0) {
+    GF_CORE_LOG_ERROR("operaton {} not support for gnupg version: {}",
+                      operation, gnupg_version);
+    return {GPG_ERR_NOT_SUPPORTED, TransferParams()};
+  }
+
+  auto data_object = TransferParams();
+  auto err = runnable(data_object);
+  return {err, data_object};
+}
+
+auto RunIOOperaAsync(const OperaRunnable& runnable,
+                     const OperationCallback& callback,
                      const QString& operation) -> Thread::Task::TaskHandler {
   auto handler =
       Thread::TaskRunnerGetter::GetInstance()
