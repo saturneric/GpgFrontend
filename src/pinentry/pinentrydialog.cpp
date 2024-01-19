@@ -55,34 +55,21 @@
 #include "pinlineedit.h"
 #include "util.h"
 
-#ifdef Q_OS_WIN
-#include <windows.h>
-#if QT_VERSION >= 0x050700
-#include <QtPlatformHeaders/QWindowsWindowFunctions>
-#endif
-#endif
-
 void raiseWindow(QWidget *w) {
-#ifdef Q_OS_WIN
-#if QT_VERSION >= 0x050700
-  QWindowsWindowFunctions::setWindowActivationBehavior(
-      QWindowsWindowFunctions::AlwaysActivateWindow);
-#endif
-#endif
   w->setWindowState((w->windowState() & ~Qt::WindowMinimized) |
                     Qt::WindowActive);
   w->activateWindow();
   w->raise();
 }
 
-QPixmap applicationIconPixmap(const QIcon &overlayIcon) {
+auto applicationIconPixmap(const QIcon &overlayIcon) -> QPixmap {
   QPixmap pm = qApp->windowIcon().pixmap(48, 48);
 
   if (!overlayIcon.isNull()) {
     QPainter painter(&pm);
-    const int emblemSize = 22;
-    painter.drawPixmap(pm.width() - emblemSize, 0,
-                       overlayIcon.pixmap(emblemSize, emblemSize));
+    const int emblem_size = 22;
+    painter.drawPixmap(pm.width() - emblem_size, 0,
+                       overlayIcon.pixmap(emblem_size, emblem_size));
   }
 
   return pm;
