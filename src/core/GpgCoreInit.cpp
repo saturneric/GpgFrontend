@@ -331,7 +331,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                 QObject::tr("Gpg Key Detabase inilization failed"));
           };
         }
-        GF_CORE_LOG_INFO(
+        GF_CORE_LOG_DEBUG(
             "basic env checking finished, "
             "including gpgme, ctx, and key infos");
         Module::UpsertRTValue("core", "env.state.basic", 1);

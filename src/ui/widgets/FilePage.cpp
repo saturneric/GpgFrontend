@@ -49,8 +49,7 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
   connect(this->ui_->newDirButton, &QPushButton::clicked, file_tree_view_,
           &FileTreeView::SlotMkdir);
 
-  ui_->pathEdit->setText(
-      QString::fromStdString(file_tree_view_->GetCurrentPath().u8string()));
+  ui_->pathEdit->setText(file_tree_view_->GetCurrentPath());
 
   path_edit_completer_ = new QCompleter(this);
   path_complete_model_ = new QStringListModel();
@@ -150,16 +149,11 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
 }
 
 auto FilePage::GetSelected() const -> QString {
-  return QString::fromStdString(file_tree_view_->GetSelectedPath().string());
+  return file_tree_view_->GetSelectedPath();
 }
 
 void FilePage::SlotGoPath() {
-#ifdef WINDOWS
-  std::filesystem::path target_path(ui_->pathEdit->text().toStdU16String());
-#else
-  std::filesystem::path target_path(ui_->pathEdit->text().toStdString());
-#endif
-  file_tree_view_->SlotGoPath(target_path);
+  file_tree_view_->SlotGoPath(ui_->pathEdit->text());
 }
 
 void FilePage::keyPressEvent(QKeyEvent* event) {

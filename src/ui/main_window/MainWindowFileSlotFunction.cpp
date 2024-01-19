@@ -513,9 +513,10 @@ void MainWindow::SlotFileVerify(const QString& path) {
               if (result_analyse.GetStatus() == -2) {
                 import_unknown_key_from_keyserver(this, result_analyse);
               }
-              if (result_analyse.GetStatus() >= 0) {
-                show_verify_details(this, info_board_, err, result);
-              }
+              // pause this feature
+              // if (result_analyse.GetStatus() >= 0) {
+              //   show_verify_details(this, info_board_, err, result);
+              // }
 
               this->slot_refresh_current_file_view();
             });
@@ -738,7 +739,6 @@ void MainWindow::SlotFileDecryptVerify(const QString& path) {
   }
 
   auto out_path = SetExtensionOfOutputFile(path, kDECRYPT_VERIFY, true);
-
   check_result = TargetFilePreCheck(out_path, false);
   if (!std::get<0>(check_result)) {
     QMessageBox::critical(this, tr("Error"),
@@ -786,9 +786,10 @@ void MainWindow::SlotFileDecryptVerify(const QString& path) {
               if (verify_result_analyse.GetStatus() == -2) {
                 import_unknown_key_from_keyserver(this, verify_result_analyse);
               }
-              if (verify_result_analyse.GetStatus() >= 0) {
-                show_verify_details(this, info_board_, err, verify_result);
-              }
+              // pause this feature
+              // if (verify_result_analyse.GetStatus() >= 0) {
+              //   show_verify_details(this, info_board_, err, verify_result);
+              // }
 
               this->slot_refresh_current_file_view();
             });
@@ -805,7 +806,7 @@ void MainWindow::SlotArchiveDecryptVerify(const QString& path) {
 
   auto out_path =
       SetExtensionOfOutputFileForArchive(path, kDECRYPT_VERIFY, true);
-
+  GF_UI_LOG_INFO("out_path: {}", out_path);
   check_result = TargetFilePreCheck(out_path, false);
   if (!std::get<0>(check_result)) {
     QMessageBox::critical(this, tr("Error"),
@@ -828,6 +829,7 @@ void MainWindow::SlotArchiveDecryptVerify(const QString& path) {
       [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().DecryptVerifyArchive(
             path, out_path, [=](GpgError err, const DataObjectPtr& data_obj) {
+              GF_CORE_LOG_INFO("****************************");
               // stop waiting
               op_hd();
 
@@ -854,9 +856,10 @@ void MainWindow::SlotArchiveDecryptVerify(const QString& path) {
               if (verify_result_analyse.GetStatus() == -2) {
                 import_unknown_key_from_keyserver(this, verify_result_analyse);
               }
-              if (verify_result_analyse.GetStatus() >= 0) {
-                show_verify_details(this, info_board_, err, verify_result);
-              }
+              // pause this feature
+              // if (verify_result_analyse.GetStatus() >= 0) {
+              //   show_verify_details(this, info_board_, err, verify_result);
+              // }
 
               this->slot_refresh_current_file_view();
             });

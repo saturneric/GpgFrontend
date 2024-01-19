@@ -98,8 +98,12 @@ void MainWindow::slot_append_keys_create_datetime() {
   }
 
   auto create_datetime_format_str_local =
-      QLocale().toString(key.GetCreateTime()) + tr(" (Local Time) ") + "\n";
-  edit_->SlotAppendText2CurTextPage(create_datetime_format_str_local);
+      QLocale().toString(key.GetCreateTime()) + " (" + tr("Localize") + ") " +
+      "\n";
+  auto create_datetime_format_str = key.GetCreateTime().toString(Qt::ISODate) +
+                                    " (" + tr("UTC") + ") " + "\n ";
+  edit_->SlotAppendText2CurTextPage(create_datetime_format_str_local +
+                                    create_datetime_format_str);
 }
 
 void MainWindow::slot_append_keys_expire_datetime() {
@@ -116,10 +120,13 @@ void MainWindow::slot_append_keys_expire_datetime() {
     return;
   }
 
-  auto create_datetime_format_str =
-      key.GetCreateTime().toString() + " (UTC) " + "\n";
+  auto expire_datetime_format_str_local =
+      QLocale().toString(key.GetCreateTime()) + tr(" (Local Time) ") + "\n";
+  auto expire_datetime_format_str =
+      key.GetCreateTime().toString(Qt::ISODate) + " (UTC) " + "\n";
 
-  edit_->SlotAppendText2CurTextPage(create_datetime_format_str);
+  edit_->SlotAppendText2CurTextPage(expire_datetime_format_str_local +
+                                    expire_datetime_format_str);
 }
 
 void MainWindow::slot_append_keys_fingerprint() {

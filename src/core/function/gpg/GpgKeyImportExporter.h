@@ -85,6 +85,17 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
                   bool shortest, bool ssh_mode,
                   const GpgOperationCallback& cb) const;
 
+  /**
+   * @brief
+   *
+   * @param keys
+   * @param secret
+   * @param ascii
+   * @param cb
+   */
+  void ExportAllKeys(const KeyArgsList& keys, bool secret, bool ascii,
+                     const GpgOperationCallback& cb) const;
+
  private:
   GpgContext& ctx_;
 };

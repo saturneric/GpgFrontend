@@ -63,8 +63,8 @@ SettingsDialog::SettingsDialog(QWidget* parent)
           &SettingsDialog::SlotAccept);
   connect(button_box_, &QDialogButtonBox::rejected, this,
           &SettingsDialog::reject);
-  mainLayout->addWidget(button_box_);
-  mainLayout->stretch(0);
+  main_layout->addWidget(button_box_);
+  main_layout->stretch(0);
   setWindowTitle(tr("Settings"));
 #else
   connect(this, &QDialog::finished, this, &SettingsDialog::SlotAccept);

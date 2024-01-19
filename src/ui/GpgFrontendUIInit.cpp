@@ -221,7 +221,7 @@ void InitLocale() {
   if (translator->load(target_locale, QLatin1String(PROJECT_NAME),
                        QLatin1String("."), QLatin1String(":/i18n"),
                        QLatin1String(".qm"))) {
-    GF_UI_LOG_INFO("load target translation file done");
+    GF_UI_LOG_DEBUG("load target translation file done");
     QCoreApplication::installTranslator(translator);
   }
 }

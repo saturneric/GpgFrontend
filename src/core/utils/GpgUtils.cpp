@@ -143,6 +143,7 @@ auto SetExtensionOfOutputFileForArchive(const QString& path, GpgOperation opera,
       case kENCRYPT:
       case kENCRYPT_SIGN:
         extension = ".tar.asc";
+        return path + extension;
         break;
       default:
         break;
@@ -152,21 +153,15 @@ auto SetExtensionOfOutputFileForArchive(const QString& path, GpgOperation opera,
       case kENCRYPT:
       case kENCRYPT_SIGN:
         extension = ".tar.gpg";
+        return path + extension;
         break;
       default:
         break;
     }
   }
 
-  if (!extension.isEmpty()) {
-    auto last_dot_index = path.lastIndexOf('.');
-    if (last_dot_index != -1) {
-      return path.left(last_dot_index) + extension;
-    }
-    return path + extension;
-  }
-
-  return path;  // 如果没有匹配的操作，则返回原始路径
+  auto file_info = QFileInfo(path);
+  return file_info.absolutePath() + "/" + file_info.baseName();
 }
 
 }  // namespace GpgFrontend

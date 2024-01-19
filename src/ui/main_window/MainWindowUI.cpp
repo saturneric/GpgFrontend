@@ -254,7 +254,7 @@ void MainWindow::create_actions() {
       if (file_info.isFile()) {
         const QString extension = file_info.completeSuffix();
 
-        if (extension == ".tar.gpg" || extension == ".tar.asc") {
+        if (extension == "tar.gpg" || extension == "tar.asc") {
           this->SlotArchiveDecryptVerify(path);
         } else {
           this->SlotFileDecryptVerify(path);

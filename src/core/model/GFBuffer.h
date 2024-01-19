@@ -39,22 +39,26 @@ class GPGFRONTEND_CORE_EXPORT GFBuffer {
 
   explicit GFBuffer(QByteArray buffer);
 
-  explicit GFBuffer(QString str);
+  explicit GFBuffer(const QString& str);
 
   auto operator==(const GFBuffer& o) const -> bool;
 
-  [[nodiscard]] auto Data() const -> std::byte*;
+  [[nodiscard]] auto Data() const -> const char*;
 
-  void Resize(size_t size);
+  void Resize(ssize_t size);
 
   [[nodiscard]] auto Size() const -> size_t;
 
   [[nodiscard]] auto Empty() const -> bool;
 
+  void Append(const GFBuffer&);
+
+  void Append(const char*, ssize_t);
+
   [[nodiscard]] auto ConvertToQByteArray() const -> QByteArray;
 
  private:
-  std::shared_ptr<std::vector<std::byte>> buffer_;
+  QByteArray buffer_;
 };
 
 }  // namespace GpgFrontend

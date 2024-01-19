@@ -163,7 +163,7 @@ class GlobalModuleContext::Impl {
     if (met_it == module_events_table_.end()) {
       module_events_table_[event] = std::unordered_set<ModuleIdentifier>();
       met_it = module_events_table_.find(event);
-      GF_CORE_LOG_INFO("new event {} of module system created", event);
+      GF_CORE_LOG_DEBUG("new event {} of module system created", event);
     }
 
     auto& listeners_set = met_it->second;

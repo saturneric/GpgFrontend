@@ -2047,7 +2047,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="272"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="303"/>
         <source>Export Key</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">导出密钥</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="293"/>

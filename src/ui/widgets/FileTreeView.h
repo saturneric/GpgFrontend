@@ -40,14 +40,14 @@ class FileTreeView : public QTreeView {
    *
    * @return std::filesystem::path
    */
-  auto GetCurrentPath() -> std::filesystem::path;
+  auto GetCurrentPath() -> QString;
 
   /**
    * @brief Get the Selected Path object
    *
    * @return std::filesystem::path
    */
-  auto GetSelectedPath() -> std::filesystem::path;
+  auto GetSelectedPath() -> QString;
 
   /**
    * @brief Get the Path By Click Point object
@@ -55,7 +55,7 @@ class FileTreeView : public QTreeView {
    * @param point
    * @return std::filesystem::path
    */
-  auto GetPathByClickPoint(const QPoint& point) -> std::filesystem::path;
+  auto GetPathByClickPoint(const QPoint& point) -> QString;
 
   /**
    * @brief Get the Mouse Point Global object
@@ -115,7 +115,7 @@ class FileTreeView : public QTreeView {
    * @brief
    *
    */
-  void SlotGoPath(const std::filesystem::path&);
+  void SlotGoPath(const QString&);
 
   /**
    * @brief
@@ -213,9 +213,9 @@ class FileTreeView : public QTreeView {
   void slot_create_popup_menu();
 
  private:
-  QFileSystemModel* dir_model_;          ///<
-  std::filesystem::path current_path_;   ///<
-  std::filesystem::path selected_path_;  ///<
+  QFileSystemModel* dir_model_;  ///<
+  QString current_path_;         ///<
+  QString selected_path_;        ///<
 
   QMenu* popup_menu_;
   QAction* action_open_file_;

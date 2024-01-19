@@ -138,4 +138,57 @@ void GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys, bool secret,
       cb, "gpgme_op_export_keys", "2.1.0");
 }
 
+/**
+ * Export keys
+ * @param keys keys used
+ * @param outBuffer output byte array
+ * @return if success
+ */
+void GpgKeyImportExporter::ExportAllKeys(const KeyArgsList& keys, bool secret,
+                                         bool ascii,
+                                         const GpgOperationCallback& cb) const {
+  RunGpgOperaAsync(
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        if (keys.empty()) return GPG_ERR_CANCELED;
+
+        int mode = 0;
+        if (secret) mode |= GPGME_EXPORT_MODE_SECRET;
+
+        std::vector<gpgme_key_t> keys_array(keys.begin(), keys.end());
+
+        // Last entry data_in array has to be nullptr
+        keys_array.emplace_back(nullptr);
+
+        GpgData data_out;
+        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+        auto err = gpgme_op_export_keys(ctx, keys_array.data(), mode, data_out);
+        if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
+
+        GF_CORE_LOG_DEBUG(
+            "operation of exporting keys finished, ascii: {}, read_bytes: {}",
+            ascii, gpgme_data_seek(data_out, 0, SEEK_END));
+        auto buffer = data_out.Read2GFBuffer();
+
+        if (secret) {
+          int mode = 0;
+          mode |= GPGME_EXPORT_MODE_SECRET;
+
+          GpgData data_out_secret;
+          auto err = gpgme_op_export_keys(ctx, keys_array.data(), mode,
+                                          data_out_secret);
+          if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
+
+          GF_CORE_LOG_DEBUG(
+              "operation of exporting secret keys finished, "
+              "ascii: {}, read_bytes: {}",
+              ascii, gpgme_data_seek(data_out_secret, 0, SEEK_END));
+          buffer.Append(data_out_secret.Read2GFBuffer());
+        }
+
+        data_object->Swap({buffer});
+        return err;
+      },
+      cb, "gpgme_op_export_keys", "2.1.0");
+}
+
 }  // namespace GpgFrontend

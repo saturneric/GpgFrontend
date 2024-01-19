@@ -43,7 +43,7 @@ FileTreeView::FileTreeView(QWidget* parent, const QString& target_path)
   this->setModel(dir_model_);
   this->setColumnWidth(0, 320);
   this->sortByColumn(0, Qt::AscendingOrder);
-  current_path_ = std::filesystem::path(dir_model_->rootPath().toStdString());
+  current_path_ = dir_model_->rootPath();
 
   slot_create_popup_menu();
   this->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -56,24 +56,27 @@ FileTreeView::FileTreeView(QWidget* parent, const QString& target_path)
 void FileTreeView::selectionChanged(const QItemSelection& selected,
                                     const QItemSelection& deselected) {
   QTreeView::selectionChanged(selected, deselected);
-
+  GF_UI_LOG_DEBUG(
+      "file tree view selected changed, selected: {}, deselected: {}",
+      selected.size(), deselected.size());
   if (!selected.indexes().empty()) {
-    selected_path_ = dir_model_->fileInfo(selected.indexes().first())
-                         .filesystemAbsoluteFilePath();
-    GF_UI_LOG_DEBUG("file tree view selected target path: {}",
-                    selected_path_.u8string());
-    emit SignalSelectedChanged(QString::fromStdString(selected_path_));
+    selected_path_ = dir_model_->filePath(selected.indexes().first());
+    GF_UI_LOG_DEBUG("file tree view selected target path: {}", selected_path_);
+    emit SignalSelectedChanged(selected_path_);
   } else {
-    selected_path_ = std::filesystem::path{};
+    selected_path_ = {};
+    if (!this->selectedIndexes().isEmpty()) {
+      selected_path_ = dir_model_->filePath(this->selectedIndexes().front());
+      emit SignalSelectedChanged(selected_path_);
+    }
   }
 }
 
-void FileTreeView::SlotGoPath(const std::filesystem::path& target_path) {
+void FileTreeView::SlotGoPath(const QString& target_path) {
   auto file_info = QFileInfo(target_path);
   if (file_info.isDir() && file_info.isReadable() && file_info.isExecutable()) {
-    current_path_ = file_info.filesystemAbsoluteFilePath();
-    GF_UI_LOG_DEBUG("file tree view set target path: {}",
-                    current_path_.u8string());
+    current_path_ = file_info.absoluteFilePath();
+    GF_UI_LOG_DEBUG("file tree view set target path: {}", current_path_);
     this->setRootIndex(dir_model_->index(file_info.filePath()));
     dir_model_->setRootPath(file_info.filePath());
     for (int i = 1; i < dir_model_->columnCount(); ++i) {
@@ -84,7 +87,7 @@ void FileTreeView::SlotGoPath(const std::filesystem::path& target_path) {
         this, tr("Error"),
         tr("The path is not exists, unprivileged or unreachable."));
   }
-  emit SignalPathChanged(QString::fromStdString(current_path_.u8string()));
+  emit SignalPathChanged(current_path_);
 }
 
 void FileTreeView::slot_file_tree_view_item_double_clicked(
@@ -98,58 +101,51 @@ void FileTreeView::slot_file_tree_view_item_double_clicked(
                             tr("The file is unprivileged or unreachable."));
     }
   } else {
-    SlotGoPath(file_info.filesystemAbsoluteFilePath());
+    SlotGoPath(file_info.absoluteFilePath());
   }
 }
 
 void FileTreeView::SlotUpLevel() {
   QModelIndex const current_root = this->rootIndex();
 
-  auto target_path =
-      dir_model_->fileInfo(current_root).filesystemAbsoluteFilePath();
-  if (target_path.has_parent_path() && !target_path.parent_path().empty()) {
-    target_path = target_path.parent_path();
-    GF_UI_LOG_DEBUG("file tree view go parent path: {}",
-                    target_path.u8string());
+  auto target_path = dir_model_->fileInfo(current_root).absoluteFilePath();
+  if (auto parent_path = QDir(target_path); parent_path.cdUp()) {
+    target_path = parent_path.absolutePath();
+    GF_UI_LOG_DEBUG("file tree view go parent path: {}", target_path);
     this->SlotGoPath(target_path);
   }
   current_path_ = target_path;
 }
 
-auto FileTreeView::GetCurrentPath() -> std::filesystem::path {
-  return current_path_;
-}
+auto FileTreeView::GetCurrentPath() -> QString { return current_path_; }
 
 void FileTreeView::SlotShowSystemFile(bool on) {
   auto filters = on ? dir_model_->filter() | QDir::System
                     : dir_model_->filter() & ~QDir::System;
   dir_model_->setFilter(filters);
-  dir_model_->setRootPath(QString::fromStdString(current_path_.u8string()));
+  dir_model_->setRootPath(current_path_);
 }
 
 void FileTreeView::SlotShowHiddenFile(bool on) {
   auto filters = on ? dir_model_->filter() | QDir::Hidden
                     : dir_model_->filter() & ~QDir::Hidden;
   dir_model_->setFilter(filters);
-  dir_model_->setRootPath(QString::fromStdString(current_path_.u8string()));
+  dir_model_->setRootPath(current_path_);
 }
 
-auto FileTreeView::GetPathByClickPoint(const QPoint& point)
-    -> std::filesystem::path {
+auto FileTreeView::GetPathByClickPoint(const QPoint& point) -> QString {
   auto const index = this->indexAt(point);
 
   if (!index.isValid()) {
     return {};
   }
 
-  auto index_path = dir_model_->fileInfo(index).filesystemAbsoluteFilePath();
-  GF_UI_LOG_DEBUG("file tree view right click on: {}", index_path.string());
+  auto index_path = dir_model_->fileInfo(index).absoluteFilePath();
+  GF_UI_LOG_DEBUG("file tree view right click on: {}", index_path);
   return index_path;
 }
 
-auto FileTreeView::GetSelectedPath() -> std::filesystem::path {
-  return selected_path_;
-}
+auto FileTreeView::GetSelectedPath() -> QString { return selected_path_; }
 
 auto FileTreeView::SlotDeleteSelectedItem() -> void {
   QModelIndex const index = this->currentIndex();
@@ -224,7 +220,7 @@ void FileTreeView::SlotTouch() {
 }
 
 void FileTreeView::SlotTouchBelowAtSelectedItem() {
-  std::filesystem::path root_path(selected_path_);
+  auto root_path(selected_path_);
 
   QString new_file_name;
   bool ok;
@@ -232,12 +228,9 @@ void FileTreeView::SlotTouchBelowAtSelectedItem() {
       this, tr("Create Empty File"), tr("Filename (you can given extension)"),
       QLineEdit::Normal, new_file_name, &ok);
   if (ok && !new_file_name.isEmpty()) {
-#ifdef WINDOWS
-    auto file_path = root_path / new_file_name.toStdU16String();
-#else
-    auto file_path = root_path / new_file_name.toStdString();
-#endif
-    QFile new_file(file_path.u8string().c_str());
+    auto file_path = root_path + "/" + new_file_name;
+
+    QFile new_file(file_path);
     if (!new_file.open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
       QMessageBox::critical(this, tr("Error"),
                             tr("Unable to create the file."));
@@ -260,40 +253,33 @@ void FileTreeView::keyPressEvent(QKeyEvent* event) {
 }
 
 void FileTreeView::SlotOpenSelectedItemBySystemApplication() {
-  QFileInfo const info(QString::fromStdString(selected_path_.u8string()));
-  auto q_selected_path = QString::fromStdString(selected_path_.u8string());
+  QFileInfo const info(selected_path_);
   if (info.isDir()) {
     const auto file_path = info.filePath().toUtf8().toStdString();
-    QDesktopServices::openUrl(QUrl::fromLocalFile(q_selected_path));
+    QDesktopServices::openUrl(QUrl::fromLocalFile(selected_path_));
 
   } else {
-    QDesktopServices::openUrl(QUrl::fromLocalFile(q_selected_path));
+    QDesktopServices::openUrl(QUrl::fromLocalFile(selected_path_));
   }
 }
 
 void FileTreeView::SlotRenameSelectedItem() {
   bool ok;
-  auto text = QInputDialog::getText(
-      this, tr("Rename"), tr("New Filename"), QLineEdit::Normal,
-      QString::fromStdString(selected_path_.filename().u8string()), &ok);
+  auto text = QInputDialog::getText(this, tr("Rename"), tr("New Filename"),
+                                    QLineEdit::Normal,
+                                    QFileInfo(selected_path_).fileName(), &ok);
   if (ok && !text.isEmpty()) {
-    try {
-#ifdef WINDOWS
-      auto new_name_path = selected_path_.parent_path() / text.toStdU16String();
-#else
-      auto new_name_path = selected_path_.parent_path() / text.toStdString();
-#endif
-      GF_UI_LOG_DEBUG("new name path: {}", new_name_path.u8string());
-      std::filesystem::rename(selected_path_, new_name_path);
-
-      // refresh
-      SlotGoPath(current_path_);
-    } catch (...) {
-      GF_UI_LOG_ERROR("file tree view rename error: {}",
-                      selected_path_.u8string());
+    auto file_info = QFileInfo(selected_path_);
+    auto new_name_path = file_info.absolutePath() + "/" + text;
+    GF_UI_LOG_DEBUG("new filename path: {}", new_name_path);
+    if (QDir().rename(file_info.absoluteFilePath(), new_name_path)) {
       QMessageBox::critical(this, tr("Error"),
                             tr("Unable to rename the file or folder."));
+      return;
     }
+
+    // refresh
+    SlotGoPath(current_path_);
   }
 }
 
@@ -306,9 +292,8 @@ void FileTreeView::slot_create_popup_menu() {
 
   action_open_file_ = new QAction(this);
   action_open_file_->setText(tr("Open"));
-  connect(action_open_file_, &QAction::triggered, this, [this](bool) {
-    emit SignalOpenFile(QString::fromStdString(GetSelectedPath()));
-  });
+  connect(action_open_file_, &QAction::triggered, this,
+          [this](bool) { emit SignalOpenFile(GetSelectedPath()); });
 
   action_rename_file_ = new QAction(this);
   action_rename_file_->setText(tr("Rename"));
@@ -368,12 +353,12 @@ void FileTreeView::slot_create_popup_menu() {
 void FileTreeView::slot_show_custom_context_menu(const QPoint& point) {
   auto target_path = this->GetPathByClickPoint(point);
 
-  if (!target_path.empty()) {
+  if (!target_path.isEmpty()) {
     action_open_file_->setEnabled(true);
     action_rename_file_->setEnabled(true);
     action_delete_file_->setEnabled(true);
 
-    QFileInfo const info(QString::fromStdString(this->GetSelectedPath()));
+    QFileInfo const info(this->GetSelectedPath());
     action_calculate_hash_->setEnabled(info.isFile() && info.isReadable());
 
   } else {
@@ -388,8 +373,7 @@ void FileTreeView::slot_show_custom_context_menu(const QPoint& point) {
 
 void FileTreeView::slot_calculate_hash() {
   emit UISignalStation::GetInstance()->SignalRefreshInfoBoard(
-      CalculateHash(this->GetSelectedPath().c_str()),
-      InfoBoardStatus::INFO_ERROR_OK);
+      CalculateHash(this->GetSelectedPath()), InfoBoardStatus::INFO_ERROR_OK);
 }
 
 void FileTreeView::slot_compress_files() {}

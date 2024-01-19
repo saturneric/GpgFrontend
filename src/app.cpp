@@ -59,7 +59,7 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
     return -1;
   }
 
-  GF_MAIN_LOG_INFO("start running gui application");
+  GF_MAIN_LOG_DEBUG("start running gui application");
 
   /**
    * internationalisation. loop to restart main window

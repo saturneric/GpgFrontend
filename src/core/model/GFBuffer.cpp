@@ -30,37 +30,30 @@
 
 namespace GpgFrontend {
 
-GFBuffer::GFBuffer()
-    : buffer_(SecureCreateSharedObject<std::vector<std::byte>>()) {}
+GFBuffer::GFBuffer() = default;
 
-GFBuffer::GFBuffer(QByteArray buffer)
-    : buffer_(SecureCreateSharedObject<std::vector<std::byte>>()) {
-  std::transform(buffer.begin(), buffer.end(), std::back_inserter(*buffer_),
-                 [](const char c) { return static_cast<std::byte>(c); });
-}
+GFBuffer::GFBuffer(QByteArray buffer) : buffer_(std::move(buffer)) {}
 
-GFBuffer::GFBuffer(QString str)
-    : buffer_(SecureCreateSharedObject<std::vector<std::byte>>()) {
-  std::transform(
-      str.begin(), str.end(), std::back_inserter(*buffer_),
-      [](const QChar c) { return static_cast<std::byte>(c.unicode()); });
-}
+GFBuffer::GFBuffer(const QString& str) : buffer_(str.toUtf8()) {}
 
 auto GFBuffer::operator==(const GFBuffer& o) const -> bool {
-  return equal(buffer_->begin(), buffer_->end(), o.buffer_->begin());
+  return buffer_ == o.buffer_;
 }
 
-auto GFBuffer::Data() const -> std::byte* { return buffer_->data(); }
+auto GFBuffer::Data() const -> const char* { return buffer_.constData(); }
 
-void GFBuffer::Resize(size_t size) { buffer_->resize(size); }
+void GFBuffer::Resize(ssize_t size) { buffer_.resize(size); }
 
-auto GFBuffer::Size() const -> size_t { return buffer_->size(); }
+auto GFBuffer::Size() const -> size_t { return buffer_.size(); }
 
-auto GFBuffer::ConvertToQByteArray() const -> QByteArray {
-  return QByteArray::fromRawData(reinterpret_cast<const char*>(Data()),
-                                 static_cast<qsizetype>(Size()));
-}
+auto GFBuffer::ConvertToQByteArray() const -> QByteArray { return buffer_; }
 
 auto GFBuffer::Empty() const -> bool { return this->Size() == 0; }
+
+void GFBuffer::Append(const GFBuffer& o) { buffer_.append(o.buffer_); }
+
+void GFBuffer::Append(const char* buffer, ssize_t size) {
+  buffer_.append(buffer, size);
+}
 
 }  // namespace GpgFrontend

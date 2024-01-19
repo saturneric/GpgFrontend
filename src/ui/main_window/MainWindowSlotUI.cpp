@@ -158,16 +158,16 @@ void MainWindow::slot_cut_pgp_header() {
   }
 
   QString content = edit_->CurTextPage()->GetTextPage()->toPlainText();
-  int start = content.indexOf(PGP_CRYPT_BEGIN);
-  int end = content.indexOf(PGP_CRYPT_END);
+  auto start = content.indexOf(PGP_CRYPT_BEGIN);
+  auto end = content.indexOf(PGP_CRYPT_END);
 
   if (start < 0 || end < 0) {
     return;
   }
 
   // remove head
-  int headEnd = content.indexOf("\n\n", start) + 2;
-  content.remove(start, headEnd - start);
+  auto head_end = content.indexOf("\n\n", start) + 2;
+  content.remove(start, head_end - start);
 
   // remove tail
   end = content.indexOf(PGP_CRYPT_END);

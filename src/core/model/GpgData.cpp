@@ -48,6 +48,7 @@ auto GFWriteExCb(void* handle, const void* buffer, size_t size) -> ssize_t {
 }
 
 void GFReleaseExCb(void* handle) {
+  GF_CORE_LOG_INFO("$$$$$$$$$$$$$$$$$$$$$$$");
   auto* ex = static_cast<GFDataExchanger*>(handle);
   ex->CloseWrite();
 }
@@ -137,13 +138,12 @@ auto GpgData::Read2GFBuffer() -> GFBuffer {
     const GpgError err = gpgme_err_code_from_errno(errno);
     assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
   } else {
-    std::array<std::byte, kBufferSize + 2> buf;
+    std::array<char, kBufferSize + 2> buf;
 
     while ((ret = gpgme_data_read(*this, buf.data(), kBufferSize)) > 0) {
-      const size_t size = out_buffer.Size();
-      out_buffer.Resize(static_cast<int>(size + ret));
-      memcpy(out_buffer.Data() + size, buf.data(), ret);
+      out_buffer.Append(buf.data(), ret);
     }
+
     if (ret < 0) {
       const GpgError err = gpgme_err_code_from_errno(errno);
       assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);

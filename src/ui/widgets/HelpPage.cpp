@@ -32,11 +32,11 @@ namespace GpgFrontend::UI {
 
 HelpPage::HelpPage(const QString& path, QWidget* parent) : QWidget(parent) {
   browser_ = new QTextBrowser();
-  auto* mainLayout = new QVBoxLayout();
-  mainLayout->setSpacing(0);
-  mainLayout->addWidget(browser_);
-  mainLayout->setContentsMargins(0, 0, 0, 0);
-  setLayout(mainLayout);
+  auto* main_layout = new QVBoxLayout();
+  main_layout->setSpacing(0);
+  main_layout->addWidget(browser_);
+  main_layout->setContentsMargins(0, 0, 0, 0);
+  setLayout(main_layout);
 
   connect(browser_, &QTextBrowser::anchorClicked, this,
           &HelpPage::slot_open_url);
@@ -57,7 +57,7 @@ void HelpPage::slot_open_url(const QUrl& url) {
  * @param url
  * @return
  */
-QUrl HelpPage::localized_help(const QUrl& url) {
+auto HelpPage::localized_help(const QUrl& url) -> QUrl {
   QString path = url.toLocalFile();
   QString filename = path.mid(path.lastIndexOf("/") + 1);
   QString filepath = path.left(path.lastIndexOf("/") + 1);
@@ -74,9 +74,8 @@ QUrl HelpPage::localized_help(const QUrl& url) {
 
   if (QFile(QUrl(langfile).toLocalFile()).exists()) {
     return langfile;
-  } else {
-    return path;
   }
+  return path;
 }
 
 QTextBrowser* HelpPage::GetBrowser() { return browser_; }
