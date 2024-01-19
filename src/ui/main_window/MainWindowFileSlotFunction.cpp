@@ -38,6 +38,7 @@
 #include "core/utils/IOUtils.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SignersPicker.h"
+#include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
 
@@ -510,9 +511,11 @@ void MainWindow::SlotFileVerify(const QString& path) {
               result_analyse.Analyse();
 
               process_result_analyse(edit_, info_board_, result_analyse);
-              if (result_analyse.GetStatus() == -2) {
-                import_unknown_key_from_keyserver(this, result_analyse);
-              }
+
+              // pause this feature
+              // if (result_analyse.GetStatus() == -2) {
+              //   import_unknown_key_from_keyserver(this, result_analyse);
+              // }
               // pause this feature
               // if (result_analyse.GetStatus() >= 0) {
               //   show_verify_details(this, info_board_, err, result);
@@ -783,9 +786,12 @@ void MainWindow::SlotFileDecryptVerify(const QString& path) {
 
               process_result_analyse(edit_, info_board_, decrypt_result_analyse,
                                      verify_result_analyse);
-              if (verify_result_analyse.GetStatus() == -2) {
-                import_unknown_key_from_keyserver(this, verify_result_analyse);
-              }
+
+              // pause this feature
+              // if (verify_result_analyse.GetStatus() == -2) {
+              //   import_unknown_key_from_keyserver(this,
+              //   verify_result_analyse);
+              // }
               // pause this feature
               // if (verify_result_analyse.GetStatus() >= 0) {
               //   show_verify_details(this, info_board_, err, verify_result);
@@ -829,7 +835,6 @@ void MainWindow::SlotArchiveDecryptVerify(const QString& path) {
       [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().DecryptVerifyArchive(
             path, out_path, [=](GpgError err, const DataObjectPtr& data_obj) {
-              GF_CORE_LOG_INFO("****************************");
               // stop waiting
               op_hd();
 
@@ -853,9 +858,12 @@ void MainWindow::SlotArchiveDecryptVerify(const QString& path) {
 
               process_result_analyse(edit_, info_board_, decrypt_result_analyse,
                                      verify_result_analyse);
-              if (verify_result_analyse.GetStatus() == -2) {
-                import_unknown_key_from_keyserver(this, verify_result_analyse);
-              }
+
+              // pause this feature
+              // if (verify_result_analyse.GetStatus() == -2) {
+              //   import_unknown_key_from_keyserver(this,
+              //   verify_result_analyse);
+              // }
               // pause this feature
               // if (verify_result_analyse.GetStatus() >= 0) {
               //   show_verify_details(this, info_board_, err, verify_result);

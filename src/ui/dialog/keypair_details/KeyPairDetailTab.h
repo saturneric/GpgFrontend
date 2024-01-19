@@ -28,11 +28,7 @@
 
 #pragma once
 
-#include "KeySetExpireDateDialog.h"
-#include "core/function/gpg/GpgContext.h"
-#include "ui/GpgFrontendUI.h"
-#include "ui/dialog/import_export/KeyServerImportDialog.h"
-#include "ui/dialog/import_export/KeyUploadDialog.h"
+#include "core/model/GpgKey.h"
 
 namespace GpgFrontend::UI {
 

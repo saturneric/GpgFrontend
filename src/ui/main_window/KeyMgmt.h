@@ -28,15 +28,12 @@
 
 #pragma once
 
-#include "ui/GpgFrontendUI.h"
-#include "ui/dialog/import_export/KeyImportDetailDialog.h"
-#include "ui/dialog/import_export/KeyServerImportDialog.h"
-#include "ui/dialog/key_generate/KeygenDialog.h"
-#include "ui/dialog/keypair_details/KeyDetailsDialog.h"
+#include "core/typedef/GpgTypedef.h"
 #include "ui/main_window/GeneralMainWindow.h"
-#include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
+
+class KeyList;
 
 /**
  * @brief
@@ -147,7 +144,7 @@ class KeyMgmt : public GeneralMainWindow {
    *
    * @param uidList
    */
-  void delete_keys_with_warning(GpgFrontend::KeyIdArgsListPtr uidList);
+  void delete_keys_with_warning(KeyIdArgsListPtr uidList);
 
   KeyList* key_list_;           ///<
   QMenu* file_menu_{};          ///<
@@ -172,7 +169,6 @@ class KeyMgmt : public GeneralMainWindow {
   QAction* close_act_{};                         ///<
   QAction* show_key_details_act_{};              ///<
   QAction* set_owner_trust_of_key_act_{};
-  KeyServerImportDialog* import_dialog_{};  ///<
 };
 
 }  // namespace GpgFrontend::UI

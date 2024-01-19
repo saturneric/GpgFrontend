@@ -38,6 +38,8 @@
 #include "core/utils/GpgUtils.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SignersPicker.h"
+#include "ui/widgets/KeyList.h"
+#include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
 

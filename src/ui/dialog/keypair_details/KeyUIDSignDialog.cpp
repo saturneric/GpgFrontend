@@ -28,10 +28,10 @@
 
 #include "KeyUIDSignDialog.h"
 
-#include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyManager.h"
 #include "ui/UISignalStation.h"
+#include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
 
@@ -70,23 +70,17 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
   non_expire_check_->setTristate(false);
 
   connect(non_expire_check_, &QCheckBox::stateChanged, this,
-          [this](int state) -> void {
-            if (state == 0)
-              expires_edit_->setDisabled(false);
-            else
-              expires_edit_->setDisabled(true);
-          });
+          [this](int state) -> void { expires_edit_->setEnabled(state == 0); });
 
-  auto layout = new QGridLayout();
-
-  auto timeLayout = new QGridLayout();
+  auto* layout = new QGridLayout();
+  auto* time_layout = new QGridLayout();
 
   layout->addWidget(m_key_list_, 0, 0);
   layout->addWidget(sign_key_button_, 2, 0, Qt::AlignRight);
-  timeLayout->addWidget(new QLabel(tr("Expire Date")), 0, 0);
-  timeLayout->addWidget(expires_edit_, 0, 1);
-  timeLayout->addWidget(non_expire_check_, 0, 2);
-  layout->addLayout(timeLayout, 1, 0);
+  time_layout->addWidget(new QLabel(tr("Expire Date")), 0, 0);
+  time_layout->addWidget(expires_edit_, 0, 1);
+  time_layout->addWidget(non_expire_check_, 0, 2);
+  layout->addLayout(time_layout, 1, 0);
 
   connect(sign_key_button_, &QPushButton::clicked, this,
           &KeyUIDSignDialog::slot_sign_key);

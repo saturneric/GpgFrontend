@@ -27,7 +27,6 @@
  */
 
 #include "MainWindow.h"
-#include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/module/ModuleManager.h"
@@ -40,6 +39,8 @@
 #include "ui/dialog/keypair_details/KeyDetailsDialog.h"
 #include "ui/function/SetOwnerTrustLevel.h"
 #include "ui/widgets/FindWidget.h"
+#include "ui/widgets/KeyList.h"
+#include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
 
@@ -219,10 +220,7 @@ void MainWindow::slot_remove_key_from_favourite() {
 void MainWindow::refresh_keys_from_key_server() {
   auto key_ids = m_key_list_->GetSelected();
   if (key_ids->empty()) return;
-
-  auto* dialog = new KeyServerImportDialog(this);
-  dialog->show();
-  dialog->SlotImport(key_ids);
+  CommonUtils::GetInstance()->ImportKeyFromKeyServer(*key_ids);
 }
 
 void MainWindow::slot_set_owner_trust_level_of_key() {

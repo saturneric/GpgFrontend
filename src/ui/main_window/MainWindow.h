@@ -29,14 +29,17 @@
 #pragma once
 
 #include "ui/main_window/GeneralMainWindow.h"
-#include "ui/widgets/InfoBoardWidget.h"
-#include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend {
 class GpgPassphraseContext;
 }
 
 namespace GpgFrontend::UI {
+
+class KeyList;
+class TextEdit;
+class InfoBoardWidget;
+
 /**
  * @brief
  *

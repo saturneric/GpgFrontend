@@ -35,6 +35,7 @@
 #include "ui/main_window/KeyMgmt.h"
 #include "ui/struct/SettingsObject.h"
 #include "ui/struct/settings/AppearanceSO.h"
+#include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
 

@@ -452,7 +452,6 @@ void GpgFileOpera::DecryptVerifyArchive(const QString& in_path,
   ArchiveFileOperator::ExtractArchiveFromDataExchanger(
       ex, out_path, [](GFError err, const DataObjectPtr&) {
         GF_CORE_LOG_DEBUG("extract archive from ex operation, err: {}", err);
-        GF_CORE_LOG_INFO("//////////////");
       });
 
   RunGpgOperaAsync(
@@ -462,10 +461,8 @@ void GpgFileOpera::DecryptVerifyArchive(const QString& in_path,
         GpgData data_in(in_path, true);
         GpgData data_out(ex);
 
-        GF_CORE_LOG_INFO("-----------------------");
         err = CheckGpgError(
             gpgme_op_decrypt_verify(ctx_.DefaultContext(), data_in, data_out));
-        GF_CORE_LOG_INFO("++++++++++++++++++++++++");
 
         data_object->Swap({
             GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext())),

@@ -28,9 +28,7 @@
 
 #pragma once
 
-#include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
-#include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
 

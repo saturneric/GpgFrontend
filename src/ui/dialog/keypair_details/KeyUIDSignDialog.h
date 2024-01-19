@@ -28,12 +28,11 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
-#include "ui/GpgFrontendUI.h"
+#include "core/typedef/GpgTypedef.h"
 #include "ui/dialog/GeneralDialog.h"
-#include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
+class KeyList;
 
 class KeyUIDSignDialog : public GeneralDialog {
   Q_OBJECT

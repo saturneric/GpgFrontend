@@ -40,8 +40,12 @@
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/import_export/ExportKeyPackageDialog.h"
+#include "ui/dialog/import_export/KeyImportDetailDialog.h"
+#include "ui/dialog/key_generate/KeygenDialog.h"
 #include "ui/dialog/key_generate/SubkeyGenerateDialog.h"
+#include "ui/dialog/keypair_details/KeyDetailsDialog.h"
 #include "ui/main_window/MainWindow.h"
+#include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
 
@@ -524,8 +528,6 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
 }
 
 void KeyMgmt::SlotImportKeyPackage() {
-  GF_UI_LOG_INFO("Importing key package...");
-
   auto key_package_file_name = QFileDialog::getOpenFileName(
       this, tr("Import Key Package"), {},
       tr("Key Package") + " (*.gfepack);;All Files (*)");
@@ -537,20 +539,32 @@ void KeyMgmt::SlotImportKeyPackage() {
   if (key_package_file_name.isEmpty() || key_file_name.isEmpty()) return;
 
   GF_UI_LOG_INFO("importing key package: {}", key_package_file_name);
+  CommonUtils::WaitForOpera(
+      this, tr("Importing"), [=](const OperaWaitingHd& op_hd) {
+        KeyPackageOperator::ImportKeyPackage(
+            key_package_file_name, key_file_name,
+            [=](GFError err, const DataObjectPtr& data_obj) {
+              // stop waiting
+              op_hd();
 
-  const auto [success, info] = KeyPackageOperator::ImportKeyPackage(
-      key_package_file_name, key_file_name);
+              if (err < 0 || !data_obj->Check<GpgImportInformation>()) {
+                QMessageBox::critical(
+                    this, tr("Error"),
+                    tr("An error occur in importing key package."));
+                return;
+              }
 
-  if (success) {
-    emit SignalStatusBarChanged(tr("key(s) imported"));
-    emit SignalKeyStatusUpdated();
+              auto info = ExtractParams<GpgImportInformation>(data_obj, 0);
+              if (err >= 0) {
+                emit SignalStatusBarChanged(tr("key(s) imported"));
+                emit SignalKeyStatusUpdated();
 
-    auto* dialog = new KeyImportDetailDialog(info, this);
-    dialog->exec();
-  } else {
-    QMessageBox::critical(this, tr("Error"),
-                          tr("An error occur in importing key package."));
-  }
+                auto* dialog = new KeyImportDetailDialog(
+                    SecureCreateSharedObject<GpgImportInformation>(info), this);
+                dialog->exec();
+              }
+            });
+      });
 }
 
 }  // namespace GpgFrontend::UI

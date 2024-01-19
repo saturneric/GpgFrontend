@@ -28,8 +28,7 @@
 
 #pragma once
 
-#include "ui/dialog/import_export/KeyServerImportDialog.h"
-#include "ui/widgets/KeyList.h"
+#include "core/model/GpgSignature.h"
 
 namespace GpgFrontend::UI {
 /**

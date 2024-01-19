@@ -31,11 +31,11 @@
 #include <cstddef>
 #include <mutex>
 
-#include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/dialog/import_export/KeyImportDetailDialog.h"
 #include "ui_KeyList.h"
 
 namespace GpgFrontend::UI {

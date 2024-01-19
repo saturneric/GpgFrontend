@@ -82,9 +82,9 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    * @return true if key package was imported
    * @return false if key package was not imported
    */
-  static auto ImportKeyPackage(const QString &key_package_path,
-                               const QString &phrase_path)
-      -> std::tuple<bool, std::shared_ptr<GpgImportInformation>>;
+  static void ImportKeyPackage(const QString &key_package_path,
+                               const QString &phrase_path,
+                               const OperationCallback &cb);
 
  private:
   /**

@@ -72,4 +72,17 @@ auto GPGFRONTEND_CORE_EXPORT RunIOOperaAsync(const OperaRunnable& runnable,
                                              const OperationCallback& callback,
                                              const QString& operation)
     -> Thread::Task::TaskHandler;
+
+/**
+ * @brief
+ *
+ * @param runnable
+ * @param callback
+ * @param operation
+ * @return Thread::Task::TaskHandler
+ */
+auto GPGFRONTEND_CORE_EXPORT RunOperaAsync(const OperaRunnable& runnable,
+                                           const OperationCallback& callback,
+                                           const QString& operation)
+    -> Thread::Task::TaskHandler;
 }  // namespace GpgFrontend

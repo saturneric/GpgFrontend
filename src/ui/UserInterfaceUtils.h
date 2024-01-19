@@ -28,17 +28,15 @@
 
 #pragma once
 
-#include <qwidget.h>
-
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/GpgKey.h"
-#include "core/thread/ThreadingModel.h"
+#include "core/thread/Task.h"
 #include "core/typedef/GpgTypedef.h"
-#include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend {
 class GpgResultAnalyse;
-}
+class GpgImportInformation;
+}  // namespace GpgFrontend
 
 namespace GpgFrontend::UI {
 
@@ -107,21 +105,10 @@ void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
  * @param waiting_title
  * @param func
  */
-void process_operation(
-    QWidget* parent, const QString& waiting_title,
-    GpgFrontend::Thread::Task::TaskRunnable func,
-    GpgFrontend::Thread::Task::TaskCallback callback = nullptr,
-    DataObjectPtr data_object = nullptr);
-
-/**
- * @brief
- *
- * @param parent
- * @param key_id
- * @param key_server
- */
-void import_key_from_keyserver(QWidget* parent, const QString& key_id,
-                               const QString& key_server);
+void process_operation(QWidget* parent, const QString& waiting_title,
+                       Thread::Task::TaskRunnable func,
+                       Thread::Task::TaskCallback callback = nullptr,
+                       DataObjectPtr data_object = nullptr);
 
 /**
  * @brief
@@ -195,6 +182,12 @@ class CommonUtils : public QWidget {
    *
    */
   void RemoveKeyFromFavourite(const GpgKey& key);
+
+  /**
+   * @brief
+   *
+   */
+  void ImportKeyFromKeyServer(const KeyIdArgsList&);
 
  signals:
   /**
@@ -294,6 +287,13 @@ class CommonUtils : public QWidget {
    *
    */
   void slot_update_key_status();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_update_key_from_server_finished(
+      bool, QString, QByteArray, std::shared_ptr<GpgImportInformation>);
 
  private:
   static std::unique_ptr<CommonUtils> instance_;  ///<

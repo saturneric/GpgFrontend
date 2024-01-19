@@ -28,12 +28,6 @@
 
 #include "UserInterfaceUtils.h"
 
-#include <gpg-error.h>
-#include <qdialog.h>
-
-#include <QtNetwork>
-#include <vector>
-
 #include "core/GpgConstants.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
@@ -44,9 +38,11 @@
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
+#include "thread/KeyServerImportTask.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
 #include "ui/dialog/gnupg/GnuPGControllerDialog.h"
+#include "ui/dialog/import_export/KeyServerImportDialog.h"
 #include "ui/struct/CacheObject.h"
 #include "ui/struct/SettingsObject.h"
 #include "ui/struct/settings/KeyServerSO.h"
@@ -476,6 +472,22 @@ void CommonUtils::slot_update_key_status() {
       refresh_task);
 }
 
+void CommonUtils::slot_update_key_from_server_finished(
+    bool success, QString err_msg, QByteArray buffer,
+    std::shared_ptr<GpgImportInformation> info) {
+  if (!success) {
+    GF_UI_LOG_ERROR("get err from reply: {}", buffer);
+    QMessageBox::critical(nullptr, tr("Error"), err_msg);
+    return;
+  }
+
+  // refresh the key database
+  emit UISignalStation::GetInstance()->SignalKeyDatabaseRefresh();
+
+  // show details
+  (new KeyImportDetailDialog(std::move(info), this))->exec();
+}
+
 void CommonUtils::SlotRestartApplication(int code) {
   GF_UI_LOG_DEBUG("application need restart, code: {}", code);
 
@@ -523,6 +535,22 @@ void CommonUtils::RemoveKeyFromFavourite(const GpgKey &key) {
   }
 
   json_data.setArray(new_key_array);
+}
+
+/**
+ * @brief
+ *
+ */
+void CommonUtils::ImportKeyFromKeyServer(const KeyIdArgsList &key_ids) {
+  KeyServerSO key_server(SettingsObject("general_settings_state"));
+  auto target_keyserver = key_server.GetTargetServer();
+
+  auto *task = new KeyServerImportTask(target_keyserver, key_ids);
+  connect(task, &KeyServerImportTask::SignalKeyServerImportResult, this,
+          &CommonUtils::slot_update_key_from_server_finished);
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
+      ->PostTask(task);
 }
 
 }  // namespace GpgFrontend::UI

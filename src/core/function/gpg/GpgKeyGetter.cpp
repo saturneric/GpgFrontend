@@ -77,17 +77,16 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
   }
 
   auto FetchKey() -> KeyLinkListPtr {
-    if (keys_cache_.empty()) {
+    if (keys_search_cache_.empty()) {
       FlushKeyCache();
     }
 
     auto keys_list = std::make_unique<GpgKeyLinkList>();
-
     {
       // get the lock
       std::lock_guard<std::mutex> lock(keys_cache_mutex_);
-      for (const auto& [key, value] : keys_cache_) {
-        keys_list->push_back(value);
+      for (const auto& key : keys_cache_) {
+        keys_list->push_back(key);
       }
     }
     return keys_list;
@@ -98,6 +97,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
 
     // clear the keys cache
     keys_cache_.clear();
+    keys_search_cache_.clear();
 
     // init
     GpgError err = gpgme_op_keylist_start(ctx_.DefaultContext(), nullptr, 0);
@@ -123,12 +123,14 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
           gpg_key = GetKey(gpg_key.GetId(), false);
         }
 
-        keys_cache_.insert({gpg_key.GetId(), std::move(gpg_key)});
+        keys_cache_.push_back(gpg_key);
+        keys_search_cache_.insert(gpg_key.GetId(), gpg_key);
+        keys_search_cache_.insert(gpg_key.GetFingerprint(), gpg_key);
       }
     }
 
     GF_CORE_LOG_DEBUG("flush key channel cache address: {} object address: {}",
-                      static_cast<void*>(&keys_cache_),
+                      static_cast<void*>(&keys_search_cache_),
                       static_cast<void*>(this));
 
     // for debug
@@ -181,7 +183,13 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
    * @brief cache the keys with key id
    *
    */
-  std::map<QString, GpgKey> keys_cache_;
+  QMap<QString, GpgKey> keys_search_cache_;
+
+  /**
+   * @brief
+   *
+   */
+  QList<GpgKey> keys_cache_;
 
   /**
    * @brief shared mutex for the keys cache
@@ -197,10 +205,10 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
    */
   auto get_key_in_cache(const QString& key_id) -> GpgKey {
     std::lock_guard<std::mutex> lock(keys_cache_mutex_);
-    if (keys_cache_.find(key_id) != keys_cache_.end()) {
+    if (keys_search_cache_.find(key_id) != keys_search_cache_.end()) {
       std::lock_guard<std::mutex> lock(ctx_mutex_);
       // return a copy of the key in cache
-      return keys_cache_[key_id];
+      return keys_search_cache_[key_id];
     }
 
     // return a bad key

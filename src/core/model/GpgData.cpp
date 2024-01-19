@@ -48,7 +48,6 @@ auto GFWriteExCb(void* handle, const void* buffer, size_t size) -> ssize_t {
 }
 
 void GFReleaseExCb(void* handle) {
-  GF_CORE_LOG_INFO("$$$$$$$$$$$$$$$$$$$$$$$");
   auto* ex = static_cast<GFDataExchanger*>(handle);
   ex->CloseWrite();
 }

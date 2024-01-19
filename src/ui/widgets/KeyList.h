@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/GpgModel.h"
+#include "core/model/GpgKey.h"
 
 class Ui_KeyList;
 

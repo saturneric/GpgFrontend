@@ -63,7 +63,6 @@ auto GpgKeyImportExporter::ImportKey(const GFBuffer& in_buffer)
     import_info->imported_keys.emplace_back(key);
     status = status->next;
   }
-
   return import_info;
 }
 
@@ -152,8 +151,6 @@ void GpgKeyImportExporter::ExportAllKeys(const KeyArgsList& keys, bool secret,
         if (keys.empty()) return GPG_ERR_CANCELED;
 
         int mode = 0;
-        if (secret) mode |= GPGME_EXPORT_MODE_SECRET;
-
         std::vector<gpgme_key_t> keys_array(keys.begin(), keys.end());
 
         // Last entry data_in array has to be nullptr

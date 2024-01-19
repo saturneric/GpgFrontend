@@ -193,14 +193,15 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
     tmp2->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 2, tmp2);
 
-    auto* tmp3 = new QTableWidgetItem(subkeys.GetCreateTime().toString());
+    auto* tmp3 =
+        new QTableWidgetItem(QLocale().toString(subkeys.GetCreateTime()));
     tmp3->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 3, tmp3);
 
     auto* tmp4 =
         new QTableWidgetItem(subkeys.GetExpireTime().toSecsSinceEpoch() == 0
                                  ? tr("Never Expire")
-                                 : subkeys.GetExpireTime().toString());
+                                 : QLocale().toString(subkeys.GetExpireTime()));
     tmp4->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 4, tmp4);
 

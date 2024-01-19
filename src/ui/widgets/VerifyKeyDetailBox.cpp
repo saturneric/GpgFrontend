@@ -32,6 +32,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/utils/CommonUtils.h"
+#include "ui/UserInterfaceUtils.h"
 
 namespace GpgFrontend::UI {
 
@@ -163,10 +164,7 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
 }
 
 void VerifyKeyDetailBox::slot_import_form_key_server() {
-  auto* import_dialog = new KeyServerImportDialog(this);
-  auto key_ids = std::make_unique<KeyIdArgsList>();
-  key_ids->push_back(fpr_);
-  import_dialog->SlotImport(key_ids);
+  CommonUtils::GetInstance()->ImportKeyFromKeyServer({fpr_});
 }
 
 auto VerifyKeyDetailBox::create_key_info_grid(const GpgSignature& signature)

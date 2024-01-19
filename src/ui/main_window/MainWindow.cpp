@@ -28,7 +28,6 @@
 
 #include "MainWindow.h"
 
-#include "core/GpgModel.h"
 #include "core/function/CacheManager.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
@@ -39,6 +38,7 @@
 #include "ui/struct/SettingsObject.h"
 #include "ui/struct/settings/KeyServerSO.h"
 #include "ui/widgets/KeyList.h"
+#include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
 

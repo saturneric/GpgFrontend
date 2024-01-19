@@ -32,9 +32,10 @@
 
 #include "core/function/KeyPackageOperator.h"
 #include "core/function/PassphraseGenerator.h"
-#include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/model/GpgImportInformation.h"
 #include "core/typedef/CoreTypedef.h"
+#include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 
@@ -54,9 +55,8 @@ void KeyPackageOperator::GenerateKeyPackage(const QString& key_package_path,
                                             const OperationCallback& cb) {
   GF_CORE_LOG_DEBUG("generating key package: {}", key_package_name);
 
-  GpgKeyImportExporter::GetInstance().ExportKeys(
-      keys, secret, true, false, false,
-      [=](GpgError err, const DataObjectPtr& data_obj) {
+  GpgKeyImportExporter::GetInstance().ExportAllKeys(
+      keys, secret, true, [=](GpgError err, const DataObjectPtr& data_obj) {
         if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
           GF_LOG_ERROR("export keys error, reason: {}",
                        DescribeGpgErrCode(err).second);
@@ -86,47 +86,52 @@ void KeyPackageOperator::GenerateKeyPackage(const QString& key_package_path,
       });
 }
 
-auto KeyPackageOperator::ImportKeyPackage(const QString& key_package_path,
-                                          const QString& phrase_path)
-    -> std::tuple<bool, std::shared_ptr<GpgImportInformation>> {
-  GF_CORE_LOG_DEBUG("importing key package: {}", key_package_path);
+void KeyPackageOperator::ImportKeyPackage(const QString& key_package_path,
+                                          const QString& phrase_path,
+                                          const OperationCallback& cb) {
+  RunOperaAsync(
+      [=](const DataObjectPtr& data_object) -> GFError {
+        GF_CORE_LOG_DEBUG("importing key package: {}", key_package_path);
 
-  QByteArray encrypted_data;
-  ReadFile(key_package_path, encrypted_data);
+        QByteArray encrypted_data;
+        ReadFile(key_package_path, encrypted_data);
 
-  if (encrypted_data.isEmpty()) {
-    GF_CORE_LOG_ERROR("failed to read key package: {}", key_package_path);
-    return {false, nullptr};
-  };
+        if (encrypted_data.isEmpty()) {
+          GF_CORE_LOG_ERROR("failed to read key package: {}", key_package_path);
+          return -1;
+        };
 
-  QByteArray passphrase;
-  ReadFile(phrase_path, passphrase);
-  GF_CORE_LOG_DEBUG("passphrase: {} bytes", passphrase.size());
-  if (passphrase.size() != 256) {
-    GF_CORE_LOG_ERROR("failed to read passphrase: {}", phrase_path);
-    return {false, nullptr};
-  }
+        QByteArray passphrase;
+        ReadFile(phrase_path, passphrase);
+        if (passphrase.size() != 256) {
+          GF_CORE_LOG_ERROR("passphrase size mismatch: {}", phrase_path);
+          return -1;
+        }
 
-  auto hash_key =
-      QCryptographicHash::hash(passphrase, QCryptographicHash::Sha256);
-  auto encoded = encrypted_data;
+        auto hash_key =
+            QCryptographicHash::hash(passphrase, QCryptographicHash::Sha256);
+        auto encoded = encrypted_data;
 
-  QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
-                            QAESEncryption::Padding::ISO);
+        QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
+                                  QAESEncryption::Padding::ISO);
 
-  auto decoded = encryption.removePadding(encryption.decode(encoded, hash_key));
-  auto key_data = QByteArray::fromBase64(decoded);
+        auto decoded =
+            encryption.removePadding(encryption.decode(encoded, hash_key));
+        auto key_data = QByteArray::fromBase64(decoded);
+        if (!key_data.startsWith(PGP_PUBLIC_KEY_BEGIN) &&
+            !key_data.startsWith(PGP_PRIVATE_KEY_BEGIN)) {
+          return -1;
+        }
 
-  GF_CORE_LOG_DEBUG("import key package, read key data size: {}",
-                    key_data.size());
-  if (!key_data.startsWith(PGP_PUBLIC_KEY_BEGIN) &&
-      !key_data.startsWith(PGP_PRIVATE_KEY_BEGIN)) {
-    return {false, nullptr};
-  }
+        auto import_info_ptr =
+            GpgKeyImportExporter::GetInstance().ImportKey(GFBuffer(key_data));
+        if (import_info_ptr == nullptr) return GPG_ERR_NO_DATA;
 
-  auto import_info =
-      GpgKeyImportExporter::GetInstance().ImportKey(GFBuffer(key_data));
-  return {true, import_info};
+        auto import_info = *import_info_ptr;
+        data_object->Swap({import_info});
+        return 0;
+      },
+      cb, "import_key_package");
 }
 
 auto KeyPackageOperator::GenerateKeyPackageName() -> QString {

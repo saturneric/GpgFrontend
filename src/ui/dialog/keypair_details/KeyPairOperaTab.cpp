@@ -30,8 +30,10 @@
 
 #include "KeySetExpireDateDialog.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/gpg//GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
+#include "core/model/GpgKey.h"
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
@@ -306,11 +308,7 @@ void KeyPairOperaTab::slot_upload_key_to_server() {
 }
 
 void KeyPairOperaTab::slot_update_key_from_server() {
-  auto keys = std::make_unique<KeyIdArgsList>();
-  keys->push_back(m_key_.GetId());
-  auto* dialog = new KeyServerImportDialog(this);
-  dialog->show();
-  dialog->SlotImport(keys);
+  CommonUtils::GetInstance()->ImportKeyFromKeyServer({m_key_.GetId()});
 }
 
 void KeyPairOperaTab::slot_gen_revoke_cert() {

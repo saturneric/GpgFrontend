@@ -28,7 +28,7 @@
 
 #include "GpgFrontendUIInit.h"
 
-#include <clocale>
+#include <QtNetwork>
 
 #include "core/GpgConstants.h"
 #include "core/function/CoreSignalStation.h"
@@ -195,7 +195,7 @@ auto RunGpgFrontendUI(QApplication* app) -> int {
   main_window->show();
 
   // start the main event loop
-  return app->exec();
+  return QApplication::exec();
 }
 
 void GPGFRONTEND_UI_EXPORT DestroyGpgFrontendUI() {}
