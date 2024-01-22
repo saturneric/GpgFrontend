@@ -1,5 +1,3 @@
-SET (CMAKE_GENERATOR "Ninja")
-
 SET (CMAKE_C_FLAGS               "-Wall -std=c11")
 SET (CMAKE_C_FLAGS_DEBUG         "-g -fsanitize=address -fsanitize-recover=address")
 SET (CMAKE_C_FLAGS_MINSIZERE     "-Os -DNDEBUG")
