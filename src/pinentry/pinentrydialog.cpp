@@ -53,7 +53,6 @@
 #include "core/utils/MemoryUtils.h"
 #include "pinentry.h"
 #include "pinlineedit.h"
-#include "util.h"
 
 void raiseWindow(QWidget *w) {
   w->setWindowState((w->windowState() & ~Qt::WindowMinimized) |
@@ -532,23 +531,22 @@ void PinEntryDialog::textChanged(const QString &text) {
 }
 
 void PinEntryDialog::generatePin() {
-  std::unique_ptr<char> pin{pinentry_inq_genpin(_pinentry_info.get())};
-  if (pin) {
-    if (_edit->echoMode() == QLineEdit::Password) {
-      if (mVisiActionEdit != nullptr) {
-        mVisiActionEdit->trigger();
-      }
-      if (mVisiCB != nullptr) {
-        mVisiCB->setChecked(true);
-      }
-    }
-    const auto pin_str = QString::fromUtf8(pin.get());
-    _edit->setPin(pin_str);
-    mRepeat->setPin(pin_str);
-    // explicitly focus the first input field and select the generated password
-    _edit->setFocus();
-    _edit->selectAll();
-  }
+  // std::unique_ptr<char> pin{pinentry_inq_genpin(_pinentry_info.get())};
+  // if (pin) {
+  //   if (_edit->echoMode() == QLineEdit::Password) {
+  //     if (mVisiActionEdit != nullptr) {
+  //       mVisiActionEdit->trigger();
+  //     }
+  //     if (mVisiCB != nullptr) {
+  //       mVisiCB->setChecked(true);
+  //     }
+  //   }
+  //   const auto pin_str = QString::fromUtf8(pin.get());
+  //   _edit->setPin(pin_str);
+  //   mRepeat->setPin(pin_str);
+  //   // explicitly focus the first input field and select the generated
+  //   password _edit->setFocus(); _edit->selectAll();
+  // }
 }
 
 void PinEntryDialog::toggleVisibility() {
