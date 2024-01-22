@@ -111,8 +111,8 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
   // get all components
   GpgCommandExecutor::ExecuteSync(
       {app_path,
-       {"--command-fd", "0", "--status-fd", "1", "--no-tty", "-o", output_path,
-        "--gen-revoke", key.GetFingerprint()},
+       QStringList{"--command-fd", "0", "--status-fd", "1", "--no-tty", "-o",
+                   output_path, "--gen-revoke", key.GetFingerprint()},
        [=](int exit_code, const QString& p_out, const QString& p_err) {
          if (exit_code != 0) {
            GF_CORE_LOG_ERROR(

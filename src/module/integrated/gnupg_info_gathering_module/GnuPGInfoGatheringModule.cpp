@@ -100,8 +100,7 @@ auto GnuPGInfoGatheringModule::Exec(EventRefrernce event) -> int {
 
   // get all components
   GpgCommandExecutor::ExecuteSync(
-      {gpgconf_path,
-       {"--list-components"},
+      {gpgconf_path, QStringList{"--list-components"},
        [this, gpgme_version, gpgconf_path](int exit_code, const QString &p_out,
                                            const QString &p_err) {
          MODULE_LOG_DEBUG(
@@ -212,8 +211,7 @@ auto GnuPGInfoGatheringModule::Exec(EventRefrernce event) -> int {
   GpgCommandExecutor::ExecuteContexts exec_contexts;
 
   exec_contexts.emplace_back(GpgCommandExecutor::ExecuteContext{
-      gpgconf_path,
-      {"--list-dirs"},
+      gpgconf_path, QStringList{"--list-dirs"},
       [this](int exit_code, const QString &p_out, const QString &p_err) {
         MODULE_LOG_DEBUG(
             "gpgconf configurations exit_code: {} process stdout size: {}",
@@ -277,8 +275,7 @@ auto GnuPGInfoGatheringModule::Exec(EventRefrernce event) -> int {
     }
 
     exec_contexts.emplace_back(GpgCommandExecutor::ExecuteContext{
-        gpgconf_path,
-        {"--list-options", component_info.name},
+        gpgconf_path, QStringList{"--list-options", component_info.name},
         [this, component_info](int exit_code, const QString &p_out,
                                const QString &p_err) {
           MODULE_LOG_DEBUG(

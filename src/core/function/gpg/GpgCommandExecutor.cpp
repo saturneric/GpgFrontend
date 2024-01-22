@@ -156,15 +156,6 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
       std::move(result_callback));
 }
 
-GpgCommandExecutor::ExecuteContext::ExecuteContext(
-    QString cmd, QList<QString> arguments, GpgCommandExecutorCallback callback,
-    Module::TaskRunnerPtr task_runner, GpgCommandExecutorInteractor int_func)
-    : cmd(std::move(cmd)),
-      arguments(std::move(arguments)),
-      cb_func(std::move(callback)),
-      int_func(std::move(int_func)),
-      task_runner(std::move(task_runner)) {}
-
 void GpgCommandExecutor::ExecuteSync(ExecuteContext context) {
   Thread::Task *task = BuildTaskFromExecCtx(context);
 
@@ -246,5 +237,14 @@ void GpgCommandExecutor::ExecuteConcurrentlySync(ExecuteContexts contexts) {
   // this is to keep reference vaild until task finished
   looper.exec();
 }
+
+GpgCommandExecutor::ExecuteContext::ExecuteContext(
+    QString cmd, QStringList arguments, GpgCommandExecutorCallback callback,
+    Module::TaskRunnerPtr task_runner, GpgCommandExecutorInteractor int_func)
+    : cmd(std::move(cmd)),
+      arguments(std::move(arguments)),
+      cb_func(std::move(callback)),
+      int_func(std::move(int_func)),
+      task_runner(std::move(task_runner)) {}
 
 }  // namespace GpgFrontend

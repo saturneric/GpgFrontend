@@ -48,8 +48,7 @@ void GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache(
   }
 
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
-      {gpgconf_path,
-       {"--reload", "gpg-agent"},
+      {gpgconf_path, QStringList{"--reload", "gpg-agent"},
        [=](int exit_code, const QString & /*p_out*/,
            const QString & /*p_err*/) {
          GF_CORE_LOG_DEBUG("gpgconf reload exit code: {}", exit_code);
@@ -70,8 +69,7 @@ void GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents(
   }
 
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
-      {gpgconf_path,
-       {"--reload"},
+      {gpgconf_path, QStringList{"--reload"},
        [=](int exit_code, const QString &, const QString &) {
          GF_CORE_LOG_DEBUG("gpgconf reload exit code: {}", exit_code);
          cb(exit_code == 0 ? 0 : -1, TransferParams());
@@ -89,8 +87,7 @@ void GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
   }
 
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
-      {gpgconf_path,
-       {"--verbose", "--kill", "all"},
+      {gpgconf_path, QStringList{"--verbose", "--kill", "all"},
        [=](int exit_code, const QString &p_out, const QString &p_err) {
          GF_CORE_LOG_DEBUG("gpgconf --kill all command got exit code: {}",
                            exit_code);
@@ -134,8 +131,7 @@ void GpgFrontend::GpgAdvancedOperator::ResetConfigures(OperationCallback cb) {
   }
 
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
-      {gpgconf_path,
-       {"--apply-defaults"},
+      {gpgconf_path, QStringList{"--apply-defaults"},
        [=](int exit_code, const QString &, const QString &) {
          GF_CORE_LOG_DEBUG("gpgconf apply-defaults exit code: {}", exit_code);
          cb(exit_code == 0 ? 0 : -1, TransferParams());
@@ -160,8 +156,7 @@ void GpgFrontend::GpgAdvancedOperator::StartGpgAgent(OperationCallback cb) {
   }
 
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
-      {gpg_agent_path,
-       {"--homedir", home_path, "--daemon"},
+      {gpg_agent_path, QStringList{"--homedir", home_path, "--daemon"},
        [=](int exit_code, const QString &, const QString &) {
          GF_CORE_LOG_DEBUG("gpgconf daemon exit code: {}", exit_code);
          cb(exit_code >= 0 ? 0 : -1, TransferParams());
@@ -186,8 +181,7 @@ void GpgFrontend::GpgAdvancedOperator::StartDirmngr(OperationCallback cb) {
   }
 
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
-      {dirmngr_path,
-       {"--homedir", home_path, "--daemon"},
+      {dirmngr_path, QStringList{"--homedir", home_path, "--daemon"},
        [=](int exit_code, const QString &, const QString &) {
          GF_CORE_LOG_DEBUG("gpgconf daemon exit code: {}", exit_code);
          cb(exit_code >= 0 ? 0 : -1, TransferParams());
@@ -212,8 +206,7 @@ void GpgFrontend::GpgAdvancedOperator::StartKeyBoxd(OperationCallback cb) {
   }
 
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
-      {keyboxd_path,
-       {"--homedir", home_path, "--daemon"},
+      {keyboxd_path, QStringList{"--homedir", home_path, "--daemon"},
        [=](int exit_code, const QString &, const QString &) {
          GF_CORE_LOG_DEBUG("gpgconf daemon exit code: {}", exit_code);
          cb(exit_code >= 0 ? 0 : -1, TransferParams());
