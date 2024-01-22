@@ -124,7 +124,7 @@ auto InitGpgME() -> bool {
                               QString(engine_info->version));
         Module::UpsertRTValue(
             "core", "gpgme.ctx.database_path",
-            QString(engine_info->home_dir == nullptr ? "default"
+            QString(engine_info->home_dir == nullptr ? ""
                                                      : engine_info->home_dir));
         break;
       case GPGME_PROTOCOL_CMS:
@@ -279,7 +279,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                               key_database_fs_path);
           }
         } else {
-#ifdef MACOS
+#if defined(LINUX) || defined(MACOS)
           use_custom_key_database_path = true;
           key_database_fs_path =
               SearchKeyDatabasePath({QDir::home().path() + "/.gnupg"});
@@ -297,13 +297,36 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                 // set key database path
                 if (use_custom_key_database_path &&
                     !key_database_fs_path.isEmpty()) {
-                  args.db_path = key_database_fs_path;
+                  QFileInfo dir_info(key_database_fs_path);
+                  if (dir_info.exists() && dir_info.isDir() &&
+                      dir_info.isReadable() && dir_info.isWritable()) {
+                    args.db_path = dir_info.absoluteFilePath();
+                    GF_CORE_LOG_INFO("using key database path: {}",
+                                     args.db_path);
+                  } else {
+                    GF_CORE_LOG_ERROR(
+                        "custom key database path: {}, is not point to "
+                        "an accessible directory",
+                        gnupg_install_fs_path);
+                  }
                 }
 
                 // set custom gnupg path
-                if (use_custom_gnupg_install_path) {
-                  args.custom_gpgconf = true;
-                  args.custom_gpgconf_path = gnupg_install_fs_path;
+                if (use_custom_gnupg_install_path &&
+                    !gnupg_install_fs_path.isEmpty()) {
+                  QFileInfo file_info(gnupg_install_fs_path);
+                  if (file_info.exists() && file_info.isFile() &&
+                      file_info.isExecutable()) {
+                    args.custom_gpgconf = true;
+                    args.custom_gpgconf_path = file_info.absoluteFilePath();
+                    GF_CORE_LOG_INFO("using gnupg path: {}",
+                                     args.custom_gpgconf_path);
+                  } else {
+                    GF_CORE_LOG_ERROR(
+                        "custom gnupg path: {}, is not point to an executable "
+                        "gpgconf binary",
+                        gnupg_install_fs_path);
+                  }
                 }
 
                 args.offline_mode = forbid_all_gnupg_connection;

@@ -326,12 +326,8 @@ void GnuPGControllerDialog::slot_set_restart_needed(int mode) {
   this->restart_needed_ = mode;
 }
 
-bool GnuPGControllerDialog::check_custom_gnupg_path(QString path) {
-  if (path.isEmpty()) {
-    QMessageBox::critical(this, tr("Illegal GnuPG Path"),
-                          tr("Target GnuPG Path is empty."));
-    return false;
-  }
+auto GnuPGControllerDialog::check_custom_gnupg_path(QString path) -> bool {
+  if (path.isEmpty()) return false;
 
   QFileInfo dir_info(path);
   if (!dir_info.exists() || !dir_info.isReadable() || !dir_info.isDir()) {
@@ -352,8 +348,8 @@ bool GnuPGControllerDialog::check_custom_gnupg_path(QString path) {
   QFileInfo gpgconf_info(path + "/gpgconf");
 #endif
 
-  if (!gpgconf_info.exists() || !gpgconf_info.isExecutable() ||
-      !gpgconf_info.isFile()) {
+  if (!gpgconf_info.exists() || !gpgconf_info.isFile() ||
+      !gpgconf_info.isExecutable()) {
     QMessageBox::critical(
         this, tr("Illegal GnuPG Path"),
         tr("Target GnuPG Path contains no \"gpgconf\" executable."));
@@ -365,11 +361,7 @@ bool GnuPGControllerDialog::check_custom_gnupg_path(QString path) {
 
 auto GnuPGControllerDialog::check_custom_gnupg_key_database_path(QString path)
     -> bool {
-  if (path.isEmpty()) {
-    QMessageBox::critical(this, tr("Illegal GnuPG Key Database Path"),
-                          tr("Target GnuPG Key Database Path is empty."));
-    return false;
-  }
+  if (path.isEmpty()) return false;
 
   QFileInfo dir_info(path);
   if (!dir_info.exists() || !dir_info.isReadable() || !dir_info.isDir()) {

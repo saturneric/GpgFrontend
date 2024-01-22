@@ -47,5 +47,8 @@ target_link_libraries(gpgfrontend_integrated_module_version_checking PRIVATE
 # link Qt
 target_link_libraries(gpgfrontend_integrated_module_version_checking PRIVATE Qt6::Network)
 
+# property
+set_property(TARGET gpgfrontend_integrated_module_version_checking PROPERTY AUTOMOC ON)
+
 # using std c++ 17
 target_compile_features(gpgfrontend_integrated_module_version_checking PRIVATE cxx_std_17)

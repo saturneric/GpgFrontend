@@ -37,7 +37,6 @@ namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule {
  *
  */
 class GPGFRONTEND_MODULE_SDK_EXPORT GnuPGInfoGatheringModule : public Module {
-  Q_OBJECT
  public:
   GnuPGInfoGatheringModule();
 

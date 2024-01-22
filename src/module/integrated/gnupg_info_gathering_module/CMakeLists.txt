@@ -44,5 +44,8 @@ endif ()
 target_link_libraries(gpgfrontend_integrated_module_gnupg_info_gathering PRIVATE
         gpgfrontend_module_sdk)
 
+# property
+set_property(TARGET gpgfrontend_integrated_module_gnupg_info_gathering PROPERTY AUTOMOC ON)
+
 # using std c++ 17
 target_compile_features(gpgfrontend_integrated_module_gnupg_info_gathering PRIVATE cxx_std_17)
