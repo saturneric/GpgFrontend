@@ -295,8 +295,9 @@ visit their respective homepages:
 - **AppImage**: [https://appimage.org](https://appimage.org)
 - **macOS Application Bundles**: [Link](https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW1)
 - **libarchive**: [https://www.libarchive.org](https://www.libarchive.org)
+- **spdlog**: [https://github.com/gabime/spdlog](https://github.com/gabime/spdlog)
 - **mimalloc**: [https://github.com/microsoft/mimalloc](https://github.com/microsoft/mimalloc)
-- **Qt-AES**: [https://github.com/saturneric/Qt-AES](https://github.com/saturneric/Qt-AES)
+- **Qt-AES**: [https://github.com/bricke/Qt-AES](https://github.com/bricke/Qt-AES)
 
 The icons utilized in this software are sourced from [Alibaba
 Iconfont](https://www.iconfont.cn/). This vector icon library is free of use,
