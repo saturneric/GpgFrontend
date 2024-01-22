@@ -28,8 +28,10 @@
 
 #include "FileTreeView.h"
 
+#include "core/utils/AsyncUtils.h"
 #include "core/utils/IOUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/UserInterfaceUtils.h"
 
 namespace GpgFrontend::UI {
 
@@ -372,8 +374,24 @@ void FileTreeView::slot_show_custom_context_menu(const QPoint& point) {
 }
 
 void FileTreeView::slot_calculate_hash() {
-  emit UISignalStation::GetInstance()->SignalRefreshInfoBoard(
-      CalculateHash(this->GetSelectedPath()), InfoBoardStatus::INFO_ERROR_OK);
+  CommonUtils::WaitForOpera(
+      this->parentWidget(), tr("Calculating"), [=](const OperaWaitingHd& hd) {
+        RunOperaAsync(
+            [=](DataObjectPtr data_object) {
+              data_object->Swap({CalculateHash(this->GetSelectedPath())});
+              return 0;
+            },
+            [hd](int rtn, DataObjectPtr data_object) {
+              hd();
+              if (rtn < 0 || !data_object->Check<QString>()) {
+                return;
+              }
+              auto result = ExtractParams<QString>(data_object, 0);
+              emit UISignalStation::GetInstance()->SignalRefreshInfoBoard(
+                  result, InfoBoardStatus::INFO_ERROR_OK);
+            },
+            "calculate_file_hash");
+      });
 }
 
 void FileTreeView::slot_compress_files() {}

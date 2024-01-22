@@ -29,8 +29,22 @@
 #include "IOUtils.h"
 
 #include "core/GpgModel.h"
+#include "core/utils/FilesystemUtils.h"
 
 namespace GpgFrontend {
+
+auto GetFileChecksum(const QString& file_name,
+                     QCryptographicHash::Algorithm hashAlgorithm)
+    -> QByteArray {
+  QFile f(file_name);
+  if (f.open(QFile::ReadOnly)) {
+    QCryptographicHash hash(hashAlgorithm);
+    if (hash.addData(&f)) {
+      return hash.result();
+    }
+  }
+  return {};
+}
 
 auto ReadFile(const QString& file_name, QByteArray& data) -> bool {
   QFile file(file_name);
@@ -72,45 +86,41 @@ auto CalculateHash(const QString& file_path) -> QString {
   QTextStream ss(&buffer);
 
   if (info.isFile() && info.isReadable()) {
-    ss << "[#] " << QObject::tr("File Hash Information") << Qt::endl;
-    ss << "    " << QObject::tr("filename") << QObject::tr(": ")
+    ss << "# " << QObject::tr("File Hash Information") << Qt::endl;
+    ss << "- " << QObject::tr("Filename") << QObject::tr(": ")
        << info.fileName() << Qt::endl;
 
-    QFile f(info.filePath());
-    if (f.open(QFile::ReadOnly)) {
-      // read all data
-      auto buffer = f.readAll();
-      ss << "    " << QObject::tr("file size(bytes)") << QObject::tr(": ")
-         << buffer.size() << Qt::endl;
+    // read all data
+    ss << "- " << QObject::tr("File Size (bytes)") << QObject::tr(": ")
+       << QString::number(info.size()) << Qt::endl;
 
-      // md5
-      auto hash_md5 = QCryptographicHash(QCryptographicHash::Md5);
-      hash_md5.addData(buffer);
-      auto md5 = hash_md5.result().toHex();
-      GF_CORE_LOG_DEBUG("md5 {}", md5);
-      ss << "    "
-         << "md5" << QObject::tr(": ") << md5 << Qt::endl;
+    ss << "- " << QObject::tr("File Size") << QObject::tr(": ")
+       << GetHumanFriendlyFileSize(info.size()) << Qt::endl;
 
-      // sha1
-      auto hash_sha1 = QCryptographicHash(QCryptographicHash::Sha1);
-      hash_sha1.addData(buffer);
-      auto sha1 = hash_sha1.result().toHex();
-      GF_CORE_LOG_DEBUG("sha1 {}", sha1);
-      ss << "    "
-         << "sha1" << QObject::tr(": ") << sha1 << Qt::endl;
+    // md5
+    ss << "- "
+       << "MD5" << QObject::tr(": ")
+       << GetFileChecksum(file_path, QCryptographicHash::Md5).toHex()
+       << Qt::endl;
 
-      // sha1
-      auto hash_sha256 = QCryptographicHash(QCryptographicHash::Sha256);
-      hash_sha256.addData(buffer);
-      auto sha256 = hash_sha256.result().toHex();
-      GF_CORE_LOG_DEBUG("sha256 {}", sha256);
-      ss << "    "
-         << "sha256" << QObject::tr(": ") << sha256 << Qt::endl;
+    // sha1
+    ss << "- "
+       << "SHA1" << QObject::tr(": ")
+       << GetFileChecksum(file_path, QCryptographicHash::Sha1).toHex()
+       << Qt::endl;
 
-      ss << Qt::endl;
-    }
+    // sha1
+    ss << "- "
+       << "SHA256" << QObject::tr(": ")
+       << GetFileChecksum(file_path, QCryptographicHash::Sha256).toHex()
+       << Qt::endl;
+
+    ss << Qt::endl;
+
   } else {
-    ss << "[#] " << QObject::tr("Error in Calculating File Hash ") << Qt::endl;
+    ss << "# " << QObject::tr("Error: cannot read target file") << Qt::endl;
+    ss << "- " << QObject::tr("Filename") << QObject::tr(": ")
+       << info.fileName() << Qt::endl;
   }
 
   return ss.readAll();
