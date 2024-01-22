@@ -101,6 +101,7 @@ void VersionCheckTask::slot_parse_latest_version_info() {
     QString current_version_url =
         "https://api.github.com/repos/saturneric/gpgfrontend/releases/tags/" +
         current_version_;
+    MODULE_LOG_DEBUG("current version info query url: {}", current_version_url);
 
     QNetworkRequest current_request;
     current_request.setUrl(QUrl(current_version_url));
@@ -124,7 +125,11 @@ void VersionCheckTask::slot_parse_current_version_info() {
       MODULE_LOG_ERROR(
           "current version request network error, null reply object");
     }
+
     version_.current_version_publish_in_remote = false;
+
+    // loading done
+    version_.loading_done = true;
   } else {
     version_.current_version_publish_in_remote = true;
     current_reply_bytes_ = current_reply_->readAll();
@@ -135,7 +140,6 @@ void VersionCheckTask::slot_parse_current_version_info() {
       bool current_draft = current_reply_json["draft"].toBool();
       version_.latest_prerelease_version_from_remote = current_prerelease;
       version_.latest_draft_from_remote = current_draft;
-
       // loading done
       version_.loading_done = true;
     } else {

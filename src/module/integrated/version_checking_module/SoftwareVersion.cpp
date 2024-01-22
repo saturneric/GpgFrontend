@@ -32,7 +32,7 @@
 
 namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 
-bool VersionCheckingModule::SoftwareVersion::NeedUpgrade() const {
+auto VersionCheckingModule::SoftwareVersion::NeedUpgrade() const -> bool {
   MODULE_LOG_DEBUG("compair version current {} latest {}, result {}",
                    current_version, latest_version,
                    CompareSoftwareVersion(current_version, latest_version));
@@ -45,12 +45,13 @@ bool VersionCheckingModule::SoftwareVersion::NeedUpgrade() const {
          CompareSoftwareVersion(current_version, latest_version) < 0;
 }
 
-bool VersionCheckingModule::SoftwareVersion::VersionWithdrawn() const {
+auto VersionCheckingModule::SoftwareVersion::VersionWithdrawn() const -> bool {
   return loading_done && !current_version_publish_in_remote &&
          current_version_is_a_prerelease && !current_version_is_drafted;
 }
 
-bool VersionCheckingModule::SoftwareVersion::CurrentVersionReleased() const {
+auto VersionCheckingModule::SoftwareVersion::CurrentVersionReleased() const
+    -> bool {
   return loading_done && current_version_publish_in_remote;
 }
 }  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule

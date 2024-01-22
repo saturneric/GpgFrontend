@@ -366,6 +366,10 @@ void KeyServerImportDialog::slot_import() {
   }
   if (!key_ids.empty()) {
     SlotImport(key_ids, key_server_combo_box_->currentText());
+  } else {
+    QMessageBox::warning(
+        this, tr("Warning"),
+        tr("Please select one KeyPair before doing this operation."));
   }
 }
 
