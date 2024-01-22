@@ -93,7 +93,7 @@ auto LoggerManager::RegisterAsyncLogger(const QString& id,
 #ifdef DEBUG
   logger->flush_on(spdlog::level::trace);
 #else
-  core_logger->flush_on(spdlog::level::err);
+  logger->flush_on(spdlog::level::err);
 #endif
 
   logger_map_[id] = logger;
