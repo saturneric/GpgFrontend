@@ -213,24 +213,14 @@ auto GnuPGInfoGatheringModule::Exec(EventRefrernce event) -> int {
   exec_contexts.emplace_back(GpgCommandExecutor::ExecuteContext{
       gpgconf_path, QStringList{"--list-dirs"},
       [this](int exit_code, const QString &p_out, const QString &p_err) {
-        MODULE_LOG_DEBUG(
-            "gpgconf configurations exit_code: {} process stdout size: {}",
-            exit_code, p_out.size());
-
-        if (exit_code != 0) {
-          MODULE_LOG_ERROR(
-              "gpgconf execute error, process stderr: {} process stdout: "
-              "{}",
-              p_err, p_out);
-          return;
-        }
+        if (exit_code != 0) return;
 
         auto line_split_list = p_out.split("\n");
 
         for (const auto &line : line_split_list) {
           auto info_split_list = line.split(":");
-          MODULE_LOG_DEBUG("gpgconf info line: {} info size: {}", line,
-                           info_split_list.size());
+          MODULE_LOG_DEBUG("gpgconf direcrotries info line: {} info size: {}",
+                           line, info_split_list.size());
 
           if (info_split_list.size() != 2) continue;
 

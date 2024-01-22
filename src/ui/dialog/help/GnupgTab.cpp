@@ -45,27 +45,14 @@ GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
                            << tr("Checksum") << tr("Binary Path");
 
   ui_->tabWidget->setTabText(0, tr("Components"));
-  ui_->tabWidget->setTabText(1, tr("Configurations"));
+  ui_->tabWidget->setTabText(1, tr("Directories"));
+  ui_->tabWidget->setTabText(2, tr("Options"));
 
   ui_->componentDetailsTable->setColumnCount(components_column_titles.length());
   ui_->componentDetailsTable->setHorizontalHeaderLabels(
       components_column_titles);
   ui_->componentDetailsTable->horizontalHeader()->setStretchLastSection(false);
   ui_->componentDetailsTable->setSelectionBehavior(
-      QAbstractItemView::SelectRows);
-
-  QStringList configurations_column_titles;
-  configurations_column_titles << tr("Component") << tr("Group") << tr("Key")
-                               << tr("Description") << tr("Default Value")
-                               << tr("Value");
-
-  ui_->configurationDetailsTable->setColumnCount(
-      configurations_column_titles.length());
-  ui_->configurationDetailsTable->setHorizontalHeaderLabels(
-      configurations_column_titles);
-  ui_->configurationDetailsTable->horizontalHeader()->setStretchLastSection(
-      false);
-  ui_->configurationDetailsTable->setSelectionBehavior(
       QAbstractItemView::SelectRows);
 
   // tableitems not editable
@@ -76,6 +63,45 @@ GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
   // may be it should focus on whole row
   ui_->componentDetailsTable->setFocusPolicy(Qt::NoFocus);
   ui_->componentDetailsTable->setAlternatingRowColors(true);
+
+  QStringList directories_column_titles;
+  directories_column_titles << tr("Directory Type") << tr("Path");
+
+  ui_->directoriesDetailsTable->setColumnCount(
+      directories_column_titles.length());
+  ui_->directoriesDetailsTable->setHorizontalHeaderLabels(
+      directories_column_titles);
+  ui_->directoriesDetailsTable->horizontalHeader()->setStretchLastSection(
+      false);
+  ui_->directoriesDetailsTable->setSelectionBehavior(
+      QAbstractItemView::SelectRows);
+
+  // tableitems not editable
+  ui_->directoriesDetailsTable->setEditTriggers(
+      QAbstractItemView::NoEditTriggers);
+
+  // no focus (rectangle around tableitems)
+  // may be it should focus on whole row
+  ui_->directoriesDetailsTable->setFocusPolicy(Qt::NoFocus);
+  ui_->directoriesDetailsTable->setAlternatingRowColors(true);
+
+  QStringList options_column_titles;
+  options_column_titles << tr("Component") << tr("Group") << tr("Key")
+                        << tr("Description") << tr("Default Value")
+                        << tr("Value");
+
+  ui_->optionDetailsTable->setColumnCount(options_column_titles.length());
+  ui_->optionDetailsTable->setHorizontalHeaderLabels(options_column_titles);
+  ui_->optionDetailsTable->horizontalHeader()->setStretchLastSection(false);
+  ui_->optionDetailsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+  // tableitems not editable
+  ui_->optionDetailsTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+  // no focus (rectangle around tableitems)
+  // may be it should focus on whole row
+  ui_->optionDetailsTable->setFocusPolicy(Qt::NoFocus);
+  ui_->optionDetailsTable->setAlternatingRowColors(true);
 
   process_software_info();
 }
@@ -144,6 +170,33 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
 
   ui_->componentDetailsTable->resizeColumnsToContents();
 
+  auto directories = Module::ListRTChildKeys(
+      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+      QString("gnupg.dirs"));
+
+  ui_->directoriesDetailsTable->setRowCount(directories.size());
+
+  row = 0;
+  for (auto& dir : directories) {
+    const auto dir_path = Module::RetrieveRTValueTypedOrDefault(
+        "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+        QString("gnupg.dirs.%1").arg(dir), QString{});
+
+    if (dir_path.isEmpty()) continue;
+
+    auto* tmp0 = new QTableWidgetItem(dir);
+    tmp0->setTextAlignment(Qt::AlignCenter);
+    ui_->directoriesDetailsTable->setItem(row, 0, tmp0);
+
+    auto* tmp1 = new QTableWidgetItem(dir_path);
+    tmp1->setTextAlignment(Qt::AlignCenter);
+    ui_->directoriesDetailsTable->setItem(row, 1, tmp1);
+
+    row++;
+  }
+
+  ui_->directoriesDetailsTable->resizeColumnsToContents();
+
   // calcualte the total row number of configuration table
   row = 0;
   for (auto& component : components) {
@@ -168,7 +221,8 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
       row++;
     }
   }
-  ui_->configurationDetailsTable->setRowCount(row);
+
+  ui_->optionDetailsTable->setRowCount(row);
 
   row = 0;
   QString configuration_group;
@@ -208,29 +262,29 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
 
       auto* tmp0 = new QTableWidgetItem(component);
       tmp0->setTextAlignment(Qt::AlignCenter);
-      ui_->configurationDetailsTable->setItem(row, 0, tmp0);
+      ui_->optionDetailsTable->setItem(row, 0, tmp0);
 
       auto* tmp1 = new QTableWidgetItem(configuration_group);
       tmp1->setTextAlignment(Qt::AlignCenter);
-      ui_->configurationDetailsTable->setItem(row, 1, tmp1);
+      ui_->optionDetailsTable->setItem(row, 1, tmp1);
 
       auto* tmp2 = new QTableWidgetItem(option_info["name"].toString());
       tmp2->setTextAlignment(Qt::AlignCenter);
-      ui_->configurationDetailsTable->setItem(row, 2, tmp2);
+      ui_->optionDetailsTable->setItem(row, 2, tmp2);
 
       auto* tmp3 = new QTableWidgetItem(option_info["description"].toString());
 
       tmp3->setTextAlignment(Qt::AlignLeft);
-      ui_->configurationDetailsTable->setItem(row, 3, tmp3);
+      ui_->optionDetailsTable->setItem(row, 3, tmp3);
 
       auto* tmp4 =
           new QTableWidgetItem(option_info["default_value"].toString());
       tmp4->setTextAlignment(Qt::AlignLeft);
-      ui_->configurationDetailsTable->setItem(row, 4, tmp4);
+      ui_->optionDetailsTable->setItem(row, 4, tmp4);
 
       auto* tmp5 = new QTableWidgetItem(option_info["value"].toString());
       tmp5->setTextAlignment(Qt::AlignLeft);
-      ui_->configurationDetailsTable->setItem(row, 5, tmp5);
+      ui_->optionDetailsTable->setItem(row, 5, tmp5);
 
       row++;
     }
