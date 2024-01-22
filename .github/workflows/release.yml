@@ -46,16 +46,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
-          sudo apt-get -y install gcc-11 g++-11 ninja-build
+          sudo apt-get -y install gcc g++ ninja-build
           sudo apt-get -y install libarchive-dev libssl-dev
           sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-icccm4-dev libcups2-dev libdrm-dev libegl1-mesa-dev
           sudo apt-get -y install libgcrypt20-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev gyp
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-image0
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-* libxkbcommon-x11-0
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 11
-          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 11
-          sudo update-alternatives --set gcc "/usr/bin/gcc-11"
-          sudo update-alternatives --set g++ "/usr/bin/g++-11"
         if: matrix.os == 'ubuntu-20.04'
 
       - name: Codesign Configuration (macOS)
@@ -150,7 +146,7 @@ jobs:
         # Build your GpgFrontend with the given configuration
         run: |
           cmake -B ${{github.workspace}}/build -G Xcode \
-            -DGPGFRONTEND_CONFIGURE_FOR_XCODE_BUILD=On \
+           -DGPGFRONTEND_CONFIGURE_FOR_XCODE_BUILD=On \
            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
            -DGPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY="${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" \
            -DGPGFRONTEND_XCODE_TEAM_ID="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
