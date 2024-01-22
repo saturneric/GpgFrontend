@@ -7,22 +7,19 @@ their fingers to complete.
 
 ## Work Offline
 
-Most of the translation work is carried out by Google Translate. In most cases,
-what you have to do is to correct some of the bad aspects of Google Translate.
-
 ### What you need to know about translation work
 
-From v2.0.1, Gpg Frontend uses the popular translation support library [GNU
-gettext](https://www.gnu.org/software/gettext/) in the GNU project. Before
-starting everything, you need to know something about this library. After you
-are sure about the content of the document, you can first try to see how
-GpgFrontned uses the tools provided by this library.
+From v2.1.2, GpgFrontend uses the Qt translation support library [Qt
+Linguist](https://doc.qt.io/qt-6/qtlinguist-index.html) in the Qt project.
+Before starting everything, you need to know something about this library. After
+you are sure about the content of the document, you can first try to see how
+GpgFrontend uses the tools provided by this library.
 
 ### About translation files
 
-1. Download or clone source code [HERE](https://github.com/saturneric/GpgFrontend)
-2. You will find some po files(.po) at path `resource/lfs/locale/po`
-3. You will find some template file(.pot) at path `resource/lfs/locale/template`
+1. Download or clone source code
+   [HERE](https://github.com/saturneric/GpgFrontend)
+2. You will find some ts files(.ts) at path `resource/lfs/locale/ts`
 
 ### Before starting your work
 
@@ -30,10 +27,19 @@ In order to facilitate coordination, please contact me via email before you
 start this work. This is very important, please contact me first so that the
 work you do can be better used by GpgFrontend.
 
+### Updates to Translation Work Process
+
+- **For correcting existing translations**: You can directly modify the ts files
+  and then send them to me via email.
+- **For adding a new language translation**: If you're unfamiliar with the
+  process, you can request a new ts file by emailing me. I will provide you with
+  the necessary file to start the translation for the new language.
+
 ### Hand in your work
 
 You can submit your great work in two ways:
 
-1. Raise a pull request and merge the changed translation file(s) to the repository.
-2. [Email ME](mailto:eric@bktus.com). Please attach the changed ts file on the
+1. Raise a pull request and merge the changed translation file(s) to the
+   repository.
+2. [Email ME](mailto:eric@bktus.com). Please attach the changed ts file in the
    email.

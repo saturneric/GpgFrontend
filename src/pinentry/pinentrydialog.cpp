@@ -532,7 +532,7 @@ void PinEntryDialog::textChanged(const QString &text) {
 }
 
 void PinEntryDialog::generatePin() {
-  unique_malloced_ptr<char> pin{pinentry_inq_genpin(_pinentry_info.get())};
+  std::unique_ptr<char> pin{pinentry_inq_genpin(_pinentry_info.get())};
   if (pin) {
     if (_edit->echoMode() == QLineEdit::Password) {
       if (mVisiActionEdit != nullptr) {
