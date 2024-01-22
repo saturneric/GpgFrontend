@@ -41,7 +41,7 @@ using GpgCommandExecutorInteractor = std::function<void(QProcess *)>;
  */
 class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor {
  public:
-  struct ExecuteContext {
+  struct GPGFRONTEND_CORE_EXPORT ExecuteContext {
     QString cmd;
     QStringList arguments;
     GpgCommandExecutorCallback cb_func;
