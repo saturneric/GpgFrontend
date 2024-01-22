@@ -33,13 +33,22 @@ add_library(gpgfrontend_module_sdk SHARED ${MODULE_SDK_SOURCE})
 set(_export_file_sdk "${CMAKE_CURRENT_SOURCE_DIR}/sdk/GpgFrontendModuleSDKExport.h")
 generate_export_header(gpgfrontend_module_sdk EXPORT_FILE_NAME "${_export_file_sdk}")
 target_include_directories(gpgfrontend_module_sdk PUBLIC 
-        sdk 
-        ${CMAKE_CURRENT_BINARY_DIR}/gpgfrontend_module_sdk_autogen/include
-        ${CMAKE_SOURCE_DIR}/third_party/spdlog/include)
+  sdk 
+  ${CMAKE_CURRENT_BINARY_DIR}/gpgfrontend_module_sdk_autogen/include
+  ${CMAKE_SOURCE_DIR}/third_party/spdlog/include)
 
 # link module system
-target_link_libraries(gpgfrontend_module_sdk
-        PUBLIC gpgfrontend_core)
+target_link_libraries(gpgfrontend_module_sdk PUBLIC gpgfrontend_core)
+
+if (XCODE_BUILD)
+  set_target_properties(gpgfrontend_module_sdk
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+    XCODE_ATTRIBUTE_SKIP_INSTALL "Yes"
+    XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
+endif ()
 
 # tracking integrated modules
 set(all_integrated_module_libraries "")
@@ -71,6 +80,17 @@ target_include_directories(gpgfrontend_module PUBLIC
 
 # link gpgfrontend_module_sdk
 target_link_libraries(gpgfrontend_module PRIVATE gpgfrontend_module_sdk)
+
+if (XCODE_BUILD)
+  set_target_properties(gpgfrontend_module
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+    XCODE_ATTRIBUTE_SKIP_INSTALL "Yes"
+    XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
+endif ()
+
 
 # link all integrated modules
 message(STATUS "All Module Libraries: ${all_integrated_module_libraries}")

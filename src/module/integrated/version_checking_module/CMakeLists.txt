@@ -30,6 +30,16 @@ aux_source_directory(. INTEGRATED_MODULE_SOURCE)
 # define libgpgfrontend_module
 add_library(gpgfrontend_integrated_module_version_checking SHARED ${INTEGRATED_MODULE_SOURCE})
 
+if (XCODE_BUILD)
+  set_target_properties(gpgfrontend_integrated_module_version_checking
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+    XCODE_ATTRIBUTE_SKIP_INSTALL "Yes"
+    XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
+endif ()
+
 # link sdk
 target_link_libraries(gpgfrontend_integrated_module_version_checking PRIVATE
         gpgfrontend_module_sdk)
