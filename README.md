@@ -242,26 +242,21 @@ $ ./linuxdeployqt-continuous-x86_64.AppImage ../artifacts/gpgfrontend/usr/share/
 
 ## Language Support
 
-Listed below are the languages currently supported by GpgFrontend. Please be
-aware that some of these languages are translated via machine translation and
-may not have been manually verified for accuracy. If you are interested in
-joining our translation and verification work, please refer to [this
-link](https://gpgfrontend.bktus.com/#/translate-interface).
+If you find an error in any of the translations or need to add a new one, we
+welcome you to [join our translation
+work](https://www.gpgfrontend.bktus.com/#/translate-interface).
 
 ### Supported Languages
 
 GpgFrontend currently supports a wide array of languages including:
 
+- English
 - Chinese
-- French: 'fr_FR'
-- German: 'de_DE'
-- Italian: 'it_IT'
-- English: 'en_US'
+- French
+- German
+- Italian
 
-**Notice:** If you find an error in any of the translations or need to add a new one,
-we welcome you to [join our translation
-work](https://www.gpgfrontend.bktus.com/#/translate-interface) to provide a more
-accurate human translation.
+Contributors: [SHOW](TRANSLATORS)
 
 ## Contract
 
@@ -298,9 +293,10 @@ visit their respective homepages:
 - **MSYS2**: [https://www.msys2.org](https://www.msys2.org)
 - **Mingw-w64**: [http://mingw-w64.org/doku.php](http://mingw-w64.org/doku.php)
 - **AppImage**: [https://appimage.org](https://appimage.org)
-- **JSON for Modern C++**: [https://github.com/nlohmann/json](https://github.com/nlohmann/json)
-- **Qt-AES**: [https://github.com/saturneric/Qt-AES](https://github.com/saturneric/Qt-AES)
 - **macOS Application Bundles**: [Link](https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW1)
+- **libarchive**: [https://www.libarchive.org](https://www.libarchive.org)
+- **mimalloc**: [https://github.com/microsoft/mimalloc](https://github.com/microsoft/mimalloc)
+- **Qt-AES**: [https://github.com/saturneric/Qt-AES](https://github.com/saturneric/Qt-AES)
 
 The icons utilized in this software are sourced from [Alibaba
 Iconfont](https://www.iconfont.cn/). This vector icon library is free of use,
