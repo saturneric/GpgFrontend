@@ -106,6 +106,15 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
   // init locale
   InitLocale();
 
+#ifdef WINDOWS
+  // support dark mode on windows
+  QApplication::setStyle("fusion");
+#endif
+
+  // register meta types
+  qRegisterMetaType<QSharedPointer<GpgPassphraseContext> >(
+      "QSharedPointer<GpgPassphraseContext>");
+
   // init signal station
   UISignalStation::GetInstance();
 
@@ -172,9 +181,6 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
       0) {
     WaitEnvCheckingProcess();
   }
-
-  qRegisterMetaType<QSharedPointer<GpgPassphraseContext> >(
-      "QSharedPointer<GpgPassphraseContext>");
 }
 
 auto RunGpgFrontendUI(QApplication* app) -> int {
