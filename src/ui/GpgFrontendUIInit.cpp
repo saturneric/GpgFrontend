@@ -40,7 +40,7 @@
 
 namespace GpgFrontend::UI {
 
-extern void InitLocale();
+extern void InitUITranslations();
 
 void WaitEnvCheckingProcess() {
   GF_UI_LOG_DEBUG("need to waiting for env checking process");
@@ -50,11 +50,12 @@ void WaitEnvCheckingProcess() {
   waiting_dialog->setMaximum(0);
   waiting_dialog->setMinimum(0);
   auto* waiting_dialog_label = new QLabel(
-      QObject::tr("Loading Gnupg Info...") + "<br /><br />" +
-      QObject::tr("If this process is too slow, please set the key "
-                  "server address appropriately in the gnupg configuration "
-                  "file (depending "
-                  "on the network situation in your country or region)."));
+      QCoreApplication::tr("Loading Gnupg Info...") + "<br /><br />" +
+      QCoreApplication::tr(
+          "If this process is too slow, please set the key "
+          "server address appropriately in the gnupg configuration "
+          "file (depending "
+          "on the network situation in your country or region)."));
   waiting_dialog_label->setWordWrap(true);
   waiting_dialog->setLabel(waiting_dialog_label);
   waiting_dialog->resize(420, 120);
@@ -104,7 +105,7 @@ void PreInitGpgFrontendUI() { CommonUtils::GetInstance(); }
 
 void InitGpgFrontendUI(QApplication* /*app*/) {
   // init locale
-  InitLocale();
+  InitUITranslations();
 
 #ifdef WINDOWS
   // support dark mode on windows
@@ -210,24 +211,13 @@ void GPGFRONTEND_UI_EXPORT DestroyGpgFrontendUI() {}
  * @brief setup the locale and load the translations
  *
  */
-void InitLocale() {
-  // get the instance of the GlobalSettingStation
-  auto settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
-
-  // read from settings file
-  auto lang = settings.value("basic/lang").toString();
-  GF_UI_LOG_INFO("current system default locale: {}", QLocale().name());
-
-  auto target_locale = lang.isEmpty() ? QLocale() : QLocale(lang);
-  QLocale::setDefault(target_locale);
-  GF_UI_LOG_INFO("target locale settings: {}", target_locale.name());
-
+void InitUITranslations() {
   auto* translator = new QTranslator(QCoreApplication::instance());
-  if (translator->load(target_locale, QLatin1String(PROJECT_NAME),
+  if (translator->load(QLocale(), QLatin1String(PROJECT_NAME),
                        QLatin1String("."), QLatin1String(":/i18n"),
                        QLatin1String(".qm"))) {
-    GF_UI_LOG_DEBUG("load target translation file done");
+    GF_UI_LOG_DEBUG("load target translation file done, locale: {}",
+                    QLocale().name());
     QCoreApplication::installTranslator(translator);
   }
 }

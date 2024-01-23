@@ -46,14 +46,15 @@ auto PrintVersion() -> int {
          << "v" << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH
          << '\n';
   stream << "Copyright (©) 2021 Saturneric <eric@bktus.com>" << '\n'
-         << QObject::tr(
+         << QCoreApplication::tr(
                 "This is free software; see the source for copying conditions.")
          << '\n'
          << '\n';
 
-  stream << QObject::tr("Build DateTime: ") << BUILD_TIMESTAMP << '\n'
-         << QObject::tr("Build Version: ") << BUILD_VERSION << '\n'
-         << QObject::tr("Source Code Version: ") << GIT_VERSION << '\n';
+  stream << QCoreApplication::tr("Build DateTime: ") << BUILD_TIMESTAMP << '\n'
+         << QCoreApplication::tr("Build Version: ") << BUILD_VERSION << '\n'
+         << QCoreApplication::tr("Source Code Version: ") << GIT_VERSION
+         << '\n';
 
   stream << Qt::endl;
   return 0;

@@ -94,6 +94,9 @@ void InitGlobalBasicalEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
     return;
   }
 
+  // init default locale of application
+  InitLocale();
+
   // initialize logging system
   SetDefaultLogLevel(ctx->log_level);
   InitLoggingSystem(ctx);
@@ -118,6 +121,26 @@ void InitGlobalBasicalEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
 
   // then load core
   InitGpgFrontendCore(core_init_args);
+}
+
+/**
+ * @brief setup the locale and load the translations
+ *
+ */
+void InitLocale() {
+  // get the instance of the GlobalSettingStation
+  auto settings =
+      GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
+
+  // read from settings file
+  auto lang = settings.value("basic/lang").toString();
+  GF_UI_LOG_INFO("current system default locale: {}", QLocale().name());
+  GF_UI_LOG_INFO("locale settings from config: {}", lang);
+
+  auto target_locale =
+      lang.trimmed().isEmpty() ? QLocale::system() : QLocale(lang);
+  GF_UI_LOG_INFO("application's target locale: {}", target_locale.name());
+  QLocale::setDefault(target_locale);
 }
 
 void ShutdownGlobalBasicalEnv(const GFCxtWPtr &p_ctx) {

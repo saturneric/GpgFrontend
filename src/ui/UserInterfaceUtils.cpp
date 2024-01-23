@@ -57,17 +57,17 @@ void show_verify_details(QWidget *parent, InfoBoardWidget *info_board,
                          GpgError error, const GpgVerifyResult &verify_result) {
   // take out result
   info_board->ResetOptionActionsMenu();
-  info_board->AddOptionalAction(QObject::tr("Show Verify Details"), [=]() {
-    VerifyDetailsDialog(parent, error, verify_result);
-  });
+  info_board->AddOptionalAction(
+      QCoreApplication::tr("Show Verify Details"),
+      [=]() { VerifyDetailsDialog(parent, error, verify_result); });
 }
 
 void import_unknown_key_from_keyserver(
     QWidget *parent, const GpgVerifyResultAnalyse &verify_res) {
   QMessageBox::StandardButton reply;
   reply = QMessageBox::question(
-      parent, QObject::tr("Public key not found locally"),
-      QObject::tr(
+      parent, QCoreApplication::tr("Public key not found locally"),
+      QCoreApplication::tr(
           "There is no target public key content in local for GpgFrontend to "
           "gather enough information about this Signature. Do you want to "
           "import the public key from Keyserver now?"),
