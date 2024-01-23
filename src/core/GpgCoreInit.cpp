@@ -77,7 +77,7 @@ auto SearchKeyDatabasePath(const QList<QString>& candidate_paths) -> QString {
   return {};
 }
 
-auto InitGpgME(const QString& gnupg_path) -> bool {
+auto InitGpgME(const QString& gpgconf_path, const QString& gnupg_path) -> bool {
   // init gpgme subsystem and get gpgme library version
   Module::UpsertRTValue("core", "gpgme.version",
                         QString(gpgme_check_version(nullptr)));
@@ -88,8 +88,11 @@ auto InitGpgME(const QString& gnupg_path) -> bool {
 #endif
 
   if (!gnupg_path.isEmpty()) {
-    GF_CORE_LOG_DEBUG("gpgme set engine info, gnupg path: {}", gnupg_path);
-    CheckGpgError(gpgme_set_engine_info(GPGME_PROTOCOL_OPENPGP,
+    GF_CORE_LOG_DEBUG("gpgme set engine info, gpgconf path: {}, gnupg path: {}",
+                      gpgconf_path, gnupg_path);
+    CheckGpgError(gpgme_set_engine_info(GPGME_PROTOCOL_GPGCONF,
+                                        gpgconf_path.toUtf8(), nullptr));
+    CheckGpgError(gpgme_set_engine_info(GPGME_PROTOCOL_OpenPGP,
                                         gnupg_path.toUtf8(), nullptr));
   }
 
@@ -218,8 +221,7 @@ auto GetGnuPGPathByGpgConf(const QString& gnupg_install_fs_path) -> QString {
   }
   return "";
 }
-
-auto DetectGnuPGPath() -> QString {
+auto DetectGpgConfPath() -> QString {
   auto settings = GlobalSettingStation::GetInstance().GetSettings();
   auto use_custom_gnupg_install_path =
       settings.value("basic/use_custom_gnupg_install_path", false).toBool();
@@ -262,10 +264,13 @@ auto DetectGnuPGPath() -> QString {
   }
 
   if (!gnupg_install_fs_path.isEmpty()) {
-    return GetGnuPGPathByGpgConf(
-        QFileInfo(gnupg_install_fs_path).absoluteFilePath());
+    return QFileInfo(gnupg_install_fs_path).absoluteFilePath();
   }
   return "";
+}
+
+auto DetectGnuPGPath(QString gpgconf_path) -> QString {
+  return GetGnuPGPathByGpgConf(gpgconf_path);
 }
 
 void InitGpgFrontendCore(CoreInitArgs args) {
@@ -279,11 +284,13 @@ void InitGpgFrontendCore(CoreInitArgs args) {
   // initialize locale environment
   GF_CORE_LOG_DEBUG("locale: {}", setlocale(LC_CTYPE, nullptr));
 
-  auto gnupg_install_fs_path = DetectGnuPGPath();
+  auto gpgconf_install_fs_path = DetectGpgConfPath();
+  auto gnupg_install_fs_path = DetectGnuPGPath(gpgconf_install_fs_path);
+  GF_CORE_LOG_INFO("detected gpgconf path: {}", gpgconf_install_fs_path);
   GF_CORE_LOG_INFO("detected gnupg path: {}", gnupg_install_fs_path);
 
   // initialize library gpgme
-  if (!InitGpgME(gnupg_install_fs_path)) {
+  if (!InitGpgME(gpgconf_install_fs_path, gnupg_install_fs_path)) {
     CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
         QObject::tr("GpgME inilization failed"));
     return;

@@ -116,11 +116,16 @@ void VersionCheckTask::slot_parse_latest_version_info() {
 }
 
 void VersionCheckTask::slot_parse_current_version_info() {
-  if (current_reply_ == nullptr ||
-      current_reply_->error() != QNetworkReply::NoError) {
+  if (current_reply_ == nullptr) {
+    // loading done
+    version_.loading_done = false;
+    return;
+  }
+
+  if (current_reply_->error() != QNetworkReply::NoError) {
     if (current_reply_ != nullptr) {
       MODULE_LOG_ERROR("current version request network error: {}",
-                       current_reply_->errorString().toStdString());
+                       current_reply_->errorString());
     } else {
       MODULE_LOG_ERROR(
           "current version request network error, null reply object");
