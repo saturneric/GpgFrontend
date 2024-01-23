@@ -124,7 +124,7 @@ void GeneralTab::SetSettings() {
 
   QString lang_key = settings.value("basic/lang").toString();
   QString lang_value = lang_.value(lang_key);
-  GF_UI_LOG_DEBUG("lang settings current: {}", lang_value.toStdString());
+  GF_UI_LOG_DEBUG("lang settings current: {}", lang_value);
   if (!lang_.empty()) {
     ui_->langSelectBox->setCurrentIndex(
         ui_->langSelectBox->findText(lang_value));

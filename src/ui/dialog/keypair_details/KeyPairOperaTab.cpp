@@ -352,7 +352,7 @@ void KeyPairOperaTab::slot_modify_tofu_policy() {
       this, tr("Modify TOFU Policy(Default is Auto)"),
       tr("Policy for the Key Pair:"), items, 0, false, &ok);
   if (ok && !item.isEmpty()) {
-    GF_UI_LOG_DEBUG("selected policy: {}", item.toStdString());
+    GF_UI_LOG_DEBUG("selected policy: {}", item);
     gpgme_tofu_policy_t tofu_policy = GPGME_TOFU_POLICY_AUTO;
     if (item == tr("Policy Auto")) {
       tofu_policy = GPGME_TOFU_POLICY_AUTO;

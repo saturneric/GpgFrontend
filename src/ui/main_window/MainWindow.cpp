@@ -123,21 +123,6 @@ void MainWindow::Init() noexcept {
 
     edit_->CurTextPage()->setFocus();
 
-    // before application exit
-    connect(qApp, &QCoreApplication::aboutToQuit, this, []() {
-      GF_UI_LOG_DEBUG("about to quit process started");
-
-      if (GlobalSettingStation::GetInstance()
-              .GetSettings()
-              .value("basic/clear_gpg_password_cache", false)
-              .toBool()) {
-        GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache(
-            [](int, DataObjectPtr) {
-
-            });
-      }
-    });
-
     Module::ListenRTPublishEvent(
         this, "com.bktus.gpgfrontend.module.integrated.version-checking",
         "version.loading_done",

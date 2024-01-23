@@ -129,7 +129,7 @@ auto SettingsDialog::ListLanguages() -> QHash<QString, QString> {
 
   QStringList filenames = QDir(QLatin1String(":/i18n")).entryList();
   for (const auto& file : filenames) {
-    GF_UI_LOG_DEBUG("get locale from locale directory: {}", file.toStdString());
+    GF_UI_LOG_DEBUG("get locale from locale directory: {}", file);
 
     auto start = file.indexOf('.') + 1;
     auto end = file.lastIndexOf('.');

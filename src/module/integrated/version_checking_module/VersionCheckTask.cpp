@@ -59,38 +59,44 @@ auto VersionCheckTask::Run() -> int {
 }
 
 void VersionCheckTask::slot_parse_latest_version_info() {
-  version_.current_version = current_version_;
-
-  if (latest_reply_ == nullptr ||
-      latest_reply_->error() != QNetworkReply::NoError) {
-    MODULE_LOG_ERROR("latest version request error");
+  if (latest_reply_ == nullptr) {
+    version_.latest_version = current_version_;
+    version_.loading_done = false;
+  } else if (latest_reply_->error() != QNetworkReply::NoError) {
+    MODULE_LOG_ERROR("latest version request error: ",
+                     latest_reply_->errorString());
     version_.latest_version = current_version_;
   } else {
     latest_reply_bytes_ = latest_reply_->readAll();
     auto latest_reply_json = QJsonDocument::fromJson(latest_reply_bytes_);
 
-    QString latest_version = latest_reply_json["tag_name"].toString();
-    MODULE_LOG_INFO("latest version from Github: {}", latest_version);
+    if (latest_reply_json.isObject()) {
+      QString latest_version = latest_reply_json["tag_name"].toString();
 
-    QRegularExpression re(R"(^[vV](\d+\.)?(\d+\.)?(\*|\d+))");
-    auto version_match = re.match(latest_version);
-    if (version_match.hasMatch()) {
-      latest_version = version_match.captured(0);
-      MODULE_LOG_DEBUG("latest version matched: {}", latest_version);
+      QRegularExpression re(R"(^[vV](\d+\.)?(\d+\.)?(\*|\d+))");
+      auto version_match = re.match(latest_version);
+      if (version_match.hasMatch()) {
+        latest_version = version_match.captured(0);
+        MODULE_LOG_INFO("latest version from github: {}", latest_version);
+      } else {
+        latest_version = current_version_;
+        MODULE_LOG_WARN("latest version unknown, set to current version: {}",
+                        current_version_);
+      }
+
+      bool prerelease = latest_reply_json["prerelease"].toBool();
+      bool draft = latest_reply_json["draft"].toBool();
+      auto publish_date = latest_reply_json["published_at"].toString();
+      auto release_note = latest_reply_json["body"].toString();
+      version_.latest_version = latest_version;
+      version_.latest_prerelease_version_from_remote = prerelease;
+      version_.latest_draft_from_remote = draft;
+      version_.publish_date = publish_date;
+      version_.release_note = release_note;
     } else {
-      latest_version = current_version_;
-      MODULE_LOG_WARN("latest version unknown");
+      MODULE_LOG_WARN("cannot parse data got from github: {}",
+                      latest_reply_bytes_);
     }
-
-    bool prerelease = latest_reply_json["prerelease"].toBool();
-    bool draft = latest_reply_json["draft"].toBool();
-    auto publish_date = latest_reply_json["published_at"].toString();
-    auto release_note = latest_reply_json["body"].toString();
-    version_.latest_version = latest_version;
-    version_.latest_prerelease_version_from_remote = prerelease;
-    version_.latest_draft_from_remote = draft;
-    version_.publish_date = publish_date;
-    version_.release_note = release_note;
   }
 
   if (latest_reply_ != nullptr) {
@@ -119,22 +125,14 @@ void VersionCheckTask::slot_parse_current_version_info() {
   if (current_reply_ == nullptr) {
     // loading done
     version_.loading_done = false;
-    return;
-  }
 
-  if (current_reply_->error() != QNetworkReply::NoError) {
-    if (current_reply_ != nullptr) {
-      MODULE_LOG_ERROR("current version request network error: {}",
-                       current_reply_->errorString());
-    } else {
-      MODULE_LOG_ERROR(
-          "current version request network error, null reply object");
-    }
-
-    version_.current_version_publish_in_remote = false;
+  } else if (current_reply_->error() != QNetworkReply::NoError) {
+    MODULE_LOG_ERROR("current version request network error: {}",
+                     current_reply_->errorString());
 
     // loading done
     version_.loading_done = true;
+    version_.current_version_publish_in_remote = false;
   } else {
     version_.current_version_publish_in_remote = true;
     current_reply_bytes_ = current_reply_->readAll();
@@ -148,7 +146,8 @@ void VersionCheckTask::slot_parse_current_version_info() {
       // loading done
       version_.loading_done = true;
     } else {
-      MODULE_LOG_WARN("cannot parse data got from github");
+      MODULE_LOG_WARN("cannot parse data got from github: {}",
+                      current_reply_bytes_);
     }
   }
 

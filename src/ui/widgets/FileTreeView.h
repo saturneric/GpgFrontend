@@ -38,14 +38,14 @@ class FileTreeView : public QTreeView {
   /**
    * @brief Get the Current Path object
    *
-   * @return std::filesystem::path
+   * @return QString
    */
   auto GetCurrentPath() -> QString;
 
   /**
    * @brief Get the Selected Path object
    *
-   * @return std::filesystem::path
+   * @return QString
    */
   auto GetSelectedPath() -> QString;
 
@@ -53,7 +53,7 @@ class FileTreeView : public QTreeView {
    * @brief Get the Path By Click Point object
    *
    * @param point
-   * @return std::filesystem::path
+   * @return QString
    */
   auto GetPathByClickPoint(const QPoint& point) -> QString;
 

@@ -411,7 +411,7 @@ void KeyServerImportDialog::slot_import_finished(
   set_loading(false);
 
   if (!success) {
-    GF_UI_LOG_ERROR("Error From Reply", buffer.toStdString());
+    GF_UI_LOG_ERROR("error from reply: {}", buffer);
     set_message(err_msg, true);
     return;
   }

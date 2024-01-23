@@ -55,8 +55,8 @@ auto RaisePinentry::Exec() -> int {
   GF_UI_LOG_DEBUG(
       "setting pinetry's arguments, context uids: {}, passphrase info: {}, "
       "prev_was_bad: {}",
-      context_->GetUidsInfo().toStdString(),
-      context_->GetPassphraseInfo().toStdString(), context_->IsPreWasBad());
+      context_->GetUidsInfo(), context_->GetPassphraseInfo(),
+      context_->IsPreWasBad());
 
   bool ask_for_new = context_->IsAskForNew() &&
                      context_->GetPassphraseInfo().isEmpty() &&

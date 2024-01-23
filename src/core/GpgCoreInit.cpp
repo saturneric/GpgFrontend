@@ -38,7 +38,6 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
-#include "core/thread/TaskRunner.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"

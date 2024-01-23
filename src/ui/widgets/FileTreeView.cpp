@@ -159,7 +159,7 @@ auto FileTreeView::SlotDeleteSelectedItem() -> void {
 
   if (ret == QMessageBox::Cancel) return;
 
-  GF_UI_LOG_DEBUG("delete item: {}", data.toString().toStdString());
+  GF_UI_LOG_DEBUG("delete item: {}", data.toString());
 
   if (!dir_model_->remove(index)) {
     QMessageBox::critical(this, tr("Error"),
@@ -194,25 +194,17 @@ void FileTreeView::SlotMkdirBelowAtSelectedItem() {
 }
 
 void FileTreeView::SlotTouch() {
-#ifdef WINDOWS
-  auto root_path_str = dir_model_->rootPath().toStdU16String();
-#else
-  auto root_path_str = dir_model_->rootPath().toStdString();
-#endif
-  std::filesystem::path root_path(root_path_str);
+  auto root_path = dir_model_->rootPath();
 
   QString new_file_name;
   bool ok;
+
   new_file_name = QInputDialog::getText(
       this, tr("Create Empty File"), tr("Filename (you can given extension)"),
       QLineEdit::Normal, new_file_name, &ok);
   if (ok && !new_file_name.isEmpty()) {
-#ifdef WINDOWS
-    auto file_path = root_path / new_file_name.toStdU16String();
-#else
-    auto file_path = root_path / new_file_name.toStdString();
-#endif
-    QFile new_file(file_path.u8string().c_str());
+    auto file_path = root_path + "/" + new_file_name;
+    QFile new_file(file_path);
     if (!new_file.open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
       QMessageBox::critical(this, tr("Error"),
                             tr("Unable to create the file."));
@@ -257,7 +249,7 @@ void FileTreeView::keyPressEvent(QKeyEvent* event) {
 void FileTreeView::SlotOpenSelectedItemBySystemApplication() {
   QFileInfo const info(selected_path_);
   if (info.isDir()) {
-    const auto file_path = info.filePath().toUtf8().toStdString();
+    const auto file_path = info.filePath().toUtf8();
     QDesktopServices::openUrl(QUrl::fromLocalFile(selected_path_));
 
   } else {
@@ -377,11 +369,11 @@ void FileTreeView::slot_calculate_hash() {
   CommonUtils::WaitForOpera(
       this->parentWidget(), tr("Calculating"), [=](const OperaWaitingHd& hd) {
         RunOperaAsync(
-            [=](DataObjectPtr data_object) {
+            [=](const DataObjectPtr& data_object) {
               data_object->Swap({CalculateHash(this->GetSelectedPath())});
               return 0;
             },
-            [hd](int rtn, DataObjectPtr data_object) {
+            [hd](int rtn, const DataObjectPtr& data_object) {
               hd();
               if (rtn < 0 || !data_object->Check<QString>()) {
                 return;

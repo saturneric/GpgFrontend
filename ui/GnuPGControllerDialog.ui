@@ -38,6 +38,13 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="gpgmeDebugLogCheckBox">
+            <property name="text">
+             <string>Enable GpgME Debug Log</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
        </layout>

@@ -115,7 +115,7 @@ void KeyList::AddListGroupTab(const QString& name, const QString& id,
                               KeyListRow::KeyType selectType,
                               KeyListColumn::InfoType infoType,
                               const KeyTable::KeyTableFilter filter) {
-  GF_UI_LOG_DEBUG("add tab: {}", name.toStdString());
+  GF_UI_LOG_DEBUG("add list group tab: {}", name);
 
   auto* key_list = new QTableWidget(this);
   if (m_key_list_ == nullptr) {
@@ -315,7 +315,7 @@ void KeyList::contextMenuEvent(QContextMenuEvent* event) {
   QString current_tab_widget_obj_name =
       ui_->keyGroupTab->widget(ui_->keyGroupTab->currentIndex())->objectName();
   GF_UI_LOG_DEBUG("current tab widget object name: {}",
-                  current_tab_widget_obj_name.toStdString());
+                  current_tab_widget_obj_name);
   if (current_tab_widget_obj_name == "favourite") {
     QList<QAction*> actions = popup_menu_->actions();
     for (QAction* action : actions) {
@@ -388,7 +388,7 @@ void KeyList::dropEvent(QDropEvent* event) {
       QFile file;
       file.setFileName(tmp.toLocalFile());
       if (!file.open(QIODevice::ReadOnly)) {
-        GF_UI_LOG_ERROR("couldn't open file: {}", tmp.toString().toStdString());
+        GF_UI_LOG_ERROR("couldn't open file: {}", tmp.toString());
       }
       QByteArray in_buffer = file.readAll();
       this->import_keys(in_buffer);

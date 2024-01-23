@@ -49,6 +49,7 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
   ui_->asciiModeCheckBox->setText(tr("No ASCII Mode"));
   ui_->usePinentryAsPasswordInputDialogCheckBox->setText(
       tr("Use Pinentry as Password Input Dialog"));
+  ui_->gpgmeDebugLogCheckBox->setText(tr("Enable GpgME Debug Log"));
   ui_->useCustomGnuPGInstallPathCheckBox->setText(tr("Use Custom GnuPG"));
   ui_->useCustomGnuPGInstallPathButton->setText(tr("Select GnuPG Path"));
   ui_->keyDatabseUseCustomCheckBox->setText(
@@ -103,14 +104,6 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
           return;
         }
 
-        auto settings = GlobalSettingStation::GetInstance().GetSettings();
-
-        // update settings
-        if (!settings.contains("basic/custom_key_database_path")) {
-          settings.setValue("basic/custom_key_database_path",
-                            selected_custom_key_database_path);
-        }
-
         // announce the restart
         this->slot_set_restart_needed(kDeepRestartCode);
 
@@ -134,12 +127,6 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
           return;
         }
 
-        auto settings = GlobalSettingStation::GetInstance().GetSettings();
-        if (!settings.contains("basic/custom_gnupg_install_path")) {
-          settings.setValue("basic/custom_gnupg_install_path",
-                            selected_custom_gnupg_install_path);
-        }
-
         // announce the restart
         this->slot_set_restart_needed(kDeepRestartCode);
 
@@ -149,10 +136,20 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
       });
 
   connect(ui_->usePinentryAsPasswordInputDialogCheckBox,
-          &QCheckBox::stateChanged, this, [=](int state) {
+          &QCheckBox::stateChanged, this, [=](int) {
             // announce the restart
             this->slot_set_restart_needed(kDeepRestartCode);
           });
+
+  connect(ui_->gpgmeDebugLogCheckBox, &QCheckBox::stateChanged, this, [=](int) {
+    // announce the restart
+    this->slot_set_restart_needed(kDeepRestartCode);
+  });
+
+  connect(ui_->asciiModeCheckBox, &QCheckBox::stateChanged, this, [=](int) {
+    // announce the restart
+    this->slot_set_restart_needed(kDeepRestartCode);
+  });
 
 #ifndef MACOS
   connect(ui_->buttonBox, &QDialogButtonBox::accepted, this,
@@ -263,36 +260,35 @@ void GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label(
 }
 
 void GnuPGControllerDialog::set_settings() {
-  auto& settings_station = GlobalSettingStation::GetInstance();
+  auto settings = GlobalSettingStation::GetInstance().GetSettings();
 
-  bool non_ascii_when_export = settings_station.GetSettings()
-                                   .value("basic/non_ascii_when_export", true)
-                                   .toBool();
-  GF_UI_LOG_DEBUG("non_ascii_when_export: {}", non_ascii_when_export);
+  bool non_ascii_when_export =
+      settings.value("basic/non_ascii_when_export", true).toBool();
   if (non_ascii_when_export) ui_->asciiModeCheckBox->setCheckState(Qt::Checked);
 
   bool const use_custom_key_database_path =
-      settings_station.GetSettings()
-          .value("basic/use_custom_key_database_path", false)
-          .toBool();
+      settings.value("basic/use_custom_key_database_path", false).toBool();
   if (use_custom_key_database_path) {
     ui_->keyDatabseUseCustomCheckBox->setCheckState(Qt::Checked);
+  }
+
+  bool const enable_gpgme_debug_log =
+      settings.value("gnupg/enable_gpgme_debug_log", false).toBool();
+  if (enable_gpgme_debug_log) {
+    ui_->gpgmeDebugLogCheckBox->setCheckState(Qt::Checked);
   }
 
   this->slot_update_custom_key_database_path_label(
       ui_->keyDatabseUseCustomCheckBox->checkState());
 
   bool const use_custom_gnupg_install_path =
-      settings_station.GetSettings()
-          .value("basic/use_custom_gnupg_install_path", false)
-          .toBool();
+      settings.value("basic/use_custom_gnupg_install_path", false).toBool();
   if (use_custom_gnupg_install_path) {
     ui_->useCustomGnuPGInstallPathCheckBox->setCheckState(Qt::Checked);
   }
 
   bool const use_pinentry_as_password_input_dialog =
-      settings_station.GetSettings()
-          .value("basic/use_pinentry_as_password_input_dialog", false)
+      settings.value("basic/use_pinentry_as_password_input_dialog", false)
           .toBool();
   if (use_pinentry_as_password_input_dialog) {
     ui_->usePinentryAsPasswordInputDialogCheckBox->setCheckState(Qt::Checked);
@@ -316,6 +312,12 @@ void GnuPGControllerDialog::apply_settings() {
                     ui_->useCustomGnuPGInstallPathCheckBox->isChecked());
   settings.setValue("basic/use_pinentry_as_password_input_dialog",
                     ui_->usePinentryAsPasswordInputDialogCheckBox->isChecked());
+  settings.setValue("gnupg/enable_gpgme_debug_log",
+                    ui_->gpgmeDebugLogCheckBox->isChecked());
+  settings.setValue("basic/custom_key_database_path",
+                    ui_->currentKeyDatabasePathLabel->text());
+  settings.setValue("basic/custom_gnupg_install_path",
+                    ui_->currentCustomGnuPGInstallPathLabel->text());
 }
 
 int GnuPGControllerDialog::get_restart_needed() const {

@@ -30,6 +30,7 @@
 
 #include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/LogUtils.h"
 #include "module/GpgFrontendModuleInit.h"
@@ -54,11 +55,19 @@ int setenv(const char *name, const char *value, int overwrite) {
 #endif
 
 void InitLoggingSystem(const GFCxtSPtr &ctx) {
+#ifdef DEBUG
   RegisterSyncLogger("core", ctx->log_level);
   RegisterSyncLogger("main", ctx->log_level);
   RegisterSyncLogger("module", ctx->log_level);
   RegisterSyncLogger("ui", ctx->log_level);
   RegisterSyncLogger("test", ctx->log_level);
+#else
+  RegisterAsyncLogger("core", ctx->log_level);
+  RegisterAsyncLogger("main", ctx->log_level);
+  RegisterAsyncLogger("module", ctx->log_level);
+  RegisterAsyncLogger("ui", ctx->log_level);
+  RegisterAsyncLogger("test", ctx->log_level);
+#endif
 }
 
 void InitGlobalPathEnv() {
@@ -85,6 +94,15 @@ void InitGlobalPathEnv() {
            1);
     QString modified_path_value = getenv("PATH");
     GF_MAIN_LOG_DEBUG("Modified System PATH: {}", modified_path_value);
+  }
+
+  if (GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("gnupg/enable_gpgme_debug_log", false)
+          .toBool()) {
+    qputenv("GPGME_DEBUG",
+            QString("9:%1").arg(QDir::currentPath() + "/gpgme.log").toUtf8());
+    GF_CORE_LOG_DEBUG("GPGME_DEBUG ENV: {}", qgetenv("GPGME_DEBUG"));
   }
 }
 
@@ -147,6 +165,14 @@ void ShutdownGlobalBasicalEnv(const GFCxtWPtr &p_ctx) {
   GFCxtSPtr ctx = p_ctx.lock();
   if (ctx == nullptr) {
     return;
+  }
+
+  // clear password cache
+  if (GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("basic/clear_gpg_password_cache", false)
+          .toBool()) {
+    GpgAdvancedOperator::ClearGpgPasswordCache([](int, DataObjectPtr) {});
   }
 
   Thread::TaskRunnerGetter::GetInstance().StopAllTeakRunner();

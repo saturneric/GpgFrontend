@@ -408,7 +408,7 @@ void CommonUtils::SlotImportKeyFromKeyServer(
                    target_keyserver_url.host() +
                    "/pks/lookup?op=get&search=0x" + key_id + "&options=mr");
 
-      GF_UI_LOG_DEBUG("request url: {}", req_url.toString().toStdString());
+      GF_UI_LOG_DEBUG("request url: {}", req_url.toString());
 
       // Waiting for reply
       QNetworkReply *reply = network_manager->get(QNetworkRequest(req_url));
