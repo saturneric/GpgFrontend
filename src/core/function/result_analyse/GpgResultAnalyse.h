@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,21 +20,21 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
-#ifndef GPGFRONTEND_GPGRESULTANALYSE_H
-#define GPGFRONTEND_GPGRESULTANALYSE_H
+#pragma once
 
 #include <sstream>
-#include <string>
 
-#include "core/GpgConstants.h"
+#include "core/typedef/GpgTypedef.h"
+
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GpgResultAnalyse {
+class GPGFRONTEND_CORE_EXPORT GpgResultAnalyse : public QObject {
+  Q_OBJECT
  public:
   /**
    * @brief Construct a new Result Analyse object
@@ -45,16 +45,16 @@ class GPGFRONTEND_CORE_EXPORT GpgResultAnalyse {
   /**
    * @brief Get the Result Report object
    *
-   * @return const std::string
+   * @return const QString
    */
-  [[nodiscard]] const std::string GetResultReport() const;
+  [[nodiscard]] auto GetResultReport() const -> const QString;
 
   /**
    * @brief Get the Status object
    *
    * @return int
    */
-  [[nodiscard]] int GetStatus() const;
+  [[nodiscard]] auto GetStatus() const -> int;
 
   /**
    * @brief
@@ -67,20 +67,19 @@ class GPGFRONTEND_CORE_EXPORT GpgResultAnalyse {
    * @brief
    *
    */
-  virtual void do_analyse() = 0;
+  virtual void doAnalyse() = 0;
 
   /**
    * @brief Set the status object
    *
    * @param m_status
    */
-  void set_status(int m_status);
+  void setStatus(int m_status);
 
-  std::stringstream stream_;  ///<
-  int status_ = 1;            ///<
-  bool analysed_ = false;     ///<
+  QString buffer_;
+  QTextStream stream_ = QTextStream(&buffer_);  ///<
+  int status_ = 1;                              ///<
+  bool analysed_ = false;                       ///<
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGRESULTANALYSE_H

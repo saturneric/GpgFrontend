@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -28,52 +28,128 @@
 
 #include "core/model/GpgData.h"
 
-GpgFrontend::GpgData::GpgData() {
+#include <unistd.h>
+
+#include "core/model/GFDataExchanger.h"
+#include "core/typedef/GpgTypedef.h"
+
+namespace GpgFrontend {
+
+constexpr size_t kBufferSize = 32 * 1024;
+
+auto GFReadExCb(void* handle, void* buffer, size_t size) -> ssize_t {
+  auto* ex = static_cast<GFDataExchanger*>(handle);
+  return ex->Read(static_cast<std::byte*>(buffer), size);
+}
+
+auto GFWriteExCb(void* handle, const void* buffer, size_t size) -> ssize_t {
+  auto* ex = static_cast<GFDataExchanger*>(handle);
+  return ex->Write(static_cast<const std::byte*>(buffer), size);
+}
+
+void GFReleaseExCb(void* handle) {
+  auto* ex = static_cast<GFDataExchanger*>(handle);
+  ex->CloseWrite();
+}
+
+GpgData::GpgData() {
   gpgme_data_t data;
 
   auto err = gpgme_data_new(&data);
   assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
 
-  data_ref_ = std::unique_ptr<struct gpgme_data, _data_ref_deleter>(data);
+  data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
 }
 
-GpgFrontend::GpgData::GpgData(void* buffer, size_t size, bool copy) {
+GpgData::GpgData(GFBuffer buffer) : cached_buffer_(buffer) {
+  gpgme_data_t data;
+
+  auto err = gpgme_data_new_from_mem(
+      &data, reinterpret_cast<const char*>(buffer.Data()), buffer.Size(), 0);
+  assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
+
+  data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
+}
+
+GpgData::GpgData(const void* buffer, size_t size, bool copy) {
   gpgme_data_t data;
 
   auto err = gpgme_data_new_from_mem(&data, static_cast<const char*>(buffer),
                                      size, copy);
   assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
 
-  data_ref_ = std::unique_ptr<struct gpgme_data, _data_ref_deleter>(data);
+  data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
 }
 
-/**
- * Read gpgme-Data to QByteArray
- *   mainly from http://basket.kde.org/ (kgpgme.cpp)
- */
-#define BUF_SIZE (32 * 1024)
+GpgData::GpgData(int fd) : fd_(fd), data_cbs_() {
+  gpgme_data_t data;
 
-GpgFrontend::ByteArrayPtr GpgFrontend::GpgData::Read2Buffer() {
+  auto err = gpgme_data_new_from_fd(&data, fd_);
+  assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
+
+  data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
+}
+
+GpgData::GpgData(const QString& path, bool read) {
+  gpgme_data_t data;
+
+  // support unicode path
+  QFile file(path);
+  file.open(read ? QIODevice::ReadOnly : QIODevice::WriteOnly);
+  fp_ = fdopen(dup(file.handle()), read ? "rb" : "wb");
+
+  auto err = gpgme_data_new_from_stream(&data, fp_);
+  assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
+
+  data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
+}
+
+GpgData::GpgData(std::shared_ptr<GFDataExchanger> ex)
+    : data_cbs_(), data_ex_(std::move(ex)) {
+  gpgme_data_t data;
+
+  data_cbs_.read = GFReadExCb;
+  data_cbs_.write = GFWriteExCb;
+  data_cbs_.seek = nullptr;
+  data_cbs_.release = GFReleaseExCb;
+
+  auto err = gpgme_data_new_from_cbs(&data, &data_cbs_, data_ex_.get());
+  assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
+
+  data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
+}
+
+GpgData::~GpgData() {
+  if (fp_ != nullptr) {
+    fclose(fp_);
+  }
+
+  if (fd_ >= 0) {
+    close(fd_);
+  }
+}
+
+auto GpgData::Read2GFBuffer() -> GFBuffer {
   gpgme_off_t ret = gpgme_data_seek(*this, 0, SEEK_SET);
-  ByteArrayPtr out_buffer = std::make_unique<std::string>();
+  GFBuffer out_buffer;
 
-  if (ret) {
-    gpgme_error_t err = gpgme_err_code_from_errno(errno);
+  if (ret != 0) {
+    const GpgError err = gpgme_err_code_from_errno(errno);
     assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
   } else {
-    char buf[BUF_SIZE + 2];
+    std::array<char, kBufferSize + 2> buf;
 
-    while ((ret = gpgme_data_read(*this, buf, BUF_SIZE)) > 0) {
-      const size_t size = out_buffer->size();
-      out_buffer->resize(static_cast<int>(size + ret));
-      memcpy(out_buffer->data() + size, buf, ret);
+    while ((ret = gpgme_data_read(*this, buf.data(), kBufferSize)) > 0) {
+      out_buffer.Append(buf.data(), ret);
     }
+
     if (ret < 0) {
-      gpgme_error_t err = gpgme_err_code_from_errno(errno);
+      const GpgError err = gpgme_err_code_from_errno(errno);
       assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
     }
   }
   return out_buffer;
 }
 
-GpgFrontend::GpgData::operator gpgme_data_t() { return data_ref_.get(); }
+GpgData::operator gpgme_data_t() { return data_ref_.get(); }
+}  // namespace GpgFrontend

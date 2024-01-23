@@ -1,7 +1,7 @@
-/*
- * Copyright (c) 2022. Saturneric
+/**
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
- *  This file is part of GpgFrontend.
+ * This file is part of GpgFrontend.
  *
  * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,15 +20,16 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
+ *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_SIGNERSPIRCKER_H
-#define GPGFRONTEND_ZH_CN_TS_SIGNERSPIRCKER_H
+#pragma once
 
 #include "GpgFrontendUI.h"
+#include "core/typedef/GpgTypedef.h"
 #include "ui/dialog//GeneralDialog.h"
 
 namespace GpgFrontend::UI {
@@ -55,7 +56,7 @@ class SignersPicker : public GeneralDialog {
    *
    * @return GpgFrontend::KeyIdArgsListPtr
    */
-  GpgFrontend::KeyIdArgsListPtr GetCheckedSigners();
+  KeyIdArgsListPtr GetCheckedSigners();
 
   /**
    *
@@ -69,5 +70,3 @@ class SignersPicker : public GeneralDialog {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_ZH_CN_TS_SIGNERSPIRCKER_H

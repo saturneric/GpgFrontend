@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -28,32 +28,33 @@
 
 #include "KeyDetailsDialog.h"
 
-#include "KeyPairDetailTab.h"
-#include "KeyPairOperaTab.h"
-#include "KeyPairSubkeyTab.h"
-#include "KeyPairUIDTab.h"
+#include "core/GpgModel.h"
+#include "ui/dialog/keypair_details/KeyPairDetailTab.h"
+#include "ui/dialog/keypair_details/KeyPairOperaTab.h"
+#include "ui/dialog/keypair_details/KeyPairSubkeyTab.h"
+#include "ui/dialog/keypair_details/KeyPairUIDTab.h"
 
 namespace GpgFrontend::UI {
 KeyDetailsDialog::KeyDetailsDialog(const GpgKey& key, QWidget* parent)
     : GeneralDialog(typeid(KeyDetailsDialog).name(), parent) {
   tab_widget_ = new QTabWidget();
   tab_widget_->addTab(new KeyPairDetailTab(key.GetId(), tab_widget_),
-                      _("KeyPair"));
-  tab_widget_->addTab(new KeyPairUIDTab(key.GetId(), tab_widget_), _("UIDs"));
+                      tr("KeyPair"));
+  tab_widget_->addTab(new KeyPairUIDTab(key.GetId(), tab_widget_), tr("UIDs"));
   tab_widget_->addTab(new KeyPairSubkeyTab(key.GetId(), tab_widget_),
-                      _("Subkeys"));
+                      tr("Subkeys"));
   tab_widget_->addTab(new KeyPairOperaTab(key.GetId(), tab_widget_),
-                      _("Operations"));
+                      tr("Operations"));
 
-  auto* mainLayout = new QVBoxLayout;
-  mainLayout->addWidget(tab_widget_);
+  auto* main_layout = new QVBoxLayout;
+  main_layout->addWidget(tab_widget_);
 
 #ifdef MACOS
   setAttribute(Qt::WA_LayoutUsesWidgetRect);
 #endif
   this->setAttribute(Qt::WA_DeleteOnClose, true);
-  this->setLayout(mainLayout);
-  this->setWindowTitle(_("Key Details"));
+  this->setLayout(main_layout);
+  this->setWindowTitle(tr("Key Details"));
   this->setModal(true);
 
   this->show();

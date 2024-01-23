@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,16 +20,16 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_GPGSIGNRESULTANALYSE_H
-#define GPGFRONTEND_GPGSIGNRESULTANALYSE_H
+#pragma once
 
 #include "GpgResultAnalyse.h"
+#include "core/model/GpgSignResult.h"
 
 namespace GpgFrontend {
 
@@ -38,6 +38,7 @@ namespace GpgFrontend {
  *
  */
 class GPGFRONTEND_CORE_EXPORT GpgSignResultAnalyse : public GpgResultAnalyse {
+  Q_OBJECT
  public:
   /**
    * @brief Construct a new Sign Result Analyse object
@@ -52,7 +53,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSignResultAnalyse : public GpgResultAnalyse {
    * @brief
    *
    */
-  void do_analyse();
+  void doAnalyse() override;
 
  private:
   GpgError error_;  ///<
@@ -61,5 +62,3 @@ class GPGFRONTEND_CORE_EXPORT GpgSignResultAnalyse : public GpgResultAnalyse {
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGSIGNRESULTANALYSE_H

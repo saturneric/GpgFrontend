@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,28 +19,46 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
 #include "core/thread/TaskRunnerGetter.h"
 
-GpgFrontend::Thread::TaskRunnerGetter::TaskRunnerGetter(int channel)
-    : SingletonFunctionObject<TaskRunnerGetter>(channel) {}
+#include <mutex>
 
-GpgFrontend::Thread::TaskRunner*
-GpgFrontend::Thread::TaskRunnerGetter::GetTaskRunner(
-    TaskRunnerType runner_type) {
+#include "core/GpgConstants.h"
+#include "core/thread/TaskRunner.h"
+
+namespace GpgFrontend::Thread {
+
+TaskRunnerGetter::TaskRunnerGetter(int)
+    : SingletonFunctionObject<TaskRunnerGetter>(kGpgFrontendDefaultChannel) {}
+
+auto TaskRunnerGetter::GetTaskRunner(TaskRunnerType runner_type)
+    -> TaskRunnerPtr {
+  std::lock_guard<std::mutex> lock_guard(task_runners_map_lock_);
   while (true) {
     auto it = task_runners_.find(runner_type);
     if (it != task_runners_.end()) {
       return it->second;
-    } else {
-      auto runner = new TaskRunner();
-      task_runners_[runner_type] = runner;
-      runner->start();
-      continue;
+    }
+
+    auto runner = GpgFrontend::SecureCreateSharedObject<TaskRunner>();
+    task_runners_[runner_type] = runner;
+    runner->Start();
+  }
+}
+
+void TaskRunnerGetter::StopAllTeakRunner() {
+  for (const auto& [key, value] : task_runners_) {
+    if (value->IsRunning()) {
+      value->Stop();
     }
   }
 }
+
+}  // namespace GpgFrontend::Thread

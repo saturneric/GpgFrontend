@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+    <id>com.bktus.gpgfrontend</id>
+    <metadata_license>MIT</metadata_license>
+    <name>gpgfrontend</name>
+    <summary>An OpenPGP Crypto Tool</summary>
+    <categories>
+        <category>Utility</category>
+    </categories>
+    <url type="homepage">https://gpgfrontend.bktus.com</url>
+    <launchable type="desktop-id">com.bktus.gpgfrontend.desktop</launchable>
+    <description>
+        <p>
+            GpgFrontend is a free, open-source, robust yet user-friendly, compact and cross-platform tool for OpenPGP encryption. 
+            It stands out as an exceptional GUI frontend for the modern GnuPG (gpg).
+        </p>
+    </description>
+    <screenshots>
+        <screenshot type="default">
+            <image>https://image.cdn.bktus.com/i/2023/11/16/e7c9ab1c-cb45-eb21-4cbd-bdec8d5c83cb.webp</image>
+            <caption>Main Dialog</caption>
+        </screenshot>
+    </screenshots>
+    <keywords>
+        <keyword>gpg</keyword>
+        <keyword>encrypt</keyword>
+        <keyword>crypto</keyword>
+        <keyword>pgp</keyword>
+        <keyword>gnupg</keyword>
+        <keyword>openpgp</keyword>
+    </keywords>
+    <project_license>GPL-3.0+</project_license>
+    <developer_name>Saturneric</developer_name>
+</component>

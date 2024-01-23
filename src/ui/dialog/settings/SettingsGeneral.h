@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,14 +20,13 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_SETTINGSGENERAL_H
-#define GPGFRONTEND_SETTINGSGENERAL_H
+#pragma once
 
 #include "ui/GpgFrontendUI.h"
 
@@ -81,25 +80,16 @@ class GeneralTab : public QWidget {
 
  private:
   std::shared_ptr<Ui_GeneralSettings> ui_;  ///<
-
-#ifdef MULTI_LANG_SUPPORT
-  QHash<QString, QString> lang_;  ///<
-#endif
-
-  std::vector<std::string> key_ids_list_;  ///<
-
-  KeyList* m_key_list_{};  ///<
+  QHash<QString, QString> lang_;            ///<
+  std::vector<QString> key_ids_list_;       ///<
+  KeyList* m_key_list_{};                   ///<
 
  private slots:
 
-#ifdef MULTI_LANG_SUPPORT
   /**
    * @brief
    *
    */
   void slot_language_changed();
-#endif
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_SETTINGSGENERAL_H

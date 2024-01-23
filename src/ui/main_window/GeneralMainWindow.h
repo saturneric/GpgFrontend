@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,14 +20,13 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_GENERALMAINWINDOW_H
-#define GPGFRONTEND_GENERALMAINWINDOW_H
+#pragma once
 
 #include "ui/GpgFrontendUI.h"
 
@@ -42,7 +41,7 @@ class GeneralMainWindow : public QMainWindow {
    *
    * @param name
    */
-  explicit GeneralMainWindow(std::string name, QWidget* parent = nullptr);
+  explicit GeneralMainWindow(QString name, QWidget* parent = nullptr);
 
   /**
    *
@@ -72,10 +71,8 @@ class GeneralMainWindow : public QMainWindow {
   void slot_save_settings() noexcept;
 
  private:
-  std::string name_;  ///<
-  QPoint pos_;        ///<
-  QSize size_;        ///<
+  QString name_;  ///<
+  QPoint pos_;    ///<
+  QSize size_;    ///<
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_GENERALMAINWINDOW_H

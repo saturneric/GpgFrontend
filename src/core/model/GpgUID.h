@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,14 +20,13 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_GPGUID_H
-#define GPGFRONTEND_GPGUID_H
+#pragma once
 
 #include "GpgKeySignature.h"
 #include "GpgTOFUInfo.h"
@@ -42,38 +41,30 @@ class GPGFRONTEND_CORE_EXPORT GpgUID {
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] std::string GetName() const;
+  [[nodiscard]] auto GetName() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] std::string GetEmail() const;
+  [[nodiscard]] auto GetEmail() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] std::string GetComment() const;
+  [[nodiscard]] auto GetComment() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] std::string GetUID() const;
-
-  /**
-   * @brief
-   *
-   * @return true
-   * @return false
-   */
-  [[nodiscard]] bool GetRevoked() const;
+  [[nodiscard]] auto GetUID() const -> QString;
 
   /**
    * @brief
@@ -81,22 +72,31 @@ class GPGFRONTEND_CORE_EXPORT GpgUID {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool GetInvalid() const;
+  [[nodiscard]] auto GetRevoked() const -> bool;
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] auto GetInvalid() const -> bool;
 
   /**
    * @brief
    *
    * @return std::unique_ptr<std::vector<GpgTOFUInfo>>
    */
-  [[nodiscard]] std::unique_ptr<std::vector<GpgTOFUInfo>> GetTofuInfos() const;
+  [[nodiscard]] auto GetTofuInfos() const
+      -> std::unique_ptr<std::vector<GpgTOFUInfo>>;
 
   /**
    * @brief
    *
    * @return std::unique_ptr<std::vector<GpgKeySignature>>
    */
-  [[nodiscard]] std::unique_ptr<std::vector<GpgKeySignature>> GetSignatures()
-      const;
+  [[nodiscard]] auto GetSignatures() const
+      -> std::unique_ptr<std::vector<GpgKeySignature>>;
 
   /**
    * @brief Construct a new Gpg U I D object
@@ -130,14 +130,14 @@ class GPGFRONTEND_CORE_EXPORT GpgUID {
    * @param o
    * @return GpgUID&
    */
-  GpgUID &operator=(GpgUID &&o) noexcept;
+  auto operator=(GpgUID &&o) noexcept -> GpgUID &;
 
   /**
    * @brief
    *
    * @return GpgUID&
    */
-  GpgUID &operator=(const GpgUID &) = delete;
+  auto operator=(const GpgUID &) -> GpgUID & = delete;
 
  private:
   using UidRefHandler =
@@ -148,5 +148,3 @@ class GPGFRONTEND_CORE_EXPORT GpgUID {
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGUID_H

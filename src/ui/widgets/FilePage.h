@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,16 +20,16 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_FILEPAGE_H
-#define GPGFRONTEND_FILEPAGE_H
+#pragma once
 
 #include "ui/GpgFrontendUI.h"
+#include "ui/widgets/FileTreeView.h"
 #include "ui/widgets/InfoBoardWidget.h"
 
 class Ui_FilePage;
@@ -48,14 +48,14 @@ class FilePage : public QWidget {
    *
    * @param parent
    */
-  explicit FilePage(QWidget* parent = nullptr);
+  explicit FilePage(QWidget* parent, const QString&);
 
   /**
    * @brief Get the Selected object
    *
    * @return QString
    */
-  [[nodiscard]] QString GetSelected() const;
+  [[nodiscard]] auto GetSelected() const -> QString;
 
  public slots:
   /**
@@ -82,76 +82,6 @@ class FilePage : public QWidget {
   void SignalRefreshInfoBoard(const QString& text,
                               InfoBoardStatus verify_label_status);
 
- private slots:
-
-  /**
-   * @brief
-   *
-   * @param index
-   */
-  void slot_file_tree_view_item_clicked(const QModelIndex& index);
-
-  /**
-   * @brief
-   *
-   * @param index
-   */
-  void slot_file_tree_view_item_double_clicked(const QModelIndex& index);
-
-  /**
-   * @brief
-   *
-   */
-  void slot_up_level();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_open_item();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_open_item_by_system_application();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_rename_item();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_delete_item();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_calculate_hash();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_mkdir();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_create_empty_file();
-
-  /**
-   * @brief compress directory into gpg-zip
-   *
-   */
-  void slot_compress_files();
-
  protected:
   /**
    * @brief
@@ -160,34 +90,15 @@ class FilePage : public QWidget {
    */
   void keyPressEvent(QKeyEvent* event) override;
 
-  /**
-   * @brief
-   *
-   * @param point
-   */
-  void onCustomContextMenu(const QPoint& point);
-
  private:
-  /**
-   * @brief Create a popup menu object
-   *
-   */
-  void create_popup_menu();
-
   std::shared_ptr<Ui_FilePage> ui_;  ///<
 
-  QFileSystemModel* dir_model_;            ///<
   QCompleter* path_edit_completer_;        ///<
   QStringListModel* path_complete_model_;  ///<
 
-  std::filesystem::path m_path_;         ///<
-  std::filesystem::path selected_path_;  ///<
-
   QMenu* popup_menu_{};         ///<
   QMenu* option_popup_menu_{};  ///<
-  QWidget* first_parent_{};     ///<
+  FileTreeView* file_tree_view_;
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_FILEPAGE_H

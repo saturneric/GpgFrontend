@@ -1,7 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=GpgFrontend
-Comment=A Cross-Platform OpenPGP Frontend Software
-Exec=GpgFrontend
-Icon=GpgFrontend
-Categories=Utility;

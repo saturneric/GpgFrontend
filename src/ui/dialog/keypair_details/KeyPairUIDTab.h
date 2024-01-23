@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,18 +20,17 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_KEYPAIRUIDTAB_H
-#define GPGFRONTEND_KEYPAIRUIDTAB_H
+#pragma once
 
 #include "KeyNewUIDDialog.h"
 #include "KeyUIDSignDialog.h"
-#include "core/GpgContext.h"
+#include "core/function/gpg/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
@@ -46,7 +45,7 @@ class KeyPairUIDTab : public QWidget {
    * @param key_id
    * @param parent
    */
-  KeyPairUIDTab(const std::string& key_id, QWidget* parent);
+  KeyPairUIDTab(const QString& key_id, QWidget* parent);
 
  signals:
 
@@ -203,5 +202,3 @@ class KeyPairUIDTab : public QWidget {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYPAIRUIDTAB_H

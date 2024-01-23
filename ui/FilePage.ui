@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>798</width>
-    <height>476</height>
+    <width>858</width>
+    <height>64</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -52,12 +52,50 @@
         <enum>QLayout::SetMaximumSize</enum>
        </property>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,0,0">
+        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,0,0,0">
+         <property name="spacing">
+          <number>5</number>
+         </property>
          <property name="sizeConstraint">
           <enum>QLayout::SetDefaultConstraint</enum>
          </property>
+         <property name="leftMargin">
+          <number>5</number>
+         </property>
+         <property name="topMargin">
+          <number>5</number>
+         </property>
+         <property name="rightMargin">
+          <number>5</number>
+         </property>
+         <property name="bottomMargin">
+          <number>5</number>
+         </property>
+         <item>
+          <widget class="QToolButton" name="newDirButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="../gpgfrontend.qrc">
+             <normaloff>:/icons/new_directory.png</normaloff>:/icons/new_directory.png</iconset>
+           </property>
+          </widget>
+         </item>
          <item>
           <widget class="QLineEdit" name="pathEdit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="tabletTracking">
             <bool>false</bool>
            </property>
@@ -70,33 +108,36 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="refreshButton">
+          <widget class="QToolButton" name="refreshButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string/>
            </property>
            <property name="icon">
             <iconset resource="../gpgfrontend.qrc">
-             <normaloff>:/refresh.png</normaloff>:/refresh.png</iconset>
-           </property>
-           <property name="flat">
-            <bool>true</bool>
+             <normaloff>:/icons/refresh.png</normaloff>:/icons/refresh.png</iconset>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="upPathButton">
+          <widget class="QToolButton" name="upPathButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string/>
            </property>
            <property name="icon">
             <iconset resource="../gpgfrontend.qrc">
-             <normaloff>:/up.png</normaloff>:/up.png</iconset>
-           </property>
-           <property name="default">
-            <bool>false</bool>
-           </property>
-           <property name="flat">
-            <bool>true</bool>
+             <normaloff>:/icons/up.png</normaloff>:/icons/up.png</iconset>
            </property>
           </widget>
          </item>
@@ -113,10 +154,10 @@
            </property>
            <property name="icon">
             <iconset resource="../gpgfrontend.qrc">
-             <normaloff>:/configure.png</normaloff>:/configure.png</iconset>
+             <normaloff>:/icons/configure.png</normaloff>:/icons/configure.png</iconset>
            </property>
            <property name="popupMode">
-            <enum>QToolButton::MenuButtonPopup</enum>
+            <enum>QToolButton::InstantPopup</enum>
            </property>
            <property name="toolButtonStyle">
             <enum>Qt::ToolButtonIconOnly</enum>
@@ -126,84 +167,13 @@
         </layout>
        </item>
        <item>
-        <widget class="QTreeView" name="fileTreeView">
-         <property name="contextMenuPolicy">
-          <enum>Qt::CustomContextMenu</enum>
-         </property>
-         <property name="acceptDrops">
-          <bool>true</bool>
-         </property>
-         <property name="autoFillBackground">
-          <bool>false</bool>
-         </property>
-         <property name="dragDropMode">
-          <enum>QAbstractItemView::InternalMove</enum>
-         </property>
-         <property name="uniformRowHeights">
-          <bool>true</bool>
-         </property>
-         <property name="sortingEnabled">
-          <bool>true</bool>
-         </property>
-         <property name="animated">
-          <bool>true</bool>
-         </property>
-         <attribute name="headerCascadingSectionResizes">
-          <bool>true</bool>
-         </attribute>
-         <attribute name="headerShowSortIndicator" stdset="0">
-          <bool>true</bool>
-         </attribute>
-        </widget>
+        <layout class="QVBoxLayout" name="trewViewLayout"/>
        </item>
       </layout>
      </item>
     </layout>
    </item>
   </layout>
-  <action name="actionOpenFile">
-   <property name="text">
-    <string>OpenFile</string>
-   </property>
-  </action>
-  <action name="actionRenameFile">
-   <property name="text">
-    <string>RenameFile</string>
-   </property>
-  </action>
-  <action name="actionDeleteFile">
-   <property name="text">
-    <string>DeleteFile</string>
-   </property>
-  </action>
-  <action name="actionCalculateHash">
-   <property name="text">
-    <string>CalculateHash</string>
-   </property>
-  </action>
-  <action name="actionMakeDirectory">
-   <property name="text">
-    <string>MakeDirectory</string>
-   </property>
-  </action>
-  <action name="actionCreateEmptyFile">
-   <property name="text">
-    <string>CreateEmptyFile</string>
-   </property>
-  </action>
-  <action name="actionCompressFiles">
-   <property name="text">
-    <string>CompressFiles</string>
-   </property>
-  </action>
-  <action name="actionOpenWithSystemDefaultApplication">
-   <property name="text">
-    <string>OpenWithSystemDefaultApplication</string>
-   </property>
-   <property name="toolTip">
-    <string>OpenWithSystemDefaultApplication</string>
-   </property>
-  </action>
  </widget>
  <resources>
   <include location="../gpgfrontend.qrc"/>

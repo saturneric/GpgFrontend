@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,19 +19,24 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_TASKRUNNERGETTER_H
-#define GPGFRONTEND_TASKRUNNERGETTER_H
+#pragma once
+
+#include <mutex>
 
 #include "core/GpgFrontendCore.h"
-#include "core/GpgFunctionObject.h"
+#include "core/function/basic/GpgFunctionObject.h"
 #include "core/thread/TaskRunner.h"
 
 namespace GpgFrontend::Thread {
+
+using TaskRunnerPtr = std::shared_ptr<TaskRunner>;
 
 class GPGFRONTEND_CORE_EXPORT TaskRunnerGetter
     : public GpgFrontend::SingletonFunctionObject<TaskRunnerGetter> {
@@ -41,18 +46,21 @@ class GPGFRONTEND_CORE_EXPORT TaskRunnerGetter
     kTaskRunnerType_GPG,
     kTaskRunnerType_IO,
     kTaskRunnerType_Network,
+    kTaskRunnerType_Module,
     kTaskRunnerType_External_Process,
   };
 
-  TaskRunnerGetter(int channel = SingletonFunctionObject::GetDefaultChannel());
+  explicit TaskRunnerGetter(
+      int channel = SingletonFunctionObject::GetDefaultChannel());
 
-  TaskRunner *GetTaskRunner(
-      TaskRunnerType runner_type = kTaskRunnerType_Default);
+  auto GetTaskRunner(TaskRunnerType runner_type = kTaskRunnerType_Default)
+      -> TaskRunnerPtr;
+
+  void StopAllTeakRunner();
 
  private:
-  std::map<TaskRunnerType, TaskRunner *> task_runners_;
+  std::map<TaskRunnerType, TaskRunnerPtr> task_runners_;
+  std::mutex task_runners_map_lock_;
 };
 
 }  // namespace GpgFrontend::Thread
-
-#endif  // GPGFRONTEND_TASKRUNNERGETTER_H

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -28,7 +28,7 @@
 
 #include "WaitingDialog.h"
 
-#include "dialog/GeneralDialog.h"
+#include "ui/dialog/GeneralDialog.h"
 
 namespace GpgFrontend::UI {
 
@@ -40,19 +40,16 @@ WaitingDialog::WaitingDialog(const QString& title, QWidget* parent)
   pb->setTextVisible(false);
 
   auto* layout = new QVBoxLayout();
-  layout->setContentsMargins(0, 0, 0, 0);
-  layout->setSpacing(0);
   layout->addWidget(pb);
   this->setLayout(layout);
 
   this->setModal(true);
-  this->raise();
   this->setWindowFlags(Qt::Window | Qt::WindowTitleHint |
                        Qt::CustomizeWindowHint);
   this->setWindowTitle(title);
   this->setAttribute(Qt::WA_DeleteOnClose);
-  this->setFixedSize(240, 42);
 
+  this->movePosition2CenterOfParent();
   this->show();
 }
 

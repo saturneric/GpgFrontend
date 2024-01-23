@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -28,17 +28,21 @@
 
 #include "SettingsKeyServer.h"
 
+#include <cstddef>
+
 #include "core/function/GlobalSettingStation.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "ui/struct/SettingsObject.h"
+#include "ui/struct/settings/KeyServerSO.h"
 #include "ui/thread/ListedKeyServerTestTask.h"
 #include "ui_KeyServerSettings.h"
 
 namespace GpgFrontend::UI {
 
 KeyserverTab::KeyserverTab(QWidget* parent)
-    : QWidget(parent), ui_(std::make_shared<Ui_KeyServerSettings>()) {
+    : QWidget(parent),
+      ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyServerSettings>()) {
   ui_->setupUi(this);
   ui_->keyServerListTable->setSizeAdjustPolicy(
       QAbstractScrollArea::AdjustToContents);
@@ -48,25 +52,25 @@ KeyserverTab::KeyserverTab(QWidget* parent)
   connect(ui_->testKeyServerButton, &QPushButton::clicked, this,
           &KeyserverTab::slot_test_listed_key_server);
 
-  ui_->keyServerListGroupBox->setTitle(_("Keyserver List"));
-  ui_->operationsGroupBox->setTitle(_("Operations"));
+  ui_->keyServerListGroupBox->setTitle(tr("Keyserver List"));
+  ui_->operationsGroupBox->setTitle(tr("Operations"));
 
-  ui_->keyServerListTable->horizontalHeaderItem(0)->setText(_("Default"));
+  ui_->keyServerListTable->horizontalHeaderItem(0)->setText(tr("Default"));
   ui_->keyServerListTable->horizontalHeaderItem(1)->setText(
-      _("Keyserver Address"));
-  ui_->keyServerListTable->horizontalHeaderItem(2)->setText(_("Security"));
-  ui_->keyServerListTable->horizontalHeaderItem(3)->setText(_("Available"));
+      tr("Keyserver Address"));
+  ui_->keyServerListTable->horizontalHeaderItem(2)->setText(tr("Security"));
+  ui_->keyServerListTable->horizontalHeaderItem(3)->setText(tr("Available"));
 
-  ui_->addKeyServerPushButton->setText(_("Add"));
-  ui_->testKeyServerButton->setText(_("Test Listed Keyserver"));
+  ui_->addKeyServerPushButton->setText(tr("Add"));
+  ui_->testKeyServerButton->setText(tr("Test Listed Keyserver"));
 
   ui_->tipsLabel->setText(
-      _("Tips: Please Double-click table item to edit it."));
-  ui_->actionDelete_Selected_Key_Server->setText(_("Delete Selected"));
+      tr("Tips: Please Double-click table item to edit it."));
+  ui_->actionDelete_Selected_Key_Server->setText(tr("Delete Selected"));
   ui_->actionDelete_Selected_Key_Server->setToolTip(
-      _("Delete Selected Key Server"));
-  ui_->actionSet_As_Default->setText(_("Set As Default"));
-  ui_->actionSet_As_Default->setToolTip(_("Set As Default"));
+      tr("Delete Selected Key Server"));
+  ui_->actionSet_As_Default->setText(tr("Set As Default"));
+  ui_->actionSet_As_Default->setToolTip(tr("Set As Default"));
 
   popup_menu_ = new QMenu(this);
   popup_menu_->addAction(ui_->actionSet_As_Default);
@@ -74,7 +78,7 @@ KeyserverTab::KeyserverTab(QWidget* parent)
 
   connect(ui_->keyServerListTable, &QTableWidget::itemChanged,
           [=](QTableWidgetItem* item) {
-            SPDLOG_DEBUG("item edited: {}", item->column());
+            GF_UI_LOG_DEBUG("item edited: {}", item->column());
             if (item->column() != 1) return;
             const auto row_size = ui_->keyServerListTable->rowCount();
             // Update Actions
@@ -115,30 +119,18 @@ KeyserverTab::KeyserverTab(QWidget* parent)
 }
 
 void KeyserverTab::SetSettings() {
-  try {
-    SettingsObject key_server_json("key_server");
+  KeyServerSO key_server(SettingsObject("key_server"));
 
-    const auto key_server_list =
-        key_server_json.Check("server_list", nlohmann::json::array());
-
-    for (const auto& key_server : key_server_list) {
-      const auto key_server_str = key_server.get<std::string>();
-      this->key_server_str_list_.append(key_server_str.c_str());
-    }
-
-    int default_key_server_index = key_server_json.Check("default_server", 0);
-    if (default_key_server_index >= key_server_list.size()) {
-      throw std::runtime_error("default_server index out of range");
-    }
-    std::string default_key_server =
-        key_server_list[default_key_server_index].get<std::string>();
-
-    if (!key_server_str_list_.contains(default_key_server.c_str()))
-      key_server_str_list_.append(default_key_server.c_str());
-    default_key_server_ = QString::fromStdString(default_key_server);
-  } catch (const std::exception& e) {
-    SPDLOG_ERROR("Error reading key-server settings: ", e.what());
+  if (key_server.server_list.empty()) key_server.ResetDefaultServerList();
+  for (const auto& key_server : key_server.server_list) {
+    this->key_server_str_list_.append(key_server);
   }
+
+  const auto default_key_server = key_server.GetTargetServer();
+  if (!key_server_str_list_.contains(default_key_server)) {
+    key_server_str_list_.append(default_key_server);
+  }
+  default_key_server_ = default_key_server;
 }
 
 void KeyserverTab::slot_add_key_server() {
@@ -148,47 +140,47 @@ void KeyserverTab::slot_add_key_server() {
       ;
     } else if (target_url.startsWith("http://")) {
       QMessageBox::warning(
-          this, _("Insecure keyserver address"),
-          _("For security reasons, using HTTP as the communication protocol "
-            "with "
-            "the key server is not recommended. It is recommended to use "
-            "HTTPS."));
+          this, tr("Insecure keyserver address"),
+          tr("For security reasons, using HTTP as the communication protocol "
+             "with "
+             "the key server is not recommended. It is recommended to use "
+             "HTTPS."));
     }
     key_server_str_list_.append(ui_->addKeyServerEdit->text());
   } else {
     auto ret = QMessageBox::warning(
-        this, _("Warning"),
-        _("You may not use HTTPS or HTTP as the protocol for communicating "
-          "with the key server, which may not be wrong. But please check the "
-          "address you entered again to make sure it is correct. Are you "
-          "sure "
-          "that want to add it into the keyserver list?"),
+        this, tr("Warning"),
+        tr("You may not use HTTPS or HTTP as the protocol for communicating "
+           "with the key server, which may not be wrong. But please check the "
+           "address you entered again to make sure it is correct. Are you "
+           "sure "
+           "that want to add it into the keyserver list?"),
         QMessageBox::Ok | QMessageBox::Cancel);
 
-    if (ret == QMessageBox::Cancel)
-      return;
-    else
-      key_server_str_list_.append(ui_->addKeyServerEdit->text());
+    if (ret == QMessageBox::Cancel) return;
+    key_server_str_list_.append(ui_->addKeyServerEdit->text());
   }
   slot_refresh_table();
 }
 
 void KeyserverTab::ApplySettings() {
   SettingsObject key_server_json("key_server");
-  key_server_json["server_list"] = nlohmann::json::array();
-  auto& key_server_list = key_server_json["server_list"];
+  KeyServerSO key_server;
 
+  auto& key_server_list = key_server.server_list;
   const auto list_size = key_server_str_list_.size();
   for (int i = 0; i < list_size; i++) {
     const auto key_server = key_server_str_list_[i];
-    if (default_key_server_ == key_server)
+    if (default_key_server_ == key_server) {
       key_server_json["default_server"] = i;
-    key_server_list.insert(key_server_list.end(), key_server.toStdString());
+    }
+    key_server_list << key_server;
   }
+  key_server_json.Store(key_server.ToJson());
 }
 
 void KeyserverTab::slot_refresh_table() {
-  SPDLOG_INFO("start refreshing key server table");
+  GF_UI_LOG_INFO("start refreshing key server table");
 
   ui_->keyServerListTable->blockSignals(true);
   ui_->keyServerListTable->setRowCount(key_server_str_list_.size());
@@ -205,13 +197,13 @@ void KeyserverTab::slot_refresh_table() {
     tmp2->setTextAlignment(Qt::AlignCenter);
     ui_->keyServerListTable->setItem(index, 1, tmp2);
 
-    auto* tmp3 = new QTableWidgetItem(server.startsWith("https") ? _("true")
-                                                                 : _("false"));
+    auto* tmp3 = new QTableWidgetItem(server.startsWith("https") ? tr("true")
+                                                                 : tr("false"));
     tmp3->setTextAlignment(Qt::AlignCenter);
     ui_->keyServerListTable->setItem(index, 2, tmp3);
     tmp3->setFlags(tmp3->flags() ^ Qt::ItemIsEditable);
 
-    auto* tmp4 = new QTableWidgetItem(_("unknown"));
+    auto* tmp4 = new QTableWidgetItem(tr("unknown"));
     tmp4->setTextAlignment(Qt::AlignCenter);
     ui_->keyServerListTable->setItem(index, 3, tmp4);
     tmp4->setFlags(tmp3->flags() ^ Qt::ItemIsEditable);
@@ -225,7 +217,7 @@ void KeyserverTab::slot_refresh_table() {
 }
 
 void KeyserverTab::slot_test_listed_key_server() {
-  auto timeout = QInputDialog::getInt(this, _("Set TCP Timeout"),
+  auto timeout = QInputDialog::getInt(this, tr("Set TCP Timeout"),
                                       tr("timeout(ms): "), 2500, 200, 16000);
 
   QStringList urls;
@@ -243,17 +235,17 @@ void KeyserverTab::slot_test_listed_key_server() {
       this,
       [=](std::vector<ListedKeyServerTestTask::KeyServerTestResultType>
               result) {
-        const auto row_size = ui_->keyServerListTable->rowCount();
+        const size_t row_size = ui_->keyServerListTable->rowCount();
         if (result.size() != row_size) return;
         ui_->keyServerListTable->blockSignals(true);
-        for (int i = 0; i < row_size; i++) {
+        for (size_t i = 0; i < row_size; i++) {
           const auto status = result[i];
-          auto status_iem = ui_->keyServerListTable->item(i, 3);
-          if (status == ListedKeyServerTestTask::kTestResultType_Success) {
-            status_iem->setText(_("Reachable"));
+          auto* status_iem = ui_->keyServerListTable->item(i, 3);
+          if (status == ListedKeyServerTestTask::kTEST_RESULT_TYPE_SUCCESS) {
+            status_iem->setText(tr("Reachable"));
             status_iem->setForeground(QBrush(QColor::fromRgb(0, 255, 0)));
           } else {
-            status_iem->setText(_("Not Reachable"));
+            status_iem->setText(tr("Not Reachable"));
             status_iem->setForeground(QBrush(QColor::fromRgb(255, 0, 0)));
           }
         }
@@ -264,11 +256,11 @@ void KeyserverTab::slot_test_listed_key_server() {
   auto* waiting_dialog = new QProgressDialog(this);
   waiting_dialog->setMaximum(0);
   waiting_dialog->setMinimum(0);
-  auto waiting_dialog_label =
-      new QLabel(QString(_("Test Key Server Connection...")) + "<br /><br />" +
-                 _("This test only tests the network connectivity of the key "
-                   "server. Passing the test does not mean that the key server "
-                   "is functionally available."));
+  auto* waiting_dialog_label = new QLabel(
+      tr("Test Key Server Connection...") + "<br /><br />" +
+      tr("This test only tests the network connectivity of the key "
+         "server. Passing the test does not mean that the key server "
+         "is functionally available."));
   waiting_dialog_label->setWordWrap(true);
   waiting_dialog->setLabel(waiting_dialog_label);
   waiting_dialog->resize(420, 120);

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,18 +20,19 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_CORESIGNALSTATION_H
-#define GPGFRONTEND_CORESIGNALSTATION_H
+#pragma once
 
 #include "core/GpgFrontendCore.h"
 
 namespace GpgFrontend {
+
+class GpgPassphraseContext;
 
 /**
  * @brief
@@ -39,7 +40,7 @@ namespace GpgFrontend {
  */
 class GPGFRONTEND_CORE_EXPORT CoreSignalStation : public QObject {
   Q_OBJECT
-  static std::unique_ptr<CoreSignalStation> _instance;
+  static std::unique_ptr<CoreSignalStation> instance;
 
  public:
   /**
@@ -47,7 +48,7 @@ class GPGFRONTEND_CORE_EXPORT CoreSignalStation : public QObject {
    *
    * @return SignalStation*
    */
-  static CoreSignalStation* GetInstance();
+  static auto GetInstance() -> CoreSignalStation*;
 
  signals:
 
@@ -55,15 +56,25 @@ class GPGFRONTEND_CORE_EXPORT CoreSignalStation : public QObject {
    * @brief
    *
    */
-  void SignalUserInputPassphraseDone(QString passparase);
+  void SignalNeedUserInputPassphrase(QSharedPointer<GpgPassphraseContext>);
 
   /**
    * @brief
    *
    */
-  void SignalNeedUserInputPassphrase();
+  void SignalUserInputPassphraseCallback(QSharedPointer<GpgPassphraseContext>);
+
+  /**
+   * @brief
+   *
+   */
+  void SignalBadGnupgEnv(QString);
+
+  /**
+   * @brief
+   *
+   */
+  void SignalGoodGnupgEnv();
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_CORESIGNALSTATION_H

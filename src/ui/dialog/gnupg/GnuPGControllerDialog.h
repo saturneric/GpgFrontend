@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,17 +20,14 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_GNUPGCONTROLLERDIALOGLOG_H
-#define GPGFRONTEND_GNUPGCONTROLLERDIALOGLOG_H
+#pragma once
 
-#include <string>
-#include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
 
 class Ui_GnuPGControllerDialog;
@@ -94,16 +91,34 @@ class GnuPGControllerDialog : public GeneralDialog {
    * @return true
    * @return false
    */
-  int get_restart_needed() const;
+  [[nodiscard]] auto get_restart_needed() const -> int;
 
+  /**
+   * @brief Set the settings object
+   *
+   */
   void set_settings();
 
+  /**
+   * @brief
+   *
+   */
   void apply_settings();
 
-  bool check_custom_gnupg_path(std::string);
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  auto check_custom_gnupg_path(QString) -> bool;
 
-  bool check_custom_gnupg_key_database_path(std::string);
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  auto check_custom_gnupg_key_database_path(QString) -> bool;
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_GNUPGCONTROLLERDIALOGLOG_H

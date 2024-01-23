@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,8 +19,10 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
@@ -35,62 +37,49 @@ namespace GpgFrontend::UI {
 GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
     : QApplication(argc, argv) {
 #ifndef MACOS
-  this->setWindowIcon(QIcon(":gpgfrontend.png"));
+  this->setWindowIcon(QIcon(":/icons/gpgfrontend.png"));
 #endif
 
   // set the extra information of the build
-  this->setApplicationVersion(BUILD_VERSION);
-  this->setApplicationName(PROJECT_NAME);
-  this->setQuitOnLastWindowClosed(true);
+  GpgFrontendApplication::setApplicationVersion(BUILD_VERSION);
+  GpgFrontendApplication::setApplicationName(PROJECT_NAME);
+  GpgFrontendApplication::setApplicationDisplayName(PROJECT_NAME);
+  GpgFrontendApplication::setOrganizationName(PROJECT_NAME);
+  GpgFrontendApplication::setQuitOnLastWindowClosed(true);
 
   // don't show icons in menus
-  this->setAttribute(Qt::AA_DontShowIconsInMenus);
+  GpgFrontendApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
 
   // unicode in source
   QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
 }
 
-GpgFrontendApplication *GpgFrontendApplication::GetInstance(int argc,
-                                                            char *argv[],
-                                                            bool new_instance) {
-  static GpgFrontendApplication *instance = nullptr;
-  static int static_argc = argc;
-  static char **static_argv = argv;
-
-  if (new_instance || !instance) {
-    if (instance != nullptr) {
-      SPDLOG_DEBUG("old application exists, quitting...");
-      instance->quit();
-      delete instance;
-    }
-    SPDLOG_DEBUG("creating new application instance, argc: {}", argc);
-    instance = new GpgFrontendApplication(static_argc, static_argv);
-  }
-  return instance;
-}
-
 bool GpgFrontendApplication::notify(QObject *receiver, QEvent *event) {
-  bool app_done = true;
+#ifdef RELEASE
   try {
-    app_done = QApplication::notify(receiver, event);
+    return QApplication::notify(receiver, event);
   } catch (const std::exception &ex) {
-    SPDLOG_ERROR("exception caught in notify: {}", ex.what());
-    QMessageBox::information(nullptr, _("Standard Exception Thrown"),
-                             _("Oops, an standard exception was thrown "
-                               "during the running of the "
-                               "program. This is not a serious problem, it may "
-                               "be the negligence of the programmer, "
-                               "please report this problem if you can."));
-  } catch (...) {
-    SPDLOG_ERROR("unknown exception caught in notify");
+    GF_UI_LOG_ERROR("exception was caught in notify: {}", ex.what());
     QMessageBox::information(
-        nullptr, _("Unhandled Exception Thrown"),
-        _("Oops, an unhandled exception was thrown "
-          "during the running of the program. This is not a "
-          "serious problem, it may be the negligence of the programmer, "
-          "please report this problem if you can."));
+        nullptr, tr("Standard Exception Thrown"),
+        tr("Oops, an standard exception was thrown "
+           "during the running of the "
+           "program. This is not a serious problem, it may "
+           "be the negligence of the programmer, "
+           "please report this problem if you can."));
+  } catch (...) {
+    GF_UI_LOG_ERROR("unknown exception was caught in notify");
+    QMessageBox::information(
+        nullptr, tr("Unhandled Exception Thrown"),
+        tr("Oops, an unhandled exception was thrown "
+           "during the running of the program. This is not a "
+           "serious problem, it may be the negligence of the programmer, "
+           "please report this problem if you can."));
   }
-  return app_done;
+  return -1;
+#else
+  return QApplication::notify(receiver, event);
+#endif
 }
 
 }  // namespace GpgFrontend::UI

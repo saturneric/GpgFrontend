@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,19 +20,16 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef __ABOUTDIALOG_H__
-#define __ABOUTDIALOG_H__
+#pragma once
 
-#include "core/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
-#include "ui/struct/SoftwareVersion.h"
 
 namespace GpgFrontend::UI {
 
@@ -89,11 +86,8 @@ class UpdateTab : public QWidget {
    */
   explicit UpdateTab(QWidget* parent = nullptr);
 
-  /**
-   * @brief Get the Latest Version object
-   *
-   */
-  void getLatestVersion();
+ protected:
+  void showEvent(QShowEvent* event) override;
 
  private slots:
   /**
@@ -101,7 +95,7 @@ class UpdateTab : public QWidget {
    *
    * @param version
    */
-  void slot_show_version_status(const SoftwareVersion& version);
+  void slot_show_version_status();
 
  signals:
   /**
@@ -141,5 +135,3 @@ class AboutDialog : public GeneralDialog {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __ABOUTDIALOG_H__

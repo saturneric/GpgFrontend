@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,8 +19,10 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
@@ -28,58 +30,52 @@
 
 namespace GpgFrontend::UI {
 
-FileReadTask::FileReadTask(std::string path) : Task("file_read_task") {
-  connect(this, &FileReadTask::SignalFileBytesReadNext, this,
-          &FileReadTask::read_bytes);
+constexpr size_t kBufferSize = 8192;
 
-#ifdef WINDOWS
-  std::filesystem::path read_file_path(
-      QString::fromStdString(path).toStdU16String());
-#else
-  std::filesystem::path read_file_path(
-      QString::fromStdString(path).toStdString());
-#endif
-  read_file_path_ = read_file_path;
+FileReadTask::FileReadTask(QString path)
+    : Task("file_read_task"), read_file_path_(std::move(path)) {
+  HoldOnLifeCycle(true);
+  connect(this, &FileReadTask::SignalFileBytesReadNext, this,
+          &FileReadTask::slot_read_bytes);
 }
 
-void FileReadTask::Run() {
-  SetFinishAfterRun(false);
+auto FileReadTask::Run() -> int {
+  if (QFileInfo(read_file_path_).isFile()) {
+    GF_CORE_LOG_DEBUG("read open file: {}", read_file_path_);
 
-  if (is_regular_file(read_file_path_)) {
-    SPDLOG_DEBUG("read open file: {}", read_file_path_.u8string());
-
-    target_file_.setFileName(
-        QString::fromStdString(read_file_path_.u8string()));
+    target_file_.setFileName(read_file_path_);
     target_file_.open(QIODevice::ReadOnly);
 
     if (!(target_file_.isOpen() && target_file_.isReadable())) {
-      SPDLOG_ERROR("file not open or not readable");
+      GF_CORE_LOG_ERROR("file not open or not readable");
       if (target_file_.isOpen()) target_file_.close();
-      return;
+      return -1;
     }
-    SPDLOG_DEBUG("started reading: {}", read_file_path_.u8string());
-    read_bytes();
+    GF_CORE_LOG_DEBUG("started reading: {}", read_file_path_);
+    slot_read_bytes();
   } else {
     emit SignalFileBytesReadEnd();
   }
+  return 0;
 }
 
-void FileReadTask::read_bytes() {
+void FileReadTask::slot_read_bytes() {
   QByteArray read_buffer;
-  if (!target_file_.atEnd() &&
-      (read_buffer = target_file_.read(buffer_size_)).size() > 0) {
-    SPDLOG_DEBUG("read bytes: {}", read_buffer.size());
+  if (QByteArray read_buffer;
+      !target_file_.atEnd() &&
+      (read_buffer = target_file_.read(kBufferSize)).size() > 0) {
+    GF_CORE_LOG_DEBUG("io thread read bytes: {}", read_buffer.size());
     emit SignalFileBytesRead(std::move(read_buffer));
   } else {
-    SPDLOG_DEBUG("read bytes end");
+    GF_CORE_LOG_DEBUG("io thread read bytes end");
     emit SignalFileBytesReadEnd();
     // announce finish task
-    emit SignalTaskRunnableEnd(0);
+    emit SignalTaskShouldEnd(0);
   }
 }
 
 FileReadTask::~FileReadTask() {
-  SPDLOG_DEBUG("close file: {}", read_file_path_.u8string());
+  GF_CORE_LOG_DEBUG("close file: {}", read_file_path_);
   if (target_file_.isOpen()) target_file_.close();
 }
 

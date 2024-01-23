@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -28,19 +28,19 @@
 
 #include "GpgResultAnalyse.h"
 
-const std::string GpgFrontend::GpgResultAnalyse::GetResultReport() const {
-  return stream_.str();
+auto GpgFrontend::GpgResultAnalyse::GetResultReport() const -> const QString {
+  return *stream_.string();
 }
 
-int GpgFrontend::GpgResultAnalyse::GetStatus() const { return status_; }
+auto GpgFrontend::GpgResultAnalyse::GetStatus() const -> int { return status_; }
 
-void GpgFrontend::GpgResultAnalyse::set_status(int m_status) {
+void GpgFrontend::GpgResultAnalyse::setStatus(int m_status) {
   if (m_status < status_) status_ = m_status;
 }
 
 void GpgFrontend::GpgResultAnalyse::Analyse() {
   if (!analysed_) {
-    do_analyse();
+    doAnalyse();
     analysed_ = true;
   }
 }

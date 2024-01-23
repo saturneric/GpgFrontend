@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,17 +19,26 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_KEYSERVERIMPORTTASK_H
-#define GPGFRONTEND_KEYSERVERIMPORTTASK_H
+#pragma once
 
-#include "GpgFrontendUI.h"
+#include <qnetworkaccessmanager.h>
+#include <qnetworkreply.h>
+
+#include "core/thread/Task.h"
+
+namespace GpgFrontend {
+class GpgImportInformation;
+}
 
 namespace GpgFrontend::UI {
+
 class KeyServerImportTask : public Thread::Task {
   Q_OBJECT
  public:
@@ -39,8 +48,13 @@ class KeyServerImportTask : public Thread::Task {
    * @param keyserver_url
    * @param search_string
    */
-  KeyServerImportTask(std::string keyserver_url,
-                      std::vector<std::string> keyid);
+  KeyServerImportTask(QString keyserver_url, std::vector<QString> keyid);
+
+  /**
+   * @brief
+   *
+   */
+  auto Run() -> int override;
 
  signals:
 
@@ -49,15 +63,8 @@ class KeyServerImportTask : public Thread::Task {
    *
    * @param result
    */
-  void SignalKeyServerImportResult(QNetworkReply::NetworkError reply,
-                                   QByteArray buffer);
-
- protected:
-  /**
-   * @brief
-   *
-   */
-  void run() override;
+  void SignalKeyServerImportResult(bool, QString, QByteArray,
+                                   std::shared_ptr<GpgImportInformation>);
 
  private slots:
 
@@ -68,13 +75,11 @@ class KeyServerImportTask : public Thread::Task {
   void dealing_reply_from_server();
 
  private:
-  std::string keyserver_url_;        ///<
-  std::vector<std::string> keyids_;  ///<
+  QString keyserver_url_;        ///<
+  std::vector<QString> keyids_;  ///<
   int result_count_ = 0;
 
   QNetworkAccessManager *manager_;  ///<
   QNetworkReply *reply_;            ///<
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYSERVERIMPORTTASK_H

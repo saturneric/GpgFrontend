@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,35 +19,39 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
 #include "ProxyConnectionTestTask.h"
+
+#include <QtNetwork>
 
 GpgFrontend::UI::ProxyConnectionTestTask::ProxyConnectionTestTask(QString url,
                                                                   int timeout)
     : Task("proxy_connection_test_task"),
       url_(std::move(url)),
       timeout_(timeout),
-      network_manager_(new QNetworkAccessManager(this)) {}
+      network_manager_(new QNetworkAccessManager(this)) {
+  HoldOnLifeCycle(true);
+}
 
-void GpgFrontend::UI::ProxyConnectionTestTask::run() {
-  SetFinishAfterRun(false);
-
+auto GpgFrontend::UI::ProxyConnectionTestTask::Run() -> int {
   auto* network_reply = network_manager_->get(QNetworkRequest{url_});
   auto* timer = new QTimer(this);
 
   connect(network_reply, &QNetworkReply::finished, this,
           [this, network_reply]() {
-            SPDLOG_DEBUG("key server domain reply: {} received",
-                         url_.toStdString());
+            GF_UI_LOG_DEBUG("key server domain reply: {} received",
+                            url_.toStdString());
             this->slot_process_network_reply(network_reply);
           });
 
   connect(timer, &QTimer::timeout, this, [this, network_reply]() {
-    SPDLOG_DEBUG("timeout for key server: {}", url_.toStdString());
+    GF_UI_LOG_DEBUG("timeout for key server: {}", url_.toStdString());
     if (network_reply->isRunning()) {
       network_reply->abort();
       this->slot_process_network_reply(network_reply);
@@ -55,13 +59,14 @@ void GpgFrontend::UI::ProxyConnectionTestTask::run() {
   });
 
   timer->start(timeout_);
+  return 0;
 }
 
 void GpgFrontend::UI::ProxyConnectionTestTask::slot_process_network_reply(
     QNetworkReply* reply) {
   auto buffer = reply->readAll();
-  SPDLOG_DEBUG("key server domain reply: {}, buffer size: {}",
-               url_.toStdString(), buffer.size());
+  GF_UI_LOG_DEBUG("key server domain reply: {}, buffer size: {}",
+                  url_.toStdString(), buffer.size());
 
   if (reply->error() == QNetworkReply::NoError && !buffer.isEmpty()) {
     result_ = "Reachable";
@@ -70,5 +75,5 @@ void GpgFrontend::UI::ProxyConnectionTestTask::slot_process_network_reply(
   }
 
   emit SignalProxyConnectionTestResult(result_);
-  emit SignalTaskRunnableEnd(0);
+  emit SignalTaskShouldEnd(0);
 }

@@ -1,24 +1,12 @@
-[submodule "third_party/gpgme"]
-	path = third_party/gpgme
-	url = https://github.com/gpg/gpgme.git
-[submodule "third_party/libassuan"]
-	path = third_party/libassuan
-	url = https://github.com/gpg/libassuan.git
-[submodule "third_party/libgpg-error"]
-	path = third_party/libgpg-error
-	url = https://github.com/gpg/libgpg-error.git
-[submodule "third_party/json"]
-	path = third_party/json
-	url = https://github.com/nlohmann/json.git
 [submodule "third_party/qt-aes"]
 	path = third_party/qt-aes
 	url = https://github.com/bricke/Qt-AES.git
-[submodule "third_party/libarchive"]
-	path = third_party/libarchive
-	url = https://github.com/libarchive/libarchive.git
-[submodule "third_party/libconfig"]
-	path = third_party/libconfig
-	url = https://github.com/hyperrealm/libconfig.git
 [submodule "third_party/spdlog"]
 	path = third_party/spdlog
 	url = https://github.com/gabime/spdlog.git
+[submodule "third_party/mimalloc"]
+	path = third_party/mimalloc
+	url = https://github.com/microsoft/mimalloc.git
+[submodule "third_party/googletest"]
+	path = third_party/googletest
+	url = https://github.com/google/googletest.git

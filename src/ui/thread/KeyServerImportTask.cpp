@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,47 +19,76 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
 #include "ui/thread/KeyServerImportTask.h"
 
-#include <vector>
+#include "core/function/gpg/GpgKeyImportExporter.h"
+#include "ui/struct/SettingsObject.h"
+#include "ui/struct/settings/KeyServerSO.h"
 
 GpgFrontend::UI::KeyServerImportTask::KeyServerImportTask(
-    std::string keyserver_url, std::vector<std::string> keyids)
+    QString keyserver_url, std::vector<QString> keyids)
     : Task("key_server_import_task"),
       keyserver_url_(std::move(keyserver_url)),
       keyids_(std::move(keyids)),
-      manager_(new QNetworkAccessManager(this)) {}
+      manager_(new QNetworkAccessManager(this)) {
+  HoldOnLifeCycle(true);
 
-void GpgFrontend::UI::KeyServerImportTask::run() {
-  SetFinishAfterRun(false);
-
-  QUrl keyserver_url = QUrl(keyserver_url_.c_str());
-  for (const auto& key_id : keyids_) {
-    QUrl req_url(keyserver_url.scheme() + "://" + keyserver_url.host() +
-                 "/pks/lookup?op=get&search=0x" + key_id.c_str() +
-                 "&options=mr");
-
-    reply_ = manager_->get(QNetworkRequest(req_url));
-
-    connect(reply_, &QNetworkReply::finished, this,
-            &KeyServerImportTask::dealing_reply_from_server);
+  if (keyserver_url_.isEmpty()) {
+    KeyServerSO key_server(SettingsObject("general_settings_state"));
+    keyserver_url_ = key_server.GetTargetServer();
+    GF_UI_LOG_DEBUG("key server import task sets key server url: {}",
+                    keyserver_url_);
   }
 }
 
-void GpgFrontend::UI::KeyServerImportTask::dealing_reply_from_server() {
-  QByteArray buffer;
-  QNetworkReply::NetworkError network_reply = reply_->error();
-  if (network_reply == QNetworkReply::NoError) {
-    buffer = reply_->readAll();
-  }
-  emit SignalKeyServerImportResult(network_reply, buffer);
+auto GpgFrontend::UI::KeyServerImportTask::Run() -> int {
+  QUrl const keyserver_url = QUrl(keyserver_url_);
+  for (const auto& key_id : keyids_) {
+    QUrl const req_url(keyserver_url.scheme() + "://" + keyserver_url.host() +
+                       "/pks/lookup?op=get&search=0x" + key_id + "&options=mr");
 
-  if (result_count_++ == keyids_.size() - 1) {
-    emit SignalTaskRunnableEnd(0);
+    reply_ = manager_->get(QNetworkRequest(req_url));
+    connect(reply_, &QNetworkReply::finished, this,
+            &KeyServerImportTask::dealing_reply_from_server);
+  }
+  return 0;
+}
+
+void GpgFrontend::UI::KeyServerImportTask::dealing_reply_from_server() {
+  auto const network_reply = reply_->error();
+  auto buffer = reply_->readAll();
+
+  if (network_reply != QNetworkReply::NoError) {
+    GF_UI_LOG_ERROR("key import error, message from key server reply: ",
+                    buffer);
+    QString err_msg;
+    switch (network_reply) {
+      case QNetworkReply::ContentNotFoundError:
+        err_msg = tr("Key not found in the Keyserver.");
+        break;
+      case QNetworkReply::TimeoutError:
+        err_msg = tr("Network connection timeout.");
+        break;
+      case QNetworkReply::HostNotFoundError:
+        err_msg = tr("Cannot resolve the address of target key server.");
+        break;
+      default:
+        err_msg = tr("General connection error occurred.");
+    }
+    emit SignalKeyServerImportResult(false, err_msg, buffer, nullptr);
+  }
+
+  auto info = GpgKeyImportExporter::GetInstance().ImportKey(GFBuffer(buffer));
+  emit SignalKeyServerImportResult(true, tr("Success"), buffer, info);
+
+  if (static_cast<size_t>(result_count_++) == keyids_.size() - 1) {
+    emit SignalTaskShouldEnd(0);
   }
 }

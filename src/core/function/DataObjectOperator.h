@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,17 +20,18 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_DATAOBJECTOPERATOR_H
-#define GPGFRONTEND_DATAOBJECTOPERATOR_H
+#pragma once
 
-#include "core/GpgFunctionObject.h"
+#include <optional>
+
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/basic/GpgFunctionObject.h"
 
 namespace GpgFrontend {
 
@@ -45,11 +46,11 @@ class GPGFRONTEND_CORE_EXPORT DataObjectOperator
   explicit DataObjectOperator(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
-  std::string SaveDataObj(const std::string &_key, const nlohmann::json &value);
+  auto SaveDataObj(const QString &_key, const QJsonDocument &value) -> QString;
 
-  std::optional<nlohmann::json> GetDataObject(const std::string &_key);
+  auto GetDataObject(const QString &_key) -> std::optional<QJsonDocument>;
 
-  std::optional<nlohmann::json> GetDataObjectByRef(const std::string &_ref);
+  auto GetDataObjectByRef(const QString &_ref) -> std::optional<QJsonDocument>;
 
  private:
   /**
@@ -60,21 +61,16 @@ class GPGFRONTEND_CORE_EXPORT DataObjectOperator
 
   GlobalSettingStation &global_setting_station_ =
       GlobalSettingStation::GetInstance();  ///< GlobalSettingStation
-  std::filesystem::path app_secure_path_ =
-      global_setting_station_.GetAppConfigPath() /
-      "secure";  ///< Where sensitive information is stored
-  std::filesystem::path app_secure_key_path_ =
-      app_secure_path_ / "app.key";  ///< Where the key of data object is stored
-  std::filesystem::path app_data_objs_path_ =
-      global_setting_station_.GetAppDataPath() / "data_objs";  ///< Where data
-                                                               ///< object is
-                                                               ///< stored
+  QString app_secure_path_ =
+      global_setting_station_.GetAppDataPath() +
+      "/secure";  ///< Where sensitive information is stored
+  QString app_secure_key_path_ =
+      app_secure_path_ +
+      "/app.key";  ///< Where the key of data object is stored
+  QString app_data_objs_path_ =
+      global_setting_station_.GetAppDataPath() + "/data_objs";
 
-  std::random_device rd_;                  ///< Random device
-  std::mt19937 mt_ = std::mt19937(rd_());  ///< Mersenne twister
-  QByteArray hash_key_;                    ///< Hash key
+  QByteArray hash_key_;  ///< Hash key
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_DATAOBJECTOPERATOR_H

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,16 +20,13 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_GPGTOFU_H
-#define GPGFRONTEND_GPGTOFU_H
-
-#include "core/GpgConstants.h"
+#pragma once
 
 namespace GpgFrontend {
 /**
@@ -43,55 +40,55 @@ class GPGFRONTEND_CORE_EXPORT GpgTOFUInfo {
    *
    * @return unsigned
    */
-  [[nodiscard]] unsigned GetValidity() const;
+  [[nodiscard]] auto GetValidity() const -> unsigned;
   /**
    * @brief
    *
    * @return unsigned
    */
-  [[nodiscard]] unsigned GetPolicy() const;
+  [[nodiscard]] auto GetPolicy() const -> unsigned;
 
   /**
    * @brief
    *
    * @return unsigned long
    */
-  [[nodiscard]] unsigned long GetSignCount() const;
+  [[nodiscard]] auto GetSignCount() const -> unsigned long;
 
   /**
    * @brief
    *
    * @return unsigned long
    */
-  [[nodiscard]] unsigned long GetEncrCount() const;
+  [[nodiscard]] auto GetEncrCount() const -> unsigned long;
 
   /**
    * @brief
    *
    * @return unsigned long
    */
-  [[nodiscard]] unsigned long GetSignFirst() const;
+  [[nodiscard]] auto GetSignFirst() const -> unsigned long;
 
   /**
    * @brief
    *
    * @return unsigned long
    */
-  [[nodiscard]] unsigned long GetSignLast() const;
+  [[nodiscard]] auto GetSignLast() const -> unsigned long;
 
   /**
    * @brief
    *
    * @return unsigned long
    */
-  [[nodiscard]] unsigned long GetEncrLast() const;
+  [[nodiscard]] auto GetEncrLast() const -> unsigned long;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] std::string GetDescription() const;
+  [[nodiscard]] auto GetDescription() const -> QString;
 
   /**
    * @brief Construct a new Gpg T O F U Info object
@@ -125,23 +122,21 @@ class GPGFRONTEND_CORE_EXPORT GpgTOFUInfo {
    * @param o
    * @return GpgTOFUInfo&
    */
-  GpgTOFUInfo& operator=(GpgTOFUInfo&& o) noexcept;
+  auto operator=(GpgTOFUInfo&& o) noexcept -> GpgTOFUInfo&;
 
   /**
    * @brief
    *
    * @return GpgTOFUInfo&
    */
-  GpgTOFUInfo& operator=(const GpgTOFUInfo&) = delete;
+  auto operator=(const GpgTOFUInfo&) -> GpgTOFUInfo& = delete;
 
  private:
   using SubkeyRefHandler =
       std::unique_ptr<struct _gpgme_tofu_info,
                       std::function<void(gpgme_tofu_info_t)>>;  ///<
 
-  SubkeyRefHandler _tofu_info_ref = nullptr;  ///<
+  SubkeyRefHandler tofu_info_ref_ = nullptr;  ///<
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGTOFU_H

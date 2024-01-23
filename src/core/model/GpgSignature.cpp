@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -28,21 +28,28 @@
 
 #include "GpgSignature.h"
 
+namespace GpgFrontend {
+
 /**
  * @brief Construct a new Gpg Signature object
  *
  */
-GpgFrontend::GpgSignature::GpgSignature(GpgSignature &&) noexcept = default;
+GpgSignature::GpgSignature(GpgSignature &&) noexcept = default;
 
 /**
  * @brief
  *
  * @return GpgSignature&
  */
-GpgFrontend::GpgSignature &GpgFrontend::GpgSignature::operator=(
-    GpgFrontend::GpgSignature &&) noexcept = default;
+auto GpgSignature::operator=(GpgSignature &&) noexcept
+    -> GpgSignature & = default;
 
-GpgFrontend::GpgSignature::GpgSignature(gpgme_signature_t sig)
+/**
+ * @brief Construct a new Gpg Signature:: Gpg Signature object
+ *
+ * @param sig
+ */
+GpgSignature::GpgSignature(gpgme_signature_t sig)
     : signature_ref_(sig, [&](gpgme_signature_t signature) {}) {}
 
 /**
@@ -50,7 +57,7 @@ GpgFrontend::GpgSignature::GpgSignature(gpgme_signature_t sig)
  *
  * @return gpgme_validity_t
  */
-gpgme_validity_t GpgFrontend::GpgSignature::GetValidity() const {
+auto GpgSignature::GetValidity() const -> gpgme_validity_t {
   return signature_ref_->validity;
 }
 
@@ -59,7 +66,7 @@ gpgme_validity_t GpgFrontend::GpgSignature::GetValidity() const {
  *
  * @return gpgme_error_t
  */
-gpgme_error_t GpgFrontend::GpgSignature::GetStatus() const {
+auto GpgSignature::GetStatus() const -> gpgme_error_t {
   return signature_ref_->status;
 }
 
@@ -68,52 +75,52 @@ gpgme_error_t GpgFrontend::GpgSignature::GetStatus() const {
  *
  * @return gpgme_error_t
  */
-gpgme_error_t GpgFrontend::GpgSignature::GetSummary() const {
+auto GpgSignature::GetSummary() const -> gpgme_error_t {
   return signature_ref_->summary;
 }
 
 /**
  * @brief
  *
- * @return std::string
+ * @return QString
  */
-std::string GpgFrontend::GpgSignature::GetPubkeyAlgo() const {
+auto GpgSignature::GetPubkeyAlgo() const -> QString {
   return gpgme_pubkey_algo_name(signature_ref_->pubkey_algo);
 }
 
 /**
  * @brief
  *
- * @return std::string
+ * @return QString
  */
-std::string GpgFrontend::GpgSignature::GetHashAlgo() const {
+auto GpgSignature::GetHashAlgo() const -> QString {
   return gpgme_hash_algo_name(signature_ref_->hash_algo);
 }
 
 /**
  * @brief Create a time object
  *
- * @return boost::posix_time::ptime
+ * @return QDateTime
  */
-boost::posix_time::ptime GpgFrontend::GpgSignature::GetCreateTime() const {
-  return boost::posix_time::from_time_t(signature_ref_->timestamp);
+auto GpgSignature::GetCreateTime() const -> QDateTime {
+  return QDateTime::fromSecsSinceEpoch(signature_ref_->timestamp);
 }
 
 /**
  * @brief
  *
- * @return boost::posix_time::ptime
+ * @return QDateTime
  */
-boost::posix_time::ptime GpgFrontend::GpgSignature::GetExpireTime() const {
-  return boost::posix_time::from_time_t(signature_ref_->exp_timestamp);
+auto GpgSignature::GetExpireTime() const -> QDateTime {
+  return QDateTime::fromSecsSinceEpoch(signature_ref_->exp_timestamp);
 }
 
 /**
  * @brief
  *
- * @return std::string
+ * @return QString
  */
-std::string GpgFrontend::GpgSignature::GetFingerprint() const {
+auto GpgSignature::GetFingerprint() const -> QString {
   return signature_ref_->fpr;
 }
 
@@ -121,10 +128,12 @@ std::string GpgFrontend::GpgSignature::GetFingerprint() const {
  * @brief Construct a new Gpg Signature object
  *
  */
-GpgFrontend::GpgSignature::GpgSignature() = default;
+GpgSignature::GpgSignature() = default;
 
 /**
  * @brief Destroy the Gpg Signature object
  *
  */
-GpgFrontend::GpgSignature::~GpgSignature() = default;
+GpgSignature::~GpgSignature() = default;
+
+}  // namespace GpgFrontend

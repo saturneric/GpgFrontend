@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,17 +20,16 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_KEYPAIRSUBKEYTAB_H
-#define GPGFRONTEND_KEYPAIRSUBKEYTAB_H
+#pragma once
 
 #include "KeySetExpireDateDialog.h"
-#include "core/GpgContext.h"
+#include "core/function/gpg/GpgContext.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/dialog/key_generate/SubkeyGenerateDialog.h"
 
@@ -46,7 +45,7 @@ class KeyPairSubkeyTab : public QWidget {
    * @param key
    * @param parent
    */
-  KeyPairSubkeyTab(const std::string& key, QWidget* parent);
+  KeyPairSubkeyTab(const QString& key, QWidget* parent);
 
  private:
   /**
@@ -81,7 +80,8 @@ class KeyPairSubkeyTab : public QWidget {
   QLabel* expire_var_label_;     ///< Label containing the keys expiration date
   QLabel* created_var_label_;    ///< Label containing the keys creation date
   QLabel* algorithm_var_label_;  ///< Label containing the keys algorithm
-  QLabel* key_id_var_label_;     ///< Label containing the keys keyid
+  QLabel* algorithm_detail_var_label_;  ///<
+  QLabel* key_id_var_label_;            ///< Label containing the keys keyid
   QLabel* fingerprint_var_label_;  ///< Label containing the keys fingerprint
   QLabel* usage_var_label_;        ///<
   QLabel* master_key_exist_var_label_;  ///<
@@ -135,5 +135,3 @@ class KeyPairSubkeyTab : public QWidget {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYPAIRSUBKEYTAB_H

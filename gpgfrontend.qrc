@@ -1,6 +1,6 @@
 <!DOCTYPE RCC>
 <RCC>
-    <qresource prefix="/">
+    <qresource prefix="/icons">
         <file alias="keymgmt.png">resource/lfs/icons/keymgmt.png</file>
         <file alias="help.png">resource/lfs/icons/help.png</file>
         <file alias="button_copy.png">resource/lfs/icons/button_copy.png</file>
@@ -75,5 +75,26 @@
         <file alias="button_next.png">resource/lfs/icons/button_next.png</file>
         <file alias="refresh.png">resource/lfs/icons/refresh.png</file>
         <file alias="up.png">resource/lfs/icons/up.png</file>
+        <file alias="data-error.svg">resource/lfs/icons/data-error.svg</file>
+        <file alias="document-encrypt.png">resource/lfs/icons/document-encrypt.png</file>
+        <file alias="hint.svg">resource/lfs/icons/hint.svg</file>
+        <file alias="password-generate.svg">resource/lfs/icons/password-generate.svg</file>
+        <file alias="visibility.svg">resource/lfs/icons/visibility.svg</file>
+        <file alias="new_directory.png">resource/lfs/icons/new_directory.png</file>
+        <file alias="copy.png">resource/lfs/icons/copy.png</file>
+        <file alias="none.png">resource/lfs/icons/none.png</file>
+        <file alias="clear.png">resource/lfs/icons/clear.png</file>
+        <file alias="cloud_sync.png">resource/lfs/icons/cloud_sync.png</file>
+        <file alias="total_selection.png">resource/lfs/icons/total_selection.png</file>
+    </qresource>
+    <qresource prefix="/test/key">
+        <file alias="pv1.key">resource/lfs/test/data/pv1.key</file>
+        <file alias="pv2.key">resource/lfs/test/data/pv2.key</file>
+        <file alias="pv3.key">resource/lfs/test/data/pv3.key</file>
+        <file alias="pv4.key">resource/lfs/test/data/pv4.key</file>
+        <file alias="tester.key">resource/lfs/test/data/tester.key</file>
+    </qresource>
+    <qresource prefix="/">
+        <file alias="TRANSLATORS">TRANSLATORS</file>
     </qresource>
 </RCC>

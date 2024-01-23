@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,19 +20,20 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef __KEYIMPORTDETAILSDIALOG_H__
-#define __KEYIMPORTDETAILSDIALOG_H__
+#pragma once
 
-#include "core/GpgContext.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
-#include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
+
+namespace GpgFrontend {
+class GpgImportInformation;
+}
 
 namespace GpgFrontend::UI {
 
@@ -51,8 +52,8 @@ class KeyImportDetailDialog : public GeneralDialog {
    * @param automatic
    * @param parent
    */
-  KeyImportDetailDialog(GpgImportInformation result, bool automatic,
-                        QWidget* parent = nullptr);
+  explicit KeyImportDetailDialog(std::shared_ptr<GpgImportInformation> result,
+                                 QWidget* parent = nullptr);
 
  private:
   /**
@@ -85,8 +86,7 @@ class KeyImportDetailDialog : public GeneralDialog {
   QGroupBox* general_info_box_{};   ///<
   QGroupBox* key_info_box_{};       ///<
   QDialogButtonBox* button_box_{};  ///<
-  GpgImportInformation m_result_;   ///<
+
+  std::shared_ptr<GpgImportInformation> m_result_;  ///<
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // __KEYIMPORTDETAILSDIALOG_H__

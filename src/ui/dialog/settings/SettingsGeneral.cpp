@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -28,224 +28,126 @@
 
 #include "SettingsGeneral.h"
 
-#include "core/GpgContext.h"
-
-#ifdef MULTI_LANG_SUPPORT
 #include "SettingsDialog.h"
-#endif
-
+#include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
 #include "ui_GeneralSettings.h"
 
 namespace GpgFrontend::UI {
 
 GeneralTab::GeneralTab(QWidget* parent)
-    : QWidget(parent), ui_(std::make_shared<Ui_GeneralSettings>()) {
+    : QWidget(parent),
+      ui_(GpgFrontend::SecureCreateSharedObject<Ui_GeneralSettings>()) {
   ui_->setupUi(this);
 
-  ui_->cacheBox->setTitle(_("Cache"));
-  ui_->saveCheckedKeysCheckBox->setText(
-      _("Save checked private keys on exit and restore them on next start."));
+  ui_->cacheBox->setTitle(tr("Cache"));
   ui_->clearGpgPasswordCacheCheckBox->setText(
-      _("Clear gpg password cache when closing GpgFrontend."));
+      tr("Clear gpg password cache when closing GpgFrontend."));
   ui_->restoreTextEditorPageCheckBox->setText(
-      _("Automatically restore unsaved Text Editor pages after an application "
-        "crash."));
+      tr("Automatically restore unsaved Text Editor pages after an application "
+         "crash."));
 
-  ui_->importConfirmationBox->setTitle(_("Operation"));
+  ui_->importConfirmationBox->setTitle(tr("Operation"));
   ui_->longerKeyExpirationDateCheckBox->setText(
-      _("Enable to use longer key expiration date."));
+      tr("Enable to use longer key expiration date."));
   ui_->importConfirmationCheckBox->setText(
-      _("Import files dropped on the Key List without confirmation."));
+      tr("Import files dropped on the Key List without confirmation."));
 
-  ui_->langBox->setTitle(_("Language"));
+  ui_->langBox->setTitle(tr("Language"));
   ui_->langNoteLabel->setText(
-      "<b>" + QString(_("NOTE")) + _(": ") + "</b>" +
-      _("GpgFrontend will restart automatically if you change the language!"));
+      "<b>" + tr("NOTE") + tr(": ") + "</b>" +
+      tr("GpgFrontend will restart automatically if you change the language!"));
 
-  ui_->dataBox->setTitle(_("Data"));
-  ui_->clearAllLogFilesButton->setText(QString::fromStdString(
-      (boost::format(_("Clear All Log (Total Size: %s)")) %
-       GlobalSettingStation::GetInstance().GetLogFilesSize())
-          .str()));
-  ui_->clearAllDataObjectsButton->setText(QString::fromStdString(
-      (boost::format(_("Clear All Data Objects (Total Size: %s)")) %
-       GlobalSettingStation::GetInstance().GetDataObjectsFilesSize())
-          .str()));
+  ui_->dataBox->setTitle(tr("Data"));
+  ui_->clearAllLogFilesButton->setText(
+      tr("Clear All Log (Total Size: %1)")
+          .arg(GlobalSettingStation::GetInstance().GetLogFilesSize()));
+  ui_->clearAllDataObjectsButton->setText(
+      tr("Clear All Data Objects (Total Size: %1)")
+          .arg(GlobalSettingStation::GetInstance().GetDataObjectsFilesSize()));
 
-#ifdef MULTI_LANG_SUPPORT
   lang_ = SettingsDialog::ListLanguages();
   for (const auto& l : lang_) {
     ui_->langSelectBox->addItem(l);
   }
   connect(ui_->langSelectBox, qOverload<int>(&QComboBox::currentIndexChanged),
           this, &GeneralTab::slot_language_changed);
-#endif
 
   connect(ui_->clearAllLogFilesButton, &QPushButton::clicked, this, [=]() {
     GlobalSettingStation::GetInstance().ClearAllLogFiles();
-    ui_->clearAllLogFilesButton->setText(QString::fromStdString(
-        (boost::format(_("Clear All Log (Total Size: %s)")) %
-         GlobalSettingStation::GetInstance().GetLogFilesSize())
-            .str()));
+    ui_->clearAllLogFilesButton->setText(
+        tr("Clear All Log (Total Size: %1)")
+            .arg(GlobalSettingStation::GetInstance().GetLogFilesSize()));
   });
 
   connect(ui_->clearAllDataObjectsButton, &QPushButton::clicked, this, [=]() {
     QMessageBox::StandardButton reply;
     reply = QMessageBox::question(
-        this, _("Confirm"),
-        _("Are you sure you want to clear all data objects?\nThis will result "
-          "in "
-          "loss of all cached form positions, statuses, key servers, etc."),
+        this, tr("Confirm"),
+        tr("Are you sure you want to clear all data objects?\nThis will result "
+           "in loss of all cached form positions, statuses, key servers, etc."),
         QMessageBox::Yes | QMessageBox::No);
     if (reply == QMessageBox::Yes) {
       GlobalSettingStation::GetInstance().ClearAllDataObjects();
-      ui_->clearAllDataObjectsButton->setText(QString::fromStdString(
-          (boost::format(_("Clear All Data Objects (Total Size: %s)")) %
-           GlobalSettingStation::GetInstance().GetDataObjectsFilesSize())
-              .str()));
+      ui_->clearAllDataObjectsButton->setText(
+          tr("Clear All Data Objects (Total Size: %1)")
+              .arg(GlobalSettingStation::GetInstance()
+                       .GetDataObjectsFilesSize()));
     }
   });
 
   SetSettings();
 }
 
-/**********************************
- * Read the settings from config
- * and set the buttons and checkboxes
- * appropriately
- **********************************/
 void GeneralTab::SetSettings() {
-  auto& settings = GlobalSettingStation::GetInstance().GetUISettings();
+  auto settings = GlobalSettingStation::GetInstance().GetSettings();
 
-  try {
-    bool save_key_checked = settings.lookup("general.save_key_checked");
-    if (save_key_checked)
-      ui_->saveCheckedKeysCheckBox->setCheckState(Qt::Checked);
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: save_key_checked");
-  }
+  bool clear_gpg_password_cache =
+      settings.value("basic/clear_gpg_password_cache", true).toBool();
+  ui_->clearGpgPasswordCacheCheckBox->setCheckState(
+      clear_gpg_password_cache ? Qt::Checked : Qt::Unchecked);
 
-  try {
-    bool clear_gpg_password_cache =
-        settings.lookup("general.clear_gpg_password_cache");
-    if (clear_gpg_password_cache)
-      ui_->clearGpgPasswordCacheCheckBox->setCheckState(Qt::Checked);
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: clear_gpg_password_cache");
-  }
+  bool restore_text_editor_page =
+      settings.value("basic/restore_text_editor_page", true).toBool();
+  ui_->restoreTextEditorPageCheckBox->setCheckState(
+      restore_text_editor_page ? Qt::Checked : Qt::Unchecked);
 
-  try {
-    bool restore_text_editor_page =
-        settings.lookup("general.restore_text_editor_page");
-    if (restore_text_editor_page)
-      ui_->restoreTextEditorPageCheckBox->setCheckState(Qt::Checked);
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: restore_text_editor_page");
-  }
+  bool longer_expiration_date =
+      settings.value("basic/longer_expiration_date", false).toBool();
+  ui_->longerKeyExpirationDateCheckBox->setCheckState(
+      longer_expiration_date ? Qt::Checked : Qt::Unchecked);
 
-  try {
-    bool longer_expiration_date =
-        settings.lookup("general.longer_expiration_date");
-    SPDLOG_DEBUG("longer_expiration_date: {}", longer_expiration_date);
-    if (longer_expiration_date)
-      ui_->longerKeyExpirationDateCheckBox->setCheckState(Qt::Checked);
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: longer_expiration_date");
-  }
+  bool confirm_import_keys =
+      settings.value("basic/confirm_import_keys", false).toBool();
+  ui_->importConfirmationCheckBox->setCheckState(
+      confirm_import_keys ? Qt::Checked : Qt::Unchecked);
 
-#ifdef MULTI_LANG_SUPPORT
-  try {
-    std::string lang_key = settings.lookup("general.lang");
-    QString lang_value = lang_.value(lang_key.c_str());
-    SPDLOG_DEBUG("lang settings current: {}", lang_value.toStdString());
-    if (!lang_.empty()) {
-      ui_->langSelectBox->setCurrentIndex(
-          ui_->langSelectBox->findText(lang_value));
-    } else {
-      ui_->langSelectBox->setCurrentIndex(0);
-    }
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: lang");
-  }
-#endif
-
-  try {
-    bool confirm_import_keys = settings.lookup("general.confirm_import_keys");
-    SPDLOG_DEBUG("confirm_import_keys: {}", confirm_import_keys);
-    if (confirm_import_keys)
-      ui_->importConfirmationCheckBox->setCheckState(Qt::Checked);
-  } catch (...) {
-    SPDLOG_ERROR("setting operation error: confirm_import_keys");
+  QString lang_key = settings.value("basic/lang").toString();
+  QString lang_value = lang_.value(lang_key);
+  GF_UI_LOG_DEBUG("lang settings current: {}", lang_value.toStdString());
+  if (!lang_.empty()) {
+    ui_->langSelectBox->setCurrentIndex(
+        ui_->langSelectBox->findText(lang_value));
+  } else {
+    ui_->langSelectBox->setCurrentIndex(0);
   }
 }
 
-/***********************************
- * get the values of the buttons and
- * write them to settings-file
- *************************************/
 void GeneralTab::ApplySettings() {
-  auto& settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetUISettings();
+  auto settings =
+      GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
 
-  if (!settings.exists("general") ||
-      settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
-    settings.add("general", libconfig::Setting::TypeGroup);
-
-  auto& general = settings["general"];
-
-  if (!general.exists("longer_expiration_date"))
-    general.add("longer_expiration_date", libconfig::Setting::TypeBoolean) =
-        ui_->longerKeyExpirationDateCheckBox->isChecked();
-  else {
-    general["longer_expiration_date"] =
-        ui_->longerKeyExpirationDateCheckBox->isChecked();
-  }
-
-  if (!general.exists("save_key_checked"))
-    general.add("save_key_checked", libconfig::Setting::TypeBoolean) =
-        ui_->saveCheckedKeysCheckBox->isChecked();
-  else {
-    general["save_key_checked"] = ui_->saveCheckedKeysCheckBox->isChecked();
-  }
-
-  if (!general.exists("clear_gpg_password_cache"))
-    general.add("clear_gpg_password_cache", libconfig::Setting::TypeBoolean) =
-        ui_->clearGpgPasswordCacheCheckBox->isChecked();
-  else {
-    general["clear_gpg_password_cache"] =
-        ui_->saveCheckedKeysCheckBox->isChecked();
-  }
-
-  if (!general.exists("restore_text_editor_page"))
-    general.add("restore_text_editor_page", libconfig::Setting::TypeBoolean) =
-        ui_->restoreTextEditorPageCheckBox->isChecked();
-  else {
-    general["restore_text_editor_page"] =
-        ui_->restoreTextEditorPageCheckBox->isChecked();
-  }
-
-#ifdef MULTI_LANG_SUPPORT
-  if (!general.exists("lang"))
-    general.add("lang", libconfig::Setting::TypeBoolean) =
-        lang_.key(ui_->langSelectBox->currentText()).toStdString();
-  else {
-    general["lang"] =
-        lang_.key(ui_->langSelectBox->currentText()).toStdString();
-  }
-#endif
-
-  if (!general.exists("confirm_import_keys"))
-    general.add("confirm_import_keys", libconfig::Setting::TypeBoolean) =
-        ui_->importConfirmationCheckBox->isChecked();
-  else {
-    general["confirm_import_keys"] =
-        ui_->importConfirmationCheckBox->isChecked();
-  }
+  settings.setValue("basic/longer_expiration_date",
+                    ui_->longerKeyExpirationDateCheckBox->isChecked());
+  settings.setValue("basic/clear_gpg_password_cache",
+                    ui_->clearGpgPasswordCacheCheckBox->isChecked());
+  settings.setValue("basic/restore_text_editor_page",
+                    ui_->restoreTextEditorPageCheckBox->isChecked());
+  settings.setValue("basic/confirm_import_keys",
+                    ui_->importConfirmationCheckBox->isChecked());
+  settings.setValue("basic/lang", lang_.key(ui_->langSelectBox->currentText()));
 }
 
-#ifdef MULTI_LANG_SUPPORT
 void GeneralTab::slot_language_changed() { emit SignalRestartNeeded(true); }
-#endif
 
 }  // namespace GpgFrontend::UI

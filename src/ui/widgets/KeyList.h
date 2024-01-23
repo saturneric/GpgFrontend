@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,20 +20,15 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef __KEYLIST_H__
-#define __KEYLIST_H__
+#pragma once
 
-#include <string>
-#include <utility>
-
-#include "core/GpgContext.h"
-#include "ui/dialog/import_export/KeyImportDetailDialog.h"
+#include "core/model/GpgKey.h"
 
 class Ui_KeyList;
 
@@ -96,7 +91,7 @@ struct KeyTable {
   KeyTableFilter filter_;                ///<
   KeyIdArgsListPtr checked_key_ids_;     ///<
   KeyMenuAbility::AbilityType ability_;  ///<
-  std::string keyword_;                  ///<
+  QString keyword_;                      ///<
 
   /**
    * @brief Construct a new Key Table object
@@ -160,7 +155,7 @@ struct KeyTable {
    * @brief
    *
    */
-  void SetFilterKeyword(std::string keyword);
+  void SetFilterKeyword(QString keyword);
 };
 
 /**
@@ -279,16 +274,9 @@ class KeyList : public QWidget {
   /**
    * @brief Get the Selected Key object
    *
-   * @return std::string
+   * @return QString
    */
-  std::string GetSelectedKey();
-
-  /**
-   * @brief
-   *
-   * @param keyIds
-   */
-  [[maybe_unused]] static void MarkKeys(QStringList* keyIds);
+  QString GetSelectedKey();
 
   /**
    * @brief
@@ -414,5 +402,3 @@ class KeyList : public QWidget {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __KEYLIST_H__

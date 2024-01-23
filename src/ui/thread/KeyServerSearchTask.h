@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,18 +19,22 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_KEYSERVERSEARCHTASK_H
-#define GPGFRONTEND_KEYSERVERSEARCHTASK_H
+#pragma once
+
+#include <qnetworkaccessmanager.h>
+#include <qnetworkreply.h>
 
 #include "GpgFrontendUI.h"
+#include "core/thread/ThreadingModel.h"
 
 namespace GpgFrontend::UI {
-
 class KeyServerSearchTask : public Thread::Task {
   Q_OBJECT
  public:
@@ -40,7 +44,13 @@ class KeyServerSearchTask : public Thread::Task {
    * @param keyserver_url
    * @param search_string
    */
-  KeyServerSearchTask(std::string keyserver_url, std::string search_string);
+  KeyServerSearchTask(QString keyserver_url, QString search_string);
+
+  /**
+   * @brief
+   *
+   */
+  auto Run() -> int override;
 
  signals:
 
@@ -52,25 +62,16 @@ class KeyServerSearchTask : public Thread::Task {
   void SignalKeyServerSearchResult(QNetworkReply::NetworkError reply,
                                    QByteArray buffer);
 
- protected:
-  /**
-   * @brief
-   *
-   */
-  void run() override;
-
  private slots:
 
   void dealing_reply_from_server();
 
  private:
-  std::string keyserver_url_;  ///<
-  std::string search_string_;  ///<
+  QString keyserver_url_;  ///<
+  QString search_string_;  ///<
 
   QNetworkAccessManager *manager_;  ///<
   QNetworkReply *reply_;            ///<
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYSERVERSEARCHTASK_H

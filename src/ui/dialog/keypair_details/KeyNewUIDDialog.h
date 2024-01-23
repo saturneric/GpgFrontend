@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,15 +19,18 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_KEYNEWUIDDIALOG_H
-#define GPGFRONTEND_KEYNEWUIDDIALOG_H
+#pragma once
 
-#include "core/GpgContext.h"
+#include "core/function/gpg/GpgContext.h"
+#include "core/model/GpgKey.h"
+#include "core/typedef/GpgTypedef.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
 
@@ -84,5 +87,3 @@ class KeyNewUIDDialog : public GeneralDialog {
   bool check_email_address(const QString& str);
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYNEWUIDDIALOG_H

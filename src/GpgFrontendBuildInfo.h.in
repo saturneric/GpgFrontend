@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,21 +20,20 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_BUILD_INFO_H_IN
-#define GPGFRONTEND_BUILD_INFO_H_IN
+#pragma once
 
 /**
  * Logic Version (*.*.*)
  */
-#define VERSION_MAJOR @CMAKE_PROJECT_VERSION_MAJOR@
-#define VERSION_MINOR @CMAKE_PROJECT_VERSION_MINOR@
-#define VERSION_PATCH @CMAKE_PROJECT_VERSION_PATCH@
+#define VERSION_MAJOR "@CMAKE_PROJECT_VERSION_MAJOR@"
+#define VERSION_MINOR "@CMAKE_PROJECT_VERSION_MINOR@"
+#define VERSION_PATCH "@CMAKE_PROJECT_VERSION_PATCH@"
 
 /**
  * Code Version (According to Git)
@@ -45,18 +44,12 @@
 /**
  * Generated Information (According to CMake)
  */
-#define PROJECT_NAME "@PROJECT_NAME@"
 #define BUILD_VERSION "@BUILD_VERSION@"
 #define GIT_VERSION "@GIT_VERSION@"
 
 /**
  * Build Information
  */
-#define BUILD_FLAG @BUILD_FLAG@
+#define BUILD_FLAG "@BUILD_FLAG@"
 #define BUILD_TIMESTAMP "@BUILD_TIMESTAMP@"
 #define APP_INSTALL_FLAG "@APP_INSTALL_FLAG@"
-
-
-
-
-#endif // GPGFRONTEND_BUILD_INFO_H_IN

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -28,88 +28,98 @@
 
 #include "GpgSignResultAnalyse.h"
 
-#include "function/gpg/GpgKeyGetter.h"
+#include "core/GpgModel.h"
+#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/utils/LocalizedUtils.h"
 
-GpgFrontend::GpgSignResultAnalyse::GpgSignResultAnalyse(GpgError error,
-                                                        GpgSignResult result)
+namespace GpgFrontend {
+
+GpgSignResultAnalyse::GpgSignResultAnalyse(GpgError error, GpgSignResult result)
     : error_(error), result_(std::move(result)) {}
 
-void GpgFrontend::GpgSignResultAnalyse::do_analyse() {
-  SPDLOG_DEBUG("start sign result analyse");
+void GpgSignResultAnalyse::doAnalyse() {
+  auto *result = this->result_.GetRaw();
 
-  stream_ << "[#] " << _("Sign Operation") << " ";
+  stream_ << "# " << tr("Sign Operation") << " ";
 
-  if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR)
-    stream_ << "[" << _("Success") << "]" << std::endl;
-  else {
-    stream_ << "[" << _("Failed") << "] " << gpgme_strerror(error_)
-            << std::endl;
-    set_status(-1);
+  if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
+    stream_ << "- " << tr("Success") << " " << Qt::endl;
+  } else {
+    stream_ << "- " << tr("Failed") << " " << gpgme_strerror(error_)
+            << Qt::endl;
+    setStatus(-1);
   }
 
-  if (result_ != nullptr &&
-      (result_->signatures != nullptr || result_->invalid_signers != nullptr)) {
-    SPDLOG_DEBUG("sign result analyse getting result");
-    stream_ << "------------>" << std::endl;
-    auto new_sign = result_->signatures;
+  if (result != nullptr &&
+      (result->signatures != nullptr || result->invalid_signers != nullptr)) {
+    stream_ << Qt::endl;
+    auto *new_sign = result->signatures;
+    auto index = 0;
 
     while (new_sign != nullptr) {
-      stream_ << "[>]" << _("New Signature") << ": " << std::endl;
+      stream_ << "## " << tr("New Signature") << " [" << ++index
+              << "]: " << Qt::endl;
 
-      SPDLOG_DEBUG("signers fingerprint: ", new_sign->fpr);
-
-      stream_ << "    " << _("Sign Mode") << ": ";
-      if (new_sign->type == GPGME_SIG_MODE_NORMAL)
-        stream_ << _("Normal");
-      else if (new_sign->type == GPGME_SIG_MODE_CLEAR)
-        stream_ << _("Clear");
-      else if (new_sign->type == GPGME_SIG_MODE_DETACH)
-        stream_ << _("Detach");
-
-      stream_ << std::endl;
-
-      auto singerKey =
-          GpgFrontend::GpgKeyGetter::GetInstance().GetKey(new_sign->fpr);
-      if (singerKey.IsGood()) {
-        stream_ << "    " << _("Signer") << ": "
-                << singerKey.GetUIDs()->front().GetUID() << std::endl;
-      } else {
-        stream_ << "    " << _("Signer") << ": "
-                << "<unknown>" << std::endl;
+      stream_ << "- " << tr("Sign Mode") << ": ";
+      if (new_sign->type == GPGME_SIG_MODE_NORMAL) {
+        stream_ << tr("Normal");
+      } else if (new_sign->type == GPGME_SIG_MODE_CLEAR) {
+        stream_ << tr("Clear");
+      } else if (new_sign->type == GPGME_SIG_MODE_DETACH) {
+        stream_ << tr("Detach");
       }
-      stream_ << "    " << _("Public Key Algo") << ": "
-              << gpgme_pubkey_algo_name(new_sign->pubkey_algo) << std::endl;
-      stream_ << "    " << _("Hash Algo") << ": "
-              << gpgme_hash_algo_name(new_sign->hash_algo) << std::endl;
-      stream_ << "    " << _("Date") << "(" << _("UTC") << ")"
-              << ": "
-              << boost::posix_time::to_iso_extended_string(
-                     boost::posix_time::from_time_t(new_sign->timestamp))
-              << std::endl;
 
-      stream_ << std::endl;
+      stream_ << Qt::endl;
+
+      auto singer_key = GpgKeyGetter::GetInstance().GetKey(new_sign->fpr);
+      if (singer_key.IsGood()) {
+        stream_ << "- " << tr("Signer") << ": "
+                << singer_key.GetUIDs()->front().GetUID() << Qt::endl;
+      } else {
+        stream_ << "- " << tr("Signer") << ": "
+                << "<unknown>" << Qt::endl;
+      }
+      stream_ << "- " << tr("Public Key Algo") << ": "
+              << gpgme_pubkey_algo_name(new_sign->pubkey_algo) << Qt::endl;
+      stream_ << "- " << tr("Hash Algo") << ": "
+              << gpgme_hash_algo_name(new_sign->hash_algo) << Qt::endl;
+      stream_ << "- " << tr("Date") << "(" << tr("UTC") << ")"
+              << ": "
+              << QDateTime::fromSecsSinceEpoch(new_sign->timestamp).toString()
+              << Qt::endl;
+      stream_ << "- " << tr("Date") << "(" << tr("Localized") << ")"
+              << ": " << GetFormatedDateByTimestamp(new_sign->timestamp)
+              << Qt::endl;
+
+      stream_ << Qt::endl
+              << "---------------------------------------" << Qt::endl
+              << Qt::endl;
 
       new_sign = new_sign->next;
     }
 
-    SPDLOG_DEBUG("sign result analyse getting invalid signer");
+    auto *invalid_signer = result->invalid_signers;
+    stream_ << Qt::endl;
 
-    auto invalid_signer = result_->invalid_signers;
+    if (invalid_signer != nullptr) {
+      stream_ << "## " << tr("Invalid Signers") << ": " << Qt::endl;
+    }
 
-    if (invalid_signer != nullptr)
-      stream_ << _("Invalid Signers") << ": " << std::endl;
-
+    index = 0;
     while (invalid_signer != nullptr) {
-      set_status(0);
-      stream_ << "[>] " << _("Signer") << ": " << std::endl;
-      stream_ << "      " << _("Fingerprint") << ": " << invalid_signer->fpr
-              << std::endl;
-      stream_ << "      " << _("Reason") << ": "
-              << gpgme_strerror(invalid_signer->reason) << std::endl;
-      stream_ << std::endl;
+      setStatus(0);
+      stream_ << "### " << tr("Signer") << " [" << ++index << "]: " << Qt::endl
+              << Qt::endl;
+      stream_ << "- " << tr("Fingerprint") << ": " << invalid_signer->fpr
+              << Qt::endl;
+      stream_ << "- " << tr("Reason") << ": "
+              << gpgme_strerror(invalid_signer->reason) << Qt::endl;
+      stream_ << "---------------------------------------" << Qt::endl;
 
       invalid_signer = invalid_signer->next;
     }
-    stream_ << "<------------" << std::endl;
+    stream_ << Qt::endl;
   }
 }
+
+}  // namespace GpgFrontend

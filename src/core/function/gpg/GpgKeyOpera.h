@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,18 +20,18 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef _GPGKEYOPERA_H
-#define _GPGKEYOPERA_H
+#pragma once
 
-#include "core/GpgConstants.h"
-#include "core/GpgContext.h"
-#include "core/GpgModel.h"
+#include <functional>
+
+#include "core/function/gpg/GpgContext.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 /**
@@ -77,8 +77,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param expires
    * @return GpgError
    */
-  GpgError SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
-                     std::unique_ptr<boost::posix_time::ptime>& expires);
+  auto SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
+                 std::unique_ptr<QDateTime>& expires) -> GpgError;
 
   /**
    * @brief
@@ -86,8 +86,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param key
    * @param output_file_name
    */
-  void GenerateRevokeCert(const GpgKey& key,
-                          const std::string& output_file_name);
+  void GenerateRevokeCert(const GpgKey& key, const QString& output_path);
 
   /**
    * @brief
@@ -95,7 +94,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param key
    * @return GpgFrontend::GpgError
    */
-  GpgFrontend::GpgError ModifyPassword(const GpgKey& key);
+  void ModifyPassword(const GpgKey& key, const GpgOperationCallback&);
 
   /**
    * @brief
@@ -104,8 +103,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param tofu_policy
    * @return GpgFrontend::GpgError
    */
-  GpgFrontend::GpgError ModifyTOFUPolicy(const GpgKey& key,
-                                         gpgme_tofu_policy_t tofu_policy);
+  auto ModifyTOFUPolicy(const GpgKey& key, gpgme_tofu_policy_t tofu_policy)
+      -> GpgFrontend::GpgError;
   /**
    * @brief
    *
@@ -113,8 +112,16 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param result
    * @return GpgFrontend::GpgError
    */
-  GpgFrontend::GpgError GenerateKey(const std::unique_ptr<GenKeyInfo>& params,
-                                    GpgGenKeyResult& result);
+  void GenerateKey(const std::shared_ptr<GenKeyInfo>&,
+                   const GpgOperationCallback&);
+
+  /**
+   * @brief
+   *
+   * @param params
+   */
+  auto GenerateKeySync(const std::shared_ptr<GenKeyInfo>& params)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief
@@ -123,13 +130,45 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param params
    * @return GpgFrontend::GpgError
    */
-  GpgFrontend::GpgError GenerateSubkey(
-      const GpgKey& key, const std::unique_ptr<GenKeyInfo>& params);
+  void GenerateSubkey(const GpgKey& key,
+                      const std::shared_ptr<GenKeyInfo>& params,
+                      const GpgOperationCallback&);
+
+  /**
+   * @brief
+   *
+   * @param key
+   * @param params
+   */
+  auto GenerateSubkeySync(const GpgKey& key,
+                          const std::shared_ptr<GenKeyInfo>& params)
+      -> std::tuple<GpgError, DataObjectPtr>;
+
+  /**
+   * @brief
+   *
+   * @param params
+   * @param subkey_params
+   * @param callback
+   */
+  void GenerateKeyWithSubkey(const std::shared_ptr<GenKeyInfo>& params,
+                             const std::shared_ptr<GenKeyInfo>& subkey_params,
+                             const GpgOperationCallback& callback);
+
+  /**
+   * @brief
+   *
+   * @param params
+   * @param subkey_params
+   * @param callback
+   */
+  auto GenerateKeyWithSubkeySync(
+      const std::shared_ptr<GenKeyInfo>& params,
+      const std::shared_ptr<GenKeyInfo>& subkey_params)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
  private:
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
 };
 }  // namespace GpgFrontend
-
-#endif  // _GPGKEYOPERA_H

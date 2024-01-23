@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,17 +20,16 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_UIDOPERATOR_H
-#define GPGFRONTEND_ZH_CN_TS_UIDOPERATOR_H
+#pragma once
 
-#include "core/GpgContext.h"
-#include "core/GpgModel.h"
+#include "core/function/gpg/GpgContext.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 /**
@@ -54,7 +53,7 @@ class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
    * @param uid uid args(combine name&comment&email)
    * @return if successful
    */
-  bool AddUID(const GpgKey& key, const std::string& uid);
+  auto AddUID(const GpgKey& key, const QString& uid) -> bool;
 
   /**
    * create a new uid in certain key pair
@@ -64,8 +63,8 @@ class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
    * @param email
    * @return
    */
-  bool AddUID(const GpgKey& key, const std::string& name,
-              const std::string& comment, const std::string& email);
+  auto AddUID(const GpgKey& key, const QString& name, const QString& comment,
+              const QString& email) -> bool;
 
   /**
    * Revoke(Delete) UID from certain key pair
@@ -73,7 +72,7 @@ class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
    * @param uid target uid
    * @return if successful
    */
-  bool RevUID(const GpgKey& key, const std::string& uid);
+  auto RevUID(const GpgKey& key, const QString& uid) -> bool;
 
   /**
    * Set one of a uid of a key pair as primary
@@ -81,7 +80,7 @@ class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
    * @param uid target uid
    * @return if successful
    */
-  bool SetPrimaryUID(const GpgKey& key, const std::string& uid);
+  auto SetPrimaryUID(const GpgKey& key, const QString& uid) -> bool;
 
  private:
   GpgContext& ctx_ =
@@ -89,5 +88,3 @@ class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_ZH_CN_TS_UIDOPERATOR_H

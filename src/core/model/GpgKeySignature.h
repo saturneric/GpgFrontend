@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,19 +20,15 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_GPGKEYSIGNATURE_H
-#define GPGFRONTEND_GPGKEYSIGNATURE_H
+#pragma once
 
-#include <boost/date_time.hpp>
-#include <string>
-
-#include "core/GpgConstants.h"
+#include "core/typedef/GpgTypedef.h"
 
 /**
  * @brief
@@ -52,7 +48,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeySignature {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsRevoked() const;
+  [[nodiscard]] auto IsRevoked() const -> bool;
 
   /**
    * @brief
@@ -60,7 +56,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeySignature {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsExpired() const;
+  [[nodiscard]] auto IsExpired() const -> bool;
 
   /**
    * @brief
@@ -68,7 +64,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeySignature {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsInvalid() const;
+  [[nodiscard]] auto IsInvalid() const -> bool;
 
   /**
    * @brief
@@ -76,70 +72,70 @@ class GPGFRONTEND_CORE_EXPORT GpgKeySignature {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsExportable() const;
+  [[nodiscard]] auto IsExportable() const -> bool;
 
   /**
    * @brief
    *
    * @return gpgme_error_t
    */
-  [[nodiscard]] gpgme_error_t GetStatus() const;
+  [[nodiscard]] auto GetStatus() const -> GpgError;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] std::string GetKeyID() const;
+  [[nodiscard]] auto GetKeyID() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] std::string GetPubkeyAlgo() const;
+  [[nodiscard]] auto GetPubkeyAlgo() const -> QString;
 
   /**
    * @brief Create a time object
    *
-   * @return boost::posix_time::ptime
+   * @return QDateTime
    */
-  [[nodiscard]] boost::posix_time::ptime GetCreateTime() const;
+  [[nodiscard]] auto GetCreateTime() const -> QDateTime;
 
   /**
    * @brief
    *
-   * @return boost::posix_time::ptime
+   * @return QDateTime
    */
-  [[nodiscard]] boost::posix_time::ptime GetExpireTime() const;
+  [[nodiscard]] auto GetExpireTime() const -> QDateTime;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] std::string GetUID() const;
+  [[nodiscard]] auto GetUID() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] std::string GetName() const;
+  [[nodiscard]] auto GetName() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] std::string GetEmail() const;
+  [[nodiscard]] auto GetEmail() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] std::string GetComment() const;
+  [[nodiscard]] auto GetComment() const -> QString;
 
   /**
    * @brief Construct a new Gpg Key Signature object
@@ -177,14 +173,14 @@ class GPGFRONTEND_CORE_EXPORT GpgKeySignature {
    *
    * @return GpgKeySignature&
    */
-  GpgKeySignature &operator=(GpgKeySignature &&) noexcept;
+  auto operator=(GpgKeySignature &&) noexcept -> GpgKeySignature &;
 
   /**
    * @brief
    *
    * @return GpgKeySignature&
    */
-  GpgKeySignature &operator=(const GpgKeySignature &) = delete;
+  auto operator=(const GpgKeySignature &) -> GpgKeySignature & = delete;
 
  private:
   using KeySignatrueRefHandler =
@@ -195,5 +191,3 @@ class GPGFRONTEND_CORE_EXPORT GpgKeySignature {
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGKEYSIGNATURE_H

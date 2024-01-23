@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,15 +19,21 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_LISTEDKEYSERVERTESTTHREAD_H
-#define GPGFRONTEND_LISTEDKEYSERVERTESTTHREAD_H
+#pragma once
 
 #include "GpgFrontendUI.h"
+#include "core/thread/ThreadingModel.h"
+
+class QNetworkAccessManager;
+class QNetworkReply;
+
 namespace GpgFrontend::UI {
 
 /**
@@ -38,13 +44,19 @@ class ListedKeyServerTestTask : public Thread::Task {
   Q_OBJECT
  public:
   enum KeyServerTestResultType {
-    kTestResultType_Success,
-    kTestResultType_Timeout,
-    kTestResultType_Error,
+    kTEST_RESULT_TYPE_SUCCESS,
+    kTEST_RESULT_TYPE_TIMEOUT,
+    kTEST_RESULT_TYPE_ERROR,
   };
 
-  explicit ListedKeyServerTestTask(const QStringList& urls, int timeout,
+  explicit ListedKeyServerTestTask(QStringList urls, int timeout,
                                    QWidget* parent = nullptr);
+
+  /**
+   * @brief
+   *
+   */
+  auto Run() -> int override;
 
  signals:
   /**
@@ -54,13 +66,6 @@ class ListedKeyServerTestTask : public Thread::Task {
    */
   void SignalKeyServerListTestResult(
       std::vector<KeyServerTestResultType> result);
-
- protected:
-  /**
-   * @brief
-   *
-   */
-  void run() override;
 
  private:
   QStringList urls_;                             ///<
@@ -81,5 +86,3 @@ class ListedKeyServerTestTask : public Thread::Task {
 }  // namespace GpgFrontend::UI
 
 class TestListedKeyServerThread {};
-
-#endif  // GPGFRONTEND_LISTEDKEYSERVERTESTTHREAD_H

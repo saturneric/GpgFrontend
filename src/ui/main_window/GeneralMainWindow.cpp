@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -28,20 +28,25 @@
 
 #include "GeneralMainWindow.h"
 
-#include <utility>
-
 #include "ui/struct/SettingsObject.h"
+#include "ui/struct/settings/AppearanceSO.h"
+#include "ui/struct/settings/WindowStateSO.h"
 
-GpgFrontend::UI::GeneralMainWindow::GeneralMainWindow(std::string name,
+namespace GpgFrontend::UI {
+
+class GeneralWindowState {};
+
+GpgFrontend::UI::GeneralMainWindow::GeneralMainWindow(QString name,
                                                       QWidget *parent)
-    : name_(std::move(name)), QMainWindow(parent) {
+    : QMainWindow(parent), name_(std::move(name)) {
   slot_restore_settings();
 }
 
 GpgFrontend::UI::GeneralMainWindow::~GeneralMainWindow() = default;
 
 void GpgFrontend::UI::GeneralMainWindow::closeEvent(QCloseEvent *event) {
-  SPDLOG_DEBUG("main window close event caught, event type: {}", event->type());
+  GF_UI_LOG_DEBUG("main window close event caught, event type: {}",
+                  event->type());
   slot_save_settings();
 
   QMainWindow::closeEvent(event);
@@ -49,34 +54,23 @@ void GpgFrontend::UI::GeneralMainWindow::closeEvent(QCloseEvent *event) {
 
 void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
   try {
-    SettingsObject general_windows_state(name_ + "_state");
+    WindowStateSO window_state(SettingsObject(name_ + "_state"));
 
-    std::string window_state = general_windows_state.Check(
-        "window_state", saveState().toBase64().toStdString());
-    SPDLOG_DEBUG("restore main window state: {}", window_state);
+    GF_UI_LOG_DEBUG("restore main window state: {}",
+                    window_state.window_state_data);
 
     // state sets pos & size of dock-widgets
     this->restoreState(
-        QByteArray::fromBase64(QByteArray::fromStdString(window_state)));
+        QByteArray::fromBase64(window_state.window_state_data.toUtf8()));
 
-    bool window_save = general_windows_state.Check("window_save", true);
-
-    // Restore window size & location
-    if (window_save) {
-      int x = general_windows_state.Check("window_pos").Check("x", 100),
-          y = general_windows_state.Check("window_pos").Check("y", 100);
-
-      pos_ = {x, y};
-
-      int width =
-              general_windows_state.Check("window_size").Check("width", 800),
-          height =
-              general_windows_state.Check("window_size").Check("height", 450);
-
-      size_ = {width, height};
+    // restore window size & location
+    if (window_state.window_save) {
+      pos_ = {window_state.x, window_state.y};
+      size_ = {window_state.width, window_state.height};
 
       if (this->parent() != nullptr) {
-        SPDLOG_DEBUG("parent address: {}", static_cast<void *>(this->parent()));
+        GF_UI_LOG_DEBUG("parent address: {}",
+                        static_cast<void *>(this->parent()));
 
         QPoint parent_pos = {0, 0};
         QSize parent_size = {0, 0};
@@ -93,10 +87,11 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
           parent_size = parent_window->size();
         }
 
-        SPDLOG_DEBUG("parent pos x: {} y: {}", parent_pos.x(), parent_pos.y());
+        GF_UI_LOG_DEBUG("parent pos x: {} y: {}", parent_pos.x(),
+                        parent_pos.y());
 
-        SPDLOG_DEBUG("parent size width: {} height: {}", parent_size.width(),
-                     parent_size.height());
+        GF_UI_LOG_DEBUG("parent size width: {} height: {}", parent_size.width(),
+                        parent_size.height());
 
         if (parent_pos != QPoint{0, 0}) {
           QPoint parent_center{parent_pos.x() + parent_size.width() / 2,
@@ -112,59 +107,42 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
     }
 
     // appearance
-    SettingsObject general_settings_state("general_settings_state");
+    AppearanceSO appearance(SettingsObject("general_settings_state"));
 
-    int width = general_settings_state.Check("icon_size").Check("width", 24),
-        height = general_settings_state.Check("icon_size").Check("height", 24);
-    SPDLOG_DEBUG("icon size: {} {}", width, height);
-
-    icon_size_ = {width, height};
-    font_size_ = general_settings_state.Check("font_size", 10);
+    icon_size_ = {appearance.tool_bar_icon_width,
+                  appearance.tool_bar_icon_height};
+    font_size_ = appearance.info_board_font_size;
 
     this->setIconSize(icon_size_);
-
-    // icon_style
-    int s_icon_style =
-        general_settings_state.Check("icon_style", Qt::ToolButtonTextUnderIcon);
-    this->setToolButtonStyle(static_cast<Qt::ToolButtonStyle>(s_icon_style));
+    this->setToolButtonStyle(appearance.tool_bar_button_style);
     icon_style_ = toolButtonStyle();
 
   } catch (...) {
-    SPDLOG_ERROR(name_, "error");
+    GF_UI_LOG_ERROR("gernal main window: {}, caught exception", name_);
   }
 }
 
 void GpgFrontend::UI::GeneralMainWindow::slot_save_settings() noexcept {
   try {
-    SPDLOG_DEBUG("save main window state, name: {}", name_);
+    GF_UI_LOG_DEBUG("save main window state, name: {}", name_);
     SettingsObject general_windows_state(name_ + "_state");
 
-    // window position and size
-    general_windows_state["window_state"] =
-        saveState().toBase64().toStdString();
-    general_windows_state["window_pos"]["x"] = pos().x();
-    general_windows_state["window_pos"]["y"] = pos().y();
-
-    // update size of current dialog
+    // update geo of current dialog
     size_ = this->size();
+    pos_ = this->pos();
 
-    general_windows_state["window_size"]["width"] = size_.width();
-    general_windows_state["window_size"]["height"] = size_.height();
-    general_windows_state["window_save"] = true;
+    WindowStateSO window_state;
+    window_state.x = pos_.x();
+    window_state.y = pos_.y();
+    window_state.width = size_.width();
+    window_state.height = size_.height();
+    window_state.window_save = true;
+    window_state.window_state_data = this->saveState().toBase64();
 
-    SettingsObject general_settings_state("general_settings_state");
-
-    // icon size
-    general_settings_state["icon_size"]["width"] = icon_size_.width();
-    general_settings_state["icon_size"]["height"] = icon_size_.height();
-
-    // font size
-    general_settings_state["font_size"] = font_size_;
-
-    // tool button style
-    general_settings_state["icon_style"] = this->toolButtonStyle();
-
+    general_windows_state.Store(window_state.Json());
   } catch (...) {
-    SPDLOG_ERROR(name_, "error");
+    GF_UI_LOG_ERROR("gernal main window: {}, caught exception", name_);
   }
 }
+
+}  // namespace GpgFrontend::UI

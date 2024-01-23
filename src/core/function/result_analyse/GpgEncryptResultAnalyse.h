@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,17 +20,16 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_GPGENCRYPTRESULTANALYSE_H
-#define GPGFRONTEND_GPGENCRYPTRESULTANALYSE_H
+#pragma once
 
 #include "GpgResultAnalyse.h"
-#include "core/GpgConstants.h"
+#include "core/model/GpgEncryptResult.h"
 
 namespace GpgFrontend {
 /**
@@ -39,6 +38,7 @@ namespace GpgFrontend {
  */
 class GPGFRONTEND_CORE_EXPORT GpgEncryptResultAnalyse
     : public GpgResultAnalyse {
+  Q_OBJECT
  public:
   /**
    * @brief Construct a new Encrypt Result Analyse object
@@ -46,19 +46,17 @@ class GPGFRONTEND_CORE_EXPORT GpgEncryptResultAnalyse
    * @param error
    * @param result
    */
-  explicit GpgEncryptResultAnalyse(GpgError error, GpgEncrResult result);
+  explicit GpgEncryptResultAnalyse(GpgError error, GpgEncryptResult result);
 
  protected:
   /**
    * @brief
    *
    */
-  void do_analyse() final;
+  void doAnalyse() final;
 
  private:
-  GpgError error_;        ///<
-  GpgEncrResult result_;  ///<
+  GpgError error_;           ///<
+  GpgEncryptResult result_;  ///<
 };
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGENCRYPTRESULTANALYSE_H

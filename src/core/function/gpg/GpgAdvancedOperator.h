@@ -1,7 +1,7 @@
-/*
- * Copyright (c) 2023. Saturneric
+/**
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
- *  This file is part of GpgFrontend.
+ * This file is part of GpgFrontend.
  *
  * GpgFrontend is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,34 +20,31 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
+ *
  */
 
 //
 // Created by eric on 07.01.2023.
 //
 
-#ifndef GPGFRONTEND_GPGADVANCEDOPERATOR_H
-#define GPGFRONTEND_GPGADVANCEDOPERATOR_H
+#pragma once
 
-#include "core/GpgConstants.h"
-#include "core/GpgContext.h"
-#include "core/GpgFunctionObject.h"
+#include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
-    : public SingletonFunctionObject<GpgAdvancedOperator> {
+class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator {
  public:
   /**
-   * @brief Construct a new Basic Operator object
+   * @brief
    *
-   * @param channel Channel corresponding to the context
+   * @return true
+   * @return false
    */
-  explicit GpgAdvancedOperator(
-      int channel = SingletonFunctionObject::GetDefaultChannel());
+  static void ClearGpgPasswordCache(OperationCallback);
 
   /**
    * @brief
@@ -55,7 +52,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
    * @return true
    * @return false
    */
-  bool ClearGpgPasswordCache();
+  static void ReloadGpgComponents(OperationCallback);
 
   /**
    * @brief
@@ -63,7 +60,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
    * @return true
    * @return false
    */
-  bool ReloadGpgComponents();
+  static void RestartGpgComponents();
 
   /**
    * @brief
@@ -71,7 +68,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
    * @return true
    * @return false
    */
-  bool RestartGpgComponents();
+  static void ResetConfigures(OperationCallback);
 
   /**
    * @brief
@@ -79,7 +76,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
    * @return true
    * @return false
    */
-  bool ResetConfigures();
+  static void StartGpgAgent(OperationCallback);
 
   /**
    * @brief
@@ -87,7 +84,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
    * @return true
    * @return false
    */
-  bool StartGpgAgent();
+  static void StartDirmngr(OperationCallback);
 
   /**
    * @brief
@@ -95,21 +92,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
    * @return true
    * @return false
    */
-  bool StartDirmngr();
-
-  /**
-   * @brief
-   *
-   * @return true
-   * @return false
-   */
-  bool StartKeyBoxd();
-
- private:
-  GpgContext& ctx_ = GpgContext::GetInstance(
-      SingletonFunctionObject::GetChannel());  ///< Corresponding context
+  static void StartKeyBoxd(OperationCallback);
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGADVANCEDOPERATOR_H

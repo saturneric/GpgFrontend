@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,34 +19,34 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
 #include "ui/thread/KeyServerSearchTask.h"
 
-#include <utility>
-
-GpgFrontend::UI::KeyServerSearchTask::KeyServerSearchTask(
-    std::string keyserver_url, std::string search_string)
+GpgFrontend::UI::KeyServerSearchTask::KeyServerSearchTask(QString keyserver_url,
+                                                          QString search_string)
     : Task("key_server_search_task"),
       keyserver_url_(std::move(keyserver_url)),
       search_string_(std::move(search_string)),
-      manager_(new QNetworkAccessManager(this)) {}
+      manager_(new QNetworkAccessManager(this)) {
+  HoldOnLifeCycle(true);
+}
 
-void GpgFrontend::UI::KeyServerSearchTask::run() {
-  SetFinishAfterRun(false);
-
-  QUrl url_from_remote =
-      QString::fromStdString(keyserver_url_) +
-      "/pks/lookup?search=" + QString::fromStdString(search_string_) +
-      "&op=index&options=mr";
+auto GpgFrontend::UI::KeyServerSearchTask::Run() -> int {
+  QUrl url_from_remote = keyserver_url_ +
+                         "/pks/lookup?search=" + search_string_ +
+                         "&op=index&options=mr";
 
   reply_ = manager_->get(QNetworkRequest(url_from_remote));
-
   connect(reply_, &QNetworkReply::finished, this,
           &KeyServerSearchTask::dealing_reply_from_server);
+
+  return 0;
 }
 
 void GpgFrontend::UI::KeyServerSearchTask::dealing_reply_from_server() {
@@ -56,5 +56,5 @@ void GpgFrontend::UI::KeyServerSearchTask::dealing_reply_from_server() {
     buffer = reply_->readAll();
   }
   emit SignalKeyServerSearchResult(network_reply, buffer);
-  emit SignalTaskRunnableEnd(0);
+  emit SignalTaskShouldEnd(0);
 }

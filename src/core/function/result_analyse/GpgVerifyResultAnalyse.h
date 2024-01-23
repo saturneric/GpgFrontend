@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,17 +20,16 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_GPGVERIFYRESULTANALYSE_H
-#define GPGFRONTEND_GPGVERIFYRESULTANALYSE_H
+#pragma once
 
 #include "GpgResultAnalyse.h"
-#include "core/model/GpgKeySignature.h"
+#include "core/model/GpgVerifyResult.h"
 
 namespace GpgFrontend {
 /**
@@ -38,6 +37,7 @@ namespace GpgFrontend {
  *
  */
 class GPGFRONTEND_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
+  Q_OBJECT
  public:
   /**
    * @brief Construct a new Verify Result Analyse object
@@ -52,21 +52,21 @@ class GPGFRONTEND_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
    *
    * @return gpgme_signature_t
    */
-  gpgme_signature_t GetSignatures() const;
+  auto GetSignatures() const -> gpgme_signature_t;
 
   /**
    * @brief
    *
    * @return GpgVerifyResult
    */
-  GpgVerifyResult TakeChargeOfResult();
+  auto TakeChargeOfResult() -> GpgVerifyResult;
 
- private:
+ protected:
   /**
    * @brief
    *
    */
-  void do_analyse();
+  void doAnalyse() final;
 
  private:
   /**
@@ -77,12 +77,10 @@ class GPGFRONTEND_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
    * @return true
    * @return false
    */
-  bool print_signer(std::stringstream &stream, gpgme_signature_t sign);
+  auto print_signer(QTextStream &stream, gpgme_signature_t sign) -> bool;
 
   GpgError error_;          ///<
   GpgVerifyResult result_;  ///<
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGVERIFYRESULTANALYSE_H

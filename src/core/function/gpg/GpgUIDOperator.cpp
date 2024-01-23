@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -28,44 +28,38 @@
 
 #include "GpgUIDOperator.h"
 
-#include "boost/format.hpp"
+#include "core/GpgModel.h"
+#include "core/utils/GpgUtils.h"
 
-GpgFrontend::GpgUIDOperator::GpgUIDOperator(int channel)
+namespace GpgFrontend {
+
+GpgUIDOperator::GpgUIDOperator(int channel)
     : SingletonFunctionObject<GpgUIDOperator>(channel) {}
 
-bool GpgFrontend::GpgUIDOperator::AddUID(const GpgFrontend::GpgKey& key,
-                                         const std::string& uid) {
-  auto err = gpgme_op_adduid(ctx_, gpgme_key_t(key), uid.c_str(), 0);
-  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
-    return true;
-  else
-    return false;
+auto GpgUIDOperator::AddUID(const GpgKey& key, const QString& uid) -> bool {
+  auto err = gpgme_op_adduid(ctx_.DefaultContext(),
+                             static_cast<gpgme_key_t>(key), uid.toUtf8(), 0);
+  return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
-bool GpgFrontend::GpgUIDOperator::RevUID(const GpgFrontend::GpgKey& key,
-                                         const std::string& uid) {
-  auto err =
-      check_gpg_error(gpgme_op_revuid(ctx_, gpgme_key_t(key), uid.c_str(), 0));
-  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
-    return true;
-  else
-    return false;
+auto GpgUIDOperator::RevUID(const GpgKey& key, const QString& uid) -> bool {
+  auto err = CheckGpgError(gpgme_op_revuid(
+      ctx_.DefaultContext(), static_cast<gpgme_key_t>(key), uid.toUtf8(), 0));
+  return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
-bool GpgFrontend::GpgUIDOperator::SetPrimaryUID(const GpgFrontend::GpgKey& key,
-                                                const std::string& uid) {
-  auto err = check_gpg_error(gpgme_op_set_uid_flag(
-      ctx_, gpgme_key_t(key), uid.c_str(), "primary", nullptr));
-  if (check_gpg_error_2_err_code(err) == GPG_ERR_NO_ERROR)
-    return true;
-  else
-    return false;
+auto GpgUIDOperator::SetPrimaryUID(const GpgKey& key, const QString& uid)
+    -> bool {
+  auto err = CheckGpgError(gpgme_op_set_uid_flag(
+      ctx_.DefaultContext(), static_cast<gpgme_key_t>(key), uid.toUtf8(),
+      "primary", nullptr));
+  return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
-bool GpgFrontend::GpgUIDOperator::AddUID(const GpgFrontend::GpgKey& key,
-                                         const std::string& name,
-                                         const std::string& comment,
-                                         const std::string& email) {
-  SPDLOG_DEBUG("new uuid: {} {} {}", name, comment, email);
-  auto uid = boost::format("%1%(%2%)<%3%>") % name % comment % email;
-  return AddUID(key, uid.str());
+auto GpgUIDOperator::AddUID(const GpgKey& key, const QString& name,
+                            const QString& comment, const QString& email)
+    -> bool {
+  GF_CORE_LOG_DEBUG("new uuid: {} {} {}", name, comment, email);
+  return AddUID(key, QString("%1(%2)<%3>").arg(name).arg(comment).arg(email));
 }
+
+}  // namespace GpgFrontend

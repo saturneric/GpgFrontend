@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -28,92 +28,124 @@
 
 #include "KeyPackageOperator.h"
 
-#include "FileOperator.h"
-#include "function/PassphraseGenerator.h"
-#include "function/gpg/GpgKeyGetter.h"
-#include "function/gpg/GpgKeyImportExporter.h"
-#include "qt-aes/qaesencryption.h"
+#include <qt-aes/qaesencryption.h>
+
+#include "core/function/KeyPackageOperator.h"
+#include "core/function/PassphraseGenerator.h"
+#include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/model/GpgImportInformation.h"
+#include "core/typedef/CoreTypedef.h"
+#include "core/utils/AsyncUtils.h"
+#include "core/utils/GpgUtils.h"
+#include "core/utils/IOUtils.h"
 
 namespace GpgFrontend {
 
-bool KeyPackageOperator::GeneratePassphrase(
-    const std::filesystem::path& phrase_path, std::string& phrase) {
+auto KeyPackageOperator::GeneratePassphrase(const QString& phrase_path,
+                                            QString& phrase) -> bool {
   phrase = PassphraseGenerator::GetInstance().Generate(256);
-  SPDLOG_DEBUG("generated passphrase: {} bytes", phrase.size());
-  return FileOperator::WriteFileStd(phrase_path, phrase);
+  GF_CORE_LOG_DEBUG("generated passphrase: {} bytes", phrase.size());
+  return WriteFile(phrase_path, phrase.toUtf8());
 }
 
-bool KeyPackageOperator::GenerateKeyPackage(
-    const std::filesystem::path& key_package_path,
-    const std::string& key_package_name, KeyIdArgsListPtr& key_ids,
-    std::string& phrase, bool secret) {
-  SPDLOG_DEBUG("generating key package: {}", key_package_name);
+void KeyPackageOperator::GenerateKeyPackage(const QString& key_package_path,
+                                            const QString& key_package_name,
+                                            const KeyArgsList& keys,
+                                            QString& phrase, bool secret,
+                                            const OperationCallback& cb) {
+  GF_CORE_LOG_DEBUG("generating key package: {}", key_package_name);
 
-  ByteArrayPtr key_export_data = nullptr;
-  if (!GpgKeyImportExporter::GetInstance().ExportAllKeys(
-          key_ids, key_export_data, secret)) {
-    SPDLOG_ERROR("failed to export keys");
-    return false;
-  }
+  GpgKeyImportExporter::GetInstance().ExportAllKeys(
+      keys, secret, true, [=](GpgError err, const DataObjectPtr& data_obj) {
+        if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+          GF_LOG_ERROR("export keys error, reason: {}",
+                       DescribeGpgErrCode(err).second);
+          cb(-1, data_obj);
+          return;
+        }
 
-  auto key = QByteArray::fromStdString(phrase);
-  auto data = QString::fromStdString(*key_export_data).toLocal8Bit().toBase64();
+        if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+            !data_obj->Check<GFBuffer>()) {
+          cb(-1, data_obj);
+          return;
+        }
 
-  auto hash_key = QCryptographicHash::hash(key, QCryptographicHash::Sha256);
-  QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
-                            QAESEncryption::Padding::ISO);
-  auto encoded = encryption.encode(data, hash_key);
+        auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
 
-  SPDLOG_DEBUG("writing key package: {}", key_package_name);
-  return FileOperator::WriteFileStd(key_package_path, encoded.toStdString());
+        auto data = gf_buffer.ConvertToQByteArray().toBase64();
+        auto hash_key = QCryptographicHash::hash(phrase.toUtf8(),
+                                                 QCryptographicHash::Sha256);
+        QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
+                                  QAESEncryption::Padding::ISO);
+        auto encoded_data = encryption.encode(data, hash_key);
+        GF_CORE_LOG_DEBUG("writing key package, name: {}", key_package_name);
+
+        cb(WriteFile(key_package_path, encoded_data) ? 0 : -1,
+           TransferParams());
+        return;
+      });
 }
 
-bool KeyPackageOperator::ImportKeyPackage(
-    const std::filesystem::path& key_package_path,
-    const std::filesystem::path& phrase_path,
-    GpgFrontend::GpgImportInformation& import_info) {
-  SPDLOG_DEBUG("importing key package: {]", key_package_path.u8string());
+void KeyPackageOperator::ImportKeyPackage(const QString& key_package_path,
+                                          const QString& phrase_path,
+                                          const OperationCallback& cb) {
+  RunOperaAsync(
+      [=](const DataObjectPtr& data_object) -> GFError {
+        GF_CORE_LOG_DEBUG("importing key package: {}", key_package_path);
 
-  std::string encrypted_data;
-  FileOperator::ReadFileStd(key_package_path, encrypted_data);
+        QByteArray encrypted_data;
+        ReadFile(key_package_path, encrypted_data);
 
-  if (encrypted_data.empty()) {
-    SPDLOG_ERROR("failed to read key package: {}", key_package_path.u8string());
-    return false;
-  };
+        if (encrypted_data.isEmpty()) {
+          GF_CORE_LOG_ERROR("failed to read key package: {}", key_package_path);
+          return -1;
+        };
 
-  std::string passphrase;
-  FileOperator::ReadFileStd(phrase_path, passphrase);
-  SPDLOG_DEBUG("passphrase: {} bytes", passphrase.size());
-  if (passphrase.size() != 256) {
-    SPDLOG_ERROR("failed to read passphrase: {}", phrase_path.u8string());
-    return false;
-  }
+        QByteArray passphrase;
+        ReadFile(phrase_path, passphrase);
+        if (passphrase.size() != 256) {
+          GF_CORE_LOG_ERROR("passphrase size mismatch: {}", phrase_path);
+          return -1;
+        }
 
-  auto hash_key = QCryptographicHash::hash(
-      QByteArray::fromStdString(passphrase), QCryptographicHash::Sha256);
-  auto encoded = QByteArray::fromStdString(encrypted_data);
+        auto hash_key =
+            QCryptographicHash::hash(passphrase, QCryptographicHash::Sha256);
+        auto encoded = encrypted_data;
 
-  QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
-                            QAESEncryption::Padding::ISO);
+        QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
+                                  QAESEncryption::Padding::ISO);
 
-  auto decoded = encryption.removePadding(encryption.decode(encoded, hash_key));
-  auto key_data = QByteArray::fromBase64(decoded);
+        auto decoded =
+            encryption.removePadding(encryption.decode(encoded, hash_key));
+        auto key_data = QByteArray::fromBase64(decoded);
+        if (!key_data.startsWith(PGP_PUBLIC_KEY_BEGIN) &&
+            !key_data.startsWith(PGP_PRIVATE_KEY_BEGIN)) {
+          return -1;
+        }
 
-  SPDLOG_DEBUG("key data size: {}", key_data.size());
-  if (!key_data.startsWith(GpgConstants::PGP_PUBLIC_KEY_BEGIN) &&
-      !key_data.startsWith(GpgConstants::PGP_PRIVATE_KEY_BEGIN)) {
-    return false;
-  }
+        auto import_info_ptr =
+            GpgKeyImportExporter::GetInstance().ImportKey(GFBuffer(key_data));
+        if (import_info_ptr == nullptr) return GPG_ERR_NO_DATA;
 
-  auto key_data_ptr = std::make_unique<ByteArray>(key_data.toStdString());
-  import_info =
-      GpgKeyImportExporter::GetInstance().ImportKey(std::move(key_data_ptr));
-  return true;
+        auto import_info = *import_info_ptr;
+        data_object->Swap({import_info});
+        return 0;
+      },
+      cb, "import_key_package");
 }
 
-std::string KeyPackageOperator::GenerateKeyPackageName() {
+auto KeyPackageOperator::GenerateKeyPackageName() -> QString {
   return generate_key_package_name();
+}
+
+/**
+ * @brief generate key package name
+ *
+ * @return QString key package name
+ */
+auto KeyPackageOperator::generate_key_package_name() -> QString {
+  return QString("KeyPackage_%1")
+      .arg(QRandomGenerator::global()->bounded(999, 99999));
 }
 
 }  // namespace GpgFrontend

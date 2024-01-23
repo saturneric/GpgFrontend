@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,37 +20,29 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_GPGFRONTENDUI_H
-#define GPGFRONTEND_GPGFRONTENDUI_H
+#pragma once
 
 /**
  * Basic dependency
  */
-#include <QtCore>
-#include <QtNetwork>
-#include <QtPrintSupport>
 #include <QtWidgets>
-#include <optional>
 
-/**
- * Project internal dependencies
- */
+// Core
 #include "GpgFrontend.h"
 #include "core/GpgFrontendCore.h"
-#include "core/GpgModel.h"
-#include "core/thread/ThreadingModel.h"
+#include "core/utils/LogUtils.h"
+
+// UI
 #include "ui/GpgFrontendUIExport.h"
 
-/**
- * 3rd party dependencies
- */
-
-#include <qt-aes/qaesencryption.h>
-
-#endif  // GPGFRONTEND_GPGFRONTENDUI_H
+#define GF_UI_LOG_TRACE(...) GF_LOG_TRACE("ui", __VA_ARGS__)
+#define GF_UI_LOG_DEBUG(...) GF_LOG_DEBUG("ui", __VA_ARGS__)
+#define GF_UI_LOG_INFO(...) GF_LOG_INFO("ui", __VA_ARGS__)
+#define GF_UI_LOG_WARN(...) GF_LOG_WARN("ui", __VA_ARGS__)
+#define GF_UI_LOG_ERROR(...) GF_LOG_ERROR("ui", __VA_ARGS__)

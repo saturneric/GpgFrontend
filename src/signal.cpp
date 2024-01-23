@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,46 +20,10 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#include <csetjmp>
-
 #include "GpgFrontend.h"
-
-#ifdef FREEBSD
-extern sigjmp_buf recover_env;
-#else
-extern jmp_buf recover_env;
-#endif
-
-/**
- * @brief handle the signal caught.
- *
- * @param sig signal number
- */
-void handle_signal(int sig) {
-  static int _repeat_handle_num = 1, last_sig = sig;
-  // SPDLOG_DEBUG("signal caught {}", sig);
-  std::cout << "signal caught" << sig;
-
-  if (last_sig == sig)
-    _repeat_handle_num++;
-  else
-    _repeat_handle_num = 1, last_sig = sig;
-
-  if (_repeat_handle_num > 3) {
-      std::cout << "The same signal appears three times,"
-      << "execute the termination operation." << sig;
-    exit(-1);
-  }
-
-#ifndef WINDOWS
-  siglongjmp(recover_env, 1);
-#else
-  longjmp(recover_env, 1);
-#endif
-}

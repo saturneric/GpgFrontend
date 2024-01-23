@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,40 +20,50 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_ARCHIVEFILEOPERATOR_H
-#define GPGFRONTEND_ARCHIVEFILEOPERATOR_H
+#pragma once
 
 #include "core/GpgFrontendCore.h"
-#include "core/function/FileOperator.h"
+#include "core/model/GFDataExchanger.h"
+#include "core/typedef/CoreTypedef.h"
+#include "core/utils/IOUtils.h"
 
 namespace GpgFrontend {
 
-struct ArchiveStruct {
-  struct archive *archive;
-  struct archive_entry *entry;
-  int fd;
-  bool is_open;
-  std::string name;
-};
-
 class GPGFRONTEND_CORE_EXPORT ArchiveFileOperator {
  public:
-  static void ListArchive(const std::filesystem::path &archive_path);
+  /**
+   * @brief
+   *
+   * @param archive_path
+   */
+  static void ListArchive(const QString &archive_path);
 
-  static void CreateArchive(const std::filesystem::path &base_path,
-                            const std::filesystem::path &archive_path,
-                            int compress,
-                            const std::vector<std::filesystem::path> &files);
+  /**
+   * @brief Create a Archive object
+   *
+   * @param base_path
+   * @param archive_path
+   * @param compress
+   * @param files
+   */
+  static void NewArchive2DataExchanger(const QString &target_directory,
+                                       std::shared_ptr<GFDataExchanger>,
+                                       const OperationCallback &cb);
 
-  static void ExtractArchive(const std::filesystem::path &archive_path,
-                             const std::filesystem::path &base_path);
+  /**
+   * @brief
+   *
+   * @param archive_path
+   * @param base_path
+   */
+  static void ExtractArchiveFromDataExchanger(
+      std::shared_ptr<GFDataExchanger> fd, const QString &target_path,
+      const OperationCallback &cb);
 };
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_ARCHIVEFILEOPERATOR_H

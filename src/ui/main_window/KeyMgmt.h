@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,24 +20,20 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef __KEYMGMT_H__
-#define __KEYMGMT_H__
+#pragma once
 
-#include "ui/GpgFrontendUI.h"
-#include "ui/dialog/import_export/KeyImportDetailDialog.h"
-#include "ui/dialog/import_export/KeyServerImportDialog.h"
-#include "ui/dialog/key_generate/KeygenDialog.h"
-#include "ui/dialog/keypair_details/KeyDetailsDialog.h"
+#include "core/typedef/GpgTypedef.h"
 #include "ui/main_window/GeneralMainWindow.h"
-#include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
+
+class KeyList;
 
 /**
  * @brief
@@ -148,13 +144,15 @@ class KeyMgmt : public GeneralMainWindow {
    *
    * @param uidList
    */
-  void delete_keys_with_warning(GpgFrontend::KeyIdArgsListPtr uidList);
+  void delete_keys_with_warning(KeyIdArgsListPtr uidList);
 
-  KeyList* key_list_;                            ///<
-  QMenu* file_menu_{};                           ///<
-  QMenu* key_menu_{};                            ///<
-  QMenu* generate_key_menu_{};                   ///<
-  QMenu* import_key_menu_{};                     ///<
+  KeyList* key_list_;           ///<
+  QMenu* file_menu_{};          ///<
+  QMenu* key_menu_{};           ///<
+  QMenu* generate_key_menu_{};  ///<
+  QMenu* import_key_menu_{};    ///<
+  QMenu* export_key_menu_{};    /// <
+
   QAction* open_key_file_act_{};                 ///<
   QAction* export_key_to_file_act_{};            ///<
   QAction* export_key_as_open_ssh_format_{};     ///<
@@ -170,9 +168,7 @@ class KeyMgmt : public GeneralMainWindow {
   QAction* import_keys_from_key_package_act_{};  ///<
   QAction* close_act_{};                         ///<
   QAction* show_key_details_act_{};              ///<
-  KeyServerImportDialog* import_dialog_{};       ///<
+  QAction* set_owner_trust_of_key_act_{};
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __KEYMGMT_H__

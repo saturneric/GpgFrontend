@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,13 +19,14 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_FILEREADTHREAD_H
-#define GPGFRONTEND_FILEREADTHREAD_H
+#pragma once
 
 #include "core/GpgFrontendCore.h"
 #include "core/thread/Task.h"
@@ -39,11 +40,11 @@ namespace GpgFrontend::UI {
 class GPGFRONTEND_CORE_EXPORT FileReadTask : public GpgFrontend::Thread::Task {
   Q_OBJECT
  public:
-  explicit FileReadTask(std::string path);
+  explicit FileReadTask(QString path);
 
   virtual ~FileReadTask() override;
 
-  void Run() override;
+  int Run() override;
 
  signals:
   void SignalFileBytesRead(QByteArray bytes);
@@ -51,15 +52,12 @@ class GPGFRONTEND_CORE_EXPORT FileReadTask : public GpgFrontend::Thread::Task {
   void SignalFileBytesReadNext();
 
  private:
-  std::filesystem::path read_file_path_;
+  QString read_file_path_;
   QFile target_file_;
-  const size_t buffer_size_ = 4096;
   QEventLoop looper;
 
  private slots:
-  void read_bytes();
+  void slot_read_bytes();
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_FILEREADTHREAD_H

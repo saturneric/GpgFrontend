@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,22 +20,19 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef __KEY_SERVER_IMPORT_DIALOG_H__
-#define __KEY_SERVER_IMPORT_DIALOG_H__
+#pragma once
 
-#include <string>
+#include <QtNetwork>
 
 #include "KeyImportDetailDialog.h"
-#include "core/GpgContext.h"
-#include "ui/GpgFrontendUI.h"
+#include "core/typedef/CoreTypedef.h"
 #include "ui/dialog/GeneralDialog.h"
-#include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
 
@@ -51,13 +48,6 @@ class KeyServerImportDialog : public GeneralDialog {
    * @brief Construct a new Key Server Import Dialog object
    *
    * @param automatic
-   * @param parent
-   */
-  KeyServerImportDialog(bool automatic, QWidget* parent);
-
-  /**
-   * @brief Construct a new Key Server Import Dialog object
-   *
    * @param parent
    */
   explicit KeyServerImportDialog(QWidget* parent);
@@ -77,8 +67,7 @@ class KeyServerImportDialog : public GeneralDialog {
    * @param keyIds
    * @param keyserverUrl
    */
-  void SlotImport(std::vector<std::string> key_ids_list,
-                  std::string keyserver_url);
+  void SlotImport(std::vector<QString> key_ids_list, QString keyserver_url);
 
  signals:
 
@@ -108,8 +97,8 @@ class KeyServerImportDialog : public GeneralDialog {
    *
    * @param keyid
    */
-  void slot_import_finished(QNetworkReply::NetworkError error,
-                            QByteArray buffer);
+  void slot_import_finished(bool success, QString err_msg, QByteArray buffer,
+                            std::shared_ptr<GpgImportInformation> info);
 
   /**
    * @brief
@@ -160,9 +149,9 @@ class KeyServerImportDialog : public GeneralDialog {
    *
    * @return QComboBox*
    */
-  QComboBox* create_comboBox();
+  QComboBox* create_combo_box();
 
-  bool m_automatic_ = false;  ///<
+  QHBoxLayout* message_layout_;  ///<
 
   QLineEdit* search_line_edit_{};      ///<
   QComboBox* key_server_combo_box_{};  ///<
@@ -178,5 +167,3 @@ class KeyServerImportDialog : public GeneralDialog {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __KEY_SERVER_IMPORT_DIALOG_H__

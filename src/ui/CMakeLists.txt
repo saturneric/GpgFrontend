@@ -1,5 +1,4 @@
-#
-# Copyright (C) 2021 Saturneric
+# Copyright (C) 2021 Saturneric <eric@bktus.com>
 #
 # This file is part of GpgFrontend.
 #
@@ -20,9 +19,10 @@
 # the gpg4usb project, which is under GPL-3.0-or-later.
 #
 # All the source code of GpgFrontend was modified and released by
-# Saturneric<eric@bktus.com> starting on May 12, 2021.
+# Saturneric <eric@bktus.com> starting on May 12, 2021.
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
+
 
 # tracking source files
 aux_source_directory(. UI_SOURCE)
@@ -38,6 +38,7 @@ aux_source_directory(struct UI_SOURCE)
 aux_source_directory(dialog/import_export UI_SOURCE)
 aux_source_directory(dialog/gnupg UI_SOURCE)
 aux_source_directory(dialog UI_SOURCE)
+aux_source_directory(function UI_SOURCE)
 
 # define libgpgfrontend_ui
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
@@ -47,17 +48,15 @@ set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendUIExport.h")
 generate_export_header(gpgfrontend_ui EXPORT_FILE_NAME "${_export_file}")
 
 # link Qt
-if(Qt6_DIR)
-        target_link_libraries(gpgfrontend_ui
-                Qt6::Network Qt6::PrintSupport Qt6::Widgets Qt6::Test Qt6::Core5Compat Qt6::Core)
-else()
-        target_link_libraries(gpgfrontend_ui
-                Qt5::Network Qt5::PrintSupport Qt5::Widgets Qt5::Test Qt5::Core)
-endif()
+target_link_libraries(gpgfrontend_ui
+        Qt6::Network Qt6::PrintSupport Qt6::Test Qt6::Core5Compat)
+
 
 # link gpgfrontend_core
-target_link_libraries(gpgfrontend_ui
-        gpgfrontend_core)
+target_link_libraries(gpgfrontend_ui gpgfrontend_core)
+
+# link buddled pinentry
+target_link_libraries(gpgfrontend_ui gpgfrontend_pinentry)
 
 # set up pch
 target_precompile_headers(gpgfrontend_ui PUBLIC GpgFrontendUI.h)

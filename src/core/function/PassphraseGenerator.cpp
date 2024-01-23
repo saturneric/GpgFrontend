@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,10 +20,30 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
 #include "PassphraseGenerator.h"
+
+namespace GpgFrontend {
+
+auto PassphraseGenerator::Generate(int len) -> QString {
+  auto file_string = QString("KeyPackage_%1")
+                         .arg(QRandomGenerator::global()->bounded(999, 99999));
+  static const char kAlphanum[] =
+      "0123456789"
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      "abcdefghijklmnopqrstuvwxyz";
+  QString tmp_str;
+  tmp_str.reserve(len);
+
+  for (int i = 0; i < len; ++i) {
+    tmp_str += kAlphanum[QRandomGenerator::global()->bounded(
+        static_cast<quint32>(sizeof(kAlphanum)))];
+  }
+  return tmp_str;
+}
+}  // namespace GpgFrontend

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,19 +20,13 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef __EDITORPAGE_H__
-#define __EDITORPAGE_H__
-
-#include <string>
-
-#include "core/GpgConstants.h"
-#include "ui/GpgFrontendUI.h"
+#pragma once
 
 class Ui_PlainTextEditor;
 
@@ -101,12 +95,6 @@ class PlainTextEditorPage : public QWidget {
   [[nodiscard]] bool ReadDone() const { return this->read_done_; }
 
   /**
-   * @brief detect if the charset of the file will change
-   *
-   */
-  bool WillCharsetChange() const;
-
-  /**
    * @brief notify the user that the file has been saved.
    *
    */
@@ -124,27 +112,9 @@ class PlainTextEditorPage : public QWidget {
   std::shared_ptr<Ui_PlainTextEditor> ui_;  ///<
   QString full_file_path_;  ///< The path to the file handled in the tab
   bool sign_marked_{};  ///< true, if the signed header is marked, false if not
-  bool read_done_ = false;      ///<
-  bool binary_mode_ = false;    ///<
-  size_t read_bytes_ = 0;       ///<
-  std::string charset_name_;    ///<
-  std::string language_name_;   ///<
-  int32_t charset_confidence_{};  ///<
-  bool is_crlf_ = false;        ///<
-
-  /**
-   * @brief
-   *
-   * @param data
-   */
-  void detect_encoding(const std::string& data);
-
-  /**
-   * @brief
-   *
-   * @param data
-   */
-  void detect_cr_lf(const std::string& data);
+  bool read_done_ = false;  ///<
+  size_t read_bytes_ = 0;   ///<
+  bool is_crlf_ = false;    ///<
 
  private slots:
 
@@ -162,5 +132,3 @@ class PlainTextEditorPage : public QWidget {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __EDITORPAGE_H__

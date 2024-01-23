@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,19 +19,20 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_PROXYCONNECTIONTESTTHREAD_H
-#define GPGFRONTEND_PROXYCONNECTIONTESTTHREAD_H
-
-class ProxyConnectionTestThread {};
-
-#include <utility>
+#pragma once
 
 #include "GpgFrontendUI.h"
+#include "core/thread/ThreadingModel.h"
+
+class QNetworkAccessManager;
+class QNetworkReply;
 
 namespace GpgFrontend::UI {
 
@@ -51,6 +52,12 @@ class ProxyConnectionTestTask : public Thread::Task {
    */
   explicit ProxyConnectionTestTask(QString url, int timeout);
 
+  /**
+   * @brief
+   *
+   */
+  auto Run() -> int override;
+
  signals:
   /**
    * @brief
@@ -59,14 +66,13 @@ class ProxyConnectionTestTask : public Thread::Task {
    */
   void SignalProxyConnectionTestResult(const QString& result);
 
- protected:
+ private slots:
+
   /**
    * @brief
    *
+   * @param reply
    */
-  void run() override;
-
- private slots:
   void slot_process_network_reply(QNetworkReply* reply);
 
  private:
@@ -77,5 +83,3 @@ class ProxyConnectionTestTask : public Thread::Task {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_PROXYCONNECTIONTESTTHREAD_H

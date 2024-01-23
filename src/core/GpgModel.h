@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,38 +20,20 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_GPGMODEL_H
-#define GPGFRONTEND_ZH_CN_TS_GPGMODEL_H
+#pragma once
 
-#include "core/GpgConstants.h"
+//
+#include "core/typedef/GpgTypedef.h"
+
+//
 #include "core/model/GpgData.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgSignature.h"
 
-namespace GpgFrontend {
-
-using KeyId = std::string;                                                ///<
-using SubkeyId = std::string;                                             ///<
-using KeyIdArgsList = std::vector<KeyId>;                                 ///<
-using KeyIdArgsListPtr = std::unique_ptr<KeyIdArgsList>;                  ///<
-using UIDArgsList = std::vector<std::string>;                             ///<
-using UIDArgsListPtr = std::unique_ptr<UIDArgsList>;                      ///<
-using SignIdArgsList = std::vector<std::pair<std::string, std::string>>;  ///<
-using SignIdArgsListPtr = std::unique_ptr<SignIdArgsList>;                ///<
-using KeyFprArgsListPtr = std::unique_ptr<std::vector<std::string>>;      ///<
-using KeyArgsList = std::vector<GpgKey>;                                  ///<
-using KeyListPtr = std::unique_ptr<KeyArgsList>;                          ///<
-using GpgKeyLinkList = std::list<GpgFrontend::GpgKey>;                    ///<
-using KeyLinkListPtr = std::unique_ptr<GpgKeyLinkList>;                   ///<
-using KeyPtr = std::unique_ptr<GpgKey>;                                   ///<
-using KeyPtrArgsList = const std::initializer_list<KeyPtr>;               ///<
-
-}  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_ZH_CN_TS_GPGMODEL_H
+// namespace GpgFrontend

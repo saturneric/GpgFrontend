@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,46 +19,48 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
 #include "ListedKeyServerTestTask.h"
 
+#include <QtNetwork>
 #include <vector>
 
 GpgFrontend::UI::ListedKeyServerTestTask::ListedKeyServerTestTask(
-    const QStringList& urls, int timeout, QWidget* parent)
+    QStringList urls, int timeout, QWidget* /*parent*/)
     : Task("listed_key_server_test_task"),
-      urls_(urls),
-      timeout_(timeout),
+      urls_(std::move(urls)),
+      result_(urls_.size(), kTEST_RESULT_TYPE_ERROR),
       network_manager_(new QNetworkAccessManager(this)),
-      result_(urls_.size(), kTestResultType_Error) {
+      timeout_(timeout) {
+  HoldOnLifeCycle(true);
   qRegisterMetaType<std::vector<KeyServerTestResultType>>(
       "std::vector<KeyServerTestResultType>");
 }
 
-void GpgFrontend::UI::ListedKeyServerTestTask::run() {
-  SetFinishAfterRun(false);
-
+auto GpgFrontend::UI::ListedKeyServerTestTask::Run() -> int {
   size_t index = 0;
   for (const auto& url : urls_) {
     auto key_url = QUrl{url};
-    SPDLOG_DEBUG("key server request: {}", key_url.host().toStdString());
+    GF_UI_LOG_DEBUG("key server request: {}", key_url.host().toStdString());
 
     auto* network_reply = network_manager_->get(QNetworkRequest{key_url});
     auto* timer = new QTimer(this);
 
     connect(network_reply, &QNetworkReply::finished, this,
             [this, index, network_reply]() {
-              SPDLOG_DEBUG("key server domain reply: {}",
-                           urls_[index].toStdString());
+              GF_UI_LOG_DEBUG("key server domain reply: {}",
+                              urls_[index].toStdString());
               this->slot_process_network_reply(index, network_reply);
             });
 
     connect(timer, &QTimer::timeout, this, [this, index, network_reply]() {
-      SPDLOG_DEBUG("timeout for key server: {}", urls_[index].toStdString());
+      GF_UI_LOG_DEBUG("timeout for key server: {}", urls_[index].toStdString());
       if (network_reply->isRunning()) {
         network_reply->abort();
         this->slot_process_network_reply(index, network_reply);
@@ -66,24 +68,26 @@ void GpgFrontend::UI::ListedKeyServerTestTask::run() {
     });
 
     timer->start(timeout_);
-
     index++;
   }
+
+  return 0;
 }
 
 void GpgFrontend::UI::ListedKeyServerTestTask::slot_process_network_reply(
     int index, QNetworkReply* reply) {
   if (!reply->isRunning() && reply->error() == QNetworkReply::NoError) {
-    result_[index] = kTestResultType_Success;
+    result_[index] = kTEST_RESULT_TYPE_SUCCESS;
   } else {
-    if (!reply->isFinished())
-      result_[index] = kTestResultType_Timeout;
-    else
-      result_[index] = kTestResultType_Error;
+    if (!reply->isFinished()) {
+      result_[index] = kTEST_RESULT_TYPE_TIMEOUT;
+    } else {
+      result_[index] = kTEST_RESULT_TYPE_ERROR;
+    }
   }
 
   if (++result_count_ == urls_.size()) {
     emit SignalKeyServerListTestResult(result_);
-    emit SignalTaskRunnableEnd(0);
+    emit SignalTaskShouldEnd(0);
   }
 }

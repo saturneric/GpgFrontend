@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,56 +20,33 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_GPGFRONTENDCORE_H
-#define GPGFRONTEND_GPGFRONTENDCORE_H
+#pragma once
 
-#include "GpgFrontend.h"
-
-// gnupg
-#include <gpgme.h>
-
-// std includes
-#include <cassert>
-#include <filesystem>
-#include <functional>
-#include <map>
-#include <memory>
-#include <mutex>
-#include <random>
-#include <shared_mutex>
-#include <stdexcept>
-#include <string>
-#include <typeinfo>
-#include <utility>
-#include <vector>
-
-// boost includes
-#include <boost/date_time.hpp>
-#include <boost/date_time/posix_time/conversion.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/format.hpp>
-
-// Qt includes
+// Qt
 #include <QtCore>
 
-// libconfig includes
-#include <libconfig.h++>
+// std
+#include <cstdint>
+#include <vector>
 
-// libarchive includes
-#include <libarchive/libarchive/archive.h>
-#include <libarchive/libarchive/archive_entry.h>
+// spdlog library configuration
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+#include <spdlog/spdlog.h>
 
-// json includes
-#include <nlohmann/json.hpp>
+// logger fmt
+#include "log/QtLoggerFmt.h"
 
-// dll export macro
+// gpgme library
+#include <gpgme.h>
+
+// logbal includes or macroes
+#include "GpgFrontend.h"
+
+// dll export macroes
 #include "GpgFrontendCoreExport.h"
-
-#endif  // GPGFRONTEND_GPGFRONTENDCORE_H

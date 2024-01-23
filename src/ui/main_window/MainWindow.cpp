@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -28,24 +28,27 @@
 
 #include "MainWindow.h"
 
-#include "core/GpgConstants.h"
 #include "core/function/CacheManager.h"
+#include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
-#include "main_window/GeneralMainWindow.h"
-#include "nlohmann/json_fwd.hpp"
-#include "spdlog/spdlog.h"
-#include "ui/SignalStation.h"
-#include "ui/UserInterfaceUtils.h"
+#include "core/module/ModuleManager.h"
+#include "ui/UISignalStation.h"
+#include "ui/main_window/GeneralMainWindow.h"
 #include "ui/struct/SettingsObject.h"
-#include "ui/thread/VersionCheckTask.h"
-#include "widgets/KeyList.h"
+#include "ui/struct/settings/KeyServerSO.h"
+#include "ui/widgets/KeyList.h"
+#include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
 
 MainWindow::MainWindow() : GeneralMainWindow("main_window") {
   this->setMinimumSize(1200, 700);
   this->setWindowTitle(qApp->applicationName());
+
+  connect(CoreSignalStation::GetInstance(),
+          &CoreSignalStation::SignalNeedUserInputPassphrase, this,
+          &MainWindow::SlotRaisePinentry);
 }
 
 void MainWindow::Init() noexcept {
@@ -84,19 +87,19 @@ void MainWindow::Init() noexcept {
     this->menuBar()->show();
 
     connect(this, &MainWindow::SignalRestartApplication,
-            SignalStation::GetInstance(),
-            &SignalStation::SignalRestartApplication);
+            UISignalStation::GetInstance(),
+            &UISignalStation::SignalRestartApplication);
 
-    connect(this, &MainWindow::SignalUIRefresh, SignalStation::GetInstance(),
-            &SignalStation::SignalUIRefresh);
+    connect(this, &MainWindow::SignalUIRefresh, UISignalStation::GetInstance(),
+            &UISignalStation::SignalUIRefresh);
     connect(this, &MainWindow::SignalKeyDatabaseRefresh,
-            SignalStation::GetInstance(),
-            &SignalStation::SignalKeyDatabaseRefresh);
+            UISignalStation::GetInstance(),
+            &UISignalStation::SignalKeyDatabaseRefresh);
 
     connect(edit_->tab_widget_, &QTabWidget::currentChanged, this,
             &MainWindow::slot_disable_tab_actions);
-    connect(SignalStation::GetInstance(),
-            &SignalStation::SignalRefreshStatusBar, this,
+    connect(UISignalStation::GetInstance(),
+            &UISignalStation::SignalRefreshStatusBar, this,
             [=](const QString &message, int timeout) {
               statusBar()->showMessage(message, timeout);
             });
@@ -120,163 +123,101 @@ void MainWindow::Init() noexcept {
 
     edit_->CurTextPage()->setFocus();
 
-    auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
-
-    if (!settings.exists("wizard") ||
-        settings.lookup("wizard").getType() != libconfig::Setting::TypeGroup)
-      settings.add("wizard", libconfig::Setting::TypeGroup);
-
-    auto &wizard = settings["wizard"];
-
-    // Show wizard, if the don't show wizard message box wasn't checked
-    // and keylist doesn't contain a private key
-
-    if (!wizard.exists("show_wizard"))
-      wizard.add("show_wizard", libconfig::Setting::TypeBoolean) = true;
-
-    bool show_wizard = true;
-    wizard.lookupValue("show_wizard", show_wizard);
-
-    SPDLOG_DEBUG("wizard show_wizard: {}", show_wizard);
-
-    if (show_wizard) {
-      slot_start_wizard();
-    }
-
-    emit SignalLoaded();
-
-    // if not prohibit update checking
-    if (!prohibit_update_checking_) {
-      auto *version_task = new VersionCheckTask();
-
-      connect(version_task, &VersionCheckTask::SignalUpgradeVersion, this,
-              &MainWindow::slot_version_upgrade);
-
-      Thread::TaskRunnerGetter::GetInstance()
-          .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
-          ->PostTask(version_task);
-    }
-
     // before application exit
     connect(qApp, &QCoreApplication::aboutToQuit, this, []() {
-      SPDLOG_DEBUG("about to quit process started");
+      GF_UI_LOG_DEBUG("about to quit process started");
 
-      if (GlobalSettingStation::GetInstance().LookupSettings(
-              "general.clear_gpg_password_cache", false)) {
-        if (GpgFrontend::GpgAdvancedOperator::GetInstance()
-                .ClearGpgPasswordCache()) {
-          SPDLOG_DEBUG("clear gpg password cache done");
-        } else {
-          SPDLOG_ERROR("clear gpg password cache error");
-        }
+      if (GlobalSettingStation::GetInstance()
+              .GetSettings()
+              .value("basic/clear_gpg_password_cache", false)
+              .toBool()) {
+        GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache(
+            [](int, DataObjectPtr) {
+
+            });
       }
     });
+
+    Module::ListenRTPublishEvent(
+        this, "com.bktus.gpgfrontend.module.integrated.version-checking",
+        "version.loading_done",
+        [=](Module::Namespace, Module::Key, int, std::any) {
+          GF_UI_LOG_DEBUG(
+              "versionchecking version.loading_done changed, calling slot "
+              "version upgrade");
+          this->slot_version_upgrade_nofity();
+        });
+
+    // loading process is done
+    emit SignalLoaded();
+    Module::TriggerEvent("APPLICATION_LOADED");
 
     // recover unsaved page from cache if it exists
     recover_editor_unsaved_pages_from_cache();
 
+    // check if need to open wizard window
+    auto settings = GlobalSettingStation::GetInstance().GetSettings();
+    bool show_wizard = settings.value("wizard/show_wizard", true).toBool();
+    if (show_wizard) slot_start_wizard();
+
   } catch (...) {
-    SPDLOG_ERROR(_("Critical error occur while loading GpgFrontend."));
-    QMessageBox::critical(nullptr, _("Loading Failed"),
-                          _("Critical error occur while loading GpgFrontend."));
+    GF_UI_LOG_ERROR(tr("Critical error occur while loading GpgFrontend."));
+    QMessageBox::critical(
+        nullptr, tr("Loading Failed"),
+        tr("Critical error occur while loading GpgFrontend."));
     QCoreApplication::quit();
     exit(0);
   }
 }
 
 void MainWindow::restore_settings() {
-  try {
-    SPDLOG_DEBUG("restore settings key_server");
+  GF_UI_LOG_DEBUG("restore settings for main windows");
 
-    SettingsObject key_server_json("key_server");
-    if (!key_server_json.contains("server_list") ||
-        key_server_json["server_list"].empty()) {
-      key_server_json["server_list"] = {"https://keyserver.ubuntu.com",
-                                        "https://keys.openpgp.org"};
-    }
-    if (!key_server_json.contains("default_server")) {
-      key_server_json["default_server"] = 0;
-    }
+  KeyServerSO key_server(SettingsObject("key_server"));
+  if (key_server.server_list.empty()) key_server.ResetDefaultServerList();
+  if (key_server.default_server < 0) key_server.default_server = 0;
 
-    auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
-
-    if (!settings.exists("general") ||
-        settings.lookup("general").getType() != libconfig::Setting::TypeGroup)
-      settings.add("general", libconfig::Setting::TypeGroup);
-
-    auto &general = settings["general"];
-
-    if (!general.exists("save_key_checked")) {
-      general.add("save_key_checked", libconfig::Setting::TypeBoolean) = true;
-    }
-
-    if (!general.exists("non_ascii_when_export")) {
-      general.add("non_ascii_when_export", libconfig::Setting::TypeBoolean) =
-          true;
-    }
-
-    bool save_key_checked = true;
-    general.lookupValue("save_key_checked", save_key_checked);
-
-    // set appearance
-    import_button_->setToolButtonStyle(icon_style_);
-
-    try {
-      SPDLOG_DEBUG("restore settings default_key_checked");
-
-      // Checked Keys
-      SettingsObject default_key_checked("default_key_checked");
-      if (save_key_checked) {
-        auto key_ids_ptr = std::make_unique<KeyIdArgsList>();
-        for (auto &it : default_key_checked) {
-          std::string key_id = it;
-          SPDLOG_DEBUG("get checked key id: {}", key_id);
-          key_ids_ptr->push_back(key_id);
-        }
-        m_key_list_->SetChecked(std::move(key_ids_ptr));
-      }
-    } catch (...) {
-      SPDLOG_ERROR("restore default_key_checked failed");
-    }
-
-    prohibit_update_checking_ = false;
-    try {
-      prohibit_update_checking_ =
-          settings.lookup("network.prohibit_update_checking");
-    } catch (...) {
-      SPDLOG_ERROR("setting operation error: prohibit_update_checking");
-    }
-
-  } catch (...) {
-    SPDLOG_ERROR("cannot resolve settings");
+  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  if (!settings.contains("basic/non_ascii_when_export")) {
+    settings.setValue("basic/non_ascii_when_export", true);
   }
 
-  GlobalSettingStation::GetInstance().SyncSettings();
-  SPDLOG_DEBUG("settings restored");
+  // set appearance
+  import_button_->setToolButtonStyle(icon_style_);
+
+  prohibit_update_checking_ =
+      settings.value("network/prohibit_update_check").toBool();
+
+  GF_UI_LOG_DEBUG("settings restored");
 }
 
 void MainWindow::recover_editor_unsaved_pages_from_cache() {
-  auto unsaved_page_array =
-      CacheManager::GetInstance().LoadCache("editor_unsaved_pages");
+  auto json_data =
+      CacheManager::GetInstance().LoadDurableCache("editor_unsaved_pages");
 
-  if (!unsaved_page_array.is_array() || unsaved_page_array.empty()) {
+  if (json_data.isEmpty() || !json_data.isArray()) {
     return;
   }
 
-  SPDLOG_DEBUG("plan ot recover unsaved page from cache, page array: {}",
-               unsaved_page_array.dump());
+  GF_UI_LOG_DEBUG("plan ot recover unsaved page from cache, page array: {}",
+                  json_data.toJson());
 
   bool first = true;
 
-  for (auto &unsaved_page_json : unsaved_page_array) {
+  QJsonArray unsaved_page_array = json_data.array();
+  for (const auto &value_ref : unsaved_page_array) {
+    if (!value_ref.isObject()) continue;
+    auto unsaved_page_json = value_ref.toObject();
+
     if (!unsaved_page_json.contains("title") ||
         !unsaved_page_json.contains("content")) {
       continue;
     }
-    std::string title = unsaved_page_json["title"];
-    std::string content = unsaved_page_json["content"];
 
-    SPDLOG_DEBUG(
+    QString title = unsaved_page_json["title"].toString();
+    QString content = unsaved_page_json["content"].toString();
+
+    GF_UI_LOG_DEBUG(
         "recovering unsaved page from cache, page title: {}, content size",
         title, content.size());
 
@@ -287,27 +228,6 @@ void MainWindow::recover_editor_unsaved_pages_from_cache() {
 
     edit_->SlotNewTabWithContent(title, content);
   }
-}
-
-void MainWindow::save_settings() {
-  bool save_key_checked = GlobalSettingStation::GetInstance().LookupSettings(
-      "general.save_key_checked", false);
-
-  // keyid-list of private checked keys
-  if (save_key_checked) {
-    auto key_ids_need_to_store = m_key_list_->GetChecked();
-
-    SettingsObject default_key_checked("default_key_checked");
-    default_key_checked.clear();
-
-    for (const auto &key_id : *key_ids_need_to_store)
-      default_key_checked.push_back(key_id);
-  } else {
-    auto &settings = GlobalSettingStation::GetInstance().GetUISettings();
-    settings["general"].remove("save_key_checked");
-  }
-
-  GlobalSettingStation::GetInstance().SyncSettings();
 }
 
 void MainWindow::close_attachment_dock() {
@@ -325,7 +245,6 @@ void MainWindow::closeEvent(QCloseEvent *event) {
    * modified documents in any tab
    */
   if (edit_->MaybeSaveAnyTab()) {
-    save_settings();
     event->accept();
   } else {
     event->ignore();
@@ -333,8 +252,8 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 
   if (event->isAccepted()) {
     // clear cache of unsaved page
-    CacheManager::GetInstance().SaveCache("editor_unsaved_pages",
-                                          nlohmann::json::array(), true);
+    CacheManager::GetInstance().SaveDurableCache(
+        "editor_unsaved_pages", QJsonDocument(QJsonArray()), true);
 
     // clear password from memory
     //  GpgContext::GetInstance().clearPasswordCache();

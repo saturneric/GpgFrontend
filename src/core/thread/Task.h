@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,23 +20,17 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_TASK_H
-#define GPGFRONTEND_TASK_H
-
-#include <functional>
-#include <memory>
-#include <stack>
-#include <string>
-#include <type_traits>
-#include <utility>
+#pragma once
 
 #include "core/GpgFrontendCore.h"
+#include "core/function/SecureMemoryAllocator.h"
+#include "core/model/DataObject.h"
 
 namespace GpgFrontend::Thread {
 
@@ -45,253 +39,136 @@ class TaskRunner;
 class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
   Q_OBJECT
  public:
-  class DataObject;
-  using DataObjectPtr = std::shared_ptr<DataObject>;             ///<
+  friend class TaskRunner;
+
   using TaskRunnable = std::function<int(DataObjectPtr)>;        ///<
   using TaskCallback = std::function<void(int, DataObjectPtr)>;  ///<
 
-  static const std::string DEFAULT_TASK_NAME;
-
-  friend class TaskRunner;
-
-  /**
-   * @brief DataObject to be passed to the callback function.
-   *
-   */
-  class GPGFRONTEND_CORE_EXPORT DataObject {
+  class TaskHandler {
    public:
-    struct Destructor {
-      const void *p_obj;
-      void (*destroy)(const void *);
-    };
+    explicit TaskHandler(Task*);
 
-    /**
-     * @brief Get the Objects Size
-     *
-     * @return size_t
-     */
-    size_t GetObjectSize();
+    void Start();
 
-    /**
-     * @brief
-     *
-     * @tparam T
-     * @param ptr
-     */
-    template <typename T>
-    void AppendObject(T &&obj) {
-      SPDLOG_TRACE("append object: {}", static_cast<void *>(this));
-      auto *obj_dstr = this->get_heap_ptr(sizeof(T));
-      new ((void *)obj_dstr->p_obj) T(std::forward<T>(obj));
+    void Cancel();
 
-      if (std::is_class_v<T>) {
-        auto destructor = [](const void *x) {
-          static_cast<const T *>(x)->~T();
-        };
-        obj_dstr->destroy = destructor;
-      } else {
-        obj_dstr->destroy = nullptr;
-      }
-
-      data_objects_.push(obj_dstr);
-    }
-
-    /**
-     * @brief
-     *
-     * @tparam T
-     * @param ptr
-     */
-    template <typename T>
-    void AppendObject(T *obj) {
-      SPDLOG_TRACE("called: {}", static_cast<void *>(this));
-      auto *obj_dstr = this->get_heap_ptr(sizeof(T));
-      auto *ptr_heap = new ((void *)obj_dstr->p_obj) T(std::move(*obj));
-      if (std::is_class_v<T>) {
-        SPDLOG_TRACE("is class");
-        auto destructor = [](const void *x) {
-          static_cast<const T *>(x)->~T();
-        };
-        obj_dstr->destroy = destructor;
-      } else {
-        obj_dstr->destroy = nullptr;
-      }
-      data_objects_.push(std::move(obj_dstr));
-    }
-
-    /**
-     * @brief
-     *
-     * @tparam T
-     * @return std::shared_ptr<T>
-     */
-    template <typename T>
-    T PopObject() {
-      SPDLOG_TRACE("pop object: {}", static_cast<void *>(this));
-      if (data_objects_.empty()) throw std::runtime_error("No object to pop");
-      auto *obj_dstr = data_objects_.top();
-      auto *heap_ptr = (T *)obj_dstr->p_obj;
-      auto obj = std::move(*(T *)(heap_ptr));
-      this->free_heap_ptr(obj_dstr);
-      data_objects_.pop();
-      return obj;
-    }
-
-    /**
-     * @brief Destroy the Data Object object
-     *
-     */
-    ~DataObject();
+    auto GetTask() -> Task*;
 
    private:
-    std::stack<Destructor *> data_objects_;  ///<
-
-    /**
-     * @brief Get the heap ptr object
-     *
-     * @param bytes_size
-     * @return void*
-     */
-    Destructor *get_heap_ptr(size_t bytes_size);
-
-    /**
-     * @brief
-     *
-     * @param heap_ptr
-     */
-    void free_heap_ptr(Destructor *);
+    QPointer<Task> task_;
   };
 
   /**
    * @brief Construct a new Task object
    *
    */
-  Task(std::string name = DEFAULT_TASK_NAME);
+  explicit Task(QString name);
 
   /**
    * @brief Construct a new Task object
    *
    * @param callback The callback function to be executed.
    */
-  explicit Task(TaskRunnable runnable, std::string name = DEFAULT_TASK_NAME,
-                DataObjectPtr data_object = nullptr, bool sequency = true);
+  explicit Task(TaskRunnable runnable, QString name,
+                DataObjectPtr data_object = nullptr);
 
   /**
    * @brief Construct a new Task object
    *
    * @param runnable
    */
-  explicit Task(
-      TaskRunnable runnable, std::string name, DataObjectPtr data,
-      TaskCallback callback = [](int, const std::shared_ptr<DataObject> &) {},
-      bool sequency = true);
+  explicit Task(TaskRunnable runnable, QString name, DataObjectPtr data,
+                TaskCallback callback);
 
   /**
    * @brief Destroy the Task object
    *
    */
-  virtual ~Task() override;
-
-  /**
-   * @brief Run - run the task
-   *
-   */
-  virtual void Run();
+  ~Task() override;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  std::string GetUUID() const;
+  [[nodiscard]] auto GetUUID() const -> QString;
+
+  /**
+   * @brief Get the Full I D object
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto GetFullID() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @param hold_on
    */
-  std::string GetFullID() const;
+  void HoldOnLifeCycle(bool hold_on);
+
+  /**
+   * @brief can be overwrite by subclass
+   *
+   * @return int
+   */
+  virtual auto Run() -> int;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return auto
    */
-  bool GetSequency() const;
+  [[nodiscard]] auto GetRTN();
 
  public slots:
 
   /**
+   * @brief shouldn't be overwrite by subclass
+   *
+   */
+  void SafelyRun();
+
+ signals:
+
+  /**
    * @brief
    *
    */
-  void SlotRun();
+  void SignalRun();
 
- signals:
   /**
-   * @brief announce runnable finished
+   * @brief
    *
    */
-  void SignalTaskRunnableEnd(int rtn);
+  void SignalTaskShouldEnd(int);
 
   /**
-   * @brief runnable and callabck all finished
+   * @brief
    *
    */
   void SignalTaskEnd();
 
  protected:
   /**
-   * @brief Set the Finish After Run object
-   *
-   * @param finish_after_run
-   */
-  void SetFinishAfterRun(bool finish_after_run);
-
-  /**
    * @brief
    *
    * @param rtn
    */
-  void SetRTN(int rtn);
-
- private:
-  const std::string uuid_;
-  const std::string name_;
-  const bool sequency_ = true;  ///< must run in the same thread
-  TaskCallback callback_;       ///<
-  TaskRunnable runnable_;       ///<
-  bool run_callback_after_runnable_finished_ = true;  ///<
-  int rtn_ = 0;                                       ///<
-  QThread *callback_thread_ = nullptr;                ///<
-  DataObjectPtr data_object_ = nullptr;               ///<
-
-  /**
-   * @brief
-   *
-   */
-  void init();
-
-  /**
-   * @brief
-   *
-   */
-  virtual void run() override;
-
-  /**
-   * @brief
-   *
-   * @return std::string
-   */
-  static std::string generate_uuid();
+  void setRTN(int rtn);
 
  private slots:
+
   /**
    * @brief
    *
    */
-  void slot_task_run_callback(int rtn);
+  void slot_exception_safe_run() noexcept;
+
+ private:
+  class Impl;
+  SecureUniquePtr<Impl> p_;
+
+  void run() override;
 };
 }  // namespace GpgFrontend::Thread
-
-#endif  // GPGFRONTEND_TASK_H

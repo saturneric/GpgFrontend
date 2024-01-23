@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,20 +19,20 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_KEYUIDSIGNDIALOG_H
-#define GPGFRONTEND_KEYUIDSIGNDIALOG_H
+#pragma once
 
-#include "core/GpgContext.h"
-#include "ui/GpgFrontendUI.h"
+#include "core/typedef/GpgTypedef.h"
 #include "ui/dialog/GeneralDialog.h"
-#include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
+class KeyList;
 
 class KeyUIDSignDialog : public GeneralDialog {
   Q_OBJECT
@@ -74,5 +74,3 @@ class KeyUIDSignDialog : public GeneralDialog {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYUIDSIGNDIALOG_H

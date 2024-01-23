@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,16 +19,22 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_SUBKEYGENERATEDIALOG_H
-#define GPGFRONTEND_SUBKEYGENERATEDIALOG_H
+#pragma once
 
-#include "core/GpgContext.h"
-#include "core/GpgGenKeyInfo.h"
+#include <memory>
+
+#include "core/function/gpg/GpgContext.h"
+#include "core/model/GpgGenKeyInfo.h"
+#include "core/model/GpgKey.h"
+#include "core/typedef/GpgTypedef.h"
+#include "core/utils/MemoryUtils.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
 
@@ -49,18 +55,11 @@ class SubkeyGenerateDialog : public GeneralDialog {
    */
   explicit SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent);
 
- signals:
-  /**
-   * @brief
-   *
-   */
-  void SignalSubKeyGenerated();
-
  private:
   GpgKey key_;  ///<
 
-  std::unique_ptr<GenKeyInfo> gen_key_info_ =
-      std::make_unique<GenKeyInfo>(true);  ///<
+  std::shared_ptr<GenKeyInfo> gen_key_info_ =
+      SecureCreateSharedObject<GenKeyInfo>(true);  ///<
 
   QGroupBox* key_usage_group_box_{};
   QDialogButtonBox* button_box_;     ///< Box for standard buttons
@@ -70,11 +69,9 @@ class SubkeyGenerateDialog : public GeneralDialog {
   QDateTimeEdit* date_edit_{};       ///< Date edit for expiration date
   QCheckBox* expire_check_box_{};    ///< Checkbox, if key should expire
   QCheckBox* no_pass_phrase_check_box_{};  ///< Checkbox, if key should expire
-  QLineEdit* passphrase_edit_{};
 
   std::vector<QCheckBox*> key_usage_check_boxes_;  ///< ENCR, SIGN, CERT, AUTH
   QDateTime max_date_time_;                        ///<
-  bool use_pinentry_ = false;
 
   /**
    * @brief Create a key usage group box object
@@ -151,5 +148,3 @@ class SubkeyGenerateDialog : public GeneralDialog {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_SUBKEYGENERATEDIALOG_H

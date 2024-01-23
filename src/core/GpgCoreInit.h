@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,57 +20,33 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_GPGCOREINIT_H
-#define GPGFRONTEND_GPGCOREINIT_H
+#pragma once
 
 #include "GpgConstants.h"
 
 namespace GpgFrontend {
 
-/**
- * @brief
- *
- */
-void GPGFRONTEND_CORE_EXPORT InitCoreLoggingSystem();
+struct CoreInitArgs {
+  bool gather_external_gnupg_info;
+  bool load_default_gpg_context;
+};
 
 /**
  * @brief
  *
  */
-void GPGFRONTEND_CORE_EXPORT ShutdownCoreLoggingSystem();
+void GPGFRONTEND_CORE_EXPORT DestroyGpgFrontendCore();
 
 /**
  * @brief
  *
  */
-void GPGFRONTEND_CORE_EXPORT ResetGpgFrontendCore();
-
-/**
- * @brief
- *
- */
-void init_gpgfrontend_core();
-
-/**
- * @brief
- *
- */
-void reset_gpgfrontend_core();
-
-/**
- * @brief
- *
- * @param channel
- */
-void new_default_settings_channel(
-    int channel = GpgFrontend::GPGFRONTEND_DEFAULT_CHANNEL);
+void GPGFRONTEND_CORE_EXPORT InitGpgFrontendCore(CoreInitArgs);
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGCOREINIT_H

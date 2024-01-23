@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -28,13 +28,11 @@
 
 #include "QuitDialog.h"
 
-#include <boost/format.hpp>
-
 namespace GpgFrontend::UI {
 
 QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
     : GeneralDialog("quit_dialog", parent) {
-  setWindowTitle(_("Unsaved Files"));
+  setWindowTitle(tr("Unsaved Files"));
   setModal(true);
   discarded_ = false;
 
@@ -77,52 +75,54 @@ QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
   /*
    *  Warnbox with icon and text
    */
-  auto pixmap = QPixmap(":error.png");
+  auto pixmap = QPixmap(":/icons/error.png");
   pixmap = pixmap.scaled(50, 50, Qt::KeepAspectRatio, Qt::SmoothTransformation);
   auto* warn_icon = new QLabel();
   warn_icon->setPixmap(pixmap);
 
-  const auto info =
-      boost::format(_("%1% files contain unsaved information.<br/>Save the "
-                      "changes before closing?")) %
-      std::to_string(row);
-  auto* warn_label = new QLabel(QString::fromStdString(info.str()));
-  auto* warnBoxLayout = new QHBoxLayout();
-  warnBoxLayout->addWidget(warn_icon);
-  warnBoxLayout->addWidget(warn_label);
-  warnBoxLayout->setAlignment(Qt::AlignLeft);
-  auto* warnBox = new QWidget(this);
-  warnBox->setLayout(warnBoxLayout);
+  const auto info = tr("%1 files contain unsaved information.<br/>Save the "
+                       "changes before closing?")
+                        .arg(row);
+  auto* warn_label = new QLabel(info);
+  auto* warn_box_layout = new QHBoxLayout();
+  warn_box_layout->addWidget(warn_icon);
+  warn_box_layout->addWidget(warn_label);
+  warn_box_layout->setAlignment(Qt::AlignLeft);
+  auto* warn_box = new QWidget(this);
+  warn_box->setLayout(warn_box_layout);
 
   /*
    *  Two labels on top and under the filelist
    */
-  auto* checkLabel = new QLabel(_("Check the files you want to save:"));
+  auto* check_label = new QLabel(tr("Check the files you want to save:"));
   auto* note_label = new QLabel(
-      "<b>" + QString(_("Note")) + ":</b>" +
-      _("If you don't save these files, all changes are lost.") + "<br/>");
+      "<b>" + tr("Note") + ":</b>" +
+      tr("If you don't save these files, all changes are lost.") + "<br/>");
 
   /*
    *  Buttonbox
    */
-  auto* buttonBox =
+  auto* button_box =
       new QDialogButtonBox(QDialogButtonBox::Discard | QDialogButtonBox::Save |
                            QDialogButtonBox::Cancel);
-  connect(buttonBox, &QDialogButtonBox::accepted, this, &QuitDialog::accept);
-  connect(buttonBox, &QDialogButtonBox::rejected, this, &QuitDialog::reject);
-  QPushButton* btnNoKey = buttonBox->button(QDialogButtonBox::Discard);
-  connect(btnNoKey, &QPushButton::clicked, this, &QuitDialog::slot_my_discard);
+  connect(button_box, &QDialogButtonBox::accepted, this, &QuitDialog::accept);
+  connect(button_box, &QDialogButtonBox::rejected, this, &QuitDialog::reject);
+  QPushButton* btn_no_key = button_box->button(QDialogButtonBox::Discard);
+  connect(btn_no_key, &QPushButton::clicked, this,
+          &QuitDialog::slot_my_discard);
 
   /*
    *  Set the layout
    */
   auto* vbox = new QVBoxLayout();
-  vbox->addWidget(warnBox);
-  vbox->addWidget(checkLabel);
+  vbox->addWidget(warn_box);
+  vbox->addWidget(check_label);
   vbox->addWidget(m_fileList_);
   vbox->addWidget(note_label);
-  vbox->addWidget(buttonBox);
+  vbox->addWidget(button_box);
   this->setLayout(vbox);
+
+  this->movePosition2CenterOfParent();
 }
 
 void QuitDialog::slot_my_discard() {
@@ -130,16 +130,16 @@ void QuitDialog::slot_my_discard() {
   reject();
 }
 
-bool QuitDialog::IsDiscarded() const { return discarded_; }
+auto QuitDialog::IsDiscarded() const -> bool { return discarded_; }
 
-QList<int> QuitDialog::GetTabIdsToSave() {
-  QList<int> tabIdsToSave;
+auto QuitDialog::GetTabIdsToSave() -> QList<int> {
+  QList<int> tab_ids_to_save;
   for (int i = 0; i < m_fileList_->rowCount(); i++) {
     if (m_fileList_->item(i, 0)->checkState() == Qt::Checked) {
-      tabIdsToSave << m_fileList_->item(i, 2)->text().toInt();
+      tab_ids_to_save << m_fileList_->item(i, 2)->text().toInt();
     }
   }
-  return tabIdsToSave;
+  return tab_ids_to_save;
 }
 
 }  // namespace GpgFrontend::UI

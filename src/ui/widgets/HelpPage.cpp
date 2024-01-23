@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -28,17 +28,15 @@
 
 #include "ui/widgets/HelpPage.h"
 
-#include <utility>
-
 namespace GpgFrontend::UI {
 
 HelpPage::HelpPage(const QString& path, QWidget* parent) : QWidget(parent) {
   browser_ = new QTextBrowser();
-  auto* mainLayout = new QVBoxLayout();
-  mainLayout->setSpacing(0);
-  mainLayout->addWidget(browser_);
-  mainLayout->setContentsMargins(0, 0, 0, 0);
-  setLayout(mainLayout);
+  auto* main_layout = new QVBoxLayout();
+  main_layout->setSpacing(0);
+  main_layout->addWidget(browser_);
+  main_layout->setContentsMargins(0, 0, 0, 0);
+  setLayout(main_layout);
 
   connect(browser_, &QTextBrowser::anchorClicked, this,
           &HelpPage::slot_open_url);
@@ -59,17 +57,16 @@ void HelpPage::slot_open_url(const QUrl& url) {
  * @param url
  * @return
  */
-QUrl HelpPage::localized_help(const QUrl& url) {
+auto HelpPage::localized_help(const QUrl& url) -> QUrl {
   QString path = url.toLocalFile();
   QString filename = path.mid(path.lastIndexOf("/") + 1);
   QString filepath = path.left(path.lastIndexOf("/") + 1);
   QStringList fileparts = filename.split(".");
 
   // QSettings settings;
-  QString lang =
-      QSettings().value("int/lang", QLocale::system().name()).toString();
+  QString lang = QSettings().value("int/lang", QLocale().name()).toString();
   if (lang.isEmpty()) {
-    lang = QLocale::system().name();
+    lang = QLocale().name();
   }
 
   fileparts.insert(1, lang);
@@ -77,9 +74,8 @@ QUrl HelpPage::localized_help(const QUrl& url) {
 
   if (QFile(QUrl(langfile).toLocalFile()).exists()) {
     return langfile;
-  } else {
-    return path;
   }
+  return path;
 }
 
 QTextBrowser* HelpPage::GetBrowser() { return browser_; }

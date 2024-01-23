@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -28,39 +28,53 @@
 
 #include "GpgEncryptResultAnalyse.h"
 
-GpgFrontend::GpgEncryptResultAnalyse::GpgEncryptResultAnalyse(
-    GpgError error, GpgEncrResult result)
-    : error_(error), result_(std::move(result)) {}
+#include "core/model/GpgEncryptResult.h"
 
-void GpgFrontend::GpgEncryptResultAnalyse::do_analyse() {
-  SPDLOG_DEBUG("start encrypt result analyse");
+namespace GpgFrontend {
 
-  stream_ << "[#] " << _("Encrypt Operation") << " ";
+GpgEncryptResultAnalyse::GpgEncryptResultAnalyse(GpgError error,
+                                                 GpgEncryptResult result)
+    : error_(error), result_(result) {}
 
-  if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR)
-    stream_ << "[" << _("Success") << "]" << std::endl;
-  else {
-    stream_ << "[" << _("Failed") << "] " << gpgme_strerror(error_)
-            << std::endl;
-    set_status(-1);
+void GpgEncryptResultAnalyse::doAnalyse() {
+  stream_ << "# " << tr("Encrypt Operation") << " ";
+
+  if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
+    stream_ << "- " << tr("Success") << " " << Qt::endl;
+  } else {
+    stream_ << "- " << tr("Failed") << ": " << gpgme_strerror(error_)
+            << Qt::endl;
+    setStatus(-1);
   }
 
-  if (!~status_) {
-    stream_ << "------------>" << std::endl;
-    if (result_ != nullptr) {
-      stream_ << _("Invalid Recipients") << ": " << std::endl;
-      auto inv_reci = result_->invalid_recipients;
+  if ((~status_) == 0) {
+    stream_ << Qt::endl;
+
+    const auto *result = result_.GetRaw();
+
+    if (result != nullptr) {
+      stream_ << "## " << tr("Invalid Recipients") << ": " << Qt::endl
+              << Qt::endl;
+
+      auto *inv_reci = result->invalid_recipients;
+      auto index = 0;
+
       while (inv_reci != nullptr) {
-        stream_ << _("Fingerprint") << ": " << inv_reci->fpr << std::endl;
-        stream_ << _("Reason") << ": " << gpgme_strerror(inv_reci->reason)
-                << std::endl;
-        stream_ << std::endl;
+        stream_ << "### " << tr("Recipients") << " " << ++index << ": "
+                << Qt::endl;
+        stream_ << "- " << tr("Fingerprint") << ": " << inv_reci->fpr
+                << Qt::endl;
+        stream_ << "- " << tr("Reason") << ": "
+                << gpgme_strerror(inv_reci->reason) << Qt::endl;
+        stream_ << Qt::endl << Qt::endl;
 
         inv_reci = inv_reci->next;
       }
     }
-    stream_ << "<------------" << std::endl;
+    stream_ << Qt::endl;
   }
 
-  stream_ << std::endl;
+  stream_ << Qt::endl;
 }
+
+}  // namespace GpgFrontend

@@ -51,9 +51,9 @@ later, and Ubuntu 20.04 LTS or other equivalent Linux distributions.
 
 ### Software Dependencies
 
-Qt5 or Later: GpgFrontend is developed using the Qt framework. Therefore, a
-runtime of Qt5 or later is required for the software to function correctly.
-Please note, the Qt5 runtime is integrated into the Release Package for Linux,
+Qt6 or Later: GpgFrontend is developed using the Qt framework. Therefore, a
+runtime of Qt6 or later is required for the software to function correctly.
+Please note, the Qt6 runtime is integrated into the Release Package for Linux,
 macOS, and Windows, so it generally does not need to be considered separately.
 This allows for easier setup and ensures compatibility across different systems.
 
@@ -116,7 +116,7 @@ assured that you will never be asked to pay a fee to use the software.
 
 ## Source Code
 
-The primary code repository for GpgFrontend resides on the BKTUS server. Every
+The primary code repository for GpgFrontend resides on the GitHub server. Every
 update gets committed here first. You can visit the [code
 repository](https://github.com/saturneric/GpgFrontend) to
 follow our development progress and stay updated on the latest changes.

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -30,60 +30,11 @@
  * \mainpage GpgFrontend Develop Document Main Page
  */
 
-#include <csetjmp>
-#include <csignal>
-#include <cstddef>
-#include <cstdlib>
-#include <string>
-
-#include "core/GpgConstants.h"
-#include "core/GpgCoreInit.h"
-#include "core/function/GlobalSettingStation.h"
-#include "spdlog/spdlog.h"
-#include "ui/GpgFrontendApplication.h"
-#include "ui/GpgFrontendUIInit.h"
-
-/**
- * \brief Store the jump buff and make it possible to recover from a crash.
- */
-#ifdef FREEBSD
-sigjmp_buf recover_env;
-#else
-jmp_buf recover_env;
-#endif
-
-constexpr int CRASH_CODE = ~0;  ///<
-
-/**
- * @brief handle the signal SIGSEGV
- *
- * @param sig
- */
-extern void handle_signal(int sig);
-
-/**
- * @brief processes before exit the program.
- *
- */
-extern void before_exit();
-
-/**
- * @brief initialize the logging system.
- *
- */
-extern void init_logging_system();
-
-/**
- * @brief initialize the logging system.
- *
- */
-extern void shutdown_logging_system();
-
-/**
- * @brief init global PATH env
- *
- */
-extern void init_global_path_env();
+#include "GpgFrontendContext.h"
+#include "app.h"
+#include "cmd.h"
+#include "core/utils/MemoryUtils.h"
+#include "init.h"
 
 /**
  *
@@ -91,93 +42,54 @@ extern void init_global_path_env();
  * @param argv
  * @return
  */
-int main(int argc, char* argv[]) {
-#ifdef RELEASE
-  // re
-  signal(SIGSEGV, handle_signal);
-  signal(SIGFPE, handle_signal);
-  signal(SIGILL, handle_signal);
-#endif
+auto main(int argc, char* argv[]) -> int {
+  GpgFrontend::GFCxtSPtr ctx =
+      GpgFrontend::SecureCreateSharedObject<GpgFrontend::GpgFrontendContext>(
+          argc, argv);
+  ctx->InitApplication();
 
-  // clean something before exit
-  atexit(before_exit);
+  auto rtn = 0;
 
   // initialize qt resources
   Q_INIT_RESOURCE(gpgfrontend);
 
-  // create qt application
-  auto* app =
-      GpgFrontend::UI::GpgFrontendApplication::GetInstance(argc, argv, true);
+  QCommandLineParser parser;
+  parser.addHelpOption();
+  parser.addOptions({
+      {{"v", "version"}, "show version information"},
+      {{"t", "test"}, "run all unit test cases"},
+      {{"l", "log-level"},
+       "set log level (trace, debug, info, warn, error)",
+       "debug"},
+  });
 
-  // init the logging system for main
-  init_logging_system();
+  parser.process(*ctx->GetApp());
 
-  // init the logging system for core
-  GpgFrontend::InitCoreLoggingSystem();
+  ctx->log_level = spdlog::level::info;
 
-  // init the logging system for ui
-  GpgFrontend::UI::InitUILoggingSystem();
+  if (parser.isSet("v")) {
+    return GpgFrontend::PrintVersion();
+  }
 
-  // change path to search for related
-  init_global_path_env();
+  if (parser.isSet("l")) {
+    ctx->log_level = GpgFrontend::ParseLogLevel(parser.value("l"));
+  }
 
-  /**
-   * internationalisation. loop to restart main window
-   * with changed translation when settings change.
-   */
-  int return_from_event_loop_code;
-  int restart_count = 0;
+  if (parser.isSet("t")) {
+    ctx->gather_external_gnupg_info = false;
+    ctx->load_default_gpg_context = false;
 
-  do {
-#ifndef WINDOWS
-    int r = sigsetjmp(recover_env, 1);
-#else
-    int r = setjmp(recover_env);
-#endif
-    if (!r) {
-      // init ui library
-      GpgFrontend::UI::InitGpgFrontendUI(app);
+    InitGlobalBasicalEnv(ctx, false);
+    rtn = RunTest(ctx);
+    ShutdownGlobalBasicalEnv(ctx);
+    return rtn;
+  }
 
-      // create main window
-      return_from_event_loop_code = GpgFrontend::UI::RunGpgFrontendUI(app);
-    } else {
-      SPDLOG_ERROR("recover from a crash");
-      // when signal is caught, restart the main window
-      auto* message_box = new QMessageBox(
-          QMessageBox::Critical, _("A serious error has occurred"),
-          _("Oh no! GpgFrontend caught a serious error in the software, so "
-            "it needs to be restarted. If the problem recurs, please "
-            "manually terminate the program and report the problem to the "
-            "developer."),
-          QMessageBox::Ok, nullptr);
-      message_box->exec();
-      return_from_event_loop_code = CRASH_CODE;
-    }
+  ctx->gather_external_gnupg_info = true;
+  ctx->load_default_gpg_context = true;
+  InitGlobalBasicalEnv(ctx, true);
 
-    restart_count++;
-
-    SPDLOG_DEBUG("restart loop refresh, event loop code: {}, restart count: {}",
-                 return_from_event_loop_code, restart_count);
-  } while (return_from_event_loop_code == RESTART_CODE && restart_count < 3);
-
-  // shutdown the logging system for ui
-  GpgFrontend::UI::ShutdownUILoggingSystem();
-
-  // shutdown the logging system for core
-  GpgFrontend::ShutdownCoreLoggingSystem();
-
-  // log for debug
-  SPDLOG_INFO("GpgFrontend about to exit.");
-
-  // deep restart mode
-  if (return_from_event_loop_code == DEEP_RESTART_CODE ||
-      return_from_event_loop_code == CRASH_CODE) {
-    // log for debug
-    SPDLOG_DEBUG(
-        "deep restart or cash loop status caught, restart a new application");
-    QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
-  };
-
-  // exit the program
-  return return_from_event_loop_code;
+  rtn = StartApplication(ctx);
+  ShutdownGlobalBasicalEnv(ctx);
+  return rtn;
 }

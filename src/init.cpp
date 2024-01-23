@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,23 +20,26 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#include <spdlog/async.h>
-#include <spdlog/common.h>
-#include <spdlog/sinks/rotating_file_sink.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
+#include "init.h"
 
-#include <filesystem>
-#include <string>
-
-#include "GpgFrontend.h"
-#include "GpgFrontendBuildInfo.h"
+#include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/thread/TaskRunnerGetter.h"
+#include "core/utils/LogUtils.h"
+#include "module/GpgFrontendModuleInit.h"
+#include "ui/GpgFrontendUIInit.h"
+
+// main
+#include "GpgFrontendContext.h"
+#include "main.h"
+
+namespace GpgFrontend {
 
 #ifdef WINDOWS
 int setenv(const char *name, const char *value, int overwrite) {
@@ -50,66 +53,82 @@ int setenv(const char *name, const char *value, int overwrite) {
 }
 #endif
 
-void init_logging_system() {
-  using namespace boost::posix_time;
-  using namespace boost::gregorian;
-
-  // sinks
-  std::vector<spdlog::sink_ptr> sinks;
-  sinks.push_back(std::make_shared<spdlog::sinks::stderr_color_sink_mt>());
-
-  // thread pool
-  spdlog::init_thread_pool(1024, 2);
-
-  // logger
-  auto main_logger = std::make_shared<spdlog::async_logger>(
-      "main", begin(sinks), end(sinks), spdlog::thread_pool());
-  main_logger->set_pattern(
-      "[%H:%M:%S.%e] [T:%t] [%=4n] %^[%=8l]%$ [%s:%#] [%!] -> %v (+%ius)");
-
-#ifdef DEBUG
-  main_logger->set_level(spdlog::level::trace);
-#else
-  main_logger->set_level(spdlog::level::info);
-#endif
-
-  // flush policy
-  main_logger->flush_on(spdlog::level::err);
-  spdlog::flush_every(std::chrono::seconds(5));
-
-  // register it as default logger
-  spdlog::set_default_logger(main_logger);
+void InitLoggingSystem(const GFCxtSPtr &ctx) {
+  RegisterSyncLogger("core", ctx->log_level);
+  RegisterSyncLogger("main", ctx->log_level);
+  RegisterSyncLogger("module", ctx->log_level);
+  RegisterSyncLogger("ui", ctx->log_level);
+  RegisterSyncLogger("test", ctx->log_level);
 }
 
-void shutdown_logging_system() {
-#ifdef WINDOWS
-  // Under VisualStudio, this must be called before main finishes to workaround
-  // a known VS issue
-  spdlog::drop_all();
-  spdlog::shutdown();
-#endif
-}
-
-void init_global_path_env() {
+void InitGlobalPathEnv() {
   // read settings
   bool use_custom_gnupg_install_path =
-      GpgFrontend::GlobalSettingStation::GetInstance().LookupSettings(
-          "general.use_custom_gnupg_install_path", false);
+      GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("basic/use_custom_gnupg_install_path", false)
+          .toBool();
 
-  std::string custom_gnupg_install_path =
-      GpgFrontend::GlobalSettingStation::GetInstance().LookupSettings(
-          "general.custom_gnupg_install_path", std::string{});
+  QString custom_gnupg_install_path =
+      GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("basic/custom_gnupg_install_path")
+          .toString();
 
   // add custom gnupg install path into env $PATH
-  if (use_custom_gnupg_install_path && !custom_gnupg_install_path.empty()) {
-    std::string path_value = getenv("PATH");
-    SPDLOG_DEBUG("Current System PATH: {}", path_value);
+  if (use_custom_gnupg_install_path && !custom_gnupg_install_path.isEmpty()) {
+    QString path_value = getenv("PATH");
+    GF_MAIN_LOG_DEBUG("Current System PATH: {}", path_value);
     setenv("PATH",
-           ((std::filesystem::path{custom_gnupg_install_path}).u8string() +
-            ":" + path_value)
-               .c_str(),
+           (QDir(custom_gnupg_install_path).absolutePath() + ":" + path_value)
+               .toUtf8(),
            1);
-    std::string modified_path_value = getenv("PATH");
-    SPDLOG_DEBUG("Modified System PATH: {}", modified_path_value);
+    QString modified_path_value = getenv("PATH");
+    GF_MAIN_LOG_DEBUG("Modified System PATH: {}", modified_path_value);
   }
 }
+
+void InitGlobalBasicalEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
+  GFCxtSPtr ctx = p_ctx.lock();
+  if (ctx == nullptr) {
+    return;
+  }
+
+  // initialize logging system
+  SetDefaultLogLevel(ctx->log_level);
+  InitLoggingSystem(ctx);
+
+  // change path to search for related
+  InitGlobalPathEnv();
+
+  // init application
+  ctx->InitApplication();
+
+  // should load module system first
+  Module::ModuleInitArgs module_init_args;
+  module_init_args.log_level = ctx->log_level;
+  Module::LoadGpgFrontendModules(module_init_args);
+
+  // then preload ui
+  UI::PreInitGpgFrontendUI();
+
+  CoreInitArgs core_init_args;
+  core_init_args.gather_external_gnupg_info = ctx->gather_external_gnupg_info;
+  core_init_args.load_default_gpg_context = ctx->load_default_gpg_context;
+
+  // then load core
+  InitGpgFrontendCore(core_init_args);
+}
+
+void ShutdownGlobalBasicalEnv(const GFCxtWPtr &p_ctx) {
+  GFCxtSPtr ctx = p_ctx.lock();
+  if (ctx == nullptr) {
+    return;
+  }
+
+  Thread::TaskRunnerGetter::GetInstance().StopAllTeakRunner();
+
+  DestroyGpgFrontendCore();
+}
+
+}  // namespace GpgFrontend

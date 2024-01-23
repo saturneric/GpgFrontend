@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,16 +20,16 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_KEYUPLOADWIDGET_H
-#define GPGFRONTEND_KEYUPLOADWIDGET_H
+#pragma once
 
-#include "core/GpgContext.h"
+#include "core/model/GFBuffer.h"
+#include "core/typedef/GpgTypedef.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
 
@@ -65,7 +65,7 @@ class KeyUploadDialog : public GeneralDialog {
    *
    * @param keys_data
    */
-  void slot_upload_key_to_server(const GpgFrontend::ByteArray& keys_data);
+  void slot_upload_key_to_server(const GFBuffer&);
 
   /**
    * @brief
@@ -79,5 +79,3 @@ class KeyUploadDialog : public GeneralDialog {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYUPLOADWIDGET_H

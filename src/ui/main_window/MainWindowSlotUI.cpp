@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -28,9 +28,14 @@
 
 #include "MainWindow.h"
 #include "core/GpgConstants.h"
-#include "core/function/GlobalSettingStation.h"
+#include "core/model/GpgPassphraseContext.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/dialog/Wizard.h"
+#include "ui/function/RaisePinentry.h"
+#include "ui/main_window/KeyMgmt.h"
 #include "ui/struct/SettingsObject.h"
+#include "ui/struct/settings/AppearanceSO.h"
+#include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
 
@@ -47,11 +52,12 @@ void MainWindow::slot_start_wizard() {
 void MainWindow::slot_import_key_from_edit() {
   if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
   CommonUtils::GetInstance()->SlotImportKeys(
-      this, edit_->CurTextPage()->GetTextPage()->toPlainText().toStdString());
+      this, edit_->CurTextPage()->GetTextPage()->toPlainText());
 }
 
 void MainWindow::slot_open_key_management() {
   auto* dialog = new KeyMgmt(this);
+  dialog->setWindowModality(Qt::ApplicationModal);
   dialog->show();
   dialog->raise();
 }
@@ -61,10 +67,7 @@ void MainWindow::slot_open_file_tab() { edit_->SlotNewFileTab(); }
 void MainWindow::slot_disable_tab_actions(int number) {
   bool disable;
 
-  if (number == -1)
-    disable = true;
-  else
-    disable = false;
+  disable = number == -1;
 
   if (edit_->CurFilePage() != nullptr) {
     disable = true;
@@ -93,7 +96,6 @@ void MainWindow::slot_disable_tab_actions(int number) {
   zoom_in_act_->setDisabled(disable);
   clean_double_line_breaks_act_->setDisabled(disable);
   quote_act_->setDisabled(disable);
-  append_selected_keys_act_->setDisabled(disable);
   import_key_from_edit_act_->setDisabled(disable);
 
   cut_pgp_header_act_->setDisabled(disable);
@@ -101,32 +103,26 @@ void MainWindow::slot_disable_tab_actions(int number) {
 }
 
 void MainWindow::slot_open_settings_dialog() {
-  auto dialog = new SettingsDialog(this);
+  auto* dialog = new SettingsDialog(this);
 
   connect(dialog, &SettingsDialog::finished, this, [&]() -> void {
-    SettingsObject general_settings_state("general_settings_state");
+    AppearanceSO appearance(SettingsObject("general_settings_state"));
+    GF_UI_LOG_DEBUG("tool bar icon_size: {}, {}",
+                    appearance.tool_bar_icon_width,
+                    appearance.tool_bar_icon_height);
 
-    int width = general_settings_state.Check("icon_size").Check("width", 24),
-        height = general_settings_state.Check("icon_size").Check("height", 24);
-    SPDLOG_DEBUG("icon_size: {} {}", width, height);
-
-    general_settings_state.Check("info_font_size", 10);
-
-    // icon_style
-    int s_icon_style =
-        general_settings_state.Check("icon_style", Qt::ToolButtonTextUnderIcon);
-    auto icon_style = static_cast<Qt::ToolButtonStyle>(s_icon_style);
-    this->setToolButtonStyle(icon_style);
-    import_button_->setToolButtonStyle(icon_style);
+    this->setToolButtonStyle(appearance.tool_bar_button_style);
+    import_button_->setToolButtonStyle(appearance.tool_bar_button_style);
 
     // icons ize
-    this->setIconSize(QSize(width, height));
-    import_button_->setIconSize(QSize(width, height));
+    this->setIconSize(
+        QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
+    import_button_->setIconSize(
+        QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
 
     // restart mainwindow if necessary
-    if (get_restart_needed()) {
+    if (get_restart_needed() != 0) {
       if (edit_->MaybeSaveAnyTab()) {
-        save_settings();
         emit SignalRestartApplication(get_restart_needed());
       }
     }
@@ -151,8 +147,8 @@ void MainWindow::slot_add_pgp_header() {
   QString content =
       edit_->CurTextPage()->GetTextPage()->toPlainText().trimmed();
 
-  content.prepend("\n\n").prepend(GpgConstants::PGP_CRYPT_BEGIN);
-  content.append("\n").append(GpgConstants::PGP_CRYPT_END);
+  content.prepend("\n\n").prepend(PGP_CRYPT_BEGIN);
+  content.append("\n").append(PGP_CRYPT_END);
 
   edit_->SlotFillTextEditWithText(content);
 }
@@ -163,26 +159,26 @@ void MainWindow::slot_cut_pgp_header() {
   }
 
   QString content = edit_->CurTextPage()->GetTextPage()->toPlainText();
-  int start = content.indexOf(GpgConstants::PGP_CRYPT_BEGIN);
-  int end = content.indexOf(GpgConstants::PGP_CRYPT_END);
+  auto start = content.indexOf(PGP_CRYPT_BEGIN);
+  auto end = content.indexOf(PGP_CRYPT_END);
 
   if (start < 0 || end < 0) {
     return;
   }
 
   // remove head
-  int headEnd = content.indexOf("\n\n", start) + 2;
-  content.remove(start, headEnd - start);
+  auto head_end = content.indexOf("\n\n", start) + 2;
+  content.remove(start, head_end - start);
 
   // remove tail
-  end = content.indexOf(GpgConstants::PGP_CRYPT_END);
-  content.remove(end, QString(GpgConstants::PGP_CRYPT_END).size());
+  end = content.indexOf(PGP_CRYPT_END);
+  content.remove(end, QString(PGP_CRYPT_END).size());
 
   edit_->SlotFillTextEditWithText(content.trimmed());
 }
 
 void MainWindow::SlotSetRestartNeeded(int mode) {
-  SPDLOG_DEBUG("restart mode: {}", mode);
+  GF_UI_LOG_DEBUG("restart mode: {}", mode);
   this->restart_needed_ = mode;
 }
 
@@ -190,7 +186,7 @@ int MainWindow::get_restart_needed() const { return this->restart_needed_; }
 
 void MainWindow::SetCryptoMenuStatus(
     MainWindow::CryptoMenu::OperationType type) {
-  SPDLOG_DEBUG("type: {}", type);
+  GF_UI_LOG_DEBUG("type: {}", type);
 
   // refresh status to disable all
   verify_act_->setDisabled(true);
@@ -219,6 +215,12 @@ void MainWindow::SetCryptoMenuStatus(
   if (type & MainWindow::CryptoMenu::DecryptAndVerify) {
     decrypt_verify_act_->setDisabled(false);
   }
+}
+
+void MainWindow::SlotRaisePinentry(
+    QSharedPointer<GpgPassphraseContext> context) {
+  auto* function = new RaisePinentry(this, context);
+  function->Exec();
 }
 
 }  // namespace GpgFrontend::UI

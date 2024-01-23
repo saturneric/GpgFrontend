@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,17 +20,16 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_KEYPACKAGEOPERATOR_H
-#define GPGFRONTEND_KEYPACKAGEOPERATOR_H
+#pragma once
 
-#include "core/GpgFrontendCore.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
 
@@ -48,15 +47,15 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    * @return true if passphrase was generated and saved
    * @return false if passphrase was not generated and saved
    */
-  static bool GeneratePassphrase(const std::filesystem::path &phrase_path,
-                                 std::string &phrase);
+  static auto GeneratePassphrase(const QString &phrase_path, QString &phrase)
+      -> bool;
 
   /**
    * @brief generate the name of the key package
    *
-   * @return std::string name of the key package
+   * @return QString name of the key package
    */
-  static std::string GenerateKeyPackageName();
+  static auto GenerateKeyPackageName() -> QString;
 
   /**
    * @brief generate key package
@@ -69,10 +68,10 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    * @return true if key package was generated
    * @return false if key package was not generated
    */
-  static bool GenerateKeyPackage(const std::filesystem::path &key_package_path,
-                                 const std::string &key_package_name,
-                                 KeyIdArgsListPtr &key_ids, std::string &phrase,
-                                 bool secret);
+  static void GenerateKeyPackage(const QString &key_package_path,
+                                 const QString &key_package_name,
+                                 const KeyArgsList &keys, QString &phrase,
+                                 bool secret, const OperationCallback &cb);
 
   /**
    * @brief import key package
@@ -83,25 +82,16 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    * @return true if key package was imported
    * @return false if key package was not imported
    */
-  static bool ImportKeyPackage(const std::filesystem::path &key_package_path,
-                               const std::filesystem::path &phrase_path,
-                               GpgFrontend::GpgImportInformation &import_info);
+  static void ImportKeyPackage(const QString &key_package_path,
+                               const QString &phrase_path,
+                               const OperationCallback &cb);
 
  private:
   /**
    * @brief generate key package name
    *
-   * @return std::string key package name
+   * @return QString key package name
    */
-  static std::string generate_key_package_name() {
-    std::random_device rd_;          ///< Random device
-    auto mt_ = std::mt19937(rd_());  ///< Mersenne twister
-
-    std::uniform_int_distribution<int> dist(999, 99999);
-    auto file_string = boost::format("KeyPackage_%1%") % dist(mt_);
-    return file_string.str();
-  }
+  static auto generate_key_package_name() -> QString;
 };
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_KEYPACKAGEOPERATOR_H

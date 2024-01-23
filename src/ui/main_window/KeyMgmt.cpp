@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -28,18 +28,24 @@
 
 #include "KeyMgmt.h"
 
-#include <utility>
-
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/KeyPackageOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
-#include "ui/SignalStation.h"
+#include "core/model/GpgImportInformation.h"
+#include "core/utils/GpgUtils.h"
+#include "core/utils/IOUtils.h"
+#include "function/SetOwnerTrustLevel.h"
+#include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/import_export/ExportKeyPackageDialog.h"
+#include "ui/dialog/import_export/KeyImportDetailDialog.h"
+#include "ui/dialog/key_generate/KeygenDialog.h"
 #include "ui/dialog/key_generate/SubkeyGenerateDialog.h"
+#include "ui/dialog/keypair_details/KeyDetailsDialog.h"
 #include "ui/main_window/MainWindow.h"
+#include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
 
@@ -48,10 +54,12 @@ KeyMgmt::KeyMgmt(QWidget* parent)
   /* the list of Keys available*/
   key_list_ = new KeyList(KeyMenuAbility::ALL, this);
 
-  key_list_->AddListGroupTab(_("All"), "all", KeyListRow::SECRET_OR_PUBLIC_KEY);
+  key_list_->AddListGroupTab(tr("All"), "all",
+                             KeyListRow::SECRET_OR_PUBLIC_KEY);
 
   key_list_->AddListGroupTab(
-      _("Only Public Key"), "only_public_key", KeyListRow::SECRET_OR_PUBLIC_KEY,
+      tr("Only Public Key"), "only_public_key",
+      KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key, const KeyTable&) -> bool {
@@ -60,7 +68,8 @@ KeyMgmt::KeyMgmt(QWidget* parent)
       });
 
   key_list_->AddListGroupTab(
-      _("Has Private Key"), "has_private_key", KeyListRow::SECRET_OR_PUBLIC_KEY,
+      tr("Has Private Key"), "has_private_key",
+      KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key, const KeyTable&) -> bool {
@@ -69,7 +78,7 @@ KeyMgmt::KeyMgmt(QWidget* parent)
       });
 
   key_list_->AddListGroupTab(
-      _("No Primary Key"), "no_primary_key", KeyListRow::SECRET_OR_PUBLIC_KEY,
+      tr("No Primary Key"), "no_primary_key", KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key, const KeyTable&) -> bool {
@@ -78,7 +87,7 @@ KeyMgmt::KeyMgmt(QWidget* parent)
       });
 
   key_list_->AddListGroupTab(
-      _("Revoked"), "revoked", KeyListRow::SECRET_OR_PUBLIC_KEY,
+      tr("Revoked"), "revoked", KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key, const KeyTable&) -> bool {
@@ -86,7 +95,7 @@ KeyMgmt::KeyMgmt(QWidget* parent)
       });
 
   key_list_->AddListGroupTab(
-      _("Expired"), "expired", KeyListRow::SECRET_OR_PUBLIC_KEY,
+      tr("Expired"), "expired", KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
           KeyListColumn::Usage | KeyListColumn::Validity,
       [](const GpgKey& key, const KeyTable&) -> bool {
@@ -94,9 +103,10 @@ KeyMgmt::KeyMgmt(QWidget* parent)
       });
 
   setCentralWidget(key_list_);
-  key_list_->SetDoubleClickedAction([this](const GpgKey& key, QWidget* parent) {
-    new KeyDetailsDialog(key, this);
-  });
+  key_list_->SetDoubleClickedAction(
+      [this](const GpgKey& key, QWidget* /*parent*/) {
+        new KeyDetailsDialog(key, this);
+      });
 
   key_list_->SlotRefresh();
 
@@ -110,168 +120,195 @@ KeyMgmt::KeyMgmt(QWidget* parent)
 
   this->statusBar()->show();
 
-  setWindowTitle(_("KeyPair Management"));
+  setWindowTitle(tr("KeyPair Management"));
+  setMinimumSize(QSize(600, 400));
 
   key_list_->AddMenuAction(generate_subkey_act_);
   key_list_->AddMenuAction(delete_selected_keys_act_);
   key_list_->AddSeparator();
+  key_list_->AddMenuAction(set_owner_trust_of_key_act_);
+  key_list_->AddSeparator();
   key_list_->AddMenuAction(show_key_details_act_);
 
-  connect(this, &KeyMgmt::SignalKeyStatusUpdated, SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefresh);
-  connect(SignalStation::GetInstance(), &SignalStation::SignalRefreshStatusBar,
-          this, [=](const QString& message, int timeout) {
+  connect(this, &KeyMgmt::SignalKeyStatusUpdated,
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefresh);
+  connect(UISignalStation::GetInstance(),
+          &UISignalStation::SignalRefreshStatusBar, this,
+          [=](const QString& message, int timeout) {
             statusBar()->showMessage(message, timeout);
           });
 }
 
 void KeyMgmt::create_actions() {
-  open_key_file_act_ = new QAction(_("Open"), this);
-  open_key_file_act_->setShortcut(QKeySequence(_("Ctrl+O")));
-  open_key_file_act_->setToolTip(_("Open Key File"));
+  open_key_file_act_ = new QAction(tr("Open"), this);
+  open_key_file_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_O));
+  open_key_file_act_->setToolTip(tr("Open Key File"));
   connect(open_key_file_act_, &QAction::triggered, this,
           [&]() { CommonUtils::GetInstance()->SlotImportKeyFromFile(this); });
 
-  close_act_ = new QAction(_("Close"), this);
-  close_act_->setShortcut(QKeySequence(_("Ctrl+Q")));
-  close_act_->setIcon(QIcon(":exit.png"));
-  close_act_->setToolTip(_("Close"));
+  close_act_ = new QAction(tr("Close"), this);
+  close_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q));
+  close_act_->setIcon(QIcon(":/icons/exit.png"));
+  close_act_->setToolTip(tr("Close"));
   connect(close_act_, &QAction::triggered, this, &KeyMgmt::close);
 
-  generate_key_pair_act_ = new QAction(_("New Keypair"), this);
-  generate_key_pair_act_->setShortcut(QKeySequence(_("Ctrl+N")));
-  generate_key_pair_act_->setIcon(QIcon(":key_generate.png"));
-  generate_key_pair_act_->setToolTip(_("Generate KeyPair"));
+  generate_key_pair_act_ = new QAction(tr("New Keypair"), this);
+  generate_key_pair_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_N));
+  generate_key_pair_act_->setIcon(QIcon(":/icons/key_generate.png"));
+  generate_key_pair_act_->setToolTip(tr("Generate KeyPair"));
   connect(generate_key_pair_act_, &QAction::triggered, this,
           &KeyMgmt::SlotGenerateKeyDialog);
 
-  generate_subkey_act_ = new QAction(_("New Subkey"), this);
-  generate_subkey_act_->setShortcut(QKeySequence(_("Ctrl+Shift+N")));
-  generate_subkey_act_->setIcon(QIcon(":key_generate.png"));
-  generate_subkey_act_->setToolTip(_("Generate Subkey For Selected KeyPair"));
+  generate_subkey_act_ = new QAction(tr("New Subkey"), this);
+  generate_subkey_act_->setShortcut(
+      QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_N));
+  generate_subkey_act_->setIcon(QIcon(":/icons/key_generate.png"));
+  generate_subkey_act_->setToolTip(tr("Generate Subkey For Selected KeyPair"));
   connect(generate_subkey_act_, &QAction::triggered, this,
           &KeyMgmt::SlotGenerateSubKey);
 
-  import_key_from_file_act_ = new QAction(_("File"), this);
-  import_key_from_file_act_->setIcon(QIcon(":import_key_from_file.png"));
-  import_key_from_file_act_->setToolTip(_("Import New Key From File"));
+  import_key_from_file_act_ = new QAction(tr("File"), this);
+  import_key_from_file_act_->setIcon(QIcon(":/icons/import_key_from_file.png"));
+  import_key_from_file_act_->setToolTip(tr("Import New Key From File"));
   connect(import_key_from_file_act_, &QAction::triggered, this,
           [&]() { CommonUtils::GetInstance()->SlotImportKeyFromFile(this); });
 
-  import_key_from_clipboard_act_ = new QAction(_("Clipboard"), this);
+  import_key_from_clipboard_act_ = new QAction(tr("Clipboard"), this);
   import_key_from_clipboard_act_->setIcon(
-      QIcon(":import_key_from_clipboard.png"));
+      QIcon(":/icons/import_key_from_clipboard.png"));
   import_key_from_clipboard_act_->setToolTip(
-      _("Import New Key From Clipboard"));
+      tr("Import New Key From Clipboard"));
   connect(import_key_from_clipboard_act_, &QAction::triggered, this, [&]() {
     CommonUtils::GetInstance()->SlotImportKeyFromClipboard(this);
   });
 
-  bool forbid_all_gnupg_connection =
-      GlobalSettingStation::GetInstance().LookupSettings(
-          "network.forbid_all_gnupg_connection", false);
+  bool const forbid_all_gnupg_connection =
+      GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("network/forbid_all_gnupg_connection", false)
+          .toBool();
 
-  import_key_from_key_server_act_ = new QAction(_("Keyserver"), this);
+  import_key_from_key_server_act_ = new QAction(tr("Keyserver"), this);
   import_key_from_key_server_act_->setIcon(
-      QIcon(":import_key_from_server.png"));
+      QIcon(":/icons/import_key_from_server.png"));
   import_key_from_key_server_act_->setToolTip(
-      _("Import New Key From Keyserver"));
+      tr("Import New Key From Keyserver"));
   import_key_from_key_server_act_->setDisabled(forbid_all_gnupg_connection);
-  connect(import_key_from_key_server_act_, &QAction::triggered, this, [&]() {
+  connect(import_key_from_key_server_act_, &QAction::triggered, this, [this]() {
     CommonUtils::GetInstance()->SlotImportKeyFromKeyServer(this);
   });
 
-  import_keys_from_key_package_act_ = new QAction(_("Key Package"), this);
-  import_keys_from_key_package_act_->setIcon(QIcon(":key_package.png"));
+  import_keys_from_key_package_act_ = new QAction(tr("Key Package"), this);
+  import_keys_from_key_package_act_->setIcon(QIcon(":/icons/key_package.png"));
   import_keys_from_key_package_act_->setToolTip(
-      _("Import Key(s) From a Key Package"));
+      tr("Import Key(s) From a Key Package"));
   connect(import_keys_from_key_package_act_, &QAction::triggered, this,
           &KeyMgmt::SlotImportKeyPackage);
 
-  export_key_to_clipboard_act_ = new QAction(_("Export To Clipboard"), this);
-  export_key_to_clipboard_act_->setIcon(QIcon(":export_key_to_clipboard.png"));
+  export_key_to_clipboard_act_ = new QAction(tr("Export To Clipboard"), this);
+  export_key_to_clipboard_act_->setIcon(
+      QIcon(":/icons/export_key_to_clipboard.png"));
   export_key_to_clipboard_act_->setToolTip(
-      _("Export Selected Key(s) To Clipboard"));
+      tr("Export Checked Key(s) To Clipboard"));
   connect(export_key_to_clipboard_act_, &QAction::triggered, this,
           &KeyMgmt::SlotExportKeyToClipboard);
 
-  export_key_to_file_act_ = new QAction(_("Export To Key Package"), this);
-  export_key_to_file_act_->setIcon(QIcon(":key_package.png"));
+  export_key_to_file_act_ = new QAction(tr("Export As Key Package"), this);
+  export_key_to_file_act_->setIcon(QIcon(":/icons/key_package.png"));
   export_key_to_file_act_->setToolTip(
-      _("Export Checked Key(s) To a Key Package"));
+      tr("Export Checked Key(s) To a Key Package"));
   connect(export_key_to_file_act_, &QAction::triggered, this,
           &KeyMgmt::SlotExportKeyToKeyPackage);
 
-  export_key_as_open_ssh_format_ = new QAction(_("Export As OpenSSH"), this);
-  export_key_as_open_ssh_format_->setIcon(QIcon(":ssh-key.png"));
+  export_key_as_open_ssh_format_ = new QAction(tr("Export As OpenSSH"), this);
+  export_key_as_open_ssh_format_->setIcon(QIcon(":/icons/ssh-key.png"));
   export_key_as_open_ssh_format_->setToolTip(
-      _("Export Selected Key(s) As OpenSSH Format to File"));
+      tr("Export Checked Key As OpenSSH Format to File"));
   connect(export_key_as_open_ssh_format_, &QAction::triggered, this,
           &KeyMgmt::SlotExportAsOpenSSHFormat);
 
-  delete_selected_keys_act_ = new QAction(_("Delete Selected Key(s)"), this);
-  delete_selected_keys_act_->setToolTip(_("Delete the Selected keys"));
+  delete_selected_keys_act_ = new QAction(tr("Delete Selected Key(s)"), this);
+  delete_selected_keys_act_->setToolTip(tr("Delete the Selected keys"));
   connect(delete_selected_keys_act_, &QAction::triggered, this,
           &KeyMgmt::SlotDeleteSelectedKeys);
 
-  delete_checked_keys_act_ = new QAction(_("Delete Checked Key(s)"), this);
-  delete_checked_keys_act_->setToolTip(_("Delete the Checked keys"));
-  delete_checked_keys_act_->setIcon(QIcon(":button_delete.png"));
+  delete_checked_keys_act_ = new QAction(tr("Delete Checked Key(s)"), this);
+  delete_checked_keys_act_->setToolTip(tr("Delete the Checked keys"));
+  delete_checked_keys_act_->setIcon(QIcon(":/icons/button_delete.png"));
   connect(delete_checked_keys_act_, &QAction::triggered, this,
           &KeyMgmt::SlotDeleteCheckedKeys);
 
-  show_key_details_act_ = new QAction(_("Show Key Details"), this);
-  show_key_details_act_->setToolTip(_("Show Details for this Key"));
+  show_key_details_act_ = new QAction(tr("Show Key Details"), this);
+  show_key_details_act_->setToolTip(tr("Show Details for this Key"));
   connect(show_key_details_act_, &QAction::triggered, this,
           &KeyMgmt::SlotShowKeyDetails);
+
+  set_owner_trust_of_key_act_ = new QAction(tr("Set Owner Trust Level"), this);
+  set_owner_trust_of_key_act_->setToolTip(tr("Set Owner Trust Level"));
+  set_owner_trust_of_key_act_->setData(QVariant("set_owner_trust_level"));
+  connect(set_owner_trust_of_key_act_, &QAction::triggered, this, [this]() {
+    auto keys_selected = key_list_->GetSelected();
+    if (keys_selected->empty()) return;
+
+    auto* function = new SetOwnerTrustLevel(this);
+    function->Exec(keys_selected->front());
+    function->deleteLater();
+  });
 }
 
 void KeyMgmt::create_menus() {
-  file_menu_ = menuBar()->addMenu(_("File"));
+  file_menu_ = menuBar()->addMenu(tr("File"));
   file_menu_->addAction(open_key_file_act_);
   file_menu_->addAction(close_act_);
 
-  key_menu_ = menuBar()->addMenu(_("Key"));
-  generate_key_menu_ = key_menu_->addMenu(_("Generate Key"));
+  key_menu_ = menuBar()->addMenu(tr("Key"));
+  generate_key_menu_ = key_menu_->addMenu(tr("Generate Key"));
   generate_key_menu_->addAction(generate_key_pair_act_);
   generate_key_menu_->addAction(generate_subkey_act_);
 
-  import_key_menu_ = key_menu_->addMenu(_("Import Key"));
+  import_key_menu_ = key_menu_->addMenu(tr("Import Key"));
   import_key_menu_->addAction(import_key_from_file_act_);
   import_key_menu_->addAction(import_key_from_clipboard_act_);
   import_key_menu_->addAction(import_key_from_key_server_act_);
   import_key_menu_->addAction(import_keys_from_key_package_act_);
 
-  key_menu_->addAction(export_key_to_file_act_);
-  key_menu_->addAction(export_key_to_clipboard_act_);
-  key_menu_->addAction(export_key_as_open_ssh_format_);
+  export_key_menu_ = key_menu_->addMenu(tr("Export Key"));
+  export_key_menu_->addAction(export_key_to_file_act_);
+  export_key_menu_->addAction(export_key_to_clipboard_act_);
+  export_key_menu_->addAction(export_key_as_open_ssh_format_);
   key_menu_->addSeparator();
   key_menu_->addAction(delete_checked_keys_act_);
 }
 
 void KeyMgmt::create_tool_bars() {
-  QToolBar* key_tool_bar = addToolBar(_("Key"));
+  QToolBar* key_tool_bar = addToolBar(tr("Key"));
   key_tool_bar->setObjectName("keytoolbar");
 
   // genrate key pair
   key_tool_bar->addAction(generate_key_pair_act_);
+  key_tool_bar->addSeparator();
 
   // add button with popup menu for import
-  auto* tool_button = new QToolButton(this);
-  tool_button->setMenu(import_key_menu_);
-  tool_button->setPopupMode(QToolButton::InstantPopup);
-  tool_button->setIcon(QIcon(":key_import.png"));
-  tool_button->setToolTip(_("Import key"));
-  tool_button->setText(_("Import Key"));
-  tool_button->setToolButtonStyle(icon_style_);
-  key_tool_bar->addWidget(tool_button);
+  auto* import_tool_button = new QToolButton(this);
+  import_tool_button->setMenu(import_key_menu_);
+  import_tool_button->setPopupMode(QToolButton::InstantPopup);
+  import_tool_button->setIcon(QIcon(":/icons/key_import.png"));
+  import_tool_button->setToolTip(tr("Import key"));
+  import_tool_button->setText(tr("Import Key"));
+  import_tool_button->setToolButtonStyle(icon_style_);
+  key_tool_bar->addWidget(import_tool_button);
 
-  key_tool_bar->addSeparator();
+  auto* export_tool_button = new QToolButton(this);
+  export_tool_button->setMenu(export_key_menu_);
+  export_tool_button->setPopupMode(QToolButton::InstantPopup);
+  export_tool_button->setIcon(QIcon(":/icons/key_export.png"));
+  export_tool_button->setToolTip(tr("Export key"));
+  export_tool_button->setText(tr("Export Key"));
+  export_tool_button->setToolButtonStyle(icon_style_);
+  key_tool_bar->addWidget(export_tool_button);
+
   key_tool_bar->addAction(delete_checked_keys_act_);
-  key_tool_bar->addSeparator();
-  key_tool_bar->addAction(export_key_to_file_act_);
-  key_tool_bar->addAction(export_key_to_clipboard_act_);
-  key_tool_bar->addAction(export_key_as_open_ssh_format_);
 }
 
 void KeyMgmt::SlotDeleteSelectedKeys() {
@@ -293,19 +330,17 @@ void KeyMgmt::delete_keys_with_warning(KeyIdArgsListPtr uidList) {
   for (const auto& key_id : *uidList) {
     auto key = GpgKeyGetter::GetInstance().GetKey(key_id);
     if (!key.IsGood()) continue;
-    keynames.append(QString::fromStdString(key.GetName()));
+    keynames.append(key.GetName());
     keynames.append("<i> &lt;");
-    keynames.append(QString::fromStdString(key.GetEmail()));
+    keynames.append(key.GetEmail());
     keynames.append("&gt; </i><br/>");
   }
 
-  int ret = QMessageBox::warning(
-      this, _("Deleting Keys"),
-      "<b>" +
-          QString(
-              _("Are you sure that you want to delete the following keys?")) +
+  int const ret = QMessageBox::warning(
+      this, tr("Deleting Keys"),
+      "<b>" + tr("Are you sure that you want to delete the following keys?") +
           "</b><br/><br/>" + keynames + +"<br/>" +
-          _("The action can not be undone."),
+          tr("The action can not be undone."),
       QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
@@ -321,7 +356,7 @@ void KeyMgmt::SlotShowKeyDetails() {
   auto key = GpgKeyGetter::GetInstance().GetKey(keys_selected->front());
 
   if (!key.IsGood()) {
-    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
+    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
     return;
   }
 
@@ -332,134 +367,204 @@ void KeyMgmt::SlotExportKeyToKeyPackage() {
   auto keys_checked = key_list_->GetChecked();
   if (keys_checked->empty()) {
     QMessageBox::critical(
-        this, _("Forbidden"),
-        _("Please check some keys before doing this operation."));
+        this, tr("Forbidden"),
+        tr("Please check some keys before doing this operation."));
     return;
   }
-  auto dialog = new ExportKeyPackageDialog(std::move(keys_checked), this);
+  auto* dialog = new ExportKeyPackageDialog(std::move(keys_checked), this);
   dialog->exec();
-  emit SignalStatusBarChanged(QString(_("key(s) exported")));
+  emit SignalStatusBarChanged(tr("key(s) exported"));
 }
 
 void KeyMgmt::SlotExportKeyToClipboard() {
   auto keys_checked = key_list_->GetChecked();
   if (keys_checked->empty()) {
     QMessageBox::critical(
-        this, _("Forbidden"),
-        _("Please check some keys before doing this operation."));
+        this, tr("Forbidden"),
+        tr("Please check some keys before doing this operation."));
     return;
   }
 
-  ByteArrayPtr key_export_data = nullptr;
-  if (!GpgKeyImportExporter::GetInstance().ExportKeys(keys_checked,
-                                                      key_export_data)) {
-    return;
+  if (keys_checked->size() == 1) {
+    auto key = GpgKeyGetter::GetInstance().GetKey(keys_checked->front());
+    auto [err, gf_buffer] =
+        GpgKeyImportExporter::GetInstance().ExportKey(key, false, true, false);
+    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+      CommonUtils::RaiseMessageBox(this, err);
+      return;
+    }
+    QApplication::clipboard()->setText(gf_buffer.ConvertToQByteArray());
+  } else {
+    auto keys = GpgKeyGetter::GetInstance().GetKeys(keys_checked);
+    CommonUtils::WaitForOpera(
+        this, tr("Exporting"), [=](const OperaWaitingHd& op_hd) {
+          GpgKeyImportExporter::GetInstance().ExportKeys(
+              *keys, false, true, false, false,
+              [=](GpgError err, const DataObjectPtr& data_obj) {
+                // stop waiting
+                op_hd();
+
+                if (CheckGpgError(err) == GPG_ERR_USER_1) {
+                  QMessageBox::critical(this, tr("Error"),
+                                        tr("Unknown error occurred"));
+                  return;
+                }
+
+                if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                  CommonUtils::RaiseMessageBox(this, err);
+                  return;
+                }
+
+                if (data_obj == nullptr || !data_obj->Check<GFBuffer>()) {
+                  GF_CORE_LOG_ERROR("data object checking failed");
+                  QMessageBox::critical(this, tr("Error"),
+                                        tr("Unknown error occurred"));
+                  return;
+                }
+
+                auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
+                QApplication::clipboard()->setText(
+                    gf_buffer.ConvertToQByteArray());
+              });
+        });
   }
-  QApplication::clipboard()->setText(QString::fromStdString(*key_export_data));
 }
 
 void KeyMgmt::SlotGenerateKeyDialog() {
-  auto* keyGenDialog = new KeyGenDialog(this);
-  keyGenDialog->show();
+  (new KeyGenDialog(this))->exec();
+  this->raise();
 }
 
 void KeyMgmt::SlotGenerateSubKey() {
   auto keys_selected = key_list_->GetSelected();
   if (keys_selected->empty()) {
     QMessageBox::information(
-        this, _("Invalid Operation"),
-        _("Please select one KeyPair before doing this operation."));
+        this, tr("Invalid Operation"),
+        tr("Please select one KeyPair before doing this operation."));
     return;
   }
   const auto key = GpgKeyGetter::GetInstance().GetKey(keys_selected->front());
   if (!key.IsGood()) {
-    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
+    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
     return;
   }
   if (!key.IsPrivateKey()) {
-    QMessageBox::critical(this, _("Invalid Operation"),
-                          _("If a key pair does not have a private key then "
-                            "it will not be able to generate sub-keys."));
+    QMessageBox::critical(this, tr("Invalid Operation"),
+                          tr("If a key pair does not have a private key then "
+                             "it will not be able to generate sub-keys."));
     return;
   }
 
-  auto dialog = new SubkeyGenerateDialog(key.GetId(), this);
-  dialog->show();
+  (new SubkeyGenerateDialog(key.GetId(), this))->exec();
+  this->raise();
 }
 
 void KeyMgmt::SlotExportAsOpenSSHFormat() {
-  ByteArrayPtr key_export_data = nullptr;
   auto keys_checked = key_list_->GetChecked();
-
   if (keys_checked->empty()) {
     QMessageBox::critical(
-        this, _("Forbidden"),
-        _("Please select a key before performing this operation. If you select "
-          "multiple keys, only the first key will be exported."));
+        this, tr("Forbidden"),
+        tr("Please check a key before performing this operation."));
     return;
   }
 
-  auto key = GpgKeyGetter::GetInstance().GetKey(keys_checked->front());
-  if (!GpgKeyImportExporter::GetInstance().ExportKeyOpenSSH(key,
-                                                            key_export_data)) {
-    QMessageBox::critical(this, _("Error"), _("An error occur in exporting."));
+  if (keys_checked->size() > 1) {
+    QMessageBox::critical(this, tr("Forbidden"),
+                          tr("This operation accepts just a single key."));
     return;
   }
 
-  if (key_export_data->empty()) {
-    QMessageBox::critical(
-        this, _("Error"),
-        _("This key may not be able to export as OpenSSH format. Please check "
-          "the key-size of the subkey(s) used to sign."));
-    return;
-  }
+  auto keys = GpgKeyGetter::GetInstance().GetKeys(keys_checked);
+  CommonUtils::WaitForOpera(
+      this, tr("Exporting"), [this, keys](const OperaWaitingHd& op_hd) {
+        GpgKeyImportExporter::GetInstance().ExportKeys(
+            *keys, false, true, false, true,
+            [=](GpgError err, const DataObjectPtr& data_obj) {
+              // stop waiting
+              op_hd();
 
-  key = GpgKeyGetter::GetInstance().GetKey(keys_checked->front());
-  if (!key.IsGood()) {
-    QMessageBox::critical(this, _("Error"), _("Key Not Found."));
-    return;
-  }
-  QString fileString = QString::fromStdString(
-      key.GetName() + " " + key.GetEmail() + "(" + key.GetId() + ").pub");
+              if (CheckGpgError(err) == GPG_ERR_USER_1) {
+                QMessageBox::critical(this, tr("Error"),
+                                      tr("Unknown error occurred"));
+                return;
+              }
 
-  QString file_name = QFileDialog::getSaveFileName(
-      this, _("Export OpenSSH Key To File"), fileString,
-      QString(_("OpenSSH Public Key Files")) + " (*.pub);;All Files (*)");
+              if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                CommonUtils::RaiseMessageBox(this, err);
+                return;
+              }
 
-  if (!file_name.isEmpty()) {
-    write_buffer_to_file(file_name.toStdString(), *key_export_data);
-    emit SignalStatusBarChanged(QString(_("key(s) exported")));
-  }
+              if (data_obj == nullptr || !data_obj->Check<GFBuffer>()) {
+                QMessageBox::critical(this, tr("Error"),
+                                      tr("Unknown error occurred"));
+                return;
+              }
+
+              auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
+              if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                CommonUtils::RaiseMessageBox(this, err);
+                return;
+              }
+
+              if (gf_buffer.Empty()) {
+                QMessageBox::critical(
+                    this, tr("Error"),
+                    tr("This key may not be able to export as OpenSSH format. "
+                       "Please check the key-size of the subkey(s) used to "
+                       "sign."));
+                return;
+              }
+
+              QString const file_name = QFileDialog::getSaveFileName(
+                  this, tr("Export OpenSSH Key To File"), "authorized_keys",
+                  tr("OpenSSH Public Key Files") + "All Files (*)");
+
+              if (!file_name.isEmpty()) {
+                WriteFileGFBuffer(file_name, gf_buffer);
+                emit SignalStatusBarChanged(tr("key(s) exported"));
+              }
+            });
+      });
 }
 
 void KeyMgmt::SlotImportKeyPackage() {
-  SPDLOG_INFO("Importing key package...");
-
   auto key_package_file_name = QFileDialog::getOpenFileName(
-      this, _("Import Key Package"), {},
-      QString(_("Key Package")) + " (*.gfepack);;All Files (*)");
+      this, tr("Import Key Package"), {},
+      tr("Key Package") + " (*.gfepack);;All Files (*)");
 
   auto key_file_name = QFileDialog::getOpenFileName(
-      this, _("Import Key Package Passphrase File"), {},
-      QString(_("Key Package Passphrase File")) + " (*.key);;All Files (*)");
+      this, tr("Import Key Package Passphrase File"), {},
+      tr("Key Package Passphrase File") + " (*.key);;All Files (*)");
 
   if (key_package_file_name.isEmpty() || key_file_name.isEmpty()) return;
 
-  GpgImportInformation info;
+  GF_UI_LOG_INFO("importing key package: {}", key_package_file_name);
+  CommonUtils::WaitForOpera(
+      this, tr("Importing"), [=](const OperaWaitingHd& op_hd) {
+        KeyPackageOperator::ImportKeyPackage(
+            key_package_file_name, key_file_name,
+            [=](GFError err, const DataObjectPtr& data_obj) {
+              // stop waiting
+              op_hd();
 
-  SPDLOG_INFO("importing key package: {}", key_package_file_name.toStdString());
+              if (err < 0 || !data_obj->Check<GpgImportInformation>()) {
+                QMessageBox::critical(
+                    this, tr("Error"),
+                    tr("An error occur in importing key package."));
+                return;
+              }
 
-  if (KeyPackageOperator::ImportKeyPackage(key_package_file_name.toStdString(),
-                                           key_file_name.toStdString(), info)) {
-    emit SignalStatusBarChanged(QString(_("key(s) imported")));
-    emit SignalKeyStatusUpdated();
+              auto info = ExtractParams<GpgImportInformation>(data_obj, 0);
+              if (err >= 0) {
+                emit SignalStatusBarChanged(tr("key(s) imported"));
+                emit SignalKeyStatusUpdated();
 
-    auto dialog = new KeyImportDetailDialog(info, false, this);
-    dialog->exec();
-  } else {
-    QMessageBox::critical(this, _("Error"),
-                          _("An error occur in importing key package."));
-  }
+                auto* dialog = new KeyImportDetailDialog(
+                    SecureCreateSharedObject<GpgImportInformation>(info), this);
+                dialog->exec();
+              }
+            });
+      });
 }
 
 }  // namespace GpgFrontend::UI

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,25 +19,22 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_TASKRUNNER_H
-#define GPGFRONTEND_TASKRUNNER_H
-
-#include <cstddef>
-#include <mutex>
-#include <queue>
+#pragma once
 
 #include "core/GpgFrontendCore.h"
+#include "core/function/SecureMemoryAllocator.h"
+#include "core/thread/Task.h"
 
 namespace GpgFrontend::Thread {
 
-class Task;
-
-class GPGFRONTEND_CORE_EXPORT TaskRunner : public QThread {
+class GPGFRONTEND_CORE_EXPORT TaskRunner : public QObject {
   Q_OBJECT
  public:
   /**
@@ -50,13 +47,34 @@ class GPGFRONTEND_CORE_EXPORT TaskRunner : public QThread {
    * @brief Destroy the Task Runner object
    *
    */
-  virtual ~TaskRunner() override;
+  ~TaskRunner() override;
 
   /**
    * @brief
    *
    */
-  [[noreturn]] void run() override;
+  void Start();
+
+  /**
+   * @brief
+   *
+   */
+  void Stop();
+
+  /**
+   * @brief Get the Thread object
+   *
+   * @return QThread*
+   */
+  auto GetThread() -> QThread*;
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  auto IsRunning() -> bool;
 
  public slots:
 
@@ -70,23 +88,38 @@ class GPGFRONTEND_CORE_EXPORT TaskRunner : public QThread {
   /**
    * @brief
    *
+   * @param runner
+   * @param cb
+   */
+  void PostTask(const QString&, const Task::TaskRunnable&,
+                const Task::TaskCallback&, DataObjectPtr);
+
+  /**
+   * @brief
+   *
+   * @return std::tuple<QPointer<Task>, TaskTrigger>
+   */
+  auto RegisterTask(const QString&, const Task::TaskRunnable&,
+                    const Task::TaskCallback&, DataObjectPtr)
+      -> Task::TaskHandler;
+
+  /**
+   * @brief
+   *
+   * @param task
+   */
+  void PostConcurrentTask(Task* task);
+
+  /**
+   * @brief
+   *
    * @param task
    * @param seconds
    */
   void PostScheduleTask(Task* task, size_t seconds);
 
  private:
-  std::queue<Task*> tasks;                      ///< The task queue
-  std::map<std::string, Task*> pending_tasks_;  ///< The pending tasks
-  std::mutex tasks_mutex_;                      ///< The task queue mutex
-  QThreadPool thread_pool_{this};               ///< run non-sequency task
-
-  /**
-   * @brief
-   *
-   */
-  void unregister_finished_task(std::string);
+  class Impl;
+  SecureUniquePtr<Impl> p_;
 };
 }  // namespace GpgFrontend::Thread
-
-#endif  // GPGFRONTEND_TASKRUNNER_H

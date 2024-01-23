@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,16 +19,20 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_KEYPAIROPERATAB_H
-#define GPGFRONTEND_KEYPAIROPERATAB_H
+#pragma once
 
-#include "core/function/gpg/GpgKeyGetter.h"
-#include "ui/GpgFrontendUI.h"
+#include "core/model/GpgKey.h"
+
+namespace GpgFrontend {
+class GpgImportInformation;
+}
 
 namespace GpgFrontend::UI {
 class KeyPairOperaTab : public QWidget {
@@ -40,7 +44,7 @@ class KeyPairOperaTab : public QWidget {
    * @param key_id
    * @param parent
    */
-  KeyPairOperaTab(const std::string& key_id, QWidget* parent);
+  KeyPairOperaTab(const QString& key_id, QWidget* parent);
 
   /**
    * @brief Create a Opera Menu object
@@ -122,5 +126,3 @@ class KeyPairOperaTab : public QWidget {
   QMenu* secret_key_export_opera_menu_{};  ///<
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYPAIROPERATAB_H

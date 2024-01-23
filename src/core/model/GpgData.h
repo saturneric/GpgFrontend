@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,23 +20,27 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef _GPGDATA_H
-#define _GPGDATA_H
+#pragma once
 
-#include "core/GpgConstants.h"
+#include "core/GpgFrontendCoreExport.h"
+#include "core/model/GFBuffer.h"
+#include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
+
+class GFDataExchanger;
+
 /**
  * @brief
  *
  */
-class GpgData {
+class GPGFRONTEND_CORE_EXPORT GpgData {
  public:
   /**
    * @brief Construct a new Gpg Data object
@@ -51,7 +55,40 @@ class GpgData {
    * @param size
    * @param copy
    */
-  GpgData(void* buffer, size_t size, bool copy = true);
+  GpgData(const void* buffer, size_t size, bool copy = true);
+
+  /**
+   * @brief Construct a new Gpg Data object
+   *
+   * @param fd
+   */
+  explicit GpgData(int fd);
+
+  /**
+   * @brief Construct a new Gpg Data object
+   *
+   * @param fd
+   */
+  explicit GpgData(std::shared_ptr<GFDataExchanger>);
+
+  /**
+   * @brief Construct a new Gpg Data object
+   *
+   * @param path
+   */
+  explicit GpgData(const QString& path, bool read);
+
+  /**
+   * @brief Construct a new Gpg Data object
+   *
+   */
+  explicit GpgData(GFBuffer);
+
+  /**
+   * @brief Destroy the Gpg Data object
+   *
+   */
+  ~GpgData();
 
   /**
    * @brief
@@ -65,23 +102,27 @@ class GpgData {
    *
    * @return ByteArrayPtr
    */
-  ByteArrayPtr Read2Buffer();
+  auto Read2GFBuffer() -> GFBuffer;
 
  private:
   /**
    * @brief
    *
    */
-  struct _data_ref_deleter {
+  struct DataRefDeleter {
     void operator()(gpgme_data_t _data) {
       if (_data != nullptr) gpgme_data_release(_data);
     }
   };
 
-  std::unique_ptr<struct gpgme_data, _data_ref_deleter> data_ref_ =
-      nullptr;  ///<
+  GFBuffer cached_buffer_;
+
+  std::unique_ptr<struct gpgme_data, DataRefDeleter> data_ref_ = nullptr;  ///<
+  FILE* fp_ = nullptr;
+  int fd_ = -1;
+
+  struct gpgme_data_cbs data_cbs_;
+  std::shared_ptr<GFDataExchanger> data_ex_;
 };
 
 }  // namespace GpgFrontend
-
-#endif  // _GPGDATA_H

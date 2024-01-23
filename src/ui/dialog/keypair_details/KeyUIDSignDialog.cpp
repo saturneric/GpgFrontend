@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,8 +19,10 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
@@ -28,7 +30,8 @@
 
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyManager.h"
-#include "ui/SignalStation.h"
+#include "ui/UISignalStation.h"
+#include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
 
@@ -40,15 +43,12 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
   const auto key_id = m_key_.GetId();
   m_key_list_ = new KeyList(KeyMenuAbility::NONE, this);
   m_key_list_->AddListGroupTab(
-      _("Signers"), "signers", KeyListRow::ONLY_SECRET_KEY,
+      tr("Signers"), "signers", KeyListRow::ONLY_SECRET_KEY,
       KeyListColumn::NAME | KeyListColumn::EmailAddress,
       [key_id](const GpgKey& key, const KeyTable&) -> bool {
-        if (key.IsDisabled() || !key.IsHasCertificationCapability() ||
-            !key.IsHasMasterKey() || key.IsExpired() || key.IsRevoked() ||
-            key_id == key.GetId())
-          return false;
-        else
-          return true;
+        return !(key.IsDisabled() || !key.IsHasCertificationCapability() ||
+                 !key.IsHasMasterKey() || key.IsExpired() || key.IsRevoked() ||
+                 key_id == key.GetId());
       });
   m_key_list_->SlotRefresh();
 
@@ -70,37 +70,31 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
   non_expire_check_->setTristate(false);
 
   connect(non_expire_check_, &QCheckBox::stateChanged, this,
-          [this](int state) -> void {
-            if (state == 0)
-              expires_edit_->setDisabled(false);
-            else
-              expires_edit_->setDisabled(true);
-          });
+          [this](int state) -> void { expires_edit_->setEnabled(state == 0); });
 
-  auto layout = new QGridLayout();
-
-  auto timeLayout = new QGridLayout();
+  auto* layout = new QGridLayout();
+  auto* time_layout = new QGridLayout();
 
   layout->addWidget(m_key_list_, 0, 0);
   layout->addWidget(sign_key_button_, 2, 0, Qt::AlignRight);
-  timeLayout->addWidget(new QLabel(_("Expire Date")), 0, 0);
-  timeLayout->addWidget(expires_edit_, 0, 1);
-  timeLayout->addWidget(non_expire_check_, 0, 2);
-  layout->addLayout(timeLayout, 1, 0);
+  time_layout->addWidget(new QLabel(tr("Expire Date")), 0, 0);
+  time_layout->addWidget(expires_edit_, 0, 1);
+  time_layout->addWidget(non_expire_check_, 0, 2);
+  layout->addLayout(time_layout, 1, 0);
 
   connect(sign_key_button_, &QPushButton::clicked, this,
           &KeyUIDSignDialog::slot_sign_key);
 
   this->setLayout(layout);
   this->setModal(true);
-  this->setWindowTitle(_("Sign For Key's UID(s)"));
+  this->setWindowTitle(tr("Sign For Key's UID(s)"));
   this->adjustSize();
 
   setAttribute(Qt::WA_DeleteOnClose, true);
 
   connect(this, &KeyUIDSignDialog::SignalKeyUIDSignUpdate,
-          SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefresh);
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefresh);
 }
 
 void KeyUIDSignDialog::slot_sign_key(bool clicked) {
@@ -108,29 +102,23 @@ void KeyUIDSignDialog::slot_sign_key(bool clicked) {
   auto key_ids = m_key_list_->GetChecked();
   auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
 
-  SPDLOG_DEBUG("key info got");
-#ifdef GPGFRONTEND_GUI_QT6
-  auto expires =
-      std::make_unique<boost::posix_time::ptime>(boost::posix_time::from_time_t(
-          expires_edit_->dateTime().toSecsSinceEpoch()));
-#else
-  auto expires = std::make_unique<boost::posix_time::ptime>(
-      boost::posix_time::from_time_t(expires_edit_->dateTime().toTime_t()));
-#endif
+  GF_UI_LOG_DEBUG("key info got");
+  auto expires = std::make_unique<QDateTime>(expires_edit_->dateTime());
 
-  SPDLOG_DEBUG("sign start");
+  GF_UI_LOG_DEBUG("sign start");
   for (const auto& uid : *m_uids_) {
-    SPDLOG_DEBUG("sign uid: {}", uid);
+    GF_UI_LOG_DEBUG("sign uid: {}", uid);
     // Sign For mKey
     if (!GpgKeyManager::GetInstance().SignKey(m_key_, *keys, uid, expires)) {
       QMessageBox::critical(
-          nullptr, _("Unsuccessful Operation"),
-          QString(_("Signature operation failed for UID %1")).arg(uid.c_str()));
+          nullptr, tr("Unsuccessful Operation"),
+          tr("Signature operation failed for UID %1").arg(uid));
     }
   }
 
-  QMessageBox::information(nullptr, _("Operation Complete"),
-                           _("The signature operation of the UID is complete"));
+  QMessageBox::information(
+      nullptr, tr("Operation Complete"),
+      tr("The signature operation of the UID is complete"));
   this->close();
   emit SignalKeyUIDSignUpdate();
 }

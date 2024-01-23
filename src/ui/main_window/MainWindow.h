@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,32 +20,26 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef __GPGWIN_H__
-#define __GPGWIN_H__
+#pragma once
 
-#include "KeyMgmt.h"
-#include "core/GpgConstants.h"
-#include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
-#include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
-#include "core/function/result_analyse/GpgSignResultAnalyse.h"
-#include "ui/GpgFrontendUI.h"
-#include "ui/dialog/WaitingDialog.h"
-#include "ui/dialog/Wizard.h"
-#include "ui/dialog/help/AboutDialog.h"
-#include "ui/dialog/import_export/KeyUploadDialog.h"
-#include "ui/dialog/settings/SettingsDialog.h"
 #include "ui/main_window/GeneralMainWindow.h"
-#include "ui/widgets/FindWidget.h"
-#include "ui/widgets/InfoBoardWidget.h"
-#include "ui/widgets/TextEdit.h"
+
+namespace GpgFrontend {
+class GpgPassphraseContext;
+}
 
 namespace GpgFrontend::UI {
+
+class KeyList;
+class TextEdit;
+class InfoBoardWidget;
+
 /**
  * @brief
  *
@@ -127,37 +121,111 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @details Open a new tab for path
    */
-  void SlotOpenFile(QString& path);
+  void SlotOpenFile(const QString& path);
+
+  /**
+   * @details encrypt the text of currently active textedit-page
+   * with the currently checked keys
+   */
+  void SlotEncrypt();
+
+  /**
+   * @details encrypt and sign the text of currently active textedit-page
+   * with the currently checked keys
+   */
+  void SlotEncryptSign();
+
+  /**
+   * @details Show a passphrase dialog and decrypt the text of currently active
+   * tab.
+   */
+  void SlotDecrypt();
+
+  /**
+   * @details Sign the text of currently active tab with the checked private
+   * keys
+   */
+  void SlotSign();
+
+  /**
+   * @details Verify the text of currently active tab and show verify
+   * information. If document is signed with a key, which is not in keylist,
+   * show import missing key from keyserver in Menu of verifynotification.
+   */
+  void SlotVerify();
+
+  /**
+   * @details decrypt and verify the text of currently active textedit-page
+   * with the currently checked keys
+   */
+  void SlotDecryptVerify();
 
   /**
    * @details Open dialog for encrypting file.
    */
-  void SlotFileEncrypt();
+  void SlotFileEncrypt(const QString&);
 
   /**
-   * @details Open dialog for decrypting file.
+   * @brief
+   *
    */
-  void SlotFileDecrypt();
+  void SlotDirectoryEncrypt(const QString&);
 
   /**
-   * @details Open dialog for signing file.
+   * @brief
+   *
+   * @param path
    */
-  void SlotFileSign();
+  void SlotFileDecrypt(const QString& path);
 
   /**
-   * @details Open dialog for verifying file.
+   * @brief
+   *
+   * @param path
    */
-  void SlotFileVerify();
+  void SlotArchiveDecrypt(const QString& path);
 
   /**
-   * @details Open dialog for signing file.
+   * @brief
+   *
+   * @param path
    */
-  void SlotFileEncryptSign();
+  void SlotFileSign(const QString& path);
 
   /**
-   * @details Open dialog for verifying file.
+   * @brief
+   *
+   * @param path
    */
-  void SlotFileDecryptVerify();
+  void SlotFileVerify(const QString& path);
+
+  /**
+   * @brief
+   *
+   * @param path
+   */
+  void SlotFileEncryptSign(const QString& path);
+
+  /**
+   * @brief
+   *
+   * @param path
+   */
+  void SlotDirectoryEncryptSign(const QString& path);
+
+  /**
+   * @brief
+   *
+   * @param path
+   */
+  void SlotFileDecryptVerify(const QString& path);
+
+  /**
+   * @brief
+   *
+   * @param path
+   */
+  void SlotArchiveDecryptVerify(const QString& path);
 
   /**
    * @details get value of member restartNeeded to needed.
@@ -165,44 +233,18 @@ class MainWindow : public GeneralMainWindow {
    */
   void SlotSetRestartNeeded(int);
 
+  /**
+   * @details Open a new tab for path
+   */
+  void SlotRaisePinentry(QSharedPointer<GpgPassphraseContext>);
+
  private slots:
 
   /**
-   * @details encrypt the text of currently active textedit-page
-   * with the currently checked keys
+   * @brief
+   *
    */
-  void slot_encrypt();
-
-  /**
-   * @details encrypt and sign the text of currently active textedit-page
-   * with the currently checked keys
-   */
-  void slot_encrypt_sign();
-
-  /**
-   * @details Show a passphrase dialog and decrypt the text of currently active
-   * tab.
-   */
-  void slot_decrypt();
-
-  /**
-   * @details Sign the text of currently active tab with the checked private
-   * keys
-   */
-  void slot_sign();
-
-  /**
-   * @details Verify the text of currently active tab and show verify
-   * information. If document is signed with a key, which is not in keylist,
-   * show import missing key from keyserver in Menu of verifynotification.
-   */
-  void slot_verify();
-
-  /**
-   * @details decrypt and verify the text of currently active textedit-page
-   * with the currently checked keys
-   */
-  void slot_decrypt_verify();
+  void slot_refresh_current_file_view();
 
   /**
    * @details Show the details of the first of the first of selected keys
@@ -315,7 +357,7 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @details called when need to upgrade.
    */
-  void slot_version_upgrade(const SoftwareVersion& version);
+  void slot_version_upgrade_nofity();
 
   /**
    * @details
@@ -378,11 +420,6 @@ class MainWindow : public GeneralMainWindow {
    * @details
    */
   void recover_editor_unsaved_pages_from_cache();
-
-  /**
-   * @details Save settings to ini-file.
-   */
-  void save_settings();
 
   /**
    * @brief return true, if restart is needed
@@ -490,5 +527,3 @@ class MainWindow : public GeneralMainWindow {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __GPGWIN_H__

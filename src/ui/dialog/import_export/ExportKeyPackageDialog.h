@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,16 +20,16 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_EXPORTKEYPACKAGEDIALOG_H
-#define GPGFRONTEND_EXPORTKEYPACKAGEDIALOG_H
+#pragma once
 
 #include "GpgFrontendUI.h"
+#include "core/typedef/GpgTypedef.h"
 #include "ui/dialog/GeneralDialog.h"
 
 class Ui_exportKeyPackageDialog;
@@ -55,8 +55,6 @@ class ExportKeyPackageDialog : public GeneralDialog {
  private:
   std::shared_ptr<Ui_exportKeyPackageDialog> ui_;  ///<
   KeyIdArgsListPtr key_ids_;                       ///<
-  std::string passphrase_;                         ///<
+  QString passphrase_;                             ///<
 };
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_EXPORTKEYPACKAGEDIALOG_H

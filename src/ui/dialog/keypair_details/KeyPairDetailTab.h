@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,19 +19,16 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_KEYPAIRDETAILTAB_H
-#define GPGFRONTEND_KEYPAIRDETAILTAB_H
+#pragma once
 
-#include "KeySetExpireDateDialog.h"
-#include "core/GpgContext.h"
-#include "ui/GpgFrontendUI.h"
-#include "ui/dialog/import_export/KeyServerImportDialog.h"
-#include "ui/dialog/import_export/KeyUploadDialog.h"
+#include "core/model/GpgKey.h"
 
 namespace GpgFrontend::UI {
 
@@ -74,8 +71,10 @@ class KeyPairDetailTab : public QWidget {
   QLabel* created_var_label_;   ///< Label containing the keys creation date
   QLabel* last_update_var_label_;  ///<
   QLabel* algorithm_var_label_;    ///< Label containing the keys algorithm
-  QLabel* key_id_var_label;        ///< Label containing the keys keyid
-  QLabel* fingerprint_var_label_;  ///< Label containing the keys fingerprint
+  QLabel*
+      algorithm_detail_var_label_;  ///< containing the keys algorithm detail
+  QLabel* key_id_var_label_;        ///< Label containing the keys keyid
+  QLabel* fingerprint_var_label_;   ///< Label containing the keys fingerprint
   QLabel* usage_var_label_;
   QLabel* actual_usage_var_label_;
   QLabel* primary_key_exist_var_label_;
@@ -91,10 +90,7 @@ class KeyPairDetailTab : public QWidget {
    * @param key_id
    * @param parent
    */
-  explicit KeyPairDetailTab(const std::string& key_id,
-                            QWidget* parent = nullptr);
+  explicit KeyPairDetailTab(const QString& key_id, QWidget* parent = nullptr);
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYPAIRDETAILTAB_H

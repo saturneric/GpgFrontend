@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,16 +19,19 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
 #include "KeyNewUIDDialog.h"
 
+#include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgUIDOperator.h"
-#include "ui/SignalStation.h"
+#include "ui/UISignalStation.h"
 
 namespace GpgFrontend::UI {
 KeyNewUIDDialog::KeyNewUIDDialog(const KeyId& key_id, QWidget* parent)
@@ -44,9 +47,9 @@ KeyNewUIDDialog::KeyNewUIDDialog(const KeyId& key_id, QWidget* parent)
   error_label_ = new QLabel();
 
   auto gridLayout = new QGridLayout();
-  gridLayout->addWidget(new QLabel(_("Name")), 0, 0);
-  gridLayout->addWidget(new QLabel(_("Email")), 1, 0);
-  gridLayout->addWidget(new QLabel(_("Comment")), 2, 0);
+  gridLayout->addWidget(new QLabel(tr("Name")), 0, 0);
+  gridLayout->addWidget(new QLabel(tr("Email")), 1, 0);
+  gridLayout->addWidget(new QLabel(tr("Comment")), 2, 0);
 
   gridLayout->addWidget(name_, 0, 1);
   gridLayout->addWidget(email_, 1, 1);
@@ -54,7 +57,7 @@ KeyNewUIDDialog::KeyNewUIDDialog(const KeyId& key_id, QWidget* parent)
 
   gridLayout->addWidget(create_button_, 3, 0, 1, 2);
   gridLayout->addWidget(
-      new QLabel(_("Notice: The New UID Created will be set as Primary.")), 4,
+      new QLabel(tr("Notice: The New UID Created will be set as Primary.")), 4,
       0, 1, 2);
   gridLayout->addWidget(error_label_, 5, 0, 1, 2);
 
@@ -62,37 +65,38 @@ KeyNewUIDDialog::KeyNewUIDDialog(const KeyId& key_id, QWidget* parent)
           &KeyNewUIDDialog::slot_create_new_uid);
 
   this->setLayout(gridLayout);
-  this->setWindowTitle(_("Create New UID"));
+  this->setWindowTitle(tr("Create New UID"));
   this->setAttribute(Qt::WA_DeleteOnClose, true);
   this->setModal(true);
 
   connect(this, &KeyNewUIDDialog::SignalUIDCreated,
-          SignalStation::GetInstance(),
-          &SignalStation::SignalKeyDatabaseRefresh);
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefresh);
 }
 
 void KeyNewUIDDialog::slot_create_new_uid() {
-  std::stringstream error_stream;
+  QString buffer;
+  QTextStream error_stream(&buffer);
 
   /**
    * check for errors in keygen dialog input
    */
   if ((name_->text()).size() < 5) {
-    error_stream << "  " << _("Name must contain at least five characters.")
-                 << std::endl;
+    error_stream << "  " << tr("Name must contain at least five characters.")
+                 << Qt::endl;
   }
   if (email_->text().isEmpty() || !check_email_address(email_->text())) {
-    error_stream << "  " << _("Please give a email address.") << std::endl;
+    error_stream << "  " << tr("Please give a email address.") << Qt::endl;
   }
-  auto error_string = error_stream.str();
-  if (error_string.empty()) {
+  auto error_string = error_stream.readAll();
+  if (error_string.isEmpty()) {
     if (GpgUIDOperator::GetInstance().AddUID(
-            m_key_, name_->text().toStdString(), comment_->text().toStdString(),
-            email_->text().toStdString())) {
+            m_key_, name_->text(), comment_->text(), email_->text())) {
       emit finished(1);
       emit SignalUIDCreated();
-    } else
+    } else {
       emit finished(-1);
+    }
 
   } else {
     /**
@@ -102,7 +106,7 @@ void KeyNewUIDDialog::slot_create_new_uid() {
     QPalette error = error_label_->palette();
     error.setColor(QPalette::Window, "#ff8080");
     error_label_->setPalette(error);
-    error_label_->setText(error_string.c_str());
+    error_label_->setText(error_string);
 
     this->show();
   }

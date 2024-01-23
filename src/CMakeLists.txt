@@ -1,5 +1,4 @@
-#
-# Copyright (C) 2021 Saturneric
+# Copyright (C) 2021 Saturneric <eric@bktus.com>
 #
 # This file is part of GpgFrontend.
 #
@@ -20,143 +19,109 @@
 # the gpg4usb project, which is under GPL-3.0-or-later.
 #
 # All the source code of GpgFrontend was modified and released by
-# Saturneric<eric@bktus.com> starting on May 12, 2021.
+# Saturneric <eric@bktus.com> starting on May 12, 2021.
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Introduce boost
-if(NOT BOOST_ROOT)
-    find_package(Boost COMPONENTS date_time system REQUIRED)
-else()
-    find_package(Boost
-            COMPONENTS date_time system REQUIRED
-            PATHS ${BOOST_ROOT} NO_DEFAULT_PATH)
+if(APPLE)
+  add_compile_definitions("_GNU_SOURCE")
 endif()
 
+# Introduce GpgME
+find_package(Gpgme REQUIRED)
+
 # Introduce OpenSSL
-if(APPLE)
-    set(OPENSSL_ROOT_DIR /usr/local/opt/openssl@3)
+if (APPLE)
+    # Define possible OpenSSL directories
+    set(OPENSSL_DIR_CANDIDATES 
+        /usr/local/opt/openssl@3
+        /opt/homebrew/opt/openssl@3
+    )
+
+    # Find the valid OpenSSL directory
+    foreach(DIR IN LISTS OPENSSL_DIR_CANDIDATES)
+        if(IS_DIRECTORY "${DIR}" OR EXISTS "${DIR}")
+            set(OPENSSL_ROOT_DIR "${DIR}")
+            break() # Stop loop once a valid directory is found
+        endif()
+    endforeach()
+
+    # If not found, throw an error or warning
+    if(NOT OPENSSL_ROOT_DIR)
+        message(FATAL_ERROR "OpenSSL not found in the standard directories. Please install it or set OPENSSL_ROOT_DIR manually.")
+    endif()
 endif()
 find_package(OpenSSL REQUIRED)
 
 # Introduce Qt
-if (QT5_ENV_SUPPORT)
-    # Support Qt version: 6.x, 5.12.x and 5.15.x
-    find_package(Qt6 6 COMPONENTS Core Test Widgets PrintSupport Network Core5Compat)
-    if(NOT Qt6_DIR)
-        find_package(Qt5 5 COMPONENTS Core Test Widgets PrintSupport Network REQUIRED)
-        message(STATUS "Use Qt5 for application building ${Qt5_DIR}")
-    else()
-        message(STATUS "Use Qt6 for application building ${Qt6_DIR}")
-        add_definitions(-DGPGFRONTEND_GUI_QT6)
-    endif()
-    
-    # Qt configuration
-    set(CMAKE_AUTOMOC ON)
-    set(CMAKE_AUTORCC ON)
-    set(CMAKE_AUTOUIC ON)
+# Support Qt version: 6.x
+find_package(Qt6 6 COMPONENTS Core Test Widgets PrintSupport Network Core5Compat LinguistTools REQUIRED)
 
-    set(CMAKE_AUTORCC_OPTIONS "--compress;9")
-    set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${CMAKE_SOURCE_DIR}/ui)
-endif ()
+# Qt configuration
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
+set(CMAKE_AUTORCC_OPTIONS "--compress;9")
+set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${CMAKE_SOURCE_DIR}/ui)
+
 
 # configure for output path and resources
-if (APPLICATION_BUILD)
+if (BUILD_APPLICATION)
     aux_source_directory(. BASE_SOURCE)
     set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_SOURCE_DIR}/gpgfrontend.rc")
     set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE_DIR}/gpgfrontend.ico)
 
     if (NOT XCODE_BUILD)
         # Set Binary Output Path
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/release)
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts)
     else ()
         # Set Binary Output Path
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
     endif ()
 endif ()
 
+if (BUILD_CORE)
+    # core depends pinentry
+    message("[+] Build Pinentry")
+    add_subdirectory(pinentry)
 
-if (GPG_CORE)
-    message(STATUS "Build Gpg Core")
+    message("[+] Build Core")
     add_subdirectory(core)
 endif ()
 
-if (UI_CORE)
-    message(STATUS "Build UI Core")
+if (BUILD_UI)
+    message("[+] Build UI")
     add_subdirectory(ui)
 endif ()
 
-if (SERVER_SUPPORT)
-    message(STATUS "Build Server Support")
-    add_compile_definitions(SERVER_SUPPORT)
-    add_subdirectory(server)
+if (BUILD_MODULE)
+    message("[+] Build Module")
+    add_subdirectory(module)
 endif ()
 
-if (ADVANCE_SUPPORT)
-    message(STATUS "Build Advance Support")
-    add_compile_definitions(ADVANCE_SUPPORT)
-    add_subdirectory(advance)
+# build to test gpgfrontend core
+if (BUILD_TEST)
+    include(CTest)
+    enable_testing()
+    add_subdirectory(test)
 endif ()
 
-if (APPLICATION_BUILD)
+if (BUILD_APPLICATION)
     # Set Resource Output Path
     if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
         if (APPLE)
             set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Resources)
         elseif (LINUX AND NOT LINUX_INSTALL_SOFTWARE)
             file(COPY ${CMAKE_SOURCE_DIR}/resource/lfs/app-image/gpgfrontend DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+            file(COPY ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.metainfo.xml DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/share/metainfo FOLLOW_SYMLINK_CHAIN)
+            file(COPY ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.desktop DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/share/applications FOLLOW_SYMLINK_CHAIN)
             set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/share)
         else ()
             set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
         endif ()
     else ()
         set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-    endif ()
-endif ()
-
-# Get ALL SOURCE FILES
-file(GLOB_RECURSE ALL_SOURCE_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/src/*.cpp)
-
-# i18n
-if (MULTI_LANG_SUPPORT)
-    message(STATUS "Build Multiply Languages Support")
-    # Set Translation Files
-    find_package(Gettext REQUIRED)
-    FIND_PROGRAM(GETTEXT_MSGFMT_EXECUTABLE msgfmt)
-    FIND_PROGRAM(GETTEXT_XGETTEXT_EXECUTABLE xgettext)
-
-    set(LOCALE_OUTPUT_PATH ${RESOURCE_OUTPUT_DIRECTORY}/locales)
-
-    if (NOT GETTEXT_MSGFMT_EXECUTABLE OR NOT GETTEXT_XGETTEXT_EXECUTABLE)
-        message(ERROR "msgfmt or xgettext not found. Translations will *not* be installed")
-    else()
-        message(STATUS "Setting target translations")
-        add_custom_target(translations)
-        set(OUTPUT_POT_PATH ${CMAKE_SOURCE_DIR}/resource/lfs/locale/template/${PROJECT_NAME}.pot)
-        add_custom_command(
-                TARGET translations
-                COMMAND find ${CMAKE_SOURCE_DIR}/src -iname \"*.cpp\" | xargs xgettext --package-name=${PROJECT_NAME} --copyright-holder=Saturneric --package-version=${PROJECT_VERSION} --msgid-bugs-address=eric@bktus.com --add-comments="/*" --c++ -k_ -o ${OUTPUT_POT_PATH}
-        )
-
-        file(GLOB ALL_PO_FILES ${CMAKE_SOURCE_DIR}/resource/lfs/locale/po/*.po)
-        SET(GMO_FILES)
-
-        foreach (_poFile ${ALL_PO_FILES})
-            GET_FILENAME_COMPONENT(_poFileName ${_poFile} NAME)
-            string(REGEX REPLACE "\\.[^.]*$" "" _langName ${_poFileName})
-            message(STATUS "GNU gettext po file ${_langName}")
-            make_directory(${RESOURCE_OUTPUT_DIRECTORY}/locales)
-            make_directory(${RESOURCE_OUTPUT_DIRECTORY}/locales/${_langName}/LC_MESSAGES)
-            add_custom_command(
-                    TARGET translations
-                    COMMAND echo Processing po LANG ${_langName}
-            )
-            add_custom_command(
-                    TARGET translations
-                    COMMAND msgfmt --check --verbose --output-file ${LOCALE_OUTPUT_PATH}/${_langName}/LC_MESSAGES/GpgFrontend.mo ${_poFile}
-            )
-        endforeach ()
-
     endif ()
 endif ()
 
@@ -170,17 +135,14 @@ if (BASIC_ENV_CONFIG)
     endif ()
 endif ()
 
-if (APPLICATION_BUILD)
+if (BUILD_APPLICATION)
     # Copy Resource Files
     file(COPY ${CMAKE_SOURCE_DIR}/resource/css DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
     file(COPY ${CMAKE_SOURCE_DIR}/resource/lfs/icons DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
     file(COPY ${CMAKE_SOURCE_DIR}/TRANSLATORS DESTINATION ${RESOURCE_OUTPUT_DIRECTORY} FOLLOW_SYMLINK_CHAIN)
-    if (GPG_STANDALONE_MODE)
-        file(COPY ${CMAKE_SOURCE_DIR}/resource/gpg1.4 DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    endif ()
 endif ()
 
-if (APPLICATION_BUILD)
+if (BUILD_APPLICATION)
     if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
         if (APPLE)
             file(COPY ${CMAKE_SOURCE_DIR}/gpgfrontend.icns DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
@@ -192,7 +154,7 @@ if (APPLICATION_BUILD)
     endif ()
 endif ()
 
-if (APPLICATION_BUILD)
+if (BUILD_APPLICATION)
     # Copy Utils Files
     if (MINGW)
         message(STATUS "Copying Dependent DLL For Windows Runtime Env")
@@ -206,10 +168,6 @@ if (APPLICATION_BUILD)
         # find libicu*.dll
         unset(_libDllPath)
         file(GLOB _libDllPath "${_libDllBinPath}/libicu[a-z]*[0-9][0-9].dll")
-        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-        unset(_libDllPath)
-        file(GLOB _libDllPath "${_libDllBinPath}/libconfig++-*.dll")
         list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
         unset(_libDllPath)
@@ -341,18 +299,15 @@ if (APPLICATION_BUILD)
     endif ()
 endif ()
 
-if (APPLICATION_BUILD)
+if (BUILD_APPLICATION)
     set(RESOURCE_FILES ${CMAKE_SOURCE_DIR}/gpgfrontend.qrc ${APP_ICON_RESOURCE_WINDOWS} ${QON_QM_FILES})
     add_custom_target(resources ALL DEPENDS ${RESOURCE_FILES})
-    if (MULTI_LANG_SUPPORT)
-        add_dependencies(resources translations)
-    endif ()
 endif ()
 
-if (APPLICATION_BUILD)
+if (BUILD_APPLICATION)
     if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
         if (MINGW)
-            add_executable(${AppName} WIN32 ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+            add_executable(${AppName} WIN32 ${BASE_SOURCE} ${RESOURCE_FILES})
             # include qt dependencies
             if(NOT Qt6_DIR)
                 add_custom_command(TARGET ${AppName} POST_BUILD
@@ -363,10 +318,10 @@ if (APPLICATION_BUILD)
             endif()
         elseif (APPLE AND NOT XCODE_BUILD)
             # custom app bundle packing
-            add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+            add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES})
             set_target_properties(${AppName} PROPERTIES
                     BUNDLE True
-                    MACOSX_BUNDLE_GUI_IDENTIFIER pub.gpgfrontend.gpgfrontend
+                    MACOSX_BUNDLE_GUI_IDENTIFIER com.bktus.gpgfrontend
                     MACOSX_BUNDLE_BUNDLE_NAME ${AppName}
                     MACOSX_BUNDLE_LONG_VERSION_STRING ${BUILD_VERSION}
                     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
@@ -381,7 +336,7 @@ if (APPLICATION_BUILD)
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                     COMMENT "Copying Resources into App Bundle Resource")
         elseif (LINUX AND NOT LINUX_INSTALL_SOFTWARE)
-            add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+            add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
             add_custom_command(TARGET ${AppName} POST_BUILD
                     COMMAND /bin/mkdir -p ./gpgfrontend/usr/bin && /bin/mv -f ./${AppName} ./gpgfrontend/usr/bin/
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
@@ -393,10 +348,10 @@ if (APPLICATION_BUILD)
             # app bundle packing using xcode
         elseif (APPLE AND XCODE_BUILD)
             # standard app bundle packing
-            add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+            add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES})
             set_target_properties(${AppName} PROPERTIES
                     BUNDLE True
-                    MACOSX_BUNDLE_GUI_IDENTIFIER pub.gpgfrontend.gpgfrontend
+                    MACOSX_BUNDLE_GUI_IDENTIFIER com.bktus.gpgfrontend
                     MACOSX_BUNDLE_BUNDLE_NAME ${AppName}
                     MACOSX_BUNDLE_LONG_VERSION_STRING ${BUILD_VERSION}
                     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
@@ -444,11 +399,11 @@ if (APPLICATION_BUILD)
                     XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}"
                     )
         else ()
-            add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+            add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
         endif ()
     else ()
         # if the status is debug
-        add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES} ${QT5_MOCS})
+        add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
         if(MINGW)
             # include qt dependencies
             if(NOT Qt6_DIR)
@@ -464,124 +419,74 @@ if (APPLICATION_BUILD)
     # Make app build with resources
     add_dependencies(${AppName} resources)
 
+    # using c++ standard 17
+    target_compile_features(${AppName} PUBLIC cxx_std_17)
+
 endif ()
 
 # link options for GpgFrontend
-if (APPLICATION_BUILD)
-    target_link_libraries(${AppName} gpgfrontend_ui)
+if (BUILD_APPLICATION)
+    target_link_libraries(${AppName} gpgfrontend_ui gpgfrontend_module gpgfrontend_test)
     if (MINGW)
         message(STATUS "Link Application Library For MINGW")
         target_link_libraries(${AppName} crypto)
     elseif (APPLE)
         message(STATUS "Link Application Library For macOS")
-        target_link_libraries(${AppName} intl)
     else ()
         message(STATUS "Link Application Library For Linux")
         target_link_libraries(${AppName} crypto pthread)
-        # link for freebsd
-        if(FREEBSD)
-            target_link_libraries(${AppName} intl)
-        endif()
-        # issue on filesystem support of gcc
-        if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 9.0)
-            target_link_libraries(${AppName} stdc++fs)
-        endif ()
     endif ()
 endif ()
 
-# using c++ standard 17
-target_compile_features(${AppName} PUBLIC cxx_std_17)
+# add i18n support
+if (BUILD_APPLICATION)
+    set(LOCALE_TS_PATH ${CMAKE_SOURCE_DIR}/resource/lfs/locale/ts)
+    set(TS_FILES "${LOCALE_TS_PATH}/GpgFrontend.de_DE.ts"
+                "${LOCALE_TS_PATH}/GpgFrontend.fr_FR.ts"
+                "${LOCALE_TS_PATH}/GpgFrontend.zh_CN.ts"
+                "${LOCALE_TS_PATH}/GpgFrontend.zh_TW.ts"
+                "${LOCALE_TS_PATH}/GpgFrontend.it_IT.ts")
+    file(GLOB_RECURSE ALL_SOURCE_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/src/*.cpp)
+    qt_add_translations(${AppName} 
+        RESOURCE_PREFIX "/i18n"
+        TS_FILES ${TS_FILES}
+        SOURCES ${ALL_SOURCE_FILES}
+        INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/src)
+endif()
 
 # if building linux package
 if (LINUX AND LINUX_INSTALL_SOFTWARE)
+    include(GNUInstallDirs)
     if (INSTALL_GPGFRONTEND_APP)
         install(TARGETS ${AppName} gpgfrontend_core gpgfrontend_ui
                 EXPORT GpgFrontendTargets
-                RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-                LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                )
-        install(DIRECTORY /usr/local/lib/
-                DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                FILES_MATCHING PATTERN "libgpgme.so*")
-        install(DIRECTORY /usr/local/lib/
-                DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                FILES_MATCHING PATTERN "libassuan.so*")
-        install(DIRECTORY /usr/local/lib/
-                DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                FILES_MATCHING PATTERN "libgpg-error.so*")
+                RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
+                LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
+                ARCHIVE DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
+        install(DIRECTORY ${PC_GPGME_LIBDIR}
+                DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
+                FILES_MATCHING PATTERN "libgpgme.so*"
+                PATTERN "lib" EXCLUDE)
+        install(DIRECTORY ${PC_GPGME_LIBDIR}
+                DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
+                FILES_MATCHING PATTERN "libassuan.so*"
+                PATTERN "lib" EXCLUDE)
+        install(DIRECTORY ${PC_GPGME_LIBDIR}
+                DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
+                FILES_MATCHING PATTERN "libgpg-error.so*"
+                PATTERN "lib" EXCLUDE)
         install(FILES ${CMAKE_SOURCE_DIR}/TRANSLATORS
-                DESTINATION /usr/local/share/${AppName}/)
-        install(FILES ${CMAKE_SOURCE_DIR}/resource/meta/pub.gpgfrontend.gpgfrontend.appdata.xml
-                DESTINATION /usr/share/metainfo/)
-        install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/desktop/
-                DESTINATION /usr/share/applications/)
+                DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/${AppName}/)
+        install(FILES ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.appdata.xml
+                DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/metainfo/)
+        install(FILES ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.desktop
+                DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/applications/)
         install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/pixmaps/
-                DESTINATION /usr/share/pixmaps/)
+                DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/pixmaps/)
         install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/
-                DESTINATION /usr/share/icons/hicolor/)
-    endif ()
-    if (MULTI_LANG_SUPPORT)
-        install(DIRECTORY ${LOCALE_OUTPUT_PATH}/
-                DESTINATION ${CMAKE_INSTALL_FULL_LOCALEDIR})
-    endif ()
-
-    if (APP_PACKAGE_DEB)
-        message(STATUS "Configure DEB Package")
-        SET(CPACK_GENERATOR "DEB")
-        set(CPACK_INSTALL_PREFIX "/usr/local/")
-        set(CPACK_PACKAGE_NAME "gpgfrontend")
-        set(CPACK_DEBIAN_PACKAGE_NAME "gpgfrontend")
-        set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
-        set(CPACK_PACKAGE_CONTACT "eric@bktus.com")
-        SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Saturneric")
-
-        if (${DISTRO_NAME} MATCHES "Ubuntu")
-            if (${DISTRO_VERSION_ID} STREQUAL "22.04")
-                set(CPACK_DEBIAN_PACKAGE_DEPENDS "gpg (>= 2.2), libqt5core5a (>= 5.9), libqt5gui5 (>= 5.9), libqt5widgets5 (>= 5.9), libqt5network5 (>= 5.9), libqt5printsupport5 (>= 5.9), libconfig++9v5 (>=1.5), libarchive13(>= 3.4), openssl(>= 1.1.1), libicu70")
-            elseif (${DISTRO_VERSION_ID} STREQUAL "20.04")
-                set(CPACK_DEBIAN_PACKAGE_DEPENDS "gpg (>= 2.2), libqt5core5a (>= 5.9), libqt5gui5 (>= 5.9), libqt5widgets5 (>= 5.9), libqt5network5 (>= 5.9), libqt5printsupport5 (>= 5.9), libconfig++9v5 (>=1.5), libarchive13(>= 3.4), openssl(>= 1.1.1), libicu66")
-            endif ()
-        endif ()
-
-        set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
-        set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
-        set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
-        include(CPack)
-    endif ()
-
-    if (APP_PACKAGE_RPM)
-        message(STATUS "Configure RPM Package")
-        SET(CPACK_GENERATOR "RPM")
-        set(CPACK_INSTALL_PREFIX "/usr/local/")
-        set(CPACK_PACKAGE_NAME "gpgfrontend")
-        set(CPACK_DEBIAN_PACKAGE_NAME "gpgfrontend")
-        set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
-        set(CPACK_PACKAGE_CONTACT "eric@bktus.com")
-        SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Saturneric")
-
-        set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
-        set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
-        set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
-        include(CPack)
-    endif ()
-
-    if (APP_PACKAGE_FREEBSD)
-        message(STATUS "Configure PKG Package")
-        SET(CPACK_GENERATOR "FREEBSD")
-        set(CPACK_INSTALL_PREFIX "/usr/local/")
-        set(CPACK_FREEBSD_PACKAGE_NAME "gpgfrontend")
-        set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
-        set(CPACK_PACKAGE_CONTACT "eric@bktus.com")
-        SET(CPACK_FREEBSD_PACKAGE_MAINTAINER "Saturneric")
-
-        set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
-        set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
-        set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
-        include(CPack)
+                DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/icons/hicolor/)
     endif ()
 endif ()
 
 message(STATUS "Resource Files: ${RESOURCE_OUTPUT_DIRECTORY}")
-message(STATUS "Locale Files: ${LOCALE_OUTPUT_PATH}")
 message(STATUS "Runtime Files: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")

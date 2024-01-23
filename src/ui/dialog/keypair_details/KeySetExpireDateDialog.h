@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,18 +20,17 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
-#define GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H
+#pragma once
 
-#include "core/GpgContext.h"
+#include "core/function/gpg/GpgContext.h"
 #include "core/model/GpgKey.h"
-#include "core/model/GpgSubKey.h"
+#include "core/typedef/GpgTypedef.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
 
@@ -58,7 +57,7 @@ class KeySetExpireDateDialog : public GeneralDialog {
    * @param subkey_fpr
    * @param parent
    */
-  explicit KeySetExpireDateDialog(const KeyId& key_id, std::string subkey_fpr,
+  explicit KeySetExpireDateDialog(const KeyId& key_id, QString subkey_fpr,
                                   QWidget* parent = nullptr);
 
  signals:
@@ -95,5 +94,3 @@ class KeySetExpireDateDialog : public GeneralDialog {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_KEYSETEXPIREDATEDIALOG_H

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,17 +20,16 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_GPGDECRYPTRESULTANALYSE_H
-#define GPGFRONTEND_GPGDECRYPTRESULTANALYSE_H
+#pragma once
 
 #include "GpgResultAnalyse.h"
-#include "core/GpgConstants.h"
+#include "core/model/GpgDecryptResult.h"
 
 namespace GpgFrontend {
 
@@ -40,6 +39,7 @@ namespace GpgFrontend {
  */
 class GPGFRONTEND_CORE_EXPORT GpgDecryptResultAnalyse
     : public GpgResultAnalyse {
+  Q_OBJECT
  public:
   /**
    * @brief Construct a new Decrypt Result Analyse object
@@ -47,14 +47,14 @@ class GPGFRONTEND_CORE_EXPORT GpgDecryptResultAnalyse
    * @param m_error
    * @param m_result
    */
-  explicit GpgDecryptResultAnalyse(GpgError m_error, GpgDecrResult m_result);
+  explicit GpgDecryptResultAnalyse(GpgError m_error, GpgDecryptResult m_result);
 
  protected:
   /**
    * @brief
    *
    */
-  void do_analyse() final;
+  void doAnalyse() final;
 
  private:
   /**
@@ -63,12 +63,10 @@ class GPGFRONTEND_CORE_EXPORT GpgDecryptResultAnalyse
    * @param stream
    * @param recipient
    */
-  void print_recipient(std::stringstream &stream, gpgme_recipient_t recipient);
+  void print_recipient(QTextStream &stream, gpgme_recipient_t recipient);
 
-  GpgError error_;        ///<
-  GpgDecrResult result_;  ///<
+  GpgError error_;           ///<
+  GpgDecryptResult result_;  ///<
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGDECRYPTRESULTANALYSE_H

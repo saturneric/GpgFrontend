@@ -28,7 +28,7 @@ When using GpgFrontend, you can:
 GpgFrontend is **PERMANENTLY FREE** of charge. However, you can support us by
 "starring" this project. Your contributions are highly appreciated!
 
-[Language Supported](#language-support) by GpgFrontend including English, Chinese, French, Russian, German, Spanish, Portuguese, Arabic, etc.
+[Language Supported](#language-support) by GpgFrontend including English, Chinese, French, German, Italian, etc.
 
 [>> Download <<](https://github.com/saturneric/GpgFrontend/releases/latest)
 | [>> User Manual <<](https://www.gpgfrontend.bktus.com/#/overview)
@@ -69,9 +69,9 @@ later, and Ubuntu 20.04 LTS or other equivalent Linux distributions.
 
 ### Software Dependencies
 
-Qt5 or Later: GpgFrontend is developed using the Qt framework. Therefore, a
-runtime of Qt5 or later is required for the software to function correctly.
-Please note, the Qt5 runtime is integrated into the Release Package for Linux,
+Qt6 or Later: GpgFrontend is developed using the Qt framework. Therefore, a
+runtime of Qt6 or later is required for the software to function correctly.
+Please note, the Qt6 runtime is integrated into the Release Package for Linux,
 macOS, and Windows, so it generally does not need to be considered separately.
 This allows for easier setup and ensures compatibility across different systems.
 
@@ -129,8 +129,8 @@ MSYS2 directory, and execute the following commands:
 
 ```shell
 pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf
-pacman --noconfirm -S --needed make texinfo mingw-w64-x86_64-libconfig mingw-w64-x86_64-boost automake
-pacman --noconfirm -S --needed mingw-w64-x86_64-qt5 libintl msys2-runtime-devel gettext-devel mingw-w64-x86_64-gpgme
+pacman --noconfirm -S --needed make texinfo automake
+pacman --noconfirm -S --needed mingw-w64-x86_64-qt6 libintl msys2-runtime-devel gettext-devel mingw-w64-x86_64-gpgme
 pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg mingw-w64-x86_64-libarchive
 ```
 
@@ -146,7 +146,7 @@ $ ninja
 After compiling, a release directory will be generated, which contains executable files that can be run directly.
 
 ```shell
-$ ./release/GpgFrontend.exe
+$ ./artifacts/GpgFrontend.exe
 ```
 
 ### For macOS
@@ -154,8 +154,8 @@ $ ./release/GpgFrontend.exe
 Install and compile dependencies.
 
 ```shell
-$ brew install cmake git autoconf automake qt@5 texinfo gettext openssl@1.1 libarchive
-$ brew install boost ninja
+$ brew install cmake git autoconf automake qt@6 texinfo gettext openssl@1.1 libarchive
+$ brew install ninja
 $ brew unlink gettext && brew link --force gettext
 $ brew link qt@5
 ```
@@ -167,7 +167,7 @@ $ cd GpgFrontend
 $ mkdir build && cd build
 $ cmake -G Ninja  -DCMAKE_BUILD_TYPE="Debug" -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1  ..
 $ ninja
-$ ./release/GpgFrontend # run the program
+$ ./artifacts/GpgFrontend # run the program
 ```
 
 Build the code and make the App Bundle.
@@ -177,7 +177,7 @@ $ cd GpgFrontend
 $ mkdir build && cd build
 $ cmake -G Ninja  -DCMAKE_BUILD_TYPE="Release" -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1 ..
 $ ninja
-$ macdeployqt ./release/GpgFrontend.app
+$ macdeployqt ./artifacts/GpgFrontend.app
 ```
 
 ### For Ubuntu 18.04 And Later
@@ -186,9 +186,9 @@ Install and compile dependencies.
 
 ```shell
 $ sudo apt-get update
-$ sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
-$ sudo apt-get -y install gcc-8 g++-8 ninja-build
-$ sudo apt-get -y install libconfig++-dev libboost-all-dev libarchive-dev libssl-dev
+$ sudo apt-get -y install build-essential binutils git autoconf automake gcc-8 g++-8 ninja-build
+$ sudo apt-get -y install gettext texinfo qt6-base-dev libqt6core5compat6-dev libgpgme-dev
+$ sudo apt-get -y install libarchive-dev libssl-dev
 $ sudo apt-get -y install gpg # If you need to run directly after building.
 ```
 
@@ -200,30 +200,20 @@ newer than those in apt.
 $ cd GpgFrontend
 $ cd  ./third_party/libgpg-error
 $ ./autogen.sh
-$ ./configure --enable-maintainer-mode && make
+$ ./configure --enable-maintainer-mode && make -j$(nproc)
 $ sudo make install
 # libassuan
 $ cd GpgFrontend
 $ cd  ./third_party/libassuan
 $ ./autogen.sh
-$ ./configure --enable-maintainer-mode && make
+$ ./configure --enable-maintainer-mode && make -j$(nproc)
 $ sudo make install
 # gpgme
 $ cd GpgFrontend
 $ cd  ./third_party/gpgme
 $ ./autogen.sh
-$ ./configure --enable-maintainer-mode --enable-languages=cpp && make
+$ ./configure --enable-maintainer-mode --enable-languages=cpp && make -j$(nproc)
 $ sudo make install
-```
-
-Build the code and make the deb package(Please use Ubuntu 20.04 or later).
-
-```shell
-$ cd GpgFrontend
-$ mkdir build && cd build
-$ cmake -G Ninja  -DCMAKE_BUILD_TYPE="Release" -DGPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE=ON ..
-$ ninja
-$ ninja package
 ```
 
 Build the code separately for debug(Please use ubuntu 18.04 or later).
@@ -233,7 +223,7 @@ $ cd GpgFrontend
 $ mkdir build && cd build
 $ cmake -G Ninja  -DCMAKE_BUILD_TYPE="Debug" ..
 $ ninja
-$ ./release/GpgFrontend # run the program
+$ ./artifacts/GpgFrontend # run the program
 ```
 
 Package the AppImage(Should use ubuntu 18.04).
@@ -247,57 +237,26 @@ $ mkdir ./AppImageOut
 $ cd ./AppImageOut
 $ wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
 $ chmod u+x linuxdeployqt-continuous-x86_64.AppImage
-$ ./linuxdeployqt-continuous-x86_64.AppImage ../release/gpgfrontend/usr/share/applications/*.desktop -appimage
+$ ./linuxdeployqt-continuous-x86_64.AppImage ../artifacts/gpgfrontend/usr/share/applications/*.desktop -appimage
 ```
 
 ## Language Support
 
-Listed below are the languages currently supported by GpgFrontend. Please be
-aware that some of these languages are translated via machine translation and
-may not have been manually verified for accuracy. If you are interested in
-joining our translation and verification work, please refer to [this
-link](https://gpgfrontend.bktus.com/#/translate-interface).
+If you find an error in any of the translations or need to add a new one, we
+welcome you to [join our translation
+work](https://www.gpgfrontend.bktus.com/#/translate-interface).
 
 ### Supported Languages
 
 GpgFrontend currently supports a wide array of languages including:
 
+- English
 - Chinese
-- Spanish: 'es_ES', 'es_MX'
-- French: 'fr_FR', 'fr_CA'
-- German: 'de_DE', 'de_AT', 'de_CH'
-- Polish: 'pl_PL'
-- Russian: 'ru_RU'
-- Japanese: 'ja_JP'
-- Italian: 'it_IT'
-- Korean: 'ko_KR'
-- Brazilian Portuguese: 'pt_BR'
-- Arabic: 'ar_SA', 'ar_IQ'
-- Hindi: 'hi_IN'
-- Afrikaans: 'af_ZA'
-- Albanian: 'sq_AL'
-- Belarusian: 'be_BY'
-- Bulgarian: 'bg_BG'
-- Catalan: 'ca_ES'
-- Croatian: 'hr_HR'
-- Czech: 'cs_CZ'
-- Danish: 'da_DK'
-- Dutch: 'nl_NL'
-- Estonian: 'et_EE'
-- Persian: 'fa_IR'
-- Finnish: 'fi_FI'
-- Hebrew: 'he_IL', 'iw_IL'
-- Indonesian: 'id_ID'
-- Lithuanian: 'lt_LT'
-- Greek: 'el_GR'
-- Ukrainian: 'uk_UA'
-- English: 'en_US', 'en_GB', 'en_AU'
+- French
+- German
+- Italian
 
-**Notice:** Please note that most translations are generated by Google's
-automatic translation service. If you find an error in any of the translations,
-we welcome you to [join our translation
-work](https://www.gpgfrontend.bktus.com/#/translate-interface) to provide a more
-accurate human translation.
+Contributors: [SHOW](TRANSLATORS)
 
 ## Contract
 
@@ -334,9 +293,11 @@ visit their respective homepages:
 - **MSYS2**: [https://www.msys2.org](https://www.msys2.org)
 - **Mingw-w64**: [http://mingw-w64.org/doku.php](http://mingw-w64.org/doku.php)
 - **AppImage**: [https://appimage.org](https://appimage.org)
-- **JSON for Modern C++**: [https://github.com/nlohmann/json](https://github.com/nlohmann/json)
-- **Qt-AES**: [https://github.com/saturneric/Qt-AES](https://github.com/saturneric/Qt-AES)
 - **macOS Application Bundles**: [Link](https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW1)
+- **libarchive**: [https://www.libarchive.org](https://www.libarchive.org)
+- **spdlog**: [https://github.com/gabime/spdlog](https://github.com/gabime/spdlog)
+- **mimalloc**: [https://github.com/microsoft/mimalloc](https://github.com/microsoft/mimalloc)
+- **Qt-AES**: [https://github.com/bricke/Qt-AES](https://github.com/bricke/Qt-AES)
 
 The icons utilized in this software are sourced from [Alibaba
 Iconfont](https://www.iconfont.cn/). This vector icon library is free of use,

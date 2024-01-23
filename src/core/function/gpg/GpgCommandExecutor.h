@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,39 +20,43 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H
-#define GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H
+#pragma once
 
-#ifndef WINDOWS
-#include <boost/process.hpp>
-#endif
-
-#include "core/GpgContext.h"
-#include "core/GpgFunctionObject.h"
-#include "core/thread/Task.h"
+#include "core/module/Module.h"
 
 namespace GpgFrontend {
+
+using GpgCommandExecutorCallback = std::function<void(int, QString, QString)>;
+using GpgCommandExecutorInteractor = std::function<void(QProcess *)>;
 
 /**
  * @brief Extra commands related to GPG
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor
-    : public SingletonFunctionObject<GpgCommandExecutor> {
+class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor {
  public:
-  /**
-   * @brief Construct a new Gpg Command Executor object
-   *
-   * @param channel Corresponding context
-   */
-  explicit GpgCommandExecutor(
-      int channel = SingletonFunctionObject::GetDefaultChannel());
+  struct GPGFRONTEND_CORE_EXPORT ExecuteContext {
+    QString cmd;
+    QStringList arguments;
+    GpgCommandExecutorCallback cb_func;
+    GpgCommandExecutorInteractor int_func;
+    Module::TaskRunnerPtr task_runner = nullptr;
+
+    ExecuteContext(
+        QString cmd, QStringList arguments,
+        GpgCommandExecutorCallback callback = [](int, const QString &,
+                                                 const QString &) {},
+        Module::TaskRunnerPtr task_runner = nullptr,
+        GpgCommandExecutorInteractor int_func = [](QProcess *) {});
+  };
+
+  using ExecuteContexts = QList<ExecuteContext>;
 
   /**
    * @brief Excuting a command
@@ -60,22 +64,11 @@ class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor
    * @param arguments Command parameters
    * @param interact_func Command answering function
    */
-  void Execute(
-      std::string cmd, std::vector<std::string> arguments,
-      std::function<void(int, std::string, std::string)> callback =
-          [](int, std::string, std::string) {},
-      std::function<void(QProcess *)> interact_func = [](QProcess *) {});
+  static void ExecuteSync(ExecuteContext);
 
-  void ExecuteConcurrently(
-      std::string cmd, std::vector<std::string> arguments,
-      std::function<void(int, std::string, std::string)> callback,
-      std::function<void(QProcess *)> interact_func = [](QProcess *) {});
+  static void ExecuteConcurrentlyAsync(ExecuteContexts);
 
- private:
-  GpgContext &ctx_ = GpgContext::GetInstance(
-      SingletonFunctionObject::GetChannel());  ///< Corresponding context
+  static void ExecuteConcurrentlySync(ExecuteContexts);
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_ZH_CN_TS_GPGCOMMANDEXECUTOR_H

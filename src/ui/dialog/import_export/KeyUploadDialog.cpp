@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -28,12 +28,15 @@
 
 #include "KeyUploadDialog.h"
 
-#include <algorithm>
+#include <QtNetwork>
 
-#include "core/function/GlobalSettingStation.h"
+#include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/utils/GpgUtils.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/struct/SettingsObject.h"
+#include "ui/struct/settings/KeyServerSO.h"
 
 namespace GpgFrontend::UI {
 
@@ -53,77 +56,72 @@ KeyUploadDialog::KeyUploadDialog(const KeyIdArgsListPtr& keys_ids,
   this->setLayout(layout);
 
   this->setModal(true);
-  this->setWindowTitle(_("Uploading Public Key"));
+  this->setWindowTitle(tr("Uploading Public Key"));
   this->setFixedSize(240, 42);
-  this->setPosCenterOfScreen();
+  this->movePosition2CenterOfParent();
+  this->setAttribute(Qt::WA_DeleteOnClose);
 }
 
 void KeyUploadDialog::SlotUpload() {
-  auto out_data = std::make_unique<ByteArray>();
-  GpgKeyImportExporter::GetInstance().ExportKeys(*m_keys_, out_data);
-  slot_upload_key_to_server(*out_data);
+  GpgKeyImportExporter::GetInstance().ExportKeys(
+      *m_keys_, false, true, false, false,
+      [=](GpgError err, const DataObjectPtr& data_obj) {
+        if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+          CommonUtils::RaiseMessageBox(this, err);
+          return;
+        }
 
-  // Done
-  this->hide();
-  this->close();
+        if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+            !data_obj->Check<GFBuffer>()) {
+          GF_CORE_LOG_ERROR("data object checking failed");
+          QMessageBox::critical(this, tr("Error"),
+                                tr("Unknown error occurred"));
+          // Done
+          this->hide();
+          this->close();
+          return;
+        }
+
+        auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
+        slot_upload_key_to_server(gf_buffer);
+
+        // Done
+        this->hide();
+        this->close();
+      });
 }
 
 void KeyUploadDialog::slot_upload_key_to_server(
-    const GpgFrontend::ByteArray& keys_data) {
-  std::string target_keyserver;
+    const GpgFrontend::GFBuffer& keys_data) {
+  KeyServerSO key_server(SettingsObject("general_settings_state"));
+  auto target_keyserver = key_server.GetTargetServer();
 
-  try {
-    SettingsObject key_server_json("key_server");
-
-    const auto key_server_list =
-        key_server_json.Check("server_list", nlohmann::json::array());
-
-    int default_key_server_index = key_server_json.Check("default_server", 0);
-    if (default_key_server_index >= key_server_list.size()) {
-      throw std::runtime_error("default_server index out of range");
-    }
-
-    target_keyserver =
-        key_server_list[default_key_server_index].get<std::string>();
-
-    SPDLOG_DEBUG("set target key server to default key server: {}",
-                 target_keyserver);
-
-  } catch (...) {
-    SPDLOG_ERROR(_("Cannot read default_keyserver From Settings"));
-    QMessageBox::critical(nullptr, _("Default Keyserver Not Found"),
-                          _("Cannot read default keyserver from your settings, "
-                            "please set a default keyserver first"));
-    return;
-  }
-
-  QUrl req_url(QString::fromStdString(target_keyserver + "/pks/add"));
-  auto qnam = new QNetworkAccessManager(this);
+  QUrl req_url(target_keyserver + "/pks/add");
+  auto* qnam = new QNetworkAccessManager(this);
 
   // Building Post Data
-  QByteArray postData;
+  QByteArray post_data;
 
-  auto data = std::string(keys_data);
+  auto data = keys_data.ConvertToQByteArray();
 
-  boost::algorithm::replace_all(data, "\n", "%0A");
-  boost::algorithm::replace_all(data, "\r", "%0D");
-  boost::algorithm::replace_all(data, "(", "%28");
-  boost::algorithm::replace_all(data, ")", "%29");
-  boost::algorithm::replace_all(data, "/", "%2F");
-  boost::algorithm::replace_all(data, ":", "%3A");
-  boost::algorithm::replace_all(data, "+", "%2B");
-  boost::algorithm::replace_all(data, "=", "%3D");
-  boost::algorithm::replace_all(data, " ", "+");
+  data.replace("\n", "%0A");
+  data.replace("\r", "%0D");
+  data.replace("(", "%28");
+  data.replace(")", "%29");
+  data.replace("/", "%2F");
+  data.replace(":", "%3A");
+  data.replace("+", "%2B");
+  data.replace("=", "%3D");
+  data.replace(" ", "+");
 
   QNetworkRequest request(req_url);
   request.setHeader(QNetworkRequest::ContentTypeHeader,
                     "application/x-www-form-urlencoded");
 
-  postData.append("keytext").append("=").append(
-      QString::fromStdString(data).toUtf8());
+  post_data.append("keytext").append("=").append(data);
 
   // Send Post Data
-  QNetworkReply* reply = qnam->post(request, postData);
+  QNetworkReply* reply = qnam->post(request, post_data);
   connect(reply, &QNetworkReply::finished, this,
           &KeyUploadDialog::slot_upload_finished);
 
@@ -136,34 +134,33 @@ void KeyUploadDialog::slot_upload_key_to_server(
 void KeyUploadDialog::slot_upload_finished() {
   auto* reply = qobject_cast<QNetworkReply*>(sender());
 
+  this->close();
   QByteArray response = reply->readAll();
-  SPDLOG_DEBUG("response: {}", response.toStdString());
+  GF_UI_LOG_DEBUG("response: {}", response.toStdString());
 
   auto error = reply->error();
   if (error != QNetworkReply::NoError) {
-    SPDLOG_DEBUG("error from reply: {}", reply->errorString().toStdString());
+    GF_UI_LOG_DEBUG("error from reply: {}", reply->errorString().toStdString());
     QString message;
     switch (error) {
       case QNetworkReply::ContentNotFoundError:
-        message = _("Key Not Found");
+        message = tr("Key Not Found");
         break;
       case QNetworkReply::TimeoutError:
-        message = _("Timeout");
+        message = tr("Timeout");
         break;
       case QNetworkReply::HostNotFoundError:
-        message = _("Key Server Not Found");
+        message = tr("Key Server Not Found");
         break;
       default:
-        message = _("Connection Error");
+        message = tr("Connection Error");
     }
-    QMessageBox::critical(this, "Upload Failed", message);
+    QMessageBox::critical(this->parentWidget(), tr("Upload Failed"), message);
     return;
-  } else {
-    QMessageBox::information(this, _("Upload Success"),
-                             _("Upload Public Key Successfully"));
-    SPDLOG_DEBUG("success while contacting keyserver!");
   }
-  reply->deleteLater();
+
+  QMessageBox::information(this->parentWidget(), tr("Upload Success"),
+                           tr("Upload Public Key Successfully"));
 }
 
 }  // namespace GpgFrontend::UI

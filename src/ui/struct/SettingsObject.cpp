@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,7 +20,7 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -28,77 +28,42 @@
 
 #include "SettingsObject.h"
 
-nlohmann::json& GpgFrontend::UI::SettingsObject::Check(
-    const std::string& key, const nlohmann::json& default_value) {
-  // check if the self null
-  if (this->nlohmann::json::is_null()) {
-    SPDLOG_DEBUG("settings object is null, creating new one");
-    this->nlohmann::json::operator=(nlohmann::json::object());
-  }
+#include "core/function/DataObjectOperator.h"
 
-  try {
-    if (!this->nlohmann::json::contains(key) ||
-        this->nlohmann::json::at(key).is_null() ||
-        this->nlohmann::json::at(key).type_name() !=
-            default_value.type_name()) {
-      SPDLOG_DEBUG("added missing key: {}", key);
-      if (default_value.is_null()) {
-        SPDLOG_WARN("default value is null, using empty object");
-        this->nlohmann::json::operator[](key) = nlohmann::json::object();
-      } else {
-        this->nlohmann::json::operator[](key) = default_value;
-      }
-    }
-    return this->nlohmann::json::at(key);
-  } catch (nlohmann::json::exception& e) {
-    SPDLOG_ERROR(e.what());
-    throw e;
-  }
-}
+namespace GpgFrontend::UI {
 
-GpgFrontend::UI::SettingsObject GpgFrontend::UI::SettingsObject::Check(
-    const std::string& key) {
-  // check if the self null
-  if (this->nlohmann::json::is_null()) {
-    SPDLOG_DEBUG("settings object is null, creating new one");
-    this->nlohmann::json::operator=(nlohmann::json::object());
-  }
-
-  if (!nlohmann::json::contains(key) ||
-      this->nlohmann::json::at(key).is_null() ||
-      this->nlohmann::json::at(key).type() != nlohmann::json::value_t::object) {
-    SPDLOG_DEBUG("added missing key: {}", key);
-    this->nlohmann::json::operator[](key) = nlohmann::json::object();
-  }
-  return SettingsObject{nlohmann::json::operator[](key), false};
-}
-
-GpgFrontend::UI::SettingsObject::SettingsObject(std::string settings_name)
+SettingsObject::SettingsObject(QString settings_name)
     : settings_name_(std::move(settings_name)) {
   try {
-    SPDLOG_DEBUG("loading settings from: {}", this->settings_name_);
-    auto _json_optional =
-        GpgFrontend::DataObjectOperator::GetInstance().GetDataObject(
-            settings_name_);
+    GF_UI_LOG_DEBUG("loading settings from: {}", this->settings_name_);
+    auto json_optional =
+        DataObjectOperator::GetInstance().GetDataObject(settings_name_);
 
-    if (_json_optional.has_value()) {
-      SPDLOG_DEBUG("settings object: {} loaded.", settings_name_);
-      nlohmann::json::operator=(_json_optional.value());
+    if (json_optional.has_value() && json_optional->isObject()) {
+      GF_UI_LOG_DEBUG("settings object: {} loaded.", settings_name_);
+      QJsonObject::operator=(json_optional.value().object());
     } else {
-      SPDLOG_DEBUG("settings object: {} not found.", settings_name_);
-      nlohmann::json::operator=({});
+      GF_UI_LOG_DEBUG("settings object: {} not found.", settings_name_);
+      QJsonObject::operator=({});
     }
 
   } catch (std::exception& e) {
-    SPDLOG_ERROR(e.what());
+    GF_UI_LOG_ERROR("load setting object error: {}", e.what());
   }
 }
 
-GpgFrontend::UI::SettingsObject::SettingsObject(nlohmann::json _sub_json, bool)
-    : nlohmann::json(std::move(_sub_json)), settings_name_({}) {}
+SettingsObject::SettingsObject(QJsonObject sub_json)
+    : QJsonObject(std::move(sub_json)) {}
 
-GpgFrontend::UI::SettingsObject::~SettingsObject() {
-  if (!settings_name_.empty())
-    GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(settings_name_,
-                                                               *this);
+SettingsObject::~SettingsObject() {
+  if (!settings_name_.isEmpty()) {
+    DataObjectOperator::GetInstance().SaveDataObj(settings_name_,
+                                                  QJsonDocument(*this));
+  }
 }
+
+void SettingsObject::Store(const QJsonObject& json) {
+  auto* parent = (static_cast<QJsonObject*>(this));
+  *parent = json;
+}
+}  // namespace GpgFrontend::UI

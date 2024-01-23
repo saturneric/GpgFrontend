@@ -1,5 +1,4 @@
-#
-# Copyright (C) 2021 Saturneric
+# Copyright (C) 2021 Saturneric <eric@bktus.com>
 #
 # This file is part of GpgFrontend.
 #
@@ -20,31 +19,41 @@
 # the gpg4usb project, which is under GPL-3.0-or-later.
 #
 # All the source code of GpgFrontend was modified and released by
-# Saturneric<eric@bktus.com> starting on May 12, 2021.
+# Saturneric <eric@bktus.com> starting on May 12, 2021.
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-aux_source_directory(./function/result_analyse GPG_SOURCE)
-aux_source_directory(./function/gpg GPG_SOURCE)
-aux_source_directory(./function/aes GPG_SOURCE)
-aux_source_directory(./function GPG_SOURCE)
-aux_source_directory(./thread GPG_SOURCE)
-aux_source_directory(./model GPG_SOURCE)
-aux_source_directory(./common GPG_SOURCE)
-aux_source_directory(. GPG_SOURCE)
+
+aux_source_directory(./function/result_analyse CORE_SOURCE)
+aux_source_directory(./function/basic CORE_SOURCE)
+aux_source_directory(./function/gpg CORE_SOURCE)
+aux_source_directory(./function/secure_memory CORE_SOURCE)
+aux_source_directory(./function CORE_SOURCE)
+aux_source_directory(./thread CORE_SOURCE)
+aux_source_directory(./model CORE_SOURCE)
+aux_source_directory(./common CORE_SOURCE)
+aux_source_directory(./module CORE_SOURCE)
+aux_source_directory(./utils/aes CORE_SOURCE)
+aux_source_directory(./utils CORE_SOURCE)
+aux_source_directory(. CORE_SOURCE)
 
 # define libgpgfrontend_core
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
-add_library(gpgfrontend_core SHARED ${GPG_SOURCE})
+add_library(gpgfrontend_core SHARED ${CORE_SOURCE})
 set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendCoreExport.h")
 generate_export_header(gpgfrontend_core EXPORT_FILE_NAME "${_export_file}")
 
-# link third-party libraries
-target_link_libraries(gpgfrontend_core PUBLIC config++)
-if (NOT LINUX)
-    target_link_libraries(gpgfrontend_core PUBLIC config++ intl)
-endif ()
+if(NOT APPLE)
+    target_link_libraries(gpgfrontend_core PUBLIC mimalloc)
+    if(MINGW)
+        set_target_properties(mimalloc
+            PROPERTIES
+            LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+        )
+    endif()
+endif()
 
 # qt-aes
 target_sources(gpgfrontend_core PRIVATE
@@ -54,24 +63,10 @@ target_sources(gpgfrontend_core PRIVATE
 aux_source_directory(${CMAKE_SOURCE_DIR}/third_party/encoding-detect ENCODING_DETECT_SOURCE_CODE)
 target_sources(gpgfrontend_core PUBLIC ${ENCODING_DETECT_SOURCE_CODE})
 
-# icu
-if (APPLE)
-    target_include_directories(gpgfrontend_core PRIVATE /usr/local/opt/icu4c/include)
-    target_link_directories(gpgfrontend_core PRIVATE /usr/local/opt/icu4c/lib)
-    target_link_libraries(gpgfrontend_core PRIVATE icui18n icuuc icudata)
-else ()
-    find_package(ICU 60.0 REQUIRED COMPONENTS i18n uc data)
-    message("ICU version: ${ICU_VERSION}")
-    message("ICU libraries: ${ICU_LIBRARIES}")
-    target_link_libraries(gpgfrontend_core PRIVATE ${ICU_LIBRARIES})
-endif ()
-
 # link gnupg libraries
-target_link_libraries(gpgfrontend_core PRIVATE gpgme assuan gpg-error)
+target_link_libraries(gpgfrontend_core PUBLIC gpgme assuan gpg-error)
 # link openssl
 target_link_libraries(gpgfrontend_core PUBLIC OpenSSL::SSL OpenSSL::Crypto)
-# link boost libraries
-target_link_libraries(gpgfrontend_core PUBLIC ${Boost_LIBRARIES})
 if (MINGW)
     # for uuid ability in mingw
     target_link_libraries(gpgfrontend_core PUBLIC bcrypt)
@@ -81,17 +76,15 @@ endif ()
 target_link_libraries(gpgfrontend_core PRIVATE spdlog)
 
 # link libarchive
-target_link_libraries(gpgfrontend_core PRIVATE archive)
-
-# link json
-target_link_libraries(gpgfrontend_core
-        PUBLIC nlohmann_json::nlohmann_json)
-# link Qt core
-if(Qt6_DIR)
-    target_link_libraries(gpgfrontend_core PUBLIC Qt6::Core)
-else()
-    target_link_libraries(gpgfrontend_core PUBLIC Qt5::Core)
+if(APPLE)
+    set(LibArchive_INCLUDE_DIR "/usr/local/opt/libarchive/include")
 endif()
+find_package(LibArchive REQUIRED)
+target_include_directories(gpgfrontend_core PRIVATE ${LibArchive_INCLUDE_DIR})
+target_link_libraries(gpgfrontend_core PRIVATE archive)
+        
+# link Qt core
+target_link_libraries(gpgfrontend_core PUBLIC Qt6::Core)
 
 # set up pch
 target_precompile_headers(gpgfrontend_core

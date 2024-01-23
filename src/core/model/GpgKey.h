@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,19 +20,16 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_GPGKEY_H
-#define GPGFRONTEND_GPGKEY_H
+#pragma once
 
-#include <mutex>
-
-#include "GpgSubKey.h"
-#include "GpgUID.h"
+#include "core/model/GpgSubKey.h"
+#include "core/model/GpgUID.h"
 
 namespace GpgFrontend {
 
@@ -41,6 +38,7 @@ namespace GpgFrontend {
  *
  */
 class GPGFRONTEND_CORE_EXPORT GpgKey {
+  Q_DECLARE_TR_FUNCTIONS(GpgKey)
  public:
   /**
    * @brief
@@ -48,98 +46,105 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsGood() const;
+  [[nodiscard]] auto IsGood() const -> bool;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] std::string GetId() const;
+  [[nodiscard]] auto GetId() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] std::string GetName() const;
+  [[nodiscard]] auto GetName() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] std::string GetEmail() const;
+  [[nodiscard]] auto GetEmail() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] std::string GetComment() const;
+  [[nodiscard]] auto GetComment() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] std::string GetFingerprint() const;
+  [[nodiscard]] auto GetFingerprint() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] std::string GetProtocol() const;
+  [[nodiscard]] auto GetProtocol() const -> QString;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] std::string GetOwnerTrust() const;
+  [[nodiscard]] auto GetOwnerTrust() const -> QString;
 
   /**
    * @brief
    *
    * @return int
    */
-  [[nodiscard]] int GetOwnerTrustLevel() const;
+  [[nodiscard]] auto GetOwnerTrustLevel() const -> int;
 
   /**
    * @brief
    *
-   * @return std::string
+   * @return QString
    */
-  [[nodiscard]] std::string GetPublicKeyAlgo() const;
+  [[nodiscard]] auto GetPublicKeyAlgo() const -> QString;
 
   /**
    * @brief
    *
-   * @return boost::posix_time::ptime
+   * @return QString
    */
-  [[nodiscard]] boost::posix_time::ptime GetLastUpdateTime() const;
+  [[nodiscard]] auto GetKeyAlgo() const -> QString;
 
   /**
    * @brief
    *
-   * @return boost::posix_time::ptime
+   * @return QDateTime
    */
-  [[nodiscard]] boost::posix_time::ptime GetExpireTime() const;
+  [[nodiscard]] auto GetLastUpdateTime() const -> QDateTime;
+
+  /**
+   * @brief
+   *
+   * @return QDateTime
+   */
+  [[nodiscard]] auto GetExpireTime() const -> QDateTime;
 
   /**
    * @brief Create a time object
    *
-   * @return boost::posix_time::ptime
+   * @return QDateTime
    */
-  [[nodiscard]] boost::posix_time::ptime GetCreateTime() const;
+  [[nodiscard]] auto GetCreateTime() const -> QDateTime;
 
   /**
    * @brief s
    *
    * @return unsigned int
    */
-  [[nodiscard]] unsigned int GetPrimaryKeyLength() const;
+  [[nodiscard]] auto GetPrimaryKeyLength() const -> unsigned int;
 
   /**
    * @brief
@@ -147,7 +152,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsHasEncryptionCapability() const;
+  [[nodiscard]] auto IsHasEncryptionCapability() const -> bool;
 
   /**
    * @brief
@@ -156,7 +161,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsHasActualEncryptionCapability() const;
+  [[nodiscard]] auto IsHasActualEncryptionCapability() const -> bool;
 
   /**
    * @brief
@@ -164,7 +169,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsHasSigningCapability() const;
+  [[nodiscard]] auto IsHasSigningCapability() const -> bool;
 
   /**
    * @brief
@@ -172,7 +177,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsHasActualSigningCapability() const;
+  [[nodiscard]] auto IsHasActualSigningCapability() const -> bool;
 
   /**
    * @brief
@@ -180,7 +185,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsHasCertificationCapability() const;
+  [[nodiscard]] auto IsHasCertificationCapability() const -> bool;
 
   /**
    * @brief
@@ -188,7 +193,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsHasActualCertificationCapability() const;
+  [[nodiscard]] auto IsHasActualCertificationCapability() const -> bool;
 
   /**
    * @brief
@@ -196,7 +201,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsHasAuthenticationCapability() const;
+  [[nodiscard]] auto IsHasAuthenticationCapability() const -> bool;
 
   /**
    * @brief
@@ -204,7 +209,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsHasActualAuthenticationCapability() const;
+  [[nodiscard]] auto IsHasActualAuthenticationCapability() const -> bool;
 
   /**
    * @brief
@@ -212,7 +217,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsHasCardKey() const;
+  [[nodiscard]] auto IsHasCardKey() const -> bool;
 
   /**
    * @brief
@@ -220,7 +225,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsPrivateKey() const;
+  [[nodiscard]] auto IsPrivateKey() const -> bool;
 
   /**
    * @brief
@@ -228,7 +233,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsExpired() const;
+  [[nodiscard]] auto IsExpired() const -> bool;
 
   /**
    * @brief
@@ -236,7 +241,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsRevoked() const;
+  [[nodiscard]] auto IsRevoked() const -> bool;
 
   /**
    * @brief
@@ -244,7 +249,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsDisabled() const;
+  [[nodiscard]] auto IsDisabled() const -> bool;
 
   /**
    * @brief
@@ -252,21 +257,22 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsHasMasterKey() const;
+  [[nodiscard]] auto IsHasMasterKey() const -> bool;
 
   /**
    * @brief
    *
    * @return std::unique_ptr<std::vector<GpgSubKey>>
    */
-  [[nodiscard]] std::unique_ptr<std::vector<GpgSubKey>> GetSubKeys() const;
+  [[nodiscard]] auto GetSubKeys() const
+      -> std::unique_ptr<std::vector<GpgSubKey>>;
 
   /**
    * @brief
    *
    * @return std::unique_ptr<std::vector<GpgUID>>
    */
-  [[nodiscard]] std::unique_ptr<std::vector<GpgUID>> GetUIDs() const;
+  [[nodiscard]] auto GetUIDs() const -> std::unique_ptr<std::vector<GpgUID>>;
 
   /**
    * @brief Construct a new Gpg Key object
@@ -299,7 +305,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    *
    * @param k
    */
-  GpgKey(GpgKey&& k) noexcept;
+  GpgKey(GpgKey&&) noexcept;
 
   /**
    * @brief
@@ -307,7 +313,22 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @param k
    * @return GpgKey&
    */
-  GpgKey& operator=(GpgKey&& k) noexcept;
+  auto operator=(GpgKey&&) noexcept -> GpgKey&;
+
+  /**
+   * @brief Construct a new Gpg Key object
+   *
+   * @param k
+   */
+  GpgKey(const GpgKey&);
+
+  /**
+   * @brief
+   *
+   * @param k
+   * @return GpgKey&
+   */
+  auto operator=(const GpgKey&) -> GpgKey&;
 
   /**
    * @brief
@@ -315,7 +336,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @param key
    * @return GpgKey&
    */
-  GpgKey& operator=(const gpgme_key_t& key) = delete;
+  auto operator=(const gpgme_key_t&) -> GpgKey& = delete;
 
   /**
    * @brief
@@ -324,7 +345,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  bool operator==(const GpgKey& o) const;
+  auto operator==(const GpgKey&) const -> bool;
 
   /**
    * @brief
@@ -333,7 +354,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  bool operator<=(const GpgKey& o) const;
+  auto operator<=(const GpgKey&) const -> bool;
 
   /**
    * @brief
@@ -342,30 +363,18 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    */
   explicit operator gpgme_key_t() const;
 
-  /**
-   * @brief
-   *
-   * @return GpgKey
-   */
-  [[nodiscard]] GpgKey Copy() const;
-
  private:
   /**
    * @brief
    *
    */
-  struct GPGFRONTEND_CORE_EXPORT _key_ref_deleter {
+  struct GPGFRONTEND_CORE_EXPORT KeyRefDeleter {
     void operator()(gpgme_key_t _key);
   };
 
-  using KeyRefHandler =
-      std::unique_ptr<struct _gpgme_key, _key_ref_deleter>;  ///<
+  using KeyRefHandler = std::unique_ptr<struct _gpgme_key, KeyRefDeleter>;  ///<
 
   KeyRefHandler key_ref_ = nullptr;  ///<
-
-  mutable std::mutex gpgme_key_opera_mutex;  // mutex for gpgme key operations
 };
 
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_GPGKEY_H

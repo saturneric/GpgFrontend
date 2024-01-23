@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,19 +20,20 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_ZH_CN_TS_BASICOPERATOR_H
-#define GPGFRONTEND_ZH_CN_TS_BASICOPERATOR_H
+#pragma once
 
-#include "core/GpgConstants.h"
-#include "core/GpgContext.h"
-#include "core/GpgFunctionObject.h"
-#include "core/GpgModel.h"
+#include "core/function/basic/GpgFunctionObject.h"
+#include "core/function/gpg/GpgContext.h"
+#include "core/function/result_analyse/GpgResultAnalyse.h"
+#include "core/model/GFBuffer.h"
+#include "core/typedef/CoreTypedef.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
@@ -52,19 +53,18 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
-   * @brief Call the interface provided by gpgme for encryption operation
+   * @brief
    *
-   * All incoming data pointers out_buffer will be replaced with new valid
-   * values
-   *
-   * @param keys list of public keys
-   * @param in_buffer data that needs to be encrypted
-   * @param out_buffer encrypted data
-   * @param result the result of the operation
-   * @return error code
    */
-  gpg_error_t Encrypt(KeyListPtr keys, BypeArrayRef in_buffer,
-                      ByteArrayPtr& out_buffer, GpgEncrResult& result);
+  void Encrypt(const KeyArgsList&, const GFBuffer&, bool,
+               const GpgOperationCallback&);
+
+  /**
+   * @brief
+   *
+   */
+  auto EncryptSync(const KeyArgsList&, const GFBuffer&, bool)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief Call the interface provided by GPGME to symmetrical encryption
@@ -72,10 +72,21 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param in_buffer Data for encryption
    * @param out_buffer Encrypted data
    * @param result Encrypted results
-   * @return gpg_error_t
+   * @return GpgError
    */
-  gpg_error_t EncryptSymmetric(BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
-                               GpgEncrResult& result);
+  void EncryptSymmetric(const GFBuffer& in_buffer, bool ascii,
+                        const GpgOperationCallback& cb);
+
+  /**
+   * @brief
+   *
+   * @param in_buffer
+   * @param ascii
+   * @param cb
+   * @return std::tuple<GpgError, DataObjectPtr>
+   */
+  auto EncryptSymmetricSync(const GFBuffer& in_buffer, bool ascii)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    *
@@ -85,15 +96,25 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param keys List of public keys
    * @param signers Private key for signatures
    * @param in_buffer Data for operation
-   * @param out_buffer Encrypted data
-   * @param encr_result Encrypted results
-   * @param sign_result Signature result
+   * @param ascii ascii mode
    * @return
    */
-  gpgme_error_t EncryptSign(KeyListPtr keys, KeyListPtr signers,
-                            BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
-                            GpgEncrResult& encr_result,
-                            GpgSignResult& sign_result);
+  void EncryptSign(const KeyArgsList& keys, const KeyArgsList& signers,
+                   const GFBuffer& in_buffer, bool ascii,
+                   const GpgOperationCallback& cb);
+
+  /**
+   * @brief
+   *
+   * @param keys
+   * @param signers
+   * @param in_buffer
+   * @param ascii
+   * @param cb
+   */
+  auto EncryptSignSync(const KeyArgsList& keys, const KeyArgsList& signers,
+                       const GFBuffer& in_buffer, bool ascii)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief Call the interface provided by gpgme for decryption operation
@@ -103,8 +124,15 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param result the result of the operation
    * @return error code
    */
-  gpgme_error_t Decrypt(BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
-                        GpgDecrResult& result);
+  void Decrypt(const GFBuffer& in_buffer, const GpgOperationCallback& cb);
+
+  /**
+   * @brief
+   *
+   * @param in_buffer
+   */
+  auto DecryptSync(const GFBuffer& in_buffer)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief  Call the interface provided by gpgme to perform decryption and
@@ -116,9 +144,15 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param verify_result the result of the verifying operation
    * @return error code
    */
-  gpgme_error_t DecryptVerify(BypeArrayRef in_buffer, ByteArrayPtr& out_buffer,
-                              GpgDecrResult& decrypt_result,
-                              GpgVerifyResult& verify_result);
+  void DecryptVerify(const GFBuffer& in_buffer, const GpgOperationCallback& cb);
+
+  /**
+   * @brief
+   *
+   * @param in_buffer
+   */
+  auto DecryptVerifySync(const GFBuffer& in_buffer)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief Call the interface provided by gpgme for verification operation
@@ -128,8 +162,19 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param result the result of the operation
    * @return error code
    */
-  gpgme_error_t Verify(BypeArrayRef in_buffer, ByteArrayPtr& sig_buffer,
-                       GpgVerifyResult& result) const;
+  void Verify(const GFBuffer& in_buffer, const GFBuffer& sig_buffer,
+              const GpgOperationCallback& cb);
+
+  /**
+   * @brief
+   *
+   * @param in_buffer
+   * @param sig_buffer
+   * @param cb
+   * @return std::tuple<GpgError, DataObjectPtr>
+   */
+  auto VerifySync(const GFBuffer& in_buffer, const GFBuffer& sig_buffer)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief  Call the interface provided by gpgme for signing operation
@@ -151,9 +196,22 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param result the result of the operation
    * @return error code
    */
-  gpg_error_t Sign(KeyListPtr signers, BypeArrayRef in_buffer,
-                   ByteArrayPtr& out_buffer, gpgme_sig_mode_t mode,
-                   GpgSignResult& result);
+  void Sign(const KeyArgsList& signers, const GFBuffer& in_buffer,
+            GpgSignMode mode, bool ascii, const GpgOperationCallback& cb);
+
+  /**
+   * @brief
+   *
+   * @param signers
+   * @param in_buffer
+   * @param mode
+   * @param ascii
+   * @param cb
+   * @return std::tuple<GpgError, DataObjectPtr>
+   */
+  auto SignSync(const KeyArgsList& signers, const GFBuffer& in_buffer,
+                GpgSignMode mode, bool ascii)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief  Set the private key for signatures, this operation is a global
@@ -161,19 +219,17 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    *
    * @param keys
    */
-  void SetSigners(KeyArgsList& signers);
+  void SetSigners(const KeyArgsList& signers, bool ascii);
 
   /**
    * @brief Get a global signature private keys that has been set.
    *
    * @return Intelligent pointer pointing to the private key list
    */
-  std::unique_ptr<KeyArgsList> GetSigners();
+  auto GetSigners(bool ascii) -> std::unique_ptr<KeyArgsList>;
 
  private:
   GpgContext& ctx_ = GpgContext::GetInstance(
       SingletonFunctionObject::GetChannel());  ///< Corresponding context
 };
 }  // namespace GpgFrontend
-
-#endif  // GPGFRONTEND_ZH_CN_TS_BASICOPERATOR_H

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,28 +20,31 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef GPGFRONTEND_USER_INTERFACE_UTILS_H
-#define GPGFRONTEND_USER_INTERFACE_UTILS_H
+#pragma once
 
-#include "core/GpgModel.h"
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/GpgKey.h"
-#include "ui/GpgFrontendUI.h"
+#include "core/thread/Task.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 class GpgResultAnalyse;
-}
+class GpgImportInformation;
+}  // namespace GpgFrontend
 
 namespace GpgFrontend::UI {
 
 class InfoBoardWidget;
 class TextEdit;
+
+using OperaWaitingHd = std::function<void()>;
+using OperaWaitingCb = const std::function<void(OperaWaitingHd)>;
 
 /**
  * @brief
@@ -71,7 +74,7 @@ void import_unknown_key_from_keyserver(
  * @param report_text
  */
 void refresh_info_board(InfoBoardWidget* info_board, int status,
-                        const std::string& report_text);
+                        const QString& report_text);
 
 /**
  * @brief
@@ -102,21 +105,10 @@ void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
  * @param waiting_title
  * @param func
  */
-void process_operation(
-    QWidget* parent, const std::string& waiting_title,
-    GpgFrontend::Thread::Task::TaskRunnable func,
-    GpgFrontend::Thread::Task::TaskCallback callback = nullptr,
-    Thread::Task::DataObjectPtr data_object = nullptr);
-
-/**
- * @brief
- *
- * @param parent
- * @param key_id
- * @param key_server
- */
-void import_key_from_keyserver(QWidget* parent, const std::string& key_id,
-                               const std::string& key_server);
+void process_operation(QWidget* parent, const QString& waiting_title,
+                       Thread::Task::TaskRunnable func,
+                       Thread::Task::TaskCallback callback = nullptr,
+                       DataObjectPtr data_object = nullptr);
 
 /**
  * @brief
@@ -129,8 +121,8 @@ class CommonUtils : public QWidget {
    * @brief
    *
    */
-  using ImportCallbackFunctiopn = std::function<void(
-      const std::string&, const std::string&, size_t, size_t)>;
+  using ImportCallbackFunctiopn =
+      std::function<void(const QString&, const QString&, size_t, size_t)>;
 
   /**
    * @brief Construct a new Common Utils object
@@ -144,6 +136,28 @@ class CommonUtils : public QWidget {
    * @return CommonUtils*
    */
   static CommonUtils* GetInstance();
+
+  /**
+   * @brief
+   *
+   * @param err
+   */
+  static void WaitForOpera(QWidget* parent, const QString&,
+                           const OperaWaitingCb&);
+
+  /**
+   * @brief
+   *
+   * @param err
+   */
+  static void RaiseMessageBox(QWidget* parent, GpgError err);
+
+  /**
+   * @brief
+   *
+   * @param err
+   */
+  static void RaiseFailureMessageBox(QWidget* parent, GpgError err);
 
   /**
    * @brief
@@ -169,6 +183,12 @@ class CommonUtils : public QWidget {
    */
   void RemoveKeyFromFavourite(const GpgKey& key);
 
+  /**
+   * @brief
+   *
+   */
+  void ImportKeyFromKeyServer(const KeyIdArgsList&);
+
  signals:
   /**
    * @brief
@@ -180,25 +200,13 @@ class CommonUtils : public QWidget {
    * @brief
    *
    */
-  void SignalGnupgNotInstall();
+  void SignalBadGnupgEnv(QString);
 
   /**
    * @brief emit when the key database is refreshed
    *
    */
   void SignalKeyDatabaseRefreshDone();
-
-  /**
-   * @brief
-   *
-   */
-  void SignalNeedUserInputPassphrase();
-
-  /**
-   * @brief
-   *
-   */
-  void SignalUserInputPassphraseDone(QString passphrase);
 
   /**
    * @brief
@@ -213,7 +221,7 @@ class CommonUtils : public QWidget {
    * @param parent
    * @param in_buffer
    */
-  void SlotImportKeys(QWidget* parent, const std::string& in_buffer);
+  void SlotImportKeys(QWidget* parent, const QString& in_buffer);
 
   /**
    * @brief
@@ -263,7 +271,7 @@ class CommonUtils : public QWidget {
    * @param arguments
    * @param interact_func
    */
-  void SlotExecuteCommand(const std::string& cmd, const QStringList& arguments,
+  void SlotExecuteCommand(const QString& cmd, const QStringList& arguments,
                           const std::function<void(QProcess*)>& interact_func);
 
   /**
@@ -284,7 +292,8 @@ class CommonUtils : public QWidget {
    * @brief
    *
    */
-  void slot_popup_passphrase_input_dialog();
+  void slot_update_key_from_server_finished(
+      bool, QString, QByteArray, std::shared_ptr<GpgImportInformation>);
 
  private:
   static std::unique_ptr<CommonUtils> instance_;  ///<
@@ -292,5 +301,3 @@ class CommonUtils : public QWidget {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // GPGFRONTEND_USER_INTERFACE_UTILS_H

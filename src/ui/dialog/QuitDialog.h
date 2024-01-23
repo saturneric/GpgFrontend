@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,14 +20,13 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef __QUITDIALOG_H__
-#define __QUITDIALOG_H__
+#pragma once
 
 #include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
@@ -56,14 +55,14 @@ class QuitDialog : public GeneralDialog {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool IsDiscarded() const;
+  [[nodiscard]] auto IsDiscarded() const -> bool;
 
   /**
    * @brief Get the Tab Ids To Save object
    *
    * @return QList<int>
    */
-  QList<int> GetTabIdsToSave();
+  auto GetTabIdsToSave() -> QList<int>;
 
  private slots:
 
@@ -79,5 +78,3 @@ class QuitDialog : public GeneralDialog {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __QUITDIALOG_H__

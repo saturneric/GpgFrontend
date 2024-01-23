@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -19,128 +19,132 @@
  * The initial version of the source code is inherited from
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
- * The source code version of this software was modified and released
- * by Saturneric<eric@bktus.com><eric@bktus.com> starting on May 12, 2021.
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
 #include "core/thread/TaskRunner.h"
 
 #include "core/thread/Task.h"
-#include "spdlog/spdlog.h"
 
-GpgFrontend::Thread::TaskRunner::TaskRunner() = default;
+namespace GpgFrontend::Thread {
 
-GpgFrontend::Thread::TaskRunner::~TaskRunner() = default;
+class TaskRunner::Impl : public QThread {
+ public:
+  Impl() : QThread(nullptr) {}
 
-void GpgFrontend::Thread::TaskRunner::PostTask(Task* task) {
-  if (task == nullptr) {
-    SPDLOG_ERROR("task posted is null");
-    return;
-  }
-
-  SPDLOG_TRACE("post task: {}", task->GetFullID());
-
-  task->setParent(nullptr);
-  task->moveToThread(this);
-
-  {
-    std::lock_guard<std::mutex> lock(tasks_mutex_);
-    tasks.push(task);
-  }
-  quit();
-}
-
-void GpgFrontend::Thread::TaskRunner::PostScheduleTask(Task* task,
-                                                       size_t seconds) {
-  if (task == nullptr) return;
-  // TODO
-}
-
-[[noreturn]] void GpgFrontend::Thread::TaskRunner::run() {
-  SPDLOG_TRACE("task runner runing, thread id: {}", QThread::currentThreadId());
-  while (true) {
-    if (tasks.empty()) {
-      SPDLOG_TRACE("no tasks to run, trapping into event loop...");
-      exec();
-    } else {
-      SPDLOG_TRACE("start to run task(s), queue size: {}", tasks.size());
-
-      Task* task = nullptr;
-      {
-        std::lock_guard<std::mutex> lock(tasks_mutex_);
-        task = std::move(tasks.front());
-        tasks.pop();
-        pending_tasks_.insert({task->GetUUID(), task});
-      }
-
-      if (task != nullptr) {
-        try {
-          // triger
-          SPDLOG_TRACE("running task {}, sequency: {}", task->GetFullID(),
-                       task->GetSequency());
-
-          // when a signal SignalTaskEnd raise, do unregister work
-          connect(task, &Task::SignalTaskEnd, this, [this, task]() {
-            unregister_finished_task(task->GetUUID());
-          });
-
-          if (!task->GetSequency()) {
-            // if it need to run concurrently, we should create a new thread to
-            // run it.
-            auto* concurrent_thread = new QThread(nullptr);
-            task->setParent(nullptr);
-            task->moveToThread(concurrent_thread);
-            // start thread
-            concurrent_thread->start();
-
-            connect(task, &Task::SignalTaskEnd, concurrent_thread,
-                    &QThread::quit);
-            // concurrent thread is responsible for deleting the task
-            connect(concurrent_thread, &QThread::finished, task,
-                    &Task::deleteLater);
-          }
-
-          // run the task
-          task->run();
-        } catch (const std::exception& e) {
-          SPDLOG_ERROR("task runner: exception in task {}, exception: {}",
-                       task->GetFullID(), e.what());
-          // if any exception caught, destroy the task, remove the task from the
-          // pending tasks
-          unregister_finished_task(task->GetUUID());
-        } catch (...) {
-          SPDLOG_ERROR("task runner: unknown exception in task: {}",
-                       task->GetFullID());
-          // if any exception caught, destroy the task, remove the task from the
-          // pending tasks
-          unregister_finished_task(task->GetUUID());
-        }
-      }
+  void PostTask(Task* task) {
+    if (task == nullptr) {
+      GF_CORE_LOG_ERROR("task posted is null");
+      return;
     }
+
+    task->setParent(nullptr);
+    task->moveToThread(this);
+
+    GF_CORE_LOG_TRACE("runner starts task: {} at thread: {}", task->GetFullID(),
+                      this->currentThreadId());
+    task->SafelyRun();
+  }
+
+  auto RegisterTask(const QString& name, const Task::TaskRunnable& runnerable,
+                    const Task::TaskCallback& cb, DataObjectPtr params)
+      -> Task::TaskHandler {
+    auto* raw_task = new Task(runnerable, name, std::move(params), cb);
+    raw_task->setParent(nullptr);
+    raw_task->moveToThread(this);
+
+    connect(raw_task, &Task::SignalRun, this, [this, raw_task]() {
+      pending_tasks_[raw_task->GetFullID()] = raw_task;
+    });
+
+    connect(raw_task, &Task::SignalTaskEnd, this, [this, raw_task]() {
+      pending_tasks_.remove(raw_task->GetFullID());
+    });
+
+    GF_CORE_LOG_TRACE("runner starts task: {} at thread: {}",
+                      raw_task->GetFullID(), this->currentThreadId());
+
+    return Task::TaskHandler(raw_task);
+  }
+
+  void PostTask(const QString& name, const Task::TaskRunnable& runnerable,
+                const Task::TaskCallback& cb, DataObjectPtr params) {
+    PostTask(new Task(runnerable, name, std::move(params), cb));
+  }
+
+  void PostConcurrentTask(Task* task) {
+    if (task == nullptr) {
+      GF_CORE_LOG_ERROR("task posted is null");
+      return;
+    }
+
+    auto* concurrent_thread = new QThread(this);
+
+    task->setParent(nullptr);
+    task->moveToThread(concurrent_thread);
+
+    connect(task, &Task::SignalTaskEnd, concurrent_thread, &QThread::quit);
+    connect(concurrent_thread, &QThread::finished, concurrent_thread,
+            &QThread::deleteLater);
+
+    concurrent_thread->start();
+
+    GF_CORE_LOG_TRACE("runner starts task concurrenctly: {}",
+                      task->GetFullID());
+    task->SafelyRun();
+  }
+
+  void PostScheduleTask(Task* task, size_t seconds) {
+    if (task == nullptr) return;
+    // TODO
+  }
+
+ private:
+  QMap<QString, Task*> pending_tasks_;
+};
+
+TaskRunner::TaskRunner() : p_(SecureCreateUniqueObject<Impl>()) {}
+
+TaskRunner::~TaskRunner() {
+  if (p_->isRunning()) {
+    Stop();
   }
 }
 
-/**
- * @brief
- *
- */
-void GpgFrontend::Thread::TaskRunner::unregister_finished_task(
-    std::string task_uuid) {
-  SPDLOG_DEBUG("cleaning task {}", task_uuid);
-  // search in map
-  auto pending_task = pending_tasks_.find(task_uuid);
-  if (pending_task == pending_tasks_.end()) {
-    SPDLOG_ERROR("cannot find task in pending list: {}", task_uuid);
-    return;
-  } else {
-    std::lock_guard<std::mutex> lock(tasks_mutex_);
-    // if thread runs sequenctly, that means the thread is living in this
-    // thread, so we can delete it. Or, its living thread need to delete it.
-    if (pending_task->second->GetSequency())
-      pending_task->second->deleteLater();
-    pending_tasks_.erase(pending_task);
-  }
+void TaskRunner::PostTask(Task* task) { p_->PostTask(task); }
 
-  SPDLOG_DEBUG("clean task {} done", task_uuid);
+void TaskRunner::PostTask(const QString& name, const Task::TaskRunnable& runner,
+                          const Task::TaskCallback& cb, DataObjectPtr params) {
+  p_->PostTask(name, runner, cb, std::move(params));
 }
+
+void TaskRunner::PostConcurrentTask(Task* task) {
+  p_->PostConcurrentTask(task);
+}
+
+void TaskRunner::PostScheduleTask(Task* task, size_t seconds) {
+  p_->PostScheduleTask(task, seconds);
+}
+
+void TaskRunner::Start() { p_->start(); }
+
+void TaskRunner::Stop() {
+  p_->quit();
+  p_->wait();
+}
+
+auto TaskRunner::GetThread() -> QThread* { return p_.get(); }
+
+auto TaskRunner::IsRunning() -> bool { return p_->isRunning(); }
+
+auto TaskRunner::RegisterTask(const QString& name,
+                              const Task::TaskRunnable& runnable,
+                              const Task::TaskCallback& cb, DataObjectPtr p_pbj)
+    -> Task::TaskHandler {
+  return p_->RegisterTask(name, runnable, cb, p_pbj);
+}
+}  // namespace GpgFrontend::Thread

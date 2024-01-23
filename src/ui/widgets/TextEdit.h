@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric
+ * Copyright (C) 2021 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -20,14 +20,13 @@
  * the gpg4usb project, which is under GPL-3.0-or-later.
  *
  * All the source code of GpgFrontend was modified and released by
- * Saturneric<eric@bktus.com> starting on May 12, 2021.
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
 
-#ifndef __TEXTEDIT_H__
-#define __TEXTEDIT_H__
+#pragma once
 
 #include "ui/dialog/QuitDialog.h"
 #include "ui/widgets/FilePage.h"
@@ -154,7 +153,7 @@ class TextEdit : public QWidget {
    * @details
    *
    */
-  void SlotNewTabWithContent(std::string title, const std::string& content);
+  void SlotNewTabWithContent(QString title, const QString& content);
 
   /**
    * @details Adds a new tab with opening file by path
@@ -172,7 +171,7 @@ class TextEdit : public QWidget {
   /**
    * New File Tab to do file operation
    */
-  void SlotNewFileTab() const;
+  void SlotNewFileTab();
 
   /**
    * @details put a * in front of current tabs title, if current textedit is
@@ -283,6 +282,13 @@ class TextEdit : public QWidget {
    */
   void SlotSelectAll() const;
 
+  /**
+   * @brief
+   *
+   * @param text
+   */
+  void SlotAppendText2CurTextPage(const QString& text);
+
  protected:
   /**
    * @brief Saves the content of currentTab to the file filename
@@ -293,5 +299,3 @@ class TextEdit : public QWidget {
 };
 
 }  // namespace GpgFrontend::UI
-
-#endif  // __TEXTEDIT_H__
