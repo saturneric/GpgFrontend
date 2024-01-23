@@ -28,13 +28,14 @@
 
 #pragma once
 
-#include <module/sdk/GpgFrontendModuleSDK.h>
-
+#include "GpgFrontendModuleExport.h"
 #include "SoftwareVersion.h"
+#include "core/module/Module.h"
 
 namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 
-class GPGFRONTEND_MODULE_SDK_EXPORT VersionCheckingModule : public Module {
+class GPGFRONTEND_INTEGRATED_MODULE_VERSION_CHECKING_EXPORT
+    VersionCheckingModule : public Module {
   Q_OBJECT
  public:
   VersionCheckingModule();

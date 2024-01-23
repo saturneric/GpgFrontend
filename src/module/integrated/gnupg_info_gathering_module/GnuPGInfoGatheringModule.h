@@ -28,7 +28,8 @@
 
 #pragma once
 
-#include <module/sdk/GpgFrontendModuleSDK.h>
+#include "GpgFrontendModuleExport.h"
+#include "core/module/Module.h"
 
 namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule {
 
@@ -36,7 +37,8 @@ namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule {
  * @brief  Use to record some info about gnupg
  *
  */
-class GPGFRONTEND_MODULE_SDK_EXPORT GnuPGInfoGatheringModule : public Module {
+class GPGFRONTEND_INTEGRATED_MODULE_GNUPG_INFO_GATHERING_EXPORT
+    GnuPGInfoGatheringModule : public Module {
  public:
   GnuPGInfoGatheringModule();
 

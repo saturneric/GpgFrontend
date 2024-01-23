@@ -46,6 +46,13 @@ generate_export_header(gpgfrontend_core EXPORT_FILE_NAME "${_export_file}")
 
 if(NOT APPLE)
     target_link_libraries(gpgfrontend_core PUBLIC mimalloc)
+    if(MINGW)
+        set_target_properties(mimalloc
+            PROPERTIES
+            LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+        )
+    endif()
 endif()
 
 # qt-aes

@@ -77,7 +77,7 @@ auto SearchKeyDatabasePath(const QList<QString>& candidate_paths) -> QString {
   return {};
 }
 
-auto InitGpgME() -> bool {
+auto InitGpgME(const QString& gnupg_path) -> bool {
   // init gpgme subsystem and get gpgme library version
   Module::UpsertRTValue("core", "gpgme.version",
                         QString(gpgme_check_version(nullptr)));
@@ -87,8 +87,13 @@ auto InitGpgME() -> bool {
   gpgme_set_locale(nullptr, LC_MESSAGES, setlocale(LC_MESSAGES, nullptr));
 #endif
 
-  gpgme_ctx_t p_ctx;
+  if (!gnupg_path.isEmpty()) {
+    GF_CORE_LOG_DEBUG("gpgme set engine info, gnupg path: {}", gnupg_path);
+    CheckGpgError(gpgme_set_engine_info(GPGME_PROTOCOL_OPENPGP,
+                                        gnupg_path.toUtf8(), nullptr));
+  }
 
+  gpgme_ctx_t p_ctx;
   CheckGpgError(gpgme_new(&p_ctx));
 
   // get engine info
@@ -179,6 +184,90 @@ auto InitGpgME() -> bool {
   return true;
 }
 
+auto GetGnuPGPathByGpgConf(const QString& gnupg_install_fs_path) -> QString {
+  auto* process = new QProcess();
+  process->setProgram(gnupg_install_fs_path);
+  process->start();
+  process->waitForFinished(1000);
+  auto output_buffer = process->readAllStandardOutput();
+  process->deleteLater();
+
+  if (output_buffer.isEmpty()) return {};
+
+  auto line_split_list = QString(output_buffer).split("\n");
+  for (const auto& line : line_split_list) {
+    auto info_split_list = line.split(":");
+
+    if (info_split_list.size() != 3) continue;
+
+    auto component_name = info_split_list[0].trimmed();
+    auto component_desc = info_split_list[1].trimmed();
+    auto component_path = info_split_list[2].trimmed();
+
+    if (component_name.toLower() == "gpg") {
+#ifdef WINDOWS
+      // replace some special substrings on windows platform
+      component_path.replace("%3a", ":");
+#endif
+      QFileInfo file_info(component_path);
+      if (file_info.exists() && file_info.isFile()) {
+        return file_info.absoluteFilePath();
+      }
+      return {};
+    }
+  }
+  return "";
+}
+
+auto DetectGnuPGPath() -> QString {
+  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto use_custom_gnupg_install_path =
+      settings.value("basic/use_custom_gnupg_install_path", false).toBool();
+  auto custom_gnupg_install_path =
+      settings.value("basic/custom_gnupg_install_path", QString{}).toString();
+
+  QString gnupg_install_fs_path;
+  // user defined
+  if (use_custom_gnupg_install_path && !custom_gnupg_install_path.isEmpty()) {
+    // check gpgconf path
+    gnupg_install_fs_path = custom_gnupg_install_path;
+#ifdef WINDOWS
+    gnupg_install_fs_path += "/gpgconf.exe";
+#else
+    gnupg_install_fs_path += "/gpgconf";
+#endif
+
+    if (!VerifyGpgconfPath(QFileInfo(gnupg_install_fs_path))) {
+      GF_CORE_LOG_ERROR("core loaded custom gpgconf path is illegal: {}",
+                        gnupg_install_fs_path);
+      gnupg_install_fs_path = "";
+    }
+  }
+
+  // fallback to default path
+  if (gnupg_install_fs_path.isEmpty()) {
+#ifdef MACOS
+    gnupg_install_fs_path = SearchGpgconfPath(
+        {"/usr/local/bin/gpgconf", "/opt/homebrew/bin/gpgconf"});
+    GF_CORE_LOG_DEBUG("core loaded searched gpgconf path: {}",
+                      gnupg_install_fs_path);
+#endif
+
+#ifdef WINDOWS
+    gnupg_install_fs_path =
+        SearchGpgconfPath({"C:/Program Files (x86)/gnupg/bin"});
+    GF_CORE_LOG_DEBUG("core loaded searched gpgconf path: {}",
+                      gnupg_install_fs_path);
+#endif
+  }
+
+  if (!gnupg_install_fs_path.isEmpty()) {
+    return GetGnuPGPathByGpgConf(
+        QFileInfo(gnupg_install_fs_path).absoluteFilePath());
+  }
+  return "";
+}
+
 void InitGpgFrontendCore(CoreInitArgs args) {
   // initialize global register table
   Module::UpsertRTValue("core", "env.state.gpgme", 0);
@@ -190,15 +279,18 @@ void InitGpgFrontendCore(CoreInitArgs args) {
   // initialize locale environment
   GF_CORE_LOG_DEBUG("locale: {}", setlocale(LC_CTYPE, nullptr));
 
+  auto gnupg_install_fs_path = DetectGnuPGPath();
+  GF_CORE_LOG_INFO("detected gnupg path: {}", gnupg_install_fs_path);
+
   // initialize library gpgme
-  if (!InitGpgME()) {
+  if (!InitGpgME(gnupg_install_fs_path)) {
     CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
         QObject::tr("GpgME inilization failed"));
     return;
   }
 
   auto* task = new Thread::Task(
-      [args](const DataObjectPtr&) -> int {
+      [args, gnupg_install_fs_path](const DataObjectPtr&) -> int {
         auto settings = GlobalSettingStation::GetInstance().GetSettings();
         // read settings from config file
         auto forbid_all_gnupg_connection =
@@ -216,10 +308,6 @@ void InitGpgFrontendCore(CoreInitArgs args) {
             settings.value("basic/custom_key_database_path", QString{})
                 .toString();
 
-        auto use_custom_gnupg_install_path =
-            settings.value("basic/use_custom_gnupg_install_path", false)
-                .toBool();
-
         auto custom_gnupg_install_path =
             settings.value("basic/custom_gnupg_install_path", QString{})
                 .toString();
@@ -232,36 +320,6 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                           use_custom_key_database_path);
         GF_CORE_LOG_DEBUG("core loaded custom key databse path: {}",
                           custom_key_database_path);
-
-        QString gnupg_install_fs_path;
-        // user defined
-        if (use_custom_gnupg_install_path &&
-            !custom_gnupg_install_path.isEmpty()) {
-          // check gpgconf path
-          gnupg_install_fs_path = custom_gnupg_install_path;
-#ifdef WINDOWS
-          gnupg_install_fs_path += "/gpgconf.exe";
-#else
-          gnupg_install_fs_path += "/gpgconf";
-#endif
-
-          if (!VerifyGpgconfPath(QFileInfo(gnupg_install_fs_path))) {
-            use_custom_gnupg_install_path = false;
-            GF_CORE_LOG_ERROR("core loaded custom gpgconf path is illegal: {}",
-                              gnupg_install_fs_path);
-          } else {
-            GF_CORE_LOG_DEBUG("core loaded custom gpgconf path: {}",
-                              gnupg_install_fs_path);
-          }
-        } else {
-#ifdef MACOS
-          use_custom_gnupg_install_path = true;
-          gnupg_install_fs_path = SearchGpgconfPath(
-              {"/usr/local/bin/gpgconf", "/opt/homebrew/bin/gpgconf"});
-          GF_CORE_LOG_DEBUG("core loaded searched gpgconf path: {}",
-                            gnupg_install_fs_path);
-#endif
-        }
 
         // check key database path
         QString key_database_fs_path;
@@ -307,26 +365,14 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                     GF_CORE_LOG_ERROR(
                         "custom key database path: {}, is not point to "
                         "an accessible directory",
-                        gnupg_install_fs_path);
+                        key_database_fs_path);
                   }
                 }
 
                 // set custom gnupg path
-                if (use_custom_gnupg_install_path &&
-                    !gnupg_install_fs_path.isEmpty()) {
-                  QFileInfo file_info(gnupg_install_fs_path);
-                  if (file_info.exists() && file_info.isFile() &&
-                      file_info.isExecutable()) {
-                    args.custom_gpgconf = true;
-                    args.custom_gpgconf_path = file_info.absoluteFilePath();
-                    GF_CORE_LOG_INFO("using gnupg path: {}",
-                                     args.custom_gpgconf_path);
-                  } else {
-                    GF_CORE_LOG_ERROR(
-                        "custom gnupg path: {}, is not point to an executable "
-                        "gpgconf binary",
-                        gnupg_install_fs_path);
-                  }
+                if (!gnupg_install_fs_path.isEmpty()) {
+                  args.custom_gpgconf = true;
+                  args.custom_gpgconf_path = gnupg_install_fs_path;
                 }
 
                 args.offline_mode = forbid_all_gnupg_connection;

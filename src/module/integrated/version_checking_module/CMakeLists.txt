@@ -29,6 +29,8 @@ aux_source_directory(. INTEGRATED_MODULE_SOURCE)
 
 # define libgpgfrontend_module
 add_library(gpgfrontend_integrated_module_version_checking SHARED ${INTEGRATED_MODULE_SOURCE})
+set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendModuleExport.h")
+generate_export_header(gpgfrontend_integrated_module_version_checking EXPORT_FILE_NAME "${_export_file}")
 
 if (XCODE_BUILD)
   set_target_properties(gpgfrontend_integrated_module_version_checking
