@@ -39,7 +39,5 @@ if(NOT APPLE)
   add_subdirectory(mimalloc EXCLUDE_FROM_ALL)
 endif()
 
-
-
 set(INSTALL_GTEST OFF)
 add_subdirectory(googletest EXCLUDE_FROM_ALL)
