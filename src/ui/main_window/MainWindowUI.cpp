@@ -147,6 +147,7 @@ void MainWindow::create_actions() {
           &TextEdit::SlotSelectAll);
 
   find_act_ = new QAction(tr("Find"), this);
+  find_act_->setIcon(QIcon(":/icons/search.png"));
   find_act_->setShortcut(QKeySequence::Find);
   find_act_->setToolTip(tr("Find a word"));
   connect(find_act_, &QAction::triggered, this, &MainWindow::slot_find);
@@ -330,7 +331,7 @@ void MainWindow::create_actions() {
   });
 
   import_key_from_edit_act_ = new QAction(tr("Editor"), this);
-  import_key_from_edit_act_->setIcon(QIcon(":/icons/txt.png"));
+  import_key_from_edit_act_->setIcon(QIcon(":/icons/editor.png"));
   import_key_from_edit_act_->setToolTip(tr("Import New Key From Editor"));
   connect(import_key_from_edit_act_, &QAction::triggered, this,
           &MainWindow::slot_import_key_from_edit);

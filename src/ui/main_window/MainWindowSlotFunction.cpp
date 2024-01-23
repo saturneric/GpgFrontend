@@ -50,10 +50,10 @@ void MainWindow::slot_find() {
   }
 
   // At first close verifynotification, if existing
-  edit_->SlotCurPageTextEdit()->CloseNoteByClass("findwidget");
+  edit_->SlotCurPageTextEdit()->CloseNoteByClass("FindWidget");
 
   auto* fw = new FindWidget(this, edit_->CurTextPage());
-  edit_->SlotCurPageTextEdit()->ShowNotificationWidget(fw, "findWidget");
+  edit_->SlotCurPageTextEdit()->ShowNotificationWidget(fw, "FindWidget");
 }
 
 /*

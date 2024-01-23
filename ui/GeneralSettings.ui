@@ -106,6 +106,13 @@
         <item row="0" column="0">
          <layout class="QVBoxLayout" name="verticalLayout_7">
           <item>
+           <widget class="QPushButton" name="revealInFileExplorerButton">
+            <property name="text">
+             <string>Reveal in File Explorer</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="clearAllLogFilesButton">
             <property name="text">
              <string>Clear All Log Files</string>

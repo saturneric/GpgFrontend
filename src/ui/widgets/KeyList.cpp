@@ -126,7 +126,7 @@ void KeyList::AddListGroupTab(const QString& name, const QString& id,
   m_key_tables_.emplace_back(key_list, selectType, infoType, filter);
   m_key_tables_.back().SetMenuAbility(menu_ability_);
 
-  key_list->setColumnCount(7);
+  key_list->setColumnCount(8);
   key_list->horizontalHeader()->setSectionResizeMode(
       QHeaderView::ResizeToContents);
   key_list->verticalHeader()->hide();
@@ -159,13 +159,16 @@ void KeyList::AddListGroupTab(const QString& name, const QString& id,
   if ((infoType & KeyListColumn::Validity) == 0U) {
     key_list->setColumnHidden(5, true);
   }
-  if ((infoType & KeyListColumn::FingerPrint) == 0U) {
+  if ((infoType & KeyListColumn::KeyID) == 0U) {
     key_list->setColumnHidden(6, true);
+  }
+  if ((infoType & KeyListColumn::FingerPrint) == 0U) {
+    key_list->setColumnHidden(7, true);
   }
 
   QStringList labels;
   labels << tr("Select") << tr("Type") << tr("Name") << tr("Email Address")
-         << tr("Usage") << tr("Trust") << tr("Finger Print");
+         << tr("Usage") << tr("Trust") << tr("Key ID") << tr("Finger Print");
 
   key_list->setHorizontalHeaderLabels(labels);
   key_list->horizontalHeader()->setStretchLastSection(false);
@@ -190,7 +193,7 @@ void KeyList::SlotRefreshUI() {
   this->slot_refresh_ui();
 }
 
-KeyIdArgsListPtr KeyList::GetChecked(const KeyTable& key_table) {
+auto KeyList::GetChecked(const KeyTable& key_table) -> KeyIdArgsListPtr {
   auto ret = std::make_unique<KeyIdArgsList>();
   for (int i = 0; i < key_table.key_list_->rowCount(); i++) {
     if (key_table.key_list_->item(i, 0)->checkState() == Qt::Checked) {
@@ -200,7 +203,7 @@ KeyIdArgsListPtr KeyList::GetChecked(const KeyTable& key_table) {
   return ret;
 }
 
-KeyIdArgsListPtr KeyList::GetChecked() {
+auto KeyList::GetChecked() -> KeyIdArgsListPtr {
   auto* key_list =
       qobject_cast<QTableWidget*>(ui_->keyGroupTab->currentWidget());
   const auto& buffered_keys =
@@ -214,7 +217,7 @@ KeyIdArgsListPtr KeyList::GetChecked() {
   return ret;
 }
 
-KeyIdArgsListPtr KeyList::GetAllPrivateKeys() {
+auto KeyList::GetAllPrivateKeys() -> KeyIdArgsListPtr {
   auto* key_list =
       qobject_cast<QTableWidget*>(ui_->keyGroupTab->currentWidget());
   const auto& buffered_keys =
@@ -228,7 +231,7 @@ KeyIdArgsListPtr KeyList::GetAllPrivateKeys() {
   return ret;
 }
 
-KeyIdArgsListPtr KeyList::GetPrivateChecked() {
+auto KeyList::GetPrivateChecked() -> KeyIdArgsListPtr {
   auto ret = std::make_unique<KeyIdArgsList>();
   if (ui_->keyGroupTab->size().isEmpty()) return ret;
 
@@ -289,7 +292,7 @@ KeyIdArgsListPtr KeyList::GetSelected() {
   return ret;
 }
 
-[[maybe_unused]] bool KeyList::ContainsPrivateKeys() {
+[[maybe_unused]] auto KeyList::ContainsPrivateKeys() -> bool {
   if (ui_->keyGroupTab->size().isEmpty()) return false;
   m_key_list_ = qobject_cast<QTableWidget*>(ui_->keyGroupTab->currentWidget());
 
@@ -657,22 +660,28 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
     temp_validity->setTextAlignment(Qt::AlignCenter);
     key_list_->setItem(row_index, 5, temp_validity);
 
+    auto* temp_id = new QTableWidgetItem(it->GetId());
+    temp_id->setTextAlignment(Qt::AlignCenter);
+    key_list_->setItem(row_index, 6, temp_id);
+
     auto* temp_fpr = new QTableWidgetItem(it->GetFingerprint());
     temp_fpr->setTextAlignment(Qt::AlignCenter);
-    key_list_->setItem(row_index, 6, temp_fpr);
+    key_list_->setItem(row_index, 7, temp_fpr);
+
+    QFont font = tmp2->font();
 
     // strike out expired keys
-    if (it->IsExpired() || it->IsRevoked()) {
-      QFont strike = tmp2->font();
-      strike.setStrikeOut(true);
-      tmp0->setFont(strike);
-      temp_usage->setFont(strike);
-      temp_fpr->setFont(strike);
-      temp_validity->setFont(strike);
-      tmp1->setFont(strike);
-      tmp2->setFont(strike);
-      tmp3->setFont(strike);
-    }
+    if (it->IsExpired() || it->IsRevoked()) font.setStrikeOut(true);
+    if (it->IsPrivateKey()) font.setBold(true);
+
+    tmp0->setFont(font);
+    temp_usage->setFont(font);
+    temp_fpr->setFont(font);
+    temp_validity->setFont(font);
+    tmp1->setFont(font);
+    tmp2->setFont(font);
+    tmp3->setFont(font);
+    temp_id->setFont(font);
 
     // move to buffered keys
     buffered_keys_.emplace_back(std::move(*it));

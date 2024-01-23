@@ -66,6 +66,8 @@ GeneralTab::GeneralTab(QWidget* parent)
       tr("Clear All Data Objects (Total Size: %1)")
           .arg(GlobalSettingStation::GetInstance().GetDataObjectsFilesSize()));
 
+  ui_->revealInFileExplorerButton->setText(tr("Reveal in File Explorer"));
+
   lang_ = SettingsDialog::ListLanguages();
   for (const auto& l : lang_) {
     ui_->langSelectBox->addItem(l);
@@ -94,6 +96,11 @@ GeneralTab::GeneralTab(QWidget* parent)
               .arg(GlobalSettingStation::GetInstance()
                        .GetDataObjectsFilesSize()));
     }
+  });
+
+  connect(ui_->revealInFileExplorerButton, &QPushButton::clicked, this, [=]() {
+    QDesktopServices::openUrl(QUrl::fromLocalFile(
+        GlobalSettingStation::GetInstance().GetAppDataPath()));
   });
 
   SetSettings();

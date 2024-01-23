@@ -63,7 +63,7 @@
         <file alias="ssh-key.png">resource/lfs/icons/ssh-key.png</file>
         <file alias="statusbar_icon.png">resource/lfs/icons/statusbar_icon.png</file>
         <file alias="trash.png">resource/lfs/icons/trash.png</file>
-        <file alias="txt.png">resource/lfs/icons/txt.png</file>
+        <file alias="editor.png">resource/lfs/icons/editor.png</file>
         <file alias="undo.png">resource/lfs/icons/undo.png</file>
         <file alias="verify.png">resource/lfs/icons/verify.png</file>
         <file alias="export_key_to_clipboard.png">resource/lfs/icons/export_key_to_clipboard.png</file>
@@ -86,6 +86,8 @@
         <file alias="clear.png">resource/lfs/icons/clear.png</file>
         <file alias="cloud_sync.png">resource/lfs/icons/cloud_sync.png</file>
         <file alias="total_selection.png">resource/lfs/icons/total_selection.png</file>
+        <file alias="search.png">resource/lfs/icons/search.png</file>
+        <file alias="close.png">resource/lfs/icons/close.png</file>
     </qresource>
     <qresource prefix="/test/key">
         <file alias="pv1.key">resource/lfs/test/data/pv1.key</file>
