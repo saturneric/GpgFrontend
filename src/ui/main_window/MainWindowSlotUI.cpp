@@ -65,13 +65,8 @@ void MainWindow::slot_open_key_management() {
 void MainWindow::slot_open_file_tab() { edit_->SlotNewFileTab(); }
 
 void MainWindow::slot_disable_tab_actions(int number) {
-  bool disable;
-
-  disable = number == -1;
-
-  if (edit_->CurFilePage() != nullptr) {
-    disable = true;
-  }
+  auto disable = number == -1;
+  if (edit_->CurFilePage() != nullptr) disable = true;
 
   print_act_->setDisabled(disable);
   save_act_->setDisabled(disable);
@@ -100,6 +95,12 @@ void MainWindow::slot_disable_tab_actions(int number) {
 
   cut_pgp_header_act_->setDisabled(disable);
   add_pgp_header_act_->setDisabled(disable);
+
+  if (edit_->CurFilePage() != nullptr) {
+    GF_UI_LOG_DEBUG("edit current page is file page");
+    auto* file_page = edit_->CurFilePage();
+    emit file_page->SignalCurrentTabChanged();
+  }
 }
 
 void MainWindow::slot_open_settings_dialog() {
@@ -184,9 +185,9 @@ void MainWindow::SlotSetRestartNeeded(int mode) {
 
 int MainWindow::get_restart_needed() const { return this->restart_needed_; }
 
-void MainWindow::SetCryptoMenuStatus(
-    MainWindow::CryptoMenu::OperationType type) {
-  GF_UI_LOG_DEBUG("type: {}", type);
+void MainWindow::SlotUpdateCryptoMenuStatus(unsigned int type) {
+  MainWindow::CryptoMenu::OperationType opera_type = type;
+  GF_UI_LOG_DEBUG("update crypto menu status, type: {}", opera_type);
 
   // refresh status to disable all
   verify_act_->setDisabled(true);
@@ -197,22 +198,22 @@ void MainWindow::SetCryptoMenuStatus(
   decrypt_verify_act_->setDisabled(true);
 
   // enable according to type
-  if (type & MainWindow::CryptoMenu::Verify) {
+  if ((opera_type & MainWindow::CryptoMenu::Verify) != 0U) {
     verify_act_->setDisabled(false);
   }
-  if (type & MainWindow::CryptoMenu::Sign) {
+  if ((opera_type & MainWindow::CryptoMenu::Sign) != 0U) {
     sign_act_->setDisabled(false);
   }
-  if (type & MainWindow::CryptoMenu::Encrypt) {
+  if ((opera_type & MainWindow::CryptoMenu::Encrypt) != 0U) {
     encrypt_act_->setDisabled(false);
   }
-  if (type & MainWindow::CryptoMenu::EncryptAndSign) {
+  if ((opera_type & MainWindow::CryptoMenu::EncryptAndSign) != 0U) {
     encrypt_sign_act_->setDisabled(false);
   }
-  if (type & MainWindow::CryptoMenu::Decrypt) {
+  if ((opera_type & MainWindow::CryptoMenu::Decrypt) != 0U) {
     decrypt_act_->setDisabled(false);
   }
-  if (type & MainWindow::CryptoMenu::DecryptAndVerify) {
+  if ((opera_type & MainWindow::CryptoMenu::DecryptAndVerify) != 0U) {
     decrypt_verify_act_->setDisabled(false);
   }
 }

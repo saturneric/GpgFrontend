@@ -88,6 +88,13 @@ class FileTreeView : public QTreeView {
    */
   void paintEvent(QPaintEvent* event) override;
 
+  /**
+   * @brief
+   *
+   * @param event
+   */
+  void mousePressEvent(QMouseEvent* event) override;
+
  signals:
 
   /**

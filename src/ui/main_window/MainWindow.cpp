@@ -103,6 +103,12 @@ void MainWindow::Init() noexcept {
             [=](const QString &message, int timeout) {
               statusBar()->showMessage(message, timeout);
             });
+    connect(UISignalStation::GetInstance(),
+            &UISignalStation::SignalMainWindowlUpdateBasicalOperaMenu, this,
+            &MainWindow::SlotUpdateCryptoMenuStatus);
+    connect(UISignalStation::GetInstance(),
+            &UISignalStation::SignalMainWindowOpenFile, this,
+            &MainWindow::SlotOpenFile);
 
     m_key_list_->AddMenuAction(append_selected_keys_act_);
     m_key_list_->AddMenuAction(append_key_create_date_to_editor_act_);

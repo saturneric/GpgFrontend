@@ -429,7 +429,7 @@ void KeyList::SetDoubleClickedAction(
   this->m_action_ = std::move(action);
 }
 
-QString KeyList::GetSelectedKey() {
+auto KeyList::GetSelectedKey() -> QString {
   if (ui_->keyGroupTab->size().isEmpty()) return {};
   const auto& buffered_keys =
       m_key_tables_[ui_->keyGroupTab->currentIndex()].buffered_keys_;

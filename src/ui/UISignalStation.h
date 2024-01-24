@@ -74,6 +74,18 @@ class UISignalStation : public QObject {
   /**
    * @brief
    *
+   */
+  void SignalMainWindowlUpdateBasicalOperaMenu(unsigned int);
+
+  /**
+   * @brief
+   *
+   */
+  void SignalMainWindowOpenFile(QString);
+
+  /**
+   * @brief
+   *
    * @param text
    * @param verify_label_status
    */

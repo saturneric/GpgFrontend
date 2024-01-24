@@ -99,7 +99,7 @@ void KeySetExpireDateDialog::init() {
   auto settings =
       GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
 
-  bool longer_expiration_date = longer_expiration_date =
+  bool longer_expiration_date =
       settings.value("basic/longer_expiration_date").toBool();
 
   auto max_date_time =

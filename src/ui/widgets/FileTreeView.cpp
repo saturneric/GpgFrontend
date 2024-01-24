@@ -394,4 +394,8 @@ void FileTreeView::paintEvent(QPaintEvent* event) {
     this->resizeColumnToContents(i);
   }
 }
+
+void FileTreeView::mousePressEvent(QMouseEvent* event) {
+  QTreeView::mousePressEvent(event);
+}
 }  // namespace GpgFrontend::UI
