@@ -49,6 +49,7 @@ FileTreeView::FileTreeView(QWidget* parent, const QString& target_path)
 
   slot_create_popup_menu();
   this->setContextMenuPolicy(Qt::CustomContextMenu);
+
   connect(this, &QWidget::customContextMenuRequested, this,
           &FileTreeView::slot_show_custom_context_menu);
   connect(this, &QTreeView::doubleClicked, this,
@@ -204,6 +205,8 @@ void FileTreeView::SlotTouch() {
       QLineEdit::Normal, new_file_name, &ok);
   if (ok && !new_file_name.isEmpty()) {
     auto file_path = root_path + "/" + new_file_name;
+    GF_UI_LOG_DEBUG("new file path: {}", file_path);
+
     QFile new_file(file_path);
     if (!new_file.open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
       QMessageBox::critical(this, tr("Error"),
@@ -215,6 +218,7 @@ void FileTreeView::SlotTouch() {
 
 void FileTreeView::SlotTouchBelowAtSelectedItem() {
   auto root_path(selected_path_);
+  if (root_path.isEmpty()) root_path = dir_model_->rootPath();
 
   QString new_file_name;
   bool ok;
@@ -223,6 +227,7 @@ void FileTreeView::SlotTouchBelowAtSelectedItem() {
       QLineEdit::Normal, new_file_name, &ok);
   if (ok && !new_file_name.isEmpty()) {
     auto file_path = root_path + "/" + new_file_name;
+    GF_UI_LOG_DEBUG("new file path: {}", file_path);
 
     QFile new_file(file_path);
     if (!new_file.open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
@@ -326,16 +331,16 @@ void FileTreeView::slot_create_popup_menu() {
   connect(action_open_with_system_default_application, &QAction::triggered,
           this, &FileTreeView::SlotOpenSelectedItemBySystemApplication);
 
-  auto* new_item_action_menu = new QMenu(this);
-  new_item_action_menu->setTitle(tr("New"));
-  new_item_action_menu->addAction(action_create_empty_file_);
-  new_item_action_menu->addAction(action_make_directory_);
+  new_item_action_menu_ = new QMenu(this);
+  new_item_action_menu_->setTitle(tr("New"));
+  new_item_action_menu_->addAction(action_create_empty_file_);
+  new_item_action_menu_->addAction(action_make_directory_);
 
   popup_menu_->addAction(action_open_file_);
   popup_menu_->addAction(action_open_with_system_default_application);
 
   popup_menu_->addSeparator();
-  popup_menu_->addMenu(new_item_action_menu);
+  popup_menu_->addMenu(new_item_action_menu_);
   popup_menu_->addSeparator();
 
   popup_menu_->addAction(action_rename_file_);
@@ -346,22 +351,40 @@ void FileTreeView::slot_create_popup_menu() {
 
 void FileTreeView::slot_show_custom_context_menu(const QPoint& point) {
   auto target_path = this->GetPathByClickPoint(point);
+  auto select_path = GetSelectedPath();
 
-  if (!target_path.isEmpty()) {
-    action_open_file_->setEnabled(true);
+  GF_UI_LOG_DEBUG("file tree view, target path: {}, select path: {}",
+                  target_path, select_path);
+  if (target_path.isEmpty() && !select_path.isEmpty()) {
+    target_path = select_path;
+  }
+
+  QFileInfo file_info(target_path);
+
+  action_open_file_->setEnabled(false);
+  action_rename_file_->setEnabled(false);
+  action_delete_file_->setEnabled(false);
+  action_calculate_hash_->setEnabled(false);
+  action_make_directory_->setEnabled(false);
+  action_create_empty_file_->setEnabled(false);
+  action_calculate_hash_->setEnabled(false);
+
+  if (file_info.exists()) {
+    action_open_file_->setEnabled(file_info.isFile() && file_info.isReadable());
     action_rename_file_->setEnabled(true);
     action_delete_file_->setEnabled(true);
 
-    QFileInfo const info(this->GetSelectedPath());
-    action_calculate_hash_->setEnabled(info.isFile() && info.isReadable());
-
+    action_make_directory_->setEnabled(file_info.isDir() &&
+                                       file_info.isWritable());
+    action_create_empty_file_->setEnabled(file_info.isDir() &&
+                                          file_info.isWritable());
+    action_calculate_hash_->setEnabled(file_info.isFile() &&
+                                       file_info.isReadable());
   } else {
-    action_open_file_->setEnabled(false);
-    action_rename_file_->setEnabled(false);
-    action_delete_file_->setEnabled(false);
-
-    action_calculate_hash_->setEnabled(false);
+    action_create_empty_file_->setEnabled(true);
+    action_make_directory_->setEnabled(true);
   }
+
   popup_menu_->exec(this->GetMousePointGlobal(point));
 }
 

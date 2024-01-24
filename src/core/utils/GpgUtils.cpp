@@ -99,8 +99,9 @@ auto TextIsSigned(QString text) -> int {
 
 auto SetExtensionOfOutputFile(const QString& path, GpgOperation opera,
                               bool ascii) -> QString {
+  auto file_info = QFileInfo(path);
   QString new_extension;
-  QString current_extension = QFileInfo(path).suffix();
+  QString current_extension = file_info.suffix();
 
   if (ascii) {
     switch (opera) {
@@ -127,22 +128,24 @@ auto SetExtensionOfOutputFile(const QString& path, GpgOperation opera,
   }
 
   if (!new_extension.isEmpty()) {
-    return QFileInfo(path).path() + "/" + QFileInfo(path).completeBaseName() +
-           "." + new_extension;
+    return file_info.absolutePath() + "/" + file_info.completeBaseName() + "." +
+           new_extension;
   }
-  return QFileInfo(path).path() + "/" + QFileInfo(path).completeBaseName();
+  return file_info.absolutePath() + "/" + file_info.baseName();
 }
 
 auto SetExtensionOfOutputFileForArchive(const QString& path, GpgOperation opera,
                                         bool ascii) -> QString {
   QString extension;
+  auto file_info = QFileInfo(path);
 
   if (ascii) {
     switch (opera) {
       case kENCRYPT:
       case kENCRYPT_SIGN:
-        extension = ".tar.asc";
-        return path + extension;
+        if (file_info.completeSuffix() != "tar") extension += ".tar";
+        extension += ".asc";
+        return QFileInfo(path).absoluteFilePath() + extension;
         break;
       default:
         break;
@@ -151,15 +154,15 @@ auto SetExtensionOfOutputFileForArchive(const QString& path, GpgOperation opera,
     switch (opera) {
       case kENCRYPT:
       case kENCRYPT_SIGN:
-        extension = ".tar.gpg";
-        return path + extension;
+        if (file_info.completeSuffix() != "tar") extension += ".tar";
+        extension += ".gpg";
+        return QFileInfo(path).absoluteFilePath() + extension;
         break;
       default:
         break;
     }
   }
 
-  auto file_info = QFileInfo(path);
   return file_info.absolutePath() + "/" + file_info.baseName();
 }
 

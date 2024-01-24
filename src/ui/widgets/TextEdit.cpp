@@ -33,8 +33,8 @@
 #include <vector>
 
 #include "core/GpgModel.h"
-#include "core/function/CacheManager.h"
 #include "core/function/GlobalSettingStation.h"
+#include "ui/UISignalStation.h"
 #include "ui/struct/CacheObject.h"
 
 namespace GpgFrontend::UI {
@@ -600,6 +600,9 @@ void TextEdit::slot_file_page_path_changed(const QString& path) const {
     m_path = t_path;
   }
   tab_widget_->setTabText(index, m_path);
+
+  emit UISignalStation::GetInstance()->SignalMainWindowlUpdateBasicalOperaMenu(
+      0);
 }
 
 void TextEdit::slot_save_status_to_cache_for_revovery() {

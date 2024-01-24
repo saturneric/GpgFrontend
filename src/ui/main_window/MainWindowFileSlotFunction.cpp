@@ -280,6 +280,7 @@ void MainWindow::SlotFileDecrypt(const QString& path) {
   }
 
   auto out_path = SetExtensionOfOutputFile(path, kDECRYPT, true);
+  GF_UI_LOG_DEBUG("file decrypt target output path: {}", out_path);
   if (QFileInfo(out_path).exists()) {
     auto ret = QMessageBox::warning(
         this, tr("Warning"),
@@ -329,6 +330,7 @@ void MainWindow::SlotArchiveDecrypt(const QString& path) {
   }
 
   auto out_path = SetExtensionOfOutputFileForArchive(path, kDECRYPT, true);
+  GF_UI_LOG_DEBUG("archive decrypt target output path: {}", out_path);
   if (QFileInfo(out_path).exists()) {
     auto ret = QMessageBox::warning(
         this, tr("Warning"),

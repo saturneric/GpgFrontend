@@ -225,6 +225,7 @@ class FileTreeView : public QTreeView {
   QString selected_path_;        ///<
 
   QMenu* popup_menu_;
+  QMenu* new_item_action_menu_;
   QAction* action_open_file_;
   QAction* action_rename_file_;
   QAction* action_delete_file_;
