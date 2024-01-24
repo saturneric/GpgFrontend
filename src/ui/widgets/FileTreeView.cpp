@@ -271,7 +271,7 @@ void FileTreeView::SlotRenameSelectedItem() {
     auto file_info = QFileInfo(selected_path_);
     auto new_name_path = file_info.absolutePath() + "/" + text;
     GF_UI_LOG_DEBUG("new filename path: {}", new_name_path);
-    if (QDir().rename(file_info.absoluteFilePath(), new_name_path)) {
+    if (!QDir().rename(file_info.absoluteFilePath(), new_name_path)) {
       QMessageBox::critical(this, tr("Error"),
                             tr("Unable to rename the file or folder."));
       return;

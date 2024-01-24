@@ -133,10 +133,13 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
           archive_read_disk_descend(disk);
 
           // turn absolute path to relative path
-          archive_entry_set_pathname(
+          archive_entry_set_pathname_utf8(
               entry,
-              base_path.relativeFilePath(QString(archive_entry_pathname(entry)))
+              base_path
+                  .relativeFilePath(QString(archive_entry_pathname_utf8(entry)))
                   .toUtf8());
+          GF_CORE_LOG_DEBUG("archive entry input path: {}",
+                            archive_entry_pathname_utf8(entry));
 
           r = archive_write_header(archive, entry);
           if (r < ARCHIVE_OK) {
@@ -228,9 +231,11 @@ void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
             break;
           }
 
-          archive_entry_set_pathname(
-              entry,
-              (target_path + "/" + archive_entry_pathname(entry)).toUtf8());
+          archive_entry_set_pathname_utf8(
+              entry, (target_path + "/" + archive_entry_pathname_utf8(entry))
+                         .toUtf8());
+          GF_CORE_LOG_DEBUG("archive entry output path: {}",
+                            archive_entry_pathname_utf8(entry));
 
           r = archive_write_header(ext, entry);
           if (r != ARCHIVE_OK) {
