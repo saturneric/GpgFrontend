@@ -223,7 +223,7 @@ auto GetGnuPGPathByGpgConf(const QString& gnupg_install_fs_path) -> QString {
 auto DetectGpgConfPath() -> QString {
   auto settings = GlobalSettingStation::GetInstance().GetSettings();
   auto use_custom_gnupg_install_path =
-      settings.value("basic/use_custom_gnupg_install_path", false).toBool();
+      settings.value("gnupg/use_custom_gnupg_install_path", false).toBool();
   auto custom_gnupg_install_path =
       settings.value("basic/custom_gnupg_install_path", QString{}).toString();
 
@@ -307,11 +307,11 @@ void InitGpgFrontendCore(CoreInitArgs args) {
             settings.value("network/auto_import_missing_key", false).toBool();
 
         auto use_custom_key_database_path =
-            settings.value("basic/use_custom_key_database_path", false)
+            settings.value("gnupg/use_custom_key_database_path", false)
                 .toBool();
 
         auto custom_key_database_path =
-            settings.value("basic/custom_key_database_path", QString{})
+            settings.value("gnupg/custom_key_database_path", QString{})
                 .toString();
 
         auto custom_gnupg_install_path =
@@ -319,7 +319,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                 .toString();
 
         auto use_pinentry_as_password_input_dialog =
-            settings.value("basic/use_pinentry_as_password_input_dialog", false)
+            settings.value("gnupg/use_pinentry_as_password_input_dialog", false)
                 .toBool();
 
         GF_CORE_LOG_DEBUG("core loaded if use custom key databse path: {}",
@@ -441,9 +441,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                   auto settings =
                       GlobalSettingStation::GetInstance().GetSettings();
                   auto restart_all_gnupg_components_on_start =
-                      settings
-                          .value("gnupg/restart_all_gnupg_components_on_start",
-                                 false)
+                      settings.value("gnupg/restart_gpg_agent_on_start", false)
                           .toBool();
 
                   if (restart_all_gnupg_components_on_start) {

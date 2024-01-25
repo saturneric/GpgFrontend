@@ -169,8 +169,8 @@ void MainWindow::restore_settings() {
   if (key_server.default_server < 0) key_server.default_server = 0;
 
   auto settings = GlobalSettingStation::GetInstance().GetSettings();
-  if (!settings.contains("basic/non_ascii_when_export")) {
-    settings.setValue("basic/non_ascii_when_export", true);
+  if (!settings.contains("gnupg/non_ascii_at_file_operation")) {
+    settings.setValue("gnupg/non_ascii_at_file_operation", true);
   }
 
   // set appearance
