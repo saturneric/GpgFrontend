@@ -77,7 +77,17 @@ class GPGFRONTEND_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
    * @return true
    * @return false
    */
-  auto print_signer(QTextStream &stream, gpgme_signature_t sign) -> bool;
+  auto print_signer(QTextStream &stream, GpgSignature sign) -> bool;
+
+  /**
+   * @brief
+   *
+   * @param stream
+   * @param sign
+   * @return true
+   * @return false
+   */
+  auto print_signer_without_key(QTextStream &stream, GpgSignature sign) -> bool;
 
   GpgError error_;          ///<
   GpgVerifyResult result_;  ///<
