@@ -89,13 +89,13 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
     const OperationCallback &cb) {
   RunIOOperaAsync(
       [=](const DataObjectPtr &data_object) -> GFError {
-        std::array<char, 1024> buff{};
         auto ret = 0;
         const auto base_path = QDir(QDir(target_directory).absolutePath());
 
         auto *archive = archive_write_new();
         archive_write_add_filter_none(archive);
         archive_write_set_format_pax_restricted(archive);
+        archive_write_set_format_option(archive, "pax", "hdrcharset", "BINARY");
 
         archive_write_open(archive, exchanger.get(), nullptr,
                            ArchiveWriteCallback, ArchiveCloseWriteCallback);
@@ -104,8 +104,10 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
         archive_read_disk_set_standard_lookup(disk);
 
 #ifdef WINDOWS
-        auto r = archive_read_disk_open_w(
-            disk, target_directory.toStdWString().c_str());
+        auto target_directory_utf16_wstr = std::wstring(
+            reinterpret_cast<const wchar_t *>((target_directory).utf16()));
+        auto r =
+            archive_read_disk_open_w(disk, target_directory_utf16_wstr.c_str());
 #else
         auto r = archive_read_disk_open(disk, target_directory.toUtf8());
 #endif
@@ -132,41 +134,56 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
 
           archive_read_disk_descend(disk);
 
-          // turn absolute path to relative path
-          archive_entry_set_pathname_utf8(
-              entry,
-              base_path
-                  .relativeFilePath(QString(archive_entry_pathname_utf8(entry)))
-                  .toUtf8());
-          GF_CORE_LOG_DEBUG("archive entry input path: {}",
-                            archive_entry_pathname_utf8(entry));
+#ifdef WINDOWS
+          auto source_path =
+              QString::fromUtf16(reinterpret_cast<const char16_t *>(
+                  archive_entry_pathname_w(entry)));
+#else
+          auto source_path = QString::fromUtf8(archive_entry_pathname(entry));
+#endif
 
-          r = archive_write_header(archive, entry);
-          if (r < ARCHIVE_OK) {
-            GF_CORE_LOG_ERROR(
-                "archive_write_header() failed, ret: {}, explain: {} ", r,
-                archive_error_string(archive));
-            continue;
-          }
+          QFile file(source_path);
+          if (file.open(QIODeviceBase::ReadOnly)) {
+            // turn absolute path to relative path
+            auto relativ_path_name = base_path.relativeFilePath(source_path);
+            archive_entry_set_pathname(entry, relativ_path_name.toUtf8());
 
-          if (r == ARCHIVE_FATAL) {
-            GF_CORE_LOG_ERROR(
-                "archive_write_header() failed, ret: {}, explain: {}, "
-                "abort ...",
-                r, archive_error_string(archive));
-            ret = -1;
-            break;
-          }
+#ifdef WINDOWS
+            auto source_path_utf16_wstr = std::wstring(
+                reinterpret_cast<const wchar_t *>(source_path.utf16()));
+            archive_entry_copy_sourcepath_w(entry,
+                                            source_path_utf16_wstr.c_str());
+#else
 
-          if (r > ARCHIVE_FAILED) {
-            auto fd = open(archive_entry_sourcepath(entry), O_RDONLY);
-            auto len = read(fd, buff.data(), buff.size());
-            while (len > 0) {
-              archive_write_data(archive, buff.data(), len);
-              len = read(fd, buff.data(), buff.size());
+            archive_entry_copy_sourcepath(entry, source_path.toUtf8());
+#endif
+
+            r = archive_write_header(archive, entry);
+            if (r < ARCHIVE_OK) {
+              GF_CORE_LOG_ERROR(
+                  "archive_write_header() failed, ret: {}, explain: {} ", r,
+                  archive_error_string(archive));
+              continue;
             }
-            close(fd);
+
+            if (r == ARCHIVE_FATAL) {
+              GF_CORE_LOG_ERROR(
+                  "archive_write_header() failed, ret: {}, explain: {}, "
+                  "abort ...",
+                  r, archive_error_string(archive));
+              ret = -1;
+              break;
+            }
+
+            if (r > ARCHIVE_FAILED) {
+              auto buffer = file.read(1024);
+              while (!buffer.isEmpty()) {
+                archive_write_data(archive, buffer.data(), buffer.size());
+                buffer = file.read(1024);
+              }
+            }
           }
+          archive_write_finish_entry(archive);
           archive_entry_free(entry);
         }
 
@@ -207,6 +224,7 @@ void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
 
         r = archive_read_open(archive, &rdata, nullptr, ArchiveReadCallback,
                               nullptr);
+
         if (r != ARCHIVE_OK) {
           GF_CORE_LOG_ERROR("archive_read_open(), ret: {}, reason: {}", r,
                             archive_error_string(archive));
@@ -231,11 +249,17 @@ void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
             break;
           }
 
-          archive_entry_set_pathname_utf8(
-              entry, (target_path + "/" + archive_entry_pathname_utf8(entry))
-                         .toUtf8());
-          GF_CORE_LOG_DEBUG("archive entry output path: {}",
-                            archive_entry_pathname_utf8(entry));
+          auto path_name = QString::fromUtf8(archive_entry_pathname(entry));
+          auto target_path_name = target_path + "/" + path_name;
+
+#ifdef WINDOWS
+          auto target_path_utf16_wstr = std::wstring(
+              reinterpret_cast<const wchar_t *>((target_path_name).utf16()));
+          archive_entry_copy_pathname_w(entry, target_path_utf16_wstr.c_str());
+#else
+
+          archive_entry_set_pathname(entry, target_path_name.toUtf8());
+#endif
 
           r = archive_write_header(ext, entry);
           if (r != ARCHIVE_OK) {

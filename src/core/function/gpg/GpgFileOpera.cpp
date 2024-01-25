@@ -99,6 +99,7 @@ void GpgFileOpera::EncryptDirectory(const KeyArgsList& keys,
                                     const QString& out_path,
                                     const GpgOperationCallback& cb) {
   auto ex = std::make_shared<GFDataExchanger>(kDataExchangerSize);
+  auto w_ex = std::weak_ptr<GFDataExchanger>(ex);
 
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
@@ -127,6 +128,9 @@ void GpgFileOpera::EncryptDirectory(const KeyArgsList& keys,
       in_path, ex, [=](GFError err, const DataObjectPtr&) {
         GF_CORE_LOG_DEBUG("new archive 2 data exchanger operation, err: {}",
                           err);
+        if (decltype(ex) p_ex = w_ex.lock(); err < 0 && p_ex != nullptr) {
+          ex->CloseWrite();
+        }
       });
 }
 
@@ -365,6 +369,7 @@ void GpgFileOpera::EncryptSignDirectory(const KeyArgsList& keys,
                                         const QString& out_path,
                                         const GpgOperationCallback& cb) {
   auto ex = std::make_shared<GFDataExchanger>(kDataExchangerSize);
+  auto w_ex = std::weak_ptr<GFDataExchanger>(ex);
 
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
@@ -395,6 +400,9 @@ void GpgFileOpera::EncryptSignDirectory(const KeyArgsList& keys,
   ArchiveFileOperator::NewArchive2DataExchanger(
       in_path, ex, [=](GFError err, const DataObjectPtr&) {
         GF_CORE_LOG_DEBUG("new archive 2 fd operation, err: {}", err);
+        if (decltype(ex) p_ex = w_ex.lock(); err < 0 && p_ex != nullptr) {
+          ex->CloseWrite();
+        }
       });
 }
 
