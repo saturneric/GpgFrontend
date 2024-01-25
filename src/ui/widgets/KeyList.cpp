@@ -579,12 +579,16 @@ void KeyTable::Refresh(KeyLinkListPtr m_keys) {
   while (it != keys->end()) {
     // filter by search bar's keyword
     if (ability_ & KeyMenuAbility::SEARCH_BAR && !keyword_.isEmpty()) {
-      auto name = it->GetName().toLower();
-      auto email = it->GetEmail().toLower();
-      auto comment = it->GetComment().toLower();
+      QStringList infos;
+      infos << it->GetName().toLower() << it->GetEmail().toLower()
+            << it->GetComment().toLower() << it->GetFingerprint().toLower();
 
-      if (!name.contains(keyword_) && !email.contains(keyword_) &&
-          !comment.contains(keyword_)) {
+      auto subkeys = it->GetSubKeys();
+      for (const auto& subkey : *subkeys) {
+        infos << subkey.GetFingerprint().toLower() << subkey.GetID().toLower();
+      }
+
+      if (infos.filter(keyword_.toLower()).isEmpty()) {
         it = keys->erase(it);
         continue;
       }

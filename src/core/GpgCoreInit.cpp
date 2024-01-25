@@ -438,7 +438,17 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                       "received callback from gnupg-info-gathering ");
 
                   // try to restart all components
-                  GpgFrontend::GpgAdvancedOperator::RestartGpgComponents();
+                  auto settings =
+                      GlobalSettingStation::GetInstance().GetSettings();
+                  auto restart_all_gnupg_components_on_start =
+                      settings
+                          .value("gnupg/restart_all_gnupg_components_on_start",
+                                 false)
+                          .toBool();
+
+                  if (restart_all_gnupg_components_on_start) {
+                    GpgAdvancedOperator::RestartGpgComponents();
+                  }
                   Module::UpsertRTValue("core", "env.state.gnupg", 1);
 
                   // announce that all checkings were finished
