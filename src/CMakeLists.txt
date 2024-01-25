@@ -448,6 +448,17 @@ if (BUILD_APPLICATION)
         TS_FILES ${TS_FILES}
         SOURCES ${ALL_SOURCE_FILES}
         INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/src)
+
+    file(GLOB QT_TRANSLATIONS_TS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third_party/qttranslations/translations/*.ts)
+    list(FILTER QT_TRANSLATIONS_TS INCLUDE REGEX ".*(qt|qtbase)_.*\.ts$")
+    add_custom_target(qttranslations ALL)
+    qt_add_lrelease(qttranslations
+            TS_FILES ${QT_TRANSLATIONS_TS}
+            QM_FILES_OUTPUT_VARIABLE QT_TRANSLATIONS_QM)
+    qt_add_resources(${AppName}  "qttranslations"
+        PREFIX "/i18n_qt"
+        BASE ${CMAKE_CURRENT_BINARY_DIR}
+        FILES ${QT_TRANSLATIONS_QM})
 endif()
 
 # if building linux package

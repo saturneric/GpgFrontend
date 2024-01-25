@@ -13,3 +13,6 @@
 [submodule "third_party/libarchive"]
 	path = third_party/libarchive
 	url = https://github.com/libarchive/libarchive.git
+[submodule "third_party/qttranslations"]
+	path = third_party/qttranslations
+	url = git://code.qt.io/qt/qttranslations.git

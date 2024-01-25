@@ -220,6 +220,24 @@ void InitUITranslations() {
                     QLocale().name());
     QCoreApplication::installTranslator(translator);
   }
+
+  auto* base_translation = new QTranslator(QCoreApplication::instance());
+  if (base_translation->load(QLocale(), QLatin1String("qt"), QLatin1String("_"),
+                             QLatin1String(":/i18n_qt"),
+                             QLatin1String(".qm"))) {
+    GF_UI_LOG_DEBUG("load qt translation file done, locale: {}",
+                    QLocale().name());
+    QCoreApplication::installTranslator(base_translation);
+  }
+
+  base_translation = new QTranslator(QCoreApplication::instance());
+  if (base_translation->load(QLocale(), QLatin1String("qtbase"),
+                             QLatin1String("_"), QLatin1String(":/i18n_qt"),
+                             QLatin1String(".qm"))) {
+    GF_UI_LOG_DEBUG("load qtbase translation file done, locale: {}",
+                    QLocale().name());
+    QCoreApplication::installTranslator(base_translation);
+  }
 }
 
 }  // namespace GpgFrontend::UI
