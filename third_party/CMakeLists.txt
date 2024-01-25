@@ -29,6 +29,8 @@ set(JSON_BuildTests OFF CACHE INTERNAL "")
 
 add_subdirectory(spdlog EXCLUDE_FROM_ALL)
 
+add_subdirectory(libarchive EXCLUDE_FROM_ALL)
+
 # not working at macOS
 if(NOT APPLE)
   set(MI_SECURE ON)

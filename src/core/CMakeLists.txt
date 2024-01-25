@@ -76,11 +76,6 @@ endif ()
 target_link_libraries(gpgfrontend_core PRIVATE spdlog)
 
 # link libarchive
-if(APPLE)
-    set(LibArchive_INCLUDE_DIR "/usr/local/opt/libarchive/include")
-endif()
-find_package(LibArchive REQUIRED)
-target_include_directories(gpgfrontend_core PRIVATE ${LibArchive_INCLUDE_DIR})
 target_link_libraries(gpgfrontend_core PRIVATE archive)
         
 # link Qt core
