@@ -238,7 +238,7 @@ void GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label(
         QString custom_gnupg_install_path =
             GlobalSettingStation::GetInstance()
                 .GetSettings()
-                .value("basic/custom_gnupg_install_path")
+                .value("gnupg/custom_gnupg_install_path")
                 .toString();
         GF_UI_LOG_DEBUG("custom_gnupg_install_path from settings: {}",
                         custom_gnupg_install_path);
@@ -333,10 +333,10 @@ void GnuPGControllerDialog::apply_settings() {
                     ui_->gpgmeDebugLogCheckBox->isChecked());
   settings.setValue("gnupg/custom_key_database_path",
                     ui_->currentKeyDatabasePathLabel->text());
-  settings.setValue("basic/custom_gnupg_install_path",
+  settings.setValue("gnupg/custom_gnupg_install_path",
                     ui_->currentCustomGnuPGInstallPathLabel->text());
   settings.setValue("gnupg/restart_gpg_agent_on_start",
-                    ui_->restartGpgAgentOnStartCheckBox->text());
+                    ui_->restartGpgAgentOnStartCheckBox->isChecked());
 }
 
 int GnuPGControllerDialog::get_restart_needed() const {

@@ -225,7 +225,7 @@ auto DetectGpgConfPath() -> QString {
   auto use_custom_gnupg_install_path =
       settings.value("gnupg/use_custom_gnupg_install_path", false).toBool();
   auto custom_gnupg_install_path =
-      settings.value("basic/custom_gnupg_install_path", QString{}).toString();
+      settings.value("gnupg/custom_gnupg_install_path", QString{}).toString();
 
   QString gnupg_install_fs_path;
   // user defined
@@ -315,7 +315,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                 .toString();
 
         auto custom_gnupg_install_path =
-            settings.value("basic/custom_gnupg_install_path", QString{})
+            settings.value("gnupg/custom_gnupg_install_path", QString{})
                 .toString();
 
         auto use_pinentry_as_password_input_dialog =

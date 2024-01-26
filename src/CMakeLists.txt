@@ -267,6 +267,10 @@ if (BUILD_APPLICATION)
         file(GLOB _libDllPath "${_libDllBinPath}/libcrypto-*.dll")
         list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libxml2-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
         # gpgme-w32spawn.exe
         unset(_libExEPath)
         file(GLOB _libExEPath "${_libDllBinPath}/gpgme-w32spawn.exe")
