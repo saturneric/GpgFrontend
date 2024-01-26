@@ -291,7 +291,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
   // initialize library gpgme
   if (!InitGpgME(gpgconf_install_fs_path, gnupg_install_fs_path)) {
     CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-        QCoreApplication::tr("GpgME inilization failed"));
+        QCoreApplication::tr("GpgME initiation failed"));
     return;
   }
 
@@ -394,7 +394,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
           if (!ctx.Good()) {
             GF_CORE_LOG_ERROR("default gnupg context init error, abort");
             CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-                QCoreApplication::tr("GpgME Context inilization failed"));
+                QCoreApplication::tr("GpgME Context initiation failed"));
             return -1;
           }
           Module::UpsertRTValue("core", "env.state.ctx", 1);
@@ -403,7 +403,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
         if (args.load_default_gpg_context) {
           if (!GpgKeyGetter::GetInstance().FlushKeyCache()) {
             CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-                QCoreApplication::tr("Gpg Key Detabase inilization failed"));
+                QCoreApplication::tr("Gpg Key Detabase initiation failed"));
           };
         }
         GF_CORE_LOG_DEBUG(

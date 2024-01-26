@@ -102,11 +102,11 @@ void GpgSignResultAnalyse::doAnalyse() {
               << gpgme_pubkey_algo_name(new_sign->pubkey_algo) << Qt::endl;
       stream_ << "- " << tr("Hash Algo") << ": "
               << gpgme_hash_algo_name(new_sign->hash_algo) << Qt::endl;
-      stream_ << "- " << tr("Date") << "(" << tr("UTC") << ")"
+      stream_ << "- " << tr("Sign Date") << "(" << tr("UTC") << ")"
               << ": "
               << QDateTime::fromSecsSinceEpoch(new_sign->timestamp).toString()
               << Qt::endl;
-      stream_ << "- " << tr("Date") << "(" << tr("Localized") << ")"
+      stream_ << "- " << tr("Sign Date") << "(" << tr("Localized") << ")"
               << ": " << GetFormatedDateByTimestamp(new_sign->timestamp)
               << Qt::endl;
 

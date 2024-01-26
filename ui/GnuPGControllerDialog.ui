@@ -27,7 +27,7 @@
           <item>
            <widget class="QCheckBox" name="asciiModeCheckBox">
             <property name="text">
-             <string>No ASCII Mode</string>
+             <string>Use binary mode for file operations</string>
             </property>
            </widget>
           </item>
@@ -42,6 +42,13 @@
            <widget class="QCheckBox" name="gpgmeDebugLogCheckBox">
             <property name="text">
              <string>Enable GpgME Debug Log</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="restartGpgAgentOnStartCheckBox">
+            <property name="text">
+             <string>Restart Gpg Agent on start</string>
             </property>
            </widget>
           </item>

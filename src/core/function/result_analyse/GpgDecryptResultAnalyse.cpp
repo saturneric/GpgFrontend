@@ -56,7 +56,7 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
   if (result != nullptr && result->recipients != nullptr) {
     stream_ << Qt::endl;
 
-    stream_ << "## " << tr("Gernal State") << ": " << Qt::endl;
+    stream_ << "## " << tr("General State") << ": " << Qt::endl;
 
     if (result->file_name != nullptr) {
       stream_ << "- " << tr("File Name") << ": " << result->file_name

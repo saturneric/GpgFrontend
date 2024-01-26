@@ -191,7 +191,7 @@ auto GpgFrontend::GpgVerifyResultAnalyse::print_signer_without_key(
   stream << "- " << tr("Hash Algo") << ": " << sign.GetHashAlgo() << Qt::endl;
   stream << "- " << tr("Sign Date") << "(" << tr("UTC") << ")"
          << ": " << sign.GetCreateTime().toString() << Qt::endl;
-  stream << "- " << tr("SignDate") << "(" << tr("Localized") << ")"
+  stream << "- " << tr("Sign Date") << "(" << tr("Localized") << ")"
          << ": " << QLocale().toString(sign.GetCreateTime()) << Qt::endl;
   return true;
 }

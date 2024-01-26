@@ -88,7 +88,7 @@ auto RaisePinentry::Exec() -> int {
   pinentry->setFormattedPassphrase({false, QString()});
   pinentry->setConstraintsOptions({false, QString(), QString(), QString()});
 
-  pinentry->setWindowTitle(tr("Buddled Pinentry"));
+  pinentry->setWindowTitle(tr("Bundled Pinentry"));
 
   /* If we reuse the same dialog window.  */
   pinentry->setPin(QString());

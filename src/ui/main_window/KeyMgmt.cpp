@@ -303,7 +303,7 @@ void KeyMgmt::create_tool_bars() {
   export_tool_button->setMenu(export_key_menu_);
   export_tool_button->setPopupMode(QToolButton::InstantPopup);
   export_tool_button->setIcon(QIcon(":/icons/key_export.png"));
-  export_tool_button->setToolTip(tr("Export key"));
+  export_tool_button->setToolTip(tr("Export Key"));
   export_tool_button->setText(tr("Export Key"));
   export_tool_button->setToolButtonStyle(icon_style_);
   key_tool_bar->addWidget(export_tool_button);

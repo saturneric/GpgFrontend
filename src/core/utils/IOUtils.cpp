@@ -91,7 +91,7 @@ auto CalculateHash(const QString& file_path) -> QString {
        << info.fileName() << Qt::endl;
 
     // read all data
-    ss << "- " << QCoreApplication::tr("File Size (bytes)")
+    ss << "- " << QCoreApplication::tr("File Size") << "(bytes)"
        << QCoreApplication::tr(": ") << QString::number(info.size())
        << Qt::endl;
 
