@@ -29,10 +29,12 @@ set(JSON_BuildTests OFF CACHE INTERNAL "")
 
 add_subdirectory(spdlog EXCLUDE_FROM_ALL)
 
-add_subdirectory(libarchive EXCLUDE_FROM_ALL)
+if (MINGW)
+  add_subdirectory(libarchive EXCLUDE_FROM_ALL)
+endif()
 
 # not working at macOS
-if(NOT APPLE)
+if (NOT APPLE)
   set(MI_SECURE ON)
   if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
     # set(MI_TRACK_VALGRIND ON)

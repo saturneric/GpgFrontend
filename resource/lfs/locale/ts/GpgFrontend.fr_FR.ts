@@ -676,7 +676,7 @@
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="185"/>
         <source>Gnupg(gpg) is not installed correctly, please follow &lt;a href=&apos;https://www.gpgfrontend.bktus.com/#/faq?id=how-to-deal-with-39env-loading-failed39&apos;&gt;this notes&lt;/a&gt; in FAQ to install Gnupg and then open GpgFrontend. &lt;br /&gt;Or, you can open GnuPG Controller to set a custom GnuPG which GpgFrontend should use. Then, GpgFrontend will restart. &lt;br /&gt;&lt;br /&gt;Breif Reason: %1</source>
-        <translation type="unfinished">Gnupg(gpg) n'est pas installé correctement, veuillez suivre &lt;a href=&apos;https://www.gpgfrontend.bktus.com/#/faq?id=how-to-deal-with-39env-loading-failed39&apos;&gt;this notes&lt;/a&gt; dans la FAQ pour installer Gnupg et ensuite ouvrir GpgFrontend. &lt;br /&gt;Ou, vous pouvez ouvrir GnuPG Controller pour définir un GnuPG personnalisé que GpgFrontend devrait utiliser. Ensuite, GpgFrontend redémarrera. &lt;br /&gt;&lt;br /&gt;Raison de la rupture : %1</source></translation>
+        <translation type="unfinished">Gnupg(gpg) n'est pas installé correctement, veuillez suivre &lt;a href=&apos;https://www.gpgfrontend.bktus.com/#/faq?id=how-to-deal-with-39env-loading-failed39&apos;&gt;this notes&lt;/a&gt; dans la FAQ pour installer Gnupg et ensuite ouvrir GpgFrontend. &lt;br /&gt;Ou, vous pouvez ouvrir GnuPG Controller pour définir un GnuPG personnalisé que GpgFrontend devrait utiliser. Ensuite, GpgFrontend redémarrera. &lt;br /&gt;&lt;br /&gt;Raison de la rupture : %1</translation>
     </message>
     <message>
         <source>No keys found to import</source>

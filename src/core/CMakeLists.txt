@@ -75,6 +75,20 @@ endif ()
 # spdlog
 target_link_libraries(gpgfrontend_core PRIVATE spdlog)
 
+
+# configure libarchive
+if(NOT MINGW)
+    if(APPLE)
+        if(EXISTS "/usr/local/opt/libarchive/include")
+            set(LibArchive_INCLUDE_DIR "/usr/local/opt/libarchive/include")
+        else()
+            set(LibArchive_INCLUDE_DIR "/opt/homebrew/opt/libarchive/include")
+        endif()
+    endif()
+    find_package(LibArchive REQUIRED)
+    target_include_directories(gpgfrontend_core PRIVATE ${LibArchive_INCLUDE_DIR})
+endif()
+
 # link libarchive
 target_link_libraries(gpgfrontend_core PRIVATE archive)
         
