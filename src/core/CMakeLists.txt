@@ -87,6 +87,14 @@ if(NOT MINGW)
     endif()
     find_package(LibArchive REQUIRED)
     target_include_directories(gpgfrontend_core PRIVATE ${LibArchive_INCLUDE_DIR})
+else()
+    if(MINGW)
+        set_target_properties(archive
+            PROPERTIES
+            LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+        )
+    endif()
 endif()
 
 # link libarchive
