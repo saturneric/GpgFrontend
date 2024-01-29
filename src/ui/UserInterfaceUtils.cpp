@@ -28,6 +28,8 @@
 
 #include "UserInterfaceUtils.h"
 
+#include <cstddef>
+
 #include "core/GpgConstants.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
@@ -273,19 +275,25 @@ void CommonUtils::SlotImportKeys(QWidget *parent, const QString &in_buffer) {
 }
 
 void CommonUtils::SlotImportKeyFromFile(QWidget *parent) {
-  auto file_name = QFileDialog::getOpenFileName(this, tr("Open Key"), QString(),
-                                                tr("Key Files")) +
-                   " (*.asc *.txt);;" + tr("Keyring files") +
-                   " (*.gpg);;All Files (*)";
-  if (!file_name.isNull()) {
-    QByteArray key_buffer;
-    if (!ReadFile(file_name, key_buffer)) {
-      QMessageBox::critical(nullptr, tr("File Open Failed"),
-                            tr("Failed to open file: ") + file_name);
-      return;
-    }
-    SlotImportKeys(parent, key_buffer);
+  auto file_name =
+      QFileDialog::getOpenFileName(parent, tr("Open Key"), QString(),
+                                   tr("Keyring files") + " (*.asc *.gpg)");
+  if (file_name.isEmpty()) return;
+
+  QFileInfo file_info(file_name);
+  if (file_info.size() > static_cast<qint64>(1024 * 1024)) {
+    QMessageBox::critical(parent, tr("Error"),
+                          tr("The target file is too large for a keyring."));
+    return;
   }
+
+  QByteArray key_buffer;
+  if (!ReadFile(file_name, key_buffer)) {
+    QMessageBox::critical(nullptr, tr("File Open Failed"),
+                          tr("Failed to open file: ") + file_name);
+    return;
+  }
+  SlotImportKeys(parent, key_buffer);
 }
 
 void CommonUtils::SlotImportKeyFromKeyServer(QWidget *parent) {

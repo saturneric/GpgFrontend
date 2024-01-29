@@ -27,7 +27,7 @@
           <item>
            <widget class="QCheckBox" name="asciiModeCheckBox">
             <property name="text">
-             <string>Use binary mode for file operations</string>
+             <string>Use Binary Mode for File Operations</string>
             </property>
            </widget>
           </item>

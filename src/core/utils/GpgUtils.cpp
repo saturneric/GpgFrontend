@@ -131,7 +131,7 @@ auto SetExtensionOfOutputFile(const QString& path, GpgOperation opera,
     return file_info.absolutePath() + "/" + file_info.completeBaseName() + "." +
            new_extension;
   }
-  return file_info.absolutePath() + "/" + file_info.baseName();
+  return file_info.absolutePath() + "/" + file_info.completeBaseName();
 }
 
 auto SetExtensionOfOutputFileForArchive(const QString& path, GpgOperation opera,

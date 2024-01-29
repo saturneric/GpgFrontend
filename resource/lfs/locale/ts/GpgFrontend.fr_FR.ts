@@ -676,7 +676,7 @@
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="185"/>
         <source>Gnupg(gpg) is not installed correctly, please follow &lt;a href=&apos;https://www.gpgfrontend.bktus.com/#/faq?id=how-to-deal-with-39env-loading-failed39&apos;&gt;this notes&lt;/a&gt; in FAQ to install Gnupg and then open GpgFrontend. &lt;br /&gt;Or, you can open GnuPG Controller to set a custom GnuPG which GpgFrontend should use. Then, GpgFrontend will restart. &lt;br /&gt;&lt;br /&gt;Breif Reason: %1</source>
-        <translation type="unfinished">Gnupg(gpg) n'est pas installé correctement, veuillez suivre &lt;a href=&apos;https://www.gpgfrontend.bktus.com/#/faq?id=how-to-deal-with-39env-loading-failed39&apos;&gt;this notes&lt;/a&gt; dans la FAQ pour installer Gnupg et ensuite ouvrir GpgFrontend. &lt;br /&gt;Ou, vous pouvez ouvrir GnuPG Controller pour définir un GnuPG personnalisé que GpgFrontend devrait utiliser. Ensuite, GpgFrontend redémarrera. &lt;br /&gt;&lt;br /&gt;Raison de la rupture : %1</translation>
+        <translation type="unfinished">Gnupg(gpg) n&apos;est pas installé correctement, veuillez suivre &lt;a href=&apos;https://www.gpgfrontend.bktus.com/#/faq?id=how-to-deal-with-39env-loading-failed39&apos;&gt;this notes&lt;/a&gt; dans la FAQ pour installer Gnupg et ensuite ouvrir GpgFrontend. &lt;br /&gt;Ou, vous pouvez ouvrir GnuPG Controller pour définir un GnuPG personnalisé que GpgFrontend devrait utiliser. Ensuite, GpgFrontend redémarrera. &lt;br /&gt;&lt;br /&gt;Raison de la rupture : %1</translation>
     </message>
     <message>
         <source>No keys found to import</source>
@@ -711,9 +711,9 @@
 Error code: %1
 Source:  %2
 Description: %3</source>
-        <translation type="unfinished">L'opération Gpg a échoué.
+        <translation type="unfinished">L&apos;opération Gpg a échoué.
 
-Code d'erreur : %1
+Code d&apos;erreur : %1
 Source : %2
 Description : %3</translation>
     </message>
@@ -1207,7 +1207,7 @@ Description : %3</translation>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="69"/>
         <source>Reveal in File Explorer</source>
-        <translation type="unfinished">Révéler dans l'explorateur de fichiers</translation>
+        <translation type="unfinished">Révéler dans l&apos;explorateur de fichiers</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="88"/>
@@ -1280,7 +1280,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/gnupg/GnuPGControllerDialog.cpp" line="60"/>
         <source>Restart Gpg Agent on start</source>
-        <translation type="unfinished">Redémarrer l'agent Gpg au démarrage</translation>
+        <translation type="unfinished">Redémarrer l&apos;agent Gpg au démarrage</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/gnupg/GnuPGControllerDialog.cpp" line="64"/>
@@ -1395,7 +1395,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/help/GnupgTab.cpp" line="68"/>
         <source>Path</source>
-        <translation type="unfinished">Chemin d'accès</translation>
+        <translation type="unfinished">Chemin d&apos;accès</translation>
     </message>
     <message>
         <source>Configurations</source>
@@ -1632,7 +1632,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeygenDialog.cpp" line="161"/>
         <source>Unknown error occurred</source>
-        <translation type="unfinished">Une erreur inconnue s'est produite</translation>
+        <translation type="unfinished">Une erreur inconnue s&apos;est produite</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeygenDialog.cpp" line="197"/>
@@ -2250,7 +2250,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="488"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="499"/>
         <source>Unknown error occurred</source>
-        <translation type="unfinished">Une erreur inconnue s'est produite</translation>
+        <translation type="unfinished">Une erreur inconnue s&apos;est produite</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="442"/>
@@ -3348,7 +3348,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyUploadDialog.cpp" line="78"/>
         <source>Unknown error occurred</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Une erreur inconnue s&apos;est produite</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyUploadDialog.cpp" line="147"/>
@@ -3664,7 +3664,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="323"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="369"/>
         <source>Unknown error occurred</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Une erreur inconnue s&apos;est produite</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="126"/>
@@ -5009,7 +5009,7 @@ If Data And Signature is COMBINED within a single file, KEEP THIS EMPTY: </sourc
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="301"/>
         <source>Unknown error occurred</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Une erreur inconnue s&apos;est produite</translation>
     </message>
 </context>
 <context>
