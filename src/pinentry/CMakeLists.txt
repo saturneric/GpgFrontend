@@ -37,8 +37,13 @@ add_library(gpgfrontend_pinentry SHARED ${PINENTRY_SOURCE})
 
 target_link_libraries(gpgfrontend_pinentry PUBLIC gpgfrontend_core)
 
-# link Qt core
-target_link_libraries(gpgfrontend_pinentry PUBLIC Qt6::Widgets)
+if(GPGFRONTEND_QT5_BUILD)
+  # link Qt core
+  target_link_libraries(gpgfrontend_pinentry PUBLIC Qt5::Widgets)
+else()
+  # link Qt core
+  target_link_libraries(gpgfrontend_pinentry PUBLIC Qt6::Widgets)
+endif()
 
 # spdlog
 target_link_libraries(gpgfrontend_pinentry PRIVATE spdlog)

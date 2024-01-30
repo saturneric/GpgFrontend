@@ -1,0 +1,76 @@
+name: Build & Package
+
+on:
+  push:
+    branches: [ main, 'develop' ]
+    paths-ignore:
+      - 'resource/locale/**'
+      - 'manual/**'
+      - '**.md'
+  pull_request:
+    branches: [ main, 'develop' ]
+    paths-ignore:
+      - 'resource/locale/**'
+      - 'manual/**'
+      - '**.md'
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+  EXECUTABLE_OUTPUT_PATH: ./
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ 'windows-2019' ]
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    steps:
+      - name: Set git to use LF(Windows) or CRLF(MacOS) line endings
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+        if: matrix.os == 'windows-2019' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
+
+      - uses: actions/checkout@v3
+        with:
+          lfs: 'false'
+          submodules: recursive
+
+      - name: Get Short SHA of Commit
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Set up MinGW (Windows)
+        uses: msys2/setup-msys2@v2
+        with:
+          install: git msys2-devel base-devel binutils mingw-w64-x86_64-toolchain
+          release: false
+        if: matrix.os == 'windows-2019'
+
+      - name: Set up Dependence (Windows)
+        shell: msys2 {0}
+        run: |
+          pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf 
+          pacman --noconfirm -S --needed make texinfo automake 
+          pacman --noconfirm -S --needed mingw-w64-x86_64-qt5 libintl msys2-runtime-devel gettext-devel mingw-w64-x86_64-gpgme
+          pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg mingw-w64-x86_64-libarchive
+        if: matrix.os == 'windows-2019'
+
+      - name: Configure CMake & Build Binary(Windows)
+        shell: msys2 {0}
+        run: |
+          cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
+          mkdir build && cd build
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON ..
+          # Build your program with the given configuration
+          cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 2
+        if: matrix.os == 'windows-2019'
+
+      - name: Upload Artifact(Windows)
+        uses: actions/upload-artifact@master
+        with:
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{ github.sha }}
+          path: ${{github.workspace}}/build/artifacts/*
+        if: matrix.os == 'windows-2019'
