@@ -63,7 +63,7 @@ auto GenerateRevokeCertification::Exec(const GpgKey& key,
          // Code From Gpg4Win
          while (proc->canReadLine()) {
            const QString line = QString::fromUtf8(proc->readLine()).trimmed();
-           GF_UI_LOG_DEBUG("line: {}", line.toStdString());
+           GF_UI_LOG_DEBUG("line: {}", line);
            if (line == QLatin1String("[GNUPG:] GET_BOOL gen_revoke.okay")) {
              proc->write("y\n");
            } else if (line == QLatin1String("[GNUPG:] GET_LINE "

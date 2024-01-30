@@ -84,6 +84,8 @@ class GnuPGControllerDialog : public GeneralDialog {
  private:
   std::shared_ptr<Ui_GnuPGControllerDialog> ui_;  ///<
   int restart_needed_{0};                         ///<
+  QString custom_key_database_path_;
+  QString custom_gnupg_path_;
 
   /**
    * @brief Get the Restart Needed object

@@ -141,7 +141,7 @@ void KeyGenDialog::slot_key_gen_accept() {
 
     if (!GlobalSettingStation::GetInstance()
              .GetSettings()
-             .value("basic/use_pinentry_as_password_input_dialog", false)
+             .value("gnupg/use_pinentry_as_password_input_dialog", false)
              .toBool() &&
         !no_pass_phrase_check_box_->isChecked()) {
       SetCacheValue("PinentryContext", "NEW_PASSPHRASE");

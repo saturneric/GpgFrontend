@@ -59,10 +59,6 @@ class GlobalSettingStation::Impl {
     GF_CORE_LOG_INFO("app data path: {}", app_data_path_);
     GF_CORE_LOG_INFO("app log path: {}", app_log_path_);
 
-    GF_CORE_LOG_DEBUG("app log files total size: {}", GetLogFilesSize());
-    GF_CORE_LOG_DEBUG("app data objects files total size: {}",
-                      GetDataObjectsFilesSize());
-
     if (!QDir(app_data_path_).exists()) QDir(app_data_path_).mkpath(".");
     if (!QDir(app_log_path_).exists()) QDir(app_log_path_).mkpath(".");
   }

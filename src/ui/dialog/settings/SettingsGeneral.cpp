@@ -66,6 +66,8 @@ GeneralTab::GeneralTab(QWidget* parent)
       tr("Clear All Data Objects (Total Size: %1)")
           .arg(GlobalSettingStation::GetInstance().GetDataObjectsFilesSize()));
 
+  ui_->revealInFileExplorerButton->setText(tr("Reveal in File Explorer"));
+
   lang_ = SettingsDialog::ListLanguages();
   for (const auto& l : lang_) {
     ui_->langSelectBox->addItem(l);
@@ -96,6 +98,11 @@ GeneralTab::GeneralTab(QWidget* parent)
     }
   });
 
+  connect(ui_->revealInFileExplorerButton, &QPushButton::clicked, this, [=]() {
+    QDesktopServices::openUrl(QUrl::fromLocalFile(
+        GlobalSettingStation::GetInstance().GetAppDataPath()));
+  });
+
   SetSettings();
 }
 
@@ -124,7 +131,7 @@ void GeneralTab::SetSettings() {
 
   QString lang_key = settings.value("basic/lang").toString();
   QString lang_value = lang_.value(lang_key);
-  GF_UI_LOG_DEBUG("lang settings current: {}", lang_value.toStdString());
+  GF_UI_LOG_DEBUG("lang settings current: {}", lang_value);
   if (!lang_.empty()) {
     ui_->langSelectBox->setCurrentIndex(
         ui_->langSelectBox->findText(lang_value));

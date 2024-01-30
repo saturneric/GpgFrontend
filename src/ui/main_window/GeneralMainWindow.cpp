@@ -102,6 +102,9 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
         }
       }
 
+      if (size_.width() < 600) size_.setWidth(600);
+      if (size_.height() < 400) size_.setHeight(400);
+
       this->move(pos_);
       this->resize(size_);
     }

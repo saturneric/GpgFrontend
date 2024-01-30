@@ -58,9 +58,9 @@ KeySetExpireDateDialog::KeySetExpireDateDialog(const KeyId& key_id,
 }
 
 void KeySetExpireDateDialog::slot_confirm() {
-  GF_UI_LOG_DEBUG("called: {} {}",
-                  ui_->dateEdit->date().toString().toStdString(),
-                  ui_->timeEdit->time().toString().toStdString());
+  GF_UI_LOG_DEBUG("confirm called, date: {}, time: {}",
+                  ui_->dateEdit->date().toString(),
+                  ui_->timeEdit->time().toString());
   auto datetime = QDateTime(ui_->dateEdit->date(), ui_->timeEdit->time());
   std::unique_ptr<QDateTime> expires = nullptr;
   if (ui_->noExpirationCheckBox->checkState() == Qt::Unchecked) {
@@ -99,7 +99,7 @@ void KeySetExpireDateDialog::init() {
   auto settings =
       GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
 
-  bool longer_expiration_date = longer_expiration_date =
+  bool longer_expiration_date =
       settings.value("basic/longer_expiration_date").toBool();
 
   auto max_date_time =

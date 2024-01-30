@@ -74,11 +74,6 @@ class MainWindow : public GeneralMainWindow {
    */
   void Init() noexcept;
 
-  /**
-   * @details refresh and enable specify crypto-menu actions.
-   */
-  void SetCryptoMenuStatus(CryptoMenu::OperationType type);
-
  signals:
 
   /**
@@ -117,6 +112,11 @@ class MainWindow : public GeneralMainWindow {
   void closeEvent(QCloseEvent* event) override;
 
  public slots:
+
+  /**
+   * @details refresh and enable specify crypto-menu actions.
+   */
+  void SlotUpdateCryptoMenuStatus(unsigned int type);
 
   /**
    * @details Open a new tab for path

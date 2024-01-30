@@ -30,8 +30,6 @@
 
 #include <gpg-error.h>
 
-#include <memory>
-
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/function/gpg/GpgKeyGetter.h"
@@ -53,7 +51,7 @@ GpgKeyOpera::GpgKeyOpera(int channel)
  * Delete keys
  * @param uidList key ids
  */
-void GpgKeyOpera::DeleteKeys(GpgFrontend::KeyIdArgsListPtr key_ids) {
+void GpgKeyOpera::DeleteKeys(KeyIdArgsListPtr key_ids) {
   GpgError err;
   for (const auto& tmp : *key_ids) {
     auto key = GpgKeyGetter::GetInstance().GetKey(tmp);
@@ -130,7 +128,7 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
          // Code From Gpg4Win
          while (proc->canReadLine()) {
            const QString line = QString::fromUtf8(proc->readLine()).trimmed();
-           GF_CORE_LOG_DEBUG("line: {}", line.toStdString());
+           GF_CORE_LOG_DEBUG("line: {}", line);
            if (line == QLatin1String("[GNUPG:] GET_BOOL gen_revoke.okay")) {
              proc->write("y\n");
            } else if (line == QLatin1String("[GNUPG:] GET_LINE "
@@ -514,7 +512,7 @@ auto GpgKeyOpera::ModifyTOFUPolicy(const GpgKey& key,
   return CheckGpgError(err);
 }
 
-void GpgKeyOpera::DeleteKey(const GpgFrontend::KeyId& key_id) {
+void GpgKeyOpera::DeleteKey(const KeyId& key_id) {
   auto keys = std::make_unique<KeyIdArgsList>();
   keys->push_back(key_id);
   DeleteKeys(std::move(keys));

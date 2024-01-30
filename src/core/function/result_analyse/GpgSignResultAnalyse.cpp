@@ -71,23 +71,42 @@ void GpgSignResultAnalyse::doAnalyse() {
 
       stream_ << Qt::endl;
 
-      auto singer_key = GpgKeyGetter::GetInstance().GetKey(new_sign->fpr);
+      QString fpr = new_sign->fpr == nullptr ? "" : new_sign->fpr;
+      auto singer_key = GpgKeyGetter::GetInstance().GetKey(fpr);
       if (singer_key.IsGood()) {
-        stream_ << "- " << tr("Signer") << ": "
+        stream_ << "- " << tr("Signed By") << ": "
                 << singer_key.GetUIDs()->front().GetUID() << Qt::endl;
+
+        auto subkeys = singer_key.GetSubKeys();
+        auto it = std::find_if(
+            subkeys->begin(), subkeys->end(),
+            [fpr](const GpgSubKey &k) { return k.GetFingerprint() == fpr; });
+
+        if (it != subkeys->end()) {
+          auto &subkey = *it;
+          if (subkey.GetFingerprint() != singer_key.GetFingerprint()) {
+            stream_ << "- " << tr("Key ID") << ": " << singer_key.GetId()
+                    << " (" << tr("Subkey") << ")" << Qt::endl;
+          } else {
+            stream_ << "- " << tr("Key ID") << ": " << singer_key.GetId()
+                    << " (" << tr("Primary Key") << ")" << Qt::endl;
+          }
+          stream_ << "- " << tr("Key Create Date") << ": "
+                  << QLocale().toString(subkey.GetCreateTime()) << Qt::endl;
+        }
       } else {
-        stream_ << "- " << tr("Signer") << ": "
-                << "<unknown>" << Qt::endl;
+        stream_ << "- " << tr("Signed By") << "(" << tr("Fingerprint") << ")"
+                << ": " << (fpr.isEmpty() ? tr("<unknown>") : fpr) << Qt::endl;
       }
       stream_ << "- " << tr("Public Key Algo") << ": "
               << gpgme_pubkey_algo_name(new_sign->pubkey_algo) << Qt::endl;
       stream_ << "- " << tr("Hash Algo") << ": "
               << gpgme_hash_algo_name(new_sign->hash_algo) << Qt::endl;
-      stream_ << "- " << tr("Date") << "(" << tr("UTC") << ")"
+      stream_ << "- " << tr("Sign Date") << "(" << tr("UTC") << ")"
               << ": "
               << QDateTime::fromSecsSinceEpoch(new_sign->timestamp).toString()
               << Qt::endl;
-      stream_ << "- " << tr("Date") << "(" << tr("Localized") << ")"
+      stream_ << "- " << tr("Sign Date") << "(" << tr("Localized") << ")"
               << ": " << GetFormatedDateByTimestamp(new_sign->timestamp)
               << Qt::endl;
 

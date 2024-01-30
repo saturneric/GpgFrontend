@@ -115,7 +115,7 @@ void InfoBoardWidget::AssociateTabWidget(QTabWidget* tab) {
 
 void InfoBoardWidget::AddOptionalAction(const QString& name,
                                         const std::function<void()>& action) {
-  GF_UI_LOG_DEBUG("add option: {}", name.toStdString());
+  GF_UI_LOG_DEBUG("add option action: {}", name);
   auto* action_button = new QPushButton(name);
   auto* layout = new QHBoxLayout();
   layout->setContentsMargins(5, 0, 5, 0);
@@ -165,7 +165,7 @@ void InfoBoardWidget::slot_copy() {
 void InfoBoardWidget::slot_save() {
   auto file_path = QFileDialog::getSaveFileName(
       this, tr("Save Information Board's Content"), {}, tr("Text (*.txt)"));
-  GF_UI_LOG_DEBUG("file path: {}", file_path.toStdString());
+  GF_UI_LOG_DEBUG("file path: {}", file_path);
   if (file_path.isEmpty()) return;
 
   QFile file(file_path);

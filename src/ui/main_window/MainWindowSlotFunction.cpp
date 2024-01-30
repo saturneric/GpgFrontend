@@ -50,10 +50,10 @@ void MainWindow::slot_find() {
   }
 
   // At first close verifynotification, if existing
-  edit_->SlotCurPageTextEdit()->CloseNoteByClass("findwidget");
+  edit_->SlotCurPageTextEdit()->CloseNoteByClass("FindWidget");
 
   auto* fw = new FindWidget(this, edit_->CurTextPage());
-  edit_->SlotCurPageTextEdit()->ShowNotificationWidget(fw, "findWidget");
+  edit_->SlotCurPageTextEdit()->ShowNotificationWidget(fw, "FindWidget");
 }
 
 /*
@@ -122,7 +122,8 @@ void MainWindow::slot_append_keys_expire_datetime() {
   }
 
   auto expire_datetime_format_str_local =
-      QLocale().toString(key.GetCreateTime()) + tr(" (Local Time) ") + "\n";
+      QLocale().toString(key.GetCreateTime()) + " (" + tr("Local Time") + ") " +
+      "\n";
   auto expire_datetime_format_str =
       key.GetCreateTime().toString(Qt::ISODate) + " (UTC) " + "\n";
 

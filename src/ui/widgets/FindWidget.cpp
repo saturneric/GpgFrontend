@@ -33,9 +33,8 @@ namespace GpgFrontend::UI {
 FindWidget::FindWidget(QWidget* parent, PlainTextEditorPage* edit)
     : QWidget(parent), m_text_page_(edit) {
   find_edit_ = new QLineEdit(this);
-  auto* close_button = new QPushButton(
-      this->style()->standardIcon(QStyle::SP_TitleBarCloseButton), QString(),
-      this);
+  auto* close_button =
+      new QPushButton(QIcon(":/icons/close.png"), QString(), this);
   auto* next_button =
       new QPushButton(QIcon(":/icons/button_next.png"), QString());
   auto* previous_button =
@@ -60,24 +59,10 @@ FindWidget::FindWidget(QWidget* parent, PlainTextEditorPage* edit)
   connect(close_button, &QPushButton::clicked, this, &FindWidget::slot_close);
 
   // The timer is necessary for setting the focus
-  QTimer::singleShot(0, find_edit_, SLOT(setFocus()));
+  QTimer::singleShot(32, find_edit_, SLOT(setFocus()));
 }
 
-void FindWidget::set_background() {
-  // auto cursor = m_text_page_->GetTextPage()->textCursor();
-  // if match is found set background of QLineEdit to white, otherwise to red
-  QPalette bg_palette(find_edit_->palette());
-
-  if (!find_edit_->text().isEmpty() && m_text_page_->GetTextPage()
-                                               ->document()
-                                               ->find(find_edit_->text())
-                                               .position() < 0) {
-    bg_palette.setColor(QPalette::Base, "#ececba");
-  } else {
-    bg_palette.setColor(QPalette::Base, Qt::white);
-  }
-  find_edit_->setPalette(bg_palette);
-}
+void FindWidget::set_background() {}
 
 void FindWidget::slot_find_next() {
   QTextCursor cursor = m_text_page_->GetTextPage()->textCursor();

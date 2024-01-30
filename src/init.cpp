@@ -30,6 +30,7 @@
 
 #include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/LogUtils.h"
 #include "module/GpgFrontendModuleInit.h"
@@ -54,11 +55,19 @@ int setenv(const char *name, const char *value, int overwrite) {
 #endif
 
 void InitLoggingSystem(const GFCxtSPtr &ctx) {
+#ifdef DEBUG
   RegisterSyncLogger("core", ctx->log_level);
   RegisterSyncLogger("main", ctx->log_level);
   RegisterSyncLogger("module", ctx->log_level);
   RegisterSyncLogger("ui", ctx->log_level);
   RegisterSyncLogger("test", ctx->log_level);
+#else
+  RegisterAsyncLogger("core", ctx->log_level);
+  RegisterAsyncLogger("main", ctx->log_level);
+  RegisterAsyncLogger("module", ctx->log_level);
+  RegisterAsyncLogger("ui", ctx->log_level);
+  RegisterAsyncLogger("test", ctx->log_level);
+#endif
 }
 
 void InitGlobalPathEnv() {
@@ -66,13 +75,13 @@ void InitGlobalPathEnv() {
   bool use_custom_gnupg_install_path =
       GlobalSettingStation::GetInstance()
           .GetSettings()
-          .value("basic/use_custom_gnupg_install_path", false)
+          .value("gnupg/use_custom_gnupg_install_path", false)
           .toBool();
 
   QString custom_gnupg_install_path =
       GlobalSettingStation::GetInstance()
           .GetSettings()
-          .value("basic/custom_gnupg_install_path")
+          .value("gnupg/custom_gnupg_install_path")
           .toString();
 
   // add custom gnupg install path into env $PATH
@@ -86,6 +95,15 @@ void InitGlobalPathEnv() {
     QString modified_path_value = getenv("PATH");
     GF_MAIN_LOG_DEBUG("Modified System PATH: {}", modified_path_value);
   }
+
+  if (GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("gnupg/enable_gpgme_debug_log", false)
+          .toBool()) {
+    qputenv("GPGME_DEBUG",
+            QString("9:%1").arg(QDir::currentPath() + "/gpgme.log").toUtf8());
+    GF_CORE_LOG_DEBUG("GPGME_DEBUG ENV: {}", qgetenv("GPGME_DEBUG"));
+  }
 }
 
 void InitGlobalBasicalEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
@@ -93,6 +111,9 @@ void InitGlobalBasicalEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
   if (ctx == nullptr) {
     return;
   }
+
+  // init default locale of application
+  InitLocale();
 
   // initialize logging system
   SetDefaultLogLevel(ctx->log_level);
@@ -120,10 +141,38 @@ void InitGlobalBasicalEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
   InitGpgFrontendCore(core_init_args);
 }
 
+/**
+ * @brief setup the locale and load the translations
+ *
+ */
+void InitLocale() {
+  // get the instance of the GlobalSettingStation
+  auto settings =
+      GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
+
+  // read from settings file
+  auto lang = settings.value("basic/lang").toString();
+  GF_UI_LOG_INFO("current system default locale: {}", QLocale().name());
+  GF_UI_LOG_INFO("locale settings from config: {}", lang);
+
+  auto target_locale =
+      lang.trimmed().isEmpty() ? QLocale::system() : QLocale(lang);
+  GF_UI_LOG_INFO("application's target locale: {}", target_locale.name());
+  QLocale::setDefault(target_locale);
+}
+
 void ShutdownGlobalBasicalEnv(const GFCxtWPtr &p_ctx) {
   GFCxtSPtr ctx = p_ctx.lock();
   if (ctx == nullptr) {
     return;
+  }
+
+  // clear password cache
+  if (GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("basic/clear_gpg_password_cache", false)
+          .toBool()) {
+    GpgAdvancedOperator::ClearGpgPasswordCache([](int, DataObjectPtr) {});
   }
 
   Thread::TaskRunnerGetter::GetInstance().StopAllTeakRunner();

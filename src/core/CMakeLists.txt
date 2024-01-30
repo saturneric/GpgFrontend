@@ -75,12 +75,29 @@ endif ()
 # spdlog
 target_link_libraries(gpgfrontend_core PRIVATE spdlog)
 
-# link libarchive
-if(APPLE)
-    set(LibArchive_INCLUDE_DIR "/usr/local/opt/libarchive/include")
+
+# configure libarchive
+if(NOT MINGW)
+    if(APPLE)
+        if(EXISTS "/usr/local/opt/libarchive/include")
+            set(LibArchive_INCLUDE_DIR "/usr/local/opt/libarchive/include")
+        else()
+            set(LibArchive_INCLUDE_DIR "/opt/homebrew/opt/libarchive/include")
+        endif()
+    endif()
+    find_package(LibArchive REQUIRED)
+    target_include_directories(gpgfrontend_core PRIVATE ${LibArchive_INCLUDE_DIR})
+else()
+    if(MINGW)
+        set_target_properties(archive
+            PROPERTIES
+            LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+        )
+    endif()
 endif()
-find_package(LibArchive REQUIRED)
-target_include_directories(gpgfrontend_core PRIVATE ${LibArchive_INCLUDE_DIR})
+
+# link libarchive
 target_link_libraries(gpgfrontend_core PRIVATE archive)
         
 # link Qt core

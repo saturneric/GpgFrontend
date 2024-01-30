@@ -303,7 +303,7 @@ void KeyMgmt::create_tool_bars() {
   export_tool_button->setMenu(export_key_menu_);
   export_tool_button->setPopupMode(QToolButton::InstantPopup);
   export_tool_button->setIcon(QIcon(":/icons/key_export.png"));
-  export_tool_button->setToolTip(tr("Export key"));
+  export_tool_button->setToolTip(tr("Export Key"));
   export_tool_button->setText(tr("Export Key"));
   export_tool_button->setToolButtonStyle(icon_style_);
   key_tool_bar->addWidget(export_tool_button);
@@ -529,14 +529,51 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
 
 void KeyMgmt::SlotImportKeyPackage() {
   auto key_package_file_name = QFileDialog::getOpenFileName(
-      this, tr("Import Key Package"), {},
-      tr("Key Package") + " (*.gfepack);;All Files (*)");
+      this, tr("Import Key Package"), {}, tr("Key Package") + " (*.gfepack)");
+
+  if (key_package_file_name.isEmpty()) return;
+
+  // max file size is 32 mb
+  QFileInfo key_package_file_info(key_package_file_name);
+
+  if (!key_package_file_info.isFile() || !key_package_file_info.isReadable()) {
+    QMessageBox::critical(
+        this, tr("Error"),
+        tr("Cannot open this file. Please make sure that this "
+           "is a regular file and it's readable."));
+    return;
+  }
+
+  if (key_package_file_info.size() > static_cast<qint64>(32 * 1024 * 1024)) {
+    QMessageBox::critical(
+        this, tr("Error"),
+        tr("The target file is too large for a key package."));
+    return;
+  }
 
   auto key_file_name = QFileDialog::getOpenFileName(
       this, tr("Import Key Package Passphrase File"), {},
-      tr("Key Package Passphrase File") + " (*.key);;All Files (*)");
+      tr("Key Package Passphrase File") + " (*.key)");
 
-  if (key_package_file_name.isEmpty() || key_file_name.isEmpty()) return;
+  if (key_file_name.isEmpty()) return;
+
+  // max file size is 1 mb
+  QFileInfo key_file_info(key_file_name);
+
+  if (!key_file_info.isFile() || !key_file_info.isReadable()) {
+    QMessageBox::critical(
+        this, tr("Error"),
+        tr("Cannot open this file. Please make sure that this "
+           "is a regular file and it's readable."));
+    return;
+  }
+
+  if (key_file_info.size() > static_cast<qint64>(1024 * 1024)) {
+    QMessageBox::critical(
+        this, tr("Error"),
+        tr("The target file is too large for a key package passphrase."));
+    return;
+  }
 
   GF_UI_LOG_INFO("importing key package: {}", key_package_file_name);
   CommonUtils::WaitForOpera(

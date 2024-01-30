@@ -28,6 +28,8 @@
 
 #include "UserInterfaceUtils.h"
 
+#include <cstddef>
+
 #include "core/GpgConstants.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
@@ -57,17 +59,17 @@ void show_verify_details(QWidget *parent, InfoBoardWidget *info_board,
                          GpgError error, const GpgVerifyResult &verify_result) {
   // take out result
   info_board->ResetOptionActionsMenu();
-  info_board->AddOptionalAction(QObject::tr("Show Verify Details"), [=]() {
-    VerifyDetailsDialog(parent, error, verify_result);
-  });
+  info_board->AddOptionalAction(
+      QCoreApplication::tr("Show Verify Details"),
+      [=]() { VerifyDetailsDialog(parent, error, verify_result); });
 }
 
 void import_unknown_key_from_keyserver(
     QWidget *parent, const GpgVerifyResultAnalyse &verify_res) {
   QMessageBox::StandardButton reply;
   reply = QMessageBox::question(
-      parent, QObject::tr("Public key not found locally"),
-      QObject::tr(
+      parent, QCoreApplication::tr("Public key not found locally"),
+      QCoreApplication::tr(
           "There is no target public key content in local for GpgFrontend to "
           "gather enough information about this Signature. Do you want to "
           "import the public key from Keyserver now?"),
@@ -273,19 +275,34 @@ void CommonUtils::SlotImportKeys(QWidget *parent, const QString &in_buffer) {
 }
 
 void CommonUtils::SlotImportKeyFromFile(QWidget *parent) {
-  auto file_name = QFileDialog::getOpenFileName(this, tr("Open Key"), QString(),
-                                                tr("Key Files")) +
-                   " (*.asc *.txt);;" + tr("Keyring files") +
-                   " (*.gpg);;All Files (*)";
-  if (!file_name.isNull()) {
-    QByteArray key_buffer;
-    if (!ReadFile(file_name, key_buffer)) {
-      QMessageBox::critical(nullptr, tr("File Open Failed"),
-                            tr("Failed to open file: ") + file_name);
-      return;
-    }
-    SlotImportKeys(parent, key_buffer);
+  auto file_name =
+      QFileDialog::getOpenFileName(parent, tr("Open Key"), QString(),
+                                   tr("Keyring files") + " (*.asc *.gpg)");
+  if (file_name.isEmpty()) return;
+
+  QFileInfo file_info(file_name);
+
+  if (!file_info.isFile() || !file_info.isReadable()) {
+    QMessageBox::critical(
+        parent, tr("Error"),
+        tr("Cannot open this file. Please make sure that this "
+           "is a regular file and it's readable."));
+    return;
   }
+
+  if (file_info.size() > static_cast<qint64>(1024 * 1024)) {
+    QMessageBox::critical(parent, tr("Error"),
+                          tr("The target file is too large for a keyring."));
+    return;
+  }
+
+  QByteArray key_buffer;
+  if (!ReadFile(file_name, key_buffer)) {
+    QMessageBox::critical(nullptr, tr("File Open Failed"),
+                          tr("Failed to open file: ") + file_name);
+    return;
+  }
+  SlotImportKeys(parent, key_buffer);
 }
 
 void CommonUtils::SlotImportKeyFromKeyServer(QWidget *parent) {
@@ -334,7 +351,7 @@ void CommonUtils::SlotExecuteGpgCommand(
     const QStringList &arguments,
     const std::function<void(QProcess *)> &interact_func) {
   QEventLoop looper;
-  auto dialog = new WaitingDialog(tr("Processing"), nullptr);
+  auto *dialog = new WaitingDialog(tr("Processing"), nullptr);
   dialog->show();
   auto *gpg_process = new QProcess(&looper);
   gpg_process->setProcessChannelMode(QProcess::MergedChannels);
@@ -408,7 +425,7 @@ void CommonUtils::SlotImportKeyFromKeyServer(
                    target_keyserver_url.host() +
                    "/pks/lookup?op=get&search=0x" + key_id + "&options=mr");
 
-      GF_UI_LOG_DEBUG("request url: {}", req_url.toString().toStdString());
+      GF_UI_LOG_DEBUG("request url: {}", req_url.toString());
 
       // Waiting for reply
       QNetworkReply *reply = network_manager->get(QNetworkRequest(req_url));
@@ -498,7 +515,7 @@ void CommonUtils::SlotRestartApplication(int code) {
   }
 }
 
-bool CommonUtils::isApplicationNeedRestart() {
+auto CommonUtils::isApplicationNeedRestart() -> bool {
   return application_need_to_restart_at_once_;
 }
 

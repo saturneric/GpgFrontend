@@ -218,20 +218,20 @@ ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
   setTitle(tr("Ready."));
   setSubTitle(tr("Have fun with GpgFrontend!"));
 
-  auto* bottomLabel = new QLabel(
+  auto* bottom_label = new QLabel(
       tr("You are ready to use GpgFrontend now.<br><br>") +
       "<a "
-      "href=\"https://saturneric.github.io/GpgFrontend/index.html#/"
+      "href=\"https://gpgfrontend.bktus.com/manual/understand-interface"
       "overview\">" +
       tr("The Online Document") + "</a>" +
       tr(" will get you started with GpgFrontend. Anytime you encounter "
          "problems, please try to find help from the documentation") +
       "<br>");
 
-  bottomLabel->setTextFormat(Qt::RichText);
-  bottomLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
-  bottomLabel->setOpenExternalLinks(true);
-  bottomLabel->setWordWrap(true);
+  bottom_label->setTextFormat(Qt::RichText);
+  bottom_label->setTextInteractionFlags(Qt::TextBrowserInteraction);
+  bottom_label->setOpenExternalLinks(true);
+  bottom_label->setWordWrap(true);
 
   open_help_check_box_ = new QCheckBox(tr("Open offline help."));
   open_help_check_box_->setChecked(true);
@@ -243,7 +243,7 @@ ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
   // registerField("openHelp", openHelpCheckBox);
 
   auto* layout = new QVBoxLayout;
-  layout->addWidget(bottomLabel);
+  layout->addWidget(bottom_label);
   // layout->addWidget(openHelpCheckBox);
   layout->addWidget(dont_show_wizard_checkbox_);
   setLayout(layout);

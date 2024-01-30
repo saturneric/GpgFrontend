@@ -45,13 +45,12 @@ auto GpgFrontend::UI::ProxyConnectionTestTask::Run() -> int {
 
   connect(network_reply, &QNetworkReply::finished, this,
           [this, network_reply]() {
-            GF_UI_LOG_DEBUG("key server domain reply: {} received",
-                            url_.toStdString());
+            GF_UI_LOG_DEBUG("key server domain reply: {} received", url_);
             this->slot_process_network_reply(network_reply);
           });
 
   connect(timer, &QTimer::timeout, this, [this, network_reply]() {
-    GF_UI_LOG_DEBUG("timeout for key server: {}", url_.toStdString());
+    GF_UI_LOG_DEBUG("timeout for key server: {}", url_);
     if (network_reply->isRunning()) {
       network_reply->abort();
       this->slot_process_network_reply(network_reply);
@@ -65,8 +64,8 @@ auto GpgFrontend::UI::ProxyConnectionTestTask::Run() -> int {
 void GpgFrontend::UI::ProxyConnectionTestTask::slot_process_network_reply(
     QNetworkReply* reply) {
   auto buffer = reply->readAll();
-  GF_UI_LOG_DEBUG("key server domain reply: {}, buffer size: {}",
-                  url_.toStdString(), buffer.size());
+  GF_UI_LOG_DEBUG("key server domain reply: {}, buffer size: {}", url_,
+                  buffer.size());
 
   if (reply->error() == QNetworkReply::NoError && !buffer.isEmpty()) {
     result_ = "Reachable";

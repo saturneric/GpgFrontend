@@ -33,6 +33,7 @@
 #include "ui/GpgFrontendUIInit.h"
 
 // main
+#include "init.h"
 #include "main.h"
 
 namespace GpgFrontend {
@@ -69,6 +70,9 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
   int restart_count = 0;
 
   do {
+    // refresh locale settings
+    if (restart_count > 0) InitLocale();
+
     // after that load ui totally
     GpgFrontend::UI::InitGpgFrontendUI(app);
 

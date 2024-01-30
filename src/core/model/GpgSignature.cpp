@@ -121,7 +121,7 @@ auto GpgSignature::GetExpireTime() const -> QDateTime {
  * @return QString
  */
 auto GpgSignature::GetFingerprint() const -> QString {
-  return signature_ref_->fpr;
+  return signature_ref_->fpr != nullptr ? signature_ref_->fpr : "";
 }
 
 /**

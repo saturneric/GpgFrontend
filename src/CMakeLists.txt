@@ -171,10 +171,6 @@ if (BUILD_APPLICATION)
         list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
         unset(_libDllPath)
-        file(GLOB _libDllPath "${_libDllBinPath}/libarchive-*.dll")
-        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-        unset(_libDllPath)
         file(GLOB _libDllPath "${_libDllBinPath}/libassuan-*.dll")
         list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
@@ -269,6 +265,10 @@ if (BUILD_APPLICATION)
 
         unset(_libDllPath)
         file(GLOB _libDllPath "${_libDllBinPath}/libcrypto-*.dll")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+        unset(_libDllPath)
+        file(GLOB _libDllPath "${_libDllBinPath}/libxml2-*.dll")
         list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
         # gpgme-w32spawn.exe
@@ -452,6 +452,17 @@ if (BUILD_APPLICATION)
         TS_FILES ${TS_FILES}
         SOURCES ${ALL_SOURCE_FILES}
         INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/src)
+
+    file(GLOB QT_TRANSLATIONS_TS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third_party/qttranslations/translations/*.ts)
+    list(FILTER QT_TRANSLATIONS_TS INCLUDE REGEX ".*(qt|qtbase)_.*\.ts$")
+    add_custom_target(qttranslations ALL)
+    qt_add_lrelease(qttranslations
+            TS_FILES ${QT_TRANSLATIONS_TS}
+            QM_FILES_OUTPUT_VARIABLE QT_TRANSLATIONS_QM)
+    qt_add_resources(${AppName}  "qttranslations"
+        PREFIX "/i18n_qt"
+        BASE ${CMAKE_CURRENT_BINARY_DIR}
+        FILES ${QT_TRANSLATIONS_QM})
 endif()
 
 # if building linux package

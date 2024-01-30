@@ -55,8 +55,8 @@ auto RaisePinentry::Exec() -> int {
   GF_UI_LOG_DEBUG(
       "setting pinetry's arguments, context uids: {}, passphrase info: {}, "
       "prev_was_bad: {}",
-      context_->GetUidsInfo().toStdString(),
-      context_->GetPassphraseInfo().toStdString(), context_->IsPreWasBad());
+      context_->GetUidsInfo(), context_->GetPassphraseInfo(),
+      context_->IsPreWasBad());
 
   bool ask_for_new = context_->IsAskForNew() &&
                      context_->GetPassphraseInfo().isEmpty() &&
@@ -88,7 +88,7 @@ auto RaisePinentry::Exec() -> int {
   pinentry->setFormattedPassphrase({false, QString()});
   pinentry->setConstraintsOptions({false, QString(), QString(), QString()});
 
-  pinentry->setWindowTitle(tr("Buddled Pinentry"));
+  pinentry->setWindowTitle(tr("Bundled Pinentry"));
 
   /* If we reuse the same dialog window.  */
   pinentry->setPin(QString());

@@ -28,14 +28,14 @@
 
 #include "SecureMemoryAllocator.h"
 
-#ifndef MACOS
+#if !defined(MACOS) && defined(DEBUG)
 #include <mimalloc.h>
 #endif
 
 namespace GpgFrontend {
 
 auto SecureMemoryAllocator::Allocate(std::size_t size) -> void* {
-#ifndef MACOS
+#if !defined(MACOS) && defined(DEBUG)
   auto* addr = mi_malloc(size);
 #else
   auto* addr = malloc(size);
@@ -44,7 +44,7 @@ auto SecureMemoryAllocator::Allocate(std::size_t size) -> void* {
 }
 
 auto SecureMemoryAllocator::Reallocate(void* ptr, std::size_t size) -> void* {
-#ifndef MACOS
+#if !defined(MACOS) && defined(DEBUG)
   auto* addr = mi_realloc(ptr, size);
 #else
   auto* addr = realloc(ptr, size);
@@ -53,7 +53,7 @@ auto SecureMemoryAllocator::Reallocate(void* ptr, std::size_t size) -> void* {
 }
 
 void SecureMemoryAllocator::Deallocate(void* p) {
-#ifndef MACOS
+#if !defined(MACOS) && defined(DEBUG)
   mi_free(p);
 #else
   free(p);

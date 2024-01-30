@@ -38,7 +38,6 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
-#include "core/thread/TaskRunner.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
@@ -77,7 +76,7 @@ auto SearchKeyDatabasePath(const QList<QString>& candidate_paths) -> QString {
   return {};
 }
 
-auto InitGpgME(const QString& gnupg_path) -> bool {
+auto InitGpgME(const QString& gpgconf_path, const QString& gnupg_path) -> bool {
   // init gpgme subsystem and get gpgme library version
   Module::UpsertRTValue("core", "gpgme.version",
                         QString(gpgme_check_version(nullptr)));
@@ -88,8 +87,11 @@ auto InitGpgME(const QString& gnupg_path) -> bool {
 #endif
 
   if (!gnupg_path.isEmpty()) {
-    GF_CORE_LOG_DEBUG("gpgme set engine info, gnupg path: {}", gnupg_path);
-    CheckGpgError(gpgme_set_engine_info(GPGME_PROTOCOL_OPENPGP,
+    GF_CORE_LOG_DEBUG("gpgme set engine info, gpgconf path: {}, gnupg path: {}",
+                      gpgconf_path, gnupg_path);
+    CheckGpgError(gpgme_set_engine_info(GPGME_PROTOCOL_GPGCONF,
+                                        gpgconf_path.toUtf8(), nullptr));
+    CheckGpgError(gpgme_set_engine_info(GPGME_PROTOCOL_OpenPGP,
                                         gnupg_path.toUtf8(), nullptr));
   }
 
@@ -218,13 +220,12 @@ auto GetGnuPGPathByGpgConf(const QString& gnupg_install_fs_path) -> QString {
   }
   return "";
 }
-
-auto DetectGnuPGPath() -> QString {
+auto DetectGpgConfPath() -> QString {
   auto settings = GlobalSettingStation::GetInstance().GetSettings();
   auto use_custom_gnupg_install_path =
-      settings.value("basic/use_custom_gnupg_install_path", false).toBool();
+      settings.value("gnupg/use_custom_gnupg_install_path", false).toBool();
   auto custom_gnupg_install_path =
-      settings.value("basic/custom_gnupg_install_path", QString{}).toString();
+      settings.value("gnupg/custom_gnupg_install_path", QString{}).toString();
 
   QString gnupg_install_fs_path;
   // user defined
@@ -262,10 +263,13 @@ auto DetectGnuPGPath() -> QString {
   }
 
   if (!gnupg_install_fs_path.isEmpty()) {
-    return GetGnuPGPathByGpgConf(
-        QFileInfo(gnupg_install_fs_path).absoluteFilePath());
+    return QFileInfo(gnupg_install_fs_path).absoluteFilePath();
   }
   return "";
+}
+
+auto DetectGnuPGPath(QString gpgconf_path) -> QString {
+  return GetGnuPGPathByGpgConf(gpgconf_path);
 }
 
 void InitGpgFrontendCore(CoreInitArgs args) {
@@ -279,13 +283,15 @@ void InitGpgFrontendCore(CoreInitArgs args) {
   // initialize locale environment
   GF_CORE_LOG_DEBUG("locale: {}", setlocale(LC_CTYPE, nullptr));
 
-  auto gnupg_install_fs_path = DetectGnuPGPath();
+  auto gpgconf_install_fs_path = DetectGpgConfPath();
+  auto gnupg_install_fs_path = DetectGnuPGPath(gpgconf_install_fs_path);
+  GF_CORE_LOG_INFO("detected gpgconf path: {}", gpgconf_install_fs_path);
   GF_CORE_LOG_INFO("detected gnupg path: {}", gnupg_install_fs_path);
 
   // initialize library gpgme
-  if (!InitGpgME(gnupg_install_fs_path)) {
+  if (!InitGpgME(gpgconf_install_fs_path, gnupg_install_fs_path)) {
     CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-        QObject::tr("GpgME inilization failed"));
+        QCoreApplication::tr("GpgME initiation failed"));
     return;
   }
 
@@ -301,19 +307,19 @@ void InitGpgFrontendCore(CoreInitArgs args) {
             settings.value("network/auto_import_missing_key", false).toBool();
 
         auto use_custom_key_database_path =
-            settings.value("basic/use_custom_key_database_path", false)
+            settings.value("gnupg/use_custom_key_database_path", false)
                 .toBool();
 
         auto custom_key_database_path =
-            settings.value("basic/custom_key_database_path", QString{})
+            settings.value("gnupg/custom_key_database_path", QString{})
                 .toString();
 
         auto custom_gnupg_install_path =
-            settings.value("basic/custom_gnupg_install_path", QString{})
+            settings.value("gnupg/custom_gnupg_install_path", QString{})
                 .toString();
 
         auto use_pinentry_as_password_input_dialog =
-            settings.value("basic/use_pinentry_as_password_input_dialog", false)
+            settings.value("gnupg/use_pinentry_as_password_input_dialog", false)
                 .toBool();
 
         GF_CORE_LOG_DEBUG("core loaded if use custom key databse path: {}",
@@ -388,7 +394,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
           if (!ctx.Good()) {
             GF_CORE_LOG_ERROR("default gnupg context init error, abort");
             CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-                QObject::tr("GpgME Context inilization failed"));
+                QCoreApplication::tr("GpgME Context initiation failed"));
             return -1;
           }
           Module::UpsertRTValue("core", "env.state.ctx", 1);
@@ -397,7 +403,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
         if (args.load_default_gpg_context) {
           if (!GpgKeyGetter::GetInstance().FlushKeyCache()) {
             CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-                QObject::tr("Gpg Key Detabase inilization failed"));
+                QCoreApplication::tr("Gpg Key Detabase initiation failed"));
           };
         }
         GF_CORE_LOG_DEBUG(
@@ -432,7 +438,15 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                       "received callback from gnupg-info-gathering ");
 
                   // try to restart all components
-                  GpgFrontend::GpgAdvancedOperator::RestartGpgComponents();
+                  auto settings =
+                      GlobalSettingStation::GetInstance().GetSettings();
+                  auto restart_all_gnupg_components_on_start =
+                      settings.value("gnupg/restart_gpg_agent_on_start", false)
+                          .toBool();
+
+                  if (restart_all_gnupg_components_on_start) {
+                    GpgAdvancedOperator::RestartGpgComponents();
+                  }
                   Module::UpsertRTValue("core", "env.state.gnupg", 1);
 
                   // announce that all checkings were finished

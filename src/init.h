@@ -48,6 +48,12 @@ void InitGlobalPathEnv();
 /**
  * @brief
  *
+ */
+void InitLocale();
+
+/**
+ * @brief
+ *
  * @param args
  */
 void InitGlobalBasicalEnv(const GFCxtWPtr &, bool);

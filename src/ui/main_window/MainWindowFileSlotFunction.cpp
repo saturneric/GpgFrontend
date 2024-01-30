@@ -51,13 +51,13 @@ void MainWindow::SlotFileEncrypt(const QString& path) {
     return;
   }
 
-  bool const non_ascii_when_export =
+  bool const non_ascii_at_file_operation =
       GlobalSettingStation::GetInstance()
           .GetSettings()
-          .value("basic/non_ascii_when_export", true)
+          .value("gnupg/non_ascii_at_file_operation", true)
           .toBool();
   auto out_path =
-      SetExtensionOfOutputFile(path, kENCRYPT, !non_ascii_when_export);
+      SetExtensionOfOutputFile(path, kENCRYPT, !non_ascii_at_file_operation);
 
   if (QFile::exists(out_path)) {
     auto out_file_name = tr("The target file %1 already exists, "
@@ -90,7 +90,7 @@ void MainWindow::SlotFileEncrypt(const QString& path) {
     CommonUtils::WaitForOpera(
         this, tr("Symmetrically Encrypting"), [=](const OperaWaitingHd& op_hd) {
           GpgFileOpera::GetInstance().EncryptFileSymmetric(
-              path, !non_ascii_when_export, out_path,
+              path, !non_ascii_at_file_operation, out_path,
               [=](GpgError err, const DataObjectPtr& data_obj) {
                 // stop waiting
                 op_hd();
@@ -134,8 +134,9 @@ void MainWindow::SlotFileEncrypt(const QString& path) {
   CommonUtils::WaitForOpera(
       this, tr("Encrypting"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().EncryptFile(
-            {p_keys->begin(), p_keys->end()}, path, !non_ascii_when_export,
-            out_path, [=](GpgError err, const DataObjectPtr& data_obj) {
+            {p_keys->begin(), p_keys->end()}, path,
+            !non_ascii_at_file_operation, out_path,
+            [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
 
@@ -165,13 +166,13 @@ void MainWindow::SlotDirectoryEncrypt(const QString& path) {
     return;
   }
 
-  bool const non_ascii_when_export =
+  bool const non_ascii_at_file_operation =
       GlobalSettingStation::GetInstance()
           .GetSettings()
-          .value("basic/non_ascii_when_export", true)
+          .value("gnupg/non_ascii_at_file_operation", true)
           .toBool();
-  auto out_path = SetExtensionOfOutputFileForArchive(path, kENCRYPT,
-                                                     !non_ascii_when_export);
+  auto out_path = SetExtensionOfOutputFileForArchive(
+      path, kENCRYPT, !non_ascii_at_file_operation);
 
   if (QFile::exists(out_path)) {
     auto out_file_name = tr("The target file %1 already exists, "
@@ -205,7 +206,7 @@ void MainWindow::SlotDirectoryEncrypt(const QString& path) {
         this, tr("Archiving & Symmetrically Encrypting"),
         [=](const OperaWaitingHd& op_hd) {
           GpgFileOpera::GetInstance().EncryptDerectorySymmetric(
-              path, !non_ascii_when_export, out_path,
+              path, !non_ascii_at_file_operation, out_path,
               [=](GpgError err, const DataObjectPtr& data_obj) {
                 // stop waiting
                 op_hd();
@@ -248,8 +249,9 @@ void MainWindow::SlotDirectoryEncrypt(const QString& path) {
   CommonUtils::WaitForOpera(
       this, tr("Archiving & Encrypting"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().EncryptDirectory(
-            {p_keys->begin(), p_keys->end()}, path, !non_ascii_when_export,
-            out_path, [=](GpgError err, const DataObjectPtr& data_obj) {
+            {p_keys->begin(), p_keys->end()}, path,
+            !non_ascii_at_file_operation, out_path,
+            [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
 
@@ -280,6 +282,7 @@ void MainWindow::SlotFileDecrypt(const QString& path) {
   }
 
   auto out_path = SetExtensionOfOutputFile(path, kDECRYPT, true);
+  GF_UI_LOG_DEBUG("file decrypt target output path: {}", out_path);
   if (QFileInfo(out_path).exists()) {
     auto ret = QMessageBox::warning(
         this, tr("Warning"),
@@ -329,6 +332,7 @@ void MainWindow::SlotArchiveDecrypt(const QString& path) {
   }
 
   auto out_path = SetExtensionOfOutputFileForArchive(path, kDECRYPT, true);
+  GF_UI_LOG_DEBUG("archive decrypt target output path: {}", out_path);
   if (QFileInfo(out_path).exists()) {
     auto ret = QMessageBox::warning(
         this, tr("Warning"),
@@ -400,13 +404,13 @@ void MainWindow::SlotFileSign(const QString& path) {
     }
   }
 
-  bool const non_ascii_when_export =
+  bool const non_ascii_at_file_operation =
       GlobalSettingStation::GetInstance()
           .GetSettings()
-          .value("basic/non_ascii_when_export", true)
+          .value("gnupg/non_ascii_at_file_operation", true)
           .toBool();
   auto sig_file_path =
-      SetExtensionOfOutputFile(path, kSIGN, !non_ascii_when_export);
+      SetExtensionOfOutputFile(path, kSIGN, !non_ascii_at_file_operation);
 
   if (QFileInfo(sig_file_path).exists()) {
     auto ret = QMessageBox::warning(this, tr("Warning"),
@@ -421,7 +425,7 @@ void MainWindow::SlotFileSign(const QString& path) {
   CommonUtils::WaitForOpera(
       this, tr("Signing"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance().SignFile(
-            {keys->begin(), keys->end()}, path, !non_ascii_when_export,
+            {keys->begin(), keys->end()}, path, !non_ascii_at_file_operation,
             sig_file_path, [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
@@ -559,13 +563,13 @@ void MainWindow::SlotFileEncryptSign(const QString& path) {
     }
   }
 
-  bool const non_ascii_when_export =
+  bool const non_ascii_at_file_operation =
       GlobalSettingStation::GetInstance()
           .GetSettings()
-          .value("basic/non_ascii_when_export", true)
+          .value("gnupg/non_ascii_at_file_operation", true)
           .toBool();
-  auto out_path =
-      SetExtensionOfOutputFile(path, kENCRYPT_SIGN, !non_ascii_when_export);
+  auto out_path = SetExtensionOfOutputFile(path, kENCRYPT_SIGN,
+                                           !non_ascii_at_file_operation);
 
   check_result = TargetFilePreCheck(out_path, false);
   if (!std::get<0>(check_result)) {
@@ -599,7 +603,7 @@ void MainWindow::SlotFileEncryptSign(const QString& path) {
         GpgFileOpera::GetInstance().EncryptSignFile(
             {p_keys->begin(), p_keys->end()},
             {p_signer_keys->begin(), p_signer_keys->end()}, path,
-            !non_ascii_when_export, out_path,
+            !non_ascii_at_file_operation, out_path,
             [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();
@@ -662,13 +666,13 @@ void MainWindow::SlotDirectoryEncryptSign(const QString& path) {
     }
   }
 
-  bool const non_ascii_when_export =
+  bool const non_ascii_at_file_operation =
       GlobalSettingStation::GetInstance()
           .GetSettings()
-          .value("basic/non_ascii_when_export", true)
+          .value("gnupg/non_ascii_at_file_operation", true)
           .toBool();
-  auto out_path = SetExtensionOfOutputFileForArchive(path, kENCRYPT_SIGN,
-                                                     !non_ascii_when_export);
+  auto out_path = SetExtensionOfOutputFileForArchive(
+      path, kENCRYPT_SIGN, !non_ascii_at_file_operation);
 
   check_result = TargetFilePreCheck(out_path, false);
   if (!std::get<0>(check_result)) {
@@ -703,7 +707,7 @@ void MainWindow::SlotDirectoryEncryptSign(const QString& path) {
         GpgFileOpera::GetInstance().EncryptSignDirectory(
             {p_keys->begin(), p_keys->end()},
             {p_signer_keys->begin(), p_signer_keys->end()}, path,
-            !non_ascii_when_export, out_path,
+            !non_ascii_at_file_operation, out_path,
             [=](GpgError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();

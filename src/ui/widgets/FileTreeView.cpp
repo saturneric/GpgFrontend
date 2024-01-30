@@ -49,6 +49,7 @@ FileTreeView::FileTreeView(QWidget* parent, const QString& target_path)
 
   slot_create_popup_menu();
   this->setContextMenuPolicy(Qt::CustomContextMenu);
+
   connect(this, &QWidget::customContextMenuRequested, this,
           &FileTreeView::slot_show_custom_context_menu);
   connect(this, &QTreeView::doubleClicked, this,
@@ -159,7 +160,7 @@ auto FileTreeView::SlotDeleteSelectedItem() -> void {
 
   if (ret == QMessageBox::Cancel) return;
 
-  GF_UI_LOG_DEBUG("delete item: {}", data.toString().toStdString());
+  GF_UI_LOG_DEBUG("delete item: {}", data.toString());
 
   if (!dir_model_->remove(index)) {
     QMessageBox::critical(this, tr("Error"),
@@ -194,25 +195,19 @@ void FileTreeView::SlotMkdirBelowAtSelectedItem() {
 }
 
 void FileTreeView::SlotTouch() {
-#ifdef WINDOWS
-  auto root_path_str = dir_model_->rootPath().toStdU16String();
-#else
-  auto root_path_str = dir_model_->rootPath().toStdString();
-#endif
-  std::filesystem::path root_path(root_path_str);
+  auto root_path = dir_model_->rootPath();
 
   QString new_file_name;
   bool ok;
+
   new_file_name = QInputDialog::getText(
       this, tr("Create Empty File"), tr("Filename (you can given extension)"),
       QLineEdit::Normal, new_file_name, &ok);
   if (ok && !new_file_name.isEmpty()) {
-#ifdef WINDOWS
-    auto file_path = root_path / new_file_name.toStdU16String();
-#else
-    auto file_path = root_path / new_file_name.toStdString();
-#endif
-    QFile new_file(file_path.u8string().c_str());
+    auto file_path = root_path + "/" + new_file_name;
+    GF_UI_LOG_DEBUG("new file path: {}", file_path);
+
+    QFile new_file(file_path);
     if (!new_file.open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
       QMessageBox::critical(this, tr("Error"),
                             tr("Unable to create the file."));
@@ -223,6 +218,7 @@ void FileTreeView::SlotTouch() {
 
 void FileTreeView::SlotTouchBelowAtSelectedItem() {
   auto root_path(selected_path_);
+  if (root_path.isEmpty()) root_path = dir_model_->rootPath();
 
   QString new_file_name;
   bool ok;
@@ -231,6 +227,7 @@ void FileTreeView::SlotTouchBelowAtSelectedItem() {
       QLineEdit::Normal, new_file_name, &ok);
   if (ok && !new_file_name.isEmpty()) {
     auto file_path = root_path + "/" + new_file_name;
+    GF_UI_LOG_DEBUG("new file path: {}", file_path);
 
     QFile new_file(file_path);
     if (!new_file.open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
@@ -257,7 +254,7 @@ void FileTreeView::keyPressEvent(QKeyEvent* event) {
 void FileTreeView::SlotOpenSelectedItemBySystemApplication() {
   QFileInfo const info(selected_path_);
   if (info.isDir()) {
-    const auto file_path = info.filePath().toUtf8().toStdString();
+    const auto file_path = info.filePath().toUtf8();
     QDesktopServices::openUrl(QUrl::fromLocalFile(selected_path_));
 
   } else {
@@ -274,7 +271,7 @@ void FileTreeView::SlotRenameSelectedItem() {
     auto file_info = QFileInfo(selected_path_);
     auto new_name_path = file_info.absolutePath() + "/" + text;
     GF_UI_LOG_DEBUG("new filename path: {}", new_name_path);
-    if (QDir().rename(file_info.absoluteFilePath(), new_name_path)) {
+    if (!QDir().rename(file_info.absoluteFilePath(), new_name_path)) {
       QMessageBox::critical(this, tr("Error"),
                             tr("Unable to rename the file or folder."));
       return;
@@ -334,16 +331,16 @@ void FileTreeView::slot_create_popup_menu() {
   connect(action_open_with_system_default_application, &QAction::triggered,
           this, &FileTreeView::SlotOpenSelectedItemBySystemApplication);
 
-  auto* new_item_action_menu = new QMenu(this);
-  new_item_action_menu->setTitle(tr("New"));
-  new_item_action_menu->addAction(action_create_empty_file_);
-  new_item_action_menu->addAction(action_make_directory_);
+  new_item_action_menu_ = new QMenu(this);
+  new_item_action_menu_->setTitle(tr("New"));
+  new_item_action_menu_->addAction(action_create_empty_file_);
+  new_item_action_menu_->addAction(action_make_directory_);
 
   popup_menu_->addAction(action_open_file_);
   popup_menu_->addAction(action_open_with_system_default_application);
 
   popup_menu_->addSeparator();
-  popup_menu_->addMenu(new_item_action_menu);
+  popup_menu_->addMenu(new_item_action_menu_);
   popup_menu_->addSeparator();
 
   popup_menu_->addAction(action_rename_file_);
@@ -354,22 +351,40 @@ void FileTreeView::slot_create_popup_menu() {
 
 void FileTreeView::slot_show_custom_context_menu(const QPoint& point) {
   auto target_path = this->GetPathByClickPoint(point);
+  auto select_path = GetSelectedPath();
 
-  if (!target_path.isEmpty()) {
-    action_open_file_->setEnabled(true);
+  GF_UI_LOG_DEBUG("file tree view, target path: {}, select path: {}",
+                  target_path, select_path);
+  if (target_path.isEmpty() && !select_path.isEmpty()) {
+    target_path = select_path;
+  }
+
+  QFileInfo file_info(target_path);
+
+  action_open_file_->setEnabled(false);
+  action_rename_file_->setEnabled(false);
+  action_delete_file_->setEnabled(false);
+  action_calculate_hash_->setEnabled(false);
+  action_make_directory_->setEnabled(false);
+  action_create_empty_file_->setEnabled(false);
+  action_calculate_hash_->setEnabled(false);
+
+  if (file_info.exists()) {
+    action_open_file_->setEnabled(file_info.isFile() && file_info.isReadable());
     action_rename_file_->setEnabled(true);
     action_delete_file_->setEnabled(true);
 
-    QFileInfo const info(this->GetSelectedPath());
-    action_calculate_hash_->setEnabled(info.isFile() && info.isReadable());
-
+    action_make_directory_->setEnabled(file_info.isDir() &&
+                                       file_info.isWritable());
+    action_create_empty_file_->setEnabled(file_info.isDir() &&
+                                          file_info.isWritable());
+    action_calculate_hash_->setEnabled(file_info.isFile() &&
+                                       file_info.isReadable());
   } else {
-    action_open_file_->setEnabled(false);
-    action_rename_file_->setEnabled(false);
-    action_delete_file_->setEnabled(false);
-
-    action_calculate_hash_->setEnabled(false);
+    action_create_empty_file_->setEnabled(true);
+    action_make_directory_->setEnabled(true);
   }
+
   popup_menu_->exec(this->GetMousePointGlobal(point));
 }
 
@@ -377,11 +392,11 @@ void FileTreeView::slot_calculate_hash() {
   CommonUtils::WaitForOpera(
       this->parentWidget(), tr("Calculating"), [=](const OperaWaitingHd& hd) {
         RunOperaAsync(
-            [=](DataObjectPtr data_object) {
+            [=](const DataObjectPtr& data_object) {
               data_object->Swap({CalculateHash(this->GetSelectedPath())});
               return 0;
             },
-            [hd](int rtn, DataObjectPtr data_object) {
+            [hd](int rtn, const DataObjectPtr& data_object) {
               hd();
               if (rtn < 0 || !data_object->Check<QString>()) {
                 return;
@@ -401,5 +416,9 @@ void FileTreeView::paintEvent(QPaintEvent* event) {
   for (int i = 1; i < dir_model_->columnCount(); ++i) {
     this->resizeColumnToContents(i);
   }
+}
+
+void FileTreeView::mousePressEvent(QMouseEvent* event) {
+  QTreeView::mousePressEvent(event);
 }
 }  // namespace GpgFrontend::UI

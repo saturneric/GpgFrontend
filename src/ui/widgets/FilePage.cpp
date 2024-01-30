@@ -96,56 +96,16 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
           [this](const QString& path) { this->ui_->pathEdit->setText(path); });
   connect(file_tree_view_, &FileTreeView::SignalPathChanged, this,
           &FilePage::SignalPathChanged);
-
-  auto* main_window = qobject_cast<MainWindow*>(this->parent());
-  if (main_window != nullptr) {
-    connect(file_tree_view_, &FileTreeView::SignalOpenFile, main_window,
-            &MainWindow::SlotOpenFile);
-
-    connect(file_tree_view_, &FileTreeView::SignalSelectedChanged, this,
-            [main_window](const QString& selected_path) {
-              MainWindow::CryptoMenu::OperationType operation_type =
-                  MainWindow::CryptoMenu::None;
-
-              // abort...
-              if (selected_path.isEmpty()) return;
-
-              QFileInfo const info(selected_path);
-
-              if ((info.isDir() || info.isFile()) &&
-                  (info.suffix() != "gpg" && info.suffix() != "pgp" &&
-                   info.suffix() != "sig" && info.suffix() != "asc")) {
-                operation_type |= MainWindow::CryptoMenu::Encrypt;
-              }
-
-              if ((info.isDir() || info.isFile()) &&
-                  (info.suffix() != "gpg" && info.suffix() != "pgp" &&
-                   info.suffix() != "sig" && info.suffix() != "asc")) {
-                operation_type |= MainWindow::CryptoMenu::EncryptAndSign;
-              }
-
-              if (info.isFile() &&
-                  (info.suffix() == "gpg" || info.suffix() == "pgp" ||
-                   info.suffix() == "asc")) {
-                operation_type |= MainWindow::CryptoMenu::Decrypt;
-                operation_type |= MainWindow::CryptoMenu::DecryptAndVerify;
-              }
-
-              if (info.isFile() &&
-                  (info.suffix() != "gpg" && info.suffix() != "pgp" &&
-                   info.suffix() != "sig" && info.suffix() != "asc")) {
-                operation_type |= MainWindow::CryptoMenu::Sign;
-              }
-
-              if (info.isFile() &&
-                  (info.suffix() == "sig" || info.suffix() == "gpg" ||
-                   info.suffix() == "pgp" || info.suffix() == "asc")) {
-                operation_type |= MainWindow::CryptoMenu::Verify;
-              }
-
-              main_window->SetCryptoMenuStatus(operation_type);
-            });
-  }
+  connect(file_tree_view_, &FileTreeView::SignalOpenFile,
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalMainWindowOpenFile);
+  connect(file_tree_view_, &FileTreeView::SignalSelectedChanged, this,
+          &FilePage::update_main_basical_opera_menu);
+  connect(this, &FilePage::SignalCurrentTabChanged, this,
+          [this]() { update_main_basical_opera_menu(GetSelected()); });
+  connect(this, &FilePage::SignalMainWindowlUpdateBasicalOperaMenu,
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalMainWindowlUpdateBasicalOperaMenu);
 }
 
 auto FilePage::GetSelected() const -> QString {
@@ -164,4 +124,43 @@ void FilePage::keyPressEvent(QKeyEvent* event) {
   }
 }
 
+void FilePage::update_main_basical_opera_menu(const QString& selected_path) {
+  MainWindow::CryptoMenu::OperationType operation_type =
+      MainWindow::CryptoMenu::None;
+
+  // abort...
+  if (selected_path.isEmpty()) return;
+
+  QFileInfo const info(selected_path);
+
+  if ((info.isDir() || info.isFile()) &&
+      (info.suffix() != "gpg" && info.suffix() != "pgp" &&
+       info.suffix() != "sig" && info.suffix() != "asc")) {
+    operation_type |= MainWindow::CryptoMenu::Encrypt;
+  }
+
+  if ((info.isDir() || info.isFile()) &&
+      (info.suffix() != "gpg" && info.suffix() != "pgp" &&
+       info.suffix() != "sig" && info.suffix() != "asc")) {
+    operation_type |= MainWindow::CryptoMenu::EncryptAndSign;
+  }
+
+  if (info.isFile() && (info.suffix() == "gpg" || info.suffix() == "pgp" ||
+                        info.suffix() == "asc")) {
+    operation_type |= MainWindow::CryptoMenu::Decrypt;
+    operation_type |= MainWindow::CryptoMenu::DecryptAndVerify;
+  }
+
+  if (info.isFile() && (info.suffix() != "gpg" && info.suffix() != "pgp" &&
+                        info.suffix() != "sig" && info.suffix() != "asc")) {
+    operation_type |= MainWindow::CryptoMenu::Sign;
+  }
+
+  if (info.isFile() && (info.suffix() == "sig" || info.suffix() == "gpg" ||
+                        info.suffix() == "pgp" || info.suffix() == "asc")) {
+    operation_type |= MainWindow::CryptoMenu::Verify;
+  }
+
+  emit SignalMainWindowlUpdateBasicalOperaMenu(operation_type);
+}
 }  // namespace GpgFrontend::UI

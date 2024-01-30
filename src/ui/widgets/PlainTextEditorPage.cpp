@@ -110,11 +110,11 @@ void PlainTextEditorPage::slot_format_gpg_header() {
   QString content = ui_->textPage->toPlainText();
 
   // Get positions of the gpg-headers, if they exist
-  int start = content.indexOf(GpgFrontend::PGP_SIGNED_BEGIN);
-  int startSig = content.indexOf(GpgFrontend::PGP_SIGNATURE_BEGIN);
-  int endSig = content.indexOf(GpgFrontend::PGP_SIGNATURE_END);
+  auto start = content.indexOf(GpgFrontend::PGP_SIGNED_BEGIN);
+  auto start_sig = content.indexOf(GpgFrontend::PGP_SIGNATURE_BEGIN);
+  auto end_sig = content.indexOf(GpgFrontend::PGP_SIGNATURE_END);
 
-  if (start < 0 || startSig < 0 || endSig < 0 || sign_marked_) {
+  if (start < 0 || start_sig < 0 || end_sig < 0 || sign_marked_) {
     return;
   }
 
@@ -127,8 +127,8 @@ void PlainTextEditorPage::slot_format_gpg_header() {
 
   // set font style for the signature
   QTextCursor cursor(ui_->textPage->document());
-  cursor.setPosition(startSig, QTextCursor::MoveAnchor);
-  cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, endSig);
+  cursor.setPosition(start_sig, QTextCursor::MoveAnchor);
+  cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, end_sig);
   cursor.setCharFormat(signFormat);
 
   // set the font style for the header
@@ -141,14 +141,13 @@ void PlainTextEditorPage::slot_format_gpg_header() {
 void PlainTextEditorPage::ReadFile() {
   read_done_ = false;
   read_bytes_ = 0;
-  ui_->textPage->setEnabled(false);
-  ui_->textPage->setReadOnly(true);
-  ui_->textPage->blockSignals(true);
-  ui_->loadingLabel->setHidden(false);
-  ui_->textPage->document()->blockSignals(true);
 
   auto *text_page = this->GetTextPage();
+  text_page->setEnabled(false);
   text_page->setReadOnly(true);
+  text_page->blockSignals(true);
+  text_page->document()->blockSignals(true);
+  ui_->loadingLabel->setHidden(false);
 
   const auto target_path = this->full_file_path_;
 
@@ -161,17 +160,17 @@ void PlainTextEditorPage::ReadFile() {
   connect(this, &PlainTextEditorPage::SignalUIBytesDisplayed, read_task,
           &FileReadTask::SignalFileBytesReadNext, Qt::QueuedConnection);
 
-  connect(read_task, &FileReadTask::SignalTaskShouldEnd, this,
-          []() { GF_UI_LOG_DEBUG("read thread closed"); });
   connect(this, &PlainTextEditorPage::close, read_task,
-          [=]() { read_task->SignalTaskShouldEnd(0); });
+          [=]() { emit read_task->SignalTaskShouldEnd(0); });
   connect(read_task, &FileReadTask::SignalFileBytesReadEnd, this, [=]() {
     // set the UI
+    GF_UI_LOG_DEBUG("signal file bytes read end rised");
     this->read_done_ = true;
-    this->ui_->textPage->setEnabled(true);
+    text_page->setEnabled(true);
     text_page->document()->setModified(false);
-    this->ui_->textPage->blockSignals(false);
-    this->ui_->textPage->document()->blockSignals(false);
+    text_page->blockSignals(false);
+    text_page->document()->blockSignals(false);
+    text_page->setReadOnly(false);
     this->ui_->loadingLabel->setHidden(true);
   });
 
@@ -193,10 +192,8 @@ void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
 
   // insert the text to the text page
   this->GetTextPage()->insertPlainText(bytes_data);
-
-  auto text = this->GetTextPage()->toPlainText();
-  auto str = tr("%1 character(s)").arg(text.size());
-  this->ui_->characterLabel->setText(str);
+  this->ui_->characterLabel->setText(
+      tr("%1 character(s)").arg(this->GetTextPage()->toPlainText().size()));
 
   QTimer::singleShot(25, this, &PlainTextEditorPage::SignalUIBytesDisplayed);
 }

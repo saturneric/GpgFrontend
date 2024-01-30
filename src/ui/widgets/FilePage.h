@@ -71,7 +71,7 @@ class FilePage : public QWidget {
    *
    * @param path
    */
-  void SignalPathChanged(const QString& path);
+  void SignalPathChanged(const QString&);
 
   /**
    * @brief
@@ -79,8 +79,20 @@ class FilePage : public QWidget {
    * @param text
    * @param verify_label_status
    */
-  void SignalRefreshInfoBoard(const QString& text,
-                              InfoBoardStatus verify_label_status);
+  void SignalRefreshInfoBoard(const QString&, InfoBoardStatus);
+
+  /**
+   * @brief
+   *
+   */
+  void SignalCurrentTabChanged();
+
+  /**
+   * @brief
+   *
+   * @param int
+   */
+  void SignalMainWindowlUpdateBasicalOperaMenu(unsigned int);
 
  protected:
   /**
@@ -99,6 +111,14 @@ class FilePage : public QWidget {
   QMenu* popup_menu_{};         ///<
   QMenu* option_popup_menu_{};  ///<
   FileTreeView* file_tree_view_;
+
+ private slots:
+
+  /**
+   * @brief
+   *
+   */
+  void update_main_basical_opera_menu(const QString&);
 };
 
 }  // namespace GpgFrontend::UI

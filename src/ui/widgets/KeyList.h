@@ -59,6 +59,7 @@ struct KeyListColumn {
   static constexpr InfoType Usage = 1 << 3;         ///<
   static constexpr InfoType Validity = 1 << 4;      ///<
   static constexpr InfoType FingerPrint = 1 << 5;   ///<
+  static constexpr InfoType KeyID = 1 << 6;         ///<
 };
 
 /**

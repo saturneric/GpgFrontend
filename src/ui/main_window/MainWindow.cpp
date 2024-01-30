@@ -103,6 +103,12 @@ void MainWindow::Init() noexcept {
             [=](const QString &message, int timeout) {
               statusBar()->showMessage(message, timeout);
             });
+    connect(UISignalStation::GetInstance(),
+            &UISignalStation::SignalMainWindowlUpdateBasicalOperaMenu, this,
+            &MainWindow::SlotUpdateCryptoMenuStatus);
+    connect(UISignalStation::GetInstance(),
+            &UISignalStation::SignalMainWindowOpenFile, this,
+            &MainWindow::SlotOpenFile);
 
     m_key_list_->AddMenuAction(append_selected_keys_act_);
     m_key_list_->AddMenuAction(append_key_create_date_to_editor_act_);
@@ -122,21 +128,6 @@ void MainWindow::Init() noexcept {
     restore_settings();
 
     edit_->CurTextPage()->setFocus();
-
-    // before application exit
-    connect(qApp, &QCoreApplication::aboutToQuit, this, []() {
-      GF_UI_LOG_DEBUG("about to quit process started");
-
-      if (GlobalSettingStation::GetInstance()
-              .GetSettings()
-              .value("basic/clear_gpg_password_cache", false)
-              .toBool()) {
-        GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache(
-            [](int, DataObjectPtr) {
-
-            });
-      }
-    });
 
     Module::ListenRTPublishEvent(
         this, "com.bktus.gpgfrontend.module.integrated.version-checking",
@@ -178,8 +169,8 @@ void MainWindow::restore_settings() {
   if (key_server.default_server < 0) key_server.default_server = 0;
 
   auto settings = GlobalSettingStation::GetInstance().GetSettings();
-  if (!settings.contains("basic/non_ascii_when_export")) {
-    settings.setValue("basic/non_ascii_when_export", true);
+  if (!settings.contains("gnupg/non_ascii_at_file_operation")) {
+    settings.setValue("gnupg/non_ascii_at_file_operation", true);
   }
 
   // set appearance
