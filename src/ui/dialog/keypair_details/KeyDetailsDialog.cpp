@@ -29,6 +29,7 @@
 #include "KeyDetailsDialog.h"
 
 #include "core/GpgModel.h"
+#include "ui/UISignalStation.h"
 #include "ui/dialog/keypair_details/KeyPairDetailTab.h"
 #include "ui/dialog/keypair_details/KeyPairOperaTab.h"
 #include "ui/dialog/keypair_details/KeyPairSubkeyTab.h"
@@ -40,11 +41,22 @@ KeyDetailsDialog::KeyDetailsDialog(const GpgKey& key, QWidget* parent)
   tab_widget_ = new QTabWidget();
   tab_widget_->addTab(new KeyPairDetailTab(key.GetId(), tab_widget_),
                       tr("KeyPair"));
-  tab_widget_->addTab(new KeyPairUIDTab(key.GetId(), tab_widget_), tr("UIDs"));
-  tab_widget_->addTab(new KeyPairSubkeyTab(key.GetId(), tab_widget_),
-                      tr("Subkeys"));
-  tab_widget_->addTab(new KeyPairOperaTab(key.GetId(), tab_widget_),
-                      tr("Operations"));
+
+  if (!key.IsRevoked()) {
+    tab_widget_->addTab(new KeyPairUIDTab(key.GetId(), tab_widget_),
+                        tr("UIDs"));
+
+    tab_widget_->addTab(new KeyPairSubkeyTab(key.GetId(), tab_widget_),
+                        tr("Subkeys"));
+    tab_widget_->addTab(new KeyPairOperaTab(key.GetId(), tab_widget_),
+                        tr("Operations"));
+  }
+
+  QString m_key_id = key.GetId();
+  connect(UISignalStation::GetInstance(), &UISignalStation::SignalKeyRevoked,
+          this, [this, m_key_id](const QString& key_id) {
+            if (key_id == m_key_id) this->close();
+          });
 
   auto* main_layout = new QVBoxLayout;
   main_layout->addWidget(tab_widget_);

@@ -83,8 +83,7 @@ KeyPairOperaTab::KeyPairOperaTab(const QString& key_id, QWidget* parent)
 
   auto* advance_h_box_layout = new QHBoxLayout();
 
-  auto settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GlobalSettingStation::GetInstance().GetSettings();
 
   // read settings
   bool forbid_all_gnupg_connection =
@@ -98,11 +97,11 @@ KeyPairOperaTab::KeyPairOperaTab(const QString& key_id, QWidget* parent)
   advance_h_box_layout->addWidget(key_server_opera_button);
 
   if (m_key_.IsPrivateKey() && m_key_.IsHasMasterKey()) {
-    auto* revoke_cert_gen_button =
-        new QPushButton(tr("Generate Revoke Certificate"));
-    connect(revoke_cert_gen_button, &QPushButton::clicked, this,
-            &KeyPairOperaTab::slot_gen_revoke_cert);
-    advance_h_box_layout->addWidget(revoke_cert_gen_button);
+    auto* revoke_cert_opera_button =
+        new QPushButton(tr("Revoke Certificate Operation"));
+    revoke_cert_opera_button->setStyleSheet("text-align:center;");
+    revoke_cert_opera_button->setMenu(rev_cert_opera_menu_);
+    advance_h_box_layout->addWidget(revoke_cert_opera_button);
   }
 
   auto* modify_tofu_button = new QPushButton(tr("Modify TOFU Policy"));
@@ -171,6 +170,21 @@ void KeyPairOperaTab::CreateOperaMenu() {
 
   secret_key_export_opera_menu_->addAction(export_full_secret_key);
   secret_key_export_opera_menu_->addAction(export_shortest_secret_key);
+
+  rev_cert_opera_menu_ = new QMenu(this);
+
+  auto* rev_cert_gen_action =
+      new QAction(tr("Generate Revoke Certificate"), this);
+  connect(rev_cert_gen_action, &QAction::triggered, this,
+          &KeyPairOperaTab::slot_gen_revoke_cert);
+
+  auto* revoke_cert_import_action =
+      new QAction(tr("Import Revoke Certificate"));
+  connect(revoke_cert_import_action, &QAction::triggered, this,
+          &KeyPairOperaTab::slot_import_revoke_cert);
+
+  rev_cert_opera_menu_->addAction(revoke_cert_import_action);
+  rev_cert_opera_menu_->addAction(rev_cert_gen_action);
 }
 
 void KeyPairOperaTab::slot_export_public_key() {
@@ -379,4 +393,54 @@ void KeyPairOperaTab::slot_set_owner_trust_level() {
   function->deleteLater();
 }
 
+void KeyPairOperaTab::slot_import_revoke_cert() {
+  // Show a information box with explanation about private key
+  int ret = QMessageBox::information(
+      this, tr("Import Key Revocation Certificate"),
+      "<h3>" + tr("You are about to import the") + "<font color=\"red\">" +
+          " " + tr("REVOCATION CERTIFICATE") + " " + "</font>!</h3>\n" +
+          tr("A successful import will result in the key being irreversibly "
+             "revoked.") +
+          "<br />" + tr("Do you REALLY want to execute this operation?"),
+      QMessageBox::Cancel | QMessageBox::Ok);
+
+  // export key, if ok was clicked
+  if (ret != QMessageBox::Ok) return;
+
+  auto rev_file_name = QFileDialog::getOpenFileName(
+      this, tr("Import Key Revocation Certificate"), {},
+      tr("Revocation Certificates") + " (*.rev)");
+
+  if (rev_file_name.isEmpty()) return;
+
+  QFileInfo rev_file_info(rev_file_name);
+
+  if (!rev_file_info.isFile() || !rev_file_info.isReadable()) {
+    QMessageBox::critical(
+        this, tr("Error"),
+        tr("Cannot open this file. Please make sure that this "
+           "is a regular file and it's readable."));
+    return;
+  }
+
+  // max file size is 1 mb
+  if (rev_file_info.size() > static_cast<qint64>(1024 * 1024)) {
+    QMessageBox::critical(
+        this, tr("Error"),
+        tr("The target file is too large for a key revocation certificate."));
+    return;
+  }
+
+  QFile rev_file(rev_file_info.absoluteFilePath());
+  if (!rev_file.open(QIODeviceBase::ReadOnly)) {
+    QMessageBox::critical(
+        this, tr("Error"),
+        tr("Cannot open this file. Please make sure that this "
+           "is a regular file and it's readable."));
+    return;
+  }
+
+  emit UISignalStation::GetInstance()->SignalKeyRevoked(m_key_.GetId());
+  CommonUtils::GetInstance()->SlotImportKeys(nullptr, rev_file.readAll());
+}
 }  // namespace GpgFrontend::UI

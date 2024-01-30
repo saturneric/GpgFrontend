@@ -535,6 +535,15 @@ void KeyMgmt::SlotImportKeyPackage() {
 
   // max file size is 32 mb
   QFileInfo key_package_file_info(key_package_file_name);
+
+  if (!key_package_file_info.isFile() || !key_package_file_info.isReadable()) {
+    QMessageBox::critical(
+        this, tr("Error"),
+        tr("Cannot open this file. Please make sure that this "
+           "is a regular file and it's readable."));
+    return;
+  }
+
   if (key_package_file_info.size() > static_cast<qint64>(32 * 1024 * 1024)) {
     QMessageBox::critical(
         this, tr("Error"),
@@ -550,6 +559,15 @@ void KeyMgmt::SlotImportKeyPackage() {
 
   // max file size is 1 mb
   QFileInfo key_file_info(key_file_name);
+
+  if (!key_file_info.isFile() || !key_file_info.isReadable()) {
+    QMessageBox::critical(
+        this, tr("Error"),
+        tr("Cannot open this file. Please make sure that this "
+           "is a regular file and it's readable."));
+    return;
+  }
+
   if (key_file_info.size() > static_cast<qint64>(1024 * 1024)) {
     QMessageBox::critical(
         this, tr("Error"),

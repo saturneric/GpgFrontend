@@ -120,9 +120,16 @@ class KeyPairOperaTab : public QWidget {
    */
   void slot_set_owner_trust_level();
 
+  /**
+   * @brief
+   *
+   */
+  void slot_import_revoke_cert();
+
  private:
-  GpgKey m_key_;                           ///<
-  QMenu* key_server_opera_menu_{};         ///<
+  GpgKey m_key_;                    ///<
+  QMenu* key_server_opera_menu_{};  ///<
+  QMenu* rev_cert_opera_menu_{};
   QMenu* secret_key_export_opera_menu_{};  ///<
 };
 }  // namespace GpgFrontend::UI

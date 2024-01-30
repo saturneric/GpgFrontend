@@ -281,6 +281,15 @@ void CommonUtils::SlotImportKeyFromFile(QWidget *parent) {
   if (file_name.isEmpty()) return;
 
   QFileInfo file_info(file_name);
+
+  if (!file_info.isFile() || !file_info.isReadable()) {
+    QMessageBox::critical(
+        parent, tr("Error"),
+        tr("Cannot open this file. Please make sure that this "
+           "is a regular file and it's readable."));
+    return;
+  }
+
   if (file_info.size() > static_cast<qint64>(1024 * 1024)) {
     QMessageBox::critical(parent, tr("Error"),
                           tr("The target file is too large for a keyring."));
@@ -342,7 +351,7 @@ void CommonUtils::SlotExecuteGpgCommand(
     const QStringList &arguments,
     const std::function<void(QProcess *)> &interact_func) {
   QEventLoop looper;
-  auto dialog = new WaitingDialog(tr("Processing"), nullptr);
+  auto *dialog = new WaitingDialog(tr("Processing"), nullptr);
   dialog->show();
   auto *gpg_process = new QProcess(&looper);
   gpg_process->setProcessChannelMode(QProcess::MergedChannels);
@@ -506,7 +515,7 @@ void CommonUtils::SlotRestartApplication(int code) {
   }
 }
 
-bool CommonUtils::isApplicationNeedRestart() {
+auto CommonUtils::isApplicationNeedRestart() -> bool {
   return application_need_to_restart_at_once_;
 }
 

@@ -118,6 +118,13 @@ void KeyImportDetailDialog::create_general_info_box() {
     general_info_box_layout->addWidget(
         new QLabel(QString::number(m_result_->secret_unchanged)), row, 1);
   }
+
+  if (m_result_->new_revocations != 0) {
+    general_info_box_layout->addWidget(new QLabel(tr("New Revocations") + ": "),
+                                       row, 0);
+    general_info_box_layout->addWidget(
+        new QLabel(QString::number(m_result_->new_revocations)), row, 1);
+  }
 }
 
 void KeyImportDetailDialog::create_keys_table() {

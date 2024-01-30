@@ -86,6 +86,12 @@ class UISignalStation : public QObject {
   /**
    * @brief
    *
+   */
+  void SignalKeyRevoked(QString);
+
+  /**
+   * @brief
+   *
    * @param text
    * @param verify_label_status
    */
