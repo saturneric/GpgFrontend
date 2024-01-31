@@ -1,4 +1,4 @@
-name: Build & Package
+name: Build & Package Qt5
 
 on:
   push:
@@ -31,7 +31,7 @@ jobs:
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf
-        if: matrix.os == 'windows-2019' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
+        if: matrix.os == 'windows-2019'
 
       - uses: actions/checkout@v3
         with:
