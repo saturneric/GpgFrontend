@@ -48,6 +48,7 @@ WaitingDialog::WaitingDialog(const QString& title, QWidget* parent)
                        Qt::CustomizeWindowHint);
   this->setWindowTitle(title);
   this->setAttribute(Qt::WA_DeleteOnClose);
+  this->setFixedSize(240, 42);
 
   this->movePosition2CenterOfParent();
   this->show();
