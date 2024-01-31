@@ -74,6 +74,13 @@ endif ()
 
 # spdlog
 target_link_libraries(gpgfrontend_core PRIVATE spdlog)
+if(MINGW)
+    set_target_properties(spdlog
+        PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+    )
+endif()
 
 
 # configure libarchive
