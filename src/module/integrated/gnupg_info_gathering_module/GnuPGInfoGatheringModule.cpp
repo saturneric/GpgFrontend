@@ -209,8 +209,11 @@ auto GnuPGInfoGatheringModule::Exec(EventRefrernce event) -> int {
        getTaskRunner()});
 
   GpgCommandExecutor::ExecuteContexts exec_contexts;
-
+#ifdef QT5_BUILD
+  exec_contexts.push_back(GpgCommandExecutor::ExecuteContext{
+#else
   exec_contexts.emplace_back(GpgCommandExecutor::ExecuteContext{
+#endif
       gpgconf_path, QStringList{"--list-dirs"},
       [this](int exit_code, const QString &p_out, const QString &p_err) {
         if (exit_code != 0) return;
@@ -264,7 +267,11 @@ auto GnuPGInfoGatheringModule::Exec(EventRefrernce event) -> int {
       continue;
     }
 
+#ifdef QT5_BUILD
+    exec_contexts.push_back(GpgCommandExecutor::ExecuteContext{
+#else
     exec_contexts.emplace_back(GpgCommandExecutor::ExecuteContext{
+#endif
         gpgconf_path, QStringList{"--list-options", component_info.name},
         [this, component_info](int exit_code, const QString &p_out,
                                const QString &p_err) {

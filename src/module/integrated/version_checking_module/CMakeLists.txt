@@ -46,8 +46,13 @@ endif ()
 target_link_libraries(gpgfrontend_integrated_module_version_checking PRIVATE
         gpgfrontend_module_sdk)
 
-# link Qt
-target_link_libraries(gpgfrontend_integrated_module_version_checking PRIVATE Qt6::Network)
+if(GPGFRONTEND_QT5_BUILD)
+  # link Qt
+  target_link_libraries(gpgfrontend_integrated_module_version_checking PUBLIC Qt5::Network)
+else()
+  # link Qt
+  target_link_libraries(gpgfrontend_integrated_module_version_checking PUBLIC Qt6::Network)
+endif()
 
 # property
 set_property(TARGET gpgfrontend_integrated_module_version_checking PROPERTY AUTOMOC ON)

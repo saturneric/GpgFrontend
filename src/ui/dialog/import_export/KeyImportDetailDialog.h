@@ -80,7 +80,7 @@ class KeyImportDetailDialog : public GeneralDialog {
    * @param keyStatus
    * @return QString
    */
-  static QString get_status_string(int keyStatus);
+  static auto get_status_string(int) -> QString;
 
   QTableWidget* keys_table_{};      ///<
   QGroupBox* general_info_box_{};   ///<

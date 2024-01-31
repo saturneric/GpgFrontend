@@ -47,9 +47,15 @@ add_library(gpgfrontend_ui SHARED ${UI_SOURCE})
 set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendUIExport.h")
 generate_export_header(gpgfrontend_ui EXPORT_FILE_NAME "${_export_file}")
 
-# link Qt
-target_link_libraries(gpgfrontend_ui
-        Qt6::Network Qt6::PrintSupport Qt6::Test Qt6::Core5Compat)
+if(GPGFRONTEND_QT5_BUILD)
+  # link Qt
+  target_link_libraries(gpgfrontend_ui
+          Qt5::Core Qt5::Widgets Qt5::Network Qt5::PrintSupport)
+else()
+  # link Qt
+  target_link_libraries(gpgfrontend_ui
+          Qt6::Core Qt6::Widgets Qt6::Network Qt6::PrintSupport Qt6::Core5Compat)
+endif()
 
 
 # link gpgfrontend_core

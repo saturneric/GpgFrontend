@@ -159,7 +159,7 @@ void KeyImportDetailDialog::create_keys_table() {
   keys_table_->resizeColumnsToContents();
 }
 
-QString KeyImportDetailDialog::get_status_string(int key_status) {
+auto KeyImportDetailDialog::get_status_string(int key_status) -> QString {
   QString status_string;
   // keystatus is greater than 15, if key is private
   if (key_status > 15) {

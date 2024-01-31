@@ -55,6 +55,17 @@ class GeneralMainWindow : public QMainWindow {
    */
   void closeEvent(QCloseEvent* event) override;
 
+  /**
+   *
+   */
+  void setPosCenterOfScreen();
+
+  /**
+   * @brief
+   *
+   */
+  void movePosition2CenterOfParent();
+
   QSize icon_size_{};               ///<
   int font_size_{};                 ///<
   Qt::ToolButtonStyle icon_style_;  ///<
@@ -70,9 +81,18 @@ class GeneralMainWindow : public QMainWindow {
    */
   void slot_save_settings() noexcept;
 
+  /**
+   * @brief
+   *
+   */
+  void update_rect_cache();
+
  private:
   QString name_;  ///<
   QPoint pos_;    ///<
   QSize size_;    ///<
+  QRect rect_;
+  QRect screen_rect_;
+  QRect parent_rect_;
 };
 }  // namespace GpgFrontend::UI

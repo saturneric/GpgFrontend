@@ -99,9 +99,14 @@ endif()
 
 # link libarchive
 target_link_libraries(gpgfrontend_core PRIVATE archive)
-        
-# link Qt core
-target_link_libraries(gpgfrontend_core PUBLIC Qt6::Core)
+
+if(GPGFRONTEND_QT5_BUILD)
+  # link Qt core
+  target_link_libraries(gpgfrontend_core PUBLIC Qt5::Core)
+else()
+  # link Qt core
+  target_link_libraries(gpgfrontend_core PUBLIC Qt6::Core)
+endif()
 
 # set up pch
 target_precompile_headers(gpgfrontend_core

@@ -67,7 +67,7 @@ void FileTreeView::selectionChanged(const QItemSelection& selected,
     GF_UI_LOG_DEBUG("file tree view selected target path: {}", selected_path_);
     emit SignalSelectedChanged(selected_path_);
   } else {
-    selected_path_ = {};
+    selected_path_ = QString();
     if (!this->selectedIndexes().isEmpty()) {
       selected_path_ = dir_model_->filePath(this->selectedIndexes().front());
       emit SignalSelectedChanged(selected_path_);

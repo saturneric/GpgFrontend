@@ -375,19 +375,19 @@ int pinentry_inq_quality(const QString &passphrase) {
       static_cast<int>(has_digit) + static_cast<int>(has_special);
   score += variety_count * 10;
 
-  for (size_t i = 0; i < passphrase.length() - 1; ++i) {
+  for (auto i = 0; i < passphrase.length() - 1; ++i) {
     if (passphrase[i] == passphrase[i + 1]) {
       score -= 5;
     }
   }
 
-  std::unordered_map<QChar, int> char_count;
+  QHash<QChar, int> char_count;
   for (const auto ch : passphrase) {
     char_count[ch]++;
   }
   for (auto &p : char_count) {
-    if (p.second > 1) {
-      score -= (p.second - 1) * 3;
+    if (p > 1) {
+      score -= (p - 1) * 3;
     }
   }
 

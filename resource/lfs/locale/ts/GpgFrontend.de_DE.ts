@@ -74,7 +74,7 @@
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="83"/>
         <source>German Encryption Standards</source>
-        <translation>Allgemeine Verschlüsselungsstandards</translation>
+        <translation>Deutsche Verschlüsselungsstandards</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="91"/>
@@ -202,7 +202,7 @@
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="89"/>
         <source>Subkey</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Unterschlüssel</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="92"/>
@@ -212,18 +212,18 @@
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="94"/>
         <source>Key Create Date</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Schlüssel Erstellungsdatum</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="99"/>
         <source>&lt;unknown&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&lt;unbekannt&gt;</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="105"/>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="109"/>
         <source>Sign Date</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Unterschrift Datum</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="130"/>
@@ -386,12 +386,12 @@
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="109"/>
         <source>Tips</source>
-        <translation type="unfinished"></translation>
+        <translation>Hinweise</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="110"/>
         <source>Adjust Trust Level to make it Fully Vaild</source>
-        <translation type="unfinished"></translation>
+        <translation>Anpassen der Vertrauensstufe, um sie vollständig zu sichern</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="184"/>
@@ -403,7 +403,7 @@
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="186"/>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="229"/>
         <source>&lt;unknown&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;unbekannt&gt;</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="192"/>
@@ -411,28 +411,28 @@
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="237"/>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="239"/>
         <source>Sign Date</source>
-        <translation type="unfinished"></translation>
+        <translation>Unterschrift Datum</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="217"/>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="220"/>
         <source>Key ID</source>
-        <translation type="unfinished">Schlüssel-ID</translation>
+        <translation>Schlüssel-ID</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="218"/>
         <source>Subkey</source>
-        <translation type="unfinished"></translation>
+        <translation>Unterschlüssel</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="221"/>
         <source>Primary Key</source>
-        <translation type="unfinished">Primärschlüssel</translation>
+        <translation>Primärschlüssel</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="223"/>
         <source>Key Create Date</source>
-        <translation type="unfinished"></translation>
+        <translation>Schlüssel Erstellungsdatum</translation>
     </message>
     <message>
         <source>(Adjust Trust Level to make it Fully Vaild)</source>
@@ -704,7 +704,7 @@
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="251"/>
         <source>Gpg Operation succeed.</source>
-        <translation>GPG Vorgang abgeschlossen.</translation>
+        <translation>Gpg-Verarbeitung erfolgreich.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="261"/>
@@ -754,7 +754,7 @@ Beschrei: %3</translation>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="295"/>
         <source>The target file is too large for a keyring.</source>
-        <translation type="unfinished"></translation>
+        <translation>Die Zieldatei ist zu groß für einen Schlüsselring.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="301"/>
@@ -1143,7 +1143,7 @@ Beschrei: %3</translation>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="393"/>
         <source>Calculating</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Berechnen</translation>
     </message>
 </context>
 <context>
@@ -1226,7 +1226,7 @@ Beschrei: %3</translation>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="69"/>
         <source>Reveal in File Explorer</source>
-        <translation type="unfinished"></translation>
+        <translation>Im Datei-Explorer öffnen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="88"/>
@@ -1264,7 +1264,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/gnupg/GnuPGControllerDialog.cpp" line="49"/>
         <source>Use Binary Mode for File Operations</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Binärmodus für Dateioperationen verwenden</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/gnupg/GnuPGControllerDialog.cpp" line="51"/>
@@ -1274,7 +1274,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/gnupg/GnuPGControllerDialog.cpp" line="52"/>
         <source>Enable GpgME Debug Log</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">GpgME-Debug-Log einschalten</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/gnupg/GnuPGControllerDialog.cpp" line="53"/>
@@ -1299,7 +1299,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/gnupg/GnuPGControllerDialog.cpp" line="60"/>
         <source>Restart Gpg Agent on start</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Gpg-Agent beim Start neu starten</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/gnupg/GnuPGControllerDialog.cpp" line="64"/>
@@ -1399,22 +1399,22 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/help/GnupgTab.cpp" line="48"/>
         <source>Directories</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Verzeichnisse</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/GnupgTab.cpp" line="49"/>
         <source>Options</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Optionen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/GnupgTab.cpp" line="68"/>
         <source>Directory Type</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Verzeichnis Typ</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/GnupgTab.cpp" line="68"/>
         <source>Path</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Pfad</translation>
     </message>
     <message>
         <source>Configurations</source>
@@ -1512,7 +1512,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="89"/>
         <source>GpgFrontend is an easy-to-use, compact, cross-platform, and installation-free GnuPG Frontend.It visualizes most of the common operations of GnuPG.GpgFrontend is licensed under the GPLv3</source>
-        <translation type="unfinished">GpgFrontend ist ein benutzerfreundliches, kompaktes, plattformübergreifendes und installationsfreies GnuPG-Frontend. Es visualisiert die meisten gängigen Operationen von GnuPG. GpgFrontend ist unter der GPLv3 lizenziert.</translation>
+        <translation>GpgFrontend ist ein benutzerfreundliches, kompaktes, plattformübergreifendes und installationsfreies GnuPG-Frontend. Es visualisiert die meisten gängigen Operationen von GnuPG. GpgFrontend ist unter der GPLv3 lizenziert.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="95"/>
@@ -1808,7 +1808,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="123"/>
         <source>New Revocations</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Neue Widerrufe</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="139"/>
@@ -2339,7 +2339,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="550"/>
         <source>The target file is too large for a key package.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Die Zieldatei ist zu groß für ein Schlüsselpaket.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="555"/>
@@ -2354,12 +2354,12 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="574"/>
         <source>The target file is too large for a key package passphrase.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Die Zieldatei ist zu groß für eine Schlüsselpaket-Passphrase.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="580"/>
         <source>Importing</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Importieren</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="596"/>
@@ -2613,7 +2613,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="101"/>
         <source>Revoke Certificate Operation</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Zertifikat widerrufen Operation</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="114"/>
@@ -2643,7 +2643,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="182"/>
         <source>Import Revoke Certificate</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Zertifikat importieren widerrufen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="209"/>
@@ -2781,45 +2781,45 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="399"/>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="411"/>
         <source>Import Key Revocation Certificate</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Schlüssel-Widerrufs-Zertifikat importieren</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="400"/>
         <source>You are about to import the</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Sie sind dabei, das</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="401"/>
         <source>REVOCATION CERTIFICATE</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Schlüssel-Widerrufs-Zertifikat importieren</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="402"/>
         <source>A successful import will result in the key being irreversibly revoked.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Ein erfolgreicher Import führt dazu, dass der Schlüssel unwiderruflich widerrufen wird.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="404"/>
         <source>Do you REALLY want to execute this operation?</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Wollen Sie diesen Vorgang WIRKLICH durchführen?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="420"/>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="429"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="437"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="442"/>
         <source>Error</source>
         <translation type="unfinished">Fehler</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="421"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="438"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="443"/>
         <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
         <translation type="unfinished">Kann diese Datei nicht öffnen. Bitte stellen Sie sicher, dass es sich um eine reguläre, lesbare Datei handelt.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="430"/>
         <source>The target file is too large for a key revocation certificate.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Die Zieldatei ist zu groß für ein Schlüsselwiderrufszertifikat.</translation>
     </message>
 </context>
 <context>
@@ -3621,13 +3621,13 @@ This will result in loss of all cached form positions, statuses, key servers, et
 <context>
     <name>GpgFrontend::UI::MainWindow</name>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="155"/>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="158"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="156"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="159"/>
         <source>Critical error occur while loading GpgFrontend.</source>
         <translation type="unfinished">Beim Laden von GpgFrontend ist ein kritischer Fehler aufgetreten.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="157"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="158"/>
         <source>Loading Failed</source>
         <translation type="unfinished">Laden fehlgeschlagen</translation>
     </message>
@@ -4838,9 +4838,8 @@ Fals Daten und Signatur in einer Datei COMBINIERT sind, LASSEN SIE DIES LEER: </
 <context>
     <name>GpgFrontend::UI::RaisePinentry</name>
     <message>
-        <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="67"/>
         <source>Repeat PIN:</source>
-        <translation>PIN wiederholen:</translation>
+        <translation type="vanished">PIN wiederholen:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="68"/>
@@ -4853,14 +4852,27 @@ Fals Daten und Signatur in einer Datei COMBINIERT sind, LASSEN SIE DIES LEER: </
         <translation>Passwortphrase verbergen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="71"/>
         <source>Given PIN was wrong. Please retry.</source>
-        <translation>Eingegebene PIN ist ungültig. Bitte erneut versuchen.</translation>
+        <translation type="vanished">Eingegebene PIN ist ungültig. Bitte erneut versuchen.</translation>
+    </message>
+    <message>
+        <source>PIN:</source>
+        <translation type="vanished">PIN:</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="67"/>
+        <source>Repeat Passphrase:</source>
+        <translation>Passphrase wiederholen:</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="71"/>
+        <source>Given Passphrase was wrong. Please retry.</source>
+        <translation>Die angegebene Passphrase war falsch. Bitte versuchen Sie es erneut.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="74"/>
-        <source>PIN:</source>
-        <translation>PIN:</translation>
+        <source>Passphrase:</source>
+        <translation>Passphrase:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="84"/>
@@ -4875,7 +4887,7 @@ Fals Daten und Signatur in einer Datei COMBINIERT sind, LASSEN SIE DIES LEER: </
     <message>
         <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="91"/>
         <source>Bundled Pinentry</source>
-        <translation type="unfinished"></translation>
+        <translation>Eingabe Passphrase</translation>
     </message>
     <message>
         <source>Buddled Pinentry</source>
@@ -4884,12 +4896,12 @@ Fals Daten und Signatur in einer Datei COMBINIERT sind, LASSEN SIE DIES LEER: </
     <message>
         <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="95"/>
         <source>Confirm</source>
-        <translation type="unfinished">Bestätigen</translation>
+        <translation>Bestätigen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="96"/>
         <source>Cancel</source>
-        <translation type="unfinished">Abbrechen</translation>
+        <translation>Abbrechen</translation>
     </message>
 </context>
 <context>
@@ -5545,32 +5557,32 @@ Fals Daten und Signatur in einer Datei COMBINIERT sind, LASSEN SIE DIES LEER: </
     <message>
         <location filename="../../../../src/cmd.cpp" line="54"/>
         <source>Build DateTime: </source>
-        <translation type="unfinished">Build DateTime:</translation>
+        <translation type="unfinished">Build DateTime: </translation>
     </message>
     <message>
         <location filename="../../../../src/cmd.cpp" line="55"/>
         <source>Build Version: </source>
-        <translation type="unfinished">Build Version:</translation>
+        <translation type="unfinished">Build Version: </translation>
     </message>
     <message>
         <location filename="../../../../src/cmd.cpp" line="56"/>
         <source>Source Code Version: </source>
-        <translation type="unfinished">Sourcecode Version:</translation>
+        <translation type="unfinished">Sourcecode Version: </translation>
     </message>
     <message>
         <location filename="../../../../src/core/GpgCoreInit.cpp" line="294"/>
         <source>GpgME initiation failed</source>
-        <translation type="unfinished"></translation>
+        <translation>GpgME-Initiation fehlgeschlagen</translation>
     </message>
     <message>
         <location filename="../../../../src/core/GpgCoreInit.cpp" line="397"/>
         <source>GpgME Context initiation failed</source>
-        <translation type="unfinished"></translation>
+        <translation>GpgME-Kontext-Initiation fehlgeschlagen</translation>
     </message>
     <message>
         <location filename="../../../../src/core/GpgCoreInit.cpp" line="406"/>
         <source>Gpg Key Detabase initiation failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Gpg Key Detabase initiation fehlgeschlagen</translation>
     </message>
     <message>
         <location filename="../../../../src/core/utils/IOUtils.cpp" line="89"/>
@@ -5581,7 +5593,7 @@ Fals Daten und Signatur in einer Datei COMBINIERT sind, LASSEN SIE DIES LEER: </
         <location filename="../../../../src/core/utils/IOUtils.cpp" line="90"/>
         <location filename="../../../../src/core/utils/IOUtils.cpp" line="125"/>
         <source>Filename</source>
-        <translation type="unfinished"></translation>
+        <translation>Dateiname</translation>
     </message>
     <message>
         <location filename="../../../../src/core/utils/IOUtils.cpp" line="90"/>
@@ -5598,12 +5610,12 @@ Fals Daten und Signatur in einer Datei COMBINIERT sind, LASSEN SIE DIES LEER: </
         <location filename="../../../../src/core/utils/IOUtils.cpp" line="94"/>
         <location filename="../../../../src/core/utils/IOUtils.cpp" line="98"/>
         <source>File Size</source>
-        <translation type="unfinished"></translation>
+        <translation>Dateigröße</translation>
     </message>
     <message>
         <location filename="../../../../src/core/utils/IOUtils.cpp" line="123"/>
         <source>Error: cannot read target file</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehler: Zieldatei kann nicht gelesen werden</translation>
     </message>
     <message>
         <location filename="../../../../src/core/utils/IOUtils.cpp" line="156"/>
@@ -5623,15 +5635,15 @@ Fals Daten und Signatur in einer Datei COMBINIERT sind, LASSEN SIE DIES LEER: </
     <message>
         <location filename="../../../../src/core/utils/IOUtils.cpp" line="171"/>
         <source>Success</source>
-        <translation type="unfinished"></translation>
+        <translation>erfolgreich</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="53"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="54"/>
         <source>Loading Gnupg Info...</source>
         <translation type="unfinished">Gnupg-Info wird geladen...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="54"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="55"/>
         <source>If this process is too slow, please set the key server address appropriately in the gnupg configuration file (depending on the network situation in your country or region).</source>
         <translation type="unfinished">Sollte dieser Vorgang zu langsam sein, stellen Sie bitte die Keyserver-Adresse entsprechend in der gnupg-Konfigurationsdatei ein (abhängig von der Netzwerksituation in Ihrem Land oder Ihrer Region).</translation>
     </message>

@@ -61,7 +61,7 @@ class GeneralDialog : public QDialog {
    * @brief
    *
    */
-  [[nodiscard]] bool isRectRestored();
+  [[nodiscard]] auto isRectRestored() -> bool;
 
   /**
    * @brief

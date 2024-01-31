@@ -53,9 +53,17 @@ if (APPLE)
 endif()
 find_package(OpenSSL REQUIRED)
 
-# Introduce Qt
-# Support Qt version: 6.x
-find_package(Qt6 6 COMPONENTS Core Test Widgets PrintSupport Network Core5Compat LinguistTools REQUIRED)
+
+if(GPGFRONTEND_QT5_BUILD)
+    # Introduce Qt
+    # Support Qt version: 5.15.x
+    find_package(Qt5 5.15 COMPONENTS Core Widgets PrintSupport Network LinguistTools REQUIRED)
+else()
+    # Introduce Qt
+    # Support Qt version: 6.x
+    find_package(Qt6 6 COMPONENTS Core Widgets PrintSupport Network Core5Compat LinguistTools REQUIRED)
+endif()
+
 
 # Qt configuration
 set(CMAKE_AUTOMOC ON)
@@ -277,7 +285,13 @@ if (BUILD_APPLICATION)
         list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libExEPath})
 
         set(ALL_RUNTIME_DLL_FILES "")
-        list(APPEND ALL_RUNTIME_DLL_FILES "Qt6Core.dll;Qt6Core5Compat.dll;Qt6Gui.dll;Qt6Network.dll;Qt6PrintSupport.dll;Qt6Svg.dll;Qt6Widgets.dll;libbrotlicommon.dll;libbrotlidec.dll;libdouble-conversion.dll;libzstd.dll;libmd4c.dll;")
+        
+        if(GPGFRONTEND_QT5_BUILD)
+            list(APPEND ALL_RUNTIME_DLL_FILES "Qt5Core.dll;Qt5Gui.dll;Qt5Network.dll;Qt5PrintSupport.dll;Qt5Svg.dll;Qt5Widgets.dll;libbrotlicommon.dll;libbrotlidec.dll;libdouble-conversion.dll;libzstd.dll;libmd4c.dll;")
+        else()
+            list(APPEND ALL_RUNTIME_DLL_FILES "Qt6Core.dll;Qt6Core5Compat.dll;Qt6Gui.dll;Qt6Network.dll;Qt6PrintSupport.dll;Qt6Svg.dll;Qt6Widgets.dll;libbrotlicommon.dll;libbrotlidec.dll;libdouble-conversion.dll;libzstd.dll;libmd4c.dll;")
+        endif()
+
         # find the other dlls
         foreach (_dllFileName ${ALL_RUNTIME_DLL_FILES})
             message(STATUS "DLL FILE ${_dllFileName}")
@@ -447,22 +461,56 @@ if (BUILD_APPLICATION)
                 "${LOCALE_TS_PATH}/GpgFrontend.zh_TW.ts"
                 "${LOCALE_TS_PATH}/GpgFrontend.it_IT.ts")
     file(GLOB_RECURSE ALL_SOURCE_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/src/*.cpp)
-    qt_add_translations(${AppName} 
-        RESOURCE_PREFIX "/i18n"
-        TS_FILES ${TS_FILES}
-        SOURCES ${ALL_SOURCE_FILES}
-        INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/src)
 
-    file(GLOB QT_TRANSLATIONS_TS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third_party/qttranslations/translations/*.ts)
-    list(FILTER QT_TRANSLATIONS_TS INCLUDE REGEX ".*(qt|qtbase)_.*\.ts$")
-    add_custom_target(qttranslations ALL)
-    qt_add_lrelease(qttranslations
-            TS_FILES ${QT_TRANSLATIONS_TS}
-            QM_FILES_OUTPUT_VARIABLE QT_TRANSLATIONS_QM)
-    qt_add_resources(${AppName}  "qttranslations"
-        PREFIX "/i18n_qt"
-        BASE ${CMAKE_CURRENT_BINARY_DIR}
-        FILES ${QT_TRANSLATIONS_QM})
+    if(GPGFRONTEND_QT5_BUILD)
+        # TODO
+        qt5_add_translation(GF_TRANSLATIONS_QM ${TS_FILES})
+        message(STATUS "GF_TRANSLATIONS_QM ${GF_TRANSLATIONS_QM}")
+
+        set(GF_QM_TRANSLATIONS_RESOURCE_FILE "${CMAKE_CURRENT_BINARY_DIR}/i18n.qrc")
+        file(WRITE ${GF_QM_TRANSLATIONS_RESOURCE_FILE} "<!DOCTYPE RCC>\n<RCC version=\"1.0\">\n  <qresource prefix=\"i18n\">\n")
+        foreach(QM_FILE ${GF_TRANSLATIONS_QM})
+            file(RELATIVE_PATH QM_FILENAME ${CMAKE_CURRENT_BINARY_DIR} ${QM_FILE})
+            file(APPEND ${GF_QM_TRANSLATIONS_RESOURCE_FILE} "    <file alias=\"${QM_FILENAME}\">${QM_FILE}</file>\n")
+        endforeach()
+        file(APPEND ${GF_QM_TRANSLATIONS_RESOURCE_FILE} "  </qresource>\n</RCC>\n")
+        qt5_add_resources(GF_I18N_RESOURCES ${GF_QM_TRANSLATIONS_RESOURCE_FILE})
+
+        file(GLOB QT_TRANSLATIONS_TS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third_party/qttranslations/translations/*.ts)
+        list(FILTER QT_TRANSLATIONS_TS INCLUDE REGEX ".*(qt|qtbase)_.*\.ts$")
+        qt5_add_translation(QT_TRANSLATIONS_QM ${QT_TRANSLATIONS_TS})
+
+        set(QT_QM_TRANSLATIONS_RESOURCE_FILE "${CMAKE_CURRENT_BINARY_DIR}/qt_i18n.qrc")
+        file(WRITE ${QT_QM_TRANSLATIONS_RESOURCE_FILE} "<!DOCTYPE RCC>\n<RCC version=\"1.0\">\n  <qresource prefix=\"qt_i18n\">\n")
+        foreach(QM_FILE ${QT_TRANSLATIONS_QM})
+            file(RELATIVE_PATH QM_FILENAME ${CMAKE_CURRENT_BINARY_DIR} ${QM_FILE})
+            file(APPEND ${QT_QM_TRANSLATIONS_RESOURCE_FILE} "    <file alias=\"${QM_FILENAME}\">${QM_FILE}</file>\n")
+        endforeach()
+        file(APPEND ${QT_QM_TRANSLATIONS_RESOURCE_FILE} "  </qresource>\n</RCC>\n")
+        qt5_add_resources(GF_I18N_RESOURCES ${QT_QM_TRANSLATIONS_RESOURCE_FILE})
+
+        message(STATUS "GF_I18N_RESOURCES ${GF_I18N_RESOURCES}")
+
+        target_sources(${AppName} PRIVATE ${GF_I18N_RESOURCES})
+    else()
+        qt_add_translations(${AppName} 
+            RESOURCE_PREFIX "/i18n"
+            TS_FILES ${TS_FILES}
+            SOURCES ${ALL_SOURCE_FILES}
+            INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/src)
+        file(GLOB QT_TRANSLATIONS_TS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third_party/qttranslations/translations/*.ts)
+        list(FILTER QT_TRANSLATIONS_TS INCLUDE REGEX ".*(qt|qtbase)_.*\.ts$")
+        add_custom_target(qttranslations ALL)
+        qt_add_lrelease(qttranslations
+                TS_FILES ${QT_TRANSLATIONS_TS}
+                QM_FILES_OUTPUT_VARIABLE QT_TRANSLATIONS_QM)
+        qt_add_resources(${AppName}  "qttranslations"
+            PREFIX "/i18n_qt"
+            BASE ${CMAKE_CURRENT_BINARY_DIR}
+            FILES ${QT_TRANSLATIONS_QM})
+    endif()
+
+
 endif()
 
 # if building linux package

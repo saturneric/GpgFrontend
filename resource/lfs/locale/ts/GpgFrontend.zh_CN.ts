@@ -1779,32 +1779,32 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="88"/>
         <source>Imported</source>
-        <translation type="unfinished">导入</translation>
+        <translation type="unfinished">导入的密钥</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="95"/>
         <source>Not Imported</source>
-        <translation type="unfinished">未导入</translation>
+        <translation type="unfinished">未导入的密钥</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="102"/>
         <source>Private Read</source>
-        <translation type="unfinished">私有且可读</translation>
+        <translation type="unfinished">读取的私钥</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="110"/>
         <source>Private Imported</source>
-        <translation type="unfinished">私有并导入</translation>
+        <translation type="unfinished">导入的私钥</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="117"/>
         <source>Private Unchanged</source>
-        <translation type="unfinished">私有未变更</translation>
+        <translation type="unfinished">未变更的私钥</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="123"/>
         <source>New Revocations</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">新的吊销</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="139"/>
@@ -2331,22 +2331,22 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="550"/>
         <source>The target file is too large for a key package.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">目标文件对于密钥包来说太大。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="555"/>
         <source>Import Key Package Passphrase File</source>
-        <translation type="unfinished">导入密钥包密码文件</translation>
+        <translation type="unfinished">导入密钥包口令文件</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="556"/>
         <source>Key Package Passphrase File</source>
-        <translation type="unfinished">密钥包密码文件</translation>
+        <translation type="unfinished">密钥包口令文件</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="574"/>
         <source>The target file is too large for a key package passphrase.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">目标文件对于密钥包口令来说太大。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="580"/>
@@ -2798,13 +2798,13 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="420"/>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="429"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="437"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="442"/>
         <source>Error</source>
         <translation>错误</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="421"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="438"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="443"/>
         <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
         <translation>无法打开此文件。请确保这是一个普通文件，并且有读取权限。</translation>
     </message>
@@ -3613,13 +3613,13 @@ This will result in loss of all cached form positions, statuses, key servers, et
 <context>
     <name>GpgFrontend::UI::MainWindow</name>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="155"/>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="158"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="156"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="159"/>
         <source>Critical error occur while loading GpgFrontend.</source>
         <translation type="unfinished">加载 GpgFrontend 时发生严重错误。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="157"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="158"/>
         <source>Loading Failed</source>
         <translation type="unfinished">加载失败</translation>
     </message>
@@ -4826,9 +4826,8 @@ If Data And Signature is COMBINED within a single file, KEEP THIS EMPTY: </sourc
 <context>
     <name>GpgFrontend::UI::RaisePinentry</name>
     <message>
-        <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="67"/>
         <source>Repeat PIN:</source>
-        <translation>重复密码：</translation>
+        <translation type="vanished">重复密码：</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="68"/>
@@ -4841,13 +4840,26 @@ If Data And Signature is COMBINED within a single file, KEEP THIS EMPTY: </sourc
         <translation type="unfinished">隐藏密码</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="71"/>
         <source>Given PIN was wrong. Please retry.</source>
-        <translation type="unfinished">所给的密码有误，请重新输入。</translation>
+        <translation type="obsolete">所给的密码有误，请重新输入。</translation>
+    </message>
+    <message>
+        <source>PIN:</source>
+        <translation type="obsolete">密码：</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="67"/>
+        <source>Repeat Passphrase:</source>
+        <translation type="unfinished">重新输入密码：</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="71"/>
+        <source>Given Passphrase was wrong. Please retry.</source>
+        <translation type="unfinished">密码错误。请重试。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="74"/>
-        <source>PIN:</source>
+        <source>Passphrase:</source>
         <translation type="unfinished">密码：</translation>
     </message>
     <message>
@@ -5546,12 +5558,12 @@ If Data And Signature is COMBINED within a single file, KEEP THIS EMPTY: </sourc
         <translation>源代码版本： </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="53"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="54"/>
         <source>Loading Gnupg Info...</source>
         <translation type="unfinished">正在加载 Gnupg 信息...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="54"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="55"/>
         <source>If this process is too slow, please set the key server address appropriately in the gnupg configuration file (depending on the network situation in your country or region).</source>
         <translation type="unfinished">如果此过程太慢，请在 gnupg 配置文件中适当设置密钥服务器地址（取决于您所在国家或地区的网络情况）。</translation>
     </message>

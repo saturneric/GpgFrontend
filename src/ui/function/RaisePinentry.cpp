@@ -64,17 +64,17 @@ auto RaisePinentry::Exec() -> int {
 
   auto* pinentry =
       new PinEntryDialog(FindTopMostWindow(this), 0, 15, true, ask_for_new,
-                         ask_for_new ? tr("Repeat PIN:") : QString(),
+                         ask_for_new ? tr("Repeat Passphrase:") : QString(),
                          tr("Show passphrase"), tr("Hide passphrase"));
 
   if (context_->IsPreWasBad()) {
-    pinentry->setError(tr("Given PIN was wrong. Please retry."));
+    pinentry->setError(tr("Given Passphrase was wrong. Please retry."));
   }
 
-  pinentry->setPrompt(tr("PIN:"));
+  pinentry->setPrompt(tr("Passphrase:"));
 
   if (!context_->GetUidsInfo().isEmpty()) {
-    pinentry->setDescription(QString("Please provide PIN of Key:\n%1\n")
+    pinentry->setDescription(QString("Please provide Passphrase of Key:\n%1\n")
                                  .arg(context_->GetUidsInfo()));
   }
 

@@ -64,6 +64,7 @@ option(GPGFRONTEND_BUILD_TYPE_TEST_ALL
         "Generate a graphical interface with all functions" OFF)
 option(GPGFRONTEND_BUILD_TYPE_STABLE
         "Generate release version" ON)
+option(GPGFRONTEND_QT5_BUILD "Swith to Qt5 building mode" OFF)
 option(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE "Generate an installable version" OFF)
 option(GPGFRONTEND_CONFIGURE_FOR_XCODE_BUILD "Generate a version that can be successfully compiled and packaged in Xcode" OFF)
 option(GPGFRONTEND_XCODE_TEAM_ID "GpgFrontend Apple Team ID" "NONE")
@@ -329,6 +330,12 @@ if (LINUX_INSTALL_SOFTWARE)
 else ()
     set(APP_INSTALL_FLAG BUNDLE)
 endif ()
+
+if (GPGFRONTEND_QT5_BUILD)
+    add_compile_definitions(QT5_BUILD)
+else()
+    add_compile_definitions(QT6_BUILD)
+endif()
 
 # Basic ENV Configure
 set(BASIC_ENV_CONFIG 1)
