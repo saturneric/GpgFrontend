@@ -2790,13 +2790,13 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="420"/>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="429"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="437"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="442"/>
         <source>Error</source>
         <translation type="unfinished">錯誤</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="421"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="438"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="443"/>
         <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3605,13 +3605,13 @@ This will result in loss of all cached form positions, statuses, key servers, et
 <context>
     <name>GpgFrontend::UI::MainWindow</name>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="155"/>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="158"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="156"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="159"/>
         <source>Critical error occur while loading GpgFrontend.</source>
         <translation type="unfinished">加載 GpgFrontend 時發生嚴重錯誤。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="157"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="158"/>
         <source>Loading Failed</source>
         <translation type="unfinished">加載失敗</translation>
     </message>
@@ -4817,11 +4817,6 @@ If Data And Signature is COMBINED within a single file, KEEP THIS EMPTY: </sourc
 <context>
     <name>GpgFrontend::UI::RaisePinentry</name>
     <message>
-        <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="67"/>
-        <source>Repeat PIN:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="68"/>
         <source>Show passphrase</source>
         <translation type="unfinished"></translation>
@@ -4832,13 +4827,18 @@ If Data And Signature is COMBINED within a single file, KEEP THIS EMPTY: </sourc
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="67"/>
+        <source>Repeat Passphrase:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="71"/>
-        <source>Given PIN was wrong. Please retry.</source>
+        <source>Given Passphrase was wrong. Please retry.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/RaisePinentry.cpp" line="74"/>
-        <source>PIN:</source>
+        <source>Passphrase:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5533,12 +5533,12 @@ If Data And Signature is COMBINED within a single file, KEEP THIS EMPTY: </sourc
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="53"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="54"/>
         <source>Loading Gnupg Info...</source>
         <translation type="unfinished">正在加載 Gnupg 信息...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="54"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="55"/>
         <source>If this process is too slow, please set the key server address appropriately in the gnupg configuration file (depending on the network situation in your country or region).</source>
         <translation type="unfinished">如果此過程太慢，請在 gnupg 組態檔案中適當設定金鑰伺服器位址（取決於您所在國家或地區的網絡情況）。</translation>
     </message>
