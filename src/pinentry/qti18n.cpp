@@ -30,7 +30,7 @@ static bool loadCatalog(const QString &catalog, const QLocale &locale) {
   auto translator = new QTranslator(QCoreApplication::instance());
 
   if (!translator->load(locale, catalog, QString(),
-                        QLibraryInfo::path(QLibraryInfo::TranslationsPath))) {
+                        QLatin1String(":/i18n_qt"))) {
     qDebug() << "Loading the" << catalog << "catalog failed for locale"
              << locale;
     delete translator;

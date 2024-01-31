@@ -137,7 +137,11 @@ auto SettingsDialog::ListLanguages() -> QHash<QString, QString> {
 
     auto locale = file.mid(start, end - start);
     QLocale const q_locale(locale);
+#ifdef QT5_BUILD
+    if (q_locale.nativeCountryName().isEmpty()) continue;
+#else
     if (q_locale.nativeTerritoryName().isEmpty()) continue;
+#endif
 
     auto language = q_locale.nativeLanguageName() + " (" + locale + ")";
     languages.insert(q_locale.name(), language);

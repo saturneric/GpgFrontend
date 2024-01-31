@@ -41,7 +41,7 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
   const auto &interact_function = context.int_func;
   const auto &cmd_executor_callback = context.cb_func;
 
-  const QString joined_argument = QStringList::fromVector(arguments).join(" ");
+  const QString joined_argument = arguments.join(" ");
 
   GF_CORE_LOG_DEBUG("building task: called cmd {} arguments size: {}", cmd,
                     arguments.size());

@@ -432,7 +432,12 @@ void KeyPairOperaTab::slot_import_revoke_cert() {
   }
 
   QFile rev_file(rev_file_info.absoluteFilePath());
+
+#ifdef QT5_BUILD
+  if (!rev_file.open(QIODevice::ReadOnly)) {
+#else
   if (!rev_file.open(QIODeviceBase::ReadOnly)) {
+#endif
     QMessageBox::critical(
         this, tr("Error"),
         tr("Cannot open this file. Please make sure that this "

@@ -143,7 +143,11 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
 #endif
 
           QFile file(source_path);
+#ifdef QT5_BUILD
+          if (file.open(QIODevice::ReadOnly)) {
+#else
           if (file.open(QIODeviceBase::ReadOnly)) {
+#endif
             // turn absolute path to relative path
             auto relativ_path_name = base_path.relativeFilePath(source_path);
             archive_entry_set_pathname(entry, relativ_path_name.toUtf8());

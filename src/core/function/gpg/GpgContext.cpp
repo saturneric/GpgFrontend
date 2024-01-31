@@ -93,13 +93,23 @@ class GpgContext::Impl {
                                const char *passphrase_info, int last_was_bad,
                                int fd) -> gpgme_error_t {
     size_t res;
-    QString pass = "abcdefg\n";
+#ifdef QT5_BUILD
+     QString pass_qstr = "abcdefg\n";
+     QByteArray pass = pass_qstr.toUtf8();
+#else
+      QString pass = "abcdefg\n";
+#endif
+    
     auto passpahrase_size = pass.size();
-
     size_t off = 0;
 
     do {
+#ifdef QT5_BUILD
+      const char* p_pass = pass.data();
+      res = gpgme_io_write(fd, &p_pass[off], passpahrase_size - off);
+#else
       res = gpgme_io_write(fd, &pass[off], passpahrase_size - off);
+#endif
       if (res > 0) off += res;
     } while (res > 0 && off != passpahrase_size);
 
