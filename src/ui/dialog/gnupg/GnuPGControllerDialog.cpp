@@ -296,7 +296,7 @@ void GnuPGControllerDialog::set_settings() {
   }
 
   bool const use_pinentry_as_password_input_dialog =
-      settings.value("gnupg/use_pinentry_as_password_input_dialog", false)
+      settings.value("gnupg/use_pinentry_as_password_input_dialog", true)
           .toBool();
   if (use_pinentry_as_password_input_dialog) {
     ui_->usePinentryAsPasswordInputDialogCheckBox->setCheckState(Qt::Checked);
