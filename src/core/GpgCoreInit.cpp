@@ -319,7 +319,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                 .toString();
 
         auto use_pinentry_as_password_input_dialog =
-            settings.value("gnupg/use_pinentry_as_password_input_dialog", false)
+            settings.value("gnupg/use_pinentry_as_password_input_dialog", true)
                 .toBool();
 
         GF_CORE_LOG_DEBUG("core loaded if use custom key databse path: {}",
