@@ -521,41 +521,40 @@ if (BUILD_APPLICATION)
             FILES ${QT_TRANSLATIONS_QM})
     endif()
 
-
 endif()
 
 # if building linux package
 if (LINUX AND LINUX_INSTALL_SOFTWARE)
     include(GNUInstallDirs)
-    if (INSTALL_GPGFRONTEND_APP)
-        install(TARGETS ${AppName} gpgfrontend_core gpgfrontend_ui
-                EXPORT GpgFrontendTargets
-                RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
-                LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
-                ARCHIVE DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
-        install(DIRECTORY ${PC_GPGME_LIBDIR}
-                DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
-                FILES_MATCHING PATTERN "libgpgme.so*"
-                PATTERN "lib" EXCLUDE)
-        install(DIRECTORY ${PC_GPGME_LIBDIR}
-                DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
-                FILES_MATCHING PATTERN "libassuan.so*"
-                PATTERN "lib" EXCLUDE)
-        install(DIRECTORY ${PC_GPGME_LIBDIR}
-                DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
-                FILES_MATCHING PATTERN "libgpg-error.so*"
-                PATTERN "lib" EXCLUDE)
-        install(FILES ${CMAKE_SOURCE_DIR}/TRANSLATORS
-                DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/${AppName}/)
-        install(FILES ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.appdata.xml
-                DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/metainfo/)
-        install(FILES ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.desktop
-                DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/applications/)
-        install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/pixmaps/
-                DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/pixmaps/)
-        install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/
-                DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/icons/hicolor/)
-    endif ()
+    set(GPGFRONTEND_INSTALL_LIBRARIES 
+        mimalloc
+        spdlog
+        gpgfrontend_core
+        gpgfrontend_ui
+        gpgfrontend_test
+        gpgfrontend_pinentry
+        gpgfrontend_module_sdk
+        gpgfrontend_module
+        gpgfrontend_integrated_module_version_checking
+        gpgfrontend_integrated_module_gnupg_info_gathering)
+
+    message(STATUS "GpgFrontend Install Libraries: ${GPGFRONTEND_INSTALL_LIBRARIES}")
+    install(TARGETS ${AppName} ${GPGFRONTEND_INSTALL_LIBRARIES}
+            EXPORT GpgFrontendTargets
+            RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
+
+    install(FILES ${CMAKE_SOURCE_DIR}/TRANSLATORS
+            DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/${AppName}/)
+    install(FILES ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.appdata.xml
+            DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/metainfo/)
+    install(FILES ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.desktop
+            DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/applications/)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/pixmaps/
+            DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/pixmaps/)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/
+            DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/icons/hicolor/)
 endif ()
 
 message(STATUS "Resource Files: ${RESOURCE_OUTPUT_DIRECTORY}")
