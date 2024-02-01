@@ -465,7 +465,7 @@ void MainWindow::SlotFileVerify(const QString& path) {
   if (prossible_singleton_target) {
     swap(data_file_path, sign_file_path);
   } else {
-    data_file_path = file_info.path() + "/" + file_info.baseName();
+    data_file_path = file_info.path() + "/" + file_info.completeBaseName();
   }
 
   auto data_file_info = QFileInfo(data_file_path);
@@ -480,7 +480,8 @@ void MainWindow::SlotFileVerify(const QString& path) {
 
     if (!ok) return;
 
-    data_file_path = text.isEmpty() ? path : text;
+    data_file_path = text.isEmpty() ? data_file_path : text;
+    data_file_info = QFileInfo(data_file_path);
   }
 
   if (!data_file_info.isFile() ||
