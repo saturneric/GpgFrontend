@@ -179,7 +179,7 @@ if (BUILD_APPLICATION)
         list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
         unset(_libDllPath)
-        file(GLOB _libDllPath "${_libDllBinPath}/libassuan-*.dll")
+        file(GLOB _libDllPath "${_libDllBinPath}/libassuan*.dll")
         list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
         unset(_libDllPath)
@@ -207,11 +207,11 @@ if (BUILD_APPLICATION)
         list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
         unset(_libDllPath)
-        file(GLOB _libDllPath "${_libDllBinPath}/libgpg-error-*.dll")
+        file(GLOB _libDllPath "${_libDllBinPath}/libgpg-error*.dll")
         list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
         unset(_libDllPath)
-        file(GLOB _libDllPath "${_libDllBinPath}/libgpgme-*.dll")
+        file(GLOB _libDllPath "${_libDllBinPath}/libgpgme*.dll")
         list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
         unset(_libDllPath)
@@ -279,9 +279,20 @@ if (BUILD_APPLICATION)
         file(GLOB _libDllPath "${_libDllBinPath}/libxml2-*.dll")
         list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
+        # /mingw64/libexec
+        execute_process(
+            COMMAND cygpath -m /mingw64/libexec
+            OUTPUT_VARIABLE MSYS64_LIBEXEC_PATH
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+
         # gpgme-w32spawn.exe
         unset(_libExEPath)
-        file(GLOB _libExEPath "${_libDllBinPath}/gpgme-w32spawn.exe")
+        file(GLOB _libExEPath "${MSYS64_LIBEXEC_PATH}/gpgme-*.exe")
+        list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libExEPath})
+
+        unset(_libExEPath)
+        file(GLOB _libExEPath "${_libDllBinPath}/gpgme-*.exe")
         list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libExEPath})
 
         set(ALL_RUNTIME_DLL_FILES "")

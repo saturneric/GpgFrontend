@@ -82,7 +82,6 @@ if(MINGW)
     )
 endif()
 
-
 # configure libarchive
 if(NOT MINGW)
     if(APPLE)
