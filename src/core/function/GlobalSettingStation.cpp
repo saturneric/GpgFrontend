@@ -59,12 +59,26 @@ class GlobalSettingStation::Impl {
     GF_CORE_LOG_INFO("app data path: {}", app_data_path_);
     GF_CORE_LOG_INFO("app log path: {}", app_log_path_);
 
+#ifdef WINDOWS
+    GF_CORE_LOG_INFO("app config path: {}", app_config_path_);
+#endif
+
+#ifdef WINDOWS
+    if (!QDir(app_config_path_).exists()) QDir(app_config_path_).mkpath(".");
+#endif
+
     if (!QDir(app_data_path_).exists()) QDir(app_data_path_).mkpath(".");
     if (!QDir(app_log_path_).exists()) QDir(app_log_path_).mkpath(".");
   }
 
   [[nodiscard]] auto GetSettings() -> QSettings {
-    if (!portable_mode_) return QSettings();
+    if (!portable_mode_) {
+#ifdef WINDOWS
+      return QSettings(app_config_target_path_, QSettings::IniFormat);
+#else
+      return QSettings();
+#endif
+    }
     return {app_portable_config_path_, QSettings::IniFormat};
   }
 
@@ -116,10 +130,16 @@ class GlobalSettingStation::Impl {
   QString app_data_path_ = QString{QStandardPaths::writableLocation(
       QStandardPaths::AppLocalDataLocation)};  ///< Program Data Location
 
+  QString app_config_path_ = QString{
+      QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)};
+
   QString app_log_path_ = app_data_path_ + "/logs";  ///< Program Data Location
 
   QString app_data_objs_path_ =
       app_data_path_ + "/data_objs";  ///< Object storage path
+
+  QString app_config_target_path_ =
+      app_config_path_ + "/config.ini";  ///< take effect only in portable mode
 
   bool portable_mode_ = false;  ///<
   QString app_portable_config_path_ =
