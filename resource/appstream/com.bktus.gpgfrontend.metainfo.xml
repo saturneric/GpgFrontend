@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright 2013 First Lastname <your@email.com> -->
+<!-- Copyright 2024 Saturneric <eric@bktus.com> -->
 <component type="desktop-application">
   <id>com.bktus.gpgfrontend</id>
   <metadata_license>FSFAP</metadata_license>
@@ -17,22 +17,56 @@
       all GPG keys on their device. The tool also facilitates the secure and seamless transfer of GPG keys between devices. 
       It is compatible with a range of operating systems, including Windows, macOS, Linux, and FreeBSD.
     </p>
+    <p>A list of features</p>
+    <ul>
+      <li>Rapidly encrypt files or text.</li>
+      <li>Digitally sign your files or text with ease.</li>
+      <li>Conveniently manage all your GPG keys on your device.</li>
+      <li>Transfer all your GPG keys between devices safely and effortlessly.</li>
+    </ul>
   </description>
 
   <launchable type="desktop-id">com.bktus.gpgfrontend.desktop</launchable>
 
+  <branding>
+    <color type="primary" scheme_preference="light">#ff00ff</color>
+    <color type="primary" scheme_preference="dark">#993d3d</color>
+  </branding>
+
   <screenshots>
     <screenshot type="default">
+      <image>https://image.cdn.bktus.com/i/2024/02/02/a7e9e762-a8fa-6e52-2728-1488e338e5ef.webp</image>
       <caption>Main Window</caption>
-      <image>https://raw.githubusercontent.com/saturneric/Blob/v1.0.2/screenshots/main-ubuntu.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://image.cdn.bktus.com/i/2024/02/02/5ff98592-e61e-29eb-8a29-66d8e304a797.webp</image>
+      <caption>Subkey Management</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://image.cdn.bktus.com/i/2024/02/02/a0b8f2d1-16c3-9a2e-d82b-8a27ad4719de.webp</image>
+      <caption>Key Generation</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://image.cdn.bktus.com/i/2024/02/02/8a9f1d35-0e72-5f48-e4a2-76c03bae2a28.webp</image>
+      <caption>Verify Signature of File</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://image.cdn.bktus.com/i/2024/02/02/f79a818f-3e55-ddf9-a93d-17deab7a0e18.webp</image>
+      <caption>Import Key(s) From Key Server</caption>
     </screenshot>
   </screenshots>
 
   <url type="homepage">https://gpgfrontend.bktus.com/</url>
+  <url type="bugtracker">https://github.com/saturneric/GpgFrontend/issues</url>
+  <url type="contact">https://gpgfrontend.bktus.com/contract</url>
+  <url type="translate">https://gpgfrontend.bktus.com/translate-interface</url>
+  <url type="vcs-browser">https://github.com/saturneric/GpgFrontend</url>
+
   <project_group>GNOME</project_group>
   <developer_name>Saturneric</developer_name>
   
   <releases>
+      <release version="2.1.2" date="2024-02-02"/>
       <release version="2.1.1" date="2023-09-19"/>
       <release version="2.1.0" date="2023-08-01"/>
       <release version="2.0.10" date="2023-01-06"/>
