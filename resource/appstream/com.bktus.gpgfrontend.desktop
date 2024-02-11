@@ -3,6 +3,6 @@ Type=Application
 Name=GpgFrontend
 Exec=GpgFrontend
 Icon=com.bktus.gpgfrontend
-Comment=An OpenPGP Crypto Tool
+Comment=Encrypt and sign data
 Terminal=false
 Categories=Utility;

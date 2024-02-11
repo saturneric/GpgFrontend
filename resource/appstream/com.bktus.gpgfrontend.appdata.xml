@@ -1,34 +1,73 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component type="desktop-application">
-    <id>com.bktus.gpgfrontend</id>
-    <metadata_license>MIT</metadata_license>
-    <name>gpgfrontend</name>
-    <summary>An OpenPGP Crypto Tool</summary>
-    <categories>
-        <category>Utility</category>
-    </categories>
-    <url type="homepage">https://gpgfrontend.bktus.com</url>
-    <launchable type="desktop-id">com.bktus.gpgfrontend.desktop</launchable>
-    <description>
-        <p>
-            GpgFrontend is a free, open-source, robust yet user-friendly, compact and cross-platform tool for OpenPGP encryption. 
-            It stands out as an exceptional GUI frontend for the modern GnuPG (gpg).
-        </p>
-    </description>
-    <screenshots>
-        <screenshot type="default">
-            <image>https://image.cdn.bktus.com/i/2023/11/16/e7c9ab1c-cb45-eb21-4cbd-bdec8d5c83cb.webp</image>
-            <caption>Main Dialog</caption>
-        </screenshot>
-    </screenshots>
-    <keywords>
-        <keyword>gpg</keyword>
-        <keyword>encrypt</keyword>
-        <keyword>crypto</keyword>
-        <keyword>pgp</keyword>
-        <keyword>gnupg</keyword>
-        <keyword>openpgp</keyword>
-    </keywords>
-    <project_license>GPL-3.0+</project_license>
-    <developer_name>Saturneric</developer_name>
+<component>
+  <id>com.bktus.gpgfrontend</id>
+
+  <name>GpgFrontend</name>
+  <summary>Encrypt and sign data</summary>
+  <categories>
+    <category>Utility</category>
+  </categories>
+
+  <metadata_license>MIT</metadata_license>
+  <project_license>GPL-3.0+</project_license>
+  <developer_name>Saturneric</developer_name>
+
+  <url type="homepage">https://gpgfrontend.bktus.com/</url>
+  <url type="bugtracker">https://github.com/saturneric/GpgFrontend/issues</url>
+  <url type="contact">https://gpgfrontend.bktus.com/contract</url>
+  <url type="translate">https://gpgfrontend.bktus.com/translate-interface</url>
+  <url type="vcs-browser">https://github.com/saturneric/GpgFrontend</url>
+
+  <launchable type="desktop-id">com.bktus.gpgfrontend.desktop</launchable>
+  
+  <description>
+    <p>
+      GpgFrontend is a free, open-source, robust yet user-friendly, compact and cross-platform tool for OpenPGP encryption.
+    </p>
+    <p>
+      By using GpgFrontend, users can quickly encrypt files or text, easily digitally sign them, and conveniently manage 
+      all GPG keys on their device. The tool also facilitates the secure and seamless transfer of GPG keys between devices. 
+      It is compatible with a range of operating systems, including Windows, macOS, Linux, and FreeBSD.
+    </p>
+    <p>A list of features</p>
+    <ul>
+      <li>Rapidly encrypt files or text.</li>
+      <li>Digitally sign your files or text with ease.</li>
+      <li>Conveniently manage all your GPG keys on your device.</li>
+      <li>Transfer all your GPG keys between devices safely and effortlessly.</li>
+    </ul>
+  </description>
+
+  <screenshots>
+    <screenshot type="default">
+      <image>https://image.cdn.bktus.com/i/2024/02/02/a7e9e762-a8fa-6e52-2728-1488e338e5ef.webp</image>
+      <caption>Main Window</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://image.cdn.bktus.com/i/2024/02/02/5ff98592-e61e-29eb-8a29-66d8e304a797.webp</image>
+      <caption>Subkey Management</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://image.cdn.bktus.com/i/2024/02/02/a0b8f2d1-16c3-9a2e-d82b-8a27ad4719de.webp</image>
+      <caption>Key Generation</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://image.cdn.bktus.com/i/2024/02/02/8a9f1d35-0e72-5f48-e4a2-76c03bae2a28.webp</image>
+      <caption>Verify Signature of File</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://image.cdn.bktus.com/i/2024/02/02/f79a818f-3e55-ddf9-a93d-17deab7a0e18.webp</image>
+      <caption>Import Key(s) From Key Server</caption>
+    </screenshot>
+  </screenshots>
+
+  <keywords>
+    <keyword>gpg</keyword>
+    <keyword>encrypt</keyword>
+    <keyword>crypto</keyword>
+    <keyword>pgp</keyword>
+    <keyword>gnupg</keyword>
+    <keyword>openpgp</keyword>
+  </keywords>
+
 </component>
