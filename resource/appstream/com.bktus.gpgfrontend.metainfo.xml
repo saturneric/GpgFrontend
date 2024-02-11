@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright 2024 Saturneric <eric@bktus.com> -->
 <component type="desktop-application">
   <id>com.bktus.gpgfrontend</id>
-  <metadata_license>FSFAP</metadata_license>
-  <project_license>GPL-3.0+</project_license>
-  <content_rating type="oars-1.1" />
+
   <name>GpgFrontend</name>
-  <summary>Take the initiative to protect privacy in your own hands</summary>
+  <summary>Encrypt and sign data</summary>
+
+  <metadata_license>MIT</metadata_license>
+  <project_license>GPL-3.0+</project_license>
+  <developer_name>Saturneric</developer_name>
+  <content_rating type="oars-1.1" />
 
   <description>
     <p>
@@ -61,9 +63,6 @@
   <url type="contact">https://gpgfrontend.bktus.com/contract</url>
   <url type="translate">https://gpgfrontend.bktus.com/translate-interface</url>
   <url type="vcs-browser">https://github.com/saturneric/GpgFrontend</url>
-
-  <project_group>GNOME</project_group>
-  <developer_name>Saturneric</developer_name>
   
   <releases>
       <release version="2.1.2" date="2024-02-02"/>
@@ -91,4 +90,5 @@
       <release version="1.0.2" date="2021-06-21"/>
       <release version="1.0.0" date="2021-06-19"/>
   </releases>
+
 </component>
