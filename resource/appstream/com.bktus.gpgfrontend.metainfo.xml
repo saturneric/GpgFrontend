@@ -37,23 +37,23 @@
 
   <screenshots>
     <screenshot type="default">
-      <image>https://image.cdn.bktus.com/i/2024/02/02/a7e9e762-a8fa-6e52-2728-1488e338e5ef.webp</image>
+      <image>https://image.cdn.bktus.com/i/2024/02/14/056f1017-331f-ef69-93a6-c49f1d233f8d.png</image>
       <caption>Main Window</caption>
     </screenshot>
     <screenshot>
-      <image>https://image.cdn.bktus.com/i/2024/02/02/5ff98592-e61e-29eb-8a29-66d8e304a797.webp</image>
+      <image>https://image.cdn.bktus.com/i/2024/02/14/8b891c88-2335-63d8-4f78-2d0dffea763c.png</image>
       <caption>Subkey Management</caption>
     </screenshot>
     <screenshot>
-      <image>https://image.cdn.bktus.com/i/2024/02/02/a0b8f2d1-16c3-9a2e-d82b-8a27ad4719de.webp</image>
+      <image>https://image.cdn.bktus.com/i/2024/02/14/704717c6-e2bc-c5f3-e69e-dcc9a588dde4.png</image>
       <caption>Key Generation</caption>
     </screenshot>
     <screenshot>
-      <image>https://image.cdn.bktus.com/i/2024/02/02/8a9f1d35-0e72-5f48-e4a2-76c03bae2a28.webp</image>
+      <image>https://image.cdn.bktus.com/i/2024/02/14/d8e79f1c-7d07-c550-b1d7-36c33a901056.png</image>
       <caption>Verify Signature of File</caption>
     </screenshot>
     <screenshot>
-      <image>https://image.cdn.bktus.com/i/2024/02/02/f79a818f-3e55-ddf9-a93d-17deab7a0e18.webp</image>
+      <image>https://image.cdn.bktus.com/i/2024/02/14/f1ef687a-a232-23e3-776d-c03e88c62dca.png</image>
       <caption>Import Key(s) From Key Server</caption>
     </screenshot>
   </screenshots>
