@@ -1,4 +1,4 @@
-<img width="180" height="180" align="center" src="https://image.cdn.bktus.com/i/2024/02/24/67473f4d-6cac-e0e2-3d60-f3400528ad8d.webp" alt="GpgFropntend"/>
+<img width="256" height="256" align="center" src="https://image.cdn.bktus.com/i/2024/02/24/f3f2f26a-96b4-65eb-960f-7ac3397a0a40.webp" alt="GpgFropntend"/>
 
 - **A Free, Easy-to-Use, Cross-Platform [OpenPGP](https://www.openpgp.org/) Crypto Tool.**
 - **One of the excellent GUI Frontends for Modern [GnuPG](https://gnupg.org/).**
