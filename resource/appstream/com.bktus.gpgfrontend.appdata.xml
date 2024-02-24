@@ -2,7 +2,7 @@
 <component type="desktop-application">
   <id>com.bktus.gpgfrontend</id>
 
-  <name>GpgFrontend</name>
+  <name>Gpg Frontend</name>
   <summary>Encrypt and sign data</summary>
   <categories>
     <category>Utility</category>
