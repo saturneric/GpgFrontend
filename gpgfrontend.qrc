@@ -4,11 +4,7 @@
         <file alias="keymgmt.png">resource/lfs/icons/keymgmt.png</file>
         <file alias="help.png">resource/lfs/icons/help.png</file>
         <file alias="button_copy.png">resource/lfs/icons/button_copy.png</file>
-        <file alias="gpgfrontend-logo.png">resource/lfs/icons/gpgfrontend-logo.png</file>
-        <file alias="banner.png">resource/lfs/icons/wizard_banner.png</file>
-        <file alias="logo_small.png">resource/lfs/icons/gpgfrontend-logo_small.png</file>
-        <file alias="keys2.jpg">resource/lfs/icons/keys12.jpg</file>
-        <file alias="keys3.jpg">resource/lfs/icons/keys13.jpg</file>
+        <file alias="logo.png">resource/lfs/icons/gpgfrontend_logo.png</file>
         <file alias="error.png">resource/lfs/icons/error.png</file>
         <file alias="info.png">resource/lfs/icons/info.png</file>
         <file alias="inbox.png">resource/lfs/icons/inbox.png</file>

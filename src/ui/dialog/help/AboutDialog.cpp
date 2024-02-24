@@ -30,10 +30,7 @@
 
 #include <openssl/opensslv.h>
 
-#include <any>
-
 #include "GpgFrontendBuildInfo.h"
-#include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
 #include "ui/dialog/help/GnupgTab.h"
 
@@ -69,7 +66,7 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent)
   main_layout->addWidget(button_box);
   setLayout(main_layout);
 
-  this->resize(550, 650);
+  this->resize(520, 620);
   this->setMinimumWidth(450);
   this->show();
 }
@@ -81,8 +78,10 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
       "core", "gpgme.version", QString{"2.0.0"});
   GF_UI_LOG_DEBUG("got gpgme version from rt: {}", gpgme_version);
 
-  auto* pixmap = new QPixmap(":/icons/gpgfrontend-logo.png");
-  auto* text = new QString(
+  auto pixmap = QPixmap(":/icons/logo.png");
+  pixmap = pixmap.scaled(200, 200);
+
+  auto text =
       "<center><h2>" + qApp->applicationName() + "</h2></center>" +
       "<center><b>" + qApp->applicationVersion() + "</b></center>" +
       "<center>" + GIT_VERSION + "</center>" + "<br><center>" +
@@ -100,14 +99,14 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
       "href=\"mailto:eric@bktus.com\">eric@bktus.com</a>." + "<br><br> " +
       tr("Built with Qt") + " " + qVersion() + ", " + OPENSSL_VERSION_TEXT +
       " " + tr("and") + " " + "GPGME" + " " + gpgme_version + "<br>" +
-      tr("Built at") + " " + BUILD_TIMESTAMP + "</center>");
+      tr("Built at") + " " + BUILD_TIMESTAMP + "</center>";
 
   auto* layout = new QGridLayout();
   auto* pixmap_label = new QLabel();
-  pixmap_label->setPixmap(*pixmap);
+  pixmap_label->setPixmap(pixmap);
   layout->addWidget(pixmap_label, 0, 0, 1, -1, Qt::AlignCenter);
   auto* about_label = new QLabel();
-  about_label->setText(*text);
+  about_label->setText(text);
   about_label->setWordWrap(true);
   about_label->setOpenExternalLinks(true);
   layout->addWidget(about_label, 1, 0, 1, -1);
@@ -139,11 +138,7 @@ TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
 }
 
 UpdateTab::UpdateTab(QWidget* parent) : QWidget(parent) {
-  auto* pixmap = new QPixmap(":/icons/gpgfrontend-logo.png");
   auto* layout = new QGridLayout();
-  auto* pixmap_label = new QLabel();
-  pixmap_label->setPixmap(*pixmap);
-  layout->addWidget(pixmap_label, 0, 0, 1, -1, Qt::AlignCenter);
 
   current_version_ =
       QString("v") + VERSION_MAJOR + "." + VERSION_MINOR + "." + VERSION_PATCH;

@@ -28,7 +28,6 @@
 
 #include "Wizard.h"
 
-#include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
@@ -43,10 +42,7 @@ Wizard::Wizard(QWidget* parent) : QWizard(parent) {
 #endif
   setWindowTitle(tr("First Start Wizard"));
 
-  // http://www.flickr.com/photos/laureenp/6141822934/
-  setPixmap(QWizard::WatermarkPixmap, QPixmap(":/icons/keys2.jpg"));
-  setPixmap(QWizard::LogoPixmap, QPixmap(":/icons/logo_small.png"));
-  setPixmap(QWizard::BannerPixmap, QPixmap(":/icons/banner.png"));
+  setPixmap(QWizard::LogoPixmap, QPixmap(":/icons/logo.png").scaled(64, 64));
 
   int next_page_id = GlobalSettingStation::GetInstance()
                          .GetSettings()
@@ -74,10 +70,9 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
   setTitle(tr("Getting Started..."));
   setSubTitle(tr("... with GpgFrontend"));
 
-  auto* topLabel = new QLabel(
-      QString(
-          tr("Welcome to use GpgFrontend for decrypting and signing text or "
-             "file!")) +
+  auto* top_label = new QLabel(
+      tr("Welcome to use GpgFrontend for decrypting and signing text or "
+         "file!") +
       " <br><br><a href='https://gpgfrontend.bktus.com'>GpgFrontend</a> " +
       tr("is a Powerful, Easy-to-Use, Compact, Cross-Platform, and "
          "Installation-Free OpenPGP Crypto Tool.") +
@@ -86,10 +81,10 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
       tr("Overview") + "</a> (" +
       tr("by clicking the link, the page will open in the web browser") +
       "). <br>");
-  topLabel->setTextFormat(Qt::RichText);
-  topLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
-  topLabel->setOpenExternalLinks(true);
-  topLabel->setWordWrap(true);
+  top_label->setTextFormat(Qt::RichText);
+  top_label->setTextInteractionFlags(Qt::TextBrowserInteraction);
+  top_label->setOpenExternalLinks(true);
+  top_label->setWordWrap(true);
 
   // QComboBox for language selection
   auto* lang_label =
@@ -99,7 +94,7 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
 
   // set layout and add widgets
   auto* layout = new QVBoxLayout;
-  layout->addWidget(topLabel);
+  layout->addWidget(top_label);
   layout->addStretch();
   layout->addWidget(lang_label);
 
@@ -115,7 +110,7 @@ ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
   auto* keygen_label = new QLabel(
       tr("If you have never used GpgFrontend before and also don't own a gpg "
          "key yet you may possibly want to read how to") +
-      " <a href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
+      " <a href=\"https://gpgfrontend.bktus.com/index.html#/basic/"
       "generate-key\">" +
       tr("Generate Key") + "</a><hr>");
   keygen_label->setTextFormat(Qt::RichText);
@@ -127,11 +122,11 @@ ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
       tr("If you want to learn how to encrypt, decrypt, sign and verify text, "
          "you can read ") +
       "<a "
-      "href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
+      "href=\"https://gpgfrontend.bktus.com/index.html#/basic/"
       "encrypt-decrypt-text\">" +
       tr("Encrypt & Decrypt Text") + "</a> " + tr("or") +
       " <a "
-      "href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
+      "href=\"https://gpgfrontend.bktus.com/index.html#/basic/"
       "sign-verify-text\">" +
       tr("Sign & Verify Text") + "</a><hr>");
 
@@ -143,11 +138,11 @@ ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
   auto* sign_verify_text_label =
       new QLabel(tr("If you want to operate file, you can read ") +
                  "<a "
-                 "href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
+                 "href=\"https://gpgfrontend.bktus.com/index.html#/basic/"
                  "encrypt-decrypt-file\">" +
                  tr("Encrypt & Sign File") + "</a> " + tr("or") +
                  " <a "
-                 "href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
+                 "href=\"https://gpgfrontend.bktus.com/index.html#/basic/"
                  "sign-verify-file\">" +
                  tr("Sign & Verify File") + "</a><hr>");
   sign_verify_text_label->setTextFormat(Qt::RichText);
@@ -221,7 +216,7 @@ ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
   auto* bottom_label = new QLabel(
       tr("You are ready to use GpgFrontend now.<br><br>") +
       "<a "
-      "href=\"https://gpgfrontend.bktus.com/manual/understand-interface"
+      "href=\"https://gpgfrontend.bktus.com/basic/understand-interface"
       "overview\">" +
       tr("The Online Document") + "</a>" +
       tr(" will get you started with GpgFrontend. Anytime you encounter "
