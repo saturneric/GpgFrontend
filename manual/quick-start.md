@@ -1,128 +1,206 @@
-# Getting Started
+# Getting Started with GpgFrontend
 
-GpgFrontend is a versatile tool featuring cross-platform compatibility. The
-installation process may vary depending on your operating system. 
+Welcome to GpgFrontend, the cross-platform, OpenPGP encryption tool designed for
+simplicity and security. This guide will walk you through the installation
+process tailored to your operating system, ensuring you can start securing your
+communications as quickly and efficiently as possible.
 
-## Prerequisites
+## Before You Begin: Prerequisites
 
-**For Windows or macOS users with Homebrew, this section can be skipped.**
+**Note for Windows or macOS users who utilize Homebrew: You may skip this
+prerequisites section.**
 
-As GpgFrontend is built on the basic functions provided by GnuPG, you need to
-install GnuPG before running GpgFrontend. From GnuPG 2.0 onward, GPG works on
-separate modules for each of its functionalities, and these modules need to be
-correctly integrated into your operating system for smooth operation.
+GpgFrontend leverages the robust functionalities of GnuPG for encryption,
+decryption, and key management. It is crucial to have GnuPG installed on your
+device to make full use of GpgFrontend. Starting from version 2.0, GnuPG
+operates on modular components for enhanced functionality, requiring proper
+integration with your system.
 
-Please note, GnuPG cannot operate within an App Sandbox, so GpgFrontend is
-currently not available on the Apple Store.
+Be aware, due to GnuPG's inability to function within an App Sandbox,
+GpgFrontend is not available through the Apple Store.
 
-Most recent Linux distributions come with a pre-installed GnuPG 2.0 environment.
-You can verify this by typing `gpg --version` in the command line. **However, it
-is recommended to install GnuPG versions 2.2 or higher.**
+For Linux users, most contemporary distributions come with GnuPG 2.0
+pre-installed. Check your GnuPG version with `gpg --version` in your terminal.
+It is advisable to upgrade to GnuPG version 2.2 or later for optimal performance
+and compatibility.
 
-## Install & Run Steps
+## Installation & Execution Guide
 
-### Windows (No Setup)
+### For Windows Users
 
-1. [Download](https://github.com/saturneric/GpgFrontend/releases/latest) the
-   file `GpgFrontend-*******-windows-x86_64-portable.zip`.
-2. Unzip the downloaded file. (This step is necessary)
-3. Navigate to the `Program/bin` directory and double-click `GpgFrontend.exe`.
+#### Portable Version (No Installation Required)
 
-### Windows (Setup)
+1. **Download** the portable version from [GpgFrontend's latest
+   releases](https://github.com/saturneric/GpgFrontend/releases/latest), labeled
+   `GpgFrontend-*******-windows-x86_64-portable.zip`.
+2. **Extract** the contents of the downloaded ZIP file.
+3. **Run** `GpgFrontend.exe` from the extracted `Program/bin` directory.
 
-1. [Download](https://github.com/saturneric/GpgFrontend/releases/latest) the
-   file `GpgFrontend-*******-windows-x86_64-setup.exe`.
-2. Follow the installation process, and GpgFrontend will be accessible from your
-   desktop.
+#### Installer Version
 
-### macOS
+1. **Download** the installer from [GpgFrontend's latest
+   releases](https://github.com/saturneric/GpgFrontend/releases/latest), named
+   `GpgFrontend-*******-windows-x86_64-setup.exe`.
+2. **Install** GpgFrontend by following the on-screen instructions. After
+   installation, you can access GpgFrontend directly from your desktop.
 
-All published app packages have passed Apple's verification checks, meaning you
-can open it directly without requiring extra permissions.
+### For macOS Users
 
-#### Homebrew Cask
+GpgFrontend's macOS packages are Apple-verified, allowing straightforward
+opening without additional permissions.
 
-Use Homebrew Cask to install or remove GpgFrontend from your machine quickly and
-easily.
+#### Using Homebrew Cask
 
-0. Ensure Homebrew is installed on your machine.
-1. Install GpgFrontend by running the command `brew install --cask gpgfrontend`.
-2. Find GpgFrontend in your Launchpad, double-click, and run it.
+For an effortless install or removal process, use Homebrew Cask:
 
-#### Download and Install from DMG
+1. Ensure **Homebrew** is installed.
+2. **Install** GpgFrontend with the command `brew install --cask gpgfrontend`.
+3. **Launch** GpgFrontend from your Launchpad.
 
-0. Install `gnupg` using Homebrew OR download "GPG for OS X" from
-   [Here](https://sourceforge.net/projects/gpgosx/files).
-1. [Download](https://github.com/saturneric/GpgFrontend/releases)
-   `GpgFrontend-*******-macos-**.dmg`.
-   - `x86_64` indicates the build machine type. This version will run smoothly
-     on both Intel and Apple(M1/M2) Chips.
-2. Double-click GpgFrontend.dmg to load it.
-3. Double-click to run it.
-4. If you're satisfied with the program, you can drag it into your Application
-   folder.
+#### Manual Installation from DMG
 
-#### Debian/Ubuntu/CentOS (AppImage)
+1. **Install GnuPG** via Homebrew or download it from [GPG for OS
+   X](https://sourceforge.net/projects/gpgosx/files).
+2. **Download** the `GpgFrontend-*******-macos-**.dmg` file from [GpgFrontend's
+   releases](https://github.com/saturneric/GpgFrontend/releases). Select
+   `x86_64` for compatibility with Intel and Apple Silicon chips.
+3. **Mount** the DMG file and **run** GpgFrontend.
+4. **Optional:** Drag GpgFrontend into your Applications folder for easy access.
 
-AppImage is a format used in Linux systems to distribute portable software
-without needing superuser privileges to install them. It packages the
-application and all files needed for the application to run in a single file,
-thus avoiding dependency issues. This makes the distribution of software more
-user-friendly.
+### For Linux Users (AppImage)
 
-0. Install gnupg (Skip if you have already done this)
-   - For Debian/Ubuntu:
-     ```shell
-     $ sudo apt update
-     $ sudo apt install gpg
-     ```
-   - For CentOS:
-     ```shell
-     $ sudo yum install gnupg
-     ```
-1. [Download](https://github.com/saturneric/GpgFrontend/releases) the file
+AppImage simplifies software distribution by bundling applications and all
+necessary libraries into a single, executable file, eliminating dependency
+conflicts.
+
+1. **Install GnuPG** if it's not already installed.
+   - Debian/Ubuntu: `sudo apt update && sudo apt install gpg`
+   - CentOS: `sudo yum install gnupg`
+2. **Download** the AppImage from [GpgFrontend's
+   releases](https://github.com/saturneric/GpgFrontend/releases), labeled
    `GpgFrontend-*******-linux-x86_64.AppImage`.
-2. Grant execute permissions to the file:
-   ```shell
-   $ chmod u+x ./GpgFrontend-***-linux-x86_64.AppImage
-   ```
-3. Double-click the file to run it.
+3. **Make it executable:** `chmod u+x ./GpgFrontend-***-linux-x86_64.AppImage`.
+4. **Launch** the AppImage with a double-click or through the terminal.
 
-## BSD(FreeBSD/OpenBSD)
+### BSD Users (FreeBSD/OpenBSD)
 
-If you're a BSD user, note that binary releases aren't provided yet. However,
-you can still build and run GpgFrontend on these operating systems.
+Currently, there are no binary releases for BSD systems. However, GpgFrontend
+can be compiled and run on BSD. Refer to the GitHub repository for build
+instructions.
 
-## Get from GitHub Release
+## Downloading from GitHub Releases
 
-The primary distribution channel is the Release feature available on GitHub.
-This method is free and accessible to most people globally, eliminating the need
-for me to manage servers and bandwidth, thus saving resources.
+GpgFrontend is primarily distributed through GitHub Releases, ensuring
+accessibility and eliminating the need for personal server management.
 
-Upon clicking the
-[download](https://github.com/saturneric/GpgFrontend/releases/latest) link, you
-will see an interface displaying the current version number of the latest
-release, its release date, and more.
+Upon navigating to [GpgFrontend's download
+page](https://github.com/saturneric/GpgFrontend/releases/latest), you'll find
+detailed information about the latest version, including new features and fixes.
+Each release is signed for security verification purposes, allowing users with
+heightened security needs to confirm the authenticity of the downloaded files.
 
-![image-20220101225029218](https://image.cdn.bktus.com/i/2023/11/16/b6072dd2-37a2-ee54-0f9c-dc63098e7ad7.webp)
+Scroll down to the **Assets** section to select the appropriate version for your
+operating system. The filenames include a unique identification number, crucial
+for reporting any version-specific issues.
 
-In the main text, you can find some significant features or fixes for the
-version. If you're a programmer, you can also view the change log to see how the
-source code differs from the previous version. Notice the two green tick marks,
-which represent that I have personally signed the source code for the version.
-This can be crucial for users with high-security needs.
+Files ending in 'signature' are GPG separate signatures, which can be verified
+with GPG to ensure they are officially released and approved by me.
 
-Scrolling down, you can find several Assets. These are releases of GpgFrontend
-for different operating systems. The parts of the filename are separated by
-separators. The second section (e.g., 6171479) is a unique identification number
-for the version's source code. When pointing out problems with a version,
-remember to provide this 7-digit unique identification number.
+Select the version that suits your system or follows the provided instructions
+to begin the download.
 
-![image-20220101225652736](https://image.cdn.bktus.com/i/2023/11/16/ca379e0a-c704-bc9b-a6e7-527609cdd94d.webp)
+By following these steps, you'll be ready to use GpgFrontend, enhancing your
+digital security with powerful encryption tools at your fingertips.
 
-Files with 'signature' as the suffix are GPG separate signatures for the
-corresponding released version of the file. You can use GPG to verify whether
-the downloaded file is signed and approved by me.
+## Basic Operations with GpgFrontend
 
-Choose the appropriate release version according to your needs or the
-instructions provided, and click on the name to download.
+After successfully installing GpgFrontend, you're ready to dive into the world
+of encryption and secure communication. This guide will walk you through some
+fundamental operations to get you started.
+
+### Generating Your First Key Pair
+
+1. Open GpgFrontend: Launch the application.
+2. Access Key Management: Navigate to the "Key Management" section.
+3. Generate Key Pair: Look for an option to "Generate" a new key pair.
+4. Fill in your details, such as name and email, and choose your desired key
+   type and size. You can also add a comment if you wish.
+5. Set an expiration date for the key, or choose 'Never Expire' if you prefer.
+6. Create a passphrase for your key to ensure its security. Remember to use a
+   strong passphrase that you won't forget.
+7. Once all details are filled in, click 'OK' to generate your key pair.
+
+### Encrypting
+
+1. **Write a Message:** Start by writing a message in the main text area of
+   GpgFrontend.
+2. **Choose Recipient:** Select the public key of the message's recipient. If
+   you're practicing, you can select your own public key.
+3. **Encrypt:** With the recipient's public key selected, click on the "Encrypt"
+   option. The text will be encrypted, making it readable only by the selected
+   recipient.
+
+### Decrypting
+
+1. **Receive an Encrypted Message:** Copy the encrypted message into
+   GpgFrontend's main text area.
+2. **Decrypt:** Click on the "Decrypt" option. If the message was encrypted with
+   your public key, you would need to enter the password for your private key to
+   decrypt it.
+
+### Signing
+
+1. **Create a Message:** Type your message in the text area.
+2. **Sign:** Choose the "Sign" option and select your private key. Enter your
+   key's password to sign the message. This adds a digital signature that
+   verifies you as the message's sender.
+
+### Verifying
+
+1. **Receive a Signed Message:** Paste the signed message into GpgFrontend.
+2. **Verify:** Click on "Verify" to check the signature. If the signature
+   matches the sender's public key, GpgFrontend will confirm the message's
+   integrity and authenticity.
+
+### Key Management and Sharing
+
+#### Exporting and Sharing Your Public Key
+
+1. Go to 'Manage Keys'.
+2. Select your key pair and choose 'Export Key'.
+3. Save your public key to a file or copy it to the clipboard to share it with
+   others.
+
+#### Importing a Public Key
+
+To communicate securely with someone else, you need their public key. Click
+'Import key'. You can import a key file or copy and paste the public key
+directly. After importing, the public key will appear in your keyring, ready for
+use.
+
+### Exchanging Public Keys with Friends
+
+1. **Export Your Public Key:** From the "Key Management" section, find the
+   option to export your public key. Save it as a file or copy it to your
+   clipboard.
+2. **Share Your Public Key:** Send your public key to your friend via email,
+   messaging app, or any secure channel you prefer.
+3. **Import Your Friend's Public Key:** When your friend sends you their public
+   key, import it into GpgFrontend using the "Import" option in the "Key
+   Management" section.
+
+By exchanging public keys, you establish a secure channel for encrypted
+communication. Only the holder of the corresponding private key can decrypt
+messages encrypted with a public key, ensuring privacy and security in your
+communications.
+
+## Conclusion
+
+GpgFrontend is a powerful tool for enhancing your digital security. By
+generating key pairs, encrypting and decrypting messages, signing documents, and
+exchanging public keys, you can safeguard your communications in a world where
+privacy is increasingly precious. As you become more familiar with these
+operations, explore further features and settings within GpgFrontend to tailor
+your security practices to your needs. Remember, the cornerstone of digital
+security is practicing safe key management and password hygiene. Welcome to the
+secure side!

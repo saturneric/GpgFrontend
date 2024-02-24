@@ -1,41 +1,70 @@
 # Key Server Operations
 
-There are certain scenarios where you require encrypted communication but only
-have the recipient's email address and do not possess the recipient's public
-key. Additionally, in the event that your key has been inadvertently exposed, it
-becomes necessary to notify the holders of your public key to discontinue its
-use for sending encrypted information. In such cases, the key server can be
-utilized to facilitate key information sharing. You can upload your public key
-information to the key server, or search and retrieve the required public key
-using email addresses or key IDs.
+Key servers play a pivotal role in the ecosystem of encrypted communication,
+serving as a centralized repository for public key information. These servers
+enable individuals to share and retrieve public keys necessary for encrypted
+messaging, even when direct exchange is not feasible. Key servers are
+particularly useful in scenarios where secure communication needs to be
+established without prior direct contact, or when a user's public key needs to
+be widely distributed or updated due to security concerns.
 
-Upon uploading your public key information to the key server, it is transmitted
-across key servers globally, making it accessible to individuals worldwide.
-GpgFrontend features key server interaction capabilities, which enable users to
-rapidly share their public key, search for and import required public keys using
-mouse operations. It is essential to note that once public key information is
-uploaded to the key server, it cannot be deleted and will be retained
-indefinitely. However, the public key of the old key pair can be overwritten by
-updating when a subkey is added to the key pair.
+When you wish to send an encrypted message but lack the recipient's public key,
+key servers offer a solution by allowing you to search for and retrieve the
+public key associated with the recipient's email address or key ID. This process
+facilitates the encryption of messages in a way that ensures only the intended
+recipient, who possesses the corresponding private key, can decrypt and read the
+message.
+
+Moreover, key servers are integral to maintaining the integrity and
+trustworthiness of the public key infrastructure. If a user's private key is
+compromised, it is crucial to inform others not to use the associated public key
+for encrypting messages anymore. By uploading a new public key to a key server
+and marking the old one as obsolete or compromised, users can mitigate the risks
+associated with the exposure of their private key.
+
+The functionality of key servers is enhanced by software tools such as
+GpgFrontend, which simplifies the process of managing public keys. With
+GpgFrontend, users can effortlessly upload their public key to key servers,
+search for other users' public keys using an email address or key ID, and import
+these keys for use in encrypted communication. The software's user-friendly
+interface enables these operations to be performed with just a few mouse clicks,
+making encrypted communication more accessible to a broader audience.
+
+It is important to note that once public key information is uploaded to a key
+server, it is propagated across a network of key servers worldwide, making it
+available to anyone who searches for it. This wide distribution ensures that
+encrypted communication can be established easily across different platforms and
+geographical locations. However, users should be aware that public keys uploaded
+to key servers cannot be deleted, emphasizing the importance of careful key
+management. In situations where a key needs to be updated, such as when adding a
+subkey to a key pair, the new key information can overwrite the old one on the
+server, thus maintaining the security and relevance of the key information
+available to the public.
+
+In summary, key servers are essential for the secure and efficient exchange of
+encrypted messages, offering a reliable method for sharing and retrieving public
+keys. They support the integrity of secure communications by facilitating the
+widespread distribution of public keys and enabling users to update or replace
+keys when necessary.
 
 ## Import Public Key From Key Server
 
 In the main page or in the key manager's Import key operation mode, there is a
 key server option. After selecting this option you can see such an interface.
 
-![import-keys-fomr-keyserver](https://image.cdn.bktus.com/i/2023/11/16/d75cb252-9a65-5b73-01cd-a45b5ff501ef.webp)
+![Import Public Key From Key Server](https://image.cdn.bktus.com/i/2023/11/16/d75cb252-9a65-5b73-01cd-a45b5ff501ef.webp)
 
 You can get a list of public keys associated with a key server by searching for
 Key ID, fingerprint or email address via the search box. If there is a suitable
 public key in the list, you can import it by double-clicking it.
 
-![import-keys-fomr-keyserver-1](https://image.cdn.bktus.com/i/2023/11/16/ae422544-3764-0fe0-638a-d731715acf3e.webp)
+![Import Public Key From Key Server 1](https://image.cdn.bktus.com/i/2023/11/16/ae422544-3764-0fe0-638a-d731715acf3e.webp)
 
 When the import is complete, you can check whether the public key is actually
 imported through the pop-up window (no need to import when the local public key
 is newer), and you can also check some brief information about the public key.
 
-![image-20220109191357259](https://image.cdn.bktus.com/i/2023/11/16/cbb78f5f-3620-1534-4b4e-e7752e1c9aa4.webp)
+![Import Public Key From Key Server 2](https://image.cdn.bktus.com/i/2023/11/16/cbb78f5f-3620-1534-4b4e-e7752e1c9aa4.webp)
 
 It is important to note that the public key you import may have expired or been
 revoked. You can check the status of the key by navigating to the category tab
@@ -45,7 +74,7 @@ the public key information from. To modify or add to this list of candidate
 servers, please refer to the last section of this document: Key server related
 settings.
 
-## Export My Public Key To The Keyserver
+## Export My Public Key To The Key Server
 
 If the current key pair has a master key, you have the option to publish the
 public key information to a key server. It is important to note that in order to
@@ -58,7 +87,7 @@ and the function being performed.
 You can find the entry of this operation through the operation tab of the key
 pair detail interface, as shown in the following figure.
 
-![image-20220109192532368](https://image.cdn.bktus.com/i/2023/11/16/87b435b1-3eb2-421d-c8cb-f6d926b6a1c7.webp)
+![Export My Public Key To The Key Server](https://image.cdn.bktus.com/i/2023/11/16/87b435b1-3eb2-421d-c8cb-f6d926b6a1c7.webp)
 
 Perform the operation by clicking Upload key pair to key server. Note that the
 naming of operations here is a bit confusing, but this is where your public key
@@ -74,15 +103,13 @@ one).
 As above, you can find this action in the Actions tab of the key pair details
 screen, as shown in the image below.
 
-### Extra Information
-
-Gpg Frontend will upload the public key information to the default key server
+GpgFrontend will upload the public key information to the default key server
 you set. The private key information is not uploaded and should not be manually
 uploaded anywhere by the user.
 
 Refer to the last section of this document on how to set the default key server.
 
-![image-20220109192532368](https://image.cdn.bktus.com/i/2023/11/16/87b435b1-3eb2-421d-c8cb-f6d926b6a1c7.webp)
+![Set Default Key Server](https://image.cdn.bktus.com/i/2023/11/16/87b435b1-3eb2-421d-c8cb-f6d926b6a1c7.webp)
 
 The "Synchronize key pair with key server" function allows for automatic
 retrieval of public key information from the key server, which is then compared
@@ -112,7 +139,7 @@ by accessing the Settings interface and navigating to the Key Servers tab. Here,
 you will find options for managing your key server candidate list and
 determining which key server is set as the default.
 
-![image-20220109195518834](https://image.cdn.bktus.com/i/2023/11/16/afe69b9b-0576-d275-91df-79585c245b22.webp)
+![Key Server Related Settings](https://image.cdn.bktus.com/i/2023/11/16/afe69b9b-0576-d275-91df-79585c245b22.webp)
 
 To add a candidate key server to the list, simply enter the http or https
 address of the key server you wish to add into the input box and click "Add". It

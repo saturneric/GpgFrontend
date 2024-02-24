@@ -1,91 +1,96 @@
-# FAQ
+# Frequently Asked Questions (FAQ)
 
-## What is GpgFrontend?
+## Understanding GpgFrontend
 
-GpgFrontend is a cross-platform encryption tool that adheres to the OpenPGP
-standard. Its objective is to make the use of OpenPGP simpler, thereby enabling
-more individuals to secure their privacy.
+**What is GpgFrontend?** GpgFrontend is a user-friendly, cross-platform tool
+designed to facilitate the use of OpenPGP encryption, making it easier for
+individuals to protect their privacy and secure their communications.
 
-## What's the relationship between OpenPGP(PGP) and GnuPG(GPG)?
+**What can I do with GpgFrontend?** Beyond basic encryption and decryption,
+GpgFrontend supports digital signatures to verify the integrity and origin of
+messages. Users can manage and generate key pairs, encrypt files and emails, and
+sign their communications for added security.
 
-OpenPGP is a standard for data encryption and decryption, which is supported by
-GpgFrontend. GnuPG is a cryptographic software that's used for encryption,
-signing, and key management for asymmetric cryptography, and it follows the
-OpenPGP standard. GpgFrontend utilizes GnuPG during its operation to perform
-various tasks such as encryption and decryption.
+**How can I obtain and start using GpgFrontend?** You can download the latest
+version of GpgFrontend from its GitHub repository. Visit [GpgFrontend's
+Downloads Page](https://www.gpgfrontend.bktus.com/#/downloads) to find the most
+recent release. Installation is straightforward: just follow the ReadME
+instructions to set it up.
 
-## How to obtain and use GpgFrontend?
+## OpenPGP and GnuPG Explained
 
-The various versions of GpgFrontend will be released in the GitHub repository,
-and you can find and download the latest version
-[HERE](https://www.gpgfrontend.bktus.com/#/downloads). After downloading, you can
-refer to the instructions in ReadME and you can start using it in just a few
-steps.
+**How do OpenPGP and GnuPG relate?** OpenPGP serves as a standardized protocol
+for encrypting and decrypting data, which GpgFrontend supports. GnuPG, or GPG,
+implements the OpenPGP standard, providing the necessary cryptographic
+functions. GpgFrontend leverages GnuPG for operations like encryption,
+decryption, and key management.
 
-## How to deal with 'ENV Loading Failed'?
+**Which operating systems does GpgFrontend support?** GpgFrontend is a
+cross-platform application that supports Windows, macOS, and Linux, making it
+accessible to nearly all users for their privacy and data protection needs.
 
-The reason for this problem is that GpgFrontend failed to find the GnuPG in your
-machine. You can follow suggestions below.
+## Troubleshooting GnuPG Installation Issues
 
-### macOS
+**Encountering 'GnuPG not installed correctly'?** This issue typically arises
+when GpgFrontend cannot locate GnuPG on your system. Here are steps to address
+this based on your operating system:
 
-For macOS users, please install GnuPG for OSX
-[Here](https://sourceforge.net/p/gpgosx/docu/Download/). Or just use Homebrew to
-install GpgFrontend. By executing command:
+### For macOS Users
 
-`brew install --cask gpgfrontend`.
+- **Install GnuPG for OSX** from
+  [here](https://sourceforge.net/p/gpgosx/docu/Download/), or install
+  GpgFrontend using Homebrew with `brew install --cask gpgfrontend`.
+- If GnuPG is installed in a custom location, please tell GpgFrontend where the
+  gpgconf binary it is at GnuPG Controller.
 
-If you have installed GnuPG under a custom path, you can add the "bin" directory
-of GnuPG in to PATH.
+### For Linux Users
 
-### Linux
+- Install GnuPG via your package manager (apt, yum, etc.).
+- If GnuPG is installed in a custom location, please tell GpgFrontend where the
+  gpgconf binary it is at GnuPG Controller.
 
-For Linux users, please install GnuPG through apt or yum.
+### For Windows Users
 
-If you have installed GnuPG under a custom path, you can add the "bin" directory
-of GnuPG in to PATH.
+- The latest GpgFrontend versions include GnuPG. It's recommended to download
+  the most recent GpgFrontend version.
+- Alternatively, download GnuPG from
+  [here](https://www.gnupg.org/ftp/gcrypt/binary/gnupg-w32-2.4.0_20221216.exe)
+  and reinstall if necessary.
 
-### Windows
+### Additional Assistance
 
-For Windows users, GnuPG is now integrated in the latest version of GpgFrontend,
-we recommend you to download the latest GpgFrontend if you don't have any ideas.
+- For more detailed guidance, refer to the quick start manual available at
+  [Quick Start Guide](quick-start.md).
 
-Or, you can download GnuPG installers for Windows
-[HERE](https://www.gnupg.org/ftp/gcrypt/binary/gnupg-w32-2.4.0_20221216.exe).
-Try to reinstall GnuPG through installer when you have already install it.
+## Reporting Bugs and Contributing
 
-### More Tips?
+**Found a bug?** If you encounter any issues with GpgFrontend, please report
+them via the GitHub repository. You can also contact me directly if you're not
+on GitHub; see the [Contact](contract.md) section for details.
 
-For more tips, you can see the quick start manual [HERE](quick-start.md). It
-provides more information on dealing this situation.
+**Interested in contributing?** Feel free to modify GpgFrontend's code and
+submit a Pull Request with your enhancements. You can also send patches via
+email if you prefer to contribute anonymously.
 
-## I found some bugs in GpgFrontend, what should I do?
+## Why the Need for GnuPG?
 
-If you find a defect in GpgFrontend, you are welcome to create an issue in the
-GitHub repository to describe the problem. When I see your issue, I will respond
-as soon as possible. If you do not have a GitHub account, please email my
-personal mailbox. For contact information, please see [Contract](contract.md).
+**Importance of Installing GnuPG** GpgFrontend itself does not handle direct
+encryption or decryption; it requires GnuPG for these operations. This design
+choice ensures higher security, allowing users to rely on their own verified
+version of GnuPG.
 
-## Can I modify the code of GpgFrontend?
+## Understanding BETA Versions
 
-If you have any good ideas, you are free to modify the code of GpgFrontend. You
-are welcome to submit a Pull Request to add your good ideas to the next version.
+**What does "BETA" signify in a release?** A "BETA" label indicates that the
+version may not have undergone comprehensive testing, particularly for new
+modules. While beta versions are carefully evaluated post-release, and stable
+versions are published when ready, the aim is to avoid beta releases from
+version 2.0.0 onwards, barring exceptional circumstances.
 
-You can contribute completely anonymously, and you can email me patches.
+## Security and Privacy
 
-## Why should I install GnuPG additionally?
-
-The source code of GpgFrontend does not contain operations such as encryption
-and decryption, which requires Gnupg to provide support. In addition, for users
-with higher security requirements, they can let GpgFrontend drive their trusted
-copy of Gnupg. This design improves the security of GpgFrontend.
-
-## What is the release version with BETA?
-
-The release version with the word "beta" means that some modules of this version
-have not yet been thoroughly tested. In addition, some support for the beta
-version may not be complete. But rest assured, I will test after the beta
-version is released, and release a stable version at an appropriate time.
-
-But starting from 2.0.0, BETA versions will not be released unless there are
-special circumstances.
+**How does GpgFrontend ensure my communications are secure?** GpgFrontend uses
+GnuPG to implement the OpenPGP standard, securing your data with robust
+encryption algorithms to prevent unauthorized access. It supports public and
+private key encryption methods, ensuring only intended recipients can decrypt
+and read your messages.

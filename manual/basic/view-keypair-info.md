@@ -9,7 +9,7 @@ be relatively long.
 Below is a screenshot of a friend's public key that I obtained from the key
 server.
 
-![image-20220110185144734](https://image.cdn.bktus.com/i/2023/11/16/8d50f6db-909d-0840-e991-fec3f4263709.webp)
+![View Key Pair Details](https://image.cdn.bktus.com/i/2023/11/16/8d50f6db-909d-0840-e991-fec3f4263709.webp)
 
 And here is a randomly generated private key. The most significant difference
 between this and the previous key is that the key pair with only the public key
@@ -17,7 +17,7 @@ is used for encryption only, but if you possess the private key, you can perform
 more actions (it also depends on your algorithm; DSA can only be used for
 signatures).
 
-![image-20220110185215204](https://image.cdn.bktus.com/i/2023/11/16/d65e11fe-920f-50b5-640d-2f24c4d4fc58.webp)
+![View Key Pair Details 1](https://image.cdn.bktus.com/i/2023/11/16/d65e11fe-920f-50b5-640d-2f24c4d4fc58.webp)
 
 ## General Info
 
@@ -33,7 +33,7 @@ set it as the primary UID to change it.
 According to the OpenPGP protocol, this part is divided into Name, Email, and
 Comment.
 
-![image-20220110185740491](https://image.cdn.bktus.com/i/2023/11/16/a6460514-4dd8-29be-5d04-31a72474b1fa.webp)
+![View Key Pair Details Owner](https://image.cdn.bktus.com/i/2023/11/16/a6460514-4dd8-29be-5d04-31a72474b1fa.webp)
 
 ### Primary Key
 
@@ -49,7 +49,7 @@ not exist, but this doesn't mean that neither the public key nor the private key
 exists. Please remember: Each subkey and primary key consist of a pair of public
 and private keys.
 
-![image-20220110185819775](https://image.cdn.bktus.com/i/2023/11/16/aacb259b-44db-79d2-1899-3da8675ac36c.webp)
+![View Key Pair Details Primary Key](https://image.cdn.bktus.com/i/2023/11/16/aacb259b-44db-79d2-1899-3da8675ac36c.webp)
 
 #### Key ID
 
@@ -114,7 +114,7 @@ other key pairs.
 
 ### Fingerprint
 
-![image-20220110190639502](https://image.cdn.bktus.com/i/2023/11/16/7f2bc76d-12e2-57c1-21fc-4e98f9b9a750.webp)
+![View Key Pair Details Fingerprint](https://image.cdn.bktus.com/i/2023/11/16/7f2bc76d-12e2-57c1-21fc-4e98f9b9a750.webp)
 
 The fingerprint of the key pair is used for humans to quickly compare whether
 the key pair is the expected key pair. This field is unique for all keys in the
@@ -131,7 +131,7 @@ pair is what they expected. However, for accurate identification, fingerprints
 or key IDs should be compared. A key can have multiple UIDs, but a key pair can
 only have one primary UID, which is always listed first in the interface.
 
-![image-20220110190943207](https://image.cdn.bktus.com/i/2023/11/16/de721eb6-3761-1912-8d99-dd0224a2a5e2.webp)
+![View Key Pair Details UID](https://image.cdn.bktus.com/i/2023/11/16/de721eb6-3761-1912-8d99-dd0224a2a5e2.webp)
 
 UID has three elements: Name, Email, Comment. The name should be at least five
 characters long, and the email should conform to the format. The rules for
@@ -186,10 +186,10 @@ key and a key pair that includes a private key.
 
 Here's what you can do with a public key-only key pair:
 
-![image-20220110193420845](https://image.cdn.bktus.com/i/2023/11/16/13065e1e-61ff-5626-f571-7d8eddd79053.webp)
+![View Key Pair Details Operations](https://image.cdn.bktus.com/i/2023/11/16/13065e1e-61ff-5626-f571-7d8eddd79053.webp)
 
 And here's what you can do with a key pair that includes a private key:
 
-![image-20220110193555076](https://image.cdn.bktus.com/i/2023/11/16/6534f339-0b6e-e3ab-0318-78c06c30ac07.webp)
+![View Key Pair Details Operations 1](https://image.cdn.bktus.com/i/2023/11/16/6534f339-0b6e-e3ab-0318-78c06c30ac07.webp)
 
 These operations will be explained in detail throughout the documentation.
