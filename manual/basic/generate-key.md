@@ -6,7 +6,7 @@ To generate a key pair using GpgFrontend, follow these steps:
 
 1. Open GpgFrontend and click on the "Generate Key" button.
 2. Fill in the required information, such as your name and email address.
-3. Choose the type of key you want to generate (RSA or ECC).
+3. Choose the type of key you want to generate (RSA, DSA or ECC).
 4. Set the key size and expiration date, if desired.
 5. Create a passphrase to protect your private key.
 6. Click "Generate" to create your key pair.
@@ -116,35 +116,88 @@ It is possible to append subkeys to an existing key pair. The subkey does not
 require the input of a name, email, or comment, as the remaining steps are
 essentially identical to those for generating a key pair.
 
-![GIF](https://image.cdn.bktus.com/i/2023/11/16/4871ee77-5da5-5473-a2be-2d9c29d6b842.gif)
+![Generate Subkey](https://image.cdn.bktus.com/i/2023/11/16/4871ee77-5da5-5473-a2be-2d9c29d6b842.gif)
 
 ### Extra note
 
 Below are some guidelines that may prove useful in comprehending the
 aforementioned concepts and utilizing this tool accurately.
 
-#### primary key & Subkey
+#### Understanding Primary Keys and Subkeys
 
-A single primary key can be accompanied by several subkeys within a key pair.
-This setup mitigates the risk of key leakage. In the event that a subkey is
-exposed, it can be revoked promptly, thus limiting the damage. However, if the
-primary key is leaked, the entire key pair becomes vulnerable, as the primary
-key enables management of the entire key pair.
+In the realm of cryptography, key management plays a crucial role in ensuring
+data security. A key pair consists of a primary key and one or more subkeys,
+each serving distinct functions yet working together to secure and manage
+digital identities and communications. This structure not only enhances security
+but also provides flexibility in key usage and management.
 
-Hence, it is advisable to generate multiple subkeys upon creating the key pair
-and store the master key separately in a secure location. This operation is not
-yet supported by GpgFrontend; therefore, the gpg command must be used to carry
-it out. However, GpgFrontend can detect and notify the user whether the primary
-key exists or not, which is critical since certain actions, such as adding
-subkeys or signing other keys, necessitate the presence of the primary key.
+#### The Role of Primary Key and Subkeys
 
-#### Some practical tips
+- **Primary Key**: The primary key is the cornerstone of your cryptographic
+  identity. It is used for identity verification, which includes signing other
+  keys to establish trust. The primary key's signature on a subkey validates the
+  subkey's association with the identity of the primary key holder.
 
-Once generated, the primary key's intended purpose cannot be altered. However,
-if a subkey has been designated for a specific purpose that the primary key
-lacks, the key pair can still be utilized for activities related to that
-purpose.
+- **Subkeys**: Subkeys are associated with the primary key and are used for
+  encryption and signing documents or messages. Subkeys can be thought of as
+  extensions of the primary key, each designated for specific tasks. This
+  separation of duties allows for greater security and operational flexibility.
+  For example, you can have separate subkeys for signing and encryption.
 
-For instance, suppose you overlooked the encryption usage while creating the key
-pair. In that case, generating a subkey and configuring it for encryption usage
-would enable the key pair to perform encryption operations.
+#### Advantages of Using Subkeys
+
+1. **Enhanced Security**: By using subkeys for day-to-day operations, you
+   minimize the risk associated with key exposure. If a subkey is compromised,
+   it can be revoked without affecting the primary key or other subkeys, thereby
+   limiting the potential damage.
+
+2. **Operational Flexibility**: Subkeys allow for specific roles (e.g., signing,
+   encryption) to be isolated. This means you can renew or revoke subkeys as
+   needed without disrupting the overall cryptographic setup.
+
+3. **Convenient Key Rotation**: Regularly updating keys is a best practice in
+   cryptography. Subkeys make it easier to rotate keys for signing and
+   encryption without needing to re-establish the primary key's trust
+   relationships.
+
+#### Managing Primary Keys and Subkeys
+
+- **Secure Storage**: The primary key should be stored in a highly secure
+  location, preferably offline or in a hardware security module (HSM), to
+  prevent unauthorized access. This is because the loss or compromise of the
+  primary key jeopardizes the entire cryptographic framework.
+
+- **Key Generation and Maintenance**: While tools like GpgFrontend provide
+  user-friendly interfaces for managing keys, they may lack support for advanced
+  operations like generating multiple subkeys. Therefore, using the command-line
+  `gpg` tool for such tasks is advisable. Despite this limitation, GpgFrontend
+  can play a critical role in monitoring the presence of the primary key, which
+  is essential for certain operations like adding subkeys or signing other keys.
+
+- **Revocation and Renewal**: Prepare revocation certificates for your primary
+  key and subkeys in advance. In case of key compromise or expiration, these
+  certificates allow you to invalidate the keys, informing others in your trust
+  network not to use them anymore.
+
+#### Practical Tips for Effective Key Management
+
+- **Purpose-Specific Subkeys**: If your primary key was not generated with
+  certain capabilities (e.g., encryption), you can create a subkey with the
+  required functionality. This allows the key pair to be used for the intended
+  cryptographic operations without regenerating the primary key.
+
+- **Multiple Subkeys for Different Devices**: For users operating across
+  multiple devices, generating separate subkeys for each device can enhance
+  security. If one device is compromised, only the subkey on that device needs
+  to be revoked, leaving the others unaffected.
+
+- **Backup and Recovery**: Regularly back up your key pair, including the
+  primary key and all subkeys. Secure backups ensure that you can recover your
+  cryptographic capabilities even in the event of hardware failure or data loss.
+
+In summary, understanding and implementing a robust key management strategy,
+with a clear distinction between primary keys and subkeys, is essential for
+maintaining the integrity and security of cryptographic operations. By adhering
+to best practices for key usage, storage, and renewal, users can safeguard their
+digital identities and ensure the confidentiality and authenticity of their
+communications.

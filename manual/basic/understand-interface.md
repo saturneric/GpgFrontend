@@ -129,6 +129,7 @@ step.
 
 - **Type**: This column informs you about the key type and whether the primary
   key exists in your key pair.
+
   - `pub` signifies that it is a public key, which can be used for encryption or
     verification operations.
   - `pub/sec` indicates that the key pair contains both public and private keys.

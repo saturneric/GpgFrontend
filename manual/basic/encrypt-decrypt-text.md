@@ -1,9 +1,57 @@
 # Encrypt & Decrypt Text
 
-To begin encryption and decryption operations, you must first prepare your plain
-text. Additionally, you will need a public key that is capable of performing
-encryption operations. Information on how to generate such a key can be found in
-the chapter on generating a key pair.
+The processes of encryption and decryption are fundamental to ensuring the
+privacy and security of digital communications. GpgFrontend, a graphical
+interface for GnuPG, simplifies these operations, making it accessible for users
+to securely encrypt and decrypt text. Before diving into the specifics of how
+GpgFrontend facilitates these operations, it's essential to understand the
+underlying concepts and the prerequisites for encryption and decryption.
+
+Encryption is the process of converting plain text into a scrambled format known
+as ciphertext, which is unreadable to anyone except those who possess the
+correct key to decrypt it. This transformation is done using an encryption
+algorithm and a key. In the context of GpgFrontend and most modern encryption
+practices, this key is the recipient's public key. A public key is part of a key
+pair that includes a private key; together, they are used in asymmetric
+encryption, a cornerstone of modern cryptography.
+
+To initiate encryption with GpgFrontend, the sender must first have access to
+the recipient's public key. This key is used to encrypt the message, ensuring
+that only the recipient, who holds the corresponding private key, can decrypt
+and read the message. The public key can encrypt messages, but cannot decrypt
+them. This is a crucial aspect of asymmetric cryptography: it allows anyone to
+send encrypted messages to the key owner without being able to decrypt messages
+encrypted with that same public key.
+
+Generating a key pair is the first step in being able to engage in these secure
+communications. This process usually involves choosing a key type and size, with
+larger keys offering higher security. Once generated, the key pair consists of a
+private key, which must be kept secure and confidential, and a public key, which
+can be shared with anyone who wishes to send you encrypted messages.
+
+Decrypting a message with GpgFrontend requires the private key corresponding to
+the public key used for encryption. Upon receiving an encrypted message, the
+recipient uses their private key with GpgFrontend to decrypt the ciphertext back
+into readable plain text. This decryption process is secure because the private
+key is never shared, and it is computationally infeasible for an attacker to
+derive the private key from the public key or the encrypted message.
+
+GpgFrontend streamlines these operations, providing a user-friendly interface
+that abstracts the complexities of cryptographic operations. Users can easily
+import public keys, encrypt messages or files for specific recipients, and
+decrypt incoming messages or files using their private keys. This makes
+GpgFrontend an invaluable tool for anyone needing to secure their digital
+communications, from sensitive personal correspondence to confidential business
+communications.
+
+In summary, encryption and decryption with GpgFrontend rely on the foundational
+principles of asymmetric cryptography, where a public key is used for
+encryption, and a corresponding private key is used for decryption. Before
+engaging in these operations, users must generate a key pair and share their
+public key with those from whom they wish to receive encrypted messages. This
+setup ensures that only intended recipients can read the contents of encrypted
+communications, providing a robust framework for privacy and security in the
+digital age.
 
 ## Encrypt
 
@@ -11,20 +59,6 @@ The Encrypt operation itself uses a public key and does not require a private
 key. Remember that whoever you want to send it to encrypts it with whose public
 key. For people who don't use gpg very often, they often get confused and use
 their own keys to encrypt ciphertext.
-
-Note that if you want to encrypt your text and send it to "foo", you need to
-know foo's public key first. Then you need to encrypt your text with foo's
-public key instead of using your public key. Before encrypting, check to see if
-the public key has cryptographic capabilities. This can be viewed in the usage
-column of the key toolbox (the letter E stands for encryption).
-
-It is worth mentioning that if you only use foo's public key to encrypt the
-ciphertext, no one but foo's own private key can decrypt the ciphertext. There
-is a situation where you want ciphertexts to be decrypted by multiple people (
-including yourself), please check their corresponding public keys before doing
-so. After an encryption operation, if you misuse (some people's public keys are
-found to be missing), you can use the undo operation to restore your original
-ciphertext before closing GpgFrontend.
 
 ### Only Encrypt
 
@@ -37,7 +71,7 @@ After the encryption operation, no additional information will be displayed in
 the information board except for a prompt indicating whether the operation was
 successful.
 
-![Peek 2022-01-12 07-16](https://image.cdn.bktus.com/i/2023/11/16/07c99019-318a-3b85-ea63-0d473ebcd7ec.gif)
+![Only Encrypt](https://image.cdn.bktus.com/i/2023/11/16/07c99019-318a-3b85-ea63-0d473ebcd7ec.gif)
 
 ### Encrypt Sign
 
@@ -63,8 +97,7 @@ The ciphertext generated by this operation is longer than ciphertext generated
 by only encryption because of the additional signature information attached to
 it. After the operation is complete, information about the cryptographic and
 signature operations will be displayed in the Infomation Board, including
-information about the signature pattern and algorithm used. Note that the dates
-used in the signature messages are in UTC, not your local time.
+information about the signature pattern and algorithm used.
 
 To verify the authenticity of the ciphertext before decryption, you can use the
 validate operation. Once the ciphertext is verified, you can proceed with
@@ -79,7 +112,7 @@ into GpgFrontend, and it will automatically select the appropriate private key
 for decryption. It is important to note that decryption must be performed with
 the private key associated with the public key used for encryption.
 
-![Peek 2022-01-12 07-18](https://image.cdn.bktus.com/i/2023/11/16/a4ded61d-fb5b-cbf2-f0ec-e3b26e79f172.gif)
+![Decrypt](https://image.cdn.bktus.com/i/2023/11/16/a4ded61d-fb5b-cbf2-f0ec-e3b26e79f172.gif)
 
 When decrypting a ciphertext, it is not necessary to check the usage column in
 the key toolbox to determine if the key is valid for decryption. Instead, you
@@ -91,13 +124,13 @@ failure message.
 
 ## Decrypt Verify
 
-During decryption with verification, GPG will check the signature attached to
+During decryption with verification, gpg will check the signature attached to
 the ciphertext to ensure its authenticity. This provides an additional layer of
 security and helps to prevent tampering with the encrypted message.
 
 To perform decryption with verification, you need to select a file with a ".gpg"
 or ".asc" extension, which contains the ciphertext and signature content. If the
-signature is valid, GPG will decrypt the message and display it in plain text.
+signature is valid, gpg will decrypt the message and display it in plain text.
 Otherwise, it will display an error message indicating that the signature is not
 valid.
 
@@ -108,4 +141,4 @@ always verify the signature during decryption, regardless of whether the
 encryptor has signed in advance. This helps to ensure the authenticity and
 integrity of the decrypted message.
 
-![Peek 2022-01-12 07-10](https://image.cdn.bktus.com/i/2023/11/16/9e06ce22-f98d-47f1-ea76-e4e23b6dd32d.gif)
+![Decrypt Verify](https://image.cdn.bktus.com/i/2023/11/16/9e06ce22-f98d-47f1-ea76-e4e23b6dd32d.gif)
