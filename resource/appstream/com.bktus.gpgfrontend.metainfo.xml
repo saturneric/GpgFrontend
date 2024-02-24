@@ -12,10 +12,10 @@
 
   <description>
     <p>
-      GpgFrontend is a free, open-source, robust yet user-friendly, compact and cross-platform tool for OpenPGP encryption.
+      Gpg Frontend is a free, open-source, robust yet user-friendly, compact and cross-platform tool for OpenPGP encryption.
     </p>
     <p>
-      By using GpgFrontend, users can quickly encrypt files or text, easily digitally sign them, and conveniently manage 
+      By using Gpg Frontend, users can quickly encrypt files or text, easily digitally sign them, and conveniently manage 
       all GPG keys on their device. The tool also facilitates the secure and seamless transfer of GPG keys between devices. 
       It is compatible with a range of operating systems, including Windows, macOS, Linux, and FreeBSD.
     </p>
