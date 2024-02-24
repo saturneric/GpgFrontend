@@ -21,9 +21,11 @@ the program's settings.
 ## File Browser
 
 From the top menu's "File" option, you can access the file browser by pressing
-Ctrl/Command + B. By using the file browser, you can navigate to your working
-directory and right-click on the file you wish to work with. This will open a
-pop-up menu, where you can select the operation you want to perform on the file.
+Ctrl/Command + B. After choosing target directory at system navigator, you
+can then use the file browser tab to do some operations on files. By using the
+file browser, you can navigate to your working directory and right-click on the
+file you wish to work with. This will open a pop-up menu, where you can select
+the operation you want to perform on the file.
 
 ![image-20220112072034647](https://image.cdn.bktus.com/i/2023/11/16/6a137a63-ae76-d45c-b425-5c3e5961aa2d.webp)
 

@@ -1,70 +1,72 @@
 # Code & Binary Verify
 
-Some users of this software have relatively high requirements for security, so here are instructions on how to verify
-whether the code and executable files have been tampered with.If you find that the signature is incorrect, please stop
-using it immediately.
+To enhance the security and integrity of software distribution, it's crucial for
+developers and users alike to employ methods for verifying the authenticity and
+integrity of code and executable files. The process outlined below aims to
+fortify trust in software distribution by leveraging digital signatures and
+secure, automated build processes.
 
-## Code compilation
+### Automated Build Process
 
-When you see the document, every binary file version released on github is automatically compiled after submission using **Github Actions**. The generation of the final code is completely done by Github Actions. I will not compile the code on my local machine, but may use my machine to sign the packaged code. The code for all release versions comes from the main branch of the Github repository.
+Our software leverages **GitHub Actions** for automated compilations, ensuring
+that every binary file version released is directly compiled from the source
+code stored in the GitHub repository's main branch. This approach guarantees
+that the compilation process is transparent, replicable, and free from manual
+interference. The exact commands and environment configurations used during the
+compilation are documented within the project's `.github/workflow/release.yml`
+file, allowing for full accountability and reproducibility.
 
-All commands and environment configuration at compile time can be consulted in the project
-code(`.github/workflow/release.yml`).
+### Third-Party Library Assurance
 
-## Introduction of third-party libraries
+To uphold our commitment to security, we do not include GnuPG in our major
+releases and strictly avoid insecure or proprietary third-party libraries.
+Instead, we only utilize third-party libraries that are open-source and have
+been compiled from publicly accessible code repositories. This practice ensures
+that our software remains secure and trustworthy.
 
-For safety reasons, GnuPG will not be available in the major releases of GpgFrontned. GpgFrontnend will not use insecure or non-open source third-party libraries. The compiled version of the third-party library comes from the public code repository.
+### Code Verification
 
-## Verify Code
+We encourage users to review our code to ensure its integrity and security. The
+code for all releases is available on our GitHub repository. For any inquiries
+or concerns, please feel free to contact us directly. Most new git commits are
+signed with a designated key, which is also used for Git operations: `Saturneric
+<eric@bktus.com>`. This commitment to transparency allows users to verify the
+authenticity of our code easily.
 
-If you have the need, interest or time, you are welcome to review the code that I use and write. When you have any
-questions, please feel free to [Contact ME](../contract.md).
+#### Key Fingerprint
 
-I will sign most new git commit. The key I use is the key that I use to perform Git related operations:
-Saturneric\<eric@bktus.com\>. It will be given at the end of this description. For information about signing git commits, you
-can see it on the github interface.
-
-The fingerprint of the key is now given:
-
-```text
+```
 E3379489C39B7270E70E2E303AAF1C64137CEE57
 ```
 
-## Verify Release Binary Verify
+### Binary File Verification
 
-### ZIP package Sign
+From version 1.0.5 onwards, we sign our packages containing the binary
+executable files with a GPG key to further ensure security. Each package is
+accompanied by a signature file in the release section (with a `.sig` suffix),
+allowing users to verify the package before use using standard GPG tools.
 
-Starting from version 1.0.5, I will use the Gpg key to sign the ZIP package that contains the binary executable file.
-Each ZIP compressed package will be accompanied by a signature file in the Release (end with sig suffix). You can use
-the gpg command tool to verify them before use. 
+#### About Interface Verification
 
-The key used for binary signature is Saturneric\<eric@bktus.com\>. This is my official key and will be given below.
+Our software includes an "About" interface accessible from the help menu,
+providing users with information about the software version, platform, and the
+specific GitHub repository branch and commit hash used for compiling the binary.
+This feature adds an extra layer of transparency and verification for users.
 
-The fingerprint of the key is now given:
+### Public Key for Verification
 
-```text
+Below is the public key used for signing the commits and binary files, which can
+be used to verify the authenticity of our releases:
+
+#### Key Fingerprint
+
+```
 E3379489C39B7270E70E2E303AAF1C64137CEE57
 ```
 
-## Check on About Interface
+#### Public Key (OpenPGP)
 
-There is an About interface under the help option in the top menu.You can check the version and platform of this binary
-file. More importantly, you can view the github repository branch and commit hash code corresponding to the source code
-used for compilation of this binary version on the second line.
-
-![About Interface](https://image.cdn.bktus.com/i/2023/11/16/b460a4ce-6d9e-b3e1-236f-92d97ad5f87e.webp)
-
-## Pubkey Mentioned Above
-
-#### Fingerprint
-
-```text
-E3379489C39B7270E70E2E303AAF1C64137CEE57
 ```
-
-#### Pubkey Content (OpenPGP)
-
-```text
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQGNBGCVnvEBDACuEcjxckb4rocHGU7VPT/OOOOZapNG/0ViB3XhmzNh7q8QJiq6
@@ -148,5 +150,9 @@ v3fSDNozRpd0LXK7J4QGwtOBVivNf7XDQOx5ZXbh/HTQuTG2/8FMCbwUwPYFLx07
 hHHFn9+/wu20
 =bgvm
 -----END PGP PUBLIC KEY BLOCK-----
-
 ```
+
+This comprehensive approach to security, including automated builds, careful
+selection of third-party libraries, and transparent verification methods,
+ensures that users can trust the software they are using while also providing
+the tools needed to verify that trust independently.
