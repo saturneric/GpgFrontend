@@ -1,4 +1,4 @@
-<img width="100" height="100" align="right" style="position: absolute;right: 0;padding: 12px;top:12px;" src="https://image.cdn.bktus.com/i/2024/02/24/248b2e18-a120-692e-e6bc-42ca30be9011.webp" alt="ICON"/>
+<img width="100" height="100" align="right" style="position: absolute;right: 0;padding: 12px;top:12px;" src="https://image.cdn.bktus.com/i/2024/02/24/248b2e18-a120-692e-e6bc-42ca30be9011.webp" alt="GpgFrontend"/>
 
 # GpgFrontend
 
@@ -36,7 +36,7 @@ GpgFrontend is **PERMANENTLY FREE** of charge. However, you can support us by
   - [Contract](#contract)
     - [Contributing \& Bugs Report](#contributing--bugs-report)
     - [Project Maintainer](#project-maintainer)
-    - [Project's LOGO](#projects-logo)
+    - [Project's Logo](#projects-logo)
   - [LICENSES](#licenses)
 
 ## User Manual
@@ -84,9 +84,9 @@ to use GitHub. For anonymous users, Git patches can be delivered by [mail](mailt
 
 [@Saturneric](https://github.com/saturneric)
 
-### Project's LOGO
+### Project's Logo
 
-![logo](https://image.cdn.bktus.com/i/2024/02/24/711a24f4-f42c-37ff-296f-32a79105448d.webp)
+<img width="256" height="256" src="https://image.cdn.bktus.com/i/2024/02/24/f3f2f26a-96b4-65eb-960f-7ac3397a0a40.webp" alt="Logo"/>
 
 ## LICENSES
 
