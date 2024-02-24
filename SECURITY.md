@@ -13,37 +13,41 @@ it's recommended to always use the latest version of the application.
 | ------- | ------------------ |
 | 1.x.x   | :x:                |
 | 2.x.x   | :x:                |
-| 2.1.x   | :white_check_mark: |
+| 2.1.x   | :x:                |
+| 2.2.x   | :white_check_mark: |
 
 ## Platform & Library Support
 
-In light of security considerations and limited time available for contribution,
-GpgFrontend will gradually cease to support certain older platforms.
-Furthermore, GpgFrontend will aim to utilize newer and more secure libraries
-whenever possible.
+In light of security considerations and the limited time available for
+contribution, GpgFrontend will gradually cease to support certain older
+platforms. Furthermore, GpgFrontend aims to utilize newer and more secure
+libraries whenever possible.
 
-As of version v1.0.0, we no longer support x32 operating systems. This decision
-stems from time constraints and the dwindling usage of x32 machines in the PC
-market. Consequently, I plan to cease dealing with complex issues associated
-with this system. x64 should suffice for most users, or alternatively, gpg4usb
-can be used.
+As of version v1.0.0, we have discontinued support for x32 operating systems due
+to time constraints and the declining usage of x32 machines in the PC market.
+Therefore, we plan to stop addressing complex issues associated with this
+system. For most users, x64 should suffice, or alternatively, gpg4usb can be
+used.
 
-As of version v2.0.1, we no longer support Ubuntu 16.04, as the LTS life cycle
-of this version had ended by then. Continuing to use this version of Ubuntu is
-therefore not safe.
+As of version v2.0.1, we have ceased to support Ubuntu 16.04, as the LTS life
+cycle for this version had ended by that time. Continuing to use this version of
+Ubuntu is therefore not safe.
 
 From version v2.1.0 onwards, we no longer support macOS 10.15, due to its
-impending discontinuation by GitHub Action. Considering its age, and the
+impending discontinuation by GitHub Action. Considering its age and the
 likelihood of Apple discontinuing support soon, it seems prudent to drop it.
 
-As of version v2.1.1, we no longer support Ubuntu 18.04, as it isn't supported
-by GitHub Action since April 3rd. Thus, all builds will transition to Qt6, since
-Ubuntu 20.04 is compatible with Qt6.
+As of version v2.1.1, we have stopped supporting Ubuntu 18.04, as it is no
+longer supported by GitHub Action since April 3rd. Consequently, all builds will
+transition to Qt6, since Ubuntu 20.04 is compatible with Qt6.
 
-Starting from v2.1.2, the Qt5 API will be removed from the source code. This
-implies that the entire project will now utilize the Qt6 API and will no longer
-compile under Qt5. Consideration is being given to removing the deb package
-build as well.
+Starting from version v2.1.2, access to the Qt5 API in the source code will be
+controlled through macro definitions, allowing for a conditional compilation of
+Qt5 code. This change indicates that while the project will focus on utilizing
+the Qt6 API, it will still provide a means to support Qt5 compilation,
+especially on the Windows platform where a special Qt5 build will be maintained.
+However, the Linux and macOS platforms will primarily move forward with Qt6,
+with ongoing consideration to discontinue the deb package build.
 
 ## Reporting a Vulnerability
 
