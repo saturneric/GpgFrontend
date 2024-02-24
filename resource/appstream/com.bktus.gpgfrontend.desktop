@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Name=GpgFrontend
+Name=Gpg Frontend
 Exec=GpgFrontend
 Icon=com.bktus.gpgfrontend
 Comment=Encrypt and sign data
