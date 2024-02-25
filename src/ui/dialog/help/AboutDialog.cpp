@@ -78,8 +78,8 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
       "core", "gpgme.version", QString{"2.0.0"});
   GF_UI_LOG_DEBUG("got gpgme version from rt: {}", gpgme_version);
 
-  auto pixmap = QPixmap(":/icons/logo.png");
-  pixmap = pixmap.scaled(200, 200);
+  auto pixmap = QPixmap(":/icons/gpgfrontend_logo.png");
+  pixmap = pixmap.scaled(128, 128);
 
   auto text =
       "<center><h2>" + qApp->applicationName() + "</h2></center>" +

@@ -36,8 +36,9 @@ namespace GpgFrontend::UI {
 
 GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
     : QApplication(argc, argv) {
-#ifndef MACOS
-  this->setWindowIcon(QIcon(":/icons/gpgfrontend.png"));
+#if defined(DEBUG) || !defined(MACOS)
+  GpgFrontend::UI::GpgFrontendApplication::setWindowIcon(
+      QIcon(":/icons/gpgfrontend.png"));
 #endif
 
   // set the extra information of the build

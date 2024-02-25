@@ -42,7 +42,8 @@ Wizard::Wizard(QWidget* parent) : QWizard(parent) {
 #endif
   setWindowTitle(tr("First Start Wizard"));
 
-  setPixmap(QWizard::LogoPixmap, QPixmap(":/icons/logo.png").scaled(64, 64));
+  setPixmap(QWizard::LogoPixmap,
+            QPixmap(":/icons/gpgfrontend_logo.png").scaled(64, 64));
 
   int next_page_id = GlobalSettingStation::GetInstance()
                          .GetSettings()
