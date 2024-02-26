@@ -30,6 +30,8 @@
 
 namespace GpgFrontend {
 
-auto GPGFRONTEND_CORE_EXPORT GetFormatedDateByTimestamp(time_t) -> QString;
+auto GPGFRONTEND_CORE_EXPORT GetLocalizedDateByTimestamp(time_t) -> QString;
 
-}
+auto GPGFRONTEND_CORE_EXPORT GetUTCDateByTimestamp(time_t) -> QString;
+
+}  // namespace GpgFrontend

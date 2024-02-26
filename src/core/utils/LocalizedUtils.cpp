@@ -32,7 +32,12 @@
 
 namespace GpgFrontend {
 
-auto GetFormatedDateByTimestamp(time_t timestamp) -> QString {
+auto GetLocalizedDateByTimestamp(time_t timestamp) -> QString {
   return QLocale().toString(QDateTime::fromSecsSinceEpoch(timestamp));
 }
+
+auto GetUTCDateByTimestamp(time_t timestamp) -> QString {
+  return QLocale().toString(QDateTime::fromSecsSinceEpoch(timestamp).toUTC());
+}
+
 }  // namespace GpgFrontend
