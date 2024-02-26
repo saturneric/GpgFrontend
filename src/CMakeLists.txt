@@ -468,7 +468,8 @@ endif ()
 # add i18n support
 if (BUILD_APPLICATION)
     set(LOCALE_TS_PATH ${CMAKE_SOURCE_DIR}/resource/lfs/locale/ts)
-    set(TS_FILES "${LOCALE_TS_PATH}/GpgFrontend.de_DE.ts"
+    set(TS_FILES "${LOCALE_TS_PATH}/GpgFrontend.en_US.ts" 
+                "${LOCALE_TS_PATH}/GpgFrontend.de_DE.ts"
                 "${LOCALE_TS_PATH}/GpgFrontend.fr_FR.ts"
                 "${LOCALE_TS_PATH}/GpgFrontend.zh_CN.ts"
                 "${LOCALE_TS_PATH}/GpgFrontend.zh_TW.ts"
