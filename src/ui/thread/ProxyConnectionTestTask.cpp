@@ -30,6 +30,8 @@
 
 #include <QtNetwork>
 
+#include "GpgFrontendBuildInfo.h"
+
 GpgFrontend::UI::ProxyConnectionTestTask::ProxyConnectionTestTask(QString url,
                                                                   int timeout)
     : Task("proxy_connection_test_task"),
@@ -40,7 +42,10 @@ GpgFrontend::UI::ProxyConnectionTestTask::ProxyConnectionTestTask(QString url,
 }
 
 auto GpgFrontend::UI::ProxyConnectionTestTask::Run() -> int {
-  auto* network_reply = network_manager_->get(QNetworkRequest{url_});
+  auto request = QNetworkRequest(url_);
+  request.setHeader(QNetworkRequest::UserAgentHeader, HTTP_REQUEST_USER_AGENT);
+
+  auto* network_reply = network_manager_->get(request);
   auto* timer = new QTimer(this);
 
   connect(network_reply, &QNetworkReply::finished, this,

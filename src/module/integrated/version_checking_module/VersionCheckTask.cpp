@@ -50,8 +50,10 @@ auto VersionCheckTask::Run() -> int {
   QString latest_version_url =
       "https://api.github.com/repos/saturneric/gpgfrontend/releases/latest";
 
-  QNetworkRequest latest_request;
-  latest_request.setUrl(QUrl(latest_version_url));
+  QNetworkRequest latest_request(latest_version_url);
+  latest_request.setHeader(QNetworkRequest::UserAgentHeader,
+                           HTTP_REQUEST_USER_AGENT);
+
   latest_reply_ = network_manager_->get(latest_request);
   connect(latest_reply_, &QNetworkReply::finished, this,
           &VersionCheckTask::slot_parse_latest_version_info);
@@ -109,8 +111,10 @@ void VersionCheckTask::slot_parse_latest_version_info() {
         current_version_;
     MODULE_LOG_DEBUG("current version info query url: {}", current_version_url);
 
-    QNetworkRequest current_request;
-    current_request.setUrl(QUrl(current_version_url));
+    QNetworkRequest current_request(current_version_url);
+    current_request.setHeader(QNetworkRequest::UserAgentHeader,
+                              HTTP_REQUEST_USER_AGENT);
+
     current_reply_ = network_manager_->get(current_request);
 
     connect(current_reply_, &QNetworkReply::finished, this,

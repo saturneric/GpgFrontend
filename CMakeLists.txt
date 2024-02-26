@@ -250,6 +250,10 @@ IF (MINGW)
             ${CMAKE_SOURCE_DIR}/lib/mingw
             /mingw64/lib
     )
+
+    # Http Request User Agent
+    set(HTTP_REQUEST_USER_AGENT "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0")
+
 endif ()
 
 # macOS
@@ -277,6 +281,10 @@ if (APPLE)
             /usr/local/lib
             /opt/homebrew/lib
     )
+
+    # Http Request User Agent
+    set(HTTP_REQUEST_USER_AGENT "Mozilla/5.0 (Macintosh; Intel Mac OS X 14.3; rv:123.0) Gecko/20100101 Firefox/123.0")
+
 endif ()
 
 if (UNIX AND NOT APPLE)
@@ -318,6 +326,9 @@ if (LINUX)
             /usr/lib/
             /usr/local/lib/
     )
+
+    # Http Request User Agent
+    set(HTTP_REQUEST_USER_AGENT "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:123.0) Gecko/20100101 Firefox/123.0")
 
 endif ()
 
