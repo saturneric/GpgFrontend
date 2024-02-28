@@ -34,21 +34,20 @@
 
 namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 
-class GPGFRONTEND_INTEGRATED_MODULE_VERSION_CHECKING_EXPORT
-    VersionCheckingModule : public Module {
+class GF_MODULE_EXPORT VersionCheckingModule : public Module {
   Q_OBJECT
  public:
   VersionCheckingModule();
 
   ~VersionCheckingModule() override;
 
-  auto Register() -> bool override;
+  auto Register() -> int override;
 
-  auto Active() -> bool override;
+  auto Active() -> int override;
 
   auto Exec(EventRefrernce) -> int override;
 
-  auto Deactive() -> bool override;
+  auto Deactive() -> int override;
 
  signals:
 

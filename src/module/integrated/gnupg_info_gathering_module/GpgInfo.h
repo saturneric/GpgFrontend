@@ -28,7 +28,6 @@
 
 #pragma once
 
-namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule {
 /**
  * @brief  Use to record some info about gnupg
  *
@@ -83,5 +82,3 @@ struct GpgOptionsInfo {
 
   [[nodiscard]] auto Json() const -> QJsonObject;
 };
-
-}  // namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule

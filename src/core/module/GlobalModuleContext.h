@@ -58,6 +58,8 @@ class GPGFRONTEND_CORE_EXPORT GlobalModuleContext : public QObject {
 
   ~GlobalModuleContext() override;
 
+  auto SearchModule(ModuleIdentifier) -> ModulePtr;
+
   auto GetChannel(ModuleRawPtr) -> int;
 
   static auto GetDefaultChannel(ModuleRawPtr) -> int;
@@ -77,6 +79,8 @@ class GPGFRONTEND_CORE_EXPORT GlobalModuleContext : public QObject {
   auto ListenEvent(ModuleIdentifier, EventIdentifier) -> bool;
 
   auto TriggerEvent(EventRefrernce) -> bool;
+
+  auto SearchEvent(EventTriggerIdentifier) -> std::optional<EventRefrernce>;
 
   auto IsModuleActivated(ModuleIdentifier) -> bool;
 

@@ -34,13 +34,17 @@
 namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 
 auto VersionCheckingModule::SoftwareVersion::NeedUpgrade() const -> bool {
-  MODULE_LOG_DEBUG("compair version current {} latest {}, result {}",
-                   current_version, latest_version,
-                   CompareSoftwareVersion(current_version, latest_version));
+  ModuleLogDebug(
+      fmt::format("compair version current {} latest {}, result {}",
+                  current_version, latest_version,
+                  CompareSoftwareVersion(current_version, latest_version))
+          .c_str());
 
-  MODULE_LOG_DEBUG("load done: {}, pre-release: {}, draft: {}", loading_done,
-                   latest_prerelease_version_from_remote,
-                   latest_draft_from_remote);
+  ModuleLogDebug(fmt::format("load done: {}, pre-release: {}, draft: {}",
+                             loading_done,
+                             latest_prerelease_version_from_remote,
+                             latest_draft_from_remote)
+                     .c_str());
   return loading_done && !latest_prerelease_version_from_remote &&
          !latest_draft_from_remote &&
          CompareSoftwareVersion(current_version, latest_version) < 0;

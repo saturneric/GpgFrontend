@@ -28,8 +28,6 @@
 
 #include "module/integrated/gnupg_info_gathering_module/GpgInfo.h"
 
-namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule {
-
 GpgOptionsInfo::GpgOptionsInfo(const QJsonObject &j) {
   if (const auto v = j["name"]; v.isString()) name = v.toString();
   if (const auto v = j["flags"]; v.isString()) flags = v.toString();
@@ -38,8 +36,9 @@ GpgOptionsInfo::GpgOptionsInfo(const QJsonObject &j) {
   if (const auto v = j["type"]; v.isString()) type = v.toString();
   if (const auto v = j["alt_type"]; v.isString()) alt_type = v.toString();
   if (const auto v = j["argname"]; v.isString()) argname = v.toString();
-  if (const auto v = j["default_value"]; v.isString())
+  if (const auto v = j["default_value"]; v.isString()) {
     default_value = v.toString();
+  }
   if (const auto v = j["argdef"]; v.isString()) argdef = v.toString();
   if (const auto v = j["value"]; v.isString()) value = v.toString();
 }
@@ -74,7 +73,7 @@ GpgComponentInfo::GpgComponentInfo(const QJsonObject &j) {
   if (const auto v = j["desc"]; v.isString()) desc = v.toString();
   if (const auto v = j["version"]; v.isString()) version = v.toString();
   if (const auto v = j["path"]; v.isString()) path = v.toString();
-  if (const auto v = j["binary_checksum"]; v.isString())
+  if (const auto v = j["binary_checksum"]; v.isString()) {
     binary_checksum = v.toString();
+  }
 }
-}  // namespace GpgFrontend::Module::Integrated::GnuPGInfoGatheringModule

@@ -30,13 +30,9 @@
 
 #include <core/module/ModuleManager.h>
 
+#include "Module.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
-
-// integrated modules
-#include "integrated/gnupg_info_gathering_module/GnuPGInfoGatheringModule.h"
-#include "integrated/version_checking_module/VersionCheckingModule.h"
-#include "spdlog/common.h"
 
 namespace GpgFrontend::Module {
 
@@ -45,17 +41,28 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
   Thread::TaskRunnerGetter::GetInstance().GetTaskRunner()->PostTask(
       new Thread::Task(
           [](const DataObjectPtr&) -> int {
-            MODULE_LOG_INFO("loading integrated module...");
+            MODULE_LOG_INFO("loading modules...");
 
-            // VersionCheckingModule
-            RegisterAndActivateModule<
-                Integrated::VersionCheckingModule::VersionCheckingModule>();
+            auto exec_binary_path = QCoreApplication::applicationDirPath();
+            auto mods_path = exec_binary_path + "/mods";
 
-            // VersionCheckingModule
-            RegisterAndActivateModule<Integrated::GnuPGInfoGatheringModule::
-                                          GnuPGInfoGatheringModule>();
+            if (!QDir(mods_path).exists()) {
+              MODULE_LOG_WARN("module directory not found, abort...");
+              return -1;
+            }
 
-            MODULE_LOG_INFO("load integrated module done.");
+            MODULE_LOG_INFO("the path of modules directory: {}", mods_path);
+
+            for (const auto& module_library_name :
+                 QDir(mods_path).entryList(QStringList() << "*.so"
+                                                         << "*.dll"
+                                                         << "*.dylib",
+                                           QDir::Files)) {
+              ModuleManager::GetInstance().LoadModule(mods_path + "/" +
+                                                      module_library_name);
+            }
+
+            MODULE_LOG_INFO("load modules done.");
             return 0;
           },
           "modules_system_init_task"));

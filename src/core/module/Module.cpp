@@ -43,7 +43,60 @@ class Module::Impl {
       : m_ptr_(m_ptr),
         identifier_(std::move(id)),
         version_(std::move(version)),
-        meta_data_(std::move(meta_data)) {}
+        meta_data_(std::move(meta_data)),
+        good_(true) {}
+
+  Impl(ModuleRawPtr m_ptr, QLibrary& module_library)
+      : m_ptr_(m_ptr), good_(false) {
+    for (auto& required_symbol : module_required_symbols_) {
+      *required_symbol.pointer =
+          reinterpret_cast<void*>(module_library.resolve(required_symbol.name));
+      if (*required_symbol.pointer == nullptr) {
+        GF_CORE_LOG_WARN(
+            "illegal module: {}, reason: cannot load symbol: {}, abort...",
+            module_library.fileName(), required_symbol.name);
+        return;
+      }
+    }
+
+    SPDLOG_INFO("module loaded, name: {}, verison: {}",
+                QString::fromUtf8(get_id_api_()),
+                QString::fromUtf8(get_version_api_()));
+
+    identifier_ = QString::fromUtf8(get_id_api_());
+    version_ = QString::fromUtf8(get_version_api_());
+
+    good_ = true;
+  }
+
+  [[nodiscard]] auto IsGood() const -> bool { return good_; }
+
+  auto Register() -> int {
+    if (good_ && register_api_ != nullptr) return register_api_();
+    return -1;
+  }
+
+  auto Active() -> int {
+    if (good_ && activate_api_ != nullptr) return activate_api_();
+    return -1;
+  }
+
+  auto Exec(const EventRefrernce& event) -> int {
+    if (good_ && execute_api_ != nullptr) {
+      return execute_api_(event->ToModuleEvent());
+    }
+    return -1;
+  }
+
+  auto Deactive() -> int {
+    if (good_ && deactivate_api_ != nullptr) return deactivate_api_();
+    return -1;
+  }
+
+  auto UnRegister() -> int {
+    if (good_ && unregister_api_ != nullptr) return unregister_api_();
+    return -1;
+  }
 
   auto GetChannel() -> int { return get_gpc()->GetChannel(m_ptr_); }
 
@@ -68,9 +121,35 @@ class Module::Impl {
  private:
   GlobalModuleContext* gpc_{};
   Module* m_ptr_;
-  const ModuleIdentifier identifier_;
-  const ModuleVersion version_;
-  const ModuleMetaData meta_data_;
+  ModuleIdentifier identifier_;
+  ModuleVersion version_;
+  ModuleMetaData meta_data_;
+
+  bool good_;
+  ModuleAPIGetModuleID get_id_api_;
+  ModuleAPIGetModuleVersion get_version_api_;
+  ModuleAPIGetModuleMetaData get_metadata_api_;
+  ModuleAPIRegisterModule register_api_;
+  ModuleAPIActivateModule activate_api_;
+  ModuleAPIExecuteModule execute_api_;
+  ModuleAPIDeactivateModule deactivate_api_;
+  ModuleAPIUnregisterModule unregister_api_;
+
+  struct Symbol {
+    const char* name;
+    void** pointer;
+  };
+
+  QList<Symbol> module_required_symbols_ = {
+      {"GetModuleID", reinterpret_cast<void**>(&get_id_api_)},
+      {"GetModuleVersion", reinterpret_cast<void**>(&get_version_api_)},
+      {"GetModuleMetaData", reinterpret_cast<void**>(&get_metadata_api_)},
+      {"RegisterModule", reinterpret_cast<void**>(&register_api_)},
+      {"ActiveModule", reinterpret_cast<void**>(&activate_api_)},
+      {"ExecuteModule", reinterpret_cast<void**>(&execute_api_)},
+      {"DeactiveModule", reinterpret_cast<void**>(&deactivate_api_)},
+      {"UnregisterModule", reinterpret_cast<void**>(&unregister_api_)},
+  };
 
   auto get_gpc() -> GlobalModuleContext* {
     if (gpc_ == nullptr) {
@@ -84,7 +163,24 @@ Module::Module(ModuleIdentifier id, ModuleVersion version,
                const ModuleMetaData& meta_data)
     : p_(SecureCreateUniqueObject<Impl>(this, id, version, meta_data)) {}
 
+Module::Module(QLibrary& module_library)
+    : p_(SecureCreateUniqueObject<Impl>(this, module_library)) {}
+
 Module::~Module() = default;
+
+auto Module::IsGood() -> bool { return p_->IsGood(); }
+
+auto Module::Register() -> int { return p_->Register(); }
+
+auto Module::Active() -> int { return p_->Active(); }
+
+auto Module::Exec(EventRefrernce event) -> int {
+  return p_->Exec(std::move(event));
+}
+
+auto Module::Deactive() -> int { return p_->Deactive(); }
+
+auto Module::UnRegister() -> int { return p_->UnRegister(); }
 
 auto Module::getChannel() -> int { return p_->GetChannel(); }
 

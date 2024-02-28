@@ -29,7 +29,6 @@
 #pragma once
 
 #include <mutex>
-#include <stdexcept>
 
 #include "core/GpgFrontendCoreExport.h"
 #include "core/function/basic/ChannelObject.h"

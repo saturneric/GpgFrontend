@@ -28,24 +28,7 @@
 
 #pragma once
 
-#include "GpgFrontendModuleExport.h"
-#include "module/sdk/Module.h"
-
 extern "C" {
 
-auto GF_MODULE_EXPORT GetModuleID() -> const char *;
 
-auto GF_MODULE_EXPORT GetModuleVersion() -> const char *;
-
-auto GF_MODULE_EXPORT GetModuleMetaData() -> ModuleMetaData *;
-
-auto GF_MODULE_EXPORT RegisterModule() -> int;
-
-auto GF_MODULE_EXPORT ActiveModule() -> int;
-
-auto GF_MODULE_EXPORT ExecuteModule(ModuleEvent *) -> int;
-
-auto GF_MODULE_EXPORT DeactiveModule() -> int;
-
-auto GF_MODULE_EXPORT UnregisterModule() -> int;
-};
+}

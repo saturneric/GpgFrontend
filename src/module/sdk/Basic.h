@@ -28,9 +28,31 @@
 
 #pragma once
 
-namespace GpgFrontend::Module::SDK {
+#include "GpgFrontendModuleSDKExport.h"
 
+extern "C" {
 
+using CommandExeucteCallback = void (*)(void* data, int errcode,
+                                        const char* out, const char* err);
 
+using CommandExecuteContext = struct {
+  const char* cmd;
+  int32_t argc;
+  const char** argv;
+  CommandExeucteCallback cb;
+  void* data;
+};
 
+auto GPGFRONTEND_MODULE_SDK_EXPORT AllocateMemory(uint32_t size) -> void*;
+
+void GPGFRONTEND_MODULE_SDK_EXPORT FreeMemory(void*);
+
+void GPGFRONTEND_MODULE_SDK_EXPORT ExecuteCommandSync(const char* cmd,
+                                                      int32_t argc,
+                                                      const char** argv,
+                                                      CommandExeucteCallback cb,
+                                                      void* data);
+
+void GPGFRONTEND_MODULE_SDK_EXPORT ExecuteCommandBatchSync(
+    int32_t context_size, const CommandExecuteContext* context);
 }

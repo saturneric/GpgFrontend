@@ -44,21 +44,22 @@ VersionCheckingModule::VersionCheckingModule()
 
 VersionCheckingModule::~VersionCheckingModule() = default;
 
-auto VersionCheckingModule::Register() -> bool {
-  MODULE_LOG_INFO("version checking module registering");
+auto VersionCheckingModule::Register() -> int {
+  ModuleLogInfo("version checking module registering");
   listenEvent("APPLICATION_LOADED");
   listenEvent("CHECK_APPLICATION_VERSION");
-  return true;
+  return 0;
 }
 
-auto VersionCheckingModule::Active() -> bool {
-  MODULE_LOG_INFO("version checking module activating");
-  return true;
+auto VersionCheckingModule::Active() -> int {
+  ModuleLogInfo("version checking module activating");
+  return 0;
 }
 
 auto VersionCheckingModule::Exec(EventRefrernce event) -> int {
-  MODULE_LOG_INFO("version checking module executing, event id: {}",
-                  event->GetIdentifier());
+  ModuleLogInfo(fmt::format("version checking module executing, event id: {}",
+                            event->GetIdentifier())
+                    .c_str());
 
   auto* task = new VersionCheckTask();
   connect(task, &VersionCheckTask::SignalUpgradeVersion, this,
@@ -73,10 +74,11 @@ auto VersionCheckingModule::Exec(EventRefrernce event) -> int {
   return 0;
 }
 
-auto VersionCheckingModule::Deactive() -> bool { return true; }
+auto VersionCheckingModule::Deactive() -> int { return 0; }
 
 void VersionCheckingModule::SlotVersionCheckDone(SoftwareVersion version) {
-  MODULE_LOG_DEBUG("registering software information info to rt");
+  ModuleLogDebug("registering software information info to rt");
+
   UpsertRTValue(GetModuleIdentifier(), "version.current_version",
                 version.current_version);
   UpsertRTValue(GetModuleIdentifier(), "version.latest_version",
@@ -100,6 +102,7 @@ void VersionCheckingModule::SlotVersionCheckDone(SoftwareVersion version) {
                 version.VersionWithdrawn());
   UpsertRTValue(GetModuleIdentifier(), "version.loading_done",
                 version.loading_done);
-  MODULE_LOG_DEBUG("register software information to rt done");
+
+  ModuleLogDebug("register software information to rt done");
 }
 }  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule

@@ -34,3 +34,13 @@
 #include "GpgFrontend.h"
 #include "GpgFrontendModuleExport.h"
 #include "core/GpgFrontendCore.h"
+
+/**
+ * @brief logger for inner
+ *
+ */
+#define MODULE_LOG_TRACE(...) GF_LOG_TRACE("module", __VA_ARGS__)
+#define MODULE_LOG_DEBUG(...) GF_LOG_DEBUG("module", __VA_ARGS__)
+#define MODULE_LOG_INFO(...) GF_LOG_INFO("module", __VA_ARGS__)
+#define MODULE_LOG_WARN(...) GF_LOG_WARN("module", __VA_ARGS__)
+#define MODULE_LOG_ERROR(...) GF_LOG_ERROR("module", __VA_ARGS__)

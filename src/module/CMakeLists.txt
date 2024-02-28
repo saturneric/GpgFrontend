@@ -94,7 +94,7 @@ endif ()
 
 # link all integrated modules
 message(STATUS "All Module Libraries: ${all_integrated_module_libraries}")
-target_link_libraries(gpgfrontend_module PRIVATE ${all_integrated_module_libraries})
+# target_link_libraries(gpgfrontend_module PRIVATE ${all_integrated_module_libraries})
 
 # using std c++ 17
 target_compile_features(gpgfrontend_module PUBLIC cxx_std_17)

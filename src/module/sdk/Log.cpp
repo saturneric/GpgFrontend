@@ -28,9 +28,20 @@
 
 #include "Log.h"
 
+#include "core/utils/LogUtils.h"
 
-#include <stdexcept>
+#define MODULE_LOG_TRACE(...) GF_LOG_TRACE("module", __VA_ARGS__)
+#define MODULE_LOG_DEBUG(...) GF_LOG_DEBUG("module", __VA_ARGS__)
+#define MODULE_LOG_INFO(...) GF_LOG_INFO("module", __VA_ARGS__)
+#define MODULE_LOG_WARN(...) GF_LOG_WARN("module", __VA_ARGS__)
+#define MODULE_LOG_ERROR(...) GF_LOG_ERROR("module", __VA_ARGS__)
 
-#include "core/function/GlobalSettingStation.h"
+void ModuleLogTrace(const char* l) { MODULE_LOG_TRACE(l); }
 
-namespace GpgFrontend::Module::SDK {}  // namespace GpgFrontend::Module::SDK
+void ModuleLogDebug(const char* l) { MODULE_LOG_DEBUG(l); }
+
+void ModuleLogInfo(const char* l) { MODULE_LOG_INFO(l); }
+
+void ModuleLogWarn(const char* l) { MODULE_LOG_WARN(l); }
+
+void ModuleLogError(const char* l) { MODULE_LOG_ERROR(l); }

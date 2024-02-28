@@ -28,6 +28,8 @@
 
 #include "Event.h"
 
+#include "core/utils/CommonUtils.h"
+
 namespace GpgFrontend::Module {
 
 class Event::Impl {
@@ -67,7 +69,11 @@ class Event::Impl {
 
   auto GetIdentifier() -> EventIdentifier { return event_identifier_; }
 
-  void AddParameter(const QString& key, const ParameterValue& value) {
+  auto GetTriggerIdentifier() -> EventTriggerIdentifier {
+    return trigger_uuid_;
+  }
+
+  void AddParameter(const QString& key, const QString& value) {
     data_[key] = value;
   }
 
@@ -95,9 +101,35 @@ class Event::Impl {
     }
   }
 
+  auto ToModuleEvent() -> ModuleEvent* {
+    auto* event = static_cast<ModuleEvent*>(SecureMalloc(sizeof(ModuleEvent)));
+
+    event->id = GFStrDup(event_identifier_);
+
+    ModuleEventParam* l_param = nullptr;
+    ModuleEventParam* p_param;
+
+    int index = 0;
+    for (const auto& data : data_) {
+      p_param = static_cast<ModuleEventParam*>(
+          SecureMalloc(sizeof(ModuleEventParam)));
+      if (index++ == 0) event->params = p_param;
+
+      p_param->name = GFStrDup(data.first);
+      p_param->value = GFStrDup(data.second);
+      p_param->next = nullptr;
+
+      l_param->next = p_param;
+      l_param = p_param;
+    }
+
+    return event;
+  }
+
  private:
   EventIdentifier event_identifier_;
-  std::map<QString, ParameterValue> data_;
+  EventTriggerIdentifier trigger_uuid_ = QUuid::createUuid().toString();
+  std::map<QString, QString> data_;
   EventCallback callback_;
   QThread* callback_thread_ = nullptr;  ///<
 };
@@ -128,12 +160,18 @@ auto Event::Event::GetIdentifier() -> EventIdentifier {
   return p_->GetIdentifier();
 }
 
-void Event::AddParameter(const QString& key, const ParameterValue& value) {
+auto Event::Event::GetTriggerIdentifier() -> EventTriggerIdentifier {
+  return p_->GetTriggerIdentifier();
+}
+
+void Event::AddParameter(const QString& key, const QString& value) {
   p_->AddParameter(key, value);
 }
 
 void Event::ExecuteCallback(ListenerIdentifier l_id, DataObjectPtr d_o) {
   p_->ExecuteCallback(std::move(l_id), d_o);
 }
+
+auto Event::ToModuleEvent() -> ModuleEvent* { return p_->ToModuleEvent(); }
 
 }  // namespace GpgFrontend::Module

@@ -27,3 +27,7 @@
  */
 
 #pragma once
+
+extern "C" {
+
+}

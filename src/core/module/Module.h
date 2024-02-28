@@ -30,6 +30,7 @@
 
 #include "core/module/Event.h"
 #include "core/thread/TaskRunner.h"
+#include "module/sdk/Module.h"
 
 namespace GpgFrontend::Module {
 
@@ -47,21 +48,27 @@ using TaskRunnerPtr = std::shared_ptr<Thread::TaskRunner>;
 class GPGFRONTEND_CORE_EXPORT Module : public QObject {
   Q_OBJECT
  public:
-  Module(ModuleIdentifier, ModuleVersion, const ModuleMetaData&);
+  Module(ModuleIdentifier, ModuleVersion, const ModuleMetaData &);
+
+  explicit Module(QLibrary &module_library);
 
   ~Module();
 
-  virtual auto Register() -> bool = 0;
+  auto IsGood() -> bool;
 
-  virtual auto Active() -> bool = 0;
+  virtual auto Register() -> int;
 
-  virtual auto Exec(EventRefrernce) -> int = 0;
+  virtual auto Active() -> int;
 
-  virtual auto Deactive() -> bool = 0;
+  virtual auto Exec(EventRefrernce) -> int;
+
+  virtual auto Deactive() -> int;
+
+  virtual auto UnRegister() -> int;
 
   [[nodiscard]] auto GetModuleIdentifier() const -> ModuleIdentifier;
 
-  void SetGPC(GlobalModuleContext*);
+  void SetGPC(GlobalModuleContext *);
 
  protected:
   auto getChannel() -> int;

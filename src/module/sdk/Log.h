@@ -28,44 +28,17 @@
 
 #pragma once
 
-#include "core/utils/LogUtils.h"
-#include "module/sdk/GpgFrontendModuleSDK.h"
+#include "module/sdk/GpgFrontendModuleSDKExport.h"
 
-#define MODULE_LOG_TRACE(...) GF_LOG_TRACE("module", __VA_ARGS__)
-#define MODULE_LOG_DEBUG(...) GF_LOG_DEBUG("module", __VA_ARGS__)
-#define MODULE_LOG_INFO(...) GF_LOG_INFO("module", __VA_ARGS__)
-#define MODULE_LOG_WARN(...) GF_LOG_WARN("module", __VA_ARGS__)
-#define MODULE_LOG_ERROR(...) GF_LOG_ERROR("module", __VA_ARGS__)
+extern "C" {
 
-namespace spdlog {
-class logger;
+void GPGFRONTEND_MODULE_SDK_EXPORT ModuleLogTrace(const char*);
+
+void GPGFRONTEND_MODULE_SDK_EXPORT ModuleLogDebug(const char*);
+
+void GPGFRONTEND_MODULE_SDK_EXPORT ModuleLogInfo(const char*);
+
+void GPGFRONTEND_MODULE_SDK_EXPORT ModuleLogWarn(const char*);
+
+void GPGFRONTEND_MODULE_SDK_EXPORT ModuleLogError(const char*);
 }
-
-namespace GpgFrontend::Module::SDK {
-
-template <typename... Args>
-void ModuleLogTrace(const char* fmt, const Args&... args) {
-  MODULE_LOG_TRACE(fmt, args...);
-}
-
-template <typename... Args>
-void ModuleLogDebug(const char* fmt, const Args&... args) {
-  MODULE_LOG_DEBUG(fmt, args...);
-}
-
-template <typename... Args>
-void ModuleLogInfo(const char* fmt, const Args&... args) {
-  MODULE_LOG_INFO(fmt, args...);
-}
-
-template <typename... Args>
-void ModuleLogWarn(const char* fmt, const Args&... args) {
-  MODULE_LOG_WARN(fmt, args...);
-}
-
-template <typename... Args>
-void ModuleLogError(const char* fmt, const Args&... args) {
-  MODULE_LOG_ERROR(fmt, args...);
-}
-
-}  // namespace GpgFrontend::Module::SDK

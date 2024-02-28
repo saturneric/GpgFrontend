@@ -537,9 +537,7 @@ if (LINUX AND LINUX_INSTALL_SOFTWARE)
         gpgfrontend_test
         gpgfrontend_pinentry
         gpgfrontend_module_sdk
-        gpgfrontend_module
-        gpgfrontend_integrated_module_version_checking
-        gpgfrontend_integrated_module_gnupg_info_gathering)
+        gpgfrontend_module)
 
     message(STATUS "GpgFrontend Install Libraries: ${GPGFRONTEND_INSTALL_LIBRARIES}")
     install(TARGETS ${AppName} ${GPGFRONTEND_INSTALL_LIBRARIES}

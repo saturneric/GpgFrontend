@@ -25,3 +25,51 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
+
+#include "Basic.h"
+
+#include "core/function/SecureMemoryAllocator.h"
+#include "core/function/gpg/GpgCommandExecutor.h"
+
+auto AllocateMemory(uint32_t size) -> void* {
+  return GpgFrontend::SecureMemoryAllocator::Allocate(size);
+}
+
+void FreeMemory(void* ptr) {
+  return GpgFrontend::SecureMemoryAllocator::Deallocate(ptr);
+}
+
+void ExecuteCommandSync(const char* cmd, int32_t argc, const char** argv,
+                        CommandExeucteCallback cb, void* data) {
+  QStringList args;
+  for (int i = 0; i < argc; i++) {
+    args.append(QString::fromUtf8(argv[i]));
+  }
+
+  GpgFrontend::GpgCommandExecutor::ExecuteContext context{
+      cmd, args, [=](int exit_code, const QString& out, const QString& err) {
+        cb(data, exit_code, out.toUtf8(), err.toUtf8());
+      }};
+
+  GpgFrontend::GpgCommandExecutor::ExecuteSync(context);
+}
+
+void ExecuteCommandBatchSync(int32_t context_size,
+                             const CommandExecuteContext* context) {
+  QList<GpgFrontend::GpgCommandExecutor::ExecuteContext> contexts;
+  for (int i = 0; i < context_size; i++) {
+    auto exec_context = context[i];
+    QStringList args;
+    for (int i = 0; i < exec_context.argc; i++) {
+      args.append(QString::fromUtf8(exec_context.argv[i]));
+    }
+    contexts.append(
+        {exec_context.cmd, args,
+         [data = exec_context.data, cb = exec_context.cb](
+             int exit_code, const QString& out, const QString& err) {
+           cb(data, exit_code, out.toUtf8(), err.toUtf8());
+         }});
+  }
+
+  GpgFrontend::GpgCommandExecutor::ExecuteConcurrentlySync(contexts);
+}

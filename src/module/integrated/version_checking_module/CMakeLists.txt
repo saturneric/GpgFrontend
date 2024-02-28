@@ -28,12 +28,14 @@
 aux_source_directory(. INTEGRATED_MODULE_SOURCE)
 
 # define libgpgfrontend_module
-add_library(gpgfrontend_integrated_module_version_checking SHARED ${INTEGRATED_MODULE_SOURCE})
+add_library(gpgfrontend_version_checking SHARED ${INTEGRATED_MODULE_SOURCE})
 set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendModuleExport.h")
-generate_export_header(gpgfrontend_integrated_module_version_checking EXPORT_FILE_NAME "${_export_file}")
+generate_export_header(gpgfrontend_version_checking 
+  BASE_NAME "GF_MODULE"
+  EXPORT_FILE_NAME "${_export_file}")
 
 if (XCODE_BUILD)
-  set_target_properties(gpgfrontend_integrated_module_version_checking
+  set_target_properties(gpgfrontend_version_checking
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
@@ -43,19 +45,23 @@ if (XCODE_BUILD)
 endif ()
 
 # link sdk
-target_link_libraries(gpgfrontend_integrated_module_version_checking PRIVATE
+target_link_libraries(gpgfrontend_version_checking PRIVATE
         gpgfrontend_module_sdk)
 
 if(GPGFRONTEND_QT5_BUILD)
   # link Qt
-  target_link_libraries(gpgfrontend_integrated_module_version_checking PUBLIC Qt5::Network)
+  target_link_libraries(gpgfrontend_version_checking PUBLIC Qt5::Network)
 else()
   # link Qt
-  target_link_libraries(gpgfrontend_integrated_module_version_checking PUBLIC Qt6::Network)
+  target_link_libraries(gpgfrontend_version_checking PUBLIC Qt6::Network)
 endif()
 
+# set output directory
+set_target_properties(gpgfrontend_version_checking PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mods)
+
 # property
-set_property(TARGET gpgfrontend_integrated_module_version_checking PROPERTY AUTOMOC ON)
+set_property(TARGET gpgfrontend_version_checking PROPERTY AUTOMOC ON)
 
 # using std c++ 17
-target_compile_features(gpgfrontend_integrated_module_version_checking PRIVATE cxx_std_17)
+target_compile_features(gpgfrontend_version_checking PRIVATE cxx_std_17)

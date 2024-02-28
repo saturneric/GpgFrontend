@@ -46,7 +46,8 @@ VersionCheckTask::VersionCheckTask()
 }
 
 auto VersionCheckTask::Run() -> int {
-  MODULE_LOG_DEBUG("current project version: {}", current_version_);
+  ModuleLogDebug(
+      fmt::format("current project version: {}", current_version_).c_str());
   QString latest_version_url =
       "https://api.github.com/repos/saturneric/gpgfrontend/releases/latest";
 
@@ -65,8 +66,9 @@ void VersionCheckTask::slot_parse_latest_version_info() {
     version_.latest_version = current_version_;
     version_.loading_done = false;
   } else if (latest_reply_->error() != QNetworkReply::NoError) {
-    MODULE_LOG_ERROR("latest version request error: ",
-                     latest_reply_->errorString());
+    ModuleLogError(fmt::format("latest version request error: ",
+                               latest_reply_->errorString())
+                       .c_str());
     version_.latest_version = current_version_;
   } else {
     latest_reply_bytes_ = latest_reply_->readAll();
@@ -79,11 +81,15 @@ void VersionCheckTask::slot_parse_latest_version_info() {
       auto version_match = re.match(latest_version);
       if (version_match.hasMatch()) {
         latest_version = version_match.captured(0);
-        MODULE_LOG_INFO("latest version from github: {}", latest_version);
+        ModuleLogInfo(
+            fmt::format("latest version from github: {}", latest_version)
+                .c_str());
       } else {
         latest_version = current_version_;
-        MODULE_LOG_WARN("latest version unknown, set to current version: {}",
-                        current_version_);
+        ModuleLogWarn(
+            fmt::format("latest version unknown, set to current version: {}",
+                        current_version_)
+                .c_str());
       }
 
       bool prerelease = latest_reply_json["prerelease"].toBool();
@@ -96,8 +102,9 @@ void VersionCheckTask::slot_parse_latest_version_info() {
       version_.publish_date = publish_date;
       version_.release_note = release_note;
     } else {
-      MODULE_LOG_WARN("cannot parse data got from github: {}",
-                      latest_reply_bytes_);
+      ModuleLogWarn(fmt::format("cannot parse data got from github: {}",
+                                latest_reply_bytes_)
+                        .c_str());
     }
   }
 
@@ -109,7 +116,9 @@ void VersionCheckTask::slot_parse_latest_version_info() {
     QString current_version_url =
         "https://api.github.com/repos/saturneric/gpgfrontend/releases/tags/" +
         current_version_;
-    MODULE_LOG_DEBUG("current version info query url: {}", current_version_url);
+    ModuleLogDebug(
+        fmt::format("current version info query url: {}", current_version_url)
+            .c_str());
 
     QNetworkRequest current_request(current_version_url);
     current_request.setHeader(QNetworkRequest::UserAgentHeader,
@@ -120,7 +129,7 @@ void VersionCheckTask::slot_parse_latest_version_info() {
     connect(current_reply_, &QNetworkReply::finished, this,
             &VersionCheckTask::slot_parse_current_version_info);
   } catch (...) {
-    MODULE_LOG_ERROR("current version request create error");
+    ModuleLogError("current version request create error");
     emit SignalTaskShouldEnd(-1);
   }
 }
@@ -131,8 +140,9 @@ void VersionCheckTask::slot_parse_current_version_info() {
     version_.loading_done = false;
 
   } else if (current_reply_->error() != QNetworkReply::NoError) {
-    MODULE_LOG_ERROR("current version request network error: {}",
-                     current_reply_->errorString());
+    ModuleLogError(fmt::format("current version request network error: {}",
+                               current_reply_->errorString())
+                       .c_str());
 
     // loading done
     version_.loading_done = true;
@@ -150,13 +160,15 @@ void VersionCheckTask::slot_parse_current_version_info() {
       // loading done
       version_.loading_done = true;
     } else {
-      MODULE_LOG_WARN("cannot parse data got from github: {}",
-                      current_reply_bytes_);
+      ModuleLogWarn(fmt::format("cannot parse data got from github: {}",
+                                current_reply_bytes_)
+                        .c_str());
     }
   }
 
-  MODULE_LOG_DEBUG("current version parse done: {}",
-                   version_.current_version_publish_in_remote);
+  ModuleLogDebug(fmt::format("current version parse done: {}",
+                             version_.current_version_publish_in_remote)
+                     .c_str());
 
   if (current_reply_ != nullptr) current_reply_->deleteLater();
   emit SignalUpgradeVersion(version_);
