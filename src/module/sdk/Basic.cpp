@@ -57,12 +57,16 @@ void ExecuteCommandSync(const char* cmd, int32_t argc, const char** argv,
 void ExecuteCommandBatchSync(int32_t context_size,
                              const CommandExecuteContext* context) {
   QList<GpgFrontend::GpgCommandExecutor::ExecuteContext> contexts;
+
   for (int i = 0; i < context_size; i++) {
-    auto exec_context = context[i];
+    const auto& exec_context = context[i];
+
     QStringList args;
-    for (int i = 0; i < exec_context.argc; i++) {
-      args.append(QString::fromUtf8(exec_context.argv[i]));
+    const char** argv = exec_context.argv;
+    for (int j = 0; j < exec_context.argc; j++) {
+      args.append(QString::fromUtf8(argv[j]));
     }
+
     contexts.append(
         {exec_context.cmd, args,
          [data = exec_context.data, cb = exec_context.cb](
@@ -72,4 +76,14 @@ void ExecuteCommandBatchSync(int32_t context_size,
   }
 
   GpgFrontend::GpgCommandExecutor::ExecuteConcurrentlySync(contexts);
+}
+
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFModuleStrDup(const char* src) -> char* {
+  auto len = strlen(src);
+
+  char* dst = static_cast<char*>(AllocateMemory((len + 1) * sizeof(char)));
+  memcpy(dst, src, len);
+  dst[len] = '\0';
+
+  return dst;
 }

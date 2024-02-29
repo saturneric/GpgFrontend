@@ -30,8 +30,9 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/module/ModuleManager.h"
+#include "dialog/controller/ModuleControllerDialog.h"
 #include "ui/UserInterfaceUtils.h"
-#include "ui/dialog/gnupg/GnuPGControllerDialog.h"
+#include "ui/dialog/controller/GnuPGControllerDialog.h"
 #include "ui/dialog/help/AboutDialog.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
@@ -404,6 +405,12 @@ void MainWindow::create_actions() {
   connect(gnupg_controller_open_act_, &QAction::triggered, this,
           [this]() { (new GnuPGControllerDialog(this))->exec(); });
 
+  module_controller_open_act_ = new QAction(tr("Open Module Controller"), this);
+  module_controller_open_act_->setIcon(QIcon(":/icons/configure.png"));
+  module_controller_open_act_->setToolTip(tr("Open Module Controller Dialog"));
+  connect(module_controller_open_act_, &QAction::triggered, this,
+          [this]() { (new ModuleControllerDialog(this))->exec(); });
+
   /*
    * About Menu
    */
@@ -587,13 +594,13 @@ void MainWindow::create_menus() {
   import_key_menu_->addAction(import_key_from_key_server_act_);
   key_menu_->addAction(open_key_management_act_);
 
-  gpg_menu_ = menuBar()->addMenu(tr("GnuPG"));
-  gpg_menu_->addAction(clean_gpg_password_cache_act_);
-  gpg_menu_->addSeparator();
-  gpg_menu_->addAction(reload_components_act_);
-  gpg_menu_->addAction(restart_components_act_);
-  gpg_menu_->addSeparator();
-  gpg_menu_->addAction(gnupg_controller_open_act_);
+  advance_menu_ = menuBar()->addMenu(tr("Advance"));
+  advance_menu_->addAction(clean_gpg_password_cache_act_);
+  advance_menu_->addAction(reload_components_act_);
+  advance_menu_->addAction(restart_components_act_);
+  advance_menu_->addSeparator();
+  advance_menu_->addAction(gnupg_controller_open_act_);
+  advance_menu_->addAction(module_controller_open_act_);
 
   steganography_menu_ = menuBar()->addMenu(tr("Steganography"));
   steganography_menu_->addAction(cut_pgp_header_act_);

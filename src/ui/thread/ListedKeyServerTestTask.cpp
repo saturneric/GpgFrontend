@@ -29,9 +29,8 @@
 #include "ListedKeyServerTestTask.h"
 
 #include <QtNetwork>
-#include <vector>
 
-#include "GpgFrontendBuildInfo.h"
+#include "core/utils/BuildInfoUtils.h"
 
 GpgFrontend::UI::ListedKeyServerTestTask::ListedKeyServerTestTask(
     QStringList urls, int timeout, QWidget* /*parent*/)
@@ -53,7 +52,7 @@ auto GpgFrontend::UI::ListedKeyServerTestTask::Run() -> int {
 
     auto request = QNetworkRequest(key_url);
     request.setHeader(QNetworkRequest::UserAgentHeader,
-                      HTTP_REQUEST_USER_AGENT);
+                      GetHttpRequestUserAgent());
 
     auto* network_reply = network_manager_->get(request);
     auto* timer = new QTimer(this);

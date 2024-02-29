@@ -32,9 +32,8 @@
 #include "GpgInfo.h"
 #include "Log.h"
 
-ModuleMetaData *g_module_metadata = nullptr;
-
-extern auto CheckBinaryChacksum(QString path) -> std::optional<QString>;
+extern auto CalculateBinaryChacksum(const QString &path)
+    -> std::optional<QString>;
 
 extern void GetGpgComponentInfos(void *, int, const char *, const char *);
 
@@ -50,29 +49,32 @@ using Context = struct {
 
 auto RegisterModule() -> int {
   ModuleLogDebug("gnupg info gathering module registering");
-
-  g_module_metadata =
-      static_cast<ModuleMetaData *>(AllocateMemory(sizeof(ModuleMetaData)));
-
-  auto *p_meta = g_module_metadata;
-  p_meta->key = "description";
-  p_meta->value = "try to gathering gnupg informations";
-  p_meta->next =
-      static_cast<ModuleMetaData *>(AllocateMemory(sizeof(ModuleMetaData)));
-  p_meta = p_meta->next;
-  p_meta->key = "author";
-  p_meta->value = "saturneric";
-  p_meta->next = nullptr;
   return 0;
 }
 
 auto GetModuleID() -> const char * {
-  return "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering";
+  return GFModuleStrDup(
+      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering");
 }
 
-auto GetModuleVersion() -> const char * { return "1.0.0"; }
+auto GetModuleVersion() -> const char * { return GFModuleStrDup("1.0.0"); }
 
-auto GetModuleMetaData() -> ModuleMetaData * { return g_module_metadata; }
+auto GetModuleMetaData() -> ModuleMetaData * {
+  auto *p_meta =
+      static_cast<ModuleMetaData *>(AllocateMemory(sizeof(ModuleMetaData)));
+  auto *h_meta = p_meta;
+
+  p_meta->key = "Description";
+  p_meta->value = "Try to gathering gnupg informations";
+  p_meta->next =
+      static_cast<ModuleMetaData *>(AllocateMemory(sizeof(ModuleMetaData)));
+  p_meta = p_meta->next;
+  p_meta->key = "Author";
+  p_meta->value = "Saturneric";
+  p_meta->next = nullptr;
+
+  return h_meta;
+}
 
 auto ActiveModule() -> int {
   ModuleLogDebug("gnupg info gathering module activating");
@@ -101,12 +103,16 @@ auto ExecuteModule(ModuleEvent *event) -> int {
   auto context = Context{gpgme_version, gpgconf_path};
 
   // get all components
-  const char *argv[] = {"--list-components"};
+  const char *argv[] = {GFModuleStrDup("--list-components")};
   ExecuteCommandSync(gpgconf_path, 1, argv, GetGpgComponentInfos, &context);
+  ModuleLogDebug("load gnupg component info done.");
 
   QList<CommandExecuteContext> exec_contexts;
 
-  const char *argv_0[] = {"--list-dirs"};
+  const char **argv_0 =
+      static_cast<const char **>(AllocateMemory(sizeof(const char *)));
+  argv_0[0] = GFModuleStrDup("--list-dirs");
+
   exec_contexts.push_back(
       {gpgconf_path, 1, argv_0, GetGpgDirectoryInfos, nullptr});
 
@@ -139,9 +145,12 @@ auto ExecuteModule(ModuleEvent *event) -> int {
 
     auto context = Context{gpgme_version, gpgconf_path, component_info};
 
-    const char *argv_0[] = {"--list-options", component_info.name.toUtf8()};
+    const char **argv_0 =
+        static_cast<const char **>(AllocateMemory(sizeof(const char *) * 2));
+    argv_0[0] = GFModuleStrDup("--list-options"),
+    argv_0[1] = GFModuleStrDup(component_info.name.toUtf8());
     exec_contexts.push_back(
-        {gpgconf_path, 1, argv_0, GetGpgDirectoryInfos, &context});
+        {gpgconf_path, 2, argv_0, GetGpgDirectoryInfos, &context});
   }
 
   ExecuteCommandBatchSync(static_cast<int32_t>(exec_contexts.size()),
@@ -149,10 +158,8 @@ auto ExecuteModule(ModuleEvent *event) -> int {
 
   UpsertRTValue(GetModuleID(), "gnupg.gathering_done", "true");
 
-  char **event_argv = static_cast<char **>(AllocateMemory(sizeof(char *) * 1));
-  event_argv[0] = static_cast<char *>(AllocateMemory(5));
-  memcpy(event_argv[0], "true", 4);
-  event_argv[0][4] = '\0';
+  char **event_argv = static_cast<char **>(AllocateMemory(sizeof(char **) * 1));
+  event_argv[0] = GFModuleStrDup("true");
 
   TriggerModuleEventCallback(event, GetModuleID(), 1, event_argv);
 
@@ -164,11 +171,10 @@ auto DeactiveModule() -> int { return 0; }
 
 auto UnregisterModule() -> int {
   ModuleLogDebug("gnupg info gathering module unregistering");
-  FreeMemory(g_module_metadata);
   return 0;
 }
 
-auto CheckBinaryChacksum(QString path) -> std::optional<QString> {
+auto CalculateBinaryChacksum(const QString &path) -> std::optional<QString> {
   // check file info and access rights
   QFileInfo info(path);
   if (!info.exists() || !info.isFile() || !info.isReadable()) {
@@ -181,19 +187,33 @@ auto CheckBinaryChacksum(QString path) -> std::optional<QString> {
   // open and read file
   QFile f(info.filePath());
   if (!f.open(QIODevice::ReadOnly)) {
-    ModuleLogError(fmt::format("open {} to calculate check sum error: {}", path,
-                               f.errorString())
+    ModuleLogError(fmt::format("open {} to calculate checksum error: {}",
+                               path.toStdString(),
+                               f.errorString().toStdString())
                        .c_str());
     return {};
   }
 
-  // read all data from file
-  auto buffer = f.readAll();
+  QCryptographicHash hash_sha(QCryptographicHash::Sha256);
+
+  // read data by chunks
+  const qint64 buffer_size = 8192;  // Define a suitable buffer size
+  while (!f.atEnd()) {
+    QByteArray buffer = f.read(buffer_size);
+    if (buffer.isEmpty()) {
+      ModuleLogError(
+          fmt::format("error reading file {} during checksum calculation",
+                      path.toStdString())
+              .c_str());
+      return {};
+    }
+    hash_sha.addData(buffer);
+  }
+
+  // close the file
   f.close();
 
-  auto hash_sha = QCryptographicHash(QCryptographicHash::Sha256);
-  // md5
-  hash_sha.addData(buffer);
+  // return the first 6 characters of the SHA-256 hash of the file
   return QString(hash_sha.result().toHex()).left(6);
 }
 
@@ -229,7 +249,7 @@ void GetGpgComponentInfos(void *data, int exit_code, const char *out,
   c_i_gpgconf.desc = "GPG Configure";
   c_i_gpgconf.version = "/";
   c_i_gpgconf.path = context->gpgconf_path;
-  auto gpgconf_binary_checksum = CheckBinaryChacksum(context->gpgconf_path);
+  auto gpgconf_binary_checksum = CalculateBinaryChacksum(context->gpgconf_path);
   c_i_gpgconf.binary_checksum =
       (gpgconf_binary_checksum.has_value() ? gpgconf_binary_checksum.value()
                                            : QString("/"));
@@ -260,7 +280,7 @@ void GetGpgComponentInfos(void *data, int exit_code, const char *out,
     component_path.replace("%3a", ":");
 #endif
 
-    auto binary_checksum = CheckBinaryChacksum(component_path);
+    auto binary_checksum = CalculateBinaryChacksum(component_path);
 
     ModuleLogDebug(
         fmt::format("gnupg component name: {} desc: {} checksum: {} path: {} ",
@@ -305,6 +325,8 @@ void GetGpgComponentInfos(void *data, int exit_code, const char *out,
 
       component_infos.push_back(c_i);
     }
+
+    ModuleLogDebug("load gnupg component info actually done.");
   }
 }
 

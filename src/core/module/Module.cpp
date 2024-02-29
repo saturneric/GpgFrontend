@@ -29,6 +29,7 @@
 #include "Module.h"
 
 #include "core/module/GlobalModuleContext.h"
+#include "core/utils/IOUtils.h"
 
 namespace GpgFrontend::Module {
 
@@ -47,7 +48,10 @@ class Module::Impl {
         good_(true) {}
 
   Impl(ModuleRawPtr m_ptr, QLibrary& module_library)
-      : m_ptr_(m_ptr), good_(false) {
+      : m_ptr_(m_ptr),
+        module_hash_(CalculateBinaryChacksum(module_library.fileName())),
+        module_library_path_(module_library.fileName()),
+        good_(false) {
     for (auto& required_symbol : module_required_symbols_) {
       *required_symbol.pointer =
           reinterpret_cast<void*>(module_library.resolve(required_symbol.name));
@@ -59,12 +63,25 @@ class Module::Impl {
       }
     }
 
-    SPDLOG_INFO("module loaded, name: {}, verison: {}",
-                QString::fromUtf8(get_id_api_()),
-                QString::fromUtf8(get_version_api_()));
+    GF_CORE_LOG_INFO("module loaded, id: {}, verison: {}, hash: {}, path: {}",
+                     QString::fromUtf8(get_id_api_()),
+                     QString::fromUtf8(get_version_api_()), module_hash_,
+                     module_library_path_);
 
     identifier_ = QString::fromUtf8(get_id_api_());
     version_ = QString::fromUtf8(get_version_api_());
+
+    ::ModuleMetaData* p_meta_data = get_metadata_api_();
+    ::ModuleMetaData* l_meta_data;
+
+    GF_CORE_LOG_DEBUG("AAAAAA: {}", static_cast<void*>(p_meta_data));
+    while (p_meta_data != nullptr) {
+      meta_data_[QString::fromUtf8(p_meta_data->key)] =
+          QString::fromUtf8(p_meta_data->value);
+      l_meta_data = p_meta_data;
+      p_meta_data = p_meta_data->next;
+      SecureFree(l_meta_data);
+    }
 
     good_ = true;
   }
@@ -116,6 +133,20 @@ class Module::Impl {
     return identifier_;
   }
 
+  [[nodiscard]] auto GetModuleVersion() const -> ModuleVersion {
+    return version_;
+  }
+
+  [[nodiscard]] auto GetModuleMetaData() const -> ModuleMetaData {
+    return meta_data_;
+  }
+
+  [[nodiscard]] auto GetModulePath() const -> QString {
+    return module_library_path_;
+  }
+
+  [[nodiscard]] auto GetModuleHash() const -> QString { return module_hash_; }
+
   void SetGPC(GlobalModuleContext* gpc) { gpc_ = gpc; }
 
  private:
@@ -124,6 +155,8 @@ class Module::Impl {
   ModuleIdentifier identifier_;
   ModuleVersion version_;
   ModuleMetaData meta_data_;
+  QString module_hash_;
+  QString module_library_path_;
 
   bool good_;
   ModuleAPIGetModuleID get_id_api_;
@@ -196,6 +229,22 @@ auto Module::listenEvent(EventIdentifier event) -> bool {
 
 auto Module::GetModuleIdentifier() const -> ModuleIdentifier {
   return p_->GetModuleIdentifier();
+}
+
+[[nodiscard]] auto Module::GetModuleVersion() const -> ModuleVersion {
+  return p_->GetModuleVersion();
+}
+
+[[nodiscard]] auto Module::GetModuleMetaData() const -> ModuleMetaData {
+  return p_->GetModuleMetaData();
+}
+
+[[nodiscard]] auto Module::GetModulePath() const -> QString {
+  return p_->GetModulePath();
+}
+
+[[nodiscard]] auto Module::GetModuleHash() const -> QString {
+  return p_->GetModuleHash();
 }
 
 void Module::SetGPC(GlobalModuleContext* gpc) { p_->SetGPC(gpc); }

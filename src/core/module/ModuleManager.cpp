@@ -84,6 +84,10 @@ class ModuleManager::Impl {
     return gmc_->SearchModule(std::move(module_id));
   }
 
+  auto ListAllRegisteredModuleID() -> QList<ModuleIdentifier> {
+    return gmc_->ListAllRegisteredModuleID();
+  }
+
   void RegisterModule(const ModulePtr& module) {
     Thread::TaskRunnerGetter::GetInstance()
         .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
@@ -121,6 +125,11 @@ class ModuleManager::Impl {
   auto SearchEvent(EventTriggerIdentifier trigger_id)
       -> std::optional<EventRefrernce> {
     return gmc_->SearchEvent(std::move(trigger_id));
+  }
+
+  auto GetModuleListening(ModuleIdentifier module_id)
+      -> QList<EventIdentifier> {
+    return gmc_->GetModuleListening(std::move(module_id));
   }
 
   void ActiveModule(const ModuleIdentifier& identifier) {
@@ -209,6 +218,11 @@ void ModuleManager::ListenEvent(ModuleIdentifier module,
   return p_->ListenEvent(module, event);
 }
 
+auto ModuleManager::GetModuleListening(ModuleIdentifier module_id)
+    -> QList<EventIdentifier> {
+  return p_->GetModuleListening(module_id);
+}
+
 void ModuleManager::TriggerEvent(EventRefrernce event) {
   return p_->TriggerEvent(event);
 }
@@ -250,4 +264,7 @@ auto ModuleManager::IsModuleActivated(ModuleIdentifier id) -> bool {
   return p_->IsModuleActivated(id);
 }
 
+auto ModuleManager::ListAllRegisteredModuleID() -> QList<ModuleIdentifier> {
+  return p_->ListAllRegisteredModuleID();
+};
 }  // namespace GpgFrontend::Module

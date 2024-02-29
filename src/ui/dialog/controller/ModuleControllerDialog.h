@@ -28,35 +28,34 @@
 
 #pragma once
 
-#include "GpgFrontendModuleExport.h"
-#include "SoftwareVersion.h"
 #include "core/module/Module.h"
 
+class Ui_ModuleControllerDialog;
 
+namespace GpgFrontend::UI {
 
-namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
+class ModuleListView;
 
-class GF_MODULE_EXPORT VersionCheckingModule : public Module {
+class ModuleControllerDialog : public QDialog {
   Q_OBJECT
  public:
-  VersionCheckingModule();
+  /**
+   * @brief Construct a new Module Controller Dialog object
+   *
+   * @param parent
+   */
+  explicit ModuleControllerDialog(QWidget* parent);
 
-  ~VersionCheckingModule() override;
+ private slots:
+  /**
+   * @brief
+   *
+   */
+  void slot_load_module_details(Module::ModuleIdentifier);
 
-  auto Register() -> int override;
-
-  auto Active() -> int override;
-
-  auto Exec(EventRefrernce) -> int override;
-
-  auto Deactive() -> int override;
-
- signals:
-
-  void SignalVersionCheckDone(SoftwareVersion);
-
- public slots:
-
-  void SlotVersionCheckDone(SoftwareVersion);
+ private:
+  std::shared_ptr<Ui_ModuleControllerDialog> ui_;  ///<
+  ModuleListView* model_list_view_;
 };
-}  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule
+
+}  // namespace GpgFrontend::UI

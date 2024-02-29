@@ -105,6 +105,7 @@ class Event::Impl {
     auto* event = static_cast<ModuleEvent*>(SecureMalloc(sizeof(ModuleEvent)));
 
     event->id = GFStrDup(event_identifier_);
+    event->triggger_id = GFStrDup(trigger_uuid_);
 
     ModuleEventParam* l_param = nullptr;
     ModuleEventParam* p_param;

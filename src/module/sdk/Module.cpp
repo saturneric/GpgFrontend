@@ -29,9 +29,9 @@
 #include "Module.h"
 
 #include <core/module/ModuleManager.h>
+#include <core/utils/CommonUtils.h>
 
 #include "Basic.h"
-#include "core/utils/CommonUtils.h"
 
 void ListenEvent(const char *module_id, const char *event_id) {
   return GpgFrontend::Module::ModuleManager::GetInstance().ListenEvent(
@@ -40,13 +40,16 @@ void ListenEvent(const char *module_id, const char *event_id) {
 
 auto RetrieveRTValueOrDefault(const char *namespace_, const char *key,
                               const char *default_value) -> const char * {
-  return GpgFrontend::Module::RetrieveRTValueTypedOrDefault(
-             namespace_, key, QString::fromUtf8(default_value))
-      .toUtf8();
+  return GpgFrontend::GFStrDup(
+      GpgFrontend::Module::RetrieveRTValueTypedOrDefault(
+          QString::fromUtf8(namespace_), QString::fromUtf8(key),
+          QString::fromUtf8(default_value)));
 }
 
 void UpsertRTValue(const char *namespace_, const char *key, const char *vaule) {
-  GpgFrontend::Module::UpsertRTValue(namespace_, key, vaule);
+  GpgFrontend::Module::UpsertRTValue(QString::fromUtf8(namespace_),
+                                     QString::fromUtf8(key),
+                                     QString::fromUtf8(vaule));
 }
 
 auto ListRTChildKeys(const char *namespace_, const char *key,
@@ -57,15 +60,10 @@ auto ListRTChildKeys(const char *namespace_, const char *key,
   if (keys.empty()) return 0;
 
   *child_keys =
-      static_cast<char **>(AllocateMemory(sizeof(const char **) * keys.size()));
+      static_cast<char **>(AllocateMemory(sizeof(char **) * keys.size()));
 
   for (int i = 0; i < keys.size(); i++) {
-    *child_keys[i] =
-        static_cast<char *>(AllocateMemory(sizeof(char) * keys[i].size() + 1));
-
-    auto key = keys[i].toUtf8();
-    memcpy(reinterpret_cast<void *>(*child_keys[i]), key, key.size());
-    (*child_keys[i])[key.size()] = '\0';
+    (*child_keys)[i] = GpgFrontend::GFStrDup(keys[i]);
   }
 
   return static_cast<int32_t>(keys.size());

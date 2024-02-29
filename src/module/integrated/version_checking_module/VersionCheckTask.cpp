@@ -31,15 +31,14 @@
 #include <QMetaType>
 #include <QtNetwork>
 
-#include "GpgFrontendBuildInfo.h"
+#include "core/utils/BuildInfoUtils.h"
 
 namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 
 VersionCheckTask::VersionCheckTask()
     : Task("version_check_task"),
       network_manager_(new QNetworkAccessManager(this)),
-      current_version_(QString("v") + VERSION_MAJOR + "." + VERSION_MINOR +
-                       "." + VERSION_PATCH) {
+      current_version_(GetProjectVersion()) {
   HoldOnLifeCycle(true);
   qRegisterMetaType<SoftwareVersion>("SoftwareVersion");
   version_.current_version = current_version_;
@@ -53,7 +52,7 @@ auto VersionCheckTask::Run() -> int {
 
   QNetworkRequest latest_request(latest_version_url);
   latest_request.setHeader(QNetworkRequest::UserAgentHeader,
-                           HTTP_REQUEST_USER_AGENT);
+                           GetHttpRequestUserAgent());
 
   latest_reply_ = network_manager_->get(latest_request);
   connect(latest_reply_, &QNetworkReply::finished, this,
@@ -122,7 +121,7 @@ void VersionCheckTask::slot_parse_latest_version_info() {
 
     QNetworkRequest current_request(current_version_url);
     current_request.setHeader(QNetworkRequest::UserAgentHeader,
-                              HTTP_REQUEST_USER_AGENT);
+                              GetHttpRequestUserAgent());
 
     current_reply_ = network_manager_->get(current_request);
 

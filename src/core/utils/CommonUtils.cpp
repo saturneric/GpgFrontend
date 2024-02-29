@@ -72,7 +72,7 @@ auto CompareSoftwareVersion(const QString& a, const QString& b) -> int {
   return 0;
 }
 
-auto GPGFRONTEND_CORE_EXPORT GFStrDup(const QString& str) -> char* {
+auto GFStrDup(const QString& str) -> char* {
   auto utf8_str = str.toUtf8();
   auto* c_str =
       static_cast<char*>(SecureMalloc((utf8_str.size() + 1) * sizeof(char)));

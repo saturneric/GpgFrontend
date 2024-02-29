@@ -85,6 +85,15 @@ auto GPGFRONTEND_CORE_EXPORT CalculateHash(const QString &file_path) -> QString;
  * @brief
  *
  * @param path
+ * @return QString
+ */
+auto GPGFRONTEND_CORE_EXPORT CalculateBinaryChacksum(const QString &path)
+    -> QString;
+
+/**
+ * @brief
+ *
+ * @param path
  * @param out_buffer
  * @return true
  * @return false

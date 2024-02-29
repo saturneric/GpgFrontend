@@ -68,6 +68,14 @@ class GPGFRONTEND_CORE_EXPORT Module : public QObject {
 
   [[nodiscard]] auto GetModuleIdentifier() const -> ModuleIdentifier;
 
+  [[nodiscard]] auto GetModuleVersion() const -> ModuleVersion;
+
+  [[nodiscard]] auto GetModuleMetaData() const -> ModuleMetaData;
+
+  [[nodiscard]] auto GetModulePath() const -> QString;
+
+  [[nodiscard]] auto GetModuleHash() const -> QString;
+
   void SetGPC(GlobalModuleContext *);
 
  protected:

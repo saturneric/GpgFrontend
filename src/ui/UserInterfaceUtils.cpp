@@ -30,7 +30,6 @@
 
 #include <cstddef>
 
-#include "GpgFrontendBuildInfo.h"
 #include "core/GpgConstants.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
@@ -39,12 +38,13 @@
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/typedef/GpgTypedef.h"
+#include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "thread/KeyServerImportTask.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
-#include "ui/dialog/gnupg/GnuPGControllerDialog.h"
+#include "ui/dialog/controller/GnuPGControllerDialog.h"
 #include "ui/dialog/import_export/KeyServerImportDialog.h"
 #include "ui/struct/CacheObject.h"
 #include "ui/struct/SettingsObject.h"
@@ -431,7 +431,7 @@ void CommonUtils::SlotImportKeyFromKeyServer(
       // Waiting for reply
       auto request = QNetworkRequest(req_url);
       request.setHeader(QNetworkRequest::UserAgentHeader,
-                        HTTP_REQUEST_USER_AGENT);
+                        GetHttpRequestUserAgent());
 
       QNetworkReply *reply = network_manager->get(request);
       QEventLoop loop;

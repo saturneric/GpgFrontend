@@ -30,8 +30,8 @@
 
 #include <openssl/opensslv.h>
 
-#include "GpgFrontendBuildInfo.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/BuildInfoUtils.h"
 #include "ui/dialog/help/GnupgTab.h"
 
 namespace GpgFrontend::UI {
@@ -84,7 +84,7 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
   auto text =
       "<center><h2>" + qApp->applicationName() + "</h2></center>" +
       "<center><b>" + qApp->applicationVersion() + "</b></center>" +
-      "<center>" + GIT_VERSION + "</center>" + "<br><center>" +
+      "<center>" + GetProjectBuildGitVersion() + "</center>" + "<br><center>" +
       tr("GpgFrontend is an easy-to-use, compact, cross-platform, "
          "and installation-free GnuPG Frontend."
          "It visualizes most of the common operations of GnuPG."
@@ -99,7 +99,8 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
       "href=\"mailto:eric@bktus.com\">eric@bktus.com</a>." + "<br><br> " +
       tr("Built with Qt") + " " + qVersion() + ", " + OPENSSL_VERSION_TEXT +
       " " + tr("and") + " " + "GPGME" + " " + gpgme_version + "<br>" +
-      tr("Built at") + " " + BUILD_TIMESTAMP + "</center>";
+      tr("Built at") + " " + QLocale().toString(GetProjectBuildTimestamp()) +
+      "</center>";
 
   auto* layout = new QGridLayout();
   auto* pixmap_label = new QLabel();
@@ -140,8 +141,7 @@ TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
 UpdateTab::UpdateTab(QWidget* parent) : QWidget(parent) {
   auto* layout = new QGridLayout();
 
-  current_version_ =
-      QString("v") + VERSION_MAJOR + "." + VERSION_MINOR + "." + VERSION_PATCH;
+  current_version_ = GetProjectVersion();
 
   auto* tips_label = new QLabel();
   tips_label->setText(

@@ -82,7 +82,11 @@ class GPGFRONTEND_CORE_EXPORT GlobalModuleContext : public QObject {
 
   auto SearchEvent(EventTriggerIdentifier) -> std::optional<EventRefrernce>;
 
+  auto GetModuleListening(ModuleIdentifier) -> QList<EventIdentifier>;
+
   auto IsModuleActivated(ModuleIdentifier) -> bool;
+
+  auto ListAllRegisteredModuleID() -> QList<ModuleIdentifier>;
 
  private:
   class Impl;

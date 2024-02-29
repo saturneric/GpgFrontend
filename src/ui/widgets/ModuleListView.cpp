@@ -26,37 +26,38 @@
  *
  */
 
-#pragma once
+#include "ModuleListView.h"
 
-#include "GpgFrontendModuleExport.h"
-#include "SoftwareVersion.h"
-#include "core/module/Module.h"
+#include "core/module/ModuleManager.h"
 
+namespace GpgFrontend::UI {
 
+ModuleListView::ModuleListView(QWidget *parent)
+    : QListView(parent), model_(new QStringListModel(this)) {
+  setModel(model_);
 
-namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
+  load_module_informations();
+}
 
-class GF_MODULE_EXPORT VersionCheckingModule : public Module {
-  Q_OBJECT
- public:
-  VersionCheckingModule();
+void ModuleListView::currentChanged(const QModelIndex &current,
+                                    const QModelIndex &previous) {
+  QListView::currentChanged(current, previous);
+  emit this->SignalSelectModule(model_->data(current).toString());
+}
 
-  ~VersionCheckingModule() override;
+void ModuleListView::load_module_informations() {
+  auto module_ids =
+      Module::ModuleManager::GetInstance().ListAllRegisteredModuleID();
 
-  auto Register() -> int override;
+  QStringList model_data;
+  for (const auto &module_id : module_ids) {
+    model_data.append(module_id);
+  }
 
-  auto Active() -> int override;
+  model_->setStringList(model_data);
+}
 
-  auto Exec(EventRefrernce) -> int override;
-
-  auto Deactive() -> int override;
-
- signals:
-
-  void SignalVersionCheckDone(SoftwareVersion);
-
- public slots:
-
-  void SlotVersionCheckDone(SoftwareVersion);
-};
-}  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule
+auto ModuleListView::GetCurrentModuleID() -> Module::ModuleIdentifier {
+  return model_->data(currentIndex()).toString();
+}
+};  // namespace GpgFrontend::UI

@@ -43,16 +43,48 @@ using CommandExecuteContext = struct {
   void* data;
 };
 
+/**
+ * @brief 
+ * 
+ * @param size 
+ * @return void* 
+ */
 auto GPGFRONTEND_MODULE_SDK_EXPORT AllocateMemory(uint32_t size) -> void*;
 
+/**
+ * @brief 
+ * 
+ */
 void GPGFRONTEND_MODULE_SDK_EXPORT FreeMemory(void*);
 
+/**
+ * @brief 
+ * 
+ * @param cmd 
+ * @param argc 
+ * @param argv 
+ * @param cb 
+ * @param data 
+ */
 void GPGFRONTEND_MODULE_SDK_EXPORT ExecuteCommandSync(const char* cmd,
                                                       int32_t argc,
                                                       const char** argv,
                                                       CommandExeucteCallback cb,
                                                       void* data);
 
+/**
+ * @brief 
+ * 
+ * @param context_size 
+ * @param context 
+ */
 void GPGFRONTEND_MODULE_SDK_EXPORT ExecuteCommandBatchSync(
     int32_t context_size, const CommandExecuteContext* context);
+
+/**
+ * @brief 
+ * 
+ * @return char* 
+ */
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFModuleStrDup(const char*) -> char*;
 }

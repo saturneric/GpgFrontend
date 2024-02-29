@@ -28,35 +28,55 @@
 
 #pragma once
 
-#include "GpgFrontendModuleExport.h"
-#include "SoftwareVersion.h"
-#include "core/module/Module.h"
+namespace GpgFrontend {
 
+/**
+ * @brief
+ *
+ * @return QString
+ */
+auto GPGFRONTEND_CORE_EXPORT GetProjectVersion() -> QString;
 
+/**
+ * @brief
+ *
+ * @return QString
+ */
+auto GPGFRONTEND_CORE_EXPORT GetProjectBuildVersion() -> QString;
 
-namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
+/**
+ * @brief
+ *
+ * @return QString
+ */
+auto GPGFRONTEND_CORE_EXPORT GetProjectBuildTimestamp() -> QDateTime;
 
-class GF_MODULE_EXPORT VersionCheckingModule : public Module {
-  Q_OBJECT
- public:
-  VersionCheckingModule();
+/**
+ * @brief
+ *
+ * @return QString
+ */
+auto GPGFRONTEND_CORE_EXPORT GetProjectBuildGitBranchName() -> QString;
 
-  ~VersionCheckingModule() override;
+/**
+ * @brief
+ *
+ * @return QString
+ */
+auto GPGFRONTEND_CORE_EXPORT GetProjectBuildGitCommitHash() -> QString;
 
-  auto Register() -> int override;
+/**
+ * @brief
+ *
+ * @return QString
+ */
+auto GPGFRONTEND_CORE_EXPORT GetProjectBuildGitVersion() -> QString;
 
-  auto Active() -> int override;
+/**
+ * @brief
+ *
+ * @return QString
+ */
+auto GPGFRONTEND_CORE_EXPORT GetHttpRequestUserAgent() -> QString;
 
-  auto Exec(EventRefrernce) -> int override;
-
-  auto Deactive() -> int override;
-
- signals:
-
-  void SignalVersionCheckDone(SoftwareVersion);
-
- public slots:
-
-  void SlotVersionCheckDone(SoftwareVersion);
-};
-}  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule
+}  // namespace GpgFrontend
