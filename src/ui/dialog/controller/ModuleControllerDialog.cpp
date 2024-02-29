@@ -39,7 +39,8 @@ namespace GpgFrontend::UI {
 ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
     : QDialog(parent),
       ui_(std::make_shared<Ui_ModuleControllerDialog>()),
-      model_list_view_(new ModuleListView(this)) {
+      model_list_view_(new ModuleListView(this)),
+      module_mamager_(&Module::ModuleManager::GetInstance()) {
   ui_->setupUi(this);
 
   model_list_view_->setMinimumWidth(250);
@@ -50,11 +51,16 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
   connect(model_list_view_, &ModuleListView::SignalSelectModule, this,
           &ModuleControllerDialog::slot_load_module_details);
 
-  connect(ui_->activateButton, &QPushButton::clicked, this, [=]() {
+  connect(ui_->activateOrDeactiveButton, &QPushButton::clicked, this, [=]() {
     auto module_id = model_list_view_->GetCurrentModuleID();
     if (module_id.isEmpty()) return;
 
-    Module::ModuleManager::GetInstance().ActiveModule(module_id);
+    if (!module_mamager_->IsModuleActivated(module_id)) {
+      module_mamager_->ActiveModule(module_id);
+    } else {
+      module_mamager_->DeactiveModule(module_id);
+    }
+
     QTimer::singleShot(1000, [=]() { slot_load_module_details(module_id); });
   });
 
@@ -69,7 +75,7 @@ void ModuleControllerDialog::slot_load_module_details(
     Module::ModuleIdentifier module_id) {
   GF_UI_LOG_DEBUG("loading module detailes, module id: {}", module_id);
 
-  auto module = Module::ModuleManager::GetInstance().SearchModule(module_id);
+  auto module = module_mamager_->SearchModule(module_id);
 
   ui_->moduleIDLabel->setText(module->GetModuleIdentifier());
 
@@ -82,10 +88,9 @@ void ModuleControllerDialog::slot_load_module_details(
   info << tr("Hash") << ": " << module->GetModuleHash() << Qt::endl;
   info << tr("Path") << ": " << module->GetModulePath() << Qt::endl;
 
-  info << tr("Active") << ": "
-       << (Module::ModuleManager::GetInstance().IsModuleActivated(module_id)
-               ? tr("True")
-               : tr("False"))
+  bool if_activated = module_mamager_->IsModuleActivated(module_id);
+
+  info << tr("Active") << ": " << (if_activated ? tr("True") : tr("False"))
        << Qt::endl;
 
   info << Qt::endl;
@@ -100,12 +105,13 @@ void ModuleControllerDialog::slot_load_module_details(
 
   info << "# Listening Event" << Qt::endl << Qt::endl;
 
-  auto listening_event_ids =
-      Module::ModuleManager::GetInstance().GetModuleListening(module_id);
+  auto listening_event_ids = module_mamager_->GetModuleListening(module_id);
   for (const auto& event_id : listening_event_ids) {
     info << " - " << event_id << "\n";
   }
 
   ui_->moduleInfoTextBrowser->setText(buffer);
+  ui_->activateOrDeactiveButton->setText(if_activated ? tr("Deactivate")
+                                                      : tr("Activate"));
 }
 }  // namespace GpgFrontend::UI

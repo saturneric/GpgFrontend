@@ -26,31 +26,17 @@
  *
  */
 
-#pragma once
+#include "GFSDKExtra.h"
 
-#include <GFSDKModule.h>
+#include "core/utils/BuildInfoUtils.h"
+#include "core/utils/CommonUtils.h"
 
-#include "GFModuleExport.h"
-
-extern "C" {
-
-auto GF_MODULE_EXPORT GFGetModuleGFSDKVersion() -> const char *;
-
-auto GF_MODULE_EXPORT GFGetModuleQtEnvVersion() -> const char *;
-
-auto GF_MODULE_EXPORT GFGetModuleID() -> const char *;
-
-auto GF_MODULE_EXPORT GFGetModuleVersion() -> const char *;
-
-auto GF_MODULE_EXPORT GFGetModuleMetaData() -> GFModuleMetaData *;
-
-auto GF_MODULE_EXPORT GFRegisterModule() -> int;
-
-auto GF_MODULE_EXPORT GFActiveModule() -> int;
-
-auto GF_MODULE_EXPORT GFExecuteModule(GFModuleEvent *) -> int;
-
-auto GF_MODULE_EXPORT GFDeactiveModule() -> int;
-
-auto GF_MODULE_EXPORT GFUnregisterModule() -> int;
-};
+auto GFCompareSoftwareVersion(const char *current_version,
+                              const char *latest_version) -> int {
+  return GpgFrontend::GFCompareSoftwareVersion(
+      GpgFrontend::GFUnStrDup(current_version),
+      GpgFrontend::GFUnStrDup(latest_version));
+}
+auto GFHttpRequestUserAgent() -> const char * {
+  return GpgFrontend::GFStrDup(GpgFrontend::GetHttpRequestUserAgent());
+}

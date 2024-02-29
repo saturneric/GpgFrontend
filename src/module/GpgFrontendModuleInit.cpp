@@ -28,9 +28,7 @@
 
 #include "GpgFrontendModuleInit.h"
 
-#include <core/module/ModuleManager.h>
-
-#include "Module.h"
+#include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 

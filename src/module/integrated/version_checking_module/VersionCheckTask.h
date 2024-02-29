@@ -29,20 +29,17 @@
 #pragma once
 
 #include <core/thread/Task.h>
-#include <module/sdk/GpgFrontendModuleSDK.h>
 
 #include "SoftwareVersion.h"
 
 class QNetworkReply;
 class QNetworkAccessManager;
 
-namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
-
 /**
  * @brief
  *
  */
-class VersionCheckTask : public Thread::Task {
+class VersionCheckTask : public QObject {
   Q_OBJECT
  public:
   /**
@@ -50,6 +47,13 @@ class VersionCheckTask : public Thread::Task {
    *
    */
   VersionCheckTask();
+
+  /**
+   * @brief
+   *
+   * @return int
+   */
+  auto Run() -> int;
 
  signals:
 
@@ -59,14 +63,6 @@ class VersionCheckTask : public Thread::Task {
    * @param version
    */
   void SignalUpgradeVersion(SoftwareVersion version);
-
- protected:
-  /**
-   * @brief
-
-   *
-   */
-  auto Run() -> int override;
 
  private slots:
 
@@ -91,6 +87,3 @@ class VersionCheckTask : public Thread::Task {
   QString current_version_;
   SoftwareVersion version_;
 };
-
-}  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule
-   // GpgFrontend::Module::Custom::IntegradedModule::VersionCheckingModule

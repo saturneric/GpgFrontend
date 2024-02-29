@@ -35,6 +35,7 @@ namespace GpgFrontend::UI {
 ModuleListView::ModuleListView(QWidget *parent)
     : QListView(parent), model_(new QStringListModel(this)) {
   setModel(model_);
+  setEditTriggers(QAbstractItemView::NoEditTriggers);
 
   load_module_informations();
 }

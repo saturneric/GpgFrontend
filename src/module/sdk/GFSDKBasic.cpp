@@ -26,24 +26,34 @@
  *
  */
 
-#include "Basic.h"
+#include "GFSDKBasic.h"
 
 #include "core/function/SecureMemoryAllocator.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
+#include "core/utils/BuildInfoUtils.h"
+#include "core/utils/CommonUtils.h"
 
-auto AllocateMemory(uint32_t size) -> void* {
+auto GFAllocateMemory(uint32_t size) -> void* {
   return GpgFrontend::SecureMemoryAllocator::Allocate(size);
 }
 
-void FreeMemory(void* ptr) {
+void GFFreeMemory(void* ptr) {
   return GpgFrontend::SecureMemoryAllocator::Deallocate(ptr);
 }
 
-void ExecuteCommandSync(const char* cmd, int32_t argc, const char** argv,
-                        CommandExeucteCallback cb, void* data) {
+auto GFProjectVersion() -> const char* {
+  return GpgFrontend::GFStrDup(GpgFrontend::GetProjectVersion());
+}
+
+auto GFQtEnvVersion() -> const char* {
+  return GpgFrontend::GFStrDup(QT_VERSION_STR);
+}
+
+void GFExecuteCommandSync(const char* cmd, int32_t argc, const char** argv,
+                          GFCommandExeucteCallback cb, void* data) {
   QStringList args;
   for (int i = 0; i < argc; i++) {
-    args.append(QString::fromUtf8(argv[i]));
+    args.append(GpgFrontend::GFUnStrDup(argv[i]));
   }
 
   GpgFrontend::GpgCommandExecutor::ExecuteContext context{
@@ -54,8 +64,8 @@ void ExecuteCommandSync(const char* cmd, int32_t argc, const char** argv,
   GpgFrontend::GpgCommandExecutor::ExecuteSync(context);
 }
 
-void ExecuteCommandBatchSync(int32_t context_size,
-                             const CommandExecuteContext* context) {
+void GFExecuteCommandBatchSync(int32_t context_size,
+                               const GFCommandExecuteContext* context) {
   QList<GpgFrontend::GpgCommandExecutor::ExecuteContext> contexts;
 
   for (int i = 0; i < context_size; i++) {
@@ -64,7 +74,7 @@ void ExecuteCommandBatchSync(int32_t context_size,
     QStringList args;
     const char** argv = exec_context.argv;
     for (int j = 0; j < exec_context.argc; j++) {
-      args.append(QString::fromUtf8(argv[j]));
+      args.append(GpgFrontend::GFUnStrDup(argv[j]));
     }
 
     contexts.append(
@@ -81,7 +91,7 @@ void ExecuteCommandBatchSync(int32_t context_size,
 auto GPGFRONTEND_MODULE_SDK_EXPORT GFModuleStrDup(const char* src) -> char* {
   auto len = strlen(src);
 
-  char* dst = static_cast<char*>(AllocateMemory((len + 1) * sizeof(char)));
+  char* dst = static_cast<char*>(GFAllocateMemory((len + 1) * sizeof(char)));
   memcpy(dst, src, len);
   dst[len] = '\0';
 

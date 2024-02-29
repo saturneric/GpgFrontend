@@ -101,19 +101,20 @@ class Event::Impl {
     }
   }
 
-  auto ToModuleEvent() -> ModuleEvent* {
-    auto* event = static_cast<ModuleEvent*>(SecureMalloc(sizeof(ModuleEvent)));
+  auto ToModuleEvent() -> GFModuleEvent* {
+    auto* event =
+        static_cast<GFModuleEvent*>(SecureMalloc(sizeof(GFModuleEvent)));
 
     event->id = GFStrDup(event_identifier_);
     event->triggger_id = GFStrDup(trigger_uuid_);
 
-    ModuleEventParam* l_param = nullptr;
-    ModuleEventParam* p_param;
+    GFModuleEventParam* l_param = nullptr;
+    GFModuleEventParam* p_param;
 
     int index = 0;
     for (const auto& data : data_) {
-      p_param = static_cast<ModuleEventParam*>(
-          SecureMalloc(sizeof(ModuleEventParam)));
+      p_param = static_cast<GFModuleEventParam*>(
+          SecureMalloc(sizeof(GFModuleEventParam)));
       if (index++ == 0) event->params = p_param;
 
       p_param->name = GFStrDup(data.first);
@@ -173,6 +174,6 @@ void Event::ExecuteCallback(ListenerIdentifier l_id, DataObjectPtr d_o) {
   p_->ExecuteCallback(std::move(l_id), d_o);
 }
 
-auto Event::ToModuleEvent() -> ModuleEvent* { return p_->ToModuleEvent(); }
+auto Event::ToModuleEvent() -> GFModuleEvent* { return p_->ToModuleEvent(); }
 
 }  // namespace GpgFrontend::Module

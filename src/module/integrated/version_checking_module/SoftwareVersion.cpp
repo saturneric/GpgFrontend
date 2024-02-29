@@ -28,35 +28,35 @@
 
 #include "SoftwareVersion.h"
 
-#include "core/utils/CommonUtils.h"
-#include "module/sdk/Log.h"
+#include <GFSDKBasic.h>
+#include <GFSDKExtra.h>
+#include <GFSDKLog.h>
 
-namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
-
-auto VersionCheckingModule::SoftwareVersion::NeedUpgrade() const -> bool {
-  ModuleLogDebug(
-      fmt::format("compair version current {} latest {}, result {}",
-                  current_version, latest_version,
-                  CompareSoftwareVersion(current_version, latest_version))
+auto SoftwareVersion::NeedUpgrade() const -> bool {
+  GFModuleLogDebug(
+      fmt::format(
+          "compair version current {} latest {}, result {}", current_version,
+          latest_version,
+          GFCompareSoftwareVersion(GFModuleStrDup(current_version.toUtf8()),
+                                   GFModuleStrDup(latest_version.toUtf8())))
           .c_str());
 
-  ModuleLogDebug(fmt::format("load done: {}, pre-release: {}, draft: {}",
-                             loading_done,
-                             latest_prerelease_version_from_remote,
-                             latest_draft_from_remote)
-                     .c_str());
+  GFModuleLogDebug(fmt::format("load done: {}, pre-release: {}, draft: {}",
+                               loading_done,
+                               latest_prerelease_version_from_remote,
+                               latest_draft_from_remote)
+                       .c_str());
   return loading_done && !latest_prerelease_version_from_remote &&
          !latest_draft_from_remote &&
-         CompareSoftwareVersion(current_version, latest_version) < 0;
+         GFCompareSoftwareVersion(GFModuleStrDup(current_version.toUtf8()),
+                                  GFModuleStrDup(latest_version.toUtf8())) < 0;
 }
 
-auto VersionCheckingModule::SoftwareVersion::VersionWithdrawn() const -> bool {
+auto SoftwareVersion::VersionWithdrawn() const -> bool {
   return loading_done && !current_version_publish_in_remote &&
          current_version_is_a_prerelease && !current_version_is_drafted;
 }
 
-auto VersionCheckingModule::SoftwareVersion::CurrentVersionReleased() const
-    -> bool {
+auto SoftwareVersion::CurrentVersionReleased() const -> bool {
   return loading_done && current_version_publish_in_remote;
 }
-}  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule

@@ -176,7 +176,7 @@ auto InitGpgME(const QString& gpgconf_path, const QString& gnupg_path) -> bool {
   GF_CORE_LOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
 
   // conditional check: only support gpg 2.1.x now
-  if (!(CompareSoftwareVersion(gnupg_version, "2.1.0") >= 0 && find_gpgconf &&
+  if (!(GFCompareSoftwareVersion(gnupg_version, "2.1.0") >= 0 && find_gpgconf &&
         find_openpgp && find_cms)) {
     GF_CORE_LOG_ERROR("gpgme env check failed, abort");
     return false;

@@ -143,6 +143,17 @@ class ModuleManager::Impl {
             __func__, nullptr));
   }
 
+  void DeactiveModule(const ModuleIdentifier& identifier) {
+    Thread::TaskRunnerGetter::GetInstance()
+        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
+        ->PostTask(new Thread::Task(
+            [=](const GpgFrontend::DataObjectPtr&) -> int {
+              gmc_->DeactivateModule(identifier);
+              return 0;
+            },
+            __func__, nullptr));
+  }
+
   auto GetTaskRunner(ModuleIdentifier module_id)
       -> std::optional<TaskRunnerPtr> {
     return gmc_->GetTaskRunner(std::move(module_id));
@@ -234,6 +245,10 @@ auto ModuleManager::SearchEvent(EventTriggerIdentifier trigger_id)
 
 void ModuleManager::ActiveModule(ModuleIdentifier id) {
   return p_->ActiveModule(id);
+}
+
+void ModuleManager::DeactiveModule(ModuleIdentifier id) {
+  return p_->DeactiveModule(id);
 }
 
 auto ModuleManager::GetTaskRunner(ModuleIdentifier id)

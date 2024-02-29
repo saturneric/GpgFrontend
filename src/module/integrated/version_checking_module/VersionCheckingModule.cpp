@@ -28,81 +28,130 @@
 
 #include "VersionCheckingModule.h"
 
-#include "Log.h"
+#include <GFSDKBasic.h>
+#include <GFSDKBuildInfo.h>
+#include <GFSDKExtra.h>
+#include <GFSDKLog.h>
+
+#include <QMetaType>
+#include <QtNetwork>
+
 #include "SoftwareVersion.h"
 #include "VersionCheckTask.h"
-#include "core/module/Module.h"
-#include "core/module/ModuleManager.h"
 
-namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
+extern void VersionCheckDone(const SoftwareVersion& version);
 
-VersionCheckingModule::VersionCheckingModule()
-    : Module("com.bktus.gpgfrontend.module.integrated.version-checking",
-             "1.0.0",
-             ModuleMetaData{{"description", "try to check gpgfrontend version"},
-                            {"author", "saturneric"}}) {}
+auto GFGetModuleGFSDKVersion() -> const char* {
+  return GFModuleStrDup(GF_SDK_VERSION_STR);
+}
 
-VersionCheckingModule::~VersionCheckingModule() = default;
+auto GFGetModuleQtEnvVersion() -> const char* {
+  return GFModuleStrDup(QT_VERSION_STR);
+}
 
-auto VersionCheckingModule::Register() -> int {
-  ModuleLogInfo("version checking module registering");
-  listenEvent("APPLICATION_LOADED");
-  listenEvent("CHECK_APPLICATION_VERSION");
+auto GFGetModuleID() -> const char* {
+  return GFModuleStrDup(
+      "com.bktus.gpgfrontend.module.integrated.version-checking");
+}
+
+auto GFGetModuleVersion() -> const char* { return GFModuleStrDup("1.0.0"); }
+
+auto GFGetModuleMetaData() -> GFModuleMetaData* {
+  auto* p_meta = static_cast<GFModuleMetaData*>(
+      GFAllocateMemory(sizeof(GFModuleMetaData)));
+  auto* h_meta = p_meta;
+
+  p_meta->key = "Description";
+  p_meta->value = "Try checking gpgfrontend version";
+  p_meta->next = static_cast<GFModuleMetaData*>(
+      GFAllocateMemory(sizeof(GFModuleMetaData)));
+  p_meta = p_meta->next;
+  p_meta->key = "Author";
+  p_meta->value = "Saturneric";
+  p_meta->next = nullptr;
+
+  return h_meta;
+}
+
+auto GFRegisterModule() -> int {
+  GFModuleLogInfo("version checking module registering");
   return 0;
 }
 
-auto VersionCheckingModule::Active() -> int {
-  ModuleLogInfo("version checking module activating");
+auto GFActiveModule() -> int {
+  GFModuleLogInfo("version checking module activating");
+
+  GFModuleListenEvent(GFGetModuleID(), GFModuleStrDup("APPLICATION_LOADED"));
+  GFModuleListenEvent(GFGetModuleID(),
+                      GFModuleStrDup("CHECK_APPLICATION_VERSION"));
   return 0;
 }
 
-auto VersionCheckingModule::Exec(EventRefrernce event) -> int {
-  ModuleLogInfo(fmt::format("version checking module executing, event id: {}",
-                            event->GetIdentifier())
-                    .c_str());
+auto GFExecuteModule(GFModuleEvent* event) -> int {
+  GFModuleLogInfo(
+      fmt::format("version checking module executing, event id: {}", event->id)
+          .c_str());
 
   auto* task = new VersionCheckTask();
-  connect(task, &VersionCheckTask::SignalUpgradeVersion, this,
-          &VersionCheckingModule::SignalVersionCheckDone);
-  connect(this, &VersionCheckingModule::SignalVersionCheckDone, this,
-          [this, event](SoftwareVersion version) {
-            SlotVersionCheckDone(std::move(version));
-            event->ExecuteCallback(GetModuleIdentifier(),
-                                   TransferParams(version.loading_done));
-          });
-  getTaskRunner()->PostTask(task);
+  QObject::connect(
+      task, &VersionCheckTask::SignalUpgradeVersion, QThread::currentThread(),
+      [event](const SoftwareVersion& version) {
+        VersionCheckDone(version);
+
+        char** event_argv =
+            static_cast<char**>(GFAllocateMemory(sizeof(char**) * 1));
+        event_argv[0] = GFModuleStrDup("0");
+
+        GFModuleTriggerModuleEventCallback(event, GFGetModuleID(), 1,
+                                           event_argv);
+      });
+  QObject::connect(task, &VersionCheckTask::SignalUpgradeVersion, task,
+                   &QObject::deleteLater);
+  task->Run();
+
   return 0;
 }
 
-auto VersionCheckingModule::Deactive() -> int { return 0; }
+auto GFDeactiveModule() -> int { return 0; }
 
-void VersionCheckingModule::SlotVersionCheckDone(SoftwareVersion version) {
-  ModuleLogDebug("registering software information info to rt");
+auto GFUnregisterModule() -> int { return 0; }
 
-  UpsertRTValue(GetModuleIdentifier(), "version.current_version",
-                version.current_version);
-  UpsertRTValue(GetModuleIdentifier(), "version.latest_version",
-                version.latest_version);
-  UpsertRTValue(GetModuleIdentifier(), "version.current_version_is_drafted",
-                version.current_version_is_drafted);
-  UpsertRTValue(GetModuleIdentifier(),
-                "version.current_version_is_a_prerelease",
-                version.current_version_is_a_prerelease);
-  UpsertRTValue(GetModuleIdentifier(),
-                "version.current_version_publish_in_remote",
-                version.current_version_publish_in_remote);
-  UpsertRTValue(GetModuleIdentifier(),
-                "version.latest_prerelease_version_from_remote",
-                version.latest_prerelease_version_from_remote);
-  UpsertRTValue(GetModuleIdentifier(), "version.need_upgrade",
-                version.NeedUpgrade());
-  UpsertRTValue(GetModuleIdentifier(), "version.current_version_released",
-                version.CurrentVersionReleased());
-  UpsertRTValue(GetModuleIdentifier(), "version.current_a_withdrawn_version",
-                version.VersionWithdrawn());
-  UpsertRTValue(GetModuleIdentifier(), "version.loading_done",
-                version.loading_done);
+void VersionCheckDone(const SoftwareVersion& version) {
+  GFModuleLogDebug("filling software information info in rt...");
 
-  ModuleLogDebug("register software information to rt done");
+  GFModuleUpsertRTValue(GFGetModuleID(),
+                        GFModuleStrDup("version.current_version"),
+                        GFModuleStrDup(version.current_version.toUtf8()));
+  GFModuleUpsertRTValue(GFGetModuleID(),
+                        GFModuleStrDup("version.latest_version"),
+                        GFModuleStrDup(version.latest_version.toUtf8()));
+  GFModuleUpsertRTValueBool(
+      GFGetModuleID(), GFModuleStrDup("version.current_version_is_drafted"),
+      version.current_version_is_drafted ? 1 : 0);
+  GFModuleUpsertRTValueBool(
+      GFGetModuleID(),
+      GFModuleStrDup("version.current_version_is_a_prerelease"),
+      version.current_version_is_a_prerelease ? 1 : 0);
+  GFModuleUpsertRTValueBool(
+      GFGetModuleID(),
+      GFModuleStrDup("version.current_version_publish_in_remote"),
+      version.current_version_publish_in_remote ? 1 : 0);
+  GFModuleUpsertRTValueBool(
+      GFGetModuleID(),
+      GFModuleStrDup("version.latest_prerelease_version_from_remote"),
+      version.latest_prerelease_version_from_remote ? 1 : 0);
+  GFModuleUpsertRTValueBool(GFGetModuleID(),
+                            GFModuleStrDup("version.need_upgrade"),
+                            version.NeedUpgrade() ? 1 : 0);
+  GFModuleUpsertRTValueBool(GFGetModuleID(),
+                            GFModuleStrDup("version.current_version_released"),
+                            version.CurrentVersionReleased() ? 1 : 0);
+  GFModuleUpsertRTValueBool(
+      GFGetModuleID(), GFModuleStrDup("version.current_a_withdrawn_version"),
+      version.VersionWithdrawn() ? 1 : 0);
+  GFModuleUpsertRTValueBool(GFGetModuleID(),
+                            GFModuleStrDup("version.loading_done"),
+                            version.loading_done ? 1 : 0);
+
+  GFModuleLogDebug("software information filled in rt");
 }
-}  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule

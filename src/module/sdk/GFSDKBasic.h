@@ -28,63 +28,77 @@
 
 #pragma once
 
-#include "GpgFrontendModuleSDKExport.h"
+#include <stdint.h>
+
+#include "GFSDKExport.h"
 
 extern "C" {
 
-using CommandExeucteCallback = void (*)(void* data, int errcode,
-                                        const char* out, const char* err);
+using GFCommandExeucteCallback = void (*)(void* data, int errcode,
+                                          const char* out, const char* err);
 
-using CommandExecuteContext = struct {
+using GFCommandExecuteContext = struct {
   const char* cmd;
   int32_t argc;
   const char** argv;
-  CommandExeucteCallback cb;
+  GFCommandExeucteCallback cb;
   void* data;
 };
 
 /**
- * @brief 
- * 
- * @param size 
- * @return void* 
+ * @brief
+ *
+ * @param size
+ * @return void*
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT AllocateMemory(uint32_t size) -> void*;
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFAllocateMemory(uint32_t size) -> void*;
 
 /**
- * @brief 
- * 
+ * @brief
+ *
+ * @return const char*
  */
-void GPGFRONTEND_MODULE_SDK_EXPORT FreeMemory(void*);
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFProjectVersion() -> const char*;
 
 /**
- * @brief 
- * 
- * @param cmd 
- * @param argc 
- * @param argv 
- * @param cb 
- * @param data 
+ * @brief
+ *
+ * @return const char*
  */
-void GPGFRONTEND_MODULE_SDK_EXPORT ExecuteCommandSync(const char* cmd,
-                                                      int32_t argc,
-                                                      const char** argv,
-                                                      CommandExeucteCallback cb,
-                                                      void* data);
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFQtEnvVersion() -> const char*;
 
 /**
- * @brief 
- * 
- * @param context_size 
- * @param context 
+ * @brief
+ *
  */
-void GPGFRONTEND_MODULE_SDK_EXPORT ExecuteCommandBatchSync(
-    int32_t context_size, const CommandExecuteContext* context);
+void GPGFRONTEND_MODULE_SDK_EXPORT GFFreeMemory(void*);
 
 /**
- * @brief 
- * 
- * @return char* 
+ * @brief
+ *
+ * @param cmd
+ * @param argc
+ * @param argv
+ * @param cb
+ * @param data
+ */
+void GPGFRONTEND_MODULE_SDK_EXPORT
+GFExecuteCommandSync(const char* cmd, int32_t argc, const char** argv,
+                     GFCommandExeucteCallback cb, void* data);
+
+/**
+ * @brief
+ *
+ * @param context_size
+ * @param context
+ */
+void GPGFRONTEND_MODULE_SDK_EXPORT GFExecuteCommandBatchSync(
+    int32_t context_size, const GFCommandExecuteContext* context);
+
+/**
+ * @brief
+ *
+ * @return char*
  */
 auto GPGFRONTEND_MODULE_SDK_EXPORT GFModuleStrDup(const char*) -> char*;
 }

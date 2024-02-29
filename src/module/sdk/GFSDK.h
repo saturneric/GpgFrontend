@@ -26,22 +26,19 @@
  *
  */
 
-#include "Log.h"
+#pragma once
 
-#include "core/utils/LogUtils.h"
+#include "GFSDKExport.h"
 
-#define MODULE_LOG_TRACE(...) GF_LOG_TRACE("module", __VA_ARGS__)
-#define MODULE_LOG_DEBUG(...) GF_LOG_DEBUG("module", __VA_ARGS__)
-#define MODULE_LOG_INFO(...) GF_LOG_INFO("module", __VA_ARGS__)
-#define MODULE_LOG_WARN(...) GF_LOG_WARN("module", __VA_ARGS__)
-#define MODULE_LOG_ERROR(...) GF_LOG_ERROR("module", __VA_ARGS__)
+extern "C" {
 
-void ModuleLogTrace(const char* l) { MODULE_LOG_TRACE(l); }
+void GPGFRONTEND_MODULE_SDK_EXPORT GFModuleLogTrace(const char*);
 
-void ModuleLogDebug(const char* l) { MODULE_LOG_DEBUG(l); }
+void GPGFRONTEND_MODULE_SDK_EXPORT GFModuleLogDebug(const char*);
 
-void ModuleLogInfo(const char* l) { MODULE_LOG_INFO(l); }
+void GPGFRONTEND_MODULE_SDK_EXPORT GFModuleLogInfo(const char*);
 
-void ModuleLogWarn(const char* l) { MODULE_LOG_WARN(l); }
+void GPGFRONTEND_MODULE_SDK_EXPORT GFModuleLogWarn(const char*);
 
-void ModuleLogError(const char* l) { MODULE_LOG_ERROR(l); }
+void GPGFRONTEND_MODULE_SDK_EXPORT GFModuleLogError(const char*);
+}

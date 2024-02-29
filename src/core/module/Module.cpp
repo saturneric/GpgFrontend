@@ -29,7 +29,9 @@
 #include "Module.h"
 
 #include "core/module/GlobalModuleContext.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/IOUtils.h"
+#include "module/sdk/GFSDKModule.h"
 
 namespace GpgFrontend::Module {
 
@@ -63,18 +65,15 @@ class Module::Impl {
       }
     }
 
+    identifier_ = GFUnStrDup(get_id_api_());
+    version_ = GFUnStrDup(get_version_api_());
+
     GF_CORE_LOG_INFO("module loaded, id: {}, verison: {}, hash: {}, path: {}",
-                     QString::fromUtf8(get_id_api_()),
-                     QString::fromUtf8(get_version_api_()), module_hash_,
-                     module_library_path_);
+                     identifier_, version_, module_hash_, module_library_path_);
 
-    identifier_ = QString::fromUtf8(get_id_api_());
-    version_ = QString::fromUtf8(get_version_api_());
+    ::GFModuleMetaData* p_meta_data = get_metadata_api_();
+    ::GFModuleMetaData* l_meta_data;
 
-    ::ModuleMetaData* p_meta_data = get_metadata_api_();
-    ::ModuleMetaData* l_meta_data;
-
-    GF_CORE_LOG_DEBUG("AAAAAA: {}", static_cast<void*>(p_meta_data));
     while (p_meta_data != nullptr) {
       meta_data_[QString::fromUtf8(p_meta_data->key)] =
           QString::fromUtf8(p_meta_data->value);
@@ -157,16 +156,22 @@ class Module::Impl {
   ModuleMetaData meta_data_;
   QString module_hash_;
   QString module_library_path_;
+  QString gf_sdk_ver_;
+  QString qt_env_ver_;
 
   bool good_;
-  ModuleAPIGetModuleID get_id_api_;
-  ModuleAPIGetModuleVersion get_version_api_;
-  ModuleAPIGetModuleMetaData get_metadata_api_;
-  ModuleAPIRegisterModule register_api_;
-  ModuleAPIActivateModule activate_api_;
-  ModuleAPIExecuteModule execute_api_;
-  ModuleAPIDeactivateModule deactivate_api_;
-  ModuleAPIUnregisterModule unregister_api_;
+
+  GFModuleAPIGetModuleGFSDKVersion get_sdk_ver_api_;
+  GFModuleAPIGetModuleQtEnvVersion get_qt_ver_api_;
+
+  GFModuleAPIGetModuleID get_id_api_;
+  GFModuleAPIGetModuleVersion get_version_api_;
+  GFModuleAPIGetModuleMetaData get_metadata_api_;
+  GFModuleAPIRegisterModule register_api_;
+  GFModuleAPIActivateModule activate_api_;
+  GFModuleAPIExecuteModule execute_api_;
+  GFModuleAPIDeactivateModule deactivate_api_;
+  GFModuleAPIUnregisterModule unregister_api_;
 
   struct Symbol {
     const char* name;
@@ -174,14 +179,16 @@ class Module::Impl {
   };
 
   QList<Symbol> module_required_symbols_ = {
-      {"GetModuleID", reinterpret_cast<void**>(&get_id_api_)},
-      {"GetModuleVersion", reinterpret_cast<void**>(&get_version_api_)},
-      {"GetModuleMetaData", reinterpret_cast<void**>(&get_metadata_api_)},
-      {"RegisterModule", reinterpret_cast<void**>(&register_api_)},
-      {"ActiveModule", reinterpret_cast<void**>(&activate_api_)},
-      {"ExecuteModule", reinterpret_cast<void**>(&execute_api_)},
-      {"DeactiveModule", reinterpret_cast<void**>(&deactivate_api_)},
-      {"UnregisterModule", reinterpret_cast<void**>(&unregister_api_)},
+      {"GFGetModuleGFSDKVersion", reinterpret_cast<void**>(&get_sdk_ver_api_)},
+      {"GFGetModuleQtEnvVersion", reinterpret_cast<void**>(&get_qt_ver_api_)},
+      {"GFGetModuleID", reinterpret_cast<void**>(&get_id_api_)},
+      {"GFGetModuleVersion", reinterpret_cast<void**>(&get_version_api_)},
+      {"GFGetModuleMetaData", reinterpret_cast<void**>(&get_metadata_api_)},
+      {"GFRegisterModule", reinterpret_cast<void**>(&register_api_)},
+      {"GFActiveModule", reinterpret_cast<void**>(&activate_api_)},
+      {"GFExecuteModule", reinterpret_cast<void**>(&execute_api_)},
+      {"GFDeactiveModule", reinterpret_cast<void**>(&deactivate_api_)},
+      {"GFUnregisterModule", reinterpret_cast<void**>(&unregister_api_)},
   };
 
   auto get_gpc() -> GlobalModuleContext* {

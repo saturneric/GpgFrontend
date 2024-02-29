@@ -45,7 +45,7 @@ auto RunGpgOperaAsync(const GpgOperaRunnable& runnable,
   GF_CORE_LOG_DEBUG("got gnupg version from rt: {}, operation: {}",
                     gnupg_version, operation);
 
-  if (CompareSoftwareVersion(gnupg_version, minial_version) < 0) {
+  if (GFCompareSoftwareVersion(gnupg_version, minial_version) < 0) {
     GF_CORE_LOG_ERROR("operaton {} not support for gnupg version: {}",
                       operation, gnupg_version);
     callback(GPG_ERR_NOT_SUPPORTED, TransferParams());
@@ -85,7 +85,7 @@ auto RunGpgOperaSync(const GpgOperaRunnable& runnable, const QString& operation,
   GF_CORE_LOG_DEBUG("got gnupg version from rt: {}, operation: {}",
                     gnupg_version, operation);
 
-  if (CompareSoftwareVersion(gnupg_version, minial_version) < 0) {
+  if (GFCompareSoftwareVersion(gnupg_version, minial_version) < 0) {
     GF_CORE_LOG_ERROR("operaton {} not support for gnupg version: {}",
                       operation, gnupg_version);
     return {GPG_ERR_NOT_SUPPORTED, TransferParams()};

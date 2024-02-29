@@ -26,7 +26,7 @@
  *
  */
 
-#include "module/integrated/gnupg_info_gathering_module/GpgInfo.h"
+#include "GpgInfo.h"
 
 GpgOptionsInfo::GpgOptionsInfo(const QJsonObject &j) {
   if (const auto v = j["name"]; v.isString()) name = v.toString();

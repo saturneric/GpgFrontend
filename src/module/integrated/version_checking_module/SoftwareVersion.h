@@ -28,9 +28,6 @@
 
 #pragma once
 
-#include <module/sdk/GpgFrontendModuleSDK.h>
-
-namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
 /**
  * @brief
  *
@@ -53,7 +50,7 @@ struct SoftwareVersion {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool InfoValid() const { return loading_done; }
+  [[nodiscard]] auto InfoValid() const -> bool { return loading_done; }
 
   /**
    * @brief
@@ -61,7 +58,7 @@ struct SoftwareVersion {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool NeedUpgrade() const;
+  [[nodiscard]] auto NeedUpgrade() const -> bool;
 
   /**
    * @brief
@@ -69,7 +66,7 @@ struct SoftwareVersion {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool VersionWithdrawn() const;
+  [[nodiscard]] auto VersionWithdrawn() const -> bool;
 
   /**
    * @brief
@@ -77,9 +74,8 @@ struct SoftwareVersion {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool CurrentVersionReleased() const;
+  [[nodiscard]] auto CurrentVersionReleased() const -> bool;
 
  private:
-  static int version_compare(const QString& a, const QString& b);
+  static auto version_compare(const QString& a, const QString& b) -> int;
 };
-}  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule

@@ -48,8 +48,8 @@ auto GPGFRONTEND_CORE_EXPORT BeautifyFingerprint(QString fingerprint)
  * @param b
  * @return int
  */
-auto GPGFRONTEND_CORE_EXPORT CompareSoftwareVersion(const QString& a,
-                                                    const QString& b) -> int;
+auto GPGFRONTEND_CORE_EXPORT GFCompareSoftwareVersion(const QString& a,
+                                                      const QString& b) -> int;
 
 /**
  * @brief
@@ -57,5 +57,12 @@ auto GPGFRONTEND_CORE_EXPORT CompareSoftwareVersion(const QString& a,
  * @return char*
  */
 auto GPGFRONTEND_CORE_EXPORT GFStrDup(const QString&) -> char*;
+
+/**
+ * @brief
+ *
+ * @return QString
+ */
+auto GPGFRONTEND_CORE_EXPORT GFUnStrDup(const char*) -> QString;
 
 }  // namespace GpgFrontend

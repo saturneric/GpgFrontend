@@ -502,7 +502,7 @@ auto GpgKeyOpera::ModifyTOFUPolicy(const GpgKey& key,
       "core", "gpgme.ctx.gnupg_version", QString{"2.0.0"});
   GF_CORE_LOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
 
-  if (CompareSoftwareVersion(gnupg_version, "2.1.10") < 0) {
+  if (GFCompareSoftwareVersion(gnupg_version, "2.1.10") < 0) {
     GF_CORE_LOG_ERROR("operator not support");
     return GPG_ERR_NOT_SUPPORTED;
   }

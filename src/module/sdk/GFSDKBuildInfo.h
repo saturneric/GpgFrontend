@@ -28,29 +28,9 @@
 
 #pragma once
 
-#include <GFSDKModule.h>
+#define GF_SDK_VERSION_MAJOR "2"
+#define GF_SDK_VERSION_MINOR "1"
+#define GF_SDK_VERSION_PATCH "2"
 
-#include "GFModuleExport.h"
-
-extern "C" {
-
-auto GF_MODULE_EXPORT GFGetModuleGFSDKVersion() -> const char *;
-
-auto GF_MODULE_EXPORT GFGetModuleQtEnvVersion() -> const char *;
-
-auto GF_MODULE_EXPORT GFGetModuleID() -> const char *;
-
-auto GF_MODULE_EXPORT GFGetModuleVersion() -> const char *;
-
-auto GF_MODULE_EXPORT GFGetModuleMetaData() -> GFModuleMetaData *;
-
-auto GF_MODULE_EXPORT GFRegisterModule() -> int;
-
-auto GF_MODULE_EXPORT GFActiveModule() -> int;
-
-auto GF_MODULE_EXPORT GFExecuteModule(GFModuleEvent *) -> int;
-
-auto GF_MODULE_EXPORT GFDeactiveModule() -> int;
-
-auto GF_MODULE_EXPORT GFUnregisterModule() -> int;
-};
+#define GF_SDK_VERSION_STR \
+  GF_SDK_VERSION_MAJOR "." GF_SDK_VERSION_MINOR "." GF_SDK_VERSION_PATCH

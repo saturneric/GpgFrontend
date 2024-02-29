@@ -171,13 +171,6 @@ class GlobalModuleContext::Impl {
   auto ListenEvent(ModuleIdentifier module_id, EventIdentifier event) -> bool {
     GF_CORE_LOG_DEBUG("module: {} is attempting to listen to event {}",
                       module_id, event);
-    // Check if the event exists, if not, create it.
-    auto met_it = module_events_table_.find(event);
-    if (met_it == module_events_table_.end()) {
-      module_events_table_[event] = std::unordered_set<ModuleIdentifier>();
-      met_it = module_events_table_.find(event);
-      GF_CORE_LOG_DEBUG("new event {} of module system created", event);
-    }
 
     // module -> event
     auto module_info_opt = search_module_register_table(module_id);
@@ -186,6 +179,15 @@ class GlobalModuleContext::Impl {
                         module_id);
       return false;
     }
+
+    // Check if the event exists, if not, create it.
+    auto met_it = module_events_table_.find(event);
+    if (met_it == module_events_table_.end()) {
+      module_events_table_[event] = std::unordered_set<ModuleIdentifier>();
+      met_it = module_events_table_.find(event);
+      GF_CORE_LOG_DEBUG("new event {} of module system created", event);
+    }
+
     module_info_opt.value()->listening_event_ids.push_back(event);
 
     auto& listeners_set = met_it->second;
@@ -198,7 +200,7 @@ class GlobalModuleContext::Impl {
   }
 
   auto DeactivateModule(ModuleIdentifier module_id) -> bool {
-    // Search for the module in the register table.
+    // search for the module in the register table.
     auto module_info_opt = search_module_register_table(module_id);
     if (!module_info_opt.has_value()) {
       GF_CORE_LOG_ERROR("cannot find module id {} at register table",
@@ -207,8 +209,16 @@ class GlobalModuleContext::Impl {
     }
 
     auto module_info = module_info_opt.value();
-    // Activate the module if it is not already deactive.
-    if (!module_info->activate && (module_info->module->Deactive() == 0)) {
+    // activate the module if it is not already deactive.
+    if (module_info->activate && (module_info->module->Deactive() == 0)) {
+      for (const auto& event_ids : module_info->listening_event_ids) {
+        auto& modules = module_events_table_[event_ids];
+        if (auto it = modules.find(module_id); it != modules.end()) {
+          modules.erase(it);
+        }
+      }
+
+      module_info->listening_event_ids.clear();
       module_info->activate = false;
     }
 

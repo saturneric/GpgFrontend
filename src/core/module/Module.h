@@ -30,7 +30,6 @@
 
 #include "core/module/Event.h"
 #include "core/thread/TaskRunner.h"
-#include "module/sdk/Module.h"
 
 namespace GpgFrontend::Module {
 

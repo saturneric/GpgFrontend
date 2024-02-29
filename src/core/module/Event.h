@@ -34,7 +34,7 @@
 
 #include "core/GpgFrontendCore.h"
 #include "core/model/DataObject.h"
-#include "module/sdk/Module.h"
+#include "module/sdk/GFSDKModule.h"
 
 namespace GpgFrontend::Module {
 
@@ -83,7 +83,7 @@ class GPGFRONTEND_CORE_EXPORT Event {
 
   void ExecuteCallback(ListenerIdentifier, DataObjectPtr);
 
-  auto ToModuleEvent() -> ModuleEvent*;
+  auto ToModuleEvent() -> GFModuleEvent*;
 
  private:
   class Impl;

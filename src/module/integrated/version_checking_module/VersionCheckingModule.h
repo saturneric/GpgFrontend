@@ -28,35 +28,29 @@
 
 #pragma once
 
-#include "GpgFrontendModuleExport.h"
-#include "SoftwareVersion.h"
-#include "core/module/Module.h"
+#include <GFSDKModule.h>
 
+#include "GFModuleExport.h"
 
+extern "C" {
 
-namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
+auto GF_MODULE_EXPORT GFGetModuleGFSDKVersion() -> const char *;
 
-class GF_MODULE_EXPORT VersionCheckingModule : public Module {
-  Q_OBJECT
- public:
-  VersionCheckingModule();
+auto GF_MODULE_EXPORT GFGetModuleQtEnvVersion() -> const char *;
 
-  ~VersionCheckingModule() override;
+auto GF_MODULE_EXPORT GFGetModuleID() -> const char *;
 
-  auto Register() -> int override;
+auto GF_MODULE_EXPORT GFGetModuleVersion() -> const char *;
 
-  auto Active() -> int override;
+auto GF_MODULE_EXPORT GFGetModuleMetaData() -> GFModuleMetaData *;
 
-  auto Exec(EventRefrernce) -> int override;
+auto GF_MODULE_EXPORT GFRegisterModule() -> int;
 
-  auto Deactive() -> int override;
+auto GF_MODULE_EXPORT GFActiveModule() -> int;
 
- signals:
+auto GF_MODULE_EXPORT GFExecuteModule(GFModuleEvent *) -> int;
 
-  void SignalVersionCheckDone(SoftwareVersion);
+auto GF_MODULE_EXPORT GFDeactiveModule() -> int;
 
- public slots:
-
-  void SlotVersionCheckDone(SoftwareVersion);
+auto GF_MODULE_EXPORT GFUnregisterModule() -> int;
 };
-}  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule

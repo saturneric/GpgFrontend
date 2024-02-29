@@ -28,29 +28,17 @@
 
 #pragma once
 
-#include <GFSDKModule.h>
-
-#include "GFModuleExport.h"
+#include "GFSDKExport.h"
 
 extern "C" {
 
-auto GF_MODULE_EXPORT GFGetModuleGFSDKVersion() -> const char *;
+void GPGFRONTEND_MODULE_SDK_EXPORT GFModuleLogTrace(const char*);
 
-auto GF_MODULE_EXPORT GFGetModuleQtEnvVersion() -> const char *;
+void GPGFRONTEND_MODULE_SDK_EXPORT GFModuleLogDebug(const char*);
 
-auto GF_MODULE_EXPORT GFGetModuleID() -> const char *;
+void GPGFRONTEND_MODULE_SDK_EXPORT GFModuleLogInfo(const char*);
 
-auto GF_MODULE_EXPORT GFGetModuleVersion() -> const char *;
+void GPGFRONTEND_MODULE_SDK_EXPORT GFModuleLogWarn(const char*);
 
-auto GF_MODULE_EXPORT GFGetModuleMetaData() -> GFModuleMetaData *;
-
-auto GF_MODULE_EXPORT GFRegisterModule() -> int;
-
-auto GF_MODULE_EXPORT GFActiveModule() -> int;
-
-auto GF_MODULE_EXPORT GFExecuteModule(GFModuleEvent *) -> int;
-
-auto GF_MODULE_EXPORT GFDeactiveModule() -> int;
-
-auto GF_MODULE_EXPORT GFUnregisterModule() -> int;
-};
+void GPGFRONTEND_MODULE_SDK_EXPORT GFModuleLogError(const char*);
+}

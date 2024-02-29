@@ -30,7 +30,7 @@ set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 aux_source_directory(sdk MODULE_SDK_SOURCE)
 
 add_library(gpgfrontend_module_sdk SHARED ${MODULE_SDK_SOURCE})
-set(_export_file_sdk "${CMAKE_CURRENT_SOURCE_DIR}/sdk/GpgFrontendModuleSDKExport.h")
+set(_export_file_sdk "${CMAKE_CURRENT_SOURCE_DIR}/sdk/GFSDKExport.h")
 generate_export_header(gpgfrontend_module_sdk EXPORT_FILE_NAME "${_export_file_sdk}")
 target_include_directories(gpgfrontend_module_sdk PUBLIC 
   sdk 

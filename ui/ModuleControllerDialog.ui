@@ -16,8 +16,17 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTabWidget" name="tabWidget">
+     <property name="tabPosition">
+      <enum>QTabWidget::North</enum>
+     </property>
+     <property name="tabShape">
+      <enum>QTabWidget::Rounded</enum>
+     </property>
      <property name="currentIndex">
       <number>0</number>
+     </property>
+     <property name="documentMode">
+      <bool>false</bool>
      </property>
      <widget class="QWidget" name="registeredModuleTab">
       <attribute name="title">
@@ -108,16 +117,16 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="activateButton">
+            <widget class="QPushButton" name="activateOrDeactiveButton">
              <property name="text">
               <string>Activate</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="deactivateButton">
+            <widget class="QPushButton" name="autoActivateButton">
              <property name="text">
-              <string>Deactivate</string>
+              <string>Auto Activate</string>
              </property>
             </widget>
            </item>
@@ -139,6 +148,11 @@
         </layout>
        </item>
       </layout>
+     </widget>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>Trusted Key</string>
+      </attribute>
      </widget>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">

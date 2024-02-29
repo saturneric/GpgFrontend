@@ -28,31 +28,29 @@
 
 #include "VersionCheckTask.h"
 
+#include <GFSDKBasic.h>
+#include <GFSDKExtra.h>
+#include <GFSDKLog.h>
+
 #include <QMetaType>
 #include <QtNetwork>
 
-#include "core/utils/BuildInfoUtils.h"
-
-namespace GpgFrontend::Module::Integrated::VersionCheckingModule {
-
 VersionCheckTask::VersionCheckTask()
-    : Task("version_check_task"),
-      network_manager_(new QNetworkAccessManager(this)),
-      current_version_(GetProjectVersion()) {
-  HoldOnLifeCycle(true);
+    : network_manager_(new QNetworkAccessManager(this)),
+      current_version_(GFProjectVersion()) {
   qRegisterMetaType<SoftwareVersion>("SoftwareVersion");
   version_.current_version = current_version_;
 }
 
 auto VersionCheckTask::Run() -> int {
-  ModuleLogDebug(
+  GFModuleLogDebug(
       fmt::format("current project version: {}", current_version_).c_str());
   QString latest_version_url =
       "https://api.github.com/repos/saturneric/gpgfrontend/releases/latest";
 
   QNetworkRequest latest_request(latest_version_url);
   latest_request.setHeader(QNetworkRequest::UserAgentHeader,
-                           GetHttpRequestUserAgent());
+                           GFHttpRequestUserAgent());
 
   latest_reply_ = network_manager_->get(latest_request);
   connect(latest_reply_, &QNetworkReply::finished, this,
@@ -65,9 +63,9 @@ void VersionCheckTask::slot_parse_latest_version_info() {
     version_.latest_version = current_version_;
     version_.loading_done = false;
   } else if (latest_reply_->error() != QNetworkReply::NoError) {
-    ModuleLogError(fmt::format("latest version request error: ",
-                               latest_reply_->errorString())
-                       .c_str());
+    GFModuleLogError(fmt::format("latest version request error: ",
+                                 latest_reply_->errorString())
+                         .c_str());
     version_.latest_version = current_version_;
   } else {
     latest_reply_bytes_ = latest_reply_->readAll();
@@ -80,12 +78,12 @@ void VersionCheckTask::slot_parse_latest_version_info() {
       auto version_match = re.match(latest_version);
       if (version_match.hasMatch()) {
         latest_version = version_match.captured(0);
-        ModuleLogInfo(
+        GFModuleLogInfo(
             fmt::format("latest version from github: {}", latest_version)
                 .c_str());
       } else {
         latest_version = current_version_;
-        ModuleLogWarn(
+        GFModuleLogWarn(
             fmt::format("latest version unknown, set to current version: {}",
                         current_version_)
                 .c_str());
@@ -101,9 +99,9 @@ void VersionCheckTask::slot_parse_latest_version_info() {
       version_.publish_date = publish_date;
       version_.release_note = release_note;
     } else {
-      ModuleLogWarn(fmt::format("cannot parse data got from github: {}",
-                                latest_reply_bytes_)
-                        .c_str());
+      GFModuleLogWarn(fmt::format("cannot parse data got from github: {}",
+                                  latest_reply_bytes_)
+                          .c_str());
     }
   }
 
@@ -115,21 +113,20 @@ void VersionCheckTask::slot_parse_latest_version_info() {
     QString current_version_url =
         "https://api.github.com/repos/saturneric/gpgfrontend/releases/tags/" +
         current_version_;
-    ModuleLogDebug(
+    GFModuleLogDebug(
         fmt::format("current version info query url: {}", current_version_url)
             .c_str());
 
     QNetworkRequest current_request(current_version_url);
     current_request.setHeader(QNetworkRequest::UserAgentHeader,
-                              GetHttpRequestUserAgent());
+                              GFHttpRequestUserAgent());
 
     current_reply_ = network_manager_->get(current_request);
 
     connect(current_reply_, &QNetworkReply::finished, this,
             &VersionCheckTask::slot_parse_current_version_info);
   } catch (...) {
-    ModuleLogError("current version request create error");
-    emit SignalTaskShouldEnd(-1);
+    GFModuleLogError("current version request create error");
   }
 }
 
@@ -139,9 +136,9 @@ void VersionCheckTask::slot_parse_current_version_info() {
     version_.loading_done = false;
 
   } else if (current_reply_->error() != QNetworkReply::NoError) {
-    ModuleLogError(fmt::format("current version request network error: {}",
-                               current_reply_->errorString())
-                       .c_str());
+    GFModuleLogError(fmt::format("current version request network error: {}",
+                                 current_reply_->errorString())
+                         .c_str());
 
     // loading done
     version_.loading_done = true;
@@ -159,19 +156,16 @@ void VersionCheckTask::slot_parse_current_version_info() {
       // loading done
       version_.loading_done = true;
     } else {
-      ModuleLogWarn(fmt::format("cannot parse data got from github: {}",
-                                current_reply_bytes_)
-                        .c_str());
+      GFModuleLogWarn(fmt::format("cannot parse data got from github: {}",
+                                  current_reply_bytes_)
+                          .c_str());
     }
   }
 
-  ModuleLogDebug(fmt::format("current version parse done: {}",
-                             version_.current_version_publish_in_remote)
-                     .c_str());
+  GFModuleLogDebug(fmt::format("current version parse done: {}",
+                               version_.current_version_publish_in_remote)
+                       .c_str());
 
   if (current_reply_ != nullptr) current_reply_->deleteLater();
   emit SignalUpgradeVersion(version_);
-  emit SignalTaskShouldEnd(0);
 }
-
-}  // namespace GpgFrontend::Module::Integrated::VersionCheckingModule

@@ -29,7 +29,7 @@ aux_source_directory(. INTEGRATED_MODULE_SOURCE)
 
 # define libgpgfrontend_module
 add_library(gpgfrontend_version_checking SHARED ${INTEGRATED_MODULE_SOURCE})
-set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendModuleExport.h")
+set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GFModuleExport.h")
 generate_export_header(gpgfrontend_version_checking 
   BASE_NAME "GF_MODULE"
   EXPORT_FILE_NAME "${_export_file}")
