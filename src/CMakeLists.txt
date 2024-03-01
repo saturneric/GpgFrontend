@@ -61,7 +61,7 @@ if(GPGFRONTEND_QT5_BUILD)
 else()
     # Introduce Qt
     # Support Qt version: 6.x
-    find_package(Qt6 6 COMPONENTS Core Widgets PrintSupport Network Core5Compat LinguistTools REQUIRED)
+    find_package(Qt6 6 COMPONENTS Core Widgets PrintSupport Network LinguistTools REQUIRED)
 endif()
 
 

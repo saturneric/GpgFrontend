@@ -28,8 +28,6 @@
 
 #include "ui/GpgFrontendApplication.h"
 
-#include <QTextCodec>
-
 #include "core/utils/BuildInfoUtils.h"
 
 namespace GpgFrontend::UI {
@@ -52,9 +50,6 @@ GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
 
   // don't show icons in menus
   GpgFrontendApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
-
-  // unicode in source
-  QTextCodec::setCodecForLocale(QTextCodec::codecForName("utf-8"));
 }
 
 bool GpgFrontendApplication::notify(QObject *receiver, QEvent *event) {

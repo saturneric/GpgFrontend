@@ -28,8 +28,6 @@
 
 #include "KeyServerImportDialog.h"
 
-#include <QRegExp>
-
 #include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
