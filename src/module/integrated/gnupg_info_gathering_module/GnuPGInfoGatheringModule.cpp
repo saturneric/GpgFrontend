@@ -59,7 +59,7 @@ auto GFGetModuleQtEnvVersion() -> const char * {
 
 auto GFGetModuleID() -> const char * {
   return GFModuleStrDup(
-      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering");
+      "com.bktus.gpgfrontend.module.integrated.gnupg_info_gathering");
 }
 
 auto GFGetModuleVersion() -> const char * { return GFModuleStrDup("1.0.0"); }
@@ -74,10 +74,10 @@ auto GFGetModuleMetaData() -> GFModuleMetaData * {
   p_meta->next = static_cast<GFModuleMetaData *>(
       GFAllocateMemory(sizeof(GFModuleMetaData)));
   p_meta = p_meta->next;
+
   p_meta->key = "Author";
   p_meta->value = "Saturneric";
   p_meta->next = nullptr;
-
   return h_meta;
 }
 

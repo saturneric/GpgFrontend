@@ -85,6 +85,10 @@ void ModuleControllerDialog::slot_load_module_details(
   info << "# BASIC INFO" << Qt::endl << Qt::endl;
 
   info << tr("Version") << ": " << module->GetModuleVersion() << Qt::endl;
+  info << tr("SDK Version") << ": " << module->GetModuleSDKVersion()
+       << Qt::endl;
+  info << tr("Qt ENV Version") << ": " << module->GetModuleQtEnvVersion()
+       << Qt::endl;
   info << tr("Hash") << ": " << module->GetModuleHash() << Qt::endl;
   info << tr("Path") << ": " << module->GetModulePath() << Qt::endl;
 

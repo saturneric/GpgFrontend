@@ -51,7 +51,7 @@ auto GFGetModuleQtEnvVersion() -> const char* {
 
 auto GFGetModuleID() -> const char* {
   return GFModuleStrDup(
-      "com.bktus.gpgfrontend.module.integrated.version-checking");
+      "com.bktus.gpgfrontend.module.integrated.version_checking");
 }
 
 auto GFGetModuleVersion() -> const char* { return GFModuleStrDup("1.0.0"); }

@@ -32,6 +32,7 @@
 #include "core/utils/CommonUtils.h"
 #include "core/utils/IOUtils.h"
 #include "module/sdk/GFSDKModule.h"
+#include "utils/BuildInfoUtils.h"
 
 namespace GpgFrontend::Module {
 
@@ -67,9 +68,63 @@ class Module::Impl {
 
     identifier_ = GFUnStrDup(get_id_api_());
     version_ = GFUnStrDup(get_version_api_());
+    gf_sdk_ver_ = GFUnStrDup(get_sdk_ver_api_());
+    qt_env_ver_ = GFUnStrDup(get_qt_ver_api_());
 
-    GF_CORE_LOG_INFO("module loaded, id: {}, verison: {}, hash: {}, path: {}",
-                     identifier_, version_, module_hash_, module_library_path_);
+    if (!module_identifier_regex_exp_.match(identifier_).hasMatch()) {
+      GF_CORE_LOG_WARN(
+          "illegal module: {}, reasson invalid module id, abort...",
+          identifier_);
+      return;
+    }
+
+    if (!module_version_regex_exp_.match(version_).hasMatch()) {
+      GF_CORE_LOG_WARN(
+          "illegal module: {}, reasson invalid version: {}, abort...",
+          identifier_, version_);
+      return;
+    }
+
+    if (!module_version_regex_exp_.match(gf_sdk_ver_).hasMatch()) {
+      GF_CORE_LOG_WARN(
+          "illegal module: {}, reasson invalid sdk version: {}, abort...",
+          identifier_, gf_sdk_ver_);
+      return;
+    }
+
+    if (GFCompareSoftwareVersion(gf_sdk_ver_, GetProjectVersion()) > 0) {
+      GF_CORE_LOG_WARN(
+          "uncompatible module: {}, sdk version: {} greater than "
+          "current sdk version: {}, abort...",
+          identifier_, gf_sdk_ver_, GetProjectVersion());
+      return;
+    }
+
+    auto qt_env_ver_regex_match = module_version_regex_exp_.match(qt_env_ver_);
+    if (!qt_env_ver_regex_match.hasMatch()) {
+      GF_CORE_LOG_WARN(
+          "illegal module: {}, reasson invalid qt env version: {}, abort...",
+          identifier_, qt_env_ver_);
+      return;
+    }
+
+    auto qt_env_ver_major = qt_env_ver_regex_match.captured(1);
+    auto qt_env_ver_minor = qt_env_ver_regex_match.captured(2);
+
+    if (qt_env_ver_major != QString::number(QT_VERSION_MAJOR) + "." ||
+        qt_env_ver_minor != QString::number(QT_VERSION_MINOR) + ".") {
+      GF_CORE_LOG_WARN(
+          "uncompatible module: {}, qt version: {} is not binary uncompatible "
+          "with application's qt env version: {}, abort...",
+          identifier_, qt_env_ver_, QString::fromUtf8(QT_VERSION_STR));
+      return;
+    }
+
+    GF_CORE_LOG_INFO(
+        "module loaded, id: {}, verison: {}, "
+        "sdk version: {}, qt env version: {}, hash: {}, path: {}",
+        identifier_, version_, gf_sdk_ver_, qt_env_ver_, module_hash_,
+        module_library_path_);
 
     ::GFModuleMetaData* p_meta_data = get_metadata_api_();
     ::GFModuleMetaData* l_meta_data;
@@ -136,6 +191,14 @@ class Module::Impl {
     return version_;
   }
 
+  [[nodiscard]] auto GetModuleSDKVersion() const -> QString {
+    return gf_sdk_ver_;
+  }
+
+  [[nodiscard]] auto GetModuleQtEnvVersion() const -> QString {
+    return qt_env_ver_;
+  }
+
   [[nodiscard]] auto GetModuleMetaData() const -> ModuleMetaData {
     return meta_data_;
   }
@@ -158,6 +221,11 @@ class Module::Impl {
   QString module_library_path_;
   QString gf_sdk_ver_;
   QString qt_env_ver_;
+
+  QRegularExpression module_identifier_regex_exp_ = QRegularExpression(
+      R"(^([A-Za-z]{1}[A-Za-z\d_]*\.)+[A-Za-z][A-Za-z\d_]*$)");
+  QRegularExpression module_version_regex_exp_ =
+      QRegularExpression(R"(^(\d+\.)?(\d+\.)?(\*|\d+)$)");
 
   bool good_;
 
@@ -252,6 +320,14 @@ auto Module::GetModuleIdentifier() const -> ModuleIdentifier {
 
 [[nodiscard]] auto Module::GetModuleHash() const -> QString {
   return p_->GetModuleHash();
+}
+
+[[nodiscard]] auto Module::GetModuleSDKVersion() const -> QString {
+  return p_->GetModuleSDKVersion();
+}
+
+[[nodiscard]] auto Module::GetModuleQtEnvVersion() const -> QString {
+  return p_->GetModuleQtEnvVersion();
 }
 
 void Module::SetGPC(GlobalModuleContext* gpc) { p_->SetGPC(gpc); }
