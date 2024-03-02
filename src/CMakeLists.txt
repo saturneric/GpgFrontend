@@ -121,10 +121,12 @@ if (BUILD_APPLICATION)
         if (APPLE)
             set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Resources)
         elseif (LINUX AND NOT LINUX_INSTALL_SOFTWARE)
-            file(COPY ${CMAKE_SOURCE_DIR}/resource/lfs/app-image/gpgfrontend DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-            file(COPY ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.metainfo.xml DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/share/metainfo FOLLOW_SYMLINK_CHAIN)
-            file(COPY ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.desktop DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/share/applications FOLLOW_SYMLINK_CHAIN)
-            set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/share)
+            file(MAKE_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir)
+            file(COPY ${CMAKE_SOURCE_DIR}/resource/lfs/hicolor DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/share/icons)
+            file(COPY ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.metainfo.xml DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/share/metainfo FOLLOW_SYMLINK_CHAIN)
+            file(COPY ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.desktop DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/share/applications FOLLOW_SYMLINK_CHAIN)
+            file(COPY ${CMAKE_SOURCE_DIR}/resource/lfs/pixmaps/com.bktus.gpgfrontend.png DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir FOLLOW_SYMLINK_CHAIN)
+            set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/share)
         else ()
             set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
         endif ()
@@ -466,7 +468,8 @@ endif ()
 # add i18n support
 if (BUILD_APPLICATION)
     set(LOCALE_TS_PATH ${CMAKE_SOURCE_DIR}/resource/lfs/locale/ts)
-    set(TS_FILES "${LOCALE_TS_PATH}/GpgFrontend.de_DE.ts"
+    set(TS_FILES "${LOCALE_TS_PATH}/GpgFrontend.en_US.ts" 
+                "${LOCALE_TS_PATH}/GpgFrontend.de_DE.ts"
                 "${LOCALE_TS_PATH}/GpgFrontend.fr_FR.ts"
                 "${LOCALE_TS_PATH}/GpgFrontend.zh_CN.ts"
                 "${LOCALE_TS_PATH}/GpgFrontend.zh_TW.ts"

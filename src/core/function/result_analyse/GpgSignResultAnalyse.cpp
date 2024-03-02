@@ -103,11 +103,9 @@ void GpgSignResultAnalyse::doAnalyse() {
       stream_ << "- " << tr("Hash Algo") << ": "
               << gpgme_hash_algo_name(new_sign->hash_algo) << Qt::endl;
       stream_ << "- " << tr("Sign Date") << "(" << tr("UTC") << ")"
-              << ": "
-              << QDateTime::fromSecsSinceEpoch(new_sign->timestamp).toString()
-              << Qt::endl;
+              << ": " << GetUTCDateByTimestamp(new_sign->timestamp) << Qt::endl;
       stream_ << "- " << tr("Sign Date") << "(" << tr("Localized") << ")"
-              << ": " << GetFormatedDateByTimestamp(new_sign->timestamp)
+              << ": " << GetLocalizedDateByTimestamp(new_sign->timestamp)
               << Qt::endl;
 
       stream_ << Qt::endl

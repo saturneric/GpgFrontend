@@ -1,10 +1,12 @@
 <!DOCTYPE RCC>
 <RCC>
     <qresource prefix="/icons">
+        <file alias="gpgfrontend.ico">gpgfrontend.ico</file>
+        <file alias="gpgfrontend.png">resource/lfs/icons/gpgfrontend.png</file>
+        <file alias="gpgfrontend_logo.png">resource/lfs/icons/gpgfrontend_logo.png</file>
         <file alias="keymgmt.png">resource/lfs/icons/keymgmt.png</file>
         <file alias="help.png">resource/lfs/icons/help.png</file>
         <file alias="button_copy.png">resource/lfs/icons/button_copy.png</file>
-        <file alias="logo.png">resource/lfs/icons/gpgfrontend_logo.png</file>
         <file alias="error.png">resource/lfs/icons/error.png</file>
         <file alias="info.png">resource/lfs/icons/info.png</file>
         <file alias="inbox.png">resource/lfs/icons/inbox.png</file>
@@ -38,7 +40,6 @@
         <file alias="format-line-spacing-normal.png">resource/lfs/icons/format-line-spacing-normal.png</file>
         <file alias="format-line-spacing-triple.png">resource/lfs/icons/format-line-spacing-triple.png</file>
         <file alias="gnupg.png">resource/lfs/icons/gnupg.png</file>
-        <file alias="gpgfrontend.png">resource/lfs/icons/gpgfrontend.png</file>
         <file alias="importance.png">resource/lfs/icons/importance.png</file>
         <file alias="importkey_editor.png">resource/lfs/icons/importkey_editor.png</file>
         <file alias="import_key_from_clipboard.png">resource/lfs/icons/import_key_from_clipboard.png</file>

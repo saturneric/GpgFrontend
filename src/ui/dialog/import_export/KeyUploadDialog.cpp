@@ -30,6 +30,7 @@
 
 #include <QtNetwork>
 
+#include "GpgFrontendBuildInfo.h"
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
@@ -115,6 +116,7 @@ void KeyUploadDialog::slot_upload_key_to_server(
   data.replace(" ", "+");
 
   QNetworkRequest request(req_url);
+  request.setHeader(QNetworkRequest::UserAgentHeader, HTTP_REQUEST_USER_AGENT);
   request.setHeader(QNetworkRequest::ContentTypeHeader,
                     "application/x-www-form-urlencoded");
 

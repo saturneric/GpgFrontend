@@ -30,6 +30,7 @@
 
 #include <cstddef>
 
+#include "GpgFrontendBuildInfo.h"
 #include "core/GpgConstants.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
@@ -428,7 +429,11 @@ void CommonUtils::SlotImportKeyFromKeyServer(
       GF_UI_LOG_DEBUG("request url: {}", req_url.toString());
 
       // Waiting for reply
-      QNetworkReply *reply = network_manager->get(QNetworkRequest(req_url));
+      auto request = QNetworkRequest(req_url);
+      request.setHeader(QNetworkRequest::UserAgentHeader,
+                        HTTP_REQUEST_USER_AGENT);
+
+      QNetworkReply *reply = network_manager->get(request);
       QEventLoop loop;
       connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
       loop.exec();

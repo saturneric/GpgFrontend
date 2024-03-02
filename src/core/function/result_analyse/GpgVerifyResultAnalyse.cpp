@@ -55,11 +55,10 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
     auto *sign = result->signatures;
 
     stream_ << "-> " << tr("Signed On") << "(" << tr("UTC") << ")"
-            << ": " << QDateTime::fromSecsSinceEpoch(sign->timestamp).toString()
-            << Qt::endl;
+            << ": " << GetUTCDateByTimestamp(sign->timestamp) << Qt::endl;
 
     stream_ << "-> " << tr("Signed On") << "(" << tr("Localized") << ")"
-            << ": " << GetFormatedDateByTimestamp(sign->timestamp) << Qt::endl;
+            << ": " << GetLocalizedDateByTimestamp(sign->timestamp) << Qt::endl;
 
     stream_ << Qt::endl << "## " << tr("Signatures List") << ":" << Qt::endl;
     stream_ << Qt::endl;
@@ -190,7 +189,8 @@ auto GpgFrontend::GpgVerifyResultAnalyse::print_signer_without_key(
          << Qt::endl;
   stream << "- " << tr("Hash Algo") << ": " << sign.GetHashAlgo() << Qt::endl;
   stream << "- " << tr("Sign Date") << "(" << tr("UTC") << ")"
-         << ": " << sign.GetCreateTime().toString() << Qt::endl;
+         << ": " << QLocale().toString(sign.GetCreateTime().toUTC())
+         << Qt::endl;
   stream << "- " << tr("Sign Date") << "(" << tr("Localized") << ")"
          << ": " << QLocale().toString(sign.GetCreateTime()) << Qt::endl;
   return true;
@@ -235,7 +235,8 @@ auto GpgFrontend::GpgVerifyResultAnalyse::print_signer(QTextStream &stream,
          << Qt::endl;
   stream << "- " << tr("Hash Algo") << ": " << sign.GetHashAlgo() << Qt::endl;
   stream << "- " << tr("Sign Date") << "(" << tr("UTC") << ")"
-         << ": " << sign.GetCreateTime().toString() << Qt::endl;
+         << ": " << QLocale().toString(sign.GetCreateTime().toUTC())
+         << Qt::endl;
   stream << "- " << tr("Sign Date") << "(" << tr("Localized") << ")"
          << ": " << QLocale().toString(sign.GetCreateTime()) << Qt::endl;
   stream << Qt::endl;

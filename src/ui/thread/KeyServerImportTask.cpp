@@ -28,6 +28,7 @@
 
 #include "ui/thread/KeyServerImportTask.h"
 
+#include "GpgFrontendBuildInfo.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "ui/struct/SettingsObject.h"
 #include "ui/struct/settings/KeyServerSO.h"
@@ -54,7 +55,11 @@ auto GpgFrontend::UI::KeyServerImportTask::Run() -> int {
     QUrl const req_url(keyserver_url.scheme() + "://" + keyserver_url.host() +
                        "/pks/lookup?op=get&search=0x" + key_id + "&options=mr");
 
-    reply_ = manager_->get(QNetworkRequest(req_url));
+    auto request = QNetworkRequest(req_url);
+    request.setHeader(QNetworkRequest::UserAgentHeader,
+                      HTTP_REQUEST_USER_AGENT);
+
+    reply_ = manager_->get(request);
     connect(reply_, &QNetworkReply::finished, this,
             &KeyServerImportTask::dealing_reply_from_server);
   }
