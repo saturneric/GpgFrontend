@@ -32,6 +32,8 @@
 
 extern "C" {
 
+#include <stdint.h>
+
 struct GFModuleMetaData {
   const char *key;
   const char *value;

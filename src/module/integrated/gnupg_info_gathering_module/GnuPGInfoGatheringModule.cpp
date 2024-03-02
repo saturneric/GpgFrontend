@@ -31,8 +31,49 @@
 #include <GFSDKBasic.h>
 #include <GFSDKBuildInfo.h>
 #include <GFSDKLog.h>
+#include <spdlog/spdlog.h>
+
+#include <QCryptographicHash>
+#include <QFileInfo>
+#include <QJsonDocument>
+#include <QString>
 
 #include "GpgInfo.h"
+
+template <>
+struct fmt::formatter<QString> {
+  // Parses format specifications.
+  constexpr auto parse(format_parse_context &ctx) -> decltype(ctx.begin()) {
+    return ctx.begin();
+  }
+
+  // Formats the QString qstr and writes it to the output.
+  template <typename FormatContext>
+  auto format(const QString &qstr, FormatContext &ctx) const
+      -> decltype(ctx.out()) {
+    // Convert QString to UTF-8 QString (to handle Unicode characters
+    // correctly)
+    QByteArray utf8_array = qstr.toUtf8();
+    return fmt::format_to(ctx.out(), "{}", utf8_array.constData());
+  }
+};
+
+template <>
+struct fmt::formatter<QByteArray> {
+  // Parses format specifications.
+  constexpr auto parse(format_parse_context &ctx) -> decltype(ctx.begin()) {
+    return ctx.begin();
+  }
+
+  // Formats the QString qstr and writes it to the output.
+  template <typename FormatContext>
+  auto format(const QByteArray &qarray, FormatContext &ctx) const
+      -> decltype(ctx.out()) {
+    // Convert QString to UTF-8 QString (to handle Unicode characters
+    // correctly)
+    return fmt::format_to(ctx.out(), "{}", qarray.constData());
+  }
+};
 
 extern auto CalculateBinaryChacksum(const QString &path)
     -> std::optional<QString>;

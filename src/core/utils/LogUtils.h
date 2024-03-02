@@ -28,6 +28,49 @@
 
 #pragma once
 
+// spdlog library configuration
+#undef SPDLOG_ACTIVE_LEVEL
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
+#include <spdlog/spdlog.h>
+
+// logger fmt
+#include "core/GpgFrontendCoreExport.h"
+
+template <>
+struct fmt::formatter<QString> {
+  // Parses format specifications.
+  constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
+    return ctx.begin();
+  }
+
+  // Formats the QString qstr and writes it to the output.
+  template <typename FormatContext>
+  auto format(const QString& qstr, FormatContext& ctx) const
+      -> decltype(ctx.out()) {
+    // Convert QString to UTF-8 QString (to handle Unicode characters
+    // correctly)
+    QByteArray utf8_array = qstr.toUtf8();
+    return fmt::format_to(ctx.out(), "{}", utf8_array.constData());
+  }
+};
+
+template <>
+struct fmt::formatter<QByteArray> {
+  // Parses format specifications.
+  constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
+    return ctx.begin();
+  }
+
+  // Formats the QString qstr and writes it to the output.
+  template <typename FormatContext>
+  auto format(const QByteArray& qarray, FormatContext& ctx) const
+      -> decltype(ctx.out()) {
+    // Convert QString to UTF-8 QString (to handle Unicode characters
+    // correctly)
+    return fmt::format_to(ctx.out(), "{}", qarray.constData());
+  }
+};
+
 namespace GpgFrontend {
 
 /**
@@ -50,7 +93,7 @@ auto GPGFRONTEND_CORE_EXPORT GetCoreLogger() -> std::shared_ptr<spdlog::logger>;
  *
  * @return std::shared_ptr<spdlog::logger>
  */
-auto GPGFRONTEND_CORE_EXPORT GetLogger(const QString &)
+auto GPGFRONTEND_CORE_EXPORT GetLogger(const QString&)
     -> std::shared_ptr<spdlog::logger>;
 
 /**
@@ -65,7 +108,7 @@ void GPGFRONTEND_CORE_EXPORT SetDefaultLogLevel(spdlog::level::level_enum);
  *
  * @return auto
  */
-void GPGFRONTEND_CORE_EXPORT RegisterAsyncLogger(const QString &,
+void GPGFRONTEND_CORE_EXPORT RegisterAsyncLogger(const QString&,
                                                  spdlog::level::level_enum);
 
 /**
@@ -73,7 +116,7 @@ void GPGFRONTEND_CORE_EXPORT RegisterAsyncLogger(const QString &,
  *
  * @return auto
  */
-void GPGFRONTEND_CORE_EXPORT RegisterSyncLogger(const QString &,
+void GPGFRONTEND_CORE_EXPORT RegisterSyncLogger(const QString&,
                                                 spdlog::level::level_enum);
 
 }  // namespace GpgFrontend

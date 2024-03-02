@@ -26,11 +26,8 @@
  *
  */
 
-#include "SoftwareVersion.h"
+#pragma once
 
-#include <GFSDKBasic.h>
-#include <GFSDKExtra.h>
-#include <GFSDKLog.h>
 #include <spdlog/spdlog.h>
 
 #include <QString>
@@ -69,32 +66,3 @@ struct fmt::formatter<QByteArray> {
     return fmt::format_to(ctx.out(), "{}", qarray.constData());
   }
 };
-
-auto SoftwareVersion::NeedUpgrade() const -> bool {
-  GFModuleLogDebug(
-      fmt::format(
-          "compair version current {} latest {}, result {}", current_version,
-          latest_version,
-          GFCompareSoftwareVersion(GFModuleStrDup(current_version.toUtf8()),
-                                   GFModuleStrDup(latest_version.toUtf8())))
-          .c_str());
-
-  GFModuleLogDebug(fmt::format("load done: {}, pre-release: {}, draft: {}",
-                               loading_done,
-                               latest_prerelease_version_from_remote,
-                               latest_draft_from_remote)
-                       .c_str());
-  return loading_done && !latest_prerelease_version_from_remote &&
-         !latest_draft_from_remote &&
-         GFCompareSoftwareVersion(GFModuleStrDup(current_version.toUtf8()),
-                                  GFModuleStrDup(latest_version.toUtf8())) < 0;
-}
-
-auto SoftwareVersion::VersionWithdrawn() const -> bool {
-  return loading_done && !current_version_publish_in_remote &&
-         current_version_is_a_prerelease && !current_version_is_drafted;
-}
-
-auto SoftwareVersion::CurrentVersionReleased() const -> bool {
-  return loading_done && current_version_publish_in_remote;
-}

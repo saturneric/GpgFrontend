@@ -34,6 +34,9 @@ generate_export_header(gpgfrontend_version_checking
   BASE_NAME "GF_MODULE"
   EXPORT_FILE_NAME "${_export_file}")
 
+target_include_directories(gpgfrontend_version_checking PRIVATE 
+  ${CMAKE_SOURCE_DIR}/third_party/spdlog/include)
+
 if (XCODE_BUILD)
   set_target_properties(gpgfrontend_version_checking
     PROPERTIES
@@ -46,14 +49,14 @@ endif ()
 
 # link sdk
 target_link_libraries(gpgfrontend_version_checking PRIVATE
-        gpgfrontend_module_sdk)
+  gpgfrontend_module_sdk)
 
 if(GPGFRONTEND_QT5_BUILD)
   # link Qt
-  target_link_libraries(gpgfrontend_version_checking PUBLIC Qt5::Network)
+  target_link_libraries(gpgfrontend_version_checking PUBLIC Qt5::Core Qt5::Network)
 else()
   # link Qt
-  target_link_libraries(gpgfrontend_version_checking PUBLIC Qt6::Network)
+  target_link_libraries(gpgfrontend_version_checking PUBLIC Qt6::Core Qt6::Network)
 endif()
 
 # set output directory

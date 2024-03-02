@@ -28,6 +28,10 @@
 
 #pragma once
 
+#include <spdlog/spdlog.h>
+
+#include <QString>
+
 template <>
 struct fmt::formatter<QString> {
   // Parses format specifications.

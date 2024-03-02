@@ -454,7 +454,7 @@ endif ()
 
 # link options for GpgFrontend
 if (BUILD_APPLICATION)
-    target_link_libraries(${AppName} gpgfrontend_ui gpgfrontend_module gpgfrontend_test)
+    target_link_libraries(${AppName} gpgfrontend_ui gpgfrontend_test)
     if (MINGW)
         message(STATUS "Link Application Library For MINGW")
         target_link_libraries(${AppName} crypto)
@@ -536,9 +536,7 @@ if (LINUX AND LINUX_INSTALL_SOFTWARE)
         gpgfrontend_core
         gpgfrontend_ui
         gpgfrontend_test
-        gpgfrontend_pinentry
-        gpgfrontend_module_sdk
-        gpgfrontend_module)
+        gpgfrontend_pinentry)
 
     message(STATUS "GpgFrontend Install Libraries: ${GPGFRONTEND_INSTALL_LIBRARIES}")
     install(TARGETS ${AppName} ${GPGFRONTEND_INSTALL_LIBRARIES}

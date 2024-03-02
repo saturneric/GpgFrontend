@@ -28,19 +28,26 @@
 
 #pragma once
 
-/**
- * Project internal dependencies
- */
-#include "GpgFrontend.h"
-#include "GpgFrontendModuleExport.h"
-#include "core/GpgFrontendCore.h"
+#include <spdlog/spdlog.h>
+
+#include "core/GpgFrontendCoreExport.h"
+
+namespace GpgFrontend::Module {
+
+struct ModuleInitArgs {
+  spdlog::level::level_enum log_level;
+};
 
 /**
- * @brief logger for inner
+ * @brief init the module library
  *
  */
-#define MODULE_LOG_TRACE(...) GF_LOG_TRACE("module", __VA_ARGS__)
-#define MODULE_LOG_DEBUG(...) GF_LOG_DEBUG("module", __VA_ARGS__)
-#define MODULE_LOG_INFO(...) GF_LOG_INFO("module", __VA_ARGS__)
-#define MODULE_LOG_WARN(...) GF_LOG_WARN("module", __VA_ARGS__)
-#define MODULE_LOG_ERROR(...) GF_LOG_ERROR("module", __VA_ARGS__)
+void GPGFRONTEND_CORE_EXPORT LoadGpgFrontendModules(ModuleInitArgs args);
+
+/**
+ * @brief shutdown the module library
+ *
+ */
+void GPGFRONTEND_CORE_EXPORT ShutdownGpgFrontendModules();
+
+};  // namespace GpgFrontend::Module

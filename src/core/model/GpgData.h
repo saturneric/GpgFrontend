@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <gpgme.h>
+
 #include "core/GpgFrontendCoreExport.h"
 #include "core/model/GFBuffer.h"
 #include "core/typedef/CoreTypedef.h"

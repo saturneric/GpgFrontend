@@ -32,13 +32,14 @@ aux_source_directory(sdk MODULE_SDK_SOURCE)
 add_library(gpgfrontend_module_sdk SHARED ${MODULE_SDK_SOURCE})
 set(_export_file_sdk "${CMAKE_CURRENT_SOURCE_DIR}/sdk/GFSDKExport.h")
 generate_export_header(gpgfrontend_module_sdk EXPORT_FILE_NAME "${_export_file_sdk}")
-target_include_directories(gpgfrontend_module_sdk PUBLIC 
-  sdk 
+target_include_directories(gpgfrontend_module_sdk PRIVATE 
   ${CMAKE_CURRENT_BINARY_DIR}/gpgfrontend_module_sdk_autogen/include
   ${CMAKE_SOURCE_DIR}/third_party/spdlog/include)
 
+target_include_directories(gpgfrontend_module_sdk PUBLIC sdk)
+
 # link module system
-target_link_libraries(gpgfrontend_module_sdk PUBLIC gpgfrontend_core)
+target_link_libraries(gpgfrontend_module_sdk PRIVATE gpgfrontend_core)
 
 if (XCODE_BUILD)
   set_target_properties(gpgfrontend_module_sdk
@@ -63,38 +64,3 @@ foreach(child ${children})
         list(APPEND all_integrated_module_libraries ${integrated_lib_name})
     endif()
 endforeach()
-
-aux_source_directory(. MODULE_SOURCE)
-add_library(gpgfrontend_module SHARED ${MODULE_SOURCE})
-
-set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendModuleExport.h")
-generate_export_header(gpgfrontend_module EXPORT_FILE_NAME "${_export_file}")
-
-# set up pch
-target_precompile_headers(gpgfrontend_module PUBLIC GpgFrontendModule.h)
-
-# add ui generator include path
-target_include_directories(gpgfrontend_module PUBLIC
-        ${CMAKE_CURRENT_BINARY_DIR}/gpgfrontend_module_autogen/include
-        ${CMAKE_SOURCE_DIR}/third_party/spdlog/include)
-
-# link gpgfrontend_module_sdk
-target_link_libraries(gpgfrontend_module PRIVATE gpgfrontend_module_sdk)
-
-if (XCODE_BUILD)
-  set_target_properties(gpgfrontend_module
-    PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-    XCODE_ATTRIBUTE_SKIP_INSTALL "Yes"
-    XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
-endif ()
-
-
-# link all integrated modules
-message(STATUS "All Module Libraries: ${all_integrated_module_libraries}")
-# target_link_libraries(gpgfrontend_module PRIVATE ${all_integrated_module_libraries})
-
-# using std c++ 17
-target_compile_features(gpgfrontend_module PUBLIC cxx_std_17)

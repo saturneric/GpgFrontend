@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <gpgme.h>
+
 #include "core/GpgFrontendCore.h"
 #include "core/GpgFrontendCoreExport.h"
 

@@ -26,7 +26,10 @@
  *
  */
 
-#include "GpgFrontendModuleInit.h"
+#include "ModuleInit.h"
+
+#include <QCoreApplication>
+#include <QDir>
 
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
@@ -39,17 +42,17 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
   Thread::TaskRunnerGetter::GetInstance().GetTaskRunner()->PostTask(
       new Thread::Task(
           [](const DataObjectPtr&) -> int {
-            MODULE_LOG_INFO("loading modules...");
+            GF_CORE_LOG_INFO("loading modules...");
 
             auto exec_binary_path = QCoreApplication::applicationDirPath();
             auto mods_path = exec_binary_path + "/mods";
 
             if (!QDir(mods_path).exists()) {
-              MODULE_LOG_WARN("module directory not found, abort...");
+              GF_CORE_LOG_INFO("module directory not found, abort...");
               return -1;
             }
 
-            MODULE_LOG_INFO("the path of modules directory: {}", mods_path);
+            GF_CORE_LOG_INFO("the path of modules directory: {}", mods_path);
 
             for (const auto& module_library_name :
                  QDir(mods_path).entryList(QStringList() << "*.so"
@@ -60,7 +63,7 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
                                                       module_library_name);
             }
 
-            MODULE_LOG_INFO("load modules done.");
+            GF_CORE_LOG_INFO("load modules done.");
             return 0;
           },
           "modules_system_init_task"));

@@ -34,6 +34,9 @@ generate_export_header(gpgfrontend_gnupg_info_gathering
   BASE_NAME "GF_MODULE"
   EXPORT_FILE_NAME "${_export_file}")
 
+target_include_directories(gpgfrontend_gnupg_info_gathering PRIVATE 
+  ${CMAKE_SOURCE_DIR}/third_party/spdlog/include)
+
 if (XCODE_BUILD)
   set_target_properties(gpgfrontend_gnupg_info_gathering
     PROPERTIES
@@ -46,7 +49,12 @@ endif ()
 
 # link sdk
 target_link_libraries(gpgfrontend_gnupg_info_gathering PRIVATE
-        gpgfrontend_module_sdk)
+  gpgfrontend_module_sdk)
+
+# link qt
+target_link_libraries(gpgfrontend_gnupg_info_gathering PRIVATE
+  Qt6::Core)
+       
 
 # set output directory
 set_target_properties(gpgfrontend_gnupg_info_gathering PROPERTIES

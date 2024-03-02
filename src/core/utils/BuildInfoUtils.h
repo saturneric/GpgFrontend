@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "core/GpgFrontendCoreExport.h"
+
 namespace GpgFrontend {
 
 /**

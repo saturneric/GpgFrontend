@@ -28,6 +28,10 @@
 
 #pragma once
 
+#include <QJsonObject>
+#include <QString>
+#include <map>
+
 /**
  * @brief  Use to record some info about gnupg
  *

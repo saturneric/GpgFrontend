@@ -28,6 +28,7 @@
 
 #include "GpgPassphraseContext.h"
 
+
 namespace GpgFrontend {
 
 GpgPassphraseContext::GpgPassphraseContext(const QString& uids_info,

@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <QString>
+
 /**
  * @brief
  *

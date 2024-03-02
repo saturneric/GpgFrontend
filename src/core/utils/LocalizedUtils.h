@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "core/GpgFrontendCoreExport.h"
+
 namespace GpgFrontend {
 
 auto GPGFRONTEND_CORE_EXPORT GetLocalizedDateByTimestamp(time_t) -> QString;
