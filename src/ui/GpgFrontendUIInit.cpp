@@ -41,6 +41,8 @@
 
 namespace GpgFrontend::UI {
 
+QList<QTranslator*> registered_translators;
+
 extern void InitUITranslations();
 
 void WaitEnvCheckingProcess() {
@@ -213,31 +215,38 @@ void GPGFRONTEND_UI_EXPORT DestroyGpgFrontendUI() {}
  *
  */
 void InitUITranslations() {
+  for (const auto& translator : registered_translators) {
+    QCoreApplication::removeTranslator(translator);
+  }
+  registered_translators.clear();
+
   auto* translator = new QTranslator(QCoreApplication::instance());
+  if (translator->load(QLocale(), QLatin1String("qt"), QLatin1String("_"),
+                       QLatin1String(":/i18n_qt"), QLatin1String(".qm"))) {
+    GF_UI_LOG_DEBUG("load qt translation file done, locale: {}",
+                    QLocale().name());
+
+    QCoreApplication::installTranslator(translator);
+    registered_translators.append(translator);
+  }
+
+  translator = new QTranslator(QCoreApplication::instance());
+  if (translator->load(QLocale(), QLatin1String("qtbase"), QLatin1String("_"),
+                       QLatin1String(":/i18n_qt"), QLatin1String(".qm"))) {
+    GF_UI_LOG_DEBUG("load qtbase translation file done, locale: {}",
+                    QLocale().name());
+    QCoreApplication::installTranslator(translator);
+    registered_translators.append(translator);
+  }
+
+  translator = new QTranslator(QCoreApplication::instance());
   if (translator->load(QLocale(), QLatin1String(PROJECT_NAME),
                        QLatin1String("."), QLatin1String(":/i18n"),
                        QLatin1String(".qm"))) {
     GF_UI_LOG_DEBUG("load target translation file done, locale: {}",
                     QLocale().name());
     QCoreApplication::installTranslator(translator);
-  }
-
-  auto* base_translation = new QTranslator(QCoreApplication::instance());
-  if (base_translation->load(QLocale(), QLatin1String("qt"), QLatin1String("_"),
-                             QLatin1String(":/i18n_qt"),
-                             QLatin1String(".qm"))) {
-    GF_UI_LOG_DEBUG("load qt translation file done, locale: {}",
-                    QLocale().name());
-    QCoreApplication::installTranslator(base_translation);
-  }
-
-  base_translation = new QTranslator(QCoreApplication::instance());
-  if (base_translation->load(QLocale(), QLatin1String("qtbase"),
-                             QLatin1String("_"), QLatin1String(":/i18n_qt"),
-                             QLatin1String(".qm"))) {
-    GF_UI_LOG_DEBUG("load qtbase translation file done, locale: {}",
-                    QLocale().name());
-    QCoreApplication::installTranslator(base_translation);
+    registered_translators.append(translator);
   }
 }
 
