@@ -2,8 +2,7 @@
 
 GpgFrontend is designed to support multiple languages, but requires volunteer
 contributions to achieve this goal. Fortunately, translation work does not
-require an understanding of difficult technology. Volunteers only need to move
-their fingers to complete.
+require an understanding of difficult technology. Volunteers simply need to use their skills to get the job done and make it accessible to everyone.
 
 ## Work Offline
 
