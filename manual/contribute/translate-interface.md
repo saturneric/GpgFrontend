@@ -2,8 +2,7 @@
 
 GpgFrontend is designed to support multiple languages, but requires volunteer
 contributions to achieve this goal. Fortunately, translation work does not
-require an understanding of difficult technology. Volunteers only need to move
-their fingers to complete.
+require an understanding of difficult technology. Volunteers simply need to use their skills to get the job done and make it accessible to everyone.
 
 ## Work Offline
 
@@ -20,6 +19,8 @@ GpgFrontend uses the tools provided by this library.
 1. Download or clone source code
    [HERE](https://github.com/saturneric/GpgFrontend)
 2. You will find some ts files(.ts) at path `resource/lfs/locale/ts`
+3. Add a new language: Create a new file; see [locale codes](https://saimana.com/list-of-country-locale-code/).
+4. To edit or update an existing language, navigate to the path `resource/lfs/locale/ts`.
 
 ### Before starting your work
 
