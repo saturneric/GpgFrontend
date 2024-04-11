@@ -129,9 +129,6 @@ class AboutDialog : public GeneralDialog {
    * @param ev
    */
   void showEvent(QShowEvent* ev) override;
-
- private:
-  UpdateTab* update_tab_;  ///<
 };
 
 }  // namespace GpgFrontend::UI

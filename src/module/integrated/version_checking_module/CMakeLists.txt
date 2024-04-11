@@ -23,7 +23,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# com.bktus.gpgfrontend.module.integrated.version-checking
+# com.bktus.gpgfrontend.module.integrated.version_checking
 
 aux_source_directory(. INTEGRATED_MODULE_SOURCE)
 
@@ -36,6 +36,10 @@ generate_export_header(gpgfrontend_version_checking
 
 target_include_directories(gpgfrontend_version_checking PRIVATE 
   ${CMAKE_SOURCE_DIR}/third_party/spdlog/include)
+
+# set output directory
+set_target_properties(gpgfrontend_version_checking PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mods)
 
 if (XCODE_BUILD)
   set_target_properties(gpgfrontend_version_checking
@@ -58,10 +62,6 @@ else()
   # link Qt
   target_link_libraries(gpgfrontend_version_checking PUBLIC Qt6::Core Qt6::Network)
 endif()
-
-# set output directory
-set_target_properties(gpgfrontend_version_checking PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mods)
 
 # property
 set_property(TARGET gpgfrontend_version_checking PROPERTY AUTOMOC ON)

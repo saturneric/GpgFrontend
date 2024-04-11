@@ -42,14 +42,23 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent)
 
   auto* tab_widget = new QTabWidget;
   auto* info_tab = new InfoTab();
-  auto* gnupg_tab = new GnupgTab();
   auto* translators_tab = new TranslatorsTab();
-  update_tab_ = new UpdateTab();
 
   tab_widget->addTab(info_tab, tr("About GpgFrontend"));
-  tab_widget->addTab(gnupg_tab, tr("GnuPG"));
+
+  if (Module::IsModuleAcivate("com.bktus.gpgfrontend.module."
+                              "integrated.gnupg_info_gathering")) {
+    auto* gnupg_tab = new GnupgTab();
+    tab_widget->addTab(gnupg_tab, tr("GnuPG"));
+  }
+
   tab_widget->addTab(translators_tab, tr("Translators"));
-  tab_widget->addTab(update_tab_, tr("Update"));
+
+  if (Module::IsModuleAcivate("com.bktus.gpgfrontend.module."
+                              "integrated.version_checking")) {
+    auto* update_tab = new UpdateTab();
+    tab_widget->addTab(update_tab, tr("Update"));
+  }
 
   connect(tab_widget, &QTabWidget::currentChanged, this,
           [&](int index) { GF_UI_LOG_DEBUG("current index: {}", index); });
@@ -189,12 +198,12 @@ void UpdateTab::showEvent(QShowEvent* event) {
   GF_UI_LOG_DEBUG("loading version loading info from rt");
 
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version-checking",
+      "com.bktus.gpgfrontend.module.integrated.version_checking",
       "version.loading_done", false);
 
   if (!is_loading_done) {
     Module::ListenRTPublishEvent(
-        this, "com.bktus.gpgfrontend.module.integrated.version-checking",
+        this, "com.bktus.gpgfrontend.module.integrated.version_checking",
         "version.loading_done",
         [=](Module::Namespace, Module::Key, int, std::any) {
           GF_UI_LOG_DEBUG(
@@ -213,7 +222,7 @@ void UpdateTab::slot_show_version_status() {
   this->pb_->setHidden(true);
 
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version-checking",
+      "com.bktus.gpgfrontend.module.integrated.version_checking",
       "version.loading_done", false);
 
   if (!is_loading_done) {
@@ -222,19 +231,19 @@ void UpdateTab::slot_show_version_status() {
   }
 
   auto is_need_upgrade = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version-checking",
+      "com.bktus.gpgfrontend.module.integrated.version_checking",
       "version.need_upgrade", false);
 
   auto is_current_a_withdrawn_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version-checking",
+      "com.bktus.gpgfrontend.module.integrated.version_checking",
       "version.current_a_withdrawn_version", false);
 
   auto is_current_version_released = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version-checking",
+      "com.bktus.gpgfrontend.module.integrated.version_checking",
       "version.current_version_released", false);
 
   auto latest_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version-checking",
+      "com.bktus.gpgfrontend.module.integrated.version_checking",
       "version.latest_version", QString{});
 
   latest_version_label_->setText("<center><b>" +

@@ -131,7 +131,7 @@ void MainWindow::Init() noexcept {
     edit_->CurTextPage()->setFocus();
 
     Module::ListenRTPublishEvent(
-        this, "com.bktus.gpgfrontend.module.integrated.version-checking",
+        this, "com.bktus.gpgfrontend.module.integrated.version_checking",
         "version.loading_done",
         [=](Module::Namespace, Module::Key, int, std::any) {
           GF_UI_LOG_DEBUG(

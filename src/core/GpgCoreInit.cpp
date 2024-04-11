@@ -415,12 +415,12 @@ void InitGpgFrontendCore(CoreInitArgs args) {
         Module::UpsertRTValue("core", "env.state.basic", 1);
         CoreSignalStation::GetInstance()->SignalGoodGnupgEnv();
 
-        // if gnupg-info-gathering module activated
+        // if gnupg_info_gathering module activated
         if (args.gather_external_gnupg_info &&
             Module::IsModuleAcivate("com.bktus.gpgfrontend.module."
-                                    "integrated.gnupg-info-gathering")) {
+                                    "integrated.gnupg_info_gathering")) {
           GF_CORE_LOG_DEBUG(
-              "module gnupg-info-gathering is activated, "
+              "module gnupg_info_gathering is activated, "
               "loading external gnupg info...");
 
           // gather external gnupg info
@@ -438,7 +438,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                     "com.bktus.gpgfrontend.module.integrated.gnupg-info-"
                     "gathering") {
                   GF_CORE_LOG_DEBUG(
-                      "received callback from gnupg-info-gathering ");
+                      "received callback from gnupg_info_gathering ");
 
                   // try to restart all components
                   auto settings =
@@ -460,7 +460,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                 }
               });
         } else {
-          GF_CORE_LOG_DEBUG("gnupg-info-gathering is not activated");
+          GF_CORE_LOG_DEBUG("gnupg_info_gathering is not activated");
           Module::UpsertRTValue("core", "env.state.all", 1);
         }
         return 0;

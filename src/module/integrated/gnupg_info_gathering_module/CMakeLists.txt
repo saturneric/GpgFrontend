@@ -23,7 +23,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering
+# com.bktus.gpgfrontend.module.integrated.gnupg_info_gathering
 
 aux_source_directory(. INTEGRATED_MODULE_SOURCE)
 
@@ -36,6 +36,10 @@ generate_export_header(gpgfrontend_gnupg_info_gathering
 
 target_include_directories(gpgfrontend_gnupg_info_gathering PRIVATE 
   ${CMAKE_SOURCE_DIR}/third_party/spdlog/include)
+
+# set output directory
+set_target_properties(gpgfrontend_gnupg_info_gathering PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mods)
 
 if (XCODE_BUILD)
   set_target_properties(gpgfrontend_gnupg_info_gathering
@@ -56,9 +60,7 @@ target_link_libraries(gpgfrontend_gnupg_info_gathering PRIVATE
   Qt6::Core)
        
 
-# set output directory
-set_target_properties(gpgfrontend_gnupg_info_gathering PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mods)
+
 
 # property
 set_property(TARGET gpgfrontend_gnupg_info_gathering PROPERTY AUTOMOC ON)

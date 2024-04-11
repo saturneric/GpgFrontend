@@ -115,7 +115,7 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
       QString::fromStdString(fmt::format("Version: {}", gnupg_version)));
 
   auto components = Module::ListRTChildKeys(
-      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+      "com.bktus.gpgfrontend.module.integrated.gnupg_info_gathering",
       "gnupg.components");
   GF_UI_LOG_DEBUG("got gnupg components from rt, size: {}", components.size());
 
@@ -124,7 +124,7 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
   int row = 0;
   for (auto& component : components) {
     auto component_info_json_bytes = Module::RetrieveRTValueTypedOrDefault(
-        "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+        "com.bktus.gpgfrontend.module.integrated.gnupg_info_gathering",
         QString("gnupg.components.%1").arg(component), QByteArray{});
     GF_UI_LOG_DEBUG("got gnupg component {} info from rt", component);
 
@@ -171,7 +171,7 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
   ui_->componentDetailsTable->resizeColumnsToContents();
 
   auto directories = Module::ListRTChildKeys(
-      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+      "com.bktus.gpgfrontend.module.integrated.gnupg_info_gathering",
       QString("gnupg.dirs"));
 
   ui_->directoriesDetailsTable->setRowCount(directories.size());
@@ -179,7 +179,7 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
   row = 0;
   for (auto& dir : directories) {
     const auto dir_path = Module::RetrieveRTValueTypedOrDefault(
-        "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+        "com.bktus.gpgfrontend.module.integrated.gnupg_info_gathering",
         QString("gnupg.dirs.%1").arg(dir), QString{});
 
     if (dir_path.isEmpty()) continue;
@@ -201,12 +201,12 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
   row = 0;
   for (auto& component : components) {
     auto options = Module::ListRTChildKeys(
-        "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+        "com.bktus.gpgfrontend.module.integrated.gnupg_info_gathering",
         QString("gnupg.components.%1.options").arg(component));
     for (auto& option : options) {
       const auto option_info_json =
           QJsonDocument::fromJson(Module::RetrieveRTValueTypedOrDefault(
-              "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+              "com.bktus.gpgfrontend.module.integrated.gnupg_info_gathering",
               QString("gnupg.components.%1.options.%2")
                   .arg(component)
                   .arg(option),
@@ -228,12 +228,12 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
   QString configuration_group;
   for (auto& component : components) {
     auto options = Module::ListRTChildKeys(
-        "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+        "com.bktus.gpgfrontend.module.integrated.gnupg_info_gathering",
         QString("gnupg.components.%1.options").arg(component));
 
     for (auto& option : options) {
       auto option_info_json_bytes = Module::RetrieveRTValueTypedOrDefault(
-          "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+          "com.bktus.gpgfrontend.module.integrated.gnupg_info_gathering",
           QString("gnupg.components.%1.options.%2").arg(component).arg(option),
           QByteArray{});
       GF_UI_LOG_DEBUG("got gnupg component's option {} info from rt, info: {}",

@@ -40,10 +40,10 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
     : QDialog(parent),
       ui_(std::make_shared<Ui_ModuleControllerDialog>()),
       model_list_view_(new ModuleListView(this)),
-      module_mamager_(&Module::ModuleManager::GetInstance()) {
+      module_manager_(&Module::ModuleManager::GetInstance()) {
   ui_->setupUi(this);
 
-  model_list_view_->setMinimumWidth(250);
+  model_list_view_->setFixedWidth(250);
   model_list_view_->setViewMode(QListView::ListMode);
   model_list_view_->setMovement(QListView::Static);
 
@@ -55,10 +55,10 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
     auto module_id = model_list_view_->GetCurrentModuleID();
     if (module_id.isEmpty()) return;
 
-    if (!module_mamager_->IsModuleActivated(module_id)) {
-      module_mamager_->ActiveModule(module_id);
+    if (!module_manager_->IsModuleActivated(module_id)) {
+      module_manager_->ActiveModule(module_id);
     } else {
-      module_mamager_->DeactiveModule(module_id);
+      module_manager_->DeactiveModule(module_id);
     }
 
     QTimer::singleShot(1000, [=]() { slot_load_module_details(module_id); });
@@ -73,17 +73,17 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
 
 void ModuleControllerDialog::slot_load_module_details(
     Module::ModuleIdentifier module_id) {
-  GF_UI_LOG_DEBUG("loading module detailes, module id: {}", module_id);
+  GF_UI_LOG_DEBUG("loading module details, module id: {}", module_id);
 
-  auto module = module_mamager_->SearchModule(module_id);
-
-  ui_->moduleIDLabel->setText(module->GetModuleIdentifier());
+  auto module = module_manager_->SearchModule(module_id);
 
   QString buffer;
   QTextStream info(&buffer);
+  
 
   info << "# BASIC INFO" << Qt::endl << Qt::endl;
 
+  info << tr("ID") << ": " << module->GetModuleIdentifier() << Qt::endl;
   info << tr("Version") << ": " << module->GetModuleVersion() << Qt::endl;
   info << tr("SDK Version") << ": " << module->GetModuleSDKVersion()
        << Qt::endl;
@@ -92,7 +92,7 @@ void ModuleControllerDialog::slot_load_module_details(
   info << tr("Hash") << ": " << module->GetModuleHash() << Qt::endl;
   info << tr("Path") << ": " << module->GetModulePath() << Qt::endl;
 
-  bool if_activated = module_mamager_->IsModuleActivated(module_id);
+  bool if_activated = module_manager_->IsModuleActivated(module_id);
 
   info << tr("Active") << ": " << (if_activated ? tr("True") : tr("False"))
        << Qt::endl;
@@ -109,7 +109,7 @@ void ModuleControllerDialog::slot_load_module_details(
 
   info << "# Listening Event" << Qt::endl << Qt::endl;
 
-  auto listening_event_ids = module_mamager_->GetModuleListening(module_id);
+  auto listening_event_ids = module_manager_->GetModuleListening(module_id);
   for (const auto& event_id : listening_event_ids) {
     info << " - " << event_id << "\n";
   }

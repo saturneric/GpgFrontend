@@ -78,9 +78,9 @@ void VersionCheckTask::slot_parse_latest_version_info() {
       auto version_match = re.match(latest_version);
       if (version_match.hasMatch()) {
         latest_version = version_match.captured(0);
-        GFModuleLogInfo(
-            fmt::format("latest version from github: {}", latest_version)
-                .c_str());
+        GFModuleLogInfo(fmt::format("latest released version from github: {}",
+                                    latest_version)
+                            .c_str());
       } else {
         latest_version = current_version_;
         GFModuleLogWarn(
