@@ -30,6 +30,7 @@
 
 namespace GpgFrontend {
 
+constexpr int kNonRestartCode = 0;
 constexpr int kRestartCode = 1000;      ///< only refresh ui
 constexpr int kDeepRestartCode = 1001;  // refresh core and ui
 
