@@ -26,40 +26,43 @@
  *
  */
 
-//
-// Created by eric on 2022/7/23.
-//
-
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
-#include "ui/GpgFrontendUI.h"
+namespace GpgFrontend {
 
-class Ui_GnuPGInfo;
-namespace GpgFrontend::UI {
-class GnupgTab : public QWidget {
-  Q_OBJECT
- public:
-  /**
-   * @brief Construct a new Info Tab object
-   *
-   * @param parent
-   */
-  explicit GnupgTab(QWidget* parent = nullptr);
+struct ModuleSO {
+  QString module_id;
+  QString module_version;
+  QString module_hash;
+  bool auto_activate;
 
- private:
-  std::shared_ptr<Ui_GnuPGInfo> ui_;  ///<
+  ModuleSO() = default;
 
-  /**
-   * @brief
-   *
-   */
-  void process_software_info();
+  explicit ModuleSO(const QJsonObject& j) {
+    if (const auto v = j["module_id"]; v.isString()) {
+      module_id = v.toString();
+    }
 
-  /**
-   * @brief
-   *
-   */
-  void gather_gnupg_info();
+    if (const auto v = j["module_version"]; v.isString()) {
+      module_version = v.toString();
+    }
+
+    if (const auto v = j["module_hash"]; v.isString()) {
+      module_hash = v.toString();
+    }
+
+    if (const auto v = j["auto_activate"]; v.isBool()) {
+      auto_activate = v.toBool();
+    }
+  }
+
+  [[nodiscard]] auto ToJson() const -> QJsonObject {
+    QJsonObject j;
+    j["module_id"] = module_id;
+    j["module_version"] = module_version;
+    j["module_hash"] = module_hash;
+    j["auto_activate"] = auto_activate;
+    return j;
+  }
 };
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend

@@ -130,7 +130,7 @@ auto GFRegisterModule() -> int {
 auto GFActiveModule() -> int {
   GFModuleLogDebug("gnupg info gathering module activating");
   GFModuleListenEvent(GFGetModuleID(),
-                      GFModuleStrDup("GPGFRONTEND_CORE_INITLIZED"));
+                      GFModuleStrDup("REQUEST_GATHERING_GNUPG_INFO"));
   return 0;
 }
 
@@ -184,6 +184,8 @@ auto GFExecuteModule(GFModuleEvent *event) -> int {
         GFGetModuleID(),
         GFModuleStrDup(QString("gnupg.components.%1").arg(component).toUtf8()),
         nullptr);
+
+    if (component_info_json == nullptr) continue;
 
     auto jsonlized_component_info =
         QJsonDocument::fromJson(component_info_json);

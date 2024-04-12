@@ -28,6 +28,8 @@
 
 #include "ModuleControllerDialog.h"
 
+#include "core/model/SettingsObject.h"
+#include "core/struct/settings_object/ModuleSO.h"
 #include "ui_ModuleControllerDialog.h"
 
 //
@@ -64,6 +66,18 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
     QTimer::singleShot(1000, [=]() { slot_load_module_details(module_id); });
   });
 
+  connect(ui_->autoActivateButton, &QPushButton::clicked, this, [=]() {
+    auto module_id = model_list_view_->GetCurrentModuleID();
+    SettingsObject so(QString("module.%1.so").arg(module_id));
+    ModuleSO module_so(so);
+
+    module_so.auto_activate =
+        ui_->autoActivateButton->text() == tr("Enable Auto Activate");
+    so.Store(module_so.ToJson());
+
+    QTimer::singleShot(1000, [=]() { slot_load_module_details(module_id); });
+  });
+
   connect(ui_->triggerEventButton, &QPushButton::clicked, this, [=]() {
     auto event_id =
         QInputDialog::getText(this, "Please provide an Event ID", "Event ID");
@@ -74,48 +88,67 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
 void ModuleControllerDialog::slot_load_module_details(
     Module::ModuleIdentifier module_id) {
   GF_UI_LOG_DEBUG("loading module details, module id: {}", module_id);
-
   auto module = module_manager_->SearchModule(module_id);
+  SettingsObject so(QString("module.%1.so").arg(module_id));
+  ModuleSO module_so(so);
+
+  if (module_so.module_id != module_id ||
+      module_so.module_hash != module->GetModuleHash()) {
+    module_so.module_id = module_id;
+    module_so.module_hash = module->GetModuleHash();
+    module_so.auto_activate = false;
+    GF_UI_LOG_DEBUG("reseting module settings object, module id: {}",
+                    module_id);
+    so.Store(module_so.ToJson());
+  }
 
   QString buffer;
   QTextStream info(&buffer);
-  
 
   info << "# BASIC INFO" << Qt::endl << Qt::endl;
 
-  info << tr("ID") << ": " << module->GetModuleIdentifier() << Qt::endl;
-  info << tr("Version") << ": " << module->GetModuleVersion() << Qt::endl;
-  info << tr("SDK Version") << ": " << module->GetModuleSDKVersion()
+  info << " - " << tr("ID") << ": " << module->GetModuleIdentifier()
        << Qt::endl;
-  info << tr("Qt ENV Version") << ": " << module->GetModuleQtEnvVersion()
+  info << " - " << tr("Version") << ": " << module->GetModuleVersion()
        << Qt::endl;
-  info << tr("Hash") << ": " << module->GetModuleHash() << Qt::endl;
-  info << tr("Path") << ": " << module->GetModulePath() << Qt::endl;
+  info << " - " << tr("SDK Version") << ": " << module->GetModuleSDKVersion()
+       << Qt::endl;
+  info << " - " << tr("Qt ENV Version") << ": "
+       << module->GetModuleQtEnvVersion() << Qt::endl;
+  info << " - " << tr("Hash") << ": " << module->GetModuleHash() << Qt::endl;
+  info << " - " << tr("Path") << ": " << module->GetModulePath() << Qt::endl;
 
   bool if_activated = module_manager_->IsModuleActivated(module_id);
 
-  info << tr("Active") << ": " << (if_activated ? tr("True") : tr("False"))
-       << Qt::endl;
+  info << " - " << tr("Auto Activate") << ": "
+       << (module_so.auto_activate ? tr("True") : tr("False")) << Qt::endl;
+  info << " - " << tr("Active") << ": "
+       << (if_activated ? tr("True") : tr("False")) << Qt::endl;
 
   info << Qt::endl;
 
   info << "# METADATA" << Qt::endl << Qt::endl;
 
   for (const auto& metadata : module->GetModuleMetaData()) {
-    info << metadata.first << ": " << metadata.second << "\n";
+    info << " - " << metadata.first << ": " << metadata.second << "\n";
   }
 
   info << Qt::endl;
 
-  info << "# Listening Event" << Qt::endl << Qt::endl;
+  if (if_activated) {
+    info << "# Listening Event" << Qt::endl << Qt::endl;
 
-  auto listening_event_ids = module_manager_->GetModuleListening(module_id);
-  for (const auto& event_id : listening_event_ids) {
-    info << " - " << event_id << "\n";
+    auto listening_event_ids = module_manager_->GetModuleListening(module_id);
+    for (const auto& event_id : listening_event_ids) {
+      info << " - " << event_id << "\n";
+    }
   }
 
   ui_->moduleInfoTextBrowser->setText(buffer);
   ui_->activateOrDeactiveButton->setText(if_activated ? tr("Deactivate")
                                                       : tr("Activate"));
+  ui_->autoActivateButton->setText(module_so.auto_activate
+                                       ? tr("Disable Auto Activate")
+                                       : tr("Enable Auto Activate"));
 }
 }  // namespace GpgFrontend::UI

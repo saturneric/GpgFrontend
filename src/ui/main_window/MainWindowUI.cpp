@@ -421,26 +421,29 @@ void MainWindow::create_actions() {
   connect(about_act_, &QAction::triggered, this,
           [=]() { new AboutDialog(0, this); });
 
-  gnupg_act_ = new QAction(tr("GnuPG"), this);
-  gnupg_act_->setIcon(QIcon(":/icons/help.png"));
-  gnupg_act_->setToolTip(tr("Information about Gnupg"));
-  connect(gnupg_act_, &QAction::triggered, this,
-          [=]() { new AboutDialog(1, this); });
+  if (Module::IsModuleAcivate(
+          "com.bktus.gpgfrontend.module.integrated.gnupg_info_gathering")) {
+    gnupg_act_ = new QAction(tr("GnuPG"), this);
+    gnupg_act_->setIcon(QIcon(":/icons/help.png"));
+    gnupg_act_->setToolTip(tr("Information about Gnupg"));
+    connect(gnupg_act_, &QAction::triggered, this,
+            [=]() { new AboutDialog(tr("GnuPG"), this); });
+  }
 
   translate_act_ = new QAction(tr("Translate"), this);
   translate_act_->setIcon(QIcon(":/icons/help.png"));
   translate_act_->setToolTip(tr("Information about translation"));
   connect(translate_act_, &QAction::triggered, this,
-          [=]() { new AboutDialog(2, this); });
+          [=]() { new AboutDialog(tr("Translators"), this); });
 
-  /*
-   * Check Update Menu
-   */
-  check_update_act_ = new QAction(tr("Check for Updates"), this);
-  check_update_act_->setIcon(QIcon(":/icons/help.png"));
-  check_update_act_->setToolTip(tr("Check for updates"));
-  connect(check_update_act_, &QAction::triggered, this,
-          [=]() { new AboutDialog(3, this); });
+  if (Module::IsModuleAcivate(
+          "com.bktus.gpgfrontend.module.integrated.version_checking")) {
+    check_update_act_ = new QAction(tr("Check for Updates"), this);
+    check_update_act_->setIcon(QIcon(":/icons/help.png"));
+    check_update_act_->setToolTip(tr("Check for updates"));
+    connect(check_update_act_, &QAction::triggered, this,
+            [=]() { new AboutDialog(tr("Update"), this); });
+  }
 
   start_wizard_act_ = new QAction(tr("Open Wizard"), this);
   start_wizard_act_->setToolTip(tr("Open the wizard"));

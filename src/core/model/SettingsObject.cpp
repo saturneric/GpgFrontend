@@ -30,25 +30,25 @@
 
 #include "core/function/DataObjectOperator.h"
 
-namespace GpgFrontend::UI {
+namespace GpgFrontend {
 
 SettingsObject::SettingsObject(QString settings_name)
     : settings_name_(std::move(settings_name)) {
   try {
-    GF_UI_LOG_DEBUG("loading settings from: {}", this->settings_name_);
+    GF_CORE_LOG_DEBUG("loading settings from: {}", this->settings_name_);
     auto json_optional =
         DataObjectOperator::GetInstance().GetDataObject(settings_name_);
 
     if (json_optional.has_value() && json_optional->isObject()) {
-      GF_UI_LOG_DEBUG("settings object: {} loaded.", settings_name_);
+      GF_CORE_LOG_DEBUG("settings object: {} loaded.", settings_name_);
       QJsonObject::operator=(json_optional.value().object());
     } else {
-      GF_UI_LOG_DEBUG("settings object: {} not found.", settings_name_);
+      GF_CORE_LOG_DEBUG("settings object: {} not found.", settings_name_);
       QJsonObject::operator=({});
     }
 
   } catch (std::exception& e) {
-    GF_UI_LOG_ERROR("load setting object error: {}", e.what());
+    GF_CORE_LOG_ERROR("load setting object error: {}", e.what());
   }
 }
 
@@ -66,4 +66,4 @@ void SettingsObject::Store(const QJsonObject& json) {
   auto* parent = (static_cast<QJsonObject*>(this));
   *parent = json;
 }
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend

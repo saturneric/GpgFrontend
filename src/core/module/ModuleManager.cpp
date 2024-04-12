@@ -34,9 +34,11 @@
 #include "GpgConstants.h"
 #include "core/function/SecureMemoryAllocator.h"
 #include "core/function/basic/GpgFunctionObject.h"
+#include "core/model/SettingsObject.h"
 #include "core/module/GlobalModuleContext.h"
 #include "core/module/GlobalRegisterTable.h"
 #include "core/module/Module.h"
+#include "core/struct/settings_object/ModuleSO.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/MemoryUtils.h"
@@ -75,7 +77,22 @@ class ModuleManager::Impl {
               }
 
               module->SetGPC(gmc_.get());
-              return gmc_->RegisterModule(module) ? 0 : -1;
+              if (!gmc_->RegisterModule(module)) return -1;
+
+              SettingsObject so(
+                  QString("module.%1.so").arg(module->GetModuleIdentifier()));
+              ModuleSO module_so(so);
+
+              // if user has set auto active enable
+              if (module_so.module_id == module->GetModuleIdentifier() &&
+                  module_so.module_hash == module->GetModuleHash() &&
+                  module_so.auto_activate) {
+                if (gmc_->ActiveModule(module->GetModuleIdentifier())) {
+                  return -1;
+                }
+              }
+
+              return 0;
             },
             __func__, nullptr));
   }

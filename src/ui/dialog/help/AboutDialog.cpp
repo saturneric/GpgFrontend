@@ -36,7 +36,10 @@
 
 namespace GpgFrontend::UI {
 
-AboutDialog::AboutDialog(int defaultIndex, QWidget* parent)
+const QString kVersionCheckingModuleID =
+    "com.bktus.gpgfrontend.module.integrated.version_checking";
+
+AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
     : GeneralDialog(typeid(AboutDialog).name(), parent) {
   this->setWindowTitle(tr("About") + " " + qApp->applicationName());
 
@@ -46,16 +49,15 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent)
 
   tab_widget->addTab(info_tab, tr("About GpgFrontend"));
 
-  if (Module::IsModuleAcivate("com.bktus.gpgfrontend.module."
-                              "integrated.gnupg_info_gathering")) {
+  if (Module::IsModuleAcivate(
+          "com.bktus.gpgfrontend.module.integrated.gnupg_info_gathering")) {
     auto* gnupg_tab = new GnupgTab();
     tab_widget->addTab(gnupg_tab, tr("GnuPG"));
   }
 
   tab_widget->addTab(translators_tab, tr("Translators"));
 
-  if (Module::IsModuleAcivate("com.bktus.gpgfrontend.module."
-                              "integrated.version_checking")) {
+  if (Module::IsModuleAcivate(kVersionCheckingModuleID)) {
     auto* update_tab = new UpdateTab();
     tab_widget->addTab(update_tab, tr("Update"));
   }
@@ -63,8 +65,15 @@ AboutDialog::AboutDialog(int defaultIndex, QWidget* parent)
   connect(tab_widget, &QTabWidget::currentChanged, this,
           [&](int index) { GF_UI_LOG_DEBUG("current index: {}", index); });
 
-  if (defaultIndex < tab_widget->count() && defaultIndex >= 0) {
-    tab_widget->setCurrentIndex(defaultIndex);
+  int default_index = 0;
+  for (int i = 0; i < tab_widget->count(); i++) {
+    if (tab_widget->tabText(i) == default_tab_name) {
+      default_index = i;
+    }
+  }
+
+  if (default_index < tab_widget->count() && default_index >= 0) {
+    tab_widget->setCurrentIndex(default_index);
   }
 
   auto* button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
@@ -198,17 +207,15 @@ void UpdateTab::showEvent(QShowEvent* event) {
   GF_UI_LOG_DEBUG("loading version loading info from rt");
 
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version_checking",
-      "version.loading_done", false);
+      kVersionCheckingModuleID, "version.loading_done", false);
 
   if (!is_loading_done) {
     Module::ListenRTPublishEvent(
-        this, "com.bktus.gpgfrontend.module.integrated.version_checking",
-        "version.loading_done",
+        this, kVersionCheckingModuleID, "version.loading_done",
         [=](Module::Namespace, Module::Key, int, std::any) {
           GF_UI_LOG_DEBUG(
-              "versionchecking version.loading_done changed, calling slot "
-              "version upgrade");
+              "version_checking module version.loading_done changed, calling "
+              "slot version upgrade");
           this->slot_show_version_status();
         });
     Module::TriggerEvent("CHECK_APPLICATION_VERSION");
@@ -222,29 +229,24 @@ void UpdateTab::slot_show_version_status() {
   this->pb_->setHidden(true);
 
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version_checking",
-      "version.loading_done", false);
+      kVersionCheckingModuleID, "version.loading_done", false);
 
   if (!is_loading_done) {
-    GF_UI_LOG_DEBUG("version info loading havn't been done yet.");
+    GF_UI_LOG_DEBUG("version info loading haven't been done yet.");
     return;
   }
 
   auto is_need_upgrade = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version_checking",
-      "version.need_upgrade", false);
+      kVersionCheckingModuleID, "version.need_upgrade", false);
 
   auto is_current_a_withdrawn_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version_checking",
-      "version.current_a_withdrawn_version", false);
+      kVersionCheckingModuleID, "version.current_a_withdrawn_version", false);
 
   auto is_current_version_released = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version_checking",
-      "version.current_version_released", false);
+      kVersionCheckingModuleID, "version.current_version_released", false);
 
   auto latest_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version_checking",
-      "version.latest_version", QString{});
+      kVersionCheckingModuleID, "version.latest_version", QString{});
 
   latest_version_label_->setText("<center><b>" +
                                  tr("Latest Version From Github") + ": " +

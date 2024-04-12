@@ -304,7 +304,7 @@ void MainWindow::slot_version_upgrade_nofity() {
         30000);
     auto* update_button = new QPushButton("Update GpgFrontend", this);
     connect(update_button, &QPushButton::clicked, [=]() {
-      auto* about_dialog = new AboutDialog(2, this);
+      auto* about_dialog = new AboutDialog(tr("Update"), this);
       about_dialog->show();
     });
     statusBar()->addPermanentWidget(update_button, 0);

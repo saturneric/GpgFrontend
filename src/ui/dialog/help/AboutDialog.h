@@ -120,7 +120,7 @@ class AboutDialog : public GeneralDialog {
    * @param defaultIndex
    * @param parent
    */
-  explicit AboutDialog(int defaultIndex, QWidget* parent);
+  explicit AboutDialog(const QString& default_tab_name, QWidget* parent);
 
  protected:
   /**

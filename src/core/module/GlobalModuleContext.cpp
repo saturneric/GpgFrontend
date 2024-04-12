@@ -327,6 +327,7 @@ class GlobalModuleContext::Impl {
     for (const auto& module : module_register_table_) {
       module_ids.append(module.first);
     }
+    module_ids.sort();
     return module_ids;
   }
 

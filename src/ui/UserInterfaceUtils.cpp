@@ -33,7 +33,9 @@
 #include "core/GpgConstants.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/model/CacheObject.h"
 #include "core/model/GpgImportInformation.h"
+#include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -46,9 +48,7 @@
 #include "ui/dialog/WaitingDialog.h"
 #include "ui/dialog/controller/GnuPGControllerDialog.h"
 #include "ui/dialog/import_export/KeyServerImportDialog.h"
-#include "ui/struct/CacheObject.h"
-#include "ui/struct/SettingsObject.h"
-#include "ui/struct/settings/KeyServerSO.h"
+#include "ui/struct/settings_object/KeyServerSO.h"
 #include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {

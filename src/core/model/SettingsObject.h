@@ -26,20 +26,46 @@
  *
  */
 
-#include "CacheObject.h"
+#pragma once
 
-#include "core/function/CacheManager.h"
+#include "core/GpgFrontendCoreExport.h"
 
-namespace GpgFrontend::UI {
+namespace GpgFrontend {
 
-CacheObject::CacheObject(QString cache_name)
-    : cache_name_(std::move(cache_name)) {
-  this->QJsonDocument::operator=(
-      CacheManager::GetInstance().LoadDurableCache(cache_name_));
-}
+/**
+ * @brief The SettingsObject class
+ * This class is used to store data for the application securely.
+ *
+ */
+class GPGFRONTEND_CORE_EXPORT SettingsObject : public QJsonObject {
+ public:
+  /**
+   * @brief Construct a new Settings Object object
+   *
+   * @param settings_name The name of the settings object
+   */
+  explicit SettingsObject(QString settings_name);
 
-CacheObject::~CacheObject() {
-  CacheManager::GetInstance().SaveDurableCache(cache_name_, *this);
-}
+  /**
+   * @brief Construct a new Settings Object object
+   *
+   * @param _sub_json
+   */
+  explicit SettingsObject(QJsonObject sub_json);
 
-}  // namespace GpgFrontend::UI
+  /**
+   * @brief Destroy the Settings Object object
+   *
+   */
+  ~SettingsObject();
+
+  /**
+   * @brief
+   *
+   */
+  void Store(const QJsonObject&);
+
+ private:
+  QString settings_name_;  ///<
+};
+}  // namespace GpgFrontend

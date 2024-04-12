@@ -33,11 +33,11 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/model/GpgPassphraseContext.h"
+#include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/main_window/GeneralMainWindow.h"
-#include "ui/struct/SettingsObject.h"
-#include "ui/struct/settings/KeyServerSO.h"
+#include "ui/struct/settings_object/KeyServerSO.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
 

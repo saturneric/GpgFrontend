@@ -28,9 +28,11 @@
 
 #pragma once
 
-namespace GpgFrontend::UI {
+#include "core/GpgFrontendCoreExport.h"
 
-class CacheObject : public QJsonDocument {
+namespace GpgFrontend {
+
+class GPGFRONTEND_CORE_EXPORT CacheObject : public QJsonDocument {
  public:
   /**
    * @brief Construct a new Cache Object object
@@ -49,4 +51,4 @@ class CacheObject : public QJsonDocument {
   QString cache_name_;  ///<
 };
 
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend

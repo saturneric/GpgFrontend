@@ -28,9 +28,9 @@
 
 #include "SettingsAppearance.h"
 
+#include "core/model/SettingsObject.h"
 #include "core/utils/MemoryUtils.h"
-#include "ui/struct/SettingsObject.h"
-#include "ui/struct/settings/AppearanceSO.h"
+#include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui_AppearanceSettings.h"
 
 namespace GpgFrontend::UI {

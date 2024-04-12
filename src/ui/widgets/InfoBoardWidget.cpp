@@ -29,9 +29,9 @@
 #include "ui/widgets/InfoBoardWidget.h"
 
 #include "core/GpgModel.h"
+#include "core/model/SettingsObject.h"
 #include "ui/UISignalStation.h"
-#include "ui/struct/SettingsObject.h"
-#include "ui/struct/settings/AppearanceSO.h"
+#include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui_InfoBoard.h"
 
 namespace GpgFrontend::UI {
