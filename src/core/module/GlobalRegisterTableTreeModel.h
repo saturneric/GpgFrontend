@@ -28,41 +28,34 @@
 
 #pragma once
 
-#include <any>
-#include <functional>
-#include <optional>
-
-#include "core/function/SecureMemoryAllocator.h"
+#include "core/module/GlobalRegisterTable.h"
 
 namespace GpgFrontend::Module {
-
-using Namespace = QString;
-using Key = QString;
-using LPCallback = std::function<void(Namespace, Key, int, std::any)>;
-
-class GlobalRegisterTable : public QObject {
-  Q_OBJECT
+class GPGFRONTEND_CORE_EXPORT GlobalRegisterTableTreeModel
+    : public QAbstractItemModel {
  public:
-  friend class GlobalRegisterTableTreeModel;
+  explicit GlobalRegisterTableTreeModel(GlobalRegisterTable *grt);
 
-  GlobalRegisterTable();
+  [[nodiscard]] auto rowCount(const QModelIndex &parent) const -> int override;
 
-  ~GlobalRegisterTable() override;
+  [[nodiscard]] auto columnCount(const QModelIndex &parent) const
+      -> int override;
 
-  auto PublishKV(Namespace, Key, std::any) -> bool;
+  [[nodiscard]] auto data(const QModelIndex &index, int role) const
+      -> QVariant override;
 
-  auto LookupKV(Namespace, Key) -> std::optional<std::any>;
+  [[nodiscard]] auto index(int row, int column, const QModelIndex &parent) const
+      -> QModelIndex override;
 
-  auto ListenPublish(QObject *, Namespace, Key, LPCallback) -> bool;
+  [[nodiscard]] auto parent(const QModelIndex &index) const
+      -> QModelIndex override;
 
-  auto ListChildKeys(Namespace n, Key k) -> std::vector<Key>;
-
- signals:
-  void SignalPublish(Namespace, Key, int, std::any);
+  [[nodiscard]] auto headerData(int section, Qt::Orientation orientation,
+                                int role) const -> QVariant override;
 
  private:
   class Impl;
   SecureUniquePtr<Impl> p_;
 };
 
-}  // namespace GpgFrontend::Module
+};  // namespace GpgFrontend::Module

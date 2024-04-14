@@ -42,6 +42,18 @@
            </property>
            <item>
             <widget class="GpgFrontend::UI::ModuleListView" name="moduleListView">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>250</width>
+               <height>0</height>
+              </size>
+             </property>
              <property name="maximumSize">
               <size>
                <width>250</width>
@@ -113,8 +125,17 @@
      </widget>
      <widget class="QWidget" name="tab">
       <attribute name="title">
-       <string>Trusted Key</string>
+       <string>Global Register Table</string>
       </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="GpgFrontend::UI::GRTTreeView" name="treeView">
+         <property name="uniformRowHeights">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
@@ -154,7 +175,7 @@
              <item>
               <widget class="QPushButton" name="pushButton_4">
                <property name="text">
-                <string>PushButton</string>
+                <string>Upsert GRT Value</string>
                </property>
               </widget>
              </item>
@@ -188,6 +209,11 @@
    <class>GpgFrontend::UI::ModuleListView</class>
    <extends>QListView</extends>
    <header>ui/widgets/ModuleListView.h</header>
+  </customwidget>
+  <customwidget>
+   <class>GpgFrontend::UI::GRTTreeView</class>
+   <extends>QTreeView</extends>
+   <header>ui/widgets/GRTTreeView.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

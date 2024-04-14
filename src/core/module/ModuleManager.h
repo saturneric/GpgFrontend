@@ -48,6 +48,7 @@ class Event;
 class Module;
 class GlobalModuleContext;
 class ModuleManager;
+class GlobalRegisterTable;
 
 using EventRefrernce = std::shared_ptr<Event>;
 using ModuleIdentifier = QString;
@@ -96,6 +97,8 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager
   auto ListenRTPublish(QObject*, Namespace, Key, LPCallback) -> bool;
 
   auto ListRTChildKeys(const QString&, const QString&) -> std::vector<Key>;
+
+  auto GRT() -> GlobalRegisterTable*;
 
  private:
   class Impl;

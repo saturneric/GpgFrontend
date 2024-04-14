@@ -36,9 +36,6 @@
 
 namespace GpgFrontend::UI {
 
-const QString kVersionCheckingModuleID =
-    "com.bktus.gpgfrontend.module.integrated.version_checking";
-
 AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
     : GeneralDialog(typeid(AboutDialog).name(), parent) {
   this->setWindowTitle(tr("About") + " " + qApp->applicationName());
@@ -49,8 +46,7 @@ AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
 
   tab_widget->addTab(info_tab, tr("About GpgFrontend"));
 
-  if (Module::IsModuleActivate(
-          "com.bktus.gpgfrontend.module.integrated.gnupg_info_gathering")) {
+  if (Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
     auto* gnupg_tab = new GnupgTab();
     tab_widget->addTab(gnupg_tab, tr("GnuPG"));
   }

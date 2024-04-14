@@ -37,9 +37,6 @@
 
 namespace GpgFrontend::UI {
 
-const QString kGnuPGInfoGatheringModuleID =
-    "com.bktus.gpgfrontend.module.integrated.gnupg_info_gathering";
-
 GnupgTab::GnupgTab(QWidget* parent)
     : QWidget(parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_GnuPGInfo>()) {
@@ -134,11 +131,11 @@ void GnupgTab::process_software_info() {
   for (auto& component : components) {
     auto component_info_json_bytes = Module::RetrieveRTValueTypedOrDefault(
         kGnuPGInfoGatheringModuleID,
-        QString("gnupg.components.%1").arg(component), QByteArray{});
+        QString("gnupg.components.%1").arg(component), QString{});
     GF_UI_LOG_DEBUG("got gnupg component {} info from rt", component);
 
     auto component_info_json =
-        QJsonDocument::fromJson(component_info_json_bytes);
+        QJsonDocument::fromJson(component_info_json_bytes.toUtf8());
     if (!component_info_json.isObject()) {
       GF_UI_LOG_WARN("illegal gnupg component info, json: {}",
                      QString(component_info_json_bytes));
@@ -214,11 +211,12 @@ void GnupgTab::process_software_info() {
     for (auto& option : options) {
       const auto option_info_json =
           QJsonDocument::fromJson(Module::RetrieveRTValueTypedOrDefault(
-              kGnuPGInfoGatheringModuleID,
-              QString("gnupg.components.%1.options.%2")
-                  .arg(component)
-                  .arg(option),
-              QByteArray{}));
+                                      kGnuPGInfoGatheringModuleID,
+                                      QString("gnupg.components.%1.options.%2")
+                                          .arg(component)
+                                          .arg(option),
+                                      QString{})
+                                      .toUtf8());
 
       if (!option_info_json.isObject()) continue;
 
@@ -243,11 +241,12 @@ void GnupgTab::process_software_info() {
       auto option_info_json_bytes = Module::RetrieveRTValueTypedOrDefault(
           kGnuPGInfoGatheringModuleID,
           QString("gnupg.components.%1.options.%2").arg(component).arg(option),
-          QByteArray{});
+          QString{});
       GF_UI_LOG_DEBUG("got gnupg component's option {} info from rt, info: {}",
                       component, option_info_json_bytes);
 
-      auto option_info_json = QJsonDocument::fromJson(option_info_json_bytes);
+      auto option_info_json =
+          QJsonDocument::fromJson(option_info_json_bytes.toUtf8());
 
       if (!option_info_json.isObject()) {
         GF_UI_LOG_WARN("illegal gnupg option info, json: {}",

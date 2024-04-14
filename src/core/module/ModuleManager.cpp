@@ -196,6 +196,8 @@ class ModuleManager::Impl {
     return gmc_->IsModuleActivated(id);
   }
 
+  auto GRT() -> GlobalRegisterTable* { return grt_.get(); }
+
  private:
   static ModuleMangerPtr global_module_manager;
   SecureUniquePtr<GlobalModuleContext> gmc_;
@@ -299,4 +301,7 @@ auto ModuleManager::IsModuleActivated(ModuleIdentifier id) -> bool {
 auto ModuleManager::ListAllRegisteredModuleID() -> QList<ModuleIdentifier> {
   return p_->ListAllRegisteredModuleID();
 };
+
+auto ModuleManager::GRT() -> GlobalRegisterTable* { return p_->GRT(); }
+
 }  // namespace GpgFrontend::Module

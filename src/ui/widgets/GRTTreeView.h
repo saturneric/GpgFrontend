@@ -28,41 +28,14 @@
 
 #pragma once
 
-#include <any>
-#include <functional>
-#include <optional>
+namespace GpgFrontend::UI {
 
-#include "core/function/SecureMemoryAllocator.h"
-
-namespace GpgFrontend::Module {
-
-using Namespace = QString;
-using Key = QString;
-using LPCallback = std::function<void(Namespace, Key, int, std::any)>;
-
-class GlobalRegisterTable : public QObject {
+class GRTTreeView : public QTreeView {
   Q_OBJECT
  public:
-  friend class GlobalRegisterTableTreeModel;
+  explicit GRTTreeView(QWidget *parent);
 
-  GlobalRegisterTable();
-
-  ~GlobalRegisterTable() override;
-
-  auto PublishKV(Namespace, Key, std::any) -> bool;
-
-  auto LookupKV(Namespace, Key) -> std::optional<std::any>;
-
-  auto ListenPublish(QObject *, Namespace, Key, LPCallback) -> bool;
-
-  auto ListChildKeys(Namespace n, Key k) -> std::vector<Key>;
-
- signals:
-  void SignalPublish(Namespace, Key, int, std::any);
-
- private:
-  class Impl;
-  SecureUniquePtr<Impl> p_;
+  virtual ~GRTTreeView() override;
 };
 
-}  // namespace GpgFrontend::Module
+}  // namespace GpgFrontend::UI

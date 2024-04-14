@@ -51,8 +51,7 @@ auto GFGetModuleQtEnvVersion() -> const char* {
 }
 
 auto GFGetModuleID() -> const char* {
-  return GFModuleStrDup(
-      "com.bktus.gpgfrontend.module.integrated.version_checking");
+  return GFModuleStrDup("com.bktus.gpgfrontend.module.version_checking");
 }
 
 auto GFGetModuleVersion() -> const char* { return GFModuleStrDup("1.0.0"); }
@@ -62,11 +61,18 @@ auto GFGetModuleMetaData() -> GFModuleMetaData* {
       GFAllocateMemory(sizeof(GFModuleMetaData)));
   auto* h_meta = p_meta;
 
+  p_meta->key = "Name";
+  p_meta->value = "VersionChecking";
+  p_meta->next = static_cast<GFModuleMetaData*>(
+      GFAllocateMemory(sizeof(GFModuleMetaData)));
+  p_meta = p_meta->next;
+
   p_meta->key = "Description";
   p_meta->value = "Try checking gpgfrontend version";
   p_meta->next = static_cast<GFModuleMetaData*>(
       GFAllocateMemory(sizeof(GFModuleMetaData)));
   p_meta = p_meta->next;
+
   p_meta->key = "Author";
   p_meta->value = "Saturneric";
   p_meta->next = nullptr;

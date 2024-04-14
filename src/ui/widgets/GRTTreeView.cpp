@@ -26,43 +26,17 @@
  *
  */
 
-#pragma once
+#include "GRTTreeView.h"
 
-#include <any>
-#include <functional>
-#include <optional>
+#include "core/module/GlobalRegisterTableTreeModel.h"
+#include "core/module/ModuleManager.h"
 
-#include "core/function/SecureMemoryAllocator.h"
+namespace GpgFrontend::UI {
 
-namespace GpgFrontend::Module {
+GRTTreeView::GRTTreeView(QWidget *parent) : QTreeView(parent) {
+  setModel(new Module::GlobalRegisterTableTreeModel(
+      Module::ModuleManager::GetInstance().GRT()));
+}
 
-using Namespace = QString;
-using Key = QString;
-using LPCallback = std::function<void(Namespace, Key, int, std::any)>;
-
-class GlobalRegisterTable : public QObject {
-  Q_OBJECT
- public:
-  friend class GlobalRegisterTableTreeModel;
-
-  GlobalRegisterTable();
-
-  ~GlobalRegisterTable() override;
-
-  auto PublishKV(Namespace, Key, std::any) -> bool;
-
-  auto LookupKV(Namespace, Key) -> std::optional<std::any>;
-
-  auto ListenPublish(QObject *, Namespace, Key, LPCallback) -> bool;
-
-  auto ListChildKeys(Namespace n, Key k) -> std::vector<Key>;
-
- signals:
-  void SignalPublish(Namespace, Key, int, std::any);
-
- private:
-  class Impl;
-  SecureUniquePtr<Impl> p_;
-};
-
-}  // namespace GpgFrontend::Module
+GRTTreeView::~GRTTreeView() = default;
+}  // namespace GpgFrontend::UI

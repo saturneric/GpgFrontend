@@ -99,8 +99,7 @@ auto GFGetModuleQtEnvVersion() -> const char * {
 }
 
 auto GFGetModuleID() -> const char * {
-  return GFModuleStrDup(
-      "com.bktus.gpgfrontend.module.integrated.gnupg_info_gathering");
+  return GFModuleStrDup("com.bktus.gpgfrontend.module.gnupg_info_gathering");
 }
 
 auto GFGetModuleVersion() -> const char * { return GFModuleStrDup("1.0.0"); }
@@ -109,6 +108,12 @@ auto GFGetModuleMetaData() -> GFModuleMetaData * {
   auto *p_meta = static_cast<GFModuleMetaData *>(
       GFAllocateMemory(sizeof(GFModuleMetaData)));
   auto *h_meta = p_meta;
+
+  p_meta->key = "Name";
+  p_meta->value = "GatherGnupgInfo";
+  p_meta->next = static_cast<GFModuleMetaData *>(
+      GFAllocateMemory(sizeof(GFModuleMetaData)));
+  p_meta = p_meta->next;
 
   p_meta->key = "Description";
   p_meta->value = "Try gathering gnupg informations";
@@ -200,21 +205,20 @@ auto GFExecuteModule(GFModuleEvent *event) -> int {
       continue;
     }
 
-    auto context = Context{gpgme_version, gpgconf_path, component_info};
-
+    auto *context = new Context{gpgme_version, gpgconf_path, component_info};
     const char **argv_0 =
         static_cast<const char **>(GFAllocateMemory(sizeof(const char *) * 2));
     argv_0[0] = GFModuleStrDup("--list-options"),
     argv_0[1] = GFModuleStrDup(component_info.name.toUtf8());
     exec_contexts.push_back(
-        {gpgconf_path, 2, argv_0, GetGpgDirectoryInfos, &context});
+        {gpgconf_path, 2, argv_0, GetGpgOptionInfos, context});
   }
 
   GFExecuteCommandBatchSync(static_cast<int32_t>(exec_contexts.size()),
                             exec_contexts.constData());
 
   GFModuleUpsertRTValueBool(GFGetModuleID(),
-                            GFModuleStrDup("gnupg.gathering_done"), 0);
+                            GFModuleStrDup("gnupg.gathering_done"), 1);
 
   char **event_argv =
       static_cast<char **>(GFAllocateMemory(sizeof(char **) * 1));
@@ -443,11 +447,12 @@ void GetGpgOptionInfos(void *data, int exit_code, const char *out,
   auto p_out = QString::fromUtf8(out);
   auto p_err = QString::fromUtf8(err);
   auto *context = reinterpret_cast<Context *>(data);
+  auto component_name = context->component_info.name;
 
   GFModuleLogDebug(
       fmt::format("gpgconf {} avaliable options exit_code: {} process stdout "
                   "size: {} ",
-                  context->component_info.name, exit_code, p_out.size())
+                  component_name, exit_code, p_out.size())
           .c_str());
 
   std::vector<GpgOptionsInfo> options_infos;
@@ -459,7 +464,7 @@ void GetGpgOptionInfos(void *data, int exit_code, const char *out,
 
     GFModuleLogDebug(
         fmt::format("component {} avaliable options line: {} info size: {}",
-                    context->component_info.name, line, info_split_list.size())
+                    component_name, line, info_split_list.size())
             .c_str());
 
     if (info_split_list.size() < 10) continue;
@@ -494,10 +499,12 @@ void GetGpgOptionInfos(void *data, int exit_code, const char *out,
     GFModuleUpsertRTValue(
         GFGetModuleID(),
         GFModuleStrDup(QString("gnupg.components.%1.options.%2")
-                           .arg(context->component_info.name)
+                           .arg(component_name)
                            .arg(option_name)
                            .toUtf8()),
         GFModuleStrDup(QJsonDocument(jsonlized_option_info).toJson()));
     options_infos.push_back(info);
   }
+
+  GFFreeMemory(context);
 }

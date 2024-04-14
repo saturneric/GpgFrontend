@@ -60,8 +60,6 @@ target_link_libraries(gpgfrontend_gnupg_info_gathering PRIVATE
   Qt6::Core)
        
 
-
-
 # property
 set_property(TARGET gpgfrontend_gnupg_info_gathering PROPERTY AUTOMOC ON)
 

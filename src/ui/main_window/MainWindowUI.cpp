@@ -421,8 +421,7 @@ void MainWindow::create_actions() {
   connect(about_act_, &QAction::triggered, this,
           [=]() { new AboutDialog(0, this); });
 
-  if (Module::IsModuleActivate(
-          "com.bktus.gpgfrontend.module.integrated.gnupg_info_gathering")) {
+  if (Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
     gnupg_act_ = new QAction(tr("GnuPG"), this);
     gnupg_act_->setIcon(QIcon(":/icons/help.png"));
     gnupg_act_->setToolTip(tr("Information about Gnupg"));
@@ -436,8 +435,7 @@ void MainWindow::create_actions() {
   connect(translate_act_, &QAction::triggered, this,
           [=]() { new AboutDialog(tr("Translators"), this); });
 
-  if (Module::IsModuleActivate(
-          "com.bktus.gpgfrontend.module.integrated.version_checking")) {
+  if (Module::IsModuleActivate(kVersionCheckingModuleID)) {
     check_update_act_ = new QAction(tr("Check for Updates"), this);
     check_update_act_->setIcon(QIcon(":/icons/help.png"));
     check_update_act_->setToolTip(tr("Check for updates"));
