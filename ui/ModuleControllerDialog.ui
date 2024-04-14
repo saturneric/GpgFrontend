@@ -36,7 +36,21 @@
        <item>
         <layout class="QHBoxLayout" name="moduleControllerLayout">
          <item>
-          <layout class="QVBoxLayout" name="moduleListViewLayout"/>
+          <layout class="QVBoxLayout" name="moduleListViewLayout">
+           <property name="sizeConstraint">
+            <enum>QLayout::SetDefaultConstraint</enum>
+           </property>
+           <item>
+            <widget class="GpgFrontend::UI::ModuleListView" name="moduleListView">
+             <property name="maximumSize">
+              <size>
+               <width>250</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
          <item>
           <widget class="Line" name="line_2">
@@ -169,6 +183,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>GpgFrontend::UI::ModuleListView</class>
+   <extends>QListView</extends>
+   <header>ui/widgets/ModuleListView.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

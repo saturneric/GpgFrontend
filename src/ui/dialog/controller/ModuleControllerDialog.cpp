@@ -41,20 +41,14 @@ namespace GpgFrontend::UI {
 ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
     : QDialog(parent),
       ui_(std::make_shared<Ui_ModuleControllerDialog>()),
-      model_list_view_(new ModuleListView(this)),
       module_manager_(&Module::ModuleManager::GetInstance()) {
   ui_->setupUi(this);
 
-  model_list_view_->setFixedWidth(250);
-  model_list_view_->setViewMode(QListView::ListMode);
-  model_list_view_->setMovement(QListView::Static);
-
-  ui_->moduleListViewLayout->addWidget(model_list_view_);
-  connect(model_list_view_, &ModuleListView::SignalSelectModule, this,
+  connect(ui_->moduleListView, &ModuleListView::SignalSelectModule, this,
           &ModuleControllerDialog::slot_load_module_details);
 
   connect(ui_->activateOrDeactiveButton, &QPushButton::clicked, this, [=]() {
-    auto module_id = model_list_view_->GetCurrentModuleID();
+    auto module_id = ui_->moduleListView->GetCurrentModuleID();
     if (module_id.isEmpty()) return;
 
     if (!module_manager_->IsModuleActivated(module_id)) {
@@ -67,7 +61,7 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
   });
 
   connect(ui_->autoActivateButton, &QPushButton::clicked, this, [=]() {
-    auto module_id = model_list_view_->GetCurrentModuleID();
+    auto module_id = ui_->moduleListView->GetCurrentModuleID();
     SettingsObject so(QString("module.%1.so").arg(module_id));
     ModuleSO module_so(so);
 

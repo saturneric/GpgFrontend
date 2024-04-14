@@ -55,7 +55,6 @@ class ModuleControllerDialog : public QDialog {
 
  private:
   std::shared_ptr<Ui_ModuleControllerDialog> ui_;  ///<
-  ModuleListView* model_list_view_;
   Module::ModuleManager* module_manager_;
 };
 

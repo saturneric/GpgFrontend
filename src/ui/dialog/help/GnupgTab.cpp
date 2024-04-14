@@ -302,7 +302,7 @@ void GnupgTab::process_software_info() {
 
 void GnupgTab::gather_gnupg_info() {
   // if gnupg_info_gathering module activated
-  if (Module::IsModuleAcivate(kGnuPGInfoGatheringModuleID)) {
+  if (Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
     GF_CORE_LOG_DEBUG(
         "module gnupg_info_gathering is activated, "
         "loading external gnupg info...");

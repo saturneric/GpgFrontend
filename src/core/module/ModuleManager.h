@@ -130,7 +130,7 @@ void TriggerEvent(const EventIdentifier& event_id, Args&&... args,
  * @return true
  * @return false
  */
-auto GPGFRONTEND_CORE_EXPORT IsModuleAcivate(ModuleIdentifier) -> bool;
+auto GPGFRONTEND_CORE_EXPORT IsModuleActivate(ModuleIdentifier) -> bool;
 
 /**
  * @brief

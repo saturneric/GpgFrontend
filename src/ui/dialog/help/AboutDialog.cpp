@@ -49,7 +49,7 @@ AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
 
   tab_widget->addTab(info_tab, tr("About GpgFrontend"));
 
-  if (Module::IsModuleAcivate(
+  if (Module::IsModuleActivate(
           "com.bktus.gpgfrontend.module.integrated.gnupg_info_gathering")) {
     auto* gnupg_tab = new GnupgTab();
     tab_widget->addTab(gnupg_tab, tr("GnuPG"));
@@ -57,7 +57,7 @@ AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
 
   tab_widget->addTab(translators_tab, tr("Translators"));
 
-  if (Module::IsModuleAcivate(kVersionCheckingModuleID)) {
+  if (Module::IsModuleActivate(kVersionCheckingModuleID)) {
     auto* update_tab = new UpdateTab();
     tab_widget->addTab(update_tab, tr("Update"));
   }

@@ -203,7 +203,7 @@ class ModuleManager::Impl {
   QList<QLibrary> module_libraries_;
 };
 
-auto IsModuleAcivate(ModuleIdentifier id) -> bool {
+auto IsModuleActivate(ModuleIdentifier id) -> bool {
   return ModuleManager::GetInstance().IsModuleActivated(id);
 }
 
