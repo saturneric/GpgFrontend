@@ -123,7 +123,7 @@ void ModuleControllerDialog::slot_load_module_details(
 
   info << "# METADATA" << Qt::endl << Qt::endl;
 
-  for (const auto& metadata : module->GetModuleMetaData()) {
+  for (const auto& metadata : module->GetModuleMetaData().asKeyValueRange()) {
     info << " - " << metadata.first << ": " << metadata.second << "\n";
   }
 

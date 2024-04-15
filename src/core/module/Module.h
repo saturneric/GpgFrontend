@@ -39,7 +39,7 @@ class ModuleManager;
 
 using ModuleIdentifier = QString;
 using ModuleVersion = QString;
-using ModuleMetaData = std::map<QString, QString>;
+using ModuleMetaData = QMap<QString, QString>;
 using ModulePtr = std::shared_ptr<Module>;
 
 using TaskRunnerPtr = std::shared_ptr<Thread::TaskRunner>;

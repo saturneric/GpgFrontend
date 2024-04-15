@@ -33,7 +33,7 @@
 namespace GpgFrontend::UI {
 
 ModuleListView::ModuleListView(QWidget *parent)
-    : QListView(parent), model_(new QStringListModel(this)) {
+    : QListView(parent), model_(new QStandardItemModel(this)) {
   setModel(model_);
   setEditTriggers(QAbstractItemView::NoEditTriggers);
 
@@ -43,22 +43,28 @@ ModuleListView::ModuleListView(QWidget *parent)
 void ModuleListView::currentChanged(const QModelIndex &current,
                                     const QModelIndex &previous) {
   QListView::currentChanged(current, previous);
-  emit this->SignalSelectModule(model_->data(current).toString());
+  auto *item = model_->itemFromIndex(current);
+  if (item != nullptr) {
+    emit this->SignalSelectModule(item->data(Qt::UserRole + 1).toString());
+  }
 }
 
 void ModuleListView::load_module_informations() {
-  auto module_ids =
-      Module::ModuleManager::GetInstance().ListAllRegisteredModuleID();
+  auto &module_manager = Module::ModuleManager::GetInstance();
+  auto module_ids = module_manager.ListAllRegisteredModuleID();
 
-  QStringList model_data;
+  model_->clear();
   for (const auto &module_id : module_ids) {
-    model_data.append(module_id);
+    auto module = module_manager.SearchModule(module_id);
+    auto meta_data = module->GetModuleMetaData();
+    auto *item = new QStandardItem(meta_data.value("Name", module_id));
+    item->setData(module_id, Qt::UserRole + 1);
+    model_->appendRow(item);
   }
-
-  model_->setStringList(model_data);
 }
 
 auto ModuleListView::GetCurrentModuleID() -> Module::ModuleIdentifier {
-  return model_->data(currentIndex()).toString();
+  auto *item = model_->itemFromIndex(currentIndex());
+  return item != nullptr ? item->data(Qt::UserRole + 1).toString() : "";
 }
 };  // namespace GpgFrontend::UI

@@ -46,7 +46,7 @@ class ModuleListView : public QListView {
                       const QModelIndex &previous) override;
 
  private:
-  QStringListModel *model_;
+  QStandardItemModel *model_;
 
   void load_module_informations();
 };
