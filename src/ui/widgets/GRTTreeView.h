@@ -33,9 +33,37 @@ namespace GpgFrontend::UI {
 class GRTTreeView : public QTreeView {
   Q_OBJECT
  public:
-  explicit GRTTreeView(QWidget *parent);
+  /**
+   * @brief Construct a new GRTTreeView object
+   *
+   * @param parent
+   */
+  explicit GRTTreeView(QWidget* parent);
 
+  /**
+   * @brief Destroy the GRTTreeView object
+   *
+   */
   virtual ~GRTTreeView() override;
+
+ protected:
+  /**
+   * @brief
+   *
+   * @param event
+   */
+  void paintEvent(QPaintEvent* event) override;
+
+ private slots:
+
+  /**
+   * @brief
+   *
+   */
+  void slot_adjust_column_widths();
+
+ private:
+  bool initial_resize_done_ = false;
 };
 
 }  // namespace GpgFrontend::UI

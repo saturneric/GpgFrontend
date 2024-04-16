@@ -33,10 +33,34 @@
 
 namespace GpgFrontend::UI {
 
-GRTTreeView::GRTTreeView(QWidget *parent) : QTreeView(parent) {
+GRTTreeView::GRTTreeView(QWidget* parent) : QTreeView(parent) {
   setModel(new Module::GlobalRegisterTableTreeModel(
       Module::ModuleManager::GetInstance().GRT()));
+
+  connect(model(), &QFileSystemModel::layoutChanged, this,
+          &GRTTreeView::slot_adjust_column_widths);
+  connect(model(), &QFileSystemModel::dataChanged, this,
+          &GRTTreeView::slot_adjust_column_widths);
+  connect(this, &GRTTreeView::expanded, this,
+          &GRTTreeView::slot_adjust_column_widths);
+  connect(this, &GRTTreeView::collapsed, this,
+          &GRTTreeView::slot_adjust_column_widths);
 }
 
 GRTTreeView::~GRTTreeView() = default;
+
+void GRTTreeView::paintEvent(QPaintEvent* event) {
+  QTreeView::paintEvent(event);
+
+  if (!initial_resize_done_) {
+    slot_adjust_column_widths();
+    initial_resize_done_ = true;
+  }
+}
+
+void GRTTreeView::slot_adjust_column_widths() {
+  for (int i = 0; i < model()->columnCount(); ++i) {
+    this->resizeColumnToContents(i);
+  }
+}
 }  // namespace GpgFrontend::UI

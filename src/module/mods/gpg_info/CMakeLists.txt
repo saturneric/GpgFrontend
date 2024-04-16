@@ -23,26 +23,26 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# com.bktus.gpgfrontend.module.integrated.version_checking
+# com.bktus.gpgfrontend.module.integrated.gnupg_info_gathering
 
 aux_source_directory(. INTEGRATED_MODULE_SOURCE)
 
 # define libgpgfrontend_module
-add_library(gpgfrontend_version_checking SHARED ${INTEGRATED_MODULE_SOURCE})
+add_library(mod_gpg_info SHARED ${INTEGRATED_MODULE_SOURCE})
 set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GFModuleExport.h")
-generate_export_header(gpgfrontend_version_checking 
+generate_export_header(mod_gpg_info
   BASE_NAME "GF_MODULE"
   EXPORT_FILE_NAME "${_export_file}")
 
-target_include_directories(gpgfrontend_version_checking PRIVATE 
+target_include_directories(mod_gpg_info PRIVATE 
   ${CMAKE_SOURCE_DIR}/third_party/spdlog/include)
 
 # set output directory
-set_target_properties(gpgfrontend_version_checking PROPERTIES
+set_target_properties(mod_gpg_info PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mods)
 
 if (XCODE_BUILD)
-  set_target_properties(gpgfrontend_version_checking
+  set_target_properties(mod_gpg_info
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
@@ -52,19 +52,16 @@ if (XCODE_BUILD)
 endif ()
 
 # link sdk
-target_link_libraries(gpgfrontend_version_checking PRIVATE
+target_link_libraries(mod_gpg_info PRIVATE
   gpgfrontend_module_sdk)
 
-if(GPGFRONTEND_QT5_BUILD)
-  # link Qt
-  target_link_libraries(gpgfrontend_version_checking PUBLIC Qt5::Core Qt5::Network)
-else()
-  # link Qt
-  target_link_libraries(gpgfrontend_version_checking PUBLIC Qt6::Core Qt6::Network)
-endif()
+# link qt
+target_link_libraries(mod_gpg_info PRIVATE
+  Qt6::Core)
+       
 
 # property
-set_property(TARGET gpgfrontend_version_checking PROPERTY AUTOMOC ON)
+set_property(TARGET mod_gpg_info PROPERTY AUTOMOC ON)
 
 # using std c++ 17
-target_compile_features(gpgfrontend_version_checking PRIVATE cxx_std_17)
+target_compile_features(mod_gpg_info PRIVATE cxx_std_17)

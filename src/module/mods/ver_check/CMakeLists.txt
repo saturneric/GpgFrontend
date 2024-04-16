@@ -23,26 +23,26 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# com.bktus.gpgfrontend.module.integrated.gnupg_info_gathering
+# com.bktus.gpgfrontend.module.integrated.version_checking
 
 aux_source_directory(. INTEGRATED_MODULE_SOURCE)
 
 # define libgpgfrontend_module
-add_library(gpgfrontend_gnupg_info_gathering SHARED ${INTEGRATED_MODULE_SOURCE})
+add_library(mod_ver_check SHARED ${INTEGRATED_MODULE_SOURCE})
 set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GFModuleExport.h")
-generate_export_header(gpgfrontend_gnupg_info_gathering
+generate_export_header(mod_ver_check 
   BASE_NAME "GF_MODULE"
   EXPORT_FILE_NAME "${_export_file}")
 
-target_include_directories(gpgfrontend_gnupg_info_gathering PRIVATE 
+target_include_directories(mod_ver_check PRIVATE 
   ${CMAKE_SOURCE_DIR}/third_party/spdlog/include)
 
 # set output directory
-set_target_properties(gpgfrontend_gnupg_info_gathering PROPERTIES
+set_target_properties(mod_ver_check PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mods)
 
 if (XCODE_BUILD)
-  set_target_properties(gpgfrontend_gnupg_info_gathering
+  set_target_properties(mod_ver_check
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
@@ -52,16 +52,19 @@ if (XCODE_BUILD)
 endif ()
 
 # link sdk
-target_link_libraries(gpgfrontend_gnupg_info_gathering PRIVATE
+target_link_libraries(mod_ver_check PRIVATE
   gpgfrontend_module_sdk)
 
-# link qt
-target_link_libraries(gpgfrontend_gnupg_info_gathering PRIVATE
-  Qt6::Core)
-       
+if(GPGFRONTEND_QT5_BUILD)
+  # link Qt
+  target_link_libraries(mod_ver_check PUBLIC Qt5::Core Qt5::Network)
+else()
+  # link Qt
+  target_link_libraries(mod_ver_check PUBLIC Qt6::Core Qt6::Network)
+endif()
 
 # property
-set_property(TARGET gpgfrontend_gnupg_info_gathering PROPERTY AUTOMOC ON)
+set_property(TARGET mod_ver_check PROPERTY AUTOMOC ON)
 
 # using std c++ 17
-target_compile_features(gpgfrontend_gnupg_info_gathering PRIVATE cxx_std_17)
+target_compile_features(mod_ver_check PRIVATE cxx_std_17)

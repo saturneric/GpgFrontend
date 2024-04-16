@@ -51,16 +51,14 @@ if (XCODE_BUILD)
     XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
 endif ()
 
-# tracking integrated modules
+# tracking modules
 set(all_integrated_module_libraries "")
-file(GLOB children LIST_DIRECTORIES true "integrated/*")
+file(GLOB children LIST_DIRECTORIES true "mods/*")
 foreach(child ${children})
     if(IS_DIRECTORY ${child})
         get_filename_component(dirName ${child} NAME)
-        add_subdirectory("integrated/${dirName}")
-
-        string(REPLACE "_module" "" stripped_module ${dirName})
-        set(integrated_lib_name "gpgfrontend_integrated_module_${stripped_module}")
-        list(APPEND all_integrated_module_libraries ${integrated_lib_name})
+        add_subdirectory("mods/${dirName}")
+        
+        list(APPEND all_integrated_module_libraries ${dirName})
     endif()
 endforeach()

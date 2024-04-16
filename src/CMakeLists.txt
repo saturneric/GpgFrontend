@@ -370,6 +370,10 @@ if (BUILD_APPLICATION)
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                     COMMENT "Copying Binary into App Image")
             add_custom_command(TARGET ${AppName} POST_BUILD
+                    COMMAND /bin/mkdir -p ./gpgfrontend/usr/bin && /bin/mv -f ./mods ./gpgfrontend/usr/lib/
+                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+                    COMMENT "Copying Mods into App Image")
+            add_custom_command(TARGET ${AppName} POST_BUILD
                     COMMAND /bin/mkdir -p ./gpgfrontend/usr/lib
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                     COMMENT "Complement to build the required architecture")

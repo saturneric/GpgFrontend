@@ -139,6 +139,11 @@ void GpgFrontend::GpgAdvancedOperator::ResetConfigures(OperationCallback cb) {
 }
 
 void GpgFrontend::GpgAdvancedOperator::StartGpgAgent(OperationCallback cb) {
+  if (!Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
+    cb(-1, TransferParams());
+    return;
+  }
+
   const auto gpg_agent_path = Module::RetrieveRTValueTypedOrDefault<>(
       kGnuPGInfoGatheringModuleID, "gnupg.gpg_agent_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg agent path from rt: {}", gpg_agent_path);
@@ -162,6 +167,11 @@ void GpgFrontend::GpgAdvancedOperator::StartGpgAgent(OperationCallback cb) {
 }
 
 void GpgFrontend::GpgAdvancedOperator::StartDirmngr(OperationCallback cb) {
+  if (!Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
+    cb(-1, TransferParams());
+    return;
+  }
+
   const auto dirmngr_path = Module::RetrieveRTValueTypedOrDefault<>(
       kGnuPGInfoGatheringModuleID, "gnupg.dirmngr_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg dirmngr path from rt: {}", dirmngr_path);
@@ -185,6 +195,11 @@ void GpgFrontend::GpgAdvancedOperator::StartDirmngr(OperationCallback cb) {
 }
 
 void GpgFrontend::GpgAdvancedOperator::StartKeyBoxd(OperationCallback cb) {
+  if (!Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
+    cb(-1, TransferParams());
+    return;
+  }
+
   const auto keyboxd_path = Module::RetrieveRTValueTypedOrDefault<>(
       kGnuPGInfoGatheringModuleID, "gnupg.keyboxd_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg keyboxd path from rt: {}", keyboxd_path);

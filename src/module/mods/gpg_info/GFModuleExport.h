@@ -7,7 +7,7 @@
 #  define GF_MODULE_NO_EXPORT
 #else
 #  ifndef GF_MODULE_EXPORT
-#    ifdef gpgfrontend_version_checking_EXPORTS
+#    ifdef mod_gpg_info_EXPORTS
         /* We are building this library */
 #      define GF_MODULE_EXPORT __attribute__((visibility("default")))
 #    else
