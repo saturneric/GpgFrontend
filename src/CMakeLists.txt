@@ -366,18 +366,20 @@ if (BUILD_APPLICATION)
         elseif (LINUX AND NOT LINUX_INSTALL_SOFTWARE)
             add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
             add_custom_command(TARGET ${AppName} POST_BUILD
-                    COMMAND /bin/mkdir -p ./AppDir/usr/bin && /bin/mv -f ./${AppName} ./AppDir/usr/bin/
-                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                    COMMENT "Copying Binary into App Image")
+                COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin"
+                COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin/${AppName}"
+                COMMENT "Copying Binary into App Image"
+            )
             add_custom_command(TARGET ${AppName} POST_BUILD
-                    COMMAND /bin/mkdir -p ./AppDir/usr/bin && /bin/mv -f ./mods ./AppDir/usr/lib/mods
-                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                    COMMENT "Copying Mods into App Image")
+                COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/lib"
+                COMMENT "Complement to build the required architecture"
+            )
             add_custom_command(TARGET ${AppName} POST_BUILD
-                    COMMAND /bin/mkdir -p ./AppDir/usr/lib
-                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                    COMMENT "Complement to build the required architecture")
-            # app bundle packing using xcode
+                COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/lib/mods"
+                COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mods" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/lib/mods"
+                COMMENT "Copying Mods into App Image"
+            )
+        # app bundle packing using xcode
         elseif (APPLE AND XCODE_BUILD)
             # standard app bundle packing
             add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES})
