@@ -42,17 +42,18 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
   Thread::TaskRunnerGetter::GetInstance().GetTaskRunner()->PostTask(
       new Thread::Task(
           [](const DataObjectPtr&) -> int {
-            GF_CORE_LOG_INFO("loading modules...");
-
             auto exec_binary_path = QCoreApplication::applicationDirPath();
             auto mods_path = exec_binary_path + "/mods";
-
-            if (!QDir(mods_path).exists()) {
-              GF_CORE_LOG_INFO("module directory not found, abort...");
-              return -1;
+            if (!qEnvironmentVariable("APPIMAGE").isEmpty()) {
+              mods_path = qEnvironmentVariable("APPDIR") + "/usr/lib/mods";
             }
 
-            GF_CORE_LOG_INFO("the path of modules directory: {}", mods_path);
+            GF_CORE_LOG_DEBUG("try loading modules at path: {} ...", mods_path);
+            if (!QDir(mods_path).exists()) {
+              GF_CORE_LOG_WARN(
+                  "module directory at path {} not found, abort...", mods_path);
+              return -1;
+            }
 
             for (const auto& module_library_name :
                  QDir(mods_path).entryList(QStringList() << "*.so"
@@ -63,7 +64,7 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
                                                       module_library_name);
             }
 
-            GF_CORE_LOG_INFO("load modules done.");
+            GF_CORE_LOG_DEBUG("load modules done.");
             return 0;
           },
           "modules_system_init_task"));
