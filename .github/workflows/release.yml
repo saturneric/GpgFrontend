@@ -77,7 +77,7 @@ jobs:
       - name: Install Qt6
         uses: jurplel/install-qt-action@v3
         with:
-          version: '6.6.1'
+          version: '6.5.3'
           modules: 'qt5compat'
           cache: 'true'
         if: matrix.os == 'ubuntu-20.04' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
