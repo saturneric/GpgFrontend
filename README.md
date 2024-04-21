@@ -33,7 +33,7 @@ GpgFrontend is **PERMANENTLY FREE** of charge. However, you can support us by
   - [Developer Document](#developer-document)
   - [Language Support](#language-support)
     - [Supported Languages](#supported-languages)
-  - [Contract](#contract)
+  - [Contact](#contact)
     - [Contributing \& Bugs Report](#contributing--bugs-report)
     - [Project Maintainer](#project-maintainer)
     - [Project's Logo](#projects-logo)
@@ -69,9 +69,9 @@ GpgFrontend currently supports an array of languages including:
 
 Contributors: [SHOW](TRANSLATORS)
 
-## Contract
+## Contact
 
-Please refer to [HERE](https://www.gpgfrontend.bktus.com/#/contract) for my contact details.
+Please refer to [HERE](https://www.gpgfrontend.bktus.com/contact) for my contact details.
 
 ### Contributing & Bugs Report
 

@@ -76,15 +76,15 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
 
   auto* topLabel = new QLabel(
       QString(
-          tr("Welcome to use GpgFrontend for decrypting and signing text or "
-             "file!")) +
+          tr("Welcome to GpgFrontend for decrypting and signing text or "
+             "files!")) +
       " <br><br><a href='https://gpgfrontend.bktus.com'>GpgFrontend</a> " +
       tr("is a Powerful, Easy-to-Use, Compact, Cross-Platform, and "
-         "Installation-Free OpenPGP Crypto Tool.") +
-      tr("For brief information have a look at the") +
-      " <a href='https://gpgfrontend.bktus.com/index.html#/overview'>" +
+         "Installation-Free OpenPGP Crypto Tool. ") +
+      tr("To get started, be sure to check out the") +
+      " <a href='https://gpgfrontend.bktus.com/overview/glance'>" +
       tr("Overview") + "</a> (" +
-      tr("by clicking the link, the page will open in the web browser") +
+      tr("by clicking the link, the page will open in your web browser") +
       "). <br>");
   topLabel->setTextFormat(Qt::RichText);
   topLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
@@ -115,24 +115,19 @@ ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
   auto* keygen_label = new QLabel(
       tr("If you have never used GpgFrontend before and also don't own a gpg "
          "key yet you may possibly want to read how to") +
-      " <a href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
-      "generate-key\">" +
+      " <a href=\"https://gpgfrontend.bktus.com/guides/generate-key\">" +
       tr("Generate Key") + "</a><hr>");
   keygen_label->setTextFormat(Qt::RichText);
   keygen_label->setTextInteractionFlags(Qt::TextBrowserInteraction);
   keygen_label->setOpenExternalLinks(true);
   keygen_label->setWordWrap(true);
 
-  auto* encr_decy_text_label = new QLabel(
+ auto* encr_decy_text_label = new QLabel(
       tr("If you want to learn how to encrypt, decrypt, sign and verify text, "
          "you can read ") +
-      "<a "
-      "href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
-      "encrypt-decrypt-text\">" +
+      "<a href=\"https://gpgfrontend.bktus.com/guides/encrypt-decrypt-text\">" +
       tr("Encrypt & Decrypt Text") + "</a> " + tr("or") +
-      " <a "
-      "href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
-      "sign-verify-text\">" +
+      " <a href=\"https://gpgfrontend.bktus.com/guides/sign-verify-text\">" +
       tr("Sign & Verify Text") + "</a><hr>");
 
   encr_decy_text_label->setTextFormat(Qt::RichText);
@@ -142,13 +137,9 @@ ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
 
   auto* sign_verify_text_label =
       new QLabel(tr("If you want to operate file, you can read ") +
-                 "<a "
-                 "href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
-                 "encrypt-decrypt-file\">" +
+                 "<a href=\"https://gpgfrontend.bktus.com/guides/encrypt-decrypt-file\">" +
                  tr("Encrypt & Sign File") + "</a> " + tr("or") +
-                 " <a "
-                 "href=\"https://gpgfrontend.bktus.com/index.html#/manual/"
-                 "sign-verify-file\">" +
+                 " <a href=\"https://gpgfrontend.bktus.com/guides/sign-verify-file\">" +
                  tr("Sign & Verify File") + "</a><hr>");
   sign_verify_text_label->setTextFormat(Qt::RichText);
   sign_verify_text_label->setTextInteractionFlags(Qt::TextBrowserInteraction);
@@ -220,9 +211,7 @@ ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
 
   auto* bottom_label = new QLabel(
       tr("You are ready to use GpgFrontend now.<br><br>") +
-      "<a "
-      "href=\"https://gpgfrontend.bktus.com/manual/understand-interface"
-      "overview\">" +
+      "<a href=\"https://gpgfrontend.bktus.com/guides/understand-interface\">" +
       tr("The Online Document") + "</a>" +
       tr(" will get you started with GpgFrontend. Anytime you encounter "
          "problems, please try to find help from the documentation") +
@@ -236,7 +225,7 @@ ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
   open_help_check_box_ = new QCheckBox(tr("Open offline help."));
   open_help_check_box_->setChecked(true);
 
-  dont_show_wizard_checkbox_ = new QCheckBox(tr("Dont show the wizard again."));
+  dont_show_wizard_checkbox_ = new QCheckBox(tr("Don't show the wizard again."));
   dont_show_wizard_checkbox_->setChecked(true);
 
   registerField("showWizard", dont_show_wizard_checkbox_);
