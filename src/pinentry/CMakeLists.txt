@@ -50,25 +50,3 @@ target_link_libraries(gpgfrontend_pinentry PRIVATE spdlog)
 
 # using std c++ 17
 target_compile_features(gpgfrontend_pinentry PUBLIC cxx_std_17)
-
-# link for different platforms
-if (MINGW)
-    message(STATUS "Link GPG Static Library For MINGW")
-    target_link_libraries(gpgfrontend_pinentry PUBLIC wsock32)
-elseif (APPLE)
-    message(STATUS "Link GPG Static Library For macOS")
-    target_link_libraries(gpgfrontend_pinentry PUBLIC dl)
-    if (XCODE_BUILD)
-        set_target_properties(gpgfrontend_pinentry
-                PROPERTIES
-                ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-                LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-                LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-                XCODE_ATTRIBUTE_SKIP_INSTALL "Yes"
-                XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
-    endif ()
-else ()
-    # linux
-    message(STATUS "Link GPG Static Library For Unix")
-    target_link_libraries(gpgfrontend_pinentry PUBLIC pthread dl)
-endif ()

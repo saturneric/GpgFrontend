@@ -32,7 +32,7 @@
 #include <functional>
 #include <optional>
 
-#include "function/SecureMemoryAllocator.h"
+#include "core/function/SecureMemoryAllocator.h"
 
 namespace GpgFrontend::Module {
 
@@ -43,6 +43,8 @@ using LPCallback = std::function<void(Namespace, Key, int, std::any)>;
 class GlobalRegisterTable : public QObject {
   Q_OBJECT
  public:
+  friend class GlobalRegisterTableTreeModel;
+
   GlobalRegisterTable();
 
   ~GlobalRegisterTable() override;

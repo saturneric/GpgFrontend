@@ -36,7 +36,7 @@ aux_source_directory(thread UI_SOURCE)
 aux_source_directory(dialog/details UI_SOURCE)
 aux_source_directory(struct UI_SOURCE)
 aux_source_directory(dialog/import_export UI_SOURCE)
-aux_source_directory(dialog/gnupg UI_SOURCE)
+aux_source_directory(dialog/controller UI_SOURCE)
 aux_source_directory(dialog UI_SOURCE)
 aux_source_directory(function UI_SOURCE)
 
@@ -54,7 +54,7 @@ if(GPGFRONTEND_QT5_BUILD)
 else()
   # link Qt
   target_link_libraries(gpgfrontend_ui
-          Qt6::Core Qt6::Widgets Qt6::Network Qt6::PrintSupport Qt6::Core5Compat)
+          Qt6::Core Qt6::Widgets Qt6::Network Qt6::PrintSupport)
 endif()
 
 

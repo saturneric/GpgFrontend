@@ -29,6 +29,7 @@
 #include "SettingsNetwork.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/module/ModuleManager.h"
 #include "ui/thread/ProxyConnectionTestTask.h"
 #include "ui_NetworkSettings.h"
 
@@ -86,8 +87,11 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
 
   ui_->forbidALLGnuPGNetworkConnectionCheckBox->setText(
       tr("Forbid all GnuPG network connection."));
-  ui_->prohibitUpdateCheck->setText(
-      tr("Prohibit checking for version updates when the program starts."));
+
+  if (Module::IsModuleActivate(kVersionCheckingModuleID)) {
+    ui_->prohibitUpdateCheck->setText(
+        tr("Prohibit checking for version updates when the program starts."));
+  }
   ui_->autoImportMissingKeyCheckBox->setText(
       tr("Automatically import a missing key for signature verification."));
   ui_->networkAbilityTipsLabel->setText(

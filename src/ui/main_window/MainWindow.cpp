@@ -33,11 +33,11 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/model/GpgPassphraseContext.h"
+#include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/main_window/GeneralMainWindow.h"
-#include "ui/struct/SettingsObject.h"
-#include "ui/struct/settings/KeyServerSO.h"
+#include "ui/struct/settings_object/KeyServerSO.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
 
@@ -131,8 +131,7 @@ void MainWindow::Init() noexcept {
     edit_->CurTextPage()->setFocus();
 
     Module::ListenRTPublishEvent(
-        this, "com.bktus.gpgfrontend.module.integrated.version-checking",
-        "version.loading_done",
+        this, kVersionCheckingModuleID, "version.loading_done",
         [=](Module::Namespace, Module::Key, int, std::any) {
           GF_UI_LOG_DEBUG(
               "versionchecking version.loading_done changed, calling slot "

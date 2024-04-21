@@ -31,9 +31,9 @@
 #include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
+#include "core/module/ModuleInit.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/LogUtils.h"
-#include "module/GpgFrontendModuleInit.h"
 #include "ui/GpgFrontendUIInit.h"
 
 // main

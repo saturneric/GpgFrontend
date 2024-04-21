@@ -28,8 +28,8 @@
 
 #include "GeneralDialog.h"
 
-#include "ui/struct/SettingsObject.h"
-#include "ui/struct/settings/WindowStateSO.h"
+#include "core/model/SettingsObject.h"
+#include "ui/struct/settings_object/WindowStateSO.h"
 
 namespace GpgFrontend {
 

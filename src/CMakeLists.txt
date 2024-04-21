@@ -61,7 +61,7 @@ if(GPGFRONTEND_QT5_BUILD)
 else()
     # Introduce Qt
     # Support Qt version: 6.x
-    find_package(Qt6 6 COMPONENTS Core Widgets PrintSupport Network Core5Compat LinguistTools REQUIRED)
+    find_package(Qt6 6 COMPONENTS Core Widgets PrintSupport Network LinguistTools REQUIRED)
 endif()
 
 
@@ -140,6 +140,7 @@ if (BASIC_ENV_CONFIG)
     configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
     configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h @ONLY)
     configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h @ONLY)
+    configure_file(${CMAKE_SOURCE_DIR}/src/module/sdk/GFSDKBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/module/sdk/GFSDKBuildInfo.h @ONLY)
     if (APPLE)
         configure_file(${CMAKE_SOURCE_DIR}/resource/plist/ExportOptions.plist.in ${CMAKE_BINARY_DIR}/ExportOptions.plist @ONLY)
     endif ()
@@ -365,14 +366,20 @@ if (BUILD_APPLICATION)
         elseif (LINUX AND NOT LINUX_INSTALL_SOFTWARE)
             add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
             add_custom_command(TARGET ${AppName} POST_BUILD
-                    COMMAND /bin/mkdir -p ./AppDir/usr/bin && /bin/mv -f ./${AppName} ./AppDir/usr/bin/
-                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                    COMMENT "Copying Binary into App Image")
+                COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin"
+                COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin/${AppName}"
+                COMMENT "Copying Binary into App Image"
+            )
             add_custom_command(TARGET ${AppName} POST_BUILD
-                    COMMAND /bin/mkdir -p ./AppDir/usr/lib
-                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                    COMMENT "Complement to build the required architecture")
-            # app bundle packing using xcode
+                COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/lib"
+                COMMENT "Complement to build the required architecture"
+            )
+            add_custom_command(TARGET ${AppName} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/lib/mods"
+                COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mods" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/lib/mods"
+                COMMENT "Copying Mods into App Image"
+            )
+        # app bundle packing using xcode
         elseif (APPLE AND XCODE_BUILD)
             # standard app bundle packing
             add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES})
@@ -453,7 +460,7 @@ endif ()
 
 # link options for GpgFrontend
 if (BUILD_APPLICATION)
-    target_link_libraries(${AppName} gpgfrontend_ui gpgfrontend_module gpgfrontend_test)
+    target_link_libraries(${AppName} gpgfrontend_ui gpgfrontend_test)
     if (MINGW)
         message(STATUS "Link Application Library For MINGW")
         target_link_libraries(${AppName} crypto)
@@ -535,11 +542,7 @@ if (LINUX AND LINUX_INSTALL_SOFTWARE)
         gpgfrontend_core
         gpgfrontend_ui
         gpgfrontend_test
-        gpgfrontend_pinentry
-        gpgfrontend_module_sdk
-        gpgfrontend_module
-        gpgfrontend_integrated_module_version_checking
-        gpgfrontend_integrated_module_gnupg_info_gathering)
+        gpgfrontend_pinentry)
 
     message(STATUS "GpgFrontend Install Libraries: ${GPGFRONTEND_INSTALL_LIBRARIES}")
     install(TARGETS ${AppName} ${GPGFRONTEND_INSTALL_LIBRARIES}

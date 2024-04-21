@@ -48,6 +48,7 @@ class Event;
 class Module;
 class GlobalModuleContext;
 class ModuleManager;
+class GlobalRegisterTable;
 
 using EventRefrernce = std::shared_ptr<Event>;
 using ModuleIdentifier = QString;
@@ -65,11 +66,23 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager
 
   virtual ~ModuleManager() override;
 
+  auto LoadModule(QString) -> void;
+
+  auto SearchModule(ModuleIdentifier) -> ModulePtr;
+
+  auto ListAllRegisteredModuleID() -> QList<ModuleIdentifier>;
+
   void RegisterModule(ModulePtr);
 
   auto IsModuleActivated(ModuleIdentifier) -> bool;
 
+  void ListenEvent(ModuleIdentifier, EventIdentifier);
+
   void TriggerEvent(EventRefrernce);
+
+  auto SearchEvent(EventTriggerIdentifier) -> std::optional<EventRefrernce>;
+
+  auto GetModuleListening(ModuleIdentifier) -> QList<EventIdentifier>;
 
   void ActiveModule(ModuleIdentifier);
 
@@ -84,6 +97,8 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager
   auto ListenRTPublish(QObject*, Namespace, Key, LPCallback) -> bool;
 
   auto ListRTChildKeys(const QString&, const QString&) -> std::vector<Key>;
+
+  auto GRT() -> GlobalRegisterTable*;
 
  private:
   class Impl;
@@ -118,7 +133,7 @@ void TriggerEvent(const EventIdentifier& event_id, Args&&... args,
  * @return true
  * @return false
  */
-auto GPGFRONTEND_CORE_EXPORT IsModuleAcivate(ModuleIdentifier) -> bool;
+auto GPGFRONTEND_CORE_EXPORT IsModuleActivate(ModuleIdentifier) -> bool;
 
 /**
  * @brief

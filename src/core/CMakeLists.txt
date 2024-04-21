@@ -129,7 +129,6 @@ if (MINGW)
     target_link_libraries(gpgfrontend_core PUBLIC wsock32)
 elseif (APPLE)
     message(STATUS "Link GPG Static Library For macOS")
-    target_link_libraries(gpgfrontend_core PUBLIC dl)
     if (XCODE_BUILD)
         set_target_properties(gpgfrontend_core
                 PROPERTIES

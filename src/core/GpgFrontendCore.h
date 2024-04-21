@@ -30,23 +30,3 @@
 
 // Qt
 #include <QtCore>
-
-// std
-#include <cstdint>
-#include <vector>
-
-// spdlog library configuration
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
-#include <spdlog/spdlog.h>
-
-// logger fmt
-#include "log/QtLoggerFmt.h"
-
-// gpgme library
-#include <gpgme.h>
-
-// logbal includes or macroes
-#include "GpgFrontend.h"
-
-// dll export macroes
-#include "GpgFrontendCoreExport.h"

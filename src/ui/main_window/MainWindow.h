@@ -430,7 +430,7 @@ class MainWindow : public GeneralMainWindow {
   QMenu* file_menu_{};        ///<  Submenu for file-operations
   QMenu* edit_menu_{};        ///<  Submenu for text-operations
   QMenu* crypt_menu_{};       ///<  Submenu for crypt-operations
-  QMenu* gpg_menu_{};         ///<  Submenu for help-operations
+  QMenu* advance_menu_{};     ///<  Submenu for help-operations
   QMenu* help_menu_{};        ///<  Submenu for help-operations
   QMenu* key_menu_{};         ///<  Submenu for key-operations
   QMenu* view_menu_{};        ///<  Submenu for view operations
@@ -473,6 +473,7 @@ class MainWindow : public GeneralMainWindow {
                                              ///<  breaks
 
   QAction* gnupg_controller_open_act_{};     ///<
+  QAction* module_controller_open_act_{};    ///<
   QAction* clean_gpg_password_cache_act_{};  ///<
   QAction* reload_components_act_{};         ///<
   QAction* restart_components_act_{};        ///<

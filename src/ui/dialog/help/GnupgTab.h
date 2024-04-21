@@ -50,6 +50,16 @@ class GnupgTab : public QWidget {
  private:
   std::shared_ptr<Ui_GnuPGInfo> ui_;  ///<
 
+  /**
+   * @brief
+   *
+   */
   void process_software_info();
+
+  /**
+   * @brief
+   *
+   */
+  void gather_gnupg_info();
 };
 }  // namespace GpgFrontend::UI

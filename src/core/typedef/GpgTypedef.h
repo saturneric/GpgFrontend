@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include <tuple>
+#include <gpgme.h>
 
 #include "core/model/DataObject.h"
 

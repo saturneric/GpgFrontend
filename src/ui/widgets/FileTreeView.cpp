@@ -54,6 +54,10 @@ FileTreeView::FileTreeView(QWidget* parent, const QString& target_path)
           &FileTreeView::slot_show_custom_context_menu);
   connect(this, &QTreeView::doubleClicked, this,
           &FileTreeView::slot_file_tree_view_item_double_clicked);
+  connect(dir_model_, &QFileSystemModel::layoutChanged, this,
+          &FileTreeView::slot_adjust_column_widths);
+  connect(dir_model_, &QFileSystemModel::dataChanged, this,
+          &FileTreeView::slot_adjust_column_widths);
 }
 
 void FileTreeView::selectionChanged(const QItemSelection& selected,
@@ -82,9 +86,7 @@ void FileTreeView::SlotGoPath(const QString& target_path) {
     GF_UI_LOG_DEBUG("file tree view set target path: {}", current_path_);
     this->setRootIndex(dir_model_->index(file_info.filePath()));
     dir_model_->setRootPath(file_info.filePath());
-    for (int i = 1; i < dir_model_->columnCount(); ++i) {
-      this->resizeColumnToContents(i);
-    }
+    slot_adjust_column_widths();
   } else {
     QMessageBox::critical(
         this, tr("Error"),
@@ -413,12 +415,21 @@ void FileTreeView::slot_compress_files() {}
 
 void FileTreeView::paintEvent(QPaintEvent* event) {
   QTreeView::paintEvent(event);
-  for (int i = 1; i < dir_model_->columnCount(); ++i) {
-    this->resizeColumnToContents(i);
+
+  if (!initial_resize_done_) {
+    slot_adjust_column_widths();
+    initial_resize_done_ = true;
   }
 }
 
 void FileTreeView::mousePressEvent(QMouseEvent* event) {
   QTreeView::mousePressEvent(event);
 }
+
+void FileTreeView::slot_adjust_column_widths() {
+  for (int i = 1; i < dir_model_->columnCount(); ++i) {
+    this->resizeColumnToContents(i);
+  }
+}
+
 }  // namespace GpgFrontend::UI

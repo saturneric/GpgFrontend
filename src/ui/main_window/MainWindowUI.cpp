@@ -30,8 +30,9 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/module/ModuleManager.h"
+#include "dialog/controller/ModuleControllerDialog.h"
 #include "ui/UserInterfaceUtils.h"
-#include "ui/dialog/gnupg/GnuPGControllerDialog.h"
+#include "ui/dialog/controller/GnuPGControllerDialog.h"
 #include "ui/dialog/help/AboutDialog.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
@@ -404,6 +405,12 @@ void MainWindow::create_actions() {
   connect(gnupg_controller_open_act_, &QAction::triggered, this,
           [this]() { (new GnuPGControllerDialog(this))->exec(); });
 
+  module_controller_open_act_ = new QAction(tr("Open Module Controller"), this);
+  module_controller_open_act_->setIcon(QIcon(":/icons/configure.png"));
+  module_controller_open_act_->setToolTip(tr("Open Module Controller Dialog"));
+  connect(module_controller_open_act_, &QAction::triggered, this,
+          [this]() { (new ModuleControllerDialog(this))->exec(); });
+
   /*
    * About Menu
    */
@@ -414,26 +421,27 @@ void MainWindow::create_actions() {
   connect(about_act_, &QAction::triggered, this,
           [=]() { new AboutDialog(0, this); });
 
-  gnupg_act_ = new QAction(tr("GnuPG"), this);
-  gnupg_act_->setIcon(QIcon(":/icons/help.png"));
-  gnupg_act_->setToolTip(tr("Information about Gnupg"));
-  connect(gnupg_act_, &QAction::triggered, this,
-          [=]() { new AboutDialog(1, this); });
+  if (Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
+    gnupg_act_ = new QAction(tr("GnuPG"), this);
+    gnupg_act_->setIcon(QIcon(":/icons/help.png"));
+    gnupg_act_->setToolTip(tr("Information about Gnupg"));
+    connect(gnupg_act_, &QAction::triggered, this,
+            [=]() { new AboutDialog(tr("GnuPG"), this); });
+  }
 
   translate_act_ = new QAction(tr("Translate"), this);
   translate_act_->setIcon(QIcon(":/icons/help.png"));
   translate_act_->setToolTip(tr("Information about translation"));
   connect(translate_act_, &QAction::triggered, this,
-          [=]() { new AboutDialog(2, this); });
+          [=]() { new AboutDialog(tr("Translators"), this); });
 
-  /*
-   * Check Update Menu
-   */
-  check_update_act_ = new QAction(tr("Check for Updates"), this);
-  check_update_act_->setIcon(QIcon(":/icons/help.png"));
-  check_update_act_->setToolTip(tr("Check for updates"));
-  connect(check_update_act_, &QAction::triggered, this,
-          [=]() { new AboutDialog(3, this); });
+  if (Module::IsModuleActivate(kVersionCheckingModuleID)) {
+    check_update_act_ = new QAction(tr("Check for Updates"), this);
+    check_update_act_->setIcon(QIcon(":/icons/help.png"));
+    check_update_act_->setToolTip(tr("Check for updates"));
+    connect(check_update_act_, &QAction::triggered, this,
+            [=]() { new AboutDialog(tr("Update"), this); });
+  }
 
   start_wizard_act_ = new QAction(tr("Open Wizard"), this);
   start_wizard_act_->setToolTip(tr("Open the wizard"));
@@ -587,13 +595,13 @@ void MainWindow::create_menus() {
   import_key_menu_->addAction(import_key_from_key_server_act_);
   key_menu_->addAction(open_key_management_act_);
 
-  gpg_menu_ = menuBar()->addMenu(tr("GnuPG"));
-  gpg_menu_->addAction(clean_gpg_password_cache_act_);
-  gpg_menu_->addSeparator();
-  gpg_menu_->addAction(reload_components_act_);
-  gpg_menu_->addAction(restart_components_act_);
-  gpg_menu_->addSeparator();
-  gpg_menu_->addAction(gnupg_controller_open_act_);
+  advance_menu_ = menuBar()->addMenu(tr("Advance"));
+  advance_menu_->addAction(clean_gpg_password_cache_act_);
+  advance_menu_->addAction(reload_components_act_);
+  advance_menu_->addAction(restart_components_act_);
+  advance_menu_->addSeparator();
+  advance_menu_->addAction(gnupg_controller_open_act_);
+  advance_menu_->addAction(module_controller_open_act_);
 
   steganography_menu_ = menuBar()->addMenu(tr("Steganography"));
   steganography_menu_->addAction(cut_pgp_header_act_);

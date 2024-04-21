@@ -219,6 +219,12 @@ class FileTreeView : public QTreeView {
    */
   void slot_create_popup_menu();
 
+  /**
+   * @brief
+   *
+   */
+  void slot_adjust_column_widths();
+
  private:
   QFileSystemModel* dir_model_;  ///<
   QString current_path_;         ///<
@@ -233,5 +239,7 @@ class FileTreeView : public QTreeView {
   QAction* action_create_empty_file_;
   QAction* action_make_directory_;
   QAction* action_compress_files_;
+
+  bool initial_resize_done_ = false;
 };
 }  // namespace GpgFrontend::UI

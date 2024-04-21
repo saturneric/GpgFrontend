@@ -139,14 +139,17 @@ void GpgFrontend::GpgAdvancedOperator::ResetConfigures(OperationCallback cb) {
 }
 
 void GpgFrontend::GpgAdvancedOperator::StartGpgAgent(OperationCallback cb) {
+  if (!Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
+    cb(-1, TransferParams());
+    return;
+  }
+
   const auto gpg_agent_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      "gnupg.gpg_agent_path", QString{});
+      kGnuPGInfoGatheringModuleID, "gnupg.gpg_agent_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg agent path from rt: {}", gpg_agent_path);
 
   const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      "gnupg.home_path", QString{});
+      kGnuPGInfoGatheringModuleID, "gnupg.home_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg home path from rt: {}", home_path);
 
   if (gpg_agent_path.isEmpty()) {
@@ -164,14 +167,17 @@ void GpgFrontend::GpgAdvancedOperator::StartGpgAgent(OperationCallback cb) {
 }
 
 void GpgFrontend::GpgAdvancedOperator::StartDirmngr(OperationCallback cb) {
+  if (!Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
+    cb(-1, TransferParams());
+    return;
+  }
+
   const auto dirmngr_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      "gnupg.dirmngr_path", QString{});
+      kGnuPGInfoGatheringModuleID, "gnupg.dirmngr_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg dirmngr path from rt: {}", dirmngr_path);
 
   const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      "gnupg.home_path", QString{});
+      kGnuPGInfoGatheringModuleID, "gnupg.home_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg home path from rt: {}", home_path);
 
   if (dirmngr_path.isEmpty()) {
@@ -189,14 +195,17 @@ void GpgFrontend::GpgAdvancedOperator::StartDirmngr(OperationCallback cb) {
 }
 
 void GpgFrontend::GpgAdvancedOperator::StartKeyBoxd(OperationCallback cb) {
+  if (!Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
+    cb(-1, TransferParams());
+    return;
+  }
+
   const auto keyboxd_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      "gnupg.keyboxd_path", QString{});
+      kGnuPGInfoGatheringModuleID, "gnupg.keyboxd_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg keyboxd path from rt: {}", keyboxd_path);
 
   const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      "gnupg.home_path", QString{});
+      kGnuPGInfoGatheringModuleID, "gnupg.home_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg home path from rt: {}", home_path);
 
   if (keyboxd_path.isEmpty()) {

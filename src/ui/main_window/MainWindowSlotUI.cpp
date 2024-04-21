@@ -29,12 +29,12 @@
 #include "MainWindow.h"
 #include "core/GpgConstants.h"
 #include "core/model/GpgPassphraseContext.h"
+#include "core/model/SettingsObject.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/Wizard.h"
 #include "ui/function/RaisePinentry.h"
 #include "ui/main_window/KeyMgmt.h"
-#include "ui/struct/SettingsObject.h"
-#include "ui/struct/settings/AppearanceSO.h"
+#include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {

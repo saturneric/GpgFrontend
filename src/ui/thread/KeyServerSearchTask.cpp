@@ -28,7 +28,7 @@
 
 #include "ui/thread/KeyServerSearchTask.h"
 
-#include "GpgFrontendBuildInfo.h"
+#include "core/utils/BuildInfoUtils.h"
 
 GpgFrontend::UI::KeyServerSearchTask::KeyServerSearchTask(QString keyserver_url,
                                                           QString search_string)
@@ -45,7 +45,8 @@ auto GpgFrontend::UI::KeyServerSearchTask::Run() -> int {
                          "&op=index&options=mr";
 
   auto request = QNetworkRequest(url_from_remote);
-  request.setHeader(QNetworkRequest::UserAgentHeader, HTTP_REQUEST_USER_AGENT);
+  request.setHeader(QNetworkRequest::UserAgentHeader,
+                    GetHttpRequestUserAgent());
 
   reply_ = manager_->get(request);
   connect(reply_, &QNetworkReply::finished, this,

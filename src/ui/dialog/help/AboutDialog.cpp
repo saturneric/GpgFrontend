@@ -30,32 +30,46 @@
 
 #include <openssl/opensslv.h>
 
-#include "GpgFrontendBuildInfo.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/BuildInfoUtils.h"
 #include "ui/dialog/help/GnupgTab.h"
 
 namespace GpgFrontend::UI {
 
-AboutDialog::AboutDialog(int defaultIndex, QWidget* parent)
+AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
     : GeneralDialog(typeid(AboutDialog).name(), parent) {
   this->setWindowTitle(tr("About") + " " + qApp->applicationName());
 
   auto* tab_widget = new QTabWidget;
   auto* info_tab = new InfoTab();
-  auto* gnupg_tab = new GnupgTab();
   auto* translators_tab = new TranslatorsTab();
-  update_tab_ = new UpdateTab();
 
   tab_widget->addTab(info_tab, tr("About GpgFrontend"));
-  tab_widget->addTab(gnupg_tab, tr("GnuPG"));
+
+  if (Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
+    auto* gnupg_tab = new GnupgTab();
+    tab_widget->addTab(gnupg_tab, tr("GnuPG"));
+  }
+
   tab_widget->addTab(translators_tab, tr("Translators"));
-  tab_widget->addTab(update_tab_, tr("Update"));
+
+  if (Module::IsModuleActivate(kVersionCheckingModuleID)) {
+    auto* update_tab = new UpdateTab();
+    tab_widget->addTab(update_tab, tr("Update"));
+  }
 
   connect(tab_widget, &QTabWidget::currentChanged, this,
           [&](int index) { GF_UI_LOG_DEBUG("current index: {}", index); });
 
-  if (defaultIndex < tab_widget->count() && defaultIndex >= 0) {
-    tab_widget->setCurrentIndex(defaultIndex);
+  int default_index = 0;
+  for (int i = 0; i < tab_widget->count(); i++) {
+    if (tab_widget->tabText(i) == default_tab_name) {
+      default_index = i;
+    }
+  }
+
+  if (default_index < tab_widget->count() && default_index >= 0) {
+    tab_widget->setCurrentIndex(default_index);
   }
 
   auto* button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
@@ -84,7 +98,7 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
   auto text =
       "<center><h2>" + qApp->applicationName() + "</h2></center>" +
       "<center><b>" + qApp->applicationVersion() + "</b></center>" +
-      "<center>" + GIT_VERSION + "</center>" + "<br><center>" +
+      "<center>" + GetProjectBuildGitVersion() + "</center>" + "<br><center>" +
       tr("GpgFrontend is an easy-to-use, compact, cross-platform, "
          "and installation-free GnuPG Frontend."
          "It visualizes most of the common operations of GnuPG."
@@ -99,7 +113,8 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
       "href=\"mailto:eric@bktus.com\">eric@bktus.com</a>." + "<br><br> " +
       tr("Built with Qt") + " " + qVersion() + ", " + OPENSSL_VERSION_TEXT +
       " " + tr("and") + " " + "GPGME" + " " + gpgme_version + "<br>" +
-      tr("Built at") + " " + BUILD_TIMESTAMP + "</center>";
+      tr("Built at") + " " + QLocale().toString(GetProjectBuildTimestamp()) +
+      "</center>";
 
   auto* layout = new QGridLayout();
   auto* pixmap_label = new QLabel();
@@ -140,8 +155,7 @@ TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
 UpdateTab::UpdateTab(QWidget* parent) : QWidget(parent) {
   auto* layout = new QGridLayout();
 
-  current_version_ =
-      QString("v") + VERSION_MAJOR + "." + VERSION_MINOR + "." + VERSION_PATCH;
+  current_version_ = GetProjectVersion();
 
   auto* tips_label = new QLabel();
   tips_label->setText(
@@ -189,17 +203,15 @@ void UpdateTab::showEvent(QShowEvent* event) {
   GF_UI_LOG_DEBUG("loading version loading info from rt");
 
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version-checking",
-      "version.loading_done", false);
+      kVersionCheckingModuleID, "version.loading_done", false);
 
   if (!is_loading_done) {
     Module::ListenRTPublishEvent(
-        this, "com.bktus.gpgfrontend.module.integrated.version-checking",
-        "version.loading_done",
+        this, kVersionCheckingModuleID, "version.loading_done",
         [=](Module::Namespace, Module::Key, int, std::any) {
           GF_UI_LOG_DEBUG(
-              "versionchecking version.loading_done changed, calling slot "
-              "version upgrade");
+              "version_checking module version.loading_done changed, calling "
+              "slot version upgrade");
           this->slot_show_version_status();
         });
     Module::TriggerEvent("CHECK_APPLICATION_VERSION");
@@ -213,29 +225,24 @@ void UpdateTab::slot_show_version_status() {
   this->pb_->setHidden(true);
 
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version-checking",
-      "version.loading_done", false);
+      kVersionCheckingModuleID, "version.loading_done", false);
 
   if (!is_loading_done) {
-    GF_UI_LOG_DEBUG("version info loading havn't been done yet.");
+    GF_UI_LOG_DEBUG("version info loading haven't been done yet.");
     return;
   }
 
   auto is_need_upgrade = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version-checking",
-      "version.need_upgrade", false);
+      kVersionCheckingModuleID, "version.need_upgrade", false);
 
   auto is_current_a_withdrawn_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version-checking",
-      "version.current_a_withdrawn_version", false);
+      kVersionCheckingModuleID, "version.current_a_withdrawn_version", false);
 
   auto is_current_version_released = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version-checking",
-      "version.current_version_released", false);
+      kVersionCheckingModuleID, "version.current_version_released", false);
 
   auto latest_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version-checking",
-      "version.latest_version", QString{});
+      kVersionCheckingModuleID, "version.latest_version", QString{});
 
   latest_version_label_->setText("<center><b>" +
                                  tr("Latest Version From Github") + ": " +

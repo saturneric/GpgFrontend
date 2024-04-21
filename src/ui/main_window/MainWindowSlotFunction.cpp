@@ -266,8 +266,7 @@ void MainWindow::slot_version_upgrade_nofity() {
   GF_UI_LOG_DEBUG(
       "slot version upgrade notify called, checking version info from rt...");
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version-checking",
-      "version.loading_done", false);
+      kVersionCheckingModuleID, "version.loading_done", false);
 
   GF_UI_LOG_DEBUG("checking version info from rt, is loading done state: {}",
                   is_loading_done);
@@ -277,20 +276,16 @@ void MainWindow::slot_version_upgrade_nofity() {
   }
 
   auto is_need_upgrade = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version-checking",
-      "version.need_upgrade", false);
+      kVersionCheckingModuleID, "version.need_upgrade", false);
 
   auto is_current_a_withdrawn_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version-checking",
-      "version.current_a_withdrawn_version", false);
+      kVersionCheckingModuleID, "version.current_a_withdrawn_version", false);
 
   auto is_current_version_released = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version-checking",
-      "version.current_version_released", false);
+      kVersionCheckingModuleID, "version.current_version_released", false);
 
   auto latest_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.version-checking",
-      "version.latest_version", QString{});
+      kVersionCheckingModuleID, "version.latest_version", QString{});
 
   GF_UI_LOG_DEBUG(
       "got version info from rt, need upgrade: {}, with drawn: {}, "
@@ -304,7 +299,7 @@ void MainWindow::slot_version_upgrade_nofity() {
         30000);
     auto* update_button = new QPushButton("Update GpgFrontend", this);
     connect(update_button, &QPushButton::clicked, [=]() {
-      auto* about_dialog = new AboutDialog(2, this);
+      auto* about_dialog = new AboutDialog(tr("Update"), this);
       about_dialog->show();
     });
     statusBar()->addPermanentWidget(update_button, 0);

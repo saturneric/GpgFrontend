@@ -28,9 +28,9 @@
 
 #include "GeneralMainWindow.h"
 
-#include "ui/struct/SettingsObject.h"
-#include "ui/struct/settings/AppearanceSO.h"
-#include "ui/struct/settings/WindowStateSO.h"
+#include "core/model/SettingsObject.h"
+#include "ui/struct/settings_object/AppearanceSO.h"
+#include "ui/struct/settings_object/WindowStateSO.h"
 
 namespace GpgFrontend::UI {
 

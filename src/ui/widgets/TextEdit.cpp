@@ -34,8 +34,8 @@
 
 #include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/model/CacheObject.h"
 #include "ui/UISignalStation.h"
-#include "ui/struct/CacheObject.h"
 
 namespace GpgFrontend::UI {
 

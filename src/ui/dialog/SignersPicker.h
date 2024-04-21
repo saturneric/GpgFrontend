@@ -56,13 +56,13 @@ class SignersPicker : public GeneralDialog {
    *
    * @return GpgFrontend::KeyIdArgsListPtr
    */
-  KeyIdArgsListPtr GetCheckedSigners();
+  auto GetCheckedSigners() -> KeyIdArgsListPtr;
 
   /**
    *
    * @return
    */
-  [[nodiscard]] bool GetStatus() const;
+  [[nodiscard]] auto GetStatus() const -> bool;
 
  private:
   KeyList* key_list_;  ///<
