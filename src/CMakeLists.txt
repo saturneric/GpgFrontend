@@ -160,7 +160,7 @@ if (BUILD_APPLICATION)
             # Refresh App Bundle
             file(REMOVE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.app)
         elseif (LINUX AND NOT LINUX_INSTALL_SOFTWARE)
-            file(REMOVE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gpgfrontend/usr/bin/${AppName})
+            file(REMOVE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin/${AppName})
         endif ()
     endif ()
 endif ()
@@ -366,15 +366,15 @@ if (BUILD_APPLICATION)
         elseif (LINUX AND NOT LINUX_INSTALL_SOFTWARE)
             add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
             add_custom_command(TARGET ${AppName} POST_BUILD
-                    COMMAND /bin/mkdir -p ./gpgfrontend/usr/bin && /bin/mv -f ./${AppName} ./gpgfrontend/usr/bin/
+                    COMMAND /bin/mkdir -p ./AppDir/usr/bin && /bin/mv -f ./${AppName} ./AppDir/usr/bin/
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                     COMMENT "Copying Binary into App Image")
             add_custom_command(TARGET ${AppName} POST_BUILD
-                    COMMAND /bin/mkdir -p ./gpgfrontend/usr/bin && /bin/mv -f ./mods ./gpgfrontend/usr/lib/
+                    COMMAND /bin/mkdir -p ./AppDir/usr/bin && /bin/mv -f ./mods ./AppDir/usr/lib/mods
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                     COMMENT "Copying Mods into App Image")
             add_custom_command(TARGET ${AppName} POST_BUILD
-                    COMMAND /bin/mkdir -p ./gpgfrontend/usr/lib
+                    COMMAND /bin/mkdir -p ./AppDir/usr/lib
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                     COMMENT "Complement to build the required architecture")
             # app bundle packing using xcode
