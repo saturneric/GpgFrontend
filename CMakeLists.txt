@@ -28,6 +28,7 @@ cmake_minimum_required(VERSION 3.16)
 message(STATUS "Current Generator: ${CMAKE_GENERATOR}")
 if(CMAKE_GENERATOR STREQUAL "Xcode")
     set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_SOURCE_DIR}/cmake/FlagsOverridesXcode.cmake")
+    set(XCODE_BUILD 1)
 else()
     set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_SOURCE_DIR}/cmake/FlagsOverrides.cmake")
 endif()
@@ -66,6 +67,8 @@ option(GPGFRONTEND_BUILD_TYPE_STABLE
         "Generate release version" ON)
 option(GPGFRONTEND_QT5_BUILD "Swith to Qt5 building mode" OFF)
 option(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE "Generate an installable version" OFF)
+option(GPGFRONTEND_BUILD_MODS_ONLY "Build Modules Only" OFF)
+
 option(GPGFRONTEND_XCODE_TEAM_ID "GpgFrontend Apple Team ID" "NONE")
 option(GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY "GpgFrontend Signing Certificate" "NONE")
 option(GPGFRONTEND_XOCDE_APPID "GpgFrontend Apple AppID" "NONE")
@@ -93,6 +96,10 @@ if (GPGFRONTEND_BUILD_TYPE_TEST_ALL)
     set(GPGFRONTEND_BUILD_CONFIG "test_all")
 endif ()
 
+# Specify compilation mode
+message(STATUS "Switch Build Configure STABLE_BUILD_APPLICATION")
+set(STABLE_BUILD_APPLICATION 1)
+
 # stable features
 if (GPGFRONTEND_BUILD_TYPE_STABLE)
 
@@ -116,6 +123,17 @@ if (GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE)
 
     set(LINUX_INSTALL_SOFTWARE 1)
 endif ()
+
+if (GPGFRONTEND_BUILD_MODS_ONLY)
+    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
+    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
+    set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
+    set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
+    unset(GPGFRONTEND_BUILD_CONFIG)
+
+    set(STABLE_BUILD_APPLICATION 0)
+    set(BUILD_MODS_ONLY 1)
+endif()
 
 # C++
 
@@ -179,7 +197,6 @@ endif()
 if (CMAKE_BUILD_TYPE STREQUAL "Release" AND APPLE)
     set(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE 0)
     set(LINUX_INSTALL_SOFTWARE 0)
-    set(XCODE_BUILD 1)
 
     set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
     set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
@@ -187,13 +204,8 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release" AND APPLE)
     set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
 
     unset(GPGFRONTEND_BUILD_CONFIG)
-    set(STABLE_BUILD_APPLICATION 1)
 endif ()
 
-
-# Specify compilation mode
-message(STATUS "Switch Build Configure STABLE_BUILD_APPLICATION")
-set(STABLE_BUILD_APPLICATION 1)
 set(AppName GpgFrontend)
 
 # Get Git Information
@@ -357,8 +369,11 @@ if (STABLE_BUILD_APPLICATION)
     set(BUILD_MODULE 1)
     set(BUILD_TEST 1)
     set(BUILD_APPLICATION 1)
-    set(BASIC_ENV_CONFIG 1)
     set(SUPPORT_MULTI_LANG 1)
+elseif (BUILD_MODS_ONLY)
+    message("[+] Build Mods")
+    set(BUILD_CORE 1)
+    set(BUILD_MODULE 1)
 endif ()
 
 # For instance in order to select the highest version one

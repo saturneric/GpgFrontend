@@ -73,20 +73,29 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC_OPTIONS "--compress;9")
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${CMAKE_SOURCE_DIR}/ui)
 
+# Set Build Information
+configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/src/module/sdk/GFSDKBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/module/sdk/GFSDKBuildInfo.h @ONLY)
+if (APPLE)
+    configure_file(${CMAKE_SOURCE_DIR}/resource/plist/ExportOptions.plist.in ${CMAKE_BINARY_DIR}/ExportOptions.plist @ONLY)
+endif ()
+
+# Set Runtime Output Directory
+if (NOT XCODE_BUILD)
+    # Set Binary Output Path
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts)
+else ()
+    # Set Binary Output Path
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+endif ()
 
 # configure for output path and resources
 if (BUILD_APPLICATION)
     aux_source_directory(. BASE_SOURCE)
     set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_SOURCE_DIR}/gpgfrontend.rc")
     set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE_DIR}/gpgfrontend.ico)
-
-    if (NOT XCODE_BUILD)
-        # Set Binary Output Path
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts)
-    else ()
-        # Set Binary Output Path
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
-    endif ()
 endif ()
 
 if (BUILD_CORE)
@@ -132,17 +141,6 @@ if (BUILD_APPLICATION)
         endif ()
     else ()
         set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-    endif ()
-endif ()
-
-if (BASIC_ENV_CONFIG)
-    # Set Build Information
-    configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
-    configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h @ONLY)
-    configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h @ONLY)
-    configure_file(${CMAKE_SOURCE_DIR}/src/module/sdk/GFSDKBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/module/sdk/GFSDKBuildInfo.h @ONLY)
-    if (APPLE)
-        configure_file(${CMAKE_SOURCE_DIR}/resource/plist/ExportOptions.plist.in ${CMAKE_BINARY_DIR}/ExportOptions.plist @ONLY)
     endif ()
 endif ()
 
@@ -356,7 +354,7 @@ if (BUILD_APPLICATION)
                 COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mods" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/lib/mods"
                 COMMENT "Copying Mods into App Image"
             )
-            
+
         # app bundle packing using xcode
         elseif (APPLE AND XCODE_BUILD)
             # standard app bundle packing

@@ -175,6 +175,13 @@ jobs:
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
         if: matrix.os == 'ubuntu-20.04'
 
+      - name: Build Integrated Modules (macOS)
+        # Build your GpgFrontend with the given configuration
+        run: |
+          cmake -B ${{github.workspace}}/build-mods -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_MODS_ONLY=On
+          cmake --build ${{github.workspace}}/build-mods --config {{$env.BUILD_TYPE}} -- -v
+        if: matrix.os == 'macos-11' || matrix.os == 'macos-12'
+
       - name: Build & Export GpgFrontend (macOS)
         # Build your GpgFrontend with the given configuration
         run: |
@@ -193,6 +200,11 @@ jobs:
           xcodebuild -exportArchive -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
             -exportOptionsPlist ${{github.workspace}}/build/ExportOptions.plist \
             -exportPath ${{github.workspace}}/build/package/
+        if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
+
+      - name: Copy Modules into Bundle (macOS)
+        run: |
+          cmake -E copy_directory ${GITHUB_WORKSPACE}/build-mods/artifacts/mods ${GITHUB_WORKSPACE}/build/package/GpgFrontend.app/Contents/PlugIns/mods
         if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Package & Sign App Bundle (macOS)
