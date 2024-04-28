@@ -66,7 +66,6 @@ option(GPGFRONTEND_BUILD_TYPE_STABLE
         "Generate release version" ON)
 option(GPGFRONTEND_QT5_BUILD "Swith to Qt5 building mode" OFF)
 option(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE "Generate an installable version" OFF)
-option(GPGFRONTEND_CONFIGURE_FOR_XCODE_BUILD "Generate a version that can be successfully compiled and packaged in Xcode" OFF)
 option(GPGFRONTEND_XCODE_TEAM_ID "GpgFrontend Apple Team ID" "NONE")
 option(GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY "GpgFrontend Signing Certificate" "NONE")
 option(GPGFRONTEND_XOCDE_APPID "GpgFrontend Apple AppID" "NONE")
@@ -116,21 +115,6 @@ if (GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE)
     unset(GPGFRONTEND_BUILD_CONFIG)
 
     set(LINUX_INSTALL_SOFTWARE 1)
-endif ()
-
-# xcode archive build
-if (GPGFRONTEND_CONFIGURE_FOR_XCODE_BUILD)
-    set(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE 0)
-    set(LINUX_INSTALL_SOFTWARE 0)
-    set(XCODE_BUILD 1)
-
-    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
-    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
-    set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
-    set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
-
-    unset(GPGFRONTEND_BUILD_CONFIG)
-    set(STABLE_BUILD_APPLICATION 1)
 endif ()
 
 # C++
@@ -190,6 +174,21 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
 else()
     add_compile_definitions(DEBUG)
 endif()
+
+# use xcode archive build at macos release at default
+if (CMAKE_BUILD_TYPE STREQUAL "Release" AND APPLE)
+    set(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE 0)
+    set(LINUX_INSTALL_SOFTWARE 0)
+    set(XCODE_BUILD 1)
+
+    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
+    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
+    set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
+    set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
+
+    unset(GPGFRONTEND_BUILD_CONFIG)
+    set(STABLE_BUILD_APPLICATION 1)
+endif ()
 
 
 # Specify compilation mode

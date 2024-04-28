@@ -147,18 +147,11 @@ if (BASIC_ENV_CONFIG)
 endif ()
 
 if (BUILD_APPLICATION)
-    # Copy Resource Files
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/css DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    file(COPY ${CMAKE_SOURCE_DIR}/resource/lfs/icons DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-    file(COPY ${CMAKE_SOURCE_DIR}/TRANSLATORS DESTINATION ${RESOURCE_OUTPUT_DIRECTORY} FOLLOW_SYMLINK_CHAIN)
-endif ()
-
-if (BUILD_APPLICATION)
     if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
         if (APPLE)
-            file(COPY ${CMAKE_SOURCE_DIR}/gpgfrontend.icns DESTINATION ${RESOURCE_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-            # Refresh App Bundle
-            file(REMOVE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.app)
+            set(GPGFRONTEND_MACOS_ICON ${CMAKE_SOURCE_DIR}/gpgfrontend.icns)
+            set_source_files_properties(${GPGFRONTEND_MACOS_ICON} PROPERTIES 
+                MACOSX_PACKAGE_LOCATION "Resources")
         elseif (LINUX AND NOT LINUX_INSTALL_SOFTWARE)
             file(REMOVE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin/${AppName})
         endif ()
@@ -344,25 +337,6 @@ if (BUILD_APPLICATION)
                 add_custom_command(TARGET ${AppName} POST_BUILD
                         COMMAND windeployqt-qt6.exe --force ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.exe)
             endif()
-        elseif (APPLE AND NOT XCODE_BUILD)
-            # custom app bundle packing
-            add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES})
-            set_target_properties(${AppName} PROPERTIES
-                    BUNDLE True
-                    MACOSX_BUNDLE_GUI_IDENTIFIER com.bktus.gpgfrontend
-                    MACOSX_BUNDLE_BUNDLE_NAME ${AppName}
-                    MACOSX_BUNDLE_LONG_VERSION_STRING ${BUILD_VERSION}
-                    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
-                    MACOSX_BUNDLE_BUNDLE_VERSION ${BUILD_VERSION}
-                    MACOSX_BUNDLE_ICON_FILE "gpgfrontend.icns")
-            add_custom_command(TARGET ${AppName} POST_BUILD
-                    COMMAND /bin/rm -rf ./${AppName}.app/Contents/Resources
-                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                    COMMENT "Deleting Resources in App Bundle")
-            add_custom_command(TARGET ${AppName} POST_BUILD
-                    COMMAND /bin/mv -n ./Resources ./${AppName}.app/Contents/
-                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                    COMMENT "Copying Resources into App Bundle Resource")
         elseif (LINUX AND NOT LINUX_INSTALL_SOFTWARE)
             add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
             add_custom_command(TARGET ${AppName} POST_BUILD
@@ -382,7 +356,8 @@ if (BUILD_APPLICATION)
         # app bundle packing using xcode
         elseif (APPLE AND XCODE_BUILD)
             # standard app bundle packing
-            add_executable(${AppName} MACOSX_BUNDLE ${ICON_RESOURCE} ${BASE_SOURCE} ${RESOURCE_FILES})
+            add_executable(${AppName} MACOSX_BUNDLE ${GPGFRONTEND_MACOS_ICON} ${BASE_SOURCE} ${RESOURCE_FILES})
+
             set_target_properties(${AppName} PROPERTIES
                     BUNDLE True
                     MACOSX_BUNDLE_GUI_IDENTIFIER com.bktus.gpgfrontend
@@ -393,20 +368,20 @@ if (BUILD_APPLICATION)
                     MACOSX_BUNDLE_COPYRIGHT "GPL-3.0"
                     MACOSX_BUNDLE_INFO_STRING "An OpenPGP Crypto Tool"
                     MACOSX_BUNDLE_ICON_FILE "gpgfrontend.icns"
-                    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/resource/plist/MacOSXBundleInfo.plist.in
-                    )
+                    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/resource/plist/MacOSXBundleInfo.plist.in)
+
+            find_program(MACDEPLOYQT_EXECUTABLE NAMES macdeployqt
+                PATHS /opt/homebrew/bin /usr/local/bin
+                NO_DEFAULT_PATH)
+
+            if(NOT MACDEPLOYQT_EXECUTABLE)
+                message(FATAL_ERROR "macdeployqt not found! Please install it.")
+            endif()
+
             add_custom_command(TARGET ${AppName} POST_BUILD
-                    COMMAND /bin/rm -rf ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.app/Contents/Resources
-                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                    COMMENT "Deleting Resources in App Bundle")
-            add_custom_command(TARGET ${AppName} POST_BUILD
-                    COMMAND /bin/cp -rf ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Resources ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${AppName}.app/Contents/
-                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                    COMMENT "Copying Resources into App Bundle Resource")
-            add_custom_command(TARGET ${AppName} POST_BUILD
-                    COMMAND macdeployqt ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${AppName}.app
-                    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                    COMMENT "Resolving Qt Dependency")
+                COMMAND ${MACDEPLOYQT_EXECUTABLE} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${AppName}.app"
+                WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+                COMMENT "Resolving Qt Dependency")
             
             # option for sandbox mode, still under test
             if(GPGFRONTEND_XOCDE_ENABLE_SANDBOX)
@@ -433,7 +408,7 @@ if (BUILD_APPLICATION)
                     XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}"
                     )
         else ()
-            add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
+            message(FATAL_ERROR "cannot find a defined method to release application.")
         endif ()
     else ()
         # if the status is debug
@@ -562,6 +537,3 @@ if (LINUX AND LINUX_INSTALL_SOFTWARE)
     install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/
             DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/icons/hicolor/)
 endif ()
-
-message(STATUS "Resource Files: ${RESOURCE_OUTPUT_DIRECTORY}")
-message(STATUS "Runtime Files: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")

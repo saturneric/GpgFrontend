@@ -45,6 +45,16 @@ else()
   target_link_libraries(gpgfrontend_pinentry PUBLIC Qt6::Widgets)
 endif()
 
+if (XCODE_BUILD)
+  set_target_properties(gpgfrontend_pinentry
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+    XCODE_ATTRIBUTE_SKIP_INSTALL "Yes"
+    XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
+endif ()
+
 # spdlog
 target_link_libraries(gpgfrontend_pinentry PRIVATE spdlog)
 
