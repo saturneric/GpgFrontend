@@ -206,7 +206,7 @@ jobs:
         run: |
           cmake -E copy_directory ${{github.workspace}}/build-mods/artifacts/mods ${{github.workspace}}/build/package/GpgFrontend.app/Contents/PlugIns/mods
           macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app -verbose=2 -appstore-compliant -always-overwrite
-          codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" -f --deep  ${{github.workspace}}/build/package/GpgFrontend.app
+          codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" -f --deep --options=runtime  ${{github.workspace}}/build/package/GpgFrontend.app
         if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Package & Sign App Bundle (macOS)
