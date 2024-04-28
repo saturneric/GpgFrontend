@@ -371,19 +371,6 @@ if (BUILD_APPLICATION)
                     MACOSX_BUNDLE_INFO_STRING "An OpenPGP Crypto Tool"
                     MACOSX_BUNDLE_ICON_FILE "gpgfrontend.icns"
                     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/resource/plist/MacOSXBundleInfo.plist.in)
-
-            find_program(MACDEPLOYQT_EXECUTABLE NAMES macdeployqt
-                PATHS /opt/homebrew/bin /usr/local/bin
-                NO_DEFAULT_PATH)
-
-            if(NOT MACDEPLOYQT_EXECUTABLE)
-                message(FATAL_ERROR "macdeployqt not found! Please install it.")
-            endif()
-
-            add_custom_command(TARGET ${AppName} POST_BUILD
-                COMMAND ${MACDEPLOYQT_EXECUTABLE} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${AppName}.app"
-                WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-                COMMENT "Resolving Qt Dependency")
             
             # option for sandbox mode, still under test
             if(GPGFRONTEND_XOCDE_ENABLE_SANDBOX)
@@ -394,8 +381,7 @@ if (BUILD_APPLICATION)
                     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
                     COMMENT "Copying Buddled GnuPG into App Bundle Resource")
                 set_target_properties(${AppName} PROPERTIES
-                    XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_SOURCE_DIR}/resource/entitlements/GpgFrontend.entitlements"
-                )
+                    XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_SOURCE_DIR}/resource/entitlements/GpgFrontend.entitlements")
             else()
                 message(STATUS "Build Application Without App Sandbox")
                 set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "No")
@@ -407,8 +393,7 @@ if (BUILD_APPLICATION)
                     XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--deep --entitlements ${CMAKE_SOURCE_DIR}/resource/plist/entitlement.plist"
                     XCODE_ATTRIBUTE_ENABLE_APP_SANDBOX "${CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX}"
                     XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "Yes"
-                    XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}"
-                    )
+                    XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
         else ()
             message(FATAL_ERROR "cannot find a defined method to release application.")
         endif ()

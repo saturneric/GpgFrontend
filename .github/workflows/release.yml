@@ -202,9 +202,11 @@ jobs:
             -exportPath ${{github.workspace}}/build/package/
         if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
-      - name: Copy Modules into Bundle (macOS)
+      - name: Copy Modules into Bundle & Deploy Qt & Code Sign (macOS)
         run: |
-          cmake -E copy_directory ${GITHUB_WORKSPACE}/build-mods/artifacts/mods ${GITHUB_WORKSPACE}/build/package/GpgFrontend.app/Contents/PlugIns/mods
+          cmake -E copy_directory ${{github.workspace}}/build-mods/artifacts/mods ${{github.workspace}}/build/package/GpgFrontend.app/Contents/PlugIns/mods
+          macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app -verbose=2 -appstore-compliant -always-overwrite
+          codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" -f --deep GpgFrontend.app
         if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Package & Sign App Bundle (macOS)
