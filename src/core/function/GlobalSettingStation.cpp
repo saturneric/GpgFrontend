@@ -69,6 +69,7 @@ class GlobalSettingStation::Impl {
 
     if (!QDir(app_data_path_).exists()) QDir(app_data_path_).mkpath(".");
     if (!QDir(app_log_path_).exists()) QDir(app_log_path_).mkpath(".");
+    if (!QDir(GetModulesDir()).exists()) QDir(GetModulesDir()).mkpath(".");
   }
 
   [[nodiscard]] auto GetSettings() -> QSettings {
@@ -124,6 +125,15 @@ class GlobalSettingStation::Impl {
    */
   [[nodiscard]] auto GetLogDir() const -> QString { return app_log_path_; }
 
+  /**
+   * @brief Get the Modules Dir object
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto GetModulesDir() const -> QString {
+    return GetAppDataPath() + "/mods";
+  }
+
  private:
   QString working_path_ = QDir::currentPath();
 
@@ -172,6 +182,10 @@ auto GlobalSettingStation::GetAppDataPath() const -> QString {
 
 [[nodiscard]] auto GlobalSettingStation::GetLogDir() const -> QString {
   return p_->GetLogDir();
+}
+
+[[nodiscard]] auto GlobalSettingStation::GetModulesDir() const -> QString {
+  return p_->GetModulesDir();
 }
 
 auto GlobalSettingStation::GetLogFilesSize() const -> QString {

@@ -31,41 +31,69 @@
 #include <QCoreApplication>
 #include <QDir>
 
+#include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 
 namespace GpgFrontend::Module {
 
+void LoadModuleFromPath(const QString& mods_path) {
+  for (const auto& module_library_name :
+       QDir(mods_path).entryList(QStringList() << "*.so"
+                                               << "*.dll"
+                                               << "*.dylib",
+                                 QDir::Files)) {
+    ModuleManager::GetInstance().LoadModule(mods_path + "/" +
+                                            module_library_name);
+  }
+}
+
+auto LoadIntegratedMods() -> bool {
+  auto exec_binary_path = QCoreApplication::applicationDirPath();
+  auto mods_path = exec_binary_path + "/mods";
+  if (!qEnvironmentVariable("APPIMAGE").isEmpty()) {
+    mods_path = qEnvironmentVariable("APPDIR") + "/usr/lib/mods";
+  }
+
+  GF_CORE_LOG_DEBUG("try loading integrated modules at path: {} ...",
+                    mods_path);
+  if (!QDir(mods_path).exists()) {
+    GF_CORE_LOG_WARN(
+        "integrated module directory at path {} not found, abort...",
+        mods_path);
+    return false;
+  }
+
+  LoadModuleFromPath(mods_path);
+
+  GF_CORE_LOG_DEBUG("load integrated modules done.");
+  return true;
+}
+
+auto LoadExternalMods() -> bool {
+  auto mods_path =
+      GpgFrontend::GlobalSettingStation::GetInstance().GetModulesDir();
+
+  GF_CORE_LOG_DEBUG("try loading external modules at path: {} ...", mods_path);
+  if (!QDir(mods_path).exists()) {
+    GF_CORE_LOG_WARN("external module directory at path {} not found, abort...",
+                     mods_path);
+    return false;
+  }
+
+  LoadModuleFromPath(mods_path);
+
+  GF_CORE_LOG_DEBUG("load integrated modules done.");
+  return true;
+}
+
 void LoadGpgFrontendModules(ModuleInitArgs) {
   // must init at default thread before core
   Thread::TaskRunnerGetter::GetInstance().GetTaskRunner()->PostTask(
       new Thread::Task(
           [](const DataObjectPtr&) -> int {
-            auto exec_binary_path = QCoreApplication::applicationDirPath();
-            auto mods_path = exec_binary_path + "/mods";
-            if (!qEnvironmentVariable("APPIMAGE").isEmpty()) {
-              mods_path = qEnvironmentVariable("APPDIR") + "/usr/lib/mods";
-            }
-
-            GF_CORE_LOG_DEBUG("try loading modules at path: {} ...", mods_path);
-            if (!QDir(mods_path).exists()) {
-              GF_CORE_LOG_WARN(
-                  "module directory at path {} not found, abort...", mods_path);
-              return -1;
-            }
-
-            for (const auto& module_library_name :
-                 QDir(mods_path).entryList(QStringList() << "*.so"
-                                                         << "*.dll"
-                                                         << "*.dylib",
-                                           QDir::Files)) {
-              ModuleManager::GetInstance().LoadModule(mods_path + "/" +
-                                                      module_library_name);
-            }
-
-            GF_CORE_LOG_DEBUG("load modules done.");
-            return 0;
+            return LoadIntegratedMods() && LoadExternalMods() ? 0 : -1;
           },
           "modules_system_init_task"));
 }
