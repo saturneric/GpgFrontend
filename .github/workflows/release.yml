@@ -214,7 +214,7 @@ jobs:
         run: |
           xcrun notarytool submit \
           --apple-id ${{secrets.APPLE_DEVELOPER_ID}} \
-          --team-id ${{secrets.APPLE_DEVELOPER_TEAM_ID}}
+          --team-id ${{secrets.APPLE_DEVELOPER_TEAM_ID}} \
           --password ${{secrets.APPLE_DEVELOPER_ID_SECRET}} \
           ${{github.workspace}}/build/GpgFrontend-${{env.sha_short}}-x86_64.zip
         if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
