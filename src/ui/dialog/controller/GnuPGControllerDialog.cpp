@@ -185,9 +185,6 @@ void GnuPGControllerDialog::SlotAccept() {
 
 void GnuPGControllerDialog::slot_update_custom_key_database_path_label(
     int state) {
-  // announce the restart
-  this->slot_set_restart_needed(kDeepRestartCode);
-
   // hide label (not necessary to show the default path)
   this->ui_->currentKeyDatabasePathLabel->setHidden(state !=
                                                     Qt::CheckState::Checked);
@@ -225,9 +222,6 @@ void GnuPGControllerDialog::slot_update_custom_key_database_path_label(
 
 void GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label(
     int state) {
-  // announce the restart
-  this->slot_set_restart_needed(kDeepRestartCode);
-
   // hide label (not necessary to show the default path)
   this->ui_->currentCustomGnuPGInstallPathLabel->setHidden(
       state != Qt::CheckState::Checked);
@@ -310,13 +304,13 @@ void GnuPGControllerDialog::set_settings() {
     ui_->restartGpgAgentOnStartCheckBox->setCheckState(Qt::Checked);
   }
 
-  this->slot_set_restart_needed(false);
-
   this->slot_update_custom_key_database_path_label(
       use_custom_key_database_path ? Qt::Checked : Qt::Unchecked);
 
   this->slot_update_custom_gnupg_install_path_label(
       use_custom_gnupg_install_path ? Qt::Checked : Qt::Unchecked);
+
+  this->slot_set_restart_needed(kNonRestartCode);
 }
 
 void GnuPGControllerDialog::apply_settings() {
@@ -341,11 +335,12 @@ void GnuPGControllerDialog::apply_settings() {
                     ui_->restartGpgAgentOnStartCheckBox->isChecked());
 }
 
-int GnuPGControllerDialog::get_restart_needed() const {
+auto GnuPGControllerDialog::get_restart_needed() const -> int {
   return this->restart_needed_;
 }
 
 void GnuPGControllerDialog::slot_set_restart_needed(int mode) {
+  GF_UI_LOG_INFO("announce restart needed, mode: {}", mode);
   this->restart_needed_ = mode;
 }
 

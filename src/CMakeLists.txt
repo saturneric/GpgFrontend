@@ -339,20 +339,24 @@ if (BUILD_APPLICATION)
             endif()
         elseif (LINUX AND NOT LINUX_INSTALL_SOFTWARE)
             add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
+
             add_custom_command(TARGET ${AppName} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin"
                 COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin/${AppName}"
                 COMMENT "Copying Binary into App Image"
             )
+
             add_custom_command(TARGET ${AppName} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/lib"
                 COMMENT "Complement to build the required architecture"
             )
+
             add_custom_command(TARGET ${AppName} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/lib/mods"
                 COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mods" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/lib/mods"
                 COMMENT "Copying Mods into App Image"
             )
+            
         # app bundle packing using xcode
         elseif (APPLE AND XCODE_BUILD)
             # standard app bundle packing
