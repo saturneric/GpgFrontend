@@ -53,8 +53,10 @@ auto LoadIntegratedMods() -> bool {
   auto exec_binary_path = QCoreApplication::applicationDirPath();
 
 #if defined(MACOS) && defined(RELEASE)
-  auto mods_path = exec_binary_path + "../PlugIns/mods";
+  // App Bundle
+  auto mods_path = exec_binary_path + "/../PlugIns/mods";
 #else
+  // Debug Or Windows Platform
   auto mods_path = exec_binary_path + "/mods";
 #endif
 
