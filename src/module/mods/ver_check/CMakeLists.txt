@@ -51,6 +51,11 @@ if (XCODE_BUILD)
     XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
 endif ()
 
+if (LINUX AND LINUX_INSTALL_SOFTWARE)
+  install(TARGETS mod_ver_check 
+    LIBRARY DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/mods/")
+endif()
+
 # link sdk
 target_link_libraries(mod_ver_check PRIVATE
   gpgfrontend_module_sdk)
