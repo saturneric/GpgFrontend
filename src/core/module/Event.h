@@ -40,7 +40,7 @@ namespace GpgFrontend::Module {
 
 class Event;
 
-using EventRefrernce = std::shared_ptr<Event>;
+using EventReference = std::shared_ptr<Event>;
 using EventIdentifier = QString;
 using EventTriggerIdentifier = QString;
 using Evnets = std::vector<Event>;
@@ -92,7 +92,7 @@ class GPGFRONTEND_CORE_EXPORT Event {
 
 template <typename... Args>
 auto MakeEvent(const EventIdentifier& event_id, Args&&... args,
-               Event::EventCallback e_cb) -> EventRefrernce {
+               Event::EventCallback e_cb) -> EventReference {
   std::initializer_list<Event::ParameterInitializer> params = {
       Event::ParameterInitializer{std::forward<Args>(args)}...};
   return GpgFrontend::SecureCreateSharedObject<Event>(event_id, params, e_cb);

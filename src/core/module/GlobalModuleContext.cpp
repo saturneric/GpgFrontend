@@ -226,7 +226,7 @@ class GlobalModuleContext::Impl {
     return !module_info->activate;
   }
 
-  auto TriggerEvent(const EventRefrernce& event) -> bool {
+  auto TriggerEvent(const EventReference& event) -> bool {
     auto event_id = event->GetIdentifier();
     GF_CORE_LOG_DEBUG("attempting to trigger event: {}", event_id);
 
@@ -309,7 +309,7 @@ class GlobalModuleContext::Impl {
   }
 
   auto SearchEvent(const EventTriggerIdentifier& trigger_id)
-      -> std::optional<EventRefrernce> {
+      -> std::optional<EventReference> {
     if (module_on_triggering_events_table_.find(trigger_id) !=
         module_on_triggering_events_table_.end()) {
       return module_on_triggering_events_table_[trigger_id];
@@ -359,7 +359,7 @@ class GlobalModuleContext::Impl {
       module_register_table_;
   std::map<EventIdentifier, std::unordered_set<ModuleIdentifier>>
       module_events_table_;
-  std::map<EventTriggerIdentifier, EventRefrernce>
+  std::map<EventTriggerIdentifier, EventReference>
       module_on_triggering_events_table_;
 
   std::set<int> acquired_channel_;
@@ -436,12 +436,12 @@ auto GlobalModuleContext::DeactivateModule(ModuleIdentifier module_id) -> bool {
   return p_->DeactivateModule(std::move(module_id));
 }
 
-auto GlobalModuleContext::TriggerEvent(EventRefrernce event) -> bool {
+auto GlobalModuleContext::TriggerEvent(EventReference event) -> bool {
   return p_->TriggerEvent(event);
 }
 
 auto GlobalModuleContext::SearchEvent(EventTriggerIdentifier trigger_id)
-    -> std::optional<EventRefrernce> {
+    -> std::optional<EventReference> {
   return p_->SearchEvent(trigger_id);
 }
 

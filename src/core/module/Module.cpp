@@ -152,7 +152,7 @@ class Module::Impl {
     return -1;
   }
 
-  auto Exec(const EventRefrernce& event) -> int {
+  auto Exec(const EventReference& event) -> int {
     if (good_ && execute_api_ != nullptr) {
       return execute_api_(event->ToModuleEvent());
     }
@@ -282,7 +282,7 @@ auto Module::Register() -> int { return p_->Register(); }
 
 auto Module::Active() -> int { return p_->Active(); }
 
-auto Module::Exec(EventRefrernce event) -> int {
+auto Module::Exec(EventReference event) -> int {
   return p_->Exec(std::move(event));
 }
 

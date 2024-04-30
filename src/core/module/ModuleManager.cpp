@@ -31,7 +31,6 @@
 #include <memory>
 #include <utility>
 
-#include "GpgConstants.h"
 #include "core/function/SecureMemoryAllocator.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/SettingsObject.h"
@@ -86,29 +85,23 @@ class ModuleManager::Impl {
               SettingsObject so(QString("module.%1.so").arg(module_id));
               ModuleSO module_so(so);
 
-              // if user has set auto active enable
-              if ((module_so.module_id == module_id &&
-                   module_so.module_hash == module_hash &&
-                   module_so.auto_activate) ||
-                  // integrated modules activate by default
-                  ((module_so.module_id.isEmpty() ||
-                    module_so.module_hash.isEmpty()) &&
-                   integrated_module)) {
+              // reset module settings if necessary
+              if (module_so.module_id != module_id ||
+                  module_so.module_hash != module_hash) {
+                module_so.module_id = module_id;
+                module_so.module_hash = module_hash;
+                // auto active integrated module by default
+                module_so.auto_activate = integrated_module;
+                module_so.set_by_user = false;
+
+                so.Store(module_so.ToJson());
+              }
+
+              // if this module need auto active
+              if (module_so.auto_activate) {
                 if (!gmc_->ActiveModule(module_id)) {
                   return -1;
                 }
-              }
-
-              // reset module settings after change
-              if ((module_so.module_id.isEmpty() ||
-                   module_so.module_id != module_id) ||
-                  (module_so.module_hash.isEmpty() ||
-                   module_so.module_hash != module_hash)) {
-                module_so.module_id = module_id;
-                module_so.module_hash = module_hash;
-                module_so.auto_activate = integrated_module;
-
-                so.Store(module_so.ToJson());
               }
 
               return 0;
@@ -147,7 +140,7 @@ class ModuleManager::Impl {
             __func__, nullptr));
   }
 
-  void TriggerEvent(const EventRefrernce& event) {
+  void TriggerEvent(const EventReference& event) {
     Thread::TaskRunnerGetter::GetInstance()
         .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
         ->PostTask(new Thread::Task(
@@ -159,7 +152,7 @@ class ModuleManager::Impl {
   }
 
   auto SearchEvent(EventTriggerIdentifier trigger_id)
-      -> std::optional<EventRefrernce> {
+      -> std::optional<EventReference> {
     return gmc_->SearchEvent(std::move(trigger_id));
   }
 
@@ -277,12 +270,12 @@ auto ModuleManager::GetModuleListening(ModuleIdentifier module_id)
   return p_->GetModuleListening(module_id);
 }
 
-void ModuleManager::TriggerEvent(EventRefrernce event) {
+void ModuleManager::TriggerEvent(EventReference event) {
   return p_->TriggerEvent(event);
 }
 
 auto ModuleManager::SearchEvent(EventTriggerIdentifier trigger_id)
-    -> std::optional<EventRefrernce> {
+    -> std::optional<EventReference> {
   return p_->SearchEvent(std::move(trigger_id));
 }
 

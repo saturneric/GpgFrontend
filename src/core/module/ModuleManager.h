@@ -50,7 +50,7 @@ class GlobalModuleContext;
 class ModuleManager;
 class GlobalRegisterTable;
 
-using EventRefrernce = std::shared_ptr<Event>;
+using EventReference = std::shared_ptr<Event>;
 using ModuleIdentifier = QString;
 using ModulePtr = std::shared_ptr<Module>;
 using ModuleMangerPtr = std::shared_ptr<ModuleManager>;
@@ -80,9 +80,9 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager
 
   void ListenEvent(ModuleIdentifier, EventIdentifier);
 
-  void TriggerEvent(EventRefrernce);
+  void TriggerEvent(EventReference);
 
-  auto SearchEvent(EventTriggerIdentifier) -> std::optional<EventRefrernce>;
+  auto SearchEvent(EventTriggerIdentifier) -> std::optional<EventReference>;
 
   auto GetModuleListening(ModuleIdentifier) -> QList<EventIdentifier>;
 

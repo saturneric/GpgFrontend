@@ -35,6 +35,7 @@ struct ModuleSO {
   QString module_version;
   QString module_hash;
   bool auto_activate;
+  bool set_by_user;
 
   ModuleSO() = default;
 
@@ -54,6 +55,10 @@ struct ModuleSO {
     if (const auto v = j["auto_activate"]; v.isBool()) {
       auto_activate = v.toBool();
     }
+
+    if (const auto v = j["set_by_user"]; v.isBool()) {
+      set_by_user = v.toBool();
+    }
   }
 
   [[nodiscard]] auto ToJson() const -> QJsonObject {
@@ -62,6 +67,7 @@ struct ModuleSO {
     j["module_version"] = module_version;
     j["module_hash"] = module_hash;
     j["auto_activate"] = auto_activate;
+    j["set_by_user"] = set_by_user;
     return j;
   }
 };
