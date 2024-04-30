@@ -70,7 +70,7 @@ class GPGFRONTEND_CORE_EXPORT GlobalModuleContext : public QObject {
 
   auto GetGlobalTaskRunner() -> std::optional<TaskRunnerPtr>;
 
-  auto RegisterModule(ModulePtr) -> bool;
+  auto RegisterModule(ModulePtr, bool) -> bool;
 
   auto ActiveModule(ModuleIdentifier) -> bool;
 
@@ -85,6 +85,8 @@ class GPGFRONTEND_CORE_EXPORT GlobalModuleContext : public QObject {
   auto GetModuleListening(ModuleIdentifier) -> QList<EventIdentifier>;
 
   auto IsModuleActivated(ModuleIdentifier) -> bool;
+
+  auto IsIntegratedModule(ModuleIdentifier) -> bool;
 
   auto ListAllRegisteredModuleID() -> QList<ModuleIdentifier>;
 

@@ -28,6 +28,7 @@
 
 #include "ModuleControllerDialog.h"
 
+#include "core/function/GlobalSettingStation.h"
 #include "core/model/SettingsObject.h"
 #include "core/struct/settings_object/ModuleSO.h"
 #include "ui_ModuleControllerDialog.h"
@@ -43,6 +44,7 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
       ui_(std::make_shared<Ui_ModuleControllerDialog>()),
       module_manager_(&Module::ModuleManager::GetInstance()) {
   ui_->setupUi(this);
+  ui_->actionsGroupBox->hide();
 
   connect(ui_->moduleListView, &ModuleListView::SignalSelectModule, this,
           &ModuleControllerDialog::slot_load_module_details);
@@ -77,6 +79,11 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
         QInputDialog::getText(this, "Please provide an Event ID", "Event ID");
     Module::TriggerEvent(event_id);
   });
+
+  connect(ui_->showModsDirButton, &QPushButton::clicked, this, [=]() {
+    QDesktopServices::openUrl(QUrl::fromLocalFile(
+        GlobalSettingStation::GetInstance().GetModulesDir()));
+  });
 }
 
 void ModuleControllerDialog::slot_load_module_details(
@@ -85,6 +92,13 @@ void ModuleControllerDialog::slot_load_module_details(
   auto module = module_manager_->SearchModule(module_id);
   SettingsObject so(QString("module.%1.so").arg(module_id));
   ModuleSO module_so(so);
+
+  if (module_id.isEmpty() || module == nullptr) {
+    ui_->actionsGroupBox->hide();
+    return;
+  }
+
+  ui_->actionsGroupBox->show();
 
   if (module_so.module_id != module_id ||
       module_so.module_hash != module->GetModuleHash()) {

@@ -62,6 +62,13 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QPushButton" name="showModsDirButton">
+             <property name="text">
+              <string>Show Mods Directory</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
          <item>
@@ -91,17 +98,36 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="activateOrDeactiveButton">
-             <property name="text">
-              <string>Activate</string>
+            <widget class="Line" name="line">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="autoActivateButton">
-             <property name="text">
-              <string>Auto Activate</string>
+            <widget class="QGroupBox" name="actionsGroupBox">
+             <property name="title">
+              <string>Actions</string>
              </property>
+             <layout class="QVBoxLayout" name="verticalLayout_4">
+              <item>
+               <widget class="QPushButton" name="activateOrDeactiveButton">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="text">
+                 <string>Activate</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="autoActivateButton">
+                <property name="text">
+                 <string>Auto Activate</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </item>
            <item>

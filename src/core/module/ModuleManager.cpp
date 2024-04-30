@@ -53,7 +53,8 @@ class ModuleManager::Impl {
 
   ~Impl() = default;
 
-  auto LoadAndRegisterModule(const QString& module_library_path) -> void {
+  auto LoadAndRegisterModule(const QString& module_library_path,
+                             bool integrated_module) -> void {
     Thread::TaskRunnerGetter::GetInstance()
         .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
         ->PostTask(new Thread::Task(
@@ -77,19 +78,37 @@ class ModuleManager::Impl {
               }
 
               module->SetGPC(gmc_.get());
-              if (!gmc_->RegisterModule(module)) return -1;
+              if (!gmc_->RegisterModule(module, integrated_module)) return -1;
 
-              SettingsObject so(
-                  QString("module.%1.so").arg(module->GetModuleIdentifier()));
+              const auto module_id = module->GetModuleIdentifier();
+              const auto module_hash = module->GetModuleHash();
+
+              SettingsObject so(QString("module.%1.so").arg(module_id));
               ModuleSO module_so(so);
 
               // if user has set auto active enable
-              if (module_so.module_id == module->GetModuleIdentifier() &&
-                  module_so.module_hash == module->GetModuleHash() &&
-                  module_so.auto_activate) {
-                if (gmc_->ActiveModule(module->GetModuleIdentifier())) {
+              if ((module_so.module_id == module_id &&
+                   module_so.module_hash == module_hash &&
+                   module_so.auto_activate) ||
+                  // integrated modules activate by default
+                  ((module_so.module_id.isEmpty() ||
+                    module_so.module_hash.isEmpty()) &&
+                   integrated_module)) {
+                if (!gmc_->ActiveModule(module_id)) {
                   return -1;
                 }
+              }
+
+              // reset module settings after change
+              if ((module_so.module_id.isEmpty() ||
+                   module_so.module_id != module_id) ||
+                  (module_so.module_hash.isEmpty() ||
+                   module_so.module_hash != module_hash)) {
+                module_so.module_id = module_id;
+                module_so.module_hash = module_hash;
+                module_so.auto_activate = integrated_module;
+
+                so.Store(module_so.ToJson());
               }
 
               return 0;
@@ -111,7 +130,7 @@ class ModuleManager::Impl {
         ->PostTask(new Thread::Task(
             [=](GpgFrontend::DataObjectPtr) -> int {
               module->SetGPC(gmc_.get());
-              return gmc_->RegisterModule(module) ? 0 : -1;
+              return gmc_->RegisterModule(module, false) ? 0 : -1;
             },
             __func__, nullptr));
   }
@@ -196,6 +215,10 @@ class ModuleManager::Impl {
     return gmc_->IsModuleActivated(id);
   }
 
+  auto IsIntegratedModule(ModuleIdentifier id) -> bool {
+    return gmc_->IsIntegratedModule(id);
+  }
+
   auto GRT() -> GlobalRegisterTable* { return grt_.get(); }
 
  private:
@@ -231,8 +254,9 @@ ModuleManager::ModuleManager(int channel)
 
 ModuleManager::~ModuleManager() = default;
 
-void ModuleManager::LoadModule(QString module_library_path) {
-  return p_->LoadAndRegisterModule(module_library_path);
+void ModuleManager::LoadModule(QString module_library_path,
+                               bool integrated_module) {
+  return p_->LoadAndRegisterModule(module_library_path, integrated_module);
 }
 
 auto ModuleManager::SearchModule(ModuleIdentifier module_id) -> ModulePtr {
@@ -296,6 +320,10 @@ auto ModuleManager::ListRTChildKeys(const QString& n, const QString& k)
 
 auto ModuleManager::IsModuleActivated(ModuleIdentifier id) -> bool {
   return p_->IsModuleActivated(id);
+}
+
+auto ModuleManager::IsIntegratedModule(ModuleIdentifier id) -> bool {
+  return p_->IsIntegratedModule(id);
 }
 
 auto ModuleManager::ListAllRegisteredModuleID() -> QList<ModuleIdentifier> {

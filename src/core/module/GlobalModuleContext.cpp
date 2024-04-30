@@ -98,7 +98,7 @@ class GlobalModuleContext::Impl {
     return default_task_runner_;
   }
 
-  auto RegisterModule(const ModulePtr& module) -> bool {
+  auto RegisterModule(const ModulePtr& module, bool integrated_module) -> bool {
     GF_CORE_LOG_DEBUG("attempting to register module: {}",
                       module->GetModuleIdentifier());
     // Check if the module is null or already registered.
@@ -120,6 +120,7 @@ class GlobalModuleContext::Impl {
         GpgFrontend::SecureCreateSharedObject<ModuleRegisterInfo>();
     register_info->module = module;
     register_info->channel = acquire_new_unique_channel();
+    register_info->integrated = integrated_module;
 
     // move module to its task runner' thread
     register_info->module->setParent(nullptr);
@@ -322,6 +323,11 @@ class GlobalModuleContext::Impl {
     return m.has_value() && m->get()->activate;
   }
 
+  auto IsIntegratedModule(ModuleIdentifier m_id) -> bool {
+    auto m = search_module_register_table(m_id);
+    return m.has_value() && m->get()->integrated;
+  }
+
   auto ListAllRegisteredModuleID() -> QList<ModuleIdentifier> {
     QList<ModuleIdentifier> module_ids;
     for (const auto& module : module_register_table_) {
@@ -343,6 +349,7 @@ class GlobalModuleContext::Impl {
     int channel;
     ModulePtr module;
     bool activate;
+    bool integrated;
     QList<QString> listening_event_ids;
   };
 
@@ -411,8 +418,9 @@ auto GlobalModuleContext::GetGlobalTaskRunner()
   return p_->GetGlobalTaskRunner();
 }
 
-auto GlobalModuleContext::RegisterModule(ModulePtr module) -> bool {
-  return p_->RegisterModule(module);
+auto GlobalModuleContext::RegisterModule(ModulePtr module,
+                                         bool integrated_module) -> bool {
+  return p_->RegisterModule(module, integrated_module);
 }
 
 auto GlobalModuleContext::ActiveModule(ModuleIdentifier module_id) -> bool {
@@ -447,6 +455,10 @@ auto GlobalModuleContext::GetDefaultChannel(ModuleRawPtr channel) -> int {
 
 auto GlobalModuleContext::IsModuleActivated(ModuleIdentifier m_id) -> bool {
   return p_->IsModuleActivated(m_id);
+}
+
+auto GlobalModuleContext::IsIntegratedModule(ModuleIdentifier m_id) -> bool {
+  return p_->IsIntegratedModule(m_id);
 }
 
 auto GlobalModuleContext::ListAllRegisteredModuleID()

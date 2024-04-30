@@ -38,22 +38,34 @@
 
 namespace GpgFrontend::Module {
 
-void LoadModuleFromPath(const QString& mods_path) {
+void LoadModuleFromPath(const QString& mods_path, bool integrated) {
   for (const auto& module_library_name :
        QDir(mods_path).entryList(QStringList() << "*.so"
                                                << "*.dll"
                                                << "*.dylib",
                                  QDir::Files)) {
-    ModuleManager::GetInstance().LoadModule(mods_path + "/" +
-                                            module_library_name);
+    ModuleManager::GetInstance().LoadModule(
+        mods_path + "/" + module_library_name, integrated);
   }
 }
 
 auto LoadIntegratedMods() -> bool {
   auto exec_binary_path = QCoreApplication::applicationDirPath();
+
+#if defined(MACOS) && defined(RELEASE)
+  auto mods_path = exec_binary_path + "../PlugIns/mods";
+#else
   auto mods_path = exec_binary_path + "/mods";
+#endif
+
+  // AppImage
   if (!qEnvironmentVariable("APPIMAGE").isEmpty()) {
-    mods_path = qEnvironmentVariable("APPDIR") + "/usr/lib/mods";
+    mods_path = qEnvironmentVariable("APPDIR") + "/usr/plugins/mods";
+  }
+
+  // Flatpak
+  if (!qEnvironmentVariable("container").isEmpty()) {
+    mods_path = "/app/lib/mods";
   }
 
   GF_CORE_LOG_DEBUG("try loading integrated modules at path: {} ...",
@@ -65,7 +77,7 @@ auto LoadIntegratedMods() -> bool {
     return false;
   }
 
-  LoadModuleFromPath(mods_path);
+  LoadModuleFromPath(mods_path, true);
 
   GF_CORE_LOG_DEBUG("load integrated modules done.");
   return true;
@@ -82,7 +94,7 @@ auto LoadExternalMods() -> bool {
     return false;
   }
 
-  LoadModuleFromPath(mods_path);
+  LoadModuleFromPath(mods_path, false);
 
   GF_CORE_LOG_DEBUG("load integrated modules done.");
   return true;

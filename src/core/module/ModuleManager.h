@@ -66,7 +66,7 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager
 
   virtual ~ModuleManager() override;
 
-  auto LoadModule(QString) -> void;
+  auto LoadModule(QString, bool) -> void;
 
   auto SearchModule(ModuleIdentifier) -> ModulePtr;
 
@@ -75,6 +75,8 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager
   void RegisterModule(ModulePtr);
 
   auto IsModuleActivated(ModuleIdentifier) -> bool;
+
+  auto IsIntegratedModule(ModuleIdentifier) -> bool;
 
   void ListenEvent(ModuleIdentifier, EventIdentifier);
 

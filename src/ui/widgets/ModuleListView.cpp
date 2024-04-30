@@ -56,8 +56,12 @@ void ModuleListView::load_module_informations() {
   model_->clear();
   for (const auto &module_id : module_ids) {
     auto module = module_manager.SearchModule(module_id);
+    auto integrated_module = module_manager.IsIntegratedModule(module_id);
     auto meta_data = module->GetModuleMetaData();
-    auto *item = new QStandardItem(meta_data.value("Name", module_id));
+
+    auto *item = new QStandardItem((integrated_module ? "*" : "") +
+                                   meta_data.value("Name", module_id));
+
     item->setData(module_id, Qt::UserRole + 1);
     model_->appendRow(item);
   }
