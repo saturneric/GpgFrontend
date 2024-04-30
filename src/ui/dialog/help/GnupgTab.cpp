@@ -296,6 +296,9 @@ void GnupgTab::process_software_info() {
       row++;
     }
   }
+
+  ui_->loadProgressBar->hide();
+  ui_->tabWidget->setDisabled(false);
   // ui_->configurationDetailsTable->resizeColumnsToContents();
 }
 
@@ -305,6 +308,9 @@ void GnupgTab::gather_gnupg_info() {
     GF_CORE_LOG_DEBUG(
         "module gnupg_info_gathering is activated, "
         "loading external gnupg info...");
+
+    ui_->loadProgressBar->show();
+    ui_->tabWidget->setDisabled(true);
 
     // gather external gnupg info
     Module::TriggerEvent(
