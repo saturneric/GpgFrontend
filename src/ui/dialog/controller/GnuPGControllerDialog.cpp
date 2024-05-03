@@ -52,16 +52,18 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
   ui_->gpgmeDebugLogCheckBox->setText(tr("Enable GpgME Debug Log"));
   ui_->useCustomGnuPGInstallPathCheckBox->setText(tr("Use Custom GnuPG"));
   ui_->useCustomGnuPGInstallPathButton->setText(tr("Select GnuPG Path"));
-  ui_->keyDatabseUseCustomCheckBox->setText(
+  ui_->keyDatabaseUseCustomCheckBox->setText(
       tr("Use Custom GnuPG Key Database Path"));
   ui_->customKeyDatabasePathSelectButton->setText(
       tr("Select Key Database Path"));
   ui_->restartGpgAgentOnStartCheckBox->setText(
       tr("Restart Gpg Agent on start"));
+  ui_->killAllGnuPGDaemonCheckBox->setText(
+      tr("Kill all gnupg daemon at close"));
 
   // tips
   ui_->customGnuPGPathTipsLabel->setText(
-      tr("Tips: please select a directroy where \"gpgconf\" is located in."));
+      tr("Tips: please select a directory where \"gpgconf\" is located in."));
   ui_->restartTipsLabel->setText(
       tr("Tips: notice that modify any of these settings will cause an "
          "Application restart."));
@@ -71,7 +73,7 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
           UISignalStation::GetInstance(),
           &UISignalStation::SignalRestartApplication);
 
-  connect(ui_->keyDatabseUseCustomCheckBox, &QCheckBox::stateChanged, this,
+  connect(ui_->keyDatabaseUseCustomCheckBox, &QCheckBox::stateChanged, this,
           [=](int state) {
             ui_->customKeyDatabasePathSelectButton->setDisabled(
                 state != Qt::CheckState::Checked);
@@ -83,7 +85,7 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
                 state != Qt::CheckState::Checked);
           });
 
-  connect(ui_->keyDatabseUseCustomCheckBox, &QCheckBox::stateChanged, this,
+  connect(ui_->keyDatabaseUseCustomCheckBox, &QCheckBox::stateChanged, this,
           &GnuPGControllerDialog::slot_update_custom_key_database_path_label);
 
   connect(ui_->useCustomGnuPGInstallPathCheckBox, &QCheckBox::stateChanged,
@@ -98,7 +100,7 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
                 this, tr("Open Directory"), {},
                 QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
-        GF_UI_LOG_DEBUG("key databse path selected: {}",
+        GF_UI_LOG_DEBUG("key database path selected: {}",
                         selected_custom_key_database_path);
 
         custom_key_database_path_ = selected_custom_key_database_path;
@@ -108,7 +110,7 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
 
         // update ui
         this->slot_update_custom_key_database_path_label(
-            this->ui_->keyDatabseUseCustomCheckBox->checkState());
+            this->ui_->keyDatabaseUseCustomCheckBox->checkState());
       });
 
   connect(
@@ -263,33 +265,40 @@ void GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label(
 void GnuPGControllerDialog::set_settings() {
   auto settings = GlobalSettingStation::GetInstance().GetSettings();
 
-  bool non_ascii_at_file_operation =
+  auto non_ascii_at_file_operation =
       settings.value("gnupg/non_ascii_at_file_operation", true).toBool();
-  if (non_ascii_at_file_operation)
+  if (non_ascii_at_file_operation) {
     ui_->asciiModeCheckBox->setCheckState(Qt::Checked);
-
-  bool const use_custom_key_database_path =
-      settings.value("gnupg/use_custom_key_database_path", false).toBool();
-  if (use_custom_key_database_path) {
-    ui_->keyDatabseUseCustomCheckBox->setCheckState(Qt::Checked);
   }
 
-  bool const enable_gpgme_debug_log =
+  auto use_custom_key_database_path =
+      settings.value("gnupg/use_custom_key_database_path", false).toBool();
+  if (use_custom_key_database_path) {
+    ui_->keyDatabaseUseCustomCheckBox->setCheckState(Qt::Checked);
+  }
+
+  auto enable_gpgme_debug_log =
       settings.value("gnupg/enable_gpgme_debug_log", false).toBool();
   if (enable_gpgme_debug_log) {
     ui_->gpgmeDebugLogCheckBox->setCheckState(Qt::Checked);
   }
 
-  this->slot_update_custom_key_database_path_label(
-      ui_->keyDatabseUseCustomCheckBox->checkState());
+  auto kill_all_gnupg_daemon_at_close =
+      settings.value("gnupg/kill_all_gnupg_daemon_at_close", false).toBool();
+  if (kill_all_gnupg_daemon_at_close) {
+    ui_->killAllGnuPGDaemonCheckBox->setCheckState(Qt::Checked);
+  }
 
-  bool const use_custom_gnupg_install_path =
+  this->slot_update_custom_key_database_path_label(
+      ui_->keyDatabaseUseCustomCheckBox->checkState());
+
+  auto use_custom_gnupg_install_path =
       settings.value("gnupg/use_custom_gnupg_install_path", false).toBool();
   if (use_custom_gnupg_install_path) {
     ui_->useCustomGnuPGInstallPathCheckBox->setCheckState(Qt::Checked);
   }
 
-  bool const use_pinentry_as_password_input_dialog =
+  auto use_pinentry_as_password_input_dialog =
       settings
           .value("gnupg/use_pinentry_as_password_input_dialog",
                  QString::fromLocal8Bit(qgetenv("container")) != "flatpak")
@@ -298,7 +307,7 @@ void GnuPGControllerDialog::set_settings() {
     ui_->usePinentryAsPasswordInputDialogCheckBox->setCheckState(Qt::Checked);
   }
 
-  bool const restart_gpg_agent_on_start =
+  auto restart_gpg_agent_on_start =
       settings.value("gnupg/restart_gpg_agent_on_start", false).toBool();
   if (restart_gpg_agent_on_start) {
     ui_->restartGpgAgentOnStartCheckBox->setCheckState(Qt::Checked);
@@ -320,7 +329,7 @@ void GnuPGControllerDialog::apply_settings() {
   settings.setValue("gnupg/non_ascii_at_file_operation",
                     ui_->asciiModeCheckBox->isChecked());
   settings.setValue("gnupg/use_custom_key_database_path",
-                    ui_->keyDatabseUseCustomCheckBox->isChecked());
+                    ui_->keyDatabaseUseCustomCheckBox->isChecked());
   settings.setValue("gnupg/use_custom_gnupg_install_path",
                     ui_->useCustomGnuPGInstallPathCheckBox->isChecked());
   settings.setValue("gnupg/use_pinentry_as_password_input_dialog",
@@ -333,6 +342,8 @@ void GnuPGControllerDialog::apply_settings() {
                     ui_->currentCustomGnuPGInstallPathLabel->text());
   settings.setValue("gnupg/restart_gpg_agent_on_start",
                     ui_->restartGpgAgentOnStartCheckBox->isChecked());
+  settings.setValue("gnupg/kill_all_gnupg_daemon_at_close",
+                    ui_->killAllGnuPGDaemonCheckBox->isChecked());
 }
 
 auto GnuPGControllerDialog::get_restart_needed() const -> int {
@@ -347,7 +358,7 @@ void GnuPGControllerDialog::slot_set_restart_needed(int mode) {
 auto GnuPGControllerDialog::check_custom_gnupg_path(QString path) -> bool {
   if (path.isEmpty()) return false;
 
-  QFileInfo dir_info(path);
+  QFileInfo const dir_info(path);
   if (!dir_info.exists() || !dir_info.isReadable() || !dir_info.isDir()) {
     QMessageBox::critical(
         this, tr("Illegal GnuPG Path"),
@@ -355,15 +366,15 @@ auto GnuPGControllerDialog::check_custom_gnupg_path(QString path) -> bool {
     return false;
   }
 
-  QDir dir(path);
+  QDir const dir(path);
   if (!dir.isAbsolute()) {
     QMessageBox::critical(this, tr("Illegal GnuPG Path"),
                           tr("Target GnuPG Path is not an absolute path."));
   }
 #ifdef WINDOWS
-  QFileInfo gpgconf_info(path + "/gpgconf.exe");
+  QFileInfo const gpgconf_info(path + "/gpgconf.exe");
 #else
-  QFileInfo gpgconf_info(path + "/gpgconf");
+  QFileInfo const gpgconf_info(path + "/gpgconf");
 #endif
 
   if (!gpgconf_info.exists() || !gpgconf_info.isFile() ||
@@ -381,7 +392,7 @@ auto GnuPGControllerDialog::check_custom_gnupg_key_database_path(QString path)
     -> bool {
   if (path.isEmpty()) return false;
 
-  QFileInfo dir_info(path);
+  QFileInfo const dir_info(path);
   if (!dir_info.exists() || !dir_info.isReadable() || !dir_info.isDir()) {
     QMessageBox::critical(this, tr("Illegal GnuPG Key Database Path"),
                           tr("Target GnuPG Key Database Path is not an "

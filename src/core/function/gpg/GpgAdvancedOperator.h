@@ -93,6 +93,12 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator {
    * @return false
    */
   static void StartKeyBoxd(OperationCallback);
+
+  /**
+   * @brief
+   *
+   */
+  static void KillAllGpgComponents();
 };
 
 }  // namespace GpgFrontend

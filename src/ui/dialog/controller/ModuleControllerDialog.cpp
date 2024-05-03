@@ -126,7 +126,7 @@ void ModuleControllerDialog::slot_load_module_details(
   info << " - " << tr("Hash") << ": " << module->GetModuleHash() << Qt::endl;
   info << " - " << tr("Path") << ": " << module->GetModulePath() << Qt::endl;
 
-  bool if_activated = module_manager_->IsModuleActivated(module_id);
+  auto if_activated = module_manager_->IsModuleActivated(module_id);
 
   info << " - " << tr("Auto Activate") << ": "
        << (module_so.auto_activate ? tr("True") : tr("False")) << Qt::endl;

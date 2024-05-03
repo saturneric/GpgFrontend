@@ -76,6 +76,34 @@ void GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents(
        }});
 }
 
+void GpgFrontend::GpgAdvancedOperator::KillAllGpgComponents() {
+  const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.gpgconf_path", QString{});
+  GF_CORE_LOG_DEBUG("got gpgconf path from rt: {}", gpgconf_path);
+
+  if (gpgconf_path.isEmpty()) {
+    GF_CORE_LOG_ERROR("cannot get valid gpgconf path from rt, abort.");
+    return;
+  }
+
+  GpgFrontend::GpgCommandExecutor::ExecuteSync(
+      {gpgconf_path, QStringList{"--verbose", "--kill", "all"},
+       [=](int exit_code, const QString &p_out, const QString &p_err) {
+         GF_CORE_LOG_DEBUG("gpgconf --kill all command got exit code: {}",
+                           exit_code);
+         bool success = true;
+         if (exit_code != 0) {
+           success = false;
+           GF_CORE_LOG_ERROR(
+               "gpgconf execute error, process stderr: {}, process stdout: {}",
+               p_err, p_out);
+           return;
+         }
+
+         GF_CORE_LOG_DEBUG("gpgconf --kill --all execute result: {}", success);
+       }});
+}
+
 void GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
   const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", QString{});

@@ -52,6 +52,13 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="killAllGnuPGDaemonCheckBox">
+            <property name="text">
+             <string>Kill all gnupg daemon at close</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
        </layout>
@@ -75,7 +82,7 @@
         <item row="0" column="0">
          <layout class="QVBoxLayout" name="verticalLayout_6">
           <item>
-           <widget class="QCheckBox" name="keyDatabseUseCustomCheckBox">
+           <widget class="QCheckBox" name="keyDatabaseUseCustomCheckBox">
             <property name="text">
              <string>Use Custom GnuPG Key Database Path</string>
             </property>
