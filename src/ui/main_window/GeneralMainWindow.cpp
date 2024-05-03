@@ -65,6 +65,9 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
           QByteArray::fromBase64(window_state.window_state_data.toUtf8()));
     }
 
+    if (size_.width() < 640) size_.setWidth(640);
+    if (size_.height() < 480) size_.setHeight(480);
+
     // restore window size & location
     if (window_state.window_save) {
       pos_ = {window_state.x, window_state.y};
@@ -96,16 +99,16 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
                         parent_size.height());
 
         if (parent_pos != QPoint{0, 0}) {
-          QPoint parent_center{parent_pos.x() + parent_size.width() / 2,
-                               parent_pos.y() + parent_size.height() / 2};
+          QPoint const parent_center{parent_pos.x() + parent_size.width() / 2,
+                                     parent_pos.y() + parent_size.height() / 2};
 
           pos_ = {parent_center.x() - size_.width() / 2,
                   parent_center.y() - size_.height() / 2};
         }
       }
 
-      if (size_.width() < 600) size_.setWidth(600);
-      if (size_.height() < 400) size_.setHeight(400);
+      if (size_.width() < 640) size_.setWidth(640);
+      if (size_.height() < 480) size_.setHeight(480);
 
       this->move(pos_);
       this->resize(size_);
@@ -114,7 +117,7 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
     }
 
     // appearance
-    AppearanceSO appearance(SettingsObject("general_settings_state"));
+    AppearanceSO const appearance(SettingsObject("general_settings_state"));
 
     icon_size_ = {appearance.tool_bar_icon_width,
                   appearance.tool_bar_icon_height};
@@ -125,7 +128,7 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
     icon_style_ = toolButtonStyle();
 
   } catch (...) {
-    GF_UI_LOG_ERROR("gernal main window: {}, caught exception", name_);
+    GF_UI_LOG_ERROR("general main window: {}, caught exception", name_);
   }
 }
 
@@ -148,7 +151,7 @@ void GpgFrontend::UI::GeneralMainWindow::slot_save_settings() noexcept {
 
     general_windows_state.Store(window_state.Json());
   } catch (...) {
-    GF_UI_LOG_ERROR("gernal main window: {}, caught exception", name_);
+    GF_UI_LOG_ERROR("general main window: {}, caught exception", name_);
   }
 }
 
