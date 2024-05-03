@@ -511,12 +511,12 @@
     <message>
         <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="47"/>
         <source>NODE</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">KNOTEN</translation>
     </message>
     <message>
         <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="82"/>
         <source>LEAF</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">BLATTKNOTEN</translation>
     </message>
 </context>
 <context>
@@ -524,12 +524,12 @@
     <message>
         <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="193"/>
         <source>&lt;EMPTY&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&lt;LEER&gt;</translation>
     </message>
     <message>
         <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="232"/>
         <source>&lt;UNSUPPORTED&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&lt;UNERWÜNSCHT&gt;</translation>
     </message>
     <message>
         <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="267"/>
@@ -544,7 +544,7 @@
     <message>
         <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="271"/>
         <source>Value Type</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Wert-Typ</translation>
     </message>
     <message>
         <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="273"/>
@@ -601,17 +601,17 @@
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="45"/>
         <source>Theme</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Thema</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="49"/>
         <source>Toolbar Icon</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Symbol für die Symbolleiste</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="51"/>
         <source>Size</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Größe</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="52"/>
@@ -659,12 +659,12 @@
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="56"/>
         <source>Style</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Stil</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="61"/>
         <source>Font Size</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Schriftgröße</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="63"/>
@@ -1374,12 +1374,12 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="62"/>
         <source>Kill all gnupg daemon at close</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Alle gnupg-Daemons beim Schließen abschalten</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="66"/>
         <source>Tips: please select a directory where &quot;gpgconf&quot; is located in.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Tipps: Bitte wählen Sie ein Verzeichnis, in dem sich &quot;gpgconf&quot; befindet.</translation>
     </message>
     <message>
         <source>Tips: please select a directroy where &quot;gpgconf&quot; is located in.</source>
@@ -4488,12 +4488,12 @@ Fals Daten und Signatur in einer Datei COMBINIERT sind, LASSEN SIE DIES LEER: </
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="408"/>
         <source>Open Module Controller</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Modul-Controller öffnen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="410"/>
         <source>Open Module Controller Dialog</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Modul-Controller-Dialog öffnen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="417"/>
@@ -4691,7 +4691,7 @@ Fals Daten und Signatur in einer Datei COMBINIERT sind, LASSEN SIE DIES LEER: </
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="598"/>
         <source>Advance</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Vorgezogene Funktion</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="606"/>
@@ -4774,53 +4774,53 @@ Fals Daten und Signatur in einer Datei COMBINIERT sind, LASSEN SIE DIES LEER: </
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="49"/>
         <source>Module Informations</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Informationen zum Modul</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="50"/>
         <source>Actions</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Aktionen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="51"/>
         <source>Show Mods Directory</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Mods-Verzeichnis anzeigen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="53"/>
         <source>Registered Modules</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Registrierte Module</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="54"/>
         <source>Global Register Table</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Globale Registertabelle</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="55"/>
         <source>Debugger</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Debugger</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="57"/>
         <source>Module Controller</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Modul-Controller</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="81"/>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="174"/>
         <source>Enable Auto Activate</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Automatisches Aktivieren aktivieren</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="130"/>
         <source>BASIC INFO</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">GRUNDINFO</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="132"/>
         <source>ID</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">ID</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="134"/>
@@ -4830,17 +4830,17 @@ Fals Daten und Signatur in einer Datei COMBINIERT sind, LASSEN SIE DIES LEER: </
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="136"/>
         <source>SDK Version</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">SDK-Version</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="138"/>
         <source>Qt ENV Version</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Qt ENV Version</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="140"/>
         <source>Hash</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Hash</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="141"/>
@@ -4850,49 +4850,49 @@ Fals Daten und Signatur in einer Datei COMBINIERT sind, LASSEN SIE DIES LEER: </
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="145"/>
         <source>Auto Activate</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Automatisch aktivieren</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="146"/>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="148"/>
         <source>True</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Wahr</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="146"/>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="148"/>
         <source>False</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Falsch</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="147"/>
         <source>Active</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Aktiv</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="152"/>
         <source>METADATA</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">METADATEN</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="161"/>
         <source>Listening Event</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Anhören von Veranstaltungen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="170"/>
         <source>Deactivate</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Deaktivieren</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="171"/>
         <source>Activate</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Aktivieren</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="173"/>
         <source>Disable Auto Activate</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Automatisches Aktivieren deaktivieren</translation>
     </message>
 </context>
 <context>
