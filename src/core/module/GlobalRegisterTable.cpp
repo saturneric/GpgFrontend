@@ -44,7 +44,7 @@ class GlobalRegisterTable::Impl {
  public:
   struct RTNode {
     QString name;
-    QString type = "NODE";
+    QString type = tr("NODE");
     int version = 0;
     const std::type_info* value_type = nullptr;
     std::optional<std::any> value = std::nullopt;
@@ -79,7 +79,7 @@ class GlobalRegisterTable::Impl {
       }
 
       current->name = segments.back();
-      current->type = "LEAF";
+      current->type = tr("LEAF");
       current->value = v;
       current->value_type = &v.type();
       version = ++current->version;
@@ -190,7 +190,7 @@ class GlobalRegisterTableTreeModel::Impl {
   }
 
   static auto Any2QVariant(std::optional<std::any> op) -> QVariant {
-    if (!op) return "<EMPTY>";
+    if (!op) return tr("<EMPTY>");
 
     auto& o = op.value();
     if (o.type() == typeid(QString)) {
@@ -229,7 +229,7 @@ class GlobalRegisterTableTreeModel::Impl {
     if (o.type() == typeid(bool)) {
       return QVariant::fromValue(std::any_cast<bool>(o));
     }
-    return "<UNSUPPORTED>";
+    return tr("<UNSUPPORTED>");
   }
 
   [[nodiscard]] auto Index(int row, int column, const QModelIndex& parent) const
@@ -252,25 +252,25 @@ class GlobalRegisterTableTreeModel::Impl {
 
     if (!parent_node || parent_node == root_node_) return {};
 
-    int row =
-        parent_node->parent.lock()->children.keys().indexOf(parent_node->name);
+    int const row = static_cast<int>(
+        parent_node->parent.lock()->children.keys().indexOf(parent_node->name));
     return parent_->createIndex(row, 0, parent_node.data());
   }
 
   [[nodiscard]] static auto HeaderData(int section, Qt::Orientation orientation,
                                        int role) -> QVariant {
-    if (role != Qt::DisplayRole) return QVariant();
+    if (role != Qt::DisplayRole) return {};
 
     if (orientation == Qt::Horizontal) {
       switch (section) {
         case 0:
-          return QString("Key");
+          return tr("Key");
         case 1:
-          return QString("Type");
+          return tr("Type");
         case 2:
-          return QString("Value Type");
+          return tr("Value Type");
         case 3:
-          return QString("Value");
+          return tr("Value");
         default:
           return {};
       }

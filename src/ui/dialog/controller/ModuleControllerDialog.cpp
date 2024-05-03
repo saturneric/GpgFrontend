@@ -46,6 +46,16 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
   ui_->setupUi(this);
   ui_->actionsGroupBox->hide();
 
+  ui_->moduleInfoLabel->setText(tr("Module Informations"));
+  ui_->actionsGroupBox->setTitle(tr("Actions"));
+  ui_->showModsDirButton->setText(tr("Show Mods Directory"));
+
+  ui_->tabWidget->setTabText(0, tr("Registered Modules"));
+  ui_->tabWidget->setTabText(1, tr("Global Register Table"));
+  ui_->tabWidget->setTabText(2, tr("Debugger"));
+
+  this->setWindowTitle(tr("Module Controller"));
+
   connect(ui_->moduleListView, &ModuleListView::SignalSelectModule, this,
           &ModuleControllerDialog::slot_load_module_details);
 
@@ -84,6 +94,10 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
     QDesktopServices::openUrl(QUrl::fromLocalFile(
         GlobalSettingStation::GetInstance().GetModulesDir()));
   });
+
+#ifdef RELEASE
+  ui_->tabWidget->setTabEnabled(2, false);
+#endif
 }
 
 void ModuleControllerDialog::slot_load_module_details(
@@ -113,7 +127,7 @@ void ModuleControllerDialog::slot_load_module_details(
   QString buffer;
   QTextStream info(&buffer);
 
-  info << "# BASIC INFO" << Qt::endl << Qt::endl;
+  info << "# " << tr("BASIC INFO") << Qt::endl << Qt::endl;
 
   info << " - " << tr("ID") << ": " << module->GetModuleIdentifier()
        << Qt::endl;
@@ -135,7 +149,7 @@ void ModuleControllerDialog::slot_load_module_details(
 
   info << Qt::endl;
 
-  info << "# METADATA" << Qt::endl << Qt::endl;
+  info << "# " << tr("METADATA") << Qt::endl << Qt::endl;
 
   for (const auto& metadata : module->GetModuleMetaData().asKeyValueRange()) {
     info << " - " << metadata.first << ": " << metadata.second << "\n";
@@ -144,7 +158,7 @@ void ModuleControllerDialog::slot_load_module_details(
   info << Qt::endl;
 
   if (if_activated) {
-    info << "# Listening Event" << Qt::endl << Qt::endl;
+    info << "# " << tr("Listening Event") << Qt::endl << Qt::endl;
 
     auto listening_event_ids = module_manager_->GetModuleListening(module_id);
     for (const auto& event_id : listening_event_ids) {
