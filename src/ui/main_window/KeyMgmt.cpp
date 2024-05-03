@@ -121,7 +121,7 @@ KeyMgmt::KeyMgmt(QWidget* parent)
   this->statusBar()->show();
 
   setWindowTitle(tr("KeyPair Management"));
-  setMinimumSize(QSize(600, 400));
+  setMinimumSize(QSize(640, 480));
 
   key_list_->AddMenuAction(generate_subkey_act_);
   key_list_->AddMenuAction(delete_selected_keys_act_);
