@@ -88,8 +88,14 @@ void GFExecuteCommandBatchSync(int32_t context_size,
   GpgFrontend::GpgCommandExecutor::ExecuteConcurrentlySync(contexts);
 }
 
+auto StrlenSafe(const char* str, size_t max_len) -> size_t {
+  const char* end = static_cast<const char*>(memchr(str, '\0', max_len));
+  if (end == nullptr) return max_len;
+  return end - str;
+}
+
 auto GPGFRONTEND_MODULE_SDK_EXPORT GFModuleStrDup(const char* src) -> char* {
-  auto len = strlen(src);
+  auto len = StrlenSafe(src, kGfStrlenMax);
   if (len > kGfStrlenMax) return nullptr;
 
   char* dst = static_cast<char*>(GFAllocateMemory((len + 1) * sizeof(char)));

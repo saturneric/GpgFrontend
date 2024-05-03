@@ -90,7 +90,7 @@ void GFModuleTriggerModuleEventCallback(GFModuleEvent *module_event,
   }
 
   auto event = GpgFrontend::Module::ModuleManager::GetInstance().SearchEvent(
-      GpgFrontend::GFUnStrDup(module_event->triggger_id).toLower());
+      GpgFrontend::GFUnStrDup(module_event->trigger_id).toLower());
   if (!event) return;
 
   event.value()->ExecuteCallback(GpgFrontend::GFUnStrDup(module_id),
