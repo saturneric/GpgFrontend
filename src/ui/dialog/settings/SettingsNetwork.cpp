@@ -97,7 +97,6 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
   ui_->networkAbilityTipsLabel->setText(
       tr("Tips: These Option Changes take effect only after the "
          "application restart."));
-
   SetSettings();
 }
 

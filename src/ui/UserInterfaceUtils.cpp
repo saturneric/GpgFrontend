@@ -65,8 +65,8 @@ void show_verify_details(QWidget *parent, InfoBoardWidget *info_board,
       [=]() { VerifyDetailsDialog(parent, error, verify_result); });
 }
 
-void import_unknown_key_from_keyserver(
-    QWidget *parent, const GpgVerifyResultAnalyse &verify_res) {
+void ImportUnknownKeyFromKeyserver(
+    QWidget *parent, const GpgVerifyResultAnalyse &verify_result) {
   QMessageBox::StandardButton reply;
   reply = QMessageBox::question(
       parent, QCoreApplication::tr("Public key not found locally"),
@@ -78,7 +78,7 @@ void import_unknown_key_from_keyserver(
   if (reply == QMessageBox::Yes) {
     auto dialog = KeyServerImportDialog(parent);
     auto key_ids = std::make_unique<KeyIdArgsList>();
-    auto *signature = verify_res.GetSignatures();
+    auto *signature = verify_result.GetSignatures();
     while (signature != nullptr) {
       GF_UI_LOG_DEBUG("signature fpr: {}", signature->fpr);
       key_ids->push_back(signature->fpr);
