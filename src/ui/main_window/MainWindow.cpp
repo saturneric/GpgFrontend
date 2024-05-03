@@ -31,7 +31,6 @@
 #include "core/function/CacheManager.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/model/GpgPassphraseContext.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
@@ -120,7 +119,7 @@ void MainWindow::Init() noexcept {
     m_key_list_->AddMenuAction(copy_key_default_uid_to_clipboard_act_);
     m_key_list_->AddMenuAction(copy_key_id_to_clipboard_act_);
     m_key_list_->AddMenuAction(set_owner_trust_of_key_act_);
-    m_key_list_->AddMenuAction(add_key_2_favourtie_act_);
+    m_key_list_->AddMenuAction(add_key_2_favourite_act_);
     m_key_list_->AddMenuAction(remove_key_from_favourtie_act_);
 
     m_key_list_->AddSeparator();
@@ -134,9 +133,9 @@ void MainWindow::Init() noexcept {
         this, kVersionCheckingModuleID, "version.loading_done",
         [=](Module::Namespace, Module::Key, int, std::any) {
           GF_UI_LOG_DEBUG(
-              "versionchecking version.loading_done changed, calling slot "
+              "version-checking version.loading_done changed, calling slot "
               "version upgrade");
-          this->slot_version_upgrade_nofity();
+          this->slot_version_upgrade_notify();
         });
 
     // loading process is done
@@ -148,7 +147,7 @@ void MainWindow::Init() noexcept {
 
     // check if need to open wizard window
     auto settings = GlobalSettingStation::GetInstance().GetSettings();
-    bool show_wizard = settings.value("wizard/show_wizard", true).toBool();
+    auto show_wizard = settings.value("wizard/show_wizard", true).toBool();
     if (show_wizard) slot_start_wizard();
 
   } catch (...) {
@@ -195,7 +194,7 @@ void MainWindow::recover_editor_unsaved_pages_from_cache() {
 
   bool first = true;
 
-  QJsonArray unsaved_page_array = json_data.array();
+  auto unsaved_page_array = json_data.array();
   for (const auto &value_ref : unsaved_page_array) {
     if (!value_ref.isObject()) continue;
     auto unsaved_page_json = value_ref.toObject();
@@ -205,8 +204,8 @@ void MainWindow::recover_editor_unsaved_pages_from_cache() {
       continue;
     }
 
-    QString title = unsaved_page_json["title"].toString();
-    QString content = unsaved_page_json["content"].toString();
+    auto title = unsaved_page_json["title"].toString();
+    auto content = unsaved_page_json["content"].toString();
 
     GF_UI_LOG_DEBUG(
         "recovering unsaved page from cache, page title: {}, content size",

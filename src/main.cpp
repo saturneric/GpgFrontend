@@ -33,8 +33,10 @@
 #include "GpgFrontendContext.h"
 #include "app.h"
 #include "cmd.h"
-#include "core/utils/MemoryUtils.h"
 #include "init.h"
+
+//
+#include "core/utils/MemoryUtils.h"
 
 /**
  *
@@ -43,7 +45,7 @@
  * @return
  */
 auto main(int argc, char* argv[]) -> int {
-  GpgFrontend::GFCxtSPtr ctx =
+  GpgFrontend::GFCxtSPtr const ctx =
       GpgFrontend::SecureCreateSharedObject<GpgFrontend::GpgFrontendContext>(
           argc, argv);
   ctx->InitApplication();
@@ -79,17 +81,17 @@ auto main(int argc, char* argv[]) -> int {
     ctx->gather_external_gnupg_info = false;
     ctx->load_default_gpg_context = false;
 
-    InitGlobalBasicalEnv(ctx, false);
+    InitGlobalBasicEnv(ctx, false);
     rtn = RunTest(ctx);
-    ShutdownGlobalBasicalEnv(ctx);
+    ShutdownGlobalBasicEnv(ctx);
     return rtn;
   }
 
   ctx->gather_external_gnupg_info = true;
   ctx->load_default_gpg_context = true;
-  InitGlobalBasicalEnv(ctx, true);
+  InitGlobalBasicEnv(ctx, true);
 
   rtn = StartApplication(ctx);
-  ShutdownGlobalBasicalEnv(ctx);
+  ShutdownGlobalBasicEnv(ctx);
   return rtn;
 }

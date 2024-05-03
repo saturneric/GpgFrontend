@@ -106,7 +106,7 @@ void InitGlobalPathEnv() {
   }
 }
 
-void InitGlobalBasicalEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
+void InitGlobalBasicEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
   GFCxtSPtr ctx = p_ctx.lock();
   if (ctx == nullptr) {
     return;
@@ -161,7 +161,7 @@ void InitLocale() {
   QLocale::setDefault(target_locale);
 }
 
-void ShutdownGlobalBasicalEnv(const GFCxtWPtr &p_ctx) {
+void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
   GFCxtSPtr ctx = p_ctx.lock();
   if (ctx == nullptr) {
     return;

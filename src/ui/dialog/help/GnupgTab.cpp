@@ -57,11 +57,11 @@ GnupgTab::GnupgTab(QWidget* parent)
   ui_->componentDetailsTable->setSelectionBehavior(
       QAbstractItemView::SelectRows);
 
-  // tableitems not editable
+  // table items not editable
   ui_->componentDetailsTable->setEditTriggers(
       QAbstractItemView::NoEditTriggers);
 
-  // no focus (rectangle around tableitems)
+  // no focus (rectangle around table items)
   // may be it should focus on whole row
   ui_->componentDetailsTable->setFocusPolicy(Qt::NoFocus);
   ui_->componentDetailsTable->setAlternatingRowColors(true);
@@ -70,7 +70,7 @@ GnupgTab::GnupgTab(QWidget* parent)
   directories_column_titles << tr("Directory Type") << tr("Path");
 
   ui_->directoriesDetailsTable->setColumnCount(
-      directories_column_titles.length());
+      static_cast<int>(directories_column_titles.length()));
   ui_->directoriesDetailsTable->setHorizontalHeaderLabels(
       directories_column_titles);
   ui_->directoriesDetailsTable->horizontalHeader()->setStretchLastSection(
@@ -78,11 +78,11 @@ GnupgTab::GnupgTab(QWidget* parent)
   ui_->directoriesDetailsTable->setSelectionBehavior(
       QAbstractItemView::SelectRows);
 
-  // tableitems not editable
+  // table items not editable
   ui_->directoriesDetailsTable->setEditTriggers(
       QAbstractItemView::NoEditTriggers);
 
-  // no focus (rectangle around tableitems)
+  // no focus (rectangle around table items)
   // may be it should focus on whole row
   ui_->directoriesDetailsTable->setFocusPolicy(Qt::NoFocus);
   ui_->directoriesDetailsTable->setAlternatingRowColors(true);
@@ -97,10 +97,10 @@ GnupgTab::GnupgTab(QWidget* parent)
   ui_->optionDetailsTable->horizontalHeader()->setStretchLastSection(false);
   ui_->optionDetailsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-  // tableitems not editable
+  // table items not editable
   ui_->optionDetailsTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-  // no focus (rectangle around tableitems)
+  // no focus (rectangle around table items)
   // may be it should focus on whole row
   ui_->optionDetailsTable->setFocusPolicy(Qt::NoFocus);
   ui_->optionDetailsTable->setAlternatingRowColors(true);
@@ -179,7 +179,8 @@ void GnupgTab::process_software_info() {
   auto directories = Module::ListRTChildKeys(kGnuPGInfoGatheringModuleID,
                                              QString("gnupg.dirs"));
 
-  ui_->directoriesDetailsTable->setRowCount(directories.size());
+  ui_->directoriesDetailsTable->setRowCount(
+      static_cast<int>(directories.size()));
 
   row = 0;
   for (auto& dir : directories) {
@@ -202,7 +203,7 @@ void GnupgTab::process_software_info() {
 
   ui_->directoriesDetailsTable->resizeColumnsToContents();
 
-  // calcualte the total row number of configuration table
+  // calculate the total row number of configuration table
   row = 0;
   for (auto& component : components) {
     auto options = Module::ListRTChildKeys(
@@ -299,7 +300,6 @@ void GnupgTab::process_software_info() {
 
   ui_->loadProgressBar->hide();
   ui_->tabWidget->setDisabled(false);
-  // ui_->configurationDetailsTable->resizeColumnsToContents();
 }
 
 void GnupgTab::gather_gnupg_info() {

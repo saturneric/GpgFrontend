@@ -357,7 +357,7 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @details called when need to upgrade.
    */
-  void slot_version_upgrade_nofity();
+  void slot_version_upgrade_notify();
 
   /**
    * @details
@@ -489,7 +489,7 @@ class MainWindow : public GeneralMainWindow {
   QAction* copy_key_id_to_clipboard_act_{};        ///<
   QAction* copy_key_default_uid_to_clipboard_act_{};  ///<
 
-  QAction* add_key_2_favourtie_act_{};        ///<
+  QAction* add_key_2_favourite_act_{};        ///<
   QAction* remove_key_from_favourtie_act_{};  ///<
   QAction* set_owner_trust_of_key_act_{};     ///<
 

@@ -500,10 +500,10 @@ void MainWindow::create_actions() {
   connect(show_key_details_act_, &QAction::triggered, this,
           &MainWindow::slot_show_key_details);
 
-  add_key_2_favourtie_act_ = new QAction(tr("Add To Favourite"), this);
-  add_key_2_favourtie_act_->setToolTip(tr("Add this key to Favourite Table"));
-  add_key_2_favourtie_act_->setData(QVariant("add_key_2_favourite_action"));
-  connect(add_key_2_favourtie_act_, &QAction::triggered, this,
+  add_key_2_favourite_act_ = new QAction(tr("Add To Favourite"), this);
+  add_key_2_favourite_act_->setToolTip(tr("Add this key to Favourite Table"));
+  add_key_2_favourite_act_->setData(QVariant("add_key_2_favourite_action"));
+  connect(add_key_2_favourite_act_, &QAction::triggered, this,
           &MainWindow::slot_add_key_2_favourite);
 
   remove_key_from_favourtie_act_ =

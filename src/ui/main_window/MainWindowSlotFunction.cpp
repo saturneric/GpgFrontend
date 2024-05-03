@@ -262,7 +262,7 @@ void MainWindow::SlotOpenFile(const QString& path) {
   edit_->SlotOpenFile(path);
 }
 
-void MainWindow::slot_version_upgrade_nofity() {
+void MainWindow::slot_version_upgrade_notify() {
   GF_UI_LOG_DEBUG(
       "slot version upgrade notify called, checking version info from rt...");
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
