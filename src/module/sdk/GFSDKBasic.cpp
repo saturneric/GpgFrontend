@@ -56,7 +56,7 @@ void GFExecuteCommandSync(const char* cmd, int32_t argc, const char** argv,
     args.append(GpgFrontend::GFUnStrDup(argv[i]));
   }
 
-  GpgFrontend::GpgCommandExecutor::ExecuteContext context{
+  GpgFrontend::GpgCommandExecutor::ExecuteContext const context{
       cmd, args, [=](int exit_code, const QString& out, const QString& err) {
         cb(data, exit_code, out.toUtf8(), err.toUtf8());
       }};

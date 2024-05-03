@@ -54,6 +54,9 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
   ui_->tabWidget->setTabText(1, tr("Global Register Table"));
   ui_->tabWidget->setTabText(2, tr("Debugger"));
 
+  ui_->tipsLabel->setText(
+      tr("Tips: Module name front with \"*\" stands for integrated module."));
+
   this->setWindowTitle(tr("Module Controller"));
 
   connect(ui_->moduleListView, &ModuleListView::SignalSelectModule, this,
