@@ -82,9 +82,9 @@ class SettingsDialog : public GeneralDialog {
   void SignalRestartNeeded(int);
 
  private:
-  QTabWidget* tab_widget_;               ///<
-  QDialogButtonBox* button_box_;         ///<
-  int restart_needed_{kNonRestartCode};  ///<
+  QTabWidget* tab_widget_;             ///<
+  QDialogButtonBox* button_box_;       ///<
+  int restart_mode_{kNonRestartCode};  ///<
 
  private slots:
 

@@ -421,11 +421,6 @@ class MainWindow : public GeneralMainWindow {
    */
   void recover_editor_unsaved_pages_from_cache();
 
-  /**
-   * @brief return true, if restart is needed
-   */
-  [[nodiscard]] int get_restart_needed() const;
-
   TextEdit* edit_{};          ///< Tabwidget holding the edit-windows
   QMenu* file_menu_{};        ///<  Submenu for file-operations
   QMenu* edit_menu_{};        ///<  Submenu for text-operations
@@ -523,7 +518,7 @@ class MainWindow : public GeneralMainWindow {
   InfoBoardWidget* info_board_{};  ///<
 
   bool attachment_dock_created_{};         ///<
-  int restart_needed_{0};                  ///<
+  int restart_mode_{0};                    ///<
   bool prohibit_update_checking_ = false;  ///<
 };
 

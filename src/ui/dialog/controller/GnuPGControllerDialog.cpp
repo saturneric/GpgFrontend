@@ -347,12 +347,12 @@ void GnuPGControllerDialog::apply_settings() {
 }
 
 auto GnuPGControllerDialog::get_restart_needed() const -> int {
-  return this->restart_needed_;
+  return this->restart_mode_;
 }
 
 void GnuPGControllerDialog::slot_set_restart_needed(int mode) {
   GF_UI_LOG_INFO("announce restart needed, mode: {}", mode);
-  this->restart_needed_ = mode;
+  this->restart_mode_ = mode;
 }
 
 auto GnuPGControllerDialog::check_custom_gnupg_path(QString path) -> bool {

@@ -95,14 +95,14 @@ SettingsDialog::SettingsDialog(QWidget* parent)
 }
 
 void SettingsDialog::slot_declare_a_restart() {
-  if (restart_needed_ < kRestartCode) {
-    this->restart_needed_ = kRestartCode;
+  if (restart_mode_ < kRestartCode) {
+    this->restart_mode_ = kRestartCode;
   }
 }
 
 void SettingsDialog::slot_declare_a_deep_restart() {
-  if (restart_needed_ < kDeepRestartCode) {
-    this->restart_needed_ = kDeepRestartCode;
+  if (restart_mode_ < kDeepRestartCode) {
+    this->restart_mode_ = kDeepRestartCode;
   }
 }
 
@@ -112,9 +112,9 @@ void SettingsDialog::SlotAccept() {
   key_server_tab_->ApplySettings();
   network_tab_->ApplySettings();
 
-  GF_UI_LOG_DEBUG("ui restart status: {}", restart_needed_);
-  if (restart_needed_ != kNonRestartCode) {
-    emit SignalRestartNeeded(restart_needed_);
+  GF_UI_LOG_DEBUG("ui restart status: {}", restart_mode_);
+  if (restart_mode_ != kNonRestartCode) {
+    emit SignalRestartNeeded(restart_mode_);
   }
   close();
 }

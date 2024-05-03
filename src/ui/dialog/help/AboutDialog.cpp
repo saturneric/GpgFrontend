@@ -97,7 +97,7 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
 
   auto text =
       "<center><h2>" + qApp->applicationName() + "</h2></center>" +
-      "<center><b>" + qApp->applicationVersion() + "</b></center>" +
+      "<center><b>" + "v" + qApp->applicationVersion() + "</b></center>" +
       "<center>" + GetProjectBuildGitVersion() + "</center>" + "<br><center>" +
       tr("GpgFrontend is an easy-to-use, compact, cross-platform, "
          "and installation-free GnuPG Frontend."

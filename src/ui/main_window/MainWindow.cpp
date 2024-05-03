@@ -245,9 +245,6 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     CacheManager::GetInstance().SaveDurableCache(
         "editor_unsaved_pages", QJsonDocument(QJsonArray()), true);
 
-    // clear password from memory
-    //  GpgContext::GetInstance().clearPasswordCache();
-
     // call parent
     GeneralMainWindow::closeEvent(event);
   }
