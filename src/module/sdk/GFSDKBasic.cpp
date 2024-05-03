@@ -90,6 +90,7 @@ void GFExecuteCommandBatchSync(int32_t context_size,
 
 auto GPGFRONTEND_MODULE_SDK_EXPORT GFModuleStrDup(const char* src) -> char* {
   auto len = strlen(src);
+  if (len > kGfStrlenMax) return nullptr;
 
   char* dst = static_cast<char*>(GFAllocateMemory((len + 1) * sizeof(char)));
   memcpy(dst, src, len);

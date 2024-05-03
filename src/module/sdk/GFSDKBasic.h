@@ -28,11 +28,14 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 #include "GFSDKExport.h"
 
 extern "C" {
+
+constexpr int32_t kGfStrlenMax = static_cast<const int32_t>(1024 * 8);
 
 using GFCommandExeucteCallback = void (*)(void* data, int errcode,
                                           const char* out, const char* err);

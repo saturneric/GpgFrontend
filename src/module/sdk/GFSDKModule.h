@@ -48,7 +48,7 @@ struct GFModuleEventParam {
 
 struct GFModuleEvent {
   const char *id;
-  const char *triggger_id;
+  const char *trigger_id;
   GFModuleEventParam *params;
 };
 

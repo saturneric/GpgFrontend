@@ -77,14 +77,14 @@ void WaitEnvCheckingProcess() {
                         &QEventLoop::quit);
 
   QApplication::connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
-    GF_UI_LOG_DEBUG("cancel clicked on wairing dialog");
+    GF_UI_LOG_DEBUG("cancel clicked on waiting dialog");
     QApplication::quit();
     exit(0);
   });
 
   auto env_state =
       Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.basic", 0);
-  GF_UI_LOG_DEBUG("ui is ready to wating for env initialized, env_state: {}",
+  GF_UI_LOG_DEBUG("ui is ready to waiting for env initialized, env_state: {}",
                   env_state);
 
   // check twice to avoid some unlucky sitations

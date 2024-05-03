@@ -106,7 +106,7 @@ class Event::Impl {
         static_cast<GFModuleEvent*>(SecureMalloc(sizeof(GFModuleEvent)));
 
     event->id = GFStrDup(event_identifier_);
-    event->triggger_id = GFStrDup(trigger_uuid_);
+    event->trigger_id = GFStrDup(trigger_uuid_);
 
     GFModuleEventParam* l_param = nullptr;
     GFModuleEventParam* p_param;
@@ -121,7 +121,7 @@ class Event::Impl {
       p_param->value = GFStrDup(data.second);
       p_param->next = nullptr;
 
-      l_param->next = p_param;
+      if (l_param != nullptr) l_param->next = p_param;
       l_param = p_param;
     }
 

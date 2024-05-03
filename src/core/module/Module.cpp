@@ -121,15 +121,15 @@ class Module::Impl {
     }
 
     GF_CORE_LOG_INFO(
-        "module loaded, id: {}, verison: {}, "
+        "module loaded, id: {}, version: {}, "
         "sdk version: {}, qt env version: {}, hash: {}, path: {}",
         identifier_, version_, gf_sdk_ver_, qt_env_ver_, module_hash_,
         module_library_path_);
 
     ::GFModuleMetaData* p_meta_data = get_metadata_api_();
-    ::GFModuleMetaData* l_meta_data;
 
     while (p_meta_data != nullptr) {
+      ::GFModuleMetaData* l_meta_data;
       meta_data_[QString::fromUtf8(p_meta_data->key)] =
           QString::fromUtf8(p_meta_data->value);
       l_meta_data = p_meta_data;

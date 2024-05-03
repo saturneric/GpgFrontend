@@ -202,7 +202,7 @@ auto CalculateBinaryChacksum(const QString& path) -> QString {
   // read data by chunks
   const qint64 buffer_size = 8192;  // Define a suitable buffer size
   while (!f.atEnd()) {
-    QByteArray buffer = f.read(buffer_size);
+    QByteArray const buffer = f.read(buffer_size);
     if (buffer.isEmpty()) {
       GF_CORE_LOG_ERROR("error reading file {} during checksum calculation",
                         path.toStdString());
