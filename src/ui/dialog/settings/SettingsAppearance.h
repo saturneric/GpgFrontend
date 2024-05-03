@@ -70,7 +70,7 @@ class AppearanceTab : public QWidget {
    *
    * @param needed
    */
-  void signalRestartNeeded(bool needed);
+  void SignalRestartNeeded();
 };
 
 }  // namespace GpgFrontend::UI

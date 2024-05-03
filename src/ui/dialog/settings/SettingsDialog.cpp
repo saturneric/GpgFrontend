@@ -30,7 +30,6 @@
 
 #include "core/GpgConstants.h"
 #include "core/GpgModel.h"
-#include "core/function/GlobalSettingStation.h"
 #include "ui/dialog/settings/SettingsAppearance.h"
 #include "ui/dialog/settings/SettingsGeneral.h"
 #include "ui/dialog/settings/SettingsKeyServer.h"
@@ -74,24 +73,17 @@ SettingsDialog::SettingsDialog(QWidget* parent)
 
   setLayout(main_layout);
 
-  // slots for handling the restart needed member
-  this->slot_set_restart_needed(0);
-
   // restart ui
   connect(general_tab_, &GeneralTab::SignalRestartNeeded, this,
-          [=](bool needed) {
-            if (needed && restart_needed_ < kRestartCode) {
-              this->restart_needed_ = kRestartCode;
-            }
-          });
+          &SettingsDialog::slot_declare_a_restart);
 
   // restart core and ui
   connect(general_tab_, &GeneralTab::SignalDeepRestartNeeded, this,
-          [=](bool needed) {
-            if (needed && restart_needed_ < kDeepRestartCode) {
-              this->restart_needed_ = kDeepRestartCode;
-            }
-          });
+          &SettingsDialog::slot_declare_a_deep_restart);
+
+  // restart core and ui
+  connect(appearance_tab_, &AppearanceTab::SignalRestartNeeded, this,
+          &SettingsDialog::slot_declare_a_restart);
 
   // announce main window
   connect(this, &SettingsDialog::SignalRestartNeeded,
@@ -102,12 +94,16 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   this->show();
 }
 
-auto SettingsDialog::get_restart_needed() const -> int {
-  return this->restart_needed_;
+void SettingsDialog::slot_declare_a_restart() {
+  if (restart_needed_ < kRestartCode) {
+    this->restart_needed_ = kRestartCode;
+  }
 }
 
-void SettingsDialog::slot_set_restart_needed(int mode) {
-  this->restart_needed_ = mode;
+void SettingsDialog::slot_declare_a_deep_restart() {
+  if (restart_needed_ < kDeepRestartCode) {
+    this->restart_needed_ = kDeepRestartCode;
+  }
 }
 
 void SettingsDialog::SlotAccept() {
@@ -116,9 +112,9 @@ void SettingsDialog::SlotAccept() {
   key_server_tab_->ApplySettings();
   network_tab_->ApplySettings();
 
-  GF_UI_LOG_DEBUG("restart needed: {}", get_restart_needed());
-  if (get_restart_needed() != 0) {
-    emit SignalRestartNeeded(get_restart_needed());
+  GF_UI_LOG_DEBUG("ui restart status: {}", restart_needed_);
+  if (restart_needed_ != kNonRestartCode) {
+    emit SignalRestartNeeded(restart_needed_);
   }
   close();
 }
@@ -127,7 +123,7 @@ auto SettingsDialog::ListLanguages() -> QHash<QString, QString> {
   QHash<QString, QString> languages;
   languages.insert(QString(), tr("System Default"));
 
-  QStringList filenames = QDir(QLatin1String(":/i18n")).entryList();
+  auto filenames = QDir(QLatin1String(":/i18n")).entryList();
   for (const auto& file : filenames) {
     GF_UI_LOG_DEBUG("get locale from locale directory: {}", file);
 

@@ -110,10 +110,21 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
   // init locale
   InitUITranslations();
 
+  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto theme = settings.value("appearance/theme").toString();
+
 #ifdef WINDOWS
-  // support dark mode on windows
-  QApplication::setStyle("fusion");
+  if (theme.isEmpty()) {
+    // support dark mode on windows
+    QApplication::setStyle(QStyleFactory::create("Fusion"));
+  }
 #endif
+
+  auto available_styles = QStyleFactory::keys();
+  for (QString& s : available_styles) s = s.toLower();
+  if (!theme.isEmpty() && available_styles.contains(theme)) {
+    QApplication::setStyle(QStyleFactory::create(theme));
+  }
 
   // register meta types
   qRegisterMetaType<QSharedPointer<GpgPassphraseContext> >(
@@ -125,10 +136,8 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
   // init common utils
   CommonUtils::GetInstance();
 
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
-
   // application proxy configure
-  bool proxy_enable = settings.value("proxy/enable", false).toBool();
+  auto proxy_enable = settings.value("proxy/enable", false).toBool();
 
   // if enable proxy for application
   if (proxy_enable) {
@@ -138,9 +147,9 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
       QString proxy_host =
           settings.value("proxy/proxy_host", QString{}).toString();
       int proxy_port = settings.value("prox/port", 0).toInt();
-      QString proxy_username =
+      QString const proxy_username =
           settings.value("proxy/username", QString{}).toString();
-      QString proxy_password =
+      QString const proxy_password =
           settings.value("proxy/password", QString{}).toString();
       GF_UI_LOG_DEBUG("proxy settings: type {}, host {}, port: {}", proxy_type,
                       proxy_host, proxy_port);
@@ -193,7 +202,7 @@ auto RunGpgFrontendUI(QApplication* app) -> int {
 
   // pre-check, if application need to restart
   if (CommonUtils::GetInstance()->isApplicationNeedRestart()) {
-    GF_UI_LOG_DEBUG("application need to restart, before mian window init");
+    GF_UI_LOG_DEBUG("application need to restart, before main window init");
     return kDeepRestartCode;
   }
 
