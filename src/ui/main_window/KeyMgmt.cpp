@@ -229,22 +229,26 @@ void KeyMgmt::create_actions() {
           &KeyMgmt::SlotExportAsOpenSSHFormat);
 
   delete_selected_keys_act_ = new QAction(tr("Delete Selected Key(s)"), this);
+  delete_selected_keys_act_->setIcon(QIcon(":/icons/button_delete.png"));
   delete_selected_keys_act_->setToolTip(tr("Delete the Selected keys"));
   connect(delete_selected_keys_act_, &QAction::triggered, this,
           &KeyMgmt::SlotDeleteSelectedKeys);
 
   delete_checked_keys_act_ = new QAction(tr("Delete Checked Key(s)"), this);
-  delete_checked_keys_act_->setToolTip(tr("Delete the Checked keys"));
   delete_checked_keys_act_->setIcon(QIcon(":/icons/button_delete.png"));
+  delete_checked_keys_act_->setToolTip(tr("Delete the Checked keys"));
+
   connect(delete_checked_keys_act_, &QAction::triggered, this,
           &KeyMgmt::SlotDeleteCheckedKeys);
 
   show_key_details_act_ = new QAction(tr("Show Key Details"), this);
+  show_key_details_act_->setIcon(QIcon(":/icons/detail.png"));
   show_key_details_act_->setToolTip(tr("Show Details for this Key"));
   connect(show_key_details_act_, &QAction::triggered, this,
           &KeyMgmt::SlotShowKeyDetails);
 
   set_owner_trust_of_key_act_ = new QAction(tr("Set Owner Trust Level"), this);
+  set_owner_trust_of_key_act_->setIcon(QIcon(":/icons/stairs.png"));
   set_owner_trust_of_key_act_->setToolTip(tr("Set Owner Trust Level"));
   set_owner_trust_of_key_act_->setData(QVariant("set_owner_trust_level"));
   connect(set_owner_trust_of_key_act_, &QAction::triggered, this, [this]() {
