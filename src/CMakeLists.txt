@@ -394,6 +394,8 @@ if (BUILD_APPLICATION)
                     XCODE_ATTRIBUTE_ENABLE_APP_SANDBOX "${CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX}"
                     XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "Yes"
                     XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
+        elseif(LINUX AND LINUX_INSTALL_SOFTWARE)
+            add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
         else ()
             message(FATAL_ERROR "cannot find a defined method to release application.")
         endif ()
