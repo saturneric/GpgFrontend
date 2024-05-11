@@ -210,7 +210,9 @@ auto GFExecuteModule(GFModuleEvent *event) -> int {
       continue;
     }
 
-    auto *context = new Context{gpgme_version, gpgconf_path, component_info};
+    auto *context = new (GFAllocateMemory(sizeof(Context)))
+        Context{gpgme_version, gpgconf_path, component_info};
+
     const char **argv_0 =
         static_cast<const char **>(GFAllocateMemory(sizeof(const char *) * 2));
     argv_0[0] = GFModuleStrDup("--list-options"),
@@ -515,5 +517,6 @@ void GetGpgOptionInfos(void *data, int exit_code, const char *out,
     options_infos.push_back(info);
   }
 
+  context->~Context();
   GFFreeMemory(context);
 }
