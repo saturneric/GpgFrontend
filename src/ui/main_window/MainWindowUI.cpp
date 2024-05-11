@@ -618,9 +618,17 @@ void MainWindow::create_menus() {
   help_menu_ = menuBar()->addMenu(tr("Help"));
   help_menu_->addAction(start_wizard_act_);
   help_menu_->addSeparator();
-  help_menu_->addAction(check_update_act_);
-  help_menu_->addAction(gnupg_act_);
+
+  if (Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
+    help_menu_->addAction(gnupg_act_);
+  }
+
   help_menu_->addAction(translate_act_);
+
+  if (Module::IsModuleActivate(kVersionCheckingModuleID)) {
+    help_menu_->addAction(check_update_act_);
+  }
+
   help_menu_->addAction(about_act_);
 }
 
