@@ -103,6 +103,7 @@ jobs:
           pacman --noconfirm -S --needed make texinfo automake 
           pacman --noconfirm -S --needed libintl msys2-runtime-devel gettext-devel
           pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg mingw-w64-x86_64-libarchive
+          wget https://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-icu-73.2-1-any.pkg.tar.zst
           wget https://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-qt6-base-6.5.3-1-any.pkg.tar.zst
           wget https://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-qt6-5compat-6.5.3-1-any.pkg.tar.zst
           wget https://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-qt6-svg-6.5.3-1-any.pkg.tar.zst
