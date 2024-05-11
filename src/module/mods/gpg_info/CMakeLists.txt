@@ -60,10 +60,13 @@ endif()
 target_link_libraries(mod_gpg_info PRIVATE
   gpgfrontend_module_sdk)
 
-# link qt
-target_link_libraries(mod_gpg_info PRIVATE
-  Qt6::Core)
-       
+if(GPGFRONTEND_QT5_BUILD)
+  # link Qt core
+  target_link_libraries(mod_gpg_info PRIVATE Qt5::Core)
+else()
+  # link Qt core
+  target_link_libraries(mod_gpg_info PRIVATE Qt6::Core)
+endif()
 
 # property
 set_property(TARGET mod_gpg_info PROPERTY AUTOMOC ON)
