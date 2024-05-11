@@ -215,8 +215,11 @@ auto GFExecuteModule(GFModuleEvent *event) -> int {
   }
 
   GFExecuteCommandBatchSync(static_cast<int32_t>(exec_contexts.size()),
+#ifdef QT5_BUILD
+                            &(exec_contexts.first()));
+#else
                             exec_contexts.constData());
-
+#endif
   GFModuleUpsertRTValueBool(GFGetModuleID(),
                             GFModuleStrDup("gnupg.gathering_done"), 1);
 
