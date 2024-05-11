@@ -2046,42 +2046,42 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation type="unfinished">正在刷新金鑰列表...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="354"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="374"/>
         <source>Import Keys</source>
         <translation type="unfinished">導入金鑰</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="356"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="376"/>
         <source>You&apos;ve dropped something on the table.</source>
         <translation type="unfinished">你把東西掉在桌子上了。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="357"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="377"/>
         <source>GpgFrontend will now try to import key(s).</source>
         <translation type="unfinished">GpgFrontend 現在將嘗試導入金鑰。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="360"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="380"/>
         <source>Always import without bothering.</source>
         <translation type="unfinished">始終導入而無需打擾。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="455"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="475"/>
         <source>Key List Refreshed.</source>
         <translation type="unfinished">金鑰列表已刷新。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="476"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="510"/>
         <source>Syncing Key List...</source>
         <translation type="unfinished">正在同步金鑰列表...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="484"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="518"/>
         <source>Sync [%1/%2] %3 %4</source>
         <translation type="unfinished">同步 [%1/%2] %3 %4</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="494"/>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="528"/>
         <source>Key List Sync Done.</source>
         <translation type="unfinished">金鑰列表同步完成。</translation>
     </message>
@@ -4351,7 +4351,7 @@ If Data And Signature is COMBINED within a single file, KEEP THIS EMPTY: </sourc
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="308"/>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="554"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="628"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="636"/>
         <source>File</source>
         <translation type="unfinished">文件</translation>
     </message>
@@ -4668,7 +4668,7 @@ If Data And Signature is COMBINED within a single file, KEEP THIS EMPTY: </sourc
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="567"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="650"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="658"/>
         <source>Edit</source>
         <translation type="unfinished">編輯</translation>
     </message>
@@ -4708,62 +4708,62 @@ If Data And Signature is COMBINED within a single file, KEEP THIS EMPTY: </sourc
         <translation type="unfinished">幫助</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="635"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="643"/>
         <source>Operations</source>
         <translation type="unfinished">運作中</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="645"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="653"/>
         <source>Key</source>
         <translation type="unfinished">鑰匙</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="658"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="666"/>
         <source>Special Edit</source>
         <translation type="unfinished">特別編輯</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="670"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="678"/>
         <source>Import key from...</source>
         <translation type="unfinished">匯入金鑰位置...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="671"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="679"/>
         <source>Import key</source>
         <translation type="unfinished">導入金鑰</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="687"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="695"/>
         <source>Ready</source>
         <translation type="unfinished">準備好</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="694"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="702"/>
         <source>Key ToolBox</source>
         <translation type="unfinished">鑰匙工具箱</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="702"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="710"/>
         <source>Default</source>
         <translation type="unfinished">預設</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="710"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="718"/>
         <source>Favourite</source>
         <translation type="unfinished">最喜歡的</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="718"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="726"/>
         <source>Only Public Key</source>
         <translation type="unfinished">只有公鑰</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="728"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="736"/>
         <source>Has Private Key</source>
         <translation type="unfinished">有私鑰</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="742"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="750"/>
         <source>Information Board</source>
         <translation type="unfinished">信息板</translation>
     </message>
@@ -4812,7 +4812,7 @@ If Data And Signature is COMBINED within a single file, KEEP THIS EMPTY: </sourc
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="84"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="177"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="184"/>
         <source>Enable Auto Activate</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4879,22 +4879,22 @@ If Data And Signature is COMBINED within a single file, KEEP THIS EMPTY: </sourc
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="164"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="171"/>
         <source>Listening Event</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="173"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="180"/>
         <source>Deactivate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="174"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="181"/>
         <source>Activate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="176"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="183"/>
         <source>Disable Auto Activate</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5879,6 +5879,16 @@ If Data And Signature is COMBINED within a single file, KEEP THIS EMPTY: </sourc
     <message>
         <location filename="../../../../src/core/GpgCoreInit.cpp" line="418"/>
         <source>Gpg Key Detabase initiation failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="486"/>
+        <source>Sync All Public Key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="487"/>
+        <source>You have not checked any public keys that you want to synchronize, do you want to synchronize all local public keys from the key server?</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

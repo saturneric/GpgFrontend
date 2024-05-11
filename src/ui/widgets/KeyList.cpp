@@ -486,7 +486,7 @@ void KeyList::slot_sync_with_key_server() {
         this, QCoreApplication::tr("Sync All Public Key"),
         QCoreApplication::tr("You have not checked any public keys that you "
                              "want to synchronize, do you want to synchronize "
-                             "all public keys from the key server?"),
+                             "all local public keys from the key server?"),
         QMessageBox::Yes | QMessageBox::No);
 
     if (reply == QMessageBox::No) return;
