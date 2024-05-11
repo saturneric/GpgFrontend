@@ -166,7 +166,11 @@ auto GFExecuteModule(GFModuleEvent *event) -> int {
   GFExecuteCommandSync(gpgconf_path, 1, argv, GetGpgComponentInfos, &context);
   GFModuleLogDebug("load gnupg component info done.");
 
+#ifdef QT5_BUILD
+  QVector<GFCommandExecuteContext> exec_contexts;
+#else
   QList<GFCommandExecuteContext> exec_contexts;
+#endif
 
   const char **argv_0 =
       static_cast<const char **>(GFAllocateMemory(sizeof(const char *)));
@@ -197,7 +201,8 @@ auto GFExecuteModule(GFModuleEvent *event) -> int {
     assert(jsonlized_component_info.isObject());
 
     auto component_info = GpgComponentInfo(jsonlized_component_info.object());
-    GFModuleLogDebug(fmt::format("gpgconf check options ready, component: {}",
+    GFModuleLogDebug(fmt::format("gpgconf check options ready, "
+                                 "component: {}",
                                  component_info.name)
                          .c_str());
 
@@ -215,11 +220,7 @@ auto GFExecuteModule(GFModuleEvent *event) -> int {
   }
 
   GFExecuteCommandBatchSync(static_cast<int32_t>(exec_contexts.size()),
-#ifdef QT5_BUILD
-                            &(exec_contexts.first()));
-#else
                             exec_contexts.constData());
-#endif
   GFModuleUpsertRTValueBool(GFGetModuleID(),
                             GFModuleStrDup("gnupg.gathering_done"), 1);
 
@@ -267,10 +268,10 @@ auto CalculateBinaryChacksum(const QString &path) -> std::optional<QString> {
   while (!f.atEnd()) {
     QByteArray const buffer = f.read(buffer_size);
     if (buffer.isEmpty()) {
-      GFModuleLogError(
-          fmt::format("error reading file {} during checksum calculation",
-                      path.toStdString())
-              .c_str());
+      GFModuleLogError(fmt::format("error reading file {} during "
+                                   "checksum calculation",
+                                   path.toStdString())
+                           .c_str());
       return {};
     }
     hash_sha.addData(buffer);
@@ -279,7 +280,8 @@ auto CalculateBinaryChacksum(const QString &path) -> std::optional<QString> {
   // close the file
   f.close();
 
-  // return the first 6 characters of the SHA-256 hash of the file
+  // return the first 6 characters of the SHA-256 hash
+  // of the file
   return QString(hash_sha.result().toHex()).left(6);
 }
 
@@ -289,13 +291,14 @@ void GetGpgComponentInfos(void *data, int exit_code, const char *out,
   auto p_out = QString::fromUtf8(out);
   auto p_err = QString::fromUtf8(err);
 
-  GFModuleLogDebug(
-      fmt::format("gpgconf components exit_code: {} process stdout size: {}",
-                  exit_code, p_out.size())
-          .c_str());
+  GFModuleLogDebug(fmt::format("gpgconf components exit_code: {} "
+                               "process stdout size: {}",
+                               exit_code, p_out.size())
+                       .c_str());
 
   if (exit_code != 0) {
-    GFModuleLogError(fmt::format("gpgconf execute error, process stderr: {}, "
+    GFModuleLogError(fmt::format("gpgconf execute error, process "
+                                 "stderr: {}, "
                                  "process stdout: {}",
                                  p_err, p_out)
                          .c_str());
@@ -344,14 +347,16 @@ void GetGpgComponentInfos(void *data, int exit_code, const char *out,
     auto component_path = info_split_list[2].trimmed();
 
 #ifdef WINDOWS
-    // replace some special substrings on windows platform
+    // replace some special substrings on windows
+    // platform
     component_path.replace("%3a", ":");
 #endif
 
     auto binary_checksum = CalculateBinaryChacksum(component_path);
 
     GFModuleLogDebug(
-        fmt::format("gnupg component name: {} desc: {} checksum: {} path: {} ",
+        fmt::format("gnupg component name: {} desc: "
+                    "{} checksum: {} path: {} ",
                     component_name, component_desc,
                     binary_checksum.has_value() ? binary_checksum.value() : "/",
                     component_path)
@@ -414,10 +419,10 @@ void GetGpgDirectoryInfos(void *, int exit_code, const char *out,
 
   for (const auto &line : line_split_list) {
     auto info_split_list = line.split(":");
-    GFModuleLogDebug(
-        fmt::format("gpgconf direcrotries info line: {} info size: {}", line,
-                    info_split_list.size())
-            .c_str());
+    GFModuleLogDebug(fmt::format("gpgconf direcrotries info line: "
+                                 "{} info size: {}",
+                                 line, info_split_list.size())
+                         .c_str());
 
     if (info_split_list.size() != 2) continue;
 
@@ -425,7 +430,8 @@ void GetGpgDirectoryInfos(void *, int exit_code, const char *out,
     auto configuration_value = info_split_list[1].trimmed();
 
 #ifdef WINDOWS
-    // replace some special substrings on windows platform
+    // replace some special substrings on windows
+    // platform
     configuration_value.replace("%3a", ":");
 #endif
 
@@ -452,11 +458,11 @@ void GetGpgOptionInfos(void *data, int exit_code, const char *out,
   auto *context = reinterpret_cast<Context *>(data);
   auto component_name = context->component_info.name;
 
-  GFModuleLogDebug(
-      fmt::format("gpgconf {} avaliable options exit_code: {} process stdout "
-                  "size: {} ",
-                  component_name, exit_code, p_out.size())
-          .c_str());
+  GFModuleLogDebug(fmt::format("gpgconf {} avaliable options "
+                               "exit_code: {} process stdout "
+                               "size: {} ",
+                               component_name, exit_code, p_out.size())
+                       .c_str());
 
   std::vector<GpgOptionsInfo> options_infos;
 
@@ -465,10 +471,10 @@ void GetGpgOptionInfos(void *data, int exit_code, const char *out,
   for (const auto &line : line_split_list) {
     auto info_split_list = line.split(":");
 
-    GFModuleLogDebug(
-        fmt::format("component {} avaliable options line: {} info size: {}",
-                    component_name, line, info_split_list.size())
-            .c_str());
+    GFModuleLogDebug(fmt::format("component {} avaliable options "
+                                 "line: {} info size: {}",
+                                 component_name, line, info_split_list.size())
+                         .c_str());
 
     if (info_split_list.size() < 10) continue;
 
