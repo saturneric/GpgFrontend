@@ -97,9 +97,8 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
         with:
-          version: '6.6.1'
+          version: '6.5.3'
           cache: 'true'
-          modules: 'qt5compat'
 
       - name: Configure CMake && Build GpgFrontend 
         run: |

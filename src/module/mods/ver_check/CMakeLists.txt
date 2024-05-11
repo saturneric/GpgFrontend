@@ -39,7 +39,8 @@ target_include_directories(mod_ver_check PRIVATE
 
 # set output directory
 set_target_properties(mod_ver_check PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mods)
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mods
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mods)
 
 if (XCODE_BUILD)
   set_target_properties(mod_ver_check
