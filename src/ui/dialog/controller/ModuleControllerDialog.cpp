@@ -154,9 +154,16 @@ void ModuleControllerDialog::slot_load_module_details(
 
   info << "# " << tr("METADATA") << Qt::endl << Qt::endl;
 
+#ifdef QT5_BUILD
+  auto map = module->GetModuleMetaData();
+  for (auto it = map.keyValueBegin(); it != map.keyValueEnd(); ++it) {
+    info << " - " << it->first << ": " << it->second << "\n";
+  }
+#else
   for (const auto& metadata : module->GetModuleMetaData().asKeyValueRange()) {
     info << " - " << metadata.first << ": " << metadata.second << "\n";
   }
+#endif
 
   info << Qt::endl;
 
