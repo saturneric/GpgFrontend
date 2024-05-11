@@ -153,7 +153,7 @@ jobs:
       - name: Build GpgFrontend (Linux)
         # Build your GpgFrontend with the given configuration
         run: |
-          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_QT5_BUILD=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
         if: matrix.os == 'ubuntu-20.04'
 

@@ -106,6 +106,7 @@ jobs:
           wget https://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-qt6-base-6.5.3-1-any.pkg.tar.zst
           wget https://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-qt6-5compat-6.5.3-1-any.pkg.tar.zst
           wget https://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-qt6-svg-6.5.3-1-any.pkg.tar.zst
+          wget https://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-qt6-tools-6.5.3-1-any.pkg.tar.zst
           pacman --noconfirm -U *.pkg.tar.zst
         if: matrix.os == 'windows-2019'
 
