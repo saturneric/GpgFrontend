@@ -140,11 +140,20 @@ void AppearanceTab::SetSettings() {
 
   auto target_theme_index = ui_->themeComboBox->findText(theme);
   if (theme.isEmpty() || target_theme_index == -1) {
+#ifdef QT5_BUILD
+    GF_UI_LOG_DEBUG(
+        "There is not valid theme found from settings, "
+        "using current theme (qt5): {}",
+        QApplication::style()->metaObject()->className());
+    ui_->themeComboBox->setCurrentIndex(ui_->themeComboBox->findText(
+        QApplication::style()->metaObject()->className()));
+#else
     GF_UI_LOG_DEBUG(
         "There is not valid theme found from settings, using current theme: {}",
         QApplication::style()->name());
     ui_->themeComboBox->setCurrentIndex(
         ui_->themeComboBox->findText(QApplication::style()->name()));
+#endif
   } else {
     ui_->themeComboBox->setCurrentIndex(target_theme_index);
   }
