@@ -78,7 +78,7 @@ SignersPicker::SignersPicker(QWidget* parent)
 }
 
 auto SignersPicker::GetCheckedSigners() -> GpgFrontend::KeyIdArgsListPtr {
-  return key_list_->GetPrivateChecked();
+  return key_list_->GetCheckedPrivateKey();
 }
 
 auto SignersPicker::GetStatus() const -> bool { return this->accepted_; }

@@ -141,7 +141,7 @@ void MainWindow::SlotEncrypt() {
 void MainWindow::SlotSign() {
   if (edit_->SlotCurPageTextEdit() == nullptr) return;
 
-  auto key_ids = m_key_list_->GetPrivateChecked();
+  auto key_ids = m_key_list_->GetCheckedPrivateKey();
   if (key_ids->empty()) {
     QMessageBox::critical(
         this, tr("No Key Checked"),
