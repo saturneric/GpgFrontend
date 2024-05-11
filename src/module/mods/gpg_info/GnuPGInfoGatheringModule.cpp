@@ -33,10 +33,14 @@
 #include <GFSDKLog.h>
 #include <spdlog/spdlog.h>
 
+// qt
 #include <QCryptographicHash>
 #include <QFileInfo>
 #include <QJsonDocument>
 #include <QString>
+
+// c++
+#include <optional>
 
 #include "GpgInfo.h"
 
