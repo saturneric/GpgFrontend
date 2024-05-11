@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "GpgConstants.h"
+#include "core/GpgFrontendCoreExport.h"
 
 namespace GpgFrontend {
 

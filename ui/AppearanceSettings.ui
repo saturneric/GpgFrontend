@@ -14,16 +14,110 @@
    <string>Appearance Settings</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
+   <item row="2" column="0">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QGroupBox" name="iconSizeBox">
+      <widget class="QGroupBox" name="generalBox">
        <property name="title">
-        <string>Icon Size</string>
+        <string>General</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="themaLabel">
+            <property name="text">
+             <string>Theme</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="themeComboBox"/>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="windowStateCheckBox">
+          <property name="text">
+           <string>Save window size and position on exit.</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="fontSizeBox">
+       <property name="title">
+        <string>Font Size</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_8">
+        <item row="0" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <widget class="QLabel" name="fontSizeTextEditorLabel">
+            <property name="text">
+             <string>Text Editor</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="fontSizeTextEditorLabelSpinBox">
+            <property name="minimum">
+             <number>9</number>
+            </property>
+            <property name="maximum">
+             <number>18</number>
+            </property>
+            <property name="value">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="1" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QLabel" name="fontSizeInformationBoardLabel">
+            <property name="text">
+             <string>Information Board</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="fontSizeInformationBoardSpinBox">
+            <property name="minimum">
+             <number>9</number>
+            </property>
+            <property name="maximum">
+             <number>18</number>
+            </property>
+            <property name="value">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="toolbarIconBox">
+       <property name="title">
+        <string>Toolbar Icon</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="0" column="0">
          <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QLabel" name="toolbarIconSizeLabel">
+            <property name="text">
+             <string>Size</string>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QRadioButton" name="smallRadioButton">
             <property name="text">
@@ -47,17 +141,15 @@
           </item>
          </layout>
         </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="iconStyleBox">
-       <property name="title">
-        <string>Icon Style</string>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="0">
+        <item row="1" column="0">
          <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QLabel" name="toolbarIconStyleLabel">
+            <property name="text">
+             <string>Style</string>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QRadioButton" name="justTextRadioButton">
             <property name="text">
@@ -76,92 +168,6 @@
            <widget class="QRadioButton" name="textAndIconsRadioButton">
             <property name="text">
              <string>text and icons</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="windowStateBox">
-       <property name="title">
-        <string>Window State</string>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="0">
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <item>
-           <widget class="QCheckBox" name="windowStateCheckBox">
-            <property name="text">
-             <string>Save window size and position on exit.</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="textEditorBox">
-       <property name="title">
-        <string>Text Editor</string>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_8">
-        <item row="0" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_5">
-          <item>
-           <widget class="QLabel" name="fontSizeTextEditorLabel">
-            <property name="text">
-             <string>Font Size in Text Editor</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="fontSizeTextEditorLabelSpinBox">
-            <property name="minimum">
-             <number>9</number>
-            </property>
-            <property name="maximum">
-             <number>18</number>
-            </property>
-            <property name="value">
-             <number>10</number>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="informationBoardBox">
-       <property name="title">
-        <string>Information Board</string>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_6">
-        <item row="0" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <item>
-           <widget class="QLabel" name="fontSizeInformationBoardLabel">
-            <property name="text">
-             <string>Font Size in Information Board</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="fontSizeInformationBoardSpinBox">
-            <property name="minimum">
-             <number>9</number>
-            </property>
-            <property name="maximum">
-             <number>18</number>
-            </property>
-            <property name="value">
-             <number>10</number>
             </property>
            </widget>
           </item>

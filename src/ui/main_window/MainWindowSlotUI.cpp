@@ -28,13 +28,14 @@
 
 #include "MainWindow.h"
 #include "core/GpgConstants.h"
+#include "core/function/CacheManager.h"
 #include "core/model/GpgPassphraseContext.h"
+#include "core/model/SettingsObject.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/Wizard.h"
 #include "ui/function/RaisePinentry.h"
 #include "ui/main_window/KeyMgmt.h"
-#include "ui/struct/SettingsObject.h"
-#include "ui/struct/settings/AppearanceSO.h"
+#include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
@@ -121,10 +122,13 @@ void MainWindow::slot_open_settings_dialog() {
     import_button_->setIconSize(
         QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
 
-    // restart mainwindow if necessary
-    if (get_restart_needed() != 0) {
+    // restart main window if necessary
+    if (restart_mode_ != kNonRestartCode) {
       if (edit_->MaybeSaveAnyTab()) {
-        emit SignalRestartApplication(get_restart_needed());
+        // clear cache of unsaved page
+        CacheManager::GetInstance().SaveDurableCache(
+            "editor_unsaved_pages", QJsonDocument(QJsonArray()), true);
+        emit SignalRestartApplication(restart_mode_);
       }
     }
   });
@@ -180,10 +184,8 @@ void MainWindow::slot_cut_pgp_header() {
 
 void MainWindow::SlotSetRestartNeeded(int mode) {
   GF_UI_LOG_DEBUG("restart mode: {}", mode);
-  this->restart_needed_ = mode;
+  this->restart_mode_ = mode;
 }
-
-int MainWindow::get_restart_needed() const { return this->restart_needed_; }
 
 void MainWindow::SlotUpdateCryptoMenuStatus(unsigned int type) {
   MainWindow::CryptoMenu::OperationType opera_type = type;

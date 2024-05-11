@@ -33,7 +33,7 @@ jobs:
           git config --global core.eol lf
         if: matrix.os == 'windows-2019' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           lfs: 'false'
           submodules: recursive
@@ -77,8 +77,7 @@ jobs:
       - name: Install Qt6
         uses: jurplel/install-qt-action@v3
         with:
-          version: '6.6.1'
-          modules: 'qt5compat'
+          version: '6.5.3'
           cache: 'true'
         if: matrix.os == 'ubuntu-20.04' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
@@ -101,8 +100,14 @@ jobs:
         run: |
           pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf 
           pacman --noconfirm -S --needed make texinfo automake 
-          pacman --noconfirm -S --needed mingw-w64-x86_64-qt6 libintl msys2-runtime-devel gettext-devel
+          pacman --noconfirm -S --needed libintl msys2-runtime-devel gettext-devel
           pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg mingw-w64-x86_64-libarchive
+          wget https://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-icu-73.2-1-any.pkg.tar.zst
+          wget https://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-qt6-base-6.5.3-1-any.pkg.tar.zst
+          wget https://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-qt6-5compat-6.5.3-1-any.pkg.tar.zst
+          wget https://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-qt6-svg-6.5.3-1-any.pkg.tar.zst
+          wget https://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-qt6-tools-6.5.3-1-any.pkg.tar.zst
+          pacman --noconfirm -U *.pkg.tar.zst
         if: matrix.os == 'windows-2019'
 
       - name: Build gpg-error (Linux)
@@ -175,6 +180,13 @@ jobs:
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
         if: matrix.os == 'ubuntu-20.04'
 
+      - name: Build Integrated Modules (macOS)
+        # Build your GpgFrontend with the given configuration
+        run: |
+          cmake -B ${{github.workspace}}/build-mods -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_MODS_ONLY=On
+          cmake --build ${{github.workspace}}/build-mods --config {{$env.BUILD_TYPE}} -- -v
+        if: matrix.os == 'macos-11' || matrix.os == 'macos-12'
+
       - name: Build & Export GpgFrontend (macOS)
         # Build your GpgFrontend with the given configuration
         run: |
@@ -195,6 +207,13 @@ jobs:
             -exportPath ${{github.workspace}}/build/package/
         if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
+      - name: Copy Modules into Bundle & Deploy Qt & Code Sign (macOS)
+        run: |
+          cmake -E copy_directory ${{github.workspace}}/build-mods/artifacts/mods ${{github.workspace}}/build/package/GpgFrontend.app/Contents/PlugIns/mods
+          macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app -verbose=2 -appstore-compliant -always-overwrite
+          codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" -f --deep --options=runtime  ${{github.workspace}}/build/package/GpgFrontend.app
+        if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
+
       - name: Package & Sign App Bundle (macOS)
         run: |
           security -v unlock-keychain -p gpgfrontend
@@ -212,11 +231,11 @@ jobs:
 
       - name: Notarize Release Build (macOS)
         run: |
-          xcrun altool --notarize-app \
-          -f ${{github.workspace}}/build/GpgFrontend-${{env.sha_short}}-x86_64.zip \
-          --primary-bundle-id ${{secrets.GPGFRONTEND_XOCDE_APPID}} \
-          -u ${{secrets.APPLE_DEVELOPER_ID}} \
-          -p ${{secrets.APPLE_DEVELOPER_ID_SECRET}}
+          xcrun notarytool submit \
+          --apple-id ${{secrets.APPLE_DEVELOPER_ID}} \
+          --team-id ${{secrets.APPLE_DEVELOPER_TEAM_ID}} \
+          --password ${{secrets.APPLE_DEVELOPER_ID_SECRET}} \
+          ${{github.workspace}}/build/GpgFrontend-${{env.sha_short}}-x86_64.zip
         if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
 
       - name: Package App Image (Linux)
@@ -225,7 +244,7 @@ jobs:
           cd ${{github.workspace}}/build/final-artifact
           wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
-          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/gpgfrontend/usr/share/applications/*.desktop -appimage
+          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines,platformthemes/libqgtk3.so -appimage -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/plugins/mods/
         if: matrix.os == 'ubuntu-20.04'
 
       - name: Configure CMake & Build Binary(Windows)
@@ -234,7 +253,6 @@ jobs:
           cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
           mkdir build && cd build
           cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON ..
-          # Build your program with the given configuration
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
         if: matrix.os == 'windows-2019'
 
@@ -242,7 +260,7 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{ github.sha }}
-          path: ${{github.workspace}}/build/final-artifact/GpgFrontend*.AppImage*
+          path: ${{github.workspace}}/build/final-artifact/Gpg_Frontend*.AppImage*
         if: matrix.os == 'ubuntu-20.04'
 
       - name: Upload Artifact(macOS)

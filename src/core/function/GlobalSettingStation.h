@@ -83,6 +83,13 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
   [[nodiscard]] auto GetLogDir() const -> QString;
 
   /**
+   * @brief Get the Modules Dir object
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto GetModulesDir() const -> QString;
+
+  /**
    * @brief Get the Log Files Size object
    *
    * @return QString

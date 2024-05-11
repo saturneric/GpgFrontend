@@ -2,7 +2,7 @@
 <component type="desktop-application">
   <id>com.bktus.gpgfrontend</id>
 
-  <name>GpgFrontend</name>
+  <name>Gpg Frontend</name>
   <summary>Encrypt and sign data</summary>
 
   <metadata_license>MIT</metadata_license>
@@ -12,21 +12,49 @@
 
   <description>
     <p>
-      GpgFrontend is a free, open-source, robust yet user-friendly, compact and cross-platform tool for OpenPGP encryption.
+      Gpg Frontend is a free, open-source, robust yet user-friendly, compact and cross-platform tool for OpenPGP encryption.
     </p>
     <p>
-      By using GpgFrontend, users can quickly encrypt files or text, easily digitally sign them, and conveniently manage 
+      By using Gpg Frontend, users can quickly encrypt files or text, easily digitally sign them, and conveniently manage 
       all GPG keys on their device. The tool also facilitates the secure and seamless transfer of GPG keys between devices. 
       It is compatible with a range of operating systems, including Windows, macOS, Linux, and FreeBSD.
     </p>
+    <p>A list of features</p>
+    <ul>
+      <li>Rapidly encrypt files or text.</li>
+      <li>Digitally sign your files or text with ease.</li>
+      <li>Conveniently manage all your GPG keys on your device.</li>
+      <li>Transfer all your GPG keys between devices safely and effortlessly.</li>
+    </ul>
   </description>
 
   <launchable type="desktop-id">com.bktus.gpgfrontend.desktop</launchable>
 
+  <branding>
+    <color type="primary" scheme_preference="light">#ff00ff</color>
+    <color type="primary" scheme_preference="dark">#993d3d</color>
+  </branding>
+
   <screenshots>
     <screenshot type="default">
+      <image>https://image.cdn.bktus.com/i/2024/02/14/056f1017-331f-ef69-93a6-c49f1d233f8d.png</image>
       <caption>Main Window</caption>
-      <image>https://raw.githubusercontent.com/saturneric/Blob/v1.0.2/screenshots/main-ubuntu.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://image.cdn.bktus.com/i/2024/02/14/8b891c88-2335-63d8-4f78-2d0dffea763c.png</image>
+      <caption>Subkey Management</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://image.cdn.bktus.com/i/2024/02/14/704717c6-e2bc-c5f3-e69e-dcc9a588dde4.png</image>
+      <caption>Key Generation</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://image.cdn.bktus.com/i/2024/02/14/d8e79f1c-7d07-c550-b1d7-36c33a901056.png</image>
+      <caption>Verify Signature of File</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://image.cdn.bktus.com/i/2024/02/14/f1ef687a-a232-23e3-776d-c03e88c62dca.png</image>
+      <caption>Import Key(s) From Key Server</caption>
     </screenshot>
   </screenshots>
 
@@ -37,6 +65,7 @@
   <url type="vcs-browser">https://github.com/saturneric/GpgFrontend</url>
   
   <releases>
+      <release version="2.1.2" date="2024-02-02"/>
       <release version="2.1.1" date="2023-09-19"/>
       <release version="2.1.0" date="2023-08-01"/>
       <release version="2.0.10" date="2023-01-06"/>

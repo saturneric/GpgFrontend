@@ -29,6 +29,7 @@
 #include "SettingsNetwork.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/module/ModuleManager.h"
 #include "ui/thread/ProxyConnectionTestTask.h"
 #include "ui_NetworkSettings.h"
 
@@ -86,60 +87,62 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
 
   ui_->forbidALLGnuPGNetworkConnectionCheckBox->setText(
       tr("Forbid all GnuPG network connection."));
-  ui_->prohibitUpdateCheck->setText(
-      tr("Prohibit checking for version updates when the program starts."));
+
+  if (Module::IsModuleActivate(kVersionCheckingModuleID)) {
+    ui_->prohibitUpdateCheck->setText(
+        tr("Prohibit checking for version updates when the program starts."));
+  }
   ui_->autoImportMissingKeyCheckBox->setText(
       tr("Automatically import a missing key for signature verification."));
   ui_->networkAbilityTipsLabel->setText(
       tr("Tips: These Option Changes take effect only after the "
          "application restart."));
-
   SetSettings();
 }
 
 void GpgFrontend::UI::NetworkTab::SetSettings() {
   auto settings = GlobalSettingStation::GetInstance().GetSettings();
 
-  QString proxy_host = settings.value("proxy/proxy_host").toString();
+  auto proxy_host = settings.value("proxy/proxy_host").toString();
   ui_->proxyServerAddressEdit->setText(proxy_host);
-  QString username = settings.value("proxy/username").toString();
+  auto username = settings.value("proxy/username").toString();
   ui_->usernameEdit->setText(username);
-  QString password = settings.value("proxy/password").toString();
+  auto password = settings.value("proxy/password").toString();
   ui_->passwordEdit->setText(password);
 
-  int port = settings.value("proxy/port", 0).toInt();
+  auto port = settings.value("proxy/port", 0).toInt();
   ui_->portSpin->setValue(port);
 
   ui_->proxyTypeComboBox->setCurrentText("HTTP");
 
-  QString proxy_type = settings.value("proxy/proxy_type").toString();
+  auto proxy_type = settings.value("proxy/proxy_type").toString();
   ui_->proxyTypeComboBox->setCurrentText(proxy_type);
 
   switch_ui_proxy_type(ui_->proxyTypeComboBox->currentText());
 
   ui_->enableProxyCheckBox->setCheckState(Qt::Unchecked);
 
-  bool proxy_enable = settings.value("proxy/enable", false).toBool();
+  auto proxy_enable = settings.value("proxy/enable", false).toBool();
   ui_->enableProxyCheckBox->setCheckState(proxy_enable ? Qt::Checked
                                                        : Qt::Unchecked);
 
-  bool forbid_all_gnupg_connection =
+  auto forbid_all_gnupg_connection =
       settings.value("network/forbid_all_gnupg_connection").toBool();
   ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(
       forbid_all_gnupg_connection ? Qt::Checked : Qt::Unchecked);
 
-  bool prohibit_update_checking =
+  auto prohibit_update_checking =
       settings.value("network/prohibit_update_checking").toBool();
   ui_->prohibitUpdateCheck->setCheckState(
       prohibit_update_checking ? Qt::Checked : Qt::Unchecked);
 
-  bool auto_import_missing_key =
+  auto auto_import_missing_key =
       settings.value("network/auto_import_missing_key", true).toBool();
   ui_->autoImportMissingKeyCheckBox->setCheckState(
       auto_import_missing_key ? Qt::Checked : Qt::Unchecked);
 
-  switch_ui_enabled(ui_->enableProxyCheckBox->isChecked());
   switch_ui_proxy_type(ui_->proxyTypeComboBox->currentText());
+  switch_ui_enabled(ui_->enableProxyCheckBox->isChecked());
 }
 
 void GpgFrontend::UI::NetworkTab::ApplySettings() {
@@ -171,7 +174,7 @@ void GpgFrontend::UI::NetworkTab::slot_test_proxy_connection_result() {
                                    tr("Server Url"), QLineEdit::Normal,
                                    "https://", &ok);
   if (ok && !url.isEmpty()) {
-    auto task = new ProxyConnectionTestTask(url, 800);
+    auto *task = new ProxyConnectionTestTask(url, 800);
     connect(task,
             &GpgFrontend::UI::ProxyConnectionTestTask::
                 SignalProxyConnectionTestResult,
@@ -193,7 +196,7 @@ void GpgFrontend::UI::NetworkTab::slot_test_proxy_connection_result() {
     auto *waiting_dialog = new QProgressDialog(this);
     waiting_dialog->setMaximum(0);
     waiting_dialog->setMinimum(0);
-    auto waiting_dialog_label = new QLabel(
+    auto *waiting_dialog_label = new QLabel(
         tr("Test Proxy Server Connection...") + "<br /><br />" +
         tr("Is using your proxy settings to access the url. Note that this "
            "test "

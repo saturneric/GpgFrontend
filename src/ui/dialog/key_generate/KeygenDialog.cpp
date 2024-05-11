@@ -141,7 +141,8 @@ void KeyGenDialog::slot_key_gen_accept() {
 
     if (!GlobalSettingStation::GetInstance()
              .GetSettings()
-             .value("gnupg/use_pinentry_as_password_input_dialog", true)
+             .value("gnupg/use_pinentry_as_password_input_dialog",
+                    QString::fromLocal8Bit(qgetenv("container")) != "flatpak")
              .toBool() &&
         !no_pass_phrase_check_box_->isChecked()) {
       SetCacheValue("PinentryContext", "NEW_PASSPHRASE");

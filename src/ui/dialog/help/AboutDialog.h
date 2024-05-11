@@ -120,7 +120,7 @@ class AboutDialog : public GeneralDialog {
    * @param defaultIndex
    * @param parent
    */
-  explicit AboutDialog(int defaultIndex, QWidget* parent);
+  explicit AboutDialog(const QString& default_tab_name, QWidget* parent);
 
  protected:
   /**
@@ -129,9 +129,6 @@ class AboutDialog : public GeneralDialog {
    * @param ev
    */
   void showEvent(QShowEvent* ev) override;
-
- private:
-  UpdateTab* update_tab_;  ///<
 };
 
 }  // namespace GpgFrontend::UI

@@ -41,6 +41,8 @@
 
 namespace GpgFrontend::UI {
 
+QList<QTranslator*> registered_translators;
+
 extern void InitUITranslations();
 
 void WaitEnvCheckingProcess() {
@@ -75,14 +77,14 @@ void WaitEnvCheckingProcess() {
                         &QEventLoop::quit);
 
   QApplication::connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
-    GF_UI_LOG_DEBUG("cancel clicked on wairing dialog");
+    GF_UI_LOG_DEBUG("cancel clicked on waiting dialog");
     QApplication::quit();
     exit(0);
   });
 
   auto env_state =
       Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.basic", 0);
-  GF_UI_LOG_DEBUG("ui is ready to wating for env initialized, env_state: {}",
+  GF_UI_LOG_DEBUG("ui is ready to waiting for env initialized, env_state: {}",
                   env_state);
 
   // check twice to avoid some unlucky sitations
@@ -108,10 +110,21 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
   // init locale
   InitUITranslations();
 
+  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto theme = settings.value("appearance/theme").toString();
+
 #ifdef WINDOWS
-  // support dark mode on windows
-  QApplication::setStyle("fusion");
+  if (theme.isEmpty()) {
+    // support dark mode on windows
+    QApplication::setStyle(QStyleFactory::create("Fusion"));
+  }
 #endif
+
+  auto available_styles = QStyleFactory::keys();
+  for (QString& s : available_styles) s = s.toLower();
+  if (!theme.isEmpty() && available_styles.contains(theme)) {
+    QApplication::setStyle(QStyleFactory::create(theme));
+  }
 
   // register meta types
   qRegisterMetaType<QSharedPointer<GpgPassphraseContext> >(
@@ -123,10 +136,8 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
   // init common utils
   CommonUtils::GetInstance();
 
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
-
   // application proxy configure
-  bool proxy_enable = settings.value("proxy/enable", false).toBool();
+  auto proxy_enable = settings.value("proxy/enable", false).toBool();
 
   // if enable proxy for application
   if (proxy_enable) {
@@ -136,9 +147,9 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
       QString proxy_host =
           settings.value("proxy/proxy_host", QString{}).toString();
       int proxy_port = settings.value("prox/port", 0).toInt();
-      QString proxy_username =
+      QString const proxy_username =
           settings.value("proxy/username", QString{}).toString();
-      QString proxy_password =
+      QString const proxy_password =
           settings.value("proxy/password", QString{}).toString();
       GF_UI_LOG_DEBUG("proxy settings: type {}, host {}, port: {}", proxy_type,
                       proxy_host, proxy_port);
@@ -191,7 +202,7 @@ auto RunGpgFrontendUI(QApplication* app) -> int {
 
   // pre-check, if application need to restart
   if (CommonUtils::GetInstance()->isApplicationNeedRestart()) {
-    GF_UI_LOG_DEBUG("application need to restart, before mian window init");
+    GF_UI_LOG_DEBUG("application need to restart, before main window init");
     return kDeepRestartCode;
   }
 
@@ -213,31 +224,38 @@ void GPGFRONTEND_UI_EXPORT DestroyGpgFrontendUI() {}
  *
  */
 void InitUITranslations() {
+  for (const auto& translator : registered_translators) {
+    QCoreApplication::removeTranslator(translator);
+  }
+  registered_translators.clear();
+
   auto* translator = new QTranslator(QCoreApplication::instance());
+  if (translator->load(QLocale(), QLatin1String("qt"), QLatin1String("_"),
+                       QLatin1String(":/i18n_qt"), QLatin1String(".qm"))) {
+    GF_UI_LOG_DEBUG("load qt translation file done, locale: {}",
+                    QLocale().name());
+
+    QCoreApplication::installTranslator(translator);
+    registered_translators.append(translator);
+  }
+
+  translator = new QTranslator(QCoreApplication::instance());
+  if (translator->load(QLocale(), QLatin1String("qtbase"), QLatin1String("_"),
+                       QLatin1String(":/i18n_qt"), QLatin1String(".qm"))) {
+    GF_UI_LOG_DEBUG("load qtbase translation file done, locale: {}",
+                    QLocale().name());
+    QCoreApplication::installTranslator(translator);
+    registered_translators.append(translator);
+  }
+
+  translator = new QTranslator(QCoreApplication::instance());
   if (translator->load(QLocale(), QLatin1String(PROJECT_NAME),
                        QLatin1String("."), QLatin1String(":/i18n"),
                        QLatin1String(".qm"))) {
     GF_UI_LOG_DEBUG("load target translation file done, locale: {}",
                     QLocale().name());
     QCoreApplication::installTranslator(translator);
-  }
-
-  auto* base_translation = new QTranslator(QCoreApplication::instance());
-  if (base_translation->load(QLocale(), QLatin1String("qt"), QLatin1String("_"),
-                             QLatin1String(":/i18n_qt"),
-                             QLatin1String(".qm"))) {
-    GF_UI_LOG_DEBUG("load qt translation file done, locale: {}",
-                    QLocale().name());
-    QCoreApplication::installTranslator(base_translation);
-  }
-
-  base_translation = new QTranslator(QCoreApplication::instance());
-  if (base_translation->load(QLocale(), QLatin1String("qtbase"),
-                             QLatin1String("_"), QLatin1String(":/i18n_qt"),
-                             QLatin1String(".qm"))) {
-    GF_UI_LOG_DEBUG("load qtbase translation file done, locale: {}",
-                    QLocale().name());
-    QCoreApplication::installTranslator(base_translation);
+    registered_translators.append(translator);
   }
 }
 

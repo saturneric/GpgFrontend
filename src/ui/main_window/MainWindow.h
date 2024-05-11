@@ -357,7 +357,7 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @details called when need to upgrade.
    */
-  void slot_version_upgrade_nofity();
+  void slot_version_upgrade_notify();
 
   /**
    * @details
@@ -421,16 +421,11 @@ class MainWindow : public GeneralMainWindow {
    */
   void recover_editor_unsaved_pages_from_cache();
 
-  /**
-   * @brief return true, if restart is needed
-   */
-  [[nodiscard]] int get_restart_needed() const;
-
   TextEdit* edit_{};          ///< Tabwidget holding the edit-windows
   QMenu* file_menu_{};        ///<  Submenu for file-operations
   QMenu* edit_menu_{};        ///<  Submenu for text-operations
   QMenu* crypt_menu_{};       ///<  Submenu for crypt-operations
-  QMenu* gpg_menu_{};         ///<  Submenu for help-operations
+  QMenu* advance_menu_{};     ///<  Submenu for help-operations
   QMenu* help_menu_{};        ///<  Submenu for help-operations
   QMenu* key_menu_{};         ///<  Submenu for key-operations
   QMenu* view_menu_{};        ///<  Submenu for view operations
@@ -473,6 +468,7 @@ class MainWindow : public GeneralMainWindow {
                                              ///<  breaks
 
   QAction* gnupg_controller_open_act_{};     ///<
+  QAction* module_controller_open_act_{};    ///<
   QAction* clean_gpg_password_cache_act_{};  ///<
   QAction* reload_components_act_{};         ///<
   QAction* restart_components_act_{};        ///<
@@ -488,7 +484,7 @@ class MainWindow : public GeneralMainWindow {
   QAction* copy_key_id_to_clipboard_act_{};        ///<
   QAction* copy_key_default_uid_to_clipboard_act_{};  ///<
 
-  QAction* add_key_2_favourtie_act_{};        ///<
+  QAction* add_key_2_favourite_act_{};        ///<
   QAction* remove_key_from_favourtie_act_{};  ///<
   QAction* set_owner_trust_of_key_act_{};     ///<
 
@@ -522,7 +518,7 @@ class MainWindow : public GeneralMainWindow {
   InfoBoardWidget* info_board_{};  ///<
 
   bool attachment_dock_created_{};         ///<
-  int restart_needed_{0};                  ///<
+  int restart_mode_{0};                    ///<
   bool prohibit_update_checking_ = false;  ///<
 };
 

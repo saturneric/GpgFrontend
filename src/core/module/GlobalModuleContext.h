@@ -58,6 +58,8 @@ class GPGFRONTEND_CORE_EXPORT GlobalModuleContext : public QObject {
 
   ~GlobalModuleContext() override;
 
+  auto SearchModule(ModuleIdentifier) -> ModulePtr;
+
   auto GetChannel(ModuleRawPtr) -> int;
 
   static auto GetDefaultChannel(ModuleRawPtr) -> int;
@@ -68,7 +70,7 @@ class GPGFRONTEND_CORE_EXPORT GlobalModuleContext : public QObject {
 
   auto GetGlobalTaskRunner() -> std::optional<TaskRunnerPtr>;
 
-  auto RegisterModule(ModulePtr) -> bool;
+  auto RegisterModule(ModulePtr, bool) -> bool;
 
   auto ActiveModule(ModuleIdentifier) -> bool;
 
@@ -76,9 +78,17 @@ class GPGFRONTEND_CORE_EXPORT GlobalModuleContext : public QObject {
 
   auto ListenEvent(ModuleIdentifier, EventIdentifier) -> bool;
 
-  auto TriggerEvent(EventRefrernce) -> bool;
+  auto TriggerEvent(EventReference) -> bool;
+
+  auto SearchEvent(EventTriggerIdentifier) -> std::optional<EventReference>;
+
+  auto GetModuleListening(ModuleIdentifier) -> QList<EventIdentifier>;
 
   auto IsModuleActivated(ModuleIdentifier) -> bool;
+
+  auto IsIntegratedModule(ModuleIdentifier) -> bool;
+
+  auto ListAllRegisteredModuleID() -> QList<ModuleIdentifier>;
 
  private:
   class Impl;

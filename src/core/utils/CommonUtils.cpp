@@ -43,7 +43,7 @@ auto BeautifyFingerprint(QString fingerprint) -> QString {
   return out.readAll();
 }
 
-auto CompareSoftwareVersion(const QString& a, const QString& b) -> int {
+auto GFCompareSoftwareVersion(const QString& a, const QString& b) -> int {
   auto remove_prefix = [](const QString& version) {
     return version.startsWith('v') ? version.mid(1) : version;
   };
@@ -71,4 +71,25 @@ auto CompareSoftwareVersion(const QString& a, const QString& b) -> int {
 
   return 0;
 }
+
+auto GFStrDup(const QString& str) -> char* {
+  auto utf8_str = str.toUtf8();
+  auto* c_str =
+      static_cast<char*>(SecureMalloc((utf8_str.size() + 1) * sizeof(char)));
+
+  memcpy(c_str, utf8_str.constData(), utf8_str.size());
+  c_str[utf8_str.size()] = '\0';
+  return c_str;
+}
+
+auto GPGFRONTEND_CORE_EXPORT GFUnStrDup(char* str) -> QString {
+  auto qt_str = QString::fromUtf8(str);
+  SecureFree(static_cast<void*>(const_cast<char*>(str)));
+  return qt_str;
+}
+
+auto GPGFRONTEND_CORE_EXPORT GFUnStrDup(const char* str) -> QString {
+  return GFUnStrDup(const_cast<char*>(str));
+}
+
 }  // namespace GpgFrontend

@@ -28,9 +28,10 @@
 
 #include "SettingsAppearance.h"
 
+#include "core/function/GlobalSettingStation.h"
+#include "core/model/SettingsObject.h"
 #include "core/utils/MemoryUtils.h"
-#include "ui/struct/SettingsObject.h"
-#include "ui/struct/settings/AppearanceSO.h"
+#include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui_AppearanceSettings.h"
 
 namespace GpgFrontend::UI {
@@ -39,26 +40,28 @@ AppearanceTab::AppearanceTab(QWidget* parent)
     : QWidget(parent), ui_(SecureCreateSharedObject<Ui_AppearanceSettings>()) {
   ui_->setupUi(this);
 
-  ui_->iconSizeBox->setTitle(tr("Icon Size"));
+  ui_->generalBox->setTitle(tr("General"));
+
+  ui_->themaLabel->setText(tr("Theme"));
+  ui_->windowStateCheckBox->setText(
+      tr("Save window size and position on exit."));
+
+  ui_->toolbarIconBox->setTitle(tr("Toolbar Icon"));
+
+  ui_->toolbarIconSizeLabel->setText(tr("Size"));
   ui_->smallRadioButton->setText(tr("small"));
   ui_->mediumRadioButton->setText(tr("medium"));
   ui_->largeRadioButton->setText(tr("large"));
 
-  ui_->iconStyleBox->setTitle(tr("Icon Style"));
+  ui_->toolbarIconStyleLabel->setText(tr("Style"));
   ui_->justTextRadioButton->setText(tr("just text"));
   ui_->justIconRadioButton->setText(tr("just icons"));
   ui_->textAndIconsRadioButton->setText(tr("text and icons"));
 
-  ui_->windowStateBox->setTitle(tr("Window State"));
-  ui_->windowStateCheckBox->setText(
-      tr("Save window size and position on exit."));
+  ui_->fontSizeBox->setTitle(tr("Font Size"));
 
-  ui_->textEditorBox->setTitle(tr("Text Editor"));
-  ui_->fontSizeTextEditorLabel->setText(tr("Font Size in Text Editor"));
-
-  ui_->informationBoardBox->setTitle(tr("Information Board"));
-  ui_->fontSizeInformationBoardLabel->setText(
-      tr("Font Size in Information Board"));
+  ui_->fontSizeTextEditorLabel->setText(tr("Text Editor"));
+  ui_->fontSizeInformationBoardLabel->setText(tr("Information Board"));
 
   icon_size_group_ = new QButtonGroup(this);
   icon_size_group_->addButton(ui_->smallRadioButton, 1);
@@ -71,10 +74,13 @@ AppearanceTab::AppearanceTab(QWidget* parent)
   icon_style_group_->addButton(ui_->textAndIconsRadioButton, 3);
 
   SetSettings();
+
+  connect(ui_->themeComboBox, qOverload<int>(&QComboBox::currentIndexChanged),
+          this, &AppearanceTab::SignalRestartNeeded);
 }
 
 void AppearanceTab::SetSettings() {
-  AppearanceSO appearance(SettingsObject("general_settings_state"));
+  AppearanceSO const appearance(SettingsObject("general_settings_state"));
 
   auto icon_size =
       QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height);
@@ -123,6 +129,34 @@ void AppearanceTab::SetSettings() {
     text_editor_info_font_size = 10;
   }
   ui_->fontSizeTextEditorLabelSpinBox->setValue(text_editor_info_font_size);
+
+  // init available styles
+  for (const auto& s : QStyleFactory::keys()) {
+    ui_->themeComboBox->addItem(s.toLower());
+  }
+
+  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto theme = settings.value("appearance/theme").toString();
+
+  auto target_theme_index = ui_->themeComboBox->findText(theme);
+  if (theme.isEmpty() || target_theme_index == -1) {
+#ifdef QT5_BUILD
+    GF_UI_LOG_DEBUG(
+        "There is not valid theme found from settings, "
+        "using current theme (qt5): {}",
+        QApplication::style()->metaObject()->className());
+    ui_->themeComboBox->setCurrentIndex(ui_->themeComboBox->findText(
+        QApplication::style()->metaObject()->className()));
+#else
+    GF_UI_LOG_DEBUG(
+        "There is not valid theme found from settings, using current theme: {}",
+        QApplication::style()->name());
+    ui_->themeComboBox->setCurrentIndex(
+        ui_->themeComboBox->findText(QApplication::style()->name()));
+#endif
+  } else {
+    ui_->themeComboBox->setCurrentIndex(target_theme_index);
+  }
 }
 
 void AppearanceTab::ApplySettings() {
@@ -169,6 +203,9 @@ void AppearanceTab::ApplySettings() {
       ui_->fontSizeTextEditorLabelSpinBox->value();
 
   general_settings_state.Store(appearance.ToJson());
+
+  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  settings.setValue("appearance/theme", ui_->themeComboBox->currentText());
 }
 
 }  // namespace GpgFrontend::UI

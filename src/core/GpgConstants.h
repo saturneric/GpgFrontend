@@ -30,6 +30,7 @@
 
 namespace GpgFrontend {
 
+constexpr int kNonRestartCode = 0;
 constexpr int kRestartCode = 1000;      ///< only refresh ui
 constexpr int kDeepRestartCode = 1001;  // refresh core and ui
 
@@ -50,5 +51,11 @@ constexpr const char* PGP_PUBLIC_KEY_BEGIN =
     "-----BEGIN PGP PUBLIC KEY BLOCK-----";  ///<
 constexpr const char* PGP_PRIVATE_KEY_BEGIN =
     "-----BEGIN PGP PRIVATE KEY BLOCK-----";  ///<
+
+// MODULE ID
+const QString kGnuPGInfoGatheringModuleID =
+    "com.bktus.gpgfrontend.module.gnupg_info_gathering";
+const QString kVersionCheckingModuleID =
+    "com.bktus.gpgfrontend.module.version_checking";
 
 }  // namespace GpgFrontend

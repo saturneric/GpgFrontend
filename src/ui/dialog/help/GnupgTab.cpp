@@ -35,7 +35,9 @@
 #include "core/module/ModuleManager.h"
 #include "ui_GnuPGInfo.h"
 
-GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
+namespace GpgFrontend::UI {
+
+GnupgTab::GnupgTab(QWidget* parent)
     : QWidget(parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_GnuPGInfo>()) {
   ui_->setupUi(this);
@@ -55,11 +57,11 @@ GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
   ui_->componentDetailsTable->setSelectionBehavior(
       QAbstractItemView::SelectRows);
 
-  // tableitems not editable
+  // table items not editable
   ui_->componentDetailsTable->setEditTriggers(
       QAbstractItemView::NoEditTriggers);
 
-  // no focus (rectangle around tableitems)
+  // no focus (rectangle around table items)
   // may be it should focus on whole row
   ui_->componentDetailsTable->setFocusPolicy(Qt::NoFocus);
   ui_->componentDetailsTable->setAlternatingRowColors(true);
@@ -68,7 +70,7 @@ GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
   directories_column_titles << tr("Directory Type") << tr("Path");
 
   ui_->directoriesDetailsTable->setColumnCount(
-      directories_column_titles.length());
+      static_cast<int>(directories_column_titles.length()));
   ui_->directoriesDetailsTable->setHorizontalHeaderLabels(
       directories_column_titles);
   ui_->directoriesDetailsTable->horizontalHeader()->setStretchLastSection(
@@ -76,11 +78,11 @@ GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
   ui_->directoriesDetailsTable->setSelectionBehavior(
       QAbstractItemView::SelectRows);
 
-  // tableitems not editable
+  // table items not editable
   ui_->directoriesDetailsTable->setEditTriggers(
       QAbstractItemView::NoEditTriggers);
 
-  // no focus (rectangle around tableitems)
+  // no focus (rectangle around table items)
   // may be it should focus on whole row
   ui_->directoriesDetailsTable->setFocusPolicy(Qt::NoFocus);
   ui_->directoriesDetailsTable->setAlternatingRowColors(true);
@@ -95,18 +97,23 @@ GpgFrontend::UI::GnupgTab::GnupgTab(QWidget* parent)
   ui_->optionDetailsTable->horizontalHeader()->setStretchLastSection(false);
   ui_->optionDetailsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-  // tableitems not editable
+  // table items not editable
   ui_->optionDetailsTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-  // no focus (rectangle around tableitems)
+  // no focus (rectangle around table items)
   // may be it should focus on whole row
   ui_->optionDetailsTable->setFocusPolicy(Qt::NoFocus);
   ui_->optionDetailsTable->setAlternatingRowColors(true);
 
-  process_software_info();
+  if (Module::RetrieveRTValueTypedOrDefault(
+          "ui", "env.state.gnupg_info_gathering", 0) == 1) {
+    process_software_info();
+  } else {
+    gather_gnupg_info();
+  }
 }
 
-void GpgFrontend::UI::GnupgTab::process_software_info() {
+void GnupgTab::process_software_info() {
   const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gnupg_version", QString{"2.0.0"});
   GF_UI_LOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
@@ -114,9 +121,8 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
   ui_->gnupgVersionLabel->setText(
       QString::fromStdString(fmt::format("Version: {}", gnupg_version)));
 
-  auto components = Module::ListRTChildKeys(
-      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      "gnupg.components");
+  auto components =
+      Module::ListRTChildKeys(kGnuPGInfoGatheringModuleID, "gnupg.components");
   GF_UI_LOG_DEBUG("got gnupg components from rt, size: {}", components.size());
 
   ui_->componentDetailsTable->setRowCount(components.size());
@@ -124,12 +130,12 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
   int row = 0;
   for (auto& component : components) {
     auto component_info_json_bytes = Module::RetrieveRTValueTypedOrDefault(
-        "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-        QString("gnupg.components.%1").arg(component), QByteArray{});
+        kGnuPGInfoGatheringModuleID,
+        QString("gnupg.components.%1").arg(component), QString{});
     GF_UI_LOG_DEBUG("got gnupg component {} info from rt", component);
 
     auto component_info_json =
-        QJsonDocument::fromJson(component_info_json_bytes);
+        QJsonDocument::fromJson(component_info_json_bytes.toUtf8());
     if (!component_info_json.isObject()) {
       GF_UI_LOG_WARN("illegal gnupg component info, json: {}",
                      QString(component_info_json_bytes));
@@ -170,17 +176,17 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
 
   ui_->componentDetailsTable->resizeColumnsToContents();
 
-  auto directories = Module::ListRTChildKeys(
-      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      QString("gnupg.dirs"));
+  auto directories = Module::ListRTChildKeys(kGnuPGInfoGatheringModuleID,
+                                             QString("gnupg.dirs"));
 
-  ui_->directoriesDetailsTable->setRowCount(directories.size());
+  ui_->directoriesDetailsTable->setRowCount(
+      static_cast<int>(directories.size()));
 
   row = 0;
   for (auto& dir : directories) {
     const auto dir_path = Module::RetrieveRTValueTypedOrDefault(
-        "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-        QString("gnupg.dirs.%1").arg(dir), QString{});
+        kGnuPGInfoGatheringModuleID, QString("gnupg.dirs.%1").arg(dir),
+        QString{});
 
     if (dir_path.isEmpty()) continue;
 
@@ -197,20 +203,21 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
 
   ui_->directoriesDetailsTable->resizeColumnsToContents();
 
-  // calcualte the total row number of configuration table
+  // calculate the total row number of configuration table
   row = 0;
   for (auto& component : components) {
     auto options = Module::ListRTChildKeys(
-        "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+        kGnuPGInfoGatheringModuleID,
         QString("gnupg.components.%1.options").arg(component));
     for (auto& option : options) {
       const auto option_info_json =
           QJsonDocument::fromJson(Module::RetrieveRTValueTypedOrDefault(
-              "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-              QString("gnupg.components.%1.options.%2")
-                  .arg(component)
-                  .arg(option),
-              QByteArray{}));
+                                      kGnuPGInfoGatheringModuleID,
+                                      QString("gnupg.components.%1.options.%2")
+                                          .arg(component)
+                                          .arg(option),
+                                      QString{})
+                                      .toUtf8());
 
       if (!option_info_json.isObject()) continue;
 
@@ -228,18 +235,19 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
   QString configuration_group;
   for (auto& component : components) {
     auto options = Module::ListRTChildKeys(
-        "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+        kGnuPGInfoGatheringModuleID,
         QString("gnupg.components.%1.options").arg(component));
 
     for (auto& option : options) {
       auto option_info_json_bytes = Module::RetrieveRTValueTypedOrDefault(
-          "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
+          kGnuPGInfoGatheringModuleID,
           QString("gnupg.components.%1.options.%2").arg(component).arg(option),
-          QByteArray{});
+          QString{});
       GF_UI_LOG_DEBUG("got gnupg component's option {} info from rt, info: {}",
                       component, option_info_json_bytes);
 
-      auto option_info_json = QJsonDocument::fromJson(option_info_json_bytes);
+      auto option_info_json =
+          QJsonDocument::fromJson(option_info_json_bytes.toUtf8());
 
       if (!option_info_json.isObject()) {
         GF_UI_LOG_WARN("illegal gnupg option info, json: {}",
@@ -289,5 +297,40 @@ void GpgFrontend::UI::GnupgTab::process_software_info() {
       row++;
     }
   }
-  // ui_->configurationDetailsTable->resizeColumnsToContents();
+
+  ui_->loadProgressBar->hide();
+  ui_->tabWidget->setDisabled(false);
 }
+
+void GnupgTab::gather_gnupg_info() {
+  // if gnupg_info_gathering module activated
+  if (Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
+    GF_CORE_LOG_DEBUG(
+        "module gnupg_info_gathering is activated, "
+        "loading external gnupg info...");
+
+    ui_->loadProgressBar->show();
+    ui_->tabWidget->setDisabled(true);
+
+    // gather external gnupg info
+    Module::TriggerEvent(
+        "REQUEST_GATHERING_GNUPG_INFO",
+        [=](const Module::EventIdentifier& /*e*/,
+            const Module::Event::ListenerIdentifier& l_id, DataObjectPtr o) {
+          GF_CORE_LOG_DEBUG(
+              "received event REQUEST_GATHERING_GNUPG_INFO callback "
+              "from module: {}",
+              l_id);
+
+          if (l_id == kGnuPGInfoGatheringModuleID) {
+            Module::UpsertRTValue("ui", "env.state.gnupg_info_gathering", 1);
+
+            // gnupg info gathering process finished
+            GF_CORE_LOG_INFO("gnupg information gathering finished");
+            process_software_info();
+          }
+        });
+  }
+}
+
+}  // namespace GpgFrontend::UI

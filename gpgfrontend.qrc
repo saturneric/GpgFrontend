@@ -1,14 +1,12 @@
 <!DOCTYPE RCC>
 <RCC>
     <qresource prefix="/icons">
+        <file alias="gpgfrontend.ico">gpgfrontend.ico</file>
+        <file alias="gpgfrontend.png">resource/lfs/icons/gpgfrontend.png</file>
+        <file alias="gpgfrontend_logo.png">resource/lfs/icons/gpgfrontend_logo.png</file>
         <file alias="keymgmt.png">resource/lfs/icons/keymgmt.png</file>
         <file alias="help.png">resource/lfs/icons/help.png</file>
         <file alias="button_copy.png">resource/lfs/icons/button_copy.png</file>
-        <file alias="gpgfrontend-logo.png">resource/lfs/icons/gpgfrontend-logo.png</file>
-        <file alias="banner.png">resource/lfs/icons/wizard_banner.png</file>
-        <file alias="logo_small.png">resource/lfs/icons/gpgfrontend-logo_small.png</file>
-        <file alias="keys2.jpg">resource/lfs/icons/keys12.jpg</file>
-        <file alias="keys3.jpg">resource/lfs/icons/keys13.jpg</file>
         <file alias="error.png">resource/lfs/icons/error.png</file>
         <file alias="info.png">resource/lfs/icons/info.png</file>
         <file alias="inbox.png">resource/lfs/icons/inbox.png</file>
@@ -42,7 +40,6 @@
         <file alias="format-line-spacing-normal.png">resource/lfs/icons/format-line-spacing-normal.png</file>
         <file alias="format-line-spacing-triple.png">resource/lfs/icons/format-line-spacing-triple.png</file>
         <file alias="gnupg.png">resource/lfs/icons/gnupg.png</file>
-        <file alias="gpgfrontend.png">resource/lfs/icons/gpgfrontend.png</file>
         <file alias="importance.png">resource/lfs/icons/importance.png</file>
         <file alias="importkey_editor.png">resource/lfs/icons/importkey_editor.png</file>
         <file alias="import_key_from_clipboard.png">resource/lfs/icons/import_key_from_clipboard.png</file>
@@ -65,6 +62,7 @@
         <file alias="trash.png">resource/lfs/icons/trash.png</file>
         <file alias="editor.png">resource/lfs/icons/editor.png</file>
         <file alias="undo.png">resource/lfs/icons/undo.png</file>
+        <file alias="redo.png">resource/lfs/icons/redo.png</file>
         <file alias="verify.png">resource/lfs/icons/verify.png</file>
         <file alias="export_key_to_clipboard.png">resource/lfs/icons/export_key_to_clipboard.png</file>
         <file alias="mimetypes/application-pdf.png">resource/lfs/icons/mimetypes/application-pdf.png</file>
@@ -88,6 +86,17 @@
         <file alias="total_selection.png">resource/lfs/icons/total_selection.png</file>
         <file alias="search.png">resource/lfs/icons/search.png</file>
         <file alias="close.png">resource/lfs/icons/close.png</file>
+        <file alias="module.png">resource/lfs/icons/module.png</file>
+        <file alias="restart.png">resource/lfs/icons/restart.png</file>
+        <file alias="clear-f.png">resource/lfs/icons/clear-f.png</file>
+        <file alias="zoomin.png">resource/lfs/icons/zoomin.png</file>
+        <file alias="zoomout.png">resource/lfs/icons/zoomout.png</file>
+        <file alias="wizard.png">resource/lfs/icons/wizard.png</file>
+        <file alias="update.png">resource/lfs/icons/update.png</file>
+        <file alias="translate.png">resource/lfs/icons/translate.png</file>
+        <file alias="key.png">resource/lfs/icons/key.png</file>
+        <file alias="stairs.png">resource/lfs/icons/stairs.png</file>
+        <file alias="detail.png">resource/lfs/icons/detail.png</file>
     </qresource>
     <qresource prefix="/test/key">
         <file alias="pv1.key">resource/lfs/test/data/pv1.key</file>

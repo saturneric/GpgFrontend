@@ -45,7 +45,17 @@
 
 namespace GpgFrontend {
 
-void DestroyGpgFrontendCore() { SingletonStorageCollection::Destroy(); }
+void DestroyGpgFrontendCore() {
+  // kill all daemon if necessary
+  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto kill_all_gnupg_daemon_at_close =
+      settings.value("gnupg/kill_all_gnupg_daemon_at_close", false).toBool();
+  if (kill_all_gnupg_daemon_at_close) {
+    GpgAdvancedOperator::KillAllGpgComponents();
+  }
+
+  SingletonStorageCollection::Destroy();
+}
 
 auto VerifyGpgconfPath(const QFileInfo& gnupg_install_fs_path) -> bool {
   return gnupg_install_fs_path.isAbsolute() && gnupg_install_fs_path.exists() &&
@@ -176,7 +186,7 @@ auto InitGpgME(const QString& gpgconf_path, const QString& gnupg_path) -> bool {
   GF_CORE_LOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
 
   // conditional check: only support gpg 2.1.x now
-  if (!(CompareSoftwareVersion(gnupg_version, "2.1.0") >= 0 && find_gpgconf &&
+  if (!(GFCompareSoftwareVersion(gnupg_version, "2.1.0") >= 0 && find_gpgconf &&
         find_openpgp && find_cms)) {
     GF_CORE_LOG_ERROR("gpgme env check failed, abort");
     return false;
@@ -276,7 +286,6 @@ void InitGpgFrontendCore(CoreInitArgs args) {
   // initialize global register table
   Module::UpsertRTValue("core", "env.state.gpgme", 0);
   Module::UpsertRTValue("core", "env.state.ctx", 0);
-  Module::UpsertRTValue("core", "env.state.gnupg", 0);
   Module::UpsertRTValue("core", "env.state.basic", 0);
   Module::UpsertRTValue("core", "env.state.all", 0);
 
@@ -319,7 +328,10 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                 .toString();
 
         auto use_pinentry_as_password_input_dialog =
-            settings.value("gnupg/use_pinentry_as_password_input_dialog", true)
+            settings
+                .value(
+                    "gnupg/use_pinentry_as_password_input_dialog",
+                    QString::fromLocal8Bit(qgetenv("container")) != "flatpak")
                 .toBool();
 
         GF_CORE_LOG_DEBUG("core loaded if use custom key databse path: {}",
@@ -406,60 +418,22 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                 QCoreApplication::tr("Gpg Key Detabase initiation failed"));
           };
         }
+
         GF_CORE_LOG_DEBUG(
-            "basic env checking finished, "
-            "including gpgme, ctx, and key infos");
+            "basic env checking finished, including gpgme, ctx, and key infos");
+
         Module::UpsertRTValue("core", "env.state.basic", 1);
         CoreSignalStation::GetInstance()->SignalGoodGnupgEnv();
 
-        // if gnupg-info-gathering module activated
-        if (args.gather_external_gnupg_info &&
-            Module::IsModuleAcivate("com.bktus.gpgfrontend.module."
-                                    "integrated.gnupg-info-gathering")) {
-          GF_CORE_LOG_DEBUG(
-              "module gnupg-info-gathering is activated, "
-              "loading external gnupg info...");
+        // try to restart all components
+        auto restart_all_gnupg_components_on_start =
+            settings.value("gnupg/restart_gpg_agent_on_start", false).toBool();
 
-          // gather external gnupg info
-          Module::TriggerEvent(
-              "GPGFRONTEND_CORE_INITLIZED",
-              [](const Module::EventIdentifier& /*e*/,
-                 const Module::Event::ListenerIdentifier& l_id,
-                 DataObjectPtr o) {
-                GF_CORE_LOG_DEBUG(
-                    "received event GPGFRONTEND_CORE_INITLIZED callback "
-                    "from module: {}",
-                    l_id);
-
-                if (l_id ==
-                    "com.bktus.gpgfrontend.module.integrated.gnupg-info-"
-                    "gathering") {
-                  GF_CORE_LOG_DEBUG(
-                      "received callback from gnupg-info-gathering ");
-
-                  // try to restart all components
-                  auto settings =
-                      GlobalSettingStation::GetInstance().GetSettings();
-                  auto restart_all_gnupg_components_on_start =
-                      settings.value("gnupg/restart_gpg_agent_on_start", false)
-                          .toBool();
-
-                  if (restart_all_gnupg_components_on_start) {
-                    GpgAdvancedOperator::RestartGpgComponents();
-                  }
-                  Module::UpsertRTValue("core", "env.state.gnupg", 1);
-
-                  // announce that all checkings were finished
-                  GF_CORE_LOG_INFO(
-                      "all env checking finished, including gpgme, "
-                      "ctx and gnupg");
-                  Module::UpsertRTValue("core", "env.state.all", 1);
-                }
-              });
-        } else {
-          GF_CORE_LOG_DEBUG("gnupg-info-gathering is not activated");
-          Module::UpsertRTValue("core", "env.state.all", 1);
+        if (restart_all_gnupg_components_on_start) {
+          GpgAdvancedOperator::RestartGpgComponents();
         }
+
+        Module::UpsertRTValue("core", "env.state.all", 1);
         return 0;
       },
       "core_init_task");

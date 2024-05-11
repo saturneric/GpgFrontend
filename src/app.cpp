@@ -29,7 +29,7 @@
 #include "GpgFrontendContext.h"
 #include "core/GpgConstants.h"
 #include "core/GpgCoreInit.h"
-#include "module/GpgFrontendModuleInit.h"
+#include "core/module/ModuleInit.h"
 #include "ui/GpgFrontendUIInit.h"
 
 // main

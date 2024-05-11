@@ -28,13 +28,14 @@ cmake_minimum_required(VERSION 3.16)
 message(STATUS "Current Generator: ${CMAKE_GENERATOR}")
 if(CMAKE_GENERATOR STREQUAL "Xcode")
     set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_SOURCE_DIR}/cmake/FlagsOverridesXcode.cmake")
+    set(XCODE_BUILD 1)
 else()
     set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_SOURCE_DIR}/cmake/FlagsOverrides.cmake")
 endif()
 
 # define project
 project(GpgFrontend 
-    VERSION 2.1.2 
+    VERSION 2.1.3 
     DESCRIPTION "GpgFrontend is a free, open-source, robust yet user-friendly, compact and cross-platform tool for OpenPGP encryption."
     HOMEPAGE_URL "https://gpgfrontend.bktus.com"
     LANGUAGES CXX)
@@ -66,7 +67,8 @@ option(GPGFRONTEND_BUILD_TYPE_STABLE
         "Generate release version" ON)
 option(GPGFRONTEND_QT5_BUILD "Swith to Qt5 building mode" OFF)
 option(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE "Generate an installable version" OFF)
-option(GPGFRONTEND_CONFIGURE_FOR_XCODE_BUILD "Generate a version that can be successfully compiled and packaged in Xcode" OFF)
+option(GPGFRONTEND_BUILD_MODS_ONLY "Build Modules Only" OFF)
+
 option(GPGFRONTEND_XCODE_TEAM_ID "GpgFrontend Apple Team ID" "NONE")
 option(GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY "GpgFrontend Signing Certificate" "NONE")
 option(GPGFRONTEND_XOCDE_APPID "GpgFrontend Apple AppID" "NONE")
@@ -94,6 +96,10 @@ if (GPGFRONTEND_BUILD_TYPE_TEST_ALL)
     set(GPGFRONTEND_BUILD_CONFIG "test_all")
 endif ()
 
+# Specify compilation mode
+message(STATUS "Switch Build Configure STABLE_BUILD_APPLICATION")
+set(STABLE_BUILD_APPLICATION 1)
+
 # stable features
 if (GPGFRONTEND_BUILD_TYPE_STABLE)
 
@@ -118,20 +124,16 @@ if (GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE)
     set(LINUX_INSTALL_SOFTWARE 1)
 endif ()
 
-# xcode archive build
-if (GPGFRONTEND_CONFIGURE_FOR_XCODE_BUILD)
-    set(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE 0)
-    set(LINUX_INSTALL_SOFTWARE 0)
-    set(XCODE_BUILD 1)
-
+if (GPGFRONTEND_BUILD_MODS_ONLY)
     set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
     set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
     set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
     set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
-
     unset(GPGFRONTEND_BUILD_CONFIG)
-    set(STABLE_BUILD_APPLICATION 1)
-endif ()
+
+    set(STABLE_BUILD_APPLICATION 0)
+    set(BUILD_MODS_ONLY 1)
+endif()
 
 # C++
 
@@ -191,10 +193,19 @@ else()
     add_compile_definitions(DEBUG)
 endif()
 
+# use xcode archive build at macos release at default
+if (CMAKE_BUILD_TYPE STREQUAL "Release" AND APPLE)
+    set(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE 0)
+    set(LINUX_INSTALL_SOFTWARE 0)
 
-# Specify compilation mode
-message(STATUS "Switch Build Configure STABLE_BUILD_APPLICATION")
-set(STABLE_BUILD_APPLICATION 1)
+    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
+    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
+    set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
+    set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
+
+    unset(GPGFRONTEND_BUILD_CONFIG)
+endif ()
+
 set(AppName GpgFrontend)
 
 # Get Git Information
@@ -220,7 +231,7 @@ endif ()
 
 set(BUILD_VERSION ${PROJECT_VERSION}_${CMAKE_SYSTEM}_${CMAKE_SYSTEM_PROCESSOR}_${CMAKE_BUILD_TYPE})
 set(GIT_VERSION ${GIT_BRANCH_NAME}_${GIT_COMMIT_HASH})
-string(TIMESTAMP BUILD_TIMESTAMP "%Y-%m-%d %H:%M:%S")
+string(TIMESTAMP BUILD_TIMESTAMP UTC)
 
 # Convert BUILD_VERSION and GIT_VERSION to lowercase
 string(TOLOWER "${BUILD_VERSION}" BUILD_VERSION)
@@ -250,6 +261,10 @@ IF (MINGW)
             ${CMAKE_SOURCE_DIR}/lib/mingw
             /mingw64/lib
     )
+
+    # Http Request User Agent
+    set(HTTP_REQUEST_USER_AGENT "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0")
+
 endif ()
 
 # macOS
@@ -277,6 +292,10 @@ if (APPLE)
             /usr/local/lib
             /opt/homebrew/lib
     )
+
+    # Http Request User Agent
+    set(HTTP_REQUEST_USER_AGENT "Mozilla/5.0 (Macintosh; Intel Mac OS X 14.3; rv:123.0) Gecko/20100101 Firefox/123.0")
+
 endif ()
 
 if (UNIX AND NOT APPLE)
@@ -319,12 +338,14 @@ if (LINUX)
             /usr/local/lib/
     )
 
+    # Http Request User Agent
+    set(HTTP_REQUEST_USER_AGENT "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:123.0) Gecko/20100101 Firefox/123.0")
+
 endif ()
 
 if (LINUX_INSTALL_SOFTWARE)
     message(STATUS "Linux Install Traget ${CMAKE_INSTALL_PREFIX}")
     include(GNUInstallDirs)
-    set(INSTALL_GPGFRONTEND_APP 1)
     set(APP_INSTALL_FLAG LINUX_INSTALL)
     add_compile_definitions(LINUX_INSTALL_BUILD)
 else ()
@@ -348,8 +369,11 @@ if (STABLE_BUILD_APPLICATION)
     set(BUILD_MODULE 1)
     set(BUILD_TEST 1)
     set(BUILD_APPLICATION 1)
-    set(BASIC_ENV_CONFIG 1)
     set(SUPPORT_MULTI_LANG 1)
+elseif (BUILD_MODS_ONLY)
+    message("[+] Build Mods")
+    set(BUILD_CORE 1)
+    set(BUILD_MODULE 1)
 endif ()
 
 # For instance in order to select the highest version one

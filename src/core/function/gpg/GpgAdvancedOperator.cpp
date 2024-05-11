@@ -76,6 +76,34 @@ void GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents(
        }});
 }
 
+void GpgFrontend::GpgAdvancedOperator::KillAllGpgComponents() {
+  const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.gpgconf_path", QString{});
+  GF_CORE_LOG_DEBUG("got gpgconf path from rt: {}", gpgconf_path);
+
+  if (gpgconf_path.isEmpty()) {
+    GF_CORE_LOG_ERROR("cannot get valid gpgconf path from rt, abort.");
+    return;
+  }
+
+  GpgFrontend::GpgCommandExecutor::ExecuteSync(
+      {gpgconf_path, QStringList{"--verbose", "--kill", "all"},
+       [=](int exit_code, const QString &p_out, const QString &p_err) {
+         GF_CORE_LOG_DEBUG("gpgconf --kill all command got exit code: {}",
+                           exit_code);
+         bool success = true;
+         if (exit_code != 0) {
+           success = false;
+           GF_CORE_LOG_ERROR(
+               "gpgconf execute error, process stderr: {}, process stdout: {}",
+               p_err, p_out);
+           return;
+         }
+
+         GF_CORE_LOG_DEBUG("gpgconf --kill --all execute result: {}", success);
+       }});
+}
+
 void GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
   const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", QString{});
@@ -139,14 +167,17 @@ void GpgFrontend::GpgAdvancedOperator::ResetConfigures(OperationCallback cb) {
 }
 
 void GpgFrontend::GpgAdvancedOperator::StartGpgAgent(OperationCallback cb) {
+  if (!Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
+    cb(-1, TransferParams());
+    return;
+  }
+
   const auto gpg_agent_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      "gnupg.gpg_agent_path", QString{});
+      kGnuPGInfoGatheringModuleID, "gnupg.gpg_agent_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg agent path from rt: {}", gpg_agent_path);
 
   const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      "gnupg.home_path", QString{});
+      kGnuPGInfoGatheringModuleID, "gnupg.home_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg home path from rt: {}", home_path);
 
   if (gpg_agent_path.isEmpty()) {
@@ -164,14 +195,17 @@ void GpgFrontend::GpgAdvancedOperator::StartGpgAgent(OperationCallback cb) {
 }
 
 void GpgFrontend::GpgAdvancedOperator::StartDirmngr(OperationCallback cb) {
+  if (!Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
+    cb(-1, TransferParams());
+    return;
+  }
+
   const auto dirmngr_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      "gnupg.dirmngr_path", QString{});
+      kGnuPGInfoGatheringModuleID, "gnupg.dirmngr_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg dirmngr path from rt: {}", dirmngr_path);
 
   const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      "gnupg.home_path", QString{});
+      kGnuPGInfoGatheringModuleID, "gnupg.home_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg home path from rt: {}", home_path);
 
   if (dirmngr_path.isEmpty()) {
@@ -189,14 +223,17 @@ void GpgFrontend::GpgAdvancedOperator::StartDirmngr(OperationCallback cb) {
 }
 
 void GpgFrontend::GpgAdvancedOperator::StartKeyBoxd(OperationCallback cb) {
+  if (!Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
+    cb(-1, TransferParams());
+    return;
+  }
+
   const auto keyboxd_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      "gnupg.keyboxd_path", QString{});
+      kGnuPGInfoGatheringModuleID, "gnupg.keyboxd_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg keyboxd path from rt: {}", keyboxd_path);
 
   const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "com.bktus.gpgfrontend.module.integrated.gnupg-info-gathering",
-      "gnupg.home_path", QString{});
+      kGnuPGInfoGatheringModuleID, "gnupg.home_path", QString{});
   GF_CORE_LOG_DEBUG("got gnupg home path from rt: {}", home_path);
 
   if (keyboxd_path.isEmpty()) {

@@ -76,8 +76,6 @@ class GPGFRONTEND_CORE_EXPORT TaskRunner : public QObject {
    */
   auto IsRunning() -> bool;
 
- public slots:
-
   /**
    * @brief
    *

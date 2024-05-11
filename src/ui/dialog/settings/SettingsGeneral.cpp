@@ -73,7 +73,7 @@ GeneralTab::GeneralTab(QWidget* parent)
     ui_->langSelectBox->addItem(l);
   }
   connect(ui_->langSelectBox, qOverload<int>(&QComboBox::currentIndexChanged),
-          this, &GeneralTab::slot_language_changed);
+          this, &GeneralTab::SignalRestartNeeded);
 
   connect(ui_->clearAllLogFilesButton, &QPushButton::clicked, this, [=]() {
     GlobalSettingStation::GetInstance().ClearAllLogFiles();
@@ -109,28 +109,28 @@ GeneralTab::GeneralTab(QWidget* parent)
 void GeneralTab::SetSettings() {
   auto settings = GlobalSettingStation::GetInstance().GetSettings();
 
-  bool clear_gpg_password_cache =
+  auto clear_gpg_password_cache =
       settings.value("basic/clear_gpg_password_cache", true).toBool();
   ui_->clearGpgPasswordCacheCheckBox->setCheckState(
       clear_gpg_password_cache ? Qt::Checked : Qt::Unchecked);
 
-  bool restore_text_editor_page =
+  auto restore_text_editor_page =
       settings.value("basic/restore_text_editor_page", true).toBool();
   ui_->restoreTextEditorPageCheckBox->setCheckState(
       restore_text_editor_page ? Qt::Checked : Qt::Unchecked);
 
-  bool longer_expiration_date =
+  auto longer_expiration_date =
       settings.value("basic/longer_expiration_date", false).toBool();
   ui_->longerKeyExpirationDateCheckBox->setCheckState(
       longer_expiration_date ? Qt::Checked : Qt::Unchecked);
 
-  bool confirm_import_keys =
+  auto confirm_import_keys =
       settings.value("basic/confirm_import_keys", false).toBool();
   ui_->importConfirmationCheckBox->setCheckState(
       confirm_import_keys ? Qt::Checked : Qt::Unchecked);
 
-  QString lang_key = settings.value("basic/lang").toString();
-  QString lang_value = lang_.value(lang_key);
+  auto lang_key = settings.value("basic/lang").toString();
+  auto lang_value = lang_.value(lang_key);
   GF_UI_LOG_DEBUG("lang settings current: {}", lang_value);
   if (!lang_.empty()) {
     ui_->langSelectBox->setCurrentIndex(
@@ -154,7 +154,5 @@ void GeneralTab::ApplySettings() {
                     ui_->importConfirmationCheckBox->isChecked());
   settings.setValue("basic/lang", lang_.key(ui_->langSelectBox->currentText()));
 }
-
-void GeneralTab::slot_language_changed() { emit SignalRestartNeeded(true); }
 
 }  // namespace GpgFrontend::UI

@@ -34,8 +34,8 @@
 
 #include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/model/CacheObject.h"
 #include "ui/UISignalStation.h"
-#include "ui/struct/CacheObject.h"
 
 namespace GpgFrontend::UI {
 
@@ -261,7 +261,7 @@ void TextEdit::slot_remove_tab(int index) {
  *
  * If it returns false, the close event should be aborted.
  */
-bool TextEdit::maybe_save_current_tab(bool askToSave) {
+auto TextEdit::maybe_save_current_tab(bool askToSave) -> bool {
   PlainTextEditorPage* page = SlotCurPageTextEdit();
   // if this page is no textedit, there should be nothing to save
   if (page == nullptr) {
@@ -304,8 +304,8 @@ bool TextEdit::maybe_save_current_tab(bool askToSave) {
 }
 
 auto TextEdit::MaybeSaveAnyTab() -> bool {
-  // get a list of all unsaved documents and their tabids
-  QHash<int, QString> unsaved_docs = this->UnsavedDocuments();
+  // get a list of all unsaved documents and their tab ids
+  QHash<int, QString> const unsaved_docs = this->UnsavedDocuments();
 
   /*
    * no unsaved documents, so app can be closed
@@ -318,7 +318,7 @@ auto TextEdit::MaybeSaveAnyTab() -> bool {
    * and show normal unsaved doc dialog
    */
   if (unsaved_docs.size() == 1) {
-    int modified_tab = unsaved_docs.keys().at(0);
+    int const modified_tab = unsaved_docs.keys().at(0);
     tab_widget_->setCurrentIndex(modified_tab);
     return maybe_save_current_tab(true);
   }

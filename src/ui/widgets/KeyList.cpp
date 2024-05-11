@@ -231,7 +231,7 @@ auto KeyList::GetAllPrivateKeys() -> KeyIdArgsListPtr {
   return ret;
 }
 
-auto KeyList::GetPrivateChecked() -> KeyIdArgsListPtr {
+auto KeyList::GetCheckedPrivateKey() -> KeyIdArgsListPtr {
   auto ret = std::make_unique<KeyIdArgsList>();
   if (ui_->keyGroupTab->size().isEmpty()) return ret;
 
@@ -242,7 +242,27 @@ auto KeyList::GetPrivateChecked() -> KeyIdArgsListPtr {
 
   for (int i = 0; i < key_list->rowCount(); i++) {
     if ((key_list->item(i, 0)->checkState() == Qt::Checked) &&
-        ((key_list->item(i, 1)) != nullptr)) {
+        ((key_list->item(i, 1)) != nullptr) &&
+        buffered_keys[i].IsPrivateKey()) {
+      ret->push_back(buffered_keys[i].GetId());
+    }
+  }
+  return ret;
+}
+
+auto KeyList::GetCheckedPublicKey() -> KeyIdArgsListPtr {
+  auto ret = std::make_unique<KeyIdArgsList>();
+  if (ui_->keyGroupTab->size().isEmpty()) return ret;
+
+  auto* key_list =
+      qobject_cast<QTableWidget*>(ui_->keyGroupTab->currentWidget());
+  const auto& buffered_keys =
+      m_key_tables_[ui_->keyGroupTab->currentIndex()].buffered_keys_;
+
+  for (int i = 0; i < key_list->rowCount(); i++) {
+    if ((key_list->item(i, 0)->checkState() == Qt::Checked) &&
+        ((key_list->item(i, 1)) != nullptr) &&
+        !buffered_keys[i].IsPrivateKey()) {
       ret->push_back(buffered_keys[i].GetId());
     }
   }
@@ -458,14 +478,28 @@ void KeyList::slot_refresh_ui() {
 }
 
 void KeyList::slot_sync_with_key_server() {
+  auto checked_public_keys = GetCheckedPublicKey();
+
   KeyIdArgsList key_ids;
-  {
-    std::lock_guard<std::mutex> guard(buffered_key_list_mutex_);
-    for (const auto& key : *buffered_keys_list_) {
-      if (!(key.IsPrivateKey() && key.IsHasMasterKey())) {
-        key_ids.push_back(key.GetId());
+  if (checked_public_keys->empty()) {
+    QMessageBox::StandardButton const reply = QMessageBox::question(
+        this, QCoreApplication::tr("Sync All Public Key"),
+        QCoreApplication::tr("You have not checked any public keys that you "
+                             "want to synchronize, do you want to synchronize "
+                             "all local public keys from the key server?"),
+        QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::No) return;
+    {
+      std::lock_guard<std::mutex> guard(buffered_key_list_mutex_);
+      for (const auto& key : *buffered_keys_list_) {
+        if (!(key.IsPrivateKey() && key.IsHasMasterKey())) {
+          key_ids.push_back(key.GetId());
+        }
       }
     }
+  } else {
+    key_ids = *checked_public_keys;
   }
 
   if (key_ids.empty()) return;

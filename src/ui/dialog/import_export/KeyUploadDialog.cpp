@@ -33,10 +33,11 @@
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/model/SettingsObject.h"
+#include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UserInterfaceUtils.h"
-#include "ui/struct/SettingsObject.h"
-#include "ui/struct/settings/KeyServerSO.h"
+#include "ui/struct/settings_object/KeyServerSO.h"
 
 namespace GpgFrontend::UI {
 
@@ -115,6 +116,8 @@ void KeyUploadDialog::slot_upload_key_to_server(
   data.replace(" ", "+");
 
   QNetworkRequest request(req_url);
+  request.setHeader(QNetworkRequest::UserAgentHeader,
+                    GetHttpRequestUserAgent());
   request.setHeader(QNetworkRequest::ContentTypeHeader,
                     "application/x-www-form-urlencoded");
 

@@ -39,7 +39,7 @@ class ModuleManager;
 
 using ModuleIdentifier = QString;
 using ModuleVersion = QString;
-using ModuleMetaData = std::map<QString, QString>;
+using ModuleMetaData = QMap<QString, QString>;
 using ModulePtr = std::shared_ptr<Module>;
 
 using TaskRunnerPtr = std::shared_ptr<Thread::TaskRunner>;
@@ -47,21 +47,39 @@ using TaskRunnerPtr = std::shared_ptr<Thread::TaskRunner>;
 class GPGFRONTEND_CORE_EXPORT Module : public QObject {
   Q_OBJECT
  public:
-  Module(ModuleIdentifier, ModuleVersion, const ModuleMetaData&);
+  Module(ModuleIdentifier, ModuleVersion, const ModuleMetaData &);
+
+  explicit Module(QLibrary &module_library);
 
   ~Module();
 
-  virtual auto Register() -> bool = 0;
+  auto IsGood() -> bool;
 
-  virtual auto Active() -> bool = 0;
+  virtual auto Register() -> int;
 
-  virtual auto Exec(EventRefrernce) -> int = 0;
+  virtual auto Active() -> int;
 
-  virtual auto Deactive() -> bool = 0;
+  virtual auto Exec(EventReference) -> int;
+
+  virtual auto Deactive() -> int;
+
+  virtual auto UnRegister() -> int;
 
   [[nodiscard]] auto GetModuleIdentifier() const -> ModuleIdentifier;
 
-  void SetGPC(GlobalModuleContext*);
+  [[nodiscard]] auto GetModuleVersion() const -> ModuleVersion;
+
+  [[nodiscard]] auto GetModuleMetaData() const -> ModuleMetaData;
+
+  [[nodiscard]] auto GetModulePath() const -> QString;
+
+  [[nodiscard]] auto GetModuleHash() const -> QString;
+
+  [[nodiscard]] auto GetModuleSDKVersion() const -> QString;
+
+  [[nodiscard]] auto GetModuleQtEnvVersion() const -> QString;
+
+  void SetGPC(GlobalModuleContext *);
 
  protected:
   auto getChannel() -> int;

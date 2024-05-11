@@ -31,6 +31,7 @@
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 
 #include "core/module/Event.h"
 #include "core/module/Module.h"
@@ -47,6 +48,18 @@ class GlobalModuleContext::Impl {
     // Initialize acquired channels with default values.
     acquired_channel_.insert(kGpgFrontendDefaultChannel);
     acquired_channel_.insert(kGpgFrontendNonAsciiChannel);
+  }
+
+  auto SearchModule(ModuleIdentifier module_id) -> ModulePtr {
+    // Search for the module in the register table.
+    auto module_info_opt = search_module_register_table(module_id);
+    if (!module_info_opt.has_value()) {
+      GF_CORE_LOG_ERROR("cannot find module id {} at register table",
+                        module_id);
+      return nullptr;
+    }
+
+    return module_info_opt.value()->module;
   }
 
   auto GetChannel(ModuleRawPtr module) -> int {
@@ -85,7 +98,7 @@ class GlobalModuleContext::Impl {
     return default_task_runner_;
   }
 
-  auto RegisterModule(const ModulePtr& module) -> bool {
+  auto RegisterModule(const ModulePtr& module, bool integrated_module) -> bool {
     GF_CORE_LOG_DEBUG("attempting to register module: {}",
                       module->GetModuleIdentifier());
     // Check if the module is null or already registered.
@@ -97,7 +110,7 @@ class GlobalModuleContext::Impl {
       return false;
     }
 
-    if (!module->Register()) {
+    if (module->Register() != 0) {
       GF_CORE_LOG_ERROR("register module {} failed",
                         module->GetModuleIdentifier());
       return false;
@@ -107,6 +120,7 @@ class GlobalModuleContext::Impl {
         GpgFrontend::SecureCreateSharedObject<ModuleRegisterInfo>();
     register_info->module = module;
     register_info->channel = acquire_new_unique_channel();
+    register_info->integrated = integrated_module;
 
     // move module to its task runner' thread
     register_info->module->setParent(nullptr);
@@ -158,6 +172,15 @@ class GlobalModuleContext::Impl {
   auto ListenEvent(ModuleIdentifier module_id, EventIdentifier event) -> bool {
     GF_CORE_LOG_DEBUG("module: {} is attempting to listen to event {}",
                       module_id, event);
+
+    // module -> event
+    auto module_info_opt = search_module_register_table(module_id);
+    if (!module_info_opt.has_value()) {
+      GF_CORE_LOG_ERROR("cannot find module id {} at register table",
+                        module_id);
+      return false;
+    }
+
     // Check if the event exists, if not, create it.
     auto met_it = module_events_table_.find(event);
     if (met_it == module_events_table_.end()) {
@@ -165,6 +188,8 @@ class GlobalModuleContext::Impl {
       met_it = module_events_table_.find(event);
       GF_CORE_LOG_DEBUG("new event {} of module system created", event);
     }
+
+    module_info_opt.value()->listening_event_ids.push_back(event);
 
     auto& listeners_set = met_it->second;
     // Add the listener (module) to the event.
@@ -176,7 +201,7 @@ class GlobalModuleContext::Impl {
   }
 
   auto DeactivateModule(ModuleIdentifier module_id) -> bool {
-    // Search for the module in the register table.
+    // search for the module in the register table.
     auto module_info_opt = search_module_register_table(module_id);
     if (!module_info_opt.has_value()) {
       GF_CORE_LOG_ERROR("cannot find module id {} at register table",
@@ -185,15 +210,23 @@ class GlobalModuleContext::Impl {
     }
 
     auto module_info = module_info_opt.value();
-    // Activate the module if it is not already deactive.
-    if (!module_info->activate && module_info->module->Deactive()) {
+    // activate the module if it is not already deactive.
+    if (module_info->activate && (module_info->module->Deactive() == 0)) {
+      for (const auto& event_ids : module_info->listening_event_ids) {
+        auto& modules = module_events_table_[event_ids];
+        if (auto it = modules.find(module_id); it != modules.end()) {
+          modules.erase(it);
+        }
+      }
+
+      module_info->listening_event_ids.clear();
       module_info->activate = false;
     }
 
     return !module_info->activate;
   }
 
-  auto TriggerEvent(const EventRefrernce& event) -> bool {
+  auto TriggerEvent(const EventReference& event) -> bool {
     auto event_id = event->GetIdentifier();
     GF_CORE_LOG_DEBUG("attempting to trigger event: {}", event_id);
 
@@ -221,6 +254,9 @@ class GlobalModuleContext::Impl {
     // Log the number of listeners for this event
     GF_CORE_LOG_DEBUG("event {}'s current listeners size: {}",
                       event->GetIdentifier(), listeners_set.size());
+
+    // register trigger id index table
+    module_on_triggering_events_table_[event->GetTriggerIdentifier()] = event;
 
     // Iterate through each listener and execute the corresponding module
     for (const auto& listener_module_id : listeners_set) {
@@ -272,9 +308,40 @@ class GlobalModuleContext::Impl {
     return true;
   }
 
-  auto IsModuleActivated(const ModuleIdentifier& m_id) const -> bool {
+  auto SearchEvent(const EventTriggerIdentifier& trigger_id)
+      -> std::optional<EventReference> {
+    if (module_on_triggering_events_table_.find(trigger_id) !=
+        module_on_triggering_events_table_.end()) {
+      return module_on_triggering_events_table_[trigger_id];
+    }
+    return {};
+  }
+
+  [[nodiscard]] auto IsModuleActivated(const ModuleIdentifier& m_id) const
+      -> bool {
     auto m = search_module_register_table(m_id);
     return m.has_value() && m->get()->activate;
+  }
+
+  auto IsIntegratedModule(ModuleIdentifier m_id) -> bool {
+    auto m = search_module_register_table(m_id);
+    return m.has_value() && m->get()->integrated;
+  }
+
+  auto ListAllRegisteredModuleID() -> QList<ModuleIdentifier> {
+    QList<ModuleIdentifier> module_ids;
+    for (const auto& module : module_register_table_) {
+      module_ids.append(module.first);
+    }
+    module_ids.sort();
+    return module_ids;
+  }
+
+  auto GetModuleListening(const ModuleIdentifier& module_id)
+      -> QList<EventIdentifier> {
+    auto module_info = search_module_register_table(module_id);
+    if (!module_info.has_value()) return {};
+    return module_info->get()->listening_event_ids;
   }
 
  private:
@@ -282,6 +349,8 @@ class GlobalModuleContext::Impl {
     int channel;
     ModulePtr module;
     bool activate;
+    bool integrated;
+    QList<QString> listening_event_ids;
   };
 
   using ModuleRegisterInfoPtr = std::shared_ptr<ModuleRegisterInfo>;
@@ -290,6 +359,8 @@ class GlobalModuleContext::Impl {
       module_register_table_;
   std::map<EventIdentifier, std::unordered_set<ModuleIdentifier>>
       module_events_table_;
+  std::map<EventTriggerIdentifier, EventReference>
+      module_on_triggering_events_table_;
 
   std::set<int> acquired_channel_;
   TaskRunnerPtr default_task_runner_;
@@ -307,7 +378,8 @@ class GlobalModuleContext::Impl {
   }
 
   // Function to search for a module in the register table.
-  auto search_module_register_table(const ModuleIdentifier& identifier) const
+  [[nodiscard]] auto search_module_register_table(
+      const ModuleIdentifier& identifier) const
       -> std::optional<ModuleRegisterInfoPtr> {
     auto mrt_it = module_register_table_.find(identifier);
     if (mrt_it == module_register_table_.end()) {
@@ -322,6 +394,11 @@ GlobalModuleContext::GlobalModuleContext()
     : p_(SecureCreateUniqueObject<Impl>()) {}
 
 GlobalModuleContext::~GlobalModuleContext() = default;
+
+auto GlobalModuleContext::SearchModule(ModuleIdentifier module_id)
+    -> ModulePtr {
+  return p_->SearchModule(std::move(module_id));
+}
 
 // Function to get the task runner associated with a module.
 auto GlobalModuleContext::GetTaskRunner(ModuleRawPtr module)
@@ -341,8 +418,9 @@ auto GlobalModuleContext::GetGlobalTaskRunner()
   return p_->GetGlobalTaskRunner();
 }
 
-auto GlobalModuleContext::RegisterModule(ModulePtr module) -> bool {
-  return p_->RegisterModule(std::move(module));
+auto GlobalModuleContext::RegisterModule(ModulePtr module,
+                                         bool integrated_module) -> bool {
+  return p_->RegisterModule(module, integrated_module);
 }
 
 auto GlobalModuleContext::ActiveModule(ModuleIdentifier module_id) -> bool {
@@ -358,8 +436,13 @@ auto GlobalModuleContext::DeactivateModule(ModuleIdentifier module_id) -> bool {
   return p_->DeactivateModule(std::move(module_id));
 }
 
-auto GlobalModuleContext::TriggerEvent(EventRefrernce event) -> bool {
-  return p_->TriggerEvent(std::move(event));
+auto GlobalModuleContext::TriggerEvent(EventReference event) -> bool {
+  return p_->TriggerEvent(event);
+}
+
+auto GlobalModuleContext::SearchEvent(EventTriggerIdentifier trigger_id)
+    -> std::optional<EventReference> {
+  return p_->SearchEvent(trigger_id);
 }
 
 auto GlobalModuleContext::GetChannel(ModuleRawPtr module) -> int {
@@ -371,7 +454,20 @@ auto GlobalModuleContext::GetDefaultChannel(ModuleRawPtr channel) -> int {
 }
 
 auto GlobalModuleContext::IsModuleActivated(ModuleIdentifier m_id) -> bool {
-  return p_->IsModuleActivated(std::move(m_id));
+  return p_->IsModuleActivated(m_id);
 }
 
+auto GlobalModuleContext::IsIntegratedModule(ModuleIdentifier m_id) -> bool {
+  return p_->IsIntegratedModule(m_id);
+}
+
+auto GlobalModuleContext::ListAllRegisteredModuleID()
+    -> QList<ModuleIdentifier> {
+  return p_->ListAllRegisteredModuleID();
+}
+
+auto GlobalModuleContext::GetModuleListening(ModuleIdentifier module_id)
+    -> QList<EventIdentifier> {
+  return p_->GetModuleListening(module_id);
+}
 }  // namespace GpgFrontend::Module

@@ -188,7 +188,7 @@ class KeyList : public QWidget {
       const QString& name, const QString& id,
       KeyListRow::KeyType selectType = KeyListRow::SECRET_OR_PUBLIC_KEY,
       KeyListColumn::InfoType infoType = KeyListColumn::ALL,
-      const KeyTable::KeyTableFilter filter =
+      KeyTable::KeyTableFilter filter =
           [](const GpgKey&, const KeyTable&) -> bool { return true; });
 
   /**
@@ -225,7 +225,7 @@ class KeyList : public QWidget {
    *
    * @return KeyIdArgsListPtr
    */
-  KeyIdArgsListPtr GetChecked();
+  auto GetChecked() -> KeyIdArgsListPtr;
 
   /**
    * @brief Get the Checked object
@@ -233,21 +233,28 @@ class KeyList : public QWidget {
    * @param key_table
    * @return KeyIdArgsListPtr
    */
-  static KeyIdArgsListPtr GetChecked(const KeyTable& key_table);
+  static auto GetChecked(const KeyTable& key_table) -> KeyIdArgsListPtr;
 
   /**
    * @brief Get the Private Checked object
    *
    * @return KeyIdArgsListPtr
    */
-  KeyIdArgsListPtr GetPrivateChecked();
+  auto GetCheckedPrivateKey() -> KeyIdArgsListPtr;
+
+  /**
+   * @brief
+   *
+   * @return KeyIdArgsListPtr
+   */
+  auto GetCheckedPublicKey() -> KeyIdArgsListPtr;
 
   /**
    * @brief Get the All Private Keys object
    *
    * @return KeyIdArgsListPtr
    */
-  KeyIdArgsListPtr GetAllPrivateKeys();
+  auto GetAllPrivateKeys() -> KeyIdArgsListPtr;
 
   /**
    * @brief Set the Checked object
@@ -270,14 +277,14 @@ class KeyList : public QWidget {
    *
    * @return KeyIdArgsListPtr
    */
-  KeyIdArgsListPtr GetSelected();
+  auto GetSelected() -> KeyIdArgsListPtr;
 
   /**
    * @brief Get the Selected Key object
    *
    * @return QString
    */
-  QString GetSelectedKey();
+  auto GetSelectedKey() -> QString;
 
   /**
    * @brief
@@ -285,7 +292,7 @@ class KeyList : public QWidget {
    * @return true
    * @return false
    */
-  [[maybe_unused]] bool ContainsPrivateKeys();
+  [[maybe_unused]] auto ContainsPrivateKeys() -> bool;
 
  signals:
   /**

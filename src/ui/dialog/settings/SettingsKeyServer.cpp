@@ -31,10 +31,10 @@
 #include <cstddef>
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/model/SettingsObject.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
-#include "ui/struct/SettingsObject.h"
-#include "ui/struct/settings/KeyServerSO.h"
+#include "ui/struct/settings_object/KeyServerSO.h"
 #include "ui/thread/ListedKeyServerTestTask.h"
 #include "ui_KeyServerSettings.h"
 

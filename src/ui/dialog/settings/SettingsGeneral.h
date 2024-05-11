@@ -69,27 +69,19 @@ class GeneralTab : public QWidget {
    *
    * @param needed
    */
-  void SignalRestartNeeded(bool needed);
+  void SignalRestartNeeded();
 
   /**
    * @brief
    *
    * @param needed
    */
-  void SignalDeepRestartNeeded(bool needed);
+  void SignalDeepRestartNeeded();
 
  private:
   std::shared_ptr<Ui_GeneralSettings> ui_;  ///<
   QHash<QString, QString> lang_;            ///<
   std::vector<QString> key_ids_list_;       ///<
   KeyList* m_key_list_{};                   ///<
-
- private slots:
-
-  /**
-   * @brief
-   *
-   */
-  void slot_language_changed();
 };
 }  // namespace GpgFrontend::UI

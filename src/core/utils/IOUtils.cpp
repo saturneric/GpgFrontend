@@ -180,4 +180,42 @@ auto GetFullExtension(const QString& path) -> QString {
   return filename.mid(dot_index);
 }
 
+auto CalculateBinaryChacksum(const QString& path) -> QString {
+  // check file info and access rights
+  QFileInfo info(path);
+  if (!info.exists() || !info.isFile() || !info.isReadable()) {
+    GF_CORE_LOG_ERROR("get info for file {} error, exists: {}", info.filePath(),
+                      info.exists());
+    return {};
+  }
+
+  // open and read file
+  QFile f(info.filePath());
+  if (!f.open(QIODevice::ReadOnly)) {
+    GF_CORE_LOG_ERROR("open {} to calculate checksum error: {}",
+                      path.toStdString(), f.errorString().toStdString());
+    return {};
+  }
+
+  QCryptographicHash hash_sha(QCryptographicHash::Sha256);
+
+  // read data by chunks
+  const qint64 buffer_size = 8192;  // Define a suitable buffer size
+  while (!f.atEnd()) {
+    QByteArray const buffer = f.read(buffer_size);
+    if (buffer.isEmpty()) {
+      GF_CORE_LOG_ERROR("error reading file {} during checksum calculation",
+                        path.toStdString());
+      return {};
+    }
+    hash_sha.addData(buffer);
+  }
+
+  // close the file
+  f.close();
+
+  // return the SHA-256 hash of the file
+  return hash_sha.result().toHex();
+}
+
 }  // namespace GpgFrontend

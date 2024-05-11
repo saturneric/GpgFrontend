@@ -319,7 +319,7 @@ void KeyPairSubkeyTab::slot_edit_subkey() {
 void KeyPairSubkeyTab::slot_revoke_subkey() {}
 
 void KeyPairSubkeyTab::contextMenuEvent(QContextMenuEvent* event) {
-  if (!subkey_list_->selectedItems().isEmpty()) {
+  if (key_.IsPrivateKey() && !subkey_list_->selectedItems().isEmpty()) {
     subkey_opera_menu_->exec(event->globalPos());
   }
 }

@@ -1,5 +1,3 @@
-<img width="100" height="100" align="right" style="position: absolute;right: 0;padding: 12px;top:12px;" src="https://image.cdn.bktus.com/i/2024/02/24/248b2e18-a120-692e-e6bc-42ca30be9011.webp" alt="GpgFrontend"/>
-
 # GpgFrontend
 
 ![Language](https://img.shields.io/badge/language-C%2B%2B-green)
@@ -12,6 +10,8 @@ GpgFrontend is a free, open-source, robust yet user-friendly, compact and
 cross-platform tool for [OpenPGP](https://www.openpgp.org/) encryption. It
 stands out as an exceptional GUI frontend for the modern
 [GnuPG](https://www.gnupg.org/) (gpg).
+
+<img width="100" height="100" align="right" style="position: absolute;right: 0;padding: 12px;top:12px;z-index: 1000;" src="https://image.cdn.bktus.com/i/2024/02/24/248b2e18-a120-692e-e6bc-42ca30be9011.webp" alt="GpgFrontend"/>
 
 When using GpgFrontend, you can:
 

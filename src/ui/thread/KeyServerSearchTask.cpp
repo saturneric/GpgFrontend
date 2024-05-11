@@ -28,6 +28,8 @@
 
 #include "ui/thread/KeyServerSearchTask.h"
 
+#include "core/utils/BuildInfoUtils.h"
+
 GpgFrontend::UI::KeyServerSearchTask::KeyServerSearchTask(QString keyserver_url,
                                                           QString search_string)
     : Task("key_server_search_task"),
@@ -42,7 +44,11 @@ auto GpgFrontend::UI::KeyServerSearchTask::Run() -> int {
                          "/pks/lookup?search=" + search_string_ +
                          "&op=index&options=mr";
 
-  reply_ = manager_->get(QNetworkRequest(url_from_remote));
+  auto request = QNetworkRequest(url_from_remote);
+  request.setHeader(QNetworkRequest::UserAgentHeader,
+                    GetHttpRequestUserAgent());
+
+  reply_ = manager_->get(request);
   connect(reply_, &QNetworkReply::finished, this,
           &KeyServerSearchTask::dealing_reply_from_server);
 

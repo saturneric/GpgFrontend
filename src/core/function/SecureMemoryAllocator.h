@@ -28,9 +28,7 @@
 
 #pragma once
 
-#include <cstdint>
-#include <memory>
-
+#include "core/GpgFrontendCoreExport.h"
 #include "core/utils/LogUtils.h"
 
 namespace GpgFrontend {

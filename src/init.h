@@ -56,13 +56,13 @@ void InitLocale();
  *
  * @param args
  */
-void InitGlobalBasicalEnv(const GFCxtWPtr &, bool);
+void InitGlobalBasicEnv(const GFCxtWPtr &, bool);
 
 /**
  * @brief
  *
  * @param p_ctx
  */
-void ShutdownGlobalBasicalEnv(const GFCxtWPtr &p_ctx);
+void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx);
 
 }  // namespace GpgFrontend

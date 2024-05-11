@@ -94,18 +94,18 @@ class GpgContext::Impl {
                                int fd) -> gpgme_error_t {
     size_t res;
 #ifdef QT5_BUILD
-     QString pass_qstr = "abcdefg\n";
-     QByteArray pass = pass_qstr.toUtf8();
+    QString pass_qstr = "abcdefg\n";
+    QByteArray pass = pass_qstr.toUtf8();
 #else
-      QString pass = "abcdefg\n";
+    QString pass = "abcdefg\n";
 #endif
-    
+
     auto passpahrase_size = pass.size();
     size_t off = 0;
 
     do {
 #ifdef QT5_BUILD
-      const char* p_pass = pass.data();
+      const char *p_pass = pass.data();
       res = gpgme_io_write(fd, &p_pass[off], passpahrase_size - off);
 #else
       res = gpgme_io_write(fd, &pass[off], passpahrase_size - off);
@@ -246,15 +246,14 @@ class GpgContext::Impl {
     }
 
     // set context offline mode
-    GF_CORE_LOG_DEBUG("gpg context offline mode: {}", args_.offline_mode);
+    GF_CORE_LOG_DEBUG("gpg context: offline mode: {}", args_.offline_mode);
+    GF_CORE_LOG_DEBUG("gpg context: auto import missing key: {}",
+                      args_.auto_import_missing_key);
     gpgme_set_offline(ctx, args_.offline_mode ? 1 : 0);
 
     // set option auto import missing key
-    // invalid at offline mode
-    GF_CORE_LOG_DEBUG("gpg context auto import missing key: {}",
-                      args_.offline_mode);
-    if (!args.offline_mode && args.auto_import_missing_key) {
-      if (CheckGpgError(gpgme_set_ctx_flag(ctx, "auto-key-import", "1")) !=
+    if (!args_.offline_mode && args.auto_import_missing_key) {
+      if (CheckGpgError(gpgme_set_ctx_flag(ctx, "auto-key-retrieve", "1")) !=
           GPG_ERR_NO_ERROR) {
         return false;
       }

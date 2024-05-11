@@ -33,21 +33,22 @@
 #include "core/GpgConstants.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/model/CacheObject.h"
 #include "core/model/GpgImportInformation.h"
+#include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/typedef/GpgTypedef.h"
+#include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "thread/KeyServerImportTask.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
-#include "ui/dialog/gnupg/GnuPGControllerDialog.h"
+#include "ui/dialog/controller/GnuPGControllerDialog.h"
 #include "ui/dialog/import_export/KeyServerImportDialog.h"
-#include "ui/struct/CacheObject.h"
-#include "ui/struct/SettingsObject.h"
-#include "ui/struct/settings/KeyServerSO.h"
+#include "ui/struct/settings_object/KeyServerSO.h"
 #include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
@@ -64,8 +65,8 @@ void show_verify_details(QWidget *parent, InfoBoardWidget *info_board,
       [=]() { VerifyDetailsDialog(parent, error, verify_result); });
 }
 
-void import_unknown_key_from_keyserver(
-    QWidget *parent, const GpgVerifyResultAnalyse &verify_res) {
+void ImportUnknownKeyFromKeyserver(
+    QWidget *parent, const GpgVerifyResultAnalyse &verify_result) {
   QMessageBox::StandardButton reply;
   reply = QMessageBox::question(
       parent, QCoreApplication::tr("Public key not found locally"),
@@ -77,7 +78,7 @@ void import_unknown_key_from_keyserver(
   if (reply == QMessageBox::Yes) {
     auto dialog = KeyServerImportDialog(parent);
     auto key_ids = std::make_unique<KeyIdArgsList>();
-    auto *signature = verify_res.GetSignatures();
+    auto *signature = verify_result.GetSignatures();
     while (signature != nullptr) {
       GF_UI_LOG_DEBUG("signature fpr: {}", signature->fpr);
       key_ids->push_back(signature->fpr);
@@ -428,7 +429,11 @@ void CommonUtils::SlotImportKeyFromKeyServer(
       GF_UI_LOG_DEBUG("request url: {}", req_url.toString());
 
       // Waiting for reply
-      QNetworkReply *reply = network_manager->get(QNetworkRequest(req_url));
+      auto request = QNetworkRequest(req_url);
+      request.setHeader(QNetworkRequest::UserAgentHeader,
+                        GetHttpRequestUserAgent());
+
+      QNetworkReply *reply = network_manager->get(request);
       QEventLoop loop;
       connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
       loop.exec();

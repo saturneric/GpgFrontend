@@ -30,8 +30,9 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/module/ModuleManager.h"
+#include "dialog/controller/ModuleControllerDialog.h"
 #include "ui/UserInterfaceUtils.h"
-#include "ui/dialog/gnupg/GnuPGControllerDialog.h"
+#include "ui/dialog/controller/GnuPGControllerDialog.h"
 #include "ui/dialog/help/AboutDialog.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
@@ -82,6 +83,7 @@ void MainWindow::create_actions() {
   connect(print_act_, &QAction::triggered, edit_, &TextEdit::SlotPrint);
 
   close_tab_act_ = new QAction(tr("Close"), this);
+  close_tab_act_->setIcon(QIcon(":/icons/close.png"));
   close_tab_act_->setShortcut(QKeySequence::Close);
   close_tab_act_->setToolTip(tr("Close file"));
   connect(close_tab_act_, &QAction::triggered, edit_, &TextEdit::SlotCloseTab);
@@ -95,20 +97,24 @@ void MainWindow::create_actions() {
   /* Edit Menu
    */
   undo_act_ = new QAction(tr("Undo"), this);
+  undo_act_->setIcon(QIcon(":/icons/undo.png"));
   undo_act_->setShortcut(QKeySequence::Undo);
   undo_act_->setToolTip(tr("Undo Last Edit Action"));
   connect(undo_act_, &QAction::triggered, edit_, &TextEdit::SlotUndo);
 
   redo_act_ = new QAction(tr("Redo"), this);
+  redo_act_->setIcon(QIcon(":/icons/redo.png"));
   redo_act_->setShortcut(QKeySequence::Redo);
   redo_act_->setToolTip(tr("Redo Last Edit Action"));
   connect(redo_act_, &QAction::triggered, edit_, &TextEdit::SlotRedo);
 
   zoom_in_act_ = new QAction(tr("Zoom In"), this);
+  zoom_in_act_->setIcon(QIcon(":/icons/zoomin.png"));
   zoom_in_act_->setShortcut(QKeySequence::ZoomIn);
   connect(zoom_in_act_, &QAction::triggered, edit_, &TextEdit::SlotZoomIn);
 
   zoom_out_act_ = new QAction(tr("Zoom Out"), this);
+  zoom_out_act_->setIcon(QIcon(":/icons/zoomout.png"));
   zoom_out_act_->setShortcut(QKeySequence::ZoomOut);
   connect(zoom_out_act_, &QAction::triggered, edit_, &TextEdit::SlotZoomOut);
 
@@ -343,7 +349,7 @@ void MainWindow::create_actions() {
           &MainWindow::slot_open_key_management);
 
   clean_gpg_password_cache_act_ = new QAction(tr("Clear Password Cache"), this);
-  clean_gpg_password_cache_act_->setIcon(QIcon(":/icons/configure.png"));
+  clean_gpg_password_cache_act_->setIcon(QIcon(":/icons/clear-f.png"));
   clean_gpg_password_cache_act_->setToolTip(
       tr("Clear Password Cache of GnuPG"));
   connect(clean_gpg_password_cache_act_, &QAction::triggered, this, [=]() {
@@ -360,7 +366,7 @@ void MainWindow::create_actions() {
   });
 
   reload_components_act_ = new QAction(tr("Reload All Components"), this);
-  reload_components_act_->setIcon(QIcon(":/icons/configure.png"));
+  reload_components_act_->setIcon(QIcon(":/icons/restart.png"));
   reload_components_act_->setToolTip(tr("Reload All GnuPG's Components"));
   connect(reload_components_act_, &QAction::triggered, this, [=]() {
     GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents(
@@ -378,7 +384,7 @@ void MainWindow::create_actions() {
   });
 
   restart_components_act_ = new QAction(tr("Restart All Components"), this);
-  restart_components_act_->setIcon(QIcon(":/icons/configure.png"));
+  restart_components_act_->setIcon(QIcon(":/icons/restart.png"));
   restart_components_act_->setToolTip(tr("Restart All GnuPG's Components"));
   connect(restart_components_act_, &QAction::triggered, this, [=]() {
     GpgFrontend::GpgAdvancedOperator::RestartGpgComponents();
@@ -404,6 +410,12 @@ void MainWindow::create_actions() {
   connect(gnupg_controller_open_act_, &QAction::triggered, this,
           [this]() { (new GnuPGControllerDialog(this))->exec(); });
 
+  module_controller_open_act_ = new QAction(tr("Open Module Controller"), this);
+  module_controller_open_act_->setIcon(QIcon(":/icons/module.png"));
+  module_controller_open_act_->setToolTip(tr("Open Module Controller Dialog"));
+  connect(module_controller_open_act_, &QAction::triggered, this,
+          [this]() { (new ModuleControllerDialog(this))->exec(); });
+
   /*
    * About Menu
    */
@@ -414,28 +426,30 @@ void MainWindow::create_actions() {
   connect(about_act_, &QAction::triggered, this,
           [=]() { new AboutDialog(0, this); });
 
-  gnupg_act_ = new QAction(tr("GnuPG"), this);
-  gnupg_act_->setIcon(QIcon(":/icons/help.png"));
-  gnupg_act_->setToolTip(tr("Information about Gnupg"));
-  connect(gnupg_act_, &QAction::triggered, this,
-          [=]() { new AboutDialog(1, this); });
+  if (Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
+    gnupg_act_ = new QAction(tr("GnuPG"), this);
+    gnupg_act_->setIcon(QIcon(":/icons/key.png"));
+    gnupg_act_->setToolTip(tr("Information about Gnupg"));
+    connect(gnupg_act_, &QAction::triggered, this,
+            [=]() { new AboutDialog(tr("GnuPG"), this); });
+  }
 
   translate_act_ = new QAction(tr("Translate"), this);
-  translate_act_->setIcon(QIcon(":/icons/help.png"));
+  translate_act_->setIcon(QIcon(":/icons/translate.png"));
   translate_act_->setToolTip(tr("Information about translation"));
   connect(translate_act_, &QAction::triggered, this,
-          [=]() { new AboutDialog(2, this); });
+          [=]() { new AboutDialog(tr("Translators"), this); });
 
-  /*
-   * Check Update Menu
-   */
-  check_update_act_ = new QAction(tr("Check for Updates"), this);
-  check_update_act_->setIcon(QIcon(":/icons/help.png"));
-  check_update_act_->setToolTip(tr("Check for updates"));
-  connect(check_update_act_, &QAction::triggered, this,
-          [=]() { new AboutDialog(3, this); });
+  if (Module::IsModuleActivate(kVersionCheckingModuleID)) {
+    check_update_act_ = new QAction(tr("Check for Updates"), this);
+    check_update_act_->setIcon(QIcon(":/icons/update.png"));
+    check_update_act_->setToolTip(tr("Check for updates"));
+    connect(check_update_act_, &QAction::triggered, this,
+            [=]() { new AboutDialog(tr("Update"), this); });
+  }
 
   start_wizard_act_ = new QAction(tr("Open Wizard"), this);
+  start_wizard_act_->setIcon(QIcon(":/icons/wizard.png"));
   start_wizard_act_->setToolTip(tr("Open the wizard"));
   connect(start_wizard_act_, &QAction::triggered, this,
           &MainWindow::slot_start_wizard);
@@ -492,10 +506,10 @@ void MainWindow::create_actions() {
   connect(show_key_details_act_, &QAction::triggered, this,
           &MainWindow::slot_show_key_details);
 
-  add_key_2_favourtie_act_ = new QAction(tr("Add To Favourite"), this);
-  add_key_2_favourtie_act_->setToolTip(tr("Add this key to Favourite Table"));
-  add_key_2_favourtie_act_->setData(QVariant("add_key_2_favourite_action"));
-  connect(add_key_2_favourtie_act_, &QAction::triggered, this,
+  add_key_2_favourite_act_ = new QAction(tr("Add To Favourite"), this);
+  add_key_2_favourite_act_->setToolTip(tr("Add this key to Favourite Table"));
+  add_key_2_favourite_act_->setData(QVariant("add_key_2_favourite_action"));
+  connect(add_key_2_favourite_act_, &QAction::triggered, this,
           &MainWindow::slot_add_key_2_favourite);
 
   remove_key_from_favourtie_act_ =
@@ -587,13 +601,13 @@ void MainWindow::create_menus() {
   import_key_menu_->addAction(import_key_from_key_server_act_);
   key_menu_->addAction(open_key_management_act_);
 
-  gpg_menu_ = menuBar()->addMenu(tr("GnuPG"));
-  gpg_menu_->addAction(clean_gpg_password_cache_act_);
-  gpg_menu_->addSeparator();
-  gpg_menu_->addAction(reload_components_act_);
-  gpg_menu_->addAction(restart_components_act_);
-  gpg_menu_->addSeparator();
-  gpg_menu_->addAction(gnupg_controller_open_act_);
+  advance_menu_ = menuBar()->addMenu(tr("Advance"));
+  advance_menu_->addAction(clean_gpg_password_cache_act_);
+  advance_menu_->addAction(reload_components_act_);
+  advance_menu_->addAction(restart_components_act_);
+  advance_menu_->addSeparator();
+  advance_menu_->addAction(gnupg_controller_open_act_);
+  advance_menu_->addAction(module_controller_open_act_);
 
   steganography_menu_ = menuBar()->addMenu(tr("Steganography"));
   steganography_menu_->addAction(cut_pgp_header_act_);
@@ -604,9 +618,17 @@ void MainWindow::create_menus() {
   help_menu_ = menuBar()->addMenu(tr("Help"));
   help_menu_->addAction(start_wizard_act_);
   help_menu_->addSeparator();
-  help_menu_->addAction(check_update_act_);
-  help_menu_->addAction(gnupg_act_);
+
+  if (Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
+    help_menu_->addAction(gnupg_act_);
+  }
+
   help_menu_->addAction(translate_act_);
+
+  if (Module::IsModuleActivate(kVersionCheckingModuleID)) {
+    help_menu_->addAction(check_update_act_);
+  }
+
   help_menu_->addAction(about_act_);
 }
 

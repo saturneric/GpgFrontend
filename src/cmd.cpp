@@ -28,13 +28,13 @@
 
 #include "cmd.h"
 
+#include "core/utils/BuildInfoUtils.h"
 #include "main.h"
 
 // std
 #include <iostream>
 
 // GpgFrontend
-#include "GpgFrontendBuildInfo.h"
 #include "GpgFrontendContext.h"
 #include "test/GpgFrontendTest.h"
 
@@ -42,19 +42,19 @@ namespace GpgFrontend {
 
 auto PrintVersion() -> int {
   QTextStream stream(stdout);
-  stream << PROJECT_NAME << " "
-         << "v" << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH
-         << '\n';
+  stream << PROJECT_NAME << " " << GetProjectVersion() << '\n';
   stream << "Copyright (©) 2021 Saturneric <eric@bktus.com>" << '\n'
          << QCoreApplication::tr(
                 "This is free software; see the source for copying conditions.")
          << '\n'
          << '\n';
 
-  stream << QCoreApplication::tr("Build DateTime: ") << BUILD_TIMESTAMP << '\n'
-         << QCoreApplication::tr("Build Version: ") << BUILD_VERSION << '\n'
-         << QCoreApplication::tr("Source Code Version: ") << GIT_VERSION
-         << '\n';
+  stream << QCoreApplication::tr("Build DateTime: ")
+         << QLocale().toString(GetProjectBuildTimestamp()) << '\n'
+         << QCoreApplication::tr("Build Version: ") << GetProjectBuildVersion()
+         << '\n'
+         << QCoreApplication::tr("Source Code Version: ")
+         << GetProjectBuildGitVersion() << '\n';
 
   stream << Qt::endl;
   return 0;

@@ -63,7 +63,7 @@ void show_verify_details(QWidget* parent, InfoBoardWidget* info_board,
  * @param parent
  * @param verify_res
  */
-void import_unknown_key_from_keyserver(
+void ImportUnknownKeyFromKeyserver(
     QWidget* parent, const GpgVerifyResultAnalyse& verify_res);
 
 /**

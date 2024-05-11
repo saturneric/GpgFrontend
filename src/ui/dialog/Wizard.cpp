@@ -28,7 +28,6 @@
 
 #include "Wizard.h"
 
-#include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
 
 namespace GpgFrontend::UI {
@@ -43,10 +42,8 @@ Wizard::Wizard(QWidget* parent) : QWizard(parent) {
 #endif
   setWindowTitle(tr("First Start Wizard"));
 
-  // http://www.flickr.com/photos/laureenp/6141822934/
-  setPixmap(QWizard::WatermarkPixmap, QPixmap(":/icons/keys2.jpg"));
-  setPixmap(QWizard::LogoPixmap, QPixmap(":/icons/logo_small.png"));
-  setPixmap(QWizard::BannerPixmap, QPixmap(":/icons/banner.png"));
+  setPixmap(QWizard::LogoPixmap,
+            QPixmap(":/icons/gpgfrontend_logo.png").scaled(64, 64));
 
   int next_page_id = GlobalSettingStation::GetInstance()
                          .GetSettings()
@@ -74,10 +71,8 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
   setTitle(tr("Getting Started..."));
   setSubTitle(tr("... with GpgFrontend"));
 
-  auto* topLabel = new QLabel(
-      QString(
-          tr("Welcome to GpgFrontend for decrypting and signing text or "
-             "files!")) +
+  auto* top_label = new QLabel(
+      tr("Welcome to GpgFrontend for decrypting and signing text or files!") +
       " <br><br><a href='https://gpgfrontend.bktus.com'>GpgFrontend</a> " +
       tr("is a Powerful, Easy-to-Use, Compact, Cross-Platform, and "
          "Installation-Free OpenPGP Crypto Tool. ") +
@@ -86,10 +81,10 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
       tr("Overview") + "</a> (" +
       tr("by clicking the link, the page will open in your web browser") +
       "). <br>");
-  topLabel->setTextFormat(Qt::RichText);
-  topLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
-  topLabel->setOpenExternalLinks(true);
-  topLabel->setWordWrap(true);
+  top_label->setTextFormat(Qt::RichText);
+  top_label->setTextInteractionFlags(Qt::TextBrowserInteraction);
+  top_label->setOpenExternalLinks(true);
+  top_label->setWordWrap(true);
 
   // QComboBox for language selection
   auto* lang_label =
@@ -99,7 +94,7 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
 
   // set layout and add widgets
   auto* layout = new QVBoxLayout;
-  layout->addWidget(topLabel);
+  layout->addWidget(top_label);
   layout->addStretch();
   layout->addWidget(lang_label);
 
@@ -122,7 +117,7 @@ ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
   keygen_label->setOpenExternalLinks(true);
   keygen_label->setWordWrap(true);
 
- auto* encr_decy_text_label = new QLabel(
+  auto* encr_decy_text_label = new QLabel(
       tr("If you want to learn how to encrypt, decrypt, sign and verify text, "
          "you can read ") +
       "<a href=\"https://gpgfrontend.bktus.com/guides/encrypt-decrypt-text\">" +
@@ -135,12 +130,12 @@ ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
   encr_decy_text_label->setOpenExternalLinks(true);
   encr_decy_text_label->setWordWrap(true);
 
-  auto* sign_verify_text_label =
-      new QLabel(tr("If you want to operate file, you can read ") +
-                 "<a href=\"https://gpgfrontend.bktus.com/guides/encrypt-decrypt-file\">" +
-                 tr("Encrypt & Sign File") + "</a> " + tr("or") +
-                 " <a href=\"https://gpgfrontend.bktus.com/guides/sign-verify-file\">" +
-                 tr("Sign & Verify File") + "</a><hr>");
+  auto* sign_verify_text_label = new QLabel(
+      tr("If you want to operate file, you can read ") +
+      "<a href=\"https://gpgfrontend.bktus.com/guides/encrypt-decrypt-file\">" +
+      tr("Encrypt & Sign File") + "</a> " + tr("or") +
+      " <a href=\"https://gpgfrontend.bktus.com/guides/sign-verify-file\">" +
+      tr("Sign & Verify File") + "</a><hr>");
   sign_verify_text_label->setTextFormat(Qt::RichText);
   sign_verify_text_label->setTextInteractionFlags(Qt::TextBrowserInteraction);
   sign_verify_text_label->setOpenExternalLinks(true);
@@ -157,9 +152,9 @@ ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
 int ChoosePage::nextId() const { return next_page_; }
 
 void ChoosePage::slot_jump_page(const QString& page) {
-  QMetaObject qmo = Wizard::staticMetaObject;
-  int index = qmo.indexOfEnumerator("WizardPages");
-  QMetaEnum m = qmo.enumerator(index);
+  QMetaObject const qmo = Wizard::staticMetaObject;
+  int const index = qmo.indexOfEnumerator("WizardPages");
+  QMetaEnum const m = qmo.enumerator(index);
 
   next_page_ = m.keyToValue(page.toUtf8().data());
   wizard()->next();
@@ -225,7 +220,8 @@ ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
   open_help_check_box_ = new QCheckBox(tr("Open offline help."));
   open_help_check_box_->setChecked(true);
 
-  dont_show_wizard_checkbox_ = new QCheckBox(tr("Don't show the wizard again."));
+  dont_show_wizard_checkbox_ =
+      new QCheckBox(tr("Don't show the wizard again."));
   dont_show_wizard_checkbox_->setChecked(true);
 
   registerField("showWizard", dont_show_wizard_checkbox_);

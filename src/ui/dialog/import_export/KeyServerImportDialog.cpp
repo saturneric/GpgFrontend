@@ -28,14 +28,12 @@
 
 #include "KeyServerImportDialog.h"
 
-#include <QRegExp>
-
 #include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/model/SettingsObject.h"
 #include "ui/UISignalStation.h"
-#include "ui/struct/SettingsObject.h"
-#include "ui/struct/settings/KeyServerSO.h"
+#include "ui/struct/settings_object/KeyServerSO.h"
 #include "ui/thread/KeyServerImportTask.h"
 #include "ui/thread/KeyServerSearchTask.h"
 
@@ -243,11 +241,14 @@ void KeyServerImportDialog::slot_search_finished(
       set_message("<h4>" + tr("Too many responses from keyserver!") + "</h4>",
                   true);
       return;
-    } else if (text.contains("No keys found")) {
+    }
+
+    if (text.contains("No keys found")) {
+      auto query = search_line_edit_->text();
+
       // if string looks like hex string, search again with 0x prepended
-      QRegExp rx("[0-9A-Fa-f]*");
-      QString query = search_line_edit_->text();
-      if (rx.exactMatch(query)) {
+      QRegularExpression rx("[0-9A-Fa-f]*");
+      if (rx.match(query).hasMatch()) {
         set_message("<h4>" +
                         tr("No keys found, input may be kexId, retrying search "
                            "with 0x.") +
@@ -257,102 +258,104 @@ void KeyServerImportDialog::slot_search_finished(
         this->slot_search();
         return;
       }
+
       set_message(
           "<h4>" + tr("No keys found containing the search string!") + "</h4>",
           true);
       return;
+    }
 
-    } else if (text.contains("Insufficiently specific words")) {
+    if (text.contains("Insufficiently specific words")) {
       set_message(
           "<h4>" + tr("Insufficiently specific search string!") + "</h4>",
           true);
       return;
-    } else {
-      set_message(text, true);
-      return;
     }
-  } else {
-    int row = 0;
-    bool strikeout = false;
 
-    // read lines until end of steam
-    while (!stream.atEnd()) {
-      QStringList line =
-          QString::fromUtf8(QByteArray::fromPercentEncoding(
-                                stream.readLine().trimmed().toUtf8()))
-              .split(":");
+    set_message(text, true);
+    return;
+  }
 
-      // TODO: have a look at two following pub lines
-      if (line[0] == "pub") {
-        strikeout = false;
+  int row = 0;
+  bool strikeout = false;
 
-        QString flags = line[line.size() - 1];
-        keys_table_->setRowCount(row + 1);
+  // read lines until end of steam
+  while (!stream.atEnd()) {
+    QStringList line =
+        QString::fromUtf8(QByteArray::fromPercentEncoding(
+                              stream.readLine().trimmed().toUtf8()))
+            .split(":");
 
-        // flags can be "d" for disabled, "r" for revoked
-        // or "e" for expired
-        if (flags.contains("r") or flags.contains("d") or flags.contains("e")) {
-          strikeout = true;
-          if (flags.contains("e")) {
-            keys_table_->setItem(row, 3,
-                                 new QTableWidgetItem(QString("expired")));
-          }
-          if (flags.contains("r")) {
-            keys_table_->setItem(row, 3, new QTableWidgetItem(tr("revoked")));
-          }
-          if (flags.contains("d")) {
-            keys_table_->setItem(row, 3, new QTableWidgetItem(tr("disabled")));
-          }
+    // TODO: have a look at two following pub lines
+    if (line[0] == "pub") {
+      strikeout = false;
+
+      QString flags = line[line.size() - 1];
+      keys_table_->setRowCount(row + 1);
+
+      // flags can be "d" for disabled, "r" for revoked
+      // or "e" for expired
+      if (flags.contains("r") or flags.contains("d") or flags.contains("e")) {
+        strikeout = true;
+        if (flags.contains("e")) {
+          keys_table_->setItem(row, 3,
+                               new QTableWidgetItem(QString("expired")));
         }
-
-        QStringList line2 = QString(QByteArray::fromPercentEncoding(
-                                        stream.readLine().trimmed().toUtf8()))
-                                .split(":");
-
-        auto* uid = new QTableWidgetItem();
-        if (line2.size() > 1) {
-          uid->setText(line2[1]);
-          keys_table_->setItem(row, 0, uid);
+        if (flags.contains("r")) {
+          keys_table_->setItem(row, 3, new QTableWidgetItem(tr("revoked")));
         }
-        auto* creation_date =
-            new QTableWidgetItem(QDateTime::fromSecsSinceEpoch(line[4].toInt())
-                                     .toString("dd. MMM. yyyy"));
-        keys_table_->setItem(row, 1, creation_date);
-        auto* keyid = new QTableWidgetItem(line[1]);
-        keys_table_->setItem(row, 2, keyid);
-        if (strikeout) {
-          QFont strike = uid->font();
-          strike.setStrikeOut(true);
-          uid->setFont(strike);
-          creation_date->setFont(strike);
-          keyid->setFont(strike);
-        }
-        row++;
-      } else {
-        if (line[0] == "uid") {
-          QStringList l;
-          int height = keys_table_->rowHeight(row - 1);
-          keys_table_->setRowHeight(row - 1, height + 16);
-          QString tmp = keys_table_->item(row - 1, 0)->text();
-          tmp.append(QString("\n") + line[1]);
-          auto* tmp1 = new QTableWidgetItem(tmp);
-          keys_table_->setItem(row - 1, 0, tmp1);
-          if (strikeout) {
-            QFont strike = tmp1->font();
-            strike.setStrikeOut(true);
-            tmp1->setFont(strike);
-          }
+        if (flags.contains("d")) {
+          keys_table_->setItem(row, 3, new QTableWidgetItem(tr("disabled")));
         }
       }
-      set_message(
-          QString("<h4>") +
-              tr("%1 keys found. Double click a key to import it.").arg(row) +
-              "</h4>",
-          false);
+
+      QStringList line2 = QString(QByteArray::fromPercentEncoding(
+                                      stream.readLine().trimmed().toUtf8()))
+                              .split(":");
+
+      auto* uid = new QTableWidgetItem();
+      if (line2.size() > 1) {
+        uid->setText(line2[1]);
+        keys_table_->setItem(row, 0, uid);
+      }
+      auto* creation_date =
+          new QTableWidgetItem(QDateTime::fromSecsSinceEpoch(line[4].toInt())
+                                   .toString("dd. MMM. yyyy"));
+      keys_table_->setItem(row, 1, creation_date);
+      auto* keyid = new QTableWidgetItem(line[1]);
+      keys_table_->setItem(row, 2, keyid);
+      if (strikeout) {
+        QFont strike = uid->font();
+        strike.setStrikeOut(true);
+        uid->setFont(strike);
+        creation_date->setFont(strike);
+        keyid->setFont(strike);
+      }
+      row++;
+    } else {
+      if (line[0] == "uid") {
+        QStringList l;
+        int height = keys_table_->rowHeight(row - 1);
+        keys_table_->setRowHeight(row - 1, height + 16);
+        QString tmp = keys_table_->item(row - 1, 0)->text();
+        tmp.append(QString("\n") + line[1]);
+        auto* tmp1 = new QTableWidgetItem(tmp);
+        keys_table_->setItem(row - 1, 0, tmp1);
+        if (strikeout) {
+          QFont strike = tmp1->font();
+          strike.setStrikeOut(true);
+          tmp1->setFont(strike);
+        }
+      }
     }
-    keys_table_->resizeColumnsToContents();
-    import_button_->setDisabled(keys_table_->size().isEmpty());
+    set_message(
+        QString("<h4>") +
+            tr("%1 keys found. Double click a key to import it.").arg(row) +
+            "</h4>",
+        false);
   }
+  keys_table_->resizeColumnsToContents();
+  import_button_->setDisabled(keys_table_->size().isEmpty());
 }
 
 void KeyServerImportDialog::slot_import() {
