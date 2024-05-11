@@ -147,7 +147,7 @@ class FileTreeView : public QTreeView {
    * @brief
    *
    */
-  auto SlotDeleteSelectedItem() -> void;
+  void SlotDeleteSelectedItem();
 
   /**
    * @brief
