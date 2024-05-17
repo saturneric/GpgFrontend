@@ -40,7 +40,7 @@ GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
 #endif
 
   // set the extra information of the build
-  GpgFrontendApplication::setApplicationVersion(GetProjectBuildVersion());
+  GpgFrontendApplication::setApplicationVersion(GetProjectVersion());
   GpgFrontendApplication::setApplicationName(QString::fromUtf8((PROJECT_NAME)));
   GpgFrontendApplication::setApplicationDisplayName(
       QString::fromUtf8((PROJECT_NAME)));
