@@ -58,6 +58,8 @@ using GpgKeyLinkList = std::list<GpgKey>;                         ///<
 using KeyLinkListPtr = std::unique_ptr<GpgKeyLinkList>;           ///<
 using KeyPtr = std::unique_ptr<GpgKey>;                           ///<
 using KeyPtrArgsList = const std::initializer_list<KeyPtr>;       ///<
+using GpgKeyList = QList<GpgKey>;                                 ///<
+using GpgKeyIDList = QList<QString>;                              ///<
 
 using GpgSignMode = gpgme_sig_mode_t;
 

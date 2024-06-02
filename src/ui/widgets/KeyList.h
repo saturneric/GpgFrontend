@@ -29,38 +29,12 @@
 #pragma once
 
 #include "core/model/GpgKey.h"
+#include "core/model/GpgKeyTableModel.h"
+#include "core/model/GpgKeyTableProxyModel.h"
 
 class Ui_KeyList;
 
 namespace GpgFrontend::UI {
-
-/**
- * @brief
- *
- */
-struct KeyListRow {
-  using KeyType = unsigned int;
-
-  static const KeyType SECRET_OR_PUBLIC_KEY = 0;  ///<
-  static const KeyType ONLY_SECRET_KEY = 1;       ///<
-};
-
-/**
- * @brief
- *
- */
-struct KeyListColumn {
-  using InfoType = unsigned int;
-
-  static constexpr InfoType ALL = ~0;               ///<
-  static constexpr InfoType TYPE = 1 << 0;          ///<
-  static constexpr InfoType NAME = 1 << 1;          ///<
-  static constexpr InfoType EmailAddress = 1 << 2;  ///<
-  static constexpr InfoType Usage = 1 << 3;         ///<
-  static constexpr InfoType Validity = 1 << 4;      ///<
-  static constexpr InfoType FingerPrint = 1 << 5;   ///<
-  static constexpr InfoType KeyID = 1 << 6;         ///<
-};
 
 /**
  * @brief
@@ -82,17 +56,10 @@ struct KeyMenuAbility {
  * @brief
  *
  */
-struct KeyTable {
+struct KeyTable : public QTableView {
+  Q_OBJECT
+ public:
   using KeyTableFilter = std::function<bool(const GpgKey&, const KeyTable&)>;
-
-  QTableWidget* key_list_;               ///<
-  KeyListRow::KeyType select_type_;      ///<
-  KeyListColumn::InfoType info_type_;    ///<
-  std::vector<GpgKey> buffered_keys_;    ///<
-  KeyTableFilter filter_;                ///<
-  KeyIdArgsListPtr checked_key_ids_;     ///<
-  KeyMenuAbility::AbilityType ability_;  ///<
-  QString keyword_;                      ///<
 
   /**
    * @brief Construct a new Key Table object
@@ -103,29 +70,25 @@ struct KeyTable {
    * @param _filter
    */
   KeyTable(
-      QTableWidget* _key_list, KeyListRow::KeyType _select_type,
-      KeyListColumn::InfoType _info_type,
-      KeyTableFilter _filter = [](const GpgKey&, const KeyTable&) -> bool {
+      QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
+      GpgKeyTableDisplayMode _select_type, GpgKeyTableColumn _info_type,
+      GpgKeyTableProxyModel::KeyFilter _filter = [](const GpgKey&) -> bool {
         return true;
-      })
-      : key_list_(_key_list),
-        select_type_(_select_type),
-        info_type_(_info_type),
-        filter_(std::move(_filter)) {}
+      });
 
   /**
    * @brief
    *
-   * @param m_keys
+   * @param model
    */
-  void Refresh(KeyLinkListPtr m_keys = nullptr);
+  void RefreshModel(QSharedPointer<GpgKeyTableModel> model);
 
   /**
    * @brief Get the Checked object
    *
    * @return KeyIdArgsListPtr&
    */
-  KeyIdArgsListPtr& GetChecked();
+  auto GetChecked() -> KeyIdArgsListPtr;
 
   /**
    * @brief
@@ -140,13 +103,6 @@ struct KeyTable {
   void CheckALL() const;
 
   /**
-   * @brief Set the Checked object
-   *
-   * @param key_ids
-   */
-  void SetChecked(KeyIdArgsListPtr key_ids);
-
-  /**
    * @brief
    *
    */
@@ -156,7 +112,81 @@ struct KeyTable {
    * @brief
    *
    */
-  void SetFilterKeyword(QString keyword);
+  void SetFilterKeyword(const QString& keyword);
+
+  /**
+   * @brief
+   *
+   * @param row
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] auto IsRowChecked(int row) const -> bool;
+
+  /**
+   * @brief Set the Row Checked object
+   *
+   * @param row
+   */
+  void SetRowChecked(int row) const;
+
+  /**
+   * @brief Set the Row Checked object
+   *
+   * @param row
+   */
+  [[nodiscard]] auto GetRowSelected() const -> int;
+
+  /**
+   * @brief Get the Row Count object
+   *
+   * @return auto
+   */
+  [[nodiscard]] auto GetRowCount() const -> int;
+
+  /**
+   * @brief Get the Key Id By Row object
+   *
+   * @param row
+   * @return QString
+   */
+  [[nodiscard]] auto GetKeyIdByRow(int row) const -> QString;
+
+  /**
+   * @brief
+   *
+   * @param row
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] auto IsPublicKeyByRow(int row) const -> bool;
+
+  /**
+   * @brief
+   *
+   * @param row
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] auto IsPrivateKeyByRow(int row) const -> bool;
+
+  /**
+   * @brief
+   *
+   */
+  void CheckAll();
+
+  /**
+   * @brief
+   *
+   */
+  void UncheckAll();
+
+ private:
+  KeyMenuAbility::AbilityType ability_;  ///<
+
+  QSharedPointer<GpgKeyTableModel> model_;
+  GpgKeyTableProxyModel proxy_model_;
 };
 
 /**
@@ -186,10 +216,11 @@ class KeyList : public QWidget {
    */
   void AddListGroupTab(
       const QString& name, const QString& id,
-      KeyListRow::KeyType selectType = KeyListRow::SECRET_OR_PUBLIC_KEY,
-      KeyListColumn::InfoType infoType = KeyListColumn::ALL,
-      KeyTable::KeyTableFilter filter =
-          [](const GpgKey&, const KeyTable&) -> bool { return true; });
+      GpgKeyTableDisplayMode selectType = GpgKeyTableDisplayMode::kPrivateKey,
+      GpgKeyTableColumn infoType = GpgKeyTableColumn::kAll,
+      GpgKeyTableProxyModel::KeyFilter filter = [](const GpgKey&) -> bool {
+        return true;
+      });
 
   /**
    * @brief Set the Double Clicked Action object
@@ -255,13 +286,6 @@ class KeyList : public QWidget {
    * @return KeyIdArgsListPtr
    */
   auto GetAllPrivateKeys() -> KeyIdArgsListPtr;
-
-  /**
-   * @brief Set the Checked object
-   *
-   * @param key_ids
-   */
-  void SetChecked(KeyIdArgsListPtr key_ids);
 
   /**
    * @brief Set the Checked object
@@ -355,15 +379,11 @@ class KeyList : public QWidget {
    */
   void filter_by_keyword();
 
-  std::mutex buffered_key_list_mutex_;  ///<
-
   std::shared_ptr<Ui_KeyList> ui_;                                   ///<
-  QTableWidget* m_key_list_{};                                       ///<
-  std::vector<KeyTable> m_key_tables_;                               ///<
   QMenu* popup_menu_{};                                              ///<
-  GpgFrontend::KeyLinkListPtr buffered_keys_list_;                   ///<
   std::function<void(const GpgKey&, QWidget*)> m_action_ = nullptr;  ///<
   KeyMenuAbility::AbilityType menu_ability_ = KeyMenuAbility::ALL;   ///<
+  QSharedPointer<GpgKeyTableModel> model_;
 
  private slots:
 
@@ -373,12 +393,6 @@ class KeyList : public QWidget {
    * @param index
    */
   void slot_double_clicked(const QModelIndex& index);
-
-  /**
-   * @brief
-   *
-   */
-  void slot_refresh_ui();
 
   /**
    * @brief

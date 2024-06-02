@@ -202,10 +202,12 @@ void MainWindow::slot_show_key_details() {
 void MainWindow::slot_add_key_2_favourite() {
   auto key_ids = m_key_list_->GetSelected();
   if (key_ids->empty()) return;
+  GF_UI_LOG_DEBUG("get selected key id: {}", key_ids->front());
 
   auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
-  CommonUtils::GetInstance()->AddKey2Favourtie(key);
+  if (!key.IsGood()) return;
 
+  CommonUtils::GetInstance()->AddKey2Favourtie(key);
   emit SignalUIRefresh();
 }
 

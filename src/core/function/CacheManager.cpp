@@ -165,9 +165,10 @@ class CacheManager::Impl : public QObject {
    *
    */
   void slot_flush_cache_storage() {
+    GF_CORE_LOG_TRACE("write cache to file system...");
+
     for (const auto& cache : durable_cache_storage_.mirror()) {
       auto key = get_data_object_key(cache.first);
-      GF_CORE_LOG_TRACE("save cache into filesystem, key {}", key);
       GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(
           key, QJsonDocument(cache.second));
     }

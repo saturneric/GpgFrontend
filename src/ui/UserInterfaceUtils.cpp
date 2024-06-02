@@ -529,34 +529,44 @@ auto CommonUtils::KeyExistsinFavouriteList(const GpgKey &key) -> bool {
   auto json_data = CacheObject("favourite_key_pair");
   if (!json_data.isArray()) json_data.setArray(QJsonArray());
 
-  auto key_array = json_data.array();
-  return std::find(key_array.begin(), key_array.end(), key.GetFingerprint()) !=
-         key_array.end();
+  auto key_fpr_array = json_data.array();
+  return std::find(key_fpr_array.begin(), key_fpr_array.end(),
+                   key.GetFingerprint()) != key_fpr_array.end();
 }
 
 void CommonUtils::AddKey2Favourtie(const GpgKey &key) {
-  auto json_data = CacheObject("favourite_key_pair");
-  QJsonArray key_array;
-  if (json_data.isArray()) key_array = json_data.array();
+  {
+    auto json_data = CacheObject("favourite_key_pair");
+    QJsonArray key_array;
+    if (json_data.isArray()) key_array = json_data.array();
 
-  key_array.push_back(key.GetFingerprint());
-  json_data.setArray(key_array);
+    GF_UI_LOG_DEBUG("add key to favorites, key fpr: {}", key.GetFingerprint());
+    key_array.push_back(key.GetFingerprint());
+    json_data.setArray(key_array);
+  }
+
+  emit SignalFavoritesChanged();
 }
 
 void CommonUtils::RemoveKeyFromFavourite(const GpgKey &key) {
-  auto json_data = CacheObject("favourite_key_pair");
-  QJsonArray key_array;
-  if (json_data.isArray()) key_array = json_data.array();
+  {
+    auto json_data = CacheObject("favourite_key_pair");
+    QJsonArray key_array;
+    if (json_data.isArray()) key_array = json_data.array();
 
-  QString fingerprint = key.GetFingerprint();
-  QJsonArray new_key_array;
-  for (auto &&item : key_array) {
-    if (item.isString() && item.toString() != fingerprint) {
-      new_key_array.append(item);
+    GF_UI_LOG_DEBUG("remove key from favorites, key fpr: {}",
+                    key.GetFingerprint());
+    auto fingerprint = key.GetFingerprint();
+    QJsonArray new_key_array;
+    for (auto &&item : key_array) {
+      if (item.isString() && item.toString() != fingerprint) {
+        new_key_array.append(item);
+      }
     }
+    json_data.setArray(new_key_array);
   }
 
-  json_data.setArray(new_key_array);
+  emit SignalFavoritesChanged();
 }
 
 /**

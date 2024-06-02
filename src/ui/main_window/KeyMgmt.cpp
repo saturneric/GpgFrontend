@@ -54,53 +54,58 @@ KeyMgmt::KeyMgmt(QWidget* parent)
   /* the list of Keys available*/
   key_list_ = new KeyList(KeyMenuAbility::ALL, this);
 
-  key_list_->AddListGroupTab(tr("All"), "all",
-                             KeyListRow::SECRET_OR_PUBLIC_KEY);
+  key_list_->AddListGroupTab(
+      tr("All"), "all",
+      GpgKeyTableDisplayMode::kPublicKey | GpgKeyTableDisplayMode::kPrivateKey);
 
   key_list_->AddListGroupTab(
       tr("Only Public Key"), "only_public_key",
-      KeyListRow::SECRET_OR_PUBLIC_KEY,
-      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
-          KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key, const KeyTable&) -> bool {
+      GpgKeyTableDisplayMode::kPublicKey,
+      GpgKeyTableColumn::kType | GpgKeyTableColumn::kName |
+          GpgKeyTableColumn::kEmailAddress | GpgKeyTableColumn::kUsage |
+          GpgKeyTableColumn::kValidity,
+      [](const GpgKey& key) -> bool {
         return !key.IsPrivateKey() &&
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
   key_list_->AddListGroupTab(
       tr("Has Private Key"), "has_private_key",
-      KeyListRow::SECRET_OR_PUBLIC_KEY,
-      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
-          KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key, const KeyTable&) -> bool {
+      GpgKeyTableDisplayMode::kPrivateKey,
+      GpgKeyTableColumn::kType | GpgKeyTableColumn::kName |
+          GpgKeyTableColumn::kEmailAddress | GpgKeyTableColumn::kUsage |
+          GpgKeyTableColumn::kValidity,
+      [](const GpgKey& key) -> bool {
         return key.IsPrivateKey() &&
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
   key_list_->AddListGroupTab(
-      tr("No Primary Key"), "no_primary_key", KeyListRow::SECRET_OR_PUBLIC_KEY,
-      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
-          KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key, const KeyTable&) -> bool {
+      tr("No Primary Key"), "no_primary_key",
+      GpgKeyTableDisplayMode::kPublicKey | GpgKeyTableDisplayMode::kPrivateKey,
+      GpgKeyTableColumn::kType | GpgKeyTableColumn::kName |
+          GpgKeyTableColumn::kEmailAddress | GpgKeyTableColumn::kUsage |
+          GpgKeyTableColumn::kValidity,
+      [](const GpgKey& key) -> bool {
         return !key.IsHasMasterKey() &&
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
   key_list_->AddListGroupTab(
-      tr("Revoked"), "revoked", KeyListRow::SECRET_OR_PUBLIC_KEY,
-      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
-          KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key, const KeyTable&) -> bool {
-        return key.IsRevoked();
-      });
+      tr("Revoked"), "revoked",
+      GpgKeyTableDisplayMode::kPublicKey | GpgKeyTableDisplayMode::kPrivateKey,
+      GpgKeyTableColumn::kType | GpgKeyTableColumn::kName |
+          GpgKeyTableColumn::kEmailAddress | GpgKeyTableColumn::kUsage |
+          GpgKeyTableColumn::kValidity,
+      [](const GpgKey& key) -> bool { return key.IsRevoked(); });
 
   key_list_->AddListGroupTab(
-      tr("Expired"), "expired", KeyListRow::SECRET_OR_PUBLIC_KEY,
-      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
-          KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key, const KeyTable&) -> bool {
-        return key.IsExpired();
-      });
+      tr("Expired"), "expired",
+      GpgKeyTableDisplayMode::kPublicKey | GpgKeyTableDisplayMode::kPrivateKey,
+      GpgKeyTableColumn::kType | GpgKeyTableColumn::kName |
+          GpgKeyTableColumn::kEmailAddress | GpgKeyTableColumn::kUsage |
+          GpgKeyTableColumn::kValidity,
+      [](const GpgKey& key) -> bool { return key.IsExpired(); });
 
   setCentralWidget(key_list_);
   key_list_->SetDoubleClickedAction(

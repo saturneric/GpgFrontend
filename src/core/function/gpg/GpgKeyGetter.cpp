@@ -92,6 +92,22 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     return keys_list;
   }
 
+  auto FetchGpgKeyList() -> GpgKeyList {
+    if (keys_search_cache_.empty()) {
+      FlushKeyCache();
+    }
+
+    auto keys_list = GpgKeyList{};
+    {
+      // get the lock
+      std::lock_guard<std::mutex> lock(keys_cache_mutex_);
+      for (const auto& key : keys_cache_) {
+        keys_list.push_back(key);
+      }
+    }
+    return keys_list;
+  }
+
   auto FlushKeyCache() -> bool {
     GF_CORE_LOG_DEBUG("flush key channel called, channel: {}", GetChannel());
 
@@ -163,6 +179,11 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     auto keys_copy = std::make_unique<KeyArgsList>();
     for (const auto& key : *keys) keys_copy->emplace_back(key);
     return keys_copy;
+  }
+
+  auto GetGpgKeyTableModel() -> QSharedPointer<GpgKeyTableModel> {
+    return SecureCreateQSharedObject<GpgKeyTableModel>(FetchGpgKeyList(),
+                                                       nullptr);
   }
 
  private:
@@ -247,5 +268,9 @@ auto GpgKeyGetter::GetKeysCopy(const KeyListPtr& keys) -> KeyListPtr {
 }
 
 auto GpgKeyGetter::FetchKey() -> KeyLinkListPtr { return p_->FetchKey(); }
+
+auto GpgKeyGetter::GetGpgKeyTableModel() -> QSharedPointer<GpgKeyTableModel> {
+  return p_->GetGpgKeyTableModel();
+}
 
 }  // namespace GpgFrontend
