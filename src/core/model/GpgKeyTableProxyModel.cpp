@@ -134,6 +134,10 @@ auto GpgKeyTableProxyModel::filterAcceptsColumn(
       return (filter_columns_ & GpgKeyTableColumn::kSUBKEYS_NUMBER) !=
              GpgKeyTableColumn::kNONE;
     }
+    case 10: {
+      return (filter_columns_ & GpgKeyTableColumn::kCOMMENT) !=
+             GpgKeyTableColumn::kNONE;
+    }
     default:
       return false;
   }

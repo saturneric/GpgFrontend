@@ -64,6 +64,7 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
 
   setFocusPolicy(Qt::NoFocus);
   setAlternatingRowColors(true);
+  setSortingEnabled(true);
 
   connect(CommonUtils::GetInstance(), &CommonUtils::SignalFavoritesChanged,
           &proxy_model_, &GpgKeyTableProxyModel::SignalFavoritesChanged);

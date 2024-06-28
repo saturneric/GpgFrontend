@@ -131,6 +131,17 @@ void KeyList::init() {
                 : global_column_filter_ & ~GpgKeyTableColumn::kSUBKEYS_NUMBER);
       });
 
+  comment_column_action_ = new QAction("Comment");
+  comment_column_action_->setCheckable(true);
+  comment_column_action_->setChecked(
+      (global_column_filter_ & GpgKeyTableColumn::kCOMMENT) !=
+      GpgKeyTableColumn::kNONE);
+  connect(comment_column_action_, &QAction::toggled, this, [=](bool checked) {
+    UpdateKeyTableColumnType(
+        checked ? global_column_filter_ | GpgKeyTableColumn::kCOMMENT
+                : global_column_filter_ & ~GpgKeyTableColumn::kCOMMENT);
+  });
+
   if ((fixed_columns_filter_ & GpgKeyTableColumn::kKEY_ID) !=
       GpgKeyTableColumn::kNONE) {
     column_type_menu->addAction(key_id_column_action_);
@@ -153,6 +164,11 @@ void KeyList::init() {
   if ((fixed_columns_filter_ & GpgKeyTableColumn::kSUBKEYS_NUMBER) !=
       GpgKeyTableColumn::kNONE) {
     column_type_menu->addAction(subkeys_number_column_action_);
+  }
+
+  if ((fixed_columns_filter_ & GpgKeyTableColumn::kCOMMENT) !=
+      GpgKeyTableColumn::kNONE) {
+    column_type_menu->addAction(comment_column_action_);
   }
 
   ui_->columnTypeButton->setMenu(column_type_menu);

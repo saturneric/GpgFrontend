@@ -48,6 +48,7 @@ enum class GpgKeyTableColumn : unsigned int {
   kCREATE_DATE = 1 << 6,
   kALGO = 1 << 7,
   kSUBKEYS_NUMBER = 1 << 8,
+  kCOMMENT = 1 << 9,
   kALL = ~0U
 };
 

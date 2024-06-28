@@ -291,6 +291,7 @@ class KeyList : public QWidget {
   QAction* create_date_column_action_;
   QAction* owner_trust_column_action_;
   QAction* subkeys_number_column_action_;
+  QAction* comment_column_action_;
 
  private slots:
 
