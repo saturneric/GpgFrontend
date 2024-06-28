@@ -40,7 +40,7 @@
 
 namespace GpgFrontend::UI {
 
-KeyList::KeyList(KeyMenuAbility::AbilityType menu_ability,
+KeyList::KeyList(KeyMenuAbility menu_ability,
                  GpgKeyTableColumn fixed_columns_filter, QWidget* parent)
     : QWidget(parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyList>()),
@@ -59,12 +59,15 @@ KeyList::KeyList(KeyMenuAbility::AbilityType menu_ability,
 void KeyList::init() {
   ui_->setupUi(this);
 
-  ui_->menuWidget->setHidden(menu_ability_ == 0U);
+  ui_->menuWidget->setHidden(menu_ability_ == KeyMenuAbility::kNONE);
   ui_->refreshKeyListButton->setHidden(~menu_ability_ &
-                                       KeyMenuAbility::REFRESH);
-  ui_->syncButton->setHidden(~menu_ability_ & KeyMenuAbility::SYNC_PUBLIC_KEY);
-  ui_->uncheckButton->setHidden(~menu_ability_ & KeyMenuAbility::UNCHECK_ALL);
-  ui_->searchBarEdit->setHidden(~menu_ability_ & KeyMenuAbility::SEARCH_BAR);
+                                       KeyMenuAbility::kREFRESH);
+  ui_->syncButton->setHidden(~menu_ability_ & KeyMenuAbility::kSYNC_PUBLIC_KEY);
+  ui_->checkALLButton->setHidden(~menu_ability_ & KeyMenuAbility::kCHECK_ALL);
+  ui_->uncheckButton->setHidden(~menu_ability_ & KeyMenuAbility::kUNCHECK_ALL);
+  ui_->columnTypeButton->setHidden(~menu_ability_ &
+                                   KeyMenuAbility::kCOLUMN_FILTER);
+  ui_->searchBarEdit->setHidden(~menu_ability_ & KeyMenuAbility::kSEARCH_BAR);
 
   auto* column_type_menu = new QMenu();
 

@@ -38,17 +38,39 @@ namespace GpgFrontend::UI {
  * @brief
  *
  */
-struct KeyMenuAbility {
-  using AbilityType = unsigned int;
+enum class KeyMenuAbility : unsigned int {
+  kNONE = 0,
+  kREFRESH = 1 << 0,
+  kSYNC_PUBLIC_KEY = 1 << 1,
+  kUNCHECK_ALL = 1 << 2,
+  kCHECK_ALL = 1 << 3,
+  kCOLUMN_FILTER = 1 << 4,
+  kSEARCH_BAR = 1 << 5,
 
-  static constexpr AbilityType ALL = ~0;                  ///<
-  static constexpr AbilityType NONE = 0;                  ///<
-  static constexpr AbilityType REFRESH = 1 << 0;          ///<
-  static constexpr AbilityType SYNC_PUBLIC_KEY = 1 << 1;  ///<
-  static constexpr AbilityType UNCHECK_ALL = 1 << 3;      ///<
-  static constexpr AbilityType CHECK_ALL = 1 << 5;        ///<
-  static constexpr AbilityType SEARCH_BAR = 1 << 6;       ///<
+  kALL = ~0U
 };
+
+inline auto operator|(KeyMenuAbility lhs, KeyMenuAbility rhs)
+    -> KeyMenuAbility {
+  using T = std::underlying_type_t<KeyMenuAbility>;
+  return static_cast<KeyMenuAbility>(static_cast<T>(lhs) | static_cast<T>(rhs));
+}
+
+inline auto operator|=(KeyMenuAbility& lhs, KeyMenuAbility rhs)
+    -> KeyMenuAbility& {
+  lhs = lhs | rhs;
+  return lhs;
+}
+
+inline auto operator&(KeyMenuAbility lhs, KeyMenuAbility rhs) -> bool {
+  using T = std::underlying_type_t<KeyMenuAbility>;
+  return (static_cast<T>(lhs) & static_cast<T>(rhs)) != 0;
+}
+
+inline auto operator~(KeyMenuAbility hs) -> KeyMenuAbility {
+  using T = std::underlying_type_t<GpgKeyTableColumn>;
+  return static_cast<KeyMenuAbility>(~static_cast<T>(hs));
+}
 
 /**
  * @brief
@@ -65,7 +87,7 @@ class KeyList : public QWidget {
    * @param parent
    */
   explicit KeyList(
-      KeyMenuAbility::AbilityType menu_ability,
+      KeyMenuAbility menu_ability,
       GpgKeyTableColumn fixed_column_filter = GpgKeyTableColumn::kALL,
       QWidget* parent = nullptr);
 
@@ -259,7 +281,7 @@ class KeyList : public QWidget {
   std::shared_ptr<Ui_KeyList> ui_;                                   ///<
   QMenu* popup_menu_{};                                              ///<
   std::function<void(const GpgKey&, QWidget*)> m_action_ = nullptr;  ///<
-  KeyMenuAbility::AbilityType menu_ability_ = KeyMenuAbility::ALL;   ///<
+  KeyMenuAbility menu_ability_ = KeyMenuAbility::kALL;               ///<
   QSharedPointer<GpgKeyTableModel> model_;
   GpgKeyTableColumn fixed_columns_filter_;
   GpgKeyTableColumn global_column_filter_;

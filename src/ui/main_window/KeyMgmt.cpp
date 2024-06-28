@@ -52,7 +52,7 @@ namespace GpgFrontend::UI {
 KeyMgmt::KeyMgmt(QWidget* parent)
     : GeneralMainWindow("key_management", parent) {
   /* the list of Keys available*/
-  key_list_ = new KeyList(KeyMenuAbility::ALL, GpgKeyTableColumn::kALL, this);
+  key_list_ = new KeyList(KeyMenuAbility::kALL, GpgKeyTableColumn::kALL, this);
 
   key_list_->AddListGroupTab(tr("All"), "all",
                              GpgKeyTableDisplayMode::kPUBLIC_KEY |

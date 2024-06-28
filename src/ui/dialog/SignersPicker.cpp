@@ -45,7 +45,7 @@ SignersPicker::SignersPicker(QWidget* parent)
 
   /*Setup KeyList*/
   key_list_ =
-      new KeyList(KeyMenuAbility::SEARCH_BAR,
+      new KeyList(KeyMenuAbility::kCOLUMN_FILTER | KeyMenuAbility::kSEARCH_BAR,
                   GpgKeyTableColumn::kNAME | GpgKeyTableColumn::kEMAIL_ADDRESS |
                       GpgKeyTableColumn::kKEY_ID | GpgKeyTableColumn::kUSAGE,
                   this);

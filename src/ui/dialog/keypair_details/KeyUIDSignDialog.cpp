@@ -42,7 +42,7 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
       m_key_(key) {
   const auto key_id = m_key_.GetId();
   m_key_list_ =
-      new KeyList(KeyMenuAbility::SEARCH_BAR,
+      new KeyList(KeyMenuAbility::kCOLUMN_FILTER | KeyMenuAbility::kSEARCH_BAR,
                   GpgKeyTableColumn::kNAME | GpgKeyTableColumn::kEMAIL_ADDRESS |
                       GpgKeyTableColumn::kKEY_ID,
                   this);

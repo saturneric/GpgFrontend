@@ -62,8 +62,9 @@ void MainWindow::Init() noexcept {
 
     /* the list of Keys available*/
     m_key_list_ = new KeyList(
-        KeyMenuAbility::REFRESH | KeyMenuAbility::UNCHECK_ALL |
-            KeyMenuAbility::SEARCH_BAR,
+        KeyMenuAbility::kREFRESH | KeyMenuAbility::kCHECK_ALL |
+            KeyMenuAbility::kUNCHECK_ALL | KeyMenuAbility::kCOLUMN_FILTER |
+            KeyMenuAbility::kSEARCH_BAR,
         GpgKeyTableColumn::kTYPE | GpgKeyTableColumn::kNAME |
             GpgKeyTableColumn::kKEY_ID | GpgKeyTableColumn::kEMAIL_ADDRESS |
             GpgKeyTableColumn::kUSAGE | GpgKeyTableColumn::kOWNER_TRUST,
