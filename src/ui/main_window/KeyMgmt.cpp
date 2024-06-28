@@ -52,40 +52,30 @@ namespace GpgFrontend::UI {
 KeyMgmt::KeyMgmt(QWidget* parent)
     : GeneralMainWindow("key_management", parent) {
   /* the list of Keys available*/
-  key_list_ = new KeyList(KeyMenuAbility::ALL, this);
+  key_list_ = new KeyList(KeyMenuAbility::ALL, GpgKeyTableColumn::kALL, this);
 
-  key_list_->AddListGroupTab(
-      tr("All"), "all",
-      GpgKeyTableDisplayMode::kPublicKey | GpgKeyTableDisplayMode::kPrivateKey);
+  key_list_->AddListGroupTab(tr("All"), "all",
+                             GpgKeyTableDisplayMode::kPUBLIC_KEY |
+                                 GpgKeyTableDisplayMode::kPRIVATE_KEY);
 
   key_list_->AddListGroupTab(
       tr("Only Public Key"), "only_public_key",
-      GpgKeyTableDisplayMode::kPublicKey,
-      GpgKeyTableColumn::kType | GpgKeyTableColumn::kName |
-          GpgKeyTableColumn::kEmailAddress | GpgKeyTableColumn::kUsage |
-          GpgKeyTableColumn::kValidity,
-      [](const GpgKey& key) -> bool {
+      GpgKeyTableDisplayMode::kPUBLIC_KEY, [](const GpgKey& key) -> bool {
         return !key.IsPrivateKey() &&
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
   key_list_->AddListGroupTab(
       tr("Has Private Key"), "has_private_key",
-      GpgKeyTableDisplayMode::kPrivateKey,
-      GpgKeyTableColumn::kType | GpgKeyTableColumn::kName |
-          GpgKeyTableColumn::kEmailAddress | GpgKeyTableColumn::kUsage |
-          GpgKeyTableColumn::kValidity,
-      [](const GpgKey& key) -> bool {
+      GpgKeyTableDisplayMode::kPRIVATE_KEY, [](const GpgKey& key) -> bool {
         return key.IsPrivateKey() &&
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
   key_list_->AddListGroupTab(
       tr("No Primary Key"), "no_primary_key",
-      GpgKeyTableDisplayMode::kPublicKey | GpgKeyTableDisplayMode::kPrivateKey,
-      GpgKeyTableColumn::kType | GpgKeyTableColumn::kName |
-          GpgKeyTableColumn::kEmailAddress | GpgKeyTableColumn::kUsage |
-          GpgKeyTableColumn::kValidity,
+      GpgKeyTableDisplayMode::kPUBLIC_KEY |
+          GpgKeyTableDisplayMode::kPRIVATE_KEY,
       [](const GpgKey& key) -> bool {
         return !key.IsHasMasterKey() &&
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
@@ -93,18 +83,16 @@ KeyMgmt::KeyMgmt(QWidget* parent)
 
   key_list_->AddListGroupTab(
       tr("Revoked"), "revoked",
-      GpgKeyTableDisplayMode::kPublicKey | GpgKeyTableDisplayMode::kPrivateKey,
-      GpgKeyTableColumn::kType | GpgKeyTableColumn::kName |
-          GpgKeyTableColumn::kEmailAddress | GpgKeyTableColumn::kUsage |
-          GpgKeyTableColumn::kValidity,
+      GpgKeyTableDisplayMode::kPUBLIC_KEY |
+          GpgKeyTableDisplayMode::kPRIVATE_KEY,
+
       [](const GpgKey& key) -> bool { return key.IsRevoked(); });
 
   key_list_->AddListGroupTab(
       tr("Expired"), "expired",
-      GpgKeyTableDisplayMode::kPublicKey | GpgKeyTableDisplayMode::kPrivateKey,
-      GpgKeyTableColumn::kType | GpgKeyTableColumn::kName |
-          GpgKeyTableColumn::kEmailAddress | GpgKeyTableColumn::kUsage |
-          GpgKeyTableColumn::kValidity,
+      GpgKeyTableDisplayMode::kPUBLIC_KEY |
+          GpgKeyTableDisplayMode::kPRIVATE_KEY,
+
       [](const GpgKey& key) -> bool { return key.IsExpired(); });
 
   setCentralWidget(key_list_);

@@ -62,6 +62,12 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableProxyModel
    */
   void SignalFavoritesChanged();
 
+  /**
+   * @brief
+   *
+   */
+  void SignalColumnTypeChange(GpgKeyTableColumn);
+
  private slots:
 
   /**
@@ -69,6 +75,12 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableProxyModel
    *
    */
   void slot_update_favorites();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_update_column_type(GpgKeyTableColumn);
 
  private:
   QSharedPointer<GpgKeyTableModel> model_;

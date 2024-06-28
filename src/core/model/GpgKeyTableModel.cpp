@@ -36,9 +36,18 @@ namespace GpgFrontend {
 GpgKeyTableModel::GpgKeyTableModel(GpgKeyList keys, QObject *parent)
     : QAbstractTableModel(parent),
       buffered_keys_(keys),
-      column_headers_({tr("Select"), tr("Type"), tr("Name"),
-                       tr("Email Address"), tr("Usage"), tr("Trust"),
-                       tr("Key ID"), tr("Finger Print")}),
+      column_headers_({
+          tr("Select"),
+          tr("Type"),
+          tr("Name"),
+          tr("Email Address"),
+          tr("Usage"),
+          tr("Trust"),
+          tr("Key ID"),
+          tr("Create Date"),
+          tr("Algorithm"),
+          tr("Subkey(s)"),
+      }),
       key_check_state_(buffered_keys_.size()) {}
 
 auto GpgKeyTableModel::rowCount(const QModelIndex & /*parent*/) const -> int {
@@ -47,7 +56,7 @@ auto GpgKeyTableModel::rowCount(const QModelIndex & /*parent*/) const -> int {
 
 auto GpgKeyTableModel::columnCount(const QModelIndex & /*parent*/) const
     -> int {
-  return 8;
+  return 10;
 }
 
 auto GpgKeyTableModel::data(const QModelIndex &index, int role) const
@@ -99,7 +108,13 @@ auto GpgKeyTableModel::data(const QModelIndex &index, int role) const
       return key.GetId();
     }
     case 7: {
-      return key.GetFingerprint();
+      return key.GetCreateTime();
+    }
+    case 8: {
+      return key.GetKeyAlgo();
+    }
+    case 9: {
+      return static_cast<int>(key.GetSubKeys()->size());
     }
     default:
       return {};

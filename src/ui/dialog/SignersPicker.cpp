@@ -44,23 +44,23 @@ SignersPicker::SignersPicker(QWidget* parent)
   connect(cancel_button, &QPushButton::clicked, this, &QDialog::reject);
 
   /*Setup KeyList*/
-  key_list_ = new KeyList(0U, this);
-  key_list_->AddListGroupTab(
-      tr("Signers"), "signers", GpgKeyTableDisplayMode::kPrivateKey,
-      GpgKeyTableColumn::kName | GpgKeyTableColumn::kEmailAddress |
-          GpgKeyTableColumn::kUsage,
-      [](const GpgKey& key) -> bool {
-        return key.IsHasActualSigningCapability();
-      });
+  key_list_ =
+      new KeyList(KeyMenuAbility::SEARCH_BAR,
+                  GpgKeyTableColumn::kNAME | GpgKeyTableColumn::kEMAIL_ADDRESS |
+                      GpgKeyTableColumn::kKEY_ID | GpgKeyTableColumn::kUSAGE,
+                  this);
+  key_list_->AddListGroupTab(tr("Signers"), "signers",
+                             GpgKeyTableDisplayMode::kPRIVATE_KEY,
+                             [](const GpgKey& key) -> bool {
+                               return key.IsHasActualSigningCapability();
+                             });
   key_list_->SlotRefresh();
 
   auto* vbox2 = new QVBoxLayout();
   vbox2->addWidget(new QLabel(tr("Select Signer(s)") + ": "));
   vbox2->addWidget(key_list_);
   vbox2->addWidget(new QLabel(
-      QString(
-          tr("Please select one or more private keys you use for signing.")) +
-      "\n" +
+      tr("Please select one or more private keys you use for signing.") + "\n" +
       tr("If no key is selected, the default key will be used for signing.")));
   vbox2->addWidget(confirm_button);
   vbox2->addWidget(cancel_button);

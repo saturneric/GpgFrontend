@@ -38,58 +38,73 @@
 namespace GpgFrontend {
 
 enum class GpgKeyTableColumn : unsigned int {
-  kNone = 0,
-  kType = 1 << 0,
-  kName = 1 << 1,
-  kEmailAddress = 1 << 2,
-  kUsage = 1 << 3,
-  kValidity = 1 << 4,
-  kFingerPrint = 1 << 5,
-  kKeyId = 1 << 6,
-  kOwnerTrust = 1 << 7,
-  kAll = ~0u
+  kNONE = 0,
+  kTYPE = 1 << 0,
+  kNAME = 1 << 1,
+  kEMAIL_ADDRESS = 1 << 2,
+  kUSAGE = 1 << 3,
+  kKEY_ID = 1 << 4,
+  kOWNER_TRUST = 1 << 5,
+  kCREATE_DATE = 1 << 6,
+  kALGO = 1 << 7,
+  kSUBKEYS_NUMBER = 1 << 8,
+  kALL = ~0U
 };
 
-inline GpgKeyTableColumn operator|(GpgKeyTableColumn lhs,
-                                   GpgKeyTableColumn rhs) {
+inline auto operator|(GpgKeyTableColumn lhs, GpgKeyTableColumn rhs)
+    -> GpgKeyTableColumn {
   using T = std::underlying_type_t<GpgKeyTableColumn>;
   return static_cast<GpgKeyTableColumn>(static_cast<T>(lhs) |
                                         static_cast<T>(rhs));
 }
 
-inline GpgKeyTableColumn &operator|=(GpgKeyTableColumn &lhs,
-                                     GpgKeyTableColumn rhs) {
+inline auto operator|=(GpgKeyTableColumn &lhs, GpgKeyTableColumn rhs)
+    -> GpgKeyTableColumn & {
   lhs = lhs | rhs;
   return lhs;
 }
 
-inline bool operator&(GpgKeyTableColumn lhs, GpgKeyTableColumn rhs) {
+inline auto operator&(GpgKeyTableColumn lhs, GpgKeyTableColumn rhs)
+    -> GpgKeyTableColumn {
   using T = std::underlying_type_t<GpgKeyTableColumn>;
-  return (static_cast<T>(lhs) & static_cast<T>(rhs)) != 0;
+  return static_cast<GpgKeyTableColumn>(static_cast<T>(lhs) &
+                                        static_cast<T>(rhs));
+}
+
+inline auto operator&=(GpgKeyTableColumn &lhs, GpgKeyTableColumn rhs)
+    -> GpgKeyTableColumn & {
+  lhs = lhs & rhs;
+  return lhs;
+}
+
+inline auto operator~(GpgKeyTableColumn hs) -> GpgKeyTableColumn {
+  using T = std::underlying_type_t<GpgKeyTableColumn>;
+  return static_cast<GpgKeyTableColumn>(~static_cast<T>(hs));
 }
 
 enum class GpgKeyTableDisplayMode : unsigned int {
-  kNone = 0,
-  kPublicKey = 1 << 0,
-  kPrivateKey = 1 << 1,
-  kFavorites = 1 << 2,
-  kAll = ~0u
+  kNONE = 0,
+  kPUBLIC_KEY = 1 << 0,
+  kPRIVATE_KEY = 1 << 1,
+  kFAVORITES = 1 << 2,
+  kALL = ~0U
 };
 
-inline GpgKeyTableDisplayMode operator|(GpgKeyTableDisplayMode lhs,
-                                        GpgKeyTableDisplayMode rhs) {
+inline auto operator|(GpgKeyTableDisplayMode lhs, GpgKeyTableDisplayMode rhs)
+    -> GpgKeyTableDisplayMode {
   using T = std::underlying_type_t<GpgKeyTableDisplayMode>;
   return static_cast<GpgKeyTableDisplayMode>(static_cast<T>(lhs) |
                                              static_cast<T>(rhs));
 }
 
-inline GpgKeyTableDisplayMode &operator|=(GpgKeyTableDisplayMode &lhs,
-                                          GpgKeyTableDisplayMode rhs) {
+inline auto operator|=(GpgKeyTableDisplayMode &lhs, GpgKeyTableDisplayMode rhs)
+    -> GpgKeyTableDisplayMode & {
   lhs = lhs | rhs;
   return lhs;
 }
 
-inline bool operator&(GpgKeyTableDisplayMode lhs, GpgKeyTableDisplayMode rhs) {
+inline auto operator&(GpgKeyTableDisplayMode lhs, GpgKeyTableDisplayMode rhs)
+    -> bool {
   using T = std::underlying_type_t<GpgKeyTableDisplayMode>;
   return (static_cast<T>(lhs) & static_cast<T>(rhs)) != 0;
 }

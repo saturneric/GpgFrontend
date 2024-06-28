@@ -41,10 +41,13 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
       m_uids_(std::move(uid)),
       m_key_(key) {
   const auto key_id = m_key_.GetId();
-  m_key_list_ = new KeyList(KeyMenuAbility::NONE, this);
+  m_key_list_ =
+      new KeyList(KeyMenuAbility::SEARCH_BAR,
+                  GpgKeyTableColumn::kNAME | GpgKeyTableColumn::kEMAIL_ADDRESS |
+                      GpgKeyTableColumn::kKEY_ID,
+                  this);
   m_key_list_->AddListGroupTab(
-      tr("Signers"), "signers", GpgKeyTableDisplayMode::kPrivateKey,
-      GpgKeyTableColumn::kName | GpgKeyTableColumn::kEmailAddress,
+      tr("Signers"), "signers", GpgKeyTableDisplayMode::kPRIVATE_KEY,
       [key_id](const GpgKey& key) -> bool {
         return !(key.IsDisabled() || !key.IsHasCertificationCapability() ||
                  !key.IsHasMasterKey() || key.IsExpired() || key.IsRevoked() ||

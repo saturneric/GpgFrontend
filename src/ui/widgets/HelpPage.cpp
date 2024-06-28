@@ -28,6 +28,8 @@
 
 #include "ui/widgets/HelpPage.h"
 
+#include "core/function/GlobalSettingStation.h"
+
 namespace GpgFrontend::UI {
 
 HelpPage::HelpPage(const QString& path, QWidget* parent) : QWidget(parent) {
@@ -64,7 +66,10 @@ auto HelpPage::localized_help(const QUrl& url) -> QUrl {
   QStringList fileparts = filename.split(".");
 
   // QSettings settings;
-  QString lang = QSettings().value("int/lang", QLocale().name()).toString();
+  QString lang = GlobalSettingStation::GetInstance()
+                     .GetSettings()
+                     .value("int/lang", QLocale().name())
+                     .toString();
   if (lang.isEmpty()) {
     lang = QLocale().name();
   }

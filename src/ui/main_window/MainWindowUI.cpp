@@ -708,43 +708,31 @@ void MainWindow::create_dock_windows() {
 
   m_key_list_->AddListGroupTab(
       tr("Default"), "default",
-      GpgKeyTableDisplayMode::kPublicKey | GpgKeyTableDisplayMode::kPrivateKey,
-      GpgKeyTableColumn::kType | GpgKeyTableColumn::kName |
-          GpgKeyTableColumn::kEmailAddress | GpgKeyTableColumn::kUsage |
-          GpgKeyTableColumn::kValidity,
+      GpgKeyTableDisplayMode::kPUBLIC_KEY |
+          GpgKeyTableDisplayMode::kPRIVATE_KEY,
       [](const GpgKey& key) -> bool {
         return !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
   m_key_list_->AddListGroupTab(
       tr("Favourite"), "favourite",
-      GpgKeyTableDisplayMode::kPublicKey | GpgKeyTableDisplayMode::kPrivateKey |
-          GpgKeyTableDisplayMode::kFavorites,
-      GpgKeyTableColumn::kType | GpgKeyTableColumn::kName |
-          GpgKeyTableColumn::kEmailAddress | GpgKeyTableColumn::kUsage |
-          GpgKeyTableColumn::kValidity,
+      GpgKeyTableDisplayMode::kPUBLIC_KEY |
+          GpgKeyTableDisplayMode::kPRIVATE_KEY |
+          GpgKeyTableDisplayMode::kFAVORITES,
       [](const GpgKey& key) -> bool {
         return CommonUtils::GetInstance()->KeyExistsinFavouriteList(key);
       });
 
   m_key_list_->AddListGroupTab(
       tr("Only Public Key"), "only_public_key",
-      GpgKeyTableDisplayMode::kPublicKey,
-      GpgKeyTableColumn::kType | GpgKeyTableColumn::kName |
-          GpgKeyTableColumn::kEmailAddress | GpgKeyTableColumn::kUsage |
-          GpgKeyTableColumn::kValidity,
-      [](const GpgKey& key) -> bool {
+      GpgKeyTableDisplayMode::kPUBLIC_KEY, [](const GpgKey& key) -> bool {
         return !key.IsPrivateKey() &&
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
   m_key_list_->AddListGroupTab(
       tr("Has Private Key"), "has_private_key",
-      GpgKeyTableDisplayMode::kPrivateKey,
-      GpgKeyTableColumn::kType | GpgKeyTableColumn::kName |
-          GpgKeyTableColumn::kEmailAddress | GpgKeyTableColumn::kUsage |
-          GpgKeyTableColumn::kValidity,
-      [](const GpgKey& key) -> bool {
+      GpgKeyTableDisplayMode::kPRIVATE_KEY, [](const GpgKey& key) -> bool {
         return key.IsPrivateKey() &&
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });

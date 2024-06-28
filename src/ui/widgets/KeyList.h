@@ -28,9 +28,7 @@
 
 #pragma once
 
-#include "core/model/GpgKey.h"
-#include "core/model/GpgKeyTableModel.h"
-#include "core/model/GpgKeyTableProxyModel.h"
+#include "ui/widgets/KeyTable.h"
 
 class Ui_KeyList;
 
@@ -56,143 +54,6 @@ struct KeyMenuAbility {
  * @brief
  *
  */
-struct KeyTable : public QTableView {
-  Q_OBJECT
- public:
-  using KeyTableFilter = std::function<bool(const GpgKey&, const KeyTable&)>;
-
-  /**
-   * @brief Construct a new Key Table object
-   *
-   * @param _key_list
-   * @param _select_type
-   * @param _info_type
-   * @param _filter
-   */
-  KeyTable(
-      QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
-      GpgKeyTableDisplayMode _select_type, GpgKeyTableColumn _info_type,
-      GpgKeyTableProxyModel::KeyFilter _filter = [](const GpgKey&) -> bool {
-        return true;
-      });
-
-  /**
-   * @brief
-   *
-   * @param model
-   */
-  void RefreshModel(QSharedPointer<GpgKeyTableModel> model);
-
-  /**
-   * @brief Get the Checked object
-   *
-   * @return KeyIdArgsListPtr&
-   */
-  auto GetChecked() -> KeyIdArgsListPtr;
-
-  /**
-   * @brief
-   *
-   */
-  void UncheckALL() const;
-
-  /**
-   * @brief
-   *
-   */
-  void CheckALL() const;
-
-  /**
-   * @brief
-   *
-   */
-  void SetMenuAbility(KeyMenuAbility::AbilityType ability);
-
-  /**
-   * @brief
-   *
-   */
-  void SetFilterKeyword(const QString& keyword);
-
-  /**
-   * @brief
-   *
-   * @param row
-   * @return true
-   * @return false
-   */
-  [[nodiscard]] auto IsRowChecked(int row) const -> bool;
-
-  /**
-   * @brief Set the Row Checked object
-   *
-   * @param row
-   */
-  void SetRowChecked(int row) const;
-
-  /**
-   * @brief Set the Row Checked object
-   *
-   * @param row
-   */
-  [[nodiscard]] auto GetRowSelected() const -> int;
-
-  /**
-   * @brief Get the Row Count object
-   *
-   * @return auto
-   */
-  [[nodiscard]] auto GetRowCount() const -> int;
-
-  /**
-   * @brief Get the Key Id By Row object
-   *
-   * @param row
-   * @return QString
-   */
-  [[nodiscard]] auto GetKeyIdByRow(int row) const -> QString;
-
-  /**
-   * @brief
-   *
-   * @param row
-   * @return true
-   * @return false
-   */
-  [[nodiscard]] auto IsPublicKeyByRow(int row) const -> bool;
-
-  /**
-   * @brief
-   *
-   * @param row
-   * @return true
-   * @return false
-   */
-  [[nodiscard]] auto IsPrivateKeyByRow(int row) const -> bool;
-
-  /**
-   * @brief
-   *
-   */
-  void CheckAll();
-
-  /**
-   * @brief
-   *
-   */
-  void UncheckAll();
-
- private:
-  KeyMenuAbility::AbilityType ability_;  ///<
-
-  QSharedPointer<GpgKeyTableModel> model_;
-  GpgKeyTableProxyModel proxy_model_;
-};
-
-/**
- * @brief
- *
- */
 class KeyList : public QWidget {
   Q_OBJECT
 
@@ -203,8 +64,10 @@ class KeyList : public QWidget {
    * @param menu_ability
    * @param parent
    */
-  explicit KeyList(KeyMenuAbility::AbilityType menu_ability,
-                   QWidget* parent = nullptr);
+  explicit KeyList(
+      KeyMenuAbility::AbilityType menu_ability,
+      GpgKeyTableColumn fixed_column_filter = GpgKeyTableColumn::kALL,
+      QWidget* parent = nullptr);
 
   /**
    * @brief
@@ -216,11 +79,11 @@ class KeyList : public QWidget {
    */
   void AddListGroupTab(
       const QString& name, const QString& id,
-      GpgKeyTableDisplayMode selectType = GpgKeyTableDisplayMode::kPrivateKey,
-      GpgKeyTableColumn infoType = GpgKeyTableColumn::kAll,
-      GpgKeyTableProxyModel::KeyFilter filter = [](const GpgKey&) -> bool {
-        return true;
-      });
+      GpgKeyTableDisplayMode display_mode =
+          GpgKeyTableDisplayMode::kPRIVATE_KEY,
+      GpgKeyTableProxyModel::KeyFilter search_filter =
+          [](const GpgKey&) -> bool { return true; },
+      GpgKeyTableColumn custom_columns_filter = GpgKeyTableColumn::kALL);
 
   /**
    * @brief Set the Double Clicked Action object
@@ -293,7 +156,7 @@ class KeyList : public QWidget {
    * @param keyIds
    * @param key_table
    */
-  static void SetChecked(const KeyIdArgsListPtr& keyIds,
+  static void SetChecked(const KeyIdArgsListPtr& key_ids,
                          const KeyTable& key_table);
 
   /**
@@ -318,6 +181,12 @@ class KeyList : public QWidget {
    */
   [[maybe_unused]] auto ContainsPrivateKeys() -> bool;
 
+  /**
+   * @brief
+   *
+   */
+  void UpdateKeyTableColumnType(GpgKeyTableColumn);
+
  signals:
   /**
    * @brief
@@ -332,6 +201,14 @@ class KeyList : public QWidget {
    *
    */
   void SignalRefreshDatabase();
+
+ signals:
+
+  /**
+   * @brief
+   *
+   */
+  void SignalColumnTypeChange(GpgKeyTableColumn);
 
  public slots:
 
@@ -359,7 +236,7 @@ class KeyList : public QWidget {
    *
    * @param inBuffer
    */
-  void import_keys(const QByteArray& inBuffer);
+  void import_keys(const QByteArray& in_buffer);
 
   /**
    * @brief
@@ -384,6 +261,14 @@ class KeyList : public QWidget {
   std::function<void(const GpgKey&, QWidget*)> m_action_ = nullptr;  ///<
   KeyMenuAbility::AbilityType menu_ability_ = KeyMenuAbility::ALL;   ///<
   QSharedPointer<GpgKeyTableModel> model_;
+  GpgKeyTableColumn fixed_columns_filter_;
+  GpgKeyTableColumn global_column_filter_;
+
+  QAction* key_id_column_action_;
+  QAction* algo_column_action_;
+  QAction* create_date_column_action_;
+  QAction* owner_trust_column_action_;
+  QAction* subkeys_number_column_action_;
 
  private slots:
 

@@ -61,10 +61,13 @@ void MainWindow::Init() noexcept {
     setCentralWidget(edit_);
 
     /* the list of Keys available*/
-    m_key_list_ =
-        new KeyList(KeyMenuAbility::REFRESH | KeyMenuAbility::UNCHECK_ALL |
-                        KeyMenuAbility::SEARCH_BAR,
-                    this);
+    m_key_list_ = new KeyList(
+        KeyMenuAbility::REFRESH | KeyMenuAbility::UNCHECK_ALL |
+            KeyMenuAbility::SEARCH_BAR,
+        GpgKeyTableColumn::kTYPE | GpgKeyTableColumn::kNAME |
+            GpgKeyTableColumn::kKEY_ID | GpgKeyTableColumn::kEMAIL_ADDRESS |
+            GpgKeyTableColumn::kUSAGE | GpgKeyTableColumn::kOWNER_TRUST,
+        this);
 
     info_board_ = new InfoBoardWidget(this);
 

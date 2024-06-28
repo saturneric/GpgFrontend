@@ -48,6 +48,8 @@ GpgKeyTableProxyModel::GpgKeyTableProxyModel(
 
   connect(this, &GpgKeyTableProxyModel::SignalFavoritesChanged, this,
           &GpgKeyTableProxyModel::slot_update_favorites);
+  connect(this, &GpgKeyTableProxyModel::SignalColumnTypeChange, this,
+          &GpgKeyTableProxyModel::slot_update_column_type);
 
   emit SignalFavoritesChanged();
 }
@@ -58,19 +60,19 @@ auto GpgKeyTableProxyModel::filterAcceptsRow(
   auto key_id = sourceModel()->data(index).toString();
   auto key = GpgKeyGetter::GetInstance().GetKey(key_id);
 
-  if (!(display_mode_ & GpgKeyTableDisplayMode::kPrivateKey) &&
+  if (!(display_mode_ & GpgKeyTableDisplayMode::kPRIVATE_KEY) &&
       key.IsPrivateKey()) {
     return false;
   }
 
-  if (!(display_mode_ & GpgKeyTableDisplayMode::kPublicKey) &&
+  if (!(display_mode_ & GpgKeyTableDisplayMode::kPUBLIC_KEY) &&
       !key.IsPrivateKey()) {
     return false;
   }
 
   if (!custom_filter_(key)) return false;
 
-  if (display_mode_ & GpgKeyTableDisplayMode::kFavorites &&
+  if (display_mode_ & GpgKeyTableDisplayMode::kFAVORITES &&
       !favorite_fingerprints_.contains(key.GetFingerprint())) {
     return false;
   }
@@ -97,25 +99,40 @@ auto GpgKeyTableProxyModel::filterAcceptsColumn(
       return true;
     }
     case 1: {
-      return filter_columns_ & GpgKeyTableColumn::kType;
+      return (filter_columns_ & GpgKeyTableColumn::kTYPE) !=
+             GpgKeyTableColumn::kNONE;
     }
     case 2: {
-      return filter_columns_ & GpgKeyTableColumn::kName;
+      return (filter_columns_ & GpgKeyTableColumn::kNAME) !=
+             GpgKeyTableColumn::kNONE;
     }
     case 3: {
-      return filter_columns_ & GpgKeyTableColumn::kEmailAddress;
+      return (filter_columns_ & GpgKeyTableColumn::kEMAIL_ADDRESS) !=
+             GpgKeyTableColumn::kNONE;
     }
     case 4: {
-      return filter_columns_ & GpgKeyTableColumn::kUsage;
+      return (filter_columns_ & GpgKeyTableColumn::kUSAGE) !=
+             GpgKeyTableColumn::kNONE;
     }
     case 5: {
-      return filter_columns_ & GpgKeyTableColumn::kOwnerTrust;
+      return (filter_columns_ & GpgKeyTableColumn::kOWNER_TRUST) !=
+             GpgKeyTableColumn::kNONE;
     }
     case 6: {
-      return filter_columns_ & GpgKeyTableColumn::kKeyId;
+      return (filter_columns_ & GpgKeyTableColumn::kKEY_ID) !=
+             GpgKeyTableColumn::kNONE;
     }
     case 7: {
-      return filter_columns_ & GpgKeyTableColumn::kFingerPrint;
+      return (filter_columns_ & GpgKeyTableColumn::kCREATE_DATE) !=
+             GpgKeyTableColumn::kNONE;
+    }
+    case 8: {
+      return (filter_columns_ & GpgKeyTableColumn::kALGO) !=
+             GpgKeyTableColumn::kNONE;
+    }
+    case 9: {
+      return (filter_columns_ & GpgKeyTableColumn::kSUBKEYS_NUMBER) !=
+             GpgKeyTableColumn::kNONE;
     }
     default:
       return false;
@@ -139,4 +156,11 @@ void GpgKeyTableProxyModel::slot_update_favorites() {
 
   invalidateFilter();
 }
+
+void GpgKeyTableProxyModel::slot_update_column_type(
+    GpgKeyTableColumn filter_columns) {
+  filter_columns_ = filter_columns;
+  invalidateColumnsFilter();
+}
+
 }  // namespace GpgFrontend
