@@ -74,6 +74,28 @@ void GenKeyInfo::SetAlgo(const QString &t_algo_args) {
     suggest_max_key_size_ = 3072;
     suggest_size_addition_step_ = 1024;
     SetKeyLength(2048);
+  } else if (algo_args == "elg") {
+    /**
+     * Algorithm (DSA) as a government standard for digital signatures.
+     * Originally, it supported key lengths between 512 and 1024 bits.
+     * Recently, NIST has declared 512-bit keys obsolete:
+     * now, DSA is available in 1024, 2048 and 3072-bit lengths.
+     */
+    SetAllowEncryption(true);
+
+    SetAllowAuthentication(false);
+    allow_change_authentication_ = false;
+
+    SetAllowSigning(false);
+    allow_change_signing_ = false;
+
+    SetAllowCertification(false);
+    allow_change_certification_ = false;
+
+    suggest_min_key_size_ = 1024;
+    suggest_max_key_size_ = 4096;
+    suggest_size_addition_step_ = 1024;
+    SetKeyLength(3072);
 
   } else if (algo_args == "ed25519") {
     /**
@@ -189,6 +211,7 @@ auto GenKeyInfo::GetSupportedSubkeyAlgo()
   static const std::vector<GenKeyInfo::KeyGenAlgo> kSupportSubkeyAlgo = {
       {"RSA", "", "RSA"},
       {"DSA", "", "DSA"},
+      {"ELG-E", "", "ELG"},
       {"ECDSA", "", "ED25519"},
       {"ECDH", "", "CV25519"},
       {"ECDH NIST P-256", "", "NISTP256"},
