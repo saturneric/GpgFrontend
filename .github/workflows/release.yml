@@ -23,7 +23,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ 'ubuntu-20.04', 'macos-11', 'macos-12', 'windows-2019' ]
+        os: [ 'ubuntu-20.04', 'macos-13', 'macos-12', "macos-14", 'windows-2019' ]
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:
@@ -31,7 +31,7 @@ jobs:
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf
-        if: matrix.os == 'windows-2019' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
+        if: matrix.os == 'windows-2019' || matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
 
       - uses: actions/checkout@v4
         with:
@@ -72,21 +72,21 @@ jobs:
 
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
-        if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
+        if:  matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
 
       - name: Install Qt6
         uses: jurplel/install-qt-action@v3
         with:
           version: '6.5.3'
           cache: 'true'
-        if: matrix.os == 'ubuntu-20.04' || matrix.os == 'macos-11' || matrix.os == 'macos-12'
+        if: matrix.os == 'ubuntu-20.04' || matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
 
       - name: Install Dependence (macOS)
         run: |
           brew install cmake autoconf automake texinfo gettext openssl@3
           brew install ninja libarchive gpgme
           brew link openssl@3 --force
-        if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
+        if:  matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
 
       - name: Set up MinGW (Windows)
         uses: msys2/setup-msys2@v2
@@ -185,7 +185,7 @@ jobs:
         run: |
           cmake -B ${{github.workspace}}/build-mods -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_MODS_ONLY=On
           cmake --build ${{github.workspace}}/build-mods --config {{$env.BUILD_TYPE}} -- -v
-        if: matrix.os == 'macos-11' || matrix.os == 'macos-12'
+        if: matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
 
       - name: Build & Export GpgFrontend (macOS)
         # Build your GpgFrontend with the given configuration
@@ -205,14 +205,14 @@ jobs:
           xcodebuild -exportArchive -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
             -exportOptionsPlist ${{github.workspace}}/build/ExportOptions.plist \
             -exportPath ${{github.workspace}}/build/package/
-        if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
+        if:  matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
 
       - name: Copy Modules into Bundle & Deploy Qt & Code Sign (macOS)
         run: |
           cmake -E copy_directory ${{github.workspace}}/build-mods/artifacts/mods ${{github.workspace}}/build/package/GpgFrontend.app/Contents/PlugIns/mods
           macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app -verbose=2 -appstore-compliant -always-overwrite
           codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" -f --deep --options=runtime  ${{github.workspace}}/build/package/GpgFrontend.app
-        if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
+        if:  matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
 
       - name: Package & Sign App Bundle (macOS)
         run: |
@@ -227,7 +227,7 @@ jobs:
             ${{github.workspace}}/build/final-artifact/GpgFrontend-${{env.sha_short}}-x86_64.dmg
           mv ${{github.workspace}}/build/GpgFrontend.app.zip \
             ${{github.workspace}}/build/GpgFrontend-${{env.sha_short}}-x86_64.zip
-        if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
+        if:  matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
 
       - name: Notarize Release Build (macOS)
         run: |
@@ -236,7 +236,7 @@ jobs:
           --team-id ${{secrets.APPLE_DEVELOPER_TEAM_ID}} \
           --password ${{secrets.APPLE_DEVELOPER_ID_SECRET}} \
           ${{github.workspace}}/build/GpgFrontend-${{env.sha_short}}-x86_64.zip
-        if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
+        if:  matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
 
       - name: Package App Image (Linux)
         run: |
@@ -268,7 +268,7 @@ jobs:
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{ github.sha }}
           path: ${{github.workspace}}/build/final-artifact/*
-        if:  matrix.os == 'macos-11' || matrix.os == 'macos-12'
+        if:  matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
 
       - name: Upload Artifact(Windows)
         uses: actions/upload-artifact@master
