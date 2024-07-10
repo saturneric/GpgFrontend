@@ -112,8 +112,8 @@ if (BUILD_UI)
     add_subdirectory(ui)
 endif ()
 
-if (BUILD_MODULE)
-    message("[+] Build Module")
+if (BUILD_SDK)
+    message("[+] Build SDK")
     add_subdirectory(module)
 endif ()
 
@@ -526,4 +526,18 @@ if (LINUX AND LINUX_INSTALL_SOFTWARE)
             DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/pixmaps/)
     install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/
             DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/icons/hicolor/)
+endif ()
+
+# if building sdk
+if (BUILD_SDK)
+    include(GNUInstallDirs)
+    set(GPGFRONTEND_SDK_INSTALL_LIBRARIES 
+        gpgfrontend_module_sdk)
+
+    install(TARGETS ${GPGFRONTEND_SDK_INSTALL_LIBRARIES}
+            EXPORT GpgFrontendTargets
+            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif ()

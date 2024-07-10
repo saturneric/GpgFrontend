@@ -65,9 +65,10 @@ option(GPGFRONTEND_BUILD_TYPE_TEST_ALL
         "Generate a graphical interface with all functions" OFF)
 option(GPGFRONTEND_BUILD_TYPE_STABLE
         "Generate release version" ON)
+option(GPGFRONTEND_BUILD_TYPE_SDK "Generate a usable SDK" OFF)
 option(GPGFRONTEND_QT5_BUILD "Swith to Qt5 building mode" OFF)
 option(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE "Generate an installable version" OFF)
-option(GPGFRONTEND_BUILD_MODS_ONLY "Build Modules Only" OFF)
+
 
 option(GPGFRONTEND_XCODE_TEAM_ID "GpgFrontend Apple Team ID" "NONE")
 option(GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY "GpgFrontend Signing Certificate" "NONE")
@@ -124,7 +125,7 @@ if (GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE)
     set(LINUX_INSTALL_SOFTWARE 1)
 endif ()
 
-if (GPGFRONTEND_BUILD_MODS_ONLY)
+if (GPGFRONTEND_BUILD_TYPE_SDK)
     set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
     set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
     set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
@@ -132,7 +133,7 @@ if (GPGFRONTEND_BUILD_MODS_ONLY)
     unset(GPGFRONTEND_BUILD_CONFIG)
 
     set(STABLE_BUILD_APPLICATION 0)
-    set(BUILD_MODS_ONLY 1)
+    set(BUILD_SDK 1)
 endif()
 
 # C++
@@ -370,8 +371,8 @@ if (STABLE_BUILD_APPLICATION)
     set(BUILD_TEST 1)
     set(BUILD_APPLICATION 1)
     set(SUPPORT_MULTI_LANG 1)
-elseif (BUILD_MODS_ONLY)
-    message("[+] Build Mods")
+elseif (BUILD_SDK)
+    message("[+] Build SDK")
     set(BUILD_CORE 1)
     set(BUILD_MODULE 1)
 endif ()

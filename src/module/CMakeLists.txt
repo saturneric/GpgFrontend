@@ -41,6 +41,15 @@ target_include_directories(gpgfrontend_module_sdk PUBLIC sdk)
 # link module system
 target_link_libraries(gpgfrontend_module_sdk PRIVATE gpgfrontend_core)
 
+# sdk export headers
+file(GLOB _headerPath "${CMAKE_CURRENT_SOURCE_DIR}/sdk/*.h")
+set_target_properties(gpgfrontend_module_sdk PROPERTIES PUBLIC_HEADER "${_headerPath}")
+
+# lib output path
+set_target_properties(gpgfrontend_module_sdk PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mods
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mods)
+
 if (XCODE_BUILD)
   set_target_properties(gpgfrontend_module_sdk
     PROPERTIES
@@ -50,15 +59,3 @@ if (XCODE_BUILD)
     XCODE_ATTRIBUTE_SKIP_INSTALL "Yes"
     XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
 endif ()
-
-# tracking modules
-set(all_integrated_module_libraries "")
-file(GLOB children LIST_DIRECTORIES true "mods/*")
-foreach(child ${children})
-    if(IS_DIRECTORY ${child})
-        get_filename_component(dirName ${child} NAME)
-        add_subdirectory("mods/${dirName}")
-        
-        list(APPEND all_integrated_module_libraries ${dirName})
-    endif()
-endforeach()
