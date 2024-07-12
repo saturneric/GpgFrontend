@@ -25,3 +25,40 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
+
+#include "GFSDKUI.h"
+
+#include <core/utils/CommonUtils.h>
+
+#include <QMap>
+#include <QString>
+
+#include "sdk/private/CommonUtils.h"
+#include "ui/UIModuleManager.h"
+
+auto MetaDataArrayToQMap(MetaData** meta_data_array, int size)
+    -> QMap<QString, QString> {
+  QMap<QString, QString> map;
+
+  for (int i = 0; i < size; ++i) {
+    QString const key = GFUnStrDup(meta_data_array[i]->key);
+    QString const value = GFUnStrDup(meta_data_array[i]->value);
+    map.insert(key, value);
+
+    GpgFrontend::SecureFree(meta_data_array[i]);
+  }
+
+  GpgFrontend::SecureFree(meta_data_array);
+  return map;
+}
+
+auto GFUIMountEntry(const char* id, MetaData** meta_data_array,
+                    int meta_data_array_size, EntryFactory factory) -> int {
+  if (id == nullptr || factory == nullptr) return -1;
+
+  auto meta_data = MetaDataArrayToQMap(meta_data_array, meta_data_array_size);
+  return GpgFrontend::UI::UIModuleManager::GetInstance().MountEntry(
+             GFUnStrDup(id), meta_data, factory)
+             ? 0
+             : -1;
+}

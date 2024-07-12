@@ -55,4 +55,11 @@ void GPGFRONTEND_UI_EXPORT DestroyGpgFrontendUI();
  */
 auto GPGFRONTEND_UI_EXPORT RunGpgFrontendUI(QApplication *) -> int;
 
+/**
+ * @brief
+ *
+ */
+auto GPGFRONTEND_UI_EXPORT InstallTranslatorFromQMData(const QByteArray &data)
+    -> bool;
+
 };  // namespace GpgFrontend::UI

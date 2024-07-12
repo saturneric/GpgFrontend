@@ -104,4 +104,21 @@ void GPGFRONTEND_MODULE_SDK_EXPORT GFExecuteCommandBatchSync(
  * @return char*
  */
 auto GPGFRONTEND_MODULE_SDK_EXPORT GFModuleStrDup(const char*) -> char*;
+
+/**
+ * @brief
+ *
+ * @return char*
+ */
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFAppActiveLocale() -> char*;
+
+/**
+ * @brief
+ *
+ * @param data
+ * @param size
+ * @return auto
+ */
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFAppRegisterTranslator(char* data, int size)
+    -> int;
 }

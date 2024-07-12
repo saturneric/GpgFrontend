@@ -79,6 +79,9 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFModuleRetrieveRTValueOrDefault(
     const char *namespace_, const char *key, const char *default_value) -> const
     char *;
 
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFModuleRetrieveRTValueOrDefaultBool(
+    const char *namespace_, const char *key, int default_value) -> const int;
+
 void GPGFRONTEND_MODULE_SDK_EXPORT GFModuleUpsertRTValue(const char *namespace_,
                                                          const char *key,
                                                          const char *vaule);

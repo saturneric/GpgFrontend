@@ -31,7 +31,8 @@
 #include "core/function/SecureMemoryAllocator.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/utils/BuildInfoUtils.h"
-#include "core/utils/CommonUtils.h"
+#include "sdk/private/CommonUtils.h"
+#include "ui/GpgFrontendUIInit.h"
 
 auto GFAllocateMemory(uint32_t size) -> void* {
   return GpgFrontend::SecureMemoryAllocator::Allocate(size);
@@ -42,18 +43,16 @@ void GFFreeMemory(void* ptr) {
 }
 
 auto GFProjectVersion() -> const char* {
-  return GpgFrontend::GFStrDup(GpgFrontend::GetProjectVersion());
+  return GFStrDup(GpgFrontend::GetProjectVersion());
 }
 
-auto GFQtEnvVersion() -> const char* {
-  return GpgFrontend::GFStrDup(QT_VERSION_STR);
-}
+auto GFQtEnvVersion() -> const char* { return GFStrDup(QT_VERSION_STR); }
 
 void GFExecuteCommandSync(const char* cmd, int32_t argc, const char** argv,
                           GFCommandExeucteCallback cb, void* data) {
   QStringList args;
   for (int i = 0; i < argc; i++) {
-    args.append(GpgFrontend::GFUnStrDup(argv[i]));
+    args.append(GFUnStrDup(argv[i]));
   }
 
   GpgFrontend::GpgCommandExecutor::ExecuteContext const context{
@@ -74,7 +73,7 @@ void GFExecuteCommandBatchSync(int32_t context_size,
     QStringList args;
     const char** argv = exec_context.argv;
     for (int j = 0; j < exec_context.argc; j++) {
-      args.append(GpgFrontend::GFUnStrDup(argv[j]));
+      args.append(GFUnStrDup(argv[j]));
     }
 
     contexts.append(
@@ -94,7 +93,7 @@ auto StrlenSafe(const char* str, size_t max_len) -> size_t {
   return end - str;
 }
 
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFModuleStrDup(const char* src) -> char* {
+auto GFModuleStrDup(const char* src) -> char* {
   auto len = StrlenSafe(src, kGfStrlenMax);
   if (len > kGfStrlenMax) return nullptr;
 
@@ -103,4 +102,15 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFModuleStrDup(const char* src) -> char* {
   dst[len] = '\0';
 
   return dst;
+}
+
+auto GFAppActiveLocale() -> char* { return GFStrDup(QLocale().name()); }
+
+auto GFAppRegisterTranslator(char* data, int size) -> int {
+  auto b = QByteArray(data, size);
+  QMetaObject::invokeMethod(QApplication::instance()->thread(), [b]() {
+    GpgFrontend::UI::InstallTranslatorFromQMData(b);
+  });
+  GFFreeMemory(data);
+  return 0;
 }

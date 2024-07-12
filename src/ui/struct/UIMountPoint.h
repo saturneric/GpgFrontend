@@ -26,18 +26,33 @@
  *
  */
 
-#include "GFSDKExtra.h"
+#pragma once
 
-#include <core/utils/BuildInfoUtils.h>
-#include <core/utils/CommonUtils.h>
+struct UIMountPoint {
+  QString id;
+  QString entry_type;
+  QMap<QString, QVariant> meta_data_desc;
 
-#include "sdk/private/CommonUtils.h"
+  UIMountPoint() = default;
 
-auto GFCompareSoftwareVersion(const char *current_version,
-                              const char *latest_version) -> int {
-  return GpgFrontend::GFCompareSoftwareVersion(GFUnStrDup(current_version),
-                                               GFUnStrDup(latest_version));
-}
-auto GFHttpRequestUserAgent() -> const char * {
-  return GFStrDup(GpgFrontend::GetHttpRequestUserAgent());
-}
+  explicit UIMountPoint(const QJsonObject& j) {
+    if (const auto v = j["id"]; v.isDouble()) {
+      id = v.toString();
+    }
+    if (const auto v = j["entry_type"]; v.isDouble()) {
+      entry_type = v.toString();
+    }
+    if (const auto v = j["meta_data_desc"]; v.isDouble()) {
+      meta_data_desc = v.toVariant().toMap();
+    }
+  }
+
+  [[nodiscard]] auto ToJson() const -> QJsonObject {
+    QJsonObject j;
+    j["id"] = id;
+    j["entry_type"] = entry_type;
+    j["meta_data_desc"] = QJsonObject::fromVariantMap(meta_data_desc);
+
+    return j;
+  }
+};

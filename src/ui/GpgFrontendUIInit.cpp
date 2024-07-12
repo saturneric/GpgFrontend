@@ -30,6 +30,7 @@
 
 #include <QtNetwork>
 
+#include "UIModuleManager.h"
 #include "core/GpgConstants.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
@@ -42,6 +43,7 @@
 namespace GpgFrontend::UI {
 
 QList<QTranslator*> registered_translators;
+QList<QByteArray> loaded_qm_datum;
 
 extern void InitUITranslations();
 
@@ -104,7 +106,13 @@ void WaitEnvCheckingProcess() {
   looper.exec();
 }
 
-void PreInitGpgFrontendUI() { CommonUtils::GetInstance(); }
+void PreInitGpgFrontendUI() {
+  CommonUtils::GetInstance();
+
+  // declare module ui entry mount points
+  UIModuleManager::GetInstance().DeclareMountPoint("AboutDialogTabs", "QWidget",
+                                                   {});
+}
 
 void InitGpgFrontendUI(QApplication* /*app*/) {
   // init locale
@@ -228,6 +236,7 @@ void InitUITranslations() {
     QCoreApplication::removeTranslator(translator);
   }
   registered_translators.clear();
+  loaded_qm_datum.clear();
 
   auto* translator = new QTranslator(QCoreApplication::instance());
   if (translator->load(QLocale(), QLatin1String("qt"), QLatin1String("_"),
@@ -257,6 +266,22 @@ void InitUITranslations() {
     QCoreApplication::installTranslator(translator);
     registered_translators.append(translator);
   }
+}
+
+auto InstallTranslatorFromQMData(const QByteArray& data) -> bool {
+  auto* translator = new QTranslator(QCoreApplication::instance());
+  if (translator->load(reinterpret_cast<uchar*>(const_cast<char*>(data.data())),
+                       data.size())) {
+    GF_UI_LOG_DEBUG("load target translation file done, locale: {}",
+                    QLocale().name());
+    QCoreApplication::installTranslator(translator);
+    registered_translators.append(translator);
+    loaded_qm_datum.append(data);
+
+    return true;
+  }
+
+  return false;
 }
 
 }  // namespace GpgFrontend::UI

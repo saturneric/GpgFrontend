@@ -29,45 +29,40 @@
 #include "GFSDKModule.h"
 
 #include <core/module/ModuleManager.h>
-#include <core/utils/CommonUtils.h>
+#include <sdk/private/CommonUtils.h>
 
 #include "GFSDKBasic.h"
 
 void GFModuleListenEvent(const char *module_id, const char *event_id) {
   return GpgFrontend::Module::ModuleManager::GetInstance().ListenEvent(
-      GpgFrontend::GFUnStrDup(module_id).toLower(),
-      GpgFrontend::GFUnStrDup(event_id).toUpper());
+      GFUnStrDup(module_id).toLower(), GFUnStrDup(event_id).toUpper());
 }
 
 auto GFModuleRetrieveRTValueOrDefault(const char *namespace_, const char *key,
                                       const char *default_value) -> const
     char * {
-  return GpgFrontend::GFStrDup(
-      GpgFrontend::Module::RetrieveRTValueTypedOrDefault(
-          GpgFrontend::GFUnStrDup(namespace_), GpgFrontend::GFUnStrDup(key),
-          GpgFrontend::GFUnStrDup(default_value)));
+  return GFStrDup(GpgFrontend::Module::RetrieveRTValueTypedOrDefault(
+      GFUnStrDup(namespace_), GFUnStrDup(key), GFUnStrDup(default_value)));
 }
 
 void GFModuleUpsertRTValue(const char *namespace_, const char *key,
                            const char *vaule) {
-  GpgFrontend::Module::UpsertRTValue(
-      GpgFrontend::GFUnStrDup(namespace_).toLower(),
-      GpgFrontend::GFUnStrDup(key).toLower(), GpgFrontend::GFUnStrDup(vaule));
+  GpgFrontend::Module::UpsertRTValue(GFUnStrDup(namespace_).toLower(),
+                                     GFUnStrDup(key).toLower(),
+                                     GFUnStrDup(vaule));
 }
 
 void GFModuleUpsertRTValueBool(const char *namespace_, const char *key,
                                int value) {
-  GpgFrontend::Module::UpsertRTValue(
-      GpgFrontend::GFUnStrDup(namespace_).toLower(),
-      GpgFrontend::GFUnStrDup(key).toLower(), value != 0);
+  GpgFrontend::Module::UpsertRTValue(GFUnStrDup(namespace_).toLower(),
+                                     GFUnStrDup(key).toLower(), value != 0);
 }
 
 auto GFModuleListRTChildKeys(const char *namespace_, const char *key,
                              char ***child_keys) -> int32_t {
   *child_keys = nullptr;
   auto keys = GpgFrontend::Module::ListRTChildKeys(
-      GpgFrontend::GFUnStrDup(namespace_).toLower(),
-      GpgFrontend::GFUnStrDup(key).toLower());
+      GFUnStrDup(namespace_).toLower(), GFUnStrDup(key).toLower());
 
   if (keys.empty()) return 0;
 
@@ -75,7 +70,7 @@ auto GFModuleListRTChildKeys(const char *namespace_, const char *key,
       static_cast<char **>(GFAllocateMemory(sizeof(char **) * keys.size()));
 
   for (int i = 0; i < keys.size(); i++) {
-    (*child_keys)[i] = GpgFrontend::GFStrDup(keys[i]);
+    (*child_keys)[i] = GFStrDup(keys[i]);
   }
 
   return static_cast<int32_t>(keys.size());
@@ -86,13 +81,21 @@ void GFModuleTriggerModuleEventCallback(GFModuleEvent *module_event,
                                         char **argv) {
   auto data_object = GpgFrontend::TransferParams();
   for (int i = 0; i < argc; i++) {
-    data_object->AppendObject(GpgFrontend::GFUnStrDup(argv[i]));
+    data_object->AppendObject(GFUnStrDup(argv[i]));
   }
 
   auto event = GpgFrontend::Module::ModuleManager::GetInstance().SearchEvent(
-      GpgFrontend::GFUnStrDup(module_event->trigger_id).toLower());
+      GFUnStrDup(module_event->trigger_id).toLower());
   if (!event) return;
 
-  event.value()->ExecuteCallback(GpgFrontend::GFUnStrDup(module_id),
-                                 data_object);
+  event.value()->ExecuteCallback(GFUnStrDup(module_id), data_object);
+}
+
+auto GFModuleRetrieveRTValueOrDefaultBool(const char *namespace_,
+                                          const char *key, int default_value)
+    -> const int {
+  return static_cast<const int>(
+      GpgFrontend::Module::RetrieveRTValueTypedOrDefault(
+          GFUnStrDup(namespace_), GFUnStrDup(key),
+          static_cast<bool>(default_value)));
 }

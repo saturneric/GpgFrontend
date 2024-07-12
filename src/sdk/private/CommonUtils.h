@@ -26,18 +26,44 @@
  *
  */
 
-#include "GFSDKExtra.h"
+#pragma once
 
-#include <core/utils/BuildInfoUtils.h>
-#include <core/utils/CommonUtils.h>
+/**
+ * @brief
+ *
+ * @return char*
+ */
+auto GFStrDup(const QString &) -> char *;
 
-#include "sdk/private/CommonUtils.h"
+/**
+ * @brief
+ *
+ * @param str
+ * @return QString
+ */
+auto GFUnStrDup(char *str) -> QString;
 
-auto GFCompareSoftwareVersion(const char *current_version,
-                              const char *latest_version) -> int {
-  return GpgFrontend::GFCompareSoftwareVersion(GFUnStrDup(current_version),
-                                               GFUnStrDup(latest_version));
-}
-auto GFHttpRequestUserAgent() -> const char * {
-  return GFStrDup(GpgFrontend::GetHttpRequestUserAgent());
-}
+/**
+ * @brief
+ *
+ * @return QString
+ */
+auto GFUnStrDup(const char *) -> QString;
+
+/**
+ * @brief
+ *
+ * @param char_array
+ * @param size
+ * @return QMap<QString, QString>
+ */
+auto CharArrayToQMap(char **char_array, int size) -> QMap<QString, QString>;
+
+/**
+ * @brief
+ *
+ * @param map
+ * @param size
+ * @return char**
+ */
+auto QMapToCharArray(const QMap<QString, QString> &map, int &size) -> char **;

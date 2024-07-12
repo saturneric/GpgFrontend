@@ -27,3 +27,20 @@
  */
 
 #pragma once
+
+#include "GFSDKExport.h"
+
+extern "C" {
+
+using EntryFactory = void* (*)(const char*);
+
+struct MetaData {
+  const char* key;
+  const char* value;
+};
+
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFUIMountEntry(const char* id,
+                                                  MetaData** meta_data_array,
+                                                  int meta_data_array_size,
+                                                  EntryFactory factory) -> int;
+}
