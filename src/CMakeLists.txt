@@ -345,13 +345,12 @@ if (BUILD_APPLICATION)
             )
 
             add_custom_command(TARGET ${AppName} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/plugins"
+                COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/modules"
                 COMMENT "Complement to build the required architecture"
             )
 
             add_custom_command(TARGET ${AppName} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/plugins/mods"
-                COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mods" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/plugins/mods"
+                COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_SOURCE_DIR}/modules" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/modules"
                 COMMENT "Copying Mods into App Image"
             )
 
@@ -499,45 +498,45 @@ endif()
 
 # if building linux package
 if (LINUX AND LINUX_INSTALL_SOFTWARE)
-    include(GNUInstallDirs)
-    set(GPGFRONTEND_INSTALL_LIBRARIES 
-        mimalloc
-        spdlog
-        gpgfrontend_core
-        gpgfrontend_ui
-        gpgfrontend_test
-        gpgfrontend_pinentry
-        gpgfrontend_module_sdk)
+  include(GNUInstallDirs)
+  set(GPGFRONTEND_INSTALL_LIBRARIES 
+      mimalloc
+      spdlog
+      gpgfrontend_core
+      gpgfrontend_ui
+      gpgfrontend_test
+      gpgfrontend_pinentry
+      gpgfrontend_module_sdk)
 
-    message(STATUS "GpgFrontend Install Libraries: ${GPGFRONTEND_INSTALL_LIBRARIES}")
-    install(TARGETS ${AppName} ${GPGFRONTEND_INSTALL_LIBRARIES}
-            EXPORT GpgFrontendTargets
-            RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR}
-            LIBRARY DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}
-            ARCHIVE DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
+  message(STATUS "GpgFrontend Install Libraries: ${GPGFRONTEND_INSTALL_LIBRARIES}")
+  install(TARGETS ${AppName} ${GPGFRONTEND_INSTALL_LIBRARIES}
+          EXPORT GpgFrontendTargets
+          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-    install(FILES ${CMAKE_SOURCE_DIR}/TRANSLATORS
-            DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/${AppName}/)
-    install(FILES ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.appdata.xml
-            DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/metainfo/)
-    install(FILES ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.desktop
-            DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/applications/)
-    install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/pixmaps/
-            DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/pixmaps/)
-    install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/
-            DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/icons/hicolor/)
+  install(FILES ${CMAKE_SOURCE_DIR}/TRANSLATORS
+          DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${AppName}/)
+  install(FILES ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.appdata.xml
+          DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/metainfo/)
+  install(FILES ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.desktop
+          DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications/)
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/pixmaps/
+          DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pixmaps/)
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/
+          DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/)
 endif ()
 
 # if building sdk
 if (BUILD_SDK)
-    include(GNUInstallDirs)
-    set(GPGFRONTEND_SDK_INSTALL_LIBRARIES 
-        gpgfrontend_module_sdk)
+  include(GNUInstallDirs)
+  set(GPGFRONTEND_SDK_INSTALL_LIBRARIES 
+      gpgfrontend_module_sdk)
 
-    install(TARGETS ${GPGFRONTEND_SDK_INSTALL_LIBRARIES}
-            EXPORT GpgFrontendTargets
-            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+  install(TARGETS ${GPGFRONTEND_SDK_INSTALL_LIBRARIES}
+          EXPORT GpgFrontendTargets
+          PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif ()

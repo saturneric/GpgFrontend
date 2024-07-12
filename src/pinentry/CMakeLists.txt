@@ -61,7 +61,9 @@ target_link_libraries(gpgfrontend_pinentry PRIVATE spdlog)
 # using std c++ 17
 target_compile_features(gpgfrontend_pinentry PUBLIC cxx_std_17)
 
-# lib output path
-set_target_properties(gpgfrontend_pinentry PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib
-  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib)
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+  # lib output path
+  set_target_properties(gpgfrontend_pinentry PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib)
+endif()

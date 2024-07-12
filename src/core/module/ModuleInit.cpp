@@ -54,20 +54,20 @@ auto LoadIntegratedMods() -> bool {
 
 #if defined(MACOS) && defined(RELEASE)
   // App Bundle
-  auto mods_path = exec_binary_path + "/../PlugIns/mods";
+  auto mods_path = exec_binary_path + "/../Modules";
 #else
   // Debug Or Windows Platform
-  auto mods_path = exec_binary_path + "/mods";
+  auto mods_path = exec_binary_path + "/modules";
 #endif
 
   // AppImage
   if (!qEnvironmentVariable("APPIMAGE").isEmpty()) {
-    mods_path = qEnvironmentVariable("APPDIR") + "/usr/plugins/mods";
+    mods_path = qEnvironmentVariable("APPDIR") + "/usr/modules";
   }
 
   // Flatpak
   if (!qEnvironmentVariable("container").isEmpty()) {
-    mods_path = "/app/lib/mods";
+    mods_path = "/app/modules";
   }
 
   GF_CORE_LOG_DEBUG("try loading integrated modules at path: {} ...",
