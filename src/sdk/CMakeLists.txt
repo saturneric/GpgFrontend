@@ -27,10 +27,10 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
 # define libgpgfrontend_module_sdk
-aux_source_directory(sdk MODULE_SDK_SOURCE)
+aux_source_directory(. MODULE_SDK_SOURCE)
 
 add_library(gpgfrontend_module_sdk SHARED ${MODULE_SDK_SOURCE})
-set(_export_file_sdk "${CMAKE_CURRENT_SOURCE_DIR}/sdk/GFSDKExport.h")
+set(_export_file_sdk "${CMAKE_CURRENT_SOURCE_DIR}/GFSDKExport.h")
 generate_export_header(gpgfrontend_module_sdk EXPORT_FILE_NAME "${_export_file_sdk}")
 target_include_directories(gpgfrontend_module_sdk PRIVATE 
   ${CMAKE_CURRENT_BINARY_DIR}/gpgfrontend_module_sdk_autogen/include
@@ -42,13 +42,13 @@ target_include_directories(gpgfrontend_module_sdk PUBLIC sdk)
 target_link_libraries(gpgfrontend_module_sdk PRIVATE gpgfrontend_core)
 
 # sdk export headers
-file(GLOB _headerPath "${CMAKE_CURRENT_SOURCE_DIR}/sdk/*.h")
+file(GLOB _headerPath "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 set_target_properties(gpgfrontend_module_sdk PROPERTIES PUBLIC_HEADER "${_headerPath}")
 
 # lib output path
 set_target_properties(gpgfrontend_module_sdk PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mods
-  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/mods)
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib)
 
 if (XCODE_BUILD)
   set_target_properties(gpgfrontend_module_sdk

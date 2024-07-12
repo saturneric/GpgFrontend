@@ -133,7 +133,7 @@ if (GPGFRONTEND_BUILD_TYPE_SDK)
     unset(GPGFRONTEND_BUILD_CONFIG)
 
     set(STABLE_BUILD_APPLICATION 0)
-    set(BUILD_SDK 1)
+    set(STABLE_BUILD_SDK_ONLY 1)
 endif()
 
 # C++
@@ -371,10 +371,12 @@ if (STABLE_BUILD_APPLICATION)
     set(BUILD_TEST 1)
     set(BUILD_APPLICATION 1)
     set(SUPPORT_MULTI_LANG 1)
-elseif (BUILD_SDK)
+    set(BUILD_SDK 1)
+elseif (STABLE_BUILD_SDK_ONLY)
     message("[+] Build SDK")
     set(BUILD_CORE 1)
     set(BUILD_MODULE 1)
+    set(BUILD_SDK 1)
 endif ()
 
 # For instance in order to select the highest version one

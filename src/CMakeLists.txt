@@ -77,7 +77,7 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${CMAKE_SOURCE_DIR}
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h @ONLY)
-configure_file(${CMAKE_SOURCE_DIR}/src/module/sdk/GFSDKBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/module/sdk/GFSDKBuildInfo.h @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/src/sdk/GFSDKBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/sdk/GFSDKBuildInfo.h @ONLY)
 if (APPLE)
     configure_file(${CMAKE_SOURCE_DIR}/resource/plist/ExportOptions.plist.in ${CMAKE_BINARY_DIR}/ExportOptions.plist @ONLY)
 endif ()
@@ -114,7 +114,7 @@ endif ()
 
 if (BUILD_SDK)
     message("[+] Build SDK")
-    add_subdirectory(module)
+    add_subdirectory(sdk)
 endif ()
 
 # build to test gpgfrontend core

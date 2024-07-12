@@ -34,7 +34,7 @@
 
 #include "core/GpgFrontendCore.h"
 #include "core/model/DataObject.h"
-#include "module/sdk/GFSDKModule.h"
+#include "sdk/GFSDKModule.h"
 
 namespace GpgFrontend::Module {
 

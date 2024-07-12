@@ -75,6 +75,11 @@ target_include_directories(gpgfrontend_ui PUBLIC
 # using std c++ 17
 target_compile_features(gpgfrontend_ui PUBLIC cxx_std_17)
 
+# lib output path
+set_target_properties(gpgfrontend_ui PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib)
+
 # for xcode archive build
 if (XCODE_BUILD)
     set_target_properties(gpgfrontend_ui

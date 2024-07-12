@@ -123,6 +123,11 @@ target_precompile_headers(gpgfrontend_core
 # using std c++ 17
 target_compile_features(gpgfrontend_core PUBLIC cxx_std_17)
 
+# lib output path
+set_target_properties(gpgfrontend_core PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib)
+
 # link for different platforms
 if (MINGW)
     message(STATUS "Link GPG Static Library For MINGW")
