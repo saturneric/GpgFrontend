@@ -270,6 +270,7 @@ void InitUITranslations() {
 
 auto InstallTranslatorFromQMData(const QByteArray& data) -> bool {
   auto* translator = new QTranslator(QCoreApplication::instance());
+
   if (translator->load(reinterpret_cast<uchar*>(const_cast<char*>(data.data())),
                        data.size())) {
     GF_UI_LOG_DEBUG("load target translation file done, locale: {}",

@@ -57,8 +57,15 @@ auto GFUIMountEntry(const char* id, MetaData** meta_data_array,
   if (id == nullptr || factory == nullptr) return -1;
 
   auto meta_data = MetaDataArrayToQMap(meta_data_array, meta_data_array_size);
-  return GpgFrontend::UI::UIModuleManager::GetInstance().MountEntry(
-             GFUnStrDup(id), meta_data, factory)
-             ? 0
-             : -1;
+  auto qid = GFUnStrDup(id);
+
+  QMetaObject::invokeMethod(
+      QApplication::instance()->thread(), [qid, meta_data, factory]() -> int {
+        return GpgFrontend::UI::UIModuleManager::GetInstance().MountEntry(
+                   qid, meta_data, factory)
+                   ? 0
+                   : -1;
+      });
+
+  return 0;
 }

@@ -33,7 +33,6 @@
 #include "core/module/ModuleManager.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "ui/UIModuleManager.h"
-#include "ui/dialog/help/GnupgTab.h"
 
 namespace GpgFrontend::UI {
 
@@ -46,11 +45,6 @@ AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
   auto* translators_tab = new TranslatorsTab();
 
   tab_widget->addTab(info_tab, tr("About GpgFrontend"));
-
-  if (Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
-    auto* gnupg_tab = new GnupgTab();
-    tab_widget->addTab(gnupg_tab, tr("GnuPG"));
-  }
 
   tab_widget->addTab(translators_tab, tr("Translators"));
 
