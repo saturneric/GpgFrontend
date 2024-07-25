@@ -353,14 +353,30 @@ else ()
 endif ()
 
 if (GPGFRONTEND_QT5_BUILD)
+
     add_compile_definitions(QT5_BUILD)
+
+    # Introduce Qt
+    # Support Qt version: 5.15.x
+    find_package(Qt5 5.15 COMPONENTS Core Widgets PrintSupport Network LinguistTools REQUIRED)
+
 else()
+
     add_compile_definitions(QT6_BUILD)
+
+    # Introduce Qt
+    # Support Qt version: 6.x
+    find_package(Qt6 6 COMPONENTS Core Widgets PrintSupport Network LinguistTools REQUIRED)
+
 endif()
 
-# Basic ENV Configure
-set(BASIC_ENV_CONFIG 1)
-set(QT_MOC_CONFIG 1)
+# Qt configuration
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
+set(CMAKE_AUTORCC_OPTIONS "--compress;9")
+set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${CMAKE_SOURCE_DIR}/ui)
 
 if (STABLE_BUILD_APPLICATION)
     message("[+] Build Stable Application")
