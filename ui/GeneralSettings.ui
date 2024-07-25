@@ -65,6 +65,13 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="moreSigningOptionsCheckBox">
+            <property name="text">
+             <string>Provide more options in the signing process.</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
        </layout>
