@@ -51,27 +51,8 @@ if (APPLE)
         message(FATAL_ERROR "OpenSSL not found in the standard directories. Please install it or set OPENSSL_ROOT_DIR manually.")
     endif()
 endif()
+
 find_package(OpenSSL REQUIRED)
-
-
-if(GPGFRONTEND_QT5_BUILD)
-    # Introduce Qt
-    # Support Qt version: 5.15.x
-    find_package(Qt5 5.15 COMPONENTS Core Widgets PrintSupport Network LinguistTools REQUIRED)
-else()
-    # Introduce Qt
-    # Support Qt version: 6.x
-    find_package(Qt6 6 COMPONENTS Core Widgets PrintSupport Network LinguistTools REQUIRED)
-endif()
-
-
-# Qt configuration
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
-
-set(CMAKE_AUTORCC_OPTIONS "--compress;9")
-set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${CMAKE_SOURCE_DIR}/ui)
 
 # Set Build Information
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
