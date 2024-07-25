@@ -28,36 +28,20 @@
 
 #include "SecureMemoryAllocator.h"
 
-#if !defined(MACOS) && defined(DEBUG)
 #include <mimalloc.h>
-#endif
 
 namespace GpgFrontend {
 
 auto SecureMemoryAllocator::Allocate(std::size_t size) -> void* {
-#if !defined(MACOS) && defined(DEBUG)
   auto* addr = mi_malloc(size);
-#else
-  auto* addr = malloc(size);
-#endif
   return addr;
 }
 
 auto SecureMemoryAllocator::Reallocate(void* ptr, std::size_t size) -> void* {
-#if !defined(MACOS) && defined(DEBUG)
-  auto* addr = mi_realloc(ptr, size);
-#else
   auto* addr = realloc(ptr, size);
-#endif
   return addr;
 }
 
-void SecureMemoryAllocator::Deallocate(void* p) {
-#if !defined(MACOS) && defined(DEBUG)
-  mi_free(p);
-#else
-  free(p);
-#endif
-}
+void SecureMemoryAllocator::Deallocate(void* p) { mi_free(p); }
 
 }  // namespace GpgFrontend

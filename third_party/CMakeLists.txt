@@ -33,15 +33,27 @@ if (MINGW)
   add_subdirectory(libarchive EXCLUDE_FROM_ALL)
 endif()
 
-# not working at macOS
-if (NOT APPLE)
-  set(MI_SECURE ON)
-  if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    # set(MI_TRACK_VALGRIND ON)
-    set(MI_TRACK_ASAN ON)
-  endif()
-  add_subdirectory(mimalloc EXCLUDE_FROM_ALL)
+set(MI_SECURE ON)
+
+# fix the segment fault issue on M1 chip platform
+# refer to https://github.com/microsoft/mimalloc/issues/343
+if(APPLE)
+  set(MI_OSX_ZONE ON)
+   set(MI_OSX_INTERPOSE OFF)
 endif()
+
+# ASAN checking
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" AND ENABLE_ASAN)
+
+  if(APPLE)
+    set(MI_OVERRIDE OFF)
+  endif()
+
+  set(MI_TRACK_VALGRIND ON)
+  set(MI_TRACK_ASAN ON)
+endif()
+
+add_subdirectory(mimalloc EXCLUDE_FROM_ALL)
 
 set(INSTALL_GTEST OFF)
 add_subdirectory(googletest EXCLUDE_FROM_ALL)

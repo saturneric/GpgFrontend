@@ -44,15 +44,13 @@ add_library(gpgfrontend_core SHARED ${CORE_SOURCE})
 set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendCoreExport.h")
 generate_export_header(gpgfrontend_core EXPORT_FILE_NAME "${_export_file}")
 
-if(NOT APPLE)
-    target_link_libraries(gpgfrontend_core PUBLIC mimalloc)
-    if(MINGW)
-        set_target_properties(mimalloc
-            PROPERTIES
-            LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-        )
-    endif()
+target_link_libraries(gpgfrontend_core PUBLIC mimalloc)
+if(MINGW)
+    set_target_properties(mimalloc
+        PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+    )
 endif()
 
 # qt-aes

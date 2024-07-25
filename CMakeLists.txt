@@ -68,7 +68,7 @@ option(GPGFRONTEND_BUILD_TYPE_STABLE
 option(GPGFRONTEND_BUILD_TYPE_SDK "Generate a usable SDK" OFF)
 option(GPGFRONTEND_QT5_BUILD "Swith to Qt5 building mode" OFF)
 option(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE "Generate an installable version" OFF)
-
+option(GPGFRONTEND_ENABLE_ASAN "Enable ASAN" OFF)
 
 option(GPGFRONTEND_XCODE_TEAM_ID "GpgFrontend Apple Team ID" "NONE")
 option(GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY "GpgFrontend Signing Certificate" "NONE")
@@ -206,6 +206,20 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release" AND APPLE)
 
     unset(GPGFRONTEND_BUILD_CONFIG)
 endif ()
+
+# if enable ASAN
+if(GPGFRONTEND_ENABLE_ASAN)
+
+    # check compiler
+    if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+        message(FATAL_ERROR "Use GPGFRONTEND_ENABLE_ASAN only when using the clang compiler.")
+    endif()
+
+    add_compile_options(-fsanitize=address)
+    add_link_options(-fsanitize=address)
+
+    set(ENABLE_ASAN 1)
+endif()
 
 set(AppName GpgFrontend)
 
