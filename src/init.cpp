@@ -122,9 +122,6 @@ void InitGlobalBasicEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
   // change path to search for related
   InitGlobalPathEnv();
 
-  // init application
-  ctx->InitApplication();
-
   // should load module system first
   Module::ModuleInitArgs module_init_args;
   module_init_args.log_level = ctx->log_level;

@@ -13,10 +13,10 @@
   <developer_name>Saturneric</developer_name>
   <content_rating type="oars-1.0" />
 
-  <url type="homepage">https://gpgfrontend.bktus.com/</url>
+  <url type="homepage">https://gpgfrontend.bktus.com</url>
   <url type="bugtracker">https://github.com/saturneric/GpgFrontend/issues</url>
-  <url type="contact">https://gpgfrontend.bktus.com/contract</url>
-  <url type="translate">https://gpgfrontend.bktus.com/translate-interface</url>
+  <url type="contact">hhttps://www.gpgfrontend.bktus.com/overview/contact</url>
+  <url type="translate">hhttps://www.gpgfrontend.bktus.com/appendix/translate-interface</url>
   <url type="vcs-browser">https://github.com/saturneric/GpgFrontend</url>
 
   <launchable type="desktop-id">com.bktus.gpgfrontend.desktop</launchable>
@@ -72,6 +72,7 @@
   </keywords>
 
   <releases>
+    <release version="2.1.3" date="2024-05-11"/>
     <release version="2.1.2" date="2024-02-02"/>
     <release version="2.1.1" date="2023-09-19"/>
     <release version="2.1.0" date="2023-08-01"/>
