@@ -42,8 +42,10 @@ auto GFDataExchanger::Write(const std::byte* buffer, size_t size) -> ssize_t {
         not_empty_.notify_all();
       }
 
-      not_full_.wait(lock,
-                     [=] { return queue_.size() < queue_max_size_ || close_; });
+      not_full_.wait(lock, [=] {
+        return queue_.size() < static_cast<unsigned long>(queue_max_size_) ||
+               close_;
+      });
       if (close_) return -1;
 
       queue_.push(buffer[i]);

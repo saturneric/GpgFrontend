@@ -69,9 +69,9 @@ void KeyList::init() {
                                    KeyMenuAbility::kCOLUMN_FILTER);
   ui_->searchBarEdit->setHidden(~menu_ability_ & KeyMenuAbility::kSEARCH_BAR);
 
-  auto* column_type_menu = new QMenu();
+  auto* column_type_menu = new QMenu(this);
 
-  key_id_column_action_ = new QAction(tr("Key ID"));
+  key_id_column_action_ = new QAction(tr("Key ID"), this);
   key_id_column_action_->setCheckable(true);
   key_id_column_action_->setChecked(
       (global_column_filter_ & GpgKeyTableColumn::kKEY_ID) !=
@@ -82,7 +82,7 @@ void KeyList::init() {
                 : global_column_filter_ & ~GpgKeyTableColumn::kKEY_ID);
   });
 
-  algo_column_action_ = new QAction(tr("Algorithm"));
+  algo_column_action_ = new QAction(tr("Algorithm"), this);
   algo_column_action_->setCheckable(true);
   algo_column_action_->setChecked(
       (global_column_filter_ & GpgKeyTableColumn::kALGO) !=
@@ -93,7 +93,7 @@ void KeyList::init() {
                 : global_column_filter_ & ~GpgKeyTableColumn::kALGO);
   });
 
-  owner_trust_column_action_ = new QAction(tr("Owner Trust"));
+  owner_trust_column_action_ = new QAction(tr("Owner Trust"), this);
   owner_trust_column_action_->setCheckable(true);
   owner_trust_column_action_->setChecked(
       (global_column_filter_ & GpgKeyTableColumn::kOWNER_TRUST) !=
@@ -105,7 +105,7 @@ void KeyList::init() {
                     : global_column_filter_ & ~GpgKeyTableColumn::kOWNER_TRUST);
       });
 
-  create_date_column_action_ = new QAction(tr("Create Date"));
+  create_date_column_action_ = new QAction(tr("Create Date"), this);
   create_date_column_action_->setCheckable(true);
   create_date_column_action_->setChecked(
       (global_column_filter_ & GpgKeyTableColumn::kCREATE_DATE) !=
@@ -117,7 +117,7 @@ void KeyList::init() {
                     : global_column_filter_ & ~GpgKeyTableColumn::kCREATE_DATE);
       });
 
-  subkeys_number_column_action_ = new QAction("Subkey(s)");
+  subkeys_number_column_action_ = new QAction("Subkey(s)", this);
   subkeys_number_column_action_->setCheckable(true);
   subkeys_number_column_action_->setChecked(
       (global_column_filter_ & GpgKeyTableColumn::kSUBKEYS_NUMBER) !=
@@ -131,7 +131,7 @@ void KeyList::init() {
                 : global_column_filter_ & ~GpgKeyTableColumn::kSUBKEYS_NUMBER);
       });
 
-  comment_column_action_ = new QAction("Comment");
+  comment_column_action_ = new QAction("Comment", this);
   comment_column_action_->setCheckable(true);
   comment_column_action_->setChecked(
       (global_column_filter_ & GpgKeyTableColumn::kCOMMENT) !=
