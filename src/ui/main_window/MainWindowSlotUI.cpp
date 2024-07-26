@@ -98,7 +98,6 @@ void MainWindow::slot_disable_tab_actions(int number) {
   add_pgp_header_act_->setDisabled(disable);
 
   if (edit_->CurFilePage() != nullptr) {
-    GF_UI_LOG_DEBUG("edit current page is file page");
     auto* file_page = edit_->CurFilePage();
     emit file_page->SignalCurrentTabChanged();
   }
@@ -109,9 +108,6 @@ void MainWindow::slot_open_settings_dialog() {
 
   connect(dialog, &SettingsDialog::finished, this, [&]() -> void {
     AppearanceSO appearance(SettingsObject("general_settings_state"));
-    GF_UI_LOG_DEBUG("tool bar icon_size: {}, {}",
-                    appearance.tool_bar_icon_width,
-                    appearance.tool_bar_icon_height);
 
     this->setToolButtonStyle(appearance.tool_bar_button_style);
     import_button_->setToolButtonStyle(appearance.tool_bar_button_style);
@@ -182,14 +178,10 @@ void MainWindow::slot_cut_pgp_header() {
   edit_->SlotFillTextEditWithText(content.trimmed());
 }
 
-void MainWindow::SlotSetRestartNeeded(int mode) {
-  GF_UI_LOG_DEBUG("restart mode: {}", mode);
-  this->restart_mode_ = mode;
-}
+void MainWindow::SlotSetRestartNeeded(int mode) { this->restart_mode_ = mode; }
 
 void MainWindow::SlotUpdateCryptoMenuStatus(unsigned int type) {
   MainWindow::CryptoMenu::OperationType opera_type = type;
-  GF_UI_LOG_DEBUG("update crypto menu status, type: {}", opera_type);
 
   // refresh status to disable all
   verify_act_->setDisabled(true);

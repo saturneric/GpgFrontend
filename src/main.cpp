@@ -50,6 +50,18 @@ auto main(int argc, char* argv[]) -> int {
           argc, argv);
   ctx->InitApplication();
 
+  qSetMessagePattern(
+      "[%{time yyyyMMdd h:mm:ss.zzz}] [%{category}] "
+      "[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-"
+      "critical}C%{endif}%{if-fatal}F%{endif}] [%{threadid}] %{file}:%{line} - "
+      "%{message}");
+
+#ifdef RELEASE
+  QLoggingCategory::setFilterRules("*.debug=false\n*.info=false\n");
+#else
+  QLoggingCategory::setFilterRules("*.debug=false");
+#endif
+
   auto rtn = 0;
 
   // initialize qt resources
@@ -67,14 +79,12 @@ auto main(int argc, char* argv[]) -> int {
 
   parser.process(*ctx->GetApp());
 
-  ctx->log_level = spdlog::level::info;
-
   if (parser.isSet("v")) {
     return GpgFrontend::PrintVersion();
   }
 
   if (parser.isSet("l")) {
-    ctx->log_level = GpgFrontend::ParseLogLevel(parser.value("l"));
+    GpgFrontend::ParseLogLevel(parser.value("l"));
   }
 
   if (parser.isSet("t")) {

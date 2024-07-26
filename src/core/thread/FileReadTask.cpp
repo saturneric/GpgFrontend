@@ -41,17 +41,15 @@ FileReadTask::FileReadTask(QString path)
 
 auto FileReadTask::Run() -> int {
   if (QFileInfo(read_file_path_).isFile()) {
-    GF_CORE_LOG_DEBUG("read open file: {}", read_file_path_);
-
     target_file_.setFileName(read_file_path_);
     target_file_.open(QIODevice::ReadOnly);
 
     if (!(target_file_.isOpen() && target_file_.isReadable())) {
-      GF_CORE_LOG_ERROR("file not open or not readable");
+      qCWarning(core, "file not open or not readable");
       if (target_file_.isOpen()) target_file_.close();
       return -1;
     }
-    GF_CORE_LOG_DEBUG("started reading: {}", read_file_path_);
+
     slot_read_bytes();
   } else {
     emit SignalFileBytesReadEnd();
@@ -64,10 +62,8 @@ void FileReadTask::slot_read_bytes() {
   if (QByteArray read_buffer;
       !target_file_.atEnd() &&
       (read_buffer = target_file_.read(kBufferSize)).size() > 0) {
-    GF_CORE_LOG_DEBUG("io thread read bytes: {}", read_buffer.size());
     emit SignalFileBytesRead(std::move(read_buffer));
   } else {
-    GF_CORE_LOG_DEBUG("io thread read bytes end");
     emit SignalFileBytesReadEnd();
     // announce finish task
     emit SignalTaskShouldEnd(0);
@@ -75,7 +71,6 @@ void FileReadTask::slot_read_bytes() {
 }
 
 FileReadTask::~FileReadTask() {
-  GF_CORE_LOG_DEBUG("close file: {}", read_file_path_);
   if (target_file_.isOpen()) target_file_.close();
 }
 

@@ -93,9 +93,6 @@ auto GpgKeyImportExporter::ExportKey(const GpgKey& key, bool secret, bool ascii,
   auto err = gpgme_op_export_keys(ctx, keys_array.data(), mode, data_out);
   if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
 
-  GF_CORE_LOG_DEBUG(
-      "operation of exporting a key finished, ascii: {}, read_bytes: {}", ascii,
-      gpgme_data_seek(data_out, 0, SEEK_END));
   return {err, data_out.Read2GFBuffer()};
 }
 
@@ -127,10 +124,6 @@ void GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys, bool secret,
         auto err = gpgme_op_export_keys(ctx, keys_array.data(), mode, data_out);
         if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
 
-        GF_CORE_LOG_DEBUG(
-            "operation of exporting keys finished, ascii: {}, read_bytes: {}",
-            ascii, gpgme_data_seek(data_out, 0, SEEK_END));
-
         data_object->Swap({data_out.Read2GFBuffer()});
         return err;
       },
@@ -161,9 +154,6 @@ void GpgKeyImportExporter::ExportAllKeys(const KeyArgsList& keys, bool secret,
         auto err = gpgme_op_export_keys(ctx, keys_array.data(), mode, data_out);
         if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
 
-        GF_CORE_LOG_DEBUG(
-            "operation of exporting keys finished, ascii: {}, read_bytes: {}",
-            ascii, gpgme_data_seek(data_out, 0, SEEK_END));
         auto buffer = data_out.Read2GFBuffer();
 
         if (secret) {
@@ -175,10 +165,6 @@ void GpgKeyImportExporter::ExportAllKeys(const KeyArgsList& keys, bool secret,
                                           data_out_secret);
           if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
 
-          GF_CORE_LOG_DEBUG(
-              "operation of exporting secret keys finished, "
-              "ascii: {}, read_bytes: {}",
-              ascii, gpgme_data_seek(data_out_secret, 0, SEEK_END));
           buffer.Append(data_out_secret.Read2GFBuffer());
         }
 

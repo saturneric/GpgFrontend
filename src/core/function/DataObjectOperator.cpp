@@ -36,7 +36,6 @@
 namespace GpgFrontend {
 
 void DataObjectOperator::init_app_secure_key() {
-  GF_CORE_LOG_INFO("initializing application secure key...");
   WriteFile(app_secure_key_path_,
             PassphraseGenerator::GetInstance().Generate(256).toUtf8());
   QFile::setPermissions(app_secure_key_path_,
@@ -50,8 +49,8 @@ DataObjectOperator::DataObjectOperator(int channel)
 
   QByteArray key;
   if (!ReadFile(app_secure_key_path_, key)) {
-    GF_CORE_LOG_ERROR("failed to read app secure key file: {}",
-                      app_secure_key_path_);
+    qCWarning(core) << "failed to read app secure key file: "
+                    << app_secure_key_path_;
     // unsafe mode
     key = {};
   }
@@ -85,8 +84,6 @@ auto DataObjectOperator::SaveDataObj(const QString& key,
       QAESEncryption(QAESEncryption::AES_256, QAESEncryption::ECB,
                      QAESEncryption::Padding::ISO)
           .encode(value.toJson(), hash_key_);
-  GF_CORE_LOG_TRACE("saving data object {} to disk {} , size: {} bytes",
-                    hash_obj_key, target_obj_path, encoded_data.size());
 
   // recreate if not exists
   if (!QDir(app_data_objs_path_).exists()) {
@@ -94,7 +91,7 @@ auto DataObjectOperator::SaveDataObj(const QString& key,
   }
 
   if (!WriteFile(target_obj_path, encoded_data)) {
-    GF_CORE_LOG_ERROR("failed to write data object to disk: {}", key);
+    qCWarning(core) << "failed to write data object to disk: " << key;
   }
   return key.isEmpty() ? hash_obj_key : QString();
 }
@@ -102,20 +99,19 @@ auto DataObjectOperator::SaveDataObj(const QString& key,
 auto DataObjectOperator::GetDataObject(const QString& key)
     -> std::optional<QJsonDocument> {
   try {
-    GF_CORE_LOG_TRACE("try to get data object from disk, key: {}", key);
     auto hash_obj_key = QCryptographicHash::hash(hash_key_ + key.toUtf8(),
                                                  QCryptographicHash::Sha256)
                             .toHex();
 
     const auto obj_path = app_data_objs_path_ + "/" + hash_obj_key;
     if (!QFileInfo(obj_path).exists()) {
-      GF_CORE_LOG_WARN("data object not found from disk, key: {}", key);
+      qCWarning(core) << "data object not found from disk, key: " << key;
       return {};
     }
 
     QByteArray encoded_data;
     if (!ReadFile(obj_path, encoded_data)) {
-      GF_CORE_LOG_ERROR("failed to read data object from disk, key: {}", key);
+      qCWarning(core) << "failed to read data object from disk, key: " << key;
       return {};
     }
 
@@ -124,11 +120,11 @@ auto DataObjectOperator::GetDataObject(const QString& key)
 
     auto decoded_data =
         encryption.removePadding(encryption.decode(encoded_data, hash_key_));
-    GF_CORE_LOG_TRACE("data object has been decoded, key: {}, data: {}", key,
-                      decoded_data);
+
     return QJsonDocument::fromJson(decoded_data);
   } catch (...) {
-    GF_CORE_LOG_ERROR("failed to get data object, caught exception: {}", key);
+    qCWarning(core) << "failed to get data object:" << key
+                    << " caught exception.";
     return {};
   }
 }

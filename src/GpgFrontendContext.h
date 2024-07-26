@@ -38,7 +38,6 @@ using GFCxtSPtr = std::shared_ptr<GpgFrontendContext>;
 struct GpgFrontendContext {
   int argc;
   char** argv;
-  spdlog::level::level_enum log_level;
 
   bool gather_external_gnupg_info;
   bool load_default_gpg_context;

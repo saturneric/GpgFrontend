@@ -28,11 +28,9 @@
 
 #include "cmd.h"
 
-#include "core/utils/BuildInfoUtils.h"
-#include "main.h"
+#include <qglobal.h>
 
-// std
-#include <iostream>
+#include "core/utils/BuildInfoUtils.h"
 
 // GpgFrontend
 #include "GpgFrontendContext.h"
@@ -60,30 +58,29 @@ auto PrintVersion() -> int {
   return 0;
 }
 
-auto ParseLogLevel(const QString& log_level) -> spdlog::level::level_enum {
-  if (log_level == "trace") {
-    return spdlog::level::trace;
-  }
+auto ParseLogLevel(const QString& log_level) -> int {
   if (log_level == "debug") {
-    return spdlog::level::debug;
+    QLoggingCategory::setFilterRules(
+        "core.debug=true\nui.debug=true\ntest.debug=true\nmodule.debug=true");
+  } else if (log_level == "info") {
+    QLoggingCategory::setFilterRules(
+        "*.debug=false\ncore.info=true\nui.info=true\ntest.info="
+        "true\nmodule.info=true");
+  } else if (log_level == "warning") {
+    QLoggingCategory::setFilterRules("*.debug=false\n*.info=false\n");
+  } else if (log_level == "critical") {
+    QLoggingCategory::setFilterRules(
+        "*.debug=false\n*.info=false\n*.warning=false\n");
+  } else {
+    qWarning() << "unknown log level: " << log_level;
   }
-  if (log_level == "info") {
-    return spdlog::level::info;
-  }
-  if (log_level == "warn") {
-    return spdlog::level::warn;
-  }
-  if (log_level == "error") {
-    return spdlog::level::err;
-  }
-
-  return spdlog::level::info;
+  return 0;
 }
 
 auto RunTest(const GFCxtWPtr& p_ctx) -> int {
   GpgFrontend::GFCxtSPtr const ctx = p_ctx.lock();
   if (ctx == nullptr) {
-    GF_MAIN_LOG_ERROR("cannot get gpgfrontend context for test running");
+    qWarning("cannot get gpgfrontend context for test running");
     return -1;
   }
 

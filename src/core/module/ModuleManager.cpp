@@ -60,19 +60,17 @@ class ModuleManager::Impl {
             [=](GpgFrontend::DataObjectPtr) -> int {
               QLibrary module_library(module_library_path);
               if (!module_library.load()) {
-                GF_CORE_LOG_WARN(
-                    "module manager failed to load module, "
-                    "reason: broken library: {} ",
-                    module_library.fileName());
+                qCWarning(core) << "module manager failed to load module, "
+                                   "reason: broken library: "
+                                << module_library.fileName();
                 return -1;
               }
 
               auto module = SecureCreateSharedObject<Module>(module_library);
               if (!module->IsGood()) {
-                GF_CORE_LOG_WARN(
-                    "module manager failed to load module, "
-                    "reason: illegal module: {}",
-                    module_library.fileName());
+                qCWarning(core) << "module manager failed to load module, "
+                                   "reason: illegal module: "
+                                << module_library.fileName();
                 return -1;
               }
 
@@ -231,13 +229,13 @@ auto UpsertRTValue(const QString& namespace_, const QString& key,
                                                     std::any(value));
 }
 
-auto ListenRTPublishEvent(QObject* o, Namespace n, Key k, LPCallback c)
-    -> bool {
+auto ListenRTPublishEvent(QObject* o, Namespace n, Key k,
+                          LPCallback c) -> bool {
   return ModuleManager::GetInstance().ListenRTPublish(o, n, k, c);
 }
 
-auto ListRTChildKeys(const QString& namespace_, const QString& key)
-    -> std::vector<Key> {
+auto ListRTChildKeys(const QString& namespace_,
+                     const QString& key) -> std::vector<Key> {
   return ModuleManager::GetInstance().ListRTChildKeys(namespace_, key);
 }
 
@@ -296,8 +294,8 @@ auto ModuleManager::UpsertRTValue(Namespace n, Key k, std::any v) -> bool {
   return p_->UpsertRTValue(n, k, v);
 }
 
-auto ModuleManager::RetrieveRTValue(Namespace n, Key k)
-    -> std::optional<std::any> {
+auto ModuleManager::RetrieveRTValue(Namespace n,
+                                    Key k) -> std::optional<std::any> {
   return p_->RetrieveRTValue(n, k);
 }
 
@@ -306,8 +304,8 @@ auto ModuleManager::ListenRTPublish(QObject* o, Namespace n, Key k,
   return p_->ListenPublish(o, n, k, c);
 }
 
-auto ModuleManager::ListRTChildKeys(const QString& n, const QString& k)
-    -> std::vector<Key> {
+auto ModuleManager::ListRTChildKeys(const QString& n,
+                                    const QString& k) -> std::vector<Key> {
   return p_->ListRTChildKeys(n, k);
 }
 

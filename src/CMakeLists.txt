@@ -23,12 +23,14 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+# 
 if(APPLE)
   add_compile_definitions("_GNU_SOURCE")
 endif()
 
 # Introduce GpgME
 find_package(Gpgme REQUIRED)
+
 
 # Introduce OpenSSL
 if (APPLE)
@@ -54,14 +56,17 @@ endif()
 
 find_package(OpenSSL REQUIRED)
 
+
 # Set Build Information
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/src/sdk/GFSDKBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/sdk/GFSDKBuildInfo.h @ONLY)
+
 if (APPLE)
     configure_file(${CMAKE_SOURCE_DIR}/resource/plist/ExportOptions.plist.in ${CMAKE_BINARY_DIR}/ExportOptions.plist @ONLY)
 endif ()
+
 
 # Set Runtime Output Directory
 if (NOT XCODE_BUILD)
@@ -72,13 +77,8 @@ else ()
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 endif ()
 
-# configure for output path and resources
-if (BUILD_APPLICATION)
-    aux_source_directory(. BASE_SOURCE)
-    set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_SOURCE_DIR}/gpgfrontend.rc")
-    set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE_DIR}/gpgfrontend.ico)
-endif ()
 
+# Print modules
 if (BUILD_CORE)
     # core depends pinentry
     message("[+] Build Pinentry")
@@ -103,6 +103,13 @@ if (BUILD_TEST)
     include(CTest)
     enable_testing()
     add_subdirectory(test)
+endif ()
+
+# configure for output path and resources
+if (BUILD_APPLICATION)
+    aux_source_directory(. BASE_SOURCE)
+    set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_SOURCE_DIR}/gpgfrontend.rc")
+    set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE_DIR}/gpgfrontend.ico)
 endif ()
 
 if (BUILD_APPLICATION)
@@ -482,7 +489,6 @@ if (LINUX AND LINUX_INSTALL_SOFTWARE)
   include(GNUInstallDirs)
   set(GPGFRONTEND_INSTALL_LIBRARIES 
       mimalloc
-      spdlog
       gpgfrontend_core
       gpgfrontend_ui
       gpgfrontend_test

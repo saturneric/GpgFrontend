@@ -366,7 +366,6 @@ void KeyPairOperaTab::slot_modify_tofu_policy() {
       this, tr("Modify TOFU Policy(Default is Auto)"),
       tr("Policy for the Key Pair:"), items, 0, false, &ok);
   if (ok && !item.isEmpty()) {
-    GF_UI_LOG_DEBUG("selected policy: {}", item);
     gpgme_tofu_policy_t tofu_policy = GPGME_TOFU_POLICY_AUTO;
     if (item == tr("Policy Auto")) {
       tofu_policy = GPGME_TOFU_POLICY_AUTO;
@@ -445,7 +444,7 @@ void KeyPairOperaTab::slot_import_revoke_cert() {
     return;
   }
 
-  emit UISignalStation::GetInstance()->SignalKeyRevoked(m_key_.GetId());
+  emit UISignalStation::GetInstance() -> SignalKeyRevoked(m_key_.GetId());
   CommonUtils::GetInstance()->SlotImportKeys(nullptr, rev_file.readAll());
 }
 }  // namespace GpgFrontend::UI

@@ -43,9 +43,15 @@ aux_source_directory(function UI_SOURCE)
 # define libgpgfrontend_ui
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
+
 add_library(gpgfrontend_ui SHARED ${UI_SOURCE})
+
+# generate headers
 set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendUIExport.h")
 generate_export_header(gpgfrontend_ui EXPORT_FILE_NAME "${_export_file}")
+
+# compile definitions
+target_compile_definitions(gpgfrontend_ui PUBLIC GF_UI)
 
 if(GPGFRONTEND_QT5_BUILD)
   # link Qt
@@ -69,8 +75,7 @@ target_precompile_headers(gpgfrontend_ui PUBLIC GpgFrontendUI.h)
 
 # add ui generator include path
 target_include_directories(gpgfrontend_ui PUBLIC
-  ${CMAKE_CURRENT_BINARY_DIR}/gpgfrontend_ui_autogen/include
-  ${CMAKE_SOURCE_DIR}/third_party/spdlog/include)
+  ${CMAKE_CURRENT_BINARY_DIR}/gpgfrontend_ui_autogen/include)
 
 # using std c++ 17
 target_compile_features(gpgfrontend_ui PUBLIC cxx_std_17)

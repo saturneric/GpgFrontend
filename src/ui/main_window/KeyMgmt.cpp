@@ -413,7 +413,7 @@ void KeyMgmt::SlotExportKeyToClipboard() {
                 }
 
                 if (data_obj == nullptr || !data_obj->Check<GFBuffer>()) {
-                  GF_CORE_LOG_ERROR("data object checking failed");
+                  qCWarning(ui, "data object checking failed");
                   QMessageBox::critical(this, tr("Error"),
                                         tr("Unknown error occurred"));
                   return;
@@ -572,7 +572,6 @@ void KeyMgmt::SlotImportKeyPackage() {
     return;
   }
 
-  GF_UI_LOG_INFO("importing key package: {}", key_package_file_name);
   CommonUtils::WaitForOpera(
       this, tr("Importing"), [=](const OperaWaitingHd& op_hd) {
         KeyPackageOperator::ImportKeyPackage(

@@ -74,7 +74,7 @@ void KeyUploadDialog::SlotUpload() {
 
         if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
             !data_obj->Check<GFBuffer>()) {
-          GF_CORE_LOG_ERROR("data object checking failed");
+          qCWarning(ui, "data object checking failed");
           QMessageBox::critical(this, tr("Error"),
                                 tr("Unknown error occurred"));
           // Done
@@ -139,11 +139,9 @@ void KeyUploadDialog::slot_upload_finished() {
 
   this->close();
   QByteArray response = reply->readAll();
-  GF_UI_LOG_DEBUG("upload response: {}", response);
 
   auto error = reply->error();
   if (error != QNetworkReply::NoError) {
-    GF_UI_LOG_DEBUG("error from reply: {}", reply->errorString());
     QString message;
     switch (error) {
       case QNetworkReply::ContentNotFoundError:

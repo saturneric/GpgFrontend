@@ -33,12 +33,10 @@
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/module/ModuleInit.h"
 #include "core/thread/TaskRunnerGetter.h"
-#include "core/utils/LogUtils.h"
 #include "ui/GpgFrontendUIInit.h"
 
 // main
 #include "GpgFrontendContext.h"
-#include "main.h"
 
 namespace GpgFrontend {
 
@@ -53,22 +51,6 @@ int setenv(const char *name, const char *value, int overwrite) {
   return _putenv_s(name, value);
 }
 #endif
-
-void InitLoggingSystem(const GFCxtSPtr &ctx) {
-#ifdef DEBUG
-  RegisterSyncLogger("core", ctx->log_level);
-  RegisterSyncLogger("main", ctx->log_level);
-  RegisterSyncLogger("module", ctx->log_level);
-  RegisterSyncLogger("ui", ctx->log_level);
-  RegisterSyncLogger("test", ctx->log_level);
-#else
-  RegisterAsyncLogger("core", ctx->log_level);
-  RegisterAsyncLogger("main", ctx->log_level);
-  RegisterAsyncLogger("module", ctx->log_level);
-  RegisterAsyncLogger("ui", ctx->log_level);
-  RegisterAsyncLogger("test", ctx->log_level);
-#endif
-}
 
 void InitGlobalPathEnv() {
   // read settings
@@ -87,13 +69,12 @@ void InitGlobalPathEnv() {
   // add custom gnupg install path into env $PATH
   if (use_custom_gnupg_install_path && !custom_gnupg_install_path.isEmpty()) {
     QString path_value = getenv("PATH");
-    GF_MAIN_LOG_DEBUG("Current System PATH: {}", path_value);
+
     setenv("PATH",
            (QDir(custom_gnupg_install_path).absolutePath() + ":" + path_value)
                .toUtf8(),
            1);
     QString modified_path_value = getenv("PATH");
-    GF_MAIN_LOG_DEBUG("Modified System PATH: {}", modified_path_value);
   }
 
   if (GlobalSettingStation::GetInstance()
@@ -102,7 +83,6 @@ void InitGlobalPathEnv() {
           .toBool()) {
     qputenv("GPGME_DEBUG",
             QString("9:%1").arg(QDir::currentPath() + "/gpgme.log").toUtf8());
-    GF_CORE_LOG_DEBUG("GPGME_DEBUG ENV: {}", qgetenv("GPGME_DEBUG"));
   }
 }
 
@@ -112,19 +92,11 @@ void InitGlobalBasicEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
     return;
   }
 
-  // init default locale of application
-  InitLocale();
-
-  // initialize logging system
-  SetDefaultLogLevel(ctx->log_level);
-  InitLoggingSystem(ctx);
-
   // change path to search for related
   InitGlobalPathEnv();
 
   // should load module system first
   Module::ModuleInitArgs module_init_args;
-  module_init_args.log_level = ctx->log_level;
   Module::LoadGpgFrontendModules(module_init_args);
 
   // then preload ui
@@ -149,12 +121,12 @@ void InitLocale() {
 
   // read from settings file
   auto lang = settings.value("basic/lang").toString();
-  GF_UI_LOG_INFO("current system default locale: {}", QLocale().name());
-  GF_UI_LOG_INFO("locale settings from config: {}", lang);
+  qInfo() << "current system default locale: " << QLocale().name();
+  qInfo() << "locale settings from config: " << lang;
 
   auto target_locale =
       lang.trimmed().isEmpty() ? QLocale::system() : QLocale(lang);
-  GF_UI_LOG_INFO("application's target locale: {}", target_locale.name());
+  qInfo() << "application's target locale: " << target_locale.name();
   QLocale::setDefault(target_locale);
 }
 

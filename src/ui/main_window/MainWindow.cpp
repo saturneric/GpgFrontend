@@ -136,9 +136,9 @@ void MainWindow::Init() noexcept {
     Module::ListenRTPublishEvent(
         this, kVersionCheckingModuleID, "version.loading_done",
         [=](Module::Namespace, Module::Key, int, std::any) {
-          GF_UI_LOG_DEBUG(
-              "version-checking version.loading_done changed, calling slot "
-              "version upgrade");
+          qCDebug(ui,
+                  "version-checking version.loading_done changed, calling slot "
+                  "version upgrade");
           this->slot_version_upgrade_notify();
         });
 
@@ -155,7 +155,7 @@ void MainWindow::Init() noexcept {
     if (show_wizard) slot_start_wizard();
 
   } catch (...) {
-    GF_UI_LOG_ERROR(tr("Critical error occur while loading GpgFrontend."));
+    qCWarning(ui) << tr("Critical error occur while loading GpgFrontend.");
     QMessageBox::critical(
         nullptr, tr("Loading Failed"),
         tr("Critical error occur while loading GpgFrontend."));
@@ -165,8 +165,6 @@ void MainWindow::Init() noexcept {
 }
 
 void MainWindow::restore_settings() {
-  GF_UI_LOG_DEBUG("restore settings for main windows");
-
   KeyServerSO key_server(SettingsObject("key_server"));
   if (key_server.server_list.empty()) key_server.ResetDefaultServerList();
   if (key_server.default_server < 0) key_server.default_server = 0;
@@ -181,8 +179,6 @@ void MainWindow::restore_settings() {
 
   prohibit_update_checking_ =
       settings.value("network/prohibit_update_check").toBool();
-
-  GF_UI_LOG_DEBUG("settings restored");
 }
 
 void MainWindow::recover_editor_unsaved_pages_from_cache() {
@@ -192,9 +188,6 @@ void MainWindow::recover_editor_unsaved_pages_from_cache() {
   if (json_data.isEmpty() || !json_data.isArray()) {
     return;
   }
-
-  GF_UI_LOG_DEBUG("plan ot recover unsaved page from cache, page array: {}",
-                  json_data.toJson());
 
   bool first = true;
 
@@ -210,10 +203,6 @@ void MainWindow::recover_editor_unsaved_pages_from_cache() {
 
     auto title = unsaved_page_json["title"].toString();
     auto content = unsaved_page_json["content"].toString();
-
-    GF_UI_LOG_DEBUG(
-        "recovering unsaved page from cache, page title: {}, content size",
-        title, content.size());
 
     if (first) {
       edit_->SlotCloseTab();

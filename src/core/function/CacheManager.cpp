@@ -107,7 +107,6 @@ class CacheManager::Impl : public QObject {
     durable_cache_storage_.insert(key, value);
 
     if (!key_storage_.contains(key)) {
-      GF_CORE_LOG_DEBUG("register new key of cache", key);
       key_storage_.push_back(key);
     }
 
@@ -126,8 +125,8 @@ class CacheManager::Impl : public QObject {
     return {};
   }
 
-  auto LoadDurableCache(const QString& key, QJsonDocument default_value)
-      -> QJsonDocument {
+  auto LoadDurableCache(const QString& key,
+                        QJsonDocument default_value) -> QJsonDocument {
     auto data_object_key = get_data_object_key(key);
     if (!durable_cache_storage_.exists(key)) {
       durable_cache_storage_.insert(
@@ -165,7 +164,7 @@ class CacheManager::Impl : public QObject {
    *
    */
   void slot_flush_cache_storage() {
-    GF_CORE_LOG_TRACE("write cache to file system...");
+    qCDebug(core, "write cache to file system...");
 
     for (const auto& cache : durable_cache_storage_.mirror()) {
       auto key = get_data_object_key(cache.first);
@@ -216,7 +215,7 @@ class CacheManager::Impl : public QObject {
    *
    */
   void load_all_cache_storage() {
-    GF_CORE_LOG_DEBUG("start to load all cache from file system");
+    qCDebug(core, "start to load all cache from file system");
     auto stored_data =
         GpgFrontend::DataObjectOperator::GetInstance().GetDataObject(drk_key_);
 
@@ -259,9 +258,8 @@ auto CacheManager::LoadDurableCache(const QString& key) -> QJsonDocument {
   return p_->LoadDurableCache(key);
 }
 
-auto CacheManager::LoadDurableCache(const QString& key,
-                                    QJsonDocument default_value)
-    -> QJsonDocument {
+auto CacheManager::LoadDurableCache(
+    const QString& key, QJsonDocument default_value) -> QJsonDocument {
   return p_->LoadDurableCache(key, std::move(default_value));
 }
 

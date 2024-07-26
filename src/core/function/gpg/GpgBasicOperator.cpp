@@ -251,10 +251,9 @@ void GpgBasicOperator::Sign(const KeyArgsList& signers,
       cb, "gpgme_op_sign", "2.1.0");
 }
 
-auto GpgBasicOperator::SignSync(const KeyArgsList& signers,
-                                const GFBuffer& in_buffer, GpgSignMode mode,
-                                bool ascii)
-    -> std::tuple<GpgError, DataObjectPtr> {
+auto GpgBasicOperator::SignSync(
+    const KeyArgsList& signers, const GFBuffer& in_buffer, GpgSignMode mode,
+    bool ascii) -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       [=](const DataObjectPtr& data_object) -> GpgError {
         if (signers.empty()) return GPG_ERR_CANCELED;
@@ -391,15 +390,14 @@ void GpgBasicOperator::SetSigners(const KeyArgsList& signers, bool ascii) {
   gpgme_signers_clear(ctx);
 
   for (const GpgKey& key : signers) {
-    GF_CORE_LOG_DEBUG("key fpr: {}", key.GetFingerprint());
+    qCDebug(core) << "signer's key fpr: " << key.GetFingerprint();
     if (key.IsHasActualSigningCapability()) {
-      GF_CORE_LOG_DEBUG("signer");
       auto error = gpgme_signers_add(ctx, gpgme_key_t(key));
       CheckGpgError(error);
     }
   }
   if (signers.size() != gpgme_signers_count(ctx_.DefaultContext()))
-    GF_CORE_LOG_DEBUG("not all signers added");
+    qCDebug(core, "not all signers added");
 }
 
 auto GpgBasicOperator::GetSigners(bool ascii) -> std::unique_ptr<KeyArgsList> {

@@ -164,7 +164,7 @@ void PlainTextEditorPage::ReadFile() {
           [=]() { emit read_task->SignalTaskShouldEnd(0); });
   connect(read_task, &FileReadTask::SignalFileBytesReadEnd, this, [=]() {
     // set the UI
-    GF_UI_LOG_DEBUG("signal file bytes read end rised");
+    qCDebug(ui, "signal file bytes read end rised");
     this->read_done_ = true;
     text_page->setEnabled(true);
     text_page->document()->setModified(false);
@@ -186,8 +186,6 @@ auto BinaryToString(const QByteArray &source) -> QString {
 }
 
 void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
-  GF_UI_LOG_TRACE("inserting data read to editor, data size: {}",
-                  bytes_data.size());
   read_bytes_ += bytes_data.size();
 
   // insert the text to the text page

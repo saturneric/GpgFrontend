@@ -28,8 +28,6 @@
 
 #include "LocalizedUtils.h"
 
-#include "core/utils/LogUtils.h"
-
 namespace GpgFrontend {
 
 auto GetLocalizedDateByTimestamp(time_t timestamp) -> QString {

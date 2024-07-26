@@ -35,6 +35,9 @@ endif()
 
 add_library(gpgfrontend_pinentry SHARED ${PINENTRY_SOURCE})
 
+
+# link options
+
 target_link_libraries(gpgfrontend_pinentry PUBLIC gpgfrontend_core)
 
 if(GPGFRONTEND_QT5_BUILD)
@@ -55,14 +58,13 @@ if (XCODE_BUILD)
     XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
 endif ()
 
-# spdlog
-target_link_libraries(gpgfrontend_pinentry PRIVATE spdlog)
 
 # using std c++ 17
 target_compile_features(gpgfrontend_pinentry PUBLIC cxx_std_17)
 
+
+# set lib output path
 if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-  # lib output path
   set_target_properties(gpgfrontend_pinentry PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib)

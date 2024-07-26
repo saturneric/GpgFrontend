@@ -48,7 +48,7 @@ QList<QByteArray> loaded_qm_datum;
 extern void InitUITranslations();
 
 void WaitEnvCheckingProcess() {
-  GF_UI_LOG_DEBUG("need to waiting for env checking process");
+  qCDebug(ui, "need to waiting for env checking process");
 
   // create and show loading window before starting the main window
   auto* waiting_dialog = new QProgressDialog();
@@ -67,7 +67,6 @@ void WaitEnvCheckingProcess() {
   QApplication::connect(CoreSignalStation::GetInstance(),
                         &CoreSignalStation::SignalGoodGnupgEnv, waiting_dialog,
                         [=]() {
-                          GF_UI_LOG_DEBUG("gpg env loaded successfuly");
                           waiting_dialog->finished(0);
                           waiting_dialog->deleteLater();
                         });
@@ -79,19 +78,19 @@ void WaitEnvCheckingProcess() {
                         &QEventLoop::quit);
 
   QApplication::connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
-    GF_UI_LOG_DEBUG("cancel clicked on waiting dialog");
+    qCDebug(ui, "cancel clicked on waiting dialog");
     QApplication::quit();
     exit(0);
   });
 
   auto env_state =
       Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.basic", 0);
-  GF_UI_LOG_DEBUG("ui is ready to waiting for env initialized, env_state: {}",
-                  env_state);
+  qCDebug(ui, "ui is ready to waiting for env initialized, env_state: %d",
+          env_state);
 
   // check twice to avoid some unlucky sitations
   if (env_state == 1) {
-    GF_UI_LOG_DEBUG("env state turned initialized before the looper start");
+    qCDebug(ui, "env state turned initialized before the looper start");
     waiting_dialog->finished(0);
     waiting_dialog->deleteLater();
     return;
@@ -159,8 +158,6 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
           settings.value("proxy/username", QString{}).toString();
       QString const proxy_password =
           settings.value("proxy/password", QString{}).toString();
-      GF_UI_LOG_DEBUG("proxy settings: type {}, host {}, port: {}", proxy_type,
-                      proxy_host, proxy_port);
 
       QNetworkProxy::ProxyType proxy_type_qt = QNetworkProxy::NoProxy;
       if (proxy_type == "HTTP") {
@@ -189,7 +186,7 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
       QNetworkProxy::setApplicationProxy(proxy);
 
     } catch (...) {
-      GF_UI_LOG_ERROR("setting operation error: proxy setings");
+      qCWarning(ui, "setting operation error: proxy setings");
       // no proxy by default
       QNetworkProxy::setApplicationProxy(QNetworkProxy::NoProxy);
     }
@@ -210,7 +207,7 @@ auto RunGpgFrontendUI(QApplication* app) -> int {
 
   // pre-check, if application need to restart
   if (CommonUtils::GetInstance()->isApplicationNeedRestart()) {
-    GF_UI_LOG_DEBUG("application need to restart, before main window init");
+    qCDebug(ui, "application need to restart, before main window init.");
     return kDeepRestartCode;
   }
 
@@ -218,7 +215,6 @@ auto RunGpgFrontendUI(QApplication* app) -> int {
   main_window->Init();
 
   // show main windows
-  GF_UI_LOG_DEBUG("main window is ready to show");
   main_window->show();
 
   // start the main event loop
@@ -241,9 +237,6 @@ void InitUITranslations() {
   auto* translator = new QTranslator(QCoreApplication::instance());
   if (translator->load(QLocale(), QLatin1String("qt"), QLatin1String("_"),
                        QLatin1String(":/i18n_qt"), QLatin1String(".qm"))) {
-    GF_UI_LOG_DEBUG("load qt translation file done, locale: {}",
-                    QLocale().name());
-
     QCoreApplication::installTranslator(translator);
     registered_translators.append(translator);
   }
@@ -251,8 +244,6 @@ void InitUITranslations() {
   translator = new QTranslator(QCoreApplication::instance());
   if (translator->load(QLocale(), QLatin1String("qtbase"), QLatin1String("_"),
                        QLatin1String(":/i18n_qt"), QLatin1String(".qm"))) {
-    GF_UI_LOG_DEBUG("load qtbase translation file done, locale: {}",
-                    QLocale().name());
     QCoreApplication::installTranslator(translator);
     registered_translators.append(translator);
   }
@@ -261,8 +252,6 @@ void InitUITranslations() {
   if (translator->load(QLocale(), QLatin1String(PROJECT_NAME),
                        QLatin1String("."), QLatin1String(":/i18n"),
                        QLatin1String(".qm"))) {
-    GF_UI_LOG_DEBUG("load target translation file done, locale: {}",
-                    QLocale().name());
     QCoreApplication::installTranslator(translator);
     registered_translators.append(translator);
   }
@@ -273,8 +262,6 @@ auto InstallTranslatorFromQMData(const QByteArray& data) -> bool {
 
   if (translator->load(reinterpret_cast<uchar*>(const_cast<char*>(data.data())),
                        data.size())) {
-    GF_UI_LOG_DEBUG("load target translation file done, locale: {}",
-                    QLocale().name());
     QCoreApplication::installTranslator(translator);
     registered_translators.append(translator);
     loaded_qm_datum.append(data);

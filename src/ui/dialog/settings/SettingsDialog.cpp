@@ -112,7 +112,6 @@ void SettingsDialog::SlotAccept() {
   key_server_tab_->ApplySettings();
   network_tab_->ApplySettings();
 
-  GF_UI_LOG_DEBUG("ui restart status: {}", restart_mode_);
   if (restart_mode_ != kNonRestartCode) {
     emit SignalRestartNeeded(restart_mode_);
   }
@@ -125,8 +124,6 @@ auto SettingsDialog::ListLanguages() -> QHash<QString, QString> {
 
   auto filenames = QDir(QLatin1String(":/i18n")).entryList();
   for (const auto& file : filenames) {
-    GF_UI_LOG_DEBUG("get locale from locale directory: {}", file);
-
     auto start = file.indexOf('.') + 1;
     auto end = file.lastIndexOf('.');
     if (start < 0 || end < 0 || start >= end) continue;

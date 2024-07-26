@@ -105,7 +105,6 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
 
 void ModuleControllerDialog::slot_load_module_details(
     Module::ModuleIdentifier module_id) {
-  GF_UI_LOG_DEBUG("loading module details, module id: {}", module_id);
   auto module = module_manager_->SearchModule(module_id);
   SettingsObject so(QString("module.%1.so").arg(module_id));
   ModuleSO module_so(so);
@@ -122,8 +121,6 @@ void ModuleControllerDialog::slot_load_module_details(
     module_so.module_id = module_id;
     module_so.module_hash = module->GetModuleHash();
     module_so.auto_activate = false;
-    GF_UI_LOG_DEBUG("reseting module settings object, module id: {}",
-                    module_id);
     so.Store(module_so.ToJson());
   }
 

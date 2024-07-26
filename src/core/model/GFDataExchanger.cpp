@@ -28,8 +28,6 @@
 
 #include "GFDataExchanger.h"
 
-#include "core/utils/LogUtils.h"
-
 namespace GpgFrontend {
 
 auto GFDataExchanger::Write(const std::byte* buffer, size_t size) -> ssize_t {
@@ -49,7 +47,8 @@ auto GFDataExchanger::Write(const std::byte* buffer, size_t size) -> ssize_t {
       write_bytes++;
     }
   } catch (...) {
-    GF_CORE_LOG_ERROR(
+    qCWarning(
+        core,
         "gf data exchanger caught exception when it writes to queue, abort...");
   }
 

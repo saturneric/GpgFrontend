@@ -59,9 +59,6 @@ AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
     }
   }
 
-  connect(tab_widget, &QTabWidget::currentChanged, this,
-          [&](int index) { GF_UI_LOG_DEBUG("current index: {}", index); });
-
   int default_index = 0;
   for (int i = 0; i < tab_widget->count(); i++) {
     if (tab_widget->tabText(i) == default_tab_name) {
@@ -91,7 +88,6 @@ void AboutDialog::showEvent(QShowEvent* ev) { QDialog::showEvent(ev); }
 InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
   const auto gpgme_version = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.version", QString{"2.0.0"});
-  GF_UI_LOG_DEBUG("got gpgme version from rt: {}", gpgme_version);
 
   auto pixmap = QPixmap(":/icons/gpgfrontend_logo.png");
   pixmap = pixmap.scaled(128, 128);

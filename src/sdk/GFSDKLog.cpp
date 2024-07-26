@@ -28,20 +28,16 @@
 
 #include "GFSDKLog.h"
 
-#include "core/utils/LogUtils.h"
+#include <qglobal.h>
 
-#define MODULE_LOG_TRACE(...) GF_LOG_TRACE("module", __VA_ARGS__)
-#define MODULE_LOG_DEBUG(...) GF_LOG_DEBUG("module", __VA_ARGS__)
-#define MODULE_LOG_INFO(...) GF_LOG_INFO("module", __VA_ARGS__)
-#define MODULE_LOG_WARN(...) GF_LOG_WARN("module", __VA_ARGS__)
-#define MODULE_LOG_ERROR(...) GF_LOG_ERROR("module", __VA_ARGS__)
+Q_LOGGING_CATEGORY(module, "module")
 
-void GFModuleLogTrace(const char* l) { MODULE_LOG_TRACE(l); }
+void GFModuleLogTrace(const char* l) { qCDebug(module) << QString(l); }
 
-void GFModuleLogDebug(const char* l) { MODULE_LOG_DEBUG(l); }
+void GFModuleLogDebug(const char* l) { qCDebug(module) << QString(l); }
 
-void GFModuleLogInfo(const char* l) { MODULE_LOG_INFO(l); }
+void GFModuleLogInfo(const char* l) { qCInfo(module) << QString(l); }
 
-void GFModuleLogWarn(const char* l) { MODULE_LOG_WARN(l); }
+void GFModuleLogWarn(const char* l) { qCWarning(module) << QString(l); }
 
-void GFModuleLogError(const char* l) { MODULE_LOG_ERROR(l); }
+void GFModuleLogError(const char* l) { qCCritical(module) << QString(l); }

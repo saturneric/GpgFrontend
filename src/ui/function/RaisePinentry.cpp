@@ -39,8 +39,6 @@ auto FindTopMostWindow(QWidget* fallback) -> QWidget* {
   QList<QWidget*> top_widgets = QApplication::topLevelWidgets();
   foreach (QWidget* widget, top_widgets) {
     if (widget->isActiveWindow()) {
-      GF_UI_LOG_TRACE("find a topmost widget, address: {}",
-                      static_cast<void*>(widget));
       return widget;
     }
   }
@@ -52,12 +50,6 @@ RaisePinentry::RaisePinentry(QWidget* parent,
     : QWidget(parent), context_(std::move(context)) {}
 
 auto RaisePinentry::Exec() -> int {
-  GF_UI_LOG_DEBUG(
-      "setting pinetry's arguments, context uids: {}, passphrase info: {}, "
-      "prev_was_bad: {}",
-      context_->GetUidsInfo(), context_->GetPassphraseInfo(),
-      context_->IsPreWasBad());
-
   bool ask_for_new = context_->IsAskForNew() &&
                      context_->GetPassphraseInfo().isEmpty() &&
                      context_->GetUidsInfo().isEmpty();
@@ -95,15 +87,13 @@ auto RaisePinentry::Exec() -> int {
   pinentry->setOkText(tr("Confirm"));
   pinentry->setCancelText(tr("Cancel"));
 
-  GF_UI_LOG_DEBUG("buddled pinentry is ready to start...");
   connect(pinentry, &PinEntryDialog::finished, this,
           [pinentry, this](int result) {
             bool ret = result != 0;
-            GF_UI_LOG_DEBUG("buddled pinentry finished, ret: {}", ret);
 
             if (!ret) {
               emit CoreSignalStation::GetInstance()
-                  ->SignalUserInputPassphraseCallback({});
+                  -> SignalUserInputPassphraseCallback({});
               return -1;
             }
 
@@ -111,7 +101,7 @@ auto RaisePinentry::Exec() -> int {
 
             context_->SetPassphrase(pin);
             emit CoreSignalStation::GetInstance()
-                ->SignalUserInputPassphraseCallback(context_);
+                -> SignalUserInputPassphraseCallback(context_);
             return 0;
           });
   connect(pinentry, &PinEntryDialog::finished, this, &QWidget::deleteLater);

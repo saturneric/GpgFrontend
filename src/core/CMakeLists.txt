@@ -23,7 +23,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-
+# gather source files
 aux_source_directory(./function/result_analyse CORE_SOURCE)
 aux_source_directory(./function/basic CORE_SOURCE)
 aux_source_directory(./function/gpg CORE_SOURCE)
@@ -37,12 +37,22 @@ aux_source_directory(./utils/aes CORE_SOURCE)
 aux_source_directory(./utils CORE_SOURCE)
 aux_source_directory(. CORE_SOURCE)
 
+
 # define libgpgfrontend_core
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
+
 add_library(gpgfrontend_core SHARED ${CORE_SOURCE})
+
+# generate headers
 set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendCoreExport.h")
 generate_export_header(gpgfrontend_core EXPORT_FILE_NAME "${_export_file}")
+
+# compile definitions
+target_compile_definitions(gpgfrontend_core PUBLIC GF_CORE)
+
+
+# link options
 
 target_link_libraries(gpgfrontend_core PUBLIC mimalloc)
 if(MINGW)
@@ -70,15 +80,6 @@ if (MINGW)
     target_link_libraries(gpgfrontend_core PUBLIC bcrypt)
 endif ()
 
-# spdlog
-target_link_libraries(gpgfrontend_core PRIVATE spdlog)
-if(MINGW)
-    set_target_properties(spdlog
-        PROPERTIES
-        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-    )
-endif()
 
 # configure libarchive
 if(NOT MINGW)

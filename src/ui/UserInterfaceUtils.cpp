@@ -80,7 +80,6 @@ void ImportUnknownKeyFromKeyserver(
     auto key_ids = std::make_unique<KeyIdArgsList>();
     auto *signature = verify_result.GetSignatures();
     while (signature != nullptr) {
-      GF_UI_LOG_DEBUG("signature fpr: {}", signature->fpr);
       key_ids->push_back(signature->fpr);
       signature = signature->next;
     }
@@ -232,8 +231,6 @@ void CommonUtils::WaitForOpera(QWidget *parent,
   QTimer::singleShot(64, parent, [=]() {
     opera([dialog]() {
       if (dialog != nullptr) {
-        GF_UI_LOG_DEBUG("called operating waiting cb, dialog: {}",
-                        static_cast<void *>(dialog));
         dialog->close();
         dialog->accept();
       }
@@ -328,18 +325,17 @@ void CommonUtils::SlotExecuteCommand(
           &QEventLoop::quit);
   connect(cmd_process, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
   connect(cmd_process, &QProcess::started,
-          []() -> void { GF_UI_LOG_DEBUG("process started"); });
+          []() -> void { qCDebug(ui, "process started"); });
   connect(cmd_process, &QProcess::readyReadStandardOutput,
           [interact_func, cmd_process]() { interact_func(cmd_process); });
   connect(cmd_process, &QProcess::errorOccurred, this,
-          [=]() -> void { GF_UI_LOG_ERROR("error in process"); });
+          [=]() -> void { qCWarning(ui, "error in process"); });
   connect(cmd_process,
           qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
           [=](int, QProcess::ExitStatus status) {
-            if (status == QProcess::NormalExit)
-              GF_UI_LOG_DEBUG("succeed in executing command: {}", cmd);
-            else
-              GF_UI_LOG_WARN("error in executing command: {}", cmd);
+            if (status != QProcess::NormalExit) {
+              qCWarning(ui) << "error in executing command: " << cmd;
+            }
           });
 
   cmd_process->setProgram(cmd);
@@ -365,11 +361,11 @@ void CommonUtils::SlotExecuteGpgCommand(
           &WaitingDialog::deleteLater);
   connect(gpg_process, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
   connect(gpg_process, &QProcess::started,
-          []() -> void { GF_UI_LOG_DEBUG("gpg process started"); });
+          []() -> void { qCDebug(ui, "gpg process started"); });
   connect(gpg_process, &QProcess::readyReadStandardOutput,
           [interact_func, gpg_process]() { interact_func(gpg_process); });
   connect(gpg_process, &QProcess::errorOccurred, this, [=]() -> void {
-    GF_UI_LOG_ERROR("Error in Process");
+    qCWarning(ui, "Error in Process");
     dialog->close();
     QMessageBox::critical(nullptr, tr("Failure"),
                           tr("Failed to execute command."));
@@ -388,7 +384,6 @@ void CommonUtils::SlotExecuteGpgCommand(
 
   const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.app_path", QString{});
-  GF_UI_LOG_DEBUG("got gnupg app path from rt: {}", app_path);
 
   gpg_process->setProgram(app_path);
   gpg_process->setArguments(arguments);
@@ -409,8 +404,6 @@ void CommonUtils::SlotImportKeyFromKeyServer(
            "please set a default keyserver first"));
     return;
   }
-  GF_UI_LOG_DEBUG("set target key server to default Key Server: {}",
-                  target_keyserver);
 
   auto *thread = QThread::create([target_keyserver, key_ids, callback]() {
     QUrl target_keyserver_url(target_keyserver);
@@ -425,8 +418,6 @@ void CommonUtils::SlotImportKeyFromKeyServer(
       QUrl req_url(target_keyserver_url.scheme() + "://" +
                    target_keyserver_url.host() +
                    "/pks/lookup?op=get&search=0x" + key_id + "&options=mr");
-
-      GF_UI_LOG_DEBUG("request url: {}", req_url.toString());
 
       // Waiting for reply
       auto request = QNetworkRequest(req_url);
@@ -498,21 +489,19 @@ void CommonUtils::slot_update_key_from_server_finished(
     bool success, QString err_msg, QByteArray buffer,
     std::shared_ptr<GpgImportInformation> info) {
   if (!success) {
-    GF_UI_LOG_ERROR("get err from reply: {}", buffer);
+    qCWarning(ui) << "get err from reply: " << buffer;
     QMessageBox::critical(nullptr, tr("Error"), err_msg);
     return;
   }
 
   // refresh the key database
-  emit UISignalStation::GetInstance()->SignalKeyDatabaseRefresh();
+  emit UISignalStation::GetInstance() -> SignalKeyDatabaseRefresh();
 
   // show details
   (new KeyImportDetailDialog(std::move(info), this))->exec();
 }
 
 void CommonUtils::SlotRestartApplication(int code) {
-  GF_UI_LOG_DEBUG("application need restart, code: {}", code);
-
   if (code == 0) {
     std::exit(0);
   } else {
@@ -540,7 +529,6 @@ void CommonUtils::AddKey2Favourtie(const GpgKey &key) {
     QJsonArray key_array;
     if (json_data.isArray()) key_array = json_data.array();
 
-    GF_UI_LOG_DEBUG("add key to favorites, key fpr: {}", key.GetFingerprint());
     key_array.push_back(key.GetFingerprint());
     json_data.setArray(key_array);
   }
@@ -554,8 +542,6 @@ void CommonUtils::RemoveKeyFromFavourite(const GpgKey &key) {
     QJsonArray key_array;
     if (json_data.isArray()) key_array = json_data.array();
 
-    GF_UI_LOG_DEBUG("remove key from favorites, key fpr: {}",
-                    key.GetFingerprint());
     auto fingerprint = key.GetFingerprint();
     QJsonArray new_key_array;
     for (auto &&item : key_array) {

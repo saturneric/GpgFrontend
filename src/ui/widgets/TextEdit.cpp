@@ -120,7 +120,6 @@ void TextEdit::SlotNewFileTab() {
 
 void TextEdit::SlotOpenFile(const QString& path) {
   QFile file(path);
-  GF_UI_LOG_DEBUG("main window editor is opening file at path: {}", path);
   auto result = file.open(QIODevice::ReadOnly | QIODevice::Text);
   if (result) {
     auto* page = new PlainTextEditorPage(path);
@@ -510,7 +509,6 @@ QHash<int, QString> TextEdit::UnsavedDocuments() const {
     if (ep != nullptr && ep->ReadDone() &&
         ep->GetTextPage()->document()->isModified()) {
       QString doc_name = tab_widget_->tabText(i);
-      GF_UI_LOG_DEBUG("unsaved: {}", doc_name);
 
       // remove * before name of modified doc
       doc_name.remove(0, 2);
@@ -601,8 +599,8 @@ void TextEdit::slot_file_page_path_changed(const QString& path) const {
   }
   tab_widget_->setTabText(index, m_path);
 
-  emit UISignalStation::GetInstance()->SignalMainWindowlUpdateBasicalOperaMenu(
-      0);
+  emit UISignalStation::GetInstance()
+      -> SignalMainWindowlUpdateBasicalOperaMenu(0);
 }
 
 void TextEdit::slot_save_status_to_cache_for_revovery() {
@@ -614,17 +612,11 @@ void TextEdit::slot_save_status_to_cache_for_revovery() {
   bool restore_text_editor_page =
       settings.value("basic/restore_text_editor_page", false).toBool();
   if (!restore_text_editor_page) {
-    GF_UI_LOG_DEBUG("restore_text_editor_page is false, ignoring...");
+    qCDebug(ui, "restore_text_editor_page is false, ignoring...");
     return;
   }
 
   int tab_count = tab_widget_->count();
-  GF_UI_LOG_DEBUG(
-      "restore_text_editor_page is true, pan to save pages, current tabs "
-      "count: "
-      "{}",
-      tab_count);
-
   std::vector<std::tuple<int, QString, QString>> unsaved_pages;
 
   for (int i = 0; i < tab_count; i++) {
@@ -643,9 +635,7 @@ void TextEdit::slot_save_status_to_cache_for_revovery() {
       continue;
     }
 
-    auto raw_text = document->toRawText();
-    GF_UI_LOG_DEBUG("unsaved page index: {}, tab title: {}", i, tab_title);
-    unsaved_pages.emplace_back(i, tab_title, raw_text);
+    unsaved_pages.emplace_back(i, tab_title, document->toRawText());
   }
 
   CacheObject cache("editor_unsaved_pages");

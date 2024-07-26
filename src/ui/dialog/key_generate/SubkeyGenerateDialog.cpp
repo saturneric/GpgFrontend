@@ -305,7 +305,7 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
                 CommonUtils::RaiseMessageBox(this, err);
                 if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
                   emit UISignalStation::GetInstance()
-                      ->SignalKeyDatabaseRefresh();
+                      -> SignalKeyDatabaseRefresh();
                 }
               });
         });
@@ -358,8 +358,6 @@ void SubkeyGenerateDialog::slot_authentication_box_changed(int state) {
 }
 
 void SubkeyGenerateDialog::slot_activated_key_type(int index) {
-  GF_UI_LOG_DEBUG("key type index changed: {}", index);
-
   // check
   assert(gen_key_info_->GetSupportedSubkeyAlgo().size() >
          static_cast<size_t>(index));

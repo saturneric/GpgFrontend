@@ -350,7 +350,7 @@ auto KeyList::GetSelected() -> KeyIdArgsListPtr {
 
   auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
   if (key_table == nullptr) {
-    GF_UI_LOG_ERROR("fail to get current key table, nullptr");
+    qCWarning(ui, "fail to get current key table, nullptr");
     return ret;
   }
 
@@ -360,7 +360,7 @@ auto KeyList::GetSelected() -> KeyIdArgsListPtr {
   }
 
   if (ret->empty()) {
-    GF_UI_LOG_WARN("nothing is selected at key list");
+    qCWarning(ui, "nothing is selected at key list");
   }
   return ret;
 }
@@ -389,15 +389,13 @@ void KeyList::contextMenuEvent(QContextMenuEvent* event) {
   auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
 
   if (key_table == nullptr) {
-    GF_UI_LOG_DEBUG("m_key_list_ is nullptr, key group tab number: {}",
-                    ui_->keyGroupTab->count());
+    qCDebug(ui, "m_key_list_ is nullptr, key group tab number: %d",
+            ui_->keyGroupTab->count());
     return;
   }
 
   QString current_tab_widget_obj_name =
       ui_->keyGroupTab->widget(ui_->keyGroupTab->currentIndex())->objectName();
-  GF_UI_LOG_DEBUG("current tab widget object name: {}",
-                  current_tab_widget_obj_name);
   if (current_tab_widget_obj_name == "favourite") {
     auto actions = popup_menu_->actions();
     for (QAction* action : actions) {
@@ -470,7 +468,7 @@ void KeyList::dropEvent(QDropEvent* event) {
       QFile file;
       file.setFileName(tmp.toLocalFile());
       if (!file.open(QIODevice::ReadOnly)) {
-        GF_UI_LOG_ERROR("couldn't open file: {}", tmp.toString());
+        qCWarning(ui) << "couldn't open file: " << tmp.toString();
       }
       auto in_buffer = file.readAll();
       this->import_keys(in_buffer);
@@ -553,8 +551,6 @@ void KeyList::slot_sync_with_key_server() {
   CommonUtils::SlotImportKeyFromKeyServer(
       key_ids, [=](const QString& key_id, const QString& status,
                    size_t current_index, size_t all_index) {
-        GF_UI_LOG_DEBUG("import key: {} {} {} {}", key_id, status,
-                        current_index, all_index);
         auto key = GpgKeyGetter::GetInstance().GetKey(key_id);
 
         auto status_str = tr("Sync [%1/%2] %3 %4")
@@ -576,8 +572,6 @@ void KeyList::slot_sync_with_key_server() {
 void KeyList::filter_by_keyword() {
   auto keyword = ui_->searchBarEdit->text();
   keyword = keyword.trimmed();
-
-  GF_UI_LOG_DEBUG("get new keyword of search bar: {}", keyword);
 
   for (int i = 0; i < ui_->keyGroupTab->count(); i++) {
     auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->widget(i));

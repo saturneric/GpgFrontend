@@ -38,21 +38,19 @@ class TaskRunner::Impl : public QThread {
 
   void PostTask(Task* task) {
     if (task == nullptr) {
-      GF_CORE_LOG_ERROR("task posted is null");
+      qCWarning(core, "task posted is null");
       return;
     }
 
     task->setParent(nullptr);
     task->moveToThread(this);
 
-    GF_CORE_LOG_TRACE("runner starts task: {} at thread: {}", task->GetFullID(),
-                      this->currentThreadId());
     task->SafelyRun();
   }
 
   auto RegisterTask(const QString& name, const Task::TaskRunnable& runnerable,
-                    const Task::TaskCallback& cb, DataObjectPtr params)
-      -> Task::TaskHandler {
+                    const Task::TaskCallback& cb,
+                    DataObjectPtr params) -> Task::TaskHandler {
     auto* raw_task = new Task(runnerable, name, std::move(params), cb);
     raw_task->setParent(nullptr);
     raw_task->moveToThread(this);
@@ -65,9 +63,6 @@ class TaskRunner::Impl : public QThread {
       pending_tasks_.remove(raw_task->GetFullID());
     });
 
-    GF_CORE_LOG_TRACE("runner starts task: {} at thread: {}",
-                      raw_task->GetFullID(), this->currentThreadId());
-
     return Task::TaskHandler(raw_task);
   }
 
@@ -78,7 +73,7 @@ class TaskRunner::Impl : public QThread {
 
   void PostConcurrentTask(Task* task) {
     if (task == nullptr) {
-      GF_CORE_LOG_ERROR("task posted is null");
+      qCWarning(core, "task posted is null");
       return;
     }
 
@@ -93,8 +88,6 @@ class TaskRunner::Impl : public QThread {
 
     concurrent_thread->start();
 
-    GF_CORE_LOG_TRACE("runner starts task concurrenctly: {}",
-                      task->GetFullID());
     task->SafelyRun();
   }
 
@@ -143,8 +136,8 @@ auto TaskRunner::IsRunning() -> bool { return p_->isRunning(); }
 
 auto TaskRunner::RegisterTask(const QString& name,
                               const Task::TaskRunnable& runnable,
-                              const Task::TaskCallback& cb, DataObjectPtr p_pbj)
-    -> Task::TaskHandler {
+                              const Task::TaskCallback& cb,
+                              DataObjectPtr p_pbj) -> Task::TaskHandler {
   return p_->RegisterTask(name, runnable, cb, p_pbj);
 }
 }  // namespace GpgFrontend::Thread

@@ -53,8 +53,7 @@ class SingletonStorage::Impl {
       std::shared_lock<std::shared_mutex> lock(instances_mutex_);
       ins_it = instances_map_.find(channel);
       if (ins_it == instances_map_.end()) {
-        GF_DEFAULT_LOG_TRACE("cannot find channel object, channel: {}",
-                             channel);
+        qCDebug(core, "cannot find channel object, channel: %d", channel);
         return nullptr;
       }
       return ins_it->second.get();
@@ -72,14 +71,14 @@ class SingletonStorage::Impl {
 
   auto SetObjectInChannel(int channel, ChannelObjectPtr p_obj)
       -> GpgFrontend::ChannelObject* {
-    GF_DEFAULT_LOG_TRACE(
-        "set channel object, type: {} in channel: {}, address: {}",
-        typeid(p_obj.get()).name(), channel, static_cast<void*>(p_obj.get()));
+    qCDebug(core, "set channel object, type: %s in channel: %d, address: %p",
+            typeid(p_obj.get()).name(), channel,
+            static_cast<void*>(p_obj.get()));
 
     assert(p_obj != nullptr);
     if (p_obj == nullptr) {
-      GF_DEFAULT_LOG_ERROR(
-          "cannot set a nullptr as a channel obejct of channel: {}", channel);
+      qCWarning(core, "cannot set a nullptr as a channel object of channel: %d",
+                channel);
       return nullptr;
     }
 
@@ -87,17 +86,16 @@ class SingletonStorage::Impl {
     auto* raw_obj = p_obj.get();
 
     {
-      GF_DEFAULT_LOG_TRACE(
-          "register channel object to instances map, "
-          "channel: {}, address: {}",
-          channel, static_cast<void*>(p_obj.get()));
+      qCDebug(core,
+              "register channel object to instances map, "
+              "channel: %d, address: %p",
+              channel, static_cast<void*>(p_obj.get()));
       std::unique_lock<std::shared_mutex> lock(instances_mutex_);
       instances_map_[channel] = std::move(p_obj);
     }
 
-    GF_DEFAULT_LOG_TRACE(
-        "set channel: {} success, current channel object address: {}", channel,
-        static_cast<void*>(raw_obj));
+    qCDebug(core, "set channel: %d success, current channel object address: %p",
+            channel, static_cast<void*>(raw_obj));
     return raw_obj;
   }
 

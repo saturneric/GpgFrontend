@@ -42,7 +42,6 @@ class Event::Impl {
     for (const auto& param : params) {
       AddParameter(param);
     }
-    GF_CORE_LOG_DEBUG("create event {}", event_identifier_);
   }
 
   auto operator[](const QString& key) const -> std::optional<ParameterValue> {
@@ -83,20 +82,16 @@ class Event::Impl {
 
   void ExecuteCallback(ListenerIdentifier listener_id,
                        const DataObjectPtr& data_object) {
-    GF_CORE_LOG_DEBUG("try to execute callback for event {} with listener {}",
-                      event_identifier_, listener_id);
     if (callback_) {
-      GF_CORE_LOG_DEBUG("executing callback for event {} with listener {}",
-                        event_identifier_, listener_id);
       if (!QMetaObject::invokeMethod(
               callback_thread_,
               [callback = callback_, event_identifier = event_identifier_,
                listener_id, data_object]() {
                 callback(event_identifier, listener_id, data_object);
               })) {
-        GF_CORE_LOG_ERROR(
-            "failed to invoke callback for event {} with listener {}",
-            event_identifier_, listener_id);
+        qCWarning(core) << "failed to invoke callback for event: "
+                        << event_identifier_
+                        << " with listener:" << listener_id;
       }
     }
   }

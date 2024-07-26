@@ -26,40 +26,6 @@
  *
  */
 
-#pragma once
+#include "GpgFrontendUI.h"
 
-#include "core/function/basic/GpgFunctionObject.h"
-
-namespace spdlog {
-class logger;
-}
-
-namespace GpgFrontend {
-
-class GPGFRONTEND_CORE_EXPORT LoggerManager
-    : public SingletonFunctionObject<LoggerManager> {
- public:
-  explicit LoggerManager(int channel);
-
-  ~LoggerManager() override;
-
-  auto RegisterAsyncLogger(const QString& id, spdlog::level::level_enum)
-      -> std::shared_ptr<spdlog::logger>;
-
-  auto RegisterSyncLogger(const QString& id, spdlog::level::level_enum)
-      -> std::shared_ptr<spdlog::logger>;
-
-  auto GetLogger(const QString& id) -> std::shared_ptr<spdlog::logger>;
-
-  static auto GetDefaultLogger() -> std::shared_ptr<spdlog::logger>;
-
-  static void SetDefaultLogLevel(spdlog::level::level_enum);
-
- private:
-  static spdlog::level::level_enum default_log_level;
-  static std::shared_ptr<spdlog::logger> default_logger;
-
-  std::map<QString, std::shared_ptr<spdlog::logger>> logger_map_;
-};
-
-}  // namespace GpgFrontend
+Q_LOGGING_CATEGORY(ui, "ui")

@@ -40,7 +40,7 @@ namespace GpgFrontend {
  *
  */
 struct GpgContextInitArgs {
-  QString db_path = {};  ///<
+  QString db_path;  ///<
 
   bool test_mode = false;                ///<
   bool offline_mode = false;             ///<
@@ -63,7 +63,7 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
 
   explicit GpgContext(GpgContextInitArgs args, int channel);
 
-  virtual ~GpgContext() override;
+  ~GpgContext();
 
   [[nodiscard]] auto Good() const -> bool;
 

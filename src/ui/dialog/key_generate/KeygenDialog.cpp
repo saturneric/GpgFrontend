@@ -257,16 +257,12 @@ void KeyGenDialog::slot_authentication_box_changed(int state) {
 }
 
 void KeyGenDialog::slot_activated_key_type(int index) {
-  GF_UI_LOG_DEBUG("key type index changed: {}", index);
-
   // check
   assert(gen_key_info_->GetSupportedKeyAlgo().size() >
          static_cast<size_t>(index));
 
   const auto [name, key_algo, subkey_algo] =
       gen_key_info_->GetSupportedKeyAlgo()[index];
-  GF_UI_LOG_DEBUG("target key algo changed, name: {}, key: {}, subkey: {}",
-                  name, key_algo, subkey_algo);
 
   assert(!key_algo.isEmpty());
   gen_key_info_->SetAlgo(key_algo);

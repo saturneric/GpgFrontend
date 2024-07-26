@@ -48,14 +48,12 @@ auto GenerateRevokeCertification::Exec(const GpgKey& key,
                    output_path, "--gen-revoke", key.GetFingerprint()},
        [=](int exit_code, const QString& p_out, const QString& p_err) {
          if (exit_code != 0) {
-           GF_UI_LOG_ERROR(
-               "gnupg gen revoke execute error, process stderr: {}, process "
-               "stdout: {}",
-               p_err, p_out);
+           qCWarning(ui) << "gnupg gen revoke execute error, process stderr: "
+                         << p_err << ", process stdout: " << p_out;
          } else {
-           GF_UI_LOG_DEBUG(
-               "gnupg gen revoke exit_code: {}, process stdout size: {}",
-               exit_code, p_out.size());
+           qCDebug(ui,
+                   "gnupg gen revoke exit_code: %d, process stdout size: %lld",
+                   exit_code, p_out.size());
          }
        },
        nullptr,
@@ -63,7 +61,6 @@ auto GenerateRevokeCertification::Exec(const GpgKey& key,
          // Code From Gpg4Win
          while (proc->canReadLine()) {
            const QString line = QString::fromUtf8(proc->readLine()).trimmed();
-           GF_UI_LOG_DEBUG("line: {}", line);
            if (line == QLatin1String("[GNUPG:] GET_BOOL gen_revoke.okay")) {
              proc->write("y\n");
            } else if (line == QLatin1String("[GNUPG:] GET_LINE "

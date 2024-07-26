@@ -110,7 +110,7 @@ KeyServerImportDialog::KeyServerImportDialog(QWidget* parent)
   main_layout->addLayout(buttons_layout, 6, 0, 1, 3);
 
   this->setLayout(main_layout);
-  this->setWindowTitle(tr("Import Keys from Keyserver"));
+  this->setWindowTitle(tr("Import Keys from key server"));
   this->setModal(true);
 
   movePosition2CenterOfParent();
@@ -132,7 +132,7 @@ auto KeyServerImportDialog::create_combo_box() -> QComboBox* {
     }
     combo_box->setCurrentText(key_server.GetTargetServer());
   } catch (...) {
-    GF_UI_LOG_ERROR("setting operation error", "server_list", "default_server");
+    qCWarning(ui, "setting operation error server_list default_server");
   }
 
   return combo_box;
@@ -208,16 +208,12 @@ void KeyServerImportDialog::slot_search() {
 
 void KeyServerImportDialog::slot_search_finished(
     QNetworkReply::NetworkError error, QByteArray buffer) {
-  GF_UI_LOG_DEBUG("search result {} {}", error, buffer.size());
-
   keys_table_->clearContents();
   keys_table_->setRowCount(0);
 
   auto stream = QTextStream(buffer);
 
   if (error != QNetworkReply::NoError) {
-    GF_UI_LOG_DEBUG("error from reply: {}", error);
-
     switch (error) {
       case QNetworkReply::ContentNotFoundError:
         set_message(tr("Not Key Found"), true);
@@ -414,7 +410,6 @@ void KeyServerImportDialog::slot_import_finished(
   set_loading(false);
 
   if (!success) {
-    GF_UI_LOG_ERROR("error from reply: {}", buffer);
     set_message(err_msg, true);
     return;
   }

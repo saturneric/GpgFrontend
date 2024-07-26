@@ -49,7 +49,7 @@ auto GetFileChecksum(const QString& file_name,
 auto ReadFile(const QString& file_name, QByteArray& data) -> bool {
   QFile file(file_name);
   if (!file.open(QIODevice::ReadOnly)) {
-    GF_CORE_LOG_ERROR("failed to open file: {}", file_name);
+    qCWarning(core) << "failed to open file: " << file_name;
     return false;
   }
   data = file.readAll();
@@ -60,7 +60,7 @@ auto ReadFile(const QString& file_name, QByteArray& data) -> bool {
 auto WriteFile(const QString& file_name, const QByteArray& data) -> bool {
   QFile file(file_name);
   if (!file.open(QIODevice::WriteOnly)) {
-    GF_CORE_LOG_ERROR("failed to open file for writing: {}", file_name);
+    qCWarning(core) << "failed to open file for writing: " << file_name;
     return false;
   }
   file.write(data);
@@ -100,20 +100,17 @@ auto CalculateHash(const QString& file_path) -> QString {
        << Qt::endl;
 
     // md5
-    ss << "- "
-       << "MD5" << QCoreApplication::tr(": ")
+    ss << "- " << "MD5" << QCoreApplication::tr(": ")
        << GetFileChecksum(file_path, QCryptographicHash::Md5).toHex()
        << Qt::endl;
 
     // sha1
-    ss << "- "
-       << "SHA1" << QCoreApplication::tr(": ")
+    ss << "- " << "SHA1" << QCoreApplication::tr(": ")
        << GetFileChecksum(file_path, QCryptographicHash::Sha1).toHex()
        << Qt::endl;
 
     // sha1
-    ss << "- "
-       << "SHA256" << QCoreApplication::tr(": ")
+    ss << "- " << "SHA256" << QCoreApplication::tr(": ")
        << GetFileChecksum(file_path, QCryptographicHash::Sha256).toHex()
        << Qt::endl;
 
@@ -147,8 +144,8 @@ auto CreateTempFileAndWriteData(const GFBuffer& data) -> QString {
   return temp_file;
 }
 
-auto TargetFilePreCheck(const QString& path, bool read)
-    -> std::tuple<bool, QString> {
+auto TargetFilePreCheck(const QString& path,
+                        bool read) -> std::tuple<bool, QString> {
   QFileInfo const file_info(path);
 
   if (read) {
@@ -184,16 +181,16 @@ auto CalculateBinaryChacksum(const QString& path) -> QString {
   // check file info and access rights
   QFileInfo info(path);
   if (!info.exists() || !info.isFile() || !info.isReadable()) {
-    GF_CORE_LOG_ERROR("get info for file {} error, exists: {}", info.filePath(),
-                      info.exists());
+    qCWarning(core) << "get info for file: " << info.filePath()
+                    << " error, exists: " << info.exists();
     return {};
   }
 
   // open and read file
   QFile f(info.filePath());
   if (!f.open(QIODevice::ReadOnly)) {
-    GF_CORE_LOG_ERROR("open {} to calculate checksum error: {}",
-                      path.toStdString(), f.errorString().toStdString());
+    qCWarning(core) << "open " << path
+                    << "to calculate checksum error: " << f.errorString();
     return {};
   }
 
@@ -204,8 +201,8 @@ auto CalculateBinaryChacksum(const QString& path) -> QString {
   while (!f.atEnd()) {
     QByteArray const buffer = f.read(buffer_size);
     if (buffer.isEmpty()) {
-      GF_CORE_LOG_ERROR("error reading file {} during checksum calculation",
-                        path.toStdString());
+      qCWarning(core) << "error reading file: " << path
+                      << " during checksum calculation";
       return {};
     }
     hash_sha.addData(buffer);

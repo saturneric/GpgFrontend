@@ -30,13 +30,10 @@
 
 #include <cassert>
 
-#include "core/utils/LogUtils.h"
-
 namespace GpgFrontend {
 
 void GenKeyInfo::SetAlgo(const QString &t_algo_args) {
   auto algo_args = t_algo_args.toLower();
-  GF_CORE_LOG_DEBUG("set algo args: {}", algo_args);
 
   // reset all options
   reset_options();
@@ -127,7 +124,7 @@ void GenKeyInfo::SetAlgo(const QString &t_algo_args) {
     suggest_size_addition_step_ = -1;
     SetKeyLength(-1);
   } else {
-    SPDLOG_ERROR("unsupported genkey algo arguments: {}", algo_args);
+    qCWarning(core) << "unsupported genkey algo arguments: " << algo_args;
     return;
   }
 

@@ -34,8 +34,7 @@ add_library(gpgfrontend_module_sdk SHARED ${MODULE_SDK_SOURCE})
 set(_export_file_sdk "${CMAKE_CURRENT_SOURCE_DIR}/GFSDKExport.h")
 generate_export_header(gpgfrontend_module_sdk EXPORT_FILE_NAME "${_export_file_sdk}")
 target_include_directories(gpgfrontend_module_sdk PRIVATE 
-  ${CMAKE_CURRENT_BINARY_DIR}/gpgfrontend_module_sdk_autogen/include
-  ${CMAKE_SOURCE_DIR}/third_party/spdlog/include)
+  ${CMAKE_CURRENT_BINARY_DIR}/gpgfrontend_module_sdk_autogen/include)
 
 target_include_directories(gpgfrontend_module_sdk PUBLIC sdk)
 

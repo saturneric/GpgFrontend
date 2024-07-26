@@ -63,14 +63,14 @@ void MainWindow::slot_append_selected_keys() {
   auto key_ids = m_key_list_->GetSelected();
 
   if (key_ids->empty()) {
-    GF_UI_LOG_ERROR("no key is selected to export");
+    qCWarning(ui, "no key is selected to export");
     return;
   }
 
   auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
   if (!key.IsGood()) {
-    GF_UI_LOG_ERROR("selected key for exporting is invalid, key id: {}",
-                    key_ids->front());
+    qCWarning(ui) << "selected key for exporting is invalid, key id: "
+                  << key_ids->front();
     return;
   }
 
@@ -88,7 +88,7 @@ void MainWindow::slot_append_keys_create_datetime() {
   auto key_ids = m_key_list_->GetSelected();
 
   if (key_ids->empty()) {
-    GF_UI_LOG_ERROR("no key is selected");
+    qCWarning(ui, "no key is selected");
     return;
   }
 
@@ -112,7 +112,7 @@ void MainWindow::slot_append_keys_expire_datetime() {
   auto key_ids = m_key_list_->GetSelected();
 
   if (key_ids->empty()) {
-    GF_UI_LOG_ERROR("no key is selected");
+    qCWarning(ui, "no key is selected");
     return;
   }
 
@@ -202,7 +202,6 @@ void MainWindow::slot_show_key_details() {
 void MainWindow::slot_add_key_2_favourite() {
   auto key_ids = m_key_list_->GetSelected();
   if (key_ids->empty()) return;
-  GF_UI_LOG_DEBUG("get selected key id: {}", key_ids->front());
 
   auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
   if (!key.IsGood()) return;
@@ -265,15 +264,14 @@ void MainWindow::SlotOpenFile(const QString& path) {
 }
 
 void MainWindow::slot_version_upgrade_notify() {
-  GF_UI_LOG_DEBUG(
+  qCDebug(
+      ui,
       "slot version upgrade notify called, checking version info from rt...");
+
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
       kVersionCheckingModuleID, "version.loading_done", false);
-
-  GF_UI_LOG_DEBUG("checking version info from rt, is loading done state: {}",
-                  is_loading_done);
   if (!is_loading_done) {
-    GF_UI_LOG_ERROR("invalid version info from rt, loading hasn't done yet");
+    qCWarning(ui, "invalid version info from rt, loading hasn't done yet");
     return;
   }
 
@@ -288,12 +286,6 @@ void MainWindow::slot_version_upgrade_notify() {
 
   auto latest_version = Module::RetrieveRTValueTypedOrDefault<>(
       kVersionCheckingModuleID, "version.latest_version", QString{});
-
-  GF_UI_LOG_DEBUG(
-      "got version info from rt, need upgrade: {}, with drawn: {}, "
-      "current version released: {}",
-      is_need_upgrade, is_current_a_withdrawn_version,
-      is_current_version_released);
 
   if (is_need_upgrade) {
     statusBar()->showMessage(

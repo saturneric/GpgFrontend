@@ -52,21 +52,14 @@ void GpgFrontend::UI::GeneralDialog::slot_restore_settings() noexcept {
     if (window_state.window_save) {
       int x = window_state.x;
       int y = window_state.y;
-      GF_UI_LOG_DEBUG("stored dialog pos, x: {}, y: {}", x, y);
 
       QPoint relative_pos = {x, y};
       QPoint pos = parent_rect_.topLeft() + relative_pos;
-      GF_UI_LOG_DEBUG("relative dialog pos, x: {}, y: {}", relative_pos.x(),
-                      relative_pos.y());
 
       int width = window_state.width;
       int height = window_state.height;
-      GF_UI_LOG_DEBUG("stored dialog size, width: {}, height: {}", width,
-                      height);
 
       QRect target_rect = {pos.x(), pos.y(), width, height};
-      GF_UI_LOG_DEBUG("dialog stored target rect, width: {}, height: {}", width,
-                      height);
 
       // check for valid
       if (width > 0 && height > 0 && screen_rect_.contains(target_rect)) {
@@ -76,7 +69,7 @@ void GpgFrontend::UI::GeneralDialog::slot_restore_settings() noexcept {
     }
 
   } catch (...) {
-    GF_UI_LOG_ERROR("error at restoring settings");
+    qCWarning(ui, "error at restoring settings");
   }
 }
 
@@ -86,14 +79,8 @@ void GpgFrontend::UI::GeneralDialog::slot_save_settings() noexcept {
 
     update_rect_cache();
 
-    GF_UI_LOG_DEBUG("dialog pos, x: {}, y: {}", rect_.x(), rect_.y());
-    GF_UI_LOG_DEBUG("dialog size, width: {}, height: {}", rect_.width(),
-                    rect_.height());
-
     // window position relative to parent
     auto relative_pos = rect_.topLeft() - parent_rect_.topLeft();
-    GF_UI_LOG_DEBUG("store dialog pos, x: {}, y: {}", relative_pos.x(),
-                    relative_pos.y());
 
     WindowStateSO window_state;
     window_state.x = relative_pos.x();
@@ -105,17 +92,12 @@ void GpgFrontend::UI::GeneralDialog::slot_save_settings() noexcept {
     general_windows_state.Store(window_state.Json());
 
   } catch (...) {
-    GF_UI_LOG_ERROR("general dialog: {}, caught exception", name_);
+    qCWarning(ui) << "general dialog: " << name_ << ", caught exception";
   }
 }
 
 void GpgFrontend::UI::GeneralDialog::setPosCenterOfScreen() {
   update_rect_cache();
-
-  int screen_width = screen_rect_.width();
-  int screen_height = screen_rect_.height();
-  GF_UI_LOG_DEBUG("dialog current screen available geometry", screen_width,
-                  screen_height);
 
   // update rect of current dialog
   rect_ = this->geometry();
@@ -131,16 +113,6 @@ void GpgFrontend::UI::GeneralDialog::movePosition2CenterOfParent() {
   // update cache
   update_rect_cache();
 
-  // log for debug
-  GF_UI_LOG_DEBUG("parent pos x: {} y: {}", parent_rect_.x(), parent_rect_.y());
-  GF_UI_LOG_DEBUG("parent size width: {}, height: {}", parent_rect_.width(),
-                  parent_rect_.height());
-  GF_UI_LOG_DEBUG("parent center pos x: {}, y: {}", parent_rect_.center().x(),
-                  parent_rect_.center().y());
-  GF_UI_LOG_DEBUG("dialog pos x: {} y: {}", rect_.x(), rect_.y());
-  GF_UI_LOG_DEBUG("dialog size width: {} height: {}", rect_.width(),
-                  rect_.height());
-
   if (parent_rect_.topLeft() != QPoint{0, 0} &&
       parent_rect_.size() != QSize{0, 0}) {
     if (rect_.width() <= 0) rect_.setWidth(100);
@@ -148,10 +120,6 @@ void GpgFrontend::UI::GeneralDialog::movePosition2CenterOfParent() {
 
     QPoint target_position =
         parent_rect_.center() - QPoint(rect_.width() / 2, rect_.height() / 2);
-
-    GF_UI_LOG_DEBUG(
-        "update position to parent's center, target pos, x:{}, y: {}",
-        target_position.x(), target_position.y());
 
     this->move(target_position);
   } else {
@@ -207,9 +175,6 @@ auto GpgFrontend::UI::GeneralDialog::isRectRestored() -> bool {
  *
  */
 void GpgFrontend::UI::GeneralDialog::showEvent(QShowEvent *event) {
-  GF_UI_LOG_DEBUG("General Dialog named {} is about to show, caught show event",
-                  name_);
-
   // default position strategy
   if (!isRectRestored()) movePosition2CenterOfParent();
 

@@ -27,8 +27,6 @@
 # json
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 
-add_subdirectory(spdlog EXCLUDE_FROM_ALL)
-
 if (MINGW)
   add_subdirectory(libarchive EXCLUDE_FROM_ALL)
 endif()

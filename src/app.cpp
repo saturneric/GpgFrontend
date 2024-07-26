@@ -34,7 +34,6 @@
 
 // main
 #include "init.h"
-#include "main.h"
 
 namespace GpgFrontend {
 
@@ -50,20 +49,18 @@ constexpr int kCrashCode = ~0;  ///<
 auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
   GFCxtSPtr ctx = p_ctx.lock();
   if (ctx == nullptr) {
-    GF_MAIN_LOG_ERROR("cannot get gpgfrontend context.");
+    qWarning("cannot get gpgfrontend context.");
     return -1;
   }
 
   auto* app = ctx->GetApp();
   if (app == nullptr) {
-    GF_MAIN_LOG_ERROR("cannot get qapplication from gpgfrontend context.");
+    qWarning("cannot get QApplication from gpgfrontend context.");
     return -1;
   }
 
-  GF_MAIN_LOG_DEBUG("start running gui application");
-
   /**
-   * internationalisation. loop to restart main window
+   * internationalization. loop to restart main window
    * with changed translation when settings change.
    */
   int return_from_event_loop_code;
@@ -79,13 +76,8 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
     // finally create main window
     return_from_event_loop_code = GpgFrontend::UI::RunGpgFrontendUI(app);
 
-    GF_MAIN_LOG_DEBUG("try to destroy modules system and core");
-
     restart_count++;
 
-    GF_MAIN_LOG_DEBUG(
-        "restart loop refresh, event loop code: {}, restart count: {}",
-        return_from_event_loop_code, restart_count);
   } while (return_from_event_loop_code == GpgFrontend::kRestartCode &&
            restart_count < 99);
 
@@ -94,17 +86,10 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
 
   // then shutdown the core
   GpgFrontend::DestroyGpgFrontendCore();
-  GF_MAIN_LOG_DEBUG("core and modules system destroyed");
-
-  // log for debug
-  GF_MAIN_LOG_INFO("GpgFrontend is about to exit.");
 
   // deep restart mode
   if (return_from_event_loop_code == GpgFrontend::kDeepRestartCode ||
       return_from_event_loop_code == kCrashCode) {
-    // log for debug
-    GF_MAIN_LOG_DEBUG(
-        "deep restart or cash loop status caught, restart a new application");
     QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
   };
 

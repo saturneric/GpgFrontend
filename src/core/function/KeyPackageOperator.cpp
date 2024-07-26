@@ -28,6 +28,7 @@
 
 #include "KeyPackageOperator.h"
 
+#include <qglobal.h>
 #include <qt-aes/qaesencryption.h>
 
 #include "core/function/KeyPackageOperator.h"
@@ -44,7 +45,7 @@ namespace GpgFrontend {
 auto KeyPackageOperator::GeneratePassphrase(const QString& phrase_path,
                                             QString& phrase) -> bool {
   phrase = PassphraseGenerator::GetInstance().Generate(256);
-  GF_CORE_LOG_DEBUG("generated passphrase: {} bytes", phrase.size());
+  qCDebug(core, "generated passphrase: %lld bytes", phrase.size());
   return WriteFile(phrase_path, phrase.toUtf8());
 }
 
@@ -53,13 +54,11 @@ void KeyPackageOperator::GenerateKeyPackage(const QString& key_package_path,
                                             const KeyArgsList& keys,
                                             QString& phrase, bool secret,
                                             const OperationCallback& cb) {
-  GF_CORE_LOG_DEBUG("generating key package: {}", key_package_name);
-
   GpgKeyImportExporter::GetInstance().ExportAllKeys(
       keys, secret, true, [=](GpgError err, const DataObjectPtr& data_obj) {
         if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-          GF_LOG_ERROR("export keys error, reason: {}",
-                       DescribeGpgErrCode(err).second);
+          qCWarning(core) << "export keys error, reason: "
+                          << DescribeGpgErrCode(err).second;
           cb(-1, data_obj);
           return;
         }
@@ -78,7 +77,6 @@ void KeyPackageOperator::GenerateKeyPackage(const QString& key_package_path,
         QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
                                   QAESEncryption::Padding::ISO);
         auto encoded_data = encryption.encode(data, hash_key);
-        GF_CORE_LOG_DEBUG("writing key package, name: {}", key_package_name);
 
         cb(WriteFile(key_package_path, encoded_data) ? 0 : -1,
            TransferParams());
@@ -91,20 +89,18 @@ void KeyPackageOperator::ImportKeyPackage(const QString& key_package_path,
                                           const OperationCallback& cb) {
   RunOperaAsync(
       [=](const DataObjectPtr& data_object) -> GFError {
-        GF_CORE_LOG_DEBUG("importing key package: {}", key_package_path);
-
         QByteArray encrypted_data;
         ReadFile(key_package_path, encrypted_data);
 
         if (encrypted_data.isEmpty()) {
-          GF_CORE_LOG_ERROR("failed to read key package: {}", key_package_path);
+          qCWarning(core) << "failed to read key package: " << key_package_path;
           return -1;
         };
 
         QByteArray passphrase;
         ReadFile(phrase_path, passphrase);
         if (passphrase.size() != 256) {
-          GF_CORE_LOG_ERROR("passphrase size mismatch: {}", phrase_path);
+          qCWarning(core) << "passphrase size mismatch: " << phrase_path;
           return -1;
         }
 

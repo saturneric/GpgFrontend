@@ -104,13 +104,9 @@ void KeyUIDSignDialog::slot_sign_key(bool clicked) {
   // Set Signers
   auto key_ids = m_key_list_->GetChecked();
   auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
-
-  GF_UI_LOG_DEBUG("key info got");
   auto expires = std::make_unique<QDateTime>(expires_edit_->dateTime());
 
-  GF_UI_LOG_DEBUG("sign start");
   for (const auto& uid : *m_uids_) {
-    GF_UI_LOG_DEBUG("sign uid: {}", uid);
     // Sign For mKey
     if (!GpgKeyManager::GetInstance().SignKey(m_key_, *keys, uid, expires)) {
       QMessageBox::critical(

@@ -105,7 +105,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
     AS_ERROR,
     AS_QUIT,
   };
-
+  
   struct AutomatonHandelStruct;
 
   using AutomatonActionHandler =

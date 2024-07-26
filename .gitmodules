@@ -1,9 +1,6 @@
 [submodule "third_party/qt-aes"]
 	path = third_party/qt-aes
 	url = https://github.com/bricke/Qt-AES.git
-[submodule "third_party/spdlog"]
-	path = third_party/spdlog
-	url = https://github.com/gabime/spdlog.git
 [submodule "third_party/mimalloc"]
 	path = third_party/mimalloc
 	url = https://github.com/microsoft/mimalloc.git

@@ -27,6 +27,8 @@
  */
 #include "GpgCommandExecutor.h"
 
+#include <qglobal.h>
+
 #include "core/model/DataObject.h"
 #include "core/module/Module.h"
 #include "core/thread/Task.h"
@@ -41,18 +43,14 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
   const auto &interact_function = context.int_func;
   const auto &cmd_executor_callback = context.cb_func;
 
-  const QString joined_argument = arguments.join(" ");
-
-  GF_CORE_LOG_DEBUG("building task: called cmd {} arguments size: {}", cmd,
-                    arguments.size());
-
   Thread::Task::TaskCallback result_callback =
-      [cmd, joined_argument](int /*rtn*/, const DataObjectPtr &data_object) {
-        GF_CORE_LOG_DEBUG(
-            "data object args count of cmd executor result callback: {}",
-            data_object->GetObjectSize());
+      [cmd](int /*rtn*/, const DataObjectPtr &data_object) {
+        qCDebug(core,
+                "data object args count of cmd executor result callback: %ld",
+                data_object->GetObjectSize());
+
         if (!data_object->Check<int, QString, GpgCommandExecutorCallback>()) {
-          GF_CORE_LOG_ERROR("data object checking failed");
+          qCWarning(core, "data object checking failed");
           return;
         }
 
@@ -61,22 +59,17 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
         auto callback =
             ExtractParams<GpgCommandExecutorCallback>(data_object, 2);
 
-        // call callback
-        GF_CORE_LOG_DEBUG(
-            "calling custom callback from caller of cmd {} {}, "
-            "exit_code: {}",
-            cmd, joined_argument, exit_code);
         callback(exit_code, process_stdout, {});
       };
 
   Thread::Task::TaskRunnable runner =
-      [joined_argument](const DataObjectPtr &data_object) -> int {
-    GF_CORE_LOG_DEBUG("process runner called, data object size: {}",
-                      data_object->GetObjectSize());
+      [](const DataObjectPtr &data_object) -> int {
+    qCDebug(core, "process runner called, data object size: %lu",
+            data_object->GetObjectSize());
 
     if (!data_object->Check<QString, QStringList, GpgCommandExecutorInteractor,
                             GpgCommandExecutorCallback>()) {
-      GF_CORE_LOG_ERROR("data object checking failed");
+      qCWarning(core, "data object checking failed");
       return -1;
     }
 
@@ -86,6 +79,7 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
     auto interact_func =
         ExtractParams<GpgCommandExecutorInteractor>(data_object, 2);
     auto callback = ExtractParams<GpgCommandExecutorCallback>(data_object, 3);
+    const QString joined_argument = arguments.join(" ");
 
     // create process
     auto *cmd_process = new QProcess();
@@ -106,26 +100,23 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
 
     QObject::connect(
         cmd_process, &QProcess::started, [cmd, joined_argument]() -> void {
-          GF_CORE_LOG_DEBUG(
-              "\n== Process Execute Started ==\nCommand: {}\nArguments: "
-              "{}\n========================",
-              cmd, joined_argument);
+          qCDebug(core) << "\n== Process Execute Started ==\nCommand: " << cmd
+                        << "\nArguments: " << joined_argument
+                        << " \n========================";
         });
     QObject::connect(
         cmd_process, &QProcess::readyReadStandardOutput,
         [interact_func, cmd_process]() { interact_func(cmd_process); });
-    QObject::connect(
-        cmd_process, &QProcess::errorOccurred,
-        [=](QProcess::ProcessError error) {
-          GF_CORE_LOG_ERROR(
-              "caught error while executing command: {} {}, error: {}", cmd,
-              joined_argument, error);
-        });
+    QObject::connect(cmd_process, &QProcess::errorOccurred,
+                     [=](QProcess::ProcessError error) {
+                       qCWarning(core)
+                           << "caught error while executing command: " << cmd
+                           << joined_argument << ", error:" << error;
+                     });
 
-    GF_CORE_LOG_DEBUG(
-        "\n== Process Execute Ready ==\nCommand: {}\nArguments: "
-        "{}\n========================",
-        cmd, joined_argument);
+    qCDebug(core) << "\n== Process Execute Ready ==\nCommand: " << cmd
+                  << "\nArguments: " << joined_argument
+                  << "\n========================";
 
     cmd_process->start();
     cmd_process->waitForFinished();
@@ -133,15 +124,13 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
     QString process_stdout = cmd_process->readAllStandardOutput();
     int exit_code = cmd_process->exitCode();
 
-    GF_CORE_LOG_DEBUG(
-        "\n==== Process Execution Summary ====\n"
-        "Command: {}\n"
-        "Arguments: {}\n"
-        "Exit Code: {}\n"
-        "---- Standard Output ----\n"
-        "{}\n"
-        "===============================",
-        cmd, joined_argument, exit_code, process_stdout);
+    qCDebug(core) << "\n==== Process Execution Summary ====\n"
+                  << "Command: " << cmd << "\n"
+                  << "Arguments: " << joined_argument << "\n"
+                  << "Exit Code: " << exit_code << "\n"
+                  << "---- Standard Output ----\n"
+                  << process_stdout << "\n"
+                  << "===============================";
 
     cmd_process->close();
     cmd_process->deleteLater();
@@ -177,7 +166,7 @@ void GpgCommandExecutor::ExecuteSync(ExecuteContext context) {
   // to arvoid dead lock issue we need to check if current thread is the same as
   // target thread. if it is, we can't call exec() because it will block the
   // current thread.
-  GF_CORE_LOG_TRACE("blocking until gpg command finish...");
+  qCDebug(core, "blocking until gpg command finish...");
   // block until task finished
   // this is to keep reference vaild until task finished
   looper.exec();
@@ -185,9 +174,6 @@ void GpgCommandExecutor::ExecuteSync(ExecuteContext context) {
 
 void GpgCommandExecutor::ExecuteConcurrentlyAsync(ExecuteContexts contexts) {
   for (auto &context : contexts) {
-    const auto &cmd = context.cmd;
-    GF_CORE_LOG_INFO("gpg concurrently called cmd {}", cmd);
-
     Thread::Task *task = BuildTaskFromExecCtx(context);
 
     if (context.task_runner != nullptr) {
@@ -208,15 +194,15 @@ void GpgCommandExecutor::ExecuteConcurrentlySync(ExecuteContexts contexts) {
 
   for (auto &context : contexts) {
     const auto &cmd = context.cmd;
-    GF_CORE_LOG_DEBUG("gpg concurrently called cmd: {}", cmd);
+    qCDebug(core) << "gpg concurrently called cmd: " << cmd;
 
     Thread::Task *task = BuildTaskFromExecCtx(context);
 
     QObject::connect(task, &Thread::Task::SignalTaskEnd, [&]() {
       --remaining_tasks;
-      GF_CORE_LOG_DEBUG("remaining tasks: {}", remaining_tasks);
+      qCDebug(core, "remaining tasks: %lld", remaining_tasks);
       if (remaining_tasks <= 0) {
-        GF_CORE_LOG_DEBUG("no remaining task, quit");
+        qCDebug(core, "no remaining task, quit");
         looper.quit();
       }
     });
@@ -232,7 +218,7 @@ void GpgCommandExecutor::ExecuteConcurrentlySync(ExecuteContexts contexts) {
     target_task_runner->PostTask(task);
   }
 
-  GF_CORE_LOG_TRACE("blocking until concurrent gpg commands finish...");
+  qCDebug(core, "blocking until concurrent gpg commands finish...");
   // block until task finished
   // this is to keep reference vaild until task finished
   looper.exec();

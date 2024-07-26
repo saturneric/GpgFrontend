@@ -78,7 +78,6 @@ KeyserverTab::KeyserverTab(QWidget* parent)
 
   connect(ui_->keyServerListTable, &QTableWidget::itemChanged,
           [=](QTableWidgetItem* item) {
-            GF_UI_LOG_DEBUG("item edited: {}", item->column());
             if (item->column() != 1) return;
             const auto row_size = ui_->keyServerListTable->rowCount();
             // Update Actions
@@ -180,8 +179,6 @@ void KeyserverTab::ApplySettings() {
 }
 
 void KeyserverTab::slot_refresh_table() {
-  GF_UI_LOG_INFO("start refreshing key server table");
-
   ui_->keyServerListTable->blockSignals(true);
   ui_->keyServerListTable->setRowCount(key_server_str_list_.size());
 

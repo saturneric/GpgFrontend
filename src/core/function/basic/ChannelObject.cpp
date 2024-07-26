@@ -39,7 +39,7 @@ ChannelObject::ChannelObject(int channel, QString type)
 
 #ifdef DEBUG
 ChannelObject::~ChannelObject() noexcept {
-  // using iostream instead of spdlog bacause at this time spdlog may have
+  // using iostream instead of log bacause at this time log object may have
   // already been destroyed.
   QTextStream(stdout) << "releasing channel object: " << this->type_
                       << Qt::endl;

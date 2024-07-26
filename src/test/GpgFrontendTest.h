@@ -30,8 +30,13 @@
 
 #include "GpgFrontendTestExport.h"
 
-// Core
-#include "core/utils/LogUtils.h"
+// declare area of test
+#ifdef GF_TEST
+
+// declare logging category
+Q_DECLARE_LOGGING_CATEGORY(test)
+
+#endif
 
 namespace GpgFrontend::Test {
 
@@ -41,11 +46,5 @@ struct GpgFrontendContext {
 };
 
 auto GPGFRONTEND_TEST_EXPORT ExecuteAllTestCase(GpgFrontendContext args) -> int;
-
-#define GF_TEST_LOG_TRACE(...) GF_LOG_TRACE("test", __VA_ARGS__)
-#define GF_TEST_LOG_DEBUG(...) GF_LOG_DEBUG("test", __VA_ARGS__)
-#define GF_TEST_LOG_INFO(...) GF_LOG_INFO("test", __VA_ARGS__)
-#define GF_TEST_LOG_WARN(...) GF_LOG_WARN("test", __VA_ARGS__)
-#define GF_TEST_LOG_ERROR(...) GF_LOG_ERROR("test", __VA_ARGS__)
 
 }  // namespace GpgFrontend::Test

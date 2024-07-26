@@ -38,7 +38,6 @@ class Task::Impl {
  public:
   Impl(Task *parent, QString name)
       : parent_(parent), uuid_(generate_uuid()), name_(std::move(name)) {
-    GF_CORE_LOG_TRACE("task {} created", GetFullID());
     init();
   }
 
@@ -51,8 +50,6 @@ class Task::Impl {
         callback_([](int, const DataObjectPtr &) {}),
         callback_thread_(QThread::currentThread()),
         data_object_(std::move(data_object)) {
-    GF_CORE_LOG_TRACE("task {} created with runnable, callback_thread_: {}",
-                      GetFullID(), static_cast<void *>(callback_thread_));
     init();
   }
 
@@ -65,13 +62,10 @@ class Task::Impl {
         callback_(std::move(callback)),
         callback_thread_(QThread::currentThread()),
         data_object_(std::move(data_object)) {
-    GF_CORE_LOG_TRACE(
-        "task {} created with runnable and callback, callback_thread_: {}",
-        GetFullID(), static_cast<void *>(callback_thread_));
     init();
   }
 
-  ~Impl() { GF_CORE_LOG_TRACE("task {} destroyed", GetFullID()); }
+  ~Impl() = default;
 
   /**
    * @brief
@@ -95,13 +89,7 @@ class Task::Impl {
    * @return int
    */
   auto Run() -> int {
-    GF_CORE_LOG_TRACE("task {} is in classical runnable and callback mode",
-                      GetFullID());
-
     if (runnable_) return runnable_(data_object_);
-
-    GF_CORE_LOG_WARN("no runnable in task, do callback operation, task: {}",
-                     GetFullID());
     return 0;
   }
 
@@ -137,9 +125,6 @@ class Task::Impl {
   DataObjectPtr data_object_ = nullptr;  ///<
 
   void init() {
-    GF_CORE_LOG_TRACE("task {} created, parent: {}, impl: {}", name_,
-                      static_cast<void *>(parent_), static_cast<void *>(this));
-
     //
     HoldOnLifeCycle(false);
 
@@ -156,17 +141,11 @@ class Task::Impl {
               SetRTN(rtn);
               try {
                 if (callback_) {
-                  GF_CORE_LOG_TRACE(
-                      "task callback {} is starting with runnerable rtn: {}",
-                      GetFullID(), rtn);
-
                   callback_(rtn_, data_object_);
-                  GF_CORE_LOG_TRACE("task callback {} finished, rtn: {}",
-                                    GetFullID(), rtn);
                 }
               } catch (...) {
-                GF_CORE_LOG_ERROR("task {} callback caught exception, rtn: {}",
-                                  GetFullID(), rtn);
+                qCWarning(core) << "task: {}, " << GetFullID()
+                                << "callback caught exception, rtn: " << rtn;
               }
               emit parent_->SignalTaskEnd();
             });
@@ -214,11 +193,7 @@ void Task::SafelyRun() { emit SignalRun(); }
 
 int Task::Run() { return p_->Run(); }
 
-void Task::run() {
-  GF_CORE_LOG_TRACE("interface run() of task {} was called by thread: {}",
-                    GetFullID(), QThread::currentThread()->currentThreadId());
-  this->SafelyRun();
-}
+void Task::run() { this->SafelyRun(); }
 
 Task::TaskHandler::TaskHandler(Task *task) : task_(task) {}
 
@@ -238,14 +213,11 @@ auto Task::TaskHandler::GetTask() -> Task * {
 void Task::slot_exception_safe_run() noexcept {
   auto rtn = p_->GetRTN();
   try {
-    GF_CORE_LOG_TRACE("task runnable {} is starting...", GetFullID());
-
     // Run() will set rtn by itself
     rtn = this->Run();
 
-    GF_CORE_LOG_TRACE("task runnable {} finished, rtn: {}", GetFullID());
   } catch (...) {
-    GF_CORE_LOG_ERROR("exception was caught at task: {}", GetFullID());
+    qCWarning(core) << "exception was caught at task: {}" << GetFullID();
   }
 
   // raise signal to anounce after runnable returned
