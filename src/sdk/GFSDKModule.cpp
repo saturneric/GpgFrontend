@@ -69,7 +69,7 @@ auto GFModuleListRTChildKeys(const char *namespace_, const char *key,
   *child_keys =
       static_cast<char **>(GFAllocateMemory(sizeof(char **) * keys.size()));
 
-  for (int i = 0; i < keys.size(); i++) {
+  for (decltype(keys.size()) i = 0; i < keys.size(); i++) {
     (*child_keys)[i] = GFStrDup(keys[i]);
   }
 
@@ -92,8 +92,8 @@ void GFModuleTriggerModuleEventCallback(GFModuleEvent *module_event,
 }
 
 auto GFModuleRetrieveRTValueOrDefaultBool(const char *namespace_,
-                                          const char *key, int default_value)
-    -> const int {
+                                          const char *key,
+                                          int default_value) -> const int {
   return static_cast<const int>(
       GpgFrontend::Module::RetrieveRTValueTypedOrDefault(
           GFUnStrDup(namespace_), GFUnStrDup(key),

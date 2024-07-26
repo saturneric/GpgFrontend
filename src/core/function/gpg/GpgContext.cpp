@@ -32,6 +32,7 @@
 #include <gpgme.h>
 
 #include <cassert>
+#include <cstddef>
 #include <mutex>
 
 #include "core/function/CoreSignalStation.h"
@@ -100,7 +101,7 @@ class GpgContext::Impl {
     QString pass = "abcdefg\n";
 #endif
 
-    auto passpahrase_size = pass.size();
+    auto passphrase_size = pass.size();
     size_t off = 0;
 
     do {
@@ -108,13 +109,13 @@ class GpgContext::Impl {
       const char *p_pass = pass.data();
       res = gpgme_io_write(fd, &p_pass[off], passpahrase_size - off);
 #else
-      res = gpgme_io_write(fd, &pass[off], passpahrase_size - off);
+      res = gpgme_io_write(fd, &pass[off], passphrase_size - off);
 #endif
       if (res > 0) off += res;
-    } while (res > 0 && off != passpahrase_size);
+    } while (res > 0 && static_cast<long long>(off) != passphrase_size);
 
     res += gpgme_io_write(fd, "\n", 1);
-    return res == passpahrase_size + 1
+    return static_cast<long long>(res) == (passphrase_size + 1)
                ? 0
                : gpgme_error_from_errno(GPG_ERR_CANCELED);
   }

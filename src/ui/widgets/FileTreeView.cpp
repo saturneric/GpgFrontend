@@ -63,8 +63,6 @@ FileTreeView::FileTreeView(QWidget* parent, const QString& target_path)
 void FileTreeView::selectionChanged(const QItemSelection& selected,
                                     const QItemSelection& deselected) {
   QTreeView::selectionChanged(selected, deselected);
-  qCDebug(ui, "file tree view selected changed, selected: {}, deselected: {}",
-          selected.size(), deselected.size());
 
   if (!selected.indexes().empty()) {
     selected_path_ = dir_model_->filePath(selected.indexes().first());

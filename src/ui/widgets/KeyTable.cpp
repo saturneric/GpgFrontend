@@ -34,7 +34,7 @@ namespace GpgFrontend::UI {
 
 auto KeyTable::GetChecked() const -> KeyIdArgsListPtr {
   auto ret = std::make_unique<KeyIdArgsList>();
-  for (size_t i = 0; i < GetRowCount(); i++) {
+  for (decltype(GetRowCount()) i = 0; i < GetRowCount(); i++) {
     if (IsRowChecked(i)) ret->push_back(GetKeyIdByRow(i));
   }
   return ret;
