@@ -15,8 +15,8 @@
 
   <url type="homepage">https://gpgfrontend.bktus.com</url>
   <url type="bugtracker">https://github.com/saturneric/GpgFrontend/issues</url>
-  <url type="contact">hhttps://www.gpgfrontend.bktus.com/overview/contact</url>
-  <url type="translate">hhttps://www.gpgfrontend.bktus.com/appendix/translate-interface</url>
+  <url type="contact">https://www.gpgfrontend.bktus.com/overview/contact</url>
+  <url type="translate">https://www.gpgfrontend.bktus.com/appendix/translate-interface</url>
   <url type="vcs-browser">https://github.com/saturneric/GpgFrontend</url>
 
   <launchable type="desktop-id">com.bktus.gpgfrontend.desktop</launchable>
