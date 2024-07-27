@@ -33,7 +33,6 @@
 #include "core/model/SettingsObject.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/Wizard.h"
-#include "ui/function/RaisePinentry.h"
 #include "ui/main_window/KeyMgmt.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/widgets/TextEdit.h"
@@ -210,12 +209,6 @@ void MainWindow::SlotUpdateCryptoMenuStatus(unsigned int type) {
   if ((opera_type & MainWindow::CryptoMenu::DecryptAndVerify) != 0U) {
     decrypt_verify_act_->setDisabled(false);
   }
-}
-
-void MainWindow::SlotRaisePinentry(
-    QSharedPointer<GpgPassphraseContext> context) {
-  auto* function = new RaisePinentry(this, context);
-  function->Exec();
 }
 
 }  // namespace GpgFrontend::UI

@@ -80,10 +80,6 @@ endif ()
 
 # Print modules
 if (BUILD_CORE)
-    # core depends pinentry
-    message("[+] Build Pinentry")
-    add_subdirectory(pinentry)
-
     message("[+] Build Core")
     add_subdirectory(core)
 endif ()
@@ -492,7 +488,6 @@ if (LINUX AND LINUX_INSTALL_SOFTWARE)
       gpgfrontend_core
       gpgfrontend_ui
       gpgfrontend_test
-      gpgfrontend_pinentry
       gpgfrontend_module_sdk)
 
   message(STATUS "GpgFrontend Install Libraries: ${GPGFRONTEND_INSTALL_LIBRARIES}")

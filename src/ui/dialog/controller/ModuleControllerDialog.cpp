@@ -93,6 +93,10 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
     Module::TriggerEvent(event_id);
   });
 
+  connect(ui_->pushButton_4, &QPushButton::clicked, this, []() {
+
+  });
+
   connect(ui_->showModsDirButton, &QPushButton::clicked, this, [=]() {
     QDesktopServices::openUrl(QUrl::fromLocalFile(
         GlobalSettingStation::GetInstance().GetModulesDir()));

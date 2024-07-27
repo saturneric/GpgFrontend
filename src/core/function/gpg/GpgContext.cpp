@@ -139,32 +139,41 @@ class GpgContext::Impl {
                   << ", last_was_bad: " << prev_was_bad;
 
     QEventLoop looper;
-    QObject::connect(CoreSignalStation::GetInstance(),
-                     &CoreSignalStation::SignalUserInputPassphraseCallback,
-                     &looper, &QEventLoop::quit);
+    QString passphrase = "";
 
-    emit CoreSignalStation::GetInstance() -> SignalNeedUserInputPassphrase(
-                                              context);
+    Module::TriggerEvent(
+        "REQUEST_PIN_ENTRY",
+        {{"uid_hint", uid_hint != nullptr ? uid_hint : ""},
+         {"passphrase_info", passphrase_info != nullptr ? passphrase_info : ""},
+         {"prev_was_bad", prev_was_bad ? "1" : "0"},
+         {"ask_for_new", ask_for_new ? "1" : "0"}},
+        [&passphrase, &looper](Module::EventIdentifier i,
+                               Module::Event::ListenerIdentifier ei,
+                               Module::Event::Params p) {
+          qCWarning(core) << "REQUEST_PIN_ENTRY callback: " << i << ei << p;
+          passphrase = p["passphrase"];
+          looper.quit();
+        });
+
     looper.exec();
-
     ResetCacheValue("PinentryContext");
-    auto passphrase = context->GetPassphrase().toStdString();
-    auto passpahrase_size = passphrase.size();
-    qCDebug(core, "get passphrase from pinentry size: %lu", passpahrase_size);
+
+    auto passphrase_size = passphrase.size();
+    qCWarning(core, "get passphrase from pinentry size: %lld", passphrase_size);
 
     size_t res = 0;
-    if (passpahrase_size > 0) {
+    if (passphrase_size > 0) {
       size_t off = 0;
       do {
-        res = gpgme_io_write(fd, &passphrase[off], passpahrase_size - off);
+        res = gpgme_io_write(fd, &passphrase[off], passphrase_size - off);
         if (res > 0) off += res;
-      } while (res > 0 && off != passpahrase_size);
+      } while (res > 0 && off != passphrase_size);
     }
 
     res += gpgme_io_write(fd, "\n", 1);
 
     qCDebug(core, "custom passphrase cd is about to return, res: %ld", res);
-    return res == passpahrase_size + 1
+    return res == passphrase_size + 1
                ? 0
                : gpgme_error_from_errno(GPG_ERR_CANCELED);
   }

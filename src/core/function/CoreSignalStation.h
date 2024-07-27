@@ -62,12 +62,6 @@ class GPGFRONTEND_CORE_EXPORT CoreSignalStation : public QObject {
    * @brief
    *
    */
-  void SignalUserInputPassphraseCallback(QSharedPointer<GpgPassphraseContext>);
-
-  /**
-   * @brief
-   *
-   */
   void SignalBadGnupgEnv(QString);
 
   /**

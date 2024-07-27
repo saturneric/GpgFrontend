@@ -45,10 +45,6 @@ namespace GpgFrontend::UI {
 MainWindow::MainWindow() : GeneralMainWindow("main_window") {
   this->setMinimumSize(1200, 700);
   this->setWindowTitle(qApp->applicationName());
-
-  connect(CoreSignalStation::GetInstance(),
-          &CoreSignalStation::SignalNeedUserInputPassphrase, this,
-          &MainWindow::SlotRaisePinentry);
 }
 
 void MainWindow::Init() noexcept {
