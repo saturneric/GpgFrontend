@@ -145,12 +145,11 @@ class GpgContext::Impl {
         "REQUEST_PIN_ENTRY",
         {{"uid_hint", uid_hint != nullptr ? uid_hint : ""},
          {"passphrase_info", passphrase_info != nullptr ? passphrase_info : ""},
-         {"prev_was_bad", prev_was_bad ? "1" : "0"},
+         {"prev_was_bad", (prev_was_bad != 0) ? "1" : "0"},
          {"ask_for_new", ask_for_new ? "1" : "0"}},
         [&passphrase, &looper](Module::EventIdentifier i,
                                Module::Event::ListenerIdentifier ei,
                                Module::Event::Params p) {
-          qCWarning(core) << "REQUEST_PIN_ENTRY callback: " << i << ei << p;
           passphrase = p["passphrase"];
           looper.quit();
         });
@@ -159,7 +158,7 @@ class GpgContext::Impl {
     ResetCacheValue("PinentryContext");
 
     auto passphrase_size = passphrase.size();
-    qCWarning(core, "get passphrase from pinentry size: %lld", passphrase_size);
+    qCDebug(core, "get passphrase from pinentry size: %lld", passphrase_size);
 
     size_t res = 0;
     if (passphrase_size > 0) {
@@ -280,7 +279,8 @@ class GpgContext::Impl {
         qCWarning(core, "set passphrase cb failed, test");
         return false;
       };
-    } else if (!args_.use_pinentry) {
+    } else if (!args_.use_pinentry &&
+               Module::IsModuleActivate(kPinentryModuleID)) {
       if (!SetPassphraseCb(ctx, CustomPassphraseCb)) {
         qCDebug(core, "set passphrase cb failed, custom");
         return false;

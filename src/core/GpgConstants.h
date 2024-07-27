@@ -57,5 +57,6 @@ const QString kGnuPGInfoGatheringModuleID =
     "com.bktus.gpgfrontend.module.gnupg_info_gathering";
 const QString kVersionCheckingModuleID =
     "com.bktus.gpgfrontend.module.version_checking";
+const QString kPinentryModuleID = "com.bktus.gpgfrontend.module.pinentry";
 
 }  // namespace GpgFrontend
