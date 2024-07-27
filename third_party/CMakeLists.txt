@@ -47,7 +47,7 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" AND ENABLE_ASAN)
     set(MI_OVERRIDE OFF)
   endif()
 
-  set(MI_TRACK_VALGRIND ON)
+  # set(MI_TRACK_VALGRIND ON)
   set(MI_TRACK_ASAN ON)
 endif()
 

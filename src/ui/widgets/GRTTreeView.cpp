@@ -35,7 +35,7 @@ namespace GpgFrontend::UI {
 
 GRTTreeView::GRTTreeView(QWidget* parent) : QTreeView(parent) {
   setModel(new Module::GlobalRegisterTableTreeModel(
-      Module::ModuleManager::GetInstance().GRT()));
+      Module::ModuleManager::GetInstance().GRT(), this));
 
   connect(model(), &QFileSystemModel::layoutChanged, this,
           &GRTTreeView::slot_adjust_column_widths);

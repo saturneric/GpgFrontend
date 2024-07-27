@@ -215,8 +215,8 @@ if(GPGFRONTEND_ENABLE_ASAN)
         message(FATAL_ERROR "Use GPGFRONTEND_ENABLE_ASAN only when using the clang compiler.")
     endif()
 
-    add_compile_options(-fsanitize=address)
-    add_link_options(-fsanitize=address)
+    add_compile_options(-fsanitize=address -fsanitize-recover=address)
+    add_link_options(-fsanitize=address -fsanitize-recover=address)
 
     set(ENABLE_ASAN 1)
 endif()

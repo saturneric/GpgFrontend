@@ -68,14 +68,13 @@ auto LoadIntegratedMods() -> bool {
   }
 
   if (!QDir(mods_path).exists()) {
-    qCWarning(core) << "integrated module directory at path " << mods_path
+    qCWarning(core) << "integrated module directory at path: " << mods_path
                     << " not found, abort...";
     return false;
   }
 
   LoadModuleFromPath(mods_path, true);
 
-  qCDebug(core, "load integrated modules done.");
   return true;
 }
 

@@ -60,9 +60,9 @@ class ModuleManager::Impl {
             [=](GpgFrontend::DataObjectPtr) -> int {
               QLibrary module_library(module_library_path);
               if (!module_library.load()) {
-                qCWarning(core) << "module manager failed to load module, "
-                                   "reason: broken library: "
-                                << module_library.fileName();
+                qCWarning(core) << "module manager failed to load module: "
+                                << module_library.fileName()
+                                << ", reason: " << module_library.errorString();
                 return -1;
               }
 
