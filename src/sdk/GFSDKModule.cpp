@@ -78,17 +78,13 @@ auto GFModuleListRTChildKeys(const char *namespace_, const char *key,
 
 void GFModuleTriggerModuleEventCallback(GFModuleEvent *module_event,
                                         const char *module_id, int argc,
-                                        char **argv) {
-  auto data_object = GpgFrontend::TransferParams();
-  for (int i = 0; i < argc; i++) {
-    data_object->AppendObject(GFUnStrDup(argv[i]));
-  }
-
+                                        GFModuleEventParam *p_argv) {
+  auto argv = ConvertEventParamsToMap(p_argv);
   auto event = GpgFrontend::Module::ModuleManager::GetInstance().SearchEvent(
       GFUnStrDup(module_event->trigger_id).toLower());
   if (!event) return;
 
-  event.value()->ExecuteCallback(GFUnStrDup(module_id), data_object);
+  event.value()->ExecuteCallback(GFUnStrDup(module_id), argv);
 }
 
 auto GFModuleRetrieveRTValueOrDefaultBool(const char *namespace_,

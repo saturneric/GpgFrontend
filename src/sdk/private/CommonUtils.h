@@ -28,6 +28,8 @@
 
 #pragma once
 
+struct GFModuleEventParam;
+
 /**
  * @brief
  *
@@ -67,3 +69,12 @@ auto CharArrayToQMap(char **char_array, int size) -> QMap<QString, QString>;
  * @return char**
  */
 auto QMapToCharArray(const QMap<QString, QString> &map, int &size) -> char **;
+
+/**
+ * @brief
+ *
+ * @param params
+ * @return QMap<QString, QString>
+ */
+auto ConvertEventParamsToMap(GFModuleEventParam *params)
+    -> QMap<QString, QString>;

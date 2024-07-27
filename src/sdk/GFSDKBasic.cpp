@@ -38,6 +38,10 @@ auto GFAllocateMemory(uint32_t size) -> void* {
   return GpgFrontend::SecureMemoryAllocator::Allocate(size);
 }
 
+auto GFReallocateMemory(void* ptr, uint32_t size) -> void* {
+  return GpgFrontend::SecureMemoryAllocator::Reallocate(ptr, size);
+}
+
 void GFFreeMemory(void* ptr) {
   return GpgFrontend::SecureMemoryAllocator::Deallocate(ptr);
 }

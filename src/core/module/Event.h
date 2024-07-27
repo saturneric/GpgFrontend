@@ -50,16 +50,16 @@ class GPGFRONTEND_CORE_EXPORT Event {
   using ParameterValue = std::any;
   using EventIdentifier = QString;
   using ListenerIdentifier = QString;
+  using Params = QMap<QString, QString>;
+
   using EventCallback =
-      std::function<void(EventIdentifier, ListenerIdentifier, DataObjectPtr)>;
+      std::function<void(EventIdentifier, ListenerIdentifier, Params)>;
   struct ParameterInitializer {
     QString key;
     QString value;
   };
 
-  explicit Event(const QString&,
-                 std::initializer_list<ParameterInitializer> = {},
-                 EventCallback = nullptr);
+  explicit Event(const QString&, Params = {}, EventCallback = nullptr);
 
   ~Event();
 
@@ -81,7 +81,7 @@ class GPGFRONTEND_CORE_EXPORT Event {
 
   void AddParameter(const QString& key, const QString& value);
 
-  void ExecuteCallback(ListenerIdentifier, DataObjectPtr);
+  void ExecuteCallback(ListenerIdentifier, const Params&);
 
   auto ToModuleEvent() -> GFModuleEvent*;
 
@@ -91,10 +91,8 @@ class GPGFRONTEND_CORE_EXPORT Event {
 };
 
 template <typename... Args>
-auto MakeEvent(const EventIdentifier& event_id, Args&&... args,
+auto MakeEvent(const EventIdentifier& event_id, const Event::Params& params,
                Event::EventCallback e_cb) -> EventReference {
-  std::initializer_list<Event::ParameterInitializer> params = {
-      Event::ParameterInitializer{std::forward<Args>(args)}...};
   return GpgFrontend::SecureCreateSharedObject<Event>(event_id, params, e_cb);
 }
 

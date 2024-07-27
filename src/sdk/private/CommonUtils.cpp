@@ -30,6 +30,8 @@
 
 #include <core/utils/MemoryUtils.h>
 
+#include "GFSDKModule.h"
+
 auto GFStrDup(const QString& str) -> char* {
   auto utf8_str = str.toUtf8();
   auto* c_str = static_cast<char*>(
@@ -79,4 +81,21 @@ auto QMapToCharArray(const QMap<QString, QString>& map, int& size) -> char** {
   }
 
   return char_array;
+}
+
+auto ConvertEventParamsToMap(GFModuleEventParam* params)
+    -> QMap<QString, QString> {
+  QMap<QString, QString> param_map;
+  GFModuleEventParam* current = params;
+  GFModuleEventParam* last;
+
+  while (current != nullptr) {
+    param_map[current->name] = GFUnStrDup(current->value);
+
+    last = current;
+    current = current->next;
+    GpgFrontend::SecureFree(last);
+  }
+
+  return param_map;
 }

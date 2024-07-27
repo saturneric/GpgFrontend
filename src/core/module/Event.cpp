@@ -34,20 +34,17 @@ namespace GpgFrontend::Module {
 
 class Event::Impl {
  public:
-  Impl(QString event_id, std::initializer_list<ParameterInitializer> params,
-       EventCallback callback)
+  Impl(QString event_id, Params params, EventCallback callback)
       : event_identifier_(std::move(event_id)),
         callback_(std::move(callback)),
         callback_thread_(QThread::currentThread()) {
-    for (const auto& param : params) {
-      AddParameter(param);
-    }
+    data_.insert(params);
   }
 
   auto operator[](const QString& key) const -> std::optional<ParameterValue> {
     auto it_data = data_.find(key);
     if (it_data != data_.end()) {
-      return it_data->second;
+      return it_data.value();
     }
     return std::nullopt;
   }
@@ -81,7 +78,7 @@ class Event::Impl {
   }
 
   void ExecuteCallback(ListenerIdentifier listener_id,
-                       const DataObjectPtr& data_object) {
+                       const Params& data_object) {
     if (callback_) {
       if (!QMetaObject::invokeMethod(
               callback_thread_,
@@ -107,7 +104,7 @@ class Event::Impl {
     GFModuleEventParam* p_param;
 
     int index = 0;
-    for (const auto& data : data_) {
+    for (const auto& data : data_.asKeyValueRange()) {
       p_param = static_cast<GFModuleEventParam*>(
           SecureMalloc(sizeof(GFModuleEventParam)));
       if (index++ == 0) event->params = p_param;
@@ -126,14 +123,12 @@ class Event::Impl {
  private:
   EventIdentifier event_identifier_;
   EventTriggerIdentifier trigger_uuid_ = QUuid::createUuid().toString();
-  std::map<QString, QString> data_;
+  QMap<QString, QString> data_;
   EventCallback callback_;
   QThread* callback_thread_ = nullptr;  ///<
 };
 
-Event::Event(const QString& event_id,
-             std::initializer_list<ParameterInitializer> params,
-             EventCallback callback)
+Event::Event(const QString& event_id, Params params, EventCallback callback)
     : p_(SecureCreateUniqueObject<Impl>(event_id, params,
                                         std::move(callback))) {}
 
@@ -165,8 +160,8 @@ void Event::AddParameter(const QString& key, const QString& value) {
   p_->AddParameter(key, value);
 }
 
-void Event::ExecuteCallback(ListenerIdentifier l_id, DataObjectPtr d_o) {
-  p_->ExecuteCallback(std::move(l_id), d_o);
+void Event::ExecuteCallback(ListenerIdentifier l_id, const Params& param) {
+  p_->ExecuteCallback(std::move(l_id), param);
 }
 
 auto Event::ToModuleEvent() -> GFModuleEvent* { return p_->ToModuleEvent(); }

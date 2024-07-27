@@ -59,6 +59,16 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFAllocateMemory(uint32_t size) -> void*;
 /**
  * @brief
  *
+ * @param ptr
+ * @param size
+ * @return void*
+ */
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFReallocateMemory(void* ptr,
+                                                      uint32_t size) -> void*;
+
+/**
+ * @brief
+ *
  * @return const char*
  */
 auto GPGFRONTEND_MODULE_SDK_EXPORT GFProjectVersion() -> const char*;
@@ -119,6 +129,6 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFAppActiveLocale() -> char*;
  * @param size
  * @return auto
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFAppRegisterTranslator(char* data, int size)
-    -> int;
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFAppRegisterTranslator(char* data,
+                                                           int size) -> int;
 }
