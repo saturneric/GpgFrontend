@@ -77,7 +77,7 @@ jobs:
       - name: Install Qt6
         uses: jurplel/install-qt-action@v3
         with:
-          version: '6.5.3'
+          version: '6.7.2'
           cache: 'true'
         if: matrix.os == 'ubuntu-20.04' || matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
 
@@ -183,9 +183,11 @@ jobs:
       - name: Build & Install Full SDK (Windows)
         shell: msys2 {0}
         run: |
-          cmake -B ${{github.workspace}}/build-full-sdk -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_FULL_SDK=ON
-          cmake --build ${{github.workspace}}/build-full-sdk --config {{$env.BUILD_TYPE}} -- -v
-          sudo cmake --install ${{github.workspace}}/build-full-sdk --config {{$env.BUILD_TYPE}}
+          cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
+          mkdir build-full-sdk && cd build-full-sdk
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_FULL_SDK=ON ..
+          cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
+          sudo cmake --install . --config {{$env.BUILD_TYPE}}
         if: matrix.os == 'windows-2019'
 
       - name: Build Integrated Modules
@@ -198,9 +200,12 @@ jobs:
       - name: Build Integrated Modules (Windows)
         shell: msys2 {0}
         run: |
-          cmake -S ${{github.workspace}}/modules -B ${{github.workspace}}/modules/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/modules/build/artifacts
-          cmake --build ${{github.workspace}}/modules/build --config {{$env.BUILD_TYPE}} -- -v
-          cmake --install ${{github.workspace}}/modules/build --config {{$env.BUILD_TYPE}}
+          cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
+          cd modules
+          mkdir build && cd build
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON -DCMAKE_INSTALL_PREFIX=./artifacts ..
+          cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
+          cmake --install . --config {{$env.BUILD_TYPE}}
         if: matrix.os == 'windows-2019'
 
       - name: Build & Export GpgFrontend (macOS)
@@ -284,8 +289,11 @@ jobs:
       - name: Copy Modules & Package (Windows)
         shell: msys2 {0}
         run: |
-          cmake -E copy_directory ${{github.workspace}}/modules/build/artifacts/modules ${{github.workspace}}/build/artifacts/modules
-          windeployqt-qt6 --force --libdir ${{github.workspace}}/build/artifacts --release ${{github.workspace}}/build/artifacts/GpgFrontend.exe
+          cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
+          mkdir -p build/artifacts/modules
+          copy -r modules/build/artifacts/* build/artifacts/modules
+          cd build
+          windeployqt-qt6 --force --libdir ./artifacts --release ./artifacts/GpgFrontend.exe
         if: matrix.os == 'windows-2019'
 
       - name: Upload Artifact (Linux)
