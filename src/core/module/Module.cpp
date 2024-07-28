@@ -152,7 +152,7 @@ class Module::Impl {
     return -1;
   }
 
-  auto Deactive() -> int {
+  auto Deactivate() -> int {
     if (good_ && deactivate_api_ != nullptr) return deactivate_api_();
     return -1;
   }
@@ -248,7 +248,7 @@ class Module::Impl {
       {"GFRegisterModule", reinterpret_cast<void**>(&register_api_)},
       {"GFActiveModule", reinterpret_cast<void**>(&activate_api_)},
       {"GFExecuteModule", reinterpret_cast<void**>(&execute_api_)},
-      {"GFDeactiveModule", reinterpret_cast<void**>(&deactivate_api_)},
+      {"GFDeactivateModule", reinterpret_cast<void**>(&deactivate_api_)},
       {"GFUnregisterModule", reinterpret_cast<void**>(&unregister_api_)},
   };
 
@@ -279,7 +279,7 @@ auto Module::Exec(EventReference event) -> int {
   return p_->Exec(std::move(event));
 }
 
-auto Module::Deactive() -> int { return p_->Deactive(); }
+auto Module::Deactivate() -> int { return p_->Deactivate(); }
 
 auto Module::UnRegister() -> int { return p_->UnRegister(); }
 

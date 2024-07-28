@@ -170,7 +170,7 @@ class ModuleManager::Impl {
             __func__, nullptr));
   }
 
-  void DeactiveModule(const ModuleIdentifier& identifier) {
+  void DeactivateModule(const ModuleIdentifier& identifier) {
     Thread::TaskRunnerGetter::GetInstance()
         .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
         ->PostTask(new Thread::Task(
@@ -281,8 +281,8 @@ void ModuleManager::ActiveModule(ModuleIdentifier id) {
   return p_->ActiveModule(id);
 }
 
-void ModuleManager::DeactiveModule(ModuleIdentifier id) {
-  return p_->DeactiveModule(id);
+void ModuleManager::DeactivateModule(ModuleIdentifier id) {
+  return p_->DeactivateModule(id);
 }
 
 auto ModuleManager::GetTaskRunner(ModuleIdentifier id)

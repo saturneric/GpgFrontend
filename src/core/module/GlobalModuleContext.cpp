@@ -197,8 +197,8 @@ class GlobalModuleContext::Impl {
     }
 
     auto module_info = module_info_opt.value();
-    // activate the module if it is not already deactive.
-    if (module_info->activate && (module_info->module->Deactive() == 0)) {
+    // activate the module if it is not already Deactivate.
+    if (module_info->activate && (module_info->module->Deactivate() == 0)) {
       for (const auto& event_ids : module_info->listening_event_ids) {
         auto& modules = module_events_table_[event_ids];
         if (auto it = modules.find(module_id); it != modules.end()) {

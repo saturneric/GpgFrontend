@@ -87,7 +87,7 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager
 
   void ActiveModule(ModuleIdentifier);
 
-  void DeactiveModule(ModuleIdentifier);
+  void DeactivateModule(ModuleIdentifier);
 
   auto GetTaskRunner(ModuleIdentifier) -> std::optional<TaskRunnerPtr>;
 
