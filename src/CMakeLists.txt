@@ -495,12 +495,17 @@ endif()
 # if building linux package
 if (LINUX AND LINUX_INSTALL_SOFTWARE)
   include(GNUInstallDirs)
-  set(GPGFRONTEND_INSTALL_LIBRARIES 
+  
+  if(STABLE_BUILD_ONLY_APPLICATION)
+    set(GPGFRONTEND_INSTALL_LIBRARIES "")
+  else()
+    set(GPGFRONTEND_INSTALL_LIBRARIES
       mimalloc
       gpgfrontend_core
       gpgfrontend_ui
       gpgfrontend_test
       gpgfrontend_module_sdk)
+  endif()
 
   message(STATUS "GpgFrontend Install Libraries: ${GPGFRONTEND_INSTALL_LIBRARIES}")
   install(TARGETS ${AppName} ${GPGFRONTEND_INSTALL_LIBRARIES}
