@@ -174,18 +174,34 @@ jobs:
         if: matrix.os == 'windows-2019'
 
       - name: Build & Install Full SDK 
-        # Build your GpgFrontend with the given configuration
         run: |
           cmake -B ${{github.workspace}}/build-full-sdk -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_FULL_SDK=ON
           cmake --build ${{github.workspace}}/build-full-sdk --config {{$env.BUILD_TYPE}} -- -v
           sudo cmake --install ${{github.workspace}}/build-full-sdk --config {{$env.BUILD_TYPE}}
+        if: matrix.os == 'ubuntu-20.04' || matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
+
+      - name: Build & Install Full SDK (Windows)
+        shell: msys2 {0}
+        run: |
+          cmake -B ${{github.workspace}}/build-full-sdk -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_FULL_SDK=ON
+          cmake --build ${{github.workspace}}/build-full-sdk --config {{$env.BUILD_TYPE}} -- -v
+          sudo cmake --install ${{github.workspace}}/build-full-sdk --config {{$env.BUILD_TYPE}}
+        if: matrix.os == 'windows-2019'
 
       - name: Build Integrated Modules
-        # Build your GpgFrontend with the given configuration
         run: |
           cmake -S ${{github.workspace}}/modules -B ${{github.workspace}}/modules/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/modules/build/artifacts
           cmake --build ${{github.workspace}}/modules/build --config {{$env.BUILD_TYPE}} -- -v
           cmake --install ${{github.workspace}}/modules/build --config {{$env.BUILD_TYPE}}
+        if: matrix.os == 'ubuntu-20.04' || matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
+
+      - name: Build Integrated Modules (Windows)
+        shell: msys2 {0}
+        run: |
+          cmake -S ${{github.workspace}}/modules -B ${{github.workspace}}/modules/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/modules/build/artifacts
+          cmake --build ${{github.workspace}}/modules/build --config {{$env.BUILD_TYPE}} -- -v
+          cmake --install ${{github.workspace}}/modules/build --config {{$env.BUILD_TYPE}}
+        if: matrix.os == 'windows-2019'
 
       - name: Build & Export GpgFrontend (macOS)
         # Build your GpgFrontend with the given configuration
@@ -256,7 +272,7 @@ jobs:
           ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines,platformthemes/libqgtk3.so -appimage -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/modules/
         if: matrix.os == 'ubuntu-20.04'
 
-      - name: Configure CMake & Build Binary(Windows)
+      - name: Configure CMake & Build Binary (Windows)
         shell: msys2 {0}
         run: |
           cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
@@ -264,22 +280,29 @@ jobs:
           cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON ..
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
         if: matrix.os == 'windows-2019'
+      
+      - name: Copy Modules & Package (Windows)
+        shell: msys2 {0}
+        run: |
+          cmake -E copy_directory ${{github.workspace}}/modules/build/artifacts/modules ${{github.workspace}}/build/artifacts/modules
+          windeployqt-qt6 --force --libdir ${{github.workspace}}/build/artifacts --release ${{github.workspace}}/build/artifacts/GpgFrontend.exe
+        if: matrix.os == 'windows-2019'
 
-      - name: Upload Artifact(Linux)
+      - name: Upload Artifact (Linux)
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{ github.sha }}
           path: ${{github.workspace}}/build/final-artifact/Gpg_Frontend*.AppImage*
         if: matrix.os == 'ubuntu-20.04'
 
-      - name: Upload Artifact(macOS)
+      - name: Upload Artifact (macOS)
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{ github.sha }}
           path: ${{github.workspace}}/build/final-artifact/*
         if:  matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
 
-      - name: Upload Artifact(Windows)
+      - name: Upload Artifact (Windows)
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{ github.sha }}
