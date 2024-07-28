@@ -311,14 +311,6 @@ if (BUILD_APPLICATION)
     if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
         if (MINGW)
             add_executable(${AppName} WIN32 ${BASE_SOURCE} ${RESOURCE_FILES})
-            # include qt dependencies
-            if(NOT Qt6_DIR)
-              add_custom_command(TARGET ${AppName} POST_BUILD
-                        COMMAND windeployqt --force --libdir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} --release ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.exe)
-            else()
-                add_custom_command(TARGET ${AppName} POST_BUILD
-                        COMMAND windeployqt-qt6.exe --force --libdir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} --release ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.exe)
-            endif()
         elseif (LINUX AND NOT LINUX_INSTALL_SOFTWARE)
             add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
 
