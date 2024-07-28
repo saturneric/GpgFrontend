@@ -458,14 +458,21 @@ if (BUILD_APPLICATION)
 
         target_sources(${AppName} PRIVATE ${GF_I18N_RESOURCES})
     else()
-        qt_add_translations(${AppName} 
-            RESOURCE_PREFIX "/i18n"
-            TS_FILES ${TS_FILES}
-            SOURCES ${ALL_SOURCE_FILES}
-            INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/src)
+
+        add_custom_target(gftranslations ALL)
+
+        qt_add_lrelease(gftranslations
+                TS_FILES ${TS_FILES}
+                QM_FILES_OUTPUT_VARIABLE GF_TRANSLATIONS_QM)
+        qt_add_resources(${AppName}  "gftranslations"
+            PREFIX "/i18n"
+            BASE ${CMAKE_CURRENT_BINARY_DIR}
+            FILES ${GF_TRANSLATIONS_QM})
+
+        add_custom_target(qttranslations ALL)
+
         file(GLOB QT_TRANSLATIONS_TS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third_party/qttranslations/translations/*.ts)
         list(FILTER QT_TRANSLATIONS_TS INCLUDE REGEX ".*(qt|qtbase)_.*\.ts$")
-        add_custom_target(qttranslations ALL)
         qt_add_lrelease(qttranslations
                 TS_FILES ${QT_TRANSLATIONS_TS}
                 QM_FILES_OUTPUT_VARIABLE QT_TRANSLATIONS_QM)
