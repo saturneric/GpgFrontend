@@ -420,7 +420,7 @@ endif()
 
 # link options for GpgFrontend
 if (BUILD_APPLICATION)
-    target_link_libraries(${AppName} gpgfrontend_ui gpgfrontend_test)
+    target_link_libraries(${AppName} gpgfrontend_core gpgfrontend_ui gpgfrontend_test)
     if (MINGW)
         message(STATUS "Link Application Library For MINGW")
         target_link_libraries(${AppName} crypto)
