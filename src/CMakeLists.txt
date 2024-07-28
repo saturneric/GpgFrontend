@@ -540,7 +540,7 @@ if (STABLE_BUILD_FULL_SDK)
       gpgfrontend_module_sdk)
 
   if(NOT APPLE)
-    list(APPEND GPGFRONTEND_INSTALL_LIBRARIES mimalloc)
+    list(APPEND GPGFRONTEND_SDK_INSTALL_LIBRARIES mimalloc)
   endif()
 
   install(TARGETS ${GPGFRONTEND_SDK_INSTALL_LIBRARIES}
