@@ -92,7 +92,6 @@ GFModuleUpsertRTValueBool(const char *namespace_, const char *key, int value);
 auto GPGFRONTEND_MODULE_SDK_EXPORT GFModuleListRTChildKeys(
     const char *namespace_, const char *key, char ***child_keys) -> int32_t;
 
-void GPGFRONTEND_MODULE_SDK_EXPORT
-GFModuleTriggerModuleEventCallback(GFModuleEvent *event, const char *module_id,
-                                   int argc, GFModuleEventParam *argv);
+void GPGFRONTEND_MODULE_SDK_EXPORT GFModuleTriggerModuleEventCallback(
+    GFModuleEvent *event, const char *module_id, GFModuleEventParam *argv);
 };

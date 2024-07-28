@@ -77,7 +77,7 @@ auto GFModuleListRTChildKeys(const char *namespace_, const char *key,
 }
 
 void GFModuleTriggerModuleEventCallback(GFModuleEvent *module_event,
-                                        const char *module_id, int argc,
+                                        const char *module_id,
                                         GFModuleEventParam *p_argv) {
   auto argv = ConvertEventParamsToMap(p_argv);
   auto event = GpgFrontend::Module::ModuleManager::GetInstance().SearchEvent(
