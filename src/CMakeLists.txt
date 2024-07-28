@@ -406,13 +406,16 @@ if (BUILD_APPLICATION)
 endif ()
 
 if(STABLE_BUILD_ONLY_APPLICATION)
-  target_include_directories(${AppName} PUBLIC "${CMAKE_INSTALL_INCLUDEDIR}/gpgfrontend")
+  message(STATUS "Application Headers Search Path: ${CMAKE_INSTALL_PREFIX}/include/gpgfrontend")
+  target_include_directories(${AppName} PUBLIC "${CMAKE_INSTALL_PREFIX}/include/gpgfrontend")
 
+  # link qt
   if(GPGFRONTEND_QT5_BUILD)
     target_link_libraries(${AppName} Qt5::Core Qt5::Widgets)
   else()
     target_link_libraries(${AppName} Qt6::Core Qt6::Widgets)
   endif()
+
 endif()
 
 # link options for GpgFrontend
