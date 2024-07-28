@@ -185,7 +185,7 @@ jobs:
         run: |
           cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
           mkdir build-full-sdk && cd build-full-sdk
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_FULL_SDK=ON ..
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_FULL_SDK=ON -DCMAKE_INSTALL_PREFIX=$MSYSTEM_PREFIX ..
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
           cmake --install . --config {{$env.BUILD_TYPE}}
         if: matrix.os == 'windows-2019'

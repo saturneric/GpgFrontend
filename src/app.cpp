@@ -68,7 +68,7 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
 
   do {
     // refresh locale settings
-    if (restart_count > 0) InitLocale();
+    InitLocale();
 
     // after that load ui totally
     GpgFrontend::UI::InitGpgFrontendUI(app);

@@ -272,9 +272,6 @@ void InitGpgFrontendCore(CoreInitArgs args) {
   Module::UpsertRTValue("core", "env.state.basic", 0);
   Module::UpsertRTValue("core", "env.state.all", 0);
 
-  // initialize locale environment
-  qCDebug(core, "locale info: %s", setlocale(LC_CTYPE, nullptr));
-
   auto gpgconf_install_fs_path = DetectGpgConfPath();
   auto gnupg_install_fs_path = DetectGnuPGPath(gpgconf_install_fs_path);
   qCInfo(core) << "detected gpgconf path: " << gpgconf_install_fs_path;

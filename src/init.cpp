@@ -127,6 +127,10 @@ void InitLocale() {
   auto target_locale =
       lang.trimmed().isEmpty() ? QLocale::system() : QLocale(lang);
   qInfo() << "application's target locale: " << target_locale.name();
+
+  // initialize locale environment
+  qDebug("locale info: %s",
+         setlocale(LC_CTYPE, target_locale.amText().toUtf8()));
   QLocale::setDefault(target_locale);
 }
 

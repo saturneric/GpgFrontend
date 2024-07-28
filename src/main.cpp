@@ -49,6 +49,9 @@
  * @return
  */
 auto main(int argc, char* argv[]) -> int {
+  // initialize qt resources
+  Q_INIT_RESOURCE(gpgfrontend);
+
   GpgFrontend::GFCxtSPtr const ctx =
       GpgFrontend::SecureCreateSharedObject<GpgFrontend::GpgFrontendContext>(
           argc, argv);
@@ -71,9 +74,6 @@ auto main(int argc, char* argv[]) -> int {
 #endif
 
   auto rtn = 0;
-
-  // initialize qt resources
-  Q_INIT_RESOURCE(gpgfrontend);
 
   QCommandLineParser parser;
   parser.addHelpOption();
