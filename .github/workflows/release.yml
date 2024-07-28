@@ -187,7 +187,7 @@ jobs:
           mkdir build-full-sdk && cd build-full-sdk
           cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_FULL_SDK=ON ..
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
-          sudo cmake --install . --config {{$env.BUILD_TYPE}}
+          cmake --install . --config {{$env.BUILD_TYPE}}
         if: matrix.os == 'windows-2019'
 
       - name: Build Integrated Modules
