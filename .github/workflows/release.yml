@@ -168,7 +168,8 @@ jobs:
           git clone --depth 1 --branch gpgme-1.18.0 git://git.gnupg.org/gpgme.git ${{github.workspace}}/third_party/gpgme
           cd ${{github.workspace}}/third_party/gpgme
           ./autogen.sh
-          CFLAGS="-g -O2 -w -mms-bitfields"./configure --enable-maintainer-mode --enable-languages=cpp --disable-gpg-test && make -j4
+          export CFLAGS="-g -O2 -w -mms-bitfields"
+          ./configure --enable-maintainer-mode --enable-languages=cpp --disable-gpg-test && make -j4
           make install
           cd ${{github.workspace}}
         if: matrix.os == 'windows-2019'
