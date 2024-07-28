@@ -485,11 +485,14 @@ if (LINUX AND LINUX_INSTALL_SOFTWARE)
     set(GPGFRONTEND_INSTALL_LIBRARIES "")
   else()
     set(GPGFRONTEND_INSTALL_LIBRARIES
-      mimalloc
       gpgfrontend_core
       gpgfrontend_ui
       gpgfrontend_test
       gpgfrontend_module_sdk)
+
+    if(NOT APPLE)
+      list(APPEND GPGFRONTEND_INSTALL_LIBRARIES mimalloc)
+    endif()
   endif()
 
   message(STATUS "GpgFrontend Install Libraries: ${GPGFRONTEND_INSTALL_LIBRARIES}")
@@ -531,11 +534,14 @@ if (STABLE_BUILD_FULL_SDK)
   include(GNUInstallDirs)
 
   set(GPGFRONTEND_SDK_INSTALL_LIBRARIES 
-      mimalloc
       gpgfrontend_core
       gpgfrontend_ui
       gpgfrontend_test
       gpgfrontend_module_sdk)
+
+  if(NOT APPLE)
+    list(APPEND GPGFRONTEND_INSTALL_LIBRARIES mimalloc)
+  endif()
 
   install(TARGETS ${GPGFRONTEND_SDK_INSTALL_LIBRARIES}
           EXPORT GpgFrontendTargets
