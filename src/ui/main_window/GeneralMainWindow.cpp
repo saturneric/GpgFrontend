@@ -59,7 +59,7 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
           QByteArray::fromBase64(window_state.window_state_data.toUtf8()));
     }
 
-    this->setMinimumSize(640, 480);
+    this->setMinimumSize(800, 600);
 
     // restore window size & location
     if (window_state.window_save) {
@@ -91,8 +91,8 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
         }
       }
 
-      if (size_.width() < 640) size_.setWidth(640);
-      if (size_.height() < 480) size_.setHeight(480);
+      if (size_.width() < 800) size_.setWidth(800);
+      if (size_.height() < 600) size_.setHeight(600);
 
       this->move(pos_);
       this->resize(size_);
