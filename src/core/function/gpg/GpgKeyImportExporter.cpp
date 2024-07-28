@@ -49,11 +49,11 @@ auto GpgKeyImportExporter::ImportKey(const GFBuffer& in_buffer)
   if (in_buffer.Empty()) return {};
 
   GpgData data_in(in_buffer);
-  auto err = CheckGpgError(gpgme_op_import(ctx_.DefaultContext(), data_in));
+  auto err = CheckGpgError(gpgme_op_import(ctx_.BinaryContext(), data_in));
   if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
 
   gpgme_import_result_t result;
-  result = gpgme_op_import_result(ctx_.DefaultContext());
+  result = gpgme_op_import_result(ctx_.BinaryContext());
   gpgme_import_status_t status = result->imports;
   auto import_info = SecureCreateSharedObject<GpgImportInformation>(result);
   while (status != nullptr) {

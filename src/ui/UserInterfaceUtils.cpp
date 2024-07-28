@@ -264,7 +264,7 @@ void CommonUtils::RaiseFailureMessageBox(QWidget *parent, GpgError err) {
                             .arg(desc.second));
 }
 
-void CommonUtils::SlotImportKeys(QWidget *parent, const QString &in_buffer) {
+void CommonUtils::SlotImportKeys(QWidget *parent, const QByteArray &in_buffer) {
   auto info =
       GpgKeyImportExporter::GetInstance().ImportKey(GFBuffer(in_buffer));
   emit SignalKeyStatusUpdated();
@@ -310,7 +310,7 @@ void CommonUtils::SlotImportKeyFromKeyServer(QWidget *parent) {
 
 void CommonUtils::SlotImportKeyFromClipboard(QWidget *parent) {
   QClipboard *cb = QApplication::clipboard();
-  SlotImportKeys(parent, cb->text(QClipboard::Clipboard));
+  SlotImportKeys(parent, cb->text(QClipboard::Clipboard).toLatin1());
 }
 
 void CommonUtils::SlotExecuteCommand(

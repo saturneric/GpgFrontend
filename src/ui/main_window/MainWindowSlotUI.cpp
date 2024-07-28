@@ -52,7 +52,7 @@ void MainWindow::slot_start_wizard() {
 void MainWindow::slot_import_key_from_edit() {
   if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
   CommonUtils::GetInstance()->SlotImportKeys(
-      this, edit_->CurTextPage()->GetTextPage()->toPlainText());
+      this, edit_->CurTextPage()->GetTextPage()->toPlainText().toLatin1());
 }
 
 void MainWindow::slot_open_key_management() {

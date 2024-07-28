@@ -215,7 +215,7 @@ class CommonUtils : public QWidget {
   void SignalRestartApplication(int);
 
   /**
-   * @brief 
+   * @brief
    *
    */
   void SignalFavoritesChanged();
@@ -228,7 +228,7 @@ class CommonUtils : public QWidget {
    * @param parent
    * @param in_buffer
    */
-  void SlotImportKeys(QWidget* parent, const QString& in_buffer);
+  void SlotImportKeys(QWidget* parent, const QByteArray& in_buffer);
 
   /**
    * @brief
