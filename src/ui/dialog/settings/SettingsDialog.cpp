@@ -89,7 +89,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   connect(this, &SettingsDialog::SignalRestartNeeded,
           qobject_cast<MainWindow*>(parent), &MainWindow::SlotSetRestartNeeded);
 
-  this->setMinimumSize(800, 600);
+  this->setMinimumWidth(500);
   this->adjustSize();
   this->show();
 }
