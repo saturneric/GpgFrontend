@@ -66,9 +66,9 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="moreSigningOptionsCheckBox">
+           <widget class="QCheckBox" name="disableLoadingModulesCheckBox">
             <property name="text">
-             <string>Provide more options in the signing process.</string>
+             <string>Disable loading of all modules (including integrated modules)</string>
             </property>
            </widget>
           </item>

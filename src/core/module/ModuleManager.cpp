@@ -31,6 +31,7 @@
 #include <memory>
 #include <utility>
 
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/SecureMemoryAllocator.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/SettingsObject.h"
@@ -54,6 +55,14 @@ class ModuleManager::Impl {
 
   auto LoadAndRegisterModule(const QString& module_library_path,
                              bool integrated_module) -> void {
+    // give user ability to give up all modules
+    auto disable_loading_all_modules =
+        GlobalSettingStation::GetInstance()
+            .GetSettings()
+            .value("basic/disable_loading_all_modules", false)
+            .toBool();
+    if (disable_loading_all_modules) return;
+
     Thread::TaskRunnerGetter::GetInstance()
         .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
         ->PostTask(new Thread::Task(

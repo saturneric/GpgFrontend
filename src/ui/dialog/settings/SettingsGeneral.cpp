@@ -52,6 +52,8 @@ GeneralTab::GeneralTab(QWidget* parent)
       tr("Enable to use longer key expiration date."));
   ui_->importConfirmationCheckBox->setText(
       tr("Import files dropped on the Key List without confirmation."));
+  ui_->disableLoadingModulesCheckBox->setText(
+      tr("Disable loading of all modules (including integrated modules)"));
 
   ui_->langBox->setTitle(tr("Language"));
   ui_->langNoteLabel->setText(
@@ -129,10 +131,10 @@ void GeneralTab::SetSettings() {
   ui_->importConfirmationCheckBox->setCheckState(
       confirm_import_keys ? Qt::Checked : Qt::Unchecked);
 
-  auto more_signing_options =
-      settings.value("basic/more_signing_options", false).toBool();
-  ui_->moreSigningOptionsCheckBox->setCheckState(
-      more_signing_options ? Qt::Checked : Qt::Unchecked);
+  auto disable_loading_all_modules =
+      settings.value("basic/disable_loading_all_modules", false).toBool();
+  ui_->disableLoadingModulesCheckBox->setCheckState(
+      disable_loading_all_modules ? Qt::Checked : Qt::Unchecked);
 
   auto lang_key = settings.value("basic/lang").toString();
   auto lang_value = lang_.value(lang_key);
@@ -156,8 +158,8 @@ void GeneralTab::ApplySettings() {
                     ui_->restoreTextEditorPageCheckBox->isChecked());
   settings.setValue("basic/confirm_import_keys",
                     ui_->importConfirmationCheckBox->isChecked());
-  settings.setValue("basic/more_signing_options",
-                    ui_->moreSigningOptionsCheckBox->isChecked());
+  settings.setValue("basic/disable_loading_all_modules",
+                    ui_->disableLoadingModulesCheckBox->isChecked());
   settings.setValue("basic/lang", lang_.key(ui_->langSelectBox->currentText()));
 }
 

@@ -103,8 +103,18 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
   });
 
 #ifdef RELEASE
-  ui_->tabWidget->setTabEnabled(2, false);
+  ui_->tabWidget->setTabVisible(2, false);
 #endif
+
+  // give user ability to give up all modules
+  auto disable_loading_all_modules =
+      GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("basic/disable_loading_all_modules", false)
+          .toBool();
+  if (disable_loading_all_modules) {
+    ui_->tabWidget->setTabEnabled(0, false);
+  }
 }
 
 void ModuleControllerDialog::slot_load_module_details(
