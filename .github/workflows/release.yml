@@ -173,19 +173,19 @@ jobs:
           cd ${{github.workspace}}
         if: matrix.os == 'windows-2019'
 
-      - name: Build GpgFrontend (Linux)
+      - name: Build & Install Full SDK 
         # Build your GpgFrontend with the given configuration
         run: |
-          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
-        if: matrix.os == 'ubuntu-20.04'
+          cmake -B ${{github.workspace}}/build-full-sdk -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_FULL_SDK=ON
+          cmake --build ${{github.workspace}}/build-full-sdk --config {{$env.BUILD_TYPE}} -- -v
+          cmake --install ${{github.workspace}}/build-full-sdk --config {{$env.BUILD_TYPE}}
 
-      - name: Build Integrated Modules (macOS)
+      - name: Build Integrated Modules
         # Build your GpgFrontend with the given configuration
         run: |
-          cmake -B ${{github.workspace}}/build-mods -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_MODS_ONLY=On
-          cmake --build ${{github.workspace}}/build-mods --config {{$env.BUILD_TYPE}} -- -v
-        if: matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
+          cmake -B ${{github.workspace}}/modules/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/modules/build/artifacts
+          cmake --build ${{github.workspace}}/modules/build --config {{$env.BUILD_TYPE}} -- -v
+          cmake --install ${{github.workspace}}/modules/build --config {{$env.BUILD_TYPE}}
 
       - name: Build & Export GpgFrontend (macOS)
         # Build your GpgFrontend with the given configuration
@@ -209,7 +209,7 @@ jobs:
 
       - name: Copy Modules into Bundle & Deploy Qt & Code Sign (macOS)
         run: |
-          cmake -E copy_directory ${{github.workspace}}/build-mods/artifacts/mods ${{github.workspace}}/build/package/GpgFrontend.app/Contents/PlugIns/mods
+          cmake -E copy_directory ${{github.workspace}}/modules/build/artifacts/modules ${{github.workspace}}/build/package/GpgFrontend.app/Contents/modules
           macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app -verbose=2 -appstore-compliant -always-overwrite
           codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" -f --deep --options=runtime  ${{github.workspace}}/build/package/GpgFrontend.app
         if:  matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
@@ -237,14 +237,22 @@ jobs:
           --password ${{secrets.APPLE_DEVELOPER_ID_SECRET}} \
           ${{github.workspace}}/build/GpgFrontend-${{env.sha_short}}-x86_64.zip
         if:  matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
-
-      - name: Package App Image (Linux)
+    
+      - name: Build GpgFrontend (Linux)
+        # Build your GpgFrontend with the given configuration
         run: |
+          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DDGPGFRONTEND_BUILD_TYPE_ONLY_APPLICATION=ON
+          cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
+        if: matrix.os == 'ubuntu-20.04'
+
+      - name: Copy Modules & Package App Image (Linux)
+        run: |
+          cmake -E copy_directory ${{github.workspace}}/modules/build/artifacts/modules ${{github.workspace}}/build/artifacts/AppDir/usr/modules
           mkdir ${{github.workspace}}/build/final-artifact
           cd ${{github.workspace}}/build/final-artifact
           wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
-          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines,platformthemes/libqgtk3.so -appimage -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/plugins/mods/
+          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines,platformthemes/libqgtk3.so -appimage -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/modules/
         if: matrix.os == 'ubuntu-20.04'
 
       - name: Configure CMake & Build Binary(Windows)

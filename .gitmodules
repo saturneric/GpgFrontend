@@ -13,3 +13,6 @@
 [submodule "third_party/qttranslations"]
 	path = third_party/qttranslations
 	url = https://github.com/qt/qttranslations.git
+[submodule "modules"]
+	path = modules
+	url = https://github.com/saturneric/GpgFrontend-Modules.git
