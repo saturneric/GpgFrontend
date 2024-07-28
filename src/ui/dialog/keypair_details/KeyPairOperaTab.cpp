@@ -97,7 +97,7 @@ KeyPairOperaTab::KeyPairOperaTab(const QString& key_id, QWidget* parent)
   key_server_opera_button->setDisabled(forbid_all_gnupg_connection);
   advance_h_box_layout->addWidget(key_server_opera_button);
 
-  if (!Module::IsModuleActivate(kPaperKeyModuleID)) {
+  if (Module::IsModuleActivate(kPaperKeyModuleID)) {
     if (!m_key_.IsPrivateKey() || !m_key_.IsHasMasterKey()) {
       auto* import_paper_key_button = new QPushButton(tr("Import A Paper Key"));
       import_paper_key_button->setStyleSheet("text-align:center;");
@@ -179,7 +179,7 @@ void KeyPairOperaTab::CreateOperaMenu() {
   connect(export_shortest_secret_key, &QAction::triggered, this,
           &KeyPairOperaTab::slot_export_short_private_key);
 
-  if (!Module::IsModuleActivate(kPaperKeyModuleID)) {
+  if (Module::IsModuleActivate(kPaperKeyModuleID)) {
     auto* export_secret_key_as_paper_key =
         new QAction(tr("Export Secret Key As A Paper Key"), this);
     connect(export_secret_key_as_paper_key, &QAction::triggered, this,
