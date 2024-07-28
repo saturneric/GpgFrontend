@@ -83,11 +83,16 @@ auto GpgKeyTableProxyModel::filterAcceptsRow(
   for (int column = 0; column < sourceModel()->columnCount(); ++column) {
     auto index = sourceModel()->index(source_row, column, sourceParent);
     infos << sourceModel()->data(index).toString();
+
+    const auto uids = key.GetUIDs();
+    for (const auto &uid : *uids) {
+      infos << uid.GetUID();
+    }
   }
 
-  for (const QString &info : infos) {
-    if (info.contains(filter_keywords_, Qt::CaseInsensitive)) return true;
-  }
+  return std::any_of(infos.cbegin(), infos.cend(), [&](const QString &info) {
+    return info.contains(filter_keywords_, Qt::CaseInsensitive);
+  });
 
   return false;
 }
