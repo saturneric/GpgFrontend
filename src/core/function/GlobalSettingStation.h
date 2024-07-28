@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <qsettings.h>
+
 #include "core/function/basic/GpgFunctionObject.h"
 
 namespace GpgFrontend {

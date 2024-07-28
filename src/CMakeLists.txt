@@ -405,6 +405,16 @@ if (BUILD_APPLICATION)
 
 endif ()
 
+if(STABLE_BUILD_ONLY_APPLICATION)
+  target_include_directories(${AppName} PUBLIC "${CMAKE_SOURCE_DIR}/src")
+
+  if(GPGFRONTEND_QT5_BUILD)
+    target_link_libraries(${AppName} Qt5::Core Qt5::Widgets)
+  else()
+    target_link_libraries(${AppName} Qt6::Core Qt6::Widgets)
+  endif()
+endif()
+
 # link options for GpgFrontend
 if (BUILD_APPLICATION)
     target_link_libraries(${AppName} gpgfrontend_ui gpgfrontend_test)
@@ -418,6 +428,8 @@ if (BUILD_APPLICATION)
         target_link_libraries(${AppName} crypto pthread)
     endif ()
 endif ()
+
+
 
 # add i18n support
 if (BUILD_APPLICATION)
@@ -509,10 +521,29 @@ if (LINUX AND LINUX_INSTALL_SOFTWARE)
           DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/)
 endif ()
 
-# if building sdk
-if (BUILD_SDK)
+# if only build sdk
+if (STABLE_BUILD_ONLY_SDK)
   include(GNUInstallDirs)
   set(GPGFRONTEND_SDK_INSTALL_LIBRARIES 
+      gpgfrontend_module_sdk)
+
+  install(TARGETS ${GPGFRONTEND_SDK_INSTALL_LIBRARIES}
+          EXPORT GpgFrontendTargets
+          PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif ()
+
+
+# if build full sdk
+if (STABLE_BUILD_FULL_SDK)
+  include(GNUInstallDirs)
+  set(GPGFRONTEND_SDK_INSTALL_LIBRARIES 
+      mimalloc
+      gpgfrontend_core
+      gpgfrontend_ui
+      gpgfrontend_test
       gpgfrontend_module_sdk)
 
   install(TARGETS ${GPGFRONTEND_SDK_INSTALL_LIBRARIES}

@@ -28,6 +28,10 @@
 
 #pragma once
 
+#include <qapplication.h>
+
+#include <memory>
+
 namespace GpgFrontend {
 
 struct GpgFrontendContext;
