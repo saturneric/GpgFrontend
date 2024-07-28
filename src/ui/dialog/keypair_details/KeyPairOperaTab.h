@@ -126,6 +126,18 @@ class KeyPairOperaTab : public QWidget {
    */
   void slot_import_revoke_cert();
 
+  /**
+   * @brief
+   *
+   */
+  void slot_export_paper_key();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_import_paper_key();
+
  private:
   GpgKey m_key_;                    ///<
   QMenu* key_server_opera_menu_{};  ///<

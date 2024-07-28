@@ -62,14 +62,14 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
   connect(ui_->moduleListView, &ModuleListView::SignalSelectModule, this,
           &ModuleControllerDialog::slot_load_module_details);
 
-  connect(ui_->activateOrDeactiveButton, &QPushButton::clicked, this, [=]() {
+  connect(ui_->activateOrDeactivateButton, &QPushButton::clicked, this, [=]() {
     auto module_id = ui_->moduleListView->GetCurrentModuleID();
     if (module_id.isEmpty()) return;
 
     if (!module_manager_->IsModuleActivated(module_id)) {
       module_manager_->ActiveModule(module_id);
     } else {
-      module_manager_->DeactiveModule(module_id);
+      module_manager_->DeactivateModule(module_id);
     }
 
     QTimer::singleShot(1000, [=]() { slot_load_module_details(module_id); });
@@ -178,8 +178,8 @@ void ModuleControllerDialog::slot_load_module_details(
   }
 
   ui_->moduleInfoTextBrowser->setText(buffer);
-  ui_->activateOrDeactiveButton->setText(if_activated ? tr("Deactivate")
-                                                      : tr("Activate"));
+  ui_->activateOrDeactivateButton->setText(if_activated ? tr("Deactivate")
+                                                        : tr("Activate"));
   ui_->autoActivateButton->setText(module_so.auto_activate
                                        ? tr("Disable Auto Activate")
                                        : tr("Enable Auto Activate"));
