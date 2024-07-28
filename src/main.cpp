@@ -50,16 +50,20 @@ auto main(int argc, char* argv[]) -> int {
           argc, argv);
   ctx->InitApplication();
 
+#ifdef RELEASE
+  QLoggingCategory::setFilterRules("*.debug=false\n*.info=false\n");
+  qSetMessagePattern(
+      "[%{time yyyyMMdd h:mm:ss.zzz}] [%{category}] "
+      "[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-"
+      "critical}C%{endif}%{if-fatal}F%{endif}] [%{threadid}] - "
+      "%{message}");
+#else
+  QLoggingCategory::setFilterRules("*.debug=false");
   qSetMessagePattern(
       "[%{time yyyyMMdd h:mm:ss.zzz}] [%{category}] "
       "[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-"
       "critical}C%{endif}%{if-fatal}F%{endif}] [%{threadid}] %{file}:%{line} - "
       "%{message}");
-
-#ifdef RELEASE
-  QLoggingCategory::setFilterRules("*.debug=false\n*.info=false\n");
-#else
-  QLoggingCategory::setFilterRules("*.debug=false");
 #endif
 
   auto rtn = 0;
