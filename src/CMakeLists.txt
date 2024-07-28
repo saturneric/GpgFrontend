@@ -406,7 +406,7 @@ if (BUILD_APPLICATION)
 endif ()
 
 if(STABLE_BUILD_ONLY_APPLICATION)
-  target_include_directories(${AppName} PUBLIC "${CMAKE_SOURCE_DIR}/src")
+  target_include_directories(${AppName} PUBLIC "${CMAKE_INSTALL_INCLUDEDIR}/gpgfrontend")
 
   if(GPGFRONTEND_QT5_BUILD)
     target_link_libraries(${AppName} Qt5::Core Qt5::Widgets)
@@ -495,7 +495,7 @@ endif()
 # if building linux package
 if (LINUX AND LINUX_INSTALL_SOFTWARE)
   include(GNUInstallDirs)
-  
+
   if(STABLE_BUILD_ONLY_APPLICATION)
     set(GPGFRONTEND_INSTALL_LIBRARIES "")
   else()
@@ -544,6 +544,7 @@ endif ()
 # if build full sdk
 if (STABLE_BUILD_FULL_SDK)
   include(GNUInstallDirs)
+
   set(GPGFRONTEND_SDK_INSTALL_LIBRARIES 
       mimalloc
       gpgfrontend_core
@@ -557,4 +558,22 @@ if (STABLE_BUILD_FULL_SDK)
           RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
           LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
           ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+  install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/core"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/gpgfrontend"
+    FILES_MATCHING
+    PATTERN "*.h"
+  )
+
+  install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/ui"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/gpgfrontend"
+    FILES_MATCHING
+    PATTERN "*.h"
+  )
+
+  install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/gpgfrontend"
+    FILES_MATCHING
+    PATTERN "*.h"
+  )
 endif ()

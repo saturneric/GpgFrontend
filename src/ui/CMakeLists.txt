@@ -23,7 +23,6 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-
 # tracking source files
 aux_source_directory(. UI_SOURCE)
 aux_source_directory(dialog/keypair_details UI_SOURCE)
@@ -59,10 +58,9 @@ if(GPGFRONTEND_QT5_BUILD)
     Qt5::Core Qt5::Widgets Qt5::Network Qt5::PrintSupport)
 else()
   # link Qt
-  target_link_libraries(gpgfrontend_ui 
+  target_link_libraries(gpgfrontend_ui
     Qt6::Core Qt6::Widgets Qt6::Network Qt6::PrintSupport)
 endif()
-
 
 # link gpgfrontend_core
 target_link_libraries(gpgfrontend_ui gpgfrontend_core)
@@ -77,7 +75,7 @@ target_include_directories(gpgfrontend_ui PUBLIC
 # using std c++ 17
 target_compile_features(gpgfrontend_ui PUBLIC cxx_std_17)
 
-if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
   # lib output path
   set_target_properties(gpgfrontend_ui PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib
@@ -85,7 +83,7 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 endif()
 
 # for xcode archive build
-if (XCODE_BUILD)
+if(XCODE_BUILD)
   set_target_properties(gpgfrontend_ui
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
@@ -93,6 +91,6 @@ if (XCODE_BUILD)
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
     XCODE_ATTRIBUTE_SKIP_INSTALL "Yes"
     XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
-endif ()
+endif()
 
 target_compile_features(gpgfrontend_ui PUBLIC cxx_std_17)
