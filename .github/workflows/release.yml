@@ -60,8 +60,8 @@ jobs:
           PP_PATH=$RUNNER_TEMP/${{secrets.GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID}}.provisionprofile
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
-          echo -n "${{secrets.MACOS_CERTIFICATE}}" | base64 --decode --output $CERTIFICATE_PATH
-          echo -n "${{secrets.GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_DATA}}" | base64 --decode --output $PP_PATH
+          echo -n "${{secrets.MACOS_CERTIFICATE}}" | base64 --decode -o $CERTIFICATE_PATH
+          echo -n "${{secrets.GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_DATA}}" | base64 --decode -o $PP_PATH
 
           security create-keychain -p gpgfrontend build.keychain
           security default-keychain -s build.keychain
@@ -168,7 +168,7 @@ jobs:
           git clone --depth 1 --branch gpgme-1.18.0 git://git.gnupg.org/gpgme.git ${{github.workspace}}/third_party/gpgme
           cd ${{github.workspace}}/third_party/gpgme
           ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-languages=cpp --disable-gpg-test && make -j4
+          CFLAGS="-g -O2 -w -mms-bitfields"./configure --enable-maintainer-mode --enable-languages=cpp --disable-gpg-test && make -j4
           make install
           cd ${{github.workspace}}
         if: matrix.os == 'windows-2019'
@@ -178,12 +178,12 @@ jobs:
         run: |
           cmake -B ${{github.workspace}}/build-full-sdk -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_FULL_SDK=ON
           cmake --build ${{github.workspace}}/build-full-sdk --config {{$env.BUILD_TYPE}} -- -v
-          cmake --install ${{github.workspace}}/build-full-sdk --config {{$env.BUILD_TYPE}}
+          sudo cmake --install ${{github.workspace}}/build-full-sdk --config {{$env.BUILD_TYPE}}
 
       - name: Build Integrated Modules
         # Build your GpgFrontend with the given configuration
         run: |
-          cmake -B ${{github.workspace}}/modules/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/modules/build/artifacts
+          cmake -S ${{github.workspace}}/modules -B ${{github.workspace}}/modules/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/modules/build/artifacts
           cmake --build ${{github.workspace}}/modules/build --config {{$env.BUILD_TYPE}} -- -v
           cmake --install ${{github.workspace}}/modules/build --config {{$env.BUILD_TYPE}}
 
@@ -252,6 +252,7 @@ jobs:
           cd ${{github.workspace}}/build/final-artifact
           wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
           ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines,platformthemes/libqgtk3.so -appimage -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/modules/
         if: matrix.os == 'ubuntu-20.04'
 
