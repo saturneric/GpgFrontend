@@ -28,11 +28,16 @@
 
 #include "cmd.h"
 
+#include <qdatetime.h>
 #include <qglobal.h>
+#include <qloggingcategory.h>
+#include <qstring.h>
+#include <qtextstream.h>
 
 #include "core/utils/BuildInfoUtils.h"
 
 // GpgFrontend
+
 #include "GpgFrontendContext.h"
 #include "test/GpgFrontendTest.h"
 
@@ -40,7 +45,7 @@ namespace GpgFrontend {
 
 auto PrintVersion() -> int {
   QTextStream stream(stdout);
-  stream << PROJECT_NAME << " " << GetProjectVersion() << '\n';
+  stream << GetProjectName() << " " << GetProjectVersion() << '\n';
   stream << "Copyright (©) 2021 Saturneric <eric@bktus.com>" << '\n'
          << QCoreApplication::tr(
                 "This is free software; see the source for copying conditions.")

@@ -30,13 +30,17 @@
  * \mainpage GpgFrontend Develop Document Main Page
  */
 
+#include <qcommandlineparser.h>
+#include <qloggingcategory.h>
+
+//
 #include "GpgFrontendContext.h"
+#include "core/utils/MemoryUtils.h"
+
+//
 #include "app.h"
 #include "cmd.h"
 #include "init.h"
-
-//
-#include "core/utils/MemoryUtils.h"
 
 /**
  *
