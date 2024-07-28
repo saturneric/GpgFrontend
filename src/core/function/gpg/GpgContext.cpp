@@ -93,31 +93,24 @@ class GpgContext::Impl {
   static auto TestPassphraseCb(void *opaque, const char *uid_hint,
                                const char *passphrase_info, int last_was_bad,
                                int fd) -> gpgme_error_t {
-    size_t res;
-#ifdef QT5_BUILD
-    QString pass_qstr = "abcdefg\n";
-    QByteArray pass = pass_qstr.toUtf8();
-#else
-    QString pass = "abcdefg\n";
-#endif
+    QString passphrase = "abcdefg";
+    auto pass_bytes = passphrase.toLatin1();
+    auto pass_size = pass_bytes.size();
+    const auto *p_pass_bytes = pass_bytes.constData();
 
-    auto passphrase_size = pass.size();
-    size_t off = 0;
-
-    do {
-#ifdef QT5_BUILD
-      const char *p_pass = pass.data();
-      res = gpgme_io_write(fd, &p_pass[off], passpahrase_size - off);
-#else
-      res = gpgme_io_write(fd, &pass[off], passphrase_size - off);
-#endif
-      if (res > 0) off += res;
-    } while (res > 0 && static_cast<long long>(off) != passphrase_size);
+    ssize_t res = 0;
+    if (pass_size > 0) {
+      ssize_t off = 0;
+      ssize_t ret = 0;
+      do {
+        ret = gpgme_io_write(fd, &p_pass_bytes[off], pass_size - off);
+        if (ret > 0) off += ret;
+      } while (ret > 0 && off != pass_size);
+      res = off;
+    }
 
     res += gpgme_io_write(fd, "\n", 1);
-    return static_cast<long long>(res) == (passphrase_size + 1)
-               ? 0
-               : gpgme_error_from_errno(GPG_ERR_CANCELED);
+    return res == pass_size + 1 ? 0 : gpgme_error_from_errno(GPG_ERR_CANCELED);
   }
 
   static auto CustomPassphraseCb(void *hook, const char *uid_hint,
@@ -157,24 +150,23 @@ class GpgContext::Impl {
     looper.exec();
     ResetCacheValue("PinentryContext");
 
-    auto passphrase_size = passphrase.size();
-    qCDebug(core, "get passphrase from pinentry size: %lld", passphrase_size);
+    auto pass_bytes = passphrase.toLatin1();
+    auto pass_size = pass_bytes.size();
+    const auto *p_pass_bytes = pass_bytes.constData();
 
-    size_t res = 0;
-    if (passphrase_size > 0) {
-      size_t off = 0;
+    ssize_t res = 0;
+    if (pass_size > 0) {
+      ssize_t off = 0;
+      ssize_t ret = 0;
       do {
-        res = gpgme_io_write(fd, &passphrase[off], passphrase_size - off);
-        if (res > 0) off += res;
-      } while (res > 0 && off != passphrase_size);
+        ret = gpgme_io_write(fd, &p_pass_bytes[off], pass_size - off);
+        if (ret > 0) off += ret;
+      } while (ret > 0 && off != pass_size);
+      res = off;
     }
 
     res += gpgme_io_write(fd, "\n", 1);
-
-    qCDebug(core, "custom passphrase cd is about to return, res: %ld", res);
-    return res == passphrase_size + 1
-               ? 0
-               : gpgme_error_from_errno(GPG_ERR_CANCELED);
+    return res == pass_size + 1 ? 0 : gpgme_error_from_errno(GPG_ERR_CANCELED);
   }
 
   static auto TestStatusCb(void *hook, const char *keyword,
