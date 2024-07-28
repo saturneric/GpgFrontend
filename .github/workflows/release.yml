@@ -274,7 +274,7 @@ jobs:
           wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
-          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines,platformthemes/libqgtk3.so -appimage -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/modules/
+          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines -appimage -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/modules/
         if: matrix.os == 'ubuntu-20.04'
 
       - name: Configure CMake & Build Binary (Windows)
