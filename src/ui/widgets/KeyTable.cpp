@@ -28,7 +28,9 @@
 
 #include "ui/widgets/KeyTable.h"
 
+#include "core/function/gpg/GpgKeyGetter.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/dialog/keypair_details/KeyDetailsDialog.h"
 
 namespace GpgFrontend::UI {
 
@@ -72,6 +74,16 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
           [=](GpgKeyTableColumn global_column_filter) {
             emit(&proxy_model_)
                 ->SignalColumnTypeChange(column_filter_ & global_column_filter);
+          });
+  connect(this, &QTableView::doubleClicked, this,
+          [this](const QModelIndex& index) {
+            auto key =
+                GpgKeyGetter::GetInstance().GetKey(GetKeyIdByRow(index.row()));
+            if (!key.IsGood()) {
+              QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
+              return;
+            }
+            new KeyDetailsDialog(key, this);
           });
 }
 
