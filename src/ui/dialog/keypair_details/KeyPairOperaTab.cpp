@@ -518,9 +518,9 @@ void KeyPairOperaTab::slot_export_paper_key() {
           qCDebug(ui) << "REQUEST_TRANS_KEY_2_PAPER_KEY callback: " << i << ei;
 
           if (p["ret"] != "0" || p["paper_key"].isEmpty()) {
-            QMessageBox::critical(this, tr("Error"),
-                                  tr("An error occurred trying to recover the "
-                                     "Paper Key back to the private key."));
+            QMessageBox::critical(
+                this, tr("Error"),
+                tr("An error occurred trying to generate Paper Key."));
             return;
           }
 
