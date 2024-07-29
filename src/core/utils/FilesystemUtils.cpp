@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -50,8 +50,8 @@ auto GetFileExtension(const QString &path) -> QString {
  * @brief
  *
  */
-auto GetFileSizeByPath(const QString &path, const QString &filename_pattern)
-    -> int64_t {
+auto GetFileSizeByPath(const QString &path,
+                       const QString &filename_pattern) -> int64_t {
   auto dir = QDir(path);
   QFileInfoList const file_list =
       dir.entryInfoList(QStringList() << filename_pattern, QDir::Files);
@@ -70,10 +70,7 @@ auto GetFileSizeByPath(const QString &path, const QString &filename_pattern)
 auto GetHumanFriendlyFileSize(int64_t size) -> QString {
   auto num = static_cast<double>(size);
   QStringList list;
-  list << "KB"
-       << "MB"
-       << "GB"
-       << "TB";
+  list << "KB" << "MB" << "GB" << "TB";
 
   QStringListIterator i(list);
   QString unit("bytes");

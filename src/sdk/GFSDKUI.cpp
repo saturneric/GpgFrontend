@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -36,8 +36,8 @@
 #include "sdk/private/CommonUtils.h"
 #include "ui/UIModuleManager.h"
 
-auto MetaDataArrayToQMap(MetaData** meta_data_array, int size)
-    -> QMap<QString, QString> {
+auto MetaDataArrayToQMap(MetaData** meta_data_array,
+                         int size) -> QMap<QString, QString> {
   QMap<QString, QString> map;
 
   for (int i = 0; i < size; ++i) {

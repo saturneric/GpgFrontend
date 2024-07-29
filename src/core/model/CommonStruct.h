@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -36,9 +36,7 @@ namespace GpgFrontend {
  */
 template <typename T>
 struct GPGFRONTEND_CORE_EXPORT RefDeleter {
-  void operator()(T* _key) {
-    gpgme_unre
-  }
+  void operator()(T* _key) { gpgme_unre }
 };
 
 template <typename T>

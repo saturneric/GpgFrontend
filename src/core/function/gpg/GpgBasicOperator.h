@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -63,8 +63,8 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @brief
    *
    */
-  auto EncryptSync(const KeyArgsList&, const GFBuffer&, bool)
-      -> std::tuple<GpgError, DataObjectPtr>;
+  auto EncryptSync(const KeyArgsList&, const GFBuffer&,
+                   bool) -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief Call the interface provided by GPGME to symmetrical encryption
@@ -85,8 +85,8 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param cb
    * @return std::tuple<GpgError, DataObjectPtr>
    */
-  auto EncryptSymmetricSync(const GFBuffer& in_buffer, bool ascii)
-      -> std::tuple<GpgError, DataObjectPtr>;
+  auto EncryptSymmetricSync(const GFBuffer& in_buffer,
+                            bool ascii) -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    *
@@ -113,8 +113,8 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param cb
    */
   auto EncryptSignSync(const KeyArgsList& keys, const KeyArgsList& signers,
-                       const GFBuffer& in_buffer, bool ascii)
-      -> std::tuple<GpgError, DataObjectPtr>;
+                       const GFBuffer& in_buffer,
+                       bool ascii) -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief Call the interface provided by gpgme for decryption operation
@@ -210,8 +210,8 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @return std::tuple<GpgError, DataObjectPtr>
    */
   auto SignSync(const KeyArgsList& signers, const GFBuffer& in_buffer,
-                GpgSignMode mode, bool ascii)
-      -> std::tuple<GpgError, DataObjectPtr>;
+                GpgSignMode mode,
+                bool ascii) -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief  Set the private key for signatures, this operation is a global

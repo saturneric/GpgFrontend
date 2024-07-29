@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -47,8 +47,8 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    * @return true if passphrase was generated and saved
    * @return false if passphrase was not generated and saved
    */
-  static auto GeneratePassphrase(const QString &phrase_path, QString &phrase)
-      -> bool;
+  static auto GeneratePassphrase(const QString &phrase_path,
+                                 QString &phrase) -> bool;
 
   /**
    * @brief generate the name of the key package

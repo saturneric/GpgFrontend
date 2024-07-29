@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -27,7 +27,6 @@
  */
 
 #include "GpgPassphraseContext.h"
-
 
 namespace GpgFrontend {
 

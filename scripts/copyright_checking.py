@@ -2,7 +2,7 @@ import os
 
 # copyright text for source files
 copyright_text_source = """/**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -30,7 +30,7 @@ copyright_text_source = """/**
  */"""
 
  # copyright text for script files
-copyright_text_script = """# Copyright (C) 2021 Saturneric <eric@bktus.com>
+copyright_text_script = """# Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
 #
 # This file is part of GpgFrontend.
 #
@@ -67,7 +67,9 @@ def check_copright_by_path(path, copyright_text, suffix):
                   print(f"copyright declaration missing: {file_path}")
 
 check_copright_by_path("src", copyright_text_source, ('.c', '.cpp', '.h', '.hpp'))
-check_copright_by_path("test", copyright_text_source, ('.c', '.cpp', '.h', '.hpp'))
 check_copright_by_path("src", copyright_text_script, ('.txt'))
 check_copright_by_path("src", copyright_text_script, ('.txt'))
+check_copright_by_path("modules", copyright_text_script, ('.txt'))
+check_copright_by_path("modules", copyright_text_script, ('.c', '.cpp', '.h', '.hpp'))
+
 print("check done")

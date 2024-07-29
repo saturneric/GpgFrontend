@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -50,14 +50,14 @@ enum class KeyMenuAbility : unsigned int {
   kALL = ~0U
 };
 
-inline auto operator|(KeyMenuAbility lhs, KeyMenuAbility rhs)
-    -> KeyMenuAbility {
+inline auto operator|(KeyMenuAbility lhs,
+                      KeyMenuAbility rhs) -> KeyMenuAbility {
   using T = std::underlying_type_t<KeyMenuAbility>;
   return static_cast<KeyMenuAbility>(static_cast<T>(lhs) | static_cast<T>(rhs));
 }
 
-inline auto operator|=(KeyMenuAbility& lhs, KeyMenuAbility rhs)
-    -> KeyMenuAbility& {
+inline auto operator|=(KeyMenuAbility& lhs,
+                       KeyMenuAbility rhs) -> KeyMenuAbility& {
   lhs = lhs | rhs;
   return lhs;
 }

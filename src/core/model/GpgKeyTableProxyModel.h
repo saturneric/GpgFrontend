@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -46,13 +46,11 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableProxyModel
   void SetSearchKeywords(const QString &keywords);
 
  protected:
-  [[nodiscard]] auto filterAcceptsRow(int sourceRow,
-                                      const QModelIndex &sourceParent) const
-      -> bool override;
+  [[nodiscard]] auto filterAcceptsRow(
+      int sourceRow, const QModelIndex &sourceParent) const -> bool override;
 
-  [[nodiscard]] auto filterAcceptsColumn(int sourceColumn,
-                                         const QModelIndex &sourceParent) const
-      -> bool override;
+  [[nodiscard]] auto filterAcceptsColumn(
+      int sourceColumn, const QModelIndex &sourceParent) const -> bool override;
 
  signals:
 

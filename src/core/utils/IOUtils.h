@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -98,9 +98,8 @@ auto GPGFRONTEND_CORE_EXPORT CalculateBinaryChacksum(const QString &path)
  * @return true
  * @return false
  */
-auto GPGFRONTEND_CORE_EXPORT WriteBufferToFile(const QString &path,
-                                               const QString &out_buffer)
-    -> bool;
+auto GPGFRONTEND_CORE_EXPORT
+WriteBufferToFile(const QString &path, const QString &out_buffer) -> bool;
 
 /**
  * @brief

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -102,8 +102,8 @@ void GpgSignResultAnalyse::doAnalyse() {
               << gpgme_pubkey_algo_name(new_sign->pubkey_algo) << Qt::endl;
       stream_ << "- " << tr("Hash Algo") << ": "
               << gpgme_hash_algo_name(new_sign->hash_algo) << Qt::endl;
-      stream_ << "- " << tr("Sign Date") << "(" << tr("UTC") << ")"
-              << ": " << GetUTCDateByTimestamp(new_sign->timestamp) << Qt::endl;
+      stream_ << "- " << tr("Sign Date") << "(" << tr("UTC") << ")" << ": "
+              << GetUTCDateByTimestamp(new_sign->timestamp) << Qt::endl;
       stream_ << "- " << tr("Sign Date") << "(" << tr("Localized") << ")"
               << ": " << GetLocalizedDateByTimestamp(new_sign->timestamp)
               << Qt::endl;

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -56,10 +56,9 @@ RunGpgOperaAsync(const GpgOperaRunnable& runnable,
  * @param minial_version
  * @return std::tuple<GpgError, DataObjectPtr>
  */
-auto GPGFRONTEND_CORE_EXPORT RunGpgOperaSync(const GpgOperaRunnable& runnable,
-                                             const QString& operation,
-                                             const QString& minial_version)
-    -> std::tuple<GpgError, DataObjectPtr>;
+auto GPGFRONTEND_CORE_EXPORT RunGpgOperaSync(
+    const GpgOperaRunnable& runnable, const QString& operation,
+    const QString& minial_version) -> std::tuple<GpgError, DataObjectPtr>;
 
 /**
  * @brief
@@ -68,10 +67,9 @@ auto GPGFRONTEND_CORE_EXPORT RunGpgOperaSync(const GpgOperaRunnable& runnable,
  * @param callback
  * @param operation
  */
-auto GPGFRONTEND_CORE_EXPORT RunIOOperaAsync(const OperaRunnable& runnable,
-                                             const OperationCallback& callback,
-                                             const QString& operation)
-    -> Thread::Task::TaskHandler;
+auto GPGFRONTEND_CORE_EXPORT RunIOOperaAsync(
+    const OperaRunnable& runnable, const OperationCallback& callback,
+    const QString& operation) -> Thread::Task::TaskHandler;
 
 /**
  * @brief
@@ -81,8 +79,7 @@ auto GPGFRONTEND_CORE_EXPORT RunIOOperaAsync(const OperaRunnable& runnable,
  * @param operation
  * @return Thread::Task::TaskHandler
  */
-auto GPGFRONTEND_CORE_EXPORT RunOperaAsync(const OperaRunnable& runnable,
-                                           const OperationCallback& callback,
-                                           const QString& operation)
-    -> Thread::Task::TaskHandler;
+auto GPGFRONTEND_CORE_EXPORT
+RunOperaAsync(const OperaRunnable& runnable, const OperationCallback& callback,
+              const QString& operation) -> Thread::Task::TaskHandler;
 }  // namespace GpgFrontend

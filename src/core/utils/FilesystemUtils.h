@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -56,9 +56,8 @@ auto GPGFRONTEND_CORE_EXPORT GetOnlyFileNameWithPath(const QString& path)
  * @param filename_pattern The pattern of the file name, e.g. "*.txt"
  * @return int64_t
  */
-auto GPGFRONTEND_CORE_EXPORT GetFileSizeByPath(const QString& path,
-                                               const QString& filename_pattern)
-    -> int64_t;
+auto GPGFRONTEND_CORE_EXPORT GetFileSizeByPath(
+    const QString& path, const QString& filename_pattern) -> int64_t;
 
 /**
  * @brief Get the Human Readable File Size object

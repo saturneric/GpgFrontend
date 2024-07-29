@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -44,9 +44,8 @@ struct MountedUIEntry {
 
   [[nodiscard]] auto GetWidget() const -> QWidget*;
 
-  [[nodiscard]] auto GetMetaDataByDefault(const QString& key,
-                                          QString default_value) const
-      -> QString;
+  [[nodiscard]] auto GetMetaDataByDefault(
+      const QString& key, QString default_value) const -> QString;
 };
 
 class GPGFRONTEND_UI_EXPORT UIModuleManager

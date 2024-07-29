@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -90,8 +90,8 @@ class GPGFRONTEND_CORE_EXPORT CacheManager
    * @param default_value
    * @return QJsonDocument
    */
-  auto LoadDurableCache(const QString& key, QJsonDocument default_value)
-      -> QJsonDocument;
+  auto LoadDurableCache(const QString& key,
+                        QJsonDocument default_value) -> QJsonDocument;
 
   /**
    * @brief

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -62,8 +62,8 @@ auto GPGFRONTEND_CORE_EXPORT CheckGpgError(GpgError gpgmeError,
  * @return gpg_err_code_t
  */
 auto GPGFRONTEND_CORE_EXPORT CheckGpgError2ErrCode(
-    gpgme_error_t err, gpgme_error_t predict = GPG_ERR_NO_ERROR)
-    -> gpg_err_code_t;
+    gpgme_error_t err,
+    gpgme_error_t predict = GPG_ERR_NO_ERROR) -> gpg_err_code_t;
 
 /**
  * @brief

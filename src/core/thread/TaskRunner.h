@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -98,8 +98,8 @@ class GPGFRONTEND_CORE_EXPORT TaskRunner : public QObject {
    * @return std::tuple<QPointer<Task>, TaskTrigger>
    */
   auto RegisterTask(const QString&, const Task::TaskRunnable&,
-                    const Task::TaskCallback&, DataObjectPtr)
-      -> Task::TaskHandler;
+                    const Task::TaskCallback&,
+                    DataObjectPtr) -> Task::TaskHandler;
 
   /**
    * @brief

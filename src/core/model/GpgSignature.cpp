@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -41,8 +41,8 @@ GpgSignature::GpgSignature(GpgSignature &&) noexcept = default;
  *
  * @return GpgSignature&
  */
-auto GpgSignature::operator=(GpgSignature &&) noexcept
-    -> GpgSignature & = default;
+auto GpgSignature::operator=(GpgSignature &&) noexcept -> GpgSignature & =
+                                                              default;
 
 /**
  * @brief Construct a new Gpg Signature:: Gpg Signature object

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -241,11 +241,10 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param ascii
    * @param out_path
    */
-  auto EncryptSignFileSync(const KeyArgsList& keys,
-                           const KeyArgsList& signer_keys,
-                           const QString& in_path, bool ascii,
-                           const QString& out_path)
-      -> std::tuple<GpgError, DataObjectPtr>;
+  auto EncryptSignFileSync(
+      const KeyArgsList& keys, const KeyArgsList& signer_keys,
+      const QString& in_path, bool ascii,
+      const QString& out_path) -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -51,8 +51,8 @@ auto GpgKeyTableModel::columnCount(const QModelIndex & /*parent*/) const
   return 11;
 }
 
-auto GpgKeyTableModel::data(const QModelIndex &index, int role) const
-    -> QVariant {
+auto GpgKeyTableModel::data(const QModelIndex &index,
+                            int role) const -> QVariant {
   if (!index.isValid() || buffered_keys_.empty()) return {};
 
   if (role == Qt::TextAlignmentRole) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -71,8 +71,7 @@ struct KeyServerSO {
   }
 
   void ResetDefaultServerList() {
-    server_list << "https://keyserver.ubuntu.com"
-                << "https://keys.openpgp.org";
+    server_list << "https://keyserver.ubuntu.com" << "https://keys.openpgp.org";
   }
 };
 

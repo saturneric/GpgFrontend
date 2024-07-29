@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -54,11 +54,11 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
     stream_ << Qt::endl;
     auto *sign = result->signatures;
 
-    stream_ << "-> " << tr("Signed On") << "(" << tr("UTC") << ")"
-            << ": " << GetUTCDateByTimestamp(sign->timestamp) << Qt::endl;
+    stream_ << "-> " << tr("Signed On") << "(" << tr("UTC") << ")" << ": "
+            << GetUTCDateByTimestamp(sign->timestamp) << Qt::endl;
 
-    stream_ << "-> " << tr("Signed On") << "(" << tr("Localized") << ")"
-            << ": " << GetLocalizedDateByTimestamp(sign->timestamp) << Qt::endl;
+    stream_ << "-> " << tr("Signed On") << "(" << tr("Localized") << ")" << ": "
+            << GetLocalizedDateByTimestamp(sign->timestamp) << Qt::endl;
 
     stream_ << Qt::endl << "## " << tr("Signatures List") << ":" << Qt::endl;
     stream_ << Qt::endl;
@@ -180,25 +180,22 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
 
 auto GpgFrontend::GpgVerifyResultAnalyse::print_signer_without_key(
     QTextStream &stream, GpgSignature sign) -> bool {
-  stream_ << "- " << tr("Signed By") << "(" << tr("Fingerprint") << ")"
-          << ": "
+  stream_ << "- " << tr("Signed By") << "(" << tr("Fingerprint") << ")" << ": "
           << (sign.GetFingerprint().isEmpty() ? tr("<unknown>")
                                               : sign.GetFingerprint())
           << Qt::endl;
   stream << "- " << tr("Public Key Algo") << ": " << sign.GetPubkeyAlgo()
          << Qt::endl;
   stream << "- " << tr("Hash Algo") << ": " << sign.GetHashAlgo() << Qt::endl;
-  stream << "- " << tr("Sign Date") << "(" << tr("UTC") << ")"
-         << ": " << QLocale().toString(sign.GetCreateTime().toUTC())
-         << Qt::endl;
-  stream << "- " << tr("Sign Date") << "(" << tr("Localized") << ")"
-         << ": " << QLocale().toString(sign.GetCreateTime()) << Qt::endl;
+  stream << "- " << tr("Sign Date") << "(" << tr("UTC") << ")" << ": "
+         << QLocale().toString(sign.GetCreateTime().toUTC()) << Qt::endl;
+  stream << "- " << tr("Sign Date") << "(" << tr("Localized") << ")" << ": "
+         << QLocale().toString(sign.GetCreateTime()) << Qt::endl;
   return true;
 }
 
-auto GpgFrontend::GpgVerifyResultAnalyse::print_signer(QTextStream &stream,
-                                                       GpgSignature sign)
-    -> bool {
+auto GpgFrontend::GpgVerifyResultAnalyse::print_signer(
+    QTextStream &stream, GpgSignature sign) -> bool {
   auto fingerprint = sign.GetFingerprint();
   auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(fingerprint);
   if (key.IsGood()) {
@@ -234,11 +231,10 @@ auto GpgFrontend::GpgVerifyResultAnalyse::print_signer(QTextStream &stream,
   stream << "- " << tr("Public Key Algo") << ": " << sign.GetPubkeyAlgo()
          << Qt::endl;
   stream << "- " << tr("Hash Algo") << ": " << sign.GetHashAlgo() << Qt::endl;
-  stream << "- " << tr("Sign Date") << "(" << tr("UTC") << ")"
-         << ": " << QLocale().toString(sign.GetCreateTime().toUTC())
-         << Qt::endl;
-  stream << "- " << tr("Sign Date") << "(" << tr("Localized") << ")"
-         << ": " << QLocale().toString(sign.GetCreateTime()) << Qt::endl;
+  stream << "- " << tr("Sign Date") << "(" << tr("UTC") << ")" << ": "
+         << QLocale().toString(sign.GetCreateTime().toUTC()) << Qt::endl;
+  stream << "- " << tr("Sign Date") << "(" << tr("Localized") << ")" << ": "
+         << QLocale().toString(sign.GetCreateTime()) << Qt::endl;
   stream << Qt::endl;
   return key.IsGood();
 }
