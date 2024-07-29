@@ -40,10 +40,9 @@ As of version v2.1.1, we no longer support Ubuntu 18.04, as it isn't supported
 by GitHub Action since April 3rd. Thus, all builds will transition to Qt6, since
 Ubuntu 20.04 is compatible with Qt6.
 
-Starting from v2.1.2, the Qt5 API will be removed from the source code. This
-implies that the entire project will now utilize the Qt6 API and will no longer
-compile under Qt5. Consideration is being given to removing the deb package
-build as well.
+From version v2.1.4 onwards, we no longer support macOS 11, as it will be
+discontinued soon by GitHub Action. Given its age and the anticipated
+discontinuation of support by Apple, it is wise to drop it.
 
 ## Reporting a Vulnerability
 
