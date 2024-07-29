@@ -175,7 +175,7 @@ jobs:
           mkdir -p build/artifacts/modules
           cp -r modules/build/artifacts/* build/artifacts/modules
           cd build
-          windeployqt-qt6 --force ./artifacts/GpgFrontend.exe
+          windeployqt --force ./artifacts/GpgFrontend.exe
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: matrix.os == 'windows-2019'

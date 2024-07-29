@@ -252,6 +252,8 @@ jobs:
           --team-id ${{secrets.APPLE_DEVELOPER_TEAM_ID}} \
           --password ${{secrets.APPLE_DEVELOPER_ID_SECRET}} \
           ${{github.workspace}}/build/GpgFrontend-${{env.sha_short}}-x86_64.zip
+          echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
+          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if:  matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
     
       - name: Build GpgFrontend (Linux)
@@ -270,6 +272,8 @@ jobs:
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
           ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines -appimage -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/modules/
+          echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
+          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: matrix.os == 'ubuntu-20.04'
 
       - name: Configure CMake & Build Binary (Windows)
@@ -289,25 +293,27 @@ jobs:
           cp -r modules/build/artifacts/* build/artifacts/modules
           cd build
           windeployqt-qt6 --force ./artifacts/GpgFrontend.exe
+          echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
+          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: matrix.os == 'windows-2019'
 
       - name: Upload Artifact (Linux)
         uses: actions/upload-artifact@master
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{ github.sha }}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{ env.SHORT_SHA }}
           path: ${{github.workspace}}/build/final-artifact/Gpg_Frontend*.AppImage*
         if: matrix.os == 'ubuntu-20.04'
 
       - name: Upload Artifact (macOS)
         uses: actions/upload-artifact@master
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{ github.sha }}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{ env.SHORT_SHA }}
           path: ${{github.workspace}}/build/final-artifact/*
         if:  matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
 
       - name: Upload Artifact (Windows)
         uses: actions/upload-artifact@master
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{ github.sha }}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{ env.SHORT_SHA }}
           path: ${{github.workspace}}/build/artifacts/*
         if: matrix.os == 'windows-2019'
