@@ -4,6 +4,7 @@ src/GpgFrontendBuildInfo.h
 src/GpgFrontendBuildInstallInfo.h
 src/core/GpgFrontendCoreExport.h
 src/ui/GpgFrontendUIExport.h
+src/sdk/GFSDKBuildInfo.h
 docs/
 
 # gettext

@@ -681,7 +681,7 @@ void MainWindow::create_tool_bars() {
 }
 
 void MainWindow::create_status_bar() {
-  auto* status_bar_box = new QWidget(this);
+  auto* status_bar_box = new QWidget();
   auto* status_bar_box_layout = new QHBoxLayout();
   // QPixmap* pixmap;
 

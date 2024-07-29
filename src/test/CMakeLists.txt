@@ -53,7 +53,8 @@ if(XCODE_BUILD)
     XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
 endif()
 
-if(MINGW)
+# use system installed libraries or install it system wide
+if(MINGW AND NOT STABLE_BUILD_FULL_SDK)
   set_target_properties(gtest
     PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
