@@ -163,18 +163,33 @@ jobs:
           wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
           ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines -appimage
+          echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
+          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: matrix.os == 'ubuntu-20.04'
+
+
+      - name: Copy Modules & Package (Windows)
+        shell: msys2 {0}
+        run: |
+          cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
+          mkdir -p build/artifacts/modules
+          cp -r modules/build/artifacts/* build/artifacts/modules
+          cd build
+          windeployqt-qt6 --force ./artifacts/GpgFrontend.exe
+          echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
+          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
+        if: matrix.os == 'windows-2019'
       
       - name: Upload Artifact(Linux)
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v4
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{ github.sha }}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{ env.SHORT_SHA }}
           path: ${{github.workspace}}/build/final-artifact/Gpg_Frontend*.AppImage*
         if: matrix.os == 'ubuntu-20.04'
 
       - name: Upload Artifact(Windows)
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v4
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{ github.sha }}
+          name: gpgfrontend-${{matrix.os}}--${{env.BUILD_TYPE_LOWER}}-${{ env.SHORT_SHA }}
           path: ${{github.workspace}}/build/artifacts/*
         if: matrix.os == 'windows-2019'

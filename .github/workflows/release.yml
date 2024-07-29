@@ -100,14 +100,8 @@ jobs:
         run: |
           pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf 
           pacman --noconfirm -S --needed make texinfo automake 
-          pacman --noconfirm -S --needed libintl msys2-runtime-devel gettext-devel
+          pacman --noconfirm -S --needed mingw-w64-x86_64-qt6 mingw-w64-x86_64-icu libintl msys2-runtime-devel gettext-devel
           pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg mingw-w64-x86_64-libarchive
-          wget https://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-icu-73.2-1-any.pkg.tar.zst
-          wget https://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-qt6-base-6.5.3-1-any.pkg.tar.zst
-          wget https://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-qt6-5compat-6.5.3-1-any.pkg.tar.zst
-          wget https://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-qt6-svg-6.5.3-1-any.pkg.tar.zst
-          wget https://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-qt6-tools-6.5.3-1-any.pkg.tar.zst
-          pacman --noconfirm -U *.pkg.tar.zst
         if: matrix.os == 'windows-2019'
 
       - name: Build gpg-error (Linux)
@@ -294,7 +288,7 @@ jobs:
           mkdir -p build/artifacts/modules
           cp -r modules/build/artifacts/* build/artifacts/modules
           cd build
-          windeployqt-qt6 --force --libdir ./artifacts --release ./artifacts/GpgFrontend.exe
+          windeployqt-qt6 --force ./artifacts/GpgFrontend.exe
         if: matrix.os == 'windows-2019'
 
       - name: Upload Artifact (Linux)
