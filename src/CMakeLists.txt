@@ -521,10 +521,6 @@ if(LINUX AND LINUX_INSTALL_SOFTWARE)
       gpgfrontend_ui
       gpgfrontend_test
       gpgfrontend_module_sdk)
-
-    if(NOT APPLE)
-      list(APPEND GPGFRONTEND_INSTALL_LIBRARIES mimalloc)
-    endif()
   endif()
 
   message(STATUS "GpgFrontend Install Libraries: ${GPGFRONTEND_INSTALL_LIBRARIES}")
@@ -569,10 +565,6 @@ if(STABLE_BUILD_FULL_SDK)
     gpgfrontend_ui
     gpgfrontend_test
     gpgfrontend_module_sdk)
-
-  if(NOT APPLE)
-    list(APPEND GPGFRONTEND_SDK_INSTALL_LIBRARIES mimalloc)
-  endif()
 
   install(TARGETS ${GPGFRONTEND_SDK_INSTALL_LIBRARIES}
     EXPORT GpgFrontendTargets
