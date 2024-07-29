@@ -291,7 +291,7 @@ jobs:
         run: |
           cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
           mkdir -p build/artifacts/modules
-          copy -r modules/build/artifacts/* build/artifacts/modules
+          cp -r modules/build/artifacts/* build/artifacts/modules
           cd build
           windeployqt-qt6 --force --libdir ./artifacts --release ./artifacts/GpgFrontend.exe
         if: matrix.os == 'windows-2019'
