@@ -230,9 +230,9 @@ jobs:
 
       - name: Copy Modules into Bundle & Deploy Qt & Code Sign (macOS)
         run: |
-          cmake -E copy_directory ${{github.workspace}}/modules/build/artifacts/modules ${{github.workspace}}/build/package/GpgFrontend.app/Contents/modules
+          cmake -E copy_directory ${{github.workspace}}/modules/build/artifacts/modules ${{github.workspace}}/build/package/GpgFrontend.app/Contents/Modules
           macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app -verbose=2 -appstore-compliant -always-overwrite
-          codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" -f --deep --options=runtime  ${{github.workspace}}/build/package/GpgFrontend.app
+          codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" -f --deep --options=runtime --timestamp ${{github.workspace}}/build/package/GpgFrontend.app
         if:  matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
 
       - name: Package & Sign App Bundle (macOS)
