@@ -252,7 +252,9 @@ jobs:
           --team-id ${{secrets.APPLE_DEVELOPER_TEAM_ID}} \
           --password ${{secrets.APPLE_DEVELOPER_ID_SECRET}} \
           ${{github.workspace}}/build/GpgFrontend-${{env.sha_short}}-x86_64.zip
-          echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
+
+          
+          echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE} | tr '[:upper:]' '[:lower:]')" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if:  matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
     
