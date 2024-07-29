@@ -55,6 +55,9 @@ endif()
 
 find_package(OpenSSL REQUIRED)
 
+# mimalloc
+find_package(mimalloc REQUIRED)
+
 # Set Build Information
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h @ONLY)

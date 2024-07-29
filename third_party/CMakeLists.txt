@@ -26,7 +26,8 @@
 # json
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 
-if(MINGW)
+# full sdk build on windows will use system installed libarchive
+if(MINGW AND NOT STABLE_BUILD_FULL_SDK)
   add_subdirectory(libarchive EXCLUDE_FROM_ALL)
 endif()
 
@@ -53,5 +54,8 @@ if(NOT APPLE)
   add_subdirectory(mimalloc EXCLUDE_FROM_ALL)
 endif()
 
-set(INSTALL_GTEST OFF)
-add_subdirectory(googletest EXCLUDE_FROM_ALL)
+# full sdk build on windows will use system installed gtest
+if(NOT STABLE_BUILD_FULL_SDK AND NOT MINGW)
+  set(INSTALL_GTEST OFF)
+  add_subdirectory(googletest EXCLUDE_FROM_ALL)
+endif()
