@@ -276,6 +276,22 @@ if(BUILD_APPLICATION AND MINGW)
     unset(_libDllPath)
     file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgpgfrontend_*.dll")
     list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+    unset(_libDllPath)
+    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libmimalloc*.dll")
+    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+    unset(_libDllPath)
+    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/mimalloc*.dll")
+    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+    unset(_libDllPath)
+    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libarchive*.dll")
+    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+    unset(_libDllPath)
+    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgtest*.dll")
+    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
   endif()
 
   # dll with only name
