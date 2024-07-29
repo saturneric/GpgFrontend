@@ -29,9 +29,3 @@ if(ENABLE_ASAN AND NOT APPLE AND ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
   set(MI_TRACK_ASAN ON)
   add_subdirectory(mimalloc EXCLUDE_FROM_ALL)
 endif()
-
-# full sdk build on windows will use system installed gtest
-if(NOT STABLE_BUILD_FULL_SDK AND NOT MINGW)
-  set(INSTALL_GTEST OFF)
-  add_subdirectory(googletest EXCLUDE_FROM_ALL)
-endif()
