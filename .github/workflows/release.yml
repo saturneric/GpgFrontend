@@ -4,20 +4,17 @@ on:
   push:
     branches: [ main, 'develop' ]
     paths-ignore:
-      - 'resource/locale/**'
-      - 'manual/**'
+      - 'resource/lfs/locale/**'
       - '**.md'
   pull_request:
     branches: [ main, 'develop' ]
     paths-ignore:
-      - 'resource/locale/**'
-      - 'manual/**'
+      - 'resource/lfs/locale/**'
       - '**.md'
 
 env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  # Customize the CMake build type here (Release, Debug, etc.)
   BUILD_TYPE: Release
-  EXECUTABLE_OUTPUT_PATH: ./
 
 jobs:
   build:
@@ -252,8 +249,6 @@ jobs:
           --team-id ${{secrets.APPLE_DEVELOPER_TEAM_ID}} \
           --password ${{secrets.APPLE_DEVELOPER_ID_SECRET}} \
           ${{github.workspace}}/build/GpgFrontend-${{env.sha_short}}-x86_64.zip
-
-          
           echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE} | tr '[:upper:]' '[:lower:]')" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if:  matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
@@ -292,7 +287,7 @@ jobs:
         run: |
           cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
           mkdir -p build/artifacts/modules
-          cp -r modules/build/artifacts/* build/artifacts/modules
+          cp -r modules/build/artifacts/bin/* build/artifacts/modules
           cd build
           windeployqt-qt6 --force ./artifacts/GpgFrontend.exe
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}

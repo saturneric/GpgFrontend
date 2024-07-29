@@ -4,20 +4,17 @@ on:
   push:
     branches: [ main, 'develop' ]
     paths-ignore:
-      - 'resource/locale/**'
-      - 'manual/**'
+      - 'resource/lfs/locale/**'
       - '**.md'
   pull_request:
     branches: [ main, 'develop' ]
     paths-ignore:
-      - 'resource/locale/**'
-      - 'manual/**'
+      - 'resource/lfs/locale/**'
       - '**.md'
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
-  EXECUTABLE_OUTPUT_PATH: ./
 
 jobs:
   build:
