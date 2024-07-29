@@ -172,8 +172,6 @@ jobs:
         shell: msys2 {0}
         run: |
           cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
-          mkdir -p build/artifacts/modules
-          cp -r modules/build/artifacts/* build/artifacts/modules
           cd build
           windeployqt --force ./artifacts/GpgFrontend.exe
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
