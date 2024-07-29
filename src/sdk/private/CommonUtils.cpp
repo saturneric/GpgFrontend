@@ -30,6 +30,8 @@
 
 #include <core/utils/MemoryUtils.h>
 
+#include <cstring>
+
 #include "GFSDKModule.h"
 
 auto GFStrDup(const QString& str) -> char* {

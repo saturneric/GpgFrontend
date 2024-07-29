@@ -52,20 +52,20 @@ target_compile_definitions(gpgfrontend_core PUBLIC GF_CORE)
 
 # mimalloc (except apple macos)
 if(NOT APPLE)
-    target_link_libraries(gpgfrontend_core PUBLIC mimalloc)
+  target_link_libraries(gpgfrontend_core PUBLIC mimalloc)
 
-    if(MINGW)
-        set_target_properties(mimalloc
-            PROPERTIES
-            LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-        )
-    endif()
+  if(MINGW)
+    set_target_properties(mimalloc
+      PROPERTIES
+      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+    )
+  endif()
 endif()
 
 # qt-aes
 target_sources(gpgfrontend_core PRIVATE
-    ${CMAKE_SOURCE_DIR}/third_party/qt-aes/qaesencryption.cpp)
+  ${CMAKE_SOURCE_DIR}/third_party/qt-aes/qaesencryption.cpp)
 
 # encoding detect library
 aux_source_directory(${CMAKE_SOURCE_DIR}/third_party/encoding-detect ENCODING_DETECT_SOURCE_CODE)
@@ -78,77 +78,77 @@ target_link_libraries(gpgfrontend_core PUBLIC gpgme assuan gpg-error)
 target_link_libraries(gpgfrontend_core PUBLIC OpenSSL::SSL OpenSSL::Crypto)
 
 if(MINGW)
-    # for uuid ability in mingw
-    target_link_libraries(gpgfrontend_core PUBLIC bcrypt)
+  # for uuid ability in mingw
+  target_link_libraries(gpgfrontend_core PUBLIC bcrypt)
 endif()
 
 # configure libarchive
 if(NOT MINGW)
-    if(APPLE)
-        if(EXISTS "/usr/local/opt/libarchive/include")
-            set(LibArchive_INCLUDE_DIR "/usr/local/opt/libarchive/include")
-        else()
-            set(LibArchive_INCLUDE_DIR "/opt/homebrew/opt/libarchive/include")
-        endif()
+  if(APPLE)
+    if(EXISTS "/usr/local/opt/libarchive/include")
+      set(LibArchive_INCLUDE_DIR "/usr/local/opt/libarchive/include")
+    else()
+      set(LibArchive_INCLUDE_DIR "/opt/homebrew/opt/libarchive/include")
     endif()
+  endif()
 
-    find_package(LibArchive REQUIRED)
-    target_include_directories(gpgfrontend_core PRIVATE ${LibArchive_INCLUDE_DIR})
+  find_package(LibArchive REQUIRED)
+  target_include_directories(gpgfrontend_core PRIVATE ${LibArchive_INCLUDE_DIR})
 else()
-    if(MINGW)
-        set_target_properties(archive
-            PROPERTIES
-            LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-        )
-    endif()
+  if(MINGW)
+    set_target_properties(archive
+      PROPERTIES
+      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+    )
+  endif()
 endif()
 
 # link libarchive
 target_link_libraries(gpgfrontend_core PRIVATE archive)
 
 if(GPGFRONTEND_QT5_BUILD)
-    # link Qt core
-    target_link_libraries(gpgfrontend_core PUBLIC Qt5::Core)
+  # link Qt core
+  target_link_libraries(gpgfrontend_core PUBLIC Qt5::Core)
 else()
-    # link Qt core
-    target_link_libraries(gpgfrontend_core PUBLIC Qt6::Core)
+  # link Qt core
+  target_link_libraries(gpgfrontend_core PUBLIC Qt6::Core)
 endif()
 
 # set up pch
 target_precompile_headers(gpgfrontend_core
-    PUBLIC ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h
-    PUBLIC GpgFrontendCore.h
-    PUBLIC GpgConstants.h)
+  PUBLIC ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h
+  PUBLIC GpgFrontendCore.h
+  PUBLIC GpgConstants.h)
 
 # using std c++ 17
 target_compile_features(gpgfrontend_core PUBLIC cxx_std_17)
 
 if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    # lib output path
-    set_target_properties(gpgfrontend_core PROPERTIES
-        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib)
+  # lib output path
+  set_target_properties(gpgfrontend_core PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib)
 endif()
 
 # link for different platforms
 if(MINGW)
-    message(STATUS "Link GPG Static Library For MINGW")
-    target_link_libraries(gpgfrontend_core PUBLIC wsock32)
+  message(STATUS "Link GPG Static Library For MINGW")
+  target_link_libraries(gpgfrontend_core PUBLIC wsock32)
 elseif(APPLE)
-    message(STATUS "Link GPG Static Library For macOS")
+  message(STATUS "Link GPG Static Library For macOS")
 
-    if(XCODE_BUILD)
-        set_target_properties(gpgfrontend_core
-            PROPERTIES
-            ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-            LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-            LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-            XCODE_ATTRIBUTE_SKIP_INSTALL "Yes"
-            XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
-    endif()
+  if(XCODE_BUILD)
+    set_target_properties(gpgfrontend_core
+      PROPERTIES
+      ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+      LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+      LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+      XCODE_ATTRIBUTE_SKIP_INSTALL "Yes"
+      XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
+  endif()
 else()
-    # linux
-    message(STATUS "Link GPG Static Library For Unix")
-    target_link_libraries(gpgfrontend_core PUBLIC pthread dl)
+  # linux
+  message(STATUS "Link GPG Static Library For Unix")
+  target_link_libraries(gpgfrontend_core PUBLIC pthread dl)
 endif()

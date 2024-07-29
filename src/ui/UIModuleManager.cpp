@@ -39,10 +39,9 @@ UIModuleManager::UIModuleManager(int channel)
 
 UIModuleManager::~UIModuleManager() = default;
 
-auto UIModuleManager::DeclareMountPoint(const QString& id,
-                                        const QString& entry_type,
-                                        QMap<QString, QVariant> meta_data_desc)
-    -> bool {
+auto UIModuleManager::DeclareMountPoint(
+    const QString& id, const QString& entry_type,
+    QMap<QString, QVariant> meta_data_desc) -> bool {
   if (id.isEmpty() || mount_points_.contains(id)) return false;
 
   UIMountPoint point;
@@ -69,10 +68,17 @@ auto UIModuleManager::MountEntry(const QString& id,
   MountedUIEntry m_entry;
   m_entry.id_ = id;
 
+#ifdef QT5_BUILD
+  for (auto it = meta_data.keyValueBegin(); it != meta_data.keyValueEnd();
+       ++it) {
+    meta_data[it->first] = QApplication::translate("GTrC", it->second.toUtf8());
+  }
+#else
   for (const auto& meta : meta_data.asKeyValueRange()) {
     meta_data[meta.first] =
         QApplication::translate("GTrC", meta.second.toUtf8());
   }
+#endif
 
   m_entry.meta_data_ = std::move(meta_data);
   m_entry.factory_ = factory;
@@ -90,9 +96,8 @@ auto MountedUIEntry::GetWidget() const -> QWidget* {
   return qobject_cast<QWidget*>(static_cast<QObject*>(factory_(id_.toUtf8())));
 }
 
-auto MountedUIEntry::GetMetaDataByDefault(const QString& key,
-                                          QString default_value) const
-    -> QString {
+auto MountedUIEntry::GetMetaDataByDefault(
+    const QString& key, QString default_value) const -> QString {
   if (!meta_data_.contains(key)) return default_value;
   return meta_data_[key];
 }

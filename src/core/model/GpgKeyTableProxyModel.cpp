@@ -169,7 +169,11 @@ void GpgKeyTableProxyModel::slot_update_favorites() {
 void GpgKeyTableProxyModel::slot_update_column_type(
     GpgKeyTableColumn filter_columns) {
   filter_columns_ = filter_columns;
+#ifdef QT5_BUILD
+  invalidateFilter();
+#else
   invalidateColumnsFilter();
+#endif
 }
 
 }  // namespace GpgFrontend

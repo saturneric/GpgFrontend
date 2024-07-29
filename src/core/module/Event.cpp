@@ -104,6 +104,21 @@ class Event::Impl {
     GFModuleEventParam* p_param;
 
     int index = 0;
+
+#ifdef QT5_BUILD
+    for (auto it = data_.keyValueBegin(); it != data_.keyValueEnd(); ++it) {
+      p_param = static_cast<GFModuleEventParam*>(
+          SecureMalloc(sizeof(GFModuleEventParam)));
+      if (index++ == 0) event->params = p_param;
+
+      p_param->name = GFStrDup(it->first);
+      p_param->value = GFStrDup(it->second);
+      p_param->next = nullptr;
+
+      if (l_param != nullptr) l_param->next = p_param;
+      l_param = p_param;
+    }
+#else
     for (const auto& data : data_.asKeyValueRange()) {
       p_param = static_cast<GFModuleEventParam*>(
           SecureMalloc(sizeof(GFModuleEventParam)));
@@ -116,6 +131,7 @@ class Event::Impl {
       if (l_param != nullptr) l_param->next = p_param;
       l_param = p_param;
     }
+#endif
 
     return event;
   }
