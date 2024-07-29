@@ -30,13 +30,17 @@
  * \mainpage GpgFrontend Develop Document Main Page
  */
 
+#include <qcommandlineparser.h>
+#include <qloggingcategory.h>
+
+//
 #include "GpgFrontendContext.h"
+#include "core/utils/MemoryUtils.h"
+
+//
 #include "app.h"
 #include "cmd.h"
 #include "init.h"
-
-//
-#include "core/utils/MemoryUtils.h"
 
 /**
  *
@@ -45,15 +49,31 @@
  * @return
  */
 auto main(int argc, char* argv[]) -> int {
+  // initialize qt resources
+  Q_INIT_RESOURCE(gpgfrontend);
+
   GpgFrontend::GFCxtSPtr const ctx =
       GpgFrontend::SecureCreateSharedObject<GpgFrontend::GpgFrontendContext>(
           argc, argv);
   ctx->InitApplication();
 
-  auto rtn = 0;
+#ifdef RELEASE
+  QLoggingCategory::setFilterRules("*.debug=false\n*.info=false\n");
+  qSetMessagePattern(
+      "[%{time yyyyMMdd h:mm:ss.zzz}] [%{category}] "
+      "[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-"
+      "critical}C%{endif}%{if-fatal}F%{endif}] [%{threadid}] - "
+      "%{message}");
+#else
+  QLoggingCategory::setFilterRules("*.debug=false");
+  qSetMessagePattern(
+      "[%{time yyyyMMdd h:mm:ss.zzz}] [%{category}] "
+      "[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-"
+      "critical}C%{endif}%{if-fatal}F%{endif}] [%{threadid}] %{file}:%{line} - "
+      "%{message}");
+#endif
 
-  // initialize qt resources
-  Q_INIT_RESOURCE(gpgfrontend);
+  auto rtn = 0;
 
   QCommandLineParser parser;
   parser.addHelpOption();
@@ -67,14 +87,12 @@ auto main(int argc, char* argv[]) -> int {
 
   parser.process(*ctx->GetApp());
 
-  ctx->log_level = spdlog::level::info;
-
   if (parser.isSet("v")) {
     return GpgFrontend::PrintVersion();
   }
 
   if (parser.isSet("l")) {
-    ctx->log_level = GpgFrontend::ParseLogLevel(parser.value("l"));
+    GpgFrontend::ParseLogLevel(parser.value("l"));
   }
 
   if (parser.isSet("t")) {

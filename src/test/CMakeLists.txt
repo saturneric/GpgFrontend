@@ -28,16 +28,22 @@
 aux_source_directory(./core TEST_SOURCE)
 aux_source_directory(. TEST_SOURCE)
 
+# define test library
 add_library(gpgfrontend_test SHARED ${TEST_SOURCE})
 
+# generate headers
 set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendTestExport.h")
 generate_export_header(gpgfrontend_test EXPORT_FILE_NAME "${_export_file}")
 
-target_link_libraries(gpgfrontend_test PRIVATE gtest)
-target_link_libraries(gpgfrontend_test PRIVATE gpgfrontend_core)
-target_link_libraries(gpgfrontend_test PRIVATE spdlog)
+# compile definitions
+target_compile_definitions(gpgfrontend_test PUBLIC GF_TEST)
 
-if (XCODE_BUILD)
+# link options
+target_link_libraries(gpgfrontend_test PRIVATE gtest)
+
+target_link_libraries(gpgfrontend_test PRIVATE gpgfrontend_core)
+
+if(XCODE_BUILD)
   set_target_properties(gpgfrontend_test
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
@@ -45,14 +51,13 @@ if (XCODE_BUILD)
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
     XCODE_ATTRIBUTE_SKIP_INSTALL "Yes"
     XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
-endif ()
+endif()
 
-if(MINGW)
-  set_target_properties(gtest
-      PROPERTIES
-      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-  )
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+  # lib output path
+  set_target_properties(gpgfrontend_test PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib)
 endif()
 
 add_test(AllTestsInGpgFrontend gpgfrontend_test)

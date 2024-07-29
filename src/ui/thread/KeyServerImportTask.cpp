@@ -44,8 +44,6 @@ GpgFrontend::UI::KeyServerImportTask::KeyServerImportTask(
   if (keyserver_url_.isEmpty()) {
     KeyServerSO key_server(SettingsObject("general_settings_state"));
     keyserver_url_ = key_server.GetTargetServer();
-    GF_UI_LOG_DEBUG("key server import task sets key server url: {}",
-                    keyserver_url_);
   }
 }
 
@@ -71,8 +69,9 @@ void GpgFrontend::UI::KeyServerImportTask::dealing_reply_from_server() {
   auto buffer = reply_->readAll();
 
   if (network_reply != QNetworkReply::NoError) {
-    GF_UI_LOG_ERROR("key import error, message from key server reply: ",
-                    buffer);
+    qCWarning(ui) << "key import error, message from key server reply: "
+                  << buffer;
+
     QString err_msg;
     switch (network_reply) {
       case QNetworkReply::ContentNotFoundError:

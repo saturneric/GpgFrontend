@@ -100,9 +100,6 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
                 this, tr("Open Directory"), {},
                 QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
-        GF_UI_LOG_DEBUG("key database path selected: {}",
-                        selected_custom_key_database_path);
-
         custom_key_database_path_ = selected_custom_key_database_path;
 
         // announce the restart
@@ -119,9 +116,6 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
             QFileDialog::getExistingDirectory(
                 this, tr("Open Directory"), {},
                 QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-
-        GF_UI_LOG_DEBUG("gnupg install path selected: {}",
-                        selected_custom_gnupg_install_path);
 
         custom_gnupg_path_ = selected_custom_gnupg_install_path;
 
@@ -177,8 +171,6 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
 void GnuPGControllerDialog::SlotAccept() {
   apply_settings();
 
-  GF_UI_LOG_DEBUG("gnupg controller apply done");
-  GF_UI_LOG_DEBUG("restart needed: {}", get_restart_needed());
   if (get_restart_needed() != 0) {
     emit SignalRestartNeeded(get_restart_needed());
   }
@@ -198,8 +190,6 @@ void GnuPGControllerDialog::slot_update_custom_key_database_path_label(
               .GetSettings()
               .value("gnupg/custom_key_database_path")
               .toString();
-      GF_UI_LOG_DEBUG("selected_custom_key_database_path from settings: {}",
-                      custom_key_database_path);
       custom_key_database_path_ = custom_key_database_path;
     }
 
@@ -217,7 +207,6 @@ void GnuPGControllerDialog::slot_update_custom_key_database_path_label(
   if (ui_->currentKeyDatabasePathLabel->text().isEmpty()) {
     const auto database_path = Module::RetrieveRTValueTypedOrDefault<>(
         "core", "gpgme.ctx.database_path", QString{});
-    GF_UI_LOG_DEBUG("got gpgme.ctx.database_path from rt: {}", database_path);
     ui_->currentKeyDatabasePathLabel->setText(database_path);
   }
 }
@@ -236,8 +225,6 @@ void GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label(
                 .GetSettings()
                 .value("gnupg/custom_gnupg_install_path")
                 .toString();
-        GF_UI_LOG_DEBUG("custom_gnupg_install_path from settings: {}",
-                        custom_gnupg_install_path);
         custom_gnupg_path_ = custom_gnupg_install_path;
       }
 
@@ -256,7 +243,6 @@ void GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label(
   if (ui_->currentCustomGnuPGInstallPathLabel->text().isEmpty()) {
     const auto gnupg_path = Module::RetrieveRTValueTypedOrDefault<>(
         "core", "gpgme.ctx.app_path", QString{});
-    GF_UI_LOG_DEBUG("got gnupg home path from rt: {}", gnupg_path);
     auto dir = QFileInfo(gnupg_path).path();
     ui_->currentCustomGnuPGInstallPathLabel->setText(dir);
   }
@@ -351,7 +337,6 @@ auto GnuPGControllerDialog::get_restart_needed() const -> int {
 }
 
 void GnuPGControllerDialog::slot_set_restart_needed(int mode) {
-  GF_UI_LOG_INFO("announce restart needed, mode: {}", mode);
   this->restart_mode_ = mode;
 }
 

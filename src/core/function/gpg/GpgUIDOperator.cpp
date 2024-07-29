@@ -48,17 +48,17 @@ auto GpgUIDOperator::RevUID(const GpgKey& key, const QString& uid) -> bool {
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
-auto GpgUIDOperator::SetPrimaryUID(const GpgKey& key, const QString& uid)
-    -> bool {
+auto GpgUIDOperator::SetPrimaryUID(const GpgKey& key,
+                                   const QString& uid) -> bool {
   auto err = CheckGpgError(gpgme_op_set_uid_flag(
       ctx_.DefaultContext(), static_cast<gpgme_key_t>(key), uid.toUtf8(),
       "primary", nullptr));
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 auto GpgUIDOperator::AddUID(const GpgKey& key, const QString& name,
-                            const QString& comment, const QString& email)
-    -> bool {
-  GF_CORE_LOG_DEBUG("new uuid: {} {} {}", name, comment, email);
+                            const QString& comment,
+                            const QString& email) -> bool {
+  qCDebug(core) << "new uuid:" << name << comment << email;
   return AddUID(key, QString("%1(%2)<%3>").arg(name).arg(comment).arg(email));
 }
 

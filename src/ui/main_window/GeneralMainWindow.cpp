@@ -45,10 +45,7 @@ GpgFrontend::UI::GeneralMainWindow::GeneralMainWindow(QString name,
 GpgFrontend::UI::GeneralMainWindow::~GeneralMainWindow() = default;
 
 void GpgFrontend::UI::GeneralMainWindow::closeEvent(QCloseEvent *event) {
-  GF_UI_LOG_DEBUG("main window close event caught, event type: {}",
-                  event->type());
   slot_save_settings();
-
   QMainWindow::closeEvent(event);
 }
 
@@ -56,16 +53,13 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
   try {
     WindowStateSO window_state(SettingsObject(name_ + "_state"));
 
-    GF_UI_LOG_DEBUG("restore main window state: {}",
-                    window_state.window_state_data);
-
     if (!window_state.window_state_data.isEmpty()) {
       // state sets pos & size of dock-widgets
       this->restoreState(
           QByteArray::fromBase64(window_state.window_state_data.toUtf8()));
     }
 
-    this->setMinimumSize(640, 480);
+    this->setMinimumSize(800, 600);
 
     // restore window size & location
     if (window_state.window_save) {
@@ -73,9 +67,6 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
       size_ = {window_state.width, window_state.height};
 
       if (this->parent() != nullptr) {
-        GF_UI_LOG_DEBUG("parent address: {}",
-                        static_cast<void *>(this->parent()));
-
         QPoint parent_pos = {0, 0};
         QSize parent_size = {0, 0};
 
@@ -91,12 +82,6 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
           parent_size = parent_window->size();
         }
 
-        GF_UI_LOG_DEBUG("parent pos x: {} y: {}", parent_pos.x(),
-                        parent_pos.y());
-
-        GF_UI_LOG_DEBUG("parent size width: {} height: {}", parent_size.width(),
-                        parent_size.height());
-
         if (parent_pos != QPoint{0, 0}) {
           QPoint const parent_center{parent_pos.x() + parent_size.width() / 2,
                                      parent_pos.y() + parent_size.height() / 2};
@@ -106,8 +91,8 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
         }
       }
 
-      if (size_.width() < 640) size_.setWidth(640);
-      if (size_.height() < 480) size_.setHeight(480);
+      if (size_.width() < 800) size_.setWidth(800);
+      if (size_.height() < 600) size_.setHeight(600);
 
       this->move(pos_);
       this->resize(size_);
@@ -127,13 +112,12 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
     icon_style_ = toolButtonStyle();
 
   } catch (...) {
-    GF_UI_LOG_ERROR("general main window: {}, caught exception", name_);
+    qCWarning(ui) << "general main window: " << name_ << ", caught exception";
   }
 }
 
 void GpgFrontend::UI::GeneralMainWindow::slot_save_settings() noexcept {
   try {
-    GF_UI_LOG_DEBUG("save main window state, name: {}", name_);
     SettingsObject general_windows_state(name_ + "_state");
 
     // update geo of current dialog
@@ -150,18 +134,13 @@ void GpgFrontend::UI::GeneralMainWindow::slot_save_settings() noexcept {
 
     general_windows_state.Store(window_state.Json());
   } catch (...) {
-    GF_UI_LOG_ERROR("general main window: {}, caught exception", name_);
+    qCWarning(ui) << "general main window: " << name_ << ", caught exception";
   }
 }
 
 void GeneralMainWindow::setPosCenterOfScreen() {
   // update cache
   update_rect_cache();
-
-  int screen_width = screen_rect_.width();
-  int screen_height = screen_rect_.height();
-  GF_UI_LOG_DEBUG("dialog current screen available geometry", screen_width,
-                  screen_height);
 
   // update rect of current dialog
   rect_ = this->geometry();
@@ -173,16 +152,6 @@ void GeneralMainWindow::movePosition2CenterOfParent() {
   // update cache
   update_rect_cache();
 
-  // log for debug
-  GF_UI_LOG_DEBUG("parent pos x: {} y: {}", parent_rect_.x(), parent_rect_.y());
-  GF_UI_LOG_DEBUG("parent size width: {}, height: {}", parent_rect_.width(),
-                  parent_rect_.height());
-  GF_UI_LOG_DEBUG("parent center pos x: {}, y: {}", parent_rect_.center().x(),
-                  parent_rect_.center().y());
-  GF_UI_LOG_DEBUG("dialog pos x: {} y: {}", rect_.x(), rect_.y());
-  GF_UI_LOG_DEBUG("dialog size width: {} height: {}", rect_.width(),
-                  rect_.height());
-
   if (parent_rect_.topLeft() != QPoint{0, 0} &&
       parent_rect_.size() != QSize{0, 0}) {
     if (rect_.width() <= 0) rect_.setWidth(100);
@@ -190,10 +159,6 @@ void GeneralMainWindow::movePosition2CenterOfParent() {
 
     QPoint target_position =
         parent_rect_.center() - QPoint(rect_.width() / 2, rect_.height() / 2);
-
-    GF_UI_LOG_DEBUG(
-        "update position to parent's center, target pos, x:{}, y: {}",
-        target_position.x(), target_position.y());
 
     this->move(target_position);
   } else {

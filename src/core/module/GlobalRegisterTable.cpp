@@ -126,8 +126,8 @@ class GlobalRegisterTable::Impl {
     return rtn;
   }
 
-  auto ListenPublish(QObject* o, const Namespace& n, const Key& k, LPCallback c)
-      -> bool {
+  auto ListenPublish(QObject* o, const Namespace& n, const Key& k,
+                     LPCallback c) -> bool {
     if (o == nullptr) return false;
     return QObject::connect(parent_, &GlobalRegisterTable::SignalPublish, o,
                             [n, k, c](const Namespace& pn, const Key& pk,
@@ -138,7 +138,7 @@ class GlobalRegisterTable::Impl {
                             }) == nullptr;
   }
 
-  auto RootRTNode() -> RTNode* { return root_node_.get(); }
+  auto RootRTNode() -> RTNodePtr { return root_node_; }
 
  private:
   std::shared_mutex lock_;
@@ -165,8 +165,8 @@ class GlobalRegisterTableTreeModel::Impl {
     return 4;
   }
 
-  [[nodiscard]] auto Data(const QModelIndex& index, int role) const
-      -> QVariant {
+  [[nodiscard]] auto Data(const QModelIndex& index,
+                          int role) const -> QVariant {
     if (!index.isValid()) return {};
 
     if (role == Qt::DisplayRole) {
@@ -232,8 +232,8 @@ class GlobalRegisterTableTreeModel::Impl {
     return tr("<UNSUPPORTED>");
   }
 
-  [[nodiscard]] auto Index(int row, int column, const QModelIndex& parent) const
-      -> QModelIndex {
+  [[nodiscard]] auto Index(int row, int column,
+                           const QModelIndex& parent) const -> QModelIndex {
     if (!parent_->hasIndex(row, column, parent)) return {};
 
     auto* parent_node = !parent.isValid()
@@ -292,8 +292,8 @@ auto GlobalRegisterTable::PublishKV(Namespace n, Key k, std::any v) -> bool {
   return p_->PublishKV(n, k, v);
 }
 
-auto GlobalRegisterTable::LookupKV(Namespace n, Key v)
-    -> std::optional<std::any> {
+auto GlobalRegisterTable::LookupKV(Namespace n,
+                                   Key v) -> std::optional<std::any> {
   return p_->LookupKV(n, v);
 }
 
@@ -302,14 +302,15 @@ auto GlobalRegisterTable::ListenPublish(QObject* o, Namespace n, Key k,
   return p_->ListenPublish(o, n, k, c);
 }
 
-auto GlobalRegisterTable::ListChildKeys(Namespace n, Key k)
-    -> std::vector<Key> {
+auto GlobalRegisterTable::ListChildKeys(Namespace n,
+                                        Key k) -> std::vector<Key> {
   return p_->ListChildKeys(n, k);
 }
 
 GlobalRegisterTableTreeModel::GlobalRegisterTableTreeModel(
-    GlobalRegisterTable* grt)
-    : p_(SecureCreateUniqueObject<Impl>(this, grt->p_.get())) {}
+    GlobalRegisterTable* grt, QObject* parent)
+    : QAbstractItemModel(parent),
+      p_(SecureCreateUniqueObject<Impl>(this, grt->p_.get())) {}
 
 auto GlobalRegisterTableTreeModel::rowCount(const QModelIndex& parent) const
     -> int {
@@ -326,9 +327,8 @@ auto GlobalRegisterTableTreeModel::data(const QModelIndex& index,
   return p_->Data(index, role);
 }
 
-auto GlobalRegisterTableTreeModel::index(int row, int column,
-                                         const QModelIndex& parent) const
-    -> QModelIndex {
+auto GlobalRegisterTableTreeModel::index(
+    int row, int column, const QModelIndex& parent) const -> QModelIndex {
   return p_->Index(row, column, parent);
 }
 

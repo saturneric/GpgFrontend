@@ -69,10 +69,9 @@ void GpgFileOpera::EncryptFile(const KeyArgsList& keys, const QString& in_path,
       cb, "gpgme_op_encrypt", "2.1.0");
 }
 
-auto GpgFileOpera::EncryptFileSync(const KeyArgsList& keys,
-                                   const QString& in_path, bool ascii,
-                                   const QString& out_path)
-    -> std::tuple<GpgError, DataObjectPtr> {
+auto GpgFileOpera::EncryptFileSync(
+    const KeyArgsList& keys, const QString& in_path, bool ascii,
+    const QString& out_path) -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       [=](const DataObjectPtr& data_object) -> GpgError {
         std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
@@ -111,7 +110,7 @@ void GpgFileOpera::EncryptDirectory(const KeyArgsList& keys,
         GpgData data_in(ex);
         GpgData data_out(out_path, false);
 
-        GF_CORE_LOG_DEBUG("encrypt directory start");
+        qCDebug(core, "encrypt directory start");
 
         auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
         auto err = CheckGpgError(gpgme_op_encrypt(ctx, recipients.data(),
@@ -119,15 +118,14 @@ void GpgFileOpera::EncryptDirectory(const KeyArgsList& keys,
                                                   data_in, data_out));
         data_object->Swap({GpgEncryptResult(gpgme_op_encrypt_result(ctx))});
 
-        GF_CORE_LOG_DEBUG("encrypt directory finished, err: {}", err);
+        qCDebug(core, "encrypt directory finished, err: %d", err);
         return err;
       },
       cb, "gpgme_op_encrypt", "2.1.0");
 
   ArchiveFileOperator::NewArchive2DataExchanger(
       in_path, ex, [=](GFError err, const DataObjectPtr&) {
-        GF_CORE_LOG_DEBUG("new archive 2 data exchanger operation, err: {}",
-                          err);
+        qCDebug(core, "new archive 2 data exchanger operation, err: %d", err);
         if (decltype(ex) p_ex = w_ex.lock(); err < 0 && p_ex != nullptr) {
           ex->CloseWrite();
         }
@@ -176,8 +174,8 @@ void GpgFileOpera::DecryptArchive(const QString& in_path,
 
   ArchiveFileOperator::ExtractArchiveFromDataExchanger(
       ex, out_path, [](GFError err, const DataObjectPtr&) {
-        GF_CORE_LOG_DEBUG(
-            "extract archive from data exchanger operation, err: {}", err);
+        qCDebug(core, "extract archive from data exchanger operation, err: %d",
+                err);
       });
 
   RunGpgOperaAsync(
@@ -331,11 +329,10 @@ void GpgFileOpera::EncryptSignFile(const KeyArgsList& keys,
       cb, "gpgme_op_encrypt_sign", "2.1.0");
 }
 
-auto GpgFileOpera::EncryptSignFileSync(const KeyArgsList& keys,
-                                       const KeyArgsList& signer_keys,
-                                       const QString& in_path, bool ascii,
-                                       const QString& out_path)
-    -> std::tuple<GpgError, DataObjectPtr> {
+auto GpgFileOpera::EncryptSignFileSync(
+    const KeyArgsList& keys, const KeyArgsList& signer_keys,
+    const QString& in_path, bool ascii,
+    const QString& out_path) -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       [=](const DataObjectPtr& data_object) -> GpgError {
         GpgError err;
@@ -399,7 +396,7 @@ void GpgFileOpera::EncryptSignDirectory(const KeyArgsList& keys,
 
   ArchiveFileOperator::NewArchive2DataExchanger(
       in_path, ex, [=](GFError err, const DataObjectPtr&) {
-        GF_CORE_LOG_DEBUG("new archive 2 fd operation, err: {}", err);
+        qCDebug(core, "new archive 2 fd operation, err: %d", err);
         if (decltype(ex) p_ex = w_ex.lock(); err < 0 && p_ex != nullptr) {
           ex->CloseWrite();
         }
@@ -459,7 +456,7 @@ void GpgFileOpera::DecryptVerifyArchive(const QString& in_path,
 
   ArchiveFileOperator::ExtractArchiveFromDataExchanger(
       ex, out_path, [](GFError err, const DataObjectPtr&) {
-        GF_CORE_LOG_DEBUG("extract archive from ex operation, err: {}", err);
+        qCDebug(core, "extract archive from ex operation, err: %d", err);
       });
 
   RunGpgOperaAsync(
@@ -545,19 +542,18 @@ void GpgFileOpera::EncryptDerectorySymmetric(const QString& in_path, bool ascii,
 
   ArchiveFileOperator::NewArchive2DataExchanger(
       in_path, ex, [=](GFError err, const DataObjectPtr&) {
-        GF_CORE_LOG_DEBUG("new archive 2 fd operation, err: {}", err);
+        qCDebug(core, "new archive 2 fd operation, err: %d", err);
       });
 }
 
-auto GpgFileOpera::EncryptDerectorySymmetricSync(const QString& in_path,
-                                                 bool ascii,
-                                                 const QString& out_path)
-    -> std::tuple<GpgError, DataObjectPtr> {
+auto GpgFileOpera::EncryptDerectorySymmetricSync(
+    const QString& in_path, bool ascii,
+    const QString& out_path) -> std::tuple<GpgError, DataObjectPtr> {
   auto ex = std::make_shared<GFDataExchanger>(kDataExchangerSize);
 
   ArchiveFileOperator::NewArchive2DataExchanger(
       in_path, ex, [=](GFError err, const DataObjectPtr&) {
-        GF_CORE_LOG_DEBUG("new archive 2 fd operation, err: {}", err);
+        qCDebug(core, "new archive 2 fd operation, err: %d", err);
       });
 
   return RunGpgOperaSync(

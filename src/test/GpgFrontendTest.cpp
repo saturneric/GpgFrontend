@@ -29,6 +29,7 @@
 #include "GpgFrontendTest.h"
 
 #include <gtest/gtest.h>
+#include <qglobal.h>
 
 #include "core/GpgConstants.h"
 #include "core/function/GlobalSettingStation.h"
@@ -36,6 +37,8 @@
 #include "core/function/gpg/GpgContext.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/utils/IOUtils.h"
+
+Q_LOGGING_CATEGORY(test, "test")
 
 namespace GpgFrontend::Test {
 
@@ -56,8 +59,6 @@ auto GenerateRandomString(size_t length) -> QString {
 
 void ConfigureGpgContext() {
   auto db_path = QDir(QDir::tempPath() + "/" + GenerateRandomString(12));
-  GF_TEST_LOG_DEBUG("setting up new database path for test case: {}",
-                    db_path.path());
 
   if (db_path.exists()) db_path.rmdir(".");
   db_path.mkpath(".");
@@ -84,7 +85,7 @@ void ImportPrivateKeys(const QString& data_path, QSettings settings) {
       GpgKeyImportExporter::GetInstance(kGpgFrontendDefaultChannel)
           .ImportKey(gf_buffer);
     } else {
-      GF_TEST_LOG_ERROR("read from key file failed: {}", key_file);
+      qCWarning(test) << "read from key file failed: " << key_file;
     }
   }
 }
@@ -95,8 +96,8 @@ void SetupGlobalTestEnv() {
   auto test_config_path = test_path + "/conf/test.ini";
   auto test_data_path = test_path + "/data";
 
-  GF_TEST_LOG_INFO("test config file path: {}", test_config_path);
-  GF_TEST_LOG_INFO("test data file path: {}", test_data_path);
+  qCInfo(test) << "test config file path: " << test_config_path;
+  qCInfo(test) << "test data file path: " << test_data_path;
 
   ImportPrivateKeys(test_data_path,
                     QSettings(test_config_path, QSettings::IniFormat));

@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/function/basic/GpgFunctionObject.h"
+#include "core/model/GpgKeyTableModel.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
@@ -105,6 +106,13 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    * @return KeyLinkListPtr
    */
   auto GetKeysCopy(const KeyLinkListPtr& keys) -> KeyLinkListPtr;
+
+  /**
+   * @brief
+   *
+   * @return GpgKeyTableModel
+   */
+  auto GetGpgKeyTableModel() -> QSharedPointer<GpgKeyTableModel>;
 
  private:
   class Impl;

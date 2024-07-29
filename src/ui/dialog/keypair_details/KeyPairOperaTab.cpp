@@ -34,6 +34,7 @@
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/model/GpgKey.h"
+#include "core/module/ModuleManager.h"
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
@@ -95,6 +96,16 @@ KeyPairOperaTab::KeyPairOperaTab(const QString& key_id, QWidget* parent)
   key_server_opera_button->setMenu(key_server_opera_menu_);
   key_server_opera_button->setDisabled(forbid_all_gnupg_connection);
   advance_h_box_layout->addWidget(key_server_opera_button);
+
+  if (Module::IsModuleActivate(kPaperKeyModuleID)) {
+    if (!m_key_.IsPrivateKey() || !m_key_.IsHasMasterKey()) {
+      auto* import_paper_key_button = new QPushButton(tr("Import A Paper Key"));
+      import_paper_key_button->setStyleSheet("text-align:center;");
+      connect(import_paper_key_button, &QPushButton::clicked, this,
+              &KeyPairOperaTab::slot_import_paper_key);
+      vbox_p_k->addWidget(import_paper_key_button);
+    }
+  }
 
   if (m_key_.IsPrivateKey() && m_key_.IsHasMasterKey()) {
     auto* revoke_cert_opera_button =
@@ -167,6 +178,17 @@ void KeyPairOperaTab::CreateOperaMenu() {
       new QAction(tr("Export Shortest Secret Key"), this);
   connect(export_shortest_secret_key, &QAction::triggered, this,
           &KeyPairOperaTab::slot_export_short_private_key);
+
+  if (Module::IsModuleActivate(kPaperKeyModuleID)) {
+    auto* export_secret_key_as_paper_key =
+        new QAction(tr("Export Secret Key As A Paper Key"), this);
+    connect(export_secret_key_as_paper_key, &QAction::triggered, this,
+            &KeyPairOperaTab::slot_export_paper_key);
+    if (!m_key_.IsPrivateKey()) {
+      export_secret_key_as_paper_key->setDisabled(true);
+    }
+    secret_key_export_opera_menu_->addAction(export_secret_key_as_paper_key);
+  }
 
   secret_key_export_opera_menu_->addAction(export_full_secret_key);
   secret_key_export_opera_menu_->addAction(export_shortest_secret_key);
@@ -366,7 +388,6 @@ void KeyPairOperaTab::slot_modify_tofu_policy() {
       this, tr("Modify TOFU Policy(Default is Auto)"),
       tr("Policy for the Key Pair:"), items, 0, false, &ok);
   if (ok && !item.isEmpty()) {
-    GF_UI_LOG_DEBUG("selected policy: {}", item);
     gpgme_tofu_policy_t tofu_policy = GPGME_TOFU_POLICY_AUTO;
     if (item == tr("Policy Auto")) {
       tofu_policy = GPGME_TOFU_POLICY_AUTO;
@@ -433,11 +454,7 @@ void KeyPairOperaTab::slot_import_revoke_cert() {
 
   QFile rev_file(rev_file_info.absoluteFilePath());
 
-#ifdef QT5_BUILD
   if (!rev_file.open(QIODevice::ReadOnly)) {
-#else
-  if (!rev_file.open(QIODeviceBase::ReadOnly)) {
-#endif
     QMessageBox::critical(
         this, tr("Error"),
         tr("Cannot open this file. Please make sure that this "
@@ -445,7 +462,151 @@ void KeyPairOperaTab::slot_import_revoke_cert() {
     return;
   }
 
-  emit UISignalStation::GetInstance()->SignalKeyRevoked(m_key_.GetId());
+  emit UISignalStation::GetInstance() -> SignalKeyRevoked(m_key_.GetId());
   CommonUtils::GetInstance()->SlotImportKeys(nullptr, rev_file.readAll());
 }
+
+void KeyPairOperaTab::slot_export_paper_key() {
+  if (!Module::IsModuleActivate(kPaperKeyModuleID)) return;
+
+  int ret = QMessageBox::information(
+      this, tr("Exporting private key as a Paper key"),
+      "<h3>" + tr("You are about to export your") + "<font color=\"red\">" +
+          tr(" PRIVATE KEY ") + "</font>!</h3>\n" +
+          tr("This is NOT your Public Key, so DON'T give it away.") + "<br />" +
+          tr("A PaperKey is a human-readable printout of your private key, "
+             "which can be used to recover your key if you lose access to "
+             "your "
+             "digital copy. ") +
+          "<br />" + tr("Keep it in a safe place.") + "<br />" +
+          tr("Do you REALLY want to export your PRIVATE KEY?"),
+      QMessageBox::Cancel | QMessageBox::Ok);
+
+  // export key, if ok was clicked
+  if (ret == QMessageBox::Ok) {
+    auto [err, gf_buffer] = GpgKeyImportExporter::GetInstance().ExportKey(
+        m_key_, true, false, true);
+    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+      CommonUtils::RaiseMessageBox(this, err);
+      return;
+    }
+
+    // generate a file name
+#ifndef WINDOWS
+    auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
+                       m_key_.GetId() + ")_paper_key.txt";
+#else
+    auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
+                       m_key_.GetId() + ")_paper_key.txt";
+#endif
+    std::replace(file_string.begin(), file_string.end(), ' ', '_');
+
+    auto file_name = QFileDialog::getSaveFileName(
+        this, tr("Export Key To File"), file_string,
+        tr("Key Files") + " (*.txt);;All Files (*)");
+
+    if (file_name.isEmpty()) return;
+
+    Module::TriggerEvent(
+        "REQUEST_TRANS_KEY_2_PAPER_KEY",
+        {
+            {"secret_key", QString(gf_buffer.ConvertToQByteArray().toBase64())},
+        },
+        [this, file_name](Module::EventIdentifier i,
+                          Module::Event::ListenerIdentifier ei,
+                          Module::Event::Params p) {
+          qCDebug(ui) << "REQUEST_TRANS_KEY_2_PAPER_KEY callback: " << i << ei;
+
+          if (p["ret"] != "0" || p["paper_key"].isEmpty()) {
+            QMessageBox::critical(
+                this, tr("Error"),
+                tr("An error occurred trying to generate Paper Key."));
+            return;
+          }
+
+          if (!WriteFile(file_name, p["paper_key"].toLatin1())) {
+            QMessageBox::critical(
+                this, tr("Export Error"),
+                tr("Couldn't open %1 for writing").arg(file_name));
+            return;
+          }
+        });
+  }
+}
+
+void KeyPairOperaTab::slot_import_paper_key() {
+  if (!Module::IsModuleActivate(kPaperKeyModuleID)) return;
+
+  auto [err, gf_buffer] =
+      GpgKeyImportExporter::GetInstance().ExportKey(m_key_, false, false, true);
+  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+    CommonUtils::RaiseMessageBox(this, err);
+    return;
+  }
+
+  // generate a file name
+#ifndef WINDOWS
+  auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
+                     m_key_.GetId() + ")_paper_key.txt";
+#else
+  auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
+                     m_key_.GetId() + ")_paper_key.txt";
+#endif
+  std::replace(file_string.begin(), file_string.end(), ' ', '_');
+
+  auto file_name = QFileDialog::getOpenFileName(
+      this, tr("Import A Paper Key"), file_string,
+      tr("Paper Key File") + " (*.txt);;All Files (*)");
+
+  if (file_name.isEmpty()) return;
+
+  QFileInfo file_info(file_name);
+
+  if (!file_info.isFile() || !file_info.isReadable()) {
+    QMessageBox::critical(
+        this, tr("Error"),
+        tr("Cannot open this file. Please make sure that this "
+           "is a regular file and it's readable."));
+    return;
+  }
+
+  if (file_info.size() > static_cast<qint64>(1024 * 1024)) {
+    QMessageBox::critical(
+        this, tr("Error"),
+        tr("The target file is too large for a paper key keyring."));
+    return;
+  }
+
+  auto [succ, gf_in_buff] = ReadFileGFBuffer(file_name);
+  if (!succ) {
+    QMessageBox::critical(
+        this, tr("Error"),
+        tr("Cannot open this file. Please make sure that this "
+           "is a regular file and it's readable."));
+    return;
+  }
+
+  Module::TriggerEvent(
+      "REQUEST_TRANS_PAPER_KEY_2_KEY",
+      {
+          {"public_key", QString(gf_buffer.ConvertToQByteArray().toBase64())},
+          {"paper_key_secrets",
+           QString(gf_in_buff.ConvertToQByteArray().toBase64())},
+      },
+      [this](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
+             Module::Event::Params p) {
+        qCDebug(ui) << "REQUEST_TRANS_PAPER_KEY_2_KEY callback: " << i << ei;
+
+        if (p["ret"] != "0" || p["secret_key"].isEmpty()) {
+          QMessageBox::critical(this, tr("Error"),
+                                tr("An error occurred trying to recover the "
+                                   "Paper Key back to the private key."));
+          return;
+        }
+
+        CommonUtils::GetInstance()->SlotImportKeys(
+            this, QByteArray::fromBase64(p["secret_key"].toLatin1()));
+      });
+}
+
 }  // namespace GpgFrontend::UI

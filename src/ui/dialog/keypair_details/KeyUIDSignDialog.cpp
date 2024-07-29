@@ -41,11 +41,14 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
       m_uids_(std::move(uid)),
       m_key_(key) {
   const auto key_id = m_key_.GetId();
-  m_key_list_ = new KeyList(KeyMenuAbility::NONE, this);
+  m_key_list_ =
+      new KeyList(KeyMenuAbility::kCOLUMN_FILTER | KeyMenuAbility::kSEARCH_BAR,
+                  GpgKeyTableColumn::kNAME | GpgKeyTableColumn::kEMAIL_ADDRESS |
+                      GpgKeyTableColumn::kKEY_ID,
+                  this);
   m_key_list_->AddListGroupTab(
-      tr("Signers"), "signers", KeyListRow::ONLY_SECRET_KEY,
-      KeyListColumn::NAME | KeyListColumn::EmailAddress,
-      [key_id](const GpgKey& key, const KeyTable&) -> bool {
+      tr("Signers"), "signers", GpgKeyTableDisplayMode::kPRIVATE_KEY,
+      [key_id](const GpgKey& key) -> bool {
         return !(key.IsDisabled() || !key.IsHasCertificationCapability() ||
                  !key.IsHasMasterKey() || key.IsExpired() || key.IsRevoked() ||
                  key_id == key.GetId());
@@ -101,13 +104,9 @@ void KeyUIDSignDialog::slot_sign_key(bool clicked) {
   // Set Signers
   auto key_ids = m_key_list_->GetChecked();
   auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
-
-  GF_UI_LOG_DEBUG("key info got");
   auto expires = std::make_unique<QDateTime>(expires_edit_->dateTime());
 
-  GF_UI_LOG_DEBUG("sign start");
   for (const auto& uid : *m_uids_) {
-    GF_UI_LOG_DEBUG("sign uid: {}", uid);
     // Sign For mKey
     if (!GpgKeyManager::GetInstance().SignKey(m_key_, *keys, uid, expires)) {
       QMessageBox::critical(

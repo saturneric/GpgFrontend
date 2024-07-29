@@ -33,7 +33,6 @@
 #include "core/model/SettingsObject.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/Wizard.h"
-#include "ui/function/RaisePinentry.h"
 #include "ui/main_window/KeyMgmt.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/widgets/TextEdit.h"
@@ -53,7 +52,7 @@ void MainWindow::slot_start_wizard() {
 void MainWindow::slot_import_key_from_edit() {
   if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
   CommonUtils::GetInstance()->SlotImportKeys(
-      this, edit_->CurTextPage()->GetTextPage()->toPlainText());
+      this, edit_->CurTextPage()->GetTextPage()->toPlainText().toLatin1());
 }
 
 void MainWindow::slot_open_key_management() {
@@ -98,7 +97,6 @@ void MainWindow::slot_disable_tab_actions(int number) {
   add_pgp_header_act_->setDisabled(disable);
 
   if (edit_->CurFilePage() != nullptr) {
-    GF_UI_LOG_DEBUG("edit current page is file page");
     auto* file_page = edit_->CurFilePage();
     emit file_page->SignalCurrentTabChanged();
   }
@@ -109,9 +107,6 @@ void MainWindow::slot_open_settings_dialog() {
 
   connect(dialog, &SettingsDialog::finished, this, [&]() -> void {
     AppearanceSO appearance(SettingsObject("general_settings_state"));
-    GF_UI_LOG_DEBUG("tool bar icon_size: {}, {}",
-                    appearance.tool_bar_icon_width,
-                    appearance.tool_bar_icon_height);
 
     this->setToolButtonStyle(appearance.tool_bar_button_style);
     import_button_->setToolButtonStyle(appearance.tool_bar_button_style);
@@ -182,14 +177,10 @@ void MainWindow::slot_cut_pgp_header() {
   edit_->SlotFillTextEditWithText(content.trimmed());
 }
 
-void MainWindow::SlotSetRestartNeeded(int mode) {
-  GF_UI_LOG_DEBUG("restart mode: {}", mode);
-  this->restart_mode_ = mode;
-}
+void MainWindow::SlotSetRestartNeeded(int mode) { this->restart_mode_ = mode; }
 
 void MainWindow::SlotUpdateCryptoMenuStatus(unsigned int type) {
   MainWindow::CryptoMenu::OperationType opera_type = type;
-  GF_UI_LOG_DEBUG("update crypto menu status, type: {}", opera_type);
 
   // refresh status to disable all
   verify_act_->setDisabled(true);
@@ -218,12 +209,6 @@ void MainWindow::SlotUpdateCryptoMenuStatus(unsigned int type) {
   if ((opera_type & MainWindow::CryptoMenu::DecryptAndVerify) != 0U) {
     decrypt_verify_act_->setDisabled(false);
   }
-}
-
-void MainWindow::SlotRaisePinentry(
-    QSharedPointer<GpgPassphraseContext> context) {
-  auto* function = new RaisePinentry(this, context);
-  function->Exec();
 }
 
 }  // namespace GpgFrontend::UI

@@ -111,7 +111,7 @@
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_4">
               <item>
-               <widget class="QPushButton" name="activateOrDeactiveButton">
+               <widget class="QPushButton" name="activateOrDeactivateButton">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>

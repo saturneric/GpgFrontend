@@ -26,19 +26,20 @@
 cmake_minimum_required(VERSION 3.16)
 
 message(STATUS "Current Generator: ${CMAKE_GENERATOR}")
+
 if(CMAKE_GENERATOR STREQUAL "Xcode")
-    set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_SOURCE_DIR}/cmake/FlagsOverridesXcode.cmake")
-    set(XCODE_BUILD 1)
+  set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_SOURCE_DIR}/cmake/FlagsOverridesXcode.cmake")
+  set(XCODE_BUILD 1)
 else()
-    set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_SOURCE_DIR}/cmake/FlagsOverrides.cmake")
+  set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_SOURCE_DIR}/cmake/FlagsOverrides.cmake")
 endif()
 
 # define project
-project(GpgFrontend 
-    VERSION 2.1.3 
-    DESCRIPTION "GpgFrontend is a free, open-source, robust yet user-friendly, compact and cross-platform tool for OpenPGP encryption."
-    HOMEPAGE_URL "https://gpgfrontend.bktus.com"
-    LANGUAGES CXX)
+project(GpgFrontend
+  VERSION 2.1.4
+  DESCRIPTION "GpgFrontend is a free, open-source, robust yet user-friendly, compact and cross-platform tool for OpenPGP encryption."
+  HOMEPAGE_URL "https://gpgfrontend.bktus.com"
+  LANGUAGES CXX)
 
 # show cmake version
 message(STATUS "GpgFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
@@ -54,21 +55,27 @@ include(CheckCXXSourceCompiles)
 # generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# options
+# build type options
 option(GPGFRONTEND_BUILD_TYPE_TEST_CORE
-        "Only compile the core and generate the unit test program" OFF)
+  "Only compile the core and generate the unit test program" OFF)
 option(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE
-        "Compile only the core and generate unit test programs that can evaluate test coverage" OFF)
+  "Compile only the core and generate unit test programs that can evaluate test coverage" OFF)
 option(GPGFRONTEND_BUILD_TYPE_TEST_UI
-        "Only generate a graphical interface with basic functions" OFF)
+  "Only generate a graphical interface with basic functions" OFF)
 option(GPGFRONTEND_BUILD_TYPE_TEST_ALL
-        "Generate a graphical interface with all functions" OFF)
+  "Generate a graphical interface with all functions" OFF)
 option(GPGFRONTEND_BUILD_TYPE_STABLE
-        "Generate release version" ON)
+  "Generate release version" ON)
+option(GPGFRONTEND_BUILD_TYPE_FULL_SDK "Build and install all headers and libs exclude application" OFF)
+option(GPGFRONTEND_BUILD_TYPE_ONLY_SDK "Build and install sdk headers and libs" OFF)
+option(GPGFRONTEND_BUILD_TYPE_ONLY_APPLICATION "Generate a usable SDK" OFF)
+
+# function or mode options
 option(GPGFRONTEND_QT5_BUILD "Swith to Qt5 building mode" OFF)
 option(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE "Generate an installable version" OFF)
-option(GPGFRONTEND_BUILD_MODS_ONLY "Build Modules Only" OFF)
+option(GPGFRONTEND_ENABLE_ASAN "Enable ASAN" OFF)
 
+# xcode options
 option(GPGFRONTEND_XCODE_TEAM_ID "GpgFrontend Apple Team ID" "NONE")
 option(GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY "GpgFrontend Signing Certificate" "NONE")
 option(GPGFRONTEND_XOCDE_APPID "GpgFrontend Apple AppID" "NONE")
@@ -76,100 +83,122 @@ option(GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID "GpgFrontend ProvisioningProf
 option(GPGFRONTEND_XOCDE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
 
 # analyse options
-if (GPGFRONTEND_BUILD_TYPE_TEST_CORE)
-    set(CMAKE_BUILD_TYPE "Debug")
-    set(GPGFRONTEND_BUILD_CONFIG "test_core")
-endif ()
+if(GPGFRONTEND_BUILD_TYPE_TEST_CORE)
+  set(CMAKE_BUILD_TYPE "Debug")
+  set(GPGFRONTEND_BUILD_CONFIG "test_core")
+endif()
 
-if (GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE)
-    set(CMAKE_BUILD_TYPE "Debug")
-    set(GPGFRONTEND_BUILD_CONFIG "test_core_coverage")
-endif ()
+if(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE)
+  set(CMAKE_BUILD_TYPE "Debug")
+  set(GPGFRONTEND_BUILD_CONFIG "test_core_coverage")
+endif()
 
-if (GPGFRONTEND_BUILD_TYPE_TEST_UI)
-    set(CMAKE_BUILD_TYPE "Debug")
-    set(GPGFRONTEND_BUILD_CONFIG "test_ui")
-endif ()
+if(GPGFRONTEND_BUILD_TYPE_TEST_UI)
+  set(CMAKE_BUILD_TYPE "Debug")
+  set(GPGFRONTEND_BUILD_CONFIG "test_ui")
+endif()
 
-if (GPGFRONTEND_BUILD_TYPE_TEST_ALL)
-    set(CMAKE_BUILD_TYPE "Debug")
-    set(GPGFRONTEND_BUILD_CONFIG "test_all")
-endif ()
+if(GPGFRONTEND_BUILD_TYPE_TEST_ALL)
+  set(CMAKE_BUILD_TYPE "Debug")
+  set(GPGFRONTEND_BUILD_CONFIG "test_all")
+endif()
 
 # Specify compilation mode
 message(STATUS "Switch Build Configure STABLE_BUILD_APPLICATION")
 set(STABLE_BUILD_APPLICATION 1)
 
 # stable features
-if (GPGFRONTEND_BUILD_TYPE_STABLE)
+if(GPGFRONTEND_BUILD_TYPE_STABLE)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
+  unset(GPGFRONTEND_BUILD_CONFIG)
 
-    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
-    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
-    set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
-    set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
-    unset(GPGFRONTEND_BUILD_CONFIG)
-
-    set(STABLE_BUILD_APPLICATION 1)
-endif ()
+  set(STABLE_BUILD_APPLICATION 1)
+endif()
 
 # linux package build
-if (GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE)
+if(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
+  unset(GPGFRONTEND_BUILD_CONFIG)
 
-    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
-    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
-    set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
-    set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
-    unset(GPGFRONTEND_BUILD_CONFIG)
+  set(LINUX_INSTALL_SOFTWARE 1)
+endif()
 
-    set(LINUX_INSTALL_SOFTWARE 1)
-endif ()
+if(GPGFRONTEND_BUILD_TYPE_FULL_SDK)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
+  unset(GPGFRONTEND_BUILD_CONFIG)
 
-if (GPGFRONTEND_BUILD_MODS_ONLY)
-    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
-    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
-    set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
-    set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
-    unset(GPGFRONTEND_BUILD_CONFIG)
+  set(STABLE_BUILD_APPLICATION 0)
+  set(STABLE_BUILD_FULL_SDK 1)
+endif()
 
-    set(STABLE_BUILD_APPLICATION 0)
-    set(BUILD_MODS_ONLY 1)
+if(GPGFRONTEND_BUILD_TYPE_ONLY_SDK)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
+  unset(GPGFRONTEND_BUILD_CONFIG)
+
+  set(STABLE_BUILD_APPLICATION 0)
+  set(STABLE_BUILD_ONLY_SDK 1)
+endif()
+
+if(GPGFRONTEND_BUILD_TYPE_ONLY_APPLICATION)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
+  unset(GPGFRONTEND_BUILD_CONFIG)
+
+  set(STABLE_BUILD_APPLICATION 0)
+  set(STABLE_BUILD_ONLY_APPLICATION 1)
 endif()
 
 # C++
 
 # options for ccache
 find_program(CCACHE_FOUND ccache)
+
 if(CCACHE_FOUND)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif(CCACHE_FOUND)
 
 # detect compiler
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    # using clang
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
-        message(FATAL_ERROR "Clang version must be at least 9.0!")
-    endif()
-    message(STATUS "Build System Using Compiler CLANG, VERSION: ${CMAKE_CXX_COMPILER_VERSION}")
-    set(USING_COMPILER_CLANG 1)
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  # using clang
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+    message(FATAL_ERROR "Clang version must be at least 9.0!")
+  endif()
 
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    # using gcc
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
-        message(FATAL_ERROR "GCC version must be at least 8.0!")
-    endif()
-    message(STATUS "Build System Using Compiler GCC, VERSION: ${CMAKE_CXX_COMPILER_VERSION}")
-    set(USING_COMPILER_GCC 1)
+  message(STATUS "Build System Using Compiler CLANG, VERSION: ${CMAKE_CXX_COMPILER_VERSION}")
+  set(USING_COMPILER_CLANG 1)
 
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-    # using Intel C++
-    message(FATAL_ERROR "Intel C++ is not supported.")
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  # using gcc
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
+    message(FATAL_ERROR "GCC version must be at least 8.0!")
+  endif()
 
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    # using Visual Studio C++
-    message(FATAL_ERROR "MSVC is not supported.")
-endif ()
+  message(STATUS "Build System Using Compiler GCC, VERSION: ${CMAKE_CXX_COMPILER_VERSION}")
+  set(USING_COMPILER_GCC 1)
 
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+  # using Intel C++
+  message(FATAL_ERROR "Intel C++ is not supported.")
+
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  # using Visual Studio C++
+  message(FATAL_ERROR "MSVC is not supported.")
+endif()
 
 # Using Standard C++-17 (Consider compatibility)
 set(CMAKE_CXX_STANDARD 17)
@@ -182,29 +211,41 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Check Env Variables Before Configuring
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release")
+endif()
 
-if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release")
-endif ()
-
-if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_compile_definitions(RELEASE)
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+  add_compile_definitions(RELEASE)
 else()
-    add_compile_definitions(DEBUG)
+  add_compile_definitions(DEBUG)
 endif()
 
 # use xcode archive build at macos release at default
-if (CMAKE_BUILD_TYPE STREQUAL "Release" AND APPLE)
-    set(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE 0)
-    set(LINUX_INSTALL_SOFTWARE 0)
+if(CMAKE_BUILD_TYPE STREQUAL "Release" AND APPLE)
+  set(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE 0)
+  set(LINUX_INSTALL_SOFTWARE 0)
 
-    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
-    set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
-    set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
-    set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
+  set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
 
-    unset(GPGFRONTEND_BUILD_CONFIG)
-endif ()
+  unset(GPGFRONTEND_BUILD_CONFIG)
+endif()
+
+# if enable ASAN
+if(GPGFRONTEND_ENABLE_ASAN)
+  # check compiler
+  if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    message(FATAL_ERROR "Use GPGFRONTEND_ENABLE_ASAN only when using the clang compiler.")
+  endif()
+
+  add_compile_options(-fsanitize=address -fsanitize-recover=address)
+  add_link_options(-fsanitize=address -fsanitize-recover=address)
+
+  set(ENABLE_ASAN 1)
+endif()
 
 set(AppName GpgFrontend)
 
@@ -212,22 +253,23 @@ set(AppName GpgFrontend)
 set(GIT_COMMIT_HASH "")
 set(GIT_BRANCH_NAME "")
 find_package(Git QUIET)
-if (GIT_FOUND)
-    execute_process(
-            COMMAND ${GIT_EXECUTABLE} log -1 --pretty=format:%H
-            OUTPUT_VARIABLE GIT_COMMIT_HASH
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-            ERROR_QUIET
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    )
-    execute_process(
-            COMMAND ${GIT_EXECUTABLE} symbolic-ref --short -q HEAD
-            OUTPUT_VARIABLE GIT_BRANCH_NAME
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-            ERROR_QUIET
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    )
-endif ()
+
+if(GIT_FOUND)
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} log -1 --pretty=format:%H
+    OUTPUT_VARIABLE GIT_COMMIT_HASH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  )
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} symbolic-ref --short -q HEAD
+    OUTPUT_VARIABLE GIT_BRANCH_NAME
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  )
+endif()
 
 set(BUILD_VERSION ${PROJECT_VERSION}_${CMAKE_SYSTEM}_${CMAKE_SYSTEM_PROCESSOR}_${CMAKE_BUILD_TYPE})
 set(GIT_VERSION ${GIT_BRANCH_NAME}_${GIT_COMMIT_HASH})
@@ -242,132 +284,127 @@ message(STATUS "GpgFrontend Build Version ${BUILD_VERSION}")
 message(STATUS "GpgFrontend Git Repo Version ${GIT_VERSION}")
 
 # support for dymatic libraries
-include (GenerateExportHeader)
+include(GenerateExportHeader)
 
 # Windows
-IF (MINGW)
-    message(STATUS "GpgFrontend Configuration For OS Platform Microsoft Windows")
-    message(STATUS "Build Environment MINGW")
+IF(MINGW)
+  message(STATUS "GpgFrontend Configuration For OS Platform Microsoft Windows")
+  message(STATUS "Build Environment MINGW")
 
-    set(OS_PLATFORM 0)
-    add_definitions(-DWINDOWS)
+  set(OS_PLATFORM 0)
+  add_definitions(-DWINDOWS)
 
-    include_directories(
-            ${CMAKE_CURRENT_SOURCE_DIR}/src
-            ${CMAKE_CURRENT_SOURCE_DIR}/third_party
-            /mingw64/include
-    )
-    link_directories(
-            ${CMAKE_SOURCE_DIR}/lib/mingw
-            /mingw64/lib
-    )
+  include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+    /mingw64/include
+  )
+  link_directories(
+    ${CMAKE_SOURCE_DIR}/lib/mingw
+    /mingw64/lib
+  )
 
-    # Http Request User Agent
-    set(HTTP_REQUEST_USER_AGENT "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0")
-
-endif ()
+  # Http Request User Agent
+  set(HTTP_REQUEST_USER_AGENT "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0")
+endif()
 
 # macOS
-if (APPLE)
-    message(STATUS "GpgFrontend Configuration For OS Platform MacOS")
+if(APPLE)
+  message(STATUS "GpgFrontend Configuration For OS Platform MacOS")
 
-    set(OS_PLATFORM 1)
-    ADD_DEFINITIONS(-DMACOS)
+  set(OS_PLATFORM 1)
+  ADD_DEFINITIONS(-DMACOS)
 
-    if (XCODE_BUILD)
-        set(XCODE_CODE_SIGN_IDENTITY "\"${XCODE_CODE_SIGN_IDENTITY}\"")
-        message(STATUS "XCODE_CODE_SIGN_IDENTITY ${XCODE_CODE_SIGN_IDENTITY}")
-        if (APPLE_SANDBOX)
-            add_compile_definitions(APPLE_SANDBOX)
-        endif ()
-    endif ()
+  if(XCODE_BUILD)
+    set(XCODE_CODE_SIGN_IDENTITY "\"${XCODE_CODE_SIGN_IDENTITY}\"")
+    message(STATUS "XCODE_CODE_SIGN_IDENTITY ${XCODE_CODE_SIGN_IDENTITY}")
 
-    include_directories(
-            ${CMAKE_CURRENT_SOURCE_DIR}/src
-            ${CMAKE_CURRENT_SOURCE_DIR}/third_party
-            /usr/local/include
-            /opt/homebrew/include
-    )
-    link_directories(
-            /usr/local/lib
-            /opt/homebrew/lib
-    )
-
-    # Http Request User Agent
-    set(HTTP_REQUEST_USER_AGENT "Mozilla/5.0 (Macintosh; Intel Mac OS X 14.3; rv:123.0) Gecko/20100101 Firefox/123.0")
-
-endif ()
-
-if (UNIX AND NOT APPLE)
-    set(LINUX TRUE)
-endif ()
-
-if (LINUX)
-
-    message(STATUS "GpgFrontend Configuration For OS Platform Linux")
-
-    set(OS_PLATFORM 2)
-    add_compile_definitions(LINUX)
-
-    # Get Env Info
-    find_program(UNAME_PROGRAM uname)
-    if(UNAME_PROGRAM)
-        execute_process(COMMAND ${UNAME_PROGRAM} OUTPUT_VARIABLE SYSTEM_NAME OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(APPLE_SANDBOX)
+      add_compile_definitions(APPLE_SANDBOX)
     endif()
+  endif()
 
-    if(USING_COMPILER_CLANG)
-        add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-stdlib=libstdc++>)
-    endif()
+  include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+    /usr/local/include
+    /opt/homebrew/include
+  )
+  link_directories(
+    /usr/local/lib
+    /opt/homebrew/lib
+  )
 
-    if(SYSTEM_NAME STREQUAL "FreeBSD")
-        message(STATUS "FreeBSD BOX")
-        add_compile_definitions(FREEBSD)
-        set(FREEBSD TRUE)
-    endif()
+  # Http Request User Agent
+  set(HTTP_REQUEST_USER_AGENT "Mozilla/5.0 (Macintosh; Intel Mac OS X 14.3; rv:123.0) Gecko/20100101 Firefox/123.0")
+endif()
 
-    include_directories(
-            ${CMAKE_CURRENT_SOURCE_DIR}/src
-            ${CMAKE_CURRENT_SOURCE_DIR}/third_party
-            /usr/include
-            /usr/local/include
-    )
-    link_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/)
-    link_directories(
-            /lib/
-            /usr/lib/
-            /usr/local/lib/
-    )
+if(UNIX AND NOT APPLE)
+  set(LINUX TRUE)
+endif()
 
-    # Http Request User Agent
-    set(HTTP_REQUEST_USER_AGENT "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:123.0) Gecko/20100101 Firefox/123.0")
+if(LINUX)
+  message(STATUS "GpgFrontend Configuration For OS Platform Linux")
 
-endif ()
+  set(OS_PLATFORM 2)
+  add_compile_definitions(LINUX)
 
-if (LINUX_INSTALL_SOFTWARE)
-    message(STATUS "Linux Install Traget ${CMAKE_INSTALL_PREFIX}")
-    include(GNUInstallDirs)
-    set(APP_INSTALL_FLAG LINUX_INSTALL)
-    add_compile_definitions(LINUX_INSTALL_BUILD)
-else ()
-    set(APP_INSTALL_FLAG BUNDLE)
-endif ()
+  # Get Env Info
+  find_program(UNAME_PROGRAM uname)
 
-if (GPGFRONTEND_QT5_BUILD)
+  if(UNAME_PROGRAM)
+    execute_process(COMMAND ${UNAME_PROGRAM} OUTPUT_VARIABLE SYSTEM_NAME OUTPUT_STRIP_TRAILING_WHITESPACE)
+  endif()
 
-    add_compile_definitions(QT5_BUILD)
+  if(USING_COMPILER_CLANG)
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-stdlib=libstdc++>)
+  endif()
 
-    # Introduce Qt
-    # Support Qt version: 5.15.x
-    find_package(Qt5 5.15 COMPONENTS Core Widgets PrintSupport Network LinguistTools REQUIRED)
+  if(SYSTEM_NAME STREQUAL "FreeBSD")
+    message(STATUS "FreeBSD BOX")
+    add_compile_definitions(FREEBSD)
+    set(FREEBSD TRUE)
+  endif()
+
+  include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+    /usr/include
+    /usr/local/include
+  )
+  link_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/)
+  link_directories(
+    /lib/
+    /usr/lib/
+    /usr/local/lib/
+  )
+
+  # Http Request User Agent
+  set(HTTP_REQUEST_USER_AGENT "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:123.0) Gecko/20100101 Firefox/123.0")
+endif()
+
+if(LINUX_INSTALL_SOFTWARE)
+  message(STATUS "Linux Install Traget ${CMAKE_INSTALL_PREFIX}")
+  include(GNUInstallDirs)
+  set(APP_INSTALL_FLAG LINUX_INSTALL)
+  add_compile_definitions(LINUX_INSTALL_BUILD)
+else()
+  set(APP_INSTALL_FLAG BUNDLE)
+endif()
+
+if(GPGFRONTEND_QT5_BUILD)
+  add_compile_definitions(QT5_BUILD)
+
+  # Introduce Qt
+  # Support Qt version: 5.15.x
+  find_package(Qt5 5.15 COMPONENTS Core Widgets PrintSupport Network LinguistTools REQUIRED)
 
 else()
+  add_compile_definitions(QT6_BUILD)
 
-    add_compile_definitions(QT6_BUILD)
-
-    # Introduce Qt
-    # Support Qt version: 6.x
-    find_package(Qt6 6 COMPONENTS Core Widgets PrintSupport Network LinguistTools REQUIRED)
-
+  # Introduce Qt
+  # Support Qt version: 6.x
+  find_package(Qt6 6 COMPONENTS Core Widgets PrintSupport Network LinguistTools REQUIRED)
 endif()
 
 # Qt configuration
@@ -378,28 +415,43 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC_OPTIONS "--compress;9")
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${CMAKE_SOURCE_DIR}/ui)
 
-if (STABLE_BUILD_APPLICATION)
-    message("[+] Build Stable Application")
-    set(BUILD_CORE 1)
-    set(BUILD_UI 1)
-    set(BUILD_MODULE 1)
-    set(BUILD_TEST 1)
-    set(BUILD_APPLICATION 1)
-    set(SUPPORT_MULTI_LANG 1)
-elseif (BUILD_MODS_ONLY)
-    message("[+] Build Mods")
-    set(BUILD_CORE 1)
-    set(BUILD_MODULE 1)
-endif ()
+if(STABLE_BUILD_APPLICATION)
+  message("[*] Build Stable Application")
+  set(BUILD_CORE 1)
+  set(BUILD_UI 1)
+  set(BUILD_TEST 1)
+  set(BUILD_SDK 1)
+  set(BUILD_APPLICATION 1)
+  set(SUPPORT_MULTI_LANG 1)
+elseif(STABLE_BUILD_ONLY_SDK)
+  message("[*] Build SDK")
+  set(BUILD_CORE 1)
+  set(BUILD_UI 1)
+  set(BUILD_SDK 1)
+elseif(STABLE_BUILD_FULL_SDK)
+  message("[*] Build All Headers and Libs (SDK fully build)")
+  set(BUILD_CORE 1)
+  set(BUILD_UI 1)
+  set(BUILD_TEST 1)
+  set(BUILD_SDK 1)
+elseif(GPGFRONTEND_BUILD_TYPE_ONLY_APPLICATION)
+  message("[*] Build executable only")
+  set(BUILD_CORE 0)
+  set(BUILD_UI 0)
+  set(BUILD_TEST 0)
+  set(BUILD_SDK 0)
+  set(BUILD_APPLICATION 1)
+  set(SUPPORT_MULTI_LANG 1)
+endif()
 
 # For instance in order to select the highest version one
 SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
 SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-if (SUPPORT_MULTI_LANG)
-    add_compile_definitions(SUPPORT_MULTI_LANG)
-endif ()
+if(SUPPORT_MULTI_LANG)
+  add_compile_definitions(SUPPORT_MULTI_LANG)
+endif()
 
 # Output Env Variables
 message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")

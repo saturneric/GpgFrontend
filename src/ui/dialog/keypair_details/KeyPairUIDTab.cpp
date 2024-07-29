@@ -228,7 +228,6 @@ void KeyPairUIDTab::slot_refresh_tofu_info() {
       continue;
     }
     auto tofu_infos = uid.GetTofuInfos();
-    GF_UI_LOG_DEBUG("tofu info size: {}", tofu_infos->size());
     if (tofu_infos->empty()) {
       tofu_tabs_->hide();
     } else {
@@ -383,7 +382,6 @@ void KeyPairUIDTab::slot_del_uid() {
 
   if (ret == QMessageBox::Yes) {
     for (const auto& uid : *selected_uids) {
-      GF_UI_LOG_DEBUG("uid: {}", uid);
       if (!GpgUIDOperator::GetInstance().RevUID(m_key_, uid)) {
         QMessageBox::critical(
             nullptr, tr("Operation Failed"),

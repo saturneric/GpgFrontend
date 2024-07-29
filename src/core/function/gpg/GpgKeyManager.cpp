@@ -73,10 +73,9 @@ auto GpgFrontend::GpgKeyManager::RevSign(
   return true;
 }
 
-auto GpgFrontend::GpgKeyManager::SetExpire(const GpgFrontend::GpgKey& key,
-                                           std::unique_ptr<GpgSubKey>& subkey,
-                                           std::unique_ptr<QDateTime>& expires)
-    -> bool {
+auto GpgFrontend::GpgKeyManager::SetExpire(
+    const GpgFrontend::GpgKey& key, std::unique_ptr<GpgSubKey>& subkey,
+    std::unique_ptr<QDateTime>& expires) -> bool {
   unsigned long expires_time = 0;
 
   if (expires != nullptr) expires_time = expires->toSecsSinceEpoch();
@@ -95,80 +94,82 @@ auto GpgFrontend::GpgKeyManager::SetExpire(const GpgFrontend::GpgKey& key,
 auto GpgFrontend::GpgKeyManager::SetOwnerTrustLevel(const GpgKey& key,
                                                     int trust_level) -> bool {
   if (trust_level < 0 || trust_level > 5) {
-    GF_CORE_LOG_ERROR("illegal owner trust level: {}", trust_level);
+    qCWarning(core, "illegal owner trust level: %d", trust_level);
   }
 
-  AutomatonNextStateHandler next_state_handler = [](AutomatonState state,
-                                                    QString status,
-                                                    QString args) {
-    GF_CORE_LOG_DEBUG("next_state_handler state: {}, gpg_status: {}, args: {}",
-                      state, status, args);
-    auto tokens = args.split(' ');
+  AutomatonNextStateHandler next_state_handler =
+      [](AutomatonState state, QString status, QString args) {
+        qCDebug(core) << "next_state_handler state: "
+                      << static_cast<unsigned int>(state)
+                      << ", gpg_status: " << status << ", args: " << args;
 
-    switch (state) {
-      case AS_START:
-        if (status == "GET_LINE" && args == "keyedit.prompt") {
-          return AS_COMMAND;
-        }
-        return AS_ERROR;
-      case AS_COMMAND:
-        if (status == "GET_LINE" && args == "edit_ownertrust.value") {
-          return AS_VALUE;
-        }
-        return AS_ERROR;
-      case AS_VALUE:
-        if (status == "GET_LINE" && args == "keyedit.prompt") {
-          return AS_QUIT;
-        } else if (status == "GET_BOOL" &&
-                   args == "edit_ownertrust.set_ultimate.okay") {
-          return AS_REALLY_ULTIMATE;
-        }
-        return AS_ERROR;
-      case AS_REALLY_ULTIMATE:
-        if (status == "GET_LINE" && args == "keyedit.prompt") {
-          return AS_QUIT;
-        }
-        return AS_ERROR;
-      case AS_QUIT:
-        if (status == "GET_LINE" && args == "keyedit.save.okay") {
-          return AS_SAVE;
-        }
-        return AS_ERROR;
-      case AS_ERROR:
-        if (status == "GET_LINE" && args == "keyedit.prompt") {
-          return AS_QUIT;
-        }
-        return AS_ERROR;
-      default:
-        return AS_ERROR;
-    };
-  };
+        auto tokens = args.split(' ');
 
-  AutomatonActionHandler action_handler =
-      [trust_level](AutomatonHandelStruct& handler, AutomatonState state) {
-        GF_CORE_LOG_DEBUG("action_handler state: {}", state);
         switch (state) {
-          case AS_COMMAND:
-            return QString("trust");
-          case AS_VALUE:
-            handler.SetSuccess(true);
-            return QString::number(trust_level);
-          case AS_REALLY_ULTIMATE:
-            handler.SetSuccess(true);
-            return QString("Y");
-          case AS_QUIT:
-            return QString("quit");
-          case AS_SAVE:
-            handler.SetSuccess(true);
-            return QString("Y");
           case AS_START:
+            if (status == "GET_LINE" && args == "keyedit.prompt") {
+              return AS_COMMAND;
+            }
+            return AS_ERROR;
+          case AS_COMMAND:
+            if (status == "GET_LINE" && args == "edit_ownertrust.value") {
+              return AS_VALUE;
+            }
+            return AS_ERROR;
+          case AS_VALUE:
+            if (status == "GET_LINE" && args == "keyedit.prompt") {
+              return AS_QUIT;
+            } else if (status == "GET_BOOL" &&
+                       args == "edit_ownertrust.set_ultimate.okay") {
+              return AS_REALLY_ULTIMATE;
+            }
+            return AS_ERROR;
+          case AS_REALLY_ULTIMATE:
+            if (status == "GET_LINE" && args == "keyedit.prompt") {
+              return AS_QUIT;
+            }
+            return AS_ERROR;
+          case AS_QUIT:
+            if (status == "GET_LINE" && args == "keyedit.save.okay") {
+              return AS_SAVE;
+            }
+            return AS_ERROR;
           case AS_ERROR:
-            return QString("");
+            if (status == "GET_LINE" && args == "keyedit.prompt") {
+              return AS_QUIT;
+            }
+            return AS_ERROR;
           default:
-            return QString("");
-        }
-        return QString("");
+            return AS_ERROR;
+        };
       };
+
+  AutomatonActionHandler action_handler = [trust_level](
+                                              AutomatonHandelStruct& handler,
+                                              AutomatonState state) {
+    qCDebug(core, "action_handler state: %d", static_cast<unsigned int>(state));
+    switch (state) {
+      case AS_COMMAND:
+        return QString("trust");
+      case AS_VALUE:
+        handler.SetSuccess(true);
+        return QString::number(trust_level);
+      case AS_REALLY_ULTIMATE:
+        handler.SetSuccess(true);
+        return QString("Y");
+      case AS_QUIT:
+        return QString("quit");
+      case AS_SAVE:
+        handler.SetSuccess(true);
+        return QString("Y");
+      case AS_START:
+      case AS_ERROR:
+        return QString("");
+      default:
+        return QString("");
+    }
+    return QString("");
+  };
 
   auto key_fpr = key.GetFingerprint();
   AutomatonHandelStruct handel_struct(key_fpr);
@@ -185,21 +186,19 @@ auto GpgFrontend::GpgKeyManager::SetOwnerTrustLevel(const GpgKey& key,
 
 auto GpgFrontend::GpgKeyManager::interactor_cb_fnc(void* handle,
                                                    const char* status,
-                                                   const char* args, int fd)
-    -> gpgme_error_t {
+                                                   const char* args,
+                                                   int fd) -> gpgme_error_t {
   auto* handle_struct = static_cast<AutomatonHandelStruct*>(handle);
   QString status_s = status;
   QString args_s = args;
-  GF_CORE_LOG_DEBUG(
-      "cb start status: {}, args: {}, fd: {}, handle struct state: {}",
-      status_s, args_s, fd, handle_struct->CuurentStatus());
 
   if (status_s == "KEY_CONSIDERED") {
     auto tokens = QString(args).split(' ');
 
     if (tokens.empty() || tokens[0] != handle_struct->KeyFpr()) {
-      GF_CORE_LOG_ERROR("handle struct key fpr {} mismatch token: {}, exit...",
-                        handle_struct->KeyFpr(), tokens[0]);
+      qCWarning(core) << "handle struct key fpr " << handle_struct->KeyFpr()
+                      << "mismatch token: " << tokens[0] << ", exit...";
+
       return -1;
     }
 
@@ -207,13 +206,13 @@ auto GpgFrontend::GpgKeyManager::interactor_cb_fnc(void* handle,
   }
 
   if (status_s == "GOT_IT" || status_s.isEmpty()) {
-    GF_CORE_LOG_DEBUG("status GOT_IT, continue...");
+    qCDebug(core, "status GOT_IT, continue...");
     return 0;
   }
 
   AutomatonState next_state = handle_struct->NextState(status_s, args_s);
   if (next_state == AS_ERROR) {
-    GF_CORE_LOG_DEBUG("handle struct next state caught error, skipping...");
+    qCDebug(core, "handle struct next state caught error, skipping...");
     return GPG_ERR_FALSE;
   }
 
@@ -224,8 +223,7 @@ auto GpgFrontend::GpgKeyManager::interactor_cb_fnc(void* handle,
   // set state and preform action
   handle_struct->SetStatus(next_state);
   Command cmd = handle_struct->Action();
-  GF_CORE_LOG_DEBUG("handle struct action done, next state: {}, action cmd: {}",
-                    next_state, cmd);
+
   if (!cmd.isEmpty()) {
     auto btye_array = cmd.toUtf8();
     gpgme_io_write(fd, btye_array, btye_array.size());

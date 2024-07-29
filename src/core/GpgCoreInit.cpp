@@ -78,7 +78,6 @@ auto SearchGpgconfPath(const QList<QString>& candidate_paths) -> QString {
 
 auto SearchKeyDatabasePath(const QList<QString>& candidate_paths) -> QString {
   for (const auto& path : candidate_paths) {
-    GF_CORE_LOG_DEBUG("searh for candidate key database path: {}", path);
     if (VerifyKeyDatabasePath(QFileInfo(path))) {
       return path;
     }
@@ -97,8 +96,6 @@ auto InitGpgME(const QString& gpgconf_path, const QString& gnupg_path) -> bool {
 #endif
 
   if (!gnupg_path.isEmpty()) {
-    GF_CORE_LOG_DEBUG("gpgme set engine info, gpgconf path: {}, gnupg path: {}",
-                      gpgconf_path, gnupg_path);
     CheckGpgError(gpgme_set_engine_info(GPGME_PROTOCOL_GPGCONF,
                                         gpgconf_path.toUtf8(), nullptr));
     CheckGpgError(gpgme_set_engine_info(GPGME_PROTOCOL_OpenPGP,
@@ -120,15 +117,6 @@ auto InitGpgME(const QString& gpgconf_path, const QString& gnupg_path) -> bool {
       engine_info = engine_info->next;
       continue;
     }
-
-    GF_CORE_LOG_DEBUG(
-        "gpg context engine info: {} {} {} {}",
-        gpgme_get_protocol_name(engine_info->protocol),
-        QString(engine_info->file_name == nullptr ? "null"
-                                                  : engine_info->file_name),
-        QString(engine_info->home_dir == nullptr ? "null"
-                                                 : engine_info->home_dir),
-        QString(engine_info->version ? "null" : engine_info->version));
 
     switch (engine_info->protocol) {
       case GPGME_PROTOCOL_OpenPGP:
@@ -183,12 +171,11 @@ auto InitGpgME(const QString& gpgconf_path, const QString& gnupg_path) -> bool {
 
   const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gnupg_version", QString{"0.0.0"});
-  GF_CORE_LOG_DEBUG("got gnupg version from rt: {}", gnupg_version);
 
   // conditional check: only support gpg 2.1.x now
   if (!(GFCompareSoftwareVersion(gnupg_version, "2.1.0") >= 0 && find_gpgconf &&
         find_openpgp && find_cms)) {
-    GF_CORE_LOG_ERROR("gpgme env check failed, abort");
+    qCWarning(core, "gpgme env check failed, abort");
     return false;
   }
 
@@ -249,8 +236,8 @@ auto DetectGpgConfPath() -> QString {
 #endif
 
     if (!VerifyGpgconfPath(QFileInfo(gnupg_install_fs_path))) {
-      GF_CORE_LOG_ERROR("core loaded custom gpgconf path is illegal: {}",
-                        gnupg_install_fs_path);
+      qCWarning(core) << "core loaded custom gpgconf path is illegal: "
+                      << gnupg_install_fs_path;
       gnupg_install_fs_path = "";
     }
   }
@@ -260,15 +247,11 @@ auto DetectGpgConfPath() -> QString {
 #ifdef MACOS
     gnupg_install_fs_path = SearchGpgconfPath(
         {"/usr/local/bin/gpgconf", "/opt/homebrew/bin/gpgconf"});
-    GF_CORE_LOG_DEBUG("core loaded searched gpgconf path: {}",
-                      gnupg_install_fs_path);
 #endif
 
 #ifdef WINDOWS
     gnupg_install_fs_path =
         SearchGpgconfPath({"C:/Program Files (x86)/gnupg/bin"});
-    GF_CORE_LOG_DEBUG("core loaded searched gpgconf path: {}",
-                      gnupg_install_fs_path);
 #endif
   }
 
@@ -289,13 +272,10 @@ void InitGpgFrontendCore(CoreInitArgs args) {
   Module::UpsertRTValue("core", "env.state.basic", 0);
   Module::UpsertRTValue("core", "env.state.all", 0);
 
-  // initialize locale environment
-  GF_CORE_LOG_DEBUG("locale: {}", setlocale(LC_CTYPE, nullptr));
-
   auto gpgconf_install_fs_path = DetectGpgConfPath();
   auto gnupg_install_fs_path = DetectGnuPGPath(gpgconf_install_fs_path);
-  GF_CORE_LOG_INFO("detected gpgconf path: {}", gpgconf_install_fs_path);
-  GF_CORE_LOG_INFO("detected gnupg path: {}", gnupg_install_fs_path);
+  qCInfo(core) << "detected gpgconf path: " << gpgconf_install_fs_path;
+  qCInfo(core) << "detected gnupg path: " << gnupg_install_fs_path;
 
   // initialize library gpgme
   if (!InitGpgME(gpgconf_install_fs_path, gnupg_install_fs_path)) {
@@ -334,11 +314,6 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                     QString::fromLocal8Bit(qgetenv("container")) != "flatpak")
                 .toBool();
 
-        GF_CORE_LOG_DEBUG("core loaded if use custom key databse path: {}",
-                          use_custom_key_database_path);
-        GF_CORE_LOG_DEBUG("core loaded custom key databse path: {}",
-                          custom_key_database_path);
-
         // check key database path
         QString key_database_fs_path;
         // user defined
@@ -346,21 +321,17 @@ void InitGpgFrontendCore(CoreInitArgs args) {
             !custom_key_database_path.isEmpty()) {
           key_database_fs_path = custom_key_database_path;
           if (VerifyKeyDatabasePath(QFileInfo(key_database_fs_path))) {
-            GF_CORE_LOG_ERROR(
-                "core loaded custom gpg key database is illegal: {}",
-                key_database_fs_path);
+            qCWarning(core)
+                << "core loaded custom gpg key database is illegal: "
+                << key_database_fs_path;
           } else {
             use_custom_key_database_path = true;
-            GF_CORE_LOG_DEBUG("core loaded custom gpg key database path: {}",
-                              key_database_fs_path);
           }
         } else {
 #if defined(LINUX) || defined(MACOS)
           use_custom_key_database_path = true;
           key_database_fs_path =
               SearchKeyDatabasePath({QDir::home().path() + "/.gnupg"});
-          GF_CORE_LOG_DEBUG("core loaded searched key database path: {}",
-                            key_database_fs_path);
 #endif
         }
 
@@ -377,13 +348,11 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                   if (dir_info.exists() && dir_info.isDir() &&
                       dir_info.isReadable() && dir_info.isWritable()) {
                     args.db_path = dir_info.absoluteFilePath();
-                    GF_CORE_LOG_INFO("using key database path: {}",
-                                     args.db_path);
                   } else {
-                    GF_CORE_LOG_ERROR(
-                        "custom key database path: {}, is not point to "
-                        "an accessible directory",
-                        key_database_fs_path);
+                    qCWarning(core)
+                        << "custom key database path: " << key_database_fs_path
+                        << ", is not point to "
+                           "an accessible directory";
                   }
                 }
 
@@ -404,7 +373,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
 
           // exit if failed
           if (!ctx.Good()) {
-            GF_CORE_LOG_ERROR("default gnupg context init error, abort");
+            qCWarning(core, "default gnupg context init error, abort");
             CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
                 QCoreApplication::tr("GpgME Context initiation failed"));
             return -1;
@@ -415,11 +384,12 @@ void InitGpgFrontendCore(CoreInitArgs args) {
         if (args.load_default_gpg_context) {
           if (!GpgKeyGetter::GetInstance().FlushKeyCache()) {
             CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-                QCoreApplication::tr("Gpg Key Detabase initiation failed"));
+                QCoreApplication::tr("Gpg Key Database initiation failed"));
           };
         }
 
-        GF_CORE_LOG_DEBUG(
+        qCDebug(
+            core,
             "basic env checking finished, including gpgme, ctx, and key infos");
 
         Module::UpsertRTValue("core", "env.state.basic", 1);

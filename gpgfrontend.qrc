@@ -97,6 +97,7 @@
         <file alias="key.png">resource/lfs/icons/key.png</file>
         <file alias="stairs.png">resource/lfs/icons/stairs.png</file>
         <file alias="detail.png">resource/lfs/icons/detail.png</file>
+        <file alias="filter.png">resource/lfs/icons/filter.png</file>
     </qresource>
     <qresource prefix="/test/key">
         <file alias="pv1.key">resource/lfs/test/data/pv1.key</file>

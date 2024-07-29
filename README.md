@@ -33,6 +33,7 @@ GpgFrontend is **PERMANENTLY FREE** of charge. However, you can support us by
   - [Developer Document](#developer-document)
   - [Language Support](#language-support)
     - [Supported Languages](#supported-languages)
+  - [Modules](#modules)
   - [Contact](#contact)
     - [Contributing \& Bugs Report](#contributing--bugs-report)
     - [Project Maintainer](#project-maintainer)
@@ -42,7 +43,10 @@ GpgFrontend is **PERMANENTLY FREE** of charge. However, you can support us by
 ## User Manual
 
 GpgFrontend provides documentations on its main features. If you want to know how to install, please
-read the [User Manual](https://www.gpgfrontend.bktus.com/#/quick-start) instead of README.
+read the [User Manual](https://www.gpgfrontend.bktus.com/overview/glance) instead of README.
+
+The code for the user manual is maintained in [this
+repository](https://github.com/saturneric/GpgFrontend-Manual.git).
 
 ## Developer Document
 
@@ -51,11 +55,14 @@ latest develop code. [Developer Document](https://doxygen.gpgfrontend.bktus.com)
 will help you understand the source code and get involved more quickly in the
 process of contributing to open source.
 
+The code for the developer documentations is maintained in [this
+repository](https://github.com/saturneric/GpgFrontend-Doxygen.git).
+
 ## Language Support
 
 If you find an error in any of the translations or need to add a new one, we
 welcome you to [join our translation
-work](https://www.gpgfrontend.bktus.com/#/contribute/translate-interface).
+work](https://www.gpgfrontend.bktus.com/appendix/translate-interface).
 
 ### Supported Languages
 
@@ -69,16 +76,32 @@ GpgFrontend currently supports an array of languages including:
 
 Contributors: [SHOW](TRANSLATORS)
 
+## Modules
+
+GpgFrontend supports extensive module development, allowing users to customize
+their experience. Modules can encapsulate functionality, enabling users to
+enable or disable features as needed. Users can refer to existing module code
+for guidance and are encouraged to contribute to the [Module
+Repository](https://github.com/saturneric/GpgFrontend-Modules.git) to reach a
+broader audience.
+
+As the development is still in its infancy, there are not enough modules and
+many API interfaces have not been stabilized. So the discussion is open for the
+development of new modules and the introduction of API interfaces.
+
 ## Contact
 
-Please refer to [HERE](https://www.gpgfrontend.bktus.com/contact) for my contact details.
+Please refer to [HERE](https://www.gpgfrontend.bktus.com/overview/contact) for my contact details.
 
 ### Contributing & Bugs Report
 
-Feel free to dive in! [Open an issue](https://github.com/saturneric/GpgFrontend/issues/new) or submit PRs if you prefer
-to use GitHub. For anonymous users, Git patches can be delivered by [mail](mailto:eric@bktus.com).
+Feel free to dive in! [Open an
+issue](https://github.com/saturneric/GpgFrontend/issues/new) or submit PRs if
+you prefer to use GitHub. For anonymous users, Git patches can be delivered by
+[mail](mailto:eric@bktus.com). If you don't have a GitHub account or prefer not
+to register, you are welcome to communicate with me via email at
 
-[Contributing Guide](https://www.gpgfrontend.bktus.com/#/contribute/contribute)
+[Contributing Guide](https://www.gpgfrontend.bktus.com/appendix/contribute)
 
 ### Project Maintainer
 

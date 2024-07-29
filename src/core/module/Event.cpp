@@ -34,21 +34,17 @@ namespace GpgFrontend::Module {
 
 class Event::Impl {
  public:
-  Impl(QString event_id, std::initializer_list<ParameterInitializer> params,
-       EventCallback callback)
+  Impl(QString event_id, Params params, EventCallback callback)
       : event_identifier_(std::move(event_id)),
         callback_(std::move(callback)),
         callback_thread_(QThread::currentThread()) {
-    for (const auto& param : params) {
-      AddParameter(param);
-    }
-    GF_CORE_LOG_DEBUG("create event {}", event_identifier_);
+    data_.insert(params);
   }
 
   auto operator[](const QString& key) const -> std::optional<ParameterValue> {
     auto it_data = data_.find(key);
     if (it_data != data_.end()) {
-      return it_data->second;
+      return it_data.value();
     }
     return std::nullopt;
   }
@@ -82,21 +78,17 @@ class Event::Impl {
   }
 
   void ExecuteCallback(ListenerIdentifier listener_id,
-                       const DataObjectPtr& data_object) {
-    GF_CORE_LOG_DEBUG("try to execute callback for event {} with listener {}",
-                      event_identifier_, listener_id);
+                       const Params& data_object) {
     if (callback_) {
-      GF_CORE_LOG_DEBUG("executing callback for event {} with listener {}",
-                        event_identifier_, listener_id);
       if (!QMetaObject::invokeMethod(
               callback_thread_,
               [callback = callback_, event_identifier = event_identifier_,
                listener_id, data_object]() {
                 callback(event_identifier, listener_id, data_object);
               })) {
-        GF_CORE_LOG_ERROR(
-            "failed to invoke callback for event {} with listener {}",
-            event_identifier_, listener_id);
+        qCWarning(core) << "failed to invoke callback for event: "
+                        << event_identifier_
+                        << " with listener:" << listener_id;
       }
     }
   }
@@ -112,7 +104,22 @@ class Event::Impl {
     GFModuleEventParam* p_param;
 
     int index = 0;
-    for (const auto& data : data_) {
+
+#ifdef QT5_BUILD
+    for (auto it = data_.keyValueBegin(); it != data_.keyValueEnd(); ++it) {
+      p_param = static_cast<GFModuleEventParam*>(
+          SecureMalloc(sizeof(GFModuleEventParam)));
+      if (index++ == 0) event->params = p_param;
+
+      p_param->name = GFStrDup(it->first);
+      p_param->value = GFStrDup(it->second);
+      p_param->next = nullptr;
+
+      if (l_param != nullptr) l_param->next = p_param;
+      l_param = p_param;
+    }
+#else
+    for (const auto& data : data_.asKeyValueRange()) {
       p_param = static_cast<GFModuleEventParam*>(
           SecureMalloc(sizeof(GFModuleEventParam)));
       if (index++ == 0) event->params = p_param;
@@ -124,6 +131,7 @@ class Event::Impl {
       if (l_param != nullptr) l_param->next = p_param;
       l_param = p_param;
     }
+#endif
 
     return event;
   }
@@ -131,14 +139,12 @@ class Event::Impl {
  private:
   EventIdentifier event_identifier_;
   EventTriggerIdentifier trigger_uuid_ = QUuid::createUuid().toString();
-  std::map<QString, QString> data_;
+  QMap<QString, QString> data_;
   EventCallback callback_;
   QThread* callback_thread_ = nullptr;  ///<
 };
 
-Event::Event(const QString& event_id,
-             std::initializer_list<ParameterInitializer> params,
-             EventCallback callback)
+Event::Event(const QString& event_id, Params params, EventCallback callback)
     : p_(SecureCreateUniqueObject<Impl>(event_id, params,
                                         std::move(callback))) {}
 
@@ -170,8 +176,8 @@ void Event::AddParameter(const QString& key, const QString& value) {
   p_->AddParameter(key, value);
 }
 
-void Event::ExecuteCallback(ListenerIdentifier l_id, DataObjectPtr d_o) {
-  p_->ExecuteCallback(std::move(l_id), d_o);
+void Event::ExecuteCallback(ListenerIdentifier l_id, const Params& param) {
+  p_->ExecuteCallback(std::move(l_id), param);
 }
 
 auto Event::ToModuleEvent() -> GFModuleEvent* { return p_->ToModuleEvent(); }

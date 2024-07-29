@@ -23,7 +23,6 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-
 # tracking source files
 aux_source_directory(. UI_SOURCE)
 aux_source_directory(dialog/keypair_details UI_SOURCE)
@@ -43,46 +42,55 @@ aux_source_directory(function UI_SOURCE)
 # define libgpgfrontend_ui
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
+
 add_library(gpgfrontend_ui SHARED ${UI_SOURCE})
+
+# generate headers
 set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendUIExport.h")
 generate_export_header(gpgfrontend_ui EXPORT_FILE_NAME "${_export_file}")
+
+# compile definitions
+target_compile_definitions(gpgfrontend_ui PUBLIC GF_UI)
 
 if(GPGFRONTEND_QT5_BUILD)
   # link Qt
   target_link_libraries(gpgfrontend_ui
-          Qt5::Core Qt5::Widgets Qt5::Network Qt5::PrintSupport)
+    Qt5::Core Qt5::Widgets Qt5::Network Qt5::PrintSupport)
 else()
   # link Qt
   target_link_libraries(gpgfrontend_ui
-          Qt6::Core Qt6::Widgets Qt6::Network Qt6::PrintSupport)
+    Qt6::Core Qt6::Widgets Qt6::Network Qt6::PrintSupport)
 endif()
-
 
 # link gpgfrontend_core
 target_link_libraries(gpgfrontend_ui gpgfrontend_core)
-
-# link buddled pinentry
-target_link_libraries(gpgfrontend_ui gpgfrontend_pinentry)
 
 # set up pch
 target_precompile_headers(gpgfrontend_ui PUBLIC GpgFrontendUI.h)
 
 # add ui generator include path
 target_include_directories(gpgfrontend_ui PUBLIC
-        ${CMAKE_CURRENT_BINARY_DIR}/gpgfrontend_ui_autogen/include
-        ${CMAKE_SOURCE_DIR}/third_party/spdlog/include)
+  ${CMAKE_CURRENT_BINARY_DIR}/gpgfrontend_ui_autogen/include)
 
 # using std c++ 17
 target_compile_features(gpgfrontend_ui PUBLIC cxx_std_17)
 
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+  # lib output path
+  set_target_properties(gpgfrontend_ui PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib)
+endif()
+
 # for xcode archive build
-if (XCODE_BUILD)
-    set_target_properties(gpgfrontend_ui
-            PROPERTIES
-            ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-            LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-            LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-            XCODE_ATTRIBUTE_SKIP_INSTALL "Yes"
-            XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
-endif ()
+if(XCODE_BUILD)
+  set_target_properties(gpgfrontend_ui
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+    XCODE_ATTRIBUTE_SKIP_INSTALL "Yes"
+    XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
+endif()
+
 target_compile_features(gpgfrontend_ui PUBLIC cxx_std_17)

@@ -295,14 +295,6 @@ void MainWindow::SlotEncryptSign() {
   auto signer_key_ids = signers_picker->GetCheckedSigners();
   auto signer_keys = GpgKeyGetter::GetInstance().GetKeys(signer_key_ids);
 
-  for (const auto& key : *keys) {
-    GF_UI_LOG_DEBUG("keys {}", key.GetEmail());
-  }
-
-  for (const auto& signer : *signer_keys) {
-    GF_UI_LOG_DEBUG("signers {}", signer.GetEmail());
-  }
-
   // data to transfer into task
   auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
 

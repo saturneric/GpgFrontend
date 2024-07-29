@@ -60,7 +60,7 @@ void Wizard::slot_wizard_accepted() {
     auto settings = GlobalSettingStation::GetInstance().GetSettings();
     settings.setValue("wizard/show_wizard", false);
   } catch (...) {
-    GF_UI_LOG_ERROR("setting operation error");
+    qCWarning(ui, "setting operation error");
   }
   if (field("openHelp").toBool()) {
     emit SignalOpenHelp("docu.html#content");

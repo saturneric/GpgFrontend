@@ -29,7 +29,7 @@
 #include "ui/widgets/KeyList.h"
 
 #include <cstddef>
-#include <mutex>
+#include <utility>
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
@@ -40,27 +40,143 @@
 
 namespace GpgFrontend::UI {
 
-KeyList::KeyList(KeyMenuAbility::AbilityType menu_ability, QWidget* parent)
+KeyList::KeyList(KeyMenuAbility menu_ability,
+                 GpgKeyTableColumn fixed_columns_filter, QWidget* parent)
     : QWidget(parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyList>()),
-      menu_ability_(menu_ability) {
+      menu_ability_(menu_ability),
+      model_(GpgKeyGetter::GetInstance().GetGpgKeyTableModel()),
+      fixed_columns_filter_(fixed_columns_filter),
+      global_column_filter_(static_cast<GpgKeyTableColumn>(
+          GlobalSettingStation::GetInstance()
+              .GetSettings()
+              .value("keys/global_columns_filter",
+                     static_cast<unsigned int>(GpgKeyTableColumn::kALL))
+              .toUInt())) {
   init();
 }
 
 void KeyList::init() {
   ui_->setupUi(this);
 
-  ui_->menuWidget->setHidden(menu_ability_ == 0U);
+  ui_->menuWidget->setHidden(menu_ability_ == KeyMenuAbility::kNONE);
   ui_->refreshKeyListButton->setHidden(~menu_ability_ &
-                                       KeyMenuAbility::REFRESH);
-  ui_->syncButton->setHidden(~menu_ability_ & KeyMenuAbility::SYNC_PUBLIC_KEY);
-  ui_->uncheckButton->setHidden(~menu_ability_ & KeyMenuAbility::UNCHECK_ALL);
-  ui_->searchBarEdit->setHidden(~menu_ability_ & KeyMenuAbility::SEARCH_BAR);
+                                       KeyMenuAbility::kREFRESH);
+  ui_->syncButton->setHidden(~menu_ability_ & KeyMenuAbility::kSYNC_PUBLIC_KEY);
+  ui_->checkALLButton->setHidden(~menu_ability_ & KeyMenuAbility::kCHECK_ALL);
+  ui_->uncheckButton->setHidden(~menu_ability_ & KeyMenuAbility::kUNCHECK_ALL);
+  ui_->columnTypeButton->setHidden(~menu_ability_ &
+                                   KeyMenuAbility::kCOLUMN_FILTER);
+  ui_->searchBarEdit->setHidden(~menu_ability_ & KeyMenuAbility::kSEARCH_BAR);
+
+  auto* column_type_menu = new QMenu(this);
+
+  key_id_column_action_ = new QAction(tr("Key ID"), this);
+  key_id_column_action_->setCheckable(true);
+  key_id_column_action_->setChecked(
+      (global_column_filter_ & GpgKeyTableColumn::kKEY_ID) !=
+      GpgKeyTableColumn::kNONE);
+  connect(key_id_column_action_, &QAction::toggled, this, [=](bool checked) {
+    UpdateKeyTableColumnType(
+        checked ? global_column_filter_ | GpgKeyTableColumn::kKEY_ID
+                : global_column_filter_ & ~GpgKeyTableColumn::kKEY_ID);
+  });
+
+  algo_column_action_ = new QAction(tr("Algorithm"), this);
+  algo_column_action_->setCheckable(true);
+  algo_column_action_->setChecked(
+      (global_column_filter_ & GpgKeyTableColumn::kALGO) !=
+      GpgKeyTableColumn::kNONE);
+  connect(algo_column_action_, &QAction::toggled, this, [=](bool checked) {
+    UpdateKeyTableColumnType(
+        checked ? global_column_filter_ | GpgKeyTableColumn::kALGO
+                : global_column_filter_ & ~GpgKeyTableColumn::kALGO);
+  });
+
+  owner_trust_column_action_ = new QAction(tr("Owner Trust"), this);
+  owner_trust_column_action_->setCheckable(true);
+  owner_trust_column_action_->setChecked(
+      (global_column_filter_ & GpgKeyTableColumn::kOWNER_TRUST) !=
+      GpgKeyTableColumn::kNONE);
+  connect(
+      owner_trust_column_action_, &QAction::toggled, this, [=](bool checked) {
+        UpdateKeyTableColumnType(
+            checked ? global_column_filter_ | GpgKeyTableColumn::kOWNER_TRUST
+                    : global_column_filter_ & ~GpgKeyTableColumn::kOWNER_TRUST);
+      });
+
+  create_date_column_action_ = new QAction(tr("Create Date"), this);
+  create_date_column_action_->setCheckable(true);
+  create_date_column_action_->setChecked(
+      (global_column_filter_ & GpgKeyTableColumn::kCREATE_DATE) !=
+      GpgKeyTableColumn::kNONE);
+  connect(
+      create_date_column_action_, &QAction::toggled, this, [=](bool checked) {
+        UpdateKeyTableColumnType(
+            checked ? global_column_filter_ | GpgKeyTableColumn::kCREATE_DATE
+                    : global_column_filter_ & ~GpgKeyTableColumn::kCREATE_DATE);
+      });
+
+  subkeys_number_column_action_ = new QAction("Subkey(s)", this);
+  subkeys_number_column_action_->setCheckable(true);
+  subkeys_number_column_action_->setChecked(
+      (global_column_filter_ & GpgKeyTableColumn::kSUBKEYS_NUMBER) !=
+      GpgKeyTableColumn::kNONE);
+  connect(
+      subkeys_number_column_action_, &QAction::toggled, this,
+      [=](bool checked) {
+        UpdateKeyTableColumnType(
+            checked
+                ? global_column_filter_ | GpgKeyTableColumn::kSUBKEYS_NUMBER
+                : global_column_filter_ & ~GpgKeyTableColumn::kSUBKEYS_NUMBER);
+      });
+
+  comment_column_action_ = new QAction("Comment", this);
+  comment_column_action_->setCheckable(true);
+  comment_column_action_->setChecked(
+      (global_column_filter_ & GpgKeyTableColumn::kCOMMENT) !=
+      GpgKeyTableColumn::kNONE);
+  connect(comment_column_action_, &QAction::toggled, this, [=](bool checked) {
+    UpdateKeyTableColumnType(
+        checked ? global_column_filter_ | GpgKeyTableColumn::kCOMMENT
+                : global_column_filter_ & ~GpgKeyTableColumn::kCOMMENT);
+  });
+
+  if ((fixed_columns_filter_ & GpgKeyTableColumn::kKEY_ID) !=
+      GpgKeyTableColumn::kNONE) {
+    column_type_menu->addAction(key_id_column_action_);
+  }
+
+  if ((fixed_columns_filter_ & GpgKeyTableColumn::kALGO) !=
+      GpgKeyTableColumn::kNONE) {
+    column_type_menu->addAction(algo_column_action_);
+  }
+  if ((fixed_columns_filter_ & GpgKeyTableColumn::kCREATE_DATE) !=
+      GpgKeyTableColumn::kNONE) {
+    column_type_menu->addAction(create_date_column_action_);
+  }
+
+  if ((fixed_columns_filter_ & GpgKeyTableColumn::kOWNER_TRUST) !=
+      GpgKeyTableColumn::kNONE) {
+    column_type_menu->addAction(owner_trust_column_action_);
+  }
+
+  if ((fixed_columns_filter_ & GpgKeyTableColumn::kSUBKEYS_NUMBER) !=
+      GpgKeyTableColumn::kNONE) {
+    column_type_menu->addAction(subkeys_number_column_action_);
+  }
+
+  if ((fixed_columns_filter_ & GpgKeyTableColumn::kCOMMENT) !=
+      GpgKeyTableColumn::kNONE) {
+    column_type_menu->addAction(comment_column_action_);
+  }
+
+  ui_->columnTypeButton->setMenu(column_type_menu);
 
   ui_->keyGroupTab->clear();
   popup_menu_ = new QMenu(this);
 
-  bool forbid_all_gnupg_connection =
+  auto forbid_all_gnupg_connection =
       GlobalSettingStation::GetInstance()
           .GetSettings()
           .value("network/forbid_all_gnupg_connection", false)
@@ -93,6 +209,11 @@ void KeyList::init() {
   connect(this, &KeyList::SignalRefreshStatusBar,
           UISignalStation::GetInstance(),
           &UISignalStation::SignalRefreshStatusBar);
+  connect(this, &KeyList::SignalColumnTypeChange, this, [=]() {
+    GlobalSettingStation::GetInstance().GetSettings().setValue(
+        "keys/global_columns_filter",
+        static_cast<unsigned int>(global_column_filter_));
+  });
 
   setAcceptDrops(true);
 
@@ -112,120 +233,72 @@ void KeyList::init() {
 }
 
 void KeyList::AddListGroupTab(const QString& name, const QString& id,
-                              KeyListRow::KeyType selectType,
-                              KeyListColumn::InfoType infoType,
-                              const KeyTable::KeyTableFilter filter) {
-  GF_UI_LOG_DEBUG("add list group tab: {}", name);
+                              GpgKeyTableDisplayMode display_mode,
+                              GpgKeyTableProxyModel::KeyFilter search_filter,
+                              GpgKeyTableColumn custom_columns_filter) {
+  auto* key_table =
+      new KeyTable(this, model_, display_mode, custom_columns_filter,
+                   std::move(search_filter));
 
-  auto* key_list = new QTableWidget(this);
-  if (m_key_list_ == nullptr) {
-    m_key_list_ = key_list;
-  }
-  key_list->setObjectName(id);
-  ui_->keyGroupTab->addTab(key_list, name);
-  m_key_tables_.emplace_back(key_list, selectType, infoType, filter);
-  m_key_tables_.back().SetMenuAbility(menu_ability_);
+  key_table->setObjectName(id);
+  ui_->keyGroupTab->addTab(key_table, name);
 
-  key_list->setColumnCount(8);
-  key_list->horizontalHeader()->setSectionResizeMode(
-      QHeaderView::ResizeToContents);
-  key_list->verticalHeader()->hide();
-  key_list->setShowGrid(false);
-  key_list->sortByColumn(2, Qt::AscendingOrder);
-  key_list->setSelectionBehavior(QAbstractItemView::SelectRows);
-  key_list->setSelectionMode(QAbstractItemView::SingleSelection);
+  connect(this, &KeyList::SignalColumnTypeChange, key_table,
+          &KeyTable::SignalColumnTypeChange);
 
-  // table items not editable
-  key_list->setEditTriggers(QAbstractItemView::NoEditTriggers);
-  // no focus (rectangle around table items)
-  // maybe it should focus on whole row
-  key_list->setFocusPolicy(Qt::NoFocus);
-
-  key_list->setAlternatingRowColors(true);
-
-  // Hidden Column For Purpose
-  if ((infoType & KeyListColumn::TYPE) == 0U) {
-    key_list->setColumnHidden(1, true);
-  }
-  if ((infoType & KeyListColumn::NAME) == 0U) {
-    key_list->setColumnHidden(2, true);
-  }
-  if ((infoType & KeyListColumn::EmailAddress) == 0U) {
-    key_list->setColumnHidden(3, true);
-  }
-  if ((infoType & KeyListColumn::Usage) == 0U) {
-    key_list->setColumnHidden(4, true);
-  }
-  if ((infoType & KeyListColumn::Validity) == 0U) {
-    key_list->setColumnHidden(5, true);
-  }
-  if ((infoType & KeyListColumn::KeyID) == 0U) {
-    key_list->setColumnHidden(6, true);
-  }
-  if ((infoType & KeyListColumn::FingerPrint) == 0U) {
-    key_list->setColumnHidden(7, true);
-  }
-
-  QStringList labels;
-  labels << tr("Select") << tr("Type") << tr("Name") << tr("Email Address")
-         << tr("Usage") << tr("Trust") << tr("Key ID") << tr("Finger Print");
-
-  key_list->setHorizontalHeaderLabels(labels);
-  key_list->horizontalHeader()->setStretchLastSection(false);
-
-  connect(key_list, &QTableWidget::doubleClicked, this,
-          &KeyList::slot_double_clicked);
+  UpdateKeyTableColumnType(global_column_filter_);
 }
 
 void KeyList::SlotRefresh() {
-  GF_UI_LOG_DEBUG("refresh, address: {}", static_cast<void*>(this));
-
   ui_->refreshKeyListButton->setDisabled(true);
   ui_->syncButton->setDisabled(true);
 
+  model_ = GpgKeyGetter::GetInstance().GetGpgKeyTableModel();
+
+  for (int i = 0; i < ui_->keyGroupTab->count(); i++) {
+    auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->widget(i));
+    key_table->RefreshModel(model_);
+  }
+
   emit SignalRefreshStatusBar(tr("Refreshing Key List..."), 3000);
-  this->buffered_keys_list_ = GpgKeyGetter::GetInstance().FetchKey();
-  this->slot_refresh_ui();
+  this->model_ = GpgKeyGetter::GetInstance().GetGpgKeyTableModel();
+
+  this->SlotRefreshUI();
 }
 
 void KeyList::SlotRefreshUI() {
-  GF_UI_LOG_DEBUG("refresh, address: {}", static_cast<void*>(this));
-  this->slot_refresh_ui();
+  emit SignalRefreshStatusBar(tr("Key List Refreshed."), 1000);
+  ui_->refreshKeyListButton->setDisabled(false);
+  ui_->syncButton->setDisabled(false);
 }
 
 auto KeyList::GetChecked(const KeyTable& key_table) -> KeyIdArgsListPtr {
   auto ret = std::make_unique<KeyIdArgsList>();
-  for (int i = 0; i < key_table.key_list_->rowCount(); i++) {
-    if (key_table.key_list_->item(i, 0)->checkState() == Qt::Checked) {
-      ret->push_back(key_table.buffered_keys_[i].GetId());
+  for (int i = 0; i < key_table.GetRowCount(); i++) {
+    if (key_table.IsRowChecked(i)) {
+      ret->push_back(key_table.GetKeyIdByRow(i));
     }
   }
   return ret;
 }
 
 auto KeyList::GetChecked() -> KeyIdArgsListPtr {
-  auto* key_list =
-      qobject_cast<QTableWidget*>(ui_->keyGroupTab->currentWidget());
-  const auto& buffered_keys =
-      m_key_tables_[ui_->keyGroupTab->currentIndex()].buffered_keys_;
+  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
   auto ret = std::make_unique<KeyIdArgsList>();
-  for (int i = 0; i < key_list->rowCount(); i++) {
-    if (key_list->item(i, 0)->checkState() == Qt::Checked) {
-      ret->push_back(buffered_keys[i].GetId());
+  for (int i = 0; i < key_table->GetRowCount(); i++) {
+    if (key_table->IsRowChecked(i)) {
+      ret->push_back(key_table->GetKeyIdByRow(i));
     }
   }
   return ret;
 }
 
 auto KeyList::GetAllPrivateKeys() -> KeyIdArgsListPtr {
-  auto* key_list =
-      qobject_cast<QTableWidget*>(ui_->keyGroupTab->currentWidget());
-  const auto& buffered_keys =
-      m_key_tables_[ui_->keyGroupTab->currentIndex()].buffered_keys_;
+  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
   auto ret = std::make_unique<KeyIdArgsList>();
-  for (int i = 0; i < key_list->rowCount(); i++) {
-    if ((key_list->item(i, 1) != nullptr) && buffered_keys[i].IsPrivateKey()) {
-      ret->push_back(buffered_keys[i].GetId());
+  for (int i = 0; i < key_table->GetRowCount(); i++) {
+    if (key_table->IsPrivateKeyByRow(i)) {
+      ret->push_back(key_table->GetKeyIdByRow(i));
     }
   }
   return ret;
@@ -235,16 +308,11 @@ auto KeyList::GetCheckedPrivateKey() -> KeyIdArgsListPtr {
   auto ret = std::make_unique<KeyIdArgsList>();
   if (ui_->keyGroupTab->size().isEmpty()) return ret;
 
-  auto* key_list =
-      qobject_cast<QTableWidget*>(ui_->keyGroupTab->currentWidget());
-  const auto& buffered_keys =
-      m_key_tables_[ui_->keyGroupTab->currentIndex()].buffered_keys_;
+  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
 
-  for (int i = 0; i < key_list->rowCount(); i++) {
-    if ((key_list->item(i, 0)->checkState() == Qt::Checked) &&
-        ((key_list->item(i, 1)) != nullptr) &&
-        buffered_keys[i].IsPrivateKey()) {
-      ret->push_back(buffered_keys[i].GetId());
+  for (int i = 0; i < key_table->GetRowCount(); i++) {
+    if (key_table->IsRowChecked(i) && key_table->IsPrivateKeyByRow(i)) {
+      ret->push_back(key_table->GetKeyIdByRow(i));
     }
   }
   return ret;
@@ -254,16 +322,11 @@ auto KeyList::GetCheckedPublicKey() -> KeyIdArgsListPtr {
   auto ret = std::make_unique<KeyIdArgsList>();
   if (ui_->keyGroupTab->size().isEmpty()) return ret;
 
-  auto* key_list =
-      qobject_cast<QTableWidget*>(ui_->keyGroupTab->currentWidget());
-  const auto& buffered_keys =
-      m_key_tables_[ui_->keyGroupTab->currentIndex()].buffered_keys_;
+  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
 
-  for (int i = 0; i < key_list->rowCount(); i++) {
-    if ((key_list->item(i, 0)->checkState() == Qt::Checked) &&
-        ((key_list->item(i, 1)) != nullptr) &&
-        !buffered_keys[i].IsPrivateKey()) {
-      ret->push_back(buffered_keys[i].GetId());
+  for (int i = 0; i < key_table->GetRowCount(); i++) {
+    if (key_table->IsRowChecked(i) && key_table->IsPublicKeyByRow(i)) {
+      ret->push_back(key_table->GetKeyIdByRow(i));
     }
   }
   return ret;
@@ -272,52 +335,43 @@ auto KeyList::GetCheckedPublicKey() -> KeyIdArgsListPtr {
 void KeyList::SetChecked(const KeyIdArgsListPtr& keyIds,
                          const KeyTable& key_table) {
   if (!keyIds->empty()) {
-    for (int i = 0; i < key_table.key_list_->rowCount(); i++) {
+    for (int i = 0; i < key_table.GetRowCount(); i++) {
       if (std::find(keyIds->begin(), keyIds->end(),
-                    key_table.buffered_keys_[i].GetId()) != keyIds->end()) {
-        key_table.key_list_->item(i, 0)->setCheckState(Qt::Checked);
+                    key_table.GetKeyIdByRow(i)) != keyIds->end()) {
+        key_table.SetRowChecked(i);
       }
     }
   }
 }
 
-void KeyList::SetChecked(KeyIdArgsListPtr key_ids) {
-  auto* key_list =
-      qobject_cast<QTableWidget*>(ui_->keyGroupTab->currentWidget());
-  if (key_list == nullptr) return;
-  if (!m_key_tables_.empty()) {
-    for (auto& key_table : m_key_tables_) {
-      if (key_table.key_list_ == key_list) {
-        key_table.SetChecked(std::move(key_ids));
-        break;
-      }
-    }
-  }
-}
-
-KeyIdArgsListPtr KeyList::GetSelected() {
+auto KeyList::GetSelected() -> KeyIdArgsListPtr {
   auto ret = std::make_unique<KeyIdArgsList>();
   if (ui_->keyGroupTab->size().isEmpty()) return ret;
 
-  auto* key_list =
-      qobject_cast<QTableWidget*>(ui_->keyGroupTab->currentWidget());
-  const auto& buffered_keys =
-      m_key_tables_[ui_->keyGroupTab->currentIndex()].buffered_keys_;
+  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
+  if (key_table == nullptr) {
+    qCWarning(ui, "fail to get current key table, nullptr");
+    return ret;
+  }
 
-  for (int i = 0; i < key_list->rowCount(); i++) {
-    if (key_list->item(i, 0)->isSelected()) {
-      ret->push_back(buffered_keys[i].GetId());
-    }
+  QItemSelectionModel* select = key_table->selectionModel();
+  for (auto index : select->selectedRows()) {
+    ret->push_back(key_table->GetKeyIdByRow(index.row()));
+  }
+
+  if (ret->empty()) {
+    qCWarning(ui, "nothing is selected at key list");
   }
   return ret;
 }
 
 [[maybe_unused]] auto KeyList::ContainsPrivateKeys() -> bool {
   if (ui_->keyGroupTab->size().isEmpty()) return false;
-  m_key_list_ = qobject_cast<QTableWidget*>(ui_->keyGroupTab->currentWidget());
+  auto* key_table =
+      qobject_cast<QTableWidget*>(ui_->keyGroupTab->currentWidget());
 
-  for (int i = 0; i < m_key_list_->rowCount(); i++) {
-    if (m_key_list_->item(i, 1) != nullptr) {
+  for (int i = 0; i < key_table->rowCount(); i++) {
+    if (key_table->item(i, 1) != nullptr) {
       return true;
     }
   }
@@ -326,21 +380,24 @@ KeyIdArgsListPtr KeyList::GetSelected() {
 
 void KeyList::SetColumnWidth(int row, int size) {
   if (ui_->keyGroupTab->size().isEmpty()) return;
-  m_key_list_ = qobject_cast<QTableWidget*>(ui_->keyGroupTab->currentWidget());
-
-  m_key_list_->setColumnWidth(row, size);
+  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
+  key_table->setColumnWidth(row, size);
 }
 
 void KeyList::contextMenuEvent(QContextMenuEvent* event) {
-  if (ui_->keyGroupTab->size().isEmpty()) return;
-  m_key_list_ = qobject_cast<QTableWidget*>(ui_->keyGroupTab->currentWidget());
+  if (ui_->keyGroupTab->count() == 0) return;
+  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
+
+  if (key_table == nullptr) {
+    qCDebug(ui, "m_key_list_ is nullptr, key group tab number: %d",
+            ui_->keyGroupTab->count());
+    return;
+  }
 
   QString current_tab_widget_obj_name =
       ui_->keyGroupTab->widget(ui_->keyGroupTab->currentIndex())->objectName();
-  GF_UI_LOG_DEBUG("current tab widget object name: {}",
-                  current_tab_widget_obj_name);
   if (current_tab_widget_obj_name == "favourite") {
-    QList<QAction*> actions = popup_menu_->actions();
+    auto actions = popup_menu_->actions();
     for (QAction* action : actions) {
       if (action->data().toString() == "remove_key_from_favourtie_action") {
         action->setVisible(true);
@@ -349,7 +406,7 @@ void KeyList::contextMenuEvent(QContextMenuEvent* event) {
       }
     }
   } else {
-    QList<QAction*> actions = popup_menu_->actions();
+    auto actions = popup_menu_->actions();
     for (QAction* action : actions) {
       if (action->data().toString() == "remove_key_from_favourtie_action") {
         action->setVisible(false);
@@ -359,7 +416,7 @@ void KeyList::contextMenuEvent(QContextMenuEvent* event) {
     }
   }
 
-  if (m_key_list_->selectedItems().length() > 0) {
+  if (key_table->GetRowSelected() >= 0) {
     popup_menu_->exec(event->globalPos());
   }
 }
@@ -379,7 +436,7 @@ void KeyList::dropEvent(QDropEvent* event) {
   // "always import keys"-CheckBox
   auto* check_box = new QCheckBox(tr("Always import without bothering."));
 
-  bool confirm_import_keys = GlobalSettingStation::GetInstance()
+  auto confirm_import_keys = GlobalSettingStation::GetInstance()
                                  .GetSettings()
                                  .value("basic/confirm_import_keys", true)
                                  .toBool();
@@ -411,14 +468,14 @@ void KeyList::dropEvent(QDropEvent* event) {
       QFile file;
       file.setFileName(tmp.toLocalFile());
       if (!file.open(QIODevice::ReadOnly)) {
-        GF_UI_LOG_ERROR("couldn't open file: {}", tmp.toString());
+        qCWarning(ui) << "couldn't open file: " << tmp.toString();
       }
-      QByteArray in_buffer = file.readAll();
+      auto in_buffer = file.readAll();
       this->import_keys(in_buffer);
       file.close();
     }
   } else {
-    QByteArray in_buffer(event->mimeData()->text().toUtf8());
+    auto in_buffer(event->mimeData()->text().toUtf8());
     this->import_keys(in_buffer);
   }
 }
@@ -435,11 +492,11 @@ void KeyList::import_keys(const QByteArray& in_buffer) {
 
 void KeyList::slot_double_clicked(const QModelIndex& index) {
   if (ui_->keyGroupTab->size().isEmpty()) return;
-  const auto& buffered_keys =
-      m_key_tables_[ui_->keyGroupTab->currentIndex()].buffered_keys_;
+
+  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
   if (m_action_ != nullptr) {
-    const auto key =
-        GpgKeyGetter::GetInstance().GetKey(buffered_keys[index.row()].GetId());
+    const auto key = GpgKeyGetter::GetInstance().GetKey(
+        key_table->GetKeyIdByRow(index.row()));
     m_action_(key, this);
   }
 }
@@ -451,30 +508,15 @@ void KeyList::SetDoubleClickedAction(
 
 auto KeyList::GetSelectedKey() -> QString {
   if (ui_->keyGroupTab->size().isEmpty()) return {};
-  const auto& buffered_keys =
-      m_key_tables_[ui_->keyGroupTab->currentIndex()].buffered_keys_;
 
-  for (int i = 0; i < m_key_list_->rowCount(); i++) {
-    if (m_key_list_->item(i, 0)->isSelected()) {
-      return buffered_keys[i].GetId();
-    }
-  }
-  return {};
-}
+  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
 
-void KeyList::slot_refresh_ui() {
-  GF_UI_LOG_DEBUG("refresh: {}", static_cast<void*>(buffered_keys_list_.get()));
-  if (buffered_keys_list_ != nullptr) {
-    std::lock_guard<std::mutex> guard(buffered_key_list_mutex_);
+  QItemSelectionModel* select = key_table->selectionModel();
 
-    for (auto& key_table : m_key_tables_) {
-      key_table.Refresh(
-          GpgKeyGetter::GetInstance().GetKeysCopy(buffered_keys_list_));
-    }
-  }
-  emit SignalRefreshStatusBar(tr("Key List Refreshed."), 1000);
-  ui_->refreshKeyListButton->setDisabled(false);
-  ui_->syncButton->setDisabled(false);
+  auto selected_rows = select->selectedRows();
+  if (selected_rows.empty()) return {};
+
+  return key_table->GetKeyIdByRow(selected_rows.first().row());
 }
 
 void KeyList::slot_sync_with_key_server() {
@@ -490,14 +532,12 @@ void KeyList::slot_sync_with_key_server() {
         QMessageBox::Yes | QMessageBox::No);
 
     if (reply == QMessageBox::No) return;
-    {
-      std::lock_guard<std::mutex> guard(buffered_key_list_mutex_);
-      for (const auto& key : *buffered_keys_list_) {
-        if (!(key.IsPrivateKey() && key.IsHasMasterKey())) {
-          key_ids.push_back(key.GetId());
-        }
-      }
+
+    auto all_key_ids = model_->GetAllKeyIds();
+    for (auto& key_id : all_key_ids) {
+      key_ids.push_back(key_id);
     }
+
   } else {
     key_ids = *checked_public_keys;
   }
@@ -511,8 +551,6 @@ void KeyList::slot_sync_with_key_server() {
   CommonUtils::SlotImportKeyFromKeyServer(
       key_ids, [=](const QString& key_id, const QString& status,
                    size_t current_index, size_t all_index) {
-        GF_UI_LOG_DEBUG("import key: {} {} {} {}", key_id, status,
-                        current_index, all_index);
         auto key = GpgKeyGetter::GetInstance().GetKey(key_id);
 
         auto status_str = tr("Sync [%1/%2] %3 %4")
@@ -535,226 +573,31 @@ void KeyList::filter_by_keyword() {
   auto keyword = ui_->searchBarEdit->text();
   keyword = keyword.trimmed();
 
-  GF_UI_LOG_DEBUG("get new keyword of search bar: {}", keyword);
-  for (auto& table : m_key_tables_) {
+  for (int i = 0; i < ui_->keyGroupTab->count(); i++) {
+    auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->widget(i));
     // refresh arguments
-    table.SetFilterKeyword(keyword.toLower());
-    table.SetMenuAbility(menu_ability_);
+    key_table->SetFilterKeyword(keyword.toLower());
   }
+
   // refresh ui
   SlotRefreshUI();
 }
 
 void KeyList::uncheck_all() {
-  auto* key_list =
-      qobject_cast<QTableWidget*>(ui_->keyGroupTab->currentWidget());
-  if (key_list == nullptr) return;
-  if (!m_key_tables_.empty()) {
-    for (auto& key_table : m_key_tables_) {
-      if (key_table.key_list_ == key_list) {
-        key_table.UncheckALL();
-        break;
-      }
-    }
-  }
+  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
+  if (key_table == nullptr) return;
+  key_table->UncheckAll();
 }
 
 void KeyList::check_all() {
-  auto* key_list =
-      qobject_cast<QTableWidget*>(ui_->keyGroupTab->currentWidget());
-  if (key_list == nullptr) return;
-  if (!m_key_tables_.empty()) {
-    for (auto& key_table : m_key_tables_) {
-      if (key_table.key_list_ == key_list) {
-        key_table.CheckALL();
-        break;
-      }
-    }
-  }
+  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
+  if (key_table == nullptr) return;
+  key_table->CheckAll();
 }
 
-KeyIdArgsListPtr& KeyTable::GetChecked() {
-  if (checked_key_ids_ == nullptr) {
-    checked_key_ids_ = std::make_unique<KeyIdArgsList>();
-  }
-  auto& ret = checked_key_ids_;
-  for (size_t i = 0; i < buffered_keys_.size(); i++) {
-    auto key_id = buffered_keys_[i].GetId();
-    if (key_list_->item(i, 0)->checkState() == Qt::Checked &&
-        std::find(ret->begin(), ret->end(), key_id) == ret->end()) {
-      ret->push_back(key_id);
-    }
-  }
-  return ret;
+void KeyList::UpdateKeyTableColumnType(GpgKeyTableColumn column_type) {
+  global_column_filter_ = column_type;
+  emit SignalColumnTypeChange(fixed_columns_filter_ & global_column_filter_);
 }
 
-void KeyTable::SetChecked(KeyIdArgsListPtr key_ids) {
-  checked_key_ids_ = std::move(key_ids);
-}
-
-void KeyTable::Refresh(KeyLinkListPtr m_keys) {
-  auto& checked_key_list = GetChecked();
-  // while filling the table, sort enabled causes errors
-
-  key_list_->setSortingEnabled(false);
-  key_list_->clearContents();
-
-  // Optimization for copy
-  KeyLinkListPtr keys = nullptr;
-  if (m_keys == nullptr) {
-    keys = GpgKeyGetter::GetInstance().FetchKey();
-  } else {
-    keys = std::move(m_keys);
-  }
-
-  auto it = keys->begin();
-  int row_count = 0;
-
-  while (it != keys->end()) {
-    // filter by search bar's keyword
-    if (ability_ & KeyMenuAbility::SEARCH_BAR && !keyword_.isEmpty()) {
-      QStringList infos;
-      infos << it->GetName().toLower() << it->GetEmail().toLower()
-            << it->GetComment().toLower() << it->GetFingerprint().toLower();
-
-      auto subkeys = it->GetSubKeys();
-      for (const auto& subkey : *subkeys) {
-        infos << subkey.GetFingerprint().toLower() << subkey.GetID().toLower();
-      }
-
-      if (infos.filter(keyword_.toLower()).isEmpty()) {
-        it = keys->erase(it);
-        continue;
-      }
-    }
-
-    if (filter_ != nullptr) {
-      if (!filter_(*it, *this)) {
-        it = keys->erase(it);
-        continue;
-      }
-    }
-
-    if (select_type_ == KeyListRow::ONLY_SECRET_KEY && !it->IsPrivateKey()) {
-      it = keys->erase(it);
-      continue;
-    }
-    row_count++;
-    it++;
-  }
-
-  key_list_->setRowCount(row_count);
-
-  int row_index = 0;
-  it = keys->begin();
-
-  buffered_keys_.clear();
-
-  while (it != keys->end()) {
-    auto* tmp0 = new QTableWidgetItem(QString::number(row_index));
-    tmp0->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled |
-                   Qt::ItemIsSelectable);
-    tmp0->setTextAlignment(Qt::AlignCenter);
-    tmp0->setCheckState(Qt::Unchecked);
-    key_list_->setItem(row_index, 0, tmp0);
-
-    QString type_str;
-    QTextStream type_steam(&type_str);
-    if (it->IsPrivateKey()) {
-      type_steam << "pub/sec";
-    } else {
-      type_steam << "pub";
-    }
-
-    if (it->IsPrivateKey() && !it->IsHasMasterKey()) {
-      type_steam << "#";
-    }
-
-    if (it->IsHasCardKey()) {
-      type_steam << "^";
-    }
-
-    auto* tmp1 = new QTableWidgetItem(type_str);
-    key_list_->setItem(row_index, 1, tmp1);
-
-    auto* tmp2 = new QTableWidgetItem(it->GetName());
-    key_list_->setItem(row_index, 2, tmp2);
-    auto* tmp3 = new QTableWidgetItem(it->GetEmail());
-    key_list_->setItem(row_index, 3, tmp3);
-
-    QString usage;
-    QTextStream usage_steam(&usage);
-
-    if (it->IsHasActualCertificationCapability()) usage_steam << "C";
-    if (it->IsHasActualEncryptionCapability()) usage_steam << "E";
-    if (it->IsHasActualSigningCapability()) usage_steam << "S";
-    if (it->IsHasActualAuthenticationCapability()) usage_steam << "A";
-
-    auto* temp_usage = new QTableWidgetItem(usage);
-    temp_usage->setTextAlignment(Qt::AlignCenter);
-    key_list_->setItem(row_index, 4, temp_usage);
-
-    auto* temp_validity = new QTableWidgetItem(it->GetOwnerTrust());
-    temp_validity->setTextAlignment(Qt::AlignCenter);
-    key_list_->setItem(row_index, 5, temp_validity);
-
-    auto* temp_id = new QTableWidgetItem(it->GetId());
-    temp_id->setTextAlignment(Qt::AlignCenter);
-    key_list_->setItem(row_index, 6, temp_id);
-
-    auto* temp_fpr = new QTableWidgetItem(it->GetFingerprint());
-    temp_fpr->setTextAlignment(Qt::AlignCenter);
-    key_list_->setItem(row_index, 7, temp_fpr);
-
-    QFont font = tmp2->font();
-
-    // strike out expired keys
-    if (it->IsExpired() || it->IsRevoked()) font.setStrikeOut(true);
-    if (it->IsPrivateKey()) font.setBold(true);
-
-    tmp0->setFont(font);
-    temp_usage->setFont(font);
-    temp_fpr->setFont(font);
-    temp_validity->setFont(font);
-    tmp1->setFont(font);
-    tmp2->setFont(font);
-    tmp3->setFont(font);
-    temp_id->setFont(font);
-
-    // move to buffered keys
-    buffered_keys_.emplace_back(std::move(*it));
-
-    it++;
-    ++row_index;
-  }
-
-  if (!checked_key_list->empty()) {
-    for (int i = 0; i < key_list_->rowCount(); i++) {
-      if (std::find(checked_key_list->begin(), checked_key_list->end(),
-                    buffered_keys_[i].GetId()) != checked_key_list->end()) {
-        key_list_->item(i, 0)->setCheckState(Qt::Checked);
-      }
-    }
-  }
-}
-
-void KeyTable::UncheckALL() const {
-  for (int i = 0; i < key_list_->rowCount(); i++) {
-    key_list_->item(i, 0)->setCheckState(Qt::Unchecked);
-  }
-}
-
-void KeyTable::CheckALL() const {
-  for (int i = 0; i < key_list_->rowCount(); i++) {
-    key_list_->item(i, 0)->setCheckState(Qt::Checked);
-  }
-}
-
-void KeyTable::SetMenuAbility(KeyMenuAbility::AbilityType ability) {
-  this->ability_ = ability;
-}
-
-void KeyTable::SetFilterKeyword(QString keyword) {
-  this->keyword_ = std::move(keyword);
-}
 }  // namespace GpgFrontend::UI

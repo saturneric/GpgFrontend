@@ -175,9 +175,6 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
     this->buffered_subkeys_.push_back(std::move(sub_key));
   }
 
-  GF_UI_LOG_DEBUG("buffered_subkeys_ refreshed size",
-                  this->buffered_subkeys_.size());
-
   subkey_list_->setRowCount(buffered_subkeys_.size());
 
   for (const auto& subkeys : buffered_subkeys_) {
@@ -211,12 +208,10 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
       }
     }
 
-    GF_UI_LOG_DEBUG("subkey_list_ item {} refreshed", row);
-
     row++;
   }
 
-  GF_UI_LOG_DEBUG("subkey_list_ refreshed");
+  qCDebug(ui, "subkey_list_ refreshed");
 
   if (subkey_list_->rowCount() > 0) {
     subkey_list_->selectRow(0);
@@ -309,8 +304,6 @@ void KeyPairSubkeyTab::create_subkey_opera_menu() {
 }
 
 void KeyPairSubkeyTab::slot_edit_subkey() {
-  GF_UI_LOG_DEBUG("fpr {}", get_selected_subkey().GetFingerprint());
-
   auto* dialog = new KeySetExpireDateDialog(
       key_.GetId(), get_selected_subkey().GetFingerprint(), this);
   dialog->show();

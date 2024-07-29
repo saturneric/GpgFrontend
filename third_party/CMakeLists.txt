@@ -23,25 +23,9 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-
-# json
-set(JSON_BuildTests OFF CACHE INTERNAL "")
-
-add_subdirectory(spdlog EXCLUDE_FROM_ALL)
-
-if (MINGW)
-  add_subdirectory(libarchive EXCLUDE_FROM_ALL)
-endif()
-
-# not working at macOS
-if (NOT APPLE)
-  set(MI_SECURE ON)
-  if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    # set(MI_TRACK_VALGRIND ON)
-    set(MI_TRACK_ASAN ON)
-  endif()
+# ASAN checking
+if(ENABLE_ASAN AND NOT APPLE AND ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+  # set(MI_TRACK_VALGRIND ON)
+  set(MI_TRACK_ASAN ON)
   add_subdirectory(mimalloc EXCLUDE_FROM_ALL)
 endif()
-
-set(INSTALL_GTEST OFF)
-add_subdirectory(googletest EXCLUDE_FROM_ALL)

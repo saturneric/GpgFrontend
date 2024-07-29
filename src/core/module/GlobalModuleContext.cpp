@@ -54,8 +54,8 @@ class GlobalModuleContext::Impl {
     // Search for the module in the register table.
     auto module_info_opt = search_module_register_table(module_id);
     if (!module_info_opt.has_value()) {
-      GF_CORE_LOG_ERROR("cannot find module id {} at register table",
-                        module_id);
+      qCWarning(core) << "cannot find module id " << module_id
+                      << " at register table";
       return nullptr;
     }
 
@@ -67,11 +67,11 @@ class GlobalModuleContext::Impl {
     auto module_info_opt =
         search_module_register_table(module->GetModuleIdentifier());
     if (!module_info_opt.has_value()) {
-      GF_CORE_LOG_ERROR(
-          "cannot find module id {} at register table, fallbacking to "
-          "default "
-          "channel",
-          module->GetModuleIdentifier());
+      qCWarning(core) << "cannot find module id "
+                      << module->GetModuleIdentifier()
+                      << " at register table, fallback to "
+                         "default channel";
+
       return GetDefaultChannel(module);
     }
 
@@ -99,20 +99,17 @@ class GlobalModuleContext::Impl {
   }
 
   auto RegisterModule(const ModulePtr& module, bool integrated_module) -> bool {
-    GF_CORE_LOG_DEBUG("attempting to register module: {}",
-                      module->GetModuleIdentifier());
     // Check if the module is null or already registered.
     if (module == nullptr ||
         module_register_table_.find(module->GetModuleIdentifier()) !=
             module_register_table_.end()) {
-      GF_CORE_LOG_ERROR(
-          "module is null or have already registered this module");
+      qCWarning(core, "module is null or have already registered this module");
       return false;
     }
 
     if (module->Register() != 0) {
-      GF_CORE_LOG_ERROR("register module {} failed",
-                        module->GetModuleIdentifier());
+      qCWarning(core) << "register module " << module->GetModuleIdentifier()
+                      << " failed";
       return false;
     }
 
@@ -132,19 +129,15 @@ class GlobalModuleContext::Impl {
     // Register the module with its identifier.
     module_register_table_[module->GetModuleIdentifier()] = register_info;
 
-    GF_CORE_LOG_DEBUG("successfully registered module: {}",
-                      module->GetModuleIdentifier());
     return true;
   }
 
   auto ActiveModule(ModuleIdentifier module_id) -> bool {
-    GF_CORE_LOG_DEBUG("attempting to activate module: {}", module_id);
-
     // Search for the module in the register table.
     auto module_info_opt = search_module_register_table(module_id);
     if (!module_info_opt.has_value()) {
-      GF_CORE_LOG_ERROR("cannot find module id {} at register table",
-                        module_id);
+      qCWarning(core) << "cannot find module id " << module_id
+                      << " at register table";
       return false;
     }
 
@@ -153,9 +146,8 @@ class GlobalModuleContext::Impl {
     // try to get module from module info
     auto module = module_info->module;
     if (module == nullptr) {
-      GF_CORE_LOG_ERROR(
-          "module id {} at register table is releated to a null module",
-          module_id);
+      qCWarning(core) << "module id:" << module_id
+                      << " at register table is related to a null module";
       return false;
     }
 
@@ -165,19 +157,15 @@ class GlobalModuleContext::Impl {
       module_info->activate = true;
     }
 
-    GF_CORE_LOG_DEBUG("module activation status: {}", module_info->activate);
     return module_info->activate;
   }
 
   auto ListenEvent(ModuleIdentifier module_id, EventIdentifier event) -> bool {
-    GF_CORE_LOG_DEBUG("module: {} is attempting to listen to event {}",
-                      module_id, event);
-
     // module -> event
     auto module_info_opt = search_module_register_table(module_id);
     if (!module_info_opt.has_value()) {
-      GF_CORE_LOG_ERROR("cannot find module id {} at register table",
-                        module_id);
+      qCWarning(core) << "cannot find module id" << module_id
+                      << "at register table";
       return false;
     }
 
@@ -186,7 +174,6 @@ class GlobalModuleContext::Impl {
     if (met_it == module_events_table_.end()) {
       module_events_table_[event] = std::unordered_set<ModuleIdentifier>();
       met_it = module_events_table_.find(event);
-      GF_CORE_LOG_DEBUG("new event {} of module system created", event);
     }
 
     module_info_opt.value()->listening_event_ids.push_back(event);
@@ -204,14 +191,14 @@ class GlobalModuleContext::Impl {
     // search for the module in the register table.
     auto module_info_opt = search_module_register_table(module_id);
     if (!module_info_opt.has_value()) {
-      GF_CORE_LOG_ERROR("cannot find module id {} at register table",
-                        module_id);
+      qCWarning(core) << "cannot find module id " << module_id
+                      << " at register table";
       return false;
     }
 
     auto module_info = module_info_opt.value();
-    // activate the module if it is not already deactive.
-    if (module_info->activate && (module_info->module->Deactive() == 0)) {
+    // activate the module if it is not already Deactivate.
+    if (module_info->activate && (module_info->module->Deactivate() == 0)) {
       for (const auto& event_ids : module_info->listening_event_ids) {
         auto& modules = module_events_table_[event_ids];
         if (auto it = modules.find(module_id); it != modules.end()) {
@@ -228,15 +215,13 @@ class GlobalModuleContext::Impl {
 
   auto TriggerEvent(const EventReference& event) -> bool {
     auto event_id = event->GetIdentifier();
-    GF_CORE_LOG_DEBUG("attempting to trigger event: {}", event_id);
 
     // Find the set of listeners associated with the given event in the table
     auto met_it = module_events_table_.find(event_id);
     if (met_it == module_events_table_.end()) {
       // Log a warning if the event is not registered and nobody is listening
-      GF_CORE_LOG_WARN(
-          "event {} is not listening by anyone and not registered as well",
-          event_id);
+      qCInfo(core) << "event: " << event_id
+                   << " is not listening by anyone and not registered as well.";
       return false;
     }
 
@@ -246,14 +231,9 @@ class GlobalModuleContext::Impl {
     // Check if the set of listeners is empty
     if (listeners_set.empty()) {
       // Log a warning if nobody is listening to this event
-      GF_CORE_LOG_WARN("event {} is not listening by anyone",
-                       event->GetIdentifier());
+      qCInfo(core) << "event: " << event_id << " is not listening by anyone";
       return false;
     }
-
-    // Log the number of listeners for this event
-    GF_CORE_LOG_DEBUG("event {}'s current listeners size: {}",
-                      event->GetIdentifier(), listeners_set.size());
 
     // register trigger id index table
     module_on_triggering_events_table_[event->GetTriggerIdentifier()] = event;
@@ -265,19 +245,14 @@ class GlobalModuleContext::Impl {
 
       // Log an error if the module is not found in the registration table
       if (!module_info_opt.has_value()) {
-        GF_CORE_LOG_ERROR("cannot find module id {} at register table",
-                          listener_module_id);
+        qCWarning(core) << "cannot find module id: " << listener_module_id
+                        << " at register table";
         continue;
       }
 
       // Retrieve the module's information
       auto module_info = module_info_opt.value();
       auto module = module_info->module;
-
-      GF_CORE_LOG_DEBUG(
-          "module {} is listening to event {}, activate state: {}",
-          module_info->module->GetModuleIdentifier(), event->GetIdentifier(),
-          module_info->activate);
 
       // Check if the module is activated
       if (!module_info->activate) continue;
@@ -289,9 +264,9 @@ class GlobalModuleContext::Impl {
           [listener_module_id, event_id](int code, DataObjectPtr) {
             if (code < 0) {
               // Log an error if the module execution fails
-              GF_CORE_LOG_ERROR(
-                  "module {} execution failed of event {}: exec return code {}",
-                  listener_module_id, event_id, code);
+              qCWarning(core) << "module " << listener_module_id
+                              << "execution failed of event " << event_id
+                              << ": exec return code: " << code;
             }
           };
 

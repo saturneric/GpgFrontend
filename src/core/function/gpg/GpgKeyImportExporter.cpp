@@ -49,11 +49,11 @@ auto GpgKeyImportExporter::ImportKey(const GFBuffer& in_buffer)
   if (in_buffer.Empty()) return {};
 
   GpgData data_in(in_buffer);
-  auto err = CheckGpgError(gpgme_op_import(ctx_.DefaultContext(), data_in));
+  auto err = CheckGpgError(gpgme_op_import(ctx_.BinaryContext(), data_in));
   if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
 
   gpgme_import_result_t result;
-  result = gpgme_op_import_result(ctx_.DefaultContext());
+  result = gpgme_op_import_result(ctx_.BinaryContext());
   gpgme_import_status_t status = result->imports;
   auto import_info = SecureCreateSharedObject<GpgImportInformation>(result);
   while (status != nullptr) {
@@ -91,11 +91,8 @@ auto GpgKeyImportExporter::ExportKey(const GpgKey& key, bool secret, bool ascii,
   GpgData data_out;
   auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
   auto err = gpgme_op_export_keys(ctx, keys_array.data(), mode, data_out);
-  if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
+  if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {err, {}};
 
-  GF_CORE_LOG_DEBUG(
-      "operation of exporting a key finished, ascii: {}, read_bytes: {}", ascii,
-      gpgme_data_seek(data_out, 0, SEEK_END));
   return {err, data_out.Read2GFBuffer()};
 }
 
@@ -125,11 +122,7 @@ void GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys, bool secret,
         GpgData data_out;
         auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
         auto err = gpgme_op_export_keys(ctx, keys_array.data(), mode, data_out);
-        if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
-
-        GF_CORE_LOG_DEBUG(
-            "operation of exporting keys finished, ascii: {}, read_bytes: {}",
-            ascii, gpgme_data_seek(data_out, 0, SEEK_END));
+        if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return err;
 
         data_object->Swap({data_out.Read2GFBuffer()});
         return err;
@@ -159,11 +152,8 @@ void GpgKeyImportExporter::ExportAllKeys(const KeyArgsList& keys, bool secret,
         GpgData data_out;
         auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
         auto err = gpgme_op_export_keys(ctx, keys_array.data(), mode, data_out);
-        if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
+        if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return err;
 
-        GF_CORE_LOG_DEBUG(
-            "operation of exporting keys finished, ascii: {}, read_bytes: {}",
-            ascii, gpgme_data_seek(data_out, 0, SEEK_END));
         auto buffer = data_out.Read2GFBuffer();
 
         if (secret) {
@@ -173,12 +163,8 @@ void GpgKeyImportExporter::ExportAllKeys(const KeyArgsList& keys, bool secret,
           GpgData data_out_secret;
           auto err = gpgme_op_export_keys(ctx, keys_array.data(), mode,
                                           data_out_secret);
-          if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
+          if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return err;
 
-          GF_CORE_LOG_DEBUG(
-              "operation of exporting secret keys finished, "
-              "ascii: {}, read_bytes: {}",
-              ascii, gpgme_data_seek(data_out_secret, 0, SEEK_END));
           buffer.Append(data_out_secret.Read2GFBuffer());
         }
 

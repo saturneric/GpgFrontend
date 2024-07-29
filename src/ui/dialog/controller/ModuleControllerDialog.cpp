@@ -62,14 +62,14 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
   connect(ui_->moduleListView, &ModuleListView::SignalSelectModule, this,
           &ModuleControllerDialog::slot_load_module_details);
 
-  connect(ui_->activateOrDeactiveButton, &QPushButton::clicked, this, [=]() {
+  connect(ui_->activateOrDeactivateButton, &QPushButton::clicked, this, [=]() {
     auto module_id = ui_->moduleListView->GetCurrentModuleID();
     if (module_id.isEmpty()) return;
 
     if (!module_manager_->IsModuleActivated(module_id)) {
       module_manager_->ActiveModule(module_id);
     } else {
-      module_manager_->DeactiveModule(module_id);
+      module_manager_->DeactivateModule(module_id);
     }
 
     QTimer::singleShot(1000, [=]() { slot_load_module_details(module_id); });
@@ -93,19 +93,32 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
     Module::TriggerEvent(event_id);
   });
 
+  connect(ui_->pushButton_4, &QPushButton::clicked, this, []() {
+
+  });
+
   connect(ui_->showModsDirButton, &QPushButton::clicked, this, [=]() {
     QDesktopServices::openUrl(QUrl::fromLocalFile(
         GlobalSettingStation::GetInstance().GetModulesDir()));
   });
 
 #ifdef RELEASE
-  ui_->tabWidget->setTabEnabled(2, false);
+  ui_->tabWidget->setTabVisible(2, false);
 #endif
+
+  // give user ability to give up all modules
+  auto disable_loading_all_modules =
+      GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("basic/disable_loading_all_modules", false)
+          .toBool();
+  if (disable_loading_all_modules) {
+    ui_->tabWidget->setTabEnabled(0, false);
+  }
 }
 
 void ModuleControllerDialog::slot_load_module_details(
     Module::ModuleIdentifier module_id) {
-  GF_UI_LOG_DEBUG("loading module details, module id: {}", module_id);
   auto module = module_manager_->SearchModule(module_id);
   SettingsObject so(QString("module.%1.so").arg(module_id));
   ModuleSO module_so(so);
@@ -122,8 +135,6 @@ void ModuleControllerDialog::slot_load_module_details(
     module_so.module_id = module_id;
     module_so.module_hash = module->GetModuleHash();
     module_so.auto_activate = false;
-    GF_UI_LOG_DEBUG("reseting module settings object, module id: {}",
-                    module_id);
     so.Store(module_so.ToJson());
   }
 
@@ -177,8 +188,8 @@ void ModuleControllerDialog::slot_load_module_details(
   }
 
   ui_->moduleInfoTextBrowser->setText(buffer);
-  ui_->activateOrDeactiveButton->setText(if_activated ? tr("Deactivate")
-                                                      : tr("Activate"));
+  ui_->activateOrDeactivateButton->setText(if_activated ? tr("Deactivate")
+                                                        : tr("Activate"));
   ui_->autoActivateButton->setText(module_so.auto_activate
                                        ? tr("Disable Auto Activate")
                                        : tr("Enable Auto Activate"));

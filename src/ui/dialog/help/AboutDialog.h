@@ -66,47 +66,6 @@ class TranslatorsTab : public QWidget {
 };
 
 /**
- * @brief Class containing the main tab of about dialog
- *
- */
-class UpdateTab : public QWidget {
-  Q_OBJECT
-
-  QLabel* current_version_label_;  ///<
-  QLabel* latest_version_label_;   ///<
-  QLabel* upgrade_label_;          ///<
-  QProgressBar* pb_;               ///<
-  QString current_version_;        ///<
-
- public:
-  /**
-   * @brief Construct a new Update Tab object
-   *
-   * @param parent
-   */
-  explicit UpdateTab(QWidget* parent = nullptr);
-
- protected:
-  void showEvent(QShowEvent* event) override;
-
- private slots:
-  /**
-   * @brief
-   *
-   * @param version
-   */
-  void slot_show_version_status();
-
- signals:
-  /**
-   * @brief
-   *
-   * @param data
-   */
-  void SignalReplyFromUpdateServer(QByteArray data);
-};
-
-/**
  * @brief Class for handling the about dialog
  *
  */

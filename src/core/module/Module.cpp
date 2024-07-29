@@ -31,7 +31,7 @@
 #include "core/module/GlobalModuleContext.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/IOUtils.h"
-#include "module/sdk/GFSDKModule.h"
+#include "sdk/GFSDKModule.h"
 #include "utils/BuildInfoUtils.h"
 
 namespace GpgFrontend::Module {
@@ -59,9 +59,9 @@ class Module::Impl {
       *required_symbol.pointer =
           reinterpret_cast<void*>(module_library.resolve(required_symbol.name));
       if (*required_symbol.pointer == nullptr) {
-        GF_CORE_LOG_WARN(
-            "illegal module: {}, reason: cannot load symbol: {}, abort...",
-            module_library.fileName(), required_symbol.name);
+        qCWarning(core) << "illegal module: " << module_library.fileName()
+                        << ", reason cannot load symbol: "
+                        << required_symbol.name << ", abort...";
         return;
       }
     }
@@ -72,39 +72,38 @@ class Module::Impl {
     qt_env_ver_ = GFUnStrDup(get_qt_ver_api_());
 
     if (!module_identifier_regex_exp_.match(identifier_).hasMatch()) {
-      GF_CORE_LOG_WARN(
-          "illegal module: {}, reasson invalid module id, abort...",
-          identifier_);
+      qCWarning(core) << "illegal module: " << identifier_
+                      << ", reason invalid module id, abort...";
       return;
     }
 
     if (!module_version_regex_exp_.match(version_).hasMatch()) {
-      GF_CORE_LOG_WARN(
-          "illegal module: {}, reasson invalid version: {}, abort...",
-          identifier_, version_);
+      qCWarning(core) << "illegal module: " << identifier_
+                      << ", reason invalid version: " << version_
+                      << ", abort...";
       return;
     }
 
     if (!module_version_regex_exp_.match(gf_sdk_ver_).hasMatch()) {
-      GF_CORE_LOG_WARN(
-          "illegal module: {}, reasson invalid sdk version: {}, abort...",
-          identifier_, gf_sdk_ver_);
+      qCWarning(core) << "illegal module: " << identifier_
+                      << ", reason invalid sdk version: " << gf_sdk_ver_
+                      << ", abort...";
       return;
     }
 
     if (GFCompareSoftwareVersion(gf_sdk_ver_, GetProjectVersion()) > 0) {
-      GF_CORE_LOG_WARN(
-          "uncompatible module: {}, sdk version: {} greater than "
-          "current sdk version: {}, abort...",
-          identifier_, gf_sdk_ver_, GetProjectVersion());
+      qCWarning(core) << "uncompatible module: " << identifier_
+                      << ", reason sdk version: " << gf_sdk_ver_
+                      << "current sdk version: " << GetProjectVersion()
+                      << ", abort...";
       return;
     }
 
     auto qt_env_ver_regex_match = module_version_regex_exp_.match(qt_env_ver_);
     if (!qt_env_ver_regex_match.hasMatch()) {
-      GF_CORE_LOG_WARN(
-          "illegal module: {}, reasson invalid qt env version: {}, abort...",
-          identifier_, qt_env_ver_);
+      qCWarning(core) << "illegal module: " << identifier_
+                      << ", reason invalid qt env version: " << qt_env_ver_
+                      << ", abort...";
       return;
     }
 
@@ -113,18 +112,12 @@ class Module::Impl {
 
     if (qt_env_ver_major != QString::number(QT_VERSION_MAJOR) + "." ||
         qt_env_ver_minor != QString::number(QT_VERSION_MINOR) + ".") {
-      GF_CORE_LOG_WARN(
-          "uncompatible module: {}, qt version: {} is not binary uncompatible "
-          "with application's qt env version: {}, abort...",
-          identifier_, qt_env_ver_, QString::fromUtf8(QT_VERSION_STR));
+      qCWarning(core) << "uncompatible module: " << identifier_
+                      << ", reason sdk version: " << qt_env_ver_
+                      << "current sdk version: "
+                      << QString::fromUtf8(QT_VERSION_STR) << ", abort...";
       return;
     }
-
-    GF_CORE_LOG_INFO(
-        "module loaded, id: {}, version: {}, "
-        "sdk version: {}, qt env version: {}, hash: {}, path: {}",
-        identifier_, version_, gf_sdk_ver_, qt_env_ver_, module_hash_,
-        module_library_path_);
 
     ::GFModuleMetaData* p_meta_data = get_metadata_api_();
 
@@ -159,7 +152,7 @@ class Module::Impl {
     return -1;
   }
 
-  auto Deactive() -> int {
+  auto Deactivate() -> int {
     if (good_ && deactivate_api_ != nullptr) return deactivate_api_();
     return -1;
   }
@@ -255,7 +248,7 @@ class Module::Impl {
       {"GFRegisterModule", reinterpret_cast<void**>(&register_api_)},
       {"GFActiveModule", reinterpret_cast<void**>(&activate_api_)},
       {"GFExecuteModule", reinterpret_cast<void**>(&execute_api_)},
-      {"GFDeactiveModule", reinterpret_cast<void**>(&deactivate_api_)},
+      {"GFDeactivateModule", reinterpret_cast<void**>(&deactivate_api_)},
       {"GFUnregisterModule", reinterpret_cast<void**>(&unregister_api_)},
   };
 
@@ -286,7 +279,7 @@ auto Module::Exec(EventReference event) -> int {
   return p_->Exec(std::move(event));
 }
 
-auto Module::Deactive() -> int { return p_->Deactive(); }
+auto Module::Deactivate() -> int { return p_->Deactivate(); }
 
 auto Module::UnRegister() -> int { return p_->UnRegister(); }
 

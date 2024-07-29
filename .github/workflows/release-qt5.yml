@@ -4,20 +4,17 @@ on:
   push:
     branches: [ main, 'develop' ]
     paths-ignore:
-      - 'resource/locale/**'
-      - 'manual/**'
+      - 'resource/lfs/locale/**'
       - '**.md'
   pull_request:
     branches: [ main, 'develop' ]
     paths-ignore:
-      - 'resource/locale/**'
-      - 'manual/**'
+      - 'resource/lfs/locale/**'
       - '**.md'
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
-  EXECUTABLE_OUTPUT_PATH: ./
 
 jobs:
   build:
@@ -54,8 +51,9 @@ jobs:
         run: |
           pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf 
           pacman --noconfirm -S --needed make texinfo automake 
-          pacman --noconfirm -S --needed mingw-w64-x86_64-qt5 libintl msys2-runtime-devel gettext-devel
+          pacman --noconfirm -S --needed mingw-w64-x86_64-qt5 mingw-w64-x86_64-angleproject libintl msys2-runtime-devel gettext-devel
           pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg mingw-w64-x86_64-libarchive
+          pacman --noconfirm -S --needed mingw-w64-x86_64-gtest
         if: matrix.os == 'windows-2019'
 
       - name: Install Dependence (Linux)
@@ -122,7 +120,7 @@ jobs:
       - name: Build GpgME (Windows)
         shell: msys2 {0}
         run: |
-          git clone --depth 1 --branch gpgme-1.18.0 git://git.gnupg.org/gpgme.git ${{github.workspace}}/third_party/gpgme
+          git clone --depth 1 --branch fix/1.18.0 https://git.bktus.com/GpgFrontend/gpgme.git ${{github.workspace}}/third_party/gpgme
           cd ${{github.workspace}}/third_party/gpgme
           ./autogen.sh
           ./configure --enable-maintainer-mode --enable-languages=cpp --disable-gpg-test && make -j4
@@ -138,6 +136,34 @@ jobs:
           ./configure --enable-maintainer-mode --enable-languages=cpp && make -j4
           sudo make install
           cd ${{github.workspace}}
+        if: matrix.os == 'ubuntu-20.04'
+
+      - name: Build mimalloc (Linux)
+        run: |
+          cd ${{github.workspace}}/third_party/mimalloc
+          mkdir build && cd build
+          cmake -G Ninja -DMI_SECURE=ON ..
+          ninja
+          sudo ninja install
+        if: matrix.os == 'ubuntu-20.04'
+
+      - name: Build mimalloc (Windows)
+        shell: msys2 {0}
+        run: |
+          cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
+          cd third_party/mimalloc
+          mkdir build && cd build
+          cmake -G Ninja -DMI_SECURE=ON -DCMAKE_INSTALL_PREFIX=$MSYSTEM_PREFIX .. && ninja
+          ninja install
+        if: matrix.os == 'windows-2019'
+
+      - name: Build googletest (Linux)
+        run: |
+          cd ${{github.workspace}}/third_party/googletest
+          mkdir build && cd build
+          cmake -G Ninja -DBUILD_SHARED_LIBS=ON ..
+          ninja
+          sudo ninja install
         if: matrix.os == 'ubuntu-20.04'
 
       - name: Configure CMake & Build Binary(Windows)
@@ -162,19 +188,32 @@ jobs:
           cd ${{github.workspace}}/build/final-artifact
           wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
-          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines,platformthemes/libqgtk3.so -appimage -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/plugins/mods/
+          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines -appimage
+          echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
+          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: matrix.os == 'ubuntu-20.04'
+
+
+      - name: Copy Modules & Package (Windows)
+        shell: msys2 {0}
+        run: |
+          cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
+          cd build
+          windeployqt --no-translations --force ./artifacts/GpgFrontend.exe
+          echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
+          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
+        if: matrix.os == 'windows-2019'
       
       - name: Upload Artifact(Linux)
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v4
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{ github.sha }}
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{ env.SHORT_SHA }}
           path: ${{github.workspace}}/build/final-artifact/Gpg_Frontend*.AppImage*
         if: matrix.os == 'ubuntu-20.04'
 
       - name: Upload Artifact(Windows)
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v4
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE}}-${{ github.sha }}
+          name: gpgfrontend-${{matrix.os}}--${{env.BUILD_TYPE_LOWER}}-${{ env.SHORT_SHA }}
           path: ${{github.workspace}}/build/artifacts/*
         if: matrix.os == 'windows-2019'

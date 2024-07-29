@@ -63,12 +63,9 @@ FileTreeView::FileTreeView(QWidget* parent, const QString& target_path)
 void FileTreeView::selectionChanged(const QItemSelection& selected,
                                     const QItemSelection& deselected) {
   QTreeView::selectionChanged(selected, deselected);
-  GF_UI_LOG_DEBUG(
-      "file tree view selected changed, selected: {}, deselected: {}",
-      selected.size(), deselected.size());
+
   if (!selected.indexes().empty()) {
     selected_path_ = dir_model_->filePath(selected.indexes().first());
-    GF_UI_LOG_DEBUG("file tree view selected target path: {}", selected_path_);
     emit SignalSelectedChanged(selected_path_);
   } else {
     selected_path_ = QString();
@@ -83,7 +80,6 @@ void FileTreeView::SlotGoPath(const QString& target_path) {
   auto file_info = QFileInfo(target_path);
   if (file_info.isDir() && file_info.isReadable() && file_info.isExecutable()) {
     current_path_ = file_info.absoluteFilePath();
-    GF_UI_LOG_DEBUG("file tree view set target path: {}", current_path_);
     this->setRootIndex(dir_model_->index(file_info.filePath()));
     dir_model_->setRootPath(file_info.filePath());
     slot_adjust_column_widths();
@@ -116,7 +112,6 @@ void FileTreeView::SlotUpLevel() {
   auto target_path = dir_model_->fileInfo(current_root).absoluteFilePath();
   if (auto parent_path = QDir(target_path); parent_path.cdUp()) {
     target_path = parent_path.absolutePath();
-    GF_UI_LOG_DEBUG("file tree view go parent path: {}", target_path);
     this->SlotGoPath(target_path);
   }
   current_path_ = target_path;
@@ -145,9 +140,7 @@ auto FileTreeView::GetPathByClickPoint(const QPoint& point) -> QString {
     return {};
   }
 
-  auto index_path = dir_model_->fileInfo(index).absoluteFilePath();
-  GF_UI_LOG_DEBUG("file tree view right click on: {}", index_path);
-  return index_path;
+  return dir_model_->fileInfo(index).absoluteFilePath();
 }
 
 auto FileTreeView::GetSelectedPath() -> QString { return selected_path_; }
@@ -161,8 +154,6 @@ auto FileTreeView::SlotDeleteSelectedItem() -> void {
                                   QMessageBox::Ok | QMessageBox::Cancel);
 
   if (ret == QMessageBox::Cancel) return;
-
-  GF_UI_LOG_DEBUG("delete item: {}", data.toString());
 
   if (!dir_model_->remove(index)) {
     QMessageBox::critical(this, tr("Error"),
@@ -207,7 +198,6 @@ void FileTreeView::SlotTouch() {
       QLineEdit::Normal, new_file_name, &ok);
   if (ok && !new_file_name.isEmpty()) {
     auto file_path = root_path + "/" + new_file_name;
-    GF_UI_LOG_DEBUG("new file path: {}", file_path);
 
     QFile new_file(file_path);
     if (!new_file.open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
@@ -229,7 +219,6 @@ void FileTreeView::SlotTouchBelowAtSelectedItem() {
       QLineEdit::Normal, new_file_name, &ok);
   if (ok && !new_file_name.isEmpty()) {
     auto file_path = root_path + "/" + new_file_name;
-    GF_UI_LOG_DEBUG("new file path: {}", file_path);
 
     QFile new_file(file_path);
     if (!new_file.open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
@@ -272,7 +261,7 @@ void FileTreeView::SlotRenameSelectedItem() {
   if (ok && !text.isEmpty()) {
     auto file_info = QFileInfo(selected_path_);
     auto new_name_path = file_info.absolutePath() + "/" + text;
-    GF_UI_LOG_DEBUG("new filename path: {}", new_name_path);
+
     if (!QDir().rename(file_info.absoluteFilePath(), new_name_path)) {
       QMessageBox::critical(this, tr("Error"),
                             tr("Unable to rename the file or folder."));
@@ -355,8 +344,6 @@ void FileTreeView::slot_show_custom_context_menu(const QPoint& point) {
   auto target_path = this->GetPathByClickPoint(point);
   auto select_path = GetSelectedPath();
 
-  GF_UI_LOG_DEBUG("file tree view, target path: {}, select path: {}",
-                  target_path, select_path);
   if (target_path.isEmpty() && !select_path.isEmpty()) {
     target_path = select_path;
   }
@@ -404,8 +391,9 @@ void FileTreeView::slot_calculate_hash() {
                 return;
               }
               auto result = ExtractParams<QString>(data_object, 0);
-              emit UISignalStation::GetInstance()->SignalRefreshInfoBoard(
-                  result, InfoBoardStatus::INFO_ERROR_OK);
+              emit UISignalStation::GetInstance()
+                  -> SignalRefreshInfoBoard(result,
+                                            InfoBoardStatus::INFO_ERROR_OK);
             },
             "calculate_file_hash");
       });

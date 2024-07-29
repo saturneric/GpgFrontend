@@ -34,15 +34,16 @@ namespace GpgFrontend::Module {
 class GPGFRONTEND_CORE_EXPORT GlobalRegisterTableTreeModel
     : public QAbstractItemModel {
  public:
-  explicit GlobalRegisterTableTreeModel(GlobalRegisterTable *grt);
+  explicit GlobalRegisterTableTreeModel(GlobalRegisterTable *grt,
+                                        QObject *parent);
 
   [[nodiscard]] auto rowCount(const QModelIndex &parent) const -> int override;
 
   [[nodiscard]] auto columnCount(const QModelIndex &parent) const
       -> int override;
 
-  [[nodiscard]] auto data(const QModelIndex &index, int role) const
-      -> QVariant override;
+  [[nodiscard]] auto data(const QModelIndex &index,
+                          int role) const -> QVariant override;
 
   [[nodiscard]] auto index(int row, int column, const QModelIndex &parent) const
       -> QModelIndex override;

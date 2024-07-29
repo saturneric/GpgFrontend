@@ -37,6 +37,13 @@ namespace GpgFrontend {
  *
  * @return QString
  */
+auto GPGFRONTEND_CORE_EXPORT GetProjectName() -> QString;
+
+/**
+ * @brief
+ *
+ * @return QString
+ */
 auto GPGFRONTEND_CORE_EXPORT GetProjectVersion() -> QString;
 
 /**

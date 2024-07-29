@@ -27,3 +27,5 @@
  */
 
 #include "core/GpgFrontendCore.h"
+
+Q_LOGGING_CATEGORY(core, "core")

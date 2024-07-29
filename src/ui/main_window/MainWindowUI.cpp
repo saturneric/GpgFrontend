@@ -707,37 +707,32 @@ void MainWindow::create_dock_windows() {
   addDockWidget(Qt::RightDockWidgetArea, key_list_dock_);
 
   m_key_list_->AddListGroupTab(
-      tr("Default"), "default", KeyListRow::SECRET_OR_PUBLIC_KEY,
-      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
-          KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key, const KeyTable&) -> bool {
+      tr("Default"), "default",
+      GpgKeyTableDisplayMode::kPUBLIC_KEY |
+          GpgKeyTableDisplayMode::kPRIVATE_KEY,
+      [](const GpgKey& key) -> bool {
         return !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
   m_key_list_->AddListGroupTab(
-      tr("Favourite"), "favourite", KeyListRow::SECRET_OR_PUBLIC_KEY,
-      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
-          KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key, const KeyTable&) -> bool {
+      tr("Favourite"), "favourite",
+      GpgKeyTableDisplayMode::kPUBLIC_KEY |
+          GpgKeyTableDisplayMode::kPRIVATE_KEY |
+          GpgKeyTableDisplayMode::kFAVORITES,
+      [](const GpgKey& key) -> bool {
         return CommonUtils::GetInstance()->KeyExistsinFavouriteList(key);
       });
 
   m_key_list_->AddListGroupTab(
       tr("Only Public Key"), "only_public_key",
-      KeyListRow::SECRET_OR_PUBLIC_KEY,
-      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
-          KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key, const KeyTable&) -> bool {
+      GpgKeyTableDisplayMode::kPUBLIC_KEY, [](const GpgKey& key) -> bool {
         return !key.IsPrivateKey() &&
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
   m_key_list_->AddListGroupTab(
       tr("Has Private Key"), "has_private_key",
-      KeyListRow::SECRET_OR_PUBLIC_KEY,
-      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
-          KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key, const KeyTable&) -> bool {
+      GpgKeyTableDisplayMode::kPRIVATE_KEY, [](const GpgKey& key) -> bool {
         return key.IsPrivateKey() &&
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });

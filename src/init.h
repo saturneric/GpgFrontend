@@ -33,13 +33,6 @@
 namespace GpgFrontend {
 
 /**
- * @brief
- *
- * @param args
- */
-void InitLoggingSystem(const GFCxtSPtr &);
-
-/**
  * @brief init global PATH env
  *
  */

@@ -52,55 +52,48 @@ namespace GpgFrontend::UI {
 KeyMgmt::KeyMgmt(QWidget* parent)
     : GeneralMainWindow("key_management", parent) {
   /* the list of Keys available*/
-  key_list_ = new KeyList(KeyMenuAbility::ALL, this);
+  key_list_ = new KeyList(KeyMenuAbility::kALL, GpgKeyTableColumn::kALL, this);
 
   key_list_->AddListGroupTab(tr("All"), "all",
-                             KeyListRow::SECRET_OR_PUBLIC_KEY);
+                             GpgKeyTableDisplayMode::kPUBLIC_KEY |
+                                 GpgKeyTableDisplayMode::kPRIVATE_KEY);
 
   key_list_->AddListGroupTab(
       tr("Only Public Key"), "only_public_key",
-      KeyListRow::SECRET_OR_PUBLIC_KEY,
-      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
-          KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key, const KeyTable&) -> bool {
+      GpgKeyTableDisplayMode::kPUBLIC_KEY, [](const GpgKey& key) -> bool {
         return !key.IsPrivateKey() &&
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
   key_list_->AddListGroupTab(
       tr("Has Private Key"), "has_private_key",
-      KeyListRow::SECRET_OR_PUBLIC_KEY,
-      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
-          KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key, const KeyTable&) -> bool {
+      GpgKeyTableDisplayMode::kPRIVATE_KEY, [](const GpgKey& key) -> bool {
         return key.IsPrivateKey() &&
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
   key_list_->AddListGroupTab(
-      tr("No Primary Key"), "no_primary_key", KeyListRow::SECRET_OR_PUBLIC_KEY,
-      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
-          KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key, const KeyTable&) -> bool {
+      tr("No Primary Key"), "no_primary_key",
+      GpgKeyTableDisplayMode::kPUBLIC_KEY |
+          GpgKeyTableDisplayMode::kPRIVATE_KEY,
+      [](const GpgKey& key) -> bool {
         return !key.IsHasMasterKey() &&
                !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
   key_list_->AddListGroupTab(
-      tr("Revoked"), "revoked", KeyListRow::SECRET_OR_PUBLIC_KEY,
-      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
-          KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key, const KeyTable&) -> bool {
-        return key.IsRevoked();
-      });
+      tr("Revoked"), "revoked",
+      GpgKeyTableDisplayMode::kPUBLIC_KEY |
+          GpgKeyTableDisplayMode::kPRIVATE_KEY,
+
+      [](const GpgKey& key) -> bool { return key.IsRevoked(); });
 
   key_list_->AddListGroupTab(
-      tr("Expired"), "expired", KeyListRow::SECRET_OR_PUBLIC_KEY,
-      KeyListColumn::TYPE | KeyListColumn::NAME | KeyListColumn::EmailAddress |
-          KeyListColumn::Usage | KeyListColumn::Validity,
-      [](const GpgKey& key, const KeyTable&) -> bool {
-        return key.IsExpired();
-      });
+      tr("Expired"), "expired",
+      GpgKeyTableDisplayMode::kPUBLIC_KEY |
+          GpgKeyTableDisplayMode::kPRIVATE_KEY,
+
+      [](const GpgKey& key) -> bool { return key.IsExpired(); });
 
   setCentralWidget(key_list_);
   key_list_->SetDoubleClickedAction(
@@ -420,7 +413,7 @@ void KeyMgmt::SlotExportKeyToClipboard() {
                 }
 
                 if (data_obj == nullptr || !data_obj->Check<GFBuffer>()) {
-                  GF_CORE_LOG_ERROR("data object checking failed");
+                  qCWarning(ui, "data object checking failed");
                   QMessageBox::critical(this, tr("Error"),
                                         tr("Unknown error occurred"));
                   return;
@@ -579,7 +572,6 @@ void KeyMgmt::SlotImportKeyPackage() {
     return;
   }
 
-  GF_UI_LOG_INFO("importing key package: {}", key_package_file_name);
   CommonUtils::WaitForOpera(
       this, tr("Importing"), [=](const OperaWaitingHd& op_hd) {
         KeyPackageOperator::ImportKeyPackage(

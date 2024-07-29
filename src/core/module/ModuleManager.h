@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include <mutex>
 #include <vector>
 
 #include "core/function/SecureMemoryAllocator.h"
@@ -88,7 +87,7 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager
 
   void ActiveModule(ModuleIdentifier);
 
-  void DeactiveModule(ModuleIdentifier);
+  void DeactivateModule(ModuleIdentifier);
 
   auto GetTaskRunner(ModuleIdentifier) -> std::optional<TaskRunnerPtr>;
 
@@ -123,10 +122,10 @@ void RegisterAndActivateModule(Args&&... args) {
 }
 
 template <typename... Args>
-void TriggerEvent(const EventIdentifier& event_id, Args&&... args,
+void TriggerEvent(const EventIdentifier& event_id,
+                  const Event::Params& params = {},
                   Event::EventCallback e_cb = nullptr) {
-  ModuleManager::GetInstance().TriggerEvent(
-      std::move(MakeEvent(event_id, std::forward<Args>(args)..., e_cb)));
+  ModuleManager::GetInstance().TriggerEvent(MakeEvent(event_id, params, e_cb));
 }
 
 /**
@@ -166,13 +165,12 @@ auto GPGFRONTEND_CORE_EXPORT ListenRTPublishEvent(QObject*, Namespace, Key,
  * @param key
  * @return std::vector<Key>
  */
-auto GPGFRONTEND_CORE_EXPORT ListRTChildKeys(const QString& namespace_,
-                                             const QString& key)
-    -> std::vector<Key>;
+auto GPGFRONTEND_CORE_EXPORT ListRTChildKeys(
+    const QString& namespace_, const QString& key) -> std::vector<Key>;
 
 template <typename T>
-auto RetrieveRTValueTyped(const QString& namespace_, const QString& key)
-    -> std::optional<T> {
+auto RetrieveRTValueTyped(const QString& namespace_,
+                          const QString& key) -> std::optional<T> {
   auto any_value =
       ModuleManager::GetInstance().RetrieveRTValue(namespace_, key);
   if (any_value && any_value->type() == typeid(T)) {
@@ -183,8 +181,8 @@ auto RetrieveRTValueTyped(const QString& namespace_, const QString& key)
 
 template <typename T>
 auto RetrieveRTValueTypedOrDefault(const QString& namespace_,
-                                   const QString& key, const T& defaultValue)
-    -> T {
+                                   const QString& key,
+                                   const T& defaultValue) -> T {
   auto any_value =
       ModuleManager::GetInstance().RetrieveRTValue(namespace_, key);
   if (any_value && any_value->type() == typeid(T)) {

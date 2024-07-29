@@ -30,3 +30,11 @@
 
 // Qt
 #include <QtCore>
+
+// declare area of core
+#ifdef GF_CORE
+
+// declare logging category
+Q_DECLARE_LOGGING_CATEGORY(core)
+
+#endif

@@ -54,7 +54,6 @@ auto SetOwnerTrustLevel::Exec(const QString& key_id) -> bool {
                                        key.GetOwnerTrustLevel(), false, &ok);
 
   if (ok && !item.isEmpty()) {
-    GF_UI_LOG_DEBUG("selected owner trust policy: {}", item);
     int trust_level = 0;  // Unknown Level
     if (item == tr("Ultimate")) {
       trust_level = 5;
@@ -86,7 +85,7 @@ auto SetOwnerTrustLevel::Exec(const QString& key_id) -> bool {
     }
 
     // update key database and refresh ui
-    emit UISignalStation::GetInstance()->SignalKeyDatabaseRefresh();
+    emit UISignalStation::GetInstance() -> SignalKeyDatabaseRefresh();
     return true;
   }
 

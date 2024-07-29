@@ -28,15 +28,11 @@
 
 #pragma once
 
-#include <spdlog/spdlog.h>
-
 #include "core/GpgFrontendCoreExport.h"
 
 namespace GpgFrontend::Module {
 
-struct ModuleInitArgs {
-  spdlog::level::level_enum log_level;
-};
+struct ModuleInitArgs {};
 
 /**
  * @brief init the module library

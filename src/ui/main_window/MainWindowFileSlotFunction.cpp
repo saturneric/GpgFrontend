@@ -282,7 +282,6 @@ void MainWindow::SlotFileDecrypt(const QString& path) {
   }
 
   auto out_path = SetExtensionOfOutputFile(path, kDECRYPT, true);
-  GF_UI_LOG_DEBUG("file decrypt target output path: {}", out_path);
   if (QFileInfo(out_path).exists()) {
     auto ret = QMessageBox::warning(
         this, tr("Warning"),
@@ -332,7 +331,6 @@ void MainWindow::SlotArchiveDecrypt(const QString& path) {
   }
 
   auto out_path = SetExtensionOfOutputFileForArchive(path, kDECRYPT, true);
-  GF_UI_LOG_DEBUG("archive decrypt target output path: {}", out_path);
   if (QFileInfo(out_path).exists()) {
     auto ret = QMessageBox::warning(
         this, tr("Warning"),
@@ -492,9 +490,6 @@ void MainWindow::SlotFileVerify(const QString& path) {
            "Ensure that both are in this directory."));
     return;
   }
-
-  GF_UI_LOG_DEBUG("verification data file path: {}", data_file_path);
-  GF_UI_LOG_DEBUG("verification signature file path: {}", sign_file_path);
 
   CommonUtils::WaitForOpera(
       this, tr("Verifying"), [=](const OperaWaitingHd& op_hd) {
@@ -817,7 +812,6 @@ void MainWindow::SlotArchiveDecryptVerify(const QString& path) {
 
   auto out_path =
       SetExtensionOfOutputFileForArchive(path, kDECRYPT_VERIFY, true);
-  GF_UI_LOG_INFO("out_path: {}", out_path);
   check_result = TargetFilePreCheck(out_path, false);
   if (!std::get<0>(check_result)) {
     QMessageBox::critical(this, tr("Error"),

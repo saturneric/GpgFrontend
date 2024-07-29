@@ -28,8 +28,6 @@
 
 #include "GFDataExchanger.h"
 
-#include "core/utils/LogUtils.h"
-
 namespace GpgFrontend {
 
 auto GFDataExchanger::Write(const std::byte* buffer, size_t size) -> ssize_t {
@@ -40,16 +38,22 @@ auto GFDataExchanger::Write(const std::byte* buffer, size_t size) -> ssize_t {
   std::unique_lock<std::mutex> lock(mutex_);
   try {
     for (size_t i = 0; i < size; i++) {
-      if (queue_.size() == queue_max_size_) not_empty_.notify_all();
-      not_full_.wait(lock,
-                     [=] { return queue_.size() < queue_max_size_ || close_; });
+      if (queue_.size() == static_cast<unsigned long>(queue_max_size_)) {
+        not_empty_.notify_all();
+      }
+
+      not_full_.wait(lock, [=] {
+        return queue_.size() < static_cast<unsigned long>(queue_max_size_) ||
+               close_;
+      });
       if (close_) return -1;
 
       queue_.push(buffer[i]);
       write_bytes++;
     }
   } catch (...) {
-    GF_CORE_LOG_ERROR(
+    qCWarning(
+        core,
         "gf data exchanger caught exception when it writes to queue, abort...");
   }
 
@@ -72,7 +76,9 @@ auto GFDataExchanger::Read(std::byte* buffer, size_t size) -> ssize_t {
     read_bytes++;
   }
 
-  if (queue_.size() < queue_max_size_) not_full_.notify_all();
+  if (queue_.size() < static_cast<unsigned long>(queue_max_size_)) {
+    not_full_.notify_all();
+  }
   return read_bytes;
 }
 

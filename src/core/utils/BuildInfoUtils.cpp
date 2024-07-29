@@ -5,9 +5,12 @@
 
 namespace GpgFrontend {
 
+auto GetProjectName() -> QString { return {PROJECT_NAME}; }
+
 auto GetProjectVersion() -> QString {
-  return QString("v") + VERSION_MAJOR + "." + VERSION_MINOR + "." +
-         VERSION_PATCH;
+  return (QStringList{} << "v" << VERSION_MAJOR << "." << VERSION_MINOR << "."
+                        << VERSION_PATCH)
+      .join("");
 }
 
 auto GetProjectBuildVersion() -> QString { return BUILD_VERSION; }

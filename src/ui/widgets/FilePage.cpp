@@ -117,7 +117,6 @@ void FilePage::SlotGoPath() {
 }
 
 void FilePage::keyPressEvent(QKeyEvent* event) {
-  GF_UI_LOG_DEBUG("file page notices key press by user: {}", event->key());
   if (ui_->pathEdit->hasFocus() &&
       (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter)) {
     SlotGoPath();

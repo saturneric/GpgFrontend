@@ -39,11 +39,8 @@
 namespace GpgFrontend::Module {
 
 void LoadModuleFromPath(const QString& mods_path, bool integrated) {
-  for (const auto& module_library_name :
-       QDir(mods_path).entryList(QStringList() << "*.so"
-                                               << "*.dll"
-                                               << "*.dylib",
-                                 QDir::Files)) {
+  for (const auto& module_library_name : QDir(mods_path).entryList(
+           QStringList() << "*.so" << "*.dll" << "*.dylib", QDir::Files)) {
     ModuleManager::GetInstance().LoadModule(
         mods_path + "/" + module_library_name, integrated);
   }
@@ -54,34 +51,30 @@ auto LoadIntegratedMods() -> bool {
 
 #if defined(MACOS) && defined(RELEASE)
   // App Bundle
-  auto mods_path = exec_binary_path + "/../PlugIns/mods";
+  auto mods_path = exec_binary_path + "/../Modules";
 #else
   // Debug Or Windows Platform
-  auto mods_path = exec_binary_path + "/mods";
+  auto mods_path = exec_binary_path + "/modules";
 #endif
 
   // AppImage
   if (!qEnvironmentVariable("APPIMAGE").isEmpty()) {
-    mods_path = qEnvironmentVariable("APPDIR") + "/usr/plugins/mods";
+    mods_path = qEnvironmentVariable("APPDIR") + "/usr/modules";
   }
 
   // Flatpak
   if (!qEnvironmentVariable("container").isEmpty()) {
-    mods_path = "/app/lib/mods";
+    mods_path = "/app/modules";
   }
 
-  GF_CORE_LOG_DEBUG("try loading integrated modules at path: {} ...",
-                    mods_path);
   if (!QDir(mods_path).exists()) {
-    GF_CORE_LOG_WARN(
-        "integrated module directory at path {} not found, abort...",
-        mods_path);
+    qCWarning(core) << "integrated module directory at path: " << mods_path
+                    << " not found, abort...";
     return false;
   }
 
   LoadModuleFromPath(mods_path, true);
 
-  GF_CORE_LOG_DEBUG("load integrated modules done.");
   return true;
 }
 
@@ -89,16 +82,14 @@ auto LoadExternalMods() -> bool {
   auto mods_path =
       GpgFrontend::GlobalSettingStation::GetInstance().GetModulesDir();
 
-  GF_CORE_LOG_DEBUG("try loading external modules at path: {} ...", mods_path);
   if (!QDir(mods_path).exists()) {
-    GF_CORE_LOG_WARN("external module directory at path {} not found, abort...",
-                     mods_path);
+    qCWarning(core) << "external module directory at path " << mods_path
+                    << " not found, abort...";
     return false;
   }
 
   LoadModuleFromPath(mods_path, false);
 
-  GF_CORE_LOG_DEBUG("load integrated modules done.");
   return true;
 }
 

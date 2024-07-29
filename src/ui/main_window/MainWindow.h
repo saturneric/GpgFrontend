@@ -233,11 +233,6 @@ class MainWindow : public GeneralMainWindow {
    */
   void SlotSetRestartNeeded(int);
 
-  /**
-   * @details Open a new tab for path
-   */
-  void SlotRaisePinentry(QSharedPointer<GpgPassphraseContext>);
-
  private slots:
 
   /**

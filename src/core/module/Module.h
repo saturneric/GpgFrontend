@@ -61,7 +61,7 @@ class GPGFRONTEND_CORE_EXPORT Module : public QObject {
 
   virtual auto Exec(EventReference) -> int;
 
-  virtual auto Deactive() -> int;
+  virtual auto Deactivate() -> int;
 
   virtual auto UnRegister() -> int;
 

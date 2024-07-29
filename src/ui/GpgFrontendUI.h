@@ -33,16 +33,13 @@
  */
 #include <QtWidgets>
 
-// Core
-#include "GpgFrontend.h"
-#include "core/GpgFrontendCore.h"
-#include "core/utils/LogUtils.h"
-
 // UI
 #include "ui/GpgFrontendUIExport.h"
 
-#define GF_UI_LOG_TRACE(...) GF_LOG_TRACE("ui", __VA_ARGS__)
-#define GF_UI_LOG_DEBUG(...) GF_LOG_DEBUG("ui", __VA_ARGS__)
-#define GF_UI_LOG_INFO(...) GF_LOG_INFO("ui", __VA_ARGS__)
-#define GF_UI_LOG_WARN(...) GF_LOG_WARN("ui", __VA_ARGS__)
-#define GF_UI_LOG_ERROR(...) GF_LOG_ERROR("ui", __VA_ARGS__)
+// declare area of ui
+#ifdef GF_UI
+
+// declare logging category
+Q_DECLARE_LOGGING_CATEGORY(ui)
+
+#endif

@@ -40,7 +40,7 @@ GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
 #endif
 
   // set the extra information of the build
-  GpgFrontendApplication::setApplicationVersion(GetProjectBuildVersion());
+  GpgFrontendApplication::setApplicationVersion(GetProjectVersion());
   GpgFrontendApplication::setApplicationName(QString::fromUtf8((PROJECT_NAME)));
   GpgFrontendApplication::setApplicationDisplayName(
       QString::fromUtf8((PROJECT_NAME)));
@@ -57,7 +57,7 @@ bool GpgFrontendApplication::notify(QObject *receiver, QEvent *event) {
   try {
     return QApplication::notify(receiver, event);
   } catch (const std::exception &ex) {
-    GF_UI_LOG_ERROR("exception was caught in notify: {}", ex.what());
+    qCWarning(ui, "exception was caught in notify: {}", ex.what());
     QMessageBox::information(
         nullptr, tr("Standard Exception Thrown"),
         tr("Oops, an standard exception was thrown "
@@ -66,7 +66,7 @@ bool GpgFrontendApplication::notify(QObject *receiver, QEvent *event) {
            "be the negligence of the programmer, "
            "please report this problem if you can."));
   } catch (...) {
-    GF_UI_LOG_ERROR("unknown exception was caught in notify");
+    qCWarning(ui, "unknown exception was caught in notify");
     QMessageBox::information(
         nullptr, tr("Unhandled Exception Thrown"),
         tr("Oops, an unhandled exception was thrown "

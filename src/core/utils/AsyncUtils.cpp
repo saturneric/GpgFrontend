@@ -42,12 +42,10 @@ auto RunGpgOperaAsync(const GpgOperaRunnable& runnable,
     -> Thread::Task::TaskHandler {
   const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gnupg_version", minial_version);
-  GF_CORE_LOG_DEBUG("got gnupg version from rt: {}, operation: {}",
-                    gnupg_version, operation);
 
   if (GFCompareSoftwareVersion(gnupg_version, minial_version) < 0) {
-    GF_CORE_LOG_ERROR("operaton {} not support for gnupg version: {}",
-                      operation, gnupg_version);
+    qCWarning(core) << "operation" << operation
+                    << " not support for gnupg version: " << gnupg_version;
     callback(GPG_ERR_NOT_SUPPORTED, TransferParams());
     return Thread::Task::TaskHandler(nullptr);
   }
@@ -82,12 +80,10 @@ auto RunGpgOperaSync(const GpgOperaRunnable& runnable, const QString& operation,
     -> std::tuple<GpgError, DataObjectPtr> {
   const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gnupg_version", minial_version);
-  GF_CORE_LOG_DEBUG("got gnupg version from rt: {}, operation: {}",
-                    gnupg_version, operation);
 
   if (GFCompareSoftwareVersion(gnupg_version, minial_version) < 0) {
-    GF_CORE_LOG_ERROR("operaton {} not support for gnupg version: {}",
-                      operation, gnupg_version);
+    qCWarning(core) << "operation" << operation
+                    << " not support for gnupg version: " << gnupg_version;
     return {GPG_ERR_NOT_SUPPORTED, TransferParams()};
   }
 
@@ -125,8 +121,8 @@ auto RunIOOperaAsync(const OperaRunnable& runnable,
 }
 
 auto RunOperaAsync(const OperaRunnable& runnable,
-                   const OperationCallback& callback, const QString& operation)
-    -> Thread::Task::TaskHandler {
+                   const OperationCallback& callback,
+                   const QString& operation) -> Thread::Task::TaskHandler {
   auto handler =
       Thread::TaskRunnerGetter::GetInstance()
           .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)

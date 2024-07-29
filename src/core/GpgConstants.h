@@ -53,9 +53,13 @@ constexpr const char* PGP_PRIVATE_KEY_BEGIN =
     "-----BEGIN PGP PRIVATE KEY BLOCK-----";  ///<
 
 // MODULE ID
-const QString kGnuPGInfoGatheringModuleID =
+constexpr const char* kGnuPGInfoGatheringModuleID =
     "com.bktus.gpgfrontend.module.gnupg_info_gathering";
-const QString kVersionCheckingModuleID =
+constexpr const char* kVersionCheckingModuleID =
     "com.bktus.gpgfrontend.module.version_checking";
+constexpr const char* kPinentryModuleID =
+    "com.bktus.gpgfrontend.module.pinentry";
+constexpr const char* kPaperKeyModuleID =
+    "com.bktus.gpgfrontend.module.paper_key";
 
 }  // namespace GpgFrontend

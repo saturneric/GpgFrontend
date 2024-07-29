@@ -63,8 +63,8 @@ void show_verify_details(QWidget* parent, InfoBoardWidget* info_board,
  * @param parent
  * @param verify_res
  */
-void ImportUnknownKeyFromKeyserver(
-    QWidget* parent, const GpgVerifyResultAnalyse& verify_res);
+void ImportUnknownKeyFromKeyserver(QWidget* parent,
+                                   const GpgVerifyResultAnalyse& verify_res);
 
 /**
  * @brief
@@ -135,7 +135,7 @@ class CommonUtils : public QWidget {
    *
    * @return CommonUtils*
    */
-  static CommonUtils* GetInstance();
+  static auto GetInstance() -> CommonUtils*;
 
   /**
    * @brief
@@ -214,14 +214,21 @@ class CommonUtils : public QWidget {
    */
   void SignalRestartApplication(int);
 
+  /**
+   * @brief
+   *
+   */
+  void SignalFavoritesChanged();
+
  public slots:
+
   /**
    * @brief
    *
    * @param parent
    * @param in_buffer
    */
-  void SlotImportKeys(QWidget* parent, const QString& in_buffer);
+  void SlotImportKeys(QWidget* parent, const QByteArray& in_buffer);
 
   /**
    * @brief

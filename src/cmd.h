@@ -36,7 +36,7 @@ namespace GpgFrontend {
 
 auto PrintVersion() -> int;
 
-auto ParseLogLevel(const QString& level) -> spdlog::level::level_enum;
+auto ParseLogLevel(const QString& level) -> int;
 
 auto RunTest(const GFCxtWPtr&) -> int;
 

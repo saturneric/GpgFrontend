@@ -49,9 +49,9 @@ class SingletonStorageCollection::Impl {
   static auto GetInstance(bool force_refresh) -> SingletonStorageCollection* {
     if (force_refresh || global_instance == nullptr) {
       global_instance = SecureCreateUniqueObject<SingletonStorageCollection>();
-      GF_DEFAULT_LOG_TRACE(
-          "a new global singleton storage collection created, address: {}",
-          static_cast<void*>(global_instance.get()));
+      qCDebug(core,
+              "a new global singleton storage collection created, address: %p",
+              static_cast<void*>(global_instance.get()));
     }
     return global_instance.get();
   }
@@ -80,10 +80,6 @@ class SingletonStorageCollection::Impl {
       }
       if (ins_it == storages_map_.end()) {
         auto storage = SecureCreateUniqueObject<SingletonStorage>();
-        GF_DEFAULT_LOG_TRACE(
-            "hash: {} created, singleton storage address: {} type_name: {}",
-            hash, static_cast<void*>(storage.get()), type_id.name());
-
         {
           std::unique_lock<std::shared_mutex> lock(storages_mutex_);
           storages_map_.insert({hash, std::move(storage)});
@@ -110,8 +106,9 @@ auto GpgFrontend::SingletonStorageCollection::GetInstance(bool force_refresh)
 }
 
 void SingletonStorageCollection::Destroy() {
-  GF_DEFAULT_LOG_TRACE(
-      "global singleton storage collection is about to destroy, address: {}",
+  qCDebug(
+      core,
+      "global singleton storage collection is about to destroy, address: %p",
       static_cast<void*>(global_instance.get()));
   return SingletonStorageCollection::Impl::Destroy();
 }

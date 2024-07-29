@@ -40,13 +40,11 @@ class GlobalSettingStation::Impl {
    *
    */
   explicit Impl() noexcept {
-    GF_CORE_LOG_INFO("app path: {}", GetAppDir());
-    GF_CORE_LOG_INFO("app working path: {}", working_path_);
+    qCInfo(core) << "app path: " << GetAppDir();
+    qCInfo(core) << "app working path: " << working_path_;
 
     auto portable_file_path = working_path_ + "/PORTABLE.txt";
     if (QFileInfo(portable_file_path).exists()) {
-      GF_CORE_LOG_INFO(
-          "dectected portable mode, reconfiguring config and data path...");
       Module::UpsertRTValue("core", "env.state.portable", 1);
 
       app_data_path_ = working_path_;
@@ -56,11 +54,11 @@ class GlobalSettingStation::Impl {
       portable_mode_ = true;
     }
 
-    GF_CORE_LOG_INFO("app data path: {}", app_data_path_);
-    GF_CORE_LOG_INFO("app log path: {}", app_log_path_);
+    qCInfo(core) << "app data path: " << app_data_path_;
+    qCInfo(core) << "app log path: " << app_log_path_;
 
 #ifdef WINDOWS
-    GF_CORE_LOG_INFO("app config path: {}", app_config_path_);
+    qCInfo(core) << "app config path: " << app_config_path_;
 #endif
 
 #ifdef WINDOWS

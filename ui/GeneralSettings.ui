@@ -65,6 +65,13 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="disableLoadingModulesCheckBox">
+            <property name="text">
+             <string>Disable loading of all modules (including integrated modules)</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
        </layout>

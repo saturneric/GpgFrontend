@@ -31,6 +31,7 @@
 #include <memory>
 #include <utility>
 
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/SecureMemoryAllocator.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/SettingsObject.h"
@@ -54,25 +55,31 @@ class ModuleManager::Impl {
 
   auto LoadAndRegisterModule(const QString& module_library_path,
                              bool integrated_module) -> void {
+    // give user ability to give up all modules
+    auto disable_loading_all_modules =
+        GlobalSettingStation::GetInstance()
+            .GetSettings()
+            .value("basic/disable_loading_all_modules", false)
+            .toBool();
+    if (disable_loading_all_modules) return;
+
     Thread::TaskRunnerGetter::GetInstance()
         .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
         ->PostTask(new Thread::Task(
             [=](GpgFrontend::DataObjectPtr) -> int {
               QLibrary module_library(module_library_path);
               if (!module_library.load()) {
-                GF_CORE_LOG_WARN(
-                    "module manager failed to load module, "
-                    "reason: broken library: {} ",
-                    module_library.fileName());
+                qCWarning(core) << "module manager failed to load module: "
+                                << module_library.fileName()
+                                << ", reason: " << module_library.errorString();
                 return -1;
               }
 
               auto module = SecureCreateSharedObject<Module>(module_library);
               if (!module->IsGood()) {
-                GF_CORE_LOG_WARN(
-                    "module manager failed to load module, "
-                    "reason: illegal module: {}",
-                    module_library.fileName());
+                qCWarning(core) << "module manager failed to load module, "
+                                   "reason: illegal module: "
+                                << module_library.fileName();
                 return -1;
               }
 
@@ -172,7 +179,7 @@ class ModuleManager::Impl {
             __func__, nullptr));
   }
 
-  void DeactiveModule(const ModuleIdentifier& identifier) {
+  void DeactivateModule(const ModuleIdentifier& identifier) {
     Thread::TaskRunnerGetter::GetInstance()
         .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
         ->PostTask(new Thread::Task(
@@ -231,13 +238,13 @@ auto UpsertRTValue(const QString& namespace_, const QString& key,
                                                     std::any(value));
 }
 
-auto ListenRTPublishEvent(QObject* o, Namespace n, Key k, LPCallback c)
-    -> bool {
+auto ListenRTPublishEvent(QObject* o, Namespace n, Key k,
+                          LPCallback c) -> bool {
   return ModuleManager::GetInstance().ListenRTPublish(o, n, k, c);
 }
 
-auto ListRTChildKeys(const QString& namespace_, const QString& key)
-    -> std::vector<Key> {
+auto ListRTChildKeys(const QString& namespace_,
+                     const QString& key) -> std::vector<Key> {
   return ModuleManager::GetInstance().ListRTChildKeys(namespace_, key);
 }
 
@@ -283,8 +290,8 @@ void ModuleManager::ActiveModule(ModuleIdentifier id) {
   return p_->ActiveModule(id);
 }
 
-void ModuleManager::DeactiveModule(ModuleIdentifier id) {
-  return p_->DeactiveModule(id);
+void ModuleManager::DeactivateModule(ModuleIdentifier id) {
+  return p_->DeactivateModule(id);
 }
 
 auto ModuleManager::GetTaskRunner(ModuleIdentifier id)
@@ -296,8 +303,8 @@ auto ModuleManager::UpsertRTValue(Namespace n, Key k, std::any v) -> bool {
   return p_->UpsertRTValue(n, k, v);
 }
 
-auto ModuleManager::RetrieveRTValue(Namespace n, Key k)
-    -> std::optional<std::any> {
+auto ModuleManager::RetrieveRTValue(Namespace n,
+                                    Key k) -> std::optional<std::any> {
   return p_->RetrieveRTValue(n, k);
 }
 
@@ -306,8 +313,8 @@ auto ModuleManager::ListenRTPublish(QObject* o, Namespace n, Key k,
   return p_->ListenPublish(o, n, k, c);
 }
 
-auto ModuleManager::ListRTChildKeys(const QString& n, const QString& k)
-    -> std::vector<Key> {
+auto ModuleManager::ListRTChildKeys(const QString& n,
+                                    const QString& k) -> std::vector<Key> {
   return p_->ListRTChildKeys(n, k);
 }
 

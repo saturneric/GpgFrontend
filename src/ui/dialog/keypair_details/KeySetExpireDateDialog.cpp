@@ -58,18 +58,10 @@ KeySetExpireDateDialog::KeySetExpireDateDialog(const KeyId& key_id,
 }
 
 void KeySetExpireDateDialog::slot_confirm() {
-  GF_UI_LOG_DEBUG("confirm called, date: {}, time: {}",
-                  ui_->dateEdit->date().toString(),
-                  ui_->timeEdit->time().toString());
   auto datetime = QDateTime(ui_->dateEdit->date(), ui_->timeEdit->time());
   std::unique_ptr<QDateTime> expires = nullptr;
   if (ui_->noExpirationCheckBox->checkState() == Qt::Unchecked) {
     expires = std::make_unique<QDateTime>(datetime.toLocalTime());
-
-    GF_UI_LOG_DEBUG("keyid: {}", m_key_.GetId(), m_subkey_,
-                    expires->toSecsSinceEpoch());
-  } else {
-    GF_UI_LOG_DEBUG("keyid: {}", m_key_.GetId(), m_subkey_, "Non Expired");
   }
 
   auto err = GpgKeyOpera::GetInstance().SetExpire(m_key_, m_subkey_, expires);

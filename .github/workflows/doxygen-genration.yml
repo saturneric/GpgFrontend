@@ -4,8 +4,7 @@ on:
   push:
     branches: [ main, 'develop' ]
     paths-ignore:
-      - 'resource/locale/template/**'
-      - 'manual/**'
+      - 'resource/lfs/locale/**'
       - '**.md'
 
 jobs:

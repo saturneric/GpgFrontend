@@ -48,7 +48,6 @@ auto GpgFrontend::UI::ListedKeyServerTestTask::Run() -> int {
   size_t index = 0;
   for (const auto& url : urls_) {
     auto key_url = QUrl{url};
-    GF_UI_LOG_DEBUG("key server request: {}", key_url.host());
 
     auto request = QNetworkRequest(key_url);
     request.setHeader(QNetworkRequest::UserAgentHeader,
@@ -59,12 +58,10 @@ auto GpgFrontend::UI::ListedKeyServerTestTask::Run() -> int {
 
     connect(network_reply, &QNetworkReply::finished, this,
             [this, index, network_reply]() {
-              GF_UI_LOG_DEBUG("key server domain reply: {}", urls_[index]);
               this->slot_process_network_reply(index, network_reply);
             });
 
     connect(timer, &QTimer::timeout, this, [this, index, network_reply]() {
-      GF_UI_LOG_DEBUG("timeout for key server: {}", urls_[index]);
       if (network_reply->isRunning()) {
         network_reply->abort();
         this->slot_process_network_reply(index, network_reply);

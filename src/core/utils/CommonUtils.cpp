@@ -82,13 +82,13 @@ auto GFStrDup(const QString& str) -> char* {
   return c_str;
 }
 
-auto GPGFRONTEND_CORE_EXPORT GFUnStrDup(char* str) -> QString {
+auto GFUnStrDup(char* str) -> QString {
   auto qt_str = QString::fromUtf8(str);
   SecureFree(static_cast<void*>(const_cast<char*>(str)));
   return qt_str;
 }
 
-auto GPGFRONTEND_CORE_EXPORT GFUnStrDup(const char* str) -> QString {
+auto GFUnStrDup(const char* str) -> QString {
   return GFUnStrDup(const_cast<char*>(str));
 }
 
