@@ -39,8 +39,7 @@ generate_export_header(gpgfrontend_test EXPORT_FILE_NAME "${_export_file}")
 target_compile_definitions(gpgfrontend_test PUBLIC GF_TEST)
 
 # link options
-target_link_libraries(gpgfrontend_test PRIVATE gtest)
-
+target_link_libraries(gpgfrontend_test PRIVATE GTest::gtest)
 target_link_libraries(gpgfrontend_test PRIVATE gpgfrontend_core)
 
 if(XCODE_BUILD)

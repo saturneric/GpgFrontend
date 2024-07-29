@@ -99,6 +99,7 @@ endif()
 if(BUILD_TEST)
   include(CTest)
   enable_testing()
+  find_package(GTest REQUIRED)
   add_subdirectory(test)
 endif()
 
