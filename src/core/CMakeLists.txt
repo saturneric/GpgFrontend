@@ -53,15 +53,6 @@ target_compile_definitions(gpgfrontend_core PUBLIC GF_CORE)
 # mimalloc (except apple macos)
 if(NOT APPLE)
   target_link_libraries(gpgfrontend_core PUBLIC mimalloc)
-
-  # use system installed libraries or install it system wide
-  if(MINGW AND NOT STABLE_BUILD_FULL_SDK)
-    set_target_properties(mimalloc
-      PROPERTIES
-      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-    )
-  endif()
 endif()
 
 # qt-aes
@@ -84,27 +75,16 @@ if(MINGW)
 endif()
 
 # configure libarchive
-if(NOT MINGW)
-  if(APPLE)
-    if(EXISTS "/usr/local/opt/libarchive/include")
-      set(LibArchive_INCLUDE_DIR "/usr/local/opt/libarchive/include")
-    else()
-      set(LibArchive_INCLUDE_DIR "/opt/homebrew/opt/libarchive/include")
-    endif()
-  endif()
-
-  find_package(LibArchive REQUIRED)
-  target_include_directories(gpgfrontend_core PRIVATE ${LibArchive_INCLUDE_DIR})
-else()
-  # use system installed libraries or install it system wide
-  if(NOT STABLE_BUILD_FULL_SDK)
-    set_target_properties(archive
-      PROPERTIES
-      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-    )
+if(APPLE)
+  if(EXISTS "/usr/local/opt/libarchive/include")
+    set(LibArchive_INCLUDE_DIR "/usr/local/opt/libarchive/include")
+  else()
+    set(LibArchive_INCLUDE_DIR "/opt/homebrew/opt/libarchive/include")
   endif()
 endif()
+
+find_package(LibArchive REQUIRED)
+target_include_directories(gpgfrontend_core PRIVATE ${LibArchive_INCLUDE_DIR})
 
 # link libarchive
 target_link_libraries(gpgfrontend_core PRIVATE archive)

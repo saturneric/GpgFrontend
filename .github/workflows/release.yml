@@ -180,16 +180,15 @@ jobs:
           cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
           cd third_party/mimalloc
           mkdir build && cd build
-          cmake -G Ninja -DMI_SECURE=ON ..
-          ninja
-          sudo ninja install
+          cmake -G Ninja -DMI_SECURE=ON -DCMAKE_INSTALL_PREFIX=$MSYSTEM_PREFIX .. && ninja
+          ninja install
         if: matrix.os == 'windows-2019'
 
       - name: Build googletest (Linux)
         run: |
           cd ${{github.workspace}}/third_party/googletest
           mkdir build && cd build
-          cmake -G Ninja ..
+          cmake -G Ninja -DBUILD_SHARED_LIBS=ON ..
           ninja
           sudo ninja install
         if: matrix.os == 'ubuntu-20.04'
