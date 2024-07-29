@@ -162,7 +162,7 @@ jobs:
           cd ${{github.workspace}}/build/final-artifact
           wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
-          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines,platformthemes/libqgtk3.so -appimage -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/plugins/mods/
+          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines -appimage
         if: matrix.os == 'ubuntu-20.04'
       
       - name: Upload Artifact(Linux)
