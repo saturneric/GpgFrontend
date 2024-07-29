@@ -23,34 +23,10 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# json
-set(JSON_BuildTests OFF CACHE INTERNAL "")
-
-# full sdk build on windows will use system installed libarchive
-if(MINGW AND NOT STABLE_BUILD_FULL_SDK)
-  add_subdirectory(libarchive EXCLUDE_FROM_ALL)
-endif()
-
-if(NOT APPLE)
-  set(MI_SECURE ON)
-
-  # fix the segment fault issue on M1 chip platform
-  # refer to https://github.com/microsoft/mimalloc/issues/343
-  # if(APPLE)
-  # set(MI_OSX_ZONE ON)
-  # set(MI_OSX_INTERPOSE OFF)
-  # endif()
-
-  # ASAN checking
-  if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" AND ENABLE_ASAN)
-    # if(APPLE)
-    # set(MI_OVERRIDE OFF)
-    # endif()
-
-    # set(MI_TRACK_VALGRIND ON)
-    set(MI_TRACK_ASAN ON)
-  endif()
-
+# ASAN checking
+if(ENABLE_ASAN AND NOT APPLE AND ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+  # set(MI_TRACK_VALGRIND ON)
+  set(MI_TRACK_ASAN ON)
   add_subdirectory(mimalloc EXCLUDE_FROM_ALL)
 endif()
 

@@ -165,6 +165,25 @@ jobs:
           cd ${{github.workspace}}
         if: matrix.os == 'windows-2019'
 
+      - name: Build mimalloc (Linux)
+        run: |
+          cd ${{github.workspace}}/third_party/mimalloc
+          mkdir build && cd build
+          cmake -G Ninja -DMI_SECURE=ON ..
+          ninja
+          sudo ninja install
+        if: matrix.os == 'ubuntu-20.04'
+
+      - name: Build mimalloc (Windows)
+        shell: msys2 {0}
+        run: |
+          cd ${{github.workspace}}/third_party/mimalloc
+          mkdir build && cd build
+          cmake -G Ninja -DMI_SECURE=ON ..
+          ninja
+          sudo ninja install
+        if: matrix.os == 'windows-2019'
+
       - name: Build & Install Full SDK 
         run: |
           cmake -B ${{github.workspace}}/build-full-sdk -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_FULL_SDK=ON
