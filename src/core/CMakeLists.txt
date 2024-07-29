@@ -54,7 +54,8 @@ target_compile_definitions(gpgfrontend_core PUBLIC GF_CORE)
 if(NOT APPLE)
   target_link_libraries(gpgfrontend_core PUBLIC mimalloc)
 
-  if(MINGW)
+  # use system installed libraries or install it system wide
+  if(MINGW AND NOT STABLE_BUILD_FULL_SDK)
     set_target_properties(mimalloc
       PROPERTIES
       LIBRARY_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"

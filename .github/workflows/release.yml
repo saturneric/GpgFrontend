@@ -99,6 +99,7 @@ jobs:
           pacman --noconfirm -S --needed make texinfo automake 
           pacman --noconfirm -S --needed mingw-w64-x86_64-qt6 mingw-w64-x86_64-icu libintl msys2-runtime-devel gettext-devel
           pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg mingw-w64-x86_64-libarchive
+          pacman --noconfirm -S --needed mingw-w64-x86_64-gtest
         if: matrix.os == 'windows-2019'
 
       - name: Build gpg-error (Linux)
