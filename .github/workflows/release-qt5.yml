@@ -170,7 +170,7 @@ jobs:
         run: |
           cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
           cd build
-          windeployqt --force ./artifacts/GpgFrontend.exe
+          windeployqt --no-translations --force ./artifacts/GpgFrontend.exe
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: matrix.os == 'windows-2019'
