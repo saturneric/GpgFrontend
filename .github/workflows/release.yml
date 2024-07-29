@@ -81,7 +81,7 @@ jobs:
       - name: Install Dependence (macOS)
         run: |
           brew install cmake autoconf automake texinfo gettext openssl@3
-          brew install ninja libarchive gpgme
+          brew install ninja libarchive gpgme googletest
           brew link openssl@3 --force
         if:  matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
 
