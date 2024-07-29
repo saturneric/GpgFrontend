@@ -177,7 +177,8 @@ jobs:
       - name: Build mimalloc (Windows)
         shell: msys2 {0}
         run: |
-          cd ${{github.workspace}}/third_party/mimalloc
+          cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
+          cd third_party/mimalloc
           mkdir build && cd build
           cmake -G Ninja -DMI_SECURE=ON ..
           ninja
