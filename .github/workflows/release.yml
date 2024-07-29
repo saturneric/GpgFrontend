@@ -184,6 +184,15 @@ jobs:
           sudo ninja install
         if: matrix.os == 'windows-2019'
 
+      - name: Build googletest (Linux)
+        run: |
+          cd ${{github.workspace}}/third_party/googletest
+          mkdir build && cd build
+          cmake -G Ninja ..
+          ninja
+          sudo ninja install
+        if: matrix.os == 'ubuntu-20.04'
+
       - name: Build & Install Full SDK 
         run: |
           cmake -B ${{github.workspace}}/build-full-sdk -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_FULL_SDK=ON
