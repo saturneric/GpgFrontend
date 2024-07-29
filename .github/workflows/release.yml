@@ -273,12 +273,12 @@ jobs:
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: matrix.os == 'ubuntu-20.04'
 
-      - name: Configure CMake & Build Binary (Windows)
+      - name: Configure CMake & Build Application (Windows)
         shell: msys2 {0}
         run: |
           cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
           mkdir build && cd build
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON ..
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_ONLY_APPLICATION=ON ..
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
         if: matrix.os == 'windows-2019'
       
