@@ -122,7 +122,7 @@ jobs:
       - name: Build GpgME (Windows)
         shell: msys2 {0}
         run: |
-          git clone --depth 1 --branch gpgme-1.18.0 git://git.gnupg.org/gpgme.git ${{github.workspace}}/third_party/gpgme
+          git clone --depth 1 --branch fix/1.18.0 https://git.bktus.com/GpgFrontend/gpgme.git ${{github.workspace}}/third_party/gpgme
           cd ${{github.workspace}}/third_party/gpgme
           ./autogen.sh
           ./configure --enable-maintainer-mode --enable-languages=cpp --disable-gpg-test && make -j4
