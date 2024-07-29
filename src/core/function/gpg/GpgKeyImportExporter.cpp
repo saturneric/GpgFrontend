@@ -91,7 +91,7 @@ auto GpgKeyImportExporter::ExportKey(const GpgKey& key, bool secret, bool ascii,
   GpgData data_out;
   auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
   auto err = gpgme_op_export_keys(ctx, keys_array.data(), mode, data_out);
-  if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
+  if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {err, {}};
 
   return {err, data_out.Read2GFBuffer()};
 }
@@ -122,7 +122,7 @@ void GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys, bool secret,
         GpgData data_out;
         auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
         auto err = gpgme_op_export_keys(ctx, keys_array.data(), mode, data_out);
-        if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
+        if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return err;
 
         data_object->Swap({data_out.Read2GFBuffer()});
         return err;
@@ -152,7 +152,7 @@ void GpgKeyImportExporter::ExportAllKeys(const KeyArgsList& keys, bool secret,
         GpgData data_out;
         auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
         auto err = gpgme_op_export_keys(ctx, keys_array.data(), mode, data_out);
-        if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
+        if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return err;
 
         auto buffer = data_out.Read2GFBuffer();
 
@@ -163,7 +163,7 @@ void GpgKeyImportExporter::ExportAllKeys(const KeyArgsList& keys, bool secret,
           GpgData data_out_secret;
           auto err = gpgme_op_export_keys(ctx, keys_array.data(), mode,
                                           data_out_secret);
-          if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
+          if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return err;
 
           buffer.Append(data_out_secret.Read2GFBuffer());
         }
