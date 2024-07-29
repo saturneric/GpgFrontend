@@ -83,6 +83,22 @@ jobs:
           sudo make install
           cd ${{github.workspace}}
 
+      - name: Build mimalloc (Linux)
+        run: |
+          cd ${{github.workspace}}/third_party/mimalloc
+          mkdir build && cd build
+          cmake -G Ninja -DMI_SECURE=ON ..
+          ninja
+          sudo ninja install
+
+      - name: Build googletest (Linux)
+        run: |
+          cd ${{github.workspace}}/third_party/googletest
+          mkdir build && cd build
+          cmake -G Ninja -DBUILD_SHARED_LIBS=ON ..
+          ninja
+          sudo ninja install
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
         with:
