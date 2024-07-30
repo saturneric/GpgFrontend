@@ -116,9 +116,8 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
            LOG_W() << "gnupg gen revoke execute error, process stderr: "
                    << p_err << ", process stdout: " << p_out;
          } else {
-           qCDebug(core,
-                   "gnupg gen revoke exit_code: %d, process stdout size: %lld",
-                   exit_code, p_out.size());
+           FLOG_D("gnupg gen revoke exit_code: %d, process stdout size: %lld",
+                  exit_code, p_out.size());
          }
        },
        nullptr,

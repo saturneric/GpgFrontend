@@ -384,8 +384,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
           };
         }
 
-        qCDebug(
-            core,
+        FLOG_D(
             "basic env checking finished, including gpgme, ctx, and key infos");
 
         Module::UpsertRTValue("core", "env.state.basic", 1);

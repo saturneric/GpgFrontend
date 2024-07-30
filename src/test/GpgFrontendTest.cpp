@@ -85,7 +85,7 @@ void ImportPrivateKeys(const QString& data_path, QSettings settings) {
       GpgKeyImportExporter::GetInstance(kGpgFrontendDefaultChannel)
           .ImportKey(gf_buffer);
     } else {
-      qCWarning(test) << "read from key file failed: " << key_file;
+      FLOG_W() << "read from key file failed: " << key_file;
     }
   }
 }

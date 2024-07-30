@@ -132,9 +132,9 @@ void MainWindow::Init() noexcept {
     Module::ListenRTPublishEvent(
         this, kVersionCheckingModuleID, "version.loading_done",
         [=](Module::Namespace, Module::Key, int, std::any) {
-          qCDebug(ui,
-                  "version-checking version.loading_done changed, calling slot "
-                  "version upgrade");
+          FLOG_D(
+              "version-checking version.loading_done changed, calling slot "
+              "version upgrade");
           this->slot_version_upgrade_notify();
         });
 

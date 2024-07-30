@@ -120,8 +120,7 @@ void GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
 
          FLOG_D("gpgconf --kill --all execute result: %d", success);
          if (!success) {
-           qCWarning(core,
-                     "restart all component after core initilized failed");
+           FLOG_W("restart all component after core initilized failed");
            Module::UpsertRTValue(
                "core", "gpg_advanced_operator.restart_gpg_components", false);
            return;

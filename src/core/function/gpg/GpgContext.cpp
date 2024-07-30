@@ -192,9 +192,7 @@ class GpgContext::Impl {
     LOG_D() << "got gpgme version version from rt: " << gpgme_version;
 
     if (gpgme_get_keylist_mode(ctx) == 0) {
-      qCWarning(
-          core,
-          "ctx is not a valid pointer, reported by gpgme_get_keylist_mode");
+      FLOG_W("ctx is not a valid pointer, reported by gpgme_get_keylist_mode");
       return false;
     }
 

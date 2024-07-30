@@ -125,10 +125,8 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
           r = archive_read_next_header2(disk, entry);
           if (r == ARCHIVE_EOF) break;
           if (r != ARCHIVE_OK) {
-            qCWarning(
-                core,
-                "archive_read_next_header2() failed, ret: %d, explain: %s", r,
-                archive_error_string(disk));
+            FLOG_W("archive_read_next_header2() failed, ret: %d, explain: %s",
+                   r, archive_error_string(disk));
             ret = -1;
             break;
           }
@@ -162,17 +160,16 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
 
             r = archive_write_header(archive, entry);
             if (r < ARCHIVE_OK) {
-              qCWarning(core,
-                        "archive_write_header() failed, ret: %d, explain: %s",
-                        r, archive_error_string(archive));
+              FLOG_W("archive_write_header() failed, ret: %d, explain: %s", r,
+                     archive_error_string(archive));
               continue;
             }
 
             if (r == ARCHIVE_FATAL) {
-              qCWarning(core,
-                        "archive_write_header() failed, ret: %d, explain: %s, "
-                        "abort ...",
-                        r, archive_error_string(archive));
+              FLOG_W(
+                  "archive_write_header() failed, ret: %d, explain: %s, "
+                  "abort ...",
+                  r, archive_error_string(archive));
               ret = -1;
               break;
             }
@@ -206,17 +203,15 @@ void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
 
         auto r = archive_read_support_filter_all(archive);
         if (r != ARCHIVE_OK) {
-          qCWarning(core,
-                    "archive_read_support_filter_all(), ret: %d, reason: %s", r,
-                    archive_error_string(archive));
+          FLOG_W("archive_read_support_filter_all(), ret: %d, reason: %s", r,
+                 archive_error_string(archive));
           return r;
         }
 
         r = archive_read_support_format_all(archive);
         if (r != ARCHIVE_OK) {
-          qCWarning(core,
-                    "archive_read_support_format_all(), ret: %d, reason: %s", r,
-                    archive_error_string(archive));
+          FLOG_W("archive_read_support_format_all(), ret: %d, reason: %s", r,
+                 archive_error_string(archive));
           return r;
         }
 
@@ -234,9 +229,8 @@ void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
 
         r = archive_write_disk_set_options(ext, 0);
         if (r != ARCHIVE_OK) {
-          qCWarning(core,
-                    "archive_write_disk_set_options(), ret: %d, reason: %s", r,
-                    archive_error_string(archive));
+          FLOG_W("archive_write_disk_set_options(), ret: %d, reason: %s", r,
+                 archive_error_string(archive));
           return r;
         }
 

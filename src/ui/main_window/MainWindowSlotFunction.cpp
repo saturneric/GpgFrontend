@@ -264,8 +264,7 @@ void MainWindow::SlotOpenFile(const QString& path) {
 }
 
 void MainWindow::slot_version_upgrade_notify() {
-  qCDebug(
-      ui,
+  FLOG_D(
       "slot version upgrade notify called, checking version info from rt...");
 
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(

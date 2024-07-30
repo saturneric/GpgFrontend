@@ -304,9 +304,34 @@ if(BUILD_APPLICATION AND MINGW)
   set(ALL_RUNTIME_DLL_FILES "")
 
   if(GPGFRONTEND_QT5_BUILD)
-    list(APPEND ALL_RUNTIME_DLL_FILES "Qt5Core.dll;Qt5Gui.dll;Qt5Network.dll;Qt5PrintSupport.dll;Qt5Svg.dll;Qt5Widgets.dll;libbrotlicommon.dll;libbrotlidec.dll;libdouble-conversion.dll;libzstd.dll;libmd4c.dll;")
+    list(APPEND ALL_RUNTIME_DLL_FILES
+      "Qt5Core.dll"
+      "Qt5Gui.dll"
+      "Qt5Network.dll"
+      "Qt5PrintSupport.dll"
+      "Qt5Svg.dll"
+      "Qt5Widgets.dll"
+      "libbrotlicommon.dll"
+      "libbrotlidec.dll"
+      "libdouble-conversion.dll"
+      "libzstd.dll"
+      "libmd4c.dll"
+    )
   else()
-    list(APPEND ALL_RUNTIME_DLL_FILES "Qt6Core.dll;Qt6Core5Compat.dll;Qt6Gui.dll;Qt6Network.dll;Qt6PrintSupport.dll;Qt6Svg.dll;Qt6Widgets.dll;libbrotlicommon.dll;libbrotlidec.dll;libdouble-conversion.dll;libzstd.dll;libmd4c.dll;")
+    list(APPEND ALL_RUNTIME_DLL_FILES
+      "Qt6Core.dll"
+      "Qt6Core5Compat.dll"
+      "Qt6Gui.dll"
+      "Qt6Network.dll"
+      "Qt6PrintSupport.dll"
+      "Qt6Svg.dll"
+      "Qt6Widgets.dll"
+      "libbrotlicommon.dll"
+      "libbrotlidec.dll"
+      "libdouble-conversion.dll"
+      "libzstd.dll"
+      "libmd4c.dll"
+    )
   endif()
 
   # find the other dlls
@@ -320,7 +345,9 @@ if(BUILD_APPLICATION AND MINGW)
     message(STATUS "DLL: ${_dllFileName} , ITS Full Path is ${_runtimeDllLocalPath}")
   endforeach()
 
-  message(STATUS "All the Application Runtime Dependencies Path: ${ALL_RUNTIME_DEP_PATH_LIST}")
+  foreach(_dllDepPath ${ALL_RUNTIME_DEP_PATH_LIST})
+    message(STATUS "Runtime DLL Dependency Path: ${_dllDepPath}")
+  endforeach()
 
   # copy dependencies to release path
   foreach(_dllRuntimeFilePath ${ALL_RUNTIME_DEP_PATH_LIST})
@@ -439,7 +466,8 @@ endif()
 # add i18n support
 if(BUILD_APPLICATION)
   set(LOCALE_TS_PATH ${CMAKE_SOURCE_DIR}/resource/lfs/locale/ts)
-  set(TS_FILES "${LOCALE_TS_PATH}/GpgFrontend.en_US.ts"
+  set(TS_FILES
+    "${LOCALE_TS_PATH}/GpgFrontend.en_US.ts"
     "${LOCALE_TS_PATH}/GpgFrontend.de_DE.ts"
     "${LOCALE_TS_PATH}/GpgFrontend.fr_FR.ts"
     "${LOCALE_TS_PATH}/GpgFrontend.zh_CN.ts"
@@ -479,7 +507,6 @@ if(BUILD_APPLICATION)
     qt5_add_resources(GF_I18N_RESOURCES ${QT_QM_TRANSLATIONS_RESOURCE_FILE})
 
     message(STATUS "GF_I18N_RESOURCES ${GF_I18N_RESOURCES}")
-
     target_sources(${AppName} PRIVATE ${GF_I18N_RESOURCES})
   else()
     add_custom_target(gftranslations ALL)

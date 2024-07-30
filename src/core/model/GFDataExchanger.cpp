@@ -52,8 +52,7 @@ auto GFDataExchanger::Write(const std::byte* buffer, size_t size) -> ssize_t {
       write_bytes++;
     }
   } catch (...) {
-    qCWarning(
-        core,
+    FLOG_W(
         "gf data exchanger caught exception when it writes to queue, abort...");
   }
 

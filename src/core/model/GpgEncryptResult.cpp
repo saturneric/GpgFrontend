@@ -55,9 +55,9 @@ auto GpgEncryptResult::InvalidRecipients()
     try {
       result.emplace_back(QString{invalid_key->fpr}, invalid_key->reason);
     } catch (...) {
-      qCWarning(core,
-                "caught exception when processing invalid_recipients, "
-                "maybe nullptr of fpr");
+      FLOG_W(
+          "caught exception when processing invalid_recipients, "
+          "maybe nullptr of fpr");
     }
   }
   return result;

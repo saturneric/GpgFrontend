@@ -55,9 +55,9 @@ auto GpgDecryptResult::Recipients() -> std::vector<GpgRecipient> {
     try {
       result.emplace_back(reci);
     } catch (...) {
-      qCWarning(core,
-                "caught exception when processing invalid_recipients, "
-                "maybe nullptr of fpr");
+      FLOG_W(
+          "caught exception when processing invalid_recipients, "
+          "maybe nullptr of fpr");
     }
   }
   return result;

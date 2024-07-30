@@ -86,10 +86,10 @@ class SingletonStorage::Impl {
     auto* raw_obj = p_obj.get();
 
     {
-      qCDebug(core,
-              "register channel object to instances map, "
-              "channel: %d, address: %p",
-              channel, static_cast<void*>(p_obj.get()));
+      FLOG_D(
+          "register channel object to instances map, "
+          "channel: %d, address: %p",
+          channel, static_cast<void*>(p_obj.get()));
       std::unique_lock<std::shared_mutex> lock(instances_mutex_);
       instances_map_[channel] = std::move(p_obj);
     }

@@ -49,9 +49,8 @@ class SingletonStorageCollection::Impl {
   static auto GetInstance(bool force_refresh) -> SingletonStorageCollection* {
     if (force_refresh || global_instance == nullptr) {
       global_instance = SecureCreateUniqueObject<SingletonStorageCollection>();
-      qCDebug(core,
-              "a new global singleton storage collection created, address: %p",
-              static_cast<void*>(global_instance.get()));
+      FLOG_D("a new global singleton storage collection created, address: %p",
+             static_cast<void*>(global_instance.get()));
     }
     return global_instance.get();
   }
@@ -106,10 +105,8 @@ auto GpgFrontend::SingletonStorageCollection::GetInstance(bool force_refresh)
 }
 
 void SingletonStorageCollection::Destroy() {
-  qCDebug(
-      core,
-      "global singleton storage collection is about to destroy, address: %p",
-      static_cast<void*>(global_instance.get()));
+  FLOG_D("global singleton storage collection is about to destroy, address: %p",
+         static_cast<void*>(global_instance.get()));
   return SingletonStorageCollection::Impl::Destroy();
 }
 
