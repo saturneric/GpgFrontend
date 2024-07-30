@@ -59,10 +59,6 @@ endif()
 target_sources(gpgfrontend_core PRIVATE
   ${CMAKE_SOURCE_DIR}/third_party/qt-aes/qaesencryption.cpp)
 
-# encoding detect library
-aux_source_directory(${CMAKE_SOURCE_DIR}/third_party/encoding-detect ENCODING_DETECT_SOURCE_CODE)
-target_sources(gpgfrontend_core PUBLIC ${ENCODING_DETECT_SOURCE_CODE})
-
 # link gnupg libraries
 target_link_libraries(gpgfrontend_core PUBLIC gpgme assuan gpg-error)
 
@@ -89,13 +85,8 @@ target_include_directories(gpgfrontend_core PRIVATE ${LibArchive_INCLUDE_DIR})
 # link libarchive
 target_link_libraries(gpgfrontend_core PRIVATE archive)
 
-if(GPGFRONTEND_QT5_BUILD)
-  # link Qt core
-  target_link_libraries(gpgfrontend_core PUBLIC Qt5::Core)
-else()
-  # link Qt core
-  target_link_libraries(gpgfrontend_core PUBLIC Qt6::Core)
-endif()
+# link qt
+target_link_libraries(gpgfrontend_core PUBLIC Qt::Core)
 
 # set up pch
 target_precompile_headers(gpgfrontend_core

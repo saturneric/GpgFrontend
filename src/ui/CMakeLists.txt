@@ -52,15 +52,9 @@ generate_export_header(gpgfrontend_ui EXPORT_FILE_NAME "${_export_file}")
 # compile definitions
 target_compile_definitions(gpgfrontend_ui PUBLIC GF_UI)
 
-if(GPGFRONTEND_QT5_BUILD)
-  # link Qt
-  target_link_libraries(gpgfrontend_ui
-    Qt5::Core Qt5::Widgets Qt5::Network Qt5::PrintSupport)
-else()
-  # link Qt
-  target_link_libraries(gpgfrontend_ui
-    Qt6::Core Qt6::Widgets Qt6::Network Qt6::PrintSupport)
-endif()
+# link qt
+target_link_libraries(gpgfrontend_ui
+  Qt::Core Qt::Widgets Qt::Network Qt::PrintSupport)
 
 # link gpgfrontend_core
 target_link_libraries(gpgfrontend_ui gpgfrontend_core)
