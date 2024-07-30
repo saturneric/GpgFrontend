@@ -69,8 +69,8 @@ auto LoadIntegratedMods() -> bool {
 #endif
 
   if (!QDir(mods_path).exists()) {
-    qCWarning(core) << "integrated module directory at path: " << mods_path
-                    << " not found, abort...";
+    LOG_W() << "integrated module directory at path: " << mods_path
+            << " not found, abort...";
     return false;
   }
 
@@ -84,8 +84,8 @@ auto LoadExternalMods() -> bool {
       GpgFrontend::GlobalSettingStation::GetInstance().GetModulesDir();
 
   if (!QDir(mods_path).exists()) {
-    qCWarning(core) << "external module directory at path " << mods_path
-                    << " not found, abort...";
+    LOG_W() << "external module directory at path " << mods_path
+            << " not found, abort...";
     return false;
   }
 

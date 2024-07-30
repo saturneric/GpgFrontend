@@ -144,8 +144,8 @@ class Task::Impl {
                   callback_(rtn_, data_object_);
                 }
               } catch (...) {
-                qCWarning(core) << "task: {}, " << GetFullID()
-                                << "callback caught exception, rtn: " << rtn;
+                LOG_W() << "task: {}, " << GetFullID()
+                        << "callback caught exception, rtn: " << rtn;
               }
               emit parent_->SignalTaskEnd();
             });
@@ -217,7 +217,7 @@ void Task::slot_exception_safe_run() noexcept {
     rtn = this->Run();
 
   } catch (...) {
-    qCWarning(core) << "exception was caught at task: {}" << GetFullID();
+    LOG_W() << "exception was caught at task: {}" << GetFullID();
   }
 
   // raise signal to anounce after runnable returned

@@ -50,7 +50,7 @@ set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendUIExport.h")
 generate_export_header(gpgfrontend_ui EXPORT_FILE_NAME "${_export_file}")
 
 # compile definitions
-target_compile_definitions(gpgfrontend_ui PUBLIC GF_UI)
+target_compile_definitions(gpgfrontend_ui PRIVATE GF_UI_PRIVATE)
 
 # link qt
 target_link_libraries(gpgfrontend_ui

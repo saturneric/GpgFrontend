@@ -48,8 +48,8 @@ auto GenerateRevokeCertification::Exec(const GpgKey& key,
                    output_path, "--gen-revoke", key.GetFingerprint()},
        [=](int exit_code, const QString& p_out, const QString& p_err) {
          if (exit_code != 0) {
-           qCWarning(ui) << "gnupg gen revoke execute error, process stderr: "
-                         << p_err << ", process stdout: " << p_out;
+           LOG_W() << "gnupg gen revoke execute error, process stderr: "
+                   << p_err << ", process stdout: " << p_out;
          } else {
            qCDebug(ui,
                    "gnupg gen revoke exit_code: %d, process stdout size: %lld",

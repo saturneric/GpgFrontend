@@ -54,8 +54,7 @@ class GlobalModuleContext::Impl {
     // Search for the module in the register table.
     auto module_info_opt = search_module_register_table(module_id);
     if (!module_info_opt.has_value()) {
-      qCWarning(core) << "cannot find module id " << module_id
-                      << " at register table";
+      LOG_W() << "cannot find module id " << module_id << " at register table";
       return nullptr;
     }
 
@@ -67,10 +66,9 @@ class GlobalModuleContext::Impl {
     auto module_info_opt =
         search_module_register_table(module->GetModuleIdentifier());
     if (!module_info_opt.has_value()) {
-      qCWarning(core) << "cannot find module id "
-                      << module->GetModuleIdentifier()
-                      << " at register table, fallback to "
-                         "default channel";
+      LOG_W() << "cannot find module id " << module->GetModuleIdentifier()
+              << " at register table, fallback to "
+                 "default channel";
 
       return GetDefaultChannel(module);
     }
@@ -103,13 +101,13 @@ class GlobalModuleContext::Impl {
     if (module == nullptr ||
         module_register_table_.find(module->GetModuleIdentifier()) !=
             module_register_table_.end()) {
-      qCWarning(core, "module is null or have already registered this module");
+      FLOG_W("module is null or have already registered this module");
       return false;
     }
 
     if (module->Register() != 0) {
-      qCWarning(core) << "register module " << module->GetModuleIdentifier()
-                      << " failed";
+      LOG_W() << "register module " << module->GetModuleIdentifier()
+              << " failed";
       return false;
     }
 
@@ -136,8 +134,7 @@ class GlobalModuleContext::Impl {
     // Search for the module in the register table.
     auto module_info_opt = search_module_register_table(module_id);
     if (!module_info_opt.has_value()) {
-      qCWarning(core) << "cannot find module id " << module_id
-                      << " at register table";
+      LOG_W() << "cannot find module id " << module_id << " at register table";
       return false;
     }
 
@@ -146,8 +143,8 @@ class GlobalModuleContext::Impl {
     // try to get module from module info
     auto module = module_info->module;
     if (module == nullptr) {
-      qCWarning(core) << "module id:" << module_id
-                      << " at register table is related to a null module";
+      LOG_W() << "module id:" << module_id
+              << " at register table is related to a null module";
       return false;
     }
 
@@ -164,8 +161,7 @@ class GlobalModuleContext::Impl {
     // module -> event
     auto module_info_opt = search_module_register_table(module_id);
     if (!module_info_opt.has_value()) {
-      qCWarning(core) << "cannot find module id" << module_id
-                      << "at register table";
+      LOG_W() << "cannot find module id" << module_id << "at register table";
       return false;
     }
 
@@ -191,8 +187,7 @@ class GlobalModuleContext::Impl {
     // search for the module in the register table.
     auto module_info_opt = search_module_register_table(module_id);
     if (!module_info_opt.has_value()) {
-      qCWarning(core) << "cannot find module id " << module_id
-                      << " at register table";
+      LOG_W() << "cannot find module id " << module_id << " at register table";
       return false;
     }
 
@@ -220,8 +215,8 @@ class GlobalModuleContext::Impl {
     auto met_it = module_events_table_.find(event_id);
     if (met_it == module_events_table_.end()) {
       // Log a warning if the event is not registered and nobody is listening
-      qCInfo(core) << "event: " << event_id
-                   << " is not listening by anyone and not registered as well.";
+      LOG_I() << "event: " << event_id
+              << " is not listening by anyone and not registered as well.";
       return false;
     }
 
@@ -231,7 +226,7 @@ class GlobalModuleContext::Impl {
     // Check if the set of listeners is empty
     if (listeners_set.empty()) {
       // Log a warning if nobody is listening to this event
-      qCInfo(core) << "event: " << event_id << " is not listening by anyone";
+      LOG_I() << "event: " << event_id << " is not listening by anyone";
       return false;
     }
 
@@ -245,8 +240,8 @@ class GlobalModuleContext::Impl {
 
       // Log an error if the module is not found in the registration table
       if (!module_info_opt.has_value()) {
-        qCWarning(core) << "cannot find module id: " << listener_module_id
-                        << " at register table";
+        LOG_W() << "cannot find module id: " << listener_module_id
+                << " at register table";
         continue;
       }
 
@@ -264,9 +259,9 @@ class GlobalModuleContext::Impl {
           [listener_module_id, event_id](int code, DataObjectPtr) {
             if (code < 0) {
               // Log an error if the module execution fails
-              qCWarning(core) << "module " << listener_module_id
-                              << "execution failed of event " << event_id
-                              << ": exec return code: " << code;
+              LOG_W() << "module " << listener_module_id
+                      << "execution failed of event " << event_id
+                      << ": exec return code: " << code;
             }
           };
 

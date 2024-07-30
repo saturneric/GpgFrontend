@@ -49,7 +49,7 @@ auto GetFileChecksum(const QString& file_name,
 auto ReadFile(const QString& file_name, QByteArray& data) -> bool {
   QFile file(file_name);
   if (!file.open(QIODevice::ReadOnly)) {
-    qCWarning(core) << "failed to open file: " << file_name;
+    LOG_W() << "failed to open file: " << file_name;
     return false;
   }
   data = file.readAll();
@@ -60,7 +60,7 @@ auto ReadFile(const QString& file_name, QByteArray& data) -> bool {
 auto WriteFile(const QString& file_name, const QByteArray& data) -> bool {
   QFile file(file_name);
   if (!file.open(QIODevice::WriteOnly)) {
-    qCWarning(core) << "failed to open file for writing: " << file_name;
+    LOG_W() << "failed to open file for writing: " << file_name;
     return false;
   }
   file.write(data);
@@ -181,16 +181,16 @@ auto CalculateBinaryChacksum(const QString& path) -> QString {
   // check file info and access rights
   QFileInfo info(path);
   if (!info.exists() || !info.isFile() || !info.isReadable()) {
-    qCWarning(core) << "get info for file: " << info.filePath()
-                    << " error, exists: " << info.exists();
+    LOG_W() << "get info for file: " << info.filePath()
+            << " error, exists: " << info.exists();
     return {};
   }
 
   // open and read file
   QFile f(info.filePath());
   if (!f.open(QIODevice::ReadOnly)) {
-    qCWarning(core) << "open " << path
-                    << "to calculate checksum error: " << f.errorString();
+    LOG_W() << "open " << path
+            << "to calculate checksum error: " << f.errorString();
     return {};
   }
 
@@ -201,8 +201,8 @@ auto CalculateBinaryChacksum(const QString& path) -> QString {
   while (!f.atEnd()) {
     QByteArray const buffer = f.read(buffer_size);
     if (buffer.isEmpty()) {
-      qCWarning(core) << "error reading file: " << path
-                      << " during checksum calculation";
+      LOG_W() << "error reading file: " << path
+              << " during checksum calculation";
       return {};
     }
     hash_sha.addData(buffer);

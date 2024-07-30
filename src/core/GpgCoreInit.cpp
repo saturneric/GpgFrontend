@@ -177,7 +177,7 @@ auto InitGpgME(const QString& gpgconf_path, const QString& gnupg_path) -> bool {
   // conditional check: only support gpg 2.1.x now
   if (!(GFCompareSoftwareVersion(gnupg_version, "2.1.0") >= 0 && find_gpgconf &&
         find_openpgp && find_cms)) {
-    qCWarning(core, "gpgme env check failed, abort");
+    FLOG_W("gpgme env check failed, abort");
     return false;
   }
 
@@ -238,8 +238,8 @@ auto DetectGpgConfPath() -> QString {
 #endif
 
     if (!VerifyGpgconfPath(QFileInfo(gnupg_install_fs_path))) {
-      qCWarning(core) << "core loaded custom gpgconf path is illegal: "
-                      << gnupg_install_fs_path;
+      LOG_W() << "core loaded custom gpgconf path is illegal: "
+              << gnupg_install_fs_path;
       gnupg_install_fs_path = "";
     }
   }
@@ -279,8 +279,8 @@ void InitGpgFrontendCore(CoreInitArgs args) {
 
   auto gpgconf_install_fs_path = DetectGpgConfPath();
   auto gnupg_install_fs_path = DetectGnuPGPath(gpgconf_install_fs_path);
-  qCInfo(core) << "detected gpgconf path: " << gpgconf_install_fs_path;
-  qCInfo(core) << "detected gnupg path: " << gnupg_install_fs_path;
+  LOG_I() << "detected gpgconf path: " << gpgconf_install_fs_path;
+  LOG_I() << "detected gnupg path: " << gnupg_install_fs_path;
 
   // initialize library gpgme
   if (!InitGpgME(gpgconf_install_fs_path, gnupg_install_fs_path)) {
@@ -329,8 +329,8 @@ void InitGpgFrontendCore(CoreInitArgs args) {
             key_database_fs_path =
                 QFileInfo(custom_gnupg_install_path).absoluteFilePath();
           } else {
-            qCWarning(core) << "custom gpg key database path is not suitable: "
-                            << key_database_fs_path;
+            LOG_W() << "custom gpg key database path is not suitable: "
+                    << key_database_fs_path;
           }
         } else {
 
@@ -369,7 +369,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
 
           // exit if failed
           if (!ctx.Good()) {
-            qCWarning(core, "default gnupg context init error, abort");
+            FLOG_W("default gnupg context init error, abort");
             CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
                 QCoreApplication::tr("GpgME Context initiation failed"));
             return -1;

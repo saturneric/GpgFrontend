@@ -350,7 +350,7 @@ auto KeyList::GetSelected() -> KeyIdArgsListPtr {
 
   auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
   if (key_table == nullptr) {
-    qCWarning(ui, "fail to get current key table, nullptr");
+    FLOG_W("fail to get current key table, nullptr");
     return ret;
   }
 
@@ -360,7 +360,7 @@ auto KeyList::GetSelected() -> KeyIdArgsListPtr {
   }
 
   if (ret->empty()) {
-    qCWarning(ui, "nothing is selected at key list");
+    FLOG_W("nothing is selected at key list");
   }
   return ret;
 }
@@ -389,8 +389,8 @@ void KeyList::contextMenuEvent(QContextMenuEvent* event) {
   auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
 
   if (key_table == nullptr) {
-    qCDebug(ui, "m_key_list_ is nullptr, key group tab number: %d",
-            ui_->keyGroupTab->count());
+    FLOG_D("m_key_list_ is nullptr, key group tab number: %d",
+           ui_->keyGroupTab->count());
     return;
   }
 
@@ -468,7 +468,7 @@ void KeyList::dropEvent(QDropEvent* event) {
       QFile file;
       file.setFileName(tmp.toLocalFile());
       if (!file.open(QIODevice::ReadOnly)) {
-        qCWarning(ui) << "couldn't open file: " << tmp.toString();
+        LOG_W() << "couldn't open file: " << tmp.toString();
       }
       auto in_buffer = file.readAll();
       this->import_keys(in_buffer);

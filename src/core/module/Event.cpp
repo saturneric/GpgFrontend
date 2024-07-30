@@ -86,9 +86,8 @@ class Event::Impl {
                listener_id, data_object]() {
                 callback(event_identifier, listener_id, data_object);
               })) {
-        qCWarning(core) << "failed to invoke callback for event: "
-                        << event_identifier_
-                        << " with listener:" << listener_id;
+        LOG_W() << "failed to invoke callback for event: " << event_identifier_
+                << " with listener:" << listener_id;
       }
     }
   }

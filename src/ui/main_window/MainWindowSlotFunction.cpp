@@ -63,14 +63,14 @@ void MainWindow::slot_append_selected_keys() {
   auto key_ids = m_key_list_->GetSelected();
 
   if (key_ids->empty()) {
-    qCWarning(ui, "no key is selected to export");
+    FLOG_W("no key is selected to export");
     return;
   }
 
   auto key = GpgKeyGetter::GetInstance().GetKey(key_ids->front());
   if (!key.IsGood()) {
-    qCWarning(ui) << "selected key for exporting is invalid, key id: "
-                  << key_ids->front();
+    LOG_W() << "selected key for exporting is invalid, key id: "
+            << key_ids->front();
     return;
   }
 
@@ -88,7 +88,7 @@ void MainWindow::slot_append_keys_create_datetime() {
   auto key_ids = m_key_list_->GetSelected();
 
   if (key_ids->empty()) {
-    qCWarning(ui, "no key is selected");
+    FLOG_W("no key is selected");
     return;
   }
 
@@ -112,7 +112,7 @@ void MainWindow::slot_append_keys_expire_datetime() {
   auto key_ids = m_key_list_->GetSelected();
 
   if (key_ids->empty()) {
-    qCWarning(ui, "no key is selected");
+    FLOG_W("no key is selected");
     return;
   }
 
@@ -271,7 +271,7 @@ void MainWindow::slot_version_upgrade_notify() {
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
       kVersionCheckingModuleID, "version.loading_done", false);
   if (!is_loading_done) {
-    qCWarning(ui, "invalid version info from rt, loading hasn't done yet");
+    FLOG_W("invalid version info from rt, loading hasn't done yet");
     return;
   }
 

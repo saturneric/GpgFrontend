@@ -45,7 +45,7 @@ SettingsObject::SettingsObject(QString settings_name)
     }
 
   } catch (std::exception& e) {
-    qCWarning(core) << "load setting object error: {}" << e.what();
+    LOG_W() << "load setting object error: {}" << e.what();
   }
 }
 

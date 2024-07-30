@@ -45,7 +45,7 @@ auto FileReadTask::Run() -> int {
     target_file_.open(QIODevice::ReadOnly);
 
     if (!(target_file_.isOpen() && target_file_.isReadable())) {
-      qCWarning(core, "file not open or not readable");
+      FLOG_W("file not open or not readable");
       if (target_file_.isOpen()) target_file_.close();
       return -1;
     }

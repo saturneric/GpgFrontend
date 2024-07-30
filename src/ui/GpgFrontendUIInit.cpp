@@ -48,7 +48,7 @@ QList<QByteArray> loaded_qm_datum;
 extern void InitUITranslations();
 
 void WaitEnvCheckingProcess() {
-  qCDebug(ui, "need to waiting for env checking process");
+  FLOG_D("need to waiting for env checking process");
 
   // create and show loading window before starting the main window
   auto* waiting_dialog = new QProgressDialog();
@@ -78,19 +78,19 @@ void WaitEnvCheckingProcess() {
                         &QEventLoop::quit);
 
   QApplication::connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
-    qCDebug(ui, "cancel clicked on waiting dialog");
+    FLOG_D("cancel clicked on waiting dialog");
     QApplication::quit();
     exit(0);
   });
 
   auto env_state =
       Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.basic", 0);
-  qCDebug(ui, "ui is ready to waiting for env initialized, env_state: %d",
+  FLOG_D("ui is ready to waiting for env initialized, env_state: %d",
           env_state);
 
   // check twice to avoid some unlucky sitations
   if (env_state == 1) {
-    qCDebug(ui, "env state turned initialized before the looper start");
+    FLOG_D("env state turned initialized before the looper start");
     waiting_dialog->finished(0);
     waiting_dialog->deleteLater();
     return;
@@ -186,7 +186,7 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
       QNetworkProxy::setApplicationProxy(proxy);
 
     } catch (...) {
-      qCWarning(ui, "setting operation error: proxy setings");
+      FLOG_W("setting operation error: proxy setings");
       // no proxy by default
       QNetworkProxy::setApplicationProxy(QNetworkProxy::NoProxy);
     }
@@ -207,7 +207,7 @@ auto RunGpgFrontendUI(QApplication* app) -> int {
 
   // pre-check, if application need to restart
   if (CommonUtils::GetInstance()->isApplicationNeedRestart()) {
-    qCDebug(ui, "application need to restart, before main window init.");
+    FLOG_D("application need to restart, before main window init.");
     return kDeepRestartCode;
   }
 

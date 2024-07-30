@@ -124,7 +124,7 @@ void GenKeyInfo::SetAlgo(const QString &t_algo_args) {
     suggest_size_addition_step_ = -1;
     SetKeyLength(-1);
   } else {
-    qCWarning(core) << "unsupported genkey algo arguments: " << algo_args;
+    LOG_W() << "unsupported genkey algo arguments: " << algo_args;
     return;
   }
 

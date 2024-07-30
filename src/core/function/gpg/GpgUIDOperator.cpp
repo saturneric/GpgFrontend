@@ -58,7 +58,7 @@ auto GpgUIDOperator::SetPrimaryUID(const GpgKey& key,
 auto GpgUIDOperator::AddUID(const GpgKey& key, const QString& name,
                             const QString& comment,
                             const QString& email) -> bool {
-  qCDebug(core) << "new uuid:" << name << comment << email;
+  LOG_D() << "new uuid:" << name << comment << email;
   return AddUID(key, QString("%1(%2)<%3>").arg(name).arg(comment).arg(email));
 }
 

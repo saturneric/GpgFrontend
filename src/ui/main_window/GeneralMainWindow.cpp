@@ -112,7 +112,7 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
     icon_style_ = toolButtonStyle();
 
   } catch (...) {
-    qCWarning(ui) << "general main window: " << name_ << ", caught exception";
+    LOG_W() << "general main window: " << name_ << ", caught exception";
   }
 }
 
@@ -134,7 +134,7 @@ void GpgFrontend::UI::GeneralMainWindow::slot_save_settings() noexcept {
 
     general_windows_state.Store(window_state.Json());
   } catch (...) {
-    qCWarning(ui) << "general main window: " << name_ << ", caught exception";
+    LOG_W() << "general main window: " << name_ << ", caught exception";
   }
 }
 

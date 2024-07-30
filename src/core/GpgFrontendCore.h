@@ -28,13 +28,28 @@
 
 #pragma once
 
-// Qt
+// project base header
+#include "GpgFrontend.h"
+
+// qt
 #include <QtCore>
 
-// declare area of core
-#ifdef GF_CORE
+// private declare area of core
+#ifdef GF_CORE_PRIVATE
 
 // declare logging category
 Q_DECLARE_LOGGING_CATEGORY(core)
+
+#define LOG_D() qCDebug(core)
+#define LOG_I() qCInfo(core)
+#define LOG_W() qCWarning(core)
+#define LOG_E() qCCritical(core)
+#define LOG_F() qCFatal(core)
+
+#define FLOG_D(...) qCDebug(core, __VA_ARGS__)
+#define FLOG_I(...) qCInfo(core, __VA_ARGS__)
+#define FLOG_W(...) qCWarning(core, __VA_ARGS__)
+#define FLOG_E(...) qCCritical(core, __VA_ARGS__)
+#define FLOG_F(...) qCFatal(core, __VA_ARGS__)
 
 #endif

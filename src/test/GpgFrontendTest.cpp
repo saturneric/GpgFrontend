@@ -96,8 +96,8 @@ void SetupGlobalTestEnv() {
   auto test_config_path = test_path + "/conf/test.ini";
   auto test_data_path = test_path + "/data";
 
-  qCInfo(test) << "test config file path: " << test_config_path;
-  qCInfo(test) << "test data file path: " << test_data_path;
+  LOG_I() << "test config file path: " << test_config_path;
+  LOG_I() << "test data file path: " << test_data_path;
 
   ImportPrivateKeys(test_data_path,
                     QSettings(test_config_path, QSettings::IniFormat));

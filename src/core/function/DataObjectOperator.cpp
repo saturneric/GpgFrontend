@@ -49,8 +49,7 @@ DataObjectOperator::DataObjectOperator(int channel)
 
   QByteArray key;
   if (!ReadFile(app_secure_key_path_, key)) {
-    qCWarning(core) << "failed to read app secure key file: "
-                    << app_secure_key_path_;
+    LOG_W() << "failed to read app secure key file: " << app_secure_key_path_;
     // unsafe mode
     key = {};
   }
@@ -91,7 +90,7 @@ auto DataObjectOperator::SaveDataObj(const QString& key,
   }
 
   if (!WriteFile(target_obj_path, encoded_data)) {
-    qCWarning(core) << "failed to write data object to disk: " << key;
+    LOG_W() << "failed to write data object to disk: " << key;
   }
   return key.isEmpty() ? hash_obj_key : QString();
 }
@@ -105,13 +104,13 @@ auto DataObjectOperator::GetDataObject(const QString& key)
 
     const auto obj_path = app_data_objs_path_ + "/" + hash_obj_key;
     if (!QFileInfo(obj_path).exists()) {
-      qCWarning(core) << "data object not found from disk, key: " << key;
+      LOG_W() << "data object not found from disk, key: " << key;
       return {};
     }
 
     QByteArray encoded_data;
     if (!ReadFile(obj_path, encoded_data)) {
-      qCWarning(core) << "failed to read data object from disk, key: " << key;
+      LOG_W() << "failed to read data object from disk, key: " << key;
       return {};
     }
 
@@ -123,8 +122,7 @@ auto DataObjectOperator::GetDataObject(const QString& key)
 
     return QJsonDocument::fromJson(decoded_data);
   } catch (...) {
-    qCWarning(core) << "failed to get data object:" << key
-                    << " caught exception.";
+    LOG_W() << "failed to get data object:" << key << " caught exception.";
     return {};
   }
 }

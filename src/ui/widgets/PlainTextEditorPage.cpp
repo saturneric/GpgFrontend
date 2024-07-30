@@ -164,7 +164,7 @@ void PlainTextEditorPage::ReadFile() {
           [=]() { emit read_task->SignalTaskShouldEnd(0); });
   connect(read_task, &FileReadTask::SignalFileBytesReadEnd, this, [=]() {
     // set the UI
-    qCDebug(ui, "signal file bytes read end rised");
+    FLOG_D("signal file bytes read end rised");
     this->read_done_ = true;
     text_page->setEnabled(true);
     text_page->document()->setModified(false);

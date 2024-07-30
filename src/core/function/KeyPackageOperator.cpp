@@ -45,7 +45,7 @@ namespace GpgFrontend {
 auto KeyPackageOperator::GeneratePassphrase(const QString& phrase_path,
                                             QString& phrase) -> bool {
   phrase = PassphraseGenerator::GetInstance().Generate(256);
-  qCDebug(core, "generated passphrase: %lld bytes", phrase.size());
+  FLOG_D("generated passphrase: %lld bytes", phrase.size());
   return WriteFile(phrase_path, phrase.toUtf8());
 }
 
@@ -57,8 +57,8 @@ void KeyPackageOperator::GenerateKeyPackage(const QString& key_package_path,
   GpgKeyImportExporter::GetInstance().ExportAllKeys(
       keys, secret, true, [=](GpgError err, const DataObjectPtr& data_obj) {
         if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-          qCWarning(core) << "export keys error, reason: "
-                          << DescribeGpgErrCode(err).second;
+          LOG_W() << "export keys error, reason: "
+                  << DescribeGpgErrCode(err).second;
           cb(-1, data_obj);
           return;
         }
@@ -93,14 +93,14 @@ void KeyPackageOperator::ImportKeyPackage(const QString& key_package_path,
         ReadFile(key_package_path, encrypted_data);
 
         if (encrypted_data.isEmpty()) {
-          qCWarning(core) << "failed to read key package: " << key_package_path;
+          LOG_W() << "failed to read key package: " << key_package_path;
           return -1;
         };
 
         QByteArray passphrase;
         ReadFile(phrase_path, passphrase);
         if (passphrase.size() != 256) {
-          qCWarning(core) << "passphrase size mismatch: " << phrase_path;
+          LOG_W() << "passphrase size mismatch: " << phrase_path;
           return -1;
         }
 

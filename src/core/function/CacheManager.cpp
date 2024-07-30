@@ -164,7 +164,7 @@ class CacheManager::Impl : public QObject {
    *
    */
   void slot_flush_cache_storage() {
-    qCDebug(core, "write cache to file system...");
+    FLOG_D("write cache to file system...");
 
     for (const auto& cache : durable_cache_storage_.mirror()) {
       auto key = get_data_object_key(cache.first);
@@ -215,7 +215,7 @@ class CacheManager::Impl : public QObject {
    *
    */
   void load_all_cache_storage() {
-    qCDebug(core, "start to load all cache from file system");
+    FLOG_D("start to load all cache from file system");
     auto stored_data =
         GpgFrontend::DataObjectOperator::GetInstance().GetDataObject(drk_key_);
 

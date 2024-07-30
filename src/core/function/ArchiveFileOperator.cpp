@@ -46,14 +46,14 @@ auto CopyData(struct archive *ar, struct archive *aw) -> int {
     r = archive_read_data_block(ar, &buff, &size, &offset);
     if (r == ARCHIVE_EOF) return (ARCHIVE_OK);
     if (r != ARCHIVE_OK) {
-      qCWarning(core) << "archive_read_data_block() failed: "
-                      << archive_error_string(ar);
+      LOG_W() << "archive_read_data_block() failed: "
+              << archive_error_string(ar);
       return (r);
     }
     r = archive_write_data_block(aw, buff, size, offset);
     if (r != ARCHIVE_OK) {
-      qCWarning(core) << "archive_write_data_block() failed: "
-                      << archive_error_string(aw);
+      LOG_W() << "archive_write_data_block() failed: "
+              << archive_error_string(aw);
       return (r);
     }
   }
@@ -113,8 +113,8 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
 #endif
 
         if (r != ARCHIVE_OK) {
-          qCWarning(core, "archive_read_disk_open() failed: %s, abort...",
-                    archive_error_string(disk));
+          FLOG_W("archive_read_disk_open() failed: %s, abort...",
+                 archive_error_string(disk));
           archive_read_free(disk);
           archive_write_free(archive);
           return -1;
@@ -227,8 +227,8 @@ void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
                               nullptr);
 
         if (r != ARCHIVE_OK) {
-          qCWarning(core, "archive_read_open(), ret: %d, reason: %s", r,
-                    archive_error_string(archive));
+          FLOG_W("archive_read_open(), ret: %d, reason: %s", r,
+                 archive_error_string(archive));
           return r;
         }
 
@@ -245,8 +245,8 @@ void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
           r = archive_read_next_header(archive, &entry);
           if (r == ARCHIVE_EOF) break;
           if (r != ARCHIVE_OK) {
-            qCWarning(core, "archive_read_next_header(), ret: %d, reason: %s",
-                      r, archive_error_string(archive));
+            FLOG_W("archive_read_next_header(), ret: %d, reason: %s", r,
+                   archive_error_string(archive));
             break;
           }
 
@@ -264,8 +264,8 @@ void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
 
           r = archive_write_header(ext, entry);
           if (r != ARCHIVE_OK) {
-            qCWarning(core, "archive_write_header(), ret: %d, reason: %s", r,
-                      archive_error_string(archive));
+            FLOG_W("archive_write_header(), ret: %d, reason: %s", r,
+                   archive_error_string(archive));
           } else {
             r = CopyData(archive, ext);
           }
@@ -273,13 +273,13 @@ void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
 
         r = archive_read_free(archive);
         if (r != ARCHIVE_OK) {
-          qCWarning(core, "archive_read_free(), ret: %d, reason: %s", r,
-                    archive_error_string(archive));
+          FLOG_W("archive_read_free(), ret: %d, reason: %s", r,
+                 archive_error_string(archive));
         }
         r = archive_write_free(ext);
         if (r != ARCHIVE_OK) {
-          qCWarning(core, "archive_read_free(), ret: %d, reason: %s", r,
-                    archive_error_string(archive));
+          FLOG_W("archive_read_free(), ret: %d, reason: %s", r,
+                 archive_error_string(archive));
         }
 
         return 0;
@@ -299,8 +299,8 @@ void ArchiveFileOperator::ListArchive(const QString &archive_path) {
                                  10240);  // Note 1
   if (r != ARCHIVE_OK) return;
   while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
-    qCDebug(core, core, "File: %s", archive_entry_pathname(entry));
-    qCDebug(core, core, "File Path: %s", archive_entry_pathname(entry));
+    FLOG_D("File: %s", archive_entry_pathname(entry));
+    FLOG_D("File Path: %s", archive_entry_pathname(entry));
     archive_read_data_skip(a);  // Note 2
   }
   r = archive_read_free(a);  // Note 3

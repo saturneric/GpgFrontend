@@ -74,7 +74,7 @@ void KeyUploadDialog::SlotUpload() {
 
         if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
             !data_obj->Check<GFBuffer>()) {
-          qCWarning(ui, "data object checking failed");
+          FLOG_W("data object checking failed");
           QMessageBox::critical(this, tr("Error"),
                                 tr("Unknown error occurred"));
           // Done

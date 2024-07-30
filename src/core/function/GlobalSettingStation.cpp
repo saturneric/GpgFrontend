@@ -40,8 +40,8 @@ class GlobalSettingStation::Impl {
    *
    */
   explicit Impl() noexcept {
-    qCInfo(core) << "app path: " << GetAppDir();
-    qCInfo(core) << "app working path: " << working_path_;
+    LOG_I() << "app path: " << GetAppDir();
+    LOG_I() << "app working path: " << working_path_;
 
     auto portable_file_path = working_path_ + "/PORTABLE.txt";
     if (QFileInfo(portable_file_path).exists()) {
@@ -54,11 +54,11 @@ class GlobalSettingStation::Impl {
       portable_mode_ = true;
     }
 
-    qCInfo(core) << "app data path: " << app_data_path_;
-    qCInfo(core) << "app log path: " << app_log_path_;
+    LOG_I() << "app data path: " << app_data_path_;
+    LOG_I() << "app log path: " << app_log_path_;
 
 #if defined(_WIN32) || defined(WIN32)
-    qCInfo(core) << "app config path: " << app_config_path_;
+    LOG_I() << "app config path: " << app_config_path_;
     if (!QDir(app_config_path_).exists()) QDir(app_config_path_).mkpath(".");
 #endif
 

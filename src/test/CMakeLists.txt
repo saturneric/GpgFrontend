@@ -36,7 +36,7 @@ set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendTestExport.h")
 generate_export_header(gpgfrontend_test EXPORT_FILE_NAME "${_export_file}")
 
 # compile definitions
-target_compile_definitions(gpgfrontend_test PUBLIC GF_TEST)
+target_compile_definitions(gpgfrontend_test PRIVATE GF_TEST_PRIVATE)
 
 # link options
 target_link_libraries(gpgfrontend_test PRIVATE GTest::gtest)

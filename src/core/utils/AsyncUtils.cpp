@@ -44,8 +44,8 @@ auto RunGpgOperaAsync(const GpgOperaRunnable& runnable,
       "core", "gpgme.ctx.gnupg_version", minial_version);
 
   if (GFCompareSoftwareVersion(gnupg_version, minial_version) < 0) {
-    qCWarning(core) << "operation" << operation
-                    << " not support for gnupg version: " << gnupg_version;
+    LOG_W() << "operation" << operation
+            << " not support for gnupg version: " << gnupg_version;
     callback(GPG_ERR_NOT_SUPPORTED, TransferParams());
     return Thread::Task::TaskHandler(nullptr);
   }
@@ -82,8 +82,8 @@ auto RunGpgOperaSync(const GpgOperaRunnable& runnable, const QString& operation,
       "core", "gpgme.ctx.gnupg_version", minial_version);
 
   if (GFCompareSoftwareVersion(gnupg_version, minial_version) < 0) {
-    qCWarning(core) << "operation" << operation
-                    << " not support for gnupg version: " << gnupg_version;
+    LOG_W() << "operation" << operation
+            << " not support for gnupg version: " << gnupg_version;
     return {GPG_ERR_NOT_SUPPORTED, TransferParams()};
   }
 

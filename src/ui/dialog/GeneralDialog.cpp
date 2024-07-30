@@ -69,7 +69,7 @@ void GpgFrontend::UI::GeneralDialog::slot_restore_settings() noexcept {
     }
 
   } catch (...) {
-    qCWarning(ui, "error at restoring settings");
+    FLOG_W("error at restoring settings");
   }
 }
 
@@ -92,7 +92,7 @@ void GpgFrontend::UI::GeneralDialog::slot_save_settings() noexcept {
     general_windows_state.Store(window_state.Json());
 
   } catch (...) {
-    qCWarning(ui) << "general dialog: " << name_ << ", caught exception";
+    LOG_W() << "general dialog: " << name_ << ", caught exception";
   }
 }
 

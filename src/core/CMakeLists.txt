@@ -48,7 +48,7 @@ set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendCoreExport.h")
 generate_export_header(gpgfrontend_core EXPORT_FILE_NAME "${_export_file}")
 
 # compile definitions
-target_compile_definitions(gpgfrontend_core PUBLIC GF_CORE)
+target_compile_definitions(gpgfrontend_core PRIVATE GF_CORE_PRIVATE)
 
 # mimalloc (except apple macos)
 if(NOT APPLE)

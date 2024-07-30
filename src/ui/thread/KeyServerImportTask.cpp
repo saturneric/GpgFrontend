@@ -69,8 +69,7 @@ void GpgFrontend::UI::KeyServerImportTask::dealing_reply_from_server() {
   auto buffer = reply_->readAll();
 
   if (network_reply != QNetworkReply::NoError) {
-    qCWarning(ui) << "key import error, message from key server reply: "
-                  << buffer;
+    LOG_W() << "key import error, message from key server reply: " << buffer;
 
     QString err_msg;
     switch (network_reply) {

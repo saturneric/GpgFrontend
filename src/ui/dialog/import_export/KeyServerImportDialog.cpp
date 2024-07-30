@@ -132,7 +132,7 @@ auto KeyServerImportDialog::create_combo_box() -> QComboBox* {
     }
     combo_box->setCurrentText(key_server.GetTargetServer());
   } catch (...) {
-    qCWarning(ui, "setting operation error server_list default_server");
+    FLOG_W("setting operation error server_list default_server");
   }
 
   return combo_box;

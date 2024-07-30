@@ -28,18 +28,31 @@
 
 #pragma once
 
-/**
- * Basic dependency
- */
+// project base header
+#include "GpgFrontend.h"
+
+// qt
 #include <QtWidgets>
 
-// UI
-#include "ui/GpgFrontendUIExport.h"
+// ui symbol exports macro
+#include "GpgFrontendUIExport.h"
 
-// declare area of ui
-#ifdef GF_UI
+// private declare area of ui
+#ifdef GF_UI_PRIVATE
 
 // declare logging category
 Q_DECLARE_LOGGING_CATEGORY(ui)
+
+#define LOG_D() qCDebug(ui)
+#define LOG_I() qCInfo(ui)
+#define LOG_W() qCWarning(ui)
+#define LOG_E() qCCritical(ui)
+#define LOG_F() qCFatal(core)
+
+#define FLOG_D(...) qCDebug(ui, __VA_ARGS__)
+#define FLOG_I(...) qCInfo(ui, __VA_ARGS__)
+#define FLOG_W(...) qCWarning(ui, __VA_ARGS__)
+#define FLOG_E(...) qCCritical(ui, __VA_ARGS__)
+#define FLOG_F(...) qCFatal(ui, __VA_ARGS__)
 
 #endif

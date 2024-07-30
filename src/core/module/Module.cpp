@@ -59,9 +59,9 @@ class Module::Impl {
       *required_symbol.pointer =
           reinterpret_cast<void*>(module_library.resolve(required_symbol.name));
       if (*required_symbol.pointer == nullptr) {
-        qCWarning(core) << "illegal module: " << module_library.fileName()
-                        << ", reason cannot load symbol: "
-                        << required_symbol.name << ", abort...";
+        LOG_W() << "illegal module: " << module_library.fileName()
+                << ", reason cannot load symbol: " << required_symbol.name
+                << ", abort...";
         return;
       }
     }
@@ -72,38 +72,36 @@ class Module::Impl {
     qt_env_ver_ = GFUnStrDup(get_qt_ver_api_());
 
     if (!module_identifier_regex_exp_.match(identifier_).hasMatch()) {
-      qCWarning(core) << "illegal module: " << identifier_
-                      << ", reason invalid module id, abort...";
+      LOG_W() << "illegal module: " << identifier_
+              << ", reason invalid module id, abort...";
       return;
     }
 
     if (!module_version_regex_exp_.match(version_).hasMatch()) {
-      qCWarning(core) << "illegal module: " << identifier_
-                      << ", reason invalid version: " << version_
-                      << ", abort...";
+      LOG_W() << "illegal module: " << identifier_
+              << ", reason invalid version: " << version_ << ", abort...";
       return;
     }
 
     if (!module_version_regex_exp_.match(gf_sdk_ver_).hasMatch()) {
-      qCWarning(core) << "illegal module: " << identifier_
-                      << ", reason invalid sdk version: " << gf_sdk_ver_
-                      << ", abort...";
+      LOG_W() << "illegal module: " << identifier_
+              << ", reason invalid sdk version: " << gf_sdk_ver_
+              << ", abort...";
       return;
     }
 
     if (GFCompareSoftwareVersion(gf_sdk_ver_, GetProjectVersion()) > 0) {
-      qCWarning(core) << "uncompatible module: " << identifier_
-                      << ", reason sdk version: " << gf_sdk_ver_
-                      << "current sdk version: " << GetProjectVersion()
-                      << ", abort...";
+      LOG_W() << "uncompatible module: " << identifier_
+              << ", reason sdk version: " << gf_sdk_ver_
+              << "current sdk version: " << GetProjectVersion() << ", abort...";
       return;
     }
 
     auto qt_env_ver_regex_match = module_version_regex_exp_.match(qt_env_ver_);
     if (!qt_env_ver_regex_match.hasMatch()) {
-      qCWarning(core) << "illegal module: " << identifier_
-                      << ", reason invalid qt env version: " << qt_env_ver_
-                      << ", abort...";
+      LOG_W() << "illegal module: " << identifier_
+              << ", reason invalid qt env version: " << qt_env_ver_
+              << ", abort...";
       return;
     }
 
@@ -112,10 +110,10 @@ class Module::Impl {
 
     if (qt_env_ver_major != QString::number(QT_VERSION_MAJOR) + "." ||
         qt_env_ver_minor != QString::number(QT_VERSION_MINOR) + ".") {
-      qCWarning(core) << "uncompatible module: " << identifier_
-                      << ", reason sdk version: " << qt_env_ver_
-                      << "current sdk version: "
-                      << QString::fromUtf8(QT_VERSION_STR) << ", abort...";
+      LOG_W() << "uncompatible module: " << identifier_
+              << ", reason sdk version: " << qt_env_ver_
+              << "current sdk version: " << QString::fromUtf8(QT_VERSION_STR)
+              << ", abort...";
       return;
     }
 

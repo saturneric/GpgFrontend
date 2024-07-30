@@ -325,16 +325,16 @@ void CommonUtils::SlotExecuteCommand(
           &QEventLoop::quit);
   connect(cmd_process, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
   connect(cmd_process, &QProcess::started,
-          []() -> void { qCDebug(ui, "process started"); });
+          []() -> void { FLOG_D("process started"); });
   connect(cmd_process, &QProcess::readyReadStandardOutput,
           [interact_func, cmd_process]() { interact_func(cmd_process); });
   connect(cmd_process, &QProcess::errorOccurred, this,
-          [=]() -> void { qCWarning(ui, "error in process"); });
+          [=]() -> void { FLOG_W("error in process"); });
   connect(cmd_process,
           qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
           [=](int, QProcess::ExitStatus status) {
             if (status != QProcess::NormalExit) {
-              qCWarning(ui) << "error in executing command: " << cmd;
+              LOG_W() << "error in executing command: " << cmd;
             }
           });
 
@@ -361,11 +361,11 @@ void CommonUtils::SlotExecuteGpgCommand(
           &WaitingDialog::deleteLater);
   connect(gpg_process, &QProcess::errorOccurred, &looper, &QEventLoop::quit);
   connect(gpg_process, &QProcess::started,
-          []() -> void { qCDebug(ui, "gpg process started"); });
+          []() -> void { FLOG_D("gpg process started"); });
   connect(gpg_process, &QProcess::readyReadStandardOutput,
           [interact_func, gpg_process]() { interact_func(gpg_process); });
   connect(gpg_process, &QProcess::errorOccurred, this, [=]() -> void {
-    qCWarning(ui, "Error in Process");
+    FLOG_W("Error in Process");
     dialog->close();
     QMessageBox::critical(nullptr, tr("Failure"),
                           tr("Failed to execute command."));
@@ -489,7 +489,7 @@ void CommonUtils::slot_update_key_from_server_finished(
     bool success, QString err_msg, QByteArray buffer,
     std::shared_ptr<GpgImportInformation> info) {
   if (!success) {
-    qCWarning(ui) << "get err from reply: " << buffer;
+    LOG_W() << "get err from reply: " << buffer;
     QMessageBox::critical(nullptr, tr("Error"), err_msg);
     return;
   }

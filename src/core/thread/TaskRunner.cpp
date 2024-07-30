@@ -38,7 +38,7 @@ class TaskRunner::Impl : public QThread {
 
   void PostTask(Task* task) {
     if (task == nullptr) {
-      qCWarning(core, "task posted is null");
+      FLOG_W("task posted is null");
       return;
     }
 
@@ -73,7 +73,7 @@ class TaskRunner::Impl : public QThread {
 
   void PostConcurrentTask(Task* task) {
     if (task == nullptr) {
-      qCWarning(core, "task posted is null");
+      FLOG_W("task posted is null");
       return;
     }
 

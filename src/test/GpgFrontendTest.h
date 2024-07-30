@@ -28,13 +28,29 @@
 
 #pragma once
 
+// project base header
+#include "GpgFrontend.h"
+
+// symbol exports header
 #include "GpgFrontendTestExport.h"
 
-// declare area of test
-#ifdef GF_TEST
+// private declare area of test
+#ifdef GF_TEST_PRIVATE
 
 // declare logging category
 Q_DECLARE_LOGGING_CATEGORY(test)
+
+#define LOG_D() qCDebug(test)
+#define LOG_I() qCInfo(test)
+#define LOG_W() qCWarning(test)
+#define LOG_E() qCCritical(test)
+#define LOG_F() qCFatal(test)
+
+#define FLOG_D(...) qCDebug(test, __VA_ARGS__)
+#define FLOG_I(...) qCInfo(test, __VA_ARGS__)
+#define FLOG_W(...) qCWarning(test, __VA_ARGS__)
+#define FLOG_E(...) qCCritical(test, __VA_ARGS__)
+#define FLOG_F(...) qCFatal(test, __VA_ARGS__)
 
 #endif
 

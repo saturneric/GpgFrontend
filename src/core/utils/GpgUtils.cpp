@@ -50,9 +50,9 @@ auto GetGpgmeErrorString(gpgme_error_t err) -> QString {
 auto CheckGpgError(GpgError err) -> GpgError {
   auto err_code = gpg_err_code(err);
   if (err_code != GPG_ERR_NO_ERROR) {
-    qCWarning(core) << "gpg operation failed [error code: " << err_code
-                    << "], source: " << gpgme_strsource(err)
-                    << " description: " << GetGpgmeErrorString(err);
+    LOG_W() << "gpg operation failed [error code: " << err_code
+            << "], source: " << gpgme_strsource(err)
+            << " description: " << GetGpgmeErrorString(err);
   }
   return err_code;
 }
@@ -61,15 +61,15 @@ auto CheckGpgError2ErrCode(GpgError err, GpgError predict) -> GpgErrorCode {
   auto err_code = gpg_err_code(err);
   if (err_code != gpg_err_code(predict)) {
     if (err_code == GPG_ERR_NO_ERROR) {
-      qCInfo(core) << "[Warning " << gpg_err_code(err)
-                   << "] Source: " << gpgme_strsource(err)
-                   << " description: " << GetGpgmeErrorString(err)
-                   << " predict: " << GetGpgmeErrorString(predict);
+      LOG_I() << "[Warning " << gpg_err_code(err)
+              << "] Source: " << gpgme_strsource(err)
+              << " description: " << GetGpgmeErrorString(err)
+              << " predict: " << GetGpgmeErrorString(predict);
     } else {
-      qCWarning(core) << "[Error " << gpg_err_code(err)
-                      << "] Source: " << gpgme_strsource(err)
-                      << " description: " << GetGpgmeErrorString(err)
-                      << " predict: " << GetGpgmeErrorString(predict);
+      LOG_W() << "[Error " << gpg_err_code(err)
+              << "] Source: " << gpgme_strsource(err)
+              << " description: " << GetGpgmeErrorString(err)
+              << " predict: " << GetGpgmeErrorString(predict);
     }
   }
   return err_code;
@@ -81,9 +81,9 @@ auto DescribeGpgErrCode(GpgError err) -> GpgErrorDesc {
 
 auto CheckGpgError(GpgError err, const QString& /*comment*/) -> GpgError {
   if (gpg_err_code(err) != GPG_ERR_NO_ERROR) {
-    qCWarning(core) << "[Error " << gpg_err_code(err)
-                    << "] Source: " << gpgme_strsource(err)
-                    << " description: " << GetGpgmeErrorString(err);
+    LOG_W() << "[Error " << gpg_err_code(err)
+            << "] Source: " << gpgme_strsource(err)
+            << " description: " << GetGpgmeErrorString(err);
   }
   return err;
 }

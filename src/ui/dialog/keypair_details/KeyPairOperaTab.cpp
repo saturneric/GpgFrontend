@@ -517,7 +517,7 @@ void KeyPairOperaTab::slot_export_paper_key() {
         [this, file_name](Module::EventIdentifier i,
                           Module::Event::ListenerIdentifier ei,
                           Module::Event::Params p) {
-          qCDebug(ui) << "REQUEST_TRANS_KEY_2_PAPER_KEY callback: " << i << ei;
+          LOG_D() << "REQUEST_TRANS_KEY_2_PAPER_KEY callback: " << i << ei;
 
           if (p["ret"] != "0" || p["paper_key"].isEmpty()) {
             QMessageBox::critical(
@@ -597,7 +597,7 @@ void KeyPairOperaTab::slot_import_paper_key() {
       },
       [this](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
              Module::Event::Params p) {
-        qCDebug(ui) << "REQUEST_TRANS_PAPER_KEY_2_KEY callback: " << i << ei;
+        LOG_D() << "REQUEST_TRANS_PAPER_KEY_2_KEY callback: " << i << ei;
 
         if (p["ret"] != "0" || p["secret_key"].isEmpty()) {
           QMessageBox::critical(this, tr("Error"),

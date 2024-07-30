@@ -69,17 +69,17 @@ class ModuleManager::Impl {
             [=](GpgFrontend::DataObjectPtr) -> int {
               QLibrary module_library(module_library_path);
               if (!module_library.load()) {
-                qCWarning(core) << "module manager failed to load module: "
-                                << module_library.fileName()
-                                << ", reason: " << module_library.errorString();
+                LOG_W() << "module manager failed to load module: "
+                        << module_library.fileName()
+                        << ", reason: " << module_library.errorString();
                 return -1;
               }
 
               auto module = SecureCreateSharedObject<Module>(module_library);
               if (!module->IsGood()) {
-                qCWarning(core) << "module manager failed to load module, "
-                                   "reason: illegal module: "
-                                << module_library.fileName();
+                LOG_W() << "module manager failed to load module, "
+                           "reason: illegal module: "
+                        << module_library.fileName();
                 return -1;
               }
 

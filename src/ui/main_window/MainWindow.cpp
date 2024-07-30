@@ -151,7 +151,7 @@ void MainWindow::Init() noexcept {
     if (show_wizard) slot_start_wizard();
 
   } catch (...) {
-    qCWarning(ui) << tr("Critical error occur while loading GpgFrontend.");
+    LOG_W() << tr("Critical error occur while loading GpgFrontend.");
     QMessageBox::critical(
         nullptr, tr("Loading Failed"),
         tr("Critical error occur while loading GpgFrontend."));

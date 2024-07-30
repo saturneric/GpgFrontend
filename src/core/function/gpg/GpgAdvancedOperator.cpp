@@ -41,7 +41,7 @@ void GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache(
       "core", "gpgme.ctx.gpgconf_path", QString{});
 
   if (gpgconf_path.isEmpty()) {
-    qCWarning(core, "cannot get valid gpgconf path from rt, abort.");
+    FLOG_W("cannot get valid gpgconf path from rt, abort.");
     cb(-1, TransferParams());
     return;
   }
@@ -60,7 +60,7 @@ void GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents(
       "core", "gpgme.ctx.gpgconf_path", QString{});
 
   if (gpgconf_path.isEmpty()) {
-    qCWarning(core, "cannot get valid gpgconf path from rt, abort.");
+    FLOG_W("cannot get valid gpgconf path from rt, abort.");
     cb(-1, TransferParams());
     return;
   }
@@ -68,7 +68,7 @@ void GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents(
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {gpgconf_path, QStringList{"--reload"},
        [=](int exit_code, const QString &, const QString &) {
-         qCDebug(core, "gpgconf reload exit code: %d", exit_code);
+         FLOG_D("gpgconf reload exit code: %d", exit_code);
          cb(exit_code == 0 ? 0 : -1, TransferParams());
        }});
 }
@@ -78,7 +78,7 @@ void GpgFrontend::GpgAdvancedOperator::KillAllGpgComponents() {
       "core", "gpgme.ctx.gpgconf_path", QString{});
 
   if (gpgconf_path.isEmpty()) {
-    qCWarning(core, "cannot get valid gpgconf path from rt, abort.");
+    FLOG_W("cannot get valid gpgconf path from rt, abort.");
     return;
   }
 
@@ -88,12 +88,12 @@ void GpgFrontend::GpgAdvancedOperator::KillAllGpgComponents() {
          bool success = true;
          if (exit_code != 0) {
            success = false;
-           qCWarning(core) << "gpgconf execute error, process stderr: " << p_err
-                           << ", process stdout: " << p_out;
+           LOG_W() << "gpgconf execute error, process stderr: " << p_err
+                   << ", process stdout: " << p_out;
            return;
          }
 
-         qCDebug(core, "gpgconf --kill --all execute result: %d", success);
+         FLOG_D("gpgconf --kill --all execute result: %d", success);
        }});
 }
 
@@ -102,24 +102,23 @@ void GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
       "core", "gpgme.ctx.gpgconf_path", QString{});
 
   if (gpgconf_path.isEmpty()) {
-    qCWarning(core, "cannot get valid gpgconf path from rt, abort.");
+    FLOG_W("cannot get valid gpgconf path from rt, abort.");
     return;
   }
 
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {gpgconf_path, QStringList{"--verbose", "--kill", "all"},
        [=](int exit_code, const QString &p_out, const QString &p_err) {
-         qCDebug(core, "gpgconf --kill all command got exit code: %d",
-                 exit_code);
+         FLOG_D("gpgconf --kill all command got exit code: %d", exit_code);
          bool success = true;
          if (exit_code != 0) {
            success = false;
-           qCWarning(core) << "gpgconf execute error, process stderr: " << p_err
-                           << ", process stdout: " << p_out;
+           LOG_W() << "gpgconf execute error, process stderr: " << p_err
+                   << ", process stdout: " << p_out;
            return;
          }
 
-         qCDebug(core, "gpgconf --kill --all execute result: %d", success);
+         FLOG_D("gpgconf --kill --all execute result: %d", success);
          if (!success) {
            qCWarning(core,
                      "restart all component after core initilized failed");
@@ -143,7 +142,7 @@ void GpgFrontend::GpgAdvancedOperator::ResetConfigures(OperationCallback cb) {
       "core", "gpgme.ctx.gpgconf_path", QString{});
 
   if (gpgconf_path.isEmpty()) {
-    qCWarning(core, "cannot get valid gpgconf path from rt, abort.");
+    FLOG_W("cannot get valid gpgconf path from rt, abort.");
     cb(-1, TransferParams());
     return;
   }
@@ -151,7 +150,7 @@ void GpgFrontend::GpgAdvancedOperator::ResetConfigures(OperationCallback cb) {
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {gpgconf_path, QStringList{"--apply-defaults"},
        [=](int exit_code, const QString &, const QString &) {
-         qCDebug(core, "gpgconf apply-defaults exit code: %d", exit_code);
+         FLOG_D("gpgconf apply-defaults exit code: %d", exit_code);
          cb(exit_code == 0 ? 0 : -1, TransferParams());
        }});
 }
@@ -169,7 +168,7 @@ void GpgFrontend::GpgAdvancedOperator::StartGpgAgent(OperationCallback cb) {
       kGnuPGInfoGatheringModuleID, "gnupg.home_path", QString{});
 
   if (gpg_agent_path.isEmpty()) {
-    qCWarning(core, "cannot get valid gpg agent path from rt, abort.");
+    FLOG_W("cannot get valid gpg agent path from rt, abort.");
     cb(-1, TransferParams());
     return;
   }
@@ -177,7 +176,7 @@ void GpgFrontend::GpgAdvancedOperator::StartGpgAgent(OperationCallback cb) {
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {gpg_agent_path, QStringList{"--homedir", home_path, "--daemon"},
        [=](int exit_code, const QString &, const QString &) {
-         qCDebug(core, "gpgconf daemon exit code: %d", exit_code);
+         FLOG_D("gpgconf daemon exit code: %d", exit_code);
          cb(exit_code >= 0 ? 0 : -1, TransferParams());
        }});
 }
@@ -195,7 +194,7 @@ void GpgFrontend::GpgAdvancedOperator::StartDirmngr(OperationCallback cb) {
       kGnuPGInfoGatheringModuleID, "gnupg.home_path", QString{});
 
   if (dirmngr_path.isEmpty()) {
-    qCWarning(core, "cannot get valid dirmngr path from rt, abort.");
+    FLOG_W("cannot get valid dirmngr path from rt, abort.");
     cb(-1, TransferParams());
     return;
   }
@@ -203,7 +202,7 @@ void GpgFrontend::GpgAdvancedOperator::StartDirmngr(OperationCallback cb) {
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {dirmngr_path, QStringList{"--homedir", home_path, "--daemon"},
        [=](int exit_code, const QString &, const QString &) {
-         qCDebug(core, "gpgconf daemon exit code: %d", exit_code);
+         FLOG_D("gpgconf daemon exit code: %d", exit_code);
          cb(exit_code >= 0 ? 0 : -1, TransferParams());
        }});
 }
@@ -221,7 +220,7 @@ void GpgFrontend::GpgAdvancedOperator::StartKeyBoxd(OperationCallback cb) {
       kGnuPGInfoGatheringModuleID, "gnupg.home_path", QString{});
 
   if (keyboxd_path.isEmpty()) {
-    qCWarning(core, "cannot get valid keyboxd path from rt, abort.");
+    FLOG_W("cannot get valid keyboxd path from rt, abort.");
     cb(-1, TransferParams());
     return;
   }
@@ -229,7 +228,7 @@ void GpgFrontend::GpgAdvancedOperator::StartKeyBoxd(OperationCallback cb) {
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {keyboxd_path, QStringList{"--homedir", home_path, "--daemon"},
        [=](int exit_code, const QString &, const QString &) {
-         qCDebug(core, "gpgconf daemon exit code: %d", exit_code);
+         FLOG_D("gpgconf daemon exit code: %d", exit_code);
          cb(exit_code >= 0 ? 0 : -1, TransferParams());
        }});
 }

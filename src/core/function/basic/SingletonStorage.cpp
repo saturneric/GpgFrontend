@@ -53,7 +53,7 @@ class SingletonStorage::Impl {
       std::shared_lock<std::shared_mutex> lock(instances_mutex_);
       ins_it = instances_map_.find(channel);
       if (ins_it == instances_map_.end()) {
-        qCDebug(core, "cannot find channel object, channel: %d", channel);
+        FLOG_D("cannot find channel object, channel: %d", channel);
         return nullptr;
       }
       return ins_it->second.get();
@@ -71,14 +71,14 @@ class SingletonStorage::Impl {
 
   auto SetObjectInChannel(int channel, ChannelObjectPtr p_obj)
       -> GpgFrontend::ChannelObject* {
-    qCDebug(core, "set channel object, type: %s in channel: %d, address: %p",
-            typeid(p_obj.get()).name(), channel,
-            static_cast<void*>(p_obj.get()));
+    FLOG_D("set channel object, type: %s in channel: %d, address: %p",
+           typeid(p_obj.get()).name(), channel,
+           static_cast<void*>(p_obj.get()));
 
     assert(p_obj != nullptr);
     if (p_obj == nullptr) {
-      qCWarning(core, "cannot set a nullptr as a channel object of channel: %d",
-                channel);
+      FLOG_W("cannot set a nullptr as a channel object of channel: %d",
+             channel);
       return nullptr;
     }
 
@@ -94,8 +94,8 @@ class SingletonStorage::Impl {
       instances_map_[channel] = std::move(p_obj);
     }
 
-    qCDebug(core, "set channel: %d success, current channel object address: %p",
-            channel, static_cast<void*>(raw_obj));
+    FLOG_D("set channel: %d success, current channel object address: %p",
+           channel, static_cast<void*>(raw_obj));
     return raw_obj;
   }
 

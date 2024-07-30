@@ -54,8 +54,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     gpgme_key_t p_key = nullptr;
     gpgme_get_key(ctx_.DefaultContext(), fpr.toUtf8(), &p_key, 1);
     if (p_key == nullptr) {
-      qCWarning(core) << "GpgKeyGetter GetKey Private _p_key Null, fpr: "
-                      << fpr;
+      LOG_W() << "GpgKeyGetter GetKey Private _p_key Null, fpr: " << fpr;
       return GetPubkey(fpr, true);
     }
     return GpgKey(std::move(p_key));
@@ -71,7 +70,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     gpgme_key_t p_key = nullptr;
     gpgme_get_key(ctx_.DefaultContext(), fpr.toUtf8(), &p_key, 0);
     if (p_key == nullptr)
-      qCWarning(core) << "GpgKeyGetter GetKey _p_key Null, fpr: " << fpr;
+      LOG_W() << "GpgKeyGetter GetKey _p_key Null, fpr: " << fpr;
     return GpgKey(std::move(p_key));
   }
 

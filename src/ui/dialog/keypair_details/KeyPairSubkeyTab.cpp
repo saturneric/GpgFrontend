@@ -211,7 +211,7 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
     row++;
   }
 
-  qCDebug(ui, "subkey_list_ refreshed");
+  FLOG_D("subkey_list_ refreshed");
 
   if (subkey_list_->rowCount() > 0) {
     subkey_list_->selectRow(0);

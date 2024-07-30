@@ -124,12 +124,12 @@ class GpgContext::Impl {
             passphrase_info != nullptr ? passphrase_info : "",
             prev_was_bad != 0, ask_for_new));
 
-    qCDebug(core) << "custom passphrase cb called, uid: "
-                  << (uid_hint == nullptr ? "<empty>" : QString{uid_hint})
-                  << ", info: "
-                  << (passphrase_info == nullptr ? "<empty>"
-                                                 : QString{passphrase_info})
-                  << ", last_was_bad: " << prev_was_bad;
+    LOG_D() << "custom passphrase cb called, uid: "
+            << (uid_hint == nullptr ? "<empty>" : QString{uid_hint})
+            << ", info: "
+            << (passphrase_info == nullptr ? "<empty>"
+                                           : QString{passphrase_info})
+            << ", last_was_bad: " << prev_was_bad;
 
     QEventLoop looper;
     QString passphrase = "";
@@ -171,7 +171,7 @@ class GpgContext::Impl {
 
   static auto TestStatusCb(void *hook, const char *keyword,
                            const char *args) -> gpgme_error_t {
-    qCDebug(core, "keyword %s", keyword);
+    FLOG_D("keyword %s", keyword);
     return GPG_ERR_NO_ERROR;
   }
 
@@ -189,7 +189,7 @@ class GpgContext::Impl {
 
     const auto gpgme_version = Module::RetrieveRTValueTypedOrDefault<>(
         "core", "gpgme.version", QString{"0.0.0"});
-    qCDebug(core) << "got gpgme version version from rt: " << gpgme_version;
+    LOG_D() << "got gpgme version version from rt: " << gpgme_version;
 
     if (gpgme_get_keylist_mode(ctx) == 0) {
       qCWarning(
@@ -212,8 +212,8 @@ class GpgContext::Impl {
     const auto database_path = Module::RetrieveRTValueTypedOrDefault<>(
         "core", "gpgme.ctx.database_path", QString{});
 
-    qCDebug(core) << "ctx set engine info, db path: " << database_path
-                  << ", app path: " << app_path;
+    LOG_D() << "ctx set engine info, db path: " << database_path
+            << ", app path: " << app_path;
 
     auto app_path_buffer = app_path.toUtf8();
     auto database_path_buffer = database_path.toUtf8();
@@ -234,22 +234,22 @@ class GpgContext::Impl {
     assert(ctx != nullptr);
 
     if (args.custom_gpgconf && !args.custom_gpgconf_path.isEmpty()) {
-      qCDebug(core) << "set custom gpgconf path: " << args.custom_gpgconf_path;
+      LOG_D() << "set custom gpgconf path: " << args.custom_gpgconf_path;
       auto err =
           gpgme_ctx_set_engine_info(ctx, GPGME_PROTOCOL_GPGCONF,
                                     args.custom_gpgconf_path.toUtf8(), nullptr);
 
       if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-        qCWarning(core) << "set gpg context engine info error: "
-                        << DescribeGpgErrCode(err).second;
+        LOG_W() << "set gpg context engine info error: "
+                << DescribeGpgErrCode(err).second;
         return false;
       }
     }
 
     // set context offline mode
-    qCDebug(core, "gpg context: offline mode: %d", args_.offline_mode);
-    qCDebug(core, "gpg context: auto import missing key: %d",
-            args_.auto_import_missing_key);
+    FLOG_D("gpg context: offline mode: %d", args_.offline_mode);
+    FLOG_D("gpg context: auto import missing key: %d",
+           args_.auto_import_missing_key);
     gpgme_set_offline(ctx, args_.offline_mode ? 1 : 0);
 
     // set option auto import missing key
@@ -261,20 +261,20 @@ class GpgContext::Impl {
     }
 
     if (!set_ctx_key_list_mode(ctx)) {
-      qCDebug(core, "set ctx key list mode failed");
+      FLOG_D("set ctx key list mode failed");
       return false;
     }
 
     // for unit test
     if (args_.test_mode) {
       if (!SetPassphraseCb(ctx, TestPassphraseCb)) {
-        qCWarning(core, "set passphrase cb failed, test");
+        FLOG_W("set passphrase cb failed, test");
         return false;
       };
     } else if (!args_.use_pinentry &&
                Module::IsModuleActivate(kPinentryModuleID)) {
       if (!SetPassphraseCb(ctx, CustomPassphraseCb)) {
-        qCDebug(core, "set passphrase cb failed, custom");
+        FLOG_D("set passphrase cb failed, custom");
         return false;
       }
     }
@@ -285,7 +285,7 @@ class GpgContext::Impl {
     }
 
     if (!set_ctx_openpgp_engine_info(ctx)) {
-      qCWarning(core, "set gpgme context openpgp engine info failed");
+      FLOG_W("set gpgme context openpgp engine info failed");
       return false;
     }
 
@@ -295,15 +295,15 @@ class GpgContext::Impl {
   auto binary_ctx_initialize(const GpgContextInitArgs &args) -> bool {
     gpgme_ctx_t p_ctx;
     if (auto err = CheckGpgError(gpgme_new(&p_ctx)); err != GPG_ERR_NO_ERROR) {
-      qCWarning(core) << "get new gpg context error: "
-                      << DescribeGpgErrCode(err).second;
+      LOG_W() << "get new gpg context error: "
+              << DescribeGpgErrCode(err).second;
       return false;
     }
     assert(p_ctx != nullptr);
     binary_ctx_ref_ = p_ctx;
 
     if (!common_ctx_initialize(binary_ctx_ref_, args)) {
-      qCWarning(core, "get new ctx failed, binary");
+      FLOG_W("get new ctx failed, binary");
       return false;
     }
 
@@ -314,7 +314,7 @@ class GpgContext::Impl {
   auto default_ctx_initialize(const GpgContextInitArgs &args) -> bool {
     gpgme_ctx_t p_ctx;
     if (CheckGpgError(gpgme_new(&p_ctx)) != GPG_ERR_NO_ERROR) {
-      qCWarning(core, "get new ctx failed, default");
+      FLOG_W("get new ctx failed, default");
       return false;
     }
     assert(p_ctx != nullptr);

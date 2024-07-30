@@ -612,7 +612,7 @@ void TextEdit::slot_save_status_to_cache_for_revovery() {
   bool restore_text_editor_page =
       settings.value("basic/restore_text_editor_page", false).toBool();
   if (!restore_text_editor_page) {
-    qCDebug(ui, "restore_text_editor_page is false, ignoring...");
+    FLOG_D("restore_text_editor_page is false, ignoring...");
     return;
   }
 
