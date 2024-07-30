@@ -34,7 +34,7 @@ namespace GpgFrontend::UI {
 
 GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
     : QApplication(argc, argv) {
-#if defined(DEBUG) || !defined(MACOS)
+#if !(defined(__APPLE__) && defined(__MACH__))
   GpgFrontend::UI::GpgFrontendApplication::setWindowIcon(
       QIcon(":/icons/gpgfrontend.png"));
 #endif

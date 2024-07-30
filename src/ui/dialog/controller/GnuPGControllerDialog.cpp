@@ -149,19 +149,18 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
             this->slot_set_restart_needed(kDeepRestartCode);
           });
 
-#ifndef MACOS
-  connect(ui_->buttonBox, &QDialogButtonBox::accepted, this,
-          &GnuPGControllerDialog::SlotAccept);
-  connect(ui_->buttonBox, &QDialogButtonBox::rejected, this,
-          &GnuPGControllerDialog::reject);
-#else
-
+#if defined(__APPLE__) && defined(__MACH__)
   // macOS style settings
   ui_->buttonBox->setDisabled(true);
   ui_->buttonBox->setHidden(true);
 
   connect(this, &QDialog::finished, this, &GnuPGControllerDialog::SlotAccept);
   connect(this, &QDialog::finished, this, &GnuPGControllerDialog::deleteLater);
+#else
+  connect(ui_->buttonBox, &QDialogButtonBox::accepted, this,
+          &GnuPGControllerDialog::SlotAccept);
+  connect(ui_->buttonBox, &QDialogButtonBox::rejected, this,
+          &GnuPGControllerDialog::reject);
 #endif
 
   setWindowTitle(tr("GnuPG Controller"));
@@ -356,7 +355,7 @@ auto GnuPGControllerDialog::check_custom_gnupg_path(QString path) -> bool {
     QMessageBox::critical(this, tr("Illegal GnuPG Path"),
                           tr("Target GnuPG Path is not an absolute path."));
   }
-#ifdef WINDOWS
+#ifdef __MINGW32__
   QFileInfo const gpgconf_info(path + "/gpgconf.exe");
 #else
   QFileInfo const gpgconf_info(path + "/gpgconf");

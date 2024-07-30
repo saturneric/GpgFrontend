@@ -120,7 +120,7 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
   auto settings = GlobalSettingStation::GetInstance().GetSettings();
   auto theme = settings.value("appearance/theme").toString();
 
-#ifdef WINDOWS
+#if defined(_WIN32) || defined(WIN32)
   if (theme.isEmpty()) {
     // support dark mode on windows
     QApplication::setStyle(QStyleFactory::create("Fusion"));

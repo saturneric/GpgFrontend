@@ -70,7 +70,8 @@ auto VerifyKeyDatabasePath(const QFileInfo& key_database_fs_path) -> bool {
 auto SearchGpgconfPath(const QList<QString>& candidate_paths) -> QString {
   for (const auto& path : candidate_paths) {
     if (VerifyGpgconfPath(QFileInfo(path))) {
-      return path;
+      // return a unify path
+      return QFileInfo(path).absoluteFilePath();
     }
   }
   return {};
@@ -79,7 +80,8 @@ auto SearchGpgconfPath(const QList<QString>& candidate_paths) -> QString {
 auto SearchKeyDatabasePath(const QList<QString>& candidate_paths) -> QString {
   for (const auto& path : candidate_paths) {
     if (VerifyKeyDatabasePath(QFileInfo(path))) {
-      return path;
+      // return a unify path
+      return QFileInfo(path).absoluteFilePath();
     }
   }
   return {};
@@ -204,7 +206,7 @@ auto GetGnuPGPathByGpgConf(const QString& gnupg_install_fs_path) -> QString {
     auto component_path = info_split_list[2].trimmed();
 
     if (component_name.toLower() == "gpg") {
-#ifdef WINDOWS
+#if defined(_WIN32) || defined(WIN32)
       // replace some special substrings on windows platform
       component_path.replace("%3a", ":");
 #endif
@@ -229,7 +231,7 @@ auto DetectGpgConfPath() -> QString {
   if (use_custom_gnupg_install_path && !custom_gnupg_install_path.isEmpty()) {
     // check gpgconf path
     gnupg_install_fs_path = custom_gnupg_install_path;
-#ifdef WINDOWS
+#if defined(_WIN32) || defined(WIN32)
     gnupg_install_fs_path += "/gpgconf.exe";
 #else
     gnupg_install_fs_path += "/gpgconf";
@@ -242,16 +244,19 @@ auto DetectGpgConfPath() -> QString {
     }
   }
 
-  // fallback to default path
+  // custom not found or not defined then fallback to default candidate path
   if (gnupg_install_fs_path.isEmpty()) {
-#ifdef MACOS
+    // platform detection
+#if defined(__APPLE__) && defined(__MACH__)
     gnupg_install_fs_path = SearchGpgconfPath(
         {"/usr/local/bin/gpgconf", "/opt/homebrew/bin/gpgconf"});
-#endif
-
-#ifdef WINDOWS
+#elif defined(_WIN32) || defined(WIN32)
     gnupg_install_fs_path =
-        SearchGpgconfPath({"C:/Program Files (x86)/gnupg/bin"});
+        SearchGpgconfPath({"C:/Program Files (x86)/gnupg/bin/gpgconf.exe"});
+#else
+    // unix or linux or another platforms
+    gnupg_install_fs_path =
+        SearchGpgconfPath({"/usr/local/bin/gpgconf", "/usr/bin/gpgconf"});
 #endif
   }
 
@@ -314,46 +319,37 @@ void InitGpgFrontendCore(CoreInitArgs args) {
                     QString::fromLocal8Bit(qgetenv("container")) != "flatpak")
                 .toBool();
 
-        // check key database path
+        // key database path
         QString key_database_fs_path;
-        // user defined
+
+        // try to use user defined key database
         if (use_custom_key_database_path &&
             !custom_key_database_path.isEmpty()) {
-          key_database_fs_path = custom_key_database_path;
-          if (VerifyKeyDatabasePath(QFileInfo(key_database_fs_path))) {
-            qCWarning(core)
-                << "core loaded custom gpg key database is illegal: "
-                << key_database_fs_path;
+          if (VerifyKeyDatabasePath(QFileInfo(custom_key_database_path))) {
+            key_database_fs_path =
+                QFileInfo(custom_gnupg_install_path).absoluteFilePath();
           } else {
-            use_custom_key_database_path = true;
+            qCWarning(core) << "custom gpg key database path is not suitable: "
+                            << key_database_fs_path;
           }
         } else {
-#if defined(LINUX) || defined(MACOS)
-          use_custom_key_database_path = true;
+
+#if defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
+          // use user's home path by default
           key_database_fs_path =
               SearchKeyDatabasePath({QDir::home().path() + "/.gnupg"});
 #endif
         }
 
         if (args.load_default_gpg_context) {
-          // init ctx, also checking the basical env
+          // init ctx, also checking the basic env
           auto& ctx = GpgFrontend::GpgContext::CreateInstance(
               kGpgFrontendDefaultChannel, [=]() -> ChannelObjectPtr {
                 GpgFrontend::GpgContextInitArgs args;
 
                 // set key database path
-                if (use_custom_key_database_path &&
-                    !key_database_fs_path.isEmpty()) {
-                  QFileInfo dir_info(key_database_fs_path);
-                  if (dir_info.exists() && dir_info.isDir() &&
-                      dir_info.isReadable() && dir_info.isWritable()) {
-                    args.db_path = dir_info.absoluteFilePath();
-                  } else {
-                    qCWarning(core)
-                        << "custom key database path: " << key_database_fs_path
-                        << ", is not point to "
-                           "an accessible directory";
-                  }
+                if (!key_database_fs_path.isEmpty()) {
+                  args.db_path = key_database_fs_path;
                 }
 
                 // set custom gnupg path

@@ -57,11 +57,8 @@ class GlobalSettingStation::Impl {
     qCInfo(core) << "app data path: " << app_data_path_;
     qCInfo(core) << "app log path: " << app_log_path_;
 
-#ifdef WINDOWS
+#if defined(_WIN32) || defined(WIN32)
     qCInfo(core) << "app config path: " << app_config_path_;
-#endif
-
-#ifdef WINDOWS
     if (!QDir(app_config_path_).exists()) QDir(app_config_path_).mkpath(".");
 #endif
 
@@ -72,7 +69,7 @@ class GlobalSettingStation::Impl {
 
   [[nodiscard]] auto GetSettings() -> QSettings {
     if (!portable_mode_) {
-#ifdef WINDOWS
+#if defined(_WIN32) || defined(WIN32)
       return QSettings(app_config_target_path_, QSettings::IniFormat);
 #else
       return QSettings();

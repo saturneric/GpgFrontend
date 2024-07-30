@@ -292,7 +292,6 @@ IF(MINGW)
   message(STATUS "Build Environment MINGW")
 
   set(OS_PLATFORM 0)
-  add_definitions(-DWINDOWS)
 
   include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -313,7 +312,6 @@ if(APPLE)
   message(STATUS "GpgFrontend Configuration For OS Platform MacOS")
 
   set(OS_PLATFORM 1)
-  ADD_DEFINITIONS(-DMACOS)
 
   if(XCODE_BUILD)
     set(XCODE_CODE_SIGN_IDENTITY "\"${XCODE_CODE_SIGN_IDENTITY}\"")
@@ -347,7 +345,6 @@ if(LINUX)
   message(STATUS "GpgFrontend Configuration For OS Platform Linux")
 
   set(OS_PLATFORM 2)
-  add_compile_definitions(LINUX)
 
   # Get Env Info
   find_program(UNAME_PROGRAM uname)

@@ -47,25 +47,26 @@ void LoadModuleFromPath(const QString& mods_path, bool integrated) {
 }
 
 auto LoadIntegratedMods() -> bool {
-  auto exec_binary_path = QCoreApplication::applicationDirPath();
+  const auto exec_binary_path = QCoreApplication::applicationDirPath();
+  QString mods_path = exec_binary_path + "/modules";
 
-#if defined(MACOS) && defined(RELEASE)
+#ifdef NDEBUG
+
+#if defined(__APPLE__) && defined(__MACH__)
   // App Bundle
-  auto mods_path = exec_binary_path + "/../Modules";
-#else
-  // Debug Or Windows Platform
-  auto mods_path = exec_binary_path + "/modules";
-#endif
-
+  mods_path = exec_binary_path + "/../Modules";
+#elif defined(__linux__)
   // AppImage
   if (!qEnvironmentVariable("APPIMAGE").isEmpty()) {
     mods_path = qEnvironmentVariable("APPDIR") + "/usr/modules";
   }
-
   // Flatpak
   if (!qEnvironmentVariable("container").isEmpty()) {
     mods_path = "/app/modules";
   }
+#endif
+
+#endif
 
   if (!QDir(mods_path).exists()) {
     qCWarning(core) << "integrated module directory at path: " << mods_path

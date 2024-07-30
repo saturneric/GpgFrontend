@@ -218,11 +218,12 @@ void KeyPairOperaTab::slot_export_public_key() {
   }
 
   // generate a file name
-#ifndef WINDOWS
-  auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
+#if defined(_WIN32) || defined(WIN32)
+
+  auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
                      m_key_.GetId() + ")_pub.asc";
 #else
-  auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
+  auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
                      m_key_.GetId() + ")_pub.asc";
 #endif
   std::replace(file_string.begin(), file_string.end(), ' ', '_');
@@ -264,11 +265,12 @@ void KeyPairOperaTab::slot_export_short_private_key() {
     }
 
     // generate a file name
-#ifndef WINDOWS
-    auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
+#if defined(_WIN32) || defined(WIN32)
+
+    auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
                        m_key_.GetId() + ")_short_secret.asc";
 #else
-    auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
+    auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
                        m_key_.GetId() + ")_short_secret.asc";
 #endif
     std::replace(file_string.begin(), file_string.end(), ' ', '_');
@@ -307,11 +309,11 @@ void KeyPairOperaTab::slot_export_private_key() {
     }
 
     // generate a file name
-#ifndef WINDOWS
-    auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
+#if defined(_WIN32) || defined(WIN32)
+    auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
                        m_key_.GetId() + ")_full_secret.asc";
 #else
-    auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
+    auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
                        m_key_.GetId() + ")_full_secret.asc";
 #endif
     std::replace(file_string.begin(), file_string.end(), ' ', '_');
@@ -351,11 +353,11 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
   auto literal = QString("%1 (*.rev)").arg(tr("Revocation Certificates"));
   QString m_output_file_name;
 
-#ifndef WINDOWS
-  auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
+#if defined(_WIN32) || defined(WIN32)
+  auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
                      m_key_.GetId() + ").rev";
 #else
-  auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
+  auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
                      m_key_.GetId() + ").rev";
 #endif
 
@@ -492,11 +494,11 @@ void KeyPairOperaTab::slot_export_paper_key() {
     }
 
     // generate a file name
-#ifndef WINDOWS
-    auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
+#if defined(_WIN32) || defined(WIN32)
+    auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
                        m_key_.GetId() + ")_paper_key.txt";
 #else
-    auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
+    auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
                        m_key_.GetId() + ")_paper_key.txt";
 #endif
     std::replace(file_string.begin(), file_string.end(), ' ', '_');
@@ -545,11 +547,11 @@ void KeyPairOperaTab::slot_import_paper_key() {
   }
 
   // generate a file name
-#ifndef WINDOWS
-  auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
+#if defined(_WIN32) || defined(WIN32)
+  auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
                      m_key_.GetId() + ")_paper_key.txt";
 #else
-  auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
+  auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
                      m_key_.GetId() + ")_paper_key.txt";
 #endif
   std::replace(file_string.begin(), file_string.end(), ' ', '_');

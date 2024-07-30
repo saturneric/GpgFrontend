@@ -40,7 +40,7 @@
 
 namespace GpgFrontend {
 
-#ifdef WINDOWS
+#if defined(_WIN32) || defined(WIN32)
 int setenv(const char *name, const char *value, int overwrite) {
   if (!overwrite) {
     int errcode = 0;

@@ -61,9 +61,10 @@ KeyDetailsDialog::KeyDetailsDialog(const GpgKey& key, QWidget* parent)
   auto* main_layout = new QVBoxLayout;
   main_layout->addWidget(tab_widget_);
 
-#ifdef MACOS
+#if defined(__APPLE__) && defined(__MACH__)
   setAttribute(Qt::WA_LayoutUsesWidgetRect);
 #endif
+
   this->setAttribute(Qt::WA_DeleteOnClose, true);
   this->setLayout(main_layout);
   this->setWindowTitle(tr("Key Details"));

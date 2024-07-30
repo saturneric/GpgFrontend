@@ -55,7 +55,11 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   tab_widget_->addTab(key_server_tab_, tr("Key Server"));
   tab_widget_->addTab(network_tab_, tr("Network"));
 
-#ifndef MACOS
+#if defined(__APPLE__) && defined(__MACH__)
+  connect(this, &QDialog::finished, this, &SettingsDialog::SlotAccept);
+  connect(this, &QDialog::finished, this, &SettingsDialog::deleteLater);
+  setWindowTitle(tr("Preference"));
+#else
   button_box_ =
       new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
   connect(button_box_, &QDialogButtonBox::accepted, this,
@@ -65,10 +69,6 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   main_layout->addWidget(button_box_);
   main_layout->stretch(0);
   setWindowTitle(tr("Settings"));
-#else
-  connect(this, &QDialog::finished, this, &SettingsDialog::SlotAccept);
-  connect(this, &QDialog::finished, this, &SettingsDialog::deleteLater);
-  setWindowTitle(tr("Preference"));
 #endif
 
   setLayout(main_layout);
