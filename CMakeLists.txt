@@ -393,16 +393,9 @@ else()
 endif()
 
 if(GPGFRONTEND_QT5_BUILD)
-  add_compile_definitions(QT5_BUILD)
-
-  # Introduce Qt
   # Support Qt version: 5.15.x
   find_package(Qt5 5.15 COMPONENTS Core Widgets PrintSupport Network LinguistTools REQUIRED)
-
 else()
-  add_compile_definitions(QT6_BUILD)
-
-  # Introduce Qt
   # Support Qt version: 6.x
   find_package(Qt6 6 COMPONENTS Core Widgets PrintSupport Network LinguistTools REQUIRED)
 endif()

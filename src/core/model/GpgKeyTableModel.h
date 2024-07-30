@@ -206,10 +206,11 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
  private:
   GpgKeyList buffered_keys_;
   QStringList column_headers_;
-#ifdef QT5_BUILD
-  QVector<bool> key_check_state_;
-#else
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 4)
   QList<bool> key_check_state_;
+#else
+  QVector<bool> key_check_state_;
 #endif
 };
 

@@ -140,12 +140,13 @@ void AppearanceTab::SetSettings() {
 
   auto target_theme_index = ui_->themeComboBox->findText(theme);
   if (theme.isEmpty() || target_theme_index == -1) {
-#ifdef QT5_BUILD
-    ui_->themeComboBox->setCurrentIndex(ui_->themeComboBox->findText(
-        QApplication::style()->metaObject()->className()));
-#else
+#if QT_VERSION >= QT_VERSION_CHECK(6, 1, 0)
     ui_->themeComboBox->setCurrentIndex(
         ui_->themeComboBox->findText(QApplication::style()->name()));
+#else
+    for (const auto& metadata : module->GetModuleMetaData().asKeyValueRange()) {
+      info << " - " << metadata.first << ": " << metadata.second << "\n";
+    }
 #endif
   } else {
     ui_->themeComboBox->setCurrentIndex(target_theme_index);

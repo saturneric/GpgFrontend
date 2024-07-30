@@ -68,15 +68,15 @@ auto UIModuleManager::MountEntry(const QString& id,
   MountedUIEntry m_entry;
   m_entry.id_ = id;
 
-#ifdef QT5_BUILD
-  for (auto it = meta_data.keyValueBegin(); it != meta_data.keyValueEnd();
-       ++it) {
-    meta_data[it->first] = QApplication::translate("GTrC", it->second.toUtf8());
-  }
-#else
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
   for (const auto& meta : meta_data.asKeyValueRange()) {
     meta_data[meta.first] =
         QApplication::translate("GTrC", meta.second.toUtf8());
+  }
+#else
+  for (auto it = meta_data.keyValueBegin(); it != meta_data.keyValueEnd();
+       ++it) {
+    meta_data[it->first] = QApplication::translate("GTrC", it->second.toUtf8());
   }
 #endif
 
