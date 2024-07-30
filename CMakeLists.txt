@@ -198,6 +198,9 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   # using Visual Studio C++
   message(FATAL_ERROR "MSVC is not supported.")
+else()
+  # using a unknown compiler
+  message(FATAL_ERROR "This Unknown Compiler is not supported.")
 endif()
 
 # Using Standard C++-17 (Consider compatibility)
