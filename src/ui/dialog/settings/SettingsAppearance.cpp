@@ -144,9 +144,8 @@ void AppearanceTab::SetSettings() {
     ui_->themeComboBox->setCurrentIndex(
         ui_->themeComboBox->findText(QApplication::style()->name()));
 #else
-    for (const auto& metadata : module->GetModuleMetaData().asKeyValueRange()) {
-      info << " - " << metadata.first << ": " << metadata.second << "\n";
-    }
+    ui_->themeComboBox->setCurrentIndex(ui_->themeComboBox->findText(
+        QApplication::style()->metaObject()->className()));
 #endif
   } else {
     ui_->themeComboBox->setCurrentIndex(target_theme_index);
