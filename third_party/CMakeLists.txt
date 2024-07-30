@@ -22,10 +22,3 @@
 # Saturneric <eric@bktus.com> starting on May 12, 2021.
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
-
-# ASAN checking
-if(ENABLE_ASAN AND NOT APPLE AND ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-  # set(MI_TRACK_VALGRIND ON)
-  set(MI_TRACK_ASAN ON)
-  add_subdirectory(mimalloc EXCLUDE_FROM_ALL)
-endif()

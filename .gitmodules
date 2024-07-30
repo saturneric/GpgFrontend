@@ -1,15 +1,6 @@
 [submodule "third_party/qt-aes"]
 	path = third_party/qt-aes
 	url = https://github.com/bricke/Qt-AES.git
-[submodule "third_party/mimalloc"]
-	path = third_party/mimalloc
-	url = https://github.com/microsoft/mimalloc.git
-[submodule "third_party/googletest"]
-	path = third_party/googletest
-	url = https://github.com/google/googletest.git
-[submodule "third_party/libarchive"]
-	path = third_party/libarchive
-	url = https://github.com/libarchive/libarchive.git
 [submodule "third_party/qttranslations"]
 	path = third_party/qttranslations
 	url = https://github.com/qt/qttranslations.git
