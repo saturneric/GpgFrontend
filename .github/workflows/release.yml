@@ -178,8 +178,7 @@ jobs:
         shell: msys2 {0}
         run: |
           git clone --depth 1 --branch v2.1.7 https://github.com/microsoft/mimalloc.git ${{github.workspace}}/third_party/mimalloc
-          cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
-          cd third_party/mimalloc
+          cd ${{github.workspace}}/third_party/mimalloc
           mkdir build && cd build
           cmake -G Ninja -DMI_SECURE=ON -DCMAKE_INSTALL_PREFIX=$MSYSTEM_PREFIX .. && ninja
           ninja install
