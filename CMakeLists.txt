@@ -173,7 +173,7 @@ if(CCACHE_FOUND)
 endif(CCACHE_FOUND)
 
 # detect compiler
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
   # using clang
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
     message(FATAL_ERROR "Clang version must be at least 9.0!")
@@ -200,7 +200,7 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   message(FATAL_ERROR "MSVC is not supported.")
 else()
   # using a unknown compiler
-  message(FATAL_ERROR "This Unknown Compiler is not supported.")
+  message(FATAL_ERROR "Compiler: ${CMAKE_CXX_COMPILER_ID} is not supported.")
 endif()
 
 # Using Standard C++-17 (Consider compatibility)
