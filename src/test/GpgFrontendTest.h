@@ -32,7 +32,7 @@
 #include "GpgFrontend.h"
 
 // symbol exports header
-#include "GpgFrontendTestExport.h"
+#include "test/GpgFrontendTestExport.h"
 
 // private declare area of test
 #ifdef GF_TEST_PRIVATE

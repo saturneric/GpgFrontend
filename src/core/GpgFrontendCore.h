@@ -31,6 +31,9 @@
 // project base header
 #include "GpgFrontend.h"
 
+// symbol exports header
+#include "core/GpgFrontendCoreExport.h"
+
 // qt
 #include <QtCore>
 
