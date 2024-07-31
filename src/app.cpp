@@ -73,13 +73,17 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
     // after that load ui totally
     GpgFrontend::UI::InitGpgFrontendUI(app);
 
+    // check and waiting for condition
+    GpgFrontend::UI::WaitingAllInitializationFinished();
+
+    // load module's translations
+    GpgFrontend::UI::InitModulesTranslations();
+
     // finally create main window
     return_from_event_loop_code = GpgFrontend::UI::RunGpgFrontendUI(app);
 
-    restart_count++;
-
   } while (return_from_event_loop_code == GpgFrontend::kRestartCode &&
-           restart_count < 99);
+           restart_count++ < 99);
 
   // first should shutdown the module system
   GpgFrontend::Module::ShutdownGpgFrontendModules();

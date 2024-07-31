@@ -38,7 +38,7 @@ class Event::Impl {
       : event_identifier_(std::move(event_id)),
         callback_(std::move(callback)),
         callback_thread_(QThread::currentThread()) {
-    data_.insert(params);
+    if (!params.empty()) data_.insert(params);
   }
 
   auto operator[](const QString& key) const -> std::optional<ParameterValue> {
@@ -98,17 +98,16 @@ class Event::Impl {
 
     event->id = GFStrDup(event_identifier_);
     event->trigger_id = GFStrDup(trigger_uuid_);
+    event->params = nullptr;
 
     GFModuleEventParam* l_param = nullptr;
     GFModuleEventParam* p_param;
-
-    int index = 0;
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
     for (const auto& data : data_.asKeyValueRange()) {
       p_param = static_cast<GFModuleEventParam*>(
           SecureMalloc(sizeof(GFModuleEventParam)));
-      if (index++ == 0) event->params = p_param;
+      if (event->params == nullptr) event->params = p_param;
 
       p_param->name = GFStrDup(data.first);
       p_param->value = GFStrDup(data.second);
@@ -121,7 +120,7 @@ class Event::Impl {
     for (auto it = data_.keyValueBegin(); it != data_.keyValueEnd(); ++it) {
       p_param = static_cast<GFModuleEventParam*>(
           SecureMalloc(sizeof(GFModuleEventParam)));
-      if (index++ == 0) event->params = p_param;
+      if (event->params == nullptr) event->params = p_param;
 
       p_param->name = GFStrDup(it->first);
       p_param->value = GFStrDup(it->second);

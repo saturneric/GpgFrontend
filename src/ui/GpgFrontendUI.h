@@ -47,12 +47,23 @@ Q_DECLARE_LOGGING_CATEGORY(ui)
 #define LOG_I() qCInfo(ui)
 #define LOG_W() qCWarning(ui)
 #define LOG_E() qCCritical(ui)
-#define LOG_F() qCFatal(core)
+#define LOG_F() qCFatal(ui)
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+#define LOG_F(...) qCFatal(ui)
+#else
+#define LOG_F(...) qFatal()
+#endif
 
 #define FLOG_D(...) qCDebug(ui, __VA_ARGS__)
 #define FLOG_I(...) qCInfo(ui, __VA_ARGS__)
 #define FLOG_W(...) qCWarning(ui, __VA_ARGS__)
 #define FLOG_E(...) qCCritical(ui, __VA_ARGS__)
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
 #define FLOG_F(...) qCFatal(ui, __VA_ARGS__)
+#else
+#define FLOG_F(...) qFatal(__VA_ARGS__)
+#endif
 
 #endif

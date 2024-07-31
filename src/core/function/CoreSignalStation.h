@@ -69,6 +69,12 @@ class GPGFRONTEND_CORE_EXPORT CoreSignalStation : public QObject {
    *
    */
   void SignalGoodGnupgEnv();
+
+  /**
+   * @brief
+   *
+   */
+  void SignalCoreFullyLoaded();
 };
 
 }  // namespace GpgFrontend

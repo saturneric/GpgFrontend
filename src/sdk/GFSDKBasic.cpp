@@ -32,7 +32,7 @@
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "sdk/private/CommonUtils.h"
-#include "ui/GpgFrontendUIInit.h"
+#include "ui/UIModuleManager.h"
 
 auto GFAllocateMemory(uint32_t size) -> void* {
   return GpgFrontend::SecureMemoryAllocator::Allocate(size);
@@ -110,11 +110,10 @@ auto GFModuleStrDup(const char* src) -> char* {
 
 auto GFAppActiveLocale() -> char* { return GFStrDup(QLocale().name()); }
 
-auto GFAppRegisterTranslator(char* data, int size) -> int {
-  auto b = QByteArray(data, size);
-  QMetaObject::invokeMethod(QApplication::instance()->thread(), [b]() {
-    GpgFrontend::UI::InstallTranslatorFromQMData(b);
-  });
-  GFFreeMemory(data);
-  return 0;
+auto GFAppRegisterTranslatorReader(const char* id,
+                                   GFTranslatorDataReader reader) -> int {
+  return GpgFrontend::UI::UIModuleManager::GetInstance()
+                 .RegisterTranslatorDataReader(GFUnStrDup(id), reader)
+             ? 0
+             : -1;
 }

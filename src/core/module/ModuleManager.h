@@ -65,13 +65,17 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager
 
   virtual ~ModuleManager() override;
 
-  auto LoadModule(QString, bool) -> void;
+  auto LoadModule(QString, bool) -> bool;
 
   auto SearchModule(ModuleIdentifier) -> ModulePtr;
+
+  void SetNeedRegisterModulesNum(int);
 
   auto ListAllRegisteredModuleID() -> QList<ModuleIdentifier>;
 
   void RegisterModule(ModulePtr);
+
+  auto IsAllModulesRegistered() -> bool;
 
   auto IsModuleActivated(ModuleIdentifier) -> bool;
 
@@ -135,6 +139,14 @@ void TriggerEvent(const EventIdentifier& event_id,
  * @return false
  */
 auto GPGFRONTEND_CORE_EXPORT IsModuleActivate(ModuleIdentifier) -> bool;
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+auto GPGFRONTEND_CORE_EXPORT IsModuleExists(ModuleIdentifier) -> bool;
 
 /**
  * @brief

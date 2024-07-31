@@ -110,7 +110,7 @@ class GpgContext::Impl {
     }
 
     res += gpgme_io_write(fd, "\n", 1);
-    return res == pass_size + 1 ? 0 : gpgme_error_from_errno(GPG_ERR_CANCELED);
+    return res == pass_size + 1 ? 0 : GPG_ERR_CANCELED;
   }
 
   static auto CustomPassphraseCb(void *hook, const char *uid_hint,
@@ -143,12 +143,17 @@ class GpgContext::Impl {
         [&passphrase, &looper](Module::EventIdentifier i,
                                Module::Event::ListenerIdentifier ei,
                                Module::Event::Params p) {
-          passphrase = p["passphrase"];
+          if (p["ret"] == "0") passphrase = p["passphrase"];
           looper.quit();
         });
 
     looper.exec();
     ResetCacheValue("PinentryContext");
+
+    LOG_D() << "passphrase size:" << passphrase.size();
+
+    // empty passphrase is not allowed
+    if (passphrase.isEmpty()) return GPG_ERR_CANCELED;
 
     auto pass_bytes = passphrase.toLatin1();
     auto pass_size = pass_bytes.size();
@@ -166,7 +171,7 @@ class GpgContext::Impl {
     }
 
     res += gpgme_io_write(fd, "\n", 1);
-    return res == pass_size + 1 ? 0 : gpgme_error_from_errno(GPG_ERR_CANCELED);
+    return res == pass_size + 1 ? 0 : GPG_ERR_CANCELED;
   }
 
   static auto TestStatusCb(void *hook, const char *keyword,

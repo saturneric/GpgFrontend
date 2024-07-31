@@ -49,4 +49,9 @@ void GPGFRONTEND_CORE_EXPORT DestroyGpgFrontendCore();
  */
 void GPGFRONTEND_CORE_EXPORT InitGpgFrontendCore(CoreInitArgs);
 
+/**
+ * @brief
+ *
+ */
+void GPGFRONTEND_CORE_EXPORT StartMonitorCoreInitializationStatus();
 }  // namespace GpgFrontend

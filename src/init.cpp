@@ -108,6 +108,9 @@ void InitGlobalBasicEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
 
   // then load core
   InitGpgFrontendCore(core_init_args);
+
+  // monitor
+  StartMonitorCoreInitializationStatus();
 }
 
 /**

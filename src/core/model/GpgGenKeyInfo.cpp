@@ -30,6 +30,9 @@
 
 #include <cassert>
 
+#include "module/ModuleManager.h"
+#include "utils/CommonUtils.h"
+
 namespace GpgFrontend {
 
 void GenKeyInfo::SetAlgo(const QString &t_algo_args) {
@@ -40,6 +43,7 @@ void GenKeyInfo::SetAlgo(const QString &t_algo_args) {
 
   if (!this->subkey_) {
     this->SetAllowCertification(true);
+
   } else {
     this->SetAllowCertification(false);
   }
@@ -64,6 +68,7 @@ void GenKeyInfo::SetAlgo(const QString &t_algo_args) {
      * Recently, NIST has declared 512-bit keys obsolete:
      * now, DSA is available in 1024, 2048 and 3072-bit lengths.
      */
+
     SetAllowEncryption(false);
     allow_change_encryption_ = false;
 
@@ -73,11 +78,10 @@ void GenKeyInfo::SetAlgo(const QString &t_algo_args) {
     SetKeyLength(2048);
   } else if (algo_args == "elg") {
     /**
-     * Algorithm (DSA) as a government standard for digital signatures.
-     * Originally, it supported key lengths between 512 and 1024 bits.
-     * Recently, NIST has declared 512-bit keys obsolete:
-     * now, DSA is available in 1024, 2048 and 3072-bit lengths.
+     * GnuPG supports the Elgamal asymmetric encryption algorithm in key lengths
+     * ranging from 1024 to 4096 bits.
      */
+
     SetAllowEncryption(true);
 
     SetAllowAuthentication(false);
@@ -86,19 +90,12 @@ void GenKeyInfo::SetAlgo(const QString &t_algo_args) {
     SetAllowSigning(false);
     allow_change_signing_ = false;
 
-    SetAllowCertification(false);
-    allow_change_certification_ = false;
-
     suggest_min_key_size_ = 1024;
     suggest_max_key_size_ = 4096;
     suggest_size_addition_step_ = 1024;
     SetKeyLength(3072);
 
   } else if (algo_args == "ed25519") {
-    /**
-     * GnuPG supports the Elgamal asymmetric encryption algorithm in key lengths
-     * ranging from 1024 to 4096 bits.
-     */
     SetAllowEncryption(false);
     allow_change_encryption_ = false;
 
@@ -106,18 +103,45 @@ void GenKeyInfo::SetAlgo(const QString &t_algo_args) {
     suggest_max_key_size_ = -1;
     suggest_size_addition_step_ = -1;
     SetKeyLength(-1);
-  } else if (algo_args == "cv25519" || algo_args == "nistp256" ||
-             algo_args == "nistp384" || algo_args == "nistp521" ||
-             algo_args == "brainpoolp256r1" || algo_args == "brainpoolp384r1" ||
-             algo_args == "brainpoolp512r1") {
+  } else if (algo_args == "cv25519" || algo_args == "x448") {
     SetAllowAuthentication(false);
     allow_change_authentication_ = false;
 
     SetAllowSigning(false);
     allow_change_signing_ = false;
 
-    SetAllowCertification(false);
-    allow_change_certification_ = false;
+    suggest_min_key_size_ = -1;
+    suggest_max_key_size_ = -1;
+    suggest_size_addition_step_ = -1;
+    SetKeyLength(-1);
+  } else if (algo_args == "ed448") {
+    SetAllowEncryption(false);
+    allow_change_encryption_ = false;
+
+    // why not support signing? test later...
+    SetAllowSigning(false);
+    allow_change_signing_ = false;
+
+    suggest_min_key_size_ = -1;
+    suggest_max_key_size_ = -1;
+    suggest_size_addition_step_ = -1;
+    SetKeyLength(-1);
+  } else if (algo_args == "nistp256" || algo_args == "nistp384" ||
+             algo_args == "nistp521" || algo_args == "brainpoolp256r1" ||
+             algo_args == "brainpoolp384r1" || algo_args == "brainpoolp512r1") {
+    if (!subkey_) {  // for primary key is always ecdsa
+
+      SetAllowEncryption(false);
+      allow_change_encryption_ = false;
+
+    } else {  // for subkey key is always ecdh
+
+      SetAllowAuthentication(false);
+      allow_change_authentication_ = false;
+
+      SetAllowSigning(false);
+      allow_change_signing_ = false;
+    }
 
     suggest_min_key_size_ = -1;
     suggest_max_key_size_ = -1;
@@ -192,33 +216,93 @@ GenKeyInfo::GenKeyInfo(bool m_is_sub_key) : subkey_(m_is_sub_key) {
 
 auto GenKeyInfo::GetSupportedKeyAlgo()
     -> const std::vector<GenKeyInfo::KeyGenAlgo> & {
-  static const std::vector<GenKeyInfo::KeyGenAlgo> kSupportKeyAlgo = {
+  static std::vector<GenKeyInfo::KeyGenAlgo> k_support_key_algo = {
       {"RSA", "RSA", ""},
       {"DSA", "DSA", ""},
-      {"ECDSA", "ED25519", ""},
-      {"ECDSA + ECDH", "ED25519", "CV25519"},
-      {"ECDSA + ECDH NIST P-256", "ED25519", "NISTP256"},
-      {"ECDSA + ECDH BrainPooL P-256", "ED25519", "BRAINPOOLP256R1"},
   };
-  return kSupportKeyAlgo;
+  static bool initialized = false;
+
+  if (!initialized) {
+    const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
+        "core", "gpgme.ctx.gnupg_version", QString{"2.0.0"});
+    if (GFCompareSoftwareVersion(gnupg_version, "2.0.0") < 0) {
+      // do nothing
+    } else if (GFCompareSoftwareVersion(gnupg_version, "2.3.0") < 0) {
+      k_support_key_algo = {
+          {"RSA", "RSA", ""},
+          {"DSA", "DSA", ""},
+          {"ECDSA (ED25519)", "ED25519", ""},
+          {"ECDSA (NIST P-256)", "NISTP256", ""},
+          {"ECDSA (NIST P-384)", "NISTP384", ""},
+          {"ECDSA (NIST P-521)", "NISTP521", ""},
+      };
+    } else {
+      k_support_key_algo = {
+          {"RSA", "RSA", ""},
+          {"DSA", "DSA", ""},
+          {"ECDSA (ED25519)", "ED25519", ""},
+          {"ECDSA (NIST P-256)", "NISTP256", ""},
+          {"ECDSA (NIST P-384)", "NISTP384", ""},
+          {"ECDSA (NIST P-521)", "NISTP521", ""},
+          {"ECDSA (BrainPooL P-256)", "BRAINPOOLP256R1", ""},
+          {"ECDSA (BrainPooL P-384)", "BRAINPOOLP384R1", ""},
+          {"ECDSA (BrainPooL P-512)", "BRAINPOOLP512R1", ""},
+      };
+    }
+
+    initialized = true;
+  }
+
+  return k_support_key_algo;
 }
 
 auto GenKeyInfo::GetSupportedSubkeyAlgo()
     -> const std::vector<GenKeyInfo::KeyGenAlgo> & {
-  static const std::vector<GenKeyInfo::KeyGenAlgo> kSupportSubkeyAlgo = {
+  static std::vector<GenKeyInfo::KeyGenAlgo> k_support_subkey_algo = {
       {"RSA", "", "RSA"},
       {"DSA", "", "DSA"},
       {"ELG-E", "", "ELG"},
-      {"ECDSA", "", "ED25519"},
-      {"ECDH", "", "CV25519"},
-      {"ECDH NIST P-256", "", "NISTP256"},
-      {"ECDH NIST P-384", "", "NISTP384"},
-      {"ECDH NIST P-521", "", "NISTP521"},
-      {"ECDH BrainPooL P-256", "", "BRAINPOOLP256R1"},
-      {"ECDH BrainPooL P-384", "", "BRAINPOOLP384R1"},
-      {"ECDH BrainPooL P-512", "", "BRAINPOOLP512R1"}};
+  };
+  static bool initialized = false;
 
-  return kSupportSubkeyAlgo;
+  if (!initialized) {
+    const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
+        "core", "gpgme.ctx.gnupg_version", QString{"2.0.0"});
+    if (GFCompareSoftwareVersion(gnupg_version, "2.0.0") < 0) {
+      // do nothing
+    } else if (GFCompareSoftwareVersion(gnupg_version, "2.3.0") < 0) {
+      k_support_subkey_algo = {
+          {"RSA", "", "RSA"},
+          {"DSA", "", "DSA"},
+          {"ELG-E", "", "ELG"},
+          {"ECDSA (ED25519)", "", "ED25519"},
+          {"ECDH (CV25519)", "", "CV25519"},
+          {"ECDH (NIST P-256)", "", "NISTP256"},
+          {"ECDH (NIST P-384)", "", "NISTP384"},
+          {"ECDH (NIST P-521)", "", "NISTP521"},
+      };
+    } else {
+      k_support_subkey_algo = {
+          {"RSA", "", "RSA"},
+          {"DSA", "", "DSA"},
+          {"ELG-E", "", "ELG"},
+          {"ECDSA (ED25519)", "", "ED25519"},
+          {"ECDSA (ED448)", "", "ED448"},
+          {"ECDH (CV25519)", "", "CV25519"},
+          {"ECDH (X448)", "", "X448"},
+          {"ECDH (NIST P-256)", "", "NISTP256"},
+          {"ECDH (NIST P-384)", "", "NISTP384"},
+          {"ECDH (NIST P-521)", "", "NISTP521"},
+          {"ECDH (BrainPooL P-256)", "", "BRAINPOOLP256R1"},
+          {"ECDH (BrainPooL P-384)", "", "BRAINPOOLP384R1"},
+          {"ECDH (BrainPooL P-512)", "", "BRAINPOOLP512R1"},
+      };
+    }
+
+    initialized = true;
+  }
+
+  return k_support_subkey_algo;
 }
 
 /**

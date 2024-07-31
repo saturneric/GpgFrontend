@@ -54,66 +54,79 @@ class ModuleManager::Impl {
   ~Impl() = default;
 
   auto LoadAndRegisterModule(const QString& module_library_path,
-                             bool integrated_module) -> void {
-    // give user ability to give up all modules
-    auto disable_loading_all_modules =
-        GlobalSettingStation::GetInstance()
-            .GetSettings()
-            .value("basic/disable_loading_all_modules", false)
-            .toBool();
-    if (disable_loading_all_modules) return;
+                             bool integrated_module) -> bool {
+    QLibrary module_library(module_library_path);
+    if (!module_library.load()) {
+      LOG_W() << "module manager failed to load module: "
+              << module_library.fileName()
+              << ", reason: " << module_library.errorString();
+      need_register_modules_--;
+      return false;
+    }
 
-    Thread::TaskRunnerGetter::GetInstance()
-        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
-        ->PostTask(new Thread::Task(
-            [=](GpgFrontend::DataObjectPtr) -> int {
-              QLibrary module_library(module_library_path);
-              if (!module_library.load()) {
-                LOG_W() << "module manager failed to load module: "
-                        << module_library.fileName()
-                        << ", reason: " << module_library.errorString();
-                return -1;
-              }
+    auto module = SecureCreateSharedObject<Module>(module_library);
+    if (!module->IsGood()) {
+      LOG_W() << "module manager failed to load module, "
+                 "reason: illegal module: "
+              << module_library.fileName();
+      need_register_modules_--;
+      return false;
+    }
 
-              auto module = SecureCreateSharedObject<Module>(module_library);
-              if (!module->IsGood()) {
-                LOG_W() << "module manager failed to load module, "
-                           "reason: illegal module: "
-                        << module_library.fileName();
-                return -1;
-              }
+    module->SetGPC(gmc_.get());
 
-              module->SetGPC(gmc_.get());
-              if (!gmc_->RegisterModule(module, integrated_module)) return -1;
+    LOG_D() << "a new need register module: "
+            << QFileInfo(module_library_path).fileName();
 
-              const auto module_id = module->GetModuleIdentifier();
-              const auto module_hash = module->GetModuleHash();
+    auto runner = Thread::TaskRunnerGetter::GetInstance().GetTaskRunner(
+        Thread::TaskRunnerGetter::kTaskRunnerType_Module);
 
-              SettingsObject so(QString("module.%1.so").arg(module_id));
-              ModuleSO module_so(so);
+    runner->PostTask(new Thread::Task(
+        [=](GpgFrontend::DataObjectPtr) -> int {
+          // register module
+          if (!gmc_->RegisterModule(module, integrated_module)) return -1;
 
-              // reset module settings if necessary
-              if (module_so.module_id != module_id ||
-                  module_so.module_hash != module_hash) {
-                module_so.module_id = module_id;
-                module_so.module_hash = module_hash;
-                // auto active integrated module by default
-                module_so.auto_activate = integrated_module;
-                module_so.set_by_user = false;
+          return 0;
+        },
+        __func__, nullptr));
 
-                so.Store(module_so.ToJson());
-              }
+    runner->PostTask(new Thread::Task(
+        [=](GpgFrontend::DataObjectPtr) -> int {
+          const auto module_id = module->GetModuleIdentifier();
+          const auto module_hash = module->GetModuleHash();
 
-              // if this module need auto active
-              if (module_so.auto_activate) {
-                if (!gmc_->ActiveModule(module_id)) {
-                  return -1;
-                }
-              }
+          SettingsObject so(QString("module.%1.so").arg(module_id));
+          ModuleSO module_so(so);
 
-              return 0;
-            },
-            __func__, nullptr));
+          // reset module settings if necessary
+          if (module_so.module_id != module_id ||
+              module_so.module_hash != module_hash) {
+            module_so.module_id = module_id;
+            module_so.module_hash = module_hash;
+            // auto active integrated module by default
+            module_so.auto_activate = integrated_module;
+            module_so.set_by_user = false;
+
+            so.Store(module_so.ToJson());
+          }
+
+          // if this module need auto active
+          if (module_so.auto_activate) {
+            if (!gmc_->ActiveModule(module_id)) {
+              return -1;
+            }
+          }
+
+          return 0;
+        },
+        __func__, nullptr));
+
+    return true;
+  }
+
+  void SetNeedRegisterModulesNum(int n) {
+    if (need_register_modules_ != -1 || n < 0) return;
+    need_register_modules_ = n;
   }
 
   auto SearchModule(ModuleIdentifier module_id) -> ModulePtr {
@@ -126,7 +139,7 @@ class ModuleManager::Impl {
 
   void RegisterModule(const ModulePtr& module) {
     Thread::TaskRunnerGetter::GetInstance()
-        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
+        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
         ->PostTask(new Thread::Task(
             [=](GpgFrontend::DataObjectPtr) -> int {
               module->SetGPC(gmc_.get());
@@ -138,7 +151,7 @@ class ModuleManager::Impl {
   void ListenEvent(const ModuleIdentifier& module_id,
                    const EventIdentifier& event_id) {
     Thread::TaskRunnerGetter::GetInstance()
-        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
+        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
         ->PostTask(new Thread::Task(
             [=](const GpgFrontend::DataObjectPtr&) -> int {
               gmc_->ListenEvent(module_id, event_id);
@@ -149,7 +162,7 @@ class ModuleManager::Impl {
 
   void TriggerEvent(const EventReference& event) {
     Thread::TaskRunnerGetter::GetInstance()
-        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
+        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
         ->PostTask(new Thread::Task(
             [=](const GpgFrontend::DataObjectPtr&) -> int {
               gmc_->TriggerEvent(event);
@@ -170,7 +183,7 @@ class ModuleManager::Impl {
 
   void ActiveModule(const ModuleIdentifier& identifier) {
     Thread::TaskRunnerGetter::GetInstance()
-        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
+        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
         ->PostTask(new Thread::Task(
             [=](const GpgFrontend::DataObjectPtr&) -> int {
               gmc_->ActiveModule(identifier);
@@ -181,7 +194,7 @@ class ModuleManager::Impl {
 
   void DeactivateModule(const ModuleIdentifier& identifier) {
     Thread::TaskRunnerGetter::GetInstance()
-        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
+        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
         ->PostTask(new Thread::Task(
             [=](const GpgFrontend::DataObjectPtr&) -> int {
               gmc_->DeactivateModule(identifier);
@@ -219,6 +232,14 @@ class ModuleManager::Impl {
     return gmc_->IsIntegratedModule(id);
   }
 
+  auto IsAllModulesRegistered() {
+    if (need_register_modules_ == -1) return false;
+    LOG_D() << "module manager report, need register: "
+            << need_register_modules_ << "registered"
+            << gmc_->GetRegisteredModuleNum();
+    return need_register_modules_ == gmc_->GetRegisteredModuleNum();
+  }
+
   auto GRT() -> GlobalRegisterTable* { return grt_.get(); }
 
  private:
@@ -226,10 +247,16 @@ class ModuleManager::Impl {
   SecureUniquePtr<GlobalModuleContext> gmc_;
   SecureUniquePtr<GlobalRegisterTable> grt_;
   QList<QLibrary> module_libraries_;
+  int need_register_modules_ = -1;
 };
 
 auto IsModuleActivate(ModuleIdentifier id) -> bool {
   return ModuleManager::GetInstance().IsModuleActivated(id);
+}
+
+auto GPGFRONTEND_CORE_EXPORT IsModuleExists(ModuleIdentifier id) -> bool {
+  auto module = ModuleManager::GetInstance().SearchModule(id);
+  return module != nullptr && module->IsGood();
 }
 
 auto UpsertRTValue(const QString& namespace_, const QString& key,
@@ -254,8 +281,8 @@ ModuleManager::ModuleManager(int channel)
 
 ModuleManager::~ModuleManager() = default;
 
-void ModuleManager::LoadModule(QString module_library_path,
-                               bool integrated_module) {
+auto ModuleManager::LoadModule(QString module_library_path,
+                               bool integrated_module) -> bool {
   return p_->LoadAndRegisterModule(module_library_path, integrated_module);
 }
 
@@ -332,4 +359,11 @@ auto ModuleManager::ListAllRegisteredModuleID() -> QList<ModuleIdentifier> {
 
 auto ModuleManager::GRT() -> GlobalRegisterTable* { return p_->GRT(); }
 
+auto ModuleManager::IsAllModulesRegistered() -> bool {
+  return p_->IsAllModulesRegistered();
+}
+
+void ModuleManager::SetNeedRegisterModulesNum(int n) {
+  p_->SetNeedRegisterModulesNum(n);
+}
 }  // namespace GpgFrontend::Module

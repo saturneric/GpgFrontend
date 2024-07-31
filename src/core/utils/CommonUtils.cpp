@@ -72,24 +72,25 @@ auto GFCompareSoftwareVersion(const QString& a, const QString& b) -> int {
   return 0;
 }
 
-auto GFStrDup(const QString& str) -> char* {
-  auto utf8_str = str.toUtf8();
-  auto* c_str =
-      static_cast<char*>(SecureMalloc((utf8_str.size() + 1) * sizeof(char)));
+auto GFStrDup(const QString& s) -> char* {
+  if (s.isEmpty()) return nullptr;
 
-  memcpy(c_str, utf8_str.constData(), utf8_str.size());
-  c_str[utf8_str.size()] = '\0';
-  return c_str;
+  auto u_s = s.toUtf8();
+  auto* c_s = static_cast<char*>(SecureMalloc((u_s.size() + 1) * sizeof(char)));
+
+  memcpy(c_s, u_s.constData(), u_s.size());
+  c_s[u_s.size()] = '\0';
+  return c_s;
 }
 
-auto GFUnStrDup(char* str) -> QString {
-  auto qt_str = QString::fromUtf8(str);
-  SecureFree(static_cast<void*>(const_cast<char*>(str)));
-  return qt_str;
+auto GFUnStrDup(char* s) -> QString {
+  auto q_s = QString::fromUtf8(s == nullptr ? "" : s);
+  if (s != nullptr) SecureFree(static_cast<void*>(const_cast<char*>(s)));
+  return q_s;
 }
 
-auto GFUnStrDup(const char* str) -> QString {
-  return GFUnStrDup(const_cast<char*>(str));
+auto GFUnStrDup(const char* s) -> QString {
+  return GFUnStrDup(const_cast<char*>(s));
 }
 
 }  // namespace GpgFrontend

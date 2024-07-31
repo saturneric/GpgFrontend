@@ -569,6 +569,12 @@ endif()
 # if only build sdk
 if(STABLE_BUILD_ONLY_SDK)
   include(GNUInstallDirs)
+
+  if(INSTALL_TO_MODULES_REPO)
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/modules/sdk/${CMAKE_PROJECT_VERSION}")
+    message(STATUS "Set CMake Install Prefix for Cooperation: ${CMAKE_INSTALL_PREFIX}")
+  endif()
+
   set(GPGFRONTEND_SDK_INSTALL_LIBRARIES
     gpgfrontend_module_sdk)
 
@@ -583,6 +589,11 @@ endif()
 # if build full sdk
 if(STABLE_BUILD_FULL_SDK)
   include(GNUInstallDirs)
+
+  if(INSTALL_TO_MODULES_REPO)
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/modules/sdk/${CMAKE_PROJECT_VERSION}")
+    message(STATUS "Set CMake Install Prefix for Cooperation: ${CMAKE_INSTALL_PREFIX}")
+  endif()
 
   set(GPGFRONTEND_SDK_INSTALL_LIBRARIES
     gpgfrontend_core

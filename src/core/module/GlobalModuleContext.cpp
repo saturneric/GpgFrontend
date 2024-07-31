@@ -102,14 +102,12 @@ class GlobalModuleContext::Impl {
         module_register_table_.find(module->GetModuleIdentifier()) !=
             module_register_table_.end()) {
       FLOG_W("module is null or have already registered this module");
+      registered_modules_++;
       return false;
     }
 
-    if (module->Register() != 0) {
-      LOG_W() << "register module " << module->GetModuleIdentifier()
-              << " failed";
-      return false;
-    }
+    LOG_D() << "(+) module: " << module->GetModuleIdentifier()
+            << "registering...";
 
     auto register_info =
         GpgFrontend::SecureCreateSharedObject<ModuleRegisterInfo>();
@@ -124,13 +122,28 @@ class GlobalModuleContext::Impl {
             .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
             ->GetThread());
 
-    // Register the module with its identifier.
+    // register the module with its identifier.
     module_register_table_[module->GetModuleIdentifier()] = register_info;
+
+    if (module->Register() != 0) {
+      LOG_W() << "module: " << module->GetModuleIdentifier()
+              << " register failed.";
+      register_info->registered = false;
+      registered_modules_++;
+      return false;
+    }
+
+    register_info->registered = true;
+    registered_modules_++;
+
+    LOG_D() << "(+) module: " << module->GetModuleIdentifier() << "registered.";
 
     return true;
   }
 
   auto ActiveModule(ModuleIdentifier module_id) -> bool {
+    LOG_D() << "(*) module: " << module_id << "activating...";
+
     // Search for the module in the register table.
     auto module_info_opt = search_module_register_table(module_id);
     if (!module_info_opt.has_value()) {
@@ -139,6 +152,12 @@ class GlobalModuleContext::Impl {
     }
 
     auto module_info = module_info_opt.value();
+
+    if (!module_info->registered) {
+      LOG_W() << "module id:" << module_id
+              << " is not properly register, activation abort...";
+      return false;
+    }
 
     // try to get module from module info
     auto module = module_info->module;
@@ -152,6 +171,8 @@ class GlobalModuleContext::Impl {
     if (!module_info->activate) {
       module->Active();
       module_info->activate = true;
+
+      LOG_D() << "(*) module: " << module_id << "activated.";
     }
 
     return module_info->activate;
@@ -293,6 +314,12 @@ class GlobalModuleContext::Impl {
     return m.has_value() && m->get()->activate;
   }
 
+  [[nodiscard]] auto IsModuleRegistered(const ModuleIdentifier& m_id) const
+      -> bool {
+    auto m = search_module_register_table(m_id);
+    return m.has_value() && m->get()->activate;
+  }
+
   auto IsIntegratedModule(ModuleIdentifier m_id) -> bool {
     auto m = search_module_register_table(m_id);
     return m.has_value() && m->get()->integrated;
@@ -314,10 +341,13 @@ class GlobalModuleContext::Impl {
     return module_info->get()->listening_event_ids;
   }
 
+  auto GetRegisteredModuleNum() const -> int { return registered_modules_; }
+
  private:
   struct ModuleRegisterInfo {
     int channel;
     ModulePtr module;
+    bool registered;
     bool activate;
     bool integrated;
     QList<QString> listening_event_ids;
@@ -334,6 +364,7 @@ class GlobalModuleContext::Impl {
 
   std::set<int> acquired_channel_;
   TaskRunnerPtr default_task_runner_;
+  int registered_modules_ = 0;
 
   auto acquire_new_unique_channel() -> int {
     int random_channel = QRandomGenerator::global()->bounded(65535);
@@ -440,4 +471,9 @@ auto GlobalModuleContext::GetModuleListening(ModuleIdentifier module_id)
     -> QList<EventIdentifier> {
   return p_->GetModuleListening(module_id);
 }
+
+auto GlobalModuleContext::GetRegisteredModuleNum() const -> int {
+  return p_->GetRegisteredModuleNum();
+}
+
 }  // namespace GpgFrontend::Module

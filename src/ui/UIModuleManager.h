@@ -30,6 +30,8 @@
 
 #include "GpgFrontendUIExport.h"
 #include "core/function/basic/GpgFunctionObject.h"
+#include "core/module/Module.h"
+#include "sdk/GFSDKBasic.h"
 #include "sdk/GFSDKUI.h"
 #include "ui/struct/UIMountPoint.h"
 
@@ -46,6 +48,10 @@ struct MountedUIEntry {
 
   [[nodiscard]] auto GetMetaDataByDefault(
       const QString& key, QString default_value) const -> QString;
+};
+
+struct ModuleTranslatorInfo {
+  GFTranslatorDataReader reader_;
 };
 
 class GPGFRONTEND_UI_EXPORT UIModuleManager
@@ -95,9 +101,32 @@ class GPGFRONTEND_UI_EXPORT UIModuleManager
    */
   auto QueryMountedEntries(QString id) -> QList<MountedUIEntry>;
 
+  /**
+   * @brief
+   *
+   * @return auto
+   */
+  auto RegisterTranslatorDataReader(Module::ModuleIdentifier id,
+                                    GFTranslatorDataReader reader) -> bool;
+
+  /**
+   * @brief
+   *
+   */
+  void RegisterAllModuleTranslators();
+
+  /**
+   * @brief
+   *
+   */
+  void TranslateAllModulesParams();
+
  private:
   QMap<QString, UIMountPoint> mount_points_;
   QMap<QString, QList<MountedUIEntry>> mounted_entries_;
+  QMap<QString, ModuleTranslatorInfo> translator_data_readers_;
+  QList<QTranslator*> registered_translators_;
+  QList<QByteArray> read_translator_data_list_;
 };
 
 }  // namespace GpgFrontend::UI

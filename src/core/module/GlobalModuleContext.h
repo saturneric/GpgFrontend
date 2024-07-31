@@ -90,6 +90,8 @@ class GPGFRONTEND_CORE_EXPORT GlobalModuleContext : public QObject {
 
   auto ListAllRegisteredModuleID() -> QList<ModuleIdentifier>;
 
+  [[nodiscard]] auto GetRegisteredModuleNum() const -> int;
+
  private:
   class Impl;
   SecureUniquePtr<Impl> p_;

@@ -31,6 +31,7 @@
 #include <utility>
 
 #include "core/module/ModuleManager.h"
+#include "core/utils/CommonUtils.h"
 
 namespace GpgFrontend::UI {
 
@@ -101,4 +102,84 @@ auto MountedUIEntry::GetMetaDataByDefault(
   if (!meta_data_.contains(key)) return default_value;
   return meta_data_[key];
 }
+
+auto UIModuleManager::RegisterTranslatorDataReader(
+    Module::ModuleIdentifier id, GFTranslatorDataReader reader) -> bool {
+  if (reader != nullptr && !id.isEmpty() && Module::IsModuleExists(id)) {
+    LOG_D() << "module " << id << "registering translator reader...";
+    translator_data_readers_[id] = ModuleTranslatorInfo{reader};
+    return true;
+  }
+  return false;
+}
+
+void UIModuleManager::RegisterAllModuleTranslators() {
+  registered_translators_.clear();
+  read_translator_data_list_.clear();
+
+  const auto locale_name = QLocale().name();
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+  for (const auto& reader : translator_data_readers_.asKeyValueRange()) {
+    char* data = nullptr;
+
+    auto data_size = reader.second.reader_(GFStrDup(locale_name), &data);
+    LOG_D() << "module " << reader.first << "reader, read locale "
+            << locale_name << ", data size: " << data_size;
+#else
+  for (auto it = translator_data_readers_.keyValueBegin();
+       it != translator_data_readers_.keyValueEnd(); ++it) {
+    char* data = nullptr;
+
+    auto data_size = it->second.reader_(GFStrDup(locale_name), &data);
+    LOG_D() << "module " << it->first << "reader, read locale " << locale_name
+            << ", data size: " << data_size;
+#endif
+
+    if (data == nullptr) continue;
+
+    if (data_size <= 0) {
+      SecureFree(data);
+      continue;
+    }
+
+    QByteArray b(data, data_size);
+    SecureFree(data);
+
+    auto* translator = new QTranslator(QCoreApplication::instance());
+    auto load = translator->load(
+        reinterpret_cast<uchar*>(const_cast<char*>(b.data())), b.size());
+    if (load && QCoreApplication::installTranslator(translator)) {
+      registered_translators_.append(translator);
+      read_translator_data_list_.append(b);
+    } else {
+      translator->deleteLater();
+    }
+  }
+}
+
+void UIModuleManager::TranslateAllModulesParams() {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+  for (auto entry : mounted_entries_.asKeyValueRange()) {
+    for (auto& m_entry : entry.second) {
+      for (auto param : m_entry.meta_data_.asKeyValueRange()) {
+        m_entry.meta_data_[param.first] =
+            QApplication::translate("GTrC", param.second.toUtf8());
+      }
+    }
+  }
+#else
+  for (auto it = mounted_entries_.keyValueBegin();
+       it != mounted_entries_.keyValueEnd(); ++it) {
+    for (auto& m_entry : it->second) {
+      for (auto it_p = m_entry.meta_data_.keyValueBegin();
+           it_p != m_entry.meta_data_.keyValueEnd(); ++it_p) {
+        m_entry.meta_data_[it_p->first] =
+            QApplication::translate("GTrC", it_p->second.toUtf8());
+      }
+    }
+  }
+#endif
+}
+
 }  // namespace GpgFrontend::UI

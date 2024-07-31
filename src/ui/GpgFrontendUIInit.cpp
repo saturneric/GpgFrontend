@@ -30,12 +30,12 @@
 
 #include <QtNetwork>
 
-#include "UIModuleManager.h"
 #include "core/GpgConstants.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/GpgPassphraseContext.h"
 #include "core/module/ModuleManager.h"
+#include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/main_window/MainWindow.h"
@@ -65,8 +65,9 @@ void WaitEnvCheckingProcess() {
   waiting_dialog->setLabel(waiting_dialog_label);
   waiting_dialog->resize(420, 120);
   QApplication::connect(CoreSignalStation::GetInstance(),
-                        &CoreSignalStation::SignalGoodGnupgEnv, waiting_dialog,
-                        [=]() {
+                        &CoreSignalStation::SignalCoreFullyLoaded,
+                        waiting_dialog, [=]() {
+                          LOG_D() << "ui caught signal: core fully loaded";
                           waiting_dialog->finished(0);
                           waiting_dialog->deleteLater();
                         });
@@ -74,7 +75,7 @@ void WaitEnvCheckingProcess() {
   // new local event looper
   QEventLoop looper;
   QApplication::connect(CoreSignalStation::GetInstance(),
-                        &CoreSignalStation::SignalGoodGnupgEnv, &looper,
+                        &CoreSignalStation::SignalCoreFullyLoaded, &looper,
                         &QEventLoop::quit);
 
   QApplication::connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
@@ -84,9 +85,9 @@ void WaitEnvCheckingProcess() {
   });
 
   auto env_state =
-      Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.basic", 0);
+      Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.all", 0);
   FLOG_D("ui is ready to waiting for env initialized, env_state: %d",
-          env_state);
+         env_state);
 
   // check twice to avoid some unlucky sitations
   if (env_state == 1) {
@@ -194,22 +195,28 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
     // no proxy by default
     QNetworkProxy::setApplicationProxy(QNetworkProxy::NoProxy);
   }
+}
 
-  if (Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.basic", 0) ==
+void WaitingAllInitializationFinished() {
+  if (Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.all", 0) ==
       0) {
+    LOG_D() << "ui init is done, but cor doesn't, going to waiting for core...";
     WaitEnvCheckingProcess();
   }
+  LOG_D() << "application fully initialized...";
 }
 
 auto RunGpgFrontendUI(QApplication* app) -> int {
   // create main window and show it
-  auto main_window = std::make_unique<GpgFrontend::UI::MainWindow>();
+  auto main_window = SecureCreateUniqueObject<GpgFrontend::UI::MainWindow>();
 
   // pre-check, if application need to restart
   if (CommonUtils::GetInstance()->isApplicationNeedRestart()) {
     FLOG_D("application need to restart, before main window init.");
     return kDeepRestartCode;
   }
+
+  LOG_D() << "main window start to initialize...";
 
   // init main window
   main_window->Init();
@@ -257,19 +264,11 @@ void InitUITranslations() {
   }
 }
 
-auto InstallTranslatorFromQMData(const QByteArray& data) -> bool {
-  auto* translator = new QTranslator(QCoreApplication::instance());
-
-  if (translator->load(reinterpret_cast<uchar*>(const_cast<char*>(data.data())),
-                       data.size())) {
-    QCoreApplication::installTranslator(translator);
-    registered_translators.append(translator);
-    loaded_qm_datum.append(data);
-
-    return true;
-  }
-
-  return false;
+void InitModulesTranslations() {
+  // register module's translations
+  UIModuleManager::GetInstance().RegisterAllModuleTranslators();
+  // translate all params
+  UIModuleManager::GetInstance().TranslateAllModulesParams();
 }
 
 }  // namespace GpgFrontend::UI

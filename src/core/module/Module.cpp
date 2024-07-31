@@ -110,10 +110,10 @@ class Module::Impl {
 
     if (qt_env_ver_major != QString::number(QT_VERSION_MAJOR) + "." ||
         qt_env_ver_minor != QString::number(QT_VERSION_MINOR) + ".") {
-      LOG_W() << "uncompatible module: " << identifier_
-              << ", reason sdk version: " << qt_env_ver_
-              << "current sdk version: " << QString::fromUtf8(QT_VERSION_STR)
-              << ", abort...";
+      LOG_W() << "module: " << identifier_
+              << "is not compatible, reason module qt version: " << qt_env_ver_
+              << ", but application qt version: "
+              << QString::fromUtf8(QT_VERSION_STR) << ", abort...";
       return;
     }
 
@@ -274,7 +274,8 @@ auto Module::Register() -> int { return p_->Register(); }
 auto Module::Active() -> int { return p_->Active(); }
 
 auto Module::Exec(EventReference event) -> int {
-  return p_->Exec(std::move(event));
+  LOG_D() << "module" << GetModuleIdentifier() << "executing...";
+  return p_->Exec(event);
 }
 
 auto Module::Deactivate() -> int { return p_->Deactivate(); }

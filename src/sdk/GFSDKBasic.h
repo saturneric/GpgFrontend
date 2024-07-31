@@ -48,6 +48,8 @@ using GFCommandExecuteContext = struct {
   void* data;
 };
 
+using GFTranslatorDataReader = int (*)(const char* locale, char** data);
+
 /**
  * @brief
  *
@@ -129,6 +131,6 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFAppActiveLocale() -> char*;
  * @param size
  * @return auto
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFAppRegisterTranslator(char* data,
-                                                           int size) -> int;
+auto GPGFRONTEND_MODULE_SDK_EXPORT
+GFAppRegisterTranslatorReader(const char* id, GFTranslatorDataReader reader) -> int;
 }

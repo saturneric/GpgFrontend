@@ -46,10 +46,21 @@ Q_DECLARE_LOGGING_CATEGORY(core)
 #define LOG_E() qCCritical(core)
 #define LOG_F() qCFatal(core)
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+#define LOG_F(...) qCFatal(core)
+#else
+#define LOG_F(...) qFatal()
+#endif
+
 #define FLOG_D(...) qCDebug(core, __VA_ARGS__)
 #define FLOG_I(...) qCInfo(core, __VA_ARGS__)
 #define FLOG_W(...) qCWarning(core, __VA_ARGS__)
 #define FLOG_E(...) qCCritical(core, __VA_ARGS__)
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
 #define FLOG_F(...) qCFatal(core, __VA_ARGS__)
+#else
+#define FLOG_F(...) qFatal(__VA_ARGS__)
+#endif
 
 #endif

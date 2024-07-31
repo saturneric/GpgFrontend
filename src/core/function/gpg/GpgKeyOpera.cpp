@@ -258,7 +258,7 @@ void GpgKeyOpera::GenerateSubkey(const GpgKey& key,
 
         auto err = gpgme_op_createsubkey(ctx.DefaultContext(),
                                          static_cast<gpgme_key_t>(key),
-                                         algo.toUtf8(), 0, expires, flags);
+                                         algo.toLatin1(), 0, expires, flags);
         if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
           data_object->Swap({GpgGenerateKeyResult{}});
           return err;
@@ -297,7 +297,7 @@ auto GpgKeyOpera::GenerateSubkeySync(const GpgKey& key,
 
         auto err = gpgme_op_createsubkey(ctx.DefaultContext(),
                                          static_cast<gpgme_key_t>(key),
-                                         algo.toUtf8(), 0, expires, flags);
+                                         algo.toLatin1(), 0, expires, flags);
 
         if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
           data_object->Swap({GpgGenerateKeyResult{}});

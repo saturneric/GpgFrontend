@@ -56,13 +56,13 @@ auto GPGFRONTEND_CORE_EXPORT GFCompareSoftwareVersion(const QString &a,
  *
  * @return char*
  */
-auto GFStrDup(const QString &) -> char *;
+auto GPGFRONTEND_CORE_EXPORT GFStrDup(const QString &) -> char *;
 
 /**
  * @brief
  *
  * @return QString
  */
-auto GFUnStrDup(const char *) -> QString;
+auto GPGFRONTEND_CORE_EXPORT GFUnStrDup(const char *) -> QString;
 
 }  // namespace GpgFrontend

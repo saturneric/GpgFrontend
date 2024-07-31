@@ -289,36 +289,36 @@ void InitGpgFrontendCore(CoreInitArgs args) {
     return;
   }
 
+  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+
+  // read settings from config file
+  auto forbid_all_gnupg_connection =
+      settings.value("network/forbid_all_gnupg_connection", false).toBool();
+
+  auto auto_import_missing_key =
+      settings.value("network/auto_import_missing_key", false).toBool();
+
+  auto use_custom_key_database_path =
+      settings.value("gnupg/use_custom_key_database_path", false).toBool();
+
+  auto custom_key_database_path =
+      settings.value("gnupg/custom_key_database_path", QString{}).toString();
+
+  auto custom_gnupg_install_path =
+      settings.value("gnupg/custom_gnupg_install_path", QString{}).toString();
+
+  auto use_pinentry_as_password_input_dialog =
+      settings
+          .value("gnupg/use_pinentry_as_password_input_dialog",
+                 QString::fromLocal8Bit(qgetenv("container")) != "flatpak")
+          .toBool();
+
+  // try to restart all components
+  auto restart_all_gnupg_components_on_start =
+      settings.value("gnupg/restart_gpg_agent_on_start", false).toBool();
+
   auto* task = new Thread::Task(
-      [args, gnupg_install_fs_path](const DataObjectPtr&) -> int {
-        auto settings = GlobalSettingStation::GetInstance().GetSettings();
-        // read settings from config file
-        auto forbid_all_gnupg_connection =
-            settings.value("network/forbid_all_gnupg_connection", false)
-                .toBool();
-
-        auto auto_import_missing_key =
-            settings.value("network/auto_import_missing_key", false).toBool();
-
-        auto use_custom_key_database_path =
-            settings.value("gnupg/use_custom_key_database_path", false)
-                .toBool();
-
-        auto custom_key_database_path =
-            settings.value("gnupg/custom_key_database_path", QString{})
-                .toString();
-
-        auto custom_gnupg_install_path =
-            settings.value("gnupg/custom_gnupg_install_path", QString{})
-                .toString();
-
-        auto use_pinentry_as_password_input_dialog =
-            settings
-                .value(
-                    "gnupg/use_pinentry_as_password_input_dialog",
-                    QString::fromLocal8Bit(qgetenv("container")) != "flatpak")
-                .toBool();
-
+      [=](const DataObjectPtr&) -> int {
         // key database path
         QString key_database_fs_path;
 
@@ -390,15 +390,10 @@ void InitGpgFrontendCore(CoreInitArgs args) {
         Module::UpsertRTValue("core", "env.state.basic", 1);
         CoreSignalStation::GetInstance()->SignalGoodGnupgEnv();
 
-        // try to restart all components
-        auto restart_all_gnupg_components_on_start =
-            settings.value("gnupg/restart_gpg_agent_on_start", false).toBool();
-
         if (restart_all_gnupg_components_on_start) {
           GpgAdvancedOperator::RestartGpgComponents();
         }
 
-        Module::UpsertRTValue("core", "env.state.all", 1);
         return 0;
       },
       "core_init_task");
@@ -411,6 +406,49 @@ void InitGpgFrontendCore(CoreInitArgs args) {
   // it may take a few seconds or minutes
   GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
+      ->PostTask(task);
+}
+
+void StartMonitorCoreInitializationStatus() {
+  auto* task = new Thread::Task(
+      [=](const DataObjectPtr&) -> int {
+        for (;;) {
+          if (Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.basic",
+                                                      0)) {
+            break;
+          }
+
+          LOG_D() << "monitor: core env is still initializing, waiting...";
+          QThread::msleep(15);
+        }
+
+        // waiting for module first
+        for (;;) {
+          if (Module::ModuleManager::GetInstance().IsAllModulesRegistered())
+            break;
+
+          LOG_D() << "monitor: some modules are still going to be registered, "
+                     "waiting...";
+          QThread::msleep(15);
+        }
+        LOG_D() << "monitor: good, all module are registered.";
+
+        LOG_D()
+            << "monitor: core is fully initialized, sending signal to ui...";
+        Module::UpsertRTValue("core", "env.state.all", 1);
+        CoreSignalStation::GetInstance()->SignalCoreFullyLoaded();
+        return 0;
+      },
+      "waiting_core_init_task");
+
+  QObject::connect(task, &Thread::Task::SignalTaskEnd, [=]() {
+    LOG_D() << "monitor task ended, call back to main thead.";
+  });
+
+  // start the thread to check ctx and gnupg state
+  // it may take a few seconds or minutes
+  GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_External_Process)
       ->PostTask(task);
 }
 

@@ -156,8 +156,8 @@ void KeyPairSubkeyTab::create_subkey_list() {
   subkey_list_->setAlternatingRowColors(true);
 
   QStringList labels;
-  labels << tr("Subkey ID") << tr("Key Size") << tr("Algo") << tr("Create Date")
-         << tr("Expire Date");
+  labels << tr("Subkey ID") << tr("Key Size") << tr("Algorithm")
+         << tr("Algorithm Detail") << tr("Create Date") << tr("Expire Date");
 
   subkey_list_->setHorizontalHeaderLabels(labels);
   subkey_list_->horizontalHeader()->setStretchLastSection(false);
@@ -190,17 +190,21 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
     tmp2->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 2, tmp2);
 
-    auto* tmp3 =
-        new QTableWidgetItem(QLocale().toString(subkeys.GetCreateTime()));
+    auto* tmp3 = new QTableWidgetItem(subkeys.GetKeyAlgo());
     tmp3->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 3, tmp3);
 
     auto* tmp4 =
+        new QTableWidgetItem(QLocale().toString(subkeys.GetCreateTime()));
+    tmp4->setTextAlignment(Qt::AlignCenter);
+    subkey_list_->setItem(row, 4, tmp4);
+
+    auto* tmp5 =
         new QTableWidgetItem(subkeys.GetExpireTime().toSecsSinceEpoch() == 0
                                  ? tr("Never Expire")
                                  : QLocale().toString(subkeys.GetExpireTime()));
-    tmp4->setTextAlignment(Qt::AlignCenter);
-    subkey_list_->setItem(row, 4, tmp4);
+    tmp5->setTextAlignment(Qt::AlignCenter);
+    subkey_list_->setItem(row, 5, tmp5);
 
     if (!row) {
       for (auto i = 0; i < subkey_list_->columnCount(); i++) {
@@ -292,6 +296,7 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   }
 
   fingerprint_var_label_->setText(BeautifyFingerprint(subkey.GetFingerprint()));
+  fingerprint_var_label_->setWordWrap(true);  // for x448 and ed448
 }
 
 void KeyPairSubkeyTab::create_subkey_opera_menu() {

@@ -120,6 +120,7 @@ KeyPairDetailTab::KeyPairDetailTab(const QString& key_id, QWidget* parent)
   fingerprint_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
   fingerprint_var_label_->setStyleSheet("margin-left: 0; margin-right: 5;");
   fingerprint_var_label_->setAlignment(Qt::AlignCenter);
+  fingerprint_var_label_->setMinimumWidth(400);
   auto* hbox_fp = new QHBoxLayout();
 
   hbox_fp->addStretch();
@@ -264,6 +265,7 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   algorithm_var_label_->setText(key_algo_val);
   algorithm_detail_var_label_->setText(key_algo_detail_val);
   fingerprint_var_label_->setText(BeautifyFingerprint(key_.GetFingerprint()));
+  fingerprint_var_label_->setWordWrap(true);  // for x448 and ed448
 
   icon_label_->hide();
   exp_label_->hide();

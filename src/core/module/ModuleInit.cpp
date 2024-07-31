@@ -38,15 +38,17 @@
 
 namespace GpgFrontend::Module {
 
-void LoadModuleFromPath(const QString& mods_path, bool integrated) {
+auto SearchModuleFromPath(const QString& mods_path,
+                          bool integrated) -> QMap<QString, bool> {
+  QMap<QString, bool> m;
   for (const auto& module_library_name : QDir(mods_path).entryList(
            QStringList() << "*.so" << "*.dll" << "*.dylib", QDir::Files)) {
-    ModuleManager::GetInstance().LoadModule(
-        mods_path + "/" + module_library_name, integrated);
+    m[mods_path + "/" + module_library_name] = integrated;
   }
+  return m;
 }
 
-auto LoadIntegratedMods() -> bool {
+auto LoadIntegratedMods() -> QMap<QString, bool> {
   const auto exec_binary_path = QCoreApplication::applicationDirPath();
   QString mods_path = exec_binary_path + "/modules";
 
@@ -71,37 +73,63 @@ auto LoadIntegratedMods() -> bool {
   if (!QDir(mods_path).exists()) {
     LOG_W() << "integrated module directory at path: " << mods_path
             << " not found, abort...";
-    return false;
+    return {};
   }
 
-  LoadModuleFromPath(mods_path, true);
-
-  return true;
+  return SearchModuleFromPath(mods_path, true);
 }
 
-auto LoadExternalMods() -> bool {
+auto LoadExternalMods() -> QMap<QString, bool> {
   auto mods_path =
       GpgFrontend::GlobalSettingStation::GetInstance().GetModulesDir();
 
   if (!QDir(mods_path).exists()) {
     LOG_W() << "external module directory at path " << mods_path
             << " not found, abort...";
-    return false;
+    return {};
   }
 
-  LoadModuleFromPath(mods_path, false);
-
-  return true;
+  return SearchModuleFromPath(mods_path, false);
 }
 
 void LoadGpgFrontendModules(ModuleInitArgs) {
+  // give user ability to give up all modules
+  auto disable_loading_all_modules =
+      GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("basic/disable_loading_all_modules", false)
+          .toBool();
+  if (disable_loading_all_modules) return;
+
   // must init at default thread before core
-  Thread::TaskRunnerGetter::GetInstance().GetTaskRunner()->PostTask(
-      new Thread::Task(
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
+      ->PostTask(new Thread::Task(
           [](const DataObjectPtr&) -> int {
-            return LoadIntegratedMods() && LoadExternalMods() ? 0 : -1;
+            QMap<QString, bool> modules = LoadIntegratedMods();
+            modules.insert(LoadExternalMods());
+
+            auto& manager = ModuleManager::GetInstance();
+            manager.SetNeedRegisterModulesNum(static_cast<int>(modules.size()));
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+            for (const auto& m : modules.asKeyValueRange()) {
+              manager.LoadModule(m.first, m.second);
+            }
+#else
+            for (auto it = modules.keyValueBegin(); it != modules.keyValueEnd();
+                 ++it) {
+              manager.LoadModule(it->first, it->second);
+            }
+#endif
+
+            LOG_D() << "all modules are loaded into memory.";
+            return 0;
           },
           "modules_system_init_task"));
+
+  LOG_D() << "dear module manager, is all module registered? answer: "
+          << ModuleManager::GetInstance().IsAllModulesRegistered();
 }
 
 void ShutdownGpgFrontendModules() {}

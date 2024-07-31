@@ -45,6 +45,12 @@ void GPGFRONTEND_UI_EXPORT PreInitGpgFrontendUI();
 void GPGFRONTEND_UI_EXPORT InitGpgFrontendUI(QApplication *);
 
 /**
+ * @brief
+ *
+ */
+void GPGFRONTEND_UI_EXPORT WaitingAllInitializationFinished();
+
+/**
  * @brief init the UI library
  *
  */
@@ -59,7 +65,6 @@ auto GPGFRONTEND_UI_EXPORT RunGpgFrontendUI(QApplication *) -> int;
  * @brief
  *
  */
-auto GPGFRONTEND_UI_EXPORT InstallTranslatorFromQMData(const QByteArray &data)
-    -> bool;
+void GPGFRONTEND_UI_EXPORT InitModulesTranslations();
 
 };  // namespace GpgFrontend::UI
