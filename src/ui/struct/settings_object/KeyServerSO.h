@@ -65,6 +65,9 @@ struct KeyServerSO {
   }
 
   auto GetTargetServer() -> QString {
+    LOG_D() << "default key server index" << default_server
+            << "server list size" << server_list.size();
+
     if (server_list.empty()) this->ResetDefaultServerList();
     if (default_server >= server_list.size()) default_server = 0;
     return server_list[default_server];

@@ -42,7 +42,7 @@ GpgFrontend::UI::KeyServerImportTask::KeyServerImportTask(
   HoldOnLifeCycle(true);
 
   if (keyserver_url_.isEmpty()) {
-    KeyServerSO key_server(SettingsObject("general_settings_state"));
+    KeyServerSO key_server(SettingsObject("key_server"));
     keyserver_url_ = key_server.GetTargetServer();
   }
 }

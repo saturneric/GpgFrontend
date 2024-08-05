@@ -60,7 +60,7 @@ class KeyServerSearchTask : public Thread::Task {
    * @param result
    */
   void SignalKeyServerSearchResult(QNetworkReply::NetworkError reply,
-                                   QByteArray buffer);
+                                   QString err_string, QByteArray buffer);
 
  private slots:
 

@@ -560,7 +560,7 @@ void CommonUtils::RemoveKeyFromFavourite(const GpgKey &key) {
  *
  */
 void CommonUtils::ImportKeyFromKeyServer(const KeyIdArgsList &key_ids) {
-  KeyServerSO key_server(SettingsObject("general_settings_state"));
+  KeyServerSO key_server(SettingsObject("key_server"));
   auto target_keyserver = key_server.GetTargetServer();
 
   auto *task = new KeyServerImportTask(target_keyserver, key_ids);
