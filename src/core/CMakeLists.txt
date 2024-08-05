@@ -50,11 +50,6 @@ generate_export_header(gpgfrontend_core EXPORT_FILE_NAME "${_export_file}")
 # compile definitions
 target_compile_definitions(gpgfrontend_core PRIVATE GF_CORE_PRIVATE)
 
-# mimalloc (except apple macos)
-if(NOT APPLE)
-  target_link_libraries(gpgfrontend_core PUBLIC mimalloc)
-endif()
-
 # qt-aes
 target_sources(gpgfrontend_core PRIVATE
   ${CMAKE_SOURCE_DIR}/third_party/qt-aes/qaesencryption.cpp)

@@ -83,14 +83,6 @@ jobs:
           sudo make install
           cd ${{github.workspace}}
 
-      - name: Build mimalloc (Linux)
-        run: |
-          cd ${{github.workspace}}/third_party/mimalloc
-          mkdir build && cd build
-          cmake -G Ninja -DMI_SECURE=ON ..
-          ninja
-          sudo ninja install
-
       - name: Build googletest (Linux)
         run: |
           cd ${{github.workspace}}/third_party/googletest
