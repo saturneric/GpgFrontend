@@ -35,7 +35,7 @@
 #include <QtWidgets>
 
 // ui symbol exports macro
-#include "GpgFrontendUIExport.h"
+#include "ui/GpgFrontendUIExport.h"
 
 // private declare area of ui
 #ifdef GF_UI_PRIVATE
