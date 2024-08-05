@@ -28,42 +28,22 @@
 
 #include "SecureMemoryAllocator.h"
 
+#include <cstdlib>
+
 namespace GpgFrontend {
 
-#if defined(__APPLE__) && defined(__MACH__)
-
 auto SecureMemoryAllocator::Allocate(std::size_t size) -> void* {
-  auto* addr = malloc(size);
+  auto* addr = std::malloc(size);
   if (addr == nullptr) FLOG_F("malloc failed!");
   return addr;
 }
 
 auto SecureMemoryAllocator::Reallocate(void* ptr, std::size_t size) -> void* {
-  auto* addr = realloc(ptr, size);
+  auto* addr = std::realloc(ptr, size);
   if (addr == nullptr) FLOG_F("realloc failed!");
   return addr;
 }
 
-void SecureMemoryAllocator::Deallocate(void* p) { free(p); }
-
-#else
-
-#include <mimalloc.h>
-
-auto SecureMemoryAllocator::Allocate(std::size_t size) -> void* {
-  auto* addr = mi_malloc(size);
-  if (addr == nullptr) FLOG_F("malloc failed!");
-  return addr;
-}
-
-auto SecureMemoryAllocator::Reallocate(void* ptr, std::size_t size) -> void* {
-  auto* addr = mi_realloc(ptr, size);
-  if (addr == nullptr) FLOG_F("realloc memory failed!");
-  return addr;
-}
-
-void SecureMemoryAllocator::Deallocate(void* p) { mi_free(p); }
-
-#endif
+void SecureMemoryAllocator::Deallocate(void* p) { std::free(p); }
 
 }  // namespace GpgFrontend

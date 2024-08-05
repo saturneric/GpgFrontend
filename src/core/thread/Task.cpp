@@ -164,7 +164,8 @@ class Task::Impl {
   }
 };
 
-Task::Task(QString name) : p_(new Impl(this, name)) {}
+Task::Task(QString name)
+    : p_(SecureCreateUniqueObject<Task::Impl>(this, name)) {}
 
 Task::Task(TaskRunnable runnable, QString name, DataObjectPtr data_object)
     : p_(SecureCreateUniqueObject<Impl>(this, runnable, name, data_object)) {}

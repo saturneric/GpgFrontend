@@ -125,12 +125,15 @@ auto KeyServerImportDialog::create_combo_box() -> QComboBox* {
   combo_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
   try {
-    KeyServerSO key_server(SettingsObject("general_settings_state"));
+    KeyServerSO key_server(SettingsObject("key_server"));
     const auto& key_server_list = key_server.server_list;
     for (const auto& key_server : key_server_list) {
       combo_box->addItem(key_server);
     }
-    combo_box->setCurrentText(key_server.GetTargetServer());
+    auto target_key_server = key_server.GetTargetServer();
+    LOG_D() << "set combo box to key server: " << target_key_server;
+
+    combo_box->setCurrentText(target_key_server);
   } catch (...) {
     FLOG_W("setting operation error server_list default_server");
   }
@@ -207,7 +210,7 @@ void KeyServerImportDialog::slot_search() {
 }
 
 void KeyServerImportDialog::slot_search_finished(
-    QNetworkReply::NetworkError error, QByteArray buffer) {
+    QNetworkReply::NetworkError error, QString err_string, QByteArray buffer) {
   keys_table_->clearContents();
   keys_table_->setRowCount(0);
 
@@ -226,6 +229,7 @@ void KeyServerImportDialog::slot_search_finished(
         break;
       default:
         set_message(tr("Connection Error"), true);
+        QMessageBox::critical(this, tr("Connection Error"), err_string);
     }
     return;
   }
@@ -380,7 +384,7 @@ void KeyServerImportDialog::SlotImport(const KeyIdArgsListPtr& keys) {
     target_keyserver = key_server_combo_box_->currentText();
   }
   if (target_keyserver.isEmpty()) {
-    KeyServerSO key_server(SettingsObject("general_settings_state"));
+    KeyServerSO key_server(SettingsObject("key_server"));
     target_keyserver = key_server.GetTargetServer();
   }
   std::vector<QString> key_ids;

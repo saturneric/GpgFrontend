@@ -94,7 +94,7 @@ KeyserverTab::KeyserverTab(QWidget* parent)
   connect(ui_->actionSet_As_Default, &QAction::triggered, [=]() {
     const auto row_size = ui_->keyServerListTable->rowCount();
     for (int i = 0; i < row_size; i++) {
-      const auto item = ui_->keyServerListTable->item(i, 1);
+      auto* const item = ui_->keyServerListTable->item(i, 1);
       if (!item->isSelected()) continue;
       this->default_key_server_ = item->text();
     }
@@ -164,18 +164,21 @@ void KeyserverTab::slot_add_key_server() {
 
 void KeyserverTab::ApplySettings() {
   SettingsObject key_server_json("key_server");
-  KeyServerSO key_server;
+  KeyServerSO key_server_so;
 
-  auto& key_server_list = key_server.server_list;
+  auto& key_server_list = key_server_so.server_list;
   const auto list_size = key_server_str_list_.size();
   for (int i = 0; i < list_size; i++) {
     const auto key_server = key_server_str_list_[i];
     if (default_key_server_ == key_server) {
-      key_server_json["default_server"] = i;
+      LOG_D() << "set default key server as:" << default_key_server_
+              << "index: " << i;
+      key_server_so.default_server = i;
     }
     key_server_list << key_server;
   }
-  key_server_json.Store(key_server.ToJson());
+  LOG_D() << "key server settings json:" << key_server_so.ToJson();
+  key_server_json.Store(key_server_so.ToJson());
 }
 
 void KeyserverTab::slot_refresh_table() {

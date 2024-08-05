@@ -94,11 +94,12 @@ void KeyUploadDialog::SlotUpload() {
 
 void KeyUploadDialog::slot_upload_key_to_server(
     const GpgFrontend::GFBuffer& keys_data) {
-  KeyServerSO key_server(SettingsObject("general_settings_state"));
-  auto target_keyserver = key_server.GetTargetServer();
+  KeyServerSO key_server(SettingsObject("key_server"));
+  auto target_key_server = key_server.GetTargetServer();
 
-  QUrl req_url(target_keyserver + "/pks/add");
-  auto* qnam = new QNetworkAccessManager(this);
+  LOG_D() << "upload public key using key server" << target_key_server;
+  QUrl req_url(target_key_server + "/pks/add");
+  auto* q_nam = new QNetworkAccessManager(this);
 
   // Building Post Data
   QByteArray post_data;
@@ -124,7 +125,7 @@ void KeyUploadDialog::slot_upload_key_to_server(
   post_data.append("keytext").append("=").append(data);
 
   // Send Post Data
-  QNetworkReply* reply = qnam->post(request, post_data);
+  QNetworkReply* reply = q_nam->post(request, post_data);
   connect(reply, &QNetworkReply::finished, this,
           &KeyUploadDialog::slot_upload_finished);
 

@@ -55,11 +55,6 @@ endif()
 
 find_package(OpenSSL REQUIRED)
 
-# mimalloc
-if(NOT APPLE)
-  find_package(mimalloc REQUIRED)
-endif()
-
 # Set Build Information
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h @ONLY)
@@ -281,14 +276,6 @@ if(BUILD_APPLICATION AND MINGW)
   if(STABLE_BUILD_ONLY_APPLICATION)
     unset(_libDllPath)
     file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgpgfrontend_*.dll")
-    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-    unset(_libDllPath)
-    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libmimalloc*.dll")
-    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-    unset(_libDllPath)
-    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/mimalloc*.dll")
     list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
     unset(_libDllPath)

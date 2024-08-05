@@ -168,6 +168,7 @@ void MainWindow::create_actions() {
           &MainWindow::slot_clean_double_line_breaks);
 
   open_settings_act_ = new QAction(tr("Settings"), this);
+  open_settings_act_->setIcon(QIcon(":/icons/setting.png"));
   open_settings_act_->setToolTip(tr("Open settings dialog"));
   open_settings_act_->setMenuRole(QAction::PreferencesRole);
   open_settings_act_->setShortcut(QKeySequence::Preferences);

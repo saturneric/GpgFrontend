@@ -61,6 +61,12 @@ void GpgFrontend::UI::KeyServerSearchTask::dealing_reply_from_server() {
   if (network_reply == QNetworkReply::NoError) {
     buffer = reply_->readAll();
   }
-  emit SignalKeyServerSearchResult(network_reply, buffer);
+
+  LOG_D() << "reply from key server:" << network_reply
+          << "err string:" << reply_->errorString()
+          << "reply:" << QString::fromLatin1(buffer);
+
+  emit SignalKeyServerSearchResult(network_reply, reply_->errorString(),
+                                   buffer);
   emit SignalTaskShouldEnd(0);
 }

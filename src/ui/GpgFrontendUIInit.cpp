@@ -48,7 +48,7 @@ QList<QByteArray> loaded_qm_datum;
 extern void InitUITranslations();
 
 void WaitEnvCheckingProcess() {
-  FLOG_D("need to waiting for env checking process");
+  FLOG_D("need to wait for env checking process");
 
   // create and show loading window before starting the main window
   auto* waiting_dialog = new QProgressDialog();
@@ -86,8 +86,7 @@ void WaitEnvCheckingProcess() {
 
   auto env_state =
       Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.all", 0);
-  FLOG_D("ui is ready to waiting for env initialized, env_state: %d",
-         env_state);
+  FLOG_D("ui is ready to wait for env initialized, env_state: %d", env_state);
 
   // check twice to avoid some unlucky sitations
   if (env_state == 1) {
@@ -200,7 +199,7 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
 void WaitingAllInitializationFinished() {
   if (Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.all", 0) ==
       0) {
-    LOG_D() << "ui init is done, but cor doesn't, going to waiting for core...";
+    LOG_D() << "ui init is done, but core doesn't, going to wait for core...";
     WaitEnvCheckingProcess();
   }
   LOG_D() << "application fully initialized...";

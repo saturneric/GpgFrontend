@@ -117,7 +117,7 @@ void KeyList::init() {
                     : global_column_filter_ & ~GpgKeyTableColumn::kCREATE_DATE);
       });
 
-  subkeys_number_column_action_ = new QAction("Subkey(s)", this);
+  subkeys_number_column_action_ = new QAction(tr("Subkey(s)"), this);
   subkeys_number_column_action_->setCheckable(true);
   subkeys_number_column_action_->setChecked(
       (global_column_filter_ & GpgKeyTableColumn::kSUBKEYS_NUMBER) !=
@@ -131,7 +131,7 @@ void KeyList::init() {
                 : global_column_filter_ & ~GpgKeyTableColumn::kSUBKEYS_NUMBER);
       });
 
-  comment_column_action_ = new QAction("Comment", this);
+  comment_column_action_ = new QAction(tr("Comment"), this);
   comment_column_action_->setCheckable(true);
   comment_column_action_->setChecked(
       (global_column_filter_ & GpgKeyTableColumn::kCOMMENT) !=

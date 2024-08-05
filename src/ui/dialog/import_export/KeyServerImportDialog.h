@@ -90,7 +90,7 @@ class KeyServerImportDialog : public GeneralDialog {
    *
    */
   void slot_search_finished(QNetworkReply::NetworkError reply,
-                            QByteArray buffer);
+                            QString err_string, QByteArray buffer);
 
   /**
    * @brief

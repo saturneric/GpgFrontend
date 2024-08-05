@@ -83,15 +83,6 @@ jobs:
           sudo make install
           cd ${{github.workspace}}
 
-      - name: Build mimalloc (Linux)
-        run: |
-          git clone --depth 1 --branch v2.1.7 https://github.com/microsoft/mimalloc.git ${{github.workspace}}/third_party/mimalloc
-          cd ${{github.workspace}}/third_party/mimalloc
-          mkdir build && cd build
-          cmake -G Ninja -DMI_SECURE=ON ..
-          ninja
-          sudo ninja install
-
       - name: Build googletest (Linux)
         run: |
           git clone --depth 1 --branch v1.15.0 https://github.com/google/googletest.git ${{github.workspace}}/third_party/googletest

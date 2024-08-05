@@ -236,11 +236,10 @@ class GpgContext::Impl {
                              const GpgContextInitArgs &args) -> bool {
     assert(ctx != nullptr);
 
-    if (args.custom_gpgconf && !args.custom_gpgconf_path.isEmpty()) {
-      LOG_D() << "set custom gpgconf path: " << args.custom_gpgconf_path;
-      auto err =
-          gpgme_ctx_set_engine_info(ctx, GPGME_PROTOCOL_GPGCONF,
-                                    args.custom_gpgconf_path.toUtf8(), nullptr);
+    if (!args.gpgconf_path.isEmpty()) {
+      LOG_D() << "set custom gpgconf path: " << args.gpgconf_path;
+      auto err = gpgme_ctx_set_engine_info(ctx, GPGME_PROTOCOL_GPGCONF,
+                                           args.gpgconf_path.toUtf8(), nullptr);
 
       if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
         LOG_W() << "set gpg context engine info error: "
@@ -284,6 +283,7 @@ class GpgContext::Impl {
 
     // set custom gpg key db path
     if (!args_.db_path.isEmpty()) {
+      LOG_D() << "set context database path to" << args_.db_path;
       Module::UpsertRTValue("core", "gpgme.ctx.database_path", args_.db_path);
     }
 

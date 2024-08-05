@@ -2,6 +2,710 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="de_DE">
 <context>
+    <name>AppearanceSettings</name>
+    <message>
+        <location filename="../../../../ui/AppearanceSettings.ui" line="14"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="212"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="212"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="212"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="212"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="212"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="212"/>
+        <source>Appearance Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/AppearanceSettings.ui" line="22"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="213"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="213"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="213"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="213"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="213"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="213"/>
+        <source>General</source>
+        <translation type="unfinished">Allgemein</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/AppearanceSettings.ui" line="30"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="214"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="214"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="214"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="214"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="214"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="214"/>
+        <source>Theme</source>
+        <translation type="unfinished">Thema</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/AppearanceSettings.ui" line="42"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="215"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="215"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="215"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="215"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="215"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="215"/>
+        <source>Save window size and position on exit.</source>
+        <translation type="unfinished">Fenstergröße und Position beim Beenden speichern.</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/AppearanceSettings.ui" line="52"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="216"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="216"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="216"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="216"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="216"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="216"/>
+        <source>Font Size</source>
+        <translation type="unfinished">Schriftgröße</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/AppearanceSettings.ui" line="60"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="217"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="217"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="217"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="217"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="217"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="217"/>
+        <source>Text Editor</source>
+        <translation type="unfinished">Texteditor</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/AppearanceSettings.ui" line="84"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="218"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="218"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="218"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="218"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="218"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="218"/>
+        <source>Information Board</source>
+        <translation type="unfinished">Informationstafel</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/AppearanceSettings.ui" line="109"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="219"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="219"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="219"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="219"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="219"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="219"/>
+        <source>Toolbar Icon</source>
+        <translation type="unfinished">Symbol für die Symbolleiste</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/AppearanceSettings.ui" line="117"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="220"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="220"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="220"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="220"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="220"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="220"/>
+        <source>Size</source>
+        <translation type="unfinished">Größe</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/AppearanceSettings.ui" line="124"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="221"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="221"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="221"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="221"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="221"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="221"/>
+        <source>small</source>
+        <translation type="unfinished">klein</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/AppearanceSettings.ui" line="131"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="222"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="222"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="222"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="222"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="222"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="222"/>
+        <source>medium</source>
+        <translation type="unfinished">Mittel</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/AppearanceSettings.ui" line="138"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="223"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="223"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="223"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="223"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="223"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="223"/>
+        <source>large</source>
+        <translation type="unfinished">groß</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/AppearanceSettings.ui" line="149"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="224"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="224"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="224"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="224"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="224"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="224"/>
+        <source>Style</source>
+        <translation type="unfinished">Stil</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/AppearanceSettings.ui" line="156"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="225"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="225"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="225"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="225"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="225"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="225"/>
+        <source>just text</source>
+        <translation type="unfinished">nur Text</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/AppearanceSettings.ui" line="163"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="226"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="226"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="226"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="226"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="226"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="226"/>
+        <source>just icons</source>
+        <translation type="unfinished">nur Symbole</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/AppearanceSettings.ui" line="170"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="227"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="227"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="227"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="227"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="227"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_AppearanceSettings.h" line="227"/>
+        <source>text and icons</source>
+        <translation type="unfinished">Text und Symbole</translation>
+    </message>
+</context>
+<context>
+    <name>EmailListEditorDialog</name>
+    <message>
+        <location filename="../../../../ui/EmailListEditor.ui" line="14"/>
+        <source>Email List Editor</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/EmailListEditor.ui" line="22"/>
+        <source>Email List:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/EmailListEditor.ui" line="45"/>
+        <source>Add An Email Address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/EmailListEditor.ui" line="52"/>
+        <source>Tips: You can double-click the email address in the edit list, or click the email to pop up the option menu.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/EmailListEditor.ui" line="64"/>
+        <source>Delete Selected Email Address</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>FilePage</name>
+    <message>
+        <location filename="../../../../ui/FilePage.ui" line="26"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_FilePage.h" line="143"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_FilePage.h" line="143"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_FilePage.h" line="143"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_FilePage.h" line="143"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_FilePage.h" line="143"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_FilePage.h" line="143"/>
+        <source>Form</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/FilePage.ui" line="153"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_FilePage.h" line="148"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_FilePage.h" line="148"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_FilePage.h" line="148"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_FilePage.h" line="148"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_FilePage.h" line="148"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_FilePage.h" line="148"/>
+        <source>...</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>GTrC</name>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnuPGInfoGatheringModule.cpp" line="81"/>
+        <source>GnuPG</source>
+        <translation type="unfinished">GnuPG</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_ver_check/VersionCheckingModule.cpp" line="59"/>
+        <source>Update</source>
+        <translation type="unfinished">Aktualisieren</translation>
+    </message>
+</context>
+<context>
+    <name>GeneralSettings</name>
+    <message>
+        <location filename="../../../../ui/GeneralSettings.ui" line="14"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="178"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="178"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="178"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="178"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="178"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="178"/>
+        <source>Form</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GeneralSettings.ui" line="22"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="179"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="179"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="179"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="179"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="179"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="179"/>
+        <source>Cache</source>
+        <translation type="unfinished">Zwischenspeicher</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GeneralSettings.ui" line="30"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="180"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="180"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="180"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="180"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="180"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="180"/>
+        <source>Clear gpg password cache when closing GpgFrontend.</source>
+        <translation type="unfinished">Gpg-Passwort-Cache leeren, wenn GpgFrontend geschlossen wird.</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GeneralSettings.ui" line="37"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="181"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="181"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="181"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="181"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="181"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="181"/>
+        <source>Automatically restore unsaved Text Editor pages after an application crash.</source>
+        <translation type="unfinished">Nicht gespeicherte Texteditor-Seiten nach einem Anwendungsabsturz 	 wiederherstellen.</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GeneralSettings.ui" line="49"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="182"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="182"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="182"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="182"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="182"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="182"/>
+        <source>Operation</source>
+        <translation type="unfinished">Vorgang</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GeneralSettings.ui" line="57"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="183"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="183"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="183"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="183"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="183"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="183"/>
+        <source>Import files dropped on the Key List without confirmation.</source>
+        <translation type="unfinished">Dateien ohne Nachfrage importieren, die auf der Schlüsselliste abgelegt wurden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GeneralSettings.ui" line="64"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="184"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="184"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="184"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="184"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="184"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="184"/>
+        <source>Enable to use longer key expiration date.</source>
+        <translation type="unfinished">Aktivieren, um ein längeres Schlüsselablaufdatum zu verwenden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GeneralSettings.ui" line="71"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="185"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="185"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="185"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="185"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="185"/>
+        <source>Disable loading of all modules (including integrated modules)</source>
+        <translation type="unfinished">Deaktivieren des Ladens aller Module (einschließlich integrierter Module)</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GeneralSettings.ui" line="83"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="186"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="186"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="186"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="186"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="186"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="186"/>
+        <source>Language</source>
+        <translation type="unfinished">Sprache</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GeneralSettings.ui" line="98"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="187"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="187"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="187"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="187"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="187"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="187"/>
+        <source>NOTE: GpgFrontend will restart automatically if you change the language!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GeneralSettings.ui" line="110"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="188"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="188"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="188"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="188"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="188"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="188"/>
+        <source>Data</source>
+        <translation type="unfinished">Daten</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GeneralSettings.ui" line="118"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="189"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="189"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="189"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="189"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="189"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="189"/>
+        <source>Reveal in File Explorer</source>
+        <translation type="unfinished">Im Datei-Explorer öffnen</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GeneralSettings.ui" line="125"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="190"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="190"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="190"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="190"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="190"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="190"/>
+        <source>Clear All Log Files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GeneralSettings.ui" line="132"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="191"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="191"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="191"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="191"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="191"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="191"/>
+        <source>Clear All Data Objects Files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GeneralSettings.h" line="185"/>
+        <source>Provide more options in the signing process.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>GnuPGConfigManagerDialog</name>
+    <message>
+        <location filename="../../../../ui/GnuPGConfigManagerDialog.ui" line="14"/>
+        <source>GnuPG Config Manager</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GnuPGConfigManagerDialog.ui" line="27"/>
+        <source>TextLabel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GnuPGConfigManagerDialog.ui" line="37"/>
+        <source>PushButton</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>GnuPGControllerDialog</name>
+    <message>
+        <location filename="../../../../ui/GnuPGControllerDialog.ui" line="14"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="197"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="197"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="197"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="196"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="197"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="197"/>
+        <source>GnuPG Controller</source>
+        <translation type="unfinished">GnuPG-Controller</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GnuPGControllerDialog.ui" line="22"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="198"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="198"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="198"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="197"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="198"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="198"/>
+        <source>General</source>
+        <translation type="unfinished">Allgemein</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GnuPGControllerDialog.ui" line="30"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="199"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="199"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="199"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="198"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="199"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="199"/>
+        <source>Use Binary Mode for File Operations</source>
+        <translation type="unfinished">Binärmodus für Dateioperationen verwenden</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GnuPGControllerDialog.ui" line="37"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="200"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="200"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="200"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="199"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="200"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="200"/>
+        <source>Use Pinentry as Password Input Dialog</source>
+        <translation type="unfinished">Verwenden Sie Pinentry als Dialog für die Passworteingabe</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GnuPGControllerDialog.ui" line="44"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="201"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="201"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="201"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="200"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="201"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="201"/>
+        <source>Enable GpgME Debug Log</source>
+        <translation type="unfinished">GpgME-Debug-Log einschalten</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GnuPGControllerDialog.ui" line="51"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="202"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="202"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="202"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="201"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="202"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="202"/>
+        <source>Restart Gpg Agent on start</source>
+        <translation type="unfinished">Gpg-Agent beim Start neu starten</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GnuPGControllerDialog.ui" line="58"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="203"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="203"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="203"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="202"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="203"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="203"/>
+        <source>Kill all gnupg daemon at close</source>
+        <translation type="unfinished">Alle gnupg-Daemons beim Schließen abschalten</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GnuPGControllerDialog.ui" line="73"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="204"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="204"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="204"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="203"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="204"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="204"/>
+        <source>Key Database</source>
+        <translation type="unfinished">Schlüsseldatenbank</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GnuPGControllerDialog.ui" line="87"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="205"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="205"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="205"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="204"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="205"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="205"/>
+        <source>Use Custom GnuPG Key Database Path</source>
+        <translation type="unfinished">Benutzerdefinierten Pfad für die GnuPG-Schlüsseldatenbank verwenden</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GnuPGControllerDialog.ui" line="107"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="207"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="207"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="207"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="206"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="207"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="207"/>
+        <source>Select Key Database Path</source>
+        <translation type="unfinished">Wählen Sie den Pfad für die Schlüsseldatenbank aus</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GnuPGControllerDialog.ui" line="119"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="208"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="208"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="208"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="207"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="208"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="208"/>
+        <source>Advance</source>
+        <translation type="unfinished">Vorgezogene Funktion</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GnuPGControllerDialog.ui" line="127"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="209"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="209"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="209"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="208"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="209"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="209"/>
+        <source>Use Custom GnuPG</source>
+        <translation type="unfinished">Verwenden Sie benutzerdefiniertes GnuPG</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GnuPGControllerDialog.ui" line="144"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="211"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="211"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="211"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="210"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="211"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="211"/>
+        <source>Select GnuPG Path</source>
+        <translation type="unfinished">Wählen Sie den GnuPG-Pfad aus</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GnuPGControllerDialog.ui" line="151"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="212"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="212"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="212"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="211"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="212"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="212"/>
+        <source>Tips: please select a directroy where &quot;gpgconf&quot; is located in.</source>
+        <translation type="unfinished">Tipps: Bitte wählen Sie ein Verzeichnis aus, in dem sich &quot;gpgconf&quot; befindet.</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/GnuPGControllerDialog.ui" line="163"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="213"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="213"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="213"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="212"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="213"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_GnuPGControllerDialog.h" line="213"/>
+        <source>Tips: notice that modify any of these settings will cause an Application restart.</source>
+        <translation type="unfinished">Tipps: Beachten Sie, dass das Ändern dieser Einstellungen zu einem Neustart der Anwendung führt.</translation>
+    </message>
+</context>
+<context>
+    <name>GnuPGInfo</name>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnuPGInfo.ui" line="14"/>
+        <location filename="../../../../modules/build/src/m_gpg_info/mod_gpg_info_autogen/include/ui_GnuPGInfo.h" line="154"/>
+        <source>GnuPG Info</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnuPGInfo.ui" line="59"/>
+        <location filename="../../../../modules/build/src/m_gpg_info/mod_gpg_info_autogen/include/ui_GnuPGInfo.h" line="156"/>
+        <source>Version</source>
+        <translation type="unfinished">Version</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnuPGInfo.ui" line="95"/>
+        <location filename="../../../../modules/build/src/m_gpg_info/mod_gpg_info_autogen/include/ui_GnuPGInfo.h" line="157"/>
+        <source>Components</source>
+        <translation type="unfinished">Komponenten</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnuPGInfo.ui" line="128"/>
+        <location filename="../../../../modules/build/src/m_gpg_info/mod_gpg_info_autogen/include/ui_GnuPGInfo.h" line="158"/>
+        <source>Directories</source>
+        <translation type="unfinished">Verzeichnisse</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnuPGInfo.ui" line="145"/>
+        <location filename="../../../../modules/build/src/m_gpg_info/mod_gpg_info_autogen/include/ui_GnuPGInfo.h" line="159"/>
+        <source>Options</source>
+        <translation type="unfinished">Optionen</translation>
+    </message>
+</context>
+<context>
+    <name>GnupgTab</name>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnupgTab.cpp" line="47"/>
+        <source>Name</source>
+        <translation type="unfinished">Name</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnupgTab.cpp" line="47"/>
+        <location filename="../../../../modules/src/m_gpg_info/GnupgTab.cpp" line="93"/>
+        <source>Description</source>
+        <translation type="unfinished">Beschreibung</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnupgTab.cpp" line="47"/>
+        <source>Version</source>
+        <translation type="unfinished">Version</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnupgTab.cpp" line="48"/>
+        <source>Checksum</source>
+        <translation type="unfinished">Prüfsumme</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnupgTab.cpp" line="48"/>
+        <source>Binary Path</source>
+        <translation type="unfinished">Binärer Pfad</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnupgTab.cpp" line="50"/>
+        <source>Components</source>
+        <translation type="unfinished">Komponenten</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnupgTab.cpp" line="51"/>
+        <source>Directories</source>
+        <translation type="unfinished">Verzeichnisse</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnupgTab.cpp" line="52"/>
+        <source>Options</source>
+        <translation type="unfinished">Optionen</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnupgTab.cpp" line="71"/>
+        <source>Directory Type</source>
+        <translation type="unfinished">Verzeichnis Typ</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnupgTab.cpp" line="71"/>
+        <source>Path</source>
+        <translation type="unfinished">Pfad</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnupgTab.cpp" line="92"/>
+        <source>Component</source>
+        <translation type="unfinished">Komponente</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnupgTab.cpp" line="92"/>
+        <source>Group</source>
+        <translation type="unfinished">Gruppe</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnupgTab.cpp" line="92"/>
+        <source>Key</source>
+        <translation type="unfinished">Schlüssel</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnupgTab.cpp" line="93"/>
+        <source>Default Value</source>
+        <translation type="unfinished">Standardwert</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_gpg_info/GnupgTab.cpp" line="94"/>
+        <source>Value</source>
+        <translation type="unfinished">Wert</translation>
+    </message>
+</context>
+<context>
     <name>GpgFrontend::GpgDecryptResultAnalyse</name>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="41"/>
@@ -354,15 +1058,15 @@
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="57"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="191"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="237"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="190"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="234"/>
         <source>UTC</source>
         <translation type="unfinished">koordinierte Weltzeit</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="60"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="194"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="240"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="192"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="236"/>
         <source>Localized</source>
         <translation>lokalisiert</translation>
     </message>
@@ -453,42 +1157,42 @@
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="183"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="228"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="225"/>
         <source>Fingerprint</source>
         <translation type="unfinished">Fingerabdruck</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="185"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="229"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="184"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="226"/>
         <source>&lt;unknown&gt;</source>
         <translation>&lt;unbekannt&gt;</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="191"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="194"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="237"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="240"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="190"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="192"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="234"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="236"/>
         <source>Sign Date</source>
         <translation>Unterschrift Datum</translation>
     </message>
     <message>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="214"/>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="217"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="220"/>
         <source>Key ID</source>
         <translation>Schlüssel-ID</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="218"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="215"/>
         <source>Subkey</source>
         <translation>Unterschlüssel</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="221"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="218"/>
         <source>Primary Key</source>
         <translation>Primärschlüssel</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="223"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="220"/>
         <source>Key Create Date</source>
         <translation>Schlüssel Erstellungsdatum</translation>
     </message>
@@ -538,8 +1242,8 @@
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="183"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="205"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="228"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="202"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="225"/>
         <source>Signed By</source>
         <translation type="unfinished">Unterzeichnet von</translation>
     </message>
@@ -548,14 +1252,14 @@
         <translation type="obsolete">Unbekannt</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="188"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="234"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="187"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="231"/>
         <source>Public Key Algo</source>
         <translation type="unfinished">Algo für öffentliche Schlüssel</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="190"/>
-        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="236"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="189"/>
+        <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="233"/>
         <source>Hash Algo</source>
         <translation type="unfinished">Hash Algo</translation>
     </message>
@@ -1475,14 +2179,14 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation type="unfinished">Verzeichnis öffnen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="167"/>
+        <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="166"/>
         <source>GnuPG Controller</source>
         <translation type="unfinished">GnuPG-Controller</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="349"/>
-        <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="356"/>
-        <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="368"/>
+        <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="348"/>
+        <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="355"/>
+        <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="367"/>
         <source>Illegal GnuPG Path</source>
         <translation type="unfinished">Unzulässiger GnuPG-Pfad</translation>
     </message>
@@ -1491,22 +2195,22 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation type="obsolete">Der Ziel-GnuPG-Pfad ist leer.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="350"/>
+        <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="349"/>
         <source>Target GnuPG Path is not an exists readable directory.</source>
         <translation type="unfinished">Der Ziel-GnuPG-Pfad ist kein lesbares Verzeichnis.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="357"/>
+        <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="356"/>
         <source>Target GnuPG Path is not an absolute path.</source>
         <translation type="unfinished">Der Ziel-GnuPG-Pfad ist kein absoluter Pfad.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="369"/>
+        <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="368"/>
         <source>Target GnuPG Path contains no &quot;gpgconf&quot; executable.</source>
         <translation type="unfinished">Der Ziel-GnuPG-Pfad enthält keine ausführbare Datei „gpgconf“.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="382"/>
+        <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="381"/>
         <source>Illegal GnuPG Key Database Path</source>
         <translation type="unfinished">Unzulässiger GnuPG-Schlüsseldatenbankpfad</translation>
     </message>
@@ -1515,7 +2219,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation type="obsolete">Der Zielpfad für die GnuPG-Schlüsseldatenbank ist leer.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="383"/>
+        <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="382"/>
         <source>Target GnuPG Key Database Path is not an exists readable directory.</source>
         <translation type="unfinished">Der Zielpfad für die GnuPG-Schlüsseldatenbank ist kein lesbares Verzeichnis.</translation>
     </message>
@@ -1768,7 +2472,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation type="unfinished">Aktivieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyDetailsDialog.cpp" line="69"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyDetailsDialog.cpp" line="70"/>
         <source>Key Details</source>
         <translation type="unfinished">Schlüssel Details</translation>
     </message>
@@ -2117,6 +2821,16 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="108"/>
         <source>Create Date</source>
         <translation type="unfinished">Erstellungsdatum</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="120"/>
+        <source>Subkey(s)</source>
+        <translation type="unfinished">Unterschlüssel(e)</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/KeyList.cpp" line="134"/>
+        <source>Comment</source>
+        <translation type="unfinished">Kommentar</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="263"/>
@@ -2669,66 +3383,66 @@ This will result in loss of all cached form positions, statuses, key servers, et
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="103"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="128"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="129"/>
         <source>Copy</source>
         <translation type="unfinished">Kopieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="130"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="131"/>
         <source>copy fingerprint to clipboard</source>
         <translation type="unfinished">Fingerabdruck in die Zwischenablage kopieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="176"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="177"/>
         <source>Exists</source>
         <translation type="unfinished">Existiert</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="176"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="177"/>
         <source>Not Exists</source>
         <translation type="unfinished">Existiert nicht</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="209"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="221"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="210"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="222"/>
         <source>Certificate</source>
         <translation type="unfinished">Zertifikat</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="211"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="224"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="212"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="225"/>
         <source>Encrypt</source>
         <translation type="unfinished">Verschlüsseln</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="212"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="227"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="213"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="228"/>
         <source>Sign</source>
         <translation type="unfinished">Unterschreiben</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="213"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="230"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="214"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="231"/>
         <source>Auth</source>
         <translation type="unfinished">Authentifizieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="246"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="247"/>
         <source>Never Expire</source>
         <translation type="unfinished">Nie ablaufen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="257"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="258"/>
         <source>No Data</source>
         <translation type="unfinished">Keine Daten</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="274"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="276"/>
         <source>Warning: The primary key has expired.</source>
         <translation type="unfinished">Warnung: Der Primärschlüssel ist abgelaufen.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="279"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="281"/>
         <source>Warning: The primary key has been revoked.</source>
         <translation type="unfinished">Warnung: Der Primärschlüssel wurde widerrufen.</translation>
     </message>
@@ -2777,7 +3491,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="102"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="558"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="560"/>
         <source>Import A Paper Key</source>
         <translation type="unfinished">Importieren eines Papierschlüssels</translation>
     </message>
@@ -2822,228 +3536,228 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation type="unfinished">Zertifikat importieren widerrufen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="231"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="277"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="320"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="505"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="232"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="279"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="322"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="507"/>
         <source>Export Key To File</source>
         <translation type="unfinished">Schlüssel in Datei exportieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="232"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="278"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="321"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="506"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="233"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="280"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="323"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="508"/>
         <source>Key Files</source>
         <translation type="unfinished">Schlüsseldateien</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="237"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="283"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="326"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="529"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="238"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="285"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="328"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="531"/>
         <source>Export Error</source>
         <translation type="unfinished">Exportfehler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="238"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="284"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="327"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="530"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="239"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="286"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="329"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="532"/>
         <source>Couldn&apos;t open %1 for writing</source>
         <translation type="unfinished">%1 konnte nicht zum Schreiben geöffnet werden</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="246"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="247"/>
         <source>Exporting short private Key</source>
         <translation type="unfinished">Exportieren eines kurzen privaten Schlüssels</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="247"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="294"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="474"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="248"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="296"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="476"/>
         <source>You are about to export your</source>
         <translation type="unfinished">Sie sind dabei, Ihre . zu exportieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="248"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="295"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="475"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="249"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="297"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="477"/>
         <source> PRIVATE KEY </source>
         <translation type="unfinished"> PRIVATEN SCHLÜSSEL </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="249"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="296"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="476"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="250"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="298"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="478"/>
         <source>This is NOT your Public Key, so DON&apos;T give it away.</source>
         <translation type="unfinished">Dies ist NICHT Ihr öffentlicher Schlüssel, also geben Sie ihn NICHT weiter.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="250"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="251"/>
         <source>Do you REALLY want to export your PRIVATE KEY in a Minimum Size?</source>
         <translation type="unfinished">Möchten Sie WIRKLICH Ihren PRIVATEN SCHLÜSSEL in einer Mindestgröße exportieren?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="253"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="254"/>
         <source>For OpenPGP keys it removes all signatures except for the latest self-signatures.</source>
         <translation type="unfinished">Bei OpenPGP-Schlüsseln werden alle Signaturen mit Ausnahme der neuesten Eigensignaturen entfernt.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="293"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="295"/>
         <source>Exporting private Key</source>
         <translation type="unfinished">Exportieren des privaten Schlüssels</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="297"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="482"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="299"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="484"/>
         <source>Do you REALLY want to export your PRIVATE KEY?</source>
         <translation type="unfinished">Möchten Sie WIRKLICH Ihren PRIVATEN SCHLÜSSEL exportieren?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="351"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="433"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="353"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="435"/>
         <source>Revocation Certificates</source>
         <translation type="unfinished">Widerrufszertifikate</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="362"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="364"/>
         <source>Generate revocation certificate</source>
         <translation>Widerrufszertifikat erstellen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="383"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="392"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="385"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="394"/>
         <source>Policy Auto</source>
         <translation type="unfinished">Richtlinie Auto</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="383"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="394"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="385"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="396"/>
         <source>Policy Good</source>
         <translation type="unfinished">Richtlinie gut</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="383"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="396"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="385"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="398"/>
         <source>Policy Bad</source>
         <translation type="unfinished">Richtlinie schlecht</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="384"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="398"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="386"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="400"/>
         <source>Policy Ask</source>
         <translation type="unfinished">Richtlinie fragen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="384"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="400"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="386"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="402"/>
         <source>Policy Unknown</source>
         <translation type="unfinished">Richtlinie unbekannt</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="388"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="390"/>
         <source>Modify TOFU Policy(Default is Auto)</source>
         <translation type="unfinished">TOFU-Richtlinie ändern (Standard ist Auto)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="389"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="391"/>
         <source>Policy for the Key Pair:</source>
         <translation type="unfinished">Richtlinie für das Schlüsselpaar:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="405"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="407"/>
         <source>Not Successful</source>
         <translation type="unfinished">Nicht erfolgreich</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="406"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="408"/>
         <source>Modify TOFU policy not successfully.</source>
         <translation type="unfinished">Ändern der TOFU-Richtlinie nicht erfolgreich.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="420"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="432"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="422"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="434"/>
         <source>Import Key Revocation Certificate</source>
         <translation type="unfinished">Schlüssel-Widerrufs-Zertifikat importieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="421"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="423"/>
         <source>You are about to import the</source>
         <translation type="unfinished">Sie sind dabei, das</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="422"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="424"/>
         <source>REVOCATION CERTIFICATE</source>
         <translation type="unfinished">Schlüssel-Widerrufs-Zertifikat importieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="423"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="425"/>
         <source>A successful import will result in the key being irreversibly revoked.</source>
         <translation type="unfinished">Ein erfolgreicher Import führt dazu, dass der Schlüssel unwiderruflich widerrufen wird.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="425"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="427"/>
         <source>Do you REALLY want to execute this operation?</source>
         <translation type="unfinished">Wollen Sie diesen Vorgang WIRKLICH durchführen?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="441"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="450"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="459"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="522"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="567"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="575"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="583"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="601"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="443"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="452"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="461"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="524"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="569"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="577"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="585"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="603"/>
         <source>Error</source>
         <translation type="unfinished">Fehler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="442"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="460"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="568"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="584"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="444"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="462"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="570"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="586"/>
         <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
         <translation type="unfinished">Kann diese Datei nicht öffnen. Bitte stellen Sie sicher, dass es sich um eine reguläre, lesbare Datei handelt.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="451"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="453"/>
         <source>The target file is too large for a key revocation certificate.</source>
         <translation type="unfinished">Die Zieldatei ist zu groß für ein Schlüsselwiderrufszertifikat.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="473"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="475"/>
         <source>Exporting private key as a Paper key</source>
         <translation type="unfinished">Privaten Schlüssel als Papierschlüssel exportieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="477"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="479"/>
         <source>A PaperKey is a human-readable printout of your private key, which can be used to recover your key if you lose access to your digital copy. </source>
         <translation type="unfinished">Ein PaperKey ist ein von Menschen lesbarer Ausdruck Ihres privaten Schlüssels, mit dem Sie Ihren Schlüssel wiederherstellen können, wenn Sie den Zugriff auf Ihre digitale Kopie verlieren. </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="481"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="483"/>
         <source>Keep it in a safe place.</source>
         <translation type="unfinished">Bewahren Sie es an einem sicheren Ort auf.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="523"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="525"/>
         <source>An error occurred trying to generate Paper Key.</source>
         <translation type="unfinished">Beim Versuch, einen Papierschlüssel zu erzeugen, ist ein Fehler aufgetreten.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="602"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="604"/>
         <source>An error occurred trying to recover the Paper Key back to the private key.</source>
         <translation type="unfinished">Beim Versuch, den Papierschlüssel in den privaten Schlüssel zurückzuverwandeln, ist ein Fehler aufgetreten.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="559"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="561"/>
         <source>Paper Key File</source>
         <translation type="unfinished">Papier-Schlüsseldatei</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="576"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="578"/>
         <source>The target file is too large for a paper key keyring.</source>
         <translation type="unfinished">Die Zieldatei ist zu groß für einen Papierschlüsselanhänger.</translation>
     </message>
@@ -3072,11 +3786,13 @@ This will result in loss of all cached form positions, statuses, key servers, et
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="66"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="159"/>
         <source>Algorithm</source>
         <translation type="unfinished">Algorithmus</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="67"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="160"/>
         <source>Algorithm Detail</source>
         <translation>Algorithmusdetails</translation>
     </message>
@@ -3127,12 +3843,11 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation type="unfinished">Unterschlüssel-ID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="159"/>
         <source>Algo</source>
-        <translation type="unfinished">Algo</translation>
+        <translation type="obsolete">Algo</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="159"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="160"/>
         <source>Create Date</source>
         <translation>Erstellung</translation>
     </message>
@@ -3142,57 +3857,57 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation type="unfinished">Ablaufdatum</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="200"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="204"/>
         <source>Never Expire</source>
         <translation type="unfinished">Nie ablaufen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="235"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="239"/>
         <source>Never Expires</source>
         <translation type="unfinished">Läuft nie ab</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="257"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="261"/>
         <source>Certificate</source>
         <translation type="unfinished">Zertifikat</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="259"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="263"/>
         <source>Encrypt</source>
         <translation type="unfinished">Verschlüsseln</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="260"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="264"/>
         <source>Sign</source>
         <translation type="unfinished">Unterschreiben</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="261"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="265"/>
         <source>Auth</source>
         <translation type="unfinished">Authentifizieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="266"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="270"/>
         <source>Exists</source>
         <translation type="unfinished">Existiert</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="267"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="271"/>
         <source>Not Exists</source>
         <translation type="unfinished">Existiert nicht</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="270"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="274"/>
         <source>Yes</source>
         <translation type="unfinished">Ja</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="270"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="274"/>
         <source>No</source>
         <translation type="unfinished">Nein</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="299"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="304"/>
         <source>Edit Expire Date</source>
         <translation type="unfinished">Ablaufdatum bearbeiten</translation>
     </message>
@@ -3457,102 +4172,103 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation type="unfinished">Importieren von Schlüsseln vom Schlüsselserver</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="153"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="156"/>
         <source>UID</source>
         <translation type="unfinished">UID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="153"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="156"/>
         <source>Creation date</source>
         <translation type="unfinished">Erstellungsdatum</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="153"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="156"/>
         <source>KeyID</source>
         <translation type="unfinished">SchlüsselID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="153"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="156"/>
         <source>Tag</source>
         <translation type="unfinished">Kennzeichen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="176"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="179"/>
         <source>Text is empty.</source>
         <translation type="unfinished">Text ist leer.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="219"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="222"/>
         <source>Not Key Found</source>
         <translation type="unfinished">Schlüssel nicht gefunden</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="222"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="225"/>
         <source>Timeout</source>
         <translation type="unfinished">Zeitablauf</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="225"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="228"/>
         <source>Key Server Not Found</source>
         <translation type="unfinished">Schlüsselserver nicht gefunden</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="228"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="231"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="232"/>
         <source>Connection Error</source>
         <translation type="unfinished">Verbindungsfehler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="237"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="241"/>
         <source>Too many responses from keyserver!</source>
         <translation type="unfinished">Zu viele Antworten vom Schlüsselserver!</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="249"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="253"/>
         <source>No keys found, input may be kexId, retrying search with 0x.</source>
         <translation type="unfinished">Keine Schlüssel gefunden, Eingabe kann kexId sein, versuche es mit 0x erneut.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="259"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="263"/>
         <source>No keys found containing the search string!</source>
         <translation type="unfinished">Keine Schlüssel gefunden, die den Suchbegriff enthalten!</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="266"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="270"/>
         <source>Insufficiently specific search string!</source>
         <translation type="unfinished">Unzureichend spezifischer Suchbegriff!</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="301"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="305"/>
         <source>revoked</source>
         <translation type="unfinished">widerrufen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="304"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="308"/>
         <source>disabled</source>
         <translation type="unfinished">deaktiviert</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="349"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="353"/>
         <source>%1 keys found. Double click a key to import it.</source>
         <translation type="unfinished">%1 Schlüssel gefunden. Doppelklicken Sie auf einen Schlüssel, um ihn zu importieren.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="370"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="374"/>
         <source>Warning</source>
         <translation type="unfinished">Warnung</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="371"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="375"/>
         <source>Please select one KeyPair before doing this operation.</source>
         <translation type="unfinished">Bitte wählen Sie ein Schlüsselpaar aus, bevor Sie diesen Vorgang ausführen.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="417"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="421"/>
         <source>Key Imported</source>
         <translation type="unfinished">Schlüssel importiert</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="428"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyServerImportDialog.cpp" line="432"/>
         <source>Processing ...</source>
         <translation>Verarbeite ...</translation>
     </message>
@@ -3560,27 +4276,27 @@ This will result in loss of all cached form positions, statuses, key servers, et
 <context>
     <name>GpgFrontend::UI::KeyServerImportTask</name>
     <message>
-        <location filename="../../../../src/ui/thread/KeyServerImportTask.cpp" line="78"/>
+        <location filename="../../../../src/ui/thread/KeyServerImportTask.cpp" line="77"/>
         <source>Key not found in the Keyserver.</source>
         <translation>Schlüssel auf dem Schlüsselserver nicht gefunden.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/thread/KeyServerImportTask.cpp" line="81"/>
+        <location filename="../../../../src/ui/thread/KeyServerImportTask.cpp" line="80"/>
         <source>Network connection timeout.</source>
         <translation>Netzwerkverbindungs-Timeout</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/thread/KeyServerImportTask.cpp" line="84"/>
+        <location filename="../../../../src/ui/thread/KeyServerImportTask.cpp" line="83"/>
         <source>Cannot resolve the address of target key server.</source>
         <translation>Kann die Adresse des gewählten Schlüsselservers nicht auflösen.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/thread/KeyServerImportTask.cpp" line="87"/>
+        <location filename="../../../../src/ui/thread/KeyServerImportTask.cpp" line="86"/>
         <source>General connection error occurred.</source>
         <translation>Allgemeiner Verbindungsfehler ist aufgetreten.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/thread/KeyServerImportTask.cpp" line="93"/>
+        <location filename="../../../../src/ui/thread/KeyServerImportTask.cpp" line="92"/>
         <source>Success</source>
         <translation type="unfinished">Erfolg</translation>
     </message>
@@ -3697,37 +4413,37 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation>Unbekannter Fehler ist aufgetreten</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyUploadDialog.cpp" line="148"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyUploadDialog.cpp" line="149"/>
         <source>Key Not Found</source>
         <translation type="unfinished">Schlüssel nicht gefunden</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyUploadDialog.cpp" line="151"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyUploadDialog.cpp" line="152"/>
         <source>Timeout</source>
         <translation type="unfinished">Zeitablauf</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyUploadDialog.cpp" line="154"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyUploadDialog.cpp" line="155"/>
         <source>Key Server Not Found</source>
         <translation type="unfinished">Schlüsselserver nicht gefunden</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyUploadDialog.cpp" line="157"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyUploadDialog.cpp" line="158"/>
         <source>Connection Error</source>
         <translation type="unfinished">Verbindungsfehler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyUploadDialog.cpp" line="159"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyUploadDialog.cpp" line="160"/>
         <source>Upload Failed</source>
         <translation>Hochladen fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyUploadDialog.cpp" line="163"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyUploadDialog.cpp" line="164"/>
         <source>Upload Success</source>
         <translation type="unfinished">Erfolgreich hochgeladen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/KeyUploadDialog.cpp" line="164"/>
+        <location filename="../../../../src/ui/dialog/import_export/KeyUploadDialog.cpp" line="165"/>
         <source>Upload Public Key Successfully</source>
         <translation type="unfinished">Öffentlichen Schlüssel erfolgreich hochgeladen</translation>
     </message>
@@ -3816,47 +4532,47 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation type="unfinished">Sie könnten HTTP oder HTTPS für die Verbindung zum Schlüsselserver nutzen, was nicht unbedingt falsch ist. Aber es ist aus Sicherheitsgründen nicht empfohlen. Bitte prüfen Sie die eingegebene Adresse noch einmal, um sicher zu sein, dass sie korrekt ist. Sind Sie sicher, dass Sie sie zur Liste der Schlüsselserver hinzufügen möchten?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyServer.cpp" line="197"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyServer.cpp" line="200"/>
         <source>true</source>
         <translation type="unfinished">wahr</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyServer.cpp" line="198"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyServer.cpp" line="201"/>
         <source>false</source>
         <translation type="unfinished">falsch</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyServer.cpp" line="203"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyServer.cpp" line="206"/>
         <source>unknown</source>
         <translation type="unfinished">unbekannt</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyServer.cpp" line="217"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyServer.cpp" line="220"/>
         <source>Set TCP Timeout</source>
         <translation type="unfinished">TCP-Zeitüberschreitung einstellen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyServer.cpp" line="218"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyServer.cpp" line="221"/>
         <source>timeout(ms): </source>
         <translation>Timeout (ms):</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyServer.cpp" line="242"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyServer.cpp" line="245"/>
         <source>Reachable</source>
         <translation type="unfinished">Erreichbar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyServer.cpp" line="245"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyServer.cpp" line="248"/>
         <source>Not Reachable</source>
         <translation type="unfinished">Nicht erreichbar</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyServer.cpp" line="257"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyServer.cpp" line="260"/>
         <source>Test Key Server Connection...</source>
         <translation type="unfinished">Schlüsselserververbindung testen…</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyServer.cpp" line="258"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyServer.cpp" line="261"/>
         <source>This test only tests the network connectivity of the key server. Passing the test does not mean that the key server is functionally available.</source>
         <translation type="unfinished">Dieser Test testet nur die Netzwerkkonnektivität des Schlüsselservers. Das Bestehen des Tests bedeutet nicht, dass der Schlüsselserver funktionsfähig ist.</translation>
     </message>
@@ -4233,33 +4949,33 @@ Fals Daten und Signatur in einer Datei COMBINIERT sind, LASSEN SIE DIES LEER: </
         <translation>Kann diese Datei nicht öffen. DIe Datei ist ZU GROSS (&gt;1MB) für den GpgFrontend Texteditor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="292"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="291"/>
         <source>GpgFrontend Upgradeable (New Version: %1).</source>
         <translation type="unfinished">GpgFrontend kann aktualisiert werden (neue Version: %1).</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="296"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="448"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="295"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="449"/>
         <source>Update</source>
         <translation type="unfinished">Aktualisieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="302"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="301"/>
         <source>Withdrawn Version</source>
         <translation type="unfinished">Zurückgezogene Version</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="304"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="303"/>
         <source>This version(%1) may have been withdrawn by the developer due to serious problems. Please stop using this version immediately and use the latest stable version.</source>
         <translation type="unfinished">Diese Version (%1) wurde möglicherweise vom Entwickler aufgrund schwerwiegender Probleme zurückgezogen. Bitte beenden Sie die Verwendung dieser Version sofort und verwenden Sie die neueste stabile Version.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="309"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="308"/>
         <source>You can download the latest stable version(%1) on Github Releases Page.&lt;br/&gt;</source>
         <translation type="unfinished">Sie können die neueste stabile Version (%1) auf der Github-Release-Seite herunterladen.&lt;br/&gt;</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="314"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="313"/>
         <source>This maybe a BETA Version (Latest Stable Version: %1).</source>
         <translation type="unfinished">Dies ist möglicherweise eine BETA-Version (Neueste stabile Version: %1).</translation>
     </message>
@@ -4449,486 +5165,486 @@ Fals Daten und Signatur in einer Datei COMBINIERT sind, LASSEN SIE DIES LEER: </
         <translation type="unfinished">Einstellungen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="171"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="172"/>
         <source>Open settings dialog</source>
         <translation type="unfinished">Einstellungsdialog öffnen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="179"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="180"/>
         <source>Encrypt</source>
         <translation type="unfinished">Verschlüsseln</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="183"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="184"/>
         <source>Encrypt Message</source>
         <translation type="unfinished">Nachricht verschlüsseln</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="201"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="202"/>
         <source>Encrypt Sign</source>
         <translation type="unfinished">Verschlüsseln Signieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="206"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="207"/>
         <source>Encrypt and Sign Message</source>
         <translation type="unfinished">Nachricht verschlüsseln und signieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="224"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="225"/>
         <source>Decrypt</source>
         <translation type="unfinished">Entschlüsseln</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="227"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="228"/>
         <source>Decrypt Message</source>
         <translation type="unfinished">Nachricht entschlüsseln</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="249"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="250"/>
         <source>Decrypt Verify</source>
         <translation type="unfinished">Entschlüsseln Verifizieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="253"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="254"/>
         <source>Decrypt and Verify Message</source>
         <translation type="unfinished">Nachricht entschlüsseln und überprüfen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="275"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="276"/>
         <source>Sign</source>
         <translation type="unfinished">Unterschreiben</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="278"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="279"/>
         <source>Sign Message</source>
         <translation type="unfinished">Nachricht unterschreiben</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="290"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="291"/>
         <source>Verify</source>
         <translation type="unfinished">Verifizieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="293"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="294"/>
         <source>Verify Message</source>
         <translation type="unfinished">Nachricht verifizieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="308"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="554"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="636"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="309"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="555"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="637"/>
         <source>File</source>
         <translation type="unfinished">Datei</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="310"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="311"/>
         <source>Import New Key From File</source>
         <translation type="unfinished">Neuen Schlüssel aus Datei importieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="314"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="315"/>
         <source>Clipboard</source>
         <translation type="unfinished">Zwischenablage</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="318"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="319"/>
         <source>Import New Key From Clipboard</source>
         <translation type="unfinished">Neuen Schlüssel aus der Zwischenablage importieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="329"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="330"/>
         <source>Keyserver</source>
         <translation type="unfinished">Schlüsselserver</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="333"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="334"/>
         <source>Import New Key From Keyserver</source>
         <translation type="unfinished">Neuen Schlüssel vom Schlüsselserver importieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="339"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="340"/>
         <source>Editor</source>
         <translation type="unfinished">Editor</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="341"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="342"/>
         <source>Import New Key From Editor</source>
         <translation type="unfinished">Neuen Schlüssel aus dem Editor importieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="345"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="346"/>
         <source>Manage Keys</source>
         <translation type="unfinished">Schlüssel verwalten</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="347"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="348"/>
         <source>Open Key Management</source>
         <translation type="unfinished">Schlüsselverwaltung öffnen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="351"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="352"/>
         <source>Clear Password Cache</source>
         <translation type="unfinished">Passwort-Cache löschen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="354"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="355"/>
         <source>Clear Password Cache of GnuPG</source>
         <translation type="unfinished">Passwort-Cache von GnuPG löschen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="359"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="376"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="397"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="360"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="377"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="398"/>
         <source>Successful Operation</source>
         <translation type="unfinished">Erfolgreiche Durchführung</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="360"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="361"/>
         <source>Clear password cache successfully</source>
         <translation type="unfinished">Kennwort-Cache erfolgreich gelöscht</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="362"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="380"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="401"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="363"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="381"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="402"/>
         <source>Failed Operation</source>
         <translation type="unfinished">Fehlgeschlagener Vorgang</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="363"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="364"/>
         <source>Failed to clear password cache of GnuPG</source>
         <translation type="unfinished">Passwort-Cache von GnuPG konnte nicht geleert werden</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="368"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="369"/>
         <source>Reload All Components</source>
         <translation type="unfinished">Alle Komponenten neu laden</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="370"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="371"/>
         <source>Reload All GnuPG&apos;s Components</source>
         <translation type="unfinished">Alle Komponenten von GnuPG neu laden</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="377"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="378"/>
         <source>Reload all the GnuPG&apos;s components successfully</source>
         <translation type="unfinished">Alle GnuPG-Komponenten erfolgreich neu geladen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="381"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="382"/>
         <source>Failed to reload all or one of the GnuPG&apos;s component(s)</source>
         <translation type="unfinished">Fehler beim Neuladen aller oder einer Komponente(n) von GnuPG</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="386"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="387"/>
         <source>Restart All Components</source>
         <translation type="unfinished">Alle Komponenten neu starten</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="388"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="389"/>
         <source>Restart All GnuPG&apos;s Components</source>
         <translation type="unfinished">Alle Komponenten von GnuPG neu starten</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="398"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="399"/>
         <source>Restart all the GnuPG&apos;s components successfully</source>
         <translation type="unfinished">Alle Komponenten von GnuPG erfolgreich neu gestartet</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="402"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="403"/>
         <source>Failed to restart all or one of the GnuPG&apos;s component(s)</source>
         <translation type="unfinished">Neustart aller oder einer GnuPG-Komponente(n) fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="407"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="408"/>
         <source>Open GnuPG Controller</source>
         <translation type="unfinished">GnuPG-Controller öffnen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="409"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="410"/>
         <source>Open GnuPG Controller Dialog</source>
         <translation type="unfinished">GnuPG-Controller-Dialog öffnen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="413"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="414"/>
         <source>Open Module Controller</source>
         <translation type="unfinished">Modul-Controller öffnen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="415"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="416"/>
         <source>Open Module Controller Dialog</source>
         <translation type="unfinished">Modul-Controller-Dialog öffnen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="422"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="423"/>
         <source>About</source>
         <translation type="unfinished">Über</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="424"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="425"/>
         <source>Show the application&apos;s About box</source>
         <translation type="unfinished">Info-Box der Anwendung anzeigen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="430"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="434"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="431"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="435"/>
         <source>GnuPG</source>
         <translation type="unfinished">GnuPG</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="432"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="433"/>
         <source>Information about Gnupg</source>
         <translation type="unfinished">Informationen über Gnupg</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="437"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="438"/>
         <source>Translate</source>
         <translation type="unfinished">Übersetzen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="439"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="440"/>
         <source>Information about translation</source>
         <translation type="unfinished">Informationen zur Übersetzung</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="441"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="442"/>
         <source>Translators</source>
         <translation type="unfinished">Übersetzer</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="444"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="445"/>
         <source>Check for Updates</source>
         <translation type="unfinished">Auf Updates prüfen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="446"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="447"/>
         <source>Check for updates</source>
         <translation type="unfinished">Auf Updates prüfen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="451"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="452"/>
         <source>Open Wizard</source>
         <translation type="unfinished">Assistenten öffnen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="453"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="454"/>
         <source>Open the wizard</source>
         <translation type="unfinished">Öffne den Assistenten</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="458"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="459"/>
         <source>Append Public Key to Editor</source>
         <translation type="unfinished">Öffentlichen Schlüssel an den Editor anhängen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="460"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="461"/>
         <source>Append selected Keypair&apos;s Public Key to Editor</source>
         <translation type="unfinished">Den öffentlichen Schlüssel des ausgewählten Schlüsselpaars an den Editor anhängen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="465"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="466"/>
         <source>Append Create DateTime to Editor</source>
         <translation type="unfinished">Erstellungsdatum an den Editor anfügen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="467"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="468"/>
         <source>Append selected Key&apos;s creation date and time to Editor</source>
         <translation type="unfinished">Erstellungsdatum und -zeit des ausgewählten Schlüssels an den Editor anhängen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="472"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="473"/>
         <source>Append Expire DateTime to Editor</source>
         <translation type="unfinished">Ablaufdatum an den Editor anhängen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="474"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="475"/>
         <source>Append selected Key&apos;s expiration date and time to Editor</source>
         <translation type="unfinished">Ablaufdatum und -uhrzeit des ausgewählten Schlüssels an den Editor anhängen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="479"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="480"/>
         <source>Append Fingerprint to Editor</source>
         <translation type="unfinished">Fingerabdruck an Editor anhängen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="481"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="482"/>
         <source>Append selected Key&apos;s Fingerprint to Editor</source>
         <translation type="unfinished">Fingerabdruck des ausgewählten Schlüssels an den Editor anhängen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="485"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="486"/>
         <source>Copy Email</source>
         <translation type="unfinished">E-Mail kopieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="487"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="488"/>
         <source>Copy selected Keypair&apos;s to clipboard</source>
         <translation type="unfinished">Ausgewählte Schlüsselpaare in die Zwischenablage kopieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="492"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="493"/>
         <source>Copy Default UID</source>
         <translation type="unfinished">Standard-UID kopieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="494"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="495"/>
         <source>Copy selected Keypair&apos;s default UID to clipboard</source>
         <translation type="unfinished">Standard-UID des ausgewählten Schlüsselpaars in die Zwischenablage kopieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="498"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="499"/>
         <source>Copy Key ID</source>
         <translation type="unfinished">Schlüssel-ID kopieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="500"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="501"/>
         <source>Copy selected Keypair&apos;s ID to clipboard</source>
         <translation type="unfinished">ID des ausgewählten Schlüsselpaars in die Zwischenablage kopieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="504"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="505"/>
         <source>Show Key Details</source>
         <translation type="unfinished">Schlüsseldetails anzeigen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="505"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="506"/>
         <source>Show Details for this Key</source>
         <translation type="unfinished">Details zu diesem Schlüssel anzeigen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="509"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="510"/>
         <source>Add To Favourite</source>
         <translation type="unfinished">Zu Favoriten hinzufügen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="510"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="511"/>
         <source>Add this key to Favourite Table</source>
         <translation type="unfinished">Diesen Schlüssel zur Favoritentabelle hinzufügen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="516"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="517"/>
         <source>Remove From Favourite</source>
         <translation type="unfinished">Aus Favoriten entfernen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="518"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="519"/>
         <source>Remove this key from Favourite Table</source>
         <translation type="unfinished">Diesen Schlüssel aus der Favoritentabelle entfernen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="524"/>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="525"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="526"/>
         <source>Set Owner Trust Level</source>
         <translation type="unfinished">Vertrauensstufe des Eigentümers festlegen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="544"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="545"/>
         <source>Remove PGP Header</source>
         <translation type="unfinished">PGP-Header entfernen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="548"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="549"/>
         <source>Add PGP Header</source>
         <translation type="unfinished">PGP-Header hinzufügen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="567"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="658"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="568"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="659"/>
         <source>Edit</source>
         <translation type="unfinished">Bearbeiten</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="585"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="586"/>
         <source>Crypt</source>
         <translation type="unfinished">Verschlüsselung</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="595"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="596"/>
         <source>Keys</source>
         <translation type="unfinished">Schlüssel</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="596"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="597"/>
         <source>Import Key</source>
         <translation type="unfinished">Schlüssel importieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="604"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="605"/>
         <source>Advance</source>
         <translation type="unfinished">Vorgezogene Funktion</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="612"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="613"/>
         <source>Steganography</source>
         <translation type="unfinished">Steganographie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="616"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="617"/>
         <source>View</source>
         <translation type="unfinished">Ansicht</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="618"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="619"/>
         <source>Help</source>
         <translation type="unfinished">Hilfe</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="643"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="644"/>
         <source>Operations</source>
         <translation type="unfinished">Aktivieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="653"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="654"/>
         <source>Key</source>
         <translation type="unfinished">Schlüssel</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="666"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="667"/>
         <source>Special Edit</source>
         <translation type="unfinished">Sonderbearbeitung</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="678"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="679"/>
         <source>Import key from...</source>
         <translation type="unfinished">Schlüssel importieren von...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="679"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="680"/>
         <source>Import key</source>
         <translation type="unfinished">Schlüssel importieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="695"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="696"/>
         <source>Ready</source>
         <translation type="unfinished">Bereit</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="702"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="703"/>
         <source>Key ToolBox</source>
         <translation type="unfinished">Schlüssel-Toolbox</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="710"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="711"/>
         <source>Default</source>
         <translation type="unfinished">Standard</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="718"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="719"/>
         <source>Favourite</source>
         <translation type="unfinished">Favorit</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="727"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="728"/>
         <source>Only Public Key</source>
         <translation type="unfinished">Nur öffentlicher Schlüssel</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="734"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="735"/>
         <source>Has Private Key</source>
         <translation type="unfinished">Hat privaten Schlüssel</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="745"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="746"/>
         <source>Information Board</source>
         <translation type="unfinished">Informationstafel</translation>
     </message>
@@ -5385,12 +6101,12 @@ Fals Daten und Signatur in einer Datei COMBINIERT sind, LASSEN SIE DIES LEER: </
         <translation type="unfinished">Netzwerk</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="67"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="71"/>
         <source>Settings</source>
         <translation type="unfinished">Einstellungen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="71"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="61"/>
         <source>Preference</source>
         <translation type="unfinished">Einstellung</translation>
     </message>
@@ -5920,6 +6636,835 @@ Fals Daten und Signatur in einer Datei COMBINIERT sind, LASSEN SIE DIES LEER: </
     </message>
 </context>
 <context>
+    <name>InfoBoard</name>
+    <message>
+        <location filename="../../../../ui/InfoBoard.ui" line="14"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="162"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="162"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="162"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="162"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="162"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="162"/>
+        <source>Form</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/InfoBoard.ui" line="107"/>
+        <location filename="../../../../ui/InfoBoard.ui" line="110"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="164"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="166"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="164"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="166"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="164"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="166"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="164"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="166"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="164"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="166"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="164"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="166"/>
+        <source>Copy</source>
+        <translation type="unfinished">Kopieren</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/InfoBoard.ui" line="124"/>
+        <location filename="../../../../ui/InfoBoard.ui" line="127"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="168"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="170"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="168"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="170"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="168"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="170"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="168"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="170"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="168"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="170"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="168"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="170"/>
+        <source>Save</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/InfoBoard.ui" line="138"/>
+        <location filename="../../../../ui/InfoBoard.ui" line="141"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="172"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="174"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="172"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="174"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="172"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="174"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="172"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="174"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="172"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="174"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="172"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_InfoBoard.h" line="174"/>
+        <source>Clear</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>KeyDeatilsDialog</name>
+    <message>
+        <location filename="../../../../ui/KeyDeatils.ui" line="14"/>
+        <source>Dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyDeatils.ui" line="32"/>
+        <source>Tab 1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyDeatils.ui" line="37"/>
+        <source>Tab 2</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>KeyList</name>
+    <message>
+        <location filename="../../../../ui/KeyList.ui" line="14"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="148"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="148"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="148"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="148"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="148"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="148"/>
+        <source>Form</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyList.ui" line="42"/>
+        <location filename="../../../../ui/KeyList.ui" line="45"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="150"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="152"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="150"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="152"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="150"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="152"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="150"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="152"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="150"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="152"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="150"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="152"/>
+        <source>Refresh</source>
+        <translation type="unfinished">Aktualisierung</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyList.ui" line="56"/>
+        <location filename="../../../../ui/KeyList.ui" line="59"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="154"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="156"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="154"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="156"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="154"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="156"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="154"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="156"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="154"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="156"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="154"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="156"/>
+        <source>Sync Public Key</source>
+        <translation type="unfinished">Öffentlichen Schlüssel synchronisieren</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyList.ui" line="70"/>
+        <location filename="../../../../ui/KeyList.ui" line="73"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="158"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="160"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="158"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="160"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="158"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="160"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="158"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="160"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="158"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="160"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="158"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="160"/>
+        <source>Check ALL</source>
+        <translation type="unfinished">ALLE überprüfen</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyList.ui" line="84"/>
+        <location filename="../../../../ui/KeyList.ui" line="87"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="162"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="164"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="162"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="164"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="162"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="164"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="162"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="164"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="162"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="164"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="162"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="164"/>
+        <source>Uncheck ALL</source>
+        <translation type="unfinished">Alle abwählen</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyList.ui" line="101"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="165"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="165"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="165"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="165"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="165"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="165"/>
+        <source>...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyList.ui" line="153"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="166"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="166"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="166"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="166"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="166"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="166"/>
+        <source>Tab 1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyList.ui" line="158"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="167"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="167"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="167"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="167"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="167"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyList.h" line="167"/>
+        <source>Tab 2</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>KeyServerImportDialog</name>
+    <message>
+        <location filename="../../../../ui/KeyServerImportDialog.ui" line="14"/>
+        <source>Dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyServerImportDialog.ui" line="24"/>
+        <source>Search String</source>
+        <translation type="unfinished">Suchbegriff</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyServerImportDialog.ui" line="48"/>
+        <source>Search</source>
+        <translation type="unfinished">Suchen</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyServerImportDialog.ui" line="68"/>
+        <source>ICON</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyServerImportDialog.ui" line="81"/>
+        <source>Message</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>KeyServerSettings</name>
+    <message>
+        <location filename="../../../../ui/KeyServerSettings.ui" line="14"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="152"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="152"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="152"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="152"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="152"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="152"/>
+        <source>Form</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyServerSettings.ui" line="22"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="155"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="155"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="155"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="155"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="155"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="155"/>
+        <source>Keyserver List</source>
+        <translation type="unfinished">Keyserver-Liste</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyServerSettings.ui" line="48"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="156"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="156"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="156"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="156"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="156"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="156"/>
+        <source>URL: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyServerSettings.ui" line="58"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="157"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="157"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="157"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="157"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="157"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="157"/>
+        <source>Add</source>
+        <translation type="unfinished">Hinzufügen</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyServerSettings.ui" line="89"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="159"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="159"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="159"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="159"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="159"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="159"/>
+        <source>default</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyServerSettings.ui" line="94"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="161"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="161"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="161"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="161"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="161"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="161"/>
+        <source>Keyserver Address</source>
+        <translation type="unfinished">Keyserver-Adresse</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyServerSettings.ui" line="99"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="163"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="163"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="163"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="163"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="163"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="163"/>
+        <source>Security</source>
+        <translation type="unfinished">Sicherheit</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyServerSettings.ui" line="104"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="165"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="165"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="165"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="165"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="165"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="165"/>
+        <source>Avaliable</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyServerSettings.ui" line="112"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="166"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="166"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="166"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="166"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="166"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="166"/>
+        <source>Tips: Please Double-click table item to edit it.</source>
+        <translation type="unfinished">Tipps: Bitte doppelklicken Sie auf das Tabellenelement, um es zu bearbeiten.</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyServerSettings.ui" line="135"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="167"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="167"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="167"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="167"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="167"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="167"/>
+        <source>Operations</source>
+        <translation type="unfinished">Aktivieren</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyServerSettings.ui" line="143"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="168"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="168"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="168"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="168"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="168"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="168"/>
+        <source>Test Listed Key Server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyServerSettings.ui" line="157"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="153"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="153"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="153"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="153"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="153"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="153"/>
+        <source>Delete Selected Key Server</source>
+        <translation type="unfinished">Ausgewählten Schlüsselserver löschen</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/KeyServerSettings.ui" line="162"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="154"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="154"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="154"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="154"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="154"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_KeyServerSettings.h" line="154"/>
+        <source>Set As Default</source>
+        <translation type="unfinished">Als Standard einstellen</translation>
+    </message>
+</context>
+<context>
+    <name>ModifiedExpirationDateTime</name>
+    <message>
+        <location filename="../../../../ui/ModifiedExpirationDateTime.ui" line="14"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="109"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="109"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="109"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="108"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="109"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="109"/>
+        <source>Modified Expiration Date</source>
+        <translation type="unfinished">Geändertes Ablaufdatum</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ModifiedExpirationDateTime.ui" line="32"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="110"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="110"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="110"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="109"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="110"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="110"/>
+        <source>Modified Expiration Date (Local Time)</source>
+        <translation type="unfinished">Geändertes Ablaufdatum (Ortszeit)</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ModifiedExpirationDateTime.ui" line="49"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="111"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="111"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="111"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="110"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="111"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="111"/>
+        <source>No Expiration</source>
+        <translation type="unfinished">Nicht ablaufend</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ModifiedExpirationDateTime.ui" line="63"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="112"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="112"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="112"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="111"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="112"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModifiedExpirationDateTime.h" line="112"/>
+        <source>Tips: For the sake of security, the key is valid for up to two years. If you are
+                                    an expert user, please unlock it for a longer time in the settings.
+                                </source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ModuleControllerDialog</name>
+    <message>
+        <location filename="../../../../ui/ModuleControllerDialog.ui" line="14"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="247"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="247"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="247"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="247"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="247"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="247"/>
+        <source>Module Controller</source>
+        <translation type="unfinished">Modul-Controller</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ModuleControllerDialog.ui" line="33"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="254"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="254"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="254"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="254"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="254"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="254"/>
+        <source>Registered Modules</source>
+        <translation type="unfinished">Registrierte Module</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ModuleControllerDialog.ui" line="68"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="248"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="248"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="248"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="248"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="248"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="248"/>
+        <source>Show Mods Directory</source>
+        <translation type="unfinished">Mods-Verzeichnis anzeigen</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ModuleControllerDialog.ui" line="89"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="249"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="249"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="249"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="249"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="249"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="249"/>
+        <source>Module Informations</source>
+        <translation type="unfinished">Informationen zum Modul</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ModuleControllerDialog.ui" line="110"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="250"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="250"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="250"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="250"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="250"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="250"/>
+        <source>Actions</source>
+        <translation type="unfinished">Aktionen</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ModuleControllerDialog.ui" line="119"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="251"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="251"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="251"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="251"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="251"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="251"/>
+        <source>Activate</source>
+        <translation type="unfinished">Aktivieren</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ModuleControllerDialog.ui" line="126"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="252"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="252"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="252"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="252"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="252"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="252"/>
+        <source>Auto Activate</source>
+        <translation type="unfinished">Automatisch aktivieren</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ModuleControllerDialog.ui" line="160"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="253"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="253"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="253"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="253"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="253"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="253"/>
+        <source>Tips: Module name front with &quot;*&quot; stands for integrated module.</source>
+        <translation type="unfinished">Hinweise: Modulname mit &quot;*&quot; steht für integriertes Modul.</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ModuleControllerDialog.ui" line="171"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="255"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="255"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="255"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="255"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="255"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="255"/>
+        <source>Global Register Table</source>
+        <translation type="unfinished">Globale Registertabelle</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ModuleControllerDialog.ui" line="185"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="258"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="258"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="258"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="258"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="258"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="258"/>
+        <source>Debugger</source>
+        <translation type="unfinished">Debugger</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ModuleControllerDialog.ui" line="197"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="256"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="256"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="256"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="256"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="256"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="256"/>
+        <source>Trigger Event</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ModuleControllerDialog.ui" line="221"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="257"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="257"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="257"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="257"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="257"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ModuleControllerDialog.h" line="257"/>
+        <source>Upsert GRT Value</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>NetworkSettings</name>
+    <message>
+        <location filename="../../../../ui/NetworkSettings.ui" line="14"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="296"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="296"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="296"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="296"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="296"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="296"/>
+        <source>Form</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/NetworkSettings.ui" line="22"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="297"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="297"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="297"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="297"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="297"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="297"/>
+        <source>Proxy</source>
+        <translation type="unfinished">Proxy</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/NetworkSettings.ui" line="30"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="298"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="298"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="298"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="298"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="298"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="298"/>
+        <source>Enable Proxy</source>
+        <translation type="unfinished">Proxy aktivieren</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/NetworkSettings.ui" line="58"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="299"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="299"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="299"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="299"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="299"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="299"/>
+        <source>Proxy Type</source>
+        <translation type="unfinished">Proxy-Typ</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/NetworkSettings.ui" line="65"/>
+        <location filename="../../../../ui/NetworkSettings.ui" line="69"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="300"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="304"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="300"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="304"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="300"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="304"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="300"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="304"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="300"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="304"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="300"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="304"/>
+        <source>System Default</source>
+        <translation type="unfinished">Systemstandard</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/NetworkSettings.ui" line="74"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="301"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="301"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="301"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="301"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="301"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="301"/>
+        <source>HTTP</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/NetworkSettings.ui" line="79"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="302"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="302"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="302"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="302"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="302"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="302"/>
+        <source>Socks5</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/NetworkSettings.ui" line="108"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="305"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="305"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="305"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="305"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="305"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="305"/>
+        <source>Host Address</source>
+        <translation type="unfinished">Adresse des Hosts</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/NetworkSettings.ui" line="152"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="306"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="306"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="306"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="306"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="306"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="306"/>
+        <source>Port</source>
+        <translation type="unfinished">Port</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/NetworkSettings.ui" line="199"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="307"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="307"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="307"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="307"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="307"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="307"/>
+        <source>Username</source>
+        <translation type="unfinished">Benutzername</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/NetworkSettings.ui" line="237"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="308"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="308"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="308"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="308"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="308"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="308"/>
+        <source>Password</source>
+        <translation type="unfinished">Passwort</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/NetworkSettings.ui" line="266"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="309"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="309"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="309"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="309"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="309"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="309"/>
+        <source>Operations</source>
+        <translation type="unfinished">Aktivieren</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/NetworkSettings.ui" line="274"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="310"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="310"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="310"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="310"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="310"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="310"/>
+        <source>Check Proxy Connection</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/NetworkSettings.ui" line="289"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="311"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="311"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="311"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="311"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="311"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="311"/>
+        <source>Network Ability</source>
+        <translation type="unfinished">Netzwerkfähigkeit</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/NetworkSettings.ui" line="295"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="312"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="312"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="312"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="312"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="312"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="312"/>
+        <source>Tips: These Option Changes take effect only after the application restart.</source>
+        <translation type="unfinished">Tipps: Diese Optionsänderungen werden erst nach dem Neustart der Anwendung wirksam.</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/NetworkSettings.ui" line="304"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="313"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="313"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="313"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="313"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="313"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="313"/>
+        <source>Forbid all GnuPG network connection.</source>
+        <translation type="unfinished">Alle GnuPG-Netzwerkverbindungen verbieten.</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/NetworkSettings.ui" line="311"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="314"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="314"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="314"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="314"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="314"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="314"/>
+        <source>Prohibit checking for version updates when the program starts.</source>
+        <translation type="unfinished">Die Suche nach Versionsaktualisierungen beim Start des Programms deaktivieren.</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/NetworkSettings.ui" line="318"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="315"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="315"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="315"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="315"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="315"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_NetworkSettings.h" line="315"/>
+        <source>Automatically import a missing key for signature verification.</source>
+        <translation type="unfinished">Automatisch fehlenden Schlüssel zur Signaturprüfung importieren.</translation>
+    </message>
+</context>
+<context>
+    <name>PlainTextEditor</name>
+    <message>
+        <location filename="../../../../ui/PlainTextEditor.ui" line="14"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="94"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="94"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="94"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="94"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="94"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="94"/>
+        <source>Form</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/PlainTextEditor.ui" line="45"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="95"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="95"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="95"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="95"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="95"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="95"/>
+        <source>Loading...</source>
+        <translation type="unfinished">Wird geladen...</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/PlainTextEditor.ui" line="65"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="96"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="96"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="96"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="96"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="96"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="96"/>
+        <source>Character</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/PlainTextEditor.ui" line="72"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="97"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="97"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="97"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="97"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="97"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="97"/>
+        <source>LF</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/PlainTextEditor.ui" line="79"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="98"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="98"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="98"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="98"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="98"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_PlainTextEditor.h" line="98"/>
+        <source>UTF-8</source>
+        <translation type="unfinished">UTF-8</translation>
+    </message>
+</context>
+<context>
     <name>QCoreApplication</name>
     <message>
         <location filename="../../../../src/cmd.cpp" line="50"/>
@@ -5942,17 +7487,17 @@ Fals Daten und Signatur in einer Datei COMBINIERT sind, LASSEN SIE DIES LEER: </
         <translation type="unfinished">Sourcecode Version: </translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GpgCoreInit.cpp" line="283"/>
+        <location filename="../../../../src/core/GpgCoreInit.cpp" line="288"/>
         <source>GpgME initiation failed</source>
         <translation>GpgME-Initiation fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GpgCoreInit.cpp" line="378"/>
+        <location filename="../../../../src/core/GpgCoreInit.cpp" line="374"/>
         <source>GpgME Context initiation failed</source>
         <translation>GpgME-Kontext-Initiation fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GpgCoreInit.cpp" line="387"/>
+        <location filename="../../../../src/core/GpgCoreInit.cpp" line="383"/>
         <source>Gpg Key Database initiation failed</source>
         <translation type="unfinished">Initiierung der Gpg-Schlüsseldatenbank fehlgeschlagen</translation>
     </message>
@@ -6134,6 +7679,525 @@ Fals Daten und Signatur in einer Datei COMBINIERT sind, LASSEN SIE DIES LEER: </
     <message>
         <source>There is no target public key content in local for GpgFrontend to gather enough information about this Signature. Do you want to import the public key from Keyserver now?</source>
         <translation type="obsolete">Es gibt lokal keinen öffentlichen Zielschlüsselinhalt für GpgFrontend, um genügend Informationen über diese Signatur zu sammeln. Möchten Sie jetzt den öffentlichen Schlüssel vom Keyserver importieren?</translation>
+    </message>
+</context>
+<context>
+    <name>RaisePinentry</name>
+    <message>
+        <location filename="../../../../modules/src/m_pinentry/RaisePinentry.cpp" line="57"/>
+        <source>Repeat Passphrase:</source>
+        <translation type="unfinished">Passphrase wiederholen:</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_pinentry/RaisePinentry.cpp" line="58"/>
+        <source>Show passphrase</source>
+        <translation type="unfinished">Passwortphrase anzeigen</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_pinentry/RaisePinentry.cpp" line="58"/>
+        <source>Hide passphrase</source>
+        <translation type="unfinished">Passwortphrase verbergen</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_pinentry/RaisePinentry.cpp" line="61"/>
+        <source>Given Passphrase was wrong. Please retry.</source>
+        <translation type="unfinished">Die angegebene Passphrase war falsch. Bitte versuchen Sie es erneut.</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_pinentry/RaisePinentry.cpp" line="64"/>
+        <source>Passphrase:</source>
+        <translation type="unfinished">Passphrase:</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_pinentry/RaisePinentry.cpp" line="74"/>
+        <source>Passphrases do not match</source>
+        <translation type="unfinished">Passwortphrasen stimmen nicht überein</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_pinentry/RaisePinentry.cpp" line="77"/>
+        <source>Caps Lock is on</source>
+        <translation type="unfinished">Feststelltaste ist eingeschaltet</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_pinentry/RaisePinentry.cpp" line="81"/>
+        <source>Bundled Pinentry</source>
+        <translation type="unfinished">Eingabe Passphrase</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_pinentry/RaisePinentry.cpp" line="85"/>
+        <source>Confirm</source>
+        <translation type="unfinished">Bestätigen</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_pinentry/RaisePinentry.cpp" line="86"/>
+        <source>Cancel</source>
+        <translation type="unfinished">Abbrechen</translation>
+    </message>
+</context>
+<context>
+    <name>ReceiveMailDialog</name>
+    <message>
+        <location filename="../../../../ui/ReceiveMailDialog.ui" line="14"/>
+        <source>Receive Mail</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ReceiveMailDialog.ui" line="24"/>
+        <source>Refresh</source>
+        <translation type="unfinished">Aktualisierung</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ReceiveMailDialog.ui" line="58"/>
+        <source>Name</source>
+        <translation type="unfinished">Name</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ReceiveMailDialog.ui" line="73"/>
+        <source>TextLabel</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>SendMailDialog</name>
+    <message>
+        <location filename="../../../../ui/SendMailDialog.ui" line="20"/>
+        <source>New Message</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailDialog.ui" line="52"/>
+        <source>Sender</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailDialog.ui" line="81"/>
+        <location filename="../../../../ui/SendMailDialog.ui" line="269"/>
+        <source>CC</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailDialog.ui" line="91"/>
+        <location filename="../../../../ui/SendMailDialog.ui" line="310"/>
+        <source>BCC</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailDialog.ui" line="122"/>
+        <source>Recipient(s)</source>
+        <translation type="unfinished">Empfänger</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailDialog.ui" line="135"/>
+        <source>Edit Recipients(s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailDialog.ui" line="170"/>
+        <source>Mail Subject</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailDialog.ui" line="204"/>
+        <source>GPG Operations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailDialog.ui" line="227"/>
+        <source>Select Sender GPG Key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailDialog.ui" line="234"/>
+        <source>Select Recipient(s) GPG Key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailDialog.ui" line="282"/>
+        <source>Edit CC(s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailDialog.ui" line="323"/>
+        <source>Edit BCC(s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailDialog.ui" line="333"/>
+        <source>Tips: You can fill in multiple email addresses, please separate them with &quot;;&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailDialog.ui" line="352"/>
+        <source>Sender GPG Key:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailDialog.ui" line="376"/>
+        <source>Recipient(s) GPG Key:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailDialog.ui" line="417"/>
+        <source>Encrypt content</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailDialog.ui" line="427"/>
+        <source>Attach signature</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailDialog.ui" line="437"/>
+        <source>Attach sender&apos;s public key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailDialog.ui" line="457"/>
+        <source>Send Mail</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>SendMailSettings</name>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="14"/>
+        <source>Form</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="22"/>
+        <source>General</source>
+        <translation type="unfinished">Allgemein</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="30"/>
+        <source>Enable Send Mail Ability</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="58"/>
+        <source>SMTP Server Address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="102"/>
+        <source>SMTP Server Port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="149"/>
+        <source>SMTP Connection Security</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="156"/>
+        <location filename="../../../../ui/SendMailSettings.ui" line="160"/>
+        <source>None</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="165"/>
+        <source>SSL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="170"/>
+        <source>TLS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="175"/>
+        <source>STARTTLS</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="191"/>
+        <source>Identity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="199"/>
+        <source>Need Auth</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="224"/>
+        <source>Username</source>
+        <translation type="unfinished">Benutzername</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="262"/>
+        <source>Password</source>
+        <translation type="unfinished">Passwort</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="290"/>
+        <source>Preference</source>
+        <translation type="unfinished">Einstellung</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="316"/>
+        <source>Default Sender Email</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="352"/>
+        <source>Default Sender GPG Key ID</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="371"/>
+        <source>Tips: It is recommended that you build your own mail server or use a trusted mail server. If you don&apos;t know the detailed configuration information, you can get it from the mail service provider.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="394"/>
+        <source>Operations</source>
+        <translation type="unfinished">Aktivieren</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="402"/>
+        <source>Check Connection</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/SendMailSettings.ui" line="409"/>
+        <source>Send Test Email</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>UpdateTab</name>
+    <message>
+        <location filename="../../../../modules/src/m_ver_check/UpdateTab.cpp" line="46"/>
+        <source>It is recommended that you always check the version of GpgFrontend and upgrade to the latest version.</source>
+        <translation type="unfinished">Es wird empfohlen, immer die Version von GpgFrontend zu überprüfen und auf die neueste Version zu aktualisieren.</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_ver_check/UpdateTab.cpp" line="49"/>
+        <source>New versions not only represent new features, but also often represent functional and security fixes.</source>
+        <translation type="unfinished">Neue Versionen beinhalten nicht nur neue Funktionen, sondern stellen oft auch Funktions- und Sicherheitskorrekturen dar.</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_ver_check/UpdateTab.cpp" line="55"/>
+        <source>Current Version</source>
+        <translation type="unfinished">Aktuelle Version</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_ver_check/UpdateTab.cpp" line="56"/>
+        <source>: </source>
+        <translation type="unfinished">: </translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_ver_check/UpdateTab.cpp" line="132"/>
+        <source>Latest Version From Github</source>
+        <translation type="unfinished">Neueste Version von Github</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_ver_check/UpdateTab.cpp" line="138"/>
+        <source>The current version is less than the latest version on github.</source>
+        <translation type="unfinished">Die aktuelle Versionsnunmmer ist kleiner als die neueste Version auf github.</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_ver_check/UpdateTab.cpp" line="140"/>
+        <location filename="../../../../modules/src/m_ver_check/UpdateTab.cpp" line="151"/>
+        <location filename="../../../../modules/src/m_ver_check/UpdateTab.cpp" line="163"/>
+        <source>Please click</source>
+        <translation type="unfinished">Bitte klicken Sie</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_ver_check/UpdateTab.cpp" line="143"/>
+        <location filename="../../../../modules/src/m_ver_check/UpdateTab.cpp" line="154"/>
+        <location filename="../../../../modules/src/m_ver_check/UpdateTab.cpp" line="166"/>
+        <source>Here</source>
+        <translation type="unfinished">Hier</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_ver_check/UpdateTab.cpp" line="143"/>
+        <location filename="../../../../modules/src/m_ver_check/UpdateTab.cpp" line="154"/>
+        <location filename="../../../../modules/src/m_ver_check/UpdateTab.cpp" line="166"/>
+        <source>to download the latest stable version.</source>
+        <translation type="unfinished">um die neueste stabile Version herunterzuladen.</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_ver_check/UpdateTab.cpp" line="149"/>
+        <source>This version has serious problems and has been withdrawn. Please stop using it immediately.</source>
+        <translation type="unfinished">Diese Version hat ernsthafte Probleme und wurde zurückgezogen. Bitte hören Sie sofort auf, sie zu verwenden.</translation>
+    </message>
+    <message>
+        <location filename="../../../../modules/src/m_ver_check/UpdateTab.cpp" line="160"/>
+        <source>This version has not been released yet, it may be a beta version. If you are not a tester and care about version stability, please do not use this version.</source>
+        <translation type="unfinished">Diese Version wurde noch nicht veröffentlicht, möglicherweise handelt es sich um eine Beta-Version. Wenn Sie kein Tester sind und Ihnen Stabilität der Version wichtig ist, verwenden Sie diese Version bitte nicht.</translation>
+    </message>
+</context>
+<context>
+    <name>VerifyDetailsDialog</name>
+    <message>
+        <location filename="../../../../ui/VerifyDetails.ui" line="14"/>
+        <source>Dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/VerifyDetails.ui" line="25"/>
+        <source>Verify Details</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/VerifyDetails.ui" line="51"/>
+        <source>Date: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/VerifyDetails.ui" line="64"/>
+        <location filename="../../../../ui/VerifyDetails.ui" line="90"/>
+        <source>TextLabel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/VerifyDetails.ui" line="77"/>
+        <source>Status: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/VerifyDetails.ui" line="103"/>
+        <source>Signer(s) List: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/VerifyDetails.ui" line="114"/>
+        <source>Tab 1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/VerifyDetails.ui" line="119"/>
+        <source>Tab 2</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>exportKeyPackageDialog</name>
+    <message>
+        <location filename="../../../../ui/ExportKeyPackageDialog.ui" line="14"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="186"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="186"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="186"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="185"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="186"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="186"/>
+        <source>Export As Key Package</source>
+        <translation type="unfinished">Als Schlüsselpaket exportieren</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ExportKeyPackageDialog.ui" line="34"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="187"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="187"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="187"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="186"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="187"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="187"/>
+        <source>Key Package Name</source>
+        <translation type="unfinished">Name des Schlüsselpakets</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ExportKeyPackageDialog.ui" line="41"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="188"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="188"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="188"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="187"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="188"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="188"/>
+        <source>Generate Key Package Name</source>
+        <translation type="unfinished">Namen für das Schlüsselpaket erstellen</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ExportKeyPackageDialog.ui" line="50"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="189"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="189"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="189"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="188"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="189"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="189"/>
+        <source>KeyPackage_0000</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ExportKeyPackageDialog.ui" line="66"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="190"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="190"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="190"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="189"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="190"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="190"/>
+        <source>Output Path</source>
+        <translation type="unfinished">Ausgabepfad</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ExportKeyPackageDialog.ui" line="73"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="191"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="191"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="191"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="190"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="191"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="191"/>
+        <source>Select Output Path</source>
+        <translation type="unfinished">Ausgabepfad auswählen</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ExportKeyPackageDialog.ui" line="101"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="193"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="193"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="193"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="192"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="193"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="193"/>
+        <source>Passphrase</source>
+        <translation type="unfinished">Passphrase</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ExportKeyPackageDialog.ui" line="108"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="194"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="194"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="194"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="193"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="194"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="194"/>
+        <source>Generate and Save Passphrase</source>
+        <translation type="unfinished">Passphrase erstellen und speichern</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ExportKeyPackageDialog.ui" line="134"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="196"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="196"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="196"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="195"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="196"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="196"/>
+        <source>Include secret key (Think twice before acting)</source>
+        <translation type="unfinished">Geheimen Schlüssel einschließen (Denken Sie zweimal nach, bevor Sie handeln)</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ExportKeyPackageDialog.ui" line="141"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="197"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="197"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="197"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="196"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="197"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="197"/>
+        <source>Exclude keys that do not have a private key</source>
+        <translation type="unfinished">Schlüssel ausschließen, die keinen privaten Schlüssel haben</translation>
+    </message>
+    <message>
+        <location filename="../../../../ui/ExportKeyPackageDialog.ui" line="148"/>
+        <location filename="../../../../build/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="198"/>
+        <location filename="../../../../build-asan/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="198"/>
+        <location filename="../../../../build-full-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="198"/>
+        <location filename="../../../../build-qt5/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="197"/>
+        <location filename="../../../../build-release/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="198"/>
+        <location filename="../../../../build-sdk/src/ui/gpgfrontend_ui_autogen/include/ui_ExportKeyPackageDialog.h" line="198"/>
+        <source>Tips: You can use Key Package to safely and conveniently transfer your public
+                                    and private keys between devices.
+                                </source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>
