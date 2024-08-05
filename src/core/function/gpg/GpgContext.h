@@ -46,8 +46,7 @@ struct GpgContextInitArgs {
   bool offline_mode = false;             ///<
   bool auto_import_missing_key = false;  ///<
 
-  bool custom_gpgconf = false;  ///<
-  QString custom_gpgconf_path;  ///<
+  QString gpgconf_path;  ///<
 
   bool use_pinentry = false;  ///<
 };

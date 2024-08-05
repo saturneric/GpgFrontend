@@ -304,9 +304,6 @@ void InitGpgFrontendCore(CoreInitArgs args) {
   auto custom_key_database_path =
       settings.value("gnupg/custom_key_database_path", QString{}).toString();
 
-  auto custom_gnupg_install_path =
-      settings.value("gnupg/custom_gnupg_install_path", QString{}).toString();
-
   auto use_pinentry_as_password_input_dialog =
       settings
           .value("gnupg/use_pinentry_as_password_input_dialog",
@@ -327,10 +324,14 @@ void InitGpgFrontendCore(CoreInitArgs args) {
             !custom_key_database_path.isEmpty()) {
           if (VerifyKeyDatabasePath(QFileInfo(custom_key_database_path))) {
             key_database_fs_path =
-                QFileInfo(custom_gnupg_install_path).absoluteFilePath();
+                QFileInfo(custom_key_database_path).absoluteFilePath();
+            LOG_D() << "use custom gpg key database: " << key_database_fs_path
+                    << "raw:" << custom_key_database_path;
+
           } else {
             LOG_W() << "custom gpg key database path is not suitable: "
-                    << key_database_fs_path;
+                    << key_database_fs_path
+                    << "raw:" << custom_key_database_path;
           }
         } else {
 
@@ -354,8 +355,7 @@ void InitGpgFrontendCore(CoreInitArgs args) {
 
                 // set custom gnupg path
                 if (!gnupg_install_fs_path.isEmpty()) {
-                  args.custom_gpgconf = true;
-                  args.custom_gpgconf_path = gnupg_install_fs_path;
+                  args.gpgconf_path = gnupg_install_fs_path;
                 }
 
                 args.offline_mode = forbid_all_gnupg_connection;
