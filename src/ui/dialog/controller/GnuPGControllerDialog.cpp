@@ -149,6 +149,18 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
             this->slot_set_restart_needed(kDeepRestartCode);
           });
 
+  connect(ui_->keyDatabaseUseCustomCheckBox, &QCheckBox::stateChanged, this,
+          [=](int) {
+            // announce the restart
+            this->slot_set_restart_needed(kDeepRestartCode);
+          });
+
+  connect(ui_->useCustomGnuPGInstallPathCheckBox, &QCheckBox::stateChanged,
+          this, [=](int) {
+            // announce the restart
+            this->slot_set_restart_needed(kDeepRestartCode);
+          });
+
 #if defined(__APPLE__) && defined(__MACH__)
   // macOS style settings
   ui_->buttonBox->setDisabled(true);
