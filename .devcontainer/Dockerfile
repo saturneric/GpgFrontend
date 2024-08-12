@@ -27,10 +27,7 @@ RUN apt-get update && \
     libarchive-dev \
     libssl-dev \
     libgpgme-dev \
-    && apt-get clean \
+    qt6-base-dev \
+    qt6-tools-dev \
+  && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
-# Install Qt6
-RUN git clone https://github.com/jurplel/install-qt-action.git /tmp/install-qt-action && \
-    /tmp/install-qt-action/install-qt.sh -v "6.7.2" --no-cache && \
-    rm -rf /tmp/install-qt-action
