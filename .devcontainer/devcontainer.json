@@ -2,13 +2,11 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/cpp
 {
 	"name": "C++",
-
 	"hostRequirements": {
 		"cpus": 4, 
 		"memory": "8gb",
 		"storage": "32gb"
 	},
-
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
@@ -23,17 +21,29 @@
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
 
-	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "gcc -v",
-
-	// Configure tool-specific properties.
-	// "customizations": {},
-
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "root"
-	
-  "postCreateCommand": {
-    "git": "git submodule update --recursive --init",
-    "build": "mkdir build && cd build && cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug .."
-  }
+
+	"postCreateCommand": {
+		"git": "git submodule update --recursive --init",
+		"build": "cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug",
+		"clangd": "ln -s build/compile_commands.json $(pwd)/compile_commands.json"
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"jeff-hykin.better-cpp-syntax",
+				"ms-vscode.cpptools-themes",
+				"ms-vscode.cpptools",
+				"xaver.clang-format",
+				"llvm-vs-code-extensions.vscode-clangd",
+				"josetr.cmake-language-support-vscode",
+				"ms-vscode.cmake-tools",
+				"streetsidesoftware.code-spell-checker",
+				"vadimcn.vscode-lldb",
+				"yzhang.markdown-all-in-one",
+				"stkb.rewrap"
+			]
+		}
+	}
 }
