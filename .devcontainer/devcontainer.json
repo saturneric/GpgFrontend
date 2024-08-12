@@ -13,14 +13,21 @@
 	"features": {
 		"ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {},
 		"ghcr.io/nils-geistmann/devcontainers-features/zsh:0": {},
-		"ghcr.io/devcontainers/features/desktop-lite:1": {}
+		"ghcr.io/devcontainers/features/desktop-lite:1": {
+			"password": "vscode", 
+			"webPort": "6080",
+			"vncPort": "5901"
+		}
 	},
-	"forwardPorts": [6080],
+	"forwardPorts": [6080, 5901],
 	"portsAttributes": {
-    "6080": {
-      "label": "desktop"
-    }
-  },
+			"5901": {
+					"label": "VNC"
+			},
+			"6080": {
+					"label": "Web VNC"
+			}
+	},
 	"customizations": {
 		"vscode": {
 			"extensions": [
