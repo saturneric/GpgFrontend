@@ -13,21 +13,14 @@
 	"features": {
 		"ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {},
 		"ghcr.io/nils-geistmann/devcontainers-features/zsh:0": {},
-		"ghcr.io/devcontainers/features/desktop-lite:1": {
-			"password": "vscode", 
-			"webPort": "6080",
-			"vncPort": "5901"
-		}
+		"ghcr.io/devcontainers/features/desktop-lite:1": {}
 	},
-	"forwardPorts": [6080, 5901],
-	"portsAttributes": {
-			"5901": {
-					"label": "VNC"
-			},
-			"6080": {
-					"label": "Web VNC"
-			}
-	},
+	"forwardPorts": [6080],
+  "portsAttributes": {
+    "6080": {
+      "label": "desktop"
+    }
+  },
 	"customizations": {
 		"vscode": {
 			"extensions": [
@@ -45,8 +38,10 @@
 			]
 		},
 		"settings": {
+			"C_Cpp.intelliSenseEngine": "disabled",
   		"clangd.path": "/usr/bin/clangd"
 		}
 	},
-	"postCreateCommand": "bash .devcontainer/post-create.sh"
+	"postCreateCommand": "bash .devcontainer/post-create.sh",
+	"runArgs": ["--shm-size=1g"]
 }

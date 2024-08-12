@@ -5,6 +5,7 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d1750e052a85430a8f1f84e58a0fceda)](https://www.codacy.com/gh/saturneric/GpgFrontend/dashboard?utm_source=github.com&utm_medium=referral&utm_content=saturneric/GpgFrontend&utm_campaign=Badge_Grade)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=small)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_small)
 [![Build & Package](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml)
+[![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/saturneric/GpgFrontend)
 
 GpgFrontend is a free, open-source, robust yet user-friendly, compact and
 cross-platform tool for [OpenPGP](https://www.openpgp.org/) encryption. It
@@ -99,7 +100,7 @@ Feel free to dive in! [Open an
 issue](https://github.com/saturneric/GpgFrontend/issues/new) or submit PRs if
 you prefer to use GitHub. For anonymous users, Git patches can be delivered by
 [mail](mailto:eric@bktus.com). If you don't have a GitHub account or prefer not
-to register, you are welcome to communicate with me via email at
+to register, you are welcome to communicate with me via email.
 
 [Contributing Guide](https://www.gpgfrontend.bktus.com/appendix/contribute)
 
