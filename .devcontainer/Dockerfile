@@ -23,11 +23,14 @@ RUN apt-get update && \
     texinfo \
     gcc \
     g++ \
+    ccache \
     ninja-build \
+    libgtest-dev \
     libarchive-dev \
     libssl-dev \
     libgpgme-dev \
     qt6-base-dev \
     qt6-tools-dev \
+    clangd \ 
   && apt-get clean \
     && rm -rf /var/lib/apt/lists/*

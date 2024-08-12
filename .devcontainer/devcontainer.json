@@ -2,13 +2,20 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/cpp
 {
 	"name": "C++",
+
+	"hostRequirements": {
+		"cpus": 4, 
+		"memory": "8gb",
+		"storage": "32gb"
+	},
+
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
 	"features": {
 		"ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {},
 		"ghcr.io/nils-geistmann/devcontainers-features/zsh:0": {}
-	}
+	},
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
@@ -24,4 +31,9 @@
 
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "root"
+	
+  "postCreateCommand": {
+    "git": "git submodule update --recursive --init",
+    "build": "mkdir build && cd build && cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug .."
+  }
 }
