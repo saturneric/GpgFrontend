@@ -1,0 +1,17 @@
+{
+    "name": "GpgFrontend Development Environment",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash"
+    },
+    "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "twxs.cmake",
+        "ms-vscode.gitlens"
+    ],
+    "forwardPorts": [8000],
+    "remoteUser": "devuser"
+}
