@@ -4,7 +4,7 @@
 	"name": "C++",
 	"hostRequirements": {
 		"cpus": 4, 
-		"memory": "8gb",
+		"memory": "16gb",
 		"storage": "32gb"
 	},
 	"build": {
@@ -12,23 +12,15 @@
 	},
 	"features": {
 		"ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {},
-		"ghcr.io/nils-geistmann/devcontainers-features/zsh:0": {}
+		"ghcr.io/nils-geistmann/devcontainers-features/zsh:0": {},
+		"ghcr.io/devcontainers/features/desktop-lite:1": {}
 	},
-
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
-
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
-
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
-
-	"postCreateCommand": {
-		"git": "git submodule update --recursive --init",
-		"build": "cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug",
-		"clangd": "ln -s build/compile_commands.json $(pwd)/compile_commands.json"
-	},
+	"forwardPorts": [6080],
+	"portsAttributes": {
+    "6080": {
+      "label": "desktop"
+    }
+  },
 	"customizations": {
 		"vscode": {
 			"extensions": [
@@ -44,6 +36,10 @@
 				"yzhang.markdown-all-in-one",
 				"stkb.rewrap"
 			]
+		},
+		"settings": {
+  		"clangd.path": "/usr/bin/clangd"
 		}
-	}
+	},
+	"postCreateCommand": "bash .devcontainer/post-create.sh"
 }
