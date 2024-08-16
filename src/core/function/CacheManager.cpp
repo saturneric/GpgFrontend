@@ -221,7 +221,7 @@ class CacheManager::Impl : public QObject {
 
     // get cache data list from file system
     QJsonArray registered_key_list;
-    if (stored_data->isArray()) {
+    if (stored_data.has_value() && stored_data->isArray()) {
       registered_key_list = stored_data->array();
     } else {
       GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(
