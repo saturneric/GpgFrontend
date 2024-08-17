@@ -5,7 +5,6 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d1750e052a85430a8f1f84e58a0fceda)](https://www.codacy.com/gh/saturneric/GpgFrontend/dashboard?utm_source=github.com&utm_medium=referral&utm_content=saturneric/GpgFrontend&utm_campaign=Badge_Grade)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=small)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_small)
 [![Build & Package](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml)
-[![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/saturneric/GpgFrontend)
 
 GpgFrontend is a free, open-source, robust yet user-friendly, compact and
 cross-platform tool for [OpenPGP](https://www.openpgp.org/) encryption. It
@@ -36,9 +35,10 @@ GpgFrontend is **PERMANENTLY FREE** of charge. However, you can support us by
     - [Supported Languages](#supported-languages)
   - [Modules](#modules)
   - [Contact](#contact)
-    - [Contributing \& Bugs Report](#contributing--bugs-report)
-    - [Project Maintainer](#project-maintainer)
-    - [Project's Logo](#projects-logo)
+  - [Contributing \& Bugs Report](#contributing--bugs-report)
+    - [Quick Start with GitHub Codespaces](#quick-start-with-github-codespaces)
+  - [Project Maintainer](#project-maintainer)
+  - [Project's Logo](#projects-logo)
   - [LICENSES](#licenses)
 
 ## User Manual
@@ -94,7 +94,7 @@ development of new modules and the introduction of API interfaces.
 
 Please refer to [HERE](https://www.gpgfrontend.bktus.com/overview/contact) for my contact details.
 
-### Contributing & Bugs Report
+## Contributing & Bugs Report
 
 Feel free to dive in! [Open an
 issue](https://github.com/saturneric/GpgFrontend/issues/new) or submit PRs if
@@ -104,11 +104,19 @@ to register, you are welcome to communicate with me via email.
 
 [Contributing Guide](https://www.gpgfrontend.bktus.com/appendix/contribute)
 
-### Project Maintainer
+### Quick Start with GitHub Codespaces
+
+[![Open in GitHub
+Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/saturneric/GpgFrontend)
+
+With just one click, you can quickly launch a fully configured development
+environment in GitHub Codespaces.
+
+## Project Maintainer
 
 [@Saturneric](https://github.com/saturneric)
 
-### Project's Logo
+## Project's Logo
 
 <img width="256" height="256" src="https://image.cdn.bktus.com/i/2024/02/24/f3f2f26a-96b4-65eb-960f-7ac3397a0a40.webp" alt="Logo"/>
 
