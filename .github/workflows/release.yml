@@ -82,6 +82,7 @@ jobs:
         run: |
           brew install cmake autoconf automake texinfo gettext openssl@3
           brew install ninja libarchive gpgme googletest
+          brew install create-dmg
           brew link openssl@3 --force
         if:  matrix.os == 'macos-13' || matrix.os == 'macos-12' || matrix.os == 'macos-14'
 
@@ -244,8 +245,7 @@ jobs:
           hdiutil create ${{github.workspace}}/build/tmp.dmg -ov \
             -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/package/
           mkdir ${{github.workspace}}/build/final-artifact
-          hdiutil convert ${{github.workspace}}/build/tmp.dmg -format UDZO -o ${{github.workspace}}/build/final-artifact/GpgFrontend.dmg
-          codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" ${{github.workspace}}/build/final-artifact/GpgFrontend.dmg
+          create-dmg --codesign "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" --volicon "${{github.workspace}}/resource/lfs/icns/GpgFrontend.icns" --volname GpgFrontend --app-drop-link 600 185 --window-size 800 400 ${{github.workspace}}/build/final-artifact/GpgFrontend.dmg ${{github.workspace}}/build/package/GpgFrontend.app
           mv ${{github.workspace}}/build/final-artifact/GpgFrontend.dmg \
             ${{github.workspace}}/build/final-artifact/GpgFrontend-${{env.sha_short}}-x86_64.dmg
           mv ${{github.workspace}}/build/GpgFrontend.app.zip \
