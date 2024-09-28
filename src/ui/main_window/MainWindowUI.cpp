@@ -543,10 +543,12 @@ void MainWindow::create_actions() {
   this->addAction(switch_tab_down_act_);
 
   cut_pgp_header_act_ = new QAction(tr("Remove PGP Header"), this);
+  cut_pgp_header_act_->setIcon(QIcon(":/icons/minus.png"));
   connect(cut_pgp_header_act_, &QAction::triggered, this,
           &MainWindow::slot_cut_pgp_header);
 
   add_pgp_header_act_ = new QAction(tr("Add PGP Header"), this);
+  add_pgp_header_act_->setIcon(QIcon(":/icons/add.png"));
   connect(add_pgp_header_act_, &QAction::triggered, this,
           &MainWindow::slot_add_pgp_header);
 }
@@ -580,6 +582,8 @@ void MainWindow::create_menus() {
   edit_menu_->addSeparator();
   edit_menu_->addAction(quote_act_);
   edit_menu_->addAction(clean_double_line_breaks_act_);
+  edit_menu_->addAction(add_pgp_header_act_);
+  edit_menu_->addAction(cut_pgp_header_act_);
   edit_menu_->addSeparator();
   edit_menu_->addAction(open_settings_act_);
 
@@ -609,10 +613,6 @@ void MainWindow::create_menus() {
   advance_menu_->addSeparator();
   advance_menu_->addAction(gnupg_controller_open_act_);
   advance_menu_->addAction(module_controller_open_act_);
-
-  steganography_menu_ = menuBar()->addMenu(tr("Steganography"));
-  steganography_menu_->addAction(cut_pgp_header_act_);
-  steganography_menu_->addAction(add_pgp_header_act_);
 
   view_menu_ = menuBar()->addMenu(tr("View"));
 
@@ -668,6 +668,8 @@ void MainWindow::create_tool_bars() {
   special_edit_tool_bar_->setObjectName("specialEditToolBar");
   special_edit_tool_bar_->addAction(quote_act_);
   special_edit_tool_bar_->addAction(clean_double_line_breaks_act_);
+  special_edit_tool_bar_->addAction(add_pgp_header_act_);
+  special_edit_tool_bar_->addAction(cut_pgp_header_act_);
   special_edit_tool_bar_->hide();
   view_menu_->addAction(special_edit_tool_bar_->toggleViewAction());
 

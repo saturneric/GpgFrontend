@@ -429,10 +429,9 @@ class MainWindow : public GeneralMainWindow {
   QMenu* email_menu_{};  ///<  Submenu for email operations
 #endif
 
-  QMenu* steganography_menu_{};  ///<  Submenu for steganography operations
-  QToolBar* crypt_tool_bar_{};   ///<  Toolbar holding crypt actions
-  QToolBar* file_tool_bar_{};    ///<  Toolbar holding file actions
-  QToolBar* edit_tool_bar_{};    ///<  Toolbar holding edit actions
+  QToolBar* crypt_tool_bar_{};  ///<  Toolbar holding crypt actions
+  QToolBar* file_tool_bar_{};   ///<  Toolbar holding file actions
+  QToolBar* edit_tool_bar_{};   ///<  Toolbar holding edit actions
   QToolBar*
       special_edit_tool_bar_{};  ///<  Toolbar holding special edit actions
   QToolBar* key_tool_bar_{};     ///<  Toolbar holding key operations
