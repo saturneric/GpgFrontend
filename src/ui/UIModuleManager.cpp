@@ -69,18 +69,6 @@ auto UIModuleManager::MountEntry(const QString& id,
   MountedUIEntry m_entry;
   m_entry.id_ = id;
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  for (const auto& meta : meta_data.asKeyValueRange()) {
-    meta_data[meta.first] =
-        QApplication::translate("GTrC", meta.second.toUtf8());
-  }
-#else
-  for (auto it = meta_data.keyValueBegin(); it != meta_data.keyValueEnd();
-       ++it) {
-    meta_data[it->first] = QApplication::translate("GTrC", it->second.toUtf8());
-  }
-#endif
-
   m_entry.meta_data_ = std::move(meta_data);
   m_entry.factory_ = factory;
 
@@ -99,6 +87,7 @@ auto MountedUIEntry::GetWidget() const -> QWidget* {
 
 auto MountedUIEntry::GetMetaDataByDefault(
     const QString& key, QString default_value) const -> QString {
+  if (meta_data_translated_.contains(key)) return meta_data_translated_[key];
   if (!meta_data_.contains(key)) return default_value;
   return meta_data_[key];
 }
@@ -162,9 +151,13 @@ void UIModuleManager::TranslateAllModulesParams() {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
   for (auto entry : mounted_entries_.asKeyValueRange()) {
     for (auto& m_entry : entry.second) {
+      m_entry.meta_data_translated_.clear();
       for (auto param : m_entry.meta_data_.asKeyValueRange()) {
-        m_entry.meta_data_[param.first] =
+        m_entry.meta_data_translated_[param.first] =
             QApplication::translate("GTrC", param.second.toUtf8());
+        LOG_D() << "module entry metadata key: " << param.first
+                << "value: " << param.second
+                << "translated: " << m_entry.meta_data_translated_[param.first];
       }
     }
   }
@@ -172,9 +165,10 @@ void UIModuleManager::TranslateAllModulesParams() {
   for (auto it = mounted_entries_.keyValueBegin();
        it != mounted_entries_.keyValueEnd(); ++it) {
     for (auto& m_entry : it->second) {
+      m_entry.meta_data_translated_.clear();
       for (auto it_p = m_entry.meta_data_.keyValueBegin();
            it_p != m_entry.meta_data_.keyValueEnd(); ++it_p) {
-        m_entry.meta_data_[it_p->first] =
+        m_entry.meta_data_translated_[it_p->first] =
             QApplication::translate("GTrC", it_p->second.toUtf8());
       }
     }

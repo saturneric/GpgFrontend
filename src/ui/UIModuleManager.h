@@ -40,6 +40,7 @@ namespace GpgFrontend::UI {
 struct MountedUIEntry {
   QString id_;
   QMap<QString, QString> meta_data_;
+  QMap<QString, QString> meta_data_translated_;
   EntryFactory factory_;
 
   MountedUIEntry() = default;
