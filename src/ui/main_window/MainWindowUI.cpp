@@ -706,7 +706,7 @@ void MainWindow::create_dock_windows() {
   key_list_dock_->setObjectName("EncryptDock");
   key_list_dock_->setAllowedAreas(Qt::LeftDockWidgetArea |
                                   Qt::RightDockWidgetArea);
-  key_list_dock_->setMinimumWidth(460);
+  // key_list_dock_->setMinimumWidth(460);
   addDockWidget(Qt::RightDockWidgetArea, key_list_dock_);
 
   m_key_list_->AddListGroupTab(
