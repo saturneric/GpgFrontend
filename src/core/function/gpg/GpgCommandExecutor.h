@@ -33,7 +33,7 @@
 namespace GpgFrontend {
 
 using GpgCommandExecutorCallback = std::function<void(int, QString, QString)>;
-using GpgCommandExecutorInteractor = std::function<void(QProcess *)>;
+using GpgCommandExecutorInterator = std::function<void(QProcess *)>;
 
 /**
  * @brief Extra commands related to GPG
@@ -45,7 +45,7 @@ class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor {
     QString cmd;
     QStringList arguments;
     GpgCommandExecutorCallback cb_func;
-    GpgCommandExecutorInteractor int_func;
+    GpgCommandExecutorInterator int_func;
     Module::TaskRunnerPtr task_runner = nullptr;
 
     ExecuteContext(
@@ -53,7 +53,7 @@ class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor {
         GpgCommandExecutorCallback callback = [](int, const QString &,
                                                  const QString &) {},
         Module::TaskRunnerPtr task_runner = nullptr,
-        GpgCommandExecutorInteractor int_func = [](QProcess *) {});
+        GpgCommandExecutorInterator int_func = [](QProcess *) {});
   };
 
   using ExecuteContexts = QList<ExecuteContext>;

@@ -66,7 +66,7 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
     FLOG_D("process runner called, data object size: %lu",
            data_object->GetObjectSize());
 
-    if (!data_object->Check<QString, QStringList, GpgCommandExecutorInteractor,
+    if (!data_object->Check<QString, QStringList, GpgCommandExecutorInterator,
                             GpgCommandExecutorCallback>()) {
       FLOG_W("data object checking failed");
       return -1;
@@ -76,7 +76,7 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
     auto cmd = ExtractParams<QString>(data_object, 0);
     auto arguments = ExtractParams<QStringList>(data_object, 1);
     auto interact_func =
-        ExtractParams<GpgCommandExecutorInteractor>(data_object, 2);
+        ExtractParams<GpgCommandExecutorInterator>(data_object, 2);
     auto callback = ExtractParams<GpgCommandExecutorCallback>(data_object, 3);
     const QString joined_argument = arguments.join(" ");
 
@@ -225,7 +225,7 @@ void GpgCommandExecutor::ExecuteConcurrentlySync(ExecuteContexts contexts) {
 
 GpgCommandExecutor::ExecuteContext::ExecuteContext(
     QString cmd, QStringList arguments, GpgCommandExecutorCallback callback,
-    Module::TaskRunnerPtr task_runner, GpgCommandExecutorInteractor int_func)
+    Module::TaskRunnerPtr task_runner, GpgCommandExecutorInterator int_func)
     : cmd(std::move(cmd)),
       arguments(std::move(arguments)),
       cb_func(std::move(callback)),

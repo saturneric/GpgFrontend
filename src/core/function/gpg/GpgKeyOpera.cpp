@@ -103,7 +103,17 @@ auto GpgKeyOpera::SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
  * @return the process doing this job
  */
 void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
-                                     const QString& output_path) {
+                                     const QString& output_path,
+                                     int revocation_reason_code,
+                                     const QString& revocation_reason_text) {
+  LOG_D() << "revoke code:" << revocation_reason_code
+          << "text:" << revocation_reason_text;
+
+  // dealing with reason text
+  auto reason_text_lines =
+      GpgFrontend::SecureCreateSharedObject<QList<QString>>(
+          revocation_reason_text.split('\n', Qt::SkipEmptyParts).toVector());
+
   const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.app_path", QString{});
   // get all components
@@ -121,17 +131,23 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
          }
        },
        nullptr,
-       [](QProcess* proc) -> void {
+       [revocation_reason_code, reason_text_lines](QProcess* proc) -> void {
          // Code From Gpg4Win
          while (proc->canReadLine()) {
            const QString line = QString::fromUtf8(proc->readLine()).trimmed();
+           LOG_D() << "gpg revoke proc line:" << line;
+
            if (line == QLatin1String("[GNUPG:] GET_BOOL gen_revoke.okay")) {
              proc->write("y\n");
            } else if (line == QLatin1String("[GNUPG:] GET_LINE "
                                             "ask_revocation_reason.code")) {
-             proc->write("0\n");
+             proc->write(
+                 QString("%1%\n").arg(revocation_reason_code).toLatin1());
            } else if (line == QLatin1String("[GNUPG:] GET_LINE "
                                             "ask_revocation_reason.text")) {
+             if (!reason_text_lines->isEmpty()) {
+               proc->write(reason_text_lines->takeFirst().toUtf8());
+             }
              proc->write("\n");
            } else if (line ==
                       QLatin1String(

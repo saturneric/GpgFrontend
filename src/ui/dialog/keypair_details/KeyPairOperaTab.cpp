@@ -40,6 +40,7 @@
 #include "core/utils/IOUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/dialog/RevocationOptionsDialog.h"
 #include "ui/dialog/import_export/KeyUploadDialog.h"
 #include "ui/function/SetOwnerTrustLevel.h"
 
@@ -350,27 +351,39 @@ void KeyPairOperaTab::slot_update_key_from_server() {
 }
 
 void KeyPairOperaTab::slot_gen_revoke_cert() {
-  auto literal = QString("%1 (*.rev)").arg(tr("Revocation Certificates"));
-  QString m_output_file_name;
+  auto* revocation_options_dialog = new RevocationOptionsDialog(this);
+
+  connect(revocation_options_dialog,
+          &RevocationOptionsDialog::SignalRevokeOptionAccepted, this,
+          [this](int code, const QString& text) {
+            auto literal =
+                QString("%1 (*.rev)").arg(tr("Revocation Certificates"));
+            QString m_output_file_name;
 
 #if defined(_WIN32) || defined(WIN32)
-  auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
-                     m_key_.GetId() + ").rev";
+            auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() +
+                               "](" + m_key_.GetId() + ").rev";
 #else
-  auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
-                     m_key_.GetId() + ").rev";
+            auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() +
+                               ">(" + m_key_.GetId() + ").rev";
 #endif
 
-  QFileDialog dialog(this, tr("Generate revocation certificate"), file_string,
-                     literal);
-  dialog.setDefaultSuffix(".rev");
-  dialog.setAcceptMode(QFileDialog::AcceptSave);
+            QFileDialog dialog(this, tr("Generate revocation certificate"),
+                               file_string, literal);
+            dialog.setDefaultSuffix(".rev");
+            dialog.setAcceptMode(QFileDialog::AcceptSave);
 
-  if (dialog.exec() != 0) m_output_file_name = dialog.selectedFiles().front();
+            if (dialog.exec() != QFileDialog::Reject) {
+              m_output_file_name = dialog.selectedFiles().front();
+            }
 
-  if (!m_output_file_name.isEmpty()) {
-    GpgKeyOpera::GetInstance().GenerateRevokeCert(m_key_, m_output_file_name);
-  }
+            if (!m_output_file_name.isEmpty()) {
+              GpgKeyOpera::GetInstance().GenerateRevokeCert(
+                  m_key_, m_output_file_name, code, text);
+            }
+          });
+
+  revocation_options_dialog->show();
 }
 
 void KeyPairOperaTab::slot_modify_password() {
