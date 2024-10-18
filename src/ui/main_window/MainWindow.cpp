@@ -63,7 +63,8 @@ void MainWindow::Init() noexcept {
             KeyMenuAbility::kSEARCH_BAR,
         GpgKeyTableColumn::kTYPE | GpgKeyTableColumn::kNAME |
             GpgKeyTableColumn::kKEY_ID | GpgKeyTableColumn::kEMAIL_ADDRESS |
-            GpgKeyTableColumn::kUSAGE | GpgKeyTableColumn::kOWNER_TRUST,
+            GpgKeyTableColumn::kUSAGE | GpgKeyTableColumn::kOWNER_TRUST |
+            GpgKeyTableColumn::kCOMMENT,
         this);
 
     info_board_ = new InfoBoardWidget(this);
