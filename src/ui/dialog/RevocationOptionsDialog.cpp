@@ -53,6 +53,7 @@ GpgFrontend::UI::RevocationOptionsDialog::RevocationOptionsDialog(
   connect(ui_->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
   connect(ui_->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
   setAttribute(Qt::WA_DeleteOnClose);
+  setModal(true);
 }
 
 auto GpgFrontend::UI::RevocationOptionsDialog::Code() const -> int {

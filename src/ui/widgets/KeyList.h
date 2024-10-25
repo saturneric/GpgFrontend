@@ -209,6 +209,13 @@ class KeyList : public QWidget {
    */
   void UpdateKeyTableColumnType(GpgKeyTableColumn);
 
+  /**
+   * @brief
+   *
+   * @return int
+   */
+  [[nodiscard]] auto GetCurrentGpgContextChannel() const -> int;
+
  signals:
   /**
    * @brief
@@ -292,6 +299,8 @@ class KeyList : public QWidget {
   QAction* owner_trust_column_action_;
   QAction* subkeys_number_column_action_;
   QAction* comment_column_action_;
+
+  int current_gpg_context_channel_ = kGpgFrontendDefaultChannel;
 
  private slots:
 

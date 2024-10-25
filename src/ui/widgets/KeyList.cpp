@@ -33,6 +33,7 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/module/ModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/import_export/KeyImportDetailDialog.h"
@@ -68,6 +69,37 @@ void KeyList::init() {
   ui_->columnTypeButton->setHidden(~menu_ability_ &
                                    KeyMenuAbility::kCOLUMN_FILTER);
   ui_->searchBarEdit->setHidden(~menu_ability_ & KeyMenuAbility::kSEARCH_BAR);
+
+  auto* gpg_context_menu = new QMenu(this);
+  auto* gpg_context_groups = new QActionGroup(this);
+  gpg_context_groups->setExclusive(true);
+  auto context_index_list = Module::ListRTChildKeys("core", "gpgme.ctx.list");
+  for (auto& context_index : context_index_list) {
+    LOG_D() << "context grt key: " << context_index;
+
+    const auto grt_key_prefix = QString("gpgme.ctx.list.%1").arg(context_index);
+    auto channel = Module::RetrieveRTValueTypedOrDefault(
+        "core", grt_key_prefix + ".channel", -1);
+    auto database_name = Module::RetrieveRTValueTypedOrDefault(
+        "core", grt_key_prefix + ".database_name", QString{});
+
+    LOG_D() << "context grt channel: " << channel
+            << "GRT key prefix: " << grt_key_prefix
+            << "database name: " << database_name;
+
+    auto* switch_context_action =
+        new QAction(QString("%1: %2").arg(channel).arg(database_name), this);
+    switch_context_action->setCheckable(true);
+    switch_context_action->setChecked(channel == current_gpg_context_channel_);
+    connect(switch_context_action, &QAction::toggled, this,
+            [this, channel](bool checked) {
+              current_gpg_context_channel_ = channel;
+              emit SignalRefreshDatabase();
+            });
+    gpg_context_groups->addAction(switch_context_action);
+    gpg_context_menu->addAction(switch_context_action);
+  }
+  ui_->switchContextButton->setMenu(gpg_context_menu);
 
   auto* column_type_menu = new QMenu(this);
 
@@ -253,7 +285,8 @@ void KeyList::SlotRefresh() {
   ui_->refreshKeyListButton->setDisabled(true);
   ui_->syncButton->setDisabled(true);
 
-  model_ = GpgKeyGetter::GetInstance().GetGpgKeyTableModel();
+  model_ = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+               .GetGpgKeyTableModel();
 
   for (int i = 0; i < ui_->keyGroupTab->count(); i++) {
     auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->widget(i));
@@ -261,8 +294,6 @@ void KeyList::SlotRefresh() {
   }
 
   emit SignalRefreshStatusBar(tr("Refreshing Key List..."), 3000);
-  this->model_ = GpgKeyGetter::GetInstance().GetGpgKeyTableModel();
-
   this->SlotRefreshUI();
 }
 
@@ -600,4 +631,7 @@ void KeyList::UpdateKeyTableColumnType(GpgKeyTableColumn column_type) {
   emit SignalColumnTypeChange(fixed_columns_filter_ & global_column_filter_);
 }
 
+auto KeyList::GetCurrentGpgContextChannel() const -> int {
+  return current_gpg_context_channel_;
+}
 }  // namespace GpgFrontend::UI

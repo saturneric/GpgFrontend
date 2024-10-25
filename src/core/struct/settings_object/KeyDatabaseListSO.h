@@ -28,29 +28,35 @@
 
 #pragma once
 
-#include "ui/dialog/GeneralDialog.h"
+#include "core/struct/settings_object/KeyDatabaseItemSO.h"
 
-class Ui_RevocationOptionsDialog;
+namespace GpgFrontend {
 
-namespace GpgFrontend::UI {
-class RevocationOptionsDialog : public GeneralDialog {
-  Q_OBJECT
- public:
-  explicit RevocationOptionsDialog(QWidget *parent);
+struct KeyDatabaseListSO {
+  QList<KeyDatabaseItemSO> key_databases;
 
-  [[nodiscard]] auto Code() const -> int;
+  KeyDatabaseListSO() = default;
 
-  [[nodiscard]] auto Text() const -> QString;
+  explicit KeyDatabaseListSO(const QJsonObject& j) {
+    if (const auto v = j["key_databases"]; v.isArray()) {
+      const QJsonArray j_array = v.toArray();
+      for (const auto& key_database : j_array) {
+        if (key_database.isObject()) {
+          key_databases.append(KeyDatabaseItemSO(key_database.toObject()));
+        }
+      }
+    }
+  }
 
- signals:
-  void SignalRevokeOptionAccepted(int code, QString text);
-
- private:
-  std::shared_ptr<Ui_RevocationOptionsDialog> ui_;  ///<
-  int code_;
-  QString text_;
-
-  void slot_button_box_accepted();
+  auto ToJson() -> QJsonObject {
+    QJsonObject j;
+    auto j_array = QJsonArray();
+    for (const auto& s : key_databases) {
+      j_array.push_back(s.ToJson());
+    }
+    j["key_databases"] = j_array;
+    return j;
+  }
 };
 
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend

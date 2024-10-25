@@ -31,7 +31,6 @@
 #include <gpg-error.h>
 
 #include <mutex>
-#include <shared_mutex>
 
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgContext.h"

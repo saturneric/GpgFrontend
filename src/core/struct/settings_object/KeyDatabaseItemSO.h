@@ -28,29 +28,29 @@
 
 #pragma once
 
-#include "ui/dialog/GeneralDialog.h"
+namespace GpgFrontend {
 
-class Ui_RevocationOptionsDialog;
+struct KeyDatabaseItemSO {
+  QString name;
+  QString path;
 
-namespace GpgFrontend::UI {
-class RevocationOptionsDialog : public GeneralDialog {
-  Q_OBJECT
- public:
-  explicit RevocationOptionsDialog(QWidget *parent);
+  KeyDatabaseItemSO() = default;
 
-  [[nodiscard]] auto Code() const -> int;
+  explicit KeyDatabaseItemSO(const QJsonObject& j) {
+    if (const auto v = j["name"]; v.isString()) {
+      name = v.toString();
+    }
+    if (const auto v = j["path"]; v.isString()) {
+      path = v.toString();
+    }
+  }
 
-  [[nodiscard]] auto Text() const -> QString;
-
- signals:
-  void SignalRevokeOptionAccepted(int code, QString text);
-
- private:
-  std::shared_ptr<Ui_RevocationOptionsDialog> ui_;  ///<
-  int code_;
-  QString text_;
-
-  void slot_button_box_accepted();
+  [[nodiscard]] auto ToJson() const -> QJsonObject {
+    QJsonObject j;
+    j["name"] = name;
+    j["path"] = path;
+    return j;
+  }
 };
 
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend

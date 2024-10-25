@@ -40,6 +40,7 @@ namespace GpgFrontend {
  *
  */
 struct GpgContextInitArgs {
+  QString db_name;  ///<
   QString db_path;  ///<
 
   bool test_mode = false;                ///<

@@ -36,7 +36,9 @@
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/function/gpg/GpgContext.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
+#include "core/struct/settings_object/KeyDatabaseListSO.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/CommonUtils.h"
@@ -130,7 +132,7 @@ auto InitGpgME(const QString& gpgconf_path, const QString& gnupg_path) -> bool {
         Module::UpsertRTValue("core", "gpgme.ctx.gnupg_version",
                               QString(engine_info->version));
         Module::UpsertRTValue(
-            "core", "gpgme.ctx.database_path",
+            "core", "gpgme.ctx.default_database_path",
             QString(engine_info->home_dir == nullptr ? ""
                                                      : engine_info->home_dir));
         break;
@@ -298,12 +300,6 @@ void InitGpgFrontendCore(CoreInitArgs args) {
   auto auto_import_missing_key =
       settings.value("network/auto_import_missing_key", false).toBool();
 
-  auto use_custom_key_database_path =
-      settings.value("gnupg/use_custom_key_database_path", false).toBool();
-
-  auto custom_key_database_path =
-      settings.value("gnupg/custom_key_database_path", QString{}).toString();
-
   auto use_pinentry_as_password_input_dialog =
       settings
           .value("gnupg/use_pinentry_as_password_input_dialog",
@@ -314,65 +310,101 @@ void InitGpgFrontendCore(CoreInitArgs args) {
   auto restart_all_gnupg_components_on_start =
       settings.value("gnupg/restart_gpg_agent_on_start", false).toBool();
 
+  auto key_database_list =
+      KeyDatabaseListSO(SettingsObject("key_database_list"));
+  const auto key_databases = key_database_list.key_databases;
+
   auto* task = new Thread::Task(
       [=](const DataObjectPtr&) -> int {
         // key database path
-        QString key_database_fs_path;
+        QList<KeyDatabaseItemSO> buffered_key_dbs;
 
         // try to use user defined key database
-        if (use_custom_key_database_path &&
-            !custom_key_database_path.isEmpty()) {
-          if (VerifyKeyDatabasePath(QFileInfo(custom_key_database_path))) {
-            key_database_fs_path =
-                QFileInfo(custom_key_database_path).absoluteFilePath();
-            LOG_D() << "use custom gpg key database: " << key_database_fs_path
-                    << "raw:" << custom_key_database_path;
-
-          } else {
-            LOG_W() << "custom gpg key database path is not suitable: "
-                    << key_database_fs_path
-                    << "raw:" << custom_key_database_path;
+        if (!key_databases.empty()) {
+          for (const auto& key_database : key_databases) {
+            if (VerifyKeyDatabasePath(QFileInfo(key_database.path))) {
+              auto key_database_fs_path =
+                  QFileInfo(key_database.path).absoluteFilePath();
+              LOG_D() << "load gpg key database: " << key_database.path;
+              buffered_key_dbs.append(key_database);
+            } else {
+              LOG_W() << "gpg key database path is not suitable: "
+                      << key_database.path;
+            }
           }
         } else {
+          QString key_database_fs_path;
 
 #if defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
           // use user's home path by default
           key_database_fs_path =
               SearchKeyDatabasePath({QDir::home().path() + "/.gnupg"});
 #endif
+          if (key_database_fs_path.isEmpty()) {
+            key_database_fs_path = Module::RetrieveRTValueTypedOrDefault<>(
+                "core", "gpgme.ctx.default_database_path", QString{});
+          }
+
+          // add the default key database path
+          if (!key_database_fs_path.isEmpty()) {
+            auto so = SettingsObject("key_database_list");
+            auto key_database_list = KeyDatabaseListSO(so);
+
+            auto key_database = KeyDatabaseItemSO();
+            key_database.name = "Default";
+            key_database.path = key_database_fs_path;
+            key_database_list.key_databases.append(key_database);
+            so.Store(key_database_list.ToJson());
+            buffered_key_dbs.append(key_database);
+          }
         }
 
         if (args.load_default_gpg_context) {
-          // init ctx, also checking the basic env
-          auto& ctx = GpgFrontend::GpgContext::CreateInstance(
-              kGpgFrontendDefaultChannel, [=]() -> ChannelObjectPtr {
-                GpgFrontend::GpgContextInitArgs args;
+          int channel_index = kGpgFrontendDefaultChannel;
+          for (const auto& key_db : buffered_key_dbs) {
+            // init ctx, also checking the basic env
+            auto& ctx = GpgFrontend::GpgContext::CreateInstance(
+                channel_index, [=]() -> ChannelObjectPtr {
+                  GpgFrontend::GpgContextInitArgs args;
 
-                // set key database path
-                if (!key_database_fs_path.isEmpty()) {
-                  args.db_path = key_database_fs_path;
-                }
+                  // set key database path
+                  if (!key_db.path.isEmpty()) {
+                    args.db_name = key_db.name;
+                    args.db_path = key_db.path;
+                  }
 
-                // set custom gnupg path
-                if (!gnupg_install_fs_path.isEmpty()) {
-                  args.gpgconf_path = gnupg_install_fs_path;
-                }
+                  // set custom gnupg path
+                  if (!gnupg_install_fs_path.isEmpty()) {
+                    args.gpgconf_path = gnupg_install_fs_path;
+                  }
 
-                args.offline_mode = forbid_all_gnupg_connection;
-                args.auto_import_missing_key = auto_import_missing_key;
-                args.use_pinentry = use_pinentry_as_password_input_dialog;
+                  args.offline_mode = forbid_all_gnupg_connection;
+                  args.auto_import_missing_key = auto_import_missing_key;
+                  args.use_pinentry = use_pinentry_as_password_input_dialog;
 
-                return ConvertToChannelObjectPtr<>(
-                    SecureCreateUniqueObject<GpgContext>(
-                        args, kGpgFrontendDefaultChannel));
-              });
+                  LOG_D() << "new gpgme context, channel" << channel_index
+                          << ", key db name" << args.db_name << "key db path"
+                          << args.db_path << "";
 
-          // exit if failed
-          if (!ctx.Good()) {
-            FLOG_W("default gnupg context init error, abort");
-            CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-                QCoreApplication::tr("GpgME Context initiation failed"));
-            return -1;
+                  return ConvertToChannelObjectPtr<>(
+                      SecureCreateUniqueObject<GpgContext>(args,
+                                                           channel_index));
+                });
+
+            // exit if failed
+            if (channel_index == kGpgFrontendDefaultChannel && !ctx.Good()) {
+              FLOG_W() << "gnupg default context init error, key database: "
+                       << key_db.name << "key database path: " << key_db.path;
+              CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+                  QCoreApplication::tr("GpgME Context initiation failed"));
+              return -1;
+            }
+
+            FLOG_D() << "gnupg context init success, index" << channel_index
+                     << " key database: " << key_db.name
+                     << "key database path: " << key_db.path;
+
+            channel_index++;
           }
           Module::UpsertRTValue("core", "env.state.ctx", 1);
         }

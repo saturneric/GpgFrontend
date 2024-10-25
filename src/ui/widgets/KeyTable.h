@@ -166,6 +166,12 @@ struct KeyTable : public QTableView {
    */
   void SignalColumnTypeChange(GpgKeyTableColumn);
 
+  /**
+   * @brief
+   *
+   */
+  void SignalGpgContextChannelChange(int);
+
  private:
   QSharedPointer<GpgKeyTableModel> model_;
   GpgKeyTableProxyModel proxy_model_;

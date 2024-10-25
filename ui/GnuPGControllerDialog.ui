@@ -6,155 +6,191 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>607</width>
-    <height>581</height>
+    <width>535</width>
+    <height>498</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>GnuPG Controller</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
+   <item row="1" column="0">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QGroupBox" name="generalBox">
-       <property name="title">
-        <string>General</string>
+      <widget class="QTabWidget" name="tabWidget">
+       <property name="currentIndex">
+        <number>1</number>
        </property>
-       <layout class="QGridLayout" name="gridLayout_7">
-        <item row="0" column="0">
-         <layout class="QVBoxLayout" name="verticalLayout_7">
-          <item>
-           <widget class="QCheckBox" name="asciiModeCheckBox">
+       <widget class="QWidget" name="tab">
+        <attribute name="title">
+         <string>General</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_7">
+             <item>
+              <widget class="QCheckBox" name="asciiModeCheckBox">
+               <property name="text">
+                <string>Use Binary Mode for File Operations</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="usePinentryAsPasswordInputDialogCheckBox">
+               <property name="text">
+                <string>Use Pinentry as Password Input Dialog</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="gpgmeDebugLogCheckBox">
+               <property name="text">
+                <string>Enable GpgME Debug Log</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="restartGpgAgentOnStartCheckBox">
+               <property name="text">
+                <string>Restart Gpg Agent on start</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="killAllGnuPGDaemonCheckBox">
+               <property name="text">
+                <string>Kill all gnupg daemon at close</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tab_2">
+        <attribute name="title">
+         <string>Key Database</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <item>
+          <widget class="QTableWidget" name="keyDatabaseTable">
+           <property name="editTriggers">
+            <set>QAbstractItemView::NoEditTriggers</set>
+           </property>
+           <property name="dragEnabled">
+            <bool>false</bool>
+           </property>
+           <property name="dragDropOverwriteMode">
+            <bool>false</bool>
+           </property>
+           <property name="dragDropMode">
+            <enum>QAbstractItemView::NoDragDrop</enum>
+           </property>
+           <property name="defaultDropAction">
+            <enum>Qt::IgnoreAction</enum>
+           </property>
+           <property name="selectionMode">
+            <enum>QAbstractItemView::SingleSelection</enum>
+           </property>
+           <property name="selectionBehavior">
+            <enum>QAbstractItemView::SelectRows</enum>
+           </property>
+           <property name="columnCount">
+            <number>2</number>
+           </property>
+           <column>
             <property name="text">
-             <string>Use Binary Mode for File Operations</string>
+             <string>Name</string>
             </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="usePinentryAsPasswordInputDialogCheckBox">
+           </column>
+           <column>
             <property name="text">
-             <string>Use Pinentry as Password Input Dialog</string>
+             <string>Path</string>
             </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="gpgmeDebugLogCheckBox">
-            <property name="text">
-             <string>Enable GpgME Debug Log</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="restartGpgAgentOnStartCheckBox">
-            <property name="text">
-             <string>Restart Gpg Agent on start</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="killAllGnuPGDaemonCheckBox">
-            <property name="text">
-             <string>Kill all gnupg daemon at close</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="keyDatabaseGroupBox">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="title">
-        <string>Key Database</string>
-       </property>
-       <property name="flat">
-        <bool>false</bool>
-       </property>
-       <property name="checkable">
-        <bool>false</bool>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_2">
-        <item row="0" column="0">
-         <layout class="QVBoxLayout" name="verticalLayout_6">
-          <item>
-           <widget class="QCheckBox" name="keyDatabaseUseCustomCheckBox">
-            <property name="text">
-             <string>Use Custom GnuPG Key Database Path</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="currentKeyDatabasePathLabel">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="customKeyDatabasePathSelectButton">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Select Key Database Path</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="advanceGroupBox">
-       <property name="title">
-        <string>Advance</string>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="0">
-         <layout class="QVBoxLayout" name="verticalLayout_9">
-          <item>
-           <widget class="QCheckBox" name="useCustomGnuPGInstallPathCheckBox">
-            <property name="text">
-             <string>Use Custom GnuPG</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="currentCustomGnuPGInstallPathLabel">
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="useCustomGnuPGInstallPathButton">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Select GnuPG Path</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="customGnuPGPathTipsLabel">
-            <property name="text">
-             <string>Tips: please select a directroy where &quot;gpgconf&quot; is located in.</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
+           </column>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="addNewKeyDatabaseButton">
+           <property name="text">
+            <string>Add New Key Database</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tab_3">
+        <attribute name="title">
+         <string>Advanced</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_5">
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_9">
+           <item>
+            <widget class="QCheckBox" name="useCustomGnuPGInstallPathCheckBox">
+             <property name="text">
+              <string>Use Custom GnuPG</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="currentCustomGnuPGInstallPathLabel">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="useCustomGnuPGInstallPathButton">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Select GnuPG Path</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="customGnuPGPathTipsLabel">
+             <property name="text">
+              <string>Tips: please select a directroy where &quot;gpgconf&quot; is located in.</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
       </widget>
      </item>
      <item>
@@ -163,19 +199,6 @@
         <string>Tips: notice that modify any of these settings will cause an Application restart.</string>
        </property>
       </widget>
-     </item>
-     <item>
-      <spacer name="verticalSpacer">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>40</height>
-        </size>
-       </property>
-      </spacer>
      </item>
      <item>
       <widget class="QDialogButtonBox" name="buttonBox">
@@ -190,6 +213,14 @@
     </layout>
    </item>
   </layout>
+  <action name="actionRemove_Selected_Key_Database">
+   <property name="text">
+    <string>Remove</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>

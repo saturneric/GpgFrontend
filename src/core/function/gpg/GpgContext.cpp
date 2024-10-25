@@ -209,13 +209,19 @@ class GpgContext::Impl {
                         GPGME_KEYLIST_MODE_WITH_TOFU)) == GPG_ERR_NO_ERROR;
   }
 
-  static auto set_ctx_openpgp_engine_info(gpgme_ctx_t ctx) -> bool {
+  auto set_ctx_openpgp_engine_info(gpgme_ctx_t ctx) -> bool {
     const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
-        "core", "gpgme.ctx.app_path", QString{});
-    const auto database_path = Module::RetrieveRTValueTypedOrDefault<>(
-        "core", "gpgme.ctx.database_path", QString{});
+        "core", QString("gpgme.ctx.app_path").arg(parent_->GetChannel()),
+        QString{});
 
-    LOG_D() << "ctx set engine info, db path: " << database_path
+    QString database_path;
+    // set custom gpg key db path
+    if (!args_.db_path.isEmpty()) {
+      database_path = args_.db_path;
+    }
+
+    LOG_D() << "ctx set engine info, channel: " << parent_->GetChannel()
+            << ", db name: " << args_.db_name << ", db path: " << args_.db_path
             << ", app path: " << app_path;
 
     auto app_path_buffer = app_path.toUtf8();
@@ -281,16 +287,22 @@ class GpgContext::Impl {
       }
     }
 
-    // set custom gpg key db path
-    if (!args_.db_path.isEmpty()) {
-      LOG_D() << "set context database path to" << args_.db_path;
-      Module::UpsertRTValue("core", "gpgme.ctx.database_path", args_.db_path);
-    }
-
     if (!set_ctx_openpgp_engine_info(ctx)) {
       FLOG_W("set gpgme context openpgp engine info failed");
       return false;
     }
+
+    Module::UpsertRTValue(
+        "core", QString("gpgme.ctx.list.%1.channel").arg(parent_->GetChannel()),
+        parent_->GetChannel());
+    Module::UpsertRTValue(
+        "core",
+        QString("gpgme.ctx.list.%1.database_name").arg(parent_->GetChannel()),
+        args_.db_name);
+    Module::UpsertRTValue(
+        "core",
+        QString("gpgme.ctx.list.%1.database_path").arg(parent_->GetChannel()),
+        args_.db_path);
 
     return true;
   }

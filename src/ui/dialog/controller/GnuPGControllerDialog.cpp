@@ -30,9 +30,14 @@
 
 #include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
+#include "core/struct/settings_object/KeyDatabaseListSO.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/GeneralDialog.h"
+#include "ui/dialog/KeyDatabaseEditDialog.h"
+
+//
 #include "ui_GnuPGControllerDialog.h"
 
 namespace GpgFrontend::UI {
@@ -42,9 +47,9 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_GnuPGControllerDialog>()) {
   ui_->setupUi(this);
 
-  ui_->generalBox->setTitle(tr("General"));
-  ui_->keyDatabaseGroupBox->setTitle(tr("Key Database"));
-  ui_->advanceGroupBox->setTitle(tr("Advanced"));
+  ui_->tab->setWindowTitle(tr("General"));
+  ui_->tab_2->setWindowTitle(tr("Key Database"));
+  ui_->tab_3->setWindowTitle(tr("Advanced"));
 
   ui_->asciiModeCheckBox->setText(tr("Use Binary Mode for File Operations"));
   ui_->usePinentryAsPasswordInputDialogCheckBox->setText(
@@ -52,10 +57,6 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
   ui_->gpgmeDebugLogCheckBox->setText(tr("Enable GpgME Debug Log"));
   ui_->useCustomGnuPGInstallPathCheckBox->setText(tr("Use Custom GnuPG"));
   ui_->useCustomGnuPGInstallPathButton->setText(tr("Select GnuPG Path"));
-  ui_->keyDatabaseUseCustomCheckBox->setText(
-      tr("Use Custom GnuPG Key Database Path"));
-  ui_->customKeyDatabasePathSelectButton->setText(
-      tr("Select Key Database Path"));
   ui_->restartGpgAgentOnStartCheckBox->setText(
       tr("Restart Gpg Agent on start"));
   ui_->killAllGnuPGDaemonCheckBox->setText(
@@ -68,16 +69,13 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
       tr("Tips: notice that modify any of these settings will cause an "
          "Application restart."));
 
+  popup_menu_ = new QMenu(this);
+  popup_menu_->addAction(ui_->actionRemove_Selected_Key_Database);
+
   // announce main window
   connect(this, &GnuPGControllerDialog::SignalRestartNeeded,
           UISignalStation::GetInstance(),
           &UISignalStation::SignalRestartApplication);
-
-  connect(ui_->keyDatabaseUseCustomCheckBox, &QCheckBox::stateChanged, this,
-          [=](int state) {
-            ui_->customKeyDatabasePathSelectButton->setDisabled(
-                state != Qt::CheckState::Checked);
-          });
 
   connect(ui_->useCustomGnuPGInstallPathCheckBox, &QCheckBox::stateChanged,
           this, [=](int state) {
@@ -85,30 +83,9 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
                 state != Qt::CheckState::Checked);
           });
 
-  connect(ui_->keyDatabaseUseCustomCheckBox, &QCheckBox::stateChanged, this,
-          &GnuPGControllerDialog::slot_update_custom_key_database_path_label);
-
   connect(ui_->useCustomGnuPGInstallPathCheckBox, &QCheckBox::stateChanged,
           this,
           &GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label);
-
-  connect(
-      ui_->customKeyDatabasePathSelectButton, &QPushButton::clicked, this,
-      [=]() {
-        QString selected_custom_key_database_path =
-            QFileDialog::getExistingDirectory(
-                this, tr("Open Directory"), {},
-                QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-
-        custom_key_database_path_ = selected_custom_key_database_path;
-
-        // announce the restart
-        this->slot_set_restart_needed(kDeepRestartCode);
-
-        // update ui
-        this->slot_update_custom_key_database_path_label(
-            this->ui_->keyDatabaseUseCustomCheckBox->checkState());
-      });
 
   connect(
       ui_->useCustomGnuPGInstallPathButton, &QPushButton::clicked, this, [=]() {
@@ -149,17 +126,17 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
             this->slot_set_restart_needed(kDeepRestartCode);
           });
 
-  connect(ui_->keyDatabaseUseCustomCheckBox, &QCheckBox::stateChanged, this,
-          [=](int) {
-            // announce the restart
-            this->slot_set_restart_needed(kDeepRestartCode);
-          });
-
   connect(ui_->useCustomGnuPGInstallPathCheckBox, &QCheckBox::stateChanged,
           this, [=](int) {
             // announce the restart
             this->slot_set_restart_needed(kDeepRestartCode);
           });
+
+  connect(ui_->addNewKeyDatabaseButton, &QPushButton::clicked, this,
+          &GnuPGControllerDialog::slot_add_new_key_database);
+
+  connect(ui_->actionRemove_Selected_Key_Database, &QAction::triggered, this,
+          &GnuPGControllerDialog::slot_remove_existing_key_database);
 
 #if defined(__APPLE__) && defined(__MACH__)
   // macOS style settings
@@ -186,40 +163,6 @@ void GnuPGControllerDialog::SlotAccept() {
     emit SignalRestartNeeded(get_restart_needed());
   }
   close();
-}
-
-void GnuPGControllerDialog::slot_update_custom_key_database_path_label(
-    int state) {
-  // hide label (not necessary to show the default path)
-  this->ui_->currentKeyDatabasePathLabel->setHidden(state !=
-                                                    Qt::CheckState::Checked);
-  if (state == Qt::CheckState::Checked) {
-    if (custom_key_database_path_.isEmpty()) {
-      // read from settings file
-      QString custom_key_database_path =
-          GlobalSettingStation::GetInstance()
-              .GetSettings()
-              .value("gnupg/custom_key_database_path")
-              .toString();
-      custom_key_database_path_ = custom_key_database_path;
-    }
-
-    // notify the user
-    if (!check_custom_gnupg_key_database_path(custom_key_database_path_)) {
-      return;
-    };
-
-    // set label value
-    if (!custom_key_database_path_.isEmpty()) {
-      ui_->currentKeyDatabasePathLabel->setText(custom_key_database_path_);
-    }
-  }
-
-  if (ui_->currentKeyDatabasePathLabel->text().isEmpty()) {
-    const auto database_path = Module::RetrieveRTValueTypedOrDefault<>(
-        "core", "gpgme.ctx.database_path", QString{});
-    ui_->currentKeyDatabasePathLabel->setText(database_path);
-  }
 }
 
 void GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label(
@@ -268,12 +211,6 @@ void GnuPGControllerDialog::set_settings() {
     ui_->asciiModeCheckBox->setCheckState(Qt::Checked);
   }
 
-  auto use_custom_key_database_path =
-      settings.value("gnupg/use_custom_key_database_path", false).toBool();
-  if (use_custom_key_database_path) {
-    ui_->keyDatabaseUseCustomCheckBox->setCheckState(Qt::Checked);
-  }
-
   auto enable_gpgme_debug_log =
       settings.value("gnupg/enable_gpgme_debug_log", false).toBool();
   if (enable_gpgme_debug_log) {
@@ -285,9 +222,6 @@ void GnuPGControllerDialog::set_settings() {
   if (kill_all_gnupg_daemon_at_close) {
     ui_->killAllGnuPGDaemonCheckBox->setCheckState(Qt::Checked);
   }
-
-  this->slot_update_custom_key_database_path_label(
-      ui_->keyDatabaseUseCustomCheckBox->checkState());
 
   auto use_custom_gnupg_install_path =
       settings.value("gnupg/use_custom_gnupg_install_path", false).toBool();
@@ -310,13 +244,16 @@ void GnuPGControllerDialog::set_settings() {
     ui_->restartGpgAgentOnStartCheckBox->setCheckState(Qt::Checked);
   }
 
-  this->slot_update_custom_key_database_path_label(
-      use_custom_key_database_path ? Qt::Checked : Qt::Unchecked);
-
   this->slot_update_custom_gnupg_install_path_label(
       use_custom_gnupg_install_path ? Qt::Checked : Qt::Unchecked);
 
   this->slot_set_restart_needed(kNonRestartCode);
+
+  auto key_database_list =
+      KeyDatabaseListSO(SettingsObject("key_database_list"));
+  buffered_key_db_so_ = key_database_list.key_databases;
+
+  this->slot_refresh_key_database_table();
 }
 
 void GnuPGControllerDialog::apply_settings() {
@@ -325,22 +262,23 @@ void GnuPGControllerDialog::apply_settings() {
 
   settings.setValue("gnupg/non_ascii_at_file_operation",
                     ui_->asciiModeCheckBox->isChecked());
-  settings.setValue("gnupg/use_custom_key_database_path",
-                    ui_->keyDatabaseUseCustomCheckBox->isChecked());
   settings.setValue("gnupg/use_custom_gnupg_install_path",
                     ui_->useCustomGnuPGInstallPathCheckBox->isChecked());
   settings.setValue("gnupg/use_pinentry_as_password_input_dialog",
                     ui_->usePinentryAsPasswordInputDialogCheckBox->isChecked());
   settings.setValue("gnupg/enable_gpgme_debug_log",
                     ui_->gpgmeDebugLogCheckBox->isChecked());
-  settings.setValue("gnupg/custom_key_database_path",
-                    ui_->currentKeyDatabasePathLabel->text());
   settings.setValue("gnupg/custom_gnupg_install_path",
                     ui_->currentCustomGnuPGInstallPathLabel->text());
   settings.setValue("gnupg/restart_gpg_agent_on_start",
                     ui_->restartGpgAgentOnStartCheckBox->isChecked());
   settings.setValue("gnupg/kill_all_gnupg_daemon_at_close",
                     ui_->killAllGnuPGDaemonCheckBox->isChecked());
+
+  auto so = SettingsObject("key_database_list");
+  auto key_database_list = KeyDatabaseListSO(so);
+  key_database_list.key_databases = buffered_key_db_so_;
+  so.Store(key_database_list.ToJson());
 }
 
 auto GnuPGControllerDialog::get_restart_needed() const -> int {
@@ -384,19 +322,73 @@ auto GnuPGControllerDialog::check_custom_gnupg_path(QString path) -> bool {
   return true;
 }
 
-auto GnuPGControllerDialog::check_custom_gnupg_key_database_path(QString path)
-    -> bool {
-  if (path.isEmpty()) return false;
+void GnuPGControllerDialog::slot_add_new_key_database() {
+  auto* dialog = new KeyDatabaseEditDialog(this);
+  connect(dialog, &KeyDatabaseEditDialog::SignalKeyDatabaseInfoAccepted, this,
+          [this](const QString& name, const QString& path) {
+            auto& key_databases = buffered_key_db_so_;
+            for (const auto& key_database : key_databases) {
+              if (QFileInfo(key_database.path) == QFileInfo(path)) {
+                QMessageBox::warning(
+                    this, tr("Duplicate Key Database Paths"),
+                    tr("The newly added key database path duplicates a "
+                       "previously existing one."));
+                return;
+              }
+            }
 
-  QFileInfo const dir_info(path);
-  if (!dir_info.exists() || !dir_info.isReadable() || !dir_info.isDir()) {
-    QMessageBox::critical(this, tr("Illegal GnuPG Key Database Path"),
-                          tr("Target GnuPG Key Database Path is not an "
-                             "exists readable directory."));
-    return false;
-  }
+            LOG_D() << "new key database path, name: " << name
+                    << "path: " << path;
 
-  return true;
+            KeyDatabaseItemSO key_database;
+            key_database.name = name;
+            key_database.path = path;
+            key_databases.append(key_database);
+
+            slot_refresh_key_database_table();
+          });
+  dialog->show();
 }
 
+void GnuPGControllerDialog::slot_refresh_key_database_table() {
+  auto key_databases = buffered_key_db_so_;
+  ui_->keyDatabaseTable->setRowCount(static_cast<int>(key_databases.size()));
+
+  int index = 0;
+  for (const auto& key_database : key_databases) {
+    LOG_D() << "key database table item index: " << index
+            << "name: " << key_database.name << "path: " << key_database.path;
+
+    auto* i_name = new QTableWidgetItem(key_database.name);
+    i_name->setTextAlignment(Qt::AlignCenter);
+    ui_->keyDatabaseTable->setItem(index, 0, i_name);
+
+    ui_->keyDatabaseTable->setItem(index, 1,
+                                   new QTableWidgetItem(key_database.path));
+
+    index++;
+  }
+  ui_->keyDatabaseTable->resizeColumnsToContents();
+}
+
+void GnuPGControllerDialog::contextMenuEvent(QContextMenuEvent* event) {
+  QDialog::contextMenuEvent(event);
+  if (ui_->keyDatabaseTable->selectedItems().length() > 0) {
+    popup_menu_->exec(event->globalPos());
+  }
+}
+
+void GnuPGControllerDialog::slot_remove_existing_key_database() {
+  const auto row_size = ui_->keyDatabaseTable->rowCount();
+
+  auto& key_databases = buffered_key_db_so_;
+  for (int i = 0; i < row_size; i++) {
+    auto* const item = ui_->keyDatabaseTable->item(i, 1);
+    if (!item->isSelected()) continue;
+    key_databases.remove(i);
+    break;
+  }
+
+  this->slot_refresh_key_database_table();
+}
 }  // namespace GpgFrontend::UI

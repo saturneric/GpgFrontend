@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/struct/settings_object/KeyDatabaseItemSO.h"
 #include "ui/dialog/GeneralDialog.h"
 
 class Ui_GnuPGControllerDialog;
@@ -73,19 +74,33 @@ class GnuPGControllerDialog : public GeneralDialog {
    * @brief
    *
    */
-  void slot_update_custom_key_database_path_label(int state);
+  void slot_update_custom_gnupg_install_path_label(int state);
 
   /**
    * @brief
    *
    */
-  void slot_update_custom_gnupg_install_path_label(int state);
+  void slot_add_new_key_database();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_remove_existing_key_database();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_refresh_key_database_table();
 
  private:
   std::shared_ptr<Ui_GnuPGControllerDialog> ui_;  ///<
   int restart_mode_{0};                           ///<
   QString custom_key_database_path_;
   QString custom_gnupg_path_;
+  QMenu* popup_menu_{};
+  QList<KeyDatabaseItemSO> buffered_key_db_so_;
 
   /**
    * @brief Get the Restart Needed object
@@ -115,12 +130,12 @@ class GnuPGControllerDialog : public GeneralDialog {
    */
   auto check_custom_gnupg_path(QString) -> bool;
 
+ protected:
   /**
    * @brief
    *
-   * @return true
-   * @return false
+   * @param event
    */
-  auto check_custom_gnupg_key_database_path(QString) -> bool;
+  void contextMenuEvent(QContextMenuEvent* event) override;
 };
 }  // namespace GpgFrontend::UI

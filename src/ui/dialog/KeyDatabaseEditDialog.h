@@ -28,29 +28,33 @@
 
 #pragma once
 
+#include <utility>
+
 #include "ui/dialog/GeneralDialog.h"
 
-class Ui_RevocationOptionsDialog;
+class Ui_KeyDatabaseEditDialog;
 
 namespace GpgFrontend::UI {
-class RevocationOptionsDialog : public GeneralDialog {
+class KeyDatabaseEditDialog : public GeneralDialog {
   Q_OBJECT
  public:
-  explicit RevocationOptionsDialog(QWidget *parent);
+  explicit KeyDatabaseEditDialog(QWidget* parent);
 
-  [[nodiscard]] auto Code() const -> int;
+  void SetDefaultName(QString name);
 
-  [[nodiscard]] auto Text() const -> QString;
+  void SetDefaultPath(QString path);
 
  signals:
-  void SignalRevokeOptionAccepted(int code, QString text);
+  void SignalKeyDatabaseInfoAccepted(QString name, QString path);
 
  private:
-  std::shared_ptr<Ui_RevocationOptionsDialog> ui_;  ///<
-  int code_;
-  QString text_;
+  std::shared_ptr<Ui_KeyDatabaseEditDialog> ui_;  ///<
+  QString name_;
+  QString path_;
 
   void slot_button_box_accepted();
+
+  auto check_custom_gnupg_key_database_path(const QString& path) -> bool;
 };
 
 }  // namespace GpgFrontend::UI
