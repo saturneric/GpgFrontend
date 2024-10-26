@@ -471,17 +471,20 @@ void CommonUtils::slot_update_key_status() {
   auto *refresh_task = new Thread::Task(
       [](DataObjectPtr) -> int {
         // flush key cache for all GpgKeyGetter Intances.
-        for (const auto &channel_id : GpgKeyGetter::GetAllChannelId()) {
+        for (const auto &channel_id : GpgContext::GetAllChannelId()) {
           LOG_D() << "refreshing key database at channel: " << channel_id;
           GpgKeyGetter::GetInstance(channel_id).FlushKeyCache();
         }
+        LOG_D() << "refreshing key database at all channel done";
         return 0;
       },
       "update_key_database_task");
+
   connect(refresh_task, &Thread::Task::SignalTaskEnd, this,
           &CommonUtils::SignalKeyDatabaseRefreshDone);
 
   // post the task to the default task runner
+  LOG_D() << "sending key database refresh task to gpg task runner...";
   Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
       ->PostTask(refresh_task);
