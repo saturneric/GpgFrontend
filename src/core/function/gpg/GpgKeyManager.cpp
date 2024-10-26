@@ -65,6 +65,7 @@ auto GpgFrontend::GpgKeyManager::RevSign(
   for (const auto& sign_id : *signature_id) {
     auto signing_key = key_getter.GetKey(sign_id.first);
     assert(signing_key.IsGood());
+
     auto err = CheckGpgError(
         gpgme_op_revsig(ctx_.DefaultContext(), gpgme_key_t(key),
                         gpgme_key_t(signing_key), sign_id.second.toUtf8(), 0));

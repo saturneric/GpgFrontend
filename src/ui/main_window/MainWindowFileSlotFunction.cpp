@@ -121,6 +121,9 @@ void MainWindow::SlotFileEncrypt(const QString& path) {
   auto p_keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
+  for (const auto& key : *p_keys) {
+    assert(key.IsGood());
+  }
 
   // check key abilities
   for (const auto& key : *p_keys) {
@@ -244,6 +247,9 @@ void MainWindow::SlotDirectoryEncrypt(const QString& path) {
   auto p_keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
+  for (const auto& key : *p_keys) {
+    assert(key.IsGood());
+  }
 
   // check key abilities
   for (const auto& key : *p_keys) {
@@ -408,6 +414,9 @@ void MainWindow::SlotFileSign(const QString& path) {
   auto keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
+  for (const auto& key : *keys) {
+    assert(key.IsGood());
+  }
 
   if (keys->empty()) {
     QMessageBox::critical(
@@ -572,6 +581,9 @@ void MainWindow::SlotFileEncryptSign(const QString& path) {
   auto p_keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
+  for (const auto& key : *p_keys) {
+    assert(key.IsGood());
+  }
 
   if (p_keys->empty()) {
     QMessageBox::critical(
@@ -631,6 +643,9 @@ void MainWindow::SlotFileEncryptSign(const QString& path) {
   auto p_signer_keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(signer_key_ids);
+  for (const auto& key : *p_signer_keys) {
+    assert(key.IsGood());
+  }
 
   CommonUtils::WaitForOpera(
       this, tr("Encrypting and Signing"), [=](const OperaWaitingHd& op_hd) {
@@ -686,6 +701,9 @@ void MainWindow::SlotDirectoryEncryptSign(const QString& path) {
   auto p_keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
+  for (const auto& key : *p_keys) {
+    assert(key.IsGood());
+  }
 
   if (p_keys->empty()) {
     QMessageBox::critical(
@@ -745,6 +763,9 @@ void MainWindow::SlotDirectoryEncryptSign(const QString& path) {
   auto p_signer_keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(signer_key_ids);
+  for (const auto& key : *p_signer_keys) {
+    assert(key.IsGood());
+  }
 
   CommonUtils::WaitForOpera(
       this, tr("Archiving & Encrypting & Signing"),

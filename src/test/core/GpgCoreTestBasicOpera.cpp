@@ -42,6 +42,8 @@ namespace GpgFrontend::Test {
 TEST_F(GpgCoreTest, CoreEncryptDecrTest) {
   auto encrypt_key = GpgKeyGetter::GetInstance().GetPubkey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
+  ASSERT_TRUE(encrypt_key.IsGood());
+
   auto buffer = GFBuffer(QString("Hello GpgFrontend!"));
 
   auto [err, data_object] =
@@ -152,6 +154,8 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest_KeyNotFound_ResultAnalyse) {
 TEST_F(GpgCoreTest, CoreSignVerifyNormalTest) {
   auto sign_key = GpgKeyGetter::GetInstance().GetPubkey(
       "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
+  ASSERT_TRUE(sign_key.IsGood());
+
   auto sign_text = GFBuffer(QString("Hello GpgFrontend!"));
 
   auto [err, data_object] = GpgBasicOperator::GetInstance().SignSync(
@@ -177,6 +181,8 @@ TEST_F(GpgCoreTest, CoreSignVerifyNormalTest) {
 TEST_F(GpgCoreTest, CoreSignVerifyDetachTest) {
   auto sign_key = GpgKeyGetter::GetInstance().GetPubkey(
       "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
+  ASSERT_TRUE(sign_key.IsGood());
+
   auto sign_text = GFBuffer(QString("Hello GpgFrontend!"));
 
   auto [err, data_object] = GpgBasicOperator::GetInstance().SignSync(
@@ -202,6 +208,8 @@ TEST_F(GpgCoreTest, CoreSignVerifyDetachTest) {
 TEST_F(GpgCoreTest, CoreSignVerifyClearTest) {
   auto sign_key = GpgKeyGetter::GetInstance().GetPubkey(
       "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
+  ASSERT_TRUE(sign_key.IsGood());
+
   auto sign_text = GFBuffer(QString("Hello GpgFrontend!"));
 
   auto [err, data_object] = GpgBasicOperator::GetInstance().SignSync(
@@ -226,8 +234,10 @@ TEST_F(GpgCoreTest, CoreSignVerifyClearTest) {
 TEST_F(GpgCoreTest, CoreEncryptSignDecrVerifyTest) {
   auto encrypt_key = GpgKeyGetter::GetInstance().GetPubkey(
       "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
+  ASSERT_TRUE(encrypt_key.IsGood());
   auto sign_key = GpgKeyGetter::GetInstance().GetKey(
       "8933EB283A18995F45D61DAC021D89771B680FFB");
+  ASSERT_TRUE(sign_key.IsGood());
   auto encrypt_text = GFBuffer(QString("Hello GpgFrontend!"));
 
   ASSERT_TRUE(sign_key.IsPrivateKey());

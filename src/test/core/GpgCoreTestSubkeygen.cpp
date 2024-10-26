@@ -40,6 +40,7 @@ namespace GpgFrontend::Test {
 TEST_F(GpgCoreTest, GenerateSubkeyRSA2048Test) {
   auto main_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
+  ASSERT_TRUE(main_key.IsGood());
 
   auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
   subkeygen_info->SetAlgo(
@@ -83,6 +84,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyRSA2048Test) {
 TEST_F(GpgCoreTest, GenerateSubkeyDSA2048Test) {
   auto main_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
+  ASSERT_TRUE(main_key.IsGood());
 
   auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
   subkeygen_info->SetAlgo(
@@ -126,6 +128,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyDSA2048Test) {
 TEST_F(GpgCoreTest, GenerateSubkeyED25519Test) {
   auto main_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
+  ASSERT_TRUE(main_key.IsGood());
 
   auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
   subkeygen_info->SetAlgo(
@@ -169,6 +172,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyED25519Test) {
 TEST_F(GpgCoreTest, GenerateSubkeyCV25519Test) {
   auto main_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
+  ASSERT_TRUE(main_key.IsGood());
 
   auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
   subkeygen_info->SetAlgo(
@@ -212,6 +216,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyCV25519Test) {
 TEST_F(GpgCoreTest, GenerateSubkeyNISTP256Test) {
   auto main_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
+  ASSERT_TRUE(main_key.IsGood());
 
   auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
   subkeygen_info->SetAlgo(
@@ -255,6 +260,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyNISTP256Test) {
 TEST_F(GpgCoreTest, GenerateSubkeyBRAINPOOLP256R1Test) {
   auto main_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
+  ASSERT_TRUE(main_key.IsGood());
 
   auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
   subkeygen_info->SetAlgo(

@@ -108,11 +108,11 @@ void KeyUIDSignDialog::slot_sign_key(bool clicked) {
   auto key_ids = m_key_list_->GetChecked();
   auto keys =
       GpgKeyGetter::GetInstance(current_gpg_context_channel_).GetKeys(key_ids);
-  auto expires = std::make_unique<QDateTime>(expires_edit_->dateTime());
-
   for (const auto& key : *keys) {
     assert(key.IsGood());
   }
+
+  auto expires = std::make_unique<QDateTime>(expires_edit_->dateTime());
 
   for (const auto& uid : *m_uids_) {
     // Sign For mKey

@@ -102,6 +102,10 @@ void MainWindow::SlotEncrypt() {
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
   for (const auto& key : *keys) {
+    assert(key.IsGood());
+  }
+
+  for (const auto& key : *keys) {
     if (!key.IsHasActualEncryptionCapability()) {
       QMessageBox::information(
           this, tr("Invalid Operation"),

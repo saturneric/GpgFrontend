@@ -98,6 +98,10 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
     // get suitable key ids
     auto keys = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
                     .GetKeys(key_ids_);
+    for (const auto& key : *keys) {
+      assert(key.IsGood());
+    }
+
     auto keys_new_end =
         std::remove_if(keys->begin(), keys->end(), [this](const auto& key) {
           return ui_->noPublicKeyCheckBox->isChecked() && !key.IsPrivateKey();
