@@ -93,8 +93,10 @@ void KeyList::init() {
     switch_context_action->setChecked(channel == current_gpg_context_channel_);
     connect(switch_context_action, &QAction::toggled, this,
             [this, channel](bool checked) {
-              current_gpg_context_channel_ = channel;
-              emit SignalRefreshDatabase();
+              if (checked) {
+                current_gpg_context_channel_ = channel;
+                emit SignalRefreshDatabase();
+              }
             });
     gpg_context_groups->addAction(switch_context_action);
     gpg_context_menu->addAction(switch_context_action);
