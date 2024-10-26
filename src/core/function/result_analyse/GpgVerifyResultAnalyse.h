@@ -45,7 +45,8 @@ class GPGFRONTEND_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
    * @param error
    * @param result
    */
-  explicit GpgVerifyResultAnalyse(GpgError error, GpgVerifyResult result);
+  explicit GpgVerifyResultAnalyse(int channel, GpgError error,
+                                  GpgVerifyResult result);
 
   /**
    * @brief Get the Signatures object

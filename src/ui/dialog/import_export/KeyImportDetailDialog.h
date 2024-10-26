@@ -52,7 +52,8 @@ class KeyImportDetailDialog : public GeneralDialog {
    * @param automatic
    * @param parent
    */
-  explicit KeyImportDetailDialog(std::shared_ptr<GpgImportInformation> result,
+  explicit KeyImportDetailDialog(int channel,
+                                 std::shared_ptr<GpgImportInformation> result,
                                  QWidget* parent = nullptr);
 
  private:
@@ -87,6 +88,7 @@ class KeyImportDetailDialog : public GeneralDialog {
   QGroupBox* key_info_box_{};       ///<
   QDialogButtonBox* button_box_{};  ///<
 
+  int current_gpg_context_channel_;
   std::shared_ptr<GpgImportInformation> m_result_;  ///<
 };
 }  // namespace GpgFrontend::UI

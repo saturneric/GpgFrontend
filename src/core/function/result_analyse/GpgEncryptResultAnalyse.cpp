@@ -32,9 +32,9 @@
 
 namespace GpgFrontend {
 
-GpgEncryptResultAnalyse::GpgEncryptResultAnalyse(GpgError error,
+GpgEncryptResultAnalyse::GpgEncryptResultAnalyse(int channel, GpgError error,
                                                  GpgEncryptResult result)
-    : error_(error), result_(result) {}
+    : GpgResultAnalyse(channel), error_(error), result_(result) {}
 
 void GpgEncryptResultAnalyse::doAnalyse() {
   stream_ << "# " << tr("Encrypt Operation") << " ";

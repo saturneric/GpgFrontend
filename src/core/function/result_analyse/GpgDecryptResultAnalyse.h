@@ -47,7 +47,8 @@ class GPGFRONTEND_CORE_EXPORT GpgDecryptResultAnalyse
    * @param m_error
    * @param m_result
    */
-  explicit GpgDecryptResultAnalyse(GpgError m_error, GpgDecryptResult m_result);
+  explicit GpgDecryptResultAnalyse(int channel, GpgError m_error,
+                                   GpgDecryptResult m_result);
 
  protected:
   /**

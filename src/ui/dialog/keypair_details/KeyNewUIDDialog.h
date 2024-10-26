@@ -45,7 +45,7 @@ class KeyNewUIDDialog : public GeneralDialog {
    * @param key
    * @param parent
    */
-  KeyNewUIDDialog(const KeyId& key, QWidget* parent = nullptr);
+  KeyNewUIDDialog(int channel, const KeyId& key, QWidget* parent = nullptr);
 
  signals:
   /**
@@ -63,6 +63,7 @@ class KeyNewUIDDialog : public GeneralDialog {
   void slot_create_new_uid();
 
  private:
+  int current_gpg_context_channel_;
   GpgKey m_key_;  ///<
 
   QLineEdit* name_{};     ///<

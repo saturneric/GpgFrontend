@@ -46,8 +46,14 @@
 
 namespace GpgFrontend::UI {
 
-KeyPairOperaTab::KeyPairOperaTab(const QString& key_id, QWidget* parent)
-    : QWidget(parent), m_key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
+KeyPairOperaTab::KeyPairOperaTab(int channel, const QString& key_id,
+                                 QWidget* parent)
+    : QWidget(parent),
+      current_gpg_context_channel_(channel),
+      m_key_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+                 .GetKey(key_id)) {
+  assert(m_key_.IsGood());
+
   // Set Menu
   CreateOperaMenu();
   auto* m_vbox = new QVBoxLayout(this);
@@ -334,20 +340,22 @@ void KeyPairOperaTab::slot_export_private_key() {
 }
 
 void KeyPairOperaTab::slot_modify_edit_datetime() {
-  auto* dialog = new KeySetExpireDateDialog(m_key_.GetId(), this);
+  auto* dialog = new KeySetExpireDateDialog(current_gpg_context_channel_,
+                                            m_key_.GetId(), this);
   dialog->show();
 }
 
 void KeyPairOperaTab::slot_upload_key_to_server() {
   auto keys = std::make_unique<KeyIdArgsList>();
   keys->push_back(m_key_.GetId());
-  auto* dialog = new KeyUploadDialog(keys, this);
+  auto* dialog = new KeyUploadDialog(current_gpg_context_channel_, keys, this);
   dialog->show();
   dialog->SlotUpload();
 }
 
 void KeyPairOperaTab::slot_update_key_from_server() {
-  CommonUtils::GetInstance()->ImportKeyFromKeyServer({m_key_.GetId()});
+  CommonUtils::GetInstance()->ImportKeyFromKeyServer(
+      current_gpg_context_channel_, {m_key_.GetId()});
 }
 
 void KeyPairOperaTab::slot_gen_revoke_cert() {
@@ -425,7 +433,7 @@ void KeyPairOperaTab::slot_modify_tofu_policy() {
 
 void KeyPairOperaTab::slot_set_owner_trust_level() {
   auto* function = new SetOwnerTrustLevel(this);
-  function->Exec(m_key_.GetId());
+  function->Exec(current_gpg_context_channel_, m_key_.GetId());
   function->deleteLater();
 }
 
@@ -478,7 +486,8 @@ void KeyPairOperaTab::slot_import_revoke_cert() {
   }
 
   emit UISignalStation::GetInstance() -> SignalKeyRevoked(m_key_.GetId());
-  CommonUtils::GetInstance()->SlotImportKeys(nullptr, rev_file.readAll());
+  CommonUtils::GetInstance()->SlotImportKeys(
+      nullptr, current_gpg_context_channel_, rev_file.readAll());
 }
 
 void KeyPairOperaTab::slot_export_paper_key() {
@@ -620,7 +629,8 @@ void KeyPairOperaTab::slot_import_paper_key() {
         }
 
         CommonUtils::GetInstance()->SlotImportKeys(
-            this, QByteArray::fromBase64(p["secret_key"].toLatin1()));
+            this, current_gpg_context_channel_,
+            QByteArray::fromBase64(p["secret_key"].toLatin1()));
       });
 }
 

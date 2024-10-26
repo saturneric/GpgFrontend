@@ -35,8 +35,14 @@
 
 namespace GpgFrontend::UI {
 
-KeyPairSubkeyTab::KeyPairSubkeyTab(const QString& key_id, QWidget* parent)
-    : QWidget(parent), key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
+KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, const QString& key_id,
+                                   QWidget* parent)
+    : QWidget(parent),
+      current_gpg_context_channel_(channel),
+      key_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+               .GetKey(key_id)) {
+  assert(key_.IsGood());
+
   create_subkey_list();
   create_subkey_opera_menu();
 
@@ -223,7 +229,8 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
 }
 
 void KeyPairSubkeyTab::slot_add_subkey() {
-  auto* dialog = new SubkeyGenerateDialog(key_.GetId(), this);
+  auto* dialog = new SubkeyGenerateDialog(current_gpg_context_channel_,
+                                          key_.GetId(), this);
   dialog->show();
 }
 
@@ -309,8 +316,9 @@ void KeyPairSubkeyTab::create_subkey_opera_menu() {
 }
 
 void KeyPairSubkeyTab::slot_edit_subkey() {
-  auto* dialog = new KeySetExpireDateDialog(
-      key_.GetId(), get_selected_subkey().GetFingerprint(), this);
+  auto* dialog =
+      new KeySetExpireDateDialog(current_gpg_context_channel_, key_.GetId(),
+                                 get_selected_subkey().GetFingerprint(), this);
   dialog->show();
 }
 
@@ -333,7 +341,9 @@ auto KeyPairSubkeyTab::get_selected_subkey() -> const GpgSubKey& {
   return buffered_subkeys_[row];
 }
 void KeyPairSubkeyTab::slot_refresh_key_info() {
-  key_ = GpgKeyGetter::GetInstance().GetKey(key_.GetId());
+  key_ = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+             .GetKey(key_.GetId());
+  assert(key_.IsGood());
 }
 
 }  // namespace GpgFrontend::UI

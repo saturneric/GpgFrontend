@@ -41,9 +41,14 @@
 
 namespace GpgFrontend::UI {
 
-SubkeyGenerateDialog::SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent)
+SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, const KeyId& key_id,
+                                           QWidget* parent)
     : GeneralDialog(typeid(SubkeyGenerateDialog).name(), parent),
-      key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
+      current_gpg_context_channel_(channel),
+      key_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+               .GetKey(key_id)) {
+  assert(key_.IsGood());
+
   bool longer_expiration_date =
       GlobalSettingStation::GetInstance()
           .GetSettings()
@@ -290,24 +295,25 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
         this, tr("Generating"),
         [this, key = this->key_,
          gen_key_info = this->gen_key_info_](const OperaWaitingHd& hd) {
-          GpgKeyOpera::GetInstance().GenerateSubkey(
-              key, gen_key_info,
-              [this, hd](GpgError err, const DataObjectPtr&) {
-                // stop showing waiting dialog
-                hd();
+          GpgKeyOpera::GetInstance(current_gpg_context_channel_)
+              .GenerateSubkey(key, gen_key_info,
+                              [this, hd](GpgError err, const DataObjectPtr&) {
+                                // stop showing waiting dialog
+                                hd();
 
-                if (CheckGpgError(err) == GPG_ERR_USER_1) {
-                  QMessageBox::critical(this, tr("Error"),
-                                        tr("Unknown error occurred"));
-                  return;
-                }
+                                if (CheckGpgError(err) == GPG_ERR_USER_1) {
+                                  QMessageBox::critical(
+                                      this, tr("Error"),
+                                      tr("Unknown error occurred"));
+                                  return;
+                                }
 
-                CommonUtils::RaiseMessageBox(this, err);
-                if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-                  emit UISignalStation::GetInstance()
-                      -> SignalKeyDatabaseRefresh();
-                }
-              });
+                                CommonUtils::RaiseMessageBox(this, err);
+                                if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+                                  emit UISignalStation::GetInstance()
+                                      -> SignalKeyDatabaseRefresh();
+                                }
+                              });
         });
     this->done(0);
 

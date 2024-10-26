@@ -62,38 +62,45 @@ void MainWindow::SlotEncrypt() {
     CommonUtils::WaitForOpera(
         this, tr("Symmetrically Encrypting"),
         [this, buffer](const OperaWaitingHd& op_hd) {
-          GpgFrontend::GpgBasicOperator::GetInstance().EncryptSymmetric(
-              buffer, true,
-              [this, op_hd](GpgError err, const DataObjectPtr& data_obj) {
-                // stop waiting
-                op_hd();
+          GpgFrontend::GpgBasicOperator::GetInstance(
+              m_key_list_->GetCurrentGpgContextChannel())
+              .EncryptSymmetric(
+                  buffer, true,
+                  [this, op_hd](GpgError err, const DataObjectPtr& data_obj) {
+                    // stop waiting
+                    op_hd();
 
-                if (CheckGpgError(err) == GPG_ERR_USER_1 ||
-                    data_obj == nullptr ||
-                    !data_obj->Check<GpgEncryptResult, GFBuffer>()) {
-                  QMessageBox::critical(this, tr("Error"),
-                                        tr("Unknown error occurred"));
-                  return;
-                }
+                    if (CheckGpgError(err) == GPG_ERR_USER_1 ||
+                        data_obj == nullptr ||
+                        !data_obj->Check<GpgEncryptResult, GFBuffer>()) {
+                      QMessageBox::critical(this, tr("Error"),
+                                            tr("Unknown error occurred"));
+                      return;
+                    }
 
-                auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
-                auto buffer = ExtractParams<GFBuffer>(data_obj, 1);
+                    auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
+                    auto buffer = ExtractParams<GFBuffer>(data_obj, 1);
 
-                auto result_analyse = GpgEncryptResultAnalyse(err, result);
-                result_analyse.Analyse();
-                process_result_analyse(edit_, info_board_, result_analyse);
+                    auto result_analyse = GpgEncryptResultAnalyse(
+                        m_key_list_->GetCurrentGpgContextChannel(), err,
+                        result);
+                    result_analyse.Analyse();
+                    process_result_analyse(edit_, info_board_, result_analyse);
 
-                if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-                  edit_->SlotFillTextEditWithText(buffer.ConvertToQByteArray());
-                }
-                info_board_->ResetOptionActionsMenu();
-              });
+                    if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+                      edit_->SlotFillTextEditWithText(
+                          buffer.ConvertToQByteArray());
+                    }
+                    info_board_->ResetOptionActionsMenu();
+                  });
         });
 
     return;
   }
 
-  auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
+  auto keys =
+      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
+          .GetKeys(key_ids);
   for (const auto& key : *keys) {
     if (!key.IsHasActualEncryptionCapability()) {
       QMessageBox::information(
@@ -110,31 +117,35 @@ void MainWindow::SlotEncrypt() {
   CommonUtils::WaitForOpera(
       this, tr("Encrypting"),
       [this, keys, buffer](const OperaWaitingHd& op_hd) {
-        GpgFrontend::GpgBasicOperator::GetInstance().Encrypt(
-            {keys->begin(), keys->end()}, buffer, true,
-            [this, op_hd](GpgError err, const DataObjectPtr& data_obj) {
-              // stop waiting
-              op_hd();
+        GpgFrontend::GpgBasicOperator::GetInstance(
+            m_key_list_->GetCurrentGpgContextChannel())
+            .Encrypt(
+                {keys->begin(), keys->end()}, buffer, true,
+                [this, op_hd](GpgError err, const DataObjectPtr& data_obj) {
+                  // stop waiting
+                  op_hd();
 
-              if (data_obj == nullptr ||
-                  !data_obj->Check<GpgEncryptResult, GFBuffer>()) {
-                QMessageBox::critical(this, tr("Error"),
-                                      tr("Unknown error occurred"));
-                return;
-              }
+                  if (data_obj == nullptr ||
+                      !data_obj->Check<GpgEncryptResult, GFBuffer>()) {
+                    QMessageBox::critical(this, tr("Error"),
+                                          tr("Unknown error occurred"));
+                    return;
+                  }
 
-              auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
-              auto buffer = ExtractParams<GFBuffer>(data_obj, 1);
+                  auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
+                  auto buffer = ExtractParams<GFBuffer>(data_obj, 1);
 
-              auto result_analyse = GpgEncryptResultAnalyse(err, result);
-              result_analyse.Analyse();
-              process_result_analyse(edit_, info_board_, result_analyse);
+                  auto result_analyse = GpgEncryptResultAnalyse(
+                      m_key_list_->GetCurrentGpgContextChannel(), err, result);
+                  result_analyse.Analyse();
+                  process_result_analyse(edit_, info_board_, result_analyse);
 
-              if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-                edit_->SlotFillTextEditWithText(buffer.ConvertToQByteArray());
-              }
-              info_board_->ResetOptionActionsMenu();
-            });
+                  if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+                    edit_->SlotFillTextEditWithText(
+                        buffer.ConvertToQByteArray());
+                  }
+                  info_board_->ResetOptionActionsMenu();
+                });
       });
 }
 
@@ -149,7 +160,13 @@ void MainWindow::SlotSign() {
     return;
   }
 
-  auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
+  auto keys =
+      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
+          .GetKeys(key_ids);
+  for (const auto& key : *keys) {
+    assert(key.IsGood());
+  }
+
   for (const auto& key : *keys) {
     if (!key.IsHasActualSigningCapability()) {
       QMessageBox::information(
@@ -166,29 +183,34 @@ void MainWindow::SlotSign() {
   auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
   CommonUtils::WaitForOpera(
       this, tr("Signing"), [this, keys, buffer](const OperaWaitingHd& hd) {
-        GpgFrontend::GpgBasicOperator::GetInstance().Sign(
-            {keys->begin(), keys->end()}, buffer, GPGME_SIG_MODE_CLEAR, true,
-            [this, hd](GpgError err, const DataObjectPtr& data_obj) {
-              // stop waiting
-              hd();
+        GpgFrontend::GpgBasicOperator::GetInstance(
+            m_key_list_->GetCurrentGpgContextChannel())
+            .Sign(
+                {keys->begin(), keys->end()}, buffer, GPGME_SIG_MODE_CLEAR,
+                true, [this, hd](GpgError err, const DataObjectPtr& data_obj) {
+                  // stop waiting
+                  hd();
 
-              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
-                  !data_obj->Check<GpgSignResult, GFBuffer>()) {
-                QMessageBox::critical(this, tr("Error"),
-                                      tr("Unknown error occurred"));
-                return;
-              }
-              auto sign_result = ExtractParams<GpgSignResult>(data_obj, 0);
-              auto sign_out_buffer = ExtractParams<GFBuffer>(data_obj, 1);
-              auto result_analyse = GpgSignResultAnalyse(err, sign_result);
-              result_analyse.Analyse();
-              process_result_analyse(edit_, info_board_, result_analyse);
+                  if (CheckGpgError(err) == GPG_ERR_USER_1 ||
+                      data_obj == nullptr ||
+                      !data_obj->Check<GpgSignResult, GFBuffer>()) {
+                    QMessageBox::critical(this, tr("Error"),
+                                          tr("Unknown error occurred"));
+                    return;
+                  }
+                  auto sign_result = ExtractParams<GpgSignResult>(data_obj, 0);
+                  auto sign_out_buffer = ExtractParams<GFBuffer>(data_obj, 1);
+                  auto result_analyse = GpgSignResultAnalyse(
+                      m_key_list_->GetCurrentGpgContextChannel(), err,
+                      sign_result);
+                  result_analyse.Analyse();
+                  process_result_analyse(edit_, info_board_, result_analyse);
 
-              if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-                edit_->SlotFillTextEditWithText(
-                    sign_out_buffer.ConvertToQByteArray());
-              }
-            });
+                  if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+                    edit_->SlotFillTextEditWithText(
+                        sign_out_buffer.ConvertToQByteArray());
+                  }
+                });
       });
 }
 
@@ -200,8 +222,10 @@ void MainWindow::SlotDecrypt() {
 
   CommonUtils::WaitForOpera(
       this, tr("Decrypting"), [this, buffer](const OperaWaitingHd& hd) {
-        GpgFrontend::GpgBasicOperator::GetInstance().Decrypt(
-            buffer, [this, hd](GpgError err, const DataObjectPtr& data_obj) {
+        GpgFrontend::GpgBasicOperator::GetInstance(
+            m_key_list_->GetCurrentGpgContextChannel())
+            .Decrypt(buffer, [this, hd](GpgError err,
+                                        const DataObjectPtr& data_obj) {
               // stop waiting
               hd();
 
@@ -214,8 +238,9 @@ void MainWindow::SlotDecrypt() {
               auto decrypt_result =
                   ExtractParams<GpgDecryptResult>(data_obj, 0);
               auto out_buffer = ExtractParams<GFBuffer>(data_obj, 1);
-              auto result_analyse =
-                  GpgDecryptResultAnalyse(err, decrypt_result);
+              auto result_analyse = GpgDecryptResultAnalyse(
+                  m_key_list_->GetCurrentGpgContextChannel(), err,
+                  decrypt_result);
               result_analyse.Analyse();
               process_result_analyse(edit_, info_board_, result_analyse);
 
@@ -235,25 +260,31 @@ void MainWindow::SlotVerify() {
 
   CommonUtils::WaitForOpera(
       this, tr("Verifying"), [this, buffer](const OperaWaitingHd& hd) {
-        GpgFrontend::GpgBasicOperator::GetInstance().Verify(
-            buffer, GFBuffer(),
-            [this, hd](GpgError err, const DataObjectPtr& data_obj) {
-              // stop waiting
-              hd();
+        GpgFrontend::GpgBasicOperator::GetInstance(
+            m_key_list_->GetCurrentGpgContextChannel())
+            .Verify(buffer, GFBuffer(),
+                    [this, hd](GpgError err, const DataObjectPtr& data_obj) {
+                      // stop waiting
+                      hd();
 
-              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
-                  !data_obj->Check<GpgVerifyResult>()) {
-                QMessageBox::critical(this, tr("Error"),
-                                      tr("Unknown error occurred"));
-                return;
-              }
-              auto verify_result = ExtractParams<GpgVerifyResult>(data_obj, 0);
+                      if (CheckGpgError(err) == GPG_ERR_USER_1 ||
+                          data_obj == nullptr ||
+                          !data_obj->Check<GpgVerifyResult>()) {
+                        QMessageBox::critical(this, tr("Error"),
+                                              tr("Unknown error occurred"));
+                        return;
+                      }
+                      auto verify_result =
+                          ExtractParams<GpgVerifyResult>(data_obj, 0);
 
-              // analyse result
-              auto result_analyse = GpgVerifyResultAnalyse(err, verify_result);
-              result_analyse.Analyse();
-              process_result_analyse(edit_, info_board_, result_analyse);
-            });
+                      // analyse result
+                      auto result_analyse = GpgVerifyResultAnalyse(
+                          m_key_list_->GetCurrentGpgContextChannel(), err,
+                          verify_result);
+                      result_analyse.Analyse();
+                      process_result_analyse(edit_, info_board_,
+                                             result_analyse);
+                    });
       });
 }
 
@@ -269,7 +300,12 @@ void MainWindow::SlotEncryptSign() {
     return;
   }
 
-  auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
+  auto keys =
+      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
+          .GetKeys(key_ids);
+  for (const auto& key : *keys) {
+    assert(key.IsGood());
+  }
 
   for (const auto& key : *keys) {
     bool key_can_encrypt = key.IsHasActualEncryptionCapability();
@@ -284,7 +320,8 @@ void MainWindow::SlotEncryptSign() {
     }
   }
 
-  auto* signers_picker = new SignersPicker(this);
+  auto* signers_picker =
+      new SignersPicker(m_key_list_->GetCurrentGpgContextChannel(), this);
   QEventLoop loop;
   connect(signers_picker, &SignersPicker::finished, &loop, &QEventLoop::quit);
   loop.exec();
@@ -293,7 +330,12 @@ void MainWindow::SlotEncryptSign() {
   if (!signers_picker->GetStatus()) return;
 
   auto signer_key_ids = signers_picker->GetCheckedSigners();
-  auto signer_keys = GpgKeyGetter::GetInstance().GetKeys(signer_key_ids);
+  auto signer_keys =
+      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
+          .GetKeys(signer_key_ids);
+  for (const auto& key : *signer_keys) {
+    assert(key.IsGood());
+  }
 
   // data to transfer into task
   auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
@@ -301,42 +343,49 @@ void MainWindow::SlotEncryptSign() {
   CommonUtils::WaitForOpera(
       this, tr("Encrypting and Signing"),
       [this, keys, signer_keys, buffer](const OperaWaitingHd& hd) {
-        GpgFrontend::GpgBasicOperator::GetInstance().EncryptSign(
-            {keys->begin(), keys->end()},
-            {signer_keys->begin(), signer_keys->end()}, buffer, true,
-            [this, hd](GpgError err, const DataObjectPtr& data_obj) {
-              // stop waiting
-              hd();
+        GpgFrontend::GpgBasicOperator::GetInstance(
+            m_key_list_->GetCurrentGpgContextChannel())
+            .EncryptSign(
+                {keys->begin(), keys->end()},
+                {signer_keys->begin(), signer_keys->end()}, buffer, true,
+                [this, hd](GpgError err, const DataObjectPtr& data_obj) {
+                  // stop waiting
+                  hd();
 
-              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
-                  !data_obj
-                       ->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()) {
-                QMessageBox::critical(this, tr("Error"),
-                                      tr("Unknown error occurred"));
-                return;
-              }
-              auto encrypt_result =
-                  ExtractParams<GpgEncryptResult>(data_obj, 0);
-              auto sign_result = ExtractParams<GpgSignResult>(data_obj, 1);
-              auto out_buffer = ExtractParams<GFBuffer>(data_obj, 2);
+                  if (CheckGpgError(err) == GPG_ERR_USER_1 ||
+                      data_obj == nullptr ||
+                      !data_obj->Check<GpgEncryptResult, GpgSignResult,
+                                       GFBuffer>()) {
+                    QMessageBox::critical(this, tr("Error"),
+                                          tr("Unknown error occurred"));
+                    return;
+                  }
+                  auto encrypt_result =
+                      ExtractParams<GpgEncryptResult>(data_obj, 0);
+                  auto sign_result = ExtractParams<GpgSignResult>(data_obj, 1);
+                  auto out_buffer = ExtractParams<GFBuffer>(data_obj, 2);
 
-              // analyse result
-              auto encrypt_result_analyse =
-                  GpgEncryptResultAnalyse(err, encrypt_result);
-              encrypt_result_analyse.Analyse();
+                  // analyse result
+                  auto encrypt_result_analyse = GpgEncryptResultAnalyse(
+                      m_key_list_->GetCurrentGpgContextChannel(), err,
+                      encrypt_result);
+                  encrypt_result_analyse.Analyse();
 
-              auto sign_result_analyse = GpgSignResultAnalyse(err, sign_result);
-              sign_result_analyse.Analyse();
+                  auto sign_result_analyse = GpgSignResultAnalyse(
+                      m_key_list_->GetCurrentGpgContextChannel(), err,
+                      sign_result);
+                  sign_result_analyse.Analyse();
 
-              // show analyse result
-              process_result_analyse(edit_, info_board_, encrypt_result_analyse,
-                                     sign_result_analyse);
+                  // show analyse result
+                  process_result_analyse(edit_, info_board_,
+                                         encrypt_result_analyse,
+                                         sign_result_analyse);
 
-              if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-                edit_->SlotFillTextEditWithText(
-                    out_buffer.ConvertToQByteArray());
-              }
-            });
+                  if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+                    edit_->SlotFillTextEditWithText(
+                        out_buffer.ConvertToQByteArray());
+                  }
+                });
       });
 }
 
@@ -349,8 +398,10 @@ void MainWindow::SlotDecryptVerify() {
   CommonUtils::WaitForOpera(
       this, tr("Decrypting and Verifying"),
       [this, buffer](const OperaWaitingHd& hd) {
-        GpgFrontend::GpgBasicOperator::GetInstance().DecryptVerify(
-            buffer, [this, hd](GpgError err, const DataObjectPtr& data_obj) {
+        GpgFrontend::GpgBasicOperator::GetInstance(
+            m_key_list_->GetCurrentGpgContextChannel())
+            .DecryptVerify(buffer, [this, hd](GpgError err,
+                                              const DataObjectPtr& data_obj) {
               // stop waiting
               hd();
 
@@ -367,12 +418,14 @@ void MainWindow::SlotDecryptVerify() {
               auto out_buffer = ExtractParams<GFBuffer>(data_obj, 2);
 
               // analyse result
-              auto decrypt_result_analyse =
-                  GpgDecryptResultAnalyse(err, decrypt_result);
+              auto decrypt_result_analyse = GpgDecryptResultAnalyse(
+                  m_key_list_->GetCurrentGpgContextChannel(), err,
+                  decrypt_result);
               decrypt_result_analyse.Analyse();
 
-              auto verify_result_analyse =
-                  GpgVerifyResultAnalyse(err, verify_result);
+              auto verify_result_analyse = GpgVerifyResultAnalyse(
+                  m_key_list_->GetCurrentGpgContextChannel(), err,
+                  verify_result);
               verify_result_analyse.Analyse();
 
               // show analyse result

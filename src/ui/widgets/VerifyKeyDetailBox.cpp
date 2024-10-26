@@ -36,9 +36,12 @@
 
 namespace GpgFrontend::UI {
 
-VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
+VerifyKeyDetailBox::VerifyKeyDetailBox(int channel,
+                                       const GpgSignature& signature,
                                        QWidget* parent)
-    : QGroupBox(parent), fpr_(signature.GetFingerprint()) {
+    : QGroupBox(parent),
+      current_gpg_context_channel_(channel),
+      fpr_(signature.GetFingerprint()) {
   auto* vbox = new QVBoxLayout();
 
   switch (gpg_err_code(signature.GetStatus())) {
@@ -164,13 +167,16 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(const GpgSignature& signature,
 }
 
 void VerifyKeyDetailBox::slot_import_form_key_server() {
-  CommonUtils::GetInstance()->ImportKeyFromKeyServer({fpr_});
+  CommonUtils::GetInstance()->ImportKeyFromKeyServer(
+      current_gpg_context_channel_, {fpr_});
 }
 
 auto VerifyKeyDetailBox::create_key_info_grid(const GpgSignature& signature)
     -> QGridLayout* {
   auto* grid = new QGridLayout();
-  auto key = GpgKeyGetter::GetInstance().GetKey(fpr_);
+  auto key =
+      GpgKeyGetter::GetInstance(current_gpg_context_channel_).GetKey(fpr_);
+  assert(key.IsGood());
 
   if (!key.IsGood()) return nullptr;
   grid->addWidget(new QLabel(tr("Signer Name") + ":"), 0, 0);

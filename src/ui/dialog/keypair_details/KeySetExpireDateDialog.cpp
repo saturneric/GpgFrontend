@@ -37,23 +37,29 @@
 
 namespace GpgFrontend::UI {
 
-KeySetExpireDateDialog::KeySetExpireDateDialog(const KeyId& key_id,
+KeySetExpireDateDialog::KeySetExpireDateDialog(int channel, const KeyId& key_id,
                                                QWidget* parent)
     : GeneralDialog(typeid(KeySetExpireDateDialog).name(), parent),
       ui_(GpgFrontend::SecureCreateSharedObject<
           Ui_ModifiedExpirationDateTime>()),
-      m_key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
+      current_gpg_context_channel_(channel),
+      m_key_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+                 .GetKey(key_id)) {
+  assert(m_key_.IsGood());
   init();
 }
 
-KeySetExpireDateDialog::KeySetExpireDateDialog(const KeyId& key_id,
+KeySetExpireDateDialog::KeySetExpireDateDialog(int channel, const KeyId& key_id,
                                                QString subkey_fpr,
                                                QWidget* parent)
     : GeneralDialog(typeid(KeySetExpireDateDialog).name(), parent),
       ui_(GpgFrontend::SecureCreateSharedObject<
           Ui_ModifiedExpirationDateTime>()),
-      m_key_(GpgKeyGetter::GetInstance().GetKey(key_id)),
+      current_gpg_context_channel_(channel),
+      m_key_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+                 .GetKey(key_id)),
       m_subkey_(std::move(subkey_fpr)) {
+  assert(m_key_.IsGood());
   init();
 }
 

@@ -119,7 +119,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
    * @param keys
    * @param parent
    */
-  explicit GpgKeyTableModel(GpgKeyList keys, QObject *parent = nullptr);
+  explicit GpgKeyTableModel(int channel, GpgKeyList keys,
+                            QObject *parent = nullptr);
 
   /**
    * @brief
@@ -203,9 +204,17 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
    */
   [[nodiscard]] auto IsPrivateKeyByRow(int row) const -> bool;
 
+  /**
+   * @brief
+   *
+   * @return int
+   */
+  [[nodiscard]] auto GetGpgContextChannel() const -> int;
+
  private:
   GpgKeyList buffered_keys_;
   QStringList column_headers_;
+  int gpg_context_channel_;
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 4)
   QList<bool> key_check_state_;

@@ -32,6 +32,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/model/DataObject.h"
+#include "core/module/ModuleManager.h"
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/CacheUtils.h"
 #include "core/utils/GpgUtils.h"
@@ -148,29 +149,35 @@ void KeyGenDialog::slot_key_gen_accept() {
       SetCacheValue("PinentryContext", "NEW_PASSPHRASE");
     }
 
+    auto selected_gpg_context_channel = gpg_contexts_combo_box_->currentIndex();
+    LOG_D() << "try to generate key at gpg context channel: "
+            << selected_gpg_context_channel;
+
     CommonUtils::WaitForOpera(
         this, tr("Generating"),
-        [this, gen_key_info = this->gen_key_info_](const OperaWaitingHd& hd) {
-          GpgKeyOpera::GetInstance().GenerateKeyWithSubkey(
-              gen_key_info, gen_subkey_info_,
-              [this, hd](GpgError err, const DataObjectPtr&) {
-                // stop showing waiting dialog
-                hd();
+        [this, gen_key_info = this->gen_key_info_,
+         selected_gpg_context_channel](const OperaWaitingHd& hd) {
+          GpgKeyOpera::GetInstance(selected_gpg_context_channel)
+              .GenerateKeyWithSubkey(
+                  gen_key_info, gen_subkey_info_,
+                  [this, hd](GpgError err, const DataObjectPtr&) {
+                    // stop showing waiting dialog
+                    hd();
 
-                if (CheckGpgError(err) == GPG_ERR_USER_1) {
-                  QMessageBox::critical(this, tr("Error"),
-                                        tr("Unknown error occurred"));
-                  return;
-                }
+                    if (CheckGpgError(err) == GPG_ERR_USER_1) {
+                      QMessageBox::critical(this, tr("Error"),
+                                            tr("Unknown error occurred"));
+                      return;
+                    }
 
-                CommonUtils::RaiseMessageBox(this->parentWidget() != nullptr
-                                                 ? this->parentWidget()
-                                                 : this,
-                                             err);
-                if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-                  emit SignalKeyGenerated();
-                }
-              });
+                    CommonUtils::RaiseMessageBox(this->parentWidget() != nullptr
+                                                     ? this->parentWidget()
+                                                     : this,
+                                                 err);
+                    if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+                      emit SignalKeyGenerated();
+                    }
+                  });
         });
 
     this->done(0);
@@ -191,7 +198,7 @@ void KeyGenDialog::slot_key_gen_accept() {
 
 void KeyGenDialog::slot_expire_box_changed() {}
 
-QGroupBox* KeyGenDialog::create_key_usage_group_box() {
+auto KeyGenDialog::create_key_usage_group_box() -> QGroupBox* {
   auto* group_box = new QGroupBox(this);
   auto* grid = new QGridLayout(this);
 
@@ -394,17 +401,31 @@ void KeyGenDialog::set_signal_slot() {
           });
 }
 
-bool KeyGenDialog::check_email_address(const QString& str) {
+auto KeyGenDialog::check_email_address(const QString& str) -> bool {
   return re_email_.match(str).hasMatch();
 }
 
-QGroupBox* KeyGenDialog::create_basic_info_group_box() {
+auto KeyGenDialog::create_basic_info_group_box() -> QGroupBox* {
   error_label_ = new QLabel();
   name_edit_ = new QLineEdit(this);
   email_edit_ = new QLineEdit(this);
   comment_edit_ = new QLineEdit(this);
   key_size_spin_box_ = new QSpinBox(this);
   key_type_combo_box_ = new QComboBox(this);
+  gpg_contexts_combo_box_ = new QComboBox(this);
+
+  auto gpg_context_index_list =
+      Module::ListRTChildKeys("core", "gpgme.ctx.list");
+
+  for (auto& context_index : gpg_context_index_list) {
+    const auto grt_key_prefix = QString("gpgme.ctx.list.%1").arg(context_index);
+    auto channel = Module::RetrieveRTValueTypedOrDefault(
+        "core", grt_key_prefix + ".channel", -1);
+    auto database_name = Module::RetrieveRTValueTypedOrDefault(
+        "core", grt_key_prefix + ".database_name", QString{});
+    gpg_contexts_combo_box_->addItem(
+        QString("%1: %2").arg(channel).arg(database_name));
+  }
 
   for (const auto& algo : GenKeyInfo::GetSupportedKeyAlgo()) {
     key_type_combo_box_->addItem(std::get<0>(algo));
@@ -429,23 +450,25 @@ QGroupBox* KeyGenDialog::create_basic_info_group_box() {
 
   auto* vbox1 = new QGridLayout;
 
-  vbox1->addWidget(new QLabel(tr("Name") + ": "), 0, 0);
-  vbox1->addWidget(new QLabel(tr("Email Address") + ": "), 1, 0);
-  vbox1->addWidget(new QLabel(tr("Comment") + ": "), 2, 0);
-  vbox1->addWidget(new QLabel(tr("Expiration Date") + ": "), 3, 0);
-  vbox1->addWidget(new QLabel(tr("Never Expire") + ": "), 3, 3);
-  vbox1->addWidget(new QLabel(tr("KeySize (in Bit)") + ": "), 4, 0);
-  vbox1->addWidget(new QLabel(tr("Key Type") + ": "), 5, 0);
-  vbox1->addWidget(new QLabel(tr("Non Pass Phrase")), 6, 0);
+  vbox1->addWidget(new QLabel(tr("Key Database") + ": "), 0, 0);
+  vbox1->addWidget(new QLabel(tr("Name") + ": "), 1, 0);
+  vbox1->addWidget(new QLabel(tr("Email Address") + ": "), 2, 0);
+  vbox1->addWidget(new QLabel(tr("Comment") + ": "), 3, 0);
+  vbox1->addWidget(new QLabel(tr("Expiration Date") + ": "), 4, 0);
+  vbox1->addWidget(new QLabel(tr("Never Expire") + ": "), 4, 3);
+  vbox1->addWidget(new QLabel(tr("KeySize (in Bit)") + ": "), 5, 0);
+  vbox1->addWidget(new QLabel(tr("Key Type") + ": "), 6, 0);
+  vbox1->addWidget(new QLabel(tr("Non Pass Phrase")), 7, 0);
 
-  vbox1->addWidget(name_edit_, 0, 1, 1, 3);
-  vbox1->addWidget(email_edit_, 1, 1, 1, 3);
-  vbox1->addWidget(comment_edit_, 2, 1, 1, 3);
-  vbox1->addWidget(date_edit_, 3, 1);
-  vbox1->addWidget(expire_check_box_, 3, 2);
-  vbox1->addWidget(key_size_spin_box_, 4, 1);
-  vbox1->addWidget(key_type_combo_box_, 5, 1);
-  vbox1->addWidget(no_pass_phrase_check_box_, 6, 1);
+  vbox1->addWidget(gpg_contexts_combo_box_, 0, 1, 1, 3);
+  vbox1->addWidget(name_edit_, 1, 1, 1, 3);
+  vbox1->addWidget(email_edit_, 2, 1, 1, 3);
+  vbox1->addWidget(comment_edit_, 3, 1, 1, 3);
+  vbox1->addWidget(date_edit_, 4, 1);
+  vbox1->addWidget(expire_check_box_, 4, 2);
+  vbox1->addWidget(key_size_spin_box_, 5, 1);
+  vbox1->addWidget(key_type_combo_box_, 6, 1);
+  vbox1->addWidget(no_pass_phrase_check_box_, 7, 1);
 
   auto* basic_info_group_box = new QGroupBox();
   basic_info_group_box->setLayout(vbox1);

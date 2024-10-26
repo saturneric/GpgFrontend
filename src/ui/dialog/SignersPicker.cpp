@@ -33,7 +33,7 @@
 
 namespace GpgFrontend::UI {
 
-SignersPicker::SignersPicker(QWidget* parent)
+SignersPicker::SignersPicker(int channel, QWidget* parent)
     : GeneralDialog(typeid(SignersPicker).name(), parent) {
   auto* confirm_button = new QPushButton(tr("Confirm"));
   auto* cancel_button = new QPushButton(tr("Cancel"));
@@ -44,11 +44,11 @@ SignersPicker::SignersPicker(QWidget* parent)
   connect(cancel_button, &QPushButton::clicked, this, &QDialog::reject);
 
   /*Setup KeyList*/
-  key_list_ =
-      new KeyList(KeyMenuAbility::kCOLUMN_FILTER | KeyMenuAbility::kSEARCH_BAR,
-                  GpgKeyTableColumn::kNAME | GpgKeyTableColumn::kEMAIL_ADDRESS |
-                      GpgKeyTableColumn::kKEY_ID | GpgKeyTableColumn::kUSAGE,
-                  this);
+  key_list_ = new KeyList(
+      channel, KeyMenuAbility::kCOLUMN_FILTER | KeyMenuAbility::kSEARCH_BAR,
+      GpgKeyTableColumn::kNAME | GpgKeyTableColumn::kEMAIL_ADDRESS |
+          GpgKeyTableColumn::kKEY_ID | GpgKeyTableColumn::kUSAGE,
+      this);
   key_list_->AddListGroupTab(tr("Signers"), "signers",
                              GpgKeyTableDisplayMode::kPRIVATE_KEY,
                              [](const GpgKey& key) -> bool {

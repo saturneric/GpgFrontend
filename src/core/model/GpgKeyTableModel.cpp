@@ -28,19 +28,26 @@
 
 #include "GpgKeyTableModel.h"
 
+#include <utility>
+
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/model/GpgKey.h"
 
 namespace GpgFrontend {
 
-GpgKeyTableModel::GpgKeyTableModel(GpgKeyList keys, QObject *parent)
+GpgKeyTableModel::GpgKeyTableModel(int channel, GpgKeyList keys,
+                                   QObject *parent)
     : QAbstractTableModel(parent),
-      buffered_keys_(keys),
+      buffered_keys_(std::move(keys)),
       column_headers_({tr("Select"), tr("Type"), tr("Name"),
                        tr("Email Address"), tr("Usage"), tr("Trust"),
                        tr("Key ID"), tr("Create Date"), tr("Algorithm"),
                        tr("Subkey(s)"), tr("Comment")}),
-      key_check_state_(buffered_keys_.size()) {}
+      gpg_context_channel_(channel),
+      key_check_state_(buffered_keys_.size()) {
+  LOG_D() << "init gpg key table module at channel: " << gpg_context_channel_
+          << "key list size: " << buffered_keys_.size();
+}
 
 auto GpgKeyTableModel::rowCount(const QModelIndex & /*parent*/) const -> int {
   return static_cast<int>(buffered_keys_.size());
@@ -169,4 +176,7 @@ auto GpgKeyTableModel::IsPrivateKeyByRow(int row) const -> bool {
   return buffered_keys_[row].IsPrivateKey();
 }
 
+auto GpgKeyTableModel::GetGpgContextChannel() const -> int {
+  return gpg_context_channel_;
+}
 }  // namespace GpgFrontend

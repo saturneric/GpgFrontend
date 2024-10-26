@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <utility>
+
 #include "core/model/GpgKeyTableModel.h"
 
 namespace GpgFrontend {
@@ -44,6 +46,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableProxyModel
                                  QObject *parent);
 
   void SetSearchKeywords(const QString &keywords);
+
+  void ResetGpgKeyTableModel(QSharedPointer<GpgKeyTableModel> model);
 
  protected:
   [[nodiscard]] auto filterAcceptsRow(

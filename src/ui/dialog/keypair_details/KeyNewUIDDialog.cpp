@@ -34,9 +34,14 @@
 #include "ui/UISignalStation.h"
 
 namespace GpgFrontend::UI {
-KeyNewUIDDialog::KeyNewUIDDialog(const KeyId& key_id, QWidget* parent)
+KeyNewUIDDialog::KeyNewUIDDialog(int channel, const KeyId& key_id,
+                                 QWidget* parent)
     : GeneralDialog(typeid(KeyNewUIDDialog).name(), parent),
-      m_key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
+      current_gpg_context_channel_(channel),
+      m_key_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+                 .GetKey(key_id)) {
+  assert(m_key_.IsGood());
+
   name_ = new QLineEdit();
   name_->setMinimumWidth(240);
   email_ = new QLineEdit();

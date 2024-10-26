@@ -53,10 +53,12 @@ class SubkeyGenerateDialog : public GeneralDialog {
    * @param key_id
    * @param parent
    */
-  explicit SubkeyGenerateDialog(const KeyId& key_id, QWidget* parent);
+  explicit SubkeyGenerateDialog(int channel, const KeyId& key_id,
+                                QWidget* parent);
 
  private:
-  GpgKey key_;  ///<
+  int current_gpg_context_channel_;  ///<
+  GpgKey key_;                       ///<
 
   std::shared_ptr<GenKeyInfo> gen_key_info_ =
       SecureCreateSharedObject<GenKeyInfo>(true);  ///<

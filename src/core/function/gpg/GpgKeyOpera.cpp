@@ -54,7 +54,7 @@ GpgKeyOpera::GpgKeyOpera(int channel)
 void GpgKeyOpera::DeleteKeys(KeyIdArgsListPtr key_ids) {
   GpgError err;
   for (const auto& tmp : *key_ids) {
-    auto key = GpgKeyGetter::GetInstance().GetKey(tmp);
+    auto key = GpgKeyGetter::GetInstance(GetChannel()).GetKey(tmp);
     if (key.IsGood()) {
       err = CheckGpgError(gpgme_op_delete_ext(
           ctx_.DefaultContext(), static_cast<gpgme_key_t>(key),
@@ -332,8 +332,8 @@ void GpgKeyOpera::GenerateKeyWithSubkey(
     const std::shared_ptr<GenKeyInfo>& subkey_params,
     const GpgOperationCallback& callback) {
   RunGpgOperaAsync(
-      [&ctx = ctx_, params,
-       subkey_params](const DataObjectPtr& data_object) -> GpgError {
+      [&ctx = ctx_, params, subkey_params,
+       channel = GetChannel()](const DataObjectPtr& data_object) -> GpgError {
         auto userid = params->GetUserid().toUtf8();
         auto algo = (params->GetAlgo() + params->GetKeySizeStr()).toUtf8();
         unsigned long expires =
@@ -368,8 +368,8 @@ void GpgKeyOpera::GenerateKeyWithSubkey(
           return err;
         }
 
-        auto key =
-            GpgKeyGetter::GetInstance().GetKey(genkey_result.GetFingerprint());
+        auto key = GpgKeyGetter::GetInstance(channel).GetKey(
+            genkey_result.GetFingerprint());
         if (!key.IsGood()) {
           LOG_W() << "cannot get key which has been generate, fpr: "
                   << genkey_result.GetFingerprint();
@@ -413,8 +413,8 @@ auto GpgKeyOpera::GenerateKeyWithSubkeySync(
     const std::shared_ptr<GenKeyInfo>& subkey_params)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
-      [&ctx = ctx_, params,
-       subkey_params](const DataObjectPtr& data_object) -> GpgError {
+      [&ctx = ctx_, params, subkey_params,
+       channel = GetChannel()](const DataObjectPtr& data_object) -> GpgError {
         auto userid = params->GetUserid().toUtf8();
         auto algo = (params->GetAlgo() + params->GetKeySizeStr()).toUtf8();
         unsigned long expires =
@@ -449,8 +449,8 @@ auto GpgKeyOpera::GenerateKeyWithSubkeySync(
           return err;
         }
 
-        auto key =
-            GpgKeyGetter::GetInstance().GetKey(genkey_result.GetFingerprint());
+        auto key = GpgKeyGetter::GetInstance(channel).GetKey(
+            genkey_result.GetFingerprint());
         if (!key.IsGood()) {
           LOG_W() << "cannot get key which has been generate, fpr: "
                   << genkey_result.GetFingerprint();

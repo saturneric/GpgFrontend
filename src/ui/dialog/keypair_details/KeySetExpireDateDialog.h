@@ -47,7 +47,7 @@ class KeySetExpireDateDialog : public GeneralDialog {
    * @param key_id
    * @param parent
    */
-  explicit KeySetExpireDateDialog(const KeyId& key_id,
+  explicit KeySetExpireDateDialog(int channel, const KeyId& key_id,
                                   QWidget* parent = nullptr);
 
   /**
@@ -57,7 +57,8 @@ class KeySetExpireDateDialog : public GeneralDialog {
    * @param subkey_fpr
    * @param parent
    */
-  explicit KeySetExpireDateDialog(const KeyId& key_id, QString subkey_fpr,
+  explicit KeySetExpireDateDialog(int channel, const KeyId& key_id,
+                                  QString subkey_fpr,
                                   QWidget* parent = nullptr);
 
  signals:
@@ -75,6 +76,7 @@ class KeySetExpireDateDialog : public GeneralDialog {
   void init();
 
   std::shared_ptr<Ui_ModifiedExpirationDateTime> ui_;  ///<
+  int current_gpg_context_channel_;                    ///<
   const GpgKey m_key_;                                 ///<
   const SubkeyId m_subkey_;                            ///<
 

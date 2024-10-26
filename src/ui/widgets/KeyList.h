@@ -46,6 +46,7 @@ enum class KeyMenuAbility : unsigned int {
   kCHECK_ALL = 1 << 3,
   kCOLUMN_FILTER = 1 << 4,
   kSEARCH_BAR = 1 << 5,
+  kKEY_DATABASE = 1 << 6,
 
   kALL = ~0U
 };
@@ -87,7 +88,7 @@ class KeyList : public QWidget {
    * @param parent
    */
   explicit KeyList(
-      KeyMenuAbility menu_ability,
+      int channel, KeyMenuAbility menu_ability,
       GpgKeyTableColumn fixed_column_filter = GpgKeyTableColumn::kALL,
       QWidget* parent = nullptr);
 
@@ -288,7 +289,8 @@ class KeyList : public QWidget {
   std::shared_ptr<Ui_KeyList> ui_;                                   ///<
   QMenu* popup_menu_{};                                              ///<
   std::function<void(const GpgKey&, QWidget*)> m_action_ = nullptr;  ///<
-  KeyMenuAbility menu_ability_ = KeyMenuAbility::kALL;               ///<
+  int current_gpg_context_channel_;
+  KeyMenuAbility menu_ability_ = KeyMenuAbility::kALL;  ///<
   QSharedPointer<GpgKeyTableModel> model_;
   GpgKeyTableColumn fixed_columns_filter_;
   GpgKeyTableColumn global_column_filter_;
@@ -299,8 +301,6 @@ class KeyList : public QWidget {
   QAction* owner_trust_column_action_;
   QAction* subkeys_number_column_action_;
   QAction* comment_column_action_;
-
-  int current_gpg_context_channel_ = kGpgFrontendDefaultChannel;
 
  private slots:
 

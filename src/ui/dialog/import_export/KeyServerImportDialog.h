@@ -50,7 +50,7 @@ class KeyServerImportDialog : public GeneralDialog {
    * @param automatic
    * @param parent
    */
-  explicit KeyServerImportDialog(QWidget* parent);
+  explicit KeyServerImportDialog(int channel, QWidget* parent);
 
  public slots:
 
@@ -97,7 +97,8 @@ class KeyServerImportDialog : public GeneralDialog {
    *
    * @param keyid
    */
-  void slot_import_finished(bool success, QString err_msg, QByteArray buffer,
+  void slot_import_finished(int channel, bool success, QString err_msg,
+                            QByteArray buffer,
                             std::shared_ptr<GpgImportInformation> info);
 
   /**
@@ -164,6 +165,8 @@ class KeyServerImportDialog : public GeneralDialog {
   QPushButton* import_button_{};       ///<
   QPushButton* search_button_{};       ///<
   QTableWidget* keys_table_{};         ///<
+
+  int current_gpg_context_channel_;
 };
 
 }  // namespace GpgFrontend::UI

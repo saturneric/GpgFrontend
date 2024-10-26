@@ -40,7 +40,8 @@ class GPGFRONTEND_CORE_EXPORT GpgResultAnalyse : public QObject {
    * @brief Construct a new Result Analyse object
    *
    */
-  GpgResultAnalyse() = default;
+  explicit GpgResultAnalyse(int channel)
+      : current_gpg_context_channel_(channel){};
 
   /**
    * @brief Get the Result Report object
@@ -55,6 +56,8 @@ class GPGFRONTEND_CORE_EXPORT GpgResultAnalyse : public QObject {
    * @return int
    */
   [[nodiscard]] auto GetStatus() const -> int;
+
+  [[nodiscard]] auto GetChannel() const -> int;
 
   /**
    * @brief
@@ -76,6 +79,7 @@ class GPGFRONTEND_CORE_EXPORT GpgResultAnalyse : public QObject {
    */
   void setStatus(int m_status);
 
+  int current_gpg_context_channel_;
   QString buffer_;
   QTextStream stream_ = QTextStream(&buffer_);  ///<
   int status_ = 1;                              ///<

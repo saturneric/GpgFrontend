@@ -35,8 +35,14 @@
 #include "ui/UISignalStation.h"
 
 namespace GpgFrontend::UI {
-KeyPairDetailTab::KeyPairDetailTab(const QString& key_id, QWidget* parent)
-    : QWidget(parent), key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
+KeyPairDetailTab::KeyPairDetailTab(int channel, const QString& key_id,
+                                   QWidget* parent)
+    : QWidget(parent),
+      current_gpg_context_channel_(channel),
+      key_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+               .GetKey(key_id)) {
+  assert(key_.IsGood());
+
   owner_box_ = new QGroupBox(tr("Owner"));
   key_box_ = new QGroupBox(tr("Primary Key"));
   fingerprint_box_ = new QGroupBox(tr("Fingerprint"));
@@ -284,7 +290,10 @@ void KeyPairDetailTab::slot_refresh_key_info() {
 
 void KeyPairDetailTab::slot_refresh_key() {
   // refresh the key
-  GpgKey refreshed_key = GpgKeyGetter::GetInstance().GetKey(key_.GetId());
+  GpgKey refreshed_key = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+                             .GetKey(key_.GetId());
+  assert(refreshed_key.IsGood());
+
   std::swap(this->key_, refreshed_key);
 
   this->slot_refresh_key_info();

@@ -33,9 +33,12 @@
 
 namespace GpgFrontend::UI {
 
-VerifyDetailsDialog::VerifyDetailsDialog(QWidget* parent, GpgError error,
-                                         GpgVerifyResult result)
-    : QDialog(parent), m_result_(result), error_(error) {
+VerifyDetailsDialog::VerifyDetailsDialog(QWidget* parent, int channel,
+                                         GpgError error, GpgVerifyResult result)
+    : QDialog(parent),
+      current_gpg_context_channel_(channel),
+      m_result_(result),
+      error_(error) {
   this->setWindowTitle(tr("Signatures Details"));
 
   main_layout_ = new QHBoxLayout();
@@ -82,7 +85,8 @@ void VerifyDetailsDialog::slot_refresh() {
   }
   // Add information box for every single key
   for (const auto& signature : signatures) {
-    auto* detail_box = new VerifyKeyDetailBox(signature, this);
+    auto* detail_box =
+        new VerifyKeyDetailBox(current_gpg_context_channel_, signature, this);
     m_vbox_layout->addWidget(detail_box);
   }
 

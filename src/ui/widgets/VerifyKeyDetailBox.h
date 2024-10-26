@@ -44,7 +44,8 @@ class VerifyKeyDetailBox : public QGroupBox {
    * @param signature
    * @param parent
    */
-  explicit VerifyKeyDetailBox(const GpgSignature& signature, QWidget* parent);
+  explicit VerifyKeyDetailBox(int channel, const GpgSignature& signature,
+                              QWidget* parent);
 
  private slots:
 
@@ -63,6 +64,7 @@ class VerifyKeyDetailBox : public QGroupBox {
    */
   QGridLayout* create_key_info_grid(const GpgSignature& signature);
 
+  int current_gpg_context_channel_;
   QString fpr_;  ///< fingerprint of the key
 };
 

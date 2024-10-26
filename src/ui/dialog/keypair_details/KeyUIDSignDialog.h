@@ -45,7 +45,7 @@ class KeyUIDSignDialog : public GeneralDialog {
    * @param uid
    * @param parent
    */
-  explicit KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
+  explicit KeyUIDSignDialog(int channel, const GpgKey& key, UIDArgsListPtr uid,
                             QWidget* parent = nullptr);
 
  signals:
@@ -56,6 +56,7 @@ class KeyUIDSignDialog : public GeneralDialog {
   void SignalKeyUIDSignUpdate();
 
  private:
+  int current_gpg_context_channel_;
   KeyList* m_key_list_;           ///<
   QPushButton* sign_key_button_;  ///<
   QDateTimeEdit* expires_edit_;   ///<

@@ -37,8 +37,14 @@
 
 namespace GpgFrontend::UI {
 
-KeyPairUIDTab::KeyPairUIDTab(const QString& key_id, QWidget* parent)
-    : QWidget(parent), m_key_(GpgKeyGetter::GetInstance().GetKey(key_id)) {
+KeyPairUIDTab::KeyPairUIDTab(int channel, const QString& key_id,
+                             QWidget* parent)
+    : QWidget(parent),
+      current_gpg_context_channel_(channel),
+      m_key_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+                 .GetKey(key_id)) {
+  assert(m_key_.IsGood());
+
   create_uid_list();
   create_sign_list();
   create_manage_uid_menu();
@@ -306,8 +312,8 @@ void KeyPairUIDTab::slot_add_sign() {
     return;
   }
 
-  auto* key_sign_dialog =
-      new KeyUIDSignDialog(m_key_, std::move(selected_uids), this);
+  auto* key_sign_dialog = new KeyUIDSignDialog(
+      current_gpg_context_channel_, m_key_, std::move(selected_uids), this);
   key_sign_dialog->show();
 }
 
@@ -337,7 +343,8 @@ void KeyPairUIDTab::create_manage_uid_menu() {
 }
 
 void KeyPairUIDTab::slot_add_uid() {
-  auto* key_new_uid_dialog = new KeyNewUIDDialog(m_key_.GetId(), this);
+  auto* key_new_uid_dialog =
+      new KeyNewUIDDialog(current_gpg_context_channel_, m_key_.GetId(), this);
   connect(key_new_uid_dialog, &KeyNewUIDDialog::finished, this,
           &KeyPairUIDTab::slot_add_uid_result);
   connect(key_new_uid_dialog, &KeyNewUIDDialog::finished, key_new_uid_dialog,
@@ -484,8 +491,8 @@ void KeyPairUIDTab::slot_add_sign_single() {
     return;
   }
 
-  auto* key_sign_dialog =
-      new KeyUIDSignDialog(m_key_, std::move(selected_uids), this);
+  auto* key_sign_dialog = new KeyUIDSignDialog(
+      current_gpg_context_channel_, m_key_, std::move(selected_uids), this);
   key_sign_dialog->show();
 }
 
@@ -541,7 +548,7 @@ void KeyPairUIDTab::slot_del_sign() {
     return;
   }
 
-  if (!GpgKeyGetter::GetInstance()
+  if (!GpgKeyGetter::GetInstance(current_gpg_context_channel_)
            .GetKey(selected_signs->front().first)
            .IsGood()) {
     QMessageBox::critical(
@@ -573,7 +580,10 @@ void KeyPairUIDTab::slot_del_sign() {
 }
 void KeyPairUIDTab::slot_refresh_key() {
   // refresh the key
-  GpgKey refreshed_key = GpgKeyGetter::GetInstance().GetKey(m_key_.GetId());
+  GpgKey refreshed_key = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+                             .GetKey(m_key_.GetId());
+  assert(refreshed_key.IsGood());
+
   std::swap(this->m_key_, refreshed_key);
 
   this->slot_refresh_uid_list();

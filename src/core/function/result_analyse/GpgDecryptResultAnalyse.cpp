@@ -32,8 +32,8 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 
 GpgFrontend::GpgDecryptResultAnalyse::GpgDecryptResultAnalyse(
-    GpgError m_error, GpgDecryptResult m_result)
-    : error_(m_error), result_(m_result) {}
+    int channel, GpgError m_error, GpgDecryptResult m_result)
+    : GpgResultAnalyse(channel), error_(m_error), result_(m_result) {}
 
 void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
   auto *result = result_.GetRaw();
@@ -110,7 +110,8 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
 
 void GpgFrontend::GpgDecryptResultAnalyse::print_recipient(
     QTextStream &stream, gpgme_recipient_t recipient) {
-  auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(recipient->keyid);
+  auto key = GpgFrontend::GpgKeyGetter::GetInstance(GetChannel())
+                 .GetKey(recipient->keyid);
   if (key.IsGood()) {
     stream << key.GetName();
     if (!key.GetComment().isEmpty()) stream << "(" << key.GetComment() << ")";

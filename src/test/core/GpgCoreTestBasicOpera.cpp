@@ -143,7 +143,7 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest_KeyNotFound_ResultAnalyse) {
   ASSERT_FALSE(decr_result.Recipients().empty());
   ASSERT_EQ(decr_result.Recipients()[0].keyid, "A50CFD2F6C677D8C");
 
-  GpgDecryptResultAnalyse analyse{err, decr_result};
+  GpgDecryptResultAnalyse analyse{kGpgFrontendDefaultChannel, err, decr_result};
   analyse.Analyse();
   ASSERT_EQ(analyse.GetStatus(), -1);
   ASSERT_FALSE(analyse.GetResultReport().isEmpty());

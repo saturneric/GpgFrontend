@@ -45,7 +45,7 @@ class VerifyDetailsDialog : public QDialog {
    * @param error
    * @param result
    */
-  explicit VerifyDetailsDialog(QWidget* parent, GpgError error,
+  explicit VerifyDetailsDialog(QWidget* parent, int channel, GpgError error,
                                GpgVerifyResult result);
 
  private slots:
@@ -62,8 +62,10 @@ class VerifyDetailsDialog : public QDialog {
   QByteArray* input_data_{};        ///<
   QByteArray* input_signature_{};   ///<
   QDialogButtonBox* button_box_{};  ///<
-  GpgVerifyResult m_result_;        ///<
-  gpgme_error_t error_;             ///<
+
+  int current_gpg_context_channel_;
+  GpgVerifyResult m_result_;  ///<
+  gpgme_error_t error_;       ///<
 };
 
 }  // namespace GpgFrontend::UI

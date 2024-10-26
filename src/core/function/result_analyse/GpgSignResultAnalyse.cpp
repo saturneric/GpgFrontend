@@ -34,8 +34,9 @@
 
 namespace GpgFrontend {
 
-GpgSignResultAnalyse::GpgSignResultAnalyse(GpgError error, GpgSignResult result)
-    : error_(error), result_(std::move(result)) {}
+GpgSignResultAnalyse::GpgSignResultAnalyse(int channel, GpgError error,
+                                           GpgSignResult result)
+    : GpgResultAnalyse(channel), error_(error), result_(std::move(result)) {}
 
 void GpgSignResultAnalyse::doAnalyse() {
   auto *result = this->result_.GetRaw();
@@ -72,7 +73,7 @@ void GpgSignResultAnalyse::doAnalyse() {
       stream_ << Qt::endl;
 
       QString fpr = new_sign->fpr == nullptr ? "" : new_sign->fpr;
-      auto singer_key = GpgKeyGetter::GetInstance().GetKey(fpr);
+      auto singer_key = GpgKeyGetter::GetInstance(GetChannel()).GetKey(fpr);
       if (singer_key.IsGood()) {
         stream_ << "- " << tr("Signed By") << ": "
                 << singer_key.GetUIDs()->front().GetUID() << Qt::endl;

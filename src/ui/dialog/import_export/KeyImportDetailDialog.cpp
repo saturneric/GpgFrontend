@@ -34,8 +34,9 @@
 
 namespace GpgFrontend::UI {
 KeyImportDetailDialog::KeyImportDetailDialog(
-    std::shared_ptr<GpgImportInformation> result, QWidget* parent)
+    int channel, std::shared_ptr<GpgImportInformation> result, QWidget* parent)
     : GeneralDialog(typeid(KeyImportDetailDialog).name(), parent),
+      current_gpg_context_channel_(channel),
       m_result_(std::move(result)) {
   this->setAttribute(Qt::WA_DeleteOnClose);
 
@@ -144,7 +145,8 @@ void KeyImportDetailDialog::create_keys_table() {
   int row = 0;
   for (const auto& imp_key : m_result_->imported_keys) {
     keys_table_->setRowCount(row + 1);
-    auto key = GpgKeyGetter::GetInstance().GetKey(imp_key.fpr);
+    auto key = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+                   .GetKey(imp_key.fpr);
     if (!key.IsGood()) continue;
     keys_table_->setItem(row, 0, new QTableWidgetItem(key.GetName()));
     keys_table_->setItem(row, 1, new QTableWidgetItem(key.GetEmail()));

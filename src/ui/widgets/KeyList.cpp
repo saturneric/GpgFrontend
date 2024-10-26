@@ -41,12 +41,13 @@
 
 namespace GpgFrontend::UI {
 
-KeyList::KeyList(KeyMenuAbility menu_ability,
+KeyList::KeyList(int channel, KeyMenuAbility menu_ability,
                  GpgKeyTableColumn fixed_columns_filter, QWidget* parent)
     : QWidget(parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyList>()),
+      current_gpg_context_channel_(channel),
       menu_ability_(menu_ability),
-      model_(GpgKeyGetter::GetInstance().GetGpgKeyTableModel()),
+      model_(GpgKeyGetter::GetInstance(channel).GetGpgKeyTableModel()),
       fixed_columns_filter_(fixed_columns_filter),
       global_column_filter_(static_cast<GpgKeyTableColumn>(
           GlobalSettingStation::GetInstance()
@@ -69,6 +70,8 @@ void KeyList::init() {
   ui_->columnTypeButton->setHidden(~menu_ability_ &
                                    KeyMenuAbility::kCOLUMN_FILTER);
   ui_->searchBarEdit->setHidden(~menu_ability_ & KeyMenuAbility::kSEARCH_BAR);
+  ui_->switchContextButton->setHidden(~menu_ability_ &
+                                      KeyMenuAbility::kKEY_DATABASE);
 
   auto* gpg_context_menu = new QMenu(this);
   auto* gpg_context_groups = new QActionGroup(this);
@@ -287,6 +290,8 @@ void KeyList::SlotRefresh() {
   ui_->refreshKeyListButton->setDisabled(true);
   ui_->syncButton->setDisabled(true);
 
+  LOG_D() << "request new key table module, current gpg context channel: "
+          << current_gpg_context_channel_;
   model_ = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
                .GetGpgKeyTableModel();
 
@@ -520,7 +525,7 @@ void KeyList::dragEnterEvent(QDragEnterEvent* event) {
 void KeyList::import_keys(const QByteArray& in_buffer) {
   auto result =
       GpgKeyImportExporter::GetInstance().ImportKey(GFBuffer(in_buffer));
-  (new KeyImportDetailDialog(result, this));
+  (new KeyImportDetailDialog(current_gpg_context_channel_, result, this));
 }
 
 void KeyList::slot_double_clicked(const QModelIndex& index) {
@@ -528,8 +533,9 @@ void KeyList::slot_double_clicked(const QModelIndex& index) {
 
   auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
   if (m_action_ != nullptr) {
-    const auto key = GpgKeyGetter::GetInstance().GetKey(
-        key_table->GetKeyIdByRow(index.row()));
+    const auto key = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+                         .GetKey(key_table->GetKeyIdByRow(index.row()));
+    assert(key.IsGood());
     m_action_(key, this);
   }
 }
@@ -582,9 +588,12 @@ void KeyList::slot_sync_with_key_server() {
 
   emit SignalRefreshStatusBar(tr("Syncing Key List..."), 3000);
   CommonUtils::SlotImportKeyFromKeyServer(
-      key_ids, [=](const QString& key_id, const QString& status,
-                   size_t current_index, size_t all_index) {
-        auto key = GpgKeyGetter::GetInstance().GetKey(key_id);
+      current_gpg_context_channel_, key_ids,
+      [=](const QString& key_id, const QString& status, size_t current_index,
+          size_t all_index) {
+        auto key = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+                       .GetKey(key_id);
+        assert(key.IsGood());
 
         auto status_str = tr("Sync [%1/%2] %3 %4")
                               .arg(current_index)

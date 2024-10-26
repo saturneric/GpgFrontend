@@ -35,17 +35,20 @@
 
 namespace GpgFrontend::UI {
 
-KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
-                                   QWidget* parent)
+KeyUIDSignDialog::KeyUIDSignDialog(int channel, const GpgKey& key,
+                                   UIDArgsListPtr uid, QWidget* parent)
     : GeneralDialog(typeid(KeyUIDSignDialog).name(), parent),
+      current_gpg_context_channel_(channel),
       m_uids_(std::move(uid)),
       m_key_(key) {
+  assert(m_key_.IsGood());
+
   const auto key_id = m_key_.GetId();
-  m_key_list_ =
-      new KeyList(KeyMenuAbility::kCOLUMN_FILTER | KeyMenuAbility::kSEARCH_BAR,
-                  GpgKeyTableColumn::kNAME | GpgKeyTableColumn::kEMAIL_ADDRESS |
-                      GpgKeyTableColumn::kKEY_ID,
-                  this);
+  m_key_list_ = new KeyList(
+      channel, KeyMenuAbility::kCOLUMN_FILTER | KeyMenuAbility::kSEARCH_BAR,
+      GpgKeyTableColumn::kNAME | GpgKeyTableColumn::kEMAIL_ADDRESS |
+          GpgKeyTableColumn::kKEY_ID,
+      this);
   m_key_list_->AddListGroupTab(
       tr("Signers"), "signers", GpgKeyTableDisplayMode::kPRIVATE_KEY,
       [key_id](const GpgKey& key) -> bool {
@@ -103,8 +106,13 @@ KeyUIDSignDialog::KeyUIDSignDialog(const GpgKey& key, UIDArgsListPtr uid,
 void KeyUIDSignDialog::slot_sign_key(bool clicked) {
   // Set Signers
   auto key_ids = m_key_list_->GetChecked();
-  auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids);
+  auto keys =
+      GpgKeyGetter::GetInstance(current_gpg_context_channel_).GetKeys(key_ids);
   auto expires = std::make_unique<QDateTime>(expires_edit_->dateTime());
+
+  for (const auto& key : *keys) {
+    assert(key.IsGood());
+  }
 
   for (const auto& uid : *m_uids_) {
     // Sign For mKey

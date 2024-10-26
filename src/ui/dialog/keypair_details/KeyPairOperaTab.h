@@ -44,7 +44,7 @@ class KeyPairOperaTab : public QWidget {
    * @param key_id
    * @param parent
    */
-  KeyPairOperaTab(const QString& key_id, QWidget* parent);
+  KeyPairOperaTab(int channel, const QString& key_id, QWidget* parent);
 
   /**
    * @brief Create a Opera Menu object
@@ -139,6 +139,7 @@ class KeyPairOperaTab : public QWidget {
   void slot_import_paper_key();
 
  private:
+  int current_gpg_context_channel_;
   GpgKey m_key_;                    ///<
   QMenu* key_server_opera_menu_{};  ///<
   QMenu* rev_cert_opera_menu_{};

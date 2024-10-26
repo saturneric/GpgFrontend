@@ -48,7 +48,8 @@ class KeyServerImportTask : public Thread::Task {
    * @param keyserver_url
    * @param search_string
    */
-  KeyServerImportTask(QString keyserver_url, std::vector<QString> keyid);
+  KeyServerImportTask(QString keyserver_url, int channel,
+                      std::vector<QString> keyid);
 
   /**
    * @brief
@@ -63,7 +64,7 @@ class KeyServerImportTask : public Thread::Task {
    *
    * @param result
    */
-  void SignalKeyServerImportResult(bool, QString, QByteArray,
+  void SignalKeyServerImportResult(int, bool, QString, QByteArray,
                                    std::shared_ptr<GpgImportInformation>);
 
  private slots:
@@ -75,8 +76,9 @@ class KeyServerImportTask : public Thread::Task {
   void dealing_reply_from_server();
 
  private:
-  QString keyserver_url_;        ///<
-  std::vector<QString> keyids_;  ///<
+  QString keyserver_url_;            ///<
+  int current_gpg_context_channel_;  ///<
+  std::vector<QString> keyids_;      ///<
   int result_count_ = 0;
 
   QNetworkAccessManager *manager_;  ///<

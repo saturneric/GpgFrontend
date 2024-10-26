@@ -39,8 +39,9 @@
 
 namespace GpgFrontend::UI {
 
-KeyServerImportDialog::KeyServerImportDialog(QWidget* parent)
-    : GeneralDialog("key_server_import_dialog", parent) {
+KeyServerImportDialog::KeyServerImportDialog(int channel, QWidget* parent)
+    : GeneralDialog("key_server_import_dialog", parent),
+      current_gpg_context_channel_(channel) {
   auto forbid_all_gnupg_connection =
       GlobalSettingStation::GetInstance()
           .GetSettings()
@@ -397,7 +398,8 @@ void KeyServerImportDialog::SlotImport(const KeyIdArgsListPtr& keys) {
 void KeyServerImportDialog::SlotImport(std::vector<QString> key_ids,
                                        QString keyserver_url) {
   auto* task =
-      new KeyServerImportTask(std::move(keyserver_url), std::move(key_ids));
+      new KeyServerImportTask(std::move(keyserver_url),
+                              current_gpg_context_channel_, std::move(key_ids));
 
   connect(task, &KeyServerImportTask::SignalKeyServerImportResult, this,
           &KeyServerImportDialog::slot_import_finished);
@@ -409,7 +411,7 @@ void KeyServerImportDialog::SlotImport(std::vector<QString> key_ids,
 }
 
 void KeyServerImportDialog::slot_import_finished(
-    bool success, QString err_msg, QByteArray buffer,
+    int channel, bool success, QString err_msg, QByteArray buffer,
     std::shared_ptr<GpgImportInformation> info) {
   set_loading(false);
 
@@ -424,7 +426,9 @@ void KeyServerImportDialog::slot_import_finished(
   emit SignalKeyImported();
 
   // show details
-  (new KeyImportDetailDialog(std::move(info), this))->exec();
+  (new KeyImportDetailDialog(current_gpg_context_channel_, std::move(info),
+                             this))
+      ->exec();
 }
 
 void KeyServerImportDialog::set_loading(bool status) {

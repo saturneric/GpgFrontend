@@ -48,7 +48,8 @@ class KeyUploadDialog : public GeneralDialog {
    * @param keys_ids
    * @param parent
    */
-  explicit KeyUploadDialog(const KeyIdArgsListPtr& keys_ids, QWidget* parent);
+  explicit KeyUploadDialog(int channel, const KeyIdArgsListPtr& keys_ids,
+                           QWidget* parent);
 
  public slots:
 
@@ -74,6 +75,7 @@ class KeyUploadDialog : public GeneralDialog {
   void slot_upload_finished();
 
  private:
+  int current_gpg_context_channel_;
   KeyListPtr m_keys_;      ///<
   QByteArray m_key_data_;  ///<
 };

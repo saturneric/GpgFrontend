@@ -35,9 +35,10 @@
 #include "ui_ExportKeyPackageDialog.h"
 
 GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
-    KeyIdArgsListPtr key_ids, QWidget* parent)
+    int channel, KeyIdArgsListPtr key_ids, QWidget* parent)
     : GeneralDialog(typeid(ExportKeyPackageDialog).name(), parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_exportKeyPackageDialog>()),
+      current_gpg_context_channel_(channel),
       key_ids_(std::move(key_ids)) {
   ui_->setupUi(this);
 
@@ -95,7 +96,8 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
     }
 
     // get suitable key ids
-    auto keys = GpgKeyGetter::GetInstance().GetKeys(key_ids_);
+    auto keys = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+                    .GetKeys(key_ids_);
     auto keys_new_end =
         std::remove_if(keys->begin(), keys->end(), [this](const auto& key) {
           return ui_->noPublicKeyCheckBox->isChecked() && !key.IsPrivateKey();

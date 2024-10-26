@@ -34,9 +34,10 @@
 #include "ui/struct/settings_object/KeyServerSO.h"
 
 GpgFrontend::UI::KeyServerImportTask::KeyServerImportTask(
-    QString keyserver_url, std::vector<QString> keyids)
+    QString keyserver_url, int channel, std::vector<QString> keyids)
     : Task("key_server_import_task"),
       keyserver_url_(std::move(keyserver_url)),
+      current_gpg_context_channel_(channel),
       keyids_(std::move(keyids)),
       manager_(new QNetworkAccessManager(this)) {
   HoldOnLifeCycle(true);
@@ -85,11 +86,14 @@ void GpgFrontend::UI::KeyServerImportTask::dealing_reply_from_server() {
       default:
         err_msg = tr("General connection error occurred.");
     }
-    emit SignalKeyServerImportResult(false, err_msg, buffer, nullptr);
+    emit SignalKeyServerImportResult(current_gpg_context_channel_, false,
+                                     err_msg, buffer, nullptr);
   }
 
-  auto info = GpgKeyImportExporter::GetInstance().ImportKey(GFBuffer(buffer));
-  emit SignalKeyServerImportResult(true, tr("Success"), buffer, info);
+  auto info = GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
+                  .ImportKey(GFBuffer(buffer));
+  emit SignalKeyServerImportResult(current_gpg_context_channel_, true,
+                                   tr("Success"), buffer, info);
 
   if (static_cast<size_t>(result_count_++) == keyids_.size() - 1) {
     emit SignalTaskShouldEnd(0);

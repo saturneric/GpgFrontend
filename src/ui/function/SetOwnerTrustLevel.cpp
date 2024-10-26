@@ -37,12 +37,13 @@ namespace GpgFrontend::UI {
 
 SetOwnerTrustLevel::SetOwnerTrustLevel(QWidget* parent) : QWidget(parent) {}
 
-auto SetOwnerTrustLevel::Exec(const QString& key_id) -> bool {
+auto SetOwnerTrustLevel::Exec(int channel, const QString& key_id) -> bool {
   if (key_id.isEmpty()) {
     return false;
   }
 
-  auto key = GpgKeyGetter::GetInstance().GetKey(key_id);
+  auto key = GpgKeyGetter::GetInstance(channel).GetKey(key_id);
+  assert(key.IsGood());
 
   QStringList items;
 

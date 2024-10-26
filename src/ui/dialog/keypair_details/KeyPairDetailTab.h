@@ -55,6 +55,7 @@ class KeyPairDetailTab : public QWidget {
   void slot_refresh_key();
 
  private:
+  int current_gpg_context_channel_;
   GpgKey key_;  ///<
 
   QGroupBox* owner_box_;        ///< Groupbox containing owner information
@@ -90,7 +91,8 @@ class KeyPairDetailTab : public QWidget {
    * @param key_id
    * @param parent
    */
-  explicit KeyPairDetailTab(const QString& key_id, QWidget* parent = nullptr);
+  explicit KeyPairDetailTab(int channel, const QString& key_id,
+                            QWidget* parent = nullptr);
 };
 
 }  // namespace GpgFrontend::UI

@@ -34,8 +34,8 @@
 #include "core/utils/LocalizedUtils.h"
 
 GpgFrontend::GpgVerifyResultAnalyse::GpgVerifyResultAnalyse(
-    GpgError error, GpgVerifyResult result)
-    : error_(error), result_(result) {}
+    int channel, GpgError error, GpgVerifyResult result)
+    : GpgResultAnalyse(channel), error_(error), result_(result) {}
 
 void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
   auto *result = this->result_.GetRaw();
@@ -197,7 +197,8 @@ auto GpgFrontend::GpgVerifyResultAnalyse::print_signer_without_key(
 auto GpgFrontend::GpgVerifyResultAnalyse::print_signer(
     QTextStream &stream, GpgSignature sign) -> bool {
   auto fingerprint = sign.GetFingerprint();
-  auto key = GpgFrontend::GpgKeyGetter::GetInstance().GetKey(fingerprint);
+  auto key =
+      GpgFrontend::GpgKeyGetter::GetInstance(GetChannel()).GetKey(fingerprint);
   if (key.IsGood()) {
     stream << "- " << tr("Signed By") << ": " << key.GetUIDs()->front().GetUID()
            << Qt::endl;

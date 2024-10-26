@@ -310,16 +310,20 @@ void MainWindow::create_actions() {
   import_key_from_file_act_->setIcon(QIcon(":/icons/import_key_from_file.png"));
   import_key_from_file_act_->setToolTip(tr("Import New Key From File"));
   connect(import_key_from_file_act_, &QAction::triggered, this,
-          [&]() { CommonUtils::GetInstance()->SlotImportKeyFromFile(this); });
+          [=, channel = m_key_list_->GetCurrentGpgContextChannel()]() {
+            CommonUtils::GetInstance()->SlotImportKeyFromFile(this, channel);
+          });
 
   import_key_from_clipboard_act_ = new QAction(tr("Clipboard"), this);
   import_key_from_clipboard_act_->setIcon(
       QIcon(":/icons/import_key_from_clipboard.png"));
   import_key_from_clipboard_act_->setToolTip(
       tr("Import New Key From Clipboard"));
-  connect(import_key_from_clipboard_act_, &QAction::triggered, this, [&]() {
-    CommonUtils::GetInstance()->SlotImportKeyFromClipboard(this);
-  });
+  connect(import_key_from_clipboard_act_, &QAction::triggered, this,
+          [this, channel = m_key_list_->GetCurrentGpgContextChannel()]() {
+            CommonUtils::GetInstance()->SlotImportKeyFromClipboard(this,
+                                                                   channel);
+          });
 
   bool forbid_all_gnupg_connection =
       GlobalSettingStation::GetInstance()
@@ -333,9 +337,11 @@ void MainWindow::create_actions() {
   import_key_from_key_server_act_->setToolTip(
       tr("Import New Key From Keyserver"));
   import_key_from_key_server_act_->setDisabled(forbid_all_gnupg_connection);
-  connect(import_key_from_key_server_act_, &QAction::triggered, this, [&]() {
-    CommonUtils::GetInstance()->SlotImportKeyFromKeyServer(this);
-  });
+  connect(import_key_from_key_server_act_, &QAction::triggered, this,
+          [this, channel = m_key_list_->GetCurrentGpgContextChannel()]() {
+            CommonUtils::GetInstance()->SlotImportKeyFromKeyServer(this,
+                                                                   channel);
+          });
 
   import_key_from_edit_act_ = new QAction(tr("Editor"), this);
   import_key_from_edit_act_->setIcon(QIcon(":/icons/editor.png"));

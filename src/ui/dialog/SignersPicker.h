@@ -49,7 +49,7 @@ class SignersPicker : public GeneralDialog {
    *
    * @param parent
    */
-  explicit SignersPicker(QWidget* parent = nullptr);
+  explicit SignersPicker(int channel, QWidget* parent = nullptr);
 
   /**
    * @brief Get the Checked Signers object

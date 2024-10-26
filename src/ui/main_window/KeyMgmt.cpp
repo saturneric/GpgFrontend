@@ -52,7 +52,8 @@ namespace GpgFrontend::UI {
 KeyMgmt::KeyMgmt(QWidget* parent)
     : GeneralMainWindow("key_management", parent) {
   /* the list of Keys available*/
-  key_list_ = new KeyList(KeyMenuAbility::kALL, GpgKeyTableColumn::kALL, this);
+  key_list_ = new KeyList(kGpgFrontendDefaultChannel, KeyMenuAbility::kALL,
+                          GpgKeyTableColumn::kALL, this);
 
   key_list_->AddListGroupTab(tr("All"), "all",
                              GpgKeyTableDisplayMode::kPUBLIC_KEY |
@@ -96,10 +97,10 @@ KeyMgmt::KeyMgmt(QWidget* parent)
       [](const GpgKey& key) -> bool { return key.IsExpired(); });
 
   setCentralWidget(key_list_);
-  key_list_->SetDoubleClickedAction(
-      [this](const GpgKey& key, QWidget* /*parent*/) {
-        new KeyDetailsDialog(key, this);
-      });
+  key_list_->SetDoubleClickedAction([this](const GpgKey& key,
+                                           QWidget* /*parent*/) {
+    new KeyDetailsDialog(key_list_->GetCurrentGpgContextChannel(), key, this);
+  });
 
   key_list_->SlotRefresh();
 
@@ -138,7 +139,9 @@ void KeyMgmt::create_actions() {
   open_key_file_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_O));
   open_key_file_act_->setToolTip(tr("Open Key File"));
   connect(open_key_file_act_, &QAction::triggered, this,
-          [&]() { CommonUtils::GetInstance()->SlotImportKeyFromFile(this); });
+          [this, channel = key_list_->GetCurrentGpgContextChannel()]() {
+            CommonUtils::GetInstance()->SlotImportKeyFromFile(this, channel);
+          });
 
   close_act_ = new QAction(tr("Close"), this);
   close_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q));
@@ -165,16 +168,20 @@ void KeyMgmt::create_actions() {
   import_key_from_file_act_->setIcon(QIcon(":/icons/import_key_from_file.png"));
   import_key_from_file_act_->setToolTip(tr("Import New Key From File"));
   connect(import_key_from_file_act_, &QAction::triggered, this,
-          [&]() { CommonUtils::GetInstance()->SlotImportKeyFromFile(this); });
+          [this, channel = key_list_->GetCurrentGpgContextChannel()]() {
+            CommonUtils::GetInstance()->SlotImportKeyFromFile(this, channel);
+          });
 
   import_key_from_clipboard_act_ = new QAction(tr("Clipboard"), this);
   import_key_from_clipboard_act_->setIcon(
       QIcon(":/icons/import_key_from_clipboard.png"));
   import_key_from_clipboard_act_->setToolTip(
       tr("Import New Key From Clipboard"));
-  connect(import_key_from_clipboard_act_, &QAction::triggered, this, [&]() {
-    CommonUtils::GetInstance()->SlotImportKeyFromClipboard(this);
-  });
+  connect(import_key_from_clipboard_act_, &QAction::triggered, this,
+          [this, channel = key_list_->GetCurrentGpgContextChannel()]() {
+            CommonUtils::GetInstance()->SlotImportKeyFromClipboard(this,
+                                                                   channel);
+          });
 
   bool const forbid_all_gnupg_connection =
       GlobalSettingStation::GetInstance()
@@ -188,9 +195,11 @@ void KeyMgmt::create_actions() {
   import_key_from_key_server_act_->setToolTip(
       tr("Import New Key From Keyserver"));
   import_key_from_key_server_act_->setDisabled(forbid_all_gnupg_connection);
-  connect(import_key_from_key_server_act_, &QAction::triggered, this, [this]() {
-    CommonUtils::GetInstance()->SlotImportKeyFromKeyServer(this);
-  });
+  connect(import_key_from_key_server_act_, &QAction::triggered, this,
+          [this, channel = key_list_->GetCurrentGpgContextChannel()]() {
+            CommonUtils::GetInstance()->SlotImportKeyFromKeyServer(this,
+                                                                   channel);
+          });
 
   import_keys_from_key_package_act_ = new QAction(tr("Key Package"), this);
   import_keys_from_key_package_act_->setIcon(QIcon(":/icons/key_package.png"));
@@ -249,7 +258,8 @@ void KeyMgmt::create_actions() {
     if (keys_selected->empty()) return;
 
     auto* function = new SetOwnerTrustLevel(this);
-    function->Exec(keys_selected->front());
+    function->Exec(key_list_->GetCurrentGpgContextChannel(),
+                   keys_selected->front());
     function->deleteLater();
   });
 }
@@ -325,7 +335,9 @@ void KeyMgmt::delete_keys_with_warning(KeyIdArgsListPtr uidList) {
   if (uidList->empty()) return;
   QString keynames;
   for (const auto& key_id : *uidList) {
-    auto key = GpgKeyGetter::GetInstance().GetKey(key_id);
+    auto key =
+        GpgKeyGetter::GetInstance(key_list_->GetCurrentGpgContextChannel())
+            .GetKey(key_id);
     if (!key.IsGood()) continue;
     keynames.append(key.GetName());
     keynames.append("<i> &lt;");
@@ -350,14 +362,15 @@ void KeyMgmt::SlotShowKeyDetails() {
   auto keys_selected = key_list_->GetSelected();
   if (keys_selected->empty()) return;
 
-  auto key = GpgKeyGetter::GetInstance().GetKey(keys_selected->front());
+  auto key = GpgKeyGetter::GetInstance(key_list_->GetCurrentGpgContextChannel())
+                 .GetKey(keys_selected->front());
 
   if (!key.IsGood()) {
     QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
     return;
   }
 
-  new KeyDetailsDialog(key, this);
+  new KeyDetailsDialog(key_list_->GetCurrentGpgContextChannel(), key, this);
 }
 
 void KeyMgmt::SlotExportKeyToKeyPackage() {
@@ -368,7 +381,8 @@ void KeyMgmt::SlotExportKeyToKeyPackage() {
         tr("Please check some keys before doing this operation."));
     return;
   }
-  auto* dialog = new ExportKeyPackageDialog(std::move(keys_checked), this);
+  auto* dialog = new ExportKeyPackageDialog(
+      key_list_->GetCurrentGpgContextChannel(), std::move(keys_checked), this);
   dialog->exec();
   emit SignalStatusBarChanged(tr("key(s) exported"));
 }
@@ -383,7 +397,11 @@ void KeyMgmt::SlotExportKeyToClipboard() {
   }
 
   if (keys_checked->size() == 1) {
-    auto key = GpgKeyGetter::GetInstance().GetKey(keys_checked->front());
+    auto key =
+        GpgKeyGetter::GetInstance(key_list_->GetCurrentGpgContextChannel())
+            .GetKey(keys_checked->front());
+    assert(key.IsGood());
+
     auto [err, gf_buffer] =
         GpgKeyImportExporter::GetInstance().ExportKey(key, false, true, false);
     if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
@@ -392,7 +410,13 @@ void KeyMgmt::SlotExportKeyToClipboard() {
     }
     QApplication::clipboard()->setText(gf_buffer.ConvertToQByteArray());
   } else {
-    auto keys = GpgKeyGetter::GetInstance().GetKeys(keys_checked);
+    auto keys =
+        GpgKeyGetter::GetInstance(key_list_->GetCurrentGpgContextChannel())
+            .GetKeys(keys_checked);
+    for (const auto& key : *keys) {
+      assert(key.IsGood());
+    }
+
     CommonUtils::WaitForOpera(
         this, tr("Exporting"), [=](const OperaWaitingHd& op_hd) {
           GpgKeyImportExporter::GetInstance().ExportKeys(
@@ -440,7 +464,9 @@ void KeyMgmt::SlotGenerateSubKey() {
         tr("Please select one KeyPair before doing this operation."));
     return;
   }
-  const auto key = GpgKeyGetter::GetInstance().GetKey(keys_selected->front());
+  const auto key =
+      GpgKeyGetter::GetInstance(key_list_->GetCurrentGpgContextChannel())
+          .GetKey(keys_selected->front());
   if (!key.IsGood()) {
     QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
     return;
@@ -452,7 +478,9 @@ void KeyMgmt::SlotGenerateSubKey() {
     return;
   }
 
-  (new SubkeyGenerateDialog(key.GetId(), this))->exec();
+  (new SubkeyGenerateDialog(key_list_->GetCurrentGpgContextChannel(),
+                            key.GetId(), this))
+      ->exec();
   this->raise();
 }
 
@@ -471,7 +499,13 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
     return;
   }
 
-  auto keys = GpgKeyGetter::GetInstance().GetKeys(keys_checked);
+  auto keys =
+      GpgKeyGetter::GetInstance(key_list_->GetCurrentGpgContextChannel())
+          .GetKeys(keys_checked);
+  for (const auto& key : *keys) {
+    assert(key.IsGood());
+  }
+
   CommonUtils::WaitForOpera(
       this, tr("Exporting"), [this, keys](const OperaWaitingHd& op_hd) {
         GpgKeyImportExporter::GetInstance().ExportKeys(
@@ -593,6 +627,7 @@ void KeyMgmt::SlotImportKeyPackage() {
                 emit SignalKeyStatusUpdated();
 
                 auto* dialog = new KeyImportDetailDialog(
+                    key_list_->GetCurrentGpgContextChannel(),
                     SecureCreateSharedObject<GpgImportInformation>(info), this);
                 dialog->exec();
               }

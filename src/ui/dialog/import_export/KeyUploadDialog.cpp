@@ -41,10 +41,16 @@
 
 namespace GpgFrontend::UI {
 
-KeyUploadDialog::KeyUploadDialog(const KeyIdArgsListPtr& keys_ids,
+KeyUploadDialog::KeyUploadDialog(int channel, const KeyIdArgsListPtr& keys_ids,
                                  QWidget* parent)
     : GeneralDialog(typeid(KeyUploadDialog).name(), parent),
-      m_keys_(GpgKeyGetter::GetInstance().GetKeys(keys_ids)) {
+      current_gpg_context_channel_(channel),
+      m_keys_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+                  .GetKeys(keys_ids)) {
+  for (const auto& key : *m_keys_) {
+    assert(key.IsGood());
+  }
+
   auto* pb = new QProgressBar();
   pb->setRange(0, 0);
   pb->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -64,32 +70,32 @@ KeyUploadDialog::KeyUploadDialog(const KeyIdArgsListPtr& keys_ids,
 }
 
 void KeyUploadDialog::SlotUpload() {
-  GpgKeyImportExporter::GetInstance().ExportKeys(
-      *m_keys_, false, true, false, false,
-      [=](GpgError err, const DataObjectPtr& data_obj) {
-        if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-          CommonUtils::RaiseMessageBox(this, err);
-          return;
-        }
+  GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
+      .ExportKeys(*m_keys_, false, true, false, false,
+                  [=](GpgError err, const DataObjectPtr& data_obj) {
+                    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                      CommonUtils::RaiseMessageBox(this, err);
+                      return;
+                    }
 
-        if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
-            !data_obj->Check<GFBuffer>()) {
-          FLOG_W("data object checking failed");
-          QMessageBox::critical(this, tr("Error"),
-                                tr("Unknown error occurred"));
-          // Done
-          this->hide();
-          this->close();
-          return;
-        }
+                    if (CheckGpgError(err) == GPG_ERR_USER_1 ||
+                        data_obj == nullptr || !data_obj->Check<GFBuffer>()) {
+                      FLOG_W("data object checking failed");
+                      QMessageBox::critical(this, tr("Error"),
+                                            tr("Unknown error occurred"));
+                      // Done
+                      this->hide();
+                      this->close();
+                      return;
+                    }
 
-        auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
-        slot_upload_key_to_server(gf_buffer);
+                    auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
+                    slot_upload_key_to_server(gf_buffer);
 
-        // Done
-        this->hide();
-        this->close();
-      });
+                    // Done
+                    this->hide();
+                    this->close();
+                  });
 }
 
 void KeyUploadDialog::slot_upload_key_to_server(

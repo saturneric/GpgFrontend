@@ -44,3 +44,7 @@ void GpgFrontend::GpgResultAnalyse::Analyse() {
     analysed_ = true;
   }
 }
+
+auto GpgFrontend::GpgResultAnalyse::GetChannel() const -> int {
+  return current_gpg_context_channel_;
+}

@@ -77,13 +77,13 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
           });
   connect(this, &QTableView::doubleClicked, this,
           [this](const QModelIndex& index) {
-            auto key =
-                GpgKeyGetter::GetInstance().GetKey(GetKeyIdByRow(index.row()));
+            auto key = GpgKeyGetter::GetInstance(model_->GetGpgContextChannel())
+                           .GetKey(GetKeyIdByRow(index.row()));
             if (!key.IsGood()) {
               QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
               return;
             }
-            new KeyDetailsDialog(key, this);
+            new KeyDetailsDialog(model_->GetGpgContextChannel(), key, this);
           });
 }
 
@@ -93,7 +93,7 @@ void KeyTable::SetFilterKeyword(const QString& keyword) {
 
 void KeyTable::RefreshModel(QSharedPointer<GpgKeyTableModel> model) {
   model_ = std::move(model);
-  proxy_model_.setSourceModel(model_.get());
+  proxy_model_.ResetGpgKeyTableModel(model_);
 }
 
 auto KeyTable::IsRowChecked(int row) const -> bool {

@@ -410,10 +410,13 @@ void InitGpgFrontendCore(CoreInitArgs args) {
         }
 
         if (args.load_default_gpg_context) {
-          if (!GpgKeyGetter::GetInstance().FlushKeyCache()) {
-            CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-                QCoreApplication::tr("Gpg Key Database initiation failed"));
-          };
+          // load keys from all key dbs
+          for (int channel : GpgContext::GetAllChannelId()) {
+            if (!GpgKeyGetter::GetInstance(channel).FlushKeyCache()) {
+              CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+                  QCoreApplication::tr("Gpg Key Database initiation failed"));
+            };
+          }
         }
 
         FLOG_D(

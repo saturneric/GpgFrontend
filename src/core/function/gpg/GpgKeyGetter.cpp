@@ -172,8 +172,8 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
   }
 
   auto GetGpgKeyTableModel() -> QSharedPointer<GpgKeyTableModel> {
-    return SecureCreateQSharedObject<GpgKeyTableModel>(FetchGpgKeyList(),
-                                                       nullptr);
+    return SecureCreateQSharedObject<GpgKeyTableModel>(
+        SingletonFunctionObject::GetChannel(), FetchGpgKeyList(), nullptr);
   }
 
  private:

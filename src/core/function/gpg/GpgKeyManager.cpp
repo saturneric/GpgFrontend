@@ -39,7 +39,7 @@ GpgFrontend::GpgKeyManager::GpgKeyManager(int channel)
 auto GpgFrontend::GpgKeyManager::SignKey(
     const GpgFrontend::GpgKey& target, GpgFrontend::KeyArgsList& keys,
     const QString& uid, const std::unique_ptr<QDateTime>& expires) -> bool {
-  GpgBasicOperator::GetInstance().SetSigners(keys, true);
+  GpgBasicOperator::GetInstance(GetChannel()).SetSigners(keys, true);
 
   unsigned int flags = 0;
   unsigned int expires_time_t = 0;
@@ -60,7 +60,7 @@ auto GpgFrontend::GpgKeyManager::SignKey(
 auto GpgFrontend::GpgKeyManager::RevSign(
     const GpgFrontend::GpgKey& key,
     const GpgFrontend::SignIdArgsListPtr& signature_id) -> bool {
-  auto& key_getter = GpgKeyGetter::GetInstance();
+  auto& key_getter = GpgKeyGetter::GetInstance(GetChannel());
 
   for (const auto& sign_id : *signature_id) {
     auto signing_key = key_getter.GetKey(sign_id.first);

@@ -46,7 +46,8 @@ class GPGFRONTEND_CORE_EXPORT GpgEncryptResultAnalyse
    * @param error
    * @param result
    */
-  explicit GpgEncryptResultAnalyse(GpgError error, GpgEncryptResult result);
+  explicit GpgEncryptResultAnalyse(int channel, GpgError error,
+                                   GpgEncryptResult result);
 
  protected:
   /**

@@ -187,7 +187,7 @@ class CommonUtils : public QWidget {
    * @brief
    *
    */
-  void ImportKeyFromKeyServer(const KeyIdArgsList&);
+  void ImportKeyFromKeyServer(int channel, const KeyIdArgsList&);
 
  signals:
   /**
@@ -228,28 +228,29 @@ class CommonUtils : public QWidget {
    * @param parent
    * @param in_buffer
    */
-  void SlotImportKeys(QWidget* parent, const QByteArray& in_buffer);
+  void SlotImportKeys(QWidget* parent, int channel,
+                      const QByteArray& in_buffer);
 
   /**
    * @brief
    *
    * @param parent
    */
-  void SlotImportKeyFromFile(QWidget* parent);
+  void SlotImportKeyFromFile(QWidget* parentint, int channel);
 
   /**
    * @brief
    *
    * @param parent
    */
-  void SlotImportKeyFromKeyServer(QWidget* parent);
+  void SlotImportKeyFromKeyServer(QWidget* parent, int channel);
 
   /**
    * @brief
    *
    * @param parent
    */
-  void SlotImportKeyFromClipboard(QWidget* parent);
+  void SlotImportKeyFromClipboard(QWidget* parent, int channel);
 
   /**
    * @brief
@@ -259,7 +260,7 @@ class CommonUtils : public QWidget {
    * @param callback
    */
   static void SlotImportKeyFromKeyServer(
-      const GpgFrontend::KeyIdArgsList& key_ids,
+      int channel, const GpgFrontend::KeyIdArgsList& key_ids,
       const GpgFrontend::UI::CommonUtils::ImportCallbackFunctiopn& callback);
 
   /**
@@ -300,7 +301,8 @@ class CommonUtils : public QWidget {
    *
    */
   void slot_update_key_from_server_finished(
-      bool, QString, QByteArray, std::shared_ptr<GpgImportInformation>);
+      int channel, bool, QString, QByteArray,
+      std::shared_ptr<GpgImportInformation>);
 
  private:
   static std::unique_ptr<CommonUtils> instance_;  ///<

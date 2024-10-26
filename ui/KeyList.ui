@@ -37,6 +37,23 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
+           <widget class="QToolButton" name="switchContextButton">
+            <property name="toolTip">
+             <string>Uncheck ALL</string>
+            </property>
+            <property name="text">
+             <string>Switch Context</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../gpgfrontend.qrc">
+              <normaloff>:/icons/database.png</normaloff>:/icons/database.png</iconset>
+            </property>
+            <property name="popupMode">
+             <enum>QToolButton::InstantPopup</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QToolButton" name="refreshKeyListButton">
             <property name="toolTip">
              <string>Refresh</string>
@@ -89,23 +106,6 @@
             <property name="icon">
              <iconset resource="../gpgfrontend.qrc">
               <normaloff>:/icons/none.png</normaloff>:/icons/none.png</iconset>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QToolButton" name="switchContextButton">
-            <property name="toolTip">
-             <string>Uncheck ALL</string>
-            </property>
-            <property name="text">
-             <string>Switch Context</string>
-            </property>
-            <property name="icon">
-             <iconset resource="../gpgfrontend.qrc">
-              <normaloff>:/icons/none.png</normaloff>:/icons/none.png</iconset>
-            </property>
-            <property name="popupMode">
-             <enum>QToolButton::InstantPopup</enum>
             </property>
            </widget>
           </item>

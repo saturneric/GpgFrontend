@@ -46,7 +46,8 @@ class GPGFRONTEND_CORE_EXPORT GpgSignResultAnalyse : public GpgResultAnalyse {
    * @param error
    * @param result
    */
-  explicit GpgSignResultAnalyse(GpgError error, GpgSignResult result);
+  explicit GpgSignResultAnalyse(int channel, GpgError error,
+                                GpgSignResult result);
 
  protected:
   /**

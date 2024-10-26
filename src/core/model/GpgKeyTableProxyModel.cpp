@@ -58,7 +58,12 @@ auto GpgKeyTableProxyModel::filterAcceptsRow(
     int source_row, const QModelIndex &sourceParent) const -> bool {
   auto index = sourceModel()->index(source_row, 6, sourceParent);
   auto key_id = sourceModel()->data(index).toString();
-  auto key = GpgKeyGetter::GetInstance().GetKey(key_id);
+
+  auto key =
+      GpgKeyGetter::GetInstance(model_->GetGpgContextChannel()).GetKey(key_id);
+  LOG_D() << "get key: " << key_id
+          << "from channel: " << model_->GetGpgContextChannel();
+  assert(key.IsGood());
 
   if (!(display_mode_ & GpgKeyTableDisplayMode::kPRIVATE_KEY) &&
       key.IsPrivateKey()) {
@@ -177,4 +182,9 @@ void GpgKeyTableProxyModel::slot_update_column_type(
 #endif
 }
 
+void GpgKeyTableProxyModel::ResetGpgKeyTableModel(
+    QSharedPointer<GpgKeyTableModel> model) {
+  model_ = std::move(model);
+  setSourceModel(model_.get());
+}
 }  // namespace GpgFrontend

@@ -45,7 +45,7 @@ class KeyPairUIDTab : public QWidget {
    * @param key_id
    * @param parent
    */
-  KeyPairUIDTab(const QString& key_id, QWidget* parent);
+  KeyPairUIDTab(int channel, const QString& key_id, QWidget* parent);
 
  signals:
 
@@ -56,6 +56,7 @@ class KeyPairUIDTab : public QWidget {
   void SignalUpdateUIDInfo();
 
  private:
+  int current_gpg_context_channel_;
   GpgKey m_key_;
   QTableWidget* uid_list_{};                          ///<
   QTableWidget* sig_list_{};                          ///<

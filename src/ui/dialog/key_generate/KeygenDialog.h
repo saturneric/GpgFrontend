@@ -108,6 +108,7 @@ class KeyGenDialog : public GeneralDialog {
                                       ///< of the Key
   QDateTime max_date_time_;           ///<
   std::vector<QCheckBox*> key_usage_check_boxes_;  ///< ENCR, SIGN, CERT, AUTH
+  QComboBox* gpg_contexts_combo_box_{};
 
   /**
    * @brief
