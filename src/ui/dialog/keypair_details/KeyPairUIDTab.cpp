@@ -389,7 +389,8 @@ void KeyPairUIDTab::slot_del_uid() {
 
   if (ret == QMessageBox::Yes) {
     for (const auto& uid : *selected_uids) {
-      if (!GpgUIDOperator::GetInstance().RevUID(m_key_, uid)) {
+      if (!GpgUIDOperator::GetInstance(current_gpg_context_channel_)
+               .RevUID(m_key_, uid)) {
         QMessageBox::critical(
             nullptr, tr("Operation Failed"),
             tr("An error occurred during the delete %1 operation.").arg(uid));
@@ -423,8 +424,8 @@ void KeyPairUIDTab::slot_set_primary_uid() {
       QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
-    if (!GpgUIDOperator::GetInstance().SetPrimaryUID(m_key_,
-                                                     selected_uids->front())) {
+    if (!GpgUIDOperator::GetInstance(current_gpg_context_channel_)
+             .SetPrimaryUID(m_key_, selected_uids->front())) {
       QMessageBox::critical(nullptr, tr("Operation Failed"),
                             tr("An error occurred during the operation."));
     } else {
@@ -520,7 +521,8 @@ void KeyPairUIDTab::slot_del_uid_single() {
       QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
-    if (!GpgUIDOperator::GetInstance().RevUID(m_key_, selected_uids->front())) {
+    if (!GpgUIDOperator::GetInstance(current_gpg_context_channel_)
+             .RevUID(m_key_, selected_uids->front())) {
       QMessageBox::critical(nullptr, tr("Operation Failed"),
                             tr("An error occurred during the operation."));
     } else {
@@ -572,7 +574,8 @@ void KeyPairUIDTab::slot_del_sign() {
                                  QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
-    if (!GpgKeyManager::GetInstance().RevSign(m_key_, selected_signs)) {
+    if (!GpgKeyManager::GetInstance(current_gpg_context_channel_)
+             .RevSign(m_key_, selected_signs)) {
       QMessageBox::critical(nullptr, tr("Operation Failed"),
                             tr("An error occurred during the operation."));
     }

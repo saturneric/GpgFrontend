@@ -69,7 +69,7 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    * @return false if key package was not generated
    */
   static void GenerateKeyPackage(const QString &key_package_path,
-                                 const QString &key_package_name,
+                                 const QString &key_package_name, int channel,
                                  const KeyArgsList &keys, QString &phrase,
                                  bool secret, const OperationCallback &cb);
 
@@ -83,7 +83,7 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    * @return false if key package was not imported
    */
   static void ImportKeyPackage(const QString &key_package_path,
-                               const QString &phrase_path,
+                               const QString &phrase_path, int channel,
                                const OperationCallback &cb);
 
  private:

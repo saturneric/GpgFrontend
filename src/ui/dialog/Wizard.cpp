@@ -196,7 +196,7 @@ KeyGenPage::KeyGenPage(QWidget* parent) : QWizardPage(parent) {
 int KeyGenPage::nextId() const { return Wizard::Page_Conclusion; }
 
 void KeyGenPage::slot_generate_key_dialog() {
-  (new KeyGenDialog(this))->show();
+  (new KeyGenDialog(kGpgFrontendDefaultChannel, this))->show();
   wizard()->next();
 }
 

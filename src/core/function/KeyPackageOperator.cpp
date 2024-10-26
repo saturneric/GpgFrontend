@@ -51,10 +51,11 @@ auto KeyPackageOperator::GeneratePassphrase(const QString& phrase_path,
 
 void KeyPackageOperator::GenerateKeyPackage(const QString& key_package_path,
                                             const QString& key_package_name,
+                                            int channel,
                                             const KeyArgsList& keys,
                                             QString& phrase, bool secret,
                                             const OperationCallback& cb) {
-  GpgKeyImportExporter::GetInstance().ExportAllKeys(
+  GpgKeyImportExporter::GetInstance(channel).ExportAllKeys(
       keys, secret, true, [=](GpgError err, const DataObjectPtr& data_obj) {
         if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
           LOG_W() << "export keys error, reason: "
@@ -86,6 +87,7 @@ void KeyPackageOperator::GenerateKeyPackage(const QString& key_package_path,
 
 void KeyPackageOperator::ImportKeyPackage(const QString& key_package_path,
                                           const QString& phrase_path,
+                                          int channel,
                                           const OperationCallback& cb) {
   RunOperaAsync(
       [=](const DataObjectPtr& data_object) -> GFError {
@@ -120,7 +122,8 @@ void KeyPackageOperator::ImportKeyPackage(const QString& key_package_path,
         }
 
         auto import_info_ptr =
-            GpgKeyImportExporter::GetInstance().ImportKey(GFBuffer(key_data));
+            GpgKeyImportExporter::GetInstance(channel).ImportKey(
+                GFBuffer(key_data));
         if (import_info_ptr == nullptr) return GPG_ERR_NO_DATA;
 
         auto import_info = *import_info_ptr;

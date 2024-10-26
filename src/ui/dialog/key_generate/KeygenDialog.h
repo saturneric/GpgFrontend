@@ -52,7 +52,7 @@ class KeyGenDialog : public GeneralDialog {
    * @param key The key to show details of
    * @param parent The parent of this widget
    */
-  explicit KeyGenDialog(QWidget* parent = nullptr);
+  explicit KeyGenDialog(int channel, QWidget* parent = nullptr);
 
  signals:
   /**
@@ -109,6 +109,8 @@ class KeyGenDialog : public GeneralDialog {
   QDateTime max_date_time_;           ///<
   std::vector<QCheckBox*> key_usage_check_boxes_;  ///< ENCR, SIGN, CERT, AUTH
   QComboBox* gpg_contexts_combo_box_{};
+
+  int default_gpg_context_channel_;
 
   /**
    * @brief

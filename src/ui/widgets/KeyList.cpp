@@ -523,8 +523,8 @@ void KeyList::dragEnterEvent(QDragEnterEvent* event) {
 }
 
 void KeyList::import_keys(const QByteArray& in_buffer) {
-  auto result =
-      GpgKeyImportExporter::GetInstance().ImportKey(GFBuffer(in_buffer));
+  auto result = GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
+                    .ImportKey(GFBuffer(in_buffer));
   (new KeyImportDetailDialog(current_gpg_context_channel_, result, this));
 }
 

@@ -77,8 +77,8 @@ auto SetOwnerTrustLevel::Exec(int channel, const QString& key_id) -> bool {
       trust_level = 1;
     }
 
-    bool status =
-        GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, trust_level);
+    bool status = GpgKeyManager::GetInstance(channel).SetOwnerTrustLevel(
+        key, trust_level);
     if (!status) {
       QMessageBox::critical(this, tr("Failed"),
                             tr("Modify Owner Trust Level failed."));

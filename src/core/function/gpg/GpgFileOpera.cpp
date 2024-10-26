@@ -174,8 +174,7 @@ void GpgFileOpera::DecryptArchive(const QString& in_path,
 
   ArchiveFileOperator::ExtractArchiveFromDataExchanger(
       ex, out_path, [](GFError err, const DataObjectPtr&) {
-        FLOG_D("extract archive from data exchanger operation, err: %d",
-                err);
+        FLOG_D("extract archive from data exchanger operation, err: %d", err);
       });
 
   RunGpgOperaAsync(
@@ -201,7 +200,7 @@ void GpgFileOpera::SignFile(const KeyArgsList& keys, const QString& in_path,
         GpgError err;
 
         // Set Singers of this opera
-        GpgBasicOperator::GetInstance().SetSigners(keys, ascii);
+        GpgBasicOperator::GetInstance(GetChannel()).SetSigners(keys, ascii);
 
         GpgData data_in(in_path, true);
         GpgData data_out(out_path, false);
@@ -226,7 +225,7 @@ auto GpgFileOpera::SignFileSync(const KeyArgsList& keys, const QString& in_path,
         GpgError err;
 
         // Set Singers of this opera
-        GpgBasicOperator::GetInstance().SetSigners(keys, ascii);
+        GpgBasicOperator::GetInstance(GetChannel()).SetSigners(keys, ascii);
 
         GpgData data_in(in_path, true);
         GpgData data_out(out_path, false);
@@ -310,7 +309,8 @@ void GpgFileOpera::EncryptSignFile(const KeyArgsList& keys,
         // Last entry data_in array has to be nullptr
         recipients.emplace_back(nullptr);
 
-        GpgBasicOperator::GetInstance().SetSigners(signer_keys, ascii);
+        GpgBasicOperator::GetInstance(GetChannel())
+            .SetSigners(signer_keys, ascii);
 
         GpgData data_in(in_path, true);
         GpgData data_out(out_path, false);
@@ -341,7 +341,8 @@ auto GpgFileOpera::EncryptSignFileSync(
         // Last entry data_in array has to be nullptr
         recipients.emplace_back(nullptr);
 
-        GpgBasicOperator::GetInstance().SetSigners(signer_keys, ascii);
+        GpgBasicOperator::GetInstance(GetChannel())
+            .SetSigners(signer_keys, ascii);
 
         GpgData data_in(in_path, true);
         GpgData data_out(out_path, false);
@@ -376,7 +377,8 @@ void GpgFileOpera::EncryptSignDirectory(const KeyArgsList& keys,
         // Last entry data_in array has to be nullptr
         recipients.emplace_back(nullptr);
 
-        GpgBasicOperator::GetInstance().SetSigners(signer_keys, ascii);
+        GpgBasicOperator::GetInstance(GetChannel())
+            .SetSigners(signer_keys, ascii);
 
         GpgData data_in(ex);
         GpgData data_out(out_path, false);

@@ -95,8 +95,8 @@ void KeyNewUIDDialog::slot_create_new_uid() {
   }
   auto error_string = error_stream.readAll();
   if (error_string.isEmpty()) {
-    if (GpgUIDOperator::GetInstance().AddUID(
-            m_key_, name_->text(), comment_->text(), email_->text())) {
+    if (GpgUIDOperator::GetInstance(current_gpg_context_channel_)
+            .AddUID(m_key_, name_->text(), comment_->text(), email_->text())) {
       emit finished(1);
       emit SignalUIDCreated();
     } else {

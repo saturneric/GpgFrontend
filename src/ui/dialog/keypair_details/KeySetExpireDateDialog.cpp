@@ -70,7 +70,8 @@ void KeySetExpireDateDialog::slot_confirm() {
     expires = std::make_unique<QDateTime>(datetime.toLocalTime());
   }
 
-  auto err = GpgKeyOpera::GetInstance().SetExpire(m_key_, m_subkey_, expires);
+  auto err = GpgKeyOpera::GetInstance(current_gpg_context_channel_)
+                 .SetExpire(m_key_, m_subkey_, expires);
 
   if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
     auto* msg_box = new QMessageBox(qobject_cast<QWidget*>(this->parent()));

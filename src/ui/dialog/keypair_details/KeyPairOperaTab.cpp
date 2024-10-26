@@ -218,7 +218,8 @@ void KeyPairOperaTab::CreateOperaMenu() {
 
 void KeyPairOperaTab::slot_export_public_key() {
   auto [err, gf_buffer] =
-      GpgKeyImportExporter::GetInstance().ExportKey(m_key_, false, true, false);
+      GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
+          .ExportKey(m_key_, false, true, false);
   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
     CommonUtils::RaiseMessageBox(this, err);
     return;
@@ -265,7 +266,8 @@ void KeyPairOperaTab::slot_export_short_private_key() {
   // export key, if ok was clicked
   if (ret == QMessageBox::Ok) {
     auto [err, gf_buffer] =
-        GpgKeyImportExporter::GetInstance().ExportKey(m_key_, true, true, true);
+        GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
+            .ExportKey(m_key_, true, true, true);
     if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
       CommonUtils::RaiseMessageBox(this, err);
       return;
@@ -308,8 +310,9 @@ void KeyPairOperaTab::slot_export_private_key() {
 
   // export key, if ok was clicked
   if (ret == QMessageBox::Ok) {
-    auto [err, gf_buffer] = GpgKeyImportExporter::GetInstance().ExportKey(
-        m_key_, true, true, false);
+    auto [err, gf_buffer] =
+        GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
+            .ExportKey(m_key_, true, true, false);
     if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
       CommonUtils::RaiseMessageBox(this, err);
       return;
@@ -386,8 +389,8 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
             }
 
             if (!m_output_file_name.isEmpty()) {
-              GpgKeyOpera::GetInstance().GenerateRevokeCert(
-                  m_key_, m_output_file_name, code, text);
+              GpgKeyOpera::GetInstance(current_gpg_context_channel_)
+                  .GenerateRevokeCert(m_key_, m_output_file_name, code, text);
             }
           });
 
@@ -395,8 +398,8 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
 }
 
 void KeyPairOperaTab::slot_modify_password() {
-  GpgKeyOpera::GetInstance().ModifyPassword(
-      m_key_, [this](GpgError err, const DataObjectPtr&) {
+  GpgKeyOpera::GetInstance(current_gpg_context_channel_)
+      .ModifyPassword(m_key_, [this](GpgError err, const DataObjectPtr&) {
         CommonUtils::RaiseMessageBox(this, err);
       });
 }
@@ -423,7 +426,8 @@ void KeyPairOperaTab::slot_modify_tofu_policy() {
     } else if (item == tr("Policy Unknown")) {
       tofu_policy = GPGME_TOFU_POLICY_UNKNOWN;
     }
-    auto err = GpgKeyOpera::GetInstance().ModifyTOFUPolicy(m_key_, tofu_policy);
+    auto err = GpgKeyOpera::GetInstance(current_gpg_context_channel_)
+                   .ModifyTOFUPolicy(m_key_, tofu_policy);
     if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
       QMessageBox::critical(this, tr("Not Successful"),
                             tr("Modify TOFU policy not successfully."));
@@ -508,8 +512,9 @@ void KeyPairOperaTab::slot_export_paper_key() {
 
   // export key, if ok was clicked
   if (ret == QMessageBox::Ok) {
-    auto [err, gf_buffer] = GpgKeyImportExporter::GetInstance().ExportKey(
-        m_key_, true, false, true);
+    auto [err, gf_buffer] =
+        GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
+            .ExportKey(m_key_, true, false, true);
     if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
       CommonUtils::RaiseMessageBox(this, err);
       return;
@@ -562,7 +567,8 @@ void KeyPairOperaTab::slot_import_paper_key() {
   if (!Module::IsModuleActivate(kPaperKeyModuleID)) return;
 
   auto [err, gf_buffer] =
-      GpgKeyImportExporter::GetInstance().ExportKey(m_key_, false, false, true);
+      GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
+          .ExportKey(m_key_, false, false, true);
   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
     CommonUtils::RaiseMessageBox(this, err);
     return;

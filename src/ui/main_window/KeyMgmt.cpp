@@ -353,7 +353,8 @@ void KeyMgmt::delete_keys_with_warning(KeyIdArgsListPtr uidList) {
       QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
-    GpgKeyOpera::GetInstance().DeleteKeys(std::move(uidList));
+    GpgKeyOpera::GetInstance(key_list_->GetCurrentGpgContextChannel())
+        .DeleteKeys(std::move(uidList));
     emit SignalKeyStatusUpdated();
   }
 }
@@ -402,8 +403,9 @@ void KeyMgmt::SlotExportKeyToClipboard() {
             .GetKey(keys_checked->front());
     assert(key.IsGood());
 
-    auto [err, gf_buffer] =
-        GpgKeyImportExporter::GetInstance().ExportKey(key, false, true, false);
+    auto [err, gf_buffer] = GpgKeyImportExporter::GetInstance(
+                                key_list_->GetCurrentGpgContextChannel())
+                                .ExportKey(key, false, true, false);
     if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
       CommonUtils::RaiseMessageBox(this, err);
       return;
@@ -419,40 +421,42 @@ void KeyMgmt::SlotExportKeyToClipboard() {
 
     CommonUtils::WaitForOpera(
         this, tr("Exporting"), [=](const OperaWaitingHd& op_hd) {
-          GpgKeyImportExporter::GetInstance().ExportKeys(
-              *keys, false, true, false, false,
-              [=](GpgError err, const DataObjectPtr& data_obj) {
-                // stop waiting
-                op_hd();
+          GpgKeyImportExporter::GetInstance(
+              key_list_->GetCurrentGpgContextChannel())
+              .ExportKeys(
+                  *keys, false, true, false, false,
+                  [=](GpgError err, const DataObjectPtr& data_obj) {
+                    // stop waiting
+                    op_hd();
 
-                if (CheckGpgError(err) == GPG_ERR_USER_1) {
-                  QMessageBox::critical(this, tr("Error"),
-                                        tr("Unknown error occurred"));
-                  return;
-                }
+                    if (CheckGpgError(err) == GPG_ERR_USER_1) {
+                      QMessageBox::critical(this, tr("Error"),
+                                            tr("Unknown error occurred"));
+                      return;
+                    }
 
-                if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-                  CommonUtils::RaiseMessageBox(this, err);
-                  return;
-                }
+                    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                      CommonUtils::RaiseMessageBox(this, err);
+                      return;
+                    }
 
-                if (data_obj == nullptr || !data_obj->Check<GFBuffer>()) {
-                  FLOG_W("data object checking failed");
-                  QMessageBox::critical(this, tr("Error"),
-                                        tr("Unknown error occurred"));
-                  return;
-                }
+                    if (data_obj == nullptr || !data_obj->Check<GFBuffer>()) {
+                      FLOG_W("data object checking failed");
+                      QMessageBox::critical(this, tr("Error"),
+                                            tr("Unknown error occurred"));
+                      return;
+                    }
 
-                auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
-                QApplication::clipboard()->setText(
-                    gf_buffer.ConvertToQByteArray());
-              });
+                    auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
+                    QApplication::clipboard()->setText(
+                        gf_buffer.ConvertToQByteArray());
+                  });
         });
   }
 }
 
 void KeyMgmt::SlotGenerateKeyDialog() {
-  (new KeyGenDialog(this))->exec();
+  (new KeyGenDialog(key_list_->GetCurrentGpgContextChannel(), this))->exec();
   this->raise();
 }
 
@@ -508,53 +512,56 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
 
   CommonUtils::WaitForOpera(
       this, tr("Exporting"), [this, keys](const OperaWaitingHd& op_hd) {
-        GpgKeyImportExporter::GetInstance().ExportKeys(
-            *keys, false, true, false, true,
-            [=](GpgError err, const DataObjectPtr& data_obj) {
-              // stop waiting
-              op_hd();
+        GpgKeyImportExporter::GetInstance(
+            key_list_->GetCurrentGpgContextChannel())
+            .ExportKeys(
+                *keys, false, true, false, true,
+                [=](GpgError err, const DataObjectPtr& data_obj) {
+                  // stop waiting
+                  op_hd();
 
-              if (CheckGpgError(err) == GPG_ERR_USER_1) {
-                QMessageBox::critical(this, tr("Error"),
-                                      tr("Unknown error occurred"));
-                return;
-              }
+                  if (CheckGpgError(err) == GPG_ERR_USER_1) {
+                    QMessageBox::critical(this, tr("Error"),
+                                          tr("Unknown error occurred"));
+                    return;
+                  }
 
-              if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-                CommonUtils::RaiseMessageBox(this, err);
-                return;
-              }
+                  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                    CommonUtils::RaiseMessageBox(this, err);
+                    return;
+                  }
 
-              if (data_obj == nullptr || !data_obj->Check<GFBuffer>()) {
-                QMessageBox::critical(this, tr("Error"),
-                                      tr("Unknown error occurred"));
-                return;
-              }
+                  if (data_obj == nullptr || !data_obj->Check<GFBuffer>()) {
+                    QMessageBox::critical(this, tr("Error"),
+                                          tr("Unknown error occurred"));
+                    return;
+                  }
 
-              auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
-              if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-                CommonUtils::RaiseMessageBox(this, err);
-                return;
-              }
+                  auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
+                  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                    CommonUtils::RaiseMessageBox(this, err);
+                    return;
+                  }
 
-              if (gf_buffer.Empty()) {
-                QMessageBox::critical(
-                    this, tr("Error"),
-                    tr("This key may not be able to export as OpenSSH format. "
-                       "Please check the key-size of the subkey(s) used to "
-                       "sign."));
-                return;
-              }
+                  if (gf_buffer.Empty()) {
+                    QMessageBox::critical(
+                        this, tr("Error"),
+                        tr("This key may not be able to export as OpenSSH "
+                           "format. "
+                           "Please check the key-size of the subkey(s) used to "
+                           "sign."));
+                    return;
+                  }
 
-              QString const file_name = QFileDialog::getSaveFileName(
-                  this, tr("Export OpenSSH Key To File"), "authorized_keys",
-                  tr("OpenSSH Public Key Files") + "All Files (*)");
+                  QString const file_name = QFileDialog::getSaveFileName(
+                      this, tr("Export OpenSSH Key To File"), "authorized_keys",
+                      tr("OpenSSH Public Key Files") + "All Files (*)");
 
-              if (!file_name.isEmpty()) {
-                WriteFileGFBuffer(file_name, gf_buffer);
-                emit SignalStatusBarChanged(tr("key(s) exported"));
-              }
-            });
+                  if (!file_name.isEmpty()) {
+                    WriteFileGFBuffer(file_name, gf_buffer);
+                    emit SignalStatusBarChanged(tr("key(s) exported"));
+                  }
+                });
       });
 }
 
@@ -610,6 +617,7 @@ void KeyMgmt::SlotImportKeyPackage() {
       this, tr("Importing"), [=](const OperaWaitingHd& op_hd) {
         KeyPackageOperator::ImportKeyPackage(
             key_package_file_name, key_file_name,
+            key_list_->GetCurrentGpgContextChannel(),
             [=](GFError err, const DataObjectPtr& data_obj) {
               // stop waiting
               op_hd();

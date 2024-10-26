@@ -41,8 +41,9 @@
 
 namespace GpgFrontend::UI {
 
-KeyGenDialog::KeyGenDialog(QWidget* parent)
-    : GeneralDialog(typeid(KeyGenDialog).name(), parent) {
+KeyGenDialog::KeyGenDialog(int channel, QWidget* parent)
+    : GeneralDialog(typeid(KeyGenDialog).name(), parent),
+      default_gpg_context_channel_(channel) {
   button_box_ =
       new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 
@@ -426,6 +427,7 @@ auto KeyGenDialog::create_basic_info_group_box() -> QGroupBox* {
     gpg_contexts_combo_box_->addItem(
         QString("%1: %2").arg(channel).arg(database_name));
   }
+  gpg_contexts_combo_box_->setCurrentIndex(default_gpg_context_channel_);
 
   for (const auto& algo : GenKeyInfo::GetSupportedKeyAlgo()) {
     key_type_combo_box_->addItem(std::get<0>(algo));

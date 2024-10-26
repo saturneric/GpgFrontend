@@ -117,8 +117,9 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
     CommonUtils::WaitForOpera(
         this, tr("Generating"), [this, keys](const OperaWaitingHd& op_hd) {
           KeyPackageOperator::GenerateKeyPackage(
-              ui_->outputPathLabel->text(), ui_->nameValueLabel->text(), *keys,
-              passphrase_, ui_->includeSecretKeyCheckBox->isChecked(),
+              ui_->outputPathLabel->text(), ui_->nameValueLabel->text(),
+              current_gpg_context_channel_, *keys, passphrase_,
+              ui_->includeSecretKeyCheckBox->isChecked(),
               [=](GFError err, const DataObjectPtr&) {
                 // stop waiting
                 op_hd();
