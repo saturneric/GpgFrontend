@@ -34,6 +34,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/import_export/KeyImportDetailDialog.h"
@@ -76,22 +77,17 @@ void KeyList::init() {
   auto* gpg_context_menu = new QMenu(this);
   auto* gpg_context_groups = new QActionGroup(this);
   gpg_context_groups->setExclusive(true);
-  auto context_index_list = Module::ListRTChildKeys("core", "gpgme.ctx.list");
-  for (auto& context_index : context_index_list) {
-    LOG_D() << "context grt key: " << context_index;
+  auto key_db_infos = GetGpgKeyDatabaseInfos();
 
-    const auto grt_key_prefix = QString("gpgme.ctx.list.%1").arg(context_index);
-    auto channel = Module::RetrieveRTValueTypedOrDefault(
-        "core", grt_key_prefix + ".channel", -1);
-    auto database_name = Module::RetrieveRTValueTypedOrDefault(
-        "core", grt_key_prefix + ".database_name", QString{});
+  for (auto& key_db_info : key_db_infos) {
+    auto channel = key_db_info.channel;
+    auto key_db_name = key_db_info.name;
 
     LOG_D() << "context grt channel: " << channel
-            << "GRT key prefix: " << grt_key_prefix
-            << "database name: " << database_name;
+            << "database name: " << key_db_name;
 
     auto* switch_context_action =
-        new QAction(QString("%1: %2").arg(channel).arg(database_name), this);
+        new QAction(QString("%1: %2").arg(channel).arg(key_db_name), this);
     switch_context_action->setCheckable(true);
     switch_context_action->setChecked(channel == current_gpg_context_channel_);
     connect(switch_context_action, &QAction::toggled, this,

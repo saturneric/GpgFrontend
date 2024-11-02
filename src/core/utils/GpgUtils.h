@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/function/result_analyse/GpgResultAnalyse.h"
+#include "core/model/KeyDatabaseInfo.h"
 #include "core/typedef/CoreTypedef.h"
 #include "core/typedef/GpgTypedef.h"
 
@@ -104,5 +105,19 @@ auto GPGFRONTEND_CORE_EXPORT SetExtensionOfOutputFile(const QString& path,
  */
 auto GPGFRONTEND_CORE_EXPORT SetExtensionOfOutputFileForArchive(
     const QString& path, GpgOperation opera, bool ascii) -> QString;
+
+/**
+ * @brief
+ *
+ * @return QList<KeyDatabaseItemSO>
+ */
+auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QList<KeyDatabaseInfo>;
+
+/**
+ * @brief
+ *
+ * @return QList<KeyDatabaseItemSO>
+ */
+auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseName(int channel) -> QString;
 
 }  // namespace GpgFrontend

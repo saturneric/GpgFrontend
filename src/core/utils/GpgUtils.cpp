@@ -28,6 +28,9 @@
 
 #include "GpgUtils.h"
 
+#include "core/model/KeyDatabaseInfo.h"
+#include "core/module/ModuleManager.h"
+
 namespace GpgFrontend {
 
 inline auto Trim(QString& s) -> QString { return s.trimmed(); }
@@ -169,4 +172,43 @@ auto SetExtensionOfOutputFileForArchive(const QString& path, GpgOperation opera,
   return file_info.absolutePath() + "/" + file_info.baseName();
 }
 
+static QList<KeyDatabaseInfo> gpg_key_database_info_cache;
+
+auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseInfos()
+    -> QList<KeyDatabaseInfo> {
+  if (!gpg_key_database_info_cache.empty()) return gpg_key_database_info_cache;
+
+  auto context_index_list = Module::ListRTChildKeys("core", "gpgme.ctx.list");
+  gpg_key_database_info_cache.resize(
+      static_cast<qsizetype>(context_index_list.size()));
+
+  for (auto& context_index : context_index_list) {
+    LOG_D() << "context grt key: " << context_index;
+
+    const auto grt_key_prefix = QString("gpgme.ctx.list.%1").arg(context_index);
+    auto channel = Module::RetrieveRTValueTypedOrDefault(
+        "core", grt_key_prefix + ".channel", -1);
+    auto database_name = Module::RetrieveRTValueTypedOrDefault(
+        "core", grt_key_prefix + ".database_name", QString{});
+    auto database_path = Module::RetrieveRTValueTypedOrDefault(
+        "core", grt_key_prefix + ".database_path", QString{});
+
+    LOG_D() << "context grt channel: " << channel
+            << "GRT key prefix: " << grt_key_prefix
+            << "database name: " << database_name;
+
+    auto i = KeyDatabaseInfo();
+    i.channel = channel;
+    i.name = database_name;
+    i.path = database_path;
+    gpg_key_database_info_cache[channel] = i;
+  }
+
+  return gpg_key_database_info_cache;
+}
+auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseName(int channel) -> QString {
+  auto info = GetGpgKeyDatabaseInfos();
+  if (channel >= info.size()) return {};
+  return info[channel].name;
+}
 }  // namespace GpgFrontend

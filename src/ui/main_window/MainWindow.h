@@ -357,12 +357,12 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @details
    */
-  void slot_add_key_2_favourite();
+  void slot_add_key_2_favorite();
 
   /**
    * @details
    */
-  void slot_remove_key_from_favourite();
+  void slot_remove_key_from_favorite();
 
   /**
    * @details

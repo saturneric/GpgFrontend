@@ -38,6 +38,7 @@
 #include "core/model/GpgImportInformation.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
+#include "core/struct/cache_object/AllFavoriteKeyPairsCO.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/typedef/GpgTypedef.h"
@@ -523,43 +524,53 @@ auto CommonUtils::isApplicationNeedRestart() -> bool {
   return application_need_to_restart_at_once_;
 }
 
-auto CommonUtils::KeyExistsinFavouriteList(const GpgKey &key) -> bool {
+auto CommonUtils::KeyExistsInFavoriteList(const QString &key_db_name,
+                                          const GpgKey &key) -> bool {
   // load cache
-  auto json_data = CacheObject("favourite_key_pair");
-  if (!json_data.isArray()) json_data.setArray(QJsonArray());
+  auto json_data = CacheObject("all_favorite_key_pairs");
+  auto cache_obj = AllFavoriteKeyPairsCO(json_data.object());
 
-  auto key_fpr_array = json_data.array();
-  return std::find(key_fpr_array.begin(), key_fpr_array.end(),
-                   key.GetFingerprint()) != key_fpr_array.end();
+  if (!cache_obj.key_dbs.contains(key_db_name)) return false;
+
+  auto &key_ids = cache_obj.key_dbs[key_db_name].key_ids;
+
+  return key_ids.contains(key.GetId());
 }
 
-void CommonUtils::AddKey2Favourtie(const GpgKey &key) {
+void CommonUtils::AddKey2Favorite(const QString &key_db_name,
+                                  const GpgKey &key) {
   {
-    auto json_data = CacheObject("favourite_key_pair");
-    QJsonArray key_array;
-    if (json_data.isArray()) key_array = json_data.array();
+    auto json_data = CacheObject("all_favorite_key_pairs");
+    auto cache_obj = AllFavoriteKeyPairsCO(json_data.object());
 
-    key_array.push_back(key.GetFingerprint());
-    json_data.setArray(key_array);
+    if (!cache_obj.key_dbs.contains(key_db_name)) {
+      cache_obj.key_dbs[key_db_name] = FavoriteKeyPairsByKeyDatabaseCO();
+    }
+
+    auto &key_ids = cache_obj.key_dbs[key_db_name].key_ids;
+    if (!key_ids.contains(key.GetId())) key_ids.append(key.GetId());
+
+    json_data.setObject(cache_obj.ToJson());
+    LOG_D() << "current favorite key pairs: " << json_data;
   }
 
   emit SignalFavoritesChanged();
 }
 
-void CommonUtils::RemoveKeyFromFavourite(const GpgKey &key) {
+void CommonUtils::RemoveKeyFromFavorite(const QString &key_db_name,
+                                        const GpgKey &key) {
   {
-    auto json_data = CacheObject("favourite_key_pair");
-    QJsonArray key_array;
-    if (json_data.isArray()) key_array = json_data.array();
+    auto json_data = CacheObject("all_favorite_key_pairs");
+    auto cache_obj = AllFavoriteKeyPairsCO(json_data.object());
 
-    auto fingerprint = key.GetFingerprint();
-    QJsonArray new_key_array;
-    for (auto &&item : key_array) {
-      if (item.isString() && item.toString() != fingerprint) {
-        new_key_array.append(item);
-      }
+    if (!cache_obj.key_dbs.contains(key_db_name)) return;
+
+    QMutableListIterator<QString> i(cache_obj.key_dbs[key_db_name].key_ids);
+    while (i.hasNext()) {
+      if (i.next() == key.GetId()) i.remove();
     }
-    json_data.setArray(new_key_array);
+    json_data.setObject(cache_obj.ToJson());
+    LOG_D() << "current favorite key pairs: " << json_data;
   }
 
   emit SignalFavoritesChanged();

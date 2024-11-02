@@ -163,25 +163,26 @@ class CommonUtils : public QWidget {
    * @brief
    *
    */
-  bool isApplicationNeedRestart();
+  auto isApplicationNeedRestart() -> bool;
 
   /**
    * @brief
    *
    */
-  bool KeyExistsinFavouriteList(const GpgKey& key);
+  auto KeyExistsInFavoriteList(const QString& key_db_name,
+                               const GpgKey& key) -> bool;
 
   /**
    * @brief
    *
    */
-  void AddKey2Favourtie(const GpgKey& key);
+  void AddKey2Favorite(const QString& key_db_name, const GpgKey& key);
 
   /**
    * @brief
    *
    */
-  void RemoveKeyFromFavourite(const GpgKey& key);
+  void RemoveKeyFromFavorite(const QString& key_db_name, const GpgKey& key);
 
   /**
    * @brief

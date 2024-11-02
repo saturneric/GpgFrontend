@@ -84,12 +84,18 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableProxyModel
    */
   void slot_update_column_type(GpgKeyTableColumn);
 
+  /**
+   * @brief
+   *
+   */
+  void slot_update_favorites_cache();
+
  private:
   QSharedPointer<GpgKeyTableModel> model_;
   GpgKeyTableDisplayMode display_mode_;
   GpgKeyTableColumn filter_columns_;
   QString filter_keywords_;
-  QList<QString> favorite_fingerprints_;
+  QList<QString> favorite_key_ids_;
   KeyFilter custom_filter_;
 };
 

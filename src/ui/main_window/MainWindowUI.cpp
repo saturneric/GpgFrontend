@@ -30,6 +30,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/GpgUtils.h"
 #include "dialog/controller/ModuleControllerDialog.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/controller/GnuPGControllerDialog.h"
@@ -517,7 +518,7 @@ void MainWindow::create_actions() {
   add_key_2_favourite_act_->setToolTip(tr("Add this key to Favourite Table"));
   add_key_2_favourite_act_->setData(QVariant("add_key_2_favourite_action"));
   connect(add_key_2_favourite_act_, &QAction::triggered, this,
-          &MainWindow::slot_add_key_2_favourite);
+          &MainWindow::slot_add_key_2_favorite);
 
   remove_key_from_favourtie_act_ =
       new QAction(tr("Remove From Favourite"), this);
@@ -526,7 +527,7 @@ void MainWindow::create_actions() {
   remove_key_from_favourtie_act_->setData(
       QVariant("remove_key_from_favourtie_action"));
   connect(remove_key_from_favourtie_act_, &QAction::triggered, this,
-          &MainWindow::slot_remove_key_from_favourite);
+          &MainWindow::slot_remove_key_from_favorite);
 
   set_owner_trust_of_key_act_ = new QAction(tr("Set Owner Trust Level"), this);
   set_owner_trust_of_key_act_->setToolTip(tr("Set Owner Trust Level"));
@@ -723,14 +724,11 @@ void MainWindow::create_dock_windows() {
         return !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
       });
 
-  m_key_list_->AddListGroupTab(
-      tr("Favourite"), "favourite",
-      GpgKeyTableDisplayMode::kPUBLIC_KEY |
-          GpgKeyTableDisplayMode::kPRIVATE_KEY |
-          GpgKeyTableDisplayMode::kFAVORITES,
-      [](const GpgKey& key) -> bool {
-        return CommonUtils::GetInstance()->KeyExistsinFavouriteList(key);
-      });
+  m_key_list_->AddListGroupTab(tr("Favourite"), "favourite",
+                               GpgKeyTableDisplayMode::kPUBLIC_KEY |
+                                   GpgKeyTableDisplayMode::kPRIVATE_KEY |
+                                   GpgKeyTableDisplayMode::kFAVORITES,
+                               [](const GpgKey&) -> bool { return true; });
 
   m_key_list_->AddListGroupTab(
       tr("Only Public Key"), "only_public_key",

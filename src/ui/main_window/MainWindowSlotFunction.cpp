@@ -216,7 +216,7 @@ void MainWindow::slot_show_key_details() {
   }
 }
 
-void MainWindow::slot_add_key_2_favourite() {
+void MainWindow::slot_add_key_2_favorite() {
   auto key_ids = m_key_list_->GetSelected();
   if (key_ids->empty()) return;
 
@@ -225,11 +225,16 @@ void MainWindow::slot_add_key_2_favourite() {
           .GetKey(key_ids->front());
   if (!key.IsGood()) return;
 
-  CommonUtils::GetInstance()->AddKey2Favourtie(key);
+  auto key_db_name =
+      GetGpgKeyDatabaseName(m_key_list_->GetCurrentGpgContextChannel());
+
+  LOG_D() << "add key" << key.GetId() << "to favorite at key db" << key_db_name;
+
+  CommonUtils::GetInstance()->AddKey2Favorite(key_db_name, key);
   emit SignalUIRefresh();
 }
 
-void MainWindow::slot_remove_key_from_favourite() {
+void MainWindow::slot_remove_key_from_favorite() {
   auto key_ids = m_key_list_->GetSelected();
   if (key_ids->empty()) return;
 
@@ -238,7 +243,10 @@ void MainWindow::slot_remove_key_from_favourite() {
           .GetKey(key_ids->front());
   assert(key.IsGood());
 
-  CommonUtils::GetInstance()->RemoveKeyFromFavourite(key);
+  auto key_db_name =
+      GetGpgKeyDatabaseName(m_key_list_->GetCurrentGpgContextChannel());
+
+  CommonUtils::GetInstance()->RemoveKeyFromFavorite(key_db_name, key);
 
   emit SignalUIRefresh();
 }

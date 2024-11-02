@@ -33,6 +33,8 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/model/CacheObject.h"
 #include "core/model/GpgKey.h"
+#include "core/struct/cache_object/AllFavoriteKeyPairsCO.h"
+#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
 
@@ -77,8 +79,12 @@ auto GpgKeyTableProxyModel::filterAcceptsRow(
 
   if (!custom_filter_(key)) return false;
 
+  if (display_mode_ & GpgKeyTableDisplayMode::kFAVORITES) {
+    LOG_D() << "kFAVORITES Mode" << "key id" << key_id << "favorite_key_ids_"
+            << favorite_key_ids_;
+  }
   if (display_mode_ & GpgKeyTableDisplayMode::kFAVORITES &&
-      !favorite_fingerprints_.contains(key.GetFingerprint())) {
+      !favorite_key_ids_.contains(key_id)) {
     return false;
   }
 
@@ -159,15 +165,7 @@ void GpgKeyTableProxyModel::SetSearchKeywords(const QString &keywords) {
 }
 
 void GpgKeyTableProxyModel::slot_update_favorites() {
-  // load cache
-  auto json_data = CacheObject("favourite_key_pair");
-  if (!json_data.isArray()) return;
-
-  auto key_fprs = json_data.array();
-  for (const auto &key_fpr : key_fprs) {
-    if (key_fpr.isString()) favorite_fingerprints_.append(key_fpr.toString());
-  }
-
+  slot_update_favorites_cache();
   invalidateFilter();
 }
 
@@ -185,6 +183,18 @@ void GpgKeyTableProxyModel::slot_update_column_type(
 void GpgKeyTableProxyModel::ResetGpgKeyTableModel(
     QSharedPointer<GpgKeyTableModel> model) {
   model_ = std::move(model);
+  slot_update_favorites_cache();
   setSourceModel(model_.get());
+}
+
+void GpgKeyTableProxyModel::slot_update_favorites_cache() {
+  auto json_data = CacheObject("all_favorite_key_pairs");
+  auto cache_obj = AllFavoriteKeyPairsCO(json_data.object());
+
+  auto key_db_name = GetGpgKeyDatabaseName(model_->GetGpgContextChannel());
+
+  if (cache_obj.key_dbs.contains(key_db_name)) {
+    favorite_key_ids_ = cache_obj.key_dbs[key_db_name].key_ids;
+  }
 }
 }  // namespace GpgFrontend
