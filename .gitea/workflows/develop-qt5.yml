@@ -1,4 +1,4 @@
-name: Build & Package Qt5
+name: Develop CI Qt5
 
 on:
   push:
@@ -24,8 +24,9 @@ jobs:
           lfs: 'false'
           submodules: recursive
 
-      - name: Install Dependence (Linux)
+      - name: Install Dependence
         run: |
+          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
           sudo apt-get -y install gcc g++ ninja-build
@@ -36,10 +37,9 @@ jobs:
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-* libxkbcommon-x11-0
     
       - name: Install Qt5
-        uses: jurplel/install-qt-action@v3
+        uses: jurplel/install-qt-action@v4
         with:
           version: '5.15.2'
-          cache: 'true'
 
       - name: Build gpg-error
         run: |
