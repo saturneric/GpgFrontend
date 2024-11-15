@@ -1,0 +1,99 @@
+name: Build & Package Qt5
+
+on:
+  push:
+    branches: [ main, 'develop', 'dev/**' ]
+    paths-ignore:
+      - 'resource/lfs/locale/**'
+      - '**.md'
+  pull_request:
+    branches: [ main, 'develop', 'dev/**' ]
+    paths-ignore:
+      - 'resource/lfs/locale/**'
+      - '**.md'
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: 'false'
+          submodules: recursive
+
+      - name: Install Dependence (Linux)
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
+          sudo apt-get -y install gcc g++ ninja-build
+          sudo apt-get -y install libarchive-dev libssl-dev
+          sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-icccm4-dev libcups2-dev libdrm-dev libegl1-mesa-dev
+          sudo apt-get -y install libgcrypt20-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev gyp
+          sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-image0
+          sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-* libxkbcommon-x11-0
+    
+      - name: Install Qt5
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '5.15.2'
+          cache: 'true'
+
+      - name: Build gpg-error
+        run: |
+          git clone --depth 1 --branch libgpg-error-1.47 git://git.gnupg.org/libgpg-error.git ${{github.workspace}}/third_party/libgpg-error
+          cd  ${{github.workspace}}/third_party/libgpg-error
+          ./autogen.sh
+          ./configure --enable-maintainer-mode && make -j4
+          sudo make install
+          cd ${{github.workspace}}
+      
+      - name: Build assuan
+        run: |
+          git clone --depth 1 --branch libassuan-2.5.6 git://git.gnupg.org/libassuan.git ${{github.workspace}}/third_party/libassuan
+          cd ${{github.workspace}}/third_party/libassuan
+          ./autogen.sh
+          ./configure --enable-maintainer-mode && make -j4
+          sudo make install
+          cd ${{github.workspace}}
+      
+      - name: Build GpgME
+        run: |
+          git clone --depth 1 --branch gpgme-1.22.0 git://git.gnupg.org/gpgme.git ${{github.workspace}}/third_party/gpgme
+          cd ${{github.workspace}}/third_party/gpgme
+          ./autogen.sh
+          ./configure --enable-maintainer-mode --enable-languages=cpp && make -j4
+          sudo make install
+          cd ${{github.workspace}}
+
+      - name: Build googletest
+        run: |
+          git clone --depth 1 --branch v1.15.0 https://github.com/google/googletest.git ${{github.workspace}}/third_party/googletest
+          cd ${{github.workspace}}/third_party/googletest
+          mkdir build && cd build
+          cmake -G Ninja -DBUILD_SHARED_LIBS=ON ..
+          ninja
+          sudo ninja install
+
+      - name: Build GpgFrontend
+        run: |
+          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_QT5_BUILD=ON
+          cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
+
+      - name: Package App Image
+        run: |
+          mkdir ${{github.workspace}}/build/final-artifact
+          cd ${{github.workspace}}/build/final-artifact
+          wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+          chmod u+x linuxdeployqt-continuous-x86_64.AppImage
+          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines -appimage
+          echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
+          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
+      
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{ env.SHORT_SHA }}
+          path: ${{github.workspace}}/build/final-artifact/Gpg_Frontend*.AppImage*
