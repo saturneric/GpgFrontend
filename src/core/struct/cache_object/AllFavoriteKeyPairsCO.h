@@ -60,6 +60,7 @@ struct AllFavoriteKeyPairsCO {
   [[nodiscard]] auto ToJson() const -> QJsonObject {
     QJsonObject j;
     auto j_key_dbs = QJsonArray();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
     for (const auto& k : key_dbs.asKeyValueRange()) {
       QJsonObject o;
       o["key_db_name"] = k.first;
@@ -69,6 +70,17 @@ struct AllFavoriteKeyPairsCO {
     j["key_dbs"] = j_key_dbs;
     return j;
   }
+#else
+    for (auto it = key_dbs.keyValueBegin(); it != key_dbs.keyValueEnd(); ++it) {
+      QJsonObject o;
+      o["key_db_name"] = it->first;
+      o["key_db"] = it->second.ToJson();
+      j_key_dbs.append(o);
+    }
+    j["key_dbs"] = j_key_dbs;
+    return j;
+  }
+#endif
 };
 
 }  // namespace GpgFrontend

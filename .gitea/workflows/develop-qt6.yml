@@ -33,8 +33,8 @@ jobs:
           sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git gettext cmake
-          sudo apt-get -y install gcc g++ ninja-build gnupg qt6-base-dev qt6-base-dev-tools qt6-l10n-tools qt6-tools-dev qt6-tools-dev-tools
-          sudo apt-get -y install libarchive-dev libssl-dev libgpgme-dev libgl1-mesa-dev
+          sudo apt-get -y install gcc g++ ninja-build gnupg qt6-base-dev qt6-base-dev-tools qt6-l10n-tools qt6-tools-dev qt6-tools-dev-tools libqt6svg6
+          sudo apt-get -y install libarchive-dev libssl-dev libgpgme-dev libgl1-mesa-dev libfuse2
 
       - name: Build googletest
         run: |
@@ -62,20 +62,36 @@ jobs:
           cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DDGPGFRONTEND_BUILD_TYPE_ONLY_APPLICATION=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
 
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
+
       - name: Copy Modules & Package App Image
         run: |
           cmake -E copy_directory ${{github.workspace}}/modules/build/artifacts/modules ${{github.workspace}}/build/artifacts/AppDir/usr/modules
           mkdir ${{github.workspace}}/build/final-artifact
           cd ${{github.workspace}}/build/final-artifact
-          wget -c -nv https://github.com/probonopd/go-appimage/releases/download/continuous/appimagetool-855-x86_64.AppImage -O appimagetool.AppImage
-          chmod u+x appimagetool.AppImage
+          wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+          chmod u+x linuxdeployqt-continuous-x86_64.AppImage
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
-          ./appimagetool.AppImage -s deploy ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/modules/
+          qtchooser -install qt6 $(which qmake6)
+          export QT_SELECT=qt6
+          mkdir -p ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6
+          touch ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6/copyright
+          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines,platforms/libqoffscreen.so -appimage -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/modules/ -unsupported-allow-new-glibc
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
-      
+
+      - name: Run Unit Tests
+        run: |
+          cd ${{github.workspace}}/build/final-artifact
+          export QT_QPA_PLATFORM=offscreen
+          export GTEST_OUTPUT=json:${{github.workspace}}/build/final-artifact/unit_tests.json
+          ./Gpg_Frontend-*-x86_64.AppImage -t || true
+
       - name: Upload Artifact
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
-          path: ${{github.workspace}}/build/final-artifact/Gpg_Frontend*.AppImage*
+          name: gpgfrontend-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
+          path: |
+            ${{github.workspace}}/build/final-artifact/Gpg_Frontend*.AppImage*
+            ${{github.workspace}}/build/final-artifact/unit_tests.json
