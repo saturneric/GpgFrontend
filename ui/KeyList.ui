@@ -49,7 +49,23 @@
               <normaloff>:/icons/database.png</normaloff>:/icons/database.png</iconset>
             </property>
             <property name="popupMode">
-             <enum>QToolButton::InstantPopup</enum>
+             <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLCDNumber" name="channelLcdNumber">
+            <property name="smallDecimalPoint">
+             <bool>true</bool>
+            </property>
+            <property name="digitCount">
+             <number>1</number>
+            </property>
+            <property name="mode">
+             <enum>QLCDNumber::Mode::Dec</enum>
+            </property>
+            <property name="segmentStyle">
+             <enum>QLCDNumber::SegmentStyle::Filled</enum>
             </property>
            </widget>
           </item>
@@ -122,14 +138,14 @@
               <normaloff>:/icons/filter.png</normaloff>:/icons/filter.png</iconset>
             </property>
             <property name="popupMode">
-             <enum>QToolButton::InstantPopup</enum>
+             <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
             </property>
            </widget>
           </item>
           <item>
            <spacer name="horizontalSpacer">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
@@ -154,7 +170,7 @@
      <item>
       <widget class="QTabWidget" name="keyGroupTab">
        <property name="tabShape">
-        <enum>QTabWidget::Rounded</enum>
+        <enum>QTabWidget::TabShape::Rounded</enum>
        </property>
        <property name="currentIndex">
         <number>0</number>

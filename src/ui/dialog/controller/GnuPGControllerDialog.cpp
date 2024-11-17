@@ -328,6 +328,15 @@ auto GnuPGControllerDialog::check_custom_gnupg_path(QString path) -> bool {
 
 void GnuPGControllerDialog::slot_add_new_key_database() {
   auto* dialog = new KeyDatabaseEditDialog(this);
+
+  if (buffered_key_db_so_.size() >= 8) {
+    QMessageBox::critical(
+        this, tr("Maximum Key Database Limit Reached"),
+        tr("Currently, GpgFrontend supports a maximum of 8 key databases. "
+           "Please remove an existing database to add a new one."));
+    return;
+  }
+
   connect(dialog, &KeyDatabaseEditDialog::SignalKeyDatabaseInfoAccepted, this,
           [this](const QString& name, const QString& path) {
             auto& key_databases = buffered_key_db_so_;
