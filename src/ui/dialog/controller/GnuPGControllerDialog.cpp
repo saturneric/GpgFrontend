@@ -345,7 +345,11 @@ void GnuPGControllerDialog::slot_add_new_key_database() {
             key_database.path = path;
             key_databases.append(key_database);
 
+            // refresh ui
             slot_refresh_key_database_table();
+
+            // announce the restart
+            this->slot_set_restart_needed(kDeepRestartCode);
           });
   dialog->show();
 }
@@ -390,5 +394,8 @@ void GnuPGControllerDialog::slot_remove_existing_key_database() {
   }
 
   this->slot_refresh_key_database_table();
+
+  // announce the restart
+  this->slot_set_restart_needed(kDeepRestartCode);
 }
 }  // namespace GpgFrontend::UI
