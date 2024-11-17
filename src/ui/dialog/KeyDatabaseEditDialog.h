@@ -30,6 +30,7 @@
 
 #include <utility>
 
+#include "core/model/KeyDatabaseInfo.h"
 #include "ui/dialog/GeneralDialog.h"
 
 class Ui_KeyDatabaseEditDialog;
@@ -42,7 +43,7 @@ class KeyDatabaseEditDialog : public GeneralDialog {
 
   void SetDefaultName(QString name);
 
-  void SetDefaultPath(QString path);
+  void SetDefaultPath(const QString& path);
 
  signals:
   void SignalKeyDatabaseInfoAccepted(QString name, QString path);
@@ -51,8 +52,13 @@ class KeyDatabaseEditDialog : public GeneralDialog {
   std::shared_ptr<Ui_KeyDatabaseEditDialog> ui_;  ///<
   QString name_;
   QString path_;
+  QList<KeyDatabaseInfo> key_database_infos_;
 
   void slot_button_box_accepted();
+
+  void slot_show_err_msg(const QString& error_msg);
+
+  void slot_clear_err_msg();
 
   auto check_custom_gnupg_key_database_path(const QString& path) -> bool;
 };

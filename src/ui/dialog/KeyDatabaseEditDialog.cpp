@@ -28,14 +28,18 @@
 
 #include "KeyDatabaseEditDialog.h"
 
+#include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
 #include "ui_KeyDatabaseEditDialog.h"
 
 namespace GpgFrontend::UI {
 KeyDatabaseEditDialog::KeyDatabaseEditDialog(QWidget* parent)
     : GeneralDialog("KeyDatabaseEditDialog", parent),
-      ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyDatabaseEditDialog>()) {
+      ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyDatabaseEditDialog>()),
+      key_database_infos_(GetGpgKeyDatabaseInfos()) {
   ui_->setupUi(this);
+
+  ui_->keyDBPathShowLabel->setHidden(true);
 
   ui_->keyDBNameLabel->setText(tr("Key Database Name"));
   ui_->keyDBPathLabel->setText(tr("Key Database Path"));
@@ -53,13 +57,15 @@ KeyDatabaseEditDialog::KeyDatabaseEditDialog(QWidget* parent)
                                "exists readable directory."));
     }
 
-    path_ = QFileInfo(path).absoluteFilePath();
-    ui_->keyDBPathShowLabel->setText(path_);
+    if (!path.trimmed().isEmpty()) {
+      path_ = QFileInfo(path).absoluteFilePath();
+      ui_->keyDBPathShowLabel->setText(path_);
+      ui_->keyDBPathShowLabel->setHidden(false);
+    }
   });
 
   connect(ui_->buttonBox, &QDialogButtonBox::accepted, this,
           &KeyDatabaseEditDialog::slot_button_box_accepted);
-  connect(ui_->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
   connect(ui_->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
   setAttribute(Qt::WA_DeleteOnClose);
   setModal(true);
@@ -67,7 +73,29 @@ KeyDatabaseEditDialog::KeyDatabaseEditDialog(QWidget* parent)
 
 void KeyDatabaseEditDialog::slot_button_box_accepted() {
   name_ = ui_->keyDBNameLineEdit->text();
+
+  if (name_.isEmpty()) {
+    slot_show_err_msg(tr("The key database name cannot be empty."));
+    return;
+  }
+
+  if (path_.isEmpty()) {
+    slot_show_err_msg(tr("The key database path cannot be empty."));
+    return;
+  }
+
+  for (const auto& info : key_database_infos_) {
+    if (info.name == name_) {
+      slot_show_err_msg(tr("A key database with the name '%1' already exists. "
+                           "Please choose a different name.")
+                            .arg(name_));
+      return;
+    }
+  }
+
+  slot_clear_err_msg();
   emit SignalKeyDatabaseInfoAccepted(name_, path_);
+  this->accept();
 }
 
 auto KeyDatabaseEditDialog::check_custom_gnupg_key_database_path(
@@ -82,8 +110,18 @@ void KeyDatabaseEditDialog::SetDefaultName(QString name) {
   name_ = std::move(name);
 }
 
-void KeyDatabaseEditDialog::SetDefaultPath(QString path) {
+void KeyDatabaseEditDialog::SetDefaultPath(const QString& path) {
   path_ = QFileInfo(path).absoluteFilePath();
   ui_->keyDBPathShowLabel->setText(path_);
+}
+void KeyDatabaseEditDialog::slot_show_err_msg(const QString& error_msg) {
+  ui_->errorLabel->setText(error_msg);
+  ui_->errorLabel->setStyleSheet("color: red;");
+  ui_->errorLabel->setHidden(false);
+}
+
+void KeyDatabaseEditDialog::slot_clear_err_msg() {
+  ui_->errorLabel->setText({});
+  ui_->errorLabel->setHidden(true);
 }
 };  // namespace GpgFrontend::UI

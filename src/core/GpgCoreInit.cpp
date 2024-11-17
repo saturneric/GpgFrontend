@@ -99,9 +99,12 @@ auto InitGpgME(const QString& gpgconf_path, const QString& gnupg_path) -> bool {
   gpgme_set_locale(nullptr, LC_MESSAGES, setlocale(LC_MESSAGES, nullptr));
 #endif
 
-  if (!gnupg_path.isEmpty()) {
+  if (!gpgconf_path.isEmpty()) {
     CheckGpgError(gpgme_set_engine_info(GPGME_PROTOCOL_GPGCONF,
                                         gpgconf_path.toUtf8(), nullptr));
+  }
+
+  if (!gnupg_path.isEmpty()) {
     CheckGpgError(gpgme_set_engine_info(GPGME_PROTOCOL_OpenPGP,
                                         gnupg_path.toUtf8(), nullptr));
   }
