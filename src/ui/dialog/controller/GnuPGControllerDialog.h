@@ -94,6 +94,12 @@ class GnuPGControllerDialog : public GeneralDialog {
    */
   void slot_refresh_key_database_table();
 
+  /**
+   * @brief
+   *
+   */
+  void slot_open_key_database();
+
  private:
   std::shared_ptr<Ui_GnuPGControllerDialog> ui_;  ///<
   int restart_mode_{0};                           ///<

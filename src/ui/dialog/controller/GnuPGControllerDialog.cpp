@@ -70,6 +70,7 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
          "Application restart."));
 
   popup_menu_ = new QMenu(this);
+  popup_menu_->addAction(ui_->actionOpen_Key_Database);
   popup_menu_->addAction(ui_->actionRemove_Selected_Key_Database);
 
   // announce main window
@@ -137,6 +138,9 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
 
   connect(ui_->actionRemove_Selected_Key_Database, &QAction::triggered, this,
           &GnuPGControllerDialog::slot_remove_existing_key_database);
+
+  connect(ui_->actionOpen_Key_Database, &QAction::triggered, this,
+          &GnuPGControllerDialog::slot_open_key_database);
 
 #if defined(__APPLE__) && defined(__MACH__)
   // macOS style settings
@@ -397,5 +401,18 @@ void GnuPGControllerDialog::slot_remove_existing_key_database() {
 
   // announce the restart
   this->slot_set_restart_needed(kDeepRestartCode);
+}
+
+void GnuPGControllerDialog::slot_open_key_database() {
+  const auto row_size = ui_->keyDatabaseTable->rowCount();
+
+  auto& key_databases = buffered_key_db_so_;
+  for (int i = 0; i < row_size; i++) {
+    auto* const item = ui_->keyDatabaseTable->item(i, 1);
+    if (!item->isSelected()) continue;
+    LOG_D() << "try to open key db at path: " << key_databases[i].path;
+    QDesktopServices::openUrl(QUrl::fromLocalFile(key_databases[i].path));
+    break;
+  }
 }
 }  // namespace GpgFrontend::UI
