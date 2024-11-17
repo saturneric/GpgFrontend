@@ -94,6 +94,7 @@ void KeyList::init() {
             [this, channel](bool checked) {
               if (checked) {
                 current_gpg_context_channel_ = channel;
+                ui_->channelLcdNumber->display(channel);
                 emit SignalRefreshDatabase();
               }
             });
