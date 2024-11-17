@@ -126,6 +126,8 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
               << Qt::endl;
           setStatus(-2);
           print_signer_without_key(stream_, GpgSignature(sign));
+          unknown_signer_fpr_list_.push_back(
+              GpgSignature(sign).GetFingerprint());
           break;
         case GPG_ERR_CERT_REVOKED:
           stream_ << tr("A signature is valid but the key used to verify the "
@@ -251,4 +253,9 @@ auto GpgFrontend::GpgVerifyResultAnalyse::GetSignatures() const
 auto GpgFrontend::GpgVerifyResultAnalyse::TakeChargeOfResult()
     -> GpgFrontend::GpgVerifyResult {
   return result_;
+}
+
+auto GpgFrontend::GpgVerifyResultAnalyse::GetUnknownSignatures() const
+    -> QList<QString> {
+  return unknown_signer_fpr_list_;
 }

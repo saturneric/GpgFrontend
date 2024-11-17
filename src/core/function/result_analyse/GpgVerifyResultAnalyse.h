@@ -53,7 +53,7 @@ class GPGFRONTEND_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
    *
    * @return gpgme_signature_t
    */
-  auto GetSignatures() const -> gpgme_signature_t;
+  [[nodiscard]] auto GetSignatures() const -> gpgme_signature_t;
 
   /**
    * @brief
@@ -61,6 +61,13 @@ class GPGFRONTEND_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
    * @return GpgVerifyResult
    */
   auto TakeChargeOfResult() -> GpgVerifyResult;
+
+  /**
+   * @brief Get the Unknown Signatures object
+   *
+   * @return QList<QString>
+   */
+  [[nodiscard]] auto GetUnknownSignatures() const -> QList<QString>;
 
  protected:
   /**
@@ -92,6 +99,7 @@ class GPGFRONTEND_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
 
   GpgError error_;          ///<
   GpgVerifyResult result_;  ///<
+  QList<QString> unknown_signer_fpr_list_;
 };
 
 }  // namespace GpgFrontend

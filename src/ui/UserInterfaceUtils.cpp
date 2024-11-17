@@ -411,6 +411,67 @@ void CommonUtils::SlotImportKeyFromKeyServer(
     return;
   }
 
+  if (Module::IsModuleActivate(
+          "com.bktus.gpgfrontend.module.key_server_sync")) {
+    // LOOP
+    decltype(key_ids.size()) current_index = 1;
+    decltype(key_ids.size()) all_index = key_ids.size();
+
+    for (const auto &key_id : key_ids) {
+      Thread::TaskRunnerGetter::GetInstance()
+          .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
+          ->PostTask(new Thread::Task(
+              [=](const DataObjectPtr &data_obj) -> int {
+                Module::TriggerEvent(
+                    "REQUEST_GET_PUBLIC_KEY_BY_KEY_ID",
+                    {
+                        {"key_id", QString(key_id)},
+                    },
+                    [key_id, channel, callback, current_index, all_index](
+                        Module::EventIdentifier i,
+                        Module::Event::ListenerIdentifier ei,
+                        Module::Event::Params p) {
+                      LOG_D()
+                          << "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT callback: "
+                          << i << ei;
+
+                      QString status;
+
+                      if (p["ret"] != "0" || !p["error_msg"].isEmpty()) {
+                        LOG_E()
+                            << "An error occurred trying to get data from key:"
+                            << key_id << "error message: " << p["error_msg"]
+                            << "reply data: " << p["reply_data"];
+                        status = p["error_msg"] + p["reply_data"];
+                      } else if (p.contains("key_data")) {
+                        const auto key_data = p["key_data"];
+                        LOG_D() << "got key data of key " << key_id
+                                << " from key server: " << key_data;
+
+                        auto result = GpgKeyImportExporter::GetInstance(channel)
+                                          .ImportKey(GFBuffer(key_data));
+                        if (result->imported == 1) {
+                          status = tr("The key has been updated");
+                        } else {
+                          status = tr("No need to update the key");
+                        }
+                      }
+
+                      callback(key_id, status, current_index, all_index);
+                    });
+
+                return 0;
+              },
+              QString("key_%1_import_task").arg(key_id)));
+
+      // not too fast to hit rate limit
+      QThread::msleep(200);
+      current_index++;
+    }
+
+    return;
+  }
+
   auto *thread =
       QThread::create([target_keyserver, key_ids, callback, channel]() {
         QUrl target_keyserver_url(target_keyserver);
@@ -594,4 +655,60 @@ void CommonUtils::ImportKeyFromKeyServer(int channel,
       ->PostTask(task);
 }
 
+void CommonUtils::ImportKeyByKeyServerSyncModule(QWidget *parent, int channel,
+                                                 const QList<QString> &fprs) {
+  if (!Module::IsModuleActivate(
+          "com.bktus.gpgfrontend.module.key_server_sync")) {
+    return;
+  }
+
+  auto all_key_data = QSharedPointer<QString>::create();
+  auto remaining_tasks = QSharedPointer<int>::create(fprs.size());
+
+  for (const auto &fpr : fprs) {
+    Thread::TaskRunnerGetter::GetInstance()
+        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
+        ->PostTask(new Thread::Task(
+            [=](const DataObjectPtr &data_obj) -> int {
+              Module::TriggerEvent(
+                  "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT",
+                  {
+                      {"fingerprint", QString(fpr)},
+                  },
+                  [fpr, all_key_data, remaining_tasks, this, parent, channel](
+                      Module::EventIdentifier i,
+                      Module::Event::ListenerIdentifier ei,
+                      Module::Event::Params p) {
+                    LOG_D()
+                        << "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT callback: "
+                        << i << ei;
+
+                    if (p["ret"] != "0" || !p["error_msg"].isEmpty()) {
+                      LOG_E()
+                          << "An error occurred trying to get data from key:"
+                          << fpr << "error message: " << p["error_msg"]
+                          << "reply data: " << p["reply_data"];
+                    } else if (p.contains("key_data")) {
+                      const auto key_data = p["key_data"];
+                      LOG_D() << "got key data of key " << fpr
+                              << " from key server: " << key_data;
+
+                      *all_key_data += key_data;
+                    }
+
+                    // it only uses one thread for these operations
+                    // so that is no need for locking now
+                    (*remaining_tasks)--;
+
+                    if (*remaining_tasks == 0) {
+                      this->SlotImportKeys(parent, channel,
+                                           all_key_data->toUtf8());
+                    }
+                  });
+
+              return 0;
+            },
+            QString("key_%1_import_task").arg(fpr)));
+  }
+}
 }  // namespace GpgFrontend::UI

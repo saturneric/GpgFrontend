@@ -34,6 +34,7 @@
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgSignResultAnalyse.h"
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
+#include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "ui/UserInterfaceUtils.h"
@@ -554,14 +555,41 @@ void MainWindow::SlotFileVerify(const QString& path) {
 
                   process_result_analyse(edit_, info_board_, result_analyse);
 
-                  // pause this feature
-                  // if (result_analyse.GetStatus() == -2) {
-                  //   import_unknown_key_from_keyserver(this, result_analyse);
-                  // }
-                  // pause this feature
-                  // if (result_analyse.GetStatus() >= 0) {
-                  //   show_verify_details(this, info_board_, err, result);
-                  // }
+                  if (!result_analyse.GetUnknownSignatures().isEmpty() &&
+                      Module::IsModuleActivate(
+                          "com.bktus.gpgfrontend.module.key_server_sync")) {
+                    LOG_D() << "try to sync missing key info from server"
+                            << result_analyse.GetUnknownSignatures();
+
+                    QString fingerprint_list;
+                    for (const auto& fingerprint :
+                         result_analyse.GetUnknownSignatures()) {
+                      fingerprint_list += fingerprint + "\n";
+                    }
+
+                    // Interaction with user
+                    auto user_response = QMessageBox::question(
+                        this, tr("Missing Keys"),
+                        tr("Some signatures cannot be verified because the "
+                           "corresponding keys are missing.\n\n"
+                           "The following fingerprints are missing:\n%1\n\n"
+                           "Would you like to fetch these keys from the key "
+                           "server?")
+                            .arg(fingerprint_list),
+                        QMessageBox::Yes | QMessageBox::No);
+
+                    if (user_response == QMessageBox::Yes) {
+                      CommonUtils::GetInstance()
+                          ->ImportKeyByKeyServerSyncModule(
+                              this, m_key_list_->GetCurrentGpgContextChannel(),
+                              result_analyse.GetUnknownSignatures());
+                    } else {
+                      QMessageBox::information(
+                          this, tr("Verification Incomplete"),
+                          tr("Verification was incomplete due to missing "
+                             "keys. You can manually import the keys later."));
+                    }
+                  }
 
                   this->slot_refresh_current_file_view();
                 });
@@ -870,18 +898,43 @@ void MainWindow::SlotFileDecryptVerify(const QString& path) {
                                          decrypt_result_analyse,
                                          verify_result_analyse);
 
-                  // pause this feature
-                  // if (verify_result_analyse.GetStatus() == -2) {
-                  //   import_unknown_key_from_keyserver(this,
-                  //   verify_result_analyse);
-                  // }
-                  // pause this feature
-                  // if (verify_result_analyse.GetStatus() >= 0) {
-                  //   show_verify_details(this, info_board_, err,
-                  //   verify_result);
-                  // }
-
                   this->slot_refresh_current_file_view();
+
+                  if (!verify_result_analyse.GetUnknownSignatures().isEmpty() &&
+                      Module::IsModuleActivate(
+                          "com.bktus.gpgfrontend.module.key_server_sync")) {
+                    LOG_D() << "try to sync missing key info from server"
+                            << verify_result_analyse.GetUnknownSignatures();
+
+                    QString fingerprint_list;
+                    for (const auto& fingerprint :
+                         verify_result_analyse.GetUnknownSignatures()) {
+                      fingerprint_list += fingerprint + "\n";
+                    }
+
+                    // Interaction with user
+                    auto user_response = QMessageBox::question(
+                        this, tr("Missing Keys"),
+                        tr("Some signatures cannot be verified because the "
+                           "corresponding keys are missing.\n\n"
+                           "The following fingerprints are missing:\n%1\n\n"
+                           "Would you like to fetch these keys from the key "
+                           "server?")
+                            .arg(fingerprint_list),
+                        QMessageBox::Yes | QMessageBox::No);
+
+                    if (user_response == QMessageBox::Yes) {
+                      CommonUtils::GetInstance()
+                          ->ImportKeyByKeyServerSyncModule(
+                              this, m_key_list_->GetCurrentGpgContextChannel(),
+                              verify_result_analyse.GetUnknownSignatures());
+                    } else {
+                      QMessageBox::information(
+                          this, tr("Verification Incomplete"),
+                          tr("Verification was incomplete due to missing "
+                             "keys. You can manually import the keys later."));
+                    }
+                  }
                 });
       });
 }

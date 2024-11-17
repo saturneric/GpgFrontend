@@ -237,7 +237,7 @@ class CommonUtils : public QWidget {
    *
    * @param parent
    */
-  void SlotImportKeyFromFile(QWidget* parentint, int channel);
+  void SlotImportKeyFromFile(QWidget* parent, int channel);
 
   /**
    * @brief
@@ -252,6 +252,14 @@ class CommonUtils : public QWidget {
    * @param parent
    */
   void SlotImportKeyFromClipboard(QWidget* parent, int channel);
+
+  /**
+   * @brief
+   *
+   * @param channel
+   */
+  void ImportKeyByKeyServerSyncModule(QWidget* parent, int channel,
+                                      const QList<QString>& fprs);
 
   /**
    * @brief
