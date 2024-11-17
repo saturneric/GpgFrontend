@@ -29,8 +29,11 @@
 #include "KeyPairDetailTab.h"
 
 #include "core/GpgModel.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/model/GpgKey.h"
+#include "core/module/ModuleManager.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/UISignalStation.h"
 
@@ -277,14 +280,13 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   exp_label_->hide();
 
   if (key_.IsExpired()) {
-    icon_label_->show();
-    exp_label_->show();
-    exp_label_->setText(tr("Warning: The primary key has expired."));
-  }
-  if (key_.IsRevoked()) {
-    icon_label_->show();
-    exp_label_->show();
-    exp_label_->setText(tr("Warning: The primary key has been revoked."));
+    slot_refresh_notice(":/icons/warning.png",
+                        tr("Warning: The primary key has expired."));
+  } else if (key_.IsRevoked()) {
+    slot_refresh_notice(":/icons/warning.png",
+                        tr("Warning: The primary key has been revoked."));
+  } else {
+    slot_query_key_publish_state();
   }
 }
 
@@ -299,4 +301,72 @@ void KeyPairDetailTab::slot_refresh_key() {
   this->slot_refresh_key_info();
 }
 
+void KeyPairDetailTab::slot_query_key_publish_state() {
+  bool forbid_all_gnupg_connection =
+      GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("network/forbid_all_gnupg_connection")
+          .toBool();
+  if (forbid_all_gnupg_connection) return;
+
+  if (!Module::IsModuleActivate(
+          "com.bktus.gpgfrontend.module.key_server_sync")) {
+    return;
+  }
+
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
+      ->PostTask(new Thread::Task(
+          [this,
+           fpr = key_.GetFingerprint()](const DataObjectPtr& data_obj) -> int {
+            Module::TriggerEvent(
+                "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT",
+                {
+                    {"fingerprint", QString(fpr)},
+                },
+                [=](Module::EventIdentifier i,
+                    Module::Event::ListenerIdentifier ei,
+                    Module::Event::Params p) {
+                  LOG_D() << "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT callback: "
+                          << i << ei;
+
+                  if (p["ret"] != "0" || !p["error_msg"].isEmpty()) {
+                    LOG_E() << "An error occurred trying to get data from key:"
+                            << fpr << "error message: " << p["error_msg"]
+                            << "reply data: " << p["reply_data"];
+                  } else if (p.contains("key_data")) {
+                    const auto key_data = p["key_data"];
+                    LOG_D() << "got key data of key " << fpr
+                            << " from key server: " << key_data;
+
+                    if (!key_data.isEmpty()) {
+                      slot_refresh_notice(
+                          ":/icons/sent.png",
+                          tr("Notice: The key has been published on "
+                             "keys.openpgp.org."));
+                    }
+                  }
+                });
+
+            return 0;
+          },
+          QString("key_%1_query_task").arg(key_.GetFingerprint())));
+}
+
+void KeyPairDetailTab::slot_refresh_notice(const QString& icon,
+                                           const QString& info) {
+  icon_label_->hide();
+  exp_label_->hide();
+
+  if (!icon.isEmpty()) {
+    QPixmap pixmap(icon);
+    icon_label_->setPixmap(pixmap.scaled(24, 24, Qt::KeepAspectRatio));
+    icon_label_->show();
+  }
+
+  if (!info.isEmpty()) {
+    exp_label_->setText(info);
+    exp_label_->show();
+  }
+}
 }  // namespace GpgFrontend::UI

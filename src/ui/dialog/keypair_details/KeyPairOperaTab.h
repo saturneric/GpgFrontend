@@ -94,7 +94,7 @@ class KeyPairOperaTab : public QWidget {
    * @brief
    *
    */
-  void slot_upload_key_to_server();
+  void slot_publish_key_to_server();
 
   /**
    * @brief

@@ -35,6 +35,7 @@
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/model/GpgKey.h"
 #include "core/module/ModuleManager.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
@@ -97,8 +98,7 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, const QString& key_id,
   bool forbid_all_gnupg_connection =
       settings.value("network/forbid_all_gnupg_connection").toBool();
 
-  auto* key_server_opera_button =
-      new QPushButton(tr("Key Server Operation (Pubkey)"));
+  auto* key_server_opera_button = new QPushButton(tr("Key Server Operations"));
   key_server_opera_button->setStyleSheet("text-align:center;");
   key_server_opera_button->setMenu(key_server_opera_menu_);
   key_server_opera_button->setDisabled(forbid_all_gnupg_connection);
@@ -152,16 +152,14 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, const QString& key_id,
 void KeyPairOperaTab::CreateOperaMenu() {
   key_server_opera_menu_ = new QMenu(this);
 
-  auto* upload_key_pair =
-      new QAction(tr("Upload Key Pair to Key Server"), this);
+  auto* upload_key_pair = new QAction(tr("Publish Key to Key Server"), this);
   connect(upload_key_pair, &QAction::triggered, this,
-          &KeyPairOperaTab::slot_upload_key_to_server);
+          &KeyPairOperaTab::slot_publish_key_to_server);
   if (!(m_key_.IsPrivateKey() && m_key_.IsHasMasterKey())) {
     upload_key_pair->setDisabled(true);
   }
 
-  auto* update_key_pair =
-      new QAction(tr("Sync Key Pair From Key Server"), this);
+  auto* update_key_pair = new QAction(tr("Refresh Key From Key Server"), this);
   connect(update_key_pair, &QAction::triggered, this,
           &KeyPairOperaTab::slot_update_key_from_server);
 
@@ -348,7 +346,96 @@ void KeyPairOperaTab::slot_modify_edit_datetime() {
   dialog->show();
 }
 
-void KeyPairOperaTab::slot_upload_key_to_server() {
+void KeyPairOperaTab::slot_publish_key_to_server() {
+  if (Module::IsModuleActivate(
+          "com.bktus.gpgfrontend.module.key_server_sync")) {
+    auto [err, gf_buffer] =
+        GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
+            .ExportKey(m_key_, false, true, false);
+
+    Thread::TaskRunnerGetter::GetInstance()
+        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
+        ->PostTask(new Thread::Task(
+            [this, fpr = m_key_.GetFingerprint(),
+             key_text = gf_buffer.ConvertToQByteArray()](
+                const DataObjectPtr& data_obj) -> int {
+              Module::TriggerEvent(
+                  "REQUEST_UPLOAD_PUBLIC_KEY",
+                  {
+                      {"key_text", QString::fromUtf8(key_text)},
+                  },
+                  [=](Module::EventIdentifier i,
+                      Module::Event::ListenerIdentifier ei,
+                      Module::Event::Params p) {
+                    LOG_D() << "REQUEST_UPLOAD_PUBLIC_KEY "
+                               "callback: "
+                            << i << ei;
+
+                    if (p["ret"] != "0" || !p["error_msg"].isEmpty()) {
+                      LOG_E() << "An error occurred trying to get data "
+                                 "from key:"
+                              << fpr << "error message: " << p["error_msg"]
+                              << "reply data: " << p["reply_data"];
+
+                      // Notify user of the error
+                      QString error_message = p["error_msg"];
+                      QMessageBox::critical(
+                          this, tr("Key Upload Failed"),
+                          tr("Failed to upload key to the server.\n"
+                             "Fingerprint: %1\n"
+                             "Error: %2")
+                              .arg(fpr, error_message));
+                    } else if (p.contains("token") && p.contains("status") &&
+                               p.contains("fingerprint")) {
+                      const auto token = p["token"];
+                      const auto status = p["status"];
+                      const auto reply_fpr = p["fingerprint"];
+                      LOG_D() << "got key data of key " << fpr
+                              << "from key server, token: " << token
+                              << "fpr: " << fpr << "status: " << status;
+
+                      // Handle successful response
+                      QString status_message =
+                          tr("The following email addresses have status:\n");
+                      QJsonDocument json_doc =
+                          QJsonDocument::fromJson(status.toUtf8());
+                      QStringList email_list;
+                      if (!json_doc.isNull() && json_doc.isObject()) {
+                        QJsonObject json_obj = json_doc.object();
+                        for (auto it = json_obj.constBegin();
+                             it != json_obj.constEnd(); ++it) {
+                          status_message +=
+                              QString("%1: %2\n")
+                                  .arg(it.key(), it.value().toString());
+                          email_list.append(it.key());
+                        }
+                      } else {
+                        status_message +=
+                            tr("Could not parse status information.");
+                      }
+
+                      // Notify user of successful upload and status details
+                      QMessageBox::information(
+                          this, tr("Key Upload Successful"),
+                          tr("The key was successfully uploaded to the key "
+                             "server keys.openpgp.org.\n"
+                             "Fingerprint: %1\n\n"
+                             "%2\n"
+                             "Please check your email (%3) for further "
+                             "verification from keys.openpgp.org.\n\n"
+                             "Note: For verification, you can find more "
+                             "information here: "
+                             "https://keys.openpgp.org/about")
+                              .arg(fpr, status_message, email_list.join(", ")));
+                    }
+                  });
+
+              return 0;
+            },
+            QString("key_%1_publish_task").arg(m_key_.GetId())));
+    return;
+  }
+
   auto keys = std::make_unique<KeyIdArgsList>();
   keys->push_back(m_key_.GetId());
   auto* dialog = new KeyUploadDialog(current_gpg_context_channel_, keys, this);
@@ -357,6 +444,12 @@ void KeyPairOperaTab::slot_upload_key_to_server() {
 }
 
 void KeyPairOperaTab::slot_update_key_from_server() {
+  if (Module::IsModuleActivate(
+          "com.bktus.gpgfrontend.module.key_server_sync")) {
+    CommonUtils::GetInstance()->ImportKeyByKeyServerSyncModule(
+        this, current_gpg_context_channel_, {m_key_.GetFingerprint()});
+    return;
+  }
   CommonUtils::GetInstance()->ImportKeyFromKeyServer(
       current_gpg_context_channel_, {m_key_.GetId()});
 }
