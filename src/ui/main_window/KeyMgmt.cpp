@@ -138,10 +138,10 @@ void KeyMgmt::create_actions() {
   open_key_file_act_ = new QAction(tr("Open"), this);
   open_key_file_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_O));
   open_key_file_act_->setToolTip(tr("Open Key File"));
-  connect(open_key_file_act_, &QAction::triggered, this,
-          [this, channel = key_list_->GetCurrentGpgContextChannel()]() {
-            CommonUtils::GetInstance()->SlotImportKeyFromFile(this, channel);
-          });
+  connect(open_key_file_act_, &QAction::triggered, this, [this]() {
+    CommonUtils::GetInstance()->SlotImportKeyFromFile(
+        this, key_list_->GetCurrentGpgContextChannel());
+  });
 
   close_act_ = new QAction(tr("Close"), this);
   close_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q));
@@ -167,21 +167,20 @@ void KeyMgmt::create_actions() {
   import_key_from_file_act_ = new QAction(tr("File"), this);
   import_key_from_file_act_->setIcon(QIcon(":/icons/import_key_from_file.png"));
   import_key_from_file_act_->setToolTip(tr("Import New Key From File"));
-  connect(import_key_from_file_act_, &QAction::triggered, this,
-          [this, channel = key_list_->GetCurrentGpgContextChannel()]() {
-            CommonUtils::GetInstance()->SlotImportKeyFromFile(this, channel);
-          });
+  connect(import_key_from_file_act_, &QAction::triggered, this, [this]() {
+    CommonUtils::GetInstance()->SlotImportKeyFromFile(
+        this, key_list_->GetCurrentGpgContextChannel());
+  });
 
   import_key_from_clipboard_act_ = new QAction(tr("Clipboard"), this);
   import_key_from_clipboard_act_->setIcon(
       QIcon(":/icons/import_key_from_clipboard.png"));
   import_key_from_clipboard_act_->setToolTip(
       tr("Import New Key From Clipboard"));
-  connect(import_key_from_clipboard_act_, &QAction::triggered, this,
-          [this, channel = key_list_->GetCurrentGpgContextChannel()]() {
-            CommonUtils::GetInstance()->SlotImportKeyFromClipboard(this,
-                                                                   channel);
-          });
+  connect(import_key_from_clipboard_act_, &QAction::triggered, this, [this]() {
+    CommonUtils::GetInstance()->SlotImportKeyFromClipboard(
+        this, key_list_->GetCurrentGpgContextChannel());
+  });
 
   bool const forbid_all_gnupg_connection =
       GlobalSettingStation::GetInstance()
@@ -195,11 +194,10 @@ void KeyMgmt::create_actions() {
   import_key_from_key_server_act_->setToolTip(
       tr("Import New Key From Keyserver"));
   import_key_from_key_server_act_->setDisabled(forbid_all_gnupg_connection);
-  connect(import_key_from_key_server_act_, &QAction::triggered, this,
-          [this, channel = key_list_->GetCurrentGpgContextChannel()]() {
-            CommonUtils::GetInstance()->SlotImportKeyFromKeyServer(this,
-                                                                   channel);
-          });
+  connect(import_key_from_key_server_act_, &QAction::triggered, this, [this]() {
+    CommonUtils::GetInstance()->SlotImportKeyFromKeyServer(
+        this, key_list_->GetCurrentGpgContextChannel());
+  });
 
   import_keys_from_key_package_act_ = new QAction(tr("Key Package"), this);
   import_keys_from_key_package_act_->setIcon(QIcon(":/icons/key_package.png"));

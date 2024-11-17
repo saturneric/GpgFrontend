@@ -269,6 +269,7 @@ void CommonUtils::RaiseFailureMessageBox(QWidget *parent, GpgError err) {
 
 void CommonUtils::SlotImportKeys(QWidget *parent, int channel,
                                  const QByteArray &in_buffer) {
+  LOG_D() << "try to import key(s) to channel: " << channel;
   auto info =
       GpgKeyImportExporter::GetInstance(channel).ImportKey(GFBuffer(in_buffer));
   emit SignalKeyStatusUpdated();
