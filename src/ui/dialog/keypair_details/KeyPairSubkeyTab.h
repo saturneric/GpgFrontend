@@ -93,6 +93,7 @@ class KeyPairSubkeyTab : public QWidget {
   QAction* export_subkey_act_;
 
   QAction* edit_subkey_act_;
+  QAction* delete_subkey_act_;
 
  private slots:
 
@@ -137,6 +138,20 @@ class KeyPairSubkeyTab : public QWidget {
    *
    */
   void slot_export_subkey();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_delete_subkey();
+
+ signals:
+
+  /**
+   * @brief
+   *
+   */
+  void SignalKeyDatabaseRefresh();
 
  protected:
   /**

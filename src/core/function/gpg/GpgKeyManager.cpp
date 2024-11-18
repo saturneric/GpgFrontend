@@ -94,60 +94,55 @@ auto GpgFrontend::GpgKeyManager::SetExpire(
 
 auto GpgFrontend::GpgKeyManager::SetOwnerTrustLevel(const GpgKey& key,
                                                     int trust_level) -> bool {
-  if (trust_level < 0 || trust_level > 5) {
+  if (trust_level < 1 || trust_level > 5) {
     FLOG_W("illegal owner trust level: %d", trust_level);
   }
 
-  AutomatonNextStateHandler next_state_handler = [](AutomatonState state,
-                                                    QString status,
-                                                    QString args) {
-    LOG_D() << "next_state_handler state: " << static_cast<unsigned int>(state)
-            << ", gpg_status: " << status << ", args: " << args;
+  AutomatonNextStateHandler next_state_handler =
+      [](AutomatonState state, QString status, QString args) {
+        auto tokens = args.split(' ');
 
-    auto tokens = args.split(' ');
-
-    switch (state) {
-      case AS_START:
-        if (status == "GET_LINE" && args == "keyedit.prompt") {
-          return AS_COMMAND;
-        }
-        return AS_ERROR;
-      case AS_COMMAND:
-        if (status == "GET_LINE" && args == "edit_ownertrust.value") {
-          return AS_VALUE;
-        }
-        return AS_ERROR;
-      case AS_VALUE:
-        if (status == "GET_LINE" && args == "keyedit.prompt") {
-          return AS_QUIT;
-        } else if (status == "GET_BOOL" &&
-                   args == "edit_ownertrust.set_ultimate.okay") {
-          return AS_REALLY_ULTIMATE;
-        }
-        return AS_ERROR;
-      case AS_REALLY_ULTIMATE:
-        if (status == "GET_LINE" && args == "keyedit.prompt") {
-          return AS_QUIT;
-        }
-        return AS_ERROR;
-      case AS_QUIT:
-        if (status == "GET_LINE" && args == "keyedit.save.okay") {
-          return AS_SAVE;
-        }
-        return AS_ERROR;
-      case AS_ERROR:
-        if (status == "GET_LINE" && args == "keyedit.prompt") {
-          return AS_QUIT;
-        }
-        return AS_ERROR;
-      default:
-        return AS_ERROR;
-    };
-  };
+        switch (state) {
+          case AS_START:
+            if (status == "GET_LINE" && args == "keyedit.prompt") {
+              return AS_COMMAND;
+            }
+            return AS_ERROR;
+          case AS_COMMAND:
+            if (status == "GET_LINE" && args == "edit_ownertrust.value") {
+              return AS_VALUE;
+            }
+            return AS_ERROR;
+          case AS_VALUE:
+            if (status == "GET_LINE" && args == "keyedit.prompt") {
+              return AS_QUIT;
+            } else if (status == "GET_BOOL" &&
+                       args == "edit_ownertrust.set_ultimate.okay") {
+              return AS_REALLY_ULTIMATE;
+            }
+            return AS_ERROR;
+          case AS_REALLY_ULTIMATE:
+            if (status == "GET_LINE" && args == "keyedit.prompt") {
+              return AS_QUIT;
+            }
+            return AS_ERROR;
+          case AS_QUIT:
+            if (status == "GET_BOOL" && args == "keyedit.save.okay") {
+              return AS_SAVE;
+            }
+            return AS_ERROR;
+          case AS_ERROR:
+            if (status == "GET_LINE" && args == "keyedit.prompt") {
+              return AS_QUIT;
+            }
+            return AS_ERROR;
+          default:
+            return AS_ERROR;
+        };
+      };
 
   AutomatonActionHandler action_handler =
       [trust_level](AutomatonHandelStruct& handler, AutomatonState state) {
-        FLOG_D("action_handler state: %d", static_cast<unsigned int>(state));
         switch (state) {
           case AS_COMMAND:
             return QString("trust");
@@ -210,11 +205,15 @@ auto GpgFrontend::GpgKeyManager::interactor_cb_fnc(void* handle,
     return 0;
   }
 
+  LOG_D() << "current state" << handle_struct->CurrentStatus()
+          << "gpg status: " << status_s << ", args: " << args_s;
+
   AutomatonState next_state = handle_struct->NextState(status_s, args_s);
   if (next_state == AS_ERROR) {
-    FLOG_D("handle struct next state caught error, skipping...");
-    return GPG_ERR_FALSE;
+    FLOG_D("handle struct next state caught error, abort...");
+    return -1;
   }
+  LOG_D() << "next state" << next_state;
 
   if (next_state == AS_SAVE) {
     handle_struct->SetSuccess(true);
@@ -223,6 +222,8 @@ auto GpgFrontend::GpgKeyManager::interactor_cb_fnc(void* handle,
   // set state and preform action
   handle_struct->SetStatus(next_state);
   Command cmd = handle_struct->Action();
+
+  LOG_D() << "next action, cmd:" << cmd;
 
   if (!cmd.isEmpty()) {
     auto btye_array = cmd.toUtf8();
@@ -234,4 +235,89 @@ auto GpgFrontend::GpgKeyManager::interactor_cb_fnc(void* handle,
   }
 
   return 0;
+}
+auto GpgFrontend::GpgKeyManager::DeleteSubkey(const GpgKey& key,
+                                              int subkey_index) -> bool {
+  if (subkey_index < 0 || subkey_index >= key.GetSubKeys()->size()) {
+    LOG_W() << "illegal subkey index: " << subkey_index;
+  }
+
+  AutomatonNextStateHandler next_state_handler =
+      [](AutomatonState state, QString status, QString args) {
+        auto tokens = args.split(' ');
+
+        switch (state) {
+          case AS_START:
+            if (status == "GET_LINE" && args == "keyedit.prompt") {
+              return AS_SELECT;
+            }
+            return AS_ERROR;
+          case AS_SELECT:
+            if (status == "GET_LINE" && args == "keyedit.prompt") {
+              return AS_COMMAND;
+            }
+            return AS_ERROR;
+          case AS_COMMAND:
+            if (status == "GET_LINE" && args == "keyedit.prompt") {
+              return AS_QUIT;
+            } else if (status == "GET_BOOL" &&
+                       args == "keyedit.remove.subkey.okay") {
+              return AS_REALLY_ULTIMATE;
+            }
+            return AS_ERROR;
+          case AS_REALLY_ULTIMATE:
+            if (status == "GET_LINE" && args == "keyedit.prompt") {
+              return AS_QUIT;
+            }
+            return AS_ERROR;
+          case AS_QUIT:
+            if (status == "GET_BOOL" && args == "keyedit.save.okay") {
+              return AS_SAVE;
+            }
+            return AS_ERROR;
+          case AS_ERROR:
+            if (status == "GET_LINE" && args == "keyedit.prompt") {
+              return AS_QUIT;
+            }
+            return AS_ERROR;
+          default:
+            return AS_ERROR;
+        };
+      };
+
+  AutomatonActionHandler action_handler =
+      [subkey_index](AutomatonHandelStruct& handler, AutomatonState state) {
+        switch (state) {
+          case AS_SELECT:
+            return QString("key %1").arg(subkey_index);
+          case AS_COMMAND:
+            return QString("delkey");
+          case AS_REALLY_ULTIMATE:
+            handler.SetSuccess(true);
+            return QString("Y");
+          case AS_QUIT:
+            return QString("quit");
+          case AS_SAVE:
+            handler.SetSuccess(true);
+            return QString("Y");
+          case AS_START:
+          case AS_ERROR:
+            return QString("");
+          default:
+            return QString("");
+        }
+        return QString("");
+      };
+
+  auto key_fpr = key.GetFingerprint();
+  AutomatonHandelStruct handel_struct(key_fpr);
+  handel_struct.SetHandler(next_state_handler, action_handler);
+
+  GpgData data_out;
+
+  auto err =
+      gpgme_op_interact(ctx_.DefaultContext(), static_cast<gpgme_key_t>(key), 0,
+                        GpgKeyManager::interactor_cb_fnc,
+                        static_cast<void*>(&handel_struct), data_out);
+  return CheckGpgError(err) == GPG_ERR_NO_ERROR && handel_struct.Success();
 }

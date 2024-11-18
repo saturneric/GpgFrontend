@@ -47,8 +47,8 @@ auto SetOwnerTrustLevel::Exec(int channel, const QString& key_id) -> bool {
 
   QStringList items;
 
-  items << tr("Unknown") << tr("Undefined") << tr("Never") << tr("Marginal")
-        << tr("Full") << tr("Ultimate");
+  items << tr("Undefined") << tr("Never") << tr("Marginal") << tr("Full")
+        << tr("Ultimate");
   bool ok;
   QString item = QInputDialog::getItem(this, tr("Modify Owner Trust Level"),
                                        tr("Trust for the Key Pair:"), items,
@@ -69,11 +69,6 @@ auto SetOwnerTrustLevel::Exec(int channel, const QString& key_id) -> bool {
     }
 
     if (trust_level == 0) {
-      QMessageBox::warning(
-          this, tr("Warning"),
-          QString(
-              tr("Owner Trust Level cannot set to Unknown level, automately "
-                 "changing it into Undefined level.")));
       trust_level = 1;
     }
 

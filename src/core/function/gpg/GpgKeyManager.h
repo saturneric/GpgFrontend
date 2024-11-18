@@ -91,6 +91,16 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
    */
   auto SetOwnerTrustLevel(const GpgKey& key, int trust_level) -> bool;
 
+  /**
+   * @brief
+   *
+   * @param key
+   * @param subkey_index
+   * @return true
+   * @return false
+   */
+  auto DeleteSubkey(const GpgKey& key, int subkey_index) -> bool;
+
  private:
   static auto interactor_cb_fnc(void* handle, const char* status,
                                 const char* args, int fd) -> gpgme_error_t;
@@ -98,6 +108,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
   using Command = QString;
   using AutomatonState = enum {
     AS_START,
+    AS_SELECT,
     AS_COMMAND,
     AS_VALUE,
     AS_REALLY_ULTIMATE,
@@ -115,7 +126,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
 
   struct AutomatonHandelStruct {
     void SetStatus(AutomatonState next_state) { current_state_ = next_state; }
-    auto CuurentStatus() -> AutomatonState { return current_state_; }
+    auto CurrentStatus() -> AutomatonState { return current_state_; }
     void SetHandler(AutomatonNextStateHandler next_state_handler,
                     AutomatonActionHandler action_handler) {
       next_state_handler_ = std::move(next_state_handler);

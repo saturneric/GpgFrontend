@@ -202,6 +202,8 @@ void MainWindow::recover_editor_unsaved_pages_from_cache() {
     auto title = unsaved_page_json["title"].toString();
     auto content = unsaved_page_json["content"].toString();
 
+    LOG_D() << "restoring tab, title: " << title;
+
     if (first) {
       edit_->SlotCloseTab();
       first = false;

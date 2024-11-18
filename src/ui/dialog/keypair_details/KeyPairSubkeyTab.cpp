@@ -31,6 +31,7 @@
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/function/gpg/GpgKeyManager.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
@@ -149,6 +150,11 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, const QString& key_id,
   setAttribute(Qt::WA_DeleteOnClose, true);
 
   slot_refresh_subkey_list();
+
+  // set up signal
+  connect(this, &KeyPairSubkeyTab::SignalKeyDatabaseRefresh,
+          UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefresh);
 }
 
 void KeyPairSubkeyTab::create_subkey_list() {
@@ -338,8 +344,13 @@ void KeyPairSubkeyTab::create_subkey_opera_menu() {
   connect(export_subkey_act_, &QAction::triggered, this,
           &KeyPairSubkeyTab::slot_export_subkey);
 
+  delete_subkey_act_ = new QAction(tr("Delete"));
+  connect(delete_subkey_act_, &QAction::triggered, this,
+          &KeyPairSubkeyTab::slot_delete_subkey);
+
   subkey_opera_menu_->addAction(export_subkey_act_);
   subkey_opera_menu_->addAction(edit_subkey_act_);
+  subkey_opera_menu_->addAction(delete_subkey_act_);
 }
 
 void KeyPairSubkeyTab::slot_edit_subkey() {
@@ -359,6 +370,7 @@ void KeyPairSubkeyTab::contextMenuEvent(QContextMenuEvent* event) {
 
     export_subkey_act_->setDisabled(!subkey.IsSecretKey());
     edit_subkey_act_->setDisabled(!subkey.IsSecretKey());
+    delete_subkey_act_->setDisabled(!subkey.IsSecretKey());
 
     subkey_opera_menu_->exec(event->globalPos());
   }
@@ -391,11 +403,7 @@ void KeyPairSubkeyTab::slot_export_subkey() {
           tr("Do you want to proceed with exporting this subkey?"),
       QMessageBox::Cancel | QMessageBox::Yes, QMessageBox::Cancel);
 
-  if (ret != QMessageBox::Yes) {
-    QMessageBox::information(this, tr("Export Cancelled"),
-                             tr("The subkey export has been cancelled."));
-    return;
-  }
+  if (ret != QMessageBox::Yes) return;
 
   const auto& subkey = get_selected_subkey();
 
@@ -431,4 +439,51 @@ void KeyPairSubkeyTab::slot_export_subkey() {
   }
 }
 
+void KeyPairSubkeyTab::slot_delete_subkey() {
+  const auto& subkey = get_selected_subkey();
+  const auto subkeys = key_.GetSubKeys();
+
+  QString message = tr("<h3>You are about to delete the subkey:</h3><br />"
+                       "<b>KeyID:</b> %1<br /><br />"
+                       "This action is irreversible. Please confirm.")
+                        .arg(subkey.GetID());
+
+  int ret = QMessageBox::warning(
+      this, tr("Delete Subkey Confirmation"), message,
+      QMessageBox::Cancel | QMessageBox::Yes, QMessageBox::Cancel);
+
+  if (ret != QMessageBox::Yes) return;
+
+  int index = 0;
+  for (const auto& sk : *subkeys) {
+    if (sk.GetFingerprint() == subkey.GetFingerprint()) {
+      break;
+    }
+    index++;
+  }
+
+  if (index == 0) {
+    QMessageBox::critical(
+        this, tr("Illegal Operation"),
+        tr("Cannot delete the primary key or an invalid subkey."));
+    return;
+  }
+
+  auto res = GpgKeyManager::GetInstance(current_gpg_context_channel_)
+                 .DeleteSubkey(key_, index);
+
+  if (!res) {
+    QMessageBox::critical(this, tr("Operation Failed"),
+                          tr("The selected subkey could not be deleted. "
+                             "Please check your permissions or try again."));
+    return;
+  }
+
+  QMessageBox::information(
+      this, tr("Operation Successful"),
+      tr("The subkey with KeyID %1 has been successfully deleted.")
+          .arg(subkey.GetID()));
+
+  emit SignalKeyDatabaseRefresh();
+}
 }  // namespace GpgFrontend::UI
