@@ -144,5 +144,6 @@ class KeyPairOperaTab : public QWidget {
   QMenu* key_server_opera_menu_{};  ///<
   QMenu* rev_cert_opera_menu_{};
   QMenu* secret_key_export_opera_menu_{};  ///<
+  
 };
 }  // namespace GpgFrontend::UI

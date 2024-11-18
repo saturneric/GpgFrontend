@@ -52,7 +52,7 @@ KeyDetailsDialog::KeyDetailsDialog(int channel, const GpgKey& key,
 
     tab_widget_->addTab(new KeyPairSubkeyTab(current_gpg_context_channel_,
                                              key.GetId(), tab_widget_),
-                        tr("Subkeys"));
+                        tr("Keychain"));
     tab_widget_->addTab(new KeyPairOperaTab(current_gpg_context_channel_,
                                             key.GetId(), tab_widget_),
                         tr("Operations"));

@@ -77,6 +77,7 @@ class KeyPairSubkeyTab : public QWidget {
 
   QMenu* subkey_opera_menu_{};  ///<
 
+  QLabel* key_type_var_label_;
   QLabel* key_size_var_label_;   ///< Label containing the keys key size
   QLabel* expire_var_label_;     ///< Label containing the keys expiration date
   QLabel* created_var_label_;    ///< Label containing the keys creation date
@@ -87,6 +88,11 @@ class KeyPairSubkeyTab : public QWidget {
   QLabel* usage_var_label_;        ///<
   QLabel* master_key_exist_var_label_;  ///<
   QLabel* card_key_label_;              ///<
+
+  QPushButton* export_subkey_button_;
+  QAction* export_subkey_act_;
+
+  QAction* edit_subkey_act_;
 
  private slots:
 

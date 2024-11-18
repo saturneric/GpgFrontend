@@ -50,8 +50,8 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, const QString& key_id,
   create_subkey_list();
   create_subkey_opera_menu();
 
-  list_box_ = new QGroupBox(tr("Subkey List"));
-  detail_box_ = new QGroupBox(tr("Detail of Selected Subkey"));
+  list_box_ = new QGroupBox(tr("List of the primary key and subkey(s)"));
+  detail_box_ = new QGroupBox(tr("Detail of Selected Primary Key/Subkey"));
 
   auto* uid_buttons_layout = new QGridLayout();
 
@@ -73,20 +73,22 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, const QString& key_id,
   auto* subkey_detail_layout = new QGridLayout();
 
   subkey_detail_layout->addWidget(new QLabel(tr("Key ID") + ": "), 0, 0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Algorithm") + ": "), 1, 0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Algorithm Detail") + ": "), 2,
+  subkey_detail_layout->addWidget(new QLabel(tr("Key Type") + ": "), 1, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Algorithm") + ": "), 2, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Algorithm Detail") + ": "), 3,
                                   0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Key Size") + ": "), 3, 0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Usage") + ": "), 4, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Key Size") + ": "), 4, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Usage") + ": "), 5, 0);
   subkey_detail_layout->addWidget(
-      new QLabel(tr("Expires On (Local Time)") + ": "), 5, 0);
+      new QLabel(tr("Expires On (Local Time)") + ": "), 6, 0);
   subkey_detail_layout->addWidget(
-      new QLabel(tr("Create Date (Local Time)") + ": "), 6, 0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Existence") + ": "), 7, 0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Key in Smart Card") + ": "), 8,
+      new QLabel(tr("Create Date (Local Time)") + ": "), 7, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Existence") + ": "), 8, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Key in Smart Card") + ": "), 9,
                                   0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Fingerprint") + ": "), 9, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Fingerprint") + ": "), 10, 0);
 
+  key_type_var_label_ = new QLabel(this);
   key_id_var_label_ = new QLabel(this);
   key_size_var_label_ = new QLabel(this);
   expire_var_label_ = new QLabel(this);
@@ -103,20 +105,21 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, const QString& key_id,
   fingerprint_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
   subkey_detail_layout->addWidget(key_id_var_label_, 0, 1, 1, 1);
-  subkey_detail_layout->addWidget(algorithm_var_label_, 1, 1, 1, 2);
-  subkey_detail_layout->addWidget(algorithm_detail_var_label_, 2, 1, 1, 2);
-  subkey_detail_layout->addWidget(key_size_var_label_, 3, 1, 1, 2);
-  subkey_detail_layout->addWidget(usage_var_label_, 4, 1, 1, 2);
-  subkey_detail_layout->addWidget(expire_var_label_, 5, 1, 1, 2);
-  subkey_detail_layout->addWidget(created_var_label_, 6, 1, 1, 2);
-  subkey_detail_layout->addWidget(master_key_exist_var_label_, 7, 1, 1, 2);
-  subkey_detail_layout->addWidget(card_key_label_, 8, 1, 1, 2);
-  subkey_detail_layout->addWidget(fingerprint_var_label_, 9, 1, 1, 2);
+  subkey_detail_layout->addWidget(key_type_var_label_, 1, 1, 1, 2);
+  subkey_detail_layout->addWidget(algorithm_var_label_, 2, 1, 1, 2);
+  subkey_detail_layout->addWidget(algorithm_detail_var_label_, 3, 1, 1, 2);
+  subkey_detail_layout->addWidget(key_size_var_label_, 4, 1, 1, 2);
+  subkey_detail_layout->addWidget(usage_var_label_, 5, 1, 1, 2);
+  subkey_detail_layout->addWidget(expire_var_label_, 6, 1, 1, 2);
+  subkey_detail_layout->addWidget(created_var_label_, 7, 1, 1, 2);
+  subkey_detail_layout->addWidget(master_key_exist_var_label_, 8, 1, 1, 2);
+  subkey_detail_layout->addWidget(card_key_label_, 9, 1, 1, 2);
+  subkey_detail_layout->addWidget(fingerprint_var_label_, 10, 1, 1, 2);
 
-  auto* export_subkey_button = new QPushButton(tr("Export Subkey"));
-  export_subkey_button->setFlat(true);
-  subkey_detail_layout->addWidget(export_subkey_button, 0, 2);
-  connect(export_subkey_button, &QPushButton::clicked, this,
+  export_subkey_button_ = new QPushButton(tr("Export Subkey"));
+  export_subkey_button_->setFlat(true);
+  subkey_detail_layout->addWidget(export_subkey_button_, 0, 2);
+  connect(export_subkey_button_, &QPushButton::clicked, this,
           &KeyPairSubkeyTab::slot_export_subkey);
 
   list_box_->setLayout(subkey_list_layout);
@@ -167,11 +170,11 @@ void KeyPairSubkeyTab::create_subkey_list() {
   subkey_list_->setAlternatingRowColors(true);
 
   QStringList labels;
-  labels << tr("Subkey ID") << tr("Key Size") << tr("Algorithm")
+  labels << tr("Key ID") << tr("Key Type") << tr("Key Size") << tr("Algorithm")
          << tr("Algorithm Detail") << tr("Create Date") << tr("Expire Date");
 
   subkey_list_->setHorizontalHeaderLabels(labels);
-  subkey_list_->horizontalHeader()->setStretchLastSection(false);
+  subkey_list_->horizontalHeader()->setStretchLastSection(true);
 }
 
 void KeyPairSubkeyTab::slot_refresh_subkey_list() {
@@ -188,34 +191,40 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
 
   subkey_list_->setRowCount(buffered_subkeys_.size());
 
-  for (const auto& subkeys : buffered_subkeys_) {
-    auto* tmp0 = new QTableWidgetItem(subkeys.GetID());
+  for (const auto& subkey : buffered_subkeys_) {
+    auto* tmp0 = new QTableWidgetItem(subkey.GetID());
     tmp0->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 0, tmp0);
 
-    auto* tmp1 = new QTableWidgetItem(QString::number(subkeys.GetKeyLength()));
+    auto* tmp1 = new QTableWidgetItem(subkey.IsHasCertificationCapability()
+                                          ? tr("Primary Key")
+                                          : tr("Subkey"));
     tmp1->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 1, tmp1);
 
-    auto* tmp2 = new QTableWidgetItem(subkeys.GetPubkeyAlgo());
+    auto* tmp2 = new QTableWidgetItem(QString::number(subkey.GetKeyLength()));
     tmp2->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 2, tmp2);
 
-    auto* tmp3 = new QTableWidgetItem(subkeys.GetKeyAlgo());
+    auto* tmp3 = new QTableWidgetItem(subkey.GetPubkeyAlgo());
     tmp3->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 3, tmp3);
 
-    auto* tmp4 =
-        new QTableWidgetItem(QLocale().toString(subkeys.GetCreateTime()));
+    auto* tmp4 = new QTableWidgetItem(subkey.GetKeyAlgo());
     tmp4->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 4, tmp4);
 
     auto* tmp5 =
-        new QTableWidgetItem(subkeys.GetExpireTime().toSecsSinceEpoch() == 0
-                                 ? tr("Never Expire")
-                                 : QLocale().toString(subkeys.GetExpireTime()));
+        new QTableWidgetItem(QLocale().toString(subkey.GetCreateTime()));
     tmp5->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 5, tmp5);
+
+    auto* tmp6 =
+        new QTableWidgetItem(subkey.GetExpireTime().toSecsSinceEpoch() == 0
+                                 ? tr("Never Expire")
+                                 : QLocale().toString(subkey.GetExpireTime()));
+    tmp6->setTextAlignment(Qt::AlignCenter);
+    subkey_list_->setItem(row, 6, tmp6);
 
     if (!row) {
       for (auto i = 0; i < subkey_list_->columnCount(); i++) {
@@ -225,8 +234,6 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
 
     row++;
   }
-
-  FLOG_D("subkey_list_ refreshed");
 
   if (subkey_list_->rowCount() > 0) {
     subkey_list_->selectRow(0);
@@ -309,19 +316,30 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
 
   fingerprint_var_label_->setText(BeautifyFingerprint(subkey.GetFingerprint()));
   fingerprint_var_label_->setWordWrap(true);  // for x448 and ed448
+
+  export_subkey_button_->setText(subkey.IsHasCertificationCapability()
+                                     ? tr("Export Primary Key")
+                                     : tr("Export Subkey"));
+  export_subkey_button_->setDisabled(!key_.IsPrivateKey() ||
+                                     subkey.IsHasCertificationCapability() ||
+                                     !subkey.IsSecretKey());
+
+  key_type_var_label_->setText(
+      subkey.IsHasCertificationCapability() ? tr("Primary Key") : tr("Subkey"));
 }
 
 void KeyPairSubkeyTab::create_subkey_opera_menu() {
   subkey_opera_menu_ = new QMenu(this);
-  auto* edit_subkey_act = new QAction(tr("Edit Expire Date"));
-  connect(edit_subkey_act, &QAction::triggered, this,
+  edit_subkey_act_ = new QAction(tr("Edit Expire Date"));
+  connect(edit_subkey_act_, &QAction::triggered, this,
           &KeyPairSubkeyTab::slot_edit_subkey);
 
-  auto* export_subkey_act = new QAction(tr("Export"));
-  connect(export_subkey_act, &QAction::triggered, this,
+  export_subkey_act_ = new QAction(tr("Export"));
+  connect(export_subkey_act_, &QAction::triggered, this,
           &KeyPairSubkeyTab::slot_export_subkey);
 
-  subkey_opera_menu_->addAction(edit_subkey_act);
+  subkey_opera_menu_->addAction(export_subkey_act_);
+  subkey_opera_menu_->addAction(edit_subkey_act_);
 }
 
 void KeyPairSubkeyTab::slot_edit_subkey() {
@@ -335,6 +353,13 @@ void KeyPairSubkeyTab::slot_revoke_subkey() {}
 
 void KeyPairSubkeyTab::contextMenuEvent(QContextMenuEvent* event) {
   if (key_.IsPrivateKey() && !subkey_list_->selectedItems().isEmpty()) {
+    const auto& subkey = get_selected_subkey();
+
+    if (subkey.IsHasCertificationCapability()) return;
+
+    export_subkey_act_->setDisabled(!subkey.IsSecretKey());
+    edit_subkey_act_->setDisabled(!subkey.IsSecretKey());
+
     subkey_opera_menu_->exec(event->globalPos());
   }
 }
