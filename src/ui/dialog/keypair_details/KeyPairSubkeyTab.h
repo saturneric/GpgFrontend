@@ -126,6 +126,12 @@ class KeyPairSubkeyTab : public QWidget {
    */
   void slot_refresh_key_info();
 
+  /**
+   * @brief
+   *
+   */
+  void slot_export_subkey();
+
  protected:
   /**
    * @brief

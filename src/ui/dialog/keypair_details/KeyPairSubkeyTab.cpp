@@ -30,8 +30,12 @@
 
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/utils/CommonUtils.h"
+#include "core/utils/GpgUtils.h"
+#include "core/utils/IOUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/UserInterfaceUtils.h"
 
 namespace GpgFrontend::UI {
 
@@ -94,6 +98,10 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, const QString& key_id,
   fingerprint_var_label_ = new QLabel(this);
   card_key_label_ = new QLabel(this);
 
+  // make keyid & fingerprint selectable for copy
+  key_id_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
+  fingerprint_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
+
   subkey_detail_layout->addWidget(key_id_var_label_, 0, 1, 1, 1);
   subkey_detail_layout->addWidget(algorithm_var_label_, 1, 1, 1, 2);
   subkey_detail_layout->addWidget(algorithm_detail_var_label_, 2, 1, 1, 2);
@@ -105,14 +113,11 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, const QString& key_id,
   subkey_detail_layout->addWidget(card_key_label_, 8, 1, 1, 2);
   subkey_detail_layout->addWidget(fingerprint_var_label_, 9, 1, 1, 2);
 
-  auto* copy_key_id_button = new QPushButton(tr("Copy"));
-  copy_key_id_button->setFlat(true);
-  subkey_detail_layout->addWidget(copy_key_id_button, 0, 2);
-  connect(copy_key_id_button, &QPushButton::clicked, this, [=]() {
-    QString fpr = key_id_var_label_->text().trimmed();
-    QClipboard* cb = QApplication::clipboard();
-    cb->setText(fpr);
-  });
+  auto* export_subkey_button = new QPushButton(tr("Export Subkey"));
+  export_subkey_button->setFlat(true);
+  subkey_detail_layout->addWidget(export_subkey_button, 0, 2);
+  connect(export_subkey_button, &QPushButton::clicked, this,
+          &KeyPairSubkeyTab::slot_export_subkey);
 
   list_box_->setLayout(subkey_list_layout);
   list_box_->setContentsMargins(0, 12, 0, 0);
@@ -312,6 +317,10 @@ void KeyPairSubkeyTab::create_subkey_opera_menu() {
   connect(edit_subkey_act, &QAction::triggered, this,
           &KeyPairSubkeyTab::slot_edit_subkey);
 
+  auto* export_subkey_act = new QAction(tr("Export"));
+  connect(export_subkey_act, &QAction::triggered, this,
+          &KeyPairSubkeyTab::slot_export_subkey);
+
   subkey_opera_menu_->addAction(edit_subkey_act);
 }
 
@@ -340,10 +349,61 @@ auto KeyPairSubkeyTab::get_selected_subkey() -> const GpgSubKey& {
 
   return buffered_subkeys_[row];
 }
+
 void KeyPairSubkeyTab::slot_refresh_key_info() {
   key_ = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
              .GetKey(key_.GetId());
   assert(key_.IsGood());
+}
+
+void KeyPairSubkeyTab::slot_export_subkey() {
+  int ret = QMessageBox::question(
+      this, tr("Exporting Subkey"),
+      "<h3>" + tr("You are about to export a private subkey.") + "</h3>\n" +
+          tr("While subkeys are less critical than the primary key, "
+             "they should still be handled with care.") +
+          "<br /><br />" +
+          tr("Do you want to proceed with exporting this subkey?"),
+      QMessageBox::Cancel | QMessageBox::Yes, QMessageBox::Cancel);
+
+  if (ret != QMessageBox::Yes) {
+    QMessageBox::information(this, tr("Export Cancelled"),
+                             tr("The subkey export has been cancelled."));
+    return;
+  }
+
+  const auto& subkey = get_selected_subkey();
+
+  auto [err, gf_buffer] =
+      GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
+          .ExportSubkey(subkey.GetFingerprint(), true);
+
+  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+    CommonUtils::RaiseMessageBox(this, err);
+    return;
+  }
+
+  // generate a file name
+#if defined(_WIN32) || defined(WIN32)
+  auto file_string = key_.GetName() + "[" + key_.GetEmail() + "](" +
+                     subkey.GetID() + ")_subkey.asc";
+#else
+  auto file_string = key_.GetName() + "<" + key_.GetEmail() + ">(" +
+                     subkey.GetID() + ")_subkey.asc";
+#endif
+  std::replace(file_string.begin(), file_string.end(), ' ', '_');
+
+  auto file_name = QFileDialog::getSaveFileName(
+      this, tr("Export Key To File"), file_string,
+      tr("Key Files") + " (*.asc *.txt);;All Files (*)");
+
+  if (file_name.isEmpty()) return;
+
+  if (!WriteFileGFBuffer(file_name, gf_buffer)) {
+    QMessageBox::critical(this, tr("Export Error"),
+                          tr("Couldn't open %1 for writing").arg(file_name));
+    return;
+  }
 }
 
 }  // namespace GpgFrontend::UI

@@ -75,6 +75,16 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
   /**
    * @brief
    *
+   * @param fpr
+   * @param ascii
+   * @return std::tuple<GpgError, GFBuffer>
+   */
+  [[nodiscard]] auto ExportSubkey(const QString& fpr, bool ascii) const
+      -> std::tuple<GpgError, GFBuffer>;
+
+  /**
+   * @brief
+   *
    * @param keys
    * @param outBuffer
    * @param secret

@@ -26,13 +26,67 @@
  *
  */
 
-#include <vector>
-
 #include "GpgCoreTest.h"
 #include "core/GpgConstants.h"
+#include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::Test {
 
-// TEST_F(GpgCoreTest, CoreExportSecretTest) {}
+TEST_F(GpgCoreTest, CoreExportSubkeyTestA) {
+  auto [err, gf_buffer] = GpgKeyImportExporter::GetInstance().ExportSubkey(
+      "F89C95A05088CC93", true);
+
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_FALSE(gf_buffer.Empty());
+  ASSERT_EQ(
+      QCryptographicHash::hash(gf_buffer.ConvertToQByteArray(),
+                               QCryptographicHash::Sha256)
+          .toHex(),
+      QByteArray(
+          "6e3375060aa889d9eb61e2966eabb31eb6b5359a7742ee7adeedec09e6afa36a"));
+}
+
+TEST_F(GpgCoreTest, CoreExportSubkeyTestB) {
+  auto [err, gf_buffer] = GpgKeyImportExporter::GetInstance().ExportSubkey(
+      "F89C95A05088CC93!", true);
+
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_FALSE(gf_buffer.Empty());
+  ASSERT_EQ(
+      QCryptographicHash::hash(gf_buffer.ConvertToQByteArray(),
+                               QCryptographicHash::Sha256)
+          .toHex(),
+      QByteArray(
+          "6e3375060aa889d9eb61e2966eabb31eb6b5359a7742ee7adeedec09e6afa36a"));
+}
+
+TEST_F(GpgCoreTest, CoreExportSubkeyTestC) {
+  auto [err, gf_buffer] = GpgKeyImportExporter::GetInstance().ExportSubkey(
+      "CFF986E51BBC2F46064C2136F89C95A05088CC93", true);
+
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_FALSE(gf_buffer.Empty());
+  ASSERT_EQ(
+      QCryptographicHash::hash(gf_buffer.ConvertToQByteArray(),
+                               QCryptographicHash::Sha256)
+          .toHex(),
+      QByteArray(
+          "6e3375060aa889d9eb61e2966eabb31eb6b5359a7742ee7adeedec09e6afa36a"));
+}
+
+TEST_F(GpgCoreTest, CoreExportSubkeyTestD) {
+  auto [err, gf_buffer] = GpgKeyImportExporter::GetInstance().ExportSubkey(
+      "CFF986E51BBC2F46064C2136F89C95A05088CC93!", true);
+
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_FALSE(gf_buffer.Empty());
+  ASSERT_EQ(
+      QCryptographicHash::hash(gf_buffer.ConvertToQByteArray(),
+                               QCryptographicHash::Sha256)
+          .toHex(),
+      QByteArray(
+          "6e3375060aa889d9eb61e2966eabb31eb6b5359a7742ee7adeedec09e6afa36a"));
+}
 
 }  // namespace GpgFrontend::Test

@@ -174,4 +174,20 @@ void GpgKeyImportExporter::ExportAllKeys(const KeyArgsList& keys, bool secret,
       cb, "gpgme_op_export_keys", "2.1.0");
 }
 
+auto GpgKeyImportExporter::ExportSubkey(const QString& fpr, bool ascii) const
+    -> std::tuple<GpgError, GFBuffer> {
+  int mode = 0;
+  mode |= GPGME_EXPORT_MODE_SECRET_SUBKEY;
+
+  auto pattern = fpr;
+  if (!fpr.endsWith("!")) pattern += "!";
+
+  GpgData data_out;
+  auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+  auto err =
+      gpgme_op_export(ctx, pattern.toLatin1().constData(), mode, data_out);
+  if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {err, {}};
+
+  return {err, data_out.Read2GFBuffer()};
+}
 }  // namespace GpgFrontend
