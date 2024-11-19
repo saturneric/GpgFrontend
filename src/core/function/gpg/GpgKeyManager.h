@@ -101,6 +101,17 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
    */
   auto DeleteSubkey(const GpgKey& key, int subkey_index) -> bool;
 
+  /**
+   * @brief
+   *
+   * @param key
+   * @param subkey_index
+   * @return true
+   * @return false
+   */
+  auto RevokeSubkey(const GpgKey& key, int subkey_index, int reason_code,
+                    const QString& reason_text) -> bool;
+
  private:
   static auto interactor_cb_fnc(void* handle, const char* status,
                                 const char* args, int fd) -> gpgme_error_t;
@@ -111,6 +122,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
     AS_SELECT,
     AS_COMMAND,
     AS_VALUE,
+    AS_REASON_CODE,
+    AS_REASON_TEXT,
     AS_REALLY_ULTIMATE,
     AS_SAVE,
     AS_ERROR,

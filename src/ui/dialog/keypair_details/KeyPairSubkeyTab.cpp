@@ -37,6 +37,7 @@
 #include "core/utils/IOUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/dialog/RevocationOptionsDialog.h"
 
 namespace GpgFrontend::UI {
 
@@ -85,14 +86,16 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, const QString& key_id,
   subkey_detail_layout->addWidget(
       new QLabel(tr("Create Date (Local Time)") + ": "), 7, 0);
   subkey_detail_layout->addWidget(new QLabel(tr("Existence") + ": "), 8, 0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Key in Smart Card") + ": "), 9,
-                                  0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Fingerprint") + ": "), 10, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Revoked") + ": "), 9, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Key in Smart Card") + ": "),
+                                  10, 0);
+  subkey_detail_layout->addWidget(new QLabel(tr("Fingerprint") + ": "), 11, 0);
 
   key_type_var_label_ = new QLabel(this);
   key_id_var_label_ = new QLabel(this);
   key_size_var_label_ = new QLabel(this);
   expire_var_label_ = new QLabel(this);
+  revoke_var_label_ = new QLabel(this);
   algorithm_var_label_ = new QLabel(this);
   algorithm_detail_var_label_ = new QLabel(this);
   created_var_label_ = new QLabel(this);
@@ -114,8 +117,9 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, const QString& key_id,
   subkey_detail_layout->addWidget(expire_var_label_, 6, 1, 1, 2);
   subkey_detail_layout->addWidget(created_var_label_, 7, 1, 1, 2);
   subkey_detail_layout->addWidget(master_key_exist_var_label_, 8, 1, 1, 2);
-  subkey_detail_layout->addWidget(card_key_label_, 9, 1, 1, 2);
-  subkey_detail_layout->addWidget(fingerprint_var_label_, 10, 1, 1, 2);
+  subkey_detail_layout->addWidget(revoke_var_label_, 9, 1, 1, 2);
+  subkey_detail_layout->addWidget(card_key_label_, 10, 1, 1, 2);
+  subkey_detail_layout->addWidget(fingerprint_var_label_, 11, 1, 1, 2);
 
   export_subkey_button_ = new QPushButton(tr("Export Subkey"));
   export_subkey_button_->setFlat(true);
@@ -191,7 +195,6 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
   this->buffered_subkeys_.clear();
   auto sub_keys = key_.GetSubKeys();
   for (auto& sub_key : *sub_keys) {
-    if (sub_key.IsDisabled() || sub_key.IsRevoked()) continue;
     this->buffered_subkeys_.push_back(std::move(sub_key));
   }
 
@@ -232,9 +235,17 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
     tmp6->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 6, tmp6);
 
-    if (!row) {
+    if (row == 0) {
       for (auto i = 0; i < subkey_list_->columnCount(); i++) {
         subkey_list_->item(row, i)->setForeground(QColor(65, 105, 255));
+      }
+    }
+
+    if (subkey.IsExpired() || subkey.IsRevoked()) {
+      for (auto i = 0; i < subkey_list_->columnCount(); i++) {
+        auto font = subkey_list_->item(row, i)->font();
+        font.setStrikeOut(true);
+        subkey_list_->item(row, i)->setFont(font);
       }
     }
 
@@ -332,6 +343,17 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
 
   key_type_var_label_->setText(
       subkey.IsHasCertificationCapability() ? tr("Primary Key") : tr("Subkey"));
+
+  revoke_var_label_->setText(subkey.IsRevoked() ? tr("Yes") : tr("No"));
+  if (!subkey.IsRevoked()) {
+    auto palette_expired = revoke_var_label_->palette();
+    palette_expired.setColor(revoke_var_label_->foregroundRole(), Qt::red);
+    revoke_var_label_->setPalette(palette_expired);
+  } else {
+    auto palette_valid = revoke_var_label_->palette();
+    palette_valid.setColor(revoke_var_label_->foregroundRole(), Qt::darkGreen);
+    revoke_var_label_->setPalette(palette_valid);
+  }
 }
 
 void KeyPairSubkeyTab::create_subkey_opera_menu() {
@@ -348,8 +370,13 @@ void KeyPairSubkeyTab::create_subkey_opera_menu() {
   connect(delete_subkey_act_, &QAction::triggered, this,
           &KeyPairSubkeyTab::slot_delete_subkey);
 
+  revoke_subkey_act_ = new QAction(tr("Revoke"));
+  connect(revoke_subkey_act_, &QAction::triggered, this,
+          &KeyPairSubkeyTab::slot_revoke_subkey);
+
   subkey_opera_menu_->addAction(export_subkey_act_);
   subkey_opera_menu_->addAction(edit_subkey_act_);
+  subkey_opera_menu_->addAction(revoke_subkey_act_);
   subkey_opera_menu_->addAction(delete_subkey_act_);
 }
 
@@ -360,10 +387,9 @@ void KeyPairSubkeyTab::slot_edit_subkey() {
   dialog->show();
 }
 
-void KeyPairSubkeyTab::slot_revoke_subkey() {}
-
 void KeyPairSubkeyTab::contextMenuEvent(QContextMenuEvent* event) {
-  if (key_.IsPrivateKey() && !subkey_list_->selectedItems().isEmpty()) {
+  // must have primary key before do any actions on subkey
+  if (key_.IsHasMasterKey() && !subkey_list_->selectedItems().isEmpty()) {
     const auto& subkey = get_selected_subkey();
 
     if (subkey.IsHasCertificationCapability()) return;
@@ -371,6 +397,8 @@ void KeyPairSubkeyTab::contextMenuEvent(QContextMenuEvent* event) {
     export_subkey_act_->setDisabled(!subkey.IsSecretKey());
     edit_subkey_act_->setDisabled(!subkey.IsSecretKey());
     delete_subkey_act_->setDisabled(!subkey.IsSecretKey());
+    revoke_subkey_act_->setDisabled(!subkey.IsSecretKey() ||
+                                    subkey.IsRevoked());
 
     subkey_opera_menu_->exec(event->globalPos());
   }
@@ -485,5 +513,60 @@ void KeyPairSubkeyTab::slot_delete_subkey() {
           .arg(subkey.GetID()));
 
   emit SignalKeyDatabaseRefresh();
+}
+
+void KeyPairSubkeyTab::slot_revoke_subkey() {
+  const auto& subkey = get_selected_subkey();
+  const auto subkeys = key_.GetSubKeys();
+
+  QString message = tr("<h3>Revoke Subkey Confirmation</h3><br />"
+                       "<b>KeyID:</b> %1<br />2<br />"
+                       "Revoking a subkey will make it permanently unusable. "
+                       "This action is <b>irreversible</b>.<br />"
+                       "Are you sure you want to revoke this subkey?")
+                        .arg(subkey.GetID());
+
+  int ret = QMessageBox::warning(this, tr("Revoke Subkey"), message,
+                                 QMessageBox::Cancel | QMessageBox::Yes,
+                                 QMessageBox::Cancel);
+
+  if (ret != QMessageBox::Yes) return;
+
+  int index = 0;
+  for (const auto& sk : *subkeys) {
+    if (sk.GetFingerprint() == subkey.GetFingerprint()) {
+      break;
+    }
+    index++;
+  }
+
+  if (index == 0) {
+    QMessageBox::critical(
+        this, tr("Illegal Operation"),
+        tr("Cannot revoke the primary key or an invalid subkey."));
+    return;
+  }
+
+  auto* revocation_options_dialog = new RevocationOptionsDialog(this);
+
+  connect(revocation_options_dialog,
+          &RevocationOptionsDialog::SignalRevokeOptionAccepted, this,
+          [key = key_, index, channel = current_gpg_context_channel_, this](
+              int code, const QString& text) {
+            auto res = GpgKeyManager::GetInstance(channel).RevokeSubkey(
+                key, index, code, text);
+            if (!res) {
+              QMessageBox::critical(
+                  nullptr, tr("Revocation Failed"),
+                  tr("Failed to revoke the subkey. Please try again."));
+            } else {
+              QMessageBox::information(
+                  nullptr, tr("Revocation Successful"),
+                  tr("The subkey has been successfully revoked."));
+              emit SignalKeyDatabaseRefresh();
+            }
+          });
+
+  revocation_options_dialog->show();
 }
 }  // namespace GpgFrontend::UI

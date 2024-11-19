@@ -107,6 +107,7 @@ cBEIUb80jrN959lF8eobqrVouY5GyvZXVZFGoXS4OTkFAwlEZxWBxJw=
 )";
 
 namespace GpgFrontend::Test {
+
 TEST_F(GpgCoreTest, CoreDeleteSubkeyTestA) {
   auto info = GpgKeyImportExporter::GetInstance().ImportKey(
       GFBuffer(QString::fromLatin1(TEST_PRIVATE_KEY_DATA)));
@@ -127,6 +128,7 @@ TEST_F(GpgCoreTest, CoreDeleteSubkeyTestA) {
 
   ASSERT_TRUE(res);
 
+  GpgKeyGetter::GetInstance().FlushKeyCache();
   key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
             .GetKey("822D7E13F5B85D7D");
   ASSERT_TRUE(key.IsGood());
@@ -209,6 +211,42 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
 
   res = GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 6);
   ASSERT_FALSE(res);
+
+  GpgKeyOpera::GetInstance().DeleteKey(key.GetId());
+}
+
+TEST_F(GpgCoreTest, CoreRevokeSubkeyTestA) {
+  auto info = GpgKeyImportExporter::GetInstance().ImportKey(
+      GFBuffer(QString::fromLatin1(TEST_PRIVATE_KEY_DATA)));
+
+  ASSERT_EQ(info->not_imported, 0);
+  ASSERT_EQ(info->imported, 1);
+
+  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+                 .GetKey("822D7E13F5B85D7D");
+  ASSERT_TRUE(key.IsGood());
+
+  auto subkeys = key.GetSubKeys();
+
+  ASSERT_EQ(subkeys->size(), 5);
+  ASSERT_EQ((*subkeys)[2].GetID(), "2D1F9FC59B568A8C");
+
+  auto res = GpgKeyManager::GetInstance().RevokeSubkey(
+      key, 2, 2, QString("H\nE\nLL\nO\n\n"));
+
+  ASSERT_TRUE(res);
+
+  GpgKeyGetter::GetInstance().FlushKeyCache();
+  key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+            .GetKey("822D7E13F5B85D7D");
+  ASSERT_TRUE(key.IsGood());
+
+  subkeys = key.GetSubKeys();
+
+  ASSERT_EQ(subkeys->size(), 5);
+  ASSERT_EQ((*subkeys)[2].GetID(), "2D1F9FC59B568A8C");
+
+  ASSERT_TRUE((*subkeys)[2].IsRevoked());
 
   GpgKeyOpera::GetInstance().DeleteKey(key.GetId());
 }
