@@ -51,25 +51,25 @@ KeyNewUIDDialog::KeyNewUIDDialog(int channel, const KeyId& key_id,
   create_button_ = new QPushButton("Create");
   error_label_ = new QLabel();
 
-  auto gridLayout = new QGridLayout();
-  gridLayout->addWidget(new QLabel(tr("Name")), 0, 0);
-  gridLayout->addWidget(new QLabel(tr("Email")), 1, 0);
-  gridLayout->addWidget(new QLabel(tr("Comment")), 2, 0);
+  auto grid_layout = new QGridLayout();
+  grid_layout->addWidget(new QLabel(tr("Name")), 0, 0);
+  grid_layout->addWidget(new QLabel(tr("Email")), 1, 0);
+  grid_layout->addWidget(new QLabel(tr("Comment")), 2, 0);
 
-  gridLayout->addWidget(name_, 0, 1);
-  gridLayout->addWidget(email_, 1, 1);
-  gridLayout->addWidget(comment_, 2, 1);
+  grid_layout->addWidget(name_, 0, 1);
+  grid_layout->addWidget(email_, 1, 1);
+  grid_layout->addWidget(comment_, 2, 1);
 
-  gridLayout->addWidget(create_button_, 3, 0, 1, 2);
-  gridLayout->addWidget(
+  grid_layout->addWidget(create_button_, 3, 0, 1, 2);
+  grid_layout->addWidget(
       new QLabel(tr("Notice: The New UID Created will be set as Primary.")), 4,
       0, 1, 2);
-  gridLayout->addWidget(error_label_, 5, 0, 1, 2);
+  grid_layout->addWidget(error_label_, 5, 0, 1, 2);
 
   connect(create_button_, &QPushButton::clicked, this,
           &KeyNewUIDDialog::slot_create_new_uid);
 
-  this->setLayout(gridLayout);
+  this->setLayout(grid_layout);
   this->setWindowTitle(tr("Create New UID"));
   this->setAttribute(Qt::WA_DeleteOnClose, true);
   this->setModal(true);

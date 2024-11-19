@@ -59,6 +59,7 @@ KeyPairUIDTab::KeyPairUIDTab(int channel, const QString& key_id,
   if (m_key_.IsHasMasterKey()) {
     manage_uid_button->setMenu(manage_selected_uid_menu_);
   } else {
+    add_uid_button->setDisabled(true);
     manage_uid_button->setDisabled(true);
   }
 

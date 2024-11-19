@@ -241,7 +241,7 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
       }
     }
 
-    if (subkey.IsExpired() || subkey.IsRevoked()) {
+    if (subkey.IsExpired() || subkey.IsRevoked() || !subkey.IsSecretKey()) {
       for (auto i = 0; i < subkey_list_->columnCount(); i++) {
         auto font = subkey_list_->item(row, i)->font();
         font.setStrikeOut(true);

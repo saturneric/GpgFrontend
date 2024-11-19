@@ -105,7 +105,7 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, const QString& key_id,
   advance_h_box_layout->addWidget(key_server_opera_button);
 
   if (Module::IsModuleActivate(kPaperKeyModuleID)) {
-    if (!m_key_.IsPrivateKey() || !m_key_.IsHasMasterKey()) {
+    if (!m_key_.IsPrivateKey()) {
       auto* import_paper_key_button = new QPushButton(tr("Import A Paper Key"));
       import_paper_key_button->setStyleSheet("text-align:center;");
       connect(import_paper_key_button, &QPushButton::clicked, this,

@@ -285,6 +285,9 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   } else if (key_.IsRevoked()) {
     slot_refresh_notice(":/icons/warning.png",
                         tr("Warning: The primary key has been revoked."));
+  } else if (key_.IsPrivateKey() && !key_.IsHasMasterKey()) {
+    slot_refresh_notice(":/icons/warning.png",
+                        tr("Warning: The primary key is not exists."));
   } else {
     slot_query_key_publish_state();
   }
