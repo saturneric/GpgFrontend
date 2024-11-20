@@ -28,6 +28,7 @@
 
 #include "GFSDKBasic.h"
 
+#include "core/function/CacheManager.h"
 #include "core/function/SecureMemoryAllocator.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/utils/BuildInfoUtils.h"
@@ -116,4 +117,25 @@ auto GFAppRegisterTranslatorReader(const char* id,
                  .RegisterTranslatorDataReader(GFUnStrDup(id), reader)
              ? 0
              : -1;
+}
+
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFCacheSave(const char* key,
+                                               const char* value) -> int {
+  GpgFrontend::CacheManager::GetInstance().SaveCache(GFUnStrDup(key),
+                                                     GFUnStrDup(value));
+  return 0;
+}
+
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFCacheGet(const char* key) -> const char* {
+  auto value =
+      GpgFrontend::CacheManager::GetInstance().LoadCache(GFUnStrDup(key));
+  return GFStrDup(value);
+}
+
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFCacheSaveWithTTL(const char* key,
+                                                      const char* value,
+                                                      int ttl) -> int {
+  GpgFrontend::CacheManager::GetInstance().SaveCache(GFUnStrDup(key),
+                                                     GFUnStrDup(value), ttl);
+  return 0;
 }

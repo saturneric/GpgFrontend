@@ -145,14 +145,38 @@ class CacheManager::Impl : public QObject {
 
   void FlushCacheStorage() { this->slot_flush_cache_storage(); }
 
-  void SaveCache(const QString& key, QString value) {
-    runtime_cache_storage_.insert(key, new QString(std::move(value)));
+  void SaveCache(const QString& key, QString value, qint64 ttl) {
+    LOG_D() << "save cache, key: " << key << "ttl: " << ttl;
+    runtime_cache_storage_.insert(
+        key, new CacheObject(
+                 std::move(value),
+                 ttl < 0 ? -1 : QDateTime::currentSecsSinceEpoch() + ttl));
   }
 
   auto LoadCache(const QString& key) -> QString {
+    if (!runtime_cache_storage_.contains(key)) return {};
+    LOG_D() << "hit cache, key: " << key;
+
     auto* value = runtime_cache_storage_.object(key);
-    if (value == nullptr) return {};
-    return *value;
+    if (value == nullptr) {
+      LOG_E() << "hit cache but got nullptr by value, key" << key;
+      return {};
+    }
+
+    if (value->ttl < 0) {
+      return value->value;
+    }
+
+    // deal with expiration
+    auto current_timestamp = QDateTime::currentSecsSinceEpoch();
+    if (current_timestamp > value->ttl) {
+      LOG_D() << "hit cache but expired, key: " << key
+              << "expiration timestamp:" << value->ttl;
+      ResetCache(key);
+      return {};
+    }
+
+    return value->value;
   }
 
   void ResetCache(const QString& key) { runtime_cache_storage_.remove(key); }
@@ -176,7 +200,15 @@ class CacheManager::Impl : public QObject {
   }
 
  private:
-  QCache<QString, QString> runtime_cache_storage_;
+  struct CacheObject {
+    QString value;
+    qint64 ttl;
+
+    CacheObject(QString value, qint64 ttl)
+        : value(std::move(value)), ttl(ttl) {}
+  };
+
+  QCache<QString, CacheObject> runtime_cache_storage_;
   ThreadSafeMap<QString, QJsonDocument> durable_cache_storage_;
   QJsonArray key_storage_;
   QTimer* flush_timer_;
@@ -267,8 +299,8 @@ auto CacheManager::ResetDurableCache(const QString& key) -> bool {
   return p_->ResetDurableCache(key);
 }
 
-void CacheManager::SaveCache(const QString& key, QString value) {
-  p_->SaveCache(key, std::move(value));
+void CacheManager::SaveCache(const QString& key, QString value, qint64 ttl) {
+  p_->SaveCache(key, std::move(value), ttl);
 }
 
 auto CacheManager::LoadCache(const QString& key) -> QString {

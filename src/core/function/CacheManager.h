@@ -55,7 +55,7 @@ class GPGFRONTEND_CORE_EXPORT CacheManager
    * @param key
    * @param value
    */
-  void SaveCache(const QString& key, QString value);
+  void SaveCache(const QString& key, QString value, qint64 ttl = -1);
 
   /**
    * @brief

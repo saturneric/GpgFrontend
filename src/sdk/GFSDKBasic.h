@@ -131,6 +131,35 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFAppActiveLocale() -> char*;
  * @param size
  * @return auto
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT
-GFAppRegisterTranslatorReader(const char* id, GFTranslatorDataReader reader) -> int;
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFAppRegisterTranslatorReader(
+    const char* id, GFTranslatorDataReader reader) -> int;
+
+/**
+ * @brief
+ *
+ * @param key
+ * @param value
+ * @return auto
+ */
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFCacheSave(const char* key,
+                                               const char* value) -> int;
+
+/**
+ * @brief
+ *
+ * @param key
+ * @param value
+ * @return auto
+ */
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFCacheSaveWithTTL(const char* key,
+                                                      const char* value,
+                                                      int ttl) -> int;
+
+/**
+ * @brief
+ *
+ * @param key
+ * @return const char*
+ */
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFCacheGet(const char* key) -> const char*;
 }
