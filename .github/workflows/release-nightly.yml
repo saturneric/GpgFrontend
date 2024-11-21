@@ -91,7 +91,7 @@ jobs:
         shell: msys2 {0}
         run: |
           pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf 
-          pacman --noconfirm -S --needed make texinfo automake 
+          pacman --noconfirm -S --needed make texinfo automake zip
           pacman --noconfirm -S --needed mingw-w64-x86_64-qt6 mingw-w64-x86_64-icu libintl msys2-runtime-devel gettext-devel
           pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg mingw-w64-x86_64-libarchive
           pacman --noconfirm -S --needed mingw-w64-x86_64-gtest
@@ -240,9 +240,9 @@ jobs:
           mkdir ${{github.workspace}}/build/final-artifact
           create-dmg --codesign "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" --volicon "${{github.workspace}}/resource/lfs/icns/GpgFrontend.icns" --volname GpgFrontend --app-drop-link 600 185 --window-size 800 400 ${{github.workspace}}/build/final-artifact/GpgFrontend.dmg ${{github.workspace}}/build/package/GpgFrontend.app
           mv ${{github.workspace}}/build/final-artifact/GpgFrontend.dmg \
-            ${{github.workspace}}/build/final-artifact/GpgFrontend-${{env.sha_short}}-x86_64.dmg
+            ${{github.workspace}}/build/final-artifact/GpgFrontend-${{env.sha_short}}.dmg
           mv ${{github.workspace}}/build/GpgFrontend.app.zip \
-            ${{github.workspace}}/build/GpgFrontend-${{env.sha_short}}-x86_64.zip
+            ${{github.workspace}}/build/GpgFrontend-${{env.sha_short}}.zip
         if: matrix.os == 'macos-12'
 
       - name: Notarize Release Build (macOS)
@@ -251,7 +251,7 @@ jobs:
           --apple-id ${{secrets.APPLE_DEVELOPER_ID}} \
           --team-id ${{secrets.APPLE_DEVELOPER_TEAM_ID}} \
           --password ${{secrets.APPLE_DEVELOPER_ID_SECRET}} \
-          ${{github.workspace}}/build/GpgFrontend-${{env.sha_short}}-x86_64.zip
+          ${{github.workspace}}/build/GpgFrontend-${{env.sha_short}}.zip
           echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE} | tr '[:upper:]' '[:lower:]')" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: matrix.os == 'macos-12'
@@ -293,6 +293,8 @@ jobs:
           cp -r modules/build/artifacts/bin/* build/artifacts/modules
           cd build
           windeployqt-qt6 --no-translations --force ./artifacts/GpgFrontend.exe
+          cd artifacts
+          zip -r ../final-artifact/GpgFrontend-${{env.sha_short}}-x86_64.zip *
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: matrix.os == 'windows-2019'
@@ -315,7 +317,7 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
-          path: ${{github.workspace}}/build/artifacts/*
+          path: ${{github.workspace}}/build/final-artifact/*
         if: matrix.os == 'windows-2019'
   release:
     needs: build
