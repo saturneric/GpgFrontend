@@ -1,6 +1,8 @@
 name: Build & Package & Release Nightly
 
 on:
+  push:
+    branches: ["develop"]
   schedule:
     - cron: "0 14 * * MON-FRI"
 
