@@ -288,15 +288,17 @@ jobs:
       - name: Copy Modules & Package (Windows)
         shell: msys2 {0}
         run: |
+          echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
+          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
+
           cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
           mkdir -p build/artifacts/modules
           cp -r modules/build/artifacts/bin/* build/artifacts/modules
           cd build
           windeployqt-qt6 --no-translations --force ./artifacts/GpgFrontend.exe
+          mkdir final-artifact
           cd artifacts
-          zip -r ../final-artifact/GpgFrontend-${{env.sha_short}}-x86_64.zip *
-          echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
-          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
+          zip -r ../final-artifact/GpgFrontend-${{env.SHORT_SHA}}-x86_64.zip *
         if: matrix.os == 'windows-2019'
 
       - name: Upload Artifact (Linux)
@@ -333,10 +335,10 @@ jobs:
       - name: Generate SHA256 checksums
         run: |
           sha256sum artifacts/* > artifacts/SHA256SUMS.txt
-          cat SHA256SUMS.txt
+          cat artifacts/SHA256SUMS.txt
 
       - name: List files
-        run: ls -rl artifacts
+        run: ls -rl artifacts/
 
       - name: Update Nightly Release
         uses: andelf/nightly-release@main
