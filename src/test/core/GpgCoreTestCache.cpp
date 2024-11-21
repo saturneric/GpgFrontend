@@ -26,6 +26,9 @@
  *
  */
 
+#include <chrono>
+#include <thread>
+
 #include "GpgCoreTest.h"
 #include "core/GpgConstants.h"
 #include "core/function/CacheManager.h"
@@ -47,7 +50,7 @@ TEST_F(GpgCoreTest, CoreCacheTestB) {
 TEST_F(GpgCoreTest, CoreCacheTestC) {
   CacheManager::GetInstance().SaveCache("ABCDEF", "DEF", 2);
   ASSERT_EQ(CacheManager::GetInstance().LoadCache("ABCDEF"), QString("DEFG"));
-  sleep(4);
+  std::this_thread::sleep_for(std::chrono::milliseconds(4000));
   ASSERT_EQ(CacheManager::GetInstance().LoadCache("ABCDEF"), QString(""));
 }
 
