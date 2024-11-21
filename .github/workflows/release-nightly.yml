@@ -285,12 +285,15 @@ jobs:
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
         if: matrix.os == 'windows-2019'
 
+      - name: Get short SHA of Git Commit (Windows)
+        run: echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
+        if: matrix.os == 'windows-2019'
+
       - name: Copy Modules & Package (Windows)
         shell: msys2 {0}
         run: |
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
-
           cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
           mkdir -p build/artifacts/modules
           cp -r modules/build/artifacts/bin/* build/artifacts/modules
