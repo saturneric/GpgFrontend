@@ -43,10 +43,11 @@ GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
   if (GetProjectBuildGitBranchName().contains("develop")) {
     application_display_name +=
         " " +
-        QString("Unstable (%1)").arg(GetProjectBuildGitCommitHash().last(6));
+        QString("Testing (%1)").arg(GetProjectBuildGitCommitHash().last(6));
   } else if (GetProjectBuildGitBranchName().contains("dev/")) {
     application_display_name +=
-        " " + QString("Dev (%1)").arg(GetProjectBuildGitCommitHash().last(6));
+        " " +
+        QString("Develop (%1)").arg(GetProjectBuildGitCommitHash().last(6));
   }
   LOG_I() << "Application Display Name: " << application_display_name;
 
