@@ -34,11 +34,12 @@
 #include <qthread.h>
 
 #include "core/utils/MemoryUtils.h"
+#include "ui/GpgFrontendApplication.h"
 
 namespace GpgFrontend {
 
 void GpgFrontendContext::InitApplication() {
-  app_ = SecureCreateObject<QApplication>(argc, argv);
+  app_ = SecureCreateObject<UI::GpgFrontendApplication>(argc, argv);
 }
 
 auto GpgFrontendContext::GetApp() -> QApplication* { return app_; }

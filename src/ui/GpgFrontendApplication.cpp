@@ -39,13 +39,22 @@ GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
       QIcon(":/icons/gpgfrontend.png"));
 #endif
 
+  QString application_display_name = GetProjectName();
+  if (GetProjectBuildGitBranchName().contains("develop")) {
+    application_display_name +=
+        " " +
+        QString("Unstable (%1)").arg(GetProjectBuildGitCommitHash().last(6));
+  } else if (GetProjectBuildGitBranchName().contains("dev/")) {
+    application_display_name +=
+        " " + QString("Dev (%1)").arg(GetProjectBuildGitCommitHash().last(6));
+  }
+  LOG_I() << "Application Display Name: " << application_display_name;
+
   // set the extra information of the build
   GpgFrontendApplication::setApplicationVersion(GetProjectVersion());
-  GpgFrontendApplication::setApplicationName(QString::fromUtf8((PROJECT_NAME)));
-  GpgFrontendApplication::setApplicationDisplayName(
-      QString::fromUtf8((PROJECT_NAME)));
-  GpgFrontendApplication::setOrganizationName(
-      QString::fromUtf8((PROJECT_NAME)));
+  GpgFrontendApplication::setApplicationName(GetProjectName());
+  GpgFrontendApplication::setApplicationDisplayName(application_display_name);
+  // GpgFrontendApplication::setOrganizationName(GetProjectName());
   GpgFrontendApplication::setQuitOnLastWindowClosed(true);
 
   // don't show icons in menus

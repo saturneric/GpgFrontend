@@ -43,8 +43,7 @@
 namespace GpgFrontend::UI {
 
 MainWindow::MainWindow() : GeneralMainWindow("main_window") {
-  // this->setMinimumSize(1200, 870);
-  this->setWindowTitle(qApp->applicationName());
+  this->setWindowTitle(qApp->applicationDisplayName());
 }
 
 void MainWindow::Init() noexcept {

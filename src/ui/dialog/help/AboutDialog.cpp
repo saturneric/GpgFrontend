@@ -90,41 +90,54 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
       "core", "gpgme.version", QString{"2.0.0"});
 
   auto pixmap = QPixmap(":/icons/gpgfrontend_logo.png");
-  pixmap = pixmap.scaled(128, 128);
+  pixmap =
+      pixmap.scaled(128, 128, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-  auto text =
-      "<center><h2>" + qApp->applicationName() + "</h2></center>" +
-      "<center><b>" + GetProjectVersion() + "</b></center>" + "<center>" +
-      GetProjectBuildGitVersion() + "</center>" + "<br><center>" +
-      tr("GpgFrontend is an easy-to-use, compact, cross-platform, "
-         "and installation-free GnuPG Frontend."
-         "It visualizes most of the common operations of GnuPG."
-         "GpgFrontend is licensed under the GPLv3") +
-      "<br><br>"
-      "<b>" +
-      tr("Developer:") + "</b><br>" + "Saturneric" + "<br><br>" +
+  QString app_info = "<h2 style='text-align:center;'>" +
+                     qApp->applicationDisplayName() + "</h2>" + "<center><b>" +
+                     GetProjectVersion() + "</b></center>" + "<center>" +
+                     GetProjectBuildGitVersion() + "</center>";
+
+  QString developer_info =
+      "<b>" + tr("Developer:") + "</b> Saturneric" + "<br /><br />" +
       tr("If you have any questions or suggestions, raise an issue at") +
-      "<br/>"
       " <a href=\"https://github.com/saturneric/GpgFrontend\">GitHub</a> " +
-      tr("or send a mail to my mailing list at") + " <a " +
-      "href=\"mailto:eric@bktus.com\">eric@bktus.com</a>." + "<br><br> " +
-      tr("Built with Qt") + " " + qVersion() + ", " + OPENSSL_VERSION_TEXT +
-      " " + tr("and") + " " + "GPGME" + " " + gpgme_version + "<br>" +
-      tr("Built at") + " " + QLocale().toString(GetProjectBuildTimestamp()) +
-      "</center>";
+      tr("or send a mail to my mailing list at") +
+      " <a href=\"mailto:eric@bktus.com\">eric@bktus.com</a>.";
 
-  auto* layout = new QGridLayout();
+  QString build_info = tr("Built with Qt") + " " + qVersion() + ", " +
+                       OPENSSL_VERSION_TEXT + " " + tr("and") + " GPGME " +
+                       gpgme_version + "<br>" + tr("Built at") + " " +
+                       QLocale().toString(GetProjectBuildTimestamp());
+
+  auto* layout = new QVBoxLayout();
+
   auto* pixmap_label = new QLabel();
   pixmap_label->setPixmap(pixmap);
-  layout->addWidget(pixmap_label, 0, 0, 1, -1, Qt::AlignCenter);
-  auto* about_label = new QLabel();
-  about_label->setText(text);
-  about_label->setWordWrap(true);
-  about_label->setOpenExternalLinks(true);
-  layout->addWidget(about_label, 1, 0, 1, -1);
-  layout->addItem(
-      new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Fixed), 2, 1,
-      1, 1);
+  pixmap_label->setAlignment(Qt::AlignCenter);
+  layout->addWidget(pixmap_label);
+
+  auto* app_info_label = new QLabel(app_info);
+  app_info_label->setWordWrap(true);
+  app_info_label->setAlignment(Qt::AlignCenter);
+  layout->addWidget(app_info_label);
+
+  auto* dev_info_group = new QGroupBox(tr("Developer Information"));
+  auto* dev_layout = new QVBoxLayout();
+  auto* dev_info_label = new QLabel(developer_info);
+  dev_info_label->setWordWrap(true);
+  dev_info_label->setOpenExternalLinks(true);
+  dev_layout->addWidget(dev_info_label);
+  dev_info_group->setLayout(dev_layout);
+  layout->addWidget(dev_info_group);
+
+  auto* build_info_group = new QGroupBox(tr("Build Information"));
+  auto* build_layout = new QVBoxLayout();
+  auto* build_info_label = new QLabel(build_info);
+  build_info_label->setWordWrap(true);
+  build_layout->addWidget(build_info_label);
+  build_info_group->setLayout(build_layout);
+  layout->addWidget(build_info_group);
 
   setLayout(layout);
 }
