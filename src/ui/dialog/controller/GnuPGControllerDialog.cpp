@@ -394,6 +394,9 @@ void GnuPGControllerDialog::slot_refresh_key_database_table() {
 
     auto* i_name = new QTableWidgetItem(key_database.name);
     i_name->setTextAlignment(Qt::AlignCenter);
+
+    ui_->keyDatabaseTable->setVerticalHeaderItem(
+        index, new QTableWidgetItem(QString::number(index)));
     ui_->keyDatabaseTable->setItem(index, 0, i_name);
 
     ui_->keyDatabaseTable->setItem(index, 1,
