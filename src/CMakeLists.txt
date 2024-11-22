@@ -111,12 +111,7 @@ if(BUILD_APPLICATION)
     if(APPLE)
       set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Resources)
     elseif(LINUX AND NOT LINUX_INSTALL_SOFTWARE)
-      file(MAKE_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir)
-      file(COPY ${CMAKE_SOURCE_DIR}/resource/lfs/hicolor DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/share/icons)
-      file(COPY ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.metainfo.xml DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/share/metainfo FOLLOW_SYMLINK_CHAIN)
-      file(COPY ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.desktop DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/share/applications FOLLOW_SYMLINK_CHAIN)
-      file(COPY ${CMAKE_SOURCE_DIR}/resource/lfs/pixmaps/com.bktus.gpgfrontend.png DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir FOLLOW_SYMLINK_CHAIN)
-      set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/share)
+      set(BUILD_APP_IMAGE 1)
     else()
       set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
     endif()
@@ -131,8 +126,6 @@ if(BUILD_APPLICATION)
       set(GPGFRONTEND_MACOS_ICON ${CMAKE_SOURCE_DIR}/gpgfrontend.icns)
       set_source_files_properties(${GPGFRONTEND_MACOS_ICON} PROPERTIES
         MACOSX_PACKAGE_LOCATION "Resources")
-    elseif(LINUX AND NOT LINUX_INSTALL_SOFTWARE)
-      file(REMOVE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin/${AppName})
     endif()
   endif()
 endif()
@@ -347,18 +340,28 @@ if(BUILD_APPLICATION)
   add_custom_target(resources ALL DEPENDS ${RESOURCE_FILES})
 endif()
 
+if(BUILD_APP_IMAGE)
+  file(MAKE_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir)
+  file(COPY ${CMAKE_SOURCE_DIR}/resource/lfs/hicolor DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/share/icons)
+  file(COPY ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.metainfo.xml DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/share/metainfo FOLLOW_SYMLINK_CHAIN)
+  file(COPY ${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.desktop DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/share/applications FOLLOW_SYMLINK_CHAIN)
+  file(COPY ${CMAKE_SOURCE_DIR}/resource/lfs/pixmaps/com.bktus.gpgfrontend.png DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir FOLLOW_SYMLINK_CHAIN)
+  set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/share)
+
+  file(REMOVE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin/${AppName})
+  add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
+
+  add_custom_command(TARGET ${AppName} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin"
+    COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin/${AppName}"
+    COMMENT "Copying Binary into App Image"
+  )
+endif()
+
 if(BUILD_APPLICATION)
   if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
     if(MINGW)
       add_executable(${AppName} WIN32 ${BASE_SOURCE} ${RESOURCE_FILES})
-    elseif(LINUX AND NOT LINUX_INSTALL_SOFTWARE)
-      add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
-
-      add_custom_command(TARGET ${AppName} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin"
-        COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin/${AppName}"
-        COMMENT "Copying Binary into App Image"
-      )
 
     # app bundle packing using xcode
     elseif(APPLE AND XCODE_BUILD)
