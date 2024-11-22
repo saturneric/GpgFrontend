@@ -100,6 +100,30 @@ class GnuPGControllerDialog : public GeneralDialog {
    */
   void slot_open_key_database();
 
+  /**
+   * @brief
+   *
+   */
+  void slot_move_up_key_database();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_move_down_key_database();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_move_to_top_key_database();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_edit_key_database();
+
  private:
   std::shared_ptr<Ui_GnuPGControllerDialog> ui_;  ///<
   int restart_mode_{0};                           ///<

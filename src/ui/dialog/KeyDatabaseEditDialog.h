@@ -50,6 +50,7 @@ class KeyDatabaseEditDialog : public GeneralDialog {
 
  private:
   std::shared_ptr<Ui_KeyDatabaseEditDialog> ui_;  ///<
+  bool default_;
   QString name_;
   QString path_;
   QList<KeyDatabaseInfo> key_database_infos_;

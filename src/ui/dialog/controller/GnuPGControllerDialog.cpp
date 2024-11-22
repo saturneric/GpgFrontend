@@ -70,7 +70,11 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
          "Application restart."));
 
   popup_menu_ = new QMenu(this);
+  popup_menu_->addAction(ui_->actionMove_Key_Database_Up);
+  popup_menu_->addAction(ui_->actionMove_Key_Database_Down);
+  popup_menu_->addAction(ui_->actionMove_Key_Database_To_Top);
   popup_menu_->addAction(ui_->actionOpen_Key_Database);
+  popup_menu_->addAction(ui_->actionEdit_Key_Database);
   popup_menu_->addAction(ui_->actionRemove_Selected_Key_Database);
 
   // announce main window
@@ -141,6 +145,18 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
 
   connect(ui_->actionOpen_Key_Database, &QAction::triggered, this,
           &GnuPGControllerDialog::slot_open_key_database);
+
+  connect(ui_->actionMove_Key_Database_Up, &QAction::triggered, this,
+          &GnuPGControllerDialog::slot_move_up_key_database);
+
+  connect(ui_->actionMove_Key_Database_To_Top, &QAction::triggered, this,
+          &GnuPGControllerDialog::slot_move_to_top_key_database);
+
+  connect(ui_->actionMove_Key_Database_Down, &QAction::triggered, this,
+          &GnuPGControllerDialog::slot_move_down_key_database);
+
+  connect(ui_->actionEdit_Key_Database, &QAction::triggered, this,
+          &GnuPGControllerDialog::slot_edit_key_database);
 
 #if defined(__APPLE__) && defined(__MACH__)
   // macOS style settings
@@ -423,5 +439,154 @@ void GnuPGControllerDialog::slot_open_key_database() {
     QDesktopServices::openUrl(QUrl::fromLocalFile(key_databases[i].path));
     break;
   }
+}
+
+void GnuPGControllerDialog::slot_move_up_key_database() {
+  const auto row_size = ui_->keyDatabaseTable->rowCount();
+
+  if (row_size <= 0) return;
+
+  auto& key_databases = buffered_key_db_so_;
+
+  for (int i = 0; i < row_size; i++) {
+    auto* const item = ui_->keyDatabaseTable->item(i, 1);
+    if (!item->isSelected()) continue;
+
+    if (i == 0) {
+      return;
+    }
+
+    key_databases.swapItemsAt(i, i - 1);
+
+    for (int k = 0; k < ui_->keyDatabaseTable->columnCount(); k++) {
+      ui_->keyDatabaseTable->item(i, k)->setSelected(false);
+      ui_->keyDatabaseTable->item(i - 1, k)->setSelected(true);
+    }
+
+    break;
+  }
+
+  this->slot_refresh_key_database_table();
+
+  this->slot_set_restart_needed(kDeepRestartCode);
+}
+
+void GnuPGControllerDialog::slot_move_to_top_key_database() {
+  const auto row_size = ui_->keyDatabaseTable->rowCount();
+
+  if (row_size <= 0) return;
+
+  auto& key_databases = buffered_key_db_so_;
+
+  for (int i = 0; i < row_size; i++) {
+    auto* const item = ui_->keyDatabaseTable->item(i, 1);
+    if (!item->isSelected()) continue;
+
+    if (i == 0) {
+      return;
+    }
+
+    auto selected_item = key_databases.takeAt(i);
+    key_databases.insert(0, selected_item);
+
+    for (int k = 0; k < ui_->keyDatabaseTable->columnCount(); k++) {
+      ui_->keyDatabaseTable->item(i, k)->setSelected(false);
+    }
+    for (int k = 0; k < ui_->keyDatabaseTable->columnCount(); k++) {
+      ui_->keyDatabaseTable->item(0, k)->setSelected(true);
+    }
+
+    break;
+  }
+
+  this->slot_refresh_key_database_table();
+
+  this->slot_set_restart_needed(kDeepRestartCode);
+}
+
+void GnuPGControllerDialog::slot_move_down_key_database() {
+  const auto row_size = ui_->keyDatabaseTable->rowCount();
+
+  if (row_size <= 0) return;
+
+  auto& key_databases = buffered_key_db_so_;
+
+  for (int i = row_size - 1; i >= 0; i--) {
+    auto* const item = ui_->keyDatabaseTable->item(i, 1);
+    if (!item->isSelected()) continue;
+
+    if (i == row_size - 1) {
+      return;
+    }
+
+    key_databases.swapItemsAt(i, i + 1);
+
+    for (int k = 0; k < ui_->keyDatabaseTable->columnCount(); k++) {
+      ui_->keyDatabaseTable->item(i, k)->setSelected(false);
+      ui_->keyDatabaseTable->item(i + 1, k)->setSelected(true);
+    }
+
+    break;
+  }
+
+  this->slot_refresh_key_database_table();
+
+  this->slot_set_restart_needed(kDeepRestartCode);
+}
+
+void GnuPGControllerDialog::slot_edit_key_database() {
+  const auto row_size = ui_->keyDatabaseTable->rowCount();
+  if (row_size <= 0) {
+    return;
+  }
+
+  int selected_row = -1;
+  for (int i = 0; i < row_size; i++) {
+    if (ui_->keyDatabaseTable->item(i, 0)->isSelected()) {
+      selected_row = i;
+      break;
+    }
+  }
+
+  if (selected_row == -1) {
+    QMessageBox::warning(this, tr("No Key Database Selected"),
+                         tr("Please select a key database to edit."));
+    return;
+  }
+
+  auto& key_databases = buffered_key_db_so_;
+  KeyDatabaseItemSO& selected_key_database = key_databases[selected_row];
+  auto* dialog = new KeyDatabaseEditDialog(this);
+  dialog->SetDefaultName(selected_key_database.name);
+  dialog->SetDefaultPath(selected_key_database.path);
+
+  connect(dialog, &KeyDatabaseEditDialog::SignalKeyDatabaseInfoAccepted, this,
+          [this, selected_row](const QString& name, const QString& path) {
+            auto& key_databases = buffered_key_db_so_;
+
+            for (int i = 0; i < key_databases.size(); i++) {
+              if (i != selected_row &&
+                  QFileInfo(key_databases[i].path) == QFileInfo(path)) {
+                QMessageBox::warning(
+                    this, tr("Duplicate Key Database Paths"),
+                    tr("The edited key database path duplicates a previously "
+                       "existing one."));
+                return;
+              }
+            }
+
+            LOG_D() << "edit key database path, name: " << name
+                    << "path: " << path;
+
+            KeyDatabaseItemSO& key_database = key_databases[selected_row];
+            key_database.name = name;
+            key_database.path = path;
+
+            slot_refresh_key_database_table();
+
+            this->slot_set_restart_needed(kDeepRestartCode);
+          });
+
+  dialog->show();
 }
 }  // namespace GpgFrontend::UI

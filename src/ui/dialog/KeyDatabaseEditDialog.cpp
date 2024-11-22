@@ -70,7 +70,6 @@ KeyDatabaseEditDialog::KeyDatabaseEditDialog(QWidget* parent)
   setAttribute(Qt::WA_DeleteOnClose);
   setModal(true);
 }
-
 void KeyDatabaseEditDialog::slot_button_box_accepted() {
   name_ = ui_->keyDBNameLineEdit->text();
 
@@ -108,11 +107,14 @@ auto KeyDatabaseEditDialog::check_custom_gnupg_key_database_path(
 
 void KeyDatabaseEditDialog::SetDefaultName(QString name) {
   name_ = std::move(name);
+  ui_->keyDBNameLineEdit->setText(name_);
 }
 
 void KeyDatabaseEditDialog::SetDefaultPath(const QString& path) {
   path_ = QFileInfo(path).absoluteFilePath();
+
   ui_->keyDBPathShowLabel->setText(path_);
+  ui_->keyDBPathShowLabel->setHidden(path_.isEmpty());
 }
 void KeyDatabaseEditDialog::slot_show_err_msg(const QString& error_msg) {
   ui_->errorLabel->setText(error_msg);
