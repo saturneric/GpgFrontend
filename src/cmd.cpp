@@ -52,15 +52,18 @@ inline auto Tr(const char* t) -> QString { return QCoreApplication::tr(t); }
 auto PrintVersion() -> int {
   QTextStream stream(stdout);
   stream << GetProjectName() << " " << GetProjectVersion() << '\n';
-  stream << "Copyright (©) 2021 Saturneric <eric@bktus.com>" << '\n'
+  stream << QString("Copyright (©) 2021-%1 Saturneric <eric@bktus.com>")
+                .arg(QDate::currentDate().year())
+         << '\n'
          << Tr("This is free software; see the source for copying conditions.")
          << '\n'
          << '\n';
 
-  stream << Tr("Build DateTime: ")
+  stream << Tr("Build Date & Time: ")
          << QLocale().toString(GetProjectBuildTimestamp()) << '\n'
          << Tr("Build Version: ") << GetProjectBuildVersion() << '\n'
-         << Tr("Source Code Version: ") << GetProjectBuildGitVersion() << '\n';
+         << Tr("Source Code Infomation: ") << GetProjectBuildGitVersion()
+         << '\n';
 
   stream << Qt::endl;
   return 0;

@@ -49,7 +49,6 @@ GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
         " " +
         QString("Develop (%1)").arg(GetProjectBuildGitCommitHash().last(6));
   }
-  LOG_I() << "Application Display Name: " << application_display_name;
 
   // set the extra information of the build
   GpgFrontendApplication::setApplicationVersion(GetProjectVersion());
