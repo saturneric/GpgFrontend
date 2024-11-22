@@ -243,7 +243,7 @@ class GpgContext::Impl {
     assert(ctx != nullptr);
 
     if (!args.gpgconf_path.isEmpty()) {
-      LOG_D() << "set custom gpgconf path: " << args.gpgconf_path;
+      LOG_D() << "set gpgconf path: " << args.gpgconf_path;
       auto err = gpgme_ctx_set_engine_info(ctx, GPGME_PROTOCOL_GPGCONF,
                                            args.gpgconf_path.toUtf8(), nullptr);
 

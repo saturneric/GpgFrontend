@@ -40,4 +40,6 @@ auto ParseLogLevel(const QString& level) -> int;
 
 auto RunTest(const GFCxtWPtr&) -> int;
 
+auto PrintEnvInfo() -> int;
+
 }  // namespace GpgFrontend

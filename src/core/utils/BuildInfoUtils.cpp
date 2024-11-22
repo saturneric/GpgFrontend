@@ -28,6 +28,9 @@
 
 #include "BuildInfoUtils.h"
 
+#include <archive.h>
+#include <openssl/opensslv.h>
+
 #include "GpgFrontendBuildInfo.h"
 
 namespace GpgFrontend {
@@ -51,6 +54,16 @@ auto GetProjectBuildGitBranchName() -> QString { return GIT_BRANCH_NAME; }
 auto GetProjectBuildGitCommitHash() -> QString { return GIT_COMMIT_HASH; }
 
 auto GetProjectBuildGitVersion() -> QString { return GIT_VERSION; }
+
+auto GetProjectQtVersion() -> QString { return {qVersion()}; }
+
+auto GetProjectOpenSSLVersion() -> QString {
+  return {OPENSSL_FULL_VERSION_STR};
+}
+
+auto GetProjectLibarchiveVersion() -> QString {
+  return {ARCHIVE_VERSION_ONLY_STRING};
+}
 
 auto GetHttpRequestUserAgent() -> QString { return HTTP_REQUEST_USER_AGENT; }
 };  // namespace GpgFrontend

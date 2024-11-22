@@ -34,7 +34,7 @@ namespace GpgFrontend {
 
 struct CoreInitArgs {
   bool gather_external_gnupg_info;
-  bool load_default_gpg_context;
+  bool unit_test_mode;
 };
 
 /**
@@ -47,11 +47,28 @@ void GPGFRONTEND_CORE_EXPORT DestroyGpgFrontendCore();
  * @brief
  *
  */
-void GPGFRONTEND_CORE_EXPORT InitGpgFrontendCore(CoreInitArgs);
+auto GPGFRONTEND_CORE_EXPORT InitGpgFrontendCore(CoreInitArgs) -> int;
 
 /**
  * @brief
  *
  */
 void GPGFRONTEND_CORE_EXPORT StartMonitorCoreInitializationStatus();
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+auto GPGFRONTEND_CORE_EXPORT InitGpgME() -> bool;
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+auto GPGFRONTEND_CORE_EXPORT InitBasicPath() -> bool;
+
 }  // namespace GpgFrontend

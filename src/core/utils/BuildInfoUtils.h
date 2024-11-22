@@ -86,6 +86,27 @@ auto GPGFRONTEND_CORE_EXPORT GetProjectBuildGitVersion() -> QString;
  *
  * @return QString
  */
+auto GPGFRONTEND_CORE_EXPORT GetProjectQtVersion() -> QString;
+
+/**
+ * @brief
+ *
+ * @return QString
+ */
+auto GPGFRONTEND_CORE_EXPORT GetProjectOpenSSLVersion() -> QString;
+
+/**
+ * @brief
+ *
+ * @return QString
+ */
+auto GPGFRONTEND_CORE_EXPORT GetProjectLibarchiveVersion() -> QString;
+
+/**
+ * @brief
+ *
+ * @return QString
+ */
 auto GPGFRONTEND_CORE_EXPORT GetHttpRequestUserAgent() -> QString;
 
 }  // namespace GpgFrontend

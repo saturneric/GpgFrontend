@@ -80,6 +80,7 @@ auto main(int argc, char* argv[]) -> int {
   parser.addOptions({
       {{"v", "version"}, "show version information"},
       {{"t", "test"}, "run all unit test cases"},
+      {{"e", "environment"}, "show environment information"},
       {{"l", "log-level"},
        "set log level (trace, debug, info, warn, error)",
        "debug"},
@@ -93,6 +94,10 @@ auto main(int argc, char* argv[]) -> int {
 
   if (parser.isSet("l")) {
     GpgFrontend::ParseLogLevel(parser.value("l"));
+  }
+
+  if (parser.isSet("e")) {
+    return GpgFrontend::PrintEnvInfo();
   }
 
   if (parser.isSet("t")) {

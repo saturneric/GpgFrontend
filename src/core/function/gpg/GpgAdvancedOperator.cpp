@@ -126,13 +126,14 @@ void GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
            return;
          }
 
-         StartGpgAgent([](int err, DataObjectPtr) {
-           if (err >= 0) {
-             Module::UpsertRTValue(
-                 "core", "gpg_advanced_operator.restart_gpg_components", true);
-             return;
-           }
-         });
+         //  StartGpgAgent([](int err, DataObjectPtr) {
+         //    if (err >= 0) {
+         //      Module::UpsertRTValue(
+         //          "core", "gpg_advanced_operator.restart_gpg_components",
+         //          true);
+         //      return;
+         //    }
+         //  });
        }});
 }
 

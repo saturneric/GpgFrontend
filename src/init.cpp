@@ -32,6 +32,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/module/ModuleInit.h"
+#include "core/module/ModuleManager.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "ui/GpgFrontendUIInit.h"
 
@@ -86,6 +87,28 @@ void InitGlobalPathEnv() {
   }
 }
 
+void InitGpgFrontendCoreAsync(CoreInitArgs core_init_args) {
+  // initialize global register table of init state
+  Module::UpsertRTValue("core", "env.state.gpgme", 0);
+  Module::UpsertRTValue("core", "env.state.ctx", 0);
+  Module::UpsertRTValue("core", "env.state.basic", 0);
+  Module::UpsertRTValue("core", "env.state.all", 0);
+
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
+      ->PostTask(new Thread::Task(
+          [core_init_args](DataObjectPtr) -> int {
+            // then load core
+            if (InitGpgFrontendCore(core_init_args) != 0) {
+              Module::UpsertRTValue("core", "env.state.basic", -1);
+              QTextStream(stdout)
+                  << "Fatal: InitGpgFrontendCore() Failed" << Qt::endl;
+            };
+            return 0;
+          },
+          "core_init_task"));
+}
+
 void InitGlobalBasicEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
   GFCxtSPtr ctx = p_ctx.lock();
   if (ctx == nullptr) {
@@ -104,10 +127,9 @@ void InitGlobalBasicEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
 
   CoreInitArgs core_init_args;
   core_init_args.gather_external_gnupg_info = ctx->gather_external_gnupg_info;
-  core_init_args.load_default_gpg_context = ctx->load_default_gpg_context;
+  core_init_args.unit_test_mode = ctx->load_default_gpg_context;
 
-  // then load core
-  InitGpgFrontendCore(core_init_args);
+  InitGpgFrontendCoreAsync(core_init_args);
 
   // monitor
   StartMonitorCoreInitializationStatus();

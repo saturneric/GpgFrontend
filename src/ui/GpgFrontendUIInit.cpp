@@ -72,6 +72,14 @@ void WaitEnvCheckingProcess() {
                           waiting_dialog->deleteLater();
                         });
 
+  QApplication::connect(CoreSignalStation::GetInstance(),
+                        &CoreSignalStation::SignalBadGnupgEnv, waiting_dialog,
+                        [=]() {
+                          LOG_D() << "ui caught signal: core loading failed";
+                          waiting_dialog->finished(0);
+                          waiting_dialog->deleteLater();
+                        });
+
   // new local event looper
   QEventLoop looper;
   QApplication::connect(CoreSignalStation::GetInstance(),
