@@ -1,16 +1,16 @@
-name: Build & Package Qt5
+name: Build Release (Qt5)
 
 on:
   push:
-    branches: [ main, 'develop', 'dev/**' ]
+    branches: [main]
     paths-ignore:
-      - 'resource/lfs/locale/**'
-      - '**.md'
+      - "resource/lfs/locale/**"
+      - "**.md"
   pull_request:
-    branches: [ main, 'develop', 'dev/**' ]
+    branches: [main]
     paths-ignore:
-      - 'resource/lfs/locale/**'
-      - '**.md'
+      - "resource/lfs/locale/**"
+      - "**.md"
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -20,7 +20,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ 'ubuntu-20.04', 'windows-2019' ]
+        os: ["ubuntu-20.04", "windows-2019"]
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:
@@ -32,7 +32,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          lfs: 'false'
+          lfs: "false"
           submodules: recursive
 
       - name: Get Short SHA of Commit
@@ -67,12 +67,12 @@ jobs:
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-image0
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-* libxkbcommon-x11-0
         if: matrix.os == 'ubuntu-20.04'
-    
+
       - name: Install Qt5
         uses: jurplel/install-qt-action@v3
         with:
-          version: '5.15.2'
-          cache: 'true'
+          version: "5.15.2"
+          cache: "true"
         if: matrix.os == 'ubuntu-20.04'
 
       - name: Build gpg-error (Windows)
@@ -106,7 +106,7 @@ jobs:
           make install
           cd ${{github.workspace}}
         if: matrix.os == 'windows-2019'
-      
+
       - name: Build assuan (Linux)
         run: |
           git clone --depth 1 --branch libassuan-2.5.6 git://git.gnupg.org/libassuan.git ${{github.workspace}}/third_party/libassuan
@@ -127,7 +127,7 @@ jobs:
           make install
           cd ${{github.workspace}}
         if: matrix.os == 'windows-2019'
-      
+
       - name: Build GpgME (Linux)
         run: |
           git clone --depth 1 --branch gpgme-1.22.0 git://git.gnupg.org/gpgme.git ${{github.workspace}}/third_party/gpgme
@@ -175,7 +175,6 @@ jobs:
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: matrix.os == 'ubuntu-20.04'
 
-
       - name: Copy Modules & Package (Windows)
         shell: msys2 {0}
         run: |
@@ -185,7 +184,7 @@ jobs:
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: matrix.os == 'windows-2019'
-      
+
       - name: Upload Artifact(Linux)
         uses: actions/upload-artifact@v4
         with:

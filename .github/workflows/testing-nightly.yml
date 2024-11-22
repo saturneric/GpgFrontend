@@ -1,4 +1,4 @@
-name: Build & Package & Release Nightly
+name: Build Nightly
 
 on:
   push:
@@ -83,18 +83,32 @@ jobs:
       - name: Set up MinGW (Windows)
         uses: msys2/setup-msys2@v2
         with:
-          install: git msys2-devel base-devel binutils mingw-w64-x86_64-toolchain
+          update: true
           release: false
-        if: matrix.os == 'windows-2019'
-
-      - name: Set up Dependence (Windows)
-        shell: msys2 {0}
-        run: |
-          pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf 
-          pacman --noconfirm -S --needed make texinfo automake zip
-          pacman --noconfirm -S --needed mingw-w64-x86_64-qt6 mingw-w64-x86_64-icu libintl msys2-runtime-devel gettext-devel
-          pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg mingw-w64-x86_64-libarchive
-          pacman --noconfirm -S --needed mingw-w64-x86_64-gtest
+          cache: true
+          install: >-
+            git 
+            msys2-devel 
+            base-devel 
+            binutils 
+            autoconf 
+            make 
+            texinfo 
+            automake 
+            zip
+            libintl 
+            gettext-devel
+            msys2-runtime-devel 
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-gcc 
+            mingw-w64-x86_64-make
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-qt6 
+            mingw-w64-x86_64-icu 
+            mingw-w64-x86_64-ninja 
+            mingw-w64-x86_64-gnupg 
+            mingw-w64-x86_64-libarchive
+            mingw-w64-x86_64-gtest
         if: matrix.os == 'windows-2019'
 
       - name: Build gpg-error (Linux)
@@ -107,17 +121,6 @@ jobs:
           cd ${{github.workspace}}
         if: matrix.os == 'ubuntu-20.04'
 
-      - name: Build gpg-error (Windows)
-        shell: msys2 {0}
-        run: |
-          git clone --depth 1 --branch libgpg-error-1.47 git://git.gnupg.org/libgpg-error.git ${{github.workspace}}/third_party/libgpg-error
-          cd  ${{github.workspace}}/third_party/libgpg-error
-          ./autogen.sh
-          ./configure --enable-maintainer-mode && make -j4
-          make install
-          cd ${{github.workspace}}
-        if: matrix.os == 'windows-2019'
-
       - name: Build assuan (Linux)
         run: |
           git clone --depth 1 --branch libassuan-2.5.6 git://git.gnupg.org/libassuan.git ${{github.workspace}}/third_party/libassuan
@@ -127,17 +130,6 @@ jobs:
           sudo make install
           cd ${{github.workspace}}
         if: matrix.os == 'ubuntu-20.04'
-
-      - name: Build assuan (Windows)
-        shell: msys2 {0}
-        run: |
-          git clone --depth 1 --branch libassuan-2.5.6 git://git.gnupg.org/libassuan.git ${{github.workspace}}/third_party/libassuan
-          cd ${{github.workspace}}/third_party/libassuan
-          ./autogen.sh
-          ./configure --enable-maintainer-mode && make -j4
-          make install
-          cd ${{github.workspace}}
-        if: matrix.os == 'windows-2019'
 
       - name: Build GpgME (Linux)
         run: |
@@ -179,7 +171,7 @@ jobs:
       - name: Build & Install Full SDK (Windows)
         shell: msys2 {0}
         run: |
-          cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
+          cygpath -u ${{github.workspace}}
           mkdir build-full-sdk && cd build-full-sdk
           cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_FULL_SDK=ON -DCMAKE_INSTALL_PREFIX=$MSYSTEM_PREFIX ..
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
@@ -196,7 +188,7 @@ jobs:
       - name: Build Integrated Modules (Windows)
         shell: msys2 {0}
         run: |
-          cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
+          cygpath -u ${{github.workspace}}
           cd modules
           mkdir build && cd build
           cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON -DCMAKE_INSTALL_PREFIX=./artifacts ..
@@ -279,22 +271,22 @@ jobs:
       - name: Configure CMake & Build Application (Windows)
         shell: msys2 {0}
         run: |
-          cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
+          cygpath -u ${{github.workspace}}
           mkdir build && cd build
           cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_ONLY_APPLICATION=ON ..
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
         if: matrix.os == 'windows-2019'
 
-      - name: Get short SHA of Git Commit (Windows)
-        run: echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
+      - name: Generate Env Vars (Windows)
+        run: |
+          echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
+          echo "BUILD_TYPE_LOWER=$("${{env.BUILD_TYPE}}".ToLower())" >> $env:GITHUB_ENV
         if: matrix.os == 'windows-2019'
 
       - name: Copy Modules & Package (Windows)
         shell: msys2 {0}
         run: |
-          echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
-          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
-          cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
+          cygpath -u ${{github.workspace}}
           mkdir -p build/artifacts/modules
           cp -r modules/build/artifacts/bin/* build/artifacts/modules
           cd build
@@ -353,7 +345,24 @@ jobs:
           draft: false
           prerelease: true
           body: |
-            This is a nightly release of the GpgFrontend.
-            It's unstable compared to the official releases, **use it with caution**!
+            ### Nightly Release of GpgFrontend
+
+            This is an **unstable nightly build** of GpgFrontend. 
+            It may contain new features or bug fixes that are under testing. 
+            Please note that this version is less stable compared to official 
+            releases and is intended for testing purposes **only**.
+
+            #### Why Nightly Releases?
+            This nightly release aims to provide users with early access to 
+            features or fixes they urgently need. Given that official releases are 
+            typically published at least two months apart, I understand that the 
+            wait may be too long for some users. 
+
+            #### Important Notes:
+            - For **Windows** users: After downloading, overwrite the contents 
+              of `GpgFrontend/Program/bin` in your installation directory with the 
+              files provided in this nightly release.
+            - Use this version at your own risk; it is not recommended for 
+              production environments.
           files: |
             artifacts/*
