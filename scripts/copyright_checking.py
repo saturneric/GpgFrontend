@@ -29,7 +29,7 @@ copyright_text_source = """/**
  *
  */"""
 
- # copyright text for script files
+# copyright text for script files
 copyright_text_script = """# Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
 #
 # This file is part of GpgFrontend.
@@ -56,20 +56,23 @@ copyright_text_script = """# Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
 # SPDX-License-Identifier: GPL-3.0-or-later
 """
 
+
 def check_copright_by_path(path, copyright_text, suffix):
-  for root, _, files in os.walk(path):
-      for file in files:
-          if file.endswith(suffix):
-              file_path = os.path.join(root, file)
-              with open(file_path, 'r', encoding='utf-8') as f:
-                  content = f.read()
-              if copyright_text not in content:
-                  print(f"copyright declaration missing: {file_path}")
+    for root, _, files in os.walk(path):
+        for file in files:
+            if file.endswith(suffix):
+                file_path = os.path.join(root, file)
+                with open(file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                if copyright_text not in content:
+                    print(f"copyright declaration missing: {file_path}")
 
-check_copright_by_path("src", copyright_text_source, ('.c', '.cpp', '.h', '.hpp'))
-check_copright_by_path("src", copyright_text_script, ('.txt'))
-check_copright_by_path("src", copyright_text_script, ('.txt'))
-check_copright_by_path("modules", copyright_text_script, ('.txt'))
-check_copright_by_path("modules", copyright_text_script, ('.c', '.cpp', '.h', '.hpp'))
 
-print("check done")
+check_copright_by_path("src", copyright_text_source, (".c", ".cpp", ".h", ".hpp"))
+check_copright_by_path("src", copyright_text_script, (".txt"))
+check_copright_by_path("src", copyright_text_script, (".txt"))
+check_copright_by_path("modules", copyright_text_source, (".c", ".cpp", ".h", ".hpp"))
+check_copright_by_path("modules", copyright_text_script, (".txt"))
+
+
+print("copyright check done")

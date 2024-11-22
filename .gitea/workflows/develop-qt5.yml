@@ -1,19 +1,44 @@
+# Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
+#
+# This file is part of GpgFrontend.
+#
+# GpgFrontend is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# GpgFrontend is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
+#
+# The initial version of the source code is inherited from
+# the gpg4usb project, which is under GPL-3.0-or-later.
+#
+# All the source code of GpgFrontend was modified and released by
+# Saturneric <eric@bktus.com> starting on May 12, 2021.
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 name: Develop CI Qt5
 
 on:
   push:
-    branches: [ main, 'develop', 'dev/**' ]
+    branches: [main, develop, "dev/**"]
     paths-ignore:
-      - 'resource/lfs/locale/**'
-      - '**.md'
+      - "resource/lfs/locale/**"
+      - "**.md"
   pull_request:
-    branches: [ main, 'develop', 'dev/**' ]
+    branches: [main, develop, "dev/**"]
     paths-ignore:
-      - 'resource/lfs/locale/**'
-      - '**.md'
+      - "resource/lfs/locale/**"
+      - "**.md"
 
 env:
-  BUILD_TYPE: Release
+  BUILD_TYPE: Debug
 
 jobs:
   build:
@@ -21,7 +46,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          lfs: 'false'
+          lfs: "false"
           submodules: recursive
 
       - name: Install Dependence
@@ -57,7 +82,7 @@ jobs:
           ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines,platforms/libqoffscreen.so -appimage -unsupported-allow-new-glibc
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
-      
+
       - name: Run Unit Tests
         run: |
           cd ${{github.workspace}}/build/final-artifact

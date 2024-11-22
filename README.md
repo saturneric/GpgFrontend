@@ -3,8 +3,8 @@
 ![Language](https://img.shields.io/badge/language-C%2B%2B-green)
 ![License](https://img.shields.io/badge/License-GPL--3.0-orange)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d1750e052a85430a8f1f84e58a0fceda)](https://www.codacy.com/gh/saturneric/GpgFrontend/dashboard?utm_source=github.com&utm_medium=referral&utm_content=saturneric/GpgFrontend&utm_campaign=Badge_Grade)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend.svg?type=small)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsaturneric%2FGpgFrontend?ref=badge_small)
-[![Build & Package](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml)
+[![Build Release](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml)
+[![Build Nightly](https://github.com/saturneric/GpgFrontend/actions/workflows/testing-nightly.yml/badge.svg?branch=develop)](https://github.com/saturneric/GpgFrontend/actions/workflows/testing-nightly.yml)
 
 GpgFrontend is a free, open-source, robust yet user-friendly, compact and
 cross-platform tool for [OpenPGP](https://www.openpgp.org/) encryption. It
@@ -43,8 +43,9 @@ GpgFrontend is **PERMANENTLY FREE** of charge. However, you can support us by
 
 ## User Manual
 
-GpgFrontend provides documentations on its main features. If you want to know how to install, please
-read the [User Manual](https://www.gpgfrontend.bktus.com/overview/glance) instead of README.
+GpgFrontend provides documentations on its main features. If you want to know
+how to install, please read the [User
+Manual](https://www.gpgfrontend.bktus.com/overview/glance) instead of README.
 
 The code for the user manual is maintained in [this
 repository](https://github.com/saturneric/GpgFrontend-Manual.git).
@@ -92,7 +93,8 @@ development of new modules and the introduction of API interfaces.
 
 ## Contact
 
-Please refer to [HERE](https://www.gpgfrontend.bktus.com/overview/contact) for my contact details.
+Please refer to [HERE](https://www.gpgfrontend.bktus.com/overview/contact) for
+my contact details.
 
 ## Contributing & Bugs Report
 

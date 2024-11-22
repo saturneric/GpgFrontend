@@ -1,23 +1,37 @@
-# For most projects, this workflow file will not need changing; you simply need
-# to commit it to your repository.
+# Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
 #
-# You may wish to alter this file to override the set of languages analyzed,
-# or to provide custom queries or build logic.
+# This file is part of GpgFrontend.
 #
-# ******** NOTE ********
-# We have attempted to detect the languages in your repository. Please check
-# the `language` matrix defined below to confirm you have the correct set of
-# supported CodeQL languages.
+# GpgFrontend is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
+# GpgFrontend is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
+#
+# The initial version of the source code is inherited from
+# the gpg4usb project, which is under GPL-3.0-or-later.
+#
+# All the source code of GpgFrontend was modified and released by
+# Saturneric <eric@bktus.com> starting on May 12, 2021.
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 name: "CodeQL"
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   schedule:
-    - cron: '19 14 * * 2'
+    - cron: "19 14 * * 2"
 
 env:
   BUILD_TYPE: Debug
@@ -34,15 +48,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'cpp' ]
+        language: ["cpp"]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          lfs: 'false'
+          lfs: "false"
           submodules: recursive
-      
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
@@ -56,7 +70,7 @@ jobs:
           sudo apt-get -y install libarchive-dev libgpgme-dev
           sudo apt-get -y install gpg
 
-      - name: Build gpg-error (Linux)
+      - name: Build gpg-error
         run: |
           git clone --depth 1 --branch libgpg-error-1.47 git://git.gnupg.org/libgpg-error.git ${{github.workspace}}/third_party/libgpg-error
           cd  ${{github.workspace}}/third_party/libgpg-error
@@ -65,7 +79,7 @@ jobs:
           sudo make install
           cd ${{github.workspace}}
 
-      - name: Build assuan (Linux)
+      - name: Build assuan
         run: |
           git clone --depth 1 --branch libassuan-2.5.6 git://git.gnupg.org/libassuan.git ${{github.workspace}}/third_party/libassuan
           cd ${{github.workspace}}/third_party/libassuan
@@ -74,7 +88,7 @@ jobs:
           sudo make install
           cd ${{github.workspace}}
 
-      - name: Build GpgME (Linux)
+      - name: Build GpgME
         run: |
           git clone --depth 1 --branch gpgme-1.22.0 git://git.gnupg.org/gpgme.git ${{github.workspace}}/third_party/gpgme
           cd  ${{github.workspace}}/third_party/gpgme
@@ -83,7 +97,7 @@ jobs:
           sudo make install
           cd ${{github.workspace}}
 
-      - name: Build googletest (Linux)
+      - name: Build googletest
         run: |
           git clone --depth 1 --branch v1.15.0 https://github.com/google/googletest.git ${{github.workspace}}/third_party/googletest
           cd ${{github.workspace}}/third_party/googletest
@@ -95,10 +109,10 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
         with:
-          version: '6.7.2'
-          cache: 'true'
+          version: "6.7.2"
+          cache: "true"
 
-      - name: Configure CMake && Build GpgFrontend 
+      - name: Configure CMake && Build GpgFrontend
         run: |
           cmake -G Ninja -B ${{github.workspace}}/build  -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
