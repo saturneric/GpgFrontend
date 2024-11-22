@@ -349,19 +349,20 @@ if(BUILD_APP_IMAGE)
   set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/share)
 
   file(REMOVE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin/${AppName})
-  add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
-
-  add_custom_command(TARGET ${AppName} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin"
-    COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin/${AppName}"
-    COMMENT "Copying Binary into App Image"
-  )
 endif()
 
 if(BUILD_APPLICATION)
   if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
     if(MINGW)
       add_executable(${AppName} WIN32 ${BASE_SOURCE} ${RESOURCE_FILES})
+    elseif(BUILD_APP_IMAGE)
+      add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
+
+      add_custom_command(TARGET ${AppName} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin"
+        COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin/${AppName}"
+        COMMENT "Copying Binary into App Image"
+      )
 
     # app bundle packing using xcode
     elseif(APPLE AND XCODE_BUILD)
