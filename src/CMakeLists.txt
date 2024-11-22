@@ -355,14 +355,6 @@ if(BUILD_APPLICATION)
   if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
     if(MINGW)
       add_executable(${AppName} WIN32 ${BASE_SOURCE} ${RESOURCE_FILES})
-    elseif(BUILD_APP_IMAGE)
-      add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
-
-      add_custom_command(TARGET ${AppName} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin"
-        COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin/${AppName}"
-        COMMENT "Copying Binary into App Image"
-      )
 
     # app bundle packing using xcode
     elseif(APPLE AND XCODE_BUILD)
@@ -403,7 +395,7 @@ if(BUILD_APPLICATION)
         XCODE_ATTRIBUTE_ENABLE_APP_SANDBOX "${CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX}"
         XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "Yes"
         XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
-    elseif(LINUX AND LINUX_INSTALL_SOFTWARE)
+    elseif(LINUX)
       add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
     else()
       message(FATAL_ERROR "cannot find a defined method to release application.")
@@ -429,6 +421,14 @@ if(BUILD_APPLICATION)
 
   # using c++ standard 17
   target_compile_features(${AppName} PUBLIC cxx_std_17)
+endif()
+
+if(BUILD_APP_IMAGE)
+  add_custom_command(TARGET ${AppName} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin"
+    COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/AppDir/usr/bin/${AppName}"
+    COMMENT "Copying Binary into App Image"
+  )
 endif()
 
 if(STABLE_BUILD_ONLY_APPLICATION)
