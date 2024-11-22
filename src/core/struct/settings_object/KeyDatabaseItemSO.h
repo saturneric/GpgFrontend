@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/model/KeyDatabaseInfo.h"
 namespace GpgFrontend {
 
 struct KeyDatabaseItemSO {
@@ -35,6 +36,11 @@ struct KeyDatabaseItemSO {
   QString path;
 
   KeyDatabaseItemSO() = default;
+
+  explicit KeyDatabaseItemSO(KeyDatabaseInfo i) {
+    name = i.name;
+    path = i.path;
+  }
 
   explicit KeyDatabaseItemSO(const QJsonObject& j) {
     if (const auto v = j["name"]; v.isString()) {

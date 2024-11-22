@@ -28,15 +28,18 @@
 
 #include "KeyDatabaseEditDialog.h"
 
-#include "core/utils/GpgUtils.h"
+#include <utility>
+
+#include "core/struct/settings_object/KeyDatabaseItemSO.h"
 #include "core/utils/MemoryUtils.h"
 #include "ui_KeyDatabaseEditDialog.h"
 
 namespace GpgFrontend::UI {
-KeyDatabaseEditDialog::KeyDatabaseEditDialog(QWidget* parent)
+KeyDatabaseEditDialog::KeyDatabaseEditDialog(
+    QList<KeyDatabaseInfo> key_db_infos, QWidget* parent)
     : GeneralDialog("KeyDatabaseEditDialog", parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyDatabaseEditDialog>()),
-      key_database_infos_(GetGpgKeyDatabaseInfos()) {
+      key_database_infos_(std::move(key_db_infos)) {
   ui_->setupUi(this);
 
   ui_->keyDBPathShowLabel->setHidden(true);
@@ -57,8 +60,9 @@ KeyDatabaseEditDialog::KeyDatabaseEditDialog(QWidget* parent)
                                "exists readable directory."));
     }
 
-    if (!path.trimmed().isEmpty()) {
+    if (!path.trimmed().isEmpty() && path != path_) {
       path_ = QFileInfo(path).absoluteFilePath();
+
       ui_->keyDBPathShowLabel->setText(path_);
       ui_->keyDBPathShowLabel->setHidden(false);
     }
@@ -84,7 +88,7 @@ void KeyDatabaseEditDialog::slot_button_box_accepted() {
   }
 
   for (const auto& info : key_database_infos_) {
-    if (info.name == name_) {
+    if (default_name_ != name_ && info.name == name_) {
       slot_show_err_msg(tr("A key database with the name '%1' already exists. "
                            "Please choose a different name.")
                             .arg(name_));
@@ -107,11 +111,14 @@ auto KeyDatabaseEditDialog::check_custom_gnupg_key_database_path(
 
 void KeyDatabaseEditDialog::SetDefaultName(QString name) {
   name_ = std::move(name);
+  default_name_ = name_;
+
   ui_->keyDBNameLineEdit->setText(name_);
 }
 
 void KeyDatabaseEditDialog::SetDefaultPath(const QString& path) {
   path_ = QFileInfo(path).absoluteFilePath();
+  default_path_ = path_;
 
   ui_->keyDBPathShowLabel->setText(path_);
   ui_->keyDBPathShowLabel->setHidden(path_.isEmpty());

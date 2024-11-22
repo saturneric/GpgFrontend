@@ -33,6 +33,7 @@
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/struct/settings_object/KeyDatabaseListSO.h"
+#include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/GeneralDialog.h"
 #include "ui/dialog/KeyDatabaseEditDialog.h"
@@ -269,9 +270,9 @@ void GnuPGControllerDialog::set_settings() {
 
   this->slot_set_restart_needed(kNonRestartCode);
 
-  auto key_database_list =
-      KeyDatabaseListSO(SettingsObject("key_database_list"));
-  buffered_key_db_so_ = key_database_list.key_databases;
+  buffered_key_db_so_ = GetGpgKeyDatabaseInfos();
+  editable_key_db_so_ = buffered_key_db_so_;
+  editable_key_db_so_.pop_front();
 
   this->slot_refresh_key_database_table();
 }
@@ -297,7 +298,10 @@ void GnuPGControllerDialog::apply_settings() {
 
   auto so = SettingsObject("key_database_list");
   auto key_database_list = KeyDatabaseListSO(so);
-  key_database_list.key_databases = buffered_key_db_so_;
+  key_database_list.key_databases.clear();
+  for (const auto& key_db_info : editable_key_db_so_) {
+    key_database_list.key_databases.append(KeyDatabaseItemSO(key_db_info));
+  }
   so.Store(key_database_list.ToJson());
 }
 
@@ -343,9 +347,9 @@ auto GnuPGControllerDialog::check_custom_gnupg_path(QString path) -> bool {
 }
 
 void GnuPGControllerDialog::slot_add_new_key_database() {
-  auto* dialog = new KeyDatabaseEditDialog(this);
+  auto* dialog = new KeyDatabaseEditDialog(editable_key_db_so_, this);
 
-  if (buffered_key_db_so_.size() >= 8) {
+  if (editable_key_db_so_.size() >= 8) {
     QMessageBox::critical(
         this, tr("Maximum Key Database Limit Reached"),
         tr("Currently, GpgFrontend supports a maximum of 8 key databases. "
@@ -369,10 +373,14 @@ void GnuPGControllerDialog::slot_add_new_key_database() {
             LOG_D() << "new key database path, name: " << name
                     << "path: " << path;
 
-            KeyDatabaseItemSO key_database;
+            KeyDatabaseInfo key_database;
             key_database.name = name;
             key_database.path = path;
+            key_database.channel = buffered_key_db_so_.size();
             key_databases.append(key_database);
+
+            editable_key_db_so_ = buffered_key_db_so_;
+            editable_key_db_so_.pop_front();
 
             // refresh ui
             slot_refresh_key_database_table();
@@ -384,7 +392,7 @@ void GnuPGControllerDialog::slot_add_new_key_database() {
 }
 
 void GnuPGControllerDialog::slot_refresh_key_database_table() {
-  auto key_databases = buffered_key_db_so_;
+  auto& key_databases = editable_key_db_so_;
   ui_->keyDatabaseTable->setRowCount(static_cast<int>(key_databases.size()));
 
   int index = 0;
@@ -396,7 +404,7 @@ void GnuPGControllerDialog::slot_refresh_key_database_table() {
     i_name->setTextAlignment(Qt::AlignCenter);
 
     ui_->keyDatabaseTable->setVerticalHeaderItem(
-        index, new QTableWidgetItem(QString::number(index)));
+        index, new QTableWidgetItem(QString::number(index + 1)));
     ui_->keyDatabaseTable->setItem(index, 0, i_name);
 
     ui_->keyDatabaseTable->setItem(index, 1,
@@ -417,7 +425,7 @@ void GnuPGControllerDialog::contextMenuEvent(QContextMenuEvent* event) {
 void GnuPGControllerDialog::slot_remove_existing_key_database() {
   const auto row_size = ui_->keyDatabaseTable->rowCount();
 
-  auto& key_databases = buffered_key_db_so_;
+  auto& key_databases = editable_key_db_so_;
   for (int i = 0; i < row_size; i++) {
     auto* const item = ui_->keyDatabaseTable->item(i, 1);
     if (!item->isSelected()) continue;
@@ -434,7 +442,7 @@ void GnuPGControllerDialog::slot_remove_existing_key_database() {
 void GnuPGControllerDialog::slot_open_key_database() {
   const auto row_size = ui_->keyDatabaseTable->rowCount();
 
-  auto& key_databases = buffered_key_db_so_;
+  auto& key_databases = editable_key_db_so_;
   for (int i = 0; i < row_size; i++) {
     auto* const item = ui_->keyDatabaseTable->item(i, 1);
     if (!item->isSelected()) continue;
@@ -449,7 +457,7 @@ void GnuPGControllerDialog::slot_move_up_key_database() {
 
   if (row_size <= 0) return;
 
-  auto& key_databases = buffered_key_db_so_;
+  auto& key_databases = editable_key_db_so_;
 
   for (int i = 0; i < row_size; i++) {
     auto* const item = ui_->keyDatabaseTable->item(i, 1);
@@ -479,7 +487,7 @@ void GnuPGControllerDialog::slot_move_to_top_key_database() {
 
   if (row_size <= 0) return;
 
-  auto& key_databases = buffered_key_db_so_;
+  auto& key_databases = editable_key_db_so_;
 
   for (int i = 0; i < row_size; i++) {
     auto* const item = ui_->keyDatabaseTable->item(i, 1);
@@ -512,7 +520,7 @@ void GnuPGControllerDialog::slot_move_down_key_database() {
 
   if (row_size <= 0) return;
 
-  auto& key_databases = buffered_key_db_so_;
+  auto& key_databases = editable_key_db_so_;
 
   for (int i = row_size - 1; i >= 0; i--) {
     auto* const item = ui_->keyDatabaseTable->item(i, 1);
@@ -557,31 +565,34 @@ void GnuPGControllerDialog::slot_edit_key_database() {
     return;
   }
 
-  auto& key_databases = buffered_key_db_so_;
-  KeyDatabaseItemSO& selected_key_database = key_databases[selected_row];
-  auto* dialog = new KeyDatabaseEditDialog(this);
+  auto& key_databases = editable_key_db_so_;
+  KeyDatabaseInfo& selected_key_database = key_databases[selected_row];
+  auto* dialog = new KeyDatabaseEditDialog(editable_key_db_so_, this);
   dialog->SetDefaultName(selected_key_database.name);
   dialog->SetDefaultPath(selected_key_database.path);
 
   connect(dialog, &KeyDatabaseEditDialog::SignalKeyDatabaseInfoAccepted, this,
-          [this, selected_row](const QString& name, const QString& path) {
-            auto& key_databases = buffered_key_db_so_;
+          [this, selected_row, selected_key_database](const QString& name,
+                                                      const QString& path) {
+            auto& all_key_databases = buffered_key_db_so_;
 
-            for (int i = 0; i < key_databases.size(); i++) {
-              if (i != selected_row &&
-                  QFileInfo(key_databases[i].path) == QFileInfo(path)) {
-                QMessageBox::warning(
-                    this, tr("Duplicate Key Database Paths"),
-                    tr("The edited key database path duplicates a previously "
-                       "existing one."));
-                return;
+            if (selected_key_database.path != path) {
+              for (int i = 0; i < all_key_databases.size(); i++) {
+                if (i != selected_row &&
+                    QFileInfo(all_key_databases[i].path) == QFileInfo(path)) {
+                  QMessageBox::warning(
+                      this, tr("Duplicate Key Database Paths"),
+                      tr("The edited key database path duplicates a previously "
+                         "existing one."));
+                  return;
+                }
               }
             }
 
             LOG_D() << "edit key database path, name: " << name
                     << "path: " << path;
 
-            KeyDatabaseItemSO& key_database = key_databases[selected_row];
+            KeyDatabaseInfo& key_database = editable_key_db_so_[selected_row];
             key_database.name = name;
             key_database.path = path;
 

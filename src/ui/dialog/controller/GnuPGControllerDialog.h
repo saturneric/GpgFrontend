@@ -130,7 +130,8 @@ class GnuPGControllerDialog : public GeneralDialog {
   QString custom_key_database_path_;
   QString custom_gnupg_path_;
   QMenu* popup_menu_{};
-  QList<KeyDatabaseItemSO> buffered_key_db_so_;
+  QList<KeyDatabaseInfo> buffered_key_db_so_;
+  QList<KeyDatabaseInfo> editable_key_db_so_;
 
   /**
    * @brief Get the Restart Needed object

@@ -39,7 +39,8 @@ namespace GpgFrontend::UI {
 class KeyDatabaseEditDialog : public GeneralDialog {
   Q_OBJECT
  public:
-  explicit KeyDatabaseEditDialog(QWidget* parent);
+  explicit KeyDatabaseEditDialog(QList<KeyDatabaseInfo> key_db_infos,
+                                 QWidget* parent);
 
   void SetDefaultName(QString name);
 
@@ -50,7 +51,9 @@ class KeyDatabaseEditDialog : public GeneralDialog {
 
  private:
   std::shared_ptr<Ui_KeyDatabaseEditDialog> ui_;  ///<
-  bool default_;
+
+  QString default_name_;
+  QString default_path_;
   QString name_;
   QString path_;
   QList<KeyDatabaseInfo> key_database_infos_;
