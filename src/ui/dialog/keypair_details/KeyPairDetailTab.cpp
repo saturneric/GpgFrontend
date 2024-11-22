@@ -310,7 +310,14 @@ void KeyPairDetailTab::slot_query_key_publish_state() {
           .GetSettings()
           .value("network/forbid_all_gnupg_connection")
           .toBool();
-  if (forbid_all_gnupg_connection) return;
+
+  bool auto_fetch_key_publish_status =
+      GlobalSettingStation::GetInstance()
+          .GetSettings()
+          .value("network/auto_fetch_key_publish_status")
+          .toBool();
+
+  if (forbid_all_gnupg_connection || !auto_fetch_key_publish_status) return;
 
   if (!Module::IsModuleActivate(
           "com.bktus.gpgfrontend.module.key_server_sync")) {
@@ -344,7 +351,7 @@ void KeyPairDetailTab::slot_query_key_publish_state() {
 
                     if (!key_data.isEmpty()) {
                       slot_refresh_notice(
-                          ":/icons/sent.png",
+                          ":/icons/publish.png",
                           tr("Notice: The key has been published on "
                              "keys.openpgp.org."));
                     }

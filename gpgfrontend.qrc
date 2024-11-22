@@ -102,6 +102,7 @@
         <file alias="add.png">resource/lfs/icons/add.png</file>
         <file alias="minus.png">resource/lfs/icons/minus.png</file>
         <file alias="database.png">resource/lfs/icons/database.png</file>
+        <file alias="publish.png">resource/lfs/icons/publish.png</file>
     </qresource>
     <qresource prefix="/test/key">
         <file alias="pv1.key">resource/lfs/test/data/pv1.key</file>

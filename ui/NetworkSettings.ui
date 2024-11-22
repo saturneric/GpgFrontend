@@ -254,7 +254,7 @@
           <item>
            <widget class="Line" name="line_2">
             <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
            </widget>
           </item>
@@ -313,9 +313,9 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="autoImportMissingKeyCheckBox">
+           <widget class="QCheckBox" name="autoFetchKeyPublishStatusCheckBox">
             <property name="text">
-             <string>Automatically import a missing key for signature verification.</string>
+             <string>Automatically fetch key publish status from key server.</string>
             </property>
            </widget>
           </item>
@@ -324,7 +324,7 @@
         <item row="3" column="0">
          <widget class="Line" name="line">
           <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+           <enum>Qt::Orientation::Horizontal</enum>
           </property>
          </widget>
         </item>
@@ -334,7 +334,7 @@
      <item>
       <spacer name="verticalSpacer">
        <property name="orientation">
-        <enum>Qt::Vertical</enum>
+        <enum>Qt::Orientation::Vertical</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>

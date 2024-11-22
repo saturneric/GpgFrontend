@@ -46,7 +46,7 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
           });
 
   connect(
-      ui_->autoImportMissingKeyCheckBox, &QCheckBox::stateChanged, this,
+      ui_->autoFetchKeyPublishStatusCheckBox, &QCheckBox::stateChanged, this,
       [=](int state) {
         ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(
             state == Qt::Checked
@@ -56,10 +56,10 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
 
   connect(ui_->forbidALLGnuPGNetworkConnectionCheckBox,
           &QCheckBox::stateChanged, this, [=](int state) {
-            ui_->autoImportMissingKeyCheckBox->setCheckState(
+            ui_->autoFetchKeyPublishStatusCheckBox->setCheckState(
                 state == Qt::Checked
                     ? Qt::Unchecked
-                    : ui_->autoImportMissingKeyCheckBox->checkState());
+                    : ui_->autoFetchKeyPublishStatusCheckBox->checkState());
           });
 
   connect(
@@ -92,8 +92,8 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
     ui_->prohibitUpdateCheck->setText(
         tr("Prohibit checking for version updates when the program starts."));
   }
-  ui_->autoImportMissingKeyCheckBox->setText(
-      tr("Automatically import a missing key for signature verification."));
+  ui_->autoFetchKeyPublishStatusCheckBox->setText(
+      tr("Automatically fetch key publish status from key server."));
   ui_->networkAbilityTipsLabel->setText(
       tr("Tips: These Option Changes take effect only after the "
          "application restart."));
@@ -136,10 +136,10 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
   ui_->prohibitUpdateCheck->setCheckState(
       prohibit_update_checking ? Qt::Checked : Qt::Unchecked);
 
-  auto auto_import_missing_key =
-      settings.value("network/auto_import_missing_key", true).toBool();
-  ui_->autoImportMissingKeyCheckBox->setCheckState(
-      auto_import_missing_key ? Qt::Checked : Qt::Unchecked);
+  auto auto_fetch_key_publish_status =
+      settings.value("network/auto_fetch_key_publish_status", false).toBool();
+  ui_->autoFetchKeyPublishStatusCheckBox->setCheckState(
+      auto_fetch_key_publish_status ? Qt::Checked : Qt::Unchecked);
 
   switch_ui_proxy_type(ui_->proxyTypeComboBox->currentText());
   switch_ui_enabled(ui_->enableProxyCheckBox->isChecked());
@@ -160,8 +160,8 @@ void GpgFrontend::UI::NetworkTab::ApplySettings() {
                     ui_->forbidALLGnuPGNetworkConnectionCheckBox->isChecked());
   settings.setValue("network/prohibit_update_checking",
                     ui_->prohibitUpdateCheck->isChecked());
-  settings.setValue("network/auto_import_missing_key",
-                    ui_->autoImportMissingKeyCheckBox->isChecked());
+  settings.setValue("network/auto_fetch_key_publish_status",
+                    ui_->autoFetchKeyPublishStatusCheckBox->isChecked());
 
   apply_proxy_settings();
 }
