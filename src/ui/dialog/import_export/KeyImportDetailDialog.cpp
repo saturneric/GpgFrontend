@@ -64,7 +64,7 @@ KeyImportDetailDialog::KeyImportDetailDialog(
   this->setMinimumSize(QSize(600, 300));
   this->adjustSize();
 
-  movePosition2CenterOfParent();
+  setPosCenterOfScreen();
   this->setModal(true);
   this->show();
 }
