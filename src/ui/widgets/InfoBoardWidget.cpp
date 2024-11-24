@@ -32,6 +32,7 @@
 #include "core/model/SettingsObject.h"
 #include "ui/UISignalStation.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
+#include "ui/widgets/TextEditTabWidget.h"
 #include "ui_InfoBoard.h"
 
 namespace GpgFrontend::UI {
@@ -103,7 +104,7 @@ void InfoBoardWidget::AssociateTextEdit(QTextEdit* edit) {
   connect(edit, &QTextEdit::textChanged, this, &InfoBoardWidget::SlotReset);
 }
 
-void InfoBoardWidget::AssociateTabWidget(QTabWidget* tab) {
+void InfoBoardWidget::AssociateTabWidget(TextEditTabWidget* tab) {
   m_text_page_ = nullptr;
   m_tab_widget_ = tab;
   connect(tab, &QTabWidget::tabBarClicked, this, &InfoBoardWidget::SlotReset);

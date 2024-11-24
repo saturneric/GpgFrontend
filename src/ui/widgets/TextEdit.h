@@ -30,20 +30,19 @@
 
 #include "ui/dialog/QuitDialog.h"
 #include "ui/widgets/FilePage.h"
-#include "ui/widgets/HelpPage.h"
 #include "ui/widgets/PlainTextEditorPage.h"
 
 namespace GpgFrontend::UI {
-/**
- * @brief TextEdit class
- */
+
+class TextEditTabWidget;
+
 class TextEdit : public QWidget {
   Q_OBJECT
  public:
   /**
    * @brief
    */
-  TextEdit(QWidget* parent);
+  explicit TextEdit(QWidget* parent);
 
   /**
    * @details Load the content of file into the current textpage
@@ -60,36 +59,37 @@ class TextEdit : public QWidget {
    * @return \li false, if the close event should be aborted.
    *         \li true, otherwise
    */
-  bool MaybeSaveAnyTab();
+  auto MaybeSaveAnyTab() -> bool;
 
   /**
    * @brief
    *
    * @return int
    */
-  [[nodiscard]] int TabCount() const;
+  [[nodiscard]] auto TabCount() const -> int;
 
   /**
    * @details textpage of the currently activated tab
    * @return \li reference to QTextEdit if tab has one
    *         \li 0 otherwise (e.g. if helppage)
    */
-  [[nodiscard]] PlainTextEditorPage* CurTextPage() const;
+  [[nodiscard]] auto CurTextPage() const -> PlainTextEditorPage*;
 
   /**
    * @brief
    *
    * @return FilePage*
    */
-  [[nodiscard]] FilePage* CurFilePage() const;
+  [[nodiscard]] auto CurFilePage() const -> FilePage*;
 
   /**
    * @details  List of currently unsaved tabs.
    * @returns QHash<int, QString> Hash of tab indexes and title of unsaved tabs.
    */
-  [[nodiscard]] QHash<int, QString> UnsavedDocuments() const;
+  [[nodiscard]] auto UnsavedDocuments() const -> QHash<int, QString>;
 
-  QTabWidget* tab_widget_; /** Widget containing the tabs of the editor */
+  TextEditTabWidget*
+      tab_widget_; /** Widget containing the tabs of the editor */
 
  public slots:
 
@@ -97,13 +97,13 @@ class TextEdit : public QWidget {
    * @details Return pointer to the currently activated text edit tab page.
    *
    */
-  PlainTextEditorPage* SlotCurPageTextEdit() const;
+  [[nodiscard]] auto SlotCurPageTextEdit() const -> PlainTextEditorPage*;
 
   /**
    * @details Return pointer to the currently activated file tree view tab page.
    *
    */
-  FilePage* SlotCurPageFileTreeView() const;
+  [[nodiscard]] auto SlotCurPageFileTreeView() const -> FilePage*;
 
   /**
    * @details Insert a ">" at the beginning of every line of current textedit.
@@ -128,7 +128,7 @@ class TextEdit : public QWidget {
    *
    * @return Return the return value of the savefile method
    */
-  bool SlotSaveAs();
+  auto SlotSaveAs() -> bool;
 
   /**
    * @details Show an OpenFileDoalog and open the file in a new tab.
@@ -166,7 +166,7 @@ class TextEdit : public QWidget {
    * @param title title for the tab
    * @param path  path for html file to show
    */
-  void slotNewHelpTab(const QString& title, const QString& path) const;
+  void SlotNewHelpTab(const QString& title, const QString& path) const;
 
   /**
    * New File Tab to do file operation
@@ -196,46 +196,6 @@ class TextEdit : public QWidget {
    *
    */
   void SlotSwitchTabDown() const;
-
- private:
-  uint text_page_data_modified_count_ = 0;  ///<
-
-  /**
-   * @details return just a filename stripped of a whole path
-   *
-   * @param a filename path
-   * @return QString containing the filename
-   */
-  static QString stripped_name(const QString& full_file_name);
-
-  /**
-   * @brief
-   *
-   * @param askToSave
-   */
-  bool maybe_save_current_tab(bool askToSave);
-
-  int count_page_;  ///< int containing the number of added tabs
-
- private slots:
-
-  void slot_file_page_path_changed(const QString& path) const;
-
-  /**
-   * @details Remove the tab with given index
-   *
-   * @param index Tab-number to remove
-   */
-  void slot_remove_tab(int index);
-
-  /**
-   * @brief
-   *
-   * @param index
-   */
-  void slot_save_status_to_cache_for_revovery();
-
- public slots:
 
   /**
    * @details Cut selected text in current text page.
@@ -295,7 +255,34 @@ class TextEdit : public QWidget {
    *
    * @param fileName
    */
-  bool save_file(const QString& fileName);
+  auto saveFile(const QString& file_name) -> bool;
+
+ private:
+  /**
+   * @details return just a filename stripped of a whole path
+   *
+   * @param a filename path
+   * @return QString containing the filename
+   */
+  static auto stripped_name(const QString& full_file_name) -> QString;
+
+  /**
+   * @brief
+   *
+   * @param askToSave
+   */
+  auto maybe_save_current_tab(bool askToSave) -> bool;
+
+ private slots:
+
+  void slot_file_page_path_changed(const QString& path) const;
+
+  /**
+   * @details Remove the tab with given index
+   *
+   * @param index Tab-number to remove
+   */
+  void slot_remove_tab(int index);
 };
 
 }  // namespace GpgFrontend::UI

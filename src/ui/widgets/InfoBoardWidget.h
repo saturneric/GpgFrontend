@@ -46,6 +46,8 @@ typedef enum {
   INFO_ERROR_NEUTRAL = 3,
 } InfoBoardStatus;
 
+class TextEditTabWidget;
+
 /**
  * @brief Class for handling the verify label shown at bottom of a textedit-page
  */
@@ -72,7 +74,7 @@ class InfoBoardWidget : public QWidget {
    *
    * @param tab
    */
-  void AssociateTabWidget(QTabWidget* tab);
+  void AssociateTabWidget(TextEditTabWidget* tab);
 
   /**
    * @brief

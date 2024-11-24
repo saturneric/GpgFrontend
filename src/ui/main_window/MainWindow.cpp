@@ -39,6 +39,7 @@
 #include "ui/struct/settings_object/KeyServerSO.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
+#include "ui/widgets/TextEditTabWidget.h"
 
 namespace GpgFrontend::UI {
 
@@ -97,7 +98,7 @@ void MainWindow::Init() noexcept {
             UISignalStation::GetInstance(),
             &UISignalStation::SignalKeyDatabaseRefresh);
 
-    connect(edit_->tab_widget_, &QTabWidget::currentChanged, this,
+    connect(edit_->tab_widget_, &TextEditTabWidget::currentChanged, this,
             &MainWindow::slot_disable_tab_actions);
     connect(UISignalStation::GetInstance(),
             &UISignalStation::SignalRefreshStatusBar, this,

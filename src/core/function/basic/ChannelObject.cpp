@@ -28,8 +28,6 @@
 
 #include "ChannelObject.h"
 
-#include <iostream>
-
 namespace GpgFrontend {
 
 ChannelObject::ChannelObject() noexcept = default;

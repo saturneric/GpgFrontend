@@ -276,23 +276,6 @@ void MainWindow::upload_key_to_server() {
 }
 
 void MainWindow::SlotOpenFile(const QString& path) {
-  QFileInfo const info(path);
-  if (!info.isFile() || !info.isReadable()) {
-    QMessageBox::critical(
-        this, tr("Error"),
-        tr("Cannot open this file. Please make sure that this "
-           "is a regular file and it's readable."));
-    return;
-  }
-
-  if (info.size() > static_cast<qint64>(1024 * 1024)) {
-    QMessageBox::critical(
-        this, tr("Error"),
-        tr("Cannot open this file. The file is TOO LARGE (>1MB) for "
-           "GpgFrontend Text Editor."));
-    return;
-  }
-
   edit_->SlotOpenFile(path);
 }
 

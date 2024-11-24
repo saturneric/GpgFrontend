@@ -54,6 +54,9 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
   this->ui_->characterLabel->setText(tr("0 character"));
   this->ui_->lfLabel->setHidden(true);
   this->ui_->encodingLabel->setText("Unicode");
+  this->ui_->textPage->setAcceptDrops(false);
+
+  setAcceptDrops(false);
 
   connect(ui_->textPage, &QPlainTextEdit::textChanged, this, [=]() {
     // if file is loading
