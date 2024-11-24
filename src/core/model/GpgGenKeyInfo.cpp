@@ -118,9 +118,9 @@ void GenKeyInfo::SetAlgo(const QString &t_algo_args) {
     SetAllowEncryption(false);
     allow_change_encryption_ = false;
 
-    // why not support signing? test later...
-    SetAllowSigning(false);
-    allow_change_signing_ = false;
+    // it should allow signing or it's bug
+    SetAllowSigning(true);
+    allow_change_signing_ = true;
 
     suggest_min_key_size_ = -1;
     suggest_max_key_size_ = -1;
