@@ -128,7 +128,8 @@ void GenKeyInfo::SetAlgo(const QString &t_algo_args) {
     SetKeyLength(-1);
   } else if (algo_args == "nistp256" || algo_args == "nistp384" ||
              algo_args == "nistp521" || algo_args == "brainpoolp256r1" ||
-             algo_args == "brainpoolp384r1" || algo_args == "brainpoolp512r1") {
+             algo_args == "brainpoolp384r1" || algo_args == "brainpoolp512r1" ||
+             algo_args == "secp256k1") {
     if (!subkey_) {  // for primary key is always ecdsa
 
       SetAllowEncryption(false);
@@ -240,7 +241,9 @@ auto GenKeyInfo::GetSupportedKeyAlgo()
       k_support_key_algo = {
           {"RSA", "RSA", ""},
           {"DSA", "DSA", ""},
+          {"EdDSA (ED448)", "ED448", ""},
           {"ECDSA (ED25519)", "ED25519", ""},
+          {"ECDSA (SECP256K1)", "SECP256K1", ""},
           {"ECDSA (NIST P-256)", "NISTP256", ""},
           {"ECDSA (NIST P-384)", "NISTP384", ""},
           {"ECDSA (NIST P-521)", "NISTP521", ""},
@@ -287,8 +290,9 @@ auto GenKeyInfo::GetSupportedSubkeyAlgo()
           {"DSA", "", "DSA"},
           {"ELG-E", "", "ELG"},
           {"ECDSA (ED25519)", "", "ED25519"},
-          {"ECDSA (ED448)", "", "ED448"},
           {"ECDH (CV25519)", "", "CV25519"},
+          {"ECDH (SECP256K1)", "", "SECP256K1"},
+          {"EdDSA (ED448)", "", "ED448"},
           {"ECDH (X448)", "", "X448"},
           {"ECDH (NIST P-256)", "", "NISTP256"},
           {"ECDH (NIST P-384)", "", "NISTP384"},
