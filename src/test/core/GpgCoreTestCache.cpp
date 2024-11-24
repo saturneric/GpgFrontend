@@ -48,8 +48,8 @@ TEST_F(GpgCoreTest, CoreCacheTestB) {
 }
 
 TEST_F(GpgCoreTest, CoreCacheTestC) {
-  CacheManager::GetInstance().SaveCache("ABCDEF", "DEF", 2);
-  ASSERT_EQ(CacheManager::GetInstance().LoadCache("ABCDEF"), QString("DEFG"));
+  CacheManager::GetInstance().SaveCache("ABCDEF", "DEFEEE", 2);
+  ASSERT_EQ(CacheManager::GetInstance().LoadCache("ABCDEF"), QString("DEFEEE"));
   std::this_thread::sleep_for(std::chrono::milliseconds(4000));
   ASSERT_EQ(CacheManager::GetInstance().LoadCache("ABCDEF"), QString(""));
 }

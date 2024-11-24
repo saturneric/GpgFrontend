@@ -42,14 +42,10 @@ TEST_F(GpgCoreTest, GenerateKeyRSA2048Test) {
   keygen_info->SetName("foo_0");
   keygen_info->SetEmail("bar@gpgfrontend.bktus.com");
   keygen_info->SetComment("foobar");
+  keygen_info->SetAlgo("rsa");
   keygen_info->SetKeyLength(2048);
-  keygen_info->SetAlgo(std::get<1>(keygen_info->GetSupportedKeyAlgo()[0]));
-  keygen_info->SetAllowAuthentication(true);
-  keygen_info->SetAllowCertification(true);
-  keygen_info->SetAllowEncryption(true);
-  keygen_info->SetAllowSigning(true);
   keygen_info->SetNonExpired(true);
-  keygen_info->SetNonPassPhrase(false);
+  keygen_info->SetNonPassPhrase(true);
 
   auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
                                 .GenerateKeySync(keygen_info);
@@ -87,64 +83,15 @@ TEST_F(GpgCoreTest, GenerateKeyRSA2048Test) {
       .DeleteKey(result.GetFingerprint());
 }
 
-TEST_F(GpgCoreTest, GenerateKeyRSA1024NoPassTest) {
-  auto keygen_info = SecureCreateSharedObject<GenKeyInfo>();
-  keygen_info->SetName("foo_1");
-  keygen_info->SetEmail("bar@gpgfrontend.bktus.com");
-  keygen_info->SetComment("foobar_1");
-  keygen_info->SetKeyLength(2048);
-  keygen_info->SetAlgo(std::get<1>(keygen_info->GetSupportedKeyAlgo()[0]));
-  keygen_info->SetAllowAuthentication(false);
-  keygen_info->SetAllowCertification(false);
-  keygen_info->SetAllowEncryption(false);
-  keygen_info->SetAllowSigning(false);
-  keygen_info->SetNonExpired(false);
-  keygen_info->SetNonPassPhrase(true);
-
-  auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-                                .GenerateKeySync(keygen_info);
-
-  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
-  ASSERT_EQ(data_object->GetObjectSize(), 1);
-  ASSERT_TRUE(data_object->Check<GpgGenerateKeyResult>());
-
-  auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
-  ASSERT_TRUE(result.IsGood());
-  ASSERT_FALSE(result.GetFingerprint().isEmpty());
-
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                 .GetKey(result.GetFingerprint());
-  ASSERT_TRUE(key.IsGood());
-  ASSERT_EQ(key.GetName(), "foo_1");
-  ASSERT_EQ(key.GetEmail(), "bar@gpgfrontend.bktus.com");
-  ASSERT_EQ(key.GetComment(), "foobar_1");
-  ASSERT_EQ(key.GetPublicKeyAlgo(), "RSA");
-  ASSERT_EQ(key.GetOwnerTrustLevel(), 5);
-  ASSERT_EQ(key.GetPrimaryKeyLength(), 2048);
-  ASSERT_GT(key.GetExpireTime(), QDateTime::currentDateTime());
-
-  ASSERT_TRUE(key.IsHasCertificationCapability());
-  ASSERT_FALSE(key.IsHasAuthenticationCapability());
-  ASSERT_FALSE(key.IsHasEncryptionCapability());
-  ASSERT_FALSE(key.IsHasSigningCapability());
-
-  ASSERT_TRUE(key.IsHasActualCertificationCapability());
-  ASSERT_FALSE(key.IsHasActualAuthenticationCapability());
-  ASSERT_FALSE(key.IsHasActualEncryptionCapability());
-  ASSERT_FALSE(key.IsHasActualSigningCapability());
-
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-      .DeleteKey(result.GetFingerprint());
-}
-
 TEST_F(GpgCoreTest, GenerateKeyRSA4096Test) {
   auto keygen_info = SecureCreateSharedObject<GenKeyInfo>();
   keygen_info->SetName("foo_1");
   keygen_info->SetEmail("bar@gpgfrontend.bktus.com");
   keygen_info->SetComment("hello gpgfrontend");
-  keygen_info->SetAlgo(std::get<1>(keygen_info->GetSupportedKeyAlgo()[0]));
-  keygen_info->SetKeyLength(3072);
+  keygen_info->SetAlgo("rsa");
+  keygen_info->SetKeyLength(4096);
   keygen_info->SetNonExpired(false);
+  keygen_info->SetNonPassPhrase(true);
 
   auto expire_time =
       QDateTime::currentDateTime().addSecs(static_cast<qint64>(24 * 3600));
@@ -176,13 +123,10 @@ TEST_F(GpgCoreTest, GenerateKeyDSA2048Test) {
   keygen_info->SetName("foo_1");
   keygen_info->SetEmail("bar_1@gpgfrontend.bktus.com");
   keygen_info->SetComment("hello gpgfrontend");
-  keygen_info->SetAlgo(std::get<1>(keygen_info->GetSupportedKeyAlgo()[1]));
+  keygen_info->SetAlgo("dsa");
   keygen_info->SetKeyLength(2048);
-  keygen_info->SetAllowAuthentication(true);
-  keygen_info->SetAllowCertification(true);
-  keygen_info->SetAllowEncryption(true);
-  keygen_info->SetAllowSigning(true);
   keygen_info->SetNonExpired(false);
+  keygen_info->SetNonPassPhrase(true);
 
   auto expire_time =
       QDateTime::currentDateTime().addSecs(static_cast<qint64>(24 * 3600));
@@ -229,13 +173,9 @@ TEST_F(GpgCoreTest, GenerateKeyED25519Test) {
   keygen_info->SetName("foo_4");
   keygen_info->SetEmail("bar_ed@gpgfrontend.bktus.com");
   keygen_info->SetComment("hello gpgfrontend");
-  keygen_info->SetAlgo(std::get<1>(keygen_info->GetSupportedKeyAlgo()[2]));
-  keygen_info->SetKeyLength(0);
-  keygen_info->SetAllowAuthentication(true);
-  keygen_info->SetAllowCertification(true);
-  keygen_info->SetAllowEncryption(true);
-  keygen_info->SetAllowSigning(true);
+  keygen_info->SetAlgo("ed25519");
   keygen_info->SetNonExpired(false);
+  keygen_info->SetNonPassPhrase(true);
 
   auto expire_time =
       QDateTime::currentDateTime().addSecs(static_cast<qint64>(24 * 3600));
@@ -282,20 +222,12 @@ TEST_F(GpgCoreTest, GenerateKeyED25519CV25519Test) {
   keygen_info->SetName("foo_ec");
   keygen_info->SetEmail("ec_bar@gpgfrontend.bktus.com");
   keygen_info->SetComment("ecccc");
-  keygen_info->SetAlgo(std::get<1>(keygen_info->GetSupportedKeyAlgo()[3]));
-  keygen_info->SetAllowAuthentication(true);
-  keygen_info->SetAllowCertification(true);
-  keygen_info->SetAllowEncryption(true);
-  keygen_info->SetAllowSigning(true);
+  keygen_info->SetAlgo("ed25519");
   keygen_info->SetNonExpired(true);
   keygen_info->SetNonPassPhrase(true);
 
   auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo(std::get<2>(keygen_info->GetSupportedKeyAlgo()[3]));
-  subkeygen_info->SetAllowAuthentication(true);
-  subkeygen_info->SetAllowCertification(true);
-  subkeygen_info->SetAllowEncryption(true);
-  subkeygen_info->SetAllowSigning(true);
+  subkeygen_info->SetAlgo("cv25519");
   subkeygen_info->SetNonExpired(true);
   subkeygen_info->SetNonPassPhrase(true);
 
@@ -356,20 +288,12 @@ TEST_F(GpgCoreTest, GenerateKeyED25519NISTP256Test) {
   keygen_info->SetName("foo_ec2");
   keygen_info->SetEmail("ec2_bar@gpgfrontend.bktus.com");
   keygen_info->SetComment("ecccc");
-  keygen_info->SetAlgo(std::get<1>(keygen_info->GetSupportedKeyAlgo()[4]));
-  keygen_info->SetAllowAuthentication(true);
-  keygen_info->SetAllowCertification(true);
-  keygen_info->SetAllowEncryption(true);
-  keygen_info->SetAllowSigning(true);
+  keygen_info->SetAlgo("ed25519");
   keygen_info->SetNonExpired(true);
   keygen_info->SetNonPassPhrase(true);
 
   auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo(std::get<2>(keygen_info->GetSupportedKeyAlgo()[4]));
-  subkeygen_info->SetAllowAuthentication(true);
-  subkeygen_info->SetAllowCertification(true);
-  subkeygen_info->SetAllowEncryption(true);
-  subkeygen_info->SetAllowSigning(true);
+  subkeygen_info->SetAlgo("nistp256");
   subkeygen_info->SetNonExpired(true);
   subkeygen_info->SetNonPassPhrase(true);
 
@@ -430,20 +354,12 @@ TEST_F(GpgCoreTest, GenerateKeyED25519BRAINPOOLP256R1Test) {
   keygen_info->SetName("foo_ec3");
   keygen_info->SetEmail("ec3_bar@gpgfrontend.bktus.com");
   keygen_info->SetComment("ecccc3");
-  keygen_info->SetAlgo(std::get<1>(keygen_info->GetSupportedKeyAlgo()[5]));
-  keygen_info->SetAllowAuthentication(true);
-  keygen_info->SetAllowCertification(true);
-  keygen_info->SetAllowEncryption(true);
-  keygen_info->SetAllowSigning(true);
+  keygen_info->SetAlgo("ed25519");
   keygen_info->SetNonExpired(true);
   keygen_info->SetNonPassPhrase(true);
 
   auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo(std::get<2>(keygen_info->GetSupportedKeyAlgo()[5]));
-  subkeygen_info->SetAllowAuthentication(true);
-  subkeygen_info->SetAllowCertification(true);
-  subkeygen_info->SetAllowEncryption(true);
-  subkeygen_info->SetAllowSigning(true);
+  subkeygen_info->SetAlgo("brainpoolp256r1");
   subkeygen_info->SetNonExpired(true);
   subkeygen_info->SetNonPassPhrase(true);
 
@@ -497,6 +413,156 @@ TEST_F(GpgCoreTest, GenerateKeyED25519BRAINPOOLP256R1Test) {
   ASSERT_TRUE(key.IsHasActualSigningCapability());
 
   GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(fpr);
+}
+
+TEST_F(GpgCoreTest, GenerateKeyNISTP256Test) {
+  auto keygen_info = SecureCreateSharedObject<GenKeyInfo>();
+  keygen_info->SetName("foo_4");
+  keygen_info->SetEmail("bar_ed@gpgfrontend.bktus.com");
+  keygen_info->SetComment("hello gpgfrontend");
+  keygen_info->SetAlgo("nistp256");
+  keygen_info->SetNonExpired(false);
+  keygen_info->SetNonPassPhrase(true);
+
+  auto expire_time =
+      QDateTime::currentDateTime().addSecs(static_cast<qint64>(24 * 3600));
+  keygen_info->SetExpireTime(expire_time);
+  keygen_info->SetNonPassPhrase(false);
+
+  auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
+                                .GenerateKeySync(keygen_info);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_EQ(data_object->GetObjectSize(), 1);
+  ASSERT_TRUE(data_object->Check<GpgGenerateKeyResult>());
+
+  auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
+  ASSERT_TRUE(result.IsGood());
+  ASSERT_FALSE(result.GetFingerprint().isEmpty());
+
+  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+                 .GetKey(result.GetFingerprint());
+  ASSERT_TRUE(key.IsGood());
+  ASSERT_EQ(key.GetName(), "foo_4");
+  ASSERT_EQ(key.GetEmail(), "bar_ed@gpgfrontend.bktus.com");
+  ASSERT_EQ(key.GetComment(), "hello gpgfrontend");
+  ASSERT_EQ(key.GetPublicKeyAlgo(), "ECDSA");
+  ASSERT_EQ(key.GetKeyAlgo(), "NISTP256");
+  ASSERT_EQ(key.GetOwnerTrustLevel(), 5);
+  ASSERT_EQ(key.GetPrimaryKeyLength(), 256);
+  ASSERT_GT(key.GetExpireTime(), QDateTime::currentDateTime());
+
+  ASSERT_TRUE(key.IsHasCertificationCapability());
+  ASSERT_TRUE(key.IsHasAuthenticationCapability());
+  ASSERT_FALSE(key.IsHasEncryptionCapability());
+  ASSERT_TRUE(key.IsHasSigningCapability());
+
+  ASSERT_TRUE(key.IsHasActualCertificationCapability());
+  ASSERT_TRUE(key.IsHasActualAuthenticationCapability());
+  ASSERT_FALSE(key.IsHasActualEncryptionCapability());
+  ASSERT_TRUE(key.IsHasActualSigningCapability());
+
+  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
+      .DeleteKey(result.GetFingerprint());
+}
+
+TEST_F(GpgCoreTest, GenerateKeyED448Test) {
+  auto keygen_info = SecureCreateSharedObject<GenKeyInfo>();
+  keygen_info->SetName("foo_4");
+  keygen_info->SetEmail("bar_ed@gpgfrontend.bktus.com");
+  keygen_info->SetComment("hello gpgfrontend");
+  keygen_info->SetAlgo("ed448");
+  keygen_info->SetNonExpired(false);
+  keygen_info->SetNonPassPhrase(true);
+
+  auto expire_time =
+      QDateTime::currentDateTime().addSecs(static_cast<qint64>(24 * 3600));
+  keygen_info->SetExpireTime(expire_time);
+  keygen_info->SetNonPassPhrase(false);
+
+  auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
+                                .GenerateKeySync(keygen_info);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_EQ(data_object->GetObjectSize(), 1);
+  ASSERT_TRUE(data_object->Check<GpgGenerateKeyResult>());
+
+  auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
+  ASSERT_TRUE(result.IsGood());
+  ASSERT_FALSE(result.GetFingerprint().isEmpty());
+
+  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+                 .GetKey(result.GetFingerprint());
+  ASSERT_TRUE(key.IsGood());
+  ASSERT_EQ(key.GetName(), "foo_4");
+  ASSERT_EQ(key.GetEmail(), "bar_ed@gpgfrontend.bktus.com");
+  ASSERT_EQ(key.GetComment(), "hello gpgfrontend");
+  ASSERT_EQ(key.GetPublicKeyAlgo(), "EdDSA");
+  ASSERT_EQ(key.GetKeyAlgo(), "ED448");
+  ASSERT_EQ(key.GetOwnerTrustLevel(), 5);
+  ASSERT_EQ(key.GetPrimaryKeyLength(), 448);
+  ASSERT_GT(key.GetExpireTime(), QDateTime::currentDateTime());
+
+  ASSERT_TRUE(key.IsHasCertificationCapability());
+  ASSERT_TRUE(key.IsHasAuthenticationCapability());
+  ASSERT_FALSE(key.IsHasEncryptionCapability());
+  ASSERT_TRUE(key.IsHasSigningCapability());
+
+  ASSERT_TRUE(key.IsHasActualCertificationCapability());
+  ASSERT_TRUE(key.IsHasActualAuthenticationCapability());
+  ASSERT_FALSE(key.IsHasActualEncryptionCapability());
+  ASSERT_TRUE(key.IsHasActualSigningCapability());
+
+  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
+      .DeleteKey(result.GetFingerprint());
+}
+
+TEST_F(GpgCoreTest, GenerateKeySECP256K1Test) {
+  auto keygen_info = SecureCreateSharedObject<GenKeyInfo>();
+  keygen_info->SetName("foo_4");
+  keygen_info->SetEmail("bar_ed@gpgfrontend.bktus.com");
+  keygen_info->SetComment("hello gpgfrontend");
+  keygen_info->SetAlgo("secp256k1");
+  keygen_info->SetNonExpired(false);
+  keygen_info->SetNonPassPhrase(true);
+
+  auto expire_time =
+      QDateTime::currentDateTime().addSecs(static_cast<qint64>(24 * 3600));
+  keygen_info->SetExpireTime(expire_time);
+  keygen_info->SetNonPassPhrase(false);
+
+  auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
+                                .GenerateKeySync(keygen_info);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_EQ(data_object->GetObjectSize(), 1);
+  ASSERT_TRUE(data_object->Check<GpgGenerateKeyResult>());
+
+  auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
+  ASSERT_TRUE(result.IsGood());
+  ASSERT_FALSE(result.GetFingerprint().isEmpty());
+
+  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+                 .GetKey(result.GetFingerprint());
+  ASSERT_TRUE(key.IsGood());
+  ASSERT_EQ(key.GetName(), "foo_4");
+  ASSERT_EQ(key.GetEmail(), "bar_ed@gpgfrontend.bktus.com");
+  ASSERT_EQ(key.GetComment(), "hello gpgfrontend");
+  ASSERT_EQ(key.GetPublicKeyAlgo(), "ECDSA");
+  ASSERT_EQ(key.GetKeyAlgo(), "SECP256K1");
+  ASSERT_EQ(key.GetOwnerTrustLevel(), 5);
+  ASSERT_EQ(key.GetPrimaryKeyLength(), 256);
+  ASSERT_GT(key.GetExpireTime(), QDateTime::currentDateTime());
+
+  ASSERT_TRUE(key.IsHasCertificationCapability());
+  ASSERT_TRUE(key.IsHasAuthenticationCapability());
+  ASSERT_FALSE(key.IsHasEncryptionCapability());
+  ASSERT_TRUE(key.IsHasSigningCapability());
+
+  ASSERT_TRUE(key.IsHasActualCertificationCapability());
+  ASSERT_TRUE(key.IsHasActualAuthenticationCapability());
+  ASSERT_FALSE(key.IsHasActualEncryptionCapability());
+  ASSERT_TRUE(key.IsHasActualSigningCapability());
+
+  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
+      .DeleteKey(result.GetFingerprint());
 }
 
 }  // namespace GpgFrontend::Test
