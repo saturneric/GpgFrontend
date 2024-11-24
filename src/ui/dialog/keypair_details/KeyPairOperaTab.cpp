@@ -184,9 +184,14 @@ void KeyPairOperaTab::CreateOperaMenu() {
   connect(export_shortest_secret_key, &QAction::triggered, this,
           &KeyPairOperaTab::slot_export_short_private_key);
 
-  if (Module::IsModuleActivate(kPaperKeyModuleID)) {
-    auto* export_secret_key_as_paper_key =
-        new QAction(tr("Export Secret Key As A Paper Key"), this);
+  secret_key_export_opera_menu_->addAction(export_full_secret_key);
+  secret_key_export_opera_menu_->addAction(export_shortest_secret_key);
+
+  // only work with RSA
+  if (m_key_.GetKeyAlgo() == "RSA" &&
+      Module::IsModuleActivate(kPaperKeyModuleID)) {
+    auto* export_secret_key_as_paper_key = new QAction(
+        tr("Export Secret Key As A Paper Key") + QString(" (BETA)"), this);
     connect(export_secret_key_as_paper_key, &QAction::triggered, this,
             &KeyPairOperaTab::slot_export_paper_key);
     if (!m_key_.IsPrivateKey()) {
@@ -194,9 +199,6 @@ void KeyPairOperaTab::CreateOperaMenu() {
     }
     secret_key_export_opera_menu_->addAction(export_secret_key_as_paper_key);
   }
-
-  secret_key_export_opera_menu_->addAction(export_full_secret_key);
-  secret_key_export_opera_menu_->addAction(export_shortest_secret_key);
 
   rev_cert_opera_menu_ = new QMenu(this);
 
@@ -248,18 +250,19 @@ void KeyPairOperaTab::slot_export_public_key() {
 }
 
 void KeyPairOperaTab::slot_export_short_private_key() {
-  // Show a information box with explanation about private key
-  int ret = QMessageBox::information(
-      this, tr("Exporting short private Key"),
-      "<h3>" + tr("You are about to export your") + "<font color=\"red\">" +
-          tr(" PRIVATE KEY ") + "</font>!</h3>\n" +
-          tr("This is NOT your Public Key, so DON'T give it away.") + "<br />" +
-          tr("Do you REALLY want to export your PRIVATE KEY in a Minimum "
-             "Size?") +
-          "<br />" +
-          tr("For OpenPGP keys it removes all signatures except for the latest "
-             "self-signatures."),
-      QMessageBox::Cancel | QMessageBox::Ok);
+  QString warning_message =
+      "<h3><b>" + tr("WARNING: You are about to export your") + " " +
+      "<font color=\"red\">" + tr("PRIVATE KEY") + "</font>!</b></h3>" + "<p>" +
+      tr("This is NOT your Public Key, so <b>DO NOT</b> share it with "
+         "anyone.") +
+      "</p>" + "<p>" +
+      tr("You are exporting a <b>minimum size</b> private key, which "
+         "removes all signatures except for the latest self-signatures.") +
+      "</p>" + "<p>" + tr("Do you <b>REALLY</b> want to proceed?") + "</p>";
+
+  int ret = QMessageBox::warning(this, tr("Exporting Short Private Key"),
+                                 warning_message,
+                                 QMessageBox::Cancel | QMessageBox::Ok);
 
   // export key, if ok was clicked
   if (ret == QMessageBox::Ok) {
@@ -298,13 +301,20 @@ void KeyPairOperaTab::slot_export_short_private_key() {
 
 void KeyPairOperaTab::slot_export_private_key() {
   // Show a information box with explanation about private key
-  int ret = QMessageBox::information(
-      this, tr("Exporting private Key"),
-      "<h3>" + tr("You are about to export your") + "<font color=\"red\">" +
-          tr(" PRIVATE KEY ") + "</font>!</h3>\n" +
-          tr("This is NOT your Public Key, so DON'T give it away.") + "<br />" +
-          tr("Do you REALLY want to export your PRIVATE KEY?"),
-      QMessageBox::Cancel | QMessageBox::Ok);
+  QString warning_message =
+      "<h3><b>" + tr("WARNING: You are about to export your") + " " +
+      "<font color=\"red\">" + tr("PRIVATE KEY") + "</font>!</b></h3>" + "<p>" +
+      tr("This operation will export your <b>private key</b>, including both "
+         "the main key and all subkeys, "
+         "into an external file. This key is extremely sensitive, and anyone "
+         "with access to it can impersonate you. "
+         "DO NOT share this file with anyone!") +
+      "</p>" + "<p>" +
+      tr("Are you <b>ABSOLUTELY SURE</b> you want to proceed?") + "</p>";
+
+  int ret =
+      QMessageBox::warning(this, tr("Exporting Private Key"), warning_message,
+                           QMessageBox::Cancel | QMessageBox::Ok);
 
   // export key, if ok was clicked
   if (ret == QMessageBox::Ok) {
@@ -590,17 +600,23 @@ void KeyPairOperaTab::slot_import_revoke_cert() {
 void KeyPairOperaTab::slot_export_paper_key() {
   if (!Module::IsModuleActivate(kPaperKeyModuleID)) return;
 
-  int ret = QMessageBox::information(
-      this, tr("Exporting private key as a Paper key"),
-      "<h3>" + tr("You are about to export your") + "<font color=\"red\">" +
-          tr(" PRIVATE KEY ") + "</font>!</h3>\n" +
-          tr("This is NOT your Public Key, so DON'T give it away.") + "<br />" +
-          tr("A PaperKey is a human-readable printout of your private key, "
-             "which can be used to recover your key if you lose access to "
-             "your "
-             "digital copy. ") +
-          "<br />" + tr("Keep it in a safe place.") + "<br />" +
-          tr("Do you REALLY want to export your PRIVATE KEY?"),
+  QString warning_message =
+      "<h3><b>" + tr("WARNING: You are about to export your") + " " +
+      "<font color=\"red\">" + tr("PRIVATE KEY") + "</font>!</b></h3>" + "<p>" +
+      tr("This is NOT your Public Key, so <b>DO NOT</b> share it with "
+         "anyone.") +
+      "</p>" + "<p>" +
+      tr("A <b>PaperKey</b> is a human-readable printout of your private key, "
+         "which can be used to recover your key if you lose access to your "
+         "digital copy. ") +
+      "</p>" + "<p>" +
+      tr("Keep this paper copy in a safe and secure place, such as a fireproof "
+         "safe or a trusted vault.") +
+      "</p>" + "<p>" +
+      tr("Are you <b>ABSOLUTELY SURE</b> you want to proceed?") + "</p>";
+
+  int ret = QMessageBox::warning(
+      this, tr("Exporting Private Key as a PaperKey"), warning_message,
       QMessageBox::Cancel | QMessageBox::Ok);
 
   // export key, if ok was clicked
