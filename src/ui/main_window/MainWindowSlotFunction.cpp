@@ -338,4 +338,53 @@ void MainWindow::slot_refresh_current_file_view() {
   }
 }
 
+void MainWindow::slot_import_key_from_edit() {
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
+
+  CommonUtils::GetInstance()->SlotImportKeys(
+      this, m_key_list_->GetCurrentGpgContextChannel(),
+      edit_->CurTextPage()->GetTextPage()->toPlainText().toLatin1());
+}
+
+void MainWindow::slot_verify_email_by_eml_data(const QByteArray& buffer) {
+  Module::TriggerEvent(
+      "EMAIL_VERIFY_EML_DATA",
+      {
+          {"eml_data", QString::fromLatin1(buffer.toBase64())},
+      },
+      [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
+          Module::Event::Params p) {
+        LOG_D() << "EMAIL_VERIFY_EML_DATA callback: " << i << ei;
+        if (p["ret"] != "0" || !p["error_msg"].isEmpty()) {
+          LOG_E() << "An error occurred trying to verify email, "
+                  << "error message: " << p["error_msg"]
+                  << "reply data: " << p["reply_data"];
+        } else if (p.contains("signature") && p.contains("mime")) {
+          const auto mime = QByteArray::fromBase64(p["mime"].toLatin1());
+          const auto signature =
+              QByteArray::fromBase64(p["signature"].toLatin1());
+
+          auto part_mime_content_hash =
+              QCryptographicHash::hash(mime, QCryptographicHash::Sha1);
+          LOG_D() << "get raw data of mime part, size:" << mime.size()
+                  << "sha1 hash:" << part_mime_content_hash.toHex();
+
+          SlotVerify(mime, signature);
+        } else {
+          LOG_E() << "mime or signature data is missing";
+        }
+      });
+}
+
+void MainWindow::SlotVerifyEML() {
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
+
+  auto buffer = edit_->CurTextPage()->GetTextPage()->toPlainText().toLatin1();
+  buffer = buffer.replace("\n", "\r\n");
+
+  // LOG_D() << "EML BUFFER: " << buffer;
+
+  slot_verify_email_by_eml_data(buffer);
+}
+
 }  // namespace GpgFrontend::UI

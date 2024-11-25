@@ -61,5 +61,8 @@ constexpr const char* kPinentryModuleID =
     "com.bktus.gpgfrontend.module.pinentry";
 constexpr const char* kPaperKeyModuleID =
     "com.bktus.gpgfrontend.module.paper_key";
+constexpr const char* kKeyServerSyncModuleID =
+    "com.bktus.gpgfrontend.module.key_server_sync";
+constexpr const char* kEmailModuleID = "com.bktus.gpgfrontend.module.email";
 
 }  // namespace GpgFrontend

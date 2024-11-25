@@ -291,8 +291,79 @@ void MainWindow::SlotVerify() {
                   process_result_analyse(edit_, info_board_, result_analyse);
 
                   if (!result_analyse.GetUnknownSignatures().isEmpty() &&
-                      Module::IsModuleActivate(
-                          "com.bktus.gpgfrontend.module.key_server_sync")) {
+                      Module::IsModuleActivate(kKeyServerSyncModuleID)) {
+                    LOG_D() << "try to sync missing key info from server"
+                            << result_analyse.GetUnknownSignatures();
+
+                    QString fingerprint_list;
+                    for (const auto& fingerprint :
+                         result_analyse.GetUnknownSignatures()) {
+                      fingerprint_list += fingerprint + "\n";
+                    }
+
+                    // Interaction with user
+                    auto user_response = QMessageBox::question(
+                        this, tr("Missing Keys"),
+                        tr("Some signatures cannot be verified because the "
+                           "corresponding keys are missing.\n\n"
+                           "The following fingerprints are missing:\n%1\n\n"
+                           "Would you like to fetch these keys from the key "
+                           "server?")
+                            .arg(fingerprint_list),
+                        QMessageBox::Yes | QMessageBox::No);
+
+                    if (user_response == QMessageBox::Yes) {
+                      CommonUtils::GetInstance()
+                          ->ImportKeyByKeyServerSyncModule(
+                              this, m_key_list_->GetCurrentGpgContextChannel(),
+                              result_analyse.GetUnknownSignatures());
+                    } else {
+                      QMessageBox::information(
+                          this, tr("Verification Incomplete"),
+                          tr("Verification was incomplete due to missing "
+                             "keys. You can manually import the keys later."));
+                    }
+                  }
+                });
+      });
+}
+
+void MainWindow::SlotVerify(const QByteArray& raw_data,
+                            const QByteArray& signature) {
+  // set input buffer
+  auto raw_data_buffer = GFBuffer(raw_data);
+  auto signature_buffer = GFBuffer(signature);
+
+  CommonUtils::WaitForOpera(
+      this, tr("Verifying"),
+      [this, raw_data_buffer, signature_buffer](const OperaWaitingHd& hd) {
+        GpgFrontend::GpgBasicOperator::GetInstance(
+            m_key_list_->GetCurrentGpgContextChannel())
+            .Verify(
+                raw_data_buffer, signature_buffer,
+                [this, hd](GpgError err, const DataObjectPtr& data_obj) {
+                  // stop waiting
+                  hd();
+
+                  if (CheckGpgError(err) == GPG_ERR_USER_1 ||
+                      data_obj == nullptr ||
+                      !data_obj->Check<GpgVerifyResult>()) {
+                    QMessageBox::critical(this, tr("Error"),
+                                          tr("Unknown error occurred"));
+                    return;
+                  }
+                  auto verify_result =
+                      ExtractParams<GpgVerifyResult>(data_obj, 0);
+
+                  // analyse result
+                  auto result_analyse = GpgVerifyResultAnalyse(
+                      m_key_list_->GetCurrentGpgContextChannel(), err,
+                      verify_result);
+                  result_analyse.Analyse();
+                  process_result_analyse(edit_, info_board_, result_analyse);
+
+                  if (!result_analyse.GetUnknownSignatures().isEmpty() &&
+                      Module::IsModuleActivate(kKeyServerSyncModuleID)) {
                     LOG_D() << "try to sync missing key info from server"
                             << result_analyse.GetUnknownSignatures();
 
@@ -479,8 +550,7 @@ void MainWindow::SlotDecryptVerify() {
               }
 
               if (!verify_result_analyse.GetUnknownSignatures().isEmpty() &&
-                  Module::IsModuleActivate(
-                      "com.bktus.gpgfrontend.module.key_server_sync")) {
+                  Module::IsModuleActivate(kKeyServerSyncModuleID)) {
                 LOG_D() << "try to sync missing key info from server"
                         << verify_result_analyse.GetUnknownSignatures();
 

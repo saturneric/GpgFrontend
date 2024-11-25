@@ -413,8 +413,7 @@ void CommonUtils::SlotImportKeyFromKeyServer(
     return;
   }
 
-  if (Module::IsModuleActivate(
-          "com.bktus.gpgfrontend.module.key_server_sync")) {
+  if (Module::IsModuleActivate(kKeyServerSyncModuleID)) {
     // LOOP
     decltype(key_ids.size()) current_index = 1;
     decltype(key_ids.size()) all_index = key_ids.size();
@@ -659,8 +658,7 @@ void CommonUtils::ImportKeyFromKeyServer(int channel,
 
 void CommonUtils::ImportKeyByKeyServerSyncModule(QWidget *parent, int channel,
                                                  const QList<QString> &fprs) {
-  if (!Module::IsModuleActivate(
-          "com.bktus.gpgfrontend.module.key_server_sync")) {
+  if (!Module::IsModuleActivate(kKeyServerSyncModuleID)) {
     return;
   }
 

@@ -50,14 +50,6 @@ void MainWindow::slot_start_wizard() {
   wizard->setModal(true);
 }
 
-void MainWindow::slot_import_key_from_edit() {
-  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
-
-  CommonUtils::GetInstance()->SlotImportKeys(
-      this, m_key_list_->GetCurrentGpgContextChannel(),
-      edit_->CurTextPage()->GetTextPage()->toPlainText().toLatin1());
-}
-
 void MainWindow::slot_open_key_management() {
   auto* dialog = new KeyMgmt(this);
   dialog->setWindowModality(Qt::ApplicationModal);

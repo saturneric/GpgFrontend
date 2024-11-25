@@ -422,6 +422,25 @@ void MainWindow::create_actions() {
   connect(module_controller_open_act_, &QAction::triggered, this,
           [this]() { (new ModuleControllerDialog(this))->exec(); });
 
+  /**
+   * E-Mmail Menu
+   */
+  if (Module::IsModuleActivate(kEmailModuleID)) {
+    verify_email_by_eml_data_ = new QAction(tr("Verify E-Mail"), this);
+    verify_email_by_eml_data_->setIcon(QIcon(":/icons/verify.png"));
+    verify_email_by_eml_data_->setToolTip(tr("Verify RAW E-Mail Data (EML)"));
+    connect(verify_email_by_eml_data_, &QAction::triggered, this, [this]() {
+      if (edit_->SlotCurPageFileTreeView() != nullptr) {
+        const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+        const auto path = file_tree_view->GetSelected();
+
+        const auto file_info = QFileInfo(path);
+        if (file_info.isFile()) this->SlotFileVerifyEML(path);
+      }
+      if (edit_->SlotCurPageTextEdit() != nullptr) this->SlotVerifyEML();
+    });
+  }
+
   /*
    * About Menu
    */
@@ -618,6 +637,11 @@ void MainWindow::create_menus() {
   advance_menu_->addSeparator();
   advance_menu_->addAction(gnupg_controller_open_act_);
   advance_menu_->addAction(module_controller_open_act_);
+
+  if (Module::IsModuleActivate(kEmailModuleID)) {
+    email_menu_ = menuBar()->addMenu(tr("E-Mail"));
+    email_menu_->addAction(verify_email_by_eml_data_);
+  }
 
   view_menu_ = menuBar()->addMenu(tr("View"));
 

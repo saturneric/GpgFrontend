@@ -155,6 +155,20 @@ class MainWindow : public GeneralMainWindow {
   void SlotVerify();
 
   /**
+   * @brief
+   *
+   * @param raw_data
+   * @param signature
+   */
+  void SlotVerify(const QByteArray& raw_data, const QByteArray& signature);
+
+  /**
+   * @brief
+   *
+   */
+  void SlotVerifyEML();
+
+  /**
    * @details decrypt and verify the text of currently active textedit-page
    * with the currently checked keys
    */
@@ -198,6 +212,13 @@ class MainWindow : public GeneralMainWindow {
    * @param path
    */
   void SlotFileVerify(const QString& path);
+
+  /**
+   * @brief
+   *
+   * @param path
+   */
+  void SlotFileVerifyEML(const QString& path);
 
   /**
    * @brief
@@ -369,6 +390,12 @@ class MainWindow : public GeneralMainWindow {
    */
   void slot_set_owner_trust_level_of_key();
 
+  /**
+   * @brief
+   *
+   */
+  void slot_verify_email_by_eml_data(const QByteArray& buffer);
+
  private:
   /**
    * @details Create actions for the main-menu and the context-menu of the
@@ -425,9 +452,7 @@ class MainWindow : public GeneralMainWindow {
   QMenu* key_menu_{};         ///<  Submenu for key-operations
   QMenu* view_menu_{};        ///<  Submenu for view operations
   QMenu* import_key_menu_{};  ///<  Submenu for import operations
-#ifdef SMTP_SUPPORT
-  QMenu* email_menu_{};  ///<  Submenu for email operations
-#endif
+  QMenu* email_menu_{};       ///<  Submenu for email operations
 
   QToolBar* crypt_tool_bar_{};  ///<  Toolbar holding crypt actions
   QToolBar* file_tool_bar_{};   ///<  Toolbar holding file actions
@@ -505,6 +530,7 @@ class MainWindow : public GeneralMainWindow {
   QAction* import_key_from_file_act_{};  ///<
   QAction* import_key_from_clipboard_act_{};   ///<
   QAction* import_key_from_key_server_act_{};  ///<
+  QAction* verify_email_by_eml_data_{};        ///<
 
   QLabel* status_bar_icon_{};  ///<
 

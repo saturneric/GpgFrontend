@@ -119,6 +119,8 @@ void PreInitGpgFrontendUI() {
   // declare module ui entry mount points
   UIModuleManager::GetInstance().DeclareMountPoint("AboutDialogTabs", "QWidget",
                                                    {});
+  UIModuleManager::GetInstance().DeclareMountPoint("GnuPGControllerDialogTabs",
+                                                   "QWidget", {});
 }
 
 void InitGpgFrontendUI(QApplication* /*app*/) {

@@ -556,8 +556,7 @@ void MainWindow::SlotFileVerify(const QString& path) {
                   process_result_analyse(edit_, info_board_, result_analyse);
 
                   if (!result_analyse.GetUnknownSignatures().isEmpty() &&
-                      Module::IsModuleActivate(
-                          "com.bktus.gpgfrontend.module.key_server_sync")) {
+                      Module::IsModuleActivate(kKeyServerSyncModuleID)) {
                     LOG_D() << "try to sync missing key info from server"
                             << result_analyse.GetUnknownSignatures();
 
@@ -901,8 +900,7 @@ void MainWindow::SlotFileDecryptVerify(const QString& path) {
                   this->slot_refresh_current_file_view();
 
                   if (!verify_result_analyse.GetUnknownSignatures().isEmpty() &&
-                      Module::IsModuleActivate(
-                          "com.bktus.gpgfrontend.module.key_server_sync")) {
+                      Module::IsModuleActivate(kKeyServerSyncModuleID)) {
                     LOG_D() << "try to sync missing key info from server"
                             << verify_result_analyse.GetUnknownSignatures();
 
@@ -1016,6 +1014,32 @@ void MainWindow::SlotArchiveDecryptVerify(const QString& path) {
                   this->slot_refresh_current_file_view();
                 });
       });
+}
+
+void MainWindow::SlotFileVerifyEML(const QString& path) {
+  auto check_result = TargetFilePreCheck(path, true);
+  if (!std::get<0>(check_result)) {
+    QMessageBox::critical(this, tr("Error"),
+                          tr("Cannot read from file: %1").arg(path));
+    return;
+  }
+
+  QFileInfo file_info(path);
+  if (file_info.size() > static_cast<qint64>(1024 * 1024 * 32)) {
+    QMessageBox::warning(
+        this, tr("EML File Too Large"),
+        tr("The EML file \"%1\" is larger than 32MB and will not be opened.")
+            .arg(file_info.fileName()));
+    return;
+  }
+
+  QFile eml_file(path);
+  if (!eml_file.open(QIODevice::ReadOnly)) return;
+  auto buffer = eml_file.readAll();
+
+  // LOG_D() << "EML BUFFER (FILE): " << buffer;
+
+  slot_verify_email_by_eml_data(buffer);
 }
 
 }  // namespace GpgFrontend::UI

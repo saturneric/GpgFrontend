@@ -357,8 +357,7 @@ void KeyPairOperaTab::slot_modify_edit_datetime() {
 }
 
 void KeyPairOperaTab::slot_publish_key_to_server() {
-  if (Module::IsModuleActivate(
-          "com.bktus.gpgfrontend.module.key_server_sync")) {
+  if (Module::IsModuleActivate(kKeyServerSyncModuleID)) {
     auto [err, gf_buffer] =
         GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
             .ExportKey(m_key_, false, true, false);
@@ -454,8 +453,7 @@ void KeyPairOperaTab::slot_publish_key_to_server() {
 }
 
 void KeyPairOperaTab::slot_update_key_from_server() {
-  if (Module::IsModuleActivate(
-          "com.bktus.gpgfrontend.module.key_server_sync")) {
+  if (Module::IsModuleActivate(kKeyServerSyncModuleID)) {
     CommonUtils::GetInstance()->ImportKeyByKeyServerSyncModule(
         this, current_gpg_context_channel_, {m_key_.GetFingerprint()});
     return;
