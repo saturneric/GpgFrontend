@@ -54,7 +54,7 @@ auto GFProjectVersion() -> const char* {
 auto GFQtEnvVersion() -> const char* { return GFStrDup(QT_VERSION_STR); }
 
 void GFExecuteCommandSync(const char* cmd, int32_t argc, const char** argv,
-                          GFCommandExeucteCallback cb, void* data) {
+                          GFCommandExecuteCallback cb, void* data) {
   QStringList args;
   for (int i = 0; i < argc; i++) {
     args.append(GFUnStrDup(argv[i]));

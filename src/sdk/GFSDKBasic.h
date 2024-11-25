@@ -35,16 +35,17 @@
 
 extern "C" {
 
-constexpr int32_t kGfStrlenMax = static_cast<const int32_t>(1024 * 8);
+// MAX STRLEN -> 64 MB
+constexpr int32_t kGfStrlenMax = static_cast<const int32_t>(1024 * 1024 * 32);
 
-using GFCommandExeucteCallback = void (*)(void* data, int errcode,
+using GFCommandExecuteCallback = void (*)(void* data, int errcode,
                                           const char* out, const char* err);
 
 using GFCommandExecuteContext = struct {
   const char* cmd;
   int32_t argc;
   const char** argv;
-  GFCommandExeucteCallback cb;
+  GFCommandExecuteCallback cb;
   void* data;
 };
 
@@ -99,7 +100,7 @@ void GPGFRONTEND_MODULE_SDK_EXPORT GFFreeMemory(void*);
  */
 void GPGFRONTEND_MODULE_SDK_EXPORT
 GFExecuteCommandSync(const char* cmd, int32_t argc, const char** argv,
-                     GFCommandExeucteCallback cb, void* data);
+                     GFCommandExecuteCallback cb, void* data);
 
 /**
  * @brief
