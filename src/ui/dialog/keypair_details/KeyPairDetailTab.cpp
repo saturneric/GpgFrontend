@@ -319,48 +319,38 @@ void KeyPairDetailTab::slot_query_key_publish_state() {
 
   if (forbid_all_gnupg_connection || !auto_fetch_key_publish_status) return;
 
-  if (!Module::IsModuleActivate(
-          "com.bktus.gpgfrontend.module.key_server_sync")) {
+  if (!Module::IsModuleActivate(kKeyServerSyncModuleID)) {
     return;
   }
 
-  Thread::TaskRunnerGetter::GetInstance()
-      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
-      ->PostTask(new Thread::Task(
-          [this,
-           fpr = key_.GetFingerprint()](const DataObjectPtr& data_obj) -> int {
-            Module::TriggerEvent(
-                "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT",
-                {
-                    {"fingerprint", QString(fpr)},
-                },
-                [=](Module::EventIdentifier i,
-                    Module::Event::ListenerIdentifier ei,
-                    Module::Event::Params p) {
-                  LOG_D() << "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT callback: "
-                          << i << ei;
+  const auto fpr = key_.GetFingerprint();
 
-                  if (p["ret"] != "0" || !p["error_msg"].isEmpty()) {
-                    LOG_E() << "An error occurred trying to get data from key:"
-                            << fpr << "error message: " << p["error_msg"]
-                            << "reply data: " << p["reply_data"];
-                  } else if (p.contains("key_data")) {
-                    const auto key_data = p["key_data"];
-                    LOG_D() << "got key data of key " << fpr
-                            << " from key server: " << key_data;
+  Module::TriggerEvent(
+      "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT",
+      {
+          {"fingerprint", QString(fpr)},
+      },
+      [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
+          Module::Event::Params p) {
+        LOG_D() << "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT callback: " << i
+                << ei;
 
-                    if (!key_data.isEmpty()) {
-                      slot_refresh_notice(
-                          ":/icons/publish.png",
-                          tr("Notice: The key has been published on "
-                             "keys.openpgp.org."));
-                    }
-                  }
-                });
+        if (p["ret"] != "0" || !p["error_msg"].isEmpty()) {
+          LOG_E() << "An error occurred trying to get data from key:" << fpr
+                  << "error message: " << p["error_msg"]
+                  << "reply data: " << p["reply_data"];
+        } else if (p.contains("key_data")) {
+          const auto key_data = p["key_data"];
+          LOG_D() << "got key data of key " << fpr
+                  << " from key server: " << key_data;
 
-            return 0;
-          },
-          QString("key_%1_query_task").arg(key_.GetFingerprint())));
+          if (!key_data.isEmpty()) {
+            slot_refresh_notice(":/icons/publish.png",
+                                tr("Notice: The key has been published on "
+                                   "keys.openpgp.org."));
+          }
+        }
+      });
 }
 
 void KeyPairDetailTab::slot_refresh_notice(const QString& icon,
