@@ -484,7 +484,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
       settings.value("gnupg/restart_gpg_agent_on_start", false).toBool();
 
   // unit test mode
-  if (!args.unit_test_mode) {
+  if (args.unit_test_mode) {
     Module::UpsertRTValue("core", "env.state.basic", 1);
     Module::UpsertRTValue("core", "env.state.all", 1);
     CoreSignalStation::GetInstance()->SignalGoodGnupgEnv();

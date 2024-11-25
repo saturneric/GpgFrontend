@@ -102,16 +102,17 @@ auto main(int argc, char* argv[]) -> int {
 
   if (parser.isSet("t")) {
     ctx->gather_external_gnupg_info = false;
-    ctx->load_default_gpg_context = false;
+    ctx->unit_test_mode = true;
 
-    InitGlobalBasicEnv(ctx, false);
+    InitGlobalBasicEnvSync(ctx);
     rtn = RunTest(ctx);
     ShutdownGlobalBasicEnv(ctx);
     return rtn;
   }
 
   ctx->gather_external_gnupg_info = true;
-  ctx->load_default_gpg_context = true;
+  ctx->unit_test_mode = false;
+
   InitGlobalBasicEnv(ctx, true);
 
   rtn = StartApplication(ctx);

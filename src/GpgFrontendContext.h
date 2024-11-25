@@ -44,7 +44,7 @@ struct GpgFrontendContext {
   char** argv;
 
   bool gather_external_gnupg_info;
-  bool load_default_gpg_context;
+  bool unit_test_mode;
 
   /**
    * @brief Construct a new Gpg Frontend Context object

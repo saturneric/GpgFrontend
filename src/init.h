@@ -56,6 +56,13 @@ void InitGlobalBasicEnv(const GFCxtWPtr &, bool);
  *
  * @param p_ctx
  */
+void InitGlobalBasicEnvSync(const GFCxtWPtr &p_ctx);
+
+/**
+ * @brief
+ *
+ * @param p_ctx
+ */
 void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx);
 
 }  // namespace GpgFrontend

@@ -29,6 +29,7 @@
 #include "init.h"
 
 #include "core/GpgCoreInit.h"
+#include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/module/ModuleInit.h"
@@ -127,7 +128,7 @@ void InitGlobalBasicEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
 
   CoreInitArgs core_init_args;
   core_init_args.gather_external_gnupg_info = ctx->gather_external_gnupg_info;
-  core_init_args.unit_test_mode = ctx->load_default_gpg_context;
+  core_init_args.unit_test_mode = ctx->unit_test_mode;
 
   InitGpgFrontendCoreAsync(core_init_args);
 
@@ -157,6 +158,23 @@ void InitLocale() {
   qDebug("locale info: %s",
          setlocale(LC_CTYPE, target_locale.amText().toUtf8()));
   QLocale::setDefault(target_locale);
+}
+
+void InitGlobalBasicEnvSync(const GFCxtWPtr &p_ctx) {
+  QEventLoop loop;
+  QCoreApplication::connect(CoreSignalStation::GetInstance(),
+                            &CoreSignalStation::SignalGoodGnupgEnv, &loop,
+                            &QEventLoop::quit);
+  InitGlobalBasicEnv(p_ctx, false);
+
+  auto env_state =
+      Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.all", 0);
+  if (env_state == 1) {
+    qDebug() << "global basic env initialized before the event loop start";
+    return;
+  }
+
+  loop.exec();
 }
 
 void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
