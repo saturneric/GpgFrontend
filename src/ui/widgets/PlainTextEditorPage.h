@@ -115,6 +115,7 @@ class PlainTextEditorPage : public QWidget {
   bool read_done_ = false;  ///<
   size_t read_bytes_ = 0;   ///<
   bool is_crlf_ = false;    ///<
+  bool last_insert_has_partial_cr_ = false;
 
  private slots:
 

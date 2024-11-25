@@ -124,21 +124,21 @@ void PlainTextEditorPage::slot_format_gpg_header() {
   sign_marked_ = true;
 
   // Set the fontstyle for the header
-  QTextCharFormat signFormat;
-  signFormat.setForeground(QBrush(QColor::fromRgb(80, 80, 80)));
-  signFormat.setFontPointSize(9);
+  QTextCharFormat sign_format;
+  sign_format.setForeground(QBrush(QColor::fromRgb(80, 80, 80)));
+  sign_format.setFontPointSize(9);
 
   // set font style for the signature
   QTextCursor cursor(ui_->textPage->document());
   cursor.setPosition(start_sig, QTextCursor::MoveAnchor);
   cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, end_sig);
-  cursor.setCharFormat(signFormat);
+  cursor.setCharFormat(sign_format);
 
   // set the font style for the header
-  int headEnd = content.indexOf("\n\n", start);
+  int head_end = content.indexOf("\n\n", start);
   cursor.setPosition(start, QTextCursor::MoveAnchor);
-  cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, headEnd);
-  cursor.setCharFormat(signFormat);
+  cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, head_end);
+  cursor.setCharFormat(sign_format);
 }
 
 void PlainTextEditorPage::ReadFile() {
@@ -167,7 +167,7 @@ void PlainTextEditorPage::ReadFile() {
           [=]() { emit read_task->SignalTaskShouldEnd(0); });
   connect(read_task, &FileReadTask::SignalFileBytesReadEnd, this, [=]() {
     // set the UI
-    FLOG_D("signal file bytes read end rised");
+    FLOG_D("file read done");
     this->read_done_ = true;
     text_page->setEnabled(true);
     text_page->document()->setModified(false);
@@ -189,7 +189,31 @@ auto BinaryToString(const QByteArray &source) -> QString {
 }
 
 void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
+  // If the previous data ended with a '\r' and the current data starts with
+  // '\n', combine them to form a complete '\r\n' to avoid incorrect line
+  // breaks.
+  if (last_insert_has_partial_cr_ && !bytes_data.isEmpty() &&
+      bytes_data.startsWith('\n')) {
+    bytes_data.prepend('\r');  // Prepend '\r' to ensure '\r\n' stays together.
+  }
+
+  // Check if the current data ends with '\r'.
+  if (!bytes_data.isEmpty() && bytes_data.endsWith('\r')) {
+    // If the data ends with '\r', set the flag indicating an incomplete line
+    // ending.
+    last_insert_has_partial_cr_ = true;
+    // Remove the trailing '\r' and hold it for the next chunk of data.
+    bytes_data.chop(1);
+  } else {
+    // If the data does not end with '\r', reset the flag.
+    last_insert_has_partial_cr_ = false;
+  }
+
   read_bytes_ += bytes_data.size();
+
+  if (bytes_data.contains("VusEk")) {
+    LOG_D() << "WWWWWWW PPP: " << bytes_data;
+  }
 
   // insert the text to the text page
   this->GetTextPage()->insertPlainText(bytes_data);
