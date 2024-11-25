@@ -72,18 +72,11 @@ void TextEdit::SlotNewHelpTab(const QString& title, const QString& path) const {
 }
 
 void TextEdit::SlotNewFileTab() {
-  auto const target_dir = QFileDialog::getExistingDirectory(
+  auto const target_directory = QFileDialog::getExistingDirectory(
       this, tr("Open Directory"), QDir::home().path(),
       QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-  if (target_dir.isEmpty()) return;
-
-  auto* page = new FilePage(qobject_cast<QWidget*>(parent()), target_dir);
-  auto index = tab_widget_->addTab(page, QString());
-  tab_widget_->setTabIcon(index, QIcon(":/icons/file-browser.png"));
-  tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
-  connect(page, &FilePage::SignalPathChanged, this,
-          &TextEdit::slot_file_page_path_changed);
-  page->SlotGoPath();
+  if (target_directory.isEmpty()) return;
+  tab_widget_->SlotOpenDirectory(target_directory);
 }
 
 void TextEdit::SlotOpenFile(const QString& path) {
@@ -555,21 +548,5 @@ void TextEdit::SlotSelectAll() const {
     return;
   }
   CurTextPage()->GetTextPage()->selectAll();
-}
-
-void TextEdit::slot_file_page_path_changed(const QString& path) const {
-  int index = tab_widget_->currentIndex();
-  QString m_path;
-  QFileInfo file_info(path);
-  QString t_path = file_info.absoluteFilePath();
-  if (path.size() > 18) {
-    m_path = t_path.mid(t_path.size() - 18, 18).prepend("...");
-  } else {
-    m_path = t_path;
-  }
-  tab_widget_->setTabText(index, m_path);
-
-  emit UISignalStation::GetInstance()
-      -> SignalMainWindowlUpdateBasicalOperaMenu(0);
 }
 }  // namespace GpgFrontend::UI

@@ -30,6 +30,7 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/CacheObject.h"
+#include "ui/UISignalStation.h"
 #include "ui/widgets/PlainTextEditorPage.h"
 #include "widgets/FilePage.h"
 
@@ -60,25 +61,38 @@ void TextEditTabWidget::dropEvent(QDropEvent* event) {
       continue;
     }
 
-    QFile file(local_file);
-    if (!file.open(QIODevice::ReadOnly)) {
-      QMessageBox::warning(
-          this, tr("File Open Error"),
-          tr("The file \"%1\" could not be opened.").arg(file_info.fileName()));
-      continue;
-    }
-    QByteArray file_data = file.read(1024);
-    file.close();
+    if (file_info.isFile()) {
+      QFile file(local_file);
+      if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, tr("File Open Error"),
+                             tr("The file \"%1\" could not be opened.")
+                                 .arg(file_info.fileName()));
+        continue;
+      }
+      QByteArray file_data = file.read(1024);
+      file.close();
 
-    if (file_data.contains('\0')) {
-      QMessageBox::warning(this, tr("Binary File Detected"),
-                           tr("The file \"%1\" appears to be a binary file "
-                              "and will not be opened.")
-                               .arg(file_info.fileName()));
-      continue;
+      if (file_data.contains('\0')) {
+        QMessageBox::warning(this, tr("Binary File Detected"),
+                             tr("The file \"%1\" appears to be a binary file "
+                                "and will not be opened.")
+                                 .arg(file_info.fileName()));
+        continue;
+      }
+
+      SlotOpenFile(local_file);
     }
 
-    SlotOpenFile(local_file);
+    if (file_info.isDir()) {
+      if (!file_info.isReadable()) {
+        QMessageBox::warning(
+            this, tr("Directory Permission Denied"),
+            tr("You do not have permission to access the directory \"%1\".")
+                .arg(file_info.fileName()));
+        continue;
+      }
+      SlotOpenDirectory(file_info.absoluteFilePath());
+    }
   }
 
   event->acceptProposedAction();
@@ -239,4 +253,31 @@ void TextEditTabWidget::SlotNewTabWithContent(QString title,
   // set content with modified status
   page->GetTextPage()->document()->setPlainText(content);
 }
+
+void TextEditTabWidget::SlotOpenDirectory(const QString& target_directory) {
+  auto* page = new FilePage(qobject_cast<QWidget*>(parent()), target_directory);
+  auto index = this->addTab(page, QString());
+  this->setTabIcon(index, QIcon(":/icons/file-browser.png"));
+  this->setCurrentIndex(this->count() - 1);
+  connect(page, &FilePage::SignalPathChanged, this,
+          &TextEditTabWidget::slot_file_page_path_changed);
+  page->SlotGoPath();
+}
+
+void TextEditTabWidget::slot_file_page_path_changed(const QString& path) {
+  int index = this->currentIndex();
+  QString m_path;
+  QFileInfo file_info(path);
+  QString t_path = file_info.absoluteFilePath();
+  if (path.size() > 18) {
+    m_path = t_path.mid(t_path.size() - 18, 18).prepend("...");
+  } else {
+    m_path = t_path;
+  }
+  this->setTabText(index, m_path);
+
+  emit UISignalStation::GetInstance()
+      -> SignalMainWindowlUpdateBasicalOperaMenu(0);
+}
+
 }  // namespace GpgFrontend::UI

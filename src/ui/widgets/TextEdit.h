@@ -275,8 +275,6 @@ class TextEdit : public QWidget {
 
  private slots:
 
-  void slot_file_page_path_changed(const QString& path) const;
-
   /**
    * @details Remove the tab with given index
    *

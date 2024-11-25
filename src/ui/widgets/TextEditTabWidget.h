@@ -60,6 +60,12 @@ class TextEditTabWidget : public QTabWidget {
   void SlotOpenFile(const QString& path);
 
   /**
+   * @brief
+   *
+   */
+  void SlotOpenDirectory(const QString& target_directory);
+
+  /**
    * @details put a * in front of current tabs title, if current textedit is
    * modified
    */
@@ -107,6 +113,13 @@ class TextEditTabWidget : public QTabWidget {
    *
    */
   void slot_save_status_to_cache_for_recovery();
+
+  /**
+   * @brief
+   *
+   * @param path
+   */
+  void slot_file_page_path_changed(const QString& path);
 
  private:
   int count_page_ = 0;

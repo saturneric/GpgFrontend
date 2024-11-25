@@ -33,6 +33,12 @@ namespace GpgFrontend::UI {
 class FileTreeView : public QTreeView {
   Q_OBJECT
  public:
+  /**
+   * @brief Construct a new File Tree View object
+   *
+   * @param parent
+   * @param target_path
+   */
   explicit FileTreeView(QWidget* parent, const QString& target_path);
 
   /**
