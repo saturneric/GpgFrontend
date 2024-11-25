@@ -341,7 +341,9 @@ class GlobalModuleContext::Impl {
     return module_info->get()->listening_event_ids;
   }
 
-  auto GetRegisteredModuleNum() const -> int { return registered_modules_; }
+  [[nodiscard]] auto GetRegisteredModuleNum() const -> int {
+    return registered_modules_;
+  }
 
  private:
   struct ModuleRegisterInfo {

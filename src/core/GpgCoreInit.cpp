@@ -643,6 +643,8 @@ void StartMonitorCoreInitializationStatus() {
             Module::ModuleManager::GetInstance().IsAllModulesRegistered();
         for (;;) {
           if (module_init_done) break;
+          module_init_done =
+              Module::ModuleManager::GetInstance().IsAllModulesRegistered();
 
           LOG_D() << "monitor: some modules are still going to be registered, "
                      "waiting...";
