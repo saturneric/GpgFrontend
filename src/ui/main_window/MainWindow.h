@@ -172,6 +172,12 @@ class MainWindow : public GeneralMainWindow {
   void SlotVerifyEML();
 
   /**
+   * @brief
+   *
+   */
+  void SlotDecryptEML();
+
+  /**
    * @details decrypt and verify the text of currently active textedit-page
    * with the currently checked keys
    */
@@ -292,6 +298,12 @@ class MainWindow : public GeneralMainWindow {
    *
    */
   void SlotGeneralDecryptVerify(bool);
+
+  /**
+   * @brief
+   *
+   */
+  void SlotGeneralDecryptEMail(bool);
 
   /**
    * @brief
@@ -506,6 +518,20 @@ class MainWindow : public GeneralMainWindow {
    */
   void slot_restart_gpg_components(bool);
 
+  /**
+   * @brief
+   *
+   * @param buffer
+   */
+  void slot_decrypt_email_by_eml_data(const QByteArray& buffer);
+
+  /**
+   * @brief
+   *
+   */
+  void slot_decrypt_email_by_eml_data_result_helper(
+      const QMap<QString, QString>& p);
+
  private:
   /**
    * @details Create actions for the main-menu and the context-menu of the
@@ -654,7 +680,9 @@ class MainWindow : public GeneralMainWindow {
   QAction* import_key_from_file_act_{};  ///<
   QAction* import_key_from_clipboard_act_{};   ///<
   QAction* import_key_from_key_server_act_{};  ///<
-  QAction* verify_email_by_eml_data_act_{};    ///<
+
+  QAction* verify_email_by_eml_data_act_{};  ///<
+  QAction* decrypt_email_by_eml_data_act_{};
 
   QLabel* status_bar_icon_{};  ///<
 

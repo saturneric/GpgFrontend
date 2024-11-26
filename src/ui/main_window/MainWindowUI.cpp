@@ -265,6 +265,12 @@ void MainWindow::create_actions() {
         ":/icons/email-check.png", tr("Verify RAW E-Mail Data (EML)"));
     connect(verify_email_by_eml_data_act_, &QAction::triggered, this,
             &MainWindow::SlotGeneralVerifyEMail);
+
+    decrypt_email_by_eml_data_act_ = create_action(
+        "decrypt_email_by_eml_data", tr("Decrypt E-Mail"),
+        ":/icons/email-open.png", tr("Decrypt RAW E-Mail Data (EML)"));
+    connect(decrypt_email_by_eml_data_act_, &QAction::triggered, this,
+            &MainWindow::SlotGeneralDecryptEMail);
   }
 
   /*
@@ -462,6 +468,7 @@ void MainWindow::create_menus() {
   if (Module::IsModuleActivate(kEmailModuleID)) {
     email_menu_ = menuBar()->addMenu(tr("E-Mail"));
     email_menu_->addAction(verify_email_by_eml_data_act_);
+    email_menu_->addAction(decrypt_email_by_eml_data_act_);
   }
 
   view_menu_ = menuBar()->addMenu(tr("View"));
@@ -527,6 +534,7 @@ void MainWindow::create_tool_bars() {
     email_tool_bar_ = addToolBar(tr("E-Mail"));
     email_tool_bar_->setObjectName("emailToolBar");
     email_tool_bar_->addAction(verify_email_by_eml_data_act_);
+    email_tool_bar_->addAction(decrypt_email_by_eml_data_act_);
     view_menu_->addAction(email_tool_bar_->toggleViewAction());
   }
 

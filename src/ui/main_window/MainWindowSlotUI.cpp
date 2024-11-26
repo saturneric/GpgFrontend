@@ -80,7 +80,10 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
   decrypt_act_->setDisabled(disable);
   decrypt_verify_act_->setDisabled(disable);
 
-  verify_email_by_eml_data_act_->setDisabled(disable);
+  if (Module::IsModuleActivate(kEmailModuleID)) {
+    verify_email_by_eml_data_act_->setDisabled(disable);
+    decrypt_email_by_eml_data_act_->setDisabled(disable);
+  }
 
   redo_act_->setDisabled(disable);
   undo_act_->setDisabled(disable);
@@ -186,7 +189,10 @@ void MainWindow::SlotUpdateCryptoMenuStatus(unsigned int type) {
   decrypt_act_->setDisabled(true);
   decrypt_verify_act_->setDisabled(true);
 
-  verify_email_by_eml_data_act_->setDisabled(true);
+  if (Module::IsModuleActivate(kEmailModuleID)) {
+    verify_email_by_eml_data_act_->setDisabled(true);
+    decrypt_email_by_eml_data_act_->setDisabled(true);
+  }
 
   // gnupg operations
   if ((opera_type & MainWindow::OperationMenu::kVerify) != 0U) {
@@ -209,7 +215,8 @@ void MainWindow::SlotUpdateCryptoMenuStatus(unsigned int type) {
   }
 
   // email operations
-  if ((opera_type & MainWindow::OperationMenu::kVerifyEMail) != 0U) {
+  if (Module::IsModuleActivate(kEmailModuleID) &&
+      (opera_type & MainWindow::OperationMenu::kVerifyEMail) != 0U) {
     verify_email_by_eml_data_act_->setDisabled(false);
   }
 }
@@ -367,6 +374,17 @@ void MainWindow::slot_restart_gpg_components(bool) {
               tr("Failed to restart all or one of the GnuPG's component(s)"));
         }
       });
+}
+
+void MainWindow::SlotGeneralDecryptEMail(bool) {
+  // if (edit_->SlotCurPageFileTreeView() != nullptr) {
+  //   const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+  //   const auto path = file_tree_view->GetSelected();
+
+  //   const auto file_info = QFileInfo(path);
+  //   if (file_info.isFile()) this->SlotFileVerify(path);
+  // }
+  if (edit_->SlotCurPageTextEdit() != nullptr) this->SlotDecryptEML();
 }
 
 }  // namespace GpgFrontend::UI

@@ -30,6 +30,8 @@
 #include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
+#include "core/model/GpgDecryptResult.h"
 #include "core/module/ModuleManager.h"
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/CommonUtils.h"
@@ -398,6 +400,57 @@ void MainWindow::slot_verify_email_by_eml_data(const QByteArray& buffer) {
       });
 }
 
+void MainWindow::slot_decrypt_email_by_eml_data(const QByteArray& buffer) {
+  Module::TriggerEvent(
+      "EMAIL_DECRYPT_EML_DATA",
+      {
+          {"eml_data", QString::fromLatin1(buffer.toBase64())},
+      },
+      [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
+          Module::Event::Params p) {
+        LOG_D() << "EMAIL_DECRYPT_EML_DATA callback: " << i << ei;
+        if (p["ret"] != "0" || !p["err"].isEmpty()) {
+          LOG_E() << "An error occurred trying to decrypt email, "
+                  << "error message: " << p["err"];
+
+          if (p["ret"] == "-2") {
+            QString detailed_error = p["err"];
+
+            QString info =
+                tr("# EML Data Error\n\n"
+                   "The provided EML data does not conform to the "
+                   "structure described in RFC 3156 and cannot be "
+                   "validated.\n\n"
+                   "Details: %1\n\n"
+                   "What is EML Data?\n"
+                   "EML is a file format used to represent email messages. "
+                   "It typically contains the entire contents of an email, "
+                   "including headers, "
+                   "body text, attachments, and metadata. In order to validate "
+                   "the email properly, it is necessary to provide the "
+                   "complete, original EML "
+                   "data.\n\n"
+                   "For more information about the expected EML structure, "
+                   "please refer to the RFC 3156 standard:\n"
+                   "%2\n\n"
+                   "Please ensure the EML data follows the standard and try "
+                   "again.")
+                    .arg(detailed_error)
+                    .arg("https://www.rfc-editor.org/rfc/rfc3156.txt");
+            slot_refresh_info_board(-2, info);
+          }
+
+          return;
+        }
+
+        if (p.contains("encrypted")) {
+          slot_decrypt_email_by_eml_data_result_helper(p);
+        }
+
+        LOG_E() << "mime or signature data is missing";
+      });
+}
+
 void MainWindow::SlotVerifyEML() {
   if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
 
@@ -452,6 +505,8 @@ void MainWindow::slot_verify_email_by_eml_data_result_helper(
     const QMap<QString, QString>& p) {
   const auto mime = QByteArray::fromBase64(p["mime"].toLatin1());
   const auto signature = QByteArray::fromBase64(p["signature"].toLatin1());
+  const auto part_mime_content_hash = p["mime_hash"];
+  const auto prm_micalg_value = p["micalg"];
 
   auto timestamp = p.value("datetime", "-1").toLongLong();
   auto datetime = tr("None");
@@ -460,7 +515,7 @@ void MainWindow::slot_verify_email_by_eml_data_result_helper(
   }
 
   QString email_info;
-  email_info.append("# Email Information\n\n");
+  email_info.append("# E-Mail Information\n\n");
   email_info.append(QString("- %1: %2\n")
                         .arg(tr("From"))
                         .arg(p.value("from", tr("Unknown"))));
@@ -474,6 +529,15 @@ void MainWindow::slot_verify_email_by_eml_data_result_helper(
   email_info.append(
       QString("- %1: %2\n").arg(tr("BCC")).arg(p.value("bcc", tr("None"))));
   email_info.append(QString("- %1: %2\n").arg(tr("Date")).arg(datetime));
+
+  email_info.append("\n");
+  email_info.append("# OpenPGP Information\n\n");
+  email_info.append(QString("- %1: %2\n")
+                        .arg(tr("Signed EML Data Hash (SHA1)"))
+                        .arg(part_mime_content_hash));
+  email_info.append(QString("- %1: %2\n")
+                        .arg(tr("Message Integrity Check Algorithm"))
+                        .arg(prm_micalg_value));
   email_info.append("\n");
 
   // set input buffer
@@ -549,6 +613,80 @@ void MainWindow::slot_result_analyse_show_helper(const GpgResultAnalyse& r_a,
 
   slot_refresh_info_board(std::min(r_a.GetStatus(), r_b.GetStatus()),
                           r_a.GetResultReport() + r_b.GetResultReport());
+}
+
+void MainWindow::SlotDecryptEML() {
+  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
+
+  auto buffer = edit_->CurPlainText().toLatin1();
+  buffer = buffer.replace("\n", "\r\n");
+
+  // LOG_D() << "EML BUFFER: " << buffer;
+
+  slot_decrypt_email_by_eml_data(buffer);
+}
+
+void MainWindow::slot_decrypt_email_by_eml_data_result_helper(
+    const QMap<QString, QString>& p) {
+  const auto encrypted = QByteArray::fromBase64(p["encrypted"].toLatin1());
+
+  auto timestamp = p.value("datetime", "-1").toLongLong();
+  auto datetime = tr("None");
+  if (timestamp > 0) {
+    datetime = QLocale().toString(QDateTime::fromMSecsSinceEpoch(timestamp));
+  }
+
+  QString email_info;
+  email_info.append("# E-Mail Information\n\n");
+  email_info.append(QString("- %1: %2\n")
+                        .arg(tr("From"))
+                        .arg(p.value("from", tr("Unknown"))));
+  email_info.append(
+      QString("- %1: %2\n").arg(tr("To")).arg(p.value("to", tr("Unknown"))));
+  email_info.append(QString("- %1: %2\n")
+                        .arg(tr("Subject"))
+                        .arg(p.value("subject", tr("None"))));
+  email_info.append(
+      QString("- %1: %2\n").arg(tr("CC")).arg(p.value("cc", tr("None"))));
+  email_info.append(
+      QString("- %1: %2\n").arg(tr("BCC")).arg(p.value("bcc", tr("None"))));
+  email_info.append(QString("- %1: %2\n").arg(tr("Date")).arg(datetime));
+
+  email_info.append("\n");
+
+  // data to transfer into task
+  auto buffer = GFBuffer(encrypted);
+
+  CommonUtils::WaitForOpera(
+      this, tr("Decrypting"), [this, buffer](const OperaWaitingHd& hd) {
+        GpgFrontend::GpgBasicOperator::GetInstance(
+            m_key_list_->GetCurrentGpgContextChannel())
+            .Decrypt(buffer, [this, hd](GpgError err,
+                                        const DataObjectPtr& data_obj) {
+              // stop waiting
+              hd();
+
+              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+                  !data_obj->Check<GpgDecryptResult, GFBuffer>()) {
+                QMessageBox::critical(this, tr("Error"),
+                                      tr("Unknown error occurred"));
+                return;
+              }
+              auto decrypt_result =
+                  ExtractParams<GpgDecryptResult>(data_obj, 0);
+              auto out_buffer = ExtractParams<GFBuffer>(data_obj, 1);
+              auto result_analyse = GpgDecryptResultAnalyse(
+                  m_key_list_->GetCurrentGpgContextChannel(), err,
+                  decrypt_result);
+              result_analyse.Analyse();
+              slot_result_analyse_show_helper(result_analyse);
+
+              if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+                edit_->SlotFillTextEditWithText(
+                    out_buffer.ConvertToQByteArray());
+              }
+            });
+      });
 }
 
 }  // namespace GpgFrontend::UI
