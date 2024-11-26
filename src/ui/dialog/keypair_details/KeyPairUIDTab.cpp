@@ -140,7 +140,7 @@ void KeyPairUIDTab::create_uid_list() {
   uid_list_->setAlternatingRowColors(true);
 
   QStringList labels;
-  labels << tr("Select") << tr("Name") << tr("Email") << tr("Comment");
+  labels << tr("Index") << tr("Name") << tr("Email") << tr("Comment");
   uid_list_->setHorizontalHeaderLabels(labels);
   uid_list_->horizontalHeader()->setStretchLastSection(true);
 }
@@ -178,9 +178,6 @@ void KeyPairUIDTab::slot_refresh_uid_list() {
 
   auto uids = m_key_.GetUIDs();
   for (auto& uid : *uids) {
-    if (uid.GetInvalid() || uid.GetRevoked()) {
-      continue;
-    }
     this->buffered_uids_.push_back(std::move(uid));
   }
 
@@ -204,6 +201,19 @@ void KeyPairUIDTab::slot_refresh_uid_list() {
     if (row == 0) {
       for (auto i = 0; i < uid_list_->columnCount(); i++) {
         uid_list_->item(row, i)->setForeground(QColor(65, 105, 255));
+        for (auto i = 0; i < uid_list_->columnCount(); i++) {
+          auto font = uid_list_->item(row, i)->font();
+          font.setBold(true);
+          uid_list_->item(row, i)->setFont(font);
+        }
+      }
+    }
+
+    if (uid.GetRevoked() || uid.GetInvalid()) {
+      for (auto i = 0; i < uid_list_->columnCount(); i++) {
+        auto font = uid_list_->item(row, i)->font();
+        font.setStrikeOut(true);
+        uid_list_->item(row, i)->setFont(font);
       }
     }
 
