@@ -98,11 +98,11 @@ void MainWindow::Init() noexcept {
             UISignalStation::GetInstance(),
             &UISignalStation::SignalKeyDatabaseRefresh);
 
-    connect(edit_->tab_widget_, &TextEditTabWidget::currentChanged, this,
-            &MainWindow::slot_disable_tab_actions);
+    connect(edit_->TabWidget(), &TextEditTabWidget::currentChanged, this,
+            &MainWindow::slot_switch_menu_control_mode);
     connect(UISignalStation::GetInstance(),
             &UISignalStation::SignalRefreshStatusBar, this,
-            [=](const QString &message, int timeout) {
+            [=](const QString& message, int timeout) {
               statusBar()->showMessage(message, timeout);
             });
     connect(UISignalStation::GetInstance(),
@@ -130,6 +130,8 @@ void MainWindow::Init() noexcept {
     restore_settings();
 
     edit_->CurTextPage()->setFocus();
+
+    info_board_->AssociateTabWidget(edit_->TabWidget());
 
     Module::ListenRTPublishEvent(
         this, kVersionCheckingModuleID, "version.loading_done",
@@ -190,7 +192,7 @@ void MainWindow::recover_editor_unsaved_pages_from_cache() {
   bool first = true;
 
   auto unsaved_page_array = json_data.array();
-  for (const auto &value_ref : unsaved_page_array) {
+  for (const auto& value_ref : unsaved_page_array) {
     if (!value_ref.isObject()) continue;
     auto unsaved_page_json = value_ref.toObject();
 
@@ -222,7 +224,7 @@ void MainWindow::close_attachment_dock() {
   attachment_dock_created_ = false;
 }
 
-void MainWindow::closeEvent(QCloseEvent *event) {
+void MainWindow::closeEvent(QCloseEvent* event) {
   /*
    * ask to save changes, if there are
    * modified documents in any tab
@@ -241,6 +243,21 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     // call parent
     GeneralMainWindow::closeEvent(event);
   }
+}
+
+auto MainWindow::create_action(
+    const QString& id, const QString& name, const QString& icon,
+    const QString& too_tip, const QList<QKeySequence>& shortcuts) -> QAction* {
+  auto* action = new QAction(name, this);
+  action->setIcon(QIcon(icon));
+  action->setToolTip(too_tip);
+
+  if (!shortcuts.isEmpty()) {
+    action->setShortcuts(shortcuts);
+  }
+
+  buffered_actions_.insert(id, {action});
+  return action;
 }
 
 }  // namespace GpgFrontend::UI

@@ -106,7 +106,7 @@ void TextEditTabWidget::SlotOpenFile(const QString& path) {
     connect(page->GetTextPage()->document(),
             &QTextDocument::modificationChanged, this,
             &TextEditTabWidget::SlotShowModified);
-    // connect to cache recovery fucntion
+    // connect to cache recovery function
     connect(page->GetTextPage()->document(), &QTextDocument::contentsChanged,
             this, &TextEditTabWidget::slot_save_status_to_cache_for_recovery);
 

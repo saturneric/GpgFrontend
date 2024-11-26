@@ -256,6 +256,48 @@ class MainWindow : public GeneralMainWindow {
    */
   void SlotSetRestartNeeded(int);
 
+  /**
+   * @brief
+   *
+   */
+  void SlotGeneralEncrypt(bool);
+
+  /**
+   * @brief
+   *
+   */
+  void SlotGeneralDecrypt(bool);
+
+  /**
+   * @brief
+   *
+   */
+  void SlotGeneralSign(bool);
+
+  /**
+   * @brief
+   *
+   */
+  void SlotGeneralVerify(bool);
+
+  /**
+   * @brief
+   *
+   */
+  void SlotGeneralEncryptSign(bool);
+
+  /**
+   * @brief
+   *
+   */
+  void SlotGeneralDecryptVerify(bool);
+
+  /**
+   * @brief
+   *
+   */
+  void SlotGeneralVerifyEMail(bool);
+
  private slots:
 
   /**
@@ -370,7 +412,7 @@ class MainWindow : public GeneralMainWindow {
    * @details Disable tab related actions, if number of tabs is 0.
    * @param number number of the opened tabs and -1, if no tab is opened
    */
-  void slot_disable_tab_actions(int number);
+  void slot_switch_menu_control_mode(int number);
 
   /**
    * @details called when need to upgrade.
@@ -445,6 +487,24 @@ class MainWindow : public GeneralMainWindow {
    */
   void slot_refresh_info_board(int status, const QString& text);
 
+  /**
+   * @brief
+   *
+   */
+  void slot_clean_gpg_password_cache(bool);
+
+  /**
+   * @brief
+   *
+   */
+  void slot_reload_gpg_components(bool);
+
+  /**
+   * @brief
+   *
+   */
+  void slot_restart_gpg_components(bool);
+
  private:
   /**
    * @details Create actions for the main-menu and the context-menu of the
@@ -491,6 +551,19 @@ class MainWindow : public GeneralMainWindow {
    * @details
    */
   void recover_editor_unsaved_pages_from_cache();
+
+  /**
+   * @brief Create a action object
+   *
+   * @param id
+   * @param name
+   * @param icon
+   * @param too_tip
+   * @return QAction*
+   */
+  auto create_action(const QString& id, const QString& name,
+                     const QString& icon, const QString& too_tip,
+                     const QList<QKeySequence>& shortcuts = {}) -> QAction*;
 
   TextEdit* edit_{};          ///< Tabwidget holding the edit-windows
   QMenu* file_menu_{};        ///<  Submenu for file-operations
@@ -586,6 +659,7 @@ class MainWindow : public GeneralMainWindow {
 
   KeyList* m_key_list_{};          ///<
   InfoBoardWidget* info_board_{};  ///<
+  QMap<QString, QPointer<QAction>> buffered_actions_;
 
   bool attachment_dock_created_{};         ///<
   int restart_mode_{0};                    ///<

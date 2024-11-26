@@ -344,7 +344,7 @@ void MainWindow::slot_import_key_from_edit() {
 
   CommonUtils::GetInstance()->SlotImportKeys(
       this, m_key_list_->GetCurrentGpgContextChannel(),
-      edit_->CurTextPage()->GetTextPage()->toPlainText().toLatin1());
+      edit_->CurPlainText().toLatin1());
 }
 
 void MainWindow::slot_verify_email_by_eml_data(const QByteArray& buffer) {
@@ -401,7 +401,7 @@ void MainWindow::slot_verify_email_by_eml_data(const QByteArray& buffer) {
 void MainWindow::SlotVerifyEML() {
   if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
 
-  auto buffer = edit_->CurTextPage()->GetTextPage()->toPlainText().toLatin1();
+  auto buffer = edit_->CurPlainText().toLatin1();
   buffer = buffer.replace("\n", "\r\n");
 
   // LOG_D() << "EML BUFFER: " << buffer;
@@ -411,7 +411,9 @@ void MainWindow::SlotVerifyEML() {
 
 void MainWindow::slot_verifying_unknown_signature_helper(
     const GpgVerifyResultAnalyse& result_analyse) {
-  LOG_D() << "try to sync missing key info from server"
+  if (!Module::IsModuleActivate(kKeyServerSyncModuleID)) return;
+
+  LOG_D() << "try to sync missing key info from server: "
           << result_analyse.GetUnknownSignatures();
 
   QString fingerprint_list;
@@ -530,9 +532,7 @@ void MainWindow::slot_result_analyse_show_helper(
 }
 
 void MainWindow::slot_refresh_info_board(int status, const QString& text) {
-  if (edit_->tab_widget_ != nullptr) {
-    info_board_->AssociateTabWidget(edit_->tab_widget_);
-  }
+  info_board_->SlotReset();
 
   if (status < 0) {
     info_board_->SlotRefresh(text, INFO_ERROR_CRITICAL);
@@ -545,9 +545,7 @@ void MainWindow::slot_refresh_info_board(int status, const QString& text) {
 
 void MainWindow::slot_result_analyse_show_helper(const GpgResultAnalyse& r_a,
                                                  const GpgResultAnalyse& r_b) {
-  if (edit_->tab_widget_ != nullptr) {
-    info_board_->AssociateTabWidget(edit_->tab_widget_);
-  }
+  info_board_->SlotReset();
 
   slot_refresh_info_board(std::min(r_a.GetStatus(), r_b.GetStatus()),
                           r_a.GetResultReport() + r_b.GetResultReport());

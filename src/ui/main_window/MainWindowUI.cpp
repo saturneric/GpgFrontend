@@ -28,9 +28,7 @@
 
 #include "MainWindow.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/module/ModuleManager.h"
-#include "core/utils/GpgUtils.h"
 #include "dialog/controller/ModuleControllerDialog.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/controller/GnuPGControllerDialog.h"
@@ -41,285 +39,160 @@
 namespace GpgFrontend::UI {
 
 void MainWindow::create_actions() {
-  /* Main Menu
-   */
-  new_tab_act_ = new QAction(tr("New"), this);
-  new_tab_act_->setIcon(QIcon(":/icons/misc_doc.png"));
-  QList<QKeySequence> new_tab_act_shortcut_list;
-  new_tab_act_shortcut_list.append(QKeySequence(Qt::CTRL | Qt::Key_N));
-  new_tab_act_shortcut_list.append(QKeySequence(Qt::CTRL | Qt::Key_T));
-  new_tab_act_->setShortcuts(new_tab_act_shortcut_list);
-  new_tab_act_->setToolTip(tr("Open a new file"));
+  new_tab_act_ = create_action(
+      "new_tab", tr("New"), ":/icons/misc_doc.png", tr("Open a new file"),
+      {QKeySequence(Qt::CTRL | Qt::Key_N), QKeySequence(Qt::CTRL | Qt::Key_T)});
   connect(new_tab_act_, &QAction::triggered, edit_, &TextEdit::SlotNewTab);
 
-  open_act_ = new QAction(tr("Open..."), this);
-  open_act_->setIcon(QIcon(":/icons/fileopen.png"));
-  open_act_->setShortcut(QKeySequence::Open);
-  open_act_->setToolTip(tr("Open an existing file"));
+  open_act_ = create_action("open", tr("Open..."), ":/icons/fileopen.png",
+                            tr("Open an existing file"), {QKeySequence::Open});
   connect(open_act_, &QAction::triggered, edit_, &TextEdit::SlotOpen);
 
-  browser_act_ = new QAction(tr("File Browser"), this);
-  browser_act_->setIcon(QIcon(":/icons/file-browser.png"));
-  browser_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_B));
-  browser_act_->setToolTip(tr("Open a file browser"));
+  browser_act_ = create_action(
+      "file_browser", tr("File Browser"), ":/icons/file-browser.png",
+      tr("Open a file browser"), {QKeySequence(Qt::CTRL | Qt::Key_B)});
   connect(browser_act_, &QAction::triggered, this,
           &MainWindow::slot_open_file_tab);
 
-  save_act_ = new QAction(tr("Save File"), this);
-  save_act_->setIcon(QIcon(":/icons/filesave.png"));
-  save_act_->setShortcut(QKeySequence::Save);
-  save_act_->setToolTip(tr("Save the current File"));
+  save_act_ = create_action("save", tr("Save File"), ":/icons/filesave.png",
+                            tr("Save the current File"), {QKeySequence::Save});
   connect(save_act_, &QAction::triggered, edit_, &TextEdit::SlotSave);
 
-  save_as_act_ = new QAction(tr("Save As") + "...", this);
-  save_as_act_->setIcon(QIcon(":/icons/filesaveas.png"));
-  save_as_act_->setShortcut(QKeySequence::SaveAs);
-  save_as_act_->setToolTip(tr("Save the current File as..."));
+  save_as_act_ =
+      create_action("save_as", tr("Save As") + "...", ":/icons/filesaveas.png",
+                    tr("Save the current File as..."), {QKeySequence::SaveAs});
   connect(save_as_act_, &QAction::triggered, edit_, &TextEdit::SlotSaveAs);
 
-  print_act_ = new QAction(tr("Print"), this);
-  print_act_->setIcon(QIcon(":/icons/fileprint.png"));
-  print_act_->setShortcut(QKeySequence::Print);
-  print_act_->setToolTip(tr("Print Document"));
+  print_act_ = create_action("print", tr("Print"), ":/icons/fileprint.png",
+                             tr("Print Document"), {QKeySequence::Print});
   connect(print_act_, &QAction::triggered, edit_, &TextEdit::SlotPrint);
 
-  close_tab_act_ = new QAction(tr("Close"), this);
-  close_tab_act_->setIcon(QIcon(":/icons/close.png"));
-  close_tab_act_->setShortcut(QKeySequence::Close);
-  close_tab_act_->setToolTip(tr("Close file"));
+  close_tab_act_ = create_action("close_tab", tr("Close"), ":/icons/close.png",
+                                 tr("Close file"), {QKeySequence::Close});
   connect(close_tab_act_, &QAction::triggered, edit_, &TextEdit::SlotCloseTab);
 
-  quit_act_ = new QAction(tr("Quit"), this);
-  quit_act_->setShortcut(QKeySequence::Quit);
-  quit_act_->setIcon(QIcon(":/icons/exit.png"));
-  quit_act_->setToolTip(tr("Quit Program"));
+  quit_act_ = create_action("quit", tr("Quit"), ":/icons/exit.png",
+                            tr("Quit Program"), {QKeySequence::Quit});
   connect(quit_act_, &QAction::triggered, this, &MainWindow::close);
 
-  /* Edit Menu
-   */
-  undo_act_ = new QAction(tr("Undo"), this);
-  undo_act_->setIcon(QIcon(":/icons/undo.png"));
-  undo_act_->setShortcut(QKeySequence::Undo);
-  undo_act_->setToolTip(tr("Undo Last Edit Action"));
+  /* Edit Menu */
+  undo_act_ = create_action("undo", tr("Undo"), ":/icons/undo.png",
+                            tr("Undo Last Edit Action"), {QKeySequence::Undo});
   connect(undo_act_, &QAction::triggered, edit_, &TextEdit::SlotUndo);
 
-  redo_act_ = new QAction(tr("Redo"), this);
-  redo_act_->setIcon(QIcon(":/icons/redo.png"));
-  redo_act_->setShortcut(QKeySequence::Redo);
-  redo_act_->setToolTip(tr("Redo Last Edit Action"));
+  redo_act_ = create_action("redo", tr("Redo"), ":/icons/redo.png",
+                            tr("Redo Last Edit Action"), {QKeySequence::Redo});
   connect(redo_act_, &QAction::triggered, edit_, &TextEdit::SlotRedo);
 
-  zoom_in_act_ = new QAction(tr("Zoom In"), this);
-  zoom_in_act_->setIcon(QIcon(":/icons/zoomin.png"));
-  zoom_in_act_->setShortcut(QKeySequence::ZoomIn);
+  zoom_in_act_ = create_action("zoom_in", tr("Zoom In"), ":/icons/zoomin.png",
+                               tr("Zoom in"), {QKeySequence::ZoomIn});
   connect(zoom_in_act_, &QAction::triggered, edit_, &TextEdit::SlotZoomIn);
 
-  zoom_out_act_ = new QAction(tr("Zoom Out"), this);
-  zoom_out_act_->setIcon(QIcon(":/icons/zoomout.png"));
-  zoom_out_act_->setShortcut(QKeySequence::ZoomOut);
+  zoom_out_act_ =
+      create_action("zoom_out", tr("Zoom Out"), ":/icons/zoomout.png",
+                    tr("Zoom out"), {QKeySequence::ZoomOut});
   connect(zoom_out_act_, &QAction::triggered, edit_, &TextEdit::SlotZoomOut);
 
-  paste_act_ = new QAction(tr("Paste"), this);
-  paste_act_->setIcon(QIcon(":/icons/button_paste.png"));
-  paste_act_->setShortcut(QKeySequence::Paste);
-  paste_act_->setToolTip(tr("Paste Text From Clipboard"));
+  paste_act_ =
+      create_action("paste", tr("Paste"), ":/icons/button_paste.png",
+                    tr("Paste Text From Clipboard"), {QKeySequence::Paste});
   connect(paste_act_, &QAction::triggered, edit_, &TextEdit::SlotPaste);
 
-  cut_act_ = new QAction(tr("Cut"), this);
-  cut_act_->setIcon(QIcon(":/icons/button_cut.png"));
-  cut_act_->setShortcut(QKeySequence::Cut);
-  cut_act_->setToolTip(
-      tr("Cut the current selection's contents to the "
-         "clipboard"));
+  cut_act_ =
+      create_action("cut", tr("Cut"), ":/icons/button_cut.png",
+                    tr("Cut the current selection's contents to the clipboard"),
+                    {QKeySequence::Cut});
   connect(cut_act_, &QAction::triggered, edit_, &TextEdit::SlotCut);
 
-  copy_act_ = new QAction(tr("Copy"), this);
-  copy_act_->setIcon(QIcon(":/icons/button_copy.png"));
-  copy_act_->setShortcut(QKeySequence::Copy);
-  copy_act_->setToolTip(
-      tr("Copy the current selection's contents to the "
-         "clipboard"));
+  copy_act_ = create_action(
+      "copy", tr("Copy"), ":/icons/button_copy.png",
+      tr("Copy the current selection's contents to the clipboard"),
+      {QKeySequence::Copy});
   connect(copy_act_, &QAction::triggered, edit_, &TextEdit::SlotCopy);
 
-  quote_act_ = new QAction(tr("Quote"), this);
-  quote_act_->setIcon(QIcon(":/icons/quote.png"));
-  quote_act_->setToolTip(tr("Quote whole text"));
+  quote_act_ = create_action("quote", tr("Quote"), ":/icons/quote.png",
+                             tr("Quote whole text"));
   connect(quote_act_, &QAction::triggered, edit_, &TextEdit::SlotQuote);
 
-  select_all_act_ = new QAction(tr("Select All"), this);
-  select_all_act_->setIcon(QIcon(":/icons/edit.png"));
-  select_all_act_->setShortcut(QKeySequence::SelectAll);
-  select_all_act_->setToolTip(tr("Select the whole text"));
+  select_all_act_ =
+      create_action("select_all", tr("Select All"), ":/icons/edit.png",
+                    tr("Select the whole text"), {QKeySequence::SelectAll});
   connect(select_all_act_, &QAction::triggered, edit_,
           &TextEdit::SlotSelectAll);
 
-  find_act_ = new QAction(tr("Find"), this);
-  find_act_->setIcon(QIcon(":/icons/search.png"));
-  find_act_->setShortcut(QKeySequence::Find);
-  find_act_->setToolTip(tr("Find a word"));
+  find_act_ = create_action("find", tr("Find"), ":/icons/search.png",
+                            tr("Find a word"), {QKeySequence::Find});
   connect(find_act_, &QAction::triggered, this, &MainWindow::slot_find);
 
-  clean_double_line_breaks_act_ = new QAction(tr("Remove spacing"), this);
-  clean_double_line_breaks_act_->setIcon(
-      QIcon(":/icons/format-line-spacing-triple.png"));
-  // cleanDoubleLineBreaksAct->setShortcut(QKeySequence::SelectAll);
-  clean_double_line_breaks_act_->setToolTip(
+  clean_double_line_breaks_act_ = create_action(
+      "remove_spacing", tr("Remove spacing"),
+      ":/icons/format-line-spacing-triple.png",
       tr("Remove double linebreaks, e.g. in pasted text from Web Mailer"));
   connect(clean_double_line_breaks_act_, &QAction::triggered, this,
           &MainWindow::slot_clean_double_line_breaks);
 
-  open_settings_act_ = new QAction(tr("Settings"), this);
-  open_settings_act_->setIcon(QIcon(":/icons/setting.png"));
-  open_settings_act_->setToolTip(tr("Open settings dialog"));
+  open_settings_act_ =
+      create_action("settings", tr("Settings"), ":/icons/setting.png",
+                    tr("Open settings dialog"), {QKeySequence::Preferences});
   open_settings_act_->setMenuRole(QAction::PreferencesRole);
-  open_settings_act_->setShortcut(QKeySequence::Preferences);
   connect(open_settings_act_, &QAction::triggered, this,
           &MainWindow::slot_open_settings_dialog);
 
-  /* Crypt Menu
+  /*
+   * Crypt Menu
    */
-  encrypt_act_ = new QAction(tr("Encrypt"), this);
-  encrypt_act_->setIcon(QIcon(":/icons/encrypted.png"));
-  encrypt_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_E));
+  encrypt_act_ = create_action("encrypt", tr("Encrypt"),
+                               ":/icons/encrypted.png", tr("Encrypt Message"),
+                               {QKeySequence(Qt::CTRL | Qt::Key_E)});
+  connect(encrypt_act_, &QAction::triggered, this,
+          &MainWindow::SlotGeneralEncrypt);
 
-  encrypt_act_->setToolTip(tr("Encrypt Message"));
-  connect(encrypt_act_, &QAction::triggered, this, [this]() {
-    if (edit_->SlotCurPageFileTreeView() != nullptr) {
-      const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-      const auto path = file_tree_view->GetSelected();
+  encrypt_sign_act_ = create_action(
+      "encrypt_sign", tr("Encrypt Sign"), ":/icons/encrypted_signed.png",
+      tr("Encrypt and Sign Message"),
+      {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_E)});
+  connect(encrypt_sign_act_, &QAction::triggered, this,
+          &MainWindow::SlotGeneralEncryptSign);
 
-      const auto file_info = QFileInfo(path);
-      if (file_info.isFile()) {
-        this->SlotFileEncrypt(path);
-      } else if (file_info.isDir()) {
-        this->SlotDirectoryEncrypt(path);
-      }
-    }
-    if (edit_->SlotCurPageTextEdit() != nullptr) {
-      this->SlotEncrypt();
-    }
-  });
+  decrypt_act_ = create_action("decrypt", tr("Decrypt"),
+                               ":/icons/decrypted.png", tr("Decrypt Message"),
+                               {QKeySequence(Qt::CTRL | Qt::Key_D)});
+  connect(decrypt_act_, &QAction::triggered, this,
+          &MainWindow::SlotGeneralDecrypt);
 
-  encrypt_sign_act_ = new QAction(tr("Encrypt Sign"), this);
-  encrypt_sign_act_->setIcon(QIcon(":/icons/encrypted_signed.png"));
-  encrypt_sign_act_->setShortcut(
-      QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_E));
+  decrypt_verify_act_ = create_action(
+      "decrypt_verify", tr("Decrypt Verify"), ":/icons/decrypted_verified.png",
+      tr("Decrypt and Verify Message"),
+      {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_D)});
+  connect(decrypt_verify_act_, &QAction::triggered, this,
+          &MainWindow::SlotGeneralDecryptVerify);
 
-  encrypt_sign_act_->setToolTip(tr("Encrypt and Sign Message"));
-  connect(encrypt_sign_act_, &QAction::triggered, this, [this]() {
-    if (edit_->SlotCurPageFileTreeView() != nullptr) {
-      const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-      const auto path = file_tree_view->GetSelected();
+  sign_act_ = create_action("sign", tr("Sign"), ":/icons/signature.png",
+                            tr("Sign Message"),
+                            {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_I)});
+  connect(sign_act_, &QAction::triggered, this, &MainWindow::SlotGeneralSign);
 
-      const auto file_info = QFileInfo(path);
-      if (file_info.isFile()) {
-        this->SlotFileEncryptSign(path);
-      } else if (file_info.isDir()) {
-        this->SlotDirectoryEncryptSign(path);
-      }
-    }
-    if (edit_->SlotCurPageTextEdit() != nullptr) {
-      this->SlotEncryptSign();
-    }
-  });
+  verify_act_ = create_action("verify", tr("Verify"), ":/icons/verify.png",
+                              tr("Verify Message"),
+                              {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_V)});
+  connect(verify_act_, &QAction::triggered, this,
+          &MainWindow::SlotGeneralVerify);
 
-  decrypt_act_ = new QAction(tr("Decrypt"), this);
-  decrypt_act_->setIcon(QIcon(":/icons/decrypted.png"));
-  decrypt_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_D));
-  decrypt_act_->setToolTip(tr("Decrypt Message"));
-  connect(decrypt_act_, &QAction::triggered, this, [this]() {
-    if (edit_->SlotCurPageFileTreeView() != nullptr) {
-      const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-      const auto path = file_tree_view->GetSelected();
-
-      const auto file_info = QFileInfo(path);
-      if (file_info.isFile()) {
-        const QString extension = file_info.completeSuffix();
-
-        if (extension == "tar.gpg" || extension == "tar.asc") {
-          this->SlotArchiveDecrypt(path);
-        } else {
-          this->SlotFileDecrypt(path);
-        }
-      }
-    }
-    if (edit_->SlotCurPageTextEdit() != nullptr) {
-      this->SlotDecrypt();
-    }
-  });
-
-  decrypt_verify_act_ = new QAction(tr("Decrypt Verify"), this);
-  decrypt_verify_act_->setIcon(QIcon(":/icons/decrypted_verified.png"));
-  decrypt_verify_act_->setShortcut(
-      QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_D));
-  decrypt_verify_act_->setToolTip(tr("Decrypt and Verify Message"));
-  connect(decrypt_verify_act_, &QAction::triggered, this, [this]() {
-    if (edit_->SlotCurPageFileTreeView() != nullptr) {
-      const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-      const auto path = file_tree_view->GetSelected();
-
-      const auto file_info = QFileInfo(path);
-      if (file_info.isFile()) {
-        const QString extension = file_info.completeSuffix();
-
-        if (extension == "tar.gpg" || extension == "tar.asc") {
-          this->SlotArchiveDecryptVerify(path);
-        } else {
-          this->SlotFileDecryptVerify(path);
-        }
-      }
-    }
-    if (edit_->SlotCurPageTextEdit() != nullptr) {
-      this->SlotDecryptVerify();
-    }
-  });
-
-  sign_act_ = new QAction(tr("Sign"), this);
-  sign_act_->setIcon(QIcon(":/icons/signature.png"));
-  sign_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_I));
-  sign_act_->setToolTip(tr("Sign Message"));
-  connect(sign_act_, &QAction::triggered, this, [this]() {
-    if (edit_->SlotCurPageFileTreeView() != nullptr) {
-      const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-      const auto path = file_tree_view->GetSelected();
-
-      const auto file_info = QFileInfo(path);
-      if (file_info.isFile()) this->SlotFileSign(path);
-    }
-    if (edit_->SlotCurPageTextEdit() != nullptr) this->SlotSign();
-  });
-
-  verify_act_ = new QAction(tr("Verify"), this);
-  verify_act_->setIcon(QIcon(":/icons/verify.png"));
-  verify_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_V));
-  verify_act_->setToolTip(tr("Verify Message"));
-  connect(verify_act_, &QAction::triggered, this, [this]() {
-    if (edit_->SlotCurPageFileTreeView() != nullptr) {
-      const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-      const auto path = file_tree_view->GetSelected();
-
-      const auto file_info = QFileInfo(path);
-      if (file_info.isFile()) this->SlotFileVerify(path);
-    }
-    if (edit_->SlotCurPageTextEdit() != nullptr) this->SlotVerify();
-  });
-
-  /* Key Menu
+  /*
+   * Key Menu
    */
-
-  import_key_from_file_act_ = new QAction(tr("File"), this);
-  import_key_from_file_act_->setIcon(QIcon(":/icons/import_key_from_file.png"));
-  import_key_from_file_act_->setToolTip(tr("Import New Key From File"));
+  import_key_from_file_act_ = create_action("import_key_from_file", tr("File"),
+                                            ":/icons/import_key_from_file.png",
+                                            tr("Import New Key From File"));
   connect(import_key_from_file_act_, &QAction::triggered, this, [=]() {
     CommonUtils::GetInstance()->SlotImportKeyFromFile(
         this, m_key_list_->GetCurrentGpgContextChannel());
   });
 
-  import_key_from_clipboard_act_ = new QAction(tr("Clipboard"), this);
-  import_key_from_clipboard_act_->setIcon(
-      QIcon(":/icons/import_key_from_clipboard.png"));
-  import_key_from_clipboard_act_->setToolTip(
-      tr("Import New Key From Clipboard"));
+  import_key_from_clipboard_act_ =
+      create_action("import_key_from_clipboard", tr("Clipboard"),
+                    ":/icons/import_key_from_clipboard.png",
+                    tr("Import New Key From Clipboard"));
   connect(import_key_from_clipboard_act_, &QAction::triggered, this, [this]() {
     CommonUtils::GetInstance()->SlotImportKeyFromClipboard(
         this, m_key_list_->GetCurrentGpgContextChannel());
@@ -331,249 +204,196 @@ void MainWindow::create_actions() {
           .value("network/forbid_all_gnupg_connection", false)
           .toBool();
 
-  import_key_from_key_server_act_ = new QAction(tr("Keyserver"), this);
-  import_key_from_key_server_act_->setIcon(
-      QIcon(":/icons/import_key_from_server.png"));
-  import_key_from_key_server_act_->setToolTip(
-      tr("Import New Key From Keyserver"));
+  import_key_from_key_server_act_ =
+      create_action("import_key_from_keyserver", tr("Keyserver"),
+                    ":/icons/import_key_from_server.png",
+                    tr("Import New Key From Keyserver"));
   import_key_from_key_server_act_->setDisabled(forbid_all_gnupg_connection);
   connect(import_key_from_key_server_act_, &QAction::triggered, this, [this]() {
     CommonUtils::GetInstance()->SlotImportKeyFromKeyServer(
         this, m_key_list_->GetCurrentGpgContextChannel());
   });
 
-  import_key_from_edit_act_ = new QAction(tr("Editor"), this);
-  import_key_from_edit_act_->setIcon(QIcon(":/icons/editor.png"));
-  import_key_from_edit_act_->setToolTip(tr("Import New Key From Editor"));
+  import_key_from_edit_act_ =
+      create_action("import_key_from_edit", tr("Editor"), ":/icons/editor.png",
+                    tr("Import New Key From Editor"));
   connect(import_key_from_edit_act_, &QAction::triggered, this,
           &MainWindow::slot_import_key_from_edit);
 
-  open_key_management_act_ = new QAction(tr("Manage Keys"), this);
-  open_key_management_act_->setIcon(QIcon(":/icons/keymgmt.png"));
-  open_key_management_act_->setToolTip(tr("Open Key Management"));
+  open_key_management_act_ =
+      create_action("open_key_management", tr("Manage Keys"),
+                    ":/icons/keymgmt.png", tr("Open Key Management"));
   connect(open_key_management_act_, &QAction::triggered, this,
           &MainWindow::slot_open_key_management);
 
-  clean_gpg_password_cache_act_ = new QAction(tr("Clear Password Cache"), this);
-  clean_gpg_password_cache_act_->setIcon(QIcon(":/icons/clear-f.png"));
-  clean_gpg_password_cache_act_->setToolTip(
-      tr("Clear Password Cache of GnuPG"));
-  connect(clean_gpg_password_cache_act_, &QAction::triggered, this, [=]() {
-    GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache([=](int err,
-                                                                DataObjectPtr) {
-      if (err >= 0) {
-        QMessageBox::information(this, tr("Successful Operation"),
-                                 tr("Clear password cache successfully"));
-      } else {
-        QMessageBox::critical(this, tr("Failed Operation"),
-                              tr("Failed to clear password cache of GnuPG"));
-      }
-    });
-  });
+  clean_gpg_password_cache_act_ =
+      create_action("clean_password_cache", tr("Clear Password Cache"),
+                    ":/icons/clear-f.png", tr("Clear Password Cache of GnuPG"));
+  connect(clean_gpg_password_cache_act_, &QAction::triggered, this,
+          &MainWindow::slot_clean_gpg_password_cache);
 
-  reload_components_act_ = new QAction(tr("Reload All Components"), this);
-  reload_components_act_->setIcon(QIcon(":/icons/restart.png"));
-  reload_components_act_->setToolTip(tr("Reload All GnuPG's Components"));
-  connect(reload_components_act_, &QAction::triggered, this, [=]() {
-    GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents(
-        [=](int err, DataObjectPtr) {
-          if (err >= 0) {
-            QMessageBox::information(
-                this, tr("Successful Operation"),
-                tr("Reload all the GnuPG's components successfully"));
-          } else {
-            QMessageBox::critical(
-                this, tr("Failed Operation"),
-                tr("Failed to reload all or one of the GnuPG's component(s)"));
-          }
-        });
-  });
+  reload_components_act_ =
+      create_action("reload_components", tr("Reload All Components"),
+                    ":/icons/restart.png", tr("Reload All GnuPG's Components"));
+  connect(reload_components_act_, &QAction::triggered, this,
+          &MainWindow::slot_reload_gpg_components);
 
-  restart_components_act_ = new QAction(tr("Restart All Components"), this);
-  restart_components_act_->setIcon(QIcon(":/icons/restart.png"));
-  restart_components_act_->setToolTip(tr("Restart All GnuPG's Components"));
-  connect(restart_components_act_, &QAction::triggered, this, [=]() {
-    GpgFrontend::GpgAdvancedOperator::RestartGpgComponents();
-    Module::ListenRTPublishEvent(
-        this, "core", "gpg_advanced_operator.restart_gpg_components",
-        [=](Module::Namespace, Module::Key, int, std::any value) {
-          bool success_state = std::any_cast<bool>(value);
-          if (success_state) {
-            QMessageBox::information(
-                this, tr("Successful Operation"),
-                tr("Restart all the GnuPG's components successfully"));
-          } else {
-            QMessageBox::critical(
-                this, tr("Failed Operation"),
-                tr("Failed to restart all or one of the GnuPG's component(s)"));
-          }
-        });
-  });
+  restart_components_act_ = create_action(
+      "restart_components", tr("Restart All Components"), ":/icons/restart.png",
+      tr("Restart All GnuPG's Components"));
+  connect(restart_components_act_, &QAction::triggered, this,
+          &MainWindow::slot_restart_gpg_components);
 
-  gnupg_controller_open_act_ = new QAction(tr("Open GnuPG Controller"), this);
-  gnupg_controller_open_act_->setIcon(QIcon(":/icons/configure.png"));
-  gnupg_controller_open_act_->setToolTip(tr("Open GnuPG Controller Dialog"));
+  gnupg_controller_open_act_ = create_action(
+      "gnupg_controller_open", tr("Open GnuPG Controller"),
+      ":/icons/configure.png", tr("Open GnuPG Controller Dialog"));
   connect(gnupg_controller_open_act_, &QAction::triggered, this,
           [this]() { (new GnuPGControllerDialog(this))->exec(); });
 
-  module_controller_open_act_ = new QAction(tr("Open Module Controller"), this);
-  module_controller_open_act_->setIcon(QIcon(":/icons/module.png"));
-  module_controller_open_act_->setToolTip(tr("Open Module Controller Dialog"));
+  module_controller_open_act_ =
+      create_action("module_controller_open", tr("Open Module Controller"),
+                    ":/icons/module.png", tr("Open Module Controller Dialog"));
   connect(module_controller_open_act_, &QAction::triggered, this,
           [this]() { (new ModuleControllerDialog(this))->exec(); });
 
   /**
-   * E-Mmail Menu
+   * E-Mail Menu
    */
   if (Module::IsModuleActivate(kEmailModuleID)) {
-    verify_email_by_eml_data_act_ = new QAction(tr("Verify E-Mail"), this);
-    verify_email_by_eml_data_act_->setIcon(QIcon(":/icons/email-check.png"));
-    verify_email_by_eml_data_act_->setToolTip(
-        tr("Verify RAW E-Mail Data (EML)"));
-    connect(verify_email_by_eml_data_act_, &QAction::triggered, this, [this]() {
-      if (edit_->SlotCurPageFileTreeView() != nullptr) {
-        const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-        const auto path = file_tree_view->GetSelected();
-
-        const auto file_info = QFileInfo(path);
-        if (file_info.isFile()) this->SlotFileVerifyEML(path);
-      }
-      if (edit_->SlotCurPageTextEdit() != nullptr) this->SlotVerifyEML();
-    });
+    verify_email_by_eml_data_act_ = create_action(
+        "verify_email_by_eml_data", tr("Verify E-Mail"),
+        ":/icons/email-check.png", tr("Verify RAW E-Mail Data (EML)"));
+    connect(verify_email_by_eml_data_act_, &QAction::triggered, this,
+            &MainWindow::SlotGeneralVerifyEMail);
   }
 
   /*
    * About Menu
    */
-  about_act_ = new QAction(tr("About"), this);
-  about_act_->setIcon(QIcon(":/icons/help.png"));
-  about_act_->setToolTip(tr("Show the application's About box"));
+  about_act_ = create_action("about", tr("About"), ":/icons/help.png",
+                             tr("Show the application's About box"));
   about_act_->setMenuRole(QAction::AboutRole);
   connect(about_act_, &QAction::triggered, this,
           [=]() { new AboutDialog(0, this); });
 
   if (Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
-    gnupg_act_ = new QAction(tr("GnuPG"), this);
-    gnupg_act_->setIcon(QIcon(":/icons/key.png"));
-    gnupg_act_->setToolTip(tr("Information about Gnupg"));
+    gnupg_act_ = create_action("gnupg_info", tr("GnuPG"), ":/icons/key.png",
+                               tr("Information about Gnupg"));
     connect(gnupg_act_, &QAction::triggered, this,
             [=]() { new AboutDialog(tr("GnuPG"), this); });
   }
 
-  translate_act_ = new QAction(tr("Translate"), this);
-  translate_act_->setIcon(QIcon(":/icons/translate.png"));
-  translate_act_->setToolTip(tr("Information about translation"));
+  translate_act_ =
+      create_action("translate", tr("Translate"), ":/icons/translate.png",
+                    tr("Information about translation"));
   connect(translate_act_, &QAction::triggered, this,
           [=]() { new AboutDialog(tr("Translators"), this); });
 
   if (Module::IsModuleActivate(kVersionCheckingModuleID)) {
-    check_update_act_ = new QAction(tr("Check for Updates"), this);
-    check_update_act_->setIcon(QIcon(":/icons/update.png"));
-    check_update_act_->setToolTip(tr("Check for updates"));
+    check_update_act_ =
+        create_action("check_update", tr("Check for Updates"),
+                      ":/icons/update.png", tr("Check for updates"));
     connect(check_update_act_, &QAction::triggered, this,
             [=]() { new AboutDialog(tr("Update"), this); });
   }
 
-  start_wizard_act_ = new QAction(tr("Open Wizard"), this);
-  start_wizard_act_->setIcon(QIcon(":/icons/wizard.png"));
-  start_wizard_act_->setToolTip(tr("Open the wizard"));
+  start_wizard_act_ =
+      create_action("start_wizard", tr("Open Wizard"), ":/icons/wizard.png",
+                    tr("Open the wizard"));
   connect(start_wizard_act_, &QAction::triggered, this,
           &MainWindow::slot_start_wizard);
 
   append_selected_keys_act_ =
-      new QAction(tr("Append Public Key to Editor"), this);
-  append_selected_keys_act_->setToolTip(
-      tr("Append selected Keypair's Public Key to Editor"));
+      create_action("append_selected_keys", tr("Append Public Key to Editor"),
+                    "", tr("Append selected Keypair's Public Key to Editor"));
   connect(append_selected_keys_act_, &QAction::triggered, this,
           &MainWindow::slot_append_selected_keys);
 
-  append_key_create_date_to_editor_act_ =
-      new QAction(tr("Append Create DateTime to Editor"), this);
-  append_key_create_date_to_editor_act_->setToolTip(
+  append_key_create_date_to_editor_act_ = create_action(
+      "append_key_create_date", tr("Append Create DateTime to Editor"), "",
       tr("Append selected Key's creation date and time to Editor"));
   connect(append_key_create_date_to_editor_act_, &QAction::triggered, this,
           &MainWindow::slot_append_keys_create_datetime);
 
-  append_key_expire_date_to_editor_act_ =
-      new QAction(tr("Append Expire DateTime to Editor"), this);
-  append_key_expire_date_to_editor_act_->setToolTip(
+  append_key_expire_date_to_editor_act_ = create_action(
+      "append_key_expire_date", tr("Append Expire DateTime to Editor"), "",
       tr("Append selected Key's expiration date and time to Editor"));
   connect(append_key_expire_date_to_editor_act_, &QAction::triggered, this,
           &MainWindow::slot_append_keys_expire_datetime);
 
-  append_key_fingerprint_to_editor_act_ =
-      new QAction(tr("Append Fingerprint to Editor"), this);
-  append_key_expire_date_to_editor_act_->setToolTip(
+  append_key_fingerprint_to_editor_act_ = create_action(
+      "append_key_fingerprint", tr("Append Fingerprint to Editor"), "",
       tr("Append selected Key's Fingerprint to Editor"));
   connect(append_key_fingerprint_to_editor_act_, &QAction::triggered, this,
           &MainWindow::slot_append_keys_fingerprint);
 
-  copy_mail_address_to_clipboard_act_ = new QAction(tr("Copy Email"), this);
-  copy_mail_address_to_clipboard_act_->setToolTip(
-      tr("Copy selected Keypair's to clipboard"));
+  copy_mail_address_to_clipboard_act_ =
+      create_action("copy_email", tr("Copy Email"), "",
+                    tr("Copy selected Keypair's to clipboard"));
   connect(copy_mail_address_to_clipboard_act_, &QAction::triggered, this,
           &MainWindow::slot_copy_mail_address_to_clipboard);
 
   copy_key_default_uid_to_clipboard_act_ =
-      new QAction(tr("Copy Default UID"), this);
-  copy_key_default_uid_to_clipboard_act_->setToolTip(
-      tr("Copy selected Keypair's default UID to clipboard"));
+      create_action("copy_default_uid", tr("Copy Default UID"), "",
+                    tr("Copy selected Keypair's default UID to clipboard"));
   connect(copy_key_default_uid_to_clipboard_act_, &QAction::triggered, this,
           &MainWindow::slot_copy_default_uid_to_clipboard);
 
-  copy_key_id_to_clipboard_act_ = new QAction(tr("Copy Key ID"), this);
-  copy_key_id_to_clipboard_act_->setToolTip(
-      tr("Copy selected Keypair's ID to clipboard"));
+  copy_key_id_to_clipboard_act_ =
+      create_action("copy_key_id", tr("Copy Key ID"), "",
+                    tr("Copy selected Keypair's ID to clipboard"));
   connect(copy_key_id_to_clipboard_act_, &QAction::triggered, this,
           &MainWindow::slot_copy_key_id_to_clipboard);
 
-  show_key_details_act_ = new QAction(tr("Show Key Details"), this);
-  show_key_details_act_->setToolTip(tr("Show Details for this Key"));
+  show_key_details_act_ =
+      create_action("show_key_details", tr("Show Key Details"), "",
+                    tr("Show Details for this Key"));
   connect(show_key_details_act_, &QAction::triggered, this,
           &MainWindow::slot_show_key_details);
 
-  add_key_2_favourite_act_ = new QAction(tr("Add To Favourite"), this);
-  add_key_2_favourite_act_->setToolTip(tr("Add this key to Favourite Table"));
+  add_key_2_favourite_act_ =
+      create_action("add_to_favourite", tr("Add To Favourite"), "",
+                    tr("Add this key to Favourite Table"));
   add_key_2_favourite_act_->setData(QVariant("add_key_2_favourite_action"));
   connect(add_key_2_favourite_act_, &QAction::triggered, this,
           &MainWindow::slot_add_key_2_favorite);
 
   remove_key_from_favourtie_act_ =
-      new QAction(tr("Remove From Favourite"), this);
-  remove_key_from_favourtie_act_->setToolTip(
-      tr("Remove this key from Favourite Table"));
+      create_action("remove_from_favourite", tr("Remove From Favourite"), "",
+                    tr("Remove this key from Favourite Table"));
   remove_key_from_favourtie_act_->setData(
       QVariant("remove_key_from_favourtie_action"));
   connect(remove_key_from_favourtie_act_, &QAction::triggered, this,
           &MainWindow::slot_remove_key_from_favorite);
 
-  set_owner_trust_of_key_act_ = new QAction(tr("Set Owner Trust Level"), this);
-  set_owner_trust_of_key_act_->setToolTip(tr("Set Owner Trust Level"));
+  set_owner_trust_of_key_act_ =
+      create_action("set_owner_trust_level", tr("Set Owner Trust Level"), "",
+                    tr("Set Owner Trust Level"));
   set_owner_trust_of_key_act_->setData(QVariant("set_owner_trust_level"));
   connect(set_owner_trust_of_key_act_, &QAction::triggered, this,
           &MainWindow::slot_set_owner_trust_level_of_key);
 
-  /* Key-Shortcuts for Tab-Switchung-Action
-   */
-  switch_tab_up_act_ = new QAction(this);
-  switch_tab_up_act_->setShortcut(QKeySequence::NextChild);
+  /* Key-Shortcuts for Tab-Switching-Action */
+  switch_tab_up_act_ =
+      create_action("switch_tab_up", "", "", "", {QKeySequence::NextChild});
   connect(switch_tab_up_act_, &QAction::triggered, edit_,
           &TextEdit::SlotSwitchTabUp);
   this->addAction(switch_tab_up_act_);
 
-  switch_tab_down_act_ = new QAction(this);
-  switch_tab_down_act_->setShortcut(QKeySequence::PreviousChild);
+  switch_tab_down_act_ = create_action("switch_tab_down", "", "", "",
+                                       {QKeySequence::PreviousChild});
   connect(switch_tab_down_act_, &QAction::triggered, edit_,
           &TextEdit::SlotSwitchTabDown);
   this->addAction(switch_tab_down_act_);
 
-  cut_pgp_header_act_ = new QAction(tr("Remove PGP Header"), this);
-  cut_pgp_header_act_->setIcon(QIcon(":/icons/minus.png"));
+  cut_pgp_header_act_ =
+      create_action("cut_pgp_header", tr("Remove PGP Header"),
+                    ":/icons/minus.png", tr("Remove PGP Header"));
   connect(cut_pgp_header_act_, &QAction::triggered, this,
           &MainWindow::slot_cut_pgp_header);
 
-  add_pgp_header_act_ = new QAction(tr("Add PGP Header"), this);
-  add_pgp_header_act_->setIcon(QIcon(":/icons/add.png"));
+  add_pgp_header_act_ = create_action("add_pgp_header", tr("Add PGP Header"),
+                                      ":/icons/add.png", tr("Add PGP Header"));
   connect(add_pgp_header_act_, &QAction::triggered, this,
           &MainWindow::slot_add_pgp_header);
 }

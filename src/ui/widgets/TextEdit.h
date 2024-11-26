@@ -88,8 +88,19 @@ class TextEdit : public QWidget {
    */
   [[nodiscard]] auto UnsavedDocuments() const -> QHash<int, QString>;
 
-  TextEditTabWidget*
-      tab_widget_; /** Widget containing the tabs of the editor */
+  /**
+   * @details textpage of the currently activated tab
+   * @return \li reference to QTextEdit if tab has one
+   *         \li 0 otherwise (e.g. if helppage)
+   */
+  [[nodiscard]] auto CurPlainText() const -> QString;
+
+  /**
+   * @brief
+   *
+   * @return QTabWidget*
+   */
+  [[nodiscard]] auto TabWidget() const -> QTabWidget*;
 
  public slots:
 
@@ -171,7 +182,7 @@ class TextEdit : public QWidget {
   /**
    * New File Tab to do file operation
    */
-  void SlotNewFileTab();
+  void SlotNewFileBrowserTab();
 
   /**
    * @details put a * in front of current tabs title, if current textedit is
@@ -257,6 +268,15 @@ class TextEdit : public QWidget {
    */
   auto saveFile(const QString& file_name) -> bool;
 
+ private slots:
+
+  /**
+   * @details Remove the tab with given index
+   *
+   * @param index Tab-number to remove
+   */
+  void slot_remove_tab(int index);
+
  private:
   /**
    * @details return just a filename stripped of a whole path
@@ -273,14 +293,7 @@ class TextEdit : public QWidget {
    */
   auto maybe_save_current_tab(bool askToSave) -> bool;
 
- private slots:
-
-  /**
-   * @details Remove the tab with given index
-   *
-   * @param index Tab-number to remove
-   */
-  void slot_remove_tab(int index);
+  TextEditTabWidget* tab_widget_;  ///< widget containing the tabs of the editor
 };
 
 }  // namespace GpgFrontend::UI

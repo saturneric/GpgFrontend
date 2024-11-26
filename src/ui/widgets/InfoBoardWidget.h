@@ -65,16 +65,9 @@ class InfoBoardWidget : public QWidget {
   /**
    * @brief
    *
-   * @param edit
-   */
-  void AssociateTextEdit(QTextEdit* edit);
-
-  /**
-   * @brief
-   *
    * @param tab
    */
-  void AssociateTabWidget(TextEditTabWidget* tab);
+  void AssociateTabWidget(QTabWidget* tab);
 
   /**
    * @brief

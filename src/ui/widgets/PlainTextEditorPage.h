@@ -51,7 +51,7 @@ class PlainTextEditorPage : public QWidget {
   /**
    * @details Get the filepath of the currently activated tab.
    */
-  [[nodiscard]] const QString& GetFilePath() const;
+  [[nodiscard]] auto GetFilePath() const -> const QString&;
 
   /**
    * @details Set filepath of currently activated tab.
@@ -63,7 +63,14 @@ class PlainTextEditorPage : public QWidget {
   /**
    * @details Return pointer tp the textedit of the currently activated tab.
    */
-  QPlainTextEdit* GetTextPage();
+  auto GetTextPage() -> QPlainTextEdit*;
+
+  /**
+   * @brief Get the Plain Text object
+   *
+   * @return QString
+   */
+  auto GetPlainText() -> QString;
 
   /**
    * @details Show additional widget at buttom of currently active tab

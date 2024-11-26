@@ -30,12 +30,9 @@
 
 #include <QtPrintSupport>
 #include <cstddef>
-#include <tuple>
 #include <utility>
-#include <vector>
 
 #include "core/GpgModel.h"
-#include "ui/UISignalStation.h"
 #include "ui/widgets/HelpPage.h"
 #include "ui/widgets/TextEditTabWidget.h"
 
@@ -71,7 +68,7 @@ void TextEdit::SlotNewHelpTab(const QString& title, const QString& path) const {
   tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
 }
 
-void TextEdit::SlotNewFileTab() {
+void TextEdit::SlotNewFileBrowserTab() {
   auto const target_directory = QFileDialog::getExistingDirectory(
       this, tr("Open Directory"), QDir::home().path(),
       QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
@@ -549,4 +546,12 @@ void TextEdit::SlotSelectAll() const {
   }
   CurTextPage()->GetTextPage()->selectAll();
 }
+
+auto TextEdit::CurPlainText() const -> QString {
+  auto* plain_text_tab = CurTextPage();
+  if (plain_text_tab == nullptr) return {};
+  return plain_text_tab->GetPlainText();
+}
+
+auto TextEdit::TabWidget() const -> QTabWidget* { return tab_widget_; }
 }  // namespace GpgFrontend::UI

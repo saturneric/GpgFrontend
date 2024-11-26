@@ -557,37 +557,7 @@ void MainWindow::SlotFileVerify(const QString& path) {
 
                   if (!result_analyse.GetUnknownSignatures().isEmpty() &&
                       Module::IsModuleActivate(kKeyServerSyncModuleID)) {
-                    LOG_D() << "try to sync missing key info from server"
-                            << result_analyse.GetUnknownSignatures();
-
-                    QString fingerprint_list;
-                    for (const auto& fingerprint :
-                         result_analyse.GetUnknownSignatures()) {
-                      fingerprint_list += fingerprint + "\n";
-                    }
-
-                    // Interaction with user
-                    auto user_response = QMessageBox::question(
-                        this, tr("Missing Keys"),
-                        tr("Some signatures cannot be verified because the "
-                           "corresponding keys are missing.\n\n"
-                           "The following fingerprints are missing:\n%1\n\n"
-                           "Would you like to fetch these keys from the key "
-                           "server?")
-                            .arg(fingerprint_list),
-                        QMessageBox::Yes | QMessageBox::No);
-
-                    if (user_response == QMessageBox::Yes) {
-                      CommonUtils::GetInstance()
-                          ->ImportKeyByKeyServerSyncModule(
-                              this, m_key_list_->GetCurrentGpgContextChannel(),
-                              result_analyse.GetUnknownSignatures());
-                    } else {
-                      QMessageBox::information(
-                          this, tr("Verification Incomplete"),
-                          tr("Verification was incomplete due to missing "
-                             "keys. You can manually import the keys later."));
-                    }
+                    slot_verifying_unknown_signature_helper(result_analyse);
                   }
 
                   this->slot_refresh_current_file_view();

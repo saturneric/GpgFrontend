@@ -81,7 +81,13 @@ const QString &PlainTextEditorPage::GetFilePath() const {
   return full_file_path_;
 }
 
-QPlainTextEdit *PlainTextEditorPage::GetTextPage() { return ui_->textPage; }
+auto PlainTextEditorPage::GetTextPage() -> QPlainTextEdit * {
+  return ui_->textPage;
+}
+
+auto PlainTextEditorPage::GetPlainText() -> QString {
+  return ui_->textPage->toPlainText();
+}
 
 void PlainTextEditorPage::NotifyFileSaved() {
   this->is_crlf_ = false;
@@ -212,7 +218,7 @@ void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
   read_bytes_ += bytes_data.size();
 
   // insert the text to the text page
-  this->GetTextPage()->insertPlainText(bytes_data);
+  this->ui_->textPage->insertPlainText(bytes_data);
   this->ui_->characterLabel->setText(
       tr("%1 character(s)").arg(this->GetTextPage()->toPlainText().size()));
 

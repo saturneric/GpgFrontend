@@ -29,15 +29,14 @@
 #include "MainWindow.h"
 #include "core/GpgConstants.h"
 #include "core/function/CacheManager.h"
-#include "core/model/GpgPassphraseContext.h"
+#include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/model/SettingsObject.h"
+#include "core/module/ModuleManager.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/Wizard.h"
 #include "ui/main_window/KeyMgmt.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
-#include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
-
 namespace GpgFrontend::UI {
 
 void MainWindow::SlotSetStatusBarText(const QString& text) {
@@ -57,10 +56,11 @@ void MainWindow::slot_open_key_management() {
   dialog->raise();
 }
 
-void MainWindow::slot_open_file_tab() { edit_->SlotNewFileTab(); }
+void MainWindow::slot_open_file_tab() { edit_->SlotNewFileBrowserTab(); }
 
-void MainWindow::slot_disable_tab_actions(int number) {
-  auto disable = number == -1;
+void MainWindow::slot_switch_menu_control_mode(int index) {
+  auto disable = false;
+  if (index == -1) disable = true;
   if (edit_->CurFilePage() != nullptr) disable = true;
 
   print_act_->setDisabled(disable);
@@ -129,7 +129,7 @@ void MainWindow::slot_clean_double_line_breaks() {
     return;
   }
 
-  QString content = edit_->CurTextPage()->GetTextPage()->toPlainText();
+  QString content = edit_->CurPlainText();
   content.replace("\n\n", "\n");
   edit_->SlotFillTextEditWithText(content);
 }
@@ -139,8 +139,7 @@ void MainWindow::slot_add_pgp_header() {
     return;
   }
 
-  QString content =
-      edit_->CurTextPage()->GetTextPage()->toPlainText().trimmed();
+  QString content = edit_->CurPlainText().trimmed();
 
   content.prepend("\n\n").prepend(PGP_CRYPT_BEGIN);
   content.append("\n").append(PGP_CRYPT_END);
@@ -153,7 +152,7 @@ void MainWindow::slot_cut_pgp_header() {
     return;
   }
 
-  QString content = edit_->CurTextPage()->GetTextPage()->toPlainText();
+  QString content = edit_->CurPlainText();
   auto start = content.indexOf(PGP_CRYPT_BEGIN);
   auto end = content.indexOf(PGP_CRYPT_END);
 
@@ -204,6 +203,161 @@ void MainWindow::SlotUpdateCryptoMenuStatus(unsigned int type) {
   if ((opera_type & MainWindow::CryptoMenu::DecryptAndVerify) != 0U) {
     decrypt_verify_act_->setDisabled(false);
   }
+}
+
+void MainWindow::SlotGeneralEncrypt(bool) {
+  if (edit_->SlotCurPageFileTreeView() != nullptr) {
+    const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+    const auto path = file_tree_view->GetSelected();
+
+    const auto file_info = QFileInfo(path);
+    if (file_info.isFile()) {
+      this->SlotFileEncrypt(path);
+    } else if (file_info.isDir()) {
+      this->SlotDirectoryEncrypt(path);
+    }
+  }
+  if (edit_->SlotCurPageTextEdit() != nullptr) {
+    this->SlotEncrypt();
+  }
+}
+
+void MainWindow::SlotGeneralDecrypt(bool) {
+  if (edit_->SlotCurPageFileTreeView() != nullptr) {
+    const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+    const auto path = file_tree_view->GetSelected();
+
+    const auto file_info = QFileInfo(path);
+    if (file_info.isFile()) {
+      const QString extension = file_info.completeSuffix();
+
+      if (extension == "tar.gpg" || extension == "tar.asc") {
+        this->SlotArchiveDecrypt(path);
+      } else {
+        this->SlotFileDecrypt(path);
+      }
+    }
+  }
+  if (edit_->SlotCurPageTextEdit() != nullptr) {
+    this->SlotDecrypt();
+  }
+}
+
+void MainWindow::SlotGeneralSign(bool) {
+  if (edit_->SlotCurPageFileTreeView() != nullptr) {
+    const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+    const auto path = file_tree_view->GetSelected();
+
+    const auto file_info = QFileInfo(path);
+    if (file_info.isFile()) this->SlotFileSign(path);
+  }
+  if (edit_->SlotCurPageTextEdit() != nullptr) this->SlotSign();
+}
+
+void MainWindow::SlotGeneralVerify(bool) {
+  if (edit_->SlotCurPageFileTreeView() != nullptr) {
+    const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+    const auto path = file_tree_view->GetSelected();
+
+    const auto file_info = QFileInfo(path);
+    if (file_info.isFile()) this->SlotFileVerify(path);
+  }
+  if (edit_->SlotCurPageTextEdit() != nullptr) this->SlotVerify();
+}
+
+void MainWindow::SlotGeneralEncryptSign(bool) {
+  if (edit_->SlotCurPageFileTreeView() != nullptr) {
+    const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+    const auto path = file_tree_view->GetSelected();
+
+    const auto file_info = QFileInfo(path);
+    if (file_info.isFile()) {
+      this->SlotFileEncryptSign(path);
+    } else if (file_info.isDir()) {
+      this->SlotDirectoryEncryptSign(path);
+    }
+  }
+  if (edit_->SlotCurPageTextEdit() != nullptr) {
+    this->SlotEncryptSign();
+  }
+}
+
+void MainWindow::SlotGeneralDecryptVerify(bool) {
+  if (edit_->SlotCurPageFileTreeView() != nullptr) {
+    const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+    const auto path = file_tree_view->GetSelected();
+
+    const auto file_info = QFileInfo(path);
+    if (file_info.isFile()) {
+      const QString extension = file_info.completeSuffix();
+
+      if (extension == "tar.gpg" || extension == "tar.asc") {
+        this->SlotArchiveDecryptVerify(path);
+      } else {
+        this->SlotFileDecryptVerify(path);
+      }
+    }
+  }
+  if (edit_->SlotCurPageTextEdit() != nullptr) {
+    this->SlotDecryptVerify();
+  }
+}
+
+void MainWindow::SlotGeneralVerifyEMail(bool) {
+  if (edit_->SlotCurPageFileTreeView() != nullptr) {
+    const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+    const auto path = file_tree_view->GetSelected();
+
+    const auto file_info = QFileInfo(path);
+    if (file_info.isFile()) this->SlotFileVerifyEML(path);
+  }
+  if (edit_->SlotCurPageTextEdit() != nullptr) this->SlotVerifyEML();
+}
+
+void MainWindow::slot_clean_gpg_password_cache(bool) {
+  GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache(
+      [=](int err, DataObjectPtr) {
+        if (err >= 0) {
+          QMessageBox::information(this, tr("Successful Operation"),
+                                   tr("Clear password cache successfully"));
+        } else {
+          QMessageBox::critical(this, tr("Failed Operation"),
+                                tr("Failed to clear password cache of GnuPG"));
+        }
+      });
+}
+
+void MainWindow::slot_reload_gpg_components(bool) {
+  GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents(
+      [=](int err, DataObjectPtr) {
+        if (err >= 0) {
+          QMessageBox::information(
+              this, tr("Successful Operation"),
+              tr("Reload all the GnuPG's components successfully"));
+        } else {
+          QMessageBox::critical(
+              this, tr("Failed Operation"),
+              tr("Failed to reload all or one of the GnuPG's component(s)"));
+        }
+      });
+}
+
+void MainWindow::slot_restart_gpg_components(bool) {
+  GpgFrontend::GpgAdvancedOperator::RestartGpgComponents();
+  Module::ListenRTPublishEvent(
+      this, "core", "gpg_advanced_operator.restart_gpg_components",
+      [=](Module::Namespace, Module::Key, int, std::any value) {
+        bool success_state = std::any_cast<bool>(value);
+        if (success_state) {
+          QMessageBox::information(
+              this, tr("Successful Operation"),
+              tr("Restart all the GnuPG's components successfully"));
+        } else {
+          QMessageBox::critical(
+              this, tr("Failed Operation"),
+              tr("Failed to restart all or one of the GnuPG's component(s)"));
+        }
+      });
 }
 
 }  // namespace GpgFrontend::UI

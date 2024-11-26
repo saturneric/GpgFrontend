@@ -59,7 +59,7 @@ void MainWindow::SlotEncrypt() {
 
     if (ret == QMessageBox::Cancel) return;
 
-    auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
+    auto buffer = GFBuffer(edit_->CurPlainText());
     CommonUtils::WaitForOpera(
         this, tr("Symmetrically Encrypting"),
         [this, buffer](const OperaWaitingHd& op_hd) {
@@ -118,7 +118,7 @@ void MainWindow::SlotEncrypt() {
     }
   }
 
-  auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
+  auto buffer = GFBuffer(edit_->CurPlainText());
   CommonUtils::WaitForOpera(
       this, tr("Encrypting"),
       [this, keys, buffer](const OperaWaitingHd& op_hd) {
@@ -185,7 +185,7 @@ void MainWindow::SlotSign() {
   }
 
   // set input buffer
-  auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
+  auto buffer = GFBuffer(edit_->CurPlainText());
   CommonUtils::WaitForOpera(
       this, tr("Signing"), [this, keys, buffer](const OperaWaitingHd& hd) {
         GpgFrontend::GpgBasicOperator::GetInstance(
@@ -223,7 +223,7 @@ void MainWindow::SlotDecrypt() {
   if (edit_->SlotCurPageTextEdit() == nullptr) return;
 
   // data to transfer into task
-  auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
+  auto buffer = GFBuffer(edit_->CurPlainText());
 
   CommonUtils::WaitForOpera(
       this, tr("Decrypting"), [this, buffer](const OperaWaitingHd& hd) {
@@ -261,70 +261,39 @@ void MainWindow::SlotVerify() {
   if (edit_->SlotCurPageTextEdit() == nullptr) return;
 
   // set input buffer
-  auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
+  auto buffer = GFBuffer(edit_->CurPlainText());
 
   CommonUtils::WaitForOpera(
       this, tr("Verifying"), [this, buffer](const OperaWaitingHd& hd) {
         GpgFrontend::GpgBasicOperator::GetInstance(
             m_key_list_->GetCurrentGpgContextChannel())
-            .Verify(
-                buffer, GFBuffer(),
-                [this, hd](GpgError err, const DataObjectPtr& data_obj) {
-                  // stop waiting
-                  hd();
+            .Verify(buffer, GFBuffer(),
+                    [this, hd](GpgError err, const DataObjectPtr& data_obj) {
+                      // stop waiting
+                      hd();
 
-                  if (CheckGpgError(err) == GPG_ERR_USER_1 ||
-                      data_obj == nullptr ||
-                      !data_obj->Check<GpgVerifyResult>()) {
-                    QMessageBox::critical(this, tr("Error"),
-                                          tr("Unknown error occurred"));
-                    return;
-                  }
-                  auto verify_result =
-                      ExtractParams<GpgVerifyResult>(data_obj, 0);
+                      if (CheckGpgError(err) == GPG_ERR_USER_1 ||
+                          data_obj == nullptr ||
+                          !data_obj->Check<GpgVerifyResult>()) {
+                        QMessageBox::critical(this, tr("Error"),
+                                              tr("Unknown error occurred"));
+                        return;
+                      }
+                      auto verify_result =
+                          ExtractParams<GpgVerifyResult>(data_obj, 0);
 
-                  // analyse result
-                  auto result_analyse = GpgVerifyResultAnalyse(
-                      m_key_list_->GetCurrentGpgContextChannel(), err,
-                      verify_result);
-                  result_analyse.Analyse();
-                  slot_result_analyse_show_helper(result_analyse);
+                      // analyse result
+                      auto result_analyse = GpgVerifyResultAnalyse(
+                          m_key_list_->GetCurrentGpgContextChannel(), err,
+                          verify_result);
+                      result_analyse.Analyse();
+                      slot_result_analyse_show_helper(result_analyse);
 
-                  if (!result_analyse.GetUnknownSignatures().isEmpty() &&
-                      Module::IsModuleActivate(kKeyServerSyncModuleID)) {
-                    LOG_D() << "try to sync missing key info from server"
-                            << result_analyse.GetUnknownSignatures();
-
-                    QString fingerprint_list;
-                    for (const auto& fingerprint :
-                         result_analyse.GetUnknownSignatures()) {
-                      fingerprint_list += fingerprint + "\n";
-                    }
-
-                    // Interaction with user
-                    auto user_response = QMessageBox::question(
-                        this, tr("Missing Keys"),
-                        tr("Some signatures cannot be verified because the "
-                           "corresponding keys are missing.\n\n"
-                           "The following fingerprints are missing:\n%1\n\n"
-                           "Would you like to fetch these keys from the key "
-                           "server?")
-                            .arg(fingerprint_list),
-                        QMessageBox::Yes | QMessageBox::No);
-
-                    if (user_response == QMessageBox::Yes) {
-                      CommonUtils::GetInstance()
-                          ->ImportKeyByKeyServerSyncModule(
-                              this, m_key_list_->GetCurrentGpgContextChannel(),
-                              result_analyse.GetUnknownSignatures());
-                    } else {
-                      QMessageBox::information(
-                          this, tr("Verification Incomplete"),
-                          tr("Verification was incomplete due to missing "
-                             "keys. You can manually import the keys later."));
-                    }
-                  }
-                });
+                      if (!result_analyse.GetUnknownSignatures().isEmpty() &&
+                          Module::IsModuleActivate(kKeyServerSyncModuleID)) {
+                        slot_verifying_unknown_signature_helper(result_analyse);
+                      }
+                    });
       });
 }
 
@@ -450,7 +419,7 @@ void MainWindow::SlotEncryptSign() {
   }
 
   // data to transfer into task
-  auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
+  auto buffer = GFBuffer(edit_->CurPlainText());
 
   CommonUtils::WaitForOpera(
       this, tr("Encrypting and Signing"),
@@ -504,7 +473,7 @@ void MainWindow::SlotDecryptVerify() {
   if (edit_->SlotCurPageTextEdit() == nullptr) return;
 
   // data to transfer into task
-  auto buffer = GFBuffer(edit_->CurTextPage()->GetTextPage()->toPlainText());
+  auto buffer = GFBuffer(edit_->CurPlainText());
 
   CommonUtils::WaitForOpera(
       this, tr("Decrypting and Verifying"),

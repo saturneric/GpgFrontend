@@ -95,16 +95,7 @@ void InfoBoardWidget::SlotRefresh(const QString& text, InfoBoardStatus status) {
   ui_->infoBoard->verticalScrollBar()->setValue(0);
 }
 
-void InfoBoardWidget::AssociateTextEdit(QTextEdit* edit) {
-  if (m_text_page_ != nullptr) {
-    disconnect(m_text_page_, &QTextEdit::textChanged, this,
-               &InfoBoardWidget::SlotReset);
-  }
-  this->m_text_page_ = edit;
-  connect(edit, &QTextEdit::textChanged, this, &InfoBoardWidget::SlotReset);
-}
-
-void InfoBoardWidget::AssociateTabWidget(TextEditTabWidget* tab) {
+void InfoBoardWidget::AssociateTabWidget(QTabWidget* tab) {
   m_text_page_ = nullptr;
   m_tab_widget_ = tab;
   connect(tab, &QTabWidget::tabBarClicked, this, &InfoBoardWidget::SlotReset);
