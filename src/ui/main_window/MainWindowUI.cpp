@@ -631,7 +631,7 @@ void MainWindow::create_menus() {
   import_key_menu_->addAction(import_key_from_key_server_act_);
   key_menu_->addAction(open_key_management_act_);
 
-  advance_menu_ = menuBar()->addMenu(tr("Advance"));
+  advance_menu_ = menuBar()->addMenu(tr("Advanced"));
   advance_menu_->addAction(clean_gpg_password_cache_act_);
   advance_menu_->addAction(reload_components_act_);
   advance_menu_->addAction(restart_components_act_);
