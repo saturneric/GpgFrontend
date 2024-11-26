@@ -27,6 +27,7 @@
  */
 
 #include "MainWindow.h"
+#include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/module/ModuleManager.h"
@@ -355,24 +356,45 @@ void MainWindow::slot_verify_email_by_eml_data(const QByteArray& buffer) {
       [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
           Module::Event::Params p) {
         LOG_D() << "EMAIL_VERIFY_EML_DATA callback: " << i << ei;
-        if (p["ret"] != "0" || !p["error_msg"].isEmpty()) {
+        if (p["ret"] != "0" || !p["err"].isEmpty()) {
           LOG_E() << "An error occurred trying to verify email, "
-                  << "error message: " << p["error_msg"]
-                  << "reply data: " << p["reply_data"];
-        } else if (p.contains("signature") && p.contains("mime")) {
-          const auto mime = QByteArray::fromBase64(p["mime"].toLatin1());
-          const auto signature =
-              QByteArray::fromBase64(p["signature"].toLatin1());
+                  << "error message: " << p["err"];
 
-          auto part_mime_content_hash =
-              QCryptographicHash::hash(mime, QCryptographicHash::Sha1);
-          LOG_D() << "get raw data of mime part, size:" << mime.size()
-                  << "sha1 hash:" << part_mime_content_hash.toHex();
+          if (p["ret"] == "-2") {
+            QString detailed_error = p["err"];
 
-          SlotVerify(mime, signature);
-        } else {
-          LOG_E() << "mime or signature data is missing";
+            QString info =
+                tr("# EML Data Error\n\n"
+                   "The provided EML data does not conform to the "
+                   "structure described in RFC 3156 and cannot be "
+                   "validated.\n\n"
+                   "Details: %1\n\n"
+                   "What is EML Data?\n"
+                   "EML is a file format used to represent email messages. "
+                   "It typically contains the entire contents of an email, "
+                   "including headers, "
+                   "body text, attachments, and metadata. In order to validate "
+                   "the email properly, it is necessary to provide the "
+                   "complete, original EML "
+                   "data.\n\n"
+                   "For more information about the expected EML structure, "
+                   "please refer to the RFC 3156 standard:\n"
+                   "%2\n\n"
+                   "Please ensure the EML data follows the standard and try "
+                   "again.")
+                    .arg(detailed_error)
+                    .arg("https://www.rfc-editor.org/rfc/rfc3156.txt");
+            slot_refresh_info_board(-2, info);
+          }
+
+          return;
         }
+
+        if (p.contains("signature") && p.contains("mime")) {
+          slot_verify_email_by_eml_data_result_helper(p);
+        }
+
+        LOG_E() << "mime or signature data is missing";
       });
 }
 
@@ -385,6 +407,150 @@ void MainWindow::SlotVerifyEML() {
   // LOG_D() << "EML BUFFER: " << buffer;
 
   slot_verify_email_by_eml_data(buffer);
+}
+
+void MainWindow::slot_verifying_unknown_signature_helper(
+    const GpgVerifyResultAnalyse& result_analyse) {
+  LOG_D() << "try to sync missing key info from server"
+          << result_analyse.GetUnknownSignatures();
+
+  QString fingerprint_list;
+  for (const auto& fingerprint : result_analyse.GetUnknownSignatures()) {
+    fingerprint_list += fingerprint + "\n";
+  }
+
+  // Interaction with user
+  auto user_response =
+      QMessageBox::question(this, tr("Missing Keys"),
+                            tr("Some signatures cannot be verified because "
+                               "the "
+                               "corresponding keys are missing.\n\n"
+                               "The following fingerprints are "
+                               "missing:\n%1\n\n"
+                               "Would you like to fetch these keys from "
+                               "the key "
+                               "server?")
+                                .arg(fingerprint_list),
+                            QMessageBox::Yes | QMessageBox::No);
+
+  if (user_response == QMessageBox::Yes) {
+    CommonUtils::GetInstance()->ImportKeyByKeyServerSyncModule(
+        this, m_key_list_->GetCurrentGpgContextChannel(),
+        result_analyse.GetUnknownSignatures());
+  } else {
+    QMessageBox::information(this, tr("Verification Incomplete"),
+                             tr("Verification was incomplete due to "
+                                "missing "
+                                "keys. You can manually import the keys "
+                                "later."));
+  }
+}
+
+void MainWindow::slot_verify_email_by_eml_data_result_helper(
+    const QMap<QString, QString>& p) {
+  const auto mime = QByteArray::fromBase64(p["mime"].toLatin1());
+  const auto signature = QByteArray::fromBase64(p["signature"].toLatin1());
+
+  auto timestamp = p.value("datetime", "-1").toLongLong();
+  auto datetime = tr("None");
+  if (timestamp > 0) {
+    datetime = QLocale().toString(QDateTime::fromMSecsSinceEpoch(timestamp));
+  }
+
+  QString email_info;
+  email_info.append("# Email Information\n\n");
+  email_info.append(QString("- %1: %2\n")
+                        .arg(tr("From"))
+                        .arg(p.value("from", tr("Unknown"))));
+  email_info.append(
+      QString("- %1: %2\n").arg(tr("To")).arg(p.value("to", tr("Unknown"))));
+  email_info.append(QString("- %1: %2\n")
+                        .arg(tr("Subject"))
+                        .arg(p.value("subject", tr("None"))));
+  email_info.append(
+      QString("- %1: %2\n").arg(tr("CC")).arg(p.value("cc", tr("None"))));
+  email_info.append(
+      QString("- %1: %2\n").arg(tr("BCC")).arg(p.value("bcc", tr("None"))));
+  email_info.append(QString("- %1: %2\n").arg(tr("Date")).arg(datetime));
+  email_info.append("\n");
+
+  // set input buffer
+  auto raw_data_buffer = GFBuffer(mime);
+  auto signature_buffer = GFBuffer(signature);
+
+  CommonUtils::WaitForOpera(
+      this, tr("Verifying"),
+      [this, email_info, raw_data_buffer,
+       signature_buffer](const OperaWaitingHd& hd) {
+        GpgFrontend::GpgBasicOperator::GetInstance(
+            m_key_list_->GetCurrentGpgContextChannel())
+            .Verify(
+                raw_data_buffer, signature_buffer,
+                [this, email_info, hd](GpgError err,
+                                       const DataObjectPtr& data_obj) {
+                  // stop waiting
+                  hd();
+
+                  if (CheckGpgError(err) == GPG_ERR_USER_1 ||
+                      data_obj == nullptr ||
+                      !data_obj->Check<GpgVerifyResult>()) {
+                    QMessageBox::critical(this, tr("Error"),
+                                          tr("Unknown error occurred"));
+                    return;
+                  }
+                  auto verify_result =
+                      ExtractParams<GpgVerifyResult>(data_obj, 0);
+
+                  // analyse result
+                  auto result_analyse = GpgVerifyResultAnalyse(
+                      m_key_list_->GetCurrentGpgContextChannel(), err,
+                      verify_result);
+                  result_analyse.Analyse();
+                  auto verify_result_report = result_analyse.GetResultReport();
+
+                  slot_refresh_info_board(result_analyse.GetStatus(),
+                                          email_info + verify_result_report);
+
+                  if (!result_analyse.GetUnknownSignatures().isEmpty() &&
+                      Module::IsModuleActivate(kKeyServerSyncModuleID)) {
+                    slot_verifying_unknown_signature_helper(result_analyse);
+                    return;
+                  }
+                });
+      });
+}
+
+void MainWindow::slot_eml_verify_show_helper(const QString& email_info,
+                                             const GpgVerifyResultAnalyse& r) {}
+
+void MainWindow::slot_result_analyse_show_helper(
+    const GpgResultAnalyse& result_analyse) {
+  slot_refresh_info_board(result_analyse.GetStatus(),
+                          result_analyse.GetResultReport());
+}
+
+void MainWindow::slot_refresh_info_board(int status, const QString& text) {
+  if (edit_->tab_widget_ != nullptr) {
+    info_board_->AssociateTabWidget(edit_->tab_widget_);
+  }
+
+  if (status < 0) {
+    info_board_->SlotRefresh(text, INFO_ERROR_CRITICAL);
+  } else if (status > 0) {
+    info_board_->SlotRefresh(text, INFO_ERROR_OK);
+  } else {
+    info_board_->SlotRefresh(text, INFO_ERROR_WARN);
+  }
+}
+
+void MainWindow::slot_result_analyse_show_helper(const GpgResultAnalyse& r_a,
+                                                 const GpgResultAnalyse& r_b) {
+  if (edit_->tab_widget_ != nullptr) {
+    info_board_->AssociateTabWidget(edit_->tab_widget_);
+  }
+
+  slot_refresh_info_board(std::min(r_a.GetStatus(), r_b.GetStatus()),
+                          r_a.GetResultReport() + r_b.GetResultReport());
 }
 
 }  // namespace GpgFrontend::UI

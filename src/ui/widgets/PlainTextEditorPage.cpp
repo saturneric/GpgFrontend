@@ -211,10 +211,6 @@ void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
 
   read_bytes_ += bytes_data.size();
 
-  if (bytes_data.contains("VusEk")) {
-    LOG_D() << "WWWWWWW PPP: " << bytes_data;
-  }
-
   // insert the text to the text page
   this->GetTextPage()->insertPlainText(bytes_data);
   this->ui_->characterLabel->setText(

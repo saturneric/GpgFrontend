@@ -32,7 +32,9 @@
 
 namespace GpgFrontend {
 class GpgPassphraseContext;
-}
+class GpgResultAnalyse;
+class GpgVerifyResultAnalyse;
+}  // namespace GpgFrontend
 
 namespace GpgFrontend::UI {
 
@@ -396,6 +398,53 @@ class MainWindow : public GeneralMainWindow {
    */
   void slot_verify_email_by_eml_data(const QByteArray& buffer);
 
+  /**
+   * @brief
+   *
+   * @param buffer
+   */
+  void slot_verify_email_by_eml_data_result_helper(
+      const QMap<QString, QString>& p);
+
+  /**
+   * @brief
+   *
+   * @param result_analyse
+   */
+  void slot_verifying_unknown_signature_helper(const GpgVerifyResultAnalyse& r);
+
+  /**
+   * @brief
+   *
+   * @param result_analyse
+   */
+  void slot_result_analyse_show_helper(const GpgResultAnalyse& r);
+
+  /**
+   * @brief
+   *
+   * @param r_a
+   * @param r_b
+   */
+  void slot_result_analyse_show_helper(const GpgResultAnalyse& r_a,
+                                       const GpgResultAnalyse& r_b);
+
+  /**
+   * @brief
+   *
+   * @param result_analyse
+   */
+  void slot_eml_verify_show_helper(const QString& email_info,
+                                   const GpgVerifyResultAnalyse& r);
+
+  /**
+   * @brief
+   *
+   * @param status
+   * @param text
+   */
+  void slot_refresh_info_board(int status, const QString& text);
+
  private:
   /**
    * @details Create actions for the main-menu and the context-menu of the
@@ -460,6 +509,7 @@ class MainWindow : public GeneralMainWindow {
   QToolBar*
       special_edit_tool_bar_{};  ///<  Toolbar holding special edit actions
   QToolBar* key_tool_bar_{};     ///<  Toolbar holding key operations
+  QToolBar* email_tool_bar_{};
   QToolButton*
       import_button_{};  ///<  Tool button for import dropdown menu in toolbar
   QDockWidget* key_list_dock_{};    ///<  Encrypt Dock
@@ -530,7 +580,7 @@ class MainWindow : public GeneralMainWindow {
   QAction* import_key_from_file_act_{};  ///<
   QAction* import_key_from_clipboard_act_{};   ///<
   QAction* import_key_from_key_server_act_{};  ///<
-  QAction* verify_email_by_eml_data_{};        ///<
+  QAction* verify_email_by_eml_data_act_{};    ///<
 
   QLabel* status_bar_icon_{};  ///<
 

@@ -111,7 +111,7 @@ void MainWindow::SlotFileEncrypt(const QString& path) {
                         result);
                     result_analyse.Analyse();
 
-                    process_result_analyse(edit_, info_board_, result_analyse);
+                    slot_result_analyse_show_helper(result_analyse);
                     this->slot_refresh_current_file_view();
                   });
         });
@@ -163,7 +163,7 @@ void MainWindow::SlotFileEncrypt(const QString& path) {
                       m_key_list_->GetCurrentGpgContextChannel(), err, result);
                   result_analyse.Analyse();
 
-                  process_result_analyse(edit_, info_board_, result_analyse);
+                  slot_result_analyse_show_helper(result_analyse);
                   this->slot_refresh_current_file_view();
                 });
       });
@@ -237,7 +237,7 @@ void MainWindow::SlotDirectoryEncrypt(const QString& path) {
                         result);
                     result_analyse.Analyse();
 
-                    process_result_analyse(edit_, info_board_, result_analyse);
+                    slot_result_analyse_show_helper(result_analyse);
                     this->slot_refresh_current_file_view();
                   });
         });
@@ -289,7 +289,7 @@ void MainWindow::SlotDirectoryEncrypt(const QString& path) {
                       m_key_list_->GetCurrentGpgContextChannel(), err, result);
                   result_analyse.Analyse();
 
-                  process_result_analyse(edit_, info_board_, result_analyse);
+                  slot_result_analyse_show_helper(result_analyse);
                   this->slot_refresh_current_file_view();
                 });
       });
@@ -343,7 +343,7 @@ void MainWindow::SlotFileDecrypt(const QString& path) {
                       m_key_list_->GetCurrentGpgContextChannel(), err, result);
                   result_analyse.Analyse();
 
-                  process_result_analyse(edit_, info_board_, result_analyse);
+                  slot_result_analyse_show_helper(result_analyse);
                   this->slot_refresh_current_file_view();
                 });
       });
@@ -396,7 +396,7 @@ void MainWindow::SlotArchiveDecrypt(const QString& path) {
                       m_key_list_->GetCurrentGpgContextChannel(), err, result);
                   result_analyse.Analyse();
 
-                  process_result_analyse(edit_, info_board_, result_analyse);
+                  slot_result_analyse_show_helper(result_analyse);
                   this->slot_refresh_current_file_view();
                 });
       });
@@ -459,29 +459,29 @@ void MainWindow::SlotFileSign(const QString& path) {
   CommonUtils::WaitForOpera(
       this, tr("Signing"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-            .SignFile(
-                {keys->begin(), keys->end()}, path,
-                !non_ascii_at_file_operation, sig_file_path,
-                [=](GpgError err, const DataObjectPtr& data_obj) {
-                  // stop waiting
-                  op_hd();
+            .SignFile({keys->begin(), keys->end()}, path,
+                      !non_ascii_at_file_operation, sig_file_path,
+                      [=](GpgError err, const DataObjectPtr& data_obj) {
+                        // stop waiting
+                        op_hd();
 
-                  if (CheckGpgError(err) == GPG_ERR_USER_1 ||
-                      data_obj == nullptr ||
-                      !data_obj->Check<GpgSignResult>()) {
-                    QMessageBox::critical(this, tr("Error"),
-                                          tr("Unknown error occurred"));
-                    return;
-                  }
+                        if (CheckGpgError(err) == GPG_ERR_USER_1 ||
+                            data_obj == nullptr ||
+                            !data_obj->Check<GpgSignResult>()) {
+                          QMessageBox::critical(this, tr("Error"),
+                                                tr("Unknown error occurred"));
+                          return;
+                        }
 
-                  auto result = ExtractParams<GpgSignResult>(data_obj, 0);
-                  auto result_analyse = GpgSignResultAnalyse(
-                      m_key_list_->GetCurrentGpgContextChannel(), err, result);
-                  result_analyse.Analyse();
+                        auto result = ExtractParams<GpgSignResult>(data_obj, 0);
+                        auto result_analyse = GpgSignResultAnalyse(
+                            m_key_list_->GetCurrentGpgContextChannel(), err,
+                            result);
+                        result_analyse.Analyse();
 
-                  process_result_analyse(edit_, info_board_, result_analyse);
-                  this->slot_refresh_current_file_view();
-                });
+                        slot_result_analyse_show_helper(result_analyse);
+                        this->slot_refresh_current_file_view();
+                      });
       });
 }
 
@@ -553,7 +553,7 @@ void MainWindow::SlotFileVerify(const QString& path) {
                       m_key_list_->GetCurrentGpgContextChannel(), err, result);
                   result_analyse.Analyse();
 
-                  process_result_analyse(edit_, info_board_, result_analyse);
+                  slot_result_analyse_show_helper(result_analyse);
 
                   if (!result_analyse.GetUnknownSignatures().isEmpty() &&
                       Module::IsModuleActivate(kKeyServerSyncModuleID)) {
@@ -706,9 +706,8 @@ void MainWindow::SlotFileEncryptSign(const QString& path) {
                       sign_result);
                   sign_result_analyse.Analyse();
 
-                  process_result_analyse(edit_, info_board_,
-                                         encrypt_result_analyse,
-                                         sign_result_analyse);
+                  slot_result_analyse_show_helper(encrypt_result_analyse,
+                                                  sign_result_analyse);
 
                   this->slot_refresh_current_file_view();
                 });
@@ -827,9 +826,8 @@ void MainWindow::SlotDirectoryEncryptSign(const QString& path) {
                       sign_result);
                   sign_result_analyse.Analyse();
 
-                  process_result_analyse(edit_, info_board_,
-                                         encrypt_result_analyse,
-                                         sign_result_analyse);
+                  slot_result_analyse_show_helper(encrypt_result_analyse,
+                                                  sign_result_analyse);
 
                   this->slot_refresh_current_file_view();
                 });
@@ -893,9 +891,8 @@ void MainWindow::SlotFileDecryptVerify(const QString& path) {
                       verify_result);
                   verify_result_analyse.Analyse();
 
-                  process_result_analyse(edit_, info_board_,
-                                         decrypt_result_analyse,
-                                         verify_result_analyse);
+                  slot_result_analyse_show_helper(decrypt_result_analyse,
+                                                  verify_result_analyse);
 
                   this->slot_refresh_current_file_view();
 
@@ -996,9 +993,8 @@ void MainWindow::SlotArchiveDecryptVerify(const QString& path) {
                       verify_result);
                   verify_result_analyse.Analyse();
 
-                  process_result_analyse(edit_, info_board_,
-                                         decrypt_result_analyse,
-                                         verify_result_analyse);
+                  slot_result_analyse_show_helper(decrypt_result_analyse,
+                                                  verify_result_analyse);
 
                   // pause this feature
                   // if (verify_result_analyse.GetStatus() == -2) {

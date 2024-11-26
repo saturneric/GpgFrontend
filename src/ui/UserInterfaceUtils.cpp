@@ -91,35 +91,6 @@ void ImportUnknownKeyFromKeyserver(
   }
 }
 
-void refresh_info_board(InfoBoardWidget *info_board, int status,
-                        const QString &report_text) {
-  if (status < 0) {
-    info_board->SlotRefresh(report_text, INFO_ERROR_CRITICAL);
-  } else if (status > 0) {
-    info_board->SlotRefresh(report_text, INFO_ERROR_OK);
-  } else {
-    info_board->SlotRefresh(report_text, INFO_ERROR_WARN);
-  }
-}
-
-void process_result_analyse(TextEdit *edit, InfoBoardWidget *info_board,
-                            const GpgResultAnalyse &result_analyse) {
-  info_board->AssociateTabWidget(edit->tab_widget_);
-  refresh_info_board(info_board, result_analyse.GetStatus(),
-                     result_analyse.GetResultReport());
-}
-
-void process_result_analyse(TextEdit *edit, InfoBoardWidget *info_board,
-                            const GpgResultAnalyse &result_analyse_a,
-                            const GpgResultAnalyse &result_analyse_b) {
-  info_board->AssociateTabWidget(edit->tab_widget_);
-
-  refresh_info_board(
-      info_board,
-      std::min(result_analyse_a.GetStatus(), result_analyse_b.GetStatus()),
-      result_analyse_a.GetResultReport() + result_analyse_b.GetResultReport());
-}
-
 void process_operation(QWidget *parent, const QString &waiting_title,
                        const Thread::Task::TaskRunnable func,
                        const Thread::Task::TaskCallback callback,

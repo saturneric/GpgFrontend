@@ -426,10 +426,11 @@ void MainWindow::create_actions() {
    * E-Mmail Menu
    */
   if (Module::IsModuleActivate(kEmailModuleID)) {
-    verify_email_by_eml_data_ = new QAction(tr("Verify E-Mail"), this);
-    verify_email_by_eml_data_->setIcon(QIcon(":/icons/verify.png"));
-    verify_email_by_eml_data_->setToolTip(tr("Verify RAW E-Mail Data (EML)"));
-    connect(verify_email_by_eml_data_, &QAction::triggered, this, [this]() {
+    verify_email_by_eml_data_act_ = new QAction(tr("Verify E-Mail"), this);
+    verify_email_by_eml_data_act_->setIcon(QIcon(":/icons/email-check.png"));
+    verify_email_by_eml_data_act_->setToolTip(
+        tr("Verify RAW E-Mail Data (EML)"));
+    connect(verify_email_by_eml_data_act_, &QAction::triggered, this, [this]() {
       if (edit_->SlotCurPageFileTreeView() != nullptr) {
         const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
         const auto path = file_tree_view->GetSelected();
@@ -640,7 +641,7 @@ void MainWindow::create_menus() {
 
   if (Module::IsModuleActivate(kEmailModuleID)) {
     email_menu_ = menuBar()->addMenu(tr("E-Mail"));
-    email_menu_->addAction(verify_email_by_eml_data_);
+    email_menu_->addAction(verify_email_by_eml_data_act_);
   }
 
   view_menu_ = menuBar()->addMenu(tr("View"));
@@ -701,6 +702,13 @@ void MainWindow::create_tool_bars() {
   special_edit_tool_bar_->addAction(cut_pgp_header_act_);
   special_edit_tool_bar_->hide();
   view_menu_->addAction(special_edit_tool_bar_->toggleViewAction());
+
+  if (Module::IsModuleActivate(kEmailModuleID)) {
+    email_tool_bar_ = addToolBar(tr("E-Mail"));
+    email_tool_bar_->setObjectName("emailToolBar");
+    email_tool_bar_->addAction(verify_email_by_eml_data_act_);
+    view_menu_->addAction(email_tool_bar_->toggleViewAction());
+  }
 
   // Add dropdown menu for key import to keytoolbar
   import_button_ = new QToolButton();

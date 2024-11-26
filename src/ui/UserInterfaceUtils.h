@@ -69,38 +69,6 @@ void ImportUnknownKeyFromKeyserver(QWidget* parent,
 /**
  * @brief
  *
- * @param info_board
- * @param status
- * @param report_text
- */
-void refresh_info_board(InfoBoardWidget* info_board, int status,
-                        const QString& report_text);
-
-/**
- * @brief
- *
- * @param edit
- * @param info_board
- * @param result_analyse
- */
-void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
-                            const GpgResultAnalyse& result_analyse);
-
-/**
- * @brief
- *
- * @param edit
- * @param info_board
- * @param result_analyse_a
- * @param result_analyse_b
- */
-void process_result_analyse(TextEdit* edit, InfoBoardWidget* info_board,
-                            const GpgResultAnalyse& result_analyse_a,
-                            const GpgResultAnalyse& result_analyse_b);
-
-/**
- * @brief
- *
  * @param parent
  * @param waiting_title
  * @param func

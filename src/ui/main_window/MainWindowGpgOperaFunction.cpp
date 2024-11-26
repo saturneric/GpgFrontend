@@ -86,7 +86,7 @@ void MainWindow::SlotEncrypt() {
                         m_key_list_->GetCurrentGpgContextChannel(), err,
                         result);
                     result_analyse.Analyse();
-                    process_result_analyse(edit_, info_board_, result_analyse);
+                    slot_result_analyse_show_helper(result_analyse);
 
                     if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
                       edit_->SlotFillTextEditWithText(
@@ -143,7 +143,7 @@ void MainWindow::SlotEncrypt() {
                   auto result_analyse = GpgEncryptResultAnalyse(
                       m_key_list_->GetCurrentGpgContextChannel(), err, result);
                   result_analyse.Analyse();
-                  process_result_analyse(edit_, info_board_, result_analyse);
+                  slot_result_analyse_show_helper(result_analyse);
 
                   if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
                     edit_->SlotFillTextEditWithText(
@@ -209,7 +209,7 @@ void MainWindow::SlotSign() {
                       m_key_list_->GetCurrentGpgContextChannel(), err,
                       sign_result);
                   result_analyse.Analyse();
-                  process_result_analyse(edit_, info_board_, result_analyse);
+                  slot_result_analyse_show_helper(result_analyse);
 
                   if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
                     edit_->SlotFillTextEditWithText(
@@ -247,7 +247,7 @@ void MainWindow::SlotDecrypt() {
                   m_key_list_->GetCurrentGpgContextChannel(), err,
                   decrypt_result);
               result_analyse.Analyse();
-              process_result_analyse(edit_, info_board_, result_analyse);
+              slot_result_analyse_show_helper(result_analyse);
 
               if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
                 edit_->SlotFillTextEditWithText(
@@ -288,7 +288,7 @@ void MainWindow::SlotVerify() {
                       m_key_list_->GetCurrentGpgContextChannel(), err,
                       verify_result);
                   result_analyse.Analyse();
-                  process_result_analyse(edit_, info_board_, result_analyse);
+                  slot_result_analyse_show_helper(result_analyse);
 
                   if (!result_analyse.GetUnknownSignatures().isEmpty() &&
                       Module::IsModuleActivate(kKeyServerSyncModuleID)) {
@@ -360,7 +360,7 @@ void MainWindow::SlotVerify(const QByteArray& raw_data,
                       m_key_list_->GetCurrentGpgContextChannel(), err,
                       verify_result);
                   result_analyse.Analyse();
-                  process_result_analyse(edit_, info_board_, result_analyse);
+                  slot_result_analyse_show_helper(result_analyse);
 
                   if (!result_analyse.GetUnknownSignatures().isEmpty() &&
                       Module::IsModuleActivate(kKeyServerSyncModuleID)) {
@@ -489,9 +489,8 @@ void MainWindow::SlotEncryptSign() {
                   sign_result_analyse.Analyse();
 
                   // show analyse result
-                  process_result_analyse(edit_, info_board_,
-                                         encrypt_result_analyse,
-                                         sign_result_analyse);
+                  slot_result_analyse_show_helper(encrypt_result_analyse,
+                                                  sign_result_analyse);
 
                   if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
                     edit_->SlotFillTextEditWithText(
@@ -541,8 +540,8 @@ void MainWindow::SlotDecryptVerify() {
               verify_result_analyse.Analyse();
 
               // show analyse result
-              process_result_analyse(edit_, info_board_, decrypt_result_analyse,
-                                     verify_result_analyse);
+              slot_result_analyse_show_helper(decrypt_result_analyse,
+                                              verify_result_analyse);
 
               if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
                 edit_->SlotFillTextEditWithText(
