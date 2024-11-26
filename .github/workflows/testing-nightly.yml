@@ -28,8 +28,6 @@ name: Build Nightly
 on:
   push:
     branches: ["develop"]
-  schedule:
-    - cron: "0 14 * * MON-FRI"
 
 env:
   BUILD_TYPE: Release
