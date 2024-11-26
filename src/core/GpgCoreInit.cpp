@@ -343,11 +343,11 @@ auto DecideGpgConfPath(const QString& default_gpgconf_path) -> QString {
     gpgconf_install_fs_path = SearchGpgconfPath(
         {"/usr/local/bin/gpgconf", "/opt/homebrew/bin/gpgconf"});
 #elif defined(_WIN32) || defined(WIN32)
-    gnupg_install_fs_path =
+    gpgconf_install_fs_path =
         SearchGpgconfPath({"C:/Program Files (x86)/gnupg/bin/gpgconf.exe"});
 #else
     // unix or linux or another platforms
-    gnupg_install_fs_path =
+    gpgconf_install_fs_path =
         SearchGpgconfPath({"/usr/local/bin/gpgconf", "/usr/bin/gpgconf"});
 #endif
   }
