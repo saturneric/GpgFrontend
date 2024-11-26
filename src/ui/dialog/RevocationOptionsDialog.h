@@ -36,7 +36,7 @@ namespace GpgFrontend::UI {
 class RevocationOptionsDialog : public GeneralDialog {
   Q_OBJECT
  public:
-  explicit RevocationOptionsDialog(QWidget *parent);
+  explicit RevocationOptionsDialog(const QStringList& codes, QWidget* parent);
 
   [[nodiscard]] auto Code() const -> int;
 

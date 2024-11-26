@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <functional>
-
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/gpg/GpgContext.h"
 #include "core/typedef/GpgTypedef.h"
@@ -113,61 +111,6 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
                     const QString& reason_text) -> bool;
 
  private:
-  static auto interactor_cb_fnc(void* handle, const char* status,
-                                const char* args, int fd) -> gpgme_error_t;
-
-  using Command = QString;
-  using AutomatonState = enum {
-    AS_START,
-    AS_SELECT,
-    AS_COMMAND,
-    AS_VALUE,
-    AS_REASON_CODE,
-    AS_REASON_TEXT,
-    AS_REALLY_ULTIMATE,
-    AS_SAVE,
-    AS_ERROR,
-    AS_QUIT,
-  };
-
-  struct AutomatonHandelStruct;
-
-  using AutomatonActionHandler =
-      std::function<Command(AutomatonHandelStruct&, AutomatonState)>;
-  using AutomatonNextStateHandler =
-      std::function<AutomatonState(AutomatonState, QString, QString)>;
-
-  struct AutomatonHandelStruct {
-    void SetStatus(AutomatonState next_state) { current_state_ = next_state; }
-    auto CurrentStatus() -> AutomatonState { return current_state_; }
-    void SetHandler(AutomatonNextStateHandler next_state_handler,
-                    AutomatonActionHandler action_handler) {
-      next_state_handler_ = std::move(next_state_handler);
-      action_handler_ = std::move(action_handler);
-    }
-    auto NextState(QString gpg_status, QString args) -> AutomatonState {
-      return next_state_handler_(current_state_, std::move(gpg_status),
-                                 std::move(args));
-    }
-    auto Action() -> Command { return action_handler_(*this, current_state_); }
-
-    void SetSuccess(bool success) { success_ = success; }
-
-    [[nodiscard]] auto Success() const -> bool { return success_; }
-
-    auto KeyFpr() -> QString { return key_fpr_; }
-
-    explicit AutomatonHandelStruct(QString key_fpr)
-        : key_fpr_(std::move(key_fpr)) {}
-
-   private:
-    AutomatonState current_state_ = AS_START;
-    AutomatonNextStateHandler next_state_handler_;
-    AutomatonActionHandler action_handler_;
-    bool success_ = false;
-    QString key_fpr_;
-  };
-
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
 };

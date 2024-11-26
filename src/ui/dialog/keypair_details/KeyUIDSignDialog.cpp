@@ -36,10 +36,10 @@
 namespace GpgFrontend::UI {
 
 KeyUIDSignDialog::KeyUIDSignDialog(int channel, const GpgKey& key,
-                                   UIDArgsListPtr uid, QWidget* parent)
+                                   const QString& uid, QWidget* parent)
     : GeneralDialog(typeid(KeyUIDSignDialog).name(), parent),
       current_gpg_context_channel_(channel),
-      m_uids_(std::move(uid)),
+      m_uid_(uid),
       m_key_(key) {
   assert(m_key_.IsGood());
 
@@ -114,14 +114,12 @@ void KeyUIDSignDialog::slot_sign_key(bool clicked) {
 
   auto expires = std::make_unique<QDateTime>(expires_edit_->dateTime());
 
-  for (const auto& uid : *m_uids_) {
-    // Sign For mKey
-    if (!GpgKeyManager::GetInstance(current_gpg_context_channel_)
-             .SignKey(m_key_, *keys, uid, expires)) {
-      QMessageBox::critical(
-          nullptr, tr("Unsuccessful Operation"),
-          tr("Signature operation failed for UID %1").arg(uid));
-    }
+  // Sign For mKey
+  if (!GpgKeyManager::GetInstance(current_gpg_context_channel_)
+           .SignKey(m_key_, *keys, m_uid_, expires)) {
+    QMessageBox::critical(
+        nullptr, tr("Unsuccessful Operation"),
+        tr("Signature operation failed for UID %1").arg(m_uid_));
   }
 
   QMessageBox::information(

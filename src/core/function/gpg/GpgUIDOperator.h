@@ -67,12 +67,27 @@ class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
               const QString& email) -> bool;
 
   /**
-   * Revoke(Delete) UID from certain key pair
-   * @param key target key pair
-   * @param uid target uid
-   * @return if successful
+   * @brief
+   *
+   * @param key
+   * @param uid_index
+   * @return true
+   * @return false
    */
-  auto RevUID(const GpgKey& key, const QString& uid) -> bool;
+  auto DeleteUID(const GpgKey& key, int uid_index) -> bool;
+
+  /**
+   * @brief
+   *
+   * @param key
+   * @param uid_index
+   * @param reason_code
+   * @param reason_text
+   * @return true
+   * @return false
+   */
+  auto RevokeUID(const GpgKey& key, int uid_index, int reason_code,
+                 const QString& reason_text) -> bool;
 
   /**
    * Set one of a uid of a key pair as primary

@@ -35,7 +35,7 @@
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/GpgUtils.h"
 
-const char *TEST_PRIVATE_KEY_DATA = R"(
+static const char *test_private_key_data = R"(
 -----BEGIN PGP PRIVATE KEY BLOCK-----
 
 lQOYBGcSdI8BCACwi1n2Bx1v6qmQxRgrONYlmzKrSBvNyoSOdAVcTJDXYjdlNFCq
@@ -110,7 +110,7 @@ namespace GpgFrontend::Test {
 
 TEST_F(GpgCoreTest, CoreDeleteSubkeyTestA) {
   auto info = GpgKeyImportExporter::GetInstance().ImportKey(
-      GFBuffer(QString::fromLatin1(TEST_PRIVATE_KEY_DATA)));
+      GFBuffer(QString::fromLatin1(test_private_key_data)));
 
   ASSERT_EQ(info->not_imported, 0);
   ASSERT_EQ(info->imported, 1);
@@ -143,7 +143,7 @@ TEST_F(GpgCoreTest, CoreDeleteSubkeyTestA) {
 
 TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
   auto info = GpgKeyImportExporter::GetInstance().ImportKey(
-      GFBuffer(QString::fromLatin1(TEST_PRIVATE_KEY_DATA)));
+      GFBuffer(QString::fromLatin1(test_private_key_data)));
 
   ASSERT_EQ(info->not_imported, 0);
   ASSERT_EQ(info->imported, 1);
@@ -217,7 +217,7 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
 
 TEST_F(GpgCoreTest, CoreRevokeSubkeyTestA) {
   auto info = GpgKeyImportExporter::GetInstance().ImportKey(
-      GFBuffer(QString::fromLatin1(TEST_PRIVATE_KEY_DATA)));
+      GFBuffer(QString::fromLatin1(test_private_key_data)));
 
   ASSERT_EQ(info->not_imported, 0);
   ASSERT_EQ(info->imported, 1);

@@ -28,9 +28,7 @@
 
 #pragma once
 
-#include "KeyNewUIDDialog.h"
-#include "KeyUIDSignDialog.h"
-#include "core/function/gpg/GpgContext.h"
+#include "core/GpgModel.h"
 #include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
@@ -55,68 +53,13 @@ class KeyPairUIDTab : public QWidget {
    */
   void SignalUpdateUIDInfo();
 
- private:
-  int current_gpg_context_channel_;
-  GpgKey m_key_;
-  QTableWidget* uid_list_{};                          ///<
-  QTableWidget* sig_list_{};                          ///<
-  QTabWidget* tofu_tabs_{};                           ///<
-  QMenu* manage_selected_uid_menu_{};                 ///<
-  QMenu* uid_popup_menu_{};                           ///<
-  QMenu* sign_popup_menu_{};                          ///<
-  std::vector<GpgUID> buffered_uids_;                 ///<
-  std::vector<GpgKeySignature> buffered_signatures_;  ///<
-
+ protected:
   /**
-   * @brief Create a uid list object
+   * @brief
    *
+   * @param event
    */
-  void create_uid_list();
-
-  /**
-   * @brief Create a sign list object
-   *
-   */
-  void create_sign_list();
-
-  /**
-   * @brief Create a manage uid menu object
-   *
-   */
-  void create_manage_uid_menu();
-
-  /**
-   * @brief Create a uid popup menu object
-   *
-   */
-  void create_uid_popup_menu();
-
-  /**
-   * @brief Create a sign popup menu object
-   *
-   */
-  void create_sign_popup_menu();
-
-  /**
-   * @brief Get the uid checked object
-   *
-   * @return UIDArgsListPtr
-   */
-  UIDArgsListPtr get_uid_checked();
-
-  /**
-   * @brief Get the uid selected object
-   *
-   * @return UIDArgsListPtr
-   */
-  UIDArgsListPtr get_uid_selected();
-
-  /**
-   * @brief Get the sign selected object
-   *
-   * @return SignIdArgsListPtr
-   */
-  SignIdArgsListPtr get_sign_selected();
+  void contextMenuEvent(QContextMenuEvent* event) override;
 
  private slots:
 
@@ -166,7 +109,7 @@ class KeyPairUIDTab : public QWidget {
    * @brief
    *
    */
-  void slot_del_uid_single();
+  void slot_rev_uid();
 
   /**
    * @brief
@@ -193,13 +136,59 @@ class KeyPairUIDTab : public QWidget {
    */
   static void slot_add_uid_result(int result);
 
- protected:
+ private:
+  int current_gpg_context_channel_;
+  GpgKey m_key_;
+  QTableWidget* uid_list_{};                          ///<
+  QTableWidget* sig_list_{};                          ///<
+  QTabWidget* tofu_tabs_{};                           ///<
+  QMenu* uid_popup_menu_{};                           ///<
+  QMenu* sign_popup_menu_{};                          ///<
+  std::vector<GpgUID> buffered_uids_;                 ///<
+  std::vector<GpgKeySignature> buffered_signatures_;  ///<
+
+  QAction* set_primary_uid_act_;
+  QAction* sign_uid_act_;
+  QAction* rev_uid_act_;
+  QAction* del_uid_act_;
+
   /**
-   * @brief
+   * @brief Create a uid list object
    *
-   * @param event
    */
-  void contextMenuEvent(QContextMenuEvent* event) override;
+  void create_uid_list();
+
+  /**
+   * @brief Create a sign list object
+   *
+   */
+  void create_sign_list();
+
+  /**
+   * @brief Create a uid popup menu object
+   *
+   */
+  void create_uid_popup_menu();
+
+  /**
+   * @brief Create a sign popup menu object
+   *
+   */
+  void create_sign_popup_menu();
+
+  /**
+   * @brief Get the sign selected object
+   *
+   * @return SignIdArgsListPtr
+   */
+  auto get_sign_selected() -> SignIdArgsListPtr;
+
+  /**
+   * @brief Get the sign selected object
+   *
+   * @return SignIdArgsListPtr
+   */
+  auto get_selected_uid() -> const GpgUID&;
 };
 
 }  // namespace GpgFrontend::UI

@@ -425,7 +425,7 @@ class MainWindow : public GeneralMainWindow {
    * @details Disable tab related actions, if number of tabs is 0.
    * @param number number of the opened tabs and -1, if no tab is opened
    */
-  void slot_switch_menu_control_mode(int number);
+  void slot_switch_menu_control_mode(int);
 
   /**
    * @details called when need to upgrade.

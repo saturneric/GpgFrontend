@@ -520,7 +520,7 @@ void KeyPairSubkeyTab::slot_revoke_subkey() {
   const auto subkeys = key_.GetSubKeys();
 
   QString message = tr("<h3>Revoke Subkey Confirmation</h3><br />"
-                       "<b>KeyID:</b> %1<br />2<br />"
+                       "<b>KeyID:</b> %1<br /><br />"
                        "Revoking a subkey will make it permanently unusable. "
                        "This action is <b>irreversible</b>.<br />"
                        "Are you sure you want to revoke this subkey?")
@@ -547,7 +547,10 @@ void KeyPairSubkeyTab::slot_revoke_subkey() {
     return;
   }
 
-  auto* revocation_options_dialog = new RevocationOptionsDialog(this);
+  QStringList codes;
+  codes << tr("0 -> No Reason.") << tr("1 -> This key is no more safe.")
+        << tr("2 -> Key is outdated.") << tr("3 -> Key is no longer used");
+  auto* revocation_options_dialog = new RevocationOptionsDialog(codes, this);
 
   connect(revocation_options_dialog,
           &RevocationOptionsDialog::SignalRevokeOptionAccepted, this,

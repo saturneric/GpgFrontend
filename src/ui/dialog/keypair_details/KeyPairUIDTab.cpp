@@ -33,6 +33,9 @@
 #include "core/function/gpg/GpgKeyManager.h"
 #include "core/function/gpg/GpgUIDOperator.h"
 #include "ui/UISignalStation.h"
+#include "ui/dialog/RevocationOptionsDialog.h"
+#include "ui/dialog/keypair_details/KeyNewUIDDialog.h"
+#include "ui/dialog/keypair_details/KeyUIDSignDialog.h"
 #include "ui/widgets/TOFUInfoPage.h"
 
 namespace GpgFrontend::UI {
@@ -47,24 +50,17 @@ KeyPairUIDTab::KeyPairUIDTab(int channel, const QString& key_id,
 
   create_uid_list();
   create_sign_list();
-  create_manage_uid_menu();
   create_uid_popup_menu();
   create_sign_popup_menu();
 
-  auto* uid_buttons_layout = new QGridLayout();
+  auto* uid_buttons_layout = new QHBoxLayout();
 
   auto* add_uid_button = new QPushButton(tr("New UID"));
-  auto* manage_uid_button = new QPushButton(tr("UID Management"));
 
-  if (m_key_.IsHasMasterKey()) {
-    manage_uid_button->setMenu(manage_selected_uid_menu_);
-  } else {
+  if (!m_key_.IsHasMasterKey()) {
     add_uid_button->setDisabled(true);
-    manage_uid_button->setDisabled(true);
   }
-
-  uid_buttons_layout->addWidget(add_uid_button, 0, 1);
-  uid_buttons_layout->addWidget(manage_uid_button, 0, 2);
+  uid_buttons_layout->addWidget(add_uid_button);
 
   auto* grid_layout = new QGridLayout();
 
@@ -200,14 +196,12 @@ void KeyPairUIDTab::slot_refresh_uid_list() {
     auto* tmp2 = new QTableWidgetItem(uid.GetComment());
     uid_list_->setItem(row, 3, tmp2);
 
-    auto* tmp3 = new QTableWidgetItem(QString::number(row));
-    tmp3->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled |
-                   Qt::ItemIsSelectable);
+    auto* tmp3 = new QTableWidgetItem(QString::number(row + 1));
+    tmp3->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     tmp3->setTextAlignment(Qt::AlignCenter);
-    tmp3->setCheckState(Qt::Unchecked);
     uid_list_->setItem(row, 0, tmp3);
 
-    if (!row) {
+    if (row == 0) {
       for (auto i = 0; i < uid_list_->columnCount(); i++) {
         uid_list_->item(row, i)->setForeground(QColor(65, 105, 255));
       }
@@ -304,43 +298,11 @@ void KeyPairUIDTab::slot_refresh_sig_list() {
 }
 
 void KeyPairUIDTab::slot_add_sign() {
-  auto selected_uids = get_uid_checked();
-
-  if (selected_uids->empty()) {
-    QMessageBox::information(
-        nullptr, tr("Invalid Operation"),
-        tr("Please select one or more UIDs before doing this operation."));
-    return;
-  }
+  const auto& target_uid = get_selected_uid();
 
   auto* key_sign_dialog = new KeyUIDSignDialog(
-      current_gpg_context_channel_, m_key_, std::move(selected_uids), this);
+      current_gpg_context_channel_, m_key_, target_uid.GetUID(), this);
   key_sign_dialog->show();
-}
-
-auto KeyPairUIDTab::get_uid_checked() -> UIDArgsListPtr {
-  auto selected_uids = std::make_unique<UIDArgsList>();
-  for (int i = 0; i < uid_list_->rowCount(); i++) {
-    if (uid_list_->item(i, 0)->checkState() == Qt::Checked) {
-      selected_uids->push_back(buffered_uids_[i].GetUID());
-    }
-  }
-  return selected_uids;
-}
-
-void KeyPairUIDTab::create_manage_uid_menu() {
-  manage_selected_uid_menu_ = new QMenu(this);
-
-  auto* sign_uid_act = new QAction(tr("Sign Selected UID(s)"), this);
-  connect(sign_uid_act, &QAction::triggered, this,
-          &KeyPairUIDTab::slot_add_sign);
-  auto* del_uid_act = new QAction(tr("Delete Selected UID(s)"), this);
-  connect(del_uid_act, &QAction::triggered, this, &KeyPairUIDTab::slot_del_uid);
-
-  if (m_key_.IsHasMasterKey()) {
-    manage_selected_uid_menu_->addAction(sign_uid_act);
-    manage_selected_uid_menu_->addAction(del_uid_act);
-  }
 }
 
 void KeyPairUIDTab::slot_add_uid() {
@@ -364,57 +326,58 @@ void KeyPairUIDTab::slot_add_uid_result(int result) {
 }
 
 void KeyPairUIDTab::slot_del_uid() {
-  auto selected_uids = get_uid_checked();
+  const auto& target_uid = get_selected_uid();
 
-  if (selected_uids->empty()) {
-    QMessageBox::information(
-        nullptr, tr("Invalid Operation"),
-        tr("Please select one or more UIDs before doing this operation."));
-    return;
+  auto keynames = QString();
+
+  keynames.append(target_uid.GetUID().toHtmlEscaped());
+  keynames.append("<br/>");
+
+  int index = 1;
+  for (const auto& uid : buffered_uids_) {
+    if (uid.GetUID() == target_uid.GetUID()) {
+      break;
+    }
+    index++;
   }
 
-  QString keynames;
-  for (auto& uid : *selected_uids) {
-    keynames.append(uid);
-    keynames.append("<br/>");
+  if (index == 1) {
+    QMessageBox::information(nullptr, tr("Invalid Operation"),
+                             tr("Cannot delete the Primary UID."));
+    return;
   }
 
   int ret = QMessageBox::warning(
       this, tr("Deleting UIDs"),
       "<b>" +
           QString(
-              tr("Are you sure that you want to delete the following UIDs?")) +
-          "</b><br/><br/>" + keynames + +"<br/>" +
+              tr("Are you sure that you want to delete the following UID?")) +
+          "</b><br/><br/>" + target_uid.GetUID().toHtmlEscaped() + +"<br/>" +
           tr("The action can not be undone."),
       QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
-    for (const auto& uid : *selected_uids) {
-      if (!GpgUIDOperator::GetInstance(current_gpg_context_channel_)
-               .RevUID(m_key_, uid)) {
-        QMessageBox::critical(
-            nullptr, tr("Operation Failed"),
-            tr("An error occurred during the delete %1 operation.").arg(uid));
-      }
+    if (!GpgUIDOperator::GetInstance(current_gpg_context_channel_)
+             .DeleteUID(m_key_, index)) {
+      QMessageBox::critical(
+          nullptr, tr("Operation Failed"),
+          tr("An error occurred during the delete %1 operation.")
+              .arg(target_uid.GetUID().toHtmlEscaped()));
     }
     emit SignalUpdateUIDInfo();
   }
 }
 
 void KeyPairUIDTab::slot_set_primary_uid() {
-  auto selected_uids = get_uid_selected();
+  const auto& target_uid = get_selected_uid();
 
-  if (selected_uids->empty()) {
-    auto* empty_uid_msg = new QMessageBox();
-    empty_uid_msg->setText(
-        "Please select one UID before doing this operation.");
-    empty_uid_msg->exec();
+  if (target_uid.GetUID() == buffered_uids_.front().GetUID()) {
     return;
   }
 
   QString keynames;
 
-  keynames.append(selected_uids->front());
+  keynames.append(target_uid.GetUID().toHtmlEscaped());
   keynames.append("<br/>");
 
   int ret = QMessageBox::warning(
@@ -424,25 +387,15 @@ void KeyPairUIDTab::slot_set_primary_uid() {
           tr("The action can not be undone."),
       QMessageBox::No | QMessageBox::Yes);
 
-  if (ret == QMessageBox::Yes) {
-    if (!GpgUIDOperator::GetInstance(current_gpg_context_channel_)
-             .SetPrimaryUID(m_key_, selected_uids->front())) {
-      QMessageBox::critical(nullptr, tr("Operation Failed"),
-                            tr("An error occurred during the operation."));
-    } else {
-      emit SignalUpdateUIDInfo();
-    }
-  }
-}
+  if (ret != QMessageBox::Yes) return;
 
-auto KeyPairUIDTab::get_uid_selected() -> UIDArgsListPtr {
-  auto uids = std::make_unique<UIDArgsList>();
-  for (int i = 0; i < uid_list_->rowCount(); i++) {
-    if (uid_list_->item(i, 0)->isSelected()) {
-      uids->push_back(buffered_uids_[i].GetUID());
-    }
+  if (!GpgUIDOperator::GetInstance(current_gpg_context_channel_)
+           .SetPrimaryUID(m_key_, target_uid.GetUID())) {
+    QMessageBox::critical(nullptr, tr("Operation Failed"),
+                          tr("An error occurred during the operation."));
+  } else {
+    emit SignalUpdateUIDInfo();
   }
-  return uids;
 }
 
 auto KeyPairUIDTab::get_sign_selected() -> SignIdArgsListPtr {
@@ -459,77 +412,46 @@ auto KeyPairUIDTab::get_sign_selected() -> SignIdArgsListPtr {
 void KeyPairUIDTab::create_uid_popup_menu() {
   uid_popup_menu_ = new QMenu(this);
 
-  auto* ser_primary_uid_act = new QAction(tr("Set As Primary"), this);
-  connect(ser_primary_uid_act, &QAction::triggered, this,
+  set_primary_uid_act_ = new QAction(tr("Set As Primary"), this);
+  connect(set_primary_uid_act_, &QAction::triggered, this,
           &KeyPairUIDTab::slot_set_primary_uid);
-  auto* sign_uid_act = new QAction(tr("Sign UID"), this);
-  connect(sign_uid_act, &QAction::triggered, this,
+  sign_uid_act_ = new QAction(tr("Sign UID"), this);
+  connect(sign_uid_act_, &QAction::triggered, this,
           &KeyPairUIDTab::slot_add_sign_single);
-  auto* del_uid_act = new QAction(tr("Delete UID"), this);
-  connect(del_uid_act, &QAction::triggered, this,
-          &KeyPairUIDTab::slot_del_uid_single);
+  rev_uid_act_ = new QAction(tr("Revoke UID"), this);
+  connect(rev_uid_act_, &QAction::triggered, this,
+          &KeyPairUIDTab::slot_rev_uid);
+  del_uid_act_ = new QAction(tr("Delete UID"), this);
+  connect(del_uid_act_, &QAction::triggered, this,
+          &KeyPairUIDTab::slot_del_uid);
 
   if (m_key_.IsHasMasterKey()) {
-    uid_popup_menu_->addAction(ser_primary_uid_act);
-    uid_popup_menu_->addAction(sign_uid_act);
-    uid_popup_menu_->addAction(del_uid_act);
+    uid_popup_menu_->addAction(set_primary_uid_act_);
+    uid_popup_menu_->addAction(sign_uid_act_);
+    uid_popup_menu_->addAction(rev_uid_act_);
+    uid_popup_menu_->addAction(del_uid_act_);
   }
 }
 
 void KeyPairUIDTab::contextMenuEvent(QContextMenuEvent* event) {
   if (uid_list_->selectedItems().length() > 0 &&
       sig_list_->selectedItems().isEmpty()) {
+    auto is_primary_uid =
+        get_selected_uid().GetUID() == buffered_uids_.front().GetUID();
+    set_primary_uid_act_->setDisabled(is_primary_uid);
+    rev_uid_act_->setDisabled(is_primary_uid);
+    del_uid_act_->setDisabled(is_primary_uid);
+
     uid_popup_menu_->exec(event->globalPos());
   }
 }
 
 void KeyPairUIDTab::slot_add_sign_single() {
-  auto selected_uids = get_uid_selected();
-
-  if (selected_uids->empty()) {
-    QMessageBox::information(
-        nullptr, tr("Invalid Operation"),
-        tr("Please select one UID before doing this operation."));
-    return;
-  }
+  const auto& target_uid = get_selected_uid();
 
   auto* key_sign_dialog = new KeyUIDSignDialog(
-      current_gpg_context_channel_, m_key_, std::move(selected_uids), this);
+      current_gpg_context_channel_, m_key_, target_uid.GetUID(), this);
   key_sign_dialog->show();
-}
-
-void KeyPairUIDTab::slot_del_uid_single() {
-  auto selected_uids = get_uid_selected();
-  if (selected_uids->empty()) {
-    QMessageBox::information(
-        nullptr, tr("Invalid Operation"),
-        tr("Please select one UID before doing this operation."));
-    return;
-  }
-
-  QString keynames;
-
-  keynames.append(selected_uids->front());
-  keynames.append("<br/>");
-
-  int ret = QMessageBox::warning(
-      this, tr("Deleting UID"),
-      "<b>" +
-          QString(
-              tr("Are you sure that you want to delete the following uid?")) +
-          "</b><br/><br/>" + keynames + +"<br/>" +
-          tr("The action can not be undone."),
-      QMessageBox::No | QMessageBox::Yes);
-
-  if (ret == QMessageBox::Yes) {
-    if (!GpgUIDOperator::GetInstance(current_gpg_context_channel_)
-             .RevUID(m_key_, selected_uids->front())) {
-      QMessageBox::critical(nullptr, tr("Operation Failed"),
-                            tr("An error occurred during the operation."));
-    } else {
-      emit SignalUpdateUIDInfo();
-    }
-  }
 }
 
 void KeyPairUIDTab::create_sign_popup_menu() {
@@ -595,4 +517,78 @@ void KeyPairUIDTab::slot_refresh_key() {
   this->slot_refresh_sig_list();
 }
 
+void KeyPairUIDTab::slot_rev_uid() {
+  const auto& target_uid = get_selected_uid();
+
+  if (target_uid.GetUID() == buffered_uids_.front().GetUID()) {
+    QMessageBox::information(
+        nullptr, tr("Invalid Operation"),
+        tr("Please select one UID before doing this operation."));
+    return;
+  }
+
+  const auto uids = m_key_.GetUIDs();
+
+  QString message = tr("<h3>Revoke UID Confirmation</h3><br />"
+                       "<b>UID:</b> %1<br /><br />"
+                       "Revoking a UID will make it permanently unusable. "
+                       "This action is <b>irreversible</b>.<br />"
+                       "Are you sure you want to revoke this UID?")
+                        .arg(target_uid.GetUID().toHtmlEscaped());
+
+  int ret = QMessageBox::warning(this, tr("Revoke UID"), message,
+                                 QMessageBox::Cancel | QMessageBox::Yes,
+                                 QMessageBox::Cancel);
+
+  if (ret != QMessageBox::Yes) return;
+
+  int index = 1;
+  for (const auto& uid : buffered_uids_) {
+    if (uid.GetUID() == target_uid.GetUID()) {
+      break;
+    }
+    index++;
+  }
+
+  if (index == 1) {
+    QMessageBox::information(nullptr, tr("Invalid Operation"),
+                             tr("Cannot delete the Primary UID."));
+    return;
+  }
+
+  QStringList codes;
+  codes << tr("0 -> No Reason.") << tr("4 -> User ID is no longer valid.");
+  auto* revocation_options_dialog = new RevocationOptionsDialog(codes, this);
+
+  connect(revocation_options_dialog,
+          &RevocationOptionsDialog::SignalRevokeOptionAccepted, this,
+          [key = m_key_, index, channel = current_gpg_context_channel_, this](
+              int code, const QString& text) {
+            auto res = GpgUIDOperator::GetInstance(channel).RevokeUID(
+                key, index, code == 1 ? 4 : 0, text);
+            if (!res) {
+              QMessageBox::critical(
+                  nullptr, tr("Revocation Failed"),
+                  tr("Failed to revoke the UID. Please try again."));
+            } else {
+              QMessageBox::information(
+                  nullptr, tr("Revocation Successful"),
+                  tr("The UID has been successfully revoked."));
+              emit SignalUpdateUIDInfo();
+            }
+          });
+
+  revocation_options_dialog->show();
+}
+
+auto KeyPairUIDTab::get_selected_uid() -> const GpgUID& {
+  int row = 0;
+
+  for (int i = 0; i < uid_list_->rowCount(); i++) {
+    if (uid_list_->item(row, 0)->isSelected()) break;
+    row++;
+  }
+
+  return buffered_uids_[row];
+}
 }  // namespace GpgFrontend::UI

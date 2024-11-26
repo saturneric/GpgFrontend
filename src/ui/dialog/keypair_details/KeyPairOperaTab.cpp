@@ -463,7 +463,10 @@ void KeyPairOperaTab::slot_update_key_from_server() {
 }
 
 void KeyPairOperaTab::slot_gen_revoke_cert() {
-  auto* revocation_options_dialog = new RevocationOptionsDialog(this);
+  QStringList codes;
+  codes << tr("0 -> No Reason.") << tr("1 -> This key is no more safe.")
+        << tr("2 -> Key is outdated.") << tr("3 -> Key is no longer used");
+  auto* revocation_options_dialog = new RevocationOptionsDialog(codes, this);
 
   connect(revocation_options_dialog,
           &RevocationOptionsDialog::SignalRevokeOptionAccepted, this,

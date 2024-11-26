@@ -32,15 +32,10 @@
 #include "ui_RevocationOptionsDialog.h"
 
 GpgFrontend::UI::RevocationOptionsDialog::RevocationOptionsDialog(
-    QWidget *parent)
+    const QStringList& codes, QWidget* parent)
     : GeneralDialog("RevocationOptionsDialog", parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_RevocationOptionsDialog>()) {
   ui_->setupUi(this);
-
-  QStringList codes;
-
-  codes << tr("0 -> No Reason.") << tr("1 -> This key is no more safe.")
-        << tr("2 -> Key is outdated.") << tr("3 -> Key is no longer used");
 
   ui_->rRcodeComboBox->addItems(codes);
 
