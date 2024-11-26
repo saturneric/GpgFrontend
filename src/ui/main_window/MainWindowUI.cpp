@@ -599,8 +599,8 @@ void MainWindow::create_dock_windows() {
   key_list_dock_->setWidget(m_key_list_);
   view_menu_->addAction(key_list_dock_->toggleViewAction());
 
-  info_board_dock_ = new QDockWidget(tr("Information Board"), this);
-  info_board_dock_->setObjectName("Information Board");
+  info_board_dock_ = new QDockWidget(tr("Status Panel"), this);
+  info_board_dock_->setObjectName("Status Panel");
   info_board_dock_->setAllowedAreas(Qt::BottomDockWidgetArea);
   addDockWidget(Qt::BottomDockWidgetArea, info_board_dock_);
   info_board_dock_->setWidget(info_board_);

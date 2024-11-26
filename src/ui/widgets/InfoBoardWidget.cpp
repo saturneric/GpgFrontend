@@ -155,7 +155,7 @@ void InfoBoardWidget::slot_copy() {
 
 void InfoBoardWidget::slot_save() {
   auto file_path = QFileDialog::getSaveFileName(
-      this, tr("Save Information Board's Content"), {}, tr("Text (*.txt)"));
+      this, tr("Save Status Panel's Content"), {}, tr("Text (*.txt)"));
   if (file_path.isEmpty()) return;
 
   QFile file(file_path);

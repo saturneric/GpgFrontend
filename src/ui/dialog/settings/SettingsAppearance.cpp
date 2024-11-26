@@ -61,7 +61,7 @@ AppearanceTab::AppearanceTab(QWidget* parent)
   ui_->fontSizeBox->setTitle(tr("Font Size"));
 
   ui_->fontSizeTextEditorLabel->setText(tr("Text Editor"));
-  ui_->fontSizeInformationBoardLabel->setText(tr("Information Board"));
+  ui_->fontSizeInformationBoardLabel->setText(tr("Status Panel"));
 
   icon_size_group_ = new QButtonGroup(this);
   icon_size_group_->addButton(ui_->smallRadioButton, 1);
