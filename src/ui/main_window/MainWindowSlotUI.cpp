@@ -80,6 +80,8 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
   decrypt_act_->setDisabled(disable);
   decrypt_verify_act_->setDisabled(disable);
 
+  verify_email_by_eml_data_act_->setDisabled(disable);
+
   redo_act_->setDisabled(disable);
   undo_act_->setDisabled(disable);
   zoom_out_act_->setDisabled(disable);
@@ -174,7 +176,7 @@ void MainWindow::slot_cut_pgp_header() {
 void MainWindow::SlotSetRestartNeeded(int mode) { this->restart_mode_ = mode; }
 
 void MainWindow::SlotUpdateCryptoMenuStatus(unsigned int type) {
-  MainWindow::CryptoMenu::OperationType opera_type = type;
+  MainWindow::OperationMenu::OperationType opera_type = type;
 
   // refresh status to disable all
   verify_act_->setDisabled(true);
@@ -184,24 +186,31 @@ void MainWindow::SlotUpdateCryptoMenuStatus(unsigned int type) {
   decrypt_act_->setDisabled(true);
   decrypt_verify_act_->setDisabled(true);
 
-  // enable according to type
-  if ((opera_type & MainWindow::CryptoMenu::Verify) != 0U) {
+  verify_email_by_eml_data_act_->setDisabled(true);
+
+  // gnupg operations
+  if ((opera_type & MainWindow::OperationMenu::kVerify) != 0U) {
     verify_act_->setDisabled(false);
   }
-  if ((opera_type & MainWindow::CryptoMenu::Sign) != 0U) {
+  if ((opera_type & MainWindow::OperationMenu::kSign) != 0U) {
     sign_act_->setDisabled(false);
   }
-  if ((opera_type & MainWindow::CryptoMenu::Encrypt) != 0U) {
+  if ((opera_type & MainWindow::OperationMenu::kEncrypt) != 0U) {
     encrypt_act_->setDisabled(false);
   }
-  if ((opera_type & MainWindow::CryptoMenu::EncryptAndSign) != 0U) {
+  if ((opera_type & MainWindow::OperationMenu::kEncryptAndSign) != 0U) {
     encrypt_sign_act_->setDisabled(false);
   }
-  if ((opera_type & MainWindow::CryptoMenu::Decrypt) != 0U) {
+  if ((opera_type & MainWindow::OperationMenu::kDecrypt) != 0U) {
     decrypt_act_->setDisabled(false);
   }
-  if ((opera_type & MainWindow::CryptoMenu::DecryptAndVerify) != 0U) {
+  if ((opera_type & MainWindow::OperationMenu::kDecryptAndVerify) != 0U) {
     decrypt_verify_act_->setDisabled(false);
+  }
+
+  // email operations
+  if ((opera_type & MainWindow::OperationMenu::kVerifyEMail) != 0U) {
+    verify_email_by_eml_data_act_->setDisabled(false);
   }
 }
 

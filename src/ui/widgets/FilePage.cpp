@@ -124,8 +124,8 @@ void FilePage::keyPressEvent(QKeyEvent* event) {
 }
 
 void FilePage::update_main_basical_opera_menu(const QString& selected_path) {
-  MainWindow::CryptoMenu::OperationType operation_type =
-      MainWindow::CryptoMenu::None;
+  MainWindow::OperationMenu::OperationType operation_type =
+      MainWindow::OperationMenu::kNone;
 
   // abort...
   if (selected_path.isEmpty()) return;
@@ -135,29 +135,33 @@ void FilePage::update_main_basical_opera_menu(const QString& selected_path) {
   if ((info.isDir() || info.isFile()) &&
       (info.suffix() != "gpg" && info.suffix() != "pgp" &&
        info.suffix() != "sig" && info.suffix() != "asc")) {
-    operation_type |= MainWindow::CryptoMenu::Encrypt;
+    operation_type |= MainWindow::OperationMenu::kEncrypt;
   }
 
   if ((info.isDir() || info.isFile()) &&
       (info.suffix() != "gpg" && info.suffix() != "pgp" &&
        info.suffix() != "sig" && info.suffix() != "asc")) {
-    operation_type |= MainWindow::CryptoMenu::EncryptAndSign;
+    operation_type |= MainWindow::OperationMenu::kEncryptAndSign;
   }
 
   if (info.isFile() && (info.suffix() == "gpg" || info.suffix() == "pgp" ||
                         info.suffix() == "asc")) {
-    operation_type |= MainWindow::CryptoMenu::Decrypt;
-    operation_type |= MainWindow::CryptoMenu::DecryptAndVerify;
+    operation_type |= MainWindow::OperationMenu::kDecrypt;
+    operation_type |= MainWindow::OperationMenu::kDecryptAndVerify;
   }
 
   if (info.isFile() && (info.suffix() != "gpg" && info.suffix() != "pgp" &&
                         info.suffix() != "sig" && info.suffix() != "asc")) {
-    operation_type |= MainWindow::CryptoMenu::Sign;
+    operation_type |= MainWindow::OperationMenu::kSign;
   }
 
   if (info.isFile() && (info.suffix() == "sig" || info.suffix() == "gpg" ||
                         info.suffix() == "pgp" || info.suffix() == "asc")) {
-    operation_type |= MainWindow::CryptoMenu::Verify;
+    operation_type |= MainWindow::OperationMenu::kVerify;
+  }
+
+  if (info.isFile() && (info.suffix() == "eml")) {
+    operation_type |= MainWindow::OperationMenu::kVerifyEMail;
   }
 
   emit SignalMainWindowlUpdateBasicalOperaMenu(operation_type);

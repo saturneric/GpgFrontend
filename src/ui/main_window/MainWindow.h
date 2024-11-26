@@ -53,16 +53,17 @@ class MainWindow : public GeneralMainWindow {
   /**
    *
    */
-  struct CryptoMenu {
+  struct OperationMenu {
     using OperationType = unsigned int;
 
-    static constexpr OperationType None = 0;
-    static constexpr OperationType Encrypt = 1 << 0;
-    static constexpr OperationType Sign = 1 << 1;
-    static constexpr OperationType Decrypt = 1 << 2;
-    static constexpr OperationType Verify = 1 << 3;
-    static constexpr OperationType EncryptAndSign = 1 << 4;
-    static constexpr OperationType DecryptAndVerify = 1 << 5;
+    static constexpr OperationType kNone = 0;
+    static constexpr OperationType kEncrypt = 1 << 0;
+    static constexpr OperationType kSign = 1 << 1;
+    static constexpr OperationType kDecrypt = 1 << 2;
+    static constexpr OperationType kVerify = 1 << 3;
+    static constexpr OperationType kEncryptAndSign = 1 << 4;
+    static constexpr OperationType kDecryptAndVerify = 1 << 5;
+    static constexpr OperationType kVerifyEMail = 1 << 6;
   };
 
   /**
