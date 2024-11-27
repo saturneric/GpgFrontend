@@ -57,9 +57,7 @@ auto GetProjectBuildGitVersion() -> QString { return GIT_VERSION; }
 
 auto GetProjectQtVersion() -> QString { return {qVersion()}; }
 
-auto GetProjectOpenSSLVersion() -> QString {
-  return {OPENSSL_FULL_VERSION_STR};
-}
+auto GetProjectOpenSSLVersion() -> QString { return {OPENSSL_VERSION_TEXT}; }
 
 auto GetProjectLibarchiveVersion() -> QString {
   return {ARCHIVE_VERSION_ONLY_STRING};

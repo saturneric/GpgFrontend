@@ -317,7 +317,7 @@ auto DecideGpgConfPath(const QString& default_gpgconf_path) -> QString {
     // check gpgconf path
     gpgconf_install_fs_path = custom_gnupg_install_path;
 #if defined(_WIN32) || defined(WIN32)
-    gnupg_install_fs_path += "/gpgconf.exe";
+    gpgconf_install_fs_path += "/gpgconf.exe";
 #else
     gpgconf_install_fs_path += "/gpgconf";
 #endif
