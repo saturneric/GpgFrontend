@@ -26,13 +26,15 @@
  *
  */
 
-#include "CommonUtils.h"
+#include "GFSDKPrivat.h"
 
 #include <core/utils/MemoryUtils.h>
 
 #include <cstring>
 
 #include "GFSDKModule.h"
+
+Q_LOGGING_CATEGORY(sdk, "sdk")
 
 auto GFStrDup(const QString& str) -> char* {
   auto utf8_str = str.toUtf8();
@@ -58,9 +60,10 @@ auto CharArrayToQMap(char** char_array, int size) -> QMap<QString, QString> {
   QMap<QString, QString> map;
   for (int i = 0; i < size; i += 2) {
     QString const key = GFUnStrDup(char_array[i]);
-    QString const value = QString::fromUtf8(char_array[i + 1]);
+    QString const value = GFUnStrDup(char_array[i + 1]);
     map.insert(key, value);
   }
+
   return map;
 }
 
@@ -100,4 +103,32 @@ auto ConvertEventParamsToMap(GFModuleEventParam* params)
   }
 
   return param_map;
+}
+
+auto CharArrayToQList(char** char_array, int size) -> QStringList {
+  QStringList list;
+  for (int i = 0; i < size; ++i) {
+    if (char_array[i] != nullptr) {
+      QString value = GFUnStrDup(char_array[i]);
+      list.append(value);
+    }
+  }
+  GpgFrontend::SecureFree(char_array);
+  return list;
+}
+
+auto QListToCharArray(const QStringList& list) -> char** {
+  char** char_array = static_cast<char**>(
+      GpgFrontend::SecureMalloc(list.size() * sizeof(char*)));
+
+  int index = 0;
+  for (const QString& item : list) {
+    QByteArray value = item.toUtf8();
+    char_array[index] =
+        static_cast<char*>(GpgFrontend::SecureMalloc(value.size() + 1));
+    std::strcpy(char_array[index], value.constData());
+    index++;
+  }
+
+  return char_array;
 }

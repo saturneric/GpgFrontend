@@ -62,4 +62,9 @@ auto GpgSignResult::InvalidSigners()
   }
   return result;
 }
+
+auto GpgSignResult::HashAlgo() -> QString {
+  if (result_ref_->signatures == nullptr) return {};
+  return gpgme_hash_algo_name(result_ref_->signatures->hash_algo);
+}
 }  // namespace GpgFrontend

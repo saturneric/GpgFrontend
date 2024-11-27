@@ -126,18 +126,31 @@ void TextEdit::SlotOpen() {
 }
 
 void TextEdit::SlotSave() {
-  if (tab_widget_->count() == 0 || SlotCurPageTextEdit() == 0) {
+  if (tab_widget_->count() == 0) {
     return;
   }
 
-  QString file_name = SlotCurPageTextEdit()->GetFilePath();
+  if (CurEMailPage() != nullptr) {
+    QString file_name = CurEMailPage()->GetFilePath();
 
-  if (file_name.isEmpty()) {
-    // QString docname = tabWidget->tabText(tabWidget->currentIndex());
-    // docname.remove(0,2);
-    SlotSaveAs();
-  } else {
-    saveFile(file_name);
+    if (file_name.isEmpty()) {
+      SlotSaveAsEML();
+    } else {
+      saveEMLFile(file_name);
+    }
+    return;
+  }
+
+  if (CurTextPage() != nullptr) {
+    QString file_name = SlotCurPageTextEdit()->GetFilePath();
+
+    if (file_name.isEmpty()) {
+      // QString docname = tabWidget->tabText(tabWidget->currentIndex());
+      // docname.remove(0,2);
+      SlotSaveAs();
+    } else {
+      saveFile(file_name);
+    }
   }
 }
 
@@ -171,6 +184,38 @@ auto TextEdit::saveFile(const QString& file_name) -> bool {
   return false;
 }
 
+auto TextEdit::saveEMLFile(const QString& file_name) -> bool {
+  if (file_name.isEmpty()) return false;
+
+  PlainTextEditorPage* page = CurEMailPage();
+  if (page == nullptr) return false;
+
+  QFile file(file_name);
+  if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+    QMessageBox::warning(
+        this, tr("Warning"),
+        tr("Cannot read file %1:\n%2.").arg(file_name).arg(file.errorString()));
+    return false;
+  }
+
+  QTextStream output_stream(&file);
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  output_stream
+      << page->GetTextPage()->toPlainText().replace("\n", "\r\n").toLatin1();
+  QApplication::restoreOverrideCursor();
+  QTextDocument* document = page->GetTextPage()->document();
+
+  document->setModified(false);
+
+  int cur_index = tab_widget_->currentIndex();
+  tab_widget_->setTabText(cur_index, stripped_name(file_name));
+  page->SetFilePath(file_name);
+  page->NotifyFileSaved();
+
+  file.close();
+  return true;
+}
+
 auto TextEdit::SlotSaveAs() -> bool {
   if (tab_widget_->count() == 0 || SlotCurPageTextEdit() == nullptr) {
     return true;
@@ -185,6 +230,22 @@ auto TextEdit::SlotSaveAs() -> bool {
   }
 
   return saveFile(QFileDialog::getSaveFileName(this, tr("Save file"), path));
+}
+
+auto TextEdit::SlotSaveAsEML() -> bool {
+  if (tab_widget_->count() == 0 || CurEMailPage() == nullptr) {
+    return true;
+  }
+
+  PlainTextEditorPage* page = CurEMailPage();
+  QString path;
+  if (!page->GetFilePath().isEmpty()) {
+    path = page->GetFilePath();
+  } else {
+    path = tab_widget_->tabText(tab_widget_->currentIndex()).remove(0, 2);
+  }
+
+  return saveEMLFile(QFileDialog::getSaveFileName(this, tr("Save file"), path));
 }
 
 void TextEdit::SlotCloseTab() {
@@ -319,6 +380,13 @@ auto TextEdit::MaybeSaveAnyTab() -> bool {
   }
   // code should never reach this statement
   return false;
+}
+
+void TextEdit::SlotSetText2CurEMailPage(const QString& text) {
+  if (CurTextPage() == nullptr) SlotNewEMailTab();
+  auto* edit = CurTextPage()->GetTextPage();
+  edit->clear();
+  edit->appendPlainText(text);
 }
 
 void TextEdit::SlotAppendText2CurTextPage(const QString& text) {
@@ -554,4 +622,11 @@ auto TextEdit::CurPlainText() const -> QString {
 }
 
 auto TextEdit::TabWidget() const -> QTabWidget* { return tab_widget_; }
+
+auto TextEdit::CurEMailPage() const -> EMailEditorPage* {
+  return tab_widget_->CurEMailPage();
+}
+
+void TextEdit::SlotNewEMailTab() { tab_widget_->SlotNewEMailTab(); }
+
 }  // namespace GpgFrontend::UI

@@ -689,4 +689,36 @@ void MainWindow::slot_decrypt_email_by_eml_data_result_helper(
       });
 }
 
+void MainWindow::SlotSignEML() {
+  if (edit_->TabCount() == 0 || edit_->CurEMailPage() == nullptr) return;
+  if (m_key_list_->GetCheckedKeys().isEmpty()) return;
+
+  auto buffer = edit_->CurPlainText().toUtf8();
+
+  Module::TriggerEvent(
+      "EMAIL_EXPORT_EML_DATA",
+      {
+          {"body_data", QString::fromLatin1(buffer.toBase64())},
+          {"channel",
+           QString::number(m_key_list_->GetCurrentGpgContextChannel())},
+          {"sign_key", m_key_list_->GetCheckedKeys().front()},
+      },
+      [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
+          Module::Event::Params p) {
+        LOG_D() << "EMAIL_DECRYPT_EML_DATA callback: " << i << ei;
+        if (p["ret"] != "0" || !p["err"].isEmpty()) {
+          LOG_E() << "An error occurred trying to decrypt email, "
+                  << "error message: " << p["err"];
+
+          return;
+        }
+
+        if (!p["eml_data"].isEmpty()) {
+          edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
+        }
+
+        LOG_E() << "mime or signature data is missing";
+      });
+}
+
 }  // namespace GpgFrontend::UI

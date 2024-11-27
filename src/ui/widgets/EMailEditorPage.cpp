@@ -26,18 +26,18 @@
  *
  */
 
-#include "GFSDKExtra.h"
+#include "EMailEditorPage.h"
 
-#include <core/utils/BuildInfoUtils.h>
-#include <core/utils/CommonUtils.h>
+#include "ui_PlainTextEditor.h"
 
-#include "private/GFSDKPrivat.h"
+namespace GpgFrontend::UI {
 
-auto GFCompareSoftwareVersion(const char *current_version,
-                              const char *latest_version) -> int {
-  return GpgFrontend::GFCompareSoftwareVersion(GFUnStrDup(current_version),
-                                               GFUnStrDup(latest_version));
+EMailEditorPage::EMailEditorPage() {
+  this->ui_->encodingLabel->setText("E-Mail");
 }
-auto GFHttpRequestUserAgent() -> const char * {
-  return GFStrDup(GpgFrontend::GetHttpRequestUserAgent());
+
+EMailEditorPage::EMailEditorPage(const QString& file_path, QWidget* parent)
+    : PlainTextEditorPage(file_path, parent) {
+  this->ui_->encodingLabel->setText("E-Mail");
 }
+}  // namespace GpgFrontend::UI

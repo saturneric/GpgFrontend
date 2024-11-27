@@ -105,6 +105,7 @@
         <file alias="publish.png">resource/lfs/icons/publish.png</file>
         <file alias="email-check.png">resource/lfs/icons/email-check.png</file>
         <file alias="email-open.png">resource/lfs/icons/email-open.png</file>
+        <file alias="export-email.png">resource/lfs/icons/export-email.png</file>
     </qresource>
     <qresource prefix="/test/key">
         <file alias="pv1.key">resource/lfs/test/data/pv1.key</file>

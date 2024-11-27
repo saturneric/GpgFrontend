@@ -28,4 +28,52 @@
 
 #pragma once
 
-extern "C" {}
+#include "GFSDKExport.h"
+
+extern "C" {
+
+struct GFGpgSignResult {
+  char* signature;
+  char* hash_algo;
+};
+
+struct GFGpgKeyUID {
+  char* name;
+  char* email;
+  char* comment;
+};
+
+/**
+ * @brief
+ *
+ * @param key_id
+ * @param data
+ * @param mode
+ * @return const char*
+ */
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgSignData(int channel, char** key_ids,
+                                                 int key_ids_size, char* data,
+                                                 int sign_mode, int ascii,
+                                                 GFGpgSignResult**) -> int;
+
+/**
+ * @brief
+ *
+ * @param key_id
+ * @param data
+ * @param mode
+ * @return const char*
+ */
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgPublicKey(int channel, char* key_id,
+                                                  int ascii) -> char*;
+
+/**
+ * @brief
+ *
+ * @param channel
+ * @param key_id
+ * @return GpgKeyUID
+ */
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgKeyPrimaryUID(int channel, char* key_id,
+                                                      GFGpgKeyUID**) -> int;
+}

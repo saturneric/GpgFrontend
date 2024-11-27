@@ -220,7 +220,7 @@ auto RunGpgFrontendUI(QApplication* app) -> int {
   auto main_window = SecureCreateUniqueObject<GpgFrontend::UI::MainWindow>();
 
   // pre-check, if application need to restart
-  if (CommonUtils::GetInstance()->isApplicationNeedRestart()) {
+  if (CommonUtils::GetInstance()->IsApplicationNeedRestart()) {
     FLOG_D("application need to restart, before main window init.");
     return kDeepRestartCode;
   }

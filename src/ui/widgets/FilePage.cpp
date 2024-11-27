@@ -156,12 +156,9 @@ void FilePage::update_main_basical_opera_menu(const QString& selected_path) {
   }
 
   if (info.isFile() && (info.suffix() == "sig" || info.suffix() == "gpg" ||
-                        info.suffix() == "pgp" || info.suffix() == "asc")) {
+                        info.suffix() == "pgp" || info.suffix() == "asc" ||
+                        info.suffix() == "eml")) {
     operation_type |= MainWindow::OperationMenu::kVerify;
-  }
-
-  if (info.isFile() && (info.suffix() == "eml")) {
-    operation_type |= MainWindow::OperationMenu::kVerifyEMail;
   }
 
   emit SignalMainWindowlUpdateBasicalOperaMenu(operation_type);

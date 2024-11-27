@@ -328,6 +328,17 @@ auto KeyList::GetChecked() -> KeyIdArgsListPtr {
   return ret;
 }
 
+auto KeyList::GetCheckedKeys() -> QStringList {
+  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
+  QStringList key_id_list;
+  for (int i = 0; i < key_table->GetRowCount(); i++) {
+    if (key_table->IsRowChecked(i)) {
+      key_id_list.append(key_table->GetKeyIdByRow(i));
+    }
+  }
+  return key_id_list;
+}
+
 auto KeyList::GetAllPrivateKeys() -> KeyIdArgsListPtr {
   auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
   auto ret = std::make_unique<KeyIdArgsList>();

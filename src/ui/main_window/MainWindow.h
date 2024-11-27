@@ -63,7 +63,6 @@ class MainWindow : public GeneralMainWindow {
     static constexpr OperationType kVerify = 1 << 3;
     static constexpr OperationType kEncryptAndSign = 1 << 4;
     static constexpr OperationType kDecryptAndVerify = 1 << 5;
-    static constexpr OperationType kVerifyEMail = 1 << 6;
   };
 
   /**
@@ -176,6 +175,12 @@ class MainWindow : public GeneralMainWindow {
    *
    */
   void SlotDecryptEML();
+
+  /**
+   * @brief
+   *
+   */
+  void SlotSignEML();
 
   /**
    * @details decrypt and verify the text of currently active textedit-page
@@ -298,18 +303,6 @@ class MainWindow : public GeneralMainWindow {
    *
    */
   void SlotGeneralDecryptVerify(bool);
-
-  /**
-   * @brief
-   *
-   */
-  void SlotGeneralDecryptEMail(bool);
-
-  /**
-   * @brief
-   *
-   */
-  void SlotGeneralVerifyEMail(bool);
 
  private slots:
 
@@ -601,7 +594,6 @@ class MainWindow : public GeneralMainWindow {
   QMenu* key_menu_{};         ///<  Submenu for key-operations
   QMenu* view_menu_{};        ///<  Submenu for view operations
   QMenu* import_key_menu_{};  ///<  Submenu for import operations
-  QMenu* email_menu_{};       ///<  Submenu for email operations
 
   QToolBar* crypt_tool_bar_{};  ///<  Toolbar holding crypt actions
   QToolBar* file_tool_bar_{};   ///<  Toolbar holding file actions
@@ -609,7 +601,6 @@ class MainWindow : public GeneralMainWindow {
   QToolBar*
       special_edit_tool_bar_{};  ///<  Toolbar holding special edit actions
   QToolBar* key_tool_bar_{};     ///<  Toolbar holding key operations
-  QToolBar* email_tool_bar_{};
   QToolButton*
       import_button_{};  ///<  Tool button for import dropdown menu in toolbar
   QDockWidget* key_list_dock_{};    ///<  Encrypt Dock
@@ -617,6 +608,7 @@ class MainWindow : public GeneralMainWindow {
   QDockWidget* info_board_dock_{};
 
   QAction* new_tab_act_{};               ///<  Action to create new tab
+  QAction* new_email_tab_act_{};         ///<  Action to create email tab
   QAction* switch_tab_up_act_{};         ///<  Action to switch tab up
   QAction* switch_tab_down_act_{};       ///<  Action to switch tab down
   QAction* open_act_{};                  ///<  Action to open file
@@ -680,9 +672,6 @@ class MainWindow : public GeneralMainWindow {
   QAction* import_key_from_file_act_{};  ///<
   QAction* import_key_from_clipboard_act_{};   ///<
   QAction* import_key_from_key_server_act_{};  ///<
-
-  QAction* verify_email_by_eml_data_act_{};  ///<
-  QAction* decrypt_email_by_eml_data_act_{};
 
   QLabel* status_bar_icon_{};  ///<
 

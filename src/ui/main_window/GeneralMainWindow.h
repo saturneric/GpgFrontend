@@ -41,12 +41,19 @@ class GeneralMainWindow : public QMainWindow {
    *
    * @param name
    */
-  explicit GeneralMainWindow(QString name, QWidget* parent = nullptr);
+  explicit GeneralMainWindow(QString id, QWidget* parent = nullptr);
 
   /**
    *
    */
   ~GeneralMainWindow() override;
+
+  /**
+   * @brief Get the Id object
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto GetId() const -> QString;
 
  protected:
   /**
@@ -66,7 +73,7 @@ class GeneralMainWindow : public QMainWindow {
    */
   void movePosition2CenterOfParent();
 
-  QSize icon_size_{};               ///<
+  QSize icon_size_;                 ///<
   int font_size_{};                 ///<
   Qt::ToolButtonStyle icon_style_;  ///<
 
@@ -88,9 +95,9 @@ class GeneralMainWindow : public QMainWindow {
   void update_rect_cache();
 
  private:
-  QString name_;  ///<
-  QPoint pos_;    ///<
-  QSize size_;    ///<
+  QString id_;  ///<
+  QPoint pos_;  ///<
+  QSize size_;  ///<
   QRect rect_;
   QRect screen_rect_;
   QRect parent_rect_;

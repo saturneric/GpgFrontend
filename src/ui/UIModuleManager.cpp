@@ -61,7 +61,7 @@ auto UIModuleManager::DeclareMountPoint(
 
 auto UIModuleManager::MountEntry(const QString& id,
                                  QMap<QString, QString> meta_data,
-                                 EntryFactory factory) -> bool {
+                                 QObjectFactory factory) -> bool {
   if (id.isEmpty() || !mount_points_.contains(id)) return false;
 
   if (factory == nullptr) return false;
@@ -82,7 +82,7 @@ auto UIModuleManager::QueryMountedEntries(QString id) -> QList<MountedUIEntry> {
 }
 
 auto MountedUIEntry::GetWidget() const -> QWidget* {
-  return qobject_cast<QWidget*>(static_cast<QObject*>(factory_(id_.toUtf8())));
+  return qobject_cast<QWidget*>(static_cast<QObject*>(factory_(nullptr)));
 }
 
 auto MountedUIEntry::GetMetaDataByDefault(
@@ -174,6 +174,17 @@ void UIModuleManager::TranslateAllModulesParams() {
     }
   }
 #endif
+}
+
+auto UIModuleManager::RegisterQObject(const QString& id, QObject* p) -> bool {
+  if (id.isEmpty() || registered_qobjects_.contains(id)) return false;
+
+  registered_qobjects_[id] = p;
+  return true;
+}
+
+auto UIModuleManager::GetQObject(const QString& id) -> QObject* {
+  return registered_qobjects_.value(id, nullptr);
 }
 
 }  // namespace GpgFrontend::UI

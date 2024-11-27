@@ -41,7 +41,7 @@ struct MountedUIEntry {
   QString id_;
   QMap<QString, QString> meta_data_;
   QMap<QString, QString> meta_data_translated_;
-  EntryFactory factory_;
+  QObjectFactory factory_;
 
   MountedUIEntry() = default;
 
@@ -92,7 +92,7 @@ class GPGFRONTEND_UI_EXPORT UIModuleManager
    * @return false
    */
   auto MountEntry(const QString& id, QMap<QString, QString> meta_data,
-                  EntryFactory factory) -> bool;
+                  QObjectFactory factory) -> bool;
 
   /**
    * @brief
@@ -113,6 +113,22 @@ class GPGFRONTEND_UI_EXPORT UIModuleManager
   /**
    * @brief
    *
+   * @param id
+   * @return auto
+   */
+  auto RegisterQObject(const QString& id, QObject*) -> bool;
+
+  /**
+   * @brief
+   *
+   * @param id
+   * @return auto
+   */
+  auto GetQObject(const QString& id) -> QObject*;
+
+  /**
+   * @brief
+   *
    */
   void RegisterAllModuleTranslators();
 
@@ -128,6 +144,7 @@ class GPGFRONTEND_UI_EXPORT UIModuleManager
   QMap<QString, ModuleTranslatorInfo> translator_data_readers_;
   QList<QTranslator*> registered_translators_;
   QList<QByteArray> read_translator_data_list_;
+  QMap<QString, QPointer<QObject>> registered_qobjects_;
 };
 
 }  // namespace GpgFrontend::UI

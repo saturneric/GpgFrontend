@@ -28,10 +28,11 @@
 
 #pragma once
 
-#include "widgets/FilePage.h"
 namespace GpgFrontend::UI {
 
 class PlainTextEditorPage;
+class EMailEditorPage;
+class FilePage;
 
 class TextEditTabWidget : public QTabWidget {
   Q_OBJECT
@@ -49,6 +50,12 @@ class TextEditTabWidget : public QTabWidget {
   /**
    * @brief
    *
+   */
+  void SlotNewEMailTab();
+
+  /**
+   * @brief
+   *
    * @param title
    * @param content
    */
@@ -62,6 +69,13 @@ class TextEditTabWidget : public QTabWidget {
   /**
    * @brief
    *
+   * @param path
+   */
+  void SlotOpenEMLFile(const QString& path);
+
+  /**
+   * @brief
+   *
    */
   void SlotOpenDirectory(const QString& target_directory);
 
@@ -69,7 +83,7 @@ class TextEditTabWidget : public QTabWidget {
    * @details put a * in front of current tabs title, if current textedit is
    * modified
    */
-  void SlotShowModified(bool);
+  void SlotShowModified();
 
   /**
    * @brief
@@ -77,6 +91,13 @@ class TextEditTabWidget : public QTabWidget {
    * @return PlainTextEditorPage*
    */
   [[nodiscard]] auto CurTextPage() const -> PlainTextEditorPage*;
+
+  /**
+   * @brief
+   *
+   * @return PlainTextEditorPage*
+   */
+  [[nodiscard]] auto CurEMailPage() const -> EMailEditorPage*;
 
   /**
    * @brief
