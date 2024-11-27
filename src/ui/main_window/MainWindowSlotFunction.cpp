@@ -689,19 +689,68 @@ void MainWindow::slot_decrypt_email_by_eml_data_result_helper(
       });
 }
 
-void MainWindow::SlotSignEML() {
+void MainWindow::SlotEncryptEML() {
   if (edit_->TabCount() == 0 || edit_->CurEMailPage() == nullptr) return;
-  if (m_key_list_->GetCheckedKeys().isEmpty()) return;
+  auto checked_keys = m_key_list_->GetCheckedKeys();
 
+  if (checked_keys.isEmpty()) {
+    QMessageBox::warning(this, tr("No Key Selected"),
+                         tr("Please select a key for encrypt the EML."));
+    return;
+  }
   auto buffer = edit_->CurPlainText().toUtf8();
 
   Module::TriggerEvent(
-      "EMAIL_EXPORT_EML_DATA",
+      "EMAIL_ENCRYPT_EML_DATA",
       {
           {"body_data", QString::fromLatin1(buffer.toBase64())},
           {"channel",
            QString::number(m_key_list_->GetCurrentGpgContextChannel())},
-          {"sign_key", m_key_list_->GetCheckedKeys().front()},
+          {"encrypt_keys", checked_keys.join(';')},
+      },
+      [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
+          Module::Event::Params p) {
+        LOG_D() << "EMAIL_DECRYPT_EML_DATA callback: " << i << ei;
+        if (p["ret"] != "0" || !p["err"].isEmpty()) {
+          LOG_E() << "An error occurred trying to decrypt email, "
+                  << "error message: " << p["err"];
+
+          return;
+        }
+
+        if (!p["eml_data"].isEmpty()) {
+          edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
+        }
+
+        LOG_E() << "mime or signature data is missing";
+      });
+}
+
+void MainWindow::SlotSignEML() {
+  if (edit_->TabCount() == 0 || edit_->CurEMailPage() == nullptr) return;
+  auto checked_keys = m_key_list_->GetCheckedKeys();
+
+  if (checked_keys.isEmpty()) {
+    QMessageBox::warning(this, tr("No Key Selected"),
+                         tr("Please select a key for signing the EML."));
+    return;
+  }
+
+  if (checked_keys.size() > 1) {
+    QMessageBox::warning(this, tr("Multiple Keys Selected"),
+                         tr("Please select only one key to sign the EML."));
+    return;
+  }
+
+  auto buffer = edit_->CurPlainText().toUtf8();
+
+  Module::TriggerEvent(
+      "EMAIL_SIGN_EML_DATA",
+      {
+          {"body_data", QString::fromLatin1(buffer.toBase64())},
+          {"channel",
+           QString::number(m_key_list_->GetCurrentGpgContextChannel())},
+          {"sign_key", checked_keys.front()},
       },
       [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
           Module::Event::Params p) {

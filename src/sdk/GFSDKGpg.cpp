@@ -33,6 +33,7 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/model/DataObject.h"
+#include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgSignResult.h"
 #include "core/typedef/GpgTypedef.h"
 
@@ -111,5 +112,39 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgKeyPrimaryUID(int channel, char* key_id,
   s->name = GFStrDup(primary_uid.GetName());
   s->email = GFStrDup(primary_uid.GetEmail());
   s->comment = GFStrDup(primary_uid.GetComment());
+  return 0;
+}
+
+auto GPGFRONTEND_MODULE_SDK_EXPORT
+GFGpgEncryptData(int channel, char** key_ids, int key_ids_size, char* data,
+                 int ascii, GFGpgEncryptionResult** ps) -> int {
+  auto encrypt_key_ids = CharArrayToQList(key_ids, key_ids_size);
+
+  GpgFrontend::KeyArgsList encrypt_keys;
+  for (const auto& encrypt_key_id : encrypt_key_ids) {
+    auto key =
+        GpgFrontend::GpgKeyGetter::GetInstance(channel).GetKey(encrypt_key_id);
+    if (key.IsGood()) encrypt_keys.push_back(key);
+  }
+
+  if (encrypt_keys.empty()) return -1;
+
+  auto in_buffer = GpgFrontend::GFBuffer(GFUnStrDup(data).toUtf8());
+
+  auto [err, data_object] =
+      GpgFrontend::GpgBasicOperator::GetInstance(channel).EncryptSync(
+          encrypt_keys, in_buffer, ascii != 0);
+
+  if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) return -1;
+
+  auto result =
+      GpgFrontend::ExtractParams<GpgFrontend::GpgEncryptResult>(data_object, 0);
+  auto out_buffer =
+      GpgFrontend::ExtractParams<GpgFrontend::GFBuffer>(data_object, 1);
+
+  *ps = static_cast<GFGpgEncryptionResult*>(
+      GFAllocateMemory(sizeof(GFGpgEncryptionResult)));
+  auto* s = *ps;
+  s->encrypted_data = GFStrDup(out_buffer.ConvertToQByteArray());
   return 0;
 }

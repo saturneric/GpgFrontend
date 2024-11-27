@@ -183,6 +183,12 @@ class MainWindow : public GeneralMainWindow {
   void SlotSignEML();
 
   /**
+   * @brief
+   *
+   */
+  void SlotEncryptEML();
+
+  /**
    * @details decrypt and verify the text of currently active textedit-page
    * with the currently checked keys
    */

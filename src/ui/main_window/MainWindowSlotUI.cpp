@@ -217,6 +217,12 @@ void MainWindow::SlotGeneralEncrypt(bool) {
       this->SlotDirectoryEncrypt(path);
     }
   }
+
+  if (edit_->CurEMailPage() != nullptr) {
+    this->SlotEncryptEML();
+    return;
+  }
+
   if (edit_->SlotCurPageTextEdit() != nullptr) {
     this->SlotEncrypt();
   }

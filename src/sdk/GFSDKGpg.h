@@ -37,6 +37,10 @@ struct GFGpgSignResult {
   char* hash_algo;
 };
 
+struct GFGpgEncryptionResult {
+  char* encrypted_data;
+};
+
 struct GFGpgKeyUID {
   char* name;
   char* email;
@@ -55,6 +59,20 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgSignData(int channel, char** key_ids,
                                                  int key_ids_size, char* data,
                                                  int sign_mode, int ascii,
                                                  GFGpgSignResult**) -> int;
+
+/**
+ * @brief
+ *
+ * @param channel
+ * @param key_ids
+ * @param key_ids_size
+ * @param data
+ * @param ascii
+ * @return int
+ */
+auto GPGFRONTEND_MODULE_SDK_EXPORT
+GFGpgEncryptData(int channel, char** key_ids, int key_ids_size, char* data,
+                 int ascii, GFGpgEncryptionResult**) -> int;
 
 /**
  * @brief
