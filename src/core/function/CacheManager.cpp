@@ -110,6 +110,7 @@ class CacheManager::Impl : public QObject {
       key_storage_.push_back(key);
     }
 
+    durable_cache_modified_ = true;
     if (flush) slot_flush_cache_storage();
   }
 
@@ -118,6 +119,7 @@ class CacheManager::Impl : public QObject {
 
     if (!durable_cache_storage_.exists(key)) {
       durable_cache_storage_.insert(key, load_cache_storage(key, {}));
+      durable_cache_modified_ = true;
     }
 
     auto cache = durable_cache_storage_.get(key);
@@ -131,6 +133,7 @@ class CacheManager::Impl : public QObject {
     if (!durable_cache_storage_.exists(key)) {
       durable_cache_storage_.insert(
           key, load_cache_storage(key, std::move(default_value)));
+      durable_cache_modified_ = true;
     }
 
     auto cache = durable_cache_storage_.get(key);
@@ -140,6 +143,7 @@ class CacheManager::Impl : public QObject {
 
   auto ResetDurableCache(const QString& key) -> bool {
     auto data_object_key = get_data_object_key(key);
+    durable_cache_modified_ = true;
     return durable_cache_storage_.remove(key);
   }
 
@@ -188,7 +192,9 @@ class CacheManager::Impl : public QObject {
    *
    */
   void slot_flush_cache_storage() {
-    FLOG_D("write cache to file system...");
+    if (!durable_cache_modified_) return;
+
+    FLOG_D("update durable cache to disk...");
 
     for (const auto& cache : durable_cache_storage_.mirror()) {
       auto key = get_data_object_key(cache.first);
@@ -197,23 +203,11 @@ class CacheManager::Impl : public QObject {
     }
     GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(
         drk_key_, QJsonDocument(key_storage_));
+
+    durable_cache_modified_ = false;
   }
 
  private:
-  struct CacheObject {
-    QString value;
-    qint64 ttl;
-
-    CacheObject(QString value, qint64 ttl)
-        : value(std::move(value)), ttl(ttl) {}
-  };
-
-  QCache<QString, CacheObject> runtime_cache_storage_;
-  ThreadSafeMap<QString, QJsonDocument> durable_cache_storage_;
-  QJsonArray key_storage_;
-  QTimer* flush_timer_;
-  const QString drk_key_ = "__cache_manage_data_register_key_list";
-
   /**
    * @brief Get the data object key object
    *
@@ -273,6 +267,21 @@ class CacheManager::Impl : public QObject {
    * @param key
    */
   void register_cache_key(const QString& key) {}
+
+  struct CacheObject {
+    QString value;
+    qint64 ttl;
+
+    CacheObject(QString value, qint64 ttl)
+        : value(std::move(value)), ttl(ttl) {}
+  };
+
+  QCache<QString, CacheObject> runtime_cache_storage_;
+  ThreadSafeMap<QString, QJsonDocument> durable_cache_storage_;
+  QJsonArray key_storage_;
+  QTimer* flush_timer_;
+  const QString drk_key_ = "__cache_manage_data_register_key_list";
+  std::atomic<bool> durable_cache_modified_{};
 };
 
 CacheManager::CacheManager(int channel)
