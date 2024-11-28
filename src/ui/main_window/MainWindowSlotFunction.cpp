@@ -356,55 +356,67 @@ void MainWindow::slot_import_key_from_edit() {
 }
 
 void MainWindow::slot_verify_email_by_eml_data(const QByteArray& buffer) {
-  Module::TriggerEvent(
-      "EMAIL_VERIFY_EML_DATA",
-      {
-          {"eml_data", QString::fromLatin1(buffer.toBase64())},
-          {"channel",
-           QString::number(m_key_list_->GetCurrentGpgContextChannel())},
-      },
-      [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
-          Module::Event::Params p) {
-        LOG_D() << "EMAIL_VERIFY_EML_DATA callback: " << i << ei;
-        if (p["ret"] != "0" || !p["err"].isEmpty()) {
-          LOG_E() << "An error occurred trying to verify email, "
-                  << "error message: " << p["err"];
+  CommonUtils::WaitForOpera(
+      this, tr("Verifying"), [this, buffer](const OperaWaitingHd& hd) {
+        Module::TriggerEvent(
+            "EMAIL_VERIFY_EML_DATA",
+            {
+                {"eml_data", QString::fromLatin1(buffer.toBase64())},
+                {"channel",
+                 QString::number(m_key_list_->GetCurrentGpgContextChannel())},
+            },
+            [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
+                Module::Event::Params p) {
+              LOG_D() << "EMAIL_VERIFY_EML_DATA callback: " << i << ei;
 
-          if (p["ret"] == "-2") {
-            QString detailed_error = p["err"];
+              // end waiting dialog
+              hd();
 
-            QString info =
-                tr("# EML Data Error\n\n"
-                   "The provided EML data does not conform to the "
-                   "structure described in RFC 3156 and cannot be "
-                   "validated.\n\n"
-                   "Details: %1\n\n"
-                   "What is EML Data?\n"
-                   "EML is a file format used to represent email messages. "
-                   "It typically contains the entire contents of an email, "
-                   "including headers, "
-                   "body text, attachments, and metadata. In order to validate "
-                   "the email properly, it is necessary to provide the "
-                   "complete, original EML "
-                   "data.\n\n"
-                   "For more information about the expected EML structure, "
-                   "please refer to the RFC 3156 standard:\n"
-                   "%2\n\n"
-                   "Please ensure the EML data follows the standard and try "
-                   "again.")
-                    .arg(detailed_error)
-                    .arg("https://www.rfc-editor.org/rfc/rfc3156.txt");
-            slot_refresh_info_board(-2, info);
-          }
+              if (p["ret"] != "0" || !p["err"].isEmpty()) {
+                LOG_E() << "An error occurred trying to verify email, "
+                        << "error message: " << p["err"];
 
-          return;
-        }
+                if (p["ret"] == "-2") {
+                  QString detailed_error = p["err"];
 
-        if (p.contains("signature") && p.contains("mime")) {
-          slot_verify_email_by_eml_data_result_helper(p);
-        }
+                  QString info =
+                      tr("# EML Data Error\n\n"
+                         "The provided EML data does not conform to the "
+                         "structure described in RFC 3156 and cannot be "
+                         "validated.\n\n"
+                         "Details: %1\n\n"
+                         "What is EML Data?\n"
+                         "EML is a file format used to represent email "
+                         "messages. "
+                         "It typically contains the entire contents of an "
+                         "email, "
+                         "including headers, "
+                         "body text, attachments, and metadata. In order to "
+                         "validate "
+                         "the email properly, it is necessary to provide the "
+                         "complete, original EML "
+                         "data.\n\n"
+                         "For more information about the expected EML "
+                         "structure, "
+                         "please refer to the RFC 3156 standard:\n"
+                         "%2\n\n"
+                         "Please ensure the EML data follows the standard and "
+                         "try "
+                         "again.")
+                          .arg(detailed_error)
+                          .arg("https://www.rfc-editor.org/rfc/rfc3156.txt");
+                  slot_refresh_info_board(-2, info);
+                }
 
-        LOG_E() << "mime or signature data is missing";
+                return;
+              }
+
+              if (p.contains("signature") && p.contains("mime")) {
+                slot_verify_email_by_eml_data_result_helper(p);
+              }
+
+              LOG_E() << "mime or signature data is missing";
+            });
       });
 }
 
@@ -672,47 +684,56 @@ void MainWindow::SlotEncryptEML() {
   }
   auto buffer = edit_->CurPlainText().toUtf8();
 
-  Module::TriggerEvent(
-      "EMAIL_ENCRYPT_EML_DATA",
-      {
-          {"body_data", QString::fromLatin1(buffer.toBase64())},
-          {"channel",
-           QString::number(m_key_list_->GetCurrentGpgContextChannel())},
-          {"encrypt_keys", checked_keys.join(';')},
-      },
-      [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
-          Module::Event::Params p) {
-        LOG_D() << "EMAIL_ENCRYPT_EML_DATA callback: " << i << ei;
-        if (p["ret"] != "0" || !p["err"].isEmpty()) {
-          LOG_E() << "An error occurred trying to decrypt email, "
-                  << "error message: " << p["err"];
+  CommonUtils::WaitForOpera(
+      this, tr("Encrypting"),
+      [this, buffer, checked_keys](const OperaWaitingHd& hd) {
+        Module::TriggerEvent(
+            "EMAIL_ENCRYPT_EML_DATA",
+            {
+                {"body_data", QString::fromLatin1(buffer.toBase64())},
+                {"channel",
+                 QString::number(m_key_list_->GetCurrentGpgContextChannel())},
+                {"encrypt_keys", checked_keys.join(';')},
+            },
 
-          return;
-        }
+            [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
+                Module::Event::Params p) {
+              LOG_D() << "EMAIL_ENCRYPT_EML_DATA callback: " << i << ei;
 
-        if (!p["eml_data"].isEmpty()) {
-          edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
-        }
+              // close waiting dialog
+              hd();
 
-        if (!p["capsule_id"].isEmpty()) {
-          auto v = UIModuleManager::GetInstance().GetCapsule(
-              p.value("capsule_id", ""));
+              if (p["ret"] != "0" || !p["err"].isEmpty()) {
+                LOG_E() << "An error occurred trying to decrypt email, "
+                        << "error message: " << p["err"];
 
-          try {
-            auto encr_result = std::any_cast<GpgEncryptResult>(v);
-            auto result_analyse = GpgEncryptResultAnalyse(
-                m_key_list_->GetCurrentGpgContextChannel(), GPG_ERR_NO_ERROR,
-                encr_result);
-            result_analyse.Analyse();
-            slot_result_analyse_show_helper(result_analyse);
+                return;
+              }
 
-          } catch (const std::bad_any_cast& e) {
-            LOG_E() << "capsule" << p["capsule_id"]
-                    << "convert to real type failed" << e.what();
-          }
-        }
+              if (!p["eml_data"].isEmpty()) {
+                edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
+              }
 
-        LOG_E() << "mime or signature data is missing";
+              if (!p["capsule_id"].isEmpty()) {
+                auto v = UIModuleManager::GetInstance().GetCapsule(
+                    p.value("capsule_id", ""));
+
+                try {
+                  auto encr_result = std::any_cast<GpgEncryptResult>(v);
+                  auto result_analyse = GpgEncryptResultAnalyse(
+                      m_key_list_->GetCurrentGpgContextChannel(),
+                      GPG_ERR_NO_ERROR, encr_result);
+                  result_analyse.Analyse();
+                  slot_result_analyse_show_helper(result_analyse);
+
+                } catch (const std::bad_any_cast& e) {
+                  LOG_E() << "capsule" << p["capsule_id"]
+                          << "convert to real type failed" << e.what();
+                }
+              }
+
+              LOG_E() << "mime or signature data is missing";
+            });
       });
 }
 
@@ -734,74 +755,84 @@ void MainWindow::SlotSignEML() {
 
   auto buffer = edit_->CurPlainText().toUtf8();
 
-  Module::TriggerEvent(
-      "EMAIL_SIGN_EML_DATA",
-      {
-          {"body_data", QString::fromLatin1(buffer.toBase64())},
-          {"channel",
-           QString::number(m_key_list_->GetCurrentGpgContextChannel())},
-          {"sign_key", checked_keys.front()},
-      },
-      [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
-          Module::Event::Params p) {
-        LOG_D() << "EMAIL_SIGN_EML_DATA callback: " << i << ei;
-        if (p["ret"] != "0" || !p["err"].isEmpty()) {
-          LOG_E() << "An error occurred trying to decrypt email, "
-                  << "error message: " << p["err"];
+  CommonUtils::WaitForOpera(
+      this, tr("Signing"),
+      [this, buffer, checked_keys](const OperaWaitingHd& hd) {
+        Module::TriggerEvent(
+            "EMAIL_SIGN_EML_DATA",
+            {
+                {"body_data", QString::fromLatin1(buffer.toBase64())},
+                {"channel",
+                 QString::number(m_key_list_->GetCurrentGpgContextChannel())},
+                {"sign_key", checked_keys.front()},
+            },
+            [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
+                Module::Event::Params p) {
+              LOG_D() << "EMAIL_SIGN_EML_DATA callback: " << i << ei;
 
-          return;
-        }
+              // close waiting dialog
+              hd();
 
-        if (p["ret"] == "-2") {
-          QString detailed_error = p["err"];
+              if (p["ret"] != "0" || !p["err"].isEmpty()) {
+                LOG_E() << "An error occurred trying to decrypt email, "
+                        << "error message: " << p["err"];
 
-          QString info =
-              tr("# EML Data Error\n\n"
-                 "The provided EML data does not conform to the "
-                 "structure described in RFC 3156 and cannot be "
-                 "validated.\n\n"
-                 "Details: %1\n\n"
-                 "What is EML Data?\n"
-                 "EML is a file format used to represent email messages. "
-                 "It typically contains the entire contents of an email, "
-                 "including headers, "
-                 "body text, attachments, and metadata. In order to validate "
-                 "the email properly, it is necessary to provide the "
-                 "complete, original EML "
-                 "data.\n\n"
-                 "For more information about the expected EML structure, "
-                 "please refer to the RFC 3156 standard:\n"
-                 "%2\n\n"
-                 "Please ensure the EML data follows the standard and try "
-                 "again.")
-                  .arg(detailed_error)
-                  .arg("https://www.rfc-editor.org/rfc/rfc3156.txt");
-          slot_refresh_info_board(-2, info);
-        }
+                return;
+              }
 
-        if (!p["eml_data"].isEmpty()) {
-          edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
-        }
+              if (p["ret"] == "-2") {
+                QString detailed_error = p["err"];
 
-        if (!p["capsule_id"].isEmpty()) {
-          auto v = UIModuleManager::GetInstance().GetCapsule(
-              p.value("capsule_id", ""));
+                QString info =
+                    tr("# EML Data Error\n\n"
+                       "The provided EML data does not conform to the "
+                       "structure described in RFC 3156 and cannot be "
+                       "validated.\n\n"
+                       "Details: %1\n\n"
+                       "What is EML Data?\n"
+                       "EML is a file format used to represent email messages. "
+                       "It typically contains the entire contents of an email, "
+                       "including headers, "
+                       "body text, attachments, and metadata. In order to "
+                       "validate "
+                       "the email properly, it is necessary to provide the "
+                       "complete, original EML "
+                       "data.\n\n"
+                       "For more information about the expected EML structure, "
+                       "please refer to the RFC 3156 standard:\n"
+                       "%2\n\n"
+                       "Please ensure the EML data follows the standard and "
+                       "try "
+                       "again.")
+                        .arg(detailed_error)
+                        .arg("https://www.rfc-editor.org/rfc/rfc3156.txt");
+                slot_refresh_info_board(-2, info);
+              }
 
-          try {
-            auto sign_result = std::any_cast<GpgSignResult>(v);
-            auto result_analyse =
-                GpgSignResultAnalyse(m_key_list_->GetCurrentGpgContextChannel(),
-                                     GPG_ERR_NO_ERROR, sign_result);
-            result_analyse.Analyse();
-            slot_result_analyse_show_helper(result_analyse);
+              if (!p["eml_data"].isEmpty()) {
+                edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
+              }
 
-          } catch (const std::bad_any_cast& e) {
-            LOG_E() << "capsule" << p["capsule_id"]
-                    << "convert to real type failed" << e.what();
-          }
-        }
+              if (!p["capsule_id"].isEmpty()) {
+                auto v = UIModuleManager::GetInstance().GetCapsule(
+                    p.value("capsule_id", ""));
 
-        LOG_E() << "mime or signature data is missing";
+                try {
+                  auto sign_result = std::any_cast<GpgSignResult>(v);
+                  auto result_analyse = GpgSignResultAnalyse(
+                      m_key_list_->GetCurrentGpgContextChannel(),
+                      GPG_ERR_NO_ERROR, sign_result);
+                  result_analyse.Analyse();
+                  slot_result_analyse_show_helper(result_analyse);
+
+                } catch (const std::bad_any_cast& e) {
+                  LOG_E() << "capsule" << p["capsule_id"]
+                          << "convert to real type failed" << e.what();
+                }
+              }
+
+              LOG_E() << "mime or signature data is missing";
+            });
       });
 }
 
@@ -840,85 +871,95 @@ void MainWindow::SlotEncryptSignEML() {
 
   auto buffer = edit_->CurPlainText().toUtf8();
 
-  Module::TriggerEvent(
-      "EMAIL_ENCRYPT_SIGN_EML_DATA",
-      {
-          {"body_data", QString::fromLatin1(buffer.toBase64())},
-          {"channel",
-           QString::number(m_key_list_->GetCurrentGpgContextChannel())},
-          {"sign_key", signer_keys.front()},
-          {"encrypt_keys", checked_keys.front()},
-      },
-      [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
-          Module::Event::Params p) {
-        LOG_D() << "EMAIL_ENCRYPT_SIGN_EML_DATA callback: " << i << ei;
-        if (p["ret"] != "0" || !p["err"].isEmpty()) {
-          LOG_E() << "An error occurred trying to decrypt email, "
-                  << "error message: " << p["err"];
+  CommonUtils::WaitForOpera(
+      this, tr("Encrypting and Signing"),
+      [this, buffer, checked_keys, signer_keys](const OperaWaitingHd& hd) {
+        Module::TriggerEvent(
+            "EMAIL_ENCRYPT_SIGN_EML_DATA",
+            {
+                {"body_data", QString::fromLatin1(buffer.toBase64())},
+                {"channel",
+                 QString::number(m_key_list_->GetCurrentGpgContextChannel())},
+                {"sign_key", signer_keys.front()},
+                {"encrypt_keys", checked_keys.front()},
+            },
+            [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
+                Module::Event::Params p) {
+              LOG_D() << "EMAIL_ENCRYPT_SIGN_EML_DATA callback: " << i << ei;
 
-          return;
-        }
+              // close waiting dialog
+              hd();
 
-        if (p["ret"] == "-2") {
-          QString detailed_error = p["err"];
+              if (p["ret"] != "0" || !p["err"].isEmpty()) {
+                LOG_E() << "An error occurred trying to decrypt email, "
+                        << "error message: " << p["err"];
 
-          QString info =
-              tr("# EML Data Error\n\n"
-                 "The provided EML data does not conform to the "
-                 "structure described in RFC 3156 and cannot be "
-                 "validated.\n\n"
-                 "Details: %1\n\n"
-                 "What is EML Data?\n"
-                 "EML is a file format used to represent email messages. "
-                 "It typically contains the entire contents of an email, "
-                 "including headers, "
-                 "body text, attachments, and metadata. In order to validate "
-                 "the email properly, it is necessary to provide the "
-                 "complete, original EML "
-                 "data.\n\n"
-                 "For more information about the expected EML structure, "
-                 "please refer to the RFC 3156 standard:\n"
-                 "%2\n\n"
-                 "Please ensure the EML data follows the standard and try "
-                 "again.")
-                  .arg(detailed_error)
-                  .arg("https://www.rfc-editor.org/rfc/rfc3156.txt");
-          slot_refresh_info_board(-2, info);
-        }
+                return;
+              }
 
-        if (!p["eml_data"].isEmpty()) {
-          edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
-        }
+              if (p["ret"] == "-2") {
+                QString detailed_error = p["err"];
 
-        if (!p["sign_capsule_id"].isEmpty() &&
-            !p["encr_capsule_id"].isEmpty()) {
-          auto v1 = UIModuleManager::GetInstance().GetCapsule(
-              p.value("sign_capsule_id", ""));
-          auto v2 = UIModuleManager::GetInstance().GetCapsule(
-              p.value("encr_capsule_id", ""));
+                QString info =
+                    tr("# EML Data Error\n\n"
+                       "The provided EML data does not conform to the "
+                       "structure described in RFC 3156 and cannot be "
+                       "validated.\n\n"
+                       "Details: %1\n\n"
+                       "What is EML Data?\n"
+                       "EML is a file format used to represent email messages. "
+                       "It typically contains the entire contents of an email, "
+                       "including headers, "
+                       "body text, attachments, and metadata. In order to "
+                       "validate "
+                       "the email properly, it is necessary to provide the "
+                       "complete, original EML "
+                       "data.\n\n"
+                       "For more information about the expected EML structure, "
+                       "please refer to the RFC 3156 standard:\n"
+                       "%2\n\n"
+                       "Please ensure the EML data follows the standard and "
+                       "try "
+                       "again.")
+                        .arg(detailed_error)
+                        .arg("https://www.rfc-editor.org/rfc/rfc3156.txt");
+                slot_refresh_info_board(-2, info);
+              }
 
-          try {
-            auto sign_result = std::any_cast<GpgSignResult>(v1);
-            auto encr_result = std::any_cast<GpgSignResult>(v1);
-            auto sign_result_analyse =
-                GpgSignResultAnalyse(m_key_list_->GetCurrentGpgContextChannel(),
-                                     GPG_ERR_NO_ERROR, sign_result);
-            auto encr_result_analyse =
-                GpgSignResultAnalyse(m_key_list_->GetCurrentGpgContextChannel(),
-                                     GPG_ERR_NO_ERROR, sign_result);
+              if (!p["eml_data"].isEmpty()) {
+                edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
+              }
 
-            sign_result_analyse.Analyse();
-            encr_result_analyse.Analyse();
-            slot_result_analyse_show_helper(sign_result_analyse,
-                                            encr_result_analyse);
+              if (!p["sign_capsule_id"].isEmpty() &&
+                  !p["encr_capsule_id"].isEmpty()) {
+                auto v1 = UIModuleManager::GetInstance().GetCapsule(
+                    p.value("sign_capsule_id", ""));
+                auto v2 = UIModuleManager::GetInstance().GetCapsule(
+                    p.value("encr_capsule_id", ""));
 
-          } catch (const std::bad_any_cast& e) {
-            LOG_E() << "capsule" << p["capsule_id"]
-                    << "convert to real type failed" << e.what();
-          }
-        }
+                try {
+                  auto sign_result = std::any_cast<GpgSignResult>(v1);
+                  auto encr_result = std::any_cast<GpgSignResult>(v1);
+                  auto sign_result_analyse = GpgSignResultAnalyse(
+                      m_key_list_->GetCurrentGpgContextChannel(),
+                      GPG_ERR_NO_ERROR, sign_result);
+                  auto encr_result_analyse = GpgSignResultAnalyse(
+                      m_key_list_->GetCurrentGpgContextChannel(),
+                      GPG_ERR_NO_ERROR, sign_result);
 
-        LOG_E() << "mime or signature data is missing";
+                  sign_result_analyse.Analyse();
+                  encr_result_analyse.Analyse();
+                  slot_result_analyse_show_helper(sign_result_analyse,
+                                                  encr_result_analyse);
+
+                } catch (const std::bad_any_cast& e) {
+                  LOG_E() << "capsule" << p["capsule_id"]
+                          << "convert to real type failed" << e.what();
+                }
+              }
+
+              LOG_E() << "mime or signature data is missing";
+            });
       });
 }
 
@@ -927,125 +968,138 @@ void MainWindow::SlotDecryptVerifyEML() {
 
   auto buffer = edit_->CurPlainText().toUtf8();
 
-  Module::TriggerEvent(
-      "EMAIL_DECRYPT_VERIFY_EML_DATA",
-      {
-          {"eml_data", QString::fromLatin1(buffer.toBase64())},
-          {"channel",
-           QString::number(m_key_list_->GetCurrentGpgContextChannel())},
-      },
-      [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
-          Module::Event::Params p) {
-        LOG_D() << "EMAIL_DECRYPT_VERIFY_EML_DATA callback: " << i << ei;
-        if (p["ret"] != "0" || !p["err"].isEmpty()) {
-          LOG_E() << "An error occurred trying to decrypt email, "
-                  << "error message: " << p["err"];
+  CommonUtils::WaitForOpera(
+      this, tr("Decrypting and Verifying"),
+      [this, buffer](const OperaWaitingHd& hd) {
+        Module::TriggerEvent(
+            "EMAIL_DECRYPT_VERIFY_EML_DATA",
+            {
+                {"eml_data", QString::fromLatin1(buffer.toBase64())},
+                {"channel",
+                 QString::number(m_key_list_->GetCurrentGpgContextChannel())},
+            },
+            [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
+                Module::Event::Params p) {
+              LOG_D() << "EMAIL_DECRYPT_VERIFY_EML_DATA callback: " << i << ei;
 
-          return;
-        }
+              // close waiting dialog
+              hd();
 
-        if (p["ret"] == "-2") {
-          QString detailed_error = p["err"];
+              if (p["ret"] != "0" || !p["err"].isEmpty()) {
+                LOG_E() << "An error occurred trying to decrypt email, "
+                        << "error message: " << p["err"];
 
-          QString info =
-              tr("# EML Data Error\n\n"
-                 "The provided EML data does not conform to the "
-                 "structure described in RFC 3156 and cannot be "
-                 "validated.\n\n"
-                 "Details: %1\n\n"
-                 "What is EML Data?\n"
-                 "EML is a file format used to represent email messages. "
-                 "It typically contains the entire contents of an email, "
-                 "including headers, "
-                 "body text, attachments, and metadata. In order to validate "
-                 "the email properly, it is necessary to provide the "
-                 "complete, original EML "
-                 "data.\n\n"
-                 "For more information about the expected EML structure, "
-                 "please refer to the RFC 3156 standard:\n"
-                 "%2\n\n"
-                 "Please ensure the EML data follows the standard and try "
-                 "again.")
-                  .arg(detailed_error)
-                  .arg("https://www.rfc-editor.org/rfc/rfc3156.txt");
-          slot_refresh_info_board(-2, info);
-        }
+                return;
+              }
 
-        edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
+              if (p["ret"] == "-2") {
+                QString detailed_error = p["err"];
 
-        const auto mime = QByteArray::fromBase64(p["mime"].toLatin1());
-        const auto signature =
-            QByteArray::fromBase64(p["signature"].toLatin1());
-        const auto part_mime_content_hash = p["mime_hash"];
-        const auto prm_micalg_value = p["micalg"];
+                QString info =
+                    tr("# EML Data Error\n\n"
+                       "The provided EML data does not conform to the "
+                       "structure described in RFC 3156 and cannot be "
+                       "validated.\n\n"
+                       "Details: %1\n\n"
+                       "What is EML Data?\n"
+                       "EML is a file format used to represent email messages. "
+                       "It typically contains the entire contents of an email, "
+                       "including headers, "
+                       "body text, attachments, and metadata. In order to "
+                       "validate "
+                       "the email properly, it is necessary to provide the "
+                       "complete, original EML "
+                       "data.\n\n"
+                       "For more information about the expected EML structure, "
+                       "please refer to the RFC 3156 standard:\n"
+                       "%2\n\n"
+                       "Please ensure the EML data follows the standard and "
+                       "try "
+                       "again.")
+                        .arg(detailed_error)
+                        .arg("https://www.rfc-editor.org/rfc/rfc3156.txt");
+                slot_refresh_info_board(-2, info);
+              }
 
-        auto timestamp = p.value("datetime", "-1").toLongLong();
-        auto datetime = tr("None");
-        if (timestamp > 0) {
-          datetime =
-              QLocale().toString(QDateTime::fromMSecsSinceEpoch(timestamp));
-        }
+              edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
 
-        QString email_info;
-        email_info.append("# E-Mail Information\n\n");
-        email_info.append(QString("- %1: %2\n")
-                              .arg(tr("From"))
-                              .arg(p.value("from", tr("Unknown"))));
-        email_info.append(QString("- %1: %2\n")
-                              .arg(tr("To"))
-                              .arg(p.value("to", tr("Unknown"))));
-        email_info.append(QString("- %1: %2\n")
-                              .arg(tr("Subject"))
-                              .arg(p.value("subject", tr("None"))));
-        email_info.append(
-            QString("- %1: %2\n").arg(tr("CC")).arg(p.value("cc", tr("None"))));
-        email_info.append(QString("- %1: %2\n")
-                              .arg(tr("BCC"))
-                              .arg(p.value("bcc", tr("None"))));
-        email_info.append(QString("- %1: %2\n").arg(tr("Date")).arg(datetime));
+              const auto mime = QByteArray::fromBase64(p["mime"].toLatin1());
+              const auto signature =
+                  QByteArray::fromBase64(p["signature"].toLatin1());
+              const auto part_mime_content_hash = p["mime_hash"];
+              const auto prm_micalg_value = p["micalg"];
 
-        email_info.append("\n");
-        email_info.append("# OpenPGP Information\n\n");
-        email_info.append(QString("- %1: %2\n")
-                              .arg(tr("Signed EML Data Hash (SHA1)"))
-                              .arg(part_mime_content_hash));
-        email_info.append(QString("- %1: %2\n")
-                              .arg(tr("Message Integrity Check Algorithm"))
-                              .arg(prm_micalg_value));
-        email_info.append("\n");
+              auto timestamp = p.value("datetime", "-1").toLongLong();
+              auto datetime = tr("None");
+              if (timestamp > 0) {
+                datetime = QLocale().toString(
+                    QDateTime::fromMSecsSinceEpoch(timestamp));
+              }
 
-        if (!p["decr_capsule_id"].isEmpty() &&
-            !p["verify_capsule_id"].isEmpty()) {
-          auto v1 = UIModuleManager::GetInstance().GetCapsule(
-              p.value("decr_capsule_id", ""));
-          auto v2 = UIModuleManager::GetInstance().GetCapsule(
-              p.value("verify_capsule_id", ""));
+              QString email_info;
+              email_info.append("# E-Mail Information\n\n");
+              email_info.append(QString("- %1: %2\n")
+                                    .arg(tr("From"))
+                                    .arg(p.value("from", tr("Unknown"))));
+              email_info.append(QString("- %1: %2\n")
+                                    .arg(tr("To"))
+                                    .arg(p.value("to", tr("Unknown"))));
+              email_info.append(QString("- %1: %2\n")
+                                    .arg(tr("Subject"))
+                                    .arg(p.value("subject", tr("None"))));
+              email_info.append(QString("- %1: %2\n")
+                                    .arg(tr("CC"))
+                                    .arg(p.value("cc", tr("None"))));
+              email_info.append(QString("- %1: %2\n")
+                                    .arg(tr("BCC"))
+                                    .arg(p.value("bcc", tr("None"))));
+              email_info.append(
+                  QString("- %1: %2\n").arg(tr("Date")).arg(datetime));
 
-          try {
-            auto decr_result = std::any_cast<GpgDecryptResult>(v1);
-            auto verify_result = std::any_cast<GpgVerifyResult>(v2);
-            auto decr_result_analyse = GpgDecryptResultAnalyse(
-                m_key_list_->GetCurrentGpgContextChannel(), GPG_ERR_NO_ERROR,
-                decr_result);
-            auto verify_result_analyse = GpgVerifyResultAnalyse(
-                m_key_list_->GetCurrentGpgContextChannel(), GPG_ERR_NO_ERROR,
-                verify_result);
+              email_info.append("\n");
+              email_info.append("# OpenPGP Information\n\n");
+              email_info.append(QString("- %1: %2\n")
+                                    .arg(tr("Signed EML Data Hash (SHA1)"))
+                                    .arg(part_mime_content_hash));
+              email_info.append(
+                  QString("- %1: %2\n")
+                      .arg(tr("Message Integrity Check Algorithm"))
+                      .arg(prm_micalg_value));
+              email_info.append("\n");
 
-            decr_result_analyse.Analyse();
-            verify_result_analyse.Analyse();
-            slot_refresh_info_board(
-                std::min(decr_result_analyse.GetStatus(),
-                         verify_result_analyse.GetStatus()),
-                email_info + decr_result_analyse.GetResultReport() +
-                    verify_result_analyse.GetResultReport());
+              if (!p["decr_capsule_id"].isEmpty() &&
+                  !p["verify_capsule_id"].isEmpty()) {
+                auto v1 = UIModuleManager::GetInstance().GetCapsule(
+                    p.value("decr_capsule_id", ""));
+                auto v2 = UIModuleManager::GetInstance().GetCapsule(
+                    p.value("verify_capsule_id", ""));
 
-          } catch (const std::bad_any_cast& e) {
-            LOG_E() << "capsule" << p["capsule_id"]
-                    << "convert to real type failed" << e.what();
-          }
-        }
+                try {
+                  auto decr_result = std::any_cast<GpgDecryptResult>(v1);
+                  auto verify_result = std::any_cast<GpgVerifyResult>(v2);
+                  auto decr_result_analyse = GpgDecryptResultAnalyse(
+                      m_key_list_->GetCurrentGpgContextChannel(),
+                      GPG_ERR_NO_ERROR, decr_result);
+                  auto verify_result_analyse = GpgVerifyResultAnalyse(
+                      m_key_list_->GetCurrentGpgContextChannel(),
+                      GPG_ERR_NO_ERROR, verify_result);
 
-        LOG_E() << "mime or signature data is missing";
+                  decr_result_analyse.Analyse();
+                  verify_result_analyse.Analyse();
+                  slot_refresh_info_board(
+                      std::min(decr_result_analyse.GetStatus(),
+                               verify_result_analyse.GetStatus()),
+                      email_info + decr_result_analyse.GetResultReport() +
+                          verify_result_analyse.GetResultReport());
+
+                } catch (const std::bad_any_cast& e) {
+                  LOG_E() << "capsule" << p["capsule_id"]
+                          << "convert to real type failed" << e.what();
+                }
+              }
+
+              LOG_E() << "mime or signature data is missing";
+            });
       });
 }
 
