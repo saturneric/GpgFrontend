@@ -68,7 +68,14 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgSignData(int channel, char** key_ids,
       GpgFrontend::GpgBasicOperator::GetInstance(channel).SignSync(
           signer_keys, in_buffer, gpg_sign_mode, ascii != 0);
 
-  if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) return -1;
+  *ps =
+      static_cast<GFGpgSignResult*>(GFAllocateMemory(sizeof(GFGpgSignResult)));
+  auto* s = *ps;
+
+  if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+    s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
+    return -1;
+  }
 
   auto result =
       GpgFrontend::ExtractParams<GpgFrontend::GpgSignResult>(data_object, 0);
@@ -78,12 +85,10 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgSignData(int channel, char** key_ids,
   auto capsule_id =
       GpgFrontend::UI::UIModuleManager::GetInstance().MakeCapsule(result);
 
-  *ps =
-      static_cast<GFGpgSignResult*>(GFAllocateMemory(sizeof(GFGpgSignResult)));
-  auto* s = *ps;
   s->signature = GFStrDup(out_buffer.ConvertToQByteArray());
   s->hash_algo = GFStrDup(result.HashAlgo());
   s->capsule_id = GFStrDup(capsule_id);
+  s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
   return 0;
 }
 
@@ -142,7 +147,14 @@ GFGpgEncryptData(int channel, char** key_ids, int key_ids_size, char* data,
       GpgFrontend::GpgBasicOperator::GetInstance(channel).EncryptSync(
           encrypt_keys, in_buffer, ascii != 0);
 
-  if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) return -1;
+  *ps = static_cast<GFGpgEncryptionResult*>(
+      GFAllocateMemory(sizeof(GFGpgEncryptionResult)));
+  auto* s = *ps;
+
+  if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+    s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
+    return -1;
+  }
 
   auto result =
       GpgFrontend::ExtractParams<GpgFrontend::GpgEncryptResult>(data_object, 0);
@@ -152,11 +164,9 @@ GFGpgEncryptData(int channel, char** key_ids, int key_ids_size, char* data,
   auto capsule_id =
       GpgFrontend::UI::UIModuleManager::GetInstance().MakeCapsule(result);
 
-  *ps = static_cast<GFGpgEncryptionResult*>(
-      GFAllocateMemory(sizeof(GFGpgEncryptionResult)));
-  auto* s = *ps;
   s->encrypted_data = GFStrDup(out_buffer.ConvertToQByteArray());
   s->capsule_id = GFStrDup(capsule_id);
+  s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
   return 0;
 }
 
@@ -168,7 +178,14 @@ GFGpgDecryptData(int channel, char* data, GFGpgDecryptResult** ps) -> int {
       GpgFrontend::GpgBasicOperator::GetInstance(channel).DecryptSync(
           in_buffer);
 
-  if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) return -1;
+  *ps = static_cast<GFGpgDecryptResult*>(
+      GFAllocateMemory(sizeof(GFGpgDecryptResult)));
+  auto* s = *ps;
+
+  if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+    s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
+    return -1;
+  }
 
   auto result =
       GpgFrontend::ExtractParams<GpgFrontend::GpgDecryptResult>(data_object, 0);
@@ -178,11 +195,9 @@ GFGpgDecryptData(int channel, char* data, GFGpgDecryptResult** ps) -> int {
   auto capsule_id =
       GpgFrontend::UI::UIModuleManager::GetInstance().MakeCapsule(result);
 
-  *ps = static_cast<GFGpgDecryptResult*>(
-      GFAllocateMemory(sizeof(GFGpgDecryptResult)));
-  auto* s = *ps;
   s->decrypted_data = GFStrDup(out_buffer.ConvertToQByteArray());
   s->capsule_id = GFStrDup(capsule_id);
+  s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
   return 0;
 }
 
@@ -195,6 +210,15 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgVerifyData(
       GpgFrontend::GpgBasicOperator::GetInstance(channel).VerifySync(
           in_buffer, sig_buffer);
 
+  *ps = static_cast<GFGpgVerifyResult*>(
+      GFAllocateMemory(sizeof(GFGpgVerifyResult)));
+  auto* s = *ps;
+
+  if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+    s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
+    return -1;
+  }
+
   if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) return -1;
 
   auto result =
@@ -203,9 +227,7 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgVerifyData(
   auto capsule_id =
       GpgFrontend::UI::UIModuleManager::GetInstance().MakeCapsule(result);
 
-  *ps = static_cast<GFGpgVerifyResult*>(
-      GFAllocateMemory(sizeof(GFGpgVerifyResult)));
-  auto* s = *ps;
   s->capsule_id = GFStrDup(capsule_id);
+  s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
   return 0;
 }

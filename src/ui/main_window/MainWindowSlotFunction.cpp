@@ -372,50 +372,14 @@ void MainWindow::slot_verify_email_by_eml_data(const QByteArray& buffer) {
               // end waiting dialog
               hd();
 
-              if (p["ret"] != "0" || !p["err"].isEmpty()) {
-                LOG_E() << "An error occurred trying to verify email, "
-                        << "error message: " << p["err"];
-
-                if (p["ret"] == "-2") {
-                  QString detailed_error = p["err"];
-
-                  QString info =
-                      tr("# EML Data Error\n\n"
-                         "The provided EML data does not conform to the "
-                         "structure described in RFC 3156 and cannot be "
-                         "validated.\n\n"
-                         "Details: %1\n\n"
-                         "What is EML Data?\n"
-                         "EML is a file format used to represent email "
-                         "messages. "
-                         "It typically contains the entire contents of an "
-                         "email, "
-                         "including headers, "
-                         "body text, attachments, and metadata. In order to "
-                         "validate "
-                         "the email properly, it is necessary to provide the "
-                         "complete, original EML "
-                         "data.\n\n"
-                         "For more information about the expected EML "
-                         "structure, "
-                         "please refer to the RFC 3156 standard:\n"
-                         "%2\n\n"
-                         "Please ensure the EML data follows the standard and "
-                         "try "
-                         "again.")
-                          .arg(detailed_error)
-                          .arg("https://www.rfc-editor.org/rfc/rfc3156.txt");
-                  slot_refresh_info_board(-2, info);
-                }
-
-                return;
-              }
+              // check if error occurred
+              if (slot_handle_module_error(p)) return -1;
 
               if (p.contains("signature") && p.contains("mime")) {
                 slot_verify_email_by_eml_data_result_helper(p);
               }
 
-              LOG_E() << "mime or signature data is missing";
+              return 0;
             });
       });
 }
@@ -431,45 +395,15 @@ void MainWindow::slot_decrypt_email_by_eml_data(const QByteArray& buffer) {
       [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
           Module::Event::Params p) {
         LOG_D() << "EMAIL_DECRYPT_EML_DATA callback: " << i << ei;
-        if (p["ret"] != "0" || !p["err"].isEmpty()) {
-          LOG_E() << "An error occurred trying to decrypt email, "
-                  << "error message: " << p["err"];
 
-          if (p["ret"] == "-2") {
-            QString detailed_error = p["err"];
-
-            QString info =
-                tr("# EML Data Error\n\n"
-                   "The provided EML data does not conform to the "
-                   "structure described in RFC 3156 and cannot be "
-                   "validated.\n\n"
-                   "Details: %1\n\n"
-                   "What is EML Data?\n"
-                   "EML is a file format used to represent email messages. "
-                   "It typically contains the entire contents of an email, "
-                   "including headers, "
-                   "body text, attachments, and metadata. In order to validate "
-                   "the email properly, it is necessary to provide the "
-                   "complete, original EML "
-                   "data.\n\n"
-                   "For more information about the expected EML structure, "
-                   "please refer to the RFC 3156 standard:\n"
-                   "%2\n\n"
-                   "Please ensure the EML data follows the standard and try "
-                   "again.")
-                    .arg(detailed_error)
-                    .arg("https://www.rfc-editor.org/rfc/rfc3156.txt");
-            slot_refresh_info_board(-2, info);
-          }
-
-          return;
-        }
+        // check if error occurred
+        if (slot_handle_module_error(p)) return -1;
 
         if (p.contains("eml_data")) {
           slot_decrypt_email_by_eml_data_result_helper(p);
         }
 
-        LOG_E() << "mime or signature data is missing";
+        return 0;
       });
 }
 
@@ -773,41 +707,8 @@ void MainWindow::SlotSignEML() {
               // close waiting dialog
               hd();
 
-              if (p["ret"] != "0" || !p["err"].isEmpty()) {
-                LOG_E() << "An error occurred trying to decrypt email, "
-                        << "error message: " << p["err"];
-
-                return;
-              }
-
-              if (p["ret"] == "-2") {
-                QString detailed_error = p["err"];
-
-                QString info =
-                    tr("# EML Data Error\n\n"
-                       "The provided EML data does not conform to the "
-                       "structure described in RFC 3156 and cannot be "
-                       "validated.\n\n"
-                       "Details: %1\n\n"
-                       "What is EML Data?\n"
-                       "EML is a file format used to represent email messages. "
-                       "It typically contains the entire contents of an email, "
-                       "including headers, "
-                       "body text, attachments, and metadata. In order to "
-                       "validate "
-                       "the email properly, it is necessary to provide the "
-                       "complete, original EML "
-                       "data.\n\n"
-                       "For more information about the expected EML structure, "
-                       "please refer to the RFC 3156 standard:\n"
-                       "%2\n\n"
-                       "Please ensure the EML data follows the standard and "
-                       "try "
-                       "again.")
-                        .arg(detailed_error)
-                        .arg("https://www.rfc-editor.org/rfc/rfc3156.txt");
-                slot_refresh_info_board(-2, info);
-              }
+              // check if error occurred
+              if (slot_handle_module_error(p)) return -1;
 
               if (!p["eml_data"].isEmpty()) {
                 edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
@@ -831,7 +732,7 @@ void MainWindow::SlotSignEML() {
                 }
               }
 
-              LOG_E() << "mime or signature data is missing";
+              return 0;
             });
       });
 }
@@ -890,45 +791,8 @@ void MainWindow::SlotEncryptSignEML() {
               // close waiting dialog
               hd();
 
-              if (p["ret"] != "0" || !p["err"].isEmpty()) {
-                LOG_E() << "An error occurred trying to decrypt email, "
-                        << "error message: " << p["err"];
-
-                return;
-              }
-
-              if (p["ret"] == "-2") {
-                QString detailed_error = p["err"];
-
-                QString info =
-                    tr("# EML Data Error\n\n"
-                       "The provided EML data does not conform to the "
-                       "structure described in RFC 3156 and cannot be "
-                       "validated.\n\n"
-                       "Details: %1\n\n"
-                       "What is EML Data?\n"
-                       "EML is a file format used to represent email messages. "
-                       "It typically contains the entire contents of an email, "
-                       "including headers, "
-                       "body text, attachments, and metadata. In order to "
-                       "validate "
-                       "the email properly, it is necessary to provide the "
-                       "complete, original EML "
-                       "data.\n\n"
-                       "For more information about the expected EML structure, "
-                       "please refer to the RFC 3156 standard:\n"
-                       "%2\n\n"
-                       "Please ensure the EML data follows the standard and "
-                       "try "
-                       "again.")
-                        .arg(detailed_error)
-                        .arg("https://www.rfc-editor.org/rfc/rfc3156.txt");
-                slot_refresh_info_board(-2, info);
-              }
-
-              if (!p["eml_data"].isEmpty()) {
-                edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
-              }
+              // check if error occurred
+              if (slot_handle_module_error(p)) return -1;
 
               if (!p["sign_capsule_id"].isEmpty() &&
                   !p["encr_capsule_id"].isEmpty()) {
@@ -958,7 +822,7 @@ void MainWindow::SlotEncryptSignEML() {
                 }
               }
 
-              LOG_E() << "mime or signature data is missing";
+              return 0;
             });
       });
 }
@@ -985,41 +849,8 @@ void MainWindow::SlotDecryptVerifyEML() {
               // close waiting dialog
               hd();
 
-              if (p["ret"] != "0" || !p["err"].isEmpty()) {
-                LOG_E() << "An error occurred trying to decrypt email, "
-                        << "error message: " << p["err"];
-
-                return;
-              }
-
-              if (p["ret"] == "-2") {
-                QString detailed_error = p["err"];
-
-                QString info =
-                    tr("# EML Data Error\n\n"
-                       "The provided EML data does not conform to the "
-                       "structure described in RFC 3156 and cannot be "
-                       "validated.\n\n"
-                       "Details: %1\n\n"
-                       "What is EML Data?\n"
-                       "EML is a file format used to represent email messages. "
-                       "It typically contains the entire contents of an email, "
-                       "including headers, "
-                       "body text, attachments, and metadata. In order to "
-                       "validate "
-                       "the email properly, it is necessary to provide the "
-                       "complete, original EML "
-                       "data.\n\n"
-                       "For more information about the expected EML structure, "
-                       "please refer to the RFC 3156 standard:\n"
-                       "%2\n\n"
-                       "Please ensure the EML data follows the standard and "
-                       "try "
-                       "again.")
-                        .arg(detailed_error)
-                        .arg("https://www.rfc-editor.org/rfc/rfc3156.txt");
-                slot_refresh_info_board(-2, info);
-              }
+              // check if error occurred
+              if (slot_handle_module_error(p)) return -1;
 
               edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
 
@@ -1098,9 +929,71 @@ void MainWindow::SlotDecryptVerifyEML() {
                 }
               }
 
-              LOG_E() << "mime or signature data is missing";
+              return 0;
             });
       });
+}
+
+auto MainWindow::slot_handle_module_error(const QMap<QString, QString>& p)
+    -> bool {
+  if (p["ret"] == "-2") {
+    QString detailed_error = p["err"];
+
+    QString info =
+        tr("# EML Data Error\n\n"
+           "The provided EML data does not conform to RFC 3156 standards and "
+           "cannot be processed.\n\n"
+           "**Details:** %1\n\n"
+           "### What is EML Data?\n"
+           "EML is a file format for representing email messages, typically "
+           "including headers, body text, attachments, and metadata. "
+           "Complete and properly structured EML data is required for "
+           "validation.\n\n"
+           "### Suggested Solutions\n"
+           "1. Verify the EML data is complete and matches the structure "
+           "outlined in RFC 3156.\n"
+           "2. Refer to the official documentation for the EML structure: "
+           "%2\n\n"
+           "After correcting the EML data, try the operation again.")
+            .arg(detailed_error)
+            .arg("https://www.rfc-editor.org/rfc/rfc3156.txt");
+    slot_refresh_info_board(-2, info);
+    return true;
+  }
+
+  if (p["ret"] != "0" || !p["err"].isEmpty()) {
+    LOG_E() << "An error occurred trying to operate email, "
+            << "error message: " << p["err"];
+
+    QString error_message =
+        tr("# Email Operation Error\n\n"
+           "An error occurred during the email operation. The process "
+           "could not be completed.\n\n"
+           "**Details:**\n"
+           "- **Error Code:** %1\n"
+           "- **Error Message:** %2\n\n"
+           "### Possible Causes\n"
+           "1. The email data may be incomplete or corrupted.\n"
+           "2. The selected GPG key does not have the necessary "
+           "permissions.\n"
+           "3. Issues in the GPG environment or configuration.\n\n"
+           "### Suggested Solutions\n"
+           "1. Ensure the email data is complete and follows the expected "
+           "format.\n"
+           "2. Verify the GPG key has the required access permissions.\n"
+           "3. Check your GPG environment and configuration settings.\n"
+           "4. Review the error details above or application logs for "
+           "further troubleshooting.\n\n"
+           "If the issue persists, consider seeking technical support or "
+           "consulting the documentation.")
+            .arg(p["ret"])
+            .arg(p["err"]);
+
+    slot_refresh_info_board(-1, error_message);
+    return true;
+  }
+
+  return false;
 }
 
 }  // namespace GpgFrontend::UI

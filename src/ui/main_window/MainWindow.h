@@ -543,6 +543,15 @@ class MainWindow : public GeneralMainWindow {
   void slot_decrypt_email_by_eml_data_result_helper(
       const QMap<QString, QString>& p);
 
+  /**
+   * @brief
+   *
+   * @param err_code
+   * @param error_string
+   * @return QString
+   */
+  auto slot_handle_module_error(const QMap<QString, QString>& p) -> bool;
+
  private:
   /**
    * @details Create actions for the main-menu and the context-menu of the

@@ -36,20 +36,24 @@ struct GFGpgSignResult {
   char* signature;
   char* hash_algo;
   char* capsule_id;
+  char* error_string;
 };
 
 struct GFGpgEncryptionResult {
   char* encrypted_data;
   char* capsule_id;
+  char* error_string;
 };
 
 struct GFGpgDecryptResult {
   char* decrypted_data;
   char* capsule_id;
+  char* error_string;
 };
 
 struct GFGpgVerifyResult {
   char* capsule_id;
+  char* error_string;
 };
 
 struct GFGpgKeyUID {
