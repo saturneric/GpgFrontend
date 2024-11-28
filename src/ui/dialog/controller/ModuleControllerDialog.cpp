@@ -46,7 +46,7 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
   ui_->setupUi(this);
   ui_->actionsGroupBox->hide();
 
-  ui_->moduleInfoLabel->setText(tr("Module Informations"));
+  ui_->moduleInfoLabel->setText(tr("Module Information"));
   ui_->actionsGroupBox->setTitle(tr("Actions"));
   ui_->showModsDirButton->setText(tr("Show Mods Directory"));
 

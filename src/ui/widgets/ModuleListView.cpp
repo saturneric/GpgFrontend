@@ -37,7 +37,7 @@ ModuleListView::ModuleListView(QWidget *parent)
   setModel(model_);
   setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-  load_module_informations();
+  load_module_information();
 }
 
 void ModuleListView::currentChanged(const QModelIndex &current,
@@ -49,7 +49,7 @@ void ModuleListView::currentChanged(const QModelIndex &current,
   }
 }
 
-void ModuleListView::load_module_informations() {
+void ModuleListView::load_module_information() {
   auto &module_manager = Module::ModuleManager::GetInstance();
   auto module_ids = module_manager.ListAllRegisteredModuleID();
 

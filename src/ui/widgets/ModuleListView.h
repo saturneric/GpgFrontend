@@ -48,6 +48,6 @@ class ModuleListView : public QListView {
  private:
   QStandardItemModel *model_;
 
-  void load_module_informations();
+  void load_module_information();
 };
 };  // namespace GpgFrontend::UI

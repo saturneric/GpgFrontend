@@ -72,7 +72,7 @@ auto PrintVersion() -> int {
 auto PrintEnvInfo() -> int {
   QTextStream stream(stdout);
   stream << GetProjectName() << " " << GetProjectVersion() << " "
-         << "Environemnt Informations:" << '\n';
+         << "Environemnt Information:" << '\n';
 
   stream << '\n';
 
