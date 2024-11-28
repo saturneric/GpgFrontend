@@ -187,4 +187,14 @@ auto UIModuleManager::GetQObject(const QString& id) -> QObject* {
   return registered_qobjects_.value(id, nullptr);
 }
 
+auto UIModuleManager::GetCapsule(const QString& uuid) -> std::any {
+  return capsule_.take(uuid);
+}
+
+auto UIModuleManager::MakeCapsule(std::any v) -> QString {
+  auto uuid = QUuid::createUuid().toString();
+  capsule_[uuid] = std::move(v);
+  return uuid;
+}
+
 }  // namespace GpgFrontend::UI

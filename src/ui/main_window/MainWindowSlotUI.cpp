@@ -301,6 +301,12 @@ void MainWindow::SlotGeneralEncryptSign(bool) {
       this->SlotDirectoryEncryptSign(path);
     }
   }
+
+  if (edit_->CurEMailPage() != nullptr) {
+    this->SlotEncryptSignEML();
+    return;
+  }
+
   if (edit_->SlotCurPageTextEdit() != nullptr) {
     this->SlotEncryptSign();
   }
@@ -321,6 +327,11 @@ void MainWindow::SlotGeneralDecryptVerify(bool) {
         this->SlotFileDecryptVerify(path);
       }
     }
+  }
+
+  if (edit_->CurEMailPage() != nullptr) {
+    this->SlotDecryptVerifyEML();
+    return;
   }
 
   if (edit_->SlotCurPageTextEdit() != nullptr) {

@@ -129,6 +129,22 @@ class GPGFRONTEND_UI_EXPORT UIModuleManager
   /**
    * @brief
    *
+   * @param id
+   * @return auto
+   */
+  auto MakeCapsule(std::any) -> QString;
+
+  /**
+   * @brief
+   *
+   * @param id
+   * @return auto
+   */
+  auto GetCapsule(const QString& uuid) -> std::any;
+
+  /**
+   * @brief
+   *
    */
   void RegisterAllModuleTranslators();
 
@@ -145,6 +161,7 @@ class GPGFRONTEND_UI_EXPORT UIModuleManager
   QList<QTranslator*> registered_translators_;
   QList<QByteArray> read_translator_data_list_;
   QMap<QString, QPointer<QObject>> registered_qobjects_;
+  QMap<QString, std::any> capsule_;
 };
 
 }  // namespace GpgFrontend::UI

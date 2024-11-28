@@ -27,7 +27,6 @@
  */
 
 #include "GpgSignResult.h"
-
 namespace GpgFrontend {
 GpgSignResult::GpgSignResult(gpgme_sign_result_t r)
     : result_ref_(std::shared_ptr<struct _gpgme_op_sign_result>(

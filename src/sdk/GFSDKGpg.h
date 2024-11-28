@@ -35,10 +35,21 @@ extern "C" {
 struct GFGpgSignResult {
   char* signature;
   char* hash_algo;
+  char* capsule_id;
 };
 
 struct GFGpgEncryptionResult {
   char* encrypted_data;
+  char* capsule_id;
+};
+
+struct GFGpgDecryptResult {
+  char* decrypted_data;
+  char* capsule_id;
+};
+
+struct GFGpgVerifyResult {
+  char* capsule_id;
 };
 
 struct GFGpgKeyUID {
@@ -73,6 +84,29 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgSignData(int channel, char** key_ids,
 auto GPGFRONTEND_MODULE_SDK_EXPORT
 GFGpgEncryptData(int channel, char** key_ids, int key_ids_size, char* data,
                  int ascii, GFGpgEncryptionResult**) -> int;
+
+/**
+ * @brief
+ *
+ * @param key_id
+ * @param data
+ * @param mode
+ * @return const char*
+ */
+auto GPGFRONTEND_MODULE_SDK_EXPORT
+GFGpgDecryptData(int channel, char* data, GFGpgDecryptResult**) -> int;
+
+/**
+ * @brief
+ *
+ * @param key_id
+ * @param data
+ * @param mode
+ * @return const char*
+ */
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgVerifyData(int channel, char* data,
+                                                   char* signature,
+                                                   GFGpgVerifyResult**) -> int;
 
 /**
  * @brief
