@@ -70,6 +70,8 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
       tr("Tips: notice that modify any of these settings will cause an "
          "Application restart."));
 
+  
+
   popup_menu_ = new QMenu(this);
   popup_menu_->addAction(ui_->actionMove_Key_Database_Up);
   popup_menu_->addAction(ui_->actionMove_Key_Database_Down);
@@ -429,6 +431,16 @@ void GnuPGControllerDialog::slot_remove_existing_key_database() {
   for (int i = 0; i < row_size; i++) {
     auto* const item = ui_->keyDatabaseTable->item(i, 1);
     if (!item->isSelected()) continue;
+
+    QMessageBox::StandardButton reply = QMessageBox::question(
+        this, tr("Confirm Deletion"),
+        tr("Are you sure you want to delete the selected key database?"),
+        QMessageBox::Yes | QMessageBox::No);
+
+    if (reply != QMessageBox::Yes) {
+      return;
+    }
+
     key_databases.remove(i);
     break;
   }
