@@ -49,8 +49,8 @@ void MainWindow::create_actions() {
   connect(open_act_, &QAction::triggered, edit_, &TextEdit::SlotOpen);
 
   browser_act_ = create_action(
-      "file_browser", tr("File Browser"), ":/icons/file-browser.png",
-      tr("Open a file browser"), {QKeySequence(Qt::CTRL | Qt::Key_B)});
+      "file_browser", tr("File Panel"), ":/icons/file-operator.png",
+      tr("Open a file panel"), {QKeySequence(Qt::CTRL | Qt::Key_B)});
   connect(browser_act_, &QAction::triggered, this,
           &MainWindow::slot_open_file_tab);
 
@@ -141,29 +141,29 @@ void MainWindow::create_actions() {
   /*
    * Crypt Menu
    */
-  encrypt_act_ = create_action("encrypt", tr("Encrypt"),
-                               ":/icons/encrypted.png", tr("Encrypt Message"),
+  encrypt_act_ = create_action("encrypt", tr("Encrypt"), ":/icons/lock.png",
+                               tr("Encrypt Message"),
                                {QKeySequence(Qt::CTRL | Qt::Key_E)});
   connect(encrypt_act_, &QAction::triggered, this,
           &MainWindow::SlotGeneralEncrypt);
 
-  encrypt_sign_act_ = create_action(
-      "encrypt_sign", tr("Encrypt Sign"), ":/icons/encrypted_signed.png",
-      tr("Encrypt and Sign Message"),
-      {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_E)});
+  encrypt_sign_act_ =
+      create_action("encrypt_sign", tr("Encrypt Sign"), ":/icons/compress.png",
+                    tr("Encrypt and Sign Message"),
+                    {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_E)});
   connect(encrypt_sign_act_, &QAction::triggered, this,
           &MainWindow::SlotGeneralEncryptSign);
 
-  decrypt_act_ = create_action("decrypt", tr("Decrypt"),
-                               ":/icons/decrypted.png", tr("Decrypt Message"),
+  decrypt_act_ = create_action("decrypt", tr("Decrypt"), ":/icons/unlock.png",
+                               tr("Decrypt Message"),
                                {QKeySequence(Qt::CTRL | Qt::Key_D)});
   connect(decrypt_act_, &QAction::triggered, this,
           &MainWindow::SlotGeneralDecrypt);
 
-  decrypt_verify_act_ = create_action(
-      "decrypt_verify", tr("Decrypt Verify"), ":/icons/decrypted_verified.png",
-      tr("Decrypt and Verify Message"),
-      {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_D)});
+  decrypt_verify_act_ =
+      create_action("decrypt_verify", tr("Decrypt Verify"),
+                    ":/icons/expand.png", tr("Decrypt and Verify Message"),
+                    {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_D)});
   connect(decrypt_verify_act_, &QAction::triggered, this,
           &MainWindow::SlotGeneralDecryptVerify);
 
@@ -499,9 +499,9 @@ void MainWindow::create_tool_bars() {
   crypt_tool_bar_ = addToolBar(tr("Operations"));
   crypt_tool_bar_->setObjectName("cryptToolBar");
   crypt_tool_bar_->addAction(encrypt_act_);
-  crypt_tool_bar_->addAction(encrypt_sign_act_);
+  // crypt_tool_bar_->addAction(encrypt_sign_act_);
   crypt_tool_bar_->addAction(decrypt_act_);
-  crypt_tool_bar_->addAction(decrypt_verify_act_);
+  // crypt_tool_bar_->addAction(decrypt_verify_act_);
   crypt_tool_bar_->addAction(sign_act_);
   crypt_tool_bar_->addAction(verify_act_);
   view_menu_->addAction(crypt_tool_bar_->toggleViewAction());
