@@ -65,13 +65,13 @@ if(APPLE)
   configure_file(${CMAKE_SOURCE_DIR}/resource/plist/ExportOptions.plist.in ${CMAKE_BINARY_DIR}/ExportOptions.plist @ONLY)
 endif()
 
-# Set Runtime Output Directory
-if(NOT XCODE_BUILD)
-  # Set Binary Output Path
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts)
-else()
-  # Set Binary Output Path
+# Set Binary Output Path
+if(XCODE_BUILD)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+elseif(MINGW)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts/bin)
+else()
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts)
 endif()
 
 # Print modules
@@ -105,11 +105,14 @@ if(BUILD_APPLICATION)
   set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE_DIR}/gpgfrontend.ico)
 endif()
 
+# Set Resource Output Path
 if(BUILD_APPLICATION)
-  # Set Resource Output Path
   if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
     if(APPLE)
       set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Resources)
+      set(GPGFRONTEND_MACOS_ICON ${CMAKE_SOURCE_DIR}/gpgfrontend.icns)
+      set_source_files_properties(${GPGFRONTEND_MACOS_ICON} PROPERTIES
+        MACOSX_PACKAGE_LOCATION "Resources")
     elseif(LINUX AND NOT LINUX_INSTALL_SOFTWARE)
       set(BUILD_APP_IMAGE 1)
     else()
@@ -117,16 +120,6 @@ if(BUILD_APPLICATION)
     endif()
   else()
     set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-  endif()
-endif()
-
-if(BUILD_APPLICATION)
-  if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
-    if(APPLE)
-      set(GPGFRONTEND_MACOS_ICON ${CMAKE_SOURCE_DIR}/gpgfrontend.icns)
-      set_source_files_properties(${GPGFRONTEND_MACOS_ICON} PROPERTIES
-        MACOSX_PACKAGE_LOCATION "Resources")
-    endif()
   endif()
 endif()
 
@@ -249,34 +242,18 @@ if(BUILD_APPLICATION AND MINGW)
   file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libxml2-*.dll")
   list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
-  # /mingw64/libexec
-  execute_process(
-    COMMAND cygpath -m /mingw64/libexec
-    OUTPUT_VARIABLE MSYS64_LIBEXEC_PATH
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
+  unset(_libDllPath)
+  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libarchive*.dll")
+  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
-  # gpgme-w32spawn.exe
-  unset(_libExEPath)
-  file(GLOB _libExEPath "${MSYS64_LIBEXEC_PATH}/gpgme-*.exe")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libExEPath})
-
-  unset(_libExEPath)
-  file(GLOB _libExEPath "${MSYS64_BIN_PATH}/gpgme-*.exe")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libExEPath})
+  unset(_libDllPath)
+  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgtest*.dll")
+  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
   # add gpgfrontend libraries
   if(STABLE_BUILD_ONLY_APPLICATION)
     unset(_libDllPath)
     file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgpgfrontend_*.dll")
-    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-    unset(_libDllPath)
-    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libarchive*.dll")
-    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-    unset(_libDllPath)
-    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgtest*.dll")
     list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
   endif()
 
@@ -403,17 +380,6 @@ if(BUILD_APPLICATION)
   else()
     # if the status is debug
     add_executable(${AppName} ${BASE_SOURCE} ${RESOURCE_FILES})
-
-    if(MINGW)
-      # include qt dependencies
-      if(NOT Qt6_DIR)
-        add_custom_command(TARGET ${AppName} POST_BUILD
-          COMMAND windeployqt --force ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.exe)
-      else()
-        add_custom_command(TARGET ${AppName} POST_BUILD
-          COMMAND windeployqt-qt6.exe --force ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${AppName}.exe)
-      endif()
-    endif()
   endif()
 
   # Make app build with resources
