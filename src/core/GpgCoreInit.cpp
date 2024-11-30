@@ -124,6 +124,16 @@ auto InitGpgME() -> bool {
     return false;
   }
 
+#if defined(_WIN32) || defined(WIN32)
+  auto w32spawn_dir =
+      GlobalSettingStation::GetInstance().GetAppDir() + "/../gnupg/bin";
+  if (gpgme_set_global_flag("w32-inst-dir", w32spawn_dir) != 0) {
+    LOG_E() << "gpgme_set_global_flag() with argument 'w32spawn_dir' failed, "
+               "abort...";
+    return false;
+  }
+#endif
+
   if (CheckGpgError(
           gpgme_set_locale(nullptr, LC_CTYPE, setlocale(LC_CTYPE, nullptr))) !=
       GPG_ERR_NO_ERROR) {
@@ -317,7 +327,7 @@ auto DecideGpgConfPath(const QString& default_gpgconf_path) -> QString {
     // check gpgconf path
     gpgconf_install_fs_path = custom_gnupg_install_path;
 #if defined(_WIN32) || defined(WIN32)
-    gnupg_install_fs_path += "/gpgconf.exe";
+    gpgconf_install_fs_path += "/gpgconf.exe";
 #else
     gpgconf_install_fs_path += "/gpgconf";
 #endif

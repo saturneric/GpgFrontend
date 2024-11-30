@@ -70,8 +70,6 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
       tr("Tips: notice that modify any of these settings will cause an "
          "Application restart."));
 
-  
-
   popup_menu_ = new QMenu(this);
   popup_menu_->addAction(ui_->actionMove_Key_Database_Up);
   popup_menu_->addAction(ui_->actionMove_Key_Database_Down);
@@ -274,7 +272,9 @@ void GnuPGControllerDialog::set_settings() {
 
   buffered_key_db_so_ = GetGpgKeyDatabaseInfos();
   editable_key_db_so_ = buffered_key_db_so_;
-  editable_key_db_so_.pop_front();
+  if (!editable_key_db_so_.isEmpty()) {
+    editable_key_db_so_.pop_front();
+  }
 
   this->slot_refresh_key_database_table();
 }
@@ -382,7 +382,9 @@ void GnuPGControllerDialog::slot_add_new_key_database() {
             key_databases.append(key_database);
 
             editable_key_db_so_ = buffered_key_db_so_;
-            editable_key_db_so_.pop_front();
+            if (!editable_key_db_so_.isEmpty()) {
+              editable_key_db_so_.pop_front();
+            }
 
             // refresh ui
             slot_refresh_key_database_table();
