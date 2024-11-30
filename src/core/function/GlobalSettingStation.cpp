@@ -72,7 +72,7 @@ class GlobalSettingStation::Impl {
 
   [[nodiscard]] auto GetSettings() -> QSettings {
 #if defined(_WIN32) || defined(WIN32)
-    return QSettings(app_config_file_path_, QSettings::IniFormat);
+    return QSettings(app_config_file_path(), QSettings::IniFormat);
 #else
     return QSettings();
 #endif

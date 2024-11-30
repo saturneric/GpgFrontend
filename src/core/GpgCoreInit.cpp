@@ -127,7 +127,8 @@ auto InitGpgME() -> bool {
 #if defined(_WIN32) || defined(WIN32)
   auto w32spawn_dir =
       GlobalSettingStation::GetInstance().GetAppDir() + "/../gnupg/bin";
-  if (gpgme_set_global_flag("w32-inst-dir", w32spawn_dir) != 0) {
+  if (gpgme_set_global_flag("w32-inst-dir",
+                            w32spawn_dir.toUtf8().constData()) != 0) {
     LOG_E() << "gpgme_set_global_flag() with argument 'w32spawn_dir' failed, "
                "abort...";
     return false;
