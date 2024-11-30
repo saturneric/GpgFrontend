@@ -120,20 +120,23 @@ void GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
 
          FLOG_D("gpgconf --kill --all execute result: %d", success);
          if (!success) {
-           FLOG_W("restart all component after core initilized failed");
+           FLOG_W("restart all component after core initalized failed");
            Module::UpsertRTValue(
                "core", "gpg_advanced_operator.restart_gpg_components", false);
            return;
          }
 
-         //  StartGpgAgent([](int err, DataObjectPtr) {
-         //    if (err >= 0) {
-         //      Module::UpsertRTValue(
-         //          "core", "gpg_advanced_operator.restart_gpg_components",
-         //          true);
-         //      return;
-         //    }
-         //  });
+#if defined(__APPLE__) && defined(__MACH__)
+         FLOG_I("getting gpg-agent to start automatically on macOS");
+#else
+         StartGpgAgent([](int err, DataObjectPtr) {
+           if (err >= 0) {
+             Module::UpsertRTValue(
+                 "core", "gpg_advanced_operator.restart_gpg_components", true);
+             return;
+           }
+         });
+#endif
        }});
 }
 
@@ -176,7 +179,7 @@ void GpgFrontend::GpgAdvancedOperator::StartGpgAgent(OperationCallback cb) {
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {gpg_agent_path, QStringList{"--homedir", home_path, "--daemon"},
        [=](int exit_code, const QString &, const QString &) {
-         FLOG_D("gpgconf daemon exit code: %d", exit_code);
+         FLOG_D("gpg-agent daemon exit code: %d", exit_code);
          cb(exit_code >= 0 ? 0 : -1, TransferParams());
        }});
 }
