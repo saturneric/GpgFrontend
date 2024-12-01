@@ -63,7 +63,7 @@ void MainWindow::Init() noexcept {
         GpgKeyTableColumn::kTYPE | GpgKeyTableColumn::kNAME |
             GpgKeyTableColumn::kKEY_ID | GpgKeyTableColumn::kEMAIL_ADDRESS |
             GpgKeyTableColumn::kUSAGE | GpgKeyTableColumn::kOWNER_TRUST |
-            GpgKeyTableColumn::kCOMMENT,
+            GpgKeyTableColumn::kCOMMENT | GpgKeyTableColumn::kCREATE_DATE,
         this);
 
     info_board_ = new InfoBoardWidget(this);
