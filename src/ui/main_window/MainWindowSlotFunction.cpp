@@ -794,6 +794,10 @@ void MainWindow::SlotEncryptSignEML() {
               // check if error occurred
               if (slot_handle_module_error(p)) return -1;
 
+              if (!p["eml_data"].isEmpty()) {
+                edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
+              }
+
               if (!p["sign_capsule_id"].isEmpty() &&
                   !p["encr_capsule_id"].isEmpty()) {
                 auto v1 = UIModuleManager::GetInstance().GetCapsule(
@@ -803,13 +807,13 @@ void MainWindow::SlotEncryptSignEML() {
 
                 try {
                   auto sign_result = std::any_cast<GpgSignResult>(v1);
-                  auto encr_result = std::any_cast<GpgSignResult>(v1);
+                  auto encr_result = std::any_cast<GpgEncryptResult>(v2);
                   auto sign_result_analyse = GpgSignResultAnalyse(
                       m_key_list_->GetCurrentGpgContextChannel(),
                       GPG_ERR_NO_ERROR, sign_result);
-                  auto encr_result_analyse = GpgSignResultAnalyse(
+                  auto encr_result_analyse = GpgEncryptResultAnalyse(
                       m_key_list_->GetCurrentGpgContextChannel(),
-                      GPG_ERR_NO_ERROR, sign_result);
+                      GPG_ERR_NO_ERROR, encr_result);
 
                   sign_result_analyse.Analyse();
                   encr_result_analyse.Analyse();
@@ -852,7 +856,9 @@ void MainWindow::SlotDecryptVerifyEML() {
               // check if error occurred
               if (slot_handle_module_error(p)) return -1;
 
-              edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
+              if (!p["eml_data"].isEmpty()) {
+                edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
+              }
 
               const auto mime = QByteArray::fromBase64(p["mime"].toLatin1());
               const auto signature =
