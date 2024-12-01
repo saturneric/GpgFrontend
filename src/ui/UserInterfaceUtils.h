@@ -89,7 +89,7 @@ class CommonUtils : public QWidget {
    * @brief
    *
    */
-  using ImportCallbackFunctiopn =
+  using ImportCallbackFunction =
       std::function<void(const QString&, const QString&, size_t, size_t)>;
 
   /**
@@ -131,7 +131,7 @@ class CommonUtils : public QWidget {
    * @brief
    *
    */
-  auto isApplicationNeedRestart() -> bool;
+  auto IsApplicationNeedRestart() -> bool;
 
   /**
    * @brief
@@ -238,7 +238,7 @@ class CommonUtils : public QWidget {
    */
   static void SlotImportKeyFromKeyServer(
       int channel, const GpgFrontend::KeyIdArgsList& key_ids,
-      const GpgFrontend::UI::CommonUtils::ImportCallbackFunctiopn& callback);
+      const CommonUtils::ImportCallbackFunction& callback);
 
   /**
    * @brief
@@ -282,7 +282,8 @@ class CommonUtils : public QWidget {
       std::shared_ptr<GpgImportInformation>);
 
  private:
-  static std::unique_ptr<CommonUtils> instance_;  ///<
+  static QScopedPointer<CommonUtils> instance;  ///<
+
   bool application_need_to_restart_at_once_ = false;
 };
 

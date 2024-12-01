@@ -145,6 +145,13 @@ class KeyList : public QWidget {
   auto GetChecked() -> KeyIdArgsListPtr;
 
   /**
+   * @brief Get the Checked Keys object
+   *
+   * @return QStringList
+   */
+  auto GetCheckedKeys() -> QStringList;
+
+  /**
    * @brief Get the Checked object
    *
    * @param key_table

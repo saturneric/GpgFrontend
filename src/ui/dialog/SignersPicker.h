@@ -59,6 +59,12 @@ class SignersPicker : public GeneralDialog {
   auto GetCheckedSigners() -> KeyIdArgsListPtr;
 
   /**
+   * @brief Get the Checked Signer Key Ids object
+   *
+   * @return QStringList
+   */
+  auto GetCheckedSignerKeyIds() -> QStringList;
+  /**
    *
    * @return
    */

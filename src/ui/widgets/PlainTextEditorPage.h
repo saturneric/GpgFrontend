@@ -115,8 +115,10 @@ class PlainTextEditorPage : public QWidget {
    */
   void SignalUIBytesDisplayed();
 
- private:
+ protected:
   std::shared_ptr<Ui_PlainTextEditor> ui_;  ///<
+
+ private:
   QString full_file_path_;  ///< The path to the file handled in the tab
   bool sign_marked_{};  ///< true, if the signed header is marked, false if not
   bool read_done_ = false;  ///<

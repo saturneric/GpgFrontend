@@ -26,28 +26,18 @@
  *
  */
 
-#pragma once
+#include "EMailEditorPage.h"
 
-#include "core/module/Module.h"
+#include "ui_PlainTextEditor.h"
 
 namespace GpgFrontend::UI {
-class ModuleListView : public QListView {
-  Q_OBJECT
- public:
-  explicit ModuleListView(QWidget *parent);
 
-  auto GetCurrentModuleID() -> Module::ModuleIdentifier;
+EMailEditorPage::EMailEditorPage() {
+  this->ui_->encodingLabel->setText("E-Mail");
+}
 
- signals:
-  void SignalSelectModule(Module::ModuleIdentifier);
-
- protected:
-  void currentChanged(const QModelIndex &current,
-                      const QModelIndex &previous) override;
-
- private:
-  QStandardItemModel *model_;
-
-  void load_module_information();
-};
-};  // namespace GpgFrontend::UI
+EMailEditorPage::EMailEditorPage(const QString& file_path, QWidget* parent)
+    : PlainTextEditorPage(file_path, parent) {
+  this->ui_->encodingLabel->setText("E-Mail");
+}
+}  // namespace GpgFrontend::UI

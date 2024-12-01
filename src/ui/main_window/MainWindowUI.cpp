@@ -49,8 +49,8 @@ void MainWindow::create_actions() {
   connect(open_act_, &QAction::triggered, edit_, &TextEdit::SlotOpen);
 
   browser_act_ = create_action(
-      "file_browser", tr("File Browser"), ":/icons/file-browser.png",
-      tr("Open a file browser"), {QKeySequence(Qt::CTRL | Qt::Key_B)});
+      "file_browser", tr("File Panel"), ":/icons/file-operator.png",
+      tr("Open a file panel"), {QKeySequence(Qt::CTRL | Qt::Key_B)});
   connect(browser_act_, &QAction::triggered, this,
           &MainWindow::slot_open_file_tab);
 
@@ -141,29 +141,29 @@ void MainWindow::create_actions() {
   /*
    * Crypt Menu
    */
-  encrypt_act_ = create_action("encrypt", tr("Encrypt"),
-                               ":/icons/encrypted.png", tr("Encrypt Message"),
+  encrypt_act_ = create_action("encrypt", tr("Encrypt"), ":/icons/lock.png",
+                               tr("Encrypt Message"),
                                {QKeySequence(Qt::CTRL | Qt::Key_E)});
   connect(encrypt_act_, &QAction::triggered, this,
           &MainWindow::SlotGeneralEncrypt);
 
-  encrypt_sign_act_ = create_action(
-      "encrypt_sign", tr("Encrypt Sign"), ":/icons/encrypted_signed.png",
-      tr("Encrypt and Sign Message"),
-      {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_E)});
+  encrypt_sign_act_ =
+      create_action("encrypt_sign", tr("Encrypt Sign"), ":/icons/compress.png",
+                    tr("Encrypt and Sign Message"),
+                    {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_E)});
   connect(encrypt_sign_act_, &QAction::triggered, this,
           &MainWindow::SlotGeneralEncryptSign);
 
-  decrypt_act_ = create_action("decrypt", tr("Decrypt"),
-                               ":/icons/decrypted.png", tr("Decrypt Message"),
+  decrypt_act_ = create_action("decrypt", tr("Decrypt"), ":/icons/unlock.png",
+                               tr("Decrypt Message"),
                                {QKeySequence(Qt::CTRL | Qt::Key_D)});
   connect(decrypt_act_, &QAction::triggered, this,
           &MainWindow::SlotGeneralDecrypt);
 
-  decrypt_verify_act_ = create_action(
-      "decrypt_verify", tr("Decrypt Verify"), ":/icons/decrypted_verified.png",
-      tr("Decrypt and Verify Message"),
-      {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_D)});
+  decrypt_verify_act_ =
+      create_action("decrypt_verify", tr("Decrypt Verify"),
+                    ":/icons/expand.png", tr("Decrypt and Verify Message"),
+                    {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_D)});
   connect(decrypt_verify_act_, &QAction::triggered, this,
           &MainWindow::SlotGeneralDecryptVerify);
 
@@ -260,17 +260,11 @@ void MainWindow::create_actions() {
    * E-Mail Menu
    */
   if (Module::IsModuleActivate(kEmailModuleID)) {
-    verify_email_by_eml_data_act_ = create_action(
-        "verify_email_by_eml_data", tr("Verify E-Mail"),
-        ":/icons/email-check.png", tr("Verify RAW E-Mail Data (EML)"));
-    connect(verify_email_by_eml_data_act_, &QAction::triggered, this,
-            &MainWindow::SlotGeneralVerifyEMail);
-
-    decrypt_email_by_eml_data_act_ = create_action(
-        "decrypt_email_by_eml_data", tr("Decrypt E-Mail"),
-        ":/icons/email-open.png", tr("Decrypt RAW E-Mail Data (EML)"));
-    connect(decrypt_email_by_eml_data_act_, &QAction::triggered, this,
-            &MainWindow::SlotGeneralDecryptEMail);
+    new_email_tab_act_ =
+        create_action("new_email_tab", tr("New E-Mail"), ":/icons/email.png",
+                      tr("Create A New E-Mail Tab"));
+    connect(new_email_tab_act_, &QAction::triggered, edit_,
+            &TextEdit::SlotNewEMailTab);
   }
 
   /*
@@ -407,6 +401,11 @@ void MainWindow::create_actions() {
 void MainWindow::create_menus() {
   file_menu_ = menuBar()->addMenu(tr("File"));
   file_menu_->addAction(new_tab_act_);
+
+  if (Module::IsModuleActivate(kEmailModuleID)) {
+    file_menu_->addAction(new_email_tab_act_);
+  }
+
   file_menu_->addAction(browser_act_);
   file_menu_->addAction(open_act_);
   file_menu_->addSeparator();
@@ -465,12 +464,6 @@ void MainWindow::create_menus() {
   advance_menu_->addAction(gnupg_controller_open_act_);
   advance_menu_->addAction(module_controller_open_act_);
 
-  if (Module::IsModuleActivate(kEmailModuleID)) {
-    email_menu_ = menuBar()->addMenu(tr("E-Mail"));
-    email_menu_->addAction(verify_email_by_eml_data_act_);
-    email_menu_->addAction(decrypt_email_by_eml_data_act_);
-  }
-
   view_menu_ = menuBar()->addMenu(tr("View"));
 
   help_menu_ = menuBar()->addMenu(tr("Help"));
@@ -494,6 +487,11 @@ void MainWindow::create_tool_bars() {
   file_tool_bar_ = addToolBar(tr("File"));
   file_tool_bar_->setObjectName("fileToolBar");
   file_tool_bar_->addAction(new_tab_act_);
+
+  if (Module::IsModuleActivate(kEmailModuleID)) {
+    file_tool_bar_->addAction(new_email_tab_act_);
+  }
+
   file_tool_bar_->addAction(open_act_);
   file_tool_bar_->addAction(browser_act_);
   view_menu_->addAction(file_tool_bar_->toggleViewAction());
@@ -501,9 +499,9 @@ void MainWindow::create_tool_bars() {
   crypt_tool_bar_ = addToolBar(tr("Operations"));
   crypt_tool_bar_->setObjectName("cryptToolBar");
   crypt_tool_bar_->addAction(encrypt_act_);
-  crypt_tool_bar_->addAction(encrypt_sign_act_);
+  // crypt_tool_bar_->addAction(encrypt_sign_act_);
   crypt_tool_bar_->addAction(decrypt_act_);
-  crypt_tool_bar_->addAction(decrypt_verify_act_);
+  // crypt_tool_bar_->addAction(decrypt_verify_act_);
   crypt_tool_bar_->addAction(sign_act_);
   crypt_tool_bar_->addAction(verify_act_);
   view_menu_->addAction(crypt_tool_bar_->toggleViewAction());
@@ -529,14 +527,6 @@ void MainWindow::create_tool_bars() {
   special_edit_tool_bar_->addAction(cut_pgp_header_act_);
   special_edit_tool_bar_->hide();
   view_menu_->addAction(special_edit_tool_bar_->toggleViewAction());
-
-  if (Module::IsModuleActivate(kEmailModuleID)) {
-    email_tool_bar_ = addToolBar(tr("E-Mail"));
-    email_tool_bar_->setObjectName("emailToolBar");
-    email_tool_bar_->addAction(verify_email_by_eml_data_act_);
-    email_tool_bar_->addAction(decrypt_email_by_eml_data_act_);
-    view_menu_->addAction(email_tool_bar_->toggleViewAction());
-  }
 
   // Add dropdown menu for key import to keytoolbar
   import_button_ = new QToolButton();

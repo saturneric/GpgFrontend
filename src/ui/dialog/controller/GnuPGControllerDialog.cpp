@@ -272,7 +272,9 @@ void GnuPGControllerDialog::set_settings() {
 
   buffered_key_db_so_ = GetGpgKeyDatabaseInfos();
   editable_key_db_so_ = buffered_key_db_so_;
-  editable_key_db_so_.pop_front();
+  if (!editable_key_db_so_.isEmpty()) {
+    editable_key_db_so_.pop_front();
+  }
 
   this->slot_refresh_key_database_table();
 }
@@ -380,7 +382,9 @@ void GnuPGControllerDialog::slot_add_new_key_database() {
             key_databases.append(key_database);
 
             editable_key_db_so_ = buffered_key_db_so_;
-            editable_key_db_so_.pop_front();
+            if (!editable_key_db_so_.isEmpty()) {
+              editable_key_db_so_.pop_front();
+            }
 
             // refresh ui
             slot_refresh_key_database_table();
@@ -429,6 +433,16 @@ void GnuPGControllerDialog::slot_remove_existing_key_database() {
   for (int i = 0; i < row_size; i++) {
     auto* const item = ui_->keyDatabaseTable->item(i, 1);
     if (!item->isSelected()) continue;
+
+    QMessageBox::StandardButton reply = QMessageBox::question(
+        this, tr("Confirm Deletion"),
+        tr("Are you sure you want to delete the selected key database?"),
+        QMessageBox::Yes | QMessageBox::No);
+
+    if (reply != QMessageBox::Yes) {
+      return;
+    }
+
     key_databases.remove(i);
     break;
   }

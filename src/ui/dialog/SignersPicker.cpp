@@ -82,6 +82,16 @@ auto SignersPicker::GetCheckedSigners() -> GpgFrontend::KeyIdArgsListPtr {
   return key_list_->GetCheckedPrivateKey();
 }
 
+auto SignersPicker::GetCheckedSignerKeyIds() -> QStringList {
+  auto priv_keys = key_list_->GetCheckedPrivateKey();
+
+  QStringList r;
+  for (const auto& priv_key : *priv_keys) {
+    r.append(priv_key);
+  }
+  return r;
+}
+
 auto SignersPicker::GetStatus() const -> bool { return this->accepted_; }
 
 }  // namespace GpgFrontend::UI

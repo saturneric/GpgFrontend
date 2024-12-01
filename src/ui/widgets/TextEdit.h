@@ -29,6 +29,7 @@
 #pragma once
 
 #include "ui/dialog/QuitDialog.h"
+#include "ui/widgets/EMailEditorPage.h"
 #include "ui/widgets/FilePage.h"
 #include "ui/widgets/PlainTextEditorPage.h"
 
@@ -74,6 +75,13 @@ class TextEdit : public QWidget {
    *         \li 0 otherwise (e.g. if helppage)
    */
   [[nodiscard]] auto CurTextPage() const -> PlainTextEditorPage*;
+
+  /**
+   * @brief
+   *
+   * @return EMailEditorPage*
+   */
+  [[nodiscard]] auto CurEMailPage() const -> EMailEditorPage*;
 
   /**
    * @brief
@@ -159,6 +167,12 @@ class TextEdit : public QWidget {
    * one
    */
   void SlotNewTab();
+
+  /**
+   * @details Adds a new tab with the title "untitled"+countpage+".eml"
+   *          Sets the focus to the new tab. Increase Tab-Count by one
+   */
+  void SlotNewEMailTab();
 
   /**
    * @details
@@ -260,6 +274,21 @@ class TextEdit : public QWidget {
    */
   void SlotAppendText2CurTextPage(const QString& text);
 
+  /**
+   * @brief
+   *
+   * @param text
+   */
+  void SlotSetText2CurEMailPage(const QString& text);
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  auto SlotSaveAsEML() -> bool;
+
  protected:
   /**
    * @brief Saves the content of currentTab to the file filename
@@ -267,6 +296,13 @@ class TextEdit : public QWidget {
    * @param fileName
    */
   auto saveFile(const QString& file_name) -> bool;
+
+  /**
+   * @brief
+   *
+   * @return auto
+   */
+  auto saveEMLFile(const QString& file_name) -> bool;
 
  private slots:
 

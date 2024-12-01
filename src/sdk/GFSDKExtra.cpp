@@ -31,7 +31,7 @@
 #include <core/utils/BuildInfoUtils.h>
 #include <core/utils/CommonUtils.h>
 
-#include "sdk/private/CommonUtils.h"
+#include "private/GFSDKPrivat.h"
 
 auto GFCompareSoftwareVersion(const char *current_version,
                               const char *latest_version) -> int {

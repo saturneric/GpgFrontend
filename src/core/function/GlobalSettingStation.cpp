@@ -40,22 +40,23 @@ class GlobalSettingStation::Impl {
    *
    */
   explicit Impl() noexcept {
-    LOG_I() << "app path: " << GetAppDir();
+    LOG_I() << "app path: " << app_path_;
     LOG_I() << "app working path: " << working_path_;
 
     auto portable_file_path = working_path_ + "/PORTABLE.txt";
     if (QFileInfo(portable_file_path).exists()) {
       Module::UpsertRTValue("core", "env.state.portable", 1);
+      LOG_I() << "GpgFrontend runs in the portable mode now";
 
-      app_data_path_ = working_path_;
-      app_log_path_ = app_data_path_ + "/logs";
-      app_data_objs_path_ = app_data_path_ + "/data_objs";
+      app_data_path_ = app_path_ + "/../";
+      app_config_path_ = app_data_path_ + "/config";
 
       portable_mode_ = true;
     }
 
     LOG_I() << "app data path: " << app_data_path_;
-    LOG_I() << "app log path: " << app_log_path_;
+    LOG_I() << "app log path: " << app_log_path();
+    LOG_I() << "app modules path: " << app_modules_path();
 
 #if defined(_WIN32) || defined(WIN32)
     LOG_I() << "app config path: " << app_config_path_;
@@ -63,36 +64,35 @@ class GlobalSettingStation::Impl {
 #endif
 
     if (!QDir(app_data_path_).exists()) QDir(app_data_path_).mkpath(".");
-    if (!QDir(app_log_path_).exists()) QDir(app_log_path_).mkpath(".");
-    if (!QDir(GetModulesDir()).exists()) QDir(GetModulesDir()).mkpath(".");
+    if (!QDir(app_log_path()).exists()) QDir(app_log_path()).mkpath(".");
+    if (!QDir(app_modules_path()).exists()) {
+      QDir(app_modules_path()).mkpath(".");
+    }
   }
 
   [[nodiscard]] auto GetSettings() -> QSettings {
-    if (!portable_mode_) {
 #if defined(_WIN32) || defined(WIN32)
-      return QSettings(app_config_target_path_, QSettings::IniFormat);
+    return QSettings(app_config_file_path(), QSettings::IniFormat);
 #else
-      return QSettings();
+    return QSettings();
 #endif
-    }
-    return {app_portable_config_path_, QSettings::IniFormat};
   }
 
   [[nodiscard]] auto GetLogFilesSize() const -> QString {
-    return GetHumanFriendlyFileSize(GetFileSizeByPath(app_log_path_, "*.log"));
+    return GetHumanFriendlyFileSize(GetFileSizeByPath(app_log_path(), "*.log"));
   }
 
   [[nodiscard]] auto GetDataObjectsFilesSize() const -> QString {
     return GetHumanFriendlyFileSize(
-        GetFileSizeByPath(app_data_objs_path_, "*"));
+        GetFileSizeByPath(app_data_objs_path(), "*"));
   }
 
   void ClearAllLogFiles() const {
-    DeleteAllFilesByPattern(app_log_path_, "*.log");
+    DeleteAllFilesByPattern(app_log_path(), "*.log");
   }
 
   void ClearAllDataObjects() const {
-    DeleteAllFilesByPattern(app_data_objs_path_, "*");
+    DeleteAllFilesByPattern(app_data_objs_path(), "*");
   }
 
   /**
@@ -100,9 +100,7 @@ class GlobalSettingStation::Impl {
    *
    * @return QString
    */
-  [[nodiscard]] auto GetAppDir() const -> QString {
-    return QCoreApplication::applicationDirPath();
-  }
+  [[nodiscard]] auto GetAppDir() const -> QString { return app_path_; }
 
   /**
    * @brief Get the App Data Path object
@@ -118,7 +116,7 @@ class GlobalSettingStation::Impl {
    *
    * @return QString
    */
-  [[nodiscard]] auto GetLogDir() const -> QString { return app_log_path_; }
+  [[nodiscard]] auto GetLogDir() const -> QString { return app_log_path(); }
 
   /**
    * @brief Get the Modules Dir object
@@ -126,35 +124,33 @@ class GlobalSettingStation::Impl {
    * @return QString
    */
   [[nodiscard]] auto GetModulesDir() const -> QString {
-    return GetAppDataPath() + "/mods";
+    return app_modules_path();
   }
 
  private:
+  [[nodiscard]] auto app_config_file_path() const -> QString {
+    return app_config_path_ + "/config.ini";
+  }
+
+  [[nodiscard]] auto app_data_objs_path() const -> QString {
+    return app_data_path_ + "/data_objs";
+  }
+
+  [[nodiscard]] auto app_log_path() const -> QString {
+    return app_data_path_ + "/logs";
+  }
+
+  [[nodiscard]] auto app_modules_path() const -> QString {
+    return app_data_path_ + "/mods";
+  }
+
+  bool portable_mode_ = false;
+  const QString app_path_ = QCoreApplication::applicationDirPath();
   QString working_path_ = QDir::currentPath();
-
-  QString app_data_path_ = QString{QStandardPaths::writableLocation(
-      QStandardPaths::AppLocalDataLocation)};  ///< Program Data Location
-
+  QString app_data_path_ = QString{
+      QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)};
   QString app_config_path_ = QString{
       QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)};
-
-  QString app_log_path_ = app_data_path_ + "/logs";  ///< Program Data Location
-
-  QString app_data_objs_path_ =
-      app_data_path_ + "/data_objs";  ///< Object storage path
-
-  QString app_config_target_path_ =
-      app_config_path_ + "/config.ini";  ///< take effect only in portable mode
-
-  bool portable_mode_ = false;  ///<
-  QString app_portable_config_path_ =
-      working_path_ + "/config.ini";  ///< take effect only in portable mode
-
-  /**
-   * @brief
-   *
-   */
-  void init_app_secure_key() {}
 };
 
 GlobalSettingStation::GlobalSettingStation(int channel) noexcept

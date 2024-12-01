@@ -29,9 +29,7 @@
 #include "MainWindow.h"
 
 #include "core/function/CacheManager.h"
-#include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/model/GpgPassphraseContext.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "ui/UISignalStation.h"
@@ -74,7 +72,7 @@ void MainWindow::Init() noexcept {
     attachment_dock_created_ = false;
 
     /* Variable containing if restart is needed */
-    this->SlotSetRestartNeeded(false);
+    this->SlotSetRestartNeeded(0);
 
     // init menu bar
     this->setMenuBar(new QMenuBar());

@@ -52,11 +52,4 @@ if(XCODE_BUILD)
     XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
 endif()
 
-if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-  # lib output path
-  set_target_properties(gpgfrontend_test PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib)
-endif()
-
 add_test(AllTestsInGpgFrontend gpgfrontend_test)

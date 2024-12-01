@@ -80,11 +80,6 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
   decrypt_act_->setDisabled(disable);
   decrypt_verify_act_->setDisabled(disable);
 
-  if (Module::IsModuleActivate(kEmailModuleID)) {
-    verify_email_by_eml_data_act_->setDisabled(disable);
-    decrypt_email_by_eml_data_act_->setDisabled(disable);
-  }
-
   redo_act_->setDisabled(disable);
   undo_act_->setDisabled(disable);
   zoom_out_act_->setDisabled(disable);
@@ -189,11 +184,6 @@ void MainWindow::SlotUpdateCryptoMenuStatus(unsigned int type) {
   decrypt_act_->setDisabled(true);
   decrypt_verify_act_->setDisabled(true);
 
-  if (Module::IsModuleActivate(kEmailModuleID)) {
-    verify_email_by_eml_data_act_->setDisabled(true);
-    decrypt_email_by_eml_data_act_->setDisabled(true);
-  }
-
   // gnupg operations
   if ((opera_type & MainWindow::OperationMenu::kVerify) != 0U) {
     verify_act_->setDisabled(false);
@@ -213,12 +203,6 @@ void MainWindow::SlotUpdateCryptoMenuStatus(unsigned int type) {
   if ((opera_type & MainWindow::OperationMenu::kDecryptAndVerify) != 0U) {
     decrypt_verify_act_->setDisabled(false);
   }
-
-  // email operations
-  if (Module::IsModuleActivate(kEmailModuleID) &&
-      (opera_type & MainWindow::OperationMenu::kVerifyEMail) != 0U) {
-    verify_email_by_eml_data_act_->setDisabled(false);
-  }
 }
 
 void MainWindow::SlotGeneralEncrypt(bool) {
@@ -233,6 +217,12 @@ void MainWindow::SlotGeneralEncrypt(bool) {
       this->SlotDirectoryEncrypt(path);
     }
   }
+
+  if (edit_->CurEMailPage() != nullptr) {
+    this->SlotEncryptEML();
+    return;
+  }
+
   if (edit_->SlotCurPageTextEdit() != nullptr) {
     this->SlotEncrypt();
   }
@@ -254,6 +244,12 @@ void MainWindow::SlotGeneralDecrypt(bool) {
       }
     }
   }
+
+  if (edit_->CurEMailPage() != nullptr) {
+    this->SlotDecryptEML();
+    return;
+  }
+
   if (edit_->SlotCurPageTextEdit() != nullptr) {
     this->SlotDecrypt();
   }
@@ -267,6 +263,12 @@ void MainWindow::SlotGeneralSign(bool) {
     const auto file_info = QFileInfo(path);
     if (file_info.isFile()) this->SlotFileSign(path);
   }
+
+  if (edit_->CurEMailPage() != nullptr) {
+    this->SlotSignEML();
+    return;
+  }
+
   if (edit_->SlotCurPageTextEdit() != nullptr) this->SlotSign();
 }
 
@@ -278,6 +280,12 @@ void MainWindow::SlotGeneralVerify(bool) {
     const auto file_info = QFileInfo(path);
     if (file_info.isFile()) this->SlotFileVerify(path);
   }
+
+  if (edit_->CurEMailPage() != nullptr) {
+    this->SlotVerifyEML();
+    return;
+  }
+
   if (edit_->SlotCurPageTextEdit() != nullptr) this->SlotVerify();
 }
 
@@ -293,6 +301,12 @@ void MainWindow::SlotGeneralEncryptSign(bool) {
       this->SlotDirectoryEncryptSign(path);
     }
   }
+
+  if (edit_->CurEMailPage() != nullptr) {
+    this->SlotEncryptSignEML();
+    return;
+  }
+
   if (edit_->SlotCurPageTextEdit() != nullptr) {
     this->SlotEncryptSign();
   }
@@ -314,20 +328,15 @@ void MainWindow::SlotGeneralDecryptVerify(bool) {
       }
     }
   }
+
+  if (edit_->CurEMailPage() != nullptr) {
+    this->SlotDecryptVerifyEML();
+    return;
+  }
+
   if (edit_->SlotCurPageTextEdit() != nullptr) {
     this->SlotDecryptVerify();
   }
-}
-
-void MainWindow::SlotGeneralVerifyEMail(bool) {
-  if (edit_->SlotCurPageFileTreeView() != nullptr) {
-    const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-    const auto path = file_tree_view->GetSelected();
-
-    const auto file_info = QFileInfo(path);
-    if (file_info.isFile()) this->SlotFileVerifyEML(path);
-  }
-  if (edit_->SlotCurPageTextEdit() != nullptr) this->SlotVerifyEML();
 }
 
 void MainWindow::slot_clean_gpg_password_cache(bool) {
@@ -374,17 +383,6 @@ void MainWindow::slot_restart_gpg_components(bool) {
               tr("Failed to restart all or one of the GnuPG's component(s)"));
         }
       });
-}
-
-void MainWindow::SlotGeneralDecryptEMail(bool) {
-  // if (edit_->SlotCurPageFileTreeView() != nullptr) {
-  //   const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
-  //   const auto path = file_tree_view->GetSelected();
-
-  //   const auto file_info = QFileInfo(path);
-  //   if (file_info.isFile()) this->SlotFileVerify(path);
-  // }
-  if (edit_->SlotCurPageTextEdit() != nullptr) this->SlotDecryptEML();
 }
 
 }  // namespace GpgFrontend::UI

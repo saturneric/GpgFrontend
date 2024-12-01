@@ -55,8 +55,8 @@
 
 namespace GpgFrontend::UI {
 
-std::unique_ptr<GpgFrontend::UI::CommonUtils>
-    GpgFrontend::UI::CommonUtils::instance_ = nullptr;
+QScopedPointer<CommonUtils> CommonUtils::instance =
+    QScopedPointer<CommonUtils>(nullptr);
 
 void show_verify_details(QWidget *parent, int channel,
                          InfoBoardWidget *info_board, GpgError error,
@@ -121,10 +121,10 @@ void process_operation(QWidget *parent, const QString &waiting_title,
 }
 
 auto CommonUtils::GetInstance() -> CommonUtils * {
-  if (instance_ == nullptr) {
-    instance_ = std::make_unique<CommonUtils>();
+  if (!instance) {
+    instance.reset(new CommonUtils());
   }
-  return instance_.get();
+  return instance.get();
 }
 
 CommonUtils::CommonUtils() : QWidget(nullptr) {
@@ -373,7 +373,7 @@ void CommonUtils::SlotExecuteGpgCommand(
 
 void CommonUtils::SlotImportKeyFromKeyServer(
     int channel, const KeyIdArgsList &key_ids,
-    const ImportCallbackFunctiopn &callback) {
+    const ImportCallbackFunction &callback) {
   auto target_keyserver =
       KeyServerSO(SettingsObject("key_server")).GetTargetServer();
   if (target_keyserver.isEmpty()) {
@@ -554,7 +554,7 @@ void CommonUtils::SlotRestartApplication(int code) {
   }
 }
 
-auto CommonUtils::isApplicationNeedRestart() -> bool {
+auto CommonUtils::IsApplicationNeedRestart() -> bool {
   return application_need_to_restart_at_once_;
 }
 

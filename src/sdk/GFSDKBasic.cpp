@@ -32,7 +32,7 @@
 #include "core/function/SecureMemoryAllocator.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/utils/BuildInfoUtils.h"
-#include "sdk/private/CommonUtils.h"
+#include "private/GFSDKPrivat.h"
 #include "ui/UIModuleManager.h"
 
 auto GFAllocateMemory(uint32_t size) -> void* {

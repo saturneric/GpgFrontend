@@ -28,26 +28,19 @@
 
 #pragma once
 
-#include "core/module/Module.h"
+#include <utility>
+
+#include "ui/GpgFrontendUI.h"
+#include "ui/widgets/PlainTextEditorPage.h"
+
+class Ui_FilePage;
 
 namespace GpgFrontend::UI {
-class ModuleListView : public QListView {
+class EMailEditorPage : public PlainTextEditorPage {
   Q_OBJECT
  public:
-  explicit ModuleListView(QWidget *parent);
+  EMailEditorPage();
 
-  auto GetCurrentModuleID() -> Module::ModuleIdentifier;
-
- signals:
-  void SignalSelectModule(Module::ModuleIdentifier);
-
- protected:
-  void currentChanged(const QModelIndex &current,
-                      const QModelIndex &previous) override;
-
- private:
-  QStandardItemModel *model_;
-
-  void load_module_information();
+  EMailEditorPage(const QString& file_path, QWidget* parent);
 };
-};  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend::UI

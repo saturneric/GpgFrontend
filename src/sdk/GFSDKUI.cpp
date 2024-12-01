@@ -31,9 +31,10 @@
 #include <core/utils/CommonUtils.h>
 
 #include <QMap>
+#include <QObject>
 #include <QString>
 
-#include "sdk/private/CommonUtils.h"
+#include "private/GFSDKPrivat.h"
 #include "ui/UIModuleManager.h"
 
 auto MetaDataArrayToQMap(MetaData** meta_data_array,
@@ -53,7 +54,7 @@ auto MetaDataArrayToQMap(MetaData** meta_data_array,
 }
 
 auto GFUIMountEntry(const char* id, MetaData** meta_data_array,
-                    int meta_data_array_size, EntryFactory factory) -> int {
+                    int meta_data_array_size, QObjectFactory factory) -> int {
   if (id == nullptr || factory == nullptr) return -1;
 
   auto meta_data = MetaDataArrayToQMap(meta_data_array, meta_data_array_size);
@@ -68,4 +69,77 @@ auto GFUIMountEntry(const char* id, MetaData** meta_data_array,
       });
 
   return 0;
+}
+
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFUIMainWindowPtr() -> void* {
+  return GpgFrontend::UI::UIModuleManager::GetInstance().GetQObject(
+      "main_window");
+}
+
+auto GPGFRONTEND_MODULE_SDK_EXPORT
+GFUIShowDialog(void* dialog_raw_ptr, void* parent_raw_ptr) -> bool {
+  if (dialog_raw_ptr == nullptr) {
+    LOG_E() << "dialog raw ptr is nullptr";
+    return false;
+  }
+
+  auto* q_obj = static_cast<QObject*>(dialog_raw_ptr);
+  QPointer<QDialog> dialog = qobject_cast<QDialog*>(q_obj);
+
+  if (dialog == nullptr) {
+    LOG_E() << "convert dialog raw ptr to qdialog failed";
+    return false;
+  }
+
+  QPointer<QWidget> parent = nullptr;
+  if (parent_raw_ptr != nullptr) {
+    auto* qp_obj = static_cast<QObject*>(parent_raw_ptr);
+    parent = qobject_cast<QWidget*>(qp_obj);
+
+    if (parent == nullptr) {
+      LOG_E() << "convert parent raw ptr to qwidget failed";
+      return false;
+    }
+  }
+
+  auto* main_thread = QApplication::instance()->thread();
+
+  LOG_D() << "before entering into main thread, current thread id:"
+          << QThread::currentThreadId()
+          << ", dialog thread: " << dialog->thread()
+          << "main thread: " << main_thread;
+
+  if (dialog->thread() != main_thread) {
+    LOG_E() << "dialog must be created on main thread";
+    return false;
+  }
+
+  QMetaObject::invokeMethod(
+      parent == nullptr ? QPointer<QObject>(QApplication::instance()) : parent,
+      [dialog, parent]() -> int {
+        LOG_D() << "show qdialog, current thread id:"
+                << QThread::currentThreadId();
+        dialog->setParent(parent);
+        dialog->show();
+        return 0;
+      });
+
+  return true;
+}
+
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFUICreateGUIObject(QObjectFactory factory,
+                                                       void* data) -> void* {
+  QEventLoop loop;
+  void* object = nullptr;
+
+  QMetaObject::invokeMethod(QApplication::instance(), [&]() -> int {
+    LOG_D() << "create gui object, current thread id:"
+            << QThread::currentThreadId();
+    object = factory(data);
+    loop.quit();
+    return 0;
+  });
+
+  loop.exec();
+  return object;
 }

@@ -28,6 +28,15 @@
 
 #pragma once
 
+// declare logging category
+Q_DECLARE_LOGGING_CATEGORY(sdk)
+
+#define LOG_D() qCDebug(sdk)
+#define LOG_I() qCInfo(sdk)
+#define LOG_W() qCWarning(sdk)
+#define LOG_E() qCCritical(sdk)
+#define LOG_F() qCFatal(sdk)
+
 struct GFModuleEventParam;
 
 /**
@@ -78,3 +87,21 @@ auto QMapToCharArray(const QMap<QString, QString> &map, int &size) -> char **;
  */
 auto ConvertEventParamsToMap(GFModuleEventParam *params)
     -> QMap<QString, QString>;
+
+/**
+ * @brief
+ *
+ * @param char_array
+ * @param size
+ * @return QStringList
+ */
+auto CharArrayToQList(char **char_array, int size) -> QStringList;
+
+/**
+ * @brief
+ *
+ * @param list
+ * @param size
+ * @return char**
+ */
+auto QListToCharArray(const QStringList &list) -> char **;

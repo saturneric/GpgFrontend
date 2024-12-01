@@ -31,8 +31,9 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/CacheObject.h"
 #include "ui/UISignalStation.h"
+#include "ui/widgets/EMailEditorPage.h"
+#include "ui/widgets/FilePage.h"
 #include "ui/widgets/PlainTextEditorPage.h"
-#include "widgets/FilePage.h"
 
 namespace GpgFrontend::UI {
 
@@ -80,6 +81,11 @@ void TextEditTabWidget::dropEvent(QDropEvent* event) {
         continue;
       }
 
+      if (file_info.suffix() == "eml") {
+        SlotOpenEMLFile(local_file);
+        return;
+      }
+
       SlotOpenFile(local_file);
     }
 
@@ -125,27 +131,56 @@ void TextEditTabWidget::SlotOpenFile(const QString& path) {
 
   file.close();
 }
-void TextEditTabWidget::SlotShowModified(bool changed) {
+
+void TextEditTabWidget::SlotOpenEMLFile(const QString& path) {
+  QFile file(path);
+  auto result = file.open(QIODevice::ReadOnly | QIODevice::Text);
+  if (result) {
+    auto* page = new EMailEditorPage(path, this);
+
+    connect(page->GetTextPage(), &QPlainTextEdit::textChanged, this,
+            &TextEditTabWidget::SlotShowModified);
+    connect(page->GetTextPage(), &QPlainTextEdit::selectionChanged, this,
+            &TextEditTabWidget::slot_save_status_to_cache_for_recovery);
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    auto index = this->addTab(page, stripped_name(path));
+    this->setTabIcon(index, QIcon(":/icons/email.png"));
+    this->setCurrentIndex(this->count() - 1);
+    QApplication::restoreOverrideCursor();
+    page->GetTextPage()->setFocus();
+    page->ReadFile();
+  } else {
+    QMessageBox::warning(
+        this, tr("Warning"),
+        tr("Cannot read file %1:\n%2.").arg(path).arg(file.errorString()));
+  }
+
+  file.close();
+}
+
+void TextEditTabWidget::SlotShowModified() {
   // get current tab
   int index = this->currentIndex();
-  QString title = this->tabText(index);
+  QString title = this->tabText(index).trimmed();
 
-  // if changed
-  if (!changed) {
-    this->setTabText(index, title.remove(0, 2));
-    return;
-  }
+  if (title.startsWith("*")) return;
 
   // if doc is modified now, add leading * to title,
   // otherwise remove the leading * from the title
   if (CurTextPage()->GetTextPage()->document()->isModified()) {
-    this->setTabText(index, title.trimmed().prepend("* "));
+    this->setTabText(index, title.prepend("* "));
   } else {
     this->setTabText(index, title.remove(0, 2));
   }
 }
+
 auto TextEditTabWidget::CurTextPage() const -> PlainTextEditorPage* {
   return qobject_cast<PlainTextEditorPage*>(this->currentWidget());
+}
+
+auto TextEditTabWidget::CurEMailPage() const -> EMailEditorPage* {
+  return qobject_cast<EMailEditorPage*>(this->currentWidget());
 }
 
 auto TextEditTabWidget::SlotCurPageTextEdit() -> PlainTextEditorPage* {
@@ -228,6 +263,22 @@ void TextEditTabWidget::SlotNewTab() {
   connect(page->GetTextPage()->document(), &QTextDocument::contentsChanged,
           this, &TextEditTabWidget::slot_save_status_to_cache_for_recovery);
 }
+
+void TextEditTabWidget::SlotNewEMailTab() {
+  QString header = tr("untitled") + QString::number(++count_page_) + ".eml";
+
+  auto* page = new EMailEditorPage();
+  auto index = this->addTab(page, header);
+  this->setTabIcon(index, QIcon(":/icons/email.png"));
+  this->setCurrentIndex(this->count() - 1);
+  page->GetTextPage()->setFocus();
+
+  connect(page->GetTextPage(), &QPlainTextEdit::textChanged, this,
+          &TextEditTabWidget::SlotShowModified);
+  connect(page->GetTextPage(), &QPlainTextEdit::selectionChanged, this,
+          &TextEditTabWidget::slot_save_status_to_cache_for_recovery);
+}
+
 void TextEditTabWidget::SlotNewTabWithContent(QString title,
                                               const QString& content) {
   QString header = tr("untitled") + QString::number(++count_page_) + ".txt";

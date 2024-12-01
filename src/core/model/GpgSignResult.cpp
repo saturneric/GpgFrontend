@@ -27,7 +27,6 @@
  */
 
 #include "GpgSignResult.h"
-
 namespace GpgFrontend {
 GpgSignResult::GpgSignResult(gpgme_sign_result_t r)
     : result_ref_(std::shared_ptr<struct _gpgme_op_sign_result>(
@@ -61,5 +60,10 @@ auto GpgSignResult::InvalidSigners()
     }
   }
   return result;
+}
+
+auto GpgSignResult::HashAlgo() -> QString {
+  if (result_ref_->signatures == nullptr) return {};
+  return gpgme_hash_algo_name(result_ref_->signatures->hash_algo);
 }
 }  // namespace GpgFrontend

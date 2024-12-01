@@ -80,9 +80,6 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
               << Qt::endl;
     }
 
-    stream_ << "- " << tr("German Encryption Standards") << ": "
-            << (result->is_de_vs == 0 ? tr("false") : tr("true")) << Qt::endl;
-
     stream_ << Qt::endl << Qt::endl;
 
     auto *recipient = result->recipients;

@@ -39,6 +39,8 @@ class GPGFRONTEND_CORE_EXPORT GpgSignResult {
 
   auto GetRaw() -> gpgme_sign_result_t;
 
+  auto HashAlgo() -> QString;
+
   auto InvalidSigners() -> std::vector<std::tuple<QString, GpgError>>;
 
   explicit GpgSignResult(gpgme_sign_result_t);

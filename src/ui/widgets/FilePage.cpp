@@ -160,10 +160,6 @@ void FilePage::update_main_basical_opera_menu(const QString& selected_path) {
     operation_type |= MainWindow::OperationMenu::kVerify;
   }
 
-  if (info.isFile() && (info.suffix() == "eml")) {
-    operation_type |= MainWindow::OperationMenu::kVerifyEMail;
-  }
-
   emit SignalMainWindowlUpdateBasicalOperaMenu(operation_type);
 }
 }  // namespace GpgFrontend::UI

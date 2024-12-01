@@ -49,8 +49,8 @@ auto SearchModuleFromPath(const QString& mods_path,
 }
 
 auto LoadIntegratedMods() -> QMap<QString, bool> {
-  const auto exec_binary_path = QCoreApplication::applicationDirPath();
-  QString mods_path = exec_binary_path + "/modules";
+  const auto exec_binary_path = GlobalSettingStation::GetInstance().GetAppDir();
+  QString mods_path = exec_binary_path + "/../modules";
 
 #ifdef NDEBUG
 

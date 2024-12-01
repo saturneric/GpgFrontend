@@ -29,6 +29,7 @@
 #include "GeneralMainWindow.h"
 
 #include "core/model/SettingsObject.h"
+#include "ui/UIModuleManager.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/struct/settings_object/WindowStateSO.h"
 
@@ -36,9 +37,10 @@ namespace GpgFrontend::UI {
 
 class GeneralWindowState {};
 
-GpgFrontend::UI::GeneralMainWindow::GeneralMainWindow(QString name,
+GpgFrontend::UI::GeneralMainWindow::GeneralMainWindow(QString id,
                                                       QWidget *parent)
-    : QMainWindow(parent), name_(std::move(name)) {
+    : QMainWindow(parent), id_(std::move(id)) {
+  UIModuleManager::GetInstance().RegisterQObject(id_, this);
   slot_restore_settings();
 }
 
@@ -51,7 +53,7 @@ void GpgFrontend::UI::GeneralMainWindow::closeEvent(QCloseEvent *event) {
 
 void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
   try {
-    WindowStateSO window_state(SettingsObject(name_ + "_state"));
+    WindowStateSO window_state(SettingsObject(id_ + "_state"));
 
     if (!window_state.window_state_data.isEmpty()) {
       // state sets pos & size of dock-widgets
@@ -112,13 +114,13 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
     icon_style_ = toolButtonStyle();
 
   } catch (...) {
-    LOG_W() << "general main window: " << name_ << ", caught exception";
+    LOG_W() << "general main window: " << id_ << ", caught exception";
   }
 }
 
 void GpgFrontend::UI::GeneralMainWindow::slot_save_settings() noexcept {
   try {
-    SettingsObject general_windows_state(name_ + "_state");
+    SettingsObject general_windows_state(id_ + "_state");
 
     // update geo of current dialog
     size_ = this->size();
@@ -134,7 +136,7 @@ void GpgFrontend::UI::GeneralMainWindow::slot_save_settings() noexcept {
 
     general_windows_state.Store(window_state.Json());
   } catch (...) {
-    LOG_W() << "general main window: " << name_ << ", caught exception";
+    LOG_W() << "general main window: " << id_ << ", caught exception";
   }
 }
 
@@ -197,4 +199,6 @@ void GeneralMainWindow::update_rect_cache() {
     this->parent_rect_ = QRect{0, 0, 0, 0};
   }
 }
+
+auto GeneralMainWindow::GetId() const -> QString { return id_; }
 }  // namespace GpgFrontend::UI

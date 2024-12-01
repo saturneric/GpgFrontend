@@ -32,15 +32,24 @@
 
 extern "C" {
 
-using EntryFactory = void* (*)(const char*);
+using QObjectFactory = void* (*)(void*);
 
 struct MetaData {
   const char* key;
   const char* value;
 };
 
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFUIMountEntry(const char* id,
-                                                  MetaData** meta_data_array,
-                                                  int meta_data_array_size,
-                                                  EntryFactory factory) -> int;
+auto GPGFRONTEND_MODULE_SDK_EXPORT
+GFUIMountEntry(const char* id, MetaData** meta_data_array,
+               int meta_data_array_size, QObjectFactory factory) -> int;
+
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFUICreateGUIObject(QObjectFactory factory,
+                                                       void* data) -> void*;
+
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFUIMainWindowPtr() -> void*;
+
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFUIActiveWindowPtr() -> void*;
+
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFUIShowDialog(void* dialog,
+                                                  void* parent) -> bool;
 }

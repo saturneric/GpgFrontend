@@ -29,9 +29,9 @@
 #include "GFSDKModule.h"
 
 #include <core/module/ModuleManager.h>
-#include <sdk/private/CommonUtils.h>
 
 #include "GFSDKBasic.h"
+#include "private/GFSDKPrivat.h"
 
 void GFModuleListenEvent(const char *module_id, const char *event_id) {
   return GpgFrontend::Module::ModuleManager::GetInstance().ListenEvent(
