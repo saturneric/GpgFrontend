@@ -45,6 +45,13 @@ target_link_libraries(gpgfrontend_module_sdk PRIVATE gpgfrontend_core gpgfronten
 file(GLOB _headerPath "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 set_target_properties(gpgfrontend_module_sdk PROPERTIES PUBLIC_HEADER "${_headerPath}")
 
+# MODULEs will find libraries under artifacts lib
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+  set_target_properties(gpgfrontend_module_sdk PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib)
+endif()
+
 if(XCODE_BUILD)
   set_target_properties(gpgfrontend_module_sdk
     PROPERTIES

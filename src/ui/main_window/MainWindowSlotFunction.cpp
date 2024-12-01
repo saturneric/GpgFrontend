@@ -311,33 +311,43 @@ void MainWindow::slot_version_upgrade_notify() {
   auto latest_version = Module::RetrieveRTValueTypedOrDefault<>(
       kVersionCheckingModuleID, "version.latest_version", QString{});
 
+  auto is_git_commit_hash_mismatch = Module::RetrieveRTValueTypedOrDefault<>(
+      kVersionCheckingModuleID, "version.git_commit_hash_mismatch", false);
+
   if (is_need_upgrade) {
     statusBar()->showMessage(
         tr("GpgFrontend Upgradeable (New Version: %1).").arg(latest_version),
         30000);
-    auto* update_button = new QPushButton("Update GpgFrontend", this);
-    connect(update_button, &QPushButton::clicked, [=]() {
-      auto* about_dialog = new AboutDialog(tr("Update"), this);
-      about_dialog->show();
-    });
-    statusBar()->addPermanentWidget(update_button, 0);
   } else if (is_current_a_withdrawn_version) {
-    QMessageBox::warning(
+    auto response = QMessageBox::warning(
         this, tr("Withdrawn Version"),
+        tr("This version(%1) may have been withdrawn by the developer due to "
+           "serious problems. Please stop using this version immediately and "
+           "download the latest stable version (%2) on the Github Releases "
+           "Page.")
+            .arg(latest_version)
+            .arg(latest_version),
+        QMessageBox::Ok | QMessageBox::Open);
 
-        tr("This version(%1) may have been withdrawn by the developer due "
-           "to serious problems. Please stop using this version "
-           "immediately and use the latest stable version.")
-                .arg(latest_version) +
-            "<br/>" +
-            tr("You can download the latest stable version(%1) on "
-               "Github Releases Page.<br/>")
-                .arg(latest_version));
+    if (response == QMessageBox::Open) {
+      QDesktopServices::openUrl(
+          QUrl("https://github.com/saturneric/GpgFrontend/releases/latest"));
+    }
+
   } else if (!is_current_version_released) {
     statusBar()->showMessage(
-        tr("This maybe a BETA Version (Latest Stable Version: %1).")
+        tr("This may be a BETA Version (Latest Stable Version: %1).")
             .arg(latest_version),
         30000);
+
+  } else if (is_git_commit_hash_mismatch) {
+    QMessageBox::information(
+        this, tr("Commit Hash Mismatch"),
+        tr("The current version's commit hash does not match the official "
+           "release. This may indicate a modified or unofficial build. For "
+           "security reasons, please verify your installation or download the "
+           "official release from the Github Releases Page."),
+        QMessageBox::Ok);
   }
 }
 

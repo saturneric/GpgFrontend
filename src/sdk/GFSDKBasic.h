@@ -81,6 +81,13 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFProjectVersion() -> const char*;
  *
  * @return const char*
  */
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFProjectGitCommitHash() -> const char*;
+
+/**
+ * @brief
+ *
+ * @return const char*
+ */
 auto GPGFRONTEND_MODULE_SDK_EXPORT GFQtEnvVersion() -> const char*;
 
 /**
