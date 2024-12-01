@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/model/KeyDatabaseInfo.h"
+
 namespace GpgFrontend {
 
 struct KeyDatabaseItemSO {

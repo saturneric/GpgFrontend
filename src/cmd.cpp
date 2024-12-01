@@ -35,14 +35,13 @@
 #include <qtextstream.h>
 
 #include "core/GpgCoreInit.h"
-#include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
-#include "core/struct/settings_object/KeyDatabaseListSO.h"
 #include "core/utils/BuildInfoUtils.h"
 
 // GpgFrontend
 
 #include "GpgFrontendContext.h"
+#include "core/utils/GpgUtils.h"
 #include "test/GpgFrontendTest.h"
 
 namespace GpgFrontend {
@@ -79,6 +78,8 @@ auto PrintEnvInfo() -> int {
   stream << Tr("Qt Version: ") << GetProjectQtVersion() << '\n';
   stream << Tr("OpenSSL Version: ") << GetProjectOpenSSLVersion() << '\n';
   stream << Tr("Libarchive Version: ") << GetProjectLibarchiveVersion() << '\n';
+
+
 
   stream << '\n';
 
@@ -150,12 +151,9 @@ auto PrintEnvInfo() -> int {
   stream << "Key Database(s): " << '\n';
   stream << '\n';
 
-  auto key_database_list =
-      KeyDatabaseListSO(SettingsObject("key_database_list"));
-  const auto key_databases = key_database_list.key_databases;
-
   int index = 0;
-  for (const auto& key_database : key_databases) {
+  auto key_dbs = GetGpgKeyDatabaseInfos();
+  for (const auto& key_database : key_dbs) {
     stream << Tr("Key Database [") << index++ << "] " << Tr("Name: ")
            << key_database.name << " " << Tr("-> Path: ") << key_database.path
            << '\n';

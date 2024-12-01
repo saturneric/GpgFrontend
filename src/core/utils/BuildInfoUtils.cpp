@@ -29,6 +29,7 @@
 #include "BuildInfoUtils.h"
 
 #include <archive.h>
+#include <gpgme.h>
 #include <openssl/opensslv.h>
 
 #include "GpgFrontendBuildInfo.h"
@@ -58,6 +59,8 @@ auto GetProjectBuildGitVersion() -> QString { return GIT_VERSION; }
 auto GetProjectQtVersion() -> QString { return {qVersion()}; }
 
 auto GetProjectOpenSSLVersion() -> QString { return {OPENSSL_VERSION_TEXT}; }
+
+auto GetProjectGpgMEVersion() -> QString { return {GPGME_VERSION}; }
 
 auto GetProjectLibarchiveVersion() -> QString {
   return {ARCHIVE_VERSION_ONLY_STRING};

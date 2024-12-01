@@ -115,13 +115,9 @@ jobs:
             msys2-devel 
             base-devel 
             binutils 
-            autoconf 
-            make 
-            texinfo 
-            automake 
             zip
+            unzip
             libintl 
-            gettext-devel
             msys2-runtime-devel 
             mingw-w64-x86_64-toolchain
             mingw-w64-x86_64-gcc 
@@ -131,6 +127,7 @@ jobs:
             mingw-w64-x86_64-icu 
             mingw-w64-x86_64-ninja 
             mingw-w64-x86_64-gnupg 
+            mingw-w64-x86_64-gpgme
             mingw-w64-x86_64-libarchive
             mingw-w64-x86_64-gtest
         if: matrix.os == 'windows-2019'
