@@ -70,6 +70,13 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
   ui_->tabWidget->setTabText(1, tr("Key Database"));
   ui_->tabWidget->setTabText(2, tr("Advanced"));
 
+  ui_->keyDatabaseTable->clear();
+
+  QStringList column_titles;
+  column_titles << tr("Name") << tr("Path");
+  ui_->keyDatabaseTable->setColumnCount(static_cast<int>(column_titles.size()));
+  ui_->keyDatabaseTable->setHorizontalHeaderLabels(column_titles);
+
   popup_menu_ = new QMenu(this);
   popup_menu_->addAction(ui_->actionMove_Key_Database_Up);
   popup_menu_->addAction(ui_->actionMove_Key_Database_Down);
