@@ -173,10 +173,10 @@ jobs:
           sudo ninja install
         if: matrix.os == 'ubuntu-20.04'
 
-      - name: Configure CMake & Build Binary(Windows)
+      - name: Configure CMake & Build Binary (Windows)
         shell: msys2 {0}
         run: |
-          cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
+          cd $(cygpath -u "${{github.workspace}}")
           mkdir build && cd build
           cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON -DGPGFRONTEND_QT5_BUILD=ON ..
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
@@ -200,26 +200,69 @@ jobs:
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: matrix.os == 'ubuntu-20.04'
 
+      - name: Generate Env Vars (Windows)
+        run: |
+          echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
+          echo "BUILD_TYPE_LOWER=$("${{env.BUILD_TYPE}}".ToLower())" >> $env:GITHUB_ENV
+        if: matrix.os == 'windows-2019'
+
+      - name: Download GnuPG Binary Release (Windows)
+        shell: msys2 {0}
+        run: |
+          export URL="https://ftp.bktus.com/GnuPG/${{env.GNUPG_VERSION}}"
+          export FILE="gnupg.zip"
+          export CHECKSUM_FILE="SHA256SUMS.txt"
+
+          cd $(cygpath -u "${{github.workspace}}")
+
+          mkdir -p build/downloads
+          curl -o build/downloads/$FILE $URL/$FILE
+          curl -o build/downloads/$CHECKSUM_FILE $URL/$CHECKSUM_FILE
+
+          CHECKSUM=$(grep "$FILE" build/downloads/$CHECKSUM_FILE | awk '{print $1}')
+          ACTUAL_CHECKSUM=$(sha256sum build/downloads/$FILE | awk '{print $1}')
+          echo "Expected Checksum: $CHECKSUM"
+          echo "Actual Checksum: $ACTUAL_CHECKSUM"
+          if [ "$CHECKSUM" != "$ACTUAL_CHECKSUM" ]; then
+            echo "Checksum verification failed!" >&2
+            exit 1
+          fi
+
+          mkdir -p build/artifacts
+          unzip build/downloads/$FILE -d build/artifacts/
+          ls -l build/artifacts/
+        if: matrix.os == 'windows-2019'
+
       - name: Copy Modules & Package (Windows)
         shell: msys2 {0}
         run: |
-          cd $(echo "/${{github.workspace}}"  | sed 's/\\/\//g' | sed 's/://')
+          cd $(cygpath -u "${{github.workspace}}")
+          cp PrivacyPolicy.md build/artifacts/
+          cp README.md build/artifacts/
+          cp SECURITY.md build/artifacts/
+          cp TRANSLATORS build/artifacts/
+          cp COPYING build/artifacts/
+          cp gpgfrontend.ico build/artifacts/bin/
+          touch build/artifacts/bin/PORTABLE.txt
           cd build
-          windeployqt --no-translations --force ./artifacts/GpgFrontend.exe
-          echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
-          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
+          windeployqt-qt6 --no-translations --force ./artifacts/bin/libgpgfrontend_core.dll
+          windeployqt-qt6 --no-translations --force ./artifacts/bin/libgpgfrontend_ui.dll
+          windeployqt-qt6 --no-translations --force ./artifacts/bin/GpgFrontend.exe
+          mkdir upload-artifact
+          cd artifacts
+          zip -r ../upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-x86_64.zip *
         if: matrix.os == 'windows-2019'
 
       - name: Upload Artifact(Linux)
         uses: actions/upload-artifact@v4
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{ env.SHORT_SHA }}
+          name: gpgfrontend-qt5-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{ env.SHORT_SHA }}
           path: ${{github.workspace}}/build/final-artifact/Gpg_Frontend*.AppImage*
         if: matrix.os == 'ubuntu-20.04'
 
       - name: Upload Artifact(Windows)
         uses: actions/upload-artifact@v4
         with:
-          name: gpgfrontend-${{matrix.os}}--${{env.BUILD_TYPE_LOWER}}-${{ env.SHORT_SHA }}
+          name: gpgfrontend-qt5-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{ env.SHORT_SHA }}
           path: ${{github.workspace}}/build/artifacts/*
         if: matrix.os == 'windows-2019'
