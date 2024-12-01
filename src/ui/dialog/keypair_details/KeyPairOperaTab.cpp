@@ -362,86 +362,75 @@ void KeyPairOperaTab::slot_publish_key_to_server() {
         GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
             .ExportKey(m_key_, false, true, false);
 
-    Thread::TaskRunnerGetter::GetInstance()
-        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
-        ->PostTask(new Thread::Task(
-            [this, fpr = m_key_.GetFingerprint(),
-             key_text = gf_buffer.ConvertToQByteArray()](
-                const DataObjectPtr& data_obj) -> int {
-              Module::TriggerEvent(
-                  "REQUEST_UPLOAD_PUBLIC_KEY",
-                  {
-                      {"key_text", QString::fromUtf8(key_text)},
-                  },
-                  [=](Module::EventIdentifier i,
-                      Module::Event::ListenerIdentifier ei,
-                      Module::Event::Params p) {
-                    LOG_D() << "REQUEST_UPLOAD_PUBLIC_KEY "
-                               "callback: "
-                            << i << ei;
+    auto fpr = m_key_.GetFingerprint();
+    auto key_text = gf_buffer.ConvertToQByteArray();
 
-                    if (p["ret"] != "0" || !p["error_msg"].isEmpty()) {
-                      LOG_E() << "An error occurred trying to get data "
-                                 "from key:"
-                              << fpr << "error message: " << p["error_msg"]
-                              << "reply data: " << p["reply_data"];
+    Module::TriggerEvent(
+        "REQUEST_UPLOAD_PUBLIC_KEY",
+        {
+            {"key_text", QString::fromUtf8(key_text)},
+        },
+        [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
+            Module::Event::Params p) {
+          LOG_D() << "REQUEST_UPLOAD_PUBLIC_KEY "
+                     "callback: "
+                  << i << ei;
 
-                      // Notify user of the error
-                      QString error_message = p["error_msg"];
-                      QMessageBox::critical(
-                          this, tr("Key Upload Failed"),
-                          tr("Failed to upload key to the server.\n"
-                             "Fingerprint: %1\n"
-                             "Error: %2")
-                              .arg(fpr, error_message));
-                    } else if (p.contains("token") && p.contains("status") &&
-                               p.contains("fingerprint")) {
-                      const auto token = p["token"];
-                      const auto status = p["status"];
-                      const auto reply_fpr = p["fingerprint"];
-                      LOG_D() << "got key data of key " << fpr
-                              << "from key server, token: " << token
-                              << "fpr: " << fpr << "status: " << status;
+          if (p["ret"] != "0" || !p["error_msg"].isEmpty()) {
+            LOG_E() << "An error occurred trying to get data "
+                       "from key:"
+                    << fpr << "error message: " << p["error_msg"]
+                    << "reply data: " << p["reply_data"];
 
-                      // Handle successful response
-                      QString status_message =
-                          tr("The following email addresses have status:\n");
-                      QJsonDocument json_doc =
-                          QJsonDocument::fromJson(status.toUtf8());
-                      QStringList email_list;
-                      if (!json_doc.isNull() && json_doc.isObject()) {
-                        QJsonObject json_obj = json_doc.object();
-                        for (auto it = json_obj.constBegin();
-                             it != json_obj.constEnd(); ++it) {
-                          status_message +=
-                              QString("%1: %2\n")
-                                  .arg(it.key(), it.value().toString());
-                          email_list.append(it.key());
-                        }
-                      } else {
-                        status_message +=
-                            tr("Could not parse status information.");
-                      }
+            // Notify user of the error
+            QString error_message = p["error_msg"];
+            QMessageBox::critical(
+                this, tr("Key Upload Failed"),
+                tr("Failed to upload public key to the server.\n"
+                   "Fingerprint: %1\n"
+                   "Error: %2")
+                    .arg(fpr, error_message));
+          } else if (p.contains("token") && p.contains("status") &&
+                     p.contains("fingerprint")) {
+            const auto token = p["token"];
+            const auto status = p["status"];
+            const auto reply_fpr = p["fingerprint"];
+            LOG_D() << "got key data of key " << fpr
+                    << "from key server, token: " << token << "fpr: " << fpr
+                    << "status: " << status;
 
-                      // Notify user of successful upload and status details
-                      QMessageBox::information(
-                          this, tr("Key Upload Successful"),
-                          tr("The key was successfully uploaded to the key "
-                             "server keys.openpgp.org.\n"
-                             "Fingerprint: %1\n\n"
-                             "%2\n"
-                             "Please check your email (%3) for further "
-                             "verification from keys.openpgp.org.\n\n"
-                             "Note: For verification, you can find more "
-                             "information here: "
-                             "https://keys.openpgp.org/about")
-                              .arg(fpr, status_message, email_list.join(", ")));
-                    }
-                  });
+            // Handle successful response
+            QString status_message =
+                tr("The following email addresses have status:\n");
+            QJsonDocument json_doc = QJsonDocument::fromJson(status.toUtf8());
+            QStringList email_list;
+            if (!json_doc.isNull() && json_doc.isObject()) {
+              QJsonObject json_obj = json_doc.object();
+              for (auto it = json_obj.constBegin(); it != json_obj.constEnd();
+                   ++it) {
+                status_message +=
+                    QString("%1: %2\n").arg(it.key(), it.value().toString());
+                email_list.append(it.key());
+              }
+            } else {
+              status_message += tr("Could not parse status information.");
+            }
 
-              return 0;
-            },
-            QString("key_%1_publish_task").arg(m_key_.GetId())));
+            // Notify user of successful upload and status details
+            QMessageBox::information(
+                this, tr("Public Key Upload Successful"),
+                tr("The public key was successfully uploaded to the "
+                   "key server keys.openpgp.org.\n"
+                   "Fingerprint: %1\n\n"
+                   "%2\n"
+                   "Please check your email (%3) for further "
+                   "verification from keys.openpgp.org.\n\n"
+                   "Note: For verification, you can find more "
+                   "information here: "
+                   "https://keys.openpgp.org/about")
+                    .arg(fpr, status_message, email_list.join(", ")));
+          }
+        });
     return;
   }
 

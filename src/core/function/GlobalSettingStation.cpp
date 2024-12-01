@@ -119,6 +119,15 @@ class GlobalSettingStation::Impl {
   [[nodiscard]] auto GetLogDir() const -> QString { return app_log_path(); }
 
   /**
+   * @brief Get the Config Path object
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto GetConfigPath() const -> QString {
+    return app_config_file_path();
+  }
+
+  /**
    * @brief Get the Modules Dir object
    *
    * @return QString
@@ -171,7 +180,7 @@ auto GlobalSettingStation::GetAppDataPath() const -> QString {
   return p_->GetAppDataPath();
 }
 
-[[nodiscard]] auto GlobalSettingStation::GetLogDir() const -> QString {
+[[nodiscard]] auto GlobalSettingStation::GetAppLogPath() const -> QString {
   return p_->GetLogDir();
 }
 
@@ -193,4 +202,7 @@ void GlobalSettingStation::ClearAllDataObjects() const {
   p_->ClearAllDataObjects();
 }
 
+auto GlobalSettingStation::GetConfigPath() const -> QString {
+  return p_->GetConfigPath();
+}
 }  // namespace GpgFrontend

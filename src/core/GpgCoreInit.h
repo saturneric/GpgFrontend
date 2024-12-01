@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/GpgFrontendCoreExport.h"
+#include "core/model/KeyDatabaseInfo.h"
 
 namespace GpgFrontend {
 
@@ -70,5 +71,13 @@ auto GPGFRONTEND_CORE_EXPORT InitGpgME() -> bool;
  * @return false
  */
 auto GPGFRONTEND_CORE_EXPORT InitBasicPath() -> bool;
+
+/**
+ * @brief Get the Key Databases By Settings object
+ *
+ * @return auto
+ */
+auto GPGFRONTEND_CORE_EXPORT GetKeyDatabaseInfoBySettings(
+    QString& default_home_path) -> QList<KeyDatabaseInfo>;
 
 }  // namespace GpgFrontend

@@ -82,7 +82,14 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
    *
    * @return QString
    */
-  [[nodiscard]] auto GetLogDir() const -> QString;
+  [[nodiscard]] auto GetAppLogPath() const -> QString;
+
+  /**
+   * @brief Get the Log Dir object
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto GetConfigPath() const -> QString;
 
   /**
    * @brief Get the Modules Dir object

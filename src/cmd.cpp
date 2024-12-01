@@ -35,13 +35,13 @@
 #include <qtextstream.h>
 
 #include "core/GpgCoreInit.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/BuildInfoUtils.h"
 
 // GpgFrontend
 
 #include "GpgFrontendContext.h"
-#include "core/utils/GpgUtils.h"
 #include "test/GpgFrontendTest.h"
 
 namespace GpgFrontend {
@@ -79,7 +79,14 @@ auto PrintEnvInfo() -> int {
   stream << Tr("OpenSSL Version: ") << GetProjectOpenSSLVersion() << '\n';
   stream << Tr("Libarchive Version: ") << GetProjectLibarchiveVersion() << '\n';
 
+  stream << '\n';
 
+  auto& setting_station = GlobalSettingStation::GetInstance();
+
+  stream << Tr("App Data Path: ") << setting_station.GetAppDataPath() << '\n';
+  stream << Tr("App Log Path: ") << setting_station.GetAppLogPath() << '\n';
+  stream << Tr("Modules Path: ") << setting_station.GetModulesDir() << '\n';
+  stream << Tr("App Binary Directory: ") << setting_station.GetAppDir() << '\n';
 
   stream << '\n';
 
@@ -152,7 +159,7 @@ auto PrintEnvInfo() -> int {
   stream << '\n';
 
   int index = 0;
-  auto key_dbs = GetGpgKeyDatabaseInfos();
+  auto key_dbs = GetKeyDatabaseInfoBySettings(default_database_path);
   for (const auto& key_database : key_dbs) {
     stream << Tr("Key Database [") << index++ << "] " << Tr("Name: ")
            << key_database.name << " " << Tr("-> Path: ") << key_database.path

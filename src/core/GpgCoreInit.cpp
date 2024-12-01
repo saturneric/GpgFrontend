@@ -435,7 +435,8 @@ auto InitBasicPath() -> bool {
   return true;
 }
 
-auto GetKeyDatabases(QString& default_home_path) -> QList<KeyDatabaseItemSO> {
+auto GetKeyDatabasesBySettings(QString& default_home_path)
+    -> QList<KeyDatabaseItemSO> {
   auto key_db_list_so = SettingsObject("key_database_list");
   auto key_db_list = KeyDatabaseListSO(key_db_list_so);
   auto key_dbs = key_db_list.key_databases;
@@ -446,6 +447,20 @@ auto GetKeyDatabases(QString& default_home_path) -> QList<KeyDatabaseItemSO> {
       });
   key_db_list_so.Store(key_db_list.ToJson());
   return key_dbs;
+}
+
+auto GetKeyDatabaseInfoBySettings(QString& default_home_path)
+    -> QList<KeyDatabaseInfo> {
+  auto key_dbs = GetKeyDatabasesBySettings(default_home_path);
+  QList<KeyDatabaseInfo> infos;
+  for (const auto& key_db : key_dbs) {
+    KeyDatabaseInfo info;
+    info.name = key_db.name;
+    info.path = key_db.path;
+    info.channel = -1;
+    infos.append(info);
+  }
+  return infos;
 }
 
 auto InitGpgFrontendCore(CoreInitArgs args) -> int {
@@ -548,7 +563,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   CoreSignalStation::GetInstance()->SignalGoodGnupgEnv();
   LOG_I() << "Basic ENV Checking Finished";
 
-  auto key_dbs = GetKeyDatabases(default_home_path);
+  auto key_dbs = GetKeyDatabasesBySettings(default_home_path);
 
   auto* task = new Thread::Task(
       [=](const DataObjectPtr&) -> int {

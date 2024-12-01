@@ -48,10 +48,6 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_GnuPGControllerDialog>()) {
   ui_->setupUi(this);
 
-  ui_->tab->setWindowTitle(tr("General"));
-  ui_->tab_2->setWindowTitle(tr("Key Database"));
-  ui_->tab_3->setWindowTitle(tr("Advanced"));
-
   ui_->asciiModeCheckBox->setText(tr("Use Binary Mode for File Operations"));
   ui_->usePinentryAsPasswordInputDialogCheckBox->setText(
       tr("Use Pinentry as Password Input Dialog"));
@@ -69,6 +65,10 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
   ui_->restartTipsLabel->setText(
       tr("Tips: notice that modify any of these settings will cause an "
          "Application restart."));
+
+  ui_->tabWidget->setTabText(0, tr("General"));
+  ui_->tabWidget->setTabText(1, tr("Key Database"));
+  ui_->tabWidget->setTabText(2, tr("Advanced"));
 
   popup_menu_ = new QMenu(this);
   popup_menu_->addAction(ui_->actionMove_Key_Database_Up);
