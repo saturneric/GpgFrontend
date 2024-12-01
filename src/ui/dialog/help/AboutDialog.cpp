@@ -44,8 +44,9 @@ AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
   auto* info_tab = new InfoTab();
   auto* translators_tab = new TranslatorsTab();
 
-  tab_widget->addTab(info_tab, tr("About GpgFrontend"));
+  tab_widget->setDocumentMode(true);
 
+  tab_widget->addTab(info_tab, tr("About GpgFrontend"));
   tab_widget->addTab(translators_tab, tr("Translators"));
 
   auto entries =
@@ -70,12 +71,9 @@ AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
     tab_widget->setCurrentIndex(default_index);
   }
 
-  auto* button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
-  connect(button_box, &QDialogButtonBox::accepted, this, &AboutDialog::close);
-
   auto* main_layout = new QVBoxLayout;
   main_layout->addWidget(tab_widget);
-  main_layout->addWidget(button_box);
+  main_layout->setContentsMargins(QMargins{5, 0, 5, 0});
   setLayout(main_layout);
 
   this->resize(520, 620);
