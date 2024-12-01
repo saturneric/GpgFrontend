@@ -71,14 +71,32 @@ jobs:
           release: false
         if: matrix.os == 'windows-2019'
 
-      - name: Set up Dependence (Windows)
-        shell: msys2 {0}
-        run: |
-          pacman --noconfirm -S --needed mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-cmake autoconf 
-          pacman --noconfirm -S --needed make texinfo automake 
-          pacman --noconfirm -S --needed mingw-w64-x86_64-qt5 mingw-w64-x86_64-angleproject libintl msys2-runtime-devel gettext-devel
-          pacman --noconfirm -S --needed mingw-w64-x86_64-ninja mingw-w64-x86_64-gnupg mingw-w64-x86_64-libarchive
-          pacman --noconfirm -S --needed mingw-w64-x86_64-gtest
+      - name: Set up MinGW (Windows)
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          release: false
+          cache: true
+          install: >-
+            git 
+            msys2-devel 
+            base-devel 
+            binutils 
+            zip
+            unzip
+            libintl 
+            msys2-runtime-devel 
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-gcc 
+            mingw-w64-x86_64-make
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-qt5
+            mingw-w64-x86_64-angleproject 
+            mingw-w64-x86_64-ninja 
+            mingw-w64-x86_64-gnupg 
+            mingw-w64-x86_64-gpgme
+            mingw-w64-x86_64-libarchive
+            mingw-w64-x86_64-gtest
         if: matrix.os == 'windows-2019'
 
       - name: Install Dependence (Linux)
@@ -100,41 +118,19 @@ jobs:
           cache: "true"
         if: matrix.os == 'ubuntu-20.04'
 
-      - name: Build gpg-error (Windows)
-        shell: msys2 {0}
-        run: |
-          git clone --depth 1 --branch libgpg-error-1.47 git://git.gnupg.org/libgpg-error.git ${{github.workspace}}/third_party/libgpg-error
-          cd  ${{github.workspace}}/third_party/libgpg-error
-          ./autogen.sh
-          ./configure --enable-maintainer-mode && make -j4
-          make install
-          cd ${{github.workspace}}
-        if: matrix.os == 'windows-2019'
-
       - name: Build gpg-error (Linux)
         run: |
-          git clone --depth 1 --branch libgpg-error-1.47 git://git.gnupg.org/libgpg-error.git ${{github.workspace}}/third_party/libgpg-error
+          git clone --depth 1 --branch libgpg-error-1.51 git://git.gnupg.org/libgpg-error.git ${{github.workspace}}/third_party/libgpg-error
           cd  ${{github.workspace}}/third_party/libgpg-error
           ./autogen.sh
           ./configure --enable-maintainer-mode && make -j4
           sudo make install
           cd ${{github.workspace}}
         if: matrix.os == 'ubuntu-20.04'
-
-      - name: Build assuan (Windows)
-        shell: msys2 {0}
-        run: |
-          git clone --depth 1 --branch libassuan-2.5.6 git://git.gnupg.org/libassuan.git ${{github.workspace}}/third_party/libassuan
-          cd ${{github.workspace}}/third_party/libassuan
-          ./autogen.sh
-          ./configure --enable-maintainer-mode && make -j4
-          make install
-          cd ${{github.workspace}}
-        if: matrix.os == 'windows-2019'
 
       - name: Build assuan (Linux)
         run: |
-          git clone --depth 1 --branch libassuan-2.5.6 git://git.gnupg.org/libassuan.git ${{github.workspace}}/third_party/libassuan
+          git clone --depth 1 --branch libassuan-2.5.7 git://git.gnupg.org/libassuan.git ${{github.workspace}}/third_party/libassuan
           cd ${{github.workspace}}/third_party/libassuan
           ./autogen.sh
           ./configure --enable-maintainer-mode && make -j4
@@ -142,20 +138,9 @@ jobs:
           cd ${{github.workspace}}
         if: matrix.os == 'ubuntu-20.04'
 
-      - name: Build GpgME (Windows)
-        shell: msys2 {0}
-        run: |
-          git clone --depth 1 --branch fix/1.18.0 https://git.bktus.com/GpgFrontend/gpgme.git ${{github.workspace}}/third_party/gpgme
-          cd ${{github.workspace}}/third_party/gpgme
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-languages=cpp --disable-gpg-test && make -j4
-          make install
-          cd ${{github.workspace}}
-        if: matrix.os == 'windows-2019'
-
       - name: Build GpgME (Linux)
         run: |
-          git clone --depth 1 --branch gpgme-1.22.0 git://git.gnupg.org/gpgme.git ${{github.workspace}}/third_party/gpgme
+          git clone --depth 1 --branch gpgme-1.23.2 git://git.gnupg.org/gpgme.git ${{github.workspace}}/third_party/gpgme
           cd ${{github.workspace}}/third_party/gpgme
           ./autogen.sh
           ./configure --enable-maintainer-mode --enable-languages=cpp && make -j4
@@ -165,7 +150,7 @@ jobs:
 
       - name: Build googletest (Linux)
         run: |
-          git clone --depth 1 --branch v1.15.0 https://github.com/google/googletest.git ${{github.workspace}}/third_party/googletest
+          git clone --depth 1 --branch v1.15.2 https://github.com/google/googletest.git ${{github.workspace}}/third_party/googletest
           cd ${{github.workspace}}/third_party/googletest
           mkdir build && cd build
           cmake -G Ninja -DBUILD_SHARED_LIBS=ON ..
