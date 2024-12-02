@@ -4947,7 +4947,7 @@ If the issue persists, consider seeking technical support or consulting the docu
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="218"/>
         <source>Editor</source>
-        <translation>编辑</translation>
+        <translation>编辑器</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="219"/>
