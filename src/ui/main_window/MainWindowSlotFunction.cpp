@@ -38,6 +38,7 @@
 #include "core/model/GpgSignResult.h"
 #include "core/module/ModuleManager.h"
 #include "core/typedef/GpgTypedef.h"
+#include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UIModuleManager.h"
@@ -289,13 +290,17 @@ void MainWindow::SlotOpenFile(const QString& path) {
 }
 
 void MainWindow::slot_version_upgrade_notify() {
-  FLOG_D(
-      "slot version upgrade notify called, checking version info from rt...");
-
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
       kVersionCheckingModuleID, "version.loading_done", false);
   if (!is_loading_done) {
     FLOG_W("invalid version info from rt, loading hasn't done yet");
+    return;
+  }
+
+  const auto project_build_branch = GetProjectBuildGitBranchName();
+  if (project_build_branch.contains("develop") ||
+      project_build_branch.contains("dev/")) {
+    LOG_I() << "develop or testing version, skip notifying version info.";
     return;
   }
 
