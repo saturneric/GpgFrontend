@@ -523,7 +523,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   // unit test mode
   if (args.unit_test_mode) {
     Module::UpsertRTValue("core", "env.state.basic", 1);
-    Module::UpsertRTValue("core", "env.state.all", 1);
+    Module::UpsertRTValue("core", "env.state.key_dbs", 1);
     CoreSignalStation::GetInstance()->SignalGoodGnupgEnv();
     LOG_I() << "Basic ENV Checking Finished";
     return 0;
@@ -581,8 +581,6 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
         // key database path
         QList<KeyDatabaseItemSO> buffered_key_dbs;
 
-        LOG_I() << "AAAAAA";
-
         // try to use user defined key database
         if (!key_dbs.empty()) {
           for (const auto& key_database : key_dbs) {
@@ -637,7 +635,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
           channel_index++;
         }
 
-        Module::UpsertRTValue("core", "env.state.all", 1);
+        Module::UpsertRTValue("core", "env.state.key_dbs", 1);
 
         return 0;
       },
@@ -689,12 +687,12 @@ void StartMonitorCoreInitializationStatus() {
         }
         LOG_D() << "monitor: good, all module are registered.";
 
-        int key_db_init_state =
-            Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.all", 0);
+        int key_db_init_state = Module::RetrieveRTValueTypedOrDefault<>(
+            "core", "env.state.key_dbs", 0);
         for (;;) {
           if (key_db_init_state != 0) break;
           key_db_init_state = Module::RetrieveRTValueTypedOrDefault<>(
-              "core", "env.state.all", 0);
+              "core", "env.state.key_dbs", 0);
 
           LOG_D() << "monitor: key dbs are still initializing, waiting...";
           QThread::msleep(15);
@@ -703,6 +701,7 @@ void StartMonitorCoreInitializationStatus() {
 
         LOG_D()
             << "monitor: core is fully initialized, sending signal to ui...";
+        Module::UpsertRTValue("core", "env.state.all", 1);
         CoreSignalStation::GetInstance()->SignalCoreFullyLoaded();
         return 0;
       },

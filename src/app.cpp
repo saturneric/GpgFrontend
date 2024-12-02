@@ -79,6 +79,9 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
     // load module's translations
     GpgFrontend::UI::InitModulesTranslations();
 
+
+    
+
     // finally create main window
     return_from_event_loop_code = GpgFrontend::UI::RunGpgFrontendUI(app);
 
