@@ -52,12 +52,7 @@ auto LoadIntegratedMods() -> QMap<QString, bool> {
   const auto exec_binary_path = GlobalSettingStation::GetInstance().GetAppDir();
   QString mods_path = exec_binary_path + "/modules";
 
-#ifdef NDEBUG
-
-#if defined(__APPLE__) && defined(__MACH__)
-  // App Bundle
-  mods_path = exec_binary_path + "/../Modules";
-#elif defined(__linux__)
+#if defined(__linux__)
   // AppImage
   if (!qEnvironmentVariable("APPIMAGE").isEmpty()) {
     mods_path = qEnvironmentVariable("APPDIR") + "/usr/modules";
@@ -68,10 +63,15 @@ auto LoadIntegratedMods() -> QMap<QString, bool> {
   }
 #endif
 
-#else
-
 #if defined(_WIN32) || defined(WIN32)
   mods_path = exec_binary_path + "/../modules/bin";
+#endif
+
+#ifdef NDEBUG
+
+#if defined(__APPLE__) && defined(__MACH__)
+  // App Bundle
+  mods_path = exec_binary_path + "/../Modules";
 #endif
 
 #endif
