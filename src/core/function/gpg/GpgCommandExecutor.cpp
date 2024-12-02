@@ -139,36 +139,38 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
   };
 
   return new Thread::Task(
-      std::move(runner), QString("GpgCommamdExecutor(%1){%2}").arg(cmd),
+      std::move(runner),
+      QString("GpgCommamdExecutor(%1){%2}").arg(cmd).arg(arguments.join(' ')),
       TransferParams(cmd, arguments, interact_function, cmd_executor_callback),
       std::move(result_callback));
 }
 
 void GpgCommandExecutor::ExecuteSync(ExecuteContext context) {
   Thread::Task *task = BuildTaskFromExecCtx(context);
+  QPointer<Thread::Task> p_t = task;
 
-  QEventLoop looper;
-  QObject::connect(task, &Thread::Task::SignalTaskEnd, &looper,
+  auto *looper = new QEventLoop(QCoreApplication::instance());
+  QObject::connect(task, &Thread::Task::SignalTaskEnd, looper,
                    &QEventLoop::quit);
 
-  Thread::TaskRunnerPtr target_task_runner = nullptr;
+  Thread::TaskRunnerPtr target_task_runner = context.task_runner;
 
-  if (context.task_runner != nullptr) {
-    target_task_runner = context.task_runner;
-  } else {
+  if (target_task_runner == nullptr) {
     target_task_runner =
         GpgFrontend::Thread::TaskRunnerGetter::GetInstance().GetTaskRunner(
             Thread::TaskRunnerGetter::kTaskRunnerType_External_Process);
   }
   target_task_runner->PostTask(task);
 
-  // to arvoid dead lock issue we need to check if current thread is the same as
-  // target thread. if it is, we can't call exec() because it will block the
-  // current thread.
-  FLOG_D("blocking until gpg command finish...");
+  // to arvoid dead lock issue we need to check if current thread is the
+  // same as target thread. if it is, we can't call exec() because it will
+  // block the current thread.
+  FLOG_D() << "blocking until gpg command " << context.cmd << context.arguments
+           << " finish...";
   // block until task finished
   // this is to keep reference vaild until task finished
-  looper.exec();
+  looper->exec();
+  looper->deleteLater();
 }
 
 void GpgCommandExecutor::ExecuteConcurrentlyAsync(ExecuteContexts contexts) {

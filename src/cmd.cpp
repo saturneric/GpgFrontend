@@ -37,6 +37,7 @@
 #include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/BuildInfoUtils.h"
 
 // GpgFrontend
@@ -199,7 +200,23 @@ auto RunTest(const GFCxtWPtr& p_ctx) -> int {
   test_init_args.argc = ctx->argc;
   test_init_args.argv = ctx->argv;
 
-  return GpgFrontend::Test::ExecuteAllTestCase(test_init_args);
+  QEventLoop looper;
+
+  auto* task = new GpgFrontend::Thread::Task(
+      [=](const DataObjectPtr&) -> int {
+        return GpgFrontend::Test::ExecuteAllTestCase(test_init_args);
+      },
+      "unit-test", TransferParams());
+
+  QObject::connect(task, &GpgFrontend::Thread::Task::SignalTaskEnd, &looper,
+                   &QEventLoop::quit);
+
+  GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
+      ->PostTask(task);
+
+  looper.exec();
+  return 0;
 }
 
 }  // namespace GpgFrontend

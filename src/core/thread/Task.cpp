@@ -120,7 +120,7 @@ class Task::Impl {
   const QString name_;
   TaskRunnable runnable_;                ///<
   TaskCallback callback_;                ///<
-  int rtn_ = -99;                        ///<
+  int rtn_ = Task::kInitialRTN;          ///<
   QThread *callback_thread_ = nullptr;   ///<
   DataObjectPtr data_object_ = nullptr;  ///<
 
@@ -139,6 +139,7 @@ class Task::Impl {
             [this](int rtn) {
               // set task returning code
               SetRTN(rtn);
+
               try {
                 if (callback_) {
                   callback_(rtn_, data_object_);
@@ -147,6 +148,9 @@ class Task::Impl {
                 LOG_W() << "task: {}, " << GetFullID()
                         << "callback caught exception, rtn: " << rtn;
               }
+
+              LOG_D() << "task" << this->name_
+                      << "sending task end signal, rtn:" << rtn;
               emit parent_->SignalTaskEnd();
             });
 
@@ -224,5 +228,6 @@ void Task::slot_exception_safe_run() noexcept {
   // raise signal to anounce after runnable returned
   if (this->autoDelete()) emit this->SignalTaskShouldEnd(rtn);
 }
-auto Task::GetRTN() { return p_->GetRTN(); }
+
+auto Task::GetRTN() -> int { return p_->GetRTN(); }
 }  // namespace GpgFrontend::Thread

@@ -47,17 +47,7 @@
 
 namespace GpgFrontend {
 
-void DestroyGpgFrontendCore() {
-  // kill all daemon if necessary
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
-  auto kill_all_gnupg_daemon_at_close =
-      settings.value("gnupg/kill_all_gnupg_daemon_at_close", false).toBool();
-  if (kill_all_gnupg_daemon_at_close) {
-    GpgAdvancedOperator::KillAllGpgComponents();
-  }
-
-  SingletonStorageCollection::Destroy();
-}
+void DestroyGpgFrontendCore() { SingletonStorageCollection::Destroy(); }
 
 auto VerifyGpgconfPath(const QFileInfo& gnupg_install_fs_path) -> bool {
   return gnupg_install_fs_path.isAbsolute() && gnupg_install_fs_path.exists() &&
@@ -651,7 +641,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
       ->PostTask(task);
 
-  if (restart_all_gnupg_components_on_start) {
+  if (!args.unit_test_mode && restart_all_gnupg_components_on_start) {
     GpgAdvancedOperator::RestartGpgComponents();
   }
   return 0;

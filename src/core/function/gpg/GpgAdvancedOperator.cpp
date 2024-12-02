@@ -46,12 +46,17 @@ void GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache(
     return;
   }
 
+#if defined(__APPLE__) && defined(__MACH__)
+  FLOG_I("kill all gpg components in order to clear gpg password cache");
+  KillAllGpgComponents();
+#else
   GpgFrontend::GpgCommandExecutor::ExecuteSync(
       {gpgconf_path, QStringList{"--reload", "gpg-agent"},
        [=](int exit_code, const QString & /*p_out*/,
            const QString & /*p_err*/) {
          cb(exit_code == 0 ? 0 : -1, TransferParams());
        }});
+#endif
 }
 
 void GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents(

@@ -43,6 +43,7 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
 
   using TaskRunnable = std::function<int(DataObjectPtr)>;        ///<
   using TaskCallback = std::function<void(int, DataObjectPtr)>;  ///<
+  static const int kInitialRTN = -99;
 
   class TaskHandler {
    public:
@@ -119,7 +120,7 @@ class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
    *
    * @return auto
    */
-  [[nodiscard]] auto GetRTN();
+  [[nodiscard]] auto GetRTN() -> int;
 
  public slots:
 

@@ -183,11 +183,13 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
     return;
   }
 
-  // clear password cache
-  if (GlobalSettingStation::GetInstance()
+  auto clear_gpg_password_cache =
+      GlobalSettingStation::GetInstance()
           .GetSettings()
           .value("basic/clear_gpg_password_cache", false)
-          .toBool()) {
+          .toBool();
+  // clear password cache
+  if (!ctx->unit_test_mode && clear_gpg_password_cache) {
     GpgAdvancedOperator::ClearGpgPasswordCache([](int, DataObjectPtr) {});
   }
 
