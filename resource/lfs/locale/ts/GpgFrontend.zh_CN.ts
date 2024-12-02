@@ -1532,7 +1532,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="106"/>
         <source>Built with Qt</source>
-        <translation>用 Qt 构建</translation>
+        <translation>构建使用 Qt </translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="107"/>
