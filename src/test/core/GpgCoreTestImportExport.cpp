@@ -40,8 +40,9 @@ TEST_F(GpgCoreTest, CoreExportSubkeyTestA) {
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_FALSE(gf_buffer.Empty());
   ASSERT_EQ(
-      QCryptographicHash::hash(gf_buffer.ConvertToQByteArray(),
-                               QCryptographicHash::Sha256)
+      QCryptographicHash::hash(
+          gf_buffer.ConvertToQByteArray().replace("\r\n", "\n"),
+          QCryptographicHash::Sha256)
           .toHex(),
       QByteArray(
           "6e3375060aa889d9eb61e2966eabb31eb6b5359a7742ee7adeedec09e6afa36a"));
@@ -54,8 +55,9 @@ TEST_F(GpgCoreTest, CoreExportSubkeyTestB) {
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_FALSE(gf_buffer.Empty());
   ASSERT_EQ(
-      QCryptographicHash::hash(gf_buffer.ConvertToQByteArray(),
-                               QCryptographicHash::Sha256)
+      QCryptographicHash::hash(
+          gf_buffer.ConvertToQByteArray().replace("\r\n", "\n"),
+          QCryptographicHash::Sha256)
           .toHex(),
       QByteArray(
           "6e3375060aa889d9eb61e2966eabb31eb6b5359a7742ee7adeedec09e6afa36a"));
@@ -68,8 +70,9 @@ TEST_F(GpgCoreTest, CoreExportSubkeyTestC) {
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_FALSE(gf_buffer.Empty());
   ASSERT_EQ(
-      QCryptographicHash::hash(gf_buffer.ConvertToQByteArray(),
-                               QCryptographicHash::Sha256)
+      QCryptographicHash::hash(
+          gf_buffer.ConvertToQByteArray().replace("\r\n", "\n"),
+          QCryptographicHash::Sha256)
           .toHex(),
       QByteArray(
           "6e3375060aa889d9eb61e2966eabb31eb6b5359a7742ee7adeedec09e6afa36a"));
@@ -82,8 +85,9 @@ TEST_F(GpgCoreTest, CoreExportSubkeyTestD) {
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_FALSE(gf_buffer.Empty());
   ASSERT_EQ(
-      QCryptographicHash::hash(gf_buffer.ConvertToQByteArray(),
-                               QCryptographicHash::Sha256)
+      QCryptographicHash::hash(
+          gf_buffer.ConvertToQByteArray().replace("\r\n", "\n"),
+          QCryptographicHash::Sha256)
           .toHex(),
       QByteArray(
           "6e3375060aa889d9eb61e2966eabb31eb6b5359a7742ee7adeedec09e6afa36a"));
