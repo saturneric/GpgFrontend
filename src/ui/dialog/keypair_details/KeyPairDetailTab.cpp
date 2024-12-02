@@ -345,9 +345,10 @@ void KeyPairDetailTab::slot_query_key_publish_state() {
                   << " from key server: " << key_data;
 
           if (!key_data.isEmpty()) {
-            slot_refresh_notice(":/icons/publish.png",
-                                tr("Notice: The key has been published on "
-                                   "keys.openpgp.org."));
+            slot_refresh_notice(
+                ":/icons/publish.png",
+                tr("Notice: The public key has been published on "
+                   "keys.openpgp.org."));
           }
         }
       });

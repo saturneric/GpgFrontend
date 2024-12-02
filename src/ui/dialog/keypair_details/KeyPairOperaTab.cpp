@@ -152,14 +152,16 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, const QString& key_id,
 void KeyPairOperaTab::CreateOperaMenu() {
   key_server_opera_menu_ = new QMenu(this);
 
-  auto* upload_key_pair = new QAction(tr("Publish Key to Key Server"), this);
+  auto* upload_key_pair =
+      new QAction(tr("Publish Public Key to Key Server"), this);
   connect(upload_key_pair, &QAction::triggered, this,
           &KeyPairOperaTab::slot_publish_key_to_server);
   if (!(m_key_.IsPrivateKey() && m_key_.IsHasMasterKey())) {
     upload_key_pair->setDisabled(true);
   }
 
-  auto* update_key_pair = new QAction(tr("Refresh Key From Key Server"), this);
+  auto* update_key_pair =
+      new QAction(tr("Refresh Public Key From Key Server"), this);
   connect(update_key_pair, &QAction::triggered, this,
           &KeyPairOperaTab::slot_update_key_from_server);
 
