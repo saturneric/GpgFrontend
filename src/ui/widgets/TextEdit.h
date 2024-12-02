@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "ui/dialog/QuitDialog.h"
 #include "ui/widgets/EMailEditorPage.h"
 #include "ui/widgets/FilePage.h"
 #include "ui/widgets/PlainTextEditorPage.h"
@@ -110,19 +109,19 @@ class TextEdit : public QWidget {
    */
   [[nodiscard]] auto TabWidget() const -> QTabWidget*;
 
- public slots:
-
   /**
    * @details Return pointer to the currently activated text edit tab page.
    *
    */
-  [[nodiscard]] auto SlotCurPageTextEdit() const -> PlainTextEditorPage*;
+  [[nodiscard]] auto CurPageTextEdit() const -> PlainTextEditorPage*;
 
   /**
    * @details Return pointer to the currently activated file tree view tab page.
    *
    */
-  [[nodiscard]] auto SlotCurPageFileTreeView() const -> FilePage*;
+  [[nodiscard]] auto CurPageFileTreeView() const -> FilePage*;
+
+ public slots:
 
   /**
    * @details Insert a ">" at the beginning of every line of current textedit.
@@ -147,7 +146,7 @@ class TextEdit : public QWidget {
    *
    * @return Return the return value of the savefile method
    */
-  auto SlotSaveAs() -> bool;
+  bool SlotSaveAs();
 
   /**
    * @details Show an OpenFileDoalog and open the file in a new tab.
@@ -287,7 +286,7 @@ class TextEdit : public QWidget {
    * @return true
    * @return false
    */
-  auto SlotSaveAsEML() -> bool;
+  bool SlotSaveAsEML();
 
  protected:
   /**

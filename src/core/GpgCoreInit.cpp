@@ -441,10 +441,21 @@ auto GetKeyDatabasesBySettings(QString& default_home_path)
   auto key_db_list = KeyDatabaseListSO(key_db_list_so);
   auto key_dbs = key_db_list.key_databases;
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 1, 0)
   key_dbs.removeIf(
       [default_home_path](const KeyDatabaseItemSO& key_database) -> bool {
         return key_database.path == default_home_path;
       });
+#else
+  for (auto iter = key_dbs.begin(); iter != key_dbs.end();) {
+    if (iter->path == default_home_path) {
+      iter = key_dbs.erase(iter);
+    } else {
+      ++iter;
+    }
+  }
+#endif
+
   key_db_list_so.Store(key_db_list.ToJson());
   return key_dbs;
 }

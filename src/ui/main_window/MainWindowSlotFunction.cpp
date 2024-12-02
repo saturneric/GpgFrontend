@@ -60,10 +60,10 @@ void MainWindow::slot_find() {
   }
 
   // At first close verifynotification, if existing
-  edit_->SlotCurPageTextEdit()->CloseNoteByClass("FindWidget");
+  edit_->CurPageTextEdit()->CloseNoteByClass("FindWidget");
 
   auto* fw = new FindWidget(this, edit_->CurTextPage());
-  edit_->SlotCurPageTextEdit()->ShowNotificationWidget(fw, "FindWidget");
+  edit_->CurPageTextEdit()->ShowNotificationWidget(fw, "FindWidget");
 }
 
 /*
@@ -363,7 +363,7 @@ void MainWindow::slot_refresh_current_file_view() {
 }
 
 void MainWindow::slot_import_key_from_edit() {
-  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
+  if (edit_->TabCount() == 0 || edit_->CurPageTextEdit() == nullptr) return;
 
   CommonUtils::GetInstance()->SlotImportKeys(
       this, m_key_list_->GetCurrentGpgContextChannel(),
@@ -388,7 +388,7 @@ void MainWindow::slot_verify_email_by_eml_data(const QByteArray& buffer) {
               hd();
 
               // check if error occurred
-              if (slot_handle_module_error(p)) return -1;
+              if (handle_module_error(p)) return -1;
 
               if (p.contains("signature") && p.contains("mime")) {
                 slot_verify_email_by_eml_data_result_helper(p);
@@ -412,10 +412,10 @@ void MainWindow::slot_decrypt_email_by_eml_data(const QByteArray& buffer) {
         LOG_D() << "EMAIL_DECRYPT_EML_DATA callback: " << i << ei;
 
         // check if error occurred
-        if (slot_handle_module_error(p)) return -1;
+        if (handle_module_error(p)) return -1;
 
         if (p.contains("eml_data")) {
-          slot_decrypt_email_by_eml_data_result_helper(p);
+          decrypt_email_by_eml_data_result_helper(p);
         }
 
         return 0;
@@ -423,7 +423,7 @@ void MainWindow::slot_decrypt_email_by_eml_data(const QByteArray& buffer) {
 }
 
 void MainWindow::SlotVerifyEML() {
-  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
+  if (edit_->TabCount() == 0 || edit_->CurPageTextEdit() == nullptr) return;
 
   auto buffer = edit_->CurPlainText().toLatin1();
   buffer = buffer.replace("\n", "\r\n");
@@ -562,7 +562,7 @@ void MainWindow::slot_result_analyse_show_helper(const GpgResultAnalyse& r_a,
 }
 
 void MainWindow::SlotDecryptEML() {
-  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) return;
+  if (edit_->TabCount() == 0 || edit_->CurPageTextEdit() == nullptr) return;
 
   auto buffer = edit_->CurPlainText().toLatin1();
   buffer = buffer.replace("\n", "\r\n");
@@ -572,8 +572,8 @@ void MainWindow::SlotDecryptEML() {
   slot_decrypt_email_by_eml_data(buffer);
 }
 
-void MainWindow::slot_decrypt_email_by_eml_data_result_helper(
-    const QMap<QString, QString>& p) {
+void MainWindow::decrypt_email_by_eml_data_result_helper(
+    QMap<QString, QString> p) {
   auto timestamp = p.value("datetime", "-1").toLongLong();
   auto datetime = tr("None");
   if (timestamp > 0) {
@@ -723,7 +723,7 @@ void MainWindow::SlotSignEML() {
               hd();
 
               // check if error occurred
-              if (slot_handle_module_error(p)) return -1;
+              if (handle_module_error(p)) return -1;
 
               if (!p["eml_data"].isEmpty()) {
                 edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
@@ -807,7 +807,7 @@ void MainWindow::SlotEncryptSignEML() {
               hd();
 
               // check if error occurred
-              if (slot_handle_module_error(p)) return -1;
+              if (handle_module_error(p)) return -1;
 
               if (!p["eml_data"].isEmpty()) {
                 edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
@@ -869,7 +869,7 @@ void MainWindow::SlotDecryptVerifyEML() {
               hd();
 
               // check if error occurred
-              if (slot_handle_module_error(p)) return -1;
+              if (handle_module_error(p)) return -1;
 
               if (!p["eml_data"].isEmpty()) {
                 edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
@@ -955,8 +955,7 @@ void MainWindow::SlotDecryptVerifyEML() {
       });
 }
 
-auto MainWindow::slot_handle_module_error(const QMap<QString, QString>& p)
-    -> bool {
+auto MainWindow::handle_module_error(QMap<QString, QString> p) -> bool {
   if (p["ret"] == "-2") {
     QString detailed_error = p["err"];
 

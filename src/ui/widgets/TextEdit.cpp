@@ -33,6 +33,7 @@
 #include <utility>
 
 #include "core/GpgModel.h"
+#include "ui/dialog/QuitDialog.h"
 #include "ui/widgets/HelpPage.h"
 #include "ui/widgets/TextEditTabWidget.h"
 
@@ -142,7 +143,7 @@ void TextEdit::SlotSave() {
   }
 
   if (CurTextPage() != nullptr) {
-    QString file_name = SlotCurPageTextEdit()->GetFilePath();
+    QString file_name = CurPageTextEdit()->GetFilePath();
 
     if (file_name.isEmpty()) {
       // QString docname = tabWidget->tabText(tabWidget->currentIndex());
@@ -157,7 +158,7 @@ void TextEdit::SlotSave() {
 auto TextEdit::saveFile(const QString& file_name) -> bool {
   if (file_name.isEmpty()) return false;
 
-  PlainTextEditorPage* page = SlotCurPageTextEdit();
+  PlainTextEditorPage* page = CurPageTextEdit();
   if (page == nullptr) return false;
 
   QFile file(file_name);
@@ -217,11 +218,11 @@ auto TextEdit::saveEMLFile(const QString& file_name) -> bool {
 }
 
 auto TextEdit::SlotSaveAs() -> bool {
-  if (tab_widget_->count() == 0 || SlotCurPageTextEdit() == nullptr) {
+  if (tab_widget_->count() == 0 || CurPageTextEdit() == nullptr) {
     return true;
   }
 
-  PlainTextEditorPage* page = SlotCurPageTextEdit();
+  PlainTextEditorPage* page = CurPageTextEdit();
   QString path;
   if (!page->GetFilePath().isEmpty()) {
     path = page->GetFilePath();
@@ -251,7 +252,7 @@ auto TextEdit::SlotSaveAsEML() -> bool {
 void TextEdit::SlotCloseTab() {
   slot_remove_tab(tab_widget_->currentIndex());
   if (tab_widget_->count() != 0) {
-    SlotCurPageTextEdit()->GetTextPage()->setFocus();
+    CurPageTextEdit()->GetTextPage()->setFocus();
   }
 }
 
@@ -289,7 +290,7 @@ void TextEdit::slot_remove_tab(int index) {
  * If it returns false, the close event should be aborted.
  */
 auto TextEdit::maybe_save_current_tab(bool askToSave) -> bool {
-  PlainTextEditorPage* page = SlotCurPageTextEdit();
+  PlainTextEditorPage* page = CurPageTextEdit();
   // if this page is no textedit, there should be nothing to save
   if (page == nullptr) {
     return true;
@@ -398,8 +399,8 @@ auto TextEdit::CurTextPage() const -> PlainTextEditorPage* {
   return tab_widget_->CurTextPage();
 }
 
-auto TextEdit::SlotCurPageTextEdit() const -> PlainTextEditorPage* {
-  return tab_widget_->SlotCurPageTextEdit();
+auto TextEdit::CurPageTextEdit() const -> PlainTextEditorPage* {
+  return tab_widget_->CurPageTextEdit();
 }
 auto TextEdit::CurFilePage() const -> FilePage* {
   return tab_widget_->CurFilePage();
@@ -407,9 +408,8 @@ auto TextEdit::CurFilePage() const -> FilePage* {
 
 auto TextEdit::TabCount() const -> int { return tab_widget_->count(); }
 
-auto TextEdit::SlotCurPageFileTreeView() const -> FilePage* {
-  auto* cur_page = qobject_cast<FilePage*>(tab_widget_->currentWidget());
-  return cur_page;
+auto TextEdit::CurPageFileTreeView() const -> FilePage* {
+  return tab_widget_->CurFilePage();
 }
 
 void TextEdit::SlotQuote() const {
@@ -454,7 +454,7 @@ void TextEdit::LoadFile(const QString& fileName) {
   QApplication::setOverrideCursor(Qt::WaitCursor);
   CurTextPage()->GetTextPage()->setPlainText(in.readAll());
   QApplication::restoreOverrideCursor();
-  SlotCurPageTextEdit()->SetFilePath(fileName);
+  CurPageTextEdit()->SetFilePath(fileName);
   tab_widget_->setTabText(tab_widget_->currentIndex(), stripped_name(fileName));
   file.close();
   // statusBar()->showMessage(tr("File loaded"), 2000);
@@ -528,7 +528,7 @@ void TextEdit::SlotSwitchTabDown() const {
 /*
  *   return a hash of tabindexes and title of unsaved tabs
  */
-QHash<int, QString> TextEdit::UnsavedDocuments() const {
+auto TextEdit::UnsavedDocuments() const -> QHash<int, QString> {
   QHash<int, QString> unsaved_docs;  // this list could be used to implement
                                      // gedit like "unsaved changed"-dialog
 

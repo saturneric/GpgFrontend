@@ -45,7 +45,7 @@
 namespace GpgFrontend::UI {
 
 void MainWindow::SlotEncrypt() {
-  if (edit_->SlotCurPageTextEdit() == nullptr) return;
+  if (edit_->CurPageTextEdit() == nullptr) return;
 
   auto key_ids = m_key_list_->GetChecked();
 
@@ -155,7 +155,7 @@ void MainWindow::SlotEncrypt() {
 }
 
 void MainWindow::SlotSign() {
-  if (edit_->SlotCurPageTextEdit() == nullptr) return;
+  if (edit_->CurPageTextEdit() == nullptr) return;
 
   auto key_ids = m_key_list_->GetCheckedPrivateKey();
   if (key_ids->empty()) {
@@ -220,7 +220,7 @@ void MainWindow::SlotSign() {
 }
 
 void MainWindow::SlotDecrypt() {
-  if (edit_->SlotCurPageTextEdit() == nullptr) return;
+  if (edit_->CurPageTextEdit() == nullptr) return;
 
   // data to transfer into task
   auto buffer = GFBuffer(edit_->CurPlainText());
@@ -258,7 +258,7 @@ void MainWindow::SlotDecrypt() {
 }
 
 void MainWindow::SlotVerify() {
-  if (edit_->SlotCurPageTextEdit() == nullptr) return;
+  if (edit_->CurPageTextEdit() == nullptr) return;
 
   // set input buffer
   auto buffer = GFBuffer(edit_->CurPlainText());
@@ -370,7 +370,7 @@ void MainWindow::SlotVerify(const QByteArray& raw_data,
 }
 
 void MainWindow::SlotEncryptSign() {
-  if (edit_->SlotCurPageTextEdit() == nullptr) return;
+  if (edit_->CurPageTextEdit() == nullptr) return;
 
   auto key_ids = m_key_list_->GetChecked();
 
@@ -470,7 +470,7 @@ void MainWindow::SlotEncryptSign() {
 }
 
 void MainWindow::SlotDecryptVerify() {
-  if (edit_->SlotCurPageTextEdit() == nullptr) return;
+  if (edit_->CurPageTextEdit() == nullptr) return;
 
   // data to transfer into task
   auto buffer = GFBuffer(edit_->CurPlainText());

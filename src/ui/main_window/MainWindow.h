@@ -536,22 +536,6 @@ class MainWindow : public GeneralMainWindow {
    */
   void slot_decrypt_email_by_eml_data(const QByteArray& buffer);
 
-  /**
-   * @brief
-   *
-   */
-  void slot_decrypt_email_by_eml_data_result_helper(
-      const QMap<QString, QString>& p);
-
-  /**
-   * @brief
-   *
-   * @param err_code
-   * @param error_string
-   * @return QString
-   */
-  auto slot_handle_module_error(const QMap<QString, QString>& p) -> bool;
-
  private:
   /**
    * @details Create actions for the main-menu and the context-menu of the
@@ -611,6 +595,21 @@ class MainWindow : public GeneralMainWindow {
   auto create_action(const QString& id, const QString& name,
                      const QString& icon, const QString& too_tip,
                      const QList<QKeySequence>& shortcuts = {}) -> QAction*;
+
+  /**
+   * @brief
+   *
+   */
+  void decrypt_email_by_eml_data_result_helper(QMap<QString, QString> p);
+
+  /**
+   * @brief
+   *
+   * @param err_code
+   * @param error_string
+   * @return QString
+   */
+  auto handle_module_error(QMap<QString, QString> p) -> bool;
 
   TextEdit* edit_{};          ///< Tabwidget holding the edit-windows
   QMenu* file_menu_{};        ///<  Submenu for file-operations

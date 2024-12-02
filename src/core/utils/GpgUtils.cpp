@@ -179,8 +179,13 @@ auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseInfos()
   if (!gpg_key_database_info_cache.empty()) return gpg_key_database_info_cache;
 
   auto context_index_list = Module::ListRTChildKeys("core", "gpgme.ctx.list");
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
   gpg_key_database_info_cache.resize(
       static_cast<qsizetype>(context_index_list.size()));
+#else
+  gpg_key_database_info_cache.reserve(
+      static_cast<qsizetype>(context_index_list.size()));
+#endif
 
   for (auto& context_index : context_index_list) {
     LOG_D() << "context grt key: " << context_index;

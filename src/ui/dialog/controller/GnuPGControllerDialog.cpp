@@ -450,7 +450,7 @@ void GnuPGControllerDialog::slot_remove_existing_key_database() {
       return;
     }
 
-    key_databases.remove(i);
+    key_databases.removeAt(i);
     break;
   }
 

@@ -125,7 +125,7 @@ void MainWindow::slot_open_settings_dialog() {
 }
 
 void MainWindow::slot_clean_double_line_breaks() {
-  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
+  if (edit_->TabCount() == 0 || edit_->CurPageTextEdit() == nullptr) {
     return;
   }
 
@@ -135,7 +135,7 @@ void MainWindow::slot_clean_double_line_breaks() {
 }
 
 void MainWindow::slot_add_pgp_header() {
-  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
+  if (edit_->TabCount() == 0 || edit_->CurPageTextEdit() == nullptr) {
     return;
   }
 
@@ -148,7 +148,7 @@ void MainWindow::slot_add_pgp_header() {
 }
 
 void MainWindow::slot_cut_pgp_header() {
-  if (edit_->TabCount() == 0 || edit_->SlotCurPageTextEdit() == nullptr) {
+  if (edit_->TabCount() == 0 || edit_->CurPageTextEdit() == nullptr) {
     return;
   }
 
@@ -206,8 +206,8 @@ void MainWindow::SlotUpdateCryptoMenuStatus(unsigned int type) {
 }
 
 void MainWindow::SlotGeneralEncrypt(bool) {
-  if (edit_->SlotCurPageFileTreeView() != nullptr) {
-    const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+  if (edit_->CurPageFileTreeView() != nullptr) {
+    const auto* file_tree_view = edit_->CurPageFileTreeView();
     const auto path = file_tree_view->GetSelected();
 
     const auto file_info = QFileInfo(path);
@@ -223,14 +223,14 @@ void MainWindow::SlotGeneralEncrypt(bool) {
     return;
   }
 
-  if (edit_->SlotCurPageTextEdit() != nullptr) {
+  if (edit_->CurPageTextEdit() != nullptr) {
     this->SlotEncrypt();
   }
 }
 
 void MainWindow::SlotGeneralDecrypt(bool) {
-  if (edit_->SlotCurPageFileTreeView() != nullptr) {
-    const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+  if (edit_->CurPageFileTreeView() != nullptr) {
+    const auto* file_tree_view = edit_->CurPageFileTreeView();
     const auto path = file_tree_view->GetSelected();
 
     const auto file_info = QFileInfo(path);
@@ -250,14 +250,14 @@ void MainWindow::SlotGeneralDecrypt(bool) {
     return;
   }
 
-  if (edit_->SlotCurPageTextEdit() != nullptr) {
+  if (edit_->CurPageTextEdit() != nullptr) {
     this->SlotDecrypt();
   }
 }
 
 void MainWindow::SlotGeneralSign(bool) {
-  if (edit_->SlotCurPageFileTreeView() != nullptr) {
-    const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+  if (edit_->CurPageFileTreeView() != nullptr) {
+    const auto* file_tree_view = edit_->CurPageFileTreeView();
     const auto path = file_tree_view->GetSelected();
 
     const auto file_info = QFileInfo(path);
@@ -269,12 +269,12 @@ void MainWindow::SlotGeneralSign(bool) {
     return;
   }
 
-  if (edit_->SlotCurPageTextEdit() != nullptr) this->SlotSign();
+  if (edit_->CurPageTextEdit() != nullptr) this->SlotSign();
 }
 
 void MainWindow::SlotGeneralVerify(bool) {
-  if (edit_->SlotCurPageFileTreeView() != nullptr) {
-    const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+  if (edit_->CurPageFileTreeView() != nullptr) {
+    const auto* file_tree_view = edit_->CurPageFileTreeView();
     const auto path = file_tree_view->GetSelected();
 
     const auto file_info = QFileInfo(path);
@@ -286,12 +286,12 @@ void MainWindow::SlotGeneralVerify(bool) {
     return;
   }
 
-  if (edit_->SlotCurPageTextEdit() != nullptr) this->SlotVerify();
+  if (edit_->CurPageTextEdit() != nullptr) this->SlotVerify();
 }
 
 void MainWindow::SlotGeneralEncryptSign(bool) {
-  if (edit_->SlotCurPageFileTreeView() != nullptr) {
-    const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+  if (edit_->CurPageFileTreeView() != nullptr) {
+    const auto* file_tree_view = edit_->CurPageFileTreeView();
     const auto path = file_tree_view->GetSelected();
 
     const auto file_info = QFileInfo(path);
@@ -307,14 +307,14 @@ void MainWindow::SlotGeneralEncryptSign(bool) {
     return;
   }
 
-  if (edit_->SlotCurPageTextEdit() != nullptr) {
+  if (edit_->CurPageTextEdit() != nullptr) {
     this->SlotEncryptSign();
   }
 }
 
 void MainWindow::SlotGeneralDecryptVerify(bool) {
-  if (edit_->SlotCurPageFileTreeView() != nullptr) {
-    const auto* file_tree_view = edit_->SlotCurPageFileTreeView();
+  if (edit_->CurPageFileTreeView() != nullptr) {
+    const auto* file_tree_view = edit_->CurPageFileTreeView();
     const auto path = file_tree_view->GetSelected();
 
     const auto file_info = QFileInfo(path);
@@ -334,7 +334,7 @@ void MainWindow::SlotGeneralDecryptVerify(bool) {
     return;
   }
 
-  if (edit_->SlotCurPageTextEdit() != nullptr) {
+  if (edit_->CurPageTextEdit() != nullptr) {
     this->SlotDecryptVerify();
   }
 }

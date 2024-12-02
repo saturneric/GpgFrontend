@@ -183,17 +183,14 @@ auto TextEditTabWidget::CurEMailPage() const -> EMailEditorPage* {
   return qobject_cast<EMailEditorPage*>(this->currentWidget());
 }
 
-auto TextEditTabWidget::SlotCurPageTextEdit() -> PlainTextEditorPage* {
+auto TextEditTabWidget::CurPageTextEdit() const -> PlainTextEditorPage* {
   auto* cur_page = qobject_cast<PlainTextEditorPage*>(this->currentWidget());
   return cur_page;
 }
 
 auto TextEditTabWidget::CurFilePage() const -> FilePage* {
   auto* cur_file_page = qobject_cast<FilePage*>(this->currentWidget());
-  if (cur_file_page != nullptr) {
-    return cur_file_page;
-  }
-  return nullptr;
+  return cur_file_page;
 }
 
 auto TextEditTabWidget::stripped_name(const QString& full_file_name)

@@ -40,14 +40,20 @@ GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
 #endif
 
   QString application_display_name = GetProjectName();
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+  const auto commit_short_hash = GetProjectBuildGitCommitHash().last(6);
+#else
+  const auto commit_short_hash = GetProjectBuildGitCommitHash().right(6);
+#endif
+
   if (GetProjectBuildGitBranchName().contains("develop")) {
-    application_display_name +=
-        " " +
-        QString("Testing (%1)").arg(GetProjectBuildGitCommitHash().last(6));
+    application_display_name += " " +
+
+                                QString("Testing (%1)").arg(commit_short_hash);
   } else if (GetProjectBuildGitBranchName().contains("dev/")) {
     application_display_name +=
-        " " +
-        QString("Develop (%1)").arg(GetProjectBuildGitCommitHash().last(6));
+        " " + QString("Develop (%1)").arg(commit_short_hash);
   }
 
   // set the extra information of the build

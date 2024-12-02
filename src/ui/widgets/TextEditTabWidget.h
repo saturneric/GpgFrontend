@@ -39,6 +39,34 @@ class TextEditTabWidget : public QTabWidget {
  public:
   explicit TextEditTabWidget(QWidget* parent = nullptr);
 
+  /**
+   * @brief
+   *
+   * @return PlainTextEditorPage*
+   */
+  [[nodiscard]] auto CurTextPage() const -> PlainTextEditorPage*;
+
+  /**
+   * @brief
+   *
+   * @return PlainTextEditorPage*
+   */
+  [[nodiscard]] auto CurEMailPage() const -> EMailEditorPage*;
+
+  /**
+   * @brief
+   *
+   * @return PlainTextEditorPage*
+   */
+  [[nodiscard]] auto CurPageTextEdit() const -> PlainTextEditorPage*;
+
+  /**
+   * @brief
+   *
+   * @return FilePage*
+   */
+  [[nodiscard]] auto CurFilePage() const -> FilePage*;
+
  public slots:
 
   /**
@@ -84,34 +112,6 @@ class TextEditTabWidget : public QTabWidget {
    * modified
    */
   void SlotShowModified();
-
-  /**
-   * @brief
-   *
-   * @return PlainTextEditorPage*
-   */
-  [[nodiscard]] auto CurTextPage() const -> PlainTextEditorPage*;
-
-  /**
-   * @brief
-   *
-   * @return PlainTextEditorPage*
-   */
-  [[nodiscard]] auto CurEMailPage() const -> EMailEditorPage*;
-
-  /**
-   * @brief
-   *
-   * @return PlainTextEditorPage*
-   */
-  auto SlotCurPageTextEdit() -> PlainTextEditorPage*;
-
-  /**
-   * @brief
-   *
-   * @return FilePage*
-   */
-  [[nodiscard]] auto CurFilePage() const -> FilePage*;
 
  protected:
   /**
