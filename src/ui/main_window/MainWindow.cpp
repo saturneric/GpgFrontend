@@ -131,24 +131,30 @@ void MainWindow::Init() noexcept {
 
     info_board_->AssociateTabWidget(edit_->TabWidget());
 
-    Module::ListenRTPublishEvent(
-        this, kVersionCheckingModuleID, "version.loading_done",
-        [=](Module::Namespace, Module::Key, int, std::any) {
-          FLOG_D(
-              "version-checking version.loading_done changed, calling slot "
-              "version upgrade");
-          this->slot_version_upgrade_notify();
-        });
-
     // loading process is done
     emit SignalLoaded();
     Module::TriggerEvent("APPLICATION_LOADED");
+
+    // check version information
+    auto settings = GlobalSettingStation::GetInstance().GetSettings();
+    auto prohibit_update_checking =
+        settings.value("network/prohibit_update_checking").toBool();
+    if (!prohibit_update_checking) {
+      Module::ListenRTPublishEvent(
+          this, kVersionCheckingModuleID, "version.loading_done",
+          [=](Module::Namespace, Module::Key, int, std::any) {
+            FLOG_D(
+                "version-checking version.loading_done changed, calling slot "
+                "version upgrade");
+            this->slot_version_upgrade_notify();
+          });
+      Module::TriggerEvent("CHECK_APPLICATION_VERSION");
+    }
 
     // recover unsaved page from cache if it exists
     recover_editor_unsaved_pages_from_cache();
 
     // check if need to open wizard window
-    auto settings = GlobalSettingStation::GetInstance().GetSettings();
     auto show_wizard = settings.value("wizard/show_wizard", true).toBool();
     if (show_wizard) slot_start_wizard();
 
