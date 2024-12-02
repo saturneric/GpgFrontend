@@ -38,8 +38,8 @@ on:
       - "**.md"
 
 env:
-  # Customize the CMake build type here (Release, Debug, etc.)
   BUILD_TYPE: Release
+  GNUPG_VERSION: "2.4.7"
 
 jobs:
   build:
