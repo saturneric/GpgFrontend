@@ -48,7 +48,7 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgSignData(int channel, char** key_ids,
                                                  int key_ids_size, char* data,
                                                  int sign_mode, int ascii,
                                                  GFGpgSignResult** ps) -> int {
-  auto singer_ids = CharArrayToQList(key_ids, key_ids_size);
+  auto singer_ids = CharArrayToQStringList(key_ids, key_ids_size);
 
   GpgFrontend::KeyArgsList signer_keys;
   for (const auto& signer_id : singer_ids) {
@@ -130,7 +130,7 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgKeyPrimaryUID(int channel, char* key_id,
 auto GPGFRONTEND_MODULE_SDK_EXPORT
 GFGpgEncryptData(int channel, char** key_ids, int key_ids_size, char* data,
                  int ascii, GFGpgEncryptionResult** ps) -> int {
-  auto encrypt_key_ids = CharArrayToQList(key_ids, key_ids_size);
+  auto encrypt_key_ids = CharArrayToQStringList(key_ids, key_ids_size);
 
   GpgFrontend::KeyArgsList encrypt_keys;
   for (const auto& encrypt_key_id : encrypt_key_ids) {

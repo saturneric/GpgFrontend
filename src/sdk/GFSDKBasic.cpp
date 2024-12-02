@@ -53,43 +53,34 @@ auto GFProjectVersion() -> const char* {
 
 auto GFQtEnvVersion() -> const char* { return GFStrDup(QT_VERSION_STR); }
 
-void GFExecuteCommandSync(const char* cmd, int32_t argc, const char** argv,
+void GFExecuteCommandSync(const char* cmd, int32_t argc, char** argv,
                           GFCommandExecuteCallback cb, void* data) {
-  QStringList args;
-  for (int i = 0; i < argc; i++) {
-    args.append(GFUnStrDup(argv[i]));
-  }
-
+  QStringList args = CharArrayToQStringList(argv, argc);
   GpgFrontend::GpgCommandExecutor::ExecuteContext const context{
       cmd, args, [=](int exit_code, const QString& out, const QString& err) {
         cb(data, exit_code, out.toUtf8(), err.toUtf8());
       }};
-
   GpgFrontend::GpgCommandExecutor::ExecuteSync(context);
 }
 
-void GFExecuteCommandBatchSync(int32_t context_size,
-                               const GFCommandExecuteContext* context) {
-  QList<GpgFrontend::GpgCommandExecutor::ExecuteContext> contexts;
+void GFExecuteCommandBatchSync(GFCommandExecuteContext** contexts,
+                               int32_t contexts_size) {
+  QList<GpgFrontend::GpgCommandExecutor::ExecuteContext> core_contexts;
 
-  for (int i = 0; i < context_size; i++) {
-    const auto& exec_context = context[i];
-
-    QStringList args;
-    const char** argv = exec_context.argv;
-    for (int j = 0; j < exec_context.argc; j++) {
-      args.append(GFUnStrDup(argv[j]));
-    }
-
-    contexts.append(
-        {exec_context.cmd, args,
-         [data = exec_context.data, cb = exec_context.cb](
+  QList<GFCommandExecuteContext> sdk_contexts =
+      ArrayToQList(contexts, contexts_size);
+  for (const auto sdk_context : sdk_contexts) {
+    QStringList args =
+        CharArrayToQStringList(sdk_context.argv, sdk_context.argc);
+    core_contexts.append(
+        {GFUnStrDup(sdk_context.cmd), args,
+         [data = sdk_context.data, cb = sdk_context.cb](
              int exit_code, const QString& out, const QString& err) {
            cb(data, exit_code, out.toUtf8(), err.toUtf8());
          }});
   }
 
-  GpgFrontend::GpgCommandExecutor::ExecuteConcurrentlySync(contexts);
+  GpgFrontend::GpgCommandExecutor::ExecuteConcurrentlySync(core_contexts);
 }
 
 auto StrlenSafe(const char* str, size_t max_len) -> size_t {

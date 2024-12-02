@@ -105,7 +105,7 @@ auto ConvertEventParamsToMap(GFModuleEventParam* params)
   return param_map;
 }
 
-auto CharArrayToQList(char** char_array, int size) -> QStringList {
+auto CharArrayToQStringList(char** char_array, int size) -> QStringList {
   QStringList list;
   for (int i = 0; i < size; ++i) {
     if (char_array[i] != nullptr) {
@@ -117,7 +117,7 @@ auto CharArrayToQList(char** char_array, int size) -> QStringList {
   return list;
 }
 
-auto QListToCharArray(const QStringList& list) -> char** {
+auto QStringListToCharArray(const QStringList& list) -> char** {
   char** char_array = static_cast<char**>(
       GpgFrontend::SecureMalloc(list.size() * sizeof(char*)));
 

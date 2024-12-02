@@ -42,11 +42,11 @@ using GFCommandExecuteCallback = void (*)(void* data, int errcode,
                                           const char* out, const char* err);
 
 using GFCommandExecuteContext = struct {
-  const char* cmd;
+  char* cmd;
   int32_t argc;
-  const char** argv;
+  char** argv;
   GFCommandExecuteCallback cb;
-  void* data;
+  void* data;  ///< must free by user
 };
 
 using GFTranslatorDataReader = int (*)(const char* locale, char** data);
@@ -106,7 +106,7 @@ void GPGFRONTEND_MODULE_SDK_EXPORT GFFreeMemory(void*);
  * @param data
  */
 void GPGFRONTEND_MODULE_SDK_EXPORT
-GFExecuteCommandSync(const char* cmd, int32_t argc, const char** argv,
+GFExecuteCommandSync(const char* cmd, int32_t argc, char** argv,
                      GFCommandExecuteCallback cb, void* data);
 
 /**
@@ -116,7 +116,7 @@ GFExecuteCommandSync(const char* cmd, int32_t argc, const char** argv,
  * @param context
  */
 void GPGFRONTEND_MODULE_SDK_EXPORT GFExecuteCommandBatchSync(
-    int32_t context_size, const GFCommandExecuteContext* context);
+    GFCommandExecuteContext** contexts, int32_t contexts_size);
 
 /**
  * @brief

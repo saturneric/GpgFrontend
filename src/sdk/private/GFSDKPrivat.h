@@ -28,7 +28,8 @@
 
 #pragma once
 
-// declare logging category
+#include <core/function/SecureMemoryAllocator.h>
+
 Q_DECLARE_LOGGING_CATEGORY(sdk)
 
 #define LOG_D() qCDebug(sdk)
@@ -95,7 +96,7 @@ auto ConvertEventParamsToMap(GFModuleEventParam *params)
  * @param size
  * @return QStringList
  */
-auto CharArrayToQList(char **char_array, int size) -> QStringList;
+auto CharArrayToQStringList(char **char_array, int size) -> QStringList;
 
 /**
  * @brief
@@ -104,4 +105,34 @@ auto CharArrayToQList(char **char_array, int size) -> QStringList;
  * @param size
  * @return char**
  */
-auto QListToCharArray(const QStringList &list) -> char **;
+auto QStringListToCharArray(const QStringList &list) -> char **;
+
+template <typename T>
+inline auto ArrayToQList(T **pl_components, int size) -> QList<T> {
+  if (pl_components == nullptr || size <= 0) {
+    return QList<T>();
+  }
+
+  QList<T> list;
+  for (int i = 0; i < size; ++i) {
+    list.append(*pl_components[i]);
+    GpgFrontend::SecureMemoryAllocator::Deallocate(pl_components[i]);
+  }
+  GpgFrontend::SecureMemoryAllocator::Deallocate(pl_components);
+  return list;
+}
+
+template <typename T>
+inline auto QListToArray(const QList<T> &list) -> T ** {
+  T **array = static_cast<T **>(
+      GpgFrontend::SecureMemoryAllocator::Allocate(list.size() * sizeof(T *)));
+  int index = 0;
+  for (const T &item : list) {
+    auto mem = static_cast<T *>(
+        GpgFrontend::SecureMemoryAllocator::Allocate(sizeof(T)));
+    array[index] = new (mem) T(item);
+    index++;
+  }
+
+  return array;
+}
