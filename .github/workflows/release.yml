@@ -45,7 +45,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: ["ubuntu-20.04", "macos-13", "macos-14", "windows-2019"]
+        os: ["ubuntu-20.04", "macos-13", "macos-14", "macos-15", "windows-2019"]
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:
@@ -53,7 +53,7 @@ jobs:
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf
-        if: matrix.os == 'windows-2019' || matrix.os == 'macos-13' || matrix.os == 'macos-14'
+        if: runner.os == 'Windows' || runner.os == 'macOS'
 
       - uses: actions/checkout@v4
         with:
@@ -74,7 +74,7 @@ jobs:
           sudo apt-get -y install libgcrypt20-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev gyp
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-image0
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-* libxkbcommon-x11-0
-        if: matrix.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
 
       - name: Codesign Configuration (macOS)
         run: |
@@ -94,14 +94,14 @@ jobs:
 
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
-        if: matrix.os == 'macos-13' || matrix.os == 'macos-14'
+        if: runner.os == 'macOS'
 
       - name: Install Qt6
         uses: jurplel/install-qt-action@v3
         with:
           version: "6.7.2"
           cache: "true"
-        if: matrix.os == 'ubuntu-20.04' || matrix.os == 'macos-13' || matrix.os == 'macos-14'
+        if: runner.os == 'Linux' || runner.os == 'macOS'
 
       - name: Install Dependence (macOS)
         run: |
@@ -109,7 +109,7 @@ jobs:
           brew install ninja libarchive gpgme googletest
           brew install create-dmg
           brew link openssl@3 --force
-        if: matrix.os == 'macos-13' || matrix.os == 'macos-14'
+        if: runner.os == 'macOS'
 
       - name: Set up MinGW (Windows)
         uses: msys2/setup-msys2@v2
@@ -137,7 +137,7 @@ jobs:
             mingw-w64-x86_64-gpgme
             mingw-w64-x86_64-libarchive
             mingw-w64-x86_64-gtest
-        if: matrix.os == 'windows-2019'
+        if: runner.os == 'Windows'
 
       - name: Build gpg-error (Linux)
         run: |
@@ -147,7 +147,7 @@ jobs:
           ./configure --enable-maintainer-mode && make -j4
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
 
       - name: Build assuan (Linux)
         run: |
@@ -157,7 +157,7 @@ jobs:
           ./configure --enable-maintainer-mode && make -j4
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
 
       - name: Build GpgME (Linux)
         run: |
@@ -167,7 +167,7 @@ jobs:
           ./configure --enable-maintainer-mode --enable-languages=cpp && make -j4
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
 
       - name: Build googletest (Linux)
         run: |
@@ -177,14 +177,14 @@ jobs:
           cmake -G Ninja -DBUILD_SHARED_LIBS=ON ..
           ninja
           sudo ninja install
-        if: matrix.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
 
       - name: Build & Install Full SDK
         run: |
           cmake -B ${{github.workspace}}/build-full-sdk -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_FULL_SDK=ON
           cmake --build ${{github.workspace}}/build-full-sdk --config {{$env.BUILD_TYPE}} -- -v
           sudo cmake --install ${{github.workspace}}/build-full-sdk --config {{$env.BUILD_TYPE}}
-        if: matrix.os == 'ubuntu-20.04' || matrix.os == 'macos-13' || matrix.os == 'macos-14'
+        if: runner.os == 'Linux' || runner.os == 'macOS'
 
       - name: Build & Install Full SDK (Windows)
         shell: msys2 {0}
@@ -194,14 +194,14 @@ jobs:
           cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_FULL_SDK=ON -DCMAKE_INSTALL_PREFIX=$MSYSTEM_PREFIX ..
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
           cmake --install . --config {{$env.BUILD_TYPE}}
-        if: matrix.os == 'windows-2019'
+        if: runner.os == 'Windows'
 
       - name: Build Integrated Modules
         run: |
           cmake -S ${{github.workspace}}/modules -B ${{github.workspace}}/modules/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/modules/build/artifacts
           cmake --build ${{github.workspace}}/modules/build --config {{$env.BUILD_TYPE}} -- -v
           cmake --install ${{github.workspace}}/modules/build --config {{$env.BUILD_TYPE}}
-        if: matrix.os == 'ubuntu-20.04' || matrix.os == 'macos-13' || matrix.os == 'macos-14'
+        if: runner.os == 'Linux' || runner.os == 'macOS'
 
       - name: Build Integrated Modules (Windows)
         shell: msys2 {0}
@@ -212,7 +212,7 @@ jobs:
           cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON -DCMAKE_INSTALL_PREFIX=./artifacts ..
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
           cmake --install . --config {{$env.BUILD_TYPE}}
-        if: matrix.os == 'windows-2019'
+        if: runner.os == 'Windows'
 
       - name: Build & Export GpgFrontend (macOS)
         # Build your GpgFrontend with the given configuration
@@ -232,7 +232,7 @@ jobs:
           xcodebuild -exportArchive -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
             -exportOptionsPlist ${{github.workspace}}/build/ExportOptions.plist \
             -exportPath ${{github.workspace}}/build/package/
-        if: matrix.os == 'macos-13' || matrix.os == 'macos-14'
+        if: runner.os == 'macOS'
 
       - name: Copy Modules into Bundle & Deploy Qt & Code Sign (macOS)
         run: |
@@ -240,7 +240,7 @@ jobs:
           cmake -E copy_directory ${{github.workspace}}/modules/build/artifacts/modules ${{github.workspace}}/build/package/GpgFrontend.app/Contents/Modules
           macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app -verbose=2 -appstore-compliant -always-overwrite
           codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" -f --deep --options=runtime --timestamp ${{github.workspace}}/build/package/GpgFrontend.app
-        if: matrix.os == 'macos-13' || matrix.os == 'macos-14'
+        if: runner.os == 'macOS'
 
       - name: Package & Sign App Bundle (macOS)
         run: |
@@ -254,7 +254,7 @@ jobs:
             ${{github.workspace}}/build/final-artifact/GpgFrontend-${{env.sha_short}}-x86_64.dmg
           mv ${{github.workspace}}/build/GpgFrontend.app.zip \
             ${{github.workspace}}/build/GpgFrontend-${{env.sha_short}}-x86_64.zip
-        if: matrix.os == 'macos-13' || matrix.os == 'macos-14'
+        if: runner.os == 'macOS'
 
       - name: Notarize Release Build (macOS)
         run: |
@@ -265,14 +265,14 @@ jobs:
           ${{github.workspace}}/build/GpgFrontend-${{env.sha_short}}-x86_64.zip
           echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE} | tr '[:upper:]' '[:lower:]')" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
-        if: matrix.os == 'macos-13' || matrix.os == 'macos-14'
+        if: runner.os == 'macOS'
 
       - name: Build GpgFrontend (Linux)
         # Build your GpgFrontend with the given configuration
         run: |
           cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DDGPGFRONTEND_BUILD_TYPE_ONLY_APPLICATION=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
-        if: matrix.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
 
       - name: Copy Modules & Package App Image (Linux)
         run: |
@@ -285,7 +285,7 @@ jobs:
           ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines -appimage -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/modules/
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
-        if: matrix.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
 
       - name: Configure CMake & Build Application (Windows)
         shell: msys2 {0}
@@ -294,13 +294,13 @@ jobs:
           mkdir build && cd build
           cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_ONLY_APPLICATION=ON ..
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
-        if: matrix.os == 'windows-2019'
+        if: runner.os == 'Windows'
 
       - name: Generate Env Vars (Windows)
         run: |
           echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
           echo "BUILD_TYPE_LOWER=$("${{env.BUILD_TYPE}}".ToLower())" >> $env:GITHUB_ENV
-        if: matrix.os == 'windows-2019'
+        if: runner.os == 'Windows'
 
       - name: Download GnuPG Binary Release (Windows)
         shell: msys2 {0}
@@ -327,7 +327,7 @@ jobs:
           mkdir -p build/artifacts
           unzip build/downloads/$FILE -d build/artifacts/
           ls -l build/artifacts/
-        if: matrix.os == 'windows-2019'
+        if: runner.os == 'Windows'
 
       - name: Copy Modules & Package (Windows)
         shell: msys2 {0}
@@ -349,25 +349,25 @@ jobs:
           mkdir upload-artifact
           cd artifacts
           zip -r ../upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-x86_64.zip *
-        if: matrix.os == 'windows-2019'
+        if: runner.os == 'Windows'
 
       - name: Upload Artifact (Linux)
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
           path: ${{github.workspace}}/build/final-artifact/Gpg_Frontend*.AppImage*
-        if: matrix.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
 
       - name: Upload Artifact (macOS)
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
           path: ${{github.workspace}}/build/final-artifact/*
-        if: matrix.os == 'macos-13' || matrix.os == 'macos-14'
+        if: runner.os == 'macOS'
 
       - name: Upload Artifact (Windows)
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
           path: ${{github.workspace}}/build/artifacts/*
-        if: matrix.os == 'windows-2019'
+        if: runner.os == 'Windows'

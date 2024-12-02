@@ -53,7 +53,7 @@ jobs:
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf
-        if: matrix.os == 'windows-2019'
+        if: runner.os == 'Windows'
 
       - uses: actions/checkout@v4
         with:
@@ -69,7 +69,7 @@ jobs:
         with:
           install: git msys2-devel base-devel binutils mingw-w64-x86_64-toolchain
           release: false
-        if: matrix.os == 'windows-2019'
+        if: runner.os == 'Windows'
 
       - name: Set up MinGW (Windows)
         uses: msys2/setup-msys2@v2
@@ -97,7 +97,7 @@ jobs:
             mingw-w64-x86_64-gpgme
             mingw-w64-x86_64-libarchive
             mingw-w64-x86_64-gtest
-        if: matrix.os == 'windows-2019'
+        if: runner.os == 'Windows'
 
       - name: Install Dependence (Linux)
         run: |
@@ -109,14 +109,14 @@ jobs:
           sudo apt-get -y install libgcrypt20-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev gyp
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-image0
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-* libxkbcommon-x11-0
-        if: matrix.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
 
       - name: Install Qt5
         uses: jurplel/install-qt-action@v3
         with:
           version: "5.15.2"
           cache: "true"
-        if: matrix.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
 
       - name: Build gpg-error (Linux)
         run: |
@@ -126,7 +126,7 @@ jobs:
           ./configure --enable-maintainer-mode && make -j4
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
 
       - name: Build assuan (Linux)
         run: |
@@ -136,7 +136,7 @@ jobs:
           ./configure --enable-maintainer-mode && make -j4
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
 
       - name: Build GpgME (Linux)
         run: |
@@ -146,7 +146,7 @@ jobs:
           ./configure --enable-maintainer-mode --enable-languages=cpp && make -j4
           sudo make install
           cd ${{github.workspace}}
-        if: matrix.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
 
       - name: Build googletest (Linux)
         run: |
@@ -156,7 +156,7 @@ jobs:
           cmake -G Ninja -DBUILD_SHARED_LIBS=ON ..
           ninja
           sudo ninja install
-        if: matrix.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
 
       - name: Configure CMake & Build Binary (Windows)
         shell: msys2 {0}
@@ -165,14 +165,14 @@ jobs:
           mkdir build && cd build
           cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON -DGPGFRONTEND_QT5_BUILD=ON ..
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
-        if: matrix.os == 'windows-2019'
+        if: runner.os == 'Windows'
 
       - name: Build GpgFrontend (Linux)
         # Build your GpgFrontend with the given configuration
         run: |
           cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_QT5_BUILD=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
-        if: matrix.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
 
       - name: Package App Image (Linux)
         run: |
@@ -183,13 +183,13 @@ jobs:
           ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines -appimage
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
-        if: matrix.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
 
       - name: Generate Env Vars (Windows)
         run: |
           echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
           echo "BUILD_TYPE_LOWER=$("${{env.BUILD_TYPE}}".ToLower())" >> $env:GITHUB_ENV
-        if: matrix.os == 'windows-2019'
+        if: runner.os == 'Windows'
 
       - name: Download GnuPG Binary Release (Windows)
         shell: msys2 {0}
@@ -216,7 +216,7 @@ jobs:
           mkdir -p build/artifacts
           unzip build/downloads/$FILE -d build/artifacts/
           ls -l build/artifacts/
-        if: matrix.os == 'windows-2019'
+        if: runner.os == 'Windows'
 
       - name: Copy Modules & Package (Windows)
         shell: msys2 {0}
@@ -236,18 +236,18 @@ jobs:
           mkdir upload-artifact
           cd artifacts
           zip -r ../upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-x86_64.zip *
-        if: matrix.os == 'windows-2019'
+        if: runner.os == 'Windows'
 
       - name: Upload Artifact(Linux)
         uses: actions/upload-artifact@v4
         with:
           name: gpgfrontend-qt5-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{ env.SHORT_SHA }}
           path: ${{github.workspace}}/build/final-artifact/Gpg_Frontend*.AppImage*
-        if: matrix.os == 'ubuntu-20.04'
+        if: runner.os == 'Linux'
 
       - name: Upload Artifact(Windows)
         uses: actions/upload-artifact@v4
         with:
           name: gpgfrontend-qt5-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{ env.SHORT_SHA }}
           path: ${{github.workspace}}/build/artifacts/*
-        if: matrix.os == 'windows-2019'
+        if: runner.os == 'Windows'
