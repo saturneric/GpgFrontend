@@ -124,6 +124,13 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
    */
   void ClearAllDataObjects() const;
 
+  /**
+   * @brief Get the Integrated Module Path object
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto GetIntegratedModulePath() const -> QString;
+
  private:
   class Impl;
   SecureUniquePtr<Impl> p_;

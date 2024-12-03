@@ -49,45 +49,17 @@ auto SearchModuleFromPath(const QString& mods_path,
 }
 
 auto LoadIntegratedMods() -> QMap<QString, bool> {
-  const auto exec_binary_path = GlobalSettingStation::GetInstance().GetAppDir();
-  QString mods_path = exec_binary_path + "/modules";
+  const auto module_path =
+      GlobalSettingStation::GetInstance().GetIntegratedModulePath();
+  LOG_I() << "loading integrated modules from path:" << module_path;
 
-#if defined(__linux__)
-  // AppImage
-  if (!qEnvironmentVariable("APPIMAGE").isEmpty()) {
-    mods_path = qEnvironmentVariable("APPDIR") + "/usr/modules";
-  }
-  // Flatpak
-  if (!qEnvironmentVariable("container").isEmpty()) {
-    mods_path = "/app/modules";
-  }
-#endif
-
-#if defined(_WIN32) || defined(WIN32)
-
-#ifdef NDEBUG
-  mods_path = exec_binary_path + "/../modules";
-#else
-  mods_path = exec_binary_path + "/../modules/bin";
-#endif
-
-#endif
-
-#if defined(__APPLE__) && defined(__MACH__)
-
-#ifdef NDEBUG
-  mods_path = exec_binary_path + "/../Modules";
-#endif
-
-#endif
-
-  if (!QDir(mods_path).exists()) {
-    LOG_W() << "integrated module directory at path: " << mods_path
+  if (!QDir(module_path).exists()) {
+    LOG_W() << "integrated modules at path: " << module_path
             << " not found, abort...";
     return {};
   }
 
-  return SearchModuleFromPath(mods_path, true);
+  return SearchModuleFromPath(module_path, true);
 }
 
 auto LoadExternalMods() -> QMap<QString, bool> {

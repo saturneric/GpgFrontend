@@ -136,6 +136,41 @@ class GlobalSettingStation::Impl {
     return app_modules_path();
   }
 
+  [[nodiscard]] auto GetIntegratedModulePath() const -> QString {
+    const auto exec_binary_path = GetAppDir();
+
+#if defined(__linux__)
+    // AppImage
+    if (!qEnvironmentVariable("APPIMAGE").isEmpty()) {
+      return qEnvironmentVariable("APPDIR") + "/usr/modules";
+    }
+    // Flatpak
+    if (!qEnvironmentVariable("container").isEmpty()) {
+      return "/app/modules";
+    }
+#endif
+
+#if defined(_WIN32) || defined(WIN32)
+
+#ifdef NDEBUG
+    return exec_binary_path + "/../modules";
+#else
+    return exec_binary_path + "/../modules/bin";
+#endif
+
+#endif
+
+#if defined(__APPLE__) && defined(__MACH__)
+
+#ifdef NDEBUG
+    return exec_binary_path + "/../Modules";
+#endif
+
+#endif
+
+    return exec_binary_path + "/modules";
+  }
+
  private:
   [[nodiscard]] auto app_config_file_path() const -> QString {
     return app_config_path_ + "/config.ini";
@@ -204,5 +239,9 @@ void GlobalSettingStation::ClearAllDataObjects() const {
 
 auto GlobalSettingStation::GetConfigPath() const -> QString {
   return p_->GetConfigPath();
+}
+
+auto GlobalSettingStation::GetIntegratedModulePath() const -> QString {
+  return p_->GetIntegratedModulePath();
 }
 }  // namespace GpgFrontend
