@@ -173,7 +173,8 @@ auto GpgKeyManager::SetOwnerTrustLevel(const GpgKey& key,
 }
 
 auto GpgKeyManager::DeleteSubkey(const GpgKey& key, int subkey_index) -> bool {
-  if (subkey_index < 0 || subkey_index >= key.GetSubKeys()->size()) {
+  if (subkey_index < 0 ||
+      subkey_index >= static_cast<int>(key.GetSubKeys()->size())) {
     LOG_W() << "illegal subkey index: " << subkey_index;
     return false;
   }
@@ -258,7 +259,8 @@ auto GpgKeyManager::DeleteSubkey(const GpgKey& key, int subkey_index) -> bool {
 auto GpgKeyManager::RevokeSubkey(const GpgKey& key, int subkey_index,
                                  int reason_code,
                                  const QString& reason_text) -> bool {
-  if (subkey_index < 0 || subkey_index >= key.GetSubKeys()->size()) {
+  if (subkey_index < 0 ||
+      subkey_index >= static_cast<int>(key.GetSubKeys()->size())) {
     LOG_W() << "illegal subkey index: " << subkey_index;
     return false;
   }

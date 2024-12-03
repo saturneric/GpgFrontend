@@ -87,10 +87,12 @@ auto GpgKeyOpera::SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
     err =
         gpgme_op_setexpire(ctx_.DefaultContext(), static_cast<gpgme_key_t>(key),
                            expires_time, nullptr, 0);
+    assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
   } else {
     err =
         gpgme_op_setexpire(ctx_.DefaultContext(), static_cast<gpgme_key_t>(key),
                            expires_time, subkey_fpr.toUtf8(), 0);
+    assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
   }
 
   return err;
@@ -200,6 +202,7 @@ void GpgKeyOpera::GenerateKey(const std::shared_ptr<GenKeyInfo>& params,
 
         err = gpgme_op_createkey(ctx.DefaultContext(), userid.toUtf8(),
                                  algo.toUtf8(), 0, expires, nullptr, flags);
+        assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
 
         if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
           data_object->Swap({GpgGenerateKeyResult{
@@ -240,6 +243,7 @@ auto GpgKeyOpera::GenerateKeySync(const std::shared_ptr<GenKeyInfo>& params)
 
         err = gpgme_op_createkey(ctx.DefaultContext(), userid.toUtf8(),
                                  algo.toUtf8(), 0, expires, nullptr, flags);
+        assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
 
         if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
           data_object->Swap({GpgGenerateKeyResult{
@@ -360,6 +364,7 @@ void GpgKeyOpera::GenerateKeyWithSubkey(
 
         err = gpgme_op_createkey(ctx.DefaultContext(), userid, algo, 0, expires,
                                  nullptr, flags);
+        assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
 
         if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
           data_object->Swap({GpgGenerateKeyResult{}});
@@ -441,6 +446,7 @@ auto GpgKeyOpera::GenerateKeyWithSubkeySync(
 
         err = gpgme_op_createkey(ctx.DefaultContext(), userid, algo, 0, expires,
                                  nullptr, flags);
+        assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
 
         if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
           data_object->Swap({GpgGenerateKeyResult{}});

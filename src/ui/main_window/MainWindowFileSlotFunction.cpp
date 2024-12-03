@@ -122,9 +122,8 @@ void MainWindow::SlotFileEncrypt(const QString& path) {
   auto p_keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
-  for (const auto& key : *p_keys) {
-    assert(key.IsGood());
-  }
+  assert(std::all_of(p_keys->begin(), p_keys->end(),
+                     [](const auto& key) { return key.IsGood(); }));
 
   // check key abilities
   for (const auto& key : *p_keys) {
@@ -248,9 +247,8 @@ void MainWindow::SlotDirectoryEncrypt(const QString& path) {
   auto p_keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
-  for (const auto& key : *p_keys) {
-    assert(key.IsGood());
-  }
+  assert(std::all_of(p_keys->begin(), p_keys->end(),
+                     [](const auto& key) { return key.IsGood(); }));
 
   // check key abilities
   for (const auto& key : *p_keys) {
@@ -415,9 +413,8 @@ void MainWindow::SlotFileSign(const QString& path) {
   auto keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
-  for (const auto& key : *keys) {
-    assert(key.IsGood());
-  }
+  assert(std::all_of(keys->begin(), keys->end(),
+                     [](const auto& key) { return key.IsGood(); }));
 
   if (keys->empty()) {
     QMessageBox::critical(
@@ -578,9 +575,8 @@ void MainWindow::SlotFileEncryptSign(const QString& path) {
   auto p_keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
-  for (const auto& key : *p_keys) {
-    assert(key.IsGood());
-  }
+  assert(std::all_of(p_keys->begin(), p_keys->end(),
+                     [](const auto& key) { return key.IsGood(); }));
 
   if (p_keys->empty()) {
     QMessageBox::critical(
@@ -640,9 +636,8 @@ void MainWindow::SlotFileEncryptSign(const QString& path) {
   auto p_signer_keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(signer_key_ids);
-  for (const auto& key : *p_signer_keys) {
-    assert(key.IsGood());
-  }
+  assert(std::all_of(p_signer_keys->begin(), p_signer_keys->end(),
+                     [](const auto& key) { return key.IsGood(); }));
 
   CommonUtils::WaitForOpera(
       this, tr("Encrypting and Signing"), [=](const OperaWaitingHd& op_hd) {
@@ -697,9 +692,8 @@ void MainWindow::SlotDirectoryEncryptSign(const QString& path) {
   auto p_keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
-  for (const auto& key : *p_keys) {
-    assert(key.IsGood());
-  }
+  assert(std::all_of(p_keys->begin(), p_keys->end(),
+                     [](const auto& key) { return key.IsGood(); }));
 
   if (p_keys->empty()) {
     QMessageBox::critical(
@@ -759,9 +753,11 @@ void MainWindow::SlotDirectoryEncryptSign(const QString& path) {
   auto p_signer_keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(signer_key_ids);
+#ifndef NDEBUG
   for (const auto& key : *p_signer_keys) {
     assert(key.IsGood());
   }
+#endif
 
   CommonUtils::WaitForOpera(
       this, tr("Archiving & Encrypting & Signing"),

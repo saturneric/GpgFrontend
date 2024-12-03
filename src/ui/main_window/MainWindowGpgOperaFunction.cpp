@@ -102,9 +102,8 @@ void MainWindow::SlotEncrypt() {
   auto keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
-  for (const auto& key : *keys) {
-    assert(key.IsGood());
-  }
+  assert(std::all_of(keys->begin(), keys->end(),
+                     [](const auto& key) { return key.IsGood(); }));
 
   for (const auto& key : *keys) {
     if (!key.IsHasActualEncryptionCapability()) {
@@ -168,9 +167,8 @@ void MainWindow::SlotSign() {
   auto keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
-  for (const auto& key : *keys) {
-    assert(key.IsGood());
-  }
+  assert(std::all_of(keys->begin(), keys->end(),
+                     [](const auto& key) { return key.IsGood(); }));
 
   for (const auto& key : *keys) {
     if (!key.IsHasActualSigningCapability()) {
@@ -384,9 +382,8 @@ void MainWindow::SlotEncryptSign() {
   auto keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
-  for (const auto& key : *keys) {
-    assert(key.IsGood());
-  }
+  assert(std::all_of(keys->begin(), keys->end(),
+                     [](const auto& key) { return key.IsGood(); }));
 
   for (const auto& key : *keys) {
     bool key_can_encrypt = key.IsHasActualEncryptionCapability();

@@ -98,9 +98,8 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
     // get suitable key ids
     auto keys = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
                     .GetKeys(key_ids_);
-    for (const auto& key : *keys) {
-      assert(key.IsGood());
-    }
+    assert(std::all_of(keys->begin(), keys->end(),
+                       [](const auto& key) { return key.IsGood(); }));
 
     auto keys_new_end =
         std::remove_if(keys->begin(), keys->end(), [this](const auto& key) {

@@ -413,9 +413,8 @@ void KeyMgmt::SlotExportKeyToClipboard() {
     auto keys =
         GpgKeyGetter::GetInstance(key_list_->GetCurrentGpgContextChannel())
             .GetKeys(keys_checked);
-    for (const auto& key : *keys) {
-      assert(key.IsGood());
-    }
+    assert(std::all_of(keys->begin(), keys->end(),
+                       [](const auto& key) { return key.IsGood(); }));
 
     CommonUtils::WaitForOpera(
         this, tr("Exporting"), [=](const OperaWaitingHd& op_hd) {
@@ -504,9 +503,8 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
   auto keys =
       GpgKeyGetter::GetInstance(key_list_->GetCurrentGpgContextChannel())
           .GetKeys(keys_checked);
-  for (const auto& key : *keys) {
-    assert(key.IsGood());
-  }
+  assert(std::all_of(keys->begin(), keys->end(),
+                     [](const auto& key) { return key.IsGood(); }));
 
   CommonUtils::WaitForOpera(
       this, tr("Exporting"), [this, keys](const OperaWaitingHd& op_hd) {

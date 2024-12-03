@@ -47,9 +47,8 @@ KeyUploadDialog::KeyUploadDialog(int channel, const KeyIdArgsListPtr& keys_ids,
       current_gpg_context_channel_(channel),
       m_keys_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
                   .GetKeys(keys_ids)) {
-  for (const auto& key : *m_keys_) {
-    assert(key.IsGood());
-  }
+  assert(std::all_of(m_keys_->begin(), m_keys_->end(),
+                     [](const auto& key) { return key.IsGood(); }));
 
   auto* pb = new QProgressBar();
   pb->setRange(0, 0);
