@@ -64,13 +64,18 @@ auto LoadIntegratedMods() -> QMap<QString, bool> {
 #endif
 
 #if defined(_WIN32) || defined(WIN32)
+
+#ifdef NDEBUG
+  mods_path = exec_binary_path + "/../modules";
+#else
   mods_path = exec_binary_path + "/../modules/bin";
 #endif
 
-#ifdef NDEBUG
+#endif
 
 #if defined(__APPLE__) && defined(__MACH__)
-  // App Bundle
+
+#ifdef NDEBUG
   mods_path = exec_binary_path + "/../Modules";
 #endif
 
