@@ -48,6 +48,16 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgSignData(int channel, char** key_ids,
                                                  int key_ids_size, char* data,
                                                  int sign_mode, int ascii,
                                                  GFGpgSignResult** ps) -> int {
+  void* mem = GFAllocateMemory(sizeof(GFGpgSignResult));
+  if (mem == nullptr) {
+    *ps = nullptr;
+    return -1;
+  }
+
+  std::memset(mem, 0, sizeof(GFGpgSignResult));
+  *ps = new (mem) GFGpgSignResult{};
+  auto* s = *ps;
+
   auto singer_ids = CharArrayToQStringList(key_ids, key_ids_size);
 
   GpgFrontend::KeyArgsList signer_keys;
@@ -67,10 +77,6 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgSignData(int channel, char** key_ids,
   auto [err, data_object] =
       GpgFrontend::GpgBasicOperator::GetInstance(channel).SignSync(
           signer_keys, in_buffer, gpg_sign_mode, ascii != 0);
-
-  *ps =
-      static_cast<GFGpgSignResult*>(GFAllocateMemory(sizeof(GFGpgSignResult)));
-  auto* s = *ps;
 
   if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) {
     s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
@@ -130,6 +136,16 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgKeyPrimaryUID(int channel, char* key_id,
 auto GPGFRONTEND_MODULE_SDK_EXPORT
 GFGpgEncryptData(int channel, char** key_ids, int key_ids_size, char* data,
                  int ascii, GFGpgEncryptionResult** ps) -> int {
+  void* mem = GFAllocateMemory(sizeof(GFGpgEncryptionResult));
+  if (mem == nullptr) {
+    *ps = nullptr;
+    return -1;
+  }
+
+  std::memset(mem, 0, sizeof(GFGpgEncryptionResult));
+  *ps = new (mem) GFGpgEncryptionResult{};
+  auto* s = *ps;
+
   auto encrypt_key_ids = CharArrayToQStringList(key_ids, key_ids_size);
 
   GpgFrontend::KeyArgsList encrypt_keys;
@@ -146,10 +162,6 @@ GFGpgEncryptData(int channel, char** key_ids, int key_ids_size, char* data,
   auto [err, data_object] =
       GpgFrontend::GpgBasicOperator::GetInstance(channel).EncryptSync(
           encrypt_keys, in_buffer, ascii != 0);
-
-  *ps = static_cast<GFGpgEncryptionResult*>(
-      GFAllocateMemory(sizeof(GFGpgEncryptionResult)));
-  auto* s = *ps;
 
   if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) {
     s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
@@ -172,15 +184,21 @@ GFGpgEncryptData(int channel, char** key_ids, int key_ids_size, char* data,
 
 auto GPGFRONTEND_MODULE_SDK_EXPORT
 GFGpgDecryptData(int channel, char* data, GFGpgDecryptResult** ps) -> int {
+  void* mem = GFAllocateMemory(sizeof(GFGpgDecryptResult));
+  if (mem == nullptr) {
+    *ps = nullptr;
+    return -1;
+  }
+
+  std::memset(mem, 0, sizeof(GFGpgDecryptResult));
+  *ps = new (mem) GFGpgDecryptResult{};
+  auto* s = *ps;
+
   auto in_buffer = GpgFrontend::GFBuffer(GFUnStrDup(data).toUtf8());
 
   auto [err, data_object] =
       GpgFrontend::GpgBasicOperator::GetInstance(channel).DecryptSync(
           in_buffer);
-
-  *ps = static_cast<GFGpgDecryptResult*>(
-      GFAllocateMemory(sizeof(GFGpgDecryptResult)));
-  auto* s = *ps;
 
   if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) {
     s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
@@ -203,16 +221,22 @@ GFGpgDecryptData(int channel, char* data, GFGpgDecryptResult** ps) -> int {
 
 auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgVerifyData(
     int channel, char* data, char* signature, GFGpgVerifyResult** ps) -> int {
+  void* mem = GFAllocateMemory(sizeof(GFGpgVerifyResult));
+  if (mem == nullptr) {
+    *ps = nullptr;
+    return -1;
+  }
+
+  std::memset(mem, 0, sizeof(GFGpgVerifyResult));
+  *ps = new (mem) GFGpgVerifyResult{};
+  auto* s = *ps;
+
   auto in_buffer = GpgFrontend::GFBuffer(GFUnStrDup(data).toUtf8());
   auto sig_buffer = GpgFrontend::GFBuffer(GFUnStrDup(signature).toUtf8());
 
   auto [err, data_object] =
       GpgFrontend::GpgBasicOperator::GetInstance(channel).VerifySync(
           in_buffer, sig_buffer);
-
-  *ps = static_cast<GFGpgVerifyResult*>(
-      GFAllocateMemory(sizeof(GFGpgVerifyResult)));
-  auto* s = *ps;
 
   if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) {
     s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);

@@ -44,6 +44,8 @@ auto SecureMemoryAllocator::Reallocate(void* ptr, std::size_t size) -> void* {
   return addr;
 }
 
-void SecureMemoryAllocator::Deallocate(void* p) { std::free(p); }
+void SecureMemoryAllocator::Deallocate(void* p) {
+  if (p != nullptr) std::free(p);
+}
 
 }  // namespace GpgFrontend
