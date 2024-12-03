@@ -176,8 +176,8 @@ jobs:
 
       - name: Package App Image (Linux)
         run: |
-          mkdir ${{github.workspace}}/build/final-artifact
-          cd ${{github.workspace}}/build/final-artifact
+          mkdir ${{github.workspace}}/build/upload-artifact
+          cd ${{github.workspace}}/build/upload-artifact
           wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
           ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines -appimage
@@ -242,7 +242,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: gpgfrontend-qt5-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{ env.SHORT_SHA }}
-          path: ${{github.workspace}}/build/final-artifact/Gpg_Frontend*.AppImage*
+          path: ${{github.workspace}}/build/upload-artifact/Gpg_Frontend*.AppImage*
         if: runner.os == 'Linux'
 
       - name: Upload Artifact(Windows)

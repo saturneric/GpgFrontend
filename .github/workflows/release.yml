@@ -248,12 +248,12 @@ jobs:
           ditto -c -k --keepParent ${{github.workspace}}/build/package/GpgFrontend.app ${{github.workspace}}/build/GpgFrontend.app.zip
           hdiutil create ${{github.workspace}}/build/tmp.dmg -ov \
             -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/package/
-          mkdir ${{github.workspace}}/build/final-artifact
-          create-dmg --codesign "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" --volicon "${{github.workspace}}/resource/lfs/icns/GpgFrontend.icns" --volname GpgFrontend --app-drop-link 600 185 --window-size 800 400 ${{github.workspace}}/build/final-artifact/GpgFrontend.dmg ${{github.workspace}}/build/package/GpgFrontend.app
-          mv ${{github.workspace}}/build/final-artifact/GpgFrontend.dmg \
-            ${{github.workspace}}/build/final-artifact/GpgFrontend-${{env.sha_short}}-x86_64.dmg
+          mkdir ${{github.workspace}}/build/upload-artifact
+          create-dmg --codesign "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" --volicon "${{github.workspace}}/resource/lfs/icns/GpgFrontend.icns" --volname GpgFrontend --app-drop-link 600 185 --window-size 800 400 ${{github.workspace}}/build/upload-artifact/GpgFrontend.dmg ${{github.workspace}}/build/package/GpgFrontend.app
+          mv ${{github.workspace}}/build/upload-artifact/GpgFrontend.dmg \
+            ${{github.workspace}}/build/upload-artifact/GpgFrontend-${{matrix.os}}-${{env.sha_short}}-x86_64.dmg
           mv ${{github.workspace}}/build/GpgFrontend.app.zip \
-            ${{github.workspace}}/build/GpgFrontend-${{env.sha_short}}-x86_64.zip
+            ${{github.workspace}}/build/GpgFrontend-${{matrix.os}}-${{env.sha_short}}-x86_64.zip
         if: runner.os == 'macOS'
 
       - name: Notarize Release Build (macOS)
@@ -262,7 +262,7 @@ jobs:
           --apple-id ${{secrets.APPLE_DEVELOPER_ID}} \
           --team-id ${{secrets.APPLE_DEVELOPER_TEAM_ID}} \
           --password ${{secrets.APPLE_DEVELOPER_ID_SECRET}} \
-          ${{github.workspace}}/build/GpgFrontend-${{env.sha_short}}-x86_64.zip
+          ${{github.workspace}}/build/GpgFrontend-${{matrix.os}}-${{env.sha_short}}-x86_64.zip
           echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE} | tr '[:upper:]' '[:lower:]')" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: runner.os == 'macOS'
@@ -277,8 +277,8 @@ jobs:
       - name: Copy Modules & Package App Image (Linux)
         run: |
           cmake -E copy_directory ${{github.workspace}}/modules/build/artifacts/modules ${{github.workspace}}/build/artifacts/AppDir/usr/modules
-          mkdir ${{github.workspace}}/build/final-artifact
-          cd ${{github.workspace}}/build/final-artifact
+          mkdir ${{github.workspace}}/build/upload-artifact
+          cd ${{github.workspace}}/build/upload-artifact
           wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
@@ -355,14 +355,14 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
-          path: ${{github.workspace}}/build/final-artifact/Gpg_Frontend*.AppImage*
+          path: ${{github.workspace}}/build/upload-artifact/Gpg_Frontend*.AppImage*
         if: runner.os == 'Linux'
 
       - name: Upload Artifact (macOS)
         uses: actions/upload-artifact@master
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
-          path: ${{github.workspace}}/build/final-artifact/*
+          path: ${{github.workspace}}/build/upload-artifact/*
         if: runner.os == 'macOS'
 
       - name: Upload Artifact (Windows)
