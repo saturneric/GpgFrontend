@@ -667,12 +667,8 @@ void MainWindow::SlotEncryptEML() {
               // close waiting dialog
               hd();
 
-              if (p["ret"] != "0" || !p["err"].isEmpty()) {
-                LOG_E() << "An error occurred trying to decrypt email, "
-                        << "error message: " << p["err"];
-
-                return;
-              }
+              // check if error occurred
+              if (handle_module_error(p)) return -1;
 
               if (!p["eml_data"].isEmpty()) {
                 edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
