@@ -28,6 +28,9 @@
 
 #include "GFSDKGpg.h"
 
+// std::memset
+#include <cstring>
+
 #include "GFSDKBasic.h"
 #include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
