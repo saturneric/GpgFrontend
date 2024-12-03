@@ -27,12 +27,12 @@ name: Develop CI Qt5
 
 on:
   push:
-    branches: [main, develop, "dev/**"]
+    branches: ["dev/**"]
     paths-ignore:
       - "resource/lfs/locale/**"
       - "**.md"
   pull_request:
-    branches: [main, develop, "dev/**"]
+    branches: ["dev/**"]
     paths-ignore:
       - "resource/lfs/locale/**"
       - "**.md"

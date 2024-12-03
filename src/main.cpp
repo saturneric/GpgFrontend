@@ -81,9 +81,7 @@ auto main(int argc, char* argv[]) -> int {
       {{"v", "version"}, "show version information"},
       {{"t", "test"}, "run all unit test cases"},
       {{"e", "environment"}, "show environment information"},
-      {{"l", "log-level"},
-       "set log level (trace, debug, info, warn, error)",
-       "debug"},
+      {{"l", "log-level"}, "set log level (debug, info, warn, error)", "none"},
   });
 
   parser.process(*ctx->GetApp());

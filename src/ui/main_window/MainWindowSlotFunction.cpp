@@ -290,6 +290,8 @@ void MainWindow::SlotOpenFile(const QString& path) {
 }
 
 void MainWindow::slot_version_upgrade_notify() {
+  if (!Module::IsModuleActivate(kVersionCheckingModuleID)) return;
+
   auto is_loading_done = Module::RetrieveRTValueTypedOrDefault<>(
       kVersionCheckingModuleID, "version.loading_done", false);
   if (!is_loading_done) {
@@ -323,6 +325,13 @@ void MainWindow::slot_version_upgrade_notify() {
     statusBar()->showMessage(
         tr("GpgFrontend Upgradeable (New Version: %1).").arg(latest_version),
         30000);
+
+    auto* b = new QToolButton();
+    b->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    b->setIcon(QIcon(":/icons/upgrade.png"));
+    connect(b, &QPushButton::clicked,
+            [=]() { (new AboutDialog(tr("Update"), this))->show(); });
+    statusBar()->addPermanentWidget(b);
   } else if (is_current_a_withdrawn_version) {
     auto response = QMessageBox::warning(
         this, tr("Withdrawn Version"),
@@ -338,12 +347,18 @@ void MainWindow::slot_version_upgrade_notify() {
       QDesktopServices::openUrl(
           QUrl("https://github.com/saturneric/GpgFrontend/releases/latest"));
     }
-
   } else if (!is_current_version_released) {
     statusBar()->showMessage(
         tr("This may be a BETA Version (Latest Stable Version: %1).")
             .arg(latest_version),
         30000);
+
+    auto* b = new QToolButton();
+    b->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    b->setIcon(QIcon(":/icons/warning-filling.png"));
+    connect(b, &QPushButton::clicked,
+            [=]() { (new AboutDialog(tr("Update"), this))->show(); });
+    statusBar()->addPermanentWidget(b);
 
   } else if (is_git_commit_hash_mismatch) {
     QMessageBox::information(

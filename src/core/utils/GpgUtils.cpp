@@ -185,6 +185,8 @@ auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseInfos()
 #else
   gpg_key_database_info_cache.reserve(
       static_cast<qsizetype>(context_index_list.size()));
+  std::fill_n(std::back_inserter(gpg_key_database_info_cache),
+              context_index_list.size(), KeyDatabaseInfo{});
 #endif
 
   for (auto& context_index : context_index_list) {

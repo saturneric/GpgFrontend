@@ -171,18 +171,35 @@ auto PrintEnvInfo() -> int {
 }
 
 auto ParseLogLevel(const QString& log_level) -> int {
+  // default value
+  if (log_level == "none") return 0;
+
   if (log_level == "debug") {
     QLoggingCategory::setFilterRules(
-        "core.debug=true\nui.debug=true\ntest.debug=true\nmodule.debug=true");
+        "core.debug=true\n"
+        "ui.debug=true\n"
+        "module.debug=true\n"
+        "test.debug=true");
   } else if (log_level == "info") {
     QLoggingCategory::setFilterRules(
-        "*.debug=false\ncore.info=true\nui.info=true\ntest.info="
-        "true\nmodule.info=true");
-  } else if (log_level == "warning") {
-    QLoggingCategory::setFilterRules("*.debug=false\n*.info=false\n");
-  } else if (log_level == "critical") {
+        "*.debug=false\n"
+        "core.info=true\n"
+        "ui.info=true\n"
+        "module.info=true\n"
+        "test.debug=true");
+  } else if (log_level == "warn") {
     QLoggingCategory::setFilterRules(
-        "*.debug=false\n*.info=false\n*.warning=false\n");
+        "*.debug=false\n"
+        "*.info=false\n"
+        "core.warning=true\n"
+        "ui.warning=true\n"
+        "module.warning=true\n"
+        "test.warning=true\n");
+  } else if (log_level == "error") {
+    QLoggingCategory::setFilterRules(
+        "*.debug=false\n"
+        "*.info=false\n"
+        "*.warning=false");
   } else {
     qWarning() << "unknown log level: " << log_level;
   }

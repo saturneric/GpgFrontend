@@ -106,6 +106,8 @@
         <file alias="email-check.png">resource/lfs/icons/email-check.png</file>
         <file alias="email-open.png">resource/lfs/icons/email-open.png</file>
         <file alias="export-email.png">resource/lfs/icons/export-email.png</file>
+        <file alias="warning-filling.png">resource/lfs/icons/warning-filling.png</file>
+        <file alias="upgrade.png">resource/lfs/icons/upgrade.png</file>
     </qresource>
     <qresource prefix="/test/key">
         <file alias="pv1.key">resource/lfs/test/data/pv1.key</file>
