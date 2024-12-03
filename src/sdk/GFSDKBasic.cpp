@@ -132,5 +132,5 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFCacheSaveWithTTL(const char* key,
 }
 
 auto GPGFRONTEND_MODULE_SDK_EXPORT GFProjectGitCommitHash() -> const char* {
-  return GFStrDup(GpgFrontend::GetProjectBuildGitVersion());
+  return GFStrDup(GpgFrontend::GetProjectBuildGitCommitHash());
 }
