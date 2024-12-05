@@ -44,6 +44,10 @@ From version v2.1.4 onwards, we no longer support macOS 11, as it will be
 discontinued soon by GitHub Action. Given its age and the anticipated
 discontinuation of support by Apple, it is wise to drop it.
 
+From version v2.1.6 onwards, we no longer support macOS 12, as it will be
+discontinued soon by GitHub Action. Given its age and the anticipated
+discontinuation of support by Apple, it is wise to drop it.
+
 ## Reporting a Vulnerability
 
 In case you wish to report a vulnerability, please avoid raising an issue
