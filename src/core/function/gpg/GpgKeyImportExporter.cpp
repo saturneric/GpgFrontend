@@ -82,7 +82,7 @@ auto GpgKeyImportExporter::ExportKey(const GpgKey& key, bool secret, bool ascii,
   if (shortest) mode |= GPGME_EXPORT_MODE_MINIMAL;
   if (ssh_mode) mode |= GPGME_EXPORT_MODE_SSH;
 
-  std::vector<gpgme_key_t> keys_array;
+  QContainer<gpgme_key_t> keys_array;
 
   // Last entry data_in array has to be nullptr
   keys_array.emplace_back(key);
@@ -114,7 +114,7 @@ void GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys, bool secret,
         if (shortest) mode |= GPGME_EXPORT_MODE_MINIMAL;
         if (ssh_mode) mode |= GPGME_EXPORT_MODE_SSH;
 
-        std::vector<gpgme_key_t> keys_array(keys.begin(), keys.end());
+        QContainer<gpgme_key_t> keys_array(keys.begin(), keys.end());
 
         // Last entry data_in array has to be nullptr
         keys_array.emplace_back(nullptr);
@@ -144,7 +144,7 @@ void GpgKeyImportExporter::ExportAllKeys(const KeyArgsList& keys, bool secret,
         if (keys.empty()) return GPG_ERR_CANCELED;
 
         int mode = 0;
-        std::vector<gpgme_key_t> keys_array(keys.begin(), keys.end());
+        QContainer<gpgme_key_t> keys_array(keys.begin(), keys.end());
 
         // Last entry data_in array has to be nullptr
         keys_array.emplace_back(nullptr);

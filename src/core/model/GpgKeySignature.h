@@ -160,34 +160,17 @@ class GPGFRONTEND_CORE_EXPORT GpgKeySignature {
    * @brief Construct a new Gpg Key Signature object
    *
    */
-  GpgKeySignature(GpgKeySignature &&) noexcept;
-
-  /**
-   * @brief Construct a new Gpg Key Signature object
-   *
-   */
-  GpgKeySignature(const GpgKeySignature &) = delete;
+  GpgKeySignature(const GpgKeySignature &);
 
   /**
    * @brief
    *
    * @return GpgKeySignature&
    */
-  auto operator=(GpgKeySignature &&) noexcept -> GpgKeySignature &;
-
-  /**
-   * @brief
-   *
-   * @return GpgKeySignature&
-   */
-  auto operator=(const GpgKeySignature &) -> GpgKeySignature & = delete;
+  auto operator=(const GpgKeySignature &) -> GpgKeySignature &;
 
  private:
-  using KeySignatrueRefHandler =
-      std::unique_ptr<struct _gpgme_key_sig,
-                      std::function<void(gpgme_key_sig_t)>>;  ///<
-
-  KeySignatrueRefHandler signature_ref_ = nullptr;  ///<
+  gpgme_key_sig_t signature_ref_ = nullptr;  ///<
 };
 
 }  // namespace GpgFrontend

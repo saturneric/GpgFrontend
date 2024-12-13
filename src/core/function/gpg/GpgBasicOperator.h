@@ -226,7 +226,7 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    *
    * @return Intelligent pointer pointing to the private key list
    */
-  auto GetSigners(bool ascii) -> std::unique_ptr<KeyArgsList>;
+  auto GetSigners(bool ascii) -> KeyArgsList;
 
  private:
   GpgContext& ctx_ = GpgContext::GetInstance(

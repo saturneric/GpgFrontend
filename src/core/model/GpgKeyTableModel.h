@@ -186,7 +186,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
    *
    * @return auto
    */
-  auto GetAllKeyIds() -> GpgKeyIDList;
+  auto GetAllKeyIds() -> KeyIdArgsList;
 
   /**
    * @brief Get the Key ID By Row object

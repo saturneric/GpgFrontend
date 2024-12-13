@@ -28,17 +28,20 @@
 
 #include "ui/thread/KeyServerImportTask.h"
 
+#include <utility>
+
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/model/SettingsObject.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "ui/struct/settings_object/KeyServerSO.h"
 
-GpgFrontend::UI::KeyServerImportTask::KeyServerImportTask(
-    QString keyserver_url, int channel, std::vector<QString> keyids)
+GpgFrontend::UI::KeyServerImportTask::KeyServerImportTask(QString keyserver_url,
+                                                          int channel,
+                                                          KeyIdArgsList key_ids)
     : Task("key_server_import_task"),
       keyserver_url_(std::move(keyserver_url)),
       current_gpg_context_channel_(channel),
-      keyids_(std::move(keyids)),
+      keyids_(std::move(key_ids)),
       manager_(new QNetworkAccessManager(this)) {
   HoldOnLifeCycle(true);
 

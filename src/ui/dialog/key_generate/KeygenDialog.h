@@ -107,7 +107,7 @@ class KeyGenDialog : public GeneralDialog {
   QGroupBox* key_usage_group_box_{};  ///< Group of Widgets detecting the usage
                                       ///< of the Key
   QDateTime max_date_time_;           ///<
-  std::vector<QCheckBox*> key_usage_check_boxes_;  ///< ENCR, SIGN, CERT, AUTH
+  QContainer<QCheckBox*> key_usage_check_boxes_;  ///< ENCR, SIGN, CERT, AUTH
   QComboBox* gpg_contexts_combo_box_{};
 
   int default_gpg_context_channel_;

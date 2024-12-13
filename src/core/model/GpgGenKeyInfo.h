@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/GpgFrontendCoreExport.h"
+#include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
 
@@ -47,16 +48,16 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
   /**
    * @brief Get the Supported Key Algo object
    *
-   * @return const std::vector<QString>&
+   * @return const QContainer<QString>&
    */
-  static auto GetSupportedKeyAlgo() -> const std::vector<KeyGenAlgo> &;
+  static auto GetSupportedKeyAlgo() -> const QContainer<KeyGenAlgo> &;
 
   /**
    * @brief Get the Supported Subkey Algo object
    *
-   * @return const std::vector<QString>&
+   * @return const QContainer<QString>&
    */
-  static auto GetSupportedSubkeyAlgo() -> const std::vector<KeyGenAlgo> &;
+  static auto GetSupportedSubkeyAlgo() -> const QContainer<KeyGenAlgo> &;
 
   /**
    * @brief

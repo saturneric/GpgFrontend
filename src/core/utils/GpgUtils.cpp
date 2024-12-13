@@ -36,7 +36,7 @@ namespace GpgFrontend {
 inline auto Trim(QString& s) -> QString { return s.trimmed(); }
 
 auto GetGpgmeErrorString(size_t buffer_size, gpgme_error_t err) -> QString {
-  std::vector<char> buffer(buffer_size);
+  QContainer<char> buffer(buffer_size);
 
   gpgme_error_t const ret = gpgme_strerror_r(err, buffer.data(), buffer.size());
   if (ret == ERANGE && buffer_size < 1024) {

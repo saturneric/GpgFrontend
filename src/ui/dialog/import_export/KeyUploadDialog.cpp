@@ -41,13 +41,13 @@
 
 namespace GpgFrontend::UI {
 
-KeyUploadDialog::KeyUploadDialog(int channel, const KeyIdArgsListPtr& keys_ids,
+KeyUploadDialog::KeyUploadDialog(int channel, const KeyIdArgsList& keys_ids,
                                  QWidget* parent)
     : GeneralDialog(typeid(KeyUploadDialog).name(), parent),
       current_gpg_context_channel_(channel),
       m_keys_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
                   .GetKeys(keys_ids)) {
-  assert(std::all_of(m_keys_->begin(), m_keys_->end(),
+  assert(std::all_of(m_keys_.begin(), m_keys_.end(),
                      [](const auto& key) { return key.IsGood(); }));
 
   auto* pb = new QProgressBar();
@@ -70,7 +70,7 @@ KeyUploadDialog::KeyUploadDialog(int channel, const KeyIdArgsListPtr& keys_ids,
 
 void KeyUploadDialog::SlotUpload() {
   GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
-      .ExportKeys(*m_keys_, false, true, false, false,
+      .ExportKeys(m_keys_, false, true, false, false,
                   [=](GpgError err, const DataObjectPtr& data_obj) {
                     if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
                       CommonUtils::RaiseMessageBox(this, err);

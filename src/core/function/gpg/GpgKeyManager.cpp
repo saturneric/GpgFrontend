@@ -61,10 +61,10 @@ auto GpgKeyManager::SignKey(const GpgKey& target, KeyArgsList& keys,
 }
 
 auto GpgKeyManager::RevSign(const GpgKey& key,
-                            const SignIdArgsListPtr& signature_id) -> bool {
+                            const SignIdArgsList& signature_id) -> bool {
   auto& key_getter = GpgKeyGetter::GetInstance(GetChannel());
 
-  for (const auto& sign_id : *signature_id) {
+  for (const auto& sign_id : signature_id) {
     auto signing_key = key_getter.GetKey(sign_id.first);
     assert(signing_key.IsGood());
 

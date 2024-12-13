@@ -616,7 +616,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
             continue;
           }
 
-          if (!GpgKeyGetter::GetInstance(ctx.GetChannel()).FetchKey()) {
+          if (!GpgKeyGetter::GetInstance(ctx.GetChannel()).FlushKeyCache()) {
             FLOG_E() << "gpgme context init key cache failed, index:"
                      << channel_index;
             continue;

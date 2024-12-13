@@ -39,7 +39,7 @@ class GPGFRONTEND_CORE_EXPORT GpgVerifyResult {
 
   [[nodiscard]] auto GetRaw() const -> gpgme_verify_result_t;
 
-  [[nodiscard]] auto GetSignature() const -> std::vector<GpgSignature>;
+  [[nodiscard]] auto GetSignature() const -> QContainer<GpgSignature>;
 
   explicit GpgVerifyResult(gpgme_verify_result_t);
 

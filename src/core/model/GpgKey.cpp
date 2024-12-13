@@ -184,8 +184,8 @@ auto GpgKey::IsHasMasterKey() const -> bool {
   return key_ref_->subkeys->secret;
 }
 
-auto GpgKey::GetSubKeys() const -> std::unique_ptr<std::vector<GpgSubKey>> {
-  auto p_keys = std::make_unique<std::vector<GpgSubKey>>();
+auto GpgKey::GetSubKeys() const -> std::unique_ptr<QContainer<GpgSubKey>> {
+  auto p_keys = std::make_unique<QContainer<GpgSubKey>>();
   auto *next = key_ref_->subkeys;
   while (next != nullptr) {
     p_keys->push_back(GpgSubKey(next));
@@ -194,8 +194,8 @@ auto GpgKey::GetSubKeys() const -> std::unique_ptr<std::vector<GpgSubKey>> {
   return p_keys;
 }
 
-auto GpgKey::GetUIDs() const -> std::unique_ptr<std::vector<GpgUID>> {
-  auto p_uids = std::make_unique<std::vector<GpgUID>>();
+auto GpgKey::GetUIDs() const -> std::unique_ptr<QContainer<GpgUID>> {
+  auto p_uids = std::make_unique<QContainer<GpgUID>>();
   auto *uid_next = key_ref_->uids;
   while (uid_next != nullptr) {
     p_uids->push_back(GpgUID(uid_next));

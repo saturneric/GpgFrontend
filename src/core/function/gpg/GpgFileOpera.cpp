@@ -50,7 +50,7 @@ void GpgFileOpera::EncryptFile(const KeyArgsList& keys, const QString& in_path,
                                const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
-        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
+        QContainer<gpgme_key_t> recipients(keys.begin(), keys.end());
 
         // Last entry data_in array has to be nullptr
         recipients.emplace_back(nullptr);
@@ -74,7 +74,7 @@ auto GpgFileOpera::EncryptFileSync(
     const QString& out_path) -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       [=](const DataObjectPtr& data_object) -> GpgError {
-        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
+        QContainer<gpgme_key_t> recipients(keys.begin(), keys.end());
 
         // Last entry data_in array has to be nullptr
         recipients.emplace_back(nullptr);
@@ -102,7 +102,7 @@ void GpgFileOpera::EncryptDirectory(const KeyArgsList& keys,
 
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
-        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
+        QContainer<gpgme_key_t> recipients(keys.begin(), keys.end());
 
         // Last entry data_in array has to be nullptr
         recipients.emplace_back(nullptr);
@@ -304,7 +304,7 @@ void GpgFileOpera::EncryptSignFile(const KeyArgsList& keys,
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
         GpgError err;
-        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
+        QContainer<gpgme_key_t> recipients(keys.begin(), keys.end());
 
         // Last entry data_in array has to be nullptr
         recipients.emplace_back(nullptr);
@@ -336,7 +336,7 @@ auto GpgFileOpera::EncryptSignFileSync(
   return RunGpgOperaSync(
       [=](const DataObjectPtr& data_object) -> GpgError {
         GpgError err;
-        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
+        QContainer<gpgme_key_t> recipients(keys.begin(), keys.end());
 
         // Last entry data_in array has to be nullptr
         recipients.emplace_back(nullptr);
@@ -372,7 +372,7 @@ void GpgFileOpera::EncryptSignDirectory(const KeyArgsList& keys,
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
         GpgError err;
-        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
+        QContainer<gpgme_key_t> recipients(keys.begin(), keys.end());
 
         // Last entry data_in array has to be nullptr
         recipients.emplace_back(nullptr);

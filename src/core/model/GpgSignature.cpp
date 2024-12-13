@@ -30,27 +30,15 @@
 
 namespace GpgFrontend {
 
-/**
- * @brief Construct a new Gpg Signature object
- *
- */
-GpgSignature::GpgSignature(GpgSignature &&) noexcept = default;
+GpgSignature::GpgSignature() = default;
 
-/**
- * @brief
- *
- * @return GpgSignature&
- */
-auto GpgSignature::operator=(GpgSignature &&) noexcept -> GpgSignature & =
-                                                              default;
+GpgSignature::GpgSignature(gpgme_signature_t sig) : signature_ref_(sig) {}
 
-/**
- * @brief Construct a new Gpg Signature:: Gpg Signature object
- *
- * @param sig
- */
-GpgSignature::GpgSignature(gpgme_signature_t sig)
-    : signature_ref_(sig, [&](gpgme_signature_t signature) {}) {}
+GpgSignature::~GpgSignature() = default;
+
+GpgSignature::GpgSignature(const GpgSignature &) = default;
+
+auto GpgSignature::operator=(const GpgSignature &) -> GpgSignature & = default;
 
 /**
  * @brief
@@ -123,17 +111,5 @@ auto GpgSignature::GetExpireTime() const -> QDateTime {
 auto GpgSignature::GetFingerprint() const -> QString {
   return signature_ref_->fpr != nullptr ? signature_ref_->fpr : "";
 }
-
-/**
- * @brief Construct a new Gpg Signature object
- *
- */
-GpgSignature::GpgSignature() = default;
-
-/**
- * @brief Destroy the Gpg Signature object
- *
- */
-GpgSignature::~GpgSignature() = default;
 
 }  // namespace GpgFrontend

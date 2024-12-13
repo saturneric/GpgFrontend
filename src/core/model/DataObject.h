@@ -33,12 +33,10 @@
 #include <typeinfo>
 
 #include "core/GpgFrontendCoreExport.h"
+#include "core/typedef/CoreTypedef.h"
 #include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
-
-class DataObject;
-using DataObjectPtr = std::shared_ptr<DataObject>;  ///<
 
 class GPGFRONTEND_CORE_EXPORT DataObject {
  public:
@@ -66,7 +64,7 @@ class GPGFRONTEND_CORE_EXPORT DataObject {
   auto Check() -> bool {
     if (sizeof...(Args) != GetObjectSize()) return false;
 
-    std::vector<std::type_info const*> type_list = {&typeid(Args)...};
+    QContainer<std::type_info const*> type_list = {&typeid(Args)...};
     for (size_t i = 0; i < type_list.size(); ++i) {
       if (std::type_index(*type_list[i]) !=
           std::type_index((*this)[i].type())) {

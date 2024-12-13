@@ -72,17 +72,17 @@ void MainWindow::slot_find() {
 void MainWindow::slot_append_selected_keys() {
   auto key_ids = m_key_list_->GetSelected();
 
-  if (key_ids->empty()) {
+  if (key_ids.empty()) {
     FLOG_W("no key is selected to export");
     return;
   }
 
   auto key =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids->front());
+          .GetKey(key_ids.front());
   if (!key.IsGood()) {
     LOG_W() << "selected key for exporting is invalid, key id: "
-            << key_ids->front();
+            << key_ids.front();
     return;
   }
 
@@ -100,14 +100,14 @@ void MainWindow::slot_append_selected_keys() {
 void MainWindow::slot_append_keys_create_datetime() {
   auto key_ids = m_key_list_->GetSelected();
 
-  if (key_ids->empty()) {
+  if (key_ids.empty()) {
     FLOG_W("no key is selected");
     return;
   }
 
   auto key =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids->front());
+          .GetKey(key_ids.front());
   if (!key.IsGood()) {
     QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
     return;
@@ -126,14 +126,14 @@ void MainWindow::slot_append_keys_create_datetime() {
 void MainWindow::slot_append_keys_expire_datetime() {
   auto key_ids = m_key_list_->GetSelected();
 
-  if (key_ids->empty()) {
+  if (key_ids.empty()) {
     FLOG_W("no key is selected");
     return;
   }
 
   auto key =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids->front());
+          .GetKey(key_ids.front());
   if (!key.IsGood()) {
     QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
     return;
@@ -151,11 +151,11 @@ void MainWindow::slot_append_keys_expire_datetime() {
 
 void MainWindow::slot_append_keys_fingerprint() {
   auto key_ids = m_key_list_->GetSelected();
-  if (key_ids->empty()) return;
+  if (key_ids.empty()) return;
 
   auto key =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids->front());
+          .GetKey(key_ids.front());
   if (!key.IsGood()) {
     QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
     return;
@@ -169,11 +169,11 @@ void MainWindow::slot_append_keys_fingerprint() {
 
 void MainWindow::slot_copy_mail_address_to_clipboard() {
   auto key_ids = m_key_list_->GetSelected();
-  if (key_ids->empty()) return;
+  if (key_ids.empty()) return;
 
   auto key =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids->front());
+          .GetKey(key_ids.front());
   if (!key.IsGood()) {
     QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
     return;
@@ -184,11 +184,11 @@ void MainWindow::slot_copy_mail_address_to_clipboard() {
 
 void MainWindow::slot_copy_default_uid_to_clipboard() {
   auto key_ids = m_key_list_->GetSelected();
-  if (key_ids->empty()) return;
+  if (key_ids.empty()) return;
 
   auto key =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids->front());
+          .GetKey(key_ids.front());
   if (!key.IsGood()) {
     QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
     return;
@@ -199,11 +199,11 @@ void MainWindow::slot_copy_default_uid_to_clipboard() {
 
 void MainWindow::slot_copy_key_id_to_clipboard() {
   auto key_ids = m_key_list_->GetSelected();
-  if (key_ids->empty()) return;
+  if (key_ids.empty()) return;
 
   auto key =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids->front());
+          .GetKey(key_ids.front());
   if (!key.IsGood()) {
     QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
     return;
@@ -214,11 +214,11 @@ void MainWindow::slot_copy_key_id_to_clipboard() {
 
 void MainWindow::slot_show_key_details() {
   auto key_ids = m_key_list_->GetSelected();
-  if (key_ids->empty()) return;
+  if (key_ids.empty()) return;
 
   auto key =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids->front());
+          .GetKey(key_ids.front());
   if (key.IsGood()) {
     new KeyDetailsDialog(m_key_list_->GetCurrentGpgContextChannel(), key, this);
   } else {
@@ -228,11 +228,11 @@ void MainWindow::slot_show_key_details() {
 
 void MainWindow::slot_add_key_2_favorite() {
   auto key_ids = m_key_list_->GetSelected();
-  if (key_ids->empty()) return;
+  if (key_ids.empty()) return;
 
   auto key =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids->front());
+          .GetKey(key_ids.front());
   if (!key.IsGood()) return;
 
   auto key_db_name =
@@ -246,11 +246,11 @@ void MainWindow::slot_add_key_2_favorite() {
 
 void MainWindow::slot_remove_key_from_favorite() {
   auto key_ids = m_key_list_->GetSelected();
-  if (key_ids->empty()) return;
+  if (key_ids.empty()) return;
 
   auto key =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids->front());
+          .GetKey(key_ids.front());
   assert(key.IsGood());
 
   auto key_db_name =
@@ -263,17 +263,17 @@ void MainWindow::slot_remove_key_from_favorite() {
 
 void MainWindow::refresh_keys_from_key_server() {
   auto key_ids = m_key_list_->GetSelected();
-  if (key_ids->empty()) return;
+  if (key_ids.empty()) return;
   CommonUtils::GetInstance()->ImportKeyFromKeyServer(
-      m_key_list_->GetCurrentGpgContextChannel(), *key_ids);
+      m_key_list_->GetCurrentGpgContextChannel(), key_ids);
 }
 
 void MainWindow::slot_set_owner_trust_level_of_key() {
   auto key_ids = m_key_list_->GetSelected();
-  if (key_ids->empty()) return;
+  if (key_ids.empty()) return;
 
   auto* function = new SetOwnerTrustLevel(this);
-  function->Exec(m_key_list_->GetCurrentGpgContextChannel(), key_ids->front());
+  function->Exec(m_key_list_->GetCurrentGpgContextChannel(), key_ids.front());
   function->deleteLater();
 }
 
@@ -692,7 +692,7 @@ void MainWindow::SlotEncryptEML() {
                 }
               }
 
-              LOG_E() << "mime or signature data is missing";
+              return 0;
             });
       });
 }

@@ -49,7 +49,7 @@ void MainWindow::SlotEncrypt() {
 
   auto key_ids = m_key_list_->GetChecked();
 
-  if (key_ids->empty()) {
+  if (key_ids.empty()) {
     // Symmetric Encrypt
     auto ret = QMessageBox::information(
         this, tr("Symmetric Encryption"),
@@ -102,10 +102,10 @@ void MainWindow::SlotEncrypt() {
   auto keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
-  assert(std::all_of(keys->begin(), keys->end(),
+  assert(std::all_of(keys.begin(), keys.end(),
                      [](const auto& key) { return key.IsGood(); }));
 
-  for (const auto& key : *keys) {
+  for (const auto& key : keys) {
     if (!key.IsHasActualEncryptionCapability()) {
       QMessageBox::information(
           this, tr("Invalid Operation"),
@@ -124,7 +124,7 @@ void MainWindow::SlotEncrypt() {
         GpgFrontend::GpgBasicOperator::GetInstance(
             m_key_list_->GetCurrentGpgContextChannel())
             .Encrypt(
-                {keys->begin(), keys->end()}, buffer, true,
+                {keys.begin(), keys.end()}, buffer, true,
                 [this, op_hd](GpgError err, const DataObjectPtr& data_obj) {
                   // stop waiting
                   op_hd();
@@ -157,7 +157,7 @@ void MainWindow::SlotSign() {
   if (edit_->CurPageTextEdit() == nullptr) return;
 
   auto key_ids = m_key_list_->GetCheckedPrivateKey();
-  if (key_ids->empty()) {
+  if (key_ids.empty()) {
     QMessageBox::critical(
         this, tr("No Key Checked"),
         tr("Please check the key in the key toolbox on the right."));
@@ -167,10 +167,10 @@ void MainWindow::SlotSign() {
   auto keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
-  assert(std::all_of(keys->begin(), keys->end(),
+  assert(std::all_of(keys.begin(), keys.end(),
                      [](const auto& key) { return key.IsGood(); }));
 
-  for (const auto& key : *keys) {
+  for (const auto& key : keys) {
     if (!key.IsHasActualSigningCapability()) {
       QMessageBox::information(
           this, tr("Invalid Operation"),
@@ -189,8 +189,8 @@ void MainWindow::SlotSign() {
         GpgFrontend::GpgBasicOperator::GetInstance(
             m_key_list_->GetCurrentGpgContextChannel())
             .Sign(
-                {keys->begin(), keys->end()}, buffer, GPGME_SIG_MODE_CLEAR,
-                true, [this, hd](GpgError err, const DataObjectPtr& data_obj) {
+                {keys.begin(), keys.end()}, buffer, GPGME_SIG_MODE_CLEAR, true,
+                [this, hd](GpgError err, const DataObjectPtr& data_obj) {
                   // stop waiting
                   hd();
 
@@ -372,7 +372,7 @@ void MainWindow::SlotEncryptSign() {
 
   auto key_ids = m_key_list_->GetChecked();
 
-  if (key_ids->empty()) {
+  if (key_ids.empty()) {
     QMessageBox::critical(
         this, tr("No Key Checked"),
         tr("Please check some key in the key toolbox on the right."));
@@ -382,10 +382,10 @@ void MainWindow::SlotEncryptSign() {
   auto keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
-  assert(std::all_of(keys->begin(), keys->end(),
+  assert(std::all_of(keys.begin(), keys.end(),
                      [](const auto& key) { return key.IsGood(); }));
 
-  for (const auto& key : *keys) {
+  for (const auto& key : keys) {
     bool key_can_encrypt = key.IsHasActualEncryptionCapability();
 
     if (!key_can_encrypt) {
@@ -411,7 +411,7 @@ void MainWindow::SlotEncryptSign() {
   auto signer_keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(signer_key_ids);
-  for (const auto& key : *signer_keys) {
+  for (const auto& key : signer_keys) {
     assert(key.IsGood());
   }
 
@@ -424,8 +424,8 @@ void MainWindow::SlotEncryptSign() {
         GpgFrontend::GpgBasicOperator::GetInstance(
             m_key_list_->GetCurrentGpgContextChannel())
             .EncryptSign(
-                {keys->begin(), keys->end()},
-                {signer_keys->begin(), signer_keys->end()}, buffer, true,
+                {keys.begin(), keys.end()},
+                {signer_keys.begin(), signer_keys.end()}, buffer, true,
                 [this, hd](GpgError err, const DataObjectPtr& data_obj) {
                   // stop waiting
                   hd();

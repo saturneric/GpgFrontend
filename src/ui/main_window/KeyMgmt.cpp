@@ -253,11 +253,11 @@ void KeyMgmt::create_actions() {
   set_owner_trust_of_key_act_->setData(QVariant("set_owner_trust_level"));
   connect(set_owner_trust_of_key_act_, &QAction::triggered, this, [this]() {
     auto keys_selected = key_list_->GetSelected();
-    if (keys_selected->empty()) return;
+    if (keys_selected.empty()) return;
 
     auto* function = new SetOwnerTrustLevel(this);
     function->Exec(key_list_->GetCurrentGpgContextChannel(),
-                   keys_selected->front());
+                   keys_selected.front());
     function->deleteLater();
   });
 }
@@ -324,15 +324,15 @@ void KeyMgmt::SlotDeleteCheckedKeys() {
   delete_keys_with_warning(key_list_->GetChecked());
 }
 
-void KeyMgmt::delete_keys_with_warning(KeyIdArgsListPtr uidList) {
+void KeyMgmt::delete_keys_with_warning(KeyIdArgsList uid_list) {
   /**
    * TODO: Different Messages for private/public key, check if
    * more than one selected... compare to seahorse "delete-dialog"
    */
 
-  if (uidList->empty()) return;
+  if (uid_list.empty()) return;
   QString keynames;
-  for (const auto& key_id : *uidList) {
+  for (const auto& key_id : uid_list) {
     auto key =
         GpgKeyGetter::GetInstance(key_list_->GetCurrentGpgContextChannel())
             .GetKey(key_id);
@@ -352,17 +352,17 @@ void KeyMgmt::delete_keys_with_warning(KeyIdArgsListPtr uidList) {
 
   if (ret == QMessageBox::Yes) {
     GpgKeyOpera::GetInstance(key_list_->GetCurrentGpgContextChannel())
-        .DeleteKeys(std::move(uidList));
+        .DeleteKeys(std::move(uid_list));
     emit SignalKeyStatusUpdated();
   }
 }
 
 void KeyMgmt::SlotShowKeyDetails() {
   auto keys_selected = key_list_->GetSelected();
-  if (keys_selected->empty()) return;
+  if (keys_selected.empty()) return;
 
   auto key = GpgKeyGetter::GetInstance(key_list_->GetCurrentGpgContextChannel())
-                 .GetKey(keys_selected->front());
+                 .GetKey(keys_selected.front());
 
   if (!key.IsGood()) {
     QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
@@ -374,7 +374,7 @@ void KeyMgmt::SlotShowKeyDetails() {
 
 void KeyMgmt::SlotExportKeyToKeyPackage() {
   auto keys_checked = key_list_->GetChecked();
-  if (keys_checked->empty()) {
+  if (keys_checked.empty()) {
     QMessageBox::critical(
         this, tr("Forbidden"),
         tr("Please check some keys before doing this operation."));
@@ -388,17 +388,17 @@ void KeyMgmt::SlotExportKeyToKeyPackage() {
 
 void KeyMgmt::SlotExportKeyToClipboard() {
   auto keys_checked = key_list_->GetChecked();
-  if (keys_checked->empty()) {
+  if (keys_checked.empty()) {
     QMessageBox::critical(
         this, tr("Forbidden"),
         tr("Please check some keys before doing this operation."));
     return;
   }
 
-  if (keys_checked->size() == 1) {
+  if (keys_checked.size() == 1) {
     auto key =
         GpgKeyGetter::GetInstance(key_list_->GetCurrentGpgContextChannel())
-            .GetKey(keys_checked->front());
+            .GetKey(keys_checked.front());
     assert(key.IsGood());
 
     auto [err, gf_buffer] = GpgKeyImportExporter::GetInstance(
@@ -413,7 +413,7 @@ void KeyMgmt::SlotExportKeyToClipboard() {
     auto keys =
         GpgKeyGetter::GetInstance(key_list_->GetCurrentGpgContextChannel())
             .GetKeys(keys_checked);
-    assert(std::all_of(keys->begin(), keys->end(),
+    assert(std::all_of(keys.begin(), keys.end(),
                        [](const auto& key) { return key.IsGood(); }));
 
     CommonUtils::WaitForOpera(
@@ -421,7 +421,7 @@ void KeyMgmt::SlotExportKeyToClipboard() {
           GpgKeyImportExporter::GetInstance(
               key_list_->GetCurrentGpgContextChannel())
               .ExportKeys(
-                  *keys, false, true, false, false,
+                  keys, false, true, false, false,
                   [=](GpgError err, const DataObjectPtr& data_obj) {
                     // stop waiting
                     op_hd();
@@ -459,7 +459,7 @@ void KeyMgmt::SlotGenerateKeyDialog() {
 
 void KeyMgmt::SlotGenerateSubKey() {
   auto keys_selected = key_list_->GetSelected();
-  if (keys_selected->empty()) {
+  if (keys_selected.empty()) {
     QMessageBox::information(
         this, tr("Invalid Operation"),
         tr("Please select one KeyPair before doing this operation."));
@@ -467,7 +467,7 @@ void KeyMgmt::SlotGenerateSubKey() {
   }
   const auto key =
       GpgKeyGetter::GetInstance(key_list_->GetCurrentGpgContextChannel())
-          .GetKey(keys_selected->front());
+          .GetKey(keys_selected.front());
   if (!key.IsGood()) {
     QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
     return;
@@ -487,14 +487,14 @@ void KeyMgmt::SlotGenerateSubKey() {
 
 void KeyMgmt::SlotExportAsOpenSSHFormat() {
   auto keys_checked = key_list_->GetChecked();
-  if (keys_checked->empty()) {
+  if (keys_checked.empty()) {
     QMessageBox::critical(
         this, tr("Forbidden"),
         tr("Please check a key before performing this operation."));
     return;
   }
 
-  if (keys_checked->size() > 1) {
+  if (keys_checked.size() > 1) {
     QMessageBox::critical(this, tr("Forbidden"),
                           tr("This operation accepts just a single key."));
     return;
@@ -503,7 +503,7 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
   auto keys =
       GpgKeyGetter::GetInstance(key_list_->GetCurrentGpgContextChannel())
           .GetKeys(keys_checked);
-  assert(std::all_of(keys->begin(), keys->end(),
+  assert(std::all_of(keys.begin(), keys.end(),
                      [](const auto& key) { return key.IsGood(); }));
 
   CommonUtils::WaitForOpera(
@@ -511,7 +511,7 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
         GpgKeyImportExporter::GetInstance(
             key_list_->GetCurrentGpgContextChannel())
             .ExportKeys(
-                *keys, false, true, false, true,
+                keys, false, true, false, true,
                 [=](GpgError err, const DataObjectPtr& data_obj) {
                   // stop waiting
                   op_hd();

@@ -80,10 +80,10 @@ void ImportUnknownKeyFromKeyserver(
       QMessageBox::Yes | QMessageBox::No);
   if (reply == QMessageBox::Yes) {
     auto dialog = KeyServerImportDialog(channel, parent);
-    auto key_ids = std::make_unique<KeyIdArgsList>();
+    auto key_ids = KeyIdArgsList{};
     auto *signature = verify_result.GetSignatures();
     while (signature != nullptr) {
-      key_ids->push_back(signature->fpr);
+      key_ids.push_back(signature->fpr);
       signature = signature->next;
     }
     dialog.show();

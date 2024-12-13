@@ -307,22 +307,22 @@ void KeyList::SlotRefreshUI() {
   ui_->syncButton->setDisabled(false);
 }
 
-auto KeyList::GetChecked(const KeyTable& key_table) -> KeyIdArgsListPtr {
-  auto ret = std::make_unique<KeyIdArgsList>();
+auto KeyList::GetChecked(const KeyTable& key_table) -> KeyIdArgsList {
+  auto ret = KeyIdArgsList{};
   for (int i = 0; i < key_table.GetRowCount(); i++) {
     if (key_table.IsRowChecked(i)) {
-      ret->push_back(key_table.GetKeyIdByRow(i));
+      ret.push_back(key_table.GetKeyIdByRow(i));
     }
   }
   return ret;
 }
 
-auto KeyList::GetChecked() -> KeyIdArgsListPtr {
+auto KeyList::GetChecked() -> KeyIdArgsList {
   auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
-  auto ret = std::make_unique<KeyIdArgsList>();
+  auto ret = KeyIdArgsList{};
   for (int i = 0; i < key_table->GetRowCount(); i++) {
     if (key_table->IsRowChecked(i)) {
-      ret->push_back(key_table->GetKeyIdByRow(i));
+      ret.push_back(key_table->GetKeyIdByRow(i));
     }
   }
   return ret;
@@ -339,59 +339,59 @@ auto KeyList::GetCheckedKeys() -> QStringList {
   return key_id_list;
 }
 
-auto KeyList::GetAllPrivateKeys() -> KeyIdArgsListPtr {
+auto KeyList::GetAllPrivateKeys() -> KeyIdArgsList {
   auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
-  auto ret = std::make_unique<KeyIdArgsList>();
+  auto ret = KeyIdArgsList{};
   for (int i = 0; i < key_table->GetRowCount(); i++) {
     if (key_table->IsPrivateKeyByRow(i)) {
-      ret->push_back(key_table->GetKeyIdByRow(i));
+      ret.push_back(key_table->GetKeyIdByRow(i));
     }
   }
   return ret;
 }
 
-auto KeyList::GetCheckedPrivateKey() -> KeyIdArgsListPtr {
-  auto ret = std::make_unique<KeyIdArgsList>();
+auto KeyList::GetCheckedPrivateKey() -> KeyIdArgsList {
+  auto ret = KeyIdArgsList{};
   if (ui_->keyGroupTab->size().isEmpty()) return ret;
 
   auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
 
   for (int i = 0; i < key_table->GetRowCount(); i++) {
     if (key_table->IsRowChecked(i) && key_table->IsPrivateKeyByRow(i)) {
-      ret->push_back(key_table->GetKeyIdByRow(i));
+      ret.push_back(key_table->GetKeyIdByRow(i));
     }
   }
   return ret;
 }
 
-auto KeyList::GetCheckedPublicKey() -> KeyIdArgsListPtr {
-  auto ret = std::make_unique<KeyIdArgsList>();
+auto KeyList::GetCheckedPublicKey() -> KeyIdArgsList {
+  auto ret = KeyIdArgsList{};
   if (ui_->keyGroupTab->size().isEmpty()) return ret;
 
   auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
 
   for (int i = 0; i < key_table->GetRowCount(); i++) {
     if (key_table->IsRowChecked(i) && key_table->IsPublicKeyByRow(i)) {
-      ret->push_back(key_table->GetKeyIdByRow(i));
+      ret.push_back(key_table->GetKeyIdByRow(i));
     }
   }
   return ret;
 }
 
-void KeyList::SetChecked(const KeyIdArgsListPtr& keyIds,
+void KeyList::SetChecked(const KeyIdArgsList& keyIds,
                          const KeyTable& key_table) {
-  if (!keyIds->empty()) {
+  if (!keyIds.empty()) {
     for (int i = 0; i < key_table.GetRowCount(); i++) {
-      if (std::find(keyIds->begin(), keyIds->end(),
-                    key_table.GetKeyIdByRow(i)) != keyIds->end()) {
+      if (std::find(keyIds.begin(), keyIds.end(), key_table.GetKeyIdByRow(i)) !=
+          keyIds.end()) {
         key_table.SetRowChecked(i);
       }
     }
   }
 }
 
-auto KeyList::GetSelected() -> KeyIdArgsListPtr {
-  auto ret = std::make_unique<KeyIdArgsList>();
+auto KeyList::GetSelected() -> KeyIdArgsList {
+  auto ret = KeyIdArgsList{};
   if (ui_->keyGroupTab->size().isEmpty()) return ret;
 
   auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
@@ -402,10 +402,10 @@ auto KeyList::GetSelected() -> KeyIdArgsListPtr {
 
   QItemSelectionModel* select = key_table->selectionModel();
   for (auto index : select->selectedRows()) {
-    ret->push_back(key_table->GetKeyIdByRow(index.row()));
+    ret.push_back(key_table->GetKeyIdByRow(index.row()));
   }
 
-  if (ret->empty()) {
+  if (ret.empty()) {
     FLOG_W("nothing is selected at key list");
   }
   return ret;
@@ -573,7 +573,7 @@ void KeyList::slot_sync_with_key_server() {
   auto checked_public_keys = GetCheckedPublicKey();
 
   KeyIdArgsList key_ids;
-  if (checked_public_keys->empty()) {
+  if (checked_public_keys.empty()) {
     QMessageBox::StandardButton const reply = QMessageBox::question(
         this, QCoreApplication::tr("Sync All Public Key"),
         QCoreApplication::tr("You have not checked any public keys that you "
@@ -589,7 +589,7 @@ void KeyList::slot_sync_with_key_server() {
     }
 
   } else {
-    key_ids = *checked_public_keys;
+    key_ids = checked_public_keys;
   }
 
   if (key_ids.empty()) return;

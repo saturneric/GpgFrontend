@@ -60,7 +60,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    *
    * @param key_ids
    */
-  void DeleteKeys(KeyIdArgsListPtr key_ids);
+  void DeleteKeys(KeyIdArgsList key_ids);
 
   /**
    * @brief

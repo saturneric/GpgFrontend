@@ -40,8 +40,8 @@ GpgFrontend::UI::ListedKeyServerTestTask::ListedKeyServerTestTask(
       network_manager_(new QNetworkAccessManager(this)),
       timeout_(timeout) {
   HoldOnLifeCycle(true);
-  qRegisterMetaType<std::vector<KeyServerTestResultType>>(
-      "std::vector<KeyServerTestResultType>");
+  qRegisterMetaType<QContainer<KeyServerTestResultType>>(
+      "QContainer<KeyServerTestResultType>");
 }
 
 auto GpgFrontend::UI::ListedKeyServerTestTask::Run() -> int {

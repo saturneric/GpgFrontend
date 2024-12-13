@@ -142,7 +142,7 @@ class KeyList : public QWidget {
    *
    * @return KeyIdArgsListPtr
    */
-  auto GetChecked() -> KeyIdArgsListPtr;
+  auto GetChecked() -> KeyIdArgsList;
 
   /**
    * @brief Get the Checked Keys object
@@ -157,28 +157,28 @@ class KeyList : public QWidget {
    * @param key_table
    * @return KeyIdArgsListPtr
    */
-  static auto GetChecked(const KeyTable& key_table) -> KeyIdArgsListPtr;
+  static auto GetChecked(const KeyTable& key_table) -> KeyIdArgsList;
 
   /**
    * @brief Get the Private Checked object
    *
    * @return KeyIdArgsListPtr
    */
-  auto GetCheckedPrivateKey() -> KeyIdArgsListPtr;
+  auto GetCheckedPrivateKey() -> KeyIdArgsList;
 
   /**
    * @brief
    *
    * @return KeyIdArgsListPtr
    */
-  auto GetCheckedPublicKey() -> KeyIdArgsListPtr;
+  auto GetCheckedPublicKey() -> KeyIdArgsList;
 
   /**
    * @brief Get the All Private Keys object
    *
    * @return KeyIdArgsListPtr
    */
-  auto GetAllPrivateKeys() -> KeyIdArgsListPtr;
+  auto GetAllPrivateKeys() -> KeyIdArgsList;
 
   /**
    * @brief Set the Checked object
@@ -186,7 +186,7 @@ class KeyList : public QWidget {
    * @param keyIds
    * @param key_table
    */
-  static void SetChecked(const KeyIdArgsListPtr& key_ids,
+  static void SetChecked(const KeyIdArgsList& key_ids,
                          const KeyTable& key_table);
 
   /**
@@ -194,7 +194,7 @@ class KeyList : public QWidget {
    *
    * @return KeyIdArgsListPtr
    */
-  auto GetSelected() -> KeyIdArgsListPtr;
+  auto GetSelected() -> KeyIdArgsList;
 
   /**
    * @brief Get the Selected Key object

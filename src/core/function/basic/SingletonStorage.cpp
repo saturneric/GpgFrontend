@@ -31,7 +31,8 @@
 #include <shared_mutex>
 
 #include "core/function/basic/ChannelObject.h"
-#include "utils/MemoryUtils.h"
+#include "core/typedef/CoreTypedef.h"
+#include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
 
@@ -60,8 +61,8 @@ class SingletonStorage::Impl {
     }
   }
 
-  auto GetAllChannelId() -> std::vector<int> {
-    std::vector<int> channels;
+  auto GetAllChannelId() -> QContainer<int> {
+    QContainer<int> channels;
     channels.reserve(instances_map_.size());
     for (const auto& [key, value] : instances_map_) {
       channels.push_back(key);
@@ -119,7 +120,7 @@ auto SingletonStorage::FindObjectInChannel(int channel)
   return p_->FindObjectInChannel(channel);
 }
 
-auto SingletonStorage::GetAllChannelId() -> std::vector<int> {
+auto SingletonStorage::GetAllChannelId() -> QContainer<int> {
   return p_->GetAllChannelId();
 }
 

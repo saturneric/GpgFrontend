@@ -47,8 +47,8 @@ auto GpgSignResult::GetRaw() -> gpgme_sign_result_t {
 }
 
 auto GpgSignResult::InvalidSigners()
-    -> std::vector<std::tuple<QString, GpgError>> {
-  std::vector<std::tuple<QString, GpgError>> result;
+    -> QContainer<std::tuple<QString, GpgError>> {
+  QContainer<std::tuple<QString, GpgError>> result;
   for (auto* invalid_key = result_ref_->invalid_signers; invalid_key != nullptr;
        invalid_key = invalid_key->next) {
     try {

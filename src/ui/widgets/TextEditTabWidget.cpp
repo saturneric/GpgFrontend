@@ -211,7 +211,7 @@ void TextEditTabWidget::slot_save_status_to_cache_for_recovery() {
   }
 
   int tab_count = this->count();
-  std::vector<std::tuple<int, QString, QString>> unsaved_pages;
+  QContainer<std::tuple<int, QString, QString>> unsaved_pages;
 
   for (int i = 0; i < tab_count; i++) {
     auto* target_page = qobject_cast<PlainTextEditorPage*>(this->widget(i));

@@ -436,8 +436,7 @@ void KeyPairOperaTab::slot_publish_key_to_server() {
     return;
   }
 
-  auto keys = std::make_unique<KeyIdArgsList>();
-  keys->push_back(m_key_.GetId());
+  auto keys = KeyIdArgsList{m_key_.GetId()};
   auto* dialog = new KeyUploadDialog(current_gpg_context_channel_, keys, this);
   dialog->show();
   dialog->SlotUpload();

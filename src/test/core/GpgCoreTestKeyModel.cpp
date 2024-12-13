@@ -189,8 +189,8 @@ TEST_F(GpgCoreTest, GpgKeyGetterTest) {
   ASSERT_TRUE(key.IsGood());
   auto keys = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).FetchKey();
 
-  EXPECT_GT(keys->size(), 0);
-  ASSERT_TRUE(find(keys->begin(), keys->end(), key) != keys->end());
+  EXPECT_GT(keys.size(), 0);
+  ASSERT_TRUE(std::find(keys.begin(), keys.end(), key) != keys.end());
 }
 
 }  // namespace GpgFrontend::Test

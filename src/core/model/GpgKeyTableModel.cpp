@@ -157,8 +157,8 @@ auto GpgKeyTableModel::setData(const QModelIndex &index, const QVariant &value,
   return false;
 }
 
-auto GpgKeyTableModel::GetAllKeyIds() -> GpgKeyIDList {
-  GpgKeyIDList keys;
+auto GpgKeyTableModel::GetAllKeyIds() -> KeyIdArgsList {
+  KeyIdArgsList keys;
   for (auto &key : buffered_keys_) {
     keys.push_back(key.GetId());
   }

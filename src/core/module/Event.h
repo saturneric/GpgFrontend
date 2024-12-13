@@ -43,7 +43,7 @@ class Event;
 using EventReference = std::shared_ptr<Event>;
 using EventIdentifier = QString;
 using EventTriggerIdentifier = QString;
-using Evnets = std::vector<Event>;
+using Evnets = QContainer<Event>;
 
 class GPGFRONTEND_CORE_EXPORT Event {
  public:

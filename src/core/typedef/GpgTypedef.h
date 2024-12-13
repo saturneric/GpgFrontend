@@ -31,6 +31,7 @@
 #include <gpgme.h>
 
 #include "core/model/DataObject.h"
+#include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
 
@@ -41,25 +42,16 @@ class GpgTOFUInfo;
 
 using GpgError = gpgme_error_t;  ///< gpgme error
 using GpgErrorCode = gpg_err_code_t;
-using GpgErrorDesc = std::pair<QString, QString>;
+using GpgErrorDesc = QPair<QString, QString>;
 
-using KeyId = QString;                                            ///<
-using SubkeyId = QString;                                         ///<
-using KeyIdArgsList = std::vector<KeyId>;                         ///<
-using KeyIdArgsListPtr = std::unique_ptr<KeyIdArgsList>;          ///<
-using UIDArgsList = std::vector<QString>;                         ///<
-using UIDArgsListPtr = std::unique_ptr<UIDArgsList>;              ///<
-using SignIdArgsList = std::vector<std::pair<QString, QString>>;  ///<
-using SignIdArgsListPtr = std::unique_ptr<SignIdArgsList>;        ///<
-using KeyFprArgsListPtr = std::unique_ptr<std::vector<QString>>;  ///<
-using KeyArgsList = std::vector<GpgKey>;                          ///<
-using KeyListPtr = std::shared_ptr<KeyArgsList>;                  ///<
-using GpgKeyLinkList = std::list<GpgKey>;                         ///<
-using KeyLinkListPtr = std::unique_ptr<GpgKeyLinkList>;           ///<
-using KeyPtr = std::unique_ptr<GpgKey>;                           ///<
-using KeyPtrArgsList = const std::initializer_list<KeyPtr>;       ///<
-using GpgKeyList = QList<GpgKey>;                                 ///<
-using GpgKeyIDList = QList<QString>;                              ///<
+using KeyId = QString;
+using SubkeyId = QString;
+using KeyIdArgsList = QStringList;                           ///<
+using UIDArgsList = QContainer<QString>;                     ///<
+using SignIdArgsList = QContainer<QPair<QString, QString>>;  ///<
+using KeyArgsList = QContainer<GpgKey>;                      ///<
+using GpgKeyLinkList = QContainer<GpgKey>;                   ///<
+using GpgKeyList = QContainer<GpgKey>;                       ///<
 
 using GpgSignMode = gpgme_sig_mode_t;
 

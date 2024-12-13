@@ -185,30 +185,15 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
   /**
    * @brief Construct a new Gpg Sub Key object
    *
-   * @param o
    */
-  GpgSubKey(GpgSubKey&& o) noexcept;
-
-  /**
-   * @brief Construct a new Gpg Sub Key object
-   *
-   */
-  GpgSubKey(const GpgSubKey&) = delete;
-
-  /**
-   * @brief
-   *
-   * @param o
-   * @return GpgSubKey&
-   */
-  auto operator=(GpgSubKey&& o) noexcept -> GpgSubKey&;
+  GpgSubKey(const GpgSubKey&);
 
   /**
    * @brief
    *
    * @return GpgSubKey&
    */
-  auto operator=(const GpgSubKey&) -> GpgSubKey& = delete;
+  auto operator=(const GpgSubKey&) -> GpgSubKey&;
 
   /**
    * @brief
@@ -220,11 +205,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
   auto operator==(const GpgSubKey& o) const -> bool;
 
  private:
-  using SubkeyRefHandler =
-      std::unique_ptr<struct _gpgme_subkey,
-                      std::function<void(gpgme_subkey_t)>>;  ///<
-
-  SubkeyRefHandler subkey_ref_ = nullptr;  ///<
+  gpgme_subkey_t subkey_ref_ = nullptr;  ///<
 };
 
 }  // namespace GpgFrontend

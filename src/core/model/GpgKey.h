@@ -262,17 +262,17 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
   /**
    * @brief
    *
-   * @return std::unique_ptr<std::vector<GpgSubKey>>
+   * @return std::unique_ptr<QContainer<GpgSubKey>>
    */
   [[nodiscard]] auto GetSubKeys() const
-      -> std::unique_ptr<std::vector<GpgSubKey>>;
+      -> std::unique_ptr<QContainer<GpgSubKey>>;
 
   /**
    * @brief
    *
-   * @return std::unique_ptr<std::vector<GpgUID>>
+   * @return std::unique_ptr<QContainer<GpgUID>>
    */
-  [[nodiscard]] auto GetUIDs() const -> std::unique_ptr<std::vector<GpgUID>>;
+  [[nodiscard]] auto GetUIDs() const -> std::unique_ptr<QContainer<GpgUID>>;
 
   /**
    * @brief Construct a new Gpg Key object

@@ -45,8 +45,8 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
 
   Thread::Task::TaskCallback result_callback =
       [cmd](int /*rtn*/, const DataObjectPtr &data_object) {
-        FLOG_D("data object args count of cmd executor result callback: %ld",
-               data_object->GetObjectSize());
+        LOG_D() << "data object args count of cmd executor result callback:"
+                << data_object->GetObjectSize();
 
         if (!data_object->Check<int, QString, GpgCommandExecutorCallback>()) {
           FLOG_W("data object checking failed");

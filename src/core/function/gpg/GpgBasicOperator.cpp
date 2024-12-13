@@ -50,7 +50,7 @@ void GpgBasicOperator::Encrypt(const KeyArgsList& keys,
       [=](const DataObjectPtr& data_object) -> GpgError {
         if (keys.empty()) return GPG_ERR_CANCELED;
 
-        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
+        QContainer<gpgme_key_t> recipients(keys.begin(), keys.end());
 
         // Last entry data_in array has to be nullptr
         recipients.emplace_back(nullptr);
@@ -77,7 +77,7 @@ auto GpgBasicOperator::EncryptSync(const KeyArgsList& keys,
       [=](const DataObjectPtr& data_object) -> GpgError {
         if (keys.empty()) return GPG_ERR_CANCELED;
 
-        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
+        QContainer<gpgme_key_t> recipients(keys.begin(), keys.end());
 
         // Last entry data_in array has to be nullptr
         recipients.emplace_back(nullptr);
@@ -329,7 +329,7 @@ void GpgBasicOperator::EncryptSign(const KeyArgsList& keys,
         if (keys.empty() || signers.empty()) return GPG_ERR_CANCELED;
 
         GpgError err;
-        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
+        QContainer<gpgme_key_t> recipients(keys.begin(), keys.end());
 
         // Last entry data_in array has to be nullptr
         recipients.emplace_back(nullptr);
@@ -361,7 +361,7 @@ auto GpgBasicOperator::EncryptSignSync(const KeyArgsList& keys,
         if (keys.empty() || signers.empty()) return GPG_ERR_CANCELED;
 
         GpgError err;
-        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
+        QContainer<gpgme_key_t> recipients(keys.begin(), keys.end());
 
         // Last entry data_in array has to be nullptr
         recipients.emplace_back(nullptr);
@@ -401,14 +401,14 @@ void GpgBasicOperator::SetSigners(const KeyArgsList& signers, bool ascii) {
   }
 }
 
-auto GpgBasicOperator::GetSigners(bool ascii) -> std::unique_ptr<KeyArgsList> {
+auto GpgBasicOperator::GetSigners(bool ascii) -> KeyArgsList {
   auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
 
   auto count = gpgme_signers_count(ctx);
-  auto signers = std::make_unique<std::vector<GpgKey>>();
+  auto signers = KeyArgsList{};
   for (auto i = 0U; i < count; i++) {
     auto key = GpgKey(gpgme_signers_enum(ctx, i));
-    signers->push_back(GpgKey(std::move(key)));
+    signers.push_back(GpgKey(std::move(key)));
   }
   return signers;
 }

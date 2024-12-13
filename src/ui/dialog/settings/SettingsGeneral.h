@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/typedef/CoreTypedef.h"
 #include "ui/GpgFrontendUI.h"
 
 class Ui_GeneralSettings;
@@ -81,7 +82,7 @@ class GeneralTab : public QWidget {
  private:
   std::shared_ptr<Ui_GeneralSettings> ui_;  ///<
   QHash<QString, QString> lang_;            ///<
-  std::vector<QString> key_ids_list_;       ///<
+  QContainer<QString> key_ids_list_;        ///<
   KeyList* m_key_list_{};                   ///<
 };
 }  // namespace GpgFrontend::UI

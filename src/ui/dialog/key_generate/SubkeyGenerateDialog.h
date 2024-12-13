@@ -72,8 +72,8 @@ class SubkeyGenerateDialog : public GeneralDialog {
   QCheckBox* expire_check_box_{};    ///< Checkbox, if key should expire
   QCheckBox* no_pass_phrase_check_box_{};  ///< Checkbox, if key should expire
 
-  std::vector<QCheckBox*> key_usage_check_boxes_;  ///< ENCR, SIGN, CERT, AUTH
-  QDateTime max_date_time_;                        ///<
+  QContainer<QCheckBox*> key_usage_check_boxes_;  ///< ENCR, SIGN, CERT, AUTH
+  QDateTime max_date_time_;                       ///<
 
   /**
    * @brief Create a key usage group box object

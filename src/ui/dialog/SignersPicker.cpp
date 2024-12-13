@@ -78,15 +78,15 @@ SignersPicker::SignersPicker(int channel, QWidget* parent)
   this->show();
 }
 
-auto SignersPicker::GetCheckedSigners() -> GpgFrontend::KeyIdArgsListPtr {
+auto SignersPicker::GetCheckedSigners() -> GpgFrontend::KeyIdArgsList {
   return key_list_->GetCheckedPrivateKey();
 }
 
-auto SignersPicker::GetCheckedSignerKeyIds() -> QStringList {
+auto SignersPicker::GetCheckedSignerKeyIds() -> GpgFrontend::KeyIdArgsList {
   auto priv_keys = key_list_->GetCheckedPrivateKey();
 
   QStringList r;
-  for (const auto& priv_key : *priv_keys) {
+  for (const auto& priv_key : priv_keys) {
     r.append(priv_key);
   }
   return r;

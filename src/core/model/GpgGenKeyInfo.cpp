@@ -216,8 +216,8 @@ GenKeyInfo::GenKeyInfo(bool m_is_sub_key) : subkey_(m_is_sub_key) {
 }
 
 auto GenKeyInfo::GetSupportedKeyAlgo()
-    -> const std::vector<GenKeyInfo::KeyGenAlgo> & {
-  static std::vector<GenKeyInfo::KeyGenAlgo> k_support_key_algo = {
+    -> const QContainer<GenKeyInfo::KeyGenAlgo> & {
+  static QContainer<GenKeyInfo::KeyGenAlgo> k_support_key_algo = {
       {"RSA", "RSA", ""},
       {"DSA", "DSA", ""},
   };
@@ -260,8 +260,8 @@ auto GenKeyInfo::GetSupportedKeyAlgo()
 }
 
 auto GenKeyInfo::GetSupportedSubkeyAlgo()
-    -> const std::vector<GenKeyInfo::KeyGenAlgo> & {
-  static std::vector<GenKeyInfo::KeyGenAlgo> k_support_subkey_algo = {
+    -> const QContainer<GenKeyInfo::KeyGenAlgo> & {
+  static QContainer<GenKeyInfo::KeyGenAlgo> k_support_subkey_algo = {
       {"RSA", "", "RSA"},
       {"DSA", "", "DSA"},
       {"ELG-E", "", "ELG"},

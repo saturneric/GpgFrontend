@@ -51,9 +51,9 @@ GpgKeyOpera::GpgKeyOpera(int channel)
  * Delete keys
  * @param uidList key ids
  */
-void GpgKeyOpera::DeleteKeys(KeyIdArgsListPtr key_ids) {
+void GpgKeyOpera::DeleteKeys(KeyIdArgsList key_ids) {
   GpgError err;
-  for (const auto& tmp : *key_ids) {
+  for (const auto& tmp : key_ids) {
     auto key = GpgKeyGetter::GetInstance(GetChannel()).GetKey(tmp);
     if (key.IsGood()) {
       err = CheckGpgError(gpgme_op_delete_ext(
@@ -532,8 +532,8 @@ auto GpgKeyOpera::ModifyTOFUPolicy(
 }
 
 void GpgKeyOpera::DeleteKey(const KeyId& key_id) {
-  auto keys = std::make_unique<KeyIdArgsList>();
-  keys->push_back(key_id);
-  DeleteKeys(std::move(keys));
+  auto keys = KeyIdArgsList{};
+  keys.push_back(key_id);
+  DeleteKeys(keys);
 }
 }  // namespace GpgFrontend

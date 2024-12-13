@@ -79,7 +79,7 @@ void MainWindow::SlotFileEncrypt(const QString& path) {
 
   // check selected keys
   auto key_ids = m_key_list_->GetChecked();
-  if (key_ids->empty()) {
+  if (key_ids.empty()) {
     // Symmetric Encrypt
     auto ret = QMessageBox::information(
         this, tr("Symmetric Encryption"),
@@ -122,11 +122,11 @@ void MainWindow::SlotFileEncrypt(const QString& path) {
   auto p_keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
-  assert(std::all_of(p_keys->begin(), p_keys->end(),
+  assert(std::all_of(p_keys.begin(), p_keys.end(),
                      [](const auto& key) { return key.IsGood(); }));
 
   // check key abilities
-  for (const auto& key : *p_keys) {
+  for (const auto& key : p_keys) {
     bool const key_can_encrypt = key.IsHasActualEncryptionCapability();
 
     if (!key_can_encrypt) {
@@ -143,7 +143,7 @@ void MainWindow::SlotFileEncrypt(const QString& path) {
       this, tr("Encrypting"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
             .EncryptFile(
-                {p_keys->begin(), p_keys->end()}, path,
+                {p_keys.begin(), p_keys.end()}, path,
                 !non_ascii_at_file_operation, out_path,
                 [=](GpgError err, const DataObjectPtr& data_obj) {
                   // stop waiting
@@ -205,7 +205,7 @@ void MainWindow::SlotDirectoryEncrypt(const QString& path) {
   // check selected keys
   auto key_ids = m_key_list_->GetChecked();
   // symmetric encrypt
-  if (key_ids->empty()) {
+  if (key_ids.empty()) {
     auto ret = QMessageBox::information(
         this, tr("Symmetric Encryption"),
         tr("No Key Selected. Do you want to encrypt with a "
@@ -247,11 +247,11 @@ void MainWindow::SlotDirectoryEncrypt(const QString& path) {
   auto p_keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
-  assert(std::all_of(p_keys->begin(), p_keys->end(),
+  assert(std::all_of(p_keys.begin(), p_keys.end(),
                      [](const auto& key) { return key.IsGood(); }));
 
   // check key abilities
-  for (const auto& key : *p_keys) {
+  for (const auto& key : p_keys) {
     bool const key_can_encrypt = key.IsHasActualEncryptionCapability();
 
     if (!key_can_encrypt) {
@@ -268,7 +268,7 @@ void MainWindow::SlotDirectoryEncrypt(const QString& path) {
       this, tr("Archiving & Encrypting"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
             .EncryptDirectory(
-                {p_keys->begin(), p_keys->end()}, path,
+                {p_keys.begin(), p_keys.end()}, path,
                 !non_ascii_at_file_operation, out_path,
                 [=](GpgError err, const DataObjectPtr& data_obj) {
                   // stop waiting
@@ -413,17 +413,17 @@ void MainWindow::SlotFileSign(const QString& path) {
   auto keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
-  assert(std::all_of(keys->begin(), keys->end(),
+  assert(std::all_of(keys.begin(), keys.end(),
                      [](const auto& key) { return key.IsGood(); }));
 
-  if (keys->empty()) {
+  if (keys.empty()) {
     QMessageBox::critical(
         this, tr("No Key Checked"),
         tr("Please check the key in the key toolbox on the right."));
     return;
   }
 
-  for (const auto& key : *keys) {
+  for (const auto& key : keys) {
     if (!key.IsHasActualSigningCapability()) {
       QMessageBox::information(
           this, tr("Invalid Operation"),
@@ -456,7 +456,7 @@ void MainWindow::SlotFileSign(const QString& path) {
   CommonUtils::WaitForOpera(
       this, tr("Signing"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-            .SignFile({keys->begin(), keys->end()}, path,
+            .SignFile({keys.begin(), keys.end()}, path,
                       !non_ascii_at_file_operation, sig_file_path,
                       [=](GpgError err, const DataObjectPtr& data_obj) {
                         // stop waiting
@@ -575,10 +575,10 @@ void MainWindow::SlotFileEncryptSign(const QString& path) {
   auto p_keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
-  assert(std::all_of(p_keys->begin(), p_keys->end(),
+  assert(std::all_of(p_keys.begin(), p_keys.end(),
                      [](const auto& key) { return key.IsGood(); }));
 
-  if (p_keys->empty()) {
+  if (p_keys.empty()) {
     QMessageBox::critical(
         this, tr("No Key Checked"),
         tr("Please check the key in the key toolbox on the right."));
@@ -586,7 +586,7 @@ void MainWindow::SlotFileEncryptSign(const QString& path) {
   }
 
   // check key abilities
-  for (const auto& key : *p_keys) {
+  for (const auto& key : p_keys) {
     bool const key_can_encrypt = key.IsHasActualEncryptionCapability();
 
     if (!key_can_encrypt) {
@@ -636,15 +636,15 @@ void MainWindow::SlotFileEncryptSign(const QString& path) {
   auto p_signer_keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(signer_key_ids);
-  assert(std::all_of(p_signer_keys->begin(), p_signer_keys->end(),
+  assert(std::all_of(p_signer_keys.begin(), p_signer_keys.end(),
                      [](const auto& key) { return key.IsGood(); }));
 
   CommonUtils::WaitForOpera(
       this, tr("Encrypting and Signing"), [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
             .EncryptSignFile(
-                {p_keys->begin(), p_keys->end()},
-                {p_signer_keys->begin(), p_signer_keys->end()}, path,
+                {p_keys.begin(), p_keys.end()},
+                {p_signer_keys.begin(), p_signer_keys.end()}, path,
                 !non_ascii_at_file_operation, out_path,
                 [=](GpgError err, const DataObjectPtr& data_obj) {
                   // stop waiting
@@ -692,10 +692,10 @@ void MainWindow::SlotDirectoryEncryptSign(const QString& path) {
   auto p_keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(key_ids);
-  assert(std::all_of(p_keys->begin(), p_keys->end(),
+  assert(std::all_of(p_keys.begin(), p_keys.end(),
                      [](const auto& key) { return key.IsGood(); }));
 
-  if (p_keys->empty()) {
+  if (p_keys.empty()) {
     QMessageBox::critical(
         this, tr("No Key Checked"),
         tr("Please check the key in the key toolbox on the right."));
@@ -703,7 +703,7 @@ void MainWindow::SlotDirectoryEncryptSign(const QString& path) {
   }
 
   // check key abilities
-  for (const auto& key : *p_keys) {
+  for (const auto& key : p_keys) {
     bool const key_can_encrypt = key.IsHasActualEncryptionCapability();
 
     if (!key_can_encrypt) {
@@ -754,7 +754,7 @@ void MainWindow::SlotDirectoryEncryptSign(const QString& path) {
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(signer_key_ids);
 #ifndef NDEBUG
-  for (const auto& key : *p_signer_keys) {
+  for (const auto& key : p_signer_keys) {
     assert(key.IsGood());
   }
 #endif
@@ -764,8 +764,8 @@ void MainWindow::SlotDirectoryEncryptSign(const QString& path) {
       [=](const OperaWaitingHd& op_hd) {
         GpgFileOpera::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
             .EncryptSignDirectory(
-                {p_keys->begin(), p_keys->end()},
-                {p_signer_keys->begin(), p_signer_keys->end()}, path,
+                {p_keys.begin(), p_keys.end()},
+                {p_signer_keys.begin(), p_signer_keys.end()}, path,
                 !non_ascii_at_file_operation, out_path,
                 [=](GpgError err, const DataObjectPtr& data_obj) {
                   // stop waiting

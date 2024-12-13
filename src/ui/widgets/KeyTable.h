@@ -70,7 +70,7 @@ struct KeyTable : public QTableView {
    *
    * @return KeyIdArgsListPtr&
    */
-  [[nodiscard]] auto GetChecked() const -> KeyIdArgsListPtr;
+  [[nodiscard]] auto GetChecked() const -> KeyIdArgsList;
 
   /**
    * @brief
