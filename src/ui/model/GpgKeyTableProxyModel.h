@@ -28,7 +28,8 @@
 
 #pragma once
 
-#include <utility>
+#include <QFont>
+#include <QFontMetrics>
 
 #include "core/model/GpgKeyTableModel.h"
 
@@ -48,6 +49,12 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableProxyModel
   void SetSearchKeywords(const QString &keywords);
 
   void ResetGpgKeyTableModel(QSharedPointer<GpgKeyTableModel> model);
+
+  [[nodiscard]] auto data(const QModelIndex &index,
+                          int role) const -> QVariant override;
+
+  [[nodiscard]] auto headerData(int section, Qt::Orientation orientation,
+                                int role) const -> QVariant override;
 
  protected:
   [[nodiscard]] auto filterAcceptsRow(
@@ -97,6 +104,9 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableProxyModel
   QString filter_keywords_;
   QList<QString> favorite_key_ids_;
   KeyFilter custom_filter_;
+
+  QFont default_font_;
+  QFontMetrics default_metrics_;
 };
 
 }  // namespace GpgFrontend

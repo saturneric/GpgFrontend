@@ -692,7 +692,7 @@ void MainWindow::SlotEncryptEML() {
                 }
               }
 
-              LOG_E() << "mime or signature data is missing";
+              return 0;
             });
       });
 }

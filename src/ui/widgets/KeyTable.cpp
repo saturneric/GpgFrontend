@@ -54,7 +54,7 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
 
   verticalHeader()->hide();
   horizontalHeader()->setStretchLastSection(false);
-  setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+  horizontalHeader()->setResizeContentsPrecision(1000);
 
   setShowGrid(false);
   sortByColumn(2, Qt::AscendingOrder);
@@ -67,6 +67,10 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
   setFocusPolicy(Qt::NoFocus);
   setAlternatingRowColors(true);
   setSortingEnabled(true);
+
+  for (int i = 1; i < proxy_model_.columnCount(); ++i) {
+    this->resizeColumnToContents(i);
+  }
 
   connect(CommonUtils::GetInstance(), &CommonUtils::SignalFavoritesChanged,
           &proxy_model_, &GpgKeyTableProxyModel::SignalFavoritesChanged);
@@ -146,4 +150,5 @@ void KeyTable::UncheckAll() {
 
   return selected_indexes.first().row();
 }
+
 }  // namespace GpgFrontend::UI

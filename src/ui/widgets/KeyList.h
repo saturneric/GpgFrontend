@@ -239,8 +239,6 @@ class KeyList : public QWidget {
    */
   void SignalRefreshDatabase();
 
- signals:
-
   /**
    * @brief
    *

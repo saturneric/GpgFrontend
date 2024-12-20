@@ -28,8 +28,6 @@
 
 #include "GpgKeyTableModel.h"
 
-#include <utility>
-
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/model/GpgKey.h"
 
@@ -61,10 +59,6 @@ auto GpgKeyTableModel::columnCount(const QModelIndex & /*parent*/) const
 auto GpgKeyTableModel::data(const QModelIndex &index,
                             int role) const -> QVariant {
   if (!index.isValid() || buffered_keys_.empty()) return {};
-
-  if (role == Qt::TextAlignmentRole) {
-    return Qt::AlignCenter;
-  }
 
   if (role == Qt::CheckStateRole) {
     if (index.column() == 0) {
@@ -107,7 +101,7 @@ auto GpgKeyTableModel::data(const QModelIndex &index,
       return key.GetId();
     }
     case 7: {
-      return key.GetCreateTime();
+      return QLocale().toString(key.GetCreateTime());
     }
     case 8: {
       return key.GetKeyAlgo();

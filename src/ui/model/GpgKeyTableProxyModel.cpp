@@ -28,8 +28,6 @@
 
 #include "GpgKeyTableProxyModel.h"
 
-#include <utility>
-
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/model/CacheObject.h"
 #include "core/model/GpgKey.h"
@@ -45,7 +43,9 @@ GpgKeyTableProxyModel::GpgKeyTableProxyModel(
       model_(std::move(model)),
       display_mode_(display_mode),
       filter_columns_(columns),
-      custom_filter_(std::move(filter)) {
+      custom_filter_(std::move(filter)),
+      default_font_("Arial", 14),
+      default_metrics_(default_font_) {
   setSourceModel(model_.get());
 
   connect(this, &GpgKeyTableProxyModel::SignalFavoritesChanged, this,
@@ -196,5 +196,82 @@ void GpgKeyTableProxyModel::slot_update_favorites_cache() {
   if (cache_obj.key_dbs.contains(key_db_name)) {
     favorite_key_ids_ = cache_obj.key_dbs[key_db_name].key_ids;
   }
+}
+
+auto GpgKeyTableProxyModel::data(const QModelIndex &index,
+                                 int role) const -> QVariant {
+  if (role == Qt::FontRole) {
+    return default_font_;
+  }
+
+  if (role == Qt::TextAlignmentRole) {
+    return Qt::AlignCenter;
+  }
+
+  if (role == Qt::SizeHintRole) {
+    const QVariant display_data = model_->data(index, Qt::DisplayRole);
+    if (!display_data.isValid()) {
+      return {};
+    }
+
+    const QString text = display_data.toString();
+
+    QRect rect = default_metrics_.boundingRect(QRect{}, Qt::AlignCenter, text);
+
+    const int horizontal_padding = 15;
+    const int vertical_padding = 2;
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+    const int raw_width = default_metrics_.horizontalAdvance(text);
+#else
+    const int raw_width = rect.width();
+#endif
+
+    const int width =
+        static_cast<int>(raw_width * 1.15) + horizontal_padding * 2;
+    const int height = rect.height() + vertical_padding * 2;
+
+    LOG_D() << "row text: " << text << "width: " << width;
+
+    return QSize(width, height);
+  }
+
+  return sourceModel()->data(index, role);
+}
+
+auto GpgKeyTableProxyModel::headerData(int section, Qt::Orientation orientation,
+                                       int role) const -> QVariant {
+  if (role == Qt::FontRole) {
+    return default_font_;
+  }
+
+  if (role == Qt::SizeHintRole) {
+    const QVariant display_data =
+        model_->headerData(section, orientation, Qt::DisplayRole);
+    if (!display_data.isValid()) {
+      return {};
+    }
+
+    const QString text = display_data.toString();
+
+    QRect rect = default_metrics_.boundingRect(QRect{}, Qt::AlignCenter, text);
+
+    const int horizontal_padding = 15;
+    const int vertical_padding = 2;
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
+    const int raw_width = default_metrics_.horizontalAdvance(text);
+#else
+    const int raw_width = rect.width();
+#endif
+
+    const int width =
+        static_cast<int>(raw_width * 1.15) + horizontal_padding * 2;
+    const int height = rect.height() + vertical_padding * 2;
+
+    return QSize(width, height);
+  }
+
+  return sourceModel()->headerData(section, orientation, role);
 }
 }  // namespace GpgFrontend
