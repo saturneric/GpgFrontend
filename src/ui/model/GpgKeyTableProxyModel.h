@@ -33,10 +33,9 @@
 
 #include "core/model/GpgKeyTableModel.h"
 
-namespace GpgFrontend {
+namespace GpgFrontend::UI {
 
-class GPGFRONTEND_CORE_EXPORT GpgKeyTableProxyModel
-    : public QSortFilterProxyModel {
+class GpgKeyTableProxyModel : public QSortFilterProxyModel {
   Q_OBJECT
  public:
   using KeyFilter = std::function<bool(const GpgKey &)>;
@@ -109,4 +108,4 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableProxyModel
   QFontMetrics default_metrics_;
 };
 
-}  // namespace GpgFrontend
+}  // namespace GpgFrontend::UI

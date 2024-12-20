@@ -34,7 +34,7 @@
 #include "core/struct/cache_object/AllFavoriteKeyPairsCO.h"
 #include "core/utils/GpgUtils.h"
 
-namespace GpgFrontend {
+namespace GpgFrontend::UI {
 
 GpgKeyTableProxyModel::GpgKeyTableProxyModel(
     QSharedPointer<GpgKeyTableModel> model, GpgKeyTableDisplayMode display_mode,
@@ -274,4 +274,4 @@ auto GpgKeyTableProxyModel::headerData(int section, Qt::Orientation orientation,
 
   return sourceModel()->headerData(section, orientation, role);
 }
-}  // namespace GpgFrontend
+}  // namespace GpgFrontend::UI
