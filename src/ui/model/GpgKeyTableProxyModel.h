@@ -49,12 +49,6 @@ class GpgKeyTableProxyModel : public QSortFilterProxyModel {
 
   void ResetGpgKeyTableModel(QSharedPointer<GpgKeyTableModel> model);
 
-  [[nodiscard]] auto data(const QModelIndex &index,
-                          int role) const -> QVariant override;
-
-  [[nodiscard]] auto headerData(int section, Qt::Orientation orientation,
-                                int role) const -> QVariant override;
-
  protected:
   [[nodiscard]] auto filterAcceptsRow(
       int sourceRow, const QModelIndex &sourceParent) const -> bool override;

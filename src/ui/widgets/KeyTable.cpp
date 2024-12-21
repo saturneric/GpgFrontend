@@ -54,8 +54,7 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
 
   verticalHeader()->hide();
   horizontalHeader()->setStretchLastSection(false);
-  horizontalHeader()->setResizeContentsPrecision(1000);
-
+  horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
   setShowGrid(false);
   sortByColumn(2, Qt::AscendingOrder);
   setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -67,10 +66,6 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
   setFocusPolicy(Qt::NoFocus);
   setAlternatingRowColors(true);
   setSortingEnabled(true);
-
-  for (int i = 1; i < proxy_model_.columnCount(); ++i) {
-    this->resizeColumnToContents(i);
-  }
 
   connect(CommonUtils::GetInstance(), &CommonUtils::SignalFavoritesChanged,
           &proxy_model_, &GpgKeyTableProxyModel::SignalFavoritesChanged);
