@@ -33,7 +33,6 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
@@ -537,23 +536,6 @@ void KeyList::import_keys(const QByteArray& in_buffer) {
   emit SignalRefreshDatabase();
 
   (new KeyImportDetailDialog(current_gpg_context_channel_, result, this));
-}
-
-void KeyList::slot_double_clicked(const QModelIndex& index) {
-  if (ui_->keyGroupTab->size().isEmpty()) return;
-
-  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
-  if (m_action_ != nullptr) {
-    const auto key = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
-                         .GetKey(key_table->GetKeyIdByRow(index.row()));
-    assert(key.IsGood());
-    m_action_(key, this);
-  }
-}
-
-void KeyList::SetDoubleClickedAction(
-    std::function<void(const GpgKey&, QWidget*)> action) {
-  this->m_action_ = std::move(action);
 }
 
 auto KeyList::GetSelectedKey() -> QString {

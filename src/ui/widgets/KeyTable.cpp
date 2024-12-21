@@ -76,6 +76,8 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
           });
   connect(this, &QTableView::doubleClicked, this,
           [this](const QModelIndex& index) {
+            if (!index.isValid() || index.column() == 0) return;
+
             auto key = GpgKeyGetter::GetInstance(model_->GetGpgContextChannel())
                            .GetKey(GetKeyIdByRow(index.row()));
             if (!key.IsGood()) {
