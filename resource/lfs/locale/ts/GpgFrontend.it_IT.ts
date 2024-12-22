@@ -101,7 +101,7 @@
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="40"/>
         <source>Encrypt Operation</source>
-        <translation>Operazione di crittografia</translation>
+        <translation>Operazione di cifratura</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="43"/>
@@ -709,12 +709,12 @@
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="121"/>
         <source>If you want to learn how to encrypt, decrypt, sign and verify text, you can read </source>
-        <translation>Se vuoi imparare a crittografare, decifrare, firmare e verificare il testo, puoi leggere </translation>
+        <translation>Se vuoi imparare a cifrare, decifrare, firmare e verificare il testo, puoi leggere </translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="124"/>
         <source>Encrypt &amp; Decrypt Text</source>
-        <translation>Crittografa e decifra il testo</translation>
+        <translation>Cifra e decifra il testo</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="124"/>
@@ -735,7 +735,7 @@
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="136"/>
         <source>Encrypt &amp; Sign File</source>
-        <translation>Crittografa e firma file</translation>
+        <translation>Cifra e firma file</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="138"/>
@@ -1724,7 +1724,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeygenDialog.cpp" line="208"/>
         <source>Encryption</source>
-        <translation>Crittografia</translation>
+        <translation>Cifratura</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeygenDialog.cpp" line="211"/>
@@ -1807,7 +1807,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="167"/>
         <source>You should create a new keypair.The pair consists of a public and a private key.&lt;br&gt;Other users can use the public key to encrypt messages for you and verify messages signed by you.You can use the private key to decrypt and sign messages.&lt;br&gt;For more information have a look at the offline tutorial (which then is shown in the main window):</source>
-        <translation>Dovresti creare una nuova coppia di chiavi.La coppia è composta da una chiave pubblica e una privata.&lt;br&gt;Gli altri utenti possono utilizzare la chiave pubblica per crittografare i messaggi per te e verificare i messaggi firmati da te.Puoi utilizzare la chiave privata per decrittografare e firmare messaggi.&lt;br&gt;Per maggiori informazioni dai un&apos;occhiata al tutorial offline (che poi viene mostrato nella finestra principale):</translation>
+        <translation>Dovresti creare una nuova coppia di chiavi.La coppia è composta da una chiave pubblica e una privata.&lt;br&gt;Gli altri utenti possono utilizzare la chiave pubblica per cifrare i messaggi per te e verificare i messaggi firmati da te.Puoi utilizzare la chiave privata per decifrare e firmare messaggi.&lt;br&gt;Per maggiori informazioni dai un&apos;occhiata al tutorial offline (che poi viene mostrato nella finestra principale):</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="179"/>
@@ -2587,7 +2587,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="221"/>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="234"/>
         <source>Encrypt</source>
-        <translation>Crittografa</translation>
+        <translation>Cifra</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="222"/>
@@ -3147,7 +3147,7 @@ Nota: per la verifica, puoi trovare maggiori informazioni qui: https://keys.open
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="313"/>
         <source>Encrypt</source>
-        <translation>Crittografa</translation>
+        <translation>Cifra</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="314"/>
@@ -4136,7 +4136,7 @@ Nota: per la verifica, puoi trovare maggiori informazioni qui: https://keys.open
         <location filename="../../../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="86"/>
         <location filename="../../../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="212"/>
         <source>No Key Selected. Do you want to encrypt with a symmetric cipher using a passphrase?</source>
-        <translation>Nessuna chiave selezionata. Vuoi crittografare con un cifrario simmetrico utilizzando una passphrase?</translation>
+        <translation>Nessuna chiave selezionata. Vuoi cifrare con un cifrario simmetrico utilizzando una passphrase?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="92"/>
@@ -4202,7 +4202,7 @@ Nota: per la verifica, puoi trovare maggiori informazioni qui: https://keys.open
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="123"/>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="632"/>
         <source>Encrypting</source>
-        <translation>Crittografa</translation>
+        <translation>Sto cifrando</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="218"/>
@@ -4212,7 +4212,7 @@ Nota: per la verifica, puoi trovare maggiori informazioni qui: https://keys.open
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="270"/>
         <source>Archiving &amp; Encrypting</source>
-        <translation>Archiviazione &amp; Crittografia</translation>
+        <translation>Archiviazione &amp; Cifratura</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="311"/>
@@ -4309,7 +4309,7 @@ Se i dati e la firma sono COMBINATI in un singolo file, MANTIENI QUESTO CAMPO VU
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="425"/>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="786"/>
         <source>Encrypting and Signing</source>
-        <translation>Crittografa e Firma</translation>
+        <translation>Cifra e Firma</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowFileSlotFunction.cpp" line="767"/>
@@ -4389,7 +4389,7 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="56"/>
         <source>No Key Checked. Do you want to encrypt with a symmetric cipher using a passphrase?</source>
-        <translation>Nessuna chiave controllata. Vuoi crittografare con una cifra simmetrica usando una passphrase?</translation>
+        <translation>Nessuna chiave controllata. Vuoi cifrare con una cifra simmetrica usando una passphrase?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="113"/>
@@ -4544,7 +4544,7 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="626"/>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="756"/>
         <source>Please select a key for encrypt the EML.</source>
-        <translation>Selezionare una chiave per crittografare l&apos;EML.</translation>
+        <translation type="unfinished">Selezionare una chiave per cifrare l&apos;EML.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="690"/>
@@ -4856,22 +4856,22 @@ Se il problema persiste, prendere in considerazione la possibilità di richieder
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="144"/>
         <source>Encrypt</source>
-        <translation>Crittografa</translation>
+        <translation>Cifra</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="145"/>
         <source>Encrypt Message</source>
-        <translation>Crittografa il messaggio</translation>
+        <translation>Cifra il messaggio</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="151"/>
         <source>Encrypt Sign</source>
-        <translation>Crittografa e Firma</translation>
+        <translation>Cifra e Firma</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="152"/>
         <source>Encrypt and Sign Message</source>
-        <translation>Crittografa e Firma Messaggio</translation>
+        <translation>Cifra e Firma Messaggio</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="157"/>
@@ -5262,7 +5262,7 @@ Se il problema persiste, prendere in considerazione la possibilità di richieder
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="440"/>
         <source>Crypt</source>
-        <translation>Crittografa</translation>
+        <translation>Cifra</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="450"/>
@@ -5809,7 +5809,7 @@ Se il problema persiste, prendere in considerazione la possibilità di richieder
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="100"/>
         <source>Encryption</source>
-        <translation>Crittografia</translation>
+        <translation>Cifratura</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="103"/>
