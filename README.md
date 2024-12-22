@@ -15,15 +15,17 @@ stands out as an exceptional GUI frontend for the modern
 
 When using GpgFrontend, you can:
 
-- Rapidly encrypt files or text.
-- Digitally sign your files or text with ease.
+- Rapidly encrypt text, files or emails.
+- Digitally sign your text, files or emails with ease.
 - Conveniently manage all your GPG keys on your device.
 - Transfer all your GPG keys between devices safely and effortlessly.
 - Furthermore, you can build and run it on various operating systems, including
   Windows, macOS, Linux, FreeBSD, and more.
 
-GpgFrontend is **PERMANENTLY FREE** of charge. However, you can support us by
-"starring" this project. Your contributions are highly appreciated!
+GpgFrontend is **PERMANENTLY FREE** to use. If you’d like to support it,
+consider giving the project a ⭐ on GitHub. Your support not only helps it grow
+but also spreads the word, allowing more people to discover and benefit from
+GpgFrontend. Every contribution is highly appreciated!
 
 ## Table of Contents
 
@@ -117,6 +119,13 @@ environment in GitHub Codespaces.
 ## Project Maintainer
 
 [@Saturneric](https://github.com/saturneric)
+
+I’m always eager to hear your suggestions for improvement. My goal is to
+continuously enhance the usability of GpgFrontend and address critical issues
+effectively. Your feedback is highly valued and has a great chance of being
+implemented in the next release. Feel free to share your ideas and insights via
+Issues, email, or any other convenient method. Together, we can make GpgFrontend
+even better!
 
 ## Project's Logo
 
