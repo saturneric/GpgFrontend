@@ -30,6 +30,7 @@
 
 #include <utility>
 
+#include "core/function/GlobalSettingStation.h"
 #include "core/struct/settings_object/KeyDatabaseItemSO.h"
 #include "core/utils/MemoryUtils.h"
 #include "ui_KeyDatabaseEditDialog.h"
@@ -47,6 +48,7 @@ KeyDatabaseEditDialog::KeyDatabaseEditDialog(
   ui_->keyDBNameLabel->setText(tr("Key Database Name"));
   ui_->keyDBPathLabel->setText(tr("Key Database Path"));
   ui_->selectKeyDBButton->setText(tr("Select A Key Database Path"));
+  ui_->convert2RelativePathCheckBox->setText(tr("Convert to Relative Path"));
 
   this->setWindowTitle(tr("Key Database Info"));
 
@@ -94,6 +96,11 @@ void KeyDatabaseEditDialog::slot_button_box_accepted() {
                             .arg(name_));
       return;
     }
+  }
+
+  if (ui_->convert2RelativePathCheckBox->isChecked()) {
+    path_ = QDir(GlobalSettingStation::GetInstance().GetAppDir())
+                .relativeFilePath(path_);
   }
 
   slot_clear_err_msg();

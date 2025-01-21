@@ -48,7 +48,7 @@ class GlobalSettingStation::Impl {
       Module::UpsertRTValue("core", "env.state.portable", 1);
       LOG_I() << "GpgFrontend runs in the portable mode now";
 
-      app_data_path_ = app_path_ + "/../";
+      app_data_path_ = QDir(app_path_ + "/../").canonicalPath();
       app_config_path_ = app_data_path_ + "/config";
 
       portable_mode_ = true;
@@ -171,6 +171,8 @@ class GlobalSettingStation::Impl {
     return exec_binary_path + "/modules";
   }
 
+  [[nodiscard]] auto IsProtableMode() const -> bool { return portable_mode_; }
+
  private:
   [[nodiscard]] auto app_config_file_path() const -> QString {
     return app_config_path_ + "/config.ini";
@@ -243,5 +245,9 @@ auto GlobalSettingStation::GetConfigPath() const -> QString {
 
 auto GlobalSettingStation::GetIntegratedModulePath() const -> QString {
   return p_->GetIntegratedModulePath();
+}
+
+auto GlobalSettingStation::IsProtableMode() const -> bool {
+  return p_->IsProtableMode();
 }
 }  // namespace GpgFrontend

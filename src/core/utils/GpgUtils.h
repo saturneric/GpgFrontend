@@ -30,6 +30,7 @@
 
 #include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/model/KeyDatabaseInfo.h"
+#include "core/struct/settings_object/KeyDatabaseItemSO.h"
 #include "core/typedef/CoreTypedef.h"
 #include "core/typedef/GpgTypedef.h"
 
@@ -105,6 +106,32 @@ auto GPGFRONTEND_CORE_EXPORT SetExtensionOfOutputFile(const QString& path,
  */
 auto GPGFRONTEND_CORE_EXPORT SetExtensionOfOutputFileForArchive(
     const QString& path, GpgOperation opera, bool ascii) -> QString;
+
+/**
+ * @brief
+ *
+ * @param app_path
+ * @param path
+ * @return QString
+ */
+auto GPGFRONTEND_CORE_EXPORT GetCanonicalKeyDatabasePath(
+    const QDir& app_path, const QString& path) -> QString;
+
+/**
+ * @brief Get the Key Databases By Settings object
+ *
+ * @return QContainer<KeyDatabaseItemSO>
+ */
+auto GPGFRONTEND_CORE_EXPORT GetKeyDatabasesBySettings()
+    -> QContainer<KeyDatabaseItemSO>;
+
+/**
+ * @brief
+ *
+ * @return QList<KeyDatabaseInfo>
+ */
+auto GPGFRONTEND_CORE_EXPORT GetKeyDatabaseInfoBySettings()
+    -> QList<KeyDatabaseInfo>;
 
 /**
  * @brief

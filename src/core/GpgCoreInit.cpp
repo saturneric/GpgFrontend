@@ -54,11 +54,6 @@ auto VerifyGpgconfPath(const QFileInfo& gnupg_install_fs_path) -> bool {
          gnupg_install_fs_path.isFile();
 }
 
-auto VerifyKeyDatabasePath(const QFileInfo& key_database_fs_path) -> bool {
-  return key_database_fs_path.isAbsolute() && key_database_fs_path.exists() &&
-         key_database_fs_path.isDir();
-}
-
 auto SearchGpgconfPath(const QList<QString>& candidate_paths) -> QString {
   for (const auto& path : candidate_paths) {
     if (VerifyGpgconfPath(QFileInfo(path))) {
@@ -69,17 +64,12 @@ auto SearchGpgconfPath(const QList<QString>& candidate_paths) -> QString {
   return {};
 }
 
-auto SearchKeyDatabasePath(const QList<QString>& candidate_paths) -> QString {
-  for (const auto& path : candidate_paths) {
-    if (VerifyKeyDatabasePath(QFileInfo(path))) {
-      // return a unify path
-      return QFileInfo(path).absoluteFilePath();
-    }
-  }
-  return {};
-}
-
 auto GetDefaultKeyDatabasePath(const QString& gpgconf_path) -> QString {
+  // portable mode
+  if (GlobalSettingStation::GetInstance().IsProtableMode()) {
+    return GlobalSettingStation::GetInstance().GetAppDataPath();
+  }
+
   if (gpgconf_path.isEmpty()) return {};
 
   QFileInfo info(gpgconf_path);
@@ -425,45 +415,6 @@ auto InitBasicPath() -> bool {
   return true;
 }
 
-auto GetKeyDatabasesBySettings(QString& default_home_path)
-    -> QList<KeyDatabaseItemSO> {
-  auto key_db_list_so = SettingsObject("key_database_list");
-  auto key_db_list = KeyDatabaseListSO(key_db_list_so);
-  auto key_dbs = key_db_list.key_databases;
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 1, 0)
-  key_dbs.removeIf(
-      [default_home_path](const KeyDatabaseItemSO& key_database) -> bool {
-        return key_database.path == default_home_path;
-      });
-#else
-  for (auto iter = key_dbs.begin(); iter != key_dbs.end();) {
-    if (iter->path == default_home_path) {
-      iter = key_dbs.erase(iter);
-    } else {
-      ++iter;
-    }
-  }
-#endif
-
-  key_db_list_so.Store(key_db_list.ToJson());
-  return key_dbs;
-}
-
-auto GetKeyDatabaseInfoBySettings(QString& default_home_path)
-    -> QList<KeyDatabaseInfo> {
-  auto key_dbs = GetKeyDatabasesBySettings(default_home_path);
-  QList<KeyDatabaseInfo> infos;
-  for (const auto& key_db : key_dbs) {
-    KeyDatabaseInfo info;
-    info.name = key_db.name;
-    info.path = key_db.path;
-    info.channel = -1;
-    infos.append(info);
-  }
-  return infos;
-}
-
 auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   // initialize gpgme
   if (!InitGpgME()) {
@@ -519,16 +470,16 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     return 0;
   }
 
+  auto key_dbs = GetKeyDatabaseInfoBySettings();
+
   // load default context
   auto& default_ctx = GpgFrontend::GpgContext::CreateInstance(
       kGpgFrontendDefaultChannel, [=]() -> ChannelObjectPtr {
         GpgFrontend::GpgContextInitArgs args;
 
-        // set key database path
-        if (!default_home_path.isEmpty()) {
-          args.db_name = "DEFAULT";
-          args.db_path = default_home_path;
-        }
+        const auto& default_key_db_info = key_dbs.front();
+        args.db_name = default_key_db_info.name;
+        args.db_path = default_key_db_info.path;
 
         args.offline_mode = forbid_all_gnupg_connection;
         args.auto_import_missing_key = auto_import_missing_key;
@@ -564,30 +515,12 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   CoreSignalStation::GetInstance()->SignalGoodGnupgEnv();
   LOG_I() << "Basic ENV Checking Finished";
 
-  auto key_dbs = GetKeyDatabasesBySettings(default_home_path);
-
   auto* task = new Thread::Task(
       [=](const DataObjectPtr&) -> int {
-        // key database path
-        QList<KeyDatabaseItemSO> buffered_key_dbs;
-
-        // try to use user defined key database
-        if (!key_dbs.empty()) {
-          for (const auto& key_database : key_dbs) {
-            if (VerifyKeyDatabasePath(QFileInfo(key_database.path))) {
-              auto key_database_fs_path =
-                  QFileInfo(key_database.path).absoluteFilePath();
-              LOG_D() << "load gpg key database: " << key_database.path;
-              buffered_key_dbs.append(key_database);
-            } else {
-              LOG_W() << "gpg key database path is not suitable: "
-                      << key_database.path;
-            }
-          }
-        }
-
         int channel_index = kGpgFrontendDefaultChannel + 1;
-        for (const auto& key_db : buffered_key_dbs) {
+        for (int i = 1; i < key_dbs.size(); i++) {
+          const auto& key_db = key_dbs[i];
+
           // init ctx, also checking the basic env
           auto& ctx = GpgFrontend::GpgContext::CreateInstance(
               channel_index, [=]() -> ChannelObjectPtr {

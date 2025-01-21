@@ -131,6 +131,14 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
    */
   [[nodiscard]] auto GetIntegratedModulePath() const -> QString;
 
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] auto IsProtableMode() const -> bool;
+
  private:
   class Impl;
   SecureUniquePtr<Impl> p_;

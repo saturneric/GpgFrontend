@@ -72,12 +72,4 @@ auto GPGFRONTEND_CORE_EXPORT InitGpgME() -> bool;
  */
 auto GPGFRONTEND_CORE_EXPORT InitBasicPath() -> bool;
 
-/**
- * @brief Get the Key Databases By Settings object
- *
- * @return auto
- */
-auto GPGFRONTEND_CORE_EXPORT GetKeyDatabaseInfoBySettings(
-    QString& default_home_path) -> QList<KeyDatabaseInfo>;
-
 }  // namespace GpgFrontend

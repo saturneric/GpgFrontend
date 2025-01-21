@@ -35,12 +35,14 @@ namespace GpgFrontend {
 struct KeyDatabaseItemSO {
   QString name;
   QString path;
+  int channel;
 
   KeyDatabaseItemSO() = default;
 
   explicit KeyDatabaseItemSO(KeyDatabaseInfo i) {
     name = i.name;
-    path = i.path;
+    path = i.origin_path.isEmpty() ? i.path : i.origin_path;
+    channel = i.channel;
   }
 
   explicit KeyDatabaseItemSO(const QJsonObject& j) {
@@ -50,12 +52,16 @@ struct KeyDatabaseItemSO {
     if (const auto v = j["path"]; v.isString()) {
       path = v.toString();
     }
+    if (const auto v = j["channel"]; v.isDouble()) {
+      channel = v.toInt();
+    }
   }
 
   [[nodiscard]] auto ToJson() const -> QJsonObject {
     QJsonObject j;
     j["name"] = name;
     j["path"] = path;
+    j["channel"] = channel;
     return j;
   }
 };

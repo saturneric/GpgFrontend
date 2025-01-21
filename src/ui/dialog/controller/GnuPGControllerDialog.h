@@ -126,12 +126,13 @@ class GnuPGControllerDialog : public GeneralDialog {
 
  private:
   std::shared_ptr<Ui_GnuPGControllerDialog> ui_;  ///<
-  int restart_mode_{0};                           ///<
+  const QString app_path_;
+  int restart_mode_{0};  ///<
   QString custom_key_database_path_;
   QString custom_gnupg_path_;
   QMenu* popup_menu_{};
-  QList<KeyDatabaseInfo> buffered_key_db_so_;
-  QList<KeyDatabaseInfo> editable_key_db_so_;
+  QList<KeyDatabaseInfo> active_key_db_infos_;
+  QList<KeyDatabaseInfo> key_db_infos_;
 
   /**
    * @brief Get the Restart Needed object
