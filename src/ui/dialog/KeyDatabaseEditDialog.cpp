@@ -44,6 +44,8 @@ KeyDatabaseEditDialog::KeyDatabaseEditDialog(
   ui_->setupUi(this);
 
   ui_->keyDBPathShowLabel->setHidden(true);
+  ui_->convert2RelativePathCheckBox->setChecked(
+      GlobalSettingStation::GetInstance().IsProtableMode());
 
   ui_->keyDBNameLabel->setText(tr("Key Database Name"));
   ui_->keyDBPathLabel->setText(tr("Key Database Path"));
