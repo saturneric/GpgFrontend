@@ -97,10 +97,6 @@ KeyMgmt::KeyMgmt(QWidget* parent)
       [](const GpgKey& key) -> bool { return key.IsExpired(); });
 
   setCentralWidget(key_list_);
-  key_list_->SetDoubleClickedAction([this](const GpgKey& key,
-                                           QWidget* /*parent*/) {
-    new KeyDetailsDialog(key_list_->GetCurrentGpgContextChannel(), key, this);
-  });
 
   key_list_->SlotRefresh();
 

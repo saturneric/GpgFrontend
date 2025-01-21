@@ -28,8 +28,6 @@
 
 #include "GpgKeyTableModel.h"
 
-#include <utility>
-
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/model/GpgKey.h"
 
@@ -62,75 +60,88 @@ auto GpgKeyTableModel::data(const QModelIndex &index,
                             int role) const -> QVariant {
   if (!index.isValid() || buffered_keys_.empty()) return {};
 
-  if (role == Qt::TextAlignmentRole) {
-    return Qt::AlignCenter;
-  }
-
   if (role == Qt::CheckStateRole) {
     if (index.column() == 0) {
       return key_check_state_[index.row()] ? Qt::Checked : Qt::Unchecked;
     }
-    return {};
   }
 
-  const auto &key = buffered_keys_.at(index.row());
+  if (role == Qt::DisplayRole) {
+    const auto &key = buffered_keys_.at(index.row());
 
-  switch (index.column()) {
-    case 0: {
-      return index.row();
+    switch (index.column()) {
+      case 0: {
+        return index.row();
+      }
+      case 1: {
+        QString type_sym;
+        type_sym += key.IsPrivateKey() ? "pub/sec" : "pub";
+        if (key.IsPrivateKey() && !key.IsHasMasterKey()) type_sym += "#";
+        if (key.IsHasCardKey()) type_sym += "^";
+        return type_sym;
+      }
+      case 2: {
+        return key.GetName();
+      }
+      case 3: {
+        return key.GetEmail();
+      }
+      case 4: {
+        QString usage_sym;
+        if (key.IsHasActualCertificationCapability()) usage_sym += "C";
+        if (key.IsHasActualEncryptionCapability()) usage_sym += "E";
+        if (key.IsHasActualSigningCapability()) usage_sym += "S";
+        if (key.IsHasActualAuthenticationCapability()) usage_sym += "A";
+        return usage_sym;
+      }
+      case 5: {
+        return key.GetOwnerTrust();
+      }
+      case 6: {
+        return key.GetId();
+      }
+      case 7: {
+        return QLocale().toString(key.GetCreateTime());
+      }
+      case 8: {
+        return key.GetKeyAlgo();
+      }
+      case 9: {
+        return static_cast<int>(key.GetSubKeys()->size());
+      }
+      case 10: {
+        return key.GetComment();
+      }
+      default:
+        return {};
     }
-    case 1: {
-      QString type_sym;
-      type_sym += key.IsPrivateKey() ? "pub/sec" : "pub";
-      if (key.IsPrivateKey() && !key.IsHasMasterKey()) type_sym += "#";
-      if (key.IsHasCardKey()) type_sym += "^";
-      return type_sym;
-    }
-    case 2: {
-      return key.GetName();
-    }
-    case 3: {
-      return key.GetEmail();
-    }
-    case 4: {
-      QString usage_sym;
-      if (key.IsHasActualCertificationCapability()) usage_sym += "C";
-      if (key.IsHasActualEncryptionCapability()) usage_sym += "E";
-      if (key.IsHasActualSigningCapability()) usage_sym += "S";
-      if (key.IsHasActualAuthenticationCapability()) usage_sym += "A";
-      return usage_sym;
-    }
-    case 5: {
-      return key.GetOwnerTrust();
-    }
-    case 6: {
-      return key.GetId();
-    }
-    case 7: {
-      return key.GetCreateTime();
-    }
-    case 8: {
-      return key.GetKeyAlgo();
-    }
-    case 9: {
-      return static_cast<int>(key.GetSubKeys()->size());
-    }
-    case 10: {
-      return key.GetComment();
-    }
-    default:
-      return {};
   }
+
+  if (role == Qt::TextAlignmentRole) {
+    switch (index.column()) {
+      case 0:
+      case 1:
+      case 4:
+      case 5:
+      case 6:
+      case 7:
+      case 9:
+        return Qt::AlignCenter;
+      default:
+        return {};
+    }
+  }
+
+  return {};
 }
 
 auto GpgKeyTableModel::headerData(int section, Qt::Orientation orientation,
                                   int role) const -> QVariant {
-  if (role != Qt::DisplayRole) return {};
-
-  if (orientation == Qt::Horizontal) {
-    return column_headers_[section];
+  if (role == Qt::DisplayRole) {
+    if (orientation == Qt::Horizontal) {
+      return column_headers_[section];
+    }
   }
-
   return {};
 }
 
@@ -138,7 +149,7 @@ auto GpgKeyTableModel::flags(const QModelIndex &index) const -> Qt::ItemFlags {
   if (!index.isValid()) return Qt::NoItemFlags;
 
   if (index.column() == 0) {
-    return Qt::ItemIsUserCheckable | Qt::ItemIsEnabled;
+    return Qt::ItemIsUserCheckable | Qt::ItemIsSelectable | Qt::ItemIsEnabled;
   }
 
   return Qt::ItemIsSelectable | Qt::ItemIsEnabled;

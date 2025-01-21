@@ -109,14 +109,6 @@ class KeyList : public QWidget {
       GpgKeyTableColumn custom_columns_filter = GpgKeyTableColumn::kALL);
 
   /**
-   * @brief Set the Double Clicked Action object
-   *
-   * @param action
-   */
-  void SetDoubleClickedAction(
-      std::function<void(const GpgKey&, QWidget*)> action);
-
-  /**
    * @brief Set the Column Width object
    *
    * @param row
@@ -239,8 +231,6 @@ class KeyList : public QWidget {
    */
   void SignalRefreshDatabase();
 
- signals:
-
   /**
    * @brief
    *
@@ -310,13 +300,6 @@ class KeyList : public QWidget {
   QAction* comment_column_action_;
 
  private slots:
-
-  /**
-   * @brief
-   *
-   * @param index
-   */
-  void slot_double_clicked(const QModelIndex& index);
 
   /**
    * @brief

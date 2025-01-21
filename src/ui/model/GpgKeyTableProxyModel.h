@@ -28,14 +28,14 @@
 
 #pragma once
 
-#include <utility>
+#include <QFont>
+#include <QFontMetrics>
 
 #include "core/model/GpgKeyTableModel.h"
 
-namespace GpgFrontend {
+namespace GpgFrontend::UI {
 
-class GPGFRONTEND_CORE_EXPORT GpgKeyTableProxyModel
-    : public QSortFilterProxyModel {
+class GpgKeyTableProxyModel : public QSortFilterProxyModel {
   Q_OBJECT
  public:
   using KeyFilter = std::function<bool(const GpgKey &)>;
@@ -97,6 +97,9 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableProxyModel
   QString filter_keywords_;
   QList<QString> favorite_key_ids_;
   KeyFilter custom_filter_;
+
+  QFont default_font_;
+  QFontMetrics default_metrics_;
 };
 
-}  // namespace GpgFrontend
+}  // namespace GpgFrontend::UI
