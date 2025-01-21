@@ -61,6 +61,11 @@ class GlobalSettingStation::Impl {
 #if defined(_WIN32) || defined(WIN32)
     LOG_I() << "app config path: " << app_config_path_;
     if (!QDir(app_config_path_).exists()) QDir(app_config_path_).mkpath(".");
+#else
+    if (IsProtableMode()) {
+      LOG_I() << "app config path: " << app_config_path_;
+      if (!QDir(app_config_path_).exists()) QDir(app_config_path_).mkpath(".");
+    }
 #endif
 
     if (!QDir(app_data_path_).exists()) QDir(app_data_path_).mkpath(".");
