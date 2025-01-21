@@ -74,6 +74,7 @@ class GlobalSettingStation::Impl {
 #if defined(_WIN32) || defined(WIN32)
     return QSettings(app_config_file_path(), QSettings::IniFormat);
 #else
+    if (IsProtableMode()) return {app_config_file_path(), QSettings::IniFormat};
     return QSettings();
 #endif
   }

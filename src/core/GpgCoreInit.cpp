@@ -67,7 +67,7 @@ auto SearchGpgconfPath(const QList<QString>& candidate_paths) -> QString {
 auto GetDefaultKeyDatabasePath(const QString& gpgconf_path) -> QString {
   // portable mode
   if (GlobalSettingStation::GetInstance().IsProtableMode()) {
-    return GlobalSettingStation::GetInstance().GetAppDataPath();
+    return GlobalSettingStation::GetInstance().GetAppDataPath() + "/db";
   }
 
   if (gpgconf_path.isEmpty()) return {};
@@ -401,6 +401,8 @@ auto InitBasicPath() -> bool {
         QCoreApplication::tr("Cannot Find Home Path"));
     return false;
   }
+
+  if (!QDir(default_home_path).exists()) QDir(default_home_path).mkpath(".");
 
   RefreshGpgMEBackendEngine(target_gpgconf_path, target_gnupg_path,
                             default_home_path);

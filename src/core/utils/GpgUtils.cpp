@@ -230,12 +230,17 @@ auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
   if (key_dbs.empty()) {
     KeyDatabaseItemSO key_db;
 
-    auto default_home_path = Module::RetrieveRTValueTypedOrDefault<>(
+    auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
         "core", "gpgme.ctx.default_database_path", QString{});
+
+    if (GlobalSettingStation::GetInstance().IsProtableMode()) {
+      home_path = QDir(GlobalSettingStation::GetInstance().GetAppDir())
+                      .relativeFilePath(home_path);
+    }
 
     key_db.channel = 0;
     key_db.name = "DEFAULT";
-    key_db.path = default_home_path;
+    key_db.path = home_path;
 
     key_dbs.append(key_db);
   }
