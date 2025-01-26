@@ -238,7 +238,7 @@ class CommonUtils : public QWidget {
    * @param channel
    */
   void ImportKeyByKeyServerSyncModule(QWidget* parent, int channel,
-                                      const QList<QString>& fprs);
+                                      const QStringList& fprs);
 
   /**
    * @brief

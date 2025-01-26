@@ -599,15 +599,12 @@ void MainWindow::build_operas_file_verify(
 
                 slot_result_analyse_show_helper(result_analyse);
 
-                if (!result_analyse.GetUnknownSignatures().isEmpty() &&
-                    Module::IsModuleActivate(kKeyServerSyncModuleID)) {
-                  slot_verifying_unknown_signature_helper(result_analyse);
-                }
-
                 opera_results.append(
                     {result_analyse.GetStatus(),
                      result_analyse.GetResultReport(),
                      QFileInfo(path.isEmpty() ? o_path : path).fileName()});
+
+                context->unknown_fprs = result_analyse.GetUnknownSignatures();
               });
     };
 
@@ -658,6 +655,11 @@ void MainWindow::SlotFileVerify(const QContainer<QString>& paths) {
   if (f_context != nullptr) build_operas_file_verify(f_context);
 
   execute_operas_helper(tr("Verifying"), contexts);
+
+  if (!contexts->unknown_fprs.isEmpty() &&
+      Module::IsModuleActivate(kKeyServerSyncModuleID)) {
+    slot_verifying_unknown_signature_helper(contexts->unknown_fprs);
+  }
 }
 
 void MainWindow::build_operas_file_encrypt_sign(
@@ -871,11 +873,8 @@ void MainWindow::build_operas_file_decrypt_verify(
                          verify_result_analyse.GetResultReport(),
                      QFileInfo(path).fileName()});
 
-                if (!verify_result_analyse.GetUnknownSignatures().isEmpty() &&
-                    Module::IsModuleActivate(kKeyServerSyncModuleID)) {
-                  slot_verifying_unknown_signature_helper(
-                      verify_result_analyse);
-                }
+                context->unknown_fprs =
+                    verify_result_analyse.GetUnknownSignatures();
               });
     };
 
@@ -929,11 +928,8 @@ void MainWindow::build_operas_archive_decrypt_verify(
                          verify_result_analyse.GetResultReport(),
                      QFileInfo(path).fileName()});
 
-                if (!verify_result_analyse.GetUnknownSignatures().isEmpty() &&
-                    Module::IsModuleActivate(kKeyServerSyncModuleID)) {
-                  slot_verifying_unknown_signature_helper(
-                      verify_result_analyse);
-                }
+                context->unknown_fprs =
+                    verify_result_analyse.GetUnknownSignatures();
               });
     };
 
@@ -974,6 +970,11 @@ void MainWindow::SlotFileDecryptVerify(const QContainer<QString>& paths) {
   }
 
   execute_operas_helper(tr("Decrypting and Verifying"), contexts);
+
+  if (!contexts->unknown_fprs.isEmpty() &&
+      Module::IsModuleActivate(kKeyServerSyncModuleID)) {
+    slot_verifying_unknown_signature_helper(contexts->unknown_fprs);
+  }
 };
 
 void MainWindow::SlotFileVerifyEML(const QString& path) {

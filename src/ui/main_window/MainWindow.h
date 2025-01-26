@@ -455,7 +455,7 @@ class MainWindow : public GeneralMainWindow {
    *
    * @param result_analyse
    */
-  void slot_verifying_unknown_signature_helper(const GpgVerifyResultAnalyse& r);
+  void slot_verifying_unknown_signature_helper(const QStringList& fprs);
 
   /**
    * @brief

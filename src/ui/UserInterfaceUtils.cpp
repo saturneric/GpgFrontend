@@ -663,7 +663,7 @@ void CommonUtils::ImportKeyFromKeyServer(int channel,
 }
 
 void CommonUtils::ImportKeyByKeyServerSyncModule(QWidget *parent, int channel,
-                                                 const QList<QString> &fprs) {
+                                                 const QStringList &fprs) {
   if (!Module::IsModuleActivate(kKeyServerSyncModuleID)) {
     return;
   }

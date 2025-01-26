@@ -450,16 +450,17 @@ void MainWindow::SlotVerifyEML() {
 }
 
 void MainWindow::slot_verifying_unknown_signature_helper(
-    const GpgVerifyResultAnalyse& result_analyse) {
-  if (!Module::IsModuleActivate(kKeyServerSyncModuleID)) return;
+    const QStringList& fprs) {
+  if (!Module::IsModuleActivate(kKeyServerSyncModuleID) || fprs.empty()) return;
 
-  LOG_D() << "try to sync missing key info from server: "
-          << result_analyse.GetUnknownSignatures();
+  auto fpr_set = QSet<QString>(fprs.begin(), fprs.end());
 
-  QString fingerprint_list;
-  for (const auto& fingerprint : result_analyse.GetUnknownSignatures()) {
-    fingerprint_list += fingerprint + "\n";
+  QString fpr_list;
+  for (const auto& fpr : fpr_set) {
+    fpr_list += fpr + "\n";
   }
+
+  LOG_D() << "try to sync missing key info from server: " << fpr_set;
 
   // Interaction with user
   auto user_response =
@@ -470,13 +471,12 @@ void MainWindow::slot_verifying_unknown_signature_helper(
                                "missing:\n%1\n\n"
                                "Would you like to fetch these keys from "
                                "the key server?")
-                                .arg(fingerprint_list),
+                                .arg(fpr_list),
                             QMessageBox::Yes | QMessageBox::No);
 
   if (user_response == QMessageBox::Yes) {
     CommonUtils::GetInstance()->ImportKeyByKeyServerSyncModule(
-        this, m_key_list_->GetCurrentGpgContextChannel(),
-        result_analyse.GetUnknownSignatures());
+        this, m_key_list_->GetCurrentGpgContextChannel(), fpr_set.values());
   } else {
     QMessageBox::information(
         this, tr("Verification Incomplete"),
