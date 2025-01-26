@@ -30,6 +30,8 @@
 
 #include <gpgme.h>
 
+#include <future>
+
 #include "core/model/DataObject.h"
 #include "core/typedef/CoreTypedef.h"
 
