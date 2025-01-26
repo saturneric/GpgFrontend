@@ -44,7 +44,7 @@ class InfoBoardWidget;
 class TextEdit;
 
 using OperaWaitingHd = std::function<void()>;
-using OperaWaitingCb = const std::function<void(OperaWaitingHd)>;
+using OperaWaitingCb = std::function<void(OperaWaitingHd)>;
 
 /**
  * @brief
@@ -112,6 +112,17 @@ class CommonUtils : public QWidget {
    */
   static void WaitForOpera(QWidget* parent, const QString&,
                            const OperaWaitingCb&);
+
+  /**
+   * @brief
+   *
+   * @param parent
+   * @param waiting_dialog_title
+   * @param operas
+   */
+  static void WaitForMultipleOperas(QWidget* parent,
+                                    const QString& waiting_dialog_title,
+                                    const QContainer<OperaWaitingCb>& operas);
 
   /**
    * @brief

@@ -55,7 +55,15 @@ class FilePage : public QWidget {
    *
    * @return QString
    */
-  [[nodiscard]] auto GetSelected() const -> QString;
+  [[nodiscard]] auto GetSelected() const -> QContainer<QString>;
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] auto IsBatchMode() const -> bool;
 
  public slots:
   /**
@@ -92,7 +100,13 @@ class FilePage : public QWidget {
    *
    * @param int
    */
-  void SignalMainWindowlUpdateBasicalOperaMenu(unsigned int);
+  void SignalMainWindowUpdateBasicOperaMenu(unsigned int);
+
+  /**
+   * @brief
+   *
+   */
+  void SignalSetBatchMode(bool);
 
  protected:
   /**
@@ -118,7 +132,7 @@ class FilePage : public QWidget {
    * @brief
    *
    */
-  void update_main_basical_opera_menu(const QString&);
+  void update_main_basic_opera_menu(const QContainer<QString>&);
 };
 
 }  // namespace GpgFrontend::UI

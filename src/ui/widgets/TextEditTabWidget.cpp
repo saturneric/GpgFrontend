@@ -324,8 +324,8 @@ void TextEditTabWidget::slot_file_page_path_changed(const QString& path) {
   }
   this->setTabText(index, m_path);
 
-  emit UISignalStation::GetInstance()
-      -> SignalMainWindowlUpdateBasicalOperaMenu(0);
+  emit UISignalStation::GetInstance() -> SignalMainWindowUpdateBasicOperaMenu(
+                                          0);
 }
 
 }  // namespace GpgFrontend::UI

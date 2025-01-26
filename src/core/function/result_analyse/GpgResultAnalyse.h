@@ -27,10 +27,6 @@
  */
 #pragma once
 
-#include <sstream>
-
-#include "core/typedef/GpgTypedef.h"
-
 namespace GpgFrontend {
 
 class GPGFRONTEND_CORE_EXPORT GpgResultAnalyse : public QObject {

@@ -123,7 +123,7 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param out_path
    * @param cb
    */
-  void EncryptDerectorySymmetric(const QString& in_path, bool ascii,
+  void EncryptDirectorySymmetric(const QString& in_path, bool ascii,
                                  const QString& out_path,
                                  const GpgOperationCallback& cb);
 
@@ -134,7 +134,7 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param ascii
    * @param out_path
    */
-  auto EncryptDerectorySymmetricSync(const QString& in_path, bool ascii,
+  auto EncryptDirectorySymmetricSync(const QString& in_path, bool ascii,
                                      const QString& out_path)
       -> std::tuple<GpgError, DataObjectPtr>;
 

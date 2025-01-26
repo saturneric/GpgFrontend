@@ -37,7 +37,7 @@ namespace GpgFrontend::UI {
 
 FileTreeView::FileTreeView(QWidget* parent, const QString& target_path)
     : QTreeView(parent) {
-  dir_model_ = new QFileSystemModel();
+  dir_model_ = new QFileSystemModel(this);
   dir_model_->setRootPath(target_path.isEmpty() ? QDir::currentPath()
                                                 : target_path);
   dir_model_->setFilter(QDir::AllDirs | QDir::Files | QDir::NoDotAndDotDot);
@@ -49,6 +49,7 @@ FileTreeView::FileTreeView(QWidget* parent, const QString& target_path)
 
   slot_create_popup_menu();
   this->setContextMenuPolicy(Qt::CustomContextMenu);
+  this->setSelectionMode(QAbstractItemView::MultiSelection);
 
   connect(this, &QWidget::customContextMenuRequested, this,
           &FileTreeView::slot_show_custom_context_menu);
@@ -64,16 +65,19 @@ void FileTreeView::selectionChanged(const QItemSelection& selected,
                                     const QItemSelection& deselected) {
   QTreeView::selectionChanged(selected, deselected);
 
-  if (!selected.indexes().empty()) {
-    selected_path_ = dir_model_->filePath(selected.indexes().first());
-    emit SignalSelectedChanged(selected_path_);
-  } else {
-    selected_path_ = QString();
-    if (!this->selectedIndexes().isEmpty()) {
-      selected_path_ = dir_model_->filePath(this->selectedIndexes().front());
-      emit SignalSelectedChanged(selected_path_);
+  selected_paths_.clear();
+  if (!this->selectedIndexes().isEmpty()) {
+    QSet<QString> paths;
+    for (const auto& index : this->selectedIndexes()) {
+      const auto path = dir_model_->filePath(index);
+      if (path == current_path_) continue;
+
+      paths.insert(path);
     }
+    selected_paths_.append(paths.values());
   }
+
+  emit SignalSelectedChanged(selected_paths_);
 }
 
 void FileTreeView::SlotGoPath(const QString& target_path) {
@@ -143,7 +147,9 @@ auto FileTreeView::GetPathByClickPoint(const QPoint& point) -> QString {
   return dir_model_->fileInfo(index).absoluteFilePath();
 }
 
-auto FileTreeView::GetSelectedPath() -> QString { return selected_path_; }
+auto FileTreeView::GetSelectedPaths() -> QContainer<QString> {
+  return selected_paths_;
+}
 
 auto FileTreeView::SlotDeleteSelectedItem() -> void {
   QModelIndex const index = this->currentIndex();
@@ -209,7 +215,9 @@ void FileTreeView::SlotTouch() {
 }
 
 void FileTreeView::SlotTouchBelowAtSelectedItem() {
-  auto root_path(selected_path_);
+  if (selected_paths_.size() != 1) return;
+
+  auto root_path(selected_paths_.front());
   if (root_path.isEmpty()) root_path = dir_model_->rootPath();
 
   QString new_file_name;
@@ -243,23 +251,29 @@ void FileTreeView::keyPressEvent(QKeyEvent* event) {
 }
 
 void FileTreeView::SlotOpenSelectedItemBySystemApplication() {
-  QFileInfo const info(selected_path_);
+  if (selected_paths_.size() != 1) return;
+
+  auto selected_path = selected_paths_.front();
+  QFileInfo const info(selected_path);
   if (info.isDir()) {
     const auto file_path = info.filePath().toUtf8();
-    QDesktopServices::openUrl(QUrl::fromLocalFile(selected_path_));
+    QDesktopServices::openUrl(QUrl::fromLocalFile(selected_path));
 
   } else {
-    QDesktopServices::openUrl(QUrl::fromLocalFile(selected_path_));
+    QDesktopServices::openUrl(QUrl::fromLocalFile(selected_path));
   }
 }
 
 void FileTreeView::SlotRenameSelectedItem() {
+  if (selected_paths_.size() != 1) return;
+
   bool ok;
+  auto selected_path = selected_paths_.front();
   auto text = QInputDialog::getText(this, tr("Rename"), tr("New Filename"),
                                     QLineEdit::Normal,
-                                    QFileInfo(selected_path_).fileName(), &ok);
+                                    QFileInfo(selected_path).fileName(), &ok);
   if (ok && !text.isEmpty()) {
-    auto file_info = QFileInfo(selected_path_);
+    auto file_info = QFileInfo(selected_path);
     auto new_name_path = file_info.absolutePath() + "/" + text;
 
     if (!QDir().rename(file_info.absoluteFilePath(), new_name_path)) {
@@ -282,8 +296,9 @@ void FileTreeView::slot_create_popup_menu() {
 
   action_open_file_ = new QAction(this);
   action_open_file_->setText(tr("Open"));
-  connect(action_open_file_, &QAction::triggered, this,
-          [this](bool) { emit SignalOpenFile(GetSelectedPath()); });
+  connect(action_open_file_, &QAction::triggered, this, [this](bool) {
+    for (const auto& path : GetSelectedPaths()) emit SignalOpenFile(path);
+  });
 
   action_rename_file_ = new QAction(this);
   action_rename_file_->setText(tr("Rename"));
@@ -342,8 +357,11 @@ void FileTreeView::slot_create_popup_menu() {
 
 void FileTreeView::slot_show_custom_context_menu(const QPoint& point) {
   auto target_path = this->GetPathByClickPoint(point);
-  auto select_path = GetSelectedPath();
+  auto select_paths = GetSelectedPaths();
 
+  if (select_paths.size() != 1) return;
+
+  auto select_path = select_paths.front();
   if (target_path.isEmpty() && !select_path.isEmpty()) {
     target_path = select_path;
   }
@@ -378,11 +396,14 @@ void FileTreeView::slot_show_custom_context_menu(const QPoint& point) {
 }
 
 void FileTreeView::slot_calculate_hash() {
+  if (GetSelectedPaths().empty()) return;
+  auto selected_path = GetSelectedPaths().front();
+
   CommonUtils::WaitForOpera(
       this->parentWidget(), tr("Calculating"), [=](const OperaWaitingHd& hd) {
         RunOperaAsync(
             [=](const DataObjectPtr& data_object) {
-              data_object->Swap({CalculateHash(this->GetSelectedPath())});
+              data_object->Swap({CalculateHash(selected_path)});
               return 0;
             },
             [hd](int rtn, const DataObjectPtr& data_object) {

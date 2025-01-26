@@ -216,6 +216,41 @@ void CommonUtils::WaitForOpera(QWidget *parent,
   looper.exec();
 }
 
+void CommonUtils::WaitForMultipleOperas(
+    QWidget *parent, const QString &waiting_dialog_title,
+    const QContainer<OperaWaitingCb> &operas) {
+  QEventLoop looper;
+  QPointer<WaitingDialog> const dialog =
+      new WaitingDialog(waiting_dialog_title, true, parent);
+  connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
+  connect(dialog, &QDialog::finished, dialog, &QDialog::deleteLater);
+  dialog->show();
+
+  std::atomic<int> remaining_tasks(static_cast<int>(operas.size()));
+  const auto tasks_count = operas.size();
+
+  for (const auto &opera : operas) {
+    QTimer::singleShot(64, parent, [=, &remaining_tasks]() {
+      opera([dialog, &remaining_tasks, tasks_count]() {
+        if (dialog == nullptr) return;
+
+        const auto pg_value =
+            static_cast<double>(tasks_count - remaining_tasks + 1) * 100.0 /
+            static_cast<double>(tasks_count);
+        emit dialog->SignalUpdateValue(static_cast<int>(pg_value));
+        QCoreApplication::processEvents();
+
+        if (--remaining_tasks == 0) {
+          dialog->close();
+          dialog->accept();
+        }
+      });
+    });
+  }
+
+  looper.exec();
+}
+
 void CommonUtils::RaiseMessageBox(QWidget *parent, GpgError err) {
   GpgErrorDesc desc = DescribeGpgErrCode(err);
   GpgErrorCode err_code = CheckGpgError2ErrCode(err);
@@ -326,7 +361,7 @@ void CommonUtils::SlotExecuteGpgCommand(
     const QStringList &arguments,
     const std::function<void(QProcess *)> &interact_func) {
   QEventLoop looper;
-  auto *dialog = new WaitingDialog(tr("Processing"), nullptr);
+  auto *dialog = new WaitingDialog(tr("Processing"), false);
   dialog->show();
   auto *gpg_process = new QProcess(&looper);
   gpg_process->setProcessChannelMode(QProcess::MergedChannels);

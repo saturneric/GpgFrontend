@@ -1,3 +1,5 @@
+#include <utility>
+
 /**
  * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
@@ -28,46 +30,15 @@
 
 #pragma once
 
-#include "ui/GpgFrontendUI.h"
-#include "ui/dialog/GeneralDialog.h"
-
 namespace GpgFrontend::UI {
 
-/**
- * @brief
- *
- */
-class WaitingDialog : public GeneralDialog {
-  Q_OBJECT
- public:
-  /**
-   * @brief Construct a new Waiting Dialog object
-   *
-   * @param title
-   * @param parent
-   */
-  explicit WaitingDialog(const QString& title, bool range,
-                         QWidget* parent = nullptr);
+struct GpgOperaResult {
+  int status;
+  QString report;
+  QString tag;
 
- public slots:
-
-  /**
-   * @brief max 100, min 0
-   *
-   */
-  void SlotUpdateValue(int value);
-
- signals:
-
-  /**
-   * @brief
-   *
-   * @param value
-   */
-  void SignalUpdateValue(int value);
-
- private:
-  QProgressBar* pb_;
+  GpgOperaResult(int status, QString report, QString tag)
+      : status(status), report(std::move(report)), tag(std::move(tag)) {}
 };
 
 }  // namespace GpgFrontend::UI

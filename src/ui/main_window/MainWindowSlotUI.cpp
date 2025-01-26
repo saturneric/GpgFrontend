@@ -208,14 +208,9 @@ void MainWindow::SlotUpdateCryptoMenuStatus(unsigned int type) {
 void MainWindow::SlotGeneralEncrypt(bool) {
   if (edit_->CurPageFileTreeView() != nullptr) {
     const auto* file_tree_view = edit_->CurPageFileTreeView();
-    const auto path = file_tree_view->GetSelected();
+    const auto paths = file_tree_view->GetSelected();
 
-    const auto file_info = QFileInfo(path);
-    if (file_info.isFile()) {
-      this->SlotFileEncrypt(path);
-    } else if (file_info.isDir()) {
-      this->SlotDirectoryEncrypt(path);
-    }
+    this->SlotFileEncrypt(paths);
   }
 
   if (edit_->CurEMailPage() != nullptr) {
@@ -231,18 +226,9 @@ void MainWindow::SlotGeneralEncrypt(bool) {
 void MainWindow::SlotGeneralDecrypt(bool) {
   if (edit_->CurPageFileTreeView() != nullptr) {
     const auto* file_tree_view = edit_->CurPageFileTreeView();
-    const auto path = file_tree_view->GetSelected();
+    const auto paths = file_tree_view->GetSelected();
 
-    const auto file_info = QFileInfo(path);
-    if (file_info.isFile()) {
-      const QString extension = file_info.completeSuffix();
-
-      if (extension == "tar.gpg" || extension == "tar.asc") {
-        this->SlotArchiveDecrypt(path);
-      } else {
-        this->SlotFileDecrypt(path);
-      }
-    }
+    this->SlotFileDecrypt(paths);
   }
 
   if (edit_->CurEMailPage() != nullptr) {
@@ -258,10 +244,9 @@ void MainWindow::SlotGeneralDecrypt(bool) {
 void MainWindow::SlotGeneralSign(bool) {
   if (edit_->CurPageFileTreeView() != nullptr) {
     const auto* file_tree_view = edit_->CurPageFileTreeView();
-    const auto path = file_tree_view->GetSelected();
+    const auto paths = file_tree_view->GetSelected();
 
-    const auto file_info = QFileInfo(path);
-    if (file_info.isFile()) this->SlotFileSign(path);
+    this->SlotFileSign(paths);
   }
 
   if (edit_->CurEMailPage() != nullptr) {
@@ -275,10 +260,9 @@ void MainWindow::SlotGeneralSign(bool) {
 void MainWindow::SlotGeneralVerify(bool) {
   if (edit_->CurPageFileTreeView() != nullptr) {
     const auto* file_tree_view = edit_->CurPageFileTreeView();
-    const auto path = file_tree_view->GetSelected();
+    const auto paths = file_tree_view->GetSelected();
 
-    const auto file_info = QFileInfo(path);
-    if (file_info.isFile()) this->SlotFileVerify(path);
+    this->SlotFileVerify(paths);
   }
 
   if (edit_->CurEMailPage() != nullptr) {
@@ -292,14 +276,9 @@ void MainWindow::SlotGeneralVerify(bool) {
 void MainWindow::SlotGeneralEncryptSign(bool) {
   if (edit_->CurPageFileTreeView() != nullptr) {
     const auto* file_tree_view = edit_->CurPageFileTreeView();
-    const auto path = file_tree_view->GetSelected();
+    const auto paths = file_tree_view->GetSelected();
 
-    const auto file_info = QFileInfo(path);
-    if (file_info.isFile()) {
-      this->SlotFileEncryptSign(path);
-    } else if (file_info.isDir()) {
-      this->SlotDirectoryEncryptSign(path);
-    }
+    this->SlotFileEncryptSign(paths);
   }
 
   if (edit_->CurEMailPage() != nullptr) {
@@ -315,18 +294,9 @@ void MainWindow::SlotGeneralEncryptSign(bool) {
 void MainWindow::SlotGeneralDecryptVerify(bool) {
   if (edit_->CurPageFileTreeView() != nullptr) {
     const auto* file_tree_view = edit_->CurPageFileTreeView();
-    const auto path = file_tree_view->GetSelected();
+    const auto paths = file_tree_view->GetSelected();
 
-    const auto file_info = QFileInfo(path);
-    if (file_info.isFile()) {
-      const QString extension = file_info.completeSuffix();
-
-      if (extension == "tar.gpg" || extension == "tar.asc") {
-        this->SlotArchiveDecryptVerify(path);
-      } else {
-        this->SlotFileDecryptVerify(path);
-      }
-    }
+    this->SlotFileDecryptVerify(paths);
   }
 
   if (edit_->CurEMailPage() != nullptr) {

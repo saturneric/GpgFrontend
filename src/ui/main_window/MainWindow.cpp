@@ -104,7 +104,7 @@ void MainWindow::Init() noexcept {
               statusBar()->showMessage(message, timeout);
             });
     connect(UISignalStation::GetInstance(),
-            &UISignalStation::SignalMainWindowlUpdateBasicalOperaMenu, this,
+            &UISignalStation::SignalMainWindowUpdateBasicOperaMenu, this,
             &MainWindow::SlotUpdateCryptoMenuStatus);
     connect(UISignalStation::GetInstance(),
             &UISignalStation::SignalMainWindowOpenFile, this,

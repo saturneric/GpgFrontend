@@ -73,6 +73,9 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
   option_popup_menu_->addAction(show_system_act);
   ui_->optionsButton->setMenu(option_popup_menu_);
 
+  connect(ui_->batchModeButton, &QToolButton::toggled, this,
+          [this](bool checked) { emit SignalSetBatchMode(checked); });
+
   connect(ui_->pathEdit, &QLineEdit::textChanged, [=]() {
     auto path = ui_->pathEdit->text();
     auto dir = QDir(path);
@@ -100,16 +103,16 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
           UISignalStation::GetInstance(),
           &UISignalStation::SignalMainWindowOpenFile);
   connect(file_tree_view_, &FileTreeView::SignalSelectedChanged, this,
-          &FilePage::update_main_basical_opera_menu);
+          &FilePage::update_main_basic_opera_menu);
   connect(this, &FilePage::SignalCurrentTabChanged, this,
-          [this]() { update_main_basical_opera_menu(GetSelected()); });
-  connect(this, &FilePage::SignalMainWindowlUpdateBasicalOperaMenu,
+          [this]() { update_main_basic_opera_menu(GetSelected()); });
+  connect(this, &FilePage::SignalMainWindowUpdateBasicOperaMenu,
           UISignalStation::GetInstance(),
-          &UISignalStation::SignalMainWindowlUpdateBasicalOperaMenu);
+          &UISignalStation::SignalMainWindowUpdateBasicOperaMenu);
 }
 
-auto FilePage::GetSelected() const -> QString {
-  return file_tree_view_->GetSelectedPath();
+auto FilePage::GetSelected() const -> QContainer<QString> {
+  return file_tree_view_->GetSelectedPaths();
 }
 
 void FilePage::SlotGoPath() {
@@ -123,43 +126,71 @@ void FilePage::keyPressEvent(QKeyEvent* event) {
   }
 }
 
-void FilePage::update_main_basical_opera_menu(const QString& selected_path) {
+void FilePage::update_main_basic_opera_menu(
+    const QContainer<QString>& selected_paths) {
+  if (selected_paths.isEmpty()) {
+    emit SignalMainWindowUpdateBasicOperaMenu(MainWindow::OperationMenu::kNone);
+    return;
+  }
+
   MainWindow::OperationMenu::OperationType operation_type =
       MainWindow::OperationMenu::kNone;
 
-  // abort...
-  if (selected_path.isEmpty()) return;
+  LOG_D() << "selected path size: " << selected_paths.size();
+  LOG_D() << "selected paths: " << selected_paths;
 
-  QFileInfo const info(selected_path);
+  QContainer<QFileInfo> infos;
 
-  if ((info.isDir() || info.isFile()) &&
-      (info.suffix() != "gpg" && info.suffix() != "pgp" &&
-       info.suffix() != "sig" && info.suffix() != "asc")) {
-    operation_type |= MainWindow::OperationMenu::kEncrypt;
+  for (const auto& path : selected_paths) {
+    infos.append(QFileInfo(path));
   }
 
-  if ((info.isDir() || info.isFile()) &&
-      (info.suffix() != "gpg" && info.suffix() != "pgp" &&
-       info.suffix() != "sig" && info.suffix() != "asc")) {
-    operation_type |= MainWindow::OperationMenu::kEncryptAndSign;
+  bool c_encr =
+      std::all_of(infos.cbegin(), infos.cend(), [](const QFileInfo& info) {
+        return (info.isDir() || info.isFile()) &&
+               (info.suffix() != "gpg" && info.suffix() != "pgp" &&
+                info.suffix() != "sig" && info.suffix() != "asc");
+      });
+
+  if (c_encr) {
+    operation_type |= MainWindow::OperationMenu::kEncrypt |
+                      MainWindow::OperationMenu::kEncryptAndSign;
   }
 
-  if (info.isFile() && (info.suffix() == "gpg" || info.suffix() == "pgp" ||
-                        info.suffix() == "asc")) {
-    operation_type |= MainWindow::OperationMenu::kDecrypt;
-    operation_type |= MainWindow::OperationMenu::kDecryptAndVerify;
+  bool c_decr =
+      std::all_of(infos.cbegin(), infos.cend(), [](const QFileInfo& info) {
+        return info.isFile() &&
+               (info.suffix() == "gpg" || info.suffix() == "pgp" ||
+                info.suffix() == "asc");
+      });
+
+  if (c_decr) {
+    operation_type |= MainWindow::OperationMenu::kDecrypt |
+                      MainWindow::OperationMenu::kDecryptAndVerify;
   }
 
-  if (info.isFile() && (info.suffix() != "gpg" && info.suffix() != "pgp" &&
-                        info.suffix() != "sig" && info.suffix() != "asc")) {
-    operation_type |= MainWindow::OperationMenu::kSign;
-  }
+  bool c_sign =
+      std::all_of(infos.cbegin(), infos.cend(), [](const QFileInfo& info) {
+        return info.isFile() &&
+               (info.suffix() != "gpg" && info.suffix() != "pgp" &&
+                info.suffix() != "sig" && info.suffix() != "asc");
+      });
 
-  if (info.isFile() && (info.suffix() == "sig" || info.suffix() == "gpg" ||
-                        info.suffix() == "pgp" || info.suffix() == "asc")) {
-    operation_type |= MainWindow::OperationMenu::kVerify;
-  }
+  if (c_sign) operation_type |= MainWindow::OperationMenu::kSign;
 
-  emit SignalMainWindowlUpdateBasicalOperaMenu(operation_type);
+  bool c_verify =
+      std::all_of(infos.cbegin(), infos.cend(), [](const QFileInfo& info) {
+        return info.isFile() &&
+               (info.suffix() == "sig" || info.suffix() == "gpg" ||
+                info.suffix() == "pgp" || info.suffix() == "asc");
+      });
+
+  if (c_verify) operation_type |= MainWindow::OperationMenu::kVerify;
+
+  emit SignalMainWindowUpdateBasicOperaMenu(operation_type);
+}
+
+auto FilePage::IsBatchMode() const -> bool {
+  return ui_->batchModeButton->isChecked();
 }
 }  // namespace GpgFrontend::UI

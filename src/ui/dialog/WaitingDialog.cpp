@@ -32,15 +32,14 @@
 
 namespace GpgFrontend::UI {
 
-WaitingDialog::WaitingDialog(const QString& title, QWidget* parent)
-    : GeneralDialog("WaitingDialog", parent) {
-  auto* pb = new QProgressBar();
-  pb->setRange(0, 0);
-  pb->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-  pb->setTextVisible(false);
+WaitingDialog::WaitingDialog(const QString& title, bool range, QWidget* parent)
+    : GeneralDialog("WaitingDialog", parent), pb_(new QProgressBar()) {
+  pb_->setRange(0, range ? 100 : 0);
+  pb_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+  pb_->setTextVisible(false);
 
   auto* layout = new QVBoxLayout();
-  layout->addWidget(pb);
+  layout->addWidget(pb_);
   this->setLayout(layout);
 
   this->setModal(true);
@@ -50,8 +49,12 @@ WaitingDialog::WaitingDialog(const QString& title, QWidget* parent)
   this->setAttribute(Qt::WA_DeleteOnClose);
   this->setFixedSize(240, 42);
 
+  connect(this, &WaitingDialog::SignalUpdateValue, this,
+          &WaitingDialog::SlotUpdateValue);
+
   this->movePosition2CenterOfParent();
   this->show();
 }
 
+void WaitingDialog::SlotUpdateValue(int value) { pb_->setValue(value); }
 }  // namespace GpgFrontend::UI

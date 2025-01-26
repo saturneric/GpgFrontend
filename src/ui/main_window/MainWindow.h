@@ -28,7 +28,10 @@
 
 #pragma once
 
+#include "core/typedef/CoreTypedef.h"
+#include "core/typedef/GpgTypedef.h"
 #include "ui/main_window/GeneralMainWindow.h"
+#include "ui/struct/GpgOperaResult.h"
 
 namespace GpgFrontend {
 class GpgPassphraseContext;
@@ -41,6 +44,8 @@ namespace GpgFrontend::UI {
 class KeyList;
 class TextEdit;
 class InfoBoardWidget;
+struct GpgOperaContext;
+struct GpgOperaContexts;
 
 /**
  * @brief
@@ -209,41 +214,28 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @details Open dialog for encrypting file.
    */
-  void SlotFileEncrypt(const QString&);
-
-  /**
-   * @brief
-   *
-   */
-  void SlotDirectoryEncrypt(const QString&);
+  void SlotFileEncrypt(const QContainer<QString>& paths);
 
   /**
    * @brief
    *
    * @param path
    */
-  void SlotFileDecrypt(const QString& path);
+  void SlotFileDecrypt(const QContainer<QString>& paths);
 
   /**
    * @brief
    *
    * @param path
    */
-  void SlotArchiveDecrypt(const QString& path);
+  void SlotFileSign(const QContainer<QString>& paths);
 
   /**
    * @brief
    *
    * @param path
    */
-  void SlotFileSign(const QString& path);
-
-  /**
-   * @brief
-   *
-   * @param path
-   */
-  void SlotFileVerify(const QString& path);
+  void SlotFileVerify(const QContainer<QString>& paths);
 
   /**
    * @brief
@@ -257,28 +249,14 @@ class MainWindow : public GeneralMainWindow {
    *
    * @param path
    */
-  void SlotFileEncryptSign(const QString& path);
+  void SlotFileEncryptSign(const QContainer<QString>& paths);
 
   /**
    * @brief
    *
    * @param path
    */
-  void SlotDirectoryEncryptSign(const QString& path);
-
-  /**
-   * @brief
-   *
-   * @param path
-   */
-  void SlotFileDecryptVerify(const QString& path);
-
-  /**
-   * @brief
-   *
-   * @param path
-   */
-  void SlotArchiveDecryptVerify(const QString& path);
+  void SlotFileDecryptVerify(const QContainer<QString>& paths);
 
   /**
    * @details get value of member restartNeeded to needed.
@@ -498,6 +476,14 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @brief
    *
+   * @param opera_results
+   */
+  void slot_result_analyse_show_helper(
+      const QContainer<GpgOperaResult>& opera_results);
+
+  /**
+   * @brief
+   *
    * @param result_analyse
    */
   void slot_eml_verify_show_helper(const QString& email_info,
@@ -611,6 +597,135 @@ class MainWindow : public GeneralMainWindow {
    */
   auto handle_module_error(QMap<QString, QString> p) -> bool;
 
+  /**
+   * @brief
+   *
+   * @param paths
+   * @return true
+   * @return false
+   */
+  auto check_read_file_paths_helper(const QContainer<QString>& paths) -> bool;
+
+  /**
+   * @brief
+   *
+   * @param paths
+   * @return true
+   * @return false
+   */
+  auto check_write_file_paths_helper(const QContainer<QString>& paths) -> bool;
+
+  /**
+   * @brief
+   *
+   * @param key_ids
+   * @param capability_check
+   * @param capability_err_string
+   * @return GpgKeyList
+   */
+  auto check_keys_helper(
+      const KeyIdArgsList& key_ids,
+      const std::function<bool(const GpgKey&)>& capability_check,
+      const QString& capability_err_string) -> GpgKeyList;
+
+  /**
+   * @brief
+   *
+   * @param context
+   * @return auto
+   */
+  auto execute_operas_helper(const QString& task,
+                             const QSharedPointer<GpgOperaContexts>& contexts);
+
+  /**
+   * @brief
+   *
+   * @param context
+   */
+  void build_operas_file_symmetric_encrypt(
+      QSharedPointer<GpgOperaContext>& context);
+
+  /**
+   * @brief
+   *
+   * @param context
+   */
+  void build_operas_file_encrypt(QSharedPointer<GpgOperaContext>& context);
+
+  /**
+   * @brief
+   *
+   * @param context
+   */
+  void build_operas_directory_symmetric_encrypt(
+      QSharedPointer<GpgOperaContext>& context);
+
+  /**
+   * @brief
+   *
+   * @param context
+   */
+  void build_operas_directory_encrypt(QSharedPointer<GpgOperaContext>& context);
+
+  /**
+   * @brief
+   *
+   * @param context
+   */
+  void build_operas_file_decrypt(QSharedPointer<GpgOperaContext>& context);
+
+  /**
+   * @brief
+   *
+   * @param context
+   */
+  void build_operas_archive_decrypt(QSharedPointer<GpgOperaContext>& context);
+
+  /**
+   * @brief
+   *
+   * @param context
+   */
+  void build_operas_file_sign(QSharedPointer<GpgOperaContext>& context);
+
+  /**
+   * @brief
+   *
+   * @param context
+   */
+  void build_operas_file_verify(QSharedPointer<GpgOperaContext>& context);
+
+  /**
+   * @brief
+   *
+   * @param context
+   */
+  void build_operas_file_encrypt_sign(QSharedPointer<GpgOperaContext>& context);
+
+  /**
+   * @brief
+   *
+   * @param context
+   */
+  void build_operas_directory_encrypt_sign(
+      QSharedPointer<GpgOperaContext>& context);
+
+  /**
+   * @brief
+   *
+   * @param context
+   */
+  void build_operas_file_decrypt_verify(
+      QSharedPointer<GpgOperaContext>& context);
+
+  /**
+   * @brief
+   *
+   * @param context
+   */
+  void build_operas_archive_decrypt_verify(
+      QSharedPointer<GpgOperaContext>& context);
+
   TextEdit* edit_{};          ///< Tabwidget holding the edit-windows
   QMenu* file_menu_{};        ///<  Submenu for file-operations
   QMenu* edit_menu_{};        ///<  Submenu for text-operations
@@ -651,8 +766,8 @@ class MainWindow : public GeneralMainWindow {
   QAction* sign_act_{};                  ///<  Action to sign text
   QAction* verify_act_{};                ///<  Action to verify text
   QAction* import_key_from_edit_act_{};  ///<  Action to import key from edit
-  QAction* clean_double_line_breaks_act_{};  ///<  Action to remove double line
-                                             ///<  breaks
+  QAction* clean_double_line_breaks_act_{};  ///<  Action to remove double
+                                             ///<  line breaks
 
   QAction* gnupg_controller_open_act_{};     ///<
   QAction* module_controller_open_act_{};    ///<
@@ -660,8 +775,8 @@ class MainWindow : public GeneralMainWindow {
   QAction* reload_components_act_{};         ///<
   QAction* restart_components_act_{};        ///<
 
-  QAction*
-      append_selected_keys_act_{};  ///< Action to append selected keys to edit
+  QAction* append_selected_keys_act_{};  ///< Action to append selected keys
+                                         ///< to edit
   QAction* append_key_fingerprint_to_editor_act_{};  ///<
   QAction* append_key_create_date_to_editor_act_{};  ///<
   QAction* append_key_expire_date_to_editor_act_{};  ///<

@@ -521,7 +521,7 @@ auto GpgFileOpera::EncryptFileSymmetricSync(const QString& in_path, bool ascii,
       "gpgme_op_encrypt_symmetric", "2.1.0");
 }
 
-void GpgFileOpera::EncryptDerectorySymmetric(const QString& in_path, bool ascii,
+void GpgFileOpera::EncryptDirectorySymmetric(const QString& in_path, bool ascii,
                                              const QString& out_path,
                                              const GpgOperationCallback& cb) {
   auto ex = std::make_shared<GFDataExchanger>(kDataExchangerSize);
@@ -548,7 +548,7 @@ void GpgFileOpera::EncryptDerectorySymmetric(const QString& in_path, bool ascii,
       });
 }
 
-auto GpgFileOpera::EncryptDerectorySymmetricSync(
+auto GpgFileOpera::EncryptDirectorySymmetricSync(
     const QString& in_path, bool ascii,
     const QString& out_path) -> std::tuple<GpgError, DataObjectPtr> {
   auto ex = std::make_shared<GFDataExchanger>(kDataExchangerSize);

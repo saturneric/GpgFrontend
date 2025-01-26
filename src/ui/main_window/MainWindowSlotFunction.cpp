@@ -48,6 +48,7 @@
 #include "ui/dialog/import_export/KeyUploadDialog.h"
 #include "ui/dialog/keypair_details/KeyDetailsDialog.h"
 #include "ui/function/SetOwnerTrustLevel.h"
+#include "ui/struct/GpgOperaResult.h"
 #include "ui/widgets/FindWidget.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
@@ -464,13 +465,11 @@ void MainWindow::slot_verifying_unknown_signature_helper(
   auto user_response =
       QMessageBox::question(this, tr("Missing Keys"),
                             tr("Some signatures cannot be verified because "
-                               "the "
-                               "corresponding keys are missing.\n\n"
+                               "the corresponding keys are missing.\n\n"
                                "The following fingerprints are "
                                "missing:\n%1\n\n"
                                "Would you like to fetch these keys from "
-                               "the key "
-                               "server?")
+                               "the key server?")
                                 .arg(fingerprint_list),
                             QMessageBox::Yes | QMessageBox::No);
 
@@ -479,11 +478,11 @@ void MainWindow::slot_verifying_unknown_signature_helper(
         this, m_key_list_->GetCurrentGpgContextChannel(),
         result_analyse.GetUnknownSignatures());
   } else {
-    QMessageBox::information(this, tr("Verification Incomplete"),
-                             tr("Verification was incomplete due to "
-                                "missing "
-                                "keys. You can manually import the keys "
-                                "later."));
+    QMessageBox::information(
+        this, tr("Verification Incomplete"),
+        tr("Verification was incomplete due to "
+           "missing keys. You can manually import the keys "
+           "later."));
   }
 }
 
@@ -554,6 +553,73 @@ void MainWindow::slot_result_analyse_show_helper(
     const GpgResultAnalyse& result_analyse) {
   slot_refresh_info_board(result_analyse.GetStatus(),
                           result_analyse.GetResultReport());
+}
+
+void MainWindow::slot_result_analyse_show_helper(
+    const QContainer<GpgOperaResult>& opera_results) {
+  if (opera_results.empty()) {
+    slot_refresh_info_board(0, "");
+  }
+
+  int overall_status = 1;  // Initialize to OK
+  QStringList report;
+  QStringList summary;
+
+  QStringList failed_tags;
+  QStringList warning_tags;
+
+  int success_count = 0;
+  int fail_count = 0;
+  int warn_count = 0;
+
+  for (const auto& opera_result : opera_results) {
+    // Update overall status
+    overall_status = std::min(overall_status, opera_result.status);
+
+    QString status_text;
+    if (opera_result.status < 0) {
+      status_text = tr("FAIL");
+      failed_tags << opera_result.tag;
+      fail_count++;
+    } else if (opera_result.status > 0) {
+      status_text = tr("OK");
+      success_count++;
+    } else {
+      status_text = tr("WARN");
+      warning_tags << opera_result.tag;
+      warn_count++;
+    }
+
+    // Append detailed report for each operation
+    report.append(QString("[ %1 ] %2\n\n%3\n")
+                      .arg(status_text, opera_result.tag, opera_result.report));
+  }
+
+  // Prepare summary section
+  summary.append("# " + tr("Summary Report") + "\n\n");
+  summary.append("- " + tr("Total Operations: %1\n").arg(opera_results.size()));
+  summary.append("- " + tr("Successful: %1\n").arg(success_count));
+  summary.append("- " + tr("Warnings: %1\n").arg(warn_count));
+  summary.append("- " + tr("Failures: %1\n").arg(fail_count));
+
+  if (!failed_tags.isEmpty()) {
+    summary.append("- " +
+                   tr("Failed Objects: %1\n").arg(failed_tags.join(", ")));
+  }
+
+  if (!warning_tags.isEmpty()) {
+    summary.append("- " +
+                   tr("Warning Objects: %1\n").arg(warning_tags.join(", ")));
+  }
+
+  // Display the final report in the info board
+  if (opera_results.size() == 1) {
+    slot_refresh_info_board(overall_status, report.join(""));
+
+  } else {
+    slot_refresh_info_board(overall_status,
+                            summary.join("") + "\n\n" + report.join(""));
+  }
 }
 
 void MainWindow::slot_refresh_info_board(int status, const QString& text) {
