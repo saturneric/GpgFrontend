@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "core/typedef/GpgTypedef.h"
+
 namespace GpgFrontend::UI {
 
 struct AppearanceSO {
@@ -36,6 +38,9 @@ struct AppearanceSO {
   int tool_bar_icon_width = 24;
   int tool_bar_icon_height = 24;
   Qt::ToolButtonStyle tool_bar_button_style = Qt::ToolButtonTextUnderIcon;
+  int tool_bar_crypto_operas_type = GpgOperation::kENCRYPT |
+                                    GpgOperation::kDECRYPT |
+                                    GpgOperation::kSIGN | GpgOperation::kVERIFY;
 
   bool save_window_state;
 
@@ -55,6 +60,9 @@ struct AppearanceSO {
     if (const auto v = j["tool_bar_button_style"]; v.isDouble()) {
       tool_bar_button_style = static_cast<Qt::ToolButtonStyle>(v.toInt());
     }
+    if (const auto v = j["tool_bar_crypto_operas_type"]; v.isDouble()) {
+      tool_bar_crypto_operas_type = static_cast<int>(v.toInt());
+    }
 
     if (const auto v = j["save_window_state"]; v.isBool()) {
       save_window_state = v.toBool();
@@ -68,6 +76,7 @@ struct AppearanceSO {
     j["tool_bar_icon_width"] = tool_bar_icon_width;
     j["tool_bar_icon_height"] = tool_bar_icon_height;
     j["tool_bar_button_style"] = tool_bar_button_style;
+    j["tool_bar_crypto_operas_type"] = tool_bar_crypto_operas_type;
 
     j["save_window_state"] = save_window_state;
     return j;

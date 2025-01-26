@@ -108,7 +108,9 @@
         <file alias="export-email.png">resource/lfs/icons/export-email.png</file>
         <file alias="warning-filling.png">resource/lfs/icons/warning-filling.png</file>
         <file alias="upgrade.png">resource/lfs/icons/upgrade.png</file>
-         <file alias="batch.png">resource/lfs/icons/batch.png</file>
+        <file alias="batch.png">resource/lfs/icons/batch.png</file>
+        <file alias="encr-sign.png">resource/lfs/icons/encr-sign.png</file>
+        <file alias="decr-verify.png">resource/lfs/icons/decr-verify.png</file>
     </qresource>
     <qresource prefix="/test/key">
         <file alias="pv1.key">resource/lfs/test/data/pv1.key</file>

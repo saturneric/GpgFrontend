@@ -28,8 +28,10 @@
 
 #include "MainWindow.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "dialog/controller/ModuleControllerDialog.h"
+#include "struct/settings_object/AppearanceSO.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/controller/GnuPGControllerDialog.h"
 #include "ui/dialog/help/AboutDialog.h"
@@ -148,7 +150,7 @@ void MainWindow::create_actions() {
           &MainWindow::SlotGeneralEncrypt);
 
   encrypt_sign_act_ =
-      create_action("encrypt_sign", tr("Encrypt Sign"), ":/icons/compress.png",
+      create_action("encrypt_sign", tr("Encrypt Sign"), ":/icons/encr-sign.png",
                     tr("Encrypt and Sign Message"),
                     {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_E)});
   connect(encrypt_sign_act_, &QAction::triggered, this,
@@ -162,7 +164,7 @@ void MainWindow::create_actions() {
 
   decrypt_verify_act_ =
       create_action("decrypt_verify", tr("Decrypt Verify"),
-                    ":/icons/expand.png", tr("Decrypt and Verify Message"),
+                    ":/icons/decr-verify.png", tr("Decrypt and Verify Message"),
                     {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_D)});
   connect(decrypt_verify_act_, &QAction::triggered, this,
           &MainWindow::SlotGeneralDecryptVerify);
@@ -498,12 +500,7 @@ void MainWindow::create_tool_bars() {
 
   crypt_tool_bar_ = addToolBar(tr("Operations"));
   crypt_tool_bar_->setObjectName("cryptToolBar");
-  crypt_tool_bar_->addAction(encrypt_act_);
-  // crypt_tool_bar_->addAction(encrypt_sign_act_);
-  crypt_tool_bar_->addAction(decrypt_act_);
-  // crypt_tool_bar_->addAction(decrypt_verify_act_);
-  crypt_tool_bar_->addAction(sign_act_);
-  crypt_tool_bar_->addAction(verify_act_);
+
   view_menu_->addAction(crypt_tool_bar_->toggleViewAction());
 
   key_tool_bar_ = addToolBar(tr("Key"));

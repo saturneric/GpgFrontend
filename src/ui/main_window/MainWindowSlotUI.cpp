@@ -103,15 +103,7 @@ void MainWindow::slot_open_settings_dialog() {
   connect(dialog, &SettingsDialog::finished, this, [&]() -> void {
     AppearanceSO appearance(SettingsObject("general_settings_state"));
 
-    this->setToolButtonStyle(appearance.tool_bar_button_style);
-    import_button_->setToolButtonStyle(appearance.tool_bar_button_style);
-
-    // icons ize
-    this->setIconSize(
-        QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
-    import_button_->setIconSize(
-        QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
-
+    restore_settings();
     // restart main window if necessary
     if (restart_mode_ != kNonRestartCode) {
       if (edit_->MaybeSaveAnyTab()) {

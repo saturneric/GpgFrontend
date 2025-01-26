@@ -32,6 +32,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
+#include "struct/settings_object/AppearanceSO.h"
 #include "ui/UISignalStation.h"
 #include "ui/main_window/GeneralMainWindow.h"
 #include "ui/struct/settings_object/KeyServerSO.h"
@@ -178,11 +179,44 @@ void MainWindow::restore_settings() {
     settings.setValue("gnupg/non_ascii_at_file_operation", true);
   }
 
-  // set appearance
-  import_button_->setToolButtonStyle(icon_style_);
-
   prohibit_update_checking_ =
       settings.value("network/prohibit_update_check").toBool();
+
+  // set appearance
+  AppearanceSO const appearance(SettingsObject("general_settings_state"));
+
+  crypt_tool_bar_->clear();
+
+  if ((appearance.tool_bar_crypto_operas_type & GpgOperation::kENCRYPT) != 0) {
+    crypt_tool_bar_->addAction(encrypt_act_);
+  }
+  if ((appearance.tool_bar_crypto_operas_type & GpgOperation::kDECRYPT) != 0) {
+    crypt_tool_bar_->addAction(decrypt_act_);
+  }
+  if ((appearance.tool_bar_crypto_operas_type & GpgOperation::kSIGN) != 0) {
+    crypt_tool_bar_->addAction(sign_act_);
+  }
+  if ((appearance.tool_bar_crypto_operas_type & GpgOperation::kVERIFY) != 0) {
+    crypt_tool_bar_->addAction(verify_act_);
+  }
+  if ((appearance.tool_bar_crypto_operas_type & GpgOperation::kENCRYPT_SIGN) !=
+      0) {
+    crypt_tool_bar_->addAction(encrypt_sign_act_);
+  }
+  if ((appearance.tool_bar_crypto_operas_type &
+       GpgOperation::kDECRYPT_VERIFY) != 0) {
+    crypt_tool_bar_->addAction(decrypt_verify_act_);
+  }
+
+  icon_style_ = appearance.tool_bar_button_style;
+  import_button_->setToolButtonStyle(icon_style_);
+  this->setToolButtonStyle(icon_style_);
+
+  // icons ize
+  this->setIconSize(
+      QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
+  import_button_->setIconSize(
+      QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
 }
 
 void MainWindow::recover_editor_unsaved_pages_from_cache() {
