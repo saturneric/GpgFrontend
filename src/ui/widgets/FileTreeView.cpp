@@ -45,6 +45,7 @@ FileTreeView::FileTreeView(QWidget* parent, const QString& target_path)
   this->setModel(dir_model_);
   this->setColumnWidth(0, 320);
   this->sortByColumn(0, Qt::AscendingOrder);
+  this->setSortingEnabled(true);
   current_path_ = dir_model_->rootPath();
 
   slot_create_popup_menu();
