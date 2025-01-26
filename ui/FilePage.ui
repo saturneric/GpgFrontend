@@ -143,6 +143,9 @@
          </item>
          <item>
           <widget class="QToolButton" name="batchModeButton">
+           <property name="toolTip">
+            <string>Switch Batch Mode</string>
+           </property>
            <property name="text">
             <string>...</string>
            </property>

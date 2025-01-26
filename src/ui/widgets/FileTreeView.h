@@ -193,6 +193,12 @@ class FileTreeView : public QTreeView {
    */
   void SlotOpenSelectedItemBySystemApplication();
 
+  /**
+   * @brief
+   *
+   */
+  void SlotSwitchBatchMode(bool);
+
  private slots:
 
   /**

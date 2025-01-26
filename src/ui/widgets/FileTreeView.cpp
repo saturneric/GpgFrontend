@@ -49,7 +49,7 @@ FileTreeView::FileTreeView(QWidget* parent, const QString& target_path)
 
   slot_create_popup_menu();
   this->setContextMenuPolicy(Qt::CustomContextMenu);
-  this->setSelectionMode(QAbstractItemView::MultiSelection);
+  this->setSelectionMode(QAbstractItemView::SingleSelection);
 
   connect(this, &QWidget::customContextMenuRequested, this,
           &FileTreeView::slot_show_custom_context_menu);
@@ -437,6 +437,12 @@ void FileTreeView::slot_adjust_column_widths() {
   for (int i = 1; i < dir_model_->columnCount(); ++i) {
     this->resizeColumnToContents(i);
   }
+}
+
+void FileTreeView::SlotSwitchBatchMode(bool batch) {
+  this->setSelectionMode(batch ? QAbstractItemView::MultiSelection
+                               : QAbstractItemView::SingleSelection);
+  selectionModel()->clearSelection();
 }
 
 }  // namespace GpgFrontend::UI

@@ -102,12 +102,6 @@ class FilePage : public QWidget {
    */
   void SignalMainWindowUpdateBasicOperaMenu(unsigned int);
 
-  /**
-   * @brief
-   *
-   */
-  void SignalSetBatchMode(bool);
-
  protected:
   /**
    * @brief

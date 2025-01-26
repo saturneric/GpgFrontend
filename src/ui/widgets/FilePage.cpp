@@ -42,6 +42,8 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
   ui_->setupUi(this);
   ui_->trewViewLayout->addWidget(file_tree_view_);
 
+  ui_->batchModeButton->setToolTip(tr("Switch Batch Mode"));
+
   connect(ui_->upPathButton, &QPushButton::clicked, file_tree_view_,
           &FileTreeView::SlotUpLevel);
   connect(ui_->refreshButton, &QPushButton::clicked, this,
@@ -72,9 +74,6 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
           &FileTreeView::SlotShowSystemFile);
   option_popup_menu_->addAction(show_system_act);
   ui_->optionsButton->setMenu(option_popup_menu_);
-
-  connect(ui_->batchModeButton, &QToolButton::toggled, this,
-          [this](bool checked) { emit SignalSetBatchMode(checked); });
 
   connect(ui_->pathEdit, &QLineEdit::textChanged, [=]() {
     auto path = ui_->pathEdit->text();
@@ -109,6 +108,8 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
   connect(this, &FilePage::SignalMainWindowUpdateBasicOperaMenu,
           UISignalStation::GetInstance(),
           &UISignalStation::SignalMainWindowUpdateBasicOperaMenu);
+  connect(ui_->batchModeButton, &QToolButton::toggled, file_tree_view_,
+          &FileTreeView::SlotSwitchBatchMode);
 }
 
 auto FilePage::GetSelected() const -> QStringList {
