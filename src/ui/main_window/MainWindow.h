@@ -214,28 +214,28 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @details Open dialog for encrypting file.
    */
-  void SlotFileEncrypt(const QContainer<QString>& paths);
+  void SlotFileEncrypt(const QStringList& paths);
 
   /**
    * @brief
    *
    * @param path
    */
-  void SlotFileDecrypt(const QContainer<QString>& paths);
+  void SlotFileDecrypt(const QStringList& paths);
 
   /**
    * @brief
    *
    * @param path
    */
-  void SlotFileSign(const QContainer<QString>& paths);
+  void SlotFileSign(const QStringList& paths);
 
   /**
    * @brief
    *
    * @param path
    */
-  void SlotFileVerify(const QContainer<QString>& paths);
+  void SlotFileVerify(const QStringList& paths);
 
   /**
    * @brief
@@ -249,14 +249,14 @@ class MainWindow : public GeneralMainWindow {
    *
    * @param path
    */
-  void SlotFileEncryptSign(const QContainer<QString>& paths);
+  void SlotFileEncryptSign(const QStringList& paths);
 
   /**
    * @brief
    *
    * @param path
    */
-  void SlotFileDecryptVerify(const QContainer<QString>& paths);
+  void SlotFileDecryptVerify(const QStringList& paths);
 
   /**
    * @details get value of member restartNeeded to needed.
@@ -604,7 +604,7 @@ class MainWindow : public GeneralMainWindow {
    * @return true
    * @return false
    */
-  auto check_read_file_paths_helper(const QContainer<QString>& paths) -> bool;
+  auto check_read_file_paths_helper(const QStringList& paths) -> bool;
 
   /**
    * @brief
@@ -613,7 +613,7 @@ class MainWindow : public GeneralMainWindow {
    * @return true
    * @return false
    */
-  auto check_write_file_paths_helper(const QContainer<QString>& paths) -> bool;
+  auto check_write_file_paths_helper(const QStringList& paths) -> bool;
 
   /**
    * @brief

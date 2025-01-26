@@ -48,14 +48,14 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
   /**
    * @brief Get the Supported Key Algo object
    *
-   * @return const QContainer<QString>&
+   * @return const QContainer<KeyGenAlgo>&
    */
   static auto GetSupportedKeyAlgo() -> const QContainer<KeyGenAlgo> &;
 
   /**
    * @brief Get the Supported Subkey Algo object
    *
-   * @return const QContainer<QString>&
+   * @return const QContainer<KeyGenAlgo>&
    */
   static auto GetSupportedSubkeyAlgo() -> const QContainer<KeyGenAlgo> &;
 

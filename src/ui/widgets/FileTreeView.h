@@ -55,7 +55,7 @@ class FileTreeView : public QTreeView {
    *
    * @return QString
    */
-  auto GetSelectedPaths() -> QContainer<QString>;
+  auto GetSelectedPaths() -> QStringList;
 
   /**
    * @brief Get the Path By Click Point object
@@ -116,7 +116,7 @@ class FileTreeView : public QTreeView {
    * @brief
    *
    */
-  void SignalSelectedChanged(const QContainer<QString>&);
+  void SignalSelectedChanged(const QStringList&);
 
   /**
    * @brief
@@ -234,9 +234,9 @@ class FileTreeView : public QTreeView {
   void slot_adjust_column_widths();
 
  private:
-  QFileSystemModel* dir_model_;         ///<
-  QString current_path_;                ///<
-  QContainer<QString> selected_paths_;  ///<
+  QFileSystemModel* dir_model_;  ///<
+  QString current_path_;         ///<
+  QStringList selected_paths_;   ///<
 
   QMenu* popup_menu_;
   QMenu* new_item_action_menu_;

@@ -54,7 +54,7 @@ auto VerifyGpgconfPath(const QFileInfo& gnupg_install_fs_path) -> bool {
          gnupg_install_fs_path.isFile();
 }
 
-auto SearchGpgconfPath(const QList<QString>& candidate_paths) -> QString {
+auto SearchGpgconfPath(const QStringList& candidate_paths) -> QString {
   for (const auto& path : candidate_paths) {
     if (VerifyGpgconfPath(QFileInfo(path))) {
       // return a unify path

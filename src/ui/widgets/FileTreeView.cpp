@@ -147,9 +147,7 @@ auto FileTreeView::GetPathByClickPoint(const QPoint& point) -> QString {
   return dir_model_->fileInfo(index).absoluteFilePath();
 }
 
-auto FileTreeView::GetSelectedPaths() -> QContainer<QString> {
-  return selected_paths_;
-}
+auto FileTreeView::GetSelectedPaths() -> QStringList { return selected_paths_; }
 
 auto FileTreeView::SlotDeleteSelectedItem() -> void {
   QModelIndex const index = this->currentIndex();

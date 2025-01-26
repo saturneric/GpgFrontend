@@ -55,7 +55,7 @@ class FilePage : public QWidget {
    *
    * @return QString
    */
-  [[nodiscard]] auto GetSelected() const -> QContainer<QString>;
+  [[nodiscard]] auto GetSelected() const -> QStringList;
 
   /**
    * @brief
@@ -132,7 +132,7 @@ class FilePage : public QWidget {
    * @brief
    *
    */
-  void update_main_basic_opera_menu(const QContainer<QString>&);
+  void update_main_basic_opera_menu(const QStringList&);
 };
 
 }  // namespace GpgFrontend::UI

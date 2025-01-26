@@ -216,11 +216,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
   QStringList column_headers_;
   int gpg_context_channel_;
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 4)
-  QList<bool> key_check_state_;
-#else
-  QVector<bool> key_check_state_;
-#endif
+  QContainer<bool> key_check_state_;
 };
 
 }  // namespace GpgFrontend

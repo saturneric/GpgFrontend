@@ -112,15 +112,8 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
           << "text:" << revocation_reason_text;
 
   // dealing with reason text
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 4)
-  auto reason_text_lines =
-      GpgFrontend::SecureCreateSharedObject<QList<QString>>(
-          revocation_reason_text.split('\n', Qt::SkipEmptyParts).toVector());
-#else
-  auto reason_text_lines =
-      GpgFrontend::SecureCreateSharedObject<QVector<QString>>(
-          revocation_reason_text.split('\n', Qt::SkipEmptyParts).toVector());
-#endif
+  auto reason_text_lines = GpgFrontend::SecureCreateSharedObject<QStringList>(
+      revocation_reason_text.split('\n', Qt::SkipEmptyParts).toVector());
 
   const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.app_path", QString{});

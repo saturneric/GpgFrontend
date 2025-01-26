@@ -95,7 +95,7 @@ class GpgKeyTableProxyModel : public QSortFilterProxyModel {
   GpgKeyTableDisplayMode display_mode_;
   GpgKeyTableColumn filter_columns_;
   QString filter_keywords_;
-  QList<QString> favorite_key_ids_;
+  QStringList favorite_key_ids_;
   KeyFilter custom_filter_;
 
   QFont default_font_;

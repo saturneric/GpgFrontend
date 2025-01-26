@@ -45,7 +45,7 @@
 
 namespace GpgFrontend::UI {
 
-auto MainWindow::check_read_file_paths_helper(const QContainer<QString>& paths)
+auto MainWindow::check_read_file_paths_helper(const QStringList& paths)
     -> bool {
   QStringList invalid_files;
   for (const auto& path : paths) {
@@ -70,8 +70,8 @@ auto MainWindow::check_read_file_paths_helper(const QContainer<QString>& paths)
   return true;
 }
 
-auto MainWindow::check_write_file_paths_helper(
-    const QContainer<QString>& o_paths) -> bool {
+auto MainWindow::check_write_file_paths_helper(const QStringList& o_paths)
+    -> bool {
   for (const auto& o_path : o_paths) {
     if (QFile::exists(o_path)) {
       auto out_file_name = tr("The target file %1 already exists, "
@@ -303,7 +303,7 @@ void MainWindow::build_operas_directory_encrypt(
   }
 }
 
-void MainWindow::SlotFileEncrypt(const QContainer<QString>& paths) {
+void MainWindow::SlotFileEncrypt(const QStringList& paths) {
   auto contexts = QSharedPointer<GpgOperaContexts>::create();
 
   bool const non_ascii_at_file_operation =
@@ -456,7 +456,7 @@ void MainWindow::build_operas_archive_decrypt(
   }
 }
 
-void MainWindow::SlotFileDecrypt(const QContainer<QString>& paths) {
+void MainWindow::SlotFileDecrypt(const QStringList& paths) {
   auto contexts = QSharedPointer<GpgOperaContexts>::create();
 
   contexts->ascii = true;
@@ -530,7 +530,7 @@ void MainWindow::build_operas_file_sign(
   }
 }
 
-void MainWindow::SlotFileSign(const QContainer<QString>& paths) {
+void MainWindow::SlotFileSign(const QStringList& paths) {
   auto contexts = QSharedPointer<GpgOperaContexts>::create();
 
   bool const non_ascii_at_file_operation =
@@ -612,7 +612,7 @@ void MainWindow::build_operas_file_verify(
   }
 }
 
-void MainWindow::SlotFileVerify(const QContainer<QString>& paths) {
+void MainWindow::SlotFileVerify(const QStringList& paths) {
   auto contexts = QSharedPointer<GpgOperaContexts>::create();
 
   if (!check_read_file_paths_helper(paths)) return;
@@ -764,7 +764,7 @@ void MainWindow::build_operas_directory_encrypt_sign(
   }
 }
 
-void MainWindow::SlotFileEncryptSign(const QContainer<QString>& paths) {
+void MainWindow::SlotFileEncryptSign(const QStringList& paths) {
   auto contexts = QSharedPointer<GpgOperaContexts>::create();
 
   bool const non_ascii_at_file_operation =
@@ -937,7 +937,7 @@ void MainWindow::build_operas_archive_decrypt_verify(
   }
 }
 
-void MainWindow::SlotFileDecryptVerify(const QContainer<QString>& paths) {
+void MainWindow::SlotFileDecryptVerify(const QStringList& paths) {
   auto contexts = QSharedPointer<GpgOperaContexts>::create();
 
   contexts->ascii = true;

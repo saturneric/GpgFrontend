@@ -36,8 +36,8 @@
 namespace GpgFrontend::UI {
 
 struct GpgOperaCategory {
-  QContainer<QString> paths;
-  QContainer<QString> o_paths;
+  QStringList paths;
+  QStringList o_paths;
 };
 
 struct GpgOperaContext {
@@ -45,15 +45,15 @@ struct GpgOperaContext {
   QContainer<GpgOperaResult>& opera_results;
   GpgKeyList& keys;
   GpgKeyList& singer_keys;
-  QContainer<QString>& unknown_fprs;
+  QStringList& unknown_fprs;
   bool ascii;
 
-  QContainer<QString> paths;
-  QContainer<QString> o_paths;
+  QStringList paths;
+  QStringList o_paths;
 
   GpgOperaContext(QContainer<OperaWaitingCb>& operas,
                   QContainer<GpgOperaResult>& opera_results, GpgKeyList& keys,
-                  GpgKeyList& singer_keys, QContainer<QString>& unknown_fprs)
+                  GpgKeyList& singer_keys, QStringList& unknown_fprs)
       : operas(operas),
         opera_results(opera_results),
         keys(keys),
@@ -66,23 +66,23 @@ struct GpgOperaContexts {
   QContainer<GpgOperaResult> opera_results;
   GpgKeyList keys;
   GpgKeyList singer_keys;
-  QContainer<QString> unknown_fprs;
+  QStringList unknown_fprs;
   bool ascii;
 
   QMap<int, GpgOperaCategory> categories;
 
-  auto GetContextPath(int category) -> QContainer<QString>& {
+  auto GetContextPath(int category) -> QStringList& {
     if (!categories.contains(category)) categories[category] = {};
     return categories[category].paths;
   }
 
-  auto GetContextOutPath(int category) -> QContainer<QString>& {
+  auto GetContextOutPath(int category) -> QStringList& {
     if (!categories.contains(category)) categories[category] = {};
     return categories[category].o_paths;
   }
 
-  auto GetAllPath() -> QContainer<QString> {
-    QContainer<QString> res;
+  auto GetAllPath() -> QStringList {
+    QStringList res;
 
     for (auto& category : categories) {
       res.append(category.paths);
@@ -90,8 +90,8 @@ struct GpgOperaContexts {
     return res;
   }
 
-  auto GetAllOutPath() -> QContainer<QString> {
-    QContainer<QString> res;
+  auto GetAllOutPath() -> QStringList {
+    QStringList res;
 
     for (auto& category : categories) {
       res.append(category.o_paths);

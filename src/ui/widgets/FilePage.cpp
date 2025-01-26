@@ -111,7 +111,7 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
           &UISignalStation::SignalMainWindowUpdateBasicOperaMenu);
 }
 
-auto FilePage::GetSelected() const -> QContainer<QString> {
+auto FilePage::GetSelected() const -> QStringList {
   return file_tree_view_->GetSelectedPaths();
 }
 
@@ -126,8 +126,7 @@ void FilePage::keyPressEvent(QKeyEvent* event) {
   }
 }
 
-void FilePage::update_main_basic_opera_menu(
-    const QContainer<QString>& selected_paths) {
+void FilePage::update_main_basic_opera_menu(const QStringList& selected_paths) {
   if (selected_paths.isEmpty()) {
     emit SignalMainWindowUpdateBasicOperaMenu(MainWindow::OperationMenu::kNone);
     return;

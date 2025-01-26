@@ -65,7 +65,7 @@ class GPGFRONTEND_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
   /**
    * @brief Get the Unknown Signatures object
    *
-   * @return QList<QString>
+   * @return QStringList
    */
   [[nodiscard]] auto GetUnknownSignatures() const -> QStringList;
 

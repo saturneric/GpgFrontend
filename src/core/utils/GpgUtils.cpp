@@ -268,7 +268,7 @@ auto VerifyKeyDatabasePath(const QFileInfo& key_database_fs_path) -> bool {
          key_database_fs_path.isDir();
 }
 
-auto SearchKeyDatabasePath(const QList<QString>& candidate_paths) -> QString {
+auto SearchKeyDatabasePath(const QStringList& candidate_paths) -> QString {
   for (const auto& path : candidate_paths) {
     if (VerifyKeyDatabasePath(QFileInfo(path))) {
       // return a unify path
