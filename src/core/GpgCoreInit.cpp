@@ -69,27 +69,36 @@ auto SearchGpgconfPath(const QStringList& candidate_paths) -> QString {
 }
 
 auto GetDefaultKeyDatabasePath(const QString& gpgconf_path) -> QString {
+  QString default_db_path;
+
   // portable mode
   if (GlobalSettingStation::GetInstance().IsProtableMode()) {
-    return GlobalSettingStation::GetInstance().GetAppDataPath() + "/db";
+    default_db_path =
+        GlobalSettingStation::GetInstance().GetAppDataPath() + "/db";
+  } else {
+    if (gpgconf_path.isEmpty()) return {};
+
+    QFileInfo info(gpgconf_path);
+    if (!info.exists() || !info.isFile()) return {};
+
+    auto* p = new QProcess(QCoreApplication::instance());
+    p->setProgram(info.absoluteFilePath());
+    p->setArguments({"--list-dirs", "homedir"});
+    p->start();
+
+    p->waitForFinished();
+    default_db_path = p->readAll().trimmed();
+    p->deleteLater();
   }
 
-  if (gpgconf_path.isEmpty()) return {};
+  QFileInfo info(default_db_path);
+  default_db_path = info.absoluteFilePath();
 
-  QFileInfo info(gpgconf_path);
-  if (!info.exists() || !info.isFile()) return {};
+  // update GRT
+  Module::UpsertRTValue("core", "gpgme.ctx.default_database_path",
+                        default_db_path);
 
-  auto* p = new QProcess(QCoreApplication::instance());
-  p->setProgram(info.absoluteFilePath());
-  p->setArguments({"--list-dirs", "homedir"});
-  p->start();
-
-  p->waitForFinished();
-  auto home_path = p->readAll().trimmed();
-  p->deleteLater();
-
-  QFileInfo home_info(home_path);
-  return home_info.absoluteFilePath();
+  return default_db_path;
 }
 
 auto InitGpgME() -> bool {
@@ -268,8 +277,10 @@ auto GetComponentPathsByGpgConf(const QString& gpgconf_install_fs_path)
     -> bool {
   auto* process = new QProcess(QCoreApplication::instance());
   process->setProgram(gpgconf_install_fs_path);
+  process->setArguments({"--check-programs"});
   process->start();
-  process->waitForFinished(1000);
+  process->waitForFinished(30000);
+
   auto output_buffer = process->readAllStandardOutput();
   process->deleteLater();
 
@@ -279,24 +290,31 @@ auto GetComponentPathsByGpgConf(const QString& gpgconf_install_fs_path)
   for (const auto& line : line_split_list) {
     auto info_split_list = line.split(":");
 
-    if (info_split_list.size() != 3) continue;
+    if (info_split_list.size() != 6) continue;
 
     auto component_name = info_split_list[0].trimmed().toLower();
     auto component_desc = info_split_list[1].trimmed();
     auto component_path = info_split_list[2].trimmed();
+    auto exists = info_split_list[3].trimmed();
+    auto runnable = info_split_list[4].trimmed();
 
 #if defined(_WIN32) || defined(WIN32)
     // replace some special substrings on windows platform
     component_path.replace("%3a", ":");
 #endif
 
+    if (exists != "1" || runnable != "1") continue;
+
     QFileInfo file_info(component_path);
     if (!file_info.exists() || !file_info.isFile()) continue;
 
-    Module::UpsertRTValue("core", "gnupg.component.paths." + component_name,
-                          file_info.absoluteFilePath());
+    Module::UpsertRTValue(
+        "core", QString("gnupg.components.%1.checked").arg(component_name), 1);
+    Module::UpsertRTValue(
+        "core", QString("gnupg.components.%1.path").arg(component_name),
+        file_info.absoluteFilePath());
 
-    LOG_D() << "gpg components: " << component_name
+    LOG_D() << "gpg components checked: " << component_name
             << "path: " << file_info.absoluteFilePath();
   }
 
@@ -362,7 +380,7 @@ auto DecideGnuPGPath(const QString& default_gnupg_path) -> QString {
 
   if (default_gnupg_path.isEmpty() || !info.exists() || !info.isFile()) {
     return Module::RetrieveRTValueTypedOrDefault<>(
-        "core", "gnupg.component.paths.gpg", QString{});
+        "core", "gnupg.components.gpg.path", QString{});
   }
 
   return default_gnupg_path;
@@ -424,7 +442,7 @@ auto InitBasicPath() -> bool {
     LOG_E() << "Cannot find default home path by gpgconf!"
             << "GpgFrontend cannot start under this situation!";
     CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-        QCoreApplication::tr("Cannot Find Home Path"));
+        QCoreApplication::tr("Cannot Find Default Home Path"));
     return false;
   }
 
