@@ -514,6 +514,14 @@ class MainWindow : public GeneralMainWindow {
    */
   void slot_decrypt_email_by_eml_data(const QByteArray& buffer);
 
+  /**
+   * @brief
+   *
+   * @param results
+   */
+  void slot_gpg_opera_buffer_show_helper(
+      const QContainer<GpgOperaResult>& results);
+
  private:
   /**
    * @details Create actions for the main-menu and the context-menu of the
@@ -633,10 +641,24 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @brief
    *
-   * @param results
+   * @param contexts
+   * @param key_ids
+   * @param keys
+   * @return true
+   * @return false
    */
-  void slot_gpg_opera_buffer_show_helper(
-      const QContainer<GpgOperaResult>& results);
+  auto encrypt_operation_key_validate(
+      const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool;
+
+  /**
+   * @brief
+   *
+   * @param contexts
+   * @return true
+   * @return false
+   */
+  auto sign_operation_key_validate(
+      const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool;
 
   TextEdit* edit_{};          ///< Tabwidget holding the edit-windows
   QMenu* file_menu_{};        ///<  Submenu for file-operations
