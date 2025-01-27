@@ -36,9 +36,7 @@
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/function/gpg/GpgContext.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
-#include "core/struct/settings_object/KeyDatabaseListSO.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/CommonUtils.h"
@@ -47,7 +45,13 @@
 
 namespace GpgFrontend {
 
-void DestroyGpgFrontendCore() { SingletonStorageCollection::Destroy(); }
+void DestroyGpgFrontendCore() {
+  // stop all task runner
+  Thread::TaskRunnerGetter::GetInstance().StopAllTeakRunner();
+
+  // destroy all singleton objects
+  SingletonStorageCollection::Destroy();
+}
 
 auto VerifyGpgconfPath(const QFileInfo& gnupg_install_fs_path) -> bool {
   return gnupg_install_fs_path.isAbsolute() && gnupg_install_fs_path.exists() &&
@@ -260,7 +264,8 @@ auto RefreshGpgMEBackendEngine(const QString& gpgconf_path,
   return true;
 }
 
-auto GetGnuPGPathByGpgConf(const QString& gpgconf_install_fs_path) -> QString {
+auto GetComponentPathsByGpgConf(const QString& gpgconf_install_fs_path)
+    -> bool {
   auto* process = new QProcess(QCoreApplication::instance());
   process->setProgram(gpgconf_install_fs_path);
   process->start();
@@ -268,7 +273,7 @@ auto GetGnuPGPathByGpgConf(const QString& gpgconf_install_fs_path) -> QString {
   auto output_buffer = process->readAllStandardOutput();
   process->deleteLater();
 
-  if (output_buffer.isEmpty()) return {};
+  if (output_buffer.isEmpty()) return false;
 
   auto line_split_list = QString(output_buffer).split("\n");
   for (const auto& line : line_split_list) {
@@ -276,23 +281,26 @@ auto GetGnuPGPathByGpgConf(const QString& gpgconf_install_fs_path) -> QString {
 
     if (info_split_list.size() != 3) continue;
 
-    auto component_name = info_split_list[0].trimmed();
+    auto component_name = info_split_list[0].trimmed().toLower();
     auto component_desc = info_split_list[1].trimmed();
     auto component_path = info_split_list[2].trimmed();
 
-    if (component_name.toLower() == "gpg") {
 #if defined(_WIN32) || defined(WIN32)
-      // replace some special substrings on windows platform
-      component_path.replace("%3a", ":");
+    // replace some special substrings on windows platform
+    component_path.replace("%3a", ":");
 #endif
-      QFileInfo file_info(component_path);
-      if (file_info.exists() && file_info.isFile()) {
-        return file_info.absoluteFilePath();
-      }
-      return {};
-    }
+
+    QFileInfo file_info(component_path);
+    if (!file_info.exists() || !file_info.isFile()) continue;
+
+    Module::UpsertRTValue("core", "gnupg.component.paths." + component_name,
+                          file_info.absoluteFilePath());
+
+    LOG_D() << "gpg components: " << component_name
+            << "path: " << file_info.absoluteFilePath();
   }
-  return "";
+
+  return true;
 }
 
 auto DecideGpgConfPath(const QString& default_gpgconf_path) -> QString {
@@ -349,8 +357,15 @@ auto DecideGpgConfPath(const QString& default_gpgconf_path) -> QString {
   return "";
 }
 
-auto DecideGnuPGPath(const QString& gpgconf_path) -> QString {
-  return GetGnuPGPathByGpgConf(gpgconf_path);
+auto DecideGnuPGPath(const QString& default_gnupg_path) -> QString {
+  QFileInfo info(default_gnupg_path);
+
+  if (default_gnupg_path.isEmpty() || !info.exists() || !info.isFile()) {
+    return Module::RetrieveRTValueTypedOrDefault<>(
+        "core", "gnupg.component.paths.gpg", QString{});
+  }
+
+  return default_gnupg_path;
 }
 
 auto InitBasicPath() -> bool {
@@ -364,12 +379,23 @@ auto InitBasicPath() -> bool {
   LOG_I() << "default gnupg path found by gpgme: " << default_gnupg_path;
 
   auto target_gpgconf_path = DecideGpgConfPath(default_gpgconf_path);
-  auto target_gnupg_path = default_gnupg_path;
-  if (target_gpgconf_path != default_gpgconf_path) {
-    target_gnupg_path = DecideGnuPGPath(target_gpgconf_path);
+
+  if (!GetComponentPathsByGpgConf(default_gpgconf_path)) {
+    LOG_E() << "Cannot get components paths by gpgconf!"
+            << "GpgFrontend cannot start under this situation!";
+    CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+        QCoreApplication::tr("Cannot get Infos from GpgConf"));
+    return false;
   }
+
+  auto target_gnupg_path = default_gnupg_path;
+
+  if (target_gpgconf_path != default_gpgconf_path) {
+    target_gnupg_path = DecideGnuPGPath(target_gnupg_path);
+  }
+
   LOG_I() << "gpgconf path used: " << target_gpgconf_path;
-  LOG_I() << "gnupg path provided by gpgconf: " << target_gnupg_path;
+  LOG_I() << "gnupg path used: " << target_gnupg_path;
 
   if (target_gpgconf_path.isEmpty()) {
     LOG_E() << "Cannot find gpgconf!"
@@ -577,7 +603,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
       ->PostTask(task);
 
   if (!args.unit_test_mode && restart_all_gnupg_components_on_start) {
-    GpgAdvancedOperator::RestartGpgComponents();
+    GpgAdvancedOperator::RestartGpgComponents(nullptr);
   }
   return 0;
 }

@@ -26,57 +26,11 @@
  *
  */
 
-#pragma once
+#include "GpgOperaResult.h"
 
-#include <qapplication.h>
+namespace GpgFrontend::UI {
 
-#include <memory>
+GpgOperaResult::GpgOperaResult(int status, QString report, QString tag)
+    : status(status), report(std::move(report)), tag(std::move(tag)) {}
 
-namespace GpgFrontend {
-
-struct GpgFrontendContext;
-
-using GFCxtWPtr = std::weak_ptr<GpgFrontendContext>;
-using GFCxtSPtr = std::shared_ptr<GpgFrontendContext>;
-
-struct GpgFrontendContext {
-  int argc;
-  char** argv;
-
-  bool gather_external_gnupg_info;
-  bool unit_test_mode;
-
-  int rtn = GpgFrontend::kCrashCode;
-
-  /**
-   * @brief Construct a new Gpg Frontend Context object
-   *
-   * @param argc
-   * @param argv
-   */
-  GpgFrontendContext(int argc, char** argv);
-
-  /**
-   * @brief Destroy the Gpg Frontend Context object
-   *
-   */
-  ~GpgFrontendContext();
-
-  /**
-   * @brief
-   *
-   */
-  void InitApplication();
-
-  /**
-   * @brief Get the App object
-   *
-   * @return QCoreApplication*
-   */
-  auto GetApp() -> QApplication*;
-
- private:
-  QApplication* app_ = nullptr;
-};
-
-}  // namespace GpgFrontend
+}  // namespace GpgFrontend::UI

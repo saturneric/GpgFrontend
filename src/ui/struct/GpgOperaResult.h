@@ -1,5 +1,3 @@
-#include <utility>
-
 /**
  * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
@@ -37,8 +35,7 @@ struct GpgOperaResult {
   QString report;
   QString tag;
 
-  GpgOperaResult(int status, QString report, QString tag)
-      : status(status), report(std::move(report)), tag(std::move(tag)) {}
+  GpgOperaResult(int status, QString report, QString tag);
 };
 
 }  // namespace GpgFrontend::UI

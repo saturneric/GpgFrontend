@@ -330,12 +330,9 @@ void MainWindow::slot_reload_gpg_components(bool) {
 }
 
 void MainWindow::slot_restart_gpg_components(bool) {
-  GpgFrontend::GpgAdvancedOperator::RestartGpgComponents();
-  Module::ListenRTPublishEvent(
-      this, "core", "gpg_advanced_operator.restart_gpg_components",
-      [=](Module::Namespace, Module::Key, int, std::any value) {
-        bool success_state = std::any_cast<bool>(value);
-        if (success_state) {
+  GpgFrontend::GpgAdvancedOperator::RestartGpgComponents(
+      [=](int err, DataObjectPtr) {
+        if (err >= 0) {
           QMessageBox::information(
               this, tr("Successful Operation"),
               tr("Restart all the GnuPG's components successfully"));

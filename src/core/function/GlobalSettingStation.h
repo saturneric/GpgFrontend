@@ -143,4 +143,7 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
   class Impl;
   SecureUniquePtr<Impl> p_;
 };
+
+auto GPGFRONTEND_CORE_EXPORT GetSettings() -> QSettings;
+
 }  // namespace GpgFrontend

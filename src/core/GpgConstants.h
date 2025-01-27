@@ -33,6 +33,7 @@ namespace GpgFrontend {
 constexpr int kNonRestartCode = 0;
 constexpr int kRestartCode = 1000;      ///< only refresh ui
 constexpr int kDeepRestartCode = 1001;  // refresh core and ui
+constexpr int kCrashCode = ~0;          ///< application crash
 
 // Channels
 constexpr int kGpgFrontendDefaultChannel = 0;   ///<

@@ -60,7 +60,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator {
    * @return true
    * @return false
    */
-  static void RestartGpgComponents();
+  static void RestartGpgComponents(OperationCallback);
 
   /**
    * @brief
@@ -76,29 +76,13 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator {
    * @return true
    * @return false
    */
-  static void StartGpgAgent(OperationCallback);
-
-  /**
-   * @brief
-   *
-   * @return true
-   * @return false
-   */
-  static void StartDirmngr(OperationCallback);
-
-  /**
-   * @brief
-   *
-   * @return true
-   * @return false
-   */
-  static void StartKeyBoxd(OperationCallback);
+  static void LaunchGpgComponents(OperationCallback);
 
   /**
    * @brief
    *
    */
-  static void KillAllGpgComponents();
+  static void KillAllGpgComponents(OperationCallback);
 };
 
 }  // namespace GpgFrontend

@@ -30,11 +30,12 @@
 
 #include "core/function/CacheManager.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
-#include "struct/settings_object/AppearanceSO.h"
 #include "ui/UISignalStation.h"
 #include "ui/main_window/GeneralMainWindow.h"
+#include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/struct/settings_object/KeyServerSO.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
@@ -274,10 +275,6 @@ void MainWindow::closeEvent(QCloseEvent* event) {
   }
 
   if (event->isAccepted()) {
-    // clear cache of unsaved page
-    CacheManager::GetInstance().SaveDurableCache(
-        "editor_unsaved_pages", QJsonDocument(QJsonArray()), true);
-
     // call parent
     GeneralMainWindow::closeEvent(event);
   }

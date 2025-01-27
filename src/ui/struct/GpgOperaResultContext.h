@@ -1,5 +1,3 @@
-#include <utility>
-
 /**
  * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *
@@ -53,12 +51,7 @@ struct GpgOperaContext {
 
   GpgOperaContext(QContainer<OperaWaitingCb>& operas,
                   QContainer<GpgOperaResult>& opera_results, GpgKeyList& keys,
-                  GpgKeyList& singer_keys, QStringList& unknown_fprs)
-      : operas(operas),
-        opera_results(opera_results),
-        keys(keys),
-        singer_keys(singer_keys),
-        unknown_fprs(unknown_fprs) {}
+                  GpgKeyList& singer_keys, QStringList& unknown_fprs);
 };
 
 struct GpgOperaContexts {
@@ -71,45 +64,15 @@ struct GpgOperaContexts {
 
   QMap<int, GpgOperaCategory> categories;
 
-  auto GetContextPath(int category) -> QStringList& {
-    if (!categories.contains(category)) categories[category] = {};
-    return categories[category].paths;
-  }
+  auto GetContextPath(int category) -> QStringList&;
 
-  auto GetContextOutPath(int category) -> QStringList& {
-    if (!categories.contains(category)) categories[category] = {};
-    return categories[category].o_paths;
-  }
+  auto GetContextOutPath(int category) -> QStringList&;
 
-  auto GetAllPath() -> QStringList {
-    QStringList res;
+  auto GetAllPath() -> QStringList;
 
-    for (auto& category : categories) {
-      res.append(category.paths);
-    }
-    return res;
-  }
+  auto GetAllOutPath() -> QStringList;
 
-  auto GetAllOutPath() -> QStringList {
-    QStringList res;
-
-    for (auto& category : categories) {
-      res.append(category.o_paths);
-    }
-    return res;
-  }
-
-  auto GetContext(int category) -> QSharedPointer<GpgOperaContext> {
-    if (GetContextPath(category).empty()) return nullptr;
-
-    auto context = QSharedPointer<GpgOperaContext>::create(
-        operas, opera_results, keys, singer_keys, unknown_fprs);
-    context->ascii = ascii;
-
-    context->paths = GetContextPath(category);
-    context->o_paths = GetContextOutPath(category);
-    return context;
-  }
+  auto GetContext(int category) -> QSharedPointer<GpgOperaContext>;
 };
 
 }  // namespace GpgFrontend::UI

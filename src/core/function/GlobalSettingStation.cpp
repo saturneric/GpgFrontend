@@ -256,4 +256,7 @@ auto GlobalSettingStation::GetIntegratedModulePath() const -> QString {
 auto GlobalSettingStation::IsProtableMode() const -> bool {
   return p_->IsProtableMode();
 }
+auto GetSettings() -> QSettings {
+  return GlobalSettingStation::GetInstance().GetSettings();
+}
 }  // namespace GpgFrontend

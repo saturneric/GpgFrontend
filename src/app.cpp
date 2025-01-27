@@ -28,16 +28,13 @@
 
 #include "GpgFrontendContext.h"
 #include "core/GpgConstants.h"
-#include "core/GpgCoreInit.h"
-#include "core/module/ModuleInit.h"
+#include "core/function/CacheManager.h"
 #include "ui/GpgFrontendUIInit.h"
 
 // main
 #include "init.h"
 
 namespace GpgFrontend {
-
-constexpr int kCrashCode = ~0;  ///<
 
 /**
  * @brief
@@ -79,26 +76,18 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
     // load module's translations
     GpgFrontend::UI::InitModulesTranslations();
 
-
-    
-
     // finally create main window
     return_from_event_loop_code = GpgFrontend::UI::RunGpgFrontendUI(app);
 
   } while (return_from_event_loop_code == GpgFrontend::kRestartCode &&
            restart_count++ < 99);
 
-  // first should shutdown the module system
-  GpgFrontend::Module::ShutdownGpgFrontendModules();
+  // clear cache of unsaved pages
+  GpgFrontend::CacheManager::GetInstance().SaveDurableCache(
+      "editor_unsaved_pages", QJsonDocument(QJsonArray()), true);
 
-  // then shutdown the core
-  GpgFrontend::DestroyGpgFrontendCore();
-
-  // deep restart mode
-  if (return_from_event_loop_code == GpgFrontend::kDeepRestartCode ||
-      return_from_event_loop_code == kCrashCode) {
-    QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
-  };
+  // set return code
+  ctx->rtn = return_from_event_loop_code;
 
   // exit the program
   return return_from_event_loop_code;

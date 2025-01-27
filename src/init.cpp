@@ -184,18 +184,30 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
   }
 
   auto clear_gpg_password_cache =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
-          .value("basic/clear_gpg_password_cache", false)
+      GetSettings().value("basic/clear_gpg_password_cache", false).toBool();
+
+  auto kill_all_gnupg_daemon_at_close =
+      GetSettings()
+          .value("gnupg/kill_all_gnupg_daemon_at_close", false)
           .toBool();
-  // clear password cache
-  if (!ctx->unit_test_mode && clear_gpg_password_cache) {
-    GpgAdvancedOperator::ClearGpgPasswordCache([](int, DataObjectPtr) {});
+
+  if (!ctx->unit_test_mode && kill_all_gnupg_daemon_at_close) {
+    GpgAdvancedOperator::KillAllGpgComponents(nullptr);
+  } else if (!ctx->unit_test_mode && clear_gpg_password_cache) {
+    GpgAdvancedOperator::ClearGpgPasswordCache(nullptr);
   }
 
-  Thread::TaskRunnerGetter::GetInstance().StopAllTeakRunner();
+  // first should shutdown the module system
+  GpgFrontend::Module::ShutdownGpgFrontendModules();
 
-  DestroyGpgFrontendCore();
+  // then shutdown the core
+  GpgFrontend::DestroyGpgFrontendCore();
+
+  // deep restart mode
+  if (ctx->rtn == GpgFrontend::kDeepRestartCode ||
+      ctx->rtn == GpgFrontend::kCrashCode) {
+    QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
+  };
 }
 
 }  // namespace GpgFrontend
