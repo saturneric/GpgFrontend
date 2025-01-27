@@ -32,6 +32,8 @@
 
 #include "GpgAdvancedOperator.h"
 
+#include <utility>
+
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
@@ -84,40 +86,35 @@ void ExecuteGpgCommand(const QString &operation, const QStringList &extra_args,
 }
 
 void GpgAdvancedOperator::ClearGpgPasswordCache(OperationCallback cb) {
-  ExecuteGpgCommand("Clear GPG Password Cache", {"--reload", "gpg-agent"}, cb);
+  ExecuteGpgCommand("Clear GPG Password Cache", {"--reload", "gpg-agent"},
+                    std::move(cb));
 }
 
 void GpgAdvancedOperator::ReloadGpgComponents(OperationCallback cb) {
   const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", QString{});
-  ExecuteGpgCommand("Reload GPG Components", {"--reload", "all"}, cb);
+  ExecuteGpgCommand("Reload GPG Components", {"--reload", "all"},
+                    std::move(cb));
 }
 
 void GpgAdvancedOperator::KillAllGpgComponents(OperationCallback cb) {
-  ExecuteGpgCommand("Kill All GPG Components", {"--kill", "all"}, cb);
+  ExecuteGpgCommand("Kill All GPG Components", {"--kill", "all"},
+                    std::move(cb));
 }
 
 void GpgAdvancedOperator::ResetConfigures(OperationCallback cb) {
-  ExecuteGpgCommand("Kill All GPG Components", {"--apply-defaults"}, cb);
+  ExecuteGpgCommand("Reset Gnupg Configures", {"--apply-defaults"},
+                    std::move(cb));
 }
 
 void GpgAdvancedOperator::LaunchGpgComponents(OperationCallback cb) {
-  ExecuteGpgCommand("Kill All GPG Components", {"--launch", "all"}, cb);
+  ExecuteGpgCommand("Launch All GPG Components", {"--launch", "all"},
+                    std::move(cb));
 }
 
 void GpgAdvancedOperator::RestartGpgComponents(OperationCallback cb) {
-  const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gpgconf_path", QString{});
-
-  if (gpgconf_path.isEmpty()) {
-    FLOG_W("cannot get valid gpgconf path from rt, abort.");
-    if (cb) cb(-1, TransferParams());
-    return;
-  }
-
   KillAllGpgComponents(nullptr);
-
-  LaunchGpgComponents(cb);
+  LaunchGpgComponents(std::move(cb));
 }
 
 }  // namespace GpgFrontend
