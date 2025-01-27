@@ -32,6 +32,8 @@
 
 #include <memory>
 
+#include "core/GpgConstants.h"
+
 namespace GpgFrontend {
 
 struct GpgFrontendContext;
