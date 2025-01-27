@@ -31,7 +31,7 @@
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/IOUtils.h"
 #include "ui/UISignalStation.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/function/GpgOperaHelper.h"
 
 namespace GpgFrontend::UI {
 
@@ -398,7 +398,7 @@ void FileTreeView::slot_calculate_hash() {
   if (GetSelectedPaths().empty()) return;
   auto selected_path = GetSelectedPaths().front();
 
-  CommonUtils::WaitForOpera(
+  GpgOperaHelper::WaitForOpera(
       this->parentWidget(), tr("Calculating"), [=](const OperaWaitingHd& hd) {
         RunOperaAsync(
             [=](const DataObjectPtr& data_object) {

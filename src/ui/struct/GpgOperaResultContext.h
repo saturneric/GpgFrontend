@@ -28,10 +28,14 @@
 
 #pragma once
 
-#include "ui/UserInterfaceUtils.h"
+#include "core/typedef/CoreTypedef.h"
+#include "core/typedef/GpgTypedef.h"
 #include "ui/struct/GpgOperaResult.h"
 
 namespace GpgFrontend::UI {
+
+using OperaWaitingHd = std::function<void()>;
+using OperaWaitingCb = std::function<void(OperaWaitingHd)>;
 
 struct GpgOperaCategory {
   QStringList paths;

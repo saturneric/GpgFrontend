@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/model/GFBuffer.h"
+
 namespace GpgFrontend::UI {
 
 struct GpgOperaResult {

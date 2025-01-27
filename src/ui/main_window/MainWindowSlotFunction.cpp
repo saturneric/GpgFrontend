@@ -27,7 +27,6 @@
  */
 
 #include "MainWindow.h"
-#include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
@@ -323,7 +322,7 @@ void MainWindow::slot_import_key_from_edit() {
 }
 
 void MainWindow::slot_verify_email_by_eml_data(const QByteArray& buffer) {
-  CommonUtils::WaitForOpera(
+  GpgOperaHelper::WaitForOpera(
       this, tr("Verifying"), [this, buffer](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
             "EMAIL_VERIFY_EML_DATA",
@@ -651,7 +650,7 @@ void MainWindow::SlotEncryptEML() {
   }
   auto buffer = edit_->CurPlainText().toUtf8();
 
-  CommonUtils::WaitForOpera(
+  GpgOperaHelper::WaitForOpera(
       this, tr("Encrypting"),
       [this, buffer, checked_keys](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
@@ -718,7 +717,7 @@ void MainWindow::SlotSignEML() {
 
   auto buffer = edit_->CurPlainText().toUtf8();
 
-  CommonUtils::WaitForOpera(
+  GpgOperaHelper::WaitForOpera(
       this, tr("Signing"),
       [this, buffer, checked_keys](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
@@ -801,7 +800,7 @@ void MainWindow::SlotEncryptSignEML() {
 
   auto buffer = edit_->CurPlainText().toUtf8();
 
-  CommonUtils::WaitForOpera(
+  GpgOperaHelper::WaitForOpera(
       this, tr("Encrypting and Signing"),
       [this, buffer, checked_keys, signer_keys](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
@@ -865,7 +864,7 @@ void MainWindow::SlotDecryptVerifyEML() {
 
   auto buffer = edit_->CurPlainText().toUtf8();
 
-  CommonUtils::WaitForOpera(
+  GpgOperaHelper::WaitForOpera(
       this, tr("Decrypting and Verifying"),
       [this, buffer](const OperaWaitingHd& hd) {
         Module::TriggerEvent(

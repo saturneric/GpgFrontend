@@ -31,7 +31,6 @@
 #include "core/function/CacheManager.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/model/SettingsObject.h"
-#include "core/module/ModuleManager.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/Wizard.h"
 #include "ui/main_window/KeyMgmt.h"

@@ -35,7 +35,6 @@
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/model/GpgKey.h"
 #include "core/module/ModuleManager.h"
-#include "core/thread/TaskRunnerGetter.h"
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"

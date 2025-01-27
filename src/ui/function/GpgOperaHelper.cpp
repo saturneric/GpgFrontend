@@ -28,10 +28,12 @@
 
 #include "GpgOperaHelper.h"
 
+#include "core/GpgModel.h"
 #include "core/function/gpg/GpgFileOpera.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgSignResultAnalyse.h"
+#include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgSignResult.h"
@@ -529,5 +531,25 @@ auto GpgOperaHelper::BuildOperasDecryptVerify(
       [channel](const GFBuffer& buffer, const auto& callback) {
         GpgBasicOperator::GetInstance(channel).DecryptVerify(buffer, callback);
       });
+}
+
+void GpgOperaHelper::WaitForOpera(QWidget* parent, const QString& title,
+                                  const OperaWaitingCb& opera) {
+  QEventLoop looper;
+  QPointer<WaitingDialog> const dialog = new WaitingDialog(title, parent);
+  connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
+  connect(dialog, &QDialog::finished, dialog, &QDialog::deleteLater);
+  dialog->show();
+
+  QTimer::singleShot(64, parent, [=]() {
+    opera([dialog]() {
+      if (dialog != nullptr) {
+        dialog->close();
+        dialog->accept();
+      }
+    });
+  });
+
+  looper.exec();
 }
 }  // namespace GpgFrontend::UI

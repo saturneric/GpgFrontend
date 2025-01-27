@@ -31,7 +31,7 @@
 #include "core/GpgModel.h"
 #include "core/function/KeyPackageOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/function/GpgOperaHelper.h"
 #include "ui_ExportKeyPackageDialog.h"
 
 GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
@@ -113,7 +113,7 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
       return;
     }
 
-    CommonUtils::WaitForOpera(
+    GpgOperaHelper::WaitForOpera(
         this, tr("Generating"), [this, keys](const OperaWaitingHd& op_hd) {
           KeyPackageOperator::GenerateKeyPackage(
               ui_->outputPathLabel->text(), ui_->nameValueLabel->text(),

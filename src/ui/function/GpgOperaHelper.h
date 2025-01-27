@@ -304,6 +304,14 @@ class GpgOperaHelper : QObject {
   /**
    * @brief
    *
+   * @param err
+   */
+  static void WaitForOpera(QWidget* parent, const QString& title,
+                           const OperaWaitingCb& opera);
+
+  /**
+   * @brief
+   *
    * @param parent
    * @param title
    * @param operas

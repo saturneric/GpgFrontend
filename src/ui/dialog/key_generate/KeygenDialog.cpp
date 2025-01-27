@@ -31,13 +31,13 @@
 #include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyOpera.h"
-#include "core/model/DataObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/CacheUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/function/GpgOperaHelper.h"
 
 namespace GpgFrontend::UI {
 
@@ -150,7 +150,7 @@ void KeyGenDialog::slot_key_gen_accept() {
     LOG_D() << "try to generate key at gpg context channel: "
             << selected_gpg_context_channel;
 
-    CommonUtils::WaitForOpera(
+    GpgOperaHelper::WaitForOpera(
         this, tr("Generating"),
         [this, gen_key_info = this->gen_key_info_,
          selected_gpg_context_channel](const OperaWaitingHd& hd) {

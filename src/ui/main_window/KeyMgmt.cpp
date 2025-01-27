@@ -44,6 +44,7 @@
 #include "ui/dialog/key_generate/KeygenDialog.h"
 #include "ui/dialog/key_generate/SubkeyGenerateDialog.h"
 #include "ui/dialog/keypair_details/KeyDetailsDialog.h"
+#include "ui/function/GpgOperaHelper.h"
 #include "ui/main_window/MainWindow.h"
 #include "ui/widgets/KeyList.h"
 
@@ -403,7 +404,7 @@ void KeyMgmt::SlotExportKeyToClipboard() {
     assert(std::all_of(keys.begin(), keys.end(),
                        [](const auto& key) { return key.IsGood(); }));
 
-    CommonUtils::WaitForOpera(
+    GpgOperaHelper::WaitForOpera(
         this, tr("Exporting"), [=](const OperaWaitingHd& op_hd) {
           GpgKeyImportExporter::GetInstance(
               key_list_->GetCurrentGpgContextChannel())
@@ -482,7 +483,7 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
   assert(std::all_of(keys.begin(), keys.end(),
                      [](const auto& key) { return key.IsGood(); }));
 
-  CommonUtils::WaitForOpera(
+  GpgOperaHelper::WaitForOpera(
       this, tr("Exporting"), [this, keys](const OperaWaitingHd& op_hd) {
         GpgKeyImportExporter::GetInstance(
             key_list_->GetCurrentGpgContextChannel())
@@ -585,7 +586,7 @@ void KeyMgmt::SlotImportKeyPackage() {
     return;
   }
 
-  CommonUtils::WaitForOpera(
+  GpgOperaHelper::WaitForOpera(
       this, tr("Importing"), [=](const OperaWaitingHd& op_hd) {
         KeyPackageOperator::ImportKeyPackage(
             key_package_file_name, key_file_name,

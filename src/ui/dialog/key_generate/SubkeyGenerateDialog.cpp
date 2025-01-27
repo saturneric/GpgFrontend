@@ -34,10 +34,10 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
-#include "core/utils/CacheUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/function/GpgOperaHelper.h"
 
 namespace GpgFrontend::UI {
 
@@ -288,7 +288,7 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
       gen_key_info_->SetExpireTime(date_edit_->dateTime());
     }
 
-    CommonUtils::WaitForOpera(
+    GpgOperaHelper::WaitForOpera(
         this, tr("Generating"),
         [this, key = this->key_,
          gen_key_info = this->gen_key_info_](const OperaWaitingHd& hd) {

@@ -28,10 +28,8 @@
 
 #include "MainWindow.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "dialog/controller/ModuleControllerDialog.h"
-#include "struct/settings_object/AppearanceSO.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/controller/GnuPGControllerDialog.h"
 #include "ui/dialog/help/AboutDialog.h"
