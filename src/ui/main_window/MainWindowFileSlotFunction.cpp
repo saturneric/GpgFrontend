@@ -131,13 +131,6 @@ auto MainWindow::check_keys_helper(
   return keys;
 }
 
-auto MainWindow::execute_operas_helper(
-    const QString& task,
-    const QSharedPointer<GpgOperaContextBasement>& contexts) {
-  GpgOperaHelper::WaitForMultipleOperas(this, task, contexts->operas);
-  slot_result_analyse_show_helper(contexts->opera_results);
-}
-
 void MainWindow::SlotFileEncrypt(const QStringList& paths) {
   auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
 
@@ -191,7 +184,7 @@ void MainWindow::SlotFileEncrypt(const QStringList& paths) {
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasDirectoryEncrypt);
 
-  execute_operas_helper(tr("Encrypting"), contexts);
+  exec_operas_helper(tr("Encrypting"), contexts);
 }
 
 void MainWindow::SlotFileDecrypt(const QStringList& paths) {
@@ -226,7 +219,7 @@ void MainWindow::SlotFileDecrypt(const QStringList& paths) {
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasArchiveDecrypt);
 
-  execute_operas_helper(tr("Decrypting"), contexts);
+  exec_operas_helper(tr("Decrypting"), contexts);
 }
 
 void MainWindow::SlotFileSign(const QStringList& paths) {
@@ -260,7 +253,7 @@ void MainWindow::SlotFileSign(const QStringList& paths) {
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasFileSign);
 
-  execute_operas_helper(tr("Signing"), contexts);
+  exec_operas_helper(tr("Signing"), contexts);
 }
 
 void MainWindow::SlotFileVerify(const QStringList& paths) {
@@ -306,7 +299,7 @@ void MainWindow::SlotFileVerify(const QStringList& paths) {
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasFileVerify);
 
-  execute_operas_helper(tr("Verifying"), contexts);
+  exec_operas_helper(tr("Verifying"), contexts);
 
   if (!contexts->unknown_fprs.isEmpty()) {
     slot_verifying_unknown_signature_helper(contexts->unknown_fprs);
@@ -372,7 +365,7 @@ void MainWindow::SlotFileEncryptSign(const QStringList& paths) {
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasDirectoryEncryptSign);
 
-  execute_operas_helper(tr("Encrypting and Signing"), contexts);
+  exec_operas_helper(tr("Encrypting and Signing"), contexts);
 }
 
 void MainWindow::SlotFileDecryptVerify(const QStringList& paths) {
@@ -407,7 +400,7 @@ void MainWindow::SlotFileDecryptVerify(const QStringList& paths) {
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasArchiveDecryptVerify);
 
-  execute_operas_helper(tr("Decrypting and Verifying"), contexts);
+  exec_operas_helper(tr("Decrypting and Verifying"), contexts);
 
   if (!contexts->unknown_fprs.isEmpty()) {
     slot_verifying_unknown_signature_helper(contexts->unknown_fprs);

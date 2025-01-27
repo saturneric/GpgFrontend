@@ -47,6 +47,7 @@
 #include "ui/dialog/help/AboutDialog.h"
 #include "ui/dialog/import_export/KeyUploadDialog.h"
 #include "ui/dialog/keypair_details/KeyDetailsDialog.h"
+#include "ui/function/GpgOperaHelper.h"
 #include "ui/function/SetOwnerTrustLevel.h"
 #include "ui/struct/GpgOperaResult.h"
 #include "ui/widgets/FindWidget.h"
@@ -559,6 +560,7 @@ void MainWindow::slot_result_analyse_show_helper(
     const QContainer<GpgOperaResult>& opera_results) {
   if (opera_results.empty()) {
     slot_refresh_info_board(0, "");
+    return;
   }
 
   int overall_status = 1;  // Initialize to OK
@@ -1091,6 +1093,22 @@ auto MainWindow::handle_module_error(QMap<QString, QString> p) -> bool {
   }
 
   return false;
+}
+
+void MainWindow::slot_gpg_opera_buffer_show_helper(
+    const QContainer<GpgOperaResult>& results) {
+  for (const auto& result : results) {
+    if (result.o_buffer.Empty()) continue;
+    edit_->SlotFillTextEditWithText(result.o_buffer.ConvertToQByteArray());
+  }
+}
+
+void MainWindow::exec_operas_helper(
+    const QString& task,
+    const QSharedPointer<GpgOperaContextBasement>& contexts) {
+  GpgOperaHelper::WaitForMultipleOperas(this, task, contexts->operas);
+  slot_gpg_opera_buffer_show_helper(contexts->opera_results);
+  slot_result_analyse_show_helper(contexts->opera_results);
 }
 
 }  // namespace GpgFrontend::UI

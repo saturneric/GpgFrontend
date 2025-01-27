@@ -164,14 +164,6 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @brief
    *
-   * @param raw_data
-   * @param signature
-   */
-  void SlotVerify(const QByteArray& raw_data, const QByteArray& signature);
-
-  /**
-   * @brief
-   *
    */
   void SlotVerifyEML();
 
@@ -634,9 +626,17 @@ class MainWindow : public GeneralMainWindow {
    * @param context
    * @return auto
    */
-  auto execute_operas_helper(
+  void exec_operas_helper(
       const QString& task,
       const QSharedPointer<GpgOperaContextBasement>& contexts);
+
+  /**
+   * @brief
+   *
+   * @param results
+   */
+  void slot_gpg_opera_buffer_show_helper(
+      const QContainer<GpgOperaResult>& results);
 
   TextEdit* edit_{};          ///< Tabwidget holding the edit-windows
   QMenu* file_menu_{};        ///<  Submenu for file-operations

@@ -28,12 +28,14 @@
 
 #pragma once
 
+#include "core/model/GFBuffer.h"
 namespace GpgFrontend::UI {
 
 struct GpgOperaResult {
   int status;
   QString report;
   QString tag;
+  GFBuffer o_buffer;
 
   GpgOperaResult(int status, QString report, QString tag);
 };

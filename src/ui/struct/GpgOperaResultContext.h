@@ -36,6 +36,7 @@ namespace GpgFrontend::UI {
 struct GpgOperaCategory {
   QStringList paths;
   QStringList o_paths;
+  QContainer<GFBuffer> buffers;
 };
 
 struct GpgOperaContext;
@@ -54,6 +55,8 @@ struct GpgOperaContextBasement {
 
   auto GetContextOutPath(int category) -> QStringList&;
 
+  auto GetContextBuffer(int category) -> QContainer<GFBuffer>&;
+
   auto GetAllPath() -> QStringList;
 
   auto GetAllOutPath() -> QStringList;
@@ -64,6 +67,7 @@ struct GpgOperaContext {
 
   QStringList paths;
   QStringList o_paths;
+  QContainer<GFBuffer> buffers;
 
   explicit GpgOperaContext(QSharedPointer<GpgOperaContextBasement> base);
 };

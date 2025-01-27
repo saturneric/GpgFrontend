@@ -39,14 +39,77 @@ class GpgOperaHelper : QObject {
   using GpgOperaFactory = std::function<OperaWaitingCb(
       QSharedPointer<GpgOperaContext>& context, int channel, int index)>;
 
+  /**
+   * @brief
+   *
+   * @tparam ResultType
+   * @tparam AnalyseType
+   * @tparam OperaFunc
+   * @param context
+   * @param channel
+   * @param index
+   * @param opera_func
+   * @return OperaWaitingCb
+   */
   template <typename ResultType, typename AnalyseType, typename OperaFunc>
   static auto BuildSimpleGpgFileOperasHelper(
       QSharedPointer<GpgOperaContext>& context, int channel, int index,
       OperaFunc opera_func) -> OperaWaitingCb;
 
+  /**
+   * @brief
+   *
+   * @tparam ResultTypeA
+   * @tparam AnalyseTypeA
+   * @tparam ResultTypeB
+   * @tparam AnalyseTypeB
+   * @tparam OperaFunc
+   * @param context
+   * @param channel
+   * @param index
+   * @param opera_func
+   * @return OperaWaitingCb
+   */
   template <typename ResultTypeA, typename AnalyseTypeA, typename ResultTypeB,
             typename AnalyseTypeB, typename OperaFunc>
   static auto BuildComplexGpgFileOperasHelper(
+      QSharedPointer<GpgOperaContext>& context, int channel, int index,
+      OperaFunc opera_func) -> OperaWaitingCb;
+
+  /**
+   * @brief
+   *
+   * @tparam ResultType
+   * @tparam AnalyseType
+   * @tparam OperaFunc
+   * @param context
+   * @param channel
+   * @param index
+   * @param opera_func
+   * @return OperaWaitingCb
+   */
+  template <typename ResultType, typename AnalyseType, typename OperaFunc>
+  static auto BuildSimpleGpgOperasHelper(
+      QSharedPointer<GpgOperaContext>& context, int channel, int index,
+      OperaFunc opera_func) -> OperaWaitingCb;
+
+  /**
+   * @brief
+   *
+   * @tparam ResultTypeA
+   * @tparam AnalyseTypeA
+   * @tparam ResultTypeB
+   * @tparam AnalyseTypeB
+   * @tparam OperaFunc
+   * @param context
+   * @param channel
+   * @param index
+   * @param opera_func
+   * @return OperaWaitingCb
+   */
+  template <typename ResultTypeA, typename AnalyseTypeA, typename ResultTypeB,
+            typename AnalyseTypeB, typename OperaFunc>
+  static auto BuildComplexGpgOperasHelper(
       QSharedPointer<GpgOperaContext>& context, int channel, int index,
       OperaFunc opera_func) -> OperaWaitingCb;
 
@@ -60,6 +123,17 @@ class GpgOperaHelper : QObject {
    */
   static void BuildOperas(QSharedPointer<GpgOperaContextBasement>& base,
                           int category, int channel, const GpgOperaFactory& f);
+
+  /**
+   * @brief
+   *
+   * @param context
+   * @param channel
+   * @param index
+   * @return OperaWaitingCb
+   */
+  static auto BuildOperasEncrypt(QSharedPointer<GpgOperaContext>& context,
+                                 int channel, int index) -> OperaWaitingCb;
 
   /**
    * @brief
@@ -88,6 +162,17 @@ class GpgOperaHelper : QObject {
    * @brief
    *
    * @param context
+   * @param channel
+   * @param index
+   * @return OperaWaitingCb
+   */
+  static auto BuildOperasDecrypt(QSharedPointer<GpgOperaContext>& context,
+                                 int channel, int index) -> OperaWaitingCb;
+
+  /**
+   * @brief
+   *
+   * @param context
    */
   static auto BuildOperasFileDecrypt(QSharedPointer<GpgOperaContext>& context,
                                      int channel, int index) -> OperaWaitingCb;
@@ -108,6 +193,17 @@ class GpgOperaHelper : QObject {
    * @brief
    *
    * @param context
+   * @param channel
+   * @param index
+   * @return OperaWaitingCb
+   */
+  static auto BuildOperasSign(QSharedPointer<GpgOperaContext>& context,
+                              int channel, int index) -> OperaWaitingCb;
+
+  /**
+   * @brief
+   *
+   * @param context
    * @return OperaWaitingCb
    */
   static auto BuildOperasFileSign(QSharedPointer<GpgOperaContext>& context,
@@ -121,8 +217,30 @@ class GpgOperaHelper : QObject {
    * @param index
    * @return OperaWaitingCb
    */
+  static auto BuildOperasVerify(QSharedPointer<GpgOperaContext>& context,
+                                int channel, int index) -> OperaWaitingCb;
+
+  /**
+   * @brief
+   *
+   * @param context
+   * @param channel
+   * @param index
+   * @return OperaWaitingCb
+   */
   static auto BuildOperasFileVerify(QSharedPointer<GpgOperaContext>& context,
                                     int channel, int index) -> OperaWaitingCb;
+
+  /**
+   * @brief
+   *
+   * @param context
+   * @param channel
+   * @param index
+   * @return OperaWaitingCb
+   */
+  static auto BuildOperasEncryptSign(QSharedPointer<GpgOperaContext>& context,
+                                     int channel, int index) -> OperaWaitingCb;
 
   /**
    * @brief
@@ -146,6 +264,18 @@ class GpgOperaHelper : QObject {
   static auto BuildOperasDirectoryEncryptSign(
       QSharedPointer<GpgOperaContext>& context, int channel,
       int index) -> OperaWaitingCb;
+
+  /**
+   * @brief
+   *
+   * @param context
+   * @param channel
+   * @param index
+   * @return OperaWaitingCb
+   */
+  static auto BuildOperasDecryptVerify(QSharedPointer<GpgOperaContext>& context,
+                                       int channel,
+                                       int index) -> OperaWaitingCb;
 
   /**
    * @brief

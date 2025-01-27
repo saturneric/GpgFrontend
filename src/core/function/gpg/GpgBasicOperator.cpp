@@ -72,8 +72,10 @@ auto EncryptImpl(GpgContext& ctx_, const KeyArgsList& keys,
   auto err = CheckGpgError(
       gpgme_op_encrypt(ctx, keys.isEmpty() ? nullptr : recipients.data(),
                        GPGME_ENCRYPT_ALWAYS_TRUST, data_in, data_out));
-  data_object->Swap({GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
-                     data_out.Read2GFBuffer()});
+  data_object->Swap({
+      GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
+      data_out.Read2GFBuffer(),
+  });
 
   return err;
 }
@@ -124,9 +126,10 @@ auto DecryptImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
 
   auto err =
       CheckGpgError(gpgme_op_decrypt(ctx_.DefaultContext(), data_in, data_out));
-  data_object->Swap(
-      {GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext())),
-       data_out.Read2GFBuffer()});
+  data_object->Swap({
+      GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext())),
+      data_out.Read2GFBuffer(),
+  });
 
   return err;
 }
@@ -168,6 +171,7 @@ auto VerifyImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
 
   data_object->Swap({
       GpgVerifyResult(gpgme_op_verify_result(ctx_.DefaultContext())),
+      GFBuffer(),
   });
 
   return err;
@@ -209,8 +213,10 @@ auto SignImpl(GpgContext& ctx_, const KeyArgsList& signers,
   auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
   err = CheckGpgError(gpgme_op_sign(ctx, data_in, data_out, mode));
 
-  data_object->Swap(
-      {GpgSignResult(gpgme_op_sign_result(ctx)), data_out.Read2GFBuffer()});
+  data_object->Swap({
+      GpgSignResult(gpgme_op_sign_result(ctx)),
+      data_out.Read2GFBuffer(),
+  });
   return err;
 }
 
@@ -244,10 +250,11 @@ auto DecryptVerifyImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
   err = CheckGpgError(
       gpgme_op_decrypt_verify(ctx_.DefaultContext(), data_in, data_out));
 
-  data_object->Swap(
-      {GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext())),
-       GpgVerifyResult(gpgme_op_verify_result(ctx_.DefaultContext())),
-       data_out.Read2GFBuffer()});
+  data_object->Swap({
+      GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext())),
+      GpgVerifyResult(gpgme_op_verify_result(ctx_.DefaultContext())),
+      data_out.Read2GFBuffer(),
+  });
 
   return err;
 }
@@ -290,9 +297,11 @@ auto EncryptSignImpl(GpgContext& ctx_, const KeyArgsList& keys,
   err = CheckGpgError(gpgme_op_encrypt_sign(
       ctx, recipients.data(), GPGME_ENCRYPT_ALWAYS_TRUST, data_in, data_out));
 
-  data_object->Swap({GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
-                     GpgSignResult(gpgme_op_sign_result(ctx)),
-                     data_out.Read2GFBuffer()});
+  data_object->Swap({
+      GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
+      GpgSignResult(gpgme_op_sign_result(ctx)),
+      data_out.Read2GFBuffer(),
+  });
   return err;
 }
 

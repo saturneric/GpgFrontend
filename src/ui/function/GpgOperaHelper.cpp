@@ -48,10 +48,18 @@ void GpgOperaHelper::BuildOperas(QSharedPointer<GpgOperaContextBasement>& base,
   auto context = GetGpgOperaContextFromBasement(base, category);
   if (context == nullptr) return;
 
-  assert(context->paths.size() == context->o_paths.size());
+  if (!context->paths.isEmpty()) {
+    assert(context->paths.size() == context->o_paths.size());
 
-  for (int i = 0; i < context->paths.size(); i++) {
-    context->base->operas.push_back(f(context, channel, i));
+    for (int i = 0; i < context->paths.size(); i++) {
+      context->base->operas.push_back(f(context, channel, i));
+    }
+  }
+
+  if (!context->buffers.isEmpty()) {
+    for (int i = 0; i < context->buffers.size(); i++) {
+      context->base->operas.push_back(f(context, channel, i));
+    }
   }
 }
 
@@ -147,8 +155,92 @@ auto GpgOperaHelper::BuildComplexGpgFileOperasHelper(
   };
 }
 
+template <typename ResultType, typename AnalyseType, typename OperaFunc>
+auto GpgOperaHelper::BuildSimpleGpgOperasHelper(
+    QSharedPointer<GpgOperaContext>& context, int channel, int index,
+    OperaFunc opera_func) -> OperaWaitingCb {
+  const auto& buffer = context->buffers[index];
+  auto& opera_results = context->base->opera_results;
+
+  return [=, &opera_results](const OperaWaitingHd& op_hd) {
+    opera_func(buffer, [=, &opera_results](GpgError err,
+                                           const DataObjectPtr& data_obj) {
+      // stop waiting
+      op_hd();
+
+      if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+          !data_obj->Check<ResultType, GFBuffer>()) {
+        opera_results.append({-1, "# " + tr("Critical Error"), {}});
+        return;
+      }
+
+      auto result = ExtractParams<ResultType>(data_obj, 0);
+
+      auto result_analyse = AnalyseType(channel, err, result);
+      result_analyse.Analyse();
+
+      HandleExtraLogicIfNeeded(context, result_analyse);
+
+      auto opera_result = GpgOperaResult{
+          result_analyse.GetStatus(), result_analyse.GetResultReport(), {}};
+
+      auto o_buffer = ExtractParams<GFBuffer>(data_obj, 1);
+      opera_result.o_buffer = o_buffer;
+
+      opera_results.append(opera_result);
+    });
+  };
+}
+
+template <typename ResultTypeA, typename AnalyseTypeA, typename ResultTypeB,
+          typename AnalyseTypeB, typename OperaFunc>
+auto GpgOperaHelper::BuildComplexGpgOperasHelper(
+    QSharedPointer<GpgOperaContext>& context, int channel, int index,
+    OperaFunc opera_func) -> OperaWaitingCb {
+  const auto& buffer = context->buffers[index];
+  auto& opera_results = context->base->opera_results;
+
+  return [=, &opera_results](const OperaWaitingHd& op_hd) {
+    opera_func(buffer, [=, &opera_results](GpgError err,
+                                           const DataObjectPtr& data_obj) {
+      // stop waiting
+      op_hd();
+
+      if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+          !data_obj->Check<ResultTypeA, ResultTypeB, GFBuffer>()) {
+        opera_results.append({-1, "# " + tr("Critical Error"), {}});
+        return;
+      }
+
+      auto result_1 = ExtractParams<ResultTypeA>(data_obj, 0);
+      auto result_2 = ExtractParams<ResultTypeB>(data_obj, 1);
+
+      auto result_analyse_1 = AnalyseTypeA(channel, err, result_1);
+      result_analyse_1.Analyse();
+
+      HandleExtraLogicIfNeeded(context, result_analyse_1);
+
+      auto result_analyse_2 = AnalyseTypeB(channel, err, result_2);
+      result_analyse_2.Analyse();
+
+      HandleExtraLogicIfNeeded(context, result_analyse_2);
+
+      auto opera_result = GpgOperaResult{
+          std::min(result_analyse_1.GetStatus(), result_analyse_2.GetStatus()),
+          result_analyse_1.GetResultReport() +
+              result_analyse_2.GetResultReport(),
+          {}};
+
+      auto o_buffer = ExtractParams<GFBuffer>(data_obj, 2);
+      opera_result.o_buffer = o_buffer;
+
+      opera_results.append(opera_result);
+    });
+  };
+}
+
 template <typename EncryptFuncSymmetric, typename EncryptFuncKeys>
-auto BuildOperasEncryptHelper(
+auto BuildOperasFileEncryptHelper(
     QSharedPointer<GpgOperaContext>& context, int channel, int index,
     EncryptFuncSymmetric encrypt_symmetric,
     EncryptFuncKeys encrypt_with_keys) -> OperaWaitingCb {
@@ -169,10 +261,32 @@ auto BuildOperasEncryptHelper(
       });
 }
 
+template <typename EncryptFuncSymmetric, typename EncryptFuncKeys>
+auto BuildOperasEncryptHelper(
+    QSharedPointer<GpgOperaContext>& context, int channel, int index,
+    EncryptFuncSymmetric encrypt_symmetric,
+    EncryptFuncKeys encrypt_with_keys) -> OperaWaitingCb {
+  if (context->base->keys.isEmpty()) {
+    return GpgOperaHelper::BuildSimpleGpgOperasHelper<GpgEncryptResult,
+                                                      GpgEncryptResultAnalyse>(
+        context, channel, index,
+        [=](const GFBuffer& buffer, const auto& callback) {
+          encrypt_symmetric(buffer, callback);
+        });
+  }
+
+  return GpgOperaHelper::BuildSimpleGpgOperasHelper<GpgEncryptResult,
+                                                    GpgEncryptResultAnalyse>(
+      context, channel, index,
+      [=](const GFBuffer& buffer, const auto& callback) {
+        encrypt_with_keys(buffer, callback);
+      });
+}
+
 auto GpgOperaHelper::BuildOperasFileEncrypt(
     QSharedPointer<GpgOperaContext>& context, int channel,
     int index) -> OperaWaitingCb {
-  return BuildOperasEncryptHelper(
+  return BuildOperasFileEncryptHelper(
       context, channel, index,
       [context, channel](const QString& path, const QString& o_path,
                          const auto& callback) {
@@ -189,7 +303,7 @@ auto GpgOperaHelper::BuildOperasFileEncrypt(
 auto GpgOperaHelper::BuildOperasDirectoryEncrypt(
     QSharedPointer<GpgOperaContext>& context, int channel,
     int index) -> OperaWaitingCb {
-  return BuildOperasEncryptHelper(
+  return BuildOperasFileEncryptHelper(
       context, channel, index,
       [context, channel](const QString& path, const QString& o_path,
                          const auto& callback) {
@@ -313,6 +427,8 @@ auto GpgOperaHelper::BuildOperasArchiveDecryptVerify(
 void GpgOperaHelper::WaitForMultipleOperas(
     QWidget* parent, const QString& title,
     const QContainer<OperaWaitingCb>& operas) {
+  if (operas.isEmpty()) return;
+
   QEventLoop looper;
   QPointer<WaitingDialog> const dialog = new WaitingDialog(title, true, parent);
   connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
@@ -342,5 +458,76 @@ void GpgOperaHelper::WaitForMultipleOperas(
   }
 
   looper.exec();
+}
+
+auto GpgOperaHelper::BuildOperasEncrypt(
+    QSharedPointer<GpgOperaContext>& context, int channel,
+    int index) -> OperaWaitingCb {
+  return BuildOperasEncryptHelper(
+      context, channel, index,
+      [context, channel](const GFBuffer& buffer, const auto& callback) {
+        GpgBasicOperator::GetInstance(channel).EncryptSymmetric(
+            buffer, context->base->ascii, callback);
+      },
+      [context, channel](const GFBuffer& buffer, const auto& callback) {
+        GpgBasicOperator::GetInstance(channel).Encrypt(
+            context->base->keys, buffer, context->base->ascii, callback);
+      });
+}
+
+auto GpgOperaHelper::BuildOperasDecrypt(
+    QSharedPointer<GpgOperaContext>& context, int channel,
+    int index) -> OperaWaitingCb {
+  return BuildSimpleGpgOperasHelper<GpgDecryptResult, GpgDecryptResultAnalyse>(
+      context, channel, index,
+      [channel](const GFBuffer& buffer, const auto& callback) {
+        GpgBasicOperator::GetInstance(channel).Decrypt(buffer, callback);
+      });
+}
+
+auto GpgOperaHelper::BuildOperasSign(QSharedPointer<GpgOperaContext>& context,
+                                     int channel, int index) -> OperaWaitingCb {
+  return BuildSimpleGpgOperasHelper<GpgSignResult, GpgSignResultAnalyse>(
+      context, channel, index,
+      [channel, context](const GFBuffer& buffer, const auto& callback) {
+        GpgBasicOperator::GetInstance(channel).Sign(
+            context->base->keys, buffer, GPGME_SIG_MODE_CLEAR,
+            context->base->ascii, callback);
+      });
+}
+
+auto GpgOperaHelper::BuildOperasVerify(QSharedPointer<GpgOperaContext>& context,
+                                       int channel,
+                                       int index) -> OperaWaitingCb {
+  return BuildSimpleGpgOperasHelper<GpgVerifyResult, GpgVerifyResultAnalyse>(
+      context, channel, index,
+      [channel, context](const GFBuffer& buffer, const auto& callback) {
+        GpgBasicOperator::GetInstance(channel).Verify(buffer, GFBuffer(),
+                                                      callback);
+      });
+}
+
+auto GpgOperaHelper::BuildOperasEncryptSign(
+    QSharedPointer<GpgOperaContext>& context, int channel,
+    int index) -> OperaWaitingCb {
+  return BuildComplexGpgOperasHelper<GpgEncryptResult, GpgEncryptResultAnalyse,
+                                     GpgSignResult, GpgSignResultAnalyse>(
+      context, channel, index,
+      [channel, context](const GFBuffer& buffer, const auto& callback) {
+        GpgBasicOperator::GetInstance(channel).EncryptSign(
+            context->base->keys, context->base->singer_keys, buffer,
+            context->base->ascii, callback);
+      });
+}
+
+auto GpgOperaHelper::BuildOperasDecryptVerify(
+    QSharedPointer<GpgOperaContext>& context, int channel,
+    int index) -> OperaWaitingCb {
+  return BuildComplexGpgOperasHelper<GpgDecryptResult, GpgDecryptResultAnalyse,
+                                     GpgVerifyResult, GpgVerifyResultAnalyse>(
+      context, channel, index,
+      [channel](const GFBuffer& buffer, const auto& callback) {
+        GpgBasicOperator::GetInstance(channel).DecryptVerify(buffer, callback);
+      });
 }
 }  // namespace GpgFrontend::UI

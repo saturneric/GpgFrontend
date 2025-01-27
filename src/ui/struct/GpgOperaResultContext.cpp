@@ -45,6 +45,12 @@ auto GpgOperaContextBasement::GetContextOutPath(int category) -> QStringList& {
   return categories[category].o_paths;
 }
 
+auto GpgOperaContextBasement::GetContextBuffer(int category)
+    -> QContainer<GFBuffer>& {
+  if (!categories.contains(category)) categories[category] = {};
+  return categories[category].buffers;
+}
+
 auto GpgOperaContextBasement::GetAllPath() -> QStringList {
   QStringList res;
 
@@ -66,12 +72,21 @@ auto GpgOperaContextBasement::GetAllOutPath() -> QStringList {
 auto GetGpgOperaContextFromBasement(
     const QSharedPointer<GpgOperaContextBasement>& base,
     int category) -> QSharedPointer<GpgOperaContext> {
-  if (base->GetContextPath(category).empty()) return nullptr;
+  if (!base->GetContextPath(category).isEmpty()) {
+    auto context = QSharedPointer<GpgOperaContext>::create(base);
 
-  auto context = QSharedPointer<GpgOperaContext>::create(base);
+    context->paths = base->GetContextPath(category);
+    context->o_paths = base->GetContextOutPath(category);
+    return context;
+  }
 
-  context->paths = base->GetContextPath(category);
-  context->o_paths = base->GetContextOutPath(category);
-  return context;
+  if (!base->GetContextBuffer(category).isEmpty()) {
+    auto context = QSharedPointer<GpgOperaContext>::create(base);
+
+    context->buffers = base->GetContextBuffer(category);
+    return context;
+  }
+
+  return nullptr;
 }
 }  // namespace GpgFrontend::UI
