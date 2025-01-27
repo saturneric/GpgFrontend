@@ -196,6 +196,13 @@ class KeyList : public QWidget {
   auto GetSelectedKey() -> QString;
 
   /**
+   * @brief Get the Selected Gpg Key object
+   *
+   * @return GpgKey
+   */
+  auto GetSelectedGpgKey() -> std::tuple<bool, GpgKey>;
+
+  /**
    * @brief
    *
    * @return true

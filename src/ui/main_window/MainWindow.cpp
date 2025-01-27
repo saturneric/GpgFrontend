@@ -30,7 +30,7 @@
 
 #include "core/function/CacheManager.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/gpg/GpgAdvancedOperator.h"
+#include "core/function/gpg/GpgKeyGetter.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "ui/UISignalStation.h"

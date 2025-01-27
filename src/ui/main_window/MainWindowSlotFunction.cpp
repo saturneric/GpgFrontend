@@ -100,20 +100,8 @@ void MainWindow::slot_append_selected_keys() {
 }
 
 void MainWindow::slot_append_keys_create_datetime() {
-  auto key_ids = m_key_list_->GetSelected();
-
-  if (key_ids.empty()) {
-    FLOG_W("no key is selected");
-    return;
-  }
-
-  auto key =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids.front());
-  if (!key.IsGood()) {
-    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
-    return;
-  }
+  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
+  if (!succ) return;
 
   auto create_datetime_format_str_local =
       QLocale().toString(key.GetCreateTime()) + " (" + tr("Localize") + ") " +
@@ -126,20 +114,8 @@ void MainWindow::slot_append_keys_create_datetime() {
 }
 
 void MainWindow::slot_append_keys_expire_datetime() {
-  auto key_ids = m_key_list_->GetSelected();
-
-  if (key_ids.empty()) {
-    FLOG_W("no key is selected");
-    return;
-  }
-
-  auto key =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids.front());
-  if (!key.IsGood()) {
-    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
-    return;
-  }
+  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
+  if (!succ) return;
 
   auto expire_datetime_format_str_local =
       QLocale().toString(key.GetExpireTime()) + " (" + tr("Local Time") + ") " +
@@ -152,16 +128,8 @@ void MainWindow::slot_append_keys_expire_datetime() {
 }
 
 void MainWindow::slot_append_keys_fingerprint() {
-  auto key_ids = m_key_list_->GetSelected();
-  if (key_ids.empty()) return;
-
-  auto key =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids.front());
-  if (!key.IsGood()) {
-    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
-    return;
-  }
+  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
+  if (!succ) return;
 
   auto fingerprint_format_str =
       BeautifyFingerprint(key.GetFingerprint()) + "\n";
@@ -170,72 +138,39 @@ void MainWindow::slot_append_keys_fingerprint() {
 }
 
 void MainWindow::slot_copy_mail_address_to_clipboard() {
-  auto key_ids = m_key_list_->GetSelected();
-  if (key_ids.empty()) return;
+  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
+  if (!succ) return;
 
-  auto key =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids.front());
-  if (!key.IsGood()) {
-    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
-    return;
-  }
   QClipboard* cb = QApplication::clipboard();
   cb->setText(key.GetEmail());
 }
 
 void MainWindow::slot_copy_default_uid_to_clipboard() {
-  auto key_ids = m_key_list_->GetSelected();
-  if (key_ids.empty()) return;
+  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
+  if (!succ) return;
 
-  auto key =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids.front());
-  if (!key.IsGood()) {
-    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
-    return;
-  }
   QClipboard* cb = QApplication::clipboard();
   cb->setText(key.GetUIDs()->front().GetUID());
 }
 
 void MainWindow::slot_copy_key_id_to_clipboard() {
-  auto key_ids = m_key_list_->GetSelected();
-  if (key_ids.empty()) return;
+  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
+  if (!succ) return;
 
-  auto key =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids.front());
-  if (!key.IsGood()) {
-    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
-    return;
-  }
   QClipboard* cb = QApplication::clipboard();
   cb->setText(key.GetId());
 }
 
 void MainWindow::slot_show_key_details() {
-  auto key_ids = m_key_list_->GetSelected();
-  if (key_ids.empty()) return;
+  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
+  if (!succ) return;
 
-  auto key =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids.front());
-  if (key.IsGood()) {
-    new KeyDetailsDialog(m_key_list_->GetCurrentGpgContextChannel(), key, this);
-  } else {
-    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
-  }
+  new KeyDetailsDialog(m_key_list_->GetCurrentGpgContextChannel(), key, this);
 }
 
 void MainWindow::slot_add_key_2_favorite() {
-  auto key_ids = m_key_list_->GetSelected();
-  if (key_ids.empty()) return;
-
-  auto key =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids.front());
-  if (!key.IsGood()) return;
+  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
+  if (!succ) return;
 
   auto key_db_name =
       GetGpgKeyDatabaseName(m_key_list_->GetCurrentGpgContextChannel());

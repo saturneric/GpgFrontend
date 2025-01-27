@@ -633,4 +633,19 @@ void KeyList::UpdateKeyTableColumnType(GpgKeyTableColumn column_type) {
 auto KeyList::GetCurrentGpgContextChannel() const -> int {
   return current_gpg_context_channel_;
 }
+
+auto KeyList::GetSelectedGpgKey() -> std::tuple<bool, GpgKey> {
+  auto key_ids = GetSelected();
+  if (key_ids.empty()) return {false, GpgKey()};
+
+  auto key = GpgKeyGetter::GetInstance(GetCurrentGpgContextChannel())
+                 .GetKey(key_ids.front());
+
+  if (!key.IsGood()) {
+    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
+    return {false, GpgKey()};
+  }
+
+  return {true, key};
+}
 }  // namespace GpgFrontend::UI

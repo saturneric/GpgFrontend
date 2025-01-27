@@ -353,16 +353,8 @@ void KeyMgmt::delete_keys_with_warning(KeyIdArgsList uid_list) {
 }
 
 void KeyMgmt::SlotShowKeyDetails() {
-  auto keys_selected = key_list_->GetSelected();
-  if (keys_selected.empty()) return;
-
-  auto key = GpgKeyGetter::GetInstance(key_list_->GetCurrentGpgContextChannel())
-                 .GetKey(keys_selected.front());
-
-  if (!key.IsGood()) {
-    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
-    return;
-  }
+  auto [succ, key] = key_list_->GetSelectedGpgKey();
+  if (!succ) return;
 
   new KeyDetailsDialog(key_list_->GetCurrentGpgContextChannel(), key, this);
 }
@@ -453,20 +445,9 @@ void KeyMgmt::SlotGenerateKeyDialog() {
 }
 
 void KeyMgmt::SlotGenerateSubKey() {
-  auto keys_selected = key_list_->GetSelected();
-  if (keys_selected.empty()) {
-    QMessageBox::information(
-        this, tr("Invalid Operation"),
-        tr("Please select one KeyPair before doing this operation."));
-    return;
-  }
-  const auto key =
-      GpgKeyGetter::GetInstance(key_list_->GetCurrentGpgContextChannel())
-          .GetKey(keys_selected.front());
-  if (!key.IsGood()) {
-    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
-    return;
-  }
+  auto [succ, key] = key_list_->GetSelectedGpgKey();
+  if (!succ) return;
+
   if (!key.IsPrivateKey()) {
     QMessageBox::critical(this, tr("Invalid Operation"),
                           tr("If a key pair does not have a private key then "
