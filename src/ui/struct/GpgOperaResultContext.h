@@ -38,23 +38,9 @@ struct GpgOperaCategory {
   QStringList o_paths;
 };
 
-struct GpgOperaContext {
-  QContainer<OperaWaitingCb>& operas;
-  QContainer<GpgOperaResult>& opera_results;
-  GpgKeyList& keys;
-  GpgKeyList& singer_keys;
-  QStringList& unknown_fprs;
-  bool ascii;
+struct GpgOperaContext;
 
-  QStringList paths;
-  QStringList o_paths;
-
-  GpgOperaContext(QContainer<OperaWaitingCb>& operas,
-                  QContainer<GpgOperaResult>& opera_results, GpgKeyList& keys,
-                  GpgKeyList& singer_keys, QStringList& unknown_fprs, bool ascii);
-};
-
-struct GpgOperaContexts {
+struct GpgOperaContextBasement {
   QContainer<OperaWaitingCb> operas;
   QContainer<GpgOperaResult> opera_results;
   GpgKeyList keys;
@@ -71,8 +57,19 @@ struct GpgOperaContexts {
   auto GetAllPath() -> QStringList;
 
   auto GetAllOutPath() -> QStringList;
-
-  auto GetContext(int category) -> QSharedPointer<GpgOperaContext>;
 };
+
+struct GpgOperaContext {
+  QSharedPointer<GpgOperaContextBasement> base;
+
+  QStringList paths;
+  QStringList o_paths;
+
+  explicit GpgOperaContext(QSharedPointer<GpgOperaContextBasement> base);
+};
+
+auto GetGpgOperaContextFromBasement(
+    const QSharedPointer<GpgOperaContextBasement>& base,
+    int category) -> QSharedPointer<GpgOperaContext>;
 
 }  // namespace GpgFrontend::UI

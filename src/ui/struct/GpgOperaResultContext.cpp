@@ -28,30 +28,24 @@
 
 #include "GpgOperaResultContext.h"
 
+#include <utility>
+
 namespace GpgFrontend::UI {
 
-GpgOperaContext::GpgOperaContext(QContainer<OperaWaitingCb>& operas,
-                                 QContainer<GpgOperaResult>& opera_results,
-                                 GpgKeyList& keys, GpgKeyList& singer_keys,
-                                 QStringList& unknown_fprs, bool ascii)
-    : operas(operas),
-      opera_results(opera_results),
-      keys(keys),
-      singer_keys(singer_keys),
-      unknown_fprs(unknown_fprs),
-      ascii(ascii) {}
+GpgOperaContext::GpgOperaContext(QSharedPointer<GpgOperaContextBasement> base)
+    : base(std::move(base)) {}
 
-auto GpgOperaContexts::GetContextPath(int category) -> QStringList& {
+auto GpgOperaContextBasement::GetContextPath(int category) -> QStringList& {
   if (!categories.contains(category)) categories[category] = {};
   return categories[category].paths;
 }
 
-auto GpgOperaContexts::GetContextOutPath(int category) -> QStringList& {
+auto GpgOperaContextBasement::GetContextOutPath(int category) -> QStringList& {
   if (!categories.contains(category)) categories[category] = {};
   return categories[category].o_paths;
 }
 
-auto GpgOperaContexts::GetAllPath() -> QStringList {
+auto GpgOperaContextBasement::GetAllPath() -> QStringList {
   QStringList res;
 
   for (auto& category : categories) {
@@ -60,7 +54,7 @@ auto GpgOperaContexts::GetAllPath() -> QStringList {
   return res;
 }
 
-auto GpgOperaContexts::GetAllOutPath() -> QStringList {
+auto GpgOperaContextBasement::GetAllOutPath() -> QStringList {
   QStringList res;
 
   for (auto& category : categories) {
@@ -69,16 +63,15 @@ auto GpgOperaContexts::GetAllOutPath() -> QStringList {
   return res;
 }
 
-auto GpgOperaContexts::GetContext(int category)
-    -> QSharedPointer<GpgOperaContext> {
-  if (GetContextPath(category).empty()) return nullptr;
+auto GetGpgOperaContextFromBasement(
+    const QSharedPointer<GpgOperaContextBasement>& base,
+    int category) -> QSharedPointer<GpgOperaContext> {
+  if (base->GetContextPath(category).empty()) return nullptr;
 
-  auto context = QSharedPointer<GpgOperaContext>::create(
-      operas, opera_results, keys, singer_keys, unknown_fprs, ascii);
-  context->ascii = ascii;
+  auto context = QSharedPointer<GpgOperaContext>::create(base);
 
-  context->paths = GetContextPath(category);
-  context->o_paths = GetContextOutPath(category);
+  context->paths = base->GetContextPath(category);
+  context->o_paths = base->GetContextOutPath(category);
   return context;
 }
 }  // namespace GpgFrontend::UI

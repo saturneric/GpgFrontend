@@ -63,19 +63,15 @@ void SetSignersImpl(GpgContext& ctx_, const KeyArgsList& signers, bool ascii) {
 auto EncryptImpl(GpgContext& ctx_, const KeyArgsList& keys,
                  const GFBuffer& in_buffer, bool ascii,
                  const DataObjectPtr& data_object) -> GpgError {
-  if (keys.empty()) return GPG_ERR_CANCELED;
-
-  QContainer<gpgme_key_t> recipients(keys.begin(), keys.end());
-
-  // Last entry data_in array has to be nullptr
-  recipients.emplace_back(nullptr);
+  auto recipients = Convert2RawGpgMEKeyList(keys);
 
   GpgData data_in(in_buffer);
   GpgData data_out;
 
   auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
-  auto err = CheckGpgError(gpgme_op_encrypt(
-      ctx, recipients.data(), GPGME_ENCRYPT_ALWAYS_TRUST, data_in, data_out));
+  auto err = CheckGpgError(
+      gpgme_op_encrypt(ctx, keys.isEmpty() ? nullptr : recipients.data(),
+                       GPGME_ENCRYPT_ALWAYS_TRUST, data_in, data_out));
   data_object->Swap({GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
                      data_out.Read2GFBuffer()});
 
@@ -102,26 +98,11 @@ auto GpgBasicOperator::EncryptSync(const KeyArgsList& keys,
       "gpgme_op_encrypt", "2.1.0");
 }
 
-auto EncryptSymmetricImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
-                          bool ascii,
-                          const DataObjectPtr& data_object) -> GpgError {
-  GpgData data_in(in_buffer);
-  GpgData data_out;
-
-  auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
-  auto err = CheckGpgError(gpgme_op_encrypt(
-      ctx, nullptr, GPGME_ENCRYPT_SYMMETRIC, data_in, data_out));
-  data_object->Swap({GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
-                     data_out.Read2GFBuffer()});
-
-  return err;
-}
-
 void GpgBasicOperator::EncryptSymmetric(const GFBuffer& in_buffer, bool ascii,
                                         const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) {
-        return EncryptSymmetricImpl(ctx_, in_buffer, ascii, data_object);
+        return EncryptImpl(ctx_, {}, in_buffer, ascii, data_object);
       },
       cb, "gpgme_op_encrypt_symmetric", "2.1.0");
 }
@@ -131,7 +112,7 @@ auto GpgBasicOperator::EncryptSymmetricSync(const GFBuffer& in_buffer,
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       [=](const DataObjectPtr& data_object) {
-        return EncryptSymmetricImpl(ctx_, in_buffer, ascii, data_object);
+        return EncryptImpl(ctx_, {}, in_buffer, ascii, data_object);
       },
       "gpgme_op_encrypt_symmetric", "2.1.0");
 }

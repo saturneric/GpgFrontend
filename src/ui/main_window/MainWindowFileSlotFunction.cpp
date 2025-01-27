@@ -28,18 +28,11 @@
 
 #include "MainWindow.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/gpg/GpgFileOpera.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
-#include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
-#include "core/function/result_analyse/GpgSignResultAnalyse.h"
-#include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
-#include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SignersPicker.h"
-#include "ui/struct/GpgOperaResult.h"
+#include "ui/function/GpgOperaHelper.h"
 #include "ui/struct/GpgOperaResultContext.h"
 #include "ui/widgets/KeyList.h"
 
@@ -139,179 +132,20 @@ auto MainWindow::check_keys_helper(
 }
 
 auto MainWindow::execute_operas_helper(
-    const QString& task, const QSharedPointer<GpgOperaContexts>& contexts) {
-  CommonUtils::WaitForMultipleOperas(this, task, contexts->operas);
+    const QString& task,
+    const QSharedPointer<GpgOperaContextBasement>& contexts) {
+  GpgOperaHelper::WaitForMultipleOperas(this, task, contexts->operas);
   slot_result_analyse_show_helper(contexts->opera_results);
 }
 
-void MainWindow::build_operas_file_symmetric_encrypt(
-    QSharedPointer<GpgOperaContext>& context) {
-  assert(context->paths.size() == context->o_paths.size());
-
-  for (int i = 0; i < context->paths.size(); i++) {
-    const auto& path = context->paths[i];
-    const auto& o_path = context->o_paths[i];
-
-    auto opera = [=, &opera_results =
-                         context->opera_results](const OperaWaitingHd& op_hd) {
-      GpgFileOpera::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .EncryptFileSymmetric(
-              path, context->ascii, o_path,
-              [=, &opera_results](GpgError err, const DataObjectPtr& data_obj) {
-                // stop waiting
-                op_hd();
-
-                if (CheckGpgError(err) == GPG_ERR_USER_1 ||
-                    data_obj == nullptr ||
-                    !data_obj->Check<GpgEncryptResult>()) {
-                  QMessageBox::critical(this, tr("Error"),
-                                        tr("Unknown error occurred"));
-                  return;
-                }
-
-                auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
-                auto result_analyse = GpgEncryptResultAnalyse(
-                    m_key_list_->GetCurrentGpgContextChannel(), err, result);
-                result_analyse.Analyse();
-
-                opera_results.append({result_analyse.GetStatus(),
-                                      result_analyse.GetResultReport(),
-                                      QFileInfo(path).fileName()});
-              });
-    };
-
-    context->operas.push_back(opera);
-  }
-}
-
-void MainWindow::build_operas_file_encrypt(
-    QSharedPointer<GpgOperaContext>& context) {
-  assert(context->paths.size() == context->o_paths.size());
-
-  for (int i = 0; i < context->paths.size(); i++) {
-    const auto& path = context->paths[i];
-    const auto& o_path = context->o_paths[i];
-
-    auto opera = [=, &opera_results =
-                         context->opera_results](const OperaWaitingHd& op_hd) {
-      GpgFileOpera::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .EncryptFile(
-              context->keys, path, context->ascii, o_path,
-              [=, &opera_results](GpgError err, const DataObjectPtr& data_obj) {
-                // stop waiting
-                op_hd();
-
-                if (CheckGpgError(err) == GPG_ERR_USER_1 ||
-                    data_obj == nullptr ||
-                    !data_obj->Check<GpgEncryptResult>()) {
-                  QMessageBox::critical(this, tr("Error"),
-                                        tr("Unknown error occurred"));
-                  return;
-                }
-
-                auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
-                auto result_analyse = GpgEncryptResultAnalyse(
-                    m_key_list_->GetCurrentGpgContextChannel(), err, result);
-                result_analyse.Analyse();
-
-                opera_results.append({result_analyse.GetStatus(),
-                                      result_analyse.GetResultReport(),
-                                      QFileInfo(path).fileName()});
-              });
-    };
-
-    context->operas.push_back(opera);
-  }
-}
-
-void MainWindow::build_operas_directory_symmetric_encrypt(
-    QSharedPointer<GpgOperaContext>& context) {
-  assert(context->paths.size() == context->o_paths.size());
-
-  for (int i = 0; i < context->paths.size(); i++) {
-    const auto& path = context->paths[i];
-    const auto& o_path = context->o_paths[i];
-
-    auto opera = [=, &opera_results =
-                         context->opera_results](const OperaWaitingHd& op_hd) {
-      GpgFileOpera::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .EncryptDirectorySymmetric(
-              path, context->ascii, o_path,
-              [=, &opera_results](GpgError err, const DataObjectPtr& data_obj) {
-                // stop waiting
-                op_hd();
-
-                if (data_obj == nullptr ||
-                    !data_obj->Check<GpgEncryptResult>()) {
-                  QMessageBox::critical(this, tr("Error"),
-                                        tr("Unknown error occurred"));
-                  return;
-                }
-
-                auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
-                auto result_analyse = GpgEncryptResultAnalyse(
-                    m_key_list_->GetCurrentGpgContextChannel(), err, result);
-                result_analyse.Analyse();
-
-                opera_results.append({result_analyse.GetStatus(),
-                                      result_analyse.GetResultReport(),
-                                      QFileInfo(path).fileName()});
-              });
-    };
-
-    context->operas.push_back(opera);
-  }
-}
-
-void MainWindow::build_operas_directory_encrypt(
-    QSharedPointer<GpgOperaContext>& context) {
-  assert(context->paths.size() == context->o_paths.size());
-
-  for (int i = 0; i < context->paths.size(); i++) {
-    const auto& path = context->paths[i];
-    const auto& o_path = context->o_paths[i];
-
-    auto opera = [=, &opera_results =
-                         context->opera_results](const OperaWaitingHd& op_hd) {
-      GpgFileOpera::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .EncryptDirectory(
-              context->keys, path, context->ascii, o_path,
-              [=, &opera_results](GpgError err, const DataObjectPtr& data_obj) {
-                // stop waiting
-                op_hd();
-
-                if (CheckGpgError(err) == GPG_ERR_USER_1 ||
-                    data_obj == nullptr ||
-                    !data_obj->Check<GpgEncryptResult>()) {
-                  QMessageBox::critical(this, tr("Error"),
-                                        tr("Unknown error occurred"));
-                  return;
-                }
-
-                auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
-                auto result_analyse = GpgEncryptResultAnalyse(
-                    m_key_list_->GetCurrentGpgContextChannel(), err, result);
-                result_analyse.Analyse();
-
-                opera_results.append({result_analyse.GetStatus(),
-                                      result_analyse.GetResultReport(),
-                                      QFileInfo(path).fileName()});
-              });
-    };
-
-    context->operas.push_back(opera);
-  }
-}
-
 void MainWindow::SlotFileEncrypt(const QStringList& paths) {
-  auto contexts = QSharedPointer<GpgOperaContexts>::create();
+  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
 
   bool const non_ascii_at_file_operation =
       GetSettings().value("gnupg/non_ascii_at_file_operation", true).toBool();
 
   contexts->ascii = !non_ascii_at_file_operation;
 
-  bool is_symmetric = false;
   auto key_ids = m_key_list_->GetChecked();
 
   // Symmetric Encrypt
@@ -322,7 +156,8 @@ void MainWindow::SlotFileEncrypt(const QStringList& paths) {
            "symmetric cipher using a passphrase?"),
         QMessageBox::Ok | QMessageBox::Cancel);
     if (ret == QMessageBox::Cancel) return;
-    is_symmetric = true;
+
+    contexts->keys = {};
   } else {
     contexts->keys = check_keys_helper(
         key_ids,
@@ -348,113 +183,19 @@ void MainWindow::SlotFileEncrypt(const QStringList& paths) {
 
   if (!check_write_file_paths_helper(contexts->GetAllOutPath())) return;
 
-  // Symmetric Encrypt
-  if (is_symmetric) {
-    auto f_context = contexts->GetContext(0);
-    if (f_context != nullptr) build_operas_file_symmetric_encrypt(f_context);
+  GpgOperaHelper::BuildOperas(contexts, 0,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasFileEncrypt);
 
-    auto d_context = contexts->GetContext(1);
-    if (d_context != nullptr) {
-      build_operas_directory_symmetric_encrypt(d_context);
-    }
-  } else {
-    auto f_context = contexts->GetContext(0);
-    if (f_context != nullptr) build_operas_file_encrypt(f_context);
-
-    auto d_context = contexts->GetContext(1);
-    if (d_context != nullptr) build_operas_directory_encrypt(d_context);
-  }
+  GpgOperaHelper::BuildOperas(contexts, 1,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasDirectoryEncrypt);
 
   execute_operas_helper(tr("Encrypting"), contexts);
 }
 
-/**
- * @brief
- *
- * @param context
- */
-void MainWindow::build_operas_file_decrypt(
-    QSharedPointer<GpgOperaContext>& context) {
-  assert(context->paths.size() == context->o_paths.size());
-
-  for (int i = 0; i < context->paths.size(); i++) {
-    const auto& path = context->paths[i];
-    const auto& o_path = context->o_paths[i];
-
-    auto opera = [=, &opera_results =
-                         context->opera_results](const OperaWaitingHd& op_hd) {
-      GpgFileOpera::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .DecryptFile(
-              path, o_path,
-              [=, &opera_results](GpgError err, const DataObjectPtr& data_obj) {
-                // stop waiting
-                op_hd();
-
-                if (CheckGpgError(err) == GPG_ERR_USER_1 ||
-                    data_obj == nullptr ||
-                    !data_obj->Check<GpgDecryptResult>()) {
-                  QMessageBox::critical(this, tr("Error"),
-                                        tr("Unknown error occurred"));
-                  return;
-                }
-
-                auto result = ExtractParams<GpgDecryptResult>(data_obj, 0);
-                auto result_analyse = GpgDecryptResultAnalyse(
-                    m_key_list_->GetCurrentGpgContextChannel(), err, result);
-                result_analyse.Analyse();
-
-                opera_results.append({result_analyse.GetStatus(),
-                                      result_analyse.GetResultReport(),
-                                      QFileInfo(path).fileName()});
-              });
-    };
-
-    context->operas.push_back(opera);
-  }
-}
-
-void MainWindow::build_operas_archive_decrypt(
-    QSharedPointer<GpgOperaContext>& context) {
-  assert(context->paths.size() == context->o_paths.size());
-
-  for (int i = 0; i < context->paths.size(); i++) {
-    const auto& path = context->paths[i];
-    const auto& o_path = context->o_paths[i];
-
-    auto opera = [=, &opera_results =
-                         context->opera_results](const OperaWaitingHd& op_hd) {
-      GpgFileOpera::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .DecryptArchive(
-              path, o_path,
-              [=, &opera_results](GpgError err, const DataObjectPtr& data_obj) {
-                // stop waiting
-                op_hd();
-
-                if (CheckGpgError(err) == GPG_ERR_USER_1 ||
-                    data_obj == nullptr ||
-                    !data_obj->Check<GpgDecryptResult>()) {
-                  QMessageBox::critical(this, tr("Error"),
-                                        tr("Unknown error occurred"));
-                  return;
-                }
-
-                auto result = ExtractParams<GpgDecryptResult>(data_obj, 0);
-                auto result_analyse = GpgDecryptResultAnalyse(
-                    m_key_list_->GetCurrentGpgContextChannel(), err, result);
-                result_analyse.Analyse();
-
-                opera_results.append({result_analyse.GetStatus(),
-                                      result_analyse.GetResultReport(),
-                                      QFileInfo(path).fileName()});
-              });
-    };
-
-    context->operas.push_back(opera);
-  }
-}
-
 void MainWindow::SlotFileDecrypt(const QStringList& paths) {
-  auto contexts = QSharedPointer<GpgOperaContexts>::create();
+  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
 
   contexts->ascii = true;
 
@@ -477,58 +218,19 @@ void MainWindow::SlotFileDecrypt(const QStringList& paths) {
 
   if (!check_write_file_paths_helper(contexts->GetAllOutPath())) return;
 
-  auto f_context = contexts->GetContext(0);
-  if (f_context != nullptr) build_operas_file_decrypt(f_context);
+  GpgOperaHelper::BuildOperas(contexts, 0,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasFileDecrypt);
 
-  auto d_context = contexts->GetContext(1);
-  if (d_context != nullptr) {
-    build_operas_archive_decrypt(d_context);
-  }
+  GpgOperaHelper::BuildOperas(contexts, 1,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasArchiveDecrypt);
 
   execute_operas_helper(tr("Decrypting"), contexts);
 }
 
-void MainWindow::build_operas_file_sign(
-    QSharedPointer<GpgOperaContext>& context) {
-  assert(context->paths.size() == context->o_paths.size());
-
-  for (int i = 0; i < context->paths.size(); i++) {
-    const auto& path = context->paths[i];
-    const auto& o_path = context->o_paths[i];
-
-    auto opera = [=, &opera_results =
-                         context->opera_results](const OperaWaitingHd& op_hd) {
-      GpgFileOpera::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .SignFile(
-              context->keys, path, context->ascii, o_path,
-              [=, &opera_results](GpgError err, const DataObjectPtr& data_obj) {
-                // stop waiting
-                op_hd();
-
-                if (CheckGpgError(err) == GPG_ERR_USER_1 ||
-                    data_obj == nullptr || !data_obj->Check<GpgSignResult>()) {
-                  QMessageBox::critical(this, tr("Error"),
-                                        tr("Unknown error occurred"));
-                  return;
-                }
-
-                auto result = ExtractParams<GpgSignResult>(data_obj, 0);
-                auto result_analyse = GpgSignResultAnalyse(
-                    m_key_list_->GetCurrentGpgContextChannel(), err, result);
-                result_analyse.Analyse();
-
-                opera_results.append({result_analyse.GetStatus(),
-                                      result_analyse.GetResultReport(),
-                                      QFileInfo(path).fileName()});
-              });
-    };
-
-    context->operas.push_back(opera);
-  }
-}
-
 void MainWindow::SlotFileSign(const QStringList& paths) {
-  auto contexts = QSharedPointer<GpgOperaContexts>::create();
+  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
 
   bool const non_ascii_at_file_operation =
       GetSettings().value("gnupg/non_ascii_at_file_operation", true).toBool();
@@ -536,12 +238,11 @@ void MainWindow::SlotFileSign(const QStringList& paths) {
   contexts->ascii = !non_ascii_at_file_operation;
 
   auto key_ids = m_key_list_->GetChecked();
-
   contexts->keys = check_keys_helper(
       key_ids,
       [](const GpgKey& key) { return key.IsHasActualSigningCapability(); },
-      tr("The selected key contains a key that does not actually have a sign "
-         "usage."));
+      tr("The selected key contains a key that does not actually have a "
+         "sign usage."));
   if (contexts->keys.empty()) return;
 
   if (!check_read_file_paths_helper(paths)) return;
@@ -555,59 +256,15 @@ void MainWindow::SlotFileSign(const QStringList& paths) {
 
   if (!check_write_file_paths_helper(contexts->GetAllOutPath())) return;
 
-  auto f_context = contexts->GetContext(0);
-  if (f_context != nullptr) build_operas_file_sign(f_context);
+  GpgOperaHelper::BuildOperas(contexts, 0,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasFileSign);
 
   execute_operas_helper(tr("Signing"), contexts);
 }
 
-void MainWindow::build_operas_file_verify(
-    QSharedPointer<GpgOperaContext>& context) {
-  assert(context->paths.size() == context->o_paths.size());
-
-  for (int i = 0; i < context->paths.size(); i++) {
-    const auto& path = context->paths[i];
-    const auto& o_path = context->o_paths[i];
-
-    auto opera = [=, &opera_results =
-                         context->opera_results](const OperaWaitingHd& op_hd) {
-      GpgFileOpera::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .VerifyFile(
-              o_path, path,
-              [=, &opera_results](GpgError err, const DataObjectPtr& data_obj) {
-                // stop waiting
-                op_hd();
-
-                if (CheckGpgError(err) == GPG_ERR_USER_1 ||
-                    data_obj == nullptr ||
-                    !data_obj->Check<GpgVerifyResult>()) {
-                  QMessageBox::critical(this, tr("Error"),
-                                        tr("Unknown error occurred"));
-                  return;
-                }
-
-                auto result = ExtractParams<GpgVerifyResult>(data_obj, 0);
-                auto result_analyse = GpgVerifyResultAnalyse(
-                    m_key_list_->GetCurrentGpgContextChannel(), err, result);
-                result_analyse.Analyse();
-
-                slot_result_analyse_show_helper(result_analyse);
-
-                opera_results.append(
-                    {result_analyse.GetStatus(),
-                     result_analyse.GetResultReport(),
-                     QFileInfo(path.isEmpty() ? o_path : path).fileName()});
-
-                context->unknown_fprs = result_analyse.GetUnknownSignatures();
-              });
-    };
-
-    context->operas.push_back(opera);
-  }
-}
-
 void MainWindow::SlotFileVerify(const QStringList& paths) {
-  auto contexts = QSharedPointer<GpgOperaContexts>::create();
+  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
 
   if (!check_read_file_paths_helper(paths)) return;
 
@@ -645,121 +302,19 @@ void MainWindow::SlotFileVerify(const QStringList& paths) {
     contexts->GetContextOutPath(0).append(data_file_path);
   }
 
-  auto f_context = contexts->GetContext(0);
-  if (f_context != nullptr) build_operas_file_verify(f_context);
+  GpgOperaHelper::BuildOperas(contexts, 0,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasFileVerify);
 
   execute_operas_helper(tr("Verifying"), contexts);
 
-  if (!contexts->unknown_fprs.isEmpty() &&
-      Module::IsModuleActivate(kKeyServerSyncModuleID)) {
+  if (!contexts->unknown_fprs.isEmpty()) {
     slot_verifying_unknown_signature_helper(contexts->unknown_fprs);
   }
 }
 
-void MainWindow::build_operas_file_encrypt_sign(
-    QSharedPointer<GpgOperaContext>& context) {
-  assert(context->paths.size() == context->o_paths.size());
-
-  for (int i = 0; i < context->paths.size(); i++) {
-    const auto& path = context->paths[i];
-    const auto& o_path = context->o_paths[i];
-
-    auto opera = [=, &opera_results =
-                         context->opera_results](const OperaWaitingHd& op_hd) {
-      GpgFileOpera::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .EncryptSignFile(
-              context->keys, context->singer_keys, path, context->ascii, o_path,
-              [=, &opera_results](GpgError err, const DataObjectPtr& data_obj) {
-                // stop waiting
-                op_hd();
-
-                if (CheckGpgError(err) == GPG_ERR_USER_1 ||
-                    data_obj == nullptr ||
-                    !data_obj->Check<GpgEncryptResult, GpgSignResult>()) {
-                  QMessageBox::critical(this, tr("Error"),
-                                        tr("Unknown error occurred"));
-                  return;
-                }
-                auto encrypt_result =
-                    ExtractParams<GpgEncryptResult>(data_obj, 0);
-                auto sign_result = ExtractParams<GpgSignResult>(data_obj, 1);
-
-                auto encrypt_result_analyse = GpgEncryptResultAnalyse(
-                    m_key_list_->GetCurrentGpgContextChannel(), err,
-                    encrypt_result);
-                encrypt_result_analyse.Analyse();
-
-                auto sign_result_analyse = GpgSignResultAnalyse(
-                    m_key_list_->GetCurrentGpgContextChannel(), err,
-                    sign_result);
-                sign_result_analyse.Analyse();
-
-                opera_results.append(
-                    {std::min(encrypt_result_analyse.GetStatus(),
-                              sign_result_analyse.GetStatus()),
-                     encrypt_result_analyse.GetResultReport() +
-                         sign_result_analyse.GetResultReport(),
-                     QFileInfo(path).fileName()});
-              });
-    };
-
-    context->operas.push_back(opera);
-  }
-}
-
-void MainWindow::build_operas_directory_encrypt_sign(
-    QSharedPointer<GpgOperaContext>& context) {
-  assert(context->paths.size() == context->o_paths.size());
-
-  for (int i = 0; i < context->paths.size(); i++) {
-    const auto& path = context->paths[i];
-    const auto& o_path = context->o_paths[i];
-
-    auto opera = [=, &opera_results =
-                         context->opera_results](const OperaWaitingHd& op_hd) {
-      GpgFileOpera::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .EncryptSignDirectory(
-              context->keys, context->singer_keys, path, context->ascii, o_path,
-              [=, &opera_results](GpgError err, const DataObjectPtr& data_obj) {
-                // stop waiting
-                op_hd();
-
-                if (CheckGpgError(err) == GPG_ERR_USER_1 ||
-                    data_obj == nullptr ||
-                    !data_obj->Check<GpgEncryptResult, GpgSignResult>()) {
-                  QMessageBox::critical(this, tr("Error"),
-                                        tr("Unknown error occurred"));
-                  return;
-                }
-                auto encrypt_result =
-                    ExtractParams<GpgEncryptResult>(data_obj, 0);
-                auto sign_result = ExtractParams<GpgSignResult>(data_obj, 1);
-
-                auto encrypt_result_analyse = GpgEncryptResultAnalyse(
-                    m_key_list_->GetCurrentGpgContextChannel(), err,
-                    encrypt_result);
-                encrypt_result_analyse.Analyse();
-
-                auto sign_result_analyse = GpgSignResultAnalyse(
-                    m_key_list_->GetCurrentGpgContextChannel(), err,
-                    sign_result);
-                sign_result_analyse.Analyse();
-
-                opera_results.append(
-                    {std::min(encrypt_result_analyse.GetStatus(),
-                              sign_result_analyse.GetStatus()),
-                     encrypt_result_analyse.GetResultReport() +
-                         sign_result_analyse.GetResultReport(),
-                     QFileInfo(path).fileName()});
-              });
-    };
-
-    context->operas.push_back(opera);
-  }
-}
-
 void MainWindow::SlotFileEncryptSign(const QStringList& paths) {
-  auto contexts = QSharedPointer<GpgOperaContexts>::create();
+  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
 
   bool const non_ascii_at_file_operation =
       GetSettings().value("gnupg/non_ascii_at_file_operation", true).toBool();
@@ -809,127 +364,19 @@ void MainWindow::SlotFileEncryptSign(const QStringList& paths) {
 
   if (!check_write_file_paths_helper(contexts->GetAllOutPath())) return;
 
-  auto f_context = contexts->GetContext(0);
-  if (f_context != nullptr) build_operas_file_encrypt_sign(f_context);
+  GpgOperaHelper::BuildOperas(contexts, 0,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasFileEncryptSign);
 
-  auto d_context = contexts->GetContext(1);
-  if (d_context != nullptr) build_operas_directory_encrypt_sign(d_context);
+  GpgOperaHelper::BuildOperas(contexts, 1,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasDirectoryEncryptSign);
 
   execute_operas_helper(tr("Encrypting and Signing"), contexts);
 }
 
-void MainWindow::build_operas_file_decrypt_verify(
-    QSharedPointer<GpgOperaContext>& context) {
-  assert(context->paths.size() == context->o_paths.size());
-
-  for (int i = 0; i < context->paths.size(); i++) {
-    const auto& path = context->paths[i];
-    const auto& o_path = context->o_paths[i];
-
-    auto opera = [=, &opera_results =
-                         context->opera_results](const OperaWaitingHd& op_hd) {
-      GpgFileOpera::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .DecryptVerifyFile(
-              path, o_path,
-              [=, &opera_results](GpgError err, const DataObjectPtr& data_obj) {
-                // stop waiting
-                op_hd();
-
-                if (CheckGpgError(err) == GPG_ERR_USER_1 ||
-                    data_obj == nullptr ||
-                    !data_obj->Check<GpgDecryptResult, GpgVerifyResult>()) {
-                  QMessageBox::critical(this, tr("Error"),
-                                        tr("Unknown error occurred"));
-                  return;
-                }
-                auto decrypt_result =
-                    ExtractParams<GpgDecryptResult>(data_obj, 0);
-                auto verify_result =
-                    ExtractParams<GpgVerifyResult>(data_obj, 1);
-
-                auto decrypt_result_analyse = GpgDecryptResultAnalyse(
-                    m_key_list_->GetCurrentGpgContextChannel(), err,
-                    decrypt_result);
-                decrypt_result_analyse.Analyse();
-
-                auto verify_result_analyse = GpgVerifyResultAnalyse(
-                    m_key_list_->GetCurrentGpgContextChannel(), err,
-                    verify_result);
-                verify_result_analyse.Analyse();
-
-                opera_results.append(
-                    {std::min(decrypt_result_analyse.GetStatus(),
-                              verify_result_analyse.GetStatus()),
-                     decrypt_result_analyse.GetResultReport() +
-                         verify_result_analyse.GetResultReport(),
-                     QFileInfo(path).fileName()});
-
-                context->unknown_fprs =
-                    verify_result_analyse.GetUnknownSignatures();
-              });
-    };
-
-    context->operas.push_back(opera);
-  }
-}
-
-void MainWindow::build_operas_archive_decrypt_verify(
-    QSharedPointer<GpgOperaContext>& context) {
-  assert(context->paths.size() == context->o_paths.size());
-
-  for (int i = 0; i < context->paths.size(); i++) {
-    const auto& path = context->paths[i];
-    const auto& o_path = context->o_paths[i];
-
-    auto opera = [=, &opera_results =
-                         context->opera_results](const OperaWaitingHd& op_hd) {
-      GpgFileOpera::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .DecryptVerifyArchive(
-              path, o_path,
-              [=, &opera_results](GpgError err, const DataObjectPtr& data_obj) {
-                // stop waiting
-                op_hd();
-
-                if (CheckGpgError(err) == GPG_ERR_USER_1 ||
-                    data_obj == nullptr ||
-                    !data_obj->Check<GpgDecryptResult, GpgVerifyResult>()) {
-                  QMessageBox::critical(this, tr("Error"),
-                                        tr("Unknown error occurred"));
-                  return;
-                }
-                auto decrypt_result =
-                    ExtractParams<GpgDecryptResult>(data_obj, 0);
-                auto verify_result =
-                    ExtractParams<GpgVerifyResult>(data_obj, 1);
-
-                auto decrypt_result_analyse = GpgDecryptResultAnalyse(
-                    m_key_list_->GetCurrentGpgContextChannel(), err,
-                    decrypt_result);
-                decrypt_result_analyse.Analyse();
-
-                auto verify_result_analyse = GpgVerifyResultAnalyse(
-                    m_key_list_->GetCurrentGpgContextChannel(), err,
-                    verify_result);
-                verify_result_analyse.Analyse();
-
-                opera_results.append(
-                    {std::min(decrypt_result_analyse.GetStatus(),
-                              verify_result_analyse.GetStatus()),
-                     decrypt_result_analyse.GetResultReport() +
-                         verify_result_analyse.GetResultReport(),
-                     QFileInfo(path).fileName()});
-
-                context->unknown_fprs =
-                    verify_result_analyse.GetUnknownSignatures();
-              });
-    };
-
-    context->operas.push_back(opera);
-  }
-}
-
 void MainWindow::SlotFileDecryptVerify(const QStringList& paths) {
-  auto contexts = QSharedPointer<GpgOperaContexts>::create();
+  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
 
   contexts->ascii = true;
 
@@ -952,18 +399,17 @@ void MainWindow::SlotFileDecryptVerify(const QStringList& paths) {
 
   if (!check_write_file_paths_helper(contexts->GetAllOutPath())) return;
 
-  auto f_context = contexts->GetContext(0);
-  if (f_context != nullptr) build_operas_file_decrypt_verify(f_context);
+  GpgOperaHelper::BuildOperas(contexts, 0,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasFileDecryptVerify);
 
-  auto d_context = contexts->GetContext(1);
-  if (d_context != nullptr) {
-    build_operas_archive_decrypt_verify(d_context);
-  }
+  GpgOperaHelper::BuildOperas(contexts, 1,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasArchiveDecryptVerify);
 
   execute_operas_helper(tr("Decrypting and Verifying"), contexts);
 
-  if (!contexts->unknown_fprs.isEmpty() &&
-      Module::IsModuleActivate(kKeyServerSyncModuleID)) {
+  if (!contexts->unknown_fprs.isEmpty()) {
     slot_verifying_unknown_signature_helper(contexts->unknown_fprs);
   }
 };
@@ -978,10 +424,10 @@ void MainWindow::SlotFileVerifyEML(const QString& path) {
 
   QFileInfo file_info(path);
   if (file_info.size() > static_cast<qint64>(1024 * 1024 * 32)) {
-    QMessageBox::warning(
-        this, tr("EML File Too Large"),
-        tr("The EML file \"%1\" is larger than 32MB and will not be opened.")
-            .arg(file_info.fileName()));
+    QMessageBox::warning(this, tr("EML File Too Large"),
+                         tr("The EML file \"%1\" is larger than 32MB and "
+                            "will not be opened.")
+                             .arg(file_info.fileName()));
     return;
   }
 

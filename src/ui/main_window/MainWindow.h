@@ -45,7 +45,7 @@ class KeyList;
 class TextEdit;
 class InfoBoardWidget;
 struct GpgOperaContext;
-struct GpgOperaContexts;
+struct GpgOperaContextBasement;
 
 /**
  * @brief
@@ -634,97 +634,9 @@ class MainWindow : public GeneralMainWindow {
    * @param context
    * @return auto
    */
-  auto execute_operas_helper(const QString& task,
-                             const QSharedPointer<GpgOperaContexts>& contexts);
-
-  /**
-   * @brief
-   *
-   * @param context
-   */
-  void build_operas_file_symmetric_encrypt(
-      QSharedPointer<GpgOperaContext>& context);
-
-  /**
-   * @brief
-   *
-   * @param context
-   */
-  void build_operas_file_encrypt(QSharedPointer<GpgOperaContext>& context);
-
-  /**
-   * @brief
-   *
-   * @param context
-   */
-  void build_operas_directory_symmetric_encrypt(
-      QSharedPointer<GpgOperaContext>& context);
-
-  /**
-   * @brief
-   *
-   * @param context
-   */
-  void build_operas_directory_encrypt(QSharedPointer<GpgOperaContext>& context);
-
-  /**
-   * @brief
-   *
-   * @param context
-   */
-  void build_operas_file_decrypt(QSharedPointer<GpgOperaContext>& context);
-
-  /**
-   * @brief
-   *
-   * @param context
-   */
-  void build_operas_archive_decrypt(QSharedPointer<GpgOperaContext>& context);
-
-  /**
-   * @brief
-   *
-   * @param context
-   */
-  void build_operas_file_sign(QSharedPointer<GpgOperaContext>& context);
-
-  /**
-   * @brief
-   *
-   * @param context
-   */
-  void build_operas_file_verify(QSharedPointer<GpgOperaContext>& context);
-
-  /**
-   * @brief
-   *
-   * @param context
-   */
-  void build_operas_file_encrypt_sign(QSharedPointer<GpgOperaContext>& context);
-
-  /**
-   * @brief
-   *
-   * @param context
-   */
-  void build_operas_directory_encrypt_sign(
-      QSharedPointer<GpgOperaContext>& context);
-
-  /**
-   * @brief
-   *
-   * @param context
-   */
-  void build_operas_file_decrypt_verify(
-      QSharedPointer<GpgOperaContext>& context);
-
-  /**
-   * @brief
-   *
-   * @param context
-   */
-  void build_operas_archive_decrypt_verify(
-      QSharedPointer<GpgOperaContext>& context);
+  auto execute_operas_helper(
+      const QString& task,
+      const QSharedPointer<GpgOperaContextBasement>& contexts);
 
   TextEdit* edit_{};          ///< Tabwidget holding the edit-windows
   QMenu* file_menu_{};        ///<  Submenu for file-operations
