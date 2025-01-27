@@ -29,8 +29,8 @@
 #pragma once
 
 #include "core/function/basic/GpgFunctionObject.h"
+#include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgContext.h"
-#include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
@@ -296,6 +296,9 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
  private:
   GpgContext& ctx_ = GpgContext::GetInstance(
       SingletonFunctionObject::GetChannel());  ///< Corresponding context
+
+  GpgBasicOperator& basic_opera_ =
+      GpgBasicOperator::GetInstance(SingletonFunctionObject::GetChannel());
 };
 
 }  // namespace GpgFrontend

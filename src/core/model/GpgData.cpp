@@ -104,7 +104,7 @@ GpgData::GpgData(const QString& path, bool read) {
   data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
 }
 
-GpgData::GpgData(std::shared_ptr<GFDataExchanger> ex)
+GpgData::GpgData(QSharedPointer<GFDataExchanger> ex)
     : data_cbs_(), data_ex_(std::move(ex)) {
   gpgme_data_t data;
 

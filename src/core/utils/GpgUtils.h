@@ -147,4 +147,13 @@ auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QList<KeyDatabaseInfo>;
  */
 auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseName(int channel) -> QString;
 
+/**
+ * @brief
+ *
+ * @param keys
+ * @return QContainer<gpgme_key_t>
+ */
+auto GPGFRONTEND_CORE_EXPORT Convert2RawGpgMEKeyList(
+    const QContainer<GpgKey>& keys) -> QContainer<gpgme_key_t>;
+
 }  // namespace GpgFrontend

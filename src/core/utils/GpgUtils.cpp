@@ -29,6 +29,7 @@
 #include "GpgUtils.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/model/GpgKey.h"
 #include "core/model/KeyDatabaseInfo.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
@@ -323,5 +324,13 @@ auto GetKeyDatabaseInfoBySettings() -> QList<KeyDatabaseInfo> {
   }
 
   return key_db_infos;
+}
+
+auto GPGFRONTEND_CORE_EXPORT Convert2RawGpgMEKeyList(
+    const QContainer<GpgKey>& keys) -> QContainer<gpgme_key_t> {
+  QContainer<gpgme_key_t> recipients(keys.begin(), keys.end());
+  recipients.emplace_back(nullptr);
+
+  return recipients;
 }
 }  // namespace GpgFrontend

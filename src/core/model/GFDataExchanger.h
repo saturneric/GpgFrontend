@@ -28,9 +28,13 @@
 
 #pragma once
 
+#include <cstddef>
 #include <queue>
 
 namespace GpgFrontend {
+
+constexpr ssize_t kDataExchangerSize =
+    static_cast<const ssize_t>(1024 * 1024 * 8);  // 8 MB
 
 class GFDataExchanger {
  public:
@@ -49,5 +53,9 @@ class GFDataExchanger {
   const ssize_t queue_max_size_;
   std::atomic_bool close_ = false;
 };
+
+inline auto CreateStandardGFDataExchanger() -> QSharedPointer<GFDataExchanger> {
+  return QSharedPointer<GFDataExchanger>::create(kDataExchangerSize);
+}
 
 }  // namespace GpgFrontend

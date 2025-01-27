@@ -85,7 +85,7 @@ auto ArchiveCloseWriteCallback(struct archive *, void *client_data) -> int {
 }
 
 void ArchiveFileOperator::NewArchive2DataExchanger(
-    const QString &target_directory, std::shared_ptr<GFDataExchanger> exchanger,
+    const QString &target_directory, QSharedPointer<GFDataExchanger> exchanger,
     const OperationCallback &cb) {
   RunIOOperaAsync(
       [=](const DataObjectPtr &data_object) -> GFError {
@@ -194,7 +194,7 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
 }
 
 void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
-    std::shared_ptr<GFDataExchanger> ex, const QString &target_path,
+    QSharedPointer<GFDataExchanger> ex, const QString &target_path,
     const OperationCallback &cb) {
   RunIOOperaAsync(
       [=](const DataObjectPtr &data_object) -> GFError {
