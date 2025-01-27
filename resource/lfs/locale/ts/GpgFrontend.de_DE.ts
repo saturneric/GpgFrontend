@@ -4419,7 +4419,7 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="116"/>
         <source>Localize</source>
-        <translation type="unfinished">本地化</translation>
+        <translation type="unfinished">Ortszeit</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="119"/>
@@ -4429,7 +4429,7 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="142"/>
         <source>Local Time</source>
-        <translation type="unfinished">当地时间</translation>
+        <translation type="unfinished">Ortszeit</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="324"/>
