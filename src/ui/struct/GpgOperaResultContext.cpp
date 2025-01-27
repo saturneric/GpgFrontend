@@ -33,12 +33,13 @@ namespace GpgFrontend::UI {
 GpgOperaContext::GpgOperaContext(QContainer<OperaWaitingCb>& operas,
                                  QContainer<GpgOperaResult>& opera_results,
                                  GpgKeyList& keys, GpgKeyList& singer_keys,
-                                 QStringList& unknown_fprs)
+                                 QStringList& unknown_fprs, bool ascii)
     : operas(operas),
       opera_results(opera_results),
       keys(keys),
       singer_keys(singer_keys),
-      unknown_fprs(unknown_fprs) {}
+      unknown_fprs(unknown_fprs),
+      ascii(ascii) {}
 
 auto GpgOperaContexts::GetContextPath(int category) -> QStringList& {
   if (!categories.contains(category)) categories[category] = {};
@@ -73,7 +74,7 @@ auto GpgOperaContexts::GetContext(int category)
   if (GetContextPath(category).empty()) return nullptr;
 
   auto context = QSharedPointer<GpgOperaContext>::create(
-      operas, opera_results, keys, singer_keys, unknown_fprs);
+      operas, opera_results, keys, singer_keys, unknown_fprs, ascii);
   context->ascii = ascii;
 
   context->paths = GetContextPath(category);

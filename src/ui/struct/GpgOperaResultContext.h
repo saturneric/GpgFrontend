@@ -51,7 +51,7 @@ struct GpgOperaContext {
 
   GpgOperaContext(QContainer<OperaWaitingCb>& operas,
                   QContainer<GpgOperaResult>& opera_results, GpgKeyList& keys,
-                  GpgKeyList& singer_keys, QStringList& unknown_fprs);
+                  GpgKeyList& singer_keys, QStringList& unknown_fprs, bool ascii);
 };
 
 struct GpgOperaContexts {
