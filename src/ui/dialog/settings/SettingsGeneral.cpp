@@ -109,7 +109,7 @@ GeneralTab::GeneralTab(QWidget* parent)
 }
 
 void GeneralTab::SetSettings() {
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GetSettings();
 
   auto clear_gpg_password_cache =
       settings.value("basic/clear_gpg_password_cache", true).toBool();
@@ -147,8 +147,7 @@ void GeneralTab::SetSettings() {
 }
 
 void GeneralTab::ApplySettings() {
-  auto settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GpgFrontend::GetSettings();
 
   settings.setValue("basic/longer_expiration_date",
                     ui_->longerKeyExpirationDateCheckBox->isChecked());

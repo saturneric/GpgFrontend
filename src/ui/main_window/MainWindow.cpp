@@ -138,7 +138,7 @@ void MainWindow::Init() noexcept {
     Module::TriggerEvent("APPLICATION_LOADED");
 
     // check version information
-    auto settings = GlobalSettingStation::GetInstance().GetSettings();
+    auto settings = GetSettings();
     auto prohibit_update_checking =
         settings.value("network/prohibit_update_checking").toBool();
     if (!prohibit_update_checking) {
@@ -175,7 +175,7 @@ void MainWindow::restore_settings() {
   if (key_server.server_list.empty()) key_server.ResetDefaultServerList();
   if (key_server.default_server < 0) key_server.default_server = 0;
 
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GetSettings();
   if (!settings.contains("gnupg/non_ascii_at_file_operation")) {
     settings.setValue("gnupg/non_ascii_at_file_operation", true);
   }

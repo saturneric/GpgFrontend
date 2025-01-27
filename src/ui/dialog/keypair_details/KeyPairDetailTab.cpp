@@ -306,16 +306,10 @@ void KeyPairDetailTab::slot_refresh_key() {
 
 void KeyPairDetailTab::slot_query_key_publish_state() {
   bool forbid_all_gnupg_connection =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
-          .value("network/forbid_all_gnupg_connection")
-          .toBool();
+      GetSettings().value("network/forbid_all_gnupg_connection").toBool();
 
   bool auto_fetch_key_publish_status =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
-          .value("network/auto_fetch_key_publish_status")
-          .toBool();
+      GetSettings().value("network/auto_fetch_key_publish_status").toBool();
 
   if (forbid_all_gnupg_connection || !auto_fetch_key_publish_status) return;
 

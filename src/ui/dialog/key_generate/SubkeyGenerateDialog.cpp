@@ -50,10 +50,7 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, const KeyId& key_id,
   assert(key_.IsGood());
 
   bool longer_expiration_date =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
-          .value("basic/longer_expiration_date", false)
-          .toBool();
+      GetSettings().value("basic/longer_expiration_date", false).toBool();
 
   max_date_time_ = longer_expiration_date
                        ? QDateTime::currentDateTime().toLocalTime().addYears(30)

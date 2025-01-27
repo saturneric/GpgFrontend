@@ -135,7 +135,7 @@ void AppearanceTab::SetSettings() {
     ui_->themeComboBox->addItem(s.toLower());
   }
 
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GetSettings();
   auto theme = settings.value("appearance/theme").toString();
 
   auto target_theme_index = ui_->themeComboBox->findText(theme);
@@ -224,7 +224,7 @@ void AppearanceTab::ApplySettings() {
 
   general_settings_state.Store(appearance.ToJson());
 
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GetSettings();
   settings.setValue("appearance/theme", ui_->themeComboBox->currentText());
 }
 

@@ -92,7 +92,7 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, const QString& key_id,
 
   auto* advance_h_box_layout = new QHBoxLayout();
 
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GetSettings();
 
   // read settings
   bool forbid_all_gnupg_connection =

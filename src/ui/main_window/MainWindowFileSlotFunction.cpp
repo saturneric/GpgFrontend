@@ -307,10 +307,7 @@ void MainWindow::SlotFileEncrypt(const QStringList& paths) {
   auto contexts = QSharedPointer<GpgOperaContexts>::create();
 
   bool const non_ascii_at_file_operation =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
-          .value("gnupg/non_ascii_at_file_operation", true)
-          .toBool();
+      GetSettings().value("gnupg/non_ascii_at_file_operation", true).toBool();
 
   contexts->ascii = !non_ascii_at_file_operation;
 
@@ -534,10 +531,7 @@ void MainWindow::SlotFileSign(const QStringList& paths) {
   auto contexts = QSharedPointer<GpgOperaContexts>::create();
 
   bool const non_ascii_at_file_operation =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
-          .value("gnupg/non_ascii_at_file_operation", true)
-          .toBool();
+      GetSettings().value("gnupg/non_ascii_at_file_operation", true).toBool();
 
   contexts->ascii = !non_ascii_at_file_operation;
 
@@ -768,10 +762,7 @@ void MainWindow::SlotFileEncryptSign(const QStringList& paths) {
   auto contexts = QSharedPointer<GpgOperaContexts>::create();
 
   bool const non_ascii_at_file_operation =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
-          .value("gnupg/non_ascii_at_file_operation", true)
-          .toBool();
+      GetSettings().value("gnupg/non_ascii_at_file_operation", true).toBool();
 
   contexts->ascii = !non_ascii_at_file_operation;
 

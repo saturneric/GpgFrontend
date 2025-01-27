@@ -304,7 +304,7 @@ auto GetComponentPathsByGpgConf(const QString& gpgconf_install_fs_path)
 }
 
 auto DecideGpgConfPath(const QString& default_gpgconf_path) -> QString {
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GetSettings();
   auto use_custom_gnupg_install_path =
       settings.value("gnupg/use_custom_gnupg_install_path", false).toBool();
   auto custom_gnupg_install_path =
@@ -470,7 +470,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   auto default_home_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.default_database_path", QString{});
 
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GetSettings();
 
   // read settings from config file
   auto forbid_all_gnupg_connection =

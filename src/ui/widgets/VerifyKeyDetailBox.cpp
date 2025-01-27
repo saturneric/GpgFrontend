@@ -49,8 +49,7 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(int channel,
       this->setTitle("A Error Signature");
 
       bool forbid_all_gnupg_connection =
-          GlobalSettingStation::GetInstance()
-              .GetSettings()
+          GetSettings()
               .value("network/forbid_all_gnupg_connection", false)
               .toBool();
 

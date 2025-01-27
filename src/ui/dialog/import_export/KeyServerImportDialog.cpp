@@ -43,8 +43,7 @@ KeyServerImportDialog::KeyServerImportDialog(int channel, QWidget* parent)
     : GeneralDialog("key_server_import_dialog", parent),
       current_gpg_context_channel_(channel) {
   auto forbid_all_gnupg_connection =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
+      GetSettings()
           .value("network/forbid_all_gnupg_connection", false)
           .toBool();
   if (forbid_all_gnupg_connection) {

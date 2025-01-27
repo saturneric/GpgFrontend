@@ -57,16 +57,12 @@ int setenv(const char *name, const char *value, int overwrite) {
 void InitGlobalPathEnv() {
   // read settings
   bool use_custom_gnupg_install_path =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
+      GetSettings()
           .value("gnupg/use_custom_gnupg_install_path", false)
           .toBool();
 
   QString custom_gnupg_install_path =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
-          .value("gnupg/custom_gnupg_install_path")
-          .toString();
+      GetSettings().value("gnupg/custom_gnupg_install_path").toString();
 
   // add custom gnupg install path into env $PATH
   if (use_custom_gnupg_install_path && !custom_gnupg_install_path.isEmpty()) {
@@ -79,10 +75,7 @@ void InitGlobalPathEnv() {
     QString modified_path_value = getenv("PATH");
   }
 
-  if (GlobalSettingStation::GetInstance()
-          .GetSettings()
-          .value("gnupg/enable_gpgme_debug_log", false)
-          .toBool()) {
+  if (GetSettings().value("gnupg/enable_gpgme_debug_log", false).toBool()) {
     qputenv("GPGME_DEBUG",
             QString("9:%1").arg(QDir::currentPath() + "/gpgme.log").toUtf8());
   }
@@ -142,8 +135,7 @@ void InitGlobalBasicEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
  */
 void InitLocale() {
   // get the instance of the GlobalSettingStation
-  auto settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GpgFrontend::GetSettings();
 
   // read from settings file
   auto lang = settings.value("basic/lang").toString();

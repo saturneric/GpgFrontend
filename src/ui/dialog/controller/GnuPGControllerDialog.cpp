@@ -204,10 +204,7 @@ void GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label(
       if (custom_gnupg_path_.isEmpty()) {
         // read from settings file
         QString custom_gnupg_install_path =
-            GlobalSettingStation::GetInstance()
-                .GetSettings()
-                .value("gnupg/custom_gnupg_install_path")
-                .toString();
+            GetSettings().value("gnupg/custom_gnupg_install_path").toString();
         custom_gnupg_path_ = custom_gnupg_install_path;
       }
 
@@ -232,7 +229,7 @@ void GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label(
 }
 
 void GnuPGControllerDialog::set_settings() {
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GetSettings();
 
   auto non_ascii_at_file_operation =
       settings.value("gnupg/non_ascii_at_file_operation", true).toBool();
@@ -285,8 +282,7 @@ void GnuPGControllerDialog::set_settings() {
 }
 
 void GnuPGControllerDialog::apply_settings() {
-  auto settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GpgFrontend::GetSettings();
 
   settings.setValue("gnupg/non_ascii_at_file_operation",
                     ui_->asciiModeCheckBox->isChecked());

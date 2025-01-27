@@ -201,7 +201,7 @@ auto TextEditTabWidget::stripped_name(const QString& full_file_name)
 void TextEditTabWidget::slot_save_status_to_cache_for_recovery() {
   if (this->text_page_data_modified_count_++ % 8 != 0) return;
 
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GetSettings();
 
   bool restore_text_editor_page =
       settings.value("basic/restore_text_editor_page", false).toBool();

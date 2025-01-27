@@ -127,7 +127,7 @@ void InitGpgFrontendUI(QApplication* /*app*/) {
   // init locale
   InitUITranslations();
 
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GetSettings();
   auto theme = settings.value("appearance/theme").toString();
 
 #if defined(_WIN32) || defined(WIN32)

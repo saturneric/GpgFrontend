@@ -45,10 +45,7 @@ Wizard::Wizard(QWidget* parent) : QWizard(parent) {
   setPixmap(QWizard::LogoPixmap,
             QPixmap(":/icons/gpgfrontend_logo.png").scaled(64, 64));
 
-  int next_page_id = GlobalSettingStation::GetInstance()
-                         .GetSettings()
-                         .value("wizard.next_page", -1)
-                         .toInt();
+  int next_page_id = GetSettings().value("wizard.next_page", -1).toInt();
   setStartId(next_page_id);
 
   connect(this, &Wizard::accepted, this, &Wizard::slot_wizard_accepted);
@@ -57,7 +54,7 @@ Wizard::Wizard(QWidget* parent) : QWizard(parent) {
 void Wizard::slot_wizard_accepted() {
   // Don't show is mapped to show -> negation
   try {
-    auto settings = GlobalSettingStation::GetInstance().GetSettings();
+    auto settings = GetSettings();
     settings.setValue("wizard/show_wizard", false);
   } catch (...) {
     FLOG_W("setting operation error");

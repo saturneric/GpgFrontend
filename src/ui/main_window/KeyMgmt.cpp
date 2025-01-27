@@ -179,8 +179,7 @@ void KeyMgmt::create_actions() {
   });
 
   bool const forbid_all_gnupg_connection =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
+      GetSettings()
           .value("network/forbid_all_gnupg_connection", false)
           .toBool();
 

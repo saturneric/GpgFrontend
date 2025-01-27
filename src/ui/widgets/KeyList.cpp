@@ -50,8 +50,7 @@ KeyList::KeyList(int channel, KeyMenuAbility menu_ability,
       model_(GpgKeyGetter::GetInstance(channel).GetGpgKeyTableModel()),
       fixed_columns_filter_(fixed_columns_filter),
       global_column_filter_(static_cast<GpgKeyTableColumn>(
-          GlobalSettingStation::GetInstance()
-              .GetSettings()
+          GetSettings()
               .value("keys/global_columns_filter",
                      static_cast<unsigned int>(GpgKeyTableColumn::kALL))
               .toUInt())) {
@@ -210,8 +209,7 @@ void KeyList::init() {
   popup_menu_ = new QMenu(this);
 
   auto forbid_all_gnupg_connection =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
+      GetSettings()
           .value("network/forbid_all_gnupg_connection", false)
           .toBool();
 
@@ -243,9 +241,8 @@ void KeyList::init() {
           UISignalStation::GetInstance(),
           &UISignalStation::SignalRefreshStatusBar);
   connect(this, &KeyList::SignalColumnTypeChange, this, [=]() {
-    GlobalSettingStation::GetInstance().GetSettings().setValue(
-        "keys/global_columns_filter",
-        static_cast<unsigned int>(global_column_filter_));
+    GetSettings().setValue("keys/global_columns_filter",
+                           static_cast<unsigned int>(global_column_filter_));
   });
 
   setAcceptDrops(true);
@@ -481,10 +478,8 @@ void KeyList::dropEvent(QDropEvent* event) {
   // "always import keys"-CheckBox
   auto* check_box = new QCheckBox(tr("Always import without bothering."));
 
-  auto confirm_import_keys = GlobalSettingStation::GetInstance()
-                                 .GetSettings()
-                                 .value("basic/confirm_import_keys", true)
-                                 .toBool();
+  auto confirm_import_keys =
+      GetSettings().value("basic/confirm_import_keys", true).toBool();
   if (confirm_import_keys) check_box->setCheckState(Qt::Checked);
 
   // Buttons for ok and cancel
@@ -504,7 +499,7 @@ void KeyList::dropEvent(QDropEvent* event) {
     dialog->exec();
     if (dialog->result() == QDialog::Rejected) return;
 
-    auto settings = GlobalSettingStation::GetInstance().GetSettings();
+    auto settings = GetSettings();
     settings.setValue("basic/confirm_import_keys", check_box->isChecked());
   }
 

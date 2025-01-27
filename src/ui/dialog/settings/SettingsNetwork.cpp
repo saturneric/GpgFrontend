@@ -101,7 +101,7 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
 }
 
 void GpgFrontend::UI::NetworkTab::SetSettings() {
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GetSettings();
 
   auto proxy_host = settings.value("proxy/proxy_host").toString();
   ui_->proxyServerAddressEdit->setText(proxy_host);
@@ -146,8 +146,7 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
 }
 
 void GpgFrontend::UI::NetworkTab::ApplySettings() {
-  auto settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GpgFrontend::GetSettings();
 
   settings.setValue("proxy/proxy_host", ui_->proxyServerAddressEdit->text());
   settings.setValue("proxy/username", ui_->usernameEdit->text());

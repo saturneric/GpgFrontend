@@ -95,8 +95,7 @@ void KeySetExpireDateDialog::slot_confirm() {
 void KeySetExpireDateDialog::init() {
   ui_->setupUi(this);
 
-  auto settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GpgFrontend::GetSettings();
 
   bool longer_expiration_date =
       settings.value("basic/longer_expiration_date").toBool();

@@ -48,10 +48,7 @@ KeyGenDialog::KeyGenDialog(int channel, QWidget* parent)
       new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 
   bool const longer_expiration_date =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
-          .value("basic/longer_expiration_date", false)
-          .toBool();
+      GetSettings().value("basic/longer_expiration_date", false).toBool();
 
   max_date_time_ = longer_expiration_date
                        ? QDateTime::currentDateTime().toLocalTime().addYears(30)
@@ -141,8 +138,7 @@ void KeyGenDialog::slot_key_gen_accept() {
       }
     }
 
-    if (!GlobalSettingStation::GetInstance()
-             .GetSettings()
+    if (!GetSettings()
              .value("gnupg/use_pinentry_as_password_input_dialog",
                     QString::fromLocal8Bit(qgetenv("container")) != "flatpak")
              .toBool() &&
