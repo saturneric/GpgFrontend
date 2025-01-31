@@ -101,7 +101,7 @@ auto GpgKeyTableModel::data(const QModelIndex &index,
         return key.GetId();
       }
       case 7: {
-        return QLocale().toString(key.GetCreateTime());
+        return QLocale().toString(key.GetCreateTime(), "yyyy-MM-dd");
       }
       case 8: {
         return key.GetKeyAlgo();
