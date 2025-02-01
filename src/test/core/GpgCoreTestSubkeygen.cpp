@@ -38,18 +38,22 @@
 namespace GpgFrontend::Test {
 
 TEST_F(GpgCoreTest, GenerateSubkeyRSA2048Test) {
-  auto main_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(main_key.IsGood());
+  ASSERT_TRUE(p_key.IsGood());
 
-  auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo("rsa");
-  subkeygen_info->SetKeyLength(2048);
-  subkeygen_info->SetNonExpired(true);
-  subkeygen_info->SetNonPassPhrase(true);
+  auto s_info = QSharedPointer<GenKeyInfo>::create(true);
+
+  auto [found, algo] = GenKeyInfo::SearchSubKeyAlgo("rsa2048");
+  ASSERT_TRUE(found);
+  ASSERT_EQ(algo.Id(), "rsa2048");
+  s_info->SetAlgo(algo);
+
+  s_info->SetNonExpired(true);
+  s_info->SetNonPassPhrase(true);
 
   auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-                                .GenerateSubkeySync(main_key, subkeygen_info);
+                                .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -77,18 +81,22 @@ TEST_F(GpgCoreTest, GenerateSubkeyRSA2048Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyDSA2048Test) {
-  auto main_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(main_key.IsGood());
+  ASSERT_TRUE(p_key.IsGood());
 
-  auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo("dsa");
-  subkeygen_info->SetKeyLength(2048);
-  subkeygen_info->SetNonExpired(true);
-  subkeygen_info->SetNonPassPhrase(true);
+  auto s_info = QSharedPointer<GenKeyInfo>::create(true);
+
+  auto [found, algo] = GenKeyInfo::SearchSubKeyAlgo("dsa2048");
+  ASSERT_TRUE(found);
+  ASSERT_EQ(algo.Id(), "dsa2048");
+  s_info->SetAlgo(algo);
+
+  s_info->SetNonExpired(true);
+  s_info->SetNonPassPhrase(true);
 
   auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-                                .GenerateSubkeySync(main_key, subkeygen_info);
+                                .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -116,18 +124,22 @@ TEST_F(GpgCoreTest, GenerateSubkeyDSA2048Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyELG2048Test) {
-  auto main_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(main_key.IsGood());
+  ASSERT_TRUE(p_key.IsGood());
 
-  auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo("elg");
-  subkeygen_info->SetKeyLength(2048);
-  subkeygen_info->SetNonExpired(true);
-  subkeygen_info->SetNonPassPhrase(true);
+  auto s_info = QSharedPointer<GenKeyInfo>::create(true);
+
+  auto [found, algo] = GenKeyInfo::SearchSubKeyAlgo("elg2048");
+  ASSERT_TRUE(found);
+  ASSERT_EQ(algo.Id(), "elg2048");
+  s_info->SetAlgo(algo);
+
+  s_info->SetNonExpired(true);
+  s_info->SetNonPassPhrase(true);
 
   auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-                                .GenerateSubkeySync(main_key, subkeygen_info);
+                                .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -155,17 +167,22 @@ TEST_F(GpgCoreTest, GenerateSubkeyELG2048Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyED25519Test) {
-  auto main_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(main_key.IsGood());
+  ASSERT_TRUE(p_key.IsGood());
 
-  auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo("ed25519");
-  subkeygen_info->SetNonExpired(true);
-  subkeygen_info->SetNonPassPhrase(true);
+  auto s_info = QSharedPointer<GenKeyInfo>::create(true);
+
+  auto [found, algo] = GenKeyInfo::SearchSubKeyAlgo("ed25519");
+  ASSERT_TRUE(found);
+  ASSERT_EQ(algo.Id(), "ed25519");
+  s_info->SetAlgo(algo);
+
+  s_info->SetNonExpired(true);
+  s_info->SetNonPassPhrase(true);
 
   auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-                                .GenerateSubkeySync(main_key, subkeygen_info);
+                                .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -193,17 +210,22 @@ TEST_F(GpgCoreTest, GenerateSubkeyED25519Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyCV25519Test) {
-  auto main_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(main_key.IsGood());
+  ASSERT_TRUE(p_key.IsGood());
 
-  auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo("cv25519");
-  subkeygen_info->SetNonExpired(true);
-  subkeygen_info->SetNonPassPhrase(true);
+  auto s_info = QSharedPointer<GenKeyInfo>::create(true);
+
+  auto [found, algo] = GenKeyInfo::SearchSubKeyAlgo("cv25519");
+  ASSERT_TRUE(found);
+  ASSERT_EQ(algo.Id(), "cv25519");
+  s_info->SetAlgo(algo);
+
+  s_info->SetNonExpired(true);
+  s_info->SetNonPassPhrase(true);
 
   auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-                                .GenerateSubkeySync(main_key, subkeygen_info);
+                                .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -231,16 +253,21 @@ TEST_F(GpgCoreTest, GenerateSubkeyCV25519Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyNISTP256Test) {
-  auto main_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(main_key.IsGood());
+  ASSERT_TRUE(p_key.IsGood());
 
-  auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo("nistp256");
-  subkeygen_info->SetNonExpired(true);
+  auto s_info = QSharedPointer<GenKeyInfo>::create(true);
+
+  auto [found, algo] = GenKeyInfo::SearchSubKeyAlgo("nistp256");
+  ASSERT_TRUE(found);
+  ASSERT_EQ(algo.Id(), "nistp256");
+  s_info->SetAlgo(algo);
+
+  s_info->SetNonExpired(true);
 
   auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-                                .GenerateSubkeySync(main_key, subkeygen_info);
+                                .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -268,16 +295,21 @@ TEST_F(GpgCoreTest, GenerateSubkeyNISTP256Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyBRAINPOOLP256R1Test) {
-  auto main_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(main_key.IsGood());
+  ASSERT_TRUE(p_key.IsGood());
 
-  auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo("brainpoolp256r1");
-  subkeygen_info->SetNonExpired(true);
+  auto s_info = QSharedPointer<GenKeyInfo>::create(true);
+
+  auto [found, algo] = GenKeyInfo::SearchSubKeyAlgo("brainpoolp256r1");
+  ASSERT_TRUE(found);
+  ASSERT_EQ(algo.Id(), "brainpoolp256r1");
+  s_info->SetAlgo(algo);
+
+  s_info->SetNonExpired(true);
 
   auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-                                .GenerateSubkeySync(main_key, subkeygen_info);
+                                .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -305,16 +337,21 @@ TEST_F(GpgCoreTest, GenerateSubkeyBRAINPOOLP256R1Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyX448Test) {
-  auto main_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(main_key.IsGood());
+  ASSERT_TRUE(p_key.IsGood());
 
-  auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo("x448");
-  subkeygen_info->SetNonExpired(true);
+  auto s_info = QSharedPointer<GenKeyInfo>::create(true);
+
+  auto [found, algo] = GenKeyInfo::SearchSubKeyAlgo("x448");
+  ASSERT_TRUE(found);
+  ASSERT_EQ(algo.Id(), "x448");
+  s_info->SetAlgo(algo);
+
+  s_info->SetNonExpired(true);
 
   auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-                                .GenerateSubkeySync(main_key, subkeygen_info);
+                                .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -342,16 +379,21 @@ TEST_F(GpgCoreTest, GenerateSubkeyX448Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeySECP256K1Test) {
-  auto main_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(main_key.IsGood());
+  ASSERT_TRUE(p_key.IsGood());
 
-  auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo("secp256k1");
-  subkeygen_info->SetNonExpired(true);
+  auto s_info = QSharedPointer<GenKeyInfo>::create(true);
+
+  auto [found, algo] = GenKeyInfo::SearchSubKeyAlgo("secp256k1");
+  ASSERT_TRUE(found);
+  ASSERT_EQ(algo.Id(), "secp256k1");
+  s_info->SetAlgo(algo);
+
+  s_info->SetNonExpired(true);
 
   auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-                                .GenerateSubkeySync(main_key, subkeygen_info);
+                                .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);

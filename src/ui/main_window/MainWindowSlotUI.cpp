@@ -33,9 +33,11 @@
 #include "core/model/SettingsObject.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/Wizard.h"
+#include "ui/dialog/settings/SettingsDialog.h"
 #include "ui/main_window/KeyMgmt.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/widgets/TextEdit.h"
+
 namespace GpgFrontend::UI {
 
 void MainWindow::SlotSetStatusBarText(const QString& text) {

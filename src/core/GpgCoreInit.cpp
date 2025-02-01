@@ -637,7 +637,7 @@ void StartMonitorCoreInitializationStatus() {
               "core", "env.state.basic", 0);
 
           LOG_D() << "monitor: core env is still initializing, waiting...";
-          QThread::msleep(15);
+          QThread::msleep(100);
         }
 
         if (core_init_state < 0) return -1;

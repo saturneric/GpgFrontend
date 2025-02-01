@@ -128,7 +128,7 @@ QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
   no_pass_phrase_check_box_ = new QCheckBox(this);
 
   for (const auto& algo : GenKeyInfo::GetSupportedSubkeyAlgo()) {
-    key_type_combo_box_->addItem(std::get<0>(algo));
+    key_type_combo_box_->addItem(algo.Name());
   }
   if (!GenKeyInfo::GetSupportedSubkeyAlgo().empty()) {
     key_type_combo_box_->setCurrentIndex(0);
@@ -249,20 +249,6 @@ void SubkeyGenerateDialog::refresh_widgets_state() {
   } else {
     key_usage_check_boxes_[3]->setDisabled(true);
   }
-
-  if (gen_key_info_->GetSuggestMinKeySize() == -1 ||
-      gen_key_info_->GetSuggestMaxKeySize() == -1) {
-    key_size_spin_box_->setDisabled(true);
-    key_size_spin_box_->setRange(0, 0);
-    key_size_spin_box_->setValue(0);
-    key_size_spin_box_->setSingleStep(0);
-  } else {
-    key_size_spin_box_->setDisabled(false);
-    key_size_spin_box_->setRange(gen_key_info_->GetSuggestMinKeySize(),
-                                 gen_key_info_->GetSuggestMaxKeySize());
-    key_size_spin_box_->setValue(gen_key_info_->GetKeyLength());
-    key_size_spin_box_->setSingleStep(gen_key_info_->GetSizeChangeStep());
-  }
 }
 
 void SubkeyGenerateDialog::slot_key_gen_accept() {
@@ -280,8 +266,6 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
   auto err_string = err_stream.readAll();
 
   if (err_string.isEmpty()) {
-    gen_key_info_->SetKeyLength(key_size_spin_box_->value());
-
     if (expire_check_box_->checkState() != 0U) {
       gen_key_info_->SetNonExpired(true);
     } else {
@@ -364,8 +348,7 @@ void SubkeyGenerateDialog::slot_activated_key_type(int index) {
   // check
   assert(gen_key_info_->GetSupportedSubkeyAlgo().size() >
          static_cast<size_t>(index));
-  gen_key_info_->SetAlgo(
-      std::get<2>(gen_key_info_->GetSupportedSubkeyAlgo()[index]));
+  gen_key_info_->SetAlgo(gen_key_info_->GetSupportedSubkeyAlgo()[index]);
   refresh_widgets_state();
 }
 

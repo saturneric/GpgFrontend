@@ -28,14 +28,60 @@
 
 #pragma once
 
+#include <utility>
+
 #include "core/GpgFrontendCoreExport.h"
+#include "core/function/gpg/GpgKeyOpera.h"
 #include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
 
+class GPGFRONTEND_CORE_EXPORT KeyAlgo {
+ public:
+  KeyAlgo() = default;
+
+  KeyAlgo(QString id, QString name, QString type, int length, int opera,
+          QString supported_version);
+
+  KeyAlgo(const KeyAlgo &) = default;
+
+  auto operator=(const KeyAlgo &) -> KeyAlgo & = default;
+
+  [[nodiscard]] auto Id() const -> QString;
+
+  [[nodiscard]] auto Name() const -> QString;
+
+  [[nodiscard]] auto KeyLength() const -> int;
+
+  [[nodiscard]] auto Type() const -> QString;
+
+  [[nodiscard]] auto CanEncrypt() const -> bool;
+
+  [[nodiscard]] auto CanSign() const -> bool;
+
+  [[nodiscard]] auto CanAuth() const -> bool;
+
+  [[nodiscard]] auto CanCert() const -> bool;
+
+  [[nodiscard]] auto IsSupported(const QString &version) const -> bool;
+
+ private:
+  QString id_;
+  QString name_;
+  QString type_;
+  int length_;
+  bool encrypt_;
+  bool sign_;
+  bool auth_;
+  bool cert_;
+  QString supported_version_;
+};
+
 class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
  public:
-  using KeyGenAlgo = std::tuple<QString, QString, QString>;
+  static const QContainer<KeyAlgo> kPrimaryKeyAlgos;
+
+  static const QContainer<KeyAlgo> kSubKeyAlgos;
 
   /**
    * @brief Construct a new Gen Key Info object
@@ -43,21 +89,39 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    * @param m_is_sub_key
    * @param m_standalone
    */
-  explicit GenKeyInfo(bool m_is_sub_key = false);
+  explicit GenKeyInfo(bool is_subkey = false);
 
   /**
    * @brief Get the Supported Key Algo object
    *
    * @return const QContainer<KeyGenAlgo>&
    */
-  static auto GetSupportedKeyAlgo() -> const QContainer<KeyGenAlgo> &;
+  static auto GetSupportedKeyAlgo() -> QContainer<KeyAlgo>;
 
   /**
    * @brief Get the Supported Subkey Algo object
    *
    * @return const QContainer<KeyGenAlgo>&
    */
-  static auto GetSupportedSubkeyAlgo() -> const QContainer<KeyGenAlgo> &;
+  static auto GetSupportedSubkeyAlgo() -> QContainer<KeyAlgo>;
+
+  /**
+   * @brief
+   *
+   * @param algo_id
+   * @return std::tuple<bool, KeyAlgo>
+   */
+  static auto SearchPrimaryKeyAlgo(const QString &algo_id)
+      -> std::tuple<bool, KeyAlgo>;
+
+  /**
+   * @brief
+   *
+   * @param algo_id
+   * @return std::tuple<bool, KeyAlgo>
+   */
+  static auto SearchSubKeyAlgo(const QString &algo_id)
+      -> std::tuple<bool, KeyAlgo>;
 
   /**
    * @brief
@@ -72,7 +136,7 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    *
    * @param m_sub_key
    */
-  void SetIsSubKey(bool m_sub_key);
+  void SetIsSubKey(bool);
 
   /**
    * @brief Get the Userid object
@@ -86,21 +150,21 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    *
    * @param m_name
    */
-  void SetName(const QString &m_name);
+  void SetName(const QString &name);
 
   /**
    * @brief Set the Email object
    *
    * @param m_email
    */
-  void SetEmail(const QString &m_email);
+  void SetEmail(const QString &email);
 
   /**
    * @brief Set the Comment object
    *
    * @param m_comment
    */
-  void SetComment(const QString &m_comment);
+  void SetComment(const QString &comment);
 
   /**
    * @brief Get the Name object
@@ -128,21 +192,14 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    *
    * @return const QString&
    */
-  [[nodiscard]] auto GetAlgo() const -> const QString &;
+  [[nodiscard]] auto GetAlgo() const -> const KeyAlgo &;
 
   /**
    * @brief Set the Algo object
    *
    * @param m_algo
    */
-  void SetAlgo(const QString &);
-
-  /**
-   * @brief Get the Key Size Str object
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetKeySizeStr() const -> QString;
+  void SetAlgo(const KeyAlgo &);
 
   /**
    * @brief Get the Key Size object
@@ -150,13 +207,6 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    * @return int
    */
   [[nodiscard]] auto GetKeyLength() const -> int;
-
-  /**
-   * @brief Set the Key Size object
-   *
-   * @param m_key_size
-   */
-  void SetKeyLength(int m_key_size);
 
   /**
    * @brief Get the Expired object
@@ -271,20 +321,6 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
   void SetAllowAuthentication(bool m_allow_authentication);
 
   /**
-   * @brief Get the Pass Phrase object
-   *
-   * @return const QString&
-   */
-  [[nodiscard]] auto GetPassPhrase() const -> const QString &;
-
-  /**
-   * @brief Set the Pass Phrase object
-   *
-   * @param m_pass_phrase
-   */
-  void SetPassPhrase(const QString &m_pass_phrase);
-
-  /**
    * @brief
    *
    * @return true
@@ -316,46 +352,18 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    */
   [[nodiscard]] auto IsAllowChangeAuthentication() const -> bool;
 
-  /**
-   * @brief Get the Suggest Max Key Size object
-   *
-   * @return int
-   */
-  [[nodiscard]] auto GetSuggestMaxKeySize() const -> int;
-
-  /**
-   * @brief Get the Suggest Min Key Size object
-   *
-   * @return int
-   */
-  [[nodiscard]] auto GetSuggestMinKeySize() const -> int;
-
-  /**
-   * @brief Get the Size Change Step object
-   *
-   * @return int
-   */
-  [[nodiscard]] auto GetSizeChangeStep() const -> int;
-
  private:
   bool subkey_ = false;  ///<
   QString name_;         ///<
   QString email_;        ///<
   QString comment_;      ///<
 
-  QString algo_;  ///<
-  int key_size_ = 2048;
+  KeyAlgo algo_;  ///<
   QDateTime expired_ = QDateTime::currentDateTime().addYears(2);
   bool non_expired_ = false;  ///<
 
   bool no_passphrase_ = false;        ///<
   bool allow_no_pass_phrase_ = true;  ///<
-
-  int suggest_max_key_size_ = 4096;        ///<
-  int suggest_size_addition_step_ = 1024;  ///<
-  int suggest_min_key_size_ = 1024;        ///<
-
-  QString passphrase_;  ///<
 
   bool allow_encryption_ = true;             ///<
   bool allow_change_encryption_ = true;      ///<

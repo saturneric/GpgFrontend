@@ -35,6 +35,8 @@
 #include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
 
+class Ui_KeyGenDialog;
+
 namespace GpgFrontend::UI {
 
 /**
@@ -61,21 +63,41 @@ class KeyGenDialog : public GeneralDialog {
    */
   void SignalKeyGenerated();
 
+ private slots:
+
+  /**
+   * @details check all lineedits for false entries. Show error, when there
+   * is one, otherwise generate the key
+   */
+  void slot_key_gen_accept();
+
+  /**
+   * @brief
+   *
+   * @param mode
+   */
+  void slot_easy_mode_changed(const QString& mode);
+
+  /**
+   * @brief
+   *
+   * @param mode
+   */
+  void slot_easy_valid_date_changed(const QString& mode);
+
+  /**
+   * @brief
+   *
+   */
+  void slot_set_easy_valid_date_2_custom();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_set_easy_key_algo_2_custom();
+
  private:
-  /**
-   * @brief Create a key usage group box object
-   *
-   * @return QGroupBox*
-   */
-  QGroupBox* create_key_usage_group_box();
-
-  /**
-   * @brief Create a basic info group box object
-   *
-   * @return QGroupBox*
-   */
-  QGroupBox* create_basic_info_group_box();
-
   /**
    * @brief
    *
@@ -90,33 +112,14 @@ class KeyGenDialog : public GeneralDialog {
   QStringList error_messages_;  ///< List of errors occurring when checking
                                 ///< entries of line edits
 
-  std::shared_ptr<GenKeyInfo> gen_key_info_ =
-      SecureCreateSharedObject<GenKeyInfo>();              ///<
-  std::shared_ptr<GenKeyInfo> gen_subkey_info_ = nullptr;  ///<
+  QSharedPointer<Ui_KeyGenDialog> ui_;
+  QSharedPointer<GenKeyInfo> gen_key_info_;     ///<
+  QSharedPointer<GenKeyInfo> gen_subkey_info_;  ///<
 
-  QDialogButtonBox* button_box_;     ///< Box for standard buttons
-  QLabel* error_label_{};            ///< Label containing error message
-  QLineEdit* name_edit_{};           ///< Line edit for the keys name
-  QLineEdit* email_edit_{};          ///< Line edit for the keys email
-  QLineEdit* comment_edit_{};        ///< Line edit for the keys comment
-  QSpinBox* key_size_spin_box_{};    ///< Spinbox for the keys size (in bit)
-  QComboBox* key_type_combo_box_{};  ///< Combobox for Key type
-  QDateTimeEdit* date_edit_{};       ///< Date edit for expiration date
-  QCheckBox* expire_check_box_{};    ///< Checkbox, if key should expire
-  QCheckBox* no_pass_phrase_check_box_{};
-  QGroupBox* key_usage_group_box_{};  ///< Group of Widgets detecting the usage
-                                      ///< of the Key
-  QDateTime max_date_time_;           ///<
-  QContainer<QCheckBox*> key_usage_check_boxes_;  ///< ENCR, SIGN, CERT, AUTH
-  QComboBox* gpg_contexts_combo_box_{};
+  QContainer<KeyAlgo> supported_primary_key_algos_;
+  QContainer<KeyAlgo> supported_subkey_algos_;
 
-  int default_gpg_context_channel_;
-
-  /**
-   * @brief
-   *
-   */
-  void generate_key_dialog();
+  int channel_;
 
   /**
    * @details Refresh widgets state by GenKeyInfo
@@ -127,7 +130,7 @@ class KeyGenDialog : public GeneralDialog {
    * @brief Set the signal slot object
    *
    */
-  void set_signal_slot();
+  void set_signal_slot_config();
 
   /**
    * @brief
@@ -136,56 +139,19 @@ class KeyGenDialog : public GeneralDialog {
    * @return true
    * @return false
    */
-  bool check_email_address(const QString& str);
-
- private slots:
-
-  /**
-   * @details when expirebox was checked/unchecked, enable/disable the
-   * expiration date box
-   */
-  void slot_expire_box_changed();
-
-  /**
-   * @details check all lineedits for false entries. Show error, when there is
-   * one, otherwise generate the key
-   */
-  void slot_key_gen_accept();
+  auto check_email_address(const QString& str) -> bool;
 
   /**
    * @brief
    *
-   * @param state
    */
-  void slot_encryption_box_changed(int state);
+  void sync_gen_key_info();
 
   /**
    * @brief
    *
-   * @param state
    */
-  void slot_signing_box_changed(int state);
-
-  /**
-   * @brief
-   *
-   * @param state
-   */
-  void slot_certification_box_changed(int state);
-
-  /**
-   * @brief
-   *
-   * @param state
-   */
-  void slot_authentication_box_changed(int state);
-
-  /**
-   * @brief
-   *
-   * @param index
-   */
-  void slot_activated_key_type(int index);
+  void sync_gen_subkey_info();
 };
 
 }  // namespace GpgFrontend::UI

@@ -29,14 +29,16 @@
 #include "Wizard.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "ui/GpgFrontendUI.h"
+#include "ui/dialog/key_generate/KeyGenDialog.h"
 
 namespace GpgFrontend::UI {
 
 Wizard::Wizard(QWidget* parent) : QWizard(parent) {
-  setPage(Page_Intro, new IntroPage(this));
-  setPage(Page_Choose, new ChoosePage(this));
-  setPage(Page_GenKey, new KeyGenPage(this));
-  setPage(Page_Conclusion, new ConclusionPage(this));
+  setPage(kPAGE_INTRO, new IntroPage(this));
+  setPage(kPAGE_CHOOSE, new ChoosePage(this));
+  setPage(kPAGE_GEN_KEY, new KeyGenPage(this));
+  setPage(kPAGE_CONCLUSION, new ConclusionPage(this));
 #ifndef Q_WS_MAC
   setWizardStyle(ModernStyle);
 #endif
@@ -98,7 +100,7 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
   setLayout(layout);
 }
 
-int IntroPage::nextId() const { return Wizard::Page_Choose; }
+int IntroPage::nextId() const { return Wizard::kPAGE_CHOOSE; }
 
 ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
   setTitle(tr("Choose your action..."));
@@ -143,7 +145,7 @@ ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
   layout->addWidget(encr_decy_text_label);
   layout->addWidget(sign_verify_text_label);
   setLayout(layout);
-  next_page_ = Wizard::Page_Conclusion;
+  next_page_ = Wizard::kPAGE_CONCLUSION;
 }
 
 int ChoosePage::nextId() const { return next_page_; }
@@ -190,7 +192,7 @@ KeyGenPage::KeyGenPage(QWidget* parent) : QWizardPage(parent) {
   setLayout(layout);
 }
 
-int KeyGenPage::nextId() const { return Wizard::Page_Conclusion; }
+int KeyGenPage::nextId() const { return Wizard::kPAGE_CONCLUSION; }
 
 void KeyGenPage::slot_generate_key_dialog() {
   (new KeyGenDialog(kGpgFrontendDefaultChannel, this))->show();

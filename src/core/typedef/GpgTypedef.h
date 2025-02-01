@@ -69,5 +69,7 @@ enum GpgOperation {
   kVERIFY = 1 << 3,
   kENCRYPT_SIGN = 1 << 4,
   kDECRYPT_VERIFY = 1 << 5,
+  kAUTH = 1 << 6,
+  kCERT = 1 << 7,
 };
 }  // namespace GpgFrontend

@@ -60,8 +60,8 @@ class SubkeyGenerateDialog : public GeneralDialog {
   int current_gpg_context_channel_;  ///<
   GpgKey key_;                       ///<
 
-  std::shared_ptr<GenKeyInfo> gen_key_info_ =
-      SecureCreateSharedObject<GenKeyInfo>(true);  ///<
+  QSharedPointer<GenKeyInfo> gen_key_info_ =
+      QSharedPointer<GenKeyInfo>::create(true);  ///<
 
   QGroupBox* key_usage_group_box_{};
   QDialogButtonBox* button_box_;     ///< Box for standard buttons
@@ -80,14 +80,14 @@ class SubkeyGenerateDialog : public GeneralDialog {
    *
    * @return QGroupBox*
    */
-  QGroupBox* create_key_usage_group_box();
+  auto create_key_usage_group_box() -> QGroupBox*;
 
   /**
    * @brief Create a basic info group box object
    *
    * @return QGroupBox*
    */
-  QGroupBox* create_basic_info_group_box();
+  auto create_basic_info_group_box() -> QGroupBox*;
   /**
    * @brief Set the signal slot object
    *

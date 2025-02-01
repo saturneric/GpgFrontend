@@ -35,125 +35,141 @@
 
 namespace GpgFrontend {
 
-void GenKeyInfo::SetAlgo(const QString &t_algo_args) {
-  auto algo_args = t_algo_args.toLower();
-
-  // reset all options
-  reset_options();
-
-  if (!this->subkey_) {
-    this->SetAllowCertification(true);
-
-  } else {
-    this->SetAllowCertification(false);
-  }
-
-  this->allow_change_certification_ = false;
-
-  if (algo_args == "rsa") {
-    /**
-     * RSA is the world’s premier asymmetric cryptographic algorithm,
-     * and is built on the difficulty of factoring extremely large composites.
-     * GnuPG supports RSA with key sizes of between 1024 and 4096 bits.
-     */
-    suggest_min_key_size_ = 1024;
-    suggest_max_key_size_ = 4096;
-    suggest_size_addition_step_ = 1024;
-    SetKeyLength(2048);
-
-  } else if (algo_args == "dsa") {
+const QContainer<KeyAlgo> GenKeyInfo::kPrimaryKeyAlgos = {
     /**
      * Algorithm (DSA) as a government standard for digital signatures.
      * Originally, it supported key lengths between 512 and 1024 bits.
      * Recently, NIST has declared 512-bit keys obsolete:
      * now, DSA is available in 1024, 2048 and 3072-bit lengths.
      */
+    {"rsa1024", "RSA", "RSA", 1024, kENCRYPT | kSIGN | kAUTH | kCERT, "2.2.0"},
+    {"rsa2048", "RSA", "RSA", 2048, kENCRYPT | kSIGN | kAUTH | kCERT, "2.2.0"},
+    {"rsa3072", "RSA", "RSA", 3072, kENCRYPT | kSIGN | kAUTH | kCERT, "2.2.0"},
+    {"rsa4096", "RSA", "RSA", 4096, kENCRYPT | kSIGN | kAUTH | kCERT, "2.2.0"},
+    {"dsa1024", "DSA", "DSA", 1024, kSIGN | kAUTH | kCERT, "2.2.0"},
+    {"dsa2048", "DSA", "DSA", 2048, kSIGN | kAUTH | kCERT, "2.2.0"},
+    {"dsa3072", "DSA", "DSA", 3072, kSIGN | kAUTH | kCERT, "2.2.0"},
+    {"ed25519", "ED25519", "EdDSA", 256, kSIGN | kAUTH | kCERT, "2.2.0"},
+    {"nistp256", "NIST", "ECDSA", 256, kSIGN | kAUTH | kCERT, "2.2.0"},
+    {"nistp384", "NIST", "ECDSA", 384, kSIGN | kAUTH | kCERT, "2.2.0"},
+    {"nistp521", "NIST", "ECDSA", 521, kSIGN | kAUTH | kCERT, "2.2.0"},
+    {"brainpoolp256r1", "BrainPooL", "ECDSA", 256, kSIGN | kAUTH | kCERT,
+     "2.3.0"},
+    {"brainpoolp384r1", "BrainPooL", "ECDSA", 384, kSIGN | kAUTH | kCERT,
+     "2.3.0"},
+    {"brainpoolp512r1", "BrainPooL", "ECDSA", 512, kSIGN | kAUTH | kCERT,
+     "2.3.0"},
+    {"ed448", "ED448", "EdDSA", 448, kSIGN | kAUTH | kCERT, "2.3.0"},
+    {"secp256k1", "ED448", "EdDSA", 256, kSIGN | kAUTH | kCERT, "2.3.0"},
+};
 
-    SetAllowEncryption(false);
-    allow_change_encryption_ = false;
-
-    suggest_min_key_size_ = 1024;
-    suggest_max_key_size_ = 3072;
-    suggest_size_addition_step_ = 1024;
-    SetKeyLength(2048);
-  } else if (algo_args == "elg") {
+const QContainer<KeyAlgo> GenKeyInfo::kSubKeyAlgos = {
+    {"rsa1024", "RSA", "RSA", 1024, kENCRYPT | kSIGN | kAUTH, "2.2.0"},
+    {"rsa2048", "RSA", "RSA", 2048, kENCRYPT | kSIGN | kAUTH, "2.2.0"},
+    {"rsa3072", "RSA", "RSA", 3072, kENCRYPT | kSIGN | kAUTH, "2.2.0"},
+    {"rsa4096", "RSA", "RSA", 4096, kENCRYPT | kSIGN | kAUTH, "2.2.0"},
+    {"dsa1024", "DSA", "DSA", 1024, kSIGN | kAUTH, "2.2.0"},
+    {"dsa2048", "DSA", "DSA", 2048, kSIGN | kAUTH, "2.2.0"},
+    {"dsa3072", "DSA", "DSA", 3072, kSIGN | kAUTH, "2.2.0"},
+    {"ed25519", "ED25519", "EdDSA", 256, kSIGN | kAUTH, "2.2.0"},
+    {"cv25519", "CV25519", "ECDH", 256, kENCRYPT, "2.2.0"},
+    {"nistp256", "NIST", "ECDH", 256, kENCRYPT, "2.2.0"},
+    {"nistp384", "NIST", "ECDH", 384, kENCRYPT, "2.2.0"},
+    {"nistp521", "NIST", "ECDH", 521, kENCRYPT, "2.2.0"},
+    {"brainpoolp256r1", "BrainPooL", "ECDH", 256, kENCRYPT, "2.3.0"},
+    {"brainpoolp384r1", "BrainPooL", "ECDH", 384, kENCRYPT, "2.3.0"},
+    {"brainpoolp512r1", "BrainPooL", "ECDH", 512, kENCRYPT, "2.3.0"},
+    {"x448", "X448", "ECDH", 448, kENCRYPT, "2.3.0"},
+    {"secp256k1", "SECP256K1", "ECDH", 256, kENCRYPT, "2.3.0"},
     /**
      * GnuPG supports the Elgamal asymmetric encryption algorithm in key lengths
      * ranging from 1024 to 4096 bits.
      */
+    {"elg1024", "ELG-E", "ELG-E", 1024, kENCRYPT, "2.2.0"},
+    {"elg2048", "ELG-E", "ELG-E", 2048, kENCRYPT, "2.2.0"},
+    {"elg3072", "ELG-E", "ELG-E", 3072, kENCRYPT, "2.2.0"},
+    {"elg4096", "ELG-E", "ELG-E", 4096, kENCRYPT, "2.2.0"},
+};
 
-    SetAllowEncryption(true);
+auto GenKeyInfo::GetSupportedKeyAlgo() -> QContainer<KeyAlgo> {
+  const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.gnupg_version", QString{"2.0.0"});
 
-    SetAllowAuthentication(false);
-    allow_change_authentication_ = false;
+  QContainer<KeyAlgo> algos;
 
-    SetAllowSigning(false);
-    allow_change_signing_ = false;
-
-    suggest_min_key_size_ = 1024;
-    suggest_max_key_size_ = 4096;
-    suggest_size_addition_step_ = 1024;
-    SetKeyLength(3072);
-
-  } else if (algo_args == "ed25519") {
-    SetAllowEncryption(false);
-    allow_change_encryption_ = false;
-
-    suggest_min_key_size_ = -1;
-    suggest_max_key_size_ = -1;
-    suggest_size_addition_step_ = -1;
-    SetKeyLength(-1);
-  } else if (algo_args == "cv25519" || algo_args == "x448") {
-    SetAllowAuthentication(false);
-    allow_change_authentication_ = false;
-
-    SetAllowSigning(false);
-    allow_change_signing_ = false;
-
-    suggest_min_key_size_ = -1;
-    suggest_max_key_size_ = -1;
-    suggest_size_addition_step_ = -1;
-    SetKeyLength(-1);
-  } else if (algo_args == "ed448") {
-    SetAllowEncryption(false);
-    allow_change_encryption_ = false;
-
-    // it should allow signing or it's bug
-    SetAllowSigning(true);
-    allow_change_signing_ = true;
-
-    suggest_min_key_size_ = -1;
-    suggest_max_key_size_ = -1;
-    suggest_size_addition_step_ = -1;
-    SetKeyLength(-1);
-  } else if (algo_args == "nistp256" || algo_args == "nistp384" ||
-             algo_args == "nistp521" || algo_args == "brainpoolp256r1" ||
-             algo_args == "brainpoolp384r1" || algo_args == "brainpoolp512r1" ||
-             algo_args == "secp256k1") {
-    if (!subkey_) {  // for primary key is always ecdsa
-
-      SetAllowEncryption(false);
-      allow_change_encryption_ = false;
-
-    } else {  // for subkey key is always ecdh
-
-      SetAllowAuthentication(false);
-      allow_change_authentication_ = false;
-
-      SetAllowSigning(false);
-      allow_change_signing_ = false;
-    }
-
-    suggest_min_key_size_ = -1;
-    suggest_max_key_size_ = -1;
-    suggest_size_addition_step_ = -1;
-    SetKeyLength(-1);
-  } else {
-    LOG_W() << "unsupported genkey algo arguments: " << algo_args;
-    return;
+  for (const auto &algo : kPrimaryKeyAlgos) {
+    if (!algo.IsSupported(gnupg_version)) continue;
+    algos.append(algo);
   }
 
-  this->algo_ = algo_args;
+  std::sort(algos.begin(), algos.end(), [](const KeyAlgo &a, const KeyAlgo &b) {
+    return a.Name() < b.Name() && a.KeyLength() < b.KeyLength();
+  });
+
+  return algos;
+}
+
+auto GenKeyInfo::GetSupportedSubkeyAlgo() -> QContainer<KeyAlgo> {
+  const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.gnupg_version", QString{"2.0.0"});
+
+  QContainer<KeyAlgo> algos;
+
+  for (const auto &algo : kSubKeyAlgos) {
+    if (!algo.IsSupported(gnupg_version)) continue;
+    algos.append(algo);
+  }
+
+  std::sort(algos.begin(), algos.end(), [](const KeyAlgo &a, const KeyAlgo &b) {
+    return a.Name() < b.Name() && a.KeyLength() < b.KeyLength();
+  });
+
+  return algos;
+}
+
+auto GenKeyInfo::SearchPrimaryKeyAlgo(const QString &algo_id)
+    -> std::tuple<bool, KeyAlgo> {
+  auto it =
+      std::find_if(kPrimaryKeyAlgos.cbegin(), kPrimaryKeyAlgos.cend(),
+                   [=](const KeyAlgo &algo) { return algo.Id() == algo_id; });
+
+  if (it != kPrimaryKeyAlgos.cend()) {
+    return {true, *it};
+  }
+
+  return {false, KeyAlgo{}};
+}
+
+auto GenKeyInfo::SearchSubKeyAlgo(const QString &algo_id)
+    -> std::tuple<bool, KeyAlgo> {
+  auto it =
+      std::find_if(kSubKeyAlgos.cbegin(), kSubKeyAlgos.cend(),
+                   [=](const KeyAlgo &algo) { return algo.Id() == algo_id; });
+
+  if (it != kSubKeyAlgos.cend()) {
+    return {true, *it};
+  }
+
+  return {false, KeyAlgo{}};
+}
+
+void GenKeyInfo::SetAlgo(const KeyAlgo &algo) {
+  // reset all options
+  reset_options();
+
+  this->SetAllowCertification(algo.CanCert());
+  this->allow_change_certification_ = false;
+
+  SetAllowEncryption(algo.CanEncrypt());
+  allow_change_encryption_ = algo.CanEncrypt();
+
+  SetAllowSigning(algo.CanSign());
+  allow_change_signing_ = algo.CanSign();
+
+  SetAllowAuthentication(algo.CanAuth());
+  allow_change_authentication_ = algo.CanAuth();
+
+  this->algo_ = algo;
 }
 
 void GenKeyInfo::reset_options() {
@@ -168,29 +184,10 @@ void GenKeyInfo::reset_options() {
 
   allow_change_authentication_ = true;
   SetAllowAuthentication(true);
-
-  passphrase_.clear();
-}
-
-auto GenKeyInfo::GetKeySizeStr() const -> QString {
-  if (key_size_ > 0) {
-    return QString::number(key_size_);
-  }
-  return {};
-}
-
-void GenKeyInfo::SetKeyLength(int m_key_size) {
-  if (m_key_size < suggest_min_key_size_ ||
-      m_key_size > suggest_max_key_size_) {
-    return;
-  }
-  GenKeyInfo::key_size_ = m_key_size;
 }
 
 void GenKeyInfo::SetExpireTime(const QDateTime &m_expired) {
-  if (!IsNonExpired()) {
-    GenKeyInfo::expired_ = m_expired;
-  }
+  GenKeyInfo::expired_ = m_expired;
 }
 
 void GenKeyInfo::SetNonExpired(bool m_non_expired) {
@@ -210,103 +207,9 @@ void GenKeyInfo::SetAllowCertification(bool m_allow_certification) {
   }
 }
 
-GenKeyInfo::GenKeyInfo(bool m_is_sub_key) : subkey_(m_is_sub_key) {
+GenKeyInfo::GenKeyInfo(bool is_subkey) : subkey_(is_subkey) {
   assert(!GetSupportedKeyAlgo().empty());
-  SetAlgo(std::get<0>(GetSupportedKeyAlgo()[0]));
-}
-
-auto GenKeyInfo::GetSupportedKeyAlgo()
-    -> const QContainer<GenKeyInfo::KeyGenAlgo> & {
-  static QContainer<GenKeyInfo::KeyGenAlgo> k_support_key_algo = {
-      {"RSA", "RSA", ""},
-      {"DSA", "DSA", ""},
-  };
-  static bool initialized = false;
-
-  if (!initialized) {
-    const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
-        "core", "gpgme.ctx.gnupg_version", QString{"2.0.0"});
-    if (GFCompareSoftwareVersion(gnupg_version, "2.0.0") < 0) {
-      // do nothing
-    } else if (GFCompareSoftwareVersion(gnupg_version, "2.3.0") < 0) {
-      k_support_key_algo = {
-          {"RSA", "RSA", ""},
-          {"DSA", "DSA", ""},
-          {"EdDSA (ED25519)", "ED25519", ""},
-          {"ECDSA (NIST P-256)", "NISTP256", ""},
-          {"ECDSA (NIST P-384)", "NISTP384", ""},
-          {"ECDSA (NIST P-521)", "NISTP521", ""},
-      };
-    } else {
-      k_support_key_algo = {
-          {"RSA", "RSA", ""},
-          {"DSA", "DSA", ""},
-          {"EdDSA (ED448)", "ED448", ""},
-          {"EdDSA (ED25519)", "ED25519", ""},
-          {"ECDSA (SECP256K1)", "SECP256K1", ""},
-          {"ECDSA (NIST P-256)", "NISTP256", ""},
-          {"ECDSA (NIST P-384)", "NISTP384", ""},
-          {"ECDSA (NIST P-521)", "NISTP521", ""},
-          {"ECDSA (BrainPooL P-256)", "BRAINPOOLP256R1", ""},
-          {"ECDSA (BrainPooL P-384)", "BRAINPOOLP384R1", ""},
-          {"ECDSA (BrainPooL P-512)", "BRAINPOOLP512R1", ""},
-      };
-    }
-
-    initialized = true;
-  }
-
-  return k_support_key_algo;
-}
-
-auto GenKeyInfo::GetSupportedSubkeyAlgo()
-    -> const QContainer<GenKeyInfo::KeyGenAlgo> & {
-  static QContainer<GenKeyInfo::KeyGenAlgo> k_support_subkey_algo = {
-      {"RSA", "", "RSA"},
-      {"DSA", "", "DSA"},
-      {"ELG-E", "", "ELG"},
-  };
-  static bool initialized = false;
-
-  if (!initialized) {
-    const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
-        "core", "gpgme.ctx.gnupg_version", QString{"2.0.0"});
-    if (GFCompareSoftwareVersion(gnupg_version, "2.0.0") < 0) {
-      // do nothing
-    } else if (GFCompareSoftwareVersion(gnupg_version, "2.3.0") < 0) {
-      k_support_subkey_algo = {
-          {"RSA", "", "RSA"},
-          {"DSA", "", "DSA"},
-          {"ELG-E", "", "ELG"},
-          {"EdDSA (ED25519)", "", "ED25519"},
-          {"ECDH (CV25519)", "", "CV25519"},
-          {"ECDH (NIST P-256)", "", "NISTP256"},
-          {"ECDH (NIST P-384)", "", "NISTP384"},
-          {"ECDH (NIST P-521)", "", "NISTP521"},
-      };
-    } else {
-      k_support_subkey_algo = {
-          {"RSA", "", "RSA"},
-          {"DSA", "", "DSA"},
-          {"ELG-E", "", "ELG"},
-          {"EdDSA (ED25519)", "", "ED25519"},
-          {"ECDH (CV25519)", "", "CV25519"},
-          {"ECDH (SECP256K1)", "", "SECP256K1"},
-          {"EdDSA (ED448)", "", "ED448"},
-          {"ECDH (X448)", "", "X448"},
-          {"ECDH (NIST P-256)", "", "NISTP256"},
-          {"ECDH (NIST P-384)", "", "NISTP384"},
-          {"ECDH (NIST P-521)", "", "NISTP521"},
-          {"ECDH (BrainPooL P-256)", "", "BRAINPOOLP256R1"},
-          {"ECDH (BrainPooL P-384)", "", "BRAINPOOLP384R1"},
-          {"ECDH (BrainPooL P-512)", "", "BRAINPOOLP512R1"},
-      };
-    }
-
-    initialized = true;
-  }
-
-  return k_support_subkey_algo;
+  SetAlgo(GetSupportedKeyAlgo().front());
 }
 
 /**
@@ -386,7 +289,7 @@ void GenKeyInfo::SetComment(const QString &m_comment) {
  *
  * @return const QString&
  */
-[[nodiscard]] auto GenKeyInfo::GetAlgo() const -> const QString & {
+[[nodiscard]] auto GenKeyInfo::GetAlgo() const -> const KeyAlgo & {
   return algo_;
 }
 
@@ -395,7 +298,9 @@ void GenKeyInfo::SetComment(const QString &m_comment) {
  *
  * @return int
  */
-[[nodiscard]] auto GenKeyInfo::GetKeyLength() const -> int { return key_size_; }
+[[nodiscard]] auto GenKeyInfo::GetKeyLength() const -> int {
+  return algo_.KeyLength();
+}
 
 /**
  * @brief Get the Expired object
@@ -506,24 +411,6 @@ void GenKeyInfo::SetAllowAuthentication(bool m_allow_authentication) {
 }
 
 /**
- * @brief Get the Pass Phrase object
- *
- * @return const QString&
- */
-[[nodiscard]] auto GenKeyInfo::GetPassPhrase() const -> const QString & {
-  return passphrase_;
-}
-
-/**
- * @brief Set the Pass Phrase object
- *
- * @param m_pass_phrase
- */
-void GenKeyInfo::SetPassPhrase(const QString &m_pass_phrase) {
-  GenKeyInfo::passphrase_ = m_pass_phrase;
-}
-
-/**
  * @brief
  *
  * @return true
@@ -563,31 +450,37 @@ void GenKeyInfo::SetPassPhrase(const QString &m_pass_phrase) {
   return allow_change_authentication_;
 }
 
-/**
- * @brief Get the Suggest Max Key Size object
- *
- * @return int
- */
-[[nodiscard]] auto GenKeyInfo::GetSuggestMaxKeySize() const -> int {
-  return suggest_max_key_size_;
-}
+KeyAlgo::KeyAlgo(QString id, QString name, QString type, int length, int opera,
+                 QString supported_version)
+    : id_(std::move(id)),
+      name_(std::move(name)),
+      type_(std::move(type)),
+      length_(length),
+      supported_version_(std::move(supported_version)) {
+  encrypt_ = ((opera & kENCRYPT) != 0);
+  sign_ = ((opera & kSIGN) != 0);
+  auth_ = ((opera & kAUTH) != 0);
+  cert_ = ((opera & kCERT) != 0);
+};
 
-/**
- * @brief Get the Suggest Min Key Size object
- *
- * @return int
- */
-[[nodiscard]] auto GenKeyInfo::GetSuggestMinKeySize() const -> int {
-  return suggest_min_key_size_;
-}
+auto KeyAlgo::Id() const -> QString { return id_; }
 
-/**
- * @brief Get the Size Change Step object
- *
- * @return int
- */
-[[nodiscard]] auto GenKeyInfo::GetSizeChangeStep() const -> int {
-  return suggest_size_addition_step_;
+auto KeyAlgo::Name() const -> QString { return name_; }
+
+auto KeyAlgo::KeyLength() const -> int { return length_; }
+
+auto KeyAlgo::Type() const -> QString { return type_; }
+
+auto KeyAlgo::CanEncrypt() const -> bool { return encrypt_; }
+
+auto KeyAlgo::CanSign() const -> bool { return sign_; }
+
+auto KeyAlgo::CanAuth() const -> bool { return auth_; }
+
+auto KeyAlgo::CanCert() const -> bool { return cert_; }
+
+auto KeyAlgo::IsSupported(const QString &version) const -> bool {
+  return GFCompareSoftwareVersion(version, supported_version_) >= 0;
 }
 
 }  // namespace GpgFrontend
