@@ -30,7 +30,7 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "ui/GpgFrontendUI.h"
-#include "ui/dialog/key_generate/KeyGenDialog.h"
+#include "ui/dialog/key_generate/KeyGenerateDialog.h"
 
 namespace GpgFrontend::UI {
 

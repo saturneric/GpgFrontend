@@ -41,7 +41,7 @@
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/import_export/ExportKeyPackageDialog.h"
 #include "ui/dialog/import_export/KeyImportDetailDialog.h"
-#include "ui/dialog/key_generate/KeyGenDialog.h"
+#include "ui/dialog/key_generate/KeyGenerateDialog.h"
 #include "ui/dialog/key_generate/SubkeyGenerateDialog.h"
 #include "ui/dialog/keypair_details/KeyDetailsDialog.h"
 #include "ui/function/GpgOperaHelper.h"

@@ -26,7 +26,7 @@
  *
  */
 
-#include "KeyGenDialog.h"
+#include "KeyGenerateDialog.h"
 
 #include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"

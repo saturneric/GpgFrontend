@@ -28,11 +28,7 @@
 
 #pragma once
 
-#include <memory>
-
 #include "core/model/GpgGenKeyInfo.h"
-#include "core/utils/MemoryUtils.h"
-#include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
 
 class Ui_KeyGenDialog;
