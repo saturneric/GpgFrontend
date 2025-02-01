@@ -183,7 +183,7 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
           .value("gnupg/kill_all_gnupg_daemon_at_close", false)
           .toBool();
 
-  if (!ctx->unit_test_mode && kill_all_gnupg_daemon_at_close) {
+  if (ctx->unit_test_mode || kill_all_gnupg_daemon_at_close) {
     GpgAdvancedOperator::KillAllGpgComponents(nullptr);
   } else if (!ctx->unit_test_mode && clear_gpg_password_cache) {
     GpgAdvancedOperator::ClearGpgPasswordCache(nullptr);

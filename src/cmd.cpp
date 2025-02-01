@@ -233,6 +233,7 @@ auto RunTest(const GFCxtWPtr& p_ctx) -> int {
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
       ->PostTask(task);
 
+  ctx->rtn = kNonRestartCode;
   looper.exec();
   return 0;
 }
