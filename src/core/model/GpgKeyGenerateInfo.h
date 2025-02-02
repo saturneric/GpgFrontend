@@ -257,7 +257,7 @@ class GPGFRONTEND_CORE_EXPORT KeyGenerateInfo {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsAllowSigning() const -> bool;
+  [[nodiscard]] auto IsAllowSign() const -> bool;
 
   /**
    * @brief
@@ -272,7 +272,7 @@ class GPGFRONTEND_CORE_EXPORT KeyGenerateInfo {
    *
    * @param m_allow_signing
    */
-  void SetAllowSigning(bool m_allow_signing);
+  void SetAllowSign(bool m_allow_signing);
 
   /**
    * @brief
@@ -280,14 +280,14 @@ class GPGFRONTEND_CORE_EXPORT KeyGenerateInfo {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsAllowEncryption() const -> bool;
+  [[nodiscard]] auto IsAllowEncr() const -> bool;
 
   /**
    * @brief Set the Allow Encryption object
    *
    * @param m_allow_encryption
    */
-  void SetAllowEncryption(bool m_allow_encryption);
+  void SetAllowEncr(bool m_allow_encryption);
 
   /**
    * @brief
@@ -295,14 +295,14 @@ class GPGFRONTEND_CORE_EXPORT KeyGenerateInfo {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsAllowCertification() const -> bool;
+  [[nodiscard]] auto IsAllowCert() const -> bool;
 
   /**
    * @brief Set the Allow Certification object
    *
    * @param m_allow_certification
    */
-  void SetAllowCertification(bool m_allow_certification);
+  void SetAllowCert(bool m_allow_certification);
 
   /**
    * @brief
@@ -310,14 +310,14 @@ class GPGFRONTEND_CORE_EXPORT KeyGenerateInfo {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsAllowAuthentication() const -> bool;
+  [[nodiscard]] auto IsAllowAuth() const -> bool;
 
   /**
    * @brief Set the Allow Authentication object
    *
    * @param m_allow_authentication
    */
-  void SetAllowAuthentication(bool m_allow_authentication);
+  void SetAllowAuth(bool m_allow_authentication);
 
   /**
    * @brief
@@ -325,7 +325,7 @@ class GPGFRONTEND_CORE_EXPORT KeyGenerateInfo {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsAllowChangeSigning() const -> bool;
+  [[nodiscard]] auto IsAllowModifySign() const -> bool;
 
   /**
    * @brief
@@ -333,7 +333,7 @@ class GPGFRONTEND_CORE_EXPORT KeyGenerateInfo {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsAllowChangeEncryption() const -> bool;
+  [[nodiscard]] auto IsAllowModifyEncr() const -> bool;
 
   /**
    * @brief
@@ -341,7 +341,7 @@ class GPGFRONTEND_CORE_EXPORT KeyGenerateInfo {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsAllowChangeCertification() const -> bool;
+  [[nodiscard]] auto IsAllowModifyCert() const -> bool;
 
   /**
    * @brief
@@ -349,7 +349,7 @@ class GPGFRONTEND_CORE_EXPORT KeyGenerateInfo {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsAllowChangeAuthentication() const -> bool;
+  [[nodiscard]] auto IsAllowModifyAuth() const -> bool;
 
  private:
   bool subkey_ = false;  ///<

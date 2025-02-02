@@ -98,13 +98,13 @@ void SubkeyGenerateDialog::set_signal_slot_config() {
           });
 
   connect(ui_->encrCheckBox, &QCheckBox::stateChanged, this, [this](int state) {
-    gen_subkey_info_->SetAllowEncryption(state == Qt::Checked);
+    gen_subkey_info_->SetAllowEncr(state == Qt::Checked);
   });
   connect(ui_->signCheckBox, &QCheckBox::stateChanged, this, [this](int state) {
-    gen_subkey_info_->SetAllowSigning(state == Qt::Checked);
+    gen_subkey_info_->SetAllowSign(state == Qt::Checked);
   });
   connect(ui_->authCheckBox, &QCheckBox::stateChanged, this, [this](int state) {
-    gen_subkey_info_->SetAllowAuthentication(state == Qt::Checked);
+    gen_subkey_info_->SetAllowAuth(state == Qt::Checked);
   });
 
   connect(ui_->algoComboBox, &QComboBox::currentTextChanged, this,
@@ -145,19 +145,18 @@ void SubkeyGenerateDialog::refresh_widgets_state() {
   ui_->keyLengthComboBox->blockSignals(false);
 
   ui_->encrCheckBox->blockSignals(true);
-  ui_->encrCheckBox->setChecked(gen_subkey_info_->IsAllowEncryption());
-  ui_->encrCheckBox->setEnabled(gen_subkey_info_->IsAllowChangeEncryption());
+  ui_->encrCheckBox->setChecked(gen_subkey_info_->IsAllowEncr());
+  ui_->encrCheckBox->setEnabled(gen_subkey_info_->IsAllowModifyEncr());
   ui_->encrCheckBox->blockSignals(false);
 
   ui_->signCheckBox->blockSignals(true);
-  ui_->signCheckBox->setChecked(gen_subkey_info_->IsAllowSigning());
-  ui_->signCheckBox->setEnabled(gen_subkey_info_->IsAllowChangeSigning());
+  ui_->signCheckBox->setChecked(gen_subkey_info_->IsAllowSign());
+  ui_->signCheckBox->setEnabled(gen_subkey_info_->IsAllowModifySign());
   ui_->signCheckBox->blockSignals(false);
 
   ui_->authCheckBox->blockSignals(true);
-  ui_->authCheckBox->setChecked(gen_subkey_info_->IsAllowAuthentication());
-  ui_->authCheckBox->setEnabled(
-      gen_subkey_info_->IsAllowChangeAuthentication());
+  ui_->authCheckBox->setChecked(gen_subkey_info_->IsAllowAuth());
+  ui_->authCheckBox->setEnabled(gen_subkey_info_->IsAllowModifyAuth());
   ui_->authCheckBox->blockSignals(false);
 
   ui_->nonPassphraseCheckBox->setEnabled(

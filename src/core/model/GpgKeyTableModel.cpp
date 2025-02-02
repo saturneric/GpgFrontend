@@ -88,10 +88,10 @@ auto GpgKeyTableModel::data(const QModelIndex &index,
       }
       case 4: {
         QString usage_sym;
-        if (key.IsHasActualCertificationCapability()) usage_sym += "C";
-        if (key.IsHasActualEncryptionCapability()) usage_sym += "E";
-        if (key.IsHasActualSigningCapability()) usage_sym += "S";
-        if (key.IsHasActualAuthenticationCapability()) usage_sym += "A";
+        if (key.IsHasActualCertCap()) usage_sym += "C";
+        if (key.IsHasActualEncrCap()) usage_sym += "E";
+        if (key.IsHasActualSignCap()) usage_sym += "S";
+        if (key.IsHasActualAuthCap()) usage_sym += "A";
         return usage_sym;
       }
       case 5: {

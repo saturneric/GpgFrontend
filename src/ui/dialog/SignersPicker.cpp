@@ -49,11 +49,9 @@ SignersPicker::SignersPicker(int channel, QWidget* parent)
       GpgKeyTableColumn::kNAME | GpgKeyTableColumn::kEMAIL_ADDRESS |
           GpgKeyTableColumn::kKEY_ID | GpgKeyTableColumn::kUSAGE,
       this);
-  key_list_->AddListGroupTab(tr("Signers"), "signers",
-                             GpgKeyTableDisplayMode::kPRIVATE_KEY,
-                             [](const GpgKey& key) -> bool {
-                               return key.IsHasActualSigningCapability();
-                             });
+  key_list_->AddListGroupTab(
+      tr("Signers"), "signers", GpgKeyTableDisplayMode::kPRIVATE_KEY,
+      [](const GpgKey& key) -> bool { return key.IsHasActualSignCap(); });
   key_list_->SlotRefresh();
 
   auto* vbox2 = new QVBoxLayout();

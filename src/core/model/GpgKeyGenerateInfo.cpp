@@ -169,16 +169,16 @@ void KeyGenerateInfo::SetAlgo(const KeyAlgo &algo) {
   // reset all options
   reset_options();
 
-  this->SetAllowCertification(algo.CanCert());
+  this->SetAllowCert(algo.CanCert());
   this->allow_change_certification_ = false;
 
-  SetAllowEncryption(algo.CanEncrypt());
+  SetAllowEncr(algo.CanEncrypt());
   allow_change_encryption_ = algo.CanEncrypt();
 
-  SetAllowSigning(algo.CanSign());
+  SetAllowSign(algo.CanSign());
   allow_change_signing_ = algo.CanSign();
 
-  SetAllowAuthentication(algo.CanAuth());
+  SetAllowAuth(algo.CanAuth());
   allow_change_authentication_ = algo.CanAuth();
 
   this->algo_ = algo;
@@ -186,16 +186,16 @@ void KeyGenerateInfo::SetAlgo(const KeyAlgo &algo) {
 
 void KeyGenerateInfo::reset_options() {
   allow_change_encryption_ = true;
-  SetAllowEncryption(true);
+  SetAllowEncr(true);
 
   allow_change_certification_ = true;
-  SetAllowCertification(true);
+  SetAllowCert(true);
 
   allow_change_signing_ = true;
-  SetAllowSigning(true);
+  SetAllowSign(true);
 
   allow_change_authentication_ = true;
-  SetAllowAuthentication(true);
+  SetAllowAuth(true);
 }
 
 void KeyGenerateInfo::SetExpireTime(const QDateTime &m_expired) {
@@ -207,13 +207,13 @@ void KeyGenerateInfo::SetNonExpired(bool m_non_expired) {
   KeyGenerateInfo::non_expired_ = m_non_expired;
 }
 
-void KeyGenerateInfo::SetAllowEncryption(bool m_allow_encryption) {
+void KeyGenerateInfo::SetAllowEncr(bool m_allow_encryption) {
   if (allow_change_encryption_) {
     KeyGenerateInfo::allow_encryption_ = m_allow_encryption;
   }
 }
 
-void KeyGenerateInfo::SetAllowCertification(bool m_allow_certification) {
+void KeyGenerateInfo::SetAllowCert(bool m_allow_certification) {
   if (allow_change_certification_) {
     KeyGenerateInfo::allow_certification_ = m_allow_certification;
   }
@@ -357,7 +357,7 @@ void KeyGenerateInfo::SetNonPassPhrase(bool m_non_pass_phrase) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto KeyGenerateInfo::IsAllowSigning() const -> bool {
+[[nodiscard]] auto KeyGenerateInfo::IsAllowSign() const -> bool {
   return allow_signing_;
 }
 
@@ -376,7 +376,7 @@ void KeyGenerateInfo::SetNonPassPhrase(bool m_non_pass_phrase) {
  *
  * @param m_allow_signing
  */
-void KeyGenerateInfo::SetAllowSigning(bool m_allow_signing) {
+void KeyGenerateInfo::SetAllowSign(bool m_allow_signing) {
   if (allow_change_signing_) KeyGenerateInfo::allow_signing_ = m_allow_signing;
 }
 
@@ -386,7 +386,7 @@ void KeyGenerateInfo::SetAllowSigning(bool m_allow_signing) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto KeyGenerateInfo::IsAllowEncryption() const -> bool {
+[[nodiscard]] auto KeyGenerateInfo::IsAllowEncr() const -> bool {
   return allow_encryption_;
 }
 
@@ -396,7 +396,7 @@ void KeyGenerateInfo::SetAllowSigning(bool m_allow_signing) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto KeyGenerateInfo::IsAllowCertification() const -> bool {
+[[nodiscard]] auto KeyGenerateInfo::IsAllowCert() const -> bool {
   return allow_certification_;
 }
 
@@ -406,7 +406,7 @@ void KeyGenerateInfo::SetAllowSigning(bool m_allow_signing) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto KeyGenerateInfo::IsAllowAuthentication() const -> bool {
+[[nodiscard]] auto KeyGenerateInfo::IsAllowAuth() const -> bool {
   return allow_authentication_;
 }
 
@@ -415,7 +415,7 @@ void KeyGenerateInfo::SetAllowSigning(bool m_allow_signing) {
  *
  * @param m_allow_authentication
  */
-void KeyGenerateInfo::SetAllowAuthentication(bool m_allow_authentication) {
+void KeyGenerateInfo::SetAllowAuth(bool m_allow_authentication) {
   if (allow_change_authentication_) {
     KeyGenerateInfo::allow_authentication_ = m_allow_authentication;
   }
@@ -427,7 +427,7 @@ void KeyGenerateInfo::SetAllowAuthentication(bool m_allow_authentication) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto KeyGenerateInfo::IsAllowChangeSigning() const -> bool {
+[[nodiscard]] auto KeyGenerateInfo::IsAllowModifySign() const -> bool {
   return allow_change_signing_;
 }
 
@@ -437,7 +437,7 @@ void KeyGenerateInfo::SetAllowAuthentication(bool m_allow_authentication) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto KeyGenerateInfo::IsAllowChangeEncryption() const -> bool {
+[[nodiscard]] auto KeyGenerateInfo::IsAllowModifyEncr() const -> bool {
   return allow_change_encryption_;
 }
 
@@ -447,7 +447,7 @@ void KeyGenerateInfo::SetAllowAuthentication(bool m_allow_authentication) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto KeyGenerateInfo::IsAllowChangeCertification() const -> bool {
+[[nodiscard]] auto KeyGenerateInfo::IsAllowModifyCert() const -> bool {
   return allow_change_certification_;
 }
 
@@ -457,8 +457,7 @@ void KeyGenerateInfo::SetAllowAuthentication(bool m_allow_authentication) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto KeyGenerateInfo::IsAllowChangeAuthentication() const
-    -> bool {
+[[nodiscard]] auto KeyGenerateInfo::IsAllowModifyAuth() const -> bool {
   return allow_change_authentication_;
 }
 

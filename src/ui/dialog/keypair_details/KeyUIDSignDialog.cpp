@@ -52,7 +52,7 @@ KeyUIDSignDialog::KeyUIDSignDialog(int channel, const GpgKey& key,
   m_key_list_->AddListGroupTab(
       tr("Signers"), "signers", GpgKeyTableDisplayMode::kPRIVATE_KEY,
       [key_id](const GpgKey& key) -> bool {
-        return !(key.IsDisabled() || !key.IsHasCertificationCapability() ||
+        return !(key.IsDisabled() || !key.IsHasCertCap() ||
                  !key.IsHasMasterKey() || key.IsExpired() || key.IsRevoked() ||
                  key_id == key.GetId());
       });

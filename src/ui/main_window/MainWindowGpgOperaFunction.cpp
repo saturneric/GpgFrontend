@@ -56,8 +56,7 @@ auto MainWindow::encrypt_operation_key_validate(
     contexts->keys = {};
   } else {
     contexts->keys = check_keys_helper(
-        key_ids,
-        [](const GpgKey& key) { return key.IsHasActualEncryptionCapability(); },
+        key_ids, [](const GpgKey& key) { return key.IsHasActualEncrCap(); },
         tr("The selected keypair cannot be used for encryption."));
     if (contexts->keys.empty()) return false;
   }
@@ -205,8 +204,7 @@ void MainWindow::SlotSign() {
 
   auto key_ids = m_key_list_->GetChecked();
   contexts->keys = check_keys_helper(
-      key_ids,
-      [](const GpgKey& key) { return key.IsHasActualSigningCapability(); },
+      key_ids, [](const GpgKey& key) { return key.IsHasActualSignCap(); },
       tr("The selected key contains a key that does not actually have a "
          "sign usage."));
   if (contexts->keys.empty()) return;
@@ -259,8 +257,7 @@ void MainWindow::SlotEncryptSign() {
 
   auto key_ids = m_key_list_->GetChecked();
   contexts->keys = check_keys_helper(
-      key_ids,
-      [](const GpgKey& key) { return key.IsHasActualEncryptionCapability(); },
+      key_ids, [](const GpgKey& key) { return key.IsHasActualEncrCap(); },
       tr("The selected keypair cannot be used for encryption."));
   if (contexts->keys.empty()) return;
 
@@ -375,8 +372,7 @@ void MainWindow::SlotFileSign(const QStringList& paths) {
 
   auto key_ids = m_key_list_->GetChecked();
   contexts->keys = check_keys_helper(
-      key_ids,
-      [](const GpgKey& key) { return key.IsHasActualSigningCapability(); },
+      key_ids, [](const GpgKey& key) { return key.IsHasActualSignCap(); },
       tr("The selected key contains a key that does not actually have a "
          "sign usage."));
   if (contexts->keys.empty()) return;
@@ -459,8 +455,7 @@ void MainWindow::SlotFileEncryptSign(const QStringList& paths) {
 
   auto key_ids = m_key_list_->GetChecked();
   contexts->keys = check_keys_helper(
-      key_ids,
-      [](const GpgKey& key) { return key.IsHasActualEncryptionCapability(); },
+      key_ids, [](const GpgKey& key) { return key.IsHasActualEncrCap(); },
       tr("The selected keypair cannot be used for encryption."));
   if (contexts->keys.empty()) return;
 

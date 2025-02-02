@@ -241,7 +241,7 @@ TEST_F(GpgCoreTest, CoreEncryptSignDecrVerifyTest) {
   auto encrypt_text = GFBuffer(QString("Hello GpgFrontend!"));
 
   ASSERT_TRUE(sign_key.IsPrivateKey());
-  ASSERT_TRUE(sign_key.IsHasActualSigningCapability());
+  ASSERT_TRUE(sign_key.IsHasActualSignCap());
 
   auto [err, data_object] = GpgBasicOperator::GetInstance().EncryptSignSync(
       {encrypt_key}, {sign_key}, encrypt_text, true);

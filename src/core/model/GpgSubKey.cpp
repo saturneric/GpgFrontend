@@ -60,19 +60,17 @@ auto GpgSubKey::GetKeyLength() const -> unsigned int {
   return subkey_ref_->length;
 }
 
-auto GpgSubKey::IsHasEncryptionCapability() const -> bool {
+auto GpgSubKey::IsHasEncrCap() const -> bool {
   return subkey_ref_->can_encrypt;
 }
 
-auto GpgSubKey::IsHasSigningCapability() const -> bool {
-  return subkey_ref_->can_sign;
-}
+auto GpgSubKey::IsHasSignCap() const -> bool { return subkey_ref_->can_sign; }
 
-auto GpgSubKey::IsHasCertificationCapability() const -> bool {
+auto GpgSubKey::IsHasCertCap() const -> bool {
   return subkey_ref_->can_certify;
 }
 
-auto GpgSubKey::IsHasAuthenticationCapability() const -> bool {
+auto GpgSubKey::IsHasAuthCap() const -> bool {
   return subkey_ref_->can_authenticate;
 }
 

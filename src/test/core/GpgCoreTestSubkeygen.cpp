@@ -74,10 +74,10 @@ TEST_F(GpgCoreTest, GenerateSubkeyRSA2048Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 2048);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_TRUE(subkey.IsHasAuthenticationCapability());
-  ASSERT_TRUE(subkey.IsHasEncryptionCapability());
-  ASSERT_TRUE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_TRUE(subkey.IsHasAuthCap());
+  ASSERT_TRUE(subkey.IsHasEncrCap());
+  ASSERT_TRUE(subkey.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyDSA2048Test) {
@@ -117,10 +117,10 @@ TEST_F(GpgCoreTest, GenerateSubkeyDSA2048Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 2048);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_TRUE(subkey.IsHasAuthenticationCapability());
-  ASSERT_FALSE(subkey.IsHasEncryptionCapability());
-  ASSERT_TRUE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_TRUE(subkey.IsHasAuthCap());
+  ASSERT_FALSE(subkey.IsHasEncrCap());
+  ASSERT_TRUE(subkey.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyELG2048Test) {
@@ -160,10 +160,10 @@ TEST_F(GpgCoreTest, GenerateSubkeyELG2048Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 2048);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_FALSE(subkey.IsHasAuthenticationCapability());
-  ASSERT_TRUE(subkey.IsHasEncryptionCapability());
-  ASSERT_FALSE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_FALSE(subkey.IsHasAuthCap());
+  ASSERT_TRUE(subkey.IsHasEncrCap());
+  ASSERT_FALSE(subkey.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyED25519Test) {
@@ -203,10 +203,10 @@ TEST_F(GpgCoreTest, GenerateSubkeyED25519Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 255);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_TRUE(subkey.IsHasAuthenticationCapability());
-  ASSERT_FALSE(subkey.IsHasEncryptionCapability());
-  ASSERT_TRUE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_TRUE(subkey.IsHasAuthCap());
+  ASSERT_FALSE(subkey.IsHasEncrCap());
+  ASSERT_TRUE(subkey.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyCV25519Test) {
@@ -246,10 +246,10 @@ TEST_F(GpgCoreTest, GenerateSubkeyCV25519Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 255);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_FALSE(subkey.IsHasAuthenticationCapability());
-  ASSERT_TRUE(subkey.IsHasEncryptionCapability());
-  ASSERT_FALSE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_FALSE(subkey.IsHasAuthCap());
+  ASSERT_TRUE(subkey.IsHasEncrCap());
+  ASSERT_FALSE(subkey.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyNISTP256Test) {
@@ -288,10 +288,10 @@ TEST_F(GpgCoreTest, GenerateSubkeyNISTP256Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 256);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_FALSE(subkey.IsHasAuthenticationCapability());
-  ASSERT_TRUE(subkey.IsHasEncryptionCapability());
-  ASSERT_FALSE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_FALSE(subkey.IsHasAuthCap());
+  ASSERT_TRUE(subkey.IsHasEncrCap());
+  ASSERT_FALSE(subkey.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyBRAINPOOLP256R1Test) {
@@ -330,10 +330,10 @@ TEST_F(GpgCoreTest, GenerateSubkeyBRAINPOOLP256R1Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 256);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_FALSE(subkey.IsHasAuthenticationCapability());
-  ASSERT_TRUE(subkey.IsHasEncryptionCapability());
-  ASSERT_FALSE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_FALSE(subkey.IsHasAuthCap());
+  ASSERT_TRUE(subkey.IsHasEncrCap());
+  ASSERT_FALSE(subkey.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyX448Test) {
@@ -372,10 +372,10 @@ TEST_F(GpgCoreTest, GenerateSubkeyX448Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 448);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_FALSE(subkey.IsHasAuthenticationCapability());
-  ASSERT_TRUE(subkey.IsHasEncryptionCapability());
-  ASSERT_FALSE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_FALSE(subkey.IsHasAuthCap());
+  ASSERT_TRUE(subkey.IsHasEncrCap());
+  ASSERT_FALSE(subkey.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeySECP256K1Test) {
@@ -414,10 +414,10 @@ TEST_F(GpgCoreTest, GenerateSubkeySECP256K1Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 256);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_FALSE(subkey.IsHasAuthenticationCapability());
-  ASSERT_TRUE(subkey.IsHasEncryptionCapability());
-  ASSERT_FALSE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_FALSE(subkey.IsHasAuthCap());
+  ASSERT_TRUE(subkey.IsHasEncrCap());
+  ASSERT_FALSE(subkey.IsHasSignCap());
 }
 
 }  // namespace GpgFrontend::Test

@@ -221,20 +221,20 @@ void KeyGenerateDialog::refresh_widgets_state() {
 
   ui_->pEncrCheckBox->blockSignals(true);
   ui_->pEncrCheckBox->setCheckState(
-      gen_key_info_->IsAllowEncryption() ? Qt::Checked : Qt::Unchecked);
-  ui_->pEncrCheckBox->setEnabled(gen_key_info_->IsAllowChangeEncryption());
+      gen_key_info_->IsAllowEncr() ? Qt::Checked : Qt::Unchecked);
+  ui_->pEncrCheckBox->setEnabled(gen_key_info_->IsAllowModifyEncr());
   ui_->pEncrCheckBox->blockSignals(false);
 
   ui_->pSignCheckBox->blockSignals(true);
   ui_->pSignCheckBox->setCheckState(
-      gen_key_info_->IsAllowSigning() ? Qt::Checked : Qt::Unchecked);
-  ui_->pSignCheckBox->setEnabled(gen_key_info_->IsAllowChangeSigning());
+      gen_key_info_->IsAllowSign() ? Qt::Checked : Qt::Unchecked);
+  ui_->pSignCheckBox->setEnabled(gen_key_info_->IsAllowModifySign());
   ui_->pSignCheckBox->blockSignals(false);
 
   ui_->pAuthCheckBox->blockSignals(true);
   ui_->pAuthCheckBox->setCheckState(
-      gen_key_info_->IsAllowAuthentication() ? Qt::Checked : Qt::Unchecked);
-  ui_->pAuthCheckBox->setEnabled(gen_key_info_->IsAllowChangeAuthentication());
+      gen_key_info_->IsAllowAuth() ? Qt::Checked : Qt::Unchecked);
+  ui_->pAuthCheckBox->setEnabled(gen_key_info_->IsAllowModifyAuth());
   ui_->pAuthCheckBox->blockSignals(false);
 
   ui_->noPassphraseCheckBox->setEnabled(gen_key_info_->IsAllowNoPassPhrase());
@@ -303,21 +303,20 @@ void KeyGenerateDialog::refresh_widgets_state() {
 
   ui_->sEncrCheckBox->blockSignals(true);
   ui_->sEncrCheckBox->setCheckState(
-      gen_subkey_info_->IsAllowEncryption() ? Qt::Checked : Qt::Unchecked);
-  ui_->sEncrCheckBox->setEnabled(gen_subkey_info_->IsAllowChangeEncryption());
+      gen_subkey_info_->IsAllowEncr() ? Qt::Checked : Qt::Unchecked);
+  ui_->sEncrCheckBox->setEnabled(gen_subkey_info_->IsAllowModifyEncr());
   ui_->sEncrCheckBox->blockSignals(false);
 
   ui_->sSignCheckBox->blockSignals(true);
   ui_->sSignCheckBox->setCheckState(
-      gen_subkey_info_->IsAllowSigning() ? Qt::Checked : Qt::Unchecked);
-  ui_->sSignCheckBox->setEnabled(gen_subkey_info_->IsAllowChangeSigning());
+      gen_subkey_info_->IsAllowSign() ? Qt::Checked : Qt::Unchecked);
+  ui_->sSignCheckBox->setEnabled(gen_subkey_info_->IsAllowModifySign());
   ui_->sSignCheckBox->blockSignals(false);
 
   ui_->sAuthCheckBox->blockSignals(true);
   ui_->sAuthCheckBox->setCheckState(
-      gen_subkey_info_->IsAllowAuthentication() ? Qt::Checked : Qt::Unchecked);
-  ui_->sAuthCheckBox->setEnabled(
-      gen_subkey_info_->IsAllowChangeAuthentication());
+      gen_subkey_info_->IsAllowAuth() ? Qt::Checked : Qt::Unchecked);
+  ui_->sAuthCheckBox->setEnabled(gen_subkey_info_->IsAllowModifyAuth());
   ui_->sAuthCheckBox->blockSignals(false);
 
   ui_->sExpireDateTimeEdit->blockSignals(true);
@@ -354,30 +353,27 @@ void KeyGenerateDialog::set_signal_slot_config() {
             refresh_widgets_state();
           });
 
-  connect(ui_->pEncrCheckBox, &QCheckBox::stateChanged, this,
-          [this](int state) {
-            gen_key_info_->SetAllowEncryption(state == Qt::Checked);
-          });
-  connect(ui_->pSignCheckBox, &QCheckBox::stateChanged, this,
-          [this](int state) {
-            gen_key_info_->SetAllowSigning(state == Qt::Checked);
-          });
-  connect(ui_->pAuthCheckBox, &QCheckBox::stateChanged, this,
-          [this](int state) {
-            gen_key_info_->SetAllowAuthentication(state == Qt::Checked);
-          });
+  connect(
+      ui_->pEncrCheckBox, &QCheckBox::stateChanged, this,
+      [this](int state) { gen_key_info_->SetAllowEncr(state == Qt::Checked); });
+  connect(
+      ui_->pSignCheckBox, &QCheckBox::stateChanged, this,
+      [this](int state) { gen_key_info_->SetAllowSign(state == Qt::Checked); });
+  connect(
+      ui_->pAuthCheckBox, &QCheckBox::stateChanged, this,
+      [this](int state) { gen_key_info_->SetAllowAuth(state == Qt::Checked); });
 
   connect(ui_->sEncrCheckBox, &QCheckBox::stateChanged, this,
           [this](int state) {
-            gen_subkey_info_->SetAllowEncryption(state == Qt::Checked);
+            gen_subkey_info_->SetAllowEncr(state == Qt::Checked);
           });
   connect(ui_->sSignCheckBox, &QCheckBox::stateChanged, this,
           [this](int state) {
-            gen_subkey_info_->SetAllowSigning(state == Qt::Checked);
+            gen_subkey_info_->SetAllowSign(state == Qt::Checked);
           });
   connect(ui_->sAuthCheckBox, &QCheckBox::stateChanged, this,
           [this](int state) {
-            gen_subkey_info_->SetAllowAuthentication(state == Qt::Checked);
+            gen_subkey_info_->SetAllowAuth(state == Qt::Checked);
           });
 
   connect(ui_->noPassphraseCheckBox, &QCheckBox::stateChanged, this,

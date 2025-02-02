@@ -50,7 +50,7 @@ void SetSignersImpl(GpgContext& ctx_, const KeyArgsList& signers, bool ascii) {
 
   for (const GpgKey& key : signers) {
     LOG_D() << "signer's key fpr: " << key.GetFingerprint();
-    if (key.IsHasActualSigningCapability()) {
+    if (key.IsHasActualSignCap()) {
       auto error = gpgme_signers_add(ctx, gpgme_key_t(key));
       CheckGpgError(error);
     }

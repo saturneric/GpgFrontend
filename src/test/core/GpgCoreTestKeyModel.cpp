@@ -69,14 +69,14 @@ TEST_F(GpgCoreTest, GpgKeyTest) {
   ASSERT_EQ(key.GetSubKeys()->size(), 2);
   ASSERT_EQ(key.GetUIDs()->size(), 1);
 
-  ASSERT_TRUE(key.IsHasCertificationCapability());
-  ASSERT_FALSE(key.IsHasEncryptionCapability());
-  ASSERT_TRUE(key.IsHasSigningCapability());
-  ASSERT_FALSE(key.IsHasAuthenticationCapability());
-  ASSERT_FALSE(key.IsHasActualCertificationCapability());
-  ASSERT_FALSE(key.IsHasActualEncryptionCapability());
-  ASSERT_FALSE(key.IsHasActualSigningCapability());
-  ASSERT_FALSE(key.IsHasActualAuthenticationCapability());
+  ASSERT_TRUE(key.IsHasCertCap());
+  ASSERT_FALSE(key.IsHasEncrCap());
+  ASSERT_TRUE(key.IsHasSignCap());
+  ASSERT_FALSE(key.IsHasAuthCap());
+  ASSERT_FALSE(key.IsHasActualCertCap());
+  ASSERT_FALSE(key.IsHasActualEncrCap());
+  ASSERT_FALSE(key.IsHasActualSignCap());
+  ASSERT_FALSE(key.IsHasActualAuthCap());
 
   ASSERT_EQ(key.GetName(), "GpgFrontendTest");
   ASSERT_TRUE(key.GetComment().isEmpty());
@@ -133,10 +133,10 @@ TEST_F(GpgCoreTest, GpgSubKeyTest) {
   ASSERT_EQ(sub_key.GetKeyLength(), 3072);
   ASSERT_EQ(sub_key.GetKeyAlgo(), "RSA3072");
   ASSERT_EQ(sub_key.GetPubkeyAlgo(), "RSA");
-  ASSERT_FALSE(sub_key.IsHasCertificationCapability());
-  ASSERT_FALSE(sub_key.IsHasAuthenticationCapability());
-  ASSERT_FALSE(sub_key.IsHasSigningCapability());
-  ASSERT_TRUE(sub_key.IsHasEncryptionCapability());
+  ASSERT_FALSE(sub_key.IsHasCertCap());
+  ASSERT_FALSE(sub_key.IsHasAuthCap());
+  ASSERT_FALSE(sub_key.IsHasSignCap());
+  ASSERT_TRUE(sub_key.IsHasEncrCap());
   ASSERT_EQ(sub_key.GetExpireTime(),
             QDateTime::fromString("2023-09-05T04:00:00Z", Qt::ISODate));
 

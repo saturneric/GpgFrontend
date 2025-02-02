@@ -205,9 +205,8 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
     tmp0->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 0, tmp0);
 
-    auto* tmp1 = new QTableWidgetItem(subkey.IsHasCertificationCapability()
-                                          ? tr("Primary Key")
-                                          : tr("Subkey"));
+    auto* tmp1 = new QTableWidgetItem(subkey.IsHasCertCap() ? tr("Primary Key")
+                                                            : tr("Subkey"));
     tmp1->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 1, tmp1);
 
@@ -307,12 +306,12 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   QString buffer;
   QTextStream usage_steam(&buffer);
 
-  if (subkey.IsHasCertificationCapability()) {
+  if (subkey.IsHasCertCap()) {
     usage_steam << tr("Certificate") << " ";
   }
-  if (subkey.IsHasEncryptionCapability()) usage_steam << tr("Encrypt") << " ";
-  if (subkey.IsHasSigningCapability()) usage_steam << tr("Sign") << " ";
-  if (subkey.IsHasAuthenticationCapability()) usage_steam << tr("Auth") << " ";
+  if (subkey.IsHasEncrCap()) usage_steam << tr("Encrypt") << " ";
+  if (subkey.IsHasSignCap()) usage_steam << tr("Sign") << " ";
+  if (subkey.IsHasAuthCap()) usage_steam << tr("Auth") << " ";
 
   usage_var_label_->setText(usage_steam.readAll());
 
@@ -348,15 +347,13 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   fingerprint_var_label_->setText(BeautifyFingerprint(subkey.GetFingerprint()));
   fingerprint_var_label_->setWordWrap(true);  // for x448 and ed448
 
-  export_subkey_button_->setText(subkey.IsHasCertificationCapability()
-                                     ? tr("Export Primary Key")
-                                     : tr("Export Subkey"));
-  export_subkey_button_->setDisabled(!key_.IsPrivateKey() ||
-                                     subkey.IsHasCertificationCapability() ||
-                                     !subkey.IsSecretKey());
+  export_subkey_button_->setText(
+      subkey.IsHasCertCap() ? tr("Export Primary Key") : tr("Export Subkey"));
+  export_subkey_button_->setDisabled(
+      !key_.IsPrivateKey() || subkey.IsHasCertCap() || !subkey.IsSecretKey());
 
-  key_type_var_label_->setText(
-      subkey.IsHasCertificationCapability() ? tr("Primary Key") : tr("Subkey"));
+  key_type_var_label_->setText(subkey.IsHasCertCap() ? tr("Primary Key")
+                                                     : tr("Subkey"));
 
   revoke_var_label_->setText(subkey.IsRevoked() ? tr("Yes") : tr("No"));
   if (!subkey.IsRevoked()) {
@@ -406,7 +403,7 @@ void KeyPairSubkeyTab::contextMenuEvent(QContextMenuEvent* event) {
   if (key_.IsHasMasterKey() && !subkey_list_->selectedItems().isEmpty()) {
     const auto& subkey = get_selected_subkey();
 
-    if (subkey.IsHasCertificationCapability()) return;
+    if (subkey.IsHasCertCap()) return;
 
     export_subkey_act_->setDisabled(!subkey.IsSecretKey());
     edit_subkey_act_->setDisabled(!subkey.IsSecretKey());

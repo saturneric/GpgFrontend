@@ -92,15 +92,15 @@ TEST_F(GpgCoreTest, GenerateKeyRSA2048Test) {
   ASSERT_EQ(key.GetPrimaryKeyLength(), 2048);
   ASSERT_EQ(key.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_TRUE(key.IsHasCertificationCapability());
-  ASSERT_TRUE(key.IsHasAuthenticationCapability());
-  ASSERT_TRUE(key.IsHasEncryptionCapability());
-  ASSERT_TRUE(key.IsHasSigningCapability());
+  ASSERT_TRUE(key.IsHasCertCap());
+  ASSERT_TRUE(key.IsHasAuthCap());
+  ASSERT_TRUE(key.IsHasEncrCap());
+  ASSERT_TRUE(key.IsHasSignCap());
 
-  ASSERT_TRUE(key.IsHasActualCertificationCapability());
-  ASSERT_TRUE(key.IsHasActualAuthenticationCapability());
-  ASSERT_TRUE(key.IsHasActualEncryptionCapability());
-  ASSERT_TRUE(key.IsHasActualSigningCapability());
+  ASSERT_TRUE(key.IsHasActualCertCap());
+  ASSERT_TRUE(key.IsHasActualAuthCap());
+  ASSERT_TRUE(key.IsHasActualEncrCap());
+  ASSERT_TRUE(key.IsHasActualSignCap());
 
   GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
       .DeleteKey(result.GetFingerprint());
@@ -185,15 +185,15 @@ TEST_F(GpgCoreTest, GenerateKeyDSA2048Test) {
   ASSERT_EQ(key.GetPrimaryKeyLength(), 2048);
   ASSERT_GT(key.GetExpireTime(), QDateTime::currentDateTime());
 
-  ASSERT_TRUE(key.IsHasCertificationCapability());
-  ASSERT_TRUE(key.IsHasAuthenticationCapability());
-  ASSERT_FALSE(key.IsHasEncryptionCapability());
-  ASSERT_TRUE(key.IsHasSigningCapability());
+  ASSERT_TRUE(key.IsHasCertCap());
+  ASSERT_TRUE(key.IsHasAuthCap());
+  ASSERT_FALSE(key.IsHasEncrCap());
+  ASSERT_TRUE(key.IsHasSignCap());
 
-  ASSERT_TRUE(key.IsHasActualCertificationCapability());
-  ASSERT_TRUE(key.IsHasActualAuthenticationCapability());
-  ASSERT_FALSE(key.IsHasActualEncryptionCapability());
-  ASSERT_TRUE(key.IsHasActualSigningCapability());
+  ASSERT_TRUE(key.IsHasActualCertCap());
+  ASSERT_TRUE(key.IsHasActualAuthCap());
+  ASSERT_FALSE(key.IsHasActualEncrCap());
+  ASSERT_TRUE(key.IsHasActualSignCap());
 
   GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
       .DeleteKey(result.GetFingerprint());
@@ -239,15 +239,15 @@ TEST_F(GpgCoreTest, GenerateKeyED25519Test) {
   ASSERT_EQ(key.GetPrimaryKeyLength(), 255);
   ASSERT_GT(key.GetExpireTime(), QDateTime::currentDateTime());
 
-  ASSERT_TRUE(key.IsHasCertificationCapability());
-  ASSERT_TRUE(key.IsHasAuthenticationCapability());
-  ASSERT_FALSE(key.IsHasEncryptionCapability());
-  ASSERT_TRUE(key.IsHasSigningCapability());
+  ASSERT_TRUE(key.IsHasCertCap());
+  ASSERT_TRUE(key.IsHasAuthCap());
+  ASSERT_FALSE(key.IsHasEncrCap());
+  ASSERT_TRUE(key.IsHasSignCap());
 
-  ASSERT_TRUE(key.IsHasActualCertificationCapability());
-  ASSERT_TRUE(key.IsHasActualAuthenticationCapability());
-  ASSERT_FALSE(key.IsHasActualEncryptionCapability());
-  ASSERT_TRUE(key.IsHasActualSigningCapability());
+  ASSERT_TRUE(key.IsHasActualCertCap());
+  ASSERT_TRUE(key.IsHasActualAuthCap());
+  ASSERT_FALSE(key.IsHasActualEncrCap());
+  ASSERT_TRUE(key.IsHasActualSignCap());
 
   GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
       .DeleteKey(result.GetFingerprint());
@@ -300,10 +300,10 @@ TEST_F(GpgCoreTest, GenerateKeyED25519CV25519Test) {
   ASSERT_EQ(key.GetPrimaryKeyLength(), 255);
   ASSERT_EQ(key.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_TRUE(key.IsHasCertificationCapability());
-  ASSERT_TRUE(key.IsHasAuthenticationCapability());
-  ASSERT_TRUE(key.IsHasEncryptionCapability());
-  ASSERT_TRUE(key.IsHasSigningCapability());
+  ASSERT_TRUE(key.IsHasCertCap());
+  ASSERT_TRUE(key.IsHasAuthCap());
+  ASSERT_TRUE(key.IsHasEncrCap());
+  ASSERT_TRUE(key.IsHasSignCap());
 
   ASSERT_FALSE(key.GetSubKeys()->empty());
   ASSERT_EQ(key.GetSubKeys()->size(), 2);
@@ -315,15 +315,15 @@ TEST_F(GpgCoreTest, GenerateKeyED25519CV25519Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 255);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_FALSE(subkey.IsHasAuthenticationCapability());
-  ASSERT_TRUE(subkey.IsHasEncryptionCapability());
-  ASSERT_FALSE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_FALSE(subkey.IsHasAuthCap());
+  ASSERT_TRUE(subkey.IsHasEncrCap());
+  ASSERT_FALSE(subkey.IsHasSignCap());
 
-  ASSERT_TRUE(key.IsHasActualCertificationCapability());
-  ASSERT_TRUE(key.IsHasActualAuthenticationCapability());
-  ASSERT_TRUE(key.IsHasActualEncryptionCapability());
-  ASSERT_TRUE(key.IsHasActualSigningCapability());
+  ASSERT_TRUE(key.IsHasActualCertCap());
+  ASSERT_TRUE(key.IsHasActualAuthCap());
+  ASSERT_TRUE(key.IsHasActualEncrCap());
+  ASSERT_TRUE(key.IsHasActualSignCap());
 
   GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(fpr);
 }
@@ -375,10 +375,10 @@ TEST_F(GpgCoreTest, GenerateKeyED25519NISTP256Test) {
   ASSERT_EQ(key.GetPrimaryKeyLength(), 255);
   ASSERT_EQ(key.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_TRUE(key.IsHasCertificationCapability());
-  ASSERT_TRUE(key.IsHasAuthenticationCapability());
-  ASSERT_TRUE(key.IsHasEncryptionCapability());
-  ASSERT_TRUE(key.IsHasSigningCapability());
+  ASSERT_TRUE(key.IsHasCertCap());
+  ASSERT_TRUE(key.IsHasAuthCap());
+  ASSERT_TRUE(key.IsHasEncrCap());
+  ASSERT_TRUE(key.IsHasSignCap());
 
   ASSERT_FALSE(key.GetSubKeys()->empty());
   ASSERT_EQ(key.GetSubKeys()->size(), 2);
@@ -390,15 +390,15 @@ TEST_F(GpgCoreTest, GenerateKeyED25519NISTP256Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 256);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_FALSE(subkey.IsHasAuthenticationCapability());
-  ASSERT_TRUE(subkey.IsHasEncryptionCapability());
-  ASSERT_FALSE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_FALSE(subkey.IsHasAuthCap());
+  ASSERT_TRUE(subkey.IsHasEncrCap());
+  ASSERT_FALSE(subkey.IsHasSignCap());
 
-  ASSERT_TRUE(key.IsHasActualCertificationCapability());
-  ASSERT_TRUE(key.IsHasActualAuthenticationCapability());
-  ASSERT_TRUE(key.IsHasActualEncryptionCapability());
-  ASSERT_TRUE(key.IsHasActualSigningCapability());
+  ASSERT_TRUE(key.IsHasActualCertCap());
+  ASSERT_TRUE(key.IsHasActualAuthCap());
+  ASSERT_TRUE(key.IsHasActualEncrCap());
+  ASSERT_TRUE(key.IsHasActualSignCap());
 
   GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(fpr);
 }
@@ -450,10 +450,10 @@ TEST_F(GpgCoreTest, GenerateKeyED25519BRAINPOOLP256R1Test) {
   ASSERT_EQ(key.GetPrimaryKeyLength(), 255);
   ASSERT_EQ(key.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_TRUE(key.IsHasCertificationCapability());
-  ASSERT_TRUE(key.IsHasAuthenticationCapability());
-  ASSERT_TRUE(key.IsHasEncryptionCapability());
-  ASSERT_TRUE(key.IsHasSigningCapability());
+  ASSERT_TRUE(key.IsHasCertCap());
+  ASSERT_TRUE(key.IsHasAuthCap());
+  ASSERT_TRUE(key.IsHasEncrCap());
+  ASSERT_TRUE(key.IsHasSignCap());
 
   ASSERT_FALSE(key.GetSubKeys()->empty());
   ASSERT_EQ(key.GetSubKeys()->size(), 2);
@@ -465,15 +465,15 @@ TEST_F(GpgCoreTest, GenerateKeyED25519BRAINPOOLP256R1Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 256);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_FALSE(subkey.IsHasAuthenticationCapability());
-  ASSERT_TRUE(subkey.IsHasEncryptionCapability());
-  ASSERT_FALSE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_FALSE(subkey.IsHasAuthCap());
+  ASSERT_TRUE(subkey.IsHasEncrCap());
+  ASSERT_FALSE(subkey.IsHasSignCap());
 
-  ASSERT_TRUE(key.IsHasActualCertificationCapability());
-  ASSERT_TRUE(key.IsHasActualAuthenticationCapability());
-  ASSERT_TRUE(key.IsHasActualEncryptionCapability());
-  ASSERT_TRUE(key.IsHasActualSigningCapability());
+  ASSERT_TRUE(key.IsHasActualCertCap());
+  ASSERT_TRUE(key.IsHasActualAuthCap());
+  ASSERT_TRUE(key.IsHasActualEncrCap());
+  ASSERT_TRUE(key.IsHasActualSignCap());
 
   GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(fpr);
 }
@@ -519,15 +519,15 @@ TEST_F(GpgCoreTest, GenerateKeyNISTP256Test) {
   ASSERT_EQ(key.GetPrimaryKeyLength(), 256);
   ASSERT_GT(key.GetExpireTime(), QDateTime::currentDateTime());
 
-  ASSERT_TRUE(key.IsHasCertificationCapability());
-  ASSERT_TRUE(key.IsHasAuthenticationCapability());
-  ASSERT_FALSE(key.IsHasEncryptionCapability());
-  ASSERT_TRUE(key.IsHasSigningCapability());
+  ASSERT_TRUE(key.IsHasCertCap());
+  ASSERT_TRUE(key.IsHasAuthCap());
+  ASSERT_FALSE(key.IsHasEncrCap());
+  ASSERT_TRUE(key.IsHasSignCap());
 
-  ASSERT_TRUE(key.IsHasActualCertificationCapability());
-  ASSERT_TRUE(key.IsHasActualAuthenticationCapability());
-  ASSERT_FALSE(key.IsHasActualEncryptionCapability());
-  ASSERT_TRUE(key.IsHasActualSigningCapability());
+  ASSERT_TRUE(key.IsHasActualCertCap());
+  ASSERT_TRUE(key.IsHasActualAuthCap());
+  ASSERT_FALSE(key.IsHasActualEncrCap());
+  ASSERT_TRUE(key.IsHasActualSignCap());
 
   GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
       .DeleteKey(result.GetFingerprint());
@@ -574,15 +574,15 @@ TEST_F(GpgCoreTest, GenerateKeyED448Test) {
   ASSERT_EQ(key.GetPrimaryKeyLength(), 448);
   ASSERT_GT(key.GetExpireTime(), QDateTime::currentDateTime());
 
-  ASSERT_TRUE(key.IsHasCertificationCapability());
-  ASSERT_TRUE(key.IsHasAuthenticationCapability());
-  ASSERT_FALSE(key.IsHasEncryptionCapability());
-  ASSERT_TRUE(key.IsHasSigningCapability());
+  ASSERT_TRUE(key.IsHasCertCap());
+  ASSERT_TRUE(key.IsHasAuthCap());
+  ASSERT_FALSE(key.IsHasEncrCap());
+  ASSERT_TRUE(key.IsHasSignCap());
 
-  ASSERT_TRUE(key.IsHasActualCertificationCapability());
-  ASSERT_TRUE(key.IsHasActualAuthenticationCapability());
-  ASSERT_FALSE(key.IsHasActualEncryptionCapability());
-  ASSERT_TRUE(key.IsHasActualSigningCapability());
+  ASSERT_TRUE(key.IsHasActualCertCap());
+  ASSERT_TRUE(key.IsHasActualAuthCap());
+  ASSERT_FALSE(key.IsHasActualEncrCap());
+  ASSERT_TRUE(key.IsHasActualSignCap());
 
   GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
       .DeleteKey(result.GetFingerprint());
@@ -629,15 +629,15 @@ TEST_F(GpgCoreTest, GenerateKeySECP256K1Test) {
   ASSERT_EQ(key.GetPrimaryKeyLength(), 256);
   ASSERT_GT(key.GetExpireTime(), QDateTime::currentDateTime());
 
-  ASSERT_TRUE(key.IsHasCertificationCapability());
-  ASSERT_TRUE(key.IsHasAuthenticationCapability());
-  ASSERT_FALSE(key.IsHasEncryptionCapability());
-  ASSERT_TRUE(key.IsHasSigningCapability());
+  ASSERT_TRUE(key.IsHasCertCap());
+  ASSERT_TRUE(key.IsHasAuthCap());
+  ASSERT_FALSE(key.IsHasEncrCap());
+  ASSERT_TRUE(key.IsHasSignCap());
 
-  ASSERT_TRUE(key.IsHasActualCertificationCapability());
-  ASSERT_TRUE(key.IsHasActualAuthenticationCapability());
-  ASSERT_FALSE(key.IsHasActualEncryptionCapability());
-  ASSERT_TRUE(key.IsHasActualSigningCapability());
+  ASSERT_TRUE(key.IsHasActualCertCap());
+  ASSERT_TRUE(key.IsHasActualAuthCap());
+  ASSERT_FALSE(key.IsHasActualEncrCap());
+  ASSERT_TRUE(key.IsHasActualSignCap());
 
   GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
       .DeleteKey(result.GetFingerprint());

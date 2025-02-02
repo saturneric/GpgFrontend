@@ -179,15 +179,15 @@ auto GenerateKeyImpl(GpgContext& ctx,
   unsigned int flags = 0;
 
   if (!params->IsSubKey()) flags |= GPGME_CREATE_CERT;
-  if (params->IsAllowEncryption()) flags |= GPGME_CREATE_ENCR;
-  if (params->IsAllowSigning()) flags |= GPGME_CREATE_SIGN;
-  if (params->IsAllowAuthentication()) flags |= GPGME_CREATE_AUTH;
+  if (params->IsAllowEncr()) flags |= GPGME_CREATE_ENCR;
+  if (params->IsAllowSign()) flags |= GPGME_CREATE_SIGN;
+  if (params->IsAllowAuth()) flags |= GPGME_CREATE_AUTH;
   if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
   if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
 
   LOG_D() << "key generation args: " << userid << algo << expires << flags;
-  LOG_D() << "key generation flags" << params->IsAllowEncryption()
-          << params->IsAllowSigning() << params->IsAllowAuthentication()
+  LOG_D() << "key generation flags" << params->IsAllowEncr()
+          << params->IsAllowSign() << params->IsAllowAuth()
           << !params->IsSubKey();
 
   err = gpgme_op_createkey(ctx.DefaultContext(), userid.toUtf8(), algo.toUtf8(),
@@ -240,9 +240,9 @@ auto GenerateSubKeyImpl(GpgContext& ctx, const GpgKey& key,
   unsigned int flags = 0;
 
   if (!params->IsSubKey()) flags |= GPGME_CREATE_CERT;
-  if (params->IsAllowEncryption()) flags |= GPGME_CREATE_ENCR;
-  if (params->IsAllowSigning()) flags |= GPGME_CREATE_SIGN;
-  if (params->IsAllowAuthentication()) flags |= GPGME_CREATE_AUTH;
+  if (params->IsAllowEncr()) flags |= GPGME_CREATE_ENCR;
+  if (params->IsAllowSign()) flags |= GPGME_CREATE_SIGN;
+  if (params->IsAllowAuth()) flags |= GPGME_CREATE_AUTH;
   if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
   if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
 

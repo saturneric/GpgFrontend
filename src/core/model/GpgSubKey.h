@@ -81,7 +81,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsHasEncryptionCapability() const -> bool;
+  [[nodiscard]] auto IsHasEncrCap() const -> bool;
 
   /**
    * @brief
@@ -89,7 +89,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsHasSigningCapability() const -> bool;
+  [[nodiscard]] auto IsHasSignCap() const -> bool;
 
   /**
    * @brief
@@ -97,7 +97,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsHasCertificationCapability() const -> bool;
+  [[nodiscard]] auto IsHasCertCap() const -> bool;
 
   /**
    * @brief
@@ -105,7 +105,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsHasAuthenticationCapability() const -> bool;
+  [[nodiscard]] auto IsHasAuthCap() const -> bool;
 
   /**
    * @brief
