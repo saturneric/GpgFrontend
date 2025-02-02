@@ -32,21 +32,21 @@
       <number>5</number>
      </property>
      <item row="4" column="0">
-      <widget class="QLabel" name="label_3">
+      <widget class="QLabel" name="commentLabel">
        <property name="text">
         <string>Comment</string>
        </property>
       </widget>
      </item>
      <item row="3" column="0">
-      <widget class="QLabel" name="label_2">
+      <widget class="QLabel" name="emailLabel">
        <property name="text">
         <string>Email</string>
        </property>
       </widget>
      </item>
      <item row="2" column="0">
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="nameLabel">
        <property name="text">
         <string>Name</string>
        </property>
@@ -62,7 +62,7 @@
       <widget class="QLineEdit" name="emailEdit"/>
      </item>
      <item row="5" column="0">
-      <widget class="QLabel" name="label_6">
+      <widget class="QLabel" name="keyDBLabel">
        <property name="text">
         <string>Key Database</string>
        </property>
@@ -86,7 +86,7 @@
        <property name="documentMode">
         <bool>true</bool>
        </property>
-       <widget class="QWidget" name="tab">
+       <widget class="QWidget" name="easyTab">
         <attribute name="title">
          <string>Easy Mode</string>
         </attribute>
@@ -94,7 +94,7 @@
          <item>
           <layout class="QGridLayout" name="gridLayout">
            <item row="4" column="0">
-            <widget class="QLabel" name="label_4">
+            <widget class="QLabel" name="easyValidPeriodLabel">
              <property name="text">
               <string>Validity Period</string>
              </property>
@@ -107,11 +107,21 @@
             <widget class="QComboBox" name="easyValidityPeriodComboBox"/>
            </item>
            <item row="0" column="0">
-            <widget class="QLabel" name="label_5">
+            <widget class="QLabel" name="easyAlgoLabel">
              <property name="text">
               <string>Algorithm</string>
              </property>
             </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="combinationLabel">
+             <property name="text">
+              <string>Combination</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1" colspan="2">
+            <widget class="QComboBox" name="easyCombinationComboBox"/>
            </item>
           </layout>
          </item>
@@ -130,7 +140,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="tab_2">
+       <widget class="QWidget" name="pTab">
         <attribute name="title">
          <string>Primary Key</string>
         </attribute>
@@ -138,28 +148,28 @@
          <item>
           <layout class="QGridLayout" name="gridLayout_2">
            <item row="3" column="0">
-            <widget class="QLabel" name="label_13">
+            <widget class="QLabel" name="pKeyLengthLabel">
              <property name="text">
               <string>Key Length</string>
              </property>
             </widget>
            </item>
            <item row="1" column="0">
-            <widget class="QLabel" name="label_7">
+            <widget class="QLabel" name="pValidPeriodLabel">
              <property name="text">
               <string>Validity Period</string>
              </property>
             </widget>
            </item>
            <item row="0" column="0">
-            <widget class="QLabel" name="label_9">
+            <widget class="QLabel" name="pAlgoLabel">
              <property name="text">
               <string>Algorithm</string>
              </property>
             </widget>
            </item>
            <item row="4" column="0">
-            <widget class="QLabel" name="label_8">
+            <widget class="QLabel" name="pUsageLabel">
              <property name="text">
               <string>Usage</string>
              </property>
@@ -230,7 +240,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="tab_3">
+       <widget class="QWidget" name="sTab">
         <attribute name="title">
          <string>Subkey</string>
         </attribute>
@@ -238,14 +248,14 @@
          <item>
           <layout class="QGridLayout" name="gridLayout_4">
            <item row="1" column="0">
-            <widget class="QLabel" name="label_10">
+            <widget class="QLabel" name="sValidPeriodLabel">
              <property name="text">
               <string>Validity Period</string>
              </property>
             </widget>
            </item>
            <item row="4" column="0">
-            <widget class="QLabel" name="label_12">
+            <widget class="QLabel" name="sUsageLabel">
              <property name="text">
               <string>Usage</string>
              </property>
@@ -255,7 +265,7 @@
             <widget class="QDateTimeEdit" name="sValidityPeriodDateTimeEdit"/>
            </item>
            <item row="3" column="0">
-            <widget class="QLabel" name="label_14">
+            <widget class="QLabel" name="sKeyLengthLabel">
              <property name="text">
               <string>Key Length</string>
              </property>
@@ -293,7 +303,7 @@
             </layout>
            </item>
            <item row="0" column="0">
-            <widget class="QLabel" name="label_11">
+            <widget class="QLabel" name="sAlgoLabel">
              <property name="text">
               <string>Algorithm</string>
              </property>

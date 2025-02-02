@@ -95,13 +95,13 @@ void SetKeyLengthComboxBoxByAlgo(QComboBox* combo,
   combo->addItems(key_lengths);
 }
 
-KeyGenDialog::KeyGenDialog(int channel, QWidget* parent)
-    : GeneralDialog(typeid(KeyGenDialog).name(), parent),
+KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
+    : GeneralDialog(typeid(KeyGenerateDialog).name(), parent),
       ui_(QSharedPointer<Ui_KeyGenDialog>::create()),
-      gen_key_info_(QSharedPointer<GenKeyInfo>::create()),
+      gen_key_info_(QSharedPointer<KeyGenerateInfo>::create()),
       gen_subkey_info_(nullptr),
-      supported_primary_key_algos_(GenKeyInfo::GetSupportedKeyAlgo()),
-      supported_subkey_algos_(GenKeyInfo::GetSupportedSubkeyAlgo()),
+      supported_primary_key_algos_(KeyGenerateInfo::GetSupportedKeyAlgo()),
+      supported_subkey_algos_(KeyGenerateInfo::GetSupportedSubkeyAlgo()),
       channel_(channel) {
   ui_->setupUi(this);
 
@@ -127,6 +127,42 @@ KeyGenDialog::KeyGenDialog(int channel, QWidget* parent)
       tr("10 Years"),
       tr("Non Expired"),
   });
+
+  ui_->easyCombinationComboBox->addItems({
+      tr("Primary Key Only"),
+      tr("Primary Key With Subkey"),
+  });
+
+  ui_->nameLabel->setText(tr("Name"));
+  ui_->emailLabel->setText(tr("Email"));
+  ui_->commentLabel->setText(tr("Comment"));
+  ui_->keyDBLabel->setText(tr("Key Database"));
+  ui_->easyAlgoLabel->setText(tr("Algorithm"));
+  ui_->easyValidPeriodLabel->setText(tr("Validity Period"));
+
+  ui_->pAlgoLabel->setText(tr("Algorithm"));
+  ui_->pValidPeriodLabel->setText(tr("Validity Period"));
+  ui_->pKeyLengthLabel->setText(tr("Key Length"));
+  ui_->pUsageLabel->setText(tr("Usage"));
+  ui_->pEncrCheckBox->setText(tr("Encrypt"));
+  ui_->pSignCheckBox->setText(tr("Sign"));
+  ui_->pAuthCheckBox->setText(tr("Authentication"));
+  ui_->noPassphraseCheckBox->setText(tr("No Passphrase"));
+  ui_->pExpireCheckBox->setText(tr("Non Expired"));
+
+  ui_->sAlgoLabel->setText(tr("Algorithm"));
+  ui_->sValidPeriodLabel->setText(tr("Validity Period"));
+  ui_->sKeyLengthLabel->setText(tr("Key Length"));
+  ui_->sUsageLabel->setText(tr("Usage"));
+  ui_->sEncrCheckBox->setText(tr("Encrypt"));
+  ui_->sSignCheckBox->setText(tr("Sign"));
+  ui_->sAuthCheckBox->setText(tr("Authentication"));
+  ui_->sExpireCheckBox->setText(tr("Non Expired"));
+
+  ui_->tabWidget->setTabText(0, tr("Easy Mode"));
+  ui_->tabWidget->setTabText(0, tr("Primary Key"));
+  ui_->tabWidget->setTabText(0, tr("Subkey"));
+  ui_->generateButton->setText(tr("Generate"));
 
   QSet<QString> p_algo_set;
   for (const auto& algo : supported_primary_key_algos_) {
@@ -156,21 +192,32 @@ KeyGenDialog::KeyGenDialog(int channel, QWidget* parent)
   this->setModal(true);
 }
 
-void KeyGenDialog::slot_key_gen_accept() {
+void KeyGenerateDialog::slot_key_gen_accept() {
   QString buffer;
-  QTextStream error_stream(&buffer);
+  QTextStream err_stream(&buffer);
 
   if (ui_->nameEdit->text().size() < 5) {
-    error_stream << " -> " << tr("Name must contain at least five characters.")
-                 << Qt::endl;
+    err_stream << " -> " << tr("Name must contain at least five characters.")
+               << Qt::endl;
   }
   if (ui_->emailEdit->text().isEmpty() ||
       !check_email_address(ui_->emailEdit->text())) {
-    error_stream << " -> " << tr("Please give a valid email address.")
-                 << Qt::endl;
+    err_stream << " -> " << tr("Please give a valid email address.")
+               << Qt::endl;
   }
 
-  const auto err_string = error_stream.readAll();
+  if (gen_key_info_->GetAlgo() == KeyGenerateInfo::kNoneAlgo) {
+    err_stream << " -> " << tr("Please give a valid primary key algorithm.")
+               << Qt::endl;
+  }
+
+  if (gen_subkey_info_ != nullptr &&
+      gen_subkey_info_->GetAlgo() == KeyGenerateInfo::kNoneAlgo) {
+    err_stream << " -> " << tr("Please give a valid subkey algorithm.")
+               << Qt::endl;
+  }
+
+  const auto err_string = err_stream.readAll();
   if (!err_string.isEmpty()) {
     ui_->statusPlainTextEdit->clear();
     ui_->statusPlainTextEdit->appendPlainText(err_string);
@@ -199,44 +246,13 @@ void KeyGenDialog::slot_key_gen_accept() {
     }
   }
 
-  if (!GetSettings()
-           .value("gnupg/use_pinentry_as_password_input_dialog",
-                  QString::fromLocal8Bit(qgetenv("container")) != "flatpak")
-           .toBool() &&
-      !ui_->noPassphraseCheckBox->isChecked()) {
-    SetCacheValue("PinentryContext", "NEW_PASSPHRASE");
-  }
-
   LOG_D() << "try to generate key at gpg context channel: " << channel_;
 
-  GpgOperaHelper::WaitForOpera(
-      this, tr("Generating"),
-      [this, gen_key_info = this->gen_key_info_](const OperaWaitingHd& hd) {
-        GpgKeyOpera::GetInstance(channel_).GenerateKeyWithSubkey(
-            gen_key_info, gen_subkey_info_,
-            [this, hd](GpgError err, const DataObjectPtr&) {
-              // stop showing waiting dialog
-              hd();
-
-              if (CheckGpgError(err) == GPG_ERR_USER_1) {
-                QMessageBox::critical(this, tr("Error"),
-                                      tr("Unknown error occurred"));
-                return;
-              }
-
-              CommonUtils::RaiseMessageBox(
-                  this->parentWidget() != nullptr ? this->parentWidget() : this,
-                  err);
-              if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-                emit SignalKeyGenerated();
-              }
-            });
-      });
-
+  do_generate();
   this->done(0);
 }
 
-void KeyGenDialog::refresh_widgets_state() {
+void KeyGenerateDialog::refresh_widgets_state() {
   ui_->pAlgoComboBox->blockSignals(true);
   ui_->pAlgoComboBox->setCurrentText(gen_key_info_->GetAlgo().Name());
   ui_->pAlgoComboBox->blockSignals(false);
@@ -280,7 +296,7 @@ void KeyGenDialog::refresh_widgets_state() {
   ui_->pExpireCheckBox->blockSignals(false);
 
   if (gen_subkey_info_ == nullptr) {
-    ui_->tab_3->setDisabled(true);
+    ui_->sTab->setDisabled(true);
 
     ui_->sAlgoComboBox->blockSignals(true);
     ui_->sAlgoComboBox->setCurrentText(tr("None"));
@@ -310,10 +326,14 @@ void KeyGenDialog::refresh_widgets_state() {
     ui_->sExpireCheckBox->blockSignals(true);
     ui_->sExpireCheckBox->setCheckState(Qt::Unchecked);
     ui_->sExpireCheckBox->blockSignals(false);
+
+    ui_->easyCombinationComboBox->blockSignals(true);
+    ui_->easyCombinationComboBox->setCurrentText(tr("Primary Key Only"));
+    ui_->easyCombinationComboBox->blockSignals(false);
     return;
   }
 
-  ui_->tab_3->setDisabled(false);
+  ui_->sTab->setDisabled(false);
 
   ui_->sAlgoComboBox->blockSignals(true);
   ui_->sAlgoComboBox->setCurrentText(gen_subkey_info_->GetAlgo().Name());
@@ -357,11 +377,15 @@ void KeyGenDialog::refresh_widgets_state() {
   ui_->sExpireCheckBox->blockSignals(true);
   ui_->sExpireCheckBox->setChecked(gen_subkey_info_->IsNonExpired());
   ui_->sExpireCheckBox->blockSignals(false);
+
+  ui_->easyCombinationComboBox->blockSignals(true);
+  ui_->easyCombinationComboBox->setCurrentText(tr("Primary Key With Subkey"));
+  ui_->easyCombinationComboBox->blockSignals(false);
 }
 
-void KeyGenDialog::set_signal_slot_config() {
+void KeyGenerateDialog::set_signal_slot_config() {
   connect(ui_->generateButton, &QPushButton::clicked, this,
-          &KeyGenDialog::slot_key_gen_accept);
+          &KeyGenerateDialog::slot_key_gen_accept);
 
   connect(ui_->pExpireCheckBox, &QCheckBox::stateChanged, this,
           [this](int state) {
@@ -425,10 +449,10 @@ void KeyGenDialog::set_signal_slot_config() {
           });
 
   connect(ui_->easyAlgoComboBox, &QComboBox::currentTextChanged, this,
-          &KeyGenDialog::slot_easy_mode_changed);
+          &KeyGenerateDialog::slot_easy_mode_changed);
 
   connect(ui_->easyValidityPeriodComboBox, &QComboBox::currentTextChanged, this,
-          &KeyGenDialog::slot_easy_valid_date_changed);
+          &KeyGenerateDialog::slot_easy_valid_date_changed);
 
   connect(ui_->pValidityPeriodDateTimeEdit, &QDateTimeEdit::dateTimeChanged,
           this, [=](const QDateTime& dt) {
@@ -447,16 +471,19 @@ void KeyGenDialog::set_signal_slot_config() {
   connect(ui_->keyDBIndexComboBox, &QComboBox::currentIndexChanged, this,
           [=](int index) { channel_ = index; });
 
-  connect(this, &KeyGenDialog::SignalKeyGenerated,
+  connect(ui_->easyCombinationComboBox, &QComboBox::currentTextChanged, this,
+          &KeyGenerateDialog::slot_easy_combination_changed);
+
+  connect(this, &KeyGenerateDialog::SignalKeyGenerated,
           UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefresh);
 }
 
-auto KeyGenDialog::check_email_address(const QString& str) -> bool {
+auto KeyGenerateDialog::check_email_address(const QString& str) -> bool {
   return re_email_.match(str).hasMatch();
 }
 
-void KeyGenDialog::sync_gen_key_info() {
+void KeyGenerateDialog::sync_gen_key_info() {
   auto [found, algo] = GetAlgoByName(ui_->pAlgoComboBox->currentText(),
 
                                      supported_primary_key_algos_);
@@ -468,7 +495,7 @@ void KeyGenDialog::sync_gen_key_info() {
   }
 }
 
-void KeyGenDialog::sync_gen_subkey_info() {
+void KeyGenerateDialog::sync_gen_subkey_info() {
   if (gen_subkey_info_ != nullptr) {
     auto [s_found, algo] = GetAlgoByName(ui_->sAlgoComboBox->currentText(),
                                          supported_subkey_algos_);
@@ -478,54 +505,54 @@ void KeyGenDialog::sync_gen_subkey_info() {
   }
 }
 
-void KeyGenDialog::slot_easy_mode_changed(const QString& mode) {
+void KeyGenerateDialog::slot_easy_mode_changed(const QString& mode) {
   if (mode == "RSA") {
-    auto [found, algo] = GenKeyInfo::SearchPrimaryKeyAlgo("rsa2048");
+    auto [found, algo] = KeyGenerateInfo::SearchPrimaryKeyAlgo("rsa2048");
     if (found) gen_key_info_->SetAlgo(algo);
 
     gen_subkey_info_ = nullptr;
   }
 
   else if (mode == "DSA") {
-    auto [found, algo] = GenKeyInfo::SearchPrimaryKeyAlgo("dsa2048");
+    auto [found, algo] = KeyGenerateInfo::SearchPrimaryKeyAlgo("dsa2048");
     if (found) gen_key_info_->SetAlgo(algo);
 
     if (gen_subkey_info_ == nullptr) {
-      gen_subkey_info_ = QSharedPointer<GenKeyInfo>::create(true);
+      gen_subkey_info_ = QSharedPointer<KeyGenerateInfo>::create(true);
     }
 
-    auto [s_found, s_algo] = GenKeyInfo::SearchSubKeyAlgo("elg2048");
+    auto [s_found, s_algo] = KeyGenerateInfo::SearchSubKeyAlgo("elg2048");
     if (s_found) gen_subkey_info_->SetAlgo(s_algo);
   }
 
   else if (mode == "ECC (25519)") {
-    auto [found, algo] = GenKeyInfo::SearchPrimaryKeyAlgo("ed25519");
+    auto [found, algo] = KeyGenerateInfo::SearchPrimaryKeyAlgo("ed25519");
     if (found) gen_key_info_->SetAlgo(algo);
 
     if (gen_subkey_info_ == nullptr) {
-      gen_subkey_info_ = QSharedPointer<GenKeyInfo>::create(true);
+      gen_subkey_info_ = QSharedPointer<KeyGenerateInfo>::create(true);
     }
 
-    auto [s_found, s_algo] = GenKeyInfo::SearchSubKeyAlgo("cv25519");
+    auto [s_found, s_algo] = KeyGenerateInfo::SearchSubKeyAlgo("cv25519");
     if (s_found) gen_subkey_info_->SetAlgo(s_algo);
   }
 
   else {
-    auto [found, algo] = GenKeyInfo::SearchPrimaryKeyAlgo("rsa2048");
+    auto [found, algo] = KeyGenerateInfo::SearchPrimaryKeyAlgo("rsa2048");
     if (found) gen_key_info_->SetAlgo(algo);
 
     if (gen_subkey_info_ == nullptr) {
-      gen_subkey_info_ = QSharedPointer<GenKeyInfo>::create(true);
+      gen_subkey_info_ = QSharedPointer<KeyGenerateInfo>::create(true);
     }
 
-    auto [s_found, s_algo] = GenKeyInfo::SearchSubKeyAlgo("rsa2048");
+    auto [s_found, s_algo] = KeyGenerateInfo::SearchSubKeyAlgo("rsa2048");
     if (s_found) gen_subkey_info_->SetAlgo(s_algo);
   }
 
   refresh_widgets_state();
 }
 
-void KeyGenDialog::slot_easy_valid_date_changed(const QString& mode) {
+void KeyGenerateDialog::slot_easy_valid_date_changed(const QString& mode) {
   if (mode == tr("3 Months")) {
     gen_key_info_->SetNonExpired(false);
     gen_key_info_->SetExpireTime(QDateTime::currentDateTime().addMonths(3));
@@ -575,15 +602,60 @@ void KeyGenDialog::slot_easy_valid_date_changed(const QString& mode) {
   refresh_widgets_state();
 }
 
-void KeyGenDialog::slot_set_easy_valid_date_2_custom() {
+void KeyGenerateDialog::slot_set_easy_valid_date_2_custom() {
   ui_->easyValidityPeriodComboBox->blockSignals(true);
   ui_->easyValidityPeriodComboBox->setCurrentText(tr("Custom"));
   ui_->easyValidityPeriodComboBox->blockSignals(false);
 }
 
-void KeyGenDialog::slot_set_easy_key_algo_2_custom() {
+void KeyGenerateDialog::slot_set_easy_key_algo_2_custom() {
   ui_->easyAlgoComboBox->blockSignals(true);
   ui_->easyAlgoComboBox->setCurrentText(tr("Custom"));
   ui_->easyAlgoComboBox->blockSignals(false);
+}
+
+void KeyGenerateDialog::slot_easy_combination_changed(const QString& mode) {
+  if (mode == tr("Primary Key Only")) {
+    gen_subkey_info_ = nullptr;
+  } else {
+    gen_subkey_info_ = QSharedPointer<KeyGenerateInfo>::create(true);
+  }
+
+  slot_set_easy_key_algo_2_custom();
+  refresh_widgets_state();
+}
+
+void KeyGenerateDialog::do_generate() {
+  if (!GetSettings()
+           .value("gnupg/use_pinentry_as_password_input_dialog",
+                  QString::fromLocal8Bit(qgetenv("container")) != "flatpak")
+           .toBool() &&
+      !ui_->noPassphraseCheckBox->isChecked()) {
+    SetCacheValue("PinentryContext", "NEW_PASSPHRASE");
+  }
+
+  auto f = [this,
+            gen_key_info = this->gen_key_info_](const OperaWaitingHd& hd) {
+    GpgKeyOpera::GetInstance(channel_).GenerateKeyWithSubkey(
+        gen_key_info, gen_subkey_info_,
+        [this, hd](GpgError err, const DataObjectPtr&) {
+          // stop showing waiting dialog
+          hd();
+
+          if (CheckGpgError(err) == GPG_ERR_USER_1) {
+            QMessageBox::critical(this, tr("Error"),
+                                  tr("Unknown error occurred"));
+            return;
+          }
+
+          CommonUtils::RaiseMessageBox(
+              this->parentWidget() != nullptr ? this->parentWidget() : this,
+              err);
+          if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+            emit SignalKeyGenerated();
+          }
+        });
+  };
+  GpgOperaHelper::WaitForOpera(this, tr("Generating"), f);
 }
 }  // namespace GpgFrontend::UI

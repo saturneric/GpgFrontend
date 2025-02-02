@@ -39,7 +39,7 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GenKeyInfo;
+class KeyGenerateInfo;
 
 /**
  * @brief
@@ -115,7 +115,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param result
    * @return GpgFrontend::GpgError
    */
-  void GenerateKey(const QSharedPointer<GenKeyInfo>&,
+  void GenerateKey(const QSharedPointer<KeyGenerateInfo>&,
                    const GpgOperationCallback&);
 
   /**
@@ -123,7 +123,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    *
    * @param params
    */
-  auto GenerateKeySync(const QSharedPointer<GenKeyInfo>& params)
+  auto GenerateKeySync(const QSharedPointer<KeyGenerateInfo>& params)
       -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
@@ -134,7 +134,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @return GpgFrontend::GpgError
    */
   void GenerateSubkey(const GpgKey& key,
-                      const QSharedPointer<GenKeyInfo>& params,
+                      const QSharedPointer<KeyGenerateInfo>& params,
                       const GpgOperationCallback&);
 
   /**
@@ -144,7 +144,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param params
    */
   auto GenerateSubkeySync(const GpgKey& key,
-                          const QSharedPointer<GenKeyInfo>& params)
+                          const QSharedPointer<KeyGenerateInfo>& params)
       -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
@@ -154,8 +154,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param subkey_params
    * @param callback
    */
-  void GenerateKeyWithSubkey(const QSharedPointer<GenKeyInfo>& p_params,
-                             const QSharedPointer<GenKeyInfo>& s_params,
+  void GenerateKeyWithSubkey(const QSharedPointer<KeyGenerateInfo>& p_params,
+                             const QSharedPointer<KeyGenerateInfo>& s_params,
                              const GpgOperationCallback& callback);
 
   /**
@@ -165,8 +165,9 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param subkey_params
    * @param callback
    */
-  auto GenerateKeyWithSubkeySync(const QSharedPointer<GenKeyInfo>& p_params,
-                                 const QSharedPointer<GenKeyInfo>& s_params)
+  auto GenerateKeyWithSubkeySync(
+      const QSharedPointer<KeyGenerateInfo>& p_params,
+      const QSharedPointer<KeyGenerateInfo>& s_params)
       -> std::tuple<GpgError, DataObjectPtr>;
 
  private:

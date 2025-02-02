@@ -29,9 +29,9 @@
 #include "GpgCoreTest.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
-#include "core/model/GpgGenKeyInfo.h"
 #include "core/model/GpgGenerateKeyResult.h"
 #include "core/model/GpgKey.h"
+#include "core/model/GpgKeyGenerateInfo.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
 
@@ -42,9 +42,9 @@ TEST_F(GpgCoreTest, GenerateSubkeyRSA2048Test) {
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
   ASSERT_TRUE(p_key.IsGood());
 
-  auto s_info = QSharedPointer<GenKeyInfo>::create(true);
+  auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
 
-  auto [found, algo] = GenKeyInfo::SearchSubKeyAlgo("rsa2048");
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo("rsa2048");
   ASSERT_TRUE(found);
   ASSERT_EQ(algo.Id(), "rsa2048");
   s_info->SetAlgo(algo);
@@ -85,9 +85,9 @@ TEST_F(GpgCoreTest, GenerateSubkeyDSA2048Test) {
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
   ASSERT_TRUE(p_key.IsGood());
 
-  auto s_info = QSharedPointer<GenKeyInfo>::create(true);
+  auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
 
-  auto [found, algo] = GenKeyInfo::SearchSubKeyAlgo("dsa2048");
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo("dsa2048");
   ASSERT_TRUE(found);
   ASSERT_EQ(algo.Id(), "dsa2048");
   s_info->SetAlgo(algo);
@@ -128,9 +128,9 @@ TEST_F(GpgCoreTest, GenerateSubkeyELG2048Test) {
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
   ASSERT_TRUE(p_key.IsGood());
 
-  auto s_info = QSharedPointer<GenKeyInfo>::create(true);
+  auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
 
-  auto [found, algo] = GenKeyInfo::SearchSubKeyAlgo("elg2048");
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo("elg2048");
   ASSERT_TRUE(found);
   ASSERT_EQ(algo.Id(), "elg2048");
   s_info->SetAlgo(algo);
@@ -171,9 +171,9 @@ TEST_F(GpgCoreTest, GenerateSubkeyED25519Test) {
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
   ASSERT_TRUE(p_key.IsGood());
 
-  auto s_info = QSharedPointer<GenKeyInfo>::create(true);
+  auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
 
-  auto [found, algo] = GenKeyInfo::SearchSubKeyAlgo("ed25519");
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo("ed25519");
   ASSERT_TRUE(found);
   ASSERT_EQ(algo.Id(), "ed25519");
   s_info->SetAlgo(algo);
@@ -214,9 +214,9 @@ TEST_F(GpgCoreTest, GenerateSubkeyCV25519Test) {
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
   ASSERT_TRUE(p_key.IsGood());
 
-  auto s_info = QSharedPointer<GenKeyInfo>::create(true);
+  auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
 
-  auto [found, algo] = GenKeyInfo::SearchSubKeyAlgo("cv25519");
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo("cv25519");
   ASSERT_TRUE(found);
   ASSERT_EQ(algo.Id(), "cv25519");
   s_info->SetAlgo(algo);
@@ -257,9 +257,9 @@ TEST_F(GpgCoreTest, GenerateSubkeyNISTP256Test) {
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
   ASSERT_TRUE(p_key.IsGood());
 
-  auto s_info = QSharedPointer<GenKeyInfo>::create(true);
+  auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
 
-  auto [found, algo] = GenKeyInfo::SearchSubKeyAlgo("nistp256");
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo("nistp256");
   ASSERT_TRUE(found);
   ASSERT_EQ(algo.Id(), "nistp256");
   s_info->SetAlgo(algo);
@@ -299,9 +299,9 @@ TEST_F(GpgCoreTest, GenerateSubkeyBRAINPOOLP256R1Test) {
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
   ASSERT_TRUE(p_key.IsGood());
 
-  auto s_info = QSharedPointer<GenKeyInfo>::create(true);
+  auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
 
-  auto [found, algo] = GenKeyInfo::SearchSubKeyAlgo("brainpoolp256r1");
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo("brainpoolp256r1");
   ASSERT_TRUE(found);
   ASSERT_EQ(algo.Id(), "brainpoolp256r1");
   s_info->SetAlgo(algo);
@@ -341,9 +341,9 @@ TEST_F(GpgCoreTest, GenerateSubkeyX448Test) {
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
   ASSERT_TRUE(p_key.IsGood());
 
-  auto s_info = QSharedPointer<GenKeyInfo>::create(true);
+  auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
 
-  auto [found, algo] = GenKeyInfo::SearchSubKeyAlgo("x448");
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo("x448");
   ASSERT_TRUE(found);
   ASSERT_EQ(algo.Id(), "x448");
   s_info->SetAlgo(algo);
@@ -383,9 +383,9 @@ TEST_F(GpgCoreTest, GenerateSubkeySECP256K1Test) {
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
   ASSERT_TRUE(p_key.IsGood());
 
-  auto s_info = QSharedPointer<GenKeyInfo>::create(true);
+  auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
 
-  auto [found, algo] = GenKeyInfo::SearchSubKeyAlgo("secp256k1");
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo("secp256k1");
   ASSERT_TRUE(found);
   ASSERT_EQ(algo.Id(), "secp256k1");
   s_info->SetAlgo(algo);

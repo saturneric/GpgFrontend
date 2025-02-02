@@ -441,7 +441,7 @@ void KeyMgmt::SlotExportKeyToClipboard() {
 }
 
 void KeyMgmt::SlotGenerateKeyDialog() {
-  (new KeyGenDialog(key_list_->GetCurrentGpgContextChannel(), this))->exec();
+  (new KeyGenerateDialog(key_list_->GetCurrentGpgContextChannel(), this))->exec();
   this->raise();
 }
 

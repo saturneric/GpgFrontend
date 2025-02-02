@@ -28,10 +28,7 @@
 
 #pragma once
 
-#include <utility>
-
 #include "core/GpgFrontendCoreExport.h"
-#include "core/function/gpg/GpgKeyOpera.h"
 #include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
@@ -46,6 +43,8 @@ class GPGFRONTEND_CORE_EXPORT KeyAlgo {
   KeyAlgo(const KeyAlgo &) = default;
 
   auto operator=(const KeyAlgo &) -> KeyAlgo & = default;
+
+  auto operator==(const KeyAlgo &o) const -> bool;
 
   [[nodiscard]] auto Id() const -> QString;
 
@@ -77,10 +76,10 @@ class GPGFRONTEND_CORE_EXPORT KeyAlgo {
   QString supported_version_;
 };
 
-class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
+class GPGFRONTEND_CORE_EXPORT KeyGenerateInfo {
  public:
+  static const KeyAlgo kNoneAlgo;
   static const QContainer<KeyAlgo> kPrimaryKeyAlgos;
-
   static const QContainer<KeyAlgo> kSubKeyAlgos;
 
   /**
@@ -89,7 +88,7 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    * @param m_is_sub_key
    * @param m_standalone
    */
-  explicit GenKeyInfo(bool is_subkey = false);
+  explicit KeyGenerateInfo(bool is_subkey = false);
 
   /**
    * @brief Get the Supported Key Algo object

@@ -26,7 +26,7 @@
  *
  */
 
-#include "GpgGenKeyInfo.h"
+#include "GpgKeyGenerateInfo.h"
 
 #include <cassert>
 
@@ -35,7 +35,12 @@
 
 namespace GpgFrontend {
 
-const QContainer<KeyAlgo> GenKeyInfo::kPrimaryKeyAlgos = {
+const KeyAlgo KeyGenerateInfo::kNoneAlgo = {"none", "None", "None",
+                                            0,      0,      "0.0.0"};
+
+const QContainer<KeyAlgo> KeyGenerateInfo::kPrimaryKeyAlgos = {
+    kNoneAlgo,
+
     /**
      * Algorithm (DSA) as a government standard for digital signatures.
      * Originally, it supported key lengths between 512 and 1024 bits.
@@ -63,7 +68,9 @@ const QContainer<KeyAlgo> GenKeyInfo::kPrimaryKeyAlgos = {
     {"secp256k1", "ED448", "EdDSA", 256, kSIGN | kAUTH | kCERT, "2.3.0"},
 };
 
-const QContainer<KeyAlgo> GenKeyInfo::kSubKeyAlgos = {
+const QContainer<KeyAlgo> KeyGenerateInfo::kSubKeyAlgos = {
+    kNoneAlgo,
+
     {"rsa1024", "RSA", "RSA", 1024, kENCRYPT | kSIGN | kAUTH, "2.2.0"},
     {"rsa2048", "RSA", "RSA", 2048, kENCRYPT | kSIGN | kAUTH, "2.2.0"},
     {"rsa3072", "RSA", "RSA", 3072, kENCRYPT | kSIGN | kAUTH, "2.2.0"},
@@ -91,7 +98,7 @@ const QContainer<KeyAlgo> GenKeyInfo::kSubKeyAlgos = {
     {"elg4096", "ELG-E", "ELG-E", 4096, kENCRYPT, "2.2.0"},
 };
 
-auto GenKeyInfo::GetSupportedKeyAlgo() -> QContainer<KeyAlgo> {
+auto KeyGenerateInfo::GetSupportedKeyAlgo() -> QContainer<KeyAlgo> {
   const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gnupg_version", QString{"2.0.0"});
 
@@ -109,7 +116,7 @@ auto GenKeyInfo::GetSupportedKeyAlgo() -> QContainer<KeyAlgo> {
   return algos;
 }
 
-auto GenKeyInfo::GetSupportedSubkeyAlgo() -> QContainer<KeyAlgo> {
+auto KeyGenerateInfo::GetSupportedSubkeyAlgo() -> QContainer<KeyAlgo> {
   const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gnupg_version", QString{"2.0.0"});
 
@@ -127,7 +134,10 @@ auto GenKeyInfo::GetSupportedSubkeyAlgo() -> QContainer<KeyAlgo> {
   return algos;
 }
 
-auto GenKeyInfo::SearchPrimaryKeyAlgo(const QString &algo_id)
+KeyGenerateInfo::KeyGenerateInfo(bool is_subkey)
+    : subkey_(is_subkey), algo_(kNoneAlgo) {}
+
+auto KeyGenerateInfo::SearchPrimaryKeyAlgo(const QString &algo_id)
     -> std::tuple<bool, KeyAlgo> {
   auto it =
       std::find_if(kPrimaryKeyAlgos.cbegin(), kPrimaryKeyAlgos.cend(),
@@ -140,7 +150,7 @@ auto GenKeyInfo::SearchPrimaryKeyAlgo(const QString &algo_id)
   return {false, KeyAlgo{}};
 }
 
-auto GenKeyInfo::SearchSubKeyAlgo(const QString &algo_id)
+auto KeyGenerateInfo::SearchSubKeyAlgo(const QString &algo_id)
     -> std::tuple<bool, KeyAlgo> {
   auto it =
       std::find_if(kSubKeyAlgos.cbegin(), kSubKeyAlgos.cend(),
@@ -153,7 +163,7 @@ auto GenKeyInfo::SearchSubKeyAlgo(const QString &algo_id)
   return {false, KeyAlgo{}};
 }
 
-void GenKeyInfo::SetAlgo(const KeyAlgo &algo) {
+void KeyGenerateInfo::SetAlgo(const KeyAlgo &algo) {
   // reset all options
   reset_options();
 
@@ -172,7 +182,7 @@ void GenKeyInfo::SetAlgo(const KeyAlgo &algo) {
   this->algo_ = algo;
 }
 
-void GenKeyInfo::reset_options() {
+void KeyGenerateInfo::reset_options() {
   allow_change_encryption_ = true;
   SetAllowEncryption(true);
 
@@ -186,30 +196,25 @@ void GenKeyInfo::reset_options() {
   SetAllowAuthentication(true);
 }
 
-void GenKeyInfo::SetExpireTime(const QDateTime &m_expired) {
-  GenKeyInfo::expired_ = m_expired;
+void KeyGenerateInfo::SetExpireTime(const QDateTime &m_expired) {
+  KeyGenerateInfo::expired_ = m_expired;
 }
 
-void GenKeyInfo::SetNonExpired(bool m_non_expired) {
+void KeyGenerateInfo::SetNonExpired(bool m_non_expired) {
   if (!m_non_expired) this->expired_ = QDateTime::fromSecsSinceEpoch(0);
-  GenKeyInfo::non_expired_ = m_non_expired;
+  KeyGenerateInfo::non_expired_ = m_non_expired;
 }
 
-void GenKeyInfo::SetAllowEncryption(bool m_allow_encryption) {
+void KeyGenerateInfo::SetAllowEncryption(bool m_allow_encryption) {
   if (allow_change_encryption_) {
-    GenKeyInfo::allow_encryption_ = m_allow_encryption;
+    KeyGenerateInfo::allow_encryption_ = m_allow_encryption;
   }
 }
 
-void GenKeyInfo::SetAllowCertification(bool m_allow_certification) {
+void KeyGenerateInfo::SetAllowCertification(bool m_allow_certification) {
   if (allow_change_certification_) {
-    GenKeyInfo::allow_certification_ = m_allow_certification;
+    KeyGenerateInfo::allow_certification_ = m_allow_certification;
   }
-}
-
-GenKeyInfo::GenKeyInfo(bool is_subkey) : subkey_(is_subkey) {
-  assert(!GetSupportedKeyAlgo().empty());
-  SetAlgo(GetSupportedKeyAlgo().front());
 }
 
 /**
@@ -218,15 +223,15 @@ GenKeyInfo::GenKeyInfo(bool is_subkey) : subkey_(is_subkey) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto GenKeyInfo::IsSubKey() const -> bool { return subkey_; }
+[[nodiscard]] auto KeyGenerateInfo::IsSubKey() const -> bool { return subkey_; }
 
 /**
  * @brief Set the Is Sub Key object
  *
  * @param m_sub_key
  */
-void GenKeyInfo::SetIsSubKey(bool m_sub_key) {
-  GenKeyInfo::subkey_ = m_sub_key;
+void KeyGenerateInfo::SetIsSubKey(bool m_sub_key) {
+  KeyGenerateInfo::subkey_ = m_sub_key;
 }
 
 /**
@@ -234,7 +239,7 @@ void GenKeyInfo::SetIsSubKey(bool m_sub_key) {
  *
  * @return QString
  */
-[[nodiscard]] auto GenKeyInfo::GetUserid() const -> QString {
+[[nodiscard]] auto KeyGenerateInfo::GetUserid() const -> QString {
   return QString("%1(%2)<%3>").arg(name_).arg(comment_).arg(email_);
 }
 
@@ -243,21 +248,23 @@ void GenKeyInfo::SetIsSubKey(bool m_sub_key) {
  *
  * @param m_name
  */
-void GenKeyInfo::SetName(const QString &m_name) { this->name_ = m_name; }
+void KeyGenerateInfo::SetName(const QString &m_name) { this->name_ = m_name; }
 
 /**
  * @brief Set the Email object
  *
  * @param m_email
  */
-void GenKeyInfo::SetEmail(const QString &m_email) { this->email_ = m_email; }
+void KeyGenerateInfo::SetEmail(const QString &m_email) {
+  this->email_ = m_email;
+}
 
 /**
  * @brief Set the Comment object
  *
  * @param m_comment
  */
-void GenKeyInfo::SetComment(const QString &m_comment) {
+void KeyGenerateInfo::SetComment(const QString &m_comment) {
   this->comment_ = m_comment;
 }
 
@@ -266,21 +273,23 @@ void GenKeyInfo::SetComment(const QString &m_comment) {
  *
  * @return QString
  */
-[[nodiscard]] auto GenKeyInfo::GetName() const -> QString { return name_; }
+[[nodiscard]] auto KeyGenerateInfo::GetName() const -> QString { return name_; }
 
 /**
  * @brief Get the Email object
  *
  * @return QString
  */
-[[nodiscard]] auto GenKeyInfo::GetEmail() const -> QString { return email_; }
+[[nodiscard]] auto KeyGenerateInfo::GetEmail() const -> QString {
+  return email_;
+}
 
 /**
  * @brief Get the Comment object
  *
  * @return QString
  */
-[[nodiscard]] auto GenKeyInfo::GetComment() const -> QString {
+[[nodiscard]] auto KeyGenerateInfo::GetComment() const -> QString {
   return comment_;
 }
 
@@ -289,7 +298,7 @@ void GenKeyInfo::SetComment(const QString &m_comment) {
  *
  * @return const QString&
  */
-[[nodiscard]] auto GenKeyInfo::GetAlgo() const -> const KeyAlgo & {
+[[nodiscard]] auto KeyGenerateInfo::GetAlgo() const -> const KeyAlgo & {
   return algo_;
 }
 
@@ -298,7 +307,7 @@ void GenKeyInfo::SetComment(const QString &m_comment) {
  *
  * @return int
  */
-[[nodiscard]] auto GenKeyInfo::GetKeyLength() const -> int {
+[[nodiscard]] auto KeyGenerateInfo::GetKeyLength() const -> int {
   return algo_.KeyLength();
 }
 
@@ -307,7 +316,7 @@ void GenKeyInfo::SetComment(const QString &m_comment) {
  *
  * @return const QDateTime&
  */
-[[nodiscard]] auto GenKeyInfo::GetExpireTime() const -> const QDateTime & {
+[[nodiscard]] auto KeyGenerateInfo::GetExpireTime() const -> const QDateTime & {
   return expired_;
 }
 
@@ -317,7 +326,7 @@ void GenKeyInfo::SetComment(const QString &m_comment) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto GenKeyInfo::IsNonExpired() const -> bool {
+[[nodiscard]] auto KeyGenerateInfo::IsNonExpired() const -> bool {
   return non_expired_;
 }
 
@@ -327,7 +336,7 @@ void GenKeyInfo::SetComment(const QString &m_comment) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto GenKeyInfo::IsNoPassPhrase() const -> bool {
+[[nodiscard]] auto KeyGenerateInfo::IsNoPassPhrase() const -> bool {
   return this->no_passphrase_;
 }
 
@@ -336,8 +345,8 @@ void GenKeyInfo::SetComment(const QString &m_comment) {
  *
  * @param m_non_pass_phrase
  */
-void GenKeyInfo::SetNonPassPhrase(bool m_non_pass_phrase) {
-  GenKeyInfo::no_passphrase_ = m_non_pass_phrase;
+void KeyGenerateInfo::SetNonPassPhrase(bool m_non_pass_phrase) {
+  KeyGenerateInfo::no_passphrase_ = m_non_pass_phrase;
 }
 
 /**
@@ -346,7 +355,7 @@ void GenKeyInfo::SetNonPassPhrase(bool m_non_pass_phrase) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto GenKeyInfo::IsAllowSigning() const -> bool {
+[[nodiscard]] auto KeyGenerateInfo::IsAllowSigning() const -> bool {
   return allow_signing_;
 }
 
@@ -356,7 +365,7 @@ void GenKeyInfo::SetNonPassPhrase(bool m_non_pass_phrase) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto GenKeyInfo::IsAllowNoPassPhrase() const -> bool {
+[[nodiscard]] auto KeyGenerateInfo::IsAllowNoPassPhrase() const -> bool {
   return allow_no_pass_phrase_;
 }
 
@@ -365,8 +374,8 @@ void GenKeyInfo::SetNonPassPhrase(bool m_non_pass_phrase) {
  *
  * @param m_allow_signing
  */
-void GenKeyInfo::SetAllowSigning(bool m_allow_signing) {
-  if (allow_change_signing_) GenKeyInfo::allow_signing_ = m_allow_signing;
+void KeyGenerateInfo::SetAllowSigning(bool m_allow_signing) {
+  if (allow_change_signing_) KeyGenerateInfo::allow_signing_ = m_allow_signing;
 }
 
 /**
@@ -375,7 +384,7 @@ void GenKeyInfo::SetAllowSigning(bool m_allow_signing) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto GenKeyInfo::IsAllowEncryption() const -> bool {
+[[nodiscard]] auto KeyGenerateInfo::IsAllowEncryption() const -> bool {
   return allow_encryption_;
 }
 
@@ -385,7 +394,7 @@ void GenKeyInfo::SetAllowSigning(bool m_allow_signing) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto GenKeyInfo::IsAllowCertification() const -> bool {
+[[nodiscard]] auto KeyGenerateInfo::IsAllowCertification() const -> bool {
   return allow_certification_;
 }
 
@@ -395,7 +404,7 @@ void GenKeyInfo::SetAllowSigning(bool m_allow_signing) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto GenKeyInfo::IsAllowAuthentication() const -> bool {
+[[nodiscard]] auto KeyGenerateInfo::IsAllowAuthentication() const -> bool {
   return allow_authentication_;
 }
 
@@ -404,9 +413,9 @@ void GenKeyInfo::SetAllowSigning(bool m_allow_signing) {
  *
  * @param m_allow_authentication
  */
-void GenKeyInfo::SetAllowAuthentication(bool m_allow_authentication) {
+void KeyGenerateInfo::SetAllowAuthentication(bool m_allow_authentication) {
   if (allow_change_authentication_) {
-    GenKeyInfo::allow_authentication_ = m_allow_authentication;
+    KeyGenerateInfo::allow_authentication_ = m_allow_authentication;
   }
 }
 
@@ -416,7 +425,7 @@ void GenKeyInfo::SetAllowAuthentication(bool m_allow_authentication) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto GenKeyInfo::IsAllowChangeSigning() const -> bool {
+[[nodiscard]] auto KeyGenerateInfo::IsAllowChangeSigning() const -> bool {
   return allow_change_signing_;
 }
 
@@ -426,7 +435,7 @@ void GenKeyInfo::SetAllowAuthentication(bool m_allow_authentication) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto GenKeyInfo::IsAllowChangeEncryption() const -> bool {
+[[nodiscard]] auto KeyGenerateInfo::IsAllowChangeEncryption() const -> bool {
   return allow_change_encryption_;
 }
 
@@ -436,7 +445,7 @@ void GenKeyInfo::SetAllowAuthentication(bool m_allow_authentication) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto GenKeyInfo::IsAllowChangeCertification() const -> bool {
+[[nodiscard]] auto KeyGenerateInfo::IsAllowChangeCertification() const -> bool {
   return allow_change_certification_;
 }
 
@@ -446,7 +455,8 @@ void GenKeyInfo::SetAllowAuthentication(bool m_allow_authentication) {
  * @return true
  * @return false
  */
-[[nodiscard]] auto GenKeyInfo::IsAllowChangeAuthentication() const -> bool {
+[[nodiscard]] auto KeyGenerateInfo::IsAllowChangeAuthentication() const
+    -> bool {
   return allow_change_authentication_;
 }
 
@@ -483,4 +493,7 @@ auto KeyAlgo::IsSupported(const QString &version) const -> bool {
   return GFCompareSoftwareVersion(version, supported_version_) >= 0;
 }
 
+auto KeyAlgo::operator==(const KeyAlgo &o) const -> bool {
+  return this->id_ == o.id_;
+}
 }  // namespace GpgFrontend

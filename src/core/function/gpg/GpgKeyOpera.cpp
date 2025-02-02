@@ -28,14 +28,12 @@
 
 #include "GpgKeyOpera.h"
 
-#include <gpg-error.h>
-
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/model/DataObject.h"
-#include "core/model/GpgGenKeyInfo.h"
 #include "core/model/GpgGenerateKeyResult.h"
+#include "core/model/GpgKeyGenerateInfo.h"
 #include "core/module/ModuleManager.h"
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/AsyncUtils.h"
@@ -163,8 +161,14 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
        }});
 }
 
-auto GenerateKeyImpl(GpgContext& ctx, const QSharedPointer<GenKeyInfo>& params,
+auto GenerateKeyImpl(GpgContext& ctx,
+                     const QSharedPointer<KeyGenerateInfo>& params,
                      const DataObjectPtr& data_object) -> GpgError {
+  if (params == nullptr || params->GetAlgo() == KeyGenerateInfo::kNoneAlgo ||
+      params->IsSubKey()) {
+    return GPG_ERR_CANCELED;
+  }
+
   const auto userid = params->GetUserid();
   const auto algo = params->GetAlgo().Id();
 
@@ -204,7 +208,7 @@ auto GenerateKeyImpl(GpgContext& ctx, const QSharedPointer<GenKeyInfo>& params,
  * @param params key generation args
  * @return error information
  */
-void GpgKeyOpera::GenerateKey(const QSharedPointer<GenKeyInfo>& params,
+void GpgKeyOpera::GenerateKey(const QSharedPointer<KeyGenerateInfo>& params,
                               const GpgOperationCallback& callback) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
@@ -213,7 +217,7 @@ void GpgKeyOpera::GenerateKey(const QSharedPointer<GenKeyInfo>& params,
       callback, "gpgme_op_createkey", "2.1.0");
 }
 
-auto GpgKeyOpera::GenerateKeySync(const QSharedPointer<GenKeyInfo>& params)
+auto GpgKeyOpera::GenerateKeySync(const QSharedPointer<KeyGenerateInfo>& params)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       [=](const DataObjectPtr& data_object) -> GpgError {
@@ -223,12 +227,12 @@ auto GpgKeyOpera::GenerateKeySync(const QSharedPointer<GenKeyInfo>& params)
 }
 
 auto GenerateSubKeyImpl(GpgContext& ctx, const GpgKey& key,
-                        const QSharedPointer<GenKeyInfo>& params,
+                        const QSharedPointer<KeyGenerateInfo>& params,
                         const DataObjectPtr& data_object) -> GpgError {
-  if (!params->IsSubKey()) return GPG_ERR_CANCELED;
-
-  LOG_D() << "generate subkey algo: " << params->GetAlgo().Name()
-          << "key size: " << params->GetKeyLength();
+  if (params == nullptr || params->GetAlgo() == KeyGenerateInfo::kNoneAlgo ||
+      !params->IsSubKey()) {
+    return GPG_ERR_CANCELED;
+  }
 
   auto algo = params->GetAlgo().Id();
   unsigned long expires =
@@ -259,7 +263,7 @@ auto GenerateSubKeyImpl(GpgContext& ctx, const GpgKey& key,
 }
 
 void GpgKeyOpera::GenerateSubkey(const GpgKey& key,
-                                 const QSharedPointer<GenKeyInfo>& params,
+                                 const QSharedPointer<KeyGenerateInfo>& params,
                                  const GpgOperationCallback& callback) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
@@ -268,8 +272,8 @@ void GpgKeyOpera::GenerateSubkey(const GpgKey& key,
       callback, "gpgme_op_createsubkey", "2.1.13");
 }
 
-auto GpgKeyOpera::GenerateSubkeySync(const GpgKey& key,
-                                     const QSharedPointer<GenKeyInfo>& params)
+auto GpgKeyOpera::GenerateSubkeySync(
+    const GpgKey& key, const QSharedPointer<KeyGenerateInfo>& params)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       [=](const DataObjectPtr& data_object) -> GpgError {
@@ -279,8 +283,8 @@ auto GpgKeyOpera::GenerateSubkeySync(const GpgKey& key,
 }
 
 auto GenerateKeyWithSubkeyImpl(GpgContext& ctx, GpgKeyGetter& key_getter,
-                               const QSharedPointer<GenKeyInfo>& p_params,
-                               const QSharedPointer<GenKeyInfo>& s_params,
+                               const QSharedPointer<KeyGenerateInfo>& p_params,
+                               const QSharedPointer<KeyGenerateInfo>& s_params,
                                const DataObjectPtr& data_object) -> GpgError {
   auto err = GenerateKeyImpl(ctx, p_params, data_object);
 
@@ -306,8 +310,8 @@ auto GenerateKeyWithSubkeyImpl(GpgContext& ctx, GpgKeyGetter& key_getter,
 }
 
 void GpgKeyOpera::GenerateKeyWithSubkey(
-    const QSharedPointer<GenKeyInfo>& p_params,
-    const QSharedPointer<GenKeyInfo>& s_params,
+    const QSharedPointer<KeyGenerateInfo>& p_params,
+    const QSharedPointer<KeyGenerateInfo>& s_params,
     const GpgOperationCallback& callback) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
@@ -318,8 +322,8 @@ void GpgKeyOpera::GenerateKeyWithSubkey(
 }
 
 auto GpgKeyOpera::GenerateKeyWithSubkeySync(
-    const QSharedPointer<GenKeyInfo>& p_params,
-    const QSharedPointer<GenKeyInfo>& s_params)
+    const QSharedPointer<KeyGenerateInfo>& p_params,
+    const QSharedPointer<KeyGenerateInfo>& s_params)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       [=](const DataObjectPtr& data_object) -> GpgError {

@@ -31,8 +31,8 @@
 #include <memory>
 
 #include "core/function/gpg/GpgContext.h"
-#include "core/model/GpgGenKeyInfo.h"
 #include "core/model/GpgKey.h"
+#include "core/model/GpgKeyGenerateInfo.h"
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/MemoryUtils.h"
 #include "ui/GpgFrontendUI.h"
@@ -60,8 +60,8 @@ class SubkeyGenerateDialog : public GeneralDialog {
   int current_gpg_context_channel_;  ///<
   GpgKey key_;                       ///<
 
-  QSharedPointer<GenKeyInfo> gen_key_info_ =
-      QSharedPointer<GenKeyInfo>::create(true);  ///<
+  QSharedPointer<KeyGenerateInfo> gen_subkey_info_ =
+      QSharedPointer<KeyGenerateInfo>::create(true);  ///<
 
   QGroupBox* key_usage_group_box_{};
   QDialogButtonBox* button_box_;     ///< Box for standard buttons

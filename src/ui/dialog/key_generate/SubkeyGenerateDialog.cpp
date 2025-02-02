@@ -127,10 +127,10 @@ QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
   key_type_combo_box_ = new QComboBox(this);
   no_pass_phrase_check_box_ = new QCheckBox(this);
 
-  for (const auto& algo : GenKeyInfo::GetSupportedSubkeyAlgo()) {
+  for (const auto& algo : KeyGenerateInfo::GetSupportedSubkeyAlgo()) {
     key_type_combo_box_->addItem(algo.Name());
   }
-  if (!GenKeyInfo::GetSupportedSubkeyAlgo().empty()) {
+  if (!KeyGenerateInfo::GetSupportedSubkeyAlgo().empty()) {
     key_type_combo_box_->setCurrentIndex(0);
   }
 
@@ -189,7 +189,7 @@ void SubkeyGenerateDialog::set_signal_slot() {
 
   connect(no_pass_phrase_check_box_, &QCheckBox::stateChanged, this,
           [this](int state) -> void {
-            gen_key_info_->SetNonPassPhrase(state != 0);
+            gen_subkey_info_->SetNonPassPhrase(state != 0);
           });
 }
 
@@ -202,49 +202,49 @@ void SubkeyGenerateDialog::slot_expire_box_changed() {
 }
 
 void SubkeyGenerateDialog::refresh_widgets_state() {
-  if (gen_key_info_->IsAllowEncryption()) {
+  if (gen_subkey_info_->IsAllowEncryption()) {
     key_usage_check_boxes_[0]->setCheckState(Qt::CheckState::Checked);
   } else {
     key_usage_check_boxes_[0]->setCheckState(Qt::CheckState::Unchecked);
   }
 
-  if (gen_key_info_->IsAllowChangeEncryption()) {
+  if (gen_subkey_info_->IsAllowChangeEncryption()) {
     key_usage_check_boxes_[0]->setDisabled(false);
   } else {
     key_usage_check_boxes_[0]->setDisabled(true);
   }
 
-  if (gen_key_info_->IsAllowSigning()) {
+  if (gen_subkey_info_->IsAllowSigning()) {
     key_usage_check_boxes_[1]->setCheckState(Qt::CheckState::Checked);
   } else {
     key_usage_check_boxes_[1]->setCheckState(Qt::CheckState::Unchecked);
   }
 
-  if (gen_key_info_->IsAllowChangeSigning()) {
+  if (gen_subkey_info_->IsAllowChangeSigning()) {
     key_usage_check_boxes_[1]->setDisabled(false);
   } else {
     key_usage_check_boxes_[1]->setDisabled(true);
   }
 
-  if (gen_key_info_->IsAllowCertification()) {
+  if (gen_subkey_info_->IsAllowCertification()) {
     key_usage_check_boxes_[2]->setCheckState(Qt::CheckState::Checked);
   } else {
     key_usage_check_boxes_[2]->setCheckState(Qt::CheckState::Unchecked);
   }
 
-  if (gen_key_info_->IsAllowChangeCertification()) {
+  if (gen_subkey_info_->IsAllowChangeCertification()) {
     key_usage_check_boxes_[2]->setDisabled(false);
   } else {
     key_usage_check_boxes_[2]->setDisabled(true);
   }
 
-  if (gen_key_info_->IsAllowAuthentication()) {
+  if (gen_subkey_info_->IsAllowAuthentication()) {
     key_usage_check_boxes_[3]->setCheckState(Qt::CheckState::Checked);
   } else {
     key_usage_check_boxes_[3]->setCheckState(Qt::CheckState::Unchecked);
   }
 
-  if (gen_key_info_->IsAllowChangeAuthentication()) {
+  if (gen_subkey_info_->IsAllowChangeAuthentication()) {
     key_usage_check_boxes_[3]->setDisabled(false);
   } else {
     key_usage_check_boxes_[3]->setDisabled(true);
@@ -252,103 +252,76 @@ void SubkeyGenerateDialog::refresh_widgets_state() {
 }
 
 void SubkeyGenerateDialog::slot_key_gen_accept() {
-  QString buffer;
-  QTextStream err_stream(&buffer);
-
-  /**
-   * primary keys should have a reasonable expiration date (no more than 2 years
-   * in the future)
-   */
-  if (date_edit_->dateTime() > QDateTime::currentDateTime().addYears(2)) {
-    err_stream << "  " << tr("Expiration time no more than 2 years.") << "  ";
-  }
-
-  auto err_string = err_stream.readAll();
-
-  if (err_string.isEmpty()) {
-    if (expire_check_box_->checkState() != 0U) {
-      gen_key_info_->SetNonExpired(true);
-    } else {
-      gen_key_info_->SetExpireTime(date_edit_->dateTime());
-    }
-
-    GpgOperaHelper::WaitForOpera(
-        this, tr("Generating"),
-        [this, key = this->key_,
-         gen_key_info = this->gen_key_info_](const OperaWaitingHd& hd) {
-          GpgKeyOpera::GetInstance(current_gpg_context_channel_)
-              .GenerateSubkey(key, gen_key_info,
-                              [this, hd](GpgError err, const DataObjectPtr&) {
-                                // stop showing waiting dialog
-                                hd();
-
-                                if (CheckGpgError(err) == GPG_ERR_USER_1) {
-                                  QMessageBox::critical(
-                                      this, tr("Error"),
-                                      tr("Unknown error occurred"));
-                                  return;
-                                }
-
-                                CommonUtils::RaiseMessageBox(this, err);
-                                if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-                                  emit UISignalStation::GetInstance()
-                                      -> SignalKeyDatabaseRefresh();
-                                }
-                              });
-        });
-    this->done(0);
-
+  if (expire_check_box_->checkState() != 0U) {
+    gen_subkey_info_->SetNonExpired(true);
   } else {
-    /**
-     * create error message
-     */
-    error_label_->setAutoFillBackground(true);
-    QPalette error = error_label_->palette();
-    error.setColor(QPalette::Window, "#ff8080");
-    error_label_->setPalette(error);
-    error_label_->setText(err_string);
-
-    this->show();
+    gen_subkey_info_->SetExpireTime(date_edit_->dateTime());
   }
+
+  GpgOperaHelper::WaitForOpera(
+      this, tr("Generating"),
+      [this, key = this->key_,
+       gen_key_info = this->gen_subkey_info_](const OperaWaitingHd& hd) {
+        GpgKeyOpera::GetInstance(current_gpg_context_channel_)
+            .GenerateSubkey(key, gen_key_info,
+                            [this, hd](GpgError err, const DataObjectPtr&) {
+                              // stop showing waiting dialog
+                              hd();
+
+                              if (CheckGpgError(err) == GPG_ERR_USER_1) {
+                                QMessageBox::critical(
+                                    this, tr("Error"),
+                                    tr("Unknown error occurred"));
+                                return;
+                              }
+
+                              CommonUtils::RaiseMessageBox(this, err);
+                              if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+                                emit UISignalStation::GetInstance()
+                                    -> SignalKeyDatabaseRefresh();
+                              }
+                            });
+      });
+  this->done(0);
 }
 
 void SubkeyGenerateDialog::slot_encryption_box_changed(int state) {
   if (state == 0) {
-    gen_key_info_->SetAllowEncryption(false);
+    gen_subkey_info_->SetAllowEncryption(false);
   } else {
-    gen_key_info_->SetAllowEncryption(true);
+    gen_subkey_info_->SetAllowEncryption(true);
   }
 }
 
 void SubkeyGenerateDialog::slot_signing_box_changed(int state) {
   if (state == 0) {
-    gen_key_info_->SetAllowSigning(false);
+    gen_subkey_info_->SetAllowSigning(false);
   } else {
-    gen_key_info_->SetAllowSigning(true);
+    gen_subkey_info_->SetAllowSigning(true);
   }
 }
 
 void SubkeyGenerateDialog::slot_certification_box_changed(int state) {
   if (state == 0) {
-    gen_key_info_->SetAllowCertification(false);
+    gen_subkey_info_->SetAllowCertification(false);
   } else {
-    gen_key_info_->SetAllowCertification(true);
+    gen_subkey_info_->SetAllowCertification(true);
   }
 }
 
 void SubkeyGenerateDialog::slot_authentication_box_changed(int state) {
   if (state == 0) {
-    gen_key_info_->SetAllowAuthentication(false);
+    gen_subkey_info_->SetAllowAuthentication(false);
   } else {
-    gen_key_info_->SetAllowAuthentication(true);
+    gen_subkey_info_->SetAllowAuthentication(true);
   }
 }
 
 void SubkeyGenerateDialog::slot_activated_key_type(int index) {
   // check
-  assert(gen_key_info_->GetSupportedSubkeyAlgo().size() >
+  assert(gen_subkey_info_->GetSupportedSubkeyAlgo().size() >
          static_cast<size_t>(index));
-  gen_key_info_->SetAlgo(gen_key_info_->GetSupportedSubkeyAlgo()[index]);
+  gen_subkey_info_->SetAlgo(gen_subkey_info_->GetSupportedSubkeyAlgo()[index]);
   refresh_widgets_state();
 }
 

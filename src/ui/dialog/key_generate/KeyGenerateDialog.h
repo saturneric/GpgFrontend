@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/model/GpgGenKeyInfo.h"
+#include "core/model/GpgKeyGenerateInfo.h"
 #include "ui/dialog/GeneralDialog.h"
 
 class Ui_KeyGenDialog;
@@ -39,7 +39,7 @@ namespace GpgFrontend::UI {
  * @brief
  *
  */
-class KeyGenDialog : public GeneralDialog {
+class KeyGenerateDialog : public GeneralDialog {
   Q_OBJECT
 
  public:
@@ -50,7 +50,7 @@ class KeyGenDialog : public GeneralDialog {
    * @param key The key to show details of
    * @param parent The parent of this widget
    */
-  explicit KeyGenDialog(int channel, QWidget* parent = nullptr);
+  explicit KeyGenerateDialog(int channel, QWidget* parent = nullptr);
 
  signals:
   /**
@@ -93,6 +93,13 @@ class KeyGenDialog : public GeneralDialog {
    */
   void slot_set_easy_key_algo_2_custom();
 
+  /**
+   * @brief
+   *
+   * @param mode
+   */
+  void slot_easy_combination_changed(const QString& mode);
+
  private:
   /**
    * @brief
@@ -109,8 +116,8 @@ class KeyGenDialog : public GeneralDialog {
                                 ///< entries of line edits
 
   QSharedPointer<Ui_KeyGenDialog> ui_;
-  QSharedPointer<GenKeyInfo> gen_key_info_;     ///<
-  QSharedPointer<GenKeyInfo> gen_subkey_info_;  ///<
+  QSharedPointer<KeyGenerateInfo> gen_key_info_;     ///<
+  QSharedPointer<KeyGenerateInfo> gen_subkey_info_;  ///<
 
   QContainer<KeyAlgo> supported_primary_key_algos_;
   QContainer<KeyAlgo> supported_subkey_algos_;
@@ -148,6 +155,12 @@ class KeyGenDialog : public GeneralDialog {
    *
    */
   void sync_gen_subkey_info();
+
+  /**
+   * @brief
+   *
+   */
+  void do_generate();
 };
 
 }  // namespace GpgFrontend::UI
