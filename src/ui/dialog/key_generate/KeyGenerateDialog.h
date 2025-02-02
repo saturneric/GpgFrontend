@@ -148,13 +148,19 @@ class KeyGenerateDialog : public GeneralDialog {
    * @brief
    *
    */
-  void sync_gen_key_info();
+  void sync_gen_key_algo_info();
 
   /**
    * @brief
    *
    */
-  void sync_gen_subkey_info();
+  void sync_gen_subkey_algo_info();
+
+  /**
+   * @brief
+   *
+   */
+  void create_sync_gen_subkey_info();
 
   /**
    * @brief

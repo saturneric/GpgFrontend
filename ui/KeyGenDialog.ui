@@ -147,19 +147,22 @@
         <layout class="QVBoxLayout" name="verticalLayout_4">
          <item>
           <layout class="QGridLayout" name="gridLayout_2">
-           <item row="3" column="0">
-            <widget class="QLabel" name="pKeyLengthLabel">
+           <item row="2" column="0">
+            <widget class="QLabel" name="pExpireDateLabel">
              <property name="text">
-              <string>Key Length</string>
+              <string>Expire Date</string>
              </property>
             </widget>
            </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="pValidPeriodLabel">
+           <item row="7" column="0" colspan="3">
+            <widget class="QCheckBox" name="pExpireCheckBox">
              <property name="text">
-              <string>Validity Period</string>
+              <string>Non Expired</string>
              </property>
             </widget>
+           </item>
+           <item row="2" column="1" colspan="2">
+            <widget class="QDateTimeEdit" name="pExpireDateTimeEdit"/>
            </item>
            <item row="0" column="0">
             <widget class="QLabel" name="pAlgoLabel">
@@ -168,17 +171,14 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="0">
+           <item row="5" column="0">
             <widget class="QLabel" name="pUsageLabel">
              <property name="text">
               <string>Usage</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="1" colspan="2">
-            <widget class="QComboBox" name="pAlgoComboBox"/>
-           </item>
-           <item row="4" column="1" colspan="2">
+           <item row="5" column="1" colspan="2">
             <layout class="QHBoxLayout" name="horizontalLayout_2">
              <item>
               <widget class="QCheckBox" name="pEncrCheckBox">
@@ -203,25 +203,25 @@
              </item>
             </layout>
            </item>
-           <item row="3" column="1" colspan="2">
-            <widget class="QComboBox" name="pKeyLengthComboBox"/>
+           <item row="0" column="1" colspan="2">
+            <widget class="QComboBox" name="pAlgoComboBox"/>
            </item>
-           <item row="1" column="1" colspan="2">
-            <widget class="QDateTimeEdit" name="pValidityPeriodDateTimeEdit"/>
-           </item>
-           <item row="5" column="0" colspan="3">
+           <item row="6" column="0" colspan="3">
             <widget class="QCheckBox" name="noPassphraseCheckBox">
              <property name="text">
               <string>No Passphrase</string>
              </property>
             </widget>
            </item>
-           <item row="6" column="0" colspan="3">
-            <widget class="QCheckBox" name="pExpireCheckBox">
+           <item row="1" column="0">
+            <widget class="QLabel" name="pKeyLengthLabel">
              <property name="text">
-              <string>Non Expired</string>
+              <string>Key Length</string>
              </property>
             </widget>
+           </item>
+           <item row="1" column="1" colspan="2">
+            <widget class="QComboBox" name="pKeyLengthComboBox"/>
            </item>
           </layout>
          </item>
@@ -247,37 +247,34 @@
         <layout class="QVBoxLayout" name="verticalLayout_7">
          <item>
           <layout class="QGridLayout" name="gridLayout_4">
-           <item row="1" column="0">
-            <widget class="QLabel" name="sValidPeriodLabel">
+           <item row="2" column="0">
+            <widget class="QLabel" name="sExpireDateLabel">
              <property name="text">
-              <string>Validity Period</string>
+              <string>Expire Date</string>
              </property>
             </widget>
            </item>
-           <item row="4" column="0">
+           <item row="6" column="0" colspan="3">
+            <widget class="QCheckBox" name="sExpireCheckBox">
+             <property name="text">
+              <string>Non Expired</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
             <widget class="QLabel" name="sUsageLabel">
              <property name="text">
               <string>Usage</string>
              </property>
             </widget>
            </item>
-           <item row="1" column="1" colspan="2">
-            <widget class="QDateTimeEdit" name="sValidityPeriodDateTimeEdit"/>
-           </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="sKeyLengthLabel">
-             <property name="text">
-              <string>Key Length</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1" colspan="2">
-            <widget class="QComboBox" name="sKeyLengthComboBox"/>
+           <item row="2" column="1" colspan="2">
+            <widget class="QDateTimeEdit" name="sExpireDateTimeEdit"/>
            </item>
            <item row="0" column="1" colspan="2">
             <widget class="QComboBox" name="sAlgoComboBox"/>
            </item>
-           <item row="4" column="1" colspan="2">
+           <item row="5" column="1" colspan="2">
             <layout class="QHBoxLayout" name="horizontalLayout_3">
              <item>
               <widget class="QCheckBox" name="sEncrCheckBox">
@@ -309,12 +306,15 @@
              </property>
             </widget>
            </item>
-           <item row="5" column="0" colspan="3">
-            <widget class="QCheckBox" name="sExpireCheckBox">
+           <item row="1" column="0">
+            <widget class="QLabel" name="sKeyLengthLabel">
              <property name="text">
-              <string>Non Expired</string>
+              <string>Key Length</string>
              </property>
             </widget>
+           </item>
+           <item row="1" column="1" colspan="2">
+            <widget class="QComboBox" name="sKeyLengthComboBox"/>
            </item>
           </layout>
          </item>

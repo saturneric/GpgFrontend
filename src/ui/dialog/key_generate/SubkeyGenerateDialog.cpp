@@ -31,231 +31,171 @@
 #include <cassert>
 #include <cstddef>
 
-#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/function/GpgOperaHelper.h"
+#include "ui/function/KeyGenerateHelper.h"
+
+//
+#include "ui_SubkeyGenDialog.h"
 
 namespace GpgFrontend::UI {
 
 SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, const KeyId& key_id,
                                            QWidget* parent)
     : GeneralDialog(typeid(SubkeyGenerateDialog).name(), parent),
+      ui_(QSharedPointer<Ui_SubkeyGenDialog>::create()),
       current_gpg_context_channel_(channel),
       key_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
-               .GetKey(key_id)) {
+               .GetKey(key_id)),
+      gen_subkey_info_(QSharedPointer<KeyGenerateInfo>::create(true)),
+      supported_subkey_algos_(KeyGenerateInfo::GetSupportedSubkeyAlgo()) {
+  ui_->setupUi(this);
   assert(key_.IsGood());
 
-  bool longer_expiration_date =
-      GetSettings().value("basic/longer_expiration_date", false).toBool();
+  ui_->algoLabel->setText(tr("Algorithm"));
+  ui_->keyLengthLabel->setText(tr("Key Length"));
+  ui_->expireLabel->setText(tr("Expire Date"));
+  ui_->usageLabel->setText(tr("Usage"));
+  ui_->encrCheckBox->setText(tr("Encrypt"));
+  ui_->signCheckBox->setText(tr("Sign"));
+  ui_->authCheckBox->setText(tr("Authentication"));
+  ui_->expireLabel->setText(tr("Non Expired"));
+  ui_->nonPassphraseCheckBox->setText(tr("No Passphrase"));
 
-  max_date_time_ = longer_expiration_date
-                       ? QDateTime::currentDateTime().toLocalTime().addYears(30)
-                       : QDateTime::currentDateTime().toLocalTime().addYears(2);
+  QSet<QString> algo_set;
+  for (const auto& algo : supported_subkey_algos_) {
+    algo_set.insert(algo.Name());
+  }
+  ui_->algoComboBox->addItems(QStringList(algo_set.cbegin(), algo_set.cend()));
 
-  button_box_ =
-      new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+  ui_->expireDateTimeEdit->setDateTime(gen_subkey_info_->GetExpireTime());
+  ui_->expireDateTimeEdit->setDisabled(gen_subkey_info_->IsNonExpired());
 
-  key_usage_group_box_ = create_key_usage_group_box();
-
-  auto* group_grid = new QGridLayout(this);
-  group_grid->addWidget(create_basic_info_group_box(), 0, 0);
-  group_grid->addWidget(key_usage_group_box_, 1, 0);
-
-  auto* tipps_label =
-      new QLabel(tr("Tipps: if the key pair has a passphrase, the subkey's "
-                    "passphrase must be equal to it."));
-  tipps_label->setWordWrap(true);
-  group_grid->addWidget(tipps_label);
-
-  auto* name_list = new QWidget(this);
-  name_list->setLayout(group_grid);
-
-  auto* vbox2 = new QVBoxLayout();
-  vbox2->addWidget(name_list);
-  vbox2->addWidget(error_label_);
-  vbox2->addWidget(button_box_);
+  ui_->statusPlainTextEdit->appendPlainText(
+      tr("Tipps: if the key pair has a passphrase, the subkey's "
+         "passphrase must be equal to it."));
 
   this->setWindowTitle(tr("Generate New Subkey"));
-  this->setLayout(vbox2);
   this->setAttribute(Qt::WA_DeleteOnClose);
   this->setModal(true);
 
-  set_signal_slot();
+  set_signal_slot_config();
   refresh_widgets_state();
 }
 
-QGroupBox* SubkeyGenerateDialog::create_key_usage_group_box() {
-  auto* group_box = new QGroupBox(this);
-  auto* grid = new QGridLayout(this);
-
-  group_box->setTitle(tr("Key Usage"));
-
-  auto* encrypt = new QCheckBox(tr("Encryption"), group_box);
-  encrypt->setTristate(false);
-
-  auto* sign = new QCheckBox(tr("Signing"), group_box);
-  sign->setTristate(false);
-
-  auto* cert = new QCheckBox(tr("Certification"), group_box);
-  cert->setTristate(false);
-
-  auto* auth = new QCheckBox(tr("Authentication"), group_box);
-  auth->setTristate(false);
-
-  key_usage_check_boxes_.push_back(encrypt);
-  key_usage_check_boxes_.push_back(sign);
-  key_usage_check_boxes_.push_back(cert);
-  key_usage_check_boxes_.push_back(auth);
-
-  grid->addWidget(encrypt, 0, 0);
-  grid->addWidget(sign, 0, 1);
-  grid->addWidget(cert, 1, 0);
-  grid->addWidget(auth, 1, 1);
-
-  group_box->setLayout(grid);
-
-  return group_box;
-}
-
-QGroupBox* SubkeyGenerateDialog::create_basic_info_group_box() {
-  error_label_ = new QLabel();
-  key_size_spin_box_ = new QSpinBox(this);
-  key_type_combo_box_ = new QComboBox(this);
-  no_pass_phrase_check_box_ = new QCheckBox(this);
-
-  for (const auto& algo : KeyGenerateInfo::GetSupportedSubkeyAlgo()) {
-    key_type_combo_box_->addItem(algo.Name());
-  }
-  if (!KeyGenerateInfo::GetSupportedSubkeyAlgo().empty()) {
-    key_type_combo_box_->setCurrentIndex(0);
-  }
-
-  date_edit_ =
-      new QDateTimeEdit(QDateTime::currentDateTime().addYears(2), this);
-  date_edit_->setMinimumDateTime(QDateTime::currentDateTime());
-  date_edit_->setMaximumDateTime(max_date_time_);
-  date_edit_->setDisplayFormat("dd/MM/yyyy hh:mm:ss");
-  date_edit_->setCalendarPopup(true);
-  date_edit_->setEnabled(true);
-
-  expire_check_box_ = new QCheckBox(this);
-  expire_check_box_->setCheckState(Qt::Unchecked);
-
-  auto* vbox1 = new QGridLayout;
-
-  vbox1->addWidget(new QLabel(tr("Key Type") + ": "), 0, 0);
-  vbox1->addWidget(new QLabel(tr("KeySize (in Bit)") + ": "), 1, 0);
-  vbox1->addWidget(new QLabel(tr("Expiration Date") + ": "), 2, 0);
-  vbox1->addWidget(new QLabel(tr("Never Expire")), 2, 3);
-  vbox1->addWidget(new QLabel(tr("Non Pass Phrase")), 3, 0);
-
-  vbox1->addWidget(key_type_combo_box_, 0, 1);
-  vbox1->addWidget(key_size_spin_box_, 1, 1);
-  vbox1->addWidget(date_edit_, 2, 1);
-  vbox1->addWidget(expire_check_box_, 2, 2);
-  vbox1->addWidget(no_pass_phrase_check_box_, 3, 1);
-
-  auto* basic_info_group_box = new QGroupBox();
-  basic_info_group_box->setLayout(vbox1);
-  basic_info_group_box->setTitle(tr("Basic Information"));
-
-  return basic_info_group_box;
-}
-
-void SubkeyGenerateDialog::set_signal_slot() {
-  connect(button_box_, &QDialogButtonBox::accepted, this,
+void SubkeyGenerateDialog::set_signal_slot_config() {
+  connect(ui_->generateButton, &QPushButton::clicked, this,
           &SubkeyGenerateDialog::slot_key_gen_accept);
-  connect(button_box_, &QDialogButtonBox::rejected, this,
-          &SubkeyGenerateDialog::reject);
 
-  connect(expire_check_box_, &QCheckBox::stateChanged, this,
-          &SubkeyGenerateDialog::slot_expire_box_changed);
+  connect(ui_->nonExpiredCheckBox, &QCheckBox::stateChanged, this,
+          [=](int state) {
+            gen_subkey_info_->SetNonExpired(state == Qt::Checked);
+            refresh_widgets_state();
+          });
 
-  connect(key_usage_check_boxes_[0], &QCheckBox::stateChanged, this,
-          &SubkeyGenerateDialog::slot_encryption_box_changed);
-  connect(key_usage_check_boxes_[1], &QCheckBox::stateChanged, this,
-          &SubkeyGenerateDialog::slot_signing_box_changed);
-  connect(key_usage_check_boxes_[2], &QCheckBox::stateChanged, this,
-          &SubkeyGenerateDialog::slot_certification_box_changed);
-  connect(key_usage_check_boxes_[3], &QCheckBox::stateChanged, this,
-          &SubkeyGenerateDialog::slot_authentication_box_changed);
+  connect(ui_->encrCheckBox, &QCheckBox::stateChanged, this, [this](int state) {
+    gen_subkey_info_->SetAllowEncryption(state == Qt::Checked);
+  });
+  connect(ui_->signCheckBox, &QCheckBox::stateChanged, this, [this](int state) {
+    gen_subkey_info_->SetAllowSigning(state == Qt::Checked);
+  });
+  connect(ui_->authCheckBox, &QCheckBox::stateChanged, this, [this](int state) {
+    gen_subkey_info_->SetAllowAuthentication(state == Qt::Checked);
+  });
 
-  connect(key_type_combo_box_, qOverload<int>(&QComboBox::currentIndexChanged),
-          this, &SubkeyGenerateDialog::slot_activated_key_type);
+  connect(ui_->algoComboBox, &QComboBox::currentTextChanged, this,
+          [=](const QString& text) {
+            auto [found, algo] = GetAlgoByName(text, supported_subkey_algos_);
+            ui_->generateButton->setDisabled(!found);
+            if (found) gen_subkey_info_->SetAlgo(algo);
 
-  connect(no_pass_phrase_check_box_, &QCheckBox::stateChanged, this,
+            refresh_widgets_state();
+          });
+
+  connect(ui_->nonPassphraseCheckBox, &QCheckBox::stateChanged, this,
           [this](int state) -> void {
-            gen_subkey_info_->SetNonPassPhrase(state != 0);
+            gen_subkey_info_->SetNonPassPhrase(state == Qt::Checked);
+          });
+
+  connect(ui_->keyLengthComboBox, &QComboBox::currentTextChanged, this,
+          [this](const QString& text) -> void {
+            auto [found, algo] = GetAlgoByNameAndKeyLength(
+                ui_->algoComboBox->currentText(), text.toInt(),
+                supported_subkey_algos_);
+
+            if (found) gen_subkey_info_->SetAlgo(algo);
           });
 }
 
-void SubkeyGenerateDialog::slot_expire_box_changed() {
-  if (expire_check_box_->checkState() != 0U) {
-    date_edit_->setEnabled(false);
-  } else {
-    date_edit_->setEnabled(true);
-  }
-}
-
 void SubkeyGenerateDialog::refresh_widgets_state() {
-  if (gen_subkey_info_->IsAllowEncryption()) {
-    key_usage_check_boxes_[0]->setCheckState(Qt::CheckState::Checked);
-  } else {
-    key_usage_check_boxes_[0]->setCheckState(Qt::CheckState::Unchecked);
-  }
+  ui_->algoComboBox->blockSignals(true);
+  ui_->algoComboBox->setCurrentText(gen_subkey_info_->GetAlgo().Name());
+  ui_->algoComboBox->blockSignals(false);
 
-  if (gen_subkey_info_->IsAllowChangeEncryption()) {
-    key_usage_check_boxes_[0]->setDisabled(false);
-  } else {
-    key_usage_check_boxes_[0]->setDisabled(true);
-  }
+  ui_->keyLengthComboBox->blockSignals(true);
+  SetKeyLengthComboxBoxByAlgo(ui_->keyLengthComboBox,
+                              SearchAlgoByName(ui_->algoComboBox->currentText(),
+                                               supported_subkey_algos_));
+  ui_->keyLengthComboBox->setCurrentText(
+      QString::number(gen_subkey_info_->GetKeyLength()));
+  ui_->keyLengthComboBox->blockSignals(false);
 
-  if (gen_subkey_info_->IsAllowSigning()) {
-    key_usage_check_boxes_[1]->setCheckState(Qt::CheckState::Checked);
-  } else {
-    key_usage_check_boxes_[1]->setCheckState(Qt::CheckState::Unchecked);
-  }
+  ui_->encrCheckBox->blockSignals(true);
+  ui_->encrCheckBox->setChecked(gen_subkey_info_->IsAllowEncryption());
+  ui_->encrCheckBox->setEnabled(gen_subkey_info_->IsAllowChangeEncryption());
+  ui_->encrCheckBox->blockSignals(false);
 
-  if (gen_subkey_info_->IsAllowChangeSigning()) {
-    key_usage_check_boxes_[1]->setDisabled(false);
-  } else {
-    key_usage_check_boxes_[1]->setDisabled(true);
-  }
+  ui_->signCheckBox->blockSignals(true);
+  ui_->signCheckBox->setChecked(gen_subkey_info_->IsAllowSigning());
+  ui_->signCheckBox->setEnabled(gen_subkey_info_->IsAllowChangeSigning());
+  ui_->signCheckBox->blockSignals(false);
 
-  if (gen_subkey_info_->IsAllowCertification()) {
-    key_usage_check_boxes_[2]->setCheckState(Qt::CheckState::Checked);
-  } else {
-    key_usage_check_boxes_[2]->setCheckState(Qt::CheckState::Unchecked);
-  }
+  ui_->authCheckBox->blockSignals(true);
+  ui_->authCheckBox->setChecked(gen_subkey_info_->IsAllowAuthentication());
+  ui_->authCheckBox->setEnabled(
+      gen_subkey_info_->IsAllowChangeAuthentication());
+  ui_->authCheckBox->blockSignals(false);
 
-  if (gen_subkey_info_->IsAllowChangeCertification()) {
-    key_usage_check_boxes_[2]->setDisabled(false);
-  } else {
-    key_usage_check_boxes_[2]->setDisabled(true);
-  }
+  ui_->nonPassphraseCheckBox->setEnabled(
+      gen_subkey_info_->IsAllowNoPassPhrase());
 
-  if (gen_subkey_info_->IsAllowAuthentication()) {
-    key_usage_check_boxes_[3]->setCheckState(Qt::CheckState::Checked);
-  } else {
-    key_usage_check_boxes_[3]->setCheckState(Qt::CheckState::Unchecked);
-  }
+  ui_->expireDateTimeEdit->blockSignals(true);
+  ui_->expireDateTimeEdit->setDateTime(gen_subkey_info_->GetExpireTime());
+  ui_->expireDateTimeEdit->setDisabled(gen_subkey_info_->IsNonExpired());
+  ui_->expireDateTimeEdit->blockSignals(false);
 
-  if (gen_subkey_info_->IsAllowChangeAuthentication()) {
-    key_usage_check_boxes_[3]->setDisabled(false);
-  } else {
-    key_usage_check_boxes_[3]->setDisabled(true);
-  }
+  ui_->nonExpiredCheckBox->blockSignals(true);
+  ui_->nonExpiredCheckBox->setChecked(gen_subkey_info_->IsNonExpired());
+  ui_->nonExpiredCheckBox->blockSignals(false);
 }
 
 void SubkeyGenerateDialog::slot_key_gen_accept() {
-  if (expire_check_box_->checkState() != 0U) {
-    gen_subkey_info_->SetNonExpired(true);
-  } else {
-    gen_subkey_info_->SetExpireTime(date_edit_->dateTime());
+  QString buffer;
+  QTextStream err_stream(&buffer);
+
+  if (gen_subkey_info_->GetAlgo() == KeyGenerateInfo::kNoneAlgo) {
+    err_stream << " -> " << tr("Please give a valid subkey algorithm.")
+               << Qt::endl;
+  }
+
+  if (!gen_subkey_info_->IsNonExpired() &&
+      gen_subkey_info_->GetExpireTime() <
+          QDateTime::currentDateTime().addSecs(120)) {
+    err_stream
+        << " -> "
+        << tr("Time to subkey expiration must not be less than 120 seconds.")
+        << Qt::endl;
+  }
+
+  const auto err_string = err_stream.readAll();
+  if (!err_string.isEmpty()) {
+    ui_->statusPlainTextEdit->clear();
+    ui_->statusPlainTextEdit->appendPlainText(err_string);
+    return;
   }
 
   GpgOperaHelper::WaitForOpera(
@@ -283,46 +223,6 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
                             });
       });
   this->done(0);
-}
-
-void SubkeyGenerateDialog::slot_encryption_box_changed(int state) {
-  if (state == 0) {
-    gen_subkey_info_->SetAllowEncryption(false);
-  } else {
-    gen_subkey_info_->SetAllowEncryption(true);
-  }
-}
-
-void SubkeyGenerateDialog::slot_signing_box_changed(int state) {
-  if (state == 0) {
-    gen_subkey_info_->SetAllowSigning(false);
-  } else {
-    gen_subkey_info_->SetAllowSigning(true);
-  }
-}
-
-void SubkeyGenerateDialog::slot_certification_box_changed(int state) {
-  if (state == 0) {
-    gen_subkey_info_->SetAllowCertification(false);
-  } else {
-    gen_subkey_info_->SetAllowCertification(true);
-  }
-}
-
-void SubkeyGenerateDialog::slot_authentication_box_changed(int state) {
-  if (state == 0) {
-    gen_subkey_info_->SetAllowAuthentication(false);
-  } else {
-    gen_subkey_info_->SetAllowAuthentication(true);
-  }
-}
-
-void SubkeyGenerateDialog::slot_activated_key_type(int index) {
-  // check
-  assert(gen_subkey_info_->GetSupportedSubkeyAlgo().size() >
-         static_cast<size_t>(index));
-  gen_subkey_info_->SetAlgo(gen_subkey_info_->GetSupportedSubkeyAlgo()[index]);
-  refresh_widgets_state();
 }
 
 }  // namespace GpgFrontend::UI

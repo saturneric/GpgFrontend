@@ -37,63 +37,12 @@
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/function/GpgOperaHelper.h"
+#include "ui/function/KeyGenerateHelper.h"
 
 //
 #include "ui_KeyGenDialog.h"
 
 namespace GpgFrontend::UI {
-
-auto SearchAlgoByName(const QString& name,
-                      const QContainer<KeyAlgo>& algos) -> QContainer<KeyAlgo> {
-  QContainer<KeyAlgo> res;
-
-  for (const auto& algo : algos) {
-    if (algo.Name() != name) continue;
-    res.append(algo);
-  }
-
-  return res;
-}
-
-auto GetAlgoByNameAndKeyLength(const QString& name, int key_length,
-                               const QContainer<KeyAlgo>& algos)
-    -> std::tuple<bool, KeyAlgo> {
-  for (const auto& algo : algos) {
-    if (algo.Name() != name) continue;
-    if (algo.KeyLength() != key_length) continue;
-    return {true, algo};
-  }
-
-  return {};
-}
-
-auto GetAlgoByName(const QString& name, const QContainer<KeyAlgo>& algos)
-    -> std::tuple<bool, KeyAlgo> {
-  for (const auto& algo : algos) {
-    if (algo.Name() != name) continue;
-    return {true, algo};
-  }
-
-  return {};
-}
-
-void SetKeyLengthComboxBoxByAlgo(QComboBox* combo,
-                                 const QContainer<KeyAlgo>& algos) {
-  combo->clear();
-
-  QContainer<KeyAlgo> sorted_algos(algos.begin(), algos.end());
-  std::sort(sorted_algos.begin(), sorted_algos.end(),
-            [](const KeyAlgo& a, const KeyAlgo& b) {
-              return a.KeyLength() < b.KeyLength();
-            });
-
-  QStringList key_lengths;
-  for (const auto& algo : sorted_algos) {
-    key_lengths.append(QString::number(algo.KeyLength()));
-  }
-
-  combo->addItems(key_lengths);
-}
 
 KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
     : GeneralDialog(typeid(KeyGenerateDialog).name(), parent),
@@ -141,7 +90,7 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
   ui_->easyValidPeriodLabel->setText(tr("Validity Period"));
 
   ui_->pAlgoLabel->setText(tr("Algorithm"));
-  ui_->pValidPeriodLabel->setText(tr("Validity Period"));
+  ui_->pExpireDateLabel->setText(tr("Validity Period"));
   ui_->pKeyLengthLabel->setText(tr("Key Length"));
   ui_->pUsageLabel->setText(tr("Usage"));
   ui_->pEncrCheckBox->setText(tr("Encrypt"));
@@ -151,7 +100,7 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
   ui_->pExpireCheckBox->setText(tr("Non Expired"));
 
   ui_->sAlgoLabel->setText(tr("Algorithm"));
-  ui_->sValidPeriodLabel->setText(tr("Validity Period"));
+  ui_->sExpireDateLabel->setText(tr("Expire Date"));
   ui_->sKeyLengthLabel->setText(tr("Key Length"));
   ui_->sUsageLabel->setText(tr("Usage"));
   ui_->sEncrCheckBox->setText(tr("Encrypt"));
@@ -159,9 +108,12 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
   ui_->sAuthCheckBox->setText(tr("Authentication"));
   ui_->sExpireCheckBox->setText(tr("Non Expired"));
 
+  assert(ui_->tabWidget->count() == 3);
   ui_->tabWidget->setTabText(0, tr("Easy Mode"));
-  ui_->tabWidget->setTabText(0, tr("Primary Key"));
-  ui_->tabWidget->setTabText(0, tr("Subkey"));
+  ui_->tabWidget->setTabText(1, tr("Primary Key"));
+  ui_->tabWidget->setTabText(2, tr("Subkey"));
+  ui_->tabWidget->setCurrentIndex(0);
+
   ui_->generateButton->setText(tr("Generate"));
 
   QSet<QString> p_algo_set;
@@ -211,10 +163,29 @@ void KeyGenerateDialog::slot_key_gen_accept() {
                << Qt::endl;
   }
 
-  if (gen_subkey_info_ != nullptr &&
-      gen_subkey_info_->GetAlgo() == KeyGenerateInfo::kNoneAlgo) {
-    err_stream << " -> " << tr("Please give a valid subkey algorithm.")
+  const auto min_expire_date = QDateTime::currentDateTime().addSecs(120);
+
+  if (!gen_key_info_->IsNonExpired() &&
+      gen_key_info_->GetExpireTime() < min_expire_date) {
+    err_stream << " -> "
+               << tr("Time to primary key expiration must not be less than 120 "
+                     "seconds.")
                << Qt::endl;
+  }
+
+  if (gen_subkey_info_ != nullptr) {
+    if (gen_subkey_info_->GetAlgo() == KeyGenerateInfo::kNoneAlgo) {
+      err_stream << " -> " << tr("Please give a valid subkey algorithm.")
+                 << Qt::endl;
+    }
+
+    if (!gen_subkey_info_->IsNonExpired() &&
+        gen_subkey_info_->GetExpireTime() < min_expire_date) {
+      err_stream
+          << " -> "
+          << tr("Time to subkey expiration must not be less than 120 seconds.")
+          << Qt::endl;
+    }
   }
 
   const auto err_string = err_stream.readAll();
@@ -227,24 +198,6 @@ void KeyGenerateDialog::slot_key_gen_accept() {
   gen_key_info_->SetName(ui_->nameEdit->text());
   gen_key_info_->SetEmail(ui_->emailEdit->text());
   gen_key_info_->SetComment(ui_->commentEdit->text());
-
-  if (ui_->noPassphraseCheckBox->checkState() != 0U) {
-    gen_key_info_->SetNonPassPhrase(true);
-    if (gen_subkey_info_ != nullptr) {
-      gen_subkey_info_->SetNonPassPhrase(true);
-    }
-  }
-
-  if (ui_->pExpireCheckBox->checkState() != 0U) {
-    gen_key_info_->SetNonExpired(true);
-    if (gen_subkey_info_ != nullptr) gen_subkey_info_->SetNonExpired(true);
-  } else {
-    gen_key_info_->SetExpireTime(ui_->pValidityPeriodDateTimeEdit->dateTime());
-    if (gen_subkey_info_ != nullptr) {
-      gen_subkey_info_->SetExpireTime(
-          ui_->sValidityPeriodDateTimeEdit->dateTime());
-    }
-  }
 
   LOG_D() << "try to generate key at gpg context channel: " << channel_;
 
@@ -286,10 +239,10 @@ void KeyGenerateDialog::refresh_widgets_state() {
 
   ui_->noPassphraseCheckBox->setEnabled(gen_key_info_->IsAllowNoPassPhrase());
 
-  ui_->pValidityPeriodDateTimeEdit->blockSignals(true);
-  ui_->pValidityPeriodDateTimeEdit->setDateTime(gen_key_info_->GetExpireTime());
-  ui_->pValidityPeriodDateTimeEdit->setDisabled(gen_key_info_->IsNonExpired());
-  ui_->pValidityPeriodDateTimeEdit->blockSignals(false);
+  ui_->pExpireDateTimeEdit->blockSignals(true);
+  ui_->pExpireDateTimeEdit->setDateTime(gen_key_info_->GetExpireTime());
+  ui_->pExpireDateTimeEdit->setDisabled(gen_key_info_->IsNonExpired());
+  ui_->pExpireDateTimeEdit->blockSignals(false);
 
   ui_->pExpireCheckBox->blockSignals(true);
   ui_->pExpireCheckBox->setChecked(gen_key_info_->IsNonExpired());
@@ -318,10 +271,10 @@ void KeyGenerateDialog::refresh_widgets_state() {
     ui_->sAuthCheckBox->setCheckState(Qt::Unchecked);
     ui_->sAuthCheckBox->blockSignals(false);
 
-    ui_->sValidityPeriodDateTimeEdit->blockSignals(true);
-    ui_->sValidityPeriodDateTimeEdit->setDateTime(QDateTime::currentDateTime());
-    ui_->sValidityPeriodDateTimeEdit->setDisabled(true);
-    ui_->sValidityPeriodDateTimeEdit->blockSignals(false);
+    ui_->sExpireDateTimeEdit->blockSignals(true);
+    ui_->sExpireDateTimeEdit->setDateTime(QDateTime::currentDateTime());
+    ui_->sExpireDateTimeEdit->setDisabled(true);
+    ui_->sExpireDateTimeEdit->blockSignals(false);
 
     ui_->sExpireCheckBox->blockSignals(true);
     ui_->sExpireCheckBox->setCheckState(Qt::Unchecked);
@@ -367,12 +320,10 @@ void KeyGenerateDialog::refresh_widgets_state() {
       gen_subkey_info_->IsAllowChangeAuthentication());
   ui_->sAuthCheckBox->blockSignals(false);
 
-  ui_->sValidityPeriodDateTimeEdit->blockSignals(true);
-  ui_->sValidityPeriodDateTimeEdit->setDateTime(
-      gen_subkey_info_->GetExpireTime());
-  ui_->sValidityPeriodDateTimeEdit->setDisabled(
-      gen_subkey_info_->IsNonExpired());
-  ui_->sValidityPeriodDateTimeEdit->blockSignals(false);
+  ui_->sExpireDateTimeEdit->blockSignals(true);
+  ui_->sExpireDateTimeEdit->setDateTime(gen_subkey_info_->GetExpireTime());
+  ui_->sExpireDateTimeEdit->setDisabled(gen_subkey_info_->IsNonExpired());
+  ui_->sExpireDateTimeEdit->blockSignals(false);
 
   ui_->sExpireCheckBox->blockSignals(true);
   ui_->sExpireCheckBox->setChecked(gen_subkey_info_->IsNonExpired());
@@ -387,17 +338,20 @@ void KeyGenerateDialog::set_signal_slot_config() {
   connect(ui_->generateButton, &QPushButton::clicked, this,
           &KeyGenerateDialog::slot_key_gen_accept);
 
-  connect(ui_->pExpireCheckBox, &QCheckBox::stateChanged, this,
-          [this](int state) {
-            ui_->pValidityPeriodDateTimeEdit->setDisabled(state == Qt::Checked);
-
-            slot_set_easy_valid_date_2_custom();
-          });
+  connect(
+      ui_->pExpireCheckBox, &QCheckBox::stateChanged, this, [this](int state) {
+        gen_key_info_->SetNonExpired(state == Qt::Checked);
+        gen_key_info_->SetExpireTime(QDateTime::currentDateTime().addYears(2));
+        slot_set_easy_valid_date_2_custom();
+        refresh_widgets_state();
+      });
   connect(ui_->sExpireCheckBox, &QCheckBox::stateChanged, this,
           [this](int state) {
-            ui_->sValidityPeriodDateTimeEdit->setDisabled(state == Qt::Checked);
-
+            gen_subkey_info_->SetNonExpired(state == Qt::Checked);
+            gen_subkey_info_->SetExpireTime(
+                QDateTime::currentDateTime().addYears(2));
             slot_set_easy_valid_date_2_custom();
+            refresh_widgets_state();
           });
 
   connect(ui_->pEncrCheckBox, &QCheckBox::stateChanged, this,
@@ -436,14 +390,14 @@ void KeyGenerateDialog::set_signal_slot_config() {
 
   connect(ui_->pAlgoComboBox, &QComboBox::currentTextChanged, this,
           [=](const QString&) {
-            sync_gen_key_info();
+            sync_gen_key_algo_info();
             slot_set_easy_key_algo_2_custom();
             refresh_widgets_state();
           });
 
   connect(ui_->sAlgoComboBox, &QComboBox::currentTextChanged, this,
           [=](const QString&) {
-            sync_gen_subkey_info();
+            sync_gen_subkey_algo_info();
             slot_set_easy_key_algo_2_custom();
             refresh_widgets_state();
           });
@@ -454,15 +408,15 @@ void KeyGenerateDialog::set_signal_slot_config() {
   connect(ui_->easyValidityPeriodComboBox, &QComboBox::currentTextChanged, this,
           &KeyGenerateDialog::slot_easy_valid_date_changed);
 
-  connect(ui_->pValidityPeriodDateTimeEdit, &QDateTimeEdit::dateTimeChanged,
-          this, [=](const QDateTime& dt) {
+  connect(ui_->pExpireDateTimeEdit, &QDateTimeEdit::dateTimeChanged, this,
+          [=](const QDateTime& dt) {
             gen_key_info_->SetExpireTime(dt);
 
             slot_set_easy_valid_date_2_custom();
           });
 
-  connect(ui_->sValidityPeriodDateTimeEdit, &QDateTimeEdit::dateTimeChanged,
-          this, [=](const QDateTime& dt) {
+  connect(ui_->sExpireDateTimeEdit, &QDateTimeEdit::dateTimeChanged, this,
+          [=](const QDateTime& dt) {
             gen_subkey_info_->SetExpireTime(dt);
 
             slot_set_easy_valid_date_2_custom();
@@ -474,6 +428,24 @@ void KeyGenerateDialog::set_signal_slot_config() {
   connect(ui_->easyCombinationComboBox, &QComboBox::currentTextChanged, this,
           &KeyGenerateDialog::slot_easy_combination_changed);
 
+  connect(ui_->pKeyLengthComboBox, &QComboBox::currentTextChanged, this,
+          [this](const QString& text) -> void {
+            auto [found, algo] = GetAlgoByNameAndKeyLength(
+                ui_->pAlgoComboBox->currentText(), text.toInt(),
+                supported_primary_key_algos_);
+
+            if (found) gen_key_info_->SetAlgo(algo);
+          });
+
+  connect(ui_->sKeyLengthComboBox, &QComboBox::currentTextChanged, this,
+          [this](const QString& text) -> void {
+            auto [found, algo] = GetAlgoByNameAndKeyLength(
+                ui_->sAlgoComboBox->currentText(), text.toInt(),
+                supported_subkey_algos_);
+
+            if (found) gen_subkey_info_->SetAlgo(algo);
+          });
+
   connect(this, &KeyGenerateDialog::SignalKeyGenerated,
           UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefresh);
@@ -483,7 +455,7 @@ auto KeyGenerateDialog::check_email_address(const QString& str) -> bool {
   return re_email_.match(str).hasMatch();
 }
 
-void KeyGenerateDialog::sync_gen_key_info() {
+void KeyGenerateDialog::sync_gen_key_algo_info() {
   auto [found, algo] = GetAlgoByName(ui_->pAlgoComboBox->currentText(),
 
                                      supported_primary_key_algos_);
@@ -495,7 +467,7 @@ void KeyGenerateDialog::sync_gen_key_info() {
   }
 }
 
-void KeyGenerateDialog::sync_gen_subkey_info() {
+void KeyGenerateDialog::sync_gen_subkey_algo_info() {
   if (gen_subkey_info_ != nullptr) {
     auto [s_found, algo] = GetAlgoByName(ui_->sAlgoComboBox->currentText(),
                                          supported_subkey_algos_);
@@ -518,7 +490,7 @@ void KeyGenerateDialog::slot_easy_mode_changed(const QString& mode) {
     if (found) gen_key_info_->SetAlgo(algo);
 
     if (gen_subkey_info_ == nullptr) {
-      gen_subkey_info_ = QSharedPointer<KeyGenerateInfo>::create(true);
+      create_sync_gen_subkey_info();
     }
 
     auto [s_found, s_algo] = KeyGenerateInfo::SearchSubKeyAlgo("elg2048");
@@ -530,7 +502,7 @@ void KeyGenerateDialog::slot_easy_mode_changed(const QString& mode) {
     if (found) gen_key_info_->SetAlgo(algo);
 
     if (gen_subkey_info_ == nullptr) {
-      gen_subkey_info_ = QSharedPointer<KeyGenerateInfo>::create(true);
+      create_sync_gen_subkey_info();
     }
 
     auto [s_found, s_algo] = KeyGenerateInfo::SearchSubKeyAlgo("cv25519");
@@ -542,7 +514,7 @@ void KeyGenerateDialog::slot_easy_mode_changed(const QString& mode) {
     if (found) gen_key_info_->SetAlgo(algo);
 
     if (gen_subkey_info_ == nullptr) {
-      gen_subkey_info_ = QSharedPointer<KeyGenerateInfo>::create(true);
+      create_sync_gen_subkey_info();
     }
 
     auto [s_found, s_algo] = KeyGenerateInfo::SearchSubKeyAlgo("rsa2048");
@@ -595,8 +567,8 @@ void KeyGenerateDialog::slot_easy_valid_date_changed(const QString& mode) {
   }
 
   if (gen_subkey_info_ != nullptr) {
-    gen_subkey_info_->SetExpireTime(gen_key_info_->GetExpireTime());
     gen_subkey_info_->SetNonExpired(gen_key_info_->IsNonExpired());
+    gen_subkey_info_->SetExpireTime(gen_key_info_->GetExpireTime());
   }
 
   refresh_widgets_state();
@@ -618,7 +590,7 @@ void KeyGenerateDialog::slot_easy_combination_changed(const QString& mode) {
   if (mode == tr("Primary Key Only")) {
     gen_subkey_info_ = nullptr;
   } else {
-    gen_subkey_info_ = QSharedPointer<KeyGenerateInfo>::create(true);
+    create_sync_gen_subkey_info();
   }
 
   slot_set_easy_key_algo_2_custom();
@@ -657,5 +629,14 @@ void KeyGenerateDialog::do_generate() {
         });
   };
   GpgOperaHelper::WaitForOpera(this, tr("Generating"), f);
+}
+
+void KeyGenerateDialog::create_sync_gen_subkey_info() {
+  if (gen_subkey_info_ == nullptr) {
+    gen_subkey_info_ = QSharedPointer<KeyGenerateInfo>::create(true);
+  }
+
+  sync_gen_subkey_algo_info();
+  slot_easy_valid_date_changed(ui_->easyValidityPeriodComboBox->currentText());
 }
 }  // namespace GpgFrontend::UI

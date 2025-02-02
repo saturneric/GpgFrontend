@@ -358,7 +358,7 @@ class GPGFRONTEND_CORE_EXPORT KeyGenerateInfo {
   QString comment_;      ///<
 
   KeyAlgo algo_;  ///<
-  QDateTime expired_ = QDateTime::currentDateTime().addYears(2);
+  QDateTime expired_;
   bool non_expired_ = false;  ///<
 
   bool no_passphrase_ = false;        ///<

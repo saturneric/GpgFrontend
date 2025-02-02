@@ -135,7 +135,9 @@ auto KeyGenerateInfo::GetSupportedSubkeyAlgo() -> QContainer<KeyAlgo> {
 }
 
 KeyGenerateInfo::KeyGenerateInfo(bool is_subkey)
-    : subkey_(is_subkey), algo_(kNoneAlgo) {}
+    : subkey_(is_subkey),
+      algo_(kNoneAlgo),
+      expired_(QDateTime::currentDateTime().toLocalTime().addYears(2)) {}
 
 auto KeyGenerateInfo::SearchPrimaryKeyAlgo(const QString &algo_id)
     -> std::tuple<bool, KeyAlgo> {
