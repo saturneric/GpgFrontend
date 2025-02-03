@@ -228,7 +228,7 @@ void TextEditTabWidget::slot_save_status_to_cache_for_recovery() {
       continue;
     }
 
-    unsaved_pages.emplace_back(i, tab_title, document->toRawText());
+    unsaved_pages.push_back({i, tab_title, document->toRawText()});
   }
 
   CacheObject cache("editor_unsaved_pages");

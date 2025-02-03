@@ -53,7 +53,7 @@ auto GpgDecryptResult::Recipients() -> QContainer<GpgRecipient> {
   for (auto* reci = result_ref_->recipients; reci != nullptr;
        reci = reci->next) {
     try {
-      result.emplace_back(reci);
+      result.push_back(GpgRecipient{reci});
     } catch (...) {
       FLOG_W(
           "caught exception when processing invalid_recipients, "

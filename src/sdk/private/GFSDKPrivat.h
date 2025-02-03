@@ -29,6 +29,7 @@
 #pragma once
 
 #include <core/function/SecureMemoryAllocator.h>
+#include <core/typedef/CoreTypedef.h>
 
 Q_DECLARE_LOGGING_CATEGORY(sdk)
 
@@ -108,12 +109,13 @@ auto CharArrayToQStringList(char **char_array, int size) -> QStringList;
 auto QStringListToCharArray(const QStringList &list) -> char **;
 
 template <typename T>
-inline auto ArrayToQList(T **pl_components, int size) -> QList<T> {
+inline auto ArrayToQList(T **pl_components,
+                         int size) -> GpgFrontend::QContainer<T> {
   if (pl_components == nullptr || size <= 0) {
-    return QList<T>();
+    return GpgFrontend::QContainer<T>();
   }
 
-  QList<T> list;
+  GpgFrontend::QContainer<T> list;
   for (int i = 0; i < size; ++i) {
     list.append(*pl_components[i]);
     GpgFrontend::SecureMemoryAllocator::Deallocate(pl_components[i]);
@@ -123,7 +125,7 @@ inline auto ArrayToQList(T **pl_components, int size) -> QList<T> {
 }
 
 template <typename T>
-inline auto QListToArray(const QList<T> &list) -> T ** {
+inline auto QListToArray(const GpgFrontend::QContainer<T> &list) -> T ** {
   T **array = static_cast<T **>(
       GpgFrontend::SecureMemoryAllocator::Allocate(list.size() * sizeof(T *)));
   int index = 0;

@@ -71,7 +71,7 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager
 
   void SetNeedRegisterModulesNum(int);
 
-  auto ListAllRegisteredModuleID() -> QList<ModuleIdentifier>;
+  auto ListAllRegisteredModuleID() -> QStringList;
 
   void RegisterModule(ModulePtr);
 
@@ -87,7 +87,7 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager
 
   auto SearchEvent(EventTriggerIdentifier) -> std::optional<EventReference>;
 
-  auto GetModuleListening(ModuleIdentifier) -> QList<EventIdentifier>;
+  auto GetModuleListening(ModuleIdentifier) -> QStringList;
 
   void ActiveModule(ModuleIdentifier);
 

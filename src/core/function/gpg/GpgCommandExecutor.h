@@ -56,7 +56,7 @@ class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor {
         GpgCommandExecutorInterator int_func = [](QProcess *) {});
   };
 
-  using ExecuteContexts = QList<ExecuteContext>;
+  using ExecuteContexts = QContainer<ExecuteContext>;
 
   /**
    * @brief Excuting a command

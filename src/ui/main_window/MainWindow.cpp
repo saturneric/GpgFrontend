@@ -279,15 +279,17 @@ void MainWindow::closeEvent(QCloseEvent* event) {
   }
 }
 
-auto MainWindow::create_action(
-    const QString& id, const QString& name, const QString& icon,
-    const QString& too_tip, const QList<QKeySequence>& shortcuts) -> QAction* {
+auto MainWindow::create_action(const QString& id, const QString& name,
+                               const QString& icon, const QString& too_tip,
+                               const QContainer<QKeySequence>& shortcuts)
+    -> QAction* {
   auto* action = new QAction(name, this);
   action->setIcon(QIcon(icon));
   action->setToolTip(too_tip);
 
   if (!shortcuts.isEmpty()) {
-    action->setShortcuts(shortcuts);
+    action->setShortcuts(
+        QList<QKeySequence>{shortcuts.cbegin(), shortcuts.cend()});
   }
 
   buffered_actions_.insert(id, {action});

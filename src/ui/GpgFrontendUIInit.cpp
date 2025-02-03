@@ -42,8 +42,8 @@
 
 namespace GpgFrontend::UI {
 
-QList<QTranslator*> registered_translators;
-QList<QByteArray> loaded_qm_datum;
+QContainer<QTranslator*> registered_translators;
+QContainer<QByteArray> loaded_qm_datum;
 
 extern void InitUITranslations();
 

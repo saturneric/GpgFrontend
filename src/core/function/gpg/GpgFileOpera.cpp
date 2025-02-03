@@ -461,6 +461,8 @@ auto GpgFileOpera::EncryptDirectorySymmetricSync(
     const QString& out_path) -> std::tuple<GpgError, DataObjectPtr> {
   auto ex = CreateStandardGFDataExchanger();
 
+  CreateArchiveHelper(in_path, ex);
+
   return RunGpgOperaSync(
       [=](const DataObjectPtr& data_object) -> GpgError {
         GpgData data_in(ex);
@@ -470,8 +472,6 @@ auto GpgFileOpera::EncryptDirectorySymmetricSync(
                                       data_object);
       },
       "gpgme_op_encrypt_symmetric", "2.1.0");
-
-  CreateArchiveHelper(in_path, ex);
 }
 
 }  // namespace GpgFrontend

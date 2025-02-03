@@ -28,9 +28,8 @@
 
 #pragma once
 
-#include <utility>
-
 #include "core/model/KeyDatabaseInfo.h"
+#include "core/typedef/CoreTypedef.h"
 #include "ui/dialog/GeneralDialog.h"
 
 class Ui_KeyDatabaseEditDialog;
@@ -39,7 +38,7 @@ namespace GpgFrontend::UI {
 class KeyDatabaseEditDialog : public GeneralDialog {
   Q_OBJECT
  public:
-  explicit KeyDatabaseEditDialog(QList<KeyDatabaseInfo> key_db_infos,
+  explicit KeyDatabaseEditDialog(QContainer<KeyDatabaseInfo> key_db_infos,
                                  QWidget* parent);
 
   void SetDefaultName(QString name);
@@ -56,7 +55,7 @@ class KeyDatabaseEditDialog : public GeneralDialog {
   QString default_path_;
   QString name_;
   QString path_;
-  QList<KeyDatabaseInfo> key_database_infos_;
+  QContainer<KeyDatabaseInfo> key_database_infos_;
 
   void slot_button_box_accepted();
 

@@ -424,7 +424,8 @@ void KeyGenerateDialog::set_signal_slot_config() {
             slot_set_easy_valid_date_2_custom();
           });
 
-  connect(ui_->keyDBIndexComboBox, &QComboBox::currentIndexChanged, this,
+  connect(ui_->keyDBIndexComboBox,
+          qOverload<int>(&QComboBox::currentIndexChanged), this,
           [=](int index) { channel_ = index; });
 
   connect(ui_->easyCombinationComboBox, &QComboBox::currentTextChanged, this,

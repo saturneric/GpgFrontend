@@ -98,9 +98,9 @@ class GPGFRONTEND_UI_EXPORT UIModuleManager
    * @brief
    *
    * @param id
-   * @return QList<MountedUIEntry>
+   * @return QContainer<MountedUIEntry>
    */
-  auto QueryMountedEntries(QString id) -> QList<MountedUIEntry>;
+  auto QueryMountedEntries(QString id) -> QContainer<MountedUIEntry>;
 
   /**
    * @brief
@@ -156,10 +156,10 @@ class GPGFRONTEND_UI_EXPORT UIModuleManager
 
  private:
   QMap<QString, UIMountPoint> mount_points_;
-  QMap<QString, QList<MountedUIEntry>> mounted_entries_;
+  QMap<QString, QContainer<MountedUIEntry>> mounted_entries_;
   QMap<QString, ModuleTranslatorInfo> translator_data_readers_;
-  QList<QTranslator*> registered_translators_;
-  QList<QByteArray> read_translator_data_list_;
+  QContainer<QTranslator*> registered_translators_;
+  QContainer<QByteArray> read_translator_data_list_;
   QMap<QString, QPointer<QObject>> registered_qobjects_;
   QMap<QString, std::any> capsule_;
 };

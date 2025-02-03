@@ -37,7 +37,7 @@
 
 namespace GpgFrontend::UI {
 KeyDatabaseEditDialog::KeyDatabaseEditDialog(
-    QList<KeyDatabaseInfo> key_db_infos, QWidget* parent)
+    QContainer<KeyDatabaseInfo> key_db_infos, QWidget* parent)
     : GeneralDialog("KeyDatabaseEditDialog", parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyDatabaseEditDialog>()),
       key_database_infos_(std::move(key_db_infos)) {

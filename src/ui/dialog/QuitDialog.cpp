@@ -132,8 +132,8 @@ void QuitDialog::slot_my_discard() {
 
 auto QuitDialog::IsDiscarded() const -> bool { return discarded_; }
 
-auto QuitDialog::GetTabIdsToSave() -> QList<int> {
-  QList<int> tab_ids_to_save;
+auto QuitDialog::GetTabIdsToSave() -> QContainer<int> {
+  QContainer<int> tab_ids_to_save;
   for (int i = 0; i < m_fileList_->rowCount(); i++) {
     if (m_fileList_->item(i, 0)->checkState() == Qt::Checked) {
       tab_ids_to_save << m_fileList_->item(i, 2)->text().toInt();

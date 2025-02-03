@@ -41,7 +41,7 @@ class DataObject::Impl {
   void AppendObject(const std::any& obj) { params_.push_back(obj); }
 
   auto GetParameter(size_t index) -> std::any {
-    if (index >= params_.size()) {
+    if (index >= static_cast<size_t>(params_.size())) {
       throw std::out_of_range("index out of range");
     }
     return params_[index];

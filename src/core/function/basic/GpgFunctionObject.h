@@ -34,6 +34,7 @@
 #include "core/function/basic/ChannelObject.h"
 #include "core/function/basic/SingletonStorage.h"
 #include "core/function/basic/SingletonStorageCollection.h"
+#include "core/typedef/CoreTypedef.h"
 #include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {

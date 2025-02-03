@@ -50,13 +50,13 @@ auto GpgVerifyResult::GetRaw() const -> gpgme_verify_result_t {
 }
 
 auto GpgVerifyResult::GetSignature() const -> QContainer<GpgSignature> {
-  QContainer<GpgSignature> sigatures;
+  QContainer<GpgSignature> signatures;
 
   auto* signature = result_ref_->signatures;
   while (signature != nullptr) {
-    sigatures.emplace_back(signature);
+    signatures.push_back(GpgSignature{signature});
     signature = signature->next;
   }
-  return sigatures;
+  return signatures;
 }
 }  // namespace GpgFrontend

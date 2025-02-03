@@ -45,7 +45,7 @@ namespace GpgFrontend {
 auto KeyPackageOperator::GeneratePassphrase(const QString& phrase_path,
                                             QString& phrase) -> bool {
   phrase = PassphraseGenerator::GetInstance().Generate(256);
-  FLOG_D("generated passphrase: %lld bytes", phrase.size());
+  FLOG_D() << "generated passphrase: " << phrase.size() << "bytes";
   return WriteFile(phrase_path, phrase.toUtf8());
 }
 

@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/typedef/CoreTypedef.h"
 #include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
 
@@ -60,9 +61,9 @@ class QuitDialog : public GeneralDialog {
   /**
    * @brief Get the Tab Ids To Save object
    *
-   * @return QList<int>
+   * @return QContainer<int>
    */
-  auto GetTabIdsToSave() -> QList<int>;
+  auto GetTabIdsToSave() -> QContainer<int>;
 
  private slots:
 

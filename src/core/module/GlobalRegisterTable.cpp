@@ -121,7 +121,7 @@ class GlobalRegisterTable::Impl {
         current = it.value();
       }
 
-      for (auto& key : current->children.keys()) rtn.emplace_back(key);
+      for (auto& key : current->children.keys()) rtn.push_back(key);
     }
     return rtn;
   }

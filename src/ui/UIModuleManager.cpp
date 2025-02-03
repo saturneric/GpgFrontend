@@ -76,7 +76,8 @@ auto UIModuleManager::MountEntry(const QString& id,
   return true;
 }
 
-auto UIModuleManager::QueryMountedEntries(QString id) -> QList<MountedUIEntry> {
+auto UIModuleManager::QueryMountedEntries(QString id)
+    -> QContainer<MountedUIEntry> {
   if (id.isEmpty() || !mount_points_.contains(id)) return {};
   return mounted_entries_[id];
 }

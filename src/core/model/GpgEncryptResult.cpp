@@ -53,7 +53,10 @@ auto GpgEncryptResult::InvalidRecipients()
   for (auto* invalid_key = result_ref_->invalid_recipients;
        invalid_key != nullptr; invalid_key = invalid_key->next) {
     try {
-      result.emplace_back(QString{invalid_key->fpr}, invalid_key->reason);
+      result.push_back({
+          QString{invalid_key->fpr},
+          invalid_key->reason,
+      });
     } catch (...) {
       FLOG_W(
           "caught exception when processing invalid_recipients, "
