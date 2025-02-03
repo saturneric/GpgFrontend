@@ -63,7 +63,7 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, const KeyId& key_id,
   ui_->encrCheckBox->setText(tr("Encrypt"));
   ui_->signCheckBox->setText(tr("Sign"));
   ui_->authCheckBox->setText(tr("Authentication"));
-  ui_->expireLabel->setText(tr("Non Expired"));
+  ui_->nonExpiredCheckBox->setText(tr("Non Expired"));
   ui_->nonPassphraseCheckBox->setText(tr("No Passphrase"));
 
   QSet<QString> algo_set;
