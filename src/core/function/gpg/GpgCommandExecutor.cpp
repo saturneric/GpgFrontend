@@ -201,7 +201,7 @@ void GpgCommandExecutor::ExecuteConcurrentlySync(ExecuteContexts contexts) {
 
     QObject::connect(task, &Thread::Task::SignalTaskEnd, [&]() {
       --remaining_tasks;
-      FLOG_D("remaining tasks: %lld", remaining_tasks);
+      LOG_D() << "remaining tasks: " << remaining_tasks;
       if (remaining_tasks <= 0) {
         FLOG_D("no remaining task, quit");
         looper.quit();

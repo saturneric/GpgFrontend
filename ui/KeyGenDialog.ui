@@ -360,6 +360,33 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>nameEdit</tabstop>
+  <tabstop>emailEdit</tabstop>
+  <tabstop>commentEdit</tabstop>
+  <tabstop>keyDBIndexComboBox</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>easyAlgoComboBox</tabstop>
+  <tabstop>easyValidityPeriodComboBox</tabstop>
+  <tabstop>easyCombinationComboBox</tabstop>
+  <tabstop>statusPlainTextEdit</tabstop>
+  <tabstop>generateButton</tabstop>
+  <tabstop>pExpireCheckBox</tabstop>
+  <tabstop>pExpireDateTimeEdit</tabstop>
+  <tabstop>pEncrCheckBox</tabstop>
+  <tabstop>pSignCheckBox</tabstop>
+  <tabstop>pAuthCheckBox</tabstop>
+  <tabstop>pAlgoComboBox</tabstop>
+  <tabstop>noPassphraseCheckBox</tabstop>
+  <tabstop>pKeyLengthComboBox</tabstop>
+  <tabstop>sExpireCheckBox</tabstop>
+  <tabstop>sExpireDateTimeEdit</tabstop>
+  <tabstop>sAlgoComboBox</tabstop>
+  <tabstop>sEncrCheckBox</tabstop>
+  <tabstop>sSignCheckBox</tabstop>
+  <tabstop>sAuthCheckBox</tabstop>
+  <tabstop>sKeyLengthComboBox</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

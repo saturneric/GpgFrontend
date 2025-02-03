@@ -370,7 +370,7 @@ auto TextEdit::MaybeSaveAnyTab() -> bool {
     }
 
     bool all_saved = true;
-    QList<int> const tab_ids_to_save = dialog->GetTabIdsToSave();
+    QContainer<int> const tab_ids_to_save = dialog->GetTabIdsToSave();
     for (const auto& tab_id : tab_ids_to_save) {
       tab_widget_->setCurrentIndex(tab_id);
       if (!maybe_save_current_tab(false)) {

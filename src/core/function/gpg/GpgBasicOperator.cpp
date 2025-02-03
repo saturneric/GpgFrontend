@@ -55,7 +55,9 @@ void SetSignersImpl(GpgContext& ctx_, const KeyArgsList& signers, bool ascii) {
       CheckGpgError(error);
     }
   }
-  if (signers.size() != gpgme_signers_count(ctx_.DefaultContext())) {
+
+  auto count = gpgme_signers_count(ctx_.DefaultContext());
+  if (static_cast<unsigned int>(signers.size()) != count) {
     FLOG_D("not all signers added");
   }
 }
@@ -286,7 +288,7 @@ auto EncryptSignImpl(GpgContext& ctx_, const KeyArgsList& keys,
   QContainer<gpgme_key_t> recipients(keys.begin(), keys.end());
 
   // Last entry data_in array has to be nullptr
-  recipients.emplace_back(nullptr);
+  recipients.push_back(nullptr);
 
   SetSignersImpl(ctx_, signers, ascii);
 

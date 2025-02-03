@@ -580,7 +580,8 @@ class MainWindow : public GeneralMainWindow {
    */
   auto create_action(const QString& id, const QString& name,
                      const QString& icon, const QString& too_tip,
-                     const QList<QKeySequence>& shortcuts = {}) -> QAction*;
+                     const QContainer<QKeySequence>& shortcuts = {})
+      -> QAction*;
 
   /**
    * @brief

@@ -60,7 +60,7 @@ auto GpgKeyImportExporter::ImportKey(const GFBuffer& in_buffer)
     GpgImportInformation::GpgImportedKey key;
     key.import_status = static_cast<int>(status->status);
     key.fpr = status->fpr;
-    import_info->imported_keys.emplace_back(key);
+    import_info->imported_keys.push_back(key);
     status = status->next;
   }
   return import_info;
@@ -85,8 +85,8 @@ auto GpgKeyImportExporter::ExportKey(const GpgKey& key, bool secret, bool ascii,
   QContainer<gpgme_key_t> keys_array;
 
   // Last entry data_in array has to be nullptr
-  keys_array.emplace_back(key);
-  keys_array.emplace_back(nullptr);
+  keys_array.push_back(static_cast<gpgme_key_t>(key));
+  keys_array.push_back(nullptr);
 
   GpgData data_out;
   auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
@@ -117,7 +117,7 @@ void GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys, bool secret,
         QContainer<gpgme_key_t> keys_array(keys.begin(), keys.end());
 
         // Last entry data_in array has to be nullptr
-        keys_array.emplace_back(nullptr);
+        keys_array.push_back(nullptr);
 
         GpgData data_out;
         auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
@@ -147,7 +147,7 @@ void GpgKeyImportExporter::ExportAllKeys(const KeyArgsList& keys, bool secret,
         QContainer<gpgme_key_t> keys_array(keys.begin(), keys.end());
 
         // Last entry data_in array has to be nullptr
-        keys_array.emplace_back(nullptr);
+        keys_array.push_back(nullptr);
 
         GpgData data_out;
         auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();

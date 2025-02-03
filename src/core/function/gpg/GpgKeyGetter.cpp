@@ -151,7 +151,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
 
   auto GetKeys(const KeyIdArgsList& ids) -> GpgKeyList {
     auto keys = GpgKeyList{};
-    for (const auto& key_id : ids) keys.emplace_back(GetKey(key_id, true));
+    for (const auto& key_id : ids) keys.push_back(GetKey(key_id, true));
     return keys;
   }
 
@@ -159,7 +159,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     // get the lock
     std::lock_guard<std::mutex> lock(ctx_mutex_);
     auto keys_copy = GpgKeyList{};
-    for (const auto& key : keys) keys_copy.emplace_back(key);
+    for (const auto& key : keys) keys_copy.push_back(key);
     return keys_copy;
   }
 
@@ -192,7 +192,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
    * @brief
    *
    */
-  QList<GpgKey> keys_cache_;
+  QContainer<GpgKey> keys_cache_;
 
   /**
    * @brief shared mutex for the keys cache

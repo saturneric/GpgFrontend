@@ -356,12 +356,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    */
   auto operator<=(const GpgKey&) const -> bool;
 
-  /**
-   * @brief
-   *
-   * @return gpgme_key_t
-   */
-  explicit operator gpgme_key_t() const;
+  // NOLINTNEXTLINE(google-explicit-constructor)
+  operator gpgme_key_t() const;
 
  private:
   /**

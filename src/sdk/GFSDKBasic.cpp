@@ -65,9 +65,10 @@ void GFExecuteCommandSync(const char* cmd, int32_t argc, char** argv,
 
 void GFExecuteCommandBatchSync(GFCommandExecuteContext** contexts,
                                int32_t contexts_size) {
-  QList<GpgFrontend::GpgCommandExecutor::ExecuteContext> core_contexts;
+  GpgFrontend::QContainer<GpgFrontend::GpgCommandExecutor::ExecuteContext>
+      core_contexts;
 
-  QList<GFCommandExecuteContext> sdk_contexts =
+  GpgFrontend::QContainer<GFCommandExecuteContext> sdk_contexts =
       ArrayToQList(contexts, contexts_size);
   for (const auto sdk_context : sdk_contexts) {
     QStringList args =

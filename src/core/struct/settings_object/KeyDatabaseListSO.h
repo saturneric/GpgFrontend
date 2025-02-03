@@ -29,11 +29,12 @@
 #pragma once
 
 #include "core/struct/settings_object/KeyDatabaseItemSO.h"
+#include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
 
 struct KeyDatabaseListSO {
-  QList<KeyDatabaseItemSO> key_databases;
+  QContainer<KeyDatabaseItemSO> key_databases;
 
   KeyDatabaseListSO() = default;
 

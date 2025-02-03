@@ -133,7 +133,7 @@ class ModuleManager::Impl {
     return gmc_->SearchModule(std::move(module_id));
   }
 
-  auto ListAllRegisteredModuleID() -> QList<ModuleIdentifier> {
+  auto ListAllRegisteredModuleID() -> QStringList {
     return gmc_->ListAllRegisteredModuleID();
   }
 
@@ -176,8 +176,7 @@ class ModuleManager::Impl {
     return gmc_->SearchEvent(std::move(trigger_id));
   }
 
-  auto GetModuleListening(ModuleIdentifier module_id)
-      -> QList<EventIdentifier> {
+  auto GetModuleListening(ModuleIdentifier module_id) -> QStringList {
     return gmc_->GetModuleListening(std::move(module_id));
   }
 
@@ -246,7 +245,7 @@ class ModuleManager::Impl {
   static ModuleMangerPtr global_module_manager;
   SecureUniquePtr<GlobalModuleContext> gmc_;
   SecureUniquePtr<GlobalRegisterTable> grt_;
-  QList<QLibrary> module_libraries_;
+  QContainer<QLibrary> module_libraries_;
   int need_register_modules_ = -1;
 };
 
@@ -300,7 +299,7 @@ void ModuleManager::ListenEvent(ModuleIdentifier module,
 }
 
 auto ModuleManager::GetModuleListening(ModuleIdentifier module_id)
-    -> QList<EventIdentifier> {
+    -> QStringList {
   return p_->GetModuleListening(module_id);
 }
 
@@ -353,7 +352,7 @@ auto ModuleManager::IsIntegratedModule(ModuleIdentifier id) -> bool {
   return p_->IsIntegratedModule(id);
 }
 
-auto ModuleManager::ListAllRegisteredModuleID() -> QList<ModuleIdentifier> {
+auto ModuleManager::ListAllRegisteredModuleID() -> QStringList {
   return p_->ListAllRegisteredModuleID();
 };
 

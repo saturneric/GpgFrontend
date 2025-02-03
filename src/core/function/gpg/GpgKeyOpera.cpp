@@ -111,7 +111,7 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
 
   // dealing with reason text
   auto reason_text_lines = GpgFrontend::SecureCreateSharedObject<QStringList>(
-      revocation_reason_text.split('\n', Qt::SkipEmptyParts).toVector());
+      revocation_reason_text.split('\n', Qt::SkipEmptyParts));
 
   const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.app_path", QString{});
@@ -124,10 +124,10 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
          if (exit_code != 0) {
            LOG_W() << "gnupg gen revoke execute error, process stderr: "
                    << p_err << ", process stdout: " << p_out;
-         } else {
-           FLOG_D("gnupg gen revoke exit_code: %d, process stdout size: %lld",
-                  exit_code, p_out.size());
+           return;
          }
+         LOG_D() << "gnupg gen revoke exit_code: " << exit_code
+                 << "process stdout size: " << p_out.size();
        },
        nullptr,
        [revocation_reason_code, reason_text_lines](QProcess* proc) -> void {

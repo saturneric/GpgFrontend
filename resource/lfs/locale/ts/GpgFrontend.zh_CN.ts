@@ -542,7 +542,7 @@
     <message>
         <location filename="../../../../src/core/model/GpgKeyGenerateInfo.cpp" line="39"/>
         <source>None</source>
-        <translation type="unfinished">无</translation>
+        <translation>无</translation>
     </message>
 </context>
 <context>
@@ -1072,7 +1072,7 @@ Description: %3</source>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="46"/>
         <source>Switch Batch Mode</source>
-        <translation type="unfinished">切换到批量模式</translation>
+        <translation>切换到批量模式</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="66"/>
@@ -1087,7 +1087,7 @@ Description: %3</source>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="78"/>
         <source>ASCII Mode</source>
-        <translation type="unfinished">ASCII模式</translation>
+        <translation>ASCII模式</translation>
     </message>
 </context>
 <context>
@@ -1368,12 +1368,12 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="77"/>
         <source>Status</source>
-        <translation type="unfinished">状态</translation>
+        <translation>状态</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="77"/>
         <source>Real Path</source>
-        <translation type="unfinished">实际路径</translation>
+        <translation>实际路径</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="360"/>
@@ -1400,23 +1400,23 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="382"/>
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="629"/>
         <source>Invalid Key Database Paths</source>
-        <translation type="unfinished">无效的密钥数据库地址</translation>
+        <translation>无效的密钥数据库地址</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="383"/>
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="630"/>
         <source>The edited key database path is not a valid path that GpgFrontend can use</source>
-        <translation type="unfinished">编辑的密钥数据库路径不是 GpgFrontend 可以使用的有效路径</translation>
+        <translation>编辑的密钥数据库路径不是 GpgFrontend 可以使用的有效路径</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="430"/>
         <source>Active</source>
-        <translation type="unfinished">启用</translation>
+        <translation>启用</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="430"/>
         <source>Inactive</source>
-        <translation type="unfinished">未启用</translation>
+        <translation>未启用</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="458"/>
@@ -1527,7 +1527,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="175"/>
         <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="213"/>
         <source>Critical Error</source>
-        <translation type="unfinished">关键错误</translation>
+        <translation>关键错误</translation>
     </message>
 </context>
 <context>
@@ -1674,7 +1674,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="53"/>
         <source>Convert to Relative Path</source>
-        <translation type="unfinished">转换为相对路径</translation>
+        <translation>转换为相对路径</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="55"/>
@@ -1773,218 +1773,218 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="63"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="70"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="578"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="584"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="579"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="585"/>
         <source>Custom</source>
-        <translation type="unfinished">自定义</translation>
+        <translation>自定义</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="71"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="527"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="528"/>
         <source>3 Months</source>
-        <translation type="unfinished">3个月</translation>
+        <translation>3个月</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="72"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="532"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="533"/>
         <source>6 Months</source>
-        <translation type="unfinished">6个月</translation>
+        <translation>6个月</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="73"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="537"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="538"/>
         <source>1 Year</source>
-        <translation type="unfinished">1年</translation>
+        <translation>1年</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="74"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="139"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="144"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="542"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="543"/>
         <source>2 Years</source>
-        <translation type="unfinished">2年</translation>
+        <translation>2年</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="75"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="547"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="548"/>
         <source>5 Years</source>
-        <translation type="unfinished">5年</translation>
+        <translation>5年</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="76"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="552"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="553"/>
         <source>10 Years</source>
-        <translation type="unfinished">10年</translation>
+        <translation>10年</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="77"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="100"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="109"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="558"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="559"/>
         <source>Non Expired</source>
-        <translation type="unfinished">不过期</translation>
+        <translation>不过期</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="81"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="290"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="589"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="590"/>
         <source>Primary Key Only</source>
-        <translation type="unfinished">仅主密钥</translation>
+        <translation>仅主密钥</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="82"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="338"/>
         <source>Primary Key With Subkey</source>
-        <translation type="unfinished">主密钥附带子密钥</translation>
+        <translation>主密钥附带子密钥</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="85"/>
         <source>Name</source>
-        <translation type="unfinished">名称</translation>
+        <translation>名称</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="86"/>
         <source>Email</source>
-        <translation type="unfinished">电子邮件</translation>
+        <translation>电子邮件</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="87"/>
         <source>Comment</source>
-        <translation type="unfinished">注释</translation>
+        <translation>注释</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="88"/>
         <source>Key Database</source>
-        <translation type="unfinished">密钥数据库</translation>
+        <translation>密钥数据库</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="89"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="92"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="102"/>
         <source>Algorithm</source>
-        <translation type="unfinished">算法</translation>
+        <translation>算法</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="90"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="93"/>
         <source>Validity Period</source>
-        <translation type="unfinished">有效时长</translation>
+        <translation>有效时长</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="94"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="104"/>
         <source>Key Length</source>
-        <translation type="unfinished">密钥长度</translation>
+        <translation>密钥长度</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="95"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="105"/>
         <source>Usage</source>
-        <translation type="unfinished">用法</translation>
+        <translation>用法</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="96"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="106"/>
         <source>Encrypt</source>
-        <translation type="unfinished">加密</translation>
+        <translation>加密</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="97"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="107"/>
         <source>Sign</source>
-        <translation type="unfinished">签名</translation>
+        <translation>签名</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="98"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="108"/>
         <source>Authentication</source>
-        <translation type="unfinished">验证</translation>
+        <translation>验证</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="99"/>
         <source>No Passphrase</source>
-        <translation type="unfinished">无密码</translation>
+        <translation>无密码</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="103"/>
         <source>Expire Date</source>
-        <translation type="unfinished">到期日期</translation>
+        <translation>到期日期</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="112"/>
         <source>Easy Mode</source>
-        <translation type="unfinished">简单模式</translation>
+        <translation>简单模式</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="113"/>
         <source>Primary Key</source>
-        <translation type="unfinished">主密钥</translation>
+        <translation>主密钥</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="114"/>
         <source>Subkey</source>
-        <translation type="unfinished">子密钥</translation>
+        <translation>子密钥</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="117"/>
         <source>Generate</source>
-        <translation type="unfinished">生成</translation>
+        <translation>生成</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="134"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="261"/>
         <source>None</source>
-        <translation type="unfinished">无</translation>
+        <translation>无</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="146"/>
         <source>Generate Key</source>
-        <translation type="unfinished">生成密钥</translation>
+        <translation>生成密钥</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="156"/>
         <source>Name must contain at least five characters.</source>
-        <translation type="unfinished">名称必须至少包含五个字符。</translation>
+        <translation>名称必须至少包含五个字符。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="161"/>
         <source>Please give a valid email address.</source>
-        <translation type="unfinished">请使用一个有效的电子邮件地址。</translation>
+        <translation>请使用一个有效的电子邮件地址。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="166"/>
         <source>Please give a valid primary key algorithm.</source>
-        <translation type="unfinished">请选择一个有效的主密钥算法。</translation>
+        <translation>请选择一个有效的主密钥算法。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="175"/>
         <source>Time to primary key expiration must not be less than 120 seconds.</source>
-        <translation type="unfinished">距离主密钥过期时间不得少于 120 秒。</translation>
+        <translation>距离主密钥过期时间不得少于 120 秒。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="182"/>
         <source>Please give a valid subkey algorithm.</source>
-        <translation type="unfinished">请选择一个有效的子密钥算法。</translation>
+        <translation>请选择一个有效的子密钥算法。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="190"/>
         <source>Time to subkey expiration must not be less than 120 seconds.</source>
-        <translation type="unfinished">距离子密钥过期时间不得少于 120 秒。</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="617"/>
-        <source>Error</source>
-        <translation type="unfinished">错误</translation>
+        <translation>距离子密钥过期时间不得少于 120 秒。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="618"/>
-        <source>Unknown error occurred</source>
-        <translation type="unfinished">发生未知错误</translation>
+        <source>Error</source>
+        <translation>错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="630"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="619"/>
+        <source>Unknown error occurred</source>
+        <translation>发生未知错误</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="631"/>
         <source>Generating</source>
-        <translation type="unfinished">生成</translation>
+        <translation>生成</translation>
     </message>
 </context>
 <context>
@@ -2206,12 +2206,12 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="645"/>
         <source>Error</source>
-        <translation type="unfinished">错误</translation>
+        <translation>错误</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="645"/>
         <source>Key Not Found.</source>
-        <translation type="unfinished">未找到密钥。</translation>
+        <translation>未找到密钥。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="301"/>
@@ -4175,13 +4175,23 @@ Note: For verification, you can find more information here: https://keys.openpgp
 <context>
     <name>GpgFrontend::UI::MainWindow</name>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="163"/>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="166"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="146"/>
+        <source>Update Check</source>
+        <translation>检查更新</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="147"/>
+        <source>Do you want to check for updates at each startup?</source>
+        <translation>你想要以后每一次启动时自动检查更新吗?</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="176"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="179"/>
         <source>Critical error occur while loading GpgFrontend.</source>
         <translation>加载 GpgFrontend 时发生严重错误。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="165"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="178"/>
         <source>Loading Failed</source>
         <translation>加载失败</translation>
     </message>
@@ -4234,7 +4244,7 @@ Note: For verification, you can find more information here: https://keys.openpgp
         <source>Cannot read from the following files:
 
 %1</source>
-        <translation type="unfinished">无法读取下列文件:
+        <translation>无法读取下列文件:
 
 %1</translation>
     </message>
@@ -4243,7 +4253,7 @@ Note: For verification, you can find more information here: https://keys.openpgp
         <source>Cannot write to the following files:
 
 %1</source>
-        <translation type="unfinished">无法写入下列文件:
+        <translation>无法写入下列文件:
 
 %1</translation>
     </message>
@@ -4479,63 +4489,63 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="517"/>
         <source>FAIL</source>
-        <translation type="unfinished">失败</translation>
+        <translation>失败</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="521"/>
         <source>OK</source>
-        <translation type="unfinished">成功</translation>
+        <translation>成功</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="524"/>
         <source>WARN</source>
-        <translation type="unfinished">警告</translation>
+        <translation>警告</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="535"/>
         <source>Summary Report</source>
-        <translation type="unfinished">总结报告</translation>
+        <translation>总结报告</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="536"/>
         <source>Total Operations: %1
 </source>
-        <translation type="unfinished">所有操作: %1
+        <translation>所有操作: %1
 </translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="537"/>
         <source>Successful: %1
 </source>
-        <translation type="unfinished">成功: %1
+        <translation>成功: %1
 </translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="538"/>
         <source>Warnings: %1
 </source>
-        <translation type="unfinished">警告: %1
+        <translation>警告: %1
 </translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="539"/>
         <source>Failures: %1
 </source>
-        <translation type="unfinished">失败: %1
+        <translation>失败: %1
 </translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="543"/>
         <source>Failed Objects: %1
 </source>
-        <translation type="unfinished">失败对象: %1
+        <translation>失败对象: %1
 </translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="548"/>
         <source>Warning Objects: %1
 </source>
-        <translation type="unfinished">警告对象: %1
+        <translation>警告对象: %1
 </translation>
     </message>
     <message>
@@ -5817,52 +5827,52 @@ If the issue persists, consider seeking technical support or consulting the docu
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="59"/>
         <source>Algorithm</source>
-        <translation type="unfinished">算法</translation>
+        <translation>算法</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="60"/>
         <source>Key Length</source>
-        <translation type="unfinished">密钥长度</translation>
+        <translation>密钥长度</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="61"/>
         <source>Expire Date</source>
-        <translation type="unfinished">到期日期</translation>
+        <translation>到期日期</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="62"/>
         <source>Usage</source>
-        <translation type="unfinished">用法</translation>
+        <translation>用法</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="63"/>
         <source>Encrypt</source>
-        <translation type="unfinished">加密</translation>
+        <translation>加密</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="64"/>
         <source>Sign</source>
-        <translation type="unfinished">签名</translation>
+        <translation>签名</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="66"/>
         <source>Non Expired</source>
-        <translation type="unfinished">不过期</translation>
+        <translation>不过期</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="67"/>
         <source>No Passphrase</source>
-        <translation type="unfinished">无密码</translation>
+        <translation>无密码</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="183"/>
         <source>Please give a valid subkey algorithm.</source>
-        <translation type="unfinished">请选择一个有效的子密钥算法。</translation>
+        <translation>请选择一个有效的子密钥算法。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="192"/>
         <source>Time to subkey expiration must not be less than 120 seconds.</source>
-        <translation type="unfinished">距离主密钥过期时间不得少于120秒。</translation>
+        <translation>距离主密钥过期时间不得少于120秒。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="204"/>
@@ -6420,12 +6430,12 @@ If the issue persists, consider seeking technical support or consulting the docu
     <message>
         <location filename="../../../../src/core/GpgCoreInit.cpp" line="405"/>
         <source>Cannot get Infos from GpgConf</source>
-        <translation type="unfinished">无法从GpgConf获取信息</translation>
+        <translation>无法从GpgConf获取信息</translation>
     </message>
     <message>
         <location filename="../../../../src/core/GpgCoreInit.cpp" line="445"/>
         <source>Cannot Find Default Home Path</source>
-        <translation type="unfinished">无法找到默认的GnuPG家目录</translation>
+        <translation>无法找到默认的GnuPG家目录</translation>
     </message>
     <message>
         <location filename="../../../../src/core/GpgCoreInit.cpp" line="471"/>

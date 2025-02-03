@@ -28,7 +28,8 @@
 
 #pragma once
 
-#include "core/struct/settings_object/KeyDatabaseItemSO.h"
+#include "core/model/KeyDatabaseInfo.h"
+#include "core/typedef/CoreTypedef.h"
 #include "ui/dialog/GeneralDialog.h"
 
 class Ui_GnuPGControllerDialog;
@@ -131,8 +132,8 @@ class GnuPGControllerDialog : public GeneralDialog {
   QString custom_key_database_path_;
   QString custom_gnupg_path_;
   QMenu* popup_menu_{};
-  QList<KeyDatabaseInfo> active_key_db_infos_;
-  QList<KeyDatabaseInfo> key_db_infos_;
+  QContainer<KeyDatabaseInfo> active_key_db_infos_;
+  QContainer<KeyDatabaseInfo> key_db_infos_;
 
   /**
    * @brief Get the Restart Needed object

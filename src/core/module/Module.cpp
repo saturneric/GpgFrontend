@@ -237,7 +237,7 @@ class Module::Impl {
     void** pointer;
   };
 
-  QList<Symbol> module_required_symbols_ = {
+  QContainer<Symbol> module_required_symbols_ = {
       {"GFGetModuleGFSDKVersion", reinterpret_cast<void**>(&get_sdk_ver_api_)},
       {"GFGetModuleQtEnvVersion", reinterpret_cast<void**>(&get_qt_ver_api_)},
       {"GFGetModuleID", reinterpret_cast<void**>(&get_id_api_)},

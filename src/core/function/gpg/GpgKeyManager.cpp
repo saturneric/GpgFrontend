@@ -272,7 +272,7 @@ auto GpgKeyManager::RevokeSubkey(const GpgKey& key, int subkey_index,
 
   // dealing with reason text
   auto reason_text_lines = SecureCreateSharedObject<QStringList>(
-      reason_text.split('\n', Qt::SkipEmptyParts).toVector());
+      reason_text.split('\n', Qt::SkipEmptyParts));
 
   AutomatonNextStateHandler next_state_handler =
       [](AutomatonState state, QString status, QString args) {

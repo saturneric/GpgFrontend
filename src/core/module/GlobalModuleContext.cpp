@@ -325,8 +325,8 @@ class GlobalModuleContext::Impl {
     return m.has_value() && m->get()->integrated;
   }
 
-  auto ListAllRegisteredModuleID() -> QList<ModuleIdentifier> {
-    QList<ModuleIdentifier> module_ids;
+  auto ListAllRegisteredModuleID() -> QStringList {
+    QStringList module_ids;
     for (const auto& module : module_register_table_) {
       module_ids.append(module.first);
     }
@@ -334,8 +334,7 @@ class GlobalModuleContext::Impl {
     return module_ids;
   }
 
-  auto GetModuleListening(const ModuleIdentifier& module_id)
-      -> QList<EventIdentifier> {
+  auto GetModuleListening(const ModuleIdentifier& module_id) -> QStringList {
     auto module_info = search_module_register_table(module_id);
     if (!module_info.has_value()) return {};
     return module_info->get()->listening_event_ids;
@@ -464,13 +463,12 @@ auto GlobalModuleContext::IsIntegratedModule(ModuleIdentifier m_id) -> bool {
   return p_->IsIntegratedModule(m_id);
 }
 
-auto GlobalModuleContext::ListAllRegisteredModuleID()
-    -> QList<ModuleIdentifier> {
+auto GlobalModuleContext::ListAllRegisteredModuleID() -> QStringList {
   return p_->ListAllRegisteredModuleID();
 }
 
 auto GlobalModuleContext::GetModuleListening(ModuleIdentifier module_id)
-    -> QList<EventIdentifier> {
+    -> QStringList {
   return p_->GetModuleListening(module_id);
 }
 

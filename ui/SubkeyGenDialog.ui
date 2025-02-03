@@ -129,6 +129,18 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>algoComboBox</tabstop>
+  <tabstop>keyLengthComboBox</tabstop>
+  <tabstop>expireDateTimeEdit</tabstop>
+  <tabstop>encrCheckBox</tabstop>
+  <tabstop>signCheckBox</tabstop>
+  <tabstop>authCheckBox</tabstop>
+  <tabstop>nonExpiredCheckBox</tabstop>
+  <tabstop>nonPassphraseCheckBox</tabstop>
+  <tabstop>statusPlainTextEdit</tabstop>
+  <tabstop>generateButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

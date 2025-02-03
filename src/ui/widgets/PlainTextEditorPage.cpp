@@ -107,8 +107,8 @@ void PlainTextEditorPage::ShowNotificationWidget(QWidget *widget,
 }
 
 void PlainTextEditorPage::CloseNoteByClass(const char *className) {
-  QList<QWidget *> widgets = findChildren<QWidget *>();
-  for (QWidget *widget : widgets) {
+  auto widgets = findChildren<QWidget *>();
+  for (auto *widget : widgets) {
     if (widget->property(className) == true) {
       widget->close();
     }

@@ -176,10 +176,10 @@ auto SetExtensionOfOutputFileForArchive(const QString& path, GpgOperation opera,
   return file_info.absolutePath() + "/" + file_info.baseName();
 }
 
-static QList<KeyDatabaseInfo> gpg_key_database_info_cache;
+static QContainer<KeyDatabaseInfo> gpg_key_database_info_cache;
 
 auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseInfos()
-    -> QList<KeyDatabaseInfo> {
+    -> QContainer<KeyDatabaseInfo> {
   if (!gpg_key_database_info_cache.empty()) return gpg_key_database_info_cache;
 
   auto context_index_list = Module::ListRTChildKeys("core", "gpgme.ctx.list");
@@ -300,7 +300,7 @@ auto GetCanonicalKeyDatabasePath(const QDir& app_path,
   return {};
 }
 
-auto GetKeyDatabaseInfoBySettings() -> QList<KeyDatabaseInfo> {
+auto GetKeyDatabaseInfoBySettings() -> QContainer<KeyDatabaseInfo> {
   auto key_dbs = GetKeyDatabasesBySettings();
 
   QContainer<KeyDatabaseInfo> key_db_infos;
@@ -329,7 +329,7 @@ auto GetKeyDatabaseInfoBySettings() -> QList<KeyDatabaseInfo> {
 auto GPGFRONTEND_CORE_EXPORT Convert2RawGpgMEKeyList(
     const QContainer<GpgKey>& keys) -> QContainer<gpgme_key_t> {
   QContainer<gpgme_key_t> recipients(keys.begin(), keys.end());
-  recipients.emplace_back(nullptr);
+  recipients.push_back(nullptr);
 
   return recipients;
 }

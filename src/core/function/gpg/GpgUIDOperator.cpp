@@ -156,7 +156,7 @@ auto GpgUIDOperator::RevokeUID(const GpgKey& key, int uid_index,
 
   // dealing with reason text
   auto reason_text_lines = GpgFrontend::SecureCreateSharedObject<QStringList>(
-      reason_text.split('\n', Qt::SkipEmptyParts).toVector());
+      reason_text.split('\n', Qt::SkipEmptyParts));
 
   AutomatonNextStateHandler next_state_handler = [](AutomatonState state,
                                                     QString status,

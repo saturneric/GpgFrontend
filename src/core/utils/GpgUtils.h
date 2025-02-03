@@ -128,22 +128,23 @@ auto GPGFRONTEND_CORE_EXPORT GetKeyDatabasesBySettings()
 /**
  * @brief
  *
- * @return QList<KeyDatabaseInfo>
+ * @return QContainer<KeyDatabaseInfo>
  */
 auto GPGFRONTEND_CORE_EXPORT GetKeyDatabaseInfoBySettings()
-    -> QList<KeyDatabaseInfo>;
+    -> QContainer<KeyDatabaseInfo>;
 
 /**
  * @brief
  *
- * @return QList<KeyDatabaseItemSO>
+ * @return QContainer<KeyDatabaseItemSO>
  */
-auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QList<KeyDatabaseInfo>;
+auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseInfos()
+    -> QContainer<KeyDatabaseInfo>;
 
 /**
  * @brief
  *
- * @return QList<KeyDatabaseItemSO>
+ * @return QContainer<KeyDatabaseItemSO>
  */
 auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseName(int channel) -> QString;
 
