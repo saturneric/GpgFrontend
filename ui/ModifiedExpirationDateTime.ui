@@ -26,7 +26,7 @@
    </item>
    <item row="0" column="0">
     <layout class="QVBoxLayout" name="verticalLayout">
-     <item alignment="Qt::AlignmentFlag::Qt::AlignmentFlag::AlignTop">
+     <item>
       <widget class="QLabel" name="titleLabel">
        <property name="text">
         <string>Modified Expiration Date (Local Time)</string>
