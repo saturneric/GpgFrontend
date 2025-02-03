@@ -38,6 +38,7 @@ aux_source_directory(dialog/import_export UI_SOURCE)
 aux_source_directory(dialog/controller UI_SOURCE)
 aux_source_directory(dialog UI_SOURCE)
 aux_source_directory(function UI_SOURCE)
+aux_source_directory(model UI_SOURCE)
 
 # define libgpgfrontend_ui
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)

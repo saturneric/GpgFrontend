@@ -109,14 +109,6 @@ class KeyList : public QWidget {
       GpgKeyTableColumn custom_columns_filter = GpgKeyTableColumn::kALL);
 
   /**
-   * @brief Set the Double Clicked Action object
-   *
-   * @param action
-   */
-  void SetDoubleClickedAction(
-      std::function<void(const GpgKey&, QWidget*)> action);
-
-  /**
    * @brief Set the Column Width object
    *
    * @param row
@@ -142,7 +134,7 @@ class KeyList : public QWidget {
    *
    * @return KeyIdArgsListPtr
    */
-  auto GetChecked() -> KeyIdArgsListPtr;
+  auto GetChecked() -> KeyIdArgsList;
 
   /**
    * @brief Get the Checked Keys object
@@ -157,28 +149,28 @@ class KeyList : public QWidget {
    * @param key_table
    * @return KeyIdArgsListPtr
    */
-  static auto GetChecked(const KeyTable& key_table) -> KeyIdArgsListPtr;
+  static auto GetChecked(const KeyTable& key_table) -> KeyIdArgsList;
 
   /**
    * @brief Get the Private Checked object
    *
    * @return KeyIdArgsListPtr
    */
-  auto GetCheckedPrivateKey() -> KeyIdArgsListPtr;
+  auto GetCheckedPrivateKey() -> KeyIdArgsList;
 
   /**
    * @brief
    *
    * @return KeyIdArgsListPtr
    */
-  auto GetCheckedPublicKey() -> KeyIdArgsListPtr;
+  auto GetCheckedPublicKey() -> KeyIdArgsList;
 
   /**
    * @brief Get the All Private Keys object
    *
    * @return KeyIdArgsListPtr
    */
-  auto GetAllPrivateKeys() -> KeyIdArgsListPtr;
+  auto GetAllPrivateKeys() -> KeyIdArgsList;
 
   /**
    * @brief Set the Checked object
@@ -186,7 +178,7 @@ class KeyList : public QWidget {
    * @param keyIds
    * @param key_table
    */
-  static void SetChecked(const KeyIdArgsListPtr& key_ids,
+  static void SetChecked(const KeyIdArgsList& key_ids,
                          const KeyTable& key_table);
 
   /**
@@ -194,7 +186,7 @@ class KeyList : public QWidget {
    *
    * @return KeyIdArgsListPtr
    */
-  auto GetSelected() -> KeyIdArgsListPtr;
+  auto GetSelected() -> KeyIdArgsList;
 
   /**
    * @brief Get the Selected Key object
@@ -202,6 +194,13 @@ class KeyList : public QWidget {
    * @return QString
    */
   auto GetSelectedKey() -> QString;
+
+  /**
+   * @brief Get the Selected Gpg Key object
+   *
+   * @return GpgKey
+   */
+  auto GetSelectedGpgKey() -> std::tuple<bool, GpgKey>;
 
   /**
    * @brief
@@ -238,8 +237,6 @@ class KeyList : public QWidget {
    *
    */
   void SignalRefreshDatabase();
-
- signals:
 
   /**
    * @brief
@@ -310,13 +307,6 @@ class KeyList : public QWidget {
   QAction* comment_column_action_;
 
  private slots:
-
-  /**
-   * @brief
-   *
-   * @param index
-   */
-  void slot_double_clicked(const QModelIndex& index);
 
   /**
    * @brief

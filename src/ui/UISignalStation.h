@@ -75,7 +75,7 @@ class UISignalStation : public QObject {
    * @brief
    *
    */
-  void SignalMainWindowlUpdateBasicalOperaMenu(unsigned int);
+  void SignalMainWindowUpdateBasicOperaMenu(unsigned int);
 
   /**
    * @brief

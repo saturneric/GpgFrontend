@@ -57,16 +57,12 @@ int setenv(const char *name, const char *value, int overwrite) {
 void InitGlobalPathEnv() {
   // read settings
   bool use_custom_gnupg_install_path =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
+      GetSettings()
           .value("gnupg/use_custom_gnupg_install_path", false)
           .toBool();
 
   QString custom_gnupg_install_path =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
-          .value("gnupg/custom_gnupg_install_path")
-          .toString();
+      GetSettings().value("gnupg/custom_gnupg_install_path").toString();
 
   // add custom gnupg install path into env $PATH
   if (use_custom_gnupg_install_path && !custom_gnupg_install_path.isEmpty()) {
@@ -79,10 +75,7 @@ void InitGlobalPathEnv() {
     QString modified_path_value = getenv("PATH");
   }
 
-  if (GlobalSettingStation::GetInstance()
-          .GetSettings()
-          .value("gnupg/enable_gpgme_debug_log", false)
-          .toBool()) {
+  if (GetSettings().value("gnupg/enable_gpgme_debug_log", false).toBool()) {
     qputenv("GPGME_DEBUG",
             QString("9:%1").arg(QDir::currentPath() + "/gpgme.log").toUtf8());
   }
@@ -142,8 +135,7 @@ void InitGlobalBasicEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
  */
 void InitLocale() {
   // get the instance of the GlobalSettingStation
-  auto settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GpgFrontend::GetSettings();
 
   // read from settings file
   auto lang = settings.value("basic/lang").toString();
@@ -184,18 +176,30 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
   }
 
   auto clear_gpg_password_cache =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
-          .value("basic/clear_gpg_password_cache", false)
+      GetSettings().value("basic/clear_gpg_password_cache", false).toBool();
+
+  auto kill_all_gnupg_daemon_at_close =
+      GetSettings()
+          .value("gnupg/kill_all_gnupg_daemon_at_close", false)
           .toBool();
-  // clear password cache
-  if (!ctx->unit_test_mode && clear_gpg_password_cache) {
-    GpgAdvancedOperator::ClearGpgPasswordCache([](int, DataObjectPtr) {});
+
+  if (ctx->unit_test_mode || kill_all_gnupg_daemon_at_close) {
+    GpgAdvancedOperator::KillAllGpgComponents(nullptr);
+  } else if (!ctx->unit_test_mode && clear_gpg_password_cache) {
+    GpgAdvancedOperator::ClearGpgPasswordCache(nullptr);
   }
 
-  Thread::TaskRunnerGetter::GetInstance().StopAllTeakRunner();
+  // first should shutdown the module system
+  GpgFrontend::Module::ShutdownGpgFrontendModules();
 
-  DestroyGpgFrontendCore();
+  // then shutdown the core
+  GpgFrontend::DestroyGpgFrontendCore();
+
+  // deep restart mode
+  if (ctx->rtn == GpgFrontend::kDeepRestartCode ||
+      ctx->rtn == GpgFrontend::kCrashCode) {
+    QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
+  };
 }
 
 }  // namespace GpgFrontend

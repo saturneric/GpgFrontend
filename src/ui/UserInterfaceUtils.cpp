@@ -51,22 +51,11 @@
 #include "ui/dialog/controller/GnuPGControllerDialog.h"
 #include "ui/dialog/import_export/KeyServerImportDialog.h"
 #include "ui/struct/settings_object/KeyServerSO.h"
-#include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
 
 QScopedPointer<CommonUtils> CommonUtils::instance =
     QScopedPointer<CommonUtils>(nullptr);
-
-void show_verify_details(QWidget *parent, int channel,
-                         InfoBoardWidget *info_board, GpgError error,
-                         const GpgVerifyResult &verify_result) {
-  // take out result
-  info_board->ResetOptionActionsMenu();
-  info_board->AddOptionalAction(
-      QCoreApplication::tr("Show Verify Details"),
-      [=]() { VerifyDetailsDialog(parent, channel, error, verify_result); });
-}
 
 void ImportUnknownKeyFromKeyserver(
     QWidget *parent, int channel, const GpgVerifyResultAnalyse &verify_result) {
@@ -80,44 +69,15 @@ void ImportUnknownKeyFromKeyserver(
       QMessageBox::Yes | QMessageBox::No);
   if (reply == QMessageBox::Yes) {
     auto dialog = KeyServerImportDialog(channel, parent);
-    auto key_ids = std::make_unique<KeyIdArgsList>();
+    auto key_ids = KeyIdArgsList{};
     auto *signature = verify_result.GetSignatures();
     while (signature != nullptr) {
-      key_ids->push_back(signature->fpr);
+      key_ids.push_back(signature->fpr);
       signature = signature->next;
     }
     dialog.show();
     dialog.SlotImport(key_ids);
   }
-}
-
-void process_operation(QWidget *parent, const QString &waiting_title,
-                       const Thread::Task::TaskRunnable func,
-                       const Thread::Task::TaskCallback callback,
-                       DataObjectPtr data_object) {
-  auto *dialog = new WaitingDialog(waiting_title, parent);
-
-  auto *process_task = new Thread::Task(std::move(func), waiting_title,
-                                        data_object, std::move(callback));
-
-  QApplication::connect(process_task, &Thread::Task::SignalTaskEnd, dialog,
-                        &QDialog::close);
-  QApplication::connect(process_task, &Thread::Task::SignalTaskEnd, dialog,
-                        &QDialog::deleteLater);
-
-  // a looper to wait for the operation
-  QEventLoop looper;
-  QApplication::connect(process_task, &Thread::Task::SignalTaskEnd, &looper,
-                        &QEventLoop::quit);
-
-  // post process task to task runner
-  Thread::TaskRunnerGetter::GetInstance()
-      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
-      ->PostTask(process_task);
-
-  // block until task finished
-  // this is to keep reference vaild until task finished
-  looper.exec();
 }
 
 auto CommonUtils::GetInstance() -> CommonUtils * {
@@ -192,28 +152,6 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
             break;
         }
       });
-}
-
-void CommonUtils::WaitForOpera(QWidget *parent,
-                               const QString &waiting_dialog_title,
-                               const OperaWaitingCb &opera) {
-  QEventLoop looper;
-  QPointer<WaitingDialog> const dialog =
-      new WaitingDialog(waiting_dialog_title, parent);
-  connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
-  connect(dialog, &QDialog::finished, dialog, &QDialog::deleteLater);
-  dialog->show();
-
-  QTimer::singleShot(64, parent, [=]() {
-    opera([dialog]() {
-      if (dialog != nullptr) {
-        dialog->close();
-        dialog->accept();
-      }
-    });
-  });
-
-  looper.exec();
 }
 
 void CommonUtils::RaiseMessageBox(QWidget *parent, GpgError err) {
@@ -326,7 +264,7 @@ void CommonUtils::SlotExecuteGpgCommand(
     const QStringList &arguments,
     const std::function<void(QProcess *)> &interact_func) {
   QEventLoop looper;
-  auto *dialog = new WaitingDialog(tr("Processing"), nullptr);
+  auto *dialog = new WaitingDialog(tr("Processing"), false);
   dialog->show();
   auto *gpg_process = new QProcess(&looper);
   gpg_process->setProcessChannelMode(QProcess::MergedChannels);
@@ -628,7 +566,7 @@ void CommonUtils::ImportKeyFromKeyServer(int channel,
 }
 
 void CommonUtils::ImportKeyByKeyServerSyncModule(QWidget *parent, int channel,
-                                                 const QList<QString> &fprs) {
+                                                 const QStringList &fprs) {
   if (!Module::IsModuleActivate(kKeyServerSyncModuleID)) {
     return;
   }

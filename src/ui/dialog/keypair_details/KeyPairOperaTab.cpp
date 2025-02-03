@@ -35,7 +35,6 @@
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/model/GpgKey.h"
 #include "core/module/ModuleManager.h"
-#include "core/thread/TaskRunnerGetter.h"
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
@@ -92,7 +91,7 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, const QString& key_id,
 
   auto* advance_h_box_layout = new QHBoxLayout();
 
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GetSettings();
 
   // read settings
   bool forbid_all_gnupg_connection =
@@ -436,8 +435,7 @@ void KeyPairOperaTab::slot_publish_key_to_server() {
     return;
   }
 
-  auto keys = std::make_unique<KeyIdArgsList>();
-  keys->push_back(m_key_.GetId());
+  auto keys = KeyIdArgsList{m_key_.GetId()};
   auto* dialog = new KeyUploadDialog(current_gpg_context_channel_, keys, this);
   dialog->show();
   dialog->SlotUpload();

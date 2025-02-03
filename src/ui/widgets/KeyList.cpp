@@ -33,7 +33,6 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
@@ -51,8 +50,7 @@ KeyList::KeyList(int channel, KeyMenuAbility menu_ability,
       model_(GpgKeyGetter::GetInstance(channel).GetGpgKeyTableModel()),
       fixed_columns_filter_(fixed_columns_filter),
       global_column_filter_(static_cast<GpgKeyTableColumn>(
-          GlobalSettingStation::GetInstance()
-              .GetSettings()
+          GetSettings()
               .value("keys/global_columns_filter",
                      static_cast<unsigned int>(GpgKeyTableColumn::kALL))
               .toUInt())) {
@@ -211,8 +209,7 @@ void KeyList::init() {
   popup_menu_ = new QMenu(this);
 
   auto forbid_all_gnupg_connection =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
+      GetSettings()
           .value("network/forbid_all_gnupg_connection", false)
           .toBool();
 
@@ -244,9 +241,8 @@ void KeyList::init() {
           UISignalStation::GetInstance(),
           &UISignalStation::SignalRefreshStatusBar);
   connect(this, &KeyList::SignalColumnTypeChange, this, [=]() {
-    GlobalSettingStation::GetInstance().GetSettings().setValue(
-        "keys/global_columns_filter",
-        static_cast<unsigned int>(global_column_filter_));
+    GetSettings().setValue("keys/global_columns_filter",
+                           static_cast<unsigned int>(global_column_filter_));
   });
 
   setAcceptDrops(true);
@@ -307,22 +303,22 @@ void KeyList::SlotRefreshUI() {
   ui_->syncButton->setDisabled(false);
 }
 
-auto KeyList::GetChecked(const KeyTable& key_table) -> KeyIdArgsListPtr {
-  auto ret = std::make_unique<KeyIdArgsList>();
+auto KeyList::GetChecked(const KeyTable& key_table) -> KeyIdArgsList {
+  auto ret = KeyIdArgsList{};
   for (int i = 0; i < key_table.GetRowCount(); i++) {
     if (key_table.IsRowChecked(i)) {
-      ret->push_back(key_table.GetKeyIdByRow(i));
+      ret.push_back(key_table.GetKeyIdByRow(i));
     }
   }
   return ret;
 }
 
-auto KeyList::GetChecked() -> KeyIdArgsListPtr {
+auto KeyList::GetChecked() -> KeyIdArgsList {
   auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
-  auto ret = std::make_unique<KeyIdArgsList>();
+  auto ret = KeyIdArgsList{};
   for (int i = 0; i < key_table->GetRowCount(); i++) {
     if (key_table->IsRowChecked(i)) {
-      ret->push_back(key_table->GetKeyIdByRow(i));
+      ret.push_back(key_table->GetKeyIdByRow(i));
     }
   }
   return ret;
@@ -339,59 +335,59 @@ auto KeyList::GetCheckedKeys() -> QStringList {
   return key_id_list;
 }
 
-auto KeyList::GetAllPrivateKeys() -> KeyIdArgsListPtr {
+auto KeyList::GetAllPrivateKeys() -> KeyIdArgsList {
   auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
-  auto ret = std::make_unique<KeyIdArgsList>();
+  auto ret = KeyIdArgsList{};
   for (int i = 0; i < key_table->GetRowCount(); i++) {
     if (key_table->IsPrivateKeyByRow(i)) {
-      ret->push_back(key_table->GetKeyIdByRow(i));
+      ret.push_back(key_table->GetKeyIdByRow(i));
     }
   }
   return ret;
 }
 
-auto KeyList::GetCheckedPrivateKey() -> KeyIdArgsListPtr {
-  auto ret = std::make_unique<KeyIdArgsList>();
+auto KeyList::GetCheckedPrivateKey() -> KeyIdArgsList {
+  auto ret = KeyIdArgsList{};
   if (ui_->keyGroupTab->size().isEmpty()) return ret;
 
   auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
 
   for (int i = 0; i < key_table->GetRowCount(); i++) {
     if (key_table->IsRowChecked(i) && key_table->IsPrivateKeyByRow(i)) {
-      ret->push_back(key_table->GetKeyIdByRow(i));
+      ret.push_back(key_table->GetKeyIdByRow(i));
     }
   }
   return ret;
 }
 
-auto KeyList::GetCheckedPublicKey() -> KeyIdArgsListPtr {
-  auto ret = std::make_unique<KeyIdArgsList>();
+auto KeyList::GetCheckedPublicKey() -> KeyIdArgsList {
+  auto ret = KeyIdArgsList{};
   if (ui_->keyGroupTab->size().isEmpty()) return ret;
 
   auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
 
   for (int i = 0; i < key_table->GetRowCount(); i++) {
     if (key_table->IsRowChecked(i) && key_table->IsPublicKeyByRow(i)) {
-      ret->push_back(key_table->GetKeyIdByRow(i));
+      ret.push_back(key_table->GetKeyIdByRow(i));
     }
   }
   return ret;
 }
 
-void KeyList::SetChecked(const KeyIdArgsListPtr& keyIds,
+void KeyList::SetChecked(const KeyIdArgsList& keyIds,
                          const KeyTable& key_table) {
-  if (!keyIds->empty()) {
+  if (!keyIds.empty()) {
     for (int i = 0; i < key_table.GetRowCount(); i++) {
-      if (std::find(keyIds->begin(), keyIds->end(),
-                    key_table.GetKeyIdByRow(i)) != keyIds->end()) {
+      if (std::find(keyIds.begin(), keyIds.end(), key_table.GetKeyIdByRow(i)) !=
+          keyIds.end()) {
         key_table.SetRowChecked(i);
       }
     }
   }
 }
 
-auto KeyList::GetSelected() -> KeyIdArgsListPtr {
-  auto ret = std::make_unique<KeyIdArgsList>();
+auto KeyList::GetSelected() -> KeyIdArgsList {
+  auto ret = KeyIdArgsList{};
   if (ui_->keyGroupTab->size().isEmpty()) return ret;
 
   auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
@@ -402,10 +398,10 @@ auto KeyList::GetSelected() -> KeyIdArgsListPtr {
 
   QItemSelectionModel* select = key_table->selectionModel();
   for (auto index : select->selectedRows()) {
-    ret->push_back(key_table->GetKeyIdByRow(index.row()));
+    ret.push_back(key_table->GetKeyIdByRow(index.row()));
   }
 
-  if (ret->empty()) {
+  if (ret.empty()) {
     FLOG_W("nothing is selected at key list");
   }
   return ret;
@@ -482,10 +478,8 @@ void KeyList::dropEvent(QDropEvent* event) {
   // "always import keys"-CheckBox
   auto* check_box = new QCheckBox(tr("Always import without bothering."));
 
-  auto confirm_import_keys = GlobalSettingStation::GetInstance()
-                                 .GetSettings()
-                                 .value("basic/confirm_import_keys", true)
-                                 .toBool();
+  auto confirm_import_keys =
+      GetSettings().value("basic/confirm_import_keys", true).toBool();
   if (confirm_import_keys) check_box->setCheckState(Qt::Checked);
 
   // Buttons for ok and cancel
@@ -505,7 +499,7 @@ void KeyList::dropEvent(QDropEvent* event) {
     dialog->exec();
     if (dialog->result() == QDialog::Rejected) return;
 
-    auto settings = GlobalSettingStation::GetInstance().GetSettings();
+    auto settings = GetSettings();
     settings.setValue("basic/confirm_import_keys", check_box->isChecked());
   }
 
@@ -539,23 +533,6 @@ void KeyList::import_keys(const QByteArray& in_buffer) {
   (new KeyImportDetailDialog(current_gpg_context_channel_, result, this));
 }
 
-void KeyList::slot_double_clicked(const QModelIndex& index) {
-  if (ui_->keyGroupTab->size().isEmpty()) return;
-
-  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
-  if (m_action_ != nullptr) {
-    const auto key = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
-                         .GetKey(key_table->GetKeyIdByRow(index.row()));
-    assert(key.IsGood());
-    m_action_(key, this);
-  }
-}
-
-void KeyList::SetDoubleClickedAction(
-    std::function<void(const GpgKey&, QWidget*)> action) {
-  this->m_action_ = std::move(action);
-}
-
 auto KeyList::GetSelectedKey() -> QString {
   if (ui_->keyGroupTab->size().isEmpty()) return {};
 
@@ -573,7 +550,7 @@ void KeyList::slot_sync_with_key_server() {
   auto checked_public_keys = GetCheckedPublicKey();
 
   KeyIdArgsList key_ids;
-  if (checked_public_keys->empty()) {
+  if (checked_public_keys.empty()) {
     QMessageBox::StandardButton const reply = QMessageBox::question(
         this, QCoreApplication::tr("Sync All Public Key"),
         QCoreApplication::tr("You have not checked any public keys that you "
@@ -589,7 +566,7 @@ void KeyList::slot_sync_with_key_server() {
     }
 
   } else {
-    key_ids = *checked_public_keys;
+    key_ids = checked_public_keys;
   }
 
   if (key_ids.empty()) return;
@@ -655,5 +632,20 @@ void KeyList::UpdateKeyTableColumnType(GpgKeyTableColumn column_type) {
 
 auto KeyList::GetCurrentGpgContextChannel() const -> int {
   return current_gpg_context_channel_;
+}
+
+auto KeyList::GetSelectedGpgKey() -> std::tuple<bool, GpgKey> {
+  auto key_ids = GetSelected();
+  if (key_ids.empty()) return {false, GpgKey()};
+
+  auto key = GpgKeyGetter::GetInstance(GetCurrentGpgContextChannel())
+                 .GetKey(key_ids.front());
+
+  if (!key.IsGood()) {
+    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
+    return {false, GpgKey()};
+  }
+
+  return {true, key};
 }
 }  // namespace GpgFrontend::UI

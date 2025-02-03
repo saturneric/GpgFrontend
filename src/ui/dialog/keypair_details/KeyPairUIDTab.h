@@ -139,13 +139,13 @@ class KeyPairUIDTab : public QWidget {
  private:
   int current_gpg_context_channel_;
   GpgKey m_key_;
-  QTableWidget* uid_list_{};                          ///<
-  QTableWidget* sig_list_{};                          ///<
-  QTabWidget* tofu_tabs_{};                           ///<
-  QMenu* uid_popup_menu_{};                           ///<
-  QMenu* sign_popup_menu_{};                          ///<
-  std::vector<GpgUID> buffered_uids_;                 ///<
-  std::vector<GpgKeySignature> buffered_signatures_;  ///<
+  QTableWidget* uid_list_{};                         ///<
+  QTableWidget* sig_list_{};                         ///<
+  QTabWidget* tofu_tabs_{};                          ///<
+  QMenu* uid_popup_menu_{};                          ///<
+  QMenu* sign_popup_menu_{};                         ///<
+  QContainer<GpgUID> buffered_uids_;                 ///<
+  QContainer<GpgKeySignature> buffered_signatures_;  ///<
 
   QAction* set_primary_uid_act_;
   QAction* sign_uid_act_;
@@ -181,7 +181,7 @@ class KeyPairUIDTab : public QWidget {
    *
    * @return SignIdArgsListPtr
    */
-  auto get_sign_selected() -> SignIdArgsListPtr;
+  auto get_sign_selected() -> SignIdArgsList;
 
   /**
    * @brief Get the sign selected object

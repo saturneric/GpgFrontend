@@ -28,22 +28,25 @@
 
 #pragma once
 
-#include "core/model/DataObject.h"
-
 namespace GpgFrontend {
 
-using GFError = uint32_t;
-using ByteArray = QByteArray;                                 ///<
-using ByteArrayPtr = std::shared_ptr<ByteArray>;              ///<
-using StdBypeArrayPtr = std::shared_ptr<ByteArray>;           ///<
-using BypeArrayRef = ByteArray&;                              ///<
-using ConstBypeArrayRef = const ByteArray&;                   ///<
-using BypeArrayConstRef = const ByteArray&;                   ///<
-using StringArgsPtr = std::unique_ptr<std::vector<QString>>;  ///<
-using StringArgsRef = std::vector<QString>&;                  ///<
-                                                              ///
-                                                              ///
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+template <typename T>
+using QContainer = QVector<T>;
+#else
+template <typename T>
+using QContainer = QList<T>;
+#endif
 
+using GFError = uint32_t;
+using ByteArray = QByteArray;                ///<
+using BypeArrayRef = ByteArray&;             ///<
+using BypeArrayConstRef = const ByteArray&;  ///<
+using StringArgsPtr = QStringList;           ///<
+using StringArgsRef = QStringList&;          ///<
+
+class DataObject;
+using DataObjectPtr = std::shared_ptr<DataObject>;  ///<
 using OperaRunnable = std::function<GFError(DataObjectPtr)>;
 using OperationCallback = std::function<void(GFError, DataObjectPtr)>;
 }  // namespace GpgFrontend

@@ -28,7 +28,7 @@
 
 #include "DataObject.h"
 
-#include <stack>
+#include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
 
@@ -50,7 +50,7 @@ class DataObject::Impl {
   auto GetObjectSize() -> size_t { return params_.size(); }
 
  private:
-  std::vector<std::any> params_;
+  QContainer<std::any> params_;
 };
 
 DataObject::DataObject() : p_(SecureCreateUniqueObject<Impl>()) {}

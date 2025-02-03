@@ -32,6 +32,7 @@
 #include <qnetworkreply.h>
 
 #include "core/thread/Task.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 class GpgImportInformation;
@@ -48,8 +49,7 @@ class KeyServerImportTask : public Thread::Task {
    * @param keyserver_url
    * @param search_string
    */
-  KeyServerImportTask(QString keyserver_url, int channel,
-                      std::vector<QString> keyid);
+  KeyServerImportTask(QString keyserver_url, int channel, KeyIdArgsList keyids);
 
   /**
    * @brief
@@ -78,7 +78,7 @@ class KeyServerImportTask : public Thread::Task {
  private:
   QString keyserver_url_;            ///<
   int current_gpg_context_channel_;  ///<
-  std::vector<QString> keyids_;      ///<
+  KeyIdArgsList keyids_;             ///<
   int result_count_ = 0;
 
   QNetworkAccessManager *manager_;  ///<

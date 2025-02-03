@@ -34,6 +34,7 @@
 #include "core/module/ModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/main_window/GeneralMainWindow.h"
+#include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/struct/settings_object/KeyServerSO.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
@@ -104,7 +105,7 @@ void MainWindow::Init() noexcept {
               statusBar()->showMessage(message, timeout);
             });
     connect(UISignalStation::GetInstance(),
-            &UISignalStation::SignalMainWindowlUpdateBasicalOperaMenu, this,
+            &UISignalStation::SignalMainWindowUpdateBasicOperaMenu, this,
             &MainWindow::SlotUpdateCryptoMenuStatus);
     connect(UISignalStation::GetInstance(),
             &UISignalStation::SignalMainWindowOpenFile, this,
@@ -136,7 +137,7 @@ void MainWindow::Init() noexcept {
     Module::TriggerEvent("APPLICATION_LOADED");
 
     // check version information
-    auto settings = GlobalSettingStation::GetInstance().GetSettings();
+    auto settings = GetSettings();
     auto prohibit_update_checking =
         settings.value("network/prohibit_update_checking").toBool();
     if (!prohibit_update_checking) {
@@ -173,16 +174,49 @@ void MainWindow::restore_settings() {
   if (key_server.server_list.empty()) key_server.ResetDefaultServerList();
   if (key_server.default_server < 0) key_server.default_server = 0;
 
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GetSettings();
   if (!settings.contains("gnupg/non_ascii_at_file_operation")) {
     settings.setValue("gnupg/non_ascii_at_file_operation", true);
   }
 
-  // set appearance
-  import_button_->setToolButtonStyle(icon_style_);
-
   prohibit_update_checking_ =
       settings.value("network/prohibit_update_check").toBool();
+
+  // set appearance
+  AppearanceSO const appearance(SettingsObject("general_settings_state"));
+
+  crypt_tool_bar_->clear();
+
+  if ((appearance.tool_bar_crypto_operas_type & GpgOperation::kENCRYPT) != 0) {
+    crypt_tool_bar_->addAction(encrypt_act_);
+  }
+  if ((appearance.tool_bar_crypto_operas_type & GpgOperation::kDECRYPT) != 0) {
+    crypt_tool_bar_->addAction(decrypt_act_);
+  }
+  if ((appearance.tool_bar_crypto_operas_type & GpgOperation::kSIGN) != 0) {
+    crypt_tool_bar_->addAction(sign_act_);
+  }
+  if ((appearance.tool_bar_crypto_operas_type & GpgOperation::kVERIFY) != 0) {
+    crypt_tool_bar_->addAction(verify_act_);
+  }
+  if ((appearance.tool_bar_crypto_operas_type & GpgOperation::kENCRYPT_SIGN) !=
+      0) {
+    crypt_tool_bar_->addAction(encrypt_sign_act_);
+  }
+  if ((appearance.tool_bar_crypto_operas_type &
+       GpgOperation::kDECRYPT_VERIFY) != 0) {
+    crypt_tool_bar_->addAction(decrypt_verify_act_);
+  }
+
+  icon_style_ = appearance.tool_bar_button_style;
+  import_button_->setToolButtonStyle(icon_style_);
+  this->setToolButtonStyle(icon_style_);
+
+  // icons ize
+  this->setIconSize(
+      QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
+  import_button_->setIconSize(
+      QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
 }
 
 void MainWindow::recover_editor_unsaved_pages_from_cache() {
@@ -240,10 +274,6 @@ void MainWindow::closeEvent(QCloseEvent* event) {
   }
 
   if (event->isAccepted()) {
-    // clear cache of unsaved page
-    CacheManager::GetInstance().SaveDurableCache(
-        "editor_unsaved_pages", QJsonDocument(QJsonArray()), true);
-
     // call parent
     GeneralMainWindow::closeEvent(event);
   }

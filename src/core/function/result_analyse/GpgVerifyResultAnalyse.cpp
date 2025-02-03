@@ -256,6 +256,6 @@ auto GpgFrontend::GpgVerifyResultAnalyse::TakeChargeOfResult()
 }
 
 auto GpgFrontend::GpgVerifyResultAnalyse::GetUnknownSignatures() const
-    -> QList<QString> {
+    -> QStringList {
   return unknown_signer_fpr_list_;
 }

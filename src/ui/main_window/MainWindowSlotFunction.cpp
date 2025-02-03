@@ -27,7 +27,6 @@
  */
 
 #include "MainWindow.h"
-#include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
@@ -47,7 +46,9 @@
 #include "ui/dialog/help/AboutDialog.h"
 #include "ui/dialog/import_export/KeyUploadDialog.h"
 #include "ui/dialog/keypair_details/KeyDetailsDialog.h"
+#include "ui/function/GpgOperaHelper.h"
 #include "ui/function/SetOwnerTrustLevel.h"
+#include "ui/struct/GpgOperaResult.h"
 #include "ui/widgets/FindWidget.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
@@ -72,17 +73,17 @@ void MainWindow::slot_find() {
 void MainWindow::slot_append_selected_keys() {
   auto key_ids = m_key_list_->GetSelected();
 
-  if (key_ids->empty()) {
+  if (key_ids.empty()) {
     FLOG_W("no key is selected to export");
     return;
   }
 
   auto key =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids->front());
+          .GetKey(key_ids.front());
   if (!key.IsGood()) {
     LOG_W() << "selected key for exporting is invalid, key id: "
-            << key_ids->front();
+            << key_ids.front();
     return;
   }
 
@@ -98,20 +99,8 @@ void MainWindow::slot_append_selected_keys() {
 }
 
 void MainWindow::slot_append_keys_create_datetime() {
-  auto key_ids = m_key_list_->GetSelected();
-
-  if (key_ids->empty()) {
-    FLOG_W("no key is selected");
-    return;
-  }
-
-  auto key =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids->front());
-  if (!key.IsGood()) {
-    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
-    return;
-  }
+  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
+  if (!succ) return;
 
   auto create_datetime_format_str_local =
       QLocale().toString(key.GetCreateTime()) + " (" + tr("Localize") + ") " +
@@ -124,20 +113,8 @@ void MainWindow::slot_append_keys_create_datetime() {
 }
 
 void MainWindow::slot_append_keys_expire_datetime() {
-  auto key_ids = m_key_list_->GetSelected();
-
-  if (key_ids->empty()) {
-    FLOG_W("no key is selected");
-    return;
-  }
-
-  auto key =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids->front());
-  if (!key.IsGood()) {
-    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
-    return;
-  }
+  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
+  if (!succ) return;
 
   auto expire_datetime_format_str_local =
       QLocale().toString(key.GetExpireTime()) + " (" + tr("Local Time") + ") " +
@@ -150,16 +127,8 @@ void MainWindow::slot_append_keys_expire_datetime() {
 }
 
 void MainWindow::slot_append_keys_fingerprint() {
-  auto key_ids = m_key_list_->GetSelected();
-  if (key_ids->empty()) return;
-
-  auto key =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids->front());
-  if (!key.IsGood()) {
-    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
-    return;
-  }
+  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
+  if (!succ) return;
 
   auto fingerprint_format_str =
       BeautifyFingerprint(key.GetFingerprint()) + "\n";
@@ -168,72 +137,39 @@ void MainWindow::slot_append_keys_fingerprint() {
 }
 
 void MainWindow::slot_copy_mail_address_to_clipboard() {
-  auto key_ids = m_key_list_->GetSelected();
-  if (key_ids->empty()) return;
+  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
+  if (!succ) return;
 
-  auto key =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids->front());
-  if (!key.IsGood()) {
-    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
-    return;
-  }
   QClipboard* cb = QApplication::clipboard();
   cb->setText(key.GetEmail());
 }
 
 void MainWindow::slot_copy_default_uid_to_clipboard() {
-  auto key_ids = m_key_list_->GetSelected();
-  if (key_ids->empty()) return;
+  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
+  if (!succ) return;
 
-  auto key =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids->front());
-  if (!key.IsGood()) {
-    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
-    return;
-  }
   QClipboard* cb = QApplication::clipboard();
   cb->setText(key.GetUIDs()->front().GetUID());
 }
 
 void MainWindow::slot_copy_key_id_to_clipboard() {
-  auto key_ids = m_key_list_->GetSelected();
-  if (key_ids->empty()) return;
+  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
+  if (!succ) return;
 
-  auto key =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids->front());
-  if (!key.IsGood()) {
-    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
-    return;
-  }
   QClipboard* cb = QApplication::clipboard();
   cb->setText(key.GetId());
 }
 
 void MainWindow::slot_show_key_details() {
-  auto key_ids = m_key_list_->GetSelected();
-  if (key_ids->empty()) return;
+  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
+  if (!succ) return;
 
-  auto key =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids->front());
-  if (key.IsGood()) {
-    new KeyDetailsDialog(m_key_list_->GetCurrentGpgContextChannel(), key, this);
-  } else {
-    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
-  }
+  new KeyDetailsDialog(m_key_list_->GetCurrentGpgContextChannel(), key, this);
 }
 
 void MainWindow::slot_add_key_2_favorite() {
-  auto key_ids = m_key_list_->GetSelected();
-  if (key_ids->empty()) return;
-
-  auto key =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids->front());
-  if (!key.IsGood()) return;
+  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
+  if (!succ) return;
 
   auto key_db_name =
       GetGpgKeyDatabaseName(m_key_list_->GetCurrentGpgContextChannel());
@@ -246,11 +182,11 @@ void MainWindow::slot_add_key_2_favorite() {
 
 void MainWindow::slot_remove_key_from_favorite() {
   auto key_ids = m_key_list_->GetSelected();
-  if (key_ids->empty()) return;
+  if (key_ids.empty()) return;
 
   auto key =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids->front());
+          .GetKey(key_ids.front());
   assert(key.IsGood());
 
   auto key_db_name =
@@ -263,17 +199,17 @@ void MainWindow::slot_remove_key_from_favorite() {
 
 void MainWindow::refresh_keys_from_key_server() {
   auto key_ids = m_key_list_->GetSelected();
-  if (key_ids->empty()) return;
+  if (key_ids.empty()) return;
   CommonUtils::GetInstance()->ImportKeyFromKeyServer(
-      m_key_list_->GetCurrentGpgContextChannel(), *key_ids);
+      m_key_list_->GetCurrentGpgContextChannel(), key_ids);
 }
 
 void MainWindow::slot_set_owner_trust_level_of_key() {
   auto key_ids = m_key_list_->GetSelected();
-  if (key_ids->empty()) return;
+  if (key_ids.empty()) return;
 
   auto* function = new SetOwnerTrustLevel(this);
-  function->Exec(m_key_list_->GetCurrentGpgContextChannel(), key_ids->front());
+  function->Exec(m_key_list_->GetCurrentGpgContextChannel(), key_ids.front());
   function->deleteLater();
 }
 
@@ -386,7 +322,7 @@ void MainWindow::slot_import_key_from_edit() {
 }
 
 void MainWindow::slot_verify_email_by_eml_data(const QByteArray& buffer) {
-  CommonUtils::WaitForOpera(
+  GpgOperaHelper::WaitForOpera(
       this, tr("Verifying"), [this, buffer](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
             "EMAIL_VERIFY_EML_DATA",
@@ -449,41 +385,39 @@ void MainWindow::SlotVerifyEML() {
 }
 
 void MainWindow::slot_verifying_unknown_signature_helper(
-    const GpgVerifyResultAnalyse& result_analyse) {
-  if (!Module::IsModuleActivate(kKeyServerSyncModuleID)) return;
+    const QStringList& fprs) {
+  if (!Module::IsModuleActivate(kKeyServerSyncModuleID) || fprs.empty()) return;
 
-  LOG_D() << "try to sync missing key info from server: "
-          << result_analyse.GetUnknownSignatures();
+  auto fpr_set = QSet<QString>(fprs.begin(), fprs.end());
 
-  QString fingerprint_list;
-  for (const auto& fingerprint : result_analyse.GetUnknownSignatures()) {
-    fingerprint_list += fingerprint + "\n";
+  QString fpr_list;
+  for (const auto& fpr : fpr_set) {
+    fpr_list += fpr + "\n";
   }
+
+  LOG_D() << "try to sync missing key info from server: " << fpr_set;
 
   // Interaction with user
   auto user_response =
       QMessageBox::question(this, tr("Missing Keys"),
                             tr("Some signatures cannot be verified because "
-                               "the "
-                               "corresponding keys are missing.\n\n"
+                               "the corresponding keys are missing.\n\n"
                                "The following fingerprints are "
                                "missing:\n%1\n\n"
                                "Would you like to fetch these keys from "
-                               "the key "
-                               "server?")
-                                .arg(fingerprint_list),
+                               "the key server?")
+                                .arg(fpr_list),
                             QMessageBox::Yes | QMessageBox::No);
 
   if (user_response == QMessageBox::Yes) {
     CommonUtils::GetInstance()->ImportKeyByKeyServerSyncModule(
-        this, m_key_list_->GetCurrentGpgContextChannel(),
-        result_analyse.GetUnknownSignatures());
+        this, m_key_list_->GetCurrentGpgContextChannel(), fpr_set.values());
   } else {
-    QMessageBox::information(this, tr("Verification Incomplete"),
-                             tr("Verification was incomplete due to "
-                                "missing "
-                                "keys. You can manually import the keys "
-                                "later."));
+    QMessageBox::information(
+        this, tr("Verification Incomplete"),
+        tr("Verification was incomplete due to "
+           "missing keys. You can manually import the keys "
+           "later."));
   }
 }
 
@@ -554,6 +488,74 @@ void MainWindow::slot_result_analyse_show_helper(
     const GpgResultAnalyse& result_analyse) {
   slot_refresh_info_board(result_analyse.GetStatus(),
                           result_analyse.GetResultReport());
+}
+
+void MainWindow::slot_result_analyse_show_helper(
+    const QContainer<GpgOperaResult>& opera_results) {
+  if (opera_results.empty()) {
+    slot_refresh_info_board(0, "");
+    return;
+  }
+
+  int overall_status = 1;  // Initialize to OK
+  QStringList report;
+  QStringList summary;
+
+  QStringList failed_tags;
+  QStringList warning_tags;
+
+  int success_count = 0;
+  int fail_count = 0;
+  int warn_count = 0;
+
+  for (const auto& opera_result : opera_results) {
+    // Update overall status
+    overall_status = std::min(overall_status, opera_result.status);
+
+    QString status_text;
+    if (opera_result.status < 0) {
+      status_text = tr("FAIL");
+      failed_tags << opera_result.tag;
+      fail_count++;
+    } else if (opera_result.status > 0) {
+      status_text = tr("OK");
+      success_count++;
+    } else {
+      status_text = tr("WARN");
+      warning_tags << opera_result.tag;
+      warn_count++;
+    }
+
+    // Append detailed report for each operation
+    report.append(QString("[ %1 ] %2\n\n%3\n")
+                      .arg(status_text, opera_result.tag, opera_result.report));
+  }
+
+  // Prepare summary section
+  summary.append("# " + tr("Summary Report") + "\n\n");
+  summary.append("- " + tr("Total Operations: %1\n").arg(opera_results.size()));
+  summary.append("- " + tr("Successful: %1\n").arg(success_count));
+  summary.append("- " + tr("Warnings: %1\n").arg(warn_count));
+  summary.append("- " + tr("Failures: %1\n").arg(fail_count));
+
+  if (!failed_tags.isEmpty()) {
+    summary.append("- " +
+                   tr("Failed Objects: %1\n").arg(failed_tags.join(", ")));
+  }
+
+  if (!warning_tags.isEmpty()) {
+    summary.append("- " +
+                   tr("Warning Objects: %1\n").arg(warning_tags.join(", ")));
+  }
+
+  // Display the final report in the info board
+  if (opera_results.size() == 1) {
+    slot_refresh_info_board(overall_status, report.join(""));
+
+  } else {
+    slot_refresh_info_board(overall_status,
+                            summary.join("") + "\n\n" + report.join(""));
+  }
 }
 
 void MainWindow::slot_refresh_info_board(int status, const QString& text) {
@@ -648,7 +650,7 @@ void MainWindow::SlotEncryptEML() {
   }
   auto buffer = edit_->CurPlainText().toUtf8();
 
-  CommonUtils::WaitForOpera(
+  GpgOperaHelper::WaitForOpera(
       this, tr("Encrypting"),
       [this, buffer, checked_keys](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
@@ -692,7 +694,7 @@ void MainWindow::SlotEncryptEML() {
                 }
               }
 
-              LOG_E() << "mime or signature data is missing";
+              return 0;
             });
       });
 }
@@ -715,7 +717,7 @@ void MainWindow::SlotSignEML() {
 
   auto buffer = edit_->CurPlainText().toUtf8();
 
-  CommonUtils::WaitForOpera(
+  GpgOperaHelper::WaitForOpera(
       this, tr("Signing"),
       [this, buffer, checked_keys](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
@@ -798,7 +800,7 @@ void MainWindow::SlotEncryptSignEML() {
 
   auto buffer = edit_->CurPlainText().toUtf8();
 
-  CommonUtils::WaitForOpera(
+  GpgOperaHelper::WaitForOpera(
       this, tr("Encrypting and Signing"),
       [this, buffer, checked_keys, signer_keys](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
@@ -862,7 +864,7 @@ void MainWindow::SlotDecryptVerifyEML() {
 
   auto buffer = edit_->CurPlainText().toUtf8();
 
-  CommonUtils::WaitForOpera(
+  GpgOperaHelper::WaitForOpera(
       this, tr("Decrypting and Verifying"),
       [this, buffer](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
@@ -1025,6 +1027,22 @@ auto MainWindow::handle_module_error(QMap<QString, QString> p) -> bool {
   }
 
   return false;
+}
+
+void MainWindow::slot_gpg_opera_buffer_show_helper(
+    const QContainer<GpgOperaResult>& results) {
+  for (const auto& result : results) {
+    if (result.o_buffer.Empty()) continue;
+    edit_->SlotFillTextEditWithText(result.o_buffer.ConvertToQByteArray());
+  }
+}
+
+void MainWindow::exec_operas_helper(
+    const QString& task,
+    const QSharedPointer<GpgOperaContextBasement>& contexts) {
+  GpgOperaHelper::WaitForMultipleOperas(this, task, contexts->operas);
+  slot_gpg_opera_buffer_show_helper(contexts->opera_results);
+  slot_result_analyse_show_helper(contexts->opera_results);
 }
 
 }  // namespace GpgFrontend::UI

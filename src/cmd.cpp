@@ -39,6 +39,7 @@
 #include "core/module/ModuleManager.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/BuildInfoUtils.h"
+#include "core/utils/GpgUtils.h"
 
 // GpgFrontend
 
@@ -160,7 +161,7 @@ auto PrintEnvInfo() -> int {
   stream << '\n';
 
   int index = 0;
-  auto key_dbs = GetKeyDatabaseInfoBySettings(default_database_path);
+  auto key_dbs = GetKeyDatabaseInfoBySettings();
   for (const auto& key_database : key_dbs) {
     stream << Tr("Key Database [") << index++ << "] " << Tr("Name: ")
            << key_database.name << " " << Tr("-> Path: ") << key_database.path
@@ -232,6 +233,7 @@ auto RunTest(const GFCxtWPtr& p_ctx) -> int {
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
       ->PostTask(task);
 
+  ctx->rtn = kNonRestartCode;
   looper.exec();
   return 0;
 }

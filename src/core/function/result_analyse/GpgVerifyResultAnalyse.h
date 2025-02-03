@@ -65,9 +65,9 @@ class GPGFRONTEND_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
   /**
    * @brief Get the Unknown Signatures object
    *
-   * @return QList<QString>
+   * @return QStringList
    */
-  [[nodiscard]] auto GetUnknownSignatures() const -> QList<QString>;
+  [[nodiscard]] auto GetUnknownSignatures() const -> QStringList;
 
  protected:
   /**
@@ -99,7 +99,7 @@ class GPGFRONTEND_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
 
   GpgError error_;          ///<
   GpgVerifyResult result_;  ///<
-  QList<QString> unknown_signer_fpr_list_;
+  QStringList unknown_signer_fpr_list_;
 };
 
 }  // namespace GpgFrontend

@@ -30,7 +30,7 @@
 
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyTableModel.h"
-#include "core/model/GpgKeyTableProxyModel.h"
+#include "ui/model/GpgKeyTableProxyModel.h"
 
 namespace GpgFrontend::UI {
 
@@ -70,7 +70,7 @@ struct KeyTable : public QTableView {
    *
    * @return KeyIdArgsListPtr&
    */
-  [[nodiscard]] auto GetChecked() const -> KeyIdArgsListPtr;
+  [[nodiscard]] auto GetChecked() const -> KeyIdArgsList;
 
   /**
    * @brief
@@ -175,7 +175,6 @@ struct KeyTable : public QTableView {
  private:
   QSharedPointer<GpgKeyTableModel> model_;
   GpgKeyTableProxyModel proxy_model_;
-
   GpgKeyTableColumn column_filter_;
 };
 

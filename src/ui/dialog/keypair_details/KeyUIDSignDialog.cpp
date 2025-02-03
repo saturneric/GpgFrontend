@@ -52,7 +52,7 @@ KeyUIDSignDialog::KeyUIDSignDialog(int channel, const GpgKey& key,
   m_key_list_->AddListGroupTab(
       tr("Signers"), "signers", GpgKeyTableDisplayMode::kPRIVATE_KEY,
       [key_id](const GpgKey& key) -> bool {
-        return !(key.IsDisabled() || !key.IsHasCertificationCapability() ||
+        return !(key.IsDisabled() || !key.IsHasCertCap() ||
                  !key.IsHasMasterKey() || key.IsExpired() || key.IsRevoked() ||
                  key_id == key.GetId());
       });
@@ -108,14 +108,14 @@ void KeyUIDSignDialog::slot_sign_key(bool clicked) {
   auto key_ids = m_key_list_->GetChecked();
   auto keys =
       GpgKeyGetter::GetInstance(current_gpg_context_channel_).GetKeys(key_ids);
-  assert(std::all_of(keys->begin(), keys->end(),
+  assert(std::all_of(keys.begin(), keys.end(),
                      [](const auto& key) { return key.IsGood(); }));
 
   auto expires = std::make_unique<QDateTime>(expires_edit_->dateTime());
 
   // Sign For mKey
   if (!GpgKeyManager::GetInstance(current_gpg_context_channel_)
-           .SignKey(m_key_, *keys, m_uid_, expires)) {
+           .SignKey(m_key_, keys, m_uid_, expires)) {
     QMessageBox::critical(
         nullptr, tr("Unsuccessful Operation"),
         tr("Signature operation failed for UID %1").arg(m_uid_));

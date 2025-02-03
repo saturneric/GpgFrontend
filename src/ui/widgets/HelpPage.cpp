@@ -66,10 +66,7 @@ auto HelpPage::localized_help(const QUrl& url) -> QUrl {
   QStringList fileparts = filename.split(".");
 
   // QSettings settings;
-  QString lang = GlobalSettingStation::GetInstance()
-                     .GetSettings()
-                     .value("int/lang", QLocale().name())
-                     .toString();
+  QString lang = GetSettings().value("int/lang", QLocale().name()).toString();
   if (lang.isEmpty()) {
     lang = QLocale().name();
   }

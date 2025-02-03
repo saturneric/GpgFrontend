@@ -68,7 +68,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    * @param ids
    * @return KeyListPtr
    */
-  auto GetKeys(const KeyIdArgsListPtr& key_ids) -> KeyListPtr;
+  auto GetKeys(const KeyIdArgsList& key_ids) -> GpgKeyList;
 
   /**
    * @brief Get the Pubkey object
@@ -83,7 +83,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    *
    * @return KeyLinkListPtr
    */
-  auto FetchKey() -> KeyLinkListPtr;
+  auto FetchKey() -> GpgKeyList;
 
   /**
    * @brief flush the keys in the cache
@@ -97,15 +97,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    * @param keys
    * @return KeyListPtr
    */
-  auto GetKeysCopy(const KeyListPtr& keys) -> KeyListPtr;
-
-  /**
-   * @brief Get the Keys Copy object
-   *
-   * @param keys
-   * @return KeyLinkListPtr
-   */
-  auto GetKeysCopy(const KeyLinkListPtr& keys) -> KeyLinkListPtr;
+  auto GetKeysCopy(const GpgKeyList& keys) -> GpgKeyList;
 
   /**
    * @brief

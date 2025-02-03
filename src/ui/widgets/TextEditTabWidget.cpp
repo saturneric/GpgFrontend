@@ -201,7 +201,7 @@ auto TextEditTabWidget::stripped_name(const QString& full_file_name)
 void TextEditTabWidget::slot_save_status_to_cache_for_recovery() {
   if (this->text_page_data_modified_count_++ % 8 != 0) return;
 
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GetSettings();
 
   bool restore_text_editor_page =
       settings.value("basic/restore_text_editor_page", false).toBool();
@@ -211,7 +211,7 @@ void TextEditTabWidget::slot_save_status_to_cache_for_recovery() {
   }
 
   int tab_count = this->count();
-  std::vector<std::tuple<int, QString, QString>> unsaved_pages;
+  QContainer<std::tuple<int, QString, QString>> unsaved_pages;
 
   for (int i = 0; i < tab_count; i++) {
     auto* target_page = qobject_cast<PlainTextEditorPage*>(this->widget(i));
@@ -324,8 +324,8 @@ void TextEditTabWidget::slot_file_page_path_changed(const QString& path) {
   }
   this->setTabText(index, m_path);
 
-  emit UISignalStation::GetInstance()
-      -> SignalMainWindowlUpdateBasicalOperaMenu(0);
+  emit UISignalStation::GetInstance() -> SignalMainWindowUpdateBasicOperaMenu(
+                                          0);
 }
 
 }  // namespace GpgFrontend::UI

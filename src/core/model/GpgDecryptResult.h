@@ -39,7 +39,7 @@ class GPGFRONTEND_CORE_EXPORT GpgDecryptResult {
 
   auto GetRaw() -> gpgme_decrypt_result_t;
 
-  auto Recipients() -> std::vector<GpgRecipient>;
+  auto Recipients() -> QContainer<GpgRecipient>;
 
   explicit GpgDecryptResult(gpgme_decrypt_result_t);
 

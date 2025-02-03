@@ -31,12 +31,13 @@
 #include "core/function/CacheManager.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/model/SettingsObject.h"
-#include "core/module/ModuleManager.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/Wizard.h"
+#include "ui/dialog/settings/SettingsDialog.h"
 #include "ui/main_window/KeyMgmt.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/widgets/TextEdit.h"
+
 namespace GpgFrontend::UI {
 
 void MainWindow::SlotSetStatusBarText(const QString& text) {
@@ -103,15 +104,7 @@ void MainWindow::slot_open_settings_dialog() {
   connect(dialog, &SettingsDialog::finished, this, [&]() -> void {
     AppearanceSO appearance(SettingsObject("general_settings_state"));
 
-    this->setToolButtonStyle(appearance.tool_bar_button_style);
-    import_button_->setToolButtonStyle(appearance.tool_bar_button_style);
-
-    // icons ize
-    this->setIconSize(
-        QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
-    import_button_->setIconSize(
-        QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
-
+    restore_settings();
     // restart main window if necessary
     if (restart_mode_ != kNonRestartCode) {
       if (edit_->MaybeSaveAnyTab()) {
@@ -207,15 +200,10 @@ void MainWindow::SlotUpdateCryptoMenuStatus(unsigned int type) {
 
 void MainWindow::SlotGeneralEncrypt(bool) {
   if (edit_->CurPageFileTreeView() != nullptr) {
-    const auto* file_tree_view = edit_->CurPageFileTreeView();
-    const auto path = file_tree_view->GetSelected();
-
-    const auto file_info = QFileInfo(path);
-    if (file_info.isFile()) {
-      this->SlotFileEncrypt(path);
-    } else if (file_info.isDir()) {
-      this->SlotDirectoryEncrypt(path);
-    }
+    const auto* file_page = edit_->CurPageFileTreeView();
+    const auto paths = file_page->GetSelected();
+    this->SlotFileEncrypt(paths, file_page->IsASCIIMode());
+    return;
   }
 
   if (edit_->CurEMailPage() != nullptr) {
@@ -231,18 +219,9 @@ void MainWindow::SlotGeneralEncrypt(bool) {
 void MainWindow::SlotGeneralDecrypt(bool) {
   if (edit_->CurPageFileTreeView() != nullptr) {
     const auto* file_tree_view = edit_->CurPageFileTreeView();
-    const auto path = file_tree_view->GetSelected();
+    const auto paths = file_tree_view->GetSelected();
 
-    const auto file_info = QFileInfo(path);
-    if (file_info.isFile()) {
-      const QString extension = file_info.completeSuffix();
-
-      if (extension == "tar.gpg" || extension == "tar.asc") {
-        this->SlotArchiveDecrypt(path);
-      } else {
-        this->SlotFileDecrypt(path);
-      }
-    }
+    this->SlotFileDecrypt(paths);
   }
 
   if (edit_->CurEMailPage() != nullptr) {
@@ -257,11 +236,10 @@ void MainWindow::SlotGeneralDecrypt(bool) {
 
 void MainWindow::SlotGeneralSign(bool) {
   if (edit_->CurPageFileTreeView() != nullptr) {
-    const auto* file_tree_view = edit_->CurPageFileTreeView();
-    const auto path = file_tree_view->GetSelected();
-
-    const auto file_info = QFileInfo(path);
-    if (file_info.isFile()) this->SlotFileSign(path);
+    const auto* file_page = edit_->CurPageFileTreeView();
+    const auto paths = file_page->GetSelected();
+    this->SlotFileSign(paths, file_page->IsASCIIMode());
+    return;
   }
 
   if (edit_->CurEMailPage() != nullptr) {
@@ -275,10 +253,9 @@ void MainWindow::SlotGeneralSign(bool) {
 void MainWindow::SlotGeneralVerify(bool) {
   if (edit_->CurPageFileTreeView() != nullptr) {
     const auto* file_tree_view = edit_->CurPageFileTreeView();
-    const auto path = file_tree_view->GetSelected();
+    const auto paths = file_tree_view->GetSelected();
 
-    const auto file_info = QFileInfo(path);
-    if (file_info.isFile()) this->SlotFileVerify(path);
+    this->SlotFileVerify(paths);
   }
 
   if (edit_->CurEMailPage() != nullptr) {
@@ -291,15 +268,10 @@ void MainWindow::SlotGeneralVerify(bool) {
 
 void MainWindow::SlotGeneralEncryptSign(bool) {
   if (edit_->CurPageFileTreeView() != nullptr) {
-    const auto* file_tree_view = edit_->CurPageFileTreeView();
-    const auto path = file_tree_view->GetSelected();
-
-    const auto file_info = QFileInfo(path);
-    if (file_info.isFile()) {
-      this->SlotFileEncryptSign(path);
-    } else if (file_info.isDir()) {
-      this->SlotDirectoryEncryptSign(path);
-    }
+    const auto* file_page = edit_->CurPageFileTreeView();
+    const auto paths = file_page->GetSelected();
+    this->SlotFileEncryptSign(paths, file_page->IsASCIIMode());
+    return;
   }
 
   if (edit_->CurEMailPage() != nullptr) {
@@ -315,18 +287,9 @@ void MainWindow::SlotGeneralEncryptSign(bool) {
 void MainWindow::SlotGeneralDecryptVerify(bool) {
   if (edit_->CurPageFileTreeView() != nullptr) {
     const auto* file_tree_view = edit_->CurPageFileTreeView();
-    const auto path = file_tree_view->GetSelected();
+    const auto paths = file_tree_view->GetSelected();
 
-    const auto file_info = QFileInfo(path);
-    if (file_info.isFile()) {
-      const QString extension = file_info.completeSuffix();
-
-      if (extension == "tar.gpg" || extension == "tar.asc") {
-        this->SlotArchiveDecryptVerify(path);
-      } else {
-        this->SlotFileDecryptVerify(path);
-      }
-    }
+    this->SlotFileDecryptVerify(paths);
   }
 
   if (edit_->CurEMailPage() != nullptr) {
@@ -368,12 +331,9 @@ void MainWindow::slot_reload_gpg_components(bool) {
 }
 
 void MainWindow::slot_restart_gpg_components(bool) {
-  GpgFrontend::GpgAdvancedOperator::RestartGpgComponents();
-  Module::ListenRTPublishEvent(
-      this, "core", "gpg_advanced_operator.restart_gpg_components",
-      [=](Module::Namespace, Module::Key, int, std::any value) {
-        bool success_state = std::any_cast<bool>(value);
-        if (success_state) {
+  GpgFrontend::GpgAdvancedOperator::RestartGpgComponents(
+      [=](int err, DataObjectPtr) {
+        if (err >= 0) {
           QMessageBox::information(
               this, tr("Successful Operation"),
               tr("Restart all the GnuPG's components successfully"));

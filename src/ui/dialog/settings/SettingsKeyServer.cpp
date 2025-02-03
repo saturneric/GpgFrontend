@@ -233,8 +233,7 @@ void KeyserverTab::slot_test_listed_key_server() {
       task,
       &GpgFrontend::UI::ListedKeyServerTestTask::SignalKeyServerListTestResult,
       this,
-      [=](std::vector<ListedKeyServerTestTask::KeyServerTestResultType>
-              result) {
+      [=](QContainer<ListedKeyServerTestTask::KeyServerTestResultType> result) {
         const size_t row_size = ui_->keyServerListTable->rowCount();
         if (result.size() != row_size) return;
         ui_->keyServerListTable->blockSignals(true);

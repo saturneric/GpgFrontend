@@ -408,12 +408,12 @@ void KeyPairUIDTab::slot_set_primary_uid() {
   }
 }
 
-auto KeyPairUIDTab::get_sign_selected() -> SignIdArgsListPtr {
-  auto signatures = std::make_unique<SignIdArgsList>();
+auto KeyPairUIDTab::get_sign_selected() -> SignIdArgsList {
+  auto signatures = SignIdArgsList{};
   for (int i = 0; i < sig_list_->rowCount(); i++) {
     if (sig_list_->item(i, 0)->isSelected()) {
       auto& sign = buffered_signatures_[i];
-      signatures->push_back({sign.GetKeyID(), sign.GetUID()});
+      signatures.push_back({sign.GetKeyID(), sign.GetUID()});
     }
   }
   return signatures;
@@ -476,7 +476,7 @@ void KeyPairUIDTab::create_sign_popup_menu() {
 
 void KeyPairUIDTab::slot_del_sign() {
   auto selected_signs = get_sign_selected();
-  if (selected_signs->empty()) {
+  if (selected_signs.empty()) {
     QMessageBox::information(
         nullptr, tr("Invalid Operation"),
         tr("Please select one Key Signature before doing this operation."));
@@ -484,7 +484,7 @@ void KeyPairUIDTab::slot_del_sign() {
   }
 
   if (!GpgKeyGetter::GetInstance(current_gpg_context_channel_)
-           .GetKey(selected_signs->front().first)
+           .GetKey(selected_signs.front().first)
            .IsGood()) {
     QMessageBox::critical(
         nullptr, tr("Invalid Operation"),
@@ -495,7 +495,7 @@ void KeyPairUIDTab::slot_del_sign() {
 
   QString keynames;
 
-  keynames.append(selected_signs->front().second);
+  keynames.append(selected_signs.front().second);
   keynames.append("<br/>");
 
   int ret = QMessageBox::warning(this, tr("Deleting Key Signature"),
@@ -514,6 +514,7 @@ void KeyPairUIDTab::slot_del_sign() {
     }
   }
 }
+
 void KeyPairUIDTab::slot_refresh_key() {
   // refresh the key
   GpgKey refreshed_key = GpgKeyGetter::GetInstance(current_gpg_context_channel_)

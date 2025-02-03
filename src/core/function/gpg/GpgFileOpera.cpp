@@ -40,88 +40,19 @@
 
 namespace GpgFrontend {
 
-constexpr ssize_t kDataExchangerSize = 8192;
-
-GpgFileOpera::GpgFileOpera(int channel)
-    : SingletonFunctionObject<GpgFileOpera>(channel) {}
-
-void GpgFileOpera::EncryptFile(const KeyArgsList& keys, const QString& in_path,
-                               bool ascii, const QString& out_path,
-                               const GpgOperationCallback& cb) {
-  RunGpgOperaAsync(
-      [=](const DataObjectPtr& data_object) -> GpgError {
-        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
-
-        // Last entry data_in array has to be nullptr
-        recipients.emplace_back(nullptr);
-
-        GpgData data_in(in_path, true);
-        GpgData data_out(out_path, false);
-
-        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
-        auto err = CheckGpgError(gpgme_op_encrypt(ctx, recipients.data(),
-                                                  GPGME_ENCRYPT_ALWAYS_TRUST,
-                                                  data_in, data_out));
-        data_object->Swap({GpgEncryptResult(gpgme_op_encrypt_result(ctx))});
-
-        return err;
-      },
-      cb, "gpgme_op_encrypt", "2.1.0");
+auto ExtractArchiveHelper(const QString& out_path)
+    -> QSharedPointer<GFDataExchanger> {
+  auto ex = CreateStandardGFDataExchanger();
+  ArchiveFileOperator::ExtractArchiveFromDataExchanger(
+      ex, out_path, [](GFError err, const DataObjectPtr&) {
+        FLOG_D("extract archive from data exchanger operation, err: %d", err);
+      });
+  return ex;
 }
 
-auto GpgFileOpera::EncryptFileSync(
-    const KeyArgsList& keys, const QString& in_path, bool ascii,
-    const QString& out_path) -> std::tuple<GpgError, DataObjectPtr> {
-  return RunGpgOperaSync(
-      [=](const DataObjectPtr& data_object) -> GpgError {
-        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
-
-        // Last entry data_in array has to be nullptr
-        recipients.emplace_back(nullptr);
-
-        GpgData data_in(in_path, true);
-        GpgData data_out(out_path, false);
-
-        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
-        auto err = CheckGpgError(gpgme_op_encrypt(ctx, recipients.data(),
-                                                  GPGME_ENCRYPT_ALWAYS_TRUST,
-                                                  data_in, data_out));
-        data_object->Swap({GpgEncryptResult(gpgme_op_encrypt_result(ctx))});
-
-        return err;
-      },
-      "gpgme_op_encrypt", "2.1.0");
-}
-
-void GpgFileOpera::EncryptDirectory(const KeyArgsList& keys,
-                                    const QString& in_path, bool ascii,
-                                    const QString& out_path,
-                                    const GpgOperationCallback& cb) {
-  auto ex = std::make_shared<GFDataExchanger>(kDataExchangerSize);
-  auto w_ex = std::weak_ptr<GFDataExchanger>(ex);
-
-  RunGpgOperaAsync(
-      [=](const DataObjectPtr& data_object) -> GpgError {
-        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
-
-        // Last entry data_in array has to be nullptr
-        recipients.emplace_back(nullptr);
-
-        GpgData data_in(ex);
-        GpgData data_out(out_path, false);
-
-        FLOG_D("encrypt directory start");
-
-        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
-        auto err = CheckGpgError(gpgme_op_encrypt(ctx, recipients.data(),
-                                                  GPGME_ENCRYPT_ALWAYS_TRUST,
-                                                  data_in, data_out));
-        data_object->Swap({GpgEncryptResult(gpgme_op_encrypt_result(ctx))});
-
-        FLOG_D("encrypt directory finished, err: %d", err);
-        return err;
-      },
-      cb, "gpgme_op_encrypt", "2.1.0");
+void CreateArchiveHelper(const QString& in_path,
+                         const QSharedPointer<GFDataExchanger>& ex) {
+  auto w_ex = QWeakPointer<GFDataExchanger>(ex);
 
   ArchiveFileOperator::NewArchive2DataExchanger(
       in_path, ex, [=](GFError err, const DataObjectPtr&) {
@@ -132,19 +63,99 @@ void GpgFileOpera::EncryptDirectory(const KeyArgsList& keys,
       });
 }
 
+GpgFileOpera::GpgFileOpera(int channel)
+    : SingletonFunctionObject<GpgFileOpera>(channel) {}
+
+auto EncryptFileGpgDataImpl(GpgContext& ctx_, const KeyArgsList& keys,
+                            GpgData& data_in, bool ascii, GpgData& data_out,
+                            const DataObjectPtr& data_object) -> GpgError {
+  auto recipients = Convert2RawGpgMEKeyList(keys);
+  auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+
+  auto err = CheckGpgError(
+      gpgme_op_encrypt(ctx, keys.isEmpty() ? nullptr : recipients.data(),
+                       GPGME_ENCRYPT_ALWAYS_TRUST, data_in, data_out));
+  data_object->Swap({GpgEncryptResult(gpgme_op_encrypt_result(ctx))});
+  return err;
+}
+
+auto EncryptFileImpl(GpgContext& ctx_, const KeyArgsList& keys,
+                     const QString& in_path, bool ascii,
+                     const QString& out_path,
+                     const DataObjectPtr& data_object) -> GpgError {
+  GpgData data_in(in_path, true);
+  GpgData data_out(out_path, false);
+
+  return EncryptFileGpgDataImpl(ctx_, keys, data_in, ascii, data_out,
+                                data_object);
+}
+
+void GpgFileOpera::EncryptFile(const KeyArgsList& keys, const QString& in_path,
+                               bool ascii, const QString& out_path,
+                               const GpgOperationCallback& cb) {
+  RunGpgOperaAsync(
+      [=](const DataObjectPtr& data_object) {
+        return EncryptFileImpl(ctx_, keys, in_path, ascii, out_path,
+                               data_object);
+      },
+      cb, "gpgme_op_encrypt", "2.1.0");
+}
+
+auto GpgFileOpera::EncryptFileSync(
+    const KeyArgsList& keys, const QString& in_path, bool ascii,
+    const QString& out_path) -> std::tuple<GpgError, DataObjectPtr> {
+  return RunGpgOperaSync(
+      [=](const DataObjectPtr& data_object) {
+        return EncryptFileImpl(ctx_, keys, in_path, ascii, out_path,
+                               data_object);
+      },
+      "gpgme_op_encrypt", "2.1.0");
+}
+
+void GpgFileOpera::EncryptDirectory(const KeyArgsList& keys,
+                                    const QString& in_path, bool ascii,
+                                    const QString& out_path,
+                                    const GpgOperationCallback& cb) {
+  auto ex = CreateStandardGFDataExchanger();
+
+  RunGpgOperaAsync(
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        GpgData data_in(ex);
+        GpgData data_out(out_path, false);
+
+        return EncryptFileGpgDataImpl(ctx_, keys, data_in, ascii, data_out,
+                                      data_object);
+      },
+      cb, "gpgme_op_encrypt", "2.1.0");
+
+  CreateArchiveHelper(in_path, ex);
+}
+
+auto DecryptFileGpgDataImpl(GpgContext& ctx_, GpgData& data_in,
+                            GpgData& data_out,
+                            const DataObjectPtr& data_object) -> GpgError {
+  auto err =
+      CheckGpgError(gpgme_op_decrypt(ctx_.DefaultContext(), data_in, data_out));
+  data_object->Swap(
+      {GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext()))});
+
+  return err;
+}
+
+auto DecryptFileImpl(GpgContext& ctx_, const QString& in_path,
+                     const QString& out_path,
+                     const DataObjectPtr& data_object) -> GpgError {
+  GpgData data_in(in_path, true);
+  GpgData data_out(out_path, false);
+
+  return DecryptFileGpgDataImpl(ctx_, data_in, data_out, data_object);
+}
+
 void GpgFileOpera::DecryptFile(const QString& in_path, const QString& out_path,
                                const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
-      [=](const DataObjectPtr& data_object) -> GpgError {
-        GpgData data_in(in_path, true);
-        GpgData data_out(out_path, false);
-
-        auto err = CheckGpgError(
-            gpgme_op_decrypt(ctx_.DefaultContext(), data_in, data_out));
-        data_object->Swap(
-            {GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext()))});
-
-        return err;
+      [=](const DataObjectPtr& data_object) {
+        return DecryptFileImpl(ctx_, in_path, out_path, data_object);
       },
       cb, "gpgme_op_decrypt", "2.1.0");
 }
@@ -153,16 +164,8 @@ auto GpgFileOpera::DecryptFileSync(const QString& in_path,
                                    const QString& out_path)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
-      [=](const DataObjectPtr& data_object) -> GpgError {
-        GpgData data_in(in_path, true);
-        GpgData data_out(out_path, false);
-
-        auto err = CheckGpgError(
-            gpgme_op_decrypt(ctx_.DefaultContext(), data_in, data_out));
-        data_object->Swap(
-            {GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext()))});
-
-        return err;
+      [=](const DataObjectPtr& data_object) {
+        return DecryptFileImpl(ctx_, in_path, out_path, data_object);
       },
       "gpgme_op_decrypt", "2.1.0");
 }
@@ -170,49 +173,55 @@ auto GpgFileOpera::DecryptFileSync(const QString& in_path,
 void GpgFileOpera::DecryptArchive(const QString& in_path,
                                   const QString& out_path,
                                   const GpgOperationCallback& cb) {
-  auto ex = std::make_shared<GFDataExchanger>(kDataExchangerSize);
-
-  ArchiveFileOperator::ExtractArchiveFromDataExchanger(
-      ex, out_path, [](GFError err, const DataObjectPtr&) {
-        FLOG_D("extract archive from data exchanger operation, err: %d", err);
-      });
+  auto ex = ExtractArchiveHelper(out_path);
 
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
         GpgData data_in(in_path, true);
         GpgData data_out(ex);
 
-        auto err = CheckGpgError(
-            gpgme_op_decrypt(ctx_.DefaultContext(), data_in, data_out));
-
-        data_object->Swap(
-            {GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext()))});
-        return err;
+        return DecryptFileGpgDataImpl(ctx_, data_in, data_out, data_object);
       },
       cb, "gpgme_op_decrypt", "2.1.0");
+}
+
+auto SignFileGpgDataImpl(GpgContext& ctx_, GpgBasicOperator& basic_opera_,
+                         const KeyArgsList& keys, GpgData& data_in, bool ascii,
+                         GpgData& data_out,
+                         const DataObjectPtr& data_object) -> GpgError {
+  GpgError err;
+
+  // Set Singers of this opera
+  basic_opera_.SetSigners(keys, ascii);
+
+  auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+  err = CheckGpgError(
+      gpgme_op_sign(ctx, data_in, data_out, GPGME_SIG_MODE_DETACH));
+
+  data_object->Swap({
+      GpgSignResult(gpgme_op_sign_result(ctx)),
+  });
+  return err;
+}
+
+auto SignFileImpl(GpgContext& ctx_, GpgBasicOperator& basic_opera_,
+                  const KeyArgsList& keys, const QString& in_path, bool ascii,
+                  const QString& out_path,
+                  const DataObjectPtr& data_object) -> GpgError {
+  GpgData data_in(in_path, true);
+  GpgData data_out(out_path, false);
+
+  return SignFileGpgDataImpl(ctx_, basic_opera_, keys, data_in, ascii, data_out,
+                             data_object);
 }
 
 void GpgFileOpera::SignFile(const KeyArgsList& keys, const QString& in_path,
                             bool ascii, const QString& out_path,
                             const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
-      [=](const DataObjectPtr& data_object) -> GpgError {
-        GpgError err;
-
-        // Set Singers of this opera
-        GpgBasicOperator::GetInstance(GetChannel()).SetSigners(keys, ascii);
-
-        GpgData data_in(in_path, true);
-        GpgData data_out(out_path, false);
-
-        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
-        err = CheckGpgError(
-            gpgme_op_sign(ctx, data_in, data_out, GPGME_SIG_MODE_DETACH));
-
-        data_object->Swap({
-            GpgSignResult(gpgme_op_sign_result(ctx)),
-        });
-        return err;
+      [=](const DataObjectPtr& data_object) {
+        return SignFileImpl(ctx_, basic_opera_, keys, in_path, ascii, out_path,
+                            data_object);
       },
       cb, "gpgme_op_sign", "2.1.0");
 }
@@ -221,25 +230,34 @@ auto GpgFileOpera::SignFileSync(const KeyArgsList& keys, const QString& in_path,
                                 bool ascii, const QString& out_path)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
-      [=](const DataObjectPtr& data_object) -> GpgError {
-        GpgError err;
-
-        // Set Singers of this opera
-        GpgBasicOperator::GetInstance(GetChannel()).SetSigners(keys, ascii);
-
-        GpgData data_in(in_path, true);
-        GpgData data_out(out_path, false);
-
-        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
-        err = CheckGpgError(
-            gpgme_op_sign(ctx, data_in, data_out, GPGME_SIG_MODE_DETACH));
-
-        data_object->Swap({
-            GpgSignResult(gpgme_op_sign_result(ctx)),
-        });
-        return err;
+      [=](const DataObjectPtr& data_object) {
+        return SignFileImpl(ctx_, basic_opera_, keys, in_path, ascii, out_path,
+                            data_object);
       },
       "gpgme_op_sign", "2.1.0");
+}
+
+auto VerifyFileImpl(GpgContext& ctx_, const QString& data_path,
+                    const QString& sign_path,
+                    const DataObjectPtr& data_object) -> GpgError {
+  GpgError err;
+
+  GpgData data_in(data_path, true);
+  GpgData data_out;
+  if (!sign_path.isEmpty()) {
+    GpgData sig_data(sign_path, true);
+    err = CheckGpgError(
+        gpgme_op_verify(ctx_.DefaultContext(), sig_data, data_in, nullptr));
+  } else {
+    err = CheckGpgError(
+        gpgme_op_verify(ctx_.DefaultContext(), data_in, nullptr, data_out));
+  }
+
+  data_object->Swap({
+      GpgVerifyResult(gpgme_op_verify_result(ctx_.DefaultContext())),
+  });
+
+  return err;
 }
 
 void GpgFileOpera::VerifyFile(const QString& data_path,
@@ -247,24 +265,7 @@ void GpgFileOpera::VerifyFile(const QString& data_path,
                               const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
-        GpgError err;
-
-        GpgData data_in(data_path, true);
-        GpgData data_out;
-        if (!sign_path.isEmpty()) {
-          GpgData sig_data(sign_path, true);
-          err = CheckGpgError(gpgme_op_verify(ctx_.DefaultContext(), sig_data,
-                                              data_in, nullptr));
-        } else {
-          err = CheckGpgError(gpgme_op_verify(ctx_.DefaultContext(), data_in,
-                                              nullptr, data_out));
-        }
-
-        data_object->Swap({
-            GpgVerifyResult(gpgme_op_verify_result(ctx_.DefaultContext())),
-        });
-
-        return err;
+        return VerifyFileImpl(ctx_, data_path, sign_path, data_object);
       },
       cb, "gpgme_op_verify", "2.1.0");
 }
@@ -274,26 +275,44 @@ auto GpgFileOpera::VerifyFileSync(const QString& data_path,
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       [=](const DataObjectPtr& data_object) -> GpgError {
-        GpgError err;
-
-        GpgData data_in(data_path, true);
-        GpgData data_out;
-        if (!sign_path.isEmpty()) {
-          GpgData sig_data(sign_path, true);
-          err = CheckGpgError(gpgme_op_verify(ctx_.DefaultContext(), sig_data,
-                                              data_in, nullptr));
-        } else {
-          err = CheckGpgError(gpgme_op_verify(ctx_.DefaultContext(), data_in,
-                                              nullptr, data_out));
-        }
-
-        data_object->Swap({
-            GpgVerifyResult(gpgme_op_verify_result(ctx_.DefaultContext())),
-        });
-
-        return err;
+        return VerifyFileImpl(ctx_, data_path, sign_path, data_object);
       },
       "gpgme_op_verify", "2.1.0");
+}
+
+auto EncryptSignFileGpgDataImpl(GpgContext& ctx_,
+                                GpgBasicOperator& basic_opera_,
+                                const KeyArgsList& keys,
+                                const KeyArgsList& signer_keys,
+                                GpgData& data_in, bool ascii, GpgData& data_out,
+                                const DataObjectPtr& data_object) -> GpgError {
+  GpgError err;
+  auto recipients = Convert2RawGpgMEKeyList(keys);
+
+  basic_opera_.SetSigners(signer_keys, ascii);
+
+  auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+  err = CheckGpgError(gpgme_op_encrypt_sign(
+      ctx, recipients.data(), GPGME_ENCRYPT_ALWAYS_TRUST, data_in, data_out));
+
+  data_object->Swap({
+      GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
+      GpgSignResult(gpgme_op_sign_result(ctx)),
+  });
+
+  return err;
+}
+
+auto EncryptSignFileImpl(GpgContext& ctx_, GpgBasicOperator& basic_opera_,
+                         const KeyArgsList& keys,
+                         const KeyArgsList& signer_keys, const QString& in_path,
+                         bool ascii, const QString& out_path,
+                         const DataObjectPtr& data_object) -> GpgError {
+  GpgData data_in(in_path, true);
+  GpgData data_out(out_path, false);
+
+  return EncryptSignFileGpgDataImpl(ctx_, basic_opera_, keys, signer_keys,
+                                    data_in, ascii, data_out, data_object);
 }
 
 void GpgFileOpera::EncryptSignFile(const KeyArgsList& keys,
@@ -302,29 +321,9 @@ void GpgFileOpera::EncryptSignFile(const KeyArgsList& keys,
                                    const QString& out_path,
                                    const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
-      [=](const DataObjectPtr& data_object) -> GpgError {
-        GpgError err;
-        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
-
-        // Last entry data_in array has to be nullptr
-        recipients.emplace_back(nullptr);
-
-        GpgBasicOperator::GetInstance(GetChannel())
-            .SetSigners(signer_keys, ascii);
-
-        GpgData data_in(in_path, true);
-        GpgData data_out(out_path, false);
-
-        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
-        err = CheckGpgError(gpgme_op_encrypt_sign(ctx, recipients.data(),
-                                                  GPGME_ENCRYPT_ALWAYS_TRUST,
-                                                  data_in, data_out));
-
-        data_object->Swap({
-            GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
-            GpgSignResult(gpgme_op_sign_result(ctx)),
-        });
-        return err;
+      [=](const DataObjectPtr& data_object) {
+        return EncryptSignFileImpl(ctx_, basic_opera_, keys, signer_keys,
+                                   in_path, ascii, out_path, data_object);
       },
       cb, "gpgme_op_encrypt_sign", "2.1.0");
 }
@@ -334,29 +333,9 @@ auto GpgFileOpera::EncryptSignFileSync(
     const QString& in_path, bool ascii,
     const QString& out_path) -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
-      [=](const DataObjectPtr& data_object) -> GpgError {
-        GpgError err;
-        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
-
-        // Last entry data_in array has to be nullptr
-        recipients.emplace_back(nullptr);
-
-        GpgBasicOperator::GetInstance(GetChannel())
-            .SetSigners(signer_keys, ascii);
-
-        GpgData data_in(in_path, true);
-        GpgData data_out(out_path, false);
-
-        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
-        err = CheckGpgError(gpgme_op_encrypt_sign(ctx, recipients.data(),
-                                                  GPGME_ENCRYPT_ALWAYS_TRUST,
-                                                  data_in, data_out));
-
-        data_object->Swap({
-            GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
-            GpgSignResult(gpgme_op_sign_result(ctx)),
-        });
-        return err;
+      [=](const DataObjectPtr& data_object) {
+        return EncryptSignFileImpl(ctx_, basic_opera_, keys, signer_keys,
+                                   in_path, ascii, out_path, data_object);
       },
       "gpgme_op_encrypt_sign", "2.1.0");
 }
@@ -366,43 +345,42 @@ void GpgFileOpera::EncryptSignDirectory(const KeyArgsList& keys,
                                         const QString& in_path, bool ascii,
                                         const QString& out_path,
                                         const GpgOperationCallback& cb) {
-  auto ex = std::make_shared<GFDataExchanger>(kDataExchangerSize);
-  auto w_ex = std::weak_ptr<GFDataExchanger>(ex);
+  auto ex = CreateStandardGFDataExchanger();
 
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
-        GpgError err;
-        std::vector<gpgme_key_t> recipients(keys.begin(), keys.end());
-
-        // Last entry data_in array has to be nullptr
-        recipients.emplace_back(nullptr);
-
-        GpgBasicOperator::GetInstance(GetChannel())
-            .SetSigners(signer_keys, ascii);
-
         GpgData data_in(ex);
         GpgData data_out(out_path, false);
 
-        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
-        err = CheckGpgError(gpgme_op_encrypt_sign(ctx, recipients.data(),
-                                                  GPGME_ENCRYPT_ALWAYS_TRUST,
-                                                  data_in, data_out));
-
-        data_object->Swap({
-            GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
-            GpgSignResult(gpgme_op_sign_result(ctx)),
-        });
-        return err;
+        return EncryptSignFileGpgDataImpl(ctx_, basic_opera_, keys, signer_keys,
+                                          data_in, ascii, data_out,
+                                          data_object);
       },
       cb, "gpgme_op_encrypt_sign", "2.1.0");
 
-  ArchiveFileOperator::NewArchive2DataExchanger(
-      in_path, ex, [=](GFError err, const DataObjectPtr&) {
-        FLOG_D("new archive 2 fd operation, err: %d", err);
-        if (decltype(ex) p_ex = w_ex.lock(); err < 0 && p_ex != nullptr) {
-          ex->CloseWrite();
-        }
-      });
+  CreateArchiveHelper(in_path, ex);
+}
+
+auto DecryptVerifyFileGpgDataImpl(
+    GpgContext& ctx_, GpgData& data_in, GpgData& data_out,
+    const DataObjectPtr& data_object) -> GpgError {
+  auto err = CheckGpgError(
+      gpgme_op_decrypt_verify(ctx_.DefaultContext(), data_in, data_out));
+
+  data_object->Swap({
+      GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext())),
+      GpgVerifyResult(gpgme_op_verify_result(ctx_.DefaultContext())),
+  });
+  return err;
+}
+
+auto DecryptVerifyFileImpl(GpgContext& ctx_, const QString& in_path,
+                           const QString& out_path,
+                           const DataObjectPtr& data_object) -> GpgError {
+  GpgData data_in(in_path, true);
+  GpgData data_out(out_path, false);
+
+  return DecryptVerifyFileGpgDataImpl(ctx_, data_in, data_out, data_object);
 }
 
 void GpgFileOpera::DecryptVerifyFile(const QString& in_path,
@@ -410,20 +388,7 @@ void GpgFileOpera::DecryptVerifyFile(const QString& in_path,
                                      const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
-        GpgError err;
-
-        GpgData data_in(in_path, true);
-        GpgData data_out(out_path, false);
-
-        err = CheckGpgError(
-            gpgme_op_decrypt_verify(ctx_.DefaultContext(), data_in, data_out));
-
-        data_object->Swap({
-            GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext())),
-            GpgVerifyResult(gpgme_op_verify_result(ctx_.DefaultContext())),
-        });
-
-        return err;
+        return DecryptVerifyFileImpl(ctx_, in_path, out_path, data_object);
       },
       cb, "gpgme_op_decrypt_verify", "2.1.0");
 }
@@ -433,20 +398,7 @@ auto GpgFileOpera::DecryptVerifyFileSync(const QString& in_path,
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       [=](const DataObjectPtr& data_object) -> GpgError {
-        GpgError err;
-
-        GpgData data_in(in_path, true);
-        GpgData data_out(out_path, false);
-
-        err = CheckGpgError(
-            gpgme_op_decrypt_verify(ctx_.DefaultContext(), data_in, data_out));
-
-        data_object->Swap({
-            GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext())),
-            GpgVerifyResult(gpgme_op_verify_result(ctx_.DefaultContext())),
-        });
-
-        return err;
+        return DecryptVerifyFileImpl(ctx_, in_path, out_path, data_object);
       },
       "gpgme_op_decrypt_verify", "2.1.0");
 }
@@ -454,29 +406,14 @@ auto GpgFileOpera::DecryptVerifyFileSync(const QString& in_path,
 void GpgFileOpera::DecryptVerifyArchive(const QString& in_path,
                                         const QString& out_path,
                                         const GpgOperationCallback& cb) {
-  auto ex = std::make_shared<GFDataExchanger>(kDataExchangerSize);
-
-  ArchiveFileOperator::ExtractArchiveFromDataExchanger(
-      ex, out_path, [](GFError err, const DataObjectPtr&) {
-        FLOG_D("extract archive from ex operation, err: %d", err);
-      });
+  auto ex = ExtractArchiveHelper(out_path);
 
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
-        GpgError err;
-
         GpgData data_in(in_path, true);
         GpgData data_out(ex);
-
-        err = CheckGpgError(
-            gpgme_op_decrypt_verify(ctx_.DefaultContext(), data_in, data_out));
-
-        data_object->Swap({
-            GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext())),
-            GpgVerifyResult(gpgme_op_verify_result(ctx_.DefaultContext())),
-        });
-
-        return err;
+        return DecryptVerifyFileGpgDataImpl(ctx_, data_in, data_out,
+                                            data_object);
       },
       cb, "gpgme_op_decrypt_verify", "2.1.0");
 }
@@ -486,17 +423,7 @@ void GpgFileOpera::EncryptFileSymmetric(const QString& in_path, bool ascii,
                                         const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
-        GpgData data_in(in_path, true);
-        GpgData data_out(out_path, false);
-
-        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
-        auto err = CheckGpgError(gpgme_op_encrypt(
-            ctx, nullptr, GPGME_ENCRYPT_SYMMETRIC, data_in, data_out));
-        data_object->Swap({
-            GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
-        });
-
-        return err;
+        return EncryptFileImpl(ctx_, {}, in_path, ascii, out_path, data_object);
       },
       cb, "gpgme_op_encrypt_symmetric", "2.1.0");
 }
@@ -506,73 +433,45 @@ auto GpgFileOpera::EncryptFileSymmetricSync(const QString& in_path, bool ascii,
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       [=](const DataObjectPtr& data_object) -> GpgError {
-        GpgData data_in(in_path, true);
-        GpgData data_out(out_path, false);
-
-        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
-        auto err = CheckGpgError(gpgme_op_encrypt(
-            ctx, nullptr, GPGME_ENCRYPT_SYMMETRIC, data_in, data_out));
-        data_object->Swap({
-            GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
-        });
-
-        return err;
+        return EncryptFileImpl(ctx_, {}, in_path, ascii, out_path, data_object);
       },
       "gpgme_op_encrypt_symmetric", "2.1.0");
 }
 
-void GpgFileOpera::EncryptDerectorySymmetric(const QString& in_path, bool ascii,
+void GpgFileOpera::EncryptDirectorySymmetric(const QString& in_path, bool ascii,
                                              const QString& out_path,
                                              const GpgOperationCallback& cb) {
-  auto ex = std::make_shared<GFDataExchanger>(kDataExchangerSize);
+  auto ex = CreateStandardGFDataExchanger();
 
   RunGpgOperaAsync(
-      [=](const DataObjectPtr& data_object) -> GpgError {
+      [=](const DataObjectPtr& data_object) {
         GpgData data_in(ex);
         GpgData data_out(out_path, false);
 
-        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
-        auto err = CheckGpgError(gpgme_op_encrypt(
-            ctx, nullptr, GPGME_ENCRYPT_SYMMETRIC, data_in, data_out));
-        data_object->Swap({
-            GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
-        });
-
-        return err;
+        return EncryptFileGpgDataImpl(ctx_, {}, data_in, ascii, data_out,
+                                      data_object);
       },
       cb, "gpgme_op_encrypt_symmetric", "2.1.0");
 
-  ArchiveFileOperator::NewArchive2DataExchanger(
-      in_path, ex, [=](GFError err, const DataObjectPtr&) {
-        FLOG_D("new archive 2 fd operation, err: %d", err);
-      });
+  CreateArchiveHelper(in_path, ex);
 }
 
-auto GpgFileOpera::EncryptDerectorySymmetricSync(
+auto GpgFileOpera::EncryptDirectorySymmetricSync(
     const QString& in_path, bool ascii,
     const QString& out_path) -> std::tuple<GpgError, DataObjectPtr> {
-  auto ex = std::make_shared<GFDataExchanger>(kDataExchangerSize);
-
-  ArchiveFileOperator::NewArchive2DataExchanger(
-      in_path, ex, [=](GFError err, const DataObjectPtr&) {
-        FLOG_D("new archive 2 fd operation, err: %d", err);
-      });
+  auto ex = CreateStandardGFDataExchanger();
 
   return RunGpgOperaSync(
       [=](const DataObjectPtr& data_object) -> GpgError {
         GpgData data_in(ex);
         GpgData data_out(out_path, false);
 
-        auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
-        auto err = CheckGpgError(gpgme_op_encrypt(
-            ctx, nullptr, GPGME_ENCRYPT_SYMMETRIC, data_in, data_out));
-        data_object->Swap({
-            GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
-        });
-
-        return err;
+        return EncryptFileGpgDataImpl(ctx_, {}, data_in, ascii, data_out,
+                                      data_object);
       },
       "gpgme_op_encrypt_symmetric", "2.1.0");
+
+  CreateArchiveHelper(in_path, ex);
 }
 
 }  // namespace GpgFrontend

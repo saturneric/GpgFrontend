@@ -28,8 +28,6 @@
 
 #include "core/model/GpgKey.h"
 
-#include <mutex>
-
 namespace GpgFrontend {
 
 GpgKey::GpgKey(gpgme_key_t &&key) : key_ref_(key) {}
@@ -149,21 +147,13 @@ auto GpgKey::GetPrimaryKeyLength() const -> unsigned int {
   return key_ref_->subkeys->length;
 }
 
-auto GpgKey::IsHasEncryptionCapability() const -> bool {
-  return key_ref_->can_encrypt;
-}
+auto GpgKey::IsHasEncrCap() const -> bool { return key_ref_->can_encrypt; }
 
-auto GpgKey::IsHasSigningCapability() const -> bool {
-  return key_ref_->can_sign;
-}
+auto GpgKey::IsHasSignCap() const -> bool { return key_ref_->can_sign; }
 
-auto GpgKey::IsHasCertificationCapability() const -> bool {
-  return key_ref_->can_certify;
-}
+auto GpgKey::IsHasCertCap() const -> bool { return key_ref_->can_certify; }
 
-auto GpgKey::IsHasAuthenticationCapability() const -> bool {
-  return key_ref_->can_authenticate;
-}
+auto GpgKey::IsHasAuthCap() const -> bool { return key_ref_->can_authenticate; }
 
 auto GpgKey::IsHasCardKey() const -> bool {
   auto subkeys = GetSubKeys();
@@ -184,8 +174,8 @@ auto GpgKey::IsHasMasterKey() const -> bool {
   return key_ref_->subkeys->secret;
 }
 
-auto GpgKey::GetSubKeys() const -> std::unique_ptr<std::vector<GpgSubKey>> {
-  auto p_keys = std::make_unique<std::vector<GpgSubKey>>();
+auto GpgKey::GetSubKeys() const -> std::unique_ptr<QContainer<GpgSubKey>> {
+  auto p_keys = std::make_unique<QContainer<GpgSubKey>>();
   auto *next = key_ref_->subkeys;
   while (next != nullptr) {
     p_keys->push_back(GpgSubKey(next));
@@ -194,8 +184,8 @@ auto GpgKey::GetSubKeys() const -> std::unique_ptr<std::vector<GpgSubKey>> {
   return p_keys;
 }
 
-auto GpgKey::GetUIDs() const -> std::unique_ptr<std::vector<GpgUID>> {
-  auto p_uids = std::make_unique<std::vector<GpgUID>>();
+auto GpgKey::GetUIDs() const -> std::unique_ptr<QContainer<GpgUID>> {
+  auto p_uids = std::make_unique<QContainer<GpgUID>>();
   auto *uid_next = key_ref_->uids;
   while (uid_next != nullptr) {
     p_uids->push_back(GpgUID(uid_next));
@@ -204,24 +194,24 @@ auto GpgKey::GetUIDs() const -> std::unique_ptr<std::vector<GpgUID>> {
   return p_uids;
 }
 
-auto GpgKey::IsHasActualSigningCapability() const -> bool {
+auto GpgKey::IsHasActualSignCap() const -> bool {
   auto subkeys = GetSubKeys();
-  return std::any_of(
-      subkeys->begin(), subkeys->end(), [](const GpgSubKey &subkey) -> bool {
-        return subkey.IsSecretKey() && subkey.IsHasSigningCapability() &&
-               !subkey.IsDisabled() && !subkey.IsRevoked() &&
-               !subkey.IsExpired();
-      });
+  return std::any_of(subkeys->begin(), subkeys->end(),
+                     [](const GpgSubKey &subkey) -> bool {
+                       return subkey.IsSecretKey() && subkey.IsHasSignCap() &&
+                              !subkey.IsDisabled() && !subkey.IsRevoked() &&
+                              !subkey.IsExpired();
+                     });
 }
 
-auto GpgKey::IsHasActualAuthenticationCapability() const -> bool {
+auto GpgKey::IsHasActualAuthCap() const -> bool {
   auto subkeys = GetSubKeys();
-  return std::any_of(
-      subkeys->begin(), subkeys->end(), [](const GpgSubKey &subkey) -> bool {
-        return subkey.IsSecretKey() && subkey.IsHasAuthenticationCapability() &&
-               !subkey.IsDisabled() && !subkey.IsRevoked() &&
-               !subkey.IsExpired();
-      });
+  return std::any_of(subkeys->begin(), subkeys->end(),
+                     [](const GpgSubKey &subkey) -> bool {
+                       return subkey.IsSecretKey() && subkey.IsHasAuthCap() &&
+                              !subkey.IsDisabled() && !subkey.IsRevoked() &&
+                              !subkey.IsExpired();
+                     });
 }
 
 /**
@@ -229,7 +219,7 @@ auto GpgKey::IsHasActualAuthenticationCapability() const -> bool {
  * @param key target key
  * @return if key certify
  */
-auto GpgKey::IsHasActualCertificationCapability() const -> bool {
+auto GpgKey::IsHasActualCertCap() const -> bool {
   return IsHasMasterKey() && !IsExpired() && !IsRevoked() && !IsDisabled();
 }
 
@@ -238,13 +228,13 @@ auto GpgKey::IsHasActualCertificationCapability() const -> bool {
  * @param key target key
  * @return if key encrypt
  */
-auto GpgKey::IsHasActualEncryptionCapability() const -> bool {
+auto GpgKey::IsHasActualEncrCap() const -> bool {
   auto subkeys = GetSubKeys();
-  return std::any_of(
-      subkeys->begin(), subkeys->end(), [](const GpgSubKey &subkey) -> bool {
-        return subkey.IsHasEncryptionCapability() && !subkey.IsDisabled() &&
-               !subkey.IsRevoked() && !subkey.IsExpired();
-      });
+  return std::any_of(subkeys->begin(), subkeys->end(),
+                     [](const GpgSubKey &subkey) -> bool {
+                       return subkey.IsHasEncrCap() && !subkey.IsDisabled() &&
+                              !subkey.IsRevoked() && !subkey.IsExpired();
+                     });
 }
 
 void GpgKey::KeyRefDeleter::operator()(gpgme_key_t _key) {

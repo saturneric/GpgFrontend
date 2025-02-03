@@ -141,11 +141,11 @@ class SingletonFunctionObject : public ChannelObject {
   }
 
   /**
-   * @brief Get all the channel ids
+   * @brief Get the All Channel Id object
    *
-   * @return std::vector<int>
+   * @return QContainer<int>
    */
-  static auto GetAllChannelId() -> std::vector<int> {
+  static auto GetAllChannelId() -> QContainer<int> {
     return SingletonStorageCollection::GetInstance(false)
         ->GetSingletonStorage(typeid(T))
         ->GetAllChannelId();

@@ -68,7 +68,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
    * @return false
    */
   auto RevSign(const GpgFrontend::GpgKey& key,
-               const GpgFrontend::SignIdArgsListPtr& signature_id) -> bool;
+               const GpgFrontend::SignIdArgsList& signature_id) -> bool;
 
   /**
    * @brief Set the Expire object

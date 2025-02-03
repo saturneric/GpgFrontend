@@ -110,37 +110,18 @@ class GPGFRONTEND_CORE_EXPORT GpgTOFUInfo {
   /**
    * @brief Construct a new Gpg T O F U Info object
    *
-   * @param o
    */
-  GpgTOFUInfo(GpgTOFUInfo&& o) noexcept;
-
-  /**
-   * @brief Construct a new Gpg T O F U Info object
-   *
-   */
-  GpgTOFUInfo(const GpgTOFUInfo&) = delete;
-
-  /**
-   * @brief
-   *
-   * @param o
-   * @return GpgTOFUInfo&
-   */
-  auto operator=(GpgTOFUInfo&& o) noexcept -> GpgTOFUInfo&;
+  GpgTOFUInfo(const GpgTOFUInfo&);
 
   /**
    * @brief
    *
    * @return GpgTOFUInfo&
    */
-  auto operator=(const GpgTOFUInfo&) -> GpgTOFUInfo& = delete;
+  auto operator=(const GpgTOFUInfo&) -> GpgTOFUInfo&;
 
  private:
-  using SubkeyRefHandler =
-      std::unique_ptr<struct _gpgme_tofu_info,
-                      std::function<void(gpgme_tofu_info_t)>>;  ///<
-
-  SubkeyRefHandler tofu_info_ref_ = nullptr;  ///<
+  gpgme_tofu_info_t tofu_info_ref_ = nullptr;  ///<
 };
 
 }  // namespace GpgFrontend

@@ -28,7 +28,10 @@
 
 #pragma once
 
+#include "core/typedef/CoreTypedef.h"
+#include "core/typedef/GpgTypedef.h"
 #include "ui/main_window/GeneralMainWindow.h"
+#include "ui/struct/GpgOperaResult.h"
 
 namespace GpgFrontend {
 class GpgPassphraseContext;
@@ -41,6 +44,8 @@ namespace GpgFrontend::UI {
 class KeyList;
 class TextEdit;
 class InfoBoardWidget;
+struct GpgOperaContext;
+struct GpgOperaContextBasement;
 
 /**
  * @brief
@@ -159,14 +164,6 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @brief
    *
-   * @param raw_data
-   * @param signature
-   */
-  void SlotVerify(const QByteArray& raw_data, const QByteArray& signature);
-
-  /**
-   * @brief
-   *
    */
   void SlotVerifyEML();
 
@@ -209,41 +206,28 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @details Open dialog for encrypting file.
    */
-  void SlotFileEncrypt(const QString&);
-
-  /**
-   * @brief
-   *
-   */
-  void SlotDirectoryEncrypt(const QString&);
+  void SlotFileEncrypt(const QStringList& paths, bool ascii);
 
   /**
    * @brief
    *
    * @param path
    */
-  void SlotFileDecrypt(const QString& path);
+  void SlotFileDecrypt(const QStringList& paths);
 
   /**
    * @brief
    *
    * @param path
    */
-  void SlotArchiveDecrypt(const QString& path);
+  void SlotFileSign(const QStringList& paths, bool ascii);
 
   /**
    * @brief
    *
    * @param path
    */
-  void SlotFileSign(const QString& path);
-
-  /**
-   * @brief
-   *
-   * @param path
-   */
-  void SlotFileVerify(const QString& path);
+  void SlotFileVerify(const QStringList& paths);
 
   /**
    * @brief
@@ -257,28 +241,14 @@ class MainWindow : public GeneralMainWindow {
    *
    * @param path
    */
-  void SlotFileEncryptSign(const QString& path);
+  void SlotFileEncryptSign(const QStringList& paths, bool ascii);
 
   /**
    * @brief
    *
    * @param path
    */
-  void SlotDirectoryEncryptSign(const QString& path);
-
-  /**
-   * @brief
-   *
-   * @param path
-   */
-  void SlotFileDecryptVerify(const QString& path);
-
-  /**
-   * @brief
-   *
-   * @param path
-   */
-  void SlotArchiveDecryptVerify(const QString& path);
+  void SlotFileDecryptVerify(const QStringList& paths);
 
   /**
    * @details get value of member restartNeeded to needed.
@@ -477,7 +447,7 @@ class MainWindow : public GeneralMainWindow {
    *
    * @param result_analyse
    */
-  void slot_verifying_unknown_signature_helper(const GpgVerifyResultAnalyse& r);
+  void slot_verifying_unknown_signature_helper(const QStringList& fprs);
 
   /**
    * @brief
@@ -494,6 +464,14 @@ class MainWindow : public GeneralMainWindow {
    */
   void slot_result_analyse_show_helper(const GpgResultAnalyse& r_a,
                                        const GpgResultAnalyse& r_b);
+
+  /**
+   * @brief
+   *
+   * @param opera_results
+   */
+  void slot_result_analyse_show_helper(
+      const QContainer<GpgOperaResult>& opera_results);
 
   /**
    * @brief
@@ -535,6 +513,14 @@ class MainWindow : public GeneralMainWindow {
    * @param buffer
    */
   void slot_decrypt_email_by_eml_data(const QByteArray& buffer);
+
+  /**
+   * @brief
+   *
+   * @param results
+   */
+  void slot_gpg_opera_buffer_show_helper(
+      const QContainer<GpgOperaResult>& results);
 
  private:
   /**
@@ -611,6 +597,69 @@ class MainWindow : public GeneralMainWindow {
    */
   auto handle_module_error(QMap<QString, QString> p) -> bool;
 
+  /**
+   * @brief
+   *
+   * @param paths
+   * @return true
+   * @return false
+   */
+  auto check_read_file_paths_helper(const QStringList& paths) -> bool;
+
+  /**
+   * @brief
+   *
+   * @param paths
+   * @return true
+   * @return false
+   */
+  auto check_write_file_paths_helper(const QStringList& paths) -> bool;
+
+  /**
+   * @brief
+   *
+   * @param key_ids
+   * @param capability_check
+   * @param capability_err_string
+   * @return GpgKeyList
+   */
+  auto check_keys_helper(
+      const KeyIdArgsList& key_ids,
+      const std::function<bool(const GpgKey&)>& capability_check,
+      const QString& capability_err_string) -> GpgKeyList;
+
+  /**
+   * @brief
+   *
+   * @param context
+   * @return auto
+   */
+  void exec_operas_helper(
+      const QString& task,
+      const QSharedPointer<GpgOperaContextBasement>& contexts);
+
+  /**
+   * @brief
+   *
+   * @param contexts
+   * @param key_ids
+   * @param keys
+   * @return true
+   * @return false
+   */
+  auto encrypt_operation_key_validate(
+      const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool;
+
+  /**
+   * @brief
+   *
+   * @param contexts
+   * @return true
+   * @return false
+   */
+  auto sign_operation_key_validate(
+      const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool;
+
   TextEdit* edit_{};          ///< Tabwidget holding the edit-windows
   QMenu* file_menu_{};        ///<  Submenu for file-operations
   QMenu* edit_menu_{};        ///<  Submenu for text-operations
@@ -651,8 +700,8 @@ class MainWindow : public GeneralMainWindow {
   QAction* sign_act_{};                  ///<  Action to sign text
   QAction* verify_act_{};                ///<  Action to verify text
   QAction* import_key_from_edit_act_{};  ///<  Action to import key from edit
-  QAction* clean_double_line_breaks_act_{};  ///<  Action to remove double line
-                                             ///<  breaks
+  QAction* clean_double_line_breaks_act_{};  ///<  Action to remove double
+                                             ///<  line breaks
 
   QAction* gnupg_controller_open_act_{};     ///<
   QAction* module_controller_open_act_{};    ///<
@@ -660,8 +709,8 @@ class MainWindow : public GeneralMainWindow {
   QAction* reload_components_act_{};         ///<
   QAction* restart_components_act_{};        ///<
 
-  QAction*
-      append_selected_keys_act_{};  ///< Action to append selected keys to edit
+  QAction* append_selected_keys_act_{};  ///< Action to append selected keys
+                                         ///< to edit
   QAction* append_key_fingerprint_to_editor_act_{};  ///<
   QAction* append_key_create_date_to_editor_act_{};  ///<
   QAction* append_key_expire_date_to_editor_act_{};  ///<

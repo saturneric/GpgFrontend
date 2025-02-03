@@ -30,6 +30,7 @@
 
 #include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/model/KeyDatabaseInfo.h"
+#include "core/struct/settings_object/KeyDatabaseItemSO.h"
 #include "core/typedef/CoreTypedef.h"
 #include "core/typedef/GpgTypedef.h"
 
@@ -109,6 +110,32 @@ auto GPGFRONTEND_CORE_EXPORT SetExtensionOfOutputFileForArchive(
 /**
  * @brief
  *
+ * @param app_path
+ * @param path
+ * @return QString
+ */
+auto GPGFRONTEND_CORE_EXPORT GetCanonicalKeyDatabasePath(
+    const QDir& app_path, const QString& path) -> QString;
+
+/**
+ * @brief Get the Key Databases By Settings object
+ *
+ * @return QContainer<KeyDatabaseItemSO>
+ */
+auto GPGFRONTEND_CORE_EXPORT GetKeyDatabasesBySettings()
+    -> QContainer<KeyDatabaseItemSO>;
+
+/**
+ * @brief
+ *
+ * @return QList<KeyDatabaseInfo>
+ */
+auto GPGFRONTEND_CORE_EXPORT GetKeyDatabaseInfoBySettings()
+    -> QList<KeyDatabaseInfo>;
+
+/**
+ * @brief
+ *
  * @return QList<KeyDatabaseItemSO>
  */
 auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QList<KeyDatabaseInfo>;
@@ -119,5 +146,14 @@ auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QList<KeyDatabaseInfo>;
  * @return QList<KeyDatabaseItemSO>
  */
 auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseName(int channel) -> QString;
+
+/**
+ * @brief
+ *
+ * @param keys
+ * @return QContainer<gpgme_key_t>
+ */
+auto GPGFRONTEND_CORE_EXPORT Convert2RawGpgMEKeyList(
+    const QContainer<GpgKey>& keys) -> QContainer<gpgme_key_t>;
 
 }  // namespace GpgFrontend

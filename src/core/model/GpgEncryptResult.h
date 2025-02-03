@@ -38,7 +38,7 @@ class GPGFRONTEND_CORE_EXPORT GpgEncryptResult {
 
   auto GetRaw() -> gpgme_encrypt_result_t;
 
-  auto InvalidRecipients() -> std::vector<std::tuple<QString, GpgError>>;
+  auto InvalidRecipients() -> QContainer<std::tuple<QString, GpgError>>;
 
   explicit GpgEncryptResult(gpgme_encrypt_result_t);
 

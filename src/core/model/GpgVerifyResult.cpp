@@ -49,8 +49,8 @@ auto GpgVerifyResult::GetRaw() const -> gpgme_verify_result_t {
   return result_ref_.get();
 }
 
-auto GpgVerifyResult::GetSignature() const -> std::vector<GpgSignature> {
-  std::vector<GpgSignature> sigatures;
+auto GpgVerifyResult::GetSignature() const -> QContainer<GpgSignature> {
+  QContainer<GpgSignature> sigatures;
 
   auto* signature = result_ref_->signatures;
   while (signature != nullptr) {

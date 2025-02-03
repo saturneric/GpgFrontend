@@ -43,8 +43,7 @@ KeyServerImportDialog::KeyServerImportDialog(int channel, QWidget* parent)
     : GeneralDialog("key_server_import_dialog", parent),
       current_gpg_context_channel_(channel) {
   auto forbid_all_gnupg_connection =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
+      GetSettings()
           .value("network/forbid_all_gnupg_connection", false)
           .toBool();
   if (forbid_all_gnupg_connection) {
@@ -360,7 +359,7 @@ void KeyServerImportDialog::slot_search_finished(
 }
 
 void KeyServerImportDialog::slot_import() {
-  std::vector<QString> key_ids;
+  KeyIdArgsList key_ids;
   const int row_count = keys_table_->rowCount();
   for (int i = 0; i < row_count; ++i) {
     if (keys_table_->item(i, 2)->isSelected()) {
@@ -377,7 +376,7 @@ void KeyServerImportDialog::slot_import() {
   }
 }
 
-void KeyServerImportDialog::SlotImport(const KeyIdArgsListPtr& keys) {
+void KeyServerImportDialog::SlotImport(const KeyIdArgsList& keys) {
   // keyserver host url
   QString target_keyserver;
 
@@ -388,18 +387,17 @@ void KeyServerImportDialog::SlotImport(const KeyIdArgsListPtr& keys) {
     KeyServerSO key_server(SettingsObject("key_server"));
     target_keyserver = key_server.GetTargetServer();
   }
-  std::vector<QString> key_ids;
-  for (const auto& key_id : *keys) {
+  KeyIdArgsList key_ids;
+  for (const auto& key_id : keys) {
     key_ids.push_back(key_id);
   }
   SlotImport(key_ids, target_keyserver);
 }
 
-void KeyServerImportDialog::SlotImport(std::vector<QString> key_ids,
+void KeyServerImportDialog::SlotImport(QStringList key_ids,
                                        QString keyserver_url) {
-  auto* task =
-      new KeyServerImportTask(std::move(keyserver_url),
-                              current_gpg_context_channel_, std::move(key_ids));
+  auto* task = new KeyServerImportTask(keyserver_url,
+                                       current_gpg_context_channel_, key_ids);
 
   connect(task, &KeyServerImportTask::SignalKeyServerImportResult, this,
           &KeyServerImportDialog::slot_import_finished);

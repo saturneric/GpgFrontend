@@ -220,7 +220,7 @@ class ModuleManager::Impl {
     return grt_->ListenPublish(o, n, k, c);
   }
 
-  auto ListRTChildKeys(const QString& n, const QString& k) -> std::vector<Key> {
+  auto ListRTChildKeys(const QString& n, const QString& k) -> QContainer<Key> {
     return grt_->ListChildKeys(n, k);
   }
 
@@ -271,7 +271,7 @@ auto ListenRTPublishEvent(QObject* o, Namespace n, Key k,
 }
 
 auto ListRTChildKeys(const QString& namespace_,
-                     const QString& key) -> std::vector<Key> {
+                     const QString& key) -> QContainer<Key> {
   return ModuleManager::GetInstance().ListRTChildKeys(namespace_, key);
 }
 
@@ -341,7 +341,7 @@ auto ModuleManager::ListenRTPublish(QObject* o, Namespace n, Key k,
 }
 
 auto ModuleManager::ListRTChildKeys(const QString& n,
-                                    const QString& k) -> std::vector<Key> {
+                                    const QString& k) -> QContainer<Key> {
   return p_->ListRTChildKeys(n, k);
 }
 

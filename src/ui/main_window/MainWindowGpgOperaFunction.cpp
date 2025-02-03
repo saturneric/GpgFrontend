@@ -27,377 +27,45 @@
  */
 
 #include "MainWindow.h"
-#include "core/function/gpg/GpgBasicOperator.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
-#include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
-#include "core/function/result_analyse/GpgSignResultAnalyse.h"
-#include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
-#include "core/model/DataObject.h"
-#include "core/model/GpgEncryptResult.h"
-#include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
+#include "core/utils/IOUtils.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SignersPicker.h"
+#include "ui/function/GpgOperaHelper.h"
+#include "ui/struct/GpgOperaResultContext.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
 
-void MainWindow::SlotEncrypt() {
-  if (edit_->CurPageTextEdit() == nullptr) return;
-
+auto MainWindow::encrypt_operation_key_validate(
+    const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool {
   auto key_ids = m_key_list_->GetChecked();
 
-  if (key_ids->empty()) {
-    // Symmetric Encrypt
+  // symmetric encryption
+  if (key_ids.isEmpty()) {
     auto ret = QMessageBox::information(
         this, tr("Symmetric Encryption"),
-        tr("No Key Checked. Do you want to encrypt with a "
+        tr("No Key Selected. Do you want to encrypt with a "
            "symmetric cipher using a passphrase?"),
         QMessageBox::Ok | QMessageBox::Cancel);
+    if (ret == QMessageBox::Cancel) return false;
 
-    if (ret == QMessageBox::Cancel) return;
-
-    auto buffer = GFBuffer(edit_->CurPlainText());
-    CommonUtils::WaitForOpera(
-        this, tr("Symmetrically Encrypting"),
-        [this, buffer](const OperaWaitingHd& op_hd) {
-          GpgFrontend::GpgBasicOperator::GetInstance(
-              m_key_list_->GetCurrentGpgContextChannel())
-              .EncryptSymmetric(
-                  buffer, true,
-                  [this, op_hd](GpgError err, const DataObjectPtr& data_obj) {
-                    // stop waiting
-                    op_hd();
-
-                    if (CheckGpgError(err) == GPG_ERR_USER_1 ||
-                        data_obj == nullptr ||
-                        !data_obj->Check<GpgEncryptResult, GFBuffer>()) {
-                      QMessageBox::critical(this, tr("Error"),
-                                            tr("Unknown error occurred"));
-                      return;
-                    }
-
-                    auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
-                    auto buffer = ExtractParams<GFBuffer>(data_obj, 1);
-
-                    auto result_analyse = GpgEncryptResultAnalyse(
-                        m_key_list_->GetCurrentGpgContextChannel(), err,
-                        result);
-                    result_analyse.Analyse();
-                    slot_result_analyse_show_helper(result_analyse);
-
-                    if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-                      edit_->SlotFillTextEditWithText(
-                          buffer.ConvertToQByteArray());
-                    }
-                    info_board_->ResetOptionActionsMenu();
-                  });
-        });
-
-    return;
+    contexts->keys = {};
+  } else {
+    contexts->keys = check_keys_helper(
+        key_ids, [](const GpgKey& key) { return key.IsHasActualEncrCap(); },
+        tr("The selected keypair cannot be used for encryption."));
+    if (contexts->keys.empty()) return false;
   }
 
-  auto keys =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKeys(key_ids);
-  assert(std::all_of(keys->begin(), keys->end(),
-                     [](const auto& key) { return key.IsGood(); }));
-
-  for (const auto& key : *keys) {
-    if (!key.IsHasActualEncryptionCapability()) {
-      QMessageBox::information(
-          this, tr("Invalid Operation"),
-          tr("The selected key contains a key that does not actually have a "
-             "encrypt usage.") +
-              "<br/><br/>" + tr("For example the Following Key:") + " <br/>" +
-              key.GetUIDs()->front().GetUID());
-      return;
-    }
-  }
-
-  auto buffer = GFBuffer(edit_->CurPlainText());
-  CommonUtils::WaitForOpera(
-      this, tr("Encrypting"),
-      [this, keys, buffer](const OperaWaitingHd& op_hd) {
-        GpgFrontend::GpgBasicOperator::GetInstance(
-            m_key_list_->GetCurrentGpgContextChannel())
-            .Encrypt(
-                {keys->begin(), keys->end()}, buffer, true,
-                [this, op_hd](GpgError err, const DataObjectPtr& data_obj) {
-                  // stop waiting
-                  op_hd();
-
-                  if (data_obj == nullptr ||
-                      !data_obj->Check<GpgEncryptResult, GFBuffer>()) {
-                    QMessageBox::critical(this, tr("Error"),
-                                          tr("Unknown error occurred"));
-                    return;
-                  }
-
-                  auto result = ExtractParams<GpgEncryptResult>(data_obj, 0);
-                  auto buffer = ExtractParams<GFBuffer>(data_obj, 1);
-
-                  auto result_analyse = GpgEncryptResultAnalyse(
-                      m_key_list_->GetCurrentGpgContextChannel(), err, result);
-                  result_analyse.Analyse();
-                  slot_result_analyse_show_helper(result_analyse);
-
-                  if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-                    edit_->SlotFillTextEditWithText(
-                        buffer.ConvertToQByteArray());
-                  }
-                  info_board_->ResetOptionActionsMenu();
-                });
-      });
+  return true;
 }
 
-void MainWindow::SlotSign() {
-  if (edit_->CurPageTextEdit() == nullptr) return;
-
-  auto key_ids = m_key_list_->GetCheckedPrivateKey();
-  if (key_ids->empty()) {
-    QMessageBox::critical(
-        this, tr("No Key Checked"),
-        tr("Please check the key in the key toolbox on the right."));
-    return;
-  }
-
-  auto keys =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKeys(key_ids);
-  assert(std::all_of(keys->begin(), keys->end(),
-                     [](const auto& key) { return key.IsGood(); }));
-
-  for (const auto& key : *keys) {
-    if (!key.IsHasActualSigningCapability()) {
-      QMessageBox::information(
-          this, tr("Invalid Operation"),
-          tr("The selected key contains a key that does not actually have a "
-             "signature usage.") +
-              "<br/><br/>" + tr("For example the Following Key:") + "<br/>" +
-              key.GetUIDs()->front().GetUID());
-      return;
-    }
-  }
-
-  // set input buffer
-  auto buffer = GFBuffer(edit_->CurPlainText());
-  CommonUtils::WaitForOpera(
-      this, tr("Signing"), [this, keys, buffer](const OperaWaitingHd& hd) {
-        GpgFrontend::GpgBasicOperator::GetInstance(
-            m_key_list_->GetCurrentGpgContextChannel())
-            .Sign(
-                {keys->begin(), keys->end()}, buffer, GPGME_SIG_MODE_CLEAR,
-                true, [this, hd](GpgError err, const DataObjectPtr& data_obj) {
-                  // stop waiting
-                  hd();
-
-                  if (CheckGpgError(err) == GPG_ERR_USER_1 ||
-                      data_obj == nullptr ||
-                      !data_obj->Check<GpgSignResult, GFBuffer>()) {
-                    QMessageBox::critical(this, tr("Error"),
-                                          tr("Unknown error occurred"));
-                    return;
-                  }
-                  auto sign_result = ExtractParams<GpgSignResult>(data_obj, 0);
-                  auto sign_out_buffer = ExtractParams<GFBuffer>(data_obj, 1);
-                  auto result_analyse = GpgSignResultAnalyse(
-                      m_key_list_->GetCurrentGpgContextChannel(), err,
-                      sign_result);
-                  result_analyse.Analyse();
-                  slot_result_analyse_show_helper(result_analyse);
-
-                  if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-                    edit_->SlotFillTextEditWithText(
-                        sign_out_buffer.ConvertToQByteArray());
-                  }
-                });
-      });
-}
-
-void MainWindow::SlotDecrypt() {
-  if (edit_->CurPageTextEdit() == nullptr) return;
-
-  // data to transfer into task
-  auto buffer = GFBuffer(edit_->CurPlainText());
-
-  CommonUtils::WaitForOpera(
-      this, tr("Decrypting"), [this, buffer](const OperaWaitingHd& hd) {
-        GpgFrontend::GpgBasicOperator::GetInstance(
-            m_key_list_->GetCurrentGpgContextChannel())
-            .Decrypt(buffer, [this, hd](GpgError err,
-                                        const DataObjectPtr& data_obj) {
-              // stop waiting
-              hd();
-
-              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
-                  !data_obj->Check<GpgDecryptResult, GFBuffer>()) {
-                QMessageBox::critical(this, tr("Error"),
-                                      tr("Unknown error occurred"));
-                return;
-              }
-              auto decrypt_result =
-                  ExtractParams<GpgDecryptResult>(data_obj, 0);
-              auto out_buffer = ExtractParams<GFBuffer>(data_obj, 1);
-              auto result_analyse = GpgDecryptResultAnalyse(
-                  m_key_list_->GetCurrentGpgContextChannel(), err,
-                  decrypt_result);
-              result_analyse.Analyse();
-              slot_result_analyse_show_helper(result_analyse);
-
-              if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-                edit_->SlotFillTextEditWithText(
-                    out_buffer.ConvertToQByteArray());
-              }
-            });
-      });
-}
-
-void MainWindow::SlotVerify() {
-  if (edit_->CurPageTextEdit() == nullptr) return;
-
-  // set input buffer
-  auto buffer = GFBuffer(edit_->CurPlainText());
-
-  CommonUtils::WaitForOpera(
-      this, tr("Verifying"), [this, buffer](const OperaWaitingHd& hd) {
-        GpgFrontend::GpgBasicOperator::GetInstance(
-            m_key_list_->GetCurrentGpgContextChannel())
-            .Verify(buffer, GFBuffer(),
-                    [this, hd](GpgError err, const DataObjectPtr& data_obj) {
-                      // stop waiting
-                      hd();
-
-                      if (CheckGpgError(err) == GPG_ERR_USER_1 ||
-                          data_obj == nullptr ||
-                          !data_obj->Check<GpgVerifyResult>()) {
-                        QMessageBox::critical(this, tr("Error"),
-                                              tr("Unknown error occurred"));
-                        return;
-                      }
-                      auto verify_result =
-                          ExtractParams<GpgVerifyResult>(data_obj, 0);
-
-                      // analyse result
-                      auto result_analyse = GpgVerifyResultAnalyse(
-                          m_key_list_->GetCurrentGpgContextChannel(), err,
-                          verify_result);
-                      result_analyse.Analyse();
-                      slot_result_analyse_show_helper(result_analyse);
-
-                      if (!result_analyse.GetUnknownSignatures().isEmpty() &&
-                          Module::IsModuleActivate(kKeyServerSyncModuleID)) {
-                        slot_verifying_unknown_signature_helper(result_analyse);
-                      }
-                    });
-      });
-}
-
-void MainWindow::SlotVerify(const QByteArray& raw_data,
-                            const QByteArray& signature) {
-  // set input buffer
-  auto raw_data_buffer = GFBuffer(raw_data);
-  auto signature_buffer = GFBuffer(signature);
-
-  CommonUtils::WaitForOpera(
-      this, tr("Verifying"),
-      [this, raw_data_buffer, signature_buffer](const OperaWaitingHd& hd) {
-        GpgFrontend::GpgBasicOperator::GetInstance(
-            m_key_list_->GetCurrentGpgContextChannel())
-            .Verify(
-                raw_data_buffer, signature_buffer,
-                [this, hd](GpgError err, const DataObjectPtr& data_obj) {
-                  // stop waiting
-                  hd();
-
-                  if (CheckGpgError(err) == GPG_ERR_USER_1 ||
-                      data_obj == nullptr ||
-                      !data_obj->Check<GpgVerifyResult>()) {
-                    QMessageBox::critical(this, tr("Error"),
-                                          tr("Unknown error occurred"));
-                    return;
-                  }
-                  auto verify_result =
-                      ExtractParams<GpgVerifyResult>(data_obj, 0);
-
-                  // analyse result
-                  auto result_analyse = GpgVerifyResultAnalyse(
-                      m_key_list_->GetCurrentGpgContextChannel(), err,
-                      verify_result);
-                  result_analyse.Analyse();
-                  slot_result_analyse_show_helper(result_analyse);
-
-                  if (!result_analyse.GetUnknownSignatures().isEmpty() &&
-                      Module::IsModuleActivate(kKeyServerSyncModuleID)) {
-                    LOG_D() << "try to sync missing key info from server"
-                            << result_analyse.GetUnknownSignatures();
-
-                    QString fingerprint_list;
-                    for (const auto& fingerprint :
-                         result_analyse.GetUnknownSignatures()) {
-                      fingerprint_list += fingerprint + "\n";
-                    }
-
-                    // Interaction with user
-                    auto user_response = QMessageBox::question(
-                        this, tr("Missing Keys"),
-                        tr("Some signatures cannot be verified because the "
-                           "corresponding keys are missing.\n\n"
-                           "The following fingerprints are missing:\n%1\n\n"
-                           "Would you like to fetch these keys from the key "
-                           "server?")
-                            .arg(fingerprint_list),
-                        QMessageBox::Yes | QMessageBox::No);
-
-                    if (user_response == QMessageBox::Yes) {
-                      CommonUtils::GetInstance()
-                          ->ImportKeyByKeyServerSyncModule(
-                              this, m_key_list_->GetCurrentGpgContextChannel(),
-                              result_analyse.GetUnknownSignatures());
-                    } else {
-                      QMessageBox::information(
-                          this, tr("Verification Incomplete"),
-                          tr("Verification was incomplete due to missing "
-                             "keys. You can manually import the keys later."));
-                    }
-                  }
-                });
-      });
-}
-
-void MainWindow::SlotEncryptSign() {
-  if (edit_->CurPageTextEdit() == nullptr) return;
-
-  auto key_ids = m_key_list_->GetChecked();
-
-  if (key_ids->empty()) {
-    QMessageBox::critical(
-        this, tr("No Key Checked"),
-        tr("Please check some key in the key toolbox on the right."));
-    return;
-  }
-
-  auto keys =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKeys(key_ids);
-  assert(std::all_of(keys->begin(), keys->end(),
-                     [](const auto& key) { return key.IsGood(); }));
-
-  for (const auto& key : *keys) {
-    bool key_can_encrypt = key.IsHasActualEncryptionCapability();
-
-    if (!key_can_encrypt) {
-      QMessageBox::critical(
-          this, tr("Invalid KeyPair"),
-          tr("The selected keypair cannot be used for encryption.") +
-              "<br/><br/>" + tr("For example the Following Key:") + " <br/>" +
-              key.GetUIDs()->front().GetUID());
-      return;
-    }
-  }
-
+auto MainWindow::sign_operation_key_validate(
+    const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool {
   auto* signers_picker =
       new SignersPicker(m_key_list_->GetCurrentGpgContextChannel(), this);
   QEventLoop loop;
@@ -405,150 +73,473 @@ void MainWindow::SlotEncryptSign() {
   loop.exec();
 
   // return when canceled
-  if (!signers_picker->GetStatus()) return;
+  if (!signers_picker->GetStatus()) return false;
 
   auto signer_key_ids = signers_picker->GetCheckedSigners();
   auto signer_keys =
       GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
           .GetKeys(signer_key_ids);
-  for (const auto& key : *signer_keys) {
-    assert(key.IsGood());
+  assert(std::all_of(signer_keys.begin(), signer_keys.end(),
+                     [](const auto& key) { return key.IsGood(); }));
+
+  contexts->singer_keys = signer_keys;
+
+  return true;
+}
+
+auto MainWindow::check_read_file_paths_helper(const QStringList& paths)
+    -> bool {
+  QStringList invalid_files;
+  for (const auto& path : paths) {
+    auto result = TargetFilePreCheck(path, true);
+    if (!std::get<0>(result)) {
+      invalid_files.append(path);
+    }
   }
 
-  // data to transfer into task
-  auto buffer = GFBuffer(edit_->CurPlainText());
+  if (!invalid_files.empty()) {
+    QString error_file_names;
+    for (const auto& file_path : invalid_files) {
+      error_file_names += QFileInfo(file_path).fileName() + "\n";
+    }
 
-  CommonUtils::WaitForOpera(
-      this, tr("Encrypting and Signing"),
-      [this, keys, signer_keys, buffer](const OperaWaitingHd& hd) {
-        GpgFrontend::GpgBasicOperator::GetInstance(
-            m_key_list_->GetCurrentGpgContextChannel())
-            .EncryptSign(
-                {keys->begin(), keys->end()},
-                {signer_keys->begin(), signer_keys->end()}, buffer, true,
-                [this, hd](GpgError err, const DataObjectPtr& data_obj) {
-                  // stop waiting
-                  hd();
+    QMessageBox::critical(this, tr("Error"),
+                          tr("Cannot read from the following files:\n\n%1")
+                              .arg(error_file_names.trimmed()));
+    return false;
+  }
 
-                  if (CheckGpgError(err) == GPG_ERR_USER_1 ||
-                      data_obj == nullptr ||
-                      !data_obj->Check<GpgEncryptResult, GpgSignResult,
-                                       GFBuffer>()) {
-                    QMessageBox::critical(this, tr("Error"),
-                                          tr("Unknown error occurred"));
-                    return;
-                  }
-                  auto encrypt_result =
-                      ExtractParams<GpgEncryptResult>(data_obj, 0);
-                  auto sign_result = ExtractParams<GpgSignResult>(data_obj, 1);
-                  auto out_buffer = ExtractParams<GFBuffer>(data_obj, 2);
+  return true;
+}
 
-                  // analyse result
-                  auto encrypt_result_analyse = GpgEncryptResultAnalyse(
-                      m_key_list_->GetCurrentGpgContextChannel(), err,
-                      encrypt_result);
-                  encrypt_result_analyse.Analyse();
+auto MainWindow::check_write_file_paths_helper(const QStringList& o_paths)
+    -> bool {
+  for (const auto& o_path : o_paths) {
+    if (QFile::exists(o_path)) {
+      auto out_file_name = tr("The target file %1 already exists, "
+                              "do you need to overwrite it?")
+                               .arg(QFileInfo(o_path).fileName());
+      auto ret = QMessageBox::warning(this, tr("Warning"), out_file_name,
+                                      QMessageBox::Ok | QMessageBox::Cancel);
 
-                  auto sign_result_analyse = GpgSignResultAnalyse(
-                      m_key_list_->GetCurrentGpgContextChannel(), err,
-                      sign_result);
-                  sign_result_analyse.Analyse();
+      if (ret == QMessageBox::Cancel) return false;
+    }
+  }
 
-                  // show analyse result
-                  slot_result_analyse_show_helper(encrypt_result_analyse,
-                                                  sign_result_analyse);
+  QStringList invalid_output_files;
+  for (const auto& path : o_paths) {
+    auto result = TargetFilePreCheck(path, false);
+    if (!std::get<0>(result)) {
+      invalid_output_files.append(path);
+    }
+  }
 
-                  if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-                    edit_->SlotFillTextEditWithText(
-                        out_buffer.ConvertToQByteArray());
-                  }
-                });
-      });
+  if (!invalid_output_files.empty()) {
+    QString error_file_names;
+    for (const auto& file_path : invalid_output_files) {
+      error_file_names += QFileInfo(file_path).fileName() + "\n";
+    }
+
+    QMessageBox::critical(this, tr("Error"),
+                          tr("Cannot write to the following files:\n\n%1")
+                              .arg(error_file_names.trimmed()));
+    return false;
+  }
+
+  return true;
+}
+
+auto MainWindow::check_keys_helper(
+    const KeyIdArgsList& key_ids,
+    const std::function<bool(const GpgKey&)>& capability_check,
+    const QString& capability_err_string) -> GpgKeyList {
+  if (key_ids.empty()) {
+    QMessageBox::critical(
+        this, tr("No Key Checked"),
+        tr("Please check the key in the key toolbox on the right."));
+    return {};
+  }
+
+  auto keys =
+      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
+          .GetKeys(key_ids);
+  assert(std::all_of(keys.begin(), keys.end(),
+                     [](const auto& key) { return key.IsGood(); }));
+
+  // check key abilities
+  for (const auto& key : keys) {
+    if (!capability_check(key)) {
+      QMessageBox::critical(nullptr, tr("Invalid KeyPair"),
+                            capability_err_string + "<br/><br/>" +
+                                tr("For example the Following Key:") +
+                                " <br/>" + key.GetUIDs()->front().GetUID());
+      return {};
+    }
+  }
+
+  return keys;
+}
+
+void MainWindow::SlotEncrypt() {
+  if (edit_->CurPageTextEdit() == nullptr) return;
+
+  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  contexts->ascii = true;
+
+  if (!encrypt_operation_key_validate(contexts)) return;
+
+  contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
+  GpgOperaHelper::BuildOperas(contexts, 0,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasEncrypt);
+
+  exec_operas_helper(tr("Encrypting"), contexts);
+}
+
+void MainWindow::SlotSign() {
+  if (edit_->CurPageTextEdit() == nullptr) return;
+
+  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  contexts->ascii = true;
+
+  auto key_ids = m_key_list_->GetChecked();
+  contexts->keys = check_keys_helper(
+      key_ids, [](const GpgKey& key) { return key.IsHasActualSignCap(); },
+      tr("The selected key contains a key that does not actually have a "
+         "sign usage."));
+  if (contexts->keys.empty()) return;
+
+  contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
+  GpgOperaHelper::BuildOperas(contexts, 0,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasSign);
+
+  exec_operas_helper(tr("Signing"), contexts);
+}
+
+void MainWindow::SlotDecrypt() {
+  if (edit_->CurPageTextEdit() == nullptr) return;
+
+  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  contexts->ascii = true;
+
+  contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
+  GpgOperaHelper::BuildOperas(contexts, 0,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasDecrypt);
+
+  exec_operas_helper(tr("Decrypting"), contexts);
+}
+
+void MainWindow::SlotVerify() {
+  if (edit_->CurPageTextEdit() == nullptr) return;
+
+  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  contexts->ascii = true;
+
+  contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
+  GpgOperaHelper::BuildOperas(contexts, 0,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasVerify);
+
+  exec_operas_helper(tr("Verifying"), contexts);
+
+  if (!contexts->unknown_fprs.isEmpty()) {
+    slot_verifying_unknown_signature_helper(contexts->unknown_fprs);
+  }
+}
+
+void MainWindow::SlotEncryptSign() {
+  if (edit_->CurPageTextEdit() == nullptr) return;
+
+  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  contexts->ascii = true;
+
+  auto key_ids = m_key_list_->GetChecked();
+  contexts->keys = check_keys_helper(
+      key_ids, [](const GpgKey& key) { return key.IsHasActualEncrCap(); },
+      tr("The selected keypair cannot be used for encryption."));
+  if (contexts->keys.empty()) return;
+
+  if (!sign_operation_key_validate(contexts)) return;
+
+  contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
+  GpgOperaHelper::BuildOperas(contexts, 0,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasEncryptSign);
+
+  exec_operas_helper(tr("Encrypting and Signing"), contexts);
 }
 
 void MainWindow::SlotDecryptVerify() {
   if (edit_->CurPageTextEdit() == nullptr) return;
 
-  // data to transfer into task
-  auto buffer = GFBuffer(edit_->CurPlainText());
+  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  contexts->ascii = true;
 
-  CommonUtils::WaitForOpera(
-      this, tr("Decrypting and Verifying"),
-      [this, buffer](const OperaWaitingHd& hd) {
-        GpgFrontend::GpgBasicOperator::GetInstance(
-            m_key_list_->GetCurrentGpgContextChannel())
-            .DecryptVerify(buffer, [this, hd](GpgError err,
-                                              const DataObjectPtr& data_obj) {
-              // stop waiting
-              hd();
+  contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
+  GpgOperaHelper::BuildOperas(contexts, 0,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasDecryptVerify);
 
-              if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
-                  !data_obj
-                       ->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()) {
-                QMessageBox::critical(this, tr("Error"),
-                                      tr("Unknown error occurred"));
-                return;
-              }
-              auto decrypt_result =
-                  ExtractParams<GpgDecryptResult>(data_obj, 0);
-              auto verify_result = ExtractParams<GpgVerifyResult>(data_obj, 1);
-              auto out_buffer = ExtractParams<GFBuffer>(data_obj, 2);
+  exec_operas_helper(tr("Decrypting and Verifying"), contexts);
 
-              // analyse result
-              auto decrypt_result_analyse = GpgDecryptResultAnalyse(
-                  m_key_list_->GetCurrentGpgContextChannel(), err,
-                  decrypt_result);
-              decrypt_result_analyse.Analyse();
+  if (!contexts->unknown_fprs.isEmpty()) {
+    slot_verifying_unknown_signature_helper(contexts->unknown_fprs);
+  }
+}
 
-              auto verify_result_analyse = GpgVerifyResultAnalyse(
-                  m_key_list_->GetCurrentGpgContextChannel(), err,
-                  verify_result);
-              verify_result_analyse.Analyse();
+void MainWindow::SlotFileEncrypt(const QStringList& paths, bool ascii) {
+  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  contexts->ascii = ascii;
 
-              // show analyse result
-              slot_result_analyse_show_helper(decrypt_result_analyse,
-                                              verify_result_analyse);
+  if (!encrypt_operation_key_validate(contexts)) return;
 
-              if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-                edit_->SlotFillTextEditWithText(
-                    out_buffer.ConvertToQByteArray());
-              }
+  if (!check_read_file_paths_helper(paths)) return;
 
-              if (!verify_result_analyse.GetUnknownSignatures().isEmpty() &&
-                  Module::IsModuleActivate(kKeyServerSyncModuleID)) {
-                LOG_D() << "try to sync missing key info from server"
-                        << verify_result_analyse.GetUnknownSignatures();
+  for (const auto& path : paths) {
+    QFileInfo info(path);
+    if (info.isDir()) {
+      contexts->GetContextPath(1).append(path);
+      contexts->GetContextOutPath(1).append(
+          SetExtensionOfOutputFileForArchive(path, kENCRYPT, contexts->ascii));
+    } else {
+      contexts->GetContextPath(0).append(path);
+      contexts->GetContextOutPath(0).append(
+          SetExtensionOfOutputFile(path, kENCRYPT, contexts->ascii));
+    }
+  }
 
-                QString fingerprint_list;
-                for (const auto& fingerprint :
-                     verify_result_analyse.GetUnknownSignatures()) {
-                  fingerprint_list += fingerprint + "\n";
-                }
+  if (!check_write_file_paths_helper(contexts->GetAllOutPath())) return;
 
-                // Interaction with user
-                auto user_response = QMessageBox::question(
-                    this, tr("Missing Keys"),
-                    tr("Some signatures cannot be verified because the "
-                       "corresponding keys are missing.\n\n"
-                       "The following fingerprints are missing:\n%1\n\n"
-                       "Would you like to fetch these keys from the key "
-                       "server?")
-                        .arg(fingerprint_list),
-                    QMessageBox::Yes | QMessageBox::No);
+  GpgOperaHelper::BuildOperas(contexts, 0,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasFileEncrypt);
 
-                if (user_response == QMessageBox::Yes) {
-                  CommonUtils::GetInstance()->ImportKeyByKeyServerSyncModule(
-                      this, m_key_list_->GetCurrentGpgContextChannel(),
-                      verify_result_analyse.GetUnknownSignatures());
-                } else {
-                  QMessageBox::information(
-                      this, tr("Verification Incomplete"),
-                      tr("Verification was incomplete due to missing "
-                         "keys. You can manually import the keys later."));
-                }
-              }
-            });
-      });
+  GpgOperaHelper::BuildOperas(contexts, 1,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasDirectoryEncrypt);
+
+  exec_operas_helper(tr("Encrypting"), contexts);
+}
+
+void MainWindow::SlotFileDecrypt(const QStringList& paths) {
+  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+
+  contexts->ascii = true;
+
+  if (!check_read_file_paths_helper(paths)) return;
+
+  for (const auto& path : paths) {
+    QFileInfo info(path);
+    const auto extension = info.completeSuffix();
+
+    if (extension == "tar.gpg" || extension == "tar.asc") {
+      contexts->GetContextPath(1).append(path);
+      contexts->GetContextOutPath(1).append(
+          SetExtensionOfOutputFileForArchive(path, kDECRYPT, contexts->ascii));
+    } else {
+      contexts->GetContextPath(0).append(path);
+      contexts->GetContextOutPath(0).append(
+          SetExtensionOfOutputFile(path, kDECRYPT, contexts->ascii));
+    }
+  }
+
+  if (!check_write_file_paths_helper(contexts->GetAllOutPath())) return;
+
+  GpgOperaHelper::BuildOperas(contexts, 0,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasFileDecrypt);
+
+  GpgOperaHelper::BuildOperas(contexts, 1,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasArchiveDecrypt);
+
+  exec_operas_helper(tr("Decrypting"), contexts);
+}
+
+void MainWindow::SlotFileSign(const QStringList& paths, bool ascii) {
+  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+
+  contexts->ascii = ascii;
+
+  auto key_ids = m_key_list_->GetChecked();
+  contexts->keys = check_keys_helper(
+      key_ids, [](const GpgKey& key) { return key.IsHasActualSignCap(); },
+      tr("The selected key contains a key that does not actually have a "
+         "sign usage."));
+  if (contexts->keys.empty()) return;
+
+  if (!check_read_file_paths_helper(paths)) return;
+
+  for (const auto& path : paths) {
+    QFileInfo info(path);
+    contexts->GetContextPath(0).append(path);
+    contexts->GetContextOutPath(0).append(
+        SetExtensionOfOutputFile(path, kSIGN, contexts->ascii));
+  }
+
+  if (!check_write_file_paths_helper(contexts->GetAllOutPath())) return;
+
+  GpgOperaHelper::BuildOperas(contexts, 0,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasFileSign);
+
+  exec_operas_helper(tr("Signing"), contexts);
+}
+
+void MainWindow::SlotFileVerify(const QStringList& paths) {
+  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+
+  if (!check_read_file_paths_helper(paths)) return;
+
+  for (const auto& path : paths) {
+    QFileInfo info(path);
+
+    QString sign_file_path = path;
+    QString data_file_path;
+
+    bool const possible_singleton_target =
+        info.suffix() == "gpg" || info.suffix() == "pgp";
+    if (possible_singleton_target) {
+      swap(data_file_path, sign_file_path);
+    } else {
+      data_file_path = info.path() + "/" + info.completeBaseName();
+    }
+
+    auto data_file_info = QFileInfo(data_file_path);
+    if (!possible_singleton_target && !data_file_info.exists()) {
+      bool ok;
+      QString const text = QInputDialog::getText(
+          this, tr("File to be Verified"),
+          tr("Please provide An ABSOLUTE Path \n"
+             "If Data And Signature is COMBINED within a single file, "
+             "KEEP THIS EMPTY: "),
+          QLineEdit::Normal, data_file_path, &ok);
+
+      if (!ok) return;
+
+      data_file_path = text.isEmpty() ? data_file_path : text;
+      data_file_info = QFileInfo(data_file_path);
+    }
+
+    contexts->GetContextPath(0).append(sign_file_path);
+    contexts->GetContextOutPath(0).append(data_file_path);
+  }
+
+  GpgOperaHelper::BuildOperas(contexts, 0,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasFileVerify);
+
+  exec_operas_helper(tr("Verifying"), contexts);
+
+  if (!contexts->unknown_fprs.isEmpty()) {
+    slot_verifying_unknown_signature_helper(contexts->unknown_fprs);
+  }
+}
+
+void MainWindow::SlotFileEncryptSign(const QStringList& paths, bool ascii) {
+  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  contexts->ascii = ascii;
+
+  auto key_ids = m_key_list_->GetChecked();
+  contexts->keys = check_keys_helper(
+      key_ids, [](const GpgKey& key) { return key.IsHasActualEncrCap(); },
+      tr("The selected keypair cannot be used for encryption."));
+  if (contexts->keys.empty()) return;
+
+  if (!sign_operation_key_validate(contexts)) return;
+
+  if (!check_read_file_paths_helper(paths)) return;
+
+  for (const auto& path : paths) {
+    QFileInfo info(path);
+    if (info.isDir()) {
+      contexts->GetContextPath(1).append(path);
+      contexts->GetContextOutPath(1).append(
+          SetExtensionOfOutputFileForArchive(path, kENCRYPT, contexts->ascii));
+    } else {
+      contexts->GetContextPath(0).append(path);
+      contexts->GetContextOutPath(0).append(
+          SetExtensionOfOutputFile(path, kENCRYPT, contexts->ascii));
+    }
+  }
+
+  if (!check_write_file_paths_helper(contexts->GetAllOutPath())) return;
+
+  GpgOperaHelper::BuildOperas(contexts, 0,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasFileEncryptSign);
+
+  GpgOperaHelper::BuildOperas(contexts, 1,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasDirectoryEncryptSign);
+
+  exec_operas_helper(tr("Encrypting and Signing"), contexts);
+}
+
+void MainWindow::SlotFileDecryptVerify(const QStringList& paths) {
+  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  contexts->ascii = true;
+
+  if (!check_read_file_paths_helper(paths)) return;
+
+  for (const auto& path : paths) {
+    QFileInfo info(path);
+    const auto extension = info.completeSuffix();
+
+    if (extension == "tar.gpg" || extension == "tar.asc") {
+      contexts->GetContextPath(1).append(path);
+      contexts->GetContextOutPath(1).append(
+          SetExtensionOfOutputFileForArchive(path, kDECRYPT, contexts->ascii));
+    } else {
+      contexts->GetContextPath(0).append(path);
+      contexts->GetContextOutPath(0).append(
+          SetExtensionOfOutputFile(path, kDECRYPT, contexts->ascii));
+    }
+  }
+
+  if (!check_write_file_paths_helper(contexts->GetAllOutPath())) return;
+
+  GpgOperaHelper::BuildOperas(contexts, 0,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasFileDecryptVerify);
+
+  GpgOperaHelper::BuildOperas(contexts, 1,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasArchiveDecryptVerify);
+
+  exec_operas_helper(tr("Decrypting and Verifying"), contexts);
+
+  if (!contexts->unknown_fprs.isEmpty()) {
+    slot_verifying_unknown_signature_helper(contexts->unknown_fprs);
+  }
+};
+
+void MainWindow::SlotFileVerifyEML(const QString& path) {
+  auto check_result = TargetFilePreCheck(path, true);
+  if (!std::get<0>(check_result)) {
+    QMessageBox::critical(this, tr("Error"),
+                          tr("Cannot read from file: %1").arg(path));
+    return;
+  }
+
+  QFileInfo file_info(path);
+  if (file_info.size() > static_cast<qint64>(1024 * 1024 * 32)) {
+    QMessageBox::warning(this, tr("EML File Too Large"),
+                         tr("The EML file \"%1\" is larger than 32MB and "
+                            "will not be opened.")
+                             .arg(file_info.fileName()));
+    return;
+  }
+
+  QFile eml_file(path);
+  if (!eml_file.open(QIODevice::ReadOnly)) return;
+  auto buffer = eml_file.readAll();
+
+  // LOG_D() << "EML BUFFER (FILE): " << buffer;
+
+  slot_verify_email_by_eml_data(buffer);
 }
 
 }  // namespace GpgFrontend::UI

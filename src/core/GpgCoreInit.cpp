@@ -36,9 +36,7 @@
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/function/gpg/GpgContext.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
-#include "core/struct/settings_object/KeyDatabaseListSO.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/CommonUtils.h"
@@ -47,19 +45,20 @@
 
 namespace GpgFrontend {
 
-void DestroyGpgFrontendCore() { SingletonStorageCollection::Destroy(); }
+void DestroyGpgFrontendCore() {
+  // stop all task runner
+  Thread::TaskRunnerGetter::GetInstance().StopAllTeakRunner();
+
+  // destroy all singleton objects
+  SingletonStorageCollection::Destroy();
+}
 
 auto VerifyGpgconfPath(const QFileInfo& gnupg_install_fs_path) -> bool {
   return gnupg_install_fs_path.isAbsolute() && gnupg_install_fs_path.exists() &&
          gnupg_install_fs_path.isFile();
 }
 
-auto VerifyKeyDatabasePath(const QFileInfo& key_database_fs_path) -> bool {
-  return key_database_fs_path.isAbsolute() && key_database_fs_path.exists() &&
-         key_database_fs_path.isDir();
-}
-
-auto SearchGpgconfPath(const QList<QString>& candidate_paths) -> QString {
+auto SearchGpgconfPath(const QStringList& candidate_paths) -> QString {
   for (const auto& path : candidate_paths) {
     if (VerifyGpgconfPath(QFileInfo(path))) {
       // return a unify path
@@ -69,33 +68,37 @@ auto SearchGpgconfPath(const QList<QString>& candidate_paths) -> QString {
   return {};
 }
 
-auto SearchKeyDatabasePath(const QList<QString>& candidate_paths) -> QString {
-  for (const auto& path : candidate_paths) {
-    if (VerifyKeyDatabasePath(QFileInfo(path))) {
-      // return a unify path
-      return QFileInfo(path).absoluteFilePath();
-    }
-  }
-  return {};
-}
-
 auto GetDefaultKeyDatabasePath(const QString& gpgconf_path) -> QString {
-  if (gpgconf_path.isEmpty()) return {};
+  QString default_db_path;
 
-  QFileInfo info(gpgconf_path);
-  if (!info.exists() || !info.isFile()) return {};
+  // portable mode
+  if (GlobalSettingStation::GetInstance().IsProtableMode()) {
+    default_db_path =
+        GlobalSettingStation::GetInstance().GetAppDataPath() + "/db";
+  } else {
+    if (gpgconf_path.isEmpty()) return {};
 
-  auto* p = new QProcess(QCoreApplication::instance());
-  p->setProgram(info.absoluteFilePath());
-  p->setArguments({"--list-dirs", "homedir"});
-  p->start();
+    QFileInfo info(gpgconf_path);
+    if (!info.exists() || !info.isFile()) return {};
 
-  p->waitForFinished();
-  auto home_path = p->readAll().trimmed();
-  p->deleteLater();
+    auto* p = new QProcess(QCoreApplication::instance());
+    p->setProgram(info.absoluteFilePath());
+    p->setArguments({"--list-dirs", "homedir"});
+    p->start();
 
-  QFileInfo home_info(home_path);
-  return home_info.absoluteFilePath();
+    p->waitForFinished();
+    default_db_path = p->readAll().trimmed();
+    p->deleteLater();
+  }
+
+  QFileInfo info(default_db_path);
+  default_db_path = info.absoluteFilePath();
+
+  // update GRT
+  Module::UpsertRTValue("core", "gpgme.ctx.default_database_path",
+                        default_db_path);
+
+  return default_db_path;
 }
 
 auto InitGpgME() -> bool {
@@ -270,43 +273,56 @@ auto RefreshGpgMEBackendEngine(const QString& gpgconf_path,
   return true;
 }
 
-auto GetGnuPGPathByGpgConf(const QString& gpgconf_install_fs_path) -> QString {
+auto GetComponentPathsByGpgConf(const QString& gpgconf_install_fs_path)
+    -> bool {
   auto* process = new QProcess(QCoreApplication::instance());
   process->setProgram(gpgconf_install_fs_path);
+  process->setArguments({"--check-programs"});
   process->start();
-  process->waitForFinished(1000);
+  process->waitForFinished(30000);
+
   auto output_buffer = process->readAllStandardOutput();
   process->deleteLater();
 
-  if (output_buffer.isEmpty()) return {};
+  if (output_buffer.isEmpty()) return false;
 
   auto line_split_list = QString(output_buffer).split("\n");
   for (const auto& line : line_split_list) {
     auto info_split_list = line.split(":");
 
-    if (info_split_list.size() != 3) continue;
+    if (info_split_list.size() != 6) continue;
 
-    auto component_name = info_split_list[0].trimmed();
+    auto component_name = info_split_list[0].trimmed().toLower();
     auto component_desc = info_split_list[1].trimmed();
     auto component_path = info_split_list[2].trimmed();
+    auto exists = info_split_list[3].trimmed();
+    auto runnable = info_split_list[4].trimmed();
 
-    if (component_name.toLower() == "gpg") {
 #if defined(_WIN32) || defined(WIN32)
-      // replace some special substrings on windows platform
-      component_path.replace("%3a", ":");
+    // replace some special substrings on windows platform
+    component_path.replace("%3a", ":");
 #endif
-      QFileInfo file_info(component_path);
-      if (file_info.exists() && file_info.isFile()) {
-        return file_info.absoluteFilePath();
-      }
-      return {};
-    }
+
+    if (exists != "1" || runnable != "1") continue;
+
+    QFileInfo file_info(component_path);
+    if (!file_info.exists() || !file_info.isFile()) continue;
+
+    Module::UpsertRTValue(
+        "core", QString("gnupg.components.%1.checked").arg(component_name), 1);
+    Module::UpsertRTValue(
+        "core", QString("gnupg.components.%1.path").arg(component_name),
+        file_info.absoluteFilePath());
+
+    LOG_D() << "gpg components checked: " << component_name
+            << "path: " << file_info.absoluteFilePath();
   }
-  return "";
+
+  return true;
 }
 
 auto DecideGpgConfPath(const QString& default_gpgconf_path) -> QString {
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GetSettings();
   auto use_custom_gnupg_install_path =
       settings.value("gnupg/use_custom_gnupg_install_path", false).toBool();
   auto custom_gnupg_install_path =
@@ -359,8 +375,15 @@ auto DecideGpgConfPath(const QString& default_gpgconf_path) -> QString {
   return "";
 }
 
-auto DecideGnuPGPath(const QString& gpgconf_path) -> QString {
-  return GetGnuPGPathByGpgConf(gpgconf_path);
+auto DecideGnuPGPath(const QString& default_gnupg_path) -> QString {
+  QFileInfo info(default_gnupg_path);
+
+  if (default_gnupg_path.isEmpty() || !info.exists() || !info.isFile()) {
+    return Module::RetrieveRTValueTypedOrDefault<>(
+        "core", "gnupg.components.gpg.path", QString{});
+  }
+
+  return default_gnupg_path;
 }
 
 auto InitBasicPath() -> bool {
@@ -374,12 +397,23 @@ auto InitBasicPath() -> bool {
   LOG_I() << "default gnupg path found by gpgme: " << default_gnupg_path;
 
   auto target_gpgconf_path = DecideGpgConfPath(default_gpgconf_path);
-  auto target_gnupg_path = default_gnupg_path;
-  if (target_gpgconf_path != default_gpgconf_path) {
-    target_gnupg_path = DecideGnuPGPath(target_gpgconf_path);
+
+  if (!GetComponentPathsByGpgConf(default_gpgconf_path)) {
+    LOG_E() << "Cannot get components paths by gpgconf!"
+            << "GpgFrontend cannot start under this situation!";
+    CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+        QCoreApplication::tr("Cannot get Infos from GpgConf"));
+    return false;
   }
+
+  auto target_gnupg_path = default_gnupg_path;
+
+  if (target_gpgconf_path != default_gpgconf_path) {
+    target_gnupg_path = DecideGnuPGPath(target_gnupg_path);
+  }
+
   LOG_I() << "gpgconf path used: " << target_gpgconf_path;
-  LOG_I() << "gnupg path provided by gpgconf: " << target_gnupg_path;
+  LOG_I() << "gnupg path used: " << target_gnupg_path;
 
   if (target_gpgconf_path.isEmpty()) {
     LOG_E() << "Cannot find gpgconf!"
@@ -408,9 +442,11 @@ auto InitBasicPath() -> bool {
     LOG_E() << "Cannot find default home path by gpgconf!"
             << "GpgFrontend cannot start under this situation!";
     CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-        QCoreApplication::tr("Cannot Find Home Path"));
+        QCoreApplication::tr("Cannot Find Default Home Path"));
     return false;
   }
+
+  if (!QDir(default_home_path).exists()) QDir(default_home_path).mkpath(".");
 
   RefreshGpgMEBackendEngine(target_gpgconf_path, target_gnupg_path,
                             default_home_path);
@@ -423,45 +459,6 @@ auto InitBasicPath() -> bool {
                         QString(default_home_path));
 
   return true;
-}
-
-auto GetKeyDatabasesBySettings(QString& default_home_path)
-    -> QList<KeyDatabaseItemSO> {
-  auto key_db_list_so = SettingsObject("key_database_list");
-  auto key_db_list = KeyDatabaseListSO(key_db_list_so);
-  auto key_dbs = key_db_list.key_databases;
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 1, 0)
-  key_dbs.removeIf(
-      [default_home_path](const KeyDatabaseItemSO& key_database) -> bool {
-        return key_database.path == default_home_path;
-      });
-#else
-  for (auto iter = key_dbs.begin(); iter != key_dbs.end();) {
-    if (iter->path == default_home_path) {
-      iter = key_dbs.erase(iter);
-    } else {
-      ++iter;
-    }
-  }
-#endif
-
-  key_db_list_so.Store(key_db_list.ToJson());
-  return key_dbs;
-}
-
-auto GetKeyDatabaseInfoBySettings(QString& default_home_path)
-    -> QList<KeyDatabaseInfo> {
-  auto key_dbs = GetKeyDatabasesBySettings(default_home_path);
-  QList<KeyDatabaseInfo> infos;
-  for (const auto& key_db : key_dbs) {
-    KeyDatabaseInfo info;
-    info.name = key_db.name;
-    info.path = key_db.path;
-    info.channel = -1;
-    infos.append(info);
-  }
-  return infos;
 }
 
 auto InitGpgFrontendCore(CoreInitArgs args) -> int {
@@ -491,7 +488,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   auto default_home_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.default_database_path", QString{});
 
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GetSettings();
 
   // read settings from config file
   auto forbid_all_gnupg_connection =
@@ -519,16 +516,16 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     return 0;
   }
 
+  auto key_dbs = GetKeyDatabaseInfoBySettings();
+
   // load default context
   auto& default_ctx = GpgFrontend::GpgContext::CreateInstance(
       kGpgFrontendDefaultChannel, [=]() -> ChannelObjectPtr {
         GpgFrontend::GpgContextInitArgs args;
 
-        // set key database path
-        if (!default_home_path.isEmpty()) {
-          args.db_name = "DEFAULT";
-          args.db_path = default_home_path;
-        }
+        const auto& default_key_db_info = key_dbs.front();
+        args.db_name = default_key_db_info.name;
+        args.db_path = default_key_db_info.path;
 
         args.offline_mode = forbid_all_gnupg_connection;
         args.auto_import_missing_key = auto_import_missing_key;
@@ -564,30 +561,12 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   CoreSignalStation::GetInstance()->SignalGoodGnupgEnv();
   LOG_I() << "Basic ENV Checking Finished";
 
-  auto key_dbs = GetKeyDatabasesBySettings(default_home_path);
-
   auto* task = new Thread::Task(
       [=](const DataObjectPtr&) -> int {
-        // key database path
-        QList<KeyDatabaseItemSO> buffered_key_dbs;
-
-        // try to use user defined key database
-        if (!key_dbs.empty()) {
-          for (const auto& key_database : key_dbs) {
-            if (VerifyKeyDatabasePath(QFileInfo(key_database.path))) {
-              auto key_database_fs_path =
-                  QFileInfo(key_database.path).absoluteFilePath();
-              LOG_D() << "load gpg key database: " << key_database.path;
-              buffered_key_dbs.append(key_database);
-            } else {
-              LOG_W() << "gpg key database path is not suitable: "
-                      << key_database.path;
-            }
-          }
-        }
-
         int channel_index = kGpgFrontendDefaultChannel + 1;
-        for (const auto& key_db : buffered_key_dbs) {
+        for (int i = 1; i < key_dbs.size(); i++) {
+          const auto& key_db = key_dbs[i];
+
           // init ctx, also checking the basic env
           auto& ctx = GpgFrontend::GpgContext::CreateInstance(
               channel_index, [=]() -> ChannelObjectPtr {
@@ -616,7 +595,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
             continue;
           }
 
-          if (!GpgKeyGetter::GetInstance(ctx.GetChannel()).FetchKey()) {
+          if (!GpgKeyGetter::GetInstance(ctx.GetChannel()).FlushKeyCache()) {
             FLOG_E() << "gpgme context init key cache failed, index:"
                      << channel_index;
             continue;
@@ -642,7 +621,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
       ->PostTask(task);
 
   if (!args.unit_test_mode && restart_all_gnupg_components_on_start) {
-    GpgAdvancedOperator::RestartGpgComponents();
+    GpgAdvancedOperator::RestartGpgComponents(nullptr);
   }
   return 0;
 }
@@ -658,7 +637,7 @@ void StartMonitorCoreInitializationStatus() {
               "core", "env.state.basic", 0);
 
           LOG_D() << "monitor: core env is still initializing, waiting...";
-          QThread::msleep(15);
+          QThread::msleep(100);
         }
 
         if (core_init_state < 0) return -1;

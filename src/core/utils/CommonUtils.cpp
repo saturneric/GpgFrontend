@@ -28,6 +28,8 @@
 
 #include "CommonUtils.h"
 
+#include "core/utils/MemoryUtils.h"
+
 namespace GpgFrontend {
 
 auto BeautifyFingerprint(QString fingerprint) -> QString {

@@ -34,47 +34,60 @@ GpgKeySignature::GpgKeySignature() = default;
 
 GpgKeySignature::~GpgKeySignature() = default;
 
-GpgKeySignature::GpgKeySignature(gpgme_key_sig_t sig)
-    : signature_ref_(sig, [&](gpgme_key_sig_t signature) {}) {}
+GpgKeySignature::GpgKeySignature(gpgme_key_sig_t sig) : signature_ref_(sig) {}
 
-GpgKeySignature::GpgKeySignature(GpgKeySignature &&) noexcept = default;
+GpgKeySignature::GpgKeySignature(const GpgKeySignature &) = default;
+auto GpgKeySignature::operator=(const GpgKeySignature &) -> GpgKeySignature & =
+                                                                default;
 
-GpgKeySignature &GpgKeySignature::operator=(GpgKeySignature &&) noexcept =
-    default;
+auto GpgKeySignature::IsRevoked() const -> bool {
+  return signature_ref_->revoked;
+}
 
-bool GpgKeySignature::IsRevoked() const { return signature_ref_->revoked; }
+auto GpgKeySignature::IsExpired() const -> bool {
+  return signature_ref_->expired;
+}
 
-bool GpgKeySignature::IsExpired() const { return signature_ref_->expired; }
+auto GpgKeySignature::IsInvalid() const -> bool {
+  return signature_ref_->invalid;
+}
 
-bool GpgKeySignature::IsInvalid() const { return signature_ref_->invalid; }
-
-bool GpgKeySignature::IsExportable() const {
+auto GpgKeySignature::IsExportable() const -> bool {
   return signature_ref_->exportable;
 }
 
-gpgme_error_t GpgKeySignature::GetStatus() const {
+auto GpgKeySignature::GetStatus() const -> gpgme_error_t {
   return signature_ref_->status;
 }
 
-QString GpgKeySignature::GetKeyID() const { return signature_ref_->keyid; }
+auto GpgKeySignature::GetKeyID() const -> QString {
+  return signature_ref_->keyid;
+}
 
-QString GpgKeySignature::GetPubkeyAlgo() const {
+auto GpgKeySignature::GetPubkeyAlgo() const -> QString {
   return gpgme_pubkey_algo_name(signature_ref_->pubkey_algo);
 }
 
-QDateTime GpgKeySignature::GetCreateTime() const {
+auto GpgKeySignature::GetCreateTime() const -> QDateTime {
   return QDateTime::fromSecsSinceEpoch(signature_ref_->timestamp);
 }
 
-QDateTime GpgKeySignature::GetExpireTime() const {
+auto GpgKeySignature::GetExpireTime() const -> QDateTime {
   return QDateTime::fromSecsSinceEpoch(signature_ref_->expires);
 }
 
-QString GpgKeySignature::GetUID() const { return signature_ref_->uid; }
+auto GpgKeySignature::GetUID() const -> QString { return signature_ref_->uid; }
 
-QString GpgKeySignature::GetName() const { return signature_ref_->name; }
+auto GpgKeySignature::GetName() const -> QString {
+  return signature_ref_->name;
+}
 
-QString GpgKeySignature::GetEmail() const { return signature_ref_->email; }
+auto GpgKeySignature::GetEmail() const -> QString {
+  return signature_ref_->email;
+}
 
-QString GpgKeySignature::GetComment() const { return signature_ref_->comment; }
+auto GpgKeySignature::GetComment() const -> QString {
+  return signature_ref_->comment;
+}
+
 }  // namespace GpgFrontend

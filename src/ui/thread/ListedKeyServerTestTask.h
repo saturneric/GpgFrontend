@@ -65,14 +65,14 @@ class ListedKeyServerTestTask : public Thread::Task {
    * @param result
    */
   void SignalKeyServerListTestResult(
-      std::vector<KeyServerTestResultType> result);
+      QContainer<KeyServerTestResultType> result);
 
  private:
-  QStringList urls_;                             ///<
-  std::vector<KeyServerTestResultType> result_;  ///<
-  QNetworkAccessManager* network_manager_;       ///<
-  int timeout_ = 500;                            ///<
-  int result_count_ = 0;                         ///<
+  QStringList urls_;                            ///<
+  QContainer<KeyServerTestResultType> result_;  ///<
+  QNetworkAccessManager* network_manager_;      ///<
+  int timeout_ = 500;                           ///<
+  int result_count_ = 0;                        ///<
 
   /**
    * @brief

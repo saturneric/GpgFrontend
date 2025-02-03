@@ -46,7 +46,28 @@ class WaitingDialog : public GeneralDialog {
    * @param title
    * @param parent
    */
-  WaitingDialog(const QString& title, QWidget* parent);
+  explicit WaitingDialog(const QString& title, bool range,
+                         QWidget* parent = nullptr);
+
+ public slots:
+
+  /**
+   * @brief max 100, min 0
+   *
+   */
+  void SlotUpdateValue(int value);
+
+ signals:
+
+  /**
+   * @brief
+   *
+   * @param value
+   */
+  void SignalUpdateValue(int value);
+
+ private:
+  QProgressBar* pb_;
 };
 
 }  // namespace GpgFrontend::UI

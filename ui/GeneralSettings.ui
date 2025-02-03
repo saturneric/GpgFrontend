@@ -59,13 +59,6 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="longerKeyExpirationDateCheckBox">
-            <property name="text">
-             <string>Enable to use longer key expiration date.</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QCheckBox" name="disableLoadingModulesCheckBox">
             <property name="text">
              <string>Disable loading of all modules (including integrated modules)</string>
@@ -88,7 +81,7 @@
           <item>
            <widget class="QComboBox" name="langSelectBox">
             <property name="sizeAdjustPolicy">
-             <enum>QComboBox::AdjustToContents</enum>
+             <enum>QComboBox::SizeAdjustPolicy::AdjustToContents</enum>
             </property>
            </widget>
           </item>
@@ -141,7 +134,7 @@
      <item>
       <spacer name="verticalSpacer">
        <property name="orientation">
-        <enum>Qt::Vertical</enum>
+        <enum>Qt::Orientation::Vertical</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>

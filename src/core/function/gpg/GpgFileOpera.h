@@ -29,8 +29,8 @@
 #pragma once
 
 #include "core/function/basic/GpgFunctionObject.h"
+#include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgContext.h"
-#include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
@@ -123,7 +123,7 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param out_path
    * @param cb
    */
-  void EncryptDerectorySymmetric(const QString& in_path, bool ascii,
+  void EncryptDirectorySymmetric(const QString& in_path, bool ascii,
                                  const QString& out_path,
                                  const GpgOperationCallback& cb);
 
@@ -134,7 +134,7 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param ascii
    * @param out_path
    */
-  auto EncryptDerectorySymmetricSync(const QString& in_path, bool ascii,
+  auto EncryptDirectorySymmetricSync(const QString& in_path, bool ascii,
                                      const QString& out_path)
       -> std::tuple<GpgError, DataObjectPtr>;
 
@@ -296,6 +296,9 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
  private:
   GpgContext& ctx_ = GpgContext::GetInstance(
       SingletonFunctionObject::GetChannel());  ///< Corresponding context
+
+  GpgBasicOperator& basic_opera_ =
+      GpgBasicOperator::GetInstance(SingletonFunctionObject::GetChannel());
 };
 
 }  // namespace GpgFrontend

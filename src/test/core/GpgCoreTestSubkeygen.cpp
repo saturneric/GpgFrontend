@@ -29,27 +29,31 @@
 #include "GpgCoreTest.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
-#include "core/model/GpgGenKeyInfo.h"
 #include "core/model/GpgGenerateKeyResult.h"
 #include "core/model/GpgKey.h"
+#include "core/model/GpgKeyGenerateInfo.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend::Test {
 
 TEST_F(GpgCoreTest, GenerateSubkeyRSA2048Test) {
-  auto main_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(main_key.IsGood());
+  ASSERT_TRUE(p_key.IsGood());
 
-  auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo("rsa");
-  subkeygen_info->SetKeyLength(2048);
-  subkeygen_info->SetNonExpired(true);
-  subkeygen_info->SetNonPassPhrase(true);
+  auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
+
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo("rsa2048");
+  ASSERT_TRUE(found);
+  ASSERT_EQ(algo.Id(), "rsa2048");
+  s_info->SetAlgo(algo);
+
+  s_info->SetNonExpired(true);
+  s_info->SetNonPassPhrase(true);
 
   auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-                                .GenerateSubkeySync(main_key, subkeygen_info);
+                                .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -70,25 +74,29 @@ TEST_F(GpgCoreTest, GenerateSubkeyRSA2048Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 2048);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_TRUE(subkey.IsHasAuthenticationCapability());
-  ASSERT_TRUE(subkey.IsHasEncryptionCapability());
-  ASSERT_TRUE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_TRUE(subkey.IsHasAuthCap());
+  ASSERT_TRUE(subkey.IsHasEncrCap());
+  ASSERT_TRUE(subkey.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyDSA2048Test) {
-  auto main_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(main_key.IsGood());
+  ASSERT_TRUE(p_key.IsGood());
 
-  auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo("dsa");
-  subkeygen_info->SetKeyLength(2048);
-  subkeygen_info->SetNonExpired(true);
-  subkeygen_info->SetNonPassPhrase(true);
+  auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
+
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo("dsa2048");
+  ASSERT_TRUE(found);
+  ASSERT_EQ(algo.Id(), "dsa2048");
+  s_info->SetAlgo(algo);
+
+  s_info->SetNonExpired(true);
+  s_info->SetNonPassPhrase(true);
 
   auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-                                .GenerateSubkeySync(main_key, subkeygen_info);
+                                .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -109,25 +117,29 @@ TEST_F(GpgCoreTest, GenerateSubkeyDSA2048Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 2048);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_TRUE(subkey.IsHasAuthenticationCapability());
-  ASSERT_FALSE(subkey.IsHasEncryptionCapability());
-  ASSERT_TRUE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_TRUE(subkey.IsHasAuthCap());
+  ASSERT_FALSE(subkey.IsHasEncrCap());
+  ASSERT_TRUE(subkey.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyELG2048Test) {
-  auto main_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(main_key.IsGood());
+  ASSERT_TRUE(p_key.IsGood());
 
-  auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo("elg");
-  subkeygen_info->SetKeyLength(2048);
-  subkeygen_info->SetNonExpired(true);
-  subkeygen_info->SetNonPassPhrase(true);
+  auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
+
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo("elg2048");
+  ASSERT_TRUE(found);
+  ASSERT_EQ(algo.Id(), "elg2048");
+  s_info->SetAlgo(algo);
+
+  s_info->SetNonExpired(true);
+  s_info->SetNonPassPhrase(true);
 
   auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-                                .GenerateSubkeySync(main_key, subkeygen_info);
+                                .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -148,24 +160,29 @@ TEST_F(GpgCoreTest, GenerateSubkeyELG2048Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 2048);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_FALSE(subkey.IsHasAuthenticationCapability());
-  ASSERT_TRUE(subkey.IsHasEncryptionCapability());
-  ASSERT_FALSE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_FALSE(subkey.IsHasAuthCap());
+  ASSERT_TRUE(subkey.IsHasEncrCap());
+  ASSERT_FALSE(subkey.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyED25519Test) {
-  auto main_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(main_key.IsGood());
+  ASSERT_TRUE(p_key.IsGood());
 
-  auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo("ed25519");
-  subkeygen_info->SetNonExpired(true);
-  subkeygen_info->SetNonPassPhrase(true);
+  auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
+
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo("ed25519");
+  ASSERT_TRUE(found);
+  ASSERT_EQ(algo.Id(), "ed25519");
+  s_info->SetAlgo(algo);
+
+  s_info->SetNonExpired(true);
+  s_info->SetNonPassPhrase(true);
 
   auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-                                .GenerateSubkeySync(main_key, subkeygen_info);
+                                .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -186,24 +203,29 @@ TEST_F(GpgCoreTest, GenerateSubkeyED25519Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 255);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_TRUE(subkey.IsHasAuthenticationCapability());
-  ASSERT_FALSE(subkey.IsHasEncryptionCapability());
-  ASSERT_TRUE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_TRUE(subkey.IsHasAuthCap());
+  ASSERT_FALSE(subkey.IsHasEncrCap());
+  ASSERT_TRUE(subkey.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyCV25519Test) {
-  auto main_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(main_key.IsGood());
+  ASSERT_TRUE(p_key.IsGood());
 
-  auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo("cv25519");
-  subkeygen_info->SetNonExpired(true);
-  subkeygen_info->SetNonPassPhrase(true);
+  auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
+
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo("cv25519");
+  ASSERT_TRUE(found);
+  ASSERT_EQ(algo.Id(), "cv25519");
+  s_info->SetAlgo(algo);
+
+  s_info->SetNonExpired(true);
+  s_info->SetNonPassPhrase(true);
 
   auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-                                .GenerateSubkeySync(main_key, subkeygen_info);
+                                .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -224,23 +246,28 @@ TEST_F(GpgCoreTest, GenerateSubkeyCV25519Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 255);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_FALSE(subkey.IsHasAuthenticationCapability());
-  ASSERT_TRUE(subkey.IsHasEncryptionCapability());
-  ASSERT_FALSE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_FALSE(subkey.IsHasAuthCap());
+  ASSERT_TRUE(subkey.IsHasEncrCap());
+  ASSERT_FALSE(subkey.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyNISTP256Test) {
-  auto main_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(main_key.IsGood());
+  ASSERT_TRUE(p_key.IsGood());
 
-  auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo("nistp256");
-  subkeygen_info->SetNonExpired(true);
+  auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
+
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo("nistp256");
+  ASSERT_TRUE(found);
+  ASSERT_EQ(algo.Id(), "nistp256");
+  s_info->SetAlgo(algo);
+
+  s_info->SetNonExpired(true);
 
   auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-                                .GenerateSubkeySync(main_key, subkeygen_info);
+                                .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -261,23 +288,28 @@ TEST_F(GpgCoreTest, GenerateSubkeyNISTP256Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 256);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_FALSE(subkey.IsHasAuthenticationCapability());
-  ASSERT_TRUE(subkey.IsHasEncryptionCapability());
-  ASSERT_FALSE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_FALSE(subkey.IsHasAuthCap());
+  ASSERT_TRUE(subkey.IsHasEncrCap());
+  ASSERT_FALSE(subkey.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyBRAINPOOLP256R1Test) {
-  auto main_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(main_key.IsGood());
+  ASSERT_TRUE(p_key.IsGood());
 
-  auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo("brainpoolp256r1");
-  subkeygen_info->SetNonExpired(true);
+  auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
+
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo("brainpoolp256r1");
+  ASSERT_TRUE(found);
+  ASSERT_EQ(algo.Id(), "brainpoolp256r1");
+  s_info->SetAlgo(algo);
+
+  s_info->SetNonExpired(true);
 
   auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-                                .GenerateSubkeySync(main_key, subkeygen_info);
+                                .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -298,23 +330,28 @@ TEST_F(GpgCoreTest, GenerateSubkeyBRAINPOOLP256R1Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 256);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_FALSE(subkey.IsHasAuthenticationCapability());
-  ASSERT_TRUE(subkey.IsHasEncryptionCapability());
-  ASSERT_FALSE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_FALSE(subkey.IsHasAuthCap());
+  ASSERT_TRUE(subkey.IsHasEncrCap());
+  ASSERT_FALSE(subkey.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyX448Test) {
-  auto main_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(main_key.IsGood());
+  ASSERT_TRUE(p_key.IsGood());
 
-  auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo("x448");
-  subkeygen_info->SetNonExpired(true);
+  auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
+
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo("x448");
+  ASSERT_TRUE(found);
+  ASSERT_EQ(algo.Id(), "x448");
+  s_info->SetAlgo(algo);
+
+  s_info->SetNonExpired(true);
 
   auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-                                .GenerateSubkeySync(main_key, subkeygen_info);
+                                .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -335,23 +372,28 @@ TEST_F(GpgCoreTest, GenerateSubkeyX448Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 448);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_FALSE(subkey.IsHasAuthenticationCapability());
-  ASSERT_TRUE(subkey.IsHasEncryptionCapability());
-  ASSERT_FALSE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_FALSE(subkey.IsHasAuthCap());
+  ASSERT_TRUE(subkey.IsHasEncrCap());
+  ASSERT_FALSE(subkey.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeySECP256K1Test) {
-  auto main_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKey(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(main_key.IsGood());
+  ASSERT_TRUE(p_key.IsGood());
 
-  auto subkeygen_info = SecureCreateSharedObject<GenKeyInfo>(true);
-  subkeygen_info->SetAlgo("secp256k1");
-  subkeygen_info->SetNonExpired(true);
+  auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
+
+  auto [found, algo] = KeyGenerateInfo::SearchSubKeyAlgo("secp256k1");
+  ASSERT_TRUE(found);
+  ASSERT_EQ(algo.Id(), "secp256k1");
+  s_info->SetAlgo(algo);
+
+  s_info->SetNonExpired(true);
 
   auto [err, data_object] = GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-                                .GenerateSubkeySync(main_key, subkeygen_info);
+                                .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -372,10 +414,10 @@ TEST_F(GpgCoreTest, GenerateSubkeySECP256K1Test) {
   ASSERT_EQ(subkey.GetKeyLength(), 256);
   ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertificationCapability());
-  ASSERT_FALSE(subkey.IsHasAuthenticationCapability());
-  ASSERT_TRUE(subkey.IsHasEncryptionCapability());
-  ASSERT_FALSE(subkey.IsHasSigningCapability());
+  ASSERT_FALSE(subkey.IsHasCertCap());
+  ASSERT_FALSE(subkey.IsHasAuthCap());
+  ASSERT_TRUE(subkey.IsHasEncrCap());
+  ASSERT_FALSE(subkey.IsHasSignCap());
 }
 
 }  // namespace GpgFrontend::Test

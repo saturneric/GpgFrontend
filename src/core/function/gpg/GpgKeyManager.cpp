@@ -61,10 +61,10 @@ auto GpgKeyManager::SignKey(const GpgKey& target, KeyArgsList& keys,
 }
 
 auto GpgKeyManager::RevSign(const GpgKey& key,
-                            const SignIdArgsListPtr& signature_id) -> bool {
+                            const SignIdArgsList& signature_id) -> bool {
   auto& key_getter = GpgKeyGetter::GetInstance(GetChannel());
 
-  for (const auto& sign_id : *signature_id) {
+  for (const auto& sign_id : signature_id) {
     auto signing_key = key_getter.GetKey(sign_id.first);
     assert(signing_key.IsGood());
 
@@ -271,13 +271,8 @@ auto GpgKeyManager::RevokeSubkey(const GpgKey& key, int subkey_index,
   }
 
   // dealing with reason text
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 4)
-  auto reason_text_lines = SecureCreateSharedObject<QList<QString>>(
+  auto reason_text_lines = SecureCreateSharedObject<QStringList>(
       reason_text.split('\n', Qt::SkipEmptyParts).toVector());
-#else
-  auto reason_text_lines = SecureCreateSharedObject<QVector<QString>>(
-      reason_text.split('\n', Qt::SkipEmptyParts).toVector());
-#endif
 
   AutomatonNextStateHandler next_state_handler =
       [](AutomatonState state, QString status, QString args) {

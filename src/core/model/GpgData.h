@@ -71,7 +71,7 @@ class GPGFRONTEND_CORE_EXPORT GpgData {
    *
    * @param fd
    */
-  explicit GpgData(std::shared_ptr<GFDataExchanger>);
+  explicit GpgData(QSharedPointer<GFDataExchanger>);
 
   /**
    * @brief Construct a new Gpg Data object
@@ -124,7 +124,7 @@ class GPGFRONTEND_CORE_EXPORT GpgData {
   int fd_ = -1;
 
   struct gpgme_data_cbs data_cbs_;
-  std::shared_ptr<GFDataExchanger> data_ex_;
+  QSharedPointer<GFDataExchanger> data_ex_;
 };
 
 }  // namespace GpgFrontend

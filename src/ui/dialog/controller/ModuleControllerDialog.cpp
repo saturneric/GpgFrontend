@@ -108,10 +108,7 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
 
   // give user ability to give up all modules
   auto disable_loading_all_modules =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
-          .value("basic/disable_loading_all_modules", false)
-          .toBool();
+      GetSettings().value("basic/disable_loading_all_modules", false).toBool();
   if (disable_loading_all_modules) {
     ui_->tabWidget->setTabEnabled(0, false);
   }

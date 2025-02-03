@@ -55,7 +55,23 @@ class FilePage : public QWidget {
    *
    * @return QString
    */
-  [[nodiscard]] auto GetSelected() const -> QString;
+  [[nodiscard]] auto GetSelected() const -> QStringList;
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] auto IsBatchMode() const -> bool;
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] auto IsASCIIMode() const -> bool;
 
  public slots:
   /**
@@ -92,7 +108,7 @@ class FilePage : public QWidget {
    *
    * @param int
    */
-  void SignalMainWindowlUpdateBasicalOperaMenu(unsigned int);
+  void SignalMainWindowUpdateBasicOperaMenu(unsigned int);
 
  protected:
   /**
@@ -111,6 +127,7 @@ class FilePage : public QWidget {
   QMenu* popup_menu_{};         ///<
   QMenu* option_popup_menu_{};  ///<
   FileTreeView* file_tree_view_;
+  bool ascii_mode_;
 
  private slots:
 
@@ -118,7 +135,7 @@ class FilePage : public QWidget {
    * @brief
    *
    */
-  void update_main_basical_opera_menu(const QString&);
+  void update_main_basic_opera_menu(const QStringList&);
 };
 
 }  // namespace GpgFrontend::UI

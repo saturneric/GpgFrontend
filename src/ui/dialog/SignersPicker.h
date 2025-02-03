@@ -56,14 +56,14 @@ class SignersPicker : public GeneralDialog {
    *
    * @return GpgFrontend::KeyIdArgsListPtr
    */
-  auto GetCheckedSigners() -> KeyIdArgsListPtr;
+  auto GetCheckedSigners() -> KeyIdArgsList;
 
   /**
    * @brief Get the Checked Signer Key Ids object
    *
    * @return QStringList
    */
-  auto GetCheckedSignerKeyIds() -> QStringList;
+  auto GetCheckedSignerKeyIds() -> KeyIdArgsList;
   /**
    *
    * @return

@@ -144,7 +144,7 @@ class KeyMgmt : public GeneralMainWindow {
    *
    * @param uidList
    */
-  void delete_keys_with_warning(KeyIdArgsListPtr uidList);
+  void delete_keys_with_warning(KeyIdArgsList uid_list);
 
   KeyList* key_list_;           ///<
   QMenu* file_menu_{};          ///<

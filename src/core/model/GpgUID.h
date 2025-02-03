@@ -85,18 +85,18 @@ class GPGFRONTEND_CORE_EXPORT GpgUID {
   /**
    * @brief
    *
-   * @return std::unique_ptr<std::vector<GpgTOFUInfo>>
+   * @return std::unique_ptr<QContainer<GpgTOFUInfo>>
    */
   [[nodiscard]] auto GetTofuInfos() const
-      -> std::unique_ptr<std::vector<GpgTOFUInfo>>;
+      -> std::unique_ptr<QContainer<GpgTOFUInfo>>;
 
   /**
    * @brief
    *
-   * @return std::unique_ptr<std::vector<GpgKeySignature>>
+   * @return std::unique_ptr<QContainer<GpgKeySignature>>
    */
   [[nodiscard]] auto GetSignatures() const
-      -> std::unique_ptr<std::vector<GpgKeySignature>>;
+      -> std::unique_ptr<QContainer<GpgKeySignature>>;
 
   /**
    * @brief Construct a new Gpg U I D object
@@ -112,39 +112,20 @@ class GPGFRONTEND_CORE_EXPORT GpgUID {
   explicit GpgUID(gpgme_user_id_t uid);
 
   /**
-   * @brief Construct a new Gpg U I D object
-   *
-   * @param o
-   */
-  GpgUID(GpgUID &&o) noexcept;
-
-  /**
-   * @brief Construct a new Gpg U I D object
-   *
-   */
-  GpgUID(const GpgUID &) = delete;
-
-  /**
    * @brief
    *
-   * @param o
-   * @return GpgUID&
    */
-  auto operator=(GpgUID &&o) noexcept -> GpgUID &;
+  GpgUID(const GpgUID &);
 
   /**
    * @brief
    *
    * @return GpgUID&
    */
-  auto operator=(const GpgUID &) -> GpgUID & = delete;
+  auto operator=(const GpgUID &) -> GpgUID &;
 
  private:
-  using UidRefHandler =
-      std::unique_ptr<struct _gpgme_user_id,
-                      std::function<void(gpgme_user_id_t)>>;  ///<
-
-  UidRefHandler uid_ref_ = nullptr;  ///<
+  gpgme_user_id_t uid_ref_ = nullptr;  ///<
 };
 
 }  // namespace GpgFrontend

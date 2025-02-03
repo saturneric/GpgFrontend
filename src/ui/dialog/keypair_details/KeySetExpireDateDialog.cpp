@@ -95,20 +95,9 @@ void KeySetExpireDateDialog::slot_confirm() {
 void KeySetExpireDateDialog::init() {
   ui_->setupUi(this);
 
-  auto settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
-
-  bool longer_expiration_date =
-      settings.value("basic/longer_expiration_date").toBool();
-
-  auto max_date_time =
-      longer_expiration_date
-          ? QDateTime::currentDateTime().toLocalTime().addYears(30)
-          : QDateTime::currentDateTime().toLocalTime().addYears(2);
+  auto settings = GpgFrontend::GetSettings();
 
   auto min_date_time = QDateTime::currentDateTime().addDays(7);
-
-  ui_->dateEdit->setMaximumDateTime(max_date_time);
   ui_->dateEdit->setMinimumDateTime(min_date_time);
 
   // set default date time to expire date time
@@ -133,10 +122,6 @@ void KeySetExpireDateDialog::init() {
   }
 
   ui_->titleLabel->setText(tr("Modified Expiration Date (Local Time)"));
-  ui_->label->setText(tr(
-      "Tips: For the sake of security, the key is valid for up to two years. "
-      "If you are an expert user, please unlock it for a longer time in the "
-      "settings."));
   ui_->noExpirationCheckBox->setText(tr("No Expiration"));
   this->setWindowTitle(tr("Modified Expiration Date"));
   this->setAttribute(Qt::WA_DeleteOnClose);

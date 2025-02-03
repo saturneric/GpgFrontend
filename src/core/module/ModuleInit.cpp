@@ -78,10 +78,7 @@ auto LoadExternalMods() -> QMap<QString, bool> {
 void LoadGpgFrontendModules(ModuleInitArgs) {
   // give user ability to give up all modules
   auto disable_loading_all_modules =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
-          .value("basic/disable_loading_all_modules", false)
-          .toBool();
+      GetSettings().value("basic/disable_loading_all_modules", false).toBool();
   if (disable_loading_all_modules) return;
 
   // must init at default thread before core

@@ -215,28 +215,28 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   QString buffer;
   QTextStream usage_steam(&buffer);
 
-  if (key_.IsHasCertificationCapability()) {
+  if (key_.IsHasCertCap()) {
     usage_steam << tr("Certificate") << " ";
   }
-  if (key_.IsHasEncryptionCapability()) usage_steam << tr("Encrypt") << " ";
-  if (key_.IsHasSigningCapability()) usage_steam << tr("Sign") << " ";
-  if (key_.IsHasAuthenticationCapability()) usage_steam << tr("Auth") << " ";
+  if (key_.IsHasEncrCap()) usage_steam << tr("Encrypt") << " ";
+  if (key_.IsHasSignCap()) usage_steam << tr("Sign") << " ";
+  if (key_.IsHasAuthCap()) usage_steam << tr("Auth") << " ";
 
   usage_var_label_->setText(usage_steam.readAll());
 
   QString buffer_2;
   QTextStream actual_usage_steam(&buffer_2);
 
-  if (key_.IsHasActualCertificationCapability()) {
+  if (key_.IsHasActualCertCap()) {
     actual_usage_steam << tr("Certificate") << " ";
   }
-  if (key_.IsHasActualEncryptionCapability()) {
+  if (key_.IsHasActualEncrCap()) {
     actual_usage_steam << tr("Encrypt") << " ";
   }
-  if (key_.IsHasActualSigningCapability()) {
+  if (key_.IsHasActualSignCap()) {
     actual_usage_steam << tr("Sign") << " ";
   }
-  if (key_.IsHasActualAuthenticationCapability()) {
+  if (key_.IsHasActualAuthCap()) {
     actual_usage_steam << tr("Auth") << " ";
   }
 
@@ -306,16 +306,10 @@ void KeyPairDetailTab::slot_refresh_key() {
 
 void KeyPairDetailTab::slot_query_key_publish_state() {
   bool forbid_all_gnupg_connection =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
-          .value("network/forbid_all_gnupg_connection")
-          .toBool();
+      GetSettings().value("network/forbid_all_gnupg_connection").toBool();
 
   bool auto_fetch_key_publish_status =
-      GlobalSettingStation::GetInstance()
-          .GetSettings()
-          .value("network/auto_fetch_key_publish_status")
-          .toBool();
+      GetSettings().value("network/auto_fetch_key_publish_status").toBool();
 
   if (forbid_all_gnupg_connection || !auto_fetch_key_publish_status) return;
 

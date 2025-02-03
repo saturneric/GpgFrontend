@@ -352,7 +352,7 @@ class GlobalModuleContext::Impl {
     bool registered;
     bool activate;
     bool integrated;
-    QList<QString> listening_event_ids;
+    QStringList listening_event_ids;
   };
 
   using ModuleRegisterInfoPtr = std::shared_ptr<ModuleRegisterInfo>;

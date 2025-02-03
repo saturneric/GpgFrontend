@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/function/SecureMemoryAllocator.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
@@ -66,11 +67,11 @@ class GPGFRONTEND_CORE_EXPORT SingletonStorage {
   auto FindObjectInChannel(int channel) -> ChannelObject*;
 
   /**
-   * @brief Get all the channel ids
+   * @brief Get the All Channel Id object
    *
-   * @return std::vector<int>
+   * @return QContainer<int>
    */
-  auto GetAllChannelId() -> std::vector<int>;
+  auto GetAllChannelId() -> QContainer<int>;
 
   /**
    * @brief Set a new object in channel object

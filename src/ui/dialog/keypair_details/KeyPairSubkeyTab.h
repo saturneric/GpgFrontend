@@ -68,9 +68,9 @@ class KeyPairSubkeyTab : public QWidget {
   const GpgSubKey& get_selected_subkey();
 
   int current_gpg_context_channel_;
-  GpgKey key_;                               ///<
-  QTableWidget* subkey_list_{};              ///<
-  std::vector<GpgSubKey> buffered_subkeys_;  ///<
+  GpgKey key_;                              ///<
+  QTableWidget* subkey_list_{};             ///<
+  QContainer<GpgSubKey> buffered_subkeys_;  ///<
 
   QGroupBox* list_box_;    ///<
   QGroupBox* detail_box_;  ///<

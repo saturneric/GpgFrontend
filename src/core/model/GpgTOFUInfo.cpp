@@ -33,16 +33,11 @@ namespace GpgFrontend {
 GpgTOFUInfo::GpgTOFUInfo() = default;
 
 GpgTOFUInfo::GpgTOFUInfo(gpgme_tofu_info_t tofu_info)
-    : tofu_info_ref_(tofu_info, [&](gpgme_tofu_info_t tofu_info) {}) {}
+    : tofu_info_ref_(tofu_info) {}
 
-GpgTOFUInfo::GpgTOFUInfo(GpgTOFUInfo&& o) noexcept {
-  swap(tofu_info_ref_, o.tofu_info_ref_);
-}
+GpgTOFUInfo::GpgTOFUInfo(const GpgTOFUInfo&) = default;
 
-auto GpgTOFUInfo::operator=(GpgTOFUInfo&& o) noexcept -> GpgTOFUInfo& {
-  swap(tofu_info_ref_, o.tofu_info_ref_);
-  return *this;
-};
+auto GpgTOFUInfo::operator=(const GpgTOFUInfo&) -> GpgTOFUInfo& = default;
 
 auto GpgTOFUInfo::GetValidity() const -> unsigned {
   return tofu_info_ref_->validity;
@@ -64,29 +59,14 @@ auto GpgTOFUInfo::GetSignFirst() const -> unsigned long {
   return tofu_info_ref_->signfirst;
 }
 
-/**
- * @brief
- *
- * @return unsigned long
- */
 auto GpgTOFUInfo::GetSignLast() const -> unsigned long {
   return tofu_info_ref_->signlast;
 }
 
-/**
- * @brief
- *
- * @return unsigned long
- */
 auto GpgTOFUInfo::GetEncrLast() const -> unsigned long {
   return tofu_info_ref_->encrlast;
 }
 
-/**
- * @brief
- *
- * @return QString
- */
 auto GpgTOFUInfo::GetDescription() const -> QString {
   return tofu_info_ref_->description;
 }

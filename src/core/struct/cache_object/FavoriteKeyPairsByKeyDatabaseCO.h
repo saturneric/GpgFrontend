@@ -31,7 +31,7 @@
 namespace GpgFrontend {
 
 struct FavoriteKeyPairsByKeyDatabaseCO {
-  QList<QString> key_ids;
+  QStringList key_ids;
 
   FavoriteKeyPairsByKeyDatabaseCO() = default;
 

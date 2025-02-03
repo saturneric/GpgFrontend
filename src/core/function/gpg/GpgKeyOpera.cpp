@@ -28,14 +28,12 @@
 
 #include "GpgKeyOpera.h"
 
-#include <gpg-error.h>
-
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/model/DataObject.h"
-#include "core/model/GpgGenKeyInfo.h"
 #include "core/model/GpgGenerateKeyResult.h"
+#include "core/model/GpgKeyGenerateInfo.h"
 #include "core/module/ModuleManager.h"
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/AsyncUtils.h"
@@ -51,9 +49,9 @@ GpgKeyOpera::GpgKeyOpera(int channel)
  * Delete keys
  * @param uidList key ids
  */
-void GpgKeyOpera::DeleteKeys(KeyIdArgsListPtr key_ids) {
+void GpgKeyOpera::DeleteKeys(KeyIdArgsList key_ids) {
   GpgError err;
-  for (const auto& tmp : *key_ids) {
+  for (const auto& tmp : key_ids) {
     auto key = GpgKeyGetter::GetInstance(GetChannel()).GetKey(tmp);
     if (key.IsGood()) {
       err = CheckGpgError(gpgme_op_delete_ext(
@@ -112,15 +110,8 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
           << "text:" << revocation_reason_text;
 
   // dealing with reason text
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 4)
-  auto reason_text_lines =
-      GpgFrontend::SecureCreateSharedObject<QList<QString>>(
-          revocation_reason_text.split('\n', Qt::SkipEmptyParts).toVector());
-#else
-  auto reason_text_lines =
-      GpgFrontend::SecureCreateSharedObject<QVector<QString>>(
-          revocation_reason_text.split('\n', Qt::SkipEmptyParts).toVector());
-#endif
+  auto reason_text_lines = GpgFrontend::SecureCreateSharedObject<QStringList>(
+      revocation_reason_text.split('\n', Qt::SkipEmptyParts).toVector());
 
   const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.app_path", QString{});
@@ -170,337 +161,174 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
        }});
 }
 
+auto GenerateKeyImpl(GpgContext& ctx,
+                     const QSharedPointer<KeyGenerateInfo>& params,
+                     const DataObjectPtr& data_object) -> GpgError {
+  if (params == nullptr || params->GetAlgo() == KeyGenerateInfo::kNoneAlgo ||
+      params->IsSubKey()) {
+    return GPG_ERR_CANCELED;
+  }
+
+  const auto userid = params->GetUserid();
+  const auto algo = params->GetAlgo().Id();
+
+  unsigned long expires =
+      QDateTime::currentDateTime().secsTo(params->GetExpireTime());
+
+  GpgError err;
+  unsigned int flags = 0;
+
+  if (!params->IsSubKey()) flags |= GPGME_CREATE_CERT;
+  if (params->IsAllowEncr()) flags |= GPGME_CREATE_ENCR;
+  if (params->IsAllowSign()) flags |= GPGME_CREATE_SIGN;
+  if (params->IsAllowAuth()) flags |= GPGME_CREATE_AUTH;
+  if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
+  if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
+
+  LOG_D() << "key generation args: " << userid << algo << expires << flags;
+  LOG_D() << "key generation flags" << params->IsAllowEncr()
+          << params->IsAllowSign() << params->IsAllowAuth()
+          << !params->IsSubKey();
+
+  err = gpgme_op_createkey(ctx.DefaultContext(), userid.toUtf8(), algo.toUtf8(),
+                           0, expires, nullptr, flags);
+
+  if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+    data_object->Swap(
+        {GpgGenerateKeyResult{gpgme_op_genkey_result(ctx.DefaultContext())}});
+  } else {
+    data_object->Swap({GpgGenerateKeyResult{}});
+  }
+
+  return CheckGpgError(err);
+}
+
 /**
  * Generate a new key pair
  * @param params key generation args
  * @return error information
  */
-void GpgKeyOpera::GenerateKey(const std::shared_ptr<GenKeyInfo>& params,
+void GpgKeyOpera::GenerateKey(const QSharedPointer<KeyGenerateInfo>& params,
                               const GpgOperationCallback& callback) {
   RunGpgOperaAsync(
-      [&ctx = ctx_, params](const DataObjectPtr& data_object) -> GpgError {
-        auto userid = params->GetUserid();
-        auto algo = params->GetAlgo() + params->GetKeySizeStr();
-
-        LOG_D() << "params: " << params->GetAlgo() << params->GetKeySizeStr();
-
-        unsigned long expires =
-            QDateTime::currentDateTime().secsTo(params->GetExpireTime());
-
-        GpgError err;
-        unsigned int flags = 0;
-
-        if (!params->IsSubKey()) flags |= GPGME_CREATE_CERT;
-        if (params->IsAllowEncryption()) flags |= GPGME_CREATE_ENCR;
-        if (params->IsAllowSigning()) flags |= GPGME_CREATE_SIGN;
-        if (params->IsAllowAuthentication()) flags |= GPGME_CREATE_AUTH;
-        if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
-        if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
-
-        LOG_D() << "key generation args: " << userid << algo << expires
-                << flags;
-
-        err = gpgme_op_createkey(ctx.DefaultContext(), userid.toUtf8(),
-                                 algo.toUtf8(), 0, expires, nullptr, flags);
-        assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
-
-        if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-          data_object->Swap({GpgGenerateKeyResult{
-              gpgme_op_genkey_result(ctx.DefaultContext())}});
-        } else {
-          data_object->Swap({GpgGenerateKeyResult{}});
-        }
-
-        return CheckGpgError(err);
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        return GenerateKeyImpl(ctx_, params, data_object);
       },
       callback, "gpgme_op_createkey", "2.1.0");
 }
 
-auto GpgKeyOpera::GenerateKeySync(const std::shared_ptr<GenKeyInfo>& params)
+auto GpgKeyOpera::GenerateKeySync(const QSharedPointer<KeyGenerateInfo>& params)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
-      [=, &ctx = ctx_](const DataObjectPtr& data_object) -> GpgError {
-        auto userid = params->GetUserid();
-        auto algo = params->GetAlgo() + params->GetKeySizeStr();
-
-        LOG_D() << "params: " << params->GetAlgo() << params->GetKeySizeStr();
-
-        unsigned long expires =
-            QDateTime::currentDateTime().secsTo(params->GetExpireTime());
-
-        GpgError err;
-        unsigned int flags = 0;
-
-        if (!params->IsSubKey()) flags |= GPGME_CREATE_CERT;
-        if (params->IsAllowEncryption()) flags |= GPGME_CREATE_ENCR;
-        if (params->IsAllowSigning()) flags |= GPGME_CREATE_SIGN;
-        if (params->IsAllowAuthentication()) flags |= GPGME_CREATE_AUTH;
-        if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
-        if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
-
-        LOG_D() << "key generation args: " << userid << algo << expires
-                << flags;
-
-        err = gpgme_op_createkey(ctx.DefaultContext(), userid.toUtf8(),
-                                 algo.toUtf8(), 0, expires, nullptr, flags);
-        assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
-
-        if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-          data_object->Swap({GpgGenerateKeyResult{
-              gpgme_op_genkey_result(ctx.DefaultContext())}});
-        } else {
-          data_object->Swap({GpgGenerateKeyResult{}});
-        }
-
-        return CheckGpgError(err);
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        return GenerateKeyImpl(ctx_, params, data_object);
       },
       "gpgme_op_createkey", "2.1.0");
 }
 
+auto GenerateSubKeyImpl(GpgContext& ctx, const GpgKey& key,
+                        const QSharedPointer<KeyGenerateInfo>& params,
+                        const DataObjectPtr& data_object) -> GpgError {
+  if (params == nullptr || params->GetAlgo() == KeyGenerateInfo::kNoneAlgo ||
+      !params->IsSubKey()) {
+    return GPG_ERR_CANCELED;
+  }
+
+  auto algo = params->GetAlgo().Id();
+  unsigned long expires =
+      QDateTime::currentDateTime().secsTo(params->GetExpireTime());
+  unsigned int flags = 0;
+
+  if (!params->IsSubKey()) flags |= GPGME_CREATE_CERT;
+  if (params->IsAllowEncr()) flags |= GPGME_CREATE_ENCR;
+  if (params->IsAllowSign()) flags |= GPGME_CREATE_SIGN;
+  if (params->IsAllowAuth()) flags |= GPGME_CREATE_AUTH;
+  if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
+  if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
+
+  LOG_D() << "subkey generation args: " << key.GetId() << algo << expires
+          << flags;
+
+  auto err =
+      gpgme_op_createsubkey(ctx.DefaultContext(), static_cast<gpgme_key_t>(key),
+                            algo.toLatin1(), 0, expires, flags);
+  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgGenerateKeyResult{}});
+    return err;
+  }
+
+  data_object->Swap(
+      {GpgGenerateKeyResult{gpgme_op_genkey_result(ctx.DefaultContext())}});
+  return CheckGpgError(err);
+}
+
 void GpgKeyOpera::GenerateSubkey(const GpgKey& key,
-                                 const std::shared_ptr<GenKeyInfo>& params,
+                                 const QSharedPointer<KeyGenerateInfo>& params,
                                  const GpgOperationCallback& callback) {
   RunGpgOperaAsync(
-      [key, &ctx = ctx_, params](const DataObjectPtr& data_object) -> GpgError {
-        if (!params->IsSubKey()) return GPG_ERR_CANCELED;
-
-        LOG_D() << "generate subkey algo: " << params->GetAlgo()
-                << "key size: " << params->GetKeySizeStr();
-
-        auto algo = params->GetAlgo() + params->GetKeySizeStr();
-        unsigned long expires =
-            QDateTime::currentDateTime().secsTo(params->GetExpireTime());
-        unsigned int flags = 0;
-
-        if (!params->IsSubKey()) flags |= GPGME_CREATE_CERT;
-        if (params->IsAllowEncryption()) flags |= GPGME_CREATE_ENCR;
-        if (params->IsAllowSigning()) flags |= GPGME_CREATE_SIGN;
-        if (params->IsAllowAuthentication()) flags |= GPGME_CREATE_AUTH;
-        if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
-        if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
-
-        LOG_D() << "subkey generation args: " << key.GetId() << algo << expires
-                << flags;
-
-        auto err = gpgme_op_createsubkey(ctx.DefaultContext(),
-                                         static_cast<gpgme_key_t>(key),
-                                         algo.toLatin1(), 0, expires, flags);
-        if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-          data_object->Swap({GpgGenerateKeyResult{}});
-          return err;
-        }
-
-        data_object->Swap({GpgGenerateKeyResult{
-            gpgme_op_genkey_result(ctx.DefaultContext())}});
-        return CheckGpgError(err);
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        return GenerateSubKeyImpl(ctx_, key, params, data_object);
       },
       callback, "gpgme_op_createsubkey", "2.1.13");
 }
 
-auto GpgKeyOpera::GenerateSubkeySync(const GpgKey& key,
-                                     const std::shared_ptr<GenKeyInfo>& params)
+auto GpgKeyOpera::GenerateSubkeySync(
+    const GpgKey& key, const QSharedPointer<KeyGenerateInfo>& params)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
-      [key, &ctx = ctx_, params](const DataObjectPtr& data_object) -> GpgError {
-        if (!params->IsSubKey()) return GPG_ERR_CANCELED;
-
-        LOG_D() << "generate subkey algo: " << params->GetAlgo()
-                << " key size: " << params->GetKeySizeStr();
-
-        auto algo = params->GetAlgo() + params->GetKeySizeStr();
-        unsigned long expires =
-            QDateTime::currentDateTime().secsTo(params->GetExpireTime());
-        unsigned int flags = 0;
-
-        if (!params->IsSubKey()) flags |= GPGME_CREATE_CERT;
-        if (params->IsAllowEncryption()) flags |= GPGME_CREATE_ENCR;
-        if (params->IsAllowSigning()) flags |= GPGME_CREATE_SIGN;
-        if (params->IsAllowAuthentication()) flags |= GPGME_CREATE_AUTH;
-        if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
-        if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
-
-        LOG_D() << " args: " << key.GetId() << algo << expires << flags;
-
-        auto err = gpgme_op_createsubkey(ctx.DefaultContext(),
-                                         static_cast<gpgme_key_t>(key),
-                                         algo.toLatin1(), 0, expires, flags);
-
-        if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-          data_object->Swap({GpgGenerateKeyResult{}});
-          return err;
-        }
-
-        data_object->Swap({GpgGenerateKeyResult{
-            gpgme_op_genkey_result(ctx.DefaultContext())}});
-        return CheckGpgError(err);
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        return GenerateSubKeyImpl(ctx_, key, params, data_object);
       },
       "gpgme_op_createsubkey", "2.1.13");
 }
 
+auto GenerateKeyWithSubkeyImpl(GpgContext& ctx, GpgKeyGetter& key_getter,
+                               const QSharedPointer<KeyGenerateInfo>& p_params,
+                               const QSharedPointer<KeyGenerateInfo>& s_params,
+                               const DataObjectPtr& data_object) -> GpgError {
+  auto err = GenerateKeyImpl(ctx, p_params, data_object);
+
+  if (err != GPG_ERR_NO_ERROR) return err;
+  if (!data_object->Check<GpgGenerateKeyResult>()) return GPG_ERR_CANCELED;
+
+  auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
+  auto key = key_getter.GetKey(result.GetFingerprint());
+  if (!key.IsGood()) {
+    LOG_W() << "cannot get key which has been generated, fpr: "
+            << result.GetFingerprint();
+    return GPG_ERR_CANCELED;
+  }
+
+  if (s_params == nullptr) return err;
+
+  data_object->Swap({});
+  err = GenerateSubKeyImpl(ctx, key, s_params, data_object);
+  auto s_result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
+
+  data_object->Swap({result, s_result});
+  return err;
+}
+
 void GpgKeyOpera::GenerateKeyWithSubkey(
-    const std::shared_ptr<GenKeyInfo>& params,
-    const std::shared_ptr<GenKeyInfo>& subkey_params,
+    const QSharedPointer<KeyGenerateInfo>& p_params,
+    const QSharedPointer<KeyGenerateInfo>& s_params,
     const GpgOperationCallback& callback) {
   RunGpgOperaAsync(
-      [&ctx = ctx_, params, subkey_params,
-       channel = GetChannel()](const DataObjectPtr& data_object) -> GpgError {
-        auto userid = params->GetUserid().toUtf8();
-        auto algo = (params->GetAlgo() + params->GetKeySizeStr()).toUtf8();
-        unsigned long expires =
-            QDateTime::currentDateTime().secsTo(params->GetExpireTime());
-
-        GpgError err;
-        unsigned int flags = 0;
-
-        if (!params->IsSubKey()) flags |= GPGME_CREATE_CERT;
-        if (params->IsAllowEncryption()) flags |= GPGME_CREATE_ENCR;
-        if (params->IsAllowSigning()) flags |= GPGME_CREATE_SIGN;
-        if (params->IsAllowAuthentication()) flags |= GPGME_CREATE_AUTH;
-        if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
-        if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
-
-        LOG_D() << "key generation args: " << userid << algo << expires
-                << flags;
-
-        err = gpgme_op_createkey(ctx.DefaultContext(), userid, algo, 0, expires,
-                                 nullptr, flags);
-        assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
-
-        if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-          data_object->Swap({GpgGenerateKeyResult{}});
-          return err;
-        }
-
-        auto genkey_result =
-            GpgGenerateKeyResult{gpgme_op_genkey_result(ctx.DefaultContext())};
-
-        if (subkey_params == nullptr || !subkey_params->IsSubKey()) {
-          data_object->Swap({genkey_result});
-          return err;
-        }
-
-        auto key = GpgKeyGetter::GetInstance(channel).GetKey(
-            genkey_result.GetFingerprint());
-        if (!key.IsGood()) {
-          LOG_W() << "cannot get key which has been generate, fpr: "
-                  << genkey_result.GetFingerprint();
-          return err;
-        }
-
-        algo = (subkey_params->GetAlgo() + subkey_params->GetKeySizeStr())
-                   .toUtf8();
-        expires =
-            QDateTime::currentDateTime().secsTo(subkey_params->GetExpireTime());
-
-        flags = 0;
-        if (subkey_params->IsAllowEncryption()) flags |= GPGME_CREATE_ENCR;
-        if (subkey_params->IsAllowSigning()) flags |= GPGME_CREATE_SIGN;
-        if (subkey_params->IsAllowAuthentication()) flags |= GPGME_CREATE_AUTH;
-        if (subkey_params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
-        if (subkey_params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
-
-        LOG_D() << "subkey generation args: " << key.GetId() << algo << expires
-                << flags;
-
-        err = gpgme_op_createsubkey(ctx.DefaultContext(),
-                                    static_cast<gpgme_key_t>(key), algo, 0,
-                                    expires, flags);
-
-        if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-          data_object->Swap(
-              {genkey_result, GpgGenerateKeyResult{gpgme_op_genkey_result(
-                                  ctx.DefaultContext())}});
-        } else {
-          data_object->Swap({genkey_result, GpgGenerateKeyResult{}});
-        }
-
-        return CheckGpgError(err);
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        return GenerateKeyWithSubkeyImpl(ctx_, key_getter_, p_params, s_params,
+                                         data_object);
       },
       callback, "gpgme_op_createkey&gpgme_op_createsubkey", "2.1.0");
 }
 
 auto GpgKeyOpera::GenerateKeyWithSubkeySync(
-    const std::shared_ptr<GenKeyInfo>& params,
-    const std::shared_ptr<GenKeyInfo>& subkey_params)
+    const QSharedPointer<KeyGenerateInfo>& p_params,
+    const QSharedPointer<KeyGenerateInfo>& s_params)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
-      [&ctx = ctx_, params, subkey_params,
-       channel = GetChannel()](const DataObjectPtr& data_object) -> GpgError {
-        auto userid = params->GetUserid().toUtf8();
-        auto algo = (params->GetAlgo() + params->GetKeySizeStr()).toUtf8();
-        unsigned long expires =
-            QDateTime::currentDateTime().secsTo(params->GetExpireTime());
-
-        GpgError err;
-        unsigned int flags = 0;
-
-        if (!params->IsSubKey()) flags |= GPGME_CREATE_CERT;
-        if (params->IsAllowEncryption()) flags |= GPGME_CREATE_ENCR;
-        if (params->IsAllowSigning()) flags |= GPGME_CREATE_SIGN;
-        if (params->IsAllowAuthentication()) flags |= GPGME_CREATE_AUTH;
-        if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
-        if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
-
-        LOG_D() << "key generation args: " << userid << algo << expires
-                << flags;
-
-        err = gpgme_op_createkey(ctx.DefaultContext(), userid, algo, 0, expires,
-                                 nullptr, flags);
-        assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
-
-        if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-          data_object->Swap({GpgGenerateKeyResult{}});
-          return err;
-        }
-
-        auto genkey_result =
-            GpgGenerateKeyResult{gpgme_op_genkey_result(ctx.DefaultContext())};
-
-        if (subkey_params == nullptr || !subkey_params->IsSubKey()) {
-          data_object->Swap({genkey_result});
-          return err;
-        }
-
-        auto key = GpgKeyGetter::GetInstance(channel).GetKey(
-            genkey_result.GetFingerprint());
-        if (!key.IsGood()) {
-          LOG_W() << "cannot get key which has been generate, fpr: "
-                  << genkey_result.GetFingerprint();
-          return err;
-        }
-
-        LOG_D() << "try to generate subkey of key: " << key.GetId()
-                << ", algo :" << subkey_params->GetAlgo()
-                << ", key size: " << subkey_params->GetKeySizeStr();
-
-        algo = (subkey_params->GetAlgo() + subkey_params->GetKeySizeStr())
-                   .toUtf8();
-        expires =
-            QDateTime::currentDateTime().secsTo(subkey_params->GetExpireTime());
-
-        flags = 0;
-        if (subkey_params->IsAllowEncryption()) flags |= GPGME_CREATE_ENCR;
-        if (subkey_params->IsAllowSigning()) flags |= GPGME_CREATE_SIGN;
-        if (subkey_params->IsAllowAuthentication()) flags |= GPGME_CREATE_AUTH;
-        if (subkey_params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
-        if (subkey_params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
-
-        LOG_D() << "subkey generation args: " << key.GetId() << algo << expires
-                << flags;
-
-        err = gpgme_op_createsubkey(ctx.DefaultContext(),
-                                    static_cast<gpgme_key_t>(key), algo, 0,
-                                    expires, flags);
-
-        if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-          data_object->Swap(
-              {genkey_result, GpgGenerateKeyResult{gpgme_op_genkey_result(
-                                  ctx.DefaultContext())}});
-        } else {
-          data_object->Swap({genkey_result, GpgGenerateKeyResult{}});
-        }
-
-        return CheckGpgError(err);
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        return GenerateKeyWithSubkeyImpl(ctx_, key_getter_, p_params, s_params,
+                                         data_object);
       },
       "gpgme_op_createkey&gpgme_op_createsubkey", "2.1.0");
 }
@@ -532,8 +360,8 @@ auto GpgKeyOpera::ModifyTOFUPolicy(
 }
 
 void GpgKeyOpera::DeleteKey(const KeyId& key_id) {
-  auto keys = std::make_unique<KeyIdArgsList>();
-  keys->push_back(key_id);
-  DeleteKeys(std::move(keys));
+  auto keys = KeyIdArgsList{};
+  keys.push_back(key_id);
+  DeleteKeys(keys);
 }
 }  // namespace GpgFrontend

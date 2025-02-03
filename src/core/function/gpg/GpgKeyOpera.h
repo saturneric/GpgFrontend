@@ -31,6 +31,7 @@
 #include <functional>
 
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgKeyGetter.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
@@ -38,7 +39,7 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GenKeyInfo;
+class KeyGenerateInfo;
 
 /**
  * @brief
@@ -60,7 +61,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    *
    * @param key_ids
    */
-  void DeleteKeys(KeyIdArgsListPtr key_ids);
+  void DeleteKeys(KeyIdArgsList key_ids);
 
   /**
    * @brief
@@ -114,7 +115,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param result
    * @return GpgFrontend::GpgError
    */
-  void GenerateKey(const std::shared_ptr<GenKeyInfo>&,
+  void GenerateKey(const QSharedPointer<KeyGenerateInfo>&,
                    const GpgOperationCallback&);
 
   /**
@@ -122,7 +123,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    *
    * @param params
    */
-  auto GenerateKeySync(const std::shared_ptr<GenKeyInfo>& params)
+  auto GenerateKeySync(const QSharedPointer<KeyGenerateInfo>& params)
       -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
@@ -133,7 +134,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @return GpgFrontend::GpgError
    */
   void GenerateSubkey(const GpgKey& key,
-                      const std::shared_ptr<GenKeyInfo>& params,
+                      const QSharedPointer<KeyGenerateInfo>& params,
                       const GpgOperationCallback&);
 
   /**
@@ -143,7 +144,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param params
    */
   auto GenerateSubkeySync(const GpgKey& key,
-                          const std::shared_ptr<GenKeyInfo>& params)
+                          const QSharedPointer<KeyGenerateInfo>& params)
       -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
@@ -153,8 +154,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param subkey_params
    * @param callback
    */
-  void GenerateKeyWithSubkey(const std::shared_ptr<GenKeyInfo>& params,
-                             const std::shared_ptr<GenKeyInfo>& subkey_params,
+  void GenerateKeyWithSubkey(const QSharedPointer<KeyGenerateInfo>& p_params,
+                             const QSharedPointer<KeyGenerateInfo>& s_params,
                              const GpgOperationCallback& callback);
 
   /**
@@ -165,12 +166,15 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param callback
    */
   auto GenerateKeyWithSubkeySync(
-      const std::shared_ptr<GenKeyInfo>& params,
-      const std::shared_ptr<GenKeyInfo>& subkey_params)
+      const QSharedPointer<KeyGenerateInfo>& p_params,
+      const QSharedPointer<KeyGenerateInfo>& s_params)
       -> std::tuple<GpgError, DataObjectPtr>;
 
  private:
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
+
+  GpgKeyGetter& key_getter_ =
+      GpgKeyGetter::GetInstance(SingletonFunctionObject::GetChannel());  ///<
 };
 }  // namespace GpgFrontend

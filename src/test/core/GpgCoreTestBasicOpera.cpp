@@ -171,7 +171,7 @@ TEST_F(GpgCoreTest, CoreSignVerifyNormalTest) {
       GpgBasicOperator::GetInstance().VerifySync(sign_out_buffer, GFBuffer());
 
   ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
-  ASSERT_TRUE((data_object_0->Check<GpgVerifyResult>()));
+  ASSERT_TRUE((data_object_0->Check<GpgVerifyResult, GFBuffer>()));
   auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 0);
   ASSERT_FALSE(verify_result.GetSignature().empty());
   ASSERT_EQ(verify_result.GetSignature().at(0).GetFingerprint(),
@@ -198,7 +198,7 @@ TEST_F(GpgCoreTest, CoreSignVerifyDetachTest) {
       GpgBasicOperator::GetInstance().VerifySync(sign_text, sign_out_buffer);
 
   ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
-  ASSERT_TRUE((data_object_0->Check<GpgVerifyResult>()));
+  ASSERT_TRUE((data_object_0->Check<GpgVerifyResult, GFBuffer>()));
   auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 0);
   ASSERT_FALSE(verify_result.GetSignature().empty());
   ASSERT_EQ(verify_result.GetSignature().at(0).GetFingerprint(),
@@ -241,7 +241,7 @@ TEST_F(GpgCoreTest, CoreEncryptSignDecrVerifyTest) {
   auto encrypt_text = GFBuffer(QString("Hello GpgFrontend!"));
 
   ASSERT_TRUE(sign_key.IsPrivateKey());
-  ASSERT_TRUE(sign_key.IsHasActualSigningCapability());
+  ASSERT_TRUE(sign_key.IsHasActualSignCap());
 
   auto [err, data_object] = GpgBasicOperator::GetInstance().EncryptSignSync(
       {encrypt_key}, {sign_key}, encrypt_text, true);

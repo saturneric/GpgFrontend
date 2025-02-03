@@ -31,17 +31,11 @@ namespace GpgFrontend {
 
 GpgSubKey::GpgSubKey() = default;
 
-GpgSubKey::GpgSubKey(gpgme_subkey_t subkey)
-    : subkey_ref_(subkey, [&](gpgme_subkey_t subkey) {}) {}
+GpgSubKey::GpgSubKey(gpgme_subkey_t subkey) : subkey_ref_(subkey) {}
 
-GpgSubKey::GpgSubKey(GpgSubKey&& o) noexcept {
-  swap(subkey_ref_, o.subkey_ref_);
-}
+GpgSubKey::GpgSubKey(const GpgSubKey&) = default;
 
-auto GpgSubKey::operator=(GpgSubKey&& o) noexcept -> GpgSubKey& {
-  swap(subkey_ref_, o.subkey_ref_);
-  return *this;
-};
+auto GpgSubKey::operator=(const GpgSubKey&) -> GpgSubKey& = default;
 
 auto GpgSubKey::operator==(const GpgSubKey& o) const -> bool {
   return GetFingerprint() == o.GetFingerprint();
@@ -56,7 +50,7 @@ auto GpgSubKey::GetPubkeyAlgo() const -> QString {
 }
 
 auto GpgSubKey::GetKeyAlgo() const -> QString {
-  auto* buffer = gpgme_pubkey_algo_string(subkey_ref_.get());
+  auto* buffer = gpgme_pubkey_algo_string(subkey_ref_);
   auto algo = QString(buffer);
   gpgme_free(buffer);
   return algo.toUpper();
@@ -66,19 +60,17 @@ auto GpgSubKey::GetKeyLength() const -> unsigned int {
   return subkey_ref_->length;
 }
 
-auto GpgSubKey::IsHasEncryptionCapability() const -> bool {
+auto GpgSubKey::IsHasEncrCap() const -> bool {
   return subkey_ref_->can_encrypt;
 }
 
-auto GpgSubKey::IsHasSigningCapability() const -> bool {
-  return subkey_ref_->can_sign;
-}
+auto GpgSubKey::IsHasSignCap() const -> bool { return subkey_ref_->can_sign; }
 
-auto GpgSubKey::IsHasCertificationCapability() const -> bool {
+auto GpgSubKey::IsHasCertCap() const -> bool {
   return subkey_ref_->can_certify;
 }
 
-auto GpgSubKey::IsHasAuthenticationCapability() const -> bool {
+auto GpgSubKey::IsHasAuthCap() const -> bool {
   return subkey_ref_->can_authenticate;
 }
 

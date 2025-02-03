@@ -43,9 +43,6 @@ namespace GpgFrontend::UI {
 class InfoBoardWidget;
 class TextEdit;
 
-using OperaWaitingHd = std::function<void()>;
-using OperaWaitingCb = const std::function<void(OperaWaitingHd)>;
-
 /**
  * @brief
  *
@@ -104,14 +101,6 @@ class CommonUtils : public QWidget {
    * @return CommonUtils*
    */
   static auto GetInstance() -> CommonUtils*;
-
-  /**
-   * @brief
-   *
-   * @param err
-   */
-  static void WaitForOpera(QWidget* parent, const QString&,
-                           const OperaWaitingCb&);
 
   /**
    * @brief
@@ -227,7 +216,7 @@ class CommonUtils : public QWidget {
    * @param channel
    */
   void ImportKeyByKeyServerSyncModule(QWidget* parent, int channel,
-                                      const QList<QString>& fprs);
+                                      const QStringList& fprs);
 
   /**
    * @brief

@@ -29,10 +29,6 @@
 #pragma once
 
 #include "core/GpgConstants.h"
-#include "main_window/KeyMgmt.h"
-#include "ui/GpgFrontendUI.h"
-#include "ui/dialog/key_generate/KeygenDialog.h"
-#include "ui/dialog/settings/SettingsDialog.h"
 
 namespace GpgFrontend::UI {
 
@@ -45,7 +41,12 @@ class Wizard : public QWizard {
   Q_ENUMS(WizardPages)
 
  public:
-  enum WizardPages { Page_Intro, Page_Choose, Page_GenKey, Page_Conclusion };
+  enum WizardPages {
+    kPAGE_INTRO,
+    kPAGE_CHOOSE,
+    kPAGE_GEN_KEY,
+    kPAGE_CONCLUSION,
+  };
 
   /**
    * @brief Construct a new Wizard object
@@ -176,7 +177,7 @@ class ConclusionPage : public QWizardPage {
    *
    * @return int
    */
-  [[nodiscard]] int nextId() const override;
+  [[nodiscard]] auto nextId() const -> int override;
 
  private:
   QCheckBox* dont_show_wizard_checkbox_;  ///<

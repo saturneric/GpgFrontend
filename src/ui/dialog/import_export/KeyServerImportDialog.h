@@ -59,7 +59,7 @@ class KeyServerImportDialog : public GeneralDialog {
    *
    * @param keys
    */
-  void SlotImport(const KeyIdArgsListPtr& keys);
+  void SlotImport(const KeyIdArgsList& keys);
 
   /**
    * @brief
@@ -67,7 +67,7 @@ class KeyServerImportDialog : public GeneralDialog {
    * @param keyIds
    * @param keyserverUrl
    */
-  void SlotImport(std::vector<QString> key_ids_list, QString keyserver_url);
+  void SlotImport(KeyIdArgsList key_ids_list, QString keyserver_url);
 
  signals:
 
@@ -127,7 +127,7 @@ class KeyServerImportDialog : public GeneralDialog {
    *
    * @param in_data
    */
-  void import_keys(ByteArrayPtr in_data);
+  void import_keys(ByteArray in_data);
 
   /**
    * @brief Set the loading object

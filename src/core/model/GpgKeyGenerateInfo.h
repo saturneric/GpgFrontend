@@ -29,12 +29,59 @@
 #pragma once
 
 #include "core/GpgFrontendCoreExport.h"
+#include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
+class GPGFRONTEND_CORE_EXPORT KeyAlgo {
  public:
-  using KeyGenAlgo = std::tuple<QString, QString, QString>;
+  KeyAlgo() = default;
+
+  KeyAlgo(QString id, QString name, QString type, int length, int opera,
+          QString supported_version);
+
+  KeyAlgo(const KeyAlgo &) = default;
+
+  auto operator=(const KeyAlgo &) -> KeyAlgo & = default;
+
+  auto operator==(const KeyAlgo &o) const -> bool;
+
+  [[nodiscard]] auto Id() const -> QString;
+
+  [[nodiscard]] auto Name() const -> QString;
+
+  [[nodiscard]] auto KeyLength() const -> int;
+
+  [[nodiscard]] auto Type() const -> QString;
+
+  [[nodiscard]] auto CanEncrypt() const -> bool;
+
+  [[nodiscard]] auto CanSign() const -> bool;
+
+  [[nodiscard]] auto CanAuth() const -> bool;
+
+  [[nodiscard]] auto CanCert() const -> bool;
+
+  [[nodiscard]] auto IsSupported(const QString &version) const -> bool;
+
+ private:
+  QString id_;
+  QString name_;
+  QString type_;
+  int length_;
+  bool encrypt_;
+  bool sign_;
+  bool auth_;
+  bool cert_;
+  QString supported_version_;
+};
+
+class GPGFRONTEND_CORE_EXPORT KeyGenerateInfo : public QObject {
+  Q_OBJECT
+ public:
+  static const KeyAlgo kNoneAlgo;
+  static const QContainer<KeyAlgo> kPrimaryKeyAlgos;
+  static const QContainer<KeyAlgo> kSubKeyAlgos;
 
   /**
    * @brief Construct a new Gen Key Info object
@@ -42,21 +89,39 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    * @param m_is_sub_key
    * @param m_standalone
    */
-  explicit GenKeyInfo(bool m_is_sub_key = false);
+  explicit KeyGenerateInfo(bool is_subkey = false);
 
   /**
    * @brief Get the Supported Key Algo object
    *
-   * @return const std::vector<QString>&
+   * @return const QContainer<KeyGenAlgo>&
    */
-  static auto GetSupportedKeyAlgo() -> const std::vector<KeyGenAlgo> &;
+  static auto GetSupportedKeyAlgo() -> QContainer<KeyAlgo>;
 
   /**
    * @brief Get the Supported Subkey Algo object
    *
-   * @return const std::vector<QString>&
+   * @return const QContainer<KeyGenAlgo>&
    */
-  static auto GetSupportedSubkeyAlgo() -> const std::vector<KeyGenAlgo> &;
+  static auto GetSupportedSubkeyAlgo() -> QContainer<KeyAlgo>;
+
+  /**
+   * @brief
+   *
+   * @param algo_id
+   * @return std::tuple<bool, KeyAlgo>
+   */
+  static auto SearchPrimaryKeyAlgo(const QString &algo_id)
+      -> std::tuple<bool, KeyAlgo>;
+
+  /**
+   * @brief
+   *
+   * @param algo_id
+   * @return std::tuple<bool, KeyAlgo>
+   */
+  static auto SearchSubKeyAlgo(const QString &algo_id)
+      -> std::tuple<bool, KeyAlgo>;
 
   /**
    * @brief
@@ -71,7 +136,7 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    *
    * @param m_sub_key
    */
-  void SetIsSubKey(bool m_sub_key);
+  void SetIsSubKey(bool);
 
   /**
    * @brief Get the Userid object
@@ -85,21 +150,21 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    *
    * @param m_name
    */
-  void SetName(const QString &m_name);
+  void SetName(const QString &name);
 
   /**
    * @brief Set the Email object
    *
    * @param m_email
    */
-  void SetEmail(const QString &m_email);
+  void SetEmail(const QString &email);
 
   /**
    * @brief Set the Comment object
    *
    * @param m_comment
    */
-  void SetComment(const QString &m_comment);
+  void SetComment(const QString &comment);
 
   /**
    * @brief Get the Name object
@@ -127,21 +192,14 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    *
    * @return const QString&
    */
-  [[nodiscard]] auto GetAlgo() const -> const QString &;
+  [[nodiscard]] auto GetAlgo() const -> const KeyAlgo &;
 
   /**
    * @brief Set the Algo object
    *
    * @param m_algo
    */
-  void SetAlgo(const QString &);
-
-  /**
-   * @brief Get the Key Size Str object
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetKeySizeStr() const -> QString;
+  void SetAlgo(const KeyAlgo &);
 
   /**
    * @brief Get the Key Size object
@@ -149,13 +207,6 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    * @return int
    */
   [[nodiscard]] auto GetKeyLength() const -> int;
-
-  /**
-   * @brief Set the Key Size object
-   *
-   * @param m_key_size
-   */
-  void SetKeyLength(int m_key_size);
 
   /**
    * @brief Get the Expired object
@@ -207,7 +258,7 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsAllowSigning() const -> bool;
+  [[nodiscard]] auto IsAllowSign() const -> bool;
 
   /**
    * @brief
@@ -222,7 +273,7 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    *
    * @param m_allow_signing
    */
-  void SetAllowSigning(bool m_allow_signing);
+  void SetAllowSign(bool m_allow_signing);
 
   /**
    * @brief
@@ -230,14 +281,14 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsAllowEncryption() const -> bool;
+  [[nodiscard]] auto IsAllowEncr() const -> bool;
 
   /**
    * @brief Set the Allow Encryption object
    *
    * @param m_allow_encryption
    */
-  void SetAllowEncryption(bool m_allow_encryption);
+  void SetAllowEncr(bool m_allow_encryption);
 
   /**
    * @brief
@@ -245,14 +296,14 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsAllowCertification() const -> bool;
+  [[nodiscard]] auto IsAllowCert() const -> bool;
 
   /**
    * @brief Set the Allow Certification object
    *
    * @param m_allow_certification
    */
-  void SetAllowCertification(bool m_allow_certification);
+  void SetAllowCert(bool m_allow_certification);
 
   /**
    * @brief
@@ -260,28 +311,14 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsAllowAuthentication() const -> bool;
+  [[nodiscard]] auto IsAllowAuth() const -> bool;
 
   /**
    * @brief Set the Allow Authentication object
    *
    * @param m_allow_authentication
    */
-  void SetAllowAuthentication(bool m_allow_authentication);
-
-  /**
-   * @brief Get the Pass Phrase object
-   *
-   * @return const QString&
-   */
-  [[nodiscard]] auto GetPassPhrase() const -> const QString &;
-
-  /**
-   * @brief Set the Pass Phrase object
-   *
-   * @param m_pass_phrase
-   */
-  void SetPassPhrase(const QString &m_pass_phrase);
+  void SetAllowAuth(bool m_allow_authentication);
 
   /**
    * @brief
@@ -289,7 +326,7 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsAllowChangeSigning() const -> bool;
+  [[nodiscard]] auto IsAllowModifySign() const -> bool;
 
   /**
    * @brief
@@ -297,7 +334,7 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsAllowChangeEncryption() const -> bool;
+  [[nodiscard]] auto IsAllowModifyEncr() const -> bool;
 
   /**
    * @brief
@@ -305,7 +342,7 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsAllowChangeCertification() const -> bool;
+  [[nodiscard]] auto IsAllowModifyCert() const -> bool;
 
   /**
    * @brief
@@ -313,28 +350,7 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsAllowChangeAuthentication() const -> bool;
-
-  /**
-   * @brief Get the Suggest Max Key Size object
-   *
-   * @return int
-   */
-  [[nodiscard]] auto GetSuggestMaxKeySize() const -> int;
-
-  /**
-   * @brief Get the Suggest Min Key Size object
-   *
-   * @return int
-   */
-  [[nodiscard]] auto GetSuggestMinKeySize() const -> int;
-
-  /**
-   * @brief Get the Size Change Step object
-   *
-   * @return int
-   */
-  [[nodiscard]] auto GetSizeChangeStep() const -> int;
+  [[nodiscard]] auto IsAllowModifyAuth() const -> bool;
 
  private:
   bool subkey_ = false;  ///<
@@ -342,19 +358,12 @@ class GPGFRONTEND_CORE_EXPORT GenKeyInfo {
   QString email_;        ///<
   QString comment_;      ///<
 
-  QString algo_;  ///<
-  int key_size_ = 2048;
-  QDateTime expired_ = QDateTime::currentDateTime().addYears(2);
+  KeyAlgo algo_;  ///<
+  QDateTime expired_;
   bool non_expired_ = false;  ///<
 
   bool no_passphrase_ = false;        ///<
   bool allow_no_pass_phrase_ = true;  ///<
-
-  int suggest_max_key_size_ = 4096;        ///<
-  int suggest_size_addition_step_ = 1024;  ///<
-  int suggest_min_key_size_ = 1024;        ///<
-
-  QString passphrase_;  ///<
 
   bool allow_encryption_ = true;             ///<
   bool allow_change_encryption_ = true;      ///<

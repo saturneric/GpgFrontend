@@ -32,6 +32,8 @@
 
 #include <memory>
 
+#include "core/GpgConstants.h"
+
 namespace GpgFrontend {
 
 struct GpgFrontendContext;
@@ -45,6 +47,8 @@ struct GpgFrontendContext {
 
   bool gather_external_gnupg_info;
   bool unit_test_mode;
+
+  int rtn = GpgFrontend::kCrashCode;
 
   /**
    * @brief Construct a new Gpg Frontend Context object

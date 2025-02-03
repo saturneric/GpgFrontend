@@ -28,15 +28,13 @@
 
 #include "GpgKeyTableProxyModel.h"
 
-#include <utility>
-
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/model/CacheObject.h"
 #include "core/model/GpgKey.h"
 #include "core/struct/cache_object/AllFavoriteKeyPairsCO.h"
 #include "core/utils/GpgUtils.h"
 
-namespace GpgFrontend {
+namespace GpgFrontend::UI {
 
 GpgKeyTableProxyModel::GpgKeyTableProxyModel(
     QSharedPointer<GpgKeyTableModel> model, GpgKeyTableDisplayMode display_mode,
@@ -45,7 +43,9 @@ GpgKeyTableProxyModel::GpgKeyTableProxyModel(
       model_(std::move(model)),
       display_mode_(display_mode),
       filter_columns_(columns),
-      custom_filter_(std::move(filter)) {
+      custom_filter_(std::move(filter)),
+      default_font_("Arial", 14),
+      default_metrics_(default_font_) {
   setSourceModel(model_.get());
 
   connect(this, &GpgKeyTableProxyModel::SignalFavoritesChanged, this,
@@ -197,4 +197,5 @@ void GpgKeyTableProxyModel::slot_update_favorites_cache() {
     favorite_key_ids_ = cache_obj.key_dbs[key_db_name].key_ids;
   }
 }
-}  // namespace GpgFrontend
+
+}  // namespace GpgFrontend::UI

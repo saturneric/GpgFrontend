@@ -48,8 +48,6 @@ GeneralTab::GeneralTab(QWidget* parent)
          "crash."));
 
   ui_->importConfirmationBox->setTitle(tr("Operation"));
-  ui_->longerKeyExpirationDateCheckBox->setText(
-      tr("Enable to use longer key expiration date."));
   ui_->importConfirmationCheckBox->setText(
       tr("Import files dropped on the Key List without confirmation."));
   ui_->disableLoadingModulesCheckBox->setText(
@@ -109,7 +107,7 @@ GeneralTab::GeneralTab(QWidget* parent)
 }
 
 void GeneralTab::SetSettings() {
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GetSettings();
 
   auto clear_gpg_password_cache =
       settings.value("basic/clear_gpg_password_cache", true).toBool();
@@ -120,11 +118,6 @@ void GeneralTab::SetSettings() {
       settings.value("basic/restore_text_editor_page", true).toBool();
   ui_->restoreTextEditorPageCheckBox->setCheckState(
       restore_text_editor_page ? Qt::Checked : Qt::Unchecked);
-
-  auto longer_expiration_date =
-      settings.value("basic/longer_expiration_date", false).toBool();
-  ui_->longerKeyExpirationDateCheckBox->setCheckState(
-      longer_expiration_date ? Qt::Checked : Qt::Unchecked);
 
   auto confirm_import_keys =
       settings.value("basic/confirm_import_keys", false).toBool();
@@ -147,11 +140,8 @@ void GeneralTab::SetSettings() {
 }
 
 void GeneralTab::ApplySettings() {
-  auto settings =
-      GpgFrontend::GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GpgFrontend::GetSettings();
 
-  settings.setValue("basic/longer_expiration_date",
-                    ui_->longerKeyExpirationDateCheckBox->isChecked());
   settings.setValue("basic/clear_gpg_password_cache",
                     ui_->clearGpgPasswordCacheCheckBox->isChecked());
   settings.setValue("basic/restore_text_editor_page",

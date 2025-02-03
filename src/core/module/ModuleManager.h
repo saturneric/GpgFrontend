@@ -101,7 +101,7 @@ class GPGFRONTEND_CORE_EXPORT ModuleManager
 
   auto ListenRTPublish(QObject*, Namespace, Key, LPCallback) -> bool;
 
-  auto ListRTChildKeys(const QString&, const QString&) -> std::vector<Key>;
+  auto ListRTChildKeys(const QString&, const QString&) -> QContainer<Key>;
 
   auto GRT() -> GlobalRegisterTable*;
 
@@ -175,10 +175,10 @@ auto GPGFRONTEND_CORE_EXPORT ListenRTPublishEvent(QObject*, Namespace, Key,
  *
  * @param namespace_
  * @param key
- * @return std::vector<Key>
+ * @return QContainer<Key>
  */
 auto GPGFRONTEND_CORE_EXPORT ListRTChildKeys(
-    const QString& namespace_, const QString& key) -> std::vector<Key>;
+    const QString& namespace_, const QString& key) -> QContainer<Key>;
 
 template <typename T>
 auto RetrieveRTValueTyped(const QString& namespace_,

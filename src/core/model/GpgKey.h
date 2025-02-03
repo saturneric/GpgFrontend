@@ -152,7 +152,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsHasEncryptionCapability() const -> bool;
+  [[nodiscard]] auto IsHasEncrCap() const -> bool;
 
   /**
    * @brief
@@ -161,7 +161,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsHasActualEncryptionCapability() const -> bool;
+  [[nodiscard]] auto IsHasActualEncrCap() const -> bool;
 
   /**
    * @brief
@@ -169,7 +169,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsHasSigningCapability() const -> bool;
+  [[nodiscard]] auto IsHasSignCap() const -> bool;
 
   /**
    * @brief
@@ -177,7 +177,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsHasActualSigningCapability() const -> bool;
+  [[nodiscard]] auto IsHasActualSignCap() const -> bool;
 
   /**
    * @brief
@@ -185,7 +185,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsHasCertificationCapability() const -> bool;
+  [[nodiscard]] auto IsHasCertCap() const -> bool;
 
   /**
    * @brief
@@ -193,7 +193,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsHasActualCertificationCapability() const -> bool;
+  [[nodiscard]] auto IsHasActualCertCap() const -> bool;
 
   /**
    * @brief
@@ -201,7 +201,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsHasAuthenticationCapability() const -> bool;
+  [[nodiscard]] auto IsHasAuthCap() const -> bool;
 
   /**
    * @brief
@@ -209,7 +209,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsHasActualAuthenticationCapability() const -> bool;
+  [[nodiscard]] auto IsHasActualAuthCap() const -> bool;
 
   /**
    * @brief
@@ -262,17 +262,17 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
   /**
    * @brief
    *
-   * @return std::unique_ptr<std::vector<GpgSubKey>>
+   * @return std::unique_ptr<QContainer<GpgSubKey>>
    */
   [[nodiscard]] auto GetSubKeys() const
-      -> std::unique_ptr<std::vector<GpgSubKey>>;
+      -> std::unique_ptr<QContainer<GpgSubKey>>;
 
   /**
    * @brief
    *
-   * @return std::unique_ptr<std::vector<GpgUID>>
+   * @return std::unique_ptr<QContainer<GpgUID>>
    */
-  [[nodiscard]] auto GetUIDs() const -> std::unique_ptr<std::vector<GpgUID>>;
+  [[nodiscard]] auto GetUIDs() const -> std::unique_ptr<QContainer<GpgUID>>;
 
   /**
    * @brief Construct a new Gpg Key object

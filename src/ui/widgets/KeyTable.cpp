@@ -34,10 +34,10 @@
 
 namespace GpgFrontend::UI {
 
-auto KeyTable::GetChecked() const -> KeyIdArgsListPtr {
-  auto ret = std::make_unique<KeyIdArgsList>();
+auto KeyTable::GetChecked() const -> KeyIdArgsList {
+  auto ret = KeyIdArgsList{};
   for (decltype(GetRowCount()) i = 0; i < GetRowCount(); i++) {
-    if (IsRowChecked(i)) ret->push_back(GetKeyIdByRow(i));
+    if (IsRowChecked(i)) ret.push_back(GetKeyIdByRow(i));
   }
   return ret;
 }
@@ -54,8 +54,7 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
 
   verticalHeader()->hide();
   horizontalHeader()->setStretchLastSection(false);
-  setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-
+  horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
   setShowGrid(false);
   sortByColumn(2, Qt::AscendingOrder);
   setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -77,6 +76,8 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
           });
   connect(this, &QTableView::doubleClicked, this,
           [this](const QModelIndex& index) {
+            if (!index.isValid() || index.column() == 0) return;
+
             auto key = GpgKeyGetter::GetInstance(model_->GetGpgContextChannel())
                            .GetKey(GetKeyIdByRow(index.row()));
             if (!key.IsGood()) {
@@ -146,4 +147,5 @@ void KeyTable::UncheckAll() {
 
   return selected_indexes.first().row();
 }
+
 }  // namespace GpgFrontend::UI

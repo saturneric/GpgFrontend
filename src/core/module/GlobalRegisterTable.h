@@ -33,6 +33,7 @@
 #include <optional>
 
 #include "core/function/SecureMemoryAllocator.h"
+#include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend::Module {
 
@@ -55,7 +56,7 @@ class GlobalRegisterTable : public QObject {
 
   auto ListenPublish(QObject *, Namespace, Key, LPCallback) -> bool;
 
-  auto ListChildKeys(Namespace n, Key k) -> std::vector<Key>;
+  auto ListChildKeys(Namespace n, Key k) -> QContainer<Key>;
 
  signals:
   void SignalPublish(Namespace, Key, int, std::any);

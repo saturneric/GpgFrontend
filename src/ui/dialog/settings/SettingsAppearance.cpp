@@ -135,7 +135,7 @@ void AppearanceTab::SetSettings() {
     ui_->themeComboBox->addItem(s.toLower());
   }
 
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GetSettings();
   auto theme = settings.value("appearance/theme").toString();
 
   auto target_theme_index = ui_->themeComboBox->findText(theme);
@@ -150,6 +150,19 @@ void AppearanceTab::SetSettings() {
   } else {
     ui_->themeComboBox->setCurrentIndex(target_theme_index);
   }
+
+  ui_->encrCheckBox->setChecked(
+      (appearance.tool_bar_crypto_operas_type & GpgOperation::kENCRYPT) != 0);
+  ui_->decrCheckBox->setChecked(
+      (appearance.tool_bar_crypto_operas_type & GpgOperation::kDECRYPT) != 0);
+  ui_->signCheckBox->setChecked(
+      (appearance.tool_bar_crypto_operas_type & GpgOperation::kSIGN) != 0);
+  ui_->verifyCheckBox->setChecked(
+      (appearance.tool_bar_crypto_operas_type & GpgOperation::kVERIFY) != 0);
+  ui_->encrSignCheckBox->setChecked((appearance.tool_bar_crypto_operas_type &
+                                     GpgOperation::kENCRYPT_SIGN) != 0);
+  ui_->decrVerifyCheckBox->setChecked((appearance.tool_bar_crypto_operas_type &
+                                       GpgOperation::kDECRYPT_VERIFY) != 0);
 }
 
 void AppearanceTab::ApplySettings() {
@@ -195,9 +208,23 @@ void AppearanceTab::ApplySettings() {
   appearance.text_editor_font_size =
       ui_->fontSizeTextEditorLabelSpinBox->value();
 
+  appearance.tool_bar_crypto_operas_type = 0;
+  appearance.tool_bar_crypto_operas_type |=
+      ui_->encrCheckBox->isChecked() ? kENCRYPT : kNONE;
+  appearance.tool_bar_crypto_operas_type |=
+      ui_->decrCheckBox->isChecked() ? kDECRYPT : kNONE;
+  appearance.tool_bar_crypto_operas_type |=
+      ui_->signCheckBox->isChecked() ? kSIGN : kNONE;
+  appearance.tool_bar_crypto_operas_type |=
+      ui_->verifyCheckBox->isChecked() ? kVERIFY : kNONE;
+  appearance.tool_bar_crypto_operas_type |=
+      ui_->encrSignCheckBox->isChecked() ? kENCRYPT_SIGN : kNONE;
+  appearance.tool_bar_crypto_operas_type |=
+      ui_->decrVerifyCheckBox->isChecked() ? kDECRYPT_VERIFY : kNONE;
+
   general_settings_state.Store(appearance.ToJson());
 
-  auto settings = GlobalSettingStation::GetInstance().GetSettings();
+  auto settings = GetSettings();
   settings.setValue("appearance/theme", ui_->themeComboBox->currentText());
 }
 

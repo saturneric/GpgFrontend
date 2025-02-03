@@ -32,10 +32,11 @@ namespace GpgFrontend {
 
 GpgUID::GpgUID() = default;
 
-GpgUID::GpgUID(gpgme_user_id_t uid)
-    : uid_ref_(uid, [&](gpgme_user_id_t uid) {}) {}
+GpgUID::GpgUID(gpgme_user_id_t uid) : uid_ref_(uid) {}
 
-GpgUID::GpgUID(GpgUID &&o) noexcept { swap(uid_ref_, o.uid_ref_); }
+GpgUID::GpgUID(const GpgUID &) = default;
+
+auto GpgUID::operator=(const GpgUID &) -> GpgUID & = default;
 
 auto GpgUID::GetName() const -> QString { return uid_ref_->name; }
 
@@ -49,8 +50,8 @@ auto GpgUID::GetRevoked() const -> bool { return uid_ref_->revoked; }
 
 auto GpgUID::GetInvalid() const -> bool { return uid_ref_->invalid; }
 
-auto GpgUID::GetTofuInfos() const -> std::unique_ptr<std::vector<GpgTOFUInfo>> {
-  auto infos = std::make_unique<std::vector<GpgTOFUInfo>>();
+auto GpgUID::GetTofuInfos() const -> std::unique_ptr<QContainer<GpgTOFUInfo>> {
+  auto infos = std::make_unique<QContainer<GpgTOFUInfo>>();
   auto *info_next = uid_ref_->tofu;
   while (info_next != nullptr) {
     infos->push_back(GpgTOFUInfo(info_next));
@@ -60,8 +61,8 @@ auto GpgUID::GetTofuInfos() const -> std::unique_ptr<std::vector<GpgTOFUInfo>> {
 }
 
 auto GpgUID::GetSignatures() const
-    -> std::unique_ptr<std::vector<GpgKeySignature>> {
-  auto sigs = std::make_unique<std::vector<GpgKeySignature>>();
+    -> std::unique_ptr<QContainer<GpgKeySignature>> {
+  auto sigs = std::make_unique<QContainer<GpgKeySignature>>();
   auto *sig_next = uid_ref_->signatures;
   while (sig_next != nullptr) {
     sigs->push_back(GpgKeySignature(sig_next));

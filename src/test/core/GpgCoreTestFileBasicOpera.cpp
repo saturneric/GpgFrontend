@@ -232,7 +232,7 @@ TEST_F(GpgCoreTest, CoreFileEncryptSignDecrVerifyTest) {
   auto output_file = GetTempFilePath();
 
   ASSERT_TRUE(sign_key.IsPrivateKey());
-  ASSERT_TRUE(sign_key.IsHasActualSigningCapability());
+  ASSERT_TRUE(sign_key.IsHasActualSignCap());
 
   auto [err, data_object] = GpgFileOpera::GetInstance().EncryptSignFileSync(
       {encrypt_key}, {sign_key}, input_file, true, output_file);
@@ -279,7 +279,7 @@ TEST_F(GpgCoreTest, CoreFileEncryptSignDecrVerifyBinaryTest) {
   auto output_file = GetTempFilePath();
 
   ASSERT_TRUE(sign_key.IsPrivateKey());
-  ASSERT_TRUE(sign_key.IsHasActualSigningCapability());
+  ASSERT_TRUE(sign_key.IsHasActualSignCap());
 
   auto [err, data_object] = GpgFileOpera::GetInstance().EncryptSignFileSync(
       {encrypt_key}, {sign_key}, input_file, false, output_file);

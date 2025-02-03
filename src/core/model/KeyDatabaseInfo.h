@@ -34,6 +34,7 @@ struct KeyDatabaseInfo {
   int channel;
   QString name;
   QString path;
+  QString origin_path;
 
   KeyDatabaseInfo() = default;
 };

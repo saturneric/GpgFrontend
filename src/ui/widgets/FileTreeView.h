@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "core/typedef/CoreTypedef.h"
+
 namespace GpgFrontend::UI {
 
 class FileTreeView : public QTreeView {
@@ -53,7 +55,7 @@ class FileTreeView : public QTreeView {
    *
    * @return QString
    */
-  auto GetSelectedPath() -> QString;
+  auto GetSelectedPaths() -> QStringList;
 
   /**
    * @brief Get the Path By Click Point object
@@ -114,7 +116,7 @@ class FileTreeView : public QTreeView {
    * @brief
    *
    */
-  void SignalSelectedChanged(const QString&);
+  void SignalSelectedChanged(const QStringList&);
 
   /**
    * @brief
@@ -191,6 +193,12 @@ class FileTreeView : public QTreeView {
    */
   void SlotOpenSelectedItemBySystemApplication();
 
+  /**
+   * @brief
+   *
+   */
+  void SlotSwitchBatchMode(bool);
+
  private slots:
 
   /**
@@ -234,7 +242,7 @@ class FileTreeView : public QTreeView {
  private:
   QFileSystemModel* dir_model_;  ///<
   QString current_path_;         ///<
-  QString selected_path_;        ///<
+  QStringList selected_paths_;   ///<
 
   QMenu* popup_menu_;
   QMenu* new_item_action_menu_;

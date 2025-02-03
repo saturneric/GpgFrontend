@@ -73,17 +73,17 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     return GpgKey(std::move(p_key));
   }
 
-  auto FetchKey() -> KeyLinkListPtr {
+  auto FetchKey() -> GpgKeyList {
     if (keys_search_cache_.empty()) {
       FlushKeyCache();
     }
 
-    auto keys_list = std::make_unique<GpgKeyLinkList>();
+    auto keys_list = GpgKeyList{};
     {
       // get the lock
       std::lock_guard<std::mutex> lock(keys_cache_mutex_);
       for (const auto& key : keys_cache_) {
-        keys_list->push_back(key);
+        keys_list.push_back(key);
       }
     }
     return keys_list;
@@ -149,25 +149,17 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     return true;
   }
 
-  auto GetKeys(const KeyIdArgsListPtr& ids) -> KeyListPtr {
-    auto keys = std::make_unique<KeyArgsList>();
-    for (const auto& key_id : *ids) keys->emplace_back(GetKey(key_id, true));
+  auto GetKeys(const KeyIdArgsList& ids) -> GpgKeyList {
+    auto keys = GpgKeyList{};
+    for (const auto& key_id : ids) keys.emplace_back(GetKey(key_id, true));
     return keys;
   }
 
-  auto GetKeysCopy(const KeyLinkListPtr& keys) -> KeyLinkListPtr {
+  auto GetKeysCopy(const GpgKeyList& keys) -> GpgKeyList {
     // get the lock
     std::lock_guard<std::mutex> lock(ctx_mutex_);
-    auto keys_copy = std::make_unique<GpgKeyLinkList>();
-    for (const auto& key : *keys) keys_copy->emplace_back(key);
-    return keys_copy;
-  }
-
-  auto GetKeysCopy(const KeyListPtr& keys) -> KeyListPtr {
-    // get the lock
-    std::lock_guard<std::mutex> lock(ctx_mutex_);
-    auto keys_copy = std::make_unique<KeyArgsList>();
-    for (const auto& key : *keys) keys_copy->emplace_back(key);
+    auto keys_copy = GpgKeyList{};
+    for (const auto& key : keys) keys_copy.emplace_back(key);
     return keys_copy;
   }
 
@@ -243,19 +235,15 @@ auto GpgKeyGetter::GetPubkey(const QString& key_id, bool use_cache) -> GpgKey {
 
 auto GpgKeyGetter::FlushKeyCache() -> bool { return p_->FlushKeyCache(); }
 
-auto GpgKeyGetter::GetKeys(const KeyIdArgsListPtr& ids) -> KeyListPtr {
+auto GpgKeyGetter::GetKeys(const KeyIdArgsList& ids) -> GpgKeyList {
   return p_->GetKeys(ids);
 }
 
-auto GpgKeyGetter::GetKeysCopy(const KeyLinkListPtr& keys) -> KeyLinkListPtr {
+auto GpgKeyGetter::GetKeysCopy(const GpgKeyList& keys) -> GpgKeyList {
   return p_->GetKeysCopy(keys);
 }
 
-auto GpgKeyGetter::GetKeysCopy(const KeyListPtr& keys) -> KeyListPtr {
-  return p_->GetKeysCopy(keys);
-}
-
-auto GpgKeyGetter::FetchKey() -> KeyLinkListPtr { return p_->FetchKey(); }
+auto GpgKeyGetter::FetchKey() -> GpgKeyList { return p_->FetchKey(); }
 
 auto GpgKeyGetter::GetGpgKeyTableModel() -> QSharedPointer<GpgKeyTableModel> {
   return p_->GetGpgKeyTableModel();

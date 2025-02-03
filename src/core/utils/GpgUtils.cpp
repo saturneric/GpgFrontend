@@ -28,15 +28,19 @@
 
 #include "GpgUtils.h"
 
+#include "core/function/GlobalSettingStation.h"
+#include "core/model/GpgKey.h"
 #include "core/model/KeyDatabaseInfo.h"
+#include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
+#include "core/struct/settings_object/KeyDatabaseListSO.h"
 
 namespace GpgFrontend {
 
 inline auto Trim(QString& s) -> QString { return s.trimmed(); }
 
 auto GetGpgmeErrorString(size_t buffer_size, gpgme_error_t err) -> QString {
-  std::vector<char> buffer(buffer_size);
+  QContainer<char> buffer(buffer_size);
 
   gpgme_error_t const ret = gpgme_strerror_r(err, buffer.data(), buffer.size());
   if (ret == ERANGE && buffer_size < 1024) {
@@ -217,5 +221,116 @@ auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseName(int channel) -> QString {
   auto info = GetGpgKeyDatabaseInfos();
   if (channel >= info.size()) return {};
   return info[channel].name;
+}
+
+auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
+  auto key_db_list_so = SettingsObject("key_database_list");
+  auto key_db_list = KeyDatabaseListSO(key_db_list_so);
+  auto& key_dbs = key_db_list.key_databases;
+
+  if (key_dbs.empty()) {
+    KeyDatabaseItemSO key_db;
+
+    auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
+        "core", "gpgme.ctx.default_database_path", QString{});
+
+    if (GlobalSettingStation::GetInstance().IsProtableMode()) {
+      home_path = QDir(GlobalSettingStation::GetInstance().GetAppDir())
+                      .relativeFilePath(home_path);
+    }
+
+    key_db.channel = 0;
+    key_db.name = "DEFAULT";
+    key_db.path = home_path;
+
+    key_dbs.append(key_db);
+  }
+
+  // Sort by channel
+  std::sort(key_dbs.begin(), key_dbs.end(),
+            [](const auto& a, const auto& b) { return a.channel < b.channel; });
+
+  // Resolve duplicate channels by incrementing
+  for (auto it = key_dbs.begin(); it != key_dbs.end(); ++it) {
+    auto next_it = std::next(it);
+    while (next_it != key_dbs.end() && next_it->channel == it->channel) {
+      next_it->channel = it->channel + 1;
+      ++next_it;
+    }
+  }
+
+  key_db_list_so.Store(key_db_list.ToJson());
+
+  return key_db_list.key_databases;
+}
+
+auto VerifyKeyDatabasePath(const QFileInfo& key_database_fs_path) -> bool {
+  return key_database_fs_path.isAbsolute() && key_database_fs_path.exists() &&
+         key_database_fs_path.isDir();
+}
+
+auto SearchKeyDatabasePath(const QStringList& candidate_paths) -> QString {
+  for (const auto& path : candidate_paths) {
+    if (VerifyKeyDatabasePath(QFileInfo(path))) {
+      // return a unify path
+      return QFileInfo(path).absoluteFilePath();
+    }
+  }
+  return {};
+}
+
+auto GetCanonicalKeyDatabasePath(const QDir& app_path,
+                                 const QString& path) -> QString {
+  auto target_path = path;
+  if (!QDir::isAbsolutePath(target_path)) {
+    target_path = app_path.absoluteFilePath(target_path);
+    LOG_D() << "convert relative path: " << path
+            << "to absolute path: " << target_path;
+  }
+
+  auto info = QFileInfo(target_path);
+  if (VerifyKeyDatabasePath(info)) {
+    auto key_database_fs_path = info.canonicalFilePath();
+    LOG_D() << "load gpg key database:" << key_database_fs_path;
+
+    return key_database_fs_path;
+  }
+
+  LOG_W() << "gpg key database path is invalid: " << path;
+  return {};
+}
+
+auto GetKeyDatabaseInfoBySettings() -> QList<KeyDatabaseInfo> {
+  auto key_dbs = GetKeyDatabasesBySettings();
+
+  QContainer<KeyDatabaseInfo> key_db_infos;
+
+  const auto app_path = QDir(GlobalSettingStation::GetInstance().GetAppDir());
+
+  // try to use user defined key database
+  for (const auto& key_database : key_dbs) {
+    auto key_database_fs_path =
+        GetCanonicalKeyDatabasePath(app_path, key_database.path);
+
+    if (key_database_fs_path.isEmpty()) continue;
+
+    KeyDatabaseInfo key_db_info;
+    key_db_info.name = key_database.name;
+    key_db_info.path = key_database_fs_path;
+    key_db_info.origin_path = key_database.path;
+    key_db_infos.append(key_db_info);
+
+    LOG_D() << "plan to load gpg key database:" << key_database_fs_path;
+  }
+
+  return key_db_infos;
+}
+
+auto GPGFRONTEND_CORE_EXPORT Convert2RawGpgMEKeyList(
+    const QContainer<GpgKey>& keys) -> QContainer<gpgme_key_t> {
+  QContainer<gpgme_key_t> recipients(keys.begin(), keys.end());
+  recipients.emplace_back(nullptr);
+
+  return recipients;
 }
 }  // namespace GpgFrontend

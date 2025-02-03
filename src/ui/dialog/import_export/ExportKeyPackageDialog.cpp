@@ -31,11 +31,11 @@
 #include "core/GpgModel.h"
 #include "core/function/KeyPackageOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/function/GpgOperaHelper.h"
 #include "ui_ExportKeyPackageDialog.h"
 
 GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
-    int channel, KeyIdArgsListPtr key_ids, QWidget* parent)
+    int channel, KeyIdArgsList key_ids, QWidget* parent)
     : GeneralDialog(typeid(ExportKeyPackageDialog).name(), parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_exportKeyPackageDialog>()),
       current_gpg_context_channel_(channel),
@@ -98,26 +98,26 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
     // get suitable key ids
     auto keys = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
                     .GetKeys(key_ids_);
-    assert(std::all_of(keys->begin(), keys->end(),
+    assert(std::all_of(keys.begin(), keys.end(),
                        [](const auto& key) { return key.IsGood(); }));
 
     auto keys_new_end =
-        std::remove_if(keys->begin(), keys->end(), [this](const auto& key) {
+        std::remove_if(keys.begin(), keys.end(), [this](const auto& key) {
           return ui_->noPublicKeyCheckBox->isChecked() && !key.IsPrivateKey();
         });
-    keys->erase(keys_new_end, keys->end());
+    keys.erase(keys_new_end, keys.end());
 
-    if (keys->empty()) {
+    if (keys.empty()) {
       QMessageBox::critical(this, tr("Error"),
                             tr("No key is suitable to export."));
       return;
     }
 
-    CommonUtils::WaitForOpera(
+    GpgOperaHelper::WaitForOpera(
         this, tr("Generating"), [this, keys](const OperaWaitingHd& op_hd) {
           KeyPackageOperator::GenerateKeyPackage(
               ui_->outputPathLabel->text(), ui_->nameValueLabel->text(),
-              current_gpg_context_channel_, *keys, passphrase_,
+              current_gpg_context_channel_, keys, passphrase_,
               ui_->includeSecretKeyCheckBox->isChecked(),
               [=](GFError err, const DataObjectPtr&) {
                 // stop waiting

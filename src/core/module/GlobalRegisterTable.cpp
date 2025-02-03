@@ -107,10 +107,10 @@ class GlobalRegisterTable::Impl {
     return rtn;
   }
 
-  auto ListChildKeys(const Namespace& n, const Key& k) -> std::vector<Key> {
+  auto ListChildKeys(const Namespace& n, const Key& k) -> QContainer<Key> {
     QStringList const segments = (n + "." + k).split('.');
 
-    std::vector<Key> rtn;
+    QContainer<Key> rtn;
     {
       std::shared_lock lock(lock_);
 
@@ -302,8 +302,7 @@ auto GlobalRegisterTable::ListenPublish(QObject* o, Namespace n, Key k,
   return p_->ListenPublish(o, n, k, c);
 }
 
-auto GlobalRegisterTable::ListChildKeys(Namespace n,
-                                        Key k) -> std::vector<Key> {
+auto GlobalRegisterTable::ListChildKeys(Namespace n, Key k) -> QContainer<Key> {
   return p_->ListChildKeys(n, k);
 }
 

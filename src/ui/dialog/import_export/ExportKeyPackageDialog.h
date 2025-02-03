@@ -50,13 +50,13 @@ class ExportKeyPackageDialog : public GeneralDialog {
    * @param key_ids
    * @param parent
    */
-  explicit ExportKeyPackageDialog(int channel, KeyIdArgsListPtr key_ids,
+  explicit ExportKeyPackageDialog(int channel, KeyIdArgsList key_ids,
                                   QWidget* parent);
 
  private:
   std::shared_ptr<Ui_exportKeyPackageDialog> ui_;  ///<
   int current_gpg_context_channel_;
-  KeyIdArgsListPtr key_ids_;  ///<
-  QString passphrase_;        ///<
+  KeyIdArgsList key_ids_;  ///<
+  QString passphrase_;     ///<
 };
 }  // namespace GpgFrontend::UI

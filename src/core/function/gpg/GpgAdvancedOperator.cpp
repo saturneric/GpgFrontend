@@ -32,211 +32,89 @@
 
 #include "GpgAdvancedOperator.h"
 
+#include <utility>
+
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/GpgUtils.h"
 
-void GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache(
-    OperationCallback cb) {
+namespace GpgFrontend {
+
+void ExecuteGpgCommand(const QString &operation, const QStringList &extra_args,
+                       OperationCallback cb) {
   const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", QString{});
 
   if (gpgconf_path.isEmpty()) {
     FLOG_W("cannot get valid gpgconf path from rt, abort.");
-    cb(-1, TransferParams());
+    if (cb) cb(-1, TransferParams());
     return;
   }
 
-#if defined(__APPLE__) && defined(__MACH__)
-  FLOG_I("kill all gpg components in order to clear gpg password cache");
-  KillAllGpgComponents();
-#else
-  GpgFrontend::GpgCommandExecutor::ExecuteSync(
-      {gpgconf_path, QStringList{"--reload", "gpg-agent"},
-       [=](int exit_code, const QString & /*p_out*/,
-           const QString & /*p_err*/) {
-         cb(exit_code == 0 ? 0 : -1, TransferParams());
-       }});
-#endif
-}
+  auto key_dbs = GetGpgKeyDatabaseInfos();
+  auto total_tasks = static_cast<int>(key_dbs.size());
+  std::atomic<int> completed_tasks{0};
+  std::vector<int> results(total_tasks, 0);
 
-void GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents(
-    OperationCallback cb) {
-  const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gpgconf_path", QString{});
+  int task_index = 0;
+  for (const auto &key_db : key_dbs) {
+    const int current_index = task_index++;
+    const auto target_home_dir =
+        QDir::toNativeSeparators(QFileInfo(key_db.path).canonicalFilePath());
 
-  if (gpgconf_path.isEmpty()) {
-    FLOG_W("cannot get valid gpgconf path from rt, abort.");
-    cb(-1, TransferParams());
-    return;
-  }
+    QStringList arguments = QStringList{"--homedir", target_home_dir};
+    arguments.append(extra_args);
 
-  GpgFrontend::GpgCommandExecutor::ExecuteSync(
-      {gpgconf_path, QStringList{"--reload"},
-       [=](int exit_code, const QString &, const QString &) {
-         FLOG_D("gpgconf reload exit code: %d", exit_code);
-         cb(exit_code == 0 ? 0 : -1, TransferParams());
-       }});
-}
+    GpgCommandExecutor::ExecuteSync(
+        {gpgconf_path, arguments,
+         [=, &completed_tasks, &results](int exit_code, const QString &,
+                                         const QString &) {
+           FLOG_D("%s exit code: %d", qPrintable(operation), exit_code);
 
-void GpgFrontend::GpgAdvancedOperator::KillAllGpgComponents() {
-  const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gpgconf_path", QString{});
+           results[current_index] = exit_code;
 
-  if (gpgconf_path.isEmpty()) {
-    FLOG_W("cannot get valid gpgconf path from rt, abort.");
-    return;
-  }
-
-  GpgFrontend::GpgCommandExecutor::ExecuteSync(
-      {gpgconf_path, QStringList{"--verbose", "--kill", "all"},
-       [=](int exit_code, const QString &p_out, const QString &p_err) {
-         bool success = true;
-         if (exit_code != 0) {
-           success = false;
-           LOG_W() << "gpgconf execute error, process stderr: " << p_err
-                   << ", process stdout: " << p_out;
-           return;
-         }
-
-         FLOG_D("gpgconf --kill --all execute result: %d", success);
-       }});
-}
-
-void GpgFrontend::GpgAdvancedOperator::RestartGpgComponents() {
-  const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gpgconf_path", QString{});
-
-  if (gpgconf_path.isEmpty()) {
-    FLOG_W("cannot get valid gpgconf path from rt, abort.");
-    return;
-  }
-
-  GpgFrontend::GpgCommandExecutor::ExecuteSync(
-      {gpgconf_path, QStringList{"--verbose", "--kill", "all"},
-       [=](int exit_code, const QString &p_out, const QString &p_err) {
-         FLOG_D("gpgconf --kill all command got exit code: %d", exit_code);
-         bool success = true;
-         if (exit_code != 0) {
-           success = false;
-           LOG_W() << "gpgconf execute error, process stderr: " << p_err
-                   << ", process stdout: " << p_out;
-           return;
-         }
-
-         FLOG_D("gpgconf --kill --all execute result: %d", success);
-         if (!success) {
-           FLOG_W("restart all component after core initalized failed");
-           Module::UpsertRTValue(
-               "core", "gpg_advanced_operator.restart_gpg_components", false);
-           return;
-         }
-
-#if defined(__APPLE__) && defined(__MACH__)
-         FLOG_I("getting gpg-agent to start automatically on macOS");
-#else
-         StartGpgAgent([](int err, DataObjectPtr) {
-           if (err >= 0) {
-             Module::UpsertRTValue(
-                 "core", "gpg_advanced_operator.restart_gpg_components", true);
-             return;
+           if (++completed_tasks == total_tasks && cb) {
+             int final_result =
+                 std::all_of(results.begin(), results.end(),
+                             [](int result) { return result >= 0; })
+                     ? 0
+                     : -1;
+             cb(final_result, TransferParams());
            }
-         });
-#endif
-       }});
+         }});
+  }
 }
 
-void GpgFrontend::GpgAdvancedOperator::ResetConfigures(OperationCallback cb) {
+void GpgAdvancedOperator::ClearGpgPasswordCache(OperationCallback cb) {
+  ExecuteGpgCommand("Clear GPG Password Cache", {"--reload", "gpg-agent"},
+                    std::move(cb));
+}
+
+void GpgAdvancedOperator::ReloadGpgComponents(OperationCallback cb) {
   const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", QString{});
-
-  if (gpgconf_path.isEmpty()) {
-    FLOG_W("cannot get valid gpgconf path from rt, abort.");
-    cb(-1, TransferParams());
-    return;
-  }
-
-  GpgFrontend::GpgCommandExecutor::ExecuteSync(
-      {gpgconf_path, QStringList{"--apply-defaults"},
-       [=](int exit_code, const QString &, const QString &) {
-         FLOG_D("gpgconf apply-defaults exit code: %d", exit_code);
-         cb(exit_code == 0 ? 0 : -1, TransferParams());
-       }});
+  ExecuteGpgCommand("Reload GPG Components", {"--reload", "all"},
+                    std::move(cb));
 }
 
-void GpgFrontend::GpgAdvancedOperator::StartGpgAgent(OperationCallback cb) {
-  if (!Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
-    cb(-1, TransferParams());
-    return;
-  }
-
-  const auto gpg_agent_path = Module::RetrieveRTValueTypedOrDefault<>(
-      kGnuPGInfoGatheringModuleID, "gnupg.gpg_agent_path", QString{});
-
-  const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
-      kGnuPGInfoGatheringModuleID, "gnupg.home_path", QString{});
-
-  if (gpg_agent_path.isEmpty()) {
-    FLOG_W("cannot get valid gpg agent path from rt, abort.");
-    cb(-1, TransferParams());
-    return;
-  }
-
-  GpgFrontend::GpgCommandExecutor::ExecuteSync(
-      {gpg_agent_path, QStringList{"--homedir", home_path, "--daemon"},
-       [=](int exit_code, const QString &, const QString &) {
-         FLOG_D("gpg-agent daemon exit code: %d", exit_code);
-         cb(exit_code >= 0 ? 0 : -1, TransferParams());
-       }});
+void GpgAdvancedOperator::KillAllGpgComponents(OperationCallback cb) {
+  ExecuteGpgCommand("Kill All GPG Components", {"--kill", "all"},
+                    std::move(cb));
 }
 
-void GpgFrontend::GpgAdvancedOperator::StartDirmngr(OperationCallback cb) {
-  if (!Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
-    cb(-1, TransferParams());
-    return;
-  }
-
-  const auto dirmngr_path = Module::RetrieveRTValueTypedOrDefault<>(
-      kGnuPGInfoGatheringModuleID, "gnupg.dirmngr_path", QString{});
-
-  const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
-      kGnuPGInfoGatheringModuleID, "gnupg.home_path", QString{});
-
-  if (dirmngr_path.isEmpty()) {
-    FLOG_W("cannot get valid dirmngr path from rt, abort.");
-    cb(-1, TransferParams());
-    return;
-  }
-
-  GpgFrontend::GpgCommandExecutor::ExecuteSync(
-      {dirmngr_path, QStringList{"--homedir", home_path, "--daemon"},
-       [=](int exit_code, const QString &, const QString &) {
-         FLOG_D("gpgconf daemon exit code: %d", exit_code);
-         cb(exit_code >= 0 ? 0 : -1, TransferParams());
-       }});
+void GpgAdvancedOperator::ResetConfigures(OperationCallback cb) {
+  ExecuteGpgCommand("Reset Gnupg Configures", {"--apply-defaults"},
+                    std::move(cb));
 }
 
-void GpgFrontend::GpgAdvancedOperator::StartKeyBoxd(OperationCallback cb) {
-  if (!Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
-    cb(-1, TransferParams());
-    return;
-  }
-
-  const auto keyboxd_path = Module::RetrieveRTValueTypedOrDefault<>(
-      kGnuPGInfoGatheringModuleID, "gnupg.keyboxd_path", QString{});
-
-  const auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
-      kGnuPGInfoGatheringModuleID, "gnupg.home_path", QString{});
-
-  if (keyboxd_path.isEmpty()) {
-    FLOG_W("cannot get valid keyboxd path from rt, abort.");
-    cb(-1, TransferParams());
-    return;
-  }
-
-  GpgFrontend::GpgCommandExecutor::ExecuteSync(
-      {keyboxd_path, QStringList{"--homedir", home_path, "--daemon"},
-       [=](int exit_code, const QString &, const QString &) {
-         FLOG_D("gpgconf daemon exit code: %d", exit_code);
-         cb(exit_code >= 0 ? 0 : -1, TransferParams());
-       }});
+void GpgAdvancedOperator::LaunchGpgComponents(OperationCallback cb) {
+  ExecuteGpgCommand("Launch All GPG Components", {"--launch", "all"},
+                    std::move(cb));
 }
+
+void GpgAdvancedOperator::RestartGpgComponents(OperationCallback cb) {
+  KillAllGpgComponents(nullptr);
+  LaunchGpgComponents(std::move(cb));
+}
+
+}  // namespace GpgFrontend
