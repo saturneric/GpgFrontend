@@ -432,7 +432,8 @@ void GpgOperaHelper::WaitForMultipleOperas(
   if (operas.isEmpty()) return;
 
   QEventLoop looper;
-  QPointer<WaitingDialog> const dialog = new WaitingDialog(title, true, parent);
+  QPointer<WaitingDialog> const dialog =
+      new WaitingDialog(title, operas.size() > 1, parent);
   connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
   connect(dialog, &QDialog::finished, dialog, &QDialog::deleteLater);
   dialog->show();

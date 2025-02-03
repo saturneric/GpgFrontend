@@ -56,5 +56,7 @@ WaitingDialog::WaitingDialog(const QString& title, bool range, QWidget* parent)
   this->show();
 }
 
-void WaitingDialog::SlotUpdateValue(int value) { pb_->setValue(value); }
+void WaitingDialog::SlotUpdateValue(int value) {
+  if (pb_->maximum() > 0) pb_->setValue(value);
+}
 }  // namespace GpgFrontend::UI
