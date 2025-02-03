@@ -289,13 +289,9 @@ void MainWindow::SlotDecryptVerify() {
   }
 }
 
-void MainWindow::SlotFileEncrypt(const QStringList& paths) {
+void MainWindow::SlotFileEncrypt(const QStringList& paths, bool ascii) {
   auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
-
-  bool const non_ascii_at_file_operation =
-      GetSettings().value("gnupg/non_ascii_at_file_operation", true).toBool();
-
-  contexts->ascii = !non_ascii_at_file_operation;
+  contexts->ascii = ascii;
 
   if (!encrypt_operation_key_validate(contexts)) return;
 
@@ -362,13 +358,10 @@ void MainWindow::SlotFileDecrypt(const QStringList& paths) {
   exec_operas_helper(tr("Decrypting"), contexts);
 }
 
-void MainWindow::SlotFileSign(const QStringList& paths) {
+void MainWindow::SlotFileSign(const QStringList& paths, bool ascii) {
   auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
 
-  bool const non_ascii_at_file_operation =
-      GetSettings().value("gnupg/non_ascii_at_file_operation", true).toBool();
-
-  contexts->ascii = !non_ascii_at_file_operation;
+  contexts->ascii = ascii;
 
   auto key_ids = m_key_list_->GetChecked();
   contexts->keys = check_keys_helper(
@@ -445,13 +438,9 @@ void MainWindow::SlotFileVerify(const QStringList& paths) {
   }
 }
 
-void MainWindow::SlotFileEncryptSign(const QStringList& paths) {
+void MainWindow::SlotFileEncryptSign(const QStringList& paths, bool ascii) {
   auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
-
-  bool const non_ascii_at_file_operation =
-      GetSettings().value("gnupg/non_ascii_at_file_operation", true).toBool();
-
-  contexts->ascii = !non_ascii_at_file_operation;
+  contexts->ascii = ascii;
 
   auto key_ids = m_key_list_->GetChecked();
   contexts->keys = check_keys_helper(
@@ -491,7 +480,6 @@ void MainWindow::SlotFileEncryptSign(const QStringList& paths) {
 
 void MainWindow::SlotFileDecryptVerify(const QStringList& paths) {
   auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
-
   contexts->ascii = true;
 
   if (!check_read_file_paths_helper(paths)) return;

@@ -65,6 +65,14 @@ class FilePage : public QWidget {
    */
   [[nodiscard]] auto IsBatchMode() const -> bool;
 
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] auto IsASCIIMode() const -> bool;
+
  public slots:
   /**
    * @brief
@@ -119,6 +127,7 @@ class FilePage : public QWidget {
   QMenu* popup_menu_{};         ///<
   QMenu* option_popup_menu_{};  ///<
   FileTreeView* file_tree_view_;
+  bool ascii_mode_;
 
  private slots:
 

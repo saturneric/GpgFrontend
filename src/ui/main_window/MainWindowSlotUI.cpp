@@ -200,10 +200,10 @@ void MainWindow::SlotUpdateCryptoMenuStatus(unsigned int type) {
 
 void MainWindow::SlotGeneralEncrypt(bool) {
   if (edit_->CurPageFileTreeView() != nullptr) {
-    const auto* file_tree_view = edit_->CurPageFileTreeView();
-    const auto paths = file_tree_view->GetSelected();
-
-    this->SlotFileEncrypt(paths);
+    const auto* file_page = edit_->CurPageFileTreeView();
+    const auto paths = file_page->GetSelected();
+    this->SlotFileEncrypt(paths, file_page->IsASCIIMode());
+    return;
   }
 
   if (edit_->CurEMailPage() != nullptr) {
@@ -236,10 +236,10 @@ void MainWindow::SlotGeneralDecrypt(bool) {
 
 void MainWindow::SlotGeneralSign(bool) {
   if (edit_->CurPageFileTreeView() != nullptr) {
-    const auto* file_tree_view = edit_->CurPageFileTreeView();
-    const auto paths = file_tree_view->GetSelected();
-
-    this->SlotFileSign(paths);
+    const auto* file_page = edit_->CurPageFileTreeView();
+    const auto paths = file_page->GetSelected();
+    this->SlotFileSign(paths, file_page->IsASCIIMode());
+    return;
   }
 
   if (edit_->CurEMailPage() != nullptr) {
@@ -268,10 +268,10 @@ void MainWindow::SlotGeneralVerify(bool) {
 
 void MainWindow::SlotGeneralEncryptSign(bool) {
   if (edit_->CurPageFileTreeView() != nullptr) {
-    const auto* file_tree_view = edit_->CurPageFileTreeView();
-    const auto paths = file_tree_view->GetSelected();
-
-    this->SlotFileEncryptSign(paths);
+    const auto* file_page = edit_->CurPageFileTreeView();
+    const auto paths = file_page->GetSelected();
+    this->SlotFileEncryptSign(paths, file_page->IsASCIIMode());
+    return;
   }
 
   if (edit_->CurEMailPage() != nullptr) {

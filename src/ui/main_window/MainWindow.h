@@ -206,7 +206,7 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @details Open dialog for encrypting file.
    */
-  void SlotFileEncrypt(const QStringList& paths);
+  void SlotFileEncrypt(const QStringList& paths, bool ascii);
 
   /**
    * @brief
@@ -220,7 +220,7 @@ class MainWindow : public GeneralMainWindow {
    *
    * @param path
    */
-  void SlotFileSign(const QStringList& paths);
+  void SlotFileSign(const QStringList& paths, bool ascii);
 
   /**
    * @brief
@@ -241,7 +241,7 @@ class MainWindow : public GeneralMainWindow {
    *
    * @param path
    */
-  void SlotFileEncryptSign(const QStringList& paths);
+  void SlotFileEncryptSign(const QStringList& paths, bool ascii);
 
   /**
    * @brief

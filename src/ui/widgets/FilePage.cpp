@@ -29,6 +29,7 @@
 #include "ui/widgets/FilePage.h"
 
 #include "core/GpgModel.h"
+#include "core/function/GlobalSettingStation.h"
 #include "ui/UISignalStation.h"
 #include "ui/main_window/MainWindow.h"
 #include "ui_FilePage.h"
@@ -73,7 +74,18 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
   connect(show_system_act, &QAction::triggered, file_tree_view_,
           &FileTreeView::SlotShowSystemFile);
   option_popup_menu_->addAction(show_system_act);
+
+  auto* switch_asc_mode_act = new QAction(tr("ASCII Mode"), this);
+  switch_asc_mode_act->setCheckable(true);
+  connect(switch_asc_mode_act, &QAction::triggered, this,
+          [=](bool on) { ascii_mode_ = on; });
+  option_popup_menu_->addAction(switch_asc_mode_act);
+
   ui_->optionsButton->setMenu(option_popup_menu_);
+
+  ascii_mode_ = !(
+      GetSettings().value("gnupg/non_ascii_at_file_operation", true).toBool());
+  switch_asc_mode_act->setChecked(ascii_mode_);
 
   connect(ui_->pathEdit, &QLineEdit::textChanged, [=]() {
     auto path = ui_->pathEdit->text();
@@ -193,4 +205,6 @@ void FilePage::update_main_basic_opera_menu(const QStringList& selected_paths) {
 auto FilePage::IsBatchMode() const -> bool {
   return ui_->batchModeButton->isChecked();
 }
+
+auto FilePage::IsASCIIMode() const -> bool { return ascii_mode_; }
 }  // namespace GpgFrontend::UI
