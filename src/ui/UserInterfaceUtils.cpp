@@ -51,22 +51,11 @@
 #include "ui/dialog/controller/GnuPGControllerDialog.h"
 #include "ui/dialog/import_export/KeyServerImportDialog.h"
 #include "ui/struct/settings_object/KeyServerSO.h"
-#include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
 
 QScopedPointer<CommonUtils> CommonUtils::instance =
     QScopedPointer<CommonUtils>(nullptr);
-
-void show_verify_details(QWidget *parent, int channel,
-                         InfoBoardWidget *info_board, GpgError error,
-                         const GpgVerifyResult &verify_result) {
-  // take out result
-  info_board->ResetOptionActionsMenu();
-  info_board->AddOptionalAction(
-      QCoreApplication::tr("Show Verify Details"),
-      [=]() { VerifyDetailsDialog(parent, channel, error, verify_result); });
-}
 
 void ImportUnknownKeyFromKeyserver(
     QWidget *parent, int channel, const GpgVerifyResultAnalyse &verify_result) {
@@ -89,35 +78,6 @@ void ImportUnknownKeyFromKeyserver(
     dialog.show();
     dialog.SlotImport(key_ids);
   }
-}
-
-void process_operation(QWidget *parent, const QString &waiting_title,
-                       const Thread::Task::TaskRunnable func,
-                       const Thread::Task::TaskCallback callback,
-                       DataObjectPtr data_object) {
-  auto *dialog = new WaitingDialog(waiting_title, parent);
-
-  auto *process_task = new Thread::Task(std::move(func), waiting_title,
-                                        data_object, std::move(callback));
-
-  QApplication::connect(process_task, &Thread::Task::SignalTaskEnd, dialog,
-                        &QDialog::close);
-  QApplication::connect(process_task, &Thread::Task::SignalTaskEnd, dialog,
-                        &QDialog::deleteLater);
-
-  // a looper to wait for the operation
-  QEventLoop looper;
-  QApplication::connect(process_task, &Thread::Task::SignalTaskEnd, &looper,
-                        &QEventLoop::quit);
-
-  // post process task to task runner
-  Thread::TaskRunnerGetter::GetInstance()
-      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
-      ->PostTask(process_task);
-
-  // block until task finished
-  // this is to keep reference vaild until task finished
-  looper.exec();
 }
 
 auto CommonUtils::GetInstance() -> CommonUtils * {

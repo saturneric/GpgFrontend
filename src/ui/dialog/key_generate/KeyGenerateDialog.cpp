@@ -252,6 +252,8 @@ void KeyGenerateDialog::refresh_widgets_state() {
   ui_->pExpireCheckBox->setChecked(gen_key_info_->IsNonExpired());
   ui_->pExpireCheckBox->blockSignals(false);
 
+  ui_->generateButton->setDisabled(false);
+
   if (gen_subkey_info_ == nullptr) {
     ui_->sTab->setDisabled(true);
 
@@ -460,11 +462,7 @@ void KeyGenerateDialog::sync_gen_key_algo_info() {
 
                                      supported_primary_key_algos_);
 
-  ui_->generateButton->setDisabled(!found);
-
-  if (found) {
-    gen_key_info_->SetAlgo(algo);
-  }
+  if (found) gen_key_info_->SetAlgo(found ? algo : KeyGenerateInfo::kNoneAlgo);
 }
 
 void KeyGenerateDialog::sync_gen_subkey_algo_info() {
@@ -472,8 +470,9 @@ void KeyGenerateDialog::sync_gen_subkey_algo_info() {
     auto [s_found, algo] = GetAlgoByName(ui_->sAlgoComboBox->currentText(),
                                          supported_subkey_algos_);
 
-    ui_->generateButton->setDisabled(!s_found);
-    if (s_found) gen_subkey_info_->SetAlgo(algo);
+    if (s_found) {
+      gen_subkey_info_->SetAlgo(s_found ? algo : KeyGenerateInfo::kNoneAlgo);
+    }
   }
 }
 

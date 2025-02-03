@@ -536,7 +536,8 @@ auto GpgOperaHelper::BuildOperasDecryptVerify(
 void GpgOperaHelper::WaitForOpera(QWidget* parent, const QString& title,
                                   const OperaWaitingCb& opera) {
   QEventLoop looper;
-  QPointer<WaitingDialog> const dialog = new WaitingDialog(title, parent);
+  QPointer<WaitingDialog> const dialog =
+      new WaitingDialog(title, false, parent);
   connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
   connect(dialog, &QDialog::finished, dialog, &QDialog::deleteLater);
   dialog->show();

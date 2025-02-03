@@ -35,8 +35,8 @@
 
 namespace GpgFrontend {
 
-const KeyAlgo KeyGenerateInfo::kNoneAlgo = {"none", "None", "None",
-                                            0,      0,      "0.0.0"};
+const KeyAlgo KeyGenerateInfo::kNoneAlgo = {
+    "none", KeyGenerateInfo::tr("None"), "None", 0, 0, "0.0.0"};
 
 const QContainer<KeyAlgo> KeyGenerateInfo::kPrimaryKeyAlgos = {
     kNoneAlgo,

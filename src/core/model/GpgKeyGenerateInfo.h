@@ -76,7 +76,8 @@ class GPGFRONTEND_CORE_EXPORT KeyAlgo {
   QString supported_version_;
 };
 
-class GPGFRONTEND_CORE_EXPORT KeyGenerateInfo {
+class GPGFRONTEND_CORE_EXPORT KeyGenerateInfo : public QObject {
+  Q_OBJECT
  public:
   static const KeyAlgo kNoneAlgo;
   static const QContainer<KeyAlgo> kPrimaryKeyAlgos;
