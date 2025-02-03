@@ -138,8 +138,22 @@ void MainWindow::Init() noexcept {
 
     // check version information
     auto settings = GetSettings();
+
+    // ask if user wants to check update when the app boot
+    if (!settings.contains("network/prohibit_update_checking")) {
+      QMessageBox::StandardButton reply;
+      reply = QMessageBox::question(
+          this, tr("Update Check"),
+          tr("Do you want to check for updates at each startup?"),
+          QMessageBox::Yes | QMessageBox::No);
+
+      auto prohibit_update_checking = (reply == QMessageBox::No);
+      settings.setValue("network/prohibit_update_checking",
+                        prohibit_update_checking);
+    }
+
     auto prohibit_update_checking =
-        settings.value("network/prohibit_update_checking").toBool();
+        settings.value("network/prohibit_update_checking", false).toBool();
     if (!prohibit_update_checking) {
       Module::ListenRTPublishEvent(
           this, kVersionCheckingModuleID, "version.loading_done",
@@ -158,7 +172,6 @@ void MainWindow::Init() noexcept {
     // check if need to open wizard window
     auto show_wizard = settings.value("wizard/show_wizard", true).toBool();
     if (show_wizard) slot_start_wizard();
-
   } catch (...) {
     LOG_W() << tr("Critical error occur while loading GpgFrontend.");
     QMessageBox::critical(
