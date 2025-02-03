@@ -116,6 +116,10 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
 
   ui_->generateButton->setText(tr("Generate"));
 
+  const auto min_date_time = QDateTime::currentDateTime().addDays(3);
+  ui_->pExpireDateTimeEdit->setMinimumDateTime(min_date_time);
+  ui_->sExpireDateTimeEdit->setMinimumDateTime(min_date_time);
+
   QSet<QString> p_algo_set;
   for (const auto& algo : supported_primary_key_algos_) {
     p_algo_set.insert(algo.Name());

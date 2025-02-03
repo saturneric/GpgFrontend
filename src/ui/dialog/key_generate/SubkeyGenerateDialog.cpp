@@ -66,6 +66,9 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, const KeyId& key_id,
   ui_->nonExpiredCheckBox->setText(tr("Non Expired"));
   ui_->nonPassphraseCheckBox->setText(tr("No Passphrase"));
 
+  const auto min_date_time = QDateTime::currentDateTime().addDays(3);
+  ui_->expireDateTimeEdit->setMinimumDateTime(min_date_time);
+
   QSet<QString> algo_set;
   for (const auto& algo : supported_subkey_algos_) {
     algo_set.insert(algo.Name());
