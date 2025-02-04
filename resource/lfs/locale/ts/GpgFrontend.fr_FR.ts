@@ -695,58 +695,58 @@
 <context>
     <name>GpgFrontend::UI::ChoosePage</name>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="106"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="98"/>
         <source>Choose your action...</source>
         <translation type="unfinished">Choisissez votre action...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="107"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="99"/>
         <source>...by clicking on the appropriate link.</source>
         <translation type="unfinished">...en cliquant sur le lien approprié.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="110"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="102"/>
         <source>If you have never used GpgFrontend before and also don&apos;t own a gpg key yet you may possibly want to read how to</source>
         <translation type="unfinished">Si vous n&apos;avez jamais utilisé GpgFrontend auparavant et que vous ne possédez pas encore de clé gpg, vous voudrez peut-être lire comment</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="113"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="105"/>
         <source>Generate Key</source>
         <translation type="unfinished">Générer la clé</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="120"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="112"/>
         <source>If you want to learn how to encrypt, decrypt, sign and verify text, you can read </source>
         <translation type="unfinished">Si vous voulez apprendre à chiffrer, déchiffrer, signer et vérifier du texte, vous pouvez lire</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="123"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="115"/>
         <source>Encrypt &amp; Decrypt Text</source>
         <translation type="unfinished">Chiffrer et déchiffrer le texte</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="123"/>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="135"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="115"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="127"/>
         <source>or</source>
         <translation type="unfinished">ou</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="125"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="117"/>
         <source>Sign &amp; Verify Text</source>
         <translation type="unfinished">Signer et vérifier le texte</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="133"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="125"/>
         <source>If you want to operate file, you can read </source>
         <translation type="unfinished">Si vous voulez utiliser le fichier, vous pouvez lire</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="135"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="127"/>
         <source>Encrypt &amp; Sign File</source>
         <translation type="unfinished">Chiffrer et signer le fichier</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="137"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="129"/>
         <source>Sign &amp; Verify File</source>
         <translation type="unfinished">Signer et vérifier le fichier</translation>
     </message>
@@ -901,38 +901,43 @@ Description : %3</translation>
 <context>
     <name>GpgFrontend::UI::ConclusionPage</name>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="203"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="155"/>
         <source>Ready.</source>
         <translation type="unfinished">Prêt.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="204"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="156"/>
         <source>Have fun with GpgFrontend!</source>
         <translation type="unfinished">Amusez-vous avec GpgFrontend&#xa0;!</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="207"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="159"/>
         <source>You are ready to use GpgFrontend now.&lt;br&gt;&lt;br&gt;</source>
         <translation type="unfinished">Vous êtes prêt à utiliser GpgFrontend maintenant.&lt;br&gt;&lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="209"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="161"/>
         <source>The Online Document</source>
         <translation type="unfinished">Le document en ligne</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="210"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="162"/>
         <source> will get you started with GpgFrontend. Anytime you encounter problems, please try to find help from the documentation</source>
         <translation type="unfinished"> vous permettra de démarrer avec GpgFrontend. Chaque fois que vous rencontrez des problèmes, veuillez essayer de trouver de l&apos;aide dans la documentation</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="219"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="171"/>
         <source>Open offline help.</source>
         <translation type="unfinished">Ouvrez l&apos;aide hors ligne.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="223"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="175"/>
         <source>Don&apos;t show the wizard again.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="179"/>
+        <source>Check for updates at each startup.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1614,42 +1619,42 @@ This will result in loss of all cached form positions, statuses, key servers, et
 <context>
     <name>GpgFrontend::UI::IntroPage</name>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="70"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="62"/>
         <source>Getting Started...</source>
         <translation type="unfinished">Commencer...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="71"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="63"/>
         <source>... with GpgFrontend</source>
         <translation type="unfinished">... avec GpgFrontend</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="74"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="66"/>
         <source>Welcome to GpgFrontend for decrypting and signing text or files!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="76"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="68"/>
         <source>is a Powerful, Easy-to-Use, Compact, Cross-Platform, and Installation-Free OpenPGP Crypto Tool. </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="78"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="70"/>
         <source>To get started, be sure to check out the</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="81"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="73"/>
         <source>by clicking the link, the page will open in your web browser</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="80"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="72"/>
         <source>Overview</source>
         <translation type="unfinished">Aperçu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="90"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="82"/>
         <source>If it supports the language currently being used in your system, GpgFrontend will automatically set it.</source>
         <translation type="unfinished">S&apos;il prend en charge la langue actuellement utilisée dans votre système, GpgFrontend la définira automatiquement.</translation>
     </message>
@@ -1738,34 +1743,6 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/dialog/keypair_details/KeyDetailsDialog.cpp" line="76"/>
         <source>Key Details</source>
         <translation type="unfinished">Détails clés</translation>
-    </message>
-</context>
-<context>
-    <name>GpgFrontend::UI::KeyGenPage</name>
-    <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="163"/>
-        <source>Create a keypair...</source>
-        <translation type="unfinished">Créer une paire de clés...</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="164"/>
-        <source>...for decrypting and signing messages</source>
-        <translation type="unfinished">...pour déchiffrer et signer des messages</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="166"/>
-        <source>You should create a new keypair.The pair consists of a public and a private key.&lt;br&gt;Other users can use the public key to encrypt messages for you and verify messages signed by you.You can use the private key to decrypt and sign messages.&lt;br&gt;For more information have a look at the offline tutorial (which then is shown in the main window):</source>
-        <translation type="unfinished">Vous devez créer une nouvelle paire de clés. La paire se compose d&apos;une clé publique et d&apos;une clé privée.&lt;br&gt;Les autres utilisateurs peuvent utiliser la clé publique pour chiffrer les messages pour vous et vérifier les messages signés par vous.Vous pouvez utiliser la clé privée pour déchiffrer et signer messages.&lt;br&gt;Pour plus d&apos;informations, consultez le didacticiel hors ligne (qui s&apos;affiche ensuite dans la fenêtre principale)&#xa0;:</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="178"/>
-        <source>Offline tutorial</source>
-        <translation type="unfinished">Tutoriel hors ligne</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="182"/>
-        <source>Create New Key</source>
-        <translation type="unfinished">Créer une nouvelle clé</translation>
     </message>
 </context>
 <context>
@@ -4167,23 +4144,13 @@ Note: For verification, you can find more information here: https://keys.openpgp
 <context>
     <name>GpgFrontend::UI::MainWindow</name>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="146"/>
-        <source>Update Check</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="147"/>
-        <source>Do you want to check for updates at each startup?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="176"/>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="179"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="151"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="154"/>
         <source>Critical error occur while loading GpgFrontend.</source>
         <translation type="unfinished">Une erreur critique s&apos;est produite lors du chargement de GpgFrontend.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="178"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="153"/>
         <source>Loading Failed</source>
         <translation type="unfinished">Échec du chargement</translation>
     </message>
@@ -4948,26 +4915,26 @@ If the issue persists, consider seeking technical support or consulting the docu
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="309"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="323"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="338"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="310"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="324"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="339"/>
         <source>Successful Operation</source>
         <translation type="unfinished">Opération réussie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="310"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="311"/>
         <source>Clear password cache successfully</source>
         <translation type="unfinished">Effacer le cache du mot de passe avec succès</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="312"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="327"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="342"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="313"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="328"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="343"/>
         <source>Failed Operation</source>
         <translation type="unfinished">Échec de l&apos;opération</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="313"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="314"/>
         <source>Failed to clear password cache of GnuPG</source>
         <translation type="unfinished">Impossible d&apos;effacer le cache du mot de passe de GnuPG</translation>
     </message>
@@ -4982,12 +4949,12 @@ If the issue persists, consider seeking technical support or consulting the docu
         <translation type="unfinished">Recharger tous les composants de GnuPG</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="324"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="325"/>
         <source>Reload all the GnuPG&apos;s components successfully</source>
         <translation type="unfinished">Rechargez tous les composants de GnuPG avec succès</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="328"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="329"/>
         <source>Failed to reload all or one of the GnuPG&apos;s component(s)</source>
         <translation type="unfinished">Échec du rechargement de tout ou partie des composants de GnuPG</translation>
     </message>
@@ -5002,12 +4969,12 @@ If the issue persists, consider seeking technical support or consulting the docu
         <translation type="unfinished">Redémarrez tous les composants de GnuPG</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="339"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="340"/>
         <source>Restart all the GnuPG&apos;s components successfully</source>
         <translation type="unfinished">Redémarrez tous les composants de GnuPG avec succès</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="343"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="344"/>
         <source>Failed to restart all or one of the GnuPG&apos;s component(s)</source>
         <translation type="unfinished">Échec du redémarrage de tout ou partie des composants de GnuPG</translation>
     </message>
@@ -6238,7 +6205,7 @@ If the issue persists, consider seeking technical support or consulting the docu
 <context>
     <name>GpgFrontend::UI::Wizard</name>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="45"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="43"/>
         <source>First Start Wizard</source>
         <translation type="unfinished">Assistant de premier démarrage</translation>
     </message>
