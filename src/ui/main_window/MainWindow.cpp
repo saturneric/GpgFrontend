@@ -132,46 +132,21 @@ void MainWindow::Init() noexcept {
 
     info_board_->AssociateTabWidget(edit_->TabWidget());
 
-    // loading process is done
-    emit SignalLoaded();
-    Module::TriggerEvent("APPLICATION_LOADED");
-
-    // check version information
-    auto settings = GetSettings();
-
-    // ask if user wants to check update when the app boot
-    if (!settings.contains("network/prohibit_update_checking")) {
-      QMessageBox::StandardButton reply;
-      reply = QMessageBox::question(
-          this, tr("Update Check"),
-          tr("Do you want to check for updates at each startup?"),
-          QMessageBox::Yes | QMessageBox::No);
-
-      auto prohibit_update_checking = (reply == QMessageBox::No);
-      settings.setValue("network/prohibit_update_checking",
-                        prohibit_update_checking);
-    }
-
-    auto prohibit_update_checking =
-        settings.value("network/prohibit_update_checking", false).toBool();
-    if (!prohibit_update_checking) {
-      Module::ListenRTPublishEvent(
-          this, kVersionCheckingModuleID, "version.loading_done",
-          [=](Module::Namespace, Module::Key, int, std::any) {
-            FLOG_D(
-                "version-checking version.loading_done changed, calling slot "
-                "version upgrade");
-            this->slot_version_upgrade_notify();
-          });
-      Module::TriggerEvent("CHECK_APPLICATION_VERSION");
-    }
+    // check update if needed
+    check_update_at_startup();
 
     // recover unsaved page from cache if it exists
     recover_editor_unsaved_pages_from_cache();
 
     // check if need to open wizard window
-    auto show_wizard = settings.value("wizard/show_wizard", true).toBool();
-    if (show_wizard) slot_start_wizard();
+    if (GetSettings().value("wizard/show_wizard", true).toBool()) {
+      slot_start_wizard();
+    }
+
+    // loading process is done
+    emit SignalLoaded();
+    Module::TriggerEvent("APPLICATION_LOADED");
+
   } catch (...) {
     LOG_W() << tr("Critical error occur while loading GpgFrontend.");
     QMessageBox::critical(
@@ -309,4 +284,24 @@ auto MainWindow::create_action(const QString& id, const QString& name,
   return action;
 }
 
+void MainWindow::check_update_at_startup() {
+  // check version information
+  auto settings = GetSettings();
+  if (!settings.contains("network/prohibit_update_checking")) return;
+
+  auto prohibit_update_checking =
+      settings.value("network/prohibit_update_checking", false).toBool();
+  if (!prohibit_update_checking) {
+    Module::ListenRTPublishEvent(
+        this, kVersionCheckingModuleID, "version.loading_done",
+        [=](const Module::Namespace&, const Module::Key&, int,
+            const std::any&) {
+          FLOG_D(
+              "version-checking version.loading_done changed, calling slot "
+              "version upgrade");
+          this->slot_version_upgrade_notify();
+        });
+    Module::TriggerEvent("CHECK_APPLICATION_VERSION");
+  }
+}
 }  // namespace GpgFrontend::UI

@@ -29,6 +29,7 @@
 #include "MainWindow.h"
 #include "core/GpgConstants.h"
 #include "core/function/CacheManager.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/model/SettingsObject.h"
 #include "ui/UserInterfaceUtils.h"

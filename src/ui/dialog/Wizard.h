@@ -130,37 +130,6 @@ class ChoosePage : public QWizardPage {
  * @brief
  *
  */
-class KeyGenPage : public QWizardPage {
-  Q_OBJECT
-
- public:
-  /**
-   * @brief Construct a new Key Gen Page object
-   *
-   * @param parent
-   */
-  explicit KeyGenPage(QWidget* parent = nullptr);
-
-  /**
-   * @brief
-   *
-   * @return int
-   */
-  [[nodiscard]] int nextId() const override;
-
- private slots:
-
-  /**
-   * @brief
-   *
-   */
-  void slot_generate_key_dialog();
-};
-
-/**
- * @brief
- *
- */
 class ConclusionPage : public QWizardPage {
   Q_OBJECT
 
@@ -181,6 +150,7 @@ class ConclusionPage : public QWizardPage {
 
  private:
   QCheckBox* dont_show_wizard_checkbox_;  ///<
+  QCheckBox* check_updates_checkbox_;     ///<
   QCheckBox* open_help_check_box_;        ///<
 };
 

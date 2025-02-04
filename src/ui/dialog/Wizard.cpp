@@ -30,14 +30,12 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "ui/GpgFrontendUI.h"
-#include "ui/dialog/key_generate/KeyGenerateDialog.h"
 
 namespace GpgFrontend::UI {
 
 Wizard::Wizard(QWidget* parent) : QWizard(parent) {
   setPage(kPAGE_INTRO, new IntroPage(this));
   setPage(kPAGE_CHOOSE, new ChoosePage(this));
-  setPage(kPAGE_GEN_KEY, new KeyGenPage(this));
   setPage(kPAGE_CONCLUSION, new ConclusionPage(this));
 #ifndef Q_WS_MAC
   setWizardStyle(ModernStyle);
@@ -54,16 +52,10 @@ Wizard::Wizard(QWidget* parent) : QWizard(parent) {
 }
 
 void Wizard::slot_wizard_accepted() {
-  // Don't show is mapped to show -> negation
-  try {
-    auto settings = GetSettings();
-    settings.setValue("wizard/show_wizard", false);
-  } catch (...) {
-    FLOG_W("setting operation error");
-  }
-  if (field("openHelp").toBool()) {
-    emit SignalOpenHelp("docu.html#content");
-  }
+  auto settings = GetSettings();
+  settings.setValue("wizard/show_wizard", !field("showWizard").toBool());
+  settings.setValue("network/prohibit_update_checking",
+                    !field("checkUpdate").toBool());
 }
 
 IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
@@ -100,7 +92,7 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
   setLayout(layout);
 }
 
-int IntroPage::nextId() const { return Wizard::kPAGE_CHOOSE; }
+auto IntroPage::nextId() const -> int { return Wizard::kPAGE_CHOOSE; }
 
 ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
   setTitle(tr("Choose your action..."));
@@ -148,7 +140,7 @@ ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
   next_page_ = Wizard::kPAGE_CONCLUSION;
 }
 
-int ChoosePage::nextId() const { return next_page_; }
+auto ChoosePage::nextId() const -> int { return next_page_; }
 
 void ChoosePage::slot_jump_page(const QString& page) {
   QMetaObject const qmo = Wizard::staticMetaObject;
@@ -159,53 +151,13 @@ void ChoosePage::slot_jump_page(const QString& page) {
   wizard()->next();
 }
 
-KeyGenPage::KeyGenPage(QWidget* parent) : QWizardPage(parent) {
-  setTitle(tr("Create a keypair..."));
-  setSubTitle(tr("...for decrypting and signing messages"));
-  auto* top_label = new QLabel(
-      tr("You should create a new keypair."
-         "The pair consists of a public and a private key.<br>"
-         "Other users can use the public key to encrypt messages for you "
-         "and verify messages signed by you."
-         "You can use the private key to decrypt and sign messages.<br>"
-         "For more information have a look at the offline tutorial (which then "
-         "is shown in the main window):"));
-  top_label->setWordWrap(true);
-  auto* link_label = new QLabel(
-      "<a href="
-      "docu_keygen.html#content"
-      ">" +
-      tr("Offline tutorial") + "</a>");
-
-  auto* create_key_button_box = new QWidget(this);
-  auto* create_key_button_box_layout = new QHBoxLayout(create_key_button_box);
-  auto* create_key_button = new QPushButton(tr("Create New Key"));
-  create_key_button_box_layout->addWidget(create_key_button);
-  create_key_button_box_layout->addStretch(1);
-  auto* layout = new QVBoxLayout();
-  layout->addWidget(top_label);
-  layout->addWidget(link_label);
-  layout->addWidget(create_key_button_box);
-  connect(create_key_button, &QPushButton::clicked, this,
-          &KeyGenPage::slot_generate_key_dialog);
-
-  setLayout(layout);
-}
-
-int KeyGenPage::nextId() const { return Wizard::kPAGE_CONCLUSION; }
-
-void KeyGenPage::slot_generate_key_dialog() {
-  (new KeyGenerateDialog(kGpgFrontendDefaultChannel, this))->show();
-  wizard()->next();
-}
-
 ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
   setTitle(tr("Ready."));
   setSubTitle(tr("Have fun with GpgFrontend!"));
 
   auto* bottom_label = new QLabel(
       tr("You are ready to use GpgFrontend now.<br><br>") +
-      "<a href=\"https://gpgfrontend.bktus.com/guides/understand-interface\">" +
+      "<a href=\"https://gpgfrontend.bktus.com/guides/fundamental-concepts\">" +
       tr("The Online Document") + "</a>" +
       tr(" will get you started with GpgFrontend. Anytime you encounter "
          "problems, please try to find help from the documentation") +
@@ -223,17 +175,21 @@ ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
       new QCheckBox(tr("Don't show the wizard again."));
   dont_show_wizard_checkbox_->setChecked(true);
 
+  check_updates_checkbox_ =
+      new QCheckBox(tr("Check for updates at each startup."));
+  check_updates_checkbox_->setChecked(true);
+
   registerField("showWizard", dont_show_wizard_checkbox_);
-  // registerField("openHelp", openHelpCheckBox);
+  registerField("checkUpdate", check_updates_checkbox_);
 
   auto* layout = new QVBoxLayout;
   layout->addWidget(bottom_label);
-  // layout->addWidget(openHelpCheckBox);
   layout->addWidget(dont_show_wizard_checkbox_);
+  layout->addWidget(check_updates_checkbox_);
   setLayout(layout);
   setVisible(true);
 }
 
-int ConclusionPage::nextId() const { return -1; }
+auto ConclusionPage::nextId() const -> int { return -1; }
 
 }  // namespace GpgFrontend::UI

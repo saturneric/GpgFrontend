@@ -661,6 +661,13 @@ class MainWindow : public GeneralMainWindow {
   auto sign_operation_key_validate(
       const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool;
 
+  /**
+   * @brief
+   *
+   * @return auto
+   */
+  void check_update_at_startup();
+
   TextEdit* edit_{};          ///< Tabwidget holding the edit-windows
   QMenu* file_menu_{};        ///<  Submenu for file-operations
   QMenu* edit_menu_{};        ///<  Submenu for text-operations

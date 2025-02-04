@@ -149,7 +149,7 @@ void GpgCommandExecutor::ExecuteSync(ExecuteContext context) {
   Thread::Task *task = BuildTaskFromExecCtx(context);
   QPointer<Thread::Task> p_t = task;
 
-  auto *looper = new QEventLoop(QCoreApplication::instance());
+  auto *looper = new QEventLoop();
   QObject::connect(task, &Thread::Task::SignalTaskEnd, looper,
                    &QEventLoop::quit);
 

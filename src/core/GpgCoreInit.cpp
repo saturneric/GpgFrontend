@@ -81,7 +81,7 @@ auto GetDefaultKeyDatabasePath(const QString& gpgconf_path) -> QString {
     QFileInfo info(gpgconf_path);
     if (!info.exists() || !info.isFile()) return {};
 
-    auto* p = new QProcess(QCoreApplication::instance());
+    auto* p = new QProcess();
     p->setProgram(info.absoluteFilePath());
     p->setArguments({"--list-dirs", "homedir"});
     p->start();
@@ -275,7 +275,7 @@ auto RefreshGpgMEBackendEngine(const QString& gpgconf_path,
 
 auto GetComponentPathsByGpgConf(const QString& gpgconf_install_fs_path)
     -> bool {
-  auto* process = new QProcess(QCoreApplication::instance());
+  auto* process = new QProcess();
   process->setProgram(gpgconf_install_fs_path);
   process->setArguments({"--check-programs"});
   process->start();

@@ -211,8 +211,7 @@ class GpgContext::Impl {
 
   auto set_ctx_openpgp_engine_info(gpgme_ctx_t ctx) -> bool {
     const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
-        "core", QString("gpgme.ctx.app_path").arg(parent_->GetChannel()),
-        QString{});
+        "core", QString("gpgme.ctx.app_path"), QString{});
 
     QString database_path;
     // set custom gpg key db path
