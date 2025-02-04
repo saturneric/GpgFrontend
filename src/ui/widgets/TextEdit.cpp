@@ -30,7 +30,6 @@
 
 #include <QtPrintSupport>
 #include <cstddef>
-#include <utility>
 
 #include "core/GpgModel.h"
 #include "ui/dialog/QuitDialog.h"

@@ -29,7 +29,6 @@
 #include "ModuleManager.h"
 
 #include <memory>
-#include <utility>
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SecureMemoryAllocator.h"

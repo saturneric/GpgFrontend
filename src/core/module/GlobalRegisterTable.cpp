@@ -31,7 +31,6 @@
 #include <any>
 #include <optional>
 #include <shared_mutex>
-#include <utility>
 #include <vector>
 
 #include "GlobalRegisterTableTreeModel.h"

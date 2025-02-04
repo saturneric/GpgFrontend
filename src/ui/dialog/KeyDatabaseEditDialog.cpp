@@ -28,8 +28,6 @@
 
 #include "KeyDatabaseEditDialog.h"
 
-#include <utility>
-
 #include "core/function/GlobalSettingStation.h"
 #include "core/struct/settings_object/KeyDatabaseItemSO.h"
 #include "core/utils/MemoryUtils.h"

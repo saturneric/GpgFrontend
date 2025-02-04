@@ -32,8 +32,6 @@
 
 #include "GpgAdvancedOperator.h"
 
-#include <utility>
-
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"

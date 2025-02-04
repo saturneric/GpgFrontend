@@ -29,7 +29,6 @@
 #include "ui/widgets/KeyList.h"
 
 #include <cstddef>
-#include <utility>
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"

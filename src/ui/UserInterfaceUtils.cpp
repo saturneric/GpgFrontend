@@ -29,7 +29,6 @@
 #include "UserInterfaceUtils.h"
 
 #include <cstddef>
-#include <utility>
 
 #include "core/GpgConstants.h"
 #include "core/function/CoreSignalStation.h"

@@ -28,8 +28,6 @@
 
 #include "ui/thread/KeyServerImportTask.h"
 
-#include <utility>
-
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/model/SettingsObject.h"
 #include "core/utils/BuildInfoUtils.h"

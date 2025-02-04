@@ -28,8 +28,6 @@
 
 #include "GpgAutomatonHandler.h"
 
-#include <utility>
-
 #include "core/model/GpgData.h"
 #include "core/model/GpgKey.h"
 #include "core/utils/GpgUtils.h"

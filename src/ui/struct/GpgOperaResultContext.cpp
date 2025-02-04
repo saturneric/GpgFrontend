@@ -28,8 +28,6 @@
 
 #include "GpgOperaResultContext.h"
 
-#include <utility>
-
 namespace GpgFrontend::UI {
 
 GpgOperaContext::GpgOperaContext(QSharedPointer<GpgOperaContextBasement> base)

@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <utility>
-
 #include "ui/GpgFrontendUI.h"
 #include "ui/widgets/PlainTextEditorPage.h"
 
