@@ -33,6 +33,7 @@
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/CacheUtils.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
@@ -600,7 +601,7 @@ void KeyGenerateDialog::slot_easy_combination_changed(const QString& mode) {
 void KeyGenerateDialog::do_generate() {
   if (!GetSettings()
            .value("gnupg/use_pinentry_as_password_input_dialog",
-                  QString::fromLocal8Bit(qgetenv("container")) != "flatpak")
+                  !IsFlatpakENV())
            .toBool() &&
       !ui_->noPassphraseCheckBox->isChecked()) {
     SetCacheValue("PinentryContext", "NEW_PASSPHRASE");

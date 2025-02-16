@@ -170,4 +170,12 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFCacheSaveWithTTL(const char* key,
  * @return const char*
  */
 auto GPGFRONTEND_MODULE_SDK_EXPORT GFCacheGet(const char* key) -> const char*;
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFIsFlatpakENV() -> bool;
 }

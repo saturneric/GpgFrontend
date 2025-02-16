@@ -32,6 +32,7 @@
 #include "core/function/SecureMemoryAllocator.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/utils/BuildInfoUtils.h"
+#include "core/utils/CommonUtils.h"
 #include "private/GFSDKPrivat.h"
 #include "ui/UIModuleManager.h"
 
@@ -134,4 +135,8 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFCacheSaveWithTTL(const char* key,
 
 auto GPGFRONTEND_MODULE_SDK_EXPORT GFProjectGitCommitHash() -> const char* {
   return GFStrDup(GpgFrontend::GetProjectBuildGitCommitHash());
+}
+
+auto GPGFRONTEND_MODULE_SDK_EXPORT GFIsFlatpakENV() -> bool {
+  return GpgFrontend::IsFlatpakENV();
 }

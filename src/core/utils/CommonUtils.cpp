@@ -95,4 +95,7 @@ auto GFUnStrDup(const char* s) -> QString {
   return GFUnStrDup(const_cast<char*>(s));
 }
 
+auto GPGFRONTEND_CORE_EXPORT IsFlatpakENV() -> bool {
+  return QString::fromLocal8Bit(qgetenv("container")) == "flatpak";
+}
 }  // namespace GpgFrontend

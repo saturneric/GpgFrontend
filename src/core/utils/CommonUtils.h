@@ -65,4 +65,12 @@ auto GPGFRONTEND_CORE_EXPORT GFStrDup(const QString &) -> char *;
  */
 auto GPGFRONTEND_CORE_EXPORT GFUnStrDup(const char *) -> QString;
 
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+auto GPGFRONTEND_CORE_EXPORT IsFlatpakENV() -> bool;
+
 }  // namespace GpgFrontend

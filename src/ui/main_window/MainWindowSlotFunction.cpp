@@ -296,7 +296,7 @@ void MainWindow::slot_version_upgrade_notify() {
             [=]() { (new AboutDialog(tr("Update"), this))->show(); });
     statusBar()->addPermanentWidget(b);
 
-  } else if (is_git_commit_hash_mismatch) {
+  } else if (is_git_commit_hash_mismatch && !IsFlatpakENV()) {
     QMessageBox::information(
         this, tr("Commit Hash Mismatch"),
         tr("The current version's commit hash does not match the official "

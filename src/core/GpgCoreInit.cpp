@@ -499,8 +499,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
 
   auto use_pinentry_as_password_input_dialog =
       settings
-          .value("gnupg/use_pinentry_as_password_input_dialog",
-                 QString::fromLocal8Bit(qgetenv("container")) != "flatpak")
+          .value("gnupg/use_pinentry_as_password_input_dialog", !IsFlatpakENV())
           .toBool();
 
   // try to restart all components
