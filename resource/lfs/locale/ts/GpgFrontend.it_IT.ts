@@ -542,7 +542,7 @@
     <message>
         <location filename="../../../../src/core/model/GpgKeyGenerateInfo.cpp" line="39"/>
         <source>None</source>
-        <translation type="unfinished">Nessuno</translation>
+        <translation>Nessuno</translation>
     </message>
 </context>
 <context>
@@ -938,7 +938,8 @@ Descrizione: %3</translation>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="179"/>
         <source>Check for updates at each startup.</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>Controlla gli aggiornamenti ad ogni avvio.</translatorcomment>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -1077,7 +1078,8 @@ Descrizione: %3</translation>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="46"/>
         <source>Switch Batch Mode</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>Cambia in modalità batch</translatorcomment>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="66"/>
@@ -1092,7 +1094,8 @@ Descrizione: %3</translation>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="78"/>
         <source>ASCII Mode</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>Modalità ASCII</translatorcomment>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -1373,12 +1376,13 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="77"/>
         <source>Status</source>
-        <translation type="unfinished">Stato</translation>
+        <translation>Stato</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="77"/>
         <source>Real Path</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>Percorso reale</translatorcomment>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="360"/>
@@ -1405,23 +1409,26 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="382"/>
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="629"/>
         <source>Invalid Key Database Paths</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>Percorsi del database delle chiavi non validi</translatorcomment>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="383"/>
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="630"/>
         <source>The edited key database path is not a valid path that GpgFrontend can use</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>Il percorso modificato del database delle chiavi  non è un percorso valido che GpgFrontend può utilizzare</translatorcomment>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="430"/>
         <source>Active</source>
-        <translation type="unfinished">Attivo</translation>
+        <translation>Attivo</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="430"/>
         <source>Inactive</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>Inattivo/a</translatorcomment>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/GnuPGControllerDialog.cpp" line="458"/>
@@ -1532,7 +1539,8 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="175"/>
         <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="213"/>
         <source>Critical Error</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>Errore critico</translatorcomment>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -1679,7 +1687,8 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="53"/>
         <source>Convert to Relative Path</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>Converti in percorso relativo</translatorcomment>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="55"/>
@@ -1753,25 +1762,25 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="579"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="585"/>
         <source>Custom</source>
-        <translation type="unfinished"></translation>
+        <translation>Impiego</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="71"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="528"/>
         <source>3 Months</source>
-        <translation type="unfinished"></translation>
+        <translation>3 Mesi</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="72"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="533"/>
         <source>6 Months</source>
-        <translation type="unfinished"></translation>
+        <translation>6 Mesi</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="73"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="538"/>
         <source>1 Year</source>
-        <translation type="unfinished"></translation>
+        <translation>1 Anno</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="74"/>
@@ -1779,19 +1788,19 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="144"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="543"/>
         <source>2 Years</source>
-        <translation type="unfinished"></translation>
+        <translation>2 Anni</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="75"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="548"/>
         <source>5 Years</source>
-        <translation type="unfinished"></translation>
+        <translation>5 Anni</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="76"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="553"/>
         <source>10 Years</source>
-        <translation type="unfinished"></translation>
+        <translation>10 Anni</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="77"/>
@@ -1799,169 +1808,169 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="109"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="559"/>
         <source>Non Expired</source>
-        <translation type="unfinished"></translation>
+        <translation>Non Scaduto</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="81"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="290"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="590"/>
         <source>Primary Key Only</source>
-        <translation type="unfinished"></translation>
+        <translation>Solo Chiave Primaria</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="82"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="338"/>
         <source>Primary Key With Subkey</source>
-        <translation type="unfinished"></translation>
+        <translation>Chiave Primaria con Sottochiave</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="85"/>
         <source>Name</source>
-        <translation type="unfinished">Nome</translation>
+        <translation>Nome</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="86"/>
         <source>Email</source>
-        <translation type="unfinished">E-mail</translation>
+        <translation>Email</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="87"/>
         <source>Comment</source>
-        <translation type="unfinished">Commento</translation>
+        <translation>Commento</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="88"/>
         <source>Key Database</source>
-        <translation type="unfinished">Database delle chiavi</translation>
+        <translation>Database delle chiavi</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="89"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="92"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="102"/>
         <source>Algorithm</source>
-        <translation type="unfinished">Algoritmo</translation>
+        <translation>Algoritmo</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="90"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="93"/>
         <source>Validity Period</source>
-        <translation type="unfinished"></translation>
+        <translation>Periodo di validità</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="94"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="104"/>
         <source>Key Length</source>
-        <translation type="unfinished"></translation>
+        <translation>Lunghezza Chiave</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="95"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="105"/>
         <source>Usage</source>
-        <translation type="unfinished">Utilizzo</translation>
+        <translation>Utilizzo</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="96"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="106"/>
         <source>Encrypt</source>
-        <translation type="unfinished">Cifra</translation>
+        <translation>Cifra</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="97"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="107"/>
         <source>Sign</source>
-        <translation type="unfinished">Firma</translation>
+        <translation>Firma</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="98"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="108"/>
         <source>Authentication</source>
-        <translation type="unfinished">Autenticazione</translation>
+        <translation>Autenticazione</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="99"/>
         <source>No Passphrase</source>
-        <translation type="unfinished"></translation>
+        <translation>Nessuna frase segreta</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="103"/>
         <source>Expire Date</source>
-        <translation type="unfinished">Data di scadenza</translation>
+        <translation>Data di scadenza</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="112"/>
         <source>Easy Mode</source>
-        <translation type="unfinished"></translation>
+        <translation>Modalità facile</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="113"/>
         <source>Primary Key</source>
-        <translation type="unfinished">Chiave primaria</translation>
+        <translation>Chiave primaria</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="114"/>
         <source>Subkey</source>
-        <translation type="unfinished">Sottochiave</translation>
+        <translation>Sottochiave</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="117"/>
         <source>Generate</source>
-        <translation type="unfinished"></translation>
+        <translation>Generare</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="134"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="261"/>
         <source>None</source>
-        <translation type="unfinished">Nessuno</translation>
+        <translation>Nessuno</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="146"/>
         <source>Generate Key</source>
-        <translation type="unfinished">Genera chiave</translation>
+        <translation>Genera chiave</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="156"/>
         <source>Name must contain at least five characters.</source>
-        <translation type="unfinished">Il nome deve contenere almeno cinque caratteri.</translation>
+        <translation>Il nome deve contenere almeno cinque caratteri.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="161"/>
         <source>Please give a valid email address.</source>
-        <translation type="unfinished"></translation>
+        <translation>Inserisci un indirizzo email valido.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="166"/>
         <source>Please give a valid primary key algorithm.</source>
-        <translation type="unfinished"></translation>
+        <translation>Fornisci un algoritmo di chiave primaria valido.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="175"/>
         <source>Time to primary key expiration must not be less than 120 seconds.</source>
-        <translation type="unfinished"></translation>
+        <translation>Il tempo di scadenza della chiave primaria non deve essere inferiore a 120 secondi.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="182"/>
         <source>Please give a valid subkey algorithm.</source>
-        <translation type="unfinished"></translation>
+        <translation>Si prega di fornire un algoritmo di sottochiave valido.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="190"/>
         <source>Time to subkey expiration must not be less than 120 seconds.</source>
-        <translation type="unfinished"></translation>
+        <translation>Il tempo di scadenza della sottochiave non deve essere inferiore a 120 secondi.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="618"/>
         <source>Error</source>
-        <translation type="unfinished">Errore</translation>
+        <translation>Errore</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="619"/>
         <source>Unknown error occurred</source>
-        <translation type="unfinished">Si è verificato un errore sconosciuto</translation>
+        <translation>Si è verificato un errore sconosciuto</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="631"/>
         <source>Generating</source>
-        <translation type="unfinished">Generazione</translation>
+        <translation>Generazione</translation>
     </message>
 </context>
 <context>
@@ -2183,12 +2192,12 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="645"/>
         <source>Error</source>
-        <translation type="unfinished">Errore</translation>
+        <translation>Errore</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="645"/>
         <source>Key Not Found.</source>
-        <translation type="unfinished">Chiave non trovata.</translation>
+        <translation>Chiave non trovata.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="301"/>
@@ -4212,14 +4221,18 @@ Nota: per la verifica, puoi trovare maggiori informazioni qui: https://keys.open
         <source>Cannot read from the following files:
 
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Impossibile leggere dai seguenti file:
+
+%1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="144"/>
         <source>Cannot write to the following files:
 
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Impossibile scrivere sui seguenti file:
+
+%1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="174"/>
@@ -4453,58 +4466,62 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="517"/>
         <source>FAIL</source>
-        <translation type="unfinished"></translation>
+        <translation>SBAGLIO</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="521"/>
         <source>OK</source>
-        <translation type="unfinished"></translation>
+        <translation>OK</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="524"/>
         <source>WARN</source>
-        <translation type="unfinished"></translation>
+        <translation>AVVISO</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="535"/>
         <source>Summary Report</source>
-        <translation type="unfinished"></translation>
+        <translation>Rapporto di Sintesi</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="536"/>
         <source>Total Operations: %1
 </source>
-        <translation type="unfinished"></translation>
+        <translation>Totale operazioni: %1
+</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="537"/>
         <source>Successful: %1
 </source>
-        <translation type="unfinished"></translation>
+        <translation>Riuscite %1
+</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="538"/>
         <source>Warnings: %1
 </source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="539"/>
         <source>Failures: %1
 </source>
-        <translation type="unfinished"></translation>
+        <translation>Errori: %1
+</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="543"/>
         <source>Failed Objects: %1
 </source>
-        <translation type="unfinished"></translation>
+        <translation>Failed Objects: %1
+</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="548"/>
         <source>Warning Objects: %1
 </source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="647"/>
@@ -4518,7 +4535,7 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="648"/>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="774"/>
         <source>Please select a key for encrypt the EML.</source>
-        <translation type="unfinished">Selezionare una chiave per cifrare l&apos;EML.</translation>
+        <translation>Selezionare una chiave per cifrare l&apos;EML.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="708"/>
@@ -5785,52 +5802,52 @@ Se il problema persiste, prendere in considerazione la possibilità di richieder
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="59"/>
         <source>Algorithm</source>
-        <translation type="unfinished">Algoritmo</translation>
+        <translation>Algoritmo</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="60"/>
         <source>Key Length</source>
-        <translation type="unfinished"></translation>
+        <translation>Lunghezza Chiave</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="61"/>
         <source>Expire Date</source>
-        <translation type="unfinished">Data di scadenza</translation>
+        <translation>Data di scadenza</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="62"/>
         <source>Usage</source>
-        <translation type="unfinished">Utilizzo</translation>
+        <translation>Utilizzo</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="63"/>
         <source>Encrypt</source>
-        <translation type="unfinished">Cifra</translation>
+        <translation>Cifra</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="64"/>
         <source>Sign</source>
-        <translation type="unfinished">Firma</translation>
+        <translation>Firma</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="66"/>
         <source>Non Expired</source>
-        <translation type="unfinished"></translation>
+        <translation>Non Scaduta</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="67"/>
         <source>No Passphrase</source>
-        <translation type="unfinished"></translation>
+        <translation>Nessuna frase segreta</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="183"/>
         <source>Please give a valid subkey algorithm.</source>
-        <translation type="unfinished"></translation>
+        <translation>Si prega di fornire un algoritmo di sottochiave valido.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="192"/>
         <source>Time to subkey expiration must not be less than 120 seconds.</source>
-        <translation type="unfinished"></translation>
+        <translation>Il tempo di scadenza della sottochiave non deve essere inferiore a 120 secondi.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="204"/>
@@ -6388,12 +6405,12 @@ Se il problema persiste, prendere in considerazione la possibilità di richieder
     <message>
         <location filename="../../../../src/core/GpgCoreInit.cpp" line="405"/>
         <source>Cannot get Infos from GpgConf</source>
-        <translation type="unfinished"></translation>
+        <translation>Impossibile ottenere informazioni da GpgConf</translation>
     </message>
     <message>
         <location filename="../../../../src/core/GpgCoreInit.cpp" line="445"/>
         <source>Cannot Find Default Home Path</source>
-        <translation type="unfinished"></translation>
+        <translation>Impossibile trovare il percorso predefinito di Home</translation>
     </message>
     <message>
         <location filename="../../../../src/core/GpgCoreInit.cpp" line="471"/>
