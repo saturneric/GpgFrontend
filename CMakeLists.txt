@@ -30,9 +30,6 @@ message(STATUS "Current Generator: ${CMAKE_GENERATOR}")
 if(CMAKE_GENERATOR STREQUAL "Xcode")
   set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_SOURCE_DIR}/cmake/FlagsOverridesXcode.cmake")
   set(XCODE_BUILD 1)
-  # create a universal binary
-  # should be set prior to the first project() or enable_language() command invocation
-  set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
 else()
   set(CMAKE_USER_MAKE_RULES_OVERRIDE "${CMAKE_SOURCE_DIR}/cmake/FlagsOverrides.cmake")
 endif()
