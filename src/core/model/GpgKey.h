@@ -41,6 +41,96 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
   Q_DECLARE_TR_FUNCTIONS(GpgKey)
  public:
   /**
+   * @brief Construct a new Gpg Key object
+   *
+   */
+  GpgKey() = default;
+
+  /**
+   * @brief Construct a new Gpg Key object
+   *
+   * @param key
+   */
+  explicit GpgKey(gpgme_key_t&& key);
+
+  /**
+   * @brief Destroy the Gpg Key objects
+   *
+   */
+  ~GpgKey() = default;
+
+  /**
+   * @brief Construct a new Gpg Key object
+   *
+   * @param key
+   */
+  GpgKey(const gpgme_key_t& key) = delete;
+
+  /**
+   * @brief Construct a new Gpg Key object
+   *
+   * @param k
+   */
+  GpgKey(GpgKey&&) noexcept;
+
+  /**
+   * @brief
+   *
+   * @param k
+   * @return GpgKey&
+   */
+  auto operator=(GpgKey&&) noexcept -> GpgKey&;
+
+  /**
+   * @brief Construct a new Gpg Key object
+   *
+   * @param k
+   */
+  GpgKey(const GpgKey&);
+
+  /**
+   * @brief
+   *
+   * @param k
+   * @return GpgKey&
+   */
+  auto operator=(const GpgKey&) -> GpgKey&;
+
+  /**
+   * @brief
+   *
+   * @param key
+   * @return GpgKey&
+   */
+  auto operator=(const gpgme_key_t&) -> GpgKey& = delete;
+
+  /**
+   * @brief
+   *
+   * @param o
+   * @return true
+   * @return false
+   */
+  auto operator==(const GpgKey&) const -> bool;
+
+  /**
+   * @brief
+   *
+   * @param o
+   * @return true
+   * @return false
+   */
+  auto operator<=(const GpgKey&) const -> bool;
+
+  /**
+   * @brief 
+   * 
+   * @return gpgme_key_t 
+   */
+  // NOLINTNEXTLINE(google-explicit-constructor)
+  operator gpgme_key_t() const;
+
+  /**
    * @brief
    *
    * @return true
@@ -273,91 +363,6 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return std::unique_ptr<QContainer<GpgUID>>
    */
   [[nodiscard]] auto GetUIDs() const -> std::unique_ptr<QContainer<GpgUID>>;
-
-  /**
-   * @brief Construct a new Gpg Key object
-   *
-   */
-  GpgKey() = default;
-
-  /**
-   * @brief Construct a new Gpg Key object
-   *
-   * @param key
-   */
-  explicit GpgKey(gpgme_key_t&& key);
-
-  /**
-   * @brief Destroy the Gpg Key objects
-   *
-   */
-  ~GpgKey() = default;
-
-  /**
-   * @brief Construct a new Gpg Key object
-   *
-   * @param key
-   */
-  GpgKey(const gpgme_key_t& key) = delete;
-
-  /**
-   * @brief Construct a new Gpg Key object
-   *
-   * @param k
-   */
-  GpgKey(GpgKey&&) noexcept;
-
-  /**
-   * @brief
-   *
-   * @param k
-   * @return GpgKey&
-   */
-  auto operator=(GpgKey&&) noexcept -> GpgKey&;
-
-  /**
-   * @brief Construct a new Gpg Key object
-   *
-   * @param k
-   */
-  GpgKey(const GpgKey&);
-
-  /**
-   * @brief
-   *
-   * @param k
-   * @return GpgKey&
-   */
-  auto operator=(const GpgKey&) -> GpgKey&;
-
-  /**
-   * @brief
-   *
-   * @param key
-   * @return GpgKey&
-   */
-  auto operator=(const gpgme_key_t&) -> GpgKey& = delete;
-
-  /**
-   * @brief
-   *
-   * @param o
-   * @return true
-   * @return false
-   */
-  auto operator==(const GpgKey&) const -> bool;
-
-  /**
-   * @brief
-   *
-   * @param o
-   * @return true
-   * @return false
-   */
-  auto operator<=(const GpgKey&) const -> bool;
-
-  // NOLINTNEXTLINE(google-explicit-constructor)
-  operator gpgme_key_t() const;
 
  private:
   /**

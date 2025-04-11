@@ -170,6 +170,25 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
       const QSharedPointer<KeyGenerateInfo>& s_params)
       -> std::tuple<GpgError, DataObjectPtr>;
 
+  /**
+   * @brief
+   *
+   * @param key
+   * @param adsk
+   */
+  void AddADSK(const GpgKey& key, const GpgSubKey& adsk,
+               const GpgOperationCallback&);
+
+  /**
+   * @brief
+   *
+   * @param key
+   * @param adsk
+   * @return GpgError
+   */
+  auto AddADSKSync(const GpgKey& key, const GpgSubKey& adsk)
+      -> std::tuple<GpgError, DataObjectPtr>;
+
  private:
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<

@@ -364,4 +364,42 @@ void GpgKeyOpera::DeleteKey(const KeyId& key_id) {
   keys.push_back(key_id);
   DeleteKeys(keys);
 }
+
+auto AddADSKImpl(GpgContext& ctx, const GpgKey& key, const GpgSubKey& adsk,
+                 const DataObjectPtr& data_object) -> GpgError {
+  auto algo = adsk.GetFingerprint();
+  unsigned int flags = GPGME_CREATE_ADSK;
+
+  LOG_D() << "add adsk args: " << key.GetId() << algo;
+  
+  auto err =
+      gpgme_op_createsubkey(ctx.DefaultContext(), static_cast<gpgme_key_t>(key),
+                            algo.toLatin1(), 0, 0, flags);
+  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+    data_object->Swap({GpgGenerateKeyResult{}});
+    return err;
+  }
+
+  data_object->Swap(
+      {GpgGenerateKeyResult{gpgme_op_genkey_result(ctx.DefaultContext())}});
+  return CheckGpgError(err);
+}
+
+void GpgKeyOpera::AddADSK(const GpgKey& key, const GpgSubKey& adsk,
+                          const GpgOperationCallback& callback) {
+  RunGpgOperaAsync(
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        return AddADSKImpl(ctx_, key, adsk, data_object);
+      },
+      callback, "gpgme_op_createsubkey", "2.4.1");
+}
+
+auto GpgKeyOpera::AddADSKSync(const GpgKey& key, const GpgSubKey& adsk)
+    -> std::tuple<GpgError, DataObjectPtr> {
+  return RunGpgOperaSync(
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        return AddADSKImpl(ctx_, key, adsk, data_object);
+      },
+      "gpgme_op_createsubkey", "2.4.1");
+}
 }  // namespace GpgFrontend

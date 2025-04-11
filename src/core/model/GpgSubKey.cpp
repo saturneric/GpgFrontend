@@ -94,4 +94,9 @@ auto GpgSubKey::GetExpireTime() const -> QDateTime {
   return QDateTime::fromSecsSinceEpoch(subkey_ref_->expires);
 }
 
+auto GpgSubKey::IsADSK() const -> bool { return subkey_ref_->can_renc; }
+
+auto GpgSubKey::SmartCardSerialNumber() -> QString {
+  return subkey_ref_->card_number;
+}
 }  // namespace GpgFrontend

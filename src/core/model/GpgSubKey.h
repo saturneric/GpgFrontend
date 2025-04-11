@@ -41,6 +41,41 @@ namespace GpgFrontend {
 class GPGFRONTEND_CORE_EXPORT GpgSubKey {
  public:
   /**
+   * @brief Construct a new Gpg Sub Key object
+   *
+   */
+  GpgSubKey();
+
+  /**
+   * @brief Construct a new Gpg Sub Key object
+   *
+   * @param subkey
+   */
+  explicit GpgSubKey(gpgme_subkey_t subkey);
+
+  /**
+   * @brief Construct a new Gpg Sub Key object
+   *
+   */
+  GpgSubKey(const GpgSubKey&);
+
+  /**
+   * @brief
+   *
+   * @return GpgSubKey&
+   */
+  auto operator=(const GpgSubKey&) -> GpgSubKey&;
+
+  /**
+   * @brief
+   *
+   * @param o
+   * @return true
+   * @return false
+   */
+  auto operator==(const GpgSubKey& o) const -> bool;
+
+  /**
    * @brief
    *
    * @return QString
@@ -167,42 +202,22 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    *
    * @return QDateTime
    */
-  [[nodiscard]] QDateTime GetExpireTime() const;
+  [[nodiscard]] auto GetExpireTime() const -> QDateTime;
 
   /**
-   * @brief Construct a new Gpg Sub Key object
-   *
+   * @brief 
+   * 
+   * @return true 
+   * @return false 
    */
-  GpgSubKey();
+  [[nodiscard]] auto IsADSK() const -> bool;
 
   /**
-   * @brief Construct a new Gpg Sub Key object
-   *
-   * @param subkey
+   * @brief 
+   * 
+   * @return QString 
    */
-  explicit GpgSubKey(gpgme_subkey_t subkey);
-
-  /**
-   * @brief Construct a new Gpg Sub Key object
-   *
-   */
-  GpgSubKey(const GpgSubKey&);
-
-  /**
-   * @brief
-   *
-   * @return GpgSubKey&
-   */
-  auto operator=(const GpgSubKey&) -> GpgSubKey&;
-
-  /**
-   * @brief
-   *
-   * @param o
-   * @return true
-   * @return false
-   */
-  auto operator==(const GpgSubKey& o) const -> bool;
+  [[nodiscard]] auto SmartCardSerialNumber() -> QString;
 
  private:
   gpgme_subkey_t subkey_ref_ = nullptr;  ///<
