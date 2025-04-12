@@ -35,6 +35,8 @@
 
 namespace GpgFrontend {
 
+class GpgKey;
+
 /**
  * @brief
  *
@@ -232,7 +234,14 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey : public GpgAbstractKey {
    *
    * @return QString
    */
-  [[nodiscard]] auto SmartCardSerialNumber() -> QString;
+  [[nodiscard]] auto SmartCardSerialNumber() const -> QString;
+
+  /**
+   * @brief
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto Convert2GpgKey() const -> QSharedPointer<GpgKey>;
 
  private:
   QSharedPointer<struct _gpgme_key> key_ref_;

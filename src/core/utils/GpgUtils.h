@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/function/result_analyse/GpgResultAnalyse.h"
+#include "core/model/GpgAbstractKey.h"
 #include "core/model/KeyDatabaseInfo.h"
 #include "core/struct/settings_object/KeyDatabaseItemSO.h"
 #include "core/typedef/CoreTypedef.h"
@@ -172,5 +172,13 @@ auto GPGFRONTEND_CORE_EXPORT GetUsagesByKey(const GpgKey& key) -> QString;
  * @return QString
  */
 auto GPGFRONTEND_CORE_EXPORT GetUsagesBySubkey(const GpgSubKey& key) -> QString;
+
+/**
+ * @brief
+ *
+ * @return GpgKey
+ */
+auto GPGFRONTEND_CORE_EXPORT GetGpgKeyByGpgAbstractKey(GpgAbstractKey*)
+    -> GpgKey;
 
 }  // namespace GpgFrontend

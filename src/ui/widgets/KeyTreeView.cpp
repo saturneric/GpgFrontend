@@ -31,9 +31,23 @@
 #include <utility>
 
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "model/GpgKeyTreeProxyModel.h"
+#include "core/utils/GpgUtils.h"
+#include "ui/dialog/keypair_details/KeyDetailsDialog.h"
+#include "ui/model/GpgKeyTreeProxyModel.h"
 
 namespace GpgFrontend::UI {
+
+KeyTreeView::KeyTreeView(QWidget* parent)
+    : QTreeView(parent),
+      channel_(kGpgFrontendDefaultChannel),
+      model_(QSharedPointer<GpgKeyTreeModel>::create(
+          channel_, GpgKeyGetter::GetInstance(channel_).FetchKey(),
+          [](auto) { return false; }, this)),
+      proxy_model_(
+          model_, GpgKeyTreeDisplayMode::kALL, [](auto) { return false; },
+          this) {
+  init();
+}
 
 KeyTreeView::KeyTreeView(int channel,
                          GpgKeyTreeModel::Detector checkable_detector,
@@ -42,28 +56,11 @@ KeyTreeView::KeyTreeView(int channel,
     : QTreeView(parent),
       channel_(channel),
       model_(QSharedPointer<GpgKeyTreeModel>::create(
-          channel, GpgKeyGetter::GetInstance(channel_).FetchKey(),
+          channel_, GpgKeyGetter::GetInstance(channel_).FetchKey(),
           checkable_detector, this)),
       proxy_model_(model_, GpgKeyTreeDisplayMode::kALL, std::move(filter),
                    this) {
-  setModel(&proxy_model_);
-
-  sortByColumn(2, Qt::AscendingOrder);
-  setSelectionBehavior(QAbstractItemView::SelectRows);
-  setSelectionMode(QAbstractItemView::SingleSelection);
-
-  setEditTriggers(QAbstractItemView::NoEditTriggers);
-  header()->resizeSections(QHeaderView::Interactive);
-  header()->setDefaultAlignment(Qt::AlignCenter);
-  header()->setMinimumHeight(20);
-
-  setUniformRowHeights(true);
-  setExpandsOnDoubleClick(true);
-  setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
-
-  setFocusPolicy(Qt::NoFocus);
-  setAlternatingRowColors(true);
-  setSortingEnabled(true);
+  init();
 }
 
 void KeyTreeView::paintEvent(QPaintEvent* event) {
@@ -87,6 +84,60 @@ auto KeyTreeView::GetAllCheckedKeyIds() -> KeyIdArgsList {
 
 auto KeyTreeView::GetAllCheckedSubKey() -> QContainer<GpgSubKey> {
   return model_->GetAllCheckedSubKey();
+}
+
+void KeyTreeView::init() {
+  setModel(&proxy_model_);
+
+  sortByColumn(2, Qt::AscendingOrder);
+  setSelectionBehavior(QAbstractItemView::SelectRows);
+  setSelectionMode(QAbstractItemView::SingleSelection);
+
+  setEditTriggers(QAbstractItemView::NoEditTriggers);
+  header()->resizeSections(QHeaderView::Interactive);
+  header()->setDefaultAlignment(Qt::AlignCenter);
+  header()->setMinimumHeight(20);
+
+  setUniformRowHeights(true);
+  setExpandsOnDoubleClick(true);
+  setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+
+  setFocusPolicy(Qt::NoFocus);
+  setAlternatingRowColors(true);
+  setSortingEnabled(true);
+
+  connect(this, &QTableView::doubleClicked, this,
+          [this](const QModelIndex& index) {
+            if (!index.isValid() || index.column() == 0) return;
+
+            QModelIndex source_index = proxy_model_.mapToSource(index);
+            auto key =
+                GetGpgKeyByGpgAbstractKey(model_->GetKeyByIndex(source_index));
+
+            if (!key.IsGood()) {
+              QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
+              return;
+            }
+
+            new KeyDetailsDialog(model_->GetGpgContextChannel(), key, this);
+          });
+}
+
+void KeyTreeView::SetKeyFilter(const GpgKeyTreeProxyModel::KeyFilter& filter) {
+  proxy_model_.SetKeyFilter(filter);
+}
+
+void KeyTreeView::SetChannel(int channel) {
+  if (channel_ == channel) return;
+  LOG_D() << "new channel for key tree view: " << channel;
+
+  channel_ = channel;
+  init_ = false;
+  model_ = QSharedPointer<GpgKeyTreeModel>::create(
+      channel_, GpgKeyGetter::GetInstance(channel_).FetchKey(),
+      [](auto) { return false; }, this);
+  proxy_model_.setSourceModel(model_.get());
+  proxy_model_.invalidate();
 }
 
 }  // namespace GpgFrontend::UI

@@ -111,6 +111,7 @@
         <file alias="batch.png">resource/lfs/icons/batch.png</file>
         <file alias="encr-sign.png">resource/lfs/icons/encr-sign.png</file>
         <file alias="decr-verify.png">resource/lfs/icons/decr-verify.png</file>
+        <file alias="smart-card.png">resource/lfs/icons/smart-card.png</file>
     </qresource>
     <qresource prefix="/test/key">
         <file alias="pv1.key">resource/lfs/test/data/pv1.key</file>

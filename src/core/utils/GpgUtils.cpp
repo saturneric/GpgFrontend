@@ -353,4 +353,21 @@ auto GPGFRONTEND_CORE_EXPORT GetUsagesBySubkey(const GpgSubKey& key)
   if (key.IsADSK()) usages += "R";
   return usages;
 }
+
+auto GPGFRONTEND_CORE_EXPORT GetGpgKeyByGpgAbstractKey(GpgAbstractKey* ab_key)
+    -> GpgKey {
+  if (!ab_key->IsGood()) return {};
+
+  if (ab_key->IsSubKey()) {
+    auto* s_key = dynamic_cast<GpgSubKey*>(ab_key);
+
+    assert(s_key != nullptr);
+    if (s_key == nullptr) return {};
+
+    return *s_key->Convert2GpgKey();
+  }
+
+  auto* key = dynamic_cast<GpgKey*>(ab_key);
+  return *key;
+}
 }  // namespace GpgFrontend

@@ -389,7 +389,12 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
                                                            : tr("Not Exists"));
 
   // Show the situation if key in a smart card.
-  card_key_label_->setText(s_key.IsCardKey() ? tr("Yes") : tr("No"));
+  auto smart_card_info = s_key.IsCardKey() ? tr("Yes") : tr("No");
+  if (s_key.IsCardKey() && !s_key.SmartCardSerialNumber().isEmpty()) {
+    smart_card_info += " ";
+    smart_card_info += "(" + s_key.SmartCardSerialNumber() + ")";
+  }
+  card_key_label_->setText(smart_card_info);
 
   if (!s_key.IsSecretKey()) {
     auto palette_expired = master_key_exist_var_label_->palette();

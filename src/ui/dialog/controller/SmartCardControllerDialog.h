@@ -28,58 +28,58 @@
 
 #pragma once
 
-#include "core/typedef/CoreTypedef.h"
+#include "core/model/GpgOpenPGPCard.h"
+#include "ui/dialog/GeneralDialog.h"
 
-namespace GpgFrontend {
+class Ui_SmartCardControllerDialog;
 
-/**
- * @brief
- *
- * @param fingerprint
- * @return QString
- */
-auto GPGFRONTEND_CORE_EXPORT BeautifyFingerprint(QString fingerprint)
-    -> QString;
+namespace GpgFrontend::UI {
+class SmartCardControllerDialog : public GeneralDialog {
+  Q_OBJECT
+ public:
+  /**
+   * @brief Construct a new Smart Card Controller Dialog object
+   *
+   * @param parent
+   */
+  explicit SmartCardControllerDialog(QWidget* parent = nullptr);
 
-/**
- * @brief
- *
- * @param a
- * @param b
- * @return int
- */
-auto GPGFRONTEND_CORE_EXPORT GFCompareSoftwareVersion(const QString &a,
-                                                      const QString &b) -> int;
+ private slots:
 
-/**
- * @brief
- *
- * @return char*
- */
-auto GPGFRONTEND_CORE_EXPORT GFStrDup(const QString &) -> char *;
+  /**
+   * @brief
+   *
+   */
+  void slot_refresh();
 
-/**
- * @brief
- *
- * @return QString
- */
-auto GPGFRONTEND_CORE_EXPORT GFUnStrDup(const char *) -> QString;
+ private:
+  QSharedPointer<Ui_SmartCardControllerDialog> ui_;  ///<
+  int channel_;
+  QString serial_number_;
+  GpgOpenPGPCard card_info_;
 
-/**
- * @brief
- *
- * @return true
- * @return false
- */
-auto GPGFRONTEND_CORE_EXPORT IsFlatpakENV() -> bool;
+  /**
+   * @brief Get the smart card serial number object
+   *
+   */
+  void get_smart_card_serial_number();
 
-/**
- * @brief
- *
- * @param s
- * @return int
- */
-auto GPGFRONTEND_CORE_EXPORT ParseHexEncodedVersionTuple(const QString &s)
-    -> int;
+  /**
+   * @brief
+   *
+   */
+  void fetch_smart_card_info();
 
-}  // namespace GpgFrontend
+  /**
+   * @brief
+   *
+   */
+  void print_smart_card_info();
+
+  /**
+   * @brief
+   *
+   */
+  void refresh_key_tree_view();
+};
+}  // namespace GpgFrontend::UI

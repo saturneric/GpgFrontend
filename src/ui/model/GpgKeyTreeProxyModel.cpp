@@ -125,4 +125,9 @@ void GpgKeyTreeProxyModel::slot_update_favorites_cache() {
   }
 }
 
+void GpgKeyTreeProxyModel::SetKeyFilter(const KeyFilter &filter) {
+  custom_filter_ = filter;
+  invalidateFilter();
+}
+
 }  // namespace GpgFrontend::UI

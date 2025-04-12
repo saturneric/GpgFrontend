@@ -711,8 +711,10 @@ class MainWindow : public GeneralMainWindow {
   QAction* clean_double_line_breaks_act_{};  ///<  Action to remove double
                                              ///<  line breaks
 
-  QAction* gnupg_controller_open_act_{};     ///<
-  QAction* module_controller_open_act_{};    ///<
+  QAction* gnupg_controller_open_act_{};       ///<
+  QAction* module_controller_open_act_{};      ///<
+  QAction* smart_card_controller_open_act_{};  ///<
+
   QAction* clean_gpg_password_cache_act_{};  ///<
   QAction* reload_components_act_{};         ///<
   QAction* restart_components_act_{};        ///<

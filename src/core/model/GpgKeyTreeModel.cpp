@@ -257,6 +257,15 @@ auto GpgKeyTreeModel::GetAllCheckedSubKey() -> QContainer<GpgSubKey> {
   return ret;
 }
 
+auto GpgKeyTreeModel::GetKeyByIndex(QModelIndex index) -> GpgAbstractKey * {
+  if (!index.isValid()) return nullptr;
+
+  const auto *item =
+      static_cast<const GpgKeyTreeItem *>(index.internalPointer());
+
+  return item->Key();
+}
+
 GpgKeyTreeItem::GpgKeyTreeItem(QSharedPointer<GpgAbstractKey> key,
                                QVariantList data)
     : data_(std::move(data)), key_(std::move(key)) {}

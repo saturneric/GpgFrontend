@@ -37,6 +37,9 @@ GpgKey::GpgKey(gpgme_key_t key)
         if (ptr != nullptr) gpgme_key_unref(ptr);
       }) {}
 
+GpgKey::GpgKey(QSharedPointer<struct _gpgme_key> key_ref)
+    : key_ref_(std::move(key_ref)) {}
+
 GpgKey::operator gpgme_key_t() const { return key_ref_.get(); }
 
 GpgKey::GpgKey(const GpgKey &) = default;
@@ -218,4 +221,5 @@ auto GpgKey::PrimaryKey() const -> GpgSubKey {
 }
 
 auto GpgKey::IsSubKey() const -> bool { return false; }
+
 }  // namespace GpgFrontend

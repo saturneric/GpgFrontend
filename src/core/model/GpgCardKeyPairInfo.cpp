@@ -26,60 +26,48 @@
  *
  */
 
-#pragma once
-
-#include "core/typedef/CoreTypedef.h"
+#include "GpgCardKeyPairInfo.h"
 
 namespace GpgFrontend {
 
-/**
- * @brief
- *
- * @param fingerprint
- * @return QString
- */
-auto GPGFRONTEND_CORE_EXPORT BeautifyFingerprint(QString fingerprint)
-    -> QString;
+GpgCardKeyPairInfo::GpgCardKeyPairInfo(const QString &status) {
+  const auto values = status.split(QLatin1Char(' '));
+  if (values.size() < 2) {
+    return;
+  }
 
-/**
- * @brief
- *
- * @param a
- * @param b
- * @return int
- */
-auto GPGFRONTEND_CORE_EXPORT GFCompareSoftwareVersion(const QString &a,
-                                                      const QString &b) -> int;
+  grip = values[0];
+  key_ref = values[1];
+  if (values.size() >= 3) {
+    usage = values[2];
+  }
 
-/**
- * @brief
- *
- * @return char*
- */
-auto GPGFRONTEND_CORE_EXPORT GFStrDup(const QString &) -> char *;
+  if (values.size() >= 4 && !values[3].isEmpty() && values[3] != "-") {
+    bool ok;
+    const qint64 seconds_since_epoch = values[3].toLongLong(&ok);
+    if (ok) {
+      time =
+          QDateTime::fromSecsSinceEpoch(seconds_since_epoch, QTimeZone::utc());
+    }
+  }
 
-/**
- * @brief
- *
- * @return QString
- */
-auto GPGFRONTEND_CORE_EXPORT GFUnStrDup(const char *) -> QString;
+  if (values.size() >= 5) {
+    algorithm = values[4];
+  }
+}
 
-/**
- * @brief
- *
- * @return true
- * @return false
- */
-auto GPGFRONTEND_CORE_EXPORT IsFlatpakENV() -> bool;
+auto GpgCardKeyPairInfo::CanAuthenticate() const -> bool {
+  return usage.contains('a');
+}
 
-/**
- * @brief
- *
- * @param s
- * @return int
- */
-auto GPGFRONTEND_CORE_EXPORT ParseHexEncodedVersionTuple(const QString &s)
-    -> int;
+auto GpgCardKeyPairInfo::CanCertify() const -> bool {
+  return usage.contains('c');
+}
+
+auto GpgCardKeyPairInfo::CanEncrypt() const -> bool {
+  return usage.contains('e');
+}
+
+auto GpgCardKeyPairInfo::CanSign() const -> bool { return usage.contains('s'); }
 
 }  // namespace GpgFrontend

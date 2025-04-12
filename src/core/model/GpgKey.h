@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <utility>
+
 #include "core/model/GpgAbstractKey.h"
 #include "core/model/GpgSubKey.h"
 #include "core/model/GpgUID.h"
@@ -53,6 +55,13 @@ class GPGFRONTEND_CORE_EXPORT GpgKey : public GpgAbstractKey {
    * @param key
    */
   explicit GpgKey(gpgme_key_t key);
+
+  /**
+   * @brief Construct a new Gpg Key object
+   *
+   * @param key
+   */
+  explicit GpgKey(QSharedPointer<struct _gpgme_key> key_ref);
 
   /**
    * @brief Construct a new Gpg Key object

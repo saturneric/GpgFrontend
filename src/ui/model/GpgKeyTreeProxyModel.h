@@ -40,13 +40,38 @@ class GpgKeyTreeProxyModel : public QSortFilterProxyModel {
  public:
   using KeyFilter = std::function<bool(const GpgAbstractKey *)>;
 
+  /**
+   * @brief Construct a new Gpg Key Tree Proxy Model object
+   *
+   * @param model
+   * @param display_mode
+   * @param filter
+   * @param parent
+   */
   explicit GpgKeyTreeProxyModel(QSharedPointer<GpgKeyTreeModel> model,
                                 GpgKeyTreeDisplayMode display_mode,
                                 KeyFilter filter, QObject *parent);
 
+  /**
+   * @brief Set the Search Keywords object
+   *
+   * @param keywords
+   */
   void SetSearchKeywords(const QString &keywords);
 
+  /**
+   * @brief
+   *
+   * @param model
+   */
   void ResetGpgKeyTableModel(QSharedPointer<GpgKeyTreeModel> model);
+
+  /**
+   * @brief Set the Key Filter object
+   *
+   * @param filter
+   */
+  void SetKeyFilter(const KeyFilter &filter);
 
  protected:
   [[nodiscard]] auto filterAcceptsRow(

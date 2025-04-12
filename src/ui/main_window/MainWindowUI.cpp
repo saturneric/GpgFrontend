@@ -29,9 +29,10 @@
 #include "MainWindow.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
-#include "dialog/controller/ModuleControllerDialog.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/controller/GnuPGControllerDialog.h"
+#include "ui/dialog/controller/ModuleControllerDialog.h"
+#include "ui/dialog/controller/SmartCardControllerDialog.h"
 #include "ui/dialog/help/AboutDialog.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
@@ -255,6 +256,12 @@ void MainWindow::create_actions() {
   connect(module_controller_open_act_, &QAction::triggered, this,
           [this]() { (new ModuleControllerDialog(this))->exec(); });
 
+  smart_card_controller_open_act_ = create_action(
+      "smart_card_controller_open", tr("Open Smart Card Controller"),
+      ":/icons/smart-card.png", tr("Open Smart Card Controller Dialog"));
+  connect(smart_card_controller_open_act_, &QAction::triggered, this,
+          [this]() { (new SmartCardControllerDialog(this))->exec(); });
+
   /**
    * E-Mail Menu
    */
@@ -462,6 +469,7 @@ void MainWindow::create_menus() {
   advance_menu_->addSeparator();
   advance_menu_->addAction(gnupg_controller_open_act_);
   advance_menu_->addAction(module_controller_open_act_);
+  advance_menu_->addAction(smart_card_controller_open_act_);
 
   view_menu_ = menuBar()->addMenu(tr("View"));
 

@@ -70,6 +70,7 @@ TEST_F(GpgCoreTest, CoreAssuanConnectTestB) {
       helper.SendStatusCommand(GpgComponentType::kGPG_AGENT, "keyinfo --list");
   ASSERT_TRUE(ret);
   ASSERT_TRUE(!status.isEmpty());
+  ASSERT_TRUE(status.front().startsWith("KEYINFO"));
 
   LOG_D() << "status lines of command keyinfo --list: " << status;
 }

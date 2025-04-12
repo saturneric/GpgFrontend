@@ -28,58 +28,44 @@
 
 #pragma once
 
+#include "core/model/GpgCardKeyPairInfo.h"
 #include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
 
-/**
- * @brief
- *
- * @param fingerprint
- * @return QString
- */
-auto GPGFRONTEND_CORE_EXPORT BeautifyFingerprint(QString fingerprint)
-    -> QString;
+struct GPGFRONTEND_CORE_EXPORT GpgOpenPGPCard {
+ public:
+  QString reader;
+  QString serial_number;
+  QString card_type;
+  int card_version;
+  QString app_type;
+  int app_version;
+  QString ext_capability;
+  QString manufacturer;
+  QString card_holder;
+  QString display_language;
+  QString display_sex;
+  QString chv_status;
+  int sig_counter = 0;
 
-/**
- * @brief
- *
- * @param a
- * @param b
- * @return int
- */
-auto GPGFRONTEND_CORE_EXPORT GFCompareSoftwareVersion(const QString &a,
-                                                      const QString &b) -> int;
+  QContainer<GpgCardKeyPairInfo> keys;
+  QMap<int, QString> fprs;
+  QMap<QString, QString> card_infos;
 
-/**
- * @brief
- *
- * @return char*
- */
-auto GPGFRONTEND_CORE_EXPORT GFStrDup(const QString &) -> char *;
+  QString kdf;
+  QString uif1;
+  QString uif2;
+  QString uif3;
 
-/**
- * @brief
- *
- * @return QString
- */
-auto GPGFRONTEND_CORE_EXPORT GFUnStrDup(const char *) -> QString;
+  bool good = false;
 
-/**
- * @brief
- *
- * @return true
- * @return false
- */
-auto GPGFRONTEND_CORE_EXPORT IsFlatpakENV() -> bool;
+  GpgOpenPGPCard() = default;
 
-/**
- * @brief
- *
- * @param s
- * @return int
- */
-auto GPGFRONTEND_CORE_EXPORT ParseHexEncodedVersionTuple(const QString &s)
-    -> int;
+  explicit GpgOpenPGPCard(const QStringList& status);
+
+ private:
+  void parse_card_info(const QString& name, const QString& value);
+};
 
 }  // namespace GpgFrontend

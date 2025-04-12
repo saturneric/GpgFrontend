@@ -27,8 +27,7 @@
  */
 #include "GpgSubKey.h"
 
-#include <utility>
-
+#include "core/model/GpgKey.h"
 namespace GpgFrontend {
 
 GpgSubKey::GpgSubKey() = default;
@@ -92,11 +91,15 @@ auto GpgSubKey::ExpirationTime() const -> QDateTime {
 
 auto GpgSubKey::IsADSK() const -> bool { return s_key_ref_->can_renc; }
 
-auto GpgSubKey::SmartCardSerialNumber() -> QString {
-  return s_key_ref_->card_number;
+auto GpgSubKey::SmartCardSerialNumber() const -> QString {
+  return QString::fromLatin1(s_key_ref_->card_number);
 }
 
 auto GpgSubKey::IsSubKey() const -> bool { return true; }
 
 auto GpgSubKey::IsGood() const -> bool { return s_key_ref_ != nullptr; }
+
+auto GpgSubKey::Convert2GpgKey() const -> QSharedPointer<GpgKey> {
+  return QSharedPointer<GpgKey>::create(key_ref_);
+}
 }  // namespace GpgFrontend

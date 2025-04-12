@@ -98,4 +98,13 @@ auto GFUnStrDup(const char* s) -> QString {
 auto GPGFRONTEND_CORE_EXPORT IsFlatpakENV() -> bool {
   return QString::fromLocal8Bit(qgetenv("container")) == "flatpak";
 }
+
+auto GPGFRONTEND_CORE_EXPORT ParseHexEncodedVersionTuple(const QString& s)
+    -> int {
+  // s is a hex-encoded, unsigned int-packed version tuple,
+  // i.e. each byte represents one part of the version tuple
+  bool ok;
+  const auto version = s.toUtf8().toUInt(&ok, 16);
+  return ok ? static_cast<int>(version) : -1;
+}
 }  // namespace GpgFrontend

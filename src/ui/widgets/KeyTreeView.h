@@ -48,6 +48,16 @@ class KeyTreeView : public QTreeView {
    * @param _info_type
    * @param _filter
    */
+  explicit KeyTreeView(QWidget* parent = nullptr);
+
+  /**
+   * @brief Construct a new Key Table object
+   *
+   * @param _key_list
+   * @param _select_type
+   * @param _info_type
+   * @param _filter
+   */
   explicit KeyTreeView(int channel,
                        GpgKeyTreeModel::Detector checkable_detector,
                        GpgKeyTreeProxyModel::KeyFilter filter,
@@ -67,6 +77,20 @@ class KeyTreeView : public QTreeView {
    */
   auto GetAllCheckedSubKey() -> QContainer<GpgSubKey>;
 
+  /**
+   * @brief Set the Key Filter object
+   *
+   * @param filter
+   */
+  void SetKeyFilter(const GpgKeyTreeProxyModel::KeyFilter& filter);
+
+  /**
+   * @brief
+   *
+   * @param channel
+   */
+  void SetChannel(int channel);
+
  protected:
   /**
    * @brief
@@ -81,6 +105,8 @@ class KeyTreeView : public QTreeView {
   GpgKeyTreeProxyModel proxy_model_;
 
   void slot_adjust_column_widths();
+
+  void init();
 };
 
 }  // namespace GpgFrontend::UI

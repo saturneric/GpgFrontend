@@ -346,6 +346,13 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTreeModel : public QAbstractItemModel {
    */
   auto GetAllCheckedSubKey() -> QContainer<GpgSubKey>;
 
+  /**
+   * @brief Get the Key By Index object
+   *
+   * @return GpgAbstractKey*
+   */
+  auto GetKeyByIndex(QModelIndex) -> GpgAbstractKey *;
+
  private:
   int gpg_context_channel_;
   QVariantList column_headers_;

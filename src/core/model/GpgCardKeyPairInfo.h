@@ -28,58 +28,21 @@
 
 #pragma once
 
-#include "core/typedef/CoreTypedef.h"
-
 namespace GpgFrontend {
 
-/**
- * @brief
- *
- * @param fingerprint
- * @return QString
- */
-auto GPGFRONTEND_CORE_EXPORT BeautifyFingerprint(QString fingerprint)
-    -> QString;
+struct GpgCardKeyPairInfo {
+  explicit GpgCardKeyPairInfo(const QString &status);
 
-/**
- * @brief
- *
- * @param a
- * @param b
- * @return int
- */
-auto GPGFRONTEND_CORE_EXPORT GFCompareSoftwareVersion(const QString &a,
-                                                      const QString &b) -> int;
+  [[nodiscard]] auto CanAuthenticate() const -> bool;
+  [[nodiscard]] auto CanCertify() const -> bool;
+  [[nodiscard]] auto CanEncrypt() const -> bool;
+  [[nodiscard]] auto CanSign() const -> bool;
 
-/**
- * @brief
- *
- * @return char*
- */
-auto GPGFRONTEND_CORE_EXPORT GFStrDup(const QString &) -> char *;
-
-/**
- * @brief
- *
- * @return QString
- */
-auto GPGFRONTEND_CORE_EXPORT GFUnStrDup(const char *) -> QString;
-
-/**
- * @brief
- *
- * @return true
- * @return false
- */
-auto GPGFRONTEND_CORE_EXPORT IsFlatpakENV() -> bool;
-
-/**
- * @brief
- *
- * @param s
- * @return int
- */
-auto GPGFRONTEND_CORE_EXPORT ParseHexEncodedVersionTuple(const QString &s)
-    -> int;
+  QString key_ref;
+  QString grip;
+  QString usage;
+  QDateTime time;
+  QString algorithm;
+};
 
 }  // namespace GpgFrontend
