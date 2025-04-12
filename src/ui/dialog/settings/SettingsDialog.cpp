@@ -91,7 +91,10 @@ SettingsDialog::SettingsDialog(QWidget* parent)
 
   this->setMinimumWidth(500);
   this->adjustSize();
+
   this->show();
+  this->raise();
+  this->activateWindow();
 }
 
 void SettingsDialog::slot_declare_a_restart() {

@@ -66,7 +66,10 @@ KeyImportDetailDialog::KeyImportDetailDialog(
 
   setPosCenterOfScreen();
   this->setModal(true);
+
   this->show();
+  this->raise();
+  this->activateWindow();
 }
 
 void KeyImportDetailDialog::create_general_info_box() {

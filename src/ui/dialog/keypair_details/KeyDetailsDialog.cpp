@@ -78,5 +78,7 @@ KeyDetailsDialog::KeyDetailsDialog(int channel, const GpgKey& key,
   this->setModal(true);
 
   this->show();
+  this->raise();
+  this->activateWindow();
 }
 }  // namespace GpgFrontend::UI

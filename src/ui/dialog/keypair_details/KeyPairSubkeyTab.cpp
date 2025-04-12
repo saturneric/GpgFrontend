@@ -38,8 +38,8 @@
 #include "core/utils/IOUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/dialog/ADSKsPicker.h"
 #include "ui/dialog/RevocationOptionsDialog.h"
-#include "ui/dialog/SubKeysPicker.h"
 
 namespace GpgFrontend::UI {
 
@@ -59,7 +59,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, const QString& key_id,
 
   auto* uid_buttons_layout = new QGridLayout();
 
-  auto* add_subkey_button = new QPushButton(tr("Generate A New Subkey"));
+  auto* add_subkey_button = new QPushButton(tr("New Subkey"));
   auto* add_adsk_button = new QPushButton(tr("Add ADSK(s)"));
   if (!key_.IsPrivateKey() || !key_.IsHasMasterKey()) {
     add_subkey_button->setDisabled(true);
@@ -69,8 +69,8 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, const QString& key_id,
     add_adsk_button->hide();
   }
 
-  uid_buttons_layout->addWidget(add_subkey_button, 0, 1);
-  uid_buttons_layout->addWidget(add_adsk_button, 1, 1);
+  uid_buttons_layout->addWidget(add_subkey_button, 0, 0);
+  uid_buttons_layout->addWidget(add_adsk_button, 0, 1);
 
   auto* base_layout = new QVBoxLayout();
 
@@ -295,7 +295,7 @@ void KeyPairSubkeyTab::slot_add_adsk() {
     except_key_ids.append(sub_key.GetID());
   }
 
-  auto* dialog = new SubKeysPicker(
+  auto* dialog = new ADSKsPicker(
       current_gpg_context_channel_,
       [=](GpgAbstractKey* key) { return !except_key_ids.contains(key->ID()); },
       this);

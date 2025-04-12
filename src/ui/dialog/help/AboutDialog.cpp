@@ -76,9 +76,9 @@ AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
   main_layout->setContentsMargins(QMargins{5, 0, 5, 0});
   setLayout(main_layout);
 
-  this->resize(520, 620);
-  this->setMinimumWidth(450);
   this->show();
+  this->raise();
+  this->activateWindow();
 }
 
 void AboutDialog::showEvent(QShowEvent* ev) { QDialog::showEvent(ev); }

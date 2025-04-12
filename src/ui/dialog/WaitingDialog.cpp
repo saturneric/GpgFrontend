@@ -53,7 +53,10 @@ WaitingDialog::WaitingDialog(const QString& title, bool range, QWidget* parent)
           &WaitingDialog::SlotUpdateValue);
 
   this->movePosition2CenterOfParent();
+
   this->show();
+  this->raise();
+  this->activateWindow();
 }
 
 void WaitingDialog::SlotUpdateValue(int value) {

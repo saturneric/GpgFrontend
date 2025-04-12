@@ -41,7 +41,7 @@ class KeyTreeView;
  * @brief
  *
  */
-class SubKeysPicker : public GeneralDialog {
+class ADSKsPicker : public GeneralDialog {
   Q_OBJECT
 
  public:
@@ -50,8 +50,8 @@ class SubKeysPicker : public GeneralDialog {
    *
    * @param parent
    */
-  explicit SubKeysPicker(int channel, const GpgKeyTreeModel::Detector& enable,
-                         QWidget* parent = nullptr);
+  explicit ADSKsPicker(int channel, const GpgKeyTreeModel::Detector& enable,
+                       QWidget* parent = nullptr);
 
   /**
    * @brief Get the Checked Signers object

@@ -26,17 +26,17 @@
  *
  */
 
-#include "SubKeysPicker.h"
+#include "ADSKsPicker.h"
 
 #include "core/GpgModel.h"
 #include "ui/widgets/KeyTreeView.h"
 
 namespace GpgFrontend::UI {
 
-SubKeysPicker::SubKeysPicker(int channel,
-                             const GpgKeyTreeModel::Detector& enable_detector,
-                             QWidget* parent)
-    : GeneralDialog(typeid(SubKeysPicker).name(), parent),
+ADSKsPicker::ADSKsPicker(int channel,
+                         const GpgKeyTreeModel::Detector& enable_detector,
+                         QWidget* parent)
+    : GeneralDialog(typeid(ADSKsPicker).name(), parent),
       tree_view_(new KeyTreeView(
           channel, [](GpgAbstractKey* k) { return k->IsSubKey(); },
           [=](GpgAbstractKey* k) {
@@ -52,31 +52,41 @@ SubKeysPicker::SubKeysPicker(int channel,
   connect(confirm_button, &QPushButton::clicked, this, &QDialog::accept);
   connect(cancel_button, &QPushButton::clicked, this, &QDialog::reject);
 
+  tree_view_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
   auto* vbox2 = new QVBoxLayout();
-  vbox2->addWidget(new QLabel(tr("Select Subkey(s)") + ": "));
+  vbox2->addWidget(new QLabel(tr("Select ADSK(s)") + ": "));
   vbox2->addWidget(tree_view_);
-  vbox2->addWidget(new QLabel(
-      tr("Please select one or more subkeys you use for operation.")));
+
+  auto* tips_label = new QLabel(
+      tr("ADSK (Additional Decryption Subkey) allows others to encrypt data "
+         "for you without having access to your private key. You are only "
+         "allow to check subkeys with encryption capability."));
+  tips_label->setWordWrap(true);
+  tips_label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
+
+  vbox2->addWidget(tips_label);
   vbox2->addWidget(confirm_button);
   vbox2->addWidget(cancel_button);
   setLayout(vbox2);
-
-  tree_view_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
   this->setWindowFlags(Qt::Window | Qt::WindowTitleHint |
                        Qt::CustomizeWindowHint);
 
   this->setModal(true);
-  this->setWindowTitle(tr("Subkeys Picker"));
+  this->setWindowTitle(tr("ADSKs Picker"));
 
   movePosition2CenterOfParent();
+  
   this->show();
+  this->raise();
+  this->activateWindow();
 }
 
-auto SubKeysPicker::GetCheckedSubkeys() -> QContainer<GpgSubKey> {
+auto ADSKsPicker::GetCheckedSubkeys() -> QContainer<GpgSubKey> {
   return tree_view_->GetAllCheckedSubKey();
 }
 
-auto SubKeysPicker::GetStatus() const -> bool { return this->accepted_; }
+auto ADSKsPicker::GetStatus() const -> bool { return this->accepted_; }
 
 }  // namespace GpgFrontend::UI

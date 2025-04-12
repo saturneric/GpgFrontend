@@ -114,6 +114,8 @@ void KeyNewUIDDialog::slot_create_new_uid() {
     error_label_->setText(error_string);
 
     this->show();
+    this->raise();
+    this->activateWindow();
   }
 }
 

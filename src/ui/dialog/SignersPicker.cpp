@@ -73,7 +73,10 @@ SignersPicker::SignersPicker(int channel, QWidget* parent)
   this->setMinimumWidth(480);
 
   movePosition2CenterOfParent();
+
   this->show();
+  this->raise();
+  this->activateWindow();
 }
 
 auto SignersPicker::GetCheckedSigners() -> GpgFrontend::KeyIdArgsList {
