@@ -137,6 +137,38 @@ auto GpgKeyTableModel::data(const QModelIndex &index,
     }
   }
 
+  if (role == Qt::ToolTipRole) {
+    const auto key = i->Key();
+
+    QStringList tooltip_lines;
+    tooltip_lines << tr("ID: %1").arg(key.ID());
+    tooltip_lines << tr("Algo: %1").arg(key.Algo());
+    tooltip_lines << tr("Usage: %1").arg(GetUsagesByKey(key));
+    tooltip_lines << tr("Trust: %1").arg(key.OwnerTrust());
+    tooltip_lines << tr("Comment: %1")
+                         .arg(key.Comment().isEmpty()
+                                  ? "<" + tr("No Comment") + ">"
+                                  : key.Comment());
+
+    const auto s_keys = key.SubKeys();
+    if (!s_keys.empty()) {
+      tooltip_lines << "";
+      tooltip_lines << tr("SubKeys (up to 8):");
+
+      int count = 0;
+      for (const auto &s_key : s_keys) {
+        if (count++ >= 8) break;
+        const auto usages = GetUsagesBySubkey(s_key);
+        tooltip_lines << tr("  - ID: %1 | Algo: %2 | Usage: %3")
+                             .arg(s_key.ID())
+                             .arg(s_key.Algo())
+                             .arg(usages.trimmed());
+      }
+    }
+
+    return tooltip_lines.join("\n");
+  }
+
   return {};
 }
 
