@@ -52,13 +52,15 @@ namespace GpgFrontend {
 class GpgContext::Impl {
  public:
   /**
-   * Constructor
-   *  Set up gpgme-context, set paths to app-run path
+   * @brief Construct a new Impl object
+   *
+   * @param parent
+   * @param args
    */
   Impl(GpgContext *parent, const GpgContextInitArgs &args)
-      : parent_(parent),
-        args_(args),
-        good_(default_ctx_initialize(args) && binary_ctx_initialize(args)) {}
+      : parent_(parent), args_(args) {
+    init(args);
+  }
 
   ~Impl() {
     if (ctx_ref_ != nullptr) {
@@ -180,14 +182,46 @@ class GpgContext::Impl {
     return GPG_ERR_NO_ERROR;
   }
 
+  [[nodiscard]] auto HomeDirectory() const -> QString { return database_path_; }
+
+  [[nodiscard]] auto ComponentDirectories(GpgComponentType type) const
+      -> QString {
+    return component_dirs_.value(component_type_to_q_string(type), "");
+  }
+
  private:
   GpgContext *parent_;
   GpgContextInitArgs args_{};             ///<
   gpgme_ctx_t ctx_ref_ = nullptr;         ///<
   gpgme_ctx_t binary_ctx_ref_ = nullptr;  ///<
   bool good_ = true;
+
   std::mutex ctx_ref_lock_;
   std::mutex binary_ctx_ref_lock_;
+
+  QString gpgconf_path_;
+  QString database_path_;
+  QMap<QString, QString> component_dirs_;
+
+  void init(const GpgContextInitArgs &args) {
+    good_ = default_ctx_initialize(args) && binary_ctx_initialize(args);
+    get_gpg_conf_dirs();
+  }
+
+  static auto component_type_to_q_string(GpgComponentType type) -> QString {
+    switch (type) {
+      case GpgComponentType::kGPG_AGENT:
+        return "agent-socket";
+      case GpgComponentType::kGPG_AGENT_SSH:
+        return "agent-ssh-socket";
+      case GpgComponentType::kDIRMNGR:
+        return "dirmngr-socket";
+      case GpgComponentType::kKEYBOXD:
+        return "keyboxd-socket";
+      default:
+        return "";
+    }
+  }
 
   static auto set_ctx_key_list_mode(const gpgme_ctx_t &ctx) -> bool {
     assert(ctx != nullptr);
@@ -213,10 +247,9 @@ class GpgContext::Impl {
     const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
         "core", QString("gpgme.ctx.app_path"), QString{});
 
-    QString database_path;
     // set custom gpg key db path
     if (!args_.db_path.isEmpty()) {
-      database_path = args_.db_path;
+      database_path_ = args_.db_path;
     }
 
     LOG_D() << "ctx set engine info, channel: " << parent_->GetChannel()
@@ -224,12 +257,12 @@ class GpgContext::Impl {
             << ", app path: " << app_path;
 
     auto app_path_buffer = app_path.toUtf8();
-    auto database_path_buffer = database_path.toUtf8();
+    auto database_path_buffer = database_path_.toUtf8();
 
     auto err = gpgme_ctx_set_engine_info(
         ctx, gpgme_get_protocol(ctx),
         app_path.isEmpty() ? nullptr : app_path_buffer,
-        database_path.isEmpty() ? nullptr : database_path_buffer);
+        database_path_.isEmpty() ? nullptr : database_path_buffer);
 
     assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
     return CheckGpgError(err) == GPG_ERR_NO_ERROR;
@@ -241,10 +274,14 @@ class GpgContext::Impl {
                              const GpgContextInitArgs &args) -> bool {
     assert(ctx != nullptr);
 
-    if (!args.gpgconf_path.isEmpty()) {
-      LOG_D() << "set gpgconf path: " << args.gpgconf_path;
+    this->gpgconf_path_ = Module::RetrieveRTValueTypedOrDefault<>(
+        "core", "gpgme.ctx.gpgconf_path", QString{});
+    assert(!gpgconf_path_.isEmpty());
+
+    if (!gpgconf_path_.isEmpty()) {
+      LOG_D() << "set gpgconf path: " << gpgconf_path_;
       auto err = gpgme_ctx_set_engine_info(ctx, GPGME_PROTOCOL_GPGCONF,
-                                           args.gpgconf_path.toUtf8(), nullptr);
+                                           gpgconf_path_.toUtf8(), nullptr);
 
       if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
         LOG_W() << "set gpg context engine info error: "
@@ -341,6 +378,45 @@ class GpgContext::Impl {
     gpgme_set_armor(ctx_ref_, 1);
     return true;
   }
+
+  void get_gpg_conf_dirs() {
+    auto gpgconf_path = QFileInfo(this->gpgconf_path_).absoluteFilePath();
+    LOG_D() << "context: " << parent_->GetChannel()
+            << "gpgconf path: " << gpgconf_path;
+
+    QProcess process;
+    process.setProgram(gpgconf_path);
+    process.setArguments({"--list-dirs"});
+    process.start();
+
+    if (!process.waitForFinished()) {
+      LOG_F() << "failed to execute gpgconf --list-dirs";
+      return;
+    }
+
+    const QString output = QString::fromUtf8(process.readAllStandardOutput());
+    const QStringList lines = output.split('\n', Qt::SkipEmptyParts);
+
+    for (const QString &line : lines) {
+      auto info_split_list = line.split(":");
+      if (info_split_list.size() != 2) continue;
+
+      auto configuration_name = info_split_list[0].trimmed();
+      auto configuration_value = info_split_list[1].trimmed();
+
+#ifdef __MINGW32__
+      // replace some special substrings on windows
+      // platform
+      configuration_value.replace("%3a", ":");
+#endif
+
+      LOG_D() << "channel: " << parent_->GetChannel()
+              << "component: " << configuration_name
+              << "dir:" << configuration_value;
+
+      component_dirs_[configuration_name] = configuration_value;
+    }
+  }
 };
 
 GpgContext::GpgContext(int channel)
@@ -360,5 +436,13 @@ auto GpgContext::DefaultContext() -> gpgme_ctx_t {
 }
 
 GpgContext::~GpgContext() = default;
+
+auto GpgContext::HomeDirectory() const -> QString {
+  return p_->HomeDirectory();
+}
+
+auto GpgContext::ComponentDirectory(GpgComponentType type) const -> QString {
+  return p_->ComponentDirectories(type);
+}
 
 }  // namespace GpgFrontend

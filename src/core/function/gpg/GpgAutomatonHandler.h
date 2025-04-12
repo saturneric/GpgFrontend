@@ -1,5 +1,3 @@
-
-
 /**
  * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
  *

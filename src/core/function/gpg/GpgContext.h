@@ -47,10 +47,10 @@ struct GpgContextInitArgs {
   bool offline_mode = false;             ///<
   bool auto_import_missing_key = false;  ///<
 
-  QString gpgconf_path;  ///<
-
   bool use_pinentry = false;  ///<
 };
+
+enum class GpgComponentType { kGPG_AGENT, kDIRMNGR, kKEYBOXD, kGPG_AGENT_SSH };
 
 /**
  * @brief
@@ -70,6 +70,10 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
   auto BinaryContext() -> gpgme_ctx_t;
 
   auto DefaultContext() -> gpgme_ctx_t;
+
+  [[nodiscard]] auto HomeDirectory() const -> QString;
+
+  [[nodiscard]] auto ComponentDirectory(GpgComponentType) const -> QString;
 
  private:
   class Impl;
