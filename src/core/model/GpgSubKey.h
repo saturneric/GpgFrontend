@@ -163,7 +163,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey : public GpgAbstractKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsPrivateKey() const -> bool;
+  [[nodiscard]] auto IsPrivateKey() const -> bool override;
 
   /**
    * @brief

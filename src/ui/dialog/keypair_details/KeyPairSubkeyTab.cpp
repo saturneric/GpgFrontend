@@ -294,7 +294,9 @@ void KeyPairSubkeyTab::slot_add_adsk() {
 
   auto* dialog = new ADSKsPicker(
       current_gpg_context_channel_,
-      [=](GpgAbstractKey* key) { return !except_key_ids.contains(key->ID()); },
+      [=](const GpgAbstractKey* key) {
+        return !except_key_ids.contains(key->ID());
+      },
       this);
   dialog->exec();
 
@@ -474,8 +476,9 @@ void KeyPairSubkeyTab::contextMenuEvent(QContextMenuEvent* event) {
 
     export_subkey_act_->setDisabled(!s_key.IsSecretKey());
     edit_subkey_act_->setDisabled(!s_key.IsSecretKey());
-    delete_subkey_act_->setDisabled(!s_key.IsSecretKey());
-    revoke_subkey_act_->setDisabled(!s_key.IsSecretKey() || s_key.IsRevoked());
+    delete_subkey_act_->setDisabled(!s_key.IsSecretKey() && !s_key.IsADSK());
+    revoke_subkey_act_->setDisabled((!s_key.IsSecretKey() && !s_key.IsADSK()) ||
+                                    s_key.IsRevoked());
 
     subkey_opera_menu_->exec(event->globalPos());
   }

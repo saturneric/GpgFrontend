@@ -36,6 +36,7 @@ class GpgAbstractKey {
   [[nodiscard]] virtual auto Fingerprint() const -> QString = 0;
   [[nodiscard]] virtual auto IsSubKey() const -> bool = 0;
 
+  [[nodiscard]] virtual auto IsPrivateKey() const -> bool = 0;
   [[nodiscard]] virtual auto IsHasEncrCap() const -> bool = 0;
   [[nodiscard]] virtual auto IsHasSignCap() const -> bool = 0;
   [[nodiscard]] virtual auto IsHasCertCap() const -> bool = 0;

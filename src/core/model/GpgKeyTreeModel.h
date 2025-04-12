@@ -42,9 +42,9 @@ namespace GpgFrontend {
 
 enum class GpgKeyTreeColumn : unsigned int {
   kNONE = 0,
-  kIDENTITY = 1 << 1,
-  kKEY_ID = 1 << 2,
-  kTYPE = 1 << 3,
+  kTYPE = 1 << 1,
+  kIDENTITY = 1 << 2,
+  kKEY_ID = 1 << 3,
   kUSAGE = 1 << 4,
   kALGO = 1 << 5,
   kCREATE_DATE = 1 << 6,
@@ -80,6 +80,33 @@ inline auto operator&=(GpgKeyTreeColumn &lhs,
 inline auto operator~(GpgKeyTreeColumn hs) -> GpgKeyTreeColumn {
   using T = std::underlying_type_t<GpgKeyTreeColumn>;
   return static_cast<GpgKeyTreeColumn>(~static_cast<T>(hs));
+}
+
+enum class GpgKeyTreeDisplayMode : unsigned int {
+  kNONE = 0,
+  kPUBLIC_KEY = 1 << 0,
+  kPRIVATE_KEY = 1 << 1,
+  kFAVORITES = 1 << 2,
+  kALL = ~0U
+};
+
+inline auto operator|(GpgKeyTreeDisplayMode lhs,
+                      GpgKeyTreeDisplayMode rhs) -> GpgKeyTreeDisplayMode {
+  using T = std::underlying_type_t<GpgKeyTreeDisplayMode>;
+  return static_cast<GpgKeyTreeDisplayMode>(static_cast<T>(lhs) |
+                                            static_cast<T>(rhs));
+}
+
+inline auto operator|=(GpgKeyTreeDisplayMode &lhs,
+                       GpgKeyTreeDisplayMode rhs) -> GpgKeyTreeDisplayMode & {
+  lhs = lhs | rhs;
+  return lhs;
+}
+
+inline auto operator&(GpgKeyTreeDisplayMode lhs,
+                      GpgKeyTreeDisplayMode rhs) -> bool {
+  using T = std::underlying_type_t<GpgKeyTreeDisplayMode>;
+  return (static_cast<T>(lhs) & static_cast<T>(rhs)) != 0;
 }
 
 class GPGFRONTEND_CORE_EXPORT GpgKeyTreeItem {
@@ -217,8 +244,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTreeModel : public QAbstractItemModel {
    * @param parent
    */
   explicit GpgKeyTreeModel(int channel, const GpgKeyList &keys,
-                           Detector checkable, Detector enable,
-                           QObject *parent = nullptr);
+                           Detector checkable, QObject *parent = nullptr);
 
   /**
    * @brief
@@ -324,7 +350,6 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTreeModel : public QAbstractItemModel {
   int gpg_context_channel_;
   QVariantList column_headers_;
   Detector checkable_detector_;
-  Detector enable_detector_;
 
   QSharedPointer<GpgKeyTreeItem> root_;
   QContainer<QSharedPointer<GpgKeyTreeItem>> cached_items_;

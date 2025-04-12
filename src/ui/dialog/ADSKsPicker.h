@@ -29,9 +29,9 @@
 #pragma once
 
 #include "GpgFrontendUI.h"
-#include "core/model/GpgKeyTreeModel.h"
 #include "core/typedef/GpgTypedef.h"
 #include "ui/dialog//GeneralDialog.h"
+#include "ui/model/GpgKeyTreeProxyModel.h"
 
 namespace GpgFrontend::UI {
 
@@ -50,7 +50,8 @@ class ADSKsPicker : public GeneralDialog {
    *
    * @param parent
    */
-  explicit ADSKsPicker(int channel, const GpgKeyTreeModel::Detector& enable,
+  explicit ADSKsPicker(int channel,
+                       const GpgKeyTreeProxyModel::KeyFilter& filter,
                        QWidget* parent = nullptr);
 
   /**

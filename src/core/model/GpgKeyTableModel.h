@@ -110,6 +110,36 @@ inline auto operator&(GpgKeyTableDisplayMode lhs,
   return (static_cast<T>(lhs) & static_cast<T>(rhs)) != 0;
 }
 
+class GPGFRONTEND_CORE_EXPORT GpgKeyTableItem {
+ public:
+  GpgKeyTableItem() = default;
+
+  explicit GpgKeyTableItem(const GpgKey &key);
+
+  GpgKeyTableItem(const GpgKeyTableItem &);
+
+  [[nodiscard]] auto Key() const -> GpgKey;
+
+  /**
+   * @brief
+   *
+   * @return bool
+   */
+  [[nodiscard]] auto Checked() const -> bool;
+
+  /**
+   * @brief Set the Checked object
+   *
+   * @return true
+   * @return false
+   */
+  void SetChecked(bool);
+
+ private:
+  GpgKey key_;
+  bool checked_;
+};
+
 class GPGFRONTEND_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
   Q_OBJECT
  public:
@@ -121,6 +151,17 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
    */
   explicit GpgKeyTableModel(int channel, GpgKeyList keys,
                             QObject *parent = nullptr);
+
+  /**
+   * @brief
+   *
+   * @param row
+   * @param column
+   * @param parent
+   * @return QModelIndex
+   */
+  [[nodiscard]] auto index(int row, int column, const QModelIndex &parent) const
+      -> QModelIndex override;
 
   /**
    * @brief
@@ -212,11 +253,10 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
   [[nodiscard]] auto GetGpgContextChannel() const -> int;
 
  private:
-  GpgKeyList buffered_keys_;
   QStringList column_headers_;
   int gpg_context_channel_;
 
-  QContainer<bool> key_check_state_;
+  QContainer<GpgKeyTableItem> cached_items_;
 };
 
 }  // namespace GpgFrontend

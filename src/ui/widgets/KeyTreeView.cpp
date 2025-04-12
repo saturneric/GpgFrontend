@@ -28,20 +28,25 @@
 
 #include "ui/widgets/KeyTreeView.h"
 
+#include <utility>
+
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "model/GpgKeyTreeProxyModel.h"
 
 namespace GpgFrontend::UI {
 
 KeyTreeView::KeyTreeView(int channel,
                          GpgKeyTreeModel::Detector checkable_detector,
-                         GpgKeyTreeModel::Detector enable_detector,
+                         GpgKeyTreeProxyModel::KeyFilter filter,
                          QWidget* parent)
-    : QTreeView(parent), channel_(channel) {
-  model_ = QSharedPointer<GpgKeyTreeModel>::create(
-      channel, GpgKeyGetter::GetInstance(channel_).FetchKey(),
-      checkable_detector, enable_detector, this);
-
-  setModel(model_.get());
+    : QTreeView(parent),
+      channel_(channel),
+      model_(QSharedPointer<GpgKeyTreeModel>::create(
+          channel, GpgKeyGetter::GetInstance(channel_).FetchKey(),
+          checkable_detector, this)),
+      proxy_model_(model_, GpgKeyTreeDisplayMode::kALL, std::move(filter),
+                   this) {
+  setModel(&proxy_model_);
 
   sortByColumn(2, Qt::AscendingOrder);
   setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -50,7 +55,10 @@ KeyTreeView::KeyTreeView(int channel,
   setEditTriggers(QAbstractItemView::NoEditTriggers);
   header()->resizeSections(QHeaderView::Interactive);
   header()->setDefaultAlignment(Qt::AlignCenter);
+  header()->setMinimumHeight(20);
 
+  setUniformRowHeights(true);
+  setExpandsOnDoubleClick(true);
   setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
 
   setFocusPolicy(Qt::NoFocus);

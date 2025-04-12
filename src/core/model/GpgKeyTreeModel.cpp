@@ -36,21 +36,19 @@
 namespace GpgFrontend {
 
 GpgKeyTreeModel::GpgKeyTreeModel(int channel, const GpgKeyList &keys,
-                                 Detector checkable_detector,
-                                 Detector enable_detector, QObject *parent)
+                                 Detector checkable_detector, QObject *parent)
     : QAbstractItemModel(parent),
       gpg_context_channel_(channel),
       column_headers_({
           tr("Select"),
+          tr("Type"),
           tr("Identity"),
           tr("Key ID"),
-          tr("Type"),
           tr("Usage"),
           tr("Algorithm"),
           tr("Create Date"),
       }),
-      checkable_detector_(std::move(checkable_detector)),
-      enable_detector_(std::move(enable_detector)) {
+      checkable_detector_(std::move(checkable_detector)) {
   setup_model_data(keys);
 }
 
@@ -203,9 +201,16 @@ auto GpgKeyTreeModel::create_gpg_key_tree_items(const GpgKey &key)
     -> QSharedPointer<GpgKeyTreeItem> {
   QVariantList columns;
   columns << "/";
+
+  QString type;
+  type += key.IsPrivateKey() ? "pub/sec" : "pub";
+  if (key.IsPrivateKey() && !key.IsHasMasterKey()) type += "#";
+  if (key.IsHasCardKey()) type += "^";
+  columns << type;
+
   columns << key.UIDs().front().GetUID();
   columns << key.ID();
-  columns << "C";
+
   columns << GetUsagesByKey(key);
   columns << key.PublicKeyAlgo();
   columns << key.Algo();
@@ -213,16 +218,16 @@ auto GpgKeyTreeModel::create_gpg_key_tree_items(const GpgKey &key)
 
   auto i_key = QSharedPointer<GpgKeyTreeItem>::create(
       QSharedPointer<GpgKey>::create(key), columns);
-  i_key->SetEnable(enable_detector_(i_key->Key()));
+  i_key->SetEnable(true);
   i_key->SetCheckable(checkable_detector_(i_key->Key()));
   cached_items_.push_back(i_key);
 
   for (const auto &s_key : key.SubKeys()) {
     QVariantList columns;
     columns << "/";
+    columns << (s_key.IsHasCertCap() ? "primary" : "sub");
     columns << key.UIDs().front().GetUID();
     columns << s_key.ID();
-    columns << (s_key.IsHasCertCap() ? "P" : "S");
     columns << GetUsagesBySubkey(s_key);
     columns << s_key.PublicKeyAlgo();
     columns << s_key.Algo();
@@ -230,7 +235,7 @@ auto GpgKeyTreeModel::create_gpg_key_tree_items(const GpgKey &key)
 
     auto i_s_key = QSharedPointer<GpgKeyTreeItem>::create(
         QSharedPointer<GpgSubKey>::create(s_key), columns);
-    i_s_key->SetEnable(enable_detector_(i_s_key->Key()));
+    i_s_key->SetEnable(true);
     i_s_key->SetCheckable(checkable_detector_(i_s_key->Key()));
     i_key->AppendChild(i_s_key);
     cached_items_.push_back(i_s_key);

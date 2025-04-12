@@ -34,15 +34,14 @@
 namespace GpgFrontend::UI {
 
 ADSKsPicker::ADSKsPicker(int channel,
-                         const GpgKeyTreeModel::Detector& enable_detector,
+                         const GpgKeyTreeProxyModel::KeyFilter& filter,
                          QWidget* parent)
     : GeneralDialog(typeid(ADSKsPicker).name(), parent),
       tree_view_(new KeyTreeView(
           channel, [](GpgAbstractKey* k) { return k->IsSubKey(); },
-          [=](GpgAbstractKey* k) {
-            return (!k->IsSubKey() || (k->IsSubKey() && !k->IsPrimaryKey() &&
-                                       k->IsHasEncrCap())) &&
-                   enable_detector(k);
+          [=](const GpgAbstractKey* k) {
+            return (!k->IsSubKey() || (k->IsSubKey() && k->IsHasEncrCap())) &&
+                   filter(k);
           })) {
   auto* confirm_button = new QPushButton(tr("Confirm"));
   auto* cancel_button = new QPushButton(tr("Cancel"));
@@ -77,7 +76,7 @@ ADSKsPicker::ADSKsPicker(int channel,
   this->setWindowTitle(tr("ADSKs Picker"));
 
   movePosition2CenterOfParent();
-  
+
   this->show();
   this->raise();
   this->activateWindow();

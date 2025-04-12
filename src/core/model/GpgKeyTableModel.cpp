@@ -28,7 +28,6 @@
 
 #include "GpgKeyTableModel.h"
 
-#include "core/function/gpg/GpgKeyGetter.h"
 #include "core/model/GpgKey.h"
 #include "core/utils/GpgUtils.h"
 
@@ -37,19 +36,24 @@ namespace GpgFrontend {
 GpgKeyTableModel::GpgKeyTableModel(int channel, GpgKeyList keys,
                                    QObject *parent)
     : QAbstractTableModel(parent),
-      buffered_keys_(std::move(keys)),
       column_headers_({tr("Select"), tr("Type"), tr("Name"),
                        tr("Email Address"), tr("Usage"), tr("Trust"),
                        tr("Key ID"), tr("Create Date"), tr("Algorithm"),
                        tr("Subkey(s)"), tr("Comment")}),
-      gpg_context_channel_(channel),
-      key_check_state_(buffered_keys_.size()) {
-  LOG_D() << "init gpg key table module at channel: " << gpg_context_channel_
-          << "key list size: " << buffered_keys_.size();
+      gpg_context_channel_(channel) {
+  for (const auto &key : keys) {
+    cached_items_.push_back(GpgKeyTableItem(key));
+  }
+}
+
+auto GpgKeyTableModel::index(int row, int column,
+                             const QModelIndex &parent) const -> QModelIndex {
+  if (!hasIndex(row, column, parent) || parent.isValid()) return {};
+  return createIndex(row, column, &cached_items_[row]);
 }
 
 auto GpgKeyTableModel::rowCount(const QModelIndex & /*parent*/) const -> int {
-  return static_cast<int>(buffered_keys_.size());
+  return static_cast<int>(cached_items_.size());
 }
 
 auto GpgKeyTableModel::columnCount(const QModelIndex & /*parent*/) const
@@ -59,16 +63,21 @@ auto GpgKeyTableModel::columnCount(const QModelIndex & /*parent*/) const
 
 auto GpgKeyTableModel::data(const QModelIndex &index,
                             int role) const -> QVariant {
-  if (!index.isValid() || buffered_keys_.empty()) return {};
+  if (!index.isValid() || cached_items_.empty()) return {};
+
+  auto *i = index.isValid()
+                ? static_cast<GpgKeyTableItem *>(index.internalPointer())
+                : nullptr;
+  if (i == nullptr) return {};
 
   if (role == Qt::CheckStateRole) {
     if (index.column() == 0) {
-      return key_check_state_[index.row()] ? Qt::Checked : Qt::Unchecked;
+      return i->Checked() ? Qt::Checked : Qt::Unchecked;
     }
   }
 
   if (role == Qt::DisplayRole) {
-    const auto &key = buffered_keys_.at(index.row());
+    const auto key = i->Key();
 
     switch (index.column()) {
       case 0: {
@@ -155,8 +164,13 @@ auto GpgKeyTableModel::setData(const QModelIndex &index, const QVariant &value,
                                int role) -> bool {
   if (!index.isValid()) return false;
 
+  auto *i = index.isValid()
+                ? static_cast<GpgKeyTableItem *>(index.internalPointer())
+                : nullptr;
+  if (i == nullptr) return false;
+
   if (index.column() == 0 && role == Qt::CheckStateRole) {
-    key_check_state_[index.row()] = (value == Qt::Checked);
+    i->SetChecked(value == Qt::Checked);
     emit dataChanged(index, index);
     return true;
   }
@@ -166,24 +180,35 @@ auto GpgKeyTableModel::setData(const QModelIndex &index, const QVariant &value,
 
 auto GpgKeyTableModel::GetAllKeyIds() -> KeyIdArgsList {
   KeyIdArgsList keys;
-  for (auto &key : buffered_keys_) {
-    keys.push_back(key.ID());
+  for (auto &i : cached_items_) {
+    keys.push_back(i.Key().ID());
   }
   return keys;
 }
 
 auto GpgKeyTableModel::GetKeyIDByRow(int row) const -> QString {
-  if (buffered_keys_.size() <= row) return {};
+  if (cached_items_.size() <= row) return {};
 
-  return buffered_keys_[row].ID();
+  return cached_items_[row].Key().ID();
 }
 
 auto GpgKeyTableModel::IsPrivateKeyByRow(int row) const -> bool {
-  if (buffered_keys_.size() <= row) return false;
-  return buffered_keys_[row].IsPrivateKey();
+  if (cached_items_.size() <= row) return false;
+  return cached_items_[row].Key().IsPrivateKey();
 }
 
 auto GpgKeyTableModel::GetGpgContextChannel() const -> int {
   return gpg_context_channel_;
 }
+
+GpgKeyTableItem::GpgKeyTableItem(const GpgKey &key) : key_(key) {}
+
+GpgKeyTableItem::GpgKeyTableItem(const GpgKeyTableItem &) = default;
+
+auto GpgKeyTableItem::Key() const -> GpgKey { return key_; }
+
+void GpgKeyTableItem::SetChecked(bool checked) { checked_ = checked; }
+
+auto GpgKeyTableItem::Checked() const -> bool { return checked_; }
+
 }  // namespace GpgFrontend

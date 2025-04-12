@@ -28,59 +28,58 @@
 
 #pragma once
 
-#include "core/model/GpgKey.h"
-#include "model/GpgKeyTreeProxyModel.h"
+#include <QFont>
+#include <QFontMetrics>
+
+#include "core/model/GpgKeyTreeModel.h"
 
 namespace GpgFrontend::UI {
 
-/**
- * @brief
- *
- */
-class KeyTreeView : public QTreeView {
+class GpgKeyTreeProxyModel : public QSortFilterProxyModel {
   Q_OBJECT
  public:
-  /**
-   * @brief Construct a new Key Table object
-   *
-   * @param _key_list
-   * @param _select_type
-   * @param _info_type
-   * @param _filter
-   */
-  explicit KeyTreeView(int channel,
-                       GpgKeyTreeModel::Detector checkable_detector,
-                       GpgKeyTreeProxyModel::KeyFilter filter,
-                       QWidget* parent = nullptr);
+  using KeyFilter = std::function<bool(const GpgAbstractKey *)>;
 
-  /**
-   * @brief Get the All Checked Key Ids object
-   *
-   * @return KeyIdArgsList
-   */
-  auto GetAllCheckedKeyIds() -> KeyIdArgsList;
+  explicit GpgKeyTreeProxyModel(QSharedPointer<GpgKeyTreeModel> model,
+                                GpgKeyTreeDisplayMode display_mode,
+                                KeyFilter filter, QObject *parent);
 
-  /**
-   * @brief Get the All Checked Sub Key object
-   *
-   * @return QContainer<GpgSubKey>
-   */
-  auto GetAllCheckedSubKey() -> QContainer<GpgSubKey>;
+  void SetSearchKeywords(const QString &keywords);
+
+  void ResetGpgKeyTableModel(QSharedPointer<GpgKeyTreeModel> model);
 
  protected:
+  [[nodiscard]] auto filterAcceptsRow(
+      int sourceRow, const QModelIndex &sourceParent) const -> bool override;
+
+ signals:
+
   /**
    * @brief
    *
    */
-  void paintEvent(QPaintEvent* event) override;
+  void SignalFavoritesChanged();
+
+ private slots:
+
+  /**
+   * @brief
+   *
+   */
+  void slot_update_favorites();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_update_favorites_cache();
 
  private:
-  bool init_;
-  int channel_;
-  QSharedPointer<GpgKeyTreeModel> model_;  ///<
-  GpgKeyTreeProxyModel proxy_model_;
-
-  void slot_adjust_column_widths();
+  QSharedPointer<GpgKeyTreeModel> model_;
+  GpgKeyTreeDisplayMode display_mode_;
+  QString filter_keywords_;
+  QStringList favorite_key_ids_;
+  KeyFilter custom_filter_;
 };
 
 }  // namespace GpgFrontend::UI
