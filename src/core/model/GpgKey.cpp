@@ -156,7 +156,7 @@ auto GpgKey::SubKeys() const -> QContainer<GpgSubKey> {
   QContainer<GpgSubKey> ret;
   auto *next = key_ref_->subkeys;
   while (next != nullptr) {
-    ret.push_back(GpgSubKey(next));
+    ret.push_back(GpgSubKey(key_ref_, next));
     next = next->next;
   }
   return ret;
@@ -164,10 +164,10 @@ auto GpgKey::SubKeys() const -> QContainer<GpgSubKey> {
 
 auto GpgKey::UIDs() const -> QContainer<GpgUID> {
   QContainer<GpgUID> uids;
-  auto *uid_next = key_ref_->uids;
-  while (uid_next != nullptr) {
-    uids.push_back(GpgUID(uid_next));
-    uid_next = uid_next->next;
+  auto *next = key_ref_->uids;
+  while (next != nullptr) {
+    uids.push_back(GpgUID(key_ref_, next));
+    next = next->next;
   }
   return uids;
 }
@@ -214,7 +214,7 @@ auto GpgKey::IsHasActualEncrCap() const -> bool {
 }
 
 auto GpgKey::PrimaryKey() const -> GpgSubKey {
-  return GpgSubKey(key_ref_->subkeys);
+  return GpgSubKey(key_ref_, key_ref_->subkeys);
 }
 
 auto GpgKey::IsSubKey() const -> bool { return false; }

@@ -32,7 +32,8 @@ namespace GpgFrontend {
 
 GpgUID::GpgUID() = default;
 
-GpgUID::GpgUID(gpgme_user_id_t uid) : uid_ref_(uid) {}
+GpgUID::GpgUID(QSharedPointer<struct _gpgme_key> key_ref, gpgme_user_id_t uid)
+    : key_ref_(std::move(key_ref)), uid_ref_(uid) {}
 
 GpgUID::GpgUID(const GpgUID &) = default;
 

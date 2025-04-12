@@ -332,8 +332,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey : public GpgAbstractKey {
   [[nodiscard]] auto PrimaryKey() const -> GpgSubKey;
 
  private:
-  using KeyRefHandler = QSharedPointer<struct _gpgme_key>;  ///<
-  KeyRefHandler key_ref_ = nullptr;                         ///<
+  QSharedPointer<struct _gpgme_key> key_ref_ = nullptr;  ///<
 };
 
 }  // namespace GpgFrontend

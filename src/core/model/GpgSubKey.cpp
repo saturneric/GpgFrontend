@@ -27,11 +27,15 @@
  */
 #include "GpgSubKey.h"
 
+#include <utility>
+
 namespace GpgFrontend {
 
 GpgSubKey::GpgSubKey() = default;
 
-GpgSubKey::GpgSubKey(gpgme_subkey_t subkey) : subkey_ref_(subkey) {}
+GpgSubKey::GpgSubKey(QSharedPointer<struct _gpgme_key> key_ref,
+                     gpgme_subkey_t s_key)
+    : key_ref_(std::move(key_ref)), s_key_ref_(s_key) {}
 
 GpgSubKey::GpgSubKey(const GpgSubKey&) = default;
 
@@ -39,66 +43,60 @@ GpgSubKey::~GpgSubKey() = default;
 
 auto GpgSubKey::operator=(const GpgSubKey&) -> GpgSubKey& = default;
 
-auto GpgSubKey::ID() const -> QString { return subkey_ref_->keyid; }
+auto GpgSubKey::ID() const -> QString { return s_key_ref_->keyid; }
 
-auto GpgSubKey::Fingerprint() const -> QString { return subkey_ref_->fpr; }
+auto GpgSubKey::Fingerprint() const -> QString { return s_key_ref_->fpr; }
 
 auto GpgSubKey::PublicKeyAlgo() const -> QString {
-  return gpgme_pubkey_algo_name(subkey_ref_->pubkey_algo);
+  return gpgme_pubkey_algo_name(s_key_ref_->pubkey_algo);
 }
 
 auto GpgSubKey::Algo() const -> QString {
-  auto* buffer = gpgme_pubkey_algo_string(subkey_ref_);
+  auto* buffer = gpgme_pubkey_algo_string(s_key_ref_);
   auto algo = QString(buffer);
   gpgme_free(buffer);
   return algo.toUpper();
 }
 
-auto GpgSubKey::KeyLength() const -> unsigned int {
-  return subkey_ref_->length;
-}
+auto GpgSubKey::KeyLength() const -> unsigned int { return s_key_ref_->length; }
 
-auto GpgSubKey::IsHasEncrCap() const -> bool {
-  return subkey_ref_->can_encrypt;
-}
+auto GpgSubKey::IsHasEncrCap() const -> bool { return s_key_ref_->can_encrypt; }
 
-auto GpgSubKey::IsHasSignCap() const -> bool { return subkey_ref_->can_sign; }
+auto GpgSubKey::IsHasSignCap() const -> bool { return s_key_ref_->can_sign; }
 
-auto GpgSubKey::IsHasCertCap() const -> bool {
-  return subkey_ref_->can_certify;
-}
+auto GpgSubKey::IsHasCertCap() const -> bool { return s_key_ref_->can_certify; }
 
 auto GpgSubKey::IsHasAuthCap() const -> bool {
-  return subkey_ref_->can_authenticate;
+  return s_key_ref_->can_authenticate;
 }
 
-auto GpgSubKey::IsPrivateKey() const -> bool { return subkey_ref_->secret; }
+auto GpgSubKey::IsPrivateKey() const -> bool { return s_key_ref_->secret; }
 
-auto GpgSubKey::IsExpired() const -> bool { return subkey_ref_->expired; }
+auto GpgSubKey::IsExpired() const -> bool { return s_key_ref_->expired; }
 
-auto GpgSubKey::IsRevoked() const -> bool { return subkey_ref_->revoked; }
+auto GpgSubKey::IsRevoked() const -> bool { return s_key_ref_->revoked; }
 
-auto GpgSubKey::IsDisabled() const -> bool { return subkey_ref_->disabled; }
+auto GpgSubKey::IsDisabled() const -> bool { return s_key_ref_->disabled; }
 
-auto GpgSubKey::IsSecretKey() const -> bool { return subkey_ref_->secret; }
+auto GpgSubKey::IsSecretKey() const -> bool { return s_key_ref_->secret; }
 
-auto GpgSubKey::IsCardKey() const -> bool { return subkey_ref_->is_cardkey; }
+auto GpgSubKey::IsCardKey() const -> bool { return s_key_ref_->is_cardkey; }
 
 auto GpgSubKey::CreationTime() const -> QDateTime {
-  return QDateTime::fromSecsSinceEpoch(subkey_ref_->timestamp);
+  return QDateTime::fromSecsSinceEpoch(s_key_ref_->timestamp);
 }
 
 auto GpgSubKey::ExpirationTime() const -> QDateTime {
-  return QDateTime::fromSecsSinceEpoch(subkey_ref_->expires);
+  return QDateTime::fromSecsSinceEpoch(s_key_ref_->expires);
 }
 
-auto GpgSubKey::IsADSK() const -> bool { return subkey_ref_->can_renc; }
+auto GpgSubKey::IsADSK() const -> bool { return s_key_ref_->can_renc; }
 
 auto GpgSubKey::SmartCardSerialNumber() -> QString {
-  return subkey_ref_->card_number;
+  return s_key_ref_->card_number;
 }
 
 auto GpgSubKey::IsSubKey() const -> bool { return true; }
 
-auto GpgSubKey::IsGood() const -> bool { return subkey_ref_ != nullptr; }
+auto GpgSubKey::IsGood() const -> bool { return s_key_ref_ != nullptr; }
 }  // namespace GpgFrontend

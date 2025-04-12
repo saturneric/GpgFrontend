@@ -52,7 +52,8 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey : public GpgAbstractKey {
    *
    * @param subkey
    */
-  explicit GpgSubKey(gpgme_subkey_t subkey);
+  explicit GpgSubKey(QSharedPointer<struct _gpgme_key> key_ref,
+                     gpgme_subkey_t s_key);
 
   /**
    * @brief Construct a new Gpg Sub Key object
@@ -234,7 +235,8 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey : public GpgAbstractKey {
   [[nodiscard]] auto SmartCardSerialNumber() -> QString;
 
  private:
-  gpgme_subkey_t subkey_ref_ = nullptr;  ///<
+  QSharedPointer<struct _gpgme_key> key_ref_;
+  gpgme_subkey_t s_key_ref_ = nullptr;  ///<
 };
 
 }  // namespace GpgFrontend
