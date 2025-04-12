@@ -66,18 +66,18 @@ TEST_F(GpgCoreTest, GenerateSubkeyRSA2048Test) {
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
 
-  auto subkeys = key.GetSubKeys();
-  auto& subkey = subkeys->back();
+  auto s_keys = key.SubKeys();
+  auto& s_key = s_keys.back();
 
-  ASSERT_EQ(subkey.GetPubkeyAlgo(), "RSA");
-  ASSERT_EQ(subkey.GetKeyAlgo(), "RSA2048");
-  ASSERT_EQ(subkey.GetKeyLength(), 2048);
-  ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
+  ASSERT_EQ(s_key.PublicKeyAlgo(), "RSA");
+  ASSERT_EQ(s_key.Algo(), "RSA2048");
+  ASSERT_EQ(s_key.KeyLength(), 2048);
+  ASSERT_EQ(s_key.ExpirationTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertCap());
-  ASSERT_TRUE(subkey.IsHasAuthCap());
-  ASSERT_TRUE(subkey.IsHasEncrCap());
-  ASSERT_TRUE(subkey.IsHasSignCap());
+  ASSERT_FALSE(s_key.IsHasCertCap());
+  ASSERT_TRUE(s_key.IsHasAuthCap());
+  ASSERT_TRUE(s_key.IsHasEncrCap());
+  ASSERT_TRUE(s_key.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyDSA2048Test) {
@@ -109,18 +109,18 @@ TEST_F(GpgCoreTest, GenerateSubkeyDSA2048Test) {
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
 
-  auto subkeys = key.GetSubKeys();
-  auto& subkey = subkeys->back();
+  auto s_keys = key.SubKeys();
+  auto& s_key = s_keys.back();
 
-  ASSERT_EQ(subkey.GetPubkeyAlgo(), "DSA");
-  ASSERT_EQ(subkey.GetKeyAlgo(), "DSA2048");
-  ASSERT_EQ(subkey.GetKeyLength(), 2048);
-  ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
+  ASSERT_EQ(s_key.PublicKeyAlgo(), "DSA");
+  ASSERT_EQ(s_key.Algo(), "DSA2048");
+  ASSERT_EQ(s_key.KeyLength(), 2048);
+  ASSERT_EQ(s_key.ExpirationTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertCap());
-  ASSERT_TRUE(subkey.IsHasAuthCap());
-  ASSERT_FALSE(subkey.IsHasEncrCap());
-  ASSERT_TRUE(subkey.IsHasSignCap());
+  ASSERT_FALSE(s_key.IsHasCertCap());
+  ASSERT_TRUE(s_key.IsHasAuthCap());
+  ASSERT_FALSE(s_key.IsHasEncrCap());
+  ASSERT_TRUE(s_key.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyELG2048Test) {
@@ -152,18 +152,18 @@ TEST_F(GpgCoreTest, GenerateSubkeyELG2048Test) {
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
 
-  auto subkeys = key.GetSubKeys();
-  auto& subkey = subkeys->back();
+  auto s_keys = key.SubKeys();
+  auto& s_key = s_keys.back();
 
-  ASSERT_EQ(subkey.GetPubkeyAlgo(), "ELG-E");
-  ASSERT_EQ(subkey.GetKeyAlgo(), "ELG2048");
-  ASSERT_EQ(subkey.GetKeyLength(), 2048);
-  ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
+  ASSERT_EQ(s_key.PublicKeyAlgo(), "ELG-E");
+  ASSERT_EQ(s_key.Algo(), "ELG2048");
+  ASSERT_EQ(s_key.KeyLength(), 2048);
+  ASSERT_EQ(s_key.ExpirationTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertCap());
-  ASSERT_FALSE(subkey.IsHasAuthCap());
-  ASSERT_TRUE(subkey.IsHasEncrCap());
-  ASSERT_FALSE(subkey.IsHasSignCap());
+  ASSERT_FALSE(s_key.IsHasCertCap());
+  ASSERT_FALSE(s_key.IsHasAuthCap());
+  ASSERT_TRUE(s_key.IsHasEncrCap());
+  ASSERT_FALSE(s_key.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyED25519Test) {
@@ -195,18 +195,18 @@ TEST_F(GpgCoreTest, GenerateSubkeyED25519Test) {
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
 
-  auto subkeys = key.GetSubKeys();
-  auto& subkey = subkeys->back();
+  auto s_keys = key.SubKeys();
+  auto& s_key = s_keys.back();
 
-  ASSERT_EQ(subkey.GetPubkeyAlgo(), "EdDSA");
-  ASSERT_EQ(subkey.GetKeyAlgo(), "ED25519");
-  ASSERT_EQ(subkey.GetKeyLength(), 255);
-  ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
+  ASSERT_EQ(s_key.PublicKeyAlgo(), "EdDSA");
+  ASSERT_EQ(s_key.Algo(), "ED25519");
+  ASSERT_EQ(s_key.KeyLength(), 255);
+  ASSERT_EQ(s_key.ExpirationTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertCap());
-  ASSERT_TRUE(subkey.IsHasAuthCap());
-  ASSERT_FALSE(subkey.IsHasEncrCap());
-  ASSERT_TRUE(subkey.IsHasSignCap());
+  ASSERT_FALSE(s_key.IsHasCertCap());
+  ASSERT_TRUE(s_key.IsHasAuthCap());
+  ASSERT_FALSE(s_key.IsHasEncrCap());
+  ASSERT_TRUE(s_key.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyCV25519Test) {
@@ -238,18 +238,18 @@ TEST_F(GpgCoreTest, GenerateSubkeyCV25519Test) {
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
 
-  auto subkeys = key.GetSubKeys();
-  auto& subkey = subkeys->back();
+  auto s_keys = key.SubKeys();
+  auto& s_key = s_keys.back();
 
-  ASSERT_EQ(subkey.GetPubkeyAlgo(), QString("ECDH"));
-  ASSERT_EQ(subkey.GetKeyAlgo(), QString("CV25519"));
-  ASSERT_EQ(subkey.GetKeyLength(), 255);
-  ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
+  ASSERT_EQ(s_key.PublicKeyAlgo(), QString("ECDH"));
+  ASSERT_EQ(s_key.Algo(), QString("CV25519"));
+  ASSERT_EQ(s_key.KeyLength(), 255);
+  ASSERT_EQ(s_key.ExpirationTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertCap());
-  ASSERT_FALSE(subkey.IsHasAuthCap());
-  ASSERT_TRUE(subkey.IsHasEncrCap());
-  ASSERT_FALSE(subkey.IsHasSignCap());
+  ASSERT_FALSE(s_key.IsHasCertCap());
+  ASSERT_FALSE(s_key.IsHasAuthCap());
+  ASSERT_TRUE(s_key.IsHasEncrCap());
+  ASSERT_FALSE(s_key.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyNISTP256Test) {
@@ -280,18 +280,18 @@ TEST_F(GpgCoreTest, GenerateSubkeyNISTP256Test) {
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
 
-  auto subkeys = key.GetSubKeys();
-  auto& subkey = subkeys->back();
+  auto s_keys = key.SubKeys();
+  auto& s_key = s_keys.back();
 
-  ASSERT_EQ(subkey.GetPubkeyAlgo(), QString("ECDH"));
-  ASSERT_EQ(subkey.GetKeyAlgo(), QString("NISTP256"));
-  ASSERT_EQ(subkey.GetKeyLength(), 256);
-  ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
+  ASSERT_EQ(s_key.PublicKeyAlgo(), QString("ECDH"));
+  ASSERT_EQ(s_key.Algo(), QString("NISTP256"));
+  ASSERT_EQ(s_key.KeyLength(), 256);
+  ASSERT_EQ(s_key.ExpirationTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertCap());
-  ASSERT_FALSE(subkey.IsHasAuthCap());
-  ASSERT_TRUE(subkey.IsHasEncrCap());
-  ASSERT_FALSE(subkey.IsHasSignCap());
+  ASSERT_FALSE(s_key.IsHasCertCap());
+  ASSERT_FALSE(s_key.IsHasAuthCap());
+  ASSERT_TRUE(s_key.IsHasEncrCap());
+  ASSERT_FALSE(s_key.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyBRAINPOOLP256R1Test) {
@@ -322,18 +322,18 @@ TEST_F(GpgCoreTest, GenerateSubkeyBRAINPOOLP256R1Test) {
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
 
-  auto subkeys = key.GetSubKeys();
-  auto& subkey = subkeys->back();
+  auto s_keys = key.SubKeys();
+  auto& s_key = s_keys.back();
 
-  ASSERT_EQ(subkey.GetPubkeyAlgo(), QString("ECDH"));
-  ASSERT_EQ(subkey.GetKeyAlgo(), QString("BRAINPOOLP256R1"));
-  ASSERT_EQ(subkey.GetKeyLength(), 256);
-  ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
+  ASSERT_EQ(s_key.PublicKeyAlgo(), QString("ECDH"));
+  ASSERT_EQ(s_key.Algo(), QString("BRAINPOOLP256R1"));
+  ASSERT_EQ(s_key.KeyLength(), 256);
+  ASSERT_EQ(s_key.ExpirationTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertCap());
-  ASSERT_FALSE(subkey.IsHasAuthCap());
-  ASSERT_TRUE(subkey.IsHasEncrCap());
-  ASSERT_FALSE(subkey.IsHasSignCap());
+  ASSERT_FALSE(s_key.IsHasCertCap());
+  ASSERT_FALSE(s_key.IsHasAuthCap());
+  ASSERT_TRUE(s_key.IsHasEncrCap());
+  ASSERT_FALSE(s_key.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyX448Test) {
@@ -364,18 +364,18 @@ TEST_F(GpgCoreTest, GenerateSubkeyX448Test) {
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
 
-  auto subkeys = key.GetSubKeys();
-  auto& subkey = subkeys->back();
+  auto s_keys = key.SubKeys();
+  auto& s_key = s_keys.back();
 
-  ASSERT_EQ(subkey.GetPubkeyAlgo(), QString("ECDH"));
-  ASSERT_EQ(subkey.GetKeyAlgo(), QString("CV448"));
-  ASSERT_EQ(subkey.GetKeyLength(), 448);
-  ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
+  ASSERT_EQ(s_key.PublicKeyAlgo(), QString("ECDH"));
+  ASSERT_EQ(s_key.Algo(), QString("CV448"));
+  ASSERT_EQ(s_key.KeyLength(), 448);
+  ASSERT_EQ(s_key.ExpirationTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertCap());
-  ASSERT_FALSE(subkey.IsHasAuthCap());
-  ASSERT_TRUE(subkey.IsHasEncrCap());
-  ASSERT_FALSE(subkey.IsHasSignCap());
+  ASSERT_FALSE(s_key.IsHasCertCap());
+  ASSERT_FALSE(s_key.IsHasAuthCap());
+  ASSERT_TRUE(s_key.IsHasEncrCap());
+  ASSERT_FALSE(s_key.IsHasSignCap());
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeySECP256K1Test) {
@@ -406,18 +406,18 @@ TEST_F(GpgCoreTest, GenerateSubkeySECP256K1Test) {
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
 
-  auto subkeys = key.GetSubKeys();
-  auto& subkey = subkeys->back();
+  auto s_keys = key.SubKeys();
+  auto& s_key = s_keys.back();
 
-  ASSERT_EQ(subkey.GetPubkeyAlgo(), QString("ECDH"));
-  ASSERT_EQ(subkey.GetKeyAlgo(), QString("SECP256K1"));
-  ASSERT_EQ(subkey.GetKeyLength(), 256);
-  ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
+  ASSERT_EQ(s_key.PublicKeyAlgo(), QString("ECDH"));
+  ASSERT_EQ(s_key.Algo(), QString("SECP256K1"));
+  ASSERT_EQ(s_key.KeyLength(), 256);
+  ASSERT_EQ(s_key.ExpirationTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertCap());
-  ASSERT_FALSE(subkey.IsHasAuthCap());
-  ASSERT_TRUE(subkey.IsHasEncrCap());
-  ASSERT_FALSE(subkey.IsHasSignCap());
+  ASSERT_FALSE(s_key.IsHasCertCap());
+  ASSERT_FALSE(s_key.IsHasAuthCap());
+  ASSERT_TRUE(s_key.IsHasEncrCap());
+  ASSERT_FALSE(s_key.IsHasSignCap());
 }
 
 }  // namespace GpgFrontend::Test

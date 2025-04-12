@@ -103,11 +103,11 @@ void MainWindow::slot_append_keys_create_datetime() {
   if (!succ) return;
 
   auto create_datetime_format_str_local =
-      QLocale().toString(key.GetCreateTime()) + " (" + tr("Localize") + ") " +
+      QLocale().toString(key.CreationTime()) + " (" + tr("Localize") + ") " +
       "\n";
   auto create_datetime_format_str =
-      QLocale().toString(key.GetCreateTime().toUTC()) + " (" + tr("UTC") +
-      ") " + "\n ";
+      QLocale().toString(key.CreationTime().toUTC()) + " (" + tr("UTC") + ") " +
+      "\n ";
   edit_->SlotAppendText2CurTextPage(create_datetime_format_str_local +
                                     create_datetime_format_str);
 }
@@ -117,10 +117,10 @@ void MainWindow::slot_append_keys_expire_datetime() {
   if (!succ) return;
 
   auto expire_datetime_format_str_local =
-      QLocale().toString(key.GetExpireTime()) + " (" + tr("Local Time") + ") " +
-      "\n";
+      QLocale().toString(key.ExpirationTime()) + " (" + tr("Local Time") +
+      ") " + "\n";
   auto expire_datetime_format_str =
-      QLocale().toString(key.GetExpireTime().toUTC()) + " (UTC) " + "\n";
+      QLocale().toString(key.ExpirationTime().toUTC()) + " (UTC) " + "\n";
 
   edit_->SlotAppendText2CurTextPage(expire_datetime_format_str_local +
                                     expire_datetime_format_str);
@@ -130,8 +130,7 @@ void MainWindow::slot_append_keys_fingerprint() {
   auto [succ, key] = m_key_list_->GetSelectedGpgKey();
   if (!succ) return;
 
-  auto fingerprint_format_str =
-      BeautifyFingerprint(key.GetFingerprint()) + "\n";
+  auto fingerprint_format_str = BeautifyFingerprint(key.Fingerprint()) + "\n";
 
   edit_->SlotAppendText2CurTextPage(fingerprint_format_str);
 }
@@ -141,7 +140,7 @@ void MainWindow::slot_copy_mail_address_to_clipboard() {
   if (!succ) return;
 
   QClipboard* cb = QApplication::clipboard();
-  cb->setText(key.GetEmail());
+  cb->setText(key.Email());
 }
 
 void MainWindow::slot_copy_default_uid_to_clipboard() {
@@ -149,7 +148,7 @@ void MainWindow::slot_copy_default_uid_to_clipboard() {
   if (!succ) return;
 
   QClipboard* cb = QApplication::clipboard();
-  cb->setText(key.GetUIDs()->front().GetUID());
+  cb->setText(key.UIDs().front().GetUID());
 }
 
 void MainWindow::slot_copy_key_id_to_clipboard() {
@@ -157,7 +156,7 @@ void MainWindow::slot_copy_key_id_to_clipboard() {
   if (!succ) return;
 
   QClipboard* cb = QApplication::clipboard();
-  cb->setText(key.GetId());
+  cb->setText(key.ID());
 }
 
 void MainWindow::slot_show_key_details() {
@@ -174,7 +173,7 @@ void MainWindow::slot_add_key_2_favorite() {
   auto key_db_name =
       GetGpgKeyDatabaseName(m_key_list_->GetCurrentGpgContextChannel());
 
-  LOG_D() << "add key" << key.GetId() << "to favorite at key db" << key_db_name;
+  LOG_D() << "add key" << key.ID() << "to favorite at key db" << key_db_name;
 
   CommonUtils::GetInstance()->AddKey2Favorite(key_db_name, key);
   emit SignalUIRefresh();

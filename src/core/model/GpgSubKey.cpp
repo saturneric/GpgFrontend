@@ -35,32 +35,26 @@ GpgSubKey::GpgSubKey(gpgme_subkey_t subkey) : subkey_ref_(subkey) {}
 
 GpgSubKey::GpgSubKey(const GpgSubKey&) = default;
 
+GpgSubKey::~GpgSubKey() = default;
+
 auto GpgSubKey::operator=(const GpgSubKey&) -> GpgSubKey& = default;
 
-auto GpgSubKey::operator==(const GpgSubKey& o) const -> bool {
-  return GetFingerprint() == o.GetFingerprint();
-}
+auto GpgSubKey::ID() const -> QString { return subkey_ref_->keyid; }
 
-auto GpgSubKey::operator<(const GpgSubKey& o) const -> bool {
-  return GetID() < o.GetID();
-}
+auto GpgSubKey::Fingerprint() const -> QString { return subkey_ref_->fpr; }
 
-auto GpgSubKey::GetID() const -> QString { return subkey_ref_->keyid; }
-
-auto GpgSubKey::GetFingerprint() const -> QString { return subkey_ref_->fpr; }
-
-auto GpgSubKey::GetPubkeyAlgo() const -> QString {
+auto GpgSubKey::PublicKeyAlgo() const -> QString {
   return gpgme_pubkey_algo_name(subkey_ref_->pubkey_algo);
 }
 
-auto GpgSubKey::GetKeyAlgo() const -> QString {
+auto GpgSubKey::Algo() const -> QString {
   auto* buffer = gpgme_pubkey_algo_string(subkey_ref_);
   auto algo = QString(buffer);
   gpgme_free(buffer);
   return algo.toUpper();
 }
 
-auto GpgSubKey::GetKeyLength() const -> unsigned int {
+auto GpgSubKey::KeyLength() const -> unsigned int {
   return subkey_ref_->length;
 }
 
@@ -90,11 +84,11 @@ auto GpgSubKey::IsSecretKey() const -> bool { return subkey_ref_->secret; }
 
 auto GpgSubKey::IsCardKey() const -> bool { return subkey_ref_->is_cardkey; }
 
-auto GpgSubKey::GetCreateTime() const -> QDateTime {
+auto GpgSubKey::CreationTime() const -> QDateTime {
   return QDateTime::fromSecsSinceEpoch(subkey_ref_->timestamp);
 }
 
-auto GpgSubKey::GetExpireTime() const -> QDateTime {
+auto GpgSubKey::ExpirationTime() const -> QDateTime {
   return QDateTime::fromSecsSinceEpoch(subkey_ref_->expires);
 }
 
@@ -104,4 +98,7 @@ auto GpgSubKey::SmartCardSerialNumber() -> QString {
   return subkey_ref_->card_number;
 }
 
+auto GpgSubKey::IsSubKey() const -> bool { return true; }
+
+auto GpgSubKey::IsGood() const -> bool { return subkey_ref_ != nullptr; }
 }  // namespace GpgFrontend

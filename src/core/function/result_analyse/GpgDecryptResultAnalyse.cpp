@@ -110,9 +110,9 @@ void GpgFrontend::GpgDecryptResultAnalyse::print_recipient(
   auto key = GpgFrontend::GpgKeyGetter::GetInstance(GetChannel())
                  .GetKey(recipient->keyid);
   if (key.IsGood()) {
-    stream << key.GetName();
-    if (!key.GetComment().isEmpty()) stream << "(" << key.GetComment() << ")";
-    if (!key.GetEmail().isEmpty()) stream << "<" << key.GetEmail() << ">";
+    stream << key.Name();
+    if (!key.Comment().isEmpty()) stream << "(" << key.Comment() << ")";
+    if (!key.Email().isEmpty()) stream << "<" << key.Email() << ">";
   } else {
     stream << "<" << tr("unknown") << ">";
     setStatus(0);

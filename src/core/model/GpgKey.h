@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/model/GpgAbstractKey.h"
 #include "core/model/GpgSubKey.h"
 #include "core/model/GpgUID.h"
 
@@ -37,49 +38,21 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgKey {
+class GPGFRONTEND_CORE_EXPORT GpgKey : public GpgAbstractKey {
   Q_DECLARE_TR_FUNCTIONS(GpgKey)
  public:
   /**
    * @brief Construct a new Gpg Key object
    *
    */
-  GpgKey() = default;
+  GpgKey();
 
   /**
    * @brief Construct a new Gpg Key object
    *
    * @param key
    */
-  explicit GpgKey(gpgme_key_t&& key);
-
-  /**
-   * @brief Destroy the Gpg Key objects
-   *
-   */
-  ~GpgKey() = default;
-
-  /**
-   * @brief Construct a new Gpg Key object
-   *
-   * @param key
-   */
-  GpgKey(const gpgme_key_t& key) = delete;
-
-  /**
-   * @brief Construct a new Gpg Key object
-   *
-   * @param k
-   */
-  GpgKey(GpgKey&&) noexcept;
-
-  /**
-   * @brief
-   *
-   * @param k
-   * @return GpgKey&
-   */
-  auto operator=(GpgKey&&) noexcept -> GpgKey&;
+  explicit GpgKey(gpgme_key_t key);
 
   /**
    * @brief Construct a new Gpg Key object
@@ -89,38 +62,18 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
   GpgKey(const GpgKey&);
 
   /**
+   * @brief Destroy the Gpg Key objects
+   *
+   */
+  virtual ~GpgKey() override;
+
+  /**
    * @brief
    *
    * @param k
    * @return GpgKey&
    */
   auto operator=(const GpgKey&) -> GpgKey&;
-
-  /**
-   * @brief
-   *
-   * @param key
-   * @return GpgKey&
-   */
-  auto operator=(const gpgme_key_t&) -> GpgKey& = delete;
-
-  /**
-   * @brief
-   *
-   * @param o
-   * @return true
-   * @return false
-   */
-  auto operator==(const GpgKey&) const -> bool;
-
-  /**
-   * @brief
-   *
-   * @param o
-   * @return true
-   * @return false
-   */
-  auto operator<=(const GpgKey&) const -> bool;
 
   /**
    * @brief
@@ -136,105 +89,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsGood() const -> bool;
-
-  /**
-   * @brief
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetId() const -> QString;
-
-  /**
-   * @brief
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetName() const -> QString;
-
-  /**
-   * @brief
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetEmail() const -> QString;
-
-  /**
-   * @brief
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetComment() const -> QString;
-
-  /**
-   * @brief
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetFingerprint() const -> QString;
-
-  /**
-   * @brief
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetProtocol() const -> QString;
-
-  /**
-   * @brief
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetOwnerTrust() const -> QString;
-
-  /**
-   * @brief
-   *
-   * @return int
-   */
-  [[nodiscard]] auto GetOwnerTrustLevel() const -> int;
-
-  /**
-   * @brief
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetPublicKeyAlgo() const -> QString;
-
-  /**
-   * @brief
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetKeyAlgo() const -> QString;
-
-  /**
-   * @brief
-   *
-   * @return QDateTime
-   */
-  [[nodiscard]] auto GetLastUpdateTime() const -> QDateTime;
-
-  /**
-   * @brief
-   *
-   * @return QDateTime
-   */
-  [[nodiscard]] auto GetExpireTime() const -> QDateTime;
-
-  /**
-   * @brief Create a time object
-   *
-   * @return QDateTime
-   */
-  [[nodiscard]] auto GetCreateTime() const -> QDateTime;
-
-  /**
-   * @brief s
-   *
-   * @return unsigned int
-   */
-  [[nodiscard]] auto GetPrimaryKeyLength() const -> unsigned int;
+  [[nodiscard]] auto IsSubKey() const -> bool override;
 
   /**
    * @brief
@@ -242,7 +97,113 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsHasEncrCap() const -> bool;
+  [[nodiscard]] auto IsGood() const -> bool override;
+
+  /**
+   * @brief
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto ID() const -> QString override;
+
+  /**
+   * @brief
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto Name() const -> QString;
+
+  /**
+   * @brief
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto Email() const -> QString;
+
+  /**
+   * @brief
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto Comment() const -> QString;
+
+  /**
+   * @brief
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto Fingerprint() const -> QString override;
+
+  /**
+   * @brief
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto Protocol() const -> QString;
+
+  /**
+   * @brief
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto OwnerTrust() const -> QString;
+
+  /**
+   * @brief
+   *
+   * @return int
+   */
+  [[nodiscard]] auto OwnerTrustLevel() const -> int;
+
+  /**
+   * @brief
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto PublicKeyAlgo() const -> QString override;
+
+  /**
+   * @brief
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto Algo() const -> QString override;
+
+  /**
+   * @brief
+   *
+   * @return QDateTime
+   */
+  [[nodiscard]] auto LastUpdateTime() const -> QDateTime;
+
+  /**
+   * @brief
+   *
+   * @return QDateTime
+   */
+  [[nodiscard]] auto ExpirationTime() const -> QDateTime override;
+
+  /**
+   * @brief Create a time object
+   *
+   * @return QDateTime
+   */
+  [[nodiscard]] auto CreationTime() const -> QDateTime override;
+
+  /**
+   * @brief s
+   *
+   * @return unsigned int
+   */
+  [[nodiscard]] auto PrimaryKeyLength() const -> unsigned int;
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] auto IsHasEncrCap() const -> bool override;
 
   /**
    * @brief
@@ -259,7 +220,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsHasSignCap() const -> bool;
+  [[nodiscard]] auto IsHasSignCap() const -> bool override;
 
   /**
    * @brief
@@ -275,7 +236,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsHasCertCap() const -> bool;
+  [[nodiscard]] auto IsHasCertCap() const -> bool override;
 
   /**
    * @brief
@@ -291,7 +252,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsHasAuthCap() const -> bool;
+  [[nodiscard]] auto IsHasAuthCap() const -> bool override;
 
   /**
    * @brief
@@ -323,7 +284,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsExpired() const -> bool;
+  [[nodiscard]] auto IsExpired() const -> bool override;
 
   /**
    * @brief
@@ -331,7 +292,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsRevoked() const -> bool;
+  [[nodiscard]] auto IsRevoked() const -> bool override;
 
   /**
    * @brief
@@ -339,7 +300,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsDisabled() const -> bool;
+  [[nodiscard]] auto IsDisabled() const -> bool override;
 
   /**
    * @brief
@@ -354,35 +315,25 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    *
    * @return std::unique_ptr<QContainer<GpgSubKey>>
    */
-  [[nodiscard]] auto GetSubKeys() const
-      -> std::unique_ptr<QContainer<GpgSubKey>>;
+  [[nodiscard]] auto SubKeys() const -> QContainer<GpgSubKey>;
 
   /**
    * @brief
    *
    * @return std::unique_ptr<QContainer<GpgUID>>
    */
-  [[nodiscard]] auto GetUIDs() const -> std::unique_ptr<QContainer<GpgUID>>;
+  [[nodiscard]] auto UIDs() const -> QContainer<GpgUID>;
 
   /**
-   * @brief Get the Primary Key object
+   * @brief  the Primary Key object
    *
    * @return GpgSubKey
    */
-  [[nodiscard]] auto GetPrimaryKey() const -> GpgSubKey;
+  [[nodiscard]] auto PrimaryKey() const -> GpgSubKey;
 
  private:
-  /**
-   * @brief
-   *
-   */
-  struct GPGFRONTEND_CORE_EXPORT KeyRefDeleter {
-    void operator()(gpgme_key_t _key);
-  };
-
-  using KeyRefHandler = std::unique_ptr<struct _gpgme_key, KeyRefDeleter>;  ///<
-
-  KeyRefHandler key_ref_ = nullptr;  ///<
+  using KeyRefHandler = QSharedPointer<struct _gpgme_key>;  ///<
+  KeyRefHandler key_ref_ = nullptr;                         ///<
 };
 
 }  // namespace GpgFrontend

@@ -35,11 +35,19 @@ class GpgAbstractKey {
   [[nodiscard]] virtual auto ID() const -> QString = 0;
   [[nodiscard]] virtual auto Fingerprint() const -> QString = 0;
   [[nodiscard]] virtual auto IsSubKey() const -> bool = 0;
-  [[nodiscard]] virtual auto CreationTime() const -> QDateTime = 0;
+
   [[nodiscard]] virtual auto IsHasEncrCap() const -> bool = 0;
   [[nodiscard]] virtual auto IsHasSignCap() const -> bool = 0;
   [[nodiscard]] virtual auto IsHasCertCap() const -> bool = 0;
   [[nodiscard]] virtual auto IsHasAuthCap() const -> bool = 0;
+  [[nodiscard]] virtual auto IsRevoked() const -> bool = 0;
+  [[nodiscard]] virtual auto IsDisabled() const -> bool = 0;
+  [[nodiscard]] virtual auto IsExpired() const -> bool = 0;
+  [[nodiscard]] virtual auto IsGood() const -> bool = 0;
+  [[nodiscard]] virtual auto PublicKeyAlgo() const -> QString = 0;
+  [[nodiscard]] virtual auto Algo() const -> QString = 0;
+  [[nodiscard]] virtual auto CreationTime() const -> QDateTime = 0;
+  [[nodiscard]] virtual auto ExpirationTime() const -> QDateTime = 0;
 
   //
 

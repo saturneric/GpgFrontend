@@ -85,7 +85,7 @@ auto GpgKeyManager::SetExpire(const GpgKey& key,
 
   const char* sub_fprs = nullptr;
 
-  if (subkey != nullptr) sub_fprs = subkey->GetFingerprint().toUtf8();
+  if (subkey != nullptr) sub_fprs = subkey->Fingerprint().toUtf8();
 
   auto err = CheckGpgError(gpgme_op_setexpire(ctx_.DefaultContext(),
                                               static_cast<gpgme_key_t>(key),
@@ -174,7 +174,7 @@ auto GpgKeyManager::SetOwnerTrustLevel(const GpgKey& key,
 
 auto GpgKeyManager::DeleteSubkey(const GpgKey& key, int subkey_index) -> bool {
   if (subkey_index < 0 ||
-      subkey_index >= static_cast<int>(key.GetSubKeys()->size())) {
+      subkey_index >= static_cast<int>(key.SubKeys().size())) {
     LOG_W() << "illegal subkey index: " << subkey_index;
     return false;
   }
@@ -246,7 +246,7 @@ auto GpgKeyManager::DeleteSubkey(const GpgKey& key, int subkey_index) -> bool {
         return QString("");
       };
 
-  auto key_fpr = key.GetFingerprint();
+  auto key_fpr = key.Fingerprint();
   AutomatonHandelStruct handel_struct(key_fpr);
   handel_struct.SetHandler(next_state_handler, action_handler);
 
@@ -260,7 +260,7 @@ auto GpgKeyManager::RevokeSubkey(const GpgKey& key, int subkey_index,
                                  int reason_code,
                                  const QString& reason_text) -> bool {
   if (subkey_index < 0 ||
-      subkey_index >= static_cast<int>(key.GetSubKeys()->size())) {
+      subkey_index >= static_cast<int>(key.SubKeys().size())) {
     LOG_W() << "illegal subkey index: " << subkey_index;
     return false;
   }
@@ -369,7 +369,7 @@ auto GpgKeyManager::RevokeSubkey(const GpgKey& key, int subkey_index,
         return QString("");
       };
 
-  auto key_fpr = key.GetFingerprint();
+  auto key_fpr = key.Fingerprint();
   AutomatonHandelStruct handel_struct(key_fpr);
   handel_struct.SetHandler(next_state_handler, action_handler);
 

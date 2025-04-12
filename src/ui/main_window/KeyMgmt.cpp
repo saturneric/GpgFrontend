@@ -333,9 +333,9 @@ void KeyMgmt::delete_keys_with_warning(KeyIdArgsList uid_list) {
         GpgKeyGetter::GetInstance(key_list_->GetCurrentGpgContextChannel())
             .GetKey(key_id);
     if (!key.IsGood()) continue;
-    keynames.append(key.GetName());
+    keynames.append(key.Name());
     keynames.append("<i> &lt;");
-    keynames.append(key.GetEmail());
+    keynames.append(key.Email());
     keynames.append("&gt; </i><br/>");
   }
 
@@ -441,7 +441,8 @@ void KeyMgmt::SlotExportKeyToClipboard() {
 }
 
 void KeyMgmt::SlotGenerateKeyDialog() {
-  (new KeyGenerateDialog(key_list_->GetCurrentGpgContextChannel(), this))->exec();
+  (new KeyGenerateDialog(key_list_->GetCurrentGpgContextChannel(), this))
+      ->exec();
   this->raise();
 }
 
@@ -456,8 +457,8 @@ void KeyMgmt::SlotGenerateSubKey() {
     return;
   }
 
-  (new SubkeyGenerateDialog(key_list_->GetCurrentGpgContextChannel(),
-                            key.GetId(), this))
+  (new SubkeyGenerateDialog(key_list_->GetCurrentGpgContextChannel(), key.ID(),
+                            this))
       ->exec();
   this->raise();
 }

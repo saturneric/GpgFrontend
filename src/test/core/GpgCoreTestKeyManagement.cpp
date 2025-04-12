@@ -119,10 +119,10 @@ TEST_F(GpgCoreTest, CoreDeleteSubkeyTestA) {
                  .GetKey("822D7E13F5B85D7D");
   ASSERT_TRUE(key.IsGood());
 
-  auto subkeys = key.GetSubKeys();
+  auto s_key = key.SubKeys();
 
-  ASSERT_EQ(subkeys->size(), 5);
-  ASSERT_EQ((*subkeys)[2].GetID(), "2D1F9FC59B568A8C");
+  ASSERT_EQ(s_key.size(), 5);
+  ASSERT_EQ(s_key[2].ID(), "2D1F9FC59B568A8C");
 
   auto res = GpgKeyManager::GetInstance().DeleteSubkey(key, 2);
 
@@ -133,12 +133,12 @@ TEST_F(GpgCoreTest, CoreDeleteSubkeyTestA) {
             .GetKey("822D7E13F5B85D7D");
   ASSERT_TRUE(key.IsGood());
 
-  subkeys = key.GetSubKeys();
+  s_key = key.SubKeys();
 
-  ASSERT_EQ(subkeys->size(), 4);
-  ASSERT_EQ((*subkeys)[2].GetID(), "CE038203C4D03C3D");
+  ASSERT_EQ(s_key.size(), 4);
+  ASSERT_EQ(s_key[2].ID(), "CE038203C4D03C3D");
 
-  GpgKeyOpera::GetInstance().DeleteKey(key.GetId());
+  GpgKeyOpera::GetInstance().DeleteKey(key.ID());
 }
 
 TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
@@ -161,7 +161,7 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
   ASSERT_TRUE(key.IsGood());
 
   // why?
-  ASSERT_EQ(key.GetOwnerTrustLevel(), 0);
+  ASSERT_EQ(key.OwnerTrustLevel(), 0);
 
   res = GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 2);
   ASSERT_TRUE(res);
@@ -171,7 +171,7 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
             .GetKey("822D7E13F5B85D7D");
   ASSERT_TRUE(key.IsGood());
 
-  ASSERT_EQ(key.GetOwnerTrustLevel(), 2);
+  ASSERT_EQ(key.OwnerTrustLevel(), 2);
 
   res = GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 3);
   ASSERT_TRUE(res);
@@ -181,7 +181,7 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
             .GetKey("822D7E13F5B85D7D");
   ASSERT_TRUE(key.IsGood());
 
-  ASSERT_EQ(key.GetOwnerTrustLevel(), 3);
+  ASSERT_EQ(key.OwnerTrustLevel(), 3);
 
   res = GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 4);
   ASSERT_TRUE(res);
@@ -191,7 +191,7 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
             .GetKey("822D7E13F5B85D7D");
   ASSERT_TRUE(key.IsGood());
 
-  ASSERT_EQ(key.GetOwnerTrustLevel(), 4);
+  ASSERT_EQ(key.OwnerTrustLevel(), 4);
 
   res = GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 5);
   ASSERT_TRUE(res);
@@ -201,7 +201,7 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
             .GetKey("822D7E13F5B85D7D");
   ASSERT_TRUE(key.IsGood());
 
-  ASSERT_EQ(key.GetOwnerTrustLevel(), 5);
+  ASSERT_EQ(key.OwnerTrustLevel(), 5);
 
   res = GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 0);
   ASSERT_FALSE(res);
@@ -212,7 +212,7 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
   res = GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 6);
   ASSERT_FALSE(res);
 
-  GpgKeyOpera::GetInstance().DeleteKey(key.GetId());
+  GpgKeyOpera::GetInstance().DeleteKey(key.ID());
 }
 
 TEST_F(GpgCoreTest, CoreRevokeSubkeyTestA) {
@@ -226,10 +226,10 @@ TEST_F(GpgCoreTest, CoreRevokeSubkeyTestA) {
                  .GetKey("822D7E13F5B85D7D");
   ASSERT_TRUE(key.IsGood());
 
-  auto subkeys = key.GetSubKeys();
+  auto s_key = key.SubKeys();
 
-  ASSERT_EQ(subkeys->size(), 5);
-  ASSERT_EQ((*subkeys)[2].GetID(), "2D1F9FC59B568A8C");
+  ASSERT_EQ(s_key.size(), 5);
+  ASSERT_EQ(s_key[2].ID(), "2D1F9FC59B568A8C");
 
   auto res = GpgKeyManager::GetInstance().RevokeSubkey(
       key, 2, 2, QString("H\nE\nLL\nO\n\n"));
@@ -241,14 +241,14 @@ TEST_F(GpgCoreTest, CoreRevokeSubkeyTestA) {
             .GetKey("822D7E13F5B85D7D");
   ASSERT_TRUE(key.IsGood());
 
-  subkeys = key.GetSubKeys();
+  s_key = key.SubKeys();
 
-  ASSERT_EQ(subkeys->size(), 5);
-  ASSERT_EQ((*subkeys)[2].GetID(), "2D1F9FC59B568A8C");
+  ASSERT_EQ(s_key.size(), 5);
+  ASSERT_EQ(s_key[2].ID(), "2D1F9FC59B568A8C");
 
-  ASSERT_TRUE((*subkeys)[2].IsRevoked());
+  ASSERT_TRUE(s_key[2].IsRevoked());
 
-  GpgKeyOpera::GetInstance().DeleteKey(key.GetId());
+  GpgKeyOpera::GetInstance().DeleteKey(key.ID());
 }
 
 }  // namespace GpgFrontend::Test

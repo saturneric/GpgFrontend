@@ -124,8 +124,8 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgKeyPrimaryUID(int channel, char* key_id,
 
   if (!key.IsGood()) return -1;
 
-  auto uids = key.GetUIDs();
-  auto& primary_uid = uids->front();
+  auto uids = key.UIDs();
+  auto& primary_uid = uids.front();
 
   *ps = static_cast<GFGpgKeyUID*>(GFAllocateMemory(sizeof(GFGpgKeyUID)));
 

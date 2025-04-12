@@ -52,7 +52,7 @@ auto SetOwnerTrustLevel::Exec(int channel, const QString& key_id) -> bool {
   bool ok;
   QString item = QInputDialog::getItem(this, tr("Modify Owner Trust Level"),
                                        tr("Trust for the Key Pair:"), items,
-                                       key.GetOwnerTrustLevel(), false, &ok);
+                                       key.OwnerTrustLevel(), false, &ok);
 
   if (ok && !item.isEmpty()) {
     int trust_level = 0;  // Unknown Level

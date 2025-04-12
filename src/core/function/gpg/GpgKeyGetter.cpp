@@ -131,12 +131,12 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
         // if so, try to get full information using gpgme_get_key()
         // this maybe a bug in gpgme
         if (gpg_key.IsHasCardKey()) {
-          gpg_key = GetKey(gpg_key.GetId(), false);
+          gpg_key = GetKey(gpg_key.ID(), false);
         }
 
         keys_cache_.push_back(gpg_key);
-        keys_search_cache_.insert(gpg_key.GetId(), gpg_key);
-        keys_search_cache_.insert(gpg_key.GetFingerprint(), gpg_key);
+        keys_search_cache_.insert(gpg_key.ID(), gpg_key);
+        keys_search_cache_.insert(gpg_key.Fingerprint(), gpg_key);
       }
     }
 

@@ -73,10 +73,10 @@ TEST_F(GpgCoreTest, CoreDeleteUIDTestA) {
                  .GetKey("F2D8DFA5F109DE47");
   ASSERT_TRUE(key.IsGood());
 
-  auto uids = key.GetUIDs();
+  auto uids = key.UIDs();
 
-  ASSERT_EQ(uids->size(), 4);
-  ASSERT_EQ((*uids)[2].GetUID(), "gggggg(ggggg)<ggggg@ggg.ggg>");
+  ASSERT_EQ(uids.size(), 4);
+  ASSERT_EQ(uids[2].GetUID(), "gggggg(ggggg)<ggggg@ggg.ggg>");
 
   auto res = GpgUIDOperator::GetInstance().DeleteUID(key, 3);
 
@@ -87,12 +87,12 @@ TEST_F(GpgCoreTest, CoreDeleteUIDTestA) {
             .GetKey("F2D8DFA5F109DE47");
   ASSERT_TRUE(key.IsGood());
 
-  uids = key.GetUIDs();
+  uids = key.UIDs();
 
-  ASSERT_EQ(uids->size(), 3);
-  ASSERT_EQ((*uids)[2].GetUID(), "hhhhhh(hhhhhhh)<hhhhh@hhhh.hhhh>");
+  ASSERT_EQ(uids.size(), 3);
+  ASSERT_EQ(uids[2].GetUID(), "hhhhhh(hhhhhhh)<hhhhh@hhhh.hhhh>");
 
-  GpgKeyOpera::GetInstance().DeleteKey(key.GetId());
+  GpgKeyOpera::GetInstance().DeleteKey(key.ID());
   GpgKeyGetter::GetInstance().FlushKeyCache();
 }
 
@@ -108,10 +108,10 @@ TEST_F(GpgCoreTest, CoreRevokeUIDTestA) {
                  .GetKey("F2D8DFA5F109DE47");
   ASSERT_TRUE(key.IsGood());
 
-  auto uids = key.GetUIDs();
+  auto uids = key.UIDs();
 
-  ASSERT_EQ(uids->size(), 4);
-  ASSERT_EQ((*uids)[2].GetUID(), "gggggg(ggggg)<ggggg@ggg.ggg>");
+  ASSERT_EQ(uids.size(), 4);
+  ASSERT_EQ(uids[2].GetUID(), "gggggg(ggggg)<ggggg@ggg.ggg>");
 
   auto res = GpgUIDOperator::GetInstance().RevokeUID(
       key, 3, 4, "H\nEEEEEL\n\n\n\nL   \n0\n");
@@ -123,13 +123,13 @@ TEST_F(GpgCoreTest, CoreRevokeUIDTestA) {
             .GetKey("F2D8DFA5F109DE47");
   ASSERT_TRUE(key.IsGood());
 
-  uids = key.GetUIDs();
+  uids = key.UIDs();
 
-  ASSERT_EQ(uids->size(), 4);
-  ASSERT_EQ((*uids)[2].GetUID(), "gggggg(ggggg)<ggggg@ggg.ggg>");
-  ASSERT_TRUE((*uids)[2].GetRevoked());
+  ASSERT_EQ(uids.size(), 4);
+  ASSERT_EQ(uids[2].GetUID(), "gggggg(ggggg)<ggggg@ggg.ggg>");
+  ASSERT_TRUE(uids[2].GetRevoked());
 
-  GpgKeyOpera::GetInstance().DeleteKey(key.GetId());
+  GpgKeyOpera::GetInstance().DeleteKey(key.ID());
   GpgKeyGetter::GetInstance().FlushKeyCache();
 }
 

@@ -151,8 +151,8 @@ void KeyImportDetailDialog::create_keys_table() {
     auto key = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
                    .GetKey(imp_key.fpr);
     if (!key.IsGood()) continue;
-    keys_table_->setItem(row, 0, new QTableWidgetItem(key.GetName()));
-    keys_table_->setItem(row, 1, new QTableWidgetItem(key.GetEmail()));
+    keys_table_->setItem(row, 0, new QTableWidgetItem(key.Name()));
+    keys_table_->setItem(row, 1, new QTableWidgetItem(key.Email()));
     keys_table_->setItem(
         row, 2, new QTableWidgetItem(get_status_string(imp_key.import_status)));
     keys_table_->setItem(row, 3, new QTableWidgetItem(imp_key.fpr));

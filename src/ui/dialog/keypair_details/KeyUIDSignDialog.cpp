@@ -43,7 +43,7 @@ KeyUIDSignDialog::KeyUIDSignDialog(int channel, const GpgKey& key,
       m_key_(key) {
   assert(m_key_.IsGood());
 
-  const auto key_id = m_key_.GetId();
+  const auto key_id = m_key_.ID();
   m_key_list_ = new KeyList(
       channel, KeyMenuAbility::kCOLUMN_FILTER | KeyMenuAbility::kSEARCH_BAR,
       GpgKeyTableColumn::kNAME | GpgKeyTableColumn::kEMAIL_ADDRESS |
@@ -54,7 +54,7 @@ KeyUIDSignDialog::KeyUIDSignDialog(int channel, const GpgKey& key,
       [key_id](const GpgKey& key) -> bool {
         return !(key.IsDisabled() || !key.IsHasCertCap() ||
                  !key.IsHasMasterKey() || key.IsExpired() || key.IsRevoked() ||
-                 key_id == key.GetId());
+                 key_id == key.ID());
       });
   m_key_list_->SlotRefresh();
 

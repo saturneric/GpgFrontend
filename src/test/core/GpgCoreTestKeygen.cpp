@@ -84,13 +84,13 @@ TEST_F(GpgCoreTest, GenerateKeyRSA2048Test) {
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
 
-  ASSERT_EQ(key.GetName(), "foo_0");
-  ASSERT_EQ(key.GetEmail(), "bar@gpgfrontend.bktus.com");
-  ASSERT_EQ(key.GetComment(), "foobar");
-  ASSERT_EQ(key.GetPublicKeyAlgo(), "RSA");
-  ASSERT_EQ(key.GetOwnerTrustLevel(), 5);
-  ASSERT_EQ(key.GetPrimaryKeyLength(), 2048);
-  ASSERT_EQ(key.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
+  ASSERT_EQ(key.Name(), "foo_0");
+  ASSERT_EQ(key.Email(), "bar@gpgfrontend.bktus.com");
+  ASSERT_EQ(key.Comment(), "foobar");
+  ASSERT_EQ(key.PublicKeyAlgo(), "RSA");
+  ASSERT_EQ(key.OwnerTrustLevel(), 5);
+  ASSERT_EQ(key.PrimaryKeyLength(), 2048);
+  ASSERT_EQ(key.ExpirationTime(), QDateTime::fromMSecsSinceEpoch(0));
 
   ASSERT_TRUE(key.IsHasCertCap());
   ASSERT_TRUE(key.IsHasAuthCap());
@@ -139,7 +139,7 @@ TEST_F(GpgCoreTest, GenerateKeyRSA4096Test) {
   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
-  ASSERT_EQ(key.GetExpireTime().date(), expire_time.date());
+  ASSERT_EQ(key.ExpirationTime().date(), expire_time.date());
 
   GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
       .DeleteKey(result.GetFingerprint());
@@ -177,13 +177,13 @@ TEST_F(GpgCoreTest, GenerateKeyDSA2048Test) {
   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
-  ASSERT_EQ(key.GetName(), "foo_1");
-  ASSERT_EQ(key.GetEmail(), "bar_1@gpgfrontend.bktus.com");
-  ASSERT_EQ(key.GetComment(), "hello gpgfrontend");
-  ASSERT_EQ(key.GetPublicKeyAlgo(), "DSA");
-  ASSERT_EQ(key.GetOwnerTrustLevel(), 5);
-  ASSERT_EQ(key.GetPrimaryKeyLength(), 2048);
-  ASSERT_GT(key.GetExpireTime(), QDateTime::currentDateTime());
+  ASSERT_EQ(key.Name(), "foo_1");
+  ASSERT_EQ(key.Email(), "bar_1@gpgfrontend.bktus.com");
+  ASSERT_EQ(key.Comment(), "hello gpgfrontend");
+  ASSERT_EQ(key.PublicKeyAlgo(), "DSA");
+  ASSERT_EQ(key.OwnerTrustLevel(), 5);
+  ASSERT_EQ(key.PrimaryKeyLength(), 2048);
+  ASSERT_GT(key.ExpirationTime(), QDateTime::currentDateTime());
 
   ASSERT_TRUE(key.IsHasCertCap());
   ASSERT_TRUE(key.IsHasAuthCap());
@@ -231,13 +231,13 @@ TEST_F(GpgCoreTest, GenerateKeyED25519Test) {
   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
-  ASSERT_EQ(key.GetName(), "foo_4");
-  ASSERT_EQ(key.GetEmail(), "bar_ed@gpgfrontend.bktus.com");
-  ASSERT_EQ(key.GetComment(), "hello gpgfrontend");
-  ASSERT_EQ(key.GetPublicKeyAlgo(), "EdDSA");
-  ASSERT_EQ(key.GetOwnerTrustLevel(), 5);
-  ASSERT_EQ(key.GetPrimaryKeyLength(), 255);
-  ASSERT_GT(key.GetExpireTime(), QDateTime::currentDateTime());
+  ASSERT_EQ(key.Name(), "foo_4");
+  ASSERT_EQ(key.Email(), "bar_ed@gpgfrontend.bktus.com");
+  ASSERT_EQ(key.Comment(), "hello gpgfrontend");
+  ASSERT_EQ(key.PublicKeyAlgo(), "EdDSA");
+  ASSERT_EQ(key.OwnerTrustLevel(), 5);
+  ASSERT_EQ(key.PrimaryKeyLength(), 255);
+  ASSERT_GT(key.ExpirationTime(), QDateTime::currentDateTime());
 
   ASSERT_TRUE(key.IsHasCertCap());
   ASSERT_TRUE(key.IsHasAuthCap());
@@ -291,34 +291,34 @@ TEST_F(GpgCoreTest, GenerateKeyED25519CV25519Test) {
   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).GetKey(fpr);
   ASSERT_TRUE(key.IsGood());
 
-  ASSERT_EQ(key.GetName(), "foo_ec");
-  ASSERT_EQ(key.GetEmail(), "ec_bar@gpgfrontend.bktus.com");
-  ASSERT_EQ(key.GetComment(), "ecccc");
-  ASSERT_EQ(key.GetPublicKeyAlgo(), "EdDSA");
-  ASSERT_EQ(key.GetKeyAlgo(), "ED25519");
-  ASSERT_EQ(key.GetOwnerTrustLevel(), 5);
-  ASSERT_EQ(key.GetPrimaryKeyLength(), 255);
-  ASSERT_EQ(key.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
+  ASSERT_EQ(key.Name(), "foo_ec");
+  ASSERT_EQ(key.Email(), "ec_bar@gpgfrontend.bktus.com");
+  ASSERT_EQ(key.Comment(), "ecccc");
+  ASSERT_EQ(key.PublicKeyAlgo(), "EdDSA");
+  ASSERT_EQ(key.Algo(), "ED25519");
+  ASSERT_EQ(key.OwnerTrustLevel(), 5);
+  ASSERT_EQ(key.PrimaryKeyLength(), 255);
+  ASSERT_EQ(key.ExpirationTime(), QDateTime::fromMSecsSinceEpoch(0));
 
   ASSERT_TRUE(key.IsHasCertCap());
   ASSERT_TRUE(key.IsHasAuthCap());
   ASSERT_TRUE(key.IsHasEncrCap());
   ASSERT_TRUE(key.IsHasSignCap());
 
-  ASSERT_FALSE(key.GetSubKeys()->empty());
-  ASSERT_EQ(key.GetSubKeys()->size(), 2);
+  ASSERT_FALSE(key.SubKeys().empty());
+  ASSERT_EQ(key.SubKeys().size(), 2);
 
-  auto subkeys = key.GetSubKeys();
-  auto& subkey = subkeys->back();
-  ASSERT_EQ(subkey.GetPubkeyAlgo(), "ECDH");
-  ASSERT_EQ(subkey.GetKeyAlgo(), "CV25519");
-  ASSERT_EQ(subkey.GetKeyLength(), 255);
-  ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
+  auto s_keys = key.SubKeys();
+  auto& s_key = s_keys.back();
+  ASSERT_EQ(s_key.PublicKeyAlgo(), "ECDH");
+  ASSERT_EQ(s_key.Algo(), "CV25519");
+  ASSERT_EQ(s_key.KeyLength(), 255);
+  ASSERT_EQ(s_key.ExpirationTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertCap());
-  ASSERT_FALSE(subkey.IsHasAuthCap());
-  ASSERT_TRUE(subkey.IsHasEncrCap());
-  ASSERT_FALSE(subkey.IsHasSignCap());
+  ASSERT_FALSE(s_key.IsHasCertCap());
+  ASSERT_FALSE(s_key.IsHasAuthCap());
+  ASSERT_TRUE(s_key.IsHasEncrCap());
+  ASSERT_FALSE(s_key.IsHasSignCap());
 
   ASSERT_TRUE(key.IsHasActualCertCap());
   ASSERT_TRUE(key.IsHasActualAuthCap());
@@ -366,34 +366,34 @@ TEST_F(GpgCoreTest, GenerateKeyED25519NISTP256Test) {
   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).GetKey(fpr);
   ASSERT_TRUE(key.IsGood());
 
-  ASSERT_EQ(key.GetName(), "foo_ec2");
-  ASSERT_EQ(key.GetEmail(), "ec2_bar@gpgfrontend.bktus.com");
-  ASSERT_EQ(key.GetComment(), "ecccc");
-  ASSERT_EQ(key.GetPublicKeyAlgo(), "EdDSA");
-  ASSERT_EQ(key.GetKeyAlgo(), "ED25519");
-  ASSERT_EQ(key.GetOwnerTrustLevel(), 5);
-  ASSERT_EQ(key.GetPrimaryKeyLength(), 255);
-  ASSERT_EQ(key.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
+  ASSERT_EQ(key.Name(), "foo_ec2");
+  ASSERT_EQ(key.Email(), "ec2_bar@gpgfrontend.bktus.com");
+  ASSERT_EQ(key.Comment(), "ecccc");
+  ASSERT_EQ(key.PublicKeyAlgo(), "EdDSA");
+  ASSERT_EQ(key.Algo(), "ED25519");
+  ASSERT_EQ(key.OwnerTrustLevel(), 5);
+  ASSERT_EQ(key.PrimaryKeyLength(), 255);
+  ASSERT_EQ(key.ExpirationTime(), QDateTime::fromMSecsSinceEpoch(0));
 
   ASSERT_TRUE(key.IsHasCertCap());
   ASSERT_TRUE(key.IsHasAuthCap());
   ASSERT_TRUE(key.IsHasEncrCap());
   ASSERT_TRUE(key.IsHasSignCap());
 
-  ASSERT_FALSE(key.GetSubKeys()->empty());
-  ASSERT_EQ(key.GetSubKeys()->size(), 2);
+  ASSERT_FALSE(key.SubKeys().empty());
+  ASSERT_EQ(key.SubKeys().size(), 2);
 
-  auto subkeys = key.GetSubKeys();
-  auto& subkey = subkeys->back();
-  ASSERT_EQ(subkey.GetPubkeyAlgo(), "ECDH");
-  ASSERT_EQ(subkey.GetKeyAlgo(), "NISTP256");
-  ASSERT_EQ(subkey.GetKeyLength(), 256);
-  ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
+  auto s_keys = key.SubKeys();
+  auto& s_key = s_keys.back();
+  ASSERT_EQ(s_key.PublicKeyAlgo(), "ECDH");
+  ASSERT_EQ(s_key.Algo(), "NISTP256");
+  ASSERT_EQ(s_key.KeyLength(), 256);
+  ASSERT_EQ(s_key.ExpirationTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertCap());
-  ASSERT_FALSE(subkey.IsHasAuthCap());
-  ASSERT_TRUE(subkey.IsHasEncrCap());
-  ASSERT_FALSE(subkey.IsHasSignCap());
+  ASSERT_FALSE(s_key.IsHasCertCap());
+  ASSERT_FALSE(s_key.IsHasAuthCap());
+  ASSERT_TRUE(s_key.IsHasEncrCap());
+  ASSERT_FALSE(s_key.IsHasSignCap());
 
   ASSERT_TRUE(key.IsHasActualCertCap());
   ASSERT_TRUE(key.IsHasActualAuthCap());
@@ -441,34 +441,34 @@ TEST_F(GpgCoreTest, GenerateKeyED25519BRAINPOOLP256R1Test) {
   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).GetKey(fpr);
   ASSERT_TRUE(key.IsGood());
 
-  ASSERT_EQ(key.GetName(), "foo_ec3");
-  ASSERT_EQ(key.GetEmail(), "ec3_bar@gpgfrontend.bktus.com");
-  ASSERT_EQ(key.GetComment(), "ecccc3");
-  ASSERT_EQ(key.GetPublicKeyAlgo(), "EdDSA");
-  ASSERT_EQ(key.GetKeyAlgo(), "ED25519");
-  ASSERT_EQ(key.GetOwnerTrustLevel(), 5);
-  ASSERT_EQ(key.GetPrimaryKeyLength(), 255);
-  ASSERT_EQ(key.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
+  ASSERT_EQ(key.Name(), "foo_ec3");
+  ASSERT_EQ(key.Email(), "ec3_bar@gpgfrontend.bktus.com");
+  ASSERT_EQ(key.Comment(), "ecccc3");
+  ASSERT_EQ(key.PublicKeyAlgo(), "EdDSA");
+  ASSERT_EQ(key.Algo(), "ED25519");
+  ASSERT_EQ(key.OwnerTrustLevel(), 5);
+  ASSERT_EQ(key.PrimaryKeyLength(), 255);
+  ASSERT_EQ(key.ExpirationTime(), QDateTime::fromMSecsSinceEpoch(0));
 
   ASSERT_TRUE(key.IsHasCertCap());
   ASSERT_TRUE(key.IsHasAuthCap());
   ASSERT_TRUE(key.IsHasEncrCap());
   ASSERT_TRUE(key.IsHasSignCap());
 
-  ASSERT_FALSE(key.GetSubKeys()->empty());
-  ASSERT_EQ(key.GetSubKeys()->size(), 2);
+  ASSERT_FALSE(key.SubKeys().empty());
+  ASSERT_EQ(key.SubKeys().size(), 2);
 
-  auto subkeys = key.GetSubKeys();
-  auto& subkey = subkeys->back();
-  ASSERT_EQ(subkey.GetPubkeyAlgo(), "ECDH");
-  ASSERT_EQ(subkey.GetKeyAlgo(), "BRAINPOOLP256R1");
-  ASSERT_EQ(subkey.GetKeyLength(), 256);
-  ASSERT_EQ(subkey.GetExpireTime(), QDateTime::fromMSecsSinceEpoch(0));
+  auto s_keys = key.SubKeys();
+  auto& s_key = s_keys.back();
+  ASSERT_EQ(s_key.PublicKeyAlgo(), "ECDH");
+  ASSERT_EQ(s_key.Algo(), "BRAINPOOLP256R1");
+  ASSERT_EQ(s_key.KeyLength(), 256);
+  ASSERT_EQ(s_key.ExpirationTime(), QDateTime::fromMSecsSinceEpoch(0));
 
-  ASSERT_FALSE(subkey.IsHasCertCap());
-  ASSERT_FALSE(subkey.IsHasAuthCap());
-  ASSERT_TRUE(subkey.IsHasEncrCap());
-  ASSERT_FALSE(subkey.IsHasSignCap());
+  ASSERT_FALSE(s_key.IsHasCertCap());
+  ASSERT_FALSE(s_key.IsHasAuthCap());
+  ASSERT_TRUE(s_key.IsHasEncrCap());
+  ASSERT_FALSE(s_key.IsHasSignCap());
 
   ASSERT_TRUE(key.IsHasActualCertCap());
   ASSERT_TRUE(key.IsHasActualAuthCap());
@@ -510,14 +510,14 @@ TEST_F(GpgCoreTest, GenerateKeyNISTP256Test) {
   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
-  ASSERT_EQ(key.GetName(), "foo_4");
-  ASSERT_EQ(key.GetEmail(), "bar_ed@gpgfrontend.bktus.com");
-  ASSERT_EQ(key.GetComment(), "hello gpgfrontend");
-  ASSERT_EQ(key.GetPublicKeyAlgo(), "ECDSA");
-  ASSERT_EQ(key.GetKeyAlgo(), "NISTP256");
-  ASSERT_EQ(key.GetOwnerTrustLevel(), 5);
-  ASSERT_EQ(key.GetPrimaryKeyLength(), 256);
-  ASSERT_GT(key.GetExpireTime(), QDateTime::currentDateTime());
+  ASSERT_EQ(key.Name(), "foo_4");
+  ASSERT_EQ(key.Email(), "bar_ed@gpgfrontend.bktus.com");
+  ASSERT_EQ(key.Comment(), "hello gpgfrontend");
+  ASSERT_EQ(key.PublicKeyAlgo(), "ECDSA");
+  ASSERT_EQ(key.Algo(), "NISTP256");
+  ASSERT_EQ(key.OwnerTrustLevel(), 5);
+  ASSERT_EQ(key.PrimaryKeyLength(), 256);
+  ASSERT_GT(key.ExpirationTime(), QDateTime::currentDateTime());
 
   ASSERT_TRUE(key.IsHasCertCap());
   ASSERT_TRUE(key.IsHasAuthCap());
@@ -565,14 +565,14 @@ TEST_F(GpgCoreTest, GenerateKeyED448Test) {
   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
-  ASSERT_EQ(key.GetName(), "foo_4");
-  ASSERT_EQ(key.GetEmail(), "bar_ed@gpgfrontend.bktus.com");
-  ASSERT_EQ(key.GetComment(), "hello gpgfrontend");
-  ASSERT_EQ(key.GetPublicKeyAlgo(), "EdDSA");
-  ASSERT_EQ(key.GetKeyAlgo(), "ED448");
-  ASSERT_EQ(key.GetOwnerTrustLevel(), 5);
-  ASSERT_EQ(key.GetPrimaryKeyLength(), 448);
-  ASSERT_GT(key.GetExpireTime(), QDateTime::currentDateTime());
+  ASSERT_EQ(key.Name(), "foo_4");
+  ASSERT_EQ(key.Email(), "bar_ed@gpgfrontend.bktus.com");
+  ASSERT_EQ(key.Comment(), "hello gpgfrontend");
+  ASSERT_EQ(key.PublicKeyAlgo(), "EdDSA");
+  ASSERT_EQ(key.Algo(), "ED448");
+  ASSERT_EQ(key.OwnerTrustLevel(), 5);
+  ASSERT_EQ(key.PrimaryKeyLength(), 448);
+  ASSERT_GT(key.ExpirationTime(), QDateTime::currentDateTime());
 
   ASSERT_TRUE(key.IsHasCertCap());
   ASSERT_TRUE(key.IsHasAuthCap());
@@ -620,14 +620,14 @@ TEST_F(GpgCoreTest, GenerateKeySECP256K1Test) {
   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
-  ASSERT_EQ(key.GetName(), "foo_4");
-  ASSERT_EQ(key.GetEmail(), "bar_ed@gpgfrontend.bktus.com");
-  ASSERT_EQ(key.GetComment(), "hello gpgfrontend");
-  ASSERT_EQ(key.GetPublicKeyAlgo(), "ECDSA");
-  ASSERT_EQ(key.GetKeyAlgo(), "SECP256K1");
-  ASSERT_EQ(key.GetOwnerTrustLevel(), 5);
-  ASSERT_EQ(key.GetPrimaryKeyLength(), 256);
-  ASSERT_GT(key.GetExpireTime(), QDateTime::currentDateTime());
+  ASSERT_EQ(key.Name(), "foo_4");
+  ASSERT_EQ(key.Email(), "bar_ed@gpgfrontend.bktus.com");
+  ASSERT_EQ(key.Comment(), "hello gpgfrontend");
+  ASSERT_EQ(key.PublicKeyAlgo(), "ECDSA");
+  ASSERT_EQ(key.Algo(), "SECP256K1");
+  ASSERT_EQ(key.OwnerTrustLevel(), 5);
+  ASSERT_EQ(key.PrimaryKeyLength(), 256);
+  ASSERT_GT(key.ExpirationTime(), QDateTime::currentDateTime());
 
   ASSERT_TRUE(key.IsHasCertCap());
   ASSERT_TRUE(key.IsHasAuthCap());

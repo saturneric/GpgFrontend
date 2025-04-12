@@ -505,7 +505,7 @@ auto CommonUtils::KeyExistsInFavoriteList(const QString &key_db_name,
 
   auto &key_ids = cache_obj.key_dbs[key_db_name].key_ids;
 
-  return key_ids.contains(key.GetId());
+  return key_ids.contains(key.ID());
 }
 
 void CommonUtils::AddKey2Favorite(const QString &key_db_name,
@@ -519,7 +519,7 @@ void CommonUtils::AddKey2Favorite(const QString &key_db_name,
     }
 
     auto &key_ids = cache_obj.key_dbs[key_db_name].key_ids;
-    if (!key_ids.contains(key.GetId())) key_ids.append(key.GetId());
+    if (!key_ids.contains(key.ID())) key_ids.append(key.ID());
 
     json_data.setObject(cache_obj.ToJson());
     LOG_D() << "current favorite key pairs: " << json_data;
@@ -538,7 +538,7 @@ void CommonUtils::RemoveKeyFromFavorite(const QString &key_db_name,
 
     QMutableListIterator<QString> i(cache_obj.key_dbs[key_db_name].key_ids);
     while (i.hasNext()) {
-      if (i.next() == key.GetId()) i.remove();
+      if (i.next() == key.ID()) i.remove();
     }
     json_data.setObject(cache_obj.ToJson());
     LOG_D() << "current favorite key pairs: " << json_data;

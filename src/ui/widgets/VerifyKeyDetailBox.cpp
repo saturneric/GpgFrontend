@@ -184,8 +184,8 @@ auto VerifyKeyDetailBox::create_key_info_grid(const GpgSignature& signature)
   grid->addWidget(new QLabel(tr("Valid") + ":"), 3, 0);
   grid->addWidget(new QLabel(tr("Flags") + ":"), 4, 0);
 
-  grid->addWidget(new QLabel(key.GetName()), 0, 1);
-  grid->addWidget(new QLabel(key.GetEmail()), 1, 1);
+  grid->addWidget(new QLabel(key.Name()), 0, 1);
+  grid->addWidget(new QLabel(key.Email()), 1, 1);
   grid->addWidget(new QLabel(BeautifyFingerprint(fpr_)), 2, 1);
 
   if ((signature.GetSummary() & GPGME_SIGSUM_VALID) != 0U) {

@@ -206,11 +206,11 @@ void KeyPairDetailTab::slot_refresh_key_info() {
     expire_var_label_->setPalette(palette_valid);
   }
 
-  name_var_label_->setText(key_.GetName());
-  email_var_label_->setText(key_.GetEmail());
+  name_var_label_->setText(key_.Name());
+  email_var_label_->setText(key_.Email());
 
-  comment_var_label_->setText(key_.GetComment());
-  key_id_var_label_->setText(key_.GetId());
+  comment_var_label_->setText(key_.Comment());
+  key_id_var_label_->setText(key_.ID());
 
   QString buffer;
   QTextStream usage_steam(&buffer);
@@ -241,7 +241,7 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   }
 
   actual_usage_var_label_->setText(actual_usage_steam.readAll());
-  owner_trust_var_label_->setText(key_.GetOwnerTrust());
+  owner_trust_var_label_->setText(key_.OwnerTrust());
 
   QString key_size_val;
   QString key_expire_val;
@@ -250,30 +250,29 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   QString key_algo_detail_val;
   QString key_last_update_val;
 
-  key_size_val = QString::number(key_.GetPrimaryKeyLength());
+  key_size_val = QString::number(key_.PrimaryKeyLength());
 
-  if (key_.GetExpireTime().toSecsSinceEpoch() == 0) {
+  if (key_.ExpirationTime().toSecsSinceEpoch() == 0) {
     expire_var_label_->setText(tr("Never Expire"));
   } else {
-    expire_var_label_->setText(QLocale().toString((key_.GetExpireTime())));
+    expire_var_label_->setText(QLocale().toString((key_.ExpirationTime())));
   }
 
-  key_algo_val = key_.GetPublicKeyAlgo();
-  key_algo_detail_val = key_.GetKeyAlgo();
+  key_algo_val = key_.PublicKeyAlgo();
+  key_algo_detail_val = key_.Algo();
 
-  created_var_label_->setText(QLocale().toString(key_.GetCreateTime()));
+  created_var_label_->setText(QLocale().toString(key_.CreationTime()));
 
-  if (key_.GetLastUpdateTime().toSecsSinceEpoch() == 0) {
+  if (key_.LastUpdateTime().toSecsSinceEpoch() == 0) {
     last_update_var_label_->setText(tr("No Data"));
   } else {
-    last_update_var_label_->setText(
-        QLocale().toString(key_.GetLastUpdateTime()));
+    last_update_var_label_->setText(QLocale().toString(key_.LastUpdateTime()));
   }
 
   key_size_var_label_->setText(key_size_val);
   algorithm_var_label_->setText(key_algo_val);
   algorithm_detail_var_label_->setText(key_algo_detail_val);
-  fingerprint_var_label_->setText(BeautifyFingerprint(key_.GetFingerprint()));
+  fingerprint_var_label_->setText(BeautifyFingerprint(key_.Fingerprint()));
   fingerprint_var_label_->setWordWrap(true);  // for x448 and ed448
 
   icon_label_->hide();
@@ -295,8 +294,8 @@ void KeyPairDetailTab::slot_refresh_key_info() {
 
 void KeyPairDetailTab::slot_refresh_key() {
   // refresh the key
-  GpgKey refreshed_key = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
-                             .GetKey(key_.GetId());
+  GpgKey refreshed_key =
+      GpgKeyGetter::GetInstance(current_gpg_context_channel_).GetKey(key_.ID());
   assert(refreshed_key.IsGood());
 
   std::swap(this->key_, refreshed_key);
@@ -317,7 +316,7 @@ void KeyPairDetailTab::slot_query_key_publish_state() {
     return;
   }
 
-  const auto fpr = key_.GetFingerprint();
+  const auto fpr = key_.Fingerprint();
 
   Module::TriggerEvent(
       "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT",

@@ -585,7 +585,7 @@ void KeyList::slot_sync_with_key_server() {
         auto status_str = tr("Sync [%1/%2] %3 %4")
                               .arg(current_index)
                               .arg(all_index)
-                              .arg(key.GetUIDs()->front().GetUID())
+                              .arg(key.UIDs().front().GetUID())
                               .arg(status);
         emit SignalRefreshStatusBar(status_str, 1500);
 

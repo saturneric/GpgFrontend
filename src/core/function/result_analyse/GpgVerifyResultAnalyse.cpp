@@ -202,26 +202,26 @@ auto GpgFrontend::GpgVerifyResultAnalyse::print_signer(
   auto key =
       GpgFrontend::GpgKeyGetter::GetInstance(GetChannel()).GetKey(fingerprint);
   if (key.IsGood()) {
-    stream << "- " << tr("Signed By") << ": " << key.GetUIDs()->front().GetUID()
+    stream << "- " << tr("Signed By") << ": " << key.UIDs().front().GetUID()
            << Qt::endl;
 
-    auto subkeys = key.GetSubKeys();
-    auto it = std::find_if(subkeys->begin(), subkeys->end(),
+    auto s_keys = key.SubKeys();
+    auto it = std::find_if(s_keys.begin(), s_keys.end(),
                            [fingerprint](const GpgSubKey &k) {
-                             return k.GetFingerprint() == fingerprint;
+                             return k.Fingerprint() == fingerprint;
                            });
 
-    if (it != subkeys->end()) {
-      auto &subkey = *it;
-      if (subkey.GetFingerprint() != key.GetFingerprint()) {
-        stream << "- " << tr("Key ID") << ": " << key.GetId() << " ("
+    if (it != s_keys.end()) {
+      auto &s_key = *it;
+      if (s_key.Fingerprint() != key.Fingerprint()) {
+        stream << "- " << tr("Key ID") << ": " << key.ID() << " ("
                << tr("Subkey") << ")" << Qt::endl;
       } else {
-        stream << "- " << tr("Key ID") << ": " << key.GetId() << " ("
+        stream << "- " << tr("Key ID") << ": " << key.ID() << " ("
                << tr("Primary Key") << ")" << Qt::endl;
       }
       stream << "- " << tr("Key Create Date") << ": "
-             << QLocale().toString(subkey.GetCreateTime()) << Qt::endl;
+             << QLocale().toString(s_key.CreationTime()) << Qt::endl;
     }
 
   } else {

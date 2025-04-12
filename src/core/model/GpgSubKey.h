@@ -31,6 +31,7 @@
 #include <gpgme.h>
 
 #include "core/GpgFrontendCoreExport.h"
+#include "core/model/GpgAbstractKey.h"
 
 namespace GpgFrontend {
 
@@ -38,7 +39,7 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgSubKey {
+class GPGFRONTEND_CORE_EXPORT GpgSubKey : public GpgAbstractKey {
  public:
   /**
    * @brief Construct a new Gpg Sub Key object
@@ -60,6 +61,12 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
   GpgSubKey(const GpgSubKey&);
 
   /**
+   * @brief Destroy the Gpg Sub Key object
+   *
+   */
+  virtual ~GpgSubKey() override;
+
+  /**
    * @brief
    *
    * @return GpgSubKey&
@@ -69,55 +76,53 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
   /**
    * @brief
    *
-   * @param o
+   * @return QString
+   */
+  [[nodiscard]] auto ID() const -> QString override;
+
+  /**
+   * @brief
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto Fingerprint() const -> QString override;
+
+  /**
+   * @brief
+   *
    * @return true
    * @return false
    */
-  auto operator==(const GpgSubKey& o) const -> bool;
+  [[nodiscard]] auto IsSubKey() const -> bool override;
 
   /**
    * @brief
    *
-   * @param o
    * @return true
    * @return false
    */
-  auto operator<(const GpgSubKey& o) const -> bool;
+  [[nodiscard]] auto IsGood() const -> bool override;
 
   /**
    * @brief
    *
    * @return QString
    */
-  [[nodiscard]] auto GetID() const -> QString;
+  [[nodiscard]] auto PublicKeyAlgo() const -> QString override;
 
   /**
    * @brief
    *
    * @return QString
    */
-  [[nodiscard]] auto GetFingerprint() const -> QString;
-
-  /**
-   * @brief
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetPubkeyAlgo() const -> QString;
-
-  /**
-   * @brief
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetKeyAlgo() const -> QString;
+  [[nodiscard]] auto Algo() const -> QString override;
 
   /**
    * @brief
    *
    * @return unsigned int
    */
-  [[nodiscard]] auto GetKeyLength() const -> unsigned int;
+  [[nodiscard]] auto KeyLength() const -> unsigned int;
 
   /**
    * @brief
@@ -125,7 +130,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsHasEncrCap() const -> bool;
+  [[nodiscard]] auto IsHasEncrCap() const -> bool override;
 
   /**
    * @brief
@@ -133,7 +138,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsHasSignCap() const -> bool;
+  [[nodiscard]] auto IsHasSignCap() const -> bool override;
 
   /**
    * @brief
@@ -141,7 +146,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsHasCertCap() const -> bool;
+  [[nodiscard]] auto IsHasCertCap() const -> bool override;
 
   /**
    * @brief
@@ -149,7 +154,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsHasAuthCap() const -> bool;
+  [[nodiscard]] auto IsHasAuthCap() const -> bool override;
 
   /**
    * @brief
@@ -165,7 +170,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsExpired() const -> bool;
+  [[nodiscard]] auto IsExpired() const -> bool override;
 
   /**
    * @brief
@@ -173,7 +178,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsRevoked() const -> bool;
+  [[nodiscard]] auto IsRevoked() const -> bool override;
 
   /**
    * @brief
@@ -181,7 +186,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsDisabled() const -> bool;
+  [[nodiscard]] auto IsDisabled() const -> bool override;
 
   /**
    * @brief
@@ -204,14 +209,14 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
    *
    * @return QDateTime
    */
-  [[nodiscard]] auto GetCreateTime() const -> QDateTime;
+  [[nodiscard]] auto CreationTime() const -> QDateTime override;
 
   /**
    * @brief
    *
    * @return QDateTime
    */
-  [[nodiscard]] auto GetExpireTime() const -> QDateTime;
+  [[nodiscard]] auto ExpirationTime() const -> QDateTime override;
 
   /**
    * @brief

@@ -82,31 +82,31 @@ auto GpgKeyTableModel::data(const QModelIndex &index,
         return type_sym;
       }
       case 2: {
-        return key.GetName();
+        return key.Name();
       }
       case 3: {
-        return key.GetEmail();
+        return key.Email();
       }
       case 4: {
         return GetUsagesByKey(key);
       }
       case 5: {
-        return key.GetOwnerTrust();
+        return key.OwnerTrust();
       }
       case 6: {
-        return key.GetId();
+        return key.ID();
       }
       case 7: {
-        return QLocale().toString(key.GetCreateTime(), "yyyy-MM-dd");
+        return QLocale().toString(key.CreationTime(), "yyyy-MM-dd");
       }
       case 8: {
-        return key.GetKeyAlgo();
+        return key.Algo();
       }
       case 9: {
-        return static_cast<int>(key.GetSubKeys()->size());
+        return static_cast<int>(key.SubKeys().size());
       }
       case 10: {
-        return key.GetComment();
+        return key.Comment();
       }
       default:
         return {};
@@ -167,7 +167,7 @@ auto GpgKeyTableModel::setData(const QModelIndex &index, const QVariant &value,
 auto GpgKeyTableModel::GetAllKeyIds() -> KeyIdArgsList {
   KeyIdArgsList keys;
   for (auto &key : buffered_keys_) {
-    keys.push_back(key.GetId());
+    keys.push_back(key.ID());
   }
   return keys;
 }
@@ -175,7 +175,7 @@ auto GpgKeyTableModel::GetAllKeyIds() -> KeyIdArgsList {
 auto GpgKeyTableModel::GetKeyIDByRow(int row) const -> QString {
   if (buffered_keys_.size() <= row) return {};
 
-  return buffered_keys_[row].GetId();
+  return buffered_keys_[row].ID();
 }
 
 auto GpgKeyTableModel::IsPrivateKeyByRow(int row) const -> bool {

@@ -59,7 +59,7 @@ auto GpgUIDOperator::AddUID(const GpgKey& key, const QString& name,
 }
 
 auto GpgUIDOperator::DeleteUID(const GpgKey& key, int uid_index) -> bool {
-  if (uid_index < 2 || uid_index > static_cast<int>(key.GetUIDs()->size())) {
+  if (uid_index < 2 || uid_index > static_cast<int>(key.UIDs().size())) {
     LOG_W() << "illegal uid_index index: " << uid_index;
     return false;
   }
@@ -131,7 +131,7 @@ auto GpgUIDOperator::DeleteUID(const GpgKey& key, int uid_index) -> bool {
         return QString("");
       };
 
-  auto key_fpr = key.GetFingerprint();
+  auto key_fpr = key.Fingerprint();
   AutomatonHandelStruct handel_struct(key_fpr);
   handel_struct.SetHandler(next_state_handler, action_handler);
 
@@ -144,7 +144,7 @@ auto GpgUIDOperator::DeleteUID(const GpgKey& key, int uid_index) -> bool {
 auto GpgUIDOperator::RevokeUID(const GpgKey& key, int uid_index,
                                int reason_code,
                                const QString& reason_text) -> bool {
-  if (uid_index < 2 || uid_index > static_cast<int>(key.GetUIDs()->size())) {
+  if (uid_index < 2 || uid_index > static_cast<int>(key.UIDs().size())) {
     LOG_W() << "illegal uid index: " << uid_index;
     return false;
   }
@@ -253,7 +253,7 @@ auto GpgUIDOperator::RevokeUID(const GpgKey& key, int uid_index,
         return QString("");
       };
 
-  auto key_fpr = key.GetFingerprint();
+  auto key_fpr = key.Fingerprint();
   AutomatonHandelStruct handel_struct(key_fpr);
   handel_struct.SetHandler(next_state_handler, action_handler);
 

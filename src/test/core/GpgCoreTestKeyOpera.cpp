@@ -28,9 +28,9 @@
 
 #include "GpgCoreTest.h"
 #include "core/GpgConstants.h"
+#include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/model/GpgGenerateKeyResult.h"
-#include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/GpgUtils.h"
 
@@ -88,10 +88,11 @@ TEST_F(GpgCoreTest, CoreAddADSKTestA) {
   ASSERT_TRUE(key_b.IsPrivateKey());
   ASSERT_TRUE(key_b.IsHasMasterKey());
 
-  auto key_b_subkeys = key_b.GetSubKeys();
-  ASSERT_EQ(key_b_subkeys->size(), 2);
+  auto key_b_s_keys = key_b.SubKeys();
+  ASSERT_EQ(key_b_s_keys.size(), 2);
 
-  auto [err, data_object] = GpgKeyOpera::GetInstance().AddADSKSync(key, key_b_subkeys->last());
+  auto [err, data_object] =
+      GpgKeyOpera::GetInstance().AddADSKSync(key, key_b_s_keys.last());
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -107,11 +108,11 @@ TEST_F(GpgCoreTest, CoreAddADSKTestA) {
   ASSERT_TRUE(key.IsPrivateKey());
   ASSERT_TRUE(key.IsHasMasterKey());
 
-  auto key_subkeys = key.GetSubKeys();
-  ASSERT_EQ(key_subkeys->size(), 2);
-  ASSERT_EQ(key_subkeys->last().GetID(), "F89C95A05088CC93");
-  ASSERT_EQ(key_subkeys->last().IsADSK(), true);
+  auto s_keys = key.SubKeys();
+  ASSERT_EQ(s_keys.size(), 2);
+  ASSERT_EQ(s_keys.last().ID(), "F89C95A05088CC93");
+  ASSERT_EQ(s_keys.last().IsADSK(), true);
 
-  GpgKeyOpera::GetInstance().DeleteKey(key.GetId());
+  GpgKeyOpera::GetInstance().DeleteKey(key.ID());
 }
-};
+};  // namespace GpgFrontend::Test

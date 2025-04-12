@@ -81,7 +81,7 @@ auto GpgKeyOpera::SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
   }
 
   GpgError err;
-  if (key.GetFingerprint() == subkey_fpr || subkey_fpr.isEmpty()) {
+  if (key.Fingerprint() == subkey_fpr || subkey_fpr.isEmpty()) {
     err =
         gpgme_op_setexpire(ctx_.DefaultContext(), static_cast<gpgme_key_t>(key),
                            expires_time, nullptr, 0);
@@ -119,7 +119,7 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
   GpgCommandExecutor::ExecuteSync(
       {app_path,
        QStringList{"--command-fd", "0", "--status-fd", "1", "--no-tty", "-o",
-                   output_path, "--gen-revoke", key.GetFingerprint()},
+                   output_path, "--gen-revoke", key.Fingerprint()},
        [=](int exit_code, const QString& p_out, const QString& p_err) {
          if (exit_code != 0) {
            LOG_W() << "gnupg gen revoke execute error, process stderr: "
@@ -246,8 +246,7 @@ auto GenerateSubKeyImpl(GpgContext& ctx, const GpgKey& key,
   if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
   if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
 
-  LOG_D() << "subkey generation args: " << key.GetId() << algo << expires
-          << flags;
+  LOG_D() << "subkey generation args: " << key.ID() << algo << expires << flags;
 
   auto err =
       gpgme_op_createsubkey(ctx.DefaultContext(), static_cast<gpgme_key_t>(key),
@@ -367,10 +366,10 @@ void GpgKeyOpera::DeleteKey(const KeyId& key_id) {
 
 auto AddADSKImpl(GpgContext& ctx, const GpgKey& key, const GpgSubKey& adsk,
                  const DataObjectPtr& data_object) -> GpgError {
-  auto algo = adsk.GetFingerprint();
+  auto algo = adsk.Fingerprint();
   unsigned int flags = GPGME_CREATE_ADSK;
 
-  LOG_D() << "add adsk args: " << key.GetId() << algo;
+  LOG_D() << "add adsk args: " << key.ID() << algo;
 
   auto err =
       gpgme_op_createsubkey(ctx.DefaultContext(), static_cast<gpgme_key_t>(key),

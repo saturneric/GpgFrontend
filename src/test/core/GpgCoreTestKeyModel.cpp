@@ -64,10 +64,10 @@ TEST_F(GpgCoreTest, GpgKeyTest) {
   ASSERT_FALSE(key.IsDisabled());
   ASSERT_FALSE(key.IsRevoked());
 
-  ASSERT_EQ(key.GetProtocol(), "OpenPGP");
+  ASSERT_EQ(key.Protocol(), "OpenPGP");
 
-  ASSERT_EQ(key.GetSubKeys()->size(), 2);
-  ASSERT_EQ(key.GetUIDs()->size(), 1);
+  ASSERT_EQ(key.SubKeys().size(), 2);
+  ASSERT_EQ(key.UIDs().size(), 1);
 
   ASSERT_TRUE(key.IsHasCertCap());
   ASSERT_FALSE(key.IsHasEncrCap());
@@ -78,78 +78,76 @@ TEST_F(GpgCoreTest, GpgKeyTest) {
   ASSERT_FALSE(key.IsHasActualSignCap());
   ASSERT_FALSE(key.IsHasActualAuthCap());
 
-  ASSERT_EQ(key.GetName(), "GpgFrontendTest");
-  ASSERT_TRUE(key.GetComment().isEmpty());
-  ASSERT_EQ(key.GetEmail(), "gpgfrontend@gpgfrontend.pub");
-  ASSERT_EQ(key.GetId(), "81704859182661FB");
-  ASSERT_EQ(key.GetFingerprint(), "9490795B78F8AFE9F93BD09281704859182661FB");
-  ASSERT_EQ(key.GetExpireTime(),
+  ASSERT_EQ(key.Name(), "GpgFrontendTest");
+  ASSERT_TRUE(key.Comment().isEmpty());
+  ASSERT_EQ(key.Email(), "gpgfrontend@gpgfrontend.pub");
+  ASSERT_EQ(key.ID(), "81704859182661FB");
+  ASSERT_EQ(key.Fingerprint(), "9490795B78F8AFE9F93BD09281704859182661FB");
+  ASSERT_EQ(key.ExpirationTime(),
             QDateTime::fromString("2023-09-05T04:00:00Z", Qt::ISODate));
-  ASSERT_EQ(key.GetPublicKeyAlgo(), "RSA");
-  ASSERT_EQ(key.GetKeyAlgo(), "RSA3072");
-  ASSERT_EQ(key.GetPrimaryKeyLength(), 3072);
-  ASSERT_EQ(key.GetLastUpdateTime(),
+  ASSERT_EQ(key.PublicKeyAlgo(), "RSA");
+  ASSERT_EQ(key.Algo(), "RSA3072");
+  ASSERT_EQ(key.PrimaryKeyLength(), 3072);
+  ASSERT_EQ(key.LastUpdateTime(),
             QDateTime::fromString("1970-01-01T00:00:00Z", Qt::ISODate));
-  ASSERT_EQ(key.GetCreateTime(),
+  ASSERT_EQ(key.CreationTime(),
             QDateTime::fromString("2021-09-05T06:01:53Z", Qt::ISODate));
 
-  ASSERT_EQ(key.GetOwnerTrust(), "Unknown");
+  ASSERT_EQ(key.OwnerTrust(), "Unknown");
   ASSERT_EQ(key.IsExpired(),
-            key.GetExpireTime() < QDateTime::currentDateTime());
+            key.ExpirationTime() < QDateTime::currentDateTime());
 }
 
 TEST_F(GpgCoreTest, GpgSubKeyTest) {
   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");
-  auto sub_keys = key.GetSubKeys();
-  ASSERT_EQ(sub_keys->size(), 2);
+  auto s_keys = key.SubKeys();
+  ASSERT_EQ(s_keys.size(), 2);
 
-  auto& main_key = sub_keys->front();
+  auto& p_key = s_keys.front();
 
-  ASSERT_EQ(main_key.GetID(), "81704859182661FB");
-  ASSERT_EQ(main_key.GetFingerprint(),
-            "9490795B78F8AFE9F93BD09281704859182661FB");
-  ASSERT_EQ(main_key.GetExpireTime(),
+  ASSERT_EQ(p_key.ID(), "81704859182661FB");
+  ASSERT_EQ(p_key.Fingerprint(), "9490795B78F8AFE9F93BD09281704859182661FB");
+  ASSERT_EQ(p_key.ExpirationTime(),
             QDateTime::fromString("2023-09-05T04:00:00Z", Qt::ISODate));
-  ASSERT_EQ(main_key.GetPubkeyAlgo(), "RSA");
-  ASSERT_EQ(main_key.GetKeyAlgo(), "RSA3072");
-  ASSERT_EQ(main_key.GetKeyLength(), 3072);
-  ASSERT_EQ(main_key.GetCreateTime(),
+  ASSERT_EQ(p_key.PublicKeyAlgo(), "RSA");
+  ASSERT_EQ(p_key.Algo(), "RSA3072");
+  ASSERT_EQ(p_key.KeyLength(), 3072);
+  ASSERT_EQ(p_key.CreationTime(),
             QDateTime::fromString("2021-09-05T06:01:53Z", Qt::ISODate));
-  ASSERT_FALSE(main_key.IsCardKey());
+  ASSERT_FALSE(p_key.IsCardKey());
 
-  auto& sub_key = sub_keys->back();
+  auto& s_key = s_keys.back();
 
-  ASSERT_FALSE(sub_key.IsRevoked());
-  ASSERT_FALSE(sub_key.IsDisabled());
-  ASSERT_EQ(sub_key.GetCreateTime(),
+  ASSERT_FALSE(s_key.IsRevoked());
+  ASSERT_FALSE(s_key.IsDisabled());
+  ASSERT_EQ(s_key.CreationTime(),
             QDateTime::fromString("2021-09-05T06:01:53Z", Qt::ISODate));
 
-  ASSERT_FALSE(sub_key.IsCardKey());
-  ASSERT_TRUE(sub_key.IsPrivateKey());
-  ASSERT_EQ(sub_key.GetID(), "2B36803235B5E25B");
-  ASSERT_EQ(sub_key.GetFingerprint(),
-            "50D37E8F8EE7340A6794E0592B36803235B5E25B");
-  ASSERT_EQ(sub_key.GetKeyLength(), 3072);
-  ASSERT_EQ(sub_key.GetKeyAlgo(), "RSA3072");
-  ASSERT_EQ(sub_key.GetPubkeyAlgo(), "RSA");
-  ASSERT_FALSE(sub_key.IsHasCertCap());
-  ASSERT_FALSE(sub_key.IsHasAuthCap());
-  ASSERT_FALSE(sub_key.IsHasSignCap());
-  ASSERT_TRUE(sub_key.IsHasEncrCap());
-  ASSERT_EQ(sub_key.GetExpireTime(),
+  ASSERT_FALSE(s_key.IsCardKey());
+  ASSERT_TRUE(s_key.IsPrivateKey());
+  ASSERT_EQ(s_key.ID(), "2B36803235B5E25B");
+  ASSERT_EQ(s_key.Fingerprint(), "50D37E8F8EE7340A6794E0592B36803235B5E25B");
+  ASSERT_EQ(s_key.KeyLength(), 3072);
+  ASSERT_EQ(s_key.Algo(), "RSA3072");
+  ASSERT_EQ(s_key.PublicKeyAlgo(), "RSA");
+  ASSERT_FALSE(s_key.IsHasCertCap());
+  ASSERT_FALSE(s_key.IsHasAuthCap());
+  ASSERT_FALSE(s_key.IsHasSignCap());
+  ASSERT_TRUE(s_key.IsHasEncrCap());
+  ASSERT_EQ(s_key.ExpirationTime(),
             QDateTime::fromString("2023-09-05T04:00:00Z", Qt::ISODate));
 
-  ASSERT_EQ(sub_key.IsExpired(),
-            sub_key.GetExpireTime() < QDateTime::currentDateTime());
+  ASSERT_EQ(s_key.IsExpired(),
+            s_key.ExpirationTime() < QDateTime::currentDateTime());
 }
 
 TEST_F(GpgCoreTest, GpgUIDTest) {
   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");
-  auto uids = key.GetUIDs();
-  ASSERT_EQ(uids->size(), 1);
-  auto& uid = uids->front();
+  auto uids = key.UIDs();
+  ASSERT_EQ(uids.size(), 1);
+  auto& uid = uids.front();
 
   ASSERT_EQ(uid.GetName(), "GpgFrontendTest");
   ASSERT_TRUE(uid.GetComment().isEmpty());
@@ -162,9 +160,9 @@ TEST_F(GpgCoreTest, GpgUIDTest) {
 TEST_F(GpgCoreTest, GpgKeySignatureTest) {
   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");
-  auto uids = key.GetUIDs();
-  ASSERT_EQ(uids->size(), 1);
-  auto& uid = uids->front();
+  auto uids = key.UIDs();
+  ASSERT_EQ(uids.size(), 1);
+  auto& uid = uids.front();
 
   auto signatures = uid.GetSignatures();
   ASSERT_EQ(signatures->size(), 1);

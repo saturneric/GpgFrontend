@@ -97,7 +97,7 @@ auto GpgAutomatonHandler::interator_cb_func(void* handle, const char* status,
 auto GpgAutomatonHandler::DoInteract(
     const GpgKey& key, AutomatonNextStateHandler next_state_handler,
     AutomatonActionHandler action_handler) -> bool {
-  auto key_fpr = key.GetFingerprint();
+  auto key_fpr = key.Fingerprint();
   AutomatonHandelStruct handel_struct(key_fpr);
   handel_struct.SetHandler(std::move(next_state_handler),
                            std::move(action_handler));

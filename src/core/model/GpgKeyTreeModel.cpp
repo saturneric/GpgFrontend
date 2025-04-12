@@ -203,34 +203,33 @@ auto GpgKeyTreeModel::create_gpg_key_tree_items(const GpgKey &key)
     -> QSharedPointer<GpgKeyTreeItem> {
   QVariantList columns;
   columns << "/";
-  columns << key.GetUIDs()->front().GetUID();
-  columns << key.GetId();
+  columns << key.UIDs().front().GetUID();
+  columns << key.ID();
   columns << "C";
   columns << GetUsagesByKey(key);
-  columns << key.GetPublicKeyAlgo();
-  columns << key.GetKeyAlgo();
-  columns << QLocale().toString(key.GetCreateTime(), "yyyy-MM-dd");
+  columns << key.PublicKeyAlgo();
+  columns << key.Algo();
+  columns << QLocale().toString(key.CreationTime(), "yyyy-MM-dd");
 
   auto i_key = QSharedPointer<GpgKeyTreeItem>::create(
-      QSharedPointer<GpgKeyAdapter>::create(key), columns);
+      QSharedPointer<GpgKey>::create(key), columns);
   i_key->SetEnable(enable_detector_(i_key->Key()));
   i_key->SetCheckable(checkable_detector_(i_key->Key()));
   cached_items_.push_back(i_key);
 
-  auto s_keys = key.GetSubKeys();
-  for (const auto &s_key : *s_keys) {
+  for (const auto &s_key : key.SubKeys()) {
     QVariantList columns;
     columns << "/";
-    columns << key.GetUIDs()->front().GetUID();
-    columns << s_key.GetID();
+    columns << key.UIDs().front().GetUID();
+    columns << s_key.ID();
     columns << (s_key.IsHasCertCap() ? "P" : "S");
     columns << GetUsagesBySubkey(s_key);
-    columns << s_key.GetPubkeyAlgo();
-    columns << s_key.GetKeyAlgo();
-    columns << QLocale().toString(s_key.GetCreateTime(), "yyyy-MM-dd");
+    columns << s_key.PublicKeyAlgo();
+    columns << s_key.Algo();
+    columns << QLocale().toString(s_key.CreationTime(), "yyyy-MM-dd");
 
     auto i_s_key = QSharedPointer<GpgKeyTreeItem>::create(
-        QSharedPointer<GpgSubKeyAdapter>::create(s_key), columns);
+        QSharedPointer<GpgSubKey>::create(s_key), columns);
     i_s_key->SetEnable(enable_detector_(i_s_key->Key()));
     i_s_key->SetCheckable(checkable_detector_(i_s_key->Key()));
     i_key->AppendChild(i_s_key);
@@ -245,10 +244,10 @@ auto GpgKeyTreeModel::GetAllCheckedSubKey() -> QContainer<GpgSubKey> {
   for (const auto &i : cached_items_) {
     if (!i->Key()->IsSubKey() || !i->Checkable() || !i->Checked()) continue;
 
-    auto *adaptor = dynamic_cast<GpgSubKeyAdapter *>(i->Key());
-    if (adaptor == nullptr) continue;
+    auto *s_key = dynamic_cast<GpgSubKey *>(i->Key());
+    if (s_key == nullptr) continue;
 
-    ret.push_back(adaptor->GetRawKey());
+    ret.push_back(*s_key);
   }
   return ret;
 }

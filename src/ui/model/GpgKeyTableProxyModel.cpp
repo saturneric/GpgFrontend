@@ -95,8 +95,7 @@ auto GpgKeyTableProxyModel::filterAcceptsRow(
     auto index = sourceModel()->index(source_row, column, sourceParent);
     infos << sourceModel()->data(index).toString();
 
-    const auto uids = key.GetUIDs();
-    for (const auto &uid : *uids) {
+    for (const auto &uid : key.UIDs()) {
       infos << uid.GetUID();
     }
   }
@@ -109,7 +108,7 @@ auto GpgKeyTableProxyModel::filterAcceptsRow(
 }
 
 auto GpgKeyTableProxyModel::filterAcceptsColumn(
-    int sourceColumn, const QModelIndex &sourceParent) const -> bool {
+    int sourceColumn, const QModelIndex & /*sourceParent*/) const -> bool {
   switch (sourceColumn) {
     case 0: {
       return true;

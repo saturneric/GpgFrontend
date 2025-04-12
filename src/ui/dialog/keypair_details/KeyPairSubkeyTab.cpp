@@ -202,46 +202,44 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
   subkey_list_->setSelectionMode(QAbstractItemView::SingleSelection);
 
   this->buffered_subkeys_.clear();
-  auto sub_keys = key_.GetSubKeys();
-  for (auto& sub_key : *sub_keys) {
-    this->buffered_subkeys_.push_back(std::move(sub_key));
+  for (auto& s_key : key_.SubKeys()) {
+    this->buffered_subkeys_.push_back(std::move(s_key));
   }
 
   subkey_list_->setRowCount(buffered_subkeys_.size());
 
-  for (const auto& subkey : buffered_subkeys_) {
-    auto* tmp0 = new QTableWidgetItem(subkey.GetID());
+  for (const auto& s_key : buffered_subkeys_) {
+    auto* tmp0 = new QTableWidgetItem(s_key.ID());
     tmp0->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 0, tmp0);
 
-    auto type = subkey.IsHasCertCap() ? tr("Primary Key") : tr("Subkey");
-    if (subkey.IsADSK()) type = tr("ADSK");
+    auto type = s_key.IsHasCertCap() ? tr("Primary Key") : tr("Subkey");
+    if (s_key.IsADSK()) type = tr("ADSK");
 
     auto* tmp1 = new QTableWidgetItem(type);
     tmp1->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 1, tmp1);
 
-    auto* tmp2 = new QTableWidgetItem(QString::number(subkey.GetKeyLength()));
+    auto* tmp2 = new QTableWidgetItem(QString::number(s_key.KeyLength()));
     tmp2->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 2, tmp2);
 
-    auto* tmp3 = new QTableWidgetItem(subkey.GetPubkeyAlgo());
+    auto* tmp3 = new QTableWidgetItem(s_key.PublicKeyAlgo());
     tmp3->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 3, tmp3);
 
-    auto* tmp4 = new QTableWidgetItem(subkey.GetKeyAlgo());
+    auto* tmp4 = new QTableWidgetItem(s_key.Algo());
     tmp4->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 4, tmp4);
 
-    auto* tmp5 =
-        new QTableWidgetItem(QLocale().toString(subkey.GetCreateTime()));
+    auto* tmp5 = new QTableWidgetItem(QLocale().toString(s_key.CreationTime()));
     tmp5->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 5, tmp5);
 
     auto* tmp6 =
-        new QTableWidgetItem(subkey.GetExpireTime().toSecsSinceEpoch() == 0
+        new QTableWidgetItem(s_key.ExpirationTime().toSecsSinceEpoch() == 0
                                  ? tr("Never Expire")
-                                 : QLocale().toString(subkey.GetExpireTime()));
+                                 : QLocale().toString(s_key.ExpirationTime()));
     tmp6->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 6, tmp6);
 
@@ -256,7 +254,7 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
       }
     }
 
-    if (subkey.IsExpired() || subkey.IsRevoked()) {
+    if (s_key.IsExpired() || s_key.IsRevoked()) {
       for (auto i = 0; i < subkey_list_->columnCount(); i++) {
         auto font = subkey_list_->item(row, i)->font();
         font.setStrikeOut(true);
@@ -264,7 +262,7 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
       }
     }
 
-    if (!subkey.IsSecretKey()) {
+    if (!s_key.IsSecretKey()) {
       for (auto i = 0; i < subkey_list_->columnCount(); i++) {
         auto font = subkey_list_->item(row, i)->font();
         font.setWeight(QFont::ExtraLight);
@@ -282,17 +280,16 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
 }
 
 void KeyPairSubkeyTab::slot_add_subkey() {
-  auto* dialog = new SubkeyGenerateDialog(current_gpg_context_channel_,
-                                          key_.GetId(), this);
+  auto* dialog =
+      new SubkeyGenerateDialog(current_gpg_context_channel_, key_.ID(), this);
   dialog->show();
 }
 
 void KeyPairSubkeyTab::slot_add_adsk() {
   QStringList except_key_ids;
-  except_key_ids.append(key_.GetId());
-  auto except_sub_keys = key_.GetSubKeys();
-  for (const auto& sub_key : *except_sub_keys) {
-    except_key_ids.append(sub_key.GetID());
+  except_key_ids.append(key_.ID());
+  for (const auto& s_key : key_.SubKeys()) {
+    except_key_ids.append(s_key.ID());
   }
 
   auto* dialog = new ADSKsPicker(
@@ -311,7 +308,7 @@ void KeyPairSubkeyTab::slot_add_adsk() {
 
   if (sub_keys.isEmpty()) {
     QMessageBox::information(this, tr("No Subkeys Selected"),
-                             tr("Please select at least one subkey."));
+                             tr("Please select at least one s_key."));
     return;
   }
 
@@ -331,8 +328,8 @@ void KeyPairSubkeyTab::slot_add_adsk() {
         tr("All selected subkeys were successfully added as ADSKs."));
   } else {
     QStringList failed_info;
-    for (const auto& sub_key : err_sub_keys) {
-      QString key_id = sub_key.GetID();
+    for (const auto& s_key : err_sub_keys) {
+      QString key_id = s_key.ID();
       failed_info << tr("Key ID: %1").arg(key_id);
     }
 
@@ -354,19 +351,19 @@ void KeyPairSubkeyTab::slot_add_adsk() {
 }
 
 void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
-  const auto& subkey = get_selected_subkey();
+  const auto& s_key = get_selected_subkey();
 
-  key_id_var_label_->setText(subkey.GetID());
-  key_size_var_label_->setText(QString::number(subkey.GetKeyLength()));
+  key_id_var_label_->setText(s_key.ID());
+  key_size_var_label_->setText(QString::number(s_key.KeyLength()));
 
-  time_t subkey_time_t = subkey.GetExpireTime().toSecsSinceEpoch();
+  time_t subkey_time_t = s_key.ExpirationTime().toSecsSinceEpoch();
 
   expire_var_label_->setText(subkey_time_t == 0
                                  ? tr("Never Expires")
-                                 : QLocale().toString(subkey.GetExpireTime()));
+                                 : QLocale().toString(s_key.ExpirationTime()));
 
   if (subkey_time_t != 0 &&
-      subkey.GetExpireTime() < QDateTime::currentDateTime()) {
+      s_key.ExpirationTime() < QDateTime::currentDateTime()) {
     auto palette_expired = expire_var_label_->palette();
     palette_expired.setColor(expire_var_label_->foregroundRole(), Qt::red);
     expire_var_label_->setPalette(palette_expired);
@@ -376,23 +373,23 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
     expire_var_label_->setPalette(palette_valid);
   }
 
-  algorithm_var_label_->setText(subkey.GetPubkeyAlgo());
-  algorithm_detail_var_label_->setText(subkey.GetKeyAlgo());
-  created_var_label_->setText(QLocale().toString(subkey.GetCreateTime()));
+  algorithm_var_label_->setText(s_key.PublicKeyAlgo());
+  algorithm_detail_var_label_->setText(s_key.Algo());
+  created_var_label_->setText(QLocale().toString(s_key.CreationTime()));
 
   QString buffer;
   QTextStream usage_steam(&buffer);
 
-  usage_var_label_->setText(GetUsagesBySubkey(subkey));
+  usage_var_label_->setText(GetUsagesBySubkey(s_key));
 
   // Show the situation that secret key not exists.
-  master_key_exist_var_label_->setText(subkey.IsSecretKey() ? tr("Exists")
-                                                            : tr("Not Exists"));
+  master_key_exist_var_label_->setText(s_key.IsSecretKey() ? tr("Exists")
+                                                           : tr("Not Exists"));
 
   // Show the situation if key in a smart card.
-  card_key_label_->setText(subkey.IsCardKey() ? tr("Yes") : tr("No"));
+  card_key_label_->setText(s_key.IsCardKey() ? tr("Yes") : tr("No"));
 
-  if (!subkey.IsSecretKey()) {
+  if (!s_key.IsSecretKey()) {
     auto palette_expired = master_key_exist_var_label_->palette();
     palette_expired.setColor(master_key_exist_var_label_->foregroundRole(),
                              Qt::red);
@@ -404,7 +401,7 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
     master_key_exist_var_label_->setPalette(palette_valid);
   }
 
-  if (!subkey.IsCardKey()) {
+  if (!s_key.IsCardKey()) {
     auto palette_expired = card_key_label_->palette();
     palette_expired.setColor(card_key_label_->foregroundRole(), Qt::red);
     card_key_label_->setPalette(palette_expired);
@@ -414,19 +411,19 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
     card_key_label_->setPalette(palette_valid);
   }
 
-  fingerprint_var_label_->setText(BeautifyFingerprint(subkey.GetFingerprint()));
+  fingerprint_var_label_->setText(BeautifyFingerprint(s_key.Fingerprint()));
   fingerprint_var_label_->setWordWrap(true);  // for x448 and ed448
 
-  export_subkey_button_->setText(
-      subkey.IsHasCertCap() ? tr("Export Primary Key") : tr("Export Subkey"));
+  export_subkey_button_->setText(s_key.IsHasCertCap() ? tr("Export Primary Key")
+                                                      : tr("Export Subkey"));
   export_subkey_button_->setDisabled(
-      !key_.IsPrivateKey() || subkey.IsHasCertCap() || !subkey.IsSecretKey());
+      !key_.IsPrivateKey() || s_key.IsHasCertCap() || !s_key.IsSecretKey());
 
-  key_type_var_label_->setText(subkey.IsHasCertCap() ? tr("Primary Key")
-                                                     : tr("Subkey"));
+  key_type_var_label_->setText(s_key.IsHasCertCap() ? tr("Primary Key")
+                                                    : tr("Subkey"));
 
-  revoke_var_label_->setText(subkey.IsRevoked() ? tr("Yes") : tr("No"));
-  if (!subkey.IsRevoked()) {
+  revoke_var_label_->setText(s_key.IsRevoked() ? tr("Yes") : tr("No"));
+  if (!s_key.IsRevoked()) {
     auto palette_expired = revoke_var_label_->palette();
     palette_expired.setColor(revoke_var_label_->foregroundRole(), Qt::red);
     revoke_var_label_->setPalette(palette_expired);
@@ -463,23 +460,22 @@ void KeyPairSubkeyTab::create_subkey_opera_menu() {
 
 void KeyPairSubkeyTab::slot_edit_subkey() {
   auto* dialog =
-      new KeySetExpireDateDialog(current_gpg_context_channel_, key_.GetId(),
-                                 get_selected_subkey().GetFingerprint(), this);
+      new KeySetExpireDateDialog(current_gpg_context_channel_, key_.ID(),
+                                 get_selected_subkey().Fingerprint(), this);
   dialog->show();
 }
 
 void KeyPairSubkeyTab::contextMenuEvent(QContextMenuEvent* event) {
   // must have primary key before do any actions on subkey
   if (key_.IsHasMasterKey() && !subkey_list_->selectedItems().isEmpty()) {
-    const auto& subkey = get_selected_subkey();
+    const auto& s_key = get_selected_subkey();
 
-    if (subkey.IsHasCertCap()) return;
+    if (s_key.IsHasCertCap()) return;
 
-    export_subkey_act_->setDisabled(!subkey.IsSecretKey());
-    edit_subkey_act_->setDisabled(!subkey.IsSecretKey());
-    delete_subkey_act_->setDisabled(!subkey.IsSecretKey());
-    revoke_subkey_act_->setDisabled(!subkey.IsSecretKey() ||
-                                    subkey.IsRevoked());
+    export_subkey_act_->setDisabled(!s_key.IsSecretKey());
+    edit_subkey_act_->setDisabled(!s_key.IsSecretKey());
+    delete_subkey_act_->setDisabled(!s_key.IsSecretKey());
+    revoke_subkey_act_->setDisabled(!s_key.IsSecretKey() || s_key.IsRevoked());
 
     subkey_opera_menu_->exec(event->globalPos());
   }
@@ -497,15 +493,15 @@ auto KeyPairSubkeyTab::get_selected_subkey() -> const GpgSubKey& {
 }
 
 void KeyPairSubkeyTab::slot_refresh_key_info() {
-  key_ = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
-             .GetKey(key_.GetId());
+  key_ =
+      GpgKeyGetter::GetInstance(current_gpg_context_channel_).GetKey(key_.ID());
   assert(key_.IsGood());
 }
 
 void KeyPairSubkeyTab::slot_export_subkey() {
   int ret = QMessageBox::question(
       this, tr("Exporting Subkey"),
-      "<h3>" + tr("You are about to export a private subkey.") + "</h3>\n" +
+      "<h3>" + tr("You are about to export a private s_key.") + "</h3>\n" +
           tr("While subkeys are less critical than the primary key, "
              "they should still be handled with care.") +
           "<br /><br />" +
@@ -514,11 +510,11 @@ void KeyPairSubkeyTab::slot_export_subkey() {
 
   if (ret != QMessageBox::Yes) return;
 
-  const auto& subkey = get_selected_subkey();
+  const auto& s_key = get_selected_subkey();
 
   auto [err, gf_buffer] =
       GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
-          .ExportSubkey(subkey.GetFingerprint(), true);
+          .ExportSubkey(s_key.Fingerprint(), true);
 
   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
     CommonUtils::RaiseMessageBox(this, err);
@@ -527,11 +523,11 @@ void KeyPairSubkeyTab::slot_export_subkey() {
 
   // generate a file name
 #if defined(_WIN32) || defined(WIN32)
-  auto file_string = key_.GetName() + "[" + key_.GetEmail() + "](" +
-                     subkey.GetID() + ")_subkey.asc";
+  auto file_string =
+      key_.Name() + "[" + key_.Email() + "](" + s_key.ID() + ")_s_key.asc";
 #else
-  auto file_string = key_.GetName() + "<" + key_.GetEmail() + ">(" +
-                     subkey.GetID() + ")_subkey.asc";
+  auto file_string =
+      key_.Name() + "<" + key_.Email() + ">(" + s_key.ID() + ")_s_key.asc";
 #endif
   std::replace(file_string.begin(), file_string.end(), ' ', '_');
 
@@ -549,13 +545,12 @@ void KeyPairSubkeyTab::slot_export_subkey() {
 }
 
 void KeyPairSubkeyTab::slot_delete_subkey() {
-  const auto& subkey = get_selected_subkey();
-  const auto subkeys = key_.GetSubKeys();
+  const auto& s_key = get_selected_subkey();
 
   QString message = tr("<h3>You are about to delete the subkey:</h3><br />"
                        "<b>KeyID:</b> %1<br /><br />"
                        "This action is irreversible. Please confirm.")
-                        .arg(subkey.GetID());
+                        .arg(s_key.ID());
 
   int ret = QMessageBox::warning(
       this, tr("Delete Subkey Confirmation"), message,
@@ -564,8 +559,8 @@ void KeyPairSubkeyTab::slot_delete_subkey() {
   if (ret != QMessageBox::Yes) return;
 
   int index = 0;
-  for (const auto& sk : *subkeys) {
-    if (sk.GetFingerprint() == subkey.GetFingerprint()) {
+  for (const auto& sk : key_.SubKeys()) {
+    if (sk.Fingerprint() == s_key.Fingerprint()) {
       break;
     }
     index++;
@@ -574,7 +569,7 @@ void KeyPairSubkeyTab::slot_delete_subkey() {
   if (index == 0) {
     QMessageBox::critical(
         this, tr("Illegal Operation"),
-        tr("Cannot delete the primary key or an invalid subkey."));
+        tr("Cannot delete the primary key or an invalid s_key."));
     return;
   }
 
@@ -591,21 +586,20 @@ void KeyPairSubkeyTab::slot_delete_subkey() {
   QMessageBox::information(
       this, tr("Operation Successful"),
       tr("The subkey with KeyID %1 has been successfully deleted.")
-          .arg(subkey.GetID()));
+          .arg(s_key.ID()));
 
   emit SignalKeyDatabaseRefresh();
 }
 
 void KeyPairSubkeyTab::slot_revoke_subkey() {
-  const auto& subkey = get_selected_subkey();
-  const auto subkeys = key_.GetSubKeys();
+  const auto& s_key = get_selected_subkey();
 
   QString message = tr("<h3>Revoke Subkey Confirmation</h3><br />"
                        "<b>KeyID:</b> %1<br /><br />"
                        "Revoking a subkey will make it permanently unusable. "
                        "This action is <b>irreversible</b>.<br />"
                        "Are you sure you want to revoke this subkey?")
-                        .arg(subkey.GetID());
+                        .arg(s_key.ID());
 
   int ret = QMessageBox::warning(this, tr("Revoke Subkey"), message,
                                  QMessageBox::Cancel | QMessageBox::Yes,
@@ -614,8 +608,8 @@ void KeyPairSubkeyTab::slot_revoke_subkey() {
   if (ret != QMessageBox::Yes) return;
 
   int index = 0;
-  for (const auto& sk : *subkeys) {
-    if (sk.GetFingerprint() == subkey.GetFingerprint()) {
+  for (const auto& sk : key_.SubKeys()) {
+    if (sk.Fingerprint() == s_key.Fingerprint()) {
       break;
     }
     index++;
@@ -624,7 +618,7 @@ void KeyPairSubkeyTab::slot_revoke_subkey() {
   if (index == 0) {
     QMessageBox::critical(
         this, tr("Illegal Operation"),
-        tr("Cannot revoke the primary key or an invalid subkey."));
+        tr("Cannot revoke the primary key or an invalid s_key."));
     return;
   }
 
@@ -642,7 +636,7 @@ void KeyPairSubkeyTab::slot_revoke_subkey() {
             if (!res) {
               QMessageBox::critical(
                   nullptr, tr("Revocation Failed"),
-                  tr("Failed to revoke the subkey. Please try again."));
+                  tr("Failed to revoke the s_key. Please try again."));
             } else {
               QMessageBox::information(
                   nullptr, tr("Revocation Successful"),

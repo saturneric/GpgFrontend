@@ -189,8 +189,7 @@ void KeyPairOperaTab::CreateOperaMenu() {
   secret_key_export_opera_menu_->addAction(export_shortest_secret_key);
 
   // only work with RSA
-  if (m_key_.GetKeyAlgo() == "RSA" &&
-      Module::IsModuleActivate(kPaperKeyModuleID)) {
+  if (m_key_.Algo() == "RSA" && Module::IsModuleActivate(kPaperKeyModuleID)) {
     auto* export_secret_key_as_paper_key = new QAction(
         tr("Export Secret Key As A Paper Key") + QString(" (BETA)"), this);
     connect(export_secret_key_as_paper_key, &QAction::triggered, this,
@@ -229,11 +228,11 @@ void KeyPairOperaTab::slot_export_public_key() {
   // generate a file name
 #if defined(_WIN32) || defined(WIN32)
 
-  auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
-                     m_key_.GetId() + ")_pub.asc";
+  auto file_string =
+      m_key_.Name() + "[" + m_key_.Email() + "](" + m_key_.ID() + ")_pub.asc";
 #else
-  auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
-                     m_key_.GetId() + ")_pub.asc";
+  auto file_string =
+      m_key_.Name() + "<" + m_key_.Email() + ">(" + m_key_.ID() + ")_pub.asc";
 #endif
   std::replace(file_string.begin(), file_string.end(), ' ', '_');
 
@@ -278,11 +277,11 @@ void KeyPairOperaTab::slot_export_short_private_key() {
     // generate a file name
 #if defined(_WIN32) || defined(WIN32)
 
-    auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
-                       m_key_.GetId() + ")_short_secret.asc";
+    auto file_string = m_key_.Name() + "[" + m_key_.Email() + "](" +
+                       m_key_.ID() + ")_short_secret.asc";
 #else
-    auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
-                       m_key_.GetId() + ")_short_secret.asc";
+    auto file_string = m_key_.Name() + "<" + m_key_.Email() + ">(" +
+                       m_key_.ID() + ")_short_secret.asc";
 #endif
     std::replace(file_string.begin(), file_string.end(), ' ', '_');
 
@@ -329,11 +328,11 @@ void KeyPairOperaTab::slot_export_private_key() {
 
     // generate a file name
 #if defined(_WIN32) || defined(WIN32)
-    auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
-                       m_key_.GetId() + ")_full_secret.asc";
+    auto file_string = m_key_.Name() + "[" + m_key_.Email() + "](" +
+                       m_key_.ID() + ")_full_secret.asc";
 #else
-    auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
-                       m_key_.GetId() + ")_full_secret.asc";
+    auto file_string = m_key_.Name() + "<" + m_key_.Email() + ">(" +
+                       m_key_.ID() + ")_full_secret.asc";
 #endif
     std::replace(file_string.begin(), file_string.end(), ' ', '_');
 
@@ -353,7 +352,7 @@ void KeyPairOperaTab::slot_export_private_key() {
 
 void KeyPairOperaTab::slot_modify_edit_datetime() {
   auto* dialog = new KeySetExpireDateDialog(current_gpg_context_channel_,
-                                            m_key_.GetId(), this);
+                                            m_key_.ID(), this);
   dialog->show();
 }
 
@@ -363,7 +362,7 @@ void KeyPairOperaTab::slot_publish_key_to_server() {
         GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
             .ExportKey(m_key_, false, true, false);
 
-    auto fpr = m_key_.GetFingerprint();
+    auto fpr = m_key_.Fingerprint();
     auto key_text = gf_buffer.ConvertToQByteArray();
 
     Module::TriggerEvent(
@@ -435,7 +434,7 @@ void KeyPairOperaTab::slot_publish_key_to_server() {
     return;
   }
 
-  auto keys = KeyIdArgsList{m_key_.GetId()};
+  auto keys = KeyIdArgsList{m_key_.ID()};
   auto* dialog = new KeyUploadDialog(current_gpg_context_channel_, keys, this);
   dialog->show();
   dialog->SlotUpload();
@@ -444,11 +443,11 @@ void KeyPairOperaTab::slot_publish_key_to_server() {
 void KeyPairOperaTab::slot_update_key_from_server() {
   if (Module::IsModuleActivate(kKeyServerSyncModuleID)) {
     CommonUtils::GetInstance()->ImportKeyByKeyServerSyncModule(
-        this, current_gpg_context_channel_, {m_key_.GetFingerprint()});
+        this, current_gpg_context_channel_, {m_key_.Fingerprint()});
     return;
   }
   CommonUtils::GetInstance()->ImportKeyFromKeyServer(
-      current_gpg_context_channel_, {m_key_.GetId()});
+      current_gpg_context_channel_, {m_key_.ID()});
 }
 
 void KeyPairOperaTab::slot_gen_revoke_cert() {
@@ -465,11 +464,11 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
             QString m_output_file_name;
 
 #if defined(_WIN32) || defined(WIN32)
-            auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() +
-                               "](" + m_key_.GetId() + ").rev";
+            auto file_string = m_key_.Name() + "[" + m_key_.Email() + "](" +
+                               m_key_.ID() + ").rev";
 #else
-            auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() +
-                               ">(" + m_key_.GetId() + ").rev";
+            auto file_string = m_key_.Name() + "<" + m_key_.Email() +
+                               ">(" + m_key_.ID() + ").rev";
 #endif
 
             QFileDialog dialog(this, tr("Generate revocation certificate"),
@@ -530,7 +529,7 @@ void KeyPairOperaTab::slot_modify_tofu_policy() {
 
 void KeyPairOperaTab::slot_set_owner_trust_level() {
   auto* function = new SetOwnerTrustLevel(this);
-  function->Exec(current_gpg_context_channel_, m_key_.GetId());
+  function->Exec(current_gpg_context_channel_, m_key_.ID());
   function->deleteLater();
 }
 
@@ -582,7 +581,7 @@ void KeyPairOperaTab::slot_import_revoke_cert() {
     return;
   }
 
-  emit UISignalStation::GetInstance() -> SignalKeyRevoked(m_key_.GetId());
+  emit UISignalStation::GetInstance() -> SignalKeyRevoked(m_key_.ID());
   CommonUtils::GetInstance()->SlotImportKeys(
       nullptr, current_gpg_context_channel_, rev_file.readAll());
 }
@@ -621,11 +620,11 @@ void KeyPairOperaTab::slot_export_paper_key() {
 
     // generate a file name
 #if defined(_WIN32) || defined(WIN32)
-    auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
-                       m_key_.GetId() + ")_paper_key.txt";
+    auto file_string = m_key_.Name() + "[" + m_key_.Email() + "](" +
+                       m_key_.ID() + ")_paper_key.txt";
 #else
-    auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
-                       m_key_.GetId() + ")_paper_key.txt";
+    auto file_string = m_key_.Name() + "<" + m_key_.Email() + ">(" +
+                       m_key_.ID() + ")_paper_key.txt";
 #endif
     std::replace(file_string.begin(), file_string.end(), ' ', '_');
 
@@ -675,11 +674,11 @@ void KeyPairOperaTab::slot_import_paper_key() {
 
   // generate a file name
 #if defined(_WIN32) || defined(WIN32)
-  auto file_string = m_key_.GetName() + "[" + m_key_.GetEmail() + "](" +
-                     m_key_.GetId() + ")_paper_key.txt";
+  auto file_string = m_key_.Name() + "[" + m_key_.Email() + "](" + m_key_.ID() +
+                     ")_paper_key.txt";
 #else
-  auto file_string = m_key_.GetName() + "<" + m_key_.GetEmail() + ">(" +
-                     m_key_.GetId() + ")_paper_key.txt";
+  auto file_string = m_key_.Name() + "<" + m_key_.Email() + ">(" + m_key_.ID() +
+                     ")_paper_key.txt";
 #endif
   std::replace(file_string.begin(), file_string.end(), ' ', '_');
 

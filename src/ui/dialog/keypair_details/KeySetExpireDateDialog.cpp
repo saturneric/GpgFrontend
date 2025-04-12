@@ -101,7 +101,7 @@ void KeySetExpireDateDialog::init() {
   ui_->dateEdit->setMinimumDateTime(min_date_time);
 
   // set default date time to expire date time
-  auto current_expire_time = m_key_.GetExpireTime();
+  auto current_expire_time = m_key_.ExpirationTime();
 
   ui_->dateEdit->setDateTime(current_expire_time);
   ui_->timeEdit->setDateTime(current_expire_time);
@@ -114,11 +114,11 @@ void KeySetExpireDateDialog::init() {
           UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefresh);
 
-  if (m_key_.GetExpireTime().toSecsSinceEpoch() == 0) {
+  if (m_key_.ExpirationTime().toSecsSinceEpoch() == 0) {
     ui_->noExpirationCheckBox->setCheckState(Qt::Checked);
   } else {
-    ui_->dateEdit->setDateTime(m_key_.GetExpireTime());
-    ui_->timeEdit->setDateTime(m_key_.GetExpireTime());
+    ui_->dateEdit->setDateTime(m_key_.ExpirationTime());
+    ui_->timeEdit->setDateTime(m_key_.ExpirationTime());
   }
 
   ui_->titleLabel->setText(tr("Modified Expiration Date (Local Time)"));

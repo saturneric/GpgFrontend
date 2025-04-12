@@ -172,7 +172,7 @@ auto MainWindow::check_keys_helper(
       QMessageBox::critical(nullptr, tr("Invalid KeyPair"),
                             capability_err_string + "<br/><br/>" +
                                 tr("For example the Following Key:") +
-                                " <br/>" + key.GetUIDs()->front().GetUID());
+                                " <br/>" + key.UIDs().front().GetUID());
       return {};
     }
   }
