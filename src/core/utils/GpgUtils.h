@@ -157,4 +157,20 @@ auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseName(int channel) -> QString;
 auto GPGFRONTEND_CORE_EXPORT Convert2RawGpgMEKeyList(
     const QContainer<GpgKey>& keys) -> QContainer<gpgme_key_t>;
 
+/**
+ * @brief
+ *
+ * @param key
+ * @return QString
+ */
+auto GPGFRONTEND_CORE_EXPORT GetUsagesByKey(const GpgKey& key) -> QString;
+
+/**
+ * @brief
+ *
+ * @param key
+ * @return QString
+ */
+auto GPGFRONTEND_CORE_EXPORT GetUsagesBySubkey(const GpgSubKey& key) -> QString;
+
 }  // namespace GpgFrontend

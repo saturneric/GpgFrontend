@@ -123,9 +123,9 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
   auto operator<=(const GpgKey&) const -> bool;
 
   /**
-   * @brief 
-   * 
-   * @return gpgme_key_t 
+   * @brief
+   *
+   * @return gpgme_key_t
    */
   // NOLINTNEXTLINE(google-explicit-constructor)
   operator gpgme_key_t() const;
@@ -363,6 +363,13 @@ class GPGFRONTEND_CORE_EXPORT GpgKey {
    * @return std::unique_ptr<QContainer<GpgUID>>
    */
   [[nodiscard]] auto GetUIDs() const -> std::unique_ptr<QContainer<GpgUID>>;
+
+  /**
+   * @brief Get the Primary Key object
+   *
+   * @return GpgSubKey
+   */
+  [[nodiscard]] auto GetPrimaryKey() const -> GpgSubKey;
 
  private:
   /**

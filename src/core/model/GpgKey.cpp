@@ -241,4 +241,7 @@ void GpgKey::KeyRefDeleter::operator()(gpgme_key_t _key) {
   if (_key != nullptr) gpgme_key_unref(_key);
 }
 
+auto GpgKey::GetPrimaryKey() const -> GpgSubKey {
+  return GpgSubKey(key_ref_->subkeys);
+}
 }  // namespace GpgFrontend

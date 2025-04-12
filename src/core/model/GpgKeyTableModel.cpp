@@ -30,6 +30,7 @@
 
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/model/GpgKey.h"
+#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
 
@@ -87,12 +88,7 @@ auto GpgKeyTableModel::data(const QModelIndex &index,
         return key.GetEmail();
       }
       case 4: {
-        QString usage_sym;
-        if (key.IsHasActualCertCap()) usage_sym += "C";
-        if (key.IsHasActualEncrCap()) usage_sym += "E";
-        if (key.IsHasActualSignCap()) usage_sym += "S";
-        if (key.IsHasActualAuthCap()) usage_sym += "A";
-        return usage_sym;
+        return GetUsagesByKey(key);
       }
       case 5: {
         return key.GetOwnerTrust();

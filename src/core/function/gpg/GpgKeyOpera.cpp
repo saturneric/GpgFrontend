@@ -371,7 +371,7 @@ auto AddADSKImpl(GpgContext& ctx, const GpgKey& key, const GpgSubKey& adsk,
   unsigned int flags = GPGME_CREATE_ADSK;
 
   LOG_D() << "add adsk args: " << key.GetId() << algo;
-  
+
   auto err =
       gpgme_op_createsubkey(ctx.DefaultContext(), static_cast<gpgme_key_t>(key),
                             algo.toLatin1(), 0, 0, flags);

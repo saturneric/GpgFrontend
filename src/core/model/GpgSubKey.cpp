@@ -41,6 +41,10 @@ auto GpgSubKey::operator==(const GpgSubKey& o) const -> bool {
   return GetFingerprint() == o.GetFingerprint();
 }
 
+auto GpgSubKey::operator<(const GpgSubKey& o) const -> bool {
+  return GetID() < o.GetID();
+}
+
 auto GpgSubKey::GetID() const -> QString { return subkey_ref_->keyid; }
 
 auto GpgSubKey::GetFingerprint() const -> QString { return subkey_ref_->fpr; }
@@ -99,4 +103,5 @@ auto GpgSubKey::IsADSK() const -> bool { return subkey_ref_->can_renc; }
 auto GpgSubKey::SmartCardSerialNumber() -> QString {
   return subkey_ref_->card_number;
 }
+
 }  // namespace GpgFrontend

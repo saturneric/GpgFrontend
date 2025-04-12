@@ -78,6 +78,15 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
   /**
    * @brief
    *
+   * @param o
+   * @return true
+   * @return false
+   */
+  auto operator<(const GpgSubKey& o) const -> bool;
+
+  /**
+   * @brief
+   *
    * @return QString
    */
   [[nodiscard]] auto GetID() const -> QString;
@@ -205,17 +214,17 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey {
   [[nodiscard]] auto GetExpireTime() const -> QDateTime;
 
   /**
-   * @brief 
-   * 
-   * @return true 
-   * @return false 
+   * @brief
+   *
+   * @return true
+   * @return false
    */
   [[nodiscard]] auto IsADSK() const -> bool;
 
   /**
-   * @brief 
-   * 
-   * @return QString 
+   * @brief
+   *
+   * @return QString
    */
   [[nodiscard]] auto SmartCardSerialNumber() -> QString;
 

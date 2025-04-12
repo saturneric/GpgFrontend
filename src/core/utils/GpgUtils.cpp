@@ -333,4 +333,24 @@ auto GPGFRONTEND_CORE_EXPORT Convert2RawGpgMEKeyList(
 
   return recipients;
 }
+
+auto GPGFRONTEND_CORE_EXPORT GetUsagesByKey(const GpgKey& key) -> QString {
+  QString usages;
+  if (key.IsHasActualCertCap()) usages += "C";
+  if (key.IsHasActualEncrCap()) usages += "E";
+  if (key.IsHasActualSignCap()) usages += "S";
+  if (key.IsHasActualAuthCap()) usages += "A";
+  return usages;
+}
+
+auto GPGFRONTEND_CORE_EXPORT GetUsagesBySubkey(const GpgSubKey& key)
+    -> QString {
+  QString usages;
+  if (key.IsHasCertCap()) usages += "C";
+  if (key.IsHasEncrCap()) usages += "E";
+  if (key.IsHasSignCap()) usages += "S";
+  if (key.IsHasAuthCap()) usages += "A";
+  if (key.IsADSK()) usages += "R";
+  return usages;
+}
 }  // namespace GpgFrontend

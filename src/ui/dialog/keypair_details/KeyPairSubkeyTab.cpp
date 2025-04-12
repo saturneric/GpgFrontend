@@ -32,12 +32,14 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyManager.h"
+#include "core/function/gpg/GpgKeyOpera.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/RevocationOptionsDialog.h"
+#include "ui/dialog/SubKeysPicker.h"
 
 namespace GpgFrontend::UI {
 
@@ -58,12 +60,17 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, const QString& key_id,
   auto* uid_buttons_layout = new QGridLayout();
 
   auto* add_subkey_button = new QPushButton(tr("Generate A New Subkey"));
+  auto* add_adsk_button = new QPushButton(tr("Add ADSK(s)"));
   if (!key_.IsPrivateKey() || !key_.IsHasMasterKey()) {
     add_subkey_button->setDisabled(true);
-    setHidden(add_subkey_button);
+    add_subkey_button->hide();
+
+    add_adsk_button->setDisabled(true);
+    add_adsk_button->hide();
   }
 
   uid_buttons_layout->addWidget(add_subkey_button, 0, 1);
+  uid_buttons_layout->addWidget(add_adsk_button, 1, 1);
 
   auto* base_layout = new QVBoxLayout();
 
@@ -137,6 +144,8 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, const QString& key_id,
 
   connect(add_subkey_button, &QPushButton::clicked, this,
           &KeyPairSubkeyTab::slot_add_subkey);
+  connect(add_adsk_button, &QPushButton::clicked, this,
+          &KeyPairSubkeyTab::slot_add_adsk);
   connect(subkey_list_, &QTableWidget::itemSelectionChanged, this,
           &KeyPairSubkeyTab::slot_refresh_subkey_detail);
 
@@ -205,8 +214,10 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
     tmp0->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 0, tmp0);
 
-    auto* tmp1 = new QTableWidgetItem(subkey.IsHasCertCap() ? tr("Primary Key")
-                                                            : tr("Subkey"));
+    auto type = subkey.IsHasCertCap() ? tr("Primary Key") : tr("Subkey");
+    if (subkey.IsADSK()) type = tr("ADSK");
+
+    auto* tmp1 = new QTableWidgetItem(type);
     tmp1->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 1, tmp1);
 
@@ -276,6 +287,72 @@ void KeyPairSubkeyTab::slot_add_subkey() {
   dialog->show();
 }
 
+void KeyPairSubkeyTab::slot_add_adsk() {
+  QStringList except_key_ids;
+  except_key_ids.append(key_.GetId());
+  auto except_sub_keys = key_.GetSubKeys();
+  for (const auto& sub_key : *except_sub_keys) {
+    except_key_ids.append(sub_key.GetID());
+  }
+
+  auto* dialog = new SubKeysPicker(
+      current_gpg_context_channel_,
+      [=](GpgAbstractKey* key) { return !except_key_ids.contains(key->ID()); },
+      this);
+  dialog->exec();
+
+  if (!dialog->GetStatus()) {
+    dialog->deleteLater();
+    return;
+  }
+
+  auto sub_keys = dialog->GetCheckedSubkeys();
+  dialog->deleteLater();
+
+  if (sub_keys.isEmpty()) {
+    QMessageBox::information(this, tr("No Subkeys Selected"),
+                             tr("Please select at least one subkey."));
+    return;
+  }
+
+  QContainer<GpgSubKey> err_sub_keys;
+  for (const auto& sub_key : sub_keys) {
+    auto [err, data_object] =
+        GpgKeyOpera::GetInstance(current_gpg_context_channel_)
+            .AddADSKSync(key_, sub_key);
+    if (CheckGpgError(err) == GPG_ERR_NO_ERROR) continue;
+
+    err_sub_keys.append(sub_key);
+  }
+
+  if (err_sub_keys.isEmpty()) {
+    QMessageBox::information(
+        this, tr("Success"),
+        tr("All selected subkeys were successfully added as ADSKs."));
+  } else {
+    QStringList failed_info;
+    for (const auto& sub_key : err_sub_keys) {
+      QString key_id = sub_key.GetID();
+      failed_info << tr("Key ID: %1").arg(key_id);
+    }
+
+    QString details = failed_info.join("\n\n");
+
+    QMessageBox msg_box(this);
+    msg_box.setIcon(QMessageBox::Warning);
+    msg_box.setWindowTitle(err_sub_keys.size() == sub_keys.size()
+                               ? tr("Failed")
+                               : tr("Partially Failed"));
+    msg_box.setText(err_sub_keys.size() == sub_keys.size()
+                        ? tr("Failed to add all selected subkeys.")
+                        : tr("Some subkeys failed to be added as ADSKs."));
+    msg_box.setDetailedText(details);
+    msg_box.exec();
+  }
+
+  emit SignalKeyDatabaseRefresh();
+}
+
 void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   const auto& subkey = get_selected_subkey();
 
@@ -306,14 +383,7 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   QString buffer;
   QTextStream usage_steam(&buffer);
 
-  if (subkey.IsHasCertCap()) {
-    usage_steam << tr("Certificate") << " ";
-  }
-  if (subkey.IsHasEncrCap()) usage_steam << tr("Encrypt") << " ";
-  if (subkey.IsHasSignCap()) usage_steam << tr("Sign") << " ";
-  if (subkey.IsHasAuthCap()) usage_steam << tr("Auth") << " ";
-
-  usage_var_label_->setText(usage_steam.readAll());
+  usage_var_label_->setText(GetUsagesBySubkey(subkey));
 
   // Show the situation that secret key not exists.
   master_key_exist_var_label_->setText(subkey.IsSecretKey() ? tr("Exists")

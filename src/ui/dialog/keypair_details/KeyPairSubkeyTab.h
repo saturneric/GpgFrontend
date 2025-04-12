@@ -65,7 +65,7 @@ class KeyPairSubkeyTab : public QWidget {
    *
    * @return const GpgSubKey&
    */
-  const GpgSubKey& get_selected_subkey();
+  auto get_selected_subkey() -> const GpgSubKey&;
 
   int current_gpg_context_channel_;
   GpgKey key_;                              ///<
@@ -146,6 +146,12 @@ class KeyPairSubkeyTab : public QWidget {
    *
    */
   void slot_delete_subkey();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_add_adsk();
 
  signals:
 
