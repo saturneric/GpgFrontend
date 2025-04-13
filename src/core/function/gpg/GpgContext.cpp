@@ -386,11 +386,11 @@ class GpgContext::Impl {
 
     QProcess process;
     process.setProgram(gpgconf_path);
-    process.setArguments({"--list-dirs"});
+    process.setArguments({"--list-dirs", "--homedir", database_path_});
     process.start();
 
     if (!process.waitForFinished()) {
-      LOG_F() << "failed to execute gpgconf --list-dirs";
+      LOG_W() << "failed to execute gpgconf --list-dirs";
       return;
     }
 

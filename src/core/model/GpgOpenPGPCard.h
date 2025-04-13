@@ -28,9 +28,6 @@
 
 #pragma once
 
-#include "core/model/GpgCardKeyPairInfo.h"
-#include "core/typedef/CoreTypedef.h"
-
 namespace GpgFrontend {
 
 struct GPGFRONTEND_CORE_EXPORT GpgOpenPGPCard {
@@ -41,23 +38,44 @@ struct GPGFRONTEND_CORE_EXPORT GpgOpenPGPCard {
   int card_version;
   QString app_type;
   int app_version;
-  QString ext_capability;
+  int manufacturer_id;
   QString manufacturer;
   QString card_holder;
   QString display_language;
   QString display_sex;
-  QString chv_status;
   int sig_counter = 0;
 
-  QContainer<GpgCardKeyPairInfo> keys;
-  QMap<int, QString> fprs;
-  QMap<QString, QString> card_infos;
+  struct GpgCardKeyInfo {
+    QString fingerprint;
+    QDateTime created;
+    QString grip;
+    QString key_type;
+    QString algo;
+    QString usage;
+  };
 
-  QString kdf;
-  QString uif1;
-  QString uif2;
-  QString uif3;
+  QMap<int, GpgCardKeyInfo> card_keys_info;
 
+  int kdf_do_enabled;
+  struct UIFStatus {
+    bool sign = false;
+    bool encrypt = false;
+    bool auth = false;
+  } uif;
+
+  int chv1_cached = -1;
+  std::array<int, 3> chv_max_len = {-1, -1, -1};
+  std::array<int, 3> chv_retry = {-1, -1, -1};
+
+  struct ExtCapability {
+    bool ki = false;
+    bool aac = false;
+    bool bt = false;
+    bool kdf = false;
+    int status_indicator = -1;
+  } ext_cap;
+
+  QMap<QString, QString> additional_card_infos;
   bool good = false;
 
   GpgOpenPGPCard() = default;
@@ -65,7 +83,51 @@ struct GPGFRONTEND_CORE_EXPORT GpgOpenPGPCard {
   explicit GpgOpenPGPCard(const QStringList& status);
 
  private:
+  /**
+   * @brief
+   *
+   * @param name
+   * @param value
+   */
   void parse_card_info(const QString& name, const QString& value);
+
+  /**
+   * @brief
+   *
+   * @param name
+   * @param value
+   */
+  void parse_chv_status(const QString& value);
+
+  /**
+   * @brief
+   *
+   * @param value
+   */
+  void parse_ext_capability(const QString& value);
+
+  /**
+   * @brief
+   *
+   * @param value
+   */
+  void parse_kdf_status(const QString& value);
+
+  /**
+   * @brief
+   *
+   * @param name
+   * @param value
+   */
+  void parse_uif(const QString& name, const QString& value);
+
+  /**
+   * @brief
+   *
+   * @param keyword
+   * @param value
+   */
+  void parse_card_key_info(const QString& name, const QString& value);
 };
 
 }  // namespace GpgFrontend

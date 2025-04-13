@@ -54,13 +54,18 @@ void ExecuteGpgCommand(const QString &operation, const QStringList &extra_args,
   std::atomic<int> completed_tasks{0};
   std::vector<int> results(total_tasks, 0);
 
+  // kill default gpg-agent
+  key_dbs.push_back({});
+
   int task_index = 0;
   for (const auto &key_db : key_dbs) {
     const int current_index = task_index++;
     const auto target_home_dir =
         QDir::toNativeSeparators(QFileInfo(key_db.path).canonicalFilePath());
 
-    QStringList arguments = QStringList{"--homedir", target_home_dir};
+    QStringList arguments = !target_home_dir.isEmpty()
+                                ? QStringList{"--homedir", target_home_dir}
+                                : QStringList{};
     arguments.append(extra_args);
 
     GpgCommandExecutor::ExecuteSync(

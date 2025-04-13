@@ -31,6 +31,7 @@
 
 #include "core/model/DataObject.h"
 #include "core/module/Module.h"
+#include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 
@@ -234,4 +235,35 @@ GpgCommandExecutor::ExecuteContext::ExecuteContext(
       int_func(std::move(int_func)),
       task_runner(std::move(task_runner)) {}
 
+GpgCommandExecutor::GpgCommandExecutor(int channel)
+    : GpgFrontend::SingletonFunctionObject<GpgCommandExecutor>(channel) {}
+
+void GpgCommandExecutor::GpgExecuteSync(const ExecuteContext &context) {
+  const auto gpg_path = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.app_path", QString{});
+
+  if (context.cmd.isEmpty() && gpg_path.isEmpty()) {
+    LOG_E() << "failed to execute gpg command, gpg binary path is empty.";
+    return;
+  }
+
+  LOG_D() << "got gpg binary path:" << gpg_path;
+  LOG_D() << "context channel:" << GetChannel()
+          << "home path: " << ctx_.HomeDirectory();
+
+  ExecuteContext ctx = {
+      context.cmd.isEmpty() ? gpg_path : context.cmd,
+      context.arguments,
+      context.cb_func,
+      context.task_runner,
+      context.int_func,
+  };
+
+  if (!ctx.arguments.contains("--homedir") && !ctx_.HomeDirectory().isEmpty()) {
+    ctx.arguments.append("--homedir");
+    ctx.arguments.append(ctx_.HomeDirectory());
+  }
+
+  return ExecuteSync(ctx);
+}
 }  // namespace GpgFrontend

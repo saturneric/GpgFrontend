@@ -28,21 +28,47 @@
 
 #pragma once
 
+#include "core/function/basic/GpgFunctionObject.h"
+#include "core/function/gpg/GpgContext.h"
+#include "core/typedef/GpgTypedef.h"
+
 namespace GpgFrontend {
 
-struct GpgCardKeyPairInfo {
-  explicit GpgCardKeyPairInfo(const QString &status);
+/**
+ * @brief
+ *
+ */
+class GPGFRONTEND_CORE_EXPORT GpgSmartCardManager
+    : public SingletonFunctionObject<GpgSmartCardManager> {
+ public:
+  /**
+   * @brief Construct a new Gpg Key Manager object
+   *
+   * @param channel
+   */
+  explicit GpgSmartCardManager(
+      int channel = SingletonFunctionObject::GetDefaultChannel());
 
-  [[nodiscard]] auto CanAuthenticate() const -> bool;
-  [[nodiscard]] auto CanCertify() const -> bool;
-  [[nodiscard]] auto CanEncrypt() const -> bool;
-  [[nodiscard]] auto CanSign() const -> bool;
+  /**
+   * @brief
+   *
+   * @param key
+   * @param subkey_index
+   * @return true
+   * @return false
+   */
+  auto Fetch(const QString& serial_number) -> bool;
 
-  QString key_ref;
-  QString grip;
-  QString usage;
-  QDateTime time;
-  QString algorithm;
+  /**
+   * @brief
+   *
+   * @return std::tuple<bool, QString>
+   */
+  auto ModifyAttr() -> std::tuple<bool, QString>;
+
+ private:
+  GpgContext& ctx_ =
+      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
 };
 
 }  // namespace GpgFrontend

@@ -62,15 +62,49 @@ class GPGFRONTEND_CORE_EXPORT GpgAssuanHelper
     [[nodiscard]] auto SendData(const QByteArray& b) const -> gpg_error_t;
   };
 
+  /**
+   * @brief Construct a new Gpg Assuan Helper object
+   *
+   * @param channel
+   */
   explicit GpgAssuanHelper(int channel);
+
+  /**
+   * @brief Destroy the Gpg Assuan Helper object
+   *
+   */
   ~GpgAssuanHelper();
 
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
   auto ConnectToSocket(GpgComponentType) -> bool;
 
+  /**
+   * @brief
+   *
+   * @param type
+   * @param command
+   * @param data_cb
+   * @param inquery_cb
+   * @param status_cb
+   * @return true
+   * @return false
+   */
   auto SendCommand(GpgComponentType type, const QString& command,
                    DataCallback data_cb, InqueryCallback inquery_cb,
                    StatusCallback status_cb) -> bool;
 
+  /**
+   * @brief
+   *
+   * @param type
+   * @param command
+   * @return std::tuple<bool, QStringList>
+   */
   auto SendStatusCommand(GpgComponentType type, const QString& command)
       -> std::tuple<bool, QStringList>;
 
@@ -79,19 +113,60 @@ class GPGFRONTEND_CORE_EXPORT GpgAssuanHelper
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
   QMap<GpgComponentType, assuan_context_t> assuan_ctx_;
 
+  /**
+   * @brief
+   *
+   * @param type
+   */
   void launch_component(GpgComponentType type);
 
+  /**
+   * @brief
+   *
+   * @param type
+   * @return QString
+   */
   static auto component_type_to_q_string(GpgComponentType type) -> QString;
 
+  /**
+   * @brief
+   *
+   * @param opaque
+   * @param buffer
+   * @param length
+   * @return gpgme_error_t
+   */
   static auto simple_data_callback(void* opaque, const void* buffer,
                                    size_t length) -> gpgme_error_t;
 
+  /**
+   * @brief
+   *
+   * @param opaque
+   * @param buffer
+   * @param length
+   * @return gpgme_error_t
+   */
   static auto default_data_callback(void* opaque, const void* buffer,
                                     size_t length) -> gpgme_error_t;
 
+  /**
+   * @brief
+   *
+   * @param opaque
+   * @param status
+   * @return gpgme_error_t
+   */
   static auto default_status_callback(void* opaque,
                                       const char* status) -> gpgme_error_t;
 
+  /**
+   * @brief
+   *
+   * @param opaque
+   * @param inquery
+   * @return gpgme_error_t
+   */
   static auto default_inquery_callback(void* opaque,
                                        const char* inquery) -> gpgme_error_t;
 

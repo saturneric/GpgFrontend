@@ -32,6 +32,7 @@
 
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/utils/GpgUtils.h"
+#include "ui/UISignalStation.h"
 #include "ui/dialog/keypair_details/KeyDetailsDialog.h"
 #include "ui/model/GpgKeyTreeProxyModel.h"
 
@@ -120,6 +121,15 @@ void KeyTreeView::init() {
             }
 
             new KeyDetailsDialog(model_->GetGpgContextChannel(), key, this);
+          });
+
+  connect(UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyDatabaseRefresh, this, [=] {
+            model_ = QSharedPointer<GpgKeyTreeModel>::create(
+                channel_, GpgKeyGetter::GetInstance(channel_).FetchKey(),
+                [](auto) { return false; }, this);
+            proxy_model_.setSourceModel(model_.get());
+            proxy_model_.invalidate();
           });
 }
 

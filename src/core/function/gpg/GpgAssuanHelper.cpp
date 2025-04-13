@@ -51,7 +51,7 @@ auto GpgAssuanHelper::ConnectToSocket(GpgComponentType type) -> bool {
 
   auto socket_path = ctx_.ComponentDirectory(type);
   if (socket_path.isEmpty()) {
-    LOG_F() << "socket path of component: " << component_type_to_q_string(type)
+    LOG_W() << "socket path of component: " << component_type_to_q_string(type)
             << " is empty";
     return false;
   }
@@ -65,7 +65,7 @@ auto GpgAssuanHelper::ConnectToSocket(GpgComponentType type) -> bool {
     launch_component(type);
 
     if (!info.exists()) {
-      LOG_F() << "socket path is still not exists: " << socket_path
+      LOG_W() << "socket path is still not exists: " << socket_path
               << "abort...";
       return false;
     }
@@ -77,17 +77,17 @@ auto GpgAssuanHelper::ConnectToSocket(GpgComponentType type) -> bool {
   auto err = assuan_socket_connect(a_ctx, info.absoluteFilePath().toUtf8(),
                                    ASSUAN_INVALID_PID, 0);
   if (err != GPG_ERR_NO_ERROR) {
-    LOG_F() << "failed to connect to socket:" << CheckGpgError(err);
+    LOG_W() << "failed to connect to socket:" << CheckGpgError(err);
     return false;
   }
 
   LOG_D() << "connected to socket by assuan protocol: "
-          << info.absoluteFilePath();
+          << info.absoluteFilePath() << "channel:" << GetChannel();
 
   err = assuan_transact(a_ctx, "GETINFO pid", simple_data_callback, nullptr,
                         nullptr, nullptr, nullptr, nullptr);
   if (err != GPG_ERR_NO_ERROR) {
-    LOG_F() << "failed to test assuan connection:" << CheckGpgError(err);
+    LOG_W() << "failed to test assuan connection:" << CheckGpgError(err);
     return false;
   }
 
@@ -111,12 +111,19 @@ auto GpgAssuanHelper::SendCommand(GpgComponentType type, const QString& command,
   context->status_cb = std::move(status_cb);
   context->inquery_cb = std::move(inquery_cb);
 
+  LOG_D() << "sending assuan command: " << command;
+
   auto err = assuan_transact(
       assuan_ctx_[type], command.toUtf8(), default_data_callback, &context,
       default_inquery_callback, &context, default_status_callback, &context);
 
   if (err != GPG_ERR_NO_ERROR) {
-    LOG_F() << "failed to send assuan command :" << CheckGpgError(err);
+    LOG_W() << "failed to send assuan command:" << CheckGpgError(err);
+
+    // broken pipe error, try reconnect next time
+    if (CheckGpgError(err) == 32877) {
+      assuan_ctx_.remove(type);
+    }
     return false;
   }
 
@@ -153,7 +160,6 @@ auto GpgAssuanHelper::SendStatusCommand(GpgComponentType type,
   };
 
   auto ret = SendCommand(type, command, d_cb, i_cb, s_cb);
-
   return {ret, status_lines};
 }
 
@@ -185,7 +191,7 @@ auto GpgAssuanHelper::default_inquery_callback(
 
 void GpgAssuanHelper::launch_component(GpgComponentType type) {
   if (gpgconf_path_.isEmpty()) {
-    LOG_F() << "gpgconf_path is not collected by initializing";
+    LOG_W() << "gpgconf_path is not collected by initializing";
     return;
   }
 
@@ -199,7 +205,7 @@ void GpgAssuanHelper::launch_component(GpgComponentType type) {
   process.start();
 
   if (!process.waitForFinished()) {
-    LOG_F() << "failed to execute gpgconf" << process.arguments();
+    LOG_E() << "failed to execute gpgconf" << process.arguments();
     return;
   }
 }

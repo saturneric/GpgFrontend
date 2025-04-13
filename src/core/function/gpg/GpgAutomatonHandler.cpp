@@ -28,6 +28,8 @@
 
 #include "GpgAutomatonHandler.h"
 
+#include <utility>
+
 #include "core/model/GpgData.h"
 #include "core/model/GpgKey.h"
 #include "core/utils/GpgUtils.h"
@@ -96,19 +98,28 @@ auto GpgAutomatonHandler::interator_cb_func(void* handle, const char* status,
 
 auto GpgAutomatonHandler::DoInteract(
     const GpgKey& key, AutomatonNextStateHandler next_state_handler,
-    AutomatonActionHandler action_handler) -> bool {
-  auto key_fpr = key.Fingerprint();
-  AutomatonHandelStruct handel_struct(key_fpr);
+    AutomatonActionHandler action_handler, int flags) -> bool {
+  gpgme_key_t p_key =
+      flags == GPGME_INTERACT_CARD ? nullptr : static_cast<gpgme_key_t>(key);
+
+  AutomatonHandelStruct handel_struct(
+      flags == GPGME_INTERACT_CARD ? "" : key.Fingerprint());
   handel_struct.SetHandler(std::move(next_state_handler),
                            std::move(action_handler));
 
   GpgData data_out;
 
-  auto err =
-      gpgme_op_interact(ctx_.DefaultContext(), static_cast<gpgme_key_t>(key), 0,
-                        GpgAutomatonHandler::interator_cb_func,
-                        static_cast<void*>(&handel_struct), data_out);
+  auto err = gpgme_op_interact(ctx_.DefaultContext(), p_key, flags,
+                               GpgAutomatonHandler::interator_cb_func,
+                               static_cast<void*>(&handel_struct), data_out);
   return CheckGpgError(err) == GPG_ERR_NO_ERROR && handel_struct.Success();
+}
+
+auto GpgAutomatonHandler::DoCardInteract(
+    AutomatonNextStateHandler next_state_handler,
+    AutomatonActionHandler action_handler) -> bool {
+  return DoInteract({}, std::move(next_state_handler),
+                    std::move(action_handler), GPGME_INTERACT_CARD);
 }
 
 auto GpgAutomatonHandler::AutomatonHandelStruct::NextState(

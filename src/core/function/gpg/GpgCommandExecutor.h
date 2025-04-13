@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "core/function/basic/GpgFunctionObject.h"
+#include "core/function/gpg/GpgContext.h"
 #include "core/module/Module.h"
 
 namespace GpgFrontend {
@@ -39,7 +41,8 @@ using GpgCommandExecutorInterator = std::function<void(QProcess *)>;
  * @brief Extra commands related to GPG
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor {
+class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor
+    : public SingletonFunctionObject<GpgCommandExecutor> {
  public:
   struct GPGFRONTEND_CORE_EXPORT ExecuteContext {
     QString cmd;
@@ -58,6 +61,8 @@ class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor {
 
   using ExecuteContexts = QContainer<ExecuteContext>;
 
+  explicit GpgCommandExecutor(int channel = kGpgFrontendDefaultChannel);
+
   /**
    * @brief Excuting a command
    *
@@ -69,6 +74,12 @@ class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor {
   static void ExecuteConcurrentlyAsync(ExecuteContexts);
 
   static void ExecuteConcurrentlySync(ExecuteContexts);
+
+  void GpgExecuteSync(const ExecuteContext &);
+
+ private:
+  GpgContext &ctx_ =
+      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
 };
 
 }  // namespace GpgFrontend

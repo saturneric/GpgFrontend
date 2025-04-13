@@ -42,6 +42,9 @@ GpgFrontend::UI::GeneralMainWindow::GeneralMainWindow(QString id,
     : QMainWindow(parent), id_(std::move(id)) {
   UIModuleManager::GetInstance().RegisterQObject(id_, this);
   slot_restore_settings();
+
+  // should delete itself at closing by default
+  setAttribute(Qt::WA_DeleteOnClose);
 }
 
 GpgFrontend::UI::GeneralMainWindow::~GeneralMainWindow() = default;

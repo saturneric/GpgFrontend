@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/model/GpgOpenPGPCard.h"
+#include "core/typedef/CoreTypedef.h"
 #include "ui/dialog/GeneralDialog.h"
 
 class Ui_SmartCardControllerDialog;
@@ -52,23 +53,44 @@ class SmartCardControllerDialog : public GeneralDialog {
    */
   void slot_refresh();
 
- private:
-  QSharedPointer<Ui_SmartCardControllerDialog> ui_;  ///<
-  int channel_;
-  QString serial_number_;
-  GpgOpenPGPCard card_info_;
-
   /**
-   * @brief Get the smart card serial number object
+   * @brief
    *
    */
-  void get_smart_card_serial_number();
+  void slot_listen_smart_card_changes();
+
+  /**
+   * @brief
+   *
+   * @param disable
+   */
+  void slot_disable_controllers(bool disable);
 
   /**
    * @brief
    *
    */
-  void fetch_smart_card_info();
+  void slot_fetch_smart_card_keys();
+
+ private:
+  QSharedPointer<Ui_SmartCardControllerDialog> ui_;  ///<
+  int channel_;
+  bool has_card_;
+  GpgOpenPGPCard card_info_;
+  QString cached_status_hash_;
+  QTimer* timer_;
+
+  /**
+   * @brief Get the smart card serial number object
+   *
+   */
+  void select_smart_card_by_serial_number(const QString& serial_number);
+
+  /**
+   * @brief
+   *
+   */
+  void fetch_smart_card_info(const QString& serial_number);
 
   /**
    * @brief
@@ -80,6 +102,26 @@ class SmartCardControllerDialog : public GeneralDialog {
    * @brief
    *
    */
-  void refresh_key_tree_view();
+  void refresh_key_tree_view(int channel);
+
+  /**
+   * @brief
+   *
+   */
+  void reset_status();
+
+  /**
+   * @brief
+   *
+   * @param attr
+   */
+  void modify_key_attribute(const QString& attr);
+
+  /**
+   * @brief
+   *
+   * @param attr
+   */
+  void modify_key_pin(const QString& pinref);
 };
 }  // namespace GpgFrontend::UI

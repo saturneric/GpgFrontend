@@ -87,16 +87,46 @@ class GpgAutomatonHandler
   explicit GpgAutomatonHandler(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
+  /**
+   * @brief
+   *
+   * @param key
+   * @param next_state_handler
+   * @param action_handler
+   * @param flags
+   * @return true
+   * @return false
+   */
   auto DoInteract(const GpgKey& key,
                   AutomatonNextStateHandler next_state_handler,
-                  AutomatonActionHandler action_handler) -> bool;
+                  AutomatonActionHandler action_handler, int flags = 0) -> bool;
+
+  /**
+   * @brief
+   *
+   * @param next_state_handler
+   * @param action_handler
+   * @return true
+   * @return false
+   */
+  auto DoCardInteract(AutomatonNextStateHandler next_state_handler,
+                      AutomatonActionHandler action_handler) -> bool;
 
  private:
-  static auto interator_cb_func(void* handle, const char* status,
-                                const char* args, int fd) -> gpgme_error_t;
-
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
+
+  /**
+   * @brief
+   *
+   * @param handle
+   * @param status
+   * @param args
+   * @param fd
+   * @return gpgme_error_t
+   */
+  static auto interator_cb_func(void* handle, const char* status,
+                                const char* args, int fd) -> gpgme_error_t;
 };
 
 using AutomatonNextStateHandler =

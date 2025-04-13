@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>858</width>
-    <height>571</height>
+    <height>713</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,11 +19,52 @@
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <item>
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Smart Card(s):</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="currentCardComboBox"/>
+         </item>
+        </layout>
+       </item>
+       <item>
         <widget class="QTextEdit" name="cardInfoEdit">
          <property name="readOnly">
           <bool>true</bool>
          </property>
         </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Key Stub(s) in Key Database(s):</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="keyDBIndexComboBox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="GpgFrontend::UI::KeyTreeView" name="cardKeysTreeView">
@@ -38,6 +79,13 @@
       </layout>
      </item>
      <item>
+      <widget class="Line" name="line">
+       <property name="orientation">
+        <enum>Qt::Orientation::Vertical</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <widget class="QGroupBox" name="groupBox">
@@ -48,16 +96,65 @@
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_2">
             <item>
-             <widget class="QPushButton" name="pushButton">
+             <widget class="QPushButton" name="cNameButton">
               <property name="text">
-               <string>Change Name of Card Holder</string>
+               <string>Change Name</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_3">
+             <widget class="QPushButton" name="cLangButton">
               <property name="text">
-               <string>Move Key to Card</string>
+               <string>Change Lanugage</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="cGenderButton">
+              <property name="text">
+               <string>Change Gender</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="cLoginDataButton">
+              <property name="text">
+               <string>Change Login Data</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="cPubKeyURLButton">
+              <property name="text">
+               <string>Change Public Key URL</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="Line" name="line_2">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="cPINButton">
+              <property name="text">
+               <string>Change PIN</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="cAdminPINButton">
+              <property name="text">
+               <string>Change Admin PIN</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="cResetCodeButton">
+              <property name="text">
+               <string>Change Reset Code</string>
               </property>
              </widget>
             </item>
@@ -73,6 +170,13 @@
                </size>
               </property>
              </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="fetchButton">
+              <property name="text">
+               <string>Fetch</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -93,7 +197,11 @@
         </spacer>
        </item>
        <item>
-        <widget class="QComboBox" name="keyDBIndexComboBox"/>
+        <widget class="QPushButton" name="restartGpgAgentButton">
+         <property name="text">
+          <string>Restart All Gpg-Agents</string>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QPushButton" name="refreshButton">

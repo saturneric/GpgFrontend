@@ -40,7 +40,7 @@
 namespace GpgFrontend::UI {
 
 ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
-    : QDialog(parent),
+    : GeneralDialog("ModuleControllerDialog", parent),
       ui_(std::make_shared<Ui_ModuleControllerDialog>()),
       module_manager_(&Module::ModuleManager::GetInstance()) {
   ui_->setupUi(this);

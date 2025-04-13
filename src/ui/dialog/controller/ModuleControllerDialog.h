@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/module/Module.h"
+#include "ui/dialog/GeneralDialog.h"
 
 class Ui_ModuleControllerDialog;
 
@@ -36,7 +37,7 @@ namespace GpgFrontend::UI {
 
 class ModuleListView;
 
-class ModuleControllerDialog : public QDialog {
+class ModuleControllerDialog : public GeneralDialog {
   Q_OBJECT
  public:
   /**

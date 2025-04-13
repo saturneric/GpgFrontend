@@ -37,6 +37,9 @@ GpgFrontend::UI::GeneralDialog::GeneralDialog(QString name, QWidget *parent)
     : QDialog(parent), name_(std::move(name)) {
   slot_restore_settings();
   connect(this, &QDialog::finished, this, &GeneralDialog::slot_save_settings);
+
+  // should delete itself at closing by default
+  setAttribute(Qt::WA_DeleteOnClose);
 }
 
 GpgFrontend::UI::GeneralDialog::~GeneralDialog() = default;
