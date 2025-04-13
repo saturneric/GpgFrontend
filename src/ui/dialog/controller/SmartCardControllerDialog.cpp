@@ -126,19 +126,11 @@ void SmartCardControllerDialog::select_smart_card_by_serial_number(
     return;
   }
 
-  auto [ret, status] = GpgAssuanHelper::GetInstance(channel_).SendStatusCommand(
-      GpgComponentType::kGPG_AGENT,
-      QString("SCD SERIALNO --demand=%1 openpgp").arg(serial_number));
-  if (!ret || status.isEmpty()) {
-    reset_status();
-    return;
-  }
-
-  auto line = status.front();
-  auto token = line.split(' ');
-
-  if (token.size() != 2) {
-    LOG_E() << "invalid response of command SERIALNO: " << line;
+  auto [ret, err] =
+      GpgSmartCardManager::GetInstance(channel_).SelectCardBySerialNumber(
+          serial_number);
+  if (!ret) {
+    LOG_E() << "select card by serial number failed: " << err;
     reset_status();
     return;
   }
@@ -153,21 +145,17 @@ void SmartCardControllerDialog::fetch_smart_card_info(
     const QString& serial_number) {
   if (!has_card_) return;
 
-  auto [ret, status] = GpgAssuanHelper::GetInstance(channel_).SendStatusCommand(
-      GpgComponentType::kGPG_AGENT, "SCD LEARN --force " + serial_number);
-  if (!ret || status.isEmpty()) {
+  auto card_info =
+      GpgSmartCardManager::GetInstance(channel_).FetchCardInfoBySerialNumber(
+          serial_number);
+  if (card_info == nullptr) {
     reset_status();
     return;
   }
 
-  card_info_ = GpgOpenPGPCard(status);
-  if (!card_info_.good) {
-    LOG_E() << "parse card raw status failed: " << status;
-    reset_status();
-    return;
-  }
-
+  card_info_ = *card_info;
   has_card_ = true;
+
   print_smart_card_info();
   slot_disable_controllers(!has_card_);
   refresh_key_tree_view(ui_->keyDBIndexComboBox->currentIndex());
@@ -369,59 +357,27 @@ void SmartCardControllerDialog::reset_status() {
 }
 
 void SmartCardControllerDialog::slot_listen_smart_card_changes() {
-  auto [r, s] = GpgAssuanHelper::GetInstance(channel_).SendStatusCommand(
-      GpgComponentType::kGPG_AGENT, "SCD SERIALNO --all");
-  if (!r) {
-    LOG_D() << "command SCD SERIALNO --all failed, resetting...";
-    ui_->currentCardComboBox->clear();
-    cached_status_hash_.clear();
-    reset_status();
-    return;
-  }
+  auto serial_numbers =
+      GpgSmartCardManager::GetInstance(channel_).GetSerialNumbers();
 
-  auto current_status_hash =
-      QCryptographicHash::hash(s.join(' ').toUtf8(), QCryptographicHash::Sha1)
-          .toHex();
+  const auto hash = QCryptographicHash::hash(serial_numbers.join(' ').toUtf8(),
+                                             QCryptographicHash::Sha1)
+                        .toHex();
   // check and skip
-  if (cached_status_hash_ == current_status_hash) return;
+  if (cached_status_hash_ == hash) return;
 
-  cached_status_hash_.clear();
   ui_->currentCardComboBox->clear();
-
-  auto [ret, status] = GpgAssuanHelper::GetInstance(channel_).SendStatusCommand(
-      GpgComponentType::kGPG_AGENT, "SCD GETINFO all_active_apps");
-  if (!r) {
-    LOG_D() << "command SCD SERIALNO --all failed, resetting...";
-    return;
-  }
-
-  int index = 0;
-  for (const auto& line : status) {
-    auto tokens = line.split(' ');
-
-    if (tokens.size() < 2 || tokens[0] != "SERIALNO") {
-      LOG_E() << "invalid response of command GETINFO all_active_apps: "
-              << line;
-      continue;
-    }
-
-    auto serial_number = tokens[1];
-
-    if (!line.contains("openpgp")) {
-      LOG_W() << "smart card: " << serial_number << "doesn't support openpgp.";
-      continue;
-    }
-
-    ui_->currentCardComboBox->insertItem(index++, serial_number);
-  }
-
-  if (ui_->currentCardComboBox->currentText().isEmpty()) {
+  if (serial_numbers.isEmpty()) {
     LOG_D() << "no inserted and supported smart card found.";
     reset_status();
     return;
   }
 
-  cached_status_hash_ = current_status_hash;
+  int index = 0;
+  for (const auto& serial_number : serial_numbers) {
+    ui_->currentCardComboBox->insertItem(index++, serial_number);
+  }
+  cached_status_hash_ = hash;
   ui_->currentCardComboBox->setCurrentIndex(0);
   select_smart_card_by_serial_number(ui_->currentCardComboBox->currentText());
 }
@@ -449,45 +405,12 @@ void SmartCardControllerDialog::slot_fetch_smart_card_keys() {
   });
 }
 
-auto PercentDataEscape(const QByteArray& data, bool plus_escape = false,
-                       const QString& prefix = QString()) -> QString {
-  QString result;
-
-  if (!prefix.isEmpty()) {
-    for (QChar ch : prefix) {
-      if (ch == '%' || ch.unicode() < 0x20) {
-        result += QString("%%%1")
-                      .arg(ch.unicode(), 2, 16, QLatin1Char('0'))
-                      .toUpper();
-      } else {
-        result += ch;
-      }
-    }
-  }
-
-  for (unsigned char ch : data) {
-    if (ch == '\0') {
-      result += "%00";
-    } else if (ch == '%') {
-      result += "%25";
-    } else if (plus_escape && ch == ' ') {
-      result += '+';
-    } else if (plus_escape && (ch < 0x20 || ch == '+')) {
-      result += QString("%%%1").arg(ch, 2, 16, QLatin1Char('0')).toUpper();
-    } else {
-      result += QLatin1Char(ch);
-    }
-  }
-
-  return result;
-}
-
 auto AskIsoDisplayName(QWidget* parent, bool* ok) -> QString {
   QString surname = QInputDialog::getText(
       parent, QObject::tr("Cardholder's Surname"),
       QObject::tr("Please enter your surname (e.g., Lee):"), QLineEdit::Normal,
       "", ok);
-  if (!*ok || surname.trimmed().isEmpty()) return QString();
+  if (!*ok || surname.trimmed().isEmpty()) return {};
 
   QString given_name = QInputDialog::getText(
       parent, QObject::tr("Cardholder's Given Name"),
@@ -503,7 +426,7 @@ auto AskIsoDisplayName(QWidget* parent, bool* ok) -> QString {
         parent, QObject::tr("Too Long"),
         QObject::tr("Combined name too long (max 39 characters)."));
     *ok = false;
-    return QString();
+    return {};
   }
 
   return iso_name;
@@ -542,45 +465,24 @@ void SmartCardControllerDialog::modify_key_attribute(const QString& attr) {
     }
   }
 
-  const auto command = QString("SCD SETATTR %1 ").arg(attr);
-  const auto escaped_command =
-      PercentDataEscape(value.trimmed().toUtf8(), true, command);
-
-  auto [r, s] = GpgAssuanHelper::GetInstance(channel_).SendStatusCommand(
-      GpgComponentType::kGPG_AGENT, escaped_command);
+  auto [r, err] =
+      GpgSmartCardManager::GetInstance(channel_).ModifyAttr(attr, value);
 
   if (!r) {
     LOG_D() << "SCD SETATTR command failed for attr" << attr;
-    QMessageBox::critical(this, tr("Failed"),
-                          tr("Failed to set attribute '%1'. The card may "
-                             "reject it or require a PIN.")
-                              .arg(attr));
+    QMessageBox::critical(
+        this, tr("Failed"),
+        tr("Failed to set attribute '%1'. Reason: %2. ").arg(attr).arg(err));
     return;
   }
-
+  QMessageBox::information(this, tr("Success"),
+                           tr("Attribute operation completed successfully."));
   fetch_smart_card_info(ui_->currentCardComboBox->currentText());
 }
 
 void SmartCardControllerDialog::modify_key_pin(const QString& pinref) {
-  if (pinref.isEmpty()) {
-    QMessageBox::warning(this, tr("Error"), tr("PIN reference is empty."));
-    return;
-  }
-
-  QString command;
-  if (pinref == "OPENPGP.1") {
-    command = "SCD PASSWD OPENPGP.1";
-  } else if (pinref == "OPENPGP.3") {
-    command = "SCD PASSWD OPENPGP.3";
-  } else if (pinref == "OPENPGP.2") {
-    command = "SCD PASSWD --reset OPENPGP.2";
-  } else {
-    command = QString("SCD PASSWD %1").arg(pinref);
-  }
-
-  auto [success, status] =
-      GpgAssuanHelper::GetInstance(channel_).SendStatusCommand(
-          GpgComponentType::kGPG_AGENT, command);
+  auto [success, err] =
+      GpgSmartCardManager::GetInstance(channel_).ModifyPin(pinref);
 
   if (!success) {
     QString message;
@@ -592,8 +494,9 @@ void SmartCardControllerDialog::modify_key_pin(const QString& pinref) {
       message = tr("Failed to change PIN.");
     }
 
+    message += tr("Reason: ") + err;
+
     QMessageBox::critical(this, tr("Error"), message);
-    LOG_E() << "assuan command failed: " << command;
     return;
   }
 
@@ -601,54 +504,5 @@ void SmartCardControllerDialog::modify_key_pin(const QString& pinref) {
                            tr("PIN operation completed successfully."));
   fetch_smart_card_info(ui_->currentCardComboBox->currentText());
 }
-
-// bool SmartCardControllerDialog::generate_card_key(const QString& keyref,
-//                                                   bool force,
-//                                                   const QString& algo,
-//                                                   QDateTime timestamp) {
-//   if (keyref.isEmpty()) {
-//     QMessageBox::warning(this, tr("Error"),
-//                          tr("Key reference cannot be empty."));
-//     return false;
-//   }
-
-//   QStringList cmd_parts;
-//   cmd_parts << "SCD GENKEY";
-
-//   if (timestamp.isValid()) {
-//     QString iso_time = timestamp.toString("yyyyMMddTHHmmss");
-//     cmd_parts << QString("--timestamp=%1").arg(iso_time);
-//   }
-
-//   if (force) {
-//     cmd_parts << "--force";
-//   }
-
-//   if (!algo.isEmpty()) {
-//     cmd_parts << QString("--algo=%1").arg(algo);
-//   }
-
-//   cmd_parts << keyref;
-
-//   const QString command = cmd_parts.join(' ');
-//   LOG_D() << "sending assuan command: " << command;
-
-//   auto [ok, status] =
-//   GpgAssuanHelper::GetInstance(channel_).SendStatusCommand(
-//       GpgComponentType::kGPG_AGENT, command);
-
-//   if (!ok) {
-//     QMessageBox::critical(this, tr("Generation Failed"),
-//                           tr("Failed to generate key for
-//                           '%1'.").arg(keyref));
-//     return false;
-//   }
-
-//   QMessageBox::information(
-//       this, tr("Success"),
-//       tr("Key generation for '%1' completed successfully.").arg(keyref));
-//   fetch_smart_card_info(ui_->currentCardComboBox->currentText());
-//   return true;
-// }
 
 }  // namespace GpgFrontend::UI

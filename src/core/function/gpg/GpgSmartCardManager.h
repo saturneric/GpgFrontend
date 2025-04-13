@@ -29,7 +29,9 @@
 #pragma once
 
 #include "core/function/basic/GpgFunctionObject.h"
+#include "core/function/gpg/GpgAssuanHelper.h"
 #include "core/function/gpg/GpgContext.h"
+#include "core/model/GpgOpenPGPCard.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
@@ -50,6 +52,28 @@ class GPGFRONTEND_CORE_EXPORT GpgSmartCardManager
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
+   * @brief Get the Serial Numbers object
+   *
+   * @return QStringList
+   */
+  auto GetSerialNumbers() -> QStringList;
+
+  /**
+   * @brief
+   *
+   * @return std::tuple<bool, QString>
+   */
+  auto SelectCardBySerialNumber(const QString&) -> std::tuple<bool, QString>;
+
+  /**
+   * @brief
+   *
+   * @return QSharedPointer<GpgOpenPGPCard>
+   */
+  auto FetchCardInfoBySerialNumber(const QString&)
+      -> QSharedPointer<GpgOpenPGPCard>;
+
+  /**
    * @brief
    *
    * @param key
@@ -64,11 +88,24 @@ class GPGFRONTEND_CORE_EXPORT GpgSmartCardManager
    *
    * @return std::tuple<bool, QString>
    */
-  auto ModifyAttr() -> std::tuple<bool, QString>;
+  auto ModifyAttr(const QString& attr,
+                  const QString& value) -> std::tuple<bool, QString>;
+
+  /**
+   * @brief
+   *
+   * @param pin_ref
+   * @return std::tuple<bool, QString>
+   */
+  auto ModifyPin(const QString& pin_ref) -> std::tuple<bool, QString>;
 
  private:
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
+  GpgAssuanHelper& assuan_ =
+      GpgAssuanHelper::GetInstance(SingletonFunctionObject::GetChannel());  ///<
+  QString cached_scd_serialno_status_hash_;
+  QContainer<QString> cache_scd_card_serial_numbers_;
 };
 
 }  // namespace GpgFrontend

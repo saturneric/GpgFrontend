@@ -82,6 +82,10 @@ struct GPGFRONTEND_CORE_EXPORT GpgOpenPGPCard {
 
   explicit GpgOpenPGPCard(const QStringList& status);
 
+  GpgOpenPGPCard(const GpgOpenPGPCard&) = default;
+
+  auto operator=(const GpgOpenPGPCard&) -> GpgOpenPGPCard& = default;
+
  private:
   /**
    * @brief
