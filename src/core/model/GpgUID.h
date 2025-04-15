@@ -28,8 +28,9 @@
 
 #pragma once
 
-#include "GpgKeySignature.h"
 #include "GpgTOFUInfo.h"
+#include "core/model/GpgKeySignature.h"
+#include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
 /**

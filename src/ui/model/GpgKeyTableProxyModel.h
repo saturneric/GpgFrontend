@@ -38,7 +38,7 @@ namespace GpgFrontend::UI {
 class GpgKeyTableProxyModel : public QSortFilterProxyModel {
   Q_OBJECT
  public:
-  using KeyFilter = std::function<bool(const GpgKey &)>;
+  using KeyFilter = std::function<bool(const GpgAbstractKey *)>;
 
   explicit GpgKeyTableProxyModel(QSharedPointer<GpgKeyTableModel> model,
                                  GpgKeyTableDisplayMode display_mode,
@@ -46,6 +46,8 @@ class GpgKeyTableProxyModel : public QSortFilterProxyModel {
                                  QObject *parent);
 
   void SetSearchKeywords(const QString &keywords);
+
+  void SetFilter(const KeyFilter &filter);
 
   void ResetGpgKeyTableModel(QSharedPointer<GpgKeyTableModel> model);
 

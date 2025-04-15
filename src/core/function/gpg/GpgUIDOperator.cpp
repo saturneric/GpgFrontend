@@ -37,29 +37,29 @@ namespace GpgFrontend {
 GpgUIDOperator::GpgUIDOperator(int channel)
     : SingletonFunctionObject<GpgUIDOperator>(channel) {}
 
-auto GpgUIDOperator::AddUID(const GpgKey& key, const QString& uid) -> bool {
+auto GpgUIDOperator::AddUID(const GpgKeyPtr& key, const QString& uid) -> bool {
   auto err = gpgme_op_adduid(ctx_.DefaultContext(),
-                             static_cast<gpgme_key_t>(key), uid.toUtf8(), 0);
+                             static_cast<gpgme_key_t>(*key), uid.toUtf8(), 0);
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
-auto GpgUIDOperator::SetPrimaryUID(const GpgKey& key,
+auto GpgUIDOperator::SetPrimaryUID(const GpgKeyPtr& key,
                                    const QString& uid) -> bool {
   auto err = CheckGpgError(gpgme_op_set_uid_flag(
-      ctx_.DefaultContext(), static_cast<gpgme_key_t>(key), uid.toUtf8(),
+      ctx_.DefaultContext(), static_cast<gpgme_key_t>(*key), uid.toUtf8(),
       "primary", nullptr));
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
-auto GpgUIDOperator::AddUID(const GpgKey& key, const QString& name,
+auto GpgUIDOperator::AddUID(const GpgKeyPtr& key, const QString& name,
                             const QString& comment,
                             const QString& email) -> bool {
   LOG_D() << "new uuid:" << name << comment << email;
   return AddUID(key, QString("%1(%2)<%3>").arg(name).arg(comment).arg(email));
 }
 
-auto GpgUIDOperator::DeleteUID(const GpgKey& key, int uid_index) -> bool {
-  if (uid_index < 2 || uid_index > static_cast<int>(key.UIDs().size())) {
+auto GpgUIDOperator::DeleteUID(const GpgKeyPtr& key, int uid_index) -> bool {
+  if (uid_index < 2 || uid_index > static_cast<int>(key->UIDs().size())) {
     LOG_W() << "illegal uid_index index: " << uid_index;
     return false;
   }
@@ -131,7 +131,7 @@ auto GpgUIDOperator::DeleteUID(const GpgKey& key, int uid_index) -> bool {
         return QString("");
       };
 
-  auto key_fpr = key.Fingerprint();
+  auto key_fpr = key->Fingerprint();
   AutomatonHandelStruct handel_struct(key_fpr);
   handel_struct.SetHandler(next_state_handler, action_handler);
 
@@ -141,10 +141,10 @@ auto GpgUIDOperator::DeleteUID(const GpgKey& key, int uid_index) -> bool {
       .DoInteract(key, next_state_handler, action_handler);
 }
 
-auto GpgUIDOperator::RevokeUID(const GpgKey& key, int uid_index,
+auto GpgUIDOperator::RevokeUID(const GpgKeyPtr& key, int uid_index,
                                int reason_code,
                                const QString& reason_text) -> bool {
-  if (uid_index < 2 || uid_index > static_cast<int>(key.UIDs().size())) {
+  if (uid_index < 2 || uid_index > static_cast<int>(key->UIDs().size())) {
     LOG_W() << "illegal uid index: " << uid_index;
     return false;
   }
@@ -253,7 +253,7 @@ auto GpgUIDOperator::RevokeUID(const GpgKey& key, int uid_index,
         return QString("");
       };
 
-  auto key_fpr = key.Fingerprint();
+  auto key_fpr = key->Fingerprint();
   AutomatonHandelStruct handel_struct(key_fpr);
   handel_struct.SetHandler(next_state_handler, action_handler);
 

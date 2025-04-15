@@ -28,12 +28,11 @@
 
 #pragma once
 
-#include "core/typedef/GpgTypedef.h"
-
 /**
  * @brief
  *
  */
+#include "core/typedef/GpgErrorTypedef.h"
 namespace GpgFrontend {
 
 /**

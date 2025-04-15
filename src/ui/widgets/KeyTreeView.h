@@ -64,6 +64,14 @@ class KeyTreeView : public QTreeView {
                        QWidget* parent = nullptr);
 
   /**
+   * @brief Get the Key By Index object
+   *
+   * @param index
+   * @return GpgAbstractKeyPtr
+   */
+  static auto GetKeyByIndex(QModelIndex index) -> GpgAbstractKeyPtr;
+
+  /**
    * @brief Get the All Checked Key Ids object
    *
    * @return KeyIdArgsList

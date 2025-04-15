@@ -62,7 +62,6 @@ void show_verify_details(QWidget* parent, InfoBoardWidget* info_board,
  */
 void ImportUnknownKeyFromKeyserver(QWidget* parent,
                                    const GpgVerifyResultAnalyse& verify_res);
-
 /**
  * @brief
  *
@@ -133,19 +132,30 @@ class CommonUtils : public QWidget {
    * @brief
    *
    */
-  void AddKey2Favorite(const QString& key_db_name, const GpgKey& key);
+  void AddKey2Favorite(const QString& key_db_name,
+                       const GpgAbstractKeyPtr& key);
 
   /**
    * @brief
    *
    */
-  void RemoveKeyFromFavorite(const QString& key_db_name, const GpgKey& key);
+  void RemoveKeyFromFavorite(const QString& key_db_name,
+                             const GpgAbstractKeyPtr& key);
 
   /**
    * @brief
    *
    */
-  void ImportKeyFromKeyServer(int channel, const KeyIdArgsList&);
+  void ImportGpgKeyFromKeyServer(int channel, const GpgKeyPtrList&);
+
+  /**
+   * @brief
+   *
+   * @param parent
+   * @param key
+   */
+  static void OpenDetailsDialogByKey(QWidget* parent, int channel,
+                                     const GpgAbstractKeyPtr& key);
 
  signals:
   /**

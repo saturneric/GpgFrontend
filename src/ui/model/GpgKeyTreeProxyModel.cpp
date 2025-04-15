@@ -28,7 +28,6 @@
 
 #include "GpgKeyTreeProxyModel.h"
 
-#include "core/function/gpg/GpgKeyGetter.h"
 #include "core/model/CacheObject.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyTreeModel.h"
@@ -83,7 +82,7 @@ auto GpgKeyTreeProxyModel::filterAcceptsRow(
     auto index = sourceModel()->index(source_row, column, sourceParent);
     infos << sourceModel()->data(index).toString();
 
-    if (!key->IsSubKey()) {
+    if (key->KeyType() != GpgAbstractKeyType::kGPG_SUBKEY) {
       for (const auto &uid : dynamic_cast<const GpgKey *>(key)->UIDs()) {
         infos << uid.GetUID();
       }

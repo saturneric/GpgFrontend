@@ -39,7 +39,8 @@ namespace GpgFrontend {
 GpgKeyManager::GpgKeyManager(int channel)
     : SingletonFunctionObject<GpgKeyManager>(channel) {}
 
-auto GpgKeyManager::SignKey(const GpgKey& target, KeyArgsList& keys,
+auto GpgKeyManager::SignKey(const GpgKeyPtr& key,
+                            const GpgAbstractKeyPtrList& keys,
                             const QString& uid,
                             const std::unique_ptr<QDateTime>& expires) -> bool {
   GpgBasicOperator::GetInstance(GetChannel()).SetSigners(keys, true);
@@ -54,13 +55,13 @@ auto GpgKeyManager::SignKey(const GpgKey& target, KeyArgsList& keys,
   }
 
   auto err = CheckGpgError(
-      gpgme_op_keysign(ctx_.DefaultContext(), static_cast<gpgme_key_t>(target),
+      gpgme_op_keysign(ctx_.DefaultContext(), static_cast<gpgme_key_t>(*key),
                        uid.toUtf8(), expires_time_t, flags));
 
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
-auto GpgKeyManager::RevSign(const GpgKey& key,
+auto GpgKeyManager::RevSign(const GpgKeyPtr& key,
                             const SignIdArgsList& signature_id) -> bool {
   auto& key_getter = GpgKeyGetter::GetInstance(GetChannel());
 
@@ -69,14 +70,14 @@ auto GpgKeyManager::RevSign(const GpgKey& key,
     assert(signing_key.IsGood());
 
     auto err = CheckGpgError(
-        gpgme_op_revsig(ctx_.DefaultContext(), gpgme_key_t(key),
+        gpgme_op_revsig(ctx_.DefaultContext(), gpgme_key_t(*key),
                         gpgme_key_t(signing_key), sign_id.second.toUtf8(), 0));
     if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return false;
   }
   return true;
 }
 
-auto GpgKeyManager::SetExpire(const GpgKey& key,
+auto GpgKeyManager::SetExpire(const GpgKeyPtr& key,
                               std::unique_ptr<GpgSubKey>& subkey,
                               std::unique_ptr<QDateTime>& expires) -> bool {
   unsigned long expires_time = 0;
@@ -88,13 +89,13 @@ auto GpgKeyManager::SetExpire(const GpgKey& key,
   if (subkey != nullptr) sub_fprs = subkey->Fingerprint().toUtf8();
 
   auto err = CheckGpgError(gpgme_op_setexpire(ctx_.DefaultContext(),
-                                              static_cast<gpgme_key_t>(key),
+                                              static_cast<gpgme_key_t>(*key),
                                               expires_time, sub_fprs, 0));
 
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
-auto GpgKeyManager::SetOwnerTrustLevel(const GpgKey& key,
+auto GpgKeyManager::SetOwnerTrustLevel(const GpgKeyPtr& key,
                                        int trust_level) -> bool {
   if (trust_level < 1 || trust_level > 5) {
     FLOG_W("illegal owner trust level: %d", trust_level);
@@ -172,9 +173,10 @@ auto GpgKeyManager::SetOwnerTrustLevel(const GpgKey& key,
       .DoInteract(key, next_state_handler, action_handler);
 }
 
-auto GpgKeyManager::DeleteSubkey(const GpgKey& key, int subkey_index) -> bool {
+auto GpgKeyManager::DeleteSubkey(const GpgKeyPtr& key,
+                                 int subkey_index) -> bool {
   if (subkey_index < 0 ||
-      subkey_index >= static_cast<int>(key.SubKeys().size())) {
+      subkey_index >= static_cast<int>(key->SubKeys().size())) {
     LOG_W() << "illegal subkey index: " << subkey_index;
     return false;
   }
@@ -246,7 +248,7 @@ auto GpgKeyManager::DeleteSubkey(const GpgKey& key, int subkey_index) -> bool {
         return QString("");
       };
 
-  auto key_fpr = key.Fingerprint();
+  auto key_fpr = key->Fingerprint();
   AutomatonHandelStruct handel_struct(key_fpr);
   handel_struct.SetHandler(next_state_handler, action_handler);
 
@@ -256,11 +258,11 @@ auto GpgKeyManager::DeleteSubkey(const GpgKey& key, int subkey_index) -> bool {
       .DoInteract(key, next_state_handler, action_handler);
 }
 
-auto GpgKeyManager::RevokeSubkey(const GpgKey& key, int subkey_index,
+auto GpgKeyManager::RevokeSubkey(const GpgKeyPtr& key, int subkey_index,
                                  int reason_code,
                                  const QString& reason_text) -> bool {
   if (subkey_index < 0 ||
-      subkey_index >= static_cast<int>(key.SubKeys().size())) {
+      subkey_index >= static_cast<int>(key->SubKeys().size())) {
     LOG_W() << "illegal subkey index: " << subkey_index;
     return false;
   }
@@ -369,7 +371,7 @@ auto GpgKeyManager::RevokeSubkey(const GpgKey& key, int subkey_index,
         return QString("");
       };
 
-  auto key_fpr = key.Fingerprint();
+  auto key_fpr = key->Fingerprint();
   AutomatonHandelStruct handel_struct(key_fpr);
   handel_struct.SetHandler(next_state_handler, action_handler);
 

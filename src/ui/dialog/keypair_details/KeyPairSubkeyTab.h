@@ -45,7 +45,7 @@ class KeyPairSubkeyTab : public QWidget {
    * @param key
    * @param parent
    */
-  KeyPairSubkeyTab(int channel, const QString& key, QWidget* parent);
+  KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent);
 
  private:
   /**
@@ -68,7 +68,7 @@ class KeyPairSubkeyTab : public QWidget {
   auto get_selected_subkey() -> const GpgSubKey&;
 
   int current_gpg_context_channel_;
-  GpgKey key_;                              ///<
+  GpgKeyPtr key_;                           ///<
   QTableWidget* subkey_list_{};             ///<
   QContainer<GpgSubKey> buffered_subkeys_;  ///<
 

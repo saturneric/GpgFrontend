@@ -28,12 +28,16 @@
 
 #include "GpgKeyTableModel.h"
 
+#include <QColor>
+
 #include "core/model/GpgKey.h"
+#include "core/model/GpgKeyGroup.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
 
-GpgKeyTableModel::GpgKeyTableModel(int channel, GpgKeyList keys,
+GpgKeyTableModel::GpgKeyTableModel(int channel,
+                                   const GpgAbstractKeyPtrList &keys,
                                    QObject *parent)
     : QAbstractTableModel(parent),
       column_headers_({tr("Select"), tr("Type"), tr("Name"),
@@ -61,6 +65,123 @@ auto GpgKeyTableModel::columnCount(const QModelIndex & /*parent*/) const
   return 11;
 }
 
+auto GpgKeyTableModel::table_data_by_gpg_key(const QModelIndex &index,
+                                             const GpgKey *key) -> QVariant {
+  switch (index.column()) {
+    case 0: {
+      return index.row();
+    }
+    case 1: {
+      QString type_sym;
+      type_sym += key->IsPrivateKey() ? "pub/sec" : "pub";
+      if (key->IsPrivateKey() && !key->IsHasMasterKey()) type_sym += "#";
+      if (key->IsHasCardKey()) type_sym += "^";
+      return type_sym;
+    }
+    case 2: {
+      return key->Name();
+    }
+    case 3: {
+      return key->Email();
+    }
+    case 4: {
+      return GetUsagesByAbstractKey(key);
+    }
+    case 5: {
+      return key->OwnerTrust();
+    }
+    case 6: {
+      return key->ID();
+    }
+    case 7: {
+      return QLocale().toString(key->CreationTime(), "yyyy-MM-dd");
+    }
+    case 8: {
+      return key->Algo();
+    }
+    case 9: {
+      return static_cast<int>(key->SubKeys().size());
+    }
+    case 10: {
+      return key->Comment();
+    }
+    default:
+      return {};
+  }
+}
+
+auto GpgKeyTableModel::table_data_by_gpg_key_group(
+    const QModelIndex &index, const GpgKeyGroup *kg) -> QVariant {
+  switch (index.column()) {
+    case 0: {
+      return index.row();
+    }
+    case 1: {
+      return "group";
+    }
+    case 2: {
+      return kg->Name();
+    }
+    case 3: {
+      return kg->Email();
+    }
+    case 4: {
+      return GetUsagesByAbstractKey(kg);
+    }
+    case 5: {
+      return "/";
+    }
+    case 6: {
+      return kg->ID();
+    }
+    case 7: {
+      return QLocale().toString(kg->CreationTime(), "yyyy-MM-dd");
+    }
+    case 8: {
+      return kg->Algo();
+    }
+    case 9: {
+      return static_cast<int>(kg->KeyIds().size());
+    }
+    case 10: {
+      return kg->Comment();
+    }
+    default:
+      return {};
+  }
+}
+
+auto GpgKeyTableModel::table_tooltip_by_gpg_key(
+    const QModelIndex & /*index*/, const GpgKey *key) const -> QVariant {
+  QStringList tooltip_lines;
+  tooltip_lines << tr("ID: %1").arg(key->ID());
+  tooltip_lines << tr("Algo: %1").arg(key->Algo());
+  tooltip_lines << tr("Usage: %1").arg(GetUsagesByAbstractKey(key));
+  tooltip_lines << tr("Trust: %1").arg(key->OwnerTrust());
+  tooltip_lines << tr("Comment: %1")
+                       .arg(key->Comment().isEmpty()
+                                ? "<" + tr("No Comment") + ">"
+                                : key->Comment());
+
+  const auto s_keys = key->SubKeys();
+  if (!s_keys.empty()) {
+    tooltip_lines << "";
+    tooltip_lines << tr("SubKeys (up to 8):");
+
+    int count = 0;
+    for (const auto &s_key : s_keys) {
+      if (count++ >= 8) break;
+      const auto usages = GetUsagesByAbstractKey(&s_key);
+      tooltip_lines << tr("  - ID: %1 | Algo: %2 | Usage: %3")
+                           .arg(s_key.ID())
+                           .arg(s_key.Algo())
+                           .arg(usages.trimmed());
+    }
+  }
+
+  return tooltip_lines.join("\n");
+}
+
 auto GpgKeyTableModel::data(const QModelIndex &index,
                             int role) const -> QVariant {
   if (!index.isValid() || cached_items_.empty()) return {};
@@ -77,47 +198,16 @@ auto GpgKeyTableModel::data(const QModelIndex &index,
   }
 
   if (role == Qt::DisplayRole) {
-    const auto key = i->Key();
+    auto *key = i->Key();
+    switch (key->KeyType()) {
+      case GpgAbstractKeyType::kGPG_KEY:
+        return table_data_by_gpg_key(index, dynamic_cast<GpgKey *>(key));
+      case GpgAbstractKeyType::kGPG_KEYGROUP:
+        return table_data_by_gpg_key_group(index,
+                                           dynamic_cast<GpgKeyGroup *>(key));
+      case GpgAbstractKeyType::kNONE:
+      case GpgAbstractKeyType::kGPG_SUBKEY:
 
-    switch (index.column()) {
-      case 0: {
-        return index.row();
-      }
-      case 1: {
-        QString type_sym;
-        type_sym += key.IsPrivateKey() ? "pub/sec" : "pub";
-        if (key.IsPrivateKey() && !key.IsHasMasterKey()) type_sym += "#";
-        if (key.IsHasCardKey()) type_sym += "^";
-        return type_sym;
-      }
-      case 2: {
-        return key.Name();
-      }
-      case 3: {
-        return key.Email();
-      }
-      case 4: {
-        return GetUsagesByKey(key);
-      }
-      case 5: {
-        return key.OwnerTrust();
-      }
-      case 6: {
-        return key.ID();
-      }
-      case 7: {
-        return QLocale().toString(key.CreationTime(), "yyyy-MM-dd");
-      }
-      case 8: {
-        return key.Algo();
-      }
-      case 9: {
-        return static_cast<int>(key.SubKeys().size());
-      }
-      case 10: {
-        return key.Comment();
-      }
-      default:
         return {};
     }
   }
@@ -138,35 +228,24 @@ auto GpgKeyTableModel::data(const QModelIndex &index,
   }
 
   if (role == Qt::ToolTipRole) {
-    const auto key = i->Key();
-
-    QStringList tooltip_lines;
-    tooltip_lines << tr("ID: %1").arg(key.ID());
-    tooltip_lines << tr("Algo: %1").arg(key.Algo());
-    tooltip_lines << tr("Usage: %1").arg(GetUsagesByKey(key));
-    tooltip_lines << tr("Trust: %1").arg(key.OwnerTrust());
-    tooltip_lines << tr("Comment: %1")
-                         .arg(key.Comment().isEmpty()
-                                  ? "<" + tr("No Comment") + ">"
-                                  : key.Comment());
-
-    const auto s_keys = key.SubKeys();
-    if (!s_keys.empty()) {
-      tooltip_lines << "";
-      tooltip_lines << tr("SubKeys (up to 8):");
-
-      int count = 0;
-      for (const auto &s_key : s_keys) {
-        if (count++ >= 8) break;
-        const auto usages = GetUsagesBySubkey(s_key);
-        tooltip_lines << tr("  - ID: %1 | Algo: %2 | Usage: %3")
-                             .arg(s_key.ID())
-                             .arg(s_key.Algo())
-                             .arg(usages.trimmed());
-      }
+    auto *const key = i->Key();
+    switch (key->KeyType()) {
+      case GpgAbstractKeyType::kGPG_KEY:
+        return table_tooltip_by_gpg_key(index, dynamic_cast<GpgKey *>(key));
+      case GpgAbstractKeyType::kNONE:
+      case GpgAbstractKeyType::kGPG_SUBKEY:
+      case GpgAbstractKeyType::kGPG_KEYGROUP:
+        return {};
     }
+  }
 
-    return tooltip_lines.join("\n");
+  if (role == Qt::BackgroundRole) {
+    auto *const key = i->Key();
+    if (key->IsDisabled()) return QColorConstants::DarkRed;
+    if (key->IsExpired() || key->IsRevoked()) {
+      return QColorConstants::DarkYellow;
+    }
+    return {};
   }
 
   return {};
@@ -194,50 +273,41 @@ auto GpgKeyTableModel::flags(const QModelIndex &index) const -> Qt::ItemFlags {
 
 auto GpgKeyTableModel::setData(const QModelIndex &index, const QVariant &value,
                                int role) -> bool {
-  if (!index.isValid()) return false;
+  if (!index.isValid() || index.column() != 0 || role != Qt::CheckStateRole) {
+    return false;
+  }
 
-  auto *i = index.isValid()
-                ? static_cast<GpgKeyTableItem *>(index.internalPointer())
-                : nullptr;
+  auto *i = static_cast<GpgKeyTableItem *>(index.internalPointer());
   if (i == nullptr) return false;
 
-  if (index.column() == 0 && role == Qt::CheckStateRole) {
-    i->SetChecked(value == Qt::Checked);
-    emit dataChanged(index, index);
-    return true;
-  }
+  const bool state = (value.toInt() == Qt::Checked);
+  if (i->Checked() == state) return false;
+  i->SetChecked(state);
 
-  return false;
+  emit dataChanged(index, index, {Qt::CheckStateRole});
+  return true;
 }
 
-auto GpgKeyTableModel::GetAllKeyIds() -> KeyIdArgsList {
-  KeyIdArgsList keys;
-  for (auto &i : cached_items_) {
-    keys.push_back(i.Key().ID());
+auto GpgKeyTableModel::GetAllKeys() const -> GpgAbstractKeyPtrList {
+  GpgAbstractKeyPtrList keys;
+  for (const auto &i : cached_items_) {
+    keys.push_back(i.SharedKey());
   }
   return keys;
-}
-
-auto GpgKeyTableModel::GetKeyIDByRow(int row) const -> QString {
-  if (cached_items_.size() <= row) return {};
-
-  return cached_items_[row].Key().ID();
-}
-
-auto GpgKeyTableModel::IsPrivateKeyByRow(int row) const -> bool {
-  if (cached_items_.size() <= row) return false;
-  return cached_items_[row].Key().IsPrivateKey();
 }
 
 auto GpgKeyTableModel::GetGpgContextChannel() const -> int {
   return gpg_context_channel_;
 }
 
-GpgKeyTableItem::GpgKeyTableItem(const GpgKey &key) : key_(key) {}
+GpgKeyTableItem::GpgKeyTableItem(GpgAbstractKeyPtr key)
+    : key_(std::move(key)) {}
 
 GpgKeyTableItem::GpgKeyTableItem(const GpgKeyTableItem &) = default;
 
-auto GpgKeyTableItem::Key() const -> GpgKey { return key_; }
+auto GpgKeyTableItem::Key() const -> GpgAbstractKey * { return key_.get(); }
+
+auto GpgKeyTableItem::SharedKey() const -> GpgAbstractKeyPtr { return key_; }
 
 void GpgKeyTableItem::SetChecked(bool checked) { checked_ = checked; }
 

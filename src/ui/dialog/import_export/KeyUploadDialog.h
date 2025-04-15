@@ -48,7 +48,7 @@ class KeyUploadDialog : public GeneralDialog {
    * @param keys_ids
    * @param parent
    */
-  explicit KeyUploadDialog(int channel, const KeyIdArgsList& keys_ids,
+  explicit KeyUploadDialog(int channel, GpgAbstractKeyPtrList keys,
                            QWidget* parent);
 
  public slots:
@@ -76,8 +76,8 @@ class KeyUploadDialog : public GeneralDialog {
 
  private:
   int current_gpg_context_channel_;
-  GpgKeyList m_keys_;      ///<
-  QByteArray m_key_data_;  ///<
+  GpgAbstractKeyPtrList keys_;  ///<
+  QByteArray m_key_data_;       ///<
 };
 
 }  // namespace GpgFrontend::UI

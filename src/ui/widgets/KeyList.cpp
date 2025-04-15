@@ -31,14 +31,31 @@
 #include <cstddef>
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/gpg/GpgAbstractKeyGetter.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/dialog/KeyGroupCreationDialog.h"
 #include "ui/dialog/import_export/KeyImportDetailDialog.h"
+
+//
 #include "ui_KeyList.h"
 
 namespace GpgFrontend::UI {
+
+KeyList::KeyList(QWidget* parent)
+    : QWidget(parent),
+      ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyList>()),
+      model_(GpgAbstractKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+                 .GetGpgKeyTableModel()),
+      global_column_filter_(static_cast<GpgKeyTableColumn>(
+          GetSettings()
+              .value("keys/global_columns_filter",
+                     static_cast<unsigned int>(GpgKeyTableColumn::kALL))
+              .toUInt())) {
+  ui_->setupUi(this);
+}
 
 KeyList::KeyList(int channel, KeyMenuAbility menu_ability,
                  GpgKeyTableColumn fixed_columns_filter, QWidget* parent)
@@ -46,19 +63,18 @@ KeyList::KeyList(int channel, KeyMenuAbility menu_ability,
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyList>()),
       current_gpg_context_channel_(channel),
       menu_ability_(menu_ability),
-      model_(GpgKeyGetter::GetInstance(channel).GetGpgKeyTableModel()),
+      model_(GpgAbstractKeyGetter::GetInstance(channel).GetGpgKeyTableModel()),
       fixed_columns_filter_(fixed_columns_filter),
       global_column_filter_(static_cast<GpgKeyTableColumn>(
           GetSettings()
               .value("keys/global_columns_filter",
                      static_cast<unsigned int>(GpgKeyTableColumn::kALL))
               .toUInt())) {
+  ui_->setupUi(this);
   init();
 }
 
 void KeyList::init() {
-  ui_->setupUi(this);
-
   ui_->menuWidget->setHidden(menu_ability_ == KeyMenuAbility::kNONE);
   ui_->refreshKeyListButton->setHidden(~menu_ability_ &
                                        KeyMenuAbility::kREFRESH);
@@ -70,6 +86,7 @@ void KeyList::init() {
   ui_->searchBarEdit->setHidden(~menu_ability_ & KeyMenuAbility::kSEARCH_BAR);
   ui_->switchContextButton->setHidden(~menu_ability_ &
                                       KeyMenuAbility::kKEY_DATABASE);
+  ui_->keyGroupButton->setHidden(~menu_ability_ & KeyMenuAbility::kKEY_GROUP);
 
   auto* gpg_context_menu = new QMenu(this);
   auto* gpg_context_groups = new QActionGroup(this);
@@ -243,6 +260,16 @@ void KeyList::init() {
     GetSettings().setValue("keys/global_columns_filter",
                            static_cast<unsigned int>(global_column_filter_));
   });
+  connect(ui_->keyGroupButton, &QPushButton::clicked, this,
+          &KeyList::slot_new_key_group);
+  connect(this, &KeyList::SignalKeyChecked, this, [=]() {
+    auto keys = GetCheckedKeys();
+
+    ui_->keyGroupButton->setDisabled(keys.empty());
+    for (const auto& key : keys) {
+      if (!key->IsHasEncrCap()) ui_->keyGroupButton->setDisabled(true);
+    }
+  });
 
   setAcceptDrops(true);
 
@@ -261,10 +288,10 @@ void KeyList::init() {
   ui_->searchBarEdit->setPlaceholderText(tr("Search for keys..."));
 }
 
-void KeyList::AddListGroupTab(const QString& name, const QString& id,
-                              GpgKeyTableDisplayMode display_mode,
-                              GpgKeyTableProxyModel::KeyFilter search_filter,
-                              GpgKeyTableColumn custom_columns_filter) {
+auto KeyList::AddListGroupTab(
+    const QString& name, const QString& id, GpgKeyTableDisplayMode display_mode,
+    GpgKeyTableProxyModel::KeyFilter search_filter,
+    GpgKeyTableColumn custom_columns_filter) -> KeyTable* {
   auto* key_table =
       new KeyTable(this, model_, display_mode, custom_columns_filter,
                    std::move(search_filter));
@@ -274,8 +301,13 @@ void KeyList::AddListGroupTab(const QString& name, const QString& id,
 
   connect(this, &KeyList::SignalColumnTypeChange, key_table,
           &KeyTable::SignalColumnTypeChange);
+  connect(key_table, &KeyTable::SignalKeyChecked, this, [=]() {
+    if (sender() != ui_->keyGroupTab->currentWidget()) return;
+    emit SignalKeyChecked();
+  });
 
   UpdateKeyTableColumnType(global_column_filter_);
+  return key_table;
 }
 
 void KeyList::SlotRefresh() {
@@ -284,7 +316,7 @@ void KeyList::SlotRefresh() {
 
   LOG_D() << "request new key table module, current gpg context channel: "
           << current_gpg_context_channel_;
-  model_ = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+  model_ = GpgAbstractKeyGetter::GetInstance(current_gpg_context_channel_)
                .GetGpgKeyTableModel();
 
   for (int i = 0; i < ui_->keyGroupTab->count(); i++) {
@@ -300,110 +332,52 @@ void KeyList::SlotRefreshUI() {
   emit SignalRefreshStatusBar(tr("Key List Refreshed."), 1000);
   ui_->refreshKeyListButton->setDisabled(false);
   ui_->syncButton->setDisabled(false);
+  emit SignalKeyChecked();
 }
 
-auto KeyList::GetChecked(const KeyTable& key_table) -> KeyIdArgsList {
-  auto ret = KeyIdArgsList{};
-  for (int i = 0; i < key_table.GetRowCount(); i++) {
-    if (key_table.IsRowChecked(i)) {
-      ret.push_back(key_table.GetKeyIdByRow(i));
-    }
+auto KeyList::GetCheckedKeys() -> GpgAbstractKeyPtrList {
+  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
+
+  assert(key_table != nullptr);
+  if (key_table == nullptr) return {};
+
+  return key_table->GetCheckedKeys();
+}
+
+auto KeyList::GetCheckedPrivateKey() -> GpgAbstractKeyPtrList {
+  auto ret = GpgAbstractKeyPtrList{};
+
+  auto keys = GetCheckedKeys();
+  for (const auto& key : keys) {
+    if (key->IsPrivateKey()) ret.push_back(key);
   }
+
   return ret;
 }
 
-auto KeyList::GetChecked() -> KeyIdArgsList {
-  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
-  auto ret = KeyIdArgsList{};
-  for (int i = 0; i < key_table->GetRowCount(); i++) {
-    if (key_table->IsRowChecked(i)) {
-      ret.push_back(key_table->GetKeyIdByRow(i));
-    }
+auto KeyList::GetCheckedPublicKey() -> GpgAbstractKeyPtrList {
+  auto ret = GpgAbstractKeyPtrList{};
+
+  auto keys = GetCheckedKeys();
+  for (const auto& key : keys) {
+    if (!key->IsPrivateKey()) ret.push_back(key);
   }
+
   return ret;
 }
 
-auto KeyList::GetCheckedKeys() -> QStringList {
-  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
-  QStringList key_id_list;
-  for (int i = 0; i < key_table->GetRowCount(); i++) {
-    if (key_table->IsRowChecked(i)) {
-      key_id_list.append(key_table->GetKeyIdByRow(i));
-    }
-  }
-  return key_id_list;
-}
-
-auto KeyList::GetAllPrivateKeys() -> KeyIdArgsList {
-  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
-  auto ret = KeyIdArgsList{};
-  for (int i = 0; i < key_table->GetRowCount(); i++) {
-    if (key_table->IsPrivateKeyByRow(i)) {
-      ret.push_back(key_table->GetKeyIdByRow(i));
-    }
-  }
-  return ret;
-}
-
-auto KeyList::GetCheckedPrivateKey() -> KeyIdArgsList {
-  auto ret = KeyIdArgsList{};
-  if (ui_->keyGroupTab->size().isEmpty()) return ret;
-
-  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
-
-  for (int i = 0; i < key_table->GetRowCount(); i++) {
-    if (key_table->IsRowChecked(i) && key_table->IsPrivateKeyByRow(i)) {
-      ret.push_back(key_table->GetKeyIdByRow(i));
-    }
-  }
-  return ret;
-}
-
-auto KeyList::GetCheckedPublicKey() -> KeyIdArgsList {
-  auto ret = KeyIdArgsList{};
-  if (ui_->keyGroupTab->size().isEmpty()) return ret;
-
-  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
-
-  for (int i = 0; i < key_table->GetRowCount(); i++) {
-    if (key_table->IsRowChecked(i) && key_table->IsPublicKeyByRow(i)) {
-      ret.push_back(key_table->GetKeyIdByRow(i));
-    }
-  }
-  return ret;
-}
-
-void KeyList::SetChecked(const KeyIdArgsList& keyIds,
+void KeyList::SetChecked(const KeyIdArgsList& key_ids,
                          const KeyTable& key_table) {
-  if (!keyIds.empty()) {
+  if (!key_ids.empty()) {
     for (int i = 0; i < key_table.GetRowCount(); i++) {
-      if (std::find(keyIds.begin(), keyIds.end(), key_table.GetKeyIdByRow(i)) !=
-          keyIds.end()) {
+      if (std::find(
+              key_ids.begin(), key_ids.end(),
+              key_table.GetKeyByIndex(key_table.model()->index(i, 0))->ID()) !=
+          key_ids.end()) {
         key_table.SetRowChecked(i);
       }
     }
   }
-}
-
-auto KeyList::GetSelected() -> KeyIdArgsList {
-  auto ret = KeyIdArgsList{};
-  if (ui_->keyGroupTab->size().isEmpty()) return ret;
-
-  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
-  if (key_table == nullptr) {
-    FLOG_W("fail to get current key table, nullptr");
-    return ret;
-  }
-
-  QItemSelectionModel* select = key_table->selectionModel();
-  for (auto index : select->selectedRows()) {
-    ret.push_back(key_table->GetKeyIdByRow(index.row()));
-  }
-
-  if (ret.empty()) {
-    FLOG_W("nothing is selected at key list");
-  }
-  return ret;
 }
 
 [[maybe_unused]] auto KeyList::ContainsPrivateKeys() -> bool {
@@ -532,24 +506,29 @@ void KeyList::import_keys(const QByteArray& in_buffer) {
   (new KeyImportDetailDialog(current_gpg_context_channel_, result, this));
 }
 
-auto KeyList::GetSelectedKey() -> QString {
-  if (ui_->keyGroupTab->size().isEmpty()) return {};
+auto KeyList::GetSelectedKey() -> GpgAbstractKeyPtr {
+  return GetSelectedKeys().front();
+}
 
-  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
+auto KeyList::GetSelectedGpgKey() -> GpgKeyPtr {
+  return GetSelectedGpgKeys().front();
+}
 
-  QItemSelectionModel* select = key_table->selectionModel();
-
-  auto selected_rows = select->selectedRows();
-  if (selected_rows.empty()) return {};
-
-  return key_table->GetKeyIdByRow(selected_rows.first().row());
+auto KeyList::GetSelectedGpgKeys() -> GpgKeyPtrList {
+  auto keys = GetSelectedKeys();
+  auto g_keys = GpgKeyPtrList{};
+  for (const auto& key : keys) {
+    if (key->KeyType() != GpgAbstractKeyType::kGPG_KEY) continue;
+    g_keys.push_back(qSharedPointerDynamicCast<GpgKey>(key));
+  }
+  return g_keys;
 }
 
 void KeyList::slot_sync_with_key_server() {
-  auto checked_public_keys = GetCheckedPublicKey();
+  auto target_keys = GetCheckedPublicKey();
 
   KeyIdArgsList key_ids;
-  if (checked_public_keys.empty()) {
+  if (target_keys.empty()) {
     QMessageBox::StandardButton const reply = QMessageBox::question(
         this, QCoreApplication::tr("Sync All Public Key"),
         QCoreApplication::tr("You have not checked any public keys that you "
@@ -559,13 +538,12 @@ void KeyList::slot_sync_with_key_server() {
 
     if (reply == QMessageBox::No) return;
 
-    auto all_key_ids = model_->GetAllKeyIds();
-    for (auto& key_id : all_key_ids) {
-      key_ids.push_back(key_id);
-    }
+    target_keys = model_->GetAllKeys();
+  }
 
-  } else {
-    key_ids = checked_public_keys;
+  for (auto& key : target_keys) {
+    if (key->KeyType() != GpgAbstractKeyType::kGPG_KEY) continue;
+    key_ids.push_back(key->ID());
   }
 
   if (key_ids.empty()) return;
@@ -633,18 +611,59 @@ auto KeyList::GetCurrentGpgContextChannel() const -> int {
   return current_gpg_context_channel_;
 }
 
-auto KeyList::GetSelectedGpgKey() -> std::tuple<bool, GpgKey> {
-  auto key_ids = GetSelected();
-  if (key_ids.empty()) return {false, GpgKey()};
+auto KeyList::GetSelectedKeys() -> GpgAbstractKeyPtrList {
+  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
 
-  auto key = GpgKeyGetter::GetInstance(GetCurrentGpgContextChannel())
-                 .GetKey(key_ids.front());
+  assert(key_table != nullptr);
+  if (key_table == nullptr) return {};
 
-  if (!key.IsGood()) {
-    QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
-    return {false, GpgKey()};
+  return key_table->GetSelectedKeys();
+}
+
+void KeyList::slot_new_key_group() {
+  auto keys = GetCheckedKeys();
+
+  QStringList proper_key_ids;
+  for (const auto& key : keys) {
+    if (!key->IsHasEncrCap()) continue;
+    proper_key_ids.append(key->ID());
   }
 
-  return {true, key};
+  if (proper_key_ids.isEmpty()) return;
+
+  auto* dialog =
+      new KeyGroupCreationDialog(current_gpg_context_channel_, proper_key_ids);
+  dialog->exec();
+}
+
+void KeyList::UpdateKeyTableFilter(
+    int index, const GpgKeyTableProxyModel::KeyFilter& filter) {
+  if (ui_->keyGroupTab->size().isEmpty() ||
+      ui_->keyGroupTab->widget(index) == nullptr) {
+    return;
+  }
+
+  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->widget(index));
+  key_table->SetFilter(filter);
+}
+
+void KeyList::RefreshKeyTable(int index) {
+  if (ui_->keyGroupTab->size().isEmpty() ||
+      ui_->keyGroupTab->widget(index) == nullptr) {
+    return;
+  }
+
+  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->widget(index));
+  key_table->RefreshProxyModel();
+}
+
+void KeyList::Init(int channel, KeyMenuAbility menu_ability,
+                   GpgKeyTableColumn fixed_column_filter) {
+  current_gpg_context_channel_ = channel;
+  menu_ability_ = menu_ability;
+  fixed_columns_filter_ = fixed_column_filter;
+  model_ = GpgAbstractKeyGetter::GetInstance(channel).GetGpgKeyTableModel();
+
+  init();
 }
 }  // namespace GpgFrontend::UI

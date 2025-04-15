@@ -28,19 +28,17 @@
 
 #include "KeyNewUIDDialog.h"
 
-#include "core/GpgModel.h"
-#include "core/function/gpg/GpgKeyGetter.h"
+#include <utility>
+
 #include "core/function/gpg/GpgUIDOperator.h"
 #include "ui/UISignalStation.h"
 
 namespace GpgFrontend::UI {
-KeyNewUIDDialog::KeyNewUIDDialog(int channel, const KeyId& key_id,
-                                 QWidget* parent)
+KeyNewUIDDialog::KeyNewUIDDialog(int channel, GpgKeyPtr key, QWidget* parent)
     : GeneralDialog(typeid(KeyNewUIDDialog).name(), parent),
       current_gpg_context_channel_(channel),
-      m_key_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
-                 .GetKey(key_id)) {
-  assert(m_key_.IsGood());
+      m_key_(std::move(key)) {
+  assert(m_key_ != nullptr);
 
   name_ = new QLineEdit();
   name_->setMinimumWidth(240);
@@ -51,7 +49,7 @@ KeyNewUIDDialog::KeyNewUIDDialog(int channel, const KeyId& key_id,
   create_button_ = new QPushButton("Create");
   error_label_ = new QLabel();
 
-  auto grid_layout = new QGridLayout();
+  auto* grid_layout = new QGridLayout();
   grid_layout->addWidget(new QLabel(tr("Name")), 0, 0);
   grid_layout->addWidget(new QLabel(tr("Email")), 1, 0);
   grid_layout->addWidget(new QLabel(tr("Comment")), 2, 0);

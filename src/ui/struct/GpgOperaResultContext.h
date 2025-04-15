@@ -48,8 +48,8 @@ struct GpgOperaContext;
 struct GpgOperaContextBasement {
   QContainer<OperaWaitingCb> operas;
   QContainer<GpgOperaResult> opera_results;
-  GpgKeyList keys;
-  GpgKeyList singer_keys;
+  GpgAbstractKeyPtrList keys;
+  GpgAbstractKeyPtrList singer_keys;
   QStringList unknown_fprs;
   bool ascii;
 

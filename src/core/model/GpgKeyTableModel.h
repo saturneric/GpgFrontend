@@ -32,10 +32,12 @@
  * @brief
  *
  */
-#include "core/model/GpgKey.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
+
+class GpgKey;
+class GpgKeyGroup;
 
 enum class GpgKeyTableColumn : unsigned int {
   kNONE = 0,
@@ -114,11 +116,23 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableItem {
  public:
   GpgKeyTableItem() = default;
 
-  explicit GpgKeyTableItem(const GpgKey &key);
+  explicit GpgKeyTableItem(GpgAbstractKeyPtr key);
 
   GpgKeyTableItem(const GpgKeyTableItem &);
 
-  [[nodiscard]] auto Key() const -> GpgKey;
+  /**
+   * @brief
+   *
+   * @return GpgAbstractKey*
+   */
+  [[nodiscard]] auto Key() const -> GpgAbstractKey *;
+
+  /**
+   * @brief
+   *
+   * @return GpgAbstractKeyPtr
+   */
+  [[nodiscard]] auto SharedKey() const -> GpgAbstractKeyPtr;
 
   /**
    * @brief
@@ -136,7 +150,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableItem {
   void SetChecked(bool);
 
  private:
-  GpgKey key_;
+  GpgAbstractKeyPtr key_;
   bool checked_;
 };
 
@@ -149,7 +163,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
    * @param keys
    * @param parent
    */
-  explicit GpgKeyTableModel(int channel, GpgKeyList keys,
+  explicit GpgKeyTableModel(int channel, const GpgAbstractKeyPtrList &keys,
                             QObject *parent = nullptr);
 
   /**
@@ -227,23 +241,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
    *
    * @return auto
    */
-  auto GetAllKeyIds() -> KeyIdArgsList;
-
-  /**
-   * @brief Get the Key ID By Row object
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto GetKeyIDByRow(int row) const -> QString;
-
-  /**
-   * @brief
-   *
-   * @param row
-   * @return true
-   * @return false
-   */
-  [[nodiscard]] auto IsPrivateKeyByRow(int row) const -> bool;
+  [[nodiscard]] auto GetAllKeys() const -> GpgAbstractKeyPtrList;
 
   /**
    * @brief
@@ -255,6 +253,15 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
  private:
   QStringList column_headers_;
   int gpg_context_channel_;
+
+  auto table_tooltip_by_gpg_key(const QModelIndex &index,
+                                const GpgKey *key) const -> QVariant;
+
+  static auto table_data_by_gpg_key(const QModelIndex &index,
+                                    const GpgKey *key) -> QVariant;
+
+  static auto table_data_by_gpg_key_group(const QModelIndex &index,
+                                          const GpgKeyGroup *kg) -> QVariant;
 
   QContainer<GpgKeyTableItem> cached_items_;
 };

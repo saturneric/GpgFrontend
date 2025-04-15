@@ -28,7 +28,6 @@
 
 #include "ui/widgets/VerifyKeyDetailBox.h"
 
-#include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/utils/CommonUtils.h"
@@ -41,7 +40,8 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(int channel,
                                        QWidget* parent)
     : QGroupBox(parent),
       current_gpg_context_channel_(channel),
-      fpr_(signature.GetFingerprint()) {
+      key_(GpgKeyGetter::GetInstance(channel).GetKeyPtr(
+          signature.GetFingerprint())) {
   auto* vbox = new QVBoxLayout();
 
   switch (gpg_err_code(signature.GetStatus())) {
@@ -58,7 +58,7 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(int channel,
       connect(import_button, &QPushButton::clicked, this,
               &VerifyKeyDetailBox::slot_import_form_key_server);
 
-      this->setTitle(tr("Key not present with id 0x") + fpr_);
+      this->setTitle(tr("Key not present with id 0x") + key_->ID());
 
       auto* grid = new QGridLayout();
 
@@ -166,27 +166,26 @@ VerifyKeyDetailBox::VerifyKeyDetailBox(int channel,
 }
 
 void VerifyKeyDetailBox::slot_import_form_key_server() {
-  CommonUtils::GetInstance()->ImportKeyFromKeyServer(
-      current_gpg_context_channel_, {fpr_});
+  CommonUtils::GetInstance()->ImportGpgKeyFromKeyServer(
+      current_gpg_context_channel_, {key_});
 }
 
 auto VerifyKeyDetailBox::create_key_info_grid(const GpgSignature& signature)
     -> QGridLayout* {
   auto* grid = new QGridLayout();
-  auto key =
-      GpgKeyGetter::GetInstance(current_gpg_context_channel_).GetKey(fpr_);
-  assert(key.IsGood());
 
-  if (!key.IsGood()) return nullptr;
+  assert(key_->IsGood());
+  if (!key_->IsGood()) return nullptr;
+
   grid->addWidget(new QLabel(tr("Signer Name") + ":"), 0, 0);
   grid->addWidget(new QLabel(tr("Signer Email") + ":"), 1, 0);
   grid->addWidget(new QLabel(tr("Key's Fingerprint") + ":"), 2, 0);
   grid->addWidget(new QLabel(tr("Valid") + ":"), 3, 0);
   grid->addWidget(new QLabel(tr("Flags") + ":"), 4, 0);
 
-  grid->addWidget(new QLabel(key.Name()), 0, 1);
-  grid->addWidget(new QLabel(key.Email()), 1, 1);
-  grid->addWidget(new QLabel(BeautifyFingerprint(fpr_)), 2, 1);
+  grid->addWidget(new QLabel(key_->Name()), 0, 1);
+  grid->addWidget(new QLabel(key_->Email()), 1, 1);
+  grid->addWidget(new QLabel(BeautifyFingerprint(key_->Fingerprint())), 2, 1);
 
   if ((signature.GetSummary() & GPGME_SIGSUM_VALID) != 0U) {
     grid->addWidget(new QLabel(tr("Fully Valid")), 3, 1);

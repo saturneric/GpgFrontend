@@ -29,9 +29,8 @@
 #include "KeyUploadDialog.h"
 
 #include <QtNetwork>
+#include <utility>
 
-#include "core/GpgModel.h"
-#include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/model/SettingsObject.h"
 #include "core/utils/BuildInfoUtils.h"
@@ -41,14 +40,13 @@
 
 namespace GpgFrontend::UI {
 
-KeyUploadDialog::KeyUploadDialog(int channel, const KeyIdArgsList& keys_ids,
+KeyUploadDialog::KeyUploadDialog(int channel, GpgAbstractKeyPtrList keys,
                                  QWidget* parent)
     : GeneralDialog(typeid(KeyUploadDialog).name(), parent),
       current_gpg_context_channel_(channel),
-      m_keys_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
-                  .GetKeys(keys_ids)) {
-  assert(std::all_of(m_keys_.begin(), m_keys_.end(),
-                     [](const auto& key) { return key.IsGood(); }));
+      keys_(std::move(keys)) {
+  assert(std::all_of(keys_.begin(), keys_.end(),
+                     [](const auto& key) { return key->IsGood(); }));
 
   auto* pb = new QProgressBar();
   pb->setRange(0, 0);
@@ -70,7 +68,7 @@ KeyUploadDialog::KeyUploadDialog(int channel, const KeyIdArgsList& keys_ids,
 
 void KeyUploadDialog::SlotUpload() {
   GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
-      .ExportKeys(m_keys_, false, true, false, false,
+      .ExportKeys(keys_, false, true, false, false,
                   [=](GpgError err, const DataObjectPtr& data_obj) {
                     if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
                       CommonUtils::RaiseMessageBox(this, err);

@@ -96,7 +96,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey : public GpgAbstractKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsSubKey() const -> bool override;
+  [[nodiscard]] auto KeyType() const -> GpgAbstractKeyType override;
 
   /**
    * @brief
@@ -105,6 +105,27 @@ class GPGFRONTEND_CORE_EXPORT GpgSubKey : public GpgAbstractKey {
    * @return false
    */
   [[nodiscard]] auto IsGood() const -> bool override;
+
+  /**
+   * @brief
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto Name() const -> QString override;
+
+  /**
+   * @brief
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto Email() const -> QString override;
+
+  /**
+   * @brief
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto Comment() const -> QString override;
 
   /**
    * @brief

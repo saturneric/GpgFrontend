@@ -29,7 +29,7 @@
 #pragma once
 
 #include "core/GpgFrontendCoreExport.h"
-#include "core/typedef/GpgTypedef.h"
+#include "core/model/GpgSignature.h"
 
 namespace GpgFrontend {
 

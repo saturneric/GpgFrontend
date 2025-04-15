@@ -28,9 +28,8 @@
 
 #include "GpgKeyOpera.h"
 
-#include "core/GpgModel.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
-#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/gpg/GpgKeyGroupGetter.h"
 #include "core/model/DataObject.h"
 #include "core/model/GpgGenerateKeyResult.h"
 #include "core/model/GpgKeyGenerateInfo.h"
@@ -49,17 +48,21 @@ GpgKeyOpera::GpgKeyOpera(int channel)
  * Delete keys
  * @param uidList key ids
  */
-void GpgKeyOpera::DeleteKeys(KeyIdArgsList key_ids) {
+void GpgKeyOpera::DeleteKeys(const GpgAbstractKeyPtrList& keys) {
   GpgError err;
-  for (const auto& tmp : key_ids) {
-    auto key = GpgKeyGetter::GetInstance(GetChannel()).GetKey(tmp);
-    if (key.IsGood()) {
+  for (const auto& key : keys) {
+    if (key->KeyType() == GpgAbstractKeyType::kGPG_KEY && key->IsGood()) {
+      auto k = qSharedPointerDynamicCast<GpgKey>(key);
       err = CheckGpgError(gpgme_op_delete_ext(
-          ctx_.DefaultContext(), static_cast<gpgme_key_t>(key),
+          ctx_.DefaultContext(), static_cast<gpgme_key_t>(*k),
           GPGME_DELETE_ALLOW_SECRET | GPGME_DELETE_FORCE));
       assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
     } else {
-      LOG_W() << "GpgKeyOpera DeleteKeys get key failed: " << tmp;
+      LOG_W() << "GpgKeyOpera DeleteKeys get key failed: " << key->ID();
+    }
+
+    if (key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP) {
+      GpgKeyGroupGetter::GetInstance(GetChannel()).Remove(key->ID());
     }
   }
 }
@@ -72,7 +75,7 @@ void GpgKeyOpera::DeleteKeys(KeyIdArgsList key_ids) {
  * @param expires date and time
  * @return if successful
  */
-auto GpgKeyOpera::SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
+auto GpgKeyOpera::SetExpire(const GpgKeyPtr& key, const SubkeyId& subkey_fpr,
                             std::unique_ptr<QDateTime>& expires) -> GpgError {
   unsigned long expires_time = 0;
 
@@ -81,15 +84,15 @@ auto GpgKeyOpera::SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
   }
 
   GpgError err;
-  if (key.Fingerprint() == subkey_fpr || subkey_fpr.isEmpty()) {
-    err =
-        gpgme_op_setexpire(ctx_.DefaultContext(), static_cast<gpgme_key_t>(key),
-                           expires_time, nullptr, 0);
+  if (key->Fingerprint() == subkey_fpr || subkey_fpr.isEmpty()) {
+    err = gpgme_op_setexpire(ctx_.DefaultContext(),
+                             static_cast<gpgme_key_t>(*key), expires_time,
+                             nullptr, 0);
     assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
   } else {
-    err =
-        gpgme_op_setexpire(ctx_.DefaultContext(), static_cast<gpgme_key_t>(key),
-                           expires_time, subkey_fpr.toUtf8(), 0);
+    err = gpgme_op_setexpire(ctx_.DefaultContext(),
+                             static_cast<gpgme_key_t>(*key), expires_time,
+                             subkey_fpr.toUtf8(), 0);
     assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
   }
 
@@ -102,7 +105,7 @@ auto GpgKeyOpera::SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
  * @param outputFileName out file name(path)
  * @return the process doing this job
  */
-void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
+void GpgKeyOpera::GenerateRevokeCert(const GpgKeyPtr& key,
                                      const QString& output_path,
                                      int revocation_reason_code,
                                      const QString& revocation_reason_text) {
@@ -119,7 +122,7 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKey& key,
   GpgCommandExecutor::ExecuteSync(
       {app_path,
        QStringList{"--command-fd", "0", "--status-fd", "1", "--no-tty", "-o",
-                   output_path, "--gen-revoke", key.Fingerprint()},
+                   output_path, "--gen-revoke", key->Fingerprint()},
        [=](int exit_code, const QString& p_out, const QString& p_err) {
          if (exit_code != 0) {
            LOG_W() << "gnupg gen revoke execute error, process stderr: "
@@ -226,7 +229,7 @@ auto GpgKeyOpera::GenerateKeySync(const QSharedPointer<KeyGenerateInfo>& params)
       "gpgme_op_createkey", "2.1.0");
 }
 
-auto GenerateSubKeyImpl(GpgContext& ctx, const GpgKey& key,
+auto GenerateSubKeyImpl(GpgContext& ctx, const GpgKeyPtr& key,
                         const QSharedPointer<KeyGenerateInfo>& params,
                         const DataObjectPtr& data_object) -> GpgError {
   if (params == nullptr || params->GetAlgo() == KeyGenerateInfo::kNoneAlgo ||
@@ -246,11 +249,12 @@ auto GenerateSubKeyImpl(GpgContext& ctx, const GpgKey& key,
   if (params->IsNonExpired()) flags |= GPGME_CREATE_NOEXPIRE;
   if (params->IsNoPassPhrase()) flags |= GPGME_CREATE_NOPASSWD;
 
-  LOG_D() << "subkey generation args: " << key.ID() << algo << expires << flags;
+  LOG_D() << "subkey generation args: " << key->ID() << algo << expires
+          << flags;
 
-  auto err =
-      gpgme_op_createsubkey(ctx.DefaultContext(), static_cast<gpgme_key_t>(key),
-                            algo.toLatin1(), 0, expires, flags);
+  auto err = gpgme_op_createsubkey(ctx.DefaultContext(),
+                                   static_cast<gpgme_key_t>(*key),
+                                   algo.toLatin1(), 0, expires, flags);
   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
     data_object->Swap({GpgGenerateKeyResult{}});
     return err;
@@ -261,7 +265,7 @@ auto GenerateSubKeyImpl(GpgContext& ctx, const GpgKey& key,
   return CheckGpgError(err);
 }
 
-void GpgKeyOpera::GenerateSubkey(const GpgKey& key,
+void GpgKeyOpera::GenerateSubkey(const GpgKeyPtr& key,
                                  const QSharedPointer<KeyGenerateInfo>& params,
                                  const GpgOperationCallback& callback) {
   RunGpgOperaAsync(
@@ -272,7 +276,7 @@ void GpgKeyOpera::GenerateSubkey(const GpgKey& key,
 }
 
 auto GpgKeyOpera::GenerateSubkeySync(
-    const GpgKey& key, const QSharedPointer<KeyGenerateInfo>& params)
+    const GpgKeyPtr& key, const QSharedPointer<KeyGenerateInfo>& params)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       [=](const DataObjectPtr& data_object) -> GpgError {
@@ -291,8 +295,8 @@ auto GenerateKeyWithSubkeyImpl(GpgContext& ctx, GpgKeyGetter& key_getter,
   if (!data_object->Check<GpgGenerateKeyResult>()) return GPG_ERR_CANCELED;
 
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
-  auto key = key_getter.GetKey(result.GetFingerprint());
-  if (!key.IsGood()) {
+  auto key = key_getter.GetKeyPtr(result.GetFingerprint());
+  if (key == nullptr) {
     LOG_W() << "cannot get key which has been generated, fpr: "
             << result.GetFingerprint();
     return GPG_ERR_CANCELED;
@@ -332,18 +336,18 @@ auto GpgKeyOpera::GenerateKeyWithSubkeySync(
       "gpgme_op_createkey&gpgme_op_createsubkey", "2.1.0");
 }
 
-void GpgKeyOpera::ModifyPassword(const GpgKey& key,
+void GpgKeyOpera::ModifyPassword(const GpgKeyPtr& key,
                                  const GpgOperationCallback& callback) {
   RunGpgOperaAsync(
       [&key, &ctx = ctx_](const DataObjectPtr&) -> GpgError {
         return gpgme_op_passwd(ctx.DefaultContext(),
-                               static_cast<gpgme_key_t>(key), 0);
+                               static_cast<gpgme_key_t>(*key), 0);
       },
       callback, "gpgme_op_passwd", "2.0.15");
 }
 
 auto GpgKeyOpera::ModifyTOFUPolicy(
-    const GpgKey& key, gpgme_tofu_policy_t tofu_policy) -> GpgError {
+    const GpgKeyPtr& key, gpgme_tofu_policy_t tofu_policy) -> GpgError {
   const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gnupg_version", QString{"2.0.0"});
   LOG_D() << "got gnupg version from rt: " << gnupg_version;
@@ -354,26 +358,22 @@ auto GpgKeyOpera::ModifyTOFUPolicy(
   }
 
   auto err = gpgme_op_tofu_policy(ctx_.DefaultContext(),
-                                  static_cast<gpgme_key_t>(key), tofu_policy);
+                                  static_cast<gpgme_key_t>(*key), tofu_policy);
   return CheckGpgError(err);
 }
 
-void GpgKeyOpera::DeleteKey(const KeyId& key_id) {
-  auto keys = KeyIdArgsList{};
-  keys.push_back(key_id);
-  DeleteKeys(keys);
-}
+void GpgKeyOpera::DeleteKey(const GpgAbstractKeyPtr& key) { DeleteKeys({key}); }
 
-auto AddADSKImpl(GpgContext& ctx, const GpgKey& key, const GpgSubKey& adsk,
+auto AddADSKImpl(GpgContext& ctx, const GpgKeyPtr& key, const GpgSubKey& adsk,
                  const DataObjectPtr& data_object) -> GpgError {
   auto algo = adsk.Fingerprint();
   unsigned int flags = GPGME_CREATE_ADSK;
 
-  LOG_D() << "add adsk args: " << key.ID() << algo;
+  LOG_D() << "add adsk args: " << key->ID() << algo;
 
-  auto err =
-      gpgme_op_createsubkey(ctx.DefaultContext(), static_cast<gpgme_key_t>(key),
-                            algo.toLatin1(), 0, 0, flags);
+  auto err = gpgme_op_createsubkey(ctx.DefaultContext(),
+                                   static_cast<gpgme_key_t>(*key),
+                                   algo.toLatin1(), 0, 0, flags);
   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
     data_object->Swap({GpgGenerateKeyResult{}});
     return err;
@@ -384,7 +384,7 @@ auto AddADSKImpl(GpgContext& ctx, const GpgKey& key, const GpgSubKey& adsk,
   return CheckGpgError(err);
 }
 
-void GpgKeyOpera::AddADSK(const GpgKey& key, const GpgSubKey& adsk,
+void GpgKeyOpera::AddADSK(const GpgKeyPtr& key, const GpgSubKey& adsk,
                           const GpgOperationCallback& callback) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
@@ -393,7 +393,7 @@ void GpgKeyOpera::AddADSK(const GpgKey& key, const GpgSubKey& adsk,
       callback, "gpgme_op_createsubkey", "2.4.1");
 }
 
-auto GpgKeyOpera::AddADSKSync(const GpgKey& key, const GpgSubKey& adsk)
+auto GpgKeyOpera::AddADSKSync(const GpgKeyPtr& key, const GpgSubKey& adsk)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       [=](const DataObjectPtr& data_object) -> GpgError {

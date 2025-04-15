@@ -68,9 +68,9 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
    * @param ascii
    * @return std::tuple<GpgError, GFBuffer>
    */
-  [[nodiscard]] auto ExportKey(const GpgKey& key, bool secret, bool ascii,
-                               bool shortest, bool ssh_mode = false) const
-      -> std::tuple<GpgError, GFBuffer>;
+  [[nodiscard]] auto ExportKey(
+      const GpgAbstractKeyPtr& key, bool secret, bool ascii, bool shortest,
+      bool ssh_mode = false) const -> std::tuple<GpgError, GFBuffer>;
 
   /**
    * @brief
@@ -91,7 +91,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
    * @return true
    * @return false
    */
-  void ExportKeys(const KeyArgsList& keys, bool secret, bool ascii,
+  void ExportKeys(const GpgAbstractKeyPtrList& keys, bool secret, bool ascii,
                   bool shortest, bool ssh_mode,
                   const GpgOperationCallback& cb) const;
 
@@ -103,7 +103,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
    * @param ascii
    * @param cb
    */
-  void ExportAllKeys(const KeyArgsList& keys, bool secret, bool ascii,
+  void ExportAllKeys(const GpgAbstractKeyPtrList& keys, bool secret, bool ascii,
                      const GpgOperationCallback& cb) const;
 
  private:

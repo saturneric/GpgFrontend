@@ -72,21 +72,18 @@ auto GpgKeyImportExporter::ImportKey(const GFBuffer& in_buffer)
  * @param outBuffer output byte array
  * @return if success
  */
-auto GpgKeyImportExporter::ExportKey(const GpgKey& key, bool secret, bool ascii,
-                                     bool shortest, bool ssh_mode) const
-    -> std::tuple<GpgError, GFBuffer> {
-  if (!key.IsGood()) return {GPG_ERR_CANCELED, {}};
+auto GpgKeyImportExporter::ExportKey(
+    const GpgAbstractKeyPtr& key, bool secret, bool ascii, bool shortest,
+    bool ssh_mode) const -> std::tuple<GpgError, GFBuffer> {
+  if (key == nullptr) return {GPG_ERR_CANCELED, {}};
 
   int mode = 0;
   if (secret) mode |= GPGME_EXPORT_MODE_SECRET;
   if (shortest) mode |= GPGME_EXPORT_MODE_MINIMAL;
   if (ssh_mode) mode |= GPGME_EXPORT_MODE_SSH;
 
-  QContainer<gpgme_key_t> keys_array;
-
-  // Last entry data_in array has to be nullptr
-  keys_array.push_back(static_cast<gpgme_key_t>(key));
-  keys_array.push_back(nullptr);
+  QContainer<gpgme_key_t> keys_array =
+      Convert2RawGpgMEKeyList(GetChannel(), {key});
 
   GpgData data_out;
   auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
@@ -102,8 +99,9 @@ auto GpgKeyImportExporter::ExportKey(const GpgKey& key, bool secret, bool ascii,
  * @param outBuffer output byte array
  * @return if success
  */
-void GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys, bool secret,
-                                      bool ascii, bool shortest, bool ssh_mode,
+void GpgKeyImportExporter::ExportKeys(const GpgAbstractKeyPtrList& keys,
+                                      bool secret, bool ascii, bool shortest,
+                                      bool ssh_mode,
                                       const GpgOperationCallback& cb) const {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
@@ -114,7 +112,7 @@ void GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys, bool secret,
         if (shortest) mode |= GPGME_EXPORT_MODE_MINIMAL;
         if (ssh_mode) mode |= GPGME_EXPORT_MODE_SSH;
 
-        QContainer<gpgme_key_t> keys_array(keys.begin(), keys.end());
+        auto keys_array = Convert2RawGpgMEKeyList(GetChannel(), keys);
 
         // Last entry data_in array has to be nullptr
         keys_array.push_back(nullptr);
@@ -136,15 +134,15 @@ void GpgKeyImportExporter::ExportKeys(const KeyArgsList& keys, bool secret,
  * @param outBuffer output byte array
  * @return if success
  */
-void GpgKeyImportExporter::ExportAllKeys(const KeyArgsList& keys, bool secret,
-                                         bool ascii,
+void GpgKeyImportExporter::ExportAllKeys(const GpgAbstractKeyPtrList& keys,
+                                         bool secret, bool ascii,
                                          const GpgOperationCallback& cb) const {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) -> GpgError {
         if (keys.empty()) return GPG_ERR_CANCELED;
 
         int mode = 0;
-        QContainer<gpgme_key_t> keys_array(keys.begin(), keys.end());
+        auto keys_array = Convert2RawGpgMEKeyList(GetChannel(), keys);
 
         // Last entry data_in array has to be nullptr
         keys_array.push_back(nullptr);

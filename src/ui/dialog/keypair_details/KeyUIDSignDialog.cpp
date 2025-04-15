@@ -28,22 +28,21 @@
 
 #include "KeyUIDSignDialog.h"
 
-#include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/widgets/KeyList.h"
 
 namespace GpgFrontend::UI {
 
-KeyUIDSignDialog::KeyUIDSignDialog(int channel, const GpgKey& key,
+KeyUIDSignDialog::KeyUIDSignDialog(int channel, const GpgKeyPtr& key,
                                    const QString& uid, QWidget* parent)
     : GeneralDialog(typeid(KeyUIDSignDialog).name(), parent),
       current_gpg_context_channel_(channel),
       m_uid_(uid),
       m_key_(key) {
-  assert(m_key_.IsGood());
+  assert(m_key_ != nullptr);
+  const auto key_id = m_key_->ID();
 
-  const auto key_id = m_key_.ID();
   m_key_list_ = new KeyList(
       channel, KeyMenuAbility::kCOLUMN_FILTER | KeyMenuAbility::kSEARCH_BAR,
       GpgKeyTableColumn::kNAME | GpgKeyTableColumn::kEMAIL_ADDRESS |
@@ -51,10 +50,11 @@ KeyUIDSignDialog::KeyUIDSignDialog(int channel, const GpgKey& key,
       this);
   m_key_list_->AddListGroupTab(
       tr("Signers"), "signers", GpgKeyTableDisplayMode::kPRIVATE_KEY,
-      [key_id](const GpgKey& key) -> bool {
-        return !(key.IsDisabled() || !key.IsHasCertCap() ||
-                 !key.IsHasMasterKey() || key.IsExpired() || key.IsRevoked() ||
-                 key_id == key.ID());
+      [key_id](const GpgAbstractKey* key) -> bool {
+        if (key->KeyType() != GpgAbstractKeyType::kGPG_KEY) return false;
+        return !(key->IsDisabled() || !key->IsHasCertCap() ||
+                 !dynamic_cast<const GpgKey*>(key)->IsHasMasterKey() ||
+                 key->IsExpired() || key->IsRevoked() || key_id == key->ID());
       });
   m_key_list_->SlotRefresh();
 
@@ -103,13 +103,11 @@ KeyUIDSignDialog::KeyUIDSignDialog(int channel, const GpgKey& key,
           &UISignalStation::SignalKeyDatabaseRefresh);
 }
 
-void KeyUIDSignDialog::slot_sign_key(bool clicked) {
+void KeyUIDSignDialog::slot_sign_key(bool) {
   // Set Signers
-  auto key_ids = m_key_list_->GetChecked();
-  auto keys =
-      GpgKeyGetter::GetInstance(current_gpg_context_channel_).GetKeys(key_ids);
+  auto keys = m_key_list_->GetSelectedKeys();
   assert(std::all_of(keys.begin(), keys.end(),
-                     [](const auto& key) { return key.IsGood(); }));
+                     [](const auto& key) { return key->IsGood(); }));
 
   auto expires = std::make_unique<QDateTime>(expires_edit_->dateTime());
 

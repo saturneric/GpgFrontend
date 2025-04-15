@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/model/GpgKey.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend::UI {
 
@@ -68,7 +69,7 @@ class KeyPairDetailTab : public QWidget {
 
  private:
   int current_gpg_context_channel_;
-  GpgKey key_;  ///<
+  GpgKeyPtr key_;  ///<
 
   QGroupBox* owner_box_;        ///< Groupbox containing owner information
   QGroupBox* key_box_;          ///< Groupbox containing key information
@@ -103,7 +104,7 @@ class KeyPairDetailTab : public QWidget {
    * @param key_id
    * @param parent
    */
-  explicit KeyPairDetailTab(int channel, const QString& key_id,
+  explicit KeyPairDetailTab(int channel, GpgKeyPtr key,
                             QWidget* parent = nullptr);
 };
 

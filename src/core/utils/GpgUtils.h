@@ -151,11 +151,31 @@ auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseName(int channel) -> QString;
 /**
  * @brief
  *
+ * @param channel
+ * @param keys
+ * @return KeyIdArgsList
+ */
+auto GPGFRONTEND_CORE_EXPORT ConvertKey2GpgKeyIdList(
+    int channel, const GpgAbstractKeyPtrList& keys) -> KeyIdArgsList;
+
+/**
+ * @brief
+ *
+ * @param channel
+ * @param keys
+ * @return GpgKeyPtrList
+ */
+auto GPGFRONTEND_CORE_EXPORT ConvertKey2GpgKeyList(
+    int channel, const GpgAbstractKeyPtrList& keys) -> GpgKeyPtrList;
+
+/**
+ * @brief
+ *
  * @param keys
  * @return QContainer<gpgme_key_t>
  */
 auto GPGFRONTEND_CORE_EXPORT Convert2RawGpgMEKeyList(
-    const QContainer<GpgKey>& keys) -> QContainer<gpgme_key_t>;
+    int channel, const GpgAbstractKeyPtrList& keys) -> QContainer<gpgme_key_t>;
 
 /**
  * @brief
@@ -163,15 +183,8 @@ auto GPGFRONTEND_CORE_EXPORT Convert2RawGpgMEKeyList(
  * @param key
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetUsagesByKey(const GpgKey& key) -> QString;
-
-/**
- * @brief
- *
- * @param key
- * @return QString
- */
-auto GPGFRONTEND_CORE_EXPORT GetUsagesBySubkey(const GpgSubKey& key) -> QString;
+auto GPGFRONTEND_CORE_EXPORT GetUsagesByAbstractKey(const GpgAbstractKey* key)
+    -> QString;
 
 /**
  * @brief
@@ -181,4 +194,12 @@ auto GPGFRONTEND_CORE_EXPORT GetUsagesBySubkey(const GpgSubKey& key) -> QString;
 auto GPGFRONTEND_CORE_EXPORT GetGpgKeyByGpgAbstractKey(GpgAbstractKey*)
     -> GpgKey;
 
+/**
+ * @brief
+ *
+ * @param id
+ * @return true
+ * @return false
+ */
+auto GPGFRONTEND_CORE_EXPORT IsKeyGroupID(const KeyId& id) -> bool;
 }  // namespace GpgFrontend

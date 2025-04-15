@@ -29,6 +29,7 @@
 #pragma once
 
 #include "GpgResultAnalyse.h"
+#include "core/model/GpgSignature.h"
 #include "core/model/GpgVerifyResult.h"
 
 namespace GpgFrontend {

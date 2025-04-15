@@ -30,11 +30,22 @@
 
 namespace GpgFrontend {
 
+enum class GpgAbstractKeyType : unsigned int {
+  kNONE = 0,
+  kGPG_KEY,
+  kGPG_SUBKEY,
+  kGPG_KEYGROUP,
+};
+
 class GpgAbstractKey {
  public:
   [[nodiscard]] virtual auto ID() const -> QString = 0;
   [[nodiscard]] virtual auto Fingerprint() const -> QString = 0;
-  [[nodiscard]] virtual auto IsSubKey() const -> bool = 0;
+  [[nodiscard]] virtual auto KeyType() const -> GpgAbstractKeyType = 0;
+
+  [[nodiscard]] virtual auto Name() const -> QString = 0;
+  [[nodiscard]] virtual auto Email() const -> QString = 0;
+  [[nodiscard]] virtual auto Comment() const -> QString = 0;
 
   [[nodiscard]] virtual auto IsPrivateKey() const -> bool = 0;
   [[nodiscard]] virtual auto IsHasEncrCap() const -> bool = 0;
@@ -53,6 +64,10 @@ class GpgAbstractKey {
   //
 
   [[nodiscard]] auto IsPrimaryKey() const -> bool { return IsHasCertCap(); }
+
+  [[nodiscard]] virtual auto UID() const -> QString {
+    return QString("%1(%2)<%3>").arg(Name()).arg(Comment()).arg(Email());
+  };
 
   auto operator==(const GpgAbstractKey& o) const -> bool {
     return ID() == o.ID();

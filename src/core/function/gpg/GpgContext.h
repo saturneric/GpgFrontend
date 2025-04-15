@@ -71,6 +71,8 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
 
   auto DefaultContext() -> gpgme_ctx_t;
 
+  [[nodiscard]] auto KeyDBName() const -> QString;
+
   [[nodiscard]] auto HomeDirectory() const -> QString;
 
   [[nodiscard]] auto ComponentDirectory(GpgComponentType) const -> QString;

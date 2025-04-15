@@ -222,6 +222,13 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTreeItem {
    */
   [[nodiscard]] auto Key() const -> GpgAbstractKey *;
 
+  /**
+   * @brief
+   *
+   * @return GpgAbstractKeyPtr
+   */
+  [[nodiscard]] auto SharedKey() const -> GpgAbstractKeyPtr;
+
  private:
   QContainer<QSharedPointer<GpgKeyTreeItem>> children_;
   QVariantList data_;

@@ -121,31 +121,6 @@ class KeyMgmt : public GeneralMainWindow {
   void SignalKeyStatusUpdated();
 
  private:
-  /**
-   * @brief Create a menus object
-   *
-   */
-  void create_menus();
-
-  /**
-   * @brief Create a actions object
-   *
-   */
-  void create_actions();
-
-  /**
-   * @brief Create a tool bars object
-   *
-   */
-  void create_tool_bars();
-
-  /**
-   * @brief
-   *
-   * @param uidList
-   */
-  void delete_keys_with_warning(KeyIdArgsList uid_list);
-
   KeyList* key_list_;           ///<
   QMenu* file_menu_{};          ///<
   QMenu* key_menu_{};           ///<
@@ -169,6 +144,31 @@ class KeyMgmt : public GeneralMainWindow {
   QAction* close_act_{};                         ///<
   QAction* show_key_details_act_{};              ///<
   QAction* set_owner_trust_of_key_act_{};
+
+  /**
+   * @brief Create a menus object
+   *
+   */
+  void create_menus();
+
+  /**
+   * @brief Create a actions object
+   *
+   */
+  void create_actions();
+
+  /**
+   * @brief Create a tool bars object
+   *
+   */
+  void create_tool_bars();
+
+  /**
+   * @brief
+   *
+   * @param uidList
+   */
+  void delete_keys_with_warning(const GpgAbstractKeyPtrList& keys);
 };
 
 }  // namespace GpgFrontend::UI

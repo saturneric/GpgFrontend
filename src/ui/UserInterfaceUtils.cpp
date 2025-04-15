@@ -32,7 +32,7 @@
 
 #include "core/GpgConstants.h"
 #include "core/function/CoreSignalStation.h"
-#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/gpg/GpgAbstractKeyGetter.h"
 #include "core/model/CacheObject.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/model/SettingsObject.h"
@@ -44,12 +44,14 @@
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
-#include "thread/KeyServerImportTask.h"
 #include "ui/UISignalStation.h"
+#include "ui/dialog/KeyGroupManageDialog.h"
 #include "ui/dialog/WaitingDialog.h"
 #include "ui/dialog/controller/GnuPGControllerDialog.h"
 #include "ui/dialog/import_export/KeyServerImportDialog.h"
+#include "ui/dialog/keypair_details/KeyDetailsDialog.h"
 #include "ui/struct/settings_object/KeyServerSO.h"
+#include "ui/thread/KeyServerImportTask.h"
 
 namespace GpgFrontend::UI {
 
@@ -450,7 +452,7 @@ void CommonUtils::slot_update_key_status() {
         // flush key cache for all GpgKeyGetter Intances.
         for (const auto &channel_id : GpgContext::GetAllChannelId()) {
           LOG_D() << "refreshing key database at channel: " << channel_id;
-          GpgKeyGetter::GetInstance(channel_id).FlushKeyCache();
+          GpgAbstractKeyGetter::GetInstance(channel_id).FlushCache();
         }
         LOG_D() << "refreshing key database at all channel done";
         return 0;
@@ -509,7 +511,7 @@ auto CommonUtils::KeyExistsInFavoriteList(const QString &key_db_name,
 }
 
 void CommonUtils::AddKey2Favorite(const QString &key_db_name,
-                                  const GpgKey &key) {
+                                  const GpgAbstractKeyPtr &key) {
   {
     auto json_data = CacheObject("all_favorite_key_pairs");
     auto cache_obj = AllFavoriteKeyPairsCO(json_data.object());
@@ -519,7 +521,7 @@ void CommonUtils::AddKey2Favorite(const QString &key_db_name,
     }
 
     auto &key_ids = cache_obj.key_dbs[key_db_name].key_ids;
-    if (!key_ids.contains(key.ID())) key_ids.append(key.ID());
+    if (!key_ids.contains(key->ID())) key_ids.append(key->ID());
 
     json_data.setObject(cache_obj.ToJson());
     LOG_D() << "current favorite key pairs: " << json_data;
@@ -529,7 +531,7 @@ void CommonUtils::AddKey2Favorite(const QString &key_db_name,
 }
 
 void CommonUtils::RemoveKeyFromFavorite(const QString &key_db_name,
-                                        const GpgKey &key) {
+                                        const GpgAbstractKeyPtr &key) {
   {
     auto json_data = CacheObject("all_favorite_key_pairs");
     auto cache_obj = AllFavoriteKeyPairsCO(json_data.object());
@@ -538,7 +540,7 @@ void CommonUtils::RemoveKeyFromFavorite(const QString &key_db_name,
 
     QMutableListIterator<QString> i(cache_obj.key_dbs[key_db_name].key_ids);
     while (i.hasNext()) {
-      if (i.next() == key.ID()) i.remove();
+      if (i.next() == key->ID()) i.remove();
     }
     json_data.setObject(cache_obj.ToJson());
     LOG_D() << "current favorite key pairs: " << json_data;
@@ -551,10 +553,15 @@ void CommonUtils::RemoveKeyFromFavorite(const QString &key_db_name,
  * @brief
  *
  */
-void CommonUtils::ImportKeyFromKeyServer(int channel,
-                                         const KeyIdArgsList &key_ids) {
+void CommonUtils::ImportGpgKeyFromKeyServer(int channel,
+                                            const GpgKeyPtrList &keys) {
   KeyServerSO key_server(SettingsObject("key_server"));
   auto target_keyserver = key_server.GetTargetServer();
+
+  QStringList key_ids;
+  for (const auto &key : keys) {
+    key_ids.push_back(key->ID());
+  }
 
   auto *task = new KeyServerImportTask(target_keyserver, channel, key_ids);
   connect(task, &KeyServerImportTask::SignalKeyServerImportResult, this,
@@ -619,4 +626,26 @@ void CommonUtils::ImportKeyByKeyServerSyncModule(QWidget *parent, int channel,
             QString("key_%1_import_task").arg(fpr)));
   }
 }
+
+void CommonUtils::OpenDetailsDialogByKey(QWidget *parent, int channel,
+                                         const GpgAbstractKeyPtr &key) {
+  if (key == nullptr) {
+    QMessageBox::critical(parent, tr("Error"), tr("Key Not Found."));
+    return;
+  }
+
+  switch (key->KeyType()) {
+    case GpgAbstractKeyType::kGPG_KEY:
+      new KeyDetailsDialog(channel, qSharedPointerDynamicCast<GpgKey>(key),
+                           parent);
+      break;
+    case GpgAbstractKeyType::kGPG_KEYGROUP:
+      new KeyGroupManageDialog(
+          channel, qSharedPointerDynamicCast<GpgKeyGroup>(key), parent);
+    case GpgAbstractKeyType::kNONE:
+    case GpgAbstractKeyType::kGPG_SUBKEY:
+      break;
+  }
+}
+
 }  // namespace GpgFrontend::UI

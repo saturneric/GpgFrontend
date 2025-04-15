@@ -189,6 +189,8 @@ class GpgContext::Impl {
     return component_dirs_.value(component_type_to_q_string(type), "");
   }
 
+  [[nodiscard]] auto KeyDBName() const -> QString { return db_name_; }
+
  private:
   GpgContext *parent_;
   GpgContextInitArgs args_{};             ///<
@@ -199,6 +201,7 @@ class GpgContext::Impl {
   std::mutex ctx_ref_lock_;
   std::mutex binary_ctx_ref_lock_;
 
+  QString db_name_;
   QString gpgconf_path_;
   QString database_path_;
   QMap<QString, QString> component_dirs_;
@@ -250,6 +253,7 @@ class GpgContext::Impl {
     // set custom gpg key db path
     if (!args_.db_path.isEmpty()) {
       database_path_ = args_.db_path;
+      db_name_ = args_.db_name;
     }
 
     LOG_D() << "ctx set engine info, channel: " << parent_->GetChannel()
@@ -445,4 +449,5 @@ auto GpgContext::ComponentDirectory(GpgComponentType type) const -> QString {
   return p_->ComponentDirectories(type);
 }
 
+auto GpgContext::KeyDBName() const -> QString { return p_->KeyDBName(); }
 }  // namespace GpgFrontend

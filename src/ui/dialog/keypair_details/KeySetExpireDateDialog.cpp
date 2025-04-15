@@ -28,8 +28,9 @@
 
 #include "KeySetExpireDateDialog.h"
 
+#include <utility>
+
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
@@ -37,29 +38,27 @@
 
 namespace GpgFrontend::UI {
 
-KeySetExpireDateDialog::KeySetExpireDateDialog(int channel, const KeyId& key_id,
+KeySetExpireDateDialog::KeySetExpireDateDialog(int channel, GpgKeyPtr key,
                                                QWidget* parent)
     : GeneralDialog(typeid(KeySetExpireDateDialog).name(), parent),
       ui_(GpgFrontend::SecureCreateSharedObject<
           Ui_ModifiedExpirationDateTime>()),
       current_gpg_context_channel_(channel),
-      m_key_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
-                 .GetKey(key_id)) {
-  assert(m_key_.IsGood());
+      m_key_(std::move(key)) {
+  assert(m_key_->IsGood());
   init();
 }
 
-KeySetExpireDateDialog::KeySetExpireDateDialog(int channel, const KeyId& key_id,
+KeySetExpireDateDialog::KeySetExpireDateDialog(int channel, GpgKeyPtr key,
                                                QString subkey_fpr,
                                                QWidget* parent)
     : GeneralDialog(typeid(KeySetExpireDateDialog).name(), parent),
       ui_(GpgFrontend::SecureCreateSharedObject<
           Ui_ModifiedExpirationDateTime>()),
       current_gpg_context_channel_(channel),
-      m_key_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
-                 .GetKey(key_id)),
+      m_key_(std::move(key)),
       m_subkey_(std::move(subkey_fpr)) {
-  assert(m_key_.IsGood());
+  assert(m_key_ != nullptr);
   init();
 }
 
@@ -101,7 +100,7 @@ void KeySetExpireDateDialog::init() {
   ui_->dateEdit->setMinimumDateTime(min_date_time);
 
   // set default date time to expire date time
-  auto current_expire_time = m_key_.ExpirationTime();
+  auto current_expire_time = m_key_->ExpirationTime();
 
   ui_->dateEdit->setDateTime(current_expire_time);
   ui_->timeEdit->setDateTime(current_expire_time);
@@ -114,11 +113,11 @@ void KeySetExpireDateDialog::init() {
           UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefresh);
 
-  if (m_key_.ExpirationTime().toSecsSinceEpoch() == 0) {
+  if (m_key_->ExpirationTime().toSecsSinceEpoch() == 0) {
     ui_->noExpirationCheckBox->setCheckState(Qt::Checked);
   } else {
-    ui_->dateEdit->setDateTime(m_key_.ExpirationTime());
-    ui_->timeEdit->setDateTime(m_key_.ExpirationTime());
+    ui_->dateEdit->setDateTime(m_key_->ExpirationTime());
+    ui_->timeEdit->setDateTime(m_key_->ExpirationTime());
   }
 
   ui_->titleLabel->setText(tr("Modified Expiration Date (Local Time)"));

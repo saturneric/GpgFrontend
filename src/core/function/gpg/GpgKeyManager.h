@@ -51,12 +51,13 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
 
   /**
    * @brief Sign a key pair(actually a certain uid)
-   * @param target target key pair
+   * @param key target key pair
    * @param uid target
    * @param expires expire date and time of the signature
    * @return if successful
    */
-  auto SignKey(const GpgKey& target, KeyArgsList& keys, const QString& uid,
+  auto SignKey(const GpgKeyPtr& key, const GpgAbstractKeyPtrList& keys,
+               const QString& uid,
                const std::unique_ptr<QDateTime>& expires) -> bool;
 
   /**
@@ -67,8 +68,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
    * @return true
    * @return false
    */
-  auto RevSign(const GpgFrontend::GpgKey& key,
-               const GpgFrontend::SignIdArgsList& signature_id) -> bool;
+  auto RevSign(const GpgKeyPtr& key,
+               const SignIdArgsList& signature_id) -> bool;
 
   /**
    * @brief Set the Expire object
@@ -79,7 +80,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
    * @return true
    * @return false
    */
-  auto SetExpire(const GpgKey& key, std::unique_ptr<GpgSubKey>& subkey,
+  auto SetExpire(const GpgKeyPtr& key, std::unique_ptr<GpgSubKey>& subkey,
                  std::unique_ptr<QDateTime>& expires) -> bool;
 
   /**
@@ -87,7 +88,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
    *
    * @return
    */
-  auto SetOwnerTrustLevel(const GpgKey& key, int trust_level) -> bool;
+  auto SetOwnerTrustLevel(const GpgKeyPtr& key, int trust_level) -> bool;
 
   /**
    * @brief
@@ -97,7 +98,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
    * @return true
    * @return false
    */
-  auto DeleteSubkey(const GpgKey& key, int subkey_index) -> bool;
+  auto DeleteSubkey(const GpgKeyPtr& key, int subkey_index) -> bool;
 
   /**
    * @brief
@@ -107,7 +108,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
    * @return true
    * @return false
    */
-  auto RevokeSubkey(const GpgKey& key, int subkey_index, int reason_code,
+  auto RevokeSubkey(const GpgKeyPtr& key, int subkey_index, int reason_code,
                     const QString& reason_text) -> bool;
 
  private:

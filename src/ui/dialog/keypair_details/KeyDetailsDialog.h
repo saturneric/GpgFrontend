@@ -39,7 +39,7 @@ class KeyDetailsDialog : public GeneralDialog {
   Q_OBJECT
 
  public:
-  explicit KeyDetailsDialog(int channel, const GpgKey& key,
+  explicit KeyDetailsDialog(int channel, const GpgKeyPtr& key,
                             QWidget* parent = nullptr);
 
  private:

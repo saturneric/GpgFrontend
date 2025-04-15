@@ -43,7 +43,7 @@ class KeyPairUIDTab : public QWidget {
    * @param key_id
    * @param parent
    */
-  KeyPairUIDTab(int channel, const QString& key_id, QWidget* parent);
+  KeyPairUIDTab(int channel, GpgKeyPtr key, QWidget* parent);
 
  signals:
 
@@ -138,7 +138,7 @@ class KeyPairUIDTab : public QWidget {
 
  private:
   int current_gpg_context_channel_;
-  GpgKey m_key_;
+  GpgKeyPtr m_key_;
   QTableWidget* uid_list_{};                         ///<
   QTableWidget* sig_list_{};                         ///<
   QTabWidget* tofu_tabs_{};                          ///<

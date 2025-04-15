@@ -29,7 +29,6 @@
 #include "MainWindow.h"
 #include "core/GpgConstants.h"
 #include "core/function/CacheManager.h"
-#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/model/SettingsObject.h"
 #include "ui/UserInterfaceUtils.h"
@@ -37,6 +36,7 @@
 #include "ui/dialog/settings/SettingsDialog.h"
 #include "ui/main_window/KeyMgmt.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
+#include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
@@ -168,7 +168,7 @@ void MainWindow::slot_cut_pgp_header() {
 void MainWindow::SlotSetRestartNeeded(int mode) { this->restart_mode_ = mode; }
 
 void MainWindow::SlotUpdateCryptoMenuStatus(unsigned int type) {
-  MainWindow::OperationMenu::OperationType opera_type = type;
+  OperationMenu::OperationType opera_type = type;
 
   // refresh status to disable all
   verify_act_->setDisabled(true);
@@ -179,22 +179,22 @@ void MainWindow::SlotUpdateCryptoMenuStatus(unsigned int type) {
   decrypt_verify_act_->setDisabled(true);
 
   // gnupg operations
-  if ((opera_type & MainWindow::OperationMenu::kVerify) != 0U) {
+  if ((opera_type & OperationMenu::kVerify) != 0U) {
     verify_act_->setDisabled(false);
   }
-  if ((opera_type & MainWindow::OperationMenu::kSign) != 0U) {
+  if ((opera_type & OperationMenu::kSign) != 0U) {
     sign_act_->setDisabled(false);
   }
-  if ((opera_type & MainWindow::OperationMenu::kEncrypt) != 0U) {
+  if ((opera_type & OperationMenu::kEncrypt) != 0U) {
     encrypt_act_->setDisabled(false);
   }
-  if ((opera_type & MainWindow::OperationMenu::kEncryptAndSign) != 0U) {
+  if ((opera_type & OperationMenu::kEncryptAndSign) != 0U) {
     encrypt_sign_act_->setDisabled(false);
   }
-  if ((opera_type & MainWindow::OperationMenu::kDecrypt) != 0U) {
+  if ((opera_type & OperationMenu::kDecrypt) != 0U) {
     decrypt_act_->setDisabled(false);
   }
-  if ((opera_type & MainWindow::OperationMenu::kDecryptAndVerify) != 0U) {
+  if ((opera_type & OperationMenu::kDecryptAndVerify) != 0U) {
     decrypt_verify_act_->setDisabled(false);
   }
 }
@@ -344,6 +344,31 @@ void MainWindow::slot_restart_gpg_components(bool) {
               tr("Failed to restart all or one of the GnuPG's component(s)"));
         }
       });
+}
+
+void MainWindow::slot_update_operations_menu_by_checked_keys() {
+  auto keys = m_key_list_->GetCheckedKeys();
+
+  OperationMenu::OperationType type = ~0;
+
+  if (keys.isEmpty()) {
+    type &= ~(OperationMenu::kEncrypt | OperationMenu::kEncryptAndSign |
+              OperationMenu::kSign);
+
+  } else {
+    for (const auto& key : keys) {
+      if (key == nullptr || key->IsDisabled()) continue;
+
+      if (!key->IsHasEncrCap()) {
+        type &= ~(OperationMenu::kEncrypt | OperationMenu::kEncryptAndSign);
+      }
+      if (!key->IsHasSignCap()) {
+        type &= ~(OperationMenu::kSign);
+      }
+    }
+  }
+
+  SlotUpdateCryptoMenuStatus(type);
 }
 
 }  // namespace GpgFrontend::UI

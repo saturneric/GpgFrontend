@@ -60,7 +60,8 @@ void MainWindow::Init() noexcept {
         kGpgFrontendDefaultChannel,
         KeyMenuAbility::kREFRESH | KeyMenuAbility::kCHECK_ALL |
             KeyMenuAbility::kUNCHECK_ALL | KeyMenuAbility::kCOLUMN_FILTER |
-            KeyMenuAbility::kSEARCH_BAR | KeyMenuAbility::kKEY_DATABASE,
+            KeyMenuAbility::kSEARCH_BAR | KeyMenuAbility::kKEY_DATABASE |
+            KeyMenuAbility::kKEY_GROUP,
         GpgKeyTableColumn::kTYPE | GpgKeyTableColumn::kNAME |
             GpgKeyTableColumn::kKEY_ID | GpgKeyTableColumn::kEMAIL_ADDRESS |
             GpgKeyTableColumn::kUSAGE | GpgKeyTableColumn::kOWNER_TRUST |
@@ -137,6 +138,8 @@ void MainWindow::Init() noexcept {
 
     // recover unsaved page from cache if it exists
     recover_editor_unsaved_pages_from_cache();
+
+    slot_update_operations_menu_by_checked_keys();
 
     // check if need to open wizard window
     if (GetSettings().value("wizard/show_wizard", true).toBool()) {

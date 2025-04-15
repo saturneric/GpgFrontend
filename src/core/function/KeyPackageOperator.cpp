@@ -52,7 +52,7 @@ auto KeyPackageOperator::GeneratePassphrase(const QString& phrase_path,
 void KeyPackageOperator::GenerateKeyPackage(const QString& key_package_path,
                                             const QString& key_package_name,
                                             int channel,
-                                            const KeyArgsList& keys,
+                                            const GpgAbstractKeyPtrList& keys,
                                             QString& phrase, bool secret,
                                             const OperationCallback& cb) {
   GpgKeyImportExporter::GetInstance(channel).ExportAllKeys(

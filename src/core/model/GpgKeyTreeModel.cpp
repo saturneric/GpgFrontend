@@ -211,7 +211,7 @@ auto GpgKeyTreeModel::create_gpg_key_tree_items(const GpgKey &key)
   columns << key.UIDs().front().GetUID();
   columns << key.ID();
 
-  columns << GetUsagesByKey(key);
+  columns << GetUsagesByAbstractKey(&key);
   columns << key.PublicKeyAlgo();
   columns << key.Algo();
   columns << QLocale().toString(key.CreationTime(), "yyyy-MM-dd");
@@ -228,7 +228,7 @@ auto GpgKeyTreeModel::create_gpg_key_tree_items(const GpgKey &key)
     columns << (s_key.IsHasCertCap() ? "primary" : "sub");
     columns << key.UIDs().front().GetUID();
     columns << s_key.ID();
-    columns << GetUsagesBySubkey(s_key);
+    columns << GetUsagesByAbstractKey(&s_key);
     columns << s_key.PublicKeyAlgo();
     columns << s_key.Algo();
     columns << QLocale().toString(s_key.CreationTime(), "yyyy-MM-dd");
@@ -247,7 +247,10 @@ auto GpgKeyTreeModel::create_gpg_key_tree_items(const GpgKey &key)
 auto GpgKeyTreeModel::GetAllCheckedSubKey() -> QContainer<GpgSubKey> {
   QContainer<GpgSubKey> ret;
   for (const auto &i : cached_items_) {
-    if (!i->Key()->IsSubKey() || !i->Checkable() || !i->Checked()) continue;
+    if (i->Key()->KeyType() != GpgAbstractKeyType::kGPG_SUBKEY ||
+        !i->Checkable() || !i->Checked()) {
+      continue;
+    }
 
     auto *s_key = dynamic_cast<GpgSubKey *>(i->Key());
     if (s_key == nullptr) continue;
@@ -314,6 +317,8 @@ void GpgKeyTreeItem::SetChecked(bool checked) { checked_ = checked; }
 void GpgKeyTreeItem::SetCheckable(bool checkable) { checkable_ = checkable; }
 
 auto GpgKeyTreeItem::Key() const -> GpgAbstractKey * { return key_.get(); }
+
+auto GpgKeyTreeItem::SharedKey() const -> GpgAbstractKeyPtr { return key_; }
 
 auto GpgKeyTreeItem::Enable() const -> bool { return enable_; }
 

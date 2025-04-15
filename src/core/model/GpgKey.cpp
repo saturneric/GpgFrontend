@@ -220,6 +220,8 @@ auto GpgKey::PrimaryKey() const -> GpgSubKey {
   return GpgSubKey(key_ref_, key_ref_->subkeys);
 }
 
-auto GpgKey::IsSubKey() const -> bool { return false; }
+auto GpgKey::KeyType() const -> GpgAbstractKeyType {
+  return GpgAbstractKeyType::kGPG_KEY;
+}
 
 }  // namespace GpgFrontend

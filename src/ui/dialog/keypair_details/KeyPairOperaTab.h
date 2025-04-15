@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/model/GpgKey.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 class GpgImportInformation;
@@ -44,7 +44,7 @@ class KeyPairOperaTab : public QWidget {
    * @param key_id
    * @param parent
    */
-  KeyPairOperaTab(int channel, const QString& key_id, QWidget* parent);
+  KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent);
 
   /**
    * @brief Create a Opera Menu object
@@ -140,10 +140,9 @@ class KeyPairOperaTab : public QWidget {
 
  private:
   int current_gpg_context_channel_;
-  GpgKey m_key_;                    ///<
+  GpgKeyPtr m_key_;                 ///<
   QMenu* key_server_opera_menu_{};  ///<
   QMenu* rev_cert_opera_menu_{};
   QMenu* secret_key_export_opera_menu_{};  ///<
-  
 };
 }  // namespace GpgFrontend::UI

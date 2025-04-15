@@ -38,9 +38,14 @@ ADSKsPicker::ADSKsPicker(int channel,
                          QWidget* parent)
     : GeneralDialog(typeid(ADSKsPicker).name(), parent),
       tree_view_(new KeyTreeView(
-          channel, [](GpgAbstractKey* k) { return k->IsSubKey(); },
+          channel,
+          [](GpgAbstractKey* k) {
+            return k->KeyType() == GpgAbstractKeyType::kGPG_SUBKEY;
+          },
           [=](const GpgAbstractKey* k) {
-            return (!k->IsSubKey() || (k->IsSubKey() && k->IsHasEncrCap())) &&
+            return (k->KeyType() != GpgAbstractKeyType::kGPG_SUBKEY ||
+                    (k->KeyType() == GpgAbstractKeyType::kGPG_SUBKEY &&
+                     k->IsHasEncrCap())) &&
                    filter(k);
           })) {
   auto* confirm_button = new QPushButton(tr("Confirm"));

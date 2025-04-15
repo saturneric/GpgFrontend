@@ -65,7 +65,7 @@ class VerifyKeyDetailBox : public QGroupBox {
   QGridLayout* create_key_info_grid(const GpgSignature& signature);
 
   int current_gpg_context_channel_;
-  QString fpr_;  ///< fingerprint of the key
+  GpgKeyPtr key_;  ///< fingerprint of the key
 };
 
 }  // namespace GpgFrontend::UI

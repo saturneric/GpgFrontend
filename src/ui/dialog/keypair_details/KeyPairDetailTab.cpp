@@ -28,23 +28,21 @@
 
 #include "KeyPairDetailTab.h"
 
-#include "core/GpgModel.h"
+#include <utility>
+
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/model/GpgKey.h"
 #include "core/module/ModuleManager.h"
-#include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/UISignalStation.h"
 
 namespace GpgFrontend::UI {
-KeyPairDetailTab::KeyPairDetailTab(int channel, const QString& key_id,
-                                   QWidget* parent)
+KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
     : QWidget(parent),
       current_gpg_context_channel_(channel),
-      key_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
-               .GetKey(key_id)) {
-  assert(key_.IsGood());
+      key_(std::move(key)) {
+  assert(key_->IsGood());
 
   owner_box_ = new QGroupBox(tr("Owner"));
   key_box_ = new QGroupBox(tr("Primary Key"));
@@ -183,8 +181,8 @@ void KeyPairDetailTab::slot_copy_fingerprint() {
 void KeyPairDetailTab::slot_refresh_key_info() {
   // Show the situation that primary key not exists.
   primary_key_exist_var_label_->setText(
-      key_.IsHasMasterKey() ? tr("Exists") : tr("Not Exists"));
-  if (!key_.IsHasMasterKey()) {
+      key_->IsHasMasterKey() ? tr("Exists") : tr("Not Exists"));
+  if (!key_->IsHasMasterKey()) {
     auto palette_expired = primary_key_exist_var_label_->palette();
     palette_expired.setColor(primary_key_exist_var_label_->foregroundRole(),
                              Qt::red);
@@ -196,7 +194,7 @@ void KeyPairDetailTab::slot_refresh_key_info() {
     primary_key_exist_var_label_->setPalette(palette_valid);
   }
 
-  if (key_.IsExpired()) {
+  if (key_->IsExpired()) {
     auto palette_expired = expire_var_label_->palette();
     palette_expired.setColor(expire_var_label_->foregroundRole(), Qt::red);
     expire_var_label_->setPalette(palette_expired);
@@ -206,42 +204,42 @@ void KeyPairDetailTab::slot_refresh_key_info() {
     expire_var_label_->setPalette(palette_valid);
   }
 
-  name_var_label_->setText(key_.Name());
-  email_var_label_->setText(key_.Email());
+  name_var_label_->setText(key_->Name());
+  email_var_label_->setText(key_->Email());
 
-  comment_var_label_->setText(key_.Comment());
-  key_id_var_label_->setText(key_.ID());
+  comment_var_label_->setText(key_->Comment());
+  key_id_var_label_->setText(key_->ID());
 
   QString buffer;
   QTextStream usage_steam(&buffer);
 
-  if (key_.IsHasCertCap()) {
+  if (key_->IsHasCertCap()) {
     usage_steam << tr("Certificate") << " ";
   }
-  if (key_.IsHasEncrCap()) usage_steam << tr("Encrypt") << " ";
-  if (key_.IsHasSignCap()) usage_steam << tr("Sign") << " ";
-  if (key_.IsHasAuthCap()) usage_steam << tr("Auth") << " ";
+  if (key_->IsHasEncrCap()) usage_steam << tr("Encrypt") << " ";
+  if (key_->IsHasSignCap()) usage_steam << tr("Sign") << " ";
+  if (key_->IsHasAuthCap()) usage_steam << tr("Auth") << " ";
 
   usage_var_label_->setText(usage_steam.readAll());
 
   QString buffer_2;
   QTextStream actual_usage_steam(&buffer_2);
 
-  if (key_.IsHasActualCertCap()) {
+  if (key_->IsHasActualCertCap()) {
     actual_usage_steam << tr("Certificate") << " ";
   }
-  if (key_.IsHasActualEncrCap()) {
+  if (key_->IsHasActualEncrCap()) {
     actual_usage_steam << tr("Encrypt") << " ";
   }
-  if (key_.IsHasActualSignCap()) {
+  if (key_->IsHasActualSignCap()) {
     actual_usage_steam << tr("Sign") << " ";
   }
-  if (key_.IsHasActualAuthCap()) {
+  if (key_->IsHasActualAuthCap()) {
     actual_usage_steam << tr("Auth") << " ";
   }
 
   actual_usage_var_label_->setText(actual_usage_steam.readAll());
-  owner_trust_var_label_->setText(key_.OwnerTrust());
+  owner_trust_var_label_->setText(key_->OwnerTrust());
 
   QString key_size_val;
   QString key_expire_val;
@@ -250,41 +248,41 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   QString key_algo_detail_val;
   QString key_last_update_val;
 
-  key_size_val = QString::number(key_.PrimaryKeyLength());
+  key_size_val = QString::number(key_->PrimaryKeyLength());
 
-  if (key_.ExpirationTime().toSecsSinceEpoch() == 0) {
+  if (key_->ExpirationTime().toSecsSinceEpoch() == 0) {
     expire_var_label_->setText(tr("Never Expire"));
   } else {
-    expire_var_label_->setText(QLocale().toString((key_.ExpirationTime())));
+    expire_var_label_->setText(QLocale().toString((key_->ExpirationTime())));
   }
 
-  key_algo_val = key_.PublicKeyAlgo();
-  key_algo_detail_val = key_.Algo();
+  key_algo_val = key_->PublicKeyAlgo();
+  key_algo_detail_val = key_->Algo();
 
-  created_var_label_->setText(QLocale().toString(key_.CreationTime()));
+  created_var_label_->setText(QLocale().toString(key_->CreationTime()));
 
-  if (key_.LastUpdateTime().toSecsSinceEpoch() == 0) {
+  if (key_->LastUpdateTime().toSecsSinceEpoch() == 0) {
     last_update_var_label_->setText(tr("No Data"));
   } else {
-    last_update_var_label_->setText(QLocale().toString(key_.LastUpdateTime()));
+    last_update_var_label_->setText(QLocale().toString(key_->LastUpdateTime()));
   }
 
   key_size_var_label_->setText(key_size_val);
   algorithm_var_label_->setText(key_algo_val);
   algorithm_detail_var_label_->setText(key_algo_detail_val);
-  fingerprint_var_label_->setText(BeautifyFingerprint(key_.Fingerprint()));
+  fingerprint_var_label_->setText(BeautifyFingerprint(key_->Fingerprint()));
   fingerprint_var_label_->setWordWrap(true);  // for x448 and ed448
 
   icon_label_->hide();
   exp_label_->hide();
 
-  if (key_.IsExpired()) {
+  if (key_->IsExpired()) {
     slot_refresh_notice(":/icons/warning.png",
                         tr("Warning: The primary key has expired."));
-  } else if (key_.IsRevoked()) {
+  } else if (key_->IsRevoked()) {
     slot_refresh_notice(":/icons/warning.png",
                         tr("Warning: The primary key has been revoked."));
-  } else if (key_.IsPrivateKey() && !key_.IsHasMasterKey()) {
+  } else if (key_->IsPrivateKey() && !key_->IsHasMasterKey()) {
     slot_refresh_notice(":/icons/warning.png",
                         tr("Warning: The primary key is not exists."));
   } else {
@@ -294,9 +292,9 @@ void KeyPairDetailTab::slot_refresh_key_info() {
 
 void KeyPairDetailTab::slot_refresh_key() {
   // refresh the key
-  GpgKey refreshed_key =
-      GpgKeyGetter::GetInstance(current_gpg_context_channel_).GetKey(key_.ID());
-  assert(refreshed_key.IsGood());
+  auto refreshed_key = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+                           .GetKeyPtr(key_->ID());
+  assert(refreshed_key != nullptr);
 
   std::swap(this->key_, refreshed_key);
 
@@ -316,7 +314,7 @@ void KeyPairDetailTab::slot_query_key_publish_state() {
     return;
   }
 
-  const auto fpr = key_.Fingerprint();
+  const auto fpr = key_->Fingerprint();
 
   Module::TriggerEvent(
       "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT",

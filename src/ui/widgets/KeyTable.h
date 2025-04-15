@@ -54,9 +54,8 @@ struct KeyTable : public QTableView {
   KeyTable(
       QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
       GpgKeyTableDisplayMode _select_type, GpgKeyTableColumn _info_type,
-      GpgKeyTableProxyModel::KeyFilter _filter = [](const GpgKey&) -> bool {
-        return true;
-      });
+      GpgKeyTableProxyModel::KeyFilter _filter =
+          [](const GpgAbstractKey*) -> bool { return true; });
 
   /**
    * @brief
@@ -70,7 +69,7 @@ struct KeyTable : public QTableView {
    *
    * @return KeyIdArgsListPtr&
    */
-  [[nodiscard]] auto GetChecked() const -> KeyIdArgsList;
+  [[nodiscard]] auto GetCheckedKeys() const -> GpgAbstractKeyPtrList;
 
   /**
    * @brief
@@ -121,30 +120,21 @@ struct KeyTable : public QTableView {
   [[nodiscard]] auto GetRowCount() const -> int;
 
   /**
-   * @brief Get the Key Id By Row object
-   *
-   * @param row
-   * @return QString
-   */
-  [[nodiscard]] auto GetKeyIdByRow(int row) const -> QString;
-
-  /**
    * @brief
    *
-   * @param row
-   * @return true
-   * @return false
+   * @param index
+   * @return GpgAbstractKeyPtr
    */
-  [[nodiscard]] auto IsPublicKeyByRow(int row) const -> bool;
+  [[nodiscard]] auto GetKeyByIndex(QModelIndex index) const
+      -> GpgAbstractKeyPtr;
 
   /**
-   * @brief
+   * @brief Get the Selected Keys object
    *
-   * @param row
-   * @return true
-   * @return false
+   * @param index
+   * @return GpgAbstractKeyPtrList
    */
-  [[nodiscard]] auto IsPrivateKeyByRow(int row) const -> bool;
+  [[nodiscard]] auto GetSelectedKeys() const -> GpgAbstractKeyPtrList;
 
   /**
    * @brief
@@ -157,6 +147,18 @@ struct KeyTable : public QTableView {
    *
    */
   void UncheckAll();
+
+  /**
+   * @brief
+   *
+   */
+  void SetFilter(const GpgKeyTableProxyModel::KeyFilter&);
+
+  /**
+   * @brief
+   *
+   */
+  void RefreshProxyModel();
 
  signals:
 
@@ -171,6 +173,12 @@ struct KeyTable : public QTableView {
    *
    */
   void SignalGpgContextChannelChange(int);
+
+  /**
+   * @brief
+   *
+   */
+  void SignalKeyChecked();
 
  private:
   QSharedPointer<GpgKeyTableModel> model_;

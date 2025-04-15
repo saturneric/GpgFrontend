@@ -31,9 +31,8 @@
 #include <utility>
 
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
-#include "ui/dialog/keypair_details/KeyDetailsDialog.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/model/GpgKeyTreeProxyModel.h"
 
 namespace GpgFrontend::UI {
@@ -109,18 +108,13 @@ void KeyTreeView::init() {
 
   connect(this, &QTableView::doubleClicked, this,
           [this](const QModelIndex& index) {
-            if (!index.isValid() || index.column() == 0) return;
+            if (!index.isValid()) return;
 
-            QModelIndex source_index = proxy_model_.mapToSource(index);
-            auto key =
-                GetGpgKeyByGpgAbstractKey(model_->GetKeyByIndex(source_index));
+            auto key = GetKeyByIndex(index);
+            if (key == nullptr) return;
 
-            if (!key.IsGood()) {
-              QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
-              return;
-            }
-
-            new KeyDetailsDialog(model_->GetGpgContextChannel(), key, this);
+            CommonUtils::OpenDetailsDialogByKey(
+                this, model_->GetGpgContextChannel(), key);
           });
 
   connect(UISignalStation::GetInstance(),
@@ -150,4 +144,12 @@ void KeyTreeView::SetChannel(int channel) {
   proxy_model_.invalidate();
 }
 
+auto KeyTreeView::GetKeyByIndex(QModelIndex index) -> GpgAbstractKeyPtr {
+  auto* i = index.isValid()
+                ? static_cast<GpgKeyTreeItem*>(index.internalPointer())
+                : nullptr;
+  assert(i != nullptr);
+
+  return i->SharedKey();
+}
 }  // namespace GpgFrontend::UI

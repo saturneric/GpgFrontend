@@ -63,11 +63,11 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgSignData(int channel, char** key_ids,
 
   auto singer_ids = CharArrayToQStringList(key_ids, key_ids_size);
 
-  GpgFrontend::KeyArgsList signer_keys;
+  GpgFrontend::GpgAbstractKeyPtrList signer_keys;
   for (const auto& signer_id : singer_ids) {
     auto key =
-        GpgFrontend::GpgKeyGetter::GetInstance(channel).GetKey(signer_id);
-    if (key.IsGood()) signer_keys.push_back(key);
+        GpgFrontend::GpgKeyGetter::GetInstance(channel).GetKeyPtr(signer_id);
+    if (key != nullptr) signer_keys.push_back(key);
   }
 
   if (signer_keys.empty()) return -1;
@@ -103,10 +103,9 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgSignData(int channel, char** key_ids,
 
 auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgPublicKey(int channel, char* key_id,
                                                   int ascii) -> char* {
-  auto key = GpgFrontend::GpgKeyGetter::GetInstance(channel).GetKey(
+  auto key = GpgFrontend::GpgKeyGetter::GetInstance(channel).GetKeyPtr(
       GFUnStrDup(key_id));
-
-  if (!key.IsGood()) return nullptr;
+  if (key == nullptr) return nullptr;
 
   auto [err, buffer] =
       GpgFrontend::GpgKeyImportExporter::GetInstance(channel).ExportKey(
@@ -151,11 +150,11 @@ GFGpgEncryptData(int channel, char** key_ids, int key_ids_size, char* data,
 
   auto encrypt_key_ids = CharArrayToQStringList(key_ids, key_ids_size);
 
-  GpgFrontend::KeyArgsList encrypt_keys;
+  GpgFrontend::GpgAbstractKeyPtrList encrypt_keys;
   for (const auto& encrypt_key_id : encrypt_key_ids) {
-    auto key =
-        GpgFrontend::GpgKeyGetter::GetInstance(channel).GetKey(encrypt_key_id);
-    if (key.IsGood()) encrypt_keys.push_back(key);
+    auto key = GpgFrontend::GpgKeyGetter::GetInstance(channel).GetKeyPtr(
+        encrypt_key_id);
+    if (key != nullptr) encrypt_keys.push_back(key);
   }
 
   if (encrypt_keys.empty()) return -1;

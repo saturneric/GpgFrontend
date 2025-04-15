@@ -28,7 +28,6 @@
 
 #include "KeyImportDetailDialog.h"
 
-#include "core/GpgModel.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/model/GpgImportInformation.h"
 

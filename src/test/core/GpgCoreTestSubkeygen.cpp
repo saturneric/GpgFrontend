@@ -38,9 +38,9 @@
 namespace GpgFrontend::Test {
 
 TEST_F(GpgCoreTest, GenerateSubkeyRSA2048Test) {
-  auto p_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(p_key.IsGood());
+  ASSERT_TRUE(p_key != nullptr);
 
   auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
 
@@ -81,9 +81,9 @@ TEST_F(GpgCoreTest, GenerateSubkeyRSA2048Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyDSA2048Test) {
-  auto p_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(p_key.IsGood());
+  ASSERT_TRUE(p_key != nullptr);
 
   auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
 
@@ -124,9 +124,9 @@ TEST_F(GpgCoreTest, GenerateSubkeyDSA2048Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyELG2048Test) {
-  auto p_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(p_key.IsGood());
+  ASSERT_TRUE(p_key != nullptr);
 
   auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
 
@@ -167,9 +167,9 @@ TEST_F(GpgCoreTest, GenerateSubkeyELG2048Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyED25519Test) {
-  auto p_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(p_key.IsGood());
+  ASSERT_TRUE(p_key != nullptr);
 
   auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
 
@@ -210,9 +210,9 @@ TEST_F(GpgCoreTest, GenerateSubkeyED25519Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyCV25519Test) {
-  auto p_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(p_key.IsGood());
+  ASSERT_TRUE(p_key != nullptr);
 
   auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
 
@@ -253,9 +253,9 @@ TEST_F(GpgCoreTest, GenerateSubkeyCV25519Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyNISTP256Test) {
-  auto p_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(p_key.IsGood());
+  ASSERT_TRUE(p_key != nullptr);
 
   auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
 
@@ -295,9 +295,9 @@ TEST_F(GpgCoreTest, GenerateSubkeyNISTP256Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyBRAINPOOLP256R1Test) {
-  auto p_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(p_key.IsGood());
+  ASSERT_TRUE(p_key != nullptr);
 
   auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
 
@@ -337,9 +337,9 @@ TEST_F(GpgCoreTest, GenerateSubkeyBRAINPOOLP256R1Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyX448Test) {
-  auto p_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(p_key.IsGood());
+  ASSERT_TRUE(p_key != nullptr);
 
   auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
 
@@ -379,9 +379,9 @@ TEST_F(GpgCoreTest, GenerateSubkeyX448Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeySECP256K1Test) {
-  auto p_key = GpgKeyGetter::GetInstance().GetKey(
+  auto p_key = GpgKeyGetter::GetInstance().GetKeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(p_key.IsGood());
+  ASSERT_TRUE(p_key != nullptr);
 
   auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
 

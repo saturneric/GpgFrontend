@@ -28,16 +28,16 @@
 
 #include "ui/widgets/KeyTable.h"
 
-#include "core/function/gpg/GpgKeyGetter.h"
 #include "ui/UserInterfaceUtils.h"
-#include "ui/dialog/keypair_details/KeyDetailsDialog.h"
 
 namespace GpgFrontend::UI {
 
-auto KeyTable::GetChecked() const -> KeyIdArgsList {
-  auto ret = KeyIdArgsList{};
+auto KeyTable::GetCheckedKeys() const -> GpgAbstractKeyPtrList {
+  auto ret = GpgAbstractKeyPtrList{};
   for (decltype(GetRowCount()) i = 0; i < GetRowCount(); i++) {
-    if (IsRowChecked(i)) ret.push_back(GetKeyIdByRow(i));
+    if (IsRowChecked(i)) {
+      ret.push_back(GetKeyByIndex(model()->index(i, 0)));
+    }
   }
   return ret;
 }
@@ -76,15 +76,20 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
           });
   connect(this, &QTableView::doubleClicked, this,
           [this](const QModelIndex& index) {
-            if (!index.isValid() || index.column() == 0) return;
+            if (!index.isValid()) return;
 
-            auto key = GpgKeyGetter::GetInstance(model_->GetGpgContextChannel())
-                           .GetKey(GetKeyIdByRow(index.row()));
-            if (!key.IsGood()) {
-              QMessageBox::critical(this, tr("Error"), tr("Key Not Found."));
-              return;
-            }
-            new KeyDetailsDialog(model_->GetGpgContextChannel(), key, this);
+            auto key = GetKeyByIndex(index);
+            if (key == nullptr) return;
+
+            CommonUtils::OpenDetailsDialogByKey(
+                this, model_->GetGpgContextChannel(), key);
+          });
+
+  connect(&proxy_model_, &GpgKeyTableProxyModel::dataChanged, this,
+          [=](const QModelIndex&, const QModelIndex&,
+              const QContainer<int>& roles) {
+            if (!roles.contains(Qt::CheckStateRole)) return;
+            emit SignalKeyChecked();
           });
 }
 
@@ -104,22 +109,22 @@ auto KeyTable::IsRowChecked(int row) const -> bool {
 
 auto KeyTable::GetRowCount() const -> int { return model()->rowCount(); }
 
-auto KeyTable::GetKeyIdByRow(int row) const -> QString {
-  if (row < 0 || row >= model()->rowCount()) return {};
-  auto origin_row = model()->index(row, 0).data().toInt();
-  return model_->GetKeyIDByRow(origin_row);
+auto KeyTable::GetKeyByIndex(QModelIndex index) const -> GpgAbstractKeyPtr {
+  auto idx = proxy_model_.mapToSource(index);
+  auto* i = idx.isValid() ? static_cast<GpgKeyTableItem*>(idx.internalPointer())
+                          : nullptr;
+  assert(i != nullptr);
+
+  return i->SharedKey();
 }
 
-auto KeyTable::IsPrivateKeyByRow(int row) const -> bool {
-  if (row < 0 || row >= model()->rowCount()) return false;
-  auto origin_row = model()->index(row, 0).data().toInt();
-  return model_->IsPrivateKeyByRow(origin_row);
-}
-
-auto KeyTable::IsPublicKeyByRow(int row) const -> bool {
-  if (row < 0 || row >= model()->rowCount()) return false;
-  auto origin_row = model()->index(row, 0).data().toInt();
-  return !model_->IsPrivateKeyByRow(origin_row);
+auto KeyTable::GetSelectedKeys() const -> GpgAbstractKeyPtrList {
+  GpgAbstractKeyPtrList ret;
+  QItemSelectionModel* select = selectionModel();
+  for (auto index : select->selectedRows()) {
+    ret.push_back(GetKeyByIndex(index));
+  }
+  return ret;
 }
 
 void KeyTable::SetRowChecked(int row) const {
@@ -148,4 +153,9 @@ void KeyTable::UncheckAll() {
   return selected_indexes.first().row();
 }
 
+void KeyTable::SetFilter(const GpgKeyTableProxyModel::KeyFilter& filter) {
+  proxy_model_.SetFilter(filter);
+}
+
+void KeyTable::RefreshProxyModel() { proxy_model_.invalidate(); }
 }  // namespace GpgFrontend::UI

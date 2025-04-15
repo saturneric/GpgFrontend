@@ -30,7 +30,6 @@
 
 #include "KeySetExpireDateDialog.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/gpg//GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/model/GpgKey.h"
@@ -46,13 +45,9 @@
 
 namespace GpgFrontend::UI {
 
-KeyPairOperaTab::KeyPairOperaTab(int channel, const QString& key_id,
-                                 QWidget* parent)
-    : QWidget(parent),
-      current_gpg_context_channel_(channel),
-      m_key_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
-                 .GetKey(key_id)) {
-  assert(m_key_.IsGood());
+KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
+    : QWidget(parent), current_gpg_context_channel_(channel), m_key_(key) {
+  assert(m_key_ != nullptr);
 
   // Set Menu
   CreateOperaMenu();
@@ -69,13 +64,13 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, const QString& key_id,
   connect(export_public_button, &QPushButton::clicked, this,
           &KeyPairOperaTab::slot_export_public_key);
 
-  if (m_key_.IsPrivateKey()) {
+  if (m_key_->IsPrivateKey()) {
     auto* export_private_button = new QPushButton(tr("Export Private Key"));
     export_private_button->setStyleSheet("text-align:center;");
     export_private_button->setMenu(secret_key_export_opera_menu_);
     export_h_box_layout->addWidget(export_private_button);
 
-    if (m_key_.IsHasMasterKey()) {
+    if (m_key_->IsHasMasterKey()) {
       auto* edit_expires_button =
           new QPushButton(tr("Modify Expiration Datetime (Primary Key)"));
       connect(edit_expires_button, &QPushButton::clicked, this,
@@ -104,7 +99,7 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, const QString& key_id,
   advance_h_box_layout->addWidget(key_server_opera_button);
 
   if (Module::IsModuleActivate(kPaperKeyModuleID)) {
-    if (!m_key_.IsPrivateKey()) {
+    if (!m_key_->IsPrivateKey()) {
       auto* import_paper_key_button = new QPushButton(tr("Import A Paper Key"));
       import_paper_key_button->setStyleSheet("text-align:center;");
       connect(import_paper_key_button, &QPushButton::clicked, this,
@@ -113,7 +108,7 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, const QString& key_id,
     }
   }
 
-  if (m_key_.IsPrivateKey() && m_key_.IsHasMasterKey()) {
+  if (m_key_->IsPrivateKey() && m_key_->IsHasMasterKey()) {
     auto* revoke_cert_opera_button =
         new QPushButton(tr("Revoke Certificate Operation"));
     revoke_cert_opera_button->setStyleSheet("text-align:center;");
@@ -136,7 +131,8 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, const QString& key_id,
   opera_key_box->setLayout(vbox_p_k);
   m_vbox->addWidget(opera_key_box);
   // modify owner trust of public key
-  if (!m_key_.IsPrivateKey()) vbox_p_k->addWidget(set_owner_trust_level_button);
+  if (!m_key_->IsPrivateKey())
+    vbox_p_k->addWidget(set_owner_trust_level_button);
   vbox_p_k->addWidget(modify_tofu_button);
   m_vbox->addStretch(0);
 
@@ -155,7 +151,7 @@ void KeyPairOperaTab::CreateOperaMenu() {
       new QAction(tr("Publish Public Key to Key Server"), this);
   connect(upload_key_pair, &QAction::triggered, this,
           &KeyPairOperaTab::slot_publish_key_to_server);
-  if (!(m_key_.IsPrivateKey() && m_key_.IsHasMasterKey())) {
+  if (!(m_key_->IsPrivateKey() && m_key_->IsHasMasterKey())) {
     upload_key_pair->setDisabled(true);
   }
 
@@ -165,7 +161,7 @@ void KeyPairOperaTab::CreateOperaMenu() {
           &KeyPairOperaTab::slot_update_key_from_server);
 
   // when a key has primary key, it should always upload to keyserver.
-  if (m_key_.IsHasMasterKey()) {
+  if (m_key_->IsHasMasterKey()) {
     update_key_pair->setDisabled(true);
   }
 
@@ -178,7 +174,7 @@ void KeyPairOperaTab::CreateOperaMenu() {
       new QAction(tr("Export Full Secret Key"), this);
   connect(export_full_secret_key, &QAction::triggered, this,
           &KeyPairOperaTab::slot_export_private_key);
-  if (!m_key_.IsPrivateKey()) export_full_secret_key->setDisabled(true);
+  if (!m_key_->IsPrivateKey()) export_full_secret_key->setDisabled(true);
 
   auto* export_shortest_secret_key =
       new QAction(tr("Export Shortest Secret Key"), this);
@@ -189,12 +185,12 @@ void KeyPairOperaTab::CreateOperaMenu() {
   secret_key_export_opera_menu_->addAction(export_shortest_secret_key);
 
   // only work with RSA
-  if (m_key_.Algo() == "RSA" && Module::IsModuleActivate(kPaperKeyModuleID)) {
+  if (m_key_->Algo() == "RSA" && Module::IsModuleActivate(kPaperKeyModuleID)) {
     auto* export_secret_key_as_paper_key = new QAction(
         tr("Export Secret Key As A Paper Key") + QString(" (BETA)"), this);
     connect(export_secret_key_as_paper_key, &QAction::triggered, this,
             &KeyPairOperaTab::slot_export_paper_key);
-    if (!m_key_.IsPrivateKey()) {
+    if (!m_key_->IsPrivateKey()) {
       export_secret_key_as_paper_key->setDisabled(true);
     }
     secret_key_export_opera_menu_->addAction(export_secret_key_as_paper_key);
@@ -228,11 +224,11 @@ void KeyPairOperaTab::slot_export_public_key() {
   // generate a file name
 #if defined(_WIN32) || defined(WIN32)
 
-  auto file_string =
-      m_key_.Name() + "[" + m_key_.Email() + "](" + m_key_.ID() + ")_pub.asc";
+  auto file_string = m_key_->Name() + "[" + m_key_->Email() + "](" +
+                     m_key_->ID() + ")_pub.asc";
 #else
-  auto file_string =
-      m_key_.Name() + "<" + m_key_.Email() + ">(" + m_key_.ID() + ")_pub.asc";
+  auto file_string = m_key_->Name() + "<" + m_key_->Email() + ">(" +
+                     m_key_->ID() + ")_pub.asc";
 #endif
   std::replace(file_string.begin(), file_string.end(), ' ', '_');
 
@@ -277,11 +273,11 @@ void KeyPairOperaTab::slot_export_short_private_key() {
     // generate a file name
 #if defined(_WIN32) || defined(WIN32)
 
-    auto file_string = m_key_.Name() + "[" + m_key_.Email() + "](" +
-                       m_key_.ID() + ")_short_secret.asc";
+    auto file_string = m_key_->Name() + "[" + m_key_->Email() + "](" +
+                       m_key_->ID() + ")_short_secret.asc";
 #else
-    auto file_string = m_key_.Name() + "<" + m_key_.Email() + ">(" +
-                       m_key_.ID() + ")_short_secret.asc";
+    auto file_string = m_key_->Name() + "<" + m_key_->Email() + ">(" +
+                       m_key_->ID() + ")_short_secret.asc";
 #endif
     std::replace(file_string.begin(), file_string.end(), ' ', '_');
 
@@ -328,11 +324,11 @@ void KeyPairOperaTab::slot_export_private_key() {
 
     // generate a file name
 #if defined(_WIN32) || defined(WIN32)
-    auto file_string = m_key_.Name() + "[" + m_key_.Email() + "](" +
-                       m_key_.ID() + ")_full_secret.asc";
+    auto file_string = m_key_->Name() + "[" + m_key_->Email() + "](" +
+                       m_key_->ID() + ")_full_secret.asc";
 #else
-    auto file_string = m_key_.Name() + "<" + m_key_.Email() + ">(" +
-                       m_key_.ID() + ")_full_secret.asc";
+    auto file_string = m_key_->Name() + "<" + m_key_->Email() + ">(" +
+                       m_key_->ID() + ")_full_secret.asc";
 #endif
     std::replace(file_string.begin(), file_string.end(), ' ', '_');
 
@@ -351,8 +347,8 @@ void KeyPairOperaTab::slot_export_private_key() {
 }
 
 void KeyPairOperaTab::slot_modify_edit_datetime() {
-  auto* dialog = new KeySetExpireDateDialog(current_gpg_context_channel_,
-                                            m_key_.ID(), this);
+  auto* dialog =
+      new KeySetExpireDateDialog(current_gpg_context_channel_, m_key_, this);
   dialog->show();
 }
 
@@ -362,7 +358,7 @@ void KeyPairOperaTab::slot_publish_key_to_server() {
         GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
             .ExportKey(m_key_, false, true, false);
 
-    auto fpr = m_key_.Fingerprint();
+    auto fpr = m_key_->Fingerprint();
     auto key_text = gf_buffer.ConvertToQByteArray();
 
     Module::TriggerEvent(
@@ -434,8 +430,9 @@ void KeyPairOperaTab::slot_publish_key_to_server() {
     return;
   }
 
-  auto keys = KeyIdArgsList{m_key_.ID()};
-  auto* dialog = new KeyUploadDialog(current_gpg_context_channel_, keys, this);
+  auto keys = KeyIdArgsList{m_key_->ID()};
+  auto* dialog =
+      new KeyUploadDialog(current_gpg_context_channel_, {m_key_}, this);
   dialog->show();
   dialog->SlotUpload();
 }
@@ -443,11 +440,11 @@ void KeyPairOperaTab::slot_publish_key_to_server() {
 void KeyPairOperaTab::slot_update_key_from_server() {
   if (Module::IsModuleActivate(kKeyServerSyncModuleID)) {
     CommonUtils::GetInstance()->ImportKeyByKeyServerSyncModule(
-        this, current_gpg_context_channel_, {m_key_.Fingerprint()});
+        this, current_gpg_context_channel_, {m_key_->Fingerprint()});
     return;
   }
-  CommonUtils::GetInstance()->ImportKeyFromKeyServer(
-      current_gpg_context_channel_, {m_key_.ID()});
+  CommonUtils::GetInstance()->ImportGpgKeyFromKeyServer(
+      current_gpg_context_channel_, {m_key_});
 }
 
 void KeyPairOperaTab::slot_gen_revoke_cert() {
@@ -464,11 +461,11 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
             QString m_output_file_name;
 
 #if defined(_WIN32) || defined(WIN32)
-            auto file_string = m_key_.Name() + "[" + m_key_.Email() + "](" +
-                               m_key_.ID() + ").rev";
+            auto file_string = m_key_->Name() + "[" + m_key_->Email() + "](" +
+                               m_key_->ID() + ").rev";
 #else
-            auto file_string = m_key_.Name() + "<" + m_key_.Email() +
-                               ">(" + m_key_.ID() + ").rev";
+            auto file_string = m_key_->Name() + "<" + m_key_->Email() +
+                               ">(" + m_key_->ID() + ").rev";
 #endif
 
             QFileDialog dialog(this, tr("Generate revocation certificate"),
@@ -529,7 +526,7 @@ void KeyPairOperaTab::slot_modify_tofu_policy() {
 
 void KeyPairOperaTab::slot_set_owner_trust_level() {
   auto* function = new SetOwnerTrustLevel(this);
-  function->Exec(current_gpg_context_channel_, m_key_.ID());
+  function->Exec(current_gpg_context_channel_, m_key_);
   function->deleteLater();
 }
 
@@ -581,7 +578,7 @@ void KeyPairOperaTab::slot_import_revoke_cert() {
     return;
   }
 
-  emit UISignalStation::GetInstance() -> SignalKeyRevoked(m_key_.ID());
+  emit UISignalStation::GetInstance() -> SignalKeyRevoked(m_key_->ID());
   CommonUtils::GetInstance()->SlotImportKeys(
       nullptr, current_gpg_context_channel_, rev_file.readAll());
 }
@@ -620,11 +617,11 @@ void KeyPairOperaTab::slot_export_paper_key() {
 
     // generate a file name
 #if defined(_WIN32) || defined(WIN32)
-    auto file_string = m_key_.Name() + "[" + m_key_.Email() + "](" +
-                       m_key_.ID() + ")_paper_key.txt";
+    auto file_string = m_key_->Name() + "[" + m_key_->Email() + "](" +
+                       m_key_->ID() + ")_paper_key.txt";
 #else
-    auto file_string = m_key_.Name() + "<" + m_key_.Email() + ">(" +
-                       m_key_.ID() + ")_paper_key.txt";
+    auto file_string = m_key_->Name() + "<" + m_key_->Email() + ">(" +
+                       m_key_->ID() + ")_paper_key.txt";
 #endif
     std::replace(file_string.begin(), file_string.end(), ' ', '_');
 
@@ -674,11 +671,11 @@ void KeyPairOperaTab::slot_import_paper_key() {
 
   // generate a file name
 #if defined(_WIN32) || defined(WIN32)
-  auto file_string = m_key_.Name() + "[" + m_key_.Email() + "](" + m_key_.ID() +
-                     ")_paper_key.txt";
+  auto file_string = m_key_->Name() + "[" + m_key_->Email() + "](" +
+                     m_key_->ID() + ")_paper_key.txt";
 #else
-  auto file_string = m_key_.Name() + "<" + m_key_.Email() + ">(" + m_key_.ID() +
-                     ")_paper_key.txt";
+  auto file_string = m_key_->Name() + "<" + m_key_->Email() + ">(" +
+                     m_key_->ID() + ")_paper_key.txt";
 #endif
   std::replace(file_string.begin(), file_string.end(), ' ', '_');
 

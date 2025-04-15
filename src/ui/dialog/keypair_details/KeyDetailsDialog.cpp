@@ -36,29 +36,28 @@
 #include "ui/dialog/keypair_details/KeyPairUIDTab.h"
 
 namespace GpgFrontend::UI {
-KeyDetailsDialog::KeyDetailsDialog(int channel, const GpgKey& key,
+KeyDetailsDialog::KeyDetailsDialog(int channel, const GpgKeyPtr& key,
                                    QWidget* parent)
     : GeneralDialog(typeid(KeyDetailsDialog).name(), parent),
       current_gpg_context_channel_(channel) {
   tab_widget_ = new QTabWidget();
   tab_widget_->addTab(
-      new KeyPairDetailTab(current_gpg_context_channel_, key.ID(), tab_widget_),
+      new KeyPairDetailTab(current_gpg_context_channel_, key, tab_widget_),
       tr("KeyPair"));
 
-  if (!key.IsRevoked()) {
+  if (!key->IsRevoked()) {
     tab_widget_->addTab(
-        new KeyPairUIDTab(current_gpg_context_channel_, key.ID(), tab_widget_),
+        new KeyPairUIDTab(current_gpg_context_channel_, key, tab_widget_),
         tr("UIDs"));
-
-    tab_widget_->addTab(new KeyPairSubkeyTab(current_gpg_context_channel_,
-                                             key.ID(), tab_widget_),
-                        tr("Keychain"));
-    tab_widget_->addTab(new KeyPairOperaTab(current_gpg_context_channel_,
-                                            key.ID(), tab_widget_),
-                        tr("Operations"));
+    tab_widget_->addTab(
+        new KeyPairSubkeyTab(current_gpg_context_channel_, key, tab_widget_),
+        tr("Keychain"));
+    tab_widget_->addTab(
+        new KeyPairOperaTab(current_gpg_context_channel_, key, tab_widget_),
+        tr("Operations"));
   }
 
-  QString m_key_id = key.ID();
+  QString m_key_id = key->ID();
   connect(UISignalStation::GetInstance(), &UISignalStation::SignalKeyRevoked,
           this, [this, m_key_id](const QString& key_id) {
             if (key_id == m_key_id) this->close();

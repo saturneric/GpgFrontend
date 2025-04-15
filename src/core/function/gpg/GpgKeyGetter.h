@@ -63,12 +63,14 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
   auto GetKey(const QString& key_id, bool use_cache = true) -> GpgKey;
 
   /**
-   * @brief Get the Keys object
+   * @brief Get the Key Ptr object
    *
-   * @param ids
-   * @return KeyListPtr
+   * @param key_id
+   * @param use_cache
+   * @return QSharedPointer<GpgKey>
    */
-  auto GetKeys(const KeyIdArgsList& key_ids) -> GpgKeyList;
+  auto GetKeyPtr(const QString& key_id,
+                 bool use_cache = true) -> QSharedPointer<GpgKey>;
 
   /**
    * @brief Get the Pubkey object
@@ -79,11 +81,27 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
   auto GetPubkey(const QString& key_id, bool use_cache = true) -> GpgKey;
 
   /**
+   * @brief Get the Pubkey Ptr object
+   *
+   * @param key_id
+   * @param use_cache
+   * @return GpgKeyPtr
+   */
+  auto GetPubkeyPtr(const QString& key_id, bool use_cache = true) -> GpgKeyPtr;
+
+  /**
    * @brief Get all the keys by receiving a linked list
    *
    * @return KeyLinkListPtr
    */
   auto FetchKey() -> GpgKeyList;
+
+  /**
+   * @brief
+   *
+   * @return QContainer<QSharedPointer<GpgKey>>
+   */
+  auto Fetch() -> QContainer<QSharedPointer<GpgKey>>;
 
   /**
    * @brief flush the keys in the cache
@@ -92,19 +110,20 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
   auto FlushKeyCache() -> bool;
 
   /**
+   * @brief Get the Keys object
+   *
+   * @param ids
+   * @return KeyListPtr
+   */
+  auto GetKeys(const KeyIdArgsList& key_ids) -> GpgKeyList;
+
+  /**
    * @brief Get the Keys Copy object
    *
    * @param keys
    * @return KeyListPtr
    */
   auto GetKeysCopy(const GpgKeyList& keys) -> GpgKeyList;
-
-  /**
-   * @brief
-   *
-   * @return GpgKeyTableModel
-   */
-  auto GetGpgKeyTableModel() -> QSharedPointer<GpgKeyTableModel>;
 
  private:
   class Impl;

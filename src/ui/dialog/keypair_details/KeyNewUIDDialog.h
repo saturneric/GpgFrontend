@@ -45,7 +45,7 @@ class KeyNewUIDDialog : public GeneralDialog {
    * @param key
    * @param parent
    */
-  KeyNewUIDDialog(int channel, const KeyId& key, QWidget* parent = nullptr);
+  KeyNewUIDDialog(int channel, GpgKeyPtr key, QWidget* parent = nullptr);
 
  signals:
   /**
@@ -64,7 +64,7 @@ class KeyNewUIDDialog : public GeneralDialog {
 
  private:
   int current_gpg_context_channel_;
-  GpgKey m_key_;  ///<
+  GpgKeyPtr m_key_;  ///<
 
   QLineEdit* name_{};     ///<
   QLineEdit* email_{};    ///<
@@ -85,6 +85,6 @@ class KeyNewUIDDialog : public GeneralDialog {
    * @return true
    * @return false
    */
-  bool check_email_address(const QString& str);
+  auto check_email_address(const QString& str) -> bool;
 };
 }  // namespace GpgFrontend::UI

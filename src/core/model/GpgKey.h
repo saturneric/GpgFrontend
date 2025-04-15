@@ -28,12 +28,9 @@
 
 #pragma once
 
-#include <utility>
-
 #include "core/model/GpgAbstractKey.h"
 #include "core/model/GpgSubKey.h"
 #include "core/model/GpgUID.h"
-
 namespace GpgFrontend {
 
 /**
@@ -98,7 +95,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKey : public GpgAbstractKey {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto IsSubKey() const -> bool override;
+  [[nodiscard]] auto KeyType() const -> GpgAbstractKeyType override;
 
   /**
    * @brief
@@ -120,21 +117,21 @@ class GPGFRONTEND_CORE_EXPORT GpgKey : public GpgAbstractKey {
    *
    * @return QString
    */
-  [[nodiscard]] auto Name() const -> QString;
+  [[nodiscard]] auto Name() const -> QString override;
 
   /**
    * @brief
    *
    * @return QString
    */
-  [[nodiscard]] auto Email() const -> QString;
+  [[nodiscard]] auto Email() const -> QString override;
 
   /**
    * @brief
    *
    * @return QString
    */
-  [[nodiscard]] auto Comment() const -> QString;
+  [[nodiscard]] auto Comment() const -> QString override;
 
   /**
    * @brief

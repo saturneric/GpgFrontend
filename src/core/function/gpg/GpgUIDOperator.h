@@ -53,7 +53,7 @@ class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
    * @param uid uid args(combine name&comment&email)
    * @return if successful
    */
-  auto AddUID(const GpgKey& key, const QString& uid) -> bool;
+  auto AddUID(const GpgKeyPtr& key, const QString& uid) -> bool;
 
   /**
    * create a new uid in certain key pair
@@ -63,7 +63,7 @@ class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
    * @param email
    * @return
    */
-  auto AddUID(const GpgKey& key, const QString& name, const QString& comment,
+  auto AddUID(const GpgKeyPtr& key, const QString& name, const QString& comment,
               const QString& email) -> bool;
 
   /**
@@ -74,7 +74,7 @@ class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
    * @return true
    * @return false
    */
-  auto DeleteUID(const GpgKey& key, int uid_index) -> bool;
+  auto DeleteUID(const GpgKeyPtr& key, int uid_index) -> bool;
 
   /**
    * @brief
@@ -86,7 +86,7 @@ class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
    * @return true
    * @return false
    */
-  auto RevokeUID(const GpgKey& key, int uid_index, int reason_code,
+  auto RevokeUID(const GpgKeyPtr& key, int uid_index, int reason_code,
                  const QString& reason_text) -> bool;
 
   /**
@@ -95,7 +95,7 @@ class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
    * @param uid target uid
    * @return if successful
    */
-  auto SetPrimaryUID(const GpgKey& key, const QString& uid) -> bool;
+  auto SetPrimaryUID(const GpgKeyPtr& key, const QString& uid) -> bool;
 
  private:
   GpgContext& ctx_ =

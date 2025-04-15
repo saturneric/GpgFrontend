@@ -28,7 +28,8 @@
 
 #include "KeyPairUIDTab.h"
 
-#include "core/GpgModel.h"
+#include <utility>
+
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyManager.h"
 #include "core/function/gpg/GpgUIDOperator.h"
@@ -40,13 +41,11 @@
 
 namespace GpgFrontend::UI {
 
-KeyPairUIDTab::KeyPairUIDTab(int channel, const QString& key_id,
-                             QWidget* parent)
+KeyPairUIDTab::KeyPairUIDTab(int channel, GpgKeyPtr key, QWidget* parent)
     : QWidget(parent),
       current_gpg_context_channel_(channel),
-      m_key_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
-                 .GetKey(key_id)) {
-  assert(m_key_.IsGood());
+      m_key_(std::move(key)) {
+  assert(m_key_ != nullptr);
 
   create_uid_list();
   create_sign_list();
@@ -57,7 +56,7 @@ KeyPairUIDTab::KeyPairUIDTab(int channel, const QString& key_id,
 
   auto* add_uid_button = new QPushButton(tr("New UID"));
 
-  if (!m_key_.IsHasMasterKey()) {
+  if (!m_key_->IsHasMasterKey()) {
     add_uid_button->setDisabled(true);
   }
   uid_buttons_layout->addWidget(add_uid_button);
@@ -176,7 +175,7 @@ void KeyPairUIDTab::slot_refresh_uid_list() {
 
   this->buffered_uids_.clear();
 
-  for (auto& uid : m_key_.UIDs()) {
+  for (auto& uid : m_key_->UIDs()) {
     this->buffered_uids_.push_back(std::move(uid));
   }
 
@@ -316,7 +315,7 @@ void KeyPairUIDTab::slot_add_sign() {
 
 void KeyPairUIDTab::slot_add_uid() {
   auto* key_new_uid_dialog =
-      new KeyNewUIDDialog(current_gpg_context_channel_, m_key_.ID(), this);
+      new KeyNewUIDDialog(current_gpg_context_channel_, m_key_, this);
   connect(key_new_uid_dialog, &KeyNewUIDDialog::finished, this,
           &KeyPairUIDTab::slot_add_uid_result);
   connect(key_new_uid_dialog, &KeyNewUIDDialog::finished, key_new_uid_dialog,
@@ -434,7 +433,7 @@ void KeyPairUIDTab::create_uid_popup_menu() {
   connect(del_uid_act_, &QAction::triggered, this,
           &KeyPairUIDTab::slot_del_uid);
 
-  if (m_key_.IsHasMasterKey()) {
+  if (m_key_->IsHasMasterKey()) {
     uid_popup_menu_->addAction(set_primary_uid_act_);
     uid_popup_menu_->addAction(sign_uid_act_);
     uid_popup_menu_->addAction(rev_uid_act_);
@@ -516,9 +515,9 @@ void KeyPairUIDTab::slot_del_sign() {
 
 void KeyPairUIDTab::slot_refresh_key() {
   // refresh the key
-  GpgKey refreshed_key = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
-                             .GetKey(m_key_.ID());
-  assert(refreshed_key.IsGood());
+  auto refreshed_key = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+                           .GetKeyPtr(m_key_->ID());
+  assert(refreshed_key != nullptr);
 
   std::swap(this->m_key_, refreshed_key);
 
@@ -537,7 +536,7 @@ void KeyPairUIDTab::slot_rev_uid() {
     return;
   }
 
-  const auto uids = m_key_.UIDs();
+  const auto uids = m_key_->UIDs();
 
   QString message = tr("<h3>Revoke UID Confirmation</h3><br />"
                        "<b>UID:</b> %1<br /><br />"

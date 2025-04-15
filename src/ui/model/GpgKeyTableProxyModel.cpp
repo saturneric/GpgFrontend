@@ -28,9 +28,10 @@
 
 #include "GpgKeyTableProxyModel.h"
 
-#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/gpg/GpgAbstractKeyGetter.h"
 #include "core/model/CacheObject.h"
 #include "core/model/GpgKey.h"
+#include "core/model/GpgKeyTableModel.h"
 #include "core/struct/cache_object/AllFavoriteKeyPairsCO.h"
 #include "core/utils/GpgUtils.h"
 
@@ -57,34 +58,31 @@ GpgKeyTableProxyModel::GpgKeyTableProxyModel(
 }
 
 auto GpgKeyTableProxyModel::filterAcceptsRow(
-    int source_row, const QModelIndex &sourceParent) const -> bool {
-  auto index = sourceModel()->index(source_row, 6, sourceParent);
-  auto key_id = sourceModel()->data(index).toString();
+    int sourceRow, const QModelIndex &sourceParent) const -> bool {
+  auto index = sourceModel()->index(sourceRow, 0, sourceParent);
 
-  auto key =
-      GpgKeyGetter::GetInstance(model_->GetGpgContextChannel()).GetKey(key_id);
-  LOG_D() << "get key: " << key_id
-          << "from channel: " << model_->GetGpgContextChannel();
-  assert(key.IsGood());
+  auto *i = index.isValid()
+                ? static_cast<GpgKeyTableItem *>(index.internalPointer())
+                : nullptr;
+  assert(i != nullptr);
+
+  auto *key = i->Key();
+  assert(key->IsGood());
 
   if (!(display_mode_ & GpgKeyTableDisplayMode::kPRIVATE_KEY) &&
-      key.IsPrivateKey()) {
+      key->IsPrivateKey()) {
     return false;
   }
 
   if (!(display_mode_ & GpgKeyTableDisplayMode::kPUBLIC_KEY) &&
-      !key.IsPrivateKey()) {
+      !key->IsPrivateKey()) {
     return false;
   }
 
   if (!custom_filter_(key)) return false;
 
-  if (display_mode_ & GpgKeyTableDisplayMode::kFAVORITES) {
-    LOG_D() << "kFAVORITES Mode" << "key id" << key_id << "favorite_key_ids_"
-            << favorite_key_ids_;
-  }
   if (display_mode_ & GpgKeyTableDisplayMode::kFAVORITES &&
-      !favorite_key_ids_.contains(key_id)) {
+      !favorite_key_ids_.contains(key->ID())) {
     return false;
   }
 
@@ -92,11 +90,14 @@ auto GpgKeyTableProxyModel::filterAcceptsRow(
 
   QStringList infos;
   for (int column = 0; column < sourceModel()->columnCount(); ++column) {
-    auto index = sourceModel()->index(source_row, column, sourceParent);
+    auto index = sourceModel()->index(sourceRow, column, sourceParent);
     infos << sourceModel()->data(index).toString();
 
-    for (const auto &uid : key.UIDs()) {
-      infos << uid.GetUID();
+    if (key->KeyType() == GpgAbstractKeyType::kGPG_KEY) {
+      auto *k = dynamic_cast<GpgKey *>(key);
+      for (const auto &uid : k->UIDs()) {
+        infos << uid.GetUID();
+      }
     }
   }
 
@@ -197,4 +198,8 @@ void GpgKeyTableProxyModel::slot_update_favorites_cache() {
   }
 }
 
+void GpgKeyTableProxyModel::SetFilter(const KeyFilter &filter) {
+  this->custom_filter_ = filter;
+  invalidateFilter();
+}
 }  // namespace GpgFrontend::UI

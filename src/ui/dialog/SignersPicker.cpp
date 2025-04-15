@@ -51,7 +51,7 @@ SignersPicker::SignersPicker(int channel, QWidget* parent)
       this);
   key_list_->AddListGroupTab(
       tr("Signers"), "signers", GpgKeyTableDisplayMode::kPRIVATE_KEY,
-      [](const GpgKey& key) -> bool { return key.IsHasActualSignCap(); });
+      [](const GpgAbstractKey* key) -> bool { return key->IsHasSignCap(); });
   key_list_->SlotRefresh();
 
   auto* vbox2 = new QVBoxLayout();
@@ -79,18 +79,8 @@ SignersPicker::SignersPicker(int channel, QWidget* parent)
   this->activateWindow();
 }
 
-auto SignersPicker::GetCheckedSigners() -> GpgFrontend::KeyIdArgsList {
+auto SignersPicker::GetCheckedSigners() -> GpgAbstractKeyPtrList {
   return key_list_->GetCheckedPrivateKey();
-}
-
-auto SignersPicker::GetCheckedSignerKeyIds() -> GpgFrontend::KeyIdArgsList {
-  auto priv_keys = key_list_->GetCheckedPrivateKey();
-
-  QStringList r;
-  for (const auto& priv_key : priv_keys) {
-    r.append(priv_key);
-  }
-  return r;
 }
 
 auto SignersPicker::GetStatus() const -> bool { return this->accepted_; }

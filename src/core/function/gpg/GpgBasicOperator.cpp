@@ -43,15 +43,17 @@ namespace GpgFrontend {
 GpgBasicOperator::GpgBasicOperator(int channel)
     : SingletonFunctionObject<GpgBasicOperator>(channel) {}
 
-void SetSignersImpl(GpgContext& ctx_, const KeyArgsList& signers, bool ascii) {
+void SetSignersImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& signers,
+                    bool ascii) {
   auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
 
   gpgme_signers_clear(ctx);
 
-  for (const GpgKey& key : signers) {
-    LOG_D() << "signer's key fpr: " << key.Fingerprint();
-    if (key.IsHasActualSignCap()) {
-      auto error = gpgme_signers_add(ctx, gpgme_key_t(key));
+  auto keys = ConvertKey2GpgKeyList(ctx_.GetChannel(), signers);
+  for (const auto& key : keys) {
+    LOG_D() << "signer's key fpr: " << key->Fingerprint();
+    if (key->IsHasSignCap()) {
+      auto error = gpgme_signers_add(ctx, static_cast<gpgme_key_t>(*key));
       CheckGpgError(error);
     }
   }
@@ -62,10 +64,10 @@ void SetSignersImpl(GpgContext& ctx_, const KeyArgsList& signers, bool ascii) {
   }
 }
 
-auto EncryptImpl(GpgContext& ctx_, const KeyArgsList& keys,
+auto EncryptImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
                  const GFBuffer& in_buffer, bool ascii,
                  const DataObjectPtr& data_object) -> GpgError {
-  auto recipients = Convert2RawGpgMEKeyList(keys);
+  auto recipients = Convert2RawGpgMEKeyList(ctx_.GetChannel(), keys);
 
   GpgData data_in(in_buffer);
   GpgData data_out;
@@ -82,7 +84,7 @@ auto EncryptImpl(GpgContext& ctx_, const KeyArgsList& keys,
   return err;
 }
 
-void GpgBasicOperator::Encrypt(const KeyArgsList& keys,
+void GpgBasicOperator::Encrypt(const GpgAbstractKeyPtrList& keys,
                                const GFBuffer& in_buffer, bool ascii,
                                const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
@@ -92,7 +94,7 @@ void GpgBasicOperator::Encrypt(const KeyArgsList& keys,
       cb, "gpgme_op_encrypt", "2.1.0");
 }
 
-auto GpgBasicOperator::EncryptSync(const KeyArgsList& keys,
+auto GpgBasicOperator::EncryptSync(const GpgAbstractKeyPtrList& keys,
                                    const GFBuffer& in_buffer, bool ascii)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
@@ -199,7 +201,7 @@ auto GpgBasicOperator::VerifySync(const GFBuffer& in_buffer,
       "gpgme_op_verify", "2.1.0");
 }
 
-auto SignImpl(GpgContext& ctx_, const KeyArgsList& signers,
+auto SignImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& signers,
               const GFBuffer& in_buffer, GpgSignMode mode, bool ascii,
               const DataObjectPtr& data_object) -> GpgError {
   if (signers.empty()) return GPG_ERR_CANCELED;
@@ -222,7 +224,7 @@ auto SignImpl(GpgContext& ctx_, const KeyArgsList& signers,
   return err;
 }
 
-void GpgBasicOperator::Sign(const KeyArgsList& signers,
+void GpgBasicOperator::Sign(const GpgAbstractKeyPtrList& signers,
                             const GFBuffer& in_buffer, GpgSignMode mode,
                             bool ascii, const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
@@ -233,8 +235,8 @@ void GpgBasicOperator::Sign(const KeyArgsList& signers,
 }
 
 auto GpgBasicOperator::SignSync(
-    const KeyArgsList& signers, const GFBuffer& in_buffer, GpgSignMode mode,
-    bool ascii) -> std::tuple<GpgError, DataObjectPtr> {
+    const GpgAbstractKeyPtrList& signers, const GFBuffer& in_buffer,
+    GpgSignMode mode, bool ascii) -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       [=](const DataObjectPtr& data_object) {
         return SignImpl(ctx_, signers, in_buffer, mode, ascii, data_object);
@@ -279,13 +281,14 @@ auto GpgBasicOperator::DecryptVerifySync(const GFBuffer& in_buffer)
       "gpgme_op_decrypt_verify", "2.1.0");
 }
 
-auto EncryptSignImpl(GpgContext& ctx_, const KeyArgsList& keys,
-                     const KeyArgsList& signers, const GFBuffer& in_buffer,
-                     bool ascii, const DataObjectPtr& data_object) -> GpgError {
+auto EncryptSignImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
+                     const GpgAbstractKeyPtrList& signers,
+                     const GFBuffer& in_buffer, bool ascii,
+                     const DataObjectPtr& data_object) -> GpgError {
   if (keys.empty() || signers.empty()) return GPG_ERR_CANCELED;
 
   GpgError err;
-  QContainer<gpgme_key_t> recipients(keys.begin(), keys.end());
+  auto recipients = Convert2RawGpgMEKeyList(ctx_.GetChannel(), keys);
 
   // Last entry data_in array has to be nullptr
   recipients.push_back(nullptr);
@@ -307,8 +310,8 @@ auto EncryptSignImpl(GpgContext& ctx_, const KeyArgsList& keys,
   return err;
 }
 
-void GpgBasicOperator::EncryptSign(const KeyArgsList& keys,
-                                   const KeyArgsList& signers,
+void GpgBasicOperator::EncryptSign(const GpgAbstractKeyPtrList& keys,
+                                   const GpgAbstractKeyPtrList& signers,
                                    const GFBuffer& in_buffer, bool ascii,
                                    const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
@@ -319,8 +322,8 @@ void GpgBasicOperator::EncryptSign(const KeyArgsList& keys,
       cb, "gpgme_op_encrypt_sign", "2.1.0");
 }
 
-auto GpgBasicOperator::EncryptSignSync(const KeyArgsList& keys,
-                                       const KeyArgsList& signers,
+auto GpgBasicOperator::EncryptSignSync(const GpgAbstractKeyPtrList& keys,
+                                       const GpgAbstractKeyPtrList& signers,
                                        const GFBuffer& in_buffer, bool ascii)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
@@ -331,7 +334,8 @@ auto GpgBasicOperator::EncryptSignSync(const KeyArgsList& keys,
       "gpgme_op_encrypt_sign", "2.1.0");
 }
 
-void GpgBasicOperator::SetSigners(const KeyArgsList& signers, bool ascii) {
+void GpgBasicOperator::SetSigners(const GpgAbstractKeyPtrList& signers,
+                                  bool ascii) {
   SetSignersImpl(ctx_, signers, ascii);
 }
 

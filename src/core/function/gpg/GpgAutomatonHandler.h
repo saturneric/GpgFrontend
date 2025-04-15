@@ -97,7 +97,7 @@ class GpgAutomatonHandler
    * @return true
    * @return false
    */
-  auto DoInteract(const GpgKey& key,
+  auto DoInteract(const GpgKeyPtr& key,
                   AutomatonNextStateHandler next_state_handler,
                   AutomatonActionHandler action_handler, int flags = 0) -> bool;
 

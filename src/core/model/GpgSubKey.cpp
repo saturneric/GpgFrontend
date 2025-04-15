@@ -95,11 +95,20 @@ auto GpgSubKey::SmartCardSerialNumber() const -> QString {
   return QString::fromLatin1(s_key_ref_->card_number);
 }
 
-auto GpgSubKey::IsSubKey() const -> bool { return true; }
+auto GpgSubKey::KeyType() const -> GpgAbstractKeyType {
+  return GpgAbstractKeyType::kGPG_SUBKEY;
+}
 
 auto GpgSubKey::IsGood() const -> bool { return s_key_ref_ != nullptr; }
 
 auto GpgSubKey::Convert2GpgKey() const -> QSharedPointer<GpgKey> {
   return QSharedPointer<GpgKey>::create(key_ref_);
 }
+
+auto GpgSubKey::Name() const -> QString { return key_ref_->uids->name; }
+
+auto GpgSubKey::Email() const -> QString { return key_ref_->uids->email; }
+
+auto GpgSubKey::Comment() const -> QString { return key_ref_->uids->comment; }
+
 }  // namespace GpgFrontend

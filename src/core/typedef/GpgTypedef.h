@@ -32,28 +32,27 @@
 
 #include <future>
 
-#include "core/model/DataObject.h"
 #include "core/typedef/CoreTypedef.h"
+#include "core/typedef/GpgErrorTypedef.h"
+
+// models
+#include "core/model/DataObject.h"
+#include "core/model/GpgKey.h"
 
 namespace GpgFrontend {
 
-class GpgKey;  ///< forward declaration
-class GpgSubKey;
-class GpgSignature;
-class GpgTOFUInfo;
-
-using GpgError = gpgme_error_t;  ///< gpgme error
-using GpgErrorCode = gpg_err_code_t;
-using GpgErrorDesc = QPair<QString, QString>;
-
 using KeyId = QString;
 using SubkeyId = QString;
-using KeyIdArgsList = QStringList;                           ///<
-using UIDArgsList = QStringList;                             ///<
-using SignIdArgsList = QContainer<QPair<QString, QString>>;  ///<
-using KeyArgsList = QContainer<GpgKey>;                      ///<
-using GpgKeyLinkList = QContainer<GpgKey>;                   ///<
-using GpgKeyList = QContainer<GpgKey>;                       ///<
+using KeyIdArgsList = QStringList;                            ///<
+using UIDArgsList = QStringList;                              ///<
+using SignIdArgsList = QContainer<QPair<QString, QString>>;   ///<
+using KeyArgsList = QContainer<GpgKey>;                       ///<
+using GpgKeyLinkList = QContainer<GpgKey>;                    ///<
+using GpgKeyList = QContainer<GpgKey>;                        ///<
+using GpgAbstractKeyPtr = QSharedPointer<GpgAbstractKey>;     ///<
+using GpgAbstractKeyPtrList = QContainer<GpgAbstractKeyPtr>;  ///<
+using GpgKeyPtr = QSharedPointer<GpgKey>;                     ///<
+using GpgKeyPtrList = QContainer<GpgKeyPtr>;                  ///<
 
 using GpgSignMode = gpgme_sig_mode_t;
 

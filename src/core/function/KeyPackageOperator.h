@@ -70,8 +70,9 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    */
   static void GenerateKeyPackage(const QString &key_package_path,
                                  const QString &key_package_name, int channel,
-                                 const KeyArgsList &keys, QString &phrase,
-                                 bool secret, const OperationCallback &cb);
+                                 const GpgAbstractKeyPtrList &keys,
+                                 QString &phrase, bool secret,
+                                 const OperationCallback &cb);
 
   /**
    * @brief import key package

@@ -70,10 +70,10 @@ TEST_F(GpgCoreTest, CoreDeleteUIDTestA) {
   ASSERT_EQ(info->imported, 1);
 
   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                 .GetKey("F2D8DFA5F109DE47");
-  ASSERT_TRUE(key.IsGood());
+                 .GetKeyPtr("F2D8DFA5F109DE47");
+  ASSERT_TRUE(key->IsGood());
 
-  auto uids = key.UIDs();
+  auto uids = key->UIDs();
 
   ASSERT_EQ(uids.size(), 4);
   ASSERT_EQ(uids[2].GetUID(), "gggggg(ggggg)<ggggg@ggg.ggg>");
@@ -84,15 +84,15 @@ TEST_F(GpgCoreTest, CoreDeleteUIDTestA) {
 
   GpgKeyGetter::GetInstance().FlushKeyCache();
   key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-            .GetKey("F2D8DFA5F109DE47");
-  ASSERT_TRUE(key.IsGood());
+            .GetKeyPtr("F2D8DFA5F109DE47");
+  ASSERT_TRUE(key != nullptr);
 
-  uids = key.UIDs();
+  uids = key->UIDs();
 
   ASSERT_EQ(uids.size(), 3);
   ASSERT_EQ(uids[2].GetUID(), "hhhhhh(hhhhhhh)<hhhhh@hhhh.hhhh>");
 
-  GpgKeyOpera::GetInstance().DeleteKey(key.ID());
+  GpgKeyOpera::GetInstance().DeleteKey(key);
   GpgKeyGetter::GetInstance().FlushKeyCache();
 }
 
@@ -105,10 +105,10 @@ TEST_F(GpgCoreTest, CoreRevokeUIDTestA) {
   ASSERT_EQ(info->imported, 1);
 
   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                 .GetKey("F2D8DFA5F109DE47");
-  ASSERT_TRUE(key.IsGood());
+                 .GetKeyPtr("F2D8DFA5F109DE47");
+  ASSERT_TRUE(key != nullptr);
 
-  auto uids = key.UIDs();
+  auto uids = key->UIDs();
 
   ASSERT_EQ(uids.size(), 4);
   ASSERT_EQ(uids[2].GetUID(), "gggggg(ggggg)<ggggg@ggg.ggg>");
@@ -120,16 +120,16 @@ TEST_F(GpgCoreTest, CoreRevokeUIDTestA) {
 
   GpgKeyGetter::GetInstance().FlushKeyCache();
   key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-            .GetKey("F2D8DFA5F109DE47");
-  ASSERT_TRUE(key.IsGood());
+            .GetKeyPtr("F2D8DFA5F109DE47");
+  ASSERT_TRUE(key != nullptr);
 
-  uids = key.UIDs();
+  uids = key->UIDs();
 
   ASSERT_EQ(uids.size(), 4);
   ASSERT_EQ(uids[2].GetUID(), "gggggg(ggggg)<ggggg@ggg.ggg>");
   ASSERT_TRUE(uids[2].GetRevoked());
 
-  GpgKeyOpera::GetInstance().DeleteKey(key.ID());
+  GpgKeyOpera::GetInstance().DeleteKey(key);
   GpgKeyGetter::GetInstance().FlushKeyCache();
 }
 

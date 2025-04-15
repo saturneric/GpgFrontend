@@ -56,14 +56,14 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @brief
    *
    */
-  void Encrypt(const KeyArgsList&, const GFBuffer&, bool,
+  void Encrypt(const GpgAbstractKeyPtrList&, const GFBuffer&, bool,
                const GpgOperationCallback&);
 
   /**
    * @brief
    *
    */
-  auto EncryptSync(const KeyArgsList&, const GFBuffer&,
+  auto EncryptSync(const GpgAbstractKeyPtrList&, const GFBuffer&,
                    bool) -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
@@ -99,7 +99,8 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param ascii ascii mode
    * @return
    */
-  void EncryptSign(const KeyArgsList& keys, const KeyArgsList& signers,
+  void EncryptSign(const GpgAbstractKeyPtrList& keys,
+                   const GpgAbstractKeyPtrList& signers,
                    const GFBuffer& in_buffer, bool ascii,
                    const GpgOperationCallback& cb);
 
@@ -112,7 +113,8 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param ascii
    * @param cb
    */
-  auto EncryptSignSync(const KeyArgsList& keys, const KeyArgsList& signers,
+  auto EncryptSignSync(const GpgAbstractKeyPtrList& keys,
+                       const GpgAbstractKeyPtrList& signers,
                        const GFBuffer& in_buffer,
                        bool ascii) -> std::tuple<GpgError, DataObjectPtr>;
 
@@ -196,7 +198,7 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param result the result of the operation
    * @return error code
    */
-  void Sign(const KeyArgsList& signers, const GFBuffer& in_buffer,
+  void Sign(const GpgAbstractKeyPtrList& signers, const GFBuffer& in_buffer,
             GpgSignMode mode, bool ascii, const GpgOperationCallback& cb);
 
   /**
@@ -209,7 +211,7 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param cb
    * @return std::tuple<GpgError, DataObjectPtr>
    */
-  auto SignSync(const KeyArgsList& signers, const GFBuffer& in_buffer,
+  auto SignSync(const GpgAbstractKeyPtrList& signers, const GFBuffer& in_buffer,
                 GpgSignMode mode,
                 bool ascii) -> std::tuple<GpgError, DataObjectPtr>;
 
@@ -219,7 +221,7 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    *
    * @param keys
    */
-  void SetSigners(const KeyArgsList& signers, bool ascii);
+  void SetSigners(const GpgAbstractKeyPtrList& signers, bool ascii);
 
   /**
    * @brief Get a global signature private keys that has been set.

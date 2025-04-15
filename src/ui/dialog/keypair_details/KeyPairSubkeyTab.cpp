@@ -28,7 +28,8 @@
 
 #include "KeyPairSubkeyTab.h"
 
-#include "core/GpgModel.h"
+#include <utility>
+
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyManager.h"
@@ -43,13 +44,11 @@
 
 namespace GpgFrontend::UI {
 
-KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, const QString& key_id,
-                                   QWidget* parent)
+KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
     : QWidget(parent),
       current_gpg_context_channel_(channel),
-      key_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
-               .GetKey(key_id)) {
-  assert(key_.IsGood());
+      key_(std::move(key)) {
+  assert(key_ != nullptr);
 
   create_subkey_list();
   create_subkey_opera_menu();
@@ -61,7 +60,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, const QString& key_id,
 
   auto* add_subkey_button = new QPushButton(tr("New Subkey"));
   auto* add_adsk_button = new QPushButton(tr("Add ADSK(s)"));
-  if (!key_.IsPrivateKey() || !key_.IsHasMasterKey()) {
+  if (!key_->IsPrivateKey() || !key_->IsHasMasterKey()) {
     add_subkey_button->setDisabled(true);
     add_subkey_button->hide();
 
@@ -202,7 +201,7 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
   subkey_list_->setSelectionMode(QAbstractItemView::SingleSelection);
 
   this->buffered_subkeys_.clear();
-  for (auto& s_key : key_.SubKeys()) {
+  for (auto& s_key : key_->SubKeys()) {
     this->buffered_subkeys_.push_back(std::move(s_key));
   }
 
@@ -281,14 +280,14 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
 
 void KeyPairSubkeyTab::slot_add_subkey() {
   auto* dialog =
-      new SubkeyGenerateDialog(current_gpg_context_channel_, key_.ID(), this);
+      new SubkeyGenerateDialog(current_gpg_context_channel_, key_, this);
   dialog->show();
 }
 
 void KeyPairSubkeyTab::slot_add_adsk() {
   QStringList except_key_ids;
-  except_key_ids.append(key_.ID());
-  for (const auto& s_key : key_.SubKeys()) {
+  except_key_ids.append(key_->ID());
+  for (const auto& s_key : key_->SubKeys()) {
     except_key_ids.append(s_key.ID());
   }
 
@@ -382,7 +381,7 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   QString buffer;
   QTextStream usage_steam(&buffer);
 
-  usage_var_label_->setText(GetUsagesBySubkey(s_key));
+  usage_var_label_->setText(GetUsagesByAbstractKey(&s_key));
 
   // Show the situation that secret key not exists.
   master_key_exist_var_label_->setText(s_key.IsSecretKey() ? tr("Exists")
@@ -424,7 +423,7 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   export_subkey_button_->setText(s_key.IsHasCertCap() ? tr("Export Primary Key")
                                                       : tr("Export Subkey"));
   export_subkey_button_->setDisabled(
-      !key_.IsPrivateKey() || s_key.IsHasCertCap() || !s_key.IsSecretKey());
+      !key_->IsPrivateKey() || s_key.IsHasCertCap() || !s_key.IsSecretKey());
 
   key_type_var_label_->setText(s_key.IsHasCertCap() ? tr("Primary Key")
                                                     : tr("Subkey"));
@@ -467,14 +466,14 @@ void KeyPairSubkeyTab::create_subkey_opera_menu() {
 
 void KeyPairSubkeyTab::slot_edit_subkey() {
   auto* dialog =
-      new KeySetExpireDateDialog(current_gpg_context_channel_, key_.ID(),
+      new KeySetExpireDateDialog(current_gpg_context_channel_, key_,
                                  get_selected_subkey().Fingerprint(), this);
   dialog->show();
 }
 
 void KeyPairSubkeyTab::contextMenuEvent(QContextMenuEvent* event) {
   // must have primary key before do any actions on subkey
-  if (key_.IsHasMasterKey() && !subkey_list_->selectedItems().isEmpty()) {
+  if (key_->IsHasMasterKey() && !subkey_list_->selectedItems().isEmpty()) {
     const auto& s_key = get_selected_subkey();
 
     if (s_key.IsHasCertCap()) return;
@@ -501,9 +500,9 @@ auto KeyPairSubkeyTab::get_selected_subkey() -> const GpgSubKey& {
 }
 
 void KeyPairSubkeyTab::slot_refresh_key_info() {
-  key_ =
-      GpgKeyGetter::GetInstance(current_gpg_context_channel_).GetKey(key_.ID());
-  assert(key_.IsGood());
+  key_ = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+             .GetKeyPtr(key_->ID());
+  assert(key_ != nullptr);
 }
 
 void KeyPairSubkeyTab::slot_export_subkey() {
@@ -532,10 +531,10 @@ void KeyPairSubkeyTab::slot_export_subkey() {
   // generate a file name
 #if defined(_WIN32) || defined(WIN32)
   auto file_string =
-      key_.Name() + "[" + key_.Email() + "](" + s_key.ID() + ")_s_key.asc";
+      key_->Name() + "[" + key_->Email() + "](" + s_key.ID() + ")_s_key.asc";
 #else
   auto file_string =
-      key_.Name() + "<" + key_.Email() + ">(" + s_key.ID() + ")_s_key.asc";
+      key_->Name() + "<" + key_->Email() + ">(" + s_key.ID() + ")_s_key.asc";
 #endif
   std::replace(file_string.begin(), file_string.end(), ' ', '_');
 
@@ -567,7 +566,7 @@ void KeyPairSubkeyTab::slot_delete_subkey() {
   if (ret != QMessageBox::Yes) return;
 
   int index = 0;
-  for (const auto& sk : key_.SubKeys()) {
+  for (const auto& sk : key_->SubKeys()) {
     if (sk.Fingerprint() == s_key.Fingerprint()) {
       break;
     }
@@ -616,7 +615,7 @@ void KeyPairSubkeyTab::slot_revoke_subkey() {
   if (ret != QMessageBox::Yes) return;
 
   int index = 0;
-  for (const auto& sk : key_.SubKeys()) {
+  for (const auto& sk : key_->SubKeys()) {
     if (sk.Fingerprint() == s_key.Fingerprint()) {
       break;
     }

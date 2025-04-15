@@ -80,9 +80,10 @@ TEST_F(GpgCoreTest, GenerateKeyRSA2048Test) {
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
   ASSERT_TRUE(result.IsGood());
   ASSERT_FALSE(result.GetFingerprint().isEmpty());
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                 .GetKey(result.GetFingerprint());
-  ASSERT_TRUE(key.IsGood());
+  auto p_key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetKeyPtr(result.GetFingerprint());
+  ASSERT_TRUE(p_key != nullptr);
+  auto& key = *p_key;
 
   ASSERT_EQ(key.Name(), "foo_0");
   ASSERT_EQ(key.Email(), "bar@gpgfrontend.bktus.com");
@@ -102,8 +103,7 @@ TEST_F(GpgCoreTest, GenerateKeyRSA2048Test) {
   ASSERT_TRUE(key.IsHasActualEncrCap());
   ASSERT_TRUE(key.IsHasActualSignCap());
 
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-      .DeleteKey(result.GetFingerprint());
+  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(p_key);
 }
 
 TEST_F(GpgCoreTest, GenerateKeyRSA4096Test) {
@@ -137,12 +137,11 @@ TEST_F(GpgCoreTest, GenerateKeyRSA4096Test) {
   ASSERT_FALSE(result.GetFingerprint().isEmpty());
 
   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                 .GetKey(result.GetFingerprint());
-  ASSERT_TRUE(key.IsGood());
-  ASSERT_EQ(key.ExpirationTime().date(), expire_time.date());
+                 .GetKeyPtr(result.GetFingerprint());
+  ASSERT_TRUE(key != nullptr);
+  ASSERT_EQ(key->ExpirationTime().date(), expire_time.date());
 
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-      .DeleteKey(result.GetFingerprint());
+  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(key);
 }
 
 TEST_F(GpgCoreTest, GenerateKeyDSA2048Test) {
@@ -174,8 +173,11 @@ TEST_F(GpgCoreTest, GenerateKeyDSA2048Test) {
   ASSERT_TRUE(result.IsGood());
   ASSERT_FALSE(result.GetFingerprint().isEmpty());
 
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                 .GetKey(result.GetFingerprint());
+  auto p_key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetKeyPtr(result.GetFingerprint());
+  ASSERT_TRUE(p_key != nullptr);
+  auto& key = *p_key;
+
   ASSERT_TRUE(key.IsGood());
   ASSERT_EQ(key.Name(), "foo_1");
   ASSERT_EQ(key.Email(), "bar_1@gpgfrontend.bktus.com");
@@ -195,8 +197,7 @@ TEST_F(GpgCoreTest, GenerateKeyDSA2048Test) {
   ASSERT_FALSE(key.IsHasActualEncrCap());
   ASSERT_TRUE(key.IsHasActualSignCap());
 
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-      .DeleteKey(result.GetFingerprint());
+  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(p_key);
 }
 
 TEST_F(GpgCoreTest, GenerateKeyED25519Test) {
@@ -228,8 +229,11 @@ TEST_F(GpgCoreTest, GenerateKeyED25519Test) {
   ASSERT_TRUE(result.IsGood());
   ASSERT_FALSE(result.GetFingerprint().isEmpty());
 
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                 .GetKey(result.GetFingerprint());
+  auto p_key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetKeyPtr(result.GetFingerprint());
+  ASSERT_TRUE(p_key != nullptr);
+  auto& key = *p_key;
+
   ASSERT_TRUE(key.IsGood());
   ASSERT_EQ(key.Name(), "foo_4");
   ASSERT_EQ(key.Email(), "bar_ed@gpgfrontend.bktus.com");
@@ -249,8 +253,7 @@ TEST_F(GpgCoreTest, GenerateKeyED25519Test) {
   ASSERT_FALSE(key.IsHasActualEncrCap());
   ASSERT_TRUE(key.IsHasActualSignCap());
 
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-      .DeleteKey(result.GetFingerprint());
+  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(p_key);
 }
 
 TEST_F(GpgCoreTest, GenerateKeyED25519CV25519Test) {
@@ -285,11 +288,12 @@ TEST_F(GpgCoreTest, GenerateKeyED25519CV25519Test) {
       (data_object->Check<GpgGenerateKeyResult, GpgGenerateKeyResult>()));
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
   ASSERT_TRUE(result.IsGood());
-  auto fpr = result.GetFingerprint();
-  ASSERT_FALSE(fpr.isEmpty());
+  ASSERT_FALSE(result.GetFingerprint().isEmpty());
 
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).GetKey(fpr);
-  ASSERT_TRUE(key.IsGood());
+  auto p_key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetKeyPtr(result.GetFingerprint());
+  ASSERT_TRUE(p_key != nullptr);
+  auto& key = *p_key;
 
   ASSERT_EQ(key.Name(), "foo_ec");
   ASSERT_EQ(key.Email(), "ec_bar@gpgfrontend.bktus.com");
@@ -325,7 +329,7 @@ TEST_F(GpgCoreTest, GenerateKeyED25519CV25519Test) {
   ASSERT_TRUE(key.IsHasActualEncrCap());
   ASSERT_TRUE(key.IsHasActualSignCap());
 
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(fpr);
+  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(p_key);
 }
 
 TEST_F(GpgCoreTest, GenerateKeyED25519NISTP256Test) {
@@ -360,11 +364,12 @@ TEST_F(GpgCoreTest, GenerateKeyED25519NISTP256Test) {
       (data_object->Check<GpgGenerateKeyResult, GpgGenerateKeyResult>()));
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
   ASSERT_TRUE(result.IsGood());
-  auto fpr = result.GetFingerprint();
-  ASSERT_FALSE(fpr.isEmpty());
+  ASSERT_FALSE(result.GetFingerprint().isEmpty());
 
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).GetKey(fpr);
-  ASSERT_TRUE(key.IsGood());
+  auto p_key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetKeyPtr(result.GetFingerprint());
+  ASSERT_TRUE(p_key != nullptr);
+  auto& key = *p_key;
 
   ASSERT_EQ(key.Name(), "foo_ec2");
   ASSERT_EQ(key.Email(), "ec2_bar@gpgfrontend.bktus.com");
@@ -400,7 +405,7 @@ TEST_F(GpgCoreTest, GenerateKeyED25519NISTP256Test) {
   ASSERT_TRUE(key.IsHasActualEncrCap());
   ASSERT_TRUE(key.IsHasActualSignCap());
 
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(fpr);
+  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(p_key);
 }
 
 TEST_F(GpgCoreTest, GenerateKeyED25519BRAINPOOLP256R1Test) {
@@ -435,11 +440,12 @@ TEST_F(GpgCoreTest, GenerateKeyED25519BRAINPOOLP256R1Test) {
       (data_object->Check<GpgGenerateKeyResult, GpgGenerateKeyResult>()));
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
   ASSERT_TRUE(result.IsGood());
-  auto fpr = result.GetFingerprint();
-  ASSERT_FALSE(fpr.isEmpty());
+  ASSERT_FALSE(result.GetFingerprint().isEmpty());
 
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).GetKey(fpr);
-  ASSERT_TRUE(key.IsGood());
+  auto p_key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetKeyPtr(result.GetFingerprint());
+  ASSERT_TRUE(p_key != nullptr);
+  auto& key = *p_key;
 
   ASSERT_EQ(key.Name(), "foo_ec3");
   ASSERT_EQ(key.Email(), "ec3_bar@gpgfrontend.bktus.com");
@@ -475,7 +481,7 @@ TEST_F(GpgCoreTest, GenerateKeyED25519BRAINPOOLP256R1Test) {
   ASSERT_TRUE(key.IsHasActualEncrCap());
   ASSERT_TRUE(key.IsHasActualSignCap());
 
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(fpr);
+  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(p_key);
 }
 
 TEST_F(GpgCoreTest, GenerateKeyNISTP256Test) {
@@ -507,9 +513,11 @@ TEST_F(GpgCoreTest, GenerateKeyNISTP256Test) {
   ASSERT_TRUE(result.IsGood());
   ASSERT_FALSE(result.GetFingerprint().isEmpty());
 
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                 .GetKey(result.GetFingerprint());
-  ASSERT_TRUE(key.IsGood());
+  auto p_key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetKeyPtr(result.GetFingerprint());
+  ASSERT_TRUE(p_key != nullptr);
+  auto& key = *p_key;
+
   ASSERT_EQ(key.Name(), "foo_4");
   ASSERT_EQ(key.Email(), "bar_ed@gpgfrontend.bktus.com");
   ASSERT_EQ(key.Comment(), "hello gpgfrontend");
@@ -529,8 +537,7 @@ TEST_F(GpgCoreTest, GenerateKeyNISTP256Test) {
   ASSERT_FALSE(key.IsHasActualEncrCap());
   ASSERT_TRUE(key.IsHasActualSignCap());
 
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-      .DeleteKey(result.GetFingerprint());
+  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(p_key);
 }
 
 TEST_F(GpgCoreTest, GenerateKeyED448Test) {
@@ -562,8 +569,11 @@ TEST_F(GpgCoreTest, GenerateKeyED448Test) {
   ASSERT_TRUE(result.IsGood());
   ASSERT_FALSE(result.GetFingerprint().isEmpty());
 
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                 .GetKey(result.GetFingerprint());
+  auto p_key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetKeyPtr(result.GetFingerprint());
+  ASSERT_TRUE(p_key != nullptr);
+  auto& key = *p_key;
+
   ASSERT_TRUE(key.IsGood());
   ASSERT_EQ(key.Name(), "foo_4");
   ASSERT_EQ(key.Email(), "bar_ed@gpgfrontend.bktus.com");
@@ -584,8 +594,7 @@ TEST_F(GpgCoreTest, GenerateKeyED448Test) {
   ASSERT_FALSE(key.IsHasActualEncrCap());
   ASSERT_TRUE(key.IsHasActualSignCap());
 
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-      .DeleteKey(result.GetFingerprint());
+  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(p_key);
 }
 
 TEST_F(GpgCoreTest, GenerateKeySECP256K1Test) {
@@ -617,9 +626,11 @@ TEST_F(GpgCoreTest, GenerateKeySECP256K1Test) {
   ASSERT_TRUE(result.IsGood());
   ASSERT_FALSE(result.GetFingerprint().isEmpty());
 
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                 .GetKey(result.GetFingerprint());
-  ASSERT_TRUE(key.IsGood());
+  auto p_key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetKeyPtr(result.GetFingerprint());
+  ASSERT_TRUE(p_key != nullptr);
+  auto& key = *p_key;
+
   ASSERT_EQ(key.Name(), "foo_4");
   ASSERT_EQ(key.Email(), "bar_ed@gpgfrontend.bktus.com");
   ASSERT_EQ(key.Comment(), "hello gpgfrontend");
@@ -639,8 +650,7 @@ TEST_F(GpgCoreTest, GenerateKeySECP256K1Test) {
   ASSERT_FALSE(key.IsHasActualEncrCap());
   ASSERT_TRUE(key.IsHasActualSignCap());
 
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel)
-      .DeleteKey(result.GetFingerprint());
+  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(p_key);
 }
 
 }  // namespace GpgFrontend::Test

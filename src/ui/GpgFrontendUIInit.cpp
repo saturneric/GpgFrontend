@@ -217,7 +217,7 @@ void WaitingAllInitializationFinished() {
 
 auto RunGpgFrontendUI(QApplication* app) -> int {
   // create main window and show it
-  auto main_window = SecureCreateUniqueObject<GpgFrontend::UI::MainWindow>();
+  auto* main_window = new GpgFrontend::UI::MainWindow();
 
   // pre-check, if application need to restart
   if (CommonUtils::GetInstance()->IsApplicationNeedRestart()) {

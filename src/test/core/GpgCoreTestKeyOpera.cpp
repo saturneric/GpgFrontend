@@ -77,10 +77,10 @@ TEST_F(GpgCoreTest, CoreAddADSKTestA) {
   ASSERT_EQ(info->imported, 1);
 
   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                 .GetKey("5C4D80546EB6E52F");
-  ASSERT_TRUE(key.IsGood());
-  ASSERT_TRUE(key.IsPrivateKey());
-  ASSERT_TRUE(key.IsHasMasterKey());
+                 .GetKeyPtr("5C4D80546EB6E52F");
+  ASSERT_TRUE(key->IsGood());
+  ASSERT_TRUE(key->IsPrivateKey());
+  ASSERT_TRUE(key->IsHasMasterKey());
 
   auto key_b = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
                    .GetKey("467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
@@ -103,16 +103,16 @@ TEST_F(GpgCoreTest, CoreAddADSKTestA) {
 
   GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).FlushKeyCache();
   key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-            .GetKey("5C4D80546EB6E52F");
-  ASSERT_TRUE(key.IsGood());
-  ASSERT_TRUE(key.IsPrivateKey());
-  ASSERT_TRUE(key.IsHasMasterKey());
+            .GetKeyPtr("5C4D80546EB6E52F");
+  ASSERT_TRUE(key->IsGood());
+  ASSERT_TRUE(key->IsPrivateKey());
+  ASSERT_TRUE(key->IsHasMasterKey());
 
-  auto s_keys = key.SubKeys();
+  auto s_keys = key->SubKeys();
   ASSERT_EQ(s_keys.size(), 2);
   ASSERT_EQ(s_keys.last().ID(), "F89C95A05088CC93");
   ASSERT_EQ(s_keys.last().IsADSK(), true);
 
-  GpgKeyOpera::GetInstance().DeleteKey(key.ID());
+  GpgKeyOpera::GetInstance().DeleteKey(key);
 }
 };  // namespace GpgFrontend::Test

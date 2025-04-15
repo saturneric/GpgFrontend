@@ -32,7 +32,7 @@
 
 #pragma once
 
-#include "core/typedef/CoreTypedef.h"
+#include "core/model/DataObject.h"
 
 namespace GpgFrontend {
 

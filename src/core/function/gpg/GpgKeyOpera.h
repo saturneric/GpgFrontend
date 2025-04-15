@@ -61,14 +61,14 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    *
    * @param key_ids
    */
-  void DeleteKeys(KeyIdArgsList key_ids);
+  void DeleteKeys(const GpgAbstractKeyPtrList& keys);
 
   /**
    * @brief
    *
    * @param key_id
    */
-  void DeleteKey(const KeyId& key_id);
+  void DeleteKey(const GpgAbstractKeyPtr& key_id);
 
   /**
    * @brief Set the Expire object
@@ -78,7 +78,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param expires
    * @return GpgError
    */
-  auto SetExpire(const GpgKey& key, const SubkeyId& subkey_fpr,
+  auto SetExpire(const GpgKeyPtr& key, const SubkeyId& subkey_fpr,
                  std::unique_ptr<QDateTime>& expires) -> GpgError;
 
   /**
@@ -87,7 +87,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param key
    * @param output_file_name
    */
-  void GenerateRevokeCert(const GpgKey& key, const QString& output_path,
+  void GenerateRevokeCert(const GpgKeyPtr& key, const QString& output_path,
                           int revocation_reason_code,
                           const QString& revocation_reason_text);
 
@@ -97,7 +97,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param key
    * @return GpgFrontend::GpgError
    */
-  void ModifyPassword(const GpgKey& key, const GpgOperationCallback&);
+  void ModifyPassword(const GpgKeyPtr& key, const GpgOperationCallback&);
 
   /**
    * @brief
@@ -106,8 +106,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param tofu_policy
    * @return GpgFrontend::GpgError
    */
-  auto ModifyTOFUPolicy(const GpgKey& key, gpgme_tofu_policy_t tofu_policy)
-      -> GpgFrontend::GpgError;
+  auto ModifyTOFUPolicy(const GpgKeyPtr& key,
+                        gpgme_tofu_policy_t tofu_policy) -> GpgError;
   /**
    * @brief
    *
@@ -133,7 +133,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param params
    * @return GpgFrontend::GpgError
    */
-  void GenerateSubkey(const GpgKey& key,
+  void GenerateSubkey(const GpgKeyPtr& key,
                       const QSharedPointer<KeyGenerateInfo>& params,
                       const GpgOperationCallback&);
 
@@ -143,7 +143,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param key
    * @param params
    */
-  auto GenerateSubkeySync(const GpgKey& key,
+  auto GenerateSubkeySync(const GpgKeyPtr& key,
                           const QSharedPointer<KeyGenerateInfo>& params)
       -> std::tuple<GpgError, DataObjectPtr>;
 
@@ -176,7 +176,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param key
    * @param adsk
    */
-  void AddADSK(const GpgKey& key, const GpgSubKey& adsk,
+  void AddADSK(const GpgKeyPtr& key, const GpgSubKey& adsk,
                const GpgOperationCallback&);
 
   /**
@@ -186,7 +186,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param adsk
    * @return GpgError
    */
-  auto AddADSKSync(const GpgKey& key, const GpgSubKey& adsk)
+  auto AddADSKSync(const GpgKeyPtr& key, const GpgSubKey& adsk)
       -> std::tuple<GpgError, DataObjectPtr>;
 
  private:

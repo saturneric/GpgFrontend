@@ -29,7 +29,6 @@
 #pragma once
 
 #include "core/model/GpgOpenPGPCard.h"
-#include "core/typedef/CoreTypedef.h"
 #include "ui/dialog/GeneralDialog.h"
 
 class Ui_SmartCardControllerDialog;

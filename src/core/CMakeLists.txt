@@ -81,7 +81,7 @@ target_include_directories(gpgfrontend_core PRIVATE ${LibArchive_INCLUDE_DIR})
 target_link_libraries(gpgfrontend_core PRIVATE archive)
 
 # link qt
-target_link_libraries(gpgfrontend_core PUBLIC Qt::Core)
+target_link_libraries(gpgfrontend_core PUBLIC Qt::Core Qt::Gui)
 
 # set up pch
 target_precompile_headers(gpgfrontend_core

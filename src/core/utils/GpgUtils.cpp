@@ -29,12 +29,13 @@
 #include "GpgUtils.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/gpg/GpgAbstractKeyGetter.h"
 #include "core/model/GpgKey.h"
+#include "core/model/GpgKeyGroup.h"
 #include "core/model/KeyDatabaseInfo.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/struct/settings_object/KeyDatabaseListSO.h"
-
 namespace GpgFrontend {
 
 inline auto Trim(QString& s) -> QString { return s.trimmed(); }
@@ -326,31 +327,65 @@ auto GetKeyDatabaseInfoBySettings() -> QContainer<KeyDatabaseInfo> {
   return key_db_infos;
 }
 
-auto GPGFRONTEND_CORE_EXPORT Convert2RawGpgMEKeyList(
-    const QContainer<GpgKey>& keys) -> QContainer<gpgme_key_t> {
-  QContainer<gpgme_key_t> recipients(keys.begin(), keys.end());
-  recipients.push_back(nullptr);
+auto GPGFRONTEND_CORE_EXPORT ConvertKey2GpgKeyIdList(
+    int channel, const GpgAbstractKeyPtrList& keys) -> KeyIdArgsList {
+  KeyIdArgsList ret;
+  for (const auto& key : ConvertKey2GpgKeyList(channel, keys)) {
+    ret.push_back(key->ID());
+  }
+  return ret;
+}
+
+auto GPGFRONTEND_CORE_EXPORT ConvertKey2GpgKeyList(
+    int channel, const GpgAbstractKeyPtrList& keys) -> GpgKeyPtrList {
+  GpgKeyPtrList recipients;
+
+  QSet<QString> s;
+  for (const auto& key : keys) {
+    if (key == nullptr || key->IsDisabled() || s.contains(key->ID())) continue;
+
+    if (key->KeyType() == GpgAbstractKeyType::kGPG_KEY) {
+      recipients.push_back(qSharedPointerDynamicCast<GpgKey>(key));
+    } else if (key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP) {
+      auto key_ids = qSharedPointerDynamicCast<GpgKeyGroup>(key)->KeyIds();
+      recipients += ConvertKey2GpgKeyList(
+          channel, GpgAbstractKeyGetter::GetInstance().GetKeys(key_ids));
+    }
+
+    s.insert(key->ID());
+  }
+
+  assert(std::all_of(keys.begin(), keys.end(),
+                     [](const auto& key) { return key->IsGood(); }));
 
   return recipients;
 }
 
-auto GPGFRONTEND_CORE_EXPORT GetUsagesByKey(const GpgKey& key) -> QString {
-  QString usages;
-  if (key.IsHasActualCertCap()) usages += "C";
-  if (key.IsHasActualEncrCap()) usages += "E";
-  if (key.IsHasActualSignCap()) usages += "S";
-  if (key.IsHasActualAuthCap()) usages += "A";
-  return usages;
+auto GPGFRONTEND_CORE_EXPORT Convert2RawGpgMEKeyList(
+    int channel, const GpgAbstractKeyPtrList& keys) -> QContainer<gpgme_key_t> {
+  QContainer<gpgme_key_t> recipients;
+
+  auto g_keys = ConvertKey2GpgKeyList(channel, keys);
+  for (const auto& key : g_keys) {
+    recipients.push_back(
+        static_cast<gpgme_key_t>(*qSharedPointerDynamicCast<GpgKey>(key)));
+  }
+
+  recipients.push_back(nullptr);
+  return recipients;
 }
 
-auto GPGFRONTEND_CORE_EXPORT GetUsagesBySubkey(const GpgSubKey& key)
+auto GPGFRONTEND_CORE_EXPORT GetUsagesByAbstractKey(const GpgAbstractKey* key)
     -> QString {
   QString usages;
-  if (key.IsHasCertCap()) usages += "C";
-  if (key.IsHasEncrCap()) usages += "E";
-  if (key.IsHasSignCap()) usages += "S";
-  if (key.IsHasAuthCap()) usages += "A";
-  if (key.IsADSK()) usages += "R";
+  if (key->IsHasCertCap()) usages += "C";
+  if (key->IsHasEncrCap()) usages += "E";
+  if (key->IsHasSignCap()) usages += "S";
+  if (key->IsHasAuthCap()) usages += "A";
+
+  if (key->KeyType() == GpgAbstractKeyType::kGPG_SUBKEY) {
+    if (dynamic_cast<const GpgSubKey*>(key)->IsADSK()) usages += "R";
+  }
   return usages;
 }
 
@@ -358,7 +393,7 @@ auto GPGFRONTEND_CORE_EXPORT GetGpgKeyByGpgAbstractKey(GpgAbstractKey* ab_key)
     -> GpgKey {
   if (!ab_key->IsGood()) return {};
 
-  if (ab_key->IsSubKey()) {
+  if (ab_key->KeyType() == GpgAbstractKeyType::kGPG_SUBKEY) {
     auto* s_key = dynamic_cast<GpgSubKey*>(ab_key);
 
     assert(s_key != nullptr);
@@ -370,4 +405,9 @@ auto GPGFRONTEND_CORE_EXPORT GetGpgKeyByGpgAbstractKey(GpgAbstractKey* ab_key)
   auto* key = dynamic_cast<GpgKey*>(ab_key);
   return *key;
 }
+
+auto GPGFRONTEND_CORE_EXPORT IsKeyGroupID(const KeyId& id) -> bool {
+  return id.startsWith("#&");
+}
+
 }  // namespace GpgFrontend

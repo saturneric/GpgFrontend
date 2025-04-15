@@ -34,6 +34,7 @@
 
 #include "core/GpgModel.h"
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgKeyGroupGetter.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
@@ -70,7 +71,13 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     gpgme_get_key(ctx_.DefaultContext(), fpr.toUtf8(), &p_key, 0);
     if (p_key == nullptr)
       LOG_W() << "GpgKeyGetter GetKey _p_key Null, fpr: " << fpr;
-    return GpgKey(std::move(p_key));
+    return GpgKey(p_key);
+  }
+
+  auto GetPubkeyPtr(const QString& fpr, bool use_cache) -> GpgKeyPtr {
+    auto key = GetPubkey(fpr, use_cache);
+    if (!key.IsGood()) return nullptr;
+    return QSharedPointer<GpgKey>::create(key);
   }
 
   auto FetchKey() -> GpgKeyList {
@@ -89,19 +96,20 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     return keys_list;
   }
 
-  auto FetchGpgKeyList() -> GpgKeyList {
+  auto FetchGpgKeyList() -> GpgAbstractKeyPtrList {
     if (keys_search_cache_.empty()) {
       FlushKeyCache();
     }
 
-    auto keys_list = GpgKeyList{};
+    auto keys_list = GpgAbstractKeyPtrList{};
     {
       // get the lock
       std::lock_guard<std::mutex> lock(keys_cache_mutex_);
       for (const auto& key : keys_cache_) {
-        keys_list.push_back(key);
+        keys_list.push_back(QSharedPointer<GpgKey>::create(key));
       }
     }
+
     return keys_list;
   }
 
@@ -163,9 +171,21 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     return keys_copy;
   }
 
-  auto GetGpgKeyTableModel() -> QSharedPointer<GpgKeyTableModel> {
-    return SecureCreateQSharedObject<GpgKeyTableModel>(
-        SingletonFunctionObject::GetChannel(), FetchGpgKeyList(), nullptr);
+  auto Fetch() -> QContainer<QSharedPointer<GpgKey>> {
+    auto keys = FetchKey();
+
+    auto ret = QContainer<QSharedPointer<GpgKey>>();
+    for (const auto& key : keys) {
+      ret.append(QSharedPointer<GpgKey>::create(key));
+    }
+    return ret;
+  }
+
+  auto GetKeyPtr(const QString& key_id,
+                 bool use_cache) -> QSharedPointer<GpgKey> {
+    auto key = GetKey(key_id, use_cache);
+    if (!key.IsGood()) return nullptr;
+    return QSharedPointer<GpgKey>::create(key);
   }
 
  private:
@@ -229,8 +249,18 @@ auto GpgKeyGetter::GetKey(const QString& key_id, bool use_cache) -> GpgKey {
   return p_->GetKey(key_id, use_cache);
 }
 
+auto GpgKeyGetter::GetKeyPtr(const QString& key_id,
+                             bool use_cache) -> QSharedPointer<GpgKey> {
+  return p_->GetKeyPtr(key_id, use_cache);
+}
+
 auto GpgKeyGetter::GetPubkey(const QString& key_id, bool use_cache) -> GpgKey {
   return p_->GetPubkey(key_id, use_cache);
+}
+
+auto GpgKeyGetter::GetPubkeyPtr(const QString& key_id,
+                                bool use_cache) -> GpgKeyPtr {
+  return p_->GetPubkeyPtr(key_id, use_cache);
 }
 
 auto GpgKeyGetter::FlushKeyCache() -> bool { return p_->FlushKeyCache(); }
@@ -245,8 +275,7 @@ auto GpgKeyGetter::GetKeysCopy(const GpgKeyList& keys) -> GpgKeyList {
 
 auto GpgKeyGetter::FetchKey() -> GpgKeyList { return p_->FetchKey(); }
 
-auto GpgKeyGetter::GetGpgKeyTableModel() -> QSharedPointer<GpgKeyTableModel> {
-  return p_->GetGpgKeyTableModel();
+auto GpgKeyGetter::Fetch() -> QContainer<QSharedPointer<GpgKey>> {
+  return p_->Fetch();
 }
-
 }  // namespace GpgFrontend

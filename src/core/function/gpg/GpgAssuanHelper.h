@@ -113,6 +113,10 @@ class GPGFRONTEND_CORE_EXPORT GpgAssuanHelper
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
   QMap<GpgComponentType, assuan_context_t> assuan_ctx_;
 
+  QByteArray temp_data_;
+  QString temp_status_;
+  QString gpgconf_path_;
+
   /**
    * @brief
    *
@@ -169,10 +173,6 @@ class GPGFRONTEND_CORE_EXPORT GpgAssuanHelper
    */
   static auto default_inquery_callback(void* opaque,
                                        const char* inquery) -> gpgme_error_t;
-
-  QByteArray temp_data_;
-  QString temp_status_;
-  QString gpgconf_path_;
 };
 
 };  // namespace GpgFrontend

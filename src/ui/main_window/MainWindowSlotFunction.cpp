@@ -27,7 +27,6 @@
  */
 
 #include "MainWindow.h"
-#include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
@@ -45,7 +44,6 @@
 #include "ui/dialog/SignersPicker.h"
 #include "ui/dialog/help/AboutDialog.h"
 #include "ui/dialog/import_export/KeyUploadDialog.h"
-#include "ui/dialog/keypair_details/KeyDetailsDialog.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/SetOwnerTrustLevel.h"
 #include "ui/struct/GpgOperaResult.h"
@@ -71,25 +69,12 @@ void MainWindow::slot_find() {
  * Append the selected (not checked!) Key(s) To Textedit
  */
 void MainWindow::slot_append_selected_keys() {
-  auto key_ids = m_key_list_->GetSelected();
-
-  if (key_ids.empty()) {
-    FLOG_W("no key is selected to export");
-    return;
-  }
-
-  auto key =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids.front());
-  if (!key.IsGood()) {
-    LOG_W() << "selected key for exporting is invalid, key id: "
-            << key_ids.front();
-    return;
-  }
+  auto keys = m_key_list_->GetSelectedKeys();
+  if (keys.empty()) return;
 
   auto [err, gf_buffer] = GpgKeyImportExporter::GetInstance(
                               m_key_list_->GetCurrentGpgContextChannel())
-                              .ExportKey(key, false, true, false);
+                              .ExportKey(keys.front(), false, true, false);
   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
     CommonUtils::RaiseMessageBox(this, err);
     return;
@@ -99,123 +84,121 @@ void MainWindow::slot_append_selected_keys() {
 }
 
 void MainWindow::slot_append_keys_create_datetime() {
-  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
-  if (!succ) return;
+  auto key = m_key_list_->GetSelectedKey();
+  if (key == nullptr) return;
 
   auto create_datetime_format_str_local =
-      QLocale().toString(key.CreationTime()) + " (" + tr("Localize") + ") " +
+      QLocale().toString(key->CreationTime()) + " (" + tr("Localize") + ") " +
       "\n";
   auto create_datetime_format_str =
-      QLocale().toString(key.CreationTime().toUTC()) + " (" + tr("UTC") + ") " +
-      "\n ";
+      QLocale().toString(key->CreationTime().toUTC()) + " (" + tr("UTC") +
+      ") " + "\n ";
   edit_->SlotAppendText2CurTextPage(create_datetime_format_str_local +
                                     create_datetime_format_str);
 }
 
 void MainWindow::slot_append_keys_expire_datetime() {
-  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
-  if (!succ) return;
+  auto key = m_key_list_->GetSelectedKey();
+  if (key == nullptr) return;
 
   auto expire_datetime_format_str_local =
-      QLocale().toString(key.ExpirationTime()) + " (" + tr("Local Time") +
+      QLocale().toString(key->ExpirationTime()) + " (" + tr("Local Time") +
       ") " + "\n";
   auto expire_datetime_format_str =
-      QLocale().toString(key.ExpirationTime().toUTC()) + " (UTC) " + "\n";
+      QLocale().toString(key->ExpirationTime().toUTC()) + " (UTC) " + "\n";
 
   edit_->SlotAppendText2CurTextPage(expire_datetime_format_str_local +
                                     expire_datetime_format_str);
 }
 
 void MainWindow::slot_append_keys_fingerprint() {
-  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
-  if (!succ) return;
+  auto key = m_key_list_->GetSelectedKey();
+  if (key == nullptr) return;
 
-  auto fingerprint_format_str = BeautifyFingerprint(key.Fingerprint()) + "\n";
+  auto fingerprint_format_str = BeautifyFingerprint(key->Fingerprint()) + "\n";
 
   edit_->SlotAppendText2CurTextPage(fingerprint_format_str);
 }
 
 void MainWindow::slot_copy_mail_address_to_clipboard() {
-  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
-  if (!succ) return;
+  auto key = m_key_list_->GetSelectedKey();
+  if (key == nullptr) return;
 
   QClipboard* cb = QApplication::clipboard();
-  cb->setText(key.Email());
+  cb->setText(key->Email());
 }
 
 void MainWindow::slot_copy_default_uid_to_clipboard() {
-  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
-  if (!succ) return;
+  auto key = m_key_list_->GetSelectedKey();
+  if (key == nullptr || key->KeyType() != GpgAbstractKeyType::kGPG_KEY) return;
 
   QClipboard* cb = QApplication::clipboard();
-  cb->setText(key.UIDs().front().GetUID());
+  cb->setText(qSharedPointerDynamicCast<GpgKey>(key)->UIDs().front().GetUID());
 }
 
 void MainWindow::slot_copy_key_id_to_clipboard() {
-  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
-  if (!succ) return;
+  auto key = m_key_list_->GetSelectedKey();
+  if (key == nullptr) return;
 
   QClipboard* cb = QApplication::clipboard();
-  cb->setText(key.ID());
+  cb->setText(key->ID());
 }
 
 void MainWindow::slot_show_key_details() {
-  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
-  if (!succ) return;
+  auto keys = m_key_list_->GetSelectedKeys();
+  if (keys.isEmpty()) return;
 
-  new KeyDetailsDialog(m_key_list_->GetCurrentGpgContextChannel(), key, this);
+  CommonUtils::OpenDetailsDialogByKey(
+      this, m_key_list_->GetCurrentGpgContextChannel(), keys.front());
 }
 
 void MainWindow::slot_add_key_2_favorite() {
-  auto [succ, key] = m_key_list_->GetSelectedGpgKey();
-  if (!succ) return;
+  auto key = m_key_list_->GetSelectedKey();
+  if (key == nullptr) return;
 
   auto key_db_name =
       GetGpgKeyDatabaseName(m_key_list_->GetCurrentGpgContextChannel());
 
-  LOG_D() << "add key" << key.ID() << "to favorite at key db" << key_db_name;
+  LOG_D() << "add key" << key->ID() << "to favorite at key db" << key_db_name;
 
   CommonUtils::GetInstance()->AddKey2Favorite(key_db_name, key);
   emit SignalUIRefresh();
 }
 
 void MainWindow::slot_remove_key_from_favorite() {
-  auto key_ids = m_key_list_->GetSelected();
-  if (key_ids.empty()) return;
-
-  auto key =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKey(key_ids.front());
-  assert(key.IsGood());
+  auto keys = m_key_list_->GetSelectedKeys();
+  if (keys.empty()) return;
 
   auto key_db_name =
       GetGpgKeyDatabaseName(m_key_list_->GetCurrentGpgContextChannel());
 
-  CommonUtils::GetInstance()->RemoveKeyFromFavorite(key_db_name, key);
+  CommonUtils::GetInstance()->RemoveKeyFromFavorite(key_db_name, keys.front());
 
   emit SignalUIRefresh();
 }
 
 void MainWindow::refresh_keys_from_key_server() {
-  auto key_ids = m_key_list_->GetSelected();
-  if (key_ids.empty()) return;
-  CommonUtils::GetInstance()->ImportKeyFromKeyServer(
-      m_key_list_->GetCurrentGpgContextChannel(), key_ids);
+  auto keys = m_key_list_->GetSelectedGpgKeys();
+  if (keys.empty()) return;
+  CommonUtils::GetInstance()->ImportGpgKeyFromKeyServer(
+      m_key_list_->GetCurrentGpgContextChannel(), keys);
 }
 
 void MainWindow::slot_set_owner_trust_level_of_key() {
-  auto key_ids = m_key_list_->GetSelected();
-  if (key_ids.empty()) return;
+  auto keys = m_key_list_->GetSelectedGpgKeys();
+  if (keys.empty()) return;
 
   auto* function = new SetOwnerTrustLevel(this);
-  function->Exec(m_key_list_->GetCurrentGpgContextChannel(), key_ids.front());
+  function->Exec(m_key_list_->GetCurrentGpgContextChannel(), keys.front());
   function->deleteLater();
 }
 
 void MainWindow::upload_key_to_server() {
-  auto key_ids = m_key_list_->GetSelected();
+  auto keys = m_key_list_->GetSelectedKeys();
+  if (keys.empty()) return;
+
   auto* dialog = new KeyUploadDialog(m_key_list_->GetCurrentGpgContextChannel(),
-                                     key_ids, this);
+                                     keys, this);
   dialog->show();
   dialog->SlotUpload();
 }
@@ -640,25 +623,28 @@ void MainWindow::decrypt_email_by_eml_data_result_helper(
 
 void MainWindow::SlotEncryptEML() {
   if (edit_->TabCount() == 0 || edit_->CurEMailPage() == nullptr) return;
-  auto checked_keys = m_key_list_->GetCheckedKeys();
+  auto keys = m_key_list_->GetCheckedKeys();
 
-  if (checked_keys.isEmpty()) {
+  if (keys.isEmpty()) {
     QMessageBox::warning(this, tr("No Key Selected"),
                          tr("Please select a key for encrypt the EML."));
     return;
   }
   auto buffer = edit_->CurPlainText().toUtf8();
 
+  auto key_ids =
+      ConvertKey2GpgKeyIdList(m_key_list_->GetCurrentGpgContextChannel(), keys);
+
   GpgOperaHelper::WaitForOpera(
       this, tr("Encrypting"),
-      [this, buffer, checked_keys](const OperaWaitingHd& hd) {
+      [this, buffer, key_ids](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
             "EMAIL_ENCRYPT_EML_DATA",
             {
                 {"body_data", QString::fromLatin1(buffer.toBase64())},
                 {"channel",
                  QString::number(m_key_list_->GetCurrentGpgContextChannel())},
-                {"encrypt_keys", checked_keys.join(';')},
+                {"encrypt_keys", key_ids.join(';')},
             },
 
             [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
@@ -700,32 +686,33 @@ void MainWindow::SlotEncryptEML() {
 
 void MainWindow::SlotSignEML() {
   if (edit_->TabCount() == 0 || edit_->CurEMailPage() == nullptr) return;
-  auto checked_keys = m_key_list_->GetCheckedKeys();
+  auto keys = m_key_list_->GetCheckedKeys();
 
-  if (checked_keys.isEmpty()) {
+  if (keys.isEmpty()) {
     QMessageBox::warning(this, tr("No Key Selected"),
                          tr("Please select a key for signing the EML."));
     return;
   }
 
-  if (checked_keys.size() > 1) {
+  if (keys.size() > 1) {
     QMessageBox::warning(this, tr("Multiple Keys Selected"),
                          tr("Please select only one key to sign the EML."));
     return;
   }
 
   auto buffer = edit_->CurPlainText().toUtf8();
+  auto key_ids =
+      ConvertKey2GpgKeyIdList(m_key_list_->GetCurrentGpgContextChannel(), keys);
 
   GpgOperaHelper::WaitForOpera(
-      this, tr("Signing"),
-      [this, buffer, checked_keys](const OperaWaitingHd& hd) {
+      this, tr("Signing"), [this, buffer, key_ids](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
             "EMAIL_SIGN_EML_DATA",
             {
                 {"body_data", QString::fromLatin1(buffer.toBase64())},
                 {"channel",
                  QString::number(m_key_list_->GetCurrentGpgContextChannel())},
-                {"sign_key", checked_keys.front()},
+                {"sign_key", key_ids.front()},
             },
             [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
                 Module::Event::Params p) {
@@ -766,9 +753,9 @@ void MainWindow::SlotSignEML() {
 
 void MainWindow::SlotEncryptSignEML() {
   if (edit_->TabCount() == 0 || edit_->CurEMailPage() == nullptr) return;
-  auto checked_keys = m_key_list_->GetCheckedKeys();
+  auto keys = m_key_list_->GetCheckedKeys();
 
-  if (checked_keys.isEmpty()) {
+  if (keys.isEmpty()) {
     QMessageBox::warning(this, tr("No Key Selected"),
                          tr("Please select a key for encrypt the EML."));
     return;
@@ -783,7 +770,7 @@ void MainWindow::SlotEncryptSignEML() {
   // return when canceled
   if (!signers_picker->GetStatus()) return;
 
-  auto signer_keys = signers_picker->GetCheckedSignerKeyIds();
+  auto signer_keys = signers_picker->GetCheckedSigners();
 
   if (signer_keys.isEmpty()) {
     QMessageBox::warning(this, tr("No Key Selected"),
@@ -798,18 +785,20 @@ void MainWindow::SlotEncryptSignEML() {
   }
 
   auto buffer = edit_->CurPlainText().toUtf8();
+  auto key_ids =
+      ConvertKey2GpgKeyIdList(m_key_list_->GetCurrentGpgContextChannel(), keys);
 
   GpgOperaHelper::WaitForOpera(
       this, tr("Encrypting and Signing"),
-      [this, buffer, checked_keys, signer_keys](const OperaWaitingHd& hd) {
+      [this, buffer, key_ids, signer_keys](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
             "EMAIL_ENCRYPT_SIGN_EML_DATA",
             {
                 {"body_data", QString::fromLatin1(buffer.toBase64())},
                 {"channel",
                  QString::number(m_key_list_->GetCurrentGpgContextChannel())},
-                {"sign_key", signer_keys.front()},
-                {"encrypt_keys", checked_keys.front()},
+                {"sign_key", signer_keys.front()->ID()},
+                {"encrypt_keys", key_ids.front()},
             },
             [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
                 Module::Event::Params p) {

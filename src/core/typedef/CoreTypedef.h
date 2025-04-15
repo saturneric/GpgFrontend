@@ -45,8 +45,4 @@ using BypeArrayConstRef = const ByteArray&;  ///<
 using StringArgsPtr = QStringList;           ///<
 using StringArgsRef = QStringList&;          ///<
 
-class DataObject;
-using DataObjectPtr = std::shared_ptr<DataObject>;  ///<
-using OperaRunnable = std::function<GFError(DataObjectPtr)>;
-using OperationCallback = std::function<void(GFError, DataObjectPtr)>;
 }  // namespace GpgFrontend

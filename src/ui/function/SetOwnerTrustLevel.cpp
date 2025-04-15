@@ -28,8 +28,6 @@
 
 #include "SetOwnerTrustLevel.h"
 
-#include "core/GpgModel.h"
-#include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyManager.h"
 #include "ui/UISignalStation.h"
 
@@ -37,13 +35,8 @@ namespace GpgFrontend::UI {
 
 SetOwnerTrustLevel::SetOwnerTrustLevel(QWidget* parent) : QWidget(parent) {}
 
-auto SetOwnerTrustLevel::Exec(int channel, const QString& key_id) -> bool {
-  if (key_id.isEmpty()) {
-    return false;
-  }
-
-  auto key = GpgKeyGetter::GetInstance(channel).GetKey(key_id);
-  assert(key.IsGood());
+auto SetOwnerTrustLevel::Exec(int channel, const GpgKeyPtr& key) -> bool {
+  assert(key->IsGood());
 
   QStringList items;
 
@@ -52,7 +45,7 @@ auto SetOwnerTrustLevel::Exec(int channel, const QString& key_id) -> bool {
   bool ok;
   QString item = QInputDialog::getItem(this, tr("Modify Owner Trust Level"),
                                        tr("Trust for the Key Pair:"), items,
-                                       key.OwnerTrustLevel(), false, &ok);
+                                       key->OwnerTrustLevel(), false, &ok);
 
   if (ok && !item.isEmpty()) {
     int trust_level = 0;  // Unknown Level

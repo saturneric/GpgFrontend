@@ -53,8 +53,7 @@ class SubkeyGenerateDialog : public GeneralDialog {
    * @param key_id
    * @param parent
    */
-  explicit SubkeyGenerateDialog(int channel, const KeyId& key_id,
-                                QWidget* parent);
+  explicit SubkeyGenerateDialog(int channel, GpgKeyPtr key, QWidget* parent);
 
  private slots:
 
@@ -68,7 +67,7 @@ class SubkeyGenerateDialog : public GeneralDialog {
   QSharedPointer<Ui_SubkeyGenDialog> ui_;  ///<
   int current_gpg_context_channel_;        ///<
 
-  GpgKey key_;                                       ///<
+  GpgKeyPtr key_;                                    ///<
   QSharedPointer<KeyGenerateInfo> gen_subkey_info_;  ///<
   QContainer<KeyAlgo> supported_subkey_algos_;       ///<
 

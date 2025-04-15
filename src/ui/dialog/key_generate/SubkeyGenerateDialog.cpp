@@ -30,8 +30,8 @@
 
 #include <cassert>
 #include <cstddef>
+#include <utility>
 
-#include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
@@ -44,17 +44,16 @@
 
 namespace GpgFrontend::UI {
 
-SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, const KeyId& key_id,
+SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, GpgKeyPtr key,
                                            QWidget* parent)
     : GeneralDialog(typeid(SubkeyGenerateDialog).name(), parent),
       ui_(QSharedPointer<Ui_SubkeyGenDialog>::create()),
       current_gpg_context_channel_(channel),
-      key_(GpgKeyGetter::GetInstance(current_gpg_context_channel_)
-               .GetKey(key_id)),
+      key_(std::move(key)),
       gen_subkey_info_(QSharedPointer<KeyGenerateInfo>::create(true)),
       supported_subkey_algos_(KeyGenerateInfo::GetSupportedSubkeyAlgo()) {
   ui_->setupUi(this);
-  assert(key_.IsGood());
+  assert(key_ != nullptr);
 
   ui_->algoLabel->setText(tr("Algorithm"));
   ui_->keyLengthLabel->setText(tr("Key Length"));

@@ -570,28 +570,31 @@ void MainWindow::create_dock_windows() {
       tr("Default"), "default",
       GpgKeyTableDisplayMode::kPUBLIC_KEY |
           GpgKeyTableDisplayMode::kPRIVATE_KEY,
-      [](const GpgKey& key) -> bool {
-        return !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
+      [](const GpgAbstractKey* key) -> bool {
+        return !(key->IsRevoked() || key->IsDisabled() || key->IsExpired());
       });
 
-  m_key_list_->AddListGroupTab(tr("Favourite"), "favourite",
-                               GpgKeyTableDisplayMode::kPUBLIC_KEY |
-                                   GpgKeyTableDisplayMode::kPRIVATE_KEY |
-                                   GpgKeyTableDisplayMode::kFAVORITES,
-                               [](const GpgKey&) -> bool { return true; });
+  m_key_list_->AddListGroupTab(
+      tr("Favourite"), "favourite",
+      GpgKeyTableDisplayMode::kPUBLIC_KEY |
+          GpgKeyTableDisplayMode::kPRIVATE_KEY |
+          GpgKeyTableDisplayMode::kFAVORITES,
+      [](const GpgAbstractKey*) -> bool { return true; });
 
   m_key_list_->AddListGroupTab(
       tr("Only Public Key"), "only_public_key",
-      GpgKeyTableDisplayMode::kPUBLIC_KEY, [](const GpgKey& key) -> bool {
-        return !key.IsPrivateKey() &&
-               !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
+      GpgKeyTableDisplayMode::kPUBLIC_KEY,
+      [](const GpgAbstractKey* key) -> bool {
+        return !key->IsPrivateKey() &&
+               !(key->IsRevoked() || key->IsDisabled() || key->IsExpired());
       });
 
   m_key_list_->AddListGroupTab(
       tr("Has Private Key"), "has_private_key",
-      GpgKeyTableDisplayMode::kPRIVATE_KEY, [](const GpgKey& key) -> bool {
-        return key.IsPrivateKey() &&
-               !(key.IsRevoked() || key.IsDisabled() || key.IsExpired());
+      GpgKeyTableDisplayMode::kPRIVATE_KEY,
+      [](const GpgAbstractKey* key) -> bool {
+        return key->IsPrivateKey() &&
+               !(key->IsRevoked() || key->IsDisabled() || key->IsExpired());
       });
 
   m_key_list_->SlotRefresh();
@@ -606,6 +609,9 @@ void MainWindow::create_dock_windows() {
   info_board_dock_->setWidget(info_board_);
   info_board_dock_->widget()->layout()->setContentsMargins(0, 0, 0, 0);
   view_menu_->addAction(info_board_dock_->toggleViewAction());
+
+  connect(m_key_list_, &KeyList::SignalKeyChecked, this,
+          &MainWindow::slot_update_operations_menu_by_checked_keys);
 }
 
 }  // namespace GpgFrontend::UI

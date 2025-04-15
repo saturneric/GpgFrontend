@@ -522,6 +522,13 @@ class MainWindow : public GeneralMainWindow {
   void slot_gpg_opera_buffer_show_helper(
       const QContainer<GpgOperaResult>& results);
 
+  /**
+   * @brief
+   *
+   * @param results
+   */
+  void slot_update_operations_menu_by_checked_keys();
+
  private:
   /**
    * @details Create actions for the main-menu and the context-menu of the
@@ -625,9 +632,9 @@ class MainWindow : public GeneralMainWindow {
    * @return GpgKeyList
    */
   auto check_keys_helper(
-      const KeyIdArgsList& key_ids,
-      const std::function<bool(const GpgKey&)>& capability_check,
-      const QString& capability_err_string) -> GpgKeyList;
+      const GpgAbstractKeyPtrList& keys,
+      const std::function<bool(const GpgAbstractKeyPtr&)>& capability_check,
+      const QString& capability_err_string) -> GpgAbstractKeyPtrList;
 
   /**
    * @brief

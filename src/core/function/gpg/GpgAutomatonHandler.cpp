@@ -97,13 +97,13 @@ auto GpgAutomatonHandler::interator_cb_func(void* handle, const char* status,
 }
 
 auto GpgAutomatonHandler::DoInteract(
-    const GpgKey& key, AutomatonNextStateHandler next_state_handler,
+    const GpgKeyPtr& key, AutomatonNextStateHandler next_state_handler,
     AutomatonActionHandler action_handler, int flags) -> bool {
   gpgme_key_t p_key =
-      flags == GPGME_INTERACT_CARD ? nullptr : static_cast<gpgme_key_t>(key);
+      flags == GPGME_INTERACT_CARD ? nullptr : static_cast<gpgme_key_t>(*key);
 
   AutomatonHandelStruct handel_struct(
-      flags == GPGME_INTERACT_CARD ? "" : key.Fingerprint());
+      flags == GPGME_INTERACT_CARD ? "" : key->Fingerprint());
   handel_struct.SetHandler(std::move(next_state_handler),
                            std::move(action_handler));
 

@@ -27,8 +27,6 @@
  */
 
 #include "MainWindow.h"
-#include "core/function/GlobalSettingStation.h"
-#include "core/function/gpg/GpgKeyGetter.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "ui/UserInterfaceUtils.h"
@@ -42,10 +40,10 @@ namespace GpgFrontend::UI {
 
 auto MainWindow::encrypt_operation_key_validate(
     const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool {
-  auto key_ids = m_key_list_->GetChecked();
+  auto keys = m_key_list_->GetCheckedKeys();
 
   // symmetric encryption
-  if (key_ids.isEmpty()) {
+  if (keys.isEmpty()) {
     auto ret = QMessageBox::information(
         this, tr("Symmetric Encryption"),
         tr("No Key Selected. Do you want to encrypt with a "
@@ -56,7 +54,7 @@ auto MainWindow::encrypt_operation_key_validate(
     contexts->keys = {};
   } else {
     contexts->keys = check_keys_helper(
-        key_ids, [](const GpgKey& key) { return key.IsHasActualEncrCap(); },
+        keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
         tr("The selected keypair cannot be used for encryption."));
     if (contexts->keys.empty()) return false;
   }
@@ -75,12 +73,9 @@ auto MainWindow::sign_operation_key_validate(
   // return when canceled
   if (!signers_picker->GetStatus()) return false;
 
-  auto signer_key_ids = signers_picker->GetCheckedSigners();
-  auto signer_keys =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKeys(signer_key_ids);
+  auto signer_keys = signers_picker->GetCheckedSigners();
   assert(std::all_of(signer_keys.begin(), signer_keys.end(),
-                     [](const auto& key) { return key.IsGood(); }));
+                     [](const auto& key) { return key->IsGood(); }));
 
   contexts->singer_keys = signer_keys;
 
@@ -150,21 +145,18 @@ auto MainWindow::check_write_file_paths_helper(const QStringList& o_paths)
 }
 
 auto MainWindow::check_keys_helper(
-    const KeyIdArgsList& key_ids,
-    const std::function<bool(const GpgKey&)>& capability_check,
-    const QString& capability_err_string) -> GpgKeyList {
-  if (key_ids.empty()) {
+    const GpgAbstractKeyPtrList& keys,
+    const std::function<bool(const GpgAbstractKeyPtr&)>& capability_check,
+    const QString& capability_err_string) -> GpgAbstractKeyPtrList {
+  if (keys.isEmpty()) {
     QMessageBox::critical(
         this, tr("No Key Checked"),
         tr("Please check the key in the key toolbox on the right."));
     return {};
   }
 
-  auto keys =
-      GpgKeyGetter::GetInstance(m_key_list_->GetCurrentGpgContextChannel())
-          .GetKeys(key_ids);
   assert(std::all_of(keys.begin(), keys.end(),
-                     [](const auto& key) { return key.IsGood(); }));
+                     [](const auto& key) { return key->IsGood(); }));
 
   // check key abilities
   for (const auto& key : keys) {
@@ -172,7 +164,7 @@ auto MainWindow::check_keys_helper(
       QMessageBox::critical(nullptr, tr("Invalid KeyPair"),
                             capability_err_string + "<br/><br/>" +
                                 tr("For example the Following Key:") +
-                                " <br/>" + key.UIDs().front().GetUID());
+                                " <br/>" + key->Email());
       return {};
     }
   }
@@ -202,9 +194,10 @@ void MainWindow::SlotSign() {
   auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
   contexts->ascii = true;
 
-  auto key_ids = m_key_list_->GetChecked();
+  auto keys = m_key_list_->GetCheckedKeys();
+
   contexts->keys = check_keys_helper(
-      key_ids, [](const GpgKey& key) { return key.IsHasActualSignCap(); },
+      keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasSignCap(); },
       tr("The selected key contains a key that does not actually have a "
          "sign usage."));
   if (contexts->keys.empty()) return;
@@ -255,9 +248,10 @@ void MainWindow::SlotEncryptSign() {
   auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
   contexts->ascii = true;
 
-  auto key_ids = m_key_list_->GetChecked();
+  auto keys = m_key_list_->GetCheckedKeys();
+
   contexts->keys = check_keys_helper(
-      key_ids, [](const GpgKey& key) { return key.IsHasActualEncrCap(); },
+      keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
       tr("The selected keypair cannot be used for encryption."));
   if (contexts->keys.empty()) return;
 
@@ -363,9 +357,10 @@ void MainWindow::SlotFileSign(const QStringList& paths, bool ascii) {
 
   contexts->ascii = ascii;
 
-  auto key_ids = m_key_list_->GetChecked();
+  auto keys = m_key_list_->GetCheckedKeys();
+
   contexts->keys = check_keys_helper(
-      key_ids, [](const GpgKey& key) { return key.IsHasActualSignCap(); },
+      keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasSignCap(); },
       tr("The selected key contains a key that does not actually have a "
          "sign usage."));
   if (contexts->keys.empty()) return;
@@ -442,9 +437,9 @@ void MainWindow::SlotFileEncryptSign(const QStringList& paths, bool ascii) {
   auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
   contexts->ascii = ascii;
 
-  auto key_ids = m_key_list_->GetChecked();
+  auto keys = m_key_list_->GetCheckedKeys();
   contexts->keys = check_keys_helper(
-      key_ids, [](const GpgKey& key) { return key.IsHasActualEncrCap(); },
+      keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
       tr("The selected keypair cannot be used for encryption."));
   if (contexts->keys.empty()) return;
 

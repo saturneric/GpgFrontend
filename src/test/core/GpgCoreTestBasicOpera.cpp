@@ -40,9 +40,9 @@
 namespace GpgFrontend::Test {
 
 TEST_F(GpgCoreTest, CoreEncryptDecrTest) {
-  auto encrypt_key = GpgKeyGetter::GetInstance().GetPubkey(
+  auto encrypt_key = GpgKeyGetter::GetInstance().GetPubkeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
-  ASSERT_TRUE(encrypt_key.IsGood());
+  ASSERT_TRUE(encrypt_key != nullptr);
 
   auto buffer = GFBuffer(QString("Hello GpgFrontend!"));
 
@@ -152,9 +152,9 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest_KeyNotFound_ResultAnalyse) {
 }
 
 TEST_F(GpgCoreTest, CoreSignVerifyNormalTest) {
-  auto sign_key = GpgKeyGetter::GetInstance().GetPubkey(
+  auto sign_key = GpgKeyGetter::GetInstance().GetPubkeyPtr(
       "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
-  ASSERT_TRUE(sign_key.IsGood());
+  ASSERT_TRUE(sign_key != nullptr);
 
   auto sign_text = GFBuffer(QString("Hello GpgFrontend!"));
 
@@ -179,10 +179,9 @@ TEST_F(GpgCoreTest, CoreSignVerifyNormalTest) {
 }
 
 TEST_F(GpgCoreTest, CoreSignVerifyDetachTest) {
-  auto sign_key = GpgKeyGetter::GetInstance().GetPubkey(
+  auto sign_key = GpgKeyGetter::GetInstance().GetPubkeyPtr(
       "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
-  ASSERT_TRUE(sign_key.IsGood());
-
+  ASSERT_TRUE(sign_key != nullptr);
   auto sign_text = GFBuffer(QString("Hello GpgFrontend!"));
 
   auto [err, data_object] = GpgBasicOperator::GetInstance().SignSync(
@@ -206,9 +205,9 @@ TEST_F(GpgCoreTest, CoreSignVerifyDetachTest) {
 }
 
 TEST_F(GpgCoreTest, CoreSignVerifyClearTest) {
-  auto sign_key = GpgKeyGetter::GetInstance().GetPubkey(
+  auto sign_key = GpgKeyGetter::GetInstance().GetPubkeyPtr(
       "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
-  ASSERT_TRUE(sign_key.IsGood());
+  ASSERT_TRUE(sign_key != nullptr);
 
   auto sign_text = GFBuffer(QString("Hello GpgFrontend!"));
 
@@ -232,16 +231,16 @@ TEST_F(GpgCoreTest, CoreSignVerifyClearTest) {
 }
 
 TEST_F(GpgCoreTest, CoreEncryptSignDecrVerifyTest) {
-  auto encrypt_key = GpgKeyGetter::GetInstance().GetPubkey(
+  auto encrypt_key = GpgKeyGetter::GetInstance().GetPubkeyPtr(
       "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
-  ASSERT_TRUE(encrypt_key.IsGood());
-  auto sign_key = GpgKeyGetter::GetInstance().GetKey(
+  ASSERT_TRUE(encrypt_key != nullptr);
+  auto sign_key = GpgKeyGetter::GetInstance().GetKeyPtr(
       "8933EB283A18995F45D61DAC021D89771B680FFB");
-  ASSERT_TRUE(sign_key.IsGood());
+  ASSERT_TRUE(sign_key != nullptr);
   auto encrypt_text = GFBuffer(QString("Hello GpgFrontend!"));
 
-  ASSERT_TRUE(sign_key.IsPrivateKey());
-  ASSERT_TRUE(sign_key.IsHasActualSignCap());
+  ASSERT_TRUE(sign_key->IsPrivateKey());
+  ASSERT_TRUE(sign_key->IsHasActualSignCap());
 
   auto [err, data_object] = GpgBasicOperator::GetInstance().EncryptSignSync(
       {encrypt_key}, {sign_key}, encrypt_text, true);

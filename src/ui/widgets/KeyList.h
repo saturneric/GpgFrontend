@@ -47,6 +47,7 @@ enum class KeyMenuAbility : unsigned int {
   kCOLUMN_FILTER = 1 << 4,
   kSEARCH_BAR = 1 << 5,
   kKEY_DATABASE = 1 << 6,
+  kKEY_GROUP = 1 << 7,
 
   kALL = ~0U
 };
@@ -84,6 +85,12 @@ class KeyList : public QWidget {
   /**
    * @brief Construct a new Key List object
    *
+   */
+  explicit KeyList(QWidget* parent = nullptr);
+
+  /**
+   * @brief Construct a new Key List object
+   *
    * @param menu_ability
    * @param parent
    */
@@ -95,18 +102,29 @@ class KeyList : public QWidget {
   /**
    * @brief
    *
+   * @param channel
+   * @param menu_ability
+   * @param fixed_column_filter
+   */
+  void Init(int channel, KeyMenuAbility menu_ability,
+            GpgKeyTableColumn fixed_column_filter = GpgKeyTableColumn::kALL);
+
+  /**
+   * @brief
+   *
    * @param name
    * @param selectType
    * @param infoType
    * @param filter
    */
-  void AddListGroupTab(
+  auto AddListGroupTab(
       const QString& name, const QString& id,
       GpgKeyTableDisplayMode display_mode =
           GpgKeyTableDisplayMode::kPRIVATE_KEY,
       GpgKeyTableProxyModel::KeyFilter search_filter =
-          [](const GpgKey&) -> bool { return true; },
-      GpgKeyTableColumn custom_columns_filter = GpgKeyTableColumn::kALL);
+          [](const GpgAbstractKey*) -> bool { return true; },
+      GpgKeyTableColumn custom_columns_filter = GpgKeyTableColumn::kALL)
+      -> KeyTable*;
 
   /**
    * @brief Set the Column Width object
@@ -130,18 +148,11 @@ class KeyList : public QWidget {
   void AddSeparator();
 
   /**
-   * @brief Get the Checked object
-   *
-   * @return KeyIdArgsListPtr
-   */
-  auto GetChecked() -> KeyIdArgsList;
-
-  /**
    * @brief Get the Checked Keys object
    *
    * @return QStringList
    */
-  auto GetCheckedKeys() -> QStringList;
+  auto GetCheckedKeys() -> GpgAbstractKeyPtrList;
 
   /**
    * @brief Get the Checked object
@@ -149,28 +160,21 @@ class KeyList : public QWidget {
    * @param key_table
    * @return KeyIdArgsListPtr
    */
-  static auto GetChecked(const KeyTable& key_table) -> KeyIdArgsList;
+  static auto GetChecked(const KeyTable& key_table) -> GpgAbstractKeyPtrList;
 
   /**
    * @brief Get the Private Checked object
    *
    * @return KeyIdArgsListPtr
    */
-  auto GetCheckedPrivateKey() -> KeyIdArgsList;
+  auto GetCheckedPrivateKey() -> GpgAbstractKeyPtrList;
 
   /**
    * @brief
    *
    * @return KeyIdArgsListPtr
    */
-  auto GetCheckedPublicKey() -> KeyIdArgsList;
-
-  /**
-   * @brief Get the All Private Keys object
-   *
-   * @return KeyIdArgsListPtr
-   */
-  auto GetAllPrivateKeys() -> KeyIdArgsList;
+  auto GetCheckedPublicKey() -> GpgAbstractKeyPtrList;
 
   /**
    * @brief Set the Checked object
@@ -182,25 +186,32 @@ class KeyList : public QWidget {
                          const KeyTable& key_table);
 
   /**
-   * @brief Get the Selected object
+   * @brief Get the Selected Key object
    *
-   * @return KeyIdArgsListPtr
+   * @return QString
    */
-  auto GetSelected() -> KeyIdArgsList;
+  auto GetSelectedKey() -> GpgAbstractKeyPtr;
+
+  /**
+   * @brief Get the Selected Keys object
+   *
+   * @return GpgAbstractKeyPtrList
+   */
+  auto GetSelectedKeys() -> GpgAbstractKeyPtrList;
 
   /**
    * @brief Get the Selected Key object
    *
    * @return QString
    */
-  auto GetSelectedKey() -> QString;
+  auto GetSelectedGpgKey() -> GpgKeyPtr;
 
   /**
-   * @brief Get the Selected Gpg Key object
+   * @brief Get the Selected Keys object
    *
-   * @return GpgKey
+   * @return GpgAbstractKeyPtrList
    */
-  auto GetSelectedGpgKey() -> std::tuple<bool, GpgKey>;
+  auto GetSelectedGpgKeys() -> GpgKeyPtrList;
 
   /**
    * @brief
@@ -223,6 +234,33 @@ class KeyList : public QWidget {
    */
   [[nodiscard]] auto GetCurrentGpgContextChannel() const -> int;
 
+  /**
+   * @brief
+   *
+   */
+  void UpdateKeyTableFilter(int index, const GpgKeyTableProxyModel::KeyFilter&);
+
+  /**
+   * @brief
+   *
+   * @param index
+   */
+  void RefreshKeyTable(int index);
+
+ public slots:
+
+  /**
+   * @brief
+   *
+   */
+  void SlotRefresh();
+
+  /**
+   * @brief
+   *
+   */
+  void SlotRefreshUI();
+
  signals:
   /**
    * @brief
@@ -244,21 +282,65 @@ class KeyList : public QWidget {
    */
   void SignalColumnTypeChange(GpgKeyTableColumn);
 
- public slots:
+  /**
+   * @brief
+   *
+   */
+  void SignalKeyChecked();
+
+ protected:
+  /**
+   * @brief
+   *
+   * @param event
+   */
+  void contextMenuEvent(QContextMenuEvent* event) override;
+
+  /**
+   * @brief
+   *
+   * @param event
+   */
+  void dragEnterEvent(QDragEnterEvent* event) override;
+
+  /**
+   * @brief
+   *
+   * @param event
+   */
+  void dropEvent(QDropEvent* event) override;
+
+ private slots:
 
   /**
    * @brief
    *
    */
-  void SlotRefresh();
+  void slot_sync_with_key_server();
 
   /**
    * @brief
    *
    */
-  void SlotRefreshUI();
+  void slot_new_key_group();
 
  private:
+  std::shared_ptr<Ui_KeyList> ui_;                                   ///<
+  QMenu* popup_menu_{};                                              ///<
+  std::function<void(const GpgKey&, QWidget*)> m_action_ = nullptr;  ///<
+  int current_gpg_context_channel_;
+  KeyMenuAbility menu_ability_ = KeyMenuAbility::kALL;  ///<
+  QSharedPointer<GpgKeyTableModel> model_;
+  GpgKeyTableColumn fixed_columns_filter_;
+  GpgKeyTableColumn global_column_filter_;
+
+  QAction* key_id_column_action_;
+  QAction* algo_column_action_;
+  QAction* create_date_column_action_;
+  QAction* owner_trust_column_action_;
+  QAction* subkeys_number_column_action_;
+  QAction* comment_column_action_;
+
   /**
    * @brief
    *
@@ -289,52 +371,6 @@ class KeyList : public QWidget {
    *
    */
   void filter_by_keyword();
-
-  std::shared_ptr<Ui_KeyList> ui_;                                   ///<
-  QMenu* popup_menu_{};                                              ///<
-  std::function<void(const GpgKey&, QWidget*)> m_action_ = nullptr;  ///<
-  int current_gpg_context_channel_;
-  KeyMenuAbility menu_ability_ = KeyMenuAbility::kALL;  ///<
-  QSharedPointer<GpgKeyTableModel> model_;
-  GpgKeyTableColumn fixed_columns_filter_;
-  GpgKeyTableColumn global_column_filter_;
-
-  QAction* key_id_column_action_;
-  QAction* algo_column_action_;
-  QAction* create_date_column_action_;
-  QAction* owner_trust_column_action_;
-  QAction* subkeys_number_column_action_;
-  QAction* comment_column_action_;
-
- private slots:
-
-  /**
-   * @brief
-   *
-   */
-  void slot_sync_with_key_server();
-
- protected:
-  /**
-   * @brief
-   *
-   * @param event
-   */
-  void contextMenuEvent(QContextMenuEvent* event) override;
-
-  /**
-   * @brief
-   *
-   * @param event
-   */
-  void dragEnterEvent(QDragEnterEvent* event) override;
-
-  /**
-   * @brief
-   *
-   * @param event
-   */
-  void dropEvent(QDropEvent* event) override;
 };
 
 }  // namespace GpgFrontend::UI

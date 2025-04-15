@@ -29,8 +29,8 @@
 #pragma once
 
 #include "core/GpgFrontendCore.h"
+#include "core/model/DataObject.h"
 #include "core/model/GFDataExchanger.h"
-#include "core/typedef/CoreTypedef.h"
 #include "core/utils/IOUtils.h"
 
 namespace GpgFrontend {

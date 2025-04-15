@@ -66,10 +66,10 @@ void CreateArchiveHelper(const QString& in_path,
 GpgFileOpera::GpgFileOpera(int channel)
     : SingletonFunctionObject<GpgFileOpera>(channel) {}
 
-auto EncryptFileGpgDataImpl(GpgContext& ctx_, const KeyArgsList& keys,
+auto EncryptFileGpgDataImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
                             GpgData& data_in, bool ascii, GpgData& data_out,
                             const DataObjectPtr& data_object) -> GpgError {
-  auto recipients = Convert2RawGpgMEKeyList(keys);
+  auto recipients = Convert2RawGpgMEKeyList(ctx_.GetChannel(), keys);
   auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
 
   auto err = CheckGpgError(
@@ -79,7 +79,7 @@ auto EncryptFileGpgDataImpl(GpgContext& ctx_, const KeyArgsList& keys,
   return err;
 }
 
-auto EncryptFileImpl(GpgContext& ctx_, const KeyArgsList& keys,
+auto EncryptFileImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
                      const QString& in_path, bool ascii,
                      const QString& out_path,
                      const DataObjectPtr& data_object) -> GpgError {
@@ -90,8 +90,9 @@ auto EncryptFileImpl(GpgContext& ctx_, const KeyArgsList& keys,
                                 data_object);
 }
 
-void GpgFileOpera::EncryptFile(const KeyArgsList& keys, const QString& in_path,
-                               bool ascii, const QString& out_path,
+void GpgFileOpera::EncryptFile(const GpgAbstractKeyPtrList& keys,
+                               const QString& in_path, bool ascii,
+                               const QString& out_path,
                                const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) {
@@ -102,7 +103,7 @@ void GpgFileOpera::EncryptFile(const KeyArgsList& keys, const QString& in_path,
 }
 
 auto GpgFileOpera::EncryptFileSync(
-    const KeyArgsList& keys, const QString& in_path, bool ascii,
+    const GpgAbstractKeyPtrList& keys, const QString& in_path, bool ascii,
     const QString& out_path) -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       [=](const DataObjectPtr& data_object) {
@@ -112,7 +113,7 @@ auto GpgFileOpera::EncryptFileSync(
       "gpgme_op_encrypt", "2.1.0");
 }
 
-void GpgFileOpera::EncryptDirectory(const KeyArgsList& keys,
+void GpgFileOpera::EncryptDirectory(const GpgAbstractKeyPtrList& keys,
                                     const QString& in_path, bool ascii,
                                     const QString& out_path,
                                     const GpgOperationCallback& cb) {
@@ -186,8 +187,8 @@ void GpgFileOpera::DecryptArchive(const QString& in_path,
 }
 
 auto SignFileGpgDataImpl(GpgContext& ctx_, GpgBasicOperator& basic_opera_,
-                         const KeyArgsList& keys, GpgData& data_in, bool ascii,
-                         GpgData& data_out,
+                         const GpgAbstractKeyPtrList& keys, GpgData& data_in,
+                         bool ascii, GpgData& data_out,
                          const DataObjectPtr& data_object) -> GpgError {
   GpgError err;
 
@@ -205,8 +206,8 @@ auto SignFileGpgDataImpl(GpgContext& ctx_, GpgBasicOperator& basic_opera_,
 }
 
 auto SignFileImpl(GpgContext& ctx_, GpgBasicOperator& basic_opera_,
-                  const KeyArgsList& keys, const QString& in_path, bool ascii,
-                  const QString& out_path,
+                  const GpgAbstractKeyPtrList& keys, const QString& in_path,
+                  bool ascii, const QString& out_path,
                   const DataObjectPtr& data_object) -> GpgError {
   GpgData data_in(in_path, true);
   GpgData data_out(out_path, false);
@@ -215,8 +216,9 @@ auto SignFileImpl(GpgContext& ctx_, GpgBasicOperator& basic_opera_,
                              data_object);
 }
 
-void GpgFileOpera::SignFile(const KeyArgsList& keys, const QString& in_path,
-                            bool ascii, const QString& out_path,
+void GpgFileOpera::SignFile(const GpgAbstractKeyPtrList& keys,
+                            const QString& in_path, bool ascii,
+                            const QString& out_path,
                             const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       [=](const DataObjectPtr& data_object) {
@@ -226,9 +228,9 @@ void GpgFileOpera::SignFile(const KeyArgsList& keys, const QString& in_path,
       cb, "gpgme_op_sign", "2.1.0");
 }
 
-auto GpgFileOpera::SignFileSync(const KeyArgsList& keys, const QString& in_path,
-                                bool ascii, const QString& out_path)
-    -> std::tuple<GpgError, DataObjectPtr> {
+auto GpgFileOpera::SignFileSync(
+    const GpgAbstractKeyPtrList& keys, const QString& in_path, bool ascii,
+    const QString& out_path) -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       [=](const DataObjectPtr& data_object) {
         return SignFileImpl(ctx_, basic_opera_, keys, in_path, ascii, out_path,
@@ -282,12 +284,12 @@ auto GpgFileOpera::VerifyFileSync(const QString& data_path,
 
 auto EncryptSignFileGpgDataImpl(GpgContext& ctx_,
                                 GpgBasicOperator& basic_opera_,
-                                const KeyArgsList& keys,
-                                const KeyArgsList& signer_keys,
+                                const GpgAbstractKeyPtrList& keys,
+                                const GpgAbstractKeyPtrList& signer_keys,
                                 GpgData& data_in, bool ascii, GpgData& data_out,
                                 const DataObjectPtr& data_object) -> GpgError {
   GpgError err;
-  auto recipients = Convert2RawGpgMEKeyList(keys);
+  auto recipients = Convert2RawGpgMEKeyList(ctx_.GetChannel(), keys);
 
   basic_opera_.SetSigners(signer_keys, ascii);
 
@@ -304,9 +306,10 @@ auto EncryptSignFileGpgDataImpl(GpgContext& ctx_,
 }
 
 auto EncryptSignFileImpl(GpgContext& ctx_, GpgBasicOperator& basic_opera_,
-                         const KeyArgsList& keys,
-                         const KeyArgsList& signer_keys, const QString& in_path,
-                         bool ascii, const QString& out_path,
+                         const GpgAbstractKeyPtrList& keys,
+                         const GpgAbstractKeyPtrList& signer_keys,
+                         const QString& in_path, bool ascii,
+                         const QString& out_path,
                          const DataObjectPtr& data_object) -> GpgError {
   GpgData data_in(in_path, true);
   GpgData data_out(out_path, false);
@@ -315,8 +318,8 @@ auto EncryptSignFileImpl(GpgContext& ctx_, GpgBasicOperator& basic_opera_,
                                     data_in, ascii, data_out, data_object);
 }
 
-void GpgFileOpera::EncryptSignFile(const KeyArgsList& keys,
-                                   const KeyArgsList& signer_keys,
+void GpgFileOpera::EncryptSignFile(const GpgAbstractKeyPtrList& keys,
+                                   const GpgAbstractKeyPtrList& signer_keys,
                                    const QString& in_path, bool ascii,
                                    const QString& out_path,
                                    const GpgOperationCallback& cb) {
@@ -329,7 +332,7 @@ void GpgFileOpera::EncryptSignFile(const KeyArgsList& keys,
 }
 
 auto GpgFileOpera::EncryptSignFileSync(
-    const KeyArgsList& keys, const KeyArgsList& signer_keys,
+    const GpgAbstractKeyPtrList& keys, const GpgAbstractKeyPtrList& signer_keys,
     const QString& in_path, bool ascii,
     const QString& out_path) -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
@@ -340,11 +343,10 @@ auto GpgFileOpera::EncryptSignFileSync(
       "gpgme_op_encrypt_sign", "2.1.0");
 }
 
-void GpgFileOpera::EncryptSignDirectory(const KeyArgsList& keys,
-                                        const KeyArgsList& signer_keys,
-                                        const QString& in_path, bool ascii,
-                                        const QString& out_path,
-                                        const GpgOperationCallback& cb) {
+void GpgFileOpera::EncryptSignDirectory(
+    const GpgAbstractKeyPtrList& keys, const GpgAbstractKeyPtrList& signer_keys,
+    const QString& in_path, bool ascii, const QString& out_path,
+    const GpgOperationCallback& cb) {
   auto ex = CreateStandardGFDataExchanger();
 
   RunGpgOperaAsync(
