@@ -135,19 +135,6 @@ class KeyList : public QWidget {
   void SetColumnWidth(int row, int size);
 
   /**
-   * @brief
-   *
-   * @param act
-   */
-  void AddMenuAction(QAction* act);
-
-  /**
-   * @brief
-   *
-   */
-  void AddSeparator();
-
-  /**
    * @brief Get the Checked Keys object
    *
    * @return QStringList
@@ -288,6 +275,12 @@ class KeyList : public QWidget {
    */
   void SignalKeyChecked();
 
+  /**
+   * @brief
+   *
+   */
+  void SignalRequestContextMenu(QContextMenuEvent* event, KeyTable*);
+
  protected:
   /**
    * @brief
@@ -326,7 +319,6 @@ class KeyList : public QWidget {
 
  private:
   std::shared_ptr<Ui_KeyList> ui_;                                   ///<
-  QMenu* popup_menu_{};                                              ///<
   std::function<void(const GpgKey&, QWidget*)> m_action_ = nullptr;  ///<
   int current_gpg_context_channel_;
   KeyMenuAbility menu_ability_ = KeyMenuAbility::kALL;  ///<

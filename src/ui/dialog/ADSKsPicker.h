@@ -50,16 +50,23 @@ class ADSKsPicker : public GeneralDialog {
    *
    * @param parent
    */
-  explicit ADSKsPicker(int channel,
+  explicit ADSKsPicker(int channel, GpgKeyPtr key,
                        const GpgKeyTreeProxyModel::KeyFilter& filter,
                        QWidget* parent = nullptr);
 
- signals:
-  void SignalSubkeyChecked(QContainer<GpgSubKey>);
+ private slots:
+  /**
+   * @brief
+   *
+   * @param s_keys
+   */
+  void slot_add_adsk(const QContainer<GpgSubKey>& s_keys);
 
  private:
   KeyTreeView* tree_view_;  ///<
   bool accepted_ = false;
+  int channel_;
+  GpgKeyPtr key_;
 };
 
 }  // namespace GpgFrontend::UI

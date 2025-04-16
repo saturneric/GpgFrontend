@@ -42,6 +42,7 @@ struct GpgKeyGroupTreeNode {
 
   // over take
   QStringList non_key_group_ids;
+  bool disabled;
 
   /**
    * @brief Construct a new Gpg Key Group Tree Node object
@@ -106,6 +107,13 @@ struct GpgKeyGroupTreeNode {
    * @return false
    */
   auto RemoveNonKeyGroupKey(const QString& key) -> bool;
+
+  /**
+   * @brief
+   *
+   * @return QStringList
+   */
+  [[nodiscard]] auto KeyIds() const -> QStringList;
 };
 
 class GPGFRONTEND_CORE_EXPORT GpgKeyGroupGetter
@@ -173,6 +181,13 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGroupGetter
    */
   auto KeyGroup(const QString& id) -> QSharedPointer<GpgKeyGroup>;
 
+  /**
+   * @brief
+   *
+   * @param id
+   */
+  auto IsKeyGroupDisabled(const QString& id) -> bool;
+
  private:
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
@@ -203,7 +218,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGroupGetter
    * @brief
    *
    */
-  void check_key_group(const QSharedPointer<GpgKeyGroup>&);
+  void check_key_group(const QSharedPointer<GpgKeyGroupTreeNode>&);
 
   /**
    * @brief

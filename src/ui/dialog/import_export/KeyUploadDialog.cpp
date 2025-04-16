@@ -29,7 +29,6 @@
 #include "KeyUploadDialog.h"
 
 #include <QtNetwork>
-#include <utility>
 
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/model/SettingsObject.h"

@@ -32,7 +32,6 @@
  * @brief
  *
  */
-#include <utility>
 
 #include "core/model/GpgAbstractKey.h"
 #include "core/model/GpgKey.h"
@@ -250,7 +249,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTreeModel : public QAbstractItemModel {
    * @param keys
    * @param parent
    */
-  explicit GpgKeyTreeModel(int channel, const GpgKeyList &keys,
+  explicit GpgKeyTreeModel(int channel, const GpgAbstractKeyPtrList &keys,
                            Detector checkable, QObject *parent = nullptr);
 
   /**
@@ -372,7 +371,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTreeModel : public QAbstractItemModel {
    * @brief
    *
    */
-  void setup_model_data(const GpgKeyList &keys);
+  void setup_model_data(const GpgAbstractKeyPtrList &keys);
 
   /**
    * @brief Create a gpg key tree items object
@@ -380,7 +379,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTreeModel : public QAbstractItemModel {
    * @param key
    * @return QSharedPointer<GpgKeyTreeItem>
    */
-  auto create_gpg_key_tree_items(const GpgKey &key)
+  auto create_gpg_key_tree_items(const GpgAbstractKeyPtr &key)
       -> QSharedPointer<GpgKeyTreeItem>;
 };
 

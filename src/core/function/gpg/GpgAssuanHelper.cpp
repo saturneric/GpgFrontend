@@ -28,8 +28,6 @@
 
 #include "GpgAssuanHelper.h"
 
-#include <utility>
-
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
 

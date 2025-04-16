@@ -28,8 +28,6 @@
 
 #include "KeyPairSubkeyTab.h"
 
-#include <utility>
-
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyManager.h"
@@ -291,57 +289,12 @@ void KeyPairSubkeyTab::slot_add_adsk() {
     except_key_ids.append(s_key.ID());
   }
 
-  auto* dialog = new ADSKsPicker(
-      current_gpg_context_channel_,
+  new ADSKsPicker(
+      current_gpg_context_channel_, key_,
       [=](const GpgAbstractKey* key) {
         return !except_key_ids.contains(key->ID());
       },
       this);
-
-  connect(dialog, &ADSKsPicker::SignalSubkeyChecked, this,
-          [=](const QContainer<GpgSubKey>& s_keys) {
-            if (s_keys.isEmpty()) {
-              QMessageBox::information(this, tr("No Subkeys Selected"),
-                                       tr("Please select at least one s_key."));
-
-              return;
-            }
-
-            QContainer<GpgSubKey> err_sub_keys;
-            for (const auto& s_key : s_keys) {
-              auto [err, data_object] =
-                  GpgKeyOpera::GetInstance(current_gpg_context_channel_)
-                      .AddADSKSync(key_, s_key);
-              if (CheckGpgError(err) == GPG_ERR_NO_ERROR) continue;
-
-              err_sub_keys.append(s_key);
-            }
-
-            if (!err_sub_keys.isEmpty()) {
-              QStringList failed_info;
-              for (const auto& s_key : err_sub_keys) {
-                QString key_id = s_key.ID();
-                failed_info << tr("Key ID: %1").arg(key_id);
-              }
-
-              QString details = failed_info.join("\n\n");
-
-              QMessageBox msg_box(this);
-              msg_box.setIcon(QMessageBox::Warning);
-              msg_box.setWindowTitle(err_sub_keys.size() == s_keys.size()
-                                         ? tr("Failed")
-                                         : tr("Partially Failed"));
-              msg_box.setText(
-                  err_sub_keys.size() == s_keys.size()
-                      ? tr("Failed to add all selected subkeys.")
-                      : tr("Some subkeys failed to be added as ADSKs."));
-              msg_box.setDetailedText(details);
-              msg_box.exec();
-            }
-
-            emit SignalKeyDatabaseRefresh();
-          });
-  dialog->show();
 }
 
 void KeyPairSubkeyTab::slot_refresh_subkey_detail() {

@@ -167,8 +167,8 @@ void MainWindow::slot_cut_pgp_header() {
 
 void MainWindow::SlotSetRestartNeeded(int mode) { this->restart_mode_ = mode; }
 
-void MainWindow::SlotUpdateCryptoMenuStatus(unsigned int type) {
-  OperationMenu::OperationType opera_type = type;
+void MainWindow::slot_update_crypto_operations_menu(unsigned int mask) {
+  OperationMenu::OperationType opera_type = mask;
 
   // refresh status to disable all
   verify_act_->setDisabled(true);
@@ -346,13 +346,14 @@ void MainWindow::slot_restart_gpg_components(bool) {
       });
 }
 
-void MainWindow::slot_update_operations_menu_by_checked_keys() {
+void MainWindow::slot_update_operations_menu_by_checked_keys(
+    unsigned int mask) {
   auto keys = m_key_list_->GetCheckedKeys();
 
-  OperationMenu::OperationType type = ~0;
+  unsigned int temp = ~0;
 
   if (keys.isEmpty()) {
-    type &= ~(OperationMenu::kEncrypt | OperationMenu::kEncryptAndSign |
+    temp &= ~(OperationMenu::kEncrypt | OperationMenu::kEncryptAndSign |
               OperationMenu::kSign);
 
   } else {
@@ -360,15 +361,15 @@ void MainWindow::slot_update_operations_menu_by_checked_keys() {
       if (key == nullptr || key->IsDisabled()) continue;
 
       if (!key->IsHasEncrCap()) {
-        type &= ~(OperationMenu::kEncrypt | OperationMenu::kEncryptAndSign);
+        temp &= ~(OperationMenu::kEncrypt | OperationMenu::kEncryptAndSign);
       }
       if (!key->IsHasSignCap()) {
-        type &= ~(OperationMenu::kSign);
+        temp &= ~(OperationMenu::kSign);
       }
     }
   }
 
-  SlotUpdateCryptoMenuStatus(type);
+  slot_update_crypto_operations_menu(operations_menu_mask_ & mask & temp);
 }
 
 }  // namespace GpgFrontend::UI

@@ -28,8 +28,7 @@
 
 #include "GpgDecryptResultAnalyse.h"
 
-#include "core/GpgModel.h"
-#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/gpg/GpgAbstractKeyGetter.h"
 
 GpgFrontend::GpgDecryptResultAnalyse::GpgDecryptResultAnalyse(
     int channel, GpgError m_error, GpgDecryptResult m_result)
@@ -107,12 +106,13 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
 
 void GpgFrontend::GpgDecryptResultAnalyse::print_recipient(
     QTextStream &stream, gpgme_recipient_t recipient) {
-  auto key = GpgFrontend::GpgKeyGetter::GetInstance(GetChannel())
-                 .GetKey(recipient->keyid);
-  if (key.IsGood()) {
-    stream << key.Name();
-    if (!key.Comment().isEmpty()) stream << "(" << key.Comment() << ")";
-    if (!key.Email().isEmpty()) stream << "<" << key.Email() << ">";
+  auto key =
+      GpgAbstractKeyGetter::GetInstance(GetChannel()).GetKey(recipient->keyid);
+
+  if (key != nullptr) {
+    stream << key->Name();
+    if (!key->Comment().isEmpty()) stream << "(" << key->Comment() << ")";
+    if (!key->Email().isEmpty()) stream << "<" << key->Email() << ">";
   } else {
     stream << "<" << tr("unknown") << ">";
     setStatus(0);
@@ -120,7 +120,17 @@ void GpgFrontend::GpgDecryptResultAnalyse::print_recipient(
 
   stream << Qt::endl;
 
-  stream << "- " << tr("Key ID") << ": " << recipient->keyid << Qt::endl;
+  stream << "- " << tr("Key ID") << ": " << recipient->keyid;
+  if (key != nullptr) {
+    stream << " ("
+           << (key->KeyType() == GpgAbstractKeyType::kGPG_SUBKEY
+                   ? tr("Subkey")
+                   : tr("Primary Key"))
+           << ")";
+  }
+
+  stream << Qt::endl;
+
   stream << "- " << tr("Public Key Algo") << ": "
          << gpgme_pubkey_algo_name(recipient->pubkey_algo) << Qt::endl;
   stream << "- " << tr("Status") << ": " << gpgme_strerror(recipient->status)

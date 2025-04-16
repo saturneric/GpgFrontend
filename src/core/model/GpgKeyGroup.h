@@ -33,6 +33,8 @@
 
 namespace GpgFrontend {
 
+class GpgKeyGroupGetter;
+
 /**
  * @brief
  *
@@ -248,7 +250,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGroup : public GpgAbstractKey {
    * @brief Set the Disabled object
    *
    */
-  void SetDisabled(bool);
+  void SetKeyGroupGetter(GpgKeyGroupGetter*);
 
  private:
   QString id_;
@@ -257,7 +259,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGroup : public GpgAbstractKey {
   QString comment_;
   QStringList key_ids_;
   QDateTime creation_time_;
-  bool disabled_;
+
+  GpgKeyGroupGetter* getter_ = nullptr;
 };
 
 }  // namespace GpgFrontend

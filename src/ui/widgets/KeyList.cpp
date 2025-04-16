@@ -222,7 +222,6 @@ void KeyList::init() {
   ui_->columnTypeButton->setMenu(column_type_menu);
 
   ui_->keyGroupTab->clear();
-  popup_menu_ = new QMenu(this);
 
   auto forbid_all_gnupg_connection =
       GetSettings()
@@ -409,36 +408,10 @@ void KeyList::contextMenuEvent(QContextMenuEvent* event) {
     return;
   }
 
-  QString current_tab_widget_obj_name =
-      ui_->keyGroupTab->widget(ui_->keyGroupTab->currentIndex())->objectName();
-  if (current_tab_widget_obj_name == "favourite") {
-    auto actions = popup_menu_->actions();
-    for (QAction* action : actions) {
-      if (action->data().toString() == "remove_key_from_favourtie_action") {
-        action->setVisible(true);
-      } else if (action->data().toString() == "add_key_2_favourite_action") {
-        action->setVisible(false);
-      }
-    }
-  } else {
-    auto actions = popup_menu_->actions();
-    for (QAction* action : actions) {
-      if (action->data().toString() == "remove_key_from_favourtie_action") {
-        action->setVisible(false);
-      } else if (action->data().toString() == "add_key_2_favourite_action") {
-        action->setVisible(true);
-      }
-    }
-  }
-
   if (key_table->GetRowSelected() >= 0) {
-    popup_menu_->exec(event->globalPos());
+    emit SignalRequestContextMenu(event, key_table);
   }
 }
-
-void KeyList::AddSeparator() { popup_menu_->addSeparator(); }
-
-void KeyList::AddMenuAction(QAction* act) { popup_menu_->addAction(act); }
 
 void KeyList::dropEvent(QDropEvent* event) {
   auto* dialog = new QDialog();
@@ -501,9 +474,17 @@ void KeyList::import_keys(const QByteArray& in_buffer) {
   LOG_D() << "importing keys to channel:" << current_gpg_context_channel_;
   auto result = GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
                     .ImportKey(GFBuffer(in_buffer));
-  emit SignalRefreshDatabase();
 
-  (new KeyImportDetailDialog(current_gpg_context_channel_, result, this));
+  auto* connection = new QMetaObject::Connection;
+  *connection = connect(
+      UISignalStation::GetInstance(),
+      &UISignalStation::SignalKeyDatabaseRefreshDone, this, [=]() {
+        new KeyImportDetailDialog(current_gpg_context_channel_, result, this);
+        QObject::disconnect(*connection);
+        delete connection;
+      });
+
+  emit SignalRefreshDatabase();
 }
 
 auto KeyList::GetSelectedKey() -> GpgAbstractKeyPtr {
@@ -529,10 +510,8 @@ auto KeyList::GetSelectedGpgKeys() -> GpgKeyPtrList {
 }
 
 void KeyList::slot_sync_with_key_server() {
-  auto target_keys = GetCheckedPublicKey();
-
-  KeyIdArgsList key_ids;
-  if (target_keys.empty()) {
+  auto keys = GetCheckedPublicKey();
+  if (keys.empty()) {
     QMessageBox::StandardButton const reply = QMessageBox::question(
         this, QCoreApplication::tr("Sync All Public Key"),
         QCoreApplication::tr("You have not checked any public keys that you "
@@ -542,32 +521,25 @@ void KeyList::slot_sync_with_key_server() {
 
     if (reply == QMessageBox::No) return;
 
-    target_keys = model_->GetAllKeys();
+    keys = model_->GetAllKeys();
   }
 
-  for (auto& key : target_keys) {
-    if (key->KeyType() != GpgAbstractKeyType::kGPG_KEY) continue;
-    key_ids.push_back(key->ID());
-  }
-
+  auto key_ids = ConvertKey2GpgKeyIdList(current_gpg_context_channel_, keys);
   if (key_ids.empty()) return;
 
   ui_->refreshKeyListButton->setDisabled(true);
   ui_->syncButton->setDisabled(true);
 
   emit SignalRefreshStatusBar(tr("Syncing Key List..."), 3000);
+
   CommonUtils::SlotImportKeyFromKeyServer(
       current_gpg_context_channel_, key_ids,
       [=](const QString& key_id, const QString& status, size_t current_index,
           size_t all_index) {
-        auto key = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
-                       .GetKey(key_id);
-        assert(key.IsGood());
-
         auto status_str = tr("Sync [%1/%2] %3 %4")
                               .arg(current_index)
                               .arg(all_index)
-                              .arg(key.UIDs().front().GetUID())
+                              .arg(key_id)
                               .arg(status);
         emit SignalRefreshStatusBar(status_str, 1500);
 

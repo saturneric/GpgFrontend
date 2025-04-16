@@ -105,27 +105,36 @@ void MainWindow::Init() noexcept {
             [=](const QString& message, int timeout) {
               statusBar()->showMessage(message, timeout);
             });
-    connect(UISignalStation::GetInstance(),
-            &UISignalStation::SignalMainWindowUpdateBasicOperaMenu, this,
-            &MainWindow::SlotUpdateCryptoMenuStatus);
+    connect(
+        UISignalStation::GetInstance(),
+        &UISignalStation::SignalMainWindowUpdateBasicOperaMenu, this,
+        [=](unsigned int mask) {
+          operations_menu_mask_ = mask;
+          slot_update_operations_menu_by_checked_keys(operations_menu_mask_);
+        });
     connect(UISignalStation::GetInstance(),
             &UISignalStation::SignalMainWindowOpenFile, this,
             &MainWindow::SlotOpenFile);
 
-    m_key_list_->AddMenuAction(append_selected_keys_act_);
-    m_key_list_->AddMenuAction(append_key_create_date_to_editor_act_);
-    m_key_list_->AddMenuAction(append_key_expire_date_to_editor_act_);
-    m_key_list_->AddMenuAction(append_key_fingerprint_to_editor_act_);
-    m_key_list_->AddSeparator();
-    m_key_list_->AddMenuAction(copy_mail_address_to_clipboard_act_);
-    m_key_list_->AddMenuAction(copy_key_default_uid_to_clipboard_act_);
-    m_key_list_->AddMenuAction(copy_key_id_to_clipboard_act_);
-    m_key_list_->AddMenuAction(set_owner_trust_of_key_act_);
-    m_key_list_->AddMenuAction(add_key_2_favourite_act_);
-    m_key_list_->AddMenuAction(remove_key_from_favourtie_act_);
+    popup_menu_ = new QMenu(this);
 
-    m_key_list_->AddSeparator();
-    m_key_list_->AddMenuAction(show_key_details_act_);
+    popup_menu_->addAction(append_selected_keys_act_);
+    popup_menu_->addAction(append_key_create_date_to_editor_act_);
+    popup_menu_->addAction(append_key_expire_date_to_editor_act_);
+    popup_menu_->addAction(append_key_fingerprint_to_editor_act_);
+    popup_menu_->addSeparator();
+    popup_menu_->addAction(copy_mail_address_to_clipboard_act_);
+    popup_menu_->addAction(copy_key_default_uid_to_clipboard_act_);
+    popup_menu_->addAction(copy_key_id_to_clipboard_act_);
+    popup_menu_->addAction(set_owner_trust_of_key_act_);
+    popup_menu_->addAction(add_key_2_favourite_act_);
+    popup_menu_->addAction(remove_key_from_favourtie_act_);
+
+    popup_menu_->addSeparator();
+    popup_menu_->addAction(show_key_details_act_);
+
+    connect(m_key_list_, &KeyList::SignalRequestContextMenu, this,
+            &MainWindow::slot_popup_menu_by_key_list);
 
     restore_settings();
 
@@ -139,7 +148,7 @@ void MainWindow::Init() noexcept {
     // recover unsaved page from cache if it exists
     recover_editor_unsaved_pages_from_cache();
 
-    slot_update_operations_menu_by_checked_keys();
+    slot_update_operations_menu_by_checked_keys(~0);
 
     // check if need to open wizard window
     if (GetSettings().value("wizard/show_wizard", true).toBool()) {
@@ -306,5 +315,21 @@ void MainWindow::check_update_at_startup() {
         });
     Module::TriggerEvent("CHECK_APPLICATION_VERSION");
   }
+}
+
+void MainWindow::slot_popup_menu_by_key_list(QContextMenuEvent* event,
+                                             KeyTable* key_table) {
+  if (event == nullptr || key_table == nullptr) return;
+
+  const auto key_table_name = key_table->objectName();
+  if (key_table_name == "favourite") {
+    remove_key_from_favourtie_act_->setDisabled(true);
+    add_key_2_favourite_act_->setDisabled(false);
+  } else {
+    remove_key_from_favourtie_act_->setDisabled(false);
+    add_key_2_favourite_act_->setDisabled(true);
+  }
+
+  popup_menu_->popup(event->globalPos());
 }
 }  // namespace GpgFrontend::UI

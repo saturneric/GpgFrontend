@@ -90,11 +90,13 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
   auto GetPubkeyPtr(const QString& key_id, bool use_cache = true) -> GpgKeyPtr;
 
   /**
-   * @brief Get all the keys by receiving a linked list
+   * @brief Get the Pubkey Ptr object
    *
-   * @return KeyLinkListPtr
+   * @param key_id
+   * @param use_cache
+   * @return GpgKeyPtr
    */
-  auto FetchKey() -> GpgKeyList;
+  auto GetKeyORSubkeyPtr(const QString& key_id) -> GpgAbstractKeyPtr;
 
   /**
    * @brief
@@ -116,14 +118,6 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    * @return KeyListPtr
    */
   auto GetKeys(const KeyIdArgsList& key_ids) -> GpgKeyList;
-
-  /**
-   * @brief Get the Keys Copy object
-   *
-   * @param keys
-   * @return KeyListPtr
-   */
-  auto GetKeysCopy(const GpgKeyList& keys) -> GpgKeyList;
 
  private:
   class Impl;

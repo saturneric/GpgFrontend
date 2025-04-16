@@ -28,7 +28,7 @@
 
 #include "KeyImportDetailDialog.h"
 
-#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/gpg/GpgAbstractKeyGetter.h"
 #include "core/model/GpgImportInformation.h"
 
 namespace GpgFrontend::UI {
@@ -147,11 +147,13 @@ void KeyImportDetailDialog::create_keys_table() {
   int row = 0;
   for (const auto& imp_key : m_result_->imported_keys) {
     keys_table_->setRowCount(row + 1);
-    auto key = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+    
+    auto key = GpgAbstractKeyGetter::GetInstance(current_gpg_context_channel_)
                    .GetKey(imp_key.fpr);
-    if (!key.IsGood()) continue;
-    keys_table_->setItem(row, 0, new QTableWidgetItem(key.Name()));
-    keys_table_->setItem(row, 1, new QTableWidgetItem(key.Email()));
+    if (key == nullptr) continue;
+
+    keys_table_->setItem(row, 0, new QTableWidgetItem(key->Name()));
+    keys_table_->setItem(row, 1, new QTableWidgetItem(key->Email()));
     keys_table_->setItem(
         row, 2, new QTableWidgetItem(get_status_string(imp_key.import_status)));
     keys_table_->setItem(row, 3, new QTableWidgetItem(imp_key.fpr));

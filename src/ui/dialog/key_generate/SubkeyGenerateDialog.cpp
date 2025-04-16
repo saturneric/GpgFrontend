@@ -30,7 +30,6 @@
 
 #include <cassert>
 #include <cstddef>
-#include <utility>
 
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/utils/GpgUtils.h"

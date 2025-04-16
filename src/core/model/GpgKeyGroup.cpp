@@ -28,7 +28,7 @@
 
 #include "core/model/GpgKeyGroup.h"
 
-#include <utility>
+#include "core/function/gpg/GpgKeyGroupGetter.h"
 
 namespace GpgFrontend {
 
@@ -50,13 +50,15 @@ auto GpgKeyGroup::Email() const -> QString { return email_; }
 
 auto GpgKeyGroup::Comment() const -> QString { return comment_; }
 
-auto GpgKeyGroup::Fingerprint() const -> QString { return {}; }
+auto GpgKeyGroup::Fingerprint() const -> QString { return ID(); }
 
 auto GpgKeyGroup::PublicKeyAlgo() const -> QString { return {}; }
 
 auto GpgKeyGroup::Algo() const -> QString { return {}; }
 
-auto GpgKeyGroup::ExpirationTime() const -> QDateTime { return {}; };
+auto GpgKeyGroup::ExpirationTime() const -> QDateTime {
+  return QDateTime::fromSecsSinceEpoch(0);
+};
 
 auto GpgKeyGroup::CreationTime() const -> QDateTime { return creation_time_; };
 
@@ -75,7 +77,7 @@ auto GpgKeyGroup::IsExpired() const -> bool { return false; }
 auto GpgKeyGroup::IsRevoked() const -> bool { return false; }
 
 auto GpgKeyGroup::IsDisabled() const -> bool {
-  return key_ids_.isEmpty() || disabled_;
+  return getter_ == nullptr ? true : getter_->IsKeyGroupDisabled(ID());
 }
 
 auto GpgKeyGroup::KeyType() const -> GpgAbstractKeyType {
@@ -116,5 +118,7 @@ void GpgKeyGroup::SetKeyIds(QStringList key_ids) {
   key_ids_ = std::move(key_ids);
 }
 
-void GpgKeyGroup::SetDisabled(bool disabled) { disabled_ = disabled; }
+void GpgKeyGroup::SetKeyGroupGetter(GpgKeyGroupGetter *getter) {
+  getter_ = getter;
+}
 }  // namespace GpgFrontend

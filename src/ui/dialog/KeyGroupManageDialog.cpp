@@ -54,7 +54,8 @@ KeyGroupManageDialog::KeyGroupManageDialog(
   ui_->keyGroupKeyList->Init(
       channel, KeyMenuAbility::kCOLUMN_FILTER | KeyMenuAbility::kSEARCH_BAR,
       GpgKeyTableColumn::kTYPE | GpgKeyTableColumn::kNAME |
-          GpgKeyTableColumn::kEMAIL_ADDRESS | GpgKeyTableColumn::kKEY_ID);
+          GpgKeyTableColumn::kEMAIL_ADDRESS | GpgKeyTableColumn::kKEY_ID |
+          GpgKeyTableColumn::kUSAGE);
   ui_->keyGroupKeyList->AddListGroupTab(
       tr("Key Group"), "key-group",
       GpgKeyTableDisplayMode::kPRIVATE_KEY |
@@ -77,6 +78,14 @@ KeyGroupManageDialog::KeyGroupManageDialog(
                !key_group_->KeyIds().contains(key->ID());
       });
   ui_->keyList->SlotRefresh();
+
+  connect(ui_->keyList, &KeyList::SignalKeyChecked, this,
+          &KeyGroupManageDialog::slot_set_add_button_state);
+  connect(ui_->keyGroupKeyList, &KeyList::SignalKeyChecked, this,
+          &KeyGroupManageDialog::slot_set_remove_button_state);
+
+  ui_->addButton->setDisabled(true);
+  ui_->removeButton->setDisabled(true);
 
   QTimer::singleShot(200, [=]() { slot_notify_invalid_key_ids(); });
 
@@ -104,6 +113,8 @@ void KeyGroupManageDialog::slot_add_to_key_group() {
 
   ui_->keyGroupKeyList->RefreshKeyTable(0);
   ui_->keyList->RefreshKeyTable(0);
+  slot_set_add_button_state();
+  slot_set_remove_button_state();
 
   if (!failed_keys.isEmpty()) {
     QStringList failed_ids;
@@ -127,6 +138,8 @@ void KeyGroupManageDialog::slot_remove_from_key_group() {
 
   ui_->keyGroupKeyList->RefreshKeyTable(0);
   ui_->keyList->RefreshKeyTable(0);
+  slot_set_add_button_state();
+  slot_set_remove_button_state();
 }
 
 void KeyGroupManageDialog::slot_notify_invalid_key_ids() {
@@ -138,9 +151,7 @@ void KeyGroupManageDialog::slot_notify_invalid_key_ids() {
     if (key == nullptr) invalid_key_ids.push_back(key_id);
   }
 
-  if (invalid_key_ids.isEmpty()) {
-    return;
-  }
+  if (invalid_key_ids.isEmpty()) return;
 
   const QString id_list = invalid_key_ids.join(", ");
   const auto message =
@@ -162,5 +173,14 @@ void KeyGroupManageDialog::slot_notify_invalid_key_ids() {
   }
 
   emit UISignalStation::GetInstance() -> SignalKeyDatabaseRefresh();
+}
+
+void KeyGroupManageDialog::slot_set_add_button_state() {
+  ui_->addButton->setDisabled(ui_->keyList->GetCheckedKeys().isEmpty());
+}
+
+void KeyGroupManageDialog::slot_set_remove_button_state() {
+  ui_->removeButton->setDisabled(
+      ui_->keyGroupKeyList->GetCheckedKeys().isEmpty());
 }
 }  // namespace GpgFrontend::UI

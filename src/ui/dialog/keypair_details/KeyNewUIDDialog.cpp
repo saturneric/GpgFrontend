@@ -28,8 +28,6 @@
 
 #include "KeyNewUIDDialog.h"
 
-#include <utility>
-
 #include "core/function/gpg/GpgUIDOperator.h"
 #include "ui/UISignalStation.h"
 

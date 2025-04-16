@@ -28,8 +28,6 @@
 
 #include "KeyPairUIDTab.h"
 
-#include <utility>
-
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyManager.h"
 #include "core/function/gpg/GpgUIDOperator.h"

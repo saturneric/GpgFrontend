@@ -28,8 +28,7 @@
 
 #include "GpgSignResultAnalyse.h"
 
-#include "core/GpgModel.h"
-#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/gpg/GpgAbstractKeyGetter.h"
 #include "core/utils/LocalizedUtils.h"
 
 namespace GpgFrontend {
@@ -54,66 +53,61 @@ void GpgSignResultAnalyse::doAnalyse() {
   if (result != nullptr &&
       (result->signatures != nullptr || result->invalid_signers != nullptr)) {
     stream_ << Qt::endl;
-    auto *new_sign = result->signatures;
+    auto *sign = result->signatures;
     auto index = 0;
 
-    while (new_sign != nullptr) {
+    while (sign != nullptr) {
       stream_ << "## " << tr("New Signature") << " [" << ++index
               << "]: " << Qt::endl;
 
       stream_ << "- " << tr("Sign Mode") << ": ";
-      if (new_sign->type == GPGME_SIG_MODE_NORMAL) {
+      if (sign->type == GPGME_SIG_MODE_NORMAL) {
         stream_ << tr("Normal");
-      } else if (new_sign->type == GPGME_SIG_MODE_CLEAR) {
+      } else if (sign->type == GPGME_SIG_MODE_CLEAR) {
         stream_ << tr("Clear");
-      } else if (new_sign->type == GPGME_SIG_MODE_DETACH) {
+      } else if (sign->type == GPGME_SIG_MODE_DETACH) {
         stream_ << tr("Detach");
       }
 
       stream_ << Qt::endl;
 
-      QString fpr = new_sign->fpr == nullptr ? "" : new_sign->fpr;
-      auto singer_key = GpgKeyGetter::GetInstance(GetChannel()).GetKey(fpr);
-      if (singer_key.IsGood()) {
-        stream_ << "- " << tr("Signed By") << ": "
-                << singer_key.UIDs().front().GetUID() << Qt::endl;
+      QString fpr = sign->fpr == nullptr ? "" : sign->fpr;
+      auto sign_key =
+          GpgAbstractKeyGetter::GetInstance(GetChannel()).GetKey(fpr);
+      if (sign_key != nullptr) {
+        stream_ << "- " << tr("Signed By") << ": " << sign_key->UID()
+                << Qt::endl;
 
-        auto s_keys = singer_key.SubKeys();
-        auto it = std::find_if(
-            s_keys.begin(), s_keys.end(),
-            [fpr](const GpgSubKey &k) { return k.Fingerprint() == fpr; });
-
-        if (it != s_keys.end()) {
-          auto &subkey = *it;
-          if (subkey.Fingerprint() != singer_key.Fingerprint()) {
-            stream_ << "- " << tr("Key ID") << ": " << singer_key.ID() << " ("
-                    << tr("Subkey") << ")" << Qt::endl;
-          } else {
-            stream_ << "- " << tr("Key ID") << ": " << singer_key.ID() << " ("
-                    << tr("Primary Key") << ")" << Qt::endl;
-          }
-          stream_ << "- " << tr("Key Create Date") << ": "
-                  << QLocale().toString(subkey.CreationTime()) << Qt::endl;
+        if (sign_key->KeyType() == GpgAbstractKeyType::kGPG_SUBKEY) {
+          stream_ << "- " << tr("Key ID") << ": " << sign_key->ID() << " ("
+                  << tr("Subkey") << ")" << Qt::endl;
+        } else {
+          stream_ << "- " << tr("Key ID") << ": " << sign_key->ID() << " ("
+                  << tr("Primary Key") << ")" << Qt::endl;
         }
+        stream_ << "- " << tr("Key Create Date") << ": "
+                << QLocale().toString(sign_key->CreationTime()) << Qt::endl;
+
       } else {
         stream_ << "- " << tr("Signed By") << "(" << tr("Fingerprint") << ")"
                 << ": " << (fpr.isEmpty() ? tr("<unknown>") : fpr) << Qt::endl;
       }
+
       stream_ << "- " << tr("Public Key Algo") << ": "
-              << gpgme_pubkey_algo_name(new_sign->pubkey_algo) << Qt::endl;
+              << gpgme_pubkey_algo_name(sign->pubkey_algo) << Qt::endl;
       stream_ << "- " << tr("Hash Algo") << ": "
-              << gpgme_hash_algo_name(new_sign->hash_algo) << Qt::endl;
+              << gpgme_hash_algo_name(sign->hash_algo) << Qt::endl;
       stream_ << "- " << tr("Sign Date") << "(" << tr("UTC") << ")" << ": "
-              << GetUTCDateByTimestamp(new_sign->timestamp) << Qt::endl;
+              << GetUTCDateByTimestamp(sign->timestamp) << Qt::endl;
       stream_ << "- " << tr("Sign Date") << "(" << tr("Localized") << ")"
-              << ": " << GetLocalizedDateByTimestamp(new_sign->timestamp)
+              << ": " << GetLocalizedDateByTimestamp(sign->timestamp)
               << Qt::endl;
 
       stream_ << Qt::endl
               << "---------------------------------------" << Qt::endl
               << Qt::endl;
 
-      new_sign = new_sign->next;
+      sign = sign->next;
     }
 
     auto *invalid_signer = result->invalid_signers;

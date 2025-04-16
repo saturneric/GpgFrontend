@@ -184,9 +184,17 @@ void CommonUtils::SlotImportKeys(QWidget *parent, int channel,
   LOG_D() << "try to import key(s) to channel: " << channel;
   auto info =
       GpgKeyImportExporter::GetInstance(channel).ImportKey(GFBuffer(in_buffer));
-  emit SignalKeyStatusUpdated();
 
-  (new KeyImportDetailDialog(channel, info, parent));
+  auto *connection = new QMetaObject::Connection;
+  *connection =
+      connect(UISignalStation::GetInstance(),
+              &UISignalStation::SignalKeyDatabaseRefreshDone, this, [=]() {
+                (new KeyImportDetailDialog(channel, info, parent));
+                QObject::disconnect(*connection);
+                delete connection;
+              });
+
+  emit SignalKeyStatusUpdated();
 }
 
 void CommonUtils::SlotImportKeyFromFile(QWidget *parent, int channel) {
@@ -332,6 +340,9 @@ void CommonUtils::SlotImportKeyFromKeyServer(
           .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
           ->PostTask(new Thread::Task(
               [=](const DataObjectPtr &data_obj) -> int {
+                // rate limit
+                QThread::msleep(200);
+                // call
                 Module::TriggerEvent(
                     "REQUEST_GET_PUBLIC_KEY_BY_KEY_ID",
                     {
@@ -374,8 +385,6 @@ void CommonUtils::SlotImportKeyFromKeyServer(
               },
               QString("key_%1_import_task").arg(key_id)));
 
-      // not too fast to hit rate limit
-      QThread::msleep(200);
       current_index++;
     }
 
@@ -480,8 +489,14 @@ void CommonUtils::slot_update_key_from_server_finished(
   // refresh the key database
   emit UISignalStation::GetInstance() -> SignalKeyDatabaseRefresh();
 
-  // show details
-  (new KeyImportDetailDialog(channel, std::move(info), this))->exec();
+  auto *connection = new QMetaObject::Connection;
+  *connection =
+      connect(UISignalStation::GetInstance(),
+              &UISignalStation::SignalKeyDatabaseRefreshDone, this, [=]() {
+                (new KeyImportDetailDialog(channel, info, this));
+                QObject::disconnect(*connection);
+                delete connection;
+              });
 }
 
 void CommonUtils::SlotRestartApplication(int code) {

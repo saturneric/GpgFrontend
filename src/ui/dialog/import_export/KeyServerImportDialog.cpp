@@ -422,10 +422,14 @@ void KeyServerImportDialog::slot_import_finished(
   // refresh the key database
   emit SignalKeyImported();
 
-  // show details
-  (new KeyImportDetailDialog(current_gpg_context_channel_, std::move(info),
-                             this))
-      ->exec();
+  auto* connection = new QMetaObject::Connection;
+  *connection = connect(
+      UISignalStation::GetInstance(),
+      &UISignalStation::SignalKeyDatabaseRefreshDone, this, [=]() {
+        (new KeyImportDetailDialog(current_gpg_context_channel_, info, this));
+        QObject::disconnect(*connection);
+        delete connection;
+      });
 }
 
 void KeyServerImportDialog::set_loading(bool status) {

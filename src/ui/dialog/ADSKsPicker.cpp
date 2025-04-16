@@ -28,12 +28,14 @@
 
 #include "ADSKsPicker.h"
 
-#include "core/GpgModel.h"
+#include "core/function/gpg/GpgKeyOpera.h"
+#include "core/utils/GpgUtils.h"
+#include "ui/UISignalStation.h"
 #include "ui/widgets/KeyTreeView.h"
 
 namespace GpgFrontend::UI {
 
-ADSKsPicker::ADSKsPicker(int channel,
+ADSKsPicker::ADSKsPicker(int channel, GpgKeyPtr key,
                          const GpgKeyTreeProxyModel::KeyFilter& filter,
                          QWidget* parent)
     : GeneralDialog(typeid(ADSKsPicker).name(), parent),
@@ -47,14 +49,22 @@ ADSKsPicker::ADSKsPicker(int channel,
                     (k->KeyType() == GpgAbstractKeyType::kGPG_SUBKEY &&
                      k->IsHasEncrCap())) &&
                    filter(k);
-          })) {
+          })),
+      channel_(channel),
+      key_(std::move(key)) {
   auto* confirm_button = new QPushButton(tr("Confirm"));
   auto* cancel_button = new QPushButton(tr("Cancel"));
 
   connect(confirm_button, &QPushButton::clicked, this, [=]() {
-    emit SignalSubkeyChecked(tree_view_->GetAllCheckedSubKey());
+    if (tree_view_->GetAllCheckedSubKey().isEmpty()) {
+      QMessageBox::information(this, tr("No Subkeys Selected"),
+                               tr("Please select at least one s_key."));
+
+      return;
+    }
+    slot_add_adsk(tree_view_->GetAllCheckedSubKey());
+    accept();
   });
-  connect(confirm_button, &QPushButton::clicked, this, &QDialog::accept);
   connect(cancel_button, &QPushButton::clicked, this, &QDialog::reject);
 
   tree_view_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -88,4 +98,39 @@ ADSKsPicker::ADSKsPicker(int channel,
   this->activateWindow();
 }
 
+void ADSKsPicker::slot_add_adsk(const QContainer<GpgSubKey>& s_keys) {
+  QContainer<QString> err_sub_key_infos;
+  for (const auto& s_key : s_keys) {
+    auto [err, data_object] =
+        GpgKeyOpera::GetInstance(channel_).AddADSKSync(key_, s_key);
+    if (CheckGpgError(err) == GPG_ERR_NO_ERROR) continue;
+
+    err_sub_key_infos.append(tr("Key ID: %1 Reason: %2")
+                                 .arg(s_key.ID())
+                                 .arg(DescribeGpgErrCode(err).second));
+  }
+
+  if (!err_sub_key_infos.isEmpty()) {
+    QStringList failed_info;
+    for (const auto& info : err_sub_key_infos) {
+      failed_info.append(info);
+    }
+    QString details = failed_info.join("\n\n");
+
+    auto* msg_box = new QMessageBox(nullptr);
+    msg_box->setIcon(QMessageBox::Warning);
+    msg_box->setWindowTitle(err_sub_key_infos.size() == s_keys.size()
+                                ? tr("Failed")
+                                : tr("Partially Failed"));
+    msg_box->setText(err_sub_key_infos.size() == s_keys.size()
+                         ? tr("Failed to add all selected subkeys.")
+                         : tr("Some subkeys failed to be added as ADSKs."));
+    msg_box->setDetailedText(details);
+    msg_box->show();
+
+    return;
+  }
+
+  emit UISignalStation::GetInstance() -> SignalKeyDatabaseRefresh();
+}
 }  // namespace GpgFrontend::UI

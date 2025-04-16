@@ -457,5 +457,5 @@ message(STATUS "Build C Flags: ${CMAKE_C_FLAGS}")
 message(STATUS "Build C++ Flags: ${CMAKE_CXX_FLAGS}")
 
 # third_party
-add_subdirectory(third_party)# source code
+add_subdirectory(third_party) # source code
 add_subdirectory(src)

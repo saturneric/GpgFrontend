@@ -46,20 +46,29 @@ KeyGroupCreationDialog::KeyGroupCreationDialog(int channel, QStringList key_ids,
   email_->setMinimumWidth(240);
   comment_ = new QLineEdit();
   comment_->setMinimumWidth(240);
-  create_button_ = new QPushButton("Create");
+  create_button_ = new QPushButton(tr("Create"));
   error_label_ = new QLabel();
 
   auto* grid_layout = new QGridLayout();
-  grid_layout->addWidget(new QLabel(tr("Name")), 0, 0);
-  grid_layout->addWidget(new QLabel(tr("Email")), 1, 0);
-  grid_layout->addWidget(new QLabel(tr("Comment")), 2, 0);
 
-  grid_layout->addWidget(name_, 0, 1);
-  grid_layout->addWidget(email_, 1, 1);
-  grid_layout->addWidget(comment_, 2, 1);
+  auto* description_label = new QLabel(tr(
+      "A Key Group is a collection of keys. It allows you to encrypt data for "
+      "multiple recipients at once by grouping their public keys together."));
+  description_label->setWordWrap(true);
+  description_label->setStyleSheet("color: gray; font-size: 11px;");
 
-  grid_layout->addWidget(create_button_, 3, 0, 1, 2);
-  grid_layout->addWidget(error_label_, 4, 0, 1, 2);
+  grid_layout->addWidget(description_label, 0, 0, 2, 2);
+
+  grid_layout->addWidget(new QLabel(tr("Name")), 2, 0);
+  grid_layout->addWidget(new QLabel(tr("Email")), 3, 0);
+  grid_layout->addWidget(new QLabel(tr("Comment")), 4, 0);
+
+  grid_layout->addWidget(name_, 2, 1);
+  grid_layout->addWidget(email_, 3, 1);
+  grid_layout->addWidget(comment_, 4, 1);
+
+  grid_layout->addWidget(create_button_, 5, 0, 1, 2);
+  grid_layout->addWidget(error_label_, 6, 0, 1, 2);
 
   connect(create_button_, &QPushButton::clicked, this,
           &KeyGroupCreationDialog::slot_create_new_uid);
@@ -68,8 +77,10 @@ KeyGroupCreationDialog::KeyGroupCreationDialog(int channel, QStringList key_ids,
           UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefresh);
 
+  setMinimumHeight(250);
+
   this->setLayout(grid_layout);
-  this->setWindowTitle(tr("Create New Key Group"));
+  this->setWindowTitle(tr("New Key Group"));
   this->setAttribute(Qt::WA_DeleteOnClose, true);
   this->setModal(true);
 }

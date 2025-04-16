@@ -66,7 +66,7 @@ auto GpgAbstractKeyGetter::GetKey(const QString& key_id) -> GpgAbstractKeyPtr {
   if (IsKeyGroupID(key_id)) {
     return kg_.KeyGroup(key_id);
   }
-  return key_.GetKeyPtr(key_id);
+  return key_.GetKeyORSubkeyPtr(key_id);
 }
 
 auto GpgAbstractKeyGetter::GetKeys(const QStringList& key_ids)

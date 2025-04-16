@@ -28,9 +28,7 @@
 
 #include "ui/widgets/KeyTreeView.h"
 
-#include <utility>
-
-#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/gpg/GpgAbstractKeyGetter.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/model/GpgKeyTreeProxyModel.h"
@@ -41,7 +39,7 @@ KeyTreeView::KeyTreeView(QWidget* parent)
     : QTreeView(parent),
       channel_(kGpgFrontendDefaultChannel),
       model_(QSharedPointer<GpgKeyTreeModel>::create(
-          channel_, GpgKeyGetter::GetInstance(channel_).FetchKey(),
+          channel_, GpgAbstractKeyGetter::GetInstance(channel_).Fetch(),
           [](auto) { return false; }, this)),
       proxy_model_(
           model_, GpgKeyTreeDisplayMode::kALL, [](auto) { return false; },
@@ -56,7 +54,7 @@ KeyTreeView::KeyTreeView(int channel,
     : QTreeView(parent),
       channel_(channel),
       model_(QSharedPointer<GpgKeyTreeModel>::create(
-          channel_, GpgKeyGetter::GetInstance(channel_).FetchKey(),
+          channel_, GpgAbstractKeyGetter::GetInstance(channel_).Fetch(),
           checkable_detector, this)),
       proxy_model_(model_, GpgKeyTreeDisplayMode::kALL, std::move(filter),
                    this) {
@@ -120,7 +118,7 @@ void KeyTreeView::init() {
   connect(UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefresh, this, [=] {
             model_ = QSharedPointer<GpgKeyTreeModel>::create(
-                channel_, GpgKeyGetter::GetInstance(channel_).FetchKey(),
+                channel_, GpgAbstractKeyGetter::GetInstance(channel_).Fetch(),
                 [](auto) { return false; }, this);
             proxy_model_.setSourceModel(model_.get());
             proxy_model_.invalidate();
@@ -138,7 +136,7 @@ void KeyTreeView::SetChannel(int channel) {
   channel_ = channel;
   init_ = false;
   model_ = QSharedPointer<GpgKeyTreeModel>::create(
-      channel_, GpgKeyGetter::GetInstance(channel_).FetchKey(),
+      channel_, GpgAbstractKeyGetter::GetInstance(channel_).Fetch(),
       [](auto) { return false; }, this);
   proxy_model_.setSourceModel(model_.get());
   proxy_model_.invalidate();

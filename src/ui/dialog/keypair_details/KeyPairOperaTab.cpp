@@ -34,6 +34,7 @@
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/model/GpgKey.h"
 #include "core/module/ModuleManager.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
@@ -131,8 +132,9 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
   opera_key_box->setLayout(vbox_p_k);
   m_vbox->addWidget(opera_key_box);
   // modify owner trust of public key
-  if (!m_key_->IsPrivateKey())
+  if (!m_key_->IsPrivateKey()) {
     vbox_p_k->addWidget(set_owner_trust_level_button);
+  }
   vbox_p_k->addWidget(modify_tofu_button);
   m_vbox->addStretch(0);
 
@@ -212,37 +214,68 @@ void KeyPairOperaTab::CreateOperaMenu() {
   rev_cert_opera_menu_->addAction(rev_cert_gen_action);
 }
 
-void KeyPairOperaTab::slot_export_public_key() {
-  auto [err, gf_buffer] =
-      GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
-          .ExportKey(m_key_, false, true, false);
-  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-    CommonUtils::RaiseMessageBox(this, err);
-    return;
-  }
+void KeyPairOperaTab::slot_export_key(bool secret, bool ascii, bool shortest,
+                                      const QString& type) {
+  auto* task = new Thread::Task(
+      [=](const DataObjectPtr& data_object) -> int {
+        auto [err, gf_buffer] =
+            GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
+                .ExportKey(m_key_, secret, ascii, shortest);
+        data_object->Swap({err, gf_buffer});
+        return 0;
+      },
+      "key_export", TransferParams(),
+      [=](int ret, const DataObjectPtr& data_object) {
+        if (ret < 0) {
+          QMessageBox::critical(
+              this, tr("Unknown Error"),
+              tr("Caught unknown error while exporting the key."));
+          return;
+        }
 
-  // generate a file name
+    // generate a file name
 #if defined(_WIN32) || defined(WIN32)
-
-  auto file_string = m_key_->Name() + "[" + m_key_->Email() + "](" +
-                     m_key_->ID() + ")_pub.asc";
+        auto file_name = QString("%1[%2](%3)_%4.asc");
 #else
-  auto file_string = m_key_->Name() + "<" + m_key_->Email() + ">(" +
-                     m_key_->ID() + ")_pub.asc";
+        auto file_name = QString("%1<%2[(%3)_%4.asc");
 #endif
-  std::replace(file_string.begin(), file_string.end(), ' ', '_');
 
-  auto file_name = QFileDialog::getSaveFileName(
-      this, tr("Export Key To File"), file_string,
-      tr("Key Files") + " (*.asc *.txt);;All Files (*)");
+        file_name =
+            file_name.arg(m_key_->Name(), m_key_->Email(), m_key_->ID(), type);
 
-  if (file_name.isEmpty()) return;
+        if (!data_object->Check<GpgError, GFBuffer>()) return;
 
-  if (!WriteFileGFBuffer(file_name, gf_buffer)) {
-    QMessageBox::critical(this, tr("Export Error"),
-                          tr("Couldn't open %1 for writing").arg(file_name));
-    return;
-  }
+        auto err = ExtractParams<GpgError>(data_object, 0);
+        auto gf_buffer = ExtractParams<GFBuffer>(data_object, 1);
+
+        if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+          CommonUtils::RaiseMessageBox(this, err);
+          return;
+        }
+
+        file_name.replace(' ', '_');
+
+        auto filepath = QFileDialog::getSaveFileName(
+            this, tr("Export Key To File"), file_name,
+            tr("Key Files") + " (*.asc *.txt);;All Files (*)");
+
+        if (filepath.isEmpty()) return;
+
+        if (!WriteFileGFBuffer(filepath, gf_buffer)) {
+          QMessageBox::critical(
+              this, tr("Export Error"),
+              tr("Couldn't open %1 for writing").arg(file_name));
+          return;
+        }
+      });
+
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
+      ->PostTask(task);
+}
+
+void KeyPairOperaTab::slot_export_public_key() {
+  slot_export_key(false, true, false, "pub");
 }
 
 void KeyPairOperaTab::slot_export_short_private_key() {
@@ -261,38 +294,9 @@ void KeyPairOperaTab::slot_export_short_private_key() {
                                  QMessageBox::Cancel | QMessageBox::Ok);
 
   // export key, if ok was clicked
-  if (ret == QMessageBox::Ok) {
-    auto [err, gf_buffer] =
-        GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
-            .ExportKey(m_key_, true, true, true);
-    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-      CommonUtils::RaiseMessageBox(this, err);
-      return;
-    }
+  if (ret != QMessageBox::Ok) return;
 
-    // generate a file name
-#if defined(_WIN32) || defined(WIN32)
-
-    auto file_string = m_key_->Name() + "[" + m_key_->Email() + "](" +
-                       m_key_->ID() + ")_short_secret.asc";
-#else
-    auto file_string = m_key_->Name() + "<" + m_key_->Email() + ">(" +
-                       m_key_->ID() + ")_short_secret.asc";
-#endif
-    std::replace(file_string.begin(), file_string.end(), ' ', '_');
-
-    auto file_name = QFileDialog::getSaveFileName(
-        this, tr("Export Key To File"), file_string,
-        tr("Key Files") + " (*.asc *.txt);;All Files (*)");
-
-    if (file_name.isEmpty()) return;
-
-    if (!WriteFileGFBuffer(file_name, gf_buffer)) {
-      QMessageBox::critical(this, tr("Export Error"),
-                            tr("Couldn't open %1 for writing").arg(file_name));
-      return;
-    }
-  }
+  slot_export_key(true, true, false, "short_secret");
 }
 
 void KeyPairOperaTab::slot_export_private_key() {
@@ -313,37 +317,9 @@ void KeyPairOperaTab::slot_export_private_key() {
                            QMessageBox::Cancel | QMessageBox::Ok);
 
   // export key, if ok was clicked
-  if (ret == QMessageBox::Ok) {
-    auto [err, gf_buffer] =
-        GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
-            .ExportKey(m_key_, true, true, false);
-    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-      CommonUtils::RaiseMessageBox(this, err);
-      return;
-    }
+  if (ret != QMessageBox::Ok) return;
 
-    // generate a file name
-#if defined(_WIN32) || defined(WIN32)
-    auto file_string = m_key_->Name() + "[" + m_key_->Email() + "](" +
-                       m_key_->ID() + ")_full_secret.asc";
-#else
-    auto file_string = m_key_->Name() + "<" + m_key_->Email() + ">(" +
-                       m_key_->ID() + ")_full_secret.asc";
-#endif
-    std::replace(file_string.begin(), file_string.end(), ' ', '_');
-
-    auto file_name = QFileDialog::getSaveFileName(
-        this, tr("Export Key To File"), file_string,
-        tr("Key Files") + " (*.asc *.txt);;All Files (*)");
-
-    if (file_name.isEmpty()) return;
-
-    if (!WriteFileGFBuffer(file_name, gf_buffer)) {
-      QMessageBox::critical(this, tr("Export Error"),
-                            tr("Couldn't open %1 for writing").arg(file_name));
-      return;
-    }
-  }
+  slot_export_key(true, true, false, "full_secret");
 }
 
 void KeyPairOperaTab::slot_modify_edit_datetime() {

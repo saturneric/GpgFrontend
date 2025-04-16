@@ -74,6 +74,18 @@ class KeyGroupManageDialog : public GeneralDialog {
    */
   void slot_notify_invalid_key_ids();
 
+  /**
+   * @brief
+   *
+   */
+  void slot_set_add_button_state();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_set_remove_button_state();
+
  private:
   QSharedPointer<Ui_KeyGroupManageDialog> ui_;  ///<
   int channel_;

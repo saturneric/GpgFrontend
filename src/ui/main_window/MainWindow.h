@@ -46,6 +46,7 @@ class TextEdit;
 class InfoBoardWidget;
 struct GpgOperaContext;
 struct GpgOperaContextBasement;
+struct KeyTable;
 
 /**
  * @brief
@@ -119,11 +120,6 @@ class MainWindow : public GeneralMainWindow {
   void closeEvent(QCloseEvent* event) override;
 
  public slots:
-
-  /**
-   * @details refresh and enable specify crypto-menu actions.
-   */
-  void SlotUpdateCryptoMenuStatus(unsigned int type);
 
   /**
    * @details Open a new tab for path
@@ -523,11 +519,23 @@ class MainWindow : public GeneralMainWindow {
       const QContainer<GpgOperaResult>& results);
 
   /**
+   * @details refresh and enable specify crypto-menu actions.
+   */
+  void slot_update_crypto_operations_menu(unsigned int mask);
+
+  /**
    * @brief
    *
    * @param results
    */
-  void slot_update_operations_menu_by_checked_keys();
+  void slot_update_operations_menu_by_checked_keys(unsigned int type);
+
+  /**
+   * @brief
+   *
+   * @param event
+   */
+  void slot_popup_menu_by_key_list(QContextMenuEvent* event, KeyTable*);
 
  private:
   /**
@@ -771,9 +779,12 @@ class MainWindow : public GeneralMainWindow {
   InfoBoardWidget* info_board_{};  ///<
   QMap<QString, QPointer<QAction>> buffered_actions_;
 
+  QMenu* popup_menu_;
+
   bool attachment_dock_created_{};         ///<
   int restart_mode_{0};                    ///<
   bool prohibit_update_checking_ = false;  ///<
+  unsigned int operations_menu_mask_ = ~0;
 };
 
 }  // namespace GpgFrontend::UI

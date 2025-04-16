@@ -28,8 +28,6 @@
 
 #include "KeyPairDetailTab.h"
 
-#include <utility>
-
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/model/GpgKey.h"

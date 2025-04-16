@@ -611,7 +611,7 @@ void MainWindow::create_dock_windows() {
   view_menu_->addAction(info_board_dock_->toggleViewAction());
 
   connect(m_key_list_, &KeyList::SignalKeyChecked, this,
-          &MainWindow::slot_update_operations_menu_by_checked_keys);
+          [=]() { slot_update_operations_menu_by_checked_keys(~0); });
 }
 
 }  // namespace GpgFrontend::UI

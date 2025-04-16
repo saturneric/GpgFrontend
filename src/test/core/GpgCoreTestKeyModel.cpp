@@ -183,9 +183,9 @@ TEST_F(GpgCoreTest, GpgKeySignatureTest) {
 
 TEST_F(GpgCoreTest, GpgKeyGetterTest) {
   auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
-                 .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");
-  ASSERT_TRUE(key.IsGood());
-  auto keys = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).FetchKey();
+                 .GetKeyPtr("9490795B78F8AFE9F93BD09281704859182661FB");
+  ASSERT_TRUE(key != nullptr);
+  auto keys = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).Fetch();
 
   EXPECT_GT(keys.size(), 0);
   ASSERT_TRUE(std::find(keys.begin(), keys.end(), key) != keys.end());

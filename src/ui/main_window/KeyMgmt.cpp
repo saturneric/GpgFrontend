@@ -121,12 +121,17 @@ KeyMgmt::KeyMgmt(QWidget* parent)
   setWindowTitle(tr("KeyPair Management"));
   setMinimumSize(QSize(640, 480));
 
-  key_list_->AddMenuAction(generate_subkey_act_);
-  key_list_->AddMenuAction(delete_selected_keys_act_);
-  key_list_->AddSeparator();
-  key_list_->AddMenuAction(set_owner_trust_of_key_act_);
-  key_list_->AddSeparator();
-  key_list_->AddMenuAction(show_key_details_act_);
+  popup_menu_ = new QMenu(this);
+
+  popup_menu_->addAction(generate_subkey_act_);
+  popup_menu_->addAction(delete_selected_keys_act_);
+  popup_menu_->addSeparator();
+  popup_menu_->addAction(set_owner_trust_of_key_act_);
+  popup_menu_->addSeparator();
+  popup_menu_->addAction(show_key_details_act_);
+
+  connect(key_list_, &KeyList::SignalRequestContextMenu, this,
+          &KeyMgmt::slot_popup_menu_by_key_list);
 
   connect(this, &KeyMgmt::SignalKeyStatusUpdated,
           UISignalStation::GetInstance(),
@@ -292,7 +297,7 @@ void KeyMgmt::create_tool_bars() {
   QToolBar* key_tool_bar = addToolBar(tr("Key"));
   key_tool_bar->setObjectName("keytoolbar");
 
-  // genrate key pair
+  // generate key pair
   key_tool_bar->addAction(generate_key_pair_act_);
   key_tool_bar->addSeparator();
 
@@ -587,13 +592,36 @@ void KeyMgmt::SlotImportKeyPackage() {
                 emit SignalStatusBarChanged(tr("key(s) imported"));
                 emit SignalKeyStatusUpdated();
 
-                auto* dialog = new KeyImportDetailDialog(
-                    key_list_->GetCurrentGpgContextChannel(),
-                    SecureCreateSharedObject<GpgImportInformation>(info), this);
-                dialog->exec();
+                auto* connection = new QMetaObject::Connection;
+                *connection = connect(
+                    UISignalStation::GetInstance(),
+                    &UISignalStation::SignalKeyDatabaseRefreshDone, this,
+                    [=]() {
+                      (new KeyImportDetailDialog(
+                          key_list_->GetCurrentGpgContextChannel(),
+                          SecureCreateSharedObject<GpgImportInformation>(info),
+                          this));
+                      QObject::disconnect(*connection);
+                      delete connection;
+                    });
               }
             });
       });
 }
 
+void KeyMgmt::slot_popup_menu_by_key_list(QContextMenuEvent* event,
+                                          KeyTable* key_table) {
+  if (event == nullptr || key_table == nullptr) return;
+
+  auto keys = key_table->GetSelectedKeys();
+  if (keys.isEmpty()) return;
+
+  auto key = keys.front();
+  generate_subkey_act_->setDisabled(key->KeyType() !=
+                                    GpgAbstractKeyType::kGPG_KEY);
+  set_owner_trust_of_key_act_->setDisabled(key->KeyType() !=
+                                           GpgAbstractKeyType::kGPG_KEY);
+
+  popup_menu_->exec(event->globalPos());
+}
 }  // namespace GpgFrontend::UI

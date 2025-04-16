@@ -34,6 +34,7 @@
 namespace GpgFrontend::UI {
 
 class KeyList;
+struct KeyTable;
 
 /**
  * @brief
@@ -120,6 +121,10 @@ class KeyMgmt : public GeneralMainWindow {
    */
   void SignalKeyStatusUpdated();
 
+ private slots:
+
+  void slot_popup_menu_by_key_list(QContextMenuEvent* event, KeyTable*);
+
  private:
   KeyList* key_list_;           ///<
   QMenu* file_menu_{};          ///<
@@ -127,6 +132,8 @@ class KeyMgmt : public GeneralMainWindow {
   QMenu* generate_key_menu_{};  ///<
   QMenu* import_key_menu_{};    ///<
   QMenu* export_key_menu_{};    /// <
+
+  QMenu* popup_menu_;
 
   QAction* open_key_file_act_{};                 ///<
   QAction* export_key_to_file_act_{};            ///<
@@ -143,7 +150,7 @@ class KeyMgmt : public GeneralMainWindow {
   QAction* import_keys_from_key_package_act_{};  ///<
   QAction* close_act_{};                         ///<
   QAction* show_key_details_act_{};              ///<
-  QAction* set_owner_trust_of_key_act_{};
+  QAction* set_owner_trust_of_key_act_{};        ///<
 
   /**
    * @brief Create a menus object

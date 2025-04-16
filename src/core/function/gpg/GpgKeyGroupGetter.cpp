@@ -76,9 +76,10 @@ void GpgKeyGroupGetter::fetch_key_groups() {
     LOG_D() << "load raw key group:" << key_group.id
             << "key ids: " << key_group.key_ids;
 
-    key_groups_forest_.insert(
-        key_group.id,
-        QSharedPointer<GpgKeyGroupTreeNode>::create(GpgKeyGroup{key_group}));
+    auto node =
+        QSharedPointer<GpgKeyGroupTreeNode>::create(GpgKeyGroup{key_group});
+    node->key_group->SetKeyGroupGetter(this);
+    key_groups_forest_.insert(key_group.id, node);
   }
 
   build_gpg_key_group_tree();
@@ -108,30 +109,30 @@ auto GpgKeyGroupGetter::KeyGroup(const QString& id)
 }
 
 void GpgKeyGroupGetter::check_key_group(
-    const QSharedPointer<GpgKeyGroup>& key_group) {
-  if (key_group == nullptr || key_group->IsDisabled()) return;
+    const QSharedPointer<GpgKeyGroupTreeNode>& node) {
+  if (node == nullptr || node->disabled) return;
 
-  for (const auto& key_id : key_group->KeyIds()) {
-    LOG_D() << "check" << key_id << "of" << key_group->UID();
+  for (const auto& key_id : node->KeyIds()) {
+    assert(key_id != node->key_group->ID());
+    if (key_id == node->key_group->ID()) continue;
 
-    if (IsKeyGroupID(key_id) || key_id == key_group->ID()) {
+    if (IsKeyGroupID(key_id)) {
       if (!key_groups_forest_.contains(key_id)) {
-        key_group->SetDisabled(true);
         return;
       }
 
       auto s_node = key_groups_forest_.value(key_id, nullptr);
-      check_key_group(s_node->key_group);
+      check_key_group(s_node);
 
       if (s_node->key_group->IsDisabled()) {
-        key_group->SetDisabled(true);
+        node->disabled = true;
         return;
       }
 
     } else {
       auto key = GpgKeyGetter::GetInstance(GetChannel()).GetKeyPtr(key_id);
       if (key == nullptr || !key->IsHasEncrCap()) {
-        key_group->SetDisabled(true);
+        node->disabled = true;
         return;
       }
     }
@@ -139,20 +140,23 @@ void GpgKeyGroupGetter::check_key_group(
 }
 
 void GpgKeyGroupGetter::check_all_key_groups() {
-  for (const auto& node : key_groups_forest_) {
-    node->key_group->SetDisabled(false);
-  }
+  for (const auto& node : key_groups_forest_) node->disabled = false;
 
   for (const auto& node : key_groups_forest_) {
-    auto key_group = node->key_group;
-    check_key_group(key_group);
+    check_key_group(node);
 
-    LOG_D() << "key group" << key_group->ID() << "ids: " << key_group->KeyIds()
-            << "status: " << key_group->IsDisabled();
+    assert(node->key_group != nullptr);
+    LOG_D() << "key group" << node->key_group->ID()
+            << "ids: " << node->key_group->KeyIds()
+            << "status: " << node->disabled;
   }
 }
 
 auto GpgKeyGroupGetter::FlushCache() -> bool {
+  for (const auto& node : key_groups_forest_.values()) {
+    node->Apply();
+  }
+
   check_all_key_groups();
   persist_key_groups();
   return true;
@@ -180,6 +184,7 @@ void GpgKeyGroupGetter::build_gpg_key_group_tree() {
 
 void GpgKeyGroupGetter::AddKeyGroup(const GpgKeyGroup& key_group) {
   auto node = QSharedPointer<GpgKeyGroupTreeNode>::create(key_group);
+  node->key_group->SetKeyGroupGetter(this);
 
   key_groups_forest_.insert(node->key_group->ID(), node);
   LOG_D() << "add new key group" << key_group.ID()
@@ -249,18 +254,7 @@ GpgKeyGroupTreeNode::GpgKeyGroupTreeNode(GpgKeyGroup kg)
   }
 }
 
-void GpgKeyGroupTreeNode::Apply() {
-  QStringList key_ids;
-  for (const auto& child : children) {
-    key_ids.push_back(child->key_group->ID());
-  }
-
-  for (const auto& key_id : non_key_group_ids) {
-    key_ids.push_back(key_id);
-  }
-
-  key_group->SetKeyIds(key_ids);
-}
+void GpgKeyGroupTreeNode::Apply() { key_group->SetKeyIds(KeyIds()); }
 
 auto GpgKeyGroupTreeNode::AddNonKeyGroupKey(const GpgAbstractKeyPtr& key)
     -> bool {
@@ -307,5 +301,20 @@ auto GpgKeyGroupTreeNode::RemoveNonKeyGroupKey(const QString& key) -> bool {
   non_key_group_ids.removeAll(key);
   Apply();
   return true;
+}
+
+auto GpgKeyGroupGetter::IsKeyGroupDisabled(const QString& id) -> bool {
+  if (!key_groups_forest_.contains(id)) return false;
+  auto node = key_groups_forest_.value(id);
+  return node->disabled;
+}
+
+auto GpgKeyGroupTreeNode::KeyIds() const -> QStringList {
+  QStringList ret;
+  for (const auto& child : children) {
+    ret.push_back(child->key_group->ID());
+  }
+  ret.append(non_key_group_ids);
+  return ret;
 }
 }  // namespace GpgFrontend
