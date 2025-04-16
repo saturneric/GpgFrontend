@@ -41,19 +41,21 @@ namespace GpgFrontend::UI {
 
 void MainWindow::create_actions() {
   new_tab_act_ = create_action(
-      "new_tab", tr("New"), ":/icons/misc_doc.png", tr("Open a new file"),
+      "new_tab", tr("New Text"), ":/icons/misc_doc.png", tr("Open a new file"),
       {QKeySequence(Qt::CTRL | Qt::Key_N), QKeySequence(Qt::CTRL | Qt::Key_T)});
   connect(new_tab_act_, &QAction::triggered, edit_, &TextEdit::SlotNewTab);
 
-  open_act_ = create_action("open", tr("Open..."), ":/icons/fileopen.png",
-                            tr("Open an existing file"), {QKeySequence::Open});
-  connect(open_act_, &QAction::triggered, edit_, &TextEdit::SlotOpen);
-
-  browser_act_ = create_action(
-      "file_browser", tr("File Panel"), ":/icons/file-operator.png",
-      tr("Open a file panel"), {QKeySequence(Qt::CTRL | Qt::Key_B)});
+  browser_act_ =
+      create_action("file_browser", tr("Open File"),
+                    ":/icons/file-operator.png", tr("Open a file panel"));
   connect(browser_act_, &QAction::triggered, this,
           &MainWindow::slot_open_file_tab);
+
+  browser_dir_act_ = create_action(
+      "file_browser_dir", tr("Open Directory"), ":/icons/file-operator.png",
+      tr("Open a file panel"), {QKeySequence(Qt::CTRL | Qt::Key_B)});
+  connect(browser_dir_act_, &QAction::triggered, this,
+          &MainWindow::slot_open_file_tab_with_directory);
 
   save_act_ = create_action("save", tr("Save File"), ":/icons/filesave.png",
                             tr("Save the current File"), {QKeySequence::Save});
@@ -412,9 +414,12 @@ void MainWindow::create_menus() {
     file_menu_->addAction(new_email_tab_act_);
   }
 
-  file_menu_->addAction(browser_act_);
-  file_menu_->addAction(open_act_);
   file_menu_->addSeparator();
+  workspace_menu_ = file_menu_->addMenu(tr("Workspace"));
+  workspace_menu_->addAction(browser_act_);
+  workspace_menu_->addAction(browser_dir_act_);
+  file_menu_->addSeparator();
+
   file_menu_->addAction(save_act_);
   file_menu_->addAction(save_as_act_);
   file_menu_->addSeparator();
@@ -493,14 +498,24 @@ void MainWindow::create_menus() {
 void MainWindow::create_tool_bars() {
   file_tool_bar_ = addToolBar(tr("File"));
   file_tool_bar_->setObjectName("fileToolBar");
+
+  // add dropdown menu for workspace
+  workspace_button_ = new QToolButton();
+  workspace_button_->setMenu(workspace_menu_);
+  workspace_button_->setPopupMode(QToolButton::InstantPopup);
+  workspace_button_->setIcon(QIcon(":/icons/workspace.png"));
+  workspace_button_->setToolTip(tr("Open Workspace..."));
+  workspace_button_->setText(tr("Workspace"));
+
+  file_tool_bar_->addWidget(workspace_button_);
+  file_tool_bar_->addSeparator();
+
   file_tool_bar_->addAction(new_tab_act_);
 
   if (Module::IsModuleActivate(kEmailModuleID)) {
     file_tool_bar_->addAction(new_email_tab_act_);
   }
 
-  file_tool_bar_->addAction(open_act_);
-  file_tool_bar_->addAction(browser_act_);
   view_menu_->addAction(file_tool_bar_->toggleViewAction());
 
   crypt_tool_bar_ = addToolBar(tr("Operations"));

@@ -28,7 +28,6 @@
 
 #include "KeyServerImportDialog.h"
 
-#include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/model/SettingsObject.h"

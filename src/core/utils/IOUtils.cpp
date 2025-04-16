@@ -28,7 +28,6 @@
 
 #include "IOUtils.h"
 
-#include "core/GpgModel.h"
 #include "core/utils/FilesystemUtils.h"
 
 namespace GpgFrontend {

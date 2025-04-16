@@ -28,10 +28,10 @@
 
 #include "GpgKeyManager.h"
 
-#include "core/GpgModel.h"
 #include "core/function/gpg/GpgAutomatonHandler.h"
 #include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/model/GpgData.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {

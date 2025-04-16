@@ -28,7 +28,6 @@
 
 #include "GpgOperaHelper.h"
 
-#include "core/GpgModel.h"
 #include "core/function/gpg/GpgFileOpera.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"

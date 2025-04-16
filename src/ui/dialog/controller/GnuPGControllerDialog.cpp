@@ -28,7 +28,6 @@
 
 #include "GnuPGControllerDialog.h"
 
-#include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"

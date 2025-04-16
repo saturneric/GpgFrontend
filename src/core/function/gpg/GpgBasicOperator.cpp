@@ -30,7 +30,7 @@
 
 #include <gpg-error.h>
 
-#include "core/GpgModel.h"
+#include "core/model/GpgData.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgSignResult.h"

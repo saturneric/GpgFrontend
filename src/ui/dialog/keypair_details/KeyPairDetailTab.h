@@ -90,7 +90,6 @@ class KeyPairDetailTab : public QWidget {
   QLabel* key_id_var_label_;        ///< Label containing the keys keyid
   QLabel* fingerprint_var_label_;   ///< Label containing the keys fingerprint
   QLabel* usage_var_label_;
-  QLabel* actual_usage_var_label_;
   QLabel* primary_key_exist_var_label_;
   QLabel* owner_trust_var_label_;
 

@@ -58,7 +58,6 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   key_id_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
   usage_var_label_ = new QLabel();
-  actual_usage_var_label_ = new QLabel();
 
   owner_trust_var_label_ = new QLabel();
   key_size_var_label_ = new QLabel();
@@ -84,13 +83,12 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   vbox_kd->addWidget(new QLabel(tr("Algorithm") + ": "), 1, 0);
   vbox_kd->addWidget(new QLabel(tr("Algorithm Detail") + ": "), 2, 0);
   vbox_kd->addWidget(new QLabel(tr("Key Size") + ": "), 3, 0);
-  vbox_kd->addWidget(new QLabel(tr("Nominal Usage") + ": "), 4, 0);
-  vbox_kd->addWidget(new QLabel(tr("Actual Usage") + ": "), 5, 0);
-  vbox_kd->addWidget(new QLabel(tr("Owner Trust Level") + ": "), 6, 0);
-  vbox_kd->addWidget(new QLabel(tr("Create Date (Local Time)") + ": "), 7, 0);
-  vbox_kd->addWidget(new QLabel(tr("Expires on (Local Time)") + ": "), 8, 0);
-  vbox_kd->addWidget(new QLabel(tr("Last Update (Local Time)") + ": "), 9, 0);
-  vbox_kd->addWidget(new QLabel(tr("Primary Key Existence") + ": "), 10, 0);
+  vbox_kd->addWidget(new QLabel(tr("Usage") + ": "), 4, 0);
+  vbox_kd->addWidget(new QLabel(tr("Owner Trust Level") + ": "), 5, 0);
+  vbox_kd->addWidget(new QLabel(tr("Create Date (Local Time)") + ": "), 6, 0);
+  vbox_kd->addWidget(new QLabel(tr("Expires on (Local Time)") + ": "), 7, 0);
+  vbox_kd->addWidget(new QLabel(tr("Last Update (Local Time)") + ": "), 8, 0);
+  vbox_kd->addWidget(new QLabel(tr("Primary Key Existence") + ": "), 9, 0);
 
   key_id_var_label_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   vbox_kd->addWidget(key_id_var_label_, 0, 1, 1, 1);
@@ -98,12 +96,11 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   vbox_kd->addWidget(algorithm_detail_var_label_, 2, 1, 1, 2);
   vbox_kd->addWidget(key_size_var_label_, 3, 1, 1, 2);
   vbox_kd->addWidget(usage_var_label_, 4, 1, 1, 2);
-  vbox_kd->addWidget(actual_usage_var_label_, 5, 1, 1, 2);
-  vbox_kd->addWidget(owner_trust_var_label_, 6, 1, 1, 2);
-  vbox_kd->addWidget(created_var_label_, 7, 1, 1, 2);
-  vbox_kd->addWidget(expire_var_label_, 8, 1, 1, 2);
-  vbox_kd->addWidget(last_update_var_label_, 9, 1, 1, 2);
-  vbox_kd->addWidget(primary_key_exist_var_label_, 10, 1, 1, 2);
+  vbox_kd->addWidget(owner_trust_var_label_, 5, 1, 1, 2);
+  vbox_kd->addWidget(created_var_label_, 6, 1, 1, 2);
+  vbox_kd->addWidget(expire_var_label_, 7, 1, 1, 2);
+  vbox_kd->addWidget(last_update_var_label_, 8, 1, 1, 2);
+  vbox_kd->addWidget(primary_key_exist_var_label_, 9, 1, 1, 2);
 
   auto* copy_key_id_button = new QPushButton(tr("Copy"));
   copy_key_id_button->setFlat(true);
@@ -219,24 +216,6 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   if (key_->IsHasAuthCap()) usage_steam << tr("Auth") << " ";
 
   usage_var_label_->setText(usage_steam.readAll());
-
-  QString buffer_2;
-  QTextStream actual_usage_steam(&buffer_2);
-
-  if (key_->IsHasActualCertCap()) {
-    actual_usage_steam << tr("Certificate") << " ";
-  }
-  if (key_->IsHasActualEncrCap()) {
-    actual_usage_steam << tr("Encrypt") << " ";
-  }
-  if (key_->IsHasActualSignCap()) {
-    actual_usage_steam << tr("Sign") << " ";
-  }
-  if (key_->IsHasActualAuthCap()) {
-    actual_usage_steam << tr("Auth") << " ";
-  }
-
-  actual_usage_var_label_->setText(actual_usage_steam.readAll());
   owner_trust_var_label_->setText(key_->OwnerTrust());
 
   QString key_size_val;

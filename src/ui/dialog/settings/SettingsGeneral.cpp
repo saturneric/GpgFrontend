@@ -29,7 +29,6 @@
 #include "SettingsGeneral.h"
 
 #include "SettingsDialog.h"
-#include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
 #include "ui_GeneralSettings.h"
 

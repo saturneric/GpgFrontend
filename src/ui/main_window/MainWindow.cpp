@@ -28,7 +28,6 @@
 
 #include "MainWindow.h"
 
-#include "core/function/CacheManager.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
@@ -138,17 +137,12 @@ void MainWindow::Init() noexcept {
 
     restore_settings();
 
-    edit_->CurTextPage()->setFocus();
-
     info_board_->AssociateTabWidget(edit_->TabWidget());
 
     // check update if needed
     check_update_at_startup();
 
-    // recover unsaved page from cache if it exists
-    recover_editor_unsaved_pages_from_cache();
-
-    slot_update_operations_menu_by_checked_keys(~0);
+    slot_switch_menu_control_mode(0);
 
     // check if need to open wizard window
     if (GetSettings().value("wizard/show_wizard", true).toBool()) {
@@ -210,6 +204,7 @@ void MainWindow::restore_settings() {
 
   icon_style_ = appearance.tool_bar_button_style;
   import_button_->setToolButtonStyle(icon_style_);
+  workspace_button_->setToolButtonStyle(icon_style_);
   this->setToolButtonStyle(icon_style_);
 
   // icons ize
@@ -217,40 +212,8 @@ void MainWindow::restore_settings() {
       QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
   import_button_->setIconSize(
       QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
-}
-
-void MainWindow::recover_editor_unsaved_pages_from_cache() {
-  auto json_data =
-      CacheManager::GetInstance().LoadDurableCache("editor_unsaved_pages");
-
-  if (json_data.isEmpty() || !json_data.isArray()) {
-    return;
-  }
-
-  bool first = true;
-
-  auto unsaved_page_array = json_data.array();
-  for (const auto& value_ref : unsaved_page_array) {
-    if (!value_ref.isObject()) continue;
-    auto unsaved_page_json = value_ref.toObject();
-
-    if (!unsaved_page_json.contains("title") ||
-        !unsaved_page_json.contains("content")) {
-      continue;
-    }
-
-    auto title = unsaved_page_json["title"].toString();
-    auto content = unsaved_page_json["content"].toString();
-
-    LOG_D() << "restoring tab, title: " << title;
-
-    if (first) {
-      edit_->SlotCloseTab();
-      first = false;
-    }
-
-    edit_->SlotNewTabWithContent(title, content);
-  }
+  workspace_button_->setIconSize(
+      QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
 }
 
 void MainWindow::close_attachment_dock() {

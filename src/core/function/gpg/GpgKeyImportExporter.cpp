@@ -28,7 +28,7 @@
 
 #include "GpgKeyImportExporter.h"
 
-#include "core/GpgModel.h"
+#include "core/model/GpgData.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"

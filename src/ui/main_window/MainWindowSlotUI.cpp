@@ -60,6 +60,10 @@ void MainWindow::slot_open_key_management() {
 
 void MainWindow::slot_open_file_tab() { edit_->SlotNewFileBrowserTab(); }
 
+void MainWindow::slot_open_file_tab_with_directory() {
+  edit_->SlotNewFileBrowserTabWithDirectory();
+}
+
 void MainWindow::slot_switch_menu_control_mode(int index) {
   auto disable = false;
   if (index == -1) disable = true;
@@ -96,6 +100,9 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
   if (edit_->CurFilePage() != nullptr) {
     auto* file_page = edit_->CurFilePage();
     emit file_page->SignalCurrentTabChanged();
+  } else {
+    operations_menu_mask_ = ~0;
+    slot_update_operations_menu_by_checked_keys(operations_menu_mask_);
   }
 }
 

@@ -39,6 +39,12 @@ namespace GpgFrontend::UI {
 
 TextEditTabWidget::TextEditTabWidget(QWidget* parent) : QTabWidget(parent) {
   setAcceptDrops(true);
+  setMovable(true);
+  setTabsClosable(true);
+  setDocumentMode(true);
+  setUsesScrollButtons(true);
+  setElideMode(Qt::ElideRight);
+  tabBar()->setExpanding(false);
 }
 
 void TextEditTabWidget::dragEnterEvent(QDragEnterEvent* event) {
@@ -97,7 +103,7 @@ void TextEditTabWidget::dropEvent(QDropEvent* event) {
                 .arg(file_info.fileName()));
         continue;
       }
-      SlotOpenDirectory(file_info.absoluteFilePath());
+      SlotOpenPath(file_info.absoluteFilePath());
     }
   }
 
@@ -160,6 +166,8 @@ void TextEditTabWidget::SlotOpenEMLFile(const QString& path) {
 }
 
 void TextEditTabWidget::SlotShowModified() {
+  if (CurTextPage() == nullptr) return;
+
   // get current tab
   int index = this->currentIndex();
   QString title = this->tabText(index).trimmed();
@@ -253,6 +261,7 @@ void TextEditTabWidget::SlotNewTab() {
   auto* page = new PlainTextEditorPage();
   auto index = this->addTab(page, header);
   this->setTabIcon(index, QIcon(":/icons/file.png"));
+  this->setTabToolTip(index, header);
   this->setCurrentIndex(this->count() - 1);
   page->GetTextPage()->setFocus();
   connect(page->GetTextPage()->document(), &QTextDocument::modificationChanged,
@@ -268,6 +277,7 @@ void TextEditTabWidget::SlotNewEMailTab() {
   auto index = this->addTab(page, header);
   this->setTabIcon(index, QIcon(":/icons/email.png"));
   this->setCurrentIndex(this->count() - 1);
+  this->setTabToolTip(index, header);
   page->GetTextPage()->setFocus();
 
   connect(page->GetTextPage(), &QPlainTextEdit::textChanged, this,
@@ -291,7 +301,6 @@ void TextEditTabWidget::SlotNewTabWithContent(QString title,
   auto* page = new PlainTextEditorPage();
   auto index = this->addTab(page, header);
   this->setTabIcon(index, QIcon(":/icons/file.png"));
-  this->setCurrentIndex(this->count() - 1);
   page->GetTextPage()->setFocus();
   connect(page->GetTextPage()->document(), &QTextDocument::modificationChanged,
           this, &TextEditTabWidget::SlotShowModified);
@@ -302,10 +311,21 @@ void TextEditTabWidget::SlotNewTabWithContent(QString title,
   page->GetTextPage()->document()->setPlainText(content);
 }
 
-void TextEditTabWidget::SlotOpenDirectory(const QString& target_directory) {
-  auto* page = new FilePage(qobject_cast<QWidget*>(parent()), target_directory);
+void TextEditTabWidget::SlotOpenDefaultPath() {
+  auto* page =
+      new FilePage(qobject_cast<QWidget*>(parent()), QDir::currentPath());
   auto index = this->addTab(page, QString());
-  this->setTabIcon(index, QIcon(":/icons/file-browser.png"));
+  this->setTabIcon(index, QIcon(":/icons/workspace.png"));
+  this->setTabText(index, tr("Default Workspace"));
+  this->setCurrentIndex(this->count() - 1);
+  page->SlotGoPath();
+}
+
+void TextEditTabWidget::SlotOpenPath(const QString& target_path) {
+  auto* page = new FilePage(qobject_cast<QWidget*>(parent()), target_path);
+  auto index = this->addTab(page, QString());
+  this->setTabIcon(index, QIcon(":/icons/workspace.png"));
+  this->setTabToolTip(index, target_path);
   this->setCurrentIndex(this->count() - 1);
   connect(page, &FilePage::SignalPathChanged, this,
           &TextEditTabWidget::slot_file_page_path_changed);
@@ -322,7 +342,9 @@ void TextEditTabWidget::slot_file_page_path_changed(const QString& path) {
   } else {
     m_path = t_path;
   }
+
   this->setTabText(index, m_path);
+  this->setTabToolTip(index, t_path);
 
   emit UISignalStation::GetInstance() -> SignalMainWindowUpdateBasicOperaMenu(
                                           0);

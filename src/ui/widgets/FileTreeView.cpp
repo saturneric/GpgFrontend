@@ -36,17 +36,15 @@
 namespace GpgFrontend::UI {
 
 FileTreeView::FileTreeView(QWidget* parent, const QString& target_path)
-    : QTreeView(parent) {
-  dir_model_ = new QFileSystemModel(this);
-  dir_model_->setRootPath(target_path.isEmpty() ? QDir::currentPath()
-                                                : target_path);
+    : QTreeView(parent), dir_model_(new QFileSystemModel(this)) {
   dir_model_->setFilter(QDir::AllDirs | QDir::Files | QDir::NoDotAndDotDot);
+  dir_model_->setRootPath(QDir::homePath());
+  current_path_ = dir_model_->rootPath();
 
   this->setModel(dir_model_);
   this->setColumnWidth(0, 320);
   this->sortByColumn(0, Qt::AscendingOrder);
   this->setSortingEnabled(true);
-  current_path_ = dir_model_->rootPath();
 
   slot_create_popup_menu();
   this->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -60,6 +58,43 @@ FileTreeView::FileTreeView(QWidget* parent, const QString& target_path)
           &FileTreeView::slot_adjust_column_widths);
   connect(dir_model_, &QFileSystemModel::dataChanged, this,
           &FileTreeView::slot_adjust_column_widths);
+
+  LOG_D() << "try to open target path:" << target_path;
+
+  QFileInfo info(target_path);
+  QString effective_path;
+
+  if (info.exists()) {
+    effective_path =
+        info.isFile() ? info.absolutePath() : info.absoluteFilePath();
+  } else {
+    effective_path = QDir::currentPath();
+  }
+
+  LOG_D() << "effective path:" << effective_path;
+
+  dir_model_->setRootPath(effective_path);
+  current_path_ = dir_model_->rootPath();
+  QModelIndex root_index = dir_model_->index(current_path_);
+
+  if (root_index.isValid()) {
+    QPointer<FileTreeView> self(this);
+    this->setRootIndex(root_index);
+    QTimer::singleShot(200, [=]() {
+      if (self != nullptr && info.isFile()) {
+        self->setCurrentIndex(dir_model_->index(info.absoluteFilePath()));
+        self->expand(currentIndex().parent());
+        self->scrollTo(currentIndex(), QAbstractItemView::PositionAtCenter);
+        self->selectionModel()->select(
+            currentIndex(),
+            QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+      }
+    });
+  } else {
+    LOG_W() << "invalid path, fallback to current dir.";
+    current_path_ = QDir::currentPath();
+    this->setRootIndex(dir_model_->index(current_path_));
+  }
 }
 
 void FileTreeView::selectionChanged(const QItemSelection& selected,
@@ -424,10 +459,10 @@ void FileTreeView::slot_compress_files() {}
 void FileTreeView::paintEvent(QPaintEvent* event) {
   QTreeView::paintEvent(event);
 
-  if (!initial_resize_done_) {
-    slot_adjust_column_widths();
-    initial_resize_done_ = true;
-  }
+  // if (!initial_resize_done_) {
+  //   slot_adjust_column_widths();
+  //   initial_resize_done_ = true;
+  // }
 }
 
 void FileTreeView::mousePressEvent(QMouseEvent* event) {

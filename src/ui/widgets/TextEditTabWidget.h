@@ -90,6 +90,12 @@ class TextEditTabWidget : public QTabWidget {
   void SlotNewTabWithContent(QString title, const QString& content);
 
   /**
+   * @brief
+   *
+   */
+  void SlotOpenDefaultPath();
+
+  /**
    * @details Adds a new tab with opening file by path
    */
   void SlotOpenFile(const QString& path);
@@ -105,7 +111,7 @@ class TextEditTabWidget : public QTabWidget {
    * @brief
    *
    */
-  void SlotOpenDirectory(const QString& target_directory);
+  void SlotOpenPath(const QString& target_path);
 
   /**
    * @details put a * in front of current tabs title, if current textedit is
@@ -146,6 +152,12 @@ class TextEditTabWidget : public QTabWidget {
   int count_page_ = 0;
   int text_page_data_modified_count_ = 0;
 
+  /**
+   * @brief
+   *
+   * @param full_file_name
+   * @return QString
+   */
   static auto stripped_name(const QString& full_file_name) -> QString;
 };
 

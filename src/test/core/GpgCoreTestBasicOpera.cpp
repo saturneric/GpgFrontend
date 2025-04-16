@@ -27,7 +27,6 @@
  */
 
 #include "GpgCoreTest.h"
-#include "core/GpgModel.h"
 #include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"

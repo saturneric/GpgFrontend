@@ -28,7 +28,6 @@
 
 #include "ui/widgets/InfoBoardWidget.h"
 
-#include "core/GpgModel.h"
 #include "core/model/SettingsObject.h"
 #include "ui/UISignalStation.h"
 #include "ui/struct/settings_object/AppearanceSO.h"

@@ -537,6 +537,12 @@ class MainWindow : public GeneralMainWindow {
    */
   void slot_popup_menu_by_key_list(QContextMenuEvent* event, KeyTable*);
 
+  /**
+   * @brief
+   *
+   */
+  void slot_open_file_tab_with_directory();
+
  private:
   /**
    * @details Create actions for the main-menu and the context-menu of the
@@ -578,11 +584,6 @@ class MainWindow : public GeneralMainWindow {
    * @details Load settings from ini-file.
    */
   void restore_settings();
-
-  /**
-   * @details
-   */
-  void recover_editor_unsaved_pages_from_cache();
 
   /**
    * @brief Create a action object
@@ -692,6 +693,7 @@ class MainWindow : public GeneralMainWindow {
   QMenu* key_menu_{};         ///<  Submenu for key-operations
   QMenu* view_menu_{};        ///<  Submenu for view operations
   QMenu* import_key_menu_{};  ///<  Submenu for import operations
+  QMenu* workspace_menu_{};
 
   QToolBar* crypt_tool_bar_{};  ///<  Toolbar holding crypt actions
   QToolBar* file_tool_bar_{};   ///<  Toolbar holding file actions
@@ -701,6 +703,7 @@ class MainWindow : public GeneralMainWindow {
   QToolBar* key_tool_bar_{};     ///<  Toolbar holding key operations
   QToolButton*
       import_button_{};  ///<  Tool button for import dropdown menu in toolbar
+  QToolButton* workspace_button_{};
   QDockWidget* key_list_dock_{};    ///<  Encrypt Dock
   QDockWidget* attachment_dock_{};  ///<  Attachment Dock
   QDockWidget* info_board_dock_{};
@@ -709,8 +712,8 @@ class MainWindow : public GeneralMainWindow {
   QAction* new_email_tab_act_{};         ///<  Action to create email tab
   QAction* switch_tab_up_act_{};         ///<  Action to switch tab up
   QAction* switch_tab_down_act_{};       ///<  Action to switch tab down
-  QAction* open_act_{};                  ///<  Action to open file
   QAction* browser_act_{};               ///<  Action to open file browser
+  QAction* browser_dir_act_{};           ///<  Action to open file browser
   QAction* save_act_{};                  ///<  Action to save file
   QAction* save_as_act_{};               ///<  Action to save file as
   QAction* print_act_{};                 ///<  Action to print
@@ -724,7 +727,6 @@ class MainWindow : public GeneralMainWindow {
   QAction* verify_act_{};                ///<  Action to verify text
   QAction* import_key_from_edit_act_{};  ///<  Action to import key from edit
   QAction* clean_double_line_breaks_act_{};  ///<  Action to remove double
-                                             ///<  line breaks
 
   QAction* gnupg_controller_open_act_{};       ///<
   QAction* module_controller_open_act_{};      ///<

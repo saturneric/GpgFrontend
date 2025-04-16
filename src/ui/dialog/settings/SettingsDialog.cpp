@@ -29,7 +29,6 @@
 #include "SettingsDialog.h"
 
 #include "core/GpgConstants.h"
-#include "core/GpgModel.h"
 #include "ui/dialog/settings/SettingsAppearance.h"
 #include "ui/dialog/settings/SettingsGeneral.h"
 #include "ui/dialog/settings/SettingsKeyServer.h"

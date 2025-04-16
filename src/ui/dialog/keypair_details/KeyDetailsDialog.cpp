@@ -28,7 +28,6 @@
 
 #include "KeyDetailsDialog.h"
 
-#include "core/GpgModel.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/keypair_details/KeyPairDetailTab.h"
 #include "ui/dialog/keypair_details/KeyPairOperaTab.h"

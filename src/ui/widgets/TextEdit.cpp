@@ -31,7 +31,7 @@
 #include <QtPrintSupport>
 #include <cstddef>
 
-#include "core/GpgModel.h"
+#include "core/function/CacheManager.h"
 #include "ui/dialog/QuitDialog.h"
 #include "ui/widgets/HelpPage.h"
 #include "ui/widgets/TextEditTabWidget.h"
@@ -40,9 +40,6 @@ namespace GpgFrontend::UI {
 
 TextEdit::TextEdit(QWidget* parent) : QWidget(parent) {
   tab_widget_ = new TextEditTabWidget(this);
-  tab_widget_->setMovable(true);
-  tab_widget_->setTabsClosable(true);
-  tab_widget_->setDocumentMode(true);
 
   auto* layout = new QVBoxLayout;
   layout->addWidget(tab_widget_);
@@ -52,8 +49,12 @@ TextEdit::TextEdit(QWidget* parent) : QWidget(parent) {
 
   connect(tab_widget_, &QTabWidget::tabCloseRequested, this,
           &TextEdit::slot_remove_tab);
-  SlotNewTab();
+
   setAcceptDrops(false);
+
+  SlotNewDefaultFileBrowserTab();
+
+  slot_restore_unsaved_tabs();
 }
 
 void TextEdit::SlotNewTab() { tab_widget_->SlotNewTab(); }
@@ -68,12 +69,22 @@ void TextEdit::SlotNewHelpTab(const QString& title, const QString& path) const {
   tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
 }
 
+void TextEdit::SlotNewDefaultFileBrowserTab() {
+  tab_widget_->SlotOpenDefaultPath();
+}
+
 void TextEdit::SlotNewFileBrowserTab() {
-  auto const target_directory = QFileDialog::getExistingDirectory(
-      this, tr("Open Directory"), QDir::home().path(),
-      QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-  if (target_directory.isEmpty()) return;
-  tab_widget_->SlotOpenDirectory(target_directory);
+  auto const target_path =
+      QFileDialog::getOpenFileUrl(this, tr("Open File"), QDir::home().path());
+  if (target_path.isEmpty()) return;
+  tab_widget_->SlotOpenPath(target_path.path());
+}
+
+void TextEdit::SlotNewFileBrowserTabWithDirectory() {
+  auto const target_path = QFileDialog::getExistingDirectory(
+      this, tr("Open File"), QDir::home().path());
+  if (target_path.isEmpty()) return;
+  tab_widget_->SlotOpenPath(target_path);
 }
 
 void TextEdit::SlotOpenFile(const QString& path) {
@@ -628,4 +639,30 @@ auto TextEdit::CurEMailPage() const -> EMailEditorPage* {
 
 void TextEdit::SlotNewEMailTab() { tab_widget_->SlotNewEMailTab(); }
 
+void TextEdit::slot_restore_unsaved_tabs() {
+  auto json_data =
+      CacheManager::GetInstance().LoadDurableCache("editor_unsaved_pages");
+
+  if (json_data.isEmpty() || !json_data.isArray()) {
+    return;
+  }
+
+  auto unsaved_page_array = json_data.array();
+  for (const auto& value_ref : unsaved_page_array) {
+    if (!value_ref.isObject()) continue;
+    auto unsaved_page_json = value_ref.toObject();
+
+    if (!unsaved_page_json.contains("title") ||
+        !unsaved_page_json.contains("content")) {
+      continue;
+    }
+
+    auto title = unsaved_page_json["title"].toString();
+    auto content = unsaved_page_json["content"].toString();
+
+    LOG_D() << "restoring tab, title: " << title;
+
+    SlotNewTabWithContent(title, content);
+  }
+}
 }  // namespace GpgFrontend::UI

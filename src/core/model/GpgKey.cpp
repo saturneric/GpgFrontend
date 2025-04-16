@@ -128,13 +128,13 @@ auto GpgKey::PrimaryKeyLength() const -> unsigned int {
   return key_ref_->subkeys->length;
 }
 
-auto GpgKey::IsHasEncrCap() const -> bool { return key_ref_->can_encrypt; }
+auto GpgKey::IsHasEncrCap() const -> bool { return IsHasActualEncrCap(); }
 
-auto GpgKey::IsHasSignCap() const -> bool { return key_ref_->can_sign; }
+auto GpgKey::IsHasSignCap() const -> bool { return IsHasActualSignCap(); }
 
-auto GpgKey::IsHasCertCap() const -> bool { return key_ref_->can_certify; }
+auto GpgKey::IsHasCertCap() const -> bool { return IsHasActualCertCap(); }
 
-auto GpgKey::IsHasAuthCap() const -> bool { return key_ref_->can_authenticate; }
+auto GpgKey::IsHasAuthCap() const -> bool { return IsHasActualAuthCap(); }
 
 auto GpgKey::IsHasCardKey() const -> bool {
   auto sub_keys = SubKeys();

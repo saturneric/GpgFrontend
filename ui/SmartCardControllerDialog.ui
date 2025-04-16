@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>SmartCardController</string>
+   <string>Smart Card Controller</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <item>
@@ -21,7 +21,7 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_4">
          <item>
-          <widget class="QLabel" name="label_2">
+          <widget class="QLabel" name="smartCardLabel">
            <property name="text">
             <string>Smart Card(s):</string>
            </property>
@@ -42,7 +42,7 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
-          <widget class="QLabel" name="label">
+          <widget class="QLabel" name="keyStubLabel">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
              <horstretch>0</horstretch>
@@ -88,7 +88,7 @@
      <item>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QGroupBox" name="groupBox">
+        <widget class="QGroupBox" name="operationGroupBox">
          <property name="title">
           <string>Operations</string>
          </property>
@@ -105,7 +105,7 @@
             <item>
              <widget class="QPushButton" name="cLangButton">
               <property name="text">
-               <string>Change Lanugage</string>
+               <string>Change Language</string>
               </property>
              </widget>
             </item>
@@ -170,6 +170,13 @@
                </size>
               </property>
              </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="generateKeysButton">
+              <property name="text">
+               <string>Generate Keys</string>
+              </property>
+             </widget>
             </item>
             <item>
              <widget class="QPushButton" name="fetchButton">

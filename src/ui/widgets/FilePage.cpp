@@ -28,7 +28,6 @@
 
 #include "ui/widgets/FilePage.h"
 
-#include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
 #include "ui/UISignalStation.h"
 #include "ui/main_window/MainWindow.h"

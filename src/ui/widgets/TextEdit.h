@@ -193,9 +193,21 @@ class TextEdit : public QWidget {
   void SlotNewHelpTab(const QString& title, const QString& path) const;
 
   /**
+   * @brief
+   *
+   */
+  void SlotNewDefaultFileBrowserTab();
+
+  /**
    * New File Tab to do file operation
    */
   void SlotNewFileBrowserTab();
+
+  /**
+   * @brief
+   *
+   */
+  void SlotNewFileBrowserTabWithDirectory();
 
   /**
    * @details put a * in front of current tabs title, if current textedit is
@@ -312,7 +324,15 @@ class TextEdit : public QWidget {
    */
   void slot_remove_tab(int index);
 
+  /**
+   * @brief
+   *
+   */
+  void slot_restore_unsaved_tabs();
+
  private:
+  TextEditTabWidget* tab_widget_;  ///< widget containing the tabs of the editor
+
   /**
    * @details return just a filename stripped of a whole path
    *
@@ -327,8 +347,6 @@ class TextEdit : public QWidget {
    * @param askToSave
    */
   auto maybe_save_current_tab(bool askToSave) -> bool;
-
-  TextEditTabWidget* tab_widget_;  ///< widget containing the tabs of the editor
 };
 
 }  // namespace GpgFrontend::UI

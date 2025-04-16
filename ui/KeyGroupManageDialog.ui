@@ -17,9 +17,9 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="keyGroupTipLabel">
        <property name="text">
-        <string>Key(s) in Key Group:</string>
+        <string>Key(s) in Key Group: </string>
        </property>
       </widget>
      </item>
@@ -88,7 +88,7 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
-      <widget class="QLabel" name="label_2">
+      <widget class="QLabel" name="keyDBTipLabel">
        <property name="text">
         <string>Key(s) in Key Dayabase: </string>
        </property>

@@ -113,6 +113,7 @@
         <file alias="decr-verify.png">resource/lfs/icons/decr-verify.png</file>
         <file alias="smart-card.png">resource/lfs/icons/smart-card.png</file>
         <file alias="key-group.png">resource/lfs/icons/key-group.png</file>
+        <file alias="workspace.png">resource/lfs/icons/workspace.png</file>
     </qresource>
     <qresource prefix="/test/key">
         <file alias="pv1.key">resource/lfs/test/data/pv1.key</file>

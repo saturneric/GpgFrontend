@@ -28,7 +28,6 @@
 
 #include "KeyGenerateDialog.h"
 
-#include "core/GpgModel.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/typedef/GpgTypedef.h"

@@ -28,7 +28,6 @@
 
 #include "VerifyDetailsDialog.h"
 
-#include "core/GpgModel.h"
 #include "ui/widgets/VerifyKeyDetailBox.h"
 
 namespace GpgFrontend::UI {

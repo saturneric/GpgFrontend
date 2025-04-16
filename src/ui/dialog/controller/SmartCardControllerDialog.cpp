@@ -46,6 +46,23 @@ SmartCardControllerDialog::SmartCardControllerDialog(QWidget* parent)
       channel_(kGpgFrontendDefaultChannel) {
   ui_->setupUi(this);
 
+  ui_->smartCardLabel->setText(tr("Smart Card(s):"));
+  ui_->keyStubLabel->setText(tr("Key Stub(s) in Key Database(s):"));
+
+  ui_->cNameButton->setText(tr("Change Name"));
+  ui_->cLangButton->setText(tr("Change Language"));
+  ui_->cGenderButton->setText(tr("Change Gender"));
+  ui_->cLoginDataButton->setText(tr("Change Login Data"));
+  ui_->cPubKeyURLButton->setText(tr("Change Public Key URL"));
+  ui_->cPINButton->setText(tr("Change PIN"));
+  ui_->cAdminPINButton->setText(tr("Change Admin PIN"));
+  ui_->cResetCodeButton->setText(tr("Change Reset Code"));
+  ui_->fetchButton->setText(tr("Fetch"));
+  ui_->restartGpgAgentButton->setText(tr("Restart All Gpg-Agents"));
+  ui_->refreshButton->setText(tr("Refresh"));
+
+  ui_->operationGroupBox->setTitle(tr("Operations"));
+
   for (const auto& key_db : GetGpgKeyDatabaseInfos()) {
     ui_->keyDBIndexComboBox->insertItem(
         key_db.channel, QString("%1: %2").arg(key_db.channel).arg(key_db.name));
@@ -117,6 +134,8 @@ SmartCardControllerDialog::SmartCardControllerDialog(QWidget* parent)
   connect(timer_, &QTimer::timeout, this,
           &SmartCardControllerDialog::slot_listen_smart_card_changes);
   timer_->start(3000);
+
+  setWindowTitle(tr("Smart Card Controller"));
 }
 
 void SmartCardControllerDialog::select_smart_card_by_serial_number(
@@ -383,7 +402,7 @@ void SmartCardControllerDialog::slot_listen_smart_card_changes() {
 }
 
 void SmartCardControllerDialog::slot_disable_controllers(bool disable) {
-  ui_->groupBox->setDisabled(disable);
+  ui_->operationGroupBox->setDisabled(disable);
   ui_->keyDBIndexComboBox->setDisabled(disable);
   ui_->cardKeysTreeView->setDisabled(disable);
 }
