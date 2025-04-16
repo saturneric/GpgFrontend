@@ -71,8 +71,8 @@ jobs:
           sudo apt-get -y install gcc g++ ninja-build
           sudo apt-get -y install libarchive-dev libssl-dev
           sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-icccm4-dev libcups2-dev libdrm-dev libegl1-mesa-dev
-          sudo apt-get -y install libgcrypt20-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev gyp
-          sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-image0
+          sudo apt-get -y install libfuse2 libgcrypt20-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev
+          sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-image0 gyp
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-* libxkbcommon-x11-0
         if: runner.os == 'Linux'
 
@@ -137,6 +137,7 @@ jobs:
             mingw-w64-x86_64-gpgme
             mingw-w64-x86_64-libarchive
             mingw-w64-x86_64-gtest
+            mingw-w64-x86_64-autotools
         if: runner.os == 'Windows'
 
       - name: Build gpg-error (Linux)

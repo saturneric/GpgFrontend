@@ -6,4 +6,4 @@
 	url = https://github.com/qt/qttranslations.git
 [submodule "modules"]
 	path = modules
-	url = https://git.bktus.com/GpgFrontend/GpgFrontend-Modules.git
+	url = https://git.bktus.com/GpgFrontend/Modules.git
