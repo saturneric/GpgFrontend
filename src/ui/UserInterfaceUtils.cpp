@@ -307,7 +307,6 @@ void CommonUtils::SlotExecuteGpgCommand(
   gpg_process->start();
   looper.exec();
   dialog->close();
-  dialog->deleteLater();
 }
 
 void CommonUtils::SlotImportKeyFromKeyServer(

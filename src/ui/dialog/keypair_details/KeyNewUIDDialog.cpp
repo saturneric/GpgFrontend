@@ -75,6 +75,8 @@ KeyNewUIDDialog::KeyNewUIDDialog(int channel, GpgKeyPtr key, QWidget* parent)
   connect(this, &KeyNewUIDDialog::SignalUIDCreated,
           UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefresh);
+  connect(this, &KeyNewUIDDialog::SignalUIDCreated, this,
+          &KeyNewUIDDialog::close);
 }
 
 void KeyNewUIDDialog::slot_create_new_uid() {
@@ -117,7 +119,7 @@ void KeyNewUIDDialog::slot_create_new_uid() {
   }
 }
 
-bool KeyNewUIDDialog::check_email_address(const QString& str) {
+auto KeyNewUIDDialog::check_email_address(const QString& str) -> bool {
   return re_email_.match(str).hasMatch();
 }
 }  // namespace GpgFrontend::UI

@@ -203,10 +203,8 @@ void GpgFrontend::UI::NetworkTab::slot_test_proxy_connection_result() {
     waiting_dialog_label->setWordWrap(true);
     waiting_dialog->setLabel(waiting_dialog_label);
     waiting_dialog->resize(420, 120);
-    connect(task, &Thread::Task::SignalTaskEnd, [=]() {
-      waiting_dialog->close();
-      waiting_dialog->deleteLater();
-    });
+    connect(task, &Thread::Task::SignalTaskEnd,
+            [=]() { waiting_dialog->close(); });
 
     // Show Waiting Dialog
     waiting_dialog->show();

@@ -173,7 +173,6 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
   ui_->buttonBox->setHidden(true);
 
   connect(this, &QDialog::finished, this, &GnuPGControllerDialog::SlotAccept);
-  connect(this, &QDialog::finished, this, &GnuPGControllerDialog::deleteLater);
 #else
   connect(ui_->buttonBox, &QDialogButtonBox::accepted, this,
           &GnuPGControllerDialog::SlotAccept);

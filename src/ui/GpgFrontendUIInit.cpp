@@ -51,9 +51,9 @@ void WaitEnvCheckingProcess() {
   FLOG_D("need to wait for env checking process");
 
   // create and show loading window before starting the main window
-  auto* waiting_dialog = new QProgressDialog();
-  waiting_dialog->setMaximum(0);
-  waiting_dialog->setMinimum(0);
+  auto* progress_dialog = new QProgressDialog();
+  progress_dialog->setMaximum(0);
+  progress_dialog->setMinimum(0);
   auto* waiting_dialog_label = new QLabel(
       QCoreApplication::tr("Loading Gnupg Info...") + "<br /><br />" +
       QCoreApplication::tr(
@@ -62,22 +62,22 @@ void WaitEnvCheckingProcess() {
           "file (depending "
           "on the network situation in your country or region)."));
   waiting_dialog_label->setWordWrap(true);
-  waiting_dialog->setLabel(waiting_dialog_label);
-  waiting_dialog->resize(420, 120);
+  progress_dialog->setLabel(waiting_dialog_label);
+  progress_dialog->resize(420, 120);
   QApplication::connect(CoreSignalStation::GetInstance(),
                         &CoreSignalStation::SignalCoreFullyLoaded,
-                        waiting_dialog, [=]() {
+                        progress_dialog, [=]() {
                           LOG_D() << "ui caught signal: core fully loaded";
-                          waiting_dialog->finished(0);
-                          waiting_dialog->deleteLater();
+                          progress_dialog->finished(0);
+                          progress_dialog->deleteLater();
                         });
 
   QApplication::connect(CoreSignalStation::GetInstance(),
-                        &CoreSignalStation::SignalBadGnupgEnv, waiting_dialog,
+                        &CoreSignalStation::SignalBadGnupgEnv, progress_dialog,
                         [=]() {
                           LOG_D() << "ui caught signal: core loading failed";
-                          waiting_dialog->finished(0);
-                          waiting_dialog->deleteLater();
+                          progress_dialog->finished(0);
+                          progress_dialog->deleteLater();
                         });
 
   // new local event looper
@@ -86,7 +86,7 @@ void WaitEnvCheckingProcess() {
                         &CoreSignalStation::SignalCoreFullyLoaded, &looper,
                         &QEventLoop::quit);
 
-  QApplication::connect(waiting_dialog, &QProgressDialog::canceled, [=]() {
+  QApplication::connect(progress_dialog, &QProgressDialog::canceled, [=]() {
     FLOG_D("cancel clicked on waiting dialog");
     QApplication::quit();
     exit(0);
@@ -99,15 +99,15 @@ void WaitEnvCheckingProcess() {
   // check twice to avoid some unlucky sitations
   if (env_state == 1) {
     FLOG_D("env state turned initialized before the looper start");
-    waiting_dialog->finished(0);
-    waiting_dialog->deleteLater();
+    progress_dialog->finished(0);
+    progress_dialog->deleteLater();
     return;
   }
 
   // show the loading window
-  waiting_dialog->setModal(true);
-  waiting_dialog->setFocus();
-  waiting_dialog->show();
+  progress_dialog->setModal(true);
+  progress_dialog->setFocus();
+  progress_dialog->show();
 
   // block the main thread until the gpg context is loaded
   looper.exec();

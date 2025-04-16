@@ -121,8 +121,9 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKeyPtr& key,
   // get all components
   GpgCommandExecutor::ExecuteSync(
       {app_path,
-       QStringList{"--command-fd", "0", "--status-fd", "1", "--no-tty", "-o",
-                   output_path, "--gen-revoke", key->Fingerprint()},
+       QStringList{"--homedir", ctx_.HomeDirectory(), "--command-fd", "0",
+                   "--status-fd", "1", "--no-tty", "-o", output_path,
+                   "--gen-revoke", key->Fingerprint()},
        [=](int exit_code, const QString& p_out, const QString& p_err) {
          if (exit_code != 0) {
            LOG_W() << "gnupg gen revoke execute error, process stderr: "

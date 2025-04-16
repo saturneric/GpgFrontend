@@ -435,7 +435,6 @@ void GpgOperaHelper::WaitForMultipleOperas(
   QPointer<WaitingDialog> const dialog =
       new WaitingDialog(title, operas.size() > 1, parent);
   connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
-  connect(dialog, &QDialog::finished, dialog, &QDialog::deleteLater);
   dialog->show();
 
   std::atomic<int> remaining_tasks(static_cast<int>(operas.size()));
@@ -540,7 +539,6 @@ void GpgOperaHelper::WaitForOpera(QWidget* parent, const QString& title,
   QPointer<WaitingDialog> const dialog =
       new WaitingDialog(title, false, parent);
   connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
-  connect(dialog, &QDialog::finished, dialog, &QDialog::deleteLater);
   dialog->show();
 
   QTimer::singleShot(64, parent, [=]() {

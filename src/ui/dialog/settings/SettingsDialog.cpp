@@ -57,7 +57,6 @@ SettingsDialog::SettingsDialog(QWidget* parent)
 
 #if defined(__APPLE__) && defined(__MACH__)
   connect(this, &QDialog::finished, this, &SettingsDialog::SlotAccept);
-  connect(this, &QDialog::finished, this, &SettingsDialog::deleteLater);
   setWindowTitle(tr("Preference"));
 #else
   button_box_ =

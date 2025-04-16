@@ -297,58 +297,51 @@ void KeyPairSubkeyTab::slot_add_adsk() {
         return !except_key_ids.contains(key->ID());
       },
       this);
-  dialog->exec();
 
-  if (!dialog->GetStatus()) {
-    dialog->deleteLater();
-    return;
-  }
+  connect(dialog, &ADSKsPicker::SignalSubkeyChecked, this,
+          [=](const QContainer<GpgSubKey>& s_keys) {
+            if (s_keys.isEmpty()) {
+              QMessageBox::information(this, tr("No Subkeys Selected"),
+                                       tr("Please select at least one s_key."));
 
-  auto sub_keys = dialog->GetCheckedSubkeys();
-  dialog->deleteLater();
+              return;
+            }
 
-  if (sub_keys.isEmpty()) {
-    QMessageBox::information(this, tr("No Subkeys Selected"),
-                             tr("Please select at least one s_key."));
-    return;
-  }
+            QContainer<GpgSubKey> err_sub_keys;
+            for (const auto& s_key : s_keys) {
+              auto [err, data_object] =
+                  GpgKeyOpera::GetInstance(current_gpg_context_channel_)
+                      .AddADSKSync(key_, s_key);
+              if (CheckGpgError(err) == GPG_ERR_NO_ERROR) continue;
 
-  QContainer<GpgSubKey> err_sub_keys;
-  for (const auto& sub_key : sub_keys) {
-    auto [err, data_object] =
-        GpgKeyOpera::GetInstance(current_gpg_context_channel_)
-            .AddADSKSync(key_, sub_key);
-    if (CheckGpgError(err) == GPG_ERR_NO_ERROR) continue;
+              err_sub_keys.append(s_key);
+            }
 
-    err_sub_keys.append(sub_key);
-  }
+            if (!err_sub_keys.isEmpty()) {
+              QStringList failed_info;
+              for (const auto& s_key : err_sub_keys) {
+                QString key_id = s_key.ID();
+                failed_info << tr("Key ID: %1").arg(key_id);
+              }
 
-  if (err_sub_keys.isEmpty()) {
-    QMessageBox::information(
-        this, tr("Success"),
-        tr("All selected subkeys were successfully added as ADSKs."));
-  } else {
-    QStringList failed_info;
-    for (const auto& s_key : err_sub_keys) {
-      QString key_id = s_key.ID();
-      failed_info << tr("Key ID: %1").arg(key_id);
-    }
+              QString details = failed_info.join("\n\n");
 
-    QString details = failed_info.join("\n\n");
+              QMessageBox msg_box(this);
+              msg_box.setIcon(QMessageBox::Warning);
+              msg_box.setWindowTitle(err_sub_keys.size() == s_keys.size()
+                                         ? tr("Failed")
+                                         : tr("Partially Failed"));
+              msg_box.setText(
+                  err_sub_keys.size() == s_keys.size()
+                      ? tr("Failed to add all selected subkeys.")
+                      : tr("Some subkeys failed to be added as ADSKs."));
+              msg_box.setDetailedText(details);
+              msg_box.exec();
+            }
 
-    QMessageBox msg_box(this);
-    msg_box.setIcon(QMessageBox::Warning);
-    msg_box.setWindowTitle(err_sub_keys.size() == sub_keys.size()
-                               ? tr("Failed")
-                               : tr("Partially Failed"));
-    msg_box.setText(err_sub_keys.size() == sub_keys.size()
-                        ? tr("Failed to add all selected subkeys.")
-                        : tr("Some subkeys failed to be added as ADSKs."));
-    msg_box.setDetailedText(details);
-    msg_box.exec();
-  }
-
-  emit SignalKeyDatabaseRefresh();
+            emit SignalKeyDatabaseRefresh();
+          });
+  dialog->show();
 }
 
 void KeyPairSubkeyTab::slot_refresh_subkey_detail() {

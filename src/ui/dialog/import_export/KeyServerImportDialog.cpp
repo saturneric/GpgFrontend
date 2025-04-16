@@ -49,7 +49,6 @@ KeyServerImportDialog::KeyServerImportDialog(int channel, QWidget* parent)
   if (forbid_all_gnupg_connection) {
     QMessageBox::critical(this, "Forbidden", "GnuPG is in offline mode now.");
     this->close();
-    this->deleteLater();
   }
 
   // Buttons

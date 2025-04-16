@@ -318,8 +318,6 @@ void KeyPairUIDTab::slot_add_uid() {
       new KeyNewUIDDialog(current_gpg_context_channel_, m_key_, this);
   connect(key_new_uid_dialog, &KeyNewUIDDialog::finished, this,
           &KeyPairUIDTab::slot_add_uid_result);
-  connect(key_new_uid_dialog, &KeyNewUIDDialog::finished, key_new_uid_dialog,
-          &KeyPairUIDTab::deleteLater);
   key_new_uid_dialog->show();
 }
 

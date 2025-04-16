@@ -29,6 +29,7 @@
 #include "KeyGroupManageDialog.h"
 
 #include "core/function/gpg/GpgAbstractKeyGetter.h"
+#include "ui/UISignalStation.h"
 #include "ui/widgets/KeyList.h"
 
 //
@@ -159,5 +160,7 @@ void KeyGroupManageDialog::slot_notify_invalid_key_ids() {
       getter.RemoveKeyFromKeyGroup(key_group_->ID(), key_id);
     }
   }
+
+  emit UISignalStation::GetInstance() -> SignalKeyDatabaseRefresh();
 }
 }  // namespace GpgFrontend::UI

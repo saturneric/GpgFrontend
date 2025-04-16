@@ -51,8 +51,9 @@ ADSKsPicker::ADSKsPicker(int channel,
   auto* confirm_button = new QPushButton(tr("Confirm"));
   auto* cancel_button = new QPushButton(tr("Cancel"));
 
-  connect(confirm_button, &QPushButton::clicked,
-          [=]() { this->accepted_ = true; });
+  connect(confirm_button, &QPushButton::clicked, this, [=]() {
+    emit SignalSubkeyChecked(tree_view_->GetAllCheckedSubKey());
+  });
   connect(confirm_button, &QPushButton::clicked, this, &QDialog::accept);
   connect(cancel_button, &QPushButton::clicked, this, &QDialog::reject);
 
@@ -86,11 +87,5 @@ ADSKsPicker::ADSKsPicker(int channel,
   this->raise();
   this->activateWindow();
 }
-
-auto ADSKsPicker::GetCheckedSubkeys() -> QContainer<GpgSubKey> {
-  return tree_view_->GetAllCheckedSubKey();
-}
-
-auto ADSKsPicker::GetStatus() const -> bool { return this->accepted_; }
 
 }  // namespace GpgFrontend::UI

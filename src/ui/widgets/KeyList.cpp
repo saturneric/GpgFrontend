@@ -507,11 +507,15 @@ void KeyList::import_keys(const QByteArray& in_buffer) {
 }
 
 auto KeyList::GetSelectedKey() -> GpgAbstractKeyPtr {
-  return GetSelectedKeys().front();
+  auto k = GetSelectedKeys();
+  if (k.empty()) return nullptr;
+  return k.front();
 }
 
 auto KeyList::GetSelectedGpgKey() -> GpgKeyPtr {
-  return GetSelectedGpgKeys().front();
+  auto k = GetSelectedGpgKeys();
+  if (k.empty()) return nullptr;
+  return k.front();
 }
 
 auto KeyList::GetSelectedGpgKeys() -> GpgKeyPtrList {

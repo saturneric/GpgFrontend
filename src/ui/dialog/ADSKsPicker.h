@@ -54,18 +54,8 @@ class ADSKsPicker : public GeneralDialog {
                        const GpgKeyTreeProxyModel::KeyFilter& filter,
                        QWidget* parent = nullptr);
 
-  /**
-   * @brief Get the Checked Signers object
-   *
-   * @return GpgFrontend::KeyIdArgsListPtr
-   */
-  auto GetCheckedSubkeys() -> QContainer<GpgSubKey>;
-
-  /**
-   *
-   * @return
-   */
-  [[nodiscard]] auto GetStatus() const -> bool;
+ signals:
+  void SignalSubkeyChecked(QContainer<GpgSubKey>);
 
  private:
   KeyTreeView* tree_view_;  ///<
