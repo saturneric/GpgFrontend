@@ -48,7 +48,6 @@ using StringArgsRef = QStringList&;          ///<
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #define QCS2QSL(vec) (QStringList(vec.begin(), vec.end()))
 #else
-template <typename T>
 #define QCS2QSL(vec) (vec)
 #endif
 
