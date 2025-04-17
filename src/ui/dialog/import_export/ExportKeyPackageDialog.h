@@ -54,7 +54,7 @@ class ExportKeyPackageDialog : public GeneralDialog {
                                   QWidget* parent);
 
  private:
-  std::shared_ptr<Ui_exportKeyPackageDialog> ui_;  ///<
+  QSharedPointer<Ui_exportKeyPackageDialog> ui_;  ///<
   int current_gpg_context_channel_;
   GpgAbstractKeyPtrList keys_;  ///<
   QString passphrase_;          ///<

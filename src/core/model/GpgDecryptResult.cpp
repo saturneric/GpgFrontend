@@ -31,7 +31,7 @@
 namespace GpgFrontend {
 
 GpgDecryptResult::GpgDecryptResult(gpgme_decrypt_result_t r)
-    : result_ref_(std::shared_ptr<struct _gpgme_op_decrypt_result>(
+    : result_ref_(QSharedPointer<struct _gpgme_op_decrypt_result>(
           (gpgme_result_ref(r), r), [](gpgme_decrypt_result_t p) {
             if (p != nullptr) {
               gpgme_result_unref(p);

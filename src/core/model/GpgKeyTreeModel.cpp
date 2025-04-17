@@ -218,6 +218,7 @@ auto GpgKeyTreeModel::create_gpg_key_tree_items(const GpgAbstractKeyPtr &key)
   columns << g_key->Algo();
   columns << QLocale().toString(g_key->CreationTime(), "yyyy-MM-dd");
 
+  assert(key != nullptr);
   auto i_key = QSharedPointer<GpgKeyTreeItem>::create(key, columns);
   i_key->SetEnable(true);
   i_key->SetCheckable(checkable_detector_(i_key->Key()));
@@ -317,9 +318,15 @@ void GpgKeyTreeItem::SetChecked(bool checked) { checked_ = checked; }
 
 void GpgKeyTreeItem::SetCheckable(bool checkable) { checkable_ = checkable; }
 
-auto GpgKeyTreeItem::Key() const -> GpgAbstractKey * { return key_.get(); }
+auto GpgKeyTreeItem::Key() const -> GpgAbstractKey * {
+  assert(key_ != nullptr);
+  return key_.get();
+}
 
-auto GpgKeyTreeItem::SharedKey() const -> GpgAbstractKeyPtr { return key_; }
+auto GpgKeyTreeItem::SharedKey() const -> GpgAbstractKeyPtr {
+  assert(key_ != nullptr);
+  return key_;
+}
 
 auto GpgKeyTreeItem::Enable() const -> bool { return enable_; }
 

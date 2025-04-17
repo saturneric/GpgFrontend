@@ -46,7 +46,7 @@ class RevocationOptionsDialog : public GeneralDialog {
   void SignalRevokeOptionAccepted(int code, QString text);
 
  private:
-  std::shared_ptr<Ui_RevocationOptionsDialog> ui_;  ///<
+  QSharedPointer<Ui_RevocationOptionsDialog> ui_;  ///<
   int code_;
   QString text_;
 

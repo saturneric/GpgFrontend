@@ -66,6 +66,8 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, GpgKeyPtr key,
 
   const auto min_date_time = QDateTime::currentDateTime().addDays(3);
   ui_->expireDateTimeEdit->setMinimumDateTime(min_date_time);
+  ui_->expireDateTimeEdit->setDateTime(
+      QDateTime::currentDateTime().addYears(2));
 
   QSet<QString> algo_set;
   for (const auto& algo : supported_subkey_algos_) {

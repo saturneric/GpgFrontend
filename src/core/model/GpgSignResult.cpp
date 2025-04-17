@@ -29,7 +29,7 @@
 #include "GpgSignResult.h"
 namespace GpgFrontend {
 GpgSignResult::GpgSignResult(gpgme_sign_result_t r)
-    : result_ref_(std::shared_ptr<struct _gpgme_op_sign_result>(
+    : result_ref_(QSharedPointer<struct _gpgme_op_sign_result>(
           (gpgme_result_ref(r), r), [](gpgme_sign_result_t p) {
             if (p != nullptr) {
               gpgme_result_unref(p);

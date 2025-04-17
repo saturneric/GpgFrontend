@@ -80,9 +80,9 @@ class GeneralTab : public QWidget {
   void SignalDeepRestartNeeded();
 
  private:
-  std::shared_ptr<Ui_GeneralSettings> ui_;  ///<
-  QHash<QString, QString> lang_;            ///<
-  QStringList key_ids_list_;                ///<
-  KeyList* m_key_list_{};                   ///<
+  QSharedPointer<Ui_GeneralSettings> ui_;  ///<
+  QHash<QString, QString> lang_;           ///<
+  QStringList key_ids_list_;               ///<
+  KeyList* m_key_list_{};                  ///<
 };
 }  // namespace GpgFrontend::UI

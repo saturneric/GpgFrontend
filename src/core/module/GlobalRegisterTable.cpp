@@ -58,7 +58,7 @@ class GlobalRegisterTable::Impl {
 
   explicit Impl(GlobalRegisterTable* parent)
       : parent_(parent),
-        root_node_(SecureCreateQSharedObject<RTNode>("", nullptr)) {}
+        root_node_(SecureCreateSharedObject<RTNode>("", nullptr)) {}
 
   auto PublishKV(const Namespace& n, const Key& k, std::any v) -> bool {
     QStringList const segments = (n + "." + k).split('.');
@@ -72,7 +72,7 @@ class GlobalRegisterTable::Impl {
         auto it = current->children.find(segment);
         if (it == current->children.end()) {
           it = current->children.insert(
-              segment, SecureCreateQSharedObject<RTNode>(segment, current));
+              segment, SecureCreateSharedObject<RTNode>(segment, current));
         }
         current = it.value();
       }

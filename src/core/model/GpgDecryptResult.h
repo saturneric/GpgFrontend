@@ -48,7 +48,7 @@ class GPGFRONTEND_CORE_EXPORT GpgDecryptResult {
   virtual ~GpgDecryptResult();
 
  private:
-  std::shared_ptr<struct _gpgme_op_decrypt_result> result_ref_ = nullptr;  ///<
+  QSharedPointer<struct _gpgme_op_decrypt_result> result_ref_ = nullptr;  ///<
 };
 
 }  // namespace GpgFrontend

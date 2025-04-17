@@ -143,24 +143,7 @@ static auto SecureCreateUniqueObject(Args &&...args)
 }
 
 template <typename T, typename... Args>
-auto SecureCreateSharedObject(Args &&...args) -> std::shared_ptr<T> {
-  void *mem = SecureMemoryAllocator::Allocate(sizeof(T));
-  if (!mem) throw std::bad_alloc();
-
-  try {
-    T *obj = new (mem) T(std::forward<Args>(args)...);
-    return std::shared_ptr<T>(obj, [](T *ptr) {
-      ptr->~T();
-      SecureMemoryAllocator::Deallocate(ptr);
-    });
-  } catch (...) {
-    SecureMemoryAllocator::Deallocate(mem);
-    throw;
-  }
-}
-
-template <typename T, typename... Args>
-auto SecureCreateQSharedObject(Args &&...args) -> QSharedPointer<T> {
+auto SecureCreateSharedObject(Args &&...args) -> QSharedPointer<T> {
   void *mem = SecureMemoryAllocator::Allocate(sizeof(T));
   if (!mem) throw std::bad_alloc();
 

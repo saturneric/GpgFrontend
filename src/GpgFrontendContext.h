@@ -38,8 +38,8 @@ namespace GpgFrontend {
 
 struct GpgFrontendContext;
 
-using GFCxtWPtr = std::weak_ptr<GpgFrontendContext>;
-using GFCxtSPtr = std::shared_ptr<GpgFrontendContext>;
+using GFCxtWPtr = QWeakPointer<GpgFrontendContext>;
+using GFCxtSPtr = QSharedPointer<GpgFrontendContext>;
 
 struct GpgFrontendContext {
   int argc;

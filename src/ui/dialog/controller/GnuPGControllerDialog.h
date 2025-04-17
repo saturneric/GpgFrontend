@@ -126,7 +126,7 @@ class GnuPGControllerDialog : public GeneralDialog {
   void slot_edit_key_database();
 
  private:
-  std::shared_ptr<Ui_GnuPGControllerDialog> ui_;  ///<
+  QSharedPointer<Ui_GnuPGControllerDialog> ui_;  ///<
   const QString app_path_;
   int restart_mode_{0};  ///<
   QString custom_key_database_path_;

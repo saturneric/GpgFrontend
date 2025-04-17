@@ -353,7 +353,7 @@ class GlobalModuleContext::Impl {
     QStringList listening_event_ids;
   };
 
-  using ModuleRegisterInfoPtr = std::shared_ptr<ModuleRegisterInfo>;
+  using ModuleRegisterInfoPtr = QSharedPointer<ModuleRegisterInfo>;
 
   std::unordered_map<ModuleIdentifier, ModuleRegisterInfoPtr>
       module_register_table_;

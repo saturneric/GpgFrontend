@@ -43,13 +43,13 @@ class GlobalRegisterTable;
 class Module;
 class ModuleManager;
 using ModuleIdentifier = QString;
-using ModulePtr = std::shared_ptr<Module>;
+using ModulePtr = QSharedPointer<Module>;
 using ModuleRawPtr = Module*;
 
-using GMCPtr = std::shared_ptr<GlobalModuleContext>;
-using GRTPtr = std::shared_ptr<GlobalRegisterTable>;
+using GMCPtr = QSharedPointer<GlobalModuleContext>;
+using GRTPtr = QSharedPointer<GlobalRegisterTable>;
 
-using TaskRunnerPtr = std::shared_ptr<Thread::TaskRunner>;
+using TaskRunnerPtr = QSharedPointer<Thread::TaskRunner>;
 
 class GPGFRONTEND_CORE_EXPORT GlobalModuleContext : public QObject {
   Q_OBJECT

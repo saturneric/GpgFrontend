@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <utility>
+
 #include "core/GpgFrontendCore.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/gpg/GpgContext.h"
@@ -40,16 +42,18 @@ class GpgAutomatonHandler
  public:
   using Command = QString;
   using AutomatonState = enum {
-    AS_START,
-    AS_SELECT,
-    AS_COMMAND,
-    AS_VALUE,
-    AS_REASON_CODE,
-    AS_REASON_TEXT,
-    AS_REALLY_ULTIMATE,
-    AS_SAVE,
-    AS_ERROR,
-    AS_QUIT,
+    kAS_START,
+    kAS_SELECT,
+    kAS_COMMAND,
+    kAS_VALUE,
+    kAS_ADMIN,
+    kAS_REASON_CODE,
+    kAS_REASON_TEXT,
+    kAS_REALLY_ULTIMATE,
+    kAS_SAVE,
+    kAS_INFO,
+    kAS_ERROR,
+    kAS_QUIT,
   };
 
   struct AutomatonHandelStruct;
@@ -60,23 +64,32 @@ class GpgAutomatonHandler
       std::function<AutomatonState(AutomatonState, QString, QString)>;
 
   struct AutomatonHandelStruct {
-    explicit AutomatonHandelStruct(QString key_fpr);
-    void SetStatus(AutomatonState next_state);
-    auto CurrentStatus() -> AutomatonState;
-    void SetHandler(AutomatonNextStateHandler next_state_handler,
-                    AutomatonActionHandler action_handler);
+    explicit AutomatonHandelStruct(bool card_edit, QString id);
+
     auto NextState(QString gpg_status, QString args) -> AutomatonState;
     auto Action() -> Command;
+
+    void SetStatus(AutomatonState next_state);
     void SetSuccess(bool success);
+    void SetPromptStatus(QString status, QString args);
+    void SetHandler(AutomatonNextStateHandler next_state_handler,
+                    AutomatonActionHandler action_handler);
+
+    [[nodiscard]] auto CurrentStatus() const -> AutomatonState;
     [[nodiscard]] auto Success() const -> bool;
-    auto KeyFpr() -> QString;
+    [[nodiscard]] auto KeyFpr() const -> QString;
+    [[nodiscard]] auto SerialNumber() const -> QString;
+    [[nodiscard]] auto PromptStatus() const -> std::tuple<QString, QString>;
 
    private:
-    AutomatonState current_state_ = AS_START;
+    AutomatonState current_state_ = kAS_START;
     AutomatonNextStateHandler next_state_handler_;
     AutomatonActionHandler action_handler_;
     bool success_ = false;
-    QString key_fpr_;
+    bool card_edit_;
+    QString id_;
+    QString prompt_status_;
+    QString prompt_args_;
   };
 
   /**
@@ -109,24 +122,13 @@ class GpgAutomatonHandler
    * @return true
    * @return false
    */
-  auto DoCardInteract(AutomatonNextStateHandler next_state_handler,
+  auto DoCardInteract(const QString& serial_number,
+                      AutomatonNextStateHandler next_state_handler,
                       AutomatonActionHandler action_handler) -> bool;
 
  private:
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
-
-  /**
-   * @brief
-   *
-   * @param handle
-   * @param status
-   * @param args
-   * @param fd
-   * @return gpgme_error_t
-   */
-  static auto interator_cb_func(void* handle, const char* status,
-                                const char* args, int fd) -> gpgme_error_t;
 };
 
 using AutomatonNextStateHandler =

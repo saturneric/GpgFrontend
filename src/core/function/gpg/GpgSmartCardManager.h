@@ -99,6 +99,16 @@ class GPGFRONTEND_CORE_EXPORT GpgSmartCardManager
    */
   auto ModifyPin(const QString& pin_ref) -> std::tuple<bool, QString>;
 
+  /**
+   * @brief
+   *
+   * @return auto
+   */
+  auto GenerateKey(const QString& serial_number, const QString& name,
+                   const QString& email, const QString& comment,
+                   const QDateTime& expire,
+                   bool non_expire) -> std::tuple<bool, QString>;
+
  private:
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<

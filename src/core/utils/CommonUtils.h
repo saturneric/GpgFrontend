@@ -82,4 +82,12 @@ auto GPGFRONTEND_CORE_EXPORT IsFlatpakENV() -> bool;
 auto GPGFRONTEND_CORE_EXPORT ParseHexEncodedVersionTuple(const QString &s)
     -> int;
 
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+auto GPGFRONTEND_CORE_EXPORT IsEmailAddress(const QString &) -> bool;
+
 }  // namespace GpgFrontend

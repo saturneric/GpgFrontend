@@ -59,9 +59,10 @@ auto GpgKeyTreeProxyModel::filterAcceptsRow(
                 : nullptr;
 
   const auto *key = i->Key();
+  assert(key != nullptr && key->IsGood());
   LOG_D() << "get key: " << key->ID()
-          << "from channel: " << model_->GetGpgContextChannel();
-  assert(key->IsGood());
+          << "from channel: " << model_->GetGpgContextChannel()
+          << "fingerprint: " << key->Fingerprint();
 
   if (!(display_mode_ & GpgKeyTreeDisplayMode::kPRIVATE_KEY) &&
       key->IsPrivateKey()) {

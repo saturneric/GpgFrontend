@@ -40,9 +40,9 @@ class ModuleManager;
 using ModuleIdentifier = QString;
 using ModuleVersion = QString;
 using ModuleMetaData = QMap<QString, QString>;
-using ModulePtr = std::shared_ptr<Module>;
+using ModulePtr = QSharedPointer<Module>;
 
-using TaskRunnerPtr = std::shared_ptr<Thread::TaskRunner>;
+using TaskRunnerPtr = QSharedPointer<Thread::TaskRunner>;
 
 class GPGFRONTEND_CORE_EXPORT Module : public QObject {
   Q_OBJECT

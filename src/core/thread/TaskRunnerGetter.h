@@ -36,7 +36,7 @@
 
 namespace GpgFrontend::Thread {
 
-using TaskRunnerPtr = std::shared_ptr<TaskRunner>;
+using TaskRunnerPtr = QSharedPointer<TaskRunner>;
 
 class GPGFRONTEND_CORE_EXPORT TaskRunnerGetter
     : public GpgFrontend::SingletonFunctionObject<TaskRunnerGetter> {

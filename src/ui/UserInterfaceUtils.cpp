@@ -479,7 +479,7 @@ void CommonUtils::slot_update_key_status() {
 
 void CommonUtils::slot_update_key_from_server_finished(
     int channel, bool success, QString err_msg, QByteArray buffer,
-    std::shared_ptr<GpgImportInformation> info) {
+    QSharedPointer<GpgImportInformation> info) {
   if (!success) {
     LOG_W() << "get err from reply: " << buffer;
     QMessageBox::critical(nullptr, tr("Error"), err_msg);

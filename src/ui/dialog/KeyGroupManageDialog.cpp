@@ -88,7 +88,7 @@ KeyGroupManageDialog::KeyGroupManageDialog(
   ui_->removeButton->setDisabled(true);
 
   ui_->keyGroupTipLabel->setText(tr("Key(s) in Key Group: "));
-  ui_->keyDBTipLabel->setText(tr("Key(s) in Key Dayabase: "));
+  ui_->keyDBTipLabel->setText(tr("Key(s) in Key Database: "));
 
   QTimer::singleShot(200, [=]() { slot_notify_invalid_key_ids(); });
 

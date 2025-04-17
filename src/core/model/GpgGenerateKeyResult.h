@@ -52,8 +52,7 @@ class GPGFRONTEND_CORE_EXPORT GpgGenerateKeyResult {
   virtual ~GpgGenerateKeyResult();
 
  private:
-  using ResultRefHandler =
-      std::shared_ptr<struct _gpgme_op_genkey_result>;  ///<
+  using ResultRefHandler = QSharedPointer<struct _gpgme_op_genkey_result>;  ///<
 
   ResultRefHandler result_ref_ = nullptr;  ///<
 };

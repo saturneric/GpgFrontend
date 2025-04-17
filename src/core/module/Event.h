@@ -40,7 +40,7 @@ namespace GpgFrontend::Module {
 
 class Event;
 
-using EventReference = std::shared_ptr<Event>;
+using EventReference = QSharedPointer<Event>;
 using EventIdentifier = QString;
 using EventTriggerIdentifier = QString;
 using Evnets = QContainer<Event>;

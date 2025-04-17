@@ -157,7 +157,7 @@ void KeyGenerateDialog::slot_key_gen_accept() {
                << Qt::endl;
   }
   if (ui_->emailEdit->text().isEmpty() ||
-      !check_email_address(ui_->emailEdit->text())) {
+      !IsEmailAddress(ui_->emailEdit->text())) {
     err_stream << " -> " << tr("Please give a valid email address.")
                << Qt::endl;
   }
@@ -452,10 +452,6 @@ void KeyGenerateDialog::set_signal_slot_config() {
   connect(this, &KeyGenerateDialog::SignalKeyGenerated,
           UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefresh);
-}
-
-auto KeyGenerateDialog::check_email_address(const QString& str) -> bool {
-  return re_email_.match(str).hasMatch();
 }
 
 void KeyGenerateDialog::sync_gen_key_algo_info() {

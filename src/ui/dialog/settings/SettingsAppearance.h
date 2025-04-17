@@ -58,7 +58,7 @@ class AppearanceTab : public QWidget {
   void ApplySettings();
 
  private:
-  std::shared_ptr<Ui_AppearanceSettings> ui_;  ///<
+  QSharedPointer<Ui_AppearanceSettings> ui_;  ///<
 
   QButtonGroup* icon_style_group_;  ///<
   QButtonGroup* icon_size_group_;

@@ -29,6 +29,7 @@
 #include "KeyNewUIDDialog.h"
 
 #include "core/function/gpg/GpgUIDOperator.h"
+#include "core/utils/CommonUtils.h"
 #include "ui/UISignalStation.h"
 
 namespace GpgFrontend::UI {
@@ -81,14 +82,11 @@ void KeyNewUIDDialog::slot_create_new_uid() {
   QString buffer;
   QTextStream error_stream(&buffer);
 
-  /**
-   * check for errors in keygen dialog input
-   */
   if ((name_->text()).size() < 5) {
     error_stream << "  " << tr("Name must contain at least five characters.")
                  << Qt::endl;
   }
-  if (email_->text().isEmpty() || !check_email_address(email_->text())) {
+  if (email_->text().isEmpty() || !IsEmailAddress(email_->text())) {
     error_stream << "  " << tr("Please give a email address.") << Qt::endl;
   }
   auto error_string = error_stream.readAll();
@@ -117,7 +115,4 @@ void KeyNewUIDDialog::slot_create_new_uid() {
   }
 }
 
-auto KeyNewUIDDialog::check_email_address(const QString& str) -> bool {
-  return re_email_.match(str).hasMatch();
-}
 }  // namespace GpgFrontend::UI

@@ -58,7 +58,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyImportExporter
    * @param inBuffer
    * @return GpgImportInformation
    */
-  auto ImportKey(const GFBuffer&) -> std::shared_ptr<GpgImportInformation>;
+  auto ImportKey(const GFBuffer&) -> QSharedPointer<GpgImportInformation>;
 
   /**
    * @brief

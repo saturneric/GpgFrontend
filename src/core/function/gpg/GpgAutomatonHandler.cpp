@@ -28,6 +28,8 @@
 
 #include "GpgAutomatonHandler.h"
 
+#include <utility>
+
 #include "core/model/GpgData.h"
 #include "core/model/GpgKey.h"
 #include "core/utils/GpgUtils.h"
@@ -37,9 +39,8 @@ namespace GpgFrontend {
 GpgAutomatonHandler::GpgAutomatonHandler(int channel)
     : SingletonFunctionObject<GpgAutomatonHandler>(channel) {}
 
-auto GpgAutomatonHandler::interator_cb_func(void* handle, const char* status,
-                                            const char* args,
-                                            int fd) -> gpgme_error_t {
+auto InteratorCbFunc(void* handle, const char* status, const char* args,
+                     int fd) -> gpgme_error_t {
   auto* handle_struct = static_cast<AutomatonHandelStruct*>(handle);
   QString status_s = status;
   QString args_s = args;
@@ -47,8 +48,26 @@ auto GpgAutomatonHandler::interator_cb_func(void* handle, const char* status,
   if (status_s == "KEY_CONSIDERED") {
     auto tokens = QString(args).split(' ');
 
+    if (handle_struct->KeyFpr().isEmpty()) return 0;
+
     if (tokens.empty() || tokens[0] != handle_struct->KeyFpr()) {
-      LOG_W() << "handle struct key fpr " << handle_struct->KeyFpr()
+      LOG_W() << "handle struct key fpr: " << handle_struct->KeyFpr()
+              << "mismatch token: " << tokens[0] << ", exit...";
+
+      return -1;
+    }
+
+    return 0;
+  }
+
+  if (status_s == "CARDCTRL") {
+    auto tokens = QString(args).split(' ');
+
+    if (handle_struct->SerialNumber().isEmpty()) return 0;
+
+    if (tokens.empty() || tokens[0] != handle_struct->SerialNumber()) {
+      LOG_W() << "handle struct serial number: "
+              << handle_struct->SerialNumber()
               << "mismatch token: " << tokens[0] << ", exit...";
 
       return -1;
@@ -65,20 +84,22 @@ auto GpgAutomatonHandler::interator_cb_func(void* handle, const char* status,
   LOG_D() << "current state" << handle_struct->CurrentStatus()
           << "gpg status: " << status_s << ", args: " << args_s;
 
+  handle_struct->SetPromptStatus(status_s, args_s);
+
   AutomatonState next_state = handle_struct->NextState(status_s, args_s);
-  if (next_state == AS_ERROR) {
+  if (next_state == GpgAutomatonHandler::kAS_ERROR) {
     FLOG_D("handle struct next state caught error, abort...");
     return -1;
   }
   LOG_D() << "next state" << next_state;
 
-  if (next_state == AS_SAVE) {
+  if (next_state == GpgAutomatonHandler::kAS_SAVE) {
     handle_struct->SetSuccess(true);
   }
 
   // set state and preform action
   handle_struct->SetStatus(next_state);
-  Command cmd = handle_struct->Action();
+  GpgAutomatonHandler::Command cmd = handle_struct->Action();
 
   LOG_D() << "next action, cmd:" << cmd;
 
@@ -86,7 +107,7 @@ auto GpgAutomatonHandler::interator_cb_func(void* handle, const char* status,
     auto btye_array = cmd.toUtf8();
     gpgme_io_write(fd, btye_array, btye_array.size());
     gpgme_io_write(fd, "\n", 1);
-  } else if (status_s == "GET_LINE") {
+  } else if (status_s.startsWith("GET_")) {
     // avoid trapping in this state
     return GPG_ERR_FALSE;
   }
@@ -94,30 +115,40 @@ auto GpgAutomatonHandler::interator_cb_func(void* handle, const char* status,
   return 0;
 }
 
-auto GpgAutomatonHandler::DoInteract(
-    const GpgKeyPtr& key, AutomatonNextStateHandler next_state_handler,
-    AutomatonActionHandler action_handler, int flags) -> bool {
-  gpgme_key_t p_key =
-      flags == GPGME_INTERACT_CARD ? nullptr : static_cast<gpgme_key_t>(*key);
+auto DoInteractImpl(GpgContext& ctx_, const GpgKeyPtr& key, bool card_edit,
+                    const QString& id,
+                    AutomatonNextStateHandler next_state_handler,
+                    AutomatonActionHandler action_handler, int flags) -> bool {
+  gpgme_key_t p_key = key == nullptr ? nullptr : static_cast<gpgme_key_t>(*key);
 
-  AutomatonHandelStruct handel_struct(
-      flags == GPGME_INTERACT_CARD ? "" : key->Fingerprint());
+  AutomatonHandelStruct handel_struct(card_edit, id);
   handel_struct.SetHandler(std::move(next_state_handler),
                            std::move(action_handler));
 
   GpgData data_out;
 
-  auto err = gpgme_op_interact(ctx_.DefaultContext(), p_key, flags,
-                               GpgAutomatonHandler::interator_cb_func,
-                               static_cast<void*>(&handel_struct), data_out);
+  auto err =
+      gpgme_op_interact(ctx_.DefaultContext(), p_key, flags, InteratorCbFunc,
+                        static_cast<void*>(&handel_struct), data_out);
   return CheckGpgError(err) == GPG_ERR_NO_ERROR && handel_struct.Success();
 }
 
+auto GpgAutomatonHandler::DoInteract(
+    const GpgKeyPtr& key, AutomatonNextStateHandler next_state_handler,
+    AutomatonActionHandler action_handler, int flags) -> bool {
+  assert(key != nullptr);
+  if (key == nullptr) return false;
+  return DoInteractImpl(ctx_, key, false, key->ID(),
+                        std::move(next_state_handler),
+                        std::move(action_handler), flags);
+}
+
 auto GpgAutomatonHandler::DoCardInteract(
-    AutomatonNextStateHandler next_state_handler,
+    const QString& serial_number, AutomatonNextStateHandler next_state_handler,
     AutomatonActionHandler action_handler) -> bool {
-  return DoInteract({}, std::move(next_state_handler),
-                    std::move(action_handler), GPGME_INTERACT_CARD);
+  return DoInteractImpl(ctx_, nullptr, true, serial_number,
+                        std::move(next_state_handler),
+                        std::move(action_handler), GPGME_INTERACT_CARD);
 }
 
 auto GpgAutomatonHandler::AutomatonHandelStruct::NextState(
@@ -133,7 +164,7 @@ void GpgAutomatonHandler::AutomatonHandelStruct::SetHandler(
   action_handler_ = std::move(action_handler);
 }
 
-auto GpgAutomatonHandler::AutomatonHandelStruct::CurrentStatus()
+auto GpgAutomatonHandler::AutomatonHandelStruct::CurrentStatus() const
     -> AutomatonState {
   return current_state_;
 }
@@ -154,11 +185,27 @@ void GpgAutomatonHandler::AutomatonHandelStruct::SetSuccess(bool success) {
 auto GpgAutomatonHandler::AutomatonHandelStruct::Success() const -> bool {
   return success_;
 }
-auto GpgAutomatonHandler::AutomatonHandelStruct::KeyFpr() -> QString {
-  return key_fpr_;
+auto GpgAutomatonHandler::AutomatonHandelStruct::KeyFpr() const -> QString {
+  return card_edit_ ? "" : id_;
 }
 
 GpgAutomatonHandler::AutomatonHandelStruct::AutomatonHandelStruct(
-    QString key_fpr)
-    : key_fpr_(std::move(key_fpr)) {}
+    bool card_edit, QString id)
+    : card_edit_(card_edit), id_(std::move(id)) {}
+
+auto GpgAutomatonHandler::AutomatonHandelStruct::PromptStatus() const
+    -> std::tuple<QString, QString> {
+  return {prompt_status_, prompt_args_};
+}
+
+void GpgAutomatonHandler::AutomatonHandelStruct::SetPromptStatus(QString status,
+                                                                 QString args) {
+  prompt_status_ = std::move(status);
+  prompt_args_ = std::move(args);
+}
+
+auto GpgAutomatonHandler::AutomatonHandelStruct::SerialNumber() const
+    -> QString {
+  return card_edit_ ? id_ : "";
+}
 }  // namespace GpgFrontend

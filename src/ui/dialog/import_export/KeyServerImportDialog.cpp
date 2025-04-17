@@ -408,7 +408,7 @@ void KeyServerImportDialog::SlotImport(QStringList key_ids,
 
 void KeyServerImportDialog::slot_import_finished(
     int channel, bool success, QString err_msg, QByteArray buffer,
-    std::shared_ptr<GpgImportInformation> info) {
+    QSharedPointer<GpgImportInformation> info) {
   set_loading(false);
 
   if (!success) {

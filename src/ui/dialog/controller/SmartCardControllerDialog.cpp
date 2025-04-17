@@ -29,12 +29,11 @@
 #include "SmartCardControllerDialog.h"
 
 #include "core/function/gpg/GpgAdvancedOperator.h"
-#include "core/function/gpg/GpgAssuanHelper.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/function/gpg/GpgSmartCardManager.h"
-#include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/dialog/key_generate/GenerateCardKeyDialog.h"
 
 //
 #include "ui_SmartCardControllerDialog.h"
@@ -59,6 +58,7 @@ SmartCardControllerDialog::SmartCardControllerDialog(QWidget* parent)
   ui_->cResetCodeButton->setText(tr("Change Reset Code"));
   ui_->fetchButton->setText(tr("Fetch"));
   ui_->restartGpgAgentButton->setText(tr("Restart All Gpg-Agents"));
+  ui_->generateKeysButton->setText(tr("Generate Card Keys"));
   ui_->refreshButton->setText(tr("Refresh"));
 
   ui_->operationGroupBox->setTitle(tr("Operations"));
@@ -120,6 +120,16 @@ SmartCardControllerDialog::SmartCardControllerDialog(QWidget* parent)
                 tr("Failed to restart all or one of the GnuPG's component(s)"));
           }
         });
+  });
+
+  connect(ui_->generateKeysButton, &QPushButton::clicked, this, [=](bool) {
+    auto serial_number = ui_->currentCardComboBox->currentText();
+    auto* d = new GenerateCardKeyDialog(channel_, serial_number, this);
+    connect(d, &GenerateCardKeyDialog::finished, this, [=](int ret) {
+      if (ret == 1) {
+        fetch_smart_card_info(serial_number);
+      }
+    });
   });
 
   connect(UISignalStation::GetInstance(),
@@ -325,17 +335,19 @@ void SmartCardControllerDialog::slot_refresh() {
 void SmartCardControllerDialog::refresh_key_tree_view(int channel) {
   if (!has_card_) return;
 
+  ui_->cardKeysTreeView->SetChannel(channel);
+
   QStringList card_fprs;
   for (const auto& key_info : card_info_.card_keys_info.values()) {
     card_fprs.append(key_info.fingerprint);
   }
 
+  LOG_D() << "card key fingerprints:" << card_fprs;
   if (card_fprs.isEmpty()) {
     ui_->cardKeysTreeView->SetKeyFilter([](auto) { return false; });
     return;
   }
 
-  ui_->cardKeysTreeView->SetChannel(channel);
   ui_->cardKeysTreeView->SetKeyFilter([=](const GpgAbstractKey* k) {
     return card_fprs.contains(k->Fingerprint());
   });

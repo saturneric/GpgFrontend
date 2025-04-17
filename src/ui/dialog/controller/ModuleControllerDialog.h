@@ -55,7 +55,7 @@ class ModuleControllerDialog : public GeneralDialog {
   void slot_load_module_details(Module::ModuleIdentifier);
 
  private:
-  std::shared_ptr<Ui_ModuleControllerDialog> ui_;  ///<
+  QSharedPointer<Ui_ModuleControllerDialog> ui_;  ///<
   Module::ModuleManager* module_manager_;
 };
 

@@ -54,7 +54,7 @@ auto GpgAbstractKeyGetter::Fetch() -> GpgAbstractKeyPtrList {
 
 auto GpgAbstractKeyGetter::GetGpgKeyTableModel()
     -> QSharedPointer<GpgKeyTableModel> {
-  return SecureCreateQSharedObject<GpgKeyTableModel>(
+  return SecureCreateSharedObject<GpgKeyTableModel>(
       SingletonFunctionObject::GetChannel(), Fetch(), nullptr);
 }
 

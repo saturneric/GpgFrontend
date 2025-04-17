@@ -69,7 +69,7 @@ class KeyTreeView : public QTreeView {
    * @param index
    * @return GpgAbstractKeyPtr
    */
-  static auto GetKeyByIndex(QModelIndex index) -> GpgAbstractKeyPtr;
+  auto GetKeyByIndex(QModelIndex index) -> GpgAbstractKeyPtr;
 
   /**
    * @brief Get the All Checked Key Ids object
@@ -98,6 +98,12 @@ class KeyTreeView : public QTreeView {
    * @param channel
    */
   void SetChannel(int channel);
+
+  /**
+   * @brief
+   *
+   */
+  void Refresh();
 
  protected:
   /**

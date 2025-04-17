@@ -116,7 +116,7 @@ void KeyTreeView::init() {
           });
 
   connect(UISignalStation::GetInstance(),
-          &UISignalStation::SignalKeyDatabaseRefresh, this, [=] {
+          &UISignalStation::SignalKeyDatabaseRefreshDone, this, [=] {
             model_ = QSharedPointer<GpgKeyTreeModel>::create(
                 channel_, GpgAbstractKeyGetter::GetInstance(channel_).Fetch(),
                 [](auto) { return false; }, this);
@@ -143,11 +143,14 @@ void KeyTreeView::SetChannel(int channel) {
 }
 
 auto KeyTreeView::GetKeyByIndex(QModelIndex index) -> GpgAbstractKeyPtr {
-  auto* i = index.isValid()
-                ? static_cast<GpgKeyTreeItem*>(index.internalPointer())
+  auto s_index = proxy_model_.mapToSource(index);
+  auto* i = s_index.isValid()
+                ? static_cast<GpgKeyTreeItem*>(s_index.internalPointer())
                 : nullptr;
   assert(i != nullptr);
 
   return i->SharedKey();
 }
+
+void KeyTreeView::Refresh() { SetChannel(channel_); }
 }  // namespace GpgFrontend::UI

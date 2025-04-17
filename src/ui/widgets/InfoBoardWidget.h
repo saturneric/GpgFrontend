@@ -122,7 +122,7 @@ class InfoBoardWidget : public QWidget {
   void slot_save();
 
  private:
-  std::shared_ptr<Ui_InfoBoard> ui_;  ///<
+  QSharedPointer<Ui_InfoBoard> ui_;  ///<
 
   QTextEdit* m_text_page_{
       nullptr};  ///< TextEdit associated to the notification

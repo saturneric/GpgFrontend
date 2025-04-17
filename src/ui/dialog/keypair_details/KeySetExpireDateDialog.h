@@ -75,10 +75,10 @@ class KeySetExpireDateDialog : public GeneralDialog {
    */
   void init();
 
-  std::shared_ptr<Ui_ModifiedExpirationDateTime> ui_;  ///<
-  int current_gpg_context_channel_;                    ///<
-  const GpgKeyPtr m_key_;                              ///<
-  const SubkeyId m_subkey_;                            ///<
+  QSharedPointer<Ui_ModifiedExpirationDateTime> ui_;  ///<
+  int current_gpg_context_channel_;                   ///<
+  const GpgKeyPtr m_key_;                             ///<
+  const SubkeyId m_subkey_;                           ///<
 
  private slots:
   /**

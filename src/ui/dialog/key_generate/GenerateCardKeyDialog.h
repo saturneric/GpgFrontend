@@ -28,81 +28,31 @@
 
 #pragma once
 
-#include "ui/GpgFrontendUI.h"
+#include "ui/dialog/GeneralDialog.h"
 
-class Ui_KeyServerSettings;
+class Ui_GenerateCardKeyDialog;
 
 namespace GpgFrontend::UI {
-/**
- * @brief
- *
- */
-class KeyserverTab : public QWidget {
-  Q_OBJECT
-
+class GenerateCardKeyDialog : public GeneralDialog {
  public:
   /**
-   * @brief Construct a new Keyserver Tab object
+   * @brief Construct a new Generate Card Key Dialog object
    *
    * @param parent
    */
-  explicit KeyserverTab(QWidget* parent = nullptr);
-
-  /**
-   * @brief Set the Settings object
-   *
-   */
-  void SetSettings();
-
-  /**
-   * @brief
-   *
-   */
-  void ApplySettings();
+  explicit GenerateCardKeyDialog(int channel_, const QString& serial_number,
+                                 QWidget* parent);
 
  private:
-  QSharedPointer<Ui_KeyServerSettings> ui_;
-  QString default_key_server_;
-  QStringList key_server_str_list_;
-  QMenu* popup_menu_{};
-
-  QRegularExpression url_reg_{
-      R"(^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$)"};
-
- private slots:
-
   /**
    * @brief
    *
    */
-  void slot_add_key_server();
+  void slot_generate_card_key();
 
-  /**
-   * @brief
-   *
-   */
-  void slot_refresh_table();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_test_listed_key_server();
-
- signals:
-  /**
-   * @brief
-   *
-   * @param needed
-   */
-  void SignalRestartNeeded(bool needed);
-
- protected:
-  /**
-   * @brief
-   *
-   * @param event
-   */
-  void contextMenuEvent(QContextMenuEvent* event) override;
+ private:
+  int channel_;
+  const QString& serial_number_;
+  QSharedPointer<Ui_GenerateCardKeyDialog> ui_;  ///<
 };
-}  // namespace GpgFrontend::UI
+};  // namespace GpgFrontend::UI

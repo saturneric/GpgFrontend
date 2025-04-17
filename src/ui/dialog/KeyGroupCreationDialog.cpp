@@ -30,6 +30,7 @@
 
 #include "core/function/gpg/GpgKeyGroupGetter.h"
 #include "core/model/GpgKeyGroup.h"
+#include "core/utils/CommonUtils.h"
 #include "ui/UISignalStation.h"
 
 namespace GpgFrontend::UI {
@@ -96,9 +97,10 @@ void KeyGroupCreationDialog::slot_create_new_uid() {
     error_stream << "  " << tr("Name must contain at least five characters.")
                  << Qt::endl;
   }
-  if (email_->text().isEmpty() || !check_email_address(email_->text())) {
+  if (email_->text().isEmpty() || !IsEmailAddress(email_->text())) {
     error_stream << "  " << tr("Please give a email address.") << Qt::endl;
   }
+
   auto error_string = error_stream.readAll();
   if (error_string.isEmpty()) {
     auto p_kg =
@@ -109,9 +111,6 @@ void KeyGroupCreationDialog::slot_create_new_uid() {
     emit SignalCreated();
     this->close();
   } else {
-    /**
-     * create error message
-     */
     error_label_->setAutoFillBackground(true);
     QPalette error = error_label_->palette();
     error.setColor(QPalette::Window, "#ff8080");
@@ -124,7 +123,4 @@ void KeyGroupCreationDialog::slot_create_new_uid() {
   }
 }
 
-auto KeyGroupCreationDialog::check_email_address(const QString& str) -> bool {
-  return re_email_.match(str).hasMatch();
-}
 }  // namespace GpgFrontend::UI

@@ -119,7 +119,7 @@ class FilePage : public QWidget {
   void keyPressEvent(QKeyEvent* event) override;
 
  private:
-  std::shared_ptr<Ui_FilePage> ui_;  ///<
+  QSharedPointer<Ui_FilePage> ui_;  ///<
 
   QCompleter* path_edit_completer_;        ///<
   QStringListModel* path_complete_model_;  ///<

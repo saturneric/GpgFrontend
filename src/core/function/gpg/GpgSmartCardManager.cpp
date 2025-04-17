@@ -41,39 +41,36 @@ auto GpgSmartCardManager::Fetch(const QString& serial_number) -> bool {
         auto tokens = args.split(' ');
 
         switch (state) {
-          case GpgAutomatonHandler::AS_START:
-            if (status == "CARDCTRL" && args.contains(serial_number)) {
-              return GpgAutomatonHandler::AS_START;
-            } else if (status == "GET_LINE" && args == "cardedit.prompt") {
-              return GpgAutomatonHandler::AS_COMMAND;
-            }
-            return GpgAutomatonHandler::AS_ERROR;
-          case GpgAutomatonHandler::AS_COMMAND:
+          case GpgAutomatonHandler::kAS_START:
             if (status == "GET_LINE" && args == "cardedit.prompt") {
-              return GpgAutomatonHandler::AS_QUIT;
+              return GpgAutomatonHandler::kAS_COMMAND;
             }
-            return GpgAutomatonHandler::AS_ERROR;
-          case GpgAutomatonHandler::AS_QUIT:
-          case GpgAutomatonHandler::AS_ERROR:
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_COMMAND:
+            if (status == "GET_LINE" && args == "cardedit.prompt") {
+              return GpgAutomatonHandler::kAS_QUIT;
+            }
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_QUIT:
+          case GpgAutomatonHandler::kAS_ERROR:
             if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return GpgAutomatonHandler::AS_QUIT;
+              return GpgAutomatonHandler::kAS_QUIT;
             }
-            return GpgAutomatonHandler::AS_ERROR;
+            return GpgAutomatonHandler::kAS_ERROR;
           default:
-            return GpgAutomatonHandler::AS_ERROR;
+            return GpgAutomatonHandler::kAS_ERROR;
         };
       };
 
   AutomatonActionHandler action_handler = [](AutomatonHandelStruct& handler,
                                              AutomatonState state) {
     switch (state) {
-      case GpgAutomatonHandler::AS_COMMAND:
+      case GpgAutomatonHandler::kAS_COMMAND:
         return QString("fetch");
-      case GpgAutomatonHandler::AS_QUIT:
+      case GpgAutomatonHandler::kAS_QUIT:
         return QString("quit");
-      case GpgAutomatonHandler::AS_START:
-      case GpgAutomatonHandler::AS_ERROR:
-        return QString("");
+      case GpgAutomatonHandler::kAS_START:
+      case GpgAutomatonHandler::kAS_ERROR:
       default:
         return QString("");
     }
@@ -81,7 +78,7 @@ auto GpgSmartCardManager::Fetch(const QString& serial_number) -> bool {
   };
 
   return GpgAutomatonHandler::GetInstance(GetChannel())
-      .DoCardInteract(next_state_handler, action_handler);
+      .DoCardInteract(serial_number, next_state_handler, action_handler);
 }
 
 auto GpgSmartCardManager::GetSerialNumbers() -> QStringList {
@@ -256,4 +253,126 @@ auto GpgSmartCardManager::ModifyPin(const QString& pin_ref)
   return {true, {}};
 }
 
+auto GpgSmartCardManager::GenerateKey(
+    const QString& serial_number, const QString& name, const QString& email,
+    const QString& comment, const QDateTime& expire,
+    bool non_expire) -> std::tuple<bool, QString> {
+  if (name.isEmpty() || email.isEmpty()) {
+    return {false, "name or email is empty"};
+  }
+
+  qint64 days_before_expire = 0;
+  if (!non_expire) {
+    days_before_expire = QDateTime::currentDateTime().daysTo(expire);
+  }
+
+  GpgAutomatonHandler::AutomatonNextStateHandler next_state_handler =
+      [=](AutomatonState state, const QString& status, const QString& args) {
+        auto tokens = args.split(' ');
+
+        switch (state) {
+          case GpgAutomatonHandler::kAS_START:
+            if (status == "GET_LINE" && args == "cardedit.prompt") {
+              return GpgAutomatonHandler::kAS_ADMIN;
+            }
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_ADMIN:
+            if (status == "GET_LINE" && args == "cardedit.prompt") {
+              return GpgAutomatonHandler::kAS_COMMAND;
+            }
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_COMMAND:
+            if (status == "GET_LINE" && args == "cardedit.genkeys.backup_enc") {
+              return GpgAutomatonHandler::kAS_COMMAND;
+            }
+            if (status == "GET_BOOL" &&
+                args == "cardedit.genkeys.replace_keys") {
+              return GpgAutomatonHandler::kAS_COMMAND;
+            }
+            if (status == "GET_LINE" && args == "keygen.valid") {
+              return GpgAutomatonHandler::kAS_COMMAND;
+            }
+            if (status == "GET_LINE" && args == "keygen.name") {
+              return GpgAutomatonHandler::kAS_COMMAND;
+            }
+            if (status == "GET_LINE" && args == "keygen.email") {
+              return GpgAutomatonHandler::kAS_COMMAND;
+            }
+            if (status == "GET_LINE" && args == "keygen.comment") {
+              return GpgAutomatonHandler::kAS_COMMAND;
+            }
+            if (status == "PINENTRY_LAUNCHED" ||
+                status == "BACKUP_KEY_CREATED" || status == "KEY_CONSIDERED" ||
+                status == "KEY_CREATED") {
+              return GpgAutomatonHandler::kAS_INFO;
+            }
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_INFO:
+            if (status == "PINENTRY_LAUNCHED" ||
+                status == "BACKUP_KEY_CREATED" || status == "KEY_CONSIDERED" ||
+                status == "KEY_CREATED") {
+              return GpgAutomatonHandler::kAS_INFO;
+            }
+            if (status == "GET_LINE" && args == "cardedit.prompt") {
+              return GpgAutomatonHandler::kAS_QUIT;
+            }
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_QUIT:
+          case GpgAutomatonHandler::kAS_ERROR:
+            if (status == "GET_LINE" && args == "keyedit.prompt") {
+              return GpgAutomatonHandler::kAS_QUIT;
+            }
+            return GpgAutomatonHandler::kAS_ERROR;
+          default:
+            return GpgAutomatonHandler::kAS_ERROR;
+        };
+      };
+
+  AutomatonActionHandler action_handler = [=](AutomatonHandelStruct& handler,
+                                              AutomatonState state) {
+    switch (state) {
+      case GpgAutomatonHandler::kAS_ADMIN:
+        return QString("admin");
+      case GpgAutomatonHandler::kAS_COMMAND: {
+        auto [status, args] = handler.PromptStatus();
+        if (args == "cardedit.prompt") {
+          return QString("generate");
+        }
+        if (args == "cardedit.genkeys.backup_enc") {
+          return QString("y");
+        }
+        if (args == "cardedit.genkeys.replace_keys") {
+          return QString("y");
+        }
+        if (args == "keygen.valid") {
+          return QString::number(days_before_expire);
+        }
+        if (args == "keygen.name") {
+          return name;
+        }
+        if (args == "keygen.email") {
+          return email;
+        }
+        if (args == "keygen.comment") {
+          return comment;
+        }
+        return QString{};
+      }
+      case GpgAutomatonHandler::kAS_QUIT:
+        return QString("quit");
+      case GpgAutomatonHandler::kAS_INFO:
+      case GpgAutomatonHandler::kAS_START:
+      case GpgAutomatonHandler::kAS_ERROR:
+      default:
+        return QString{};
+    }
+
+    return QString{};
+  };
+
+  GpgAutomatonHandler::GetInstance(GetChannel())
+      .DoCardInteract(serial_number, next_state_handler, action_handler);
+
+  return {true, {}};
+}
 }  // namespace GpgFrontend

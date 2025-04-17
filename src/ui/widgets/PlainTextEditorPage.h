@@ -116,7 +116,7 @@ class PlainTextEditorPage : public QWidget {
   void SignalUIBytesDisplayed();
 
  protected:
-  std::shared_ptr<Ui_PlainTextEditor> ui_;  ///<
+  QSharedPointer<Ui_PlainTextEditor> ui_;  ///<
 
  private:
   QString full_file_path_;  ///< The path to the file handled in the tab

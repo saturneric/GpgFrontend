@@ -49,7 +49,7 @@ class KeyDatabaseEditDialog : public GeneralDialog {
   void SignalKeyDatabaseInfoAccepted(QString name, QString path);
 
  private:
-  std::shared_ptr<Ui_KeyDatabaseEditDialog> ui_;  ///<
+  QSharedPointer<Ui_KeyDatabaseEditDialog> ui_;  ///<
 
   QString default_name_;
   QString default_path_;

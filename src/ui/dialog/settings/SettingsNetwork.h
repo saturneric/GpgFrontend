@@ -67,7 +67,7 @@ class NetworkTab : public QWidget {
   void slot_test_proxy_connection_result();
 
  private:
-  std::shared_ptr<Ui_NetworkSettings> ui_;                          ///<
+  QSharedPointer<Ui_NetworkSettings> ui_;                           ///<
   QNetworkProxy::ProxyType proxy_type_ = QNetworkProxy::HttpProxy;  ///<
 
   /**

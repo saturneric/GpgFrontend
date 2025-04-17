@@ -65,7 +65,7 @@ class KeyServerImportTask : public Thread::Task {
    * @param result
    */
   void SignalKeyServerImportResult(int, bool, QString, QByteArray,
-                                   std::shared_ptr<GpgImportInformation>);
+                                   QSharedPointer<GpgImportInformation>);
 
  private slots:
 

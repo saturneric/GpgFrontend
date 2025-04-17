@@ -50,6 +50,6 @@ class GPGFRONTEND_CORE_EXPORT GpgSignResult {
   virtual ~GpgSignResult();
 
  private:
-  std::shared_ptr<struct _gpgme_op_sign_result> result_ref_ = nullptr;  ///<
+  QSharedPointer<struct _gpgme_op_sign_result> result_ref_ = nullptr;  ///<
 };
 }  // namespace GpgFrontend

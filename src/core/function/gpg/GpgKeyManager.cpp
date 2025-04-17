@@ -106,62 +106,62 @@ auto GpgKeyManager::SetOwnerTrustLevel(const GpgKeyPtr& key,
         auto tokens = args.split(' ');
 
         switch (state) {
-          case GpgAutomatonHandler::AS_START:
+          case GpgAutomatonHandler::kAS_START:
             if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return GpgAutomatonHandler::AS_COMMAND;
+              return GpgAutomatonHandler::kAS_COMMAND;
             }
-            return GpgAutomatonHandler::AS_ERROR;
-          case GpgAutomatonHandler::AS_COMMAND:
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_COMMAND:
             if (status == "GET_LINE" && args == "edit_ownertrust.value") {
-              return GpgAutomatonHandler::AS_VALUE;
+              return GpgAutomatonHandler::kAS_VALUE;
             }
-            return GpgAutomatonHandler::AS_ERROR;
-          case GpgAutomatonHandler::AS_VALUE:
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_VALUE:
             if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return GpgAutomatonHandler::AS_QUIT;
+              return GpgAutomatonHandler::kAS_QUIT;
             } else if (status == "GET_BOOL" &&
                        args == "edit_ownertrust.set_ultimate.okay") {
-              return GpgAutomatonHandler::AS_REALLY_ULTIMATE;
+              return GpgAutomatonHandler::kAS_REALLY_ULTIMATE;
             }
-            return GpgAutomatonHandler::AS_ERROR;
-          case GpgAutomatonHandler::AS_REALLY_ULTIMATE:
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_REALLY_ULTIMATE:
             if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return GpgAutomatonHandler::AS_QUIT;
+              return GpgAutomatonHandler::kAS_QUIT;
             }
-            return GpgAutomatonHandler::AS_ERROR;
-          case GpgAutomatonHandler::AS_QUIT:
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_QUIT:
             if (status == "GET_BOOL" && args == "keyedit.save.okay") {
-              return GpgAutomatonHandler::AS_SAVE;
+              return GpgAutomatonHandler::kAS_SAVE;
             }
-            return GpgAutomatonHandler::AS_ERROR;
-          case GpgAutomatonHandler::AS_ERROR:
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_ERROR:
             if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return GpgAutomatonHandler::AS_QUIT;
+              return GpgAutomatonHandler::kAS_QUIT;
             }
-            return GpgAutomatonHandler::AS_ERROR;
+            return GpgAutomatonHandler::kAS_ERROR;
           default:
-            return GpgAutomatonHandler::AS_ERROR;
+            return GpgAutomatonHandler::kAS_ERROR;
         };
       };
 
   AutomatonActionHandler action_handler =
       [trust_level](AutomatonHandelStruct& handler, AutomatonState state) {
         switch (state) {
-          case GpgAutomatonHandler::AS_COMMAND:
+          case GpgAutomatonHandler::kAS_COMMAND:
             return QString("trust");
-          case GpgAutomatonHandler::AS_VALUE:
+          case GpgAutomatonHandler::kAS_VALUE:
             handler.SetSuccess(true);
             return QString::number(trust_level);
-          case GpgAutomatonHandler::AS_REALLY_ULTIMATE:
+          case GpgAutomatonHandler::kAS_REALLY_ULTIMATE:
             handler.SetSuccess(true);
             return QString("Y");
-          case GpgAutomatonHandler::AS_QUIT:
+          case GpgAutomatonHandler::kAS_QUIT:
             return QString("quit");
-          case GpgAutomatonHandler::AS_SAVE:
+          case GpgAutomatonHandler::kAS_SAVE:
             handler.SetSuccess(true);
             return QString("Y");
-          case GpgAutomatonHandler::AS_START:
-          case GpgAutomatonHandler::AS_ERROR:
+          case GpgAutomatonHandler::kAS_START:
+          case GpgAutomatonHandler::kAS_ERROR:
             return QString("");
           default:
             return QString("");
@@ -186,73 +186,66 @@ auto GpgKeyManager::DeleteSubkey(const GpgKeyPtr& key,
         auto tokens = args.split(' ');
 
         switch (state) {
-          case GpgAutomatonHandler::AS_START:
+          case GpgAutomatonHandler::kAS_START:
             if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return GpgAutomatonHandler::AS_SELECT;
+              return GpgAutomatonHandler::kAS_SELECT;
             }
-            return GpgAutomatonHandler::AS_ERROR;
-          case GpgAutomatonHandler::AS_SELECT:
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_SELECT:
             if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return GpgAutomatonHandler::AS_COMMAND;
+              return GpgAutomatonHandler::kAS_COMMAND;
             }
-            return GpgAutomatonHandler::AS_ERROR;
-          case GpgAutomatonHandler::AS_COMMAND:
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_COMMAND:
             if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return GpgAutomatonHandler::AS_QUIT;
+              return GpgAutomatonHandler::kAS_QUIT;
             } else if (status == "GET_BOOL" &&
                        args == "keyedit.remove.subkey.okay") {
-              return GpgAutomatonHandler::AS_REALLY_ULTIMATE;
+              return GpgAutomatonHandler::kAS_REALLY_ULTIMATE;
             }
-            return GpgAutomatonHandler::AS_ERROR;
-          case GpgAutomatonHandler::AS_REALLY_ULTIMATE:
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_REALLY_ULTIMATE:
             if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return GpgAutomatonHandler::AS_QUIT;
+              return GpgAutomatonHandler::kAS_QUIT;
             }
-            return GpgAutomatonHandler::AS_ERROR;
-          case GpgAutomatonHandler::AS_QUIT:
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_QUIT:
             if (status == "GET_BOOL" && args == "keyedit.save.okay") {
-              return GpgAutomatonHandler::AS_SAVE;
+              return GpgAutomatonHandler::kAS_SAVE;
             }
-            return GpgAutomatonHandler::AS_ERROR;
-          case GpgAutomatonHandler::AS_ERROR:
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_ERROR:
             if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return GpgAutomatonHandler::AS_QUIT;
+              return GpgAutomatonHandler::kAS_QUIT;
             }
-            return GpgAutomatonHandler::AS_ERROR;
+            return GpgAutomatonHandler::kAS_ERROR;
           default:
-            return GpgAutomatonHandler::AS_ERROR;
+            return GpgAutomatonHandler::kAS_ERROR;
         };
       };
 
   AutomatonActionHandler action_handler =
       [subkey_index](AutomatonHandelStruct& handler, AutomatonState state) {
         switch (state) {
-          case GpgAutomatonHandler::AS_SELECT:
+          case GpgAutomatonHandler::kAS_SELECT:
             return QString("key %1").arg(subkey_index);
-          case GpgAutomatonHandler::AS_COMMAND:
+          case GpgAutomatonHandler::kAS_COMMAND:
             return QString("delkey");
-          case GpgAutomatonHandler::AS_REALLY_ULTIMATE:
+          case GpgAutomatonHandler::kAS_REALLY_ULTIMATE:
             handler.SetSuccess(true);
             return QString("Y");
-          case GpgAutomatonHandler::AS_QUIT:
+          case GpgAutomatonHandler::kAS_QUIT:
             return QString("quit");
-          case GpgAutomatonHandler::AS_SAVE:
+          case GpgAutomatonHandler::kAS_SAVE:
             handler.SetSuccess(true);
             return QString("Y");
-          case GpgAutomatonHandler::AS_START:
-          case GpgAutomatonHandler::AS_ERROR:
-            return QString("");
+          case GpgAutomatonHandler::kAS_START:
+          case GpgAutomatonHandler::kAS_ERROR:
           default:
             return QString("");
         }
         return QString("");
       };
-
-  auto key_fpr = key->Fingerprint();
-  AutomatonHandelStruct handel_struct(key_fpr);
-  handel_struct.SetHandler(next_state_handler, action_handler);
-
-  GpgData data_out;
 
   return GpgAutomatonHandler::GetInstance(GetChannel())
       .DoInteract(key, next_state_handler, action_handler);
@@ -281,63 +274,63 @@ auto GpgKeyManager::RevokeSubkey(const GpgKeyPtr& key, int subkey_index,
         auto tokens = args.split(' ');
 
         switch (state) {
-          case GpgAutomatonHandler::AS_START:
+          case GpgAutomatonHandler::kAS_START:
             if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return GpgAutomatonHandler::AS_SELECT;
+              return GpgAutomatonHandler::kAS_SELECT;
             }
-            return GpgAutomatonHandler::AS_ERROR;
-          case GpgAutomatonHandler::AS_SELECT:
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_SELECT:
             if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return GpgAutomatonHandler::AS_COMMAND;
+              return GpgAutomatonHandler::kAS_COMMAND;
             }
-            return GpgAutomatonHandler::AS_ERROR;
-          case GpgAutomatonHandler::AS_COMMAND:
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_COMMAND:
             if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return GpgAutomatonHandler::AS_QUIT;
+              return GpgAutomatonHandler::kAS_QUIT;
             } else if (status == "GET_BOOL" &&
                        args == "keyedit.revoke.subkey.okay") {
-              return GpgAutomatonHandler::AS_REALLY_ULTIMATE;
+              return GpgAutomatonHandler::kAS_REALLY_ULTIMATE;
             }
-            return GpgAutomatonHandler::AS_ERROR;
-          case GpgAutomatonHandler::AS_REASON_CODE:
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_REASON_CODE:
             if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return GpgAutomatonHandler::AS_QUIT;
+              return GpgAutomatonHandler::kAS_QUIT;
             } else if (status == "GET_LINE" &&
                        args == "ask_revocation_reason.text") {
-              return GpgAutomatonHandler::AS_REASON_TEXT;
+              return GpgAutomatonHandler::kAS_REASON_TEXT;
             }
-            return GpgAutomatonHandler::AS_ERROR;
-          case GpgAutomatonHandler::AS_REASON_TEXT:
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_REASON_TEXT:
             if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return GpgAutomatonHandler::AS_QUIT;
+              return GpgAutomatonHandler::kAS_QUIT;
             } else if (status == "GET_LINE" &&
                        args == "ask_revocation_reason.text") {
-              return GpgAutomatonHandler::AS_REASON_TEXT;
+              return GpgAutomatonHandler::kAS_REASON_TEXT;
             } else if (status == "GET_BOOL" &&
                        args == "ask_revocation_reason.okay") {
-              return GpgAutomatonHandler::AS_REALLY_ULTIMATE;
+              return GpgAutomatonHandler::kAS_REALLY_ULTIMATE;
             }
-            return GpgAutomatonHandler::AS_ERROR;
-          case GpgAutomatonHandler::AS_REALLY_ULTIMATE:
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_REALLY_ULTIMATE:
             if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return GpgAutomatonHandler::AS_QUIT;
+              return GpgAutomatonHandler::kAS_QUIT;
             } else if (status == "GET_LINE" &&
                        args == "ask_revocation_reason.code") {
-              return GpgAutomatonHandler::AS_REASON_CODE;
+              return GpgAutomatonHandler::kAS_REASON_CODE;
             }
-            return GpgAutomatonHandler::AS_ERROR;
-          case GpgAutomatonHandler::AS_QUIT:
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_QUIT:
             if (status == "GET_BOOL" && args == "keyedit.save.okay") {
-              return GpgAutomatonHandler::AS_SAVE;
+              return GpgAutomatonHandler::kAS_SAVE;
             }
-            return GpgAutomatonHandler::AS_ERROR;
-          case GpgAutomatonHandler::AS_ERROR:
+            return GpgAutomatonHandler::kAS_ERROR;
+          case GpgAutomatonHandler::kAS_ERROR:
             if (status == "GET_LINE" && args == "keyedit.prompt") {
-              return GpgAutomatonHandler::AS_QUIT;
+              return GpgAutomatonHandler::kAS_QUIT;
             }
-            return GpgAutomatonHandler::AS_ERROR;
+            return GpgAutomatonHandler::kAS_ERROR;
           default:
-            return GpgAutomatonHandler::AS_ERROR;
+            return GpgAutomatonHandler::kAS_ERROR;
         };
       };
 
@@ -345,37 +338,30 @@ auto GpgKeyManager::RevokeSubkey(const GpgKeyPtr& key, int subkey_index,
       [subkey_index, reason_code, reason_text_lines](
           AutomatonHandelStruct& handler, AutomatonState state) {
         switch (state) {
-          case GpgAutomatonHandler::AS_SELECT:
+          case GpgAutomatonHandler::kAS_SELECT:
             return QString("key %1").arg(subkey_index);
-          case GpgAutomatonHandler::AS_COMMAND:
+          case GpgAutomatonHandler::kAS_COMMAND:
             return QString("revkey");
-          case GpgAutomatonHandler::AS_REASON_CODE:
+          case GpgAutomatonHandler::kAS_REASON_CODE:
             return QString::number(reason_code);
-          case GpgAutomatonHandler::AS_REASON_TEXT:
+          case GpgAutomatonHandler::kAS_REASON_TEXT:
             return reason_text_lines->isEmpty()
                        ? QString("")
                        : QString(reason_text_lines->takeFirst().toUtf8());
-          case GpgAutomatonHandler::AS_REALLY_ULTIMATE:
+          case GpgAutomatonHandler::kAS_REALLY_ULTIMATE:
             return QString("Y");
-          case GpgAutomatonHandler::AS_QUIT:
+          case GpgAutomatonHandler::kAS_QUIT:
             return QString("quit");
-          case GpgAutomatonHandler::AS_SAVE:
+          case GpgAutomatonHandler::kAS_SAVE:
             handler.SetSuccess(true);
             return QString("Y");
-          case GpgAutomatonHandler::AS_START:
-          case GpgAutomatonHandler::AS_ERROR:
-            return QString("");
+          case GpgAutomatonHandler::kAS_START:
+          case GpgAutomatonHandler::kAS_ERROR:
           default:
             return QString("");
         }
         return QString("");
       };
-
-  auto key_fpr = key->Fingerprint();
-  AutomatonHandelStruct handel_struct(key_fpr);
-  handel_struct.SetHandler(next_state_handler, action_handler);
-
-  GpgData data_out;
 
   return GpgAutomatonHandler::GetInstance(GetChannel())
       .DoInteract(key, next_state_handler, action_handler);

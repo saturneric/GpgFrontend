@@ -41,7 +41,7 @@ namespace GpgFrontend::UI {
 
 ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
     : GeneralDialog("ModuleControllerDialog", parent),
-      ui_(std::make_shared<Ui_ModuleControllerDialog>()),
+      ui_(QSharedPointer<Ui_ModuleControllerDialog>::create()),
       module_manager_(&Module::ModuleManager::GetInstance()) {
   ui_->setupUi(this);
   ui_->actionsGroupBox->hide();

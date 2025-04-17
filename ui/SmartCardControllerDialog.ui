@@ -174,7 +174,7 @@
             <item>
              <widget class="QPushButton" name="generateKeysButton">
               <property name="text">
-               <string>Generate Keys</string>
+               <string>Generate Card Keys</string>
               </property>
              </widget>
             </item>

@@ -278,7 +278,7 @@ class CommonUtils : public QWidget {
    */
   void slot_update_key_from_server_finished(
       int channel, bool, QString, QByteArray,
-      std::shared_ptr<GpgImportInformation>);
+      QSharedPointer<GpgImportInformation>);
 
  private:
   static QScopedPointer<CommonUtils> instance;  ///<

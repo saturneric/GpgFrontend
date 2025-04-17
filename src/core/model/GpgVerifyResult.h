@@ -48,6 +48,6 @@ class GPGFRONTEND_CORE_EXPORT GpgVerifyResult {
   virtual ~GpgVerifyResult();
 
  private:
-  std::shared_ptr<struct _gpgme_op_verify_result> result_ref_ = nullptr;  ///<
+  QSharedPointer<struct _gpgme_op_verify_result> result_ref_ = nullptr;  ///<
 };
 }  // namespace GpgFrontend

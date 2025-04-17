@@ -41,7 +41,7 @@ class TaskRunner;
 
 namespace GpgFrontend::Module {
 
-using TaskRunnerPtr = std::shared_ptr<Thread::TaskRunner>;
+using TaskRunnerPtr = QSharedPointer<Thread::TaskRunner>;
 
 class Event;
 class Module;
@@ -49,11 +49,11 @@ class GlobalModuleContext;
 class ModuleManager;
 class GlobalRegisterTable;
 
-using EventReference = std::shared_ptr<Event>;
+using EventReference = QSharedPointer<Event>;
 using ModuleIdentifier = QString;
-using ModulePtr = std::shared_ptr<Module>;
-using ModuleMangerPtr = std::shared_ptr<ModuleManager>;
-using GMCPtr = std::shared_ptr<GlobalModuleContext>;
+using ModulePtr = QSharedPointer<Module>;
+using ModuleMangerPtr = QSharedPointer<ModuleManager>;
+using GMCPtr = QSharedPointer<GlobalModuleContext>;
 using Namespace = QString;
 using Key = QString;
 using LPCallback = std::function<void(Namespace, Key, int, std::any)>;

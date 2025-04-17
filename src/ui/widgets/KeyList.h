@@ -318,7 +318,7 @@ class KeyList : public QWidget {
   void slot_new_key_group();
 
  private:
-  std::shared_ptr<Ui_KeyList> ui_;                                   ///<
+  QSharedPointer<Ui_KeyList> ui_;                                    ///<
   std::function<void(const GpgKey&, QWidget*)> m_action_ = nullptr;  ///<
   int current_gpg_context_channel_;
   KeyMenuAbility menu_ability_ = KeyMenuAbility::kALL;  ///<

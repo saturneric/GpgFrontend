@@ -99,7 +99,7 @@ class KeyServerImportDialog : public GeneralDialog {
    */
   void slot_import_finished(int channel, bool success, QString err_msg,
                             QByteArray buffer,
-                            std::shared_ptr<GpgImportInformation> info);
+                            QSharedPointer<GpgImportInformation> info);
 
   /**
    * @brief
