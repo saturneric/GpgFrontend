@@ -109,6 +109,14 @@ class GPGFRONTEND_CORE_EXPORT GpgSmartCardManager
                    const QDateTime& expire,
                    bool non_expire) -> std::tuple<bool, QString>;
 
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  auto IsSCDVersionSupported() -> bool;
+
  private:
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<

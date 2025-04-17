@@ -42,7 +42,9 @@ namespace GpgFrontend::UI {
 SmartCardControllerDialog::SmartCardControllerDialog(QWidget* parent)
     : GeneralDialog("SmartCardControllerDialog", parent),
       ui_(QSharedPointer<Ui_SmartCardControllerDialog>::create()),
-      channel_(kGpgFrontendDefaultChannel) {
+      channel_(kGpgFrontendDefaultChannel),
+      scd_version_supported_(
+          GpgSmartCardManager::GetInstance(channel_).IsSCDVersionSupported()) {
   ui_->setupUi(this);
 
   ui_->smartCardLabel->setText(tr("Smart Card(s):"));
@@ -384,6 +386,11 @@ void SmartCardControllerDialog::reset_status() {
             "restarting the application.")
       << "</p>";
 
+  out << "<p><b>"
+      << tr("Note: Smart card support of GpgFrontend requires GnuPG version "
+            "2.3.0 or later.")
+      << "</b></p>";
+
   out << "<p>" << tr("Read the GnuPG Smart Card HOWTO: ")
       << "https://gnupg.org/howtos/card-howto/en/" << "</p>";
 
@@ -391,6 +398,12 @@ void SmartCardControllerDialog::reset_status() {
 }
 
 void SmartCardControllerDialog::slot_listen_smart_card_changes() {
+  if (!scd_version_supported_) {
+    LOG_D() << "scd version is not suppored";
+    reset_status();
+    return;
+  }
+
   auto serial_numbers =
       GpgSmartCardManager::GetInstance(channel_).GetSerialNumbers();
 

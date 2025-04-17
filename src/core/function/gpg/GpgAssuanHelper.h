@@ -108,6 +108,16 @@ class GPGFRONTEND_CORE_EXPORT GpgAssuanHelper
   auto SendStatusCommand(GpgComponentType type, const QString& command)
       -> std::tuple<bool, QStringList>;
 
+  /**
+   * @brief
+   *
+   * @param type
+   * @param command
+   * @return auto
+   */
+  auto SendDataCommand(GpgComponentType type,
+                       const QString& command) -> std::tuple<bool, QStringList>;
+
  private:
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());

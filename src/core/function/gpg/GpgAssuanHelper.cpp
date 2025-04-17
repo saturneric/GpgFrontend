@@ -161,6 +161,40 @@ auto GpgAssuanHelper::SendStatusCommand(GpgComponentType type,
   return {ret, status_lines};
 }
 
+auto GpgAssuanHelper::SendDataCommand(GpgComponentType type,
+                                      const QString& command)
+    -> std::tuple<bool, QStringList> {
+  QStringList data_lines;
+  GpgAssuanHelper::DataCallback d_cb =
+      [&](const QSharedPointer<GpgAssuanHelper::AssuanCallbackContext>& ctx)
+      -> gpg_error_t {
+    LOG_D() << "data callback of command " << command << ": " << ctx->buffer;
+    data_lines.push_back(QString::fromUtf8(ctx->buffer));
+    return 0;
+  };
+
+  GpgAssuanHelper::InqueryCallback i_cb =
+      [=](const QSharedPointer<GpgAssuanHelper::AssuanCallbackContext>& ctx)
+      -> gpg_error_t {
+    LOG_D() << "inquery callback of command: " << command << ": "
+            << ctx->inquery;
+
+    return 0;
+  };
+
+  GpgAssuanHelper::StatusCallback s_cb =
+      [&](const QSharedPointer<GpgAssuanHelper::AssuanCallbackContext>& ctx)
+      -> gpg_error_t {
+    LOG_D() << "status callback of command: " << command << ":  "
+            << ctx->status;
+
+    return 0;
+  };
+
+  auto ret = SendCommand(type, command, d_cb, i_cb, s_cb);
+  return {ret, data_lines};
+}
+
 auto GpgAssuanHelper::default_data_callback(void* opaque, const void* buffer,
                                             size_t length) -> gpgme_error_t {
   auto ctx = *static_cast<QSharedPointer<AssuanCallbackContext>*>(opaque);

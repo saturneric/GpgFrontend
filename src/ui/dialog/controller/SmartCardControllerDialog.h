@@ -78,6 +78,7 @@ class SmartCardControllerDialog : public GeneralDialog {
   GpgOpenPGPCard card_info_;
   QString cached_status_hash_;
   QTimer* timer_;
+  bool scd_version_supported_;
 
   /**
    * @brief Get the smart card serial number object

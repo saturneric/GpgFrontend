@@ -29,6 +29,7 @@
 #include "GpgSmartCardManager.h"
 
 #include "core/function/gpg/GpgAutomatonHandler.h"
+#include "core/utils/CommonUtils.h"
 
 namespace GpgFrontend {
 
@@ -79,6 +80,17 @@ auto GpgSmartCardManager::Fetch(const QString& serial_number) -> bool {
 
   return GpgAutomatonHandler::GetInstance(GetChannel())
       .DoCardInteract(serial_number, next_state_handler, action_handler);
+}
+
+auto GpgSmartCardManager::IsSCDVersionSupported() -> bool {
+  auto [r, s] = assuan_.SendDataCommand(GpgComponentType::kGPG_AGENT,
+                                        "SCD GETINFO version");
+  if (s.isEmpty()) {
+    LOG_D() << "invalid response of SCD GETINFO version: " << s;
+    return false;
+  }
+
+  return GFCompareSoftwareVersion(s.front(), "2.3.0") > 0;
 }
 
 auto GpgSmartCardManager::GetSerialNumbers() -> QStringList {
