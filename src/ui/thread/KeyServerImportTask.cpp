@@ -96,7 +96,7 @@ void GpgFrontend::UI::KeyServerImportTask::dealing_reply_from_server() {
   emit SignalKeyServerImportResult(current_gpg_context_channel_, true,
                                    tr("Success"), buffer, info);
 
-  if (static_cast<size_t>(result_count_++) == keyids_.size() - 1) {
+  if (static_cast<qsizetype>(result_count_++) == keyids_.size() - 1) {
     emit SignalTaskShouldEnd(0);
   }
 }

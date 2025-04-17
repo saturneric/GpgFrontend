@@ -234,10 +234,10 @@ void KeyserverTab::slot_test_listed_key_server() {
       &GpgFrontend::UI::ListedKeyServerTestTask::SignalKeyServerListTestResult,
       this,
       [=](QContainer<ListedKeyServerTestTask::KeyServerTestResultType> result) {
-        const size_t row_size = ui_->keyServerListTable->rowCount();
-        if (result.size() != row_size) return;
+        const auto row_size = ui_->keyServerListTable->rowCount();
+        if (result.size() != static_cast<qsizetype>(row_size)) return;
         ui_->keyServerListTable->blockSignals(true);
-        for (size_t i = 0; i < row_size; i++) {
+        for (auto i = 0; i < row_size; i++) {
           const auto status = result[i];
           auto* status_iem = ui_->keyServerListTable->item(i, 3);
           if (status == ListedKeyServerTestTask::kTEST_RESULT_TYPE_SUCCESS) {

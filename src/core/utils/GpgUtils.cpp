@@ -289,7 +289,13 @@ auto GetCanonicalKeyDatabasePath(const QDir& app_path,
             << "to absolute path: " << target_path;
   }
 
-  auto info = QFileInfo(target_path);
+  QFileInfo info(target_path);
+  if (!info.exists()) {
+    LOG_W() << "key database not exists:" << info.canonicalFilePath()
+            << ", making a new directory...";
+    QDir().mkdir(info.canonicalFilePath());
+  }
+
   if (VerifyKeyDatabasePath(info)) {
     auto key_database_fs_path = info.canonicalFilePath();
     LOG_D() << "load gpg key database:" << key_database_fs_path;
@@ -310,10 +316,18 @@ auto GetKeyDatabaseInfoBySettings() -> QContainer<KeyDatabaseInfo> {
 
   // try to use user defined key database
   for (const auto& key_database : key_dbs) {
+    if (key_database.path.isEmpty()) continue;
+
+    LOG_D() << "got key database:" << key_database.path;
+
     auto key_database_fs_path =
         GetCanonicalKeyDatabasePath(app_path, key_database.path);
 
-    if (key_database_fs_path.isEmpty()) continue;
+    if (key_database_fs_path.isEmpty()) {
+      LOG_E() << "cannot use target path" << key_database.path
+              << "as key database";
+      continue;
+    }
 
     KeyDatabaseInfo key_db_info;
     key_db_info.name = key_database.name;

@@ -75,6 +75,7 @@ auto GetDefaultKeyDatabasePath(const QString& gpgconf_path) -> QString {
   if (GlobalSettingStation::GetInstance().IsProtableMode()) {
     default_db_path =
         GlobalSettingStation::GetInstance().GetAppDataPath() + "/db";
+    LOG_D() << "default key db in protable mode:" << default_db_path;
   } else {
     if (gpgconf_path.isEmpty()) return {};
 
@@ -516,15 +517,26 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   }
 
   auto key_dbs = GetKeyDatabaseInfoBySettings();
+  assert(!key_dbs.isEmpty());
+
+  if (key_dbs.isEmpty()) {
+    FLOG_E() << "Cannot find any valid key database!"
+             << "GpgFrontend cannot start under this situation!";
+    Module::UpsertRTValue("core", "env.state.ctx", -1);
+    CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+        QCoreApplication::tr("No valid KEy Database"));
+  }
 
   // load default context
   auto& default_ctx = GpgFrontend::GpgContext::CreateInstance(
       kGpgFrontendDefaultChannel, [=]() -> ChannelObjectPtr {
         GpgFrontend::GpgContextInitArgs args;
 
-        const auto& default_key_db_info = key_dbs.front();
-        args.db_name = default_key_db_info.name;
-        args.db_path = default_key_db_info.path;
+        if (!key_dbs.isEmpty()) {
+          const auto& default_key_db_info = key_dbs.front();
+          args.db_name = default_key_db_info.name;
+          args.db_path = default_key_db_info.path;
+        }
 
         args.offline_mode = forbid_all_gnupg_connection;
         args.auto_import_missing_key = auto_import_missing_key;

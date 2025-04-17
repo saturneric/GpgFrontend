@@ -148,7 +148,10 @@ SmartCardControllerDialog::SmartCardControllerDialog(QWidget* parent)
   timer_ = new QTimer(this);
   connect(timer_, &QTimer::timeout, this,
           &SmartCardControllerDialog::slot_listen_smart_card_changes);
-  timer_->start(3000);
+
+  if (scd_version_supported_) {
+    timer_->start(3000);
+  }
 
   setWindowTitle(tr("Smart Card Controller"));
 }

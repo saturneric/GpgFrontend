@@ -48,6 +48,15 @@ class GlobalSettingStation::Impl {
       Module::UpsertRTValue("core", "env.state.portable", 1);
       LOG_I() << "GpgFrontend runs in the portable mode now";
 
+#if defined(__linux__)
+      if (!qEnvironmentVariable("APPIMAGE").isEmpty()) {
+        LOG_I() << "app image path: " << qEnvironmentVariable("APPIMAGE");
+        QFileInfo info(
+            QString::fromUtf8(qEnvironmentVariable("APPIMAGE").toUtf8()));
+        app_path_ = info.canonicalPath();
+      }
+#endif
+
       app_data_path_ = QDir(app_path_ + "/../").canonicalPath();
       app_config_path_ = app_data_path_ + "/config";
 
@@ -197,7 +206,7 @@ class GlobalSettingStation::Impl {
   }
 
   bool portable_mode_ = false;
-  const QString app_path_ = QCoreApplication::applicationDirPath();
+  QString app_path_ = QCoreApplication::applicationDirPath();
   QString working_path_ = QDir::currentPath();
   QString app_data_path_ = QString{
       QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)};
