@@ -88,12 +88,12 @@
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="127"/>
         <source>Subkey</source>
-        <translation type="unfinished">Unterschlüssel</translation>
+        <translation>Unterschlüssel</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="128"/>
         <source>Primary Key</source>
-        <translation type="unfinished">Primärschlüssel</translation>
+        <translation>Primärschlüssel</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="134"/>
@@ -548,62 +548,62 @@
     <message>
         <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="55"/>
         <source>Confirm</source>
-        <translation type="unfinished">Bestätigen</translation>
+        <translation>Bestätigen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="56"/>
         <source>Cancel</source>
-        <translation type="unfinished">Abbrechen</translation>
+        <translation>Abbrechen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="60"/>
         <source>No Subkeys Selected</source>
-        <translation type="unfinished"></translation>
+        <translation>Keine Unterschlüssel ausgewählt</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="61"/>
         <source>Please select at least one Subkey.</source>
-        <translation type="unfinished"></translation>
+        <translation>Bitte wählen Sie mindestens einen Unterschlüssel aus.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="73"/>
         <source>Select ADSK(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>ADSK(s) auswählen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="77"/>
         <source>ADSK (Additional Decryption Subkey) allows others to encrypt data for you without having access to your private key. You are only allow to check subkeys with encryption capability.</source>
-        <translation type="unfinished"></translation>
+        <translation>ADSK (zusätzlicher Entschlüsselungs-Unterschlüssel) ermöglicht es anderen, Daten für Sie zu verschlüsseln, ohne Zugriff auf Ihren privaten Schlüssel zu haben. Es können nur Unterschlüssel mit Verschlüsselungsfunktion ausgewählt werden.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="92"/>
         <source>ADSKs Picker</source>
-        <translation type="unfinished"></translation>
+        <translation>ADSK-Auswahl</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="108"/>
         <source>Key ID: %1 Reason: %2</source>
-        <translation type="unfinished"></translation>
+        <translation>Schlüssel-ID: %1 Grund: %2</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="123"/>
         <source>Failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehlgeschlagen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="124"/>
         <source>Partially Failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Teilweise fehlgeschlagen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="126"/>
         <source>Failed to add all selected subkeys.</source>
-        <translation type="unfinished"></translation>
+        <translation>Alle ausgewählten Unterschlüssel konnten nicht hinzugefügt werden.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="127"/>
         <source>Some subkeys failed to be added as ADSKs.</source>
-        <translation type="unfinished"></translation>
+        <translation>Einige Unterschlüssel konnten nicht als ADSKs hinzugefügt werden.</translation>
     </message>
 </context>
 <context>
@@ -904,7 +904,7 @@ Beschrei: %3</translation>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="647"/>
         <source>Key Not Found.</source>
-        <translation type="unfinished">Schlüssel nicht gefunden.</translation>
+        <translation>Schlüssel nicht gefunden.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="375"/>
@@ -1344,57 +1344,57 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/GenerateCardKeyDialog.cpp" line="50"/>
         <source>Name</source>
-        <translation type="unfinished">Name</translation>
+        <translation>Name</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/GenerateCardKeyDialog.cpp" line="51"/>
         <source>Email</source>
-        <translation type="unfinished">E-Mail</translation>
+        <translation>E-Mail</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/GenerateCardKeyDialog.cpp" line="52"/>
         <source>Comment</source>
-        <translation type="unfinished">Kommentar</translation>
+        <translation>Kommentar</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/GenerateCardKeyDialog.cpp" line="53"/>
         <source>Expire Date</source>
-        <translation type="unfinished">Ablaufdatum</translation>
+        <translation>Ablaufdatum</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/GenerateCardKeyDialog.cpp" line="54"/>
         <source>Non Expire</source>
-        <translation type="unfinished"></translation>
+        <translation>Ohne Ablaufdatum</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/GenerateCardKeyDialog.cpp" line="56"/>
         <source>Warning: This Operation will overwrite keys which exist on card!</source>
-        <translation type="unfinished"></translation>
+        <translation>Warnung: Dieser Vorgang überschreibt vorhandene Schlüssel auf der Karte!</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/GenerateCardKeyDialog.cpp" line="57"/>
         <source>Generate</source>
-        <translation type="unfinished">Erstellen</translation>
+        <translation>Erstellen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/GenerateCardKeyDialog.cpp" line="67"/>
         <source>Card Key Generation</source>
-        <translation type="unfinished"></translation>
+        <translation>Schlüsselerzeugung auf Karte</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/GenerateCardKeyDialog.cpp" line="81"/>
         <source>Name must contain at least five characters.</source>
-        <translation type="unfinished">Der Name muss mindestens fünf Zeichen enthalten.</translation>
+        <translation>Der Name muss mindestens fünf Zeichen enthalten.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/GenerateCardKeyDialog.cpp" line="87"/>
         <source>Please give a email address.</source>
-        <translation type="unfinished">Bitte geben Sie eine E-Mail-Adresse an.</translation>
+        <translation>Bitte geben Sie eine E-Mail-Adresse an.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/GenerateCardKeyDialog.cpp" line="121"/>
         <source>Generating</source>
-        <translation type="unfinished">Erstellen</translation>
+        <translation>Erstellen</translation>
     </message>
 </context>
 <context>
@@ -2048,42 +2048,42 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/KeyGroupCreationDialog.cpp" line="50"/>
         <source>Create</source>
-        <translation type="unfinished"></translation>
+        <translation>Erstellen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyGroupCreationDialog.cpp" line="55"/>
         <source>A Key Group is a collection of keys. It allows you to encrypt data for multiple recipients at once by grouping their public keys together.</source>
-        <translation type="unfinished"></translation>
+        <translation>Eine Schlüsselgruppe ist eine Sammlung von Schlüsseln. Sie ermöglicht es Ihnen, Daten für mehrere Empfänger auf einmal zu verschlüsseln, indem Sie deren öffentliche Schlüssel zusammenfassen.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyGroupCreationDialog.cpp" line="63"/>
         <source>Name</source>
-        <translation type="unfinished">Name</translation>
+        <translation>Name</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyGroupCreationDialog.cpp" line="64"/>
         <source>Email</source>
-        <translation type="unfinished">E-Mail</translation>
+        <translation>E-Mail</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyGroupCreationDialog.cpp" line="65"/>
         <source>Comment</source>
-        <translation type="unfinished">Kommentar</translation>
+        <translation>Kommentar</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyGroupCreationDialog.cpp" line="84"/>
         <source>New Key Group</source>
-        <translation type="unfinished"></translation>
+        <translation>Neue Schlüsselgruppe</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyGroupCreationDialog.cpp" line="97"/>
         <source>Name must contain at least five characters.</source>
-        <translation type="unfinished">Der Name muss mindestens fünf Zeichen enthalten.</translation>
+        <translation>Der Name muss mindestens fünf Zeichen enthalten.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyGroupCreationDialog.cpp" line="101"/>
         <source>Please give a email address.</source>
-        <translation type="unfinished">Bitte geben Sie eine E-Mail-Adresse an.</translation>
+        <translation>Bitte geben Sie eine E-Mail-Adresse an.</translation>
     </message>
 </context>
 <context>
@@ -2091,38 +2091,39 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="60"/>
         <source>Key Group</source>
-        <translation type="unfinished"></translation>
+        <translation>Schlüsselgruppe</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="73"/>
         <source>Default</source>
-        <translation type="unfinished">Standard</translation>
+        <translation>Standard</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="90"/>
         <source>Key(s) in Key Group: </source>
-        <translation type="unfinished"></translation>
+        <translation>Schlüssel in der Schlüsselgruppe:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="91"/>
         <source>Key(s) in Key Database: </source>
-        <translation type="unfinished"></translation>
+        <translation>Schlüssel in der Schlüsseldatenbank:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="96"/>
         <source>Key Group Management</source>
-        <translation type="unfinished"></translation>
+        <translation>Management der Schlüsselgruppe</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="128"/>
         <source>Some Keys Failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Einige Schlüssel sind ausgefallen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="129"/>
         <source>Some keys could not be added to the group:
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Einige Schlüssel konnten der Gruppe nicht hinzugefügt werden:
+%1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="161"/>
@@ -2131,12 +2132,16 @@ This will result in loss of all cached form positions, statuses, key servers, et
 %1
 
 These keys are no longer available. Do you want to remove them from the group?</source>
-        <translation type="unfinished"></translation>
+        <translation>Diese Schlüsselgruppe enthält einige ungültige Schlüssel:
+
+%1
+
+Diese Schlüssel sind nicht mehr verfügbar. Möchten Sie sie aus der Gruppe entfernen?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="167"/>
         <source>Invalid Keys in Group</source>
-        <translation type="unfinished"></translation>
+        <translation>Ungültige Schlüssel in der Gruppe</translation>
     </message>
 </context>
 <context>
@@ -2411,7 +2416,7 @@ These keys are no longer available. Do you want to remove them from the group?</
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="102"/>
         <source>Disabled</source>
-        <translation type="unfinished"></translation>
+        <translation>Deaktiviert</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="121"/>
@@ -2834,7 +2839,7 @@ These keys are no longer available. Do you want to remove them from the group?</
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="86"/>
         <source>Usage</source>
-        <translation type="unfinished">Verwendungszweck</translation>
+        <translation>Verwendungszweck</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="87"/>
@@ -3024,12 +3029,12 @@ These keys are no longer available. Do you want to remove them from the group?</
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="231"/>
         <source>Unknown Error</source>
-        <translation type="unfinished"></translation>
+        <translation>Unbekannter Fehler</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="232"/>
         <source>Caught unknown error while exporting the key.</source>
-        <translation type="unfinished"></translation>
+        <translation>Beim Exportieren des Schlüssels ist ein unbekannter Fehler aufgetreten.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="259"/>
@@ -3390,12 +3395,12 @@ Hinweis: Weitere Informationen zur Verifizierung finden Sie hier: https://keys.o
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="59"/>
         <source>New Subkey</source>
-        <translation type="unfinished">Neuer Unterschlüssel</translation>
+        <translation>Neuer Unterschlüssel</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="60"/>
         <source>Add ADSK(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>ADSK(s) hinzufügen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="82"/>
@@ -3439,7 +3444,7 @@ Hinweis: Weitere Informationen zur Verifizierung finden Sie hier: https://keys.o
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="214"/>
         <source>ADSK</source>
-        <translation type="unfinished"></translation>
+        <translation>ADSK</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="238"/>
@@ -4786,12 +4791,12 @@ Wenn das Problem weiterhin besteht, wenden Sie sich an den technischen Support o
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="44"/>
         <source>New Text</source>
-        <translation type="unfinished"></translation>
+        <translation>Neuer Text</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="49"/>
         <source>Open File</source>
-        <translation type="unfinished"></translation>
+        <translation>Datei öffnen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="50"/>
@@ -4802,7 +4807,7 @@ Wenn das Problem weiterhin besteht, wenden Sie sich an den technischen Support o
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="55"/>
         <source>Open Directory</source>
-        <translation type="unfinished">Verzeichnis öffnen</translation>
+        <translation>Verzeichnis öffnen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="60"/>
@@ -5099,18 +5104,18 @@ Wenn das Problem weiterhin besteht, wenden Sie sich an den technischen Support o
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="262"/>
         <source>Open Smart Card Controller</source>
-        <translation type="unfinished"></translation>
+        <translation>Offener Chipkarten-Controller</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="263"/>
         <source>Open Smart Card Controller Dialog</source>
-        <translation type="unfinished"></translation>
+        <translation>Dialog Smartcard-Controller öffnen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="418"/>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="508"/>
         <source>Workspace</source>
-        <translation type="unfinished"></translation>
+        <translation>Arbeitsbereich</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="470"/>
@@ -5120,7 +5125,7 @@ Wenn das Problem weiterhin besteht, wenden Sie sich an den technischen Support o
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="507"/>
         <source>Open Workspace...</source>
-        <translation type="unfinished"></translation>
+        <translation>Arbeitsbereich öffnen...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="620"/>
@@ -5936,465 +5941,495 @@ Wenn das Problem weiterhin besteht, wenden Sie sich an den technischen Support o
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="50"/>
         <source>Smart Card(s):</source>
-        <translation type="unfinished"></translation>
+        <translation>Chipkarte(n):</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="51"/>
         <source>Key Stub(s) in Key Database(s):</source>
-        <translation type="unfinished"></translation>
+        <translation>Schlüssel-Stub(s) in Schlüssel-Datenbank(en):</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="53"/>
         <source>Change Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Name ändern</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="54"/>
         <source>Change Language</source>
-        <translation type="unfinished"></translation>
+        <translation>Sprache ändern</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="55"/>
         <source>Change Gender</source>
-        <translation type="unfinished"></translation>
+        <translation>Geschlecht ändern</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="56"/>
         <source>Change Login Data</source>
-        <translation type="unfinished"></translation>
+        <translation>Anmeldedaten ändern</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="57"/>
         <source>Change Public Key URL</source>
-        <translation type="unfinished"></translation>
+        <translation>URL des öffentlichen Schlüssels ändern</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="58"/>
         <source>Change PIN</source>
-        <translation type="unfinished"></translation>
+        <translation>PIN ändern</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="59"/>
         <source>Change Admin PIN</source>
-        <translation type="unfinished"></translation>
+        <translation>Admin-PIN ändern</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="60"/>
         <source>Change Reset Code</source>
-        <translation type="unfinished"></translation>
+        <translation>Rückstellcode ändern</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="61"/>
         <source>Fetch</source>
-        <translation type="unfinished"></translation>
+        <translation>Abrufen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="62"/>
         <source>Restart All Gpg-Agents</source>
-        <translation type="unfinished"></translation>
+        <translation>Alle Gpg-Agenten neu starten</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="63"/>
         <source>Generate Card Keys</source>
-        <translation type="unfinished"></translation>
+        <translation>Erzeugen von Kartenschlüsseln</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="64"/>
         <source>Refresh</source>
-        <translation type="unfinished">Aktualisierung</translation>
+        <translation>Aktualisierung</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="66"/>
         <source>Operations</source>
-        <translation type="unfinished">Aktivieren</translation>
+        <translation>Aktivieren</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="117"/>
         <source>Successful Operation</source>
-        <translation type="unfinished">Erfolgreiche Durchführung</translation>
+        <translation>Erfolgreiche Durchführung</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="118"/>
         <source>Restart all the GnuPG&apos;s components successfully</source>
-        <translation type="unfinished">Alle Komponenten von GnuPG erfolgreich neu gestartet</translation>
+        <translation>Alle Komponenten von GnuPG erfolgreich neu gestartet</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="121"/>
         <source>Failed Operation</source>
-        <translation type="unfinished">Fehlgeschlagener Vorgang</translation>
+        <translation>Fehlgeschlagener Vorgang</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="122"/>
         <source>Failed to restart all or one of the GnuPG&apos;s component(s)</source>
-        <translation type="unfinished">Neustart aller oder einer GnuPG-Komponente(n) fehlgeschlagen</translation>
+        <translation>Neustart aller oder einer GnuPG-Komponente(n) fehlgeschlagen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="134"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="558"/>
+        <source>Error</source>
+        <translation>Fehler</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="135"/>
         <source>Generate card key failed.</source>
-        <translation type="unfinished"></translation>
+        <translation>Kartenschlüssel generieren fehlgeschlagen.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="153"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="156"/>
         <source>Smart Card Controller</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="207"/>
-        <source>OpenPGP Card Information</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="209"/>
-        <source>Basic Information</source>
-        <translation type="unfinished"></translation>
+        <translation>Chipkarten-Controller</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="210"/>
-        <source>Reader</source>
-        <translation type="unfinished"></translation>
+        <source>OpenPGP Card Information</source>
+        <translation>OpenPGP-Karteninformationen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="211"/>
-        <source>Serial Number</source>
-        <translation type="unfinished"></translation>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="212"/>
+        <source>Basic Information</source>
+        <translation>Grundsätzliche Informationen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="213"/>
+        <source>Reader</source>
+        <translation>Kartenleser</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="214"/>
+        <source>Serial Number</source>
+        <translation>Seriennummer</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="216"/>
         <source>Card Type</source>
-        <translation type="unfinished"></translation>
+        <translation>Karten-Typ</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="215"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="218"/>
         <source>Card Version</source>
-        <translation type="unfinished"></translation>
+        <translation>Kartenversion</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="217"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="220"/>
         <source>App Type</source>
-        <translation type="unfinished"></translation>
+        <translation>App-Typ</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="219"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="222"/>
         <source>App Version</source>
-        <translation type="unfinished"></translation>
+        <translation>App-Version</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="221"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="224"/>
         <source>Manufacturer ID</source>
-        <translation type="unfinished"></translation>
+        <translation>Hersteller-ID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="223"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="226"/>
         <source>Manufacturer</source>
-        <translation type="unfinished"></translation>
+        <translation>Hersteller</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="225"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="228"/>
         <source>Card Holder</source>
-        <translation type="unfinished"></translation>
+        <translation>Besitzer der Karte</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="227"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="230"/>
         <source>Language</source>
-        <translation type="unfinished">Sprache</translation>
+        <translation>Sprache</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="229"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="232"/>
         <source>Sex</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="234"/>
-        <source>Signature Counter</source>
-        <translation type="unfinished"></translation>
+        <translation>Geschlecht</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="236"/>
-        <source>CHV1 Cached</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="238"/>
-        <source>CHV Max Length</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="244"/>
-        <source>CHV Retry Left</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="250"/>
-        <source>KDF Status</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="266"/>
-        <source>UIF</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="267"/>
-        <source>Sign</source>
-        <translation type="unfinished">Unterschreiben</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="268"/>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="270"/>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="272"/>
-        <source>Enabled</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="268"/>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="270"/>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="272"/>
-        <source>Disabled</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="269"/>
-        <source>Encrypt</source>
-        <translation type="unfinished">Verschlüsseln</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="271"/>
-        <source>Authenticate</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="319"/>
-        <source>Status Indicator</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="490"/>
-        <source>Male</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="490"/>
-        <source>Female</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="494"/>
-        <source>Select sex to store in &apos;%1&apos;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="509"/>
-        <source>Enter new value for attribute &apos;%1&apos;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="233"/>
         <source>Status</source>
-        <translation type="unfinished">Status</translation>
+        <translation>Status</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="237"/>
+        <source>Signature Counter</source>
+        <translation>Unterschriftenzähler</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="239"/>
+        <source>CHV1 Cached</source>
+        <translation>CHV1 Zwischengespeichert</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="241"/>
+        <source>CHV Max Length</source>
+        <translation>CHV Maximale Länge</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="247"/>
+        <source>CHV Retry Left</source>
+        <translation>Verbleibende CHV-Versuche</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="253"/>
-        <source>Not enabled</source>
-        <translation type="unfinished"></translation>
+        <source>KDF Status</source>
+        <translation>KDF-Status</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="265"/>
+        <source>Unknown</source>
+        <translation>Unbekannt</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="269"/>
+        <source>UIF</source>
+        <translation>UIF</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="270"/>
+        <source>Sign</source>
+        <translation>Unterschreiben</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="271"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="273"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="275"/>
+        <source>Enabled</source>
+        <translation>Aktiviert</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="271"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="273"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="275"/>
+        <source>Disabled</source>
+        <translation>Deaktiviert</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="272"/>
+        <source>Encrypt</source>
+        <translation>Verschlüsseln</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="274"/>
+        <source>Authenticate</source>
+        <translation>Authentifizieren</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="286"/>
+        <source>Fingerprint</source>
+        <translation>Fingerabdruck</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="322"/>
+        <source>Status Indicator</source>
+        <translation>Statusanzeige</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="467"/>
+        <source>Cardholder&apos;s Surname</source>
+        <translation>Nachname des Karteninhabers</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="468"/>
+        <source>Please enter your surname (e.g., Lee):</source>
+        <translation>Bitte geben Sie Ihren Nachnamen ein (z.&#x202f;B. Lee):</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="473"/>
+        <source>Cardholder&apos;s Given Name</source>
+        <translation>Vorname des Karteninhabers</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="474"/>
+        <source>Please enter your given name (e.g., Chris):</source>
+        <translation>Bitte geben Sie Ihren Vornamen ein (z.&#x202f;B. Chris):</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="483"/>
+        <source>Too Long</source>
+        <translation>Zu lang</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="484"/>
+        <source>Combined name too long (max 39 characters).</source>
+        <translation>Kombinierter Name zu lang (max. 39 Zeichen).</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="499"/>
+        <source>Male</source>
+        <translation>Männlich</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="499"/>
+        <source>Female</source>
+        <translation>Weiblich</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="503"/>
+        <source>Select sex to store in &apos;%1&apos;</source>
+        <translation>Geschlecht zur Speicherung in &apos;%1&apos; auswählen</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="518"/>
+        <source>Enter new value for attribute &apos;%1&apos;</source>
+        <translation>Neuen Wert für Attribut &apos;%1&apos; eingeben</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="256"/>
-        <source>Enabled (no protection)</source>
-        <translation type="unfinished"></translation>
+        <source>Not enabled</source>
+        <translation>Nicht aktiviert</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="259"/>
-        <source>Enabled with salt protection</source>
-        <translation type="unfinished"></translation>
+        <source>Enabled (no protection)</source>
+        <translation>Aktiviert (kein Schutz)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="262"/>
-        <source>Unknown</source>
-        <translation type="unfinished">Unbekannt</translation>
+        <source>Enabled with salt protection</source>
+        <translation>Aktiviert mit Salt-Schutz</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="276"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="279"/>
         <source>Key Information</source>
-        <translation type="unfinished"></translation>
+        <translation>Schlüsselinformationen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="280"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="283"/>
         <source>No key information available.</source>
-        <translation type="unfinished"></translation>
+        <translation>Keine Schlüsselinformationen verfügbar.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="283"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="286"/>
         <source>No.</source>
-        <translation type="unfinished"></translation>
+        <translation>Nr.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="283"/>
-        <source>Fingerprint</source>
-        <translation type="unfinished">Fingerabdruck</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="284"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="287"/>
         <source>Created</source>
-        <translation type="unfinished"></translation>
+        <translation>Erstellt</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="284"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="287"/>
         <source>Grip</source>
-        <translation type="unfinished"></translation>
+        <translation>Grip</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="285"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="288"/>
         <source>Type</source>
-        <translation type="unfinished">Typ</translation>
+        <translation>Typ</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="285"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="288"/>
         <source>Algorithm</source>
-        <translation type="unfinished">Algorithmus</translation>
+        <translation>Algorithmus</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="286"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="289"/>
         <source>Usage</source>
-        <translation type="unfinished">Verwendungszweck</translation>
+        <translation>Verwendungszweck</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="286"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="289"/>
         <source>Curve</source>
-        <translation type="unfinished"></translation>
+        <translation>Kurve</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="304"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="307"/>
         <source>Extended Capabilities</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="306"/>
-        <source>Key Info (ki): %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="306"/>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="310"/>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="314"/>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="317"/>
-        <source>Yes</source>
-        <translation type="unfinished">Ja</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="306"/>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="310"/>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="314"/>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="317"/>
-        <source>No</source>
-        <translation type="unfinished">Nein</translation>
+        <translation>Erweiterte Funktionen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="309"/>
-        <source>Additional Auth (aac): %1</source>
-        <translation type="unfinished"></translation>
+        <source>Key Info (ki): %1</source>
+        <translation>Schlüsselinformationen (ki): %1</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="309"/>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="313"/>
-        <source>Biometric Terminal (bt): %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="317"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="320"/>
+        <source>Yes</source>
+        <translation>Ja</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="309"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="313"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="317"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="320"/>
+        <source>No</source>
+        <translation>Nein</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="312"/>
+        <source>Additional Auth (aac): %1</source>
+        <translation>Zusätzliche Authentifizierung (aac): %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="316"/>
+        <source>Biometric Terminal (bt): %1</source>
+        <translation>Biometrisches Terminal (bt): %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="320"/>
         <source>KDF Supported: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>KDF-Unterstützung: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="324"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="327"/>
         <source>Additional Info</source>
-        <translation type="unfinished"></translation>
+        <translation>Zusätzliche Informationen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="371"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="379"/>
         <source>No OpenPGP Smart Card Found</source>
-        <translation type="unfinished"></translation>
+        <translation>Keine OpenPGP-Smartcard gefunden</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="372"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="380"/>
         <source>No OpenPGP-compatible smart card has been detected.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="376"/>
-        <source>An OpenPGP Smart Card is a physical device that securely stores your private cryptographic keys and can be used for digital signing, encryption, and authentication. Popular examples include YubiKey, Nitrokey, and other GnuPG-compatible tokens.</source>
-        <translation type="unfinished"></translation>
+        <translation>Es wurde keine OpenPGP-kompatible Smartcard erkannt.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="384"/>
+        <source>An OpenPGP Smart Card is a physical device that securely stores your private cryptographic keys and can be used for digital signing, encryption, and authentication. Popular examples include YubiKey, Nitrokey, and other GnuPG-compatible tokens.</source>
+        <translation>Eine OpenPGP-Smartcard ist ein physisches Gerät, das Ihre privaten kryptografischen Schlüssel sicher speichert und für digitale Signaturen, Verschlüsselung und Authentifizierung verwendet werden kann. Bekannte Beispiele sind YubiKey, Nitrokey und andere GnuPG-kompatible Token.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="392"/>
         <source>Make sure your card is inserted and properly recognized by the system. You can also try reconnecting the card or restarting the application.</source>
-        <translation type="unfinished"></translation>
+        <translation>Stellen Sie sicher, dass Ihre Karte eingesteckt und vom System korrekt erkannt wurde. Sie können auch versuchen, die Karte neu zu verbinden oder die Anwendung neu zu starten.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="390"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="398"/>
         <source>Note: Smart card support of GpgFrontend requires GnuPG version 2.3.0 or later.</source>
-        <translation type="unfinished"></translation>
+        <translation>Hinweis: Die Smartcard-Unterstützung von GpgFrontend erfordert GnuPG in Version 2.3.0 oder höher.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="394"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="402"/>
         <source>Read the GnuPG Smart Card HOWTO: </source>
-        <translation type="unfinished"></translation>
+        <translation>Lesen Sie das GnuPG Smartcard HOWTO: </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="493"/>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="508"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="502"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="517"/>
         <source>Modify Card Attribute</source>
-        <translation type="unfinished"></translation>
+        <translation>Kartenattribut ändern</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="524"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="533"/>
         <source>Failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="525"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="534"/>
         <source>Failed to set attribute &apos;%1&apos;. Reason: %2. </source>
-        <translation type="unfinished"></translation>
+        <translation>Attribut „%1“ konnte nicht gesetzt werden. Grund: %2.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="528"/>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="553"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="537"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="562"/>
         <source>Success</source>
-        <translation type="unfinished"></translation>
+        <translation>Erfolgreich</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="529"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="538"/>
         <source>Attribute operation completed successfully.</source>
-        <translation type="unfinished"></translation>
+        <translation>Attributänderung erfolgreich abgeschlossen.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="540"/>
-        <source>Failed to change Admin PIN.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="542"/>
-        <source>Failed to set the Reset Code.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="544"/>
-        <source>Failed to change PIN.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="547"/>
-        <source>Reason: </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="134"/>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="549"/>
-        <source>Error</source>
-        <translation type="unfinished">Fehler</translation>
+        <source>Failed to change Admin PIN.</source>
+        <translation>Ändern der Admin-PIN fehlgeschlagen.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="554"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="551"/>
+        <source>Failed to set the Reset Code.</source>
+        <translation>Setzen des Rücksetz-Codes fehlgeschlagen.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="553"/>
+        <source>Failed to change PIN.</source>
+        <translation>Ändern der PIN fehlgeschlagen.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="556"/>
+        <source>Reason: </source>
+        <translation>Grund: </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="563"/>
         <source>PIN operation completed successfully.</source>
-        <translation type="unfinished"></translation>
+        <translation>PIN-Änderung erfolgreich abgeschlossen.</translation>
     </message>
 </context>
 <context>
@@ -6551,7 +6586,7 @@ Wenn das Problem weiterhin besteht, wenden Sie sich an den technischen Support o
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="78"/>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="85"/>
         <source>Open File</source>
-        <translation type="unfinished"></translation>
+        <translation>Datei öffnen</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="94"/>
@@ -6687,7 +6722,7 @@ Wenn das Problem weiterhin besteht, wenden Sie sich an den technischen Support o
     <message>
         <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="319"/>
         <source>Default Workspace</source>
-        <translation type="unfinished"></translation>
+        <translation>Standard-Arbeitsbereich</translation>
     </message>
 </context>
 <context>
@@ -6933,85 +6968,85 @@ Wenn das Problem weiterhin besteht, wenden Sie sich an den technischen Support o
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
         <source>Select</source>
-        <translation type="unfinished">Auswählen</translation>
+        <translation>Auswählen</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
         <source>Type</source>
-        <translation type="unfinished">Typ</translation>
+        <translation>Typ</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
         <source>Name</source>
-        <translation type="unfinished">Name</translation>
+        <translation>Name</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
         <source>Email Address</source>
-        <translation type="unfinished">E-Mail-Addresse</translation>
+        <translation>E-Mail-Addresse</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="159"/>
         <source>Usage</source>
-        <translation type="unfinished">Verwendungszweck</translation>
+        <translation>Verwendungszweck</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="160"/>
         <source>Trust</source>
-        <translation type="unfinished">Vertrauen</translation>
+        <translation>Vertrauen</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
         <source>Key ID</source>
-        <translation type="unfinished">Schlüssel-ID</translation>
+        <translation>Schlüssel-ID</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
         <source>Create Date</source>
-        <translation type="unfinished"></translation>
+        <translation>Erstellungsdatum</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
         <source>Algorithm</source>
-        <translation type="unfinished">Algorithmus</translation>
+        <translation>Algorithmus</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
         <source>Subkey(s)</source>
-        <translation type="unfinished">Unterschlüssel(e)</translation>
+        <translation>Unterschlüssel(e)</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="161"/>
         <source>Comment</source>
-        <translation type="unfinished">Kommentar</translation>
+        <translation>Kommentar</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="157"/>
         <source>ID</source>
-        <translation type="unfinished">ID</translation>
+        <translation>ID</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="158"/>
         <source>Algo</source>
-        <translation type="unfinished"></translation>
+        <translation>Algorithmus</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="162"/>
         <source>No Comment</source>
-        <translation type="unfinished"></translation>
+        <translation>Kein Kommentar</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="168"/>
         <source>SubKeys (up to 8):</source>
-        <translation type="unfinished"></translation>
+        <translation>Unterschlüssel (bis zu 8):</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="174"/>
         <source>ID: %1 | Algo: %2 | Usage: %3</source>
-        <translation type="unfinished"></translation>
+        <translation>ID: %1 | Algorithmus: %2 | Verwendung: %3</translation>
     </message>
 </context>
 <context>
@@ -7019,37 +7054,37 @@ Wenn das Problem weiterhin besteht, wenden Sie sich an den technischen Support o
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="41"/>
         <source>Select</source>
-        <translation type="unfinished">Auswählen</translation>
+        <translation>Auswählen</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="42"/>
         <source>Type</source>
-        <translation type="unfinished">Typ</translation>
+        <translation>Typ</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="43"/>
         <source>Identity</source>
-        <translation type="unfinished"></translation>
+        <translation>Identität</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="44"/>
         <source>Key ID</source>
-        <translation type="unfinished">Schlüssel-ID</translation>
+        <translation>Schlüssel-ID</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="45"/>
         <source>Usage</source>
-        <translation type="unfinished">Verwendungszweck</translation>
+        <translation>Verwendungszweck</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="46"/>
         <source>Algorithm</source>
-        <translation type="unfinished">Algorithmus</translation>
+        <translation>Algorithmus</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="47"/>
         <source>Create Date</source>
-        <translation type="unfinished"></translation>
+        <translation>Erstellungsdatum</translation>
     </message>
 </context>
 <context>
@@ -7138,72 +7173,44 @@ Wenn das Problem weiterhin besteht, wenden Sie sich an den technischen Support o
         <translation>Sie haben keine öffentlichen Schlüssel angekreuzt, die Sie synchronisieren möchten. Möchten Sie alle lokalen öffentlichen Schlüssel mit dem Schlüsselserver synchronisieren?</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GpgCoreInit.cpp" line="422"/>
+        <location filename="../../../../src/core/GpgCoreInit.cpp" line="423"/>
         <source>Cannot Find GpgConf</source>
         <translation>GpgConf kann nicht gefunden werden</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GpgCoreInit.cpp" line="430"/>
+        <location filename="../../../../src/core/GpgCoreInit.cpp" line="431"/>
         <source>Cannot Find GnuPG</source>
         <translation>GnuPG kann nicht gefunden werden</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GpgCoreInit.cpp" line="405"/>
+        <location filename="../../../../src/core/GpgCoreInit.cpp" line="406"/>
         <source>Cannot get Infos from GpgConf</source>
         <translation>Kann keine Infos von GpgConf erhalten</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GpgCoreInit.cpp" line="445"/>
+        <location filename="../../../../src/core/GpgCoreInit.cpp" line="446"/>
         <source>Cannot Find Default Home Path</source>
         <translation>Standard-GnuPG-Startpfad kann nicht gefunden werden</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GpgCoreInit.cpp" line="471"/>
+        <location filename="../../../../src/core/GpgCoreInit.cpp" line="472"/>
         <source>GpgME Initiation Failed</source>
         <translation>GpgME-Initiation fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GpgCoreInit.cpp" line="544"/>
+        <location filename="../../../../src/core/GpgCoreInit.cpp" line="527"/>
+        <source>No valid Key Database</source>
+        <translation>Keine gültige Schlüsseldatenbank</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/GpgCoreInit.cpp" line="556"/>
         <source>GpgME Default Context Initiation Failed</source>
         <translation>GpgME-Standardkontext-Initiation fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GpgCoreInit.cpp" line="555"/>
+        <location filename="../../../../src/core/GpgCoreInit.cpp" line="567"/>
         <source>Gpg Default Key Database Initiation Failed</source>
         <translation>Gpg-Standard-Schlüsseldatenbank-Initiation fehlgeschlagen</translation>
-    </message>
-</context>
-<context>
-    <name>QObject</name>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="459"/>
-        <source>Cardholder&apos;s Surname</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="460"/>
-        <source>Please enter your surname (e.g., Lee):</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="465"/>
-        <source>Cardholder&apos;s Given Name</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="466"/>
-        <source>Please enter your given name (e.g., Chris):</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="475"/>
-        <source>Too Long</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="476"/>
-        <source>Combined name too long (max 39 characters).</source>
-        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

@@ -337,6 +337,11 @@ void SmartCardControllerDialog::print_smart_card_info() {
 }
 
 void SmartCardControllerDialog::slot_refresh() {
+  scd_version_supported_ =
+      GpgSmartCardManager::GetInstance(channel_).IsSCDVersionSupported();
+  if (scd_version_supported_ && !timer_->isActive()) {
+    timer_->start(3000);
+  }
   fetch_smart_card_info(ui_->currentCardComboBox->currentText());
 }
 
@@ -459,14 +464,15 @@ void SmartCardControllerDialog::slot_fetch_smart_card_keys() {
 
 auto AskIsoDisplayName(QWidget* parent, bool* ok) -> QString {
   QString surname = QInputDialog::getText(
-      parent, QObject::tr("Cardholder's Surname"),
-      QObject::tr("Please enter your surname (e.g., Lee):"), QLineEdit::Normal,
-      "", ok);
+      parent, SmartCardControllerDialog::tr("Cardholder's Surname"),
+      SmartCardControllerDialog::tr("Please enter your surname (e.g., Lee):"),
+      QLineEdit::Normal, "", ok);
   if (!*ok || surname.trimmed().isEmpty()) return {};
 
   QString given_name = QInputDialog::getText(
-      parent, QObject::tr("Cardholder's Given Name"),
-      QObject::tr("Please enter your given name (e.g., Chris):"),
+      parent, SmartCardControllerDialog::tr("Cardholder's Given Name"),
+      SmartCardControllerDialog::tr(
+          "Please enter your given name (e.g., Chris):"),
       QLineEdit::Normal, "", ok);
   if (!*ok || given_name.trimmed().isEmpty()) return {};
 
@@ -474,9 +480,9 @@ auto AskIsoDisplayName(QWidget* parent, bool* ok) -> QString {
   iso_name.replace(" ", "<");
 
   if (iso_name.length() > 39) {
-    QMessageBox::warning(
-        parent, QObject::tr("Too Long"),
-        QObject::tr("Combined name too long (max 39 characters)."));
+    QMessageBox::warning(parent, SmartCardControllerDialog::tr("Too Long"),
+                         SmartCardControllerDialog::tr(
+                             "Combined name too long (max 39 characters)."));
     *ok = false;
     return {};
   }

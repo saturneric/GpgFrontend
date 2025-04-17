@@ -524,7 +524,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
              << "GpgFrontend cannot start under this situation!";
     Module::UpsertRTValue("core", "env.state.ctx", -1);
     CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-        QCoreApplication::tr("No valid KEy Database"));
+        QCoreApplication::tr("No valid Key Database"));
   }
 
   // load default context
