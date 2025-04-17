@@ -34,6 +34,8 @@ class Ui_GenerateCardKeyDialog;
 
 namespace GpgFrontend::UI {
 class GenerateCardKeyDialog : public GeneralDialog {
+  Q_OBJECT
+
  public:
   /**
    * @brief Construct a new Generate Card Key Dialog object

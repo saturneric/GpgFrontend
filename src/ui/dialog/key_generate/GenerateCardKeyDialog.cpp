@@ -47,13 +47,26 @@ GenerateCardKeyDialog::GenerateCardKeyDialog(int channel,
       ui_(QSharedPointer<Ui_GenerateCardKeyDialog>::create()) {
   ui_->setupUi(this);
 
-  const auto min_date_time = QDateTime::currentDateTime().addDays(3);
-  ui_->dateEdit->setMinimumDateTime(min_date_time);
+  ui_->nameLabel->setText(tr("Name"));
+  ui_->emailLabel->setText(tr("Email"));
+  ui_->commentLabel->setText(tr("Comment"));
+  ui_->expireLabel->setText(tr("Expire Date"));
+  ui_->nonExpireCheckBox->setText(tr("Non Expire"));
+  ui_->tipLabel->setText(
+      tr("Warning: This Operation will overwrite keys which exist on card!"));
+  ui_->generateButton->setText(tr("Generate"));
+
+  ui_->dateEdit->setMinimumDateTime(QDateTime::currentDateTime().addDays(3));
+  ui_->dateEdit->setMinimumDateTime(QDateTime::currentDateTime().addYears(2));
 
   connect(ui_->generateButton, &QPushButton::clicked, this,
           &GenerateCardKeyDialog::slot_generate_card_key);
+  connect(ui_->nonExpireCheckBox, &QCheckBox::stateChanged, this,
+          [=](int state) { ui_->dateEdit->setDisabled(state == Qt::Checked); });
 
+  setWindowTitle(tr("Card Key Generation"));
   movePosition2CenterOfParent();
+  setModal(true);
 
   this->show();
   this->raise();

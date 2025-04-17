@@ -58,7 +58,7 @@ ADSKsPicker::ADSKsPicker(int channel, GpgKeyPtr key,
   connect(confirm_button, &QPushButton::clicked, this, [=]() {
     if (tree_view_->GetAllCheckedSubKey().isEmpty()) {
       QMessageBox::information(this, tr("No Subkeys Selected"),
-                               tr("Please select at least one s_key."));
+                               tr("Please select at least one Subkey."));
 
       return;
     }

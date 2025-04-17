@@ -128,6 +128,9 @@ SmartCardControllerDialog::SmartCardControllerDialog(QWidget* parent)
     connect(d, &GenerateCardKeyDialog::finished, this, [=](int ret) {
       if (ret == 1) {
         fetch_smart_card_info(serial_number);
+      } else {
+        QMessageBox::critical(this, tr("Error"),
+                              tr("Generate card key failed."));
       }
     });
   });
@@ -174,6 +177,8 @@ void SmartCardControllerDialog::fetch_smart_card_info(
     const QString& serial_number) {
   if (!has_card_) return;
 
+  reset_status();
+
   auto card_info =
       GpgSmartCardManager::GetInstance(channel_).FetchCardInfoBySerialNumber(
           serial_number);
@@ -200,44 +205,47 @@ void SmartCardControllerDialog::print_smart_card_info() {
   out << "<h2>" << tr("OpenPGP Card Information") << "</h2>";
 
   out << "<h3>" << tr("Basic Information") << "</h3><ul>";
-  out << "<li><b>" << tr("Reader:") << "</b> " << card.reader << "</li>";
-  out << "<li><b>" << tr("Serial Number:") << "</b> " << card.serial_number
+  out << "<li><b>" << tr("Reader") << ":" << "</b> " << card.reader << "</li>";
+  out << "<li><b>" << tr("Serial Number") << ":" << "</b> "
+      << card.serial_number << "</li>";
+  out << "<li><b>" << tr("Card Type") << ":" << "</b> " << card.card_type
       << "</li>";
-  out << "<li><b>" << tr("Card Type:") << "</b> " << card.card_type << "</li>";
-  out << "<li><b>" << tr("Card Version:") << "</b> " << card.card_version
+  out << "<li><b>" << tr("Card Version") << ":" << "</b> " << card.card_version
       << "</li>";
-  out << "<li><b>" << tr("App Type:") << "</b> " << card.app_type << "</li>";
-  out << "<li><b>" << tr("App Version:") << "</b> " << card.app_version
+  out << "<li><b>" << tr("App Type") << ":" << "</b> " << card.app_type
       << "</li>";
-  out << "<li><b>" << tr("Manufacturer ID:") << "</b> " << card.manufacturer_id
+  out << "<li><b>" << tr("App Version") << ":" << "</b> " << card.app_version
       << "</li>";
-  out << "<li><b>" << tr("Manufacturer:") << "</b> " << card.manufacturer
+  out << "<li><b>" << tr("Manufacturer ID") << ":" << "</b> "
+      << card.manufacturer_id << "</li>";
+  out << "<li><b>" << tr("Manufacturer") << ":" << "</b> " << card.manufacturer
       << "</li>";
-  out << "<li><b>" << tr("Card Holder:") << "</b> " << card.card_holder
+  out << "<li><b>" << tr("Card Holder") << ":" << "</b> " << card.card_holder
       << "</li>";
-  out << "<li><b>" << tr("Language:") << "</b> " << card.display_language
+  out << "<li><b>" << tr("Language") << ":" << "</b> " << card.display_language
       << "</li>";
-  out << "<li><b>" << tr("Sex:") << "</b> " << card.display_sex << "</li>";
+  out << "<li><b>" << tr("Sex") << ":" << "</b> " << card.display_sex
+      << "</li>";
   out << "</ul>";
 
   out << "<h3>" << tr("Status") << "</h3><ul>";
-  out << "<li><b>" << tr("Signature Counter:") << "</b> " << card.sig_counter
+  out << "<li><b>" << tr("Signature Counter") << ":" << "</b> "
+      << card.sig_counter << "</li>";
+  out << "<li><b>" << tr("CHV1 Cached") << ":" << "</b> " << card.chv1_cached
       << "</li>";
-  out << "<li><b>" << tr("CHV1 Cached:") << "</b> " << card.chv1_cached
-      << "</li>";
-  out << "<li><b>" << tr("CHV Max Length:") << "</b> "
+  out << "<li><b>" << tr("CHV Max Length") << ":" << "</b> "
       << QString("%1, %2, %3")
              .arg(card.chv_max_len[0])
              .arg(card.chv_max_len[1])
              .arg(card.chv_max_len[2])
       << "</li>";
-  out << "<li><b>" << tr("CHV Retry Left:") << "</b> "
+  out << "<li><b>" << tr("CHV Retry Left") << ":" << "</b> "
       << QString("%1, %2, %3")
              .arg(card.chv_retry[0])
              .arg(card.chv_retry[1])
              .arg(card.chv_retry[2])
       << "</li>";
-  out << "<li><b>" << tr("KDF Status:") << "</b> ";
+  out << "<li><b>" << tr("KDF Status") << ":" << "</b> ";
   switch (card.kdf_do_enabled) {
     case 0:
       out << tr("Not enabled");
@@ -253,18 +261,13 @@ void SmartCardControllerDialog::print_smart_card_info() {
       break;
   }
   out << "</li>";
-  out << "<li><b>" << tr("UIF:") << "</b><ul>";
-  out << "<li>"
-      << tr("Sign: %1").arg(card.uif.sign ? tr("✔ Enabled") : tr("❌ Disabled"))
-      << "</li>";
-  out << "<li>"
-      << tr("Encrypt: %1")
-             .arg(card.uif.encrypt ? tr("✔ Enabled") : tr("❌ Disabled"))
-      << "</li>";
-  out << "<li>"
-      << tr("Authenticate: %1")
-             .arg(card.uif.auth ? tr("✔ Enabled") : tr("❌ Disabled"))
-      << "</li>";
+  out << "<li><b>" << tr("UIF") << ":" << "</b><ul>";
+  out << "<li>" << tr("Sign") << ":"
+      << (card.uif.sign ? tr("Enabled") : tr("Disabled")) << "</li>";
+  out << "<li>" << tr("Encrypt") << ":"
+      << (card.uif.encrypt ? tr("Enabled") : tr("Disabled")) << "</li>";
+  out << "<li>" << tr("Authenticate") << ":"
+      << (card.uif.auth ? tr("Enabled") : tr("Disabled")) << "</li>";
   out << "</ul></li>";
   out << "</ul>";
 
@@ -311,15 +314,15 @@ void SmartCardControllerDialog::print_smart_card_info() {
   out << "<li>"
       << tr("KDF Supported: %1").arg(card.ext_cap.kdf ? tr("Yes") : tr("No"))
       << "</li>";
-  out << "<li>" << tr("Status Indicator: %1").arg(card.ext_cap.status_indicator)
-      << "</li>";
+  out << "<li>" << tr("Status Indicator")
+      << QString(": %1").arg(card.ext_cap.status_indicator) << "</li>";
   out << "</ul>";
 
   if (!card.additional_card_infos.isEmpty()) {
     out << "<h3>" << tr("Additional Info") << "</h3><ul>";
     for (auto it = card.additional_card_infos.begin();
          it != card.additional_card_infos.end(); ++it) {
-      out << "<li><b>" << tr("%1:").arg(it.key()) << "</b> " << it.value()
+      out << "<li><b>" << QString("%1:").arg(it.key()) << "</b> " << it.value()
           << "</li>";
     }
     out << "</ul>";
@@ -420,6 +423,8 @@ void SmartCardControllerDialog::slot_disable_controllers(bool disable) {
 }
 
 void SmartCardControllerDialog::slot_fetch_smart_card_keys() {
+  ui_->fetchButton->setDisabled(true);
+
   GpgSmartCardManager::GetInstance().Fetch(
       ui_->currentCardComboBox->currentText());
 
@@ -428,9 +433,9 @@ void SmartCardControllerDialog::slot_fetch_smart_card_keys() {
         {{},
          {"--card-status"},
          [=](int exit_code, const QString&, const QString&) {
+           ui_->fetchButton->setDisabled(false);
            LOG_D() << "gpg --card--status exit code: " << exit_code;
            if (exit_code != 0) return;
-
            emit UISignalStation::GetInstance() -> SignalKeyDatabaseRefresh();
          }});
   });
@@ -469,11 +474,12 @@ void SmartCardControllerDialog::modify_key_attribute(const QString& attr) {
 
   if (attr == "DISP-SEX") {
     QStringList options;
-    options << tr("1 - Male") << tr("2 - Female");
+    options << "1 - " + tr("Male") << "2 - " + tr("Female");
 
     const QString selected = QInputDialog::getItem(
         this, tr("Modify Card Attribute"),
-        tr("Select sex to store in '%1':").arg(attr), options, 0, false, &ok);
+        tr("Select sex to store in '%1'").arg(attr) + ": ", options, 0, false,
+        &ok);
 
     if (!ok || selected.isEmpty()) return;
 
@@ -487,8 +493,8 @@ void SmartCardControllerDialog::modify_key_attribute(const QString& attr) {
   } else {
     value = QInputDialog::getText(
         this, tr("Modify Card Attribute"),
-        tr("Enter new value for attribute '%1':").arg(attr), QLineEdit::Normal,
-        "", &ok);
+        tr("Enter new value for attribute '%1'").arg(attr) + ": ",
+        QLineEdit::Normal, "", &ok);
 
     if (!ok || value.isEmpty()) {
       LOG_D() << "user canceled or empty input.";

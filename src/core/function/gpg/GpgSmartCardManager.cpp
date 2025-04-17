@@ -370,9 +370,9 @@ auto GpgSmartCardManager::GenerateKey(
     return QString{};
   };
 
-  GpgAutomatonHandler::GetInstance(GetChannel())
-      .DoCardInteract(serial_number, next_state_handler, action_handler);
-
-  return {true, {}};
+  return {
+      GpgAutomatonHandler::GetInstance(GetChannel())
+          .DoCardInteract(serial_number, next_state_handler, action_handler),
+      "unknown error"};
 }
 }  // namespace GpgFrontend

@@ -154,14 +154,13 @@ auto GpgKeyTableModel::table_data_by_gpg_key_group(
 auto GpgKeyTableModel::table_tooltip_by_gpg_key(
     const QModelIndex & /*index*/, const GpgKey *key) const -> QVariant {
   QStringList tooltip_lines;
-  tooltip_lines << tr("ID: %1").arg(key->ID());
-  tooltip_lines << tr("Algo: %1").arg(key->Algo());
-  tooltip_lines << tr("Usage: %1").arg(GetUsagesByAbstractKey(key));
-  tooltip_lines << tr("Trust: %1").arg(key->OwnerTrust());
-  tooltip_lines << tr("Comment: %1")
-                       .arg(key->Comment().isEmpty()
-                                ? "<" + tr("No Comment") + ">"
-                                : key->Comment());
+  tooltip_lines << tr("ID") + ": " + key->ID();
+  tooltip_lines << tr("Algo") + ": " + key->Algo();
+  tooltip_lines << tr("Usage") + ": " + GetUsagesByAbstractKey(key);
+  tooltip_lines << tr("Trust") + ": " + key->OwnerTrust();
+  tooltip_lines << tr("Comment") + ": " +
+                       (key->Comment().isEmpty() ? "<" + tr("No Comment") + ">"
+                                                 : key->Comment());
 
   const auto s_keys = key->SubKeys();
   if (!s_keys.empty()) {
@@ -172,10 +171,10 @@ auto GpgKeyTableModel::table_tooltip_by_gpg_key(
     for (const auto &s_key : s_keys) {
       if (count++ >= 8) break;
       const auto usages = GetUsagesByAbstractKey(&s_key);
-      tooltip_lines << tr("  - ID: %1 | Algo: %2 | Usage: %3")
-                           .arg(s_key.ID())
-                           .arg(s_key.Algo())
-                           .arg(usages.trimmed());
+      tooltip_lines << "  - " + tr("ID: %1 | Algo: %2 | Usage: %3")
+                                    .arg(s_key.ID())
+                                    .arg(s_key.Algo())
+                                    .arg(usages.trimmed());
     }
   }
 

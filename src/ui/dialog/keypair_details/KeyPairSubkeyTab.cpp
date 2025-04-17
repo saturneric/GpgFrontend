@@ -454,7 +454,7 @@ void KeyPairSubkeyTab::slot_refresh_key_info() {
 void KeyPairSubkeyTab::slot_export_subkey() {
   int ret = QMessageBox::question(
       this, tr("Exporting Subkey"),
-      "<h3>" + tr("You are about to export a private s_key.") + "</h3>\n" +
+      "<h3>" + tr("You are about to export a private subkey.") + "</h3>\n" +
           tr("While subkeys are less critical than the primary key, "
              "they should still be handled with care.") +
           "<br /><br />" +
@@ -522,7 +522,7 @@ void KeyPairSubkeyTab::slot_delete_subkey() {
   if (index == 0) {
     QMessageBox::critical(
         this, tr("Illegal Operation"),
-        tr("Cannot delete the primary key or an invalid s_key."));
+        tr("Cannot delete the primary key or an invalid subkey."));
     return;
   }
 
@@ -571,7 +571,7 @@ void KeyPairSubkeyTab::slot_revoke_subkey() {
   if (index == 0) {
     QMessageBox::critical(
         this, tr("Illegal Operation"),
-        tr("Cannot revoke the primary key or an invalid s_key."));
+        tr("Cannot revoke the primary key or an invalid subkey."));
     return;
   }
 
@@ -589,7 +589,7 @@ void KeyPairSubkeyTab::slot_revoke_subkey() {
             if (!res) {
               QMessageBox::critical(
                   nullptr, tr("Revocation Failed"),
-                  tr("Failed to revoke the s_key. Please try again."));
+                  tr("Failed to revoke the subkey. Please try again."));
             } else {
               QMessageBox::information(
                   nullptr, tr("Revocation Successful"),

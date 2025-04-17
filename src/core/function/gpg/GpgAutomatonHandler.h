@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <utility>
-
 #include "core/GpgFrontendCore.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/gpg/GpgContext.h"
