@@ -74,7 +74,7 @@ jobs:
       - name: Set up MinGW (Windows)
         uses: msys2/setup-msys2@v2
         with:
-          update: true
+          update: false
           release: false
           cache: true
           install: >-
@@ -84,14 +84,15 @@ jobs:
             binutils 
             zip
             unzip
-            libintl 
+            libintl
+            texinfo 
             msys2-runtime-devel 
             mingw-w64-x86_64-toolchain
             mingw-w64-x86_64-gcc 
             mingw-w64-x86_64-make
             mingw-w64-x86_64-cmake
-            mingw-w64-x86_64-qt5
-            mingw-w64-x86_64-angleproject 
+            mingw-w64-x86_64-qt6 
+            mingw-w64-x86_64-icu 
             mingw-w64-x86_64-ninja 
             mingw-w64-x86_64-gnupg 
             mingw-w64-x86_64-gpgme
@@ -148,6 +149,18 @@ jobs:
           sudo make install
           cd ${{github.workspace}}
         if: runner.os == 'Linux'
+
+      - name: Build GpgME (Windows)
+        shell: msys2 {0}
+        run: |
+          git clone --depth 1 --branch gpgme-1.24.2 git://git.gnupg.org/gpgme.git ${{github.workspace}}/third_party/gpgme
+          cd ${{github.workspace}}/third_party/gpgme
+          ./autogen.sh
+          export CFLAGS="${CFLAGS} -Wno-int-conversion -Wno-incompatible-pointer-types"
+          ./configure --enable-maintainer-mode --enable-languages=cl --disable-gpg-test --enable-w32-glib
+          make -j4
+          make install
+        if: runner.os == 'Windows'
 
       - name: Build googletest (Linux)
         run: |
