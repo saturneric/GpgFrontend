@@ -337,6 +337,11 @@ void SmartCardControllerDialog::print_smart_card_info() {
 }
 
 void SmartCardControllerDialog::slot_refresh() {
+  scd_version_supported_ =
+      GpgSmartCardManager::GetInstance(channel_).IsSCDVersionSupported();
+  if (scd_version_supported_ && !timer_->isActive()) {
+    timer_->start(3000);
+  }
   fetch_smart_card_info(ui_->currentCardComboBox->currentText());
 }
 
