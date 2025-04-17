@@ -117,7 +117,8 @@ jobs:
             binutils 
             zip
             unzip
-            libintl 
+            libintl
+            texinfo 
             msys2-runtime-devel 
             mingw-w64-x86_64-toolchain
             mingw-w64-x86_64-gcc 
@@ -169,7 +170,9 @@ jobs:
           git clone --depth 1 --branch gpgme-1.24.2 git://git.gnupg.org/gpgme.git ${{github.workspace}}/third_party/gpgme
           cd ${{github.workspace}}/third_party/gpgme
           ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-languages=cpp --disable-gpg-test && make -j4
+          export CFLAGS="${CFLAGS} -Wno-int-conversion -Wno-incompatible-pointer-types"
+          ./configure --enable-maintainer-mode --enable-languages=cl --disable-gpg-test --enable-w32-glib
+          make -j4
           make install
         if: runner.os == 'Windows'
 
