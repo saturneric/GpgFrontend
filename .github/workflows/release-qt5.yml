@@ -99,6 +99,7 @@ jobs:
             mingw-w64-x86_64-libarchive
             mingw-w64-x86_64-gtest
             mingw-w64-x86_64-autotools
+            mingw-w64-x86_64-angleproject
         if: runner.os == 'Windows'
 
       - name: Install Dependence (Linux)
