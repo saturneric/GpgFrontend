@@ -30,6 +30,7 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/model/GpgImportInformation.h"
 #include "core/model/SettingsObject.h"
 #include "ui/UISignalStation.h"
 #include "ui/struct/settings_object/KeyServerSO.h"

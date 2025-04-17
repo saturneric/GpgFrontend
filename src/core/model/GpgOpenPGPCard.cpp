@@ -66,7 +66,7 @@ void GpgFrontend::GpgOpenPGPCard::parse_card_info(const QString& name,
     additional_card_infos.insert(name, value);
   }
 
-  reader = additional_card_infos.value("READER").replace('+', ' ');
+  reader = QString(additional_card_infos.value("READER")).replace("+", " ");
   serial_number = additional_card_infos.value("SERIALNO");
   app_type = additional_card_infos.value("APPTYPE");
   display_language = additional_card_infos.value("DISP-LANG");
@@ -177,8 +177,13 @@ void GpgOpenPGPCard::parse_card_key_info(const QString& name,
     if (tokens.size() >= 2) {
       int no = tokens.front().toInt();
       qint64 ts = tokens.back().toLongLong();
-      card_keys_info[no].created =
-          QDateTime::fromSecsSinceEpoch(ts, QTimeZone::UTC);
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+      auto dt = QDateTime::fromSecsSinceEpoch(ts, QTimeZone::UTC);
+#else
+      auto dt = QDateTime::fromSecsSinceEpoch(ts, QTimeZone::utc());
+#endif
+      card_keys_info[no].created = dt;
     }
   } else if (name == "KEYPAIRINFO") {
     auto tokens = value.split(' ');

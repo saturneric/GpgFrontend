@@ -107,7 +107,7 @@ auto GpgSmartCardManager::GetSerialNumbers() -> QStringList {
           .toHex();
   // check and skip
   if (cached_scd_serialno_status_hash_ == hash) {
-    return cache_scd_card_serial_numbers_;
+    return QCS2QSL(cache_scd_card_serial_numbers_);
   }
 
   cached_scd_serialno_status_hash_.clear();
@@ -138,7 +138,7 @@ auto GpgSmartCardManager::GetSerialNumbers() -> QStringList {
   }
 
   cached_scd_serialno_status_hash_ = hash;
-  return cache_scd_card_serial_numbers_;
+  return QCS2QSL(cache_scd_card_serial_numbers_);
 }
 
 auto GpgSmartCardManager::SelectCardBySerialNumber(const QString& serial_number)

@@ -53,7 +53,14 @@ GpgKeyTableModel::GpgKeyTableModel(int channel,
 auto GpgKeyTableModel::index(int row, int column,
                              const QModelIndex &parent) const -> QModelIndex {
   if (!hasIndex(row, column, parent) || parent.isValid()) return {};
-  return createIndex(row, column, &cached_items_[row]);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+  return createIndex(row, column,
+                     static_cast<const void *>(&cached_items_[row]));
+#else
+  return createIndex(
+      row, column,
+      const_cast<void *>(static_cast<const void *>(&cached_items_[row])));
+#endif
 }
 
 auto GpgKeyTableModel::rowCount(const QModelIndex & /*parent*/) const -> int {
