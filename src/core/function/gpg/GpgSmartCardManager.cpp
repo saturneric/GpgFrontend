@@ -182,9 +182,10 @@ auto PercentDataEscape(const QByteArray& data, bool plus_escape = false,
   if (!prefix.isEmpty()) {
     for (QChar ch : prefix) {
       if (ch == '%' || ch.unicode() < 0x20) {
-        result += QString("%%%1")
-                      .arg(ch.unicode(), 2, 16, QLatin1Char('0'))
-                      .toUpper();
+        result +=
+            QString("%%%1")
+                .arg(static_cast<int>(ch.unicode()), 2, 16, QLatin1Char('0'))
+                .toUpper();
       } else {
         result += ch;
       }

@@ -64,8 +64,8 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
 
   Thread::Task::TaskRunnable runner =
       [](const DataObjectPtr &data_object) -> int {
-    FLOG_D("process runner called, data object size: %lu",
-           data_object->GetObjectSize());
+    LOG_D() << "process runner called, data object size:"
+            << data_object->GetObjectSize();
 
     if (!data_object->Check<QString, QStringList, GpgCommandExecutorInterator,
                             GpgCommandExecutorCallback>()) {

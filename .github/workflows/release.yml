@@ -114,7 +114,7 @@ jobs:
       - name: Set up MinGW (Windows)
         uses: msys2/setup-msys2@v2
         with:
-          update: true
+          update: false
           release: false
           cache: true
           install: >-
