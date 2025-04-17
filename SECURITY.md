@@ -48,6 +48,10 @@ From version v2.1.6 onwards, we no longer support macOS 12, as it will be
 discontinued soon by GitHub Action. Given its age and the anticipated
 discontinuation of support by Apple, it is wise to drop it.
 
+From version v2.1.8 onwards, we no longer support Ubuntu 20.04, as the LTS life
+cycle of this version had ended by then. Continuing to use this version of
+Ubuntu is therefore not safe.
+
 ## Reporting a Vulnerability
 
 In case you wish to report a vulnerability, please avoid raising an issue
