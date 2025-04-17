@@ -72,7 +72,7 @@ jobs:
 
       - name: Build gpg-error
         run: |
-          git clone --depth 1 --branch libgpg-error-1.47 git://git.gnupg.org/libgpg-error.git ${{github.workspace}}/third_party/libgpg-error
+          git clone --depth 1 --branch libgpg-error-1.51 git://git.gnupg.org/libgpg-error.git ${{github.workspace}}/third_party/libgpg-error
           cd  ${{github.workspace}}/third_party/libgpg-error
           ./autogen.sh
           ./configure --enable-maintainer-mode && make -j4
@@ -81,7 +81,7 @@ jobs:
 
       - name: Build assuan
         run: |
-          git clone --depth 1 --branch libassuan-2.5.6 git://git.gnupg.org/libassuan.git ${{github.workspace}}/third_party/libassuan
+          git clone --depth 1 --branch libassuan-2.5.7 git://git.gnupg.org/libassuan.git ${{github.workspace}}/third_party/libassuan
           cd ${{github.workspace}}/third_party/libassuan
           ./autogen.sh
           ./configure --enable-maintainer-mode && make -j4
@@ -90,7 +90,7 @@ jobs:
 
       - name: Build GpgME
         run: |
-          git clone --depth 1 --branch gpgme-1.22.0 git://git.gnupg.org/gpgme.git ${{github.workspace}}/third_party/gpgme
+          git clone --depth 1 --branch gpgme-1.24.2 git://git.gnupg.org/gpgme.git ${{github.workspace}}/third_party/gpgme
           cd  ${{github.workspace}}/third_party/gpgme
           ./autogen.sh
           ./configure --enable-maintainer-mode --enable-languages=cpp && make -j4
