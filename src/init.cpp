@@ -180,7 +180,7 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
 
   auto kill_all_gnupg_daemon_at_close =
       GetSettings()
-          .value("gnupg/kill_all_gnupg_daemon_at_close", false)
+          .value("gnupg/kill_all_gnupg_daemon_at_close", true)
           .toBool();
 
   if (ctx->unit_test_mode || kill_all_gnupg_daemon_at_close) {

@@ -54,8 +54,6 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
   ui_->gpgmeDebugLogCheckBox->setText(tr("Enable GpgME Debug Log"));
   ui_->useCustomGnuPGInstallPathCheckBox->setText(tr("Use Custom GnuPG"));
   ui_->useCustomGnuPGInstallPathButton->setText(tr("Select GnuPG Path"));
-  ui_->restartGpgAgentOnStartCheckBox->setText(
-      tr("Restart Gpg Agent on start"));
   ui_->killAllGnuPGDaemonCheckBox->setText(
       tr("Kill all gnupg daemon at close"));
 
@@ -132,12 +130,6 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
     // announce the restart
     this->slot_set_restart_needed(kDeepRestartCode);
   });
-
-  connect(ui_->restartGpgAgentOnStartCheckBox, &QCheckBox::stateChanged, this,
-          [=](int) {
-            // announce the restart
-            this->slot_set_restart_needed(kDeepRestartCode);
-          });
 
   connect(ui_->useCustomGnuPGInstallPathCheckBox, &QCheckBox::stateChanged,
           this, [=](int) {
@@ -242,7 +234,7 @@ void GnuPGControllerDialog::set_settings() {
   }
 
   auto kill_all_gnupg_daemon_at_close =
-      settings.value("gnupg/kill_all_gnupg_daemon_at_close", false).toBool();
+      settings.value("gnupg/kill_all_gnupg_daemon_at_close", true).toBool();
   if (kill_all_gnupg_daemon_at_close) {
     ui_->killAllGnuPGDaemonCheckBox->setCheckState(Qt::Checked);
   }
@@ -260,12 +252,6 @@ void GnuPGControllerDialog::set_settings() {
           .toBool();
   if (use_pinentry_as_password_input_dialog) {
     ui_->usePinentryAsPasswordInputDialogCheckBox->setCheckState(Qt::Checked);
-  }
-
-  auto restart_gpg_agent_on_start =
-      settings.value("gnupg/restart_gpg_agent_on_start", false).toBool();
-  if (restart_gpg_agent_on_start) {
-    ui_->restartGpgAgentOnStartCheckBox->setCheckState(Qt::Checked);
   }
 
   this->slot_update_custom_gnupg_install_path_label(
@@ -292,8 +278,6 @@ void GnuPGControllerDialog::apply_settings() {
                     ui_->gpgmeDebugLogCheckBox->isChecked());
   settings.setValue("gnupg/custom_gnupg_install_path",
                     ui_->currentCustomGnuPGInstallPathLabel->text());
-  settings.setValue("gnupg/restart_gpg_agent_on_start",
-                    ui_->restartGpgAgentOnStartCheckBox->isChecked());
   settings.setValue("gnupg/kill_all_gnupg_daemon_at_close",
                     ui_->killAllGnuPGDaemonCheckBox->isChecked());
 

@@ -52,13 +52,6 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="restartGpgAgentOnStartCheckBox">
-               <property name="text">
-                <string>Restart Gpg Agent on start</string>
-               </property>
-              </widget>
-             </item>
-             <item>
               <widget class="QCheckBox" name="killAllGnuPGDaemonCheckBox">
                <property name="text">
                 <string>Kill all gnupg daemon at close</string>

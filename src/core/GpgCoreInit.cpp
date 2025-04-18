@@ -33,7 +33,6 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/basic/ChannelObject.h"
 #include "core/function/basic/SingletonStorage.h"
-#include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/function/gpg/GpgContext.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/module/ModuleManager.h"
