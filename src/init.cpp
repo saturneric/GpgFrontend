@@ -187,7 +187,7 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
     for (const auto &channel : GpgContext::GetAllChannelId()) {
       assert(GpgAdvancedOperator::GetInstance(channel).KillAllGpgComponents());
     }
-  } else if (!ctx->unit_test_mode && clear_gpg_password_cache) {
+  } else if (clear_gpg_password_cache) {
     for (const auto &channel : GpgContext::GetAllChannelId()) {
       assert(GpgAdvancedOperator::GetInstance(channel).ClearGpgPasswordCache());
     }

@@ -48,6 +48,80 @@
 
 namespace GpgFrontend {
 
+class GpgAgentProcess {
+ public:
+  explicit GpgAgentProcess(int channel, QString gpg_agent_path, QString db_path)
+      : channel_(channel),
+        db_path_(std::move(db_path)),
+        gpg_agent_path_(std::move(gpg_agent_path)) {}
+
+  auto Start() -> bool {
+    assert(!gpg_agent_path_.isEmpty());
+    assert(!db_path_.isEmpty());
+
+    if (gpg_agent_path_.trimmed().isEmpty()) {
+      LOG_E() << "gpg-agent path is empty!";
+      return false;
+    }
+
+    LOG_D() << "get gpg-agent path: " << gpg_agent_path_;
+    QFileInfo info(gpg_agent_path_);
+    if (!info.exists() || !info.isFile()) {
+      LOG_E() << "gpg-agent is not exists or is not a binary file!";
+      return false;
+    }
+
+    auto args = QStringList{};
+
+    if (!db_path_.isEmpty()) {
+      args.append({"--homedir", QDir::toNativeSeparators(db_path_)});
+    }
+
+    args.append({"--daemon", "--enable-ssh-support"});
+
+    auto pinentry = DecidePinentry();
+    if (!pinentry.trimmed().isEmpty()) {
+      args.append({"--pinentry-program", pinentry});
+    }
+
+    if (channel_ != kGpgFrontendDefaultChannel) {
+      args.append("--disable-scdaemon");
+    }
+
+    LOG_E() << "gpg-agent start args: " << args << "channel:" << channel_;
+
+    process_.setProgram(info.absoluteFilePath());
+    process_.setArguments(args);
+    process_.setProcessChannelMode(QProcess::MergedChannels);
+    process_.start();
+
+    if (!process_.waitForStarted()) {
+      LOG_W() << "timeout starting gpg-agent: " << gpg_agent_path_
+              << "ags: " << args;
+      return false;
+    }
+
+    return true;
+  }
+
+  ~GpgAgentProcess() {
+    if (process_.state() != QProcess::NotRunning) {
+      qInfo() << "killing gpg-agent, channel: " << channel_;
+      process_.terminate();
+      if (!process_.waitForFinished(5000)) {
+        process_.kill();
+        process_.waitForFinished();
+      }
+    }
+  }
+
+ private:
+  int channel_;
+  QProcess process_;
+  QString db_path_;
+  QString gpg_agent_path_;
+};
+
 class GpgContext::Impl {
  public:
   /**
@@ -62,7 +136,11 @@ class GpgContext::Impl {
         db_name_(args.db_name),
         gpgconf_path_(Module::RetrieveRTValueTypedOrDefault<>(
             "core", "gpgme.ctx.gpgconf_path", QString{})),
-        database_path_(args.db_path) {
+        database_path_(args.db_path),
+        agent_(parent->GetChannel(),
+               Module::RetrieveRTValueTypedOrDefault<>(
+                   "core", "gnupg.components.gpg-agent.path", QString{}),
+               args.db_path) {
     init(args);
   }
 
@@ -209,6 +287,7 @@ class GpgContext::Impl {
   QString gpgconf_path_;
   QString database_path_;
   QMap<QString, QString> component_dirs_;
+  GpgAgentProcess agent_;
 
   void init(const GpgContextInitArgs &args) {
     assert(!gpgconf_path_.isEmpty());
@@ -472,57 +551,7 @@ class GpgContext::Impl {
   }
 
   auto launch_gpg_agent() -> bool {
-    const auto gpg_agent = Module::RetrieveRTValueTypedOrDefault<>(
-        "core", "gnupg.components.gpg-agent.path", QString{});
-
-    if (gpg_agent.trimmed().isEmpty()) {
-      LOG_E() << "gpg-agent path is empty!";
-      return false;
-    }
-
-    LOG_D() << "get gpg-agent path: " << gpg_agent;
-    QFileInfo info(gpg_agent);
-    if (!info.exists() || !info.isFile()) {
-      LOG_E() << "gpg-agent is not exists or is not a binary file!";
-      return false;
-    }
-
-    auto args = QStringList{};
-
-    if (!HomeDirectory().isEmpty()) {
-      args.append({"--homedir", QDir::toNativeSeparators(HomeDirectory())});
-    }
-
-    args.append({"--daemon", "--enable-ssh-support"});
-
-    auto pinentry = DecidePinentry();
-    if (!pinentry.trimmed().isEmpty()) {
-      args.append({"--pinentry-program", pinentry});
-    }
-
-    if (parent_->GetChannel() != kGpgFrontendDefaultChannel) {
-      args.append("--disable-scdaemon");
-    }
-
-    LOG_E() << "gpg-agent start args: " << args
-            << "channel:" << parent_->GetChannel();
-
-    QProcess process;
-    process.setProgram(info.absoluteFilePath());
-    process.setArguments(args);
-    process.setProcessChannelMode(QProcess::MergedChannels);
-
-    process.start();
-    if (!process.waitForFinished(3000)) {
-      LOG_W() << "timeout starting gpg-agent daemon: " << gpg_agent
-              << "ags: " << args;
-      return false;
-    }
-
-    QString output = process.readAll();
-    LOG_D() << "gpg-agent daemon start output:" << output
-            << "exit code: " << process.exitCode();
-
+    agent_.Start();
     return true;
   }
 };
