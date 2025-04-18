@@ -294,9 +294,9 @@ auto GetCanonicalKeyDatabasePath(const QDir& app_path,
 
   QFileInfo info(target_path);
   if (!info.exists()) {
-    LOG_W() << "key database not exists:" << info.canonicalFilePath()
+    LOG_W() << "key database not exists:" << info.absoluteFilePath()
             << ", making a new directory...";
-    QDir().mkdir(info.canonicalFilePath());
+    QDir().mkdir(info.absoluteFilePath());
   }
 
   if (VerifyKeyDatabasePath(info)) {

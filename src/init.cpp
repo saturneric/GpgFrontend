@@ -184,14 +184,12 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
           .toBool();
 
   if (ctx->unit_test_mode || kill_all_gnupg_daemon_at_close) {
-    const auto size = GpgContext::GetAllChannelId().size();
-    for (auto i = 0; i < size; i++) {
-      assert(GpgAdvancedOperator::GetInstance().KillAllGpgComponents());
+    for (const auto &channel : GpgContext::GetAllChannelId()) {
+      assert(GpgAdvancedOperator::GetInstance(channel).KillAllGpgComponents());
     }
   } else if (!ctx->unit_test_mode && clear_gpg_password_cache) {
-    const auto size = GpgContext::GetAllChannelId().size();
-    for (auto i = 0; i < size; i++) {
-      assert(GpgAdvancedOperator::GetInstance().ClearGpgPasswordCache());
+    for (const auto &channel : GpgContext::GetAllChannelId()) {
+      assert(GpgAdvancedOperator::GetInstance(channel).ClearGpgPasswordCache());
     }
   }
 

@@ -112,9 +112,8 @@ SmartCardControllerDialog::SmartCardControllerDialog(QWidget* parent)
 
   connect(ui_->restartGpgAgentButton, &QPushButton::clicked, this, [=](bool) {
     bool ret = true;
-    const auto size = GpgContext::GetAllChannelId().size();
-    for (auto i = 0; i < size; i++) {
-      ret = GpgAdvancedOperator::GetInstance().RestartGpgComponents();
+    for (const auto& channel : GpgContext::GetAllChannelId()) {
+      ret = GpgAdvancedOperator::GetInstance(channel).RestartGpgComponents();
       if (!ret) break;
     }
 

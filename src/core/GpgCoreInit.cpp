@@ -695,16 +695,6 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
       ->PostTask(task);
 
-  const auto size = GpgContext::GetAllChannelId().size();
-  for (auto i = 0; i < size; i++) {
-    if (!args.unit_test_mode && restart_all_gnupg_components_on_start) {
-      assert(GpgAdvancedOperator::GetInstance().RestartGpgComponents());
-    } else {
-      // ensure gpg-agent is running
-      assert(GpgAdvancedOperator::GetInstance().LaunchAllGpgComponents());
-    }
-  }
-
   return 0;
 }
 
