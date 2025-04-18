@@ -217,7 +217,8 @@ void WaitingAllInitializationFinished() {
 
 auto RunGpgFrontendUI(QApplication* app) -> int {
   // create main window and show it
-  auto* main_window = new GpgFrontend::UI::MainWindow();
+  auto main_window = QSharedPointer<GpgFrontend::UI::MainWindow>::create();
+  main_window->setAttribute(Qt::WA_DeleteOnClose, false);
 
   // pre-check, if application need to restart
   if (CommonUtils::GetInstance()->IsApplicationNeedRestart()) {
@@ -233,7 +234,6 @@ auto RunGpgFrontendUI(QApplication* app) -> int {
   // show main windows
   main_window->show();
 
-  // start the main event loop
   return QApplication::exec();
 }
 

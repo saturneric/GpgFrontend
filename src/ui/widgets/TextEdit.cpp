@@ -75,9 +75,10 @@ void TextEdit::SlotNewDefaultFileBrowserTab() {
 
 void TextEdit::SlotNewFileBrowserTab() {
   auto const target_path =
-      QFileDialog::getOpenFileUrl(this, tr("Open File"), QDir::home().path());
+      QFileDialog::getOpenFileName(this, tr("Open File"), QDir::home().path());
+
   if (target_path.isEmpty()) return;
-  tab_widget_->SlotOpenPath(target_path.path());
+  tab_widget_->SlotOpenPath(target_path);
 }
 
 void TextEdit::SlotNewFileBrowserTabWithDirectory() {
