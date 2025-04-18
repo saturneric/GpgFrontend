@@ -167,6 +167,14 @@ void CommonUtils::RaiseMessageBox(QWidget *parent, GpgError err) {
   }
 }
 
+void CommonUtils::RaiseMessageBoxNotSupported(QWidget *parent) {
+  QMessageBox::warning(
+      parent, QObject::tr("Operation Not Supported"),
+      QObject::tr(
+          "The current GnuPG version is too low and does not support this "
+          "operation. Please upgrade your GnuPG version to continue."));
+}
+
 void CommonUtils::RaiseFailureMessageBox(QWidget *parent, GpgError err,
                                          const QString &msg) {
   GpgErrorDesc desc = DescribeGpgErrCode(err);

@@ -28,14 +28,13 @@
 
 #pragma once
 
-#include "core/GpgFrontendCore.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/gpg/GpgContext.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
-class GpgAutomatonHandler
+class GPGFRONTEND_CORE_EXPORT GpgAutomatonHandler
     : public SingletonFunctionObject<GpgAutomatonHandler> {
  public:
   using Command = QString;

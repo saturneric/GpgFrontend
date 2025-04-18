@@ -66,6 +66,11 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
     add_adsk_button->hide();
   }
 
+  if (!CheckGpgVersion(channel, "2.4.1")) {
+    add_adsk_button->setDisabled(true);
+    add_adsk_button->hide();
+  }
+
   uid_buttons_layout->addWidget(add_subkey_button, 0, 0);
   uid_buttons_layout->addWidget(add_adsk_button, 0, 1);
 
@@ -277,9 +282,12 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
 }
 
 void KeyPairSubkeyTab::slot_add_subkey() {
-  auto* dialog =
-      new SubkeyGenerateDialog(current_gpg_context_channel_, key_, this);
-  dialog->show();
+  if (!CheckGpgVersion(current_gpg_context_channel_, "2.2.0")) {
+    CommonUtils::RaiseMessageBoxNotSupported(this);
+    return;
+  }
+
+  new SubkeyGenerateDialog(current_gpg_context_channel_, key_, this);
 }
 
 void KeyPairSubkeyTab::slot_add_adsk() {

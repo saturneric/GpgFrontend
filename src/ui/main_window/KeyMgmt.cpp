@@ -428,12 +428,20 @@ void KeyMgmt::SlotExportKeyToClipboard() {
 }
 
 void KeyMgmt::SlotGenerateKeyDialog() {
-  (new KeyGenerateDialog(key_list_->GetCurrentGpgContextChannel(), this))
-      ->exec();
-  this->raise();
+  if (!CheckGpgVersion(key_list_->GetCurrentGpgContextChannel(), "2.2.0")) {
+    CommonUtils::RaiseMessageBoxNotSupported(this);
+    return;
+  }
+
+  new KeyGenerateDialog(key_list_->GetCurrentGpgContextChannel(), this);
 }
 
 void KeyMgmt::SlotGenerateSubKey() {
+  if (!CheckGpgVersion(key_list_->GetCurrentGpgContextChannel(), "2.2.0")) {
+    CommonUtils::RaiseMessageBoxNotSupported(this);
+    return;
+  }
+
   auto key = key_list_->GetSelectedGpgKey();
   if (key == nullptr) return;
 
@@ -444,10 +452,7 @@ void KeyMgmt::SlotGenerateSubKey() {
     return;
   }
 
-  (new SubkeyGenerateDialog(key_list_->GetCurrentGpgContextChannel(), key,
-                            this))
-      ->exec();
-  this->raise();
+  new SubkeyGenerateDialog(key_list_->GetCurrentGpgContextChannel(), key, this);
 }
 
 void KeyMgmt::SlotExportAsOpenSSHFormat() {

@@ -221,4 +221,10 @@ auto GPGFRONTEND_CORE_EXPORT GpgAgentVersionGreaterThan(int channel,
 auto GPGFRONTEND_CORE_EXPORT CheckGpgVersion(int channel,
                                              const QString&) -> bool;
 
+/**
+ * @brief
+ *
+ * @return QString
+ */
+auto GPGFRONTEND_CORE_EXPORT DecidePinentry() -> QString;
 }  // namespace GpgFrontend

@@ -456,4 +456,23 @@ auto GPGFRONTEND_CORE_EXPORT CheckGpgVersion(int channel,
 
   return true;
 }
+
+auto GPGFRONTEND_CORE_EXPORT DecidePinentry() -> QString {
+#ifdef __linux__
+  QStringList preferred_list = {"pinentry-gnome3",
+                                "pinentry-qt"
+                                "pinentry-gtk2"};
+#else
+  QStringList preferred_list = {"pinentry-qt"};
+#endif
+
+  for (const QString& name : preferred_list) {
+    QString path = QStandardPaths::findExecutable(name);
+    if (!path.isEmpty()) {
+      return path;
+    }
+  }
+
+  return {};
+}
 }  // namespace GpgFrontend

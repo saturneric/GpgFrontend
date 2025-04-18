@@ -50,7 +50,8 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, GpgKeyPtr key,
       current_gpg_context_channel_(channel),
       key_(std::move(key)),
       gen_subkey_info_(QSharedPointer<KeyGenerateInfo>::create(true)),
-      supported_subkey_algos_(KeyGenerateInfo::GetSupportedSubkeyAlgo()) {
+      supported_subkey_algos_(KeyGenerateInfo::GetSupportedSubkeyAlgo(
+          current_gpg_context_channel_)) {
   ui_->setupUi(this);
   assert(key_ != nullptr);
 
@@ -88,6 +89,10 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, GpgKeyPtr key,
 
   set_signal_slot_config();
   refresh_widgets_state();
+
+  this->show();
+  this->raise();
+  this->activateWindow();
 }
 
 void SubkeyGenerateDialog::set_signal_slot_config() {
