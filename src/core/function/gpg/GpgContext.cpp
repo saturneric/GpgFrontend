@@ -32,7 +32,6 @@
 #include <gpgme.h>
 
 #include <cassert>
-#include <cstddef>
 #include <mutex>
 
 #include "core/function/CoreSignalStation.h"
@@ -58,7 +57,10 @@ class GpgContext::Impl {
    * @param args
    */
   Impl(GpgContext *parent, const GpgContextInitArgs &args)
-      : parent_(parent), args_(args) {
+      : parent_(parent),
+        args_(args),
+        gpgconf_path_(Module::RetrieveRTValueTypedOrDefault<>(
+            "core", "gpgme.ctx.gpgconf_path", QString{})) {
     init(args);
   }
 
@@ -207,6 +209,8 @@ class GpgContext::Impl {
   QMap<QString, QString> component_dirs_;
 
   void init(const GpgContextInitArgs &args) {
+    assert(!gpgconf_path_.isEmpty());
+
     // init
     get_gpg_conf_dirs();
     kill_gpg_agent();
@@ -281,10 +285,6 @@ class GpgContext::Impl {
   auto common_ctx_initialize(const gpgme_ctx_t &ctx,
                              const GpgContextInitArgs &args) -> bool {
     assert(ctx != nullptr);
-
-    this->gpgconf_path_ = Module::RetrieveRTValueTypedOrDefault<>(
-        "core", "gpgme.ctx.gpgconf_path", QString{});
-    assert(!gpgconf_path_.isEmpty());
 
     if (!gpgconf_path_.isEmpty()) {
       LOG_D() << "set gpgconf path: " << gpgconf_path_;
@@ -427,15 +427,14 @@ class GpgContext::Impl {
   }
 
   auto kill_gpg_agent() -> bool {
-    const auto gpgconf = Module::RetrieveRTValueTypedOrDefault<>(
-        "core", "gpgme.ctx.gpgconf_path", QString{});
+    auto gpgconf_path = QFileInfo(this->gpgconf_path_).absoluteFilePath();
 
-    if (gpgconf.trimmed().isEmpty()) {
+    if (gpgconf_path.trimmed().isEmpty()) {
       LOG_E() << "gpgconf path is empty!";
       return false;
     }
 
-    LOG_D() << "get gpgconf path: " << gpgconf;
+    LOG_D() << "get gpgconf path: " << gpgconf_path;
 
     auto args =
         QStringList{"--homedir", QDir::toNativeSeparators(HomeDirectory()),
@@ -445,12 +444,13 @@ class GpgContext::Impl {
             << "channel:" << parent_->GetChannel();
 
     QProcess process;
-    process.setProgram(gpgconf);
+    process.setProgram(gpgconf_path);
     process.setArguments(args);
     process.setProcessChannelMode(QProcess::MergedChannels);
     process.start();
     if (!process.waitForFinished(3000)) {
-      LOG_W() << "timeout executing gpgconf: " << gpgconf << "ags: " << args;
+      LOG_W() << "timeout executing gpgconf: " << gpgconf_path
+              << "ags: " << args;
       return false;
     }
 

@@ -387,56 +387,6 @@ auto DecideGnuPGPath(const QString& default_gnupg_path) -> QString {
   return default_gnupg_path;
 }
 
-void EnsureGpgAgentConfHasPinentry(GpgContext& ctx) {
-  auto pinentry_path = DecidePinentry();
-  if (pinentry_path.isEmpty()) {
-    LOG_W() << "no suitable pinentry found.";
-    return;
-  }
-
-  QDir gnupg_dir(ctx.HomeDirectory());
-  if (!gnupg_dir.exists()) {
-    gnupg_dir.mkpath(".");
-  }
-
-  QString config_path = gnupg_dir.filePath("gpg-agent.conf");
-  QFile config_file(config_path);
-  QStringList lines;
-
-  LOG_D() << "checking pinentry config at:" << gnupg_dir;
-
-  bool has_pinentry_line = false;
-  if (config_file.exists()) {
-    if (config_file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-      QTextStream in(&config_file);
-      while (!in.atEnd()) {
-        QString line = in.readLine();
-        if (line.trimmed().startsWith("pinentry-program")) {
-          has_pinentry_line = true;
-        }
-        lines.append(line);
-      }
-      config_file.close();
-    }
-  }
-
-  if (!has_pinentry_line) {
-    lines.append(QString("pinentry-program %1").arg(pinentry_path));
-    if (config_file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-      QTextStream out(&config_file);
-      for (const QString& line : lines) {
-        out << line << '\n';
-      }
-      config_file.close();
-      LOG_D() << "updated gpg-agent.conf with pinentry:" << pinentry_path;
-    } else {
-      LOG_W() << "failed to write to gpg-agent.conf";
-    }
-  } else {
-    LOG_D() << "gpg-agent.conf already contains pinentry-program";
-  }
-}
-
 auto InitBasicPath() -> bool {
   auto default_gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", QString{});
@@ -553,10 +503,6 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
           .value("gnupg/use_pinentry_as_password_input_dialog", !IsFlatpakENV())
           .toBool();
 
-  // try to restart all components
-  auto restart_all_gnupg_components_on_start =
-      settings.value("gnupg/restart_gpg_agent_on_start", false).toBool();
-
   // unit test mode
   if (args.unit_test_mode) {
     Module::UpsertRTValue("core", "env.state.basic", 1);
@@ -608,11 +554,6 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     return -1;
   }
 
-#if !(defined(_WIN32) || defined(WIN32))
-  // auto config pinentry-program
-  EnsureGpgAgentConfHasPinentry(default_ctx);
-#endif
-
   Module::UpsertRTValue("core", "env.state.ctx", 1);
 
   if (!GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).FlushKeyCache()) {
@@ -661,14 +602,6 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
             LOG_E() << "gpgme context init failed, index:" << channel_index;
             continue;
           }
-
-#if defined(__linux__)
-          EnsureGpgAgentConfHasPinentry(ctx);
-#endif
-
-#if defined(__APPLE__) && defined(__MACH__)
-          EnsureGpgAgentConfHasPinentry(ctx);
-#endif
 
           if (!GpgKeyGetter::GetInstance(ctx.GetChannel()).FlushKeyCache()) {
             LOG_E() << "gpgme context init key cache failed, index:"
