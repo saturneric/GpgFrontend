@@ -43,7 +43,7 @@
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(WIN32)
 #include <windows.h>
 #endif
 
@@ -408,7 +408,7 @@ class GpgContext::Impl {
       auto configuration_name = info_split_list[0].trimmed();
       auto configuration_value = info_split_list[1].trimmed();
 
-#ifdef __MINGW32__
+#if defined(_WIN32) || defined(WIN32)
       // replace some special substrings on windows
       // platform
       configuration_value.replace("%3a", ":");

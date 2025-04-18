@@ -28,14 +28,13 @@
 
 #pragma once
 
-#include "core/GpgFrontendCore.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/gpg/GpgContext.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
-class GpgAutomatonHandler
+class GPGFRONTEND_CORE_EXPORT GpgAutomatonHandler
     : public SingletonFunctionObject<GpgAutomatonHandler> {
  public:
   using Command = QString;
@@ -83,7 +82,7 @@ class GpgAutomatonHandler
     AutomatonState current_state_ = kAS_START;
     AutomatonNextStateHandler next_state_handler_;
     AutomatonActionHandler action_handler_;
-    bool success_ = false;
+    bool success_ = true;
     bool card_edit_;
     QString id_;
     QString prompt_status_;
@@ -110,7 +109,8 @@ class GpgAutomatonHandler
    */
   auto DoInteract(const GpgKeyPtr& key,
                   AutomatonNextStateHandler next_state_handler,
-                  AutomatonActionHandler action_handler, int flags = 0) -> bool;
+                  AutomatonActionHandler action_handler,
+                  int flags = 0) -> std::tuple<GpgError, bool>;
 
   /**
    * @brief
@@ -122,7 +122,8 @@ class GpgAutomatonHandler
    */
   auto DoCardInteract(const QString& serial_number,
                       AutomatonNextStateHandler next_state_handler,
-                      AutomatonActionHandler action_handler) -> bool;
+                      AutomatonActionHandler action_handler)
+      -> std::tuple<GpgError, bool>;
 
  private:
   GpgContext& ctx_ =

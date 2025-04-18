@@ -31,7 +31,6 @@
 #include "core/function/gpg/GpgAutomatonHandler.h"
 #include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/model/GpgData.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
@@ -69,9 +68,9 @@ auto GpgKeyManager::RevSign(const GpgKeyPtr& key,
     auto signing_key = key_getter.GetKey(sign_id.first);
     assert(signing_key.IsGood());
 
-    auto err = CheckGpgError(
-        gpgme_op_revsig(ctx_.DefaultContext(), gpgme_key_t(*key),
-                        gpgme_key_t(signing_key), sign_id.second.toUtf8(), 0));
+    auto err = CheckGpgError(gpgme_op_revsig(
+        ctx_.DefaultContext(), static_cast<gpgme_key_t>(*key),
+        static_cast<gpgme_key_t>(signing_key), sign_id.second.toUtf8(), 0));
     if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return false;
   }
   return true;
@@ -102,7 +101,7 @@ auto GpgKeyManager::SetOwnerTrustLevel(const GpgKeyPtr& key,
   }
 
   GpgAutomatonHandler::AutomatonNextStateHandler next_state_handler =
-      [](AutomatonState state, QString status, QString args) {
+      [](AutomatonState state, const QString& status, const QString& args) {
         auto tokens = args.split(' ');
 
         switch (state) {
@@ -162,15 +161,14 @@ auto GpgKeyManager::SetOwnerTrustLevel(const GpgKeyPtr& key,
             return QString("Y");
           case GpgAutomatonHandler::kAS_START:
           case GpgAutomatonHandler::kAS_ERROR:
-            return QString("");
           default:
             return QString("");
         }
         return QString("");
       };
 
-  return GpgAutomatonHandler::GetInstance(GetChannel())
-      .DoInteract(key, next_state_handler, action_handler);
+  auto [err, succ] = auto_.DoInteract(key, next_state_handler, action_handler);
+  return err == GPG_ERR_NO_ERROR && !succ;
 }
 
 auto GpgKeyManager::DeleteSubkey(const GpgKeyPtr& key,
@@ -182,7 +180,7 @@ auto GpgKeyManager::DeleteSubkey(const GpgKeyPtr& key,
   }
 
   AutomatonNextStateHandler next_state_handler =
-      [](AutomatonState state, QString status, QString args) {
+      [](AutomatonState state, const QString& status, const QString& args) {
         auto tokens = args.split(' ');
 
         switch (state) {
@@ -247,8 +245,8 @@ auto GpgKeyManager::DeleteSubkey(const GpgKeyPtr& key,
         return QString("");
       };
 
-  return GpgAutomatonHandler::GetInstance(GetChannel())
-      .DoInteract(key, next_state_handler, action_handler);
+  auto [err, succ] = auto_.DoInteract(key, next_state_handler, action_handler);
+  return err == GPG_ERR_NO_ERROR && !succ;
 }
 
 auto GpgKeyManager::RevokeSubkey(const GpgKeyPtr& key, int subkey_index,
@@ -270,7 +268,7 @@ auto GpgKeyManager::RevokeSubkey(const GpgKeyPtr& key, int subkey_index,
       reason_text.split('\n', Qt::SkipEmptyParts));
 
   AutomatonNextStateHandler next_state_handler =
-      [](AutomatonState state, QString status, QString args) {
+      [](AutomatonState state, const QString& status, const QString& args) {
         auto tokens = args.split(' ');
 
         switch (state) {
@@ -363,8 +361,8 @@ auto GpgKeyManager::RevokeSubkey(const GpgKeyPtr& key, int subkey_index,
         return QString("");
       };
 
-  return GpgAutomatonHandler::GetInstance(GetChannel())
-      .DoInteract(key, next_state_handler, action_handler);
+  auto [err, succ] = auto_.DoInteract(key, next_state_handler, action_handler);
+  return err == GPG_ERR_NO_ERROR && !succ;
 }
 
 }  // namespace GpgFrontend

@@ -31,7 +31,6 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyManager.h"
-#include "core/function/gpg/GpgKeyOpera.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
@@ -62,6 +61,11 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
     add_subkey_button->setDisabled(true);
     add_subkey_button->hide();
 
+    add_adsk_button->setDisabled(true);
+    add_adsk_button->hide();
+  }
+
+  if (!CheckGpgVersion(channel, "2.4.1")) {
     add_adsk_button->setDisabled(true);
     add_adsk_button->hide();
   }
@@ -277,9 +281,12 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
 }
 
 void KeyPairSubkeyTab::slot_add_subkey() {
-  auto* dialog =
-      new SubkeyGenerateDialog(current_gpg_context_channel_, key_, this);
-  dialog->show();
+  if (!CheckGpgVersion(current_gpg_context_channel_, "2.2.0")) {
+    CommonUtils::RaiseMessageBoxNotSupported(this);
+    return;
+  }
+
+  new SubkeyGenerateDialog(current_gpg_context_channel_, key_, this);
 }
 
 void KeyPairSubkeyTab::slot_add_adsk() {

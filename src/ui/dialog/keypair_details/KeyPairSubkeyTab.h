@@ -47,55 +47,13 @@ class KeyPairSubkeyTab : public QWidget {
    */
   KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent);
 
- private:
+ protected:
   /**
-   * @brief Create a subkey list object
+   * @brief
    *
+   * @param event
    */
-  void create_subkey_list();
-
-  /**
-   * @brief Create a subkey opera menu object
-   *
-   */
-  void create_subkey_opera_menu();
-
-  /**
-   * @brief Get the selected subkey object
-   *
-   * @return const GpgSubKey&
-   */
-  auto get_selected_subkey() -> const GpgSubKey&;
-
-  int current_gpg_context_channel_;
-  GpgKeyPtr key_;                           ///<
-  QTableWidget* subkey_list_{};             ///<
-  QContainer<GpgSubKey> buffered_subkeys_;  ///<
-
-  QGroupBox* list_box_;    ///<
-  QGroupBox* detail_box_;  ///<
-
-  QMenu* subkey_opera_menu_{};  ///<
-
-  QLabel* key_type_var_label_;
-  QLabel* key_size_var_label_;  ///< Label containing the keys key size
-  QLabel* expire_var_label_;    ///< Label containing the keys expiration date
-  QLabel* revoke_var_label_;
-  QLabel* created_var_label_;    ///< Label containing the keys creation date
-  QLabel* algorithm_var_label_;  ///< Label containing the keys algorithm
-  QLabel* algorithm_detail_var_label_;  ///<
-  QLabel* key_id_var_label_;            ///< Label containing the keys keyid
-  QLabel* fingerprint_var_label_;  ///< Label containing the keys fingerprint
-  QLabel* usage_var_label_;        ///<
-  QLabel* master_key_exist_var_label_;  ///<
-  QLabel* card_key_label_;              ///<
-
-  QPushButton* export_subkey_button_;
-  QAction* export_subkey_act_;
-
-  QAction* edit_subkey_act_;
-  QAction* delete_subkey_act_;
-  QAction* revoke_subkey_act_;
+  void contextMenuEvent(QContextMenuEvent* event) override;
 
  private slots:
 
@@ -161,13 +119,55 @@ class KeyPairSubkeyTab : public QWidget {
    */
   void SignalKeyDatabaseRefresh();
 
- protected:
+ private:
+  int current_gpg_context_channel_;
+  GpgKeyPtr key_;                           ///<
+  QTableWidget* subkey_list_{};             ///<
+  QContainer<GpgSubKey> buffered_subkeys_;  ///<
+
+  QGroupBox* list_box_;    ///<
+  QGroupBox* detail_box_;  ///<
+
+  QMenu* subkey_opera_menu_{};  ///<
+
+  QLabel* key_type_var_label_;
+  QLabel* key_size_var_label_;  ///< Label containing the keys key size
+  QLabel* expire_var_label_;    ///< Label containing the keys expiration date
+  QLabel* revoke_var_label_;
+  QLabel* created_var_label_;    ///< Label containing the keys creation date
+  QLabel* algorithm_var_label_;  ///< Label containing the keys algorithm
+  QLabel* algorithm_detail_var_label_;  ///<
+  QLabel* key_id_var_label_;            ///< Label containing the keys keyid
+  QLabel* fingerprint_var_label_;  ///< Label containing the keys fingerprint
+  QLabel* usage_var_label_;        ///<
+  QLabel* master_key_exist_var_label_;  ///<
+  QLabel* card_key_label_;              ///<
+
+  QPushButton* export_subkey_button_;
+  QAction* export_subkey_act_;
+
+  QAction* edit_subkey_act_;
+  QAction* delete_subkey_act_;
+  QAction* revoke_subkey_act_;
+
   /**
-   * @brief
+   * @brief Create a subkey list object
    *
-   * @param event
    */
-  void contextMenuEvent(QContextMenuEvent* event) override;
+  void create_subkey_list();
+
+  /**
+   * @brief Create a subkey opera menu object
+   *
+   */
+  void create_subkey_opera_menu();
+
+  /**
+   * @brief Get the selected subkey object
+   *
+   * @return const GpgSubKey&
+   */
+  auto get_selected_subkey() -> const GpgSubKey&;
 };
 
 }  // namespace GpgFrontend::UI

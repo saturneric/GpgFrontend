@@ -62,7 +62,7 @@ class GPGFRONTEND_CORE_EXPORT KeyAlgo {
 
   [[nodiscard]] auto CanCert() const -> bool;
 
-  [[nodiscard]] auto IsSupported(const QString &version) const -> bool;
+  [[nodiscard]] auto SupportedVersion() const -> QString;
 
  private:
   QString id_;
@@ -96,14 +96,14 @@ class GPGFRONTEND_CORE_EXPORT KeyGenerateInfo : public QObject {
    *
    * @return const QContainer<KeyGenAlgo>&
    */
-  static auto GetSupportedKeyAlgo() -> QContainer<KeyAlgo>;
+  static auto GetSupportedKeyAlgo(int channel) -> QContainer<KeyAlgo>;
 
   /**
    * @brief Get the Supported Subkey Algo object
    *
    * @return const QContainer<KeyGenAlgo>&
    */
-  static auto GetSupportedSubkeyAlgo() -> QContainer<KeyAlgo>;
+  static auto GetSupportedSubkeyAlgo(int channel) -> QContainer<KeyAlgo>;
 
   /**
    * @brief

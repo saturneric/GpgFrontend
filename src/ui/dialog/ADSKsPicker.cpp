@@ -115,8 +115,7 @@ void ADSKsPicker::slot_add_adsk(const QContainer<GpgSubKey>& s_keys) {
     for (const auto& info : err_sub_key_infos) {
       failed_info.append(info);
     }
-    QString details = failed_info.join("\n\n");
-
+    auto details = failed_info.join("\n\n");
     auto* msg_box = new QMessageBox(nullptr);
     msg_box->setIcon(QMessageBox::Warning);
     msg_box->setWindowTitle(err_sub_key_infos.size() == s_keys.size()

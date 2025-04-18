@@ -333,7 +333,8 @@ auto GnuPGControllerDialog::check_custom_gnupg_path(QString path) -> bool {
     QMessageBox::critical(this, tr("Illegal GnuPG Path"),
                           tr("Target GnuPG Path is not an absolute path."));
   }
-#ifdef __MINGW32__
+
+#if defined(_WIN32) || defined(WIN32)
   QFileInfo const gpgconf_info(path + "/gpgconf.exe");
 #else
   QFileInfo const gpgconf_info(path + "/gpgconf");

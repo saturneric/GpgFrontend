@@ -225,17 +225,17 @@ auto InitGpgME() -> bool {
       "core", "gpgme.ctx.gnupg_version", QString{});
 
   if (!has_gpgconf) {
-    FLOG_E() << "cannot get gpgconf backend engine, abort...";
+    LOG_E() << "cannot get gpgconf backend engine, abort...";
     return false;
   }
 
   if (!has_openpgp) {
-    FLOG_E() << "cannot get openpgp backend engine, abort...";
+    LOG_E() << "cannot get openpgp backend engine, abort...";
     return false;
   }
 
   if (!has_cms) {
-    FLOG_E() << "cannot get cms backend engine, abort...";
+    LOG_E() << "cannot get cms backend engine, abort...";
     return false;
   }
 
@@ -387,6 +387,56 @@ auto DecideGnuPGPath(const QString& default_gnupg_path) -> QString {
   return default_gnupg_path;
 }
 
+void EnsureGpgAgentConfHasPinentry(GpgContext& ctx) {
+  auto pinentry_path = DecidePinentry();
+  if (pinentry_path.isEmpty()) {
+    LOG_W() << "no suitable pinentry found.";
+    return;
+  }
+
+  QDir gnupg_dir(ctx.HomeDirectory());
+  if (!gnupg_dir.exists()) {
+    gnupg_dir.mkpath(".");
+  }
+
+  QString config_path = gnupg_dir.filePath("gpg-agent.conf");
+  QFile config_file(config_path);
+  QStringList lines;
+
+  LOG_D() << "checking pinentry config at:" << gnupg_dir;
+
+  bool has_pinentry_line = false;
+  if (config_file.exists()) {
+    if (config_file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+      QTextStream in(&config_file);
+      while (!in.atEnd()) {
+        QString line = in.readLine();
+        if (line.trimmed().startsWith("pinentry-program")) {
+          has_pinentry_line = true;
+        }
+        lines.append(line);
+      }
+      config_file.close();
+    }
+  }
+
+  if (!has_pinentry_line) {
+    lines.append(QString("pinentry-program %1").arg(pinentry_path));
+    if (config_file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+      QTextStream out(&config_file);
+      for (const QString& line : lines) {
+        out << line << '\n';
+      }
+      config_file.close();
+      LOG_D() << "updated gpg-agent.conf with pinentry:" << pinentry_path;
+    } else {
+      LOG_W() << "failed to write to gpg-agent.conf";
+    }
+  } else {
+    LOG_D() << "gpg-agent.conf already contains pinentry-program";
+  }
+}
+
 auto InitBasicPath() -> bool {
   auto default_gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", QString{});
@@ -520,8 +570,8 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   assert(!key_dbs.isEmpty());
 
   if (key_dbs.isEmpty()) {
-    FLOG_E() << "Cannot find any valid key database!"
-             << "GpgFrontend cannot start under this situation!";
+    LOG_E() << "Cannot find any valid key database!"
+            << "GpgFrontend cannot start under this situation!";
     Module::UpsertRTValue("core", "env.state.ctx", -1);
     CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
         QCoreApplication::tr("No valid Key Database"));
@@ -548,20 +598,26 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
         return ConvertToChannelObjectPtr<>(SecureCreateUniqueObject<GpgContext>(
             args, kGpgFrontendDefaultChannel));
       });
+
   if (!default_ctx.Good()) {
-    FLOG_E() << "Init GpgME Default Context failed!"
-             << "GpgFrontend cannot start under this situation!";
+    LOG_E() << "Init GpgME Default Context failed!"
+            << "GpgFrontend cannot start under this situation!";
     Module::UpsertRTValue("core", "env.state.ctx", -1);
     CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
         QCoreApplication::tr("GpgME Default Context Initiation Failed"));
     return -1;
   }
 
+#if !(defined(_WIN32) || defined(WIN32))
+  // auto config pinentry-program
+  EnsureGpgAgentConfHasPinentry(default_ctx);
+#endif
+
   Module::UpsertRTValue("core", "env.state.ctx", 1);
 
   if (!GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).FlushKeyCache()) {
-    FLOG_E() << "Init GpgME Default Key Database failed!"
-             << "GpgFrontend cannot start under this situation!";
+    LOG_E() << "Init GpgME Default Key Database failed!"
+            << "GpgFrontend cannot start under this situation!";
     Module::UpsertRTValue("core", "env.state.ctx", -1);
     CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
         QCoreApplication::tr("Gpg Default Key Database Initiation Failed"));
@@ -602,13 +658,21 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
               });
 
           if (!ctx.Good()) {
-            FLOG_E() << "gpgme context init failed, index:" << channel_index;
+            LOG_E() << "gpgme context init failed, index:" << channel_index;
             continue;
           }
 
+#if defined(__linux__)
+          EnsureGpgAgentConfHasPinentry(ctx);
+#endif
+
+#if defined(__APPLE__) && defined(__MACH__)
+          EnsureGpgAgentConfHasPinentry(ctx);
+#endif
+
           if (!GpgKeyGetter::GetInstance(ctx.GetChannel()).FlushKeyCache()) {
-            FLOG_E() << "gpgme context init key cache failed, index:"
-                     << channel_index;
+            LOG_E() << "gpgme context init key cache failed, index:"
+                    << channel_index;
             continue;
           }
 
@@ -631,9 +695,16 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
       ->PostTask(task);
 
-  if (!args.unit_test_mode && restart_all_gnupg_components_on_start) {
-    GpgAdvancedOperator::RestartGpgComponents(nullptr);
+  const auto size = GpgContext::GetAllChannelId().size();
+  for (auto i = 0; i < size; i++) {
+    if (!args.unit_test_mode && restart_all_gnupg_components_on_start) {
+      assert(GpgAdvancedOperator::GetInstance().RestartGpgComponents());
+    } else {
+      // ensure gpg-agent is running
+      assert(GpgAdvancedOperator::GetInstance().LaunchAllGpgComponents());
+    }
   }
+
   return 0;
 }
 

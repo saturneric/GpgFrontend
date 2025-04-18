@@ -88,39 +88,43 @@ void GpgBasicOperator::Encrypt(const GpgAbstractKeyPtrList& keys,
                                const GFBuffer& in_buffer, bool ascii,
                                const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) {
         return EncryptImpl(ctx_, keys, in_buffer, ascii, data_object);
       },
-      cb, "gpgme_op_encrypt", "2.1.0");
+      cb, "gpgme_op_encrypt", "2.2.0");
 }
 
 auto GpgBasicOperator::EncryptSync(const GpgAbstractKeyPtrList& keys,
                                    const GFBuffer& in_buffer, bool ascii)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) {
         return EncryptImpl(ctx_, keys, in_buffer, ascii, data_object);
       },
-      "gpgme_op_encrypt", "2.1.0");
+      "gpgme_op_encrypt", "2.2.0");
 }
 
 void GpgBasicOperator::EncryptSymmetric(const GFBuffer& in_buffer, bool ascii,
                                         const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) {
         return EncryptImpl(ctx_, {}, in_buffer, ascii, data_object);
       },
-      cb, "gpgme_op_encrypt_symmetric", "2.1.0");
+      cb, "gpgme_op_encrypt_symmetric", "2.2.0");
 }
 
 auto GpgBasicOperator::EncryptSymmetricSync(const GFBuffer& in_buffer,
                                             bool ascii)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) {
         return EncryptImpl(ctx_, {}, in_buffer, ascii, data_object);
       },
-      "gpgme_op_encrypt_symmetric", "2.1.0");
+      "gpgme_op_encrypt_symmetric", "2.2.0");
 }
 
 auto DecryptImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
@@ -141,19 +145,21 @@ auto DecryptImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
 void GpgBasicOperator::Decrypt(const GFBuffer& in_buffer,
                                const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) {
         return DecryptImpl(ctx_, in_buffer, data_object);
       },
-      cb, "gpgme_op_decrypt", "2.1.0");
+      cb, "gpgme_op_decrypt", "2.2.0");
 }
 
 auto GpgBasicOperator::DecryptSync(const GFBuffer& in_buffer)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) {
         return DecryptImpl(ctx_, in_buffer, data_object);
       },
-      "gpgme_op_decrypt", "2.1.0");
+      "gpgme_op_decrypt", "2.2.0");
 }
 
 auto VerifyImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
@@ -185,20 +191,22 @@ void GpgBasicOperator::Verify(const GFBuffer& in_buffer,
                               const GFBuffer& sig_buffer,
                               const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
         return VerifyImpl(ctx_, in_buffer, sig_buffer, data_object);
       },
-      cb, "gpgme_op_verify", "2.1.0");
+      cb, "gpgme_op_verify", "2.2.0");
 }
 
 auto GpgBasicOperator::VerifySync(const GFBuffer& in_buffer,
                                   const GFBuffer& sig_buffer)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) {
         return VerifyImpl(ctx_, in_buffer, sig_buffer, data_object);
       },
-      "gpgme_op_verify", "2.1.0");
+      "gpgme_op_verify", "2.2.0");
 }
 
 auto SignImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& signers,
@@ -228,20 +236,22 @@ void GpgBasicOperator::Sign(const GpgAbstractKeyPtrList& signers,
                             const GFBuffer& in_buffer, GpgSignMode mode,
                             bool ascii, const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) {
         return SignImpl(ctx_, signers, in_buffer, mode, ascii, data_object);
       },
-      cb, "gpgme_op_sign", "2.1.0");
+      cb, "gpgme_op_sign", "2.2.0");
 }
 
 auto GpgBasicOperator::SignSync(
     const GpgAbstractKeyPtrList& signers, const GFBuffer& in_buffer,
     GpgSignMode mode, bool ascii) -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) {
         return SignImpl(ctx_, signers, in_buffer, mode, ascii, data_object);
       },
-      "gpgme_op_sign", "2.1.0");
+      "gpgme_op_sign", "2.2.0");
 }
 
 auto DecryptVerifyImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
@@ -266,19 +276,21 @@ auto DecryptVerifyImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
 void GpgBasicOperator::DecryptVerify(const GFBuffer& in_buffer,
                                      const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) {
         return DecryptVerifyImpl(ctx_, in_buffer, data_object);
       },
-      cb, "gpgme_op_decrypt_verify", "2.1.0");
+      cb, "gpgme_op_decrypt_verify", "2.2.0");
 }
 
 auto GpgBasicOperator::DecryptVerifySync(const GFBuffer& in_buffer)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
         return DecryptVerifyImpl(ctx_, in_buffer, data_object);
       },
-      "gpgme_op_decrypt_verify", "2.1.0");
+      "gpgme_op_decrypt_verify", "2.2.0");
 }
 
 auto EncryptSignImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
@@ -315,11 +327,12 @@ void GpgBasicOperator::EncryptSign(const GpgAbstractKeyPtrList& keys,
                                    const GFBuffer& in_buffer, bool ascii,
                                    const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
         return EncryptSignImpl(ctx_, keys, signers, in_buffer, ascii,
                                data_object);
       },
-      cb, "gpgme_op_encrypt_sign", "2.1.0");
+      cb, "gpgme_op_encrypt_sign", "2.2.0");
 }
 
 auto GpgBasicOperator::EncryptSignSync(const GpgAbstractKeyPtrList& keys,
@@ -327,11 +340,12 @@ auto GpgBasicOperator::EncryptSignSync(const GpgAbstractKeyPtrList& keys,
                                        const GFBuffer& in_buffer, bool ascii)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
         return EncryptSignImpl(ctx_, keys, signers, in_buffer, ascii,
                                data_object);
       },
-      "gpgme_op_encrypt_sign", "2.1.0");
+      "gpgme_op_encrypt_sign", "2.2.0");
 }
 
 void GpgBasicOperator::SetSigners(const GpgAbstractKeyPtrList& signers,
@@ -346,7 +360,7 @@ auto GpgBasicOperator::GetSigners(bool ascii) -> KeyArgsList {
   auto signers = KeyArgsList{};
   for (auto i = 0U; i < count; i++) {
     auto key = GpgKey(gpgme_signers_enum(ctx, i));
-    signers.push_back(GpgKey(std::move(key)));
+    signers.push_back(GpgKey(key));
   }
   return signers;
 }

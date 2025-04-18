@@ -215,19 +215,21 @@ auto GenerateKeyImpl(GpgContext& ctx,
 void GpgKeyOpera::GenerateKey(const QSharedPointer<KeyGenerateInfo>& params,
                               const GpgOperationCallback& callback) {
   RunGpgOperaAsync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
         return GenerateKeyImpl(ctx_, params, data_object);
       },
-      callback, "gpgme_op_createkey", "2.1.0");
+      callback, "gpgme_op_createkey", "2.2.0");
 }
 
 auto GpgKeyOpera::GenerateKeySync(const QSharedPointer<KeyGenerateInfo>& params)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
         return GenerateKeyImpl(ctx_, params, data_object);
       },
-      "gpgme_op_createkey", "2.1.0");
+      "gpgme_op_createkey", "2.2.0");
 }
 
 auto GenerateSubKeyImpl(GpgContext& ctx, const GpgKeyPtr& key,
@@ -270,6 +272,7 @@ void GpgKeyOpera::GenerateSubkey(const GpgKeyPtr& key,
                                  const QSharedPointer<KeyGenerateInfo>& params,
                                  const GpgOperationCallback& callback) {
   RunGpgOperaAsync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
         return GenerateSubKeyImpl(ctx_, key, params, data_object);
       },
@@ -280,6 +283,7 @@ auto GpgKeyOpera::GenerateSubkeySync(
     const GpgKeyPtr& key, const QSharedPointer<KeyGenerateInfo>& params)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
         return GenerateSubKeyImpl(ctx_, key, params, data_object);
       },
@@ -318,11 +322,12 @@ void GpgKeyOpera::GenerateKeyWithSubkey(
     const QSharedPointer<KeyGenerateInfo>& s_params,
     const GpgOperationCallback& callback) {
   RunGpgOperaAsync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
         return GenerateKeyWithSubkeyImpl(ctx_, key_getter_, p_params, s_params,
                                          data_object);
       },
-      callback, "gpgme_op_createkey&gpgme_op_createsubkey", "2.1.0");
+      callback, "gpgme_op_createkey&gpgme_op_createsubkey", "2.2.0");
 }
 
 auto GpgKeyOpera::GenerateKeyWithSubkeySync(
@@ -330,36 +335,35 @@ auto GpgKeyOpera::GenerateKeyWithSubkeySync(
     const QSharedPointer<KeyGenerateInfo>& s_params)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
         return GenerateKeyWithSubkeyImpl(ctx_, key_getter_, p_params, s_params,
                                          data_object);
       },
-      "gpgme_op_createkey&gpgme_op_createsubkey", "2.1.0");
+      "gpgme_op_createkey&gpgme_op_createsubkey", "2.2.0");
 }
 
 void GpgKeyOpera::ModifyPassword(const GpgKeyPtr& key,
                                  const GpgOperationCallback& callback) {
   RunGpgOperaAsync(
+      GetChannel(),
       [&key, &ctx = ctx_](const DataObjectPtr&) -> GpgError {
         return gpgme_op_passwd(ctx.DefaultContext(),
                                static_cast<gpgme_key_t>(*key), 0);
       },
-      callback, "gpgme_op_passwd", "2.0.15");
+      callback, "gpgme_op_passwd", "2.2.0");
 }
 
 auto GpgKeyOpera::ModifyTOFUPolicy(
     const GpgKeyPtr& key, gpgme_tofu_policy_t tofu_policy) -> GpgError {
-  const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gnupg_version", QString{"2.0.0"});
-  LOG_D() << "got gnupg version from rt: " << gnupg_version;
+  auto [err, obj] = RunGpgOperaSync(
+      GetChannel(),
+      [=](const DataObjectPtr&) -> GpgError {
+        return gpgme_op_tofu_policy(
+            ctx_.DefaultContext(), static_cast<gpgme_key_t>(*key), tofu_policy);
+      },
+      "gpgme_op_tofu_policy", "2.2.0");
 
-  if (GFCompareSoftwareVersion(gnupg_version, "2.1.10") < 0) {
-    FLOG_W("operator not support");
-    return GPG_ERR_NOT_SUPPORTED;
-  }
-
-  auto err = gpgme_op_tofu_policy(ctx_.DefaultContext(),
-                                  static_cast<gpgme_key_t>(*key), tofu_policy);
   return CheckGpgError(err);
 }
 
@@ -388,6 +392,7 @@ auto AddADSKImpl(GpgContext& ctx, const GpgKeyPtr& key, const GpgSubKey& adsk,
 void GpgKeyOpera::AddADSK(const GpgKeyPtr& key, const GpgSubKey& adsk,
                           const GpgOperationCallback& callback) {
   RunGpgOperaAsync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
         return AddADSKImpl(ctx_, key, adsk, data_object);
       },
@@ -397,6 +402,7 @@ void GpgKeyOpera::AddADSK(const GpgKeyPtr& key, const GpgSubKey& adsk,
 auto GpgKeyOpera::AddADSKSync(const GpgKeyPtr& key, const GpgSubKey& adsk)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
         return AddADSKImpl(ctx_, key, adsk, data_object);
       },

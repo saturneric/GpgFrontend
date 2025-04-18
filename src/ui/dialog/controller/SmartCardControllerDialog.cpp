@@ -33,6 +33,7 @@
 #include "core/function/gpg/GpgSmartCardManager.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/key_generate/GenerateCardKeyDialog.h"
 
 //
@@ -110,18 +111,22 @@ SmartCardControllerDialog::SmartCardControllerDialog(QWidget* parent)
           [=](bool) { modify_key_pin("OPENPGP.2"); });
 
   connect(ui_->restartGpgAgentButton, &QPushButton::clicked, this, [=](bool) {
-    GpgFrontend::GpgAdvancedOperator::RestartGpgComponents(
-        [=](int err, DataObjectPtr) {
-          if (err >= 0) {
-            QMessageBox::information(
-                this, tr("Successful Operation"),
-                tr("Restart all the GnuPG's components successfully"));
-          } else {
-            QMessageBox::critical(
-                this, tr("Failed Operation"),
-                tr("Failed to restart all or one of the GnuPG's component(s)"));
-          }
-        });
+    bool ret = true;
+    const auto size = GpgContext::GetAllChannelId().size();
+    for (auto i = 0; i < size; i++) {
+      ret = GpgAdvancedOperator::GetInstance().RestartGpgComponents();
+      if (!ret) break;
+    }
+
+    if (ret) {
+      QMessageBox::information(
+          this, tr("Successful Operation"),
+          tr("Restart all the GnuPG's components successfully"));
+    } else {
+      QMessageBox::critical(
+          this, tr("Failed Operation"),
+          tr("Failed to restart all or one of the GnuPG's component(s)"));
+    }
   });
 
   connect(ui_->generateKeysButton, &QPushButton::clicked, this, [=](bool) {
@@ -163,11 +168,13 @@ void SmartCardControllerDialog::select_smart_card_by_serial_number(
     return;
   }
 
-  auto [ret, err] =
+  auto [err, status] =
       GpgSmartCardManager::GetInstance(channel_).SelectCardBySerialNumber(
           serial_number);
-  if (!ret) {
-    LOG_E() << "select card by serial number failed: " << err;
+  if (err != GPG_ERR_NO_ERROR) {
+    LOG_E() << "select card by serial number failed, err:" << CheckGpgError(err)
+            << "status:" << status;
+    CommonUtils::RaiseFailureMessageBox(this, err, status);
     reset_status();
     return;
   }
@@ -188,6 +195,7 @@ void SmartCardControllerDialog::fetch_smart_card_info(
       GpgSmartCardManager::GetInstance(channel_).FetchCardInfoBySerialNumber(
           serial_number);
   if (card_info == nullptr) {
+    LOG_E() << "card info is nullptr, serial number:" << serial_number;
     reset_status();
     return;
   }
@@ -446,8 +454,13 @@ void SmartCardControllerDialog::slot_disable_controllers(bool disable) {
 void SmartCardControllerDialog::slot_fetch_smart_card_keys() {
   ui_->fetchButton->setDisabled(true);
 
-  GpgSmartCardManager::GetInstance().Fetch(
+  auto err = GpgSmartCardManager::GetInstance().Fetch(
       ui_->currentCardComboBox->currentText());
+
+  if (err != GPG_ERR_NO_ERROR) {
+    CommonUtils::RaiseFailureMessageBox(this, err);
+    return;
+  }
 
   QTimer::singleShot(1000, [=]() {
     GpgCommandExecutor::GetInstance(channel_).GpgExecuteSync(
@@ -524,14 +537,13 @@ void SmartCardControllerDialog::modify_key_attribute(const QString& attr) {
     }
   }
 
-  auto [r, err] =
+  auto [err, status] =
       GpgSmartCardManager::GetInstance(channel_).ModifyAttr(attr, value);
 
-  if (!r) {
-    LOG_D() << "SCD SETATTR command failed for attr" << attr;
-    QMessageBox::critical(
-        this, tr("Failed"),
-        tr("Failed to set attribute '%1'. Reason: %2. ").arg(attr).arg(err));
+  if (err != GPG_ERR_NO_ERROR) {
+    LOG_D() << "SCD SETATTR command failed for attr:" << attr
+            << ", err:" << CheckGpgError(err);
+    CommonUtils::RaiseFailureMessageBox(this, err, status);
     return;
   }
   QMessageBox::information(this, tr("Success"),
@@ -540,22 +552,11 @@ void SmartCardControllerDialog::modify_key_attribute(const QString& attr) {
 }
 
 void SmartCardControllerDialog::modify_key_pin(const QString& pinref) {
-  auto [success, err] =
+  auto [err, status] =
       GpgSmartCardManager::GetInstance(channel_).ModifyPin(pinref);
 
-  if (!success) {
-    QString message;
-    if (pinref == "OPENPGP.3") {
-      message = tr("Failed to change Admin PIN.");
-    } else if (pinref == "OPENPGP.2") {
-      message = tr("Failed to set the Reset Code.");
-    } else {
-      message = tr("Failed to change PIN.");
-    }
-
-    message += tr("Reason: ") + err;
-
-    QMessageBox::critical(this, tr("Error"), message);
+  if (err != GPG_ERR_NO_ERROR) {
+    CommonUtils::RaiseFailureMessageBox(this, err, status);
     return;
   }
 

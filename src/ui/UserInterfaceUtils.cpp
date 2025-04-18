@@ -167,16 +167,24 @@ void CommonUtils::RaiseMessageBox(QWidget *parent, GpgError err) {
   }
 }
 
-void CommonUtils::RaiseFailureMessageBox(QWidget *parent, GpgError err) {
+void CommonUtils::RaiseMessageBoxNotSupported(QWidget *parent) {
+  QMessageBox::warning(
+      parent, tr("Operation Not Supported"),
+      tr("The current GnuPG version is too low and does not support this "
+         "operation. Please upgrade your GnuPG version to continue."));
+}
+
+void CommonUtils::RaiseFailureMessageBox(QWidget *parent, GpgError err,
+                                         const QString &msg) {
   GpgErrorDesc desc = DescribeGpgErrCode(err);
   GpgErrorCode err_code = CheckGpgError2ErrCode(err);
 
   QMessageBox::critical(parent, tr("Failure"),
-                        tr("Gpg Operation failed.\n\nError code: %1\nSource: "
-                           " %2\nDescription: %3")
-                            .arg(err_code)
-                            .arg(desc.first)
-                            .arg(desc.second));
+                        tr("Gpg Operation failed.") + "\n\n" +
+                            tr("Error code: %1").arg(err_code) + "\n\n\n" +
+                            tr("Source:  %1").arg(desc.first) + "\n" +
+                            tr("Description: %1").arg(desc.second) + "\n" +
+                            tr("Error Message: %1").arg(msg));
 }
 
 void CommonUtils::SlotImportKeys(QWidget *parent, int channel,

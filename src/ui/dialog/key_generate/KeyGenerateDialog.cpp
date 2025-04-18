@@ -49,8 +49,9 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
       ui_(QSharedPointer<Ui_KeyGenDialog>::create()),
       gen_key_info_(QSharedPointer<KeyGenerateInfo>::create()),
       gen_subkey_info_(nullptr),
-      supported_primary_key_algos_(KeyGenerateInfo::GetSupportedKeyAlgo()),
-      supported_subkey_algos_(KeyGenerateInfo::GetSupportedSubkeyAlgo()),
+      supported_primary_key_algos_(
+          KeyGenerateInfo::GetSupportedKeyAlgo(channel)),
+      supported_subkey_algos_(KeyGenerateInfo::GetSupportedSubkeyAlgo(channel)),
       channel_(channel) {
   ui_->setupUi(this);
 
@@ -146,6 +147,10 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
   this->setWindowTitle(tr("Generate Key"));
   this->setAttribute(Qt::WA_DeleteOnClose);
   this->setModal(true);
+
+  this->show();
+  this->raise();
+  this->activateWindow();
 }
 
 void KeyGenerateDialog::slot_key_gen_accept() {

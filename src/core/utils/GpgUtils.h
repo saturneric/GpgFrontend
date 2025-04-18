@@ -202,4 +202,29 @@ auto GPGFRONTEND_CORE_EXPORT GetGpgKeyByGpgAbstractKey(GpgAbstractKey*)
  * @return false
  */
 auto GPGFRONTEND_CORE_EXPORT IsKeyGroupID(const KeyId& id) -> bool;
+
+/**
+ * @brief
+ *
+ * @return bool
+ */
+auto GPGFRONTEND_CORE_EXPORT GpgAgentVersionGreaterThan(int channel,
+                                                        const QString&) -> bool;
+
+/**
+ * @brief
+ *
+ * @param channel
+ * @return true
+ * @return false
+ */
+auto GPGFRONTEND_CORE_EXPORT CheckGpgVersion(int channel,
+                                             const QString&) -> bool;
+
+/**
+ * @brief
+ *
+ * @return QString
+ */
+auto GPGFRONTEND_CORE_EXPORT DecidePinentry() -> QString;
 }  // namespace GpgFrontend

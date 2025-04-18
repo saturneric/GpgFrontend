@@ -90,4 +90,14 @@ auto GPGFRONTEND_CORE_EXPORT ParseHexEncodedVersionTuple(const QString &s)
  */
 auto GPGFRONTEND_CORE_EXPORT IsEmailAddress(const QString &) -> bool;
 
+/**
+ * @brief if a > b
+ *
+ * @param a
+ * @param b
+ * @return auto
+ */
+auto GPGFRONTEND_CORE_EXPORT
+GFSoftwareVersionGreaterThan(const QString &a, const QString &b) -> bool;
+
 }  // namespace GpgFrontend

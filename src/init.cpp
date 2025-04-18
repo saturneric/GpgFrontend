@@ -184,9 +184,15 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
           .toBool();
 
   if (ctx->unit_test_mode || kill_all_gnupg_daemon_at_close) {
-    GpgAdvancedOperator::KillAllGpgComponents(nullptr);
+    const auto size = GpgContext::GetAllChannelId().size();
+    for (auto i = 0; i < size; i++) {
+      assert(GpgAdvancedOperator::GetInstance().KillAllGpgComponents());
+    }
   } else if (!ctx->unit_test_mode && clear_gpg_password_cache) {
-    GpgAdvancedOperator::ClearGpgPasswordCache(nullptr);
+    const auto size = GpgContext::GetAllChannelId().size();
+    for (auto i = 0; i < size; i++) {
+      assert(GpgAdvancedOperator::GetInstance().ClearGpgPasswordCache());
+    }
   }
 
   // first should shutdown the module system

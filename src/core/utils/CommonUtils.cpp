@@ -74,6 +74,11 @@ auto GFCompareSoftwareVersion(const QString& a, const QString& b) -> int {
   return 0;
 }
 
+auto GFSoftwareVersionGreaterThan(const QString& a, const QString& b) -> bool {
+  if (a.isEmpty()) return false;
+  return GFCompareSoftwareVersion(a, b) > 0;
+}
+
 auto GFStrDup(const QString& s) -> char* {
   if (s.isEmpty()) return nullptr;
 

@@ -528,7 +528,7 @@ class MainWindow : public GeneralMainWindow {
    *
    * @param results
    */
-  void slot_update_operations_menu_by_checked_keys(unsigned int type);
+  void slot_update_operations_menu_by_checked_keys(unsigned int mask);
 
   /**
    * @brief

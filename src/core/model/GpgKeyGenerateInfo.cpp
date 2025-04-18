@@ -30,8 +30,9 @@
 
 #include <cassert>
 
-#include "module/ModuleManager.h"
-#include "utils/CommonUtils.h"
+#include "core/module/ModuleManager.h"
+#include "core/utils/CommonUtils.h"
+#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
 
@@ -98,14 +99,12 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kSubKeyAlgos = {
     {"elg4096", "ELG-E", "ELG-E", 4096, kENCRYPT, "2.2.0"},
 };
 
-auto KeyGenerateInfo::GetSupportedKeyAlgo() -> QContainer<KeyAlgo> {
-  const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gnupg_version", QString{"2.0.0"});
-
+auto KeyGenerateInfo::GetSupportedKeyAlgo(int channel) -> QContainer<KeyAlgo> {
   QContainer<KeyAlgo> algos;
 
   for (const auto &algo : kPrimaryKeyAlgos) {
-    if (!algo.IsSupported(gnupg_version)) continue;
+    if (!CheckGpgVersion(channel, algo.SupportedVersion())) continue;
+
     algos.append(algo);
   }
 
@@ -116,14 +115,13 @@ auto KeyGenerateInfo::GetSupportedKeyAlgo() -> QContainer<KeyAlgo> {
   return algos;
 }
 
-auto KeyGenerateInfo::GetSupportedSubkeyAlgo() -> QContainer<KeyAlgo> {
-  const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gnupg_version", QString{"2.0.0"});
-
+auto KeyGenerateInfo::GetSupportedSubkeyAlgo(int channel)
+    -> QContainer<KeyAlgo> {
   QContainer<KeyAlgo> algos;
 
   for (const auto &algo : kSubKeyAlgos) {
-    if (!algo.IsSupported(gnupg_version)) continue;
+    if (!CheckGpgVersion(channel, algo.SupportedVersion())) continue;
+
     algos.append(algo);
   }
 
@@ -490,9 +488,7 @@ auto KeyAlgo::CanAuth() const -> bool { return auth_; }
 
 auto KeyAlgo::CanCert() const -> bool { return cert_; }
 
-auto KeyAlgo::IsSupported(const QString &version) const -> bool {
-  return GFCompareSoftwareVersion(version, supported_version_) >= 0;
-}
+auto KeyAlgo::SupportedVersion() const -> QString { return supported_version_; }
 
 auto KeyAlgo::operator==(const KeyAlgo &o) const -> bool {
   return this->id_ == o.id_;

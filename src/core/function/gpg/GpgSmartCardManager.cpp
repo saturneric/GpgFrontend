@@ -30,17 +30,16 @@
 
 #include "core/function/gpg/GpgAutomatonHandler.h"
 #include "core/utils/CommonUtils.h"
+#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
 
 GpgSmartCardManager::GpgSmartCardManager(int channel)
     : SingletonFunctionObject<GpgSmartCardManager>(channel) {}
 
-auto GpgSmartCardManager::Fetch(const QString& serial_number) -> bool {
+auto GpgSmartCardManager::Fetch(const QString& serial_number) -> GpgError {
   GpgAutomatonHandler::AutomatonNextStateHandler next_state_handler =
-      [=](AutomatonState state, QString status, QString args) {
-        auto tokens = args.split(' ');
-
+      [=](AutomatonState state, const QString& status, const QString& args) {
         switch (state) {
           case GpgAutomatonHandler::kAS_START:
             if (status == "GET_LINE" && args == "cardedit.prompt") {
@@ -63,7 +62,7 @@ auto GpgSmartCardManager::Fetch(const QString& serial_number) -> bool {
         };
       };
 
-  AutomatonActionHandler action_handler = [](AutomatonHandelStruct& handler,
+  AutomatonActionHandler action_handler = [](AutomatonHandelStruct&,
                                              AutomatonState state) {
     switch (state) {
       case GpgAutomatonHandler::kAS_COMMAND:
@@ -78,25 +77,22 @@ auto GpgSmartCardManager::Fetch(const QString& serial_number) -> bool {
     return QString("");
   };
 
-  return GpgAutomatonHandler::GetInstance(GetChannel())
-      .DoCardInteract(serial_number, next_state_handler, action_handler);
+  auto [err, succ] =
+      GpgAutomatonHandler::GetInstance(GetChannel())
+          .DoCardInteract(serial_number, next_state_handler, action_handler);
+
+  if (err == GPG_ERR_NO_ERROR && !succ) return GPG_ERR_USER_1;
+  return err;
 }
 
 auto GpgSmartCardManager::IsSCDVersionSupported() -> bool {
-  auto [r, s] = assuan_.SendDataCommand(GpgComponentType::kGPG_AGENT,
-                                        "SCD GETINFO version");
-  if (s.isEmpty()) {
-    LOG_D() << "invalid response of SCD GETINFO version: " << s;
-    return false;
-  }
-
-  return GFCompareSoftwareVersion(s.front(), "2.3.0") > 0;
+  return GFSoftwareVersionGreaterThan(info_.GetScdaemonVersion(), "2.3.0");
 }
 
 auto GpgSmartCardManager::GetSerialNumbers() -> QStringList {
   auto [r, s] = assuan_.SendStatusCommand(GpgComponentType::kGPG_AGENT,
                                           "SCD SERIALNO --all");
-  if (!r) {
+  if (r != GPG_ERR_NO_ERROR) {
     cached_scd_serialno_status_hash_.clear();
     cache_scd_card_serial_numbers_.clear();
     return {};
@@ -112,9 +108,9 @@ auto GpgSmartCardManager::GetSerialNumbers() -> QStringList {
 
   cached_scd_serialno_status_hash_.clear();
   cache_scd_card_serial_numbers_.clear();
-  auto [ret, status] = assuan_.SendStatusCommand(GpgComponentType::kGPG_AGENT,
+  auto [err, status] = assuan_.SendStatusCommand(GpgComponentType::kGPG_AGENT,
                                                  "SCD GETINFO all_active_apps");
-  if (!ret || status.empty()) {
+  if (err != GPG_ERR_NO_ERROR || status.empty()) {
     LOG_D() << "command SCD GETINFO all_active_apps failed, resetting...";
     return {};
   }
@@ -142,14 +138,14 @@ auto GpgSmartCardManager::GetSerialNumbers() -> QStringList {
 }
 
 auto GpgSmartCardManager::SelectCardBySerialNumber(const QString& serial_number)
-    -> std::tuple<bool, QString> {
+    -> std::tuple<GpgError, QString> {
   if (serial_number.isEmpty()) return {false, "Serial Number is empty."};
 
-  auto [ret, status] = assuan_.SendStatusCommand(
+  auto [err, status] = assuan_.SendStatusCommand(
       GpgComponentType::kGPG_AGENT,
       QString("SCD SERIALNO --demand=%1 openpgp").arg(serial_number));
-  if (!ret || status.isEmpty()) {
-    return {false, status.join(' ')};
+  if (err != GPG_ERR_NO_ERROR || status.isEmpty()) {
+    return {err, status.join(' ')};
   }
 
   auto line = status.front();
@@ -157,22 +153,21 @@ auto GpgSmartCardManager::SelectCardBySerialNumber(const QString& serial_number)
 
   if (token.size() != 2) {
     LOG_E() << "invalid response of command SERIALNO: " << line;
-    return {false, line};
+    return {GPG_ERR_USER_1, line};
   }
 
   LOG_D() << "selected smart card by serial number: " << serial_number;
-
-  return {true, {}};
+  return {err, {}};
 }
 
 auto GpgSmartCardManager::FetchCardInfoBySerialNumber(
     const QString& serial_number) -> QSharedPointer<GpgOpenPGPCard> {
   if (serial_number.trimmed().isEmpty()) return nullptr;
 
-  auto [ret, status] = assuan_.SendStatusCommand(
+  auto [err, status] = assuan_.SendStatusCommand(
       GpgComponentType::kGPG_AGENT, "SCD LEARN --force " + serial_number);
-  if (!ret || status.isEmpty()) {
-    LOG_E() << "scd learn failed: " << status;
+  if (err != GPG_ERR_NO_ERROR || status.isEmpty()) {
+    LOG_E() << "scd learn failed, err: " << CheckGpgError(err) << "" << status;
     return nullptr;
   }
 
@@ -201,7 +196,7 @@ auto PercentDataEscape(const QByteArray& data, bool plus_escape = false,
     }
   }
 
-  for (unsigned char ch : data) {
+  for (char ch : data) {
     if (ch == '\0') {
       result += "%00";
     } else if (ch == '%') {
@@ -219,29 +214,25 @@ auto PercentDataEscape(const QByteArray& data, bool plus_escape = false,
 }
 
 auto GpgSmartCardManager::ModifyAttr(const QString& attr, const QString& value)
-    -> std::tuple<bool, QString> {
+    -> std::tuple<GpgError, QString> {
   if (attr.trimmed().isEmpty() || value.trimmed().isEmpty()) {
-    return {false, "ATTR or Value is empty"};
+    return {GPG_ERR_INV_ARG, "ATTR or Value is empty"};
   }
 
   const auto command = QString("SCD SETATTR %1 ").arg(attr);
   const auto escaped_command =
       PercentDataEscape(value.trimmed().toUtf8(), true, command);
 
-  auto [r, s] =
+  auto [err, status] =
       assuan_.SendStatusCommand(GpgComponentType::kGPG_AGENT, escaped_command);
-
-  if (!r) {
-    LOG_E() << "SCD SETATTR command failed for attr" << attr;
-    return {false, s.join(' ')};
-  }
-
-  return {true, {}};
+  return {err, status.join(' ')};
 }
 
 auto GpgSmartCardManager::ModifyPin(const QString& pin_ref)
-    -> std::tuple<bool, QString> {
-  if (pin_ref.trimmed().isEmpty()) return {false, "PIN Reference is empty"};
+    -> std::tuple<GpgError, QString> {
+  if (pin_ref.trimmed().isEmpty()) {
+    return {GPG_ERR_INV_ARG, "PIN Reference is empty"};
+  }
 
   QString command;
   if (pin_ref == "OPENPGP.1") {
@@ -254,23 +245,17 @@ auto GpgSmartCardManager::ModifyPin(const QString& pin_ref)
     command = QString("SCD PASSWD %1").arg(pin_ref);
   }
 
-  auto [success, status] =
+  auto [err, status] =
       assuan_.SendStatusCommand(GpgComponentType::kGPG_AGENT, command);
-
-  if (!success) {
-    LOG_E() << "modify pin of smart failed: " << status;
-    return {false, status.join(' ')};
-  }
-
-  return {true, {}};
+  return {err, status.join(' ')};
 }
 
 auto GpgSmartCardManager::GenerateKey(
     const QString& serial_number, const QString& name, const QString& email,
     const QString& comment, const QDateTime& expire,
-    bool non_expire) -> std::tuple<bool, QString> {
+    bool non_expire) -> std::tuple<GpgError, QString> {
   if (name.isEmpty() || email.isEmpty()) {
-    return {false, "name or email is empty"};
+    return {GPG_ERR_INV_ARG, "name or email is empty"};
   }
 
   qint64 days_before_expire = 0;
@@ -280,8 +265,6 @@ auto GpgSmartCardManager::GenerateKey(
 
   GpgAutomatonHandler::AutomatonNextStateHandler next_state_handler =
       [=](AutomatonState state, const QString& status, const QString& args) {
-        auto tokens = args.split(' ');
-
         switch (state) {
           case GpgAutomatonHandler::kAS_START:
             if (status == "GET_LINE" && args == "cardedit.prompt") {
@@ -382,9 +365,10 @@ auto GpgSmartCardManager::GenerateKey(
     return QString{};
   };
 
-  return {
+  auto [err, succ] =
       GpgAutomatonHandler::GetInstance(GetChannel())
-          .DoCardInteract(serial_number, next_state_handler, action_handler),
-      "unknown error"};
+          .DoCardInteract(serial_number, next_state_handler, action_handler);
+  if (err == GPG_ERR_NO_ERROR && !succ) return {GPG_ERR_USER_1, {}};
+  return {err, {}};
 }
 }  // namespace GpgFrontend

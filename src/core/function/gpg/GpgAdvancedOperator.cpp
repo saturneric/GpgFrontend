@@ -33,91 +33,38 @@
 #include "GpgAdvancedOperator.h"
 
 #include "core/function/gpg/GpgCommandExecutor.h"
-#include "core/module/ModuleManager.h"
-#include "core/utils/GpgUtils.h"
-
 namespace GpgFrontend {
 
-void ExecuteGpgCommand(const QString &operation, const QStringList &extra_args,
-                       OperationCallback cb) {
-  const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gpgconf_path", QString{});
-
-  if (gpgconf_path.isEmpty()) {
-    FLOG_W("cannot get valid gpgconf path from rt, abort.");
-    if (cb) cb(-1, TransferParams());
-    return;
-  }
-
-  auto key_dbs = GetGpgKeyDatabaseInfos();
-  auto total_tasks = static_cast<int>(key_dbs.size());
-  std::atomic<int> completed_tasks{0};
-  std::vector<int> results(total_tasks, 0);
-
-  // kill default gpg-agent
-  key_dbs.push_back({});
-
-  int task_index = 0;
-  for (const auto &key_db : key_dbs) {
-    const int current_index = task_index++;
-    const auto target_home_dir =
-        QDir::toNativeSeparators(QFileInfo(key_db.path).canonicalFilePath());
-
-    QStringList arguments = !target_home_dir.isEmpty()
-                                ? QStringList{"--homedir", target_home_dir}
-                                : QStringList{};
-    arguments.append(extra_args);
-
-    GpgCommandExecutor::ExecuteSync(
-        {gpgconf_path, arguments,
-         [=, &completed_tasks, &results](int exit_code, const QString &,
-                                         const QString &) {
-           FLOG_D("%s exit code: %d", qPrintable(operation), exit_code);
-
-           results[current_index] = exit_code;
-
-           if (++completed_tasks == total_tasks && cb) {
-             int final_result =
-                 std::all_of(results.begin(), results.end(),
-                             [](int result) { return result >= 0; })
-                     ? 0
-                     : -1;
-             cb(final_result, TransferParams());
-           }
-         }});
-  }
+auto GpgAdvancedOperator::ClearGpgPasswordCache() -> bool {
+  auto [ret, out] = exec_.GpgConfExecuteSync({{"--reload", "gpg-agent"}});
+  return ret == 0;
 }
 
-void GpgAdvancedOperator::ClearGpgPasswordCache(OperationCallback cb) {
-  ExecuteGpgCommand("Clear GPG Password Cache", {"--reload", "gpg-agent"},
-                    std::move(cb));
+auto GpgAdvancedOperator::ReloadAllGpgComponents() -> bool {
+  auto [ret, out] = exec_.GpgConfExecuteSync({{"--reload", "all"}});
+  return ret == 0;
 }
 
-void GpgAdvancedOperator::ReloadGpgComponents(OperationCallback cb) {
-  const auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gpgconf_path", QString{});
-  ExecuteGpgCommand("Reload GPG Components", {"--reload", "all"},
-                    std::move(cb));
+auto GpgAdvancedOperator::KillAllGpgComponents() -> bool {
+  auto [ret, out] = exec_.GpgConfExecuteSync({{"--kill", "all"}});
+  return ret == 0;
 }
 
-void GpgAdvancedOperator::KillAllGpgComponents(OperationCallback cb) {
-  ExecuteGpgCommand("Kill All GPG Components", {"--kill", "all"},
-                    std::move(cb));
+auto GpgAdvancedOperator::ResetConfigures() -> bool {
+  auto [ret, out] = exec_.GpgConfExecuteSync({{"--apply-defaults"}});
+  return ret == 0;
 }
 
-void GpgAdvancedOperator::ResetConfigures(OperationCallback cb) {
-  ExecuteGpgCommand("Reset Gnupg Configures", {"--apply-defaults"},
-                    std::move(cb));
+auto GpgAdvancedOperator::LaunchAllGpgComponents() -> bool {
+  auto [ret, out] = exec_.GpgConfExecuteSync({{"--launch", "all"}});
+  return ret == 0;
 }
 
-void GpgAdvancedOperator::LaunchGpgComponents(OperationCallback cb) {
-  ExecuteGpgCommand("Launch All GPG Components", {"--launch", "all"},
-                    std::move(cb));
+auto GpgAdvancedOperator::RestartGpgComponents() -> bool {
+  if (!KillAllGpgComponents()) return false;
+  return LaunchAllGpgComponents();
 }
 
-void GpgAdvancedOperator::RestartGpgComponents(OperationCallback cb) {
-  KillAllGpgComponents(nullptr);
-  LaunchGpgComponents(std::move(cb));
-}
-
+GpgAdvancedOperator::GpgAdvancedOperator(int channel)
+    : SingletonFunctionObject<GpgAdvancedOperator>(channel) {}
 }  // namespace GpgFrontend

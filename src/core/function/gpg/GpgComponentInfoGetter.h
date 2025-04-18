@@ -26,27 +26,22 @@
  *
  */
 
-//
-// Created by eric on 07.01.2023.
-//
-
 #pragma once
 
-#include "core/function/basic/GpgFunctionObject.h"
-#include "core/function/gpg/GpgCommandExecutor.h"
-#include "core/model/DataObject.h"
+#include "core/function/gpg/GpgAssuanHelper.h"
+#include "core/function/gpg/GpgContext.h"
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
-    : public SingletonFunctionObject<GpgAdvancedOperator> {
+class GPGFRONTEND_CORE_EXPORT GpgComponentInfoGetter
+    : public SingletonFunctionObject<GpgComponentInfoGetter> {
  public:
   /**
-   * @brief Construct a new Gpg Advanced Operator object
+   * @brief Construct a new Gpg Assuan Helper object
    *
    * @param channel
    */
-  explicit GpgAdvancedOperator(int channel);
+  explicit GpgComponentInfoGetter(int channel);
 
   /**
    * @brief
@@ -54,7 +49,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
    * @return true
    * @return false
    */
-  auto ClearGpgPasswordCache() -> bool;
+  auto GetGpgAgentVersion() -> QString;
 
   /**
    * @brief
@@ -62,41 +57,16 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
    * @return true
    * @return false
    */
-  auto ReloadAllGpgComponents() -> bool;
-
-  /**
-   * @brief
-   *
-   * @return true
-   * @return false
-   */
-  auto RestartGpgComponents() -> bool;
-
-  /**
-   * @brief
-   *
-   * @return true
-   * @return false
-   */
-  auto ResetConfigures() -> bool;
-
-  /**
-   * @brief
-   *
-   * @return true
-   * @return false
-   */
-  auto LaunchAllGpgComponents() -> bool;
-
-  /**
-   * @brief
-   *
-   */
-  auto KillAllGpgComponents() -> bool;
+  auto GetScdaemonVersion() -> QString;
 
  private:
-  GpgCommandExecutor& exec_ =
-      GpgCommandExecutor::GetInstance(SingletonFunctionObject::GetChannel());
+  GpgContext& ctx_ =
+      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
+  GpgAssuanHelper& assuan_ =
+      GpgAssuanHelper::GetInstance(SingletonFunctionObject::GetChannel());
+
+  QString gpg_agent_version_;
+  QString scdaemon_version_;
 };
 
-}  // namespace GpgFrontend
+};  // namespace GpgFrontend

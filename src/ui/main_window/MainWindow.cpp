@@ -31,6 +31,8 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/CommonUtils.h"
+#include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/main_window/GeneralMainWindow.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
@@ -115,6 +117,25 @@ void MainWindow::Init() noexcept {
             &UISignalStation::SignalMainWindowOpenFile, this,
             &MainWindow::SlotOpenFile);
 
+#if !(defined(_WIN32) || defined(WIN32))
+    connect(this, &MainWindow::SignalLoaded, this, [=]() {
+      QTimer::singleShot(3000, [self = QPointer<MainWindow>(this)]() {
+        if (self != nullptr && DecidePinentry().isEmpty() && !IsFlatpakENV()) {
+          QMessageBox::warning(
+              self, tr("GUI Pinentry Not Found"),
+              tr("No suitable *graphical* Pinentry program was found on your "
+                 "system.\n\n"
+                 "Please install a GUI-based Pinentry (e.g., 'pinentry-qt', "
+                 "'pinentry-gnome3', or 'pinentry-mac' on macOS).\n\n"
+                 "Without a GUI Pinentry, GnuPG cannot prompt you for "
+                 "passwords or passphrases.\n\n"
+                 "After installing it, please restart GpgFrontend. The "
+                 "configuration file will be updated automatically."));
+        }
+      });
+    });
+#endif
+
     popup_menu_ = new QMenu(this);
 
     popup_menu_->addAction(append_selected_keys_act_);
@@ -152,7 +173,6 @@ void MainWindow::Init() noexcept {
     // loading process is done
     emit SignalLoaded();
     Module::TriggerEvent("APPLICATION_LOADED");
-
   } catch (...) {
     LOG_W() << tr("Critical error occur while loading GpgFrontend.");
     QMessageBox::critical(

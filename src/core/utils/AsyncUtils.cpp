@@ -28,24 +28,20 @@
 
 #include "AsyncUtils.h"
 
+#include "core/model/DataObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
-#include "core/utils/CommonUtils.h"
-#include "model/DataObject.h"
+#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
 
-auto RunGpgOperaAsync(const GpgOperaRunnable& runnable,
+auto RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
                       const GpgOperationCallback& callback,
-                      const QString& operation, const QString& minial_version)
+                      const QString& operation, const QString& minimal_version)
     -> Thread::Task::TaskHandler {
-  const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gnupg_version", minial_version);
-
-  if (GFCompareSoftwareVersion(gnupg_version, minial_version) < 0) {
-    LOG_W() << "operation" << operation
-            << " not support for gnupg version: " << gnupg_version;
+  if (!CheckGpgVersion(channel, minimal_version)) {
+    LOG_W() << "operation: " << operation << "is not supported.";
     callback(GPG_ERR_NOT_SUPPORTED, TransferParams());
     return Thread::Task::TaskHandler(nullptr);
   }
@@ -75,15 +71,11 @@ auto RunGpgOperaAsync(const GpgOperaRunnable& runnable,
   return handler;
 }
 
-auto RunGpgOperaSync(const GpgOperaRunnable& runnable, const QString& operation,
-                     const QString& minial_version)
+auto RunGpgOperaSync(int channel, const GpgOperaRunnable& runnable,
+                     const QString& operation, const QString& minimal_version)
     -> std::tuple<GpgError, DataObjectPtr> {
-  const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gnupg_version", minial_version);
-
-  if (GFCompareSoftwareVersion(gnupg_version, minial_version) < 0) {
-    LOG_W() << "operation" << operation
-            << " not support for gnupg version: " << gnupg_version;
+  if (!CheckGpgVersion(channel, minimal_version)) {
+    LOG_W() << "operation: " << operation << "is not supported.";
     return {GPG_ERR_NOT_SUPPORTED, TransferParams()};
   }
 

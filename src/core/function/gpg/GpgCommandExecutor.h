@@ -51,8 +51,38 @@ class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor
     GpgCommandExecutorInterator int_func;
     Module::TaskRunnerPtr task_runner = nullptr;
 
+    /**
+     * @brief Construct a new Execute Context object
+     *
+     */
+    ExecuteContext() = default;
+
+    /**
+     * @brief Construct a new Execute Context object
+     *
+     * @param cmd
+     * @param arguments
+     * @param callback
+     * @param task_runner
+     * @param int_func
+     */
     ExecuteContext(
         QString cmd, QStringList arguments,
+        GpgCommandExecutorCallback callback = [](int, const QString &,
+                                                 const QString &) {},
+        Module::TaskRunnerPtr task_runner = nullptr,
+        GpgCommandExecutorInterator int_func = [](QProcess *) {});
+
+    /**
+     * @brief Construct a new Execute Context object
+     *
+     * @param arguments
+     * @param callback
+     * @param task_runner
+     * @param int_func
+     */
+    ExecuteContext(
+        QStringList arguments,
         GpgCommandExecutorCallback callback = [](int, const QString &,
                                                  const QString &) {},
         Module::TaskRunnerPtr task_runner = nullptr,
@@ -69,13 +99,45 @@ class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor
    * @param arguments Command parameters
    * @param interact_func Command answering function
    */
-  static void ExecuteSync(ExecuteContext);
+  static void ExecuteSync(const ExecuteContext &);
 
-  static void ExecuteConcurrentlyAsync(ExecuteContexts);
+  /**
+   * @brief
+   *
+   */
+  static void ExecuteConcurrentlyAsync(const ExecuteContexts &);
 
-  static void ExecuteConcurrentlySync(ExecuteContexts);
+  /**
+   * @brief
+   *
+   */
+  static void ExecuteConcurrentlySync(const ExecuteContexts &);
 
-  void GpgExecuteSync(const ExecuteContext &);
+  /**
+   * @brief
+   *
+   */
+  auto GpgExecuteSync(const ExecuteContext &) -> std::tuple<int, QString>;
+
+  /**
+   * @brief
+   *
+   */
+  auto GpgConfExecuteSync(const ExecuteContext &) -> std::tuple<int, QString>;
+
+  /**
+   * @brief
+   *
+   * @param context
+   */
+  void GpgExecuteAsync(const ExecuteContext &);
+
+  /**
+   * @brief
+   *
+   * @param context
+   */
+  void GpgConfExecuteAsync(const ExecuteContext &);
 
  private:
   GpgContext &ctx_ =

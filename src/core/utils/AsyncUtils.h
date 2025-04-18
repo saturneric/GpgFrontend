@@ -41,24 +41,24 @@ namespace GpgFrontend {
  * @param runnable
  * @param callback
  * @param operation
- * @param minial_version
+ * @param minimal_version
  */
 auto GPGFRONTEND_CORE_EXPORT
-RunGpgOperaAsync(const GpgOperaRunnable& runnable,
+RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
                  const GpgOperationCallback& callback, const QString& operation,
-                 const QString& minial_version) -> Thread::Task::TaskHandler;
+                 const QString& minimal_version) -> Thread::Task::TaskHandler;
 
 /**
  * @brief
  *
  * @param runnable
  * @param operation
- * @param minial_version
+ * @param minimal_version
  * @return std::tuple<GpgError, DataObjectPtr>
  */
 auto GPGFRONTEND_CORE_EXPORT RunGpgOperaSync(
-    const GpgOperaRunnable& runnable, const QString& operation,
-    const QString& minial_version) -> std::tuple<GpgError, DataObjectPtr>;
+    int channel, const GpgOperaRunnable& runnable, const QString& operation,
+    const QString& minimal_version) -> std::tuple<GpgError, DataObjectPtr>;
 
 /**
  * @brief
