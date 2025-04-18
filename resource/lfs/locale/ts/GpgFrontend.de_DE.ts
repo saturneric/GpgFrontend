@@ -4342,7 +4342,7 @@ Without a GUI Pinentry, GnuPG cannot prompt you for passwords or passphrases.
 After installing it, please restart GpgFrontend. The configuration file will be updated automatically.</source>
         <translation>Es wurde kein geeignetes *grafisches* Pinentry-Programm auf Ihrem System gefunden.
 
-Bitte installieren Sie ein GUI-basiertes Pinentry (z.&nbsp;B. &quot;pinentry-qt&quot;, &quot;pinentry-gnome3&quot; oder &quot;pinentry-mac&quot; unter macOS).
+Bitte installieren Sie ein GUI-basiertes Pinentry (z.B. &quot;pinentry-qt&quot;, &quot;pinentry-gnome3&quot; oder &quot;pinentry-mac&quot; unter macOS).
 
 Ohne ein grafisches Pinentry kann GnuPG Sie nicht nach Passwörtern oder Passphrasen fragen.
 
