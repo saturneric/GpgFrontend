@@ -31,7 +31,6 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyManager.h"
-#include "core/function/gpg/GpgKeyOpera.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"

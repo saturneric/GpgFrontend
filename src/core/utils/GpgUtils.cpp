@@ -462,6 +462,8 @@ auto GPGFRONTEND_CORE_EXPORT DecidePinentry() -> QString {
   QStringList preferred_list = {"pinentry-gnome3",
                                 "pinentry-qt"
                                 "pinentry-gtk2"};
+#elif defined(__APPLE__) && defined(__MACH__)
+  QStringList preferred_list = {"pinentry-mac", "pinentry-qt"};
 #else
   QStringList preferred_list = {"pinentry-qt"};
 #endif

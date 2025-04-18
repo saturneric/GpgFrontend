@@ -117,19 +117,20 @@ void MainWindow::Init() noexcept {
             &UISignalStation::SignalMainWindowOpenFile, this,
             &MainWindow::SlotOpenFile);
 
-#if defined(__linux__)
+#if !(defined(_WIN32) || defined(WIN32))
     connect(this, &MainWindow::SignalLoaded, this, [=]() {
       QTimer::singleShot(3000, [self = QPointer<MainWindow>(this)]() {
         if (self != nullptr && DecidePinentry().isEmpty() && !IsFlatpakENV()) {
           QMessageBox::warning(
-              self, QObject::tr("Pinentry Not Found"),
-              QObject::tr(
-                  "No suitable pinentry program was found on your system.\n\n"
-                  "Please install 'pinentry-qt' or another compatible pinentry "
-                  "(e.g., pinentry-gnome3, pinentry-gtk2).\n\n"
-                  "Without it, GnuPG cannot prompt for passwords.\n\n"
-                  "Once you have installed it, please restart GpgFrontend. "
-                  "The configuration file will be updated automatically."));
+              self, tr("GUI Pinentry Not Found"),
+              tr("No suitable *graphical* Pinentry program was found on your "
+                 "system.\n\n"
+                 "Please install a GUI-based Pinentry (e.g., 'pinentry-qt', "
+                 "'pinentry-gnome3', or 'pinentry-mac' on macOS).\n\n"
+                 "Without a GUI Pinentry, GnuPG cannot prompt you for "
+                 "passwords or passphrases.\n\n"
+                 "After installing it, please restart GpgFrontend. The "
+                 "configuration file will be updated automatically."));
         }
       });
     });

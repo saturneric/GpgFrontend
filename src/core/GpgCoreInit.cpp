@@ -429,10 +429,6 @@ void EnsureGpgAgentConfHasPinentry(GpgContext& ctx) {
       }
       config_file.close();
       LOG_D() << "updated gpg-agent.conf with pinentry:" << pinentry_path;
-
-      // reload configure
-      GpgAdvancedOperator::GetInstance(ctx.GetChannel())
-          .ReloadAllGpgComponents();
     } else {
       LOG_W() << "failed to write to gpg-agent.conf";
     }
@@ -612,7 +608,8 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     return -1;
   }
 
-#if defined(__linux__)
+#if !(defined(_WIN32) || defined(WIN32))
+  // auto config pinentry-program
   EnsureGpgAgentConfHasPinentry(default_ctx);
 #endif
 
@@ -666,6 +663,10 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
           }
 
 #if defined(__linux__)
+          EnsureGpgAgentConfHasPinentry(ctx);
+#endif
+
+#if defined(__APPLE__) && defined(__MACH__)
           EnsureGpgAgentConfHasPinentry(ctx);
 #endif
 
