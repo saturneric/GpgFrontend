@@ -175,6 +175,11 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
     return;
   }
 
+  // On window platform, the gpg-agent is running as a subprocess. It will be
+  // closed automatically when the application is closing.
+
+#if !defined(_WIN32) && !defined(WIN32)
+
   auto clear_gpg_password_cache =
       GetSettings().value("basic/clear_gpg_password_cache", false).toBool();
 
@@ -192,6 +197,8 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
       assert(GpgAdvancedOperator::GetInstance(channel).ClearGpgPasswordCache());
     }
   }
+
+#endif
 
   // first should shutdown the module system
   GpgFrontend::Module::ShutdownGpgFrontendModules();

@@ -108,7 +108,7 @@ class GpgAgentProcess {
     if (process_.state() != QProcess::NotRunning) {
       qInfo() << "killing gpg-agent, channel: " << channel_;
       process_.terminate();
-      if (!process_.waitForFinished(5000)) {
+      if (!process_.waitForFinished(3000)) {
         process_.kill();
         process_.waitForFinished();
       }
