@@ -59,8 +59,10 @@ class GpgContext::Impl {
   Impl(GpgContext *parent, const GpgContextInitArgs &args)
       : parent_(parent),
         args_(args),
+        db_name_(args.db_name),
         gpgconf_path_(Module::RetrieveRTValueTypedOrDefault<>(
-            "core", "gpgme.ctx.gpgconf_path", QString{})) {
+            "core", "gpgme.ctx.gpgconf_path", QString{})),
+        database_path_(args.db_path) {
     init(args);
   }
 
@@ -210,6 +212,7 @@ class GpgContext::Impl {
 
   void init(const GpgContextInitArgs &args) {
     assert(!gpgconf_path_.isEmpty());
+    assert(!database_path_.isEmpty());
 
     // init
     get_gpg_conf_dirs();
@@ -258,15 +261,12 @@ class GpgContext::Impl {
     const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
         "core", QString("gpgme.ctx.app_path"), QString{});
 
-    // set custom gpg key db path
-    if (!args_.db_path.isEmpty()) {
-      database_path_ = args_.db_path;
-      db_name_ = args_.db_name;
-    }
-
     LOG_D() << "ctx set engine info, channel: " << parent_->GetChannel()
-            << ", db name: " << args_.db_name << ", db path: " << args_.db_path
+            << ", db name: " << db_name_ << ", db path: " << database_path_
             << ", app path: " << app_path;
+
+    assert(!db_name_.isEmpty());
+    assert(!database_path_.isEmpty());
 
     auto app_path_buffer = app_path.toUtf8();
     auto database_path_buffer = database_path_.toUtf8();
@@ -392,9 +392,17 @@ class GpgContext::Impl {
     LOG_D() << "context: " << parent_->GetChannel()
             << "gpgconf path: " << gpgconf_path;
 
+    auto args = QStringList{};
+
+    if (!HomeDirectory().isEmpty()) {
+      args.append({"--homedir", QDir::toNativeSeparators(HomeDirectory())});
+    }
+
+    args.append("--list-dirs");
+
     QProcess process;
     process.setProgram(gpgconf_path);
-    process.setArguments({"--list-dirs", "--homedir", database_path_});
+    process.setArguments(args);
     process.start();
 
     if (!process.waitForFinished()) {
@@ -436,9 +444,13 @@ class GpgContext::Impl {
 
     LOG_D() << "get gpgconf path: " << gpgconf_path;
 
-    auto args =
-        QStringList{"--homedir", QDir::toNativeSeparators(HomeDirectory()),
-                    "--kill", "gpg-agent"};
+    auto args = QStringList{};
+
+    if (!HomeDirectory().isEmpty()) {
+      args.append({"--homedir", QDir::toNativeSeparators(HomeDirectory())});
+    }
+
+    args.append({"--kill", "gpg-agent"});
 
     LOG_E() << "gpgconf kill args: " << args
             << "channel:" << parent_->GetChannel();
@@ -475,12 +487,16 @@ class GpgContext::Impl {
       return false;
     }
 
-    auto args =
-        QStringList{"--homedir", QDir::toNativeSeparators(HomeDirectory()),
-                    "--daemon", "--enable-ssh-support"};
+    auto args = QStringList{};
+
+    if (!HomeDirectory().isEmpty()) {
+      args.append({"--homedir", QDir::toNativeSeparators(HomeDirectory())});
+    }
+
+    args.append({"--daemon", "--enable-ssh-support"});
 
     auto pinentry = DecidePinentry();
-    if (pinentry != nullptr) {
+    if (!pinentry.trimmed().isEmpty()) {
       args.append({"--pinentry-program", pinentry});
     }
 
