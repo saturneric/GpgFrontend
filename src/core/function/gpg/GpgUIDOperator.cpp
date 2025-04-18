@@ -29,7 +29,6 @@
 #include "GpgUIDOperator.h"
 
 #include "core/function/gpg/GpgAutomatonHandler.h"
-#include "core/model/GpgData.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
@@ -65,8 +64,8 @@ auto GpgUIDOperator::DeleteUID(const GpgKeyPtr& key, int uid_index) -> bool {
   }
 
   AutomatonNextStateHandler next_state_handler = [](AutomatonState state,
-                                                    QString status,
-                                                    QString args) {
+                                                    const QString& status,
+                                                    const QString& args) {
     auto tokens = args.split(' ');
 
     switch (state) {
@@ -124,15 +123,14 @@ auto GpgUIDOperator::DeleteUID(const GpgKeyPtr& key, int uid_index) -> bool {
             return QString("Y");
           case GpgAutomatonHandler::kAS_START:
           case GpgAutomatonHandler::kAS_ERROR:
-            return QString("");
           default:
             return QString("");
         }
         return QString("");
       };
 
-  return GpgAutomatonHandler::GetInstance(GetChannel())
-      .DoInteract(key, next_state_handler, action_handler);
+  auto [err, succ] = auto_.DoInteract(key, next_state_handler, action_handler);
+  return err == GPG_ERR_NO_ERROR && !succ;
 }
 
 auto GpgUIDOperator::RevokeUID(const GpgKeyPtr& key, int uid_index,
@@ -153,8 +151,8 @@ auto GpgUIDOperator::RevokeUID(const GpgKeyPtr& key, int uid_index,
       reason_text.split('\n', Qt::SkipEmptyParts));
 
   AutomatonNextStateHandler next_state_handler = [](AutomatonState state,
-                                                    QString status,
-                                                    QString args) {
+                                                    const QString& status,
+                                                    const QString& args) {
     auto tokens = args.split(' ');
 
     switch (state) {
@@ -240,15 +238,14 @@ auto GpgUIDOperator::RevokeUID(const GpgKeyPtr& key, int uid_index,
             return QString("Y");
           case GpgAutomatonHandler::kAS_START:
           case GpgAutomatonHandler::kAS_ERROR:
-            return QString("");
           default:
             return QString("");
         }
         return QString("");
       };
 
-  return GpgAutomatonHandler::GetInstance(GetChannel())
-      .DoInteract(key, next_state_handler, action_handler);
+  auto [err, succ] = auto_.DoInteract(key, next_state_handler, action_handler);
+  return err == GPG_ERR_NO_ERROR && !succ;
 }
 
 }  // namespace GpgFrontend

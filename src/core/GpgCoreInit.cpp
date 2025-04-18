@@ -225,17 +225,17 @@ auto InitGpgME() -> bool {
       "core", "gpgme.ctx.gnupg_version", QString{});
 
   if (!has_gpgconf) {
-    FLOG_E() << "cannot get gpgconf backend engine, abort...";
+    LOG_E() << "cannot get gpgconf backend engine, abort...";
     return false;
   }
 
   if (!has_openpgp) {
-    FLOG_E() << "cannot get openpgp backend engine, abort...";
+    LOG_E() << "cannot get openpgp backend engine, abort...";
     return false;
   }
 
   if (!has_cms) {
-    FLOG_E() << "cannot get cms backend engine, abort...";
+    LOG_E() << "cannot get cms backend engine, abort...";
     return false;
   }
 
@@ -520,8 +520,8 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   assert(!key_dbs.isEmpty());
 
   if (key_dbs.isEmpty()) {
-    FLOG_E() << "Cannot find any valid key database!"
-             << "GpgFrontend cannot start under this situation!";
+    LOG_E() << "Cannot find any valid key database!"
+            << "GpgFrontend cannot start under this situation!";
     Module::UpsertRTValue("core", "env.state.ctx", -1);
     CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
         QCoreApplication::tr("No valid Key Database"));
@@ -549,8 +549,8 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
             args, kGpgFrontendDefaultChannel));
       });
   if (!default_ctx.Good()) {
-    FLOG_E() << "Init GpgME Default Context failed!"
-             << "GpgFrontend cannot start under this situation!";
+    LOG_E() << "Init GpgME Default Context failed!"
+            << "GpgFrontend cannot start under this situation!";
     Module::UpsertRTValue("core", "env.state.ctx", -1);
     CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
         QCoreApplication::tr("GpgME Default Context Initiation Failed"));
@@ -560,8 +560,8 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   Module::UpsertRTValue("core", "env.state.ctx", 1);
 
   if (!GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).FlushKeyCache()) {
-    FLOG_E() << "Init GpgME Default Key Database failed!"
-             << "GpgFrontend cannot start under this situation!";
+    LOG_E() << "Init GpgME Default Key Database failed!"
+            << "GpgFrontend cannot start under this situation!";
     Module::UpsertRTValue("core", "env.state.ctx", -1);
     CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
         QCoreApplication::tr("Gpg Default Key Database Initiation Failed"));
@@ -602,13 +602,13 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
               });
 
           if (!ctx.Good()) {
-            FLOG_E() << "gpgme context init failed, index:" << channel_index;
+            LOG_E() << "gpgme context init failed, index:" << channel_index;
             continue;
           }
 
           if (!GpgKeyGetter::GetInstance(ctx.GetChannel()).FlushKeyCache()) {
-            FLOG_E() << "gpgme context init key cache failed, index:"
-                     << channel_index;
+            LOG_E() << "gpgme context init key cache failed, index:"
+                    << channel_index;
             continue;
           }
 
@@ -631,9 +631,16 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
       ->PostTask(task);
 
-  if (!args.unit_test_mode && restart_all_gnupg_components_on_start) {
-    GpgAdvancedOperator::RestartGpgComponents(nullptr);
+  const auto size = GpgContext::GetAllChannelId().size();
+  for (auto i = 0; i < size; i++) {
+    if (!args.unit_test_mode && restart_all_gnupg_components_on_start) {
+      assert(GpgAdvancedOperator::GetInstance().RestartGpgComponents());
+    } else {
+      // ensure gpg-agent is running
+      assert(GpgAdvancedOperator::GetInstance().LaunchAllGpgComponents());
+    }
   }
+
   return 0;
 }
 

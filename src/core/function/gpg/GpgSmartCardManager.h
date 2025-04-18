@@ -30,9 +30,9 @@
 
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/gpg/GpgAssuanHelper.h"
+#include "core/function/gpg/GpgComponentInfoGetter.h"
 #include "core/function/gpg/GpgContext.h"
 #include "core/model/GpgOpenPGPCard.h"
-#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
@@ -63,7 +63,8 @@ class GPGFRONTEND_CORE_EXPORT GpgSmartCardManager
    *
    * @return std::tuple<bool, QString>
    */
-  auto SelectCardBySerialNumber(const QString&) -> std::tuple<bool, QString>;
+  auto SelectCardBySerialNumber(const QString&)
+      -> std::tuple<GpgError, QString>;
 
   /**
    * @brief
@@ -81,7 +82,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSmartCardManager
    * @return true
    * @return false
    */
-  auto Fetch(const QString& serial_number) -> bool;
+  auto Fetch(const QString& serial_number) -> GpgError;
 
   /**
    * @brief
@@ -89,7 +90,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSmartCardManager
    * @return std::tuple<bool, QString>
    */
   auto ModifyAttr(const QString& attr,
-                  const QString& value) -> std::tuple<bool, QString>;
+                  const QString& value) -> std::tuple<GpgError, QString>;
 
   /**
    * @brief
@@ -97,7 +98,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSmartCardManager
    * @param pin_ref
    * @return std::tuple<bool, QString>
    */
-  auto ModifyPin(const QString& pin_ref) -> std::tuple<bool, QString>;
+  auto ModifyPin(const QString& pin_ref) -> std::tuple<GpgError, QString>;
 
   /**
    * @brief
@@ -107,7 +108,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSmartCardManager
   auto GenerateKey(const QString& serial_number, const QString& name,
                    const QString& email, const QString& comment,
                    const QDateTime& expire,
-                   bool non_expire) -> std::tuple<bool, QString>;
+                   bool non_expire) -> std::tuple<GpgError, QString>;
 
   /**
    * @brief
@@ -122,6 +123,9 @@ class GPGFRONTEND_CORE_EXPORT GpgSmartCardManager
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
   GpgAssuanHelper& assuan_ =
       GpgAssuanHelper::GetInstance(SingletonFunctionObject::GetChannel());  ///<
+  GpgComponentInfoGetter& info_ = GpgComponentInfoGetter::GetInstance(
+      SingletonFunctionObject::GetChannel());  ///<
+
   QString cached_scd_serialno_status_hash_;
   QContainer<QString> cache_scd_card_serial_numbers_;
 };

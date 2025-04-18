@@ -311,46 +311,58 @@ void MainWindow::SlotGeneralDecryptVerify(bool) {
 }
 
 void MainWindow::slot_clean_gpg_password_cache(bool) {
-  GpgFrontend::GpgAdvancedOperator::ClearGpgPasswordCache(
-      [=](int err, DataObjectPtr) {
-        if (err >= 0) {
-          QMessageBox::information(this, tr("Successful Operation"),
-                                   tr("Clear password cache successfully"));
-        } else {
-          QMessageBox::critical(this, tr("Failed Operation"),
-                                tr("Failed to clear password cache of GnuPG"));
-        }
-      });
+  bool ret = true;
+  const auto size = GpgContext::GetAllChannelId().size();
+  for (auto i = 0; i < size; i++) {
+    ret = GpgAdvancedOperator::GetInstance().ClearGpgPasswordCache();
+    if (!ret) break;
+  }
+
+  if (ret) {
+    QMessageBox::information(this, tr("Successful Operation"),
+                             tr("Clear password cache successfully"));
+  } else {
+    QMessageBox::critical(this, tr("Failed Operation"),
+                          tr("Failed to clear password cache of GnuPG"));
+  }
 }
 
 void MainWindow::slot_reload_gpg_components(bool) {
-  GpgFrontend::GpgAdvancedOperator::ReloadGpgComponents(
-      [=](int err, DataObjectPtr) {
-        if (err >= 0) {
-          QMessageBox::information(
-              this, tr("Successful Operation"),
-              tr("Reload all the GnuPG's components successfully"));
-        } else {
-          QMessageBox::critical(
-              this, tr("Failed Operation"),
-              tr("Failed to reload all or one of the GnuPG's component(s)"));
-        }
-      });
+  bool ret = true;
+  const auto size = GpgContext::GetAllChannelId().size();
+  for (auto i = 0; i < size; i++) {
+    ret = GpgAdvancedOperator::GetInstance().ReloadAllGpgComponents();
+    if (!ret) break;
+  }
+
+  if (ret) {
+    QMessageBox::information(
+        this, tr("Successful Operation"),
+        tr("Reload all the GnuPG's components successfully"));
+  } else {
+    QMessageBox::critical(
+        this, tr("Failed Operation"),
+        tr("Failed to reload all or one of the GnuPG's component(s)"));
+  }
 }
 
 void MainWindow::slot_restart_gpg_components(bool) {
-  GpgFrontend::GpgAdvancedOperator::RestartGpgComponents(
-      [=](int err, DataObjectPtr) {
-        if (err >= 0) {
-          QMessageBox::information(
-              this, tr("Successful Operation"),
-              tr("Restart all the GnuPG's components successfully"));
-        } else {
-          QMessageBox::critical(
-              this, tr("Failed Operation"),
-              tr("Failed to restart all or one of the GnuPG's component(s)"));
-        }
-      });
+  bool ret = true;
+  const auto size = GpgContext::GetAllChannelId().size();
+  for (auto i = 0; i < size; i++) {
+    ret = GpgAdvancedOperator::GetInstance().RestartGpgComponents();
+    if (!ret) break;
+  }
+
+  if (ret) {
+    QMessageBox::information(
+        this, tr("Successful Operation"),
+        tr("Restart all the GnuPG's components successfully"));
+  } else {
+    QMessageBox::critical(
+        this, tr("Failed Operation"),
+        tr("Failed to restart all or one of the GnuPG's component(s)"));
+  }
 }
 
 void MainWindow::slot_update_operations_menu_by_checked_keys(

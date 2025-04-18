@@ -30,12 +30,15 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAbstractKeyGetter.h"
+#include "core/function/gpg/GpgComponentInfoGetter.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyGroup.h"
 #include "core/model/KeyDatabaseInfo.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/struct/settings_object/KeyDatabaseListSO.h"
+#include "core/utils/CommonUtils.h"
+
 namespace GpgFrontend {
 
 inline auto Trim(QString& s) -> QString { return s.trimmed(); }
@@ -424,4 +427,33 @@ auto GPGFRONTEND_CORE_EXPORT IsKeyGroupID(const KeyId& id) -> bool {
   return id.startsWith("#&");
 }
 
+auto GPGFRONTEND_CORE_EXPORT
+GpgAgentVersionGreaterThan(int channel, const QString& v) -> bool {
+  return GFSoftwareVersionGreaterThan(
+      GpgComponentInfoGetter::GetInstance(channel).GetGpgAgentVersion(), v);
+}
+
+auto GPGFRONTEND_CORE_EXPORT CheckGpgVersion(int channel,
+                                             const QString& v) -> bool {
+  const auto ver =
+      GpgComponentInfoGetter::GetInstance(channel).GetGpgAgentVersion();
+
+  if (ver.isEmpty() || !GFSoftwareVersionGreaterThan(ver, v)) {
+    LOG_W() << "operation not support for gpg-agent version: " << ver
+            << "minimal version: " << v;
+    return false;
+  }
+
+  const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.gnupg_version", QString{});
+
+  if (gnupg_version.isEmpty() ||
+      GFCompareSoftwareVersion(gnupg_version, v) < 0) {
+    LOG_W() << "operation not support for gnupg version: " << gnupg_version
+            << "minimal version: " << v;
+    return false;
+  }
+
+  return true;
+}
 }  // namespace GpgFrontend

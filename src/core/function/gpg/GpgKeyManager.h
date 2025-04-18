@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/function/basic/GpgFunctionObject.h"
+#include "core/function/gpg/GpgAutomatonHandler.h"
 #include "core/function/gpg/GpgContext.h"
 #include "core/typedef/GpgTypedef.h"
 
@@ -114,6 +115,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
  private:
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
+  GpgAutomatonHandler& auto_ = GpgAutomatonHandler::GetInstance(
+      SingletonFunctionObject::GetChannel());  ///<
 };
 
 }  // namespace GpgFrontend

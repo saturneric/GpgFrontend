@@ -90,6 +90,12 @@ auto GpgOperaHelper::BuildSimpleGpgFileOperasHelper(
           // stop waiting
           op_hd();
 
+          if (CheckGpgError(err) == GPG_ERR_NOT_SUPPORTED) {
+            opera_results.append({-1, "# " + tr("Operation Not Supported"),
+                                  QFileInfo(path).fileName()});
+            return;
+          }
+
           if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
               !data_obj->Check<ResultType>()) {
             opera_results.append(
@@ -125,6 +131,12 @@ auto GpgOperaHelper::BuildComplexGpgFileOperasHelper(
         [=, &opera_results](GpgError err, const DataObjectPtr& data_obj) {
           // stop waiting
           op_hd();
+
+          if (CheckGpgError(err) == GPG_ERR_NOT_SUPPORTED) {
+            opera_results.append({-1, "# " + tr("Operation Not Supported"),
+                                  QFileInfo(path).fileName()});
+            return;
+          }
 
           if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
               !data_obj->Check<ResultTypeA, ResultTypeB>()) {
@@ -169,6 +181,11 @@ auto GpgOperaHelper::BuildSimpleGpgOperasHelper(
       // stop waiting
       op_hd();
 
+      if (CheckGpgError(err) == GPG_ERR_NOT_SUPPORTED) {
+        opera_results.append({-1, "# " + tr("Operation Not Supported"), {}});
+        return;
+      }
+
       if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
           !data_obj->Check<ResultType, GFBuffer>()) {
         opera_results.append({-1, "# " + tr("Critical Error"), {}});
@@ -206,6 +223,11 @@ auto GpgOperaHelper::BuildComplexGpgOperasHelper(
                                            const DataObjectPtr& data_obj) {
       // stop waiting
       op_hd();
+
+      if (CheckGpgError(err) == GPG_ERR_NOT_SUPPORTED) {
+        opera_results.append({-1, "# " + tr("Operation Not Supported"), {}});
+        return;
+      }
 
       if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
           !data_obj->Check<ResultTypeA, ResultTypeB, GFBuffer>()) {

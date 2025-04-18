@@ -105,6 +105,7 @@ void GpgKeyImportExporter::ExportKeys(const GpgAbstractKeyPtrList& keys,
                                       bool ssh_mode,
                                       const GpgOperationCallback& cb) const {
   RunGpgOperaAsync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
         if (keys.empty()) return GPG_ERR_CANCELED;
 
@@ -139,6 +140,7 @@ void GpgKeyImportExporter::ExportAllKeys(const GpgAbstractKeyPtrList& keys,
                                          bool secret, bool ascii,
                                          const GpgOperationCallback& cb) const {
   RunGpgOperaAsync(
+      GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
         if (keys.empty()) return GPG_ERR_CANCELED;
 

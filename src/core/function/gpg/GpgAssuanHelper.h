@@ -81,7 +81,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAssuanHelper
    * @return true
    * @return false
    */
-  auto ConnectToSocket(GpgComponentType) -> bool;
+  auto ConnectToSocket(GpgComponentType) -> GpgError;
 
   /**
    * @brief
@@ -96,7 +96,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAssuanHelper
    */
   auto SendCommand(GpgComponentType type, const QString& command,
                    DataCallback data_cb, InqueryCallback inquery_cb,
-                   StatusCallback status_cb) -> bool;
+                   StatusCallback status_cb) -> GpgError;
 
   /**
    * @brief
@@ -106,7 +106,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAssuanHelper
    * @return std::tuple<bool, QStringList>
    */
   auto SendStatusCommand(GpgComponentType type, const QString& command)
-      -> std::tuple<bool, QStringList>;
+      -> std::tuple<GpgError, QStringList>;
 
   /**
    * @brief

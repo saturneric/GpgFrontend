@@ -41,26 +41,25 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
     -> Thread::Task * {
   const auto &cmd = context.cmd;
   const auto &arguments = context.arguments;
-  const auto &interact_function = context.int_func;
-  const auto &cmd_executor_callback = context.cb_func;
+  const auto &int_func = context.int_func;
+  const auto &cb = context.cb_func;
 
-  Thread::Task::TaskCallback result_callback =
-      [cmd](int /*rtn*/, const DataObjectPtr &data_object) {
-        LOG_D() << "data object args count of cmd executor result callback:"
-                << data_object->GetObjectSize();
+  Thread::Task::TaskCallback result_callback = [cmd](int /*rtn*/,
+                                                     const DataObjectPtr &obj) {
+    LOG_D() << "data object args count of cmd executor result callback:"
+            << obj->GetObjectSize();
 
-        if (!data_object->Check<int, QString, GpgCommandExecutorCallback>()) {
-          FLOG_W("data object checking failed");
-          return;
-        }
+    if (!obj->Check<int, QByteArray, GpgCommandExecutorCallback>()) {
+      FLOG_W("data object checking failed");
+      return;
+    }
 
-        auto exit_code = ExtractParams<int>(data_object, 0);
-        auto process_stdout = ExtractParams<QString>(data_object, 1);
-        auto callback =
-            ExtractParams<GpgCommandExecutorCallback>(data_object, 2);
+    auto code = ExtractParams<int>(obj, 0);
+    auto out = ExtractParams<QByteArray>(obj, 1);
+    auto cb = ExtractParams<GpgCommandExecutorCallback>(obj, 2);
 
-        callback(exit_code, process_stdout, {});
-      };
+    cb(code, out, {});
+  };
 
   Thread::Task::TaskRunnable runner =
       [](const DataObjectPtr &data_object) -> int {
@@ -82,71 +81,67 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
     const QString joined_argument = arguments.join(" ");
 
     // create process
-    auto *cmd_process = new QProcess();
+    auto *pcs = new QProcess();
     // move to current thread
     //
-    cmd_process->moveToThread(QThread::currentThread());
+    pcs->moveToThread(QThread::currentThread());
     // set process channel mode
     // this is to make sure we can get all output from stdout and stderr
-    cmd_process->setProcessChannelMode(QProcess::MergedChannels);
-    cmd_process->setProgram(cmd);
+    pcs->setProcessChannelMode(QProcess::MergedChannels);
+    pcs->setProgram(cmd);
 
     // set arguments
     QStringList q_arguments;
     for (const auto &argument : arguments) {
       q_arguments.append(argument);
     }
-    cmd_process->setArguments(q_arguments);
+    pcs->setArguments(q_arguments);
 
+    QObject::connect(pcs, &QProcess::started, [cmd, joined_argument]() -> void {
+      LOG_D() << "\n== Process Execute Started ==\nCommand: " << cmd
+              << "\nArguments: " << joined_argument
+              << " \n========================";
+    });
+    QObject::connect(pcs, &QProcess::readyReadStandardOutput,
+                     [interact_func, pcs]() { interact_func(pcs); });
     QObject::connect(
-        cmd_process, &QProcess::started, [cmd, joined_argument]() -> void {
-          LOG_D() << "\n== Process Execute Started ==\nCommand: " << cmd
-                  << "\nArguments: " << joined_argument
-                  << " \n========================";
+        pcs, &QProcess::errorOccurred, [=](QProcess::ProcessError error) {
+          LOG_W() << "caught error while executing command: " << cmd
+                  << joined_argument << ", error:" << error;
         });
-    QObject::connect(
-        cmd_process, &QProcess::readyReadStandardOutput,
-        [interact_func, cmd_process]() { interact_func(cmd_process); });
-    QObject::connect(cmd_process, &QProcess::errorOccurred,
-                     [=](QProcess::ProcessError error) {
-                       LOG_W()
-                           << "caught error while executing command: " << cmd
-                           << joined_argument << ", error:" << error;
-                     });
 
     LOG_D() << "\n== Process Execute Ready ==\nCommand: " << cmd
             << "\nArguments: " << joined_argument
             << "\n========================";
 
-    cmd_process->start();
-    cmd_process->waitForFinished();
+    pcs->start();
+    pcs->waitForFinished();
 
-    QString process_stdout = cmd_process->readAllStandardOutput();
-    int exit_code = cmd_process->exitCode();
+    auto out = pcs->readAllStandardOutput();
+    auto code = pcs->exitCode();
 
     LOG_D() << "\n==== Process Execution Summary ====\n"
             << "Command: " << cmd << "\n"
             << "Arguments: " << joined_argument << "\n"
-            << "Exit Code: " << exit_code << "\n"
+            << "Exit Code: " << code << "\n"
             << "---- Standard Output ----\n"
-            << process_stdout << "\n"
+            << out << "\n"
             << "===============================";
 
-    cmd_process->close();
-    cmd_process->deleteLater();
+    pcs->close();
+    pcs->deleteLater();
 
-    data_object->Swap({exit_code, process_stdout, callback});
+    data_object->Swap({code, out, callback});
     return 0;
   };
 
   return new Thread::Task(
       std::move(runner),
       QString("GpgCommamdExecutor(%1){%2}").arg(cmd).arg(arguments.join(' ')),
-      TransferParams(cmd, arguments, interact_function, cmd_executor_callback),
-      std::move(result_callback));
+      TransferParams(cmd, arguments, int_func, cb), std::move(result_callback));
 }
 
-void GpgCommandExecutor::ExecuteSync(ExecuteContext context) {
+void GpgCommandExecutor::ExecuteSync(const ExecuteContext &context) {
   Thread::Task *task = BuildTaskFromExecCtx(context);
   QPointer<Thread::Task> p_t = task;
 
@@ -174,8 +169,9 @@ void GpgCommandExecutor::ExecuteSync(ExecuteContext context) {
   looper->deleteLater();
 }
 
-void GpgCommandExecutor::ExecuteConcurrentlyAsync(ExecuteContexts contexts) {
-  for (auto &context : contexts) {
+void GpgCommandExecutor::ExecuteConcurrentlyAsync(
+    const ExecuteContexts &contexts) {
+  for (const auto &context : contexts) {
     Thread::Task *task = BuildTaskFromExecCtx(context);
 
     if (context.task_runner != nullptr) {
@@ -189,12 +185,13 @@ void GpgCommandExecutor::ExecuteConcurrentlyAsync(ExecuteContexts contexts) {
   }
 }
 
-void GpgCommandExecutor::ExecuteConcurrentlySync(ExecuteContexts contexts) {
+void GpgCommandExecutor::ExecuteConcurrentlySync(
+    const ExecuteContexts &contexts) {
   QEventLoop looper;
   auto remaining_tasks = contexts.size();
   Thread::TaskRunnerPtr target_task_runner = nullptr;
 
-  for (auto &context : contexts) {
+  for (const auto &context : contexts) {
     const auto &cmd = context.cmd;
     LOG_D() << "gpg concurrently called cmd: " << cmd;
 
@@ -235,24 +232,30 @@ GpgCommandExecutor::ExecuteContext::ExecuteContext(
       int_func(std::move(int_func)),
       task_runner(std::move(task_runner)) {}
 
+GpgCommandExecutor::ExecuteContext::ExecuteContext(
+    QStringList arguments, GpgCommandExecutorCallback callback,
+    Module::TaskRunnerPtr task_runner, GpgCommandExecutorInterator int_func)
+    : arguments(std::move(arguments)),
+      cb_func(std::move(callback)),
+      int_func(std::move(int_func)),
+      task_runner(std::move(task_runner)) {}
+
 GpgCommandExecutor::GpgCommandExecutor(int channel)
     : GpgFrontend::SingletonFunctionObject<GpgCommandExecutor>(channel) {}
 
-void GpgCommandExecutor::GpgExecuteSync(const ExecuteContext &context) {
-  const auto gpg_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.app_path", QString{});
-
-  if (context.cmd.isEmpty() && gpg_path.isEmpty()) {
+auto PrepareContext(const GpgContext &ctx_, const QString &path,
+                    const GpgCommandExecutor::ExecuteContext &context)
+    -> std::tuple<bool, GpgCommandExecutor::ExecuteContext> {
+  if (context.cmd.isEmpty() && path.isEmpty()) {
     LOG_E() << "failed to execute gpg command, gpg binary path is empty.";
-    return;
+    return {false, {}};
   }
 
-  LOG_D() << "got gpg binary path:" << gpg_path;
-  LOG_D() << "context channel:" << GetChannel()
+  LOG_D() << "got path:" << path << "context channel:" << ctx_.GetChannel()
           << "home path: " << ctx_.HomeDirectory();
 
-  ExecuteContext ctx = {
-      context.cmd.isEmpty() ? gpg_path : context.cmd,
+  GpgCommandExecutor::ExecuteContext ctx = {
+      context.cmd.isEmpty() ? path : context.cmd,
       context.arguments,
       context.cb_func,
       context.task_runner,
@@ -260,10 +263,71 @@ void GpgCommandExecutor::GpgExecuteSync(const ExecuteContext &context) {
   };
 
   if (!ctx.arguments.contains("--homedir") && !ctx_.HomeDirectory().isEmpty()) {
-    ctx.arguments.append("--homedir");
-    ctx.arguments.append(ctx_.HomeDirectory());
+    ctx.arguments.prepend(QDir::toNativeSeparators((ctx_.HomeDirectory())));
+    ctx.arguments.prepend("--homedir");
   }
 
-  return ExecuteSync(ctx);
+  return {true, ctx};
+}
+
+auto PrepareExecuteSyncContext(const GpgContext &ctx_, const QString &path,
+                               const GpgCommandExecutor::ExecuteContext
+                                   &context) -> std::tuple<int, QString> {
+  auto ctx = context;
+
+  int pcs_exit_code;
+  QString pcs_stdout;
+
+  // proxy
+  ctx.cb_func = [&](int exit_code, const QString &out, const QString &) {
+    pcs_exit_code = exit_code;
+    pcs_stdout = out;
+  };
+
+  auto [ret, ctx2] = PrepareContext(ctx_, path, ctx);
+  if (ret) {
+    GpgFrontend::GpgCommandExecutor::ExecuteSync(ctx2);
+    return {pcs_exit_code, pcs_stdout};
+  }
+  return {-1, "invalid context"};
+}
+
+void PrepareExecuteAsyncContext(
+    const GpgContext &ctx_, const QString &path,
+    const GpgCommandExecutor::ExecuteContext &context) {
+  auto [ret, ctx] = PrepareContext(ctx_, path, context);
+  GpgFrontend::GpgCommandExecutor::ExecuteConcurrentlyAsync({ctx});
+}
+
+auto GpgCommandExecutor::GpgExecuteSync(const ExecuteContext &context)
+    -> std::tuple<int, QString> {
+  return PrepareExecuteSyncContext(ctx_,
+                                   Module::RetrieveRTValueTypedOrDefault<>(
+                                       "core", "gpgme.ctx.app_path", QString{}),
+                                   context);
+}
+
+auto GpgCommandExecutor::GpgConfExecuteSync(const ExecuteContext &context)
+
+    -> std::tuple<int, QString> {
+  return PrepareExecuteSyncContext(
+      ctx_,
+      Module::RetrieveRTValueTypedOrDefault<>("core", "gpgme.ctx.gpgconf_path",
+                                              QString{}),
+      context);
+}
+
+void GpgCommandExecutor::GpgExecuteAsync(const ExecuteContext &context) {
+  PrepareExecuteAsyncContext(ctx_,
+                             Module::RetrieveRTValueTypedOrDefault<>(
+                                 "core", "gpgme.ctx.app_path", QString{}),
+                             context);
+}
+
+void GpgCommandExecutor::GpgConfExecuteAsync(const ExecuteContext &context) {
+  PrepareExecuteAsyncContext(ctx_,
+                             Module::RetrieveRTValueTypedOrDefault<>(
+                                 "core", "gpgme.ctx.gpgconf_path", QString{}),
+                             context);
 }
 }  // namespace GpgFrontend

@@ -113,7 +113,8 @@ class CommonUtils : public QWidget {
    *
    * @param err
    */
-  static void RaiseFailureMessageBox(QWidget* parent, GpgError err);
+  static void RaiseFailureMessageBox(QWidget* parent, GpgError err,
+                                     const QString& msg = {});
 
   /**
    * @brief

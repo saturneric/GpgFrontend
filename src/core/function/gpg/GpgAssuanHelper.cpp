@@ -44,14 +44,14 @@ GpgAssuanHelper::~GpgAssuanHelper() {
   }
 }
 
-auto GpgAssuanHelper::ConnectToSocket(GpgComponentType type) -> bool {
-  if (assuan_ctx_.contains(type)) return true;
+auto GpgAssuanHelper::ConnectToSocket(GpgComponentType type) -> GpgError {
+  if (assuan_ctx_.contains(type)) return GPG_ERR_NO_ERROR;
 
   auto socket_path = ctx_.ComponentDirectory(type);
   if (socket_path.isEmpty()) {
     LOG_W() << "socket path of component: " << component_type_to_q_string(type)
             << " is empty";
-    return false;
+    return GPG_ERR_ENOPKG;
   }
 
   QFileInfo info(socket_path);
@@ -65,7 +65,7 @@ auto GpgAssuanHelper::ConnectToSocket(GpgComponentType type) -> bool {
     if (!info.exists()) {
       LOG_W() << "socket path is still not exists: " << socket_path
               << "abort...";
-      return false;
+      return GPG_ERR_ENOTSOCK;
     }
   }
 
@@ -76,7 +76,7 @@ auto GpgAssuanHelper::ConnectToSocket(GpgComponentType type) -> bool {
                                    ASSUAN_INVALID_PID, 0);
   if (err != GPG_ERR_NO_ERROR) {
     LOG_W() << "failed to connect to socket:" << CheckGpgError(err);
-    return false;
+    return err;
   }
 
   LOG_D() << "connected to socket by assuan protocol: "
@@ -86,21 +86,23 @@ auto GpgAssuanHelper::ConnectToSocket(GpgComponentType type) -> bool {
                         nullptr, nullptr, nullptr, nullptr);
   if (err != GPG_ERR_NO_ERROR) {
     LOG_W() << "failed to test assuan connection:" << CheckGpgError(err);
-    return false;
+    return err;
   }
 
   assuan_ctx_[type] = a_ctx;
-  return true;
+  return err;
 }
 
 auto GpgAssuanHelper::SendCommand(GpgComponentType type, const QString& command,
                                   DataCallback data_cb,
                                   InqueryCallback inquery_cb,
-                                  StatusCallback status_cb) -> bool {
+                                  StatusCallback status_cb) -> GpgError {
   if (!assuan_ctx_.contains(type)) {
     LOG_W() << "haven't connect to: " << component_type_to_q_string(type)
             << ", trying to make a connection";
-    if (!ConnectToSocket(type)) return false;
+
+    auto err = CheckGpgError(ConnectToSocket(type));
+    if (err != GPG_ERR_NO_ERROR) return err;
   }
 
   auto context = QSharedPointer<AssuanCallbackContext>::create();
@@ -122,15 +124,15 @@ auto GpgAssuanHelper::SendCommand(GpgComponentType type, const QString& command,
     if (CheckGpgError(err) == 32877) {
       assuan_ctx_.remove(type);
     }
-    return false;
+    return err;
   }
 
-  return true;
+  return err;
 }
 
 auto GpgAssuanHelper::SendStatusCommand(GpgComponentType type,
                                         const QString& command)
-    -> std::tuple<bool, QStringList> {
+    -> std::tuple<GpgError, QStringList> {
   GpgAssuanHelper::DataCallback d_cb =
       [&](const QSharedPointer<GpgAssuanHelper::AssuanCallbackContext>& ctx)
       -> gpg_error_t {
@@ -147,29 +149,29 @@ auto GpgAssuanHelper::SendStatusCommand(GpgComponentType type,
     return 0;
   };
 
-  QStringList status_lines;
+  QStringList lines;
   GpgAssuanHelper::StatusCallback s_cb =
       [&](const QSharedPointer<GpgAssuanHelper::AssuanCallbackContext>& ctx)
       -> gpg_error_t {
     LOG_D() << "status callback of command: " << command << ":  "
             << ctx->status;
-    status_lines.append(ctx->status);
+    lines.append(ctx->status);
     return 0;
   };
 
   auto ret = SendCommand(type, command, d_cb, i_cb, s_cb);
-  return {ret, status_lines};
+  return {ret, lines};
 }
 
 auto GpgAssuanHelper::SendDataCommand(GpgComponentType type,
                                       const QString& command)
     -> std::tuple<bool, QStringList> {
-  QStringList data_lines;
+  QStringList lines;
   GpgAssuanHelper::DataCallback d_cb =
       [&](const QSharedPointer<GpgAssuanHelper::AssuanCallbackContext>& ctx)
       -> gpg_error_t {
     LOG_D() << "data callback of command " << command << ": " << ctx->buffer;
-    data_lines.push_back(QString::fromUtf8(ctx->buffer));
+    lines.push_back(QString::fromUtf8(ctx->buffer));
     return 0;
   };
 
@@ -192,7 +194,7 @@ auto GpgAssuanHelper::SendDataCommand(GpgComponentType type,
   };
 
   auto ret = SendCommand(type, command, d_cb, i_cb, s_cb);
-  return {ret, data_lines};
+  return {ret, lines};
 }
 
 auto GpgAssuanHelper::default_data_callback(void* opaque, const void* buffer,
