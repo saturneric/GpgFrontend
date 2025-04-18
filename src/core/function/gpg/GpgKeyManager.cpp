@@ -168,7 +168,7 @@ auto GpgKeyManager::SetOwnerTrustLevel(const GpgKeyPtr& key,
       };
 
   auto [err, succ] = auto_.DoInteract(key, next_state_handler, action_handler);
-  return err == GPG_ERR_NO_ERROR && !succ;
+  return err == GPG_ERR_NO_ERROR && succ;
 }
 
 auto GpgKeyManager::DeleteSubkey(const GpgKeyPtr& key,
@@ -246,7 +246,7 @@ auto GpgKeyManager::DeleteSubkey(const GpgKeyPtr& key,
       };
 
   auto [err, succ] = auto_.DoInteract(key, next_state_handler, action_handler);
-  return err == GPG_ERR_NO_ERROR && !succ;
+  return err == GPG_ERR_NO_ERROR && succ;
 }
 
 auto GpgKeyManager::RevokeSubkey(const GpgKeyPtr& key, int subkey_index,
@@ -362,7 +362,7 @@ auto GpgKeyManager::RevokeSubkey(const GpgKeyPtr& key, int subkey_index,
       };
 
   auto [err, succ] = auto_.DoInteract(key, next_state_handler, action_handler);
-  return err == GPG_ERR_NO_ERROR && !succ;
+  return err == GPG_ERR_NO_ERROR && succ;
 }
 
 }  // namespace GpgFrontend

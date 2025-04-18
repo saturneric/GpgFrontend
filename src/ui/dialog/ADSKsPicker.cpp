@@ -29,6 +29,7 @@
 #include "ADSKsPicker.h"
 
 #include "core/function/gpg/GpgKeyOpera.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/widgets/KeyTreeView.h"
@@ -62,8 +63,11 @@ ADSKsPicker::ADSKsPicker(int channel, GpgKeyPtr key,
 
       return;
     }
+
+    confirm_button->setDisabled(true);
+    cancel_button->setDisabled(true);
+
     slot_add_adsk(tree_view_->GetAllCheckedSubKey());
-    accept();
   });
   connect(cancel_button, &QPushButton::clicked, this, &QDialog::reject);
 
@@ -99,37 +103,65 @@ ADSKsPicker::ADSKsPicker(int channel, GpgKeyPtr key,
 }
 
 void ADSKsPicker::slot_add_adsk(const QContainer<GpgSubKey>& s_keys) {
-  QContainer<QString> err_sub_key_infos;
-  for (const auto& s_key : s_keys) {
-    auto [err, data_object] =
-        GpgKeyOpera::GetInstance(channel_).AddADSKSync(key_, s_key);
-    if (CheckGpgError(err) == GPG_ERR_NO_ERROR) continue;
+  auto* task = new Thread::Task(
+      [=, channel = channel_,
+       key = key_](const DataObjectPtr& data_object) -> int {
+        QStringList err_sub_key_infos;
+        for (const auto& s_key : s_keys) {
+          auto [err, _] =
+              GpgKeyOpera::GetInstance(channel).AddADSKSync(key, s_key);
+          if (CheckGpgError(err) == GPG_ERR_NO_ERROR) continue;
 
-    err_sub_key_infos.append(tr("Key ID: %1 Reason: %2")
-                                 .arg(s_key.ID())
-                                 .arg(DescribeGpgErrCode(err).second));
-  }
+          err_sub_key_infos.append(tr("Key ID: %1 Reason: %2")
+                                       .arg(s_key.ID())
+                                       .arg(DescribeGpgErrCode(err).second));
+        }
+        data_object->Swap({err_sub_key_infos});
+        return 0;
+      },
+      "add_adsk", TransferParams(),
+      [=, self = QPointer<ADSKsPicker>(this)](
+          int ret, const DataObjectPtr& data_object) {
+        if (ret < 0) {
+          QMessageBox::critical(
+              self, tr("Unknown Error"),
+              tr("Caught unknown error while exporting the key."));
+          return;
+        }
 
-  if (!err_sub_key_infos.isEmpty()) {
-    QStringList failed_info;
-    for (const auto& info : err_sub_key_infos) {
-      failed_info.append(info);
-    }
-    auto details = failed_info.join("\n\n");
-    auto* msg_box = new QMessageBox(nullptr);
-    msg_box->setIcon(QMessageBox::Warning);
-    msg_box->setWindowTitle(err_sub_key_infos.size() == s_keys.size()
-                                ? tr("Failed")
-                                : tr("Partially Failed"));
-    msg_box->setText(err_sub_key_infos.size() == s_keys.size()
-                         ? tr("Failed to add all selected subkeys.")
-                         : tr("Some subkeys failed to be added as ADSKs."));
-    msg_box->setDetailedText(details);
-    msg_box->show();
+        if (!data_object->Check<QStringList>()) return;
+        auto err_sub_key_infos = ExtractParams<QStringList>(data_object, 0);
 
-    return;
-  }
+        if (!err_sub_key_infos.isEmpty()) {
+          QStringList failed_info;
+          for (const auto& info : err_sub_key_infos) {
+            failed_info.append(info);
+          }
+          auto details = failed_info.join("\n\n");
 
-  emit UISignalStation::GetInstance() -> SignalKeyDatabaseRefresh();
+          auto* msg_box = new QMessageBox(self);
+          msg_box->setIcon(QMessageBox::Warning);
+          msg_box->setWindowTitle(err_sub_key_infos.size() == s_keys.size()
+                                      ? tr("Failed")
+                                      : tr("Partially Failed"));
+          msg_box->setText(
+              err_sub_key_infos.size() == s_keys.size()
+                  ? tr("Failed to add all selected subkeys.")
+                  : tr("Some subkeys failed to be added as ADSKs."));
+          msg_box->setDetailedText(details);
+          msg_box->exec();
+        }
+
+        emit UISignalStation::GetInstance() -> SignalKeyDatabaseRefresh();
+
+        if (self != nullptr) {
+          self->accept();
+          self->close();
+        }
+      });
+
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
+      ->PostTask(task);
 }
 }  // namespace GpgFrontend::UI

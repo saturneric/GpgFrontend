@@ -130,7 +130,7 @@ auto GpgUIDOperator::DeleteUID(const GpgKeyPtr& key, int uid_index) -> bool {
       };
 
   auto [err, succ] = auto_.DoInteract(key, next_state_handler, action_handler);
-  return err == GPG_ERR_NO_ERROR && !succ;
+  return err == GPG_ERR_NO_ERROR && succ;
 }
 
 auto GpgUIDOperator::RevokeUID(const GpgKeyPtr& key, int uid_index,
@@ -245,7 +245,7 @@ auto GpgUIDOperator::RevokeUID(const GpgKeyPtr& key, int uid_index,
       };
 
   auto [err, succ] = auto_.DoInteract(key, next_state_handler, action_handler);
-  return err == GPG_ERR_NO_ERROR && !succ;
+  return err == GPG_ERR_NO_ERROR && succ;
 }
 
 }  // namespace GpgFrontend

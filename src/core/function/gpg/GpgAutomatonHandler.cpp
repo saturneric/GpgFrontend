@@ -110,13 +110,13 @@ auto InteratorCbFunc(void* handle, const char* status, const char* args,
 }
 
 auto DoInteractImpl(GpgContext& ctx_, const GpgKeyPtr& key, bool card_edit,
-                    const QString& id,
+                    const QString& fpr,
                     AutomatonNextStateHandler next_state_handler,
                     AutomatonActionHandler action_handler,
                     int flags) -> std::tuple<GpgError, bool> {
   gpgme_key_t p_key = key == nullptr ? nullptr : static_cast<gpgme_key_t>(*key);
 
-  AutomatonHandelStruct handel(card_edit, id);
+  AutomatonHandelStruct handel(card_edit, fpr);
   handel.SetHandler(std::move(next_state_handler), std::move(action_handler));
 
   GpgData data_out;
@@ -133,7 +133,7 @@ auto GpgAutomatonHandler::DoInteract(
     int flags) -> std::tuple<GpgError, bool> {
   assert(key != nullptr);
   if (key == nullptr) return {GPG_ERR_USER_1, false};
-  return DoInteractImpl(ctx_, key, false, key->ID(),
+  return DoInteractImpl(ctx_, key, false, key->Fingerprint(),
                         std::move(next_state_handler),
                         std::move(action_handler), flags);
 }
