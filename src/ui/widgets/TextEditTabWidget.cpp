@@ -312,8 +312,12 @@ void TextEditTabWidget::SlotNewTabWithContent(QString title,
 }
 
 void TextEditTabWidget::SlotOpenDefaultPath() {
+#if defined(__APPLE__) && defined(__MACH__)
+  auto* page = new FilePage(qobject_cast<QWidget*>(parent()), QDir::homePath());
+#else
   auto* page =
       new FilePage(qobject_cast<QWidget*>(parent()), QDir::currentPath());
+#endif
   auto index = this->addTab(page, QString());
   this->setTabIcon(index, QIcon(":/icons/workspace.png"));
   this->setTabText(index, tr("Default Workspace"));

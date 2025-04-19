@@ -462,7 +462,7 @@ auto GPGFRONTEND_CORE_EXPORT DecidePinentry() -> QString {
   QStringList preferred_list = {"pinentry-gnome3",
                                 "pinentry-qt"
                                 "pinentry-gtk2"};
-  QStringList search_paths = {"/bin", "/usr/bin", "/usr/local/bin"}
+  QStringList search_paths = {"/bin", "/usr/bin", "/usr/local/bin"};
 #elif defined(__APPLE__) && defined(__MACH__)
   QStringList preferred_list = {"pinentry-mac", "pinentry-qt"};
   QStringList search_paths = {"/opt/homebrew/bin", "/usr/local/bin"};
@@ -479,6 +479,7 @@ auto GPGFRONTEND_CORE_EXPORT DecidePinentry() -> QString {
   for (const QString& name : preferred_list) {
     QString path = QStandardPaths::findExecutable(name);
     if (!path.isEmpty()) {
+      LOG_D() << "find pinentry path: " << path;
       return path;
     }
   }
@@ -488,6 +489,7 @@ auto GPGFRONTEND_CORE_EXPORT DecidePinentry() -> QString {
   for (const QString& name : preferred_list) {
     QString path = QStandardPaths::findExecutable(name, search_paths);
     if (!path.isEmpty()) {
+      LOG_D() << "find pinentry path by search path: " << path;
       return path;
     }
   }
