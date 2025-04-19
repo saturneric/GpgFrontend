@@ -231,7 +231,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTreeItem {
  private:
   QContainer<QSharedPointer<GpgKeyTreeItem>> children_;
   QVariantList data_;
-  bool checked_;
+  bool checked_ = false;
   bool checkable_;
   bool enable_;
   QSharedPointer<GpgAbstractKey> key_;

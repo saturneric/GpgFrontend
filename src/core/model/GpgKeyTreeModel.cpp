@@ -222,9 +222,13 @@ auto GpgKeyTreeModel::create_gpg_key_tree_items(const GpgAbstractKeyPtr &key)
   auto i_key = QSharedPointer<GpgKeyTreeItem>::create(key, columns);
   i_key->SetEnable(true);
   i_key->SetCheckable(checkable_detector_(i_key->Key()));
+  i_key->SetChecked(false);
   cached_items_.push_back(i_key);
 
   for (const auto &s_key : g_key->SubKeys()) {
+    // avoid bugs due to duplicate key ids
+    if (g_key->ID() == s_key.ID() || s_key.IsADSK()) continue;
+
     QVariantList columns;
     columns << "/";
     columns << (s_key.IsHasCertCap() ? "primary" : "sub");
@@ -239,6 +243,7 @@ auto GpgKeyTreeModel::create_gpg_key_tree_items(const GpgAbstractKeyPtr &key)
         QSharedPointer<GpgSubKey>::create(s_key), columns);
     i_s_key->SetEnable(true);
     i_s_key->SetCheckable(checkable_detector_(i_s_key->Key()));
+    i_s_key->SetChecked(false);
     i_key->AppendChild(i_s_key);
     cached_items_.push_back(i_s_key);
   }
@@ -254,6 +259,10 @@ auto GpgKeyTreeModel::GetAllCheckedSubKey() -> QContainer<GpgSubKey> {
       continue;
     }
 
+    LOG_D() << "subkey checked: " << i->Key()->ID()
+            << "uid: " << i->Key()->UID() << "checkable: " << i->Checkable()
+            << "checked: " << i->Checked();
+
     auto *s_key = dynamic_cast<GpgSubKey *>(i->Key());
     if (s_key == nullptr) continue;
 
@@ -267,6 +276,7 @@ auto GpgKeyTreeModel::GetKeyByIndex(QModelIndex index) -> GpgAbstractKey * {
 
   const auto *item =
       static_cast<const GpgKeyTreeItem *>(index.internalPointer());
+  assert(item != nullptr);
 
   return item->Key();
 }

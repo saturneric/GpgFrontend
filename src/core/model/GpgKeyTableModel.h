@@ -151,7 +151,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableItem {
 
  private:
   GpgAbstractKeyPtr key_;
-  bool checked_;
+  bool checked_ = false;
 };
 
 class GPGFRONTEND_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {

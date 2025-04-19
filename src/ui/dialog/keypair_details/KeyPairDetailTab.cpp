@@ -274,7 +274,6 @@ void KeyPairDetailTab::slot_refresh_key() {
   assert(refreshed_key != nullptr);
 
   std::swap(this->key_, refreshed_key);
-
   this->slot_refresh_key_info();
 }
 
