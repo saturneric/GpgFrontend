@@ -100,7 +100,7 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
       GpgCommandExecutor::GetInstance(SingletonFunctionObject::GetChannel());
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
-  GpgComponentManager& info_ =
+  GpgComponentManager& mgr_ =
       GpgComponentManager::GetInstance(SingletonFunctionObject::GetChannel());
 };
 

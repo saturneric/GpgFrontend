@@ -38,11 +38,7 @@ GpgAssuanHelper::GpgAssuanHelper(int channel)
       gpgconf_path_(Module::RetrieveRTValueTypedOrDefault<>(
           "core", "gpgme.ctx.gpgconf_path", QString{})) {}
 
-GpgAssuanHelper::~GpgAssuanHelper() {
-  for (const auto& ctx : assuan_ctx_) {
-    assuan_release(ctx);
-  }
-}
+GpgAssuanHelper::~GpgAssuanHelper() = default;
 
 auto GpgAssuanHelper::ConnectToSocket(GpgComponentType type) -> GpgError {
   if (assuan_ctx_.contains(type)) return GPG_ERR_NO_ERROR;
@@ -70,10 +66,17 @@ auto GpgAssuanHelper::ConnectToSocket(GpgComponentType type) -> GpgError {
   }
 
   assuan_context_t a_ctx;
-  assuan_new(&a_ctx);
+  auto err = assuan_new(&a_ctx);
+  if (err != GPG_ERR_NO_ERROR) {
+    LOG_E() << "create assuan context failed, err:" << CheckGpgError(err);
+    return err;
+  }
 
-  auto err = assuan_socket_connect(a_ctx, info.absoluteFilePath().toUtf8(),
-                                   ASSUAN_INVALID_PID, 0);
+  auto pa_ctx = QSharedPointer<struct assuan_context_s>(
+      a_ctx, [](assuan_context_t p) { assuan_release(p); });
+
+  err = assuan_socket_connect(pa_ctx.get(), info.absoluteFilePath().toUtf8(),
+                              ASSUAN_INVALID_PID, 0);
   if (err != GPG_ERR_NO_ERROR) {
     LOG_W() << "failed to connect to socket:" << info.absoluteFilePath()
             << "err:" << CheckGpgError(err);
@@ -83,14 +86,14 @@ auto GpgAssuanHelper::ConnectToSocket(GpgComponentType type) -> GpgError {
   LOG_D() << "connected to socket by assuan protocol: "
           << info.absoluteFilePath() << "channel:" << GetChannel();
 
-  err = assuan_transact(a_ctx, "GETINFO pid", simple_data_callback, nullptr,
-                        nullptr, nullptr, nullptr, nullptr);
+  err = assuan_transact(pa_ctx.get(), "GETINFO pid", simple_data_callback,
+                        nullptr, nullptr, nullptr, nullptr, nullptr);
   if (err != GPG_ERR_NO_ERROR) {
     LOG_W() << "failed to test assuan connection:" << CheckGpgError(err);
     return err;
   }
 
-  assuan_ctx_[type] = a_ctx;
+  assuan_ctx_[type] = pa_ctx;
   return err;
 }
 
@@ -114,9 +117,10 @@ auto GpgAssuanHelper::SendCommand(GpgComponentType type, const QString& command,
 
   LOG_D() << "sending assuan command: " << command;
 
-  auto err = assuan_transact(
-      assuan_ctx_[type], command.toUtf8(), default_data_callback, &context,
-      default_inquery_callback, &context, default_status_callback, &context);
+  auto err =
+      assuan_transact(assuan_ctx_[type].get(), command.toUtf8(),
+                      default_data_callback, &context, default_inquery_callback,
+                      &context, default_status_callback, &context);
 
   if (err != GPG_ERR_NO_ERROR) {
     LOG_W() << "failed to send assuan command:" << CheckGpgError(err);
@@ -124,6 +128,7 @@ auto GpgAssuanHelper::SendCommand(GpgComponentType type, const QString& command,
     // broken pipe error, try reconnect next time
     if (CheckGpgError(err) == 32877) {
       assuan_ctx_.remove(type);
+      return SendCommand(type, command, data_cb, inquery_cb, status_cb);
     }
     return err;
   }
@@ -270,4 +275,6 @@ auto GpgAssuanHelper::AssuanCallbackContext::SendData(const QByteArray& b) const
     -> gpg_error_t {
   return assuan_send_data(ctx, b.constData(), b.size());
 }
+
+void GpgAssuanHelper::ResetAllConnections() { assuan_ctx_.clear(); }
 }  // namespace GpgFrontend

@@ -88,6 +88,7 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
   ui_->commentLabel->setText(tr("Comment"));
   ui_->keyDBLabel->setText(tr("Key Database"));
   ui_->easyAlgoLabel->setText(tr("Algorithm"));
+  ui_->combinationLabel->setText(tr("Combination"));
   ui_->easyValidPeriodLabel->setText(tr("Validity Period"));
 
   ui_->pAlgoLabel->setText(tr("Algorithm"));

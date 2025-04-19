@@ -118,10 +118,16 @@ class GPGFRONTEND_CORE_EXPORT GpgAssuanHelper
   auto SendDataCommand(GpgComponentType type, const QString& command)
       -> std::tuple<GpgError, QStringList>;
 
+  /**
+   * @brief
+   *
+   */
+  void ResetAllConnections();
+
  private:
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
-  QMap<GpgComponentType, assuan_context_t> assuan_ctx_;
+  QMap<GpgComponentType, QSharedPointer<struct assuan_context_s>> assuan_ctx_;
 
   QByteArray temp_data_;
   QString temp_status_;

@@ -73,6 +73,13 @@ class GPGFRONTEND_CORE_EXPORT GpgComponentManager
    */
   auto GpgKillAgent() -> bool;
 
+  /**
+   * @brief
+   *
+   * @return auto
+   */
+  void Reset();
+
  private:
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());

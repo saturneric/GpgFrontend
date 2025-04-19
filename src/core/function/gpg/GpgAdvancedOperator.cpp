@@ -36,26 +36,29 @@
 namespace GpgFrontend {
 
 auto GpgAdvancedOperator::ClearGpgPasswordCache() -> bool {
-  return info_.ReloadGpgAgent();
+  return mgr_.ReloadGpgAgent();
 }
 
 auto GpgAdvancedOperator::ReloadAllGpgComponents() -> bool {
-  return info_.ReloadGpgAgent();
+  return mgr_.ReloadGpgAgent();
 }
 
 auto GpgAdvancedOperator::KillAllGpgComponents() -> bool {
+  mgr_.Reset();
   return ctx_.RestartGpgAgent();
 }
 
 auto GpgAdvancedOperator::ResetConfigures() -> bool {
-  return info_.ReloadGpgAgent();
+  return mgr_.ReloadGpgAgent();
 }
 
 auto GpgAdvancedOperator::LaunchAllGpgComponents() -> bool {
+  mgr_.Reset();
   return ctx_.RestartGpgAgent();
 }
 
 auto GpgAdvancedOperator::RestartGpgComponents() -> bool {
+  mgr_.Reset();
   return ctx_.RestartGpgAgent();
 }
 

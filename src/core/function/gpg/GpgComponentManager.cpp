@@ -68,7 +68,6 @@ auto GpgComponentManager::ReloadGpgAgent() -> bool {
     LOG_D() << "invalid response of RELOADAGENT: " << s;
     return false;
   }
-
   return true;
 }
 
@@ -79,8 +78,13 @@ auto GpgComponentManager::GpgKillAgent() -> bool {
     LOG_D() << "invalid response of KILLAGENT: " << s;
     return false;
   }
-
+  Reset();
   return true;
 }
 
+void GpgComponentManager::Reset() {
+  scdaemon_version_.clear();
+  gpg_agent_version_.clear();
+  assuan_.ResetAllConnections();
+}
 }  // namespace GpgFrontend
