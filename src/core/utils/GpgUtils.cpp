@@ -468,6 +468,11 @@ auto GPGFRONTEND_CORE_EXPORT DecidePinentry() -> QString {
   QStringList preferred_list = {"pinentry-qt"};
 #endif
 
+  if (IsFlatpakENV()) {
+    LOG_D() << "set flatpak pinentry to /app/bin/pinentry-qt";
+    return "/app/bin/pinentry-qt";
+  }
+
   for (const QString& name : preferred_list) {
     QString path = QStandardPaths::findExecutable(name);
     if (!path.isEmpty()) {

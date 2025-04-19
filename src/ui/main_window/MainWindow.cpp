@@ -120,7 +120,7 @@ void MainWindow::Init() noexcept {
 #if !(defined(_WIN32) || defined(WIN32))
     connect(this, &MainWindow::SignalLoaded, this, [=]() {
       QTimer::singleShot(3000, [self = QPointer<MainWindow>(this)]() {
-        if (self != nullptr && DecidePinentry().isEmpty() && !IsFlatpakENV()) {
+        if (self != nullptr && DecidePinentry().isEmpty()) {
           QMessageBox::warning(
               self, tr("GUI Pinentry Not Found"),
               tr("No suitable *graphical* Pinentry program was found on your "

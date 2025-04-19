@@ -497,9 +497,10 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   auto auto_import_missing_key =
       settings.value("network/auto_import_missing_key", false).toBool();
 
+  // force to use pinentry in flatpak container
   auto use_pinentry_as_password_input_dialog =
-      settings
-          .value("gnupg/use_pinentry_as_password_input_dialog", !IsFlatpakENV())
+      IsFlatpakENV() ||
+      settings.value("gnupg/use_pinentry_as_password_input_dialog", true)
           .toBool();
 
   // unit test mode
