@@ -46,8 +46,6 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     // find in cache first
     if (cache) {
       auto key = get_key_in_cache(key_id);
-      assert(key->KeyType() == GpgAbstractKeyType::kGPG_KEY);
-
       if (key != nullptr) return qSharedPointerDynamicCast<GpgKey>(key);
 
       LOG_W() << "get gpg key" << key_id
@@ -165,11 +163,14 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
 
         for (const auto& s_key : g_key->SubKeys()) {
           if (s_key.ID() == g_key->ID()) continue;
-          auto p_s_key = QSharedPointer<GpgSubKey>::create(s_key);
 
           // don't add adsk key or it will cause bugs
-          if (p_s_key->IsADSK()) continue;
+          if (s_key.IsADSK()) continue;
 
+          // subkeys should be weaker than primary key
+          if (keys_search_cache_.contains(s_key.ID())) continue;
+
+          auto p_s_key = QSharedPointer<GpgSubKey>::create(s_key);
           keys_search_cache_.insert(s_key.ID(), p_s_key);
           keys_search_cache_.insert(s_key.Fingerprint(), p_s_key);
         }
