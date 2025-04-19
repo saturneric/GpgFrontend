@@ -33,15 +33,15 @@
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GpgComponentInfoGetter
-    : public SingletonFunctionObject<GpgComponentInfoGetter> {
+class GPGFRONTEND_CORE_EXPORT GpgComponentManager
+    : public SingletonFunctionObject<GpgComponentManager> {
  public:
   /**
    * @brief Construct a new Gpg Assuan Helper object
    *
    * @param channel
    */
-  explicit GpgComponentInfoGetter(int channel);
+  explicit GpgComponentManager(int channel);
 
   /**
    * @brief
@@ -58,6 +58,20 @@ class GPGFRONTEND_CORE_EXPORT GpgComponentInfoGetter
    * @return false
    */
   auto GetScdaemonVersion() -> QString;
+
+  /**
+   * @brief
+   *
+   */
+  auto ReloadGpgAgent() -> bool;
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  auto GpgKillAgent() -> bool;
 
  private:
   GpgContext& ctx_ =

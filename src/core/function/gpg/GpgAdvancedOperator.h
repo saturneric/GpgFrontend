@@ -34,6 +34,7 @@
 
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
+#include "core/function/gpg/GpgComponentManager.h"
 #include "core/model/DataObject.h"
 
 namespace GpgFrontend {
@@ -97,6 +98,10 @@ class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
  private:
   GpgCommandExecutor& exec_ =
       GpgCommandExecutor::GetInstance(SingletonFunctionObject::GetChannel());
+  GpgContext& ctx_ =
+      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
+  GpgComponentManager& info_ =
+      GpgComponentManager::GetInstance(SingletonFunctionObject::GetChannel());
 };
 
 }  // namespace GpgFrontend

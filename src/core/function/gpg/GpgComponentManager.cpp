@@ -26,14 +26,14 @@
  *
  */
 
-#include "GpgComponentInfoGetter.h"
+#include "GpgComponentManager.h"
 
 namespace GpgFrontend {
 
-GpgComponentInfoGetter::GpgComponentInfoGetter(int channel)
-    : GpgFrontend::SingletonFunctionObject<GpgComponentInfoGetter>(channel) {}
+GpgComponentManager::GpgComponentManager(int channel)
+    : GpgFrontend::SingletonFunctionObject<GpgComponentManager>(channel) {}
 
-auto GpgComponentInfoGetter::GetGpgAgentVersion() -> QString {
+auto GpgComponentManager::GetGpgAgentVersion() -> QString {
   if (!gpg_agent_version_.isEmpty()) return gpg_agent_version_;
 
   auto [r, s] =
@@ -47,7 +47,7 @@ auto GpgComponentInfoGetter::GetGpgAgentVersion() -> QString {
   return gpg_agent_version_;
 }
 
-auto GpgComponentInfoGetter::GetScdaemonVersion() -> QString {
+auto GpgComponentManager::GetScdaemonVersion() -> QString {
   if (!scdaemon_version_.isEmpty()) return scdaemon_version_;
 
   auto [r, s] = assuan_.SendDataCommand(GpgComponentType::kGPG_AGENT,
@@ -59,6 +59,28 @@ auto GpgComponentInfoGetter::GetScdaemonVersion() -> QString {
 
   scdaemon_version_ = s.front();
   return scdaemon_version_;
+}
+
+auto GpgComponentManager::ReloadGpgAgent() -> bool {
+  auto [r, s] =
+      assuan_.SendStatusCommand(GpgComponentType::kGPG_AGENT, "RELOADAGENT");
+  if (r != GPG_ERR_NO_ERROR) {
+    LOG_D() << "invalid response of RELOADAGENT: " << s;
+    return false;
+  }
+
+  return true;
+}
+
+auto GpgComponentManager::GpgKillAgent() -> bool {
+  auto [r, s] =
+      assuan_.SendStatusCommand(GpgComponentType::kGPG_AGENT, "KILLAGENT");
+  if (r != GPG_ERR_NO_ERROR) {
+    LOG_D() << "invalid response of KILLAGENT: " << s;
+    return false;
+  }
+
+  return true;
 }
 
 }  // namespace GpgFrontend

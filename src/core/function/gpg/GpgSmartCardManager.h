@@ -30,7 +30,7 @@
 
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/gpg/GpgAssuanHelper.h"
-#include "core/function/gpg/GpgComponentInfoGetter.h"
+#include "core/function/gpg/GpgComponentManager.h"
 #include "core/function/gpg/GpgContext.h"
 #include "core/model/GpgOpenPGPCard.h"
 
@@ -123,7 +123,7 @@ class GPGFRONTEND_CORE_EXPORT GpgSmartCardManager
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
   GpgAssuanHelper& assuan_ =
       GpgAssuanHelper::GetInstance(SingletonFunctionObject::GetChannel());  ///<
-  GpgComponentInfoGetter& info_ = GpgComponentInfoGetter::GetInstance(
+  GpgComponentManager& info_ = GpgComponentManager::GetInstance(
       SingletonFunctionObject::GetChannel());  ///<
 
   QString cached_scd_serialno_status_hash_;

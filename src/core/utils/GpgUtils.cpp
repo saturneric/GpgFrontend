@@ -30,7 +30,7 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAbstractKeyGetter.h"
-#include "core/function/gpg/GpgComponentInfoGetter.h"
+#include "core/function/gpg/GpgComponentManager.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyGroup.h"
 #include "core/model/KeyDatabaseInfo.h"
@@ -430,13 +430,13 @@ auto GPGFRONTEND_CORE_EXPORT IsKeyGroupID(const KeyId& id) -> bool {
 auto GPGFRONTEND_CORE_EXPORT
 GpgAgentVersionGreaterThan(int channel, const QString& v) -> bool {
   return GFSoftwareVersionGreaterThan(
-      GpgComponentInfoGetter::GetInstance(channel).GetGpgAgentVersion(), v);
+      GpgComponentManager::GetInstance(channel).GetGpgAgentVersion(), v);
 }
 
 auto GPGFRONTEND_CORE_EXPORT CheckGpgVersion(int channel,
                                              const QString& v) -> bool {
   const auto ver =
-      GpgComponentInfoGetter::GetInstance(channel).GetGpgAgentVersion();
+      GpgComponentManager::GetInstance(channel).GetGpgAgentVersion();
 
   if (ver.isEmpty() || !GFSoftwareVersionGreaterThan(ver, v)) {
     LOG_W() << "operation not support for gpg-agent version: " << ver

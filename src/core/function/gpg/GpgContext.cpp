@@ -137,10 +137,10 @@ class GpgContext::Impl {
         gpgconf_path_(Module::RetrieveRTValueTypedOrDefault<>(
             "core", "gpgme.ctx.gpgconf_path", QString{})),
         database_path_(args.db_path),
-        agent_(parent->GetChannel(),
-               Module::RetrieveRTValueTypedOrDefault<>(
-                   "core", "gnupg.components.gpg-agent.path", QString{}),
-               args.db_path) {
+        gpg_agent_path_(Module::RetrieveRTValueTypedOrDefault<>(
+            "core", "gnupg.components.gpg-agent.path", QString{})),
+        agent_(QSharedPointer<GpgAgentProcess>::create(
+            parent->GetChannel(), gpg_agent_path_, database_path_)) {
     init(args);
   }
 
@@ -273,6 +273,18 @@ class GpgContext::Impl {
 
   [[nodiscard]] auto KeyDBName() const -> QString { return db_name_; }
 
+  auto RestartGpgAgent() -> bool {
+    if (agent_ != nullptr) {
+      agent_ = QSharedPointer<GpgAgentProcess>::create(
+          parent_->GetChannel(), gpg_agent_path_, database_path_);
+    }
+
+    // ensure all gpg-agent are killed.
+    kill_gpg_agent();
+
+    return launch_gpg_agent();
+  }
+
  private:
   GpgContext *parent_;
   GpgContextInitArgs args_{};             ///<
@@ -286,8 +298,9 @@ class GpgContext::Impl {
   QString db_name_;
   QString gpgconf_path_;
   QString database_path_;
+  QString gpg_agent_path_;
   QMap<QString, QString> component_dirs_;
-  GpgAgentProcess agent_;
+  QSharedPointer<GpgAgentProcess> agent_;
 
   void init(const GpgContextInitArgs &args) {
     assert(!gpgconf_path_.isEmpty());
@@ -551,8 +564,8 @@ class GpgContext::Impl {
   }
 
   auto launch_gpg_agent() -> bool {
-    agent_.Start();
-    return true;
+    if (agent_ == nullptr) return false;
+    return agent_->Start();
   }
 };
 
@@ -583,4 +596,6 @@ auto GpgContext::ComponentDirectory(GpgComponentType type) const -> QString {
 }
 
 auto GpgContext::KeyDBName() const -> QString { return p_->KeyDBName(); }
+
+auto GpgContext::RestartGpgAgent() -> bool { return p_->RestartGpgAgent(); }
 }  // namespace GpgFrontend

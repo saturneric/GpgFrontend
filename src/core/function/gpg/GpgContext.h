@@ -65,17 +65,56 @@ class GPGFRONTEND_CORE_EXPORT GpgContext
 
   ~GpgContext();
 
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
   [[nodiscard]] auto Good() const -> bool;
 
+  /**
+   * @brief
+   *
+   * @return gpgme_ctx_t
+   */
   auto BinaryContext() -> gpgme_ctx_t;
 
+  /**
+   * @brief
+   *
+   * @return gpgme_ctx_t
+   */
   auto DefaultContext() -> gpgme_ctx_t;
 
+  /**
+   * @brief
+   *
+   * @return QString
+   */
   [[nodiscard]] auto KeyDBName() const -> QString;
 
+  /**
+   * @brief
+   *
+   * @return QString
+   */
   [[nodiscard]] auto HomeDirectory() const -> QString;
 
+  /**
+   * @brief
+   *
+   * @return QString
+   */
   [[nodiscard]] auto ComponentDirectory(GpgComponentType) const -> QString;
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  auto RestartGpgAgent() -> bool;
 
  private:
   class Impl;

@@ -36,33 +36,27 @@
 namespace GpgFrontend {
 
 auto GpgAdvancedOperator::ClearGpgPasswordCache() -> bool {
-  auto [ret, out] = exec_.GpgConfExecuteSync({{"--reload", "gpg-agent"}});
-  return ret == 0;
+  return info_.ReloadGpgAgent();
 }
 
 auto GpgAdvancedOperator::ReloadAllGpgComponents() -> bool {
-  auto [ret, out] = exec_.GpgConfExecuteSync({{"--reload", "all"}});
-  return ret == 0;
+  return info_.ReloadGpgAgent();
 }
 
 auto GpgAdvancedOperator::KillAllGpgComponents() -> bool {
-  auto [ret, out] = exec_.GpgConfExecuteSync({{"--kill", "all"}});
-  return ret == 0;
+  return ctx_.RestartGpgAgent();
 }
 
 auto GpgAdvancedOperator::ResetConfigures() -> bool {
-  auto [ret, out] = exec_.GpgConfExecuteSync({{"--apply-defaults"}});
-  return ret == 0;
+  return info_.ReloadGpgAgent();
 }
 
 auto GpgAdvancedOperator::LaunchAllGpgComponents() -> bool {
-  auto [ret, out] = exec_.GpgConfExecuteSync({{"--launch", "all"}});
-  return ret == 0;
+  return ctx_.RestartGpgAgent();
 }
 
 auto GpgAdvancedOperator::RestartGpgComponents() -> bool {
-  if (!KillAllGpgComponents()) return false;
-  return LaunchAllGpgComponents();
+  return ctx_.RestartGpgAgent();
 }
 
 GpgAdvancedOperator::GpgAdvancedOperator(int channel)

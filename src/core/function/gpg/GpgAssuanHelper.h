@@ -115,8 +115,8 @@ class GPGFRONTEND_CORE_EXPORT GpgAssuanHelper
    * @param command
    * @return auto
    */
-  auto SendDataCommand(GpgComponentType type,
-                       const QString& command) -> std::tuple<bool, QStringList>;
+  auto SendDataCommand(GpgComponentType type, const QString& command)
+      -> std::tuple<GpgError, QStringList>;
 
  private:
   GpgContext& ctx_ =

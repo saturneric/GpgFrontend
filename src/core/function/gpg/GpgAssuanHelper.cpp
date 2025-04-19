@@ -75,7 +75,8 @@ auto GpgAssuanHelper::ConnectToSocket(GpgComponentType type) -> GpgError {
   auto err = assuan_socket_connect(a_ctx, info.absoluteFilePath().toUtf8(),
                                    ASSUAN_INVALID_PID, 0);
   if (err != GPG_ERR_NO_ERROR) {
-    LOG_W() << "failed to connect to socket:" << CheckGpgError(err);
+    LOG_W() << "failed to connect to socket:" << info.absoluteFilePath()
+            << "err:" << CheckGpgError(err);
     return err;
   }
 
@@ -165,7 +166,7 @@ auto GpgAssuanHelper::SendStatusCommand(GpgComponentType type,
 
 auto GpgAssuanHelper::SendDataCommand(GpgComponentType type,
                                       const QString& command)
-    -> std::tuple<bool, QStringList> {
+    -> std::tuple<GpgError, QStringList> {
   QStringList lines;
   GpgAssuanHelper::DataCallback d_cb =
       [&](const QSharedPointer<GpgAssuanHelper::AssuanCallbackContext>& ctx)
