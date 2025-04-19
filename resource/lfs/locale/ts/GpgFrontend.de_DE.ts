@@ -588,12 +588,12 @@
     <message>
         <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="127"/>
         <source>Unknown Error</source>
-        <translation type="unfinished">Unbekannter Fehler</translation>
+        <translation>Unbekannter Fehler</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="128"/>
         <source>Caught unknown error while exporting the key.</source>
-        <translation type="unfinished">Beim Exportieren des Schlüssels ist ein unbekannter Fehler aufgetreten.</translation>
+        <translation>Beim Exportieren des Schlüssels ist ein unbekannter Fehler aufgetreten.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="145"/>
@@ -1958,7 +1958,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="91"/>
         <source>Combination</source>
-        <translation type="unfinished"></translation>
+        <translation>Kombination</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="92"/>
