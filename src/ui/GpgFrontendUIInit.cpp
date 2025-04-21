@@ -123,20 +123,49 @@ void PreInitGpgFrontendUI() {
                                                    "QWidget", {});
 }
 
-void InitGpgFrontendUI(QApplication* /*app*/) {
+void InitGpgFrontendUI(QApplication* app) {
   // init locale
   InitUITranslations();
 
   auto settings = GetSettings();
   auto theme = settings.value("appearance/theme").toString();
 
-#if defined(_WIN32) || defined(WIN32)
-  if (theme.isEmpty()) {
-    // support dark mode on windows
-    QApplication::setStyle(QStyleFactory::create("Fusion"));
-  }
-#endif
+  // Set Fusion style for better dark mode support across platforms
+  QApplication::setStyle(QStyleFactory::create("Fusion"));
 
+  // Check if system is using dark mode by comparing text/background lightness
+  QPalette systemPalette = QApplication::palette();
+  QColor windowColor = systemPalette.color(QPalette::Window);
+  QColor textColor = systemPalette.color(QPalette::WindowText);
+  
+  // In dark themes, text is typically lighter than the background
+  bool isDarkMode = textColor.lightness() > windowColor.lightness();
+  
+  FLOG_D("Dark mode detected: %s", isDarkMode ? "true" : "false");
+
+  if (isDarkMode) {
+    FLOG_D("Applying dark palette...");
+    // Apply dark palette for Fusion
+    QPalette darkPalette;
+    darkPalette.setColor(QPalette::Window, QColor(53, 53, 53));
+    darkPalette.setColor(QPalette::WindowText, Qt::white);
+    darkPalette.setColor(QPalette::Base, QColor(25, 25, 25));
+    darkPalette.setColor(QPalette::AlternateBase, QColor(53, 53, 53));
+    darkPalette.setColor(QPalette::ToolTipBase, Qt::white);
+    darkPalette.setColor(QPalette::ToolTipText, Qt::white);
+    darkPalette.setColor(QPalette::Text, Qt::white);
+    darkPalette.setColor(QPalette::Button, QColor(53, 53, 53));
+    darkPalette.setColor(QPalette::ButtonText, Qt::white);
+    darkPalette.setColor(QPalette::BrightText, Qt::red);
+    darkPalette.setColor(QPalette::Link, QColor(42, 130, 218));
+    darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
+    darkPalette.setColor(QPalette::HighlightedText, Qt::black);
+    
+    // Apply the dark palette
+    QApplication::setPalette(darkPalette);
+  }
+
+  // If user has explicitly set a theme in settings, use that instead
   auto available_styles = QStyleFactory::keys();
   for (QString& s : available_styles) s = s.toLower();
   if (!theme.isEmpty() && available_styles.contains(theme)) {
