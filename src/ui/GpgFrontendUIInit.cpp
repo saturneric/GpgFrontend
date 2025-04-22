@@ -134,35 +134,35 @@ void InitGpgFrontendUI(QApplication* app) {
   QApplication::setStyle(QStyleFactory::create("Fusion"));
 
   // Check if system is using dark mode by comparing text/background lightness
-  QPalette systemPalette = QApplication::palette();
-  QColor windowColor = systemPalette.color(QPalette::Window);
-  QColor textColor = systemPalette.color(QPalette::WindowText);
-  
-  // In dark themes, text is typically lighter than the background
-  bool isDarkMode = textColor.lightness() > windowColor.lightness();
-  
-  FLOG_D("Dark mode detected: %s", isDarkMode ? "true" : "false");
+  QPalette system_palette = QApplication::palette();
+  QColor window_color = system_palette.color(QPalette::Window);
+  QColor text_color = system_palette.color(QPalette::WindowText);
 
-  if (isDarkMode) {
-    FLOG_D("Applying dark palette...");
+  // In dark themes, text is typically lighter than the background
+  bool is_dark_mode = text_color.lightness() > window_color.lightness();
+  LOG_D() << "dark mode status:" << is_dark_mode;
+
+  if (is_dark_mode) {
+    LOG_D() << "applying dark palette...";
+
     // Apply dark palette for Fusion
-    QPalette darkPalette;
-    darkPalette.setColor(QPalette::Window, QColor(53, 53, 53));
-    darkPalette.setColor(QPalette::WindowText, Qt::white);
-    darkPalette.setColor(QPalette::Base, QColor(25, 25, 25));
-    darkPalette.setColor(QPalette::AlternateBase, QColor(53, 53, 53));
-    darkPalette.setColor(QPalette::ToolTipBase, Qt::white);
-    darkPalette.setColor(QPalette::ToolTipText, Qt::white);
-    darkPalette.setColor(QPalette::Text, Qt::white);
-    darkPalette.setColor(QPalette::Button, QColor(53, 53, 53));
-    darkPalette.setColor(QPalette::ButtonText, Qt::white);
-    darkPalette.setColor(QPalette::BrightText, Qt::red);
-    darkPalette.setColor(QPalette::Link, QColor(42, 130, 218));
-    darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
-    darkPalette.setColor(QPalette::HighlightedText, Qt::black);
-    
+    QPalette dark_palette;
+    dark_palette.setColor(QPalette::Window, QColor(53, 53, 53));
+    dark_palette.setColor(QPalette::WindowText, Qt::white);
+    dark_palette.setColor(QPalette::Base, QColor(25, 25, 25));
+    dark_palette.setColor(QPalette::AlternateBase, QColor(53, 53, 53));
+    dark_palette.setColor(QPalette::ToolTipBase, Qt::white);
+    dark_palette.setColor(QPalette::ToolTipText, Qt::white);
+    dark_palette.setColor(QPalette::Text, Qt::white);
+    dark_palette.setColor(QPalette::Button, QColor(53, 53, 53));
+    dark_palette.setColor(QPalette::ButtonText, Qt::white);
+    dark_palette.setColor(QPalette::BrightText, Qt::red);
+    dark_palette.setColor(QPalette::Link, QColor(42, 130, 218));
+    dark_palette.setColor(QPalette::Highlight, QColor(42, 130, 218));
+    dark_palette.setColor(QPalette::HighlightedText, Qt::black);
+
     // Apply the dark palette
-    QApplication::setPalette(darkPalette);
+    QApplication::setPalette(dark_palette);
   }
 
   // If user has explicitly set a theme in settings, use that instead
