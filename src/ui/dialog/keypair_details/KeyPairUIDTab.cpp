@@ -431,16 +431,17 @@ void KeyPairUIDTab::create_uid_popup_menu() {
 
   if (m_key_->IsHasMasterKey()) {
     uid_popup_menu_->addAction(set_primary_uid_act_);
-    uid_popup_menu_->addAction(sign_uid_act_);
     uid_popup_menu_->addAction(rev_uid_act_);
     uid_popup_menu_->addAction(del_uid_act_);
   }
+
+  uid_popup_menu_->addAction(sign_uid_act_);
 }
 
 void KeyPairUIDTab::contextMenuEvent(QContextMenuEvent* event) {
   if (uid_list_->selectedItems().length() > 0 &&
       sig_list_->selectedItems().isEmpty()) {
-    auto is_primary_uid =
+    const auto is_primary_uid =
         get_selected_uid().GetUID() == buffered_uids_.front().GetUID();
     set_primary_uid_act_->setDisabled(is_primary_uid);
     rev_uid_act_->setDisabled(is_primary_uid);
