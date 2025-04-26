@@ -29,8 +29,9 @@
 #pragma once
 
 #if defined(_WIN32) || defined(WIN32)
-#include <windows.h>
 #include <winsock2.h>
+// should include winsock2.h before windows.h
+#include <windows.h>
 #endif
 
 // qt global
