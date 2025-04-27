@@ -237,7 +237,7 @@ void KeyPairOperaTab::slot_export_key(bool secret, bool ascii, bool shortest,
 #if defined(_WIN32) || defined(WIN32)
         auto file_name = QString("%1[%2](%3)_%4.asc");
 #else
-        auto file_name = QString("%1<%2[(%3)_%4.asc");
+        auto file_name = QString("%1<%2>(%3)_%4.asc");
 #endif
 
         file_name =
