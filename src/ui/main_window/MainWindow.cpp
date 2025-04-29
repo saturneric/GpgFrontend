@@ -305,12 +305,15 @@ void MainWindow::slot_popup_menu_by_key_list(QContextMenuEvent* event,
   if (event == nullptr || key_table == nullptr) return;
 
   const auto key_table_name = key_table->objectName();
+
+  LOG_D() << "current key table object name: " << key_table_name;
+
   if (key_table_name == "favourite") {
-    remove_key_from_favourtie_act_->setDisabled(true);
-    add_key_2_favourite_act_->setDisabled(false);
+    remove_key_from_favourtie_act_->setVisible(true);
+    add_key_2_favourite_act_->setVisible(false);
   } else {
-    remove_key_from_favourtie_act_->setDisabled(false);
-    add_key_2_favourite_act_->setDisabled(true);
+    remove_key_from_favourtie_act_->setVisible(false);
+    add_key_2_favourite_act_->setVisible(true);
   }
 
   popup_menu_->popup(event->globalPos());

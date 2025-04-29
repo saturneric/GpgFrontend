@@ -72,7 +72,7 @@ bool GpgFrontendApplication::notify(QObject *receiver, QEvent *event) {
   try {
     return QApplication::notify(receiver, event);
   } catch (const std::exception &ex) {
-    FLOG_W("exception was caught in notify: {}", ex.what());
+    FLOG_W("exception was caught in notify: %s", ex.what());
     QMessageBox::information(
         nullptr, tr("Standard Exception Thrown"),
         tr("Oops, an standard exception was thrown "

@@ -622,10 +622,10 @@ void KeyMgmt::slot_popup_menu_by_key_list(QContextMenuEvent* event,
   if (keys.isEmpty()) return;
 
   auto key = keys.front();
-  generate_subkey_act_->setDisabled(key->KeyType() !=
-                                    GpgAbstractKeyType::kGPG_KEY);
-  set_owner_trust_of_key_act_->setDisabled(key->KeyType() !=
-                                           GpgAbstractKeyType::kGPG_KEY);
+  generate_subkey_act_->setVisible(
+      key->KeyType() == GpgAbstractKeyType::kGPG_KEY && key->IsPrivateKey());
+  set_owner_trust_of_key_act_->setVisible(key->KeyType() ==
+                                          GpgAbstractKeyType::kGPG_KEY);
 
   popup_menu_->exec(event->globalPos());
 }
