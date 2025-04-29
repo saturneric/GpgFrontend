@@ -39,7 +39,7 @@
           <item>
            <widget class="QToolButton" name="switchContextButton">
             <property name="toolTip">
-             <string>Uncheck ALL</string>
+             <string>Key Databases</string>
             </property>
             <property name="text">
              <string>Switch Context</string>

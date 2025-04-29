@@ -280,11 +280,17 @@ void KeyList::init() {
       tr("Sync public key with your default keyserver."));
   ui_->uncheckButton->setText(tr("Uncheck ALL"));
   ui_->uncheckButton->setToolTip(
-      tr("Cancel all checked items in the current tab at once."));
+      tr("Cancel all checked keys in the current tab at once."));
   ui_->checkALLButton->setText(tr("Check ALL"));
   ui_->checkALLButton->setToolTip(
-      tr("Check all items in the current tab at once"));
+      tr("Check all keys in the current tab at once"));
   ui_->searchBarEdit->setPlaceholderText(tr("Search for keys..."));
+  ui_->columnTypeButton->setText(tr("Column Type"));
+  ui_->columnTypeButton->setToolTip(tr("Selected showed column type(s)"));
+  ui_->keyGroupButton->setText(tr("New Key Group"));
+  ui_->keyGroupButton->setToolTip(tr("Create a new key group"));
+  ui_->switchContextButton->setText(tr("Key Databases"));
+  ui_->switchContextButton->setToolTip(tr("Switch between Key Databases"));
 }
 
 auto KeyList::AddListGroupTab(
