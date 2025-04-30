@@ -204,7 +204,7 @@ auto PercentDataEscape(const QByteArray& data, bool plus_escape = false,
     } else if (plus_escape && ch == ' ') {
       result += '+';
     } else if (plus_escape && (ch < 0x20 || ch == '+')) {
-      result += QString("%%%1").arg(ch, 2, 16, QLatin1Char('0')).toUpper();
+      result += QString("%%%1").arg(static_cast<int>(static_cast<unsigned char>(ch)), 2, 16, QLatin1Char('0')).toUpper();
     } else {
       result += QLatin1Char(ch);
     }

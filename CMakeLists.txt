@@ -163,6 +163,14 @@ if(GPGFRONTEND_BUILD_TYPE_ONLY_APPLICATION)
   set(STABLE_BUILD_ONLY_APPLICATION 1)
 endif()
 
+# Fallback for BUILD_APPLICATION if not set by any build type
+if(NOT DEFINED BUILD_APPLICATION)
+  if(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE OR GPGFRONTEND_BUILD_TYPE_STABLE OR GPGFRONTEND_BUILD_TYPE_ONLY_APPLICATION)
+    set(BUILD_APPLICATION 1)
+    message(STATUS "Setting BUILD_APPLICATION=1 as fallback based on build configuration")
+  endif()
+endif()
+
 if(GPGFRONTEND_BUILD_APP_IMAGE)
   set(BUILD_APP_IMAGE 1)
 endif()
@@ -474,11 +482,89 @@ set(CPACK_PACKAGE_NAME "GpgFrontend")
 set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
 set(CPACK_PACKAGE_RELEASE "1")
 set(CPACK_PACKAGING_INSTALL_PREFIX "/usr")
+set(CPACK_PACKAGE_CONTACT "eric@bktus.com")
 set(CPACK_RPM_PACKAGE_LICENSE "GPLv3")
 set(CPACK_RPM_PACKAGE_GROUP "Applications/System")
-set(CPACK_RPM_PACKAGE_REQUIRES "libassuan >= 2.5.0, gpgme >= 1.12.0, qt6-qtbase >= 6.0.0")
+set(CPACK_RPM_PACKAGE_REQUIRES "libassuan >= 2.5.0, gpgme >= 1.12.0, qt6-qtbase >= 6.0.0, gtk-update-icon-cache")
 set(CPACK_RPM_PACKAGE_URL "https://gpgfrontend.bktus.com")
 set(CPACK_RPM_PACKAGE_DESCRIPTION "GpgFrontend is a free, open-source, robust yet user-friendly, compact and cross-platform tool for OpenPGP encryption.")
+
+# Configure RPM scripts
+configure_file(
+  "${CMAKE_SOURCE_DIR}/cmake/rpm/post-install.sh"
+  "${CMAKE_BINARY_DIR}/rpm-post-install.sh"
+  @ONLY
+)
+configure_file(
+  "${CMAKE_SOURCE_DIR}/cmake/rpm/post-uninstall.sh"
+  "${CMAKE_BINARY_DIR}/rpm-post-uninstall.sh"
+  @ONLY
+)
+
+# Set RPM scripts
+set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_BINARY_DIR}/rpm-post-install.sh")
+set(CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${CMAKE_BINARY_DIR}/rpm-post-uninstall.sh")
+
+# Make the scripts executable
+file(CHMOD ${CMAKE_BINARY_DIR}/rpm-post-install.sh
+     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+file(CHMOD ${CMAKE_BINARY_DIR}/rpm-post-uninstall.sh
+     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+
+# Documentation handling
+set(CPACK_RPM_PACKAGE_LICENSE_FILE "${CMAKE_SOURCE_DIR}/COPYING")
+set(CPACK_RPM_PACKAGE_DOCUMENTATION "${CMAKE_SOURCE_DIR}/README.md")
+
+# Install license and documentation
+install(FILES "${CMAKE_SOURCE_DIR}/COPYING"
+        DESTINATION "share/licenses/${CPACK_PACKAGE_NAME}"
+        COMPONENT runtime)
+install(FILES "${CMAKE_SOURCE_DIR}/README.md"
+        DESTINATION "share/doc/${CPACK_PACKAGE_NAME}"
+        COMPONENT runtime)
+
+# Install icons for all resolutions
+foreach(size IN ITEMS 32 48 64 128 256 512)
+    install(FILES "${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/${size}x${size}/apps/com.bktus.gpgfrontend.png"
+            DESTINATION "share/icons/hicolor/${size}x${size}/apps"
+            RENAME "gpgfrontend.png"
+            COMPONENT runtime)
+    # Also install with the full name for .desktop file compatibility
+    install(FILES "${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/${size}x${size}/apps/com.bktus.gpgfrontend.png"
+            DESTINATION "share/icons/hicolor/${size}x${size}/apps"
+            COMPONENT runtime)
+endforeach()
+
+# Install desktop file
+install(FILES "${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.desktop"
+        DESTINATION "share/applications"
+        COMPONENT runtime)
+
+# Install metainfo/appdata
+install(FILES "${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.metainfo.xml"
+        DESTINATION "share/metainfo"
+        COMPONENT runtime)
+
+# Exclude files from auto-detection of dependencies
+set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION
+    "/usr/share/doc"
+    "/usr/share/licenses"
+    "/usr/share/applications"
+    "/usr/share/metainfo"
+    "/usr/share/icons"
+    "/usr/share/icons/hicolor"
+    "/usr/share/icons/hicolor/128x128"
+    "/usr/share/icons/hicolor/256x256"
+    "/usr/share/icons/hicolor/32x32"
+    "/usr/share/icons/hicolor/48x48"
+    "/usr/share/icons/hicolor/512x512"
+    "/usr/share/icons/hicolor/64x64"
+    "/usr/share/icons/hicolor/128x128/apps"
+    "/usr/share/icons/hicolor/256x256/apps"
+    "/usr/share/icons/hicolor/32x32/apps"
+    "/usr/share/icons/hicolor/48x48/apps"
+    "/usr/share/icons/hicolor/512x512/apps"
+    "/usr/share/icons/hicolor/64x64/apps")
 
 # Include CPack to enable packaging support
 include(CPack)
