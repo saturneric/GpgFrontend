@@ -468,6 +468,21 @@ message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "Build C Flags: ${CMAKE_C_FLAGS}")
 message(STATUS "Build C++ Flags: ${CMAKE_CXX_FLAGS}")
 
+# CPack configuration
+set(CPACK_GENERATOR "RPM")
+set(CPACK_PACKAGE_NAME "GpgFrontend")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(CPACK_PACKAGE_RELEASE "1")
+set(CPACK_PACKAGING_INSTALL_PREFIX "/usr")
+set(CPACK_RPM_PACKAGE_LICENSE "GPLv3")
+set(CPACK_RPM_PACKAGE_GROUP "Applications/System")
+set(CPACK_RPM_PACKAGE_REQUIRES "libassuan >= 2.5.0, gpgme >= 1.12.0, qt6-qtbase >= 6.0.0")
+set(CPACK_RPM_PACKAGE_URL "https://gpgfrontend.bktus.com")
+set(CPACK_RPM_PACKAGE_DESCRIPTION "GpgFrontend is a free, open-source, robust yet user-friendly, compact and cross-platform tool for OpenPGP encryption.")
+
+# Include CPack to enable packaging support
+include(CPack)
+
 # third_party
 add_subdirectory(third_party) # source code
 add_subdirectory(src)
