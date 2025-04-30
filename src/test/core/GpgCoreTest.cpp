@@ -28,10 +28,6 @@
 
 #include "GpgCoreTest.h"
 
-#include "core/function/gpg/GpgKeyImportExporter.h"
-#include "core/utils/IOUtils.h"
-#include "core/utils/MemoryUtils.h"
-
 namespace GpgFrontend::Test {
 
 void GpgCoreTest::TearDown() {}

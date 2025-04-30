@@ -68,6 +68,7 @@ void ConfigureGpgContext() {
         GpgContextInitArgs args;
         args.test_mode = true;
         args.offline_mode = true;
+        args.db_name = "UNIT_TEST";
         args.db_path = db_path.path();
 
         return ConvertToChannelObjectPtr<>(SecureCreateUniqueObject<GpgContext>(

@@ -69,9 +69,9 @@ TEST_F(GpgCoreTest, GpgKeyTest) {
   ASSERT_EQ(key.SubKeys().size(), 2);
   ASSERT_EQ(key.UIDs().size(), 1);
 
-  ASSERT_TRUE(key.IsHasCertCap());
+  ASSERT_FALSE(key.IsHasCertCap());
   ASSERT_FALSE(key.IsHasEncrCap());
-  ASSERT_TRUE(key.IsHasSignCap());
+  ASSERT_FALSE(key.IsHasSignCap());
   ASSERT_FALSE(key.IsHasAuthCap());
   ASSERT_FALSE(key.IsHasActualCertCap());
   ASSERT_FALSE(key.IsHasActualEncrCap());

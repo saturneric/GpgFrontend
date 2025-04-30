@@ -35,7 +35,7 @@ TEST_F(GpgCoreTest, CoreAssuanConnectTestA) {
   auto& helper = GpgAssuanHelper::GetInstance();
 
   auto ret = helper.ConnectToSocket(GpgComponentType::kGPG_AGENT);
-  ASSERT_TRUE(ret);
+  ASSERT_EQ(ret, GPG_ERR_NO_ERROR);
 
   GpgAssuanHelper::DataCallback d_cb =
       [=](const QSharedPointer<GpgAssuanHelper::AssuanCallbackContext>& ctx)
@@ -60,7 +60,7 @@ TEST_F(GpgCoreTest, CoreAssuanConnectTestA) {
 
   ret = helper.SendCommand(GpgComponentType::kGPG_AGENT, "GETINFO pid", d_cb,
                            i_cb, s_cb);
-  ASSERT_TRUE(ret);
+  ASSERT_EQ(ret, GPG_ERR_NO_ERROR);
 }
 
 TEST_F(GpgCoreTest, CoreAssuanConnectTestB) {
@@ -68,7 +68,7 @@ TEST_F(GpgCoreTest, CoreAssuanConnectTestB) {
 
   auto [ret, status] =
       helper.SendStatusCommand(GpgComponentType::kGPG_AGENT, "keyinfo --list");
-  ASSERT_TRUE(ret);
+  ASSERT_EQ(ret, GPG_ERR_NO_ERROR);
   ASSERT_TRUE(!status.isEmpty());
   ASSERT_TRUE(status.front().startsWith("KEYINFO"));
 
