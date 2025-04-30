@@ -24,6 +24,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # Set configure for test
+include(CTest)
+enable_testing()
+find_package(GTest REQUIRED)
 
 aux_source_directory(./core TEST_SOURCE)
 aux_source_directory(. TEST_SOURCE)

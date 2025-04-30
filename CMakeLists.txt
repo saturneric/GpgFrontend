@@ -55,124 +55,41 @@ include(CheckCXXSourceCompiles)
 # generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# build type options
-option(GPGFRONTEND_BUILD_TYPE_TEST_CORE
-  "Only compile the core and generate the unit test program" OFF)
-option(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE
-  "Compile only the core and generate unit test programs that can evaluate test coverage" OFF)
-option(GPGFRONTEND_BUILD_TYPE_TEST_UI
-  "Only generate a graphical interface with basic functions" OFF)
-option(GPGFRONTEND_BUILD_TYPE_TEST_ALL
-  "Generate a graphical interface with all functions" OFF)
-option(GPGFRONTEND_BUILD_TYPE_STABLE
-  "Generate release version" ON)
-option(GPGFRONTEND_BUILD_TYPE_FULL_SDK "Build and install all headers and libs exclude application" OFF)
-option(GPGFRONTEND_BUILD_TYPE_ONLY_SDK "Build and install sdk headers and libs" OFF)
-option(GPGFRONTEND_BUILD_TYPE_ONLY_APPLICATION "Generate a usable SDK" OFF)
-
-# function or mode options
+# general build options
 option(GPGFRONTEND_QT5_BUILD "Swith to Qt5 building mode" OFF)
-option(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE "Generate an installable version" OFF)
+option(GPGFRONTEND_BUILD_APP_FOR_PACKAGE "Allow generating an installable package(DEB or RPM)." OFF)
 option(GPGFRONTEND_ENABLE_ASAN "Enable ASAN" OFF)
 option(GPGFRONTEND_BUILD_APP_IMAGE "Build AppImage" OFF)
+option(GPGFRONTEND_BUILD_MODULES "Build Modules" ON)
 
-# xcode options
+# xcode build options
 option(GPGFRONTEND_XCODE_TEAM_ID "GpgFrontend Apple Team ID" "NONE")
 option(GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY "GpgFrontend Signing Certificate" "NONE")
 option(GPGFRONTEND_XOCDE_APPID "GpgFrontend Apple AppID" "NONE")
 option(GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID "GpgFrontend ProvisioningProfile UUID" "NONE")
 option(GPGFRONTEND_XOCDE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
 
-# analyse options
-if(GPGFRONTEND_BUILD_TYPE_TEST_CORE)
-  set(CMAKE_BUILD_TYPE "Debug")
-  set(GPGFRONTEND_BUILD_CONFIG "test_core")
-endif()
-
-if(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE)
-  set(CMAKE_BUILD_TYPE "Debug")
-  set(GPGFRONTEND_BUILD_CONFIG "test_core_coverage")
-endif()
-
-if(GPGFRONTEND_BUILD_TYPE_TEST_UI)
-  set(CMAKE_BUILD_TYPE "Debug")
-  set(GPGFRONTEND_BUILD_CONFIG "test_ui")
-endif()
-
-if(GPGFRONTEND_BUILD_TYPE_TEST_ALL)
-  set(CMAKE_BUILD_TYPE "Debug")
-  set(GPGFRONTEND_BUILD_CONFIG "test_all")
-endif()
-
-# Specify compilation mode
-message(STATUS "Switch Build Configure STABLE_BUILD_APPLICATION")
-set(STABLE_BUILD_APPLICATION 1)
-
-# stable features
-if(GPGFRONTEND_BUILD_TYPE_STABLE)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
-  unset(GPGFRONTEND_BUILD_CONFIG)
-
-  set(STABLE_BUILD_APPLICATION 1)
-endif()
-
-# linux package build
-if(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
-  unset(GPGFRONTEND_BUILD_CONFIG)
-
-  set(LINUX_INSTALL_SOFTWARE 1)
-endif()
-
-if(GPGFRONTEND_BUILD_TYPE_FULL_SDK)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
-  unset(GPGFRONTEND_BUILD_CONFIG)
-
-  set(STABLE_BUILD_APPLICATION 0)
-  set(STABLE_BUILD_FULL_SDK 1)
-endif()
-
-if(GPGFRONTEND_BUILD_TYPE_ONLY_SDK)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
-  unset(GPGFRONTEND_BUILD_CONFIG)
-
-  set(STABLE_BUILD_APPLICATION 0)
-  set(STABLE_BUILD_ONLY_SDK 1)
-endif()
-
-if(GPGFRONTEND_BUILD_TYPE_ONLY_APPLICATION)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
-  unset(GPGFRONTEND_BUILD_CONFIG)
-
-  set(STABLE_BUILD_APPLICATION 0)
-  set(STABLE_BUILD_ONLY_APPLICATION 1)
-endif()
-
-# Fallback for BUILD_APPLICATION if not set by any build type
-if(NOT DEFINED BUILD_APPLICATION)
-  if(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE OR GPGFRONTEND_BUILD_TYPE_STABLE OR GPGFRONTEND_BUILD_TYPE_ONLY_APPLICATION)
-    set(BUILD_APPLICATION 1)
-    message(STATUS "Setting BUILD_APPLICATION=1 as fallback based on build configuration")
-  endif()
-endif()
-
 if(GPGFRONTEND_BUILD_APP_IMAGE)
   set(BUILD_APP_IMAGE 1)
+endif()
+
+if(GPGFRONTEND_BUILD_APP_FOR_PACKAGE)
+  set(BUILD_APP_FOR_PACKAGE 1)
+
+  if(NOT DEFINED CMAKE_INSTALL_PREFIX OR CMAKE_INSTALL_PREFIX STREQUAL "")
+    if(BUILD_FOR_PACKAGING)
+      set(CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Normal packaging path" FORCE)
+    else()
+      set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Normal installing path" FORCE)
+    endif()
+  endif()
+
+  set(PACKAGING_INSTALL_PREFIX "/usr" CACHE PATH "Prefix by packaging")
+  set(CPACK_PACKAGING_INSTALL_PREFIX "${PACKAGING_INSTALL_PREFIX}")
+endif()
+
+if(GPGFRONTEND_BUILD_MODULES)
+  set(BUILD_MODULES 1)
 endif()
 
 # C++
@@ -241,13 +158,6 @@ endif()
 if(CMAKE_BUILD_TYPE STREQUAL "Release" AND APPLE)
   set(GPGFRONTEND_GENERATE_LINUX_INSTALL_SOFTWARE 0)
   set(LINUX_INSTALL_SOFTWARE 0)
-
-  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE 0)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_CORE_AND_COVERAGE 0)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_UI 0)
-  set(GPGFRONTEND_BUILD_TYPE_TEST_ALL 0)
-
-  unset(GPGFRONTEND_BUILD_CONFIG)
 endif()
 
 # if enable ASAN
@@ -396,15 +306,6 @@ if(LINUX)
   set(HTTP_REQUEST_USER_AGENT "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:123.0) Gecko/20100101 Firefox/123.0")
 endif()
 
-if(LINUX_INSTALL_SOFTWARE)
-  message(STATUS "Linux Install Traget ${CMAKE_INSTALL_PREFIX}")
-  include(GNUInstallDirs)
-  set(APP_INSTALL_FLAG LINUX_INSTALL)
-  add_compile_definitions(LINUX_INSTALL_BUILD)
-else()
-  set(APP_INSTALL_FLAG BUNDLE)
-endif()
-
 if(GPGFRONTEND_QT5_BUILD)
   # Support Qt version: 5.15.x
   find_package(Qt5 5.15 COMPONENTS Core Widgets PrintSupport Network LinguistTools REQUIRED)
@@ -418,157 +319,68 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(CMAKE_AUTORCC_OPTIONS "--compress;9")
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${CMAKE_SOURCE_DIR}/ui)
-
-# Find and configure libassuan using pkg-config
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBASSUAN libassuan)
-
-if(NOT LIBASSUAN_FOUND)
-  message(FATAL_ERROR "libassuan not found. Please install libassuan-dev or libassuan-devel package for your system.")
-endif()
-
-# Add libassuan include and library paths globally since it's a core dependency
-include_directories(${LIBASSUAN_INCLUDE_DIRS})
-link_directories(${LIBASSUAN_LIBRARY_DIRS})
-
-if(STABLE_BUILD_APPLICATION)
-  message("[*] Build Stable Application")
-  set(BUILD_CORE 1)
-  set(BUILD_UI 1)
-  set(BUILD_TEST 1)
-  set(BUILD_SDK 1)
-  set(BUILD_APPLICATION 1)
-  set(SUPPORT_MULTI_LANG 1)
-elseif(STABLE_BUILD_ONLY_SDK)
-  message("[*] Build SDK")
-  set(BUILD_CORE 1)
-  set(BUILD_UI 1)
-  set(BUILD_SDK 1)
-elseif(STABLE_BUILD_FULL_SDK)
-  message("[*] Build All Headers and Libs (SDK fully build)")
-  set(BUILD_CORE 1)
-  set(BUILD_UI 1)
-  set(BUILD_TEST 1)
-  set(BUILD_SDK 1)
-elseif(GPGFRONTEND_BUILD_TYPE_ONLY_APPLICATION)
-  message("[*] Build executable only")
-  set(BUILD_CORE 0)
-  set(BUILD_UI 0)
-  set(BUILD_TEST 0)
-  set(BUILD_SDK 0)
-  set(BUILD_APPLICATION 1)
-  set(SUPPORT_MULTI_LANG 1)
-endif()
 
 # For instance in order to select the highest version one
 SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
 SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-if(SUPPORT_MULTI_LANG)
-  add_compile_definitions(SUPPORT_MULTI_LANG)
-endif()
-
 # Output Env Variables
 message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "Build C Flags: ${CMAKE_C_FLAGS}")
 message(STATUS "Build C++ Flags: ${CMAKE_CXX_FLAGS}")
 
-# CPack configuration
-set(CPACK_GENERATOR "RPM")
-set(CPACK_PACKAGE_NAME "GpgFrontend")
-set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
-set(CPACK_PACKAGE_RELEASE "1")
-set(CPACK_PACKAGING_INSTALL_PREFIX "/usr")
-set(CPACK_PACKAGE_CONTACT "eric@bktus.com")
-set(CPACK_RPM_PACKAGE_LICENSE "GPLv3")
-set(CPACK_RPM_PACKAGE_GROUP "Applications/System")
-set(CPACK_RPM_PACKAGE_REQUIRES "libassuan >= 2.5.0, gpgme >= 1.12.0, qt6-qtbase >= 6.0.0, gtk-update-icon-cache")
-set(CPACK_RPM_PACKAGE_URL "https://gpgfrontend.bktus.com")
-set(CPACK_RPM_PACKAGE_DESCRIPTION "GpgFrontend is a free, open-source, robust yet user-friendly, compact and cross-platform tool for OpenPGP encryption.")
-
-# Configure RPM scripts
-configure_file(
-  "${CMAKE_SOURCE_DIR}/cmake/rpm/post-install.sh"
-  "${CMAKE_BINARY_DIR}/rpm-post-install.sh"
-  @ONLY
-)
-configure_file(
-  "${CMAKE_SOURCE_DIR}/cmake/rpm/post-uninstall.sh"
-  "${CMAKE_BINARY_DIR}/rpm-post-uninstall.sh"
-  @ONLY
-)
-
-# Set RPM scripts
-set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_BINARY_DIR}/rpm-post-install.sh")
-set(CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${CMAKE_BINARY_DIR}/rpm-post-uninstall.sh")
-
-# Make the scripts executable
-file(CHMOD ${CMAKE_BINARY_DIR}/rpm-post-install.sh
-     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-file(CHMOD ${CMAKE_BINARY_DIR}/rpm-post-uninstall.sh
-     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-
-# Documentation handling
-set(CPACK_RPM_PACKAGE_LICENSE_FILE "${CMAKE_SOURCE_DIR}/COPYING")
-set(CPACK_RPM_PACKAGE_DOCUMENTATION "${CMAKE_SOURCE_DIR}/README.md")
-
-# Install license and documentation
-install(FILES "${CMAKE_SOURCE_DIR}/COPYING"
-        DESTINATION "share/licenses/${CPACK_PACKAGE_NAME}"
-        COMPONENT runtime)
-install(FILES "${CMAKE_SOURCE_DIR}/README.md"
-        DESTINATION "share/doc/${CPACK_PACKAGE_NAME}"
-        COMPONENT runtime)
-
-# Install icons for all resolutions
-foreach(size IN ITEMS 32 48 64 128 256 512)
-    install(FILES "${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/${size}x${size}/apps/com.bktus.gpgfrontend.png"
-            DESTINATION "share/icons/hicolor/${size}x${size}/apps"
-            RENAME "gpgfrontend.png"
-            COMPONENT runtime)
-    # Also install with the full name for .desktop file compatibility
-    install(FILES "${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/${size}x${size}/apps/com.bktus.gpgfrontend.png"
-            DESTINATION "share/icons/hicolor/${size}x${size}/apps"
-            COMPONENT runtime)
-endforeach()
-
-# Install desktop file
-install(FILES "${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.desktop"
-        DESTINATION "share/applications"
-        COMPONENT runtime)
-
-# Install metainfo/appdata
-install(FILES "${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.metainfo.xml"
-        DESTINATION "share/metainfo"
-        COMPONENT runtime)
-
-# Exclude files from auto-detection of dependencies
-set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION
-    "/usr/share/doc"
-    "/usr/share/licenses"
-    "/usr/share/applications"
-    "/usr/share/metainfo"
-    "/usr/share/icons"
-    "/usr/share/icons/hicolor"
-    "/usr/share/icons/hicolor/128x128"
-    "/usr/share/icons/hicolor/256x256"
-    "/usr/share/icons/hicolor/32x32"
-    "/usr/share/icons/hicolor/48x48"
-    "/usr/share/icons/hicolor/512x512"
-    "/usr/share/icons/hicolor/64x64"
-    "/usr/share/icons/hicolor/128x128/apps"
-    "/usr/share/icons/hicolor/256x256/apps"
-    "/usr/share/icons/hicolor/32x32/apps"
-    "/usr/share/icons/hicolor/48x48/apps"
-    "/usr/share/icons/hicolor/512x512/apps"
-    "/usr/share/icons/hicolor/64x64/apps")
-
-# Include CPack to enable packaging support
-include(CPack)
-
 # third_party
 add_subdirectory(third_party) # source code
+
+# Set build information
+configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/src/sdk/GFSDKBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/sdk/GFSDKBuildInfo.h @ONLY)
+
+if(APPLE)
+  configure_file(${CMAKE_SOURCE_DIR}/resource/plist/ExportOptions.plist.in ${CMAKE_BINARY_DIR}/ExportOptions.plist @ONLY)
+endif()
+
+# binary and libraries output path
+if(XCODE_BUILD)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+elseif(MINGW)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts/bin)
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts/bin)
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts/bin)
+elseif(BUILD_APP_IMAGE)
+  set(APPDIR "${CMAKE_BINARY_DIR}/artifacts/AppDir")
+
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${APPDIR}/usr/bin")
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${APPDIR}/usr/lib")
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${APPDIR}/usr/lib")
+
+  file(MAKE_DIRECTORY "${APPDIR}/usr/share/icons")
+  file(COPY "${CMAKE_SOURCE_DIR}/resource/lfs/hicolor" DESTINATION "${APPDIR}/usr/share/icons")
+
+  file(MAKE_DIRECTORY "${APPDIR}/usr/share/metainfo")
+  file(COPY "${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.metainfo.xml"
+    DESTINATION "${APPDIR}/usr/share/metainfo" FOLLOW_SYMLINK_CHAIN)
+
+  file(MAKE_DIRECTORY "${APPDIR}/usr/share/applications")
+  file(COPY "${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.desktop"
+    DESTINATION "${APPDIR}/usr/share/applications" FOLLOW_SYMLINK_CHAIN)
+
+  file(COPY "${CMAKE_SOURCE_DIR}/resource/lfs/pixmaps/com.bktus.gpgfrontend.png"
+    DESTINATION "${APPDIR}" FOLLOW_SYMLINK_CHAIN)
+
+  message(STATUS "AppImage mode enabled. All outputs will go to: ${APPDIR}")
+else()
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts)
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts)
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts)
+endif()
+
 add_subdirectory(src)
+
+if(BUILD_MODULES)
+  add_subdirectory(modules)
+endif()

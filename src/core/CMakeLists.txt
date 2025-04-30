@@ -55,7 +55,7 @@ target_sources(gpgfrontend_core PRIVATE
   ${CMAKE_SOURCE_DIR}/third_party/qt-aes/qaesencryption.cpp)
 
 # link gnupg libraries
-target_link_libraries(gpgfrontend_core PUBLIC gpgme ${LIBASSUAN_LIBRARIES} gpg-error)
+target_link_libraries(gpgfrontend_core PUBLIC gpgme assuan gpg-error)
 
 # link openssl
 target_link_libraries(gpgfrontend_core PUBLIC OpenSSL::SSL OpenSSL::Crypto)
@@ -91,13 +91,6 @@ target_precompile_headers(gpgfrontend_core
 
 # using std c++ 17
 target_compile_features(gpgfrontend_core PUBLIC cxx_std_17)
-
-# MODULEs will find libraries under artifacts lib
-if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-  set_target_properties(gpgfrontend_core PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/lib)
-endif()
 
 # link for different platforms
 if(MINGW)
