@@ -30,15 +30,14 @@
 
 #include "core/model/GpgData.h"
 #include "core/model/GpgKey.h"
-#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
 
 GpgAutomatonHandler::GpgAutomatonHandler(int channel)
     : SingletonFunctionObject<GpgAutomatonHandler>(channel) {}
 
-auto InteratorCbFunc(void* handle, const char* status, const char* args,
-                     int fd) -> gpgme_error_t {
+auto InteratorCbFunc(void* handle, const char* status, const char* args, int fd)
+    -> gpgme_error_t {
   auto* handel = static_cast<AutomatonHandelStruct*>(handle);
   const auto status_s = QString::fromUtf8(status);
   const auto args_s = QString::fromUtf8(args);
@@ -112,8 +111,8 @@ auto InteratorCbFunc(void* handle, const char* status, const char* args,
 auto DoInteractImpl(GpgContext& ctx_, const GpgKeyPtr& key, bool card_edit,
                     const QString& fpr,
                     AutomatonNextStateHandler next_state_handler,
-                    AutomatonActionHandler action_handler,
-                    int flags) -> std::tuple<GpgError, bool> {
+                    AutomatonActionHandler action_handler, int flags)
+    -> std::tuple<GpgError, bool> {
   gpgme_key_t p_key = key == nullptr ? nullptr : static_cast<gpgme_key_t>(*key);
 
   AutomatonHandelStruct handel(card_edit, fpr);
@@ -129,8 +128,8 @@ auto DoInteractImpl(GpgContext& ctx_, const GpgKeyPtr& key, bool card_edit,
 
 auto GpgAutomatonHandler::DoInteract(
     const GpgKeyPtr& key, AutomatonNextStateHandler next_state_handler,
-    AutomatonActionHandler action_handler,
-    int flags) -> std::tuple<GpgError, bool> {
+    AutomatonActionHandler action_handler, int flags)
+    -> std::tuple<GpgError, bool> {
   assert(key != nullptr);
   if (key == nullptr) return {GPG_ERR_USER_1, false};
   return DoInteractImpl(ctx_, key, false, key->Fingerprint(),
@@ -146,8 +145,9 @@ auto GpgAutomatonHandler::DoCardInteract(
                         std::move(action_handler), GPGME_INTERACT_CARD);
 }
 
-auto GpgAutomatonHandler::AutomatonHandelStruct::NextState(
-    QString gpg_status, QString args) -> AutomatonState {
+auto GpgAutomatonHandler::AutomatonHandelStruct::NextState(QString gpg_status,
+                                                           QString args)
+    -> AutomatonState {
   return next_state_handler_(current_state_, std::move(gpg_status),
                              std::move(args));
 }

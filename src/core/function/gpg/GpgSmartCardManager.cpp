@@ -124,7 +124,7 @@ auto GpgSmartCardManager::GetSerialNumbers() -> QStringList {
       continue;
     }
 
-    auto serial_number = tokens[1];
+    const auto& serial_number = tokens[1];
     if (!line.contains("openpgp")) {
       LOG_W() << "smart card: " << serial_number << "doesn't support openpgp.";
       continue;

@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <assuan.h>
-
 #include "core/function/gpg/GpgContext.h"
 
 namespace GpgFrontend {
@@ -49,17 +47,17 @@ class GPGFRONTEND_CORE_EXPORT GpgAssuanHelper
   struct AssuanCallbackContext {
     GpgAssuanHelper* self;
     GpgComponentType component_type;
-    assuan_context_t ctx;
+    gpgme_ctx_t ctx;
 
     QByteArray buffer;
     QString status;
-    QString inquery;
+    QString status_args;
+    QString inquery_name;
+    QString inquery_args;
 
     DataCallback data_cb;
     InqueryCallback inquery_cb;
     StatusCallback status_cb;
-
-    [[nodiscard]] auto SendData(const QByteArray& b) const -> gpg_error_t;
   };
 
   /**
@@ -127,10 +125,8 @@ class GPGFRONTEND_CORE_EXPORT GpgAssuanHelper
  private:
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
-  QMap<GpgComponentType, QSharedPointer<struct assuan_context_s>> assuan_ctx_;
 
-  QByteArray temp_data_;
-  QString temp_status_;
+  QMap<GpgComponentType, QSharedPointer<struct gpgme_context>> ctx_map_;
   QString gpgconf_path_;
 
   /**
@@ -177,8 +173,8 @@ class GPGFRONTEND_CORE_EXPORT GpgAssuanHelper
    * @param status
    * @return gpgme_error_t
    */
-  static auto default_status_callback(void* opaque,
-                                      const char* status) -> gpgme_error_t;
+  static auto default_status_callback(void* opaque, const char* status,
+                                      const char* args) -> gpgme_error_t;
 
   /**
    * @brief
@@ -187,8 +183,9 @@ class GPGFRONTEND_CORE_EXPORT GpgAssuanHelper
    * @param inquery
    * @return gpgme_error_t
    */
-  static auto default_inquery_callback(void* opaque,
-                                       const char* inquery) -> gpgme_error_t;
+  static auto default_inquery_callback(void* opaque, const char* name,
+                                       const char* args, gpgme_data_t* r_data)
+      -> gpgme_error_t;
 };
 
 };  // namespace GpgFrontend

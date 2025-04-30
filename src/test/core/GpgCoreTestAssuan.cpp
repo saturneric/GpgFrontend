@@ -47,7 +47,7 @@ TEST_F(GpgCoreTest, CoreAssuanConnectTestA) {
   GpgAssuanHelper::InqueryCallback i_cb =
       [](const QSharedPointer<GpgAssuanHelper::AssuanCallbackContext>& ctx)
       -> gpg_error_t {
-    LOG_D() << "inquery callback of command GETINFO pid: " << ctx->inquery;
+    LOG_D() << "inquery callback of command GETINFO pid: " << ctx->inquery_name;
     return 0;
   };
 

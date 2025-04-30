@@ -41,7 +41,7 @@ GpgAssuanHelper::GpgAssuanHelper(int channel)
 GpgAssuanHelper::~GpgAssuanHelper() = default;
 
 auto GpgAssuanHelper::ConnectToSocket(GpgComponentType type) -> GpgError {
-  if (assuan_ctx_.contains(type)) return GPG_ERR_NO_ERROR;
+  if (ctx_map_.contains(type)) return GPG_ERR_NO_ERROR;
 
   auto socket_path = ctx_.ComponentDirectory(type);
   if (socket_path.isEmpty()) {
@@ -65,35 +65,44 @@ auto GpgAssuanHelper::ConnectToSocket(GpgComponentType type) -> GpgError {
     }
   }
 
-  assuan_context_t a_ctx;
-  auto err = assuan_new(&a_ctx);
+  gpgme_ctx_t ctx;
+  auto err = gpgme_new(&ctx);
   if (err != GPG_ERR_NO_ERROR) {
     LOG_E() << "create assuan context failed, err:" << CheckGpgError(err);
     return err;
   }
 
-  auto pa_ctx = QSharedPointer<struct assuan_context_s>(
-      a_ctx, [](assuan_context_t p) { assuan_release(p); });
+  auto p_ctx = QSharedPointer<struct gpgme_context>(
+      ctx, [](gpgme_ctx_t p) { gpgme_release(p); });
 
-  err = assuan_socket_connect(pa_ctx.get(), info.absoluteFilePath().toUtf8(),
-                              ASSUAN_INVALID_PID, 0);
+  err = gpgme_ctx_set_engine_info(p_ctx.get(), GPGME_PROTOCOL_ASSUAN,
+                                  info.absoluteFilePath().toUtf8(), "");
   if (err != GPG_ERR_NO_ERROR) {
-    LOG_W() << "failed to connect to socket:" << info.absoluteFilePath()
-            << "err:" << CheckGpgError(err);
+    LOG_W() << "failed to set gpgme assuan engine info:"
+            << info.absoluteFilePath() << "err:" << CheckGpgError(err);
+    return err;
+  }
+
+  err = gpgme_set_protocol(p_ctx.get(), GPGME_PROTOCOL_ASSUAN);
+  if (err != GPG_ERR_NO_ERROR) {
+    LOG_E() << "set gpgme protocol failed, err:" << CheckGpgError(err);
     return err;
   }
 
   LOG_D() << "connected to socket by assuan protocol: "
           << info.absoluteFilePath() << "channel:" << GetChannel();
 
-  err = assuan_transact(pa_ctx.get(), "GETINFO pid", simple_data_callback,
-                        nullptr, nullptr, nullptr, nullptr, nullptr);
+  gpgme_error_t op_err;
+  err = gpgme_op_assuan_transact_ext(p_ctx.get(), "GETINFO pid",
+                                     simple_data_callback, nullptr, nullptr,
+                                     nullptr, nullptr, nullptr, &op_err);
   if (err != GPG_ERR_NO_ERROR) {
-    LOG_W() << "failed to test assuan connection:" << CheckGpgError(err);
+    LOG_W() << "failed to test assuan connection, err:" << CheckGpgError(err)
+            << "op_err: " << CheckGpgError(op_err);
     return err;
   }
 
-  assuan_ctx_[type] = pa_ctx;
+  ctx_map_[type] = p_ctx;
   return err;
 }
 
@@ -101,7 +110,7 @@ auto GpgAssuanHelper::SendCommand(GpgComponentType type, const QString& command,
                                   DataCallback data_cb,
                                   InqueryCallback inquery_cb,
                                   StatusCallback status_cb) -> GpgError {
-  if (!assuan_ctx_.contains(type)) {
+  if (!ctx_map_.contains(type)) {
     LOG_W() << "haven't connect to: " << component_type_to_q_string(type)
             << ", trying to make a connection";
 
@@ -117,19 +126,22 @@ auto GpgAssuanHelper::SendCommand(GpgComponentType type, const QString& command,
 
   LOG_D() << "sending assuan command: " << command;
 
-  auto err =
-      assuan_transact(assuan_ctx_[type].get(), command.toUtf8(),
-                      default_data_callback, &context, default_inquery_callback,
-                      &context, default_status_callback, &context);
+  GpgError op_err;
+  auto err = gpgme_op_assuan_transact_ext(
+      ctx_map_[type].get(), command.toUtf8(), default_data_callback, &context,
+      default_inquery_callback, &context, default_status_callback, &context,
+      &op_err);
 
-  if (err != GPG_ERR_NO_ERROR) {
-    LOG_W() << "failed to send assuan command:" << CheckGpgError(err);
+  if (err != GPG_ERR_NO_ERROR || op_err != GPG_ERR_NO_ERROR) {
+    LOG_W() << "failed to send assuan command, err:" << CheckGpgError(err)
+            << "op err: " << CheckGpgError(op_err);
 
     // broken pipe error, try reconnect next time
-    if (CheckGpgError(err) == 32877) {
-      assuan_ctx_.remove(type);
+    if (CheckGpgError(op_err) == 32877) {
+      ctx_map_.remove(type);
       return SendCommand(type, command, data_cb, inquery_cb, status_cb);
     }
+
     return err;
   }
 
@@ -151,7 +163,7 @@ auto GpgAssuanHelper::SendStatusCommand(GpgComponentType type,
       [=](const QSharedPointer<GpgAssuanHelper::AssuanCallbackContext>& ctx)
       -> gpg_error_t {
     LOG_D() << "inquery callback of command: " << command << ": "
-            << ctx->inquery;
+            << ctx->inquery_name << "args: " << ctx->inquery_args;
     return 0;
   };
 
@@ -159,9 +171,9 @@ auto GpgAssuanHelper::SendStatusCommand(GpgComponentType type,
   GpgAssuanHelper::StatusCallback s_cb =
       [&](const QSharedPointer<GpgAssuanHelper::AssuanCallbackContext>& ctx)
       -> gpg_error_t {
-    LOG_D() << "status callback of command: " << command << ":  "
-            << ctx->status;
-    lines.append(ctx->status);
+    LOG_D() << "status callback of command: " << command << ":  " << ctx->status
+            << "args: " << ctx->status_args;
+    lines.append(QStringList{ctx->status, ctx->status_args}.join(' '));
     return 0;
   };
 
@@ -185,8 +197,7 @@ auto GpgAssuanHelper::SendDataCommand(GpgComponentType type,
       [=](const QSharedPointer<GpgAssuanHelper::AssuanCallbackContext>& ctx)
       -> gpg_error_t {
     LOG_D() << "inquery callback of command: " << command << ": "
-            << ctx->inquery;
-
+            << ctx->inquery_name << "args: " << ctx->inquery_args;
     return 0;
   };
 
@@ -195,7 +206,6 @@ auto GpgAssuanHelper::SendDataCommand(GpgComponentType type,
       -> gpg_error_t {
     LOG_D() << "status callback of command: " << command << ":  "
             << ctx->status;
-
     return 0;
   };
 
@@ -213,18 +223,24 @@ auto GpgAssuanHelper::default_data_callback(void* opaque, const void* buffer,
   return GPG_ERR_NO_ERROR;
 }
 
-auto GpgAssuanHelper::default_status_callback(void* opaque, const char* status)
+auto GpgAssuanHelper::default_status_callback(void* opaque, const char* status,
+                                              const char* args)
     -> gpgme_error_t {
   auto ctx = *static_cast<QSharedPointer<AssuanCallbackContext>*>(opaque);
   ctx->status = QString::fromUtf8(status);
+  ctx->status_args = QString::fromUtf8(args);
   if (ctx->status_cb) ctx->status_cb(ctx);
   return GPG_ERR_NO_ERROR;
 }
 
-auto GpgAssuanHelper::default_inquery_callback(
-    void* opaque, const char* inquery) -> gpgme_error_t {
+// Note: Returning data is currently not implemented in GPGME.
+auto GpgAssuanHelper::default_inquery_callback(void* opaque, const char* name,
+                                               const char* args,
+                                               gpgme_data_t* /*r_data*/)
+    -> gpgme_error_t {
   auto ctx = *static_cast<QSharedPointer<AssuanCallbackContext>*>(opaque);
-  ctx->inquery = QString::fromUtf8(inquery);
+  ctx->inquery_name = QString::fromUtf8(name);
+  ctx->inquery_args = QString::fromUtf8(args);
   if (ctx->status_cb) ctx->inquery_cb(ctx);
   return GPG_ERR_NO_ERROR;
 }
@@ -271,10 +287,5 @@ auto GpgAssuanHelper::simple_data_callback(void* opaque, const void* buffer,
   return 0;
 }
 
-auto GpgAssuanHelper::AssuanCallbackContext::SendData(const QByteArray& b) const
-    -> gpg_error_t {
-  return assuan_send_data(ctx, b.constData(), b.size());
-}
-
-void GpgAssuanHelper::ResetAllConnections() { assuan_ctx_.clear(); }
+void GpgAssuanHelper::ResetAllConnections() { ctx_map_.clear(); }
 }  // namespace GpgFrontend
