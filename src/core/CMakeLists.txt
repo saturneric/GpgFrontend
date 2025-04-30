@@ -55,7 +55,7 @@ target_sources(gpgfrontend_core PRIVATE
   ${CMAKE_SOURCE_DIR}/third_party/qt-aes/qaesencryption.cpp)
 
 # link gnupg libraries
-target_link_libraries(gpgfrontend_core PUBLIC gpgme assuan gpg-error)
+target_link_libraries(gpgfrontend_core PUBLIC gpgme ${LIBASSUAN_LIBRARIES} gpg-error)
 
 # link openssl
 target_link_libraries(gpgfrontend_core PUBLIC OpenSSL::SSL OpenSSL::Crypto)

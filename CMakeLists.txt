@@ -413,6 +413,18 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC_OPTIONS "--compress;9")
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_AUTOUIC_SEARCH_PATHS} ${CMAKE_SOURCE_DIR}/ui)
 
+# Find and configure libassuan using pkg-config
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBASSUAN libassuan)
+
+if(NOT LIBASSUAN_FOUND)
+  message(FATAL_ERROR "libassuan not found. Please install libassuan-dev or libassuan-devel package for your system.")
+endif()
+
+# Add libassuan include and library paths globally since it's a core dependency
+include_directories(${LIBASSUAN_INCLUDE_DIRS})
+link_directories(${LIBASSUAN_LIBRARY_DIRS})
+
 if(STABLE_BUILD_APPLICATION)
   message("[*] Build Stable Application")
   set(BUILD_CORE 1)
