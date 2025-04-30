@@ -35,8 +35,9 @@ namespace GpgFrontend::UI {
 GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
     : QApplication(argc, argv) {
 #if !(defined(__APPLE__) && defined(__MACH__))
-  GpgFrontend::UI::GpgFrontendApplication::setWindowIcon(
-      QIcon(":/icons/gpgfrontend.png"));
+  // Try system theme icon first, fall back to resource
+  QIcon appIcon = QIcon::fromTheme("gpgfrontend", QIcon(":/icons/gpgfrontend.png"));
+  GpgFrontend::UI::GpgFrontendApplication::setWindowIcon(appIcon);
 #endif
 
   QString application_display_name = GetProjectName();

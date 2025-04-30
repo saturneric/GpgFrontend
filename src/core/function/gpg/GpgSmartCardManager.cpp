@@ -252,10 +252,11 @@ auto GpgSmartCardManager::ModifyPin(const QString& pin_ref)
   return {err, status.join(' ')};
 }
 
-auto GpgSmartCardManager::GenerateKey(
-    const QString& serial_number, const QString& name, const QString& email,
-    const QString& comment, const QDateTime& expire,
-    bool non_expire) -> std::tuple<GpgError, QString> {
+auto GpgSmartCardManager::GenerateKey(const QString& serial_number,
+                                      const QString& name, const QString& email,
+                                      const QString& comment,
+                                      const QDateTime& expire, bool non_expire)
+    -> std::tuple<GpgError, QString> {
   if (name.isEmpty() || email.isEmpty()) {
     return {GPG_ERR_INV_ARG, "name or email is empty"};
   }
