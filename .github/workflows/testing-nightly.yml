@@ -365,7 +365,7 @@ jobs:
         run: echo "title=Nightly Build $(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
       - name: Delete Old Nightly Release
-        run: gh release delete --cleanup-tag --yes nightly
+        run: gh release delete --repo saturneric/GpgFrontend --cleanup-tag --yes nightly
         env:
           GH_TOKEN: ${{ secrets.USER_GITHUB_TOKEN }}
 
