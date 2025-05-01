@@ -237,7 +237,6 @@ jobs:
         if: runner.os == 'macOS'
 
       - name: Build GpgFrontend (Linux)
-        # Build your GpgFrontend with the given configuration
         run: |
           cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_APP_IMAGE=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
@@ -307,6 +306,7 @@ jobs:
           cp TRANSLATORS build/artifacts/
           cp COPYING build/artifacts/
           cp gpgfrontend.ico build/artifacts/bin/
+          rm -rf build/artifacts/bin/modules/*.a
           touch build/artifacts/bin/PORTABLE.txt
           cd build
           windeployqt-qt6 --no-translations --force ./artifacts/bin/libgf_core.dll
@@ -359,16 +359,16 @@ jobs:
         run: ls -rl artifacts/
 
       - name: Update Nightly Release
-        uses: andelf/nightly-release@main
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.USER_GITHUB_TOKEN }}
         with:
           tag_name: nightly
-          name: "Nightly Release $$"
+          name: "Nightly Build"
           draft: false
           prerelease: true
           body: |
-            ### Nightly Release of GpgFrontend
+            ### Nightly Build of GpgFrontend
 
             This is an **unstable nightly build** of GpgFrontend. 
             It may contain new features or bug fixes that are under testing. 
