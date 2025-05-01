@@ -116,4 +116,12 @@ auto GPGFRONTEND_CORE_EXPORT GetProjectGpgMEVersion() -> QString;
  */
 auto GPGFRONTEND_CORE_EXPORT GetHttpRequestUserAgent() -> QString;
 
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+auto GPGFRONTEND_CORE_EXPORT IsCheckReleaseCommitHash() -> bool;
+
 }  // namespace GpgFrontend

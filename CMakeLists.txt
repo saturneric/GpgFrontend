@@ -69,6 +69,9 @@ option(GPGFRONTEND_XCODE_APPID "GpgFrontend Apple AppID" "NONE")
 option(GPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID "GpgFrontend ProvisioningProfile UUID" "NONE")
 option(GPGFRONTEND_XCODE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
 
+# check options
+option(GPGFRONTEND_CHECK_RELEASE_COMMIT_HASH "Enable checking on commit hash from the GitHub release" OFF)
+
 if(GPGFRONTEND_BUILD_APP_IMAGE)
   set(BUILD_APP_IMAGE 1)
 endif()
@@ -90,6 +93,12 @@ endif()
 
 if(GPGFRONTEND_BUILD_MODULES)
   set(BUILD_MODULES 1)
+endif()
+
+if(GPGFRONTEND_CHECK_RELEASE_COMMIT_HASH)
+  set(CHECK_RELEASE_COMMIT_HASH 1)
+else()
+  set(CHECK_RELEASE_COMMIT_HASH 0)
 endif()
 
 # C++

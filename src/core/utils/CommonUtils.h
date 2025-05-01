@@ -105,7 +105,7 @@ auto GPGFRONTEND_CORE_EXPORT IsEmailAddress(const QString &) -> bool;
  * @param b
  * @return auto
  */
-auto GPGFRONTEND_CORE_EXPORT
-GFSoftwareVersionGreaterThan(const QString &a, const QString &b) -> bool;
-
+auto GPGFRONTEND_CORE_EXPORT GFSoftwareVersionGreaterThan(const QString &a,
+                                                          const QString &b)
+    -> bool;
 }  // namespace GpgFrontend
