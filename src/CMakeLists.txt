@@ -77,15 +77,6 @@ else()
   set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 endif()
 
-# rpath
-if(XCODE_BUILD)
-  set(CMAKE_MACOSX_RPATH TRUE)
-  set(CMAKE_INSTALL_RPATH "@executable_path/../Frameworks")
-else()
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-endif()
-
 if(MINGW)
   add_executable(${APP_NAME} WIN32 ${APP_SOURCE} ${RESOURCE_FILES})
 elseif(XCODE_BUILD)

@@ -395,6 +395,16 @@ else()
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts)
 endif()
 
+# rpath
+if(XCODE_BUILD)
+  set(CMAKE_MACOSX_RPATH TRUE)
+  set(CMAKE_INSTALL_RPATH "@executable_path/../Frameworks")
+else()
+  set(CMAKE_SKIP_INSTALL_RPATH FALSE)
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+endif()
+
 if(BUILD_MODULES)
   include(${CMAKE_SOURCE_DIR}/cmake/ModuleRegistry.cmake)
   add_subdirectory(modules)
