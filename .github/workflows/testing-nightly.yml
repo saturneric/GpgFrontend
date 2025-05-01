@@ -358,13 +358,17 @@ jobs:
       - name: List files
         run: ls -rl artifacts/
 
+      - name: Generate Release Title with Date
+        id: release_title
+        run: echo "title=Nightly Build $(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
       - name: Update Nightly Release
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.USER_GITHUB_TOKEN }}
         with:
           tag_name: nightly
-          name: "Nightly Build"
+          name: ${{ steps.release_title.outputs.title }}
           draft: false
           prerelease: true
           body: |
