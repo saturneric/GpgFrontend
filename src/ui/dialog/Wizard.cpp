@@ -59,84 +59,87 @@ void Wizard::slot_wizard_accepted() {
 }
 
 IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
-  setTitle(tr("Getting Started..."));
-  setSubTitle(tr("... with GpgFrontend"));
+  setTitle(tr("Welcome to GpgFrontend"));
+  setSubTitle(tr("Your OpenPGP encryption companion."));
 
-  auto* top_label = new QLabel(
-      tr("Welcome to GpgFrontend for decrypting and signing text or files!") +
-      " <br><br><a href='https://gpgfrontend.bktus.com'>GpgFrontend</a> " +
-      tr("is a Powerful, Easy-to-Use, Compact, Cross-Platform, and "
-         "Installation-Free OpenPGP Crypto Tool. ") +
-      tr("To get started, be sure to check out the") +
+  // Intro text
+  auto* intro_label = new QLabel(
+      tr("<b>GpgFrontend</b> is a free, user-friendly, and cross-platform tool "
+         "for "
+         "OpenPGP encryption, decryption, and signing of text and files.") +
+      "<br><br>" + tr("To get started, take a quick look at the") +
       " <a href='https://gpgfrontend.bktus.com/overview/glance'>" +
-      tr("Overview") + "</a> (" +
-      tr("by clicking the link, the page will open in your web browser") +
-      "). <br>");
-  top_label->setTextFormat(Qt::RichText);
-  top_label->setTextInteractionFlags(Qt::TextBrowserInteraction);
-  top_label->setOpenExternalLinks(true);
-  top_label->setWordWrap(true);
+      tr("Overview Page") + "</a>." + " " +
+      tr("It will open in your default browser."));
+  intro_label->setTextFormat(Qt::RichText);
+  intro_label->setTextInteractionFlags(Qt::TextBrowserInteraction);
+  intro_label->setOpenExternalLinks(true);
+  intro_label->setWordWrap(true);
 
-  // QComboBox for language selection
+  // Language info
   auto* lang_label =
-      new QLabel(tr("If it supports the language currently being used in your "
-                    "system, GpgFrontend will automatically set it."));
+      new QLabel(tr("GpgFrontend will automatically use the language of your "
+                    "system if supported. "
+                    "You can change the language later in settings."));
   lang_label->setWordWrap(true);
 
-  // set layout and add widgets
+  // Layout
   auto* layout = new QVBoxLayout;
-  layout->addWidget(top_label);
-  layout->addStretch();
+  layout->addWidget(intro_label);
+  layout->addSpacing(20);
   layout->addWidget(lang_label);
-
+  layout->addStretch();
   setLayout(layout);
 }
 
 auto IntroPage::nextId() const -> int { return Wizard::kPAGE_CHOOSE; }
 
 ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
-  setTitle(tr("Choose your action..."));
-  setSubTitle(tr("...by clicking on the appropriate link."));
+  setTitle(tr("Welcome to GpgFrontend"));
+  setSubTitle(tr("These quick guides will help you get started."));
 
-  auto* keygen_label = new QLabel(
-      tr("If you have never used GpgFrontend before and also don't own a gpg "
-         "key yet you may possibly want to read how to") +
-      " <a href=\"https://gpgfrontend.bktus.com/guides/generate-key\">" +
-      tr("Generate Key") + "</a><hr>");
-  keygen_label->setTextFormat(Qt::RichText);
-  keygen_label->setTextInteractionFlags(Qt::TextBrowserInteraction);
-  keygen_label->setOpenExternalLinks(true);
-  keygen_label->setWordWrap(true);
+  auto* layout = new QVBoxLayout;
 
-  auto* encr_decy_text_label = new QLabel(
-      tr("If you want to learn how to encrypt, decrypt, sign and verify text, "
-         "you can read ") +
-      "<a href=\"https://gpgfrontend.bktus.com/guides/encrypt-decrypt-text\">" +
-      tr("Encrypt & Decrypt Text") + "</a> " + tr("or") +
-      " <a href=\"https://gpgfrontend.bktus.com/guides/sign-verify-text\">" +
-      tr("Sign & Verify Text") + "</a><hr>");
+  // Section 1: Fundamental Concepts
+  auto* concepts_title = new QLabel(tr("<b>New to encryption?</b>"));
+  auto* concepts_desc = new QLabel(
+      tr("Understand the basics of OpenPGP and how GpgFrontend works."));
+  auto* concepts_link = new QLabel(
+      "<a "
+      "href=\"https://gpgfrontend.bktus.com/guides/fundamental-concepts/\">" +
+      tr("Fundamental Concepts") + "</a>");
 
-  encr_decy_text_label->setTextFormat(Qt::RichText);
-  encr_decy_text_label->setTextInteractionFlags(Qt::TextBrowserInteraction);
-  encr_decy_text_label->setOpenExternalLinks(true);
-  encr_decy_text_label->setWordWrap(true);
+  // Section 2: Text operations
+  auto* textops_title = new QLabel(tr("<b>Working with text?</b>"));
+  auto* textops_desc = new QLabel(
+      tr("Learn how to encrypt, decrypt, sign, and verify text messages."));
+  auto* textops_link = new QLabel(
+      "<a href=\"https://gpgfrontend.bktus.com/guides/text-opetations/\">" +
+      tr("Text Operations Guide") + "</a>");
 
-  auto* sign_verify_text_label = new QLabel(
-      tr("If you want to operate file, you can read ") +
-      "<a href=\"https://gpgfrontend.bktus.com/guides/encrypt-decrypt-file\">" +
-      tr("Encrypt & Sign File") + "</a> " + tr("or") +
-      " <a href=\"https://gpgfrontend.bktus.com/guides/sign-verify-file\">" +
-      tr("Sign & Verify File") + "</a><hr>");
-  sign_verify_text_label->setTextFormat(Qt::RichText);
-  sign_verify_text_label->setTextInteractionFlags(Qt::TextBrowserInteraction);
-  sign_verify_text_label->setOpenExternalLinks(true);
-  sign_verify_text_label->setWordWrap(true);
+  // Section 3: File operations
+  auto* fileops_title = new QLabel(tr("<b>Working with files?</b>"));
+  auto* fileops_desc =
+      new QLabel(tr("Learn how to encrypt, sign, and verify files securely."));
+  auto* fileops_link = new QLabel(
+      "<a href=\"https://gpgfrontend.bktus.com/guides/file-operations/\">" +
+      tr("File Operations Guide") + "</a>");
 
-  auto* layout = new QVBoxLayout();
-  layout->addWidget(keygen_label);
-  layout->addWidget(encr_decy_text_label);
-  layout->addWidget(sign_verify_text_label);
+  // All labels: uniform setup
+  const QList<QLabel*> labels = {concepts_title, concepts_desc, concepts_link,
+                                 textops_title,  textops_desc,  textops_link,
+                                 fileops_title,  fileops_desc,  fileops_link};
+  for (auto* l : labels) {
+    l->setTextFormat(Qt::RichText);
+    l->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    l->setOpenExternalLinks(true);
+    l->setWordWrap(true);
+    layout->addWidget(l);
+  }
+
+  layout->addStretch();  // push content upward
   setLayout(layout);
+
   next_page_ = Wizard::kPAGE_CONCLUSION;
 }
 
@@ -152,42 +155,46 @@ void ChoosePage::slot_jump_page(const QString& page) {
 }
 
 ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
-  setTitle(tr("Ready."));
-  setSubTitle(tr("Have fun with GpgFrontend!"));
+  setTitle(tr("You're all set!"));
+  setSubTitle(tr("GpgFrontend is ready to use."));
 
   auto* bottom_label = new QLabel(
-      tr("You are ready to use GpgFrontend now.<br><br>") +
-      "<a href=\"https://gpgfrontend.bktus.com/guides/fundamental-concepts\">" +
-      tr("The Online Document") + "</a>" +
-      tr(" will get you started with GpgFrontend. Anytime you encounter "
-         "problems, please try to find help from the documentation") +
-      "<br>");
-
+      tr("GpgFrontend is now fully set up and ready to go.") + "<br><br>" +
+      tr("If you encounter any issues or have questions, feel free to ") +
+      "<a href=\"https://github.com/saturneric/GpgFrontend/issues\">" +
+      tr("submit an issue on GitHub") + "</a> " + tr("or ") +
+      "<a href=\"https://gpgfrontend.bktus.com/overview/contact/\">" +
+      tr("contact the developer") + "</a>." + "<br>" +
+      tr("Any feedback is welcome and valuable!"));
   bottom_label->setTextFormat(Qt::RichText);
   bottom_label->setTextInteractionFlags(Qt::TextBrowserInteraction);
   bottom_label->setOpenExternalLinks(true);
   bottom_label->setWordWrap(true);
 
-  open_help_check_box_ = new QCheckBox(tr("Open offline help."));
+  // Option checkboxes
+  open_help_check_box_ = new QCheckBox(tr("Open offline help now"));
   open_help_check_box_->setChecked(true);
 
   dont_show_wizard_checkbox_ =
-      new QCheckBox(tr("Don't show the wizard again."));
+      new QCheckBox(tr("Don't show this setup wizard again"));
   dont_show_wizard_checkbox_->setChecked(true);
 
-  check_updates_checkbox_ =
-      new QCheckBox(tr("Check for updates at each startup."));
+  check_updates_checkbox_ = new QCheckBox(tr("Check for updates on startup"));
   check_updates_checkbox_->setChecked(true);
 
+  // Register fields
   registerField("showWizard", dont_show_wizard_checkbox_);
   registerField("checkUpdate", check_updates_checkbox_);
 
+  // Layout
   auto* layout = new QVBoxLayout;
   layout->addWidget(bottom_label);
-  layout->addWidget(dont_show_wizard_checkbox_);
+  layout->addSpacing(15);
+  // layout->addWidget(open_help_check_box_);
   layout->addWidget(check_updates_checkbox_);
+  layout->addWidget(dont_show_wizard_checkbox_);
+  layout->addStretch();
   setLayout(layout);
-  setVisible(true);
 }
 
 auto ConclusionPage::nextId() const -> int { return -1; }
