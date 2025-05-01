@@ -187,45 +187,9 @@ jobs:
           sudo ninja install
         if: runner.os == 'Linux'
 
-      - name: Build & Install Full SDK
-        run: |
-          cmake -B ${{github.workspace}}/build-full-sdk -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_FULL_SDK=ON
-          cmake --build ${{github.workspace}}/build-full-sdk --config {{$env.BUILD_TYPE}} -- -v
-          sudo cmake --install ${{github.workspace}}/build-full-sdk --config {{$env.BUILD_TYPE}}
-        if: runner.os == 'Linux' || runner.os == 'macOS'
-
-      - name: Build & Install Full SDK (Windows)
-        shell: msys2 {0}
-        run: |
-          cd $(cygpath -u "${{github.workspace}}")
-          mkdir build-full-sdk && cd build-full-sdk
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_FULL_SDK=ON -DCMAKE_INSTALL_PREFIX=$MSYSTEM_PREFIX ..
-          cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
-          cmake --install . --config {{$env.BUILD_TYPE}}
-        if: runner.os == 'Windows'
-
-      - name: Build Integrated Modules
-        run: |
-          cmake -S ${{github.workspace}}/modules -B ${{github.workspace}}/modules/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/modules/build/artifacts
-          cmake --build ${{github.workspace}}/modules/build --config {{$env.BUILD_TYPE}} -- -v
-          cmake --install ${{github.workspace}}/modules/build --config {{$env.BUILD_TYPE}}
-        if: runner.os == 'Linux' || runner.os == 'macOS'
-
-      - name: Build Integrated Modules (Windows)
-        shell: msys2 {0}
-        run: |
-          cd $(cygpath -u "${{github.workspace}}")
-          cd modules
-          mkdir build && cd build
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON -DCMAKE_INSTALL_PREFIX=./artifacts ..
-          cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
-          cmake --install . --config {{$env.BUILD_TYPE}}
-        if: runner.os == 'Windows'
-
-      - name: Build & Export GpgFrontend (macOS)
+      - name: Build GpgFrontend (macOS)
         run: |
           cmake -B ${{github.workspace}}/build -G Xcode \
-           -DGPGFRONTEND_CONFIGURE_FOR_XCODE_BUILD=On \
            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
            -DGPGFRONTEND_XCODE_CODE_SIGN_IDENTITY="${{secrets.GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY}}" \
            -DGPGFRONTEND_XCODE_TEAM_ID="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
@@ -241,10 +205,8 @@ jobs:
             -exportPath ${{github.workspace}}/build/package/
         if: runner.os == 'macOS'
 
-      - name: Copy Modules into Bundle & Deploy Qt & Code Sign (macOS)
+      - name: Deploy Qt & Code Sign (macOS)
         run: |
-          codesign -s "${{secrets.GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY}}" -f --deep --options=runtime --timestamp ${{github.workspace}}/modules/build/artifacts/modules/*
-          cmake -E copy_directory ${{github.workspace}}/modules/build/artifacts/modules ${{github.workspace}}/build/package/GpgFrontend.app/Contents/Modules
           macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app -verbose=2 -appstore-compliant -always-overwrite
           codesign -s "${{secrets.GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY}}" -f --deep --options=runtime --timestamp ${{github.workspace}}/build/package/GpgFrontend.app
         if: runner.os == 'macOS'
@@ -277,13 +239,12 @@ jobs:
       - name: Build GpgFrontend (Linux)
         # Build your GpgFrontend with the given configuration
         run: |
-          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_ONLY_APPLICATION=ON
+          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_APP_IMAGE=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
         if: runner.os == 'Linux'
 
-      - name: Copy Modules & Package App Image (Linux)
+      - name: Package App Image (Linux)
         run: |
-          cmake -E copy_directory ${{github.workspace}}/modules/build/artifacts/modules ${{github.workspace}}/build/artifacts/AppDir/usr/modules
           mkdir ${{github.workspace}}/build/upload-artifact
           cd ${{github.workspace}}/build/upload-artifact
           wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
@@ -294,12 +255,12 @@ jobs:
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: runner.os == 'Linux'
 
-      - name: Configure CMake & Build Application (Windows)
+      - name: Build GpgFrontend (Windows)
         shell: msys2 {0}
         run: |
           cd $(cygpath -u "${{github.workspace}}")
           mkdir build && cd build
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_ONLY_APPLICATION=ON ..
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ..
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
         if: runner.os == 'Windows'
 
@@ -350,8 +311,9 @@ jobs:
           mkdir -p build/artifacts/modules
           cp -r modules/build/artifacts/bin/* build/artifacts/modules
           cd build
-          windeployqt-qt6 --no-translations --force ./artifacts/bin/libgpgfrontend_core.dll
-          windeployqt-qt6 --no-translations --force ./artifacts/bin/libgpgfrontend_ui.dll
+          windeployqt-qt6 --no-translations --force ./artifacts/bin/libgf_core.dll
+          windeployqt-qt6 --no-translations --force ./artifacts/bin/libgf_ui.dll
+          windeployqt-qt6 --no-translations --force ./artifacts/bin/libgf_test.dll
           windeployqt-qt6 --no-translations --force ./artifacts/bin/GpgFrontend.exe
           mkdir upload-artifact
           cd artifacts

@@ -228,7 +228,7 @@ message(STATUS "GpgFrontend Git Repo Version ${GIT_VERSION}")
 include(GenerateExportHeader)
 
 # Windows
-IF(MINGW)
+if(MINGW)
   message(STATUS "GpgFrontend Configuration For OS Platform Microsoft Windows")
   message(STATUS "Build Environment MINGW")
 
@@ -405,7 +405,8 @@ else()
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif()
 
-if(BUILD_MODULES)
+# modules are only for qt6
+if(BUILD_MODULES AND NOT GPGFRONTEND_QT5_BUILD)
   include(${CMAKE_SOURCE_DIR}/cmake/ModuleRegistry.cmake)
   add_subdirectory(modules)
 endif()
