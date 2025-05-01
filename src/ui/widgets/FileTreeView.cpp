@@ -35,7 +35,7 @@
 
 namespace GpgFrontend::UI {
 
-FileTreeView::FileTreeView(QWidget* parent, const QString& target_path)
+FileTreeView::FileTreeView(QWidget* parent)
     : QTreeView(parent), dir_model_(new QFileSystemModel(this)) {
   dir_model_->setFilter(QDir::AllDirs | QDir::Files | QDir::NoDotAndDotDot);
   dir_model_->setRootPath(QDir::homePath());
@@ -58,43 +58,6 @@ FileTreeView::FileTreeView(QWidget* parent, const QString& target_path)
           &FileTreeView::slot_adjust_column_widths);
   connect(dir_model_, &QFileSystemModel::dataChanged, this,
           &FileTreeView::slot_adjust_column_widths);
-
-  LOG_D() << "try to open target path:" << target_path;
-
-  QFileInfo info(target_path);
-  QString effective_path;
-
-  if (info.exists()) {
-    effective_path =
-        info.isFile() ? info.absolutePath() : info.absoluteFilePath();
-  } else {
-    effective_path = QDir::currentPath();
-  }
-
-  LOG_D() << "effective path:" << effective_path;
-
-  dir_model_->setRootPath(effective_path);
-  current_path_ = dir_model_->rootPath();
-  QModelIndex root_index = dir_model_->index(current_path_);
-
-  if (root_index.isValid()) {
-    QPointer<FileTreeView> self(this);
-    this->setRootIndex(root_index);
-    QTimer::singleShot(200, [=]() {
-      if (self != nullptr && info.isFile()) {
-        self->setCurrentIndex(dir_model_->index(info.absoluteFilePath()));
-        self->expand(currentIndex().parent());
-        self->scrollTo(currentIndex(), QAbstractItemView::PositionAtCenter);
-        self->selectionModel()->select(
-            currentIndex(),
-            QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
-      }
-    });
-  } else {
-    LOG_W() << "invalid path, fallback to current dir.";
-    current_path_ = QDir::currentPath();
-    this->setRootIndex(dir_model_->index(current_path_));
-  }
 }
 
 void FileTreeView::selectionChanged(const QItemSelection& selected,
@@ -446,9 +409,8 @@ void FileTreeView::slot_calculate_hash() {
                 return;
               }
               auto result = ExtractParams<QString>(data_object, 0);
-              emit UISignalStation::GetInstance()
-                  -> SignalRefreshInfoBoard(result,
-                                            InfoBoardStatus::INFO_ERROR_OK);
+              emit UISignalStation::GetInstance() -> SignalRefreshInfoBoard(
+                  result, InfoBoardStatus::INFO_ERROR_OK);
             },
             "calculate_file_hash");
       });
@@ -481,4 +443,42 @@ void FileTreeView::SlotSwitchBatchMode(bool batch) {
   selectionModel()->clearSelection();
 }
 
+void FileTreeView::SetPath(const QString& target_path) {
+  LOG_D() << "try to open target path:" << target_path;
+
+  QFileInfo info(target_path);
+  QString effective_path;
+
+  if (info.exists()) {
+    effective_path =
+        info.isFile() ? info.absolutePath() : info.absoluteFilePath();
+  } else {
+    effective_path = QDir::currentPath();
+  }
+
+  LOG_D() << "effective path:" << effective_path;
+
+  dir_model_->setRootPath(effective_path);
+  current_path_ = dir_model_->rootPath();
+  QModelIndex root_index = dir_model_->index(current_path_);
+
+  if (root_index.isValid()) {
+    QPointer<FileTreeView> self(this);
+    this->setRootIndex(root_index);
+    QTimer::singleShot(200, [=]() {
+      if (self != nullptr && info.isFile()) {
+        self->setCurrentIndex(dir_model_->index(info.absoluteFilePath()));
+        self->expand(currentIndex().parent());
+        self->scrollTo(currentIndex(), QAbstractItemView::PositionAtCenter);
+        self->selectionModel()->select(
+            currentIndex(),
+            QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+      }
+    });
+  } else {
+    LOG_W() << "invalid path, fallback to current dir.";
+    current_path_ = QDir::currentPath();
+    this->setRootIndex(dir_model_->index(current_path_));
+  }
+}
 }  // namespace GpgFrontend::UI

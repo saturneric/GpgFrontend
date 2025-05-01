@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>858</width>
-    <height>64</height>
+    <width>805</width>
+    <height>666</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -15,12 +15,6 @@
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>1041</width>
-    <height>619</height>
-   </size>
   </property>
   <property name="windowTitle">
    <string>Form</string>
@@ -190,7 +184,11 @@
         </layout>
        </item>
        <item>
-        <layout class="QVBoxLayout" name="trewViewLayout"/>
+        <layout class="QVBoxLayout" name="trewViewLayout">
+         <item>
+          <widget class="GpgFrontend::UI::FileTreeView" name="treeView"/>
+         </item>
+        </layout>
        </item>
       </layout>
      </item>
@@ -198,6 +196,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>GpgFrontend::UI::FileTreeView</class>
+   <extends>QTreeView</extends>
+   <header>ui/widgets/FileTreeView.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../gpgfrontend.qrc"/>
  </resources>

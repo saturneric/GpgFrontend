@@ -88,7 +88,7 @@ class GpgAgentProcess {
       args.append("--disable-scdaemon");
     }
 
-    LOG_E() << "gpg-agent start args: " << args << "channel:" << channel_;
+    LOG_D() << "gpg-agent start args: " << args << "channel:" << channel_;
 
     process_.setProgram(info.absoluteFilePath());
     process_.setArguments(args);
@@ -162,8 +162,8 @@ class GpgContext::Impl {
 
   [[nodiscard]] auto Good() const -> bool { return good_; }
 
-  auto SetPassphraseCb(const gpgme_ctx_t &ctx,
-                       gpgme_passphrase_cb_t cb) -> bool {
+  auto SetPassphraseCb(const gpgme_ctx_t &ctx, gpgme_passphrase_cb_t cb)
+      -> bool {
     if (gpgme_get_pinentry_mode(ctx) != GPGME_PINENTRY_MODE_LOOPBACK) {
       if (CheckGpgError(gpgme_set_pinentry_mode(
               ctx, GPGME_PINENTRY_MODE_LOOPBACK)) != GPG_ERR_NO_ERROR) {
@@ -258,8 +258,8 @@ class GpgContext::Impl {
     return res == pass_size + 1 ? 0 : GPG_ERR_CANCELED;
   }
 
-  static auto TestStatusCb(void *hook, const char *keyword,
-                           const char *args) -> gpgme_error_t {
+  static auto TestStatusCb(void *hook, const char *keyword, const char *args)
+      -> gpgme_error_t {
     FLOG_D("keyword %s", keyword);
     return GPG_ERR_NO_ERROR;
   }
@@ -544,7 +544,7 @@ class GpgContext::Impl {
 
     args.append({"--kill", "gpg-agent"});
 
-    LOG_E() << "gpgconf kill args: " << args
+    LOG_D() << "gpgconf kill args: " << args
             << "channel:" << parent_->GetChannel();
 
     QProcess process;

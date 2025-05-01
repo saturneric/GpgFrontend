@@ -37,21 +37,20 @@ namespace GpgFrontend::UI {
 
 FilePage::FilePage(QWidget* parent, const QString& target_path)
     : QWidget(parent),
-      ui_(GpgFrontend::SecureCreateSharedObject<Ui_FilePage>()),
-      file_tree_view_(new FileTreeView(this, target_path)) {
+      ui_(GpgFrontend::SecureCreateSharedObject<Ui_FilePage>()) {
   ui_->setupUi(this);
-  ui_->trewViewLayout->addWidget(file_tree_view_);
 
   ui_->batchModeButton->setToolTip(tr("Switch Batch Mode"));
 
-  connect(ui_->upPathButton, &QPushButton::clicked, file_tree_view_,
+  connect(ui_->upPathButton, &QPushButton::clicked, ui_->treeView,
           &FileTreeView::SlotUpLevel);
   connect(ui_->refreshButton, &QPushButton::clicked, this,
           &FilePage::SlotGoPath);
-  connect(this->ui_->newDirButton, &QPushButton::clicked, file_tree_view_,
+  connect(this->ui_->newDirButton, &QPushButton::clicked, ui_->treeView,
           &FileTreeView::SlotMkdir);
 
-  ui_->pathEdit->setText(file_tree_view_->GetCurrentPath());
+  ui_->treeView->SetPath(target_path);
+  ui_->pathEdit->setText(ui_->treeView->GetCurrentPath());
 
   path_edit_completer_ = new QCompleter(this);
   path_complete_model_ = new QStringListModel();
@@ -64,13 +63,13 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
   option_popup_menu_ = new QMenu(this);
   auto* show_hidden_act = new QAction(tr("Show Hidden File"), this);
   show_hidden_act->setCheckable(true);
-  connect(show_hidden_act, &QAction::triggered, file_tree_view_,
+  connect(show_hidden_act, &QAction::triggered, ui_->treeView,
           &FileTreeView::SlotShowHiddenFile);
   option_popup_menu_->addAction(show_hidden_act);
 
   auto* show_system_act = new QAction(tr("Show System File"), this);
   show_system_act->setCheckable(true);
-  connect(show_system_act, &QAction::triggered, file_tree_view_,
+  connect(show_system_act, &QAction::triggered, ui_->treeView,
           &FileTreeView::SlotShowSystemFile);
   option_popup_menu_->addAction(show_system_act);
 
@@ -105,30 +104,30 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
   connect(this, &FilePage::SignalRefreshInfoBoard,
           UISignalStation::GetInstance(),
           &UISignalStation::SignalRefreshInfoBoard);
-  connect(file_tree_view_, &FileTreeView::SignalPathChanged, this,
+  connect(ui_->treeView, &FileTreeView::SignalPathChanged, this,
           [this](const QString& path) { this->ui_->pathEdit->setText(path); });
-  connect(file_tree_view_, &FileTreeView::SignalPathChanged, this,
+  connect(ui_->treeView, &FileTreeView::SignalPathChanged, this,
           &FilePage::SignalPathChanged);
-  connect(file_tree_view_, &FileTreeView::SignalOpenFile,
+  connect(ui_->treeView, &FileTreeView::SignalOpenFile,
           UISignalStation::GetInstance(),
           &UISignalStation::SignalMainWindowOpenFile);
-  connect(file_tree_view_, &FileTreeView::SignalSelectedChanged, this,
+  connect(ui_->treeView, &FileTreeView::SignalSelectedChanged, this,
           &FilePage::update_main_basic_opera_menu);
   connect(this, &FilePage::SignalCurrentTabChanged, this,
           [this]() { update_main_basic_opera_menu(GetSelected()); });
   connect(this, &FilePage::SignalMainWindowUpdateBasicOperaMenu,
           UISignalStation::GetInstance(),
           &UISignalStation::SignalMainWindowUpdateBasicOperaMenu);
-  connect(ui_->batchModeButton, &QToolButton::toggled, file_tree_view_,
+  connect(ui_->batchModeButton, &QToolButton::toggled, ui_->treeView,
           &FileTreeView::SlotSwitchBatchMode);
 }
 
 auto FilePage::GetSelected() const -> QStringList {
-  return file_tree_view_->GetSelectedPaths();
+  return ui_->treeView->GetSelectedPaths();
 }
 
 void FilePage::SlotGoPath() {
-  file_tree_view_->SlotGoPath(ui_->pathEdit->text());
+  ui_->treeView->SlotGoPath(ui_->pathEdit->text());
 }
 
 void FilePage::keyPressEvent(QKeyEvent* event) {

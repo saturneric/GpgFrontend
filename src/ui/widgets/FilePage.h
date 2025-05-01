@@ -29,7 +29,6 @@
 #pragma once
 
 #include "ui/GpgFrontendUI.h"
-#include "ui/widgets/FileTreeView.h"
 #include "ui/widgets/InfoBoardWidget.h"
 
 class Ui_FilePage;
@@ -126,7 +125,6 @@ class FilePage : public QWidget {
 
   QMenu* popup_menu_{};         ///<
   QMenu* option_popup_menu_{};  ///<
-  FileTreeView* file_tree_view_;
   bool ascii_mode_;
 
  private slots:

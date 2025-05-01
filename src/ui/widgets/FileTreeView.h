@@ -41,7 +41,11 @@ class FileTreeView : public QTreeView {
    * @param parent
    * @param target_path
    */
-  explicit FileTreeView(QWidget* parent, const QString& target_path);
+  explicit FileTreeView(QWidget* parent);
+
+  /**
+   */
+  void SetPath(const QString& target_path);
 
   /**
    * @brief Get the Current Path object
