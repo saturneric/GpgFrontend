@@ -6,3 +6,4 @@ Icon=com.bktus.gpgfrontend
 Comment=Encrypt and sign data
 Terminal=false
 Categories=Utility;
+StartupWMClass=GpgFrontend

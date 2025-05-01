@@ -36,8 +36,9 @@ GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
     : QApplication(argc, argv) {
 #if !(defined(__APPLE__) && defined(__MACH__))
   // Try system theme icon first, fall back to resource
-  QIcon appIcon = QIcon::fromTheme("gpgfrontend", QIcon(":/icons/gpgfrontend.png"));
-  GpgFrontend::UI::GpgFrontendApplication::setWindowIcon(appIcon);
+  QIcon app_icon = QIcon::fromTheme("com.bktus.gpgfrontend",
+                                    QIcon(":/icons/gpgfrontend.png"));
+  GpgFrontend::UI::GpgFrontendApplication::setWindowIcon(app_icon);
 #endif
 
   QString application_display_name = GetProjectName();
