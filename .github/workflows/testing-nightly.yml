@@ -297,7 +297,7 @@ jobs:
           ls -l build/artifacts/
         if: runner.os == 'Windows'
 
-      - name: Copy Modules & Package (Windows)
+      - name: Package (Windows)
         shell: msys2 {0}
         run: |
           cd $(cygpath -u "${{github.workspace}}")
@@ -308,8 +308,6 @@ jobs:
           cp COPYING build/artifacts/
           cp gpgfrontend.ico build/artifacts/bin/
           touch build/artifacts/bin/PORTABLE.txt
-          mkdir -p build/artifacts/modules
-          cp -r modules/build/artifacts/bin/* build/artifacts/modules
           cd build
           windeployqt-qt6 --no-translations --force ./artifacts/bin/libgf_core.dll
           windeployqt-qt6 --no-translations --force ./artifacts/bin/libgf_ui.dll
