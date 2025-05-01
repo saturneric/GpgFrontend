@@ -27,16 +27,10 @@ name: Develop CI Qt6
 
 on:
   push:
-    branches: ["dev/**"]
+    branches: ["develop", "dev/**"]
     paths-ignore:
       - "resource/lfs/locale/**"
       - "**.md"
-  pull_request:
-    branches: ["dev/**"]
-    paths-ignore:
-      - "resource/lfs/locale/**"
-      - "**.md"
-
 env:
   BUILD_TYPE: Debug
 
@@ -79,18 +73,6 @@ jobs:
           ninja
           sudo ninja install
 
-      - name: Build & Install Full SDK
-        run: |
-          cmake -B ${{github.workspace}}/build-full-sdk -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_FULL_SDK=ON
-          cmake --build ${{github.workspace}}/build-full-sdk --config {{$env.BUILD_TYPE}} -- -v
-          sudo cmake --install ${{github.workspace}}/build-full-sdk --config {{$env.BUILD_TYPE}}
-
-      - name: Build Integrated Modules
-        run: |
-          cmake -S ${{github.workspace}}/modules -B ${{github.workspace}}/modules/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/modules/build/artifacts
-          cmake --build ${{github.workspace}}/modules/build --config {{$env.BUILD_TYPE}} -- -v
-          cmake --install ${{github.workspace}}/modules/build --config {{$env.BUILD_TYPE}}
-
       - name: Build GpgFrontend
         run: |
           cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_APP_IMAGE=On
@@ -101,17 +83,16 @@ jobs:
 
       - name: Copy Modules & Package App Image
         run: |
-          cmake -E copy_directory ${{github.workspace}}/modules/build/artifacts/modules ${{github.workspace}}/build/artifacts/AppDir/usr/modules
           mkdir ${{github.workspace}}/build/final-artifact
           cd ${{github.workspace}}/build/final-artifact
-          wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+          wget -c -nv https://ftp.bktus.com/linuxdeployqt/linuxdeployqt-01052025-x86_64.AppImage
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
           qtchooser -install qt6 $(which qmake6)
           export QT_SELECT=qt6
           mkdir -p ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6
           touch ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6/copyright
-          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines,platforms/libqoffscreen.so -appimage -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/modules/ -unsupported-allow-new-glibc
+          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines,platforms/libqoffscreen.so -appimage -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/lib/modules -unsupported-allow-new-glibc
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
 

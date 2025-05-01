@@ -27,12 +27,7 @@ name: Develop CI Qt5
 
 on:
   push:
-    branches: ["dev/**"]
-    paths-ignore:
-      - "resource/lfs/locale/**"
-      - "**.md"
-  pull_request:
-    branches: ["dev/**"]
+    branches: ["develop", "dev/**"]
     paths-ignore:
       - "resource/lfs/locale/**"
       - "**.md"
@@ -84,7 +79,7 @@ jobs:
         run: |
           mkdir ${{github.workspace}}/build/final-artifact
           cd ${{github.workspace}}/build/final-artifact
-          wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+          wget -c -nv https://ftp.bktus.com/linuxdeployqt/linuxdeployqt-01052025-x86_64.AppImage
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
           mkdir -p ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6
           touch ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6/copyright
