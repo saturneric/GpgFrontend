@@ -35,7 +35,7 @@
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT DataObjectOperator
+class GF_CORE_EXPORT DataObjectOperator
     : public SingletonFunctionObject<DataObjectOperator> {
  public:
   /**

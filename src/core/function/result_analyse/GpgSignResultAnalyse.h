@@ -37,7 +37,7 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgSignResultAnalyse : public GpgResultAnalyse {
+class GF_CORE_EXPORT GpgSignResultAnalyse : public GpgResultAnalyse {
   Q_OBJECT
  public:
   /**

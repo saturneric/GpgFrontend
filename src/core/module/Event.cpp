@@ -29,6 +29,7 @@
 #include "Event.h"
 
 #include "core/utils/CommonUtils.h"
+#include "sdk/GFSDKModuleModel.h"
 
 namespace GpgFrontend::Module {
 

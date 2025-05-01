@@ -28,11 +28,9 @@
 
 #pragma once
 
-#include "core/GpgFrontendCoreExport.h"
-
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT SecureMemoryAllocator {
+class GF_CORE_EXPORT SecureMemoryAllocator {
  public:
   static auto Allocate(std::size_t) -> void *;
 

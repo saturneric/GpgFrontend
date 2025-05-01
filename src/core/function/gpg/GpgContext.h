@@ -56,8 +56,7 @@ enum class GpgComponentType { kGPG_AGENT, kDIRMNGR, kKEYBOXD, kGPG_AGENT_SSH };
  * @brief
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgContext
-    : public SingletonFunctionObject<GpgContext> {
+class GF_CORE_EXPORT GpgContext : public SingletonFunctionObject<GpgContext> {
  public:
   explicit GpgContext(int channel);
 

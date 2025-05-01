@@ -28,12 +28,11 @@
 
 #pragma once
 
-#include "core/GpgFrontendCoreExport.h"
 #include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT KeyAlgo {
+class GF_CORE_EXPORT KeyAlgo {
  public:
   KeyAlgo() = default;
 
@@ -76,7 +75,7 @@ class GPGFRONTEND_CORE_EXPORT KeyAlgo {
   QString supported_version_;
 };
 
-class GPGFRONTEND_CORE_EXPORT KeyGenerateInfo : public QObject {
+class GF_CORE_EXPORT KeyGenerateInfo : public QObject {
   Q_OBJECT
  public:
   static const KeyAlgo kNoneAlgo;

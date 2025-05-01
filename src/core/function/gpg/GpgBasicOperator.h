@@ -41,7 +41,7 @@ namespace GpgFrontend {
  * @brief Basic operation collection
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
+class GF_CORE_EXPORT GpgBasicOperator
     : public SingletonFunctionObject<GpgBasicOperator> {
  public:
   /**
@@ -63,8 +63,8 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @brief
    *
    */
-  auto EncryptSync(const GpgAbstractKeyPtrList&, const GFBuffer&,
-                   bool) -> std::tuple<GpgError, DataObjectPtr>;
+  auto EncryptSync(const GpgAbstractKeyPtrList&, const GFBuffer&, bool)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief Call the interface provided by GPGME to symmetrical encryption
@@ -85,8 +85,8 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @param cb
    * @return std::tuple<GpgError, DataObjectPtr>
    */
-  auto EncryptSymmetricSync(const GFBuffer& in_buffer,
-                            bool ascii) -> std::tuple<GpgError, DataObjectPtr>;
+  auto EncryptSymmetricSync(const GFBuffer& in_buffer, bool ascii)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    *
@@ -115,8 +115,8 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    */
   auto EncryptSignSync(const GpgAbstractKeyPtrList& keys,
                        const GpgAbstractKeyPtrList& signers,
-                       const GFBuffer& in_buffer,
-                       bool ascii) -> std::tuple<GpgError, DataObjectPtr>;
+                       const GFBuffer& in_buffer, bool ascii)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief Call the interface provided by gpgme for decryption operation
@@ -212,8 +212,8 @@ class GPGFRONTEND_CORE_EXPORT GpgBasicOperator
    * @return std::tuple<GpgError, DataObjectPtr>
    */
   auto SignSync(const GpgAbstractKeyPtrList& signers, const GFBuffer& in_buffer,
-                GpgSignMode mode,
-                bool ascii) -> std::tuple<GpgError, DataObjectPtr>;
+                GpgSignMode mode, bool ascii)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief  Set the private key for signatures, this operation is a global

@@ -38,7 +38,7 @@ namespace GpgFrontend::Thread {
 
 using TaskRunnerPtr = QSharedPointer<TaskRunner>;
 
-class GPGFRONTEND_CORE_EXPORT TaskRunnerGetter
+class GF_CORE_EXPORT TaskRunnerGetter
     : public GpgFrontend::SingletonFunctionObject<TaskRunnerGetter> {
  public:
   enum TaskRunnerType {

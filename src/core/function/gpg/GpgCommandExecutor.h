@@ -41,10 +41,10 @@ using GpgCommandExecutorInterator = std::function<void(QProcess *)>;
  * @brief Extra commands related to GPG
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgCommandExecutor
+class GF_CORE_EXPORT GpgCommandExecutor
     : public SingletonFunctionObject<GpgCommandExecutor> {
  public:
-  struct GPGFRONTEND_CORE_EXPORT ExecuteContext {
+  struct GF_CORE_EXPORT ExecuteContext {
     QString cmd;
     QStringList arguments;
     GpgCommandExecutorCallback cb_func;

@@ -54,28 +54,28 @@ enum class GpgKeyTableColumn : unsigned int {
   kALL = ~0U
 };
 
-inline auto operator|(GpgKeyTableColumn lhs,
-                      GpgKeyTableColumn rhs) -> GpgKeyTableColumn {
+inline auto operator|(GpgKeyTableColumn lhs, GpgKeyTableColumn rhs)
+    -> GpgKeyTableColumn {
   using T = std::underlying_type_t<GpgKeyTableColumn>;
   return static_cast<GpgKeyTableColumn>(static_cast<T>(lhs) |
                                         static_cast<T>(rhs));
 }
 
-inline auto operator|=(GpgKeyTableColumn &lhs,
-                       GpgKeyTableColumn rhs) -> GpgKeyTableColumn & {
+inline auto operator|=(GpgKeyTableColumn &lhs, GpgKeyTableColumn rhs)
+    -> GpgKeyTableColumn & {
   lhs = lhs | rhs;
   return lhs;
 }
 
-inline auto operator&(GpgKeyTableColumn lhs,
-                      GpgKeyTableColumn rhs) -> GpgKeyTableColumn {
+inline auto operator&(GpgKeyTableColumn lhs, GpgKeyTableColumn rhs)
+    -> GpgKeyTableColumn {
   using T = std::underlying_type_t<GpgKeyTableColumn>;
   return static_cast<GpgKeyTableColumn>(static_cast<T>(lhs) &
                                         static_cast<T>(rhs));
 }
 
-inline auto operator&=(GpgKeyTableColumn &lhs,
-                       GpgKeyTableColumn rhs) -> GpgKeyTableColumn & {
+inline auto operator&=(GpgKeyTableColumn &lhs, GpgKeyTableColumn rhs)
+    -> GpgKeyTableColumn & {
   lhs = lhs & rhs;
   return lhs;
 }
@@ -93,26 +93,26 @@ enum class GpgKeyTableDisplayMode : unsigned int {
   kALL = ~0U
 };
 
-inline auto operator|(GpgKeyTableDisplayMode lhs,
-                      GpgKeyTableDisplayMode rhs) -> GpgKeyTableDisplayMode {
+inline auto operator|(GpgKeyTableDisplayMode lhs, GpgKeyTableDisplayMode rhs)
+    -> GpgKeyTableDisplayMode {
   using T = std::underlying_type_t<GpgKeyTableDisplayMode>;
   return static_cast<GpgKeyTableDisplayMode>(static_cast<T>(lhs) |
                                              static_cast<T>(rhs));
 }
 
-inline auto operator|=(GpgKeyTableDisplayMode &lhs,
-                       GpgKeyTableDisplayMode rhs) -> GpgKeyTableDisplayMode & {
+inline auto operator|=(GpgKeyTableDisplayMode &lhs, GpgKeyTableDisplayMode rhs)
+    -> GpgKeyTableDisplayMode & {
   lhs = lhs | rhs;
   return lhs;
 }
 
-inline auto operator&(GpgKeyTableDisplayMode lhs,
-                      GpgKeyTableDisplayMode rhs) -> bool {
+inline auto operator&(GpgKeyTableDisplayMode lhs, GpgKeyTableDisplayMode rhs)
+    -> bool {
   using T = std::underlying_type_t<GpgKeyTableDisplayMode>;
   return (static_cast<T>(lhs) & static_cast<T>(rhs)) != 0;
 }
 
-class GPGFRONTEND_CORE_EXPORT GpgKeyTableItem {
+class GF_CORE_EXPORT GpgKeyTableItem {
  public:
   GpgKeyTableItem() = default;
 
@@ -154,7 +154,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableItem {
   bool checked_ = false;
 };
 
-class GPGFRONTEND_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
+class GF_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
   Q_OBJECT
  public:
   /**
@@ -201,8 +201,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
    * @param role
    * @return QVariant
    */
-  [[nodiscard]] auto data(const QModelIndex &index,
-                          int role) const -> QVariant override;
+  [[nodiscard]] auto data(const QModelIndex &index, int role) const
+      -> QVariant override;
 
   /**
    * @brief
@@ -224,8 +224,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
    * @return true
    * @return false
    */
-  auto setData(const QModelIndex &index, const QVariant &value,
-               int role) -> bool override;
+  auto setData(const QModelIndex &index, const QVariant &value, int role)
+      -> bool override;
 
   /**
    * @brief
@@ -257,8 +257,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
   auto table_tooltip_by_gpg_key(const QModelIndex &index,
                                 const GpgKey *key) const -> QVariant;
 
-  static auto table_data_by_gpg_key(const QModelIndex &index,
-                                    const GpgKey *key) -> QVariant;
+  static auto table_data_by_gpg_key(const QModelIndex &index, const GpgKey *key)
+      -> QVariant;
 
   static auto table_data_by_gpg_key_group(const QModelIndex &index,
                                           const GpgKeyGroup *kg) -> QVariant;

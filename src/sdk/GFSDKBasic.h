@@ -31,25 +31,9 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "GFSDKExport.h"
+#include "GFSDKBasicModel.h"
 
 extern "C" {
-
-// MAX STRLEN -> 64 MB
-constexpr int32_t kGfStrlenMax = static_cast<const int32_t>(1024 * 1024 * 32);
-
-using GFCommandExecuteCallback = void (*)(void* data, int errcode,
-                                          const char* out, const char* err);
-
-using GFCommandExecuteContext = struct {
-  char* cmd;
-  int32_t argc;
-  char** argv;
-  GFCommandExecuteCallback cb;
-  void* data;  ///< must free by user
-};
-
-using GFTranslatorDataReader = int (*)(const char* locale, char** data);
 
 /**
  * @brief
@@ -57,7 +41,7 @@ using GFTranslatorDataReader = int (*)(const char* locale, char** data);
  * @param size
  * @return void*
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFAllocateMemory(uint32_t size) -> void*;
+auto GF_SDK_EXPORT GFAllocateMemory(uint32_t size) -> void*;
 
 /**
  * @brief
@@ -66,35 +50,34 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFAllocateMemory(uint32_t size) -> void*;
  * @param size
  * @return void*
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFReallocateMemory(void* ptr,
-                                                      uint32_t size) -> void*;
+auto GF_SDK_EXPORT GFReallocateMemory(void* ptr, uint32_t size) -> void*;
 
 /**
  * @brief
  *
  * @return const char*
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFProjectVersion() -> const char*;
+auto GF_SDK_EXPORT GFProjectVersion() -> const char*;
 
 /**
  * @brief
  *
  * @return const char*
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFProjectGitCommitHash() -> const char*;
+auto GF_SDK_EXPORT GFProjectGitCommitHash() -> const char*;
 
 /**
  * @brief
  *
  * @return const char*
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFQtEnvVersion() -> const char*;
+auto GF_SDK_EXPORT GFQtEnvVersion() -> const char*;
 
 /**
  * @brief
  *
  */
-void GPGFRONTEND_MODULE_SDK_EXPORT GFFreeMemory(void*);
+void GF_SDK_EXPORT GFFreeMemory(void*);
 
 /**
  * @brief
@@ -105,9 +88,10 @@ void GPGFRONTEND_MODULE_SDK_EXPORT GFFreeMemory(void*);
  * @param cb
  * @param data
  */
-void GPGFRONTEND_MODULE_SDK_EXPORT
-GFExecuteCommandSync(const char* cmd, int32_t argc, char** argv,
-                     GFCommandExecuteCallback cb, void* data);
+void GF_SDK_EXPORT GFExecuteCommandSync(const char* cmd, int32_t argc,
+                                        char** argv,
+                                        GFCommandExecuteCallback cb,
+                                        void* data);
 
 /**
  * @brief
@@ -115,22 +99,22 @@ GFExecuteCommandSync(const char* cmd, int32_t argc, char** argv,
  * @param context_size
  * @param context
  */
-void GPGFRONTEND_MODULE_SDK_EXPORT GFExecuteCommandBatchSync(
-    GFCommandExecuteContext** contexts, int32_t contexts_size);
+void GF_SDK_EXPORT GFExecuteCommandBatchSync(GFCommandExecuteContext** contexts,
+                                             int32_t contexts_size);
 
 /**
  * @brief
  *
  * @return char*
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFModuleStrDup(const char*) -> char*;
+auto GF_SDK_EXPORT GFModuleStrDup(const char*) -> char*;
 
 /**
  * @brief
  *
  * @return char*
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFAppActiveLocale() -> char*;
+auto GF_SDK_EXPORT GFAppActiveLocale() -> char*;
 
 /**
  * @brief
@@ -139,8 +123,9 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFAppActiveLocale() -> char*;
  * @param size
  * @return auto
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFAppRegisterTranslatorReader(
-    const char* id, GFTranslatorDataReader reader) -> int;
+auto GF_SDK_EXPORT GFAppRegisterTranslatorReader(const char* id,
+                                                 GFTranslatorDataReader reader)
+    -> int;
 
 /**
  * @brief
@@ -149,8 +134,7 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFAppRegisterTranslatorReader(
  * @param value
  * @return auto
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFCacheSave(const char* key,
-                                               const char* value) -> int;
+auto GF_SDK_EXPORT GFCacheSave(const char* key, const char* value) -> int;
 
 /**
  * @brief
@@ -159,9 +143,8 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFCacheSave(const char* key,
  * @param value
  * @return auto
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFCacheSaveWithTTL(const char* key,
-                                                      const char* value,
-                                                      int ttl) -> int;
+auto GF_SDK_EXPORT GFCacheSaveWithTTL(const char* key, const char* value,
+                                      int ttl) -> int;
 
 /**
  * @brief
@@ -169,7 +152,7 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFCacheSaveWithTTL(const char* key,
  * @param key
  * @return const char*
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFCacheGet(const char* key) -> const char*;
+auto GF_SDK_EXPORT GFCacheGet(const char* key) -> const char*;
 
 /**
  * @brief
@@ -177,5 +160,5 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFCacheGet(const char* key) -> const char*;
  * @return true
  * @return false
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFIsFlatpakENV() -> bool;
+auto GF_SDK_EXPORT GFIsFlatpakENV() -> bool;
 }

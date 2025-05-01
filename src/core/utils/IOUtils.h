@@ -38,7 +38,7 @@ namespace GpgFrontend {
  * @param file_name
  * @return GFBuffer
  */
-auto GPGFRONTEND_CORE_EXPORT ReadFileGFBuffer(const QString &file_name)
+auto GF_CORE_EXPORT ReadFileGFBuffer(const QString &file_name)
     -> std::tuple<bool, GFBuffer>;
 
 /**
@@ -49,8 +49,8 @@ auto GPGFRONTEND_CORE_EXPORT ReadFileGFBuffer(const QString &file_name)
  * @return true
  * @return false
  */
-auto GPGFRONTEND_CORE_EXPORT WriteFileGFBuffer(const QString &file_name,
-                                               GFBuffer data) -> bool;
+auto GF_CORE_EXPORT WriteFileGFBuffer(const QString &file_name, GFBuffer data)
+    -> bool;
 
 /**
  * @brief read file content
@@ -60,8 +60,8 @@ auto GPGFRONTEND_CORE_EXPORT WriteFileGFBuffer(const QString &file_name,
  * @return true if success
  * @return false if failed
  */
-auto GPGFRONTEND_CORE_EXPORT ReadFile(const QString &file_name,
-                                      QByteArray &data) -> bool;
+auto GF_CORE_EXPORT ReadFile(const QString &file_name, QByteArray &data)
+    -> bool;
 
 /**
  * @brief write file content
@@ -71,15 +71,15 @@ auto GPGFRONTEND_CORE_EXPORT ReadFile(const QString &file_name,
  * @return true if success
  * @return false if failed
  */
-auto GPGFRONTEND_CORE_EXPORT WriteFile(const QString &file_name,
-                                       const QByteArray &data) -> bool;
+auto GF_CORE_EXPORT WriteFile(const QString &file_name, const QByteArray &data)
+    -> bool;
 
 /**
  * calculate the hash of a file
  * @param file_path
  * @return
  */
-auto GPGFRONTEND_CORE_EXPORT CalculateHash(const QString &file_path) -> QString;
+auto GF_CORE_EXPORT CalculateHash(const QString &file_path) -> QString;
 
 /**
  * @brief
@@ -87,8 +87,7 @@ auto GPGFRONTEND_CORE_EXPORT CalculateHash(const QString &file_path) -> QString;
  * @param path
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT CalculateBinaryChacksum(const QString &path)
-    -> QString;
+auto GF_CORE_EXPORT CalculateBinaryChacksum(const QString &path) -> QString;
 
 /**
  * @brief
@@ -98,24 +97,15 @@ auto GPGFRONTEND_CORE_EXPORT CalculateBinaryChacksum(const QString &path)
  * @return true
  * @return false
  */
-auto GPGFRONTEND_CORE_EXPORT
-WriteBufferToFile(const QString &path, const QString &out_buffer) -> bool;
+auto GF_CORE_EXPORT WriteBufferToFile(const QString &path,
+                                      const QString &out_buffer) -> bool;
 
 /**
  * @brief
  *
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetTempFilePath() -> QString;
-
-/**
- * @brief
- *
- * @param data
- * @return QString
- */
-auto GPGFRONTEND_CORE_EXPORT CreateTempFileAndWriteData(const QString &data)
-    -> QString;
+auto GF_CORE_EXPORT GetTempFilePath() -> QString;
 
 /**
  * @brief
@@ -123,8 +113,15 @@ auto GPGFRONTEND_CORE_EXPORT CreateTempFileAndWriteData(const QString &data)
  * @param data
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT CreateTempFileAndWriteData(const GFBuffer &data)
-    -> QString;
+auto GF_CORE_EXPORT CreateTempFileAndWriteData(const QString &data) -> QString;
+
+/**
+ * @brief
+ *
+ * @param data
+ * @return QString
+ */
+auto GF_CORE_EXPORT CreateTempFileAndWriteData(const GFBuffer &data) -> QString;
 
 /**
  * @brief
@@ -133,7 +130,7 @@ auto GPGFRONTEND_CORE_EXPORT CreateTempFileAndWriteData(const GFBuffer &data)
  * @param read
  * @return std::tuple<bool, QString>
  */
-auto GPGFRONTEND_CORE_EXPORT TargetFilePreCheck(const QString &path, bool read)
+auto GF_CORE_EXPORT TargetFilePreCheck(const QString &path, bool read)
     -> std::tuple<bool, QString>;
 
 /**
@@ -142,6 +139,6 @@ auto GPGFRONTEND_CORE_EXPORT TargetFilePreCheck(const QString &path, bool read)
  * @param path
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetFullExtension(QString path) -> QString;
+auto GF_CORE_EXPORT GetFullExtension(QString path) -> QString;
 
 }  // namespace GpgFrontend

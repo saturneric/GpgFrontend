@@ -35,8 +35,9 @@ namespace GpgFrontend {
  *
  */
 template <typename T>
-struct GPGFRONTEND_CORE_EXPORT RefDeleter {
-  void operator()(T* _key) { gpgme_unre }
+struct GF_CORE_EXPORT RefDeleter {
+  void
+  operator()(T* _key){gpgme_unre}
 };
 
 template <typename T>

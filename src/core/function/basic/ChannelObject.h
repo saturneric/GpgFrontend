@@ -36,7 +36,7 @@ namespace GpgFrontend {
  * @brief object which in channel system is called "channel"
  *
  */
-class GPGFRONTEND_CORE_EXPORT ChannelObject {
+class GF_CORE_EXPORT ChannelObject {
  public:
   /**
    * @brief Construct a new Default Channel Object object

@@ -33,7 +33,7 @@
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GpgComponentManager
+class GF_CORE_EXPORT GpgComponentManager
     : public SingletonFunctionObject<GpgComponentManager> {
  public:
   /**

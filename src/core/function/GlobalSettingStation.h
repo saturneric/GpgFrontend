@@ -41,7 +41,7 @@ namespace GpgFrontend {
  * This class handles reading and writing of global settings, as well as
  * managing application directories and resource paths.
  */
-class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
+class GF_CORE_EXPORT GlobalSettingStation
     : public SingletonFunctionObject<GlobalSettingStation> {
  public:
   /**
@@ -144,6 +144,6 @@ class GPGFRONTEND_CORE_EXPORT GlobalSettingStation
   SecureUniquePtr<Impl> p_;
 };
 
-auto GPGFRONTEND_CORE_EXPORT GetSettings() -> QSettings;
+auto GF_CORE_EXPORT GetSettings() -> QSettings;
 
 }  // namespace GpgFrontend

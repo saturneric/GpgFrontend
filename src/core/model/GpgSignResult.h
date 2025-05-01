@@ -28,12 +28,11 @@
 
 #pragma once
 
-#include "core/GpgFrontendCoreExport.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GpgSignResult {
+class GF_CORE_EXPORT GpgSignResult {
  public:
   auto IsGood() -> bool;
 

@@ -30,7 +30,6 @@
 
 #include <gpgme.h>
 
-#include "core/GpgFrontendCoreExport.h"
 #include "core/model/GpgAbstractKey.h"
 
 namespace GpgFrontend {
@@ -41,7 +40,7 @@ class GpgKey;
  * @brief
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgSubKey : public GpgAbstractKey {
+class GF_CORE_EXPORT GpgSubKey : public GpgAbstractKey {
  public:
   /**
    * @brief Construct a new Gpg Sub Key object

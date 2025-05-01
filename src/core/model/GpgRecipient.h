@@ -28,12 +28,11 @@
 
 #pragma once
 
-#include "core/GpgFrontendCoreExport.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
-struct GPGFRONTEND_CORE_EXPORT GpgRecipient {
+struct GF_CORE_EXPORT GpgRecipient {
   /* The key ID of key for which the text was encrypted.  */
   QString keyid;
 

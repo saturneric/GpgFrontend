@@ -37,7 +37,7 @@ class ChannelObject;
 
 using ChannelObjectPtr = SecureUniquePtr<ChannelObject>;
 
-class GPGFRONTEND_CORE_EXPORT SingletonStorage {
+class GF_CORE_EXPORT SingletonStorage {
  public:
   /**
    * @brief
@@ -80,8 +80,8 @@ class GPGFRONTEND_CORE_EXPORT SingletonStorage {
    * @param p_obj
    * @return T*
    */
-  auto SetObjectInChannel(int channel,
-                          ChannelObjectPtr p_obj) -> ChannelObject*;
+  auto SetObjectInChannel(int channel, ChannelObjectPtr p_obj)
+      -> ChannelObject*;
 
  private:
   class Impl;

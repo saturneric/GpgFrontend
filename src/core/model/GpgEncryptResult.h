@@ -32,7 +32,7 @@
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GpgEncryptResult {
+class GF_CORE_EXPORT GpgEncryptResult {
  public:
   auto IsGood() -> bool;
 

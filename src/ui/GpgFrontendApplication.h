@@ -32,7 +32,7 @@
 
 namespace GpgFrontend::UI {
 
-class GPGFRONTEND_UI_EXPORT GpgFrontendApplication : public QApplication {
+class GF_UI_EXPORT GpgFrontendApplication : public QApplication {
   Q_OBJECT
  public:
   /**

@@ -36,7 +36,7 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgSignature {
+class GF_CORE_EXPORT GpgSignature {
  public:
   /**
    * @brief

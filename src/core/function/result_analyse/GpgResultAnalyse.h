@@ -27,9 +27,11 @@
  */
 #pragma once
 
+#include "GFCoreExport.h"
+
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GpgResultAnalyse : public QObject {
+class GF_CORE_EXPORT GpgResultAnalyse : public QObject {
   Q_OBJECT
  public:
   /**
@@ -37,7 +39,7 @@ class GPGFRONTEND_CORE_EXPORT GpgResultAnalyse : public QObject {
    *
    */
   explicit GpgResultAnalyse(int channel)
-      : current_gpg_context_channel_(channel){};
+      : current_gpg_context_channel_(channel) {};
 
   /**
    * @brief Get the Result Report object

@@ -39,7 +39,7 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgKeyManager
+class GF_CORE_EXPORT GpgKeyManager
     : public SingletonFunctionObject<GpgKeyManager> {
  public:
   /**
@@ -58,8 +58,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
    * @return if successful
    */
   auto SignKey(const GpgKeyPtr& key, const GpgAbstractKeyPtrList& keys,
-               const QString& uid,
-               const std::unique_ptr<QDateTime>& expires) -> bool;
+               const QString& uid, const std::unique_ptr<QDateTime>& expires)
+      -> bool;
 
   /**
    * @brief
@@ -69,8 +69,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyManager
    * @return true
    * @return false
    */
-  auto RevSign(const GpgKeyPtr& key,
-               const SignIdArgsList& signature_id) -> bool;
+  auto RevSign(const GpgKeyPtr& key, const SignIdArgsList& signature_id)
+      -> bool;
 
   /**
    * @brief Set the Expire object

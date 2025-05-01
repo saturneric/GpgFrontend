@@ -28,17 +28,15 @@
 
 #pragma once
 
-#include "GFSDKExport.h"
-
 extern "C" {
 
-void GPGFRONTEND_MODULE_SDK_EXPORT GFModuleLogTrace(const char*);
+void GF_SDK_EXPORT GFModuleLogTrace(const char*);
 
-void GPGFRONTEND_MODULE_SDK_EXPORT GFModuleLogDebug(const char*);
+void GF_SDK_EXPORT GFModuleLogDebug(const char*);
 
-void GPGFRONTEND_MODULE_SDK_EXPORT GFModuleLogInfo(const char*);
+void GF_SDK_EXPORT GFModuleLogInfo(const char*);
 
-void GPGFRONTEND_MODULE_SDK_EXPORT GFModuleLogWarn(const char*);
+void GF_SDK_EXPORT GFModuleLogWarn(const char*);
 
-void GPGFRONTEND_MODULE_SDK_EXPORT GFModuleLogError(const char*);
+void GF_SDK_EXPORT GFModuleLogError(const char*);
 }

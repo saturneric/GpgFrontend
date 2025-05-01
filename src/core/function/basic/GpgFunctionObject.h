@@ -30,7 +30,6 @@
 
 #include <mutex>
 
-#include "core/GpgFrontendCoreExport.h"
 #include "core/function/basic/ChannelObject.h"
 #include "core/function/basic/SingletonStorage.h"
 #include "core/function/basic/SingletonStorageCollection.h"
@@ -39,15 +38,15 @@
 
 namespace GpgFrontend {
 
-auto GPGFRONTEND_CORE_EXPORT GetChannelObjectInstance(
-    const std::type_info& type, int channel) -> ChannelObject*;
+auto GF_CORE_EXPORT GetChannelObjectInstance(const std::type_info& type,
+                                             int channel) -> ChannelObject*;
 
-auto GPGFRONTEND_CORE_EXPORT CreateChannelObjectInstance(
+auto GF_CORE_EXPORT CreateChannelObjectInstance(
     const std::type_info& type, int channel,
     SecureUniquePtr<ChannelObject> channel_object) -> ChannelObject*;
 
-auto GPGFRONTEND_CORE_EXPORT
-GetGlobalFunctionObjectTypeLock(const std::type_info& type) -> std::mutex&;
+auto GF_CORE_EXPORT GetGlobalFunctionObjectTypeLock(const std::type_info& type)
+    -> std::mutex&;
 
 /**
  * @brief

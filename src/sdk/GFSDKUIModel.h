@@ -26,4 +26,14 @@
  *
  */
 
-#include "GpgFrontend.h"
+#pragma once
+
+extern "C" {
+
+using QObjectFactory = void* (*)(void*);
+
+struct MetaData {
+  const char* key;
+  const char* value;
+};
+}

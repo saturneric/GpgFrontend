@@ -32,7 +32,7 @@
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GpgAssuanHelper
+class GF_CORE_EXPORT GpgAssuanHelper
     : public SingletonFunctionObject<GpgAssuanHelper> {
  public:
   struct AssuanCallbackContext;

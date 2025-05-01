@@ -28,55 +28,43 @@
 
 #pragma once
 
-#include <QApplication>
+extern "C" {
 
-#include "core/GpgConstants.h"
-
-namespace GpgFrontend {
-
-struct GpgFrontendContext;
-
-using GFCxtWPtr = QWeakPointer<GpgFrontendContext>;
-using GFCxtSPtr = QSharedPointer<GpgFrontendContext>;
-
-struct GpgFrontendContext {
-  int argc;
-  char** argv;
-
-  bool gather_external_gnupg_info;
-  bool unit_test_mode;
-
-  int rtn = GpgFrontend::kCrashCode;
-
-  /**
-   * @brief Construct a new Gpg Frontend Context object
-   *
-   * @param argc
-   * @param argv
-   */
-  GpgFrontendContext(int argc, char** argv);
-
-  /**
-   * @brief Destroy the Gpg Frontend Context object
-   *
-   */
-  ~GpgFrontendContext();
-
-  /**
-   * @brief
-   *
-   */
-  void InitApplication();
-
-  /**
-   * @brief Get the App object
-   *
-   * @return QCoreApplication*
-   */
-  auto GetApp() -> QApplication*;
-
- private:
-  QApplication* app_ = nullptr;
+struct GFModuleMetaData {
+  const char *key;
+  const char *value;
+  GFModuleMetaData *next;
 };
 
-}  // namespace GpgFrontend
+struct GFModuleEventParam {
+  const char *name;
+  const char *value;
+  GFModuleEventParam *next;
+};
+
+struct GFModuleEvent {
+  const char *id;
+  const char *trigger_id;
+  GFModuleEventParam *params;
+};
+
+using GFModuleAPIGetModuleGFSDKVersion = auto (*)() -> const char *;
+
+using GFModuleAPIGetModuleQtEnvVersion = auto (*)() -> const char *;
+
+using GFModuleAPIGetModuleID = auto (*)() -> const char *;
+
+using GFModuleAPIGetModuleVersion = auto (*)() -> const char *;
+
+using GFModuleAPIGetModuleMetaData = auto (*)() -> GFModuleMetaData *;
+
+using GFModuleAPIRegisterModule = auto (*)() -> int;
+
+using GFModuleAPIActivateModule = auto (*)() -> int;
+
+using GFModuleAPIExecuteModule = auto (*)(GFModuleEvent *) -> int;
+
+using GFModuleAPIDeactivateModule = auto (*)() -> int;
+
+using GFModuleAPIUnregisterModule = auto (*)() -> int;
+};

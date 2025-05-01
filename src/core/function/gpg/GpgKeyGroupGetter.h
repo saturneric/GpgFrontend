@@ -116,7 +116,7 @@ struct GpgKeyGroupTreeNode {
   [[nodiscard]] auto KeyIds() const -> QStringList;
 };
 
-class GPGFRONTEND_CORE_EXPORT GpgKeyGroupGetter
+class GF_CORE_EXPORT GpgKeyGroupGetter
     : public SingletonFunctionObject<GpgKeyGroupGetter> {
  public:
   /**

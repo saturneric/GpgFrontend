@@ -28,12 +28,6 @@
 
 #pragma once
 
-// project base header
-#include "GpgFrontend.h"
-
-// symbol exports header
-#include "test/GpgFrontendTestExport.h"
-
 // private declare area of test
 #ifdef GF_TEST_PRIVATE
 
@@ -71,6 +65,6 @@ struct GpgFrontendContext {
   char **argv;
 };
 
-auto GPGFRONTEND_TEST_EXPORT ExecuteAllTestCase(GpgFrontendContext args) -> int;
+auto GF_TEST_EXPORT ExecuteAllTestCase(GpgFrontendContext args) -> int;
 
 }  // namespace GpgFrontend::Test

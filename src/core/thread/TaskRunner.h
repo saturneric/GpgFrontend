@@ -34,7 +34,7 @@
 
 namespace GpgFrontend::Thread {
 
-class GPGFRONTEND_CORE_EXPORT TaskRunner : public QObject {
+class GF_CORE_EXPORT TaskRunner : public QObject {
   Q_OBJECT
  public:
   /**
@@ -98,8 +98,8 @@ class GPGFRONTEND_CORE_EXPORT TaskRunner : public QObject {
    * @return std::tuple<QPointer<Task>, TaskTrigger>
    */
   auto RegisterTask(const QString&, const Task::TaskRunnable&,
-                    const Task::TaskCallback&,
-                    DataObjectPtr) -> Task::TaskHandler;
+                    const Task::TaskCallback&, DataObjectPtr)
+      -> Task::TaskHandler;
 
   /**
    * @brief

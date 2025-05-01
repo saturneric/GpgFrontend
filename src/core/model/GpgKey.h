@@ -37,7 +37,7 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgKey : public GpgAbstractKey {
+class GF_CORE_EXPORT GpgKey : public GpgAbstractKey {
   Q_DECLARE_TR_FUNCTIONS(GpgKey)
  public:
   /**

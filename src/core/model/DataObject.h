@@ -32,13 +32,12 @@
 #include <typeindex>
 #include <typeinfo>
 
-#include "core/GpgFrontendCoreExport.h"
 #include "core/typedef/CoreTypedef.h"
 #include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT DataObject {
+class GF_CORE_EXPORT DataObject {
  public:
   DataObject();
 

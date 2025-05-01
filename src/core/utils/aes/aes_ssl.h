@@ -31,8 +31,6 @@
 #include <openssl/aes.h>
 #include <openssl/evp.h>
 
-#include "GpgFrontend.h"
-
 namespace GpgFrontend::RawAPI {
 
 /**

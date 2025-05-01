@@ -30,11 +30,9 @@
 
 #pragma once
 
-#include "core/GpgFrontendCoreExport.h"
-
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GpgPassphraseContext : public QObject {
+class GF_CORE_EXPORT GpgPassphraseContext : public QObject {
   Q_OBJECT
  public:
   GpgPassphraseContext(const QString& uids_info, const QString& passphrase_info,

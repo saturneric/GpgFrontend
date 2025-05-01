@@ -30,15 +30,13 @@
 
 #include <gpgme.h>
 
-#include "core/GpgFrontendCoreExport.h"
-
 namespace GpgFrontend {
 
 /**
  * @brief
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgImportInformation {
+class GF_CORE_EXPORT GpgImportInformation {
  public:
   /**
    * @brief

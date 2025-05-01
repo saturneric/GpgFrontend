@@ -28,12 +28,11 @@
 
 #pragma once
 
-#include "core/GpgFrontendCoreExport.h"
 #include "core/model/GpgSignature.h"
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GpgVerifyResult {
+class GF_CORE_EXPORT GpgVerifyResult {
  public:
   [[nodiscard]] auto IsGood() const -> bool;
 

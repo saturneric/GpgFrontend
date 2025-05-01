@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include "core/GpgFrontendCoreExport.h"
-
 namespace GpgFrontend {
 
 class GpgPassphraseContext;
@@ -38,7 +36,7 @@ class GpgPassphraseContext;
  * @brief
  *
  */
-class GPGFRONTEND_CORE_EXPORT CoreSignalStation : public QObject {
+class GF_CORE_EXPORT CoreSignalStation : public QObject {
   Q_OBJECT
   static std::unique_ptr<CoreSignalStation> instance;
 

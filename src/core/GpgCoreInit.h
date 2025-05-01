@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "core/GpgFrontendCoreExport.h"
 #include "core/model/KeyDatabaseInfo.h"
 
 namespace GpgFrontend {
@@ -42,27 +41,19 @@ struct CoreInitArgs {
  * @brief
  *
  */
-void GPGFRONTEND_CORE_EXPORT DestroyGpgFrontendCore();
+void GF_CORE_EXPORT DestroyGpgFrontendCore();
 
 /**
  * @brief
  *
  */
-auto GPGFRONTEND_CORE_EXPORT InitGpgFrontendCore(CoreInitArgs) -> int;
+auto GF_CORE_EXPORT InitGpgFrontendCore(CoreInitArgs) -> int;
 
 /**
  * @brief
  *
  */
-void GPGFRONTEND_CORE_EXPORT StartMonitorCoreInitializationStatus();
-
-/**
- * @brief
- *
- * @return true
- * @return false
- */
-auto GPGFRONTEND_CORE_EXPORT InitGpgME() -> bool;
+void GF_CORE_EXPORT StartMonitorCoreInitializationStatus();
 
 /**
  * @brief
@@ -70,6 +61,14 @@ auto GPGFRONTEND_CORE_EXPORT InitGpgME() -> bool;
  * @return true
  * @return false
  */
-auto GPGFRONTEND_CORE_EXPORT InitBasicPath() -> bool;
+auto GF_CORE_EXPORT InitGpgME() -> bool;
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+auto GF_CORE_EXPORT InitBasicPath() -> bool;
 
 }  // namespace GpgFrontend

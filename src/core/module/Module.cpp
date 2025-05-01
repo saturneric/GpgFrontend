@@ -31,7 +31,7 @@
 #include "core/module/GlobalModuleContext.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/IOUtils.h"
-#include "sdk/GFSDKModule.h"
+#include "sdk/GFSDKModuleModel.h"
 #include "utils/BuildInfoUtils.h"
 
 namespace GpgFrontend::Module {

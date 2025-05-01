@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include "core/GpgFrontendCoreExport.h"
-
 namespace GpgFrontend {
 
 /**
@@ -38,7 +36,7 @@ namespace GpgFrontend {
  * @param path
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetFileExtension(const QString& path) -> QString;
+auto GF_CORE_EXPORT GetFileExtension(const QString& path) -> QString;
 
 /**
  * @brief Get the only file name with path object
@@ -46,8 +44,7 @@ auto GPGFRONTEND_CORE_EXPORT GetFileExtension(const QString& path) -> QString;
  * @param path
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetOnlyFileNameWithPath(const QString& path)
-    -> QString;
+auto GF_CORE_EXPORT GetOnlyFileNameWithPath(const QString& path) -> QString;
 
 /**
  * @brief Get the File Size By Path object
@@ -56,8 +53,9 @@ auto GPGFRONTEND_CORE_EXPORT GetOnlyFileNameWithPath(const QString& path)
  * @param filename_pattern The pattern of the file name, e.g. "*.txt"
  * @return int64_t
  */
-auto GPGFRONTEND_CORE_EXPORT GetFileSizeByPath(
-    const QString& path, const QString& filename_pattern) -> int64_t;
+auto GF_CORE_EXPORT GetFileSizeByPath(const QString& path,
+                                      const QString& filename_pattern)
+    -> int64_t;
 
 /**
  * @brief Get the Human Readable File Size object
@@ -65,7 +63,7 @@ auto GPGFRONTEND_CORE_EXPORT GetFileSizeByPath(
  * @param size
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetHumanFriendlyFileSize(int64_t size) -> QString;
+auto GF_CORE_EXPORT GetHumanFriendlyFileSize(int64_t size) -> QString;
 
 /**
  * @brief
@@ -73,7 +71,7 @@ auto GPGFRONTEND_CORE_EXPORT GetHumanFriendlyFileSize(int64_t size) -> QString;
  * @param path
  * @param filename_pattern
  */
-void GPGFRONTEND_CORE_EXPORT
-DeleteAllFilesByPattern(const QString& path, const QString& filename_pattern);
+void GF_CORE_EXPORT DeleteAllFilesByPattern(const QString& path,
+                                            const QString& filename_pattern);
 
 }  // namespace GpgFrontend

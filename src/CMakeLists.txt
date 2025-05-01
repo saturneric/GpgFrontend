@@ -55,6 +55,8 @@ endif()
 
 find_package(OpenSSL REQUIRED)
 
+# add libraries
+include(${CMAKE_SOURCE_DIR}/cmake/LibraryRegistry.cmake)
 add_subdirectory(core)
 add_subdirectory(ui)
 add_subdirectory(sdk)
@@ -68,74 +70,73 @@ set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_SOURCE_DIR}/gpgfrontend.rc")
 set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE_DIR}/gpgfrontend.ico)
 set(RESOURCE_FILES ${CMAKE_SOURCE_DIR}/gpgfrontend.qrc ${APP_ICON_RESOURCE_WINDOWS} ${QON_QM_FILES})
 
+# Set Resource Output Path
+if(XCODE_BUILD)
+  set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Resources)
+else()
+  set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+endif()
+
 # rpath
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+if(XCODE_BUILD)
+  set(CMAKE_MACOSX_RPATH TRUE)
+  set(CMAKE_INSTALL_RPATH "@executable_path/../Frameworks")
+else()
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+endif()
 
-if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
-  if(MINGW)
-    add_executable(${APP_NAME} WIN32 ${APP_SOURCE} ${RESOURCE_FILES})
-  elseif(APPLE AND XCODE_BUILD)
-    # standard app bundle packing
-    add_executable(${APP_NAME} MACOSX_BUNDLE ${GPGFRONTEND_MACOS_ICON} ${APP_SOURCE} ${RESOURCE_FILES})
+if(MINGW)
+  add_executable(${APP_NAME} WIN32 ${APP_SOURCE} ${RESOURCE_FILES})
+elseif(XCODE_BUILD)
+  # macOS bundle icon
+  set(GPGFRONTEND_MACOS_ICON ${CMAKE_SOURCE_DIR}/gpgfrontend.icns)
+  set_source_files_properties(${GPGFRONTEND_MACOS_ICON} PROPERTIES
+    MACOSX_PACKAGE_LOCATION "Resources")
 
+  # standard app bundle packing
+  add_executable(${APP_NAME} MACOSX_BUNDLE ${GPGFRONTEND_MACOS_ICON} ${APP_SOURCE} ${RESOURCE_FILES})
+
+  set_target_properties(${APP_NAME} PROPERTIES
+    BUNDLE True
+    MACOSX_BUNDLE_GUI_IDENTIFIER com.bktus.gpgfrontend
+    MACOSX_BUNDLE_BUNDLE_NAME ${APP_NAME}
+    MACOSX_BUNDLE_LONG_VERSION_STRING ${BUILD_VERSION}
+    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
+    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+    MACOSX_BUNDLE_COPYRIGHT "GPL-3.0"
+    MACOSX_BUNDLE_INFO_STRING "An OpenPGP Crypto Tool"
+    MACOSX_BUNDLE_ICON_FILE "gpgfrontend.icns"
+    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/resource/plist/MacOSXBundleInfo.plist.in)
+
+  # option for sandbox mode, still under test
+  if(GPGFRONTEND_XCODE_ENABLE_SANDBOX)
+    message(STATUS "Build Application With App Sandbox")
+    set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "Yes")
+    add_custom_command(TARGET ${APP_NAME} POST_BUILD
+      COMMAND /bin/cp -rf ${CMAKE_SOURCE_DIR}/resource/lfs/macOS/GnuPG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${APP_NAME}.app/Contents/
+      WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+      COMMENT "Copying Bundle GnuPG into App Bundle Resource")
     set_target_properties(${APP_NAME} PROPERTIES
-      BUNDLE True
-      MACOSX_BUNDLE_GUI_IDENTIFIER com.bktus.gpgfrontend
-      MACOSX_BUNDLE_BUNDLE_NAME ${APP_NAME}
-      MACOSX_BUNDLE_LONG_VERSION_STRING ${BUILD_VERSION}
-      MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
-      MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
-      MACOSX_BUNDLE_COPYRIGHT "GPL-3.0"
-      MACOSX_BUNDLE_INFO_STRING "An OpenPGP Crypto Tool"
-      MACOSX_BUNDLE_ICON_FILE "gpgfrontend.icns"
-      MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/resource/plist/MacOSXBundleInfo.plist.in)
-
-    # option for sandbox mode, still under test
-    if(GPGFRONTEND_XCODE_ENABLE_SANDBOX)
-      message(STATUS "Build Application With App Sandbox")
-      set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "Yes")
-      add_custom_command(TARGET ${APP_NAME} POST_BUILD
-        COMMAND /bin/cp -rf ${CMAKE_SOURCE_DIR}/resource/lfs/macOS/GnuPG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${APP_NAME}.app/Contents/
-        WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-        COMMENT "Copying Bundle GnuPG into App Bundle Resource")
-      set_target_properties(${APP_NAME} PROPERTIES
-        XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_SOURCE_DIR}/resource/entitlements/GpgFrontend.entitlements")
-    else()
-      message(STATUS "Build Application Without App Sandbox")
-      set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "No")
-    endif()
-
-    set_target_properties(${APP_NAME} PROPERTIES
-      XCODE_ATTRIBUTE_INSTALL_PATH "$(LOCAL_APPS_DIR)"
-      XCODE_ATTRIBUTE_SKIP_INSTALL "No"
-      XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--deep --entitlements ${CMAKE_SOURCE_DIR}/resource/plist/entitlement.plist"
-      XCODE_ATTRIBUTE_ENABLE_APP_SANDBOX "${CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX}"
-      XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "Yes"
-      XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY}")
+      XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_SOURCE_DIR}/resource/entitlements/GpgFrontend.entitlements")
   else()
-    add_executable(${APP_NAME} ${APP_SOURCE} ${RESOURCE_FILES})
+    message(STATUS "Build Application Without App Sandbox")
+    set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "No")
   endif()
+
+  set_target_properties(${APP_NAME} PROPERTIES
+    XCODE_ATTRIBUTE_INSTALL_PATH "$(LOCAL_APPS_DIR)"
+    XCODE_ATTRIBUTE_SKIP_INSTALL "No"
+    XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--deep --entitlements ${CMAKE_SOURCE_DIR}/resource/plist/entitlement.plist"
+    XCODE_ATTRIBUTE_ENABLE_APP_SANDBOX "${CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX}"
+    XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "Yes"
+    XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY}")
 else()
   add_executable(${APP_NAME} ${APP_SOURCE} ${RESOURCE_FILES})
 endif()
 
 # using c++ standard 17
 target_compile_features(${APP_NAME} PUBLIC cxx_std_17)
-
-# Set Resource Output Path
-if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
-  if(APPLE)
-    set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Resources)
-    set(GPGFRONTEND_MACOS_ICON ${CMAKE_SOURCE_DIR}/gpgfrontend.icns)
-    set_source_files_properties(${GPGFRONTEND_MACOS_ICON} PROPERTIES
-      MACOSX_PACKAGE_LOCATION "Resources")
-  else()
-    set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-  endif()
-else()
-  set(RESOURCE_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-endif()
 
 if(MINGW)
   message(STATUS "Copying Dependent DLL For Windows Runtime Env")
@@ -320,7 +321,7 @@ if(MINGW)
 endif()
 
 # link options for GpgFrontend
-target_link_libraries(${APP_NAME} gpgfrontend_core gpgfrontend_ui gpgfrontend_test)
+target_link_libraries(${APP_NAME} gf_core gf_ui gf_test)
 
 if(MINGW)
   message(STATUS "Link Application Library For MINGW")
@@ -410,17 +411,25 @@ configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h.in ${CMAKE_
 #
 # Install generated libraries and application
 #
-set(GPGFRONTEND_INSTALL_LIBRARIES
-  gpgfrontend_core
-  gpgfrontend_ui
-  gpgfrontend_test
-  gpgfrontend_module_sdk)
+message(STATUS "Registered libraries: ${GPGFRONTEND_LIBRARY_TARGETS}")
+message(STATUS "Registered modules: ${GPGFRONTEND_MODULE_TARGETS}")
 
-install(TARGETS ${APP_NAME} ${GPGFRONTEND_INSTALL_LIBRARIES}
-  EXPORT GpgFrontendTargets
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+if(XCODE_BUILD)
+  install(TARGETS ${APP_NAME}
+    EXPORT GpgFrontendTargets
+    BUNDLE DESTINATION /Applications
+  )
+  set_target_properties(${APP_NAME} PROPERTIES
+    XCODE_EMBED_FRAMEWORKS "${GPGFRONTEND_LIBRARY_TARGETS}"
+    XCODE_EMBED_PLUGINS "${GPGFRONTEND_MODULE_TARGETS}"
+  )
+else()
+  install(TARGETS ${APP_NAME} ${GPGFRONTEND_LIBRARY_TARGETS}
+    EXPORT GpgFrontendTargets
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif()
 
 #
 # Install resources and translation
@@ -479,7 +488,7 @@ if(BUILD_APP_FOR_PACKAGE)
   set(CPACK_PACKAGE_HOMEPAGE_URL "https://gpgfrontend.bktus.com")
 
   set(CPACK_PACKAGE_FILE_NAME "${APP_NAME_LOWER}-v${PROJECT_VERSION}")
-  set(CPACK_GENERATOR "RPM;DEB")
+  set(CPACK_GENERATOR "RPM;DEB;Bundle")
 
   #
   # RPM Settings
@@ -512,6 +521,20 @@ if(BUILD_APP_FOR_PACKAGE)
   set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "${CPACK_PACKAGE_HOMEPAGE_URL}")
   set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "${CPACK_PACKAGE_DESCRIPTION}")
   set(CPACK_DEBIAN_PACKAGE_LICENSE "GPLv3")
+
+  #
+  # macOS Bundle Settings
+  #
+  set(CPACK_BUNDLE_NAME "${APP_NAME}")
+  set(CPACK_BUNDLE_PLIST "${CMAKE_SOURCE_DIR}/resource/plist/MacOSXBundleInfo.plist.in")
+  set(CPACK_BUNDLE_ICON "${CMAKE_SOURCE_DIR}/resource/lfs/icns/GpgFrontend.icns")
+
+  if(GPGFRONTEND_XCODE_ENABLE_SANDBOX)
+    message(STATUS "Build Application With App Sandbox")
+    set(CPACK_BUNDLE_APPLE_ENTITLEMENTS "${CMAKE_SOURCE_DIR}/resource/entitlements/GpgFrontend.entitlements")
+  endif()
+
+  set(CPACK_BUNDLE_APPLE_CERT_APP "${GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY}")
 
   #
   # Install scripts

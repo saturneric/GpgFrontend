@@ -41,7 +41,7 @@ class GpgKeyTableModel;
  * @brief
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgAbstractKeyGetter
+class GF_CORE_EXPORT GpgAbstractKeyGetter
     : public SingletonFunctionObject<GpgAbstractKeyGetter> {
  public:
   /**

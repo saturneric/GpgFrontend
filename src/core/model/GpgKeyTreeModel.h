@@ -50,28 +50,28 @@ enum class GpgKeyTreeColumn : unsigned int {
   kALL = ~0U
 };
 
-inline auto operator|(GpgKeyTreeColumn lhs,
-                      GpgKeyTreeColumn rhs) -> GpgKeyTreeColumn {
+inline auto operator|(GpgKeyTreeColumn lhs, GpgKeyTreeColumn rhs)
+    -> GpgKeyTreeColumn {
   using T = std::underlying_type_t<GpgKeyTreeColumn>;
   return static_cast<GpgKeyTreeColumn>(static_cast<T>(lhs) |
                                        static_cast<T>(rhs));
 }
 
-inline auto operator|=(GpgKeyTreeColumn &lhs,
-                       GpgKeyTreeColumn rhs) -> GpgKeyTreeColumn & {
+inline auto operator|=(GpgKeyTreeColumn &lhs, GpgKeyTreeColumn rhs)
+    -> GpgKeyTreeColumn & {
   lhs = lhs | rhs;
   return lhs;
 }
 
-inline auto operator&(GpgKeyTreeColumn lhs,
-                      GpgKeyTreeColumn rhs) -> GpgKeyTreeColumn {
+inline auto operator&(GpgKeyTreeColumn lhs, GpgKeyTreeColumn rhs)
+    -> GpgKeyTreeColumn {
   using T = std::underlying_type_t<GpgKeyTreeColumn>;
   return static_cast<GpgKeyTreeColumn>(static_cast<T>(lhs) &
                                        static_cast<T>(rhs));
 }
 
-inline auto operator&=(GpgKeyTreeColumn &lhs,
-                       GpgKeyTreeColumn rhs) -> GpgKeyTreeColumn & {
+inline auto operator&=(GpgKeyTreeColumn &lhs, GpgKeyTreeColumn rhs)
+    -> GpgKeyTreeColumn & {
   lhs = lhs & rhs;
   return lhs;
 }
@@ -89,26 +89,26 @@ enum class GpgKeyTreeDisplayMode : unsigned int {
   kALL = ~0U
 };
 
-inline auto operator|(GpgKeyTreeDisplayMode lhs,
-                      GpgKeyTreeDisplayMode rhs) -> GpgKeyTreeDisplayMode {
+inline auto operator|(GpgKeyTreeDisplayMode lhs, GpgKeyTreeDisplayMode rhs)
+    -> GpgKeyTreeDisplayMode {
   using T = std::underlying_type_t<GpgKeyTreeDisplayMode>;
   return static_cast<GpgKeyTreeDisplayMode>(static_cast<T>(lhs) |
                                             static_cast<T>(rhs));
 }
 
-inline auto operator|=(GpgKeyTreeDisplayMode &lhs,
-                       GpgKeyTreeDisplayMode rhs) -> GpgKeyTreeDisplayMode & {
+inline auto operator|=(GpgKeyTreeDisplayMode &lhs, GpgKeyTreeDisplayMode rhs)
+    -> GpgKeyTreeDisplayMode & {
   lhs = lhs | rhs;
   return lhs;
 }
 
-inline auto operator&(GpgKeyTreeDisplayMode lhs,
-                      GpgKeyTreeDisplayMode rhs) -> bool {
+inline auto operator&(GpgKeyTreeDisplayMode lhs, GpgKeyTreeDisplayMode rhs)
+    -> bool {
   using T = std::underlying_type_t<GpgKeyTreeDisplayMode>;
   return (static_cast<T>(lhs) & static_cast<T>(rhs)) != 0;
 }
 
-class GPGFRONTEND_CORE_EXPORT GpgKeyTreeItem {
+class GF_CORE_EXPORT GpgKeyTreeItem {
  public:
   GpgKeyTreeItem() = default;
 
@@ -238,7 +238,7 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTreeItem {
   GpgKeyTreeItem *parent_ = nullptr;
 };
 
-class GPGFRONTEND_CORE_EXPORT GpgKeyTreeModel : public QAbstractItemModel {
+class GF_CORE_EXPORT GpgKeyTreeModel : public QAbstractItemModel {
   Q_OBJECT
  public:
   using Detector = std::function<bool(GpgAbstractKey *)>;
@@ -287,8 +287,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTreeModel : public QAbstractItemModel {
    * @param role
    * @return QVariant
    */
-  [[nodiscard]] auto data(const QModelIndex &index,
-                          int role) const -> QVariant override;
+  [[nodiscard]] auto data(const QModelIndex &index, int role) const
+      -> QVariant override;
 
   /**
    * @brief
@@ -310,8 +310,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyTreeModel : public QAbstractItemModel {
    * @return true
    * @return false
    */
-  auto setData(const QModelIndex &index, const QVariant &value,
-               int role) -> bool override;
+  auto setData(const QModelIndex &index, const QVariant &value, int role)
+      -> bool override;
 
   /**
    * @brief

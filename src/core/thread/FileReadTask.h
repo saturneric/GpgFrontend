@@ -37,7 +37,7 @@ namespace GpgFrontend::UI {
  * @brief
  *
  */
-class GPGFRONTEND_CORE_EXPORT FileReadTask : public GpgFrontend::Thread::Task {
+class GF_CORE_EXPORT FileReadTask : public GpgFrontend::Thread::Task {
   Q_OBJECT
  public:
   explicit FileReadTask(QString path);

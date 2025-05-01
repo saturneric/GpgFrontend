@@ -36,7 +36,7 @@ class SingletonStorage;
 using SingletonStoragePtr =
     std::unique_ptr<SingletonStorage, SecureObjectDeleter<SingletonStorage>>;
 
-class GPGFRONTEND_CORE_EXPORT SingletonStorageCollection {
+class GF_CORE_EXPORT SingletonStorageCollection {
  public:
   /**
    * @brief

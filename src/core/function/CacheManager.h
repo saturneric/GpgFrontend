@@ -32,7 +32,7 @@
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT CacheManager
+class GF_CORE_EXPORT CacheManager
     : public SingletonFunctionObject<CacheManager> {
  public:
   /**
@@ -90,8 +90,8 @@ class GPGFRONTEND_CORE_EXPORT CacheManager
    * @param default_value
    * @return QJsonDocument
    */
-  auto LoadDurableCache(const QString& key,
-                        QJsonDocument default_value) -> QJsonDocument;
+  auto LoadDurableCache(const QString& key, QJsonDocument default_value)
+      -> QJsonDocument;
 
   /**
    * @brief

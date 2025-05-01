@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include "GFSDKExport.h"
-
 extern "C" {
 
 struct GFGpgSignResult {
@@ -70,10 +68,9 @@ struct GFGpgKeyUID {
  * @param mode
  * @return const char*
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgSignData(int channel, char** key_ids,
-                                                 int key_ids_size, char* data,
-                                                 int sign_mode, int ascii,
-                                                 GFGpgSignResult**) -> int;
+auto GF_SDK_EXPORT GFGpgSignData(int channel, char** key_ids, int key_ids_size,
+                                 char* data, int sign_mode, int ascii,
+                                 GFGpgSignResult**) -> int;
 
 /**
  * @brief
@@ -85,9 +82,9 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgSignData(int channel, char** key_ids,
  * @param ascii
  * @return int
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT
-GFGpgEncryptData(int channel, char** key_ids, int key_ids_size, char* data,
-                 int ascii, GFGpgEncryptionResult**) -> int;
+auto GF_SDK_EXPORT GFGpgEncryptData(int channel, char** key_ids,
+                                    int key_ids_size, char* data, int ascii,
+                                    GFGpgEncryptionResult**) -> int;
 
 /**
  * @brief
@@ -97,8 +94,8 @@ GFGpgEncryptData(int channel, char** key_ids, int key_ids_size, char* data,
  * @param mode
  * @return const char*
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT
-GFGpgDecryptData(int channel, char* data, GFGpgDecryptResult**) -> int;
+auto GF_SDK_EXPORT GFGpgDecryptData(int channel, char* data,
+                                    GFGpgDecryptResult**) -> int;
 
 /**
  * @brief
@@ -108,9 +105,8 @@ GFGpgDecryptData(int channel, char* data, GFGpgDecryptResult**) -> int;
  * @param mode
  * @return const char*
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgVerifyData(int channel, char* data,
-                                                   char* signature,
-                                                   GFGpgVerifyResult**) -> int;
+auto GF_SDK_EXPORT GFGpgVerifyData(int channel, char* data, char* signature,
+                                   GFGpgVerifyResult**) -> int;
 
 /**
  * @brief
@@ -120,8 +116,8 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgVerifyData(int channel, char* data,
  * @param mode
  * @return const char*
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgPublicKey(int channel, char* key_id,
-                                                  int ascii) -> char*;
+auto GF_SDK_EXPORT GFGpgPublicKey(int channel, char* key_id, int ascii)
+    -> char*;
 
 /**
  * @brief
@@ -130,6 +126,6 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgPublicKey(int channel, char* key_id,
  * @param key_id
  * @return GpgKeyUID
  */
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgKeyPrimaryUID(int channel, char* key_id,
-                                                      GFGpgKeyUID**) -> int;
+auto GF_SDK_EXPORT GFGpgKeyPrimaryUID(int channel, char* key_id, GFGpgKeyUID**)
+    -> int;
 }

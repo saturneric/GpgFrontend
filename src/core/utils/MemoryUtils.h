@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "core/GpgFrontendCoreExport.h"
 #include "core/function/SecureMemoryAllocator.h"
 
 /* To avoid that a compiler optimizes certain memset calls away, these
@@ -70,14 +69,14 @@ class PointerConverter {
  *
  * @return void*
  */
-auto GPGFRONTEND_CORE_EXPORT SecureMalloc(std::size_t) -> void *;
+auto GF_CORE_EXPORT SecureMalloc(std::size_t) -> void *;
 
 /**
  * @brief
  *
  * @return void*
  */
-auto GPGFRONTEND_CORE_EXPORT SecureRealloc(void *, std::size_t) -> void *;
+auto GF_CORE_EXPORT SecureRealloc(void *, std::size_t) -> void *;
 
 /**
  * @brief
@@ -105,7 +104,7 @@ auto SecureReallocAsType(T *ptr, std::size_t size) -> T * {
  * @brief
  *
  */
-void GPGFRONTEND_CORE_EXPORT SecureFree(void *);
+void GF_CORE_EXPORT SecureFree(void *);
 
 template <typename T, typename... Args>
 static auto SecureCreateObject(Args &&...args) -> T * {

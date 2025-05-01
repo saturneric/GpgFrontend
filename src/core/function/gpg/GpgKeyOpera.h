@@ -45,8 +45,7 @@ class KeyGenerateInfo;
  * @brief
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
-    : public SingletonFunctionObject<GpgKeyOpera> {
+class GF_CORE_EXPORT GpgKeyOpera : public SingletonFunctionObject<GpgKeyOpera> {
  public:
   /**
    * @brief Construct a new Gpg Key Opera object
@@ -106,8 +105,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyOpera
    * @param tofu_policy
    * @return GpgFrontend::GpgError
    */
-  auto ModifyTOFUPolicy(const GpgKeyPtr& key,
-                        gpgme_tofu_policy_t tofu_policy) -> GpgError;
+  auto ModifyTOFUPolicy(const GpgKeyPtr& key, gpgme_tofu_policy_t tofu_policy)
+      -> GpgError;
   /**
    * @brief
    *

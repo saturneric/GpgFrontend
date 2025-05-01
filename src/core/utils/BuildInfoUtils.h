@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include "core/GpgFrontendCoreExport.h"
-
 namespace GpgFrontend {
 
 /**
@@ -37,84 +35,84 @@ namespace GpgFrontend {
  *
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetProjectName() -> QString;
+auto GF_CORE_EXPORT GetProjectName() -> QString;
 
 /**
  * @brief
  *
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetProjectVersion() -> QString;
+auto GF_CORE_EXPORT GetProjectVersion() -> QString;
 
 /**
  * @brief
  *
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetProjectBuildVersion() -> QString;
+auto GF_CORE_EXPORT GetProjectBuildVersion() -> QString;
 
 /**
  * @brief
  *
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetProjectBuildTimestamp() -> QDateTime;
+auto GF_CORE_EXPORT GetProjectBuildTimestamp() -> QDateTime;
 
 /**
  * @brief
  *
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetProjectBuildGitBranchName() -> QString;
+auto GF_CORE_EXPORT GetProjectBuildGitBranchName() -> QString;
 
 /**
  * @brief
  *
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetProjectBuildGitCommitHash() -> QString;
+auto GF_CORE_EXPORT GetProjectBuildGitCommitHash() -> QString;
 
 /**
  * @brief
  *
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetProjectBuildGitVersion() -> QString;
+auto GF_CORE_EXPORT GetProjectBuildGitVersion() -> QString;
 
 /**
  * @brief
  *
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetProjectQtVersion() -> QString;
+auto GF_CORE_EXPORT GetProjectQtVersion() -> QString;
 
 /**
  * @brief
  *
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetProjectOpenSSLVersion() -> QString;
+auto GF_CORE_EXPORT GetProjectOpenSSLVersion() -> QString;
 
 /**
  * @brief
  *
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetProjectLibarchiveVersion() -> QString;
+auto GF_CORE_EXPORT GetProjectLibarchiveVersion() -> QString;
 
 /**
  * @brief
  *
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetProjectGpgMEVersion() -> QString;
+auto GF_CORE_EXPORT GetProjectGpgMEVersion() -> QString;
 
 /**
  * @brief
  *
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetHttpRequestUserAgent() -> QString;
+auto GF_CORE_EXPORT GetHttpRequestUserAgent() -> QString;
 
 /**
  * @brief
@@ -122,6 +120,6 @@ auto GPGFRONTEND_CORE_EXPORT GetHttpRequestUserAgent() -> QString;
  * @return true
  * @return false
  */
-auto GPGFRONTEND_CORE_EXPORT IsCheckReleaseCommitHash() -> bool;
+auto GF_CORE_EXPORT IsCheckReleaseCommitHash() -> bool;
 
 }  // namespace GpgFrontend

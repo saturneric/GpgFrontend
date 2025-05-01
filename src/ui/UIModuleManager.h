@@ -28,11 +28,10 @@
 
 #pragma once
 
-#include "GpgFrontendUIExport.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/module/Module.h"
-#include "sdk/GFSDKBasic.h"
-#include "sdk/GFSDKUI.h"
+#include "sdk/GFSDKBasicModel.h"
+#include "sdk/GFSDKUIModel.h"
 #include "ui/struct/UIMountPoint.h"
 
 namespace GpgFrontend::UI {
@@ -47,15 +46,16 @@ struct MountedUIEntry {
 
   [[nodiscard]] auto GetWidget() const -> QWidget*;
 
-  [[nodiscard]] auto GetMetaDataByDefault(
-      const QString& key, QString default_value) const -> QString;
+  [[nodiscard]] auto GetMetaDataByDefault(const QString& key,
+                                          QString default_value) const
+      -> QString;
 };
 
 struct ModuleTranslatorInfo {
   GFTranslatorDataReader reader_;
 };
 
-class GPGFRONTEND_UI_EXPORT UIModuleManager
+class GF_UI_EXPORT UIModuleManager
     : public SingletonFunctionObject<UIModuleManager> {
  public:
   /**

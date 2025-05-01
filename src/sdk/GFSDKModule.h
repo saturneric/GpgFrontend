@@ -28,70 +28,36 @@
 
 #pragma once
 
-#include "GFSDKExport.h"
+#include "GFSDKModuleModel.h"
 
 extern "C" {
 
 #include <stdint.h>
 
-struct GFModuleMetaData {
-  const char *key;
-  const char *value;
-  GFModuleMetaData *next;
-};
+void GF_SDK_EXPORT GFModuleListenEvent(const char *module_id,
+                                       const char *event_id);
 
-struct GFModuleEventParam {
-  const char *name;
-  const char *value;
-  GFModuleEventParam *next;
-};
+auto GF_SDK_EXPORT GFModuleRetrieveRTValueOrDefault(const char *namespace_,
+                                                    const char *key,
+                                                    const char *default_value)
+    -> const char *;
 
-struct GFModuleEvent {
-  const char *id;
-  const char *trigger_id;
-  GFModuleEventParam *params;
-};
+auto GF_SDK_EXPORT GFModuleRetrieveRTValueOrDefaultBool(const char *namespace_,
+                                                        const char *key,
+                                                        int default_value)
+    -> const int;
 
-using GFModuleAPIGetModuleGFSDKVersion = auto (*)() -> const char *;
+void GF_SDK_EXPORT GFModuleUpsertRTValue(const char *namespace_,
+                                         const char *key, const char *vaule);
 
-using GFModuleAPIGetModuleQtEnvVersion = auto (*)() -> const char *;
+void GF_SDK_EXPORT GFModuleUpsertRTValueBool(const char *namespace_,
+                                             const char *key, int value);
 
-using GFModuleAPIGetModuleID = auto (*)() -> const char *;
+auto GF_SDK_EXPORT GFModuleListRTChildKeys(const char *namespace_,
+                                           const char *key, char ***child_keys)
+    -> int32_t;
 
-using GFModuleAPIGetModuleVersion = auto (*)() -> const char *;
-
-using GFModuleAPIGetModuleMetaData = auto (*)() -> GFModuleMetaData *;
-
-using GFModuleAPIRegisterModule = auto (*)() -> int;
-
-using GFModuleAPIActivateModule = auto (*)() -> int;
-
-using GFModuleAPIExecuteModule = auto (*)(GFModuleEvent *) -> int;
-
-using GFModuleAPIDeactivateModule = auto (*)() -> int;
-
-using GFModuleAPIUnregisterModule = auto (*)() -> int;
-
-void GPGFRONTEND_MODULE_SDK_EXPORT GFModuleListenEvent(const char *module_id,
-                                                       const char *event_id);
-
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFModuleRetrieveRTValueOrDefault(
-    const char *namespace_, const char *key, const char *default_value) -> const
-    char *;
-
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFModuleRetrieveRTValueOrDefaultBool(
-    const char *namespace_, const char *key, int default_value) -> const int;
-
-void GPGFRONTEND_MODULE_SDK_EXPORT GFModuleUpsertRTValue(const char *namespace_,
-                                                         const char *key,
-                                                         const char *vaule);
-
-void GPGFRONTEND_MODULE_SDK_EXPORT
-GFModuleUpsertRTValueBool(const char *namespace_, const char *key, int value);
-
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFModuleListRTChildKeys(
-    const char *namespace_, const char *key, char ***child_keys) -> int32_t;
-
-void GPGFRONTEND_MODULE_SDK_EXPORT GFModuleTriggerModuleEventCallback(
-    GFModuleEvent *event, const char *module_id, GFModuleEventParam *argv);
+void GF_SDK_EXPORT GFModuleTriggerModuleEventCallback(GFModuleEvent *event,
+                                                      const char *module_id,
+                                                      GFModuleEventParam *argv);
 };

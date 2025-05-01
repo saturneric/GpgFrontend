@@ -40,45 +40,19 @@ aux_source_directory(dialog UI_SOURCE)
 aux_source_directory(function UI_SOURCE)
 aux_source_directory(model UI_SOURCE)
 
-# define libgpgfrontend_ui
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
-
-add_library(gpgfrontend_ui SHARED ${UI_SOURCE})
-
-# generate headers
-set(_export_file "${CMAKE_CURRENT_SOURCE_DIR}/GpgFrontendUIExport.h")
-generate_export_header(gpgfrontend_ui EXPORT_FILE_NAME "${_export_file}")
-
-# compile definitions
-target_compile_definitions(gpgfrontend_ui PRIVATE GF_UI_PRIVATE)
+# register module
+register_library(ui LIBRARY_TARGET ${UI_SOURCE})
 
 # link qt
-target_link_libraries(gpgfrontend_ui
+target_link_libraries(${LIBRARY_TARGET}
   Qt::Core Qt::Widgets Qt::Network Qt::PrintSupport)
 
 # link gpgfrontend_core
-target_link_libraries(gpgfrontend_ui gpgfrontend_core)
+target_link_libraries(${LIBRARY_TARGET} gf_core)
 
 # set up pch
-target_precompile_headers(gpgfrontend_ui PUBLIC GpgFrontendUI.h)
+target_precompile_headers(${LIBRARY_TARGET} PUBLIC GpgFrontendUI.h)
 
 # add ui generator include path
-target_include_directories(gpgfrontend_ui PUBLIC
-  ${CMAKE_CURRENT_BINARY_DIR}/gpgfrontend_ui_autogen/include)
-
-# using std c++ 17
-target_compile_features(gpgfrontend_ui PUBLIC cxx_std_17)
-
-# for xcode archive build
-if(XCODE_BUILD)
-  set_target_properties(gpgfrontend_ui
-    PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}
-    XCODE_ATTRIBUTE_SKIP_INSTALL "Yes"
-    XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY}")
-endif()
-
-target_compile_features(gpgfrontend_ui PUBLIC cxx_std_17)
+target_include_directories(${LIBRARY_TARGET} PUBLIC
+  ${CMAKE_CURRENT_BINARY_DIR}/${LIBRARY_TARGET}_autogen/include)

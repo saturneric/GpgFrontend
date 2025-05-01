@@ -28,55 +28,24 @@
 
 #pragma once
 
-#include <QApplication>
+#include <cstddef>
+#include <cstdint>
 
-#include "core/GpgConstants.h"
+extern "C" {
 
-namespace GpgFrontend {
+// MAX STRLEN -> 64 MB
+constexpr int32_t kGfStrlenMax = static_cast<const int32_t>(1024 * 1024 * 32);
 
-struct GpgFrontendContext;
+using GFCommandExecuteCallback = void (*)(void* data, int errcode,
+                                          const char* out, const char* err);
 
-using GFCxtWPtr = QWeakPointer<GpgFrontendContext>;
-using GFCxtSPtr = QSharedPointer<GpgFrontendContext>;
-
-struct GpgFrontendContext {
-  int argc;
+using GFCommandExecuteContext = struct {
+  char* cmd;
+  int32_t argc;
   char** argv;
-
-  bool gather_external_gnupg_info;
-  bool unit_test_mode;
-
-  int rtn = GpgFrontend::kCrashCode;
-
-  /**
-   * @brief Construct a new Gpg Frontend Context object
-   *
-   * @param argc
-   * @param argv
-   */
-  GpgFrontendContext(int argc, char** argv);
-
-  /**
-   * @brief Destroy the Gpg Frontend Context object
-   *
-   */
-  ~GpgFrontendContext();
-
-  /**
-   * @brief
-   *
-   */
-  void InitApplication();
-
-  /**
-   * @brief Get the App object
-   *
-   * @return QCoreApplication*
-   */
-  auto GetApp() -> QApplication*;
-
- private:
-  QApplication* app_ = nullptr;
+  GFCommandExecuteCallback cb;
+  void* data;  ///< must free by user
 };
 
-}  // namespace GpgFrontend
+using GFTranslatorDataReader = int (*)(const char* locale, char** data);
+}

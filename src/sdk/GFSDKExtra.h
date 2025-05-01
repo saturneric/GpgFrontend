@@ -28,12 +28,10 @@
 
 #pragma once
 
-#include "GFSDKExport.h"
-
 extern "C" {
 
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFCompareSoftwareVersion(
-    const char *current_version, const char *latest_version) -> int;
+auto GF_SDK_EXPORT GFCompareSoftwareVersion(const char *current_version,
+                                            const char *latest_version) -> int;
 
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFHttpRequestUserAgent() -> const char *;
+auto GF_SDK_EXPORT GFHttpRequestUserAgent() -> const char *;
 }

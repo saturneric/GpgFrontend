@@ -272,7 +272,7 @@ auto RunGpgFrontendUI(QApplication* app) -> int {
   return QApplication::exec();
 }
 
-void GPGFRONTEND_UI_EXPORT DestroyGpgFrontendUI() {}
+void GF_UI_EXPORT DestroyGpgFrontendUI() {}
 
 /**
  * @brief setup the locale and load the translations

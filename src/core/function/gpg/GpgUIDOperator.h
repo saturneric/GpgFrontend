@@ -37,7 +37,7 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgUIDOperator
+class GF_CORE_EXPORT GpgUIDOperator
     : public SingletonFunctionObject<GpgUIDOperator> {
  public:
   /**

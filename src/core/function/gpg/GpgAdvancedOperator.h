@@ -39,7 +39,7 @@
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GpgAdvancedOperator
+class GF_CORE_EXPORT GpgAdvancedOperator
     : public SingletonFunctionObject<GpgAdvancedOperator> {
  public:
   /**

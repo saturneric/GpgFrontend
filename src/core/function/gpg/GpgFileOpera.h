@@ -40,7 +40,7 @@ namespace GpgFrontend {
  *
  * @class class: GpgBasicOperator
  */
-class GPGFRONTEND_CORE_EXPORT GpgFileOpera
+class GF_CORE_EXPORT GpgFileOpera
     : public SingletonFunctionObject<GpgFileOpera> {
  public:
   /**
@@ -74,9 +74,10 @@ class GPGFRONTEND_CORE_EXPORT GpgFileOpera
    * @param out_path
    * @return std::tuple<GpgError, DataObjectPtr>
    */
-  auto EncryptFileSync(
-      const GpgAbstractKeyPtrList& keys, const QString& in_path, bool ascii,
-      const QString& out_path) -> std::tuple<GpgError, DataObjectPtr>;
+  auto EncryptFileSync(const GpgAbstractKeyPtrList& keys,
+                       const QString& in_path, bool ascii,
+                       const QString& out_path)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief

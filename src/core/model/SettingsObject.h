@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include "core/GpgFrontendCoreExport.h"
-
 namespace GpgFrontend {
 
 /**
@@ -37,7 +35,7 @@ namespace GpgFrontend {
  * This class is used to store data for the application securely.
  *
  */
-class GPGFRONTEND_CORE_EXPORT SettingsObject : public QJsonObject {
+class GF_CORE_EXPORT SettingsObject : public QJsonObject {
  public:
   /**
    * @brief Construct a new Settings Object object

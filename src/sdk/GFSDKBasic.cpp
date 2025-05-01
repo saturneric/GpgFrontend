@@ -112,31 +112,29 @@ auto GFAppRegisterTranslatorReader(const char* id,
              : -1;
 }
 
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFCacheSave(const char* key,
-                                               const char* value) -> int {
+auto GF_SDK_EXPORT GFCacheSave(const char* key, const char* value) -> int {
   GpgFrontend::CacheManager::GetInstance().SaveCache(GFUnStrDup(key),
                                                      GFUnStrDup(value));
   return 0;
 }
 
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFCacheGet(const char* key) -> const char* {
+auto GF_SDK_EXPORT GFCacheGet(const char* key) -> const char* {
   auto value =
       GpgFrontend::CacheManager::GetInstance().LoadCache(GFUnStrDup(key));
   return GFStrDup(value);
 }
 
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFCacheSaveWithTTL(const char* key,
-                                                      const char* value,
-                                                      int ttl) -> int {
+auto GF_SDK_EXPORT GFCacheSaveWithTTL(const char* key, const char* value,
+                                      int ttl) -> int {
   GpgFrontend::CacheManager::GetInstance().SaveCache(GFUnStrDup(key),
                                                      GFUnStrDup(value), ttl);
   return 0;
 }
 
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFProjectGitCommitHash() -> const char* {
+auto GF_SDK_EXPORT GFProjectGitCommitHash() -> const char* {
   return GFStrDup(GpgFrontend::GetProjectBuildGitCommitHash());
 }
 
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFIsFlatpakENV() -> bool {
+auto GF_SDK_EXPORT GFIsFlatpakENV() -> bool {
   return GpgFrontend::IsFlatpakENV();
 }

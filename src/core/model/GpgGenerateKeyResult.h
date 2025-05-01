@@ -31,11 +31,10 @@
 #include <gpgme.h>
 
 #include "core/GpgFrontendCore.h"
-#include "core/GpgFrontendCoreExport.h"
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GpgGenerateKeyResult {
+class GF_CORE_EXPORT GpgGenerateKeyResult {
  public:
   auto IsGood() -> bool;
 

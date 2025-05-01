@@ -30,7 +30,7 @@
 
 namespace GpgFrontend {
 
-struct GPGFRONTEND_CORE_EXPORT GpgOpenPGPCard {
+struct GF_CORE_EXPORT GpgOpenPGPCard {
  public:
   QString reader;
   QString serial_number;

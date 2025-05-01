@@ -58,7 +58,7 @@ using Namespace = QString;
 using Key = QString;
 using LPCallback = std::function<void(Namespace, Key, int, std::any)>;
 
-class GPGFRONTEND_CORE_EXPORT ModuleManager
+class GF_CORE_EXPORT ModuleManager
     : public SingletonFunctionObject<ModuleManager> {
  public:
   explicit ModuleManager(int channel);
@@ -138,7 +138,7 @@ void TriggerEvent(const EventIdentifier& event_id,
  * @return true
  * @return false
  */
-auto GPGFRONTEND_CORE_EXPORT IsModuleActivate(ModuleIdentifier) -> bool;
+auto GF_CORE_EXPORT IsModuleActivate(ModuleIdentifier) -> bool;
 
 /**
  * @brief
@@ -146,7 +146,7 @@ auto GPGFRONTEND_CORE_EXPORT IsModuleActivate(ModuleIdentifier) -> bool;
  * @return true
  * @return false
  */
-auto GPGFRONTEND_CORE_EXPORT IsModuleExists(ModuleIdentifier) -> bool;
+auto GF_CORE_EXPORT IsModuleExists(ModuleIdentifier) -> bool;
 
 /**
  * @brief
@@ -157,9 +157,8 @@ auto GPGFRONTEND_CORE_EXPORT IsModuleExists(ModuleIdentifier) -> bool;
  * @return true
  * @return false
  */
-auto GPGFRONTEND_CORE_EXPORT UpsertRTValue(const QString& namespace_,
-                                           const QString& key,
-                                           const std::any& value) -> bool;
+auto GF_CORE_EXPORT UpsertRTValue(const QString& namespace_, const QString& key,
+                                  const std::any& value) -> bool;
 
 /**
  * @brief
@@ -167,8 +166,8 @@ auto GPGFRONTEND_CORE_EXPORT UpsertRTValue(const QString& namespace_,
  * @return true
  * @return false
  */
-auto GPGFRONTEND_CORE_EXPORT ListenRTPublishEvent(QObject*, Namespace, Key,
-                                                  LPCallback) -> bool;
+auto GF_CORE_EXPORT ListenRTPublishEvent(QObject*, Namespace, Key, LPCallback)
+    -> bool;
 
 /**
  * @brief
@@ -177,12 +176,12 @@ auto GPGFRONTEND_CORE_EXPORT ListenRTPublishEvent(QObject*, Namespace, Key,
  * @param key
  * @return QContainer<Key>
  */
-auto GPGFRONTEND_CORE_EXPORT ListRTChildKeys(
-    const QString& namespace_, const QString& key) -> QContainer<Key>;
+auto GF_CORE_EXPORT ListRTChildKeys(const QString& namespace_,
+                                    const QString& key) -> QContainer<Key>;
 
 template <typename T>
-auto RetrieveRTValueTyped(const QString& namespace_,
-                          const QString& key) -> std::optional<T> {
+auto RetrieveRTValueTyped(const QString& namespace_, const QString& key)
+    -> std::optional<T> {
   auto any_value =
       ModuleManager::GetInstance().RetrieveRTValue(namespace_, key);
   if (any_value && any_value->type() == typeid(T)) {
@@ -193,8 +192,8 @@ auto RetrieveRTValueTyped(const QString& namespace_,
 
 template <typename T>
 auto RetrieveRTValueTypedOrDefault(const QString& namespace_,
-                                   const QString& key,
-                                   const T& defaultValue) -> T {
+                                   const QString& key, const T& defaultValue)
+    -> T {
   auto any_value =
       ModuleManager::GetInstance().RetrieveRTValue(namespace_, key);
   if (any_value && any_value->type() == typeid(T)) {

@@ -34,7 +34,8 @@
 
 #include "core/GpgFrontendCore.h"
 #include "core/model/DataObject.h"
-#include "sdk/GFSDKModule.h"
+
+struct GFModuleEvent;
 
 namespace GpgFrontend::Module {
 
@@ -45,7 +46,7 @@ using EventIdentifier = QString;
 using EventTriggerIdentifier = QString;
 using Evnets = QContainer<Event>;
 
-class GPGFRONTEND_CORE_EXPORT Event {
+class GF_CORE_EXPORT Event {
  public:
   using ParameterValue = std::any;
   using EventIdentifier = QString;

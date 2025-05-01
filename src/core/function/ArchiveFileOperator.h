@@ -35,7 +35,7 @@
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT ArchiveFileOperator {
+class GF_CORE_EXPORT ArchiveFileOperator {
  public:
   /**
    * @brief

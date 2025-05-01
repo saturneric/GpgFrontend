@@ -36,35 +36,35 @@ namespace GpgFrontend::UI {
  * @brief
  *
  */
-void GPGFRONTEND_UI_EXPORT PreInitGpgFrontendUI();
+void GF_UI_EXPORT PreInitGpgFrontendUI();
 
 /**
  * @brief init the UI library
  *
  */
-void GPGFRONTEND_UI_EXPORT InitGpgFrontendUI(QApplication *);
+void GF_UI_EXPORT InitGpgFrontendUI(QApplication *);
 
 /**
  * @brief
  *
  */
-void GPGFRONTEND_UI_EXPORT WaitingAllInitializationFinished();
+void GF_UI_EXPORT WaitingAllInitializationFinished();
 
 /**
  * @brief init the UI library
  *
  */
-void GPGFRONTEND_UI_EXPORT DestroyGpgFrontendUI();
+void GF_UI_EXPORT DestroyGpgFrontendUI();
 
 /**
  * @brief run main window
  */
-auto GPGFRONTEND_UI_EXPORT RunGpgFrontendUI(QApplication *) -> int;
+auto GF_UI_EXPORT RunGpgFrontendUI(QApplication *) -> int;
 
 /**
  * @brief
  *
  */
-void GPGFRONTEND_UI_EXPORT InitModulesTranslations();
+void GF_UI_EXPORT InitModulesTranslations();
 
 };  // namespace GpgFrontend::UI

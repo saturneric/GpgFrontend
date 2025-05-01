@@ -252,7 +252,7 @@ auto IsModuleActivate(ModuleIdentifier id) -> bool {
   return ModuleManager::GetInstance().IsModuleActivated(id);
 }
 
-auto GPGFRONTEND_CORE_EXPORT IsModuleExists(ModuleIdentifier id) -> bool {
+auto GF_CORE_EXPORT IsModuleExists(ModuleIdentifier id) -> bool {
   auto module = ModuleManager::GetInstance().SearchModule(id);
   return module != nullptr && module->IsGood();
 }
@@ -263,13 +263,13 @@ auto UpsertRTValue(const QString& namespace_, const QString& key,
                                                     std::any(value));
 }
 
-auto ListenRTPublishEvent(QObject* o, Namespace n, Key k,
-                          LPCallback c) -> bool {
+auto ListenRTPublishEvent(QObject* o, Namespace n, Key k, LPCallback c)
+    -> bool {
   return ModuleManager::GetInstance().ListenRTPublish(o, n, k, c);
 }
 
-auto ListRTChildKeys(const QString& namespace_,
-                     const QString& key) -> QContainer<Key> {
+auto ListRTChildKeys(const QString& namespace_, const QString& key)
+    -> QContainer<Key> {
   return ModuleManager::GetInstance().ListRTChildKeys(namespace_, key);
 }
 
@@ -328,8 +328,8 @@ auto ModuleManager::UpsertRTValue(Namespace n, Key k, std::any v) -> bool {
   return p_->UpsertRTValue(n, k, v);
 }
 
-auto ModuleManager::RetrieveRTValue(Namespace n,
-                                    Key k) -> std::optional<std::any> {
+auto ModuleManager::RetrieveRTValue(Namespace n, Key k)
+    -> std::optional<std::any> {
   return p_->RetrieveRTValue(n, k);
 }
 
@@ -338,8 +338,8 @@ auto ModuleManager::ListenRTPublish(QObject* o, Namespace n, Key k,
   return p_->ListenPublish(o, n, k, c);
 }
 
-auto ModuleManager::ListRTChildKeys(const QString& n,
-                                    const QString& k) -> QContainer<Key> {
+auto ModuleManager::ListRTChildKeys(const QString& n, const QString& k)
+    -> QContainer<Key> {
   return p_->ListRTChildKeys(n, k);
 }
 

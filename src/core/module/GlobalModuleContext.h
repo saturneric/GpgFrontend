@@ -51,7 +51,7 @@ using GRTPtr = QSharedPointer<GlobalRegisterTable>;
 
 using TaskRunnerPtr = QSharedPointer<Thread::TaskRunner>;
 
-class GPGFRONTEND_CORE_EXPORT GlobalModuleContext : public QObject {
+class GF_CORE_EXPORT GlobalModuleContext : public QObject {
   Q_OBJECT
  public:
   explicit GlobalModuleContext();

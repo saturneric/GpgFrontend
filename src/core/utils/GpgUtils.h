@@ -44,7 +44,7 @@ namespace GpgFrontend {
  * @param err
  * @return GpgError
  */
-auto GPGFRONTEND_CORE_EXPORT CheckGpgError(GpgError err) -> GpgError;
+auto GF_CORE_EXPORT CheckGpgError(GpgError err) -> GpgError;
 
 /**
  * @brief
@@ -53,8 +53,8 @@ auto GPGFRONTEND_CORE_EXPORT CheckGpgError(GpgError err) -> GpgError;
  * @param comment
  * @return GpgError
  */
-auto GPGFRONTEND_CORE_EXPORT CheckGpgError(GpgError gpgmeError,
-                                           const QString& comment) -> GpgError;
+auto GF_CORE_EXPORT CheckGpgError(GpgError gpgmeError, const QString& comment)
+    -> GpgError;
 
 /**
  * @brief
@@ -63,9 +63,9 @@ auto GPGFRONTEND_CORE_EXPORT CheckGpgError(GpgError gpgmeError,
  * @param predict
  * @return gpg_err_code_t
  */
-auto GPGFRONTEND_CORE_EXPORT CheckGpgError2ErrCode(
-    gpgme_error_t err,
-    gpgme_error_t predict = GPG_ERR_NO_ERROR) -> gpg_err_code_t;
+auto GF_CORE_EXPORT CheckGpgError2ErrCode(
+    gpgme_error_t err, gpgme_error_t predict = GPG_ERR_NO_ERROR)
+    -> gpg_err_code_t;
 
 /**
  * @brief
@@ -73,7 +73,7 @@ auto GPGFRONTEND_CORE_EXPORT CheckGpgError2ErrCode(
  * @param err
  * @return GpgErrorDesc
  */
-auto GPGFRONTEND_CORE_EXPORT DescribeGpgErrCode(GpgError err) -> GpgErrorDesc;
+auto GF_CORE_EXPORT DescribeGpgErrCode(GpgError err) -> GpgErrorDesc;
 
 // Check
 
@@ -83,7 +83,7 @@ auto GPGFRONTEND_CORE_EXPORT DescribeGpgErrCode(GpgError err) -> GpgErrorDesc;
  * @param text
  * @return int
  */
-auto GPGFRONTEND_CORE_EXPORT TextIsSigned(BypeArrayRef text) -> int;
+auto GF_CORE_EXPORT TextIsSigned(BypeArrayRef text) -> int;
 
 /**
  * @brief
@@ -92,9 +92,9 @@ auto GPGFRONTEND_CORE_EXPORT TextIsSigned(BypeArrayRef text) -> int;
  * @param ascii
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT SetExtensionOfOutputFile(const QString& path,
-                                                      GpgOperation opera,
-                                                      bool ascii) -> QString;
+auto GF_CORE_EXPORT SetExtensionOfOutputFile(const QString& path,
+                                             GpgOperation opera, bool ascii)
+    -> QString;
 
 /**
  * @brief
@@ -104,8 +104,9 @@ auto GPGFRONTEND_CORE_EXPORT SetExtensionOfOutputFile(const QString& path,
  * @param ascii
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT SetExtensionOfOutputFileForArchive(
-    const QString& path, GpgOperation opera, bool ascii) -> QString;
+auto GF_CORE_EXPORT SetExtensionOfOutputFileForArchive(const QString& path,
+                                                       GpgOperation opera,
+                                                       bool ascii) -> QString;
 
 /**
  * @brief
@@ -114,15 +115,15 @@ auto GPGFRONTEND_CORE_EXPORT SetExtensionOfOutputFileForArchive(
  * @param path
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetCanonicalKeyDatabasePath(
-    const QDir& app_path, const QString& path) -> QString;
+auto GF_CORE_EXPORT GetCanonicalKeyDatabasePath(const QDir& app_path,
+                                                const QString& path) -> QString;
 
 /**
  * @brief Get the Key Databases By Settings object
  *
  * @return QContainer<KeyDatabaseItemSO>
  */
-auto GPGFRONTEND_CORE_EXPORT GetKeyDatabasesBySettings()
+auto GF_CORE_EXPORT GetKeyDatabasesBySettings()
     -> QContainer<KeyDatabaseItemSO>;
 
 /**
@@ -130,7 +131,7 @@ auto GPGFRONTEND_CORE_EXPORT GetKeyDatabasesBySettings()
  *
  * @return QContainer<KeyDatabaseInfo>
  */
-auto GPGFRONTEND_CORE_EXPORT GetKeyDatabaseInfoBySettings()
+auto GF_CORE_EXPORT GetKeyDatabaseInfoBySettings()
     -> QContainer<KeyDatabaseInfo>;
 
 /**
@@ -138,15 +139,14 @@ auto GPGFRONTEND_CORE_EXPORT GetKeyDatabaseInfoBySettings()
  *
  * @return QContainer<KeyDatabaseItemSO>
  */
-auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseInfos()
-    -> QContainer<KeyDatabaseInfo>;
+auto GF_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QContainer<KeyDatabaseInfo>;
 
 /**
  * @brief
  *
  * @return QContainer<KeyDatabaseItemSO>
  */
-auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseName(int channel) -> QString;
+auto GF_CORE_EXPORT GetGpgKeyDatabaseName(int channel) -> QString;
 
 /**
  * @brief
@@ -155,8 +155,9 @@ auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseName(int channel) -> QString;
  * @param keys
  * @return KeyIdArgsList
  */
-auto GPGFRONTEND_CORE_EXPORT ConvertKey2GpgKeyIdList(
-    int channel, const GpgAbstractKeyPtrList& keys) -> KeyIdArgsList;
+auto GF_CORE_EXPORT ConvertKey2GpgKeyIdList(int channel,
+                                            const GpgAbstractKeyPtrList& keys)
+    -> KeyIdArgsList;
 
 /**
  * @brief
@@ -165,8 +166,9 @@ auto GPGFRONTEND_CORE_EXPORT ConvertKey2GpgKeyIdList(
  * @param keys
  * @return GpgKeyPtrList
  */
-auto GPGFRONTEND_CORE_EXPORT ConvertKey2GpgKeyList(
-    int channel, const GpgAbstractKeyPtrList& keys) -> GpgKeyPtrList;
+auto GF_CORE_EXPORT ConvertKey2GpgKeyList(int channel,
+                                          const GpgAbstractKeyPtrList& keys)
+    -> GpgKeyPtrList;
 
 /**
  * @brief
@@ -174,8 +176,9 @@ auto GPGFRONTEND_CORE_EXPORT ConvertKey2GpgKeyList(
  * @param keys
  * @return QContainer<gpgme_key_t>
  */
-auto GPGFRONTEND_CORE_EXPORT Convert2RawGpgMEKeyList(
-    int channel, const GpgAbstractKeyPtrList& keys) -> QContainer<gpgme_key_t>;
+auto GF_CORE_EXPORT Convert2RawGpgMEKeyList(int channel,
+                                            const GpgAbstractKeyPtrList& keys)
+    -> QContainer<gpgme_key_t>;
 
 /**
  * @brief
@@ -183,7 +186,7 @@ auto GPGFRONTEND_CORE_EXPORT Convert2RawGpgMEKeyList(
  * @param key
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetUsagesByAbstractKey(const GpgAbstractKey* key)
+auto GF_CORE_EXPORT GetUsagesByAbstractKey(const GpgAbstractKey* key)
     -> QString;
 
 /**
@@ -191,8 +194,7 @@ auto GPGFRONTEND_CORE_EXPORT GetUsagesByAbstractKey(const GpgAbstractKey* key)
  *
  * @return GpgKey
  */
-auto GPGFRONTEND_CORE_EXPORT GetGpgKeyByGpgAbstractKey(GpgAbstractKey*)
-    -> GpgKey;
+auto GF_CORE_EXPORT GetGpgKeyByGpgAbstractKey(GpgAbstractKey*) -> GpgKey;
 
 /**
  * @brief
@@ -201,15 +203,15 @@ auto GPGFRONTEND_CORE_EXPORT GetGpgKeyByGpgAbstractKey(GpgAbstractKey*)
  * @return true
  * @return false
  */
-auto GPGFRONTEND_CORE_EXPORT IsKeyGroupID(const KeyId& id) -> bool;
+auto GF_CORE_EXPORT IsKeyGroupID(const KeyId& id) -> bool;
 
 /**
  * @brief
  *
  * @return bool
  */
-auto GPGFRONTEND_CORE_EXPORT GpgAgentVersionGreaterThan(int channel,
-                                                        const QString&) -> bool;
+auto GF_CORE_EXPORT GpgAgentVersionGreaterThan(int channel, const QString&)
+    -> bool;
 
 /**
  * @brief
@@ -218,13 +220,12 @@ auto GPGFRONTEND_CORE_EXPORT GpgAgentVersionGreaterThan(int channel,
  * @return true
  * @return false
  */
-auto GPGFRONTEND_CORE_EXPORT CheckGpgVersion(int channel,
-                                             const QString&) -> bool;
+auto GF_CORE_EXPORT CheckGpgVersion(int channel, const QString&) -> bool;
 
 /**
  * @brief
  *
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT DecidePinentry() -> QString;
+auto GF_CORE_EXPORT DecidePinentry() -> QString;
 }  // namespace GpgFrontend

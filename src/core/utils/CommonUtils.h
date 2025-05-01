@@ -38,8 +38,7 @@ namespace GpgFrontend {
  * @param fingerprint
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT BeautifyFingerprint(QString fingerprint)
-    -> QString;
+auto GF_CORE_EXPORT BeautifyFingerprint(QString fingerprint) -> QString;
 
 /**
  * @brief
@@ -48,22 +47,22 @@ auto GPGFRONTEND_CORE_EXPORT BeautifyFingerprint(QString fingerprint)
  * @param b
  * @return int
  */
-auto GPGFRONTEND_CORE_EXPORT GFCompareSoftwareVersion(const QString &a,
-                                                      const QString &b) -> int;
+auto GF_CORE_EXPORT GFCompareSoftwareVersion(const QString &a, const QString &b)
+    -> int;
 
 /**
  * @brief
  *
  * @return char*
  */
-auto GPGFRONTEND_CORE_EXPORT GFStrDup(const QString &) -> char *;
+auto GF_CORE_EXPORT GFStrDup(const QString &) -> char *;
 
 /**
  * @brief
  *
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GFUnStrDup(const char *) -> QString;
+auto GF_CORE_EXPORT GFUnStrDup(const char *) -> QString;
 
 /**
  * @brief
@@ -71,7 +70,7 @@ auto GPGFRONTEND_CORE_EXPORT GFUnStrDup(const char *) -> QString;
  * @return true
  * @return false
  */
-auto GPGFRONTEND_CORE_EXPORT IsFlatpakENV() -> bool;
+auto GF_CORE_EXPORT IsFlatpakENV() -> bool;
 
 /**
  * @brief
@@ -79,7 +78,7 @@ auto GPGFRONTEND_CORE_EXPORT IsFlatpakENV() -> bool;
  * @return true
  * @return false
  */
-auto GPGFRONTEND_CORE_EXPORT IsAppImageENV() -> bool;
+auto GF_CORE_EXPORT IsAppImageENV() -> bool;
 
 /**
  * @brief
@@ -87,8 +86,7 @@ auto GPGFRONTEND_CORE_EXPORT IsAppImageENV() -> bool;
  * @param s
  * @return int
  */
-auto GPGFRONTEND_CORE_EXPORT ParseHexEncodedVersionTuple(const QString &s)
-    -> int;
+auto GF_CORE_EXPORT ParseHexEncodedVersionTuple(const QString &s) -> int;
 
 /**
  * @brief
@@ -96,7 +94,7 @@ auto GPGFRONTEND_CORE_EXPORT ParseHexEncodedVersionTuple(const QString &s)
  * @return true
  * @return false
  */
-auto GPGFRONTEND_CORE_EXPORT IsEmailAddress(const QString &) -> bool;
+auto GF_CORE_EXPORT IsEmailAddress(const QString &) -> bool;
 
 /**
  * @brief if a > b
@@ -105,7 +103,6 @@ auto GPGFRONTEND_CORE_EXPORT IsEmailAddress(const QString &) -> bool;
  * @param b
  * @return auto
  */
-auto GPGFRONTEND_CORE_EXPORT GFSoftwareVersionGreaterThan(const QString &a,
-                                                          const QString &b)
-    -> bool;
+auto GF_CORE_EXPORT GFSoftwareVersionGreaterThan(const QString &a,
+                                                 const QString &b) -> bool;
 }  // namespace GpgFrontend

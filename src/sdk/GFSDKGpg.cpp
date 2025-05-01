@@ -47,10 +47,9 @@
 //
 #include "private/GFSDKPrivat.h"
 
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgSignData(int channel, char** key_ids,
-                                                 int key_ids_size, char* data,
-                                                 int sign_mode, int ascii,
-                                                 GFGpgSignResult** ps) -> int {
+auto GF_SDK_EXPORT GFGpgSignData(int channel, char** key_ids, int key_ids_size,
+                                 char* data, int sign_mode, int ascii,
+                                 GFGpgSignResult** ps) -> int {
   void* mem = GFAllocateMemory(sizeof(GFGpgSignResult));
   if (mem == nullptr) {
     *ps = nullptr;
@@ -101,8 +100,8 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgSignData(int channel, char** key_ids,
   return 0;
 }
 
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgPublicKey(int channel, char* key_id,
-                                                  int ascii) -> char* {
+auto GF_SDK_EXPORT GFGpgPublicKey(int channel, char* key_id, int ascii)
+    -> char* {
   auto key = GpgFrontend::GpgKeyGetter::GetInstance(channel).GetKeyPtr(
       GFUnStrDup(key_id));
   if (key == nullptr) return nullptr;
@@ -116,8 +115,8 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgPublicKey(int channel, char* key_id,
   return GFStrDup(buffer.ConvertToQByteArray());
 }
 
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgKeyPrimaryUID(int channel, char* key_id,
-                                                      GFGpgKeyUID** ps) -> int {
+auto GF_SDK_EXPORT GFGpgKeyPrimaryUID(int channel, char* key_id,
+                                      GFGpgKeyUID** ps) -> int {
   auto key = GpgFrontend::GpgKeyGetter::GetInstance(channel).GetKey(
       GFUnStrDup(key_id));
 
@@ -135,9 +134,9 @@ auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgKeyPrimaryUID(int channel, char* key_id,
   return 0;
 }
 
-auto GPGFRONTEND_MODULE_SDK_EXPORT
-GFGpgEncryptData(int channel, char** key_ids, int key_ids_size, char* data,
-                 int ascii, GFGpgEncryptionResult** ps) -> int {
+auto GF_SDK_EXPORT GFGpgEncryptData(int channel, char** key_ids,
+                                    int key_ids_size, char* data, int ascii,
+                                    GFGpgEncryptionResult** ps) -> int {
   void* mem = GFAllocateMemory(sizeof(GFGpgEncryptionResult));
   if (mem == nullptr) {
     *ps = nullptr;
@@ -184,8 +183,8 @@ GFGpgEncryptData(int channel, char** key_ids, int key_ids_size, char* data,
   return 0;
 }
 
-auto GPGFRONTEND_MODULE_SDK_EXPORT
-GFGpgDecryptData(int channel, char* data, GFGpgDecryptResult** ps) -> int {
+auto GF_SDK_EXPORT GFGpgDecryptData(int channel, char* data,
+                                    GFGpgDecryptResult** ps) -> int {
   void* mem = GFAllocateMemory(sizeof(GFGpgDecryptResult));
   if (mem == nullptr) {
     *ps = nullptr;
@@ -221,8 +220,8 @@ GFGpgDecryptData(int channel, char* data, GFGpgDecryptResult** ps) -> int {
   return 0;
 }
 
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFGpgVerifyData(
-    int channel, char* data, char* signature, GFGpgVerifyResult** ps) -> int {
+auto GF_SDK_EXPORT GFGpgVerifyData(int channel, char* data, char* signature,
+                                   GFGpgVerifyResult** ps) -> int {
   void* mem = GFAllocateMemory(sizeof(GFGpgVerifyResult));
   if (mem == nullptr) {
     *ps = nullptr;

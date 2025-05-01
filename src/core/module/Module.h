@@ -44,7 +44,7 @@ using ModulePtr = QSharedPointer<Module>;
 
 using TaskRunnerPtr = QSharedPointer<Thread::TaskRunner>;
 
-class GPGFRONTEND_CORE_EXPORT Module : public QObject {
+class GF_CORE_EXPORT Module : public QObject {
   Q_OBJECT
  public:
   Module(ModuleIdentifier, ModuleVersion, const ModuleMetaData &);

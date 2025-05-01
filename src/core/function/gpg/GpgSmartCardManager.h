@@ -40,7 +40,7 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgSmartCardManager
+class GF_CORE_EXPORT GpgSmartCardManager
     : public SingletonFunctionObject<GpgSmartCardManager> {
  public:
   /**
@@ -89,8 +89,8 @@ class GPGFRONTEND_CORE_EXPORT GpgSmartCardManager
    *
    * @return std::tuple<bool, QString>
    */
-  auto ModifyAttr(const QString& attr,
-                  const QString& value) -> std::tuple<GpgError, QString>;
+  auto ModifyAttr(const QString& attr, const QString& value)
+      -> std::tuple<GpgError, QString>;
 
   /**
    * @brief
@@ -107,8 +107,8 @@ class GPGFRONTEND_CORE_EXPORT GpgSmartCardManager
    */
   auto GenerateKey(const QString& serial_number, const QString& name,
                    const QString& email, const QString& comment,
-                   const QDateTime& expire,
-                   bool non_expire) -> std::tuple<GpgError, QString>;
+                   const QDateTime& expire, bool non_expire)
+      -> std::tuple<GpgError, QString>;
 
   /**
    * @brief

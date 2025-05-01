@@ -28,14 +28,8 @@
 
 #pragma once
 
-// project base header
-#include "GpgFrontend.h"
-
 // qt
 #include <QtWidgets>
-
-// ui symbol exports macro
-#include "ui/GpgFrontendUIExport.h"
 
 // private declare area of ui
 #ifdef GF_UI_PRIVATE

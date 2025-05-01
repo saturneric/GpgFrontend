@@ -37,7 +37,7 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgUID {
+class GF_CORE_EXPORT GpgUID {
  public:
   /**
    * @brief

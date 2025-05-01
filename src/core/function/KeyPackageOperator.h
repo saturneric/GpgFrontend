@@ -37,7 +37,7 @@ namespace GpgFrontend {
  * @brief give the possibility to import or export a key package
  *
  */
-class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
+class GF_CORE_EXPORT KeyPackageOperator {
  public:
   /**
    * @brief generate passphrase for key package and save it to file
@@ -47,8 +47,8 @@ class GPGFRONTEND_CORE_EXPORT KeyPackageOperator {
    * @return true if passphrase was generated and saved
    * @return false if passphrase was not generated and saved
    */
-  static auto GeneratePassphrase(const QString &phrase_path,
-                                 QString &phrase) -> bool;
+  static auto GeneratePassphrase(const QString &phrase_path, QString &phrase)
+      -> bool;
 
   /**
    * @brief generate the name of the key package

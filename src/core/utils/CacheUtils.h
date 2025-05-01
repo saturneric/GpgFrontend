@@ -28,15 +28,13 @@
 
 #pragma once
 
-#include "core/GpgFrontendCoreExport.h"
-
 namespace GpgFrontend {
 
 /**
  * @brief set a temp cache under a certain key
  *
  */
-void GPGFRONTEND_CORE_EXPORT SetCacheValue(const QString &key, QString value);
+void GF_CORE_EXPORT SetCacheValue(const QString &key, QString value);
 
 /**
  * @brief after get the temp cache, its value will be imediately ease in
@@ -44,13 +42,13 @@ void GPGFRONTEND_CORE_EXPORT SetCacheValue(const QString &key, QString value);
  *
  * @return QString
  */
-auto GPGFRONTEND_CORE_EXPORT GetCacheValue(const QString &key) -> QString;
+auto GF_CORE_EXPORT GetCacheValue(const QString &key) -> QString;
 
 /**
  * @brief imediately ease temp cache in storage
  *
  * @return QString
  */
-void GPGFRONTEND_CORE_EXPORT ResetCacheValue(const QString &);
+void GF_CORE_EXPORT ResetCacheValue(const QString &);
 
 }  // namespace GpgFrontend

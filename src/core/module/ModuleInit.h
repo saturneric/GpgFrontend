@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include "core/GpgFrontendCoreExport.h"
-
 namespace GpgFrontend::Module {
 
 struct ModuleInitArgs {};
@@ -38,12 +36,12 @@ struct ModuleInitArgs {};
  * @brief init the module library
  *
  */
-void GPGFRONTEND_CORE_EXPORT LoadGpgFrontendModules(ModuleInitArgs args);
+void GF_CORE_EXPORT LoadGpgFrontendModules(ModuleInitArgs args);
 
 /**
  * @brief shutdown the module library
  *
  */
-void GPGFRONTEND_CORE_EXPORT ShutdownGpgFrontendModules();
+void GF_CORE_EXPORT ShutdownGpgFrontendModules();
 
 };  // namespace GpgFrontend::Module

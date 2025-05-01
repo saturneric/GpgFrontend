@@ -43,10 +43,12 @@ namespace GpgFrontend {
  * @param operation
  * @param minimal_version
  */
-auto GPGFRONTEND_CORE_EXPORT
-RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
-                 const GpgOperationCallback& callback, const QString& operation,
-                 const QString& minimal_version) -> Thread::Task::TaskHandler;
+auto GF_CORE_EXPORT RunGpgOperaAsync(int channel,
+                                     const GpgOperaRunnable& runnable,
+                                     const GpgOperationCallback& callback,
+                                     const QString& operation,
+                                     const QString& minimal_version)
+    -> Thread::Task::TaskHandler;
 
 /**
  * @brief
@@ -56,9 +58,11 @@ RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
  * @param minimal_version
  * @return std::tuple<GpgError, DataObjectPtr>
  */
-auto GPGFRONTEND_CORE_EXPORT RunGpgOperaSync(
-    int channel, const GpgOperaRunnable& runnable, const QString& operation,
-    const QString& minimal_version) -> std::tuple<GpgError, DataObjectPtr>;
+auto GF_CORE_EXPORT RunGpgOperaSync(int channel,
+                                    const GpgOperaRunnable& runnable,
+                                    const QString& operation,
+                                    const QString& minimal_version)
+    -> std::tuple<GpgError, DataObjectPtr>;
 
 /**
  * @brief
@@ -67,9 +71,10 @@ auto GPGFRONTEND_CORE_EXPORT RunGpgOperaSync(
  * @param callback
  * @param operation
  */
-auto GPGFRONTEND_CORE_EXPORT RunIOOperaAsync(
-    const OperaRunnable& runnable, const OperationCallback& callback,
-    const QString& operation) -> Thread::Task::TaskHandler;
+auto GF_CORE_EXPORT RunIOOperaAsync(const OperaRunnable& runnable,
+                                    const OperationCallback& callback,
+                                    const QString& operation)
+    -> Thread::Task::TaskHandler;
 
 /**
  * @brief
@@ -79,7 +84,8 @@ auto GPGFRONTEND_CORE_EXPORT RunIOOperaAsync(
  * @param operation
  * @return Thread::Task::TaskHandler
  */
-auto GPGFRONTEND_CORE_EXPORT
-RunOperaAsync(const OperaRunnable& runnable, const OperationCallback& callback,
-              const QString& operation) -> Thread::Task::TaskHandler;
+auto GF_CORE_EXPORT RunOperaAsync(const OperaRunnable& runnable,
+                                  const OperationCallback& callback,
+                                  const QString& operation)
+    -> Thread::Task::TaskHandler;
 }  // namespace GpgFrontend

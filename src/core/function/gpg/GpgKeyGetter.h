@@ -38,7 +38,7 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
+class GF_CORE_EXPORT GpgKeyGetter
     : public SingletonFunctionObject<GpgKeyGetter> {
  public:
   /**
@@ -69,8 +69,8 @@ class GPGFRONTEND_CORE_EXPORT GpgKeyGetter
    * @param use_cache
    * @return QSharedPointer<GpgKey>
    */
-  auto GetKeyPtr(const QString& key_id,
-                 bool use_cache = true) -> QSharedPointer<GpgKey>;
+  auto GetKeyPtr(const QString& key_id, bool use_cache = true)
+      -> QSharedPointer<GpgKey>;
 
   /**
    * @brief Get the Pubkey object

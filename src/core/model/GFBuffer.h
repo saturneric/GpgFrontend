@@ -28,12 +28,11 @@
 
 #pragma once
 
-#include "core/GpgFrontendCoreExport.h"
 #include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GFBuffer {
+class GF_CORE_EXPORT GFBuffer {
  public:
   GFBuffer();
 

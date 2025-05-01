@@ -182,8 +182,7 @@ auto SetExtensionOfOutputFileForArchive(const QString& path, GpgOperation opera,
 
 static QContainer<KeyDatabaseInfo> gpg_key_database_info_cache;
 
-auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseInfos()
-    -> QContainer<KeyDatabaseInfo> {
+auto GF_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QContainer<KeyDatabaseInfo> {
   if (!gpg_key_database_info_cache.empty()) return gpg_key_database_info_cache;
 
   auto context_index_list = Module::ListRTChildKeys("core", "gpgme.ctx.list");
@@ -221,7 +220,7 @@ auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseInfos()
 
   return gpg_key_database_info_cache;
 }
-auto GPGFRONTEND_CORE_EXPORT GetGpgKeyDatabaseName(int channel) -> QString {
+auto GF_CORE_EXPORT GetGpgKeyDatabaseName(int channel) -> QString {
   auto info = GetGpgKeyDatabaseInfos();
   if (channel >= info.size()) return {};
   return info[channel].name;
@@ -283,8 +282,8 @@ auto SearchKeyDatabasePath(const QStringList& candidate_paths) -> QString {
   return {};
 }
 
-auto GetCanonicalKeyDatabasePath(const QDir& app_path,
-                                 const QString& path) -> QString {
+auto GetCanonicalKeyDatabasePath(const QDir& app_path, const QString& path)
+    -> QString {
   auto target_path = path;
   if (!QDir::isAbsolutePath(target_path)) {
     target_path = app_path.absoluteFilePath(target_path);
@@ -344,8 +343,9 @@ auto GetKeyDatabaseInfoBySettings() -> QContainer<KeyDatabaseInfo> {
   return key_db_infos;
 }
 
-auto GPGFRONTEND_CORE_EXPORT ConvertKey2GpgKeyIdList(
-    int channel, const GpgAbstractKeyPtrList& keys) -> KeyIdArgsList {
+auto GF_CORE_EXPORT ConvertKey2GpgKeyIdList(int channel,
+                                            const GpgAbstractKeyPtrList& keys)
+    -> KeyIdArgsList {
   KeyIdArgsList ret;
   for (const auto& key : ConvertKey2GpgKeyList(channel, keys)) {
     ret.push_back(key->ID());
@@ -353,8 +353,9 @@ auto GPGFRONTEND_CORE_EXPORT ConvertKey2GpgKeyIdList(
   return ret;
 }
 
-auto GPGFRONTEND_CORE_EXPORT ConvertKey2GpgKeyList(
-    int channel, const GpgAbstractKeyPtrList& keys) -> GpgKeyPtrList {
+auto GF_CORE_EXPORT ConvertKey2GpgKeyList(int channel,
+                                          const GpgAbstractKeyPtrList& keys)
+    -> GpgKeyPtrList {
   GpgKeyPtrList recipients;
 
   QSet<QString> s;
@@ -378,8 +379,9 @@ auto GPGFRONTEND_CORE_EXPORT ConvertKey2GpgKeyList(
   return recipients;
 }
 
-auto GPGFRONTEND_CORE_EXPORT Convert2RawGpgMEKeyList(
-    int channel, const GpgAbstractKeyPtrList& keys) -> QContainer<gpgme_key_t> {
+auto GF_CORE_EXPORT Convert2RawGpgMEKeyList(int channel,
+                                            const GpgAbstractKeyPtrList& keys)
+    -> QContainer<gpgme_key_t> {
   QContainer<gpgme_key_t> recipients;
 
   auto g_keys = ConvertKey2GpgKeyList(channel, keys);
@@ -392,7 +394,7 @@ auto GPGFRONTEND_CORE_EXPORT Convert2RawGpgMEKeyList(
   return recipients;
 }
 
-auto GPGFRONTEND_CORE_EXPORT GetUsagesByAbstractKey(const GpgAbstractKey* key)
+auto GF_CORE_EXPORT GetUsagesByAbstractKey(const GpgAbstractKey* key)
     -> QString {
   QString usages;
   if (key->IsHasCertCap()) usages += "C";
@@ -406,7 +408,7 @@ auto GPGFRONTEND_CORE_EXPORT GetUsagesByAbstractKey(const GpgAbstractKey* key)
   return usages;
 }
 
-auto GPGFRONTEND_CORE_EXPORT GetGpgKeyByGpgAbstractKey(GpgAbstractKey* ab_key)
+auto GF_CORE_EXPORT GetGpgKeyByGpgAbstractKey(GpgAbstractKey* ab_key)
     -> GpgKey {
   if (!ab_key->IsGood()) return {};
 
@@ -423,18 +425,17 @@ auto GPGFRONTEND_CORE_EXPORT GetGpgKeyByGpgAbstractKey(GpgAbstractKey* ab_key)
   return *key;
 }
 
-auto GPGFRONTEND_CORE_EXPORT IsKeyGroupID(const KeyId& id) -> bool {
+auto GF_CORE_EXPORT IsKeyGroupID(const KeyId& id) -> bool {
   return id.startsWith("#&");
 }
 
-auto GPGFRONTEND_CORE_EXPORT
-GpgAgentVersionGreaterThan(int channel, const QString& v) -> bool {
+auto GF_CORE_EXPORT GpgAgentVersionGreaterThan(int channel, const QString& v)
+    -> bool {
   return GFSoftwareVersionGreaterThan(
       GpgComponentManager::GetInstance(channel).GetGpgAgentVersion(), v);
 }
 
-auto GPGFRONTEND_CORE_EXPORT CheckGpgVersion(int channel,
-                                             const QString& v) -> bool {
+auto GF_CORE_EXPORT CheckGpgVersion(int channel, const QString& v) -> bool {
   const auto ver =
       GpgComponentManager::GetInstance(channel).GetGpgAgentVersion();
 
@@ -457,7 +458,7 @@ auto GPGFRONTEND_CORE_EXPORT CheckGpgVersion(int channel,
   return true;
 }
 
-auto GPGFRONTEND_CORE_EXPORT DecidePinentry() -> QString {
+auto GF_CORE_EXPORT DecidePinentry() -> QString {
 #ifdef __linux__
   QStringList preferred_list = {"pinentry-gnome3",
                                 "pinentry-qt"

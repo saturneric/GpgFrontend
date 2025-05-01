@@ -36,7 +36,7 @@ namespace GpgFrontend::Thread {
 
 class TaskRunner;
 
-class GPGFRONTEND_CORE_EXPORT Task : public QObject, public QRunnable {
+class GF_CORE_EXPORT Task : public QObject, public QRunnable {
   Q_OBJECT
  public:
   friend class TaskRunner;

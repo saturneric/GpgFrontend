@@ -39,7 +39,7 @@ class GpgKeyGroupGetter;
  * @brief
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgKeyGroup : public GpgAbstractKey {
+class GF_CORE_EXPORT GpgKeyGroup : public GpgAbstractKey {
  public:
   /**
    * @brief Construct a new Gpg Key object

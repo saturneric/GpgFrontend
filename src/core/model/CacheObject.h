@@ -28,11 +28,9 @@
 
 #pragma once
 
-#include "core/GpgFrontendCoreExport.h"
-
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT CacheObject : public QJsonDocument {
+class GF_CORE_EXPORT CacheObject : public QJsonDocument {
  public:
   /**
    * @brief Construct a new Cache Object object

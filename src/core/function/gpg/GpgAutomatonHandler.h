@@ -34,7 +34,7 @@
 
 namespace GpgFrontend {
 
-class GPGFRONTEND_CORE_EXPORT GpgAutomatonHandler
+class GF_CORE_EXPORT GpgAutomatonHandler
     : public SingletonFunctionObject<GpgAutomatonHandler> {
  public:
   using Command = QString;
@@ -109,8 +109,8 @@ class GPGFRONTEND_CORE_EXPORT GpgAutomatonHandler
    */
   auto DoInteract(const GpgKeyPtr& key,
                   AutomatonNextStateHandler next_state_handler,
-                  AutomatonActionHandler action_handler,
-                  int flags = 0) -> std::tuple<GpgError, bool>;
+                  AutomatonActionHandler action_handler, int flags = 0)
+      -> std::tuple<GpgError, bool>;
 
   /**
    * @brief

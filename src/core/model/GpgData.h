@@ -30,7 +30,6 @@
 
 #include <gpgme.h>
 
-#include "core/GpgFrontendCoreExport.h"
 #include "core/model/GFBuffer.h"
 #include "core/typedef/CoreTypedef.h"
 
@@ -42,7 +41,7 @@ class GFDataExchanger;
  * @brief
  *
  */
-class GPGFRONTEND_CORE_EXPORT GpgData {
+class GF_CORE_EXPORT GpgData {
  public:
   /**
    * @brief Construct a new Gpg Data object

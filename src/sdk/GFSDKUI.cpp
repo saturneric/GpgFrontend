@@ -37,8 +37,8 @@
 #include "private/GFSDKPrivat.h"
 #include "ui/UIModuleManager.h"
 
-auto MetaDataArrayToQMap(MetaData** meta_data_array,
-                         int size) -> QMap<QString, QString> {
+auto MetaDataArrayToQMap(MetaData** meta_data_array, int size)
+    -> QMap<QString, QString> {
   QMap<QString, QString> map;
 
   for (int i = 0; i < size; ++i) {
@@ -71,13 +71,13 @@ auto GFUIMountEntry(const char* id, MetaData** meta_data_array,
   return 0;
 }
 
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFUIMainWindowPtr() -> void* {
+auto GF_SDK_EXPORT GFUIMainWindowPtr() -> void* {
   return GpgFrontend::UI::UIModuleManager::GetInstance().GetQObject(
       "main_window");
 }
 
-auto GPGFRONTEND_MODULE_SDK_EXPORT
-GFUIShowDialog(void* dialog_raw_ptr, void* parent_raw_ptr) -> bool {
+auto GF_SDK_EXPORT GFUIShowDialog(void* dialog_raw_ptr, void* parent_raw_ptr)
+    -> bool {
   if (dialog_raw_ptr == nullptr) {
     LOG_E() << "dialog raw ptr is nullptr";
     return false;
@@ -127,8 +127,8 @@ GFUIShowDialog(void* dialog_raw_ptr, void* parent_raw_ptr) -> bool {
   return true;
 }
 
-auto GPGFRONTEND_MODULE_SDK_EXPORT GFUICreateGUIObject(QObjectFactory factory,
-                                                       void* data) -> void* {
+auto GF_SDK_EXPORT GFUICreateGUIObject(QObjectFactory factory, void* data)
+    -> void* {
   QEventLoop loop;
   void* object = nullptr;
 
