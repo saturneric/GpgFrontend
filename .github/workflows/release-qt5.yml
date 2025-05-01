@@ -173,7 +173,7 @@ jobs:
           sudo ninja install
         if: runner.os == 'Linux'
 
-      - name: Configure CMake & Build Binary (Windows)
+      - name: Build GpgFrontend (Windows)
         shell: msys2 {0}
         run: |
           cd $(cygpath -u "${{github.workspace}}")
@@ -183,7 +183,6 @@ jobs:
         if: runner.os == 'Windows'
 
       - name: Build GpgFrontend (Linux)
-        # Build your GpgFrontend with the given configuration
         run: |
           cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_QT5_BUILD=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
@@ -195,7 +194,7 @@ jobs:
           cd ${{github.workspace}}/build/upload-artifact
           wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
-          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines -appimage
+          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines,platforms,wayland-graphics-integration-client,wayland-decoration-client,wayland-shell-integration -appimage
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: runner.os == 'Linux'
@@ -233,7 +232,7 @@ jobs:
           ls -l build/artifacts/
         if: runner.os == 'Windows'
 
-      - name: Copy Modules & Package (Windows)
+      - name: Package (Windows)
         shell: msys2 {0}
         run: |
           cd $(cygpath -u "${{github.workspace}}")
@@ -243,11 +242,13 @@ jobs:
           cp TRANSLATORS build/artifacts/
           cp COPYING build/artifacts/
           cp gpgfrontend.ico build/artifacts/bin/
+          rm -rf build/artifacts/bin/modules/*.a
           touch build/artifacts/bin/PORTABLE.txt
           cd build
-          windeployqt --no-translations --force ./artifacts/bin/libgpgfrontend_core.dll
-          windeployqt --no-translations --force ./artifacts/bin/libgpgfrontend_ui.dll
-          windeployqt --no-translations --force ./artifacts/bin/GpgFrontend.exe
+          windeployqt-qt6 --no-translations --force ./artifacts/bin/libgf_core.dll
+          windeployqt-qt6 --no-translations --force ./artifacts/bin/libgf_ui.dll
+          windeployqt-qt6 --no-translations --force ./artifacts/bin/libgf_test.dll
+          windeployqt-qt6 --no-translations --force ./artifacts/bin/GpgFrontend.exe
           mkdir upload-artifact
           cd artifacts
           zip -r ../upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-x86_64.zip *

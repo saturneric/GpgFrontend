@@ -112,9 +112,9 @@ jobs:
           version: "6.7.2"
           cache: "true"
 
-      - name: Configure CMake && Build GpgFrontend
+      - name: Build GpgFrontend
         run: |
-          cmake -G Ninja -B ${{github.workspace}}/build  -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON
+          cmake -G Ninja -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
 
       - name: Perform CodeQL Analysis
