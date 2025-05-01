@@ -76,6 +76,14 @@ auto GPGFRONTEND_CORE_EXPORT IsFlatpakENV() -> bool;
 /**
  * @brief
  *
+ * @return true
+ * @return false
+ */
+auto GPGFRONTEND_CORE_EXPORT IsAppImageENV() -> bool;
+
+/**
+ * @brief
+ *
  * @param s
  * @return int
  */

@@ -35,6 +35,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/GpgPassphraseContext.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/CommonUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
@@ -123,13 +124,7 @@ void PreInitGpgFrontendUI() {
                                                    "QWidget", {});
 }
 
-void InitGpgFrontendUI(QApplication* app) {
-  // init locale
-  InitUITranslations();
-
-  auto settings = GetSettings();
-  auto theme = settings.value("appearance/theme").toString();
-
+void SetFusionAsDefaultStyle() {
   // Set Fusion style for better dark mode support across platforms
   QApplication::setStyle(QStyleFactory::create("Fusion"));
 
@@ -164,6 +159,17 @@ void InitGpgFrontendUI(QApplication* app) {
     // Apply the dark palette
     QApplication::setPalette(dark_palette);
   }
+}
+
+void InitGpgFrontendUI(QApplication* app) {
+  // init locale
+  InitUITranslations();
+
+  auto settings = GetSettings();
+  auto theme = settings.value("appearance/theme").toString();
+
+  // make appimage version look better
+  if (IsAppImageENV()) SetFusionAsDefaultStyle();
 
   // If user has explicitly set a theme in settings, use that instead
   auto available_styles = QStyleFactory::keys();

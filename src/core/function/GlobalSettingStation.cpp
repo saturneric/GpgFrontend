@@ -32,6 +32,7 @@
 
 //
 #include "core/module/ModuleManager.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/FilesystemUtils.h"
 
 namespace GpgFrontend {
@@ -52,7 +53,7 @@ class GlobalSettingStation::Impl {
       LOG_I() << "GpgFrontend runs in the portable mode now";
 
 #if defined(__linux__)
-      if (!qEnvironmentVariable("APPIMAGE").isEmpty()) {
+      if (IsAppImageENV()) {
         LOG_I() << "app image path: " << qEnvironmentVariable("APPIMAGE");
         QFileInfo info(
             QString::fromUtf8(qEnvironmentVariable("APPIMAGE").toUtf8()));
@@ -159,11 +160,11 @@ class GlobalSettingStation::Impl {
 
 #if defined(__linux__)
     // AppImage
-    if (!qEnvironmentVariable("APPIMAGE").isEmpty()) {
+    if (IsAppImageENV()) {
       return qEnvironmentVariable("APPDIR") + "/usr/lib/modules";
     }
     // Flatpak
-    if (!qEnvironmentVariable("container").isEmpty()) {
+    if (IsFlatpakENV()) {
       return "/app/lib/gpgfrontend/modules";
     }
 #endif

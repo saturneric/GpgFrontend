@@ -104,6 +104,10 @@ auto GPGFRONTEND_CORE_EXPORT IsFlatpakENV() -> bool {
   return QString::fromLocal8Bit(qgetenv("container")) == "flatpak";
 }
 
+auto GPGFRONTEND_CORE_EXPORT IsAppImageENV() -> bool {
+  return !QString::fromLocal8Bit(qgetenv("APPIMAGE")).isEmpty();
+}
+
 auto GPGFRONTEND_CORE_EXPORT ParseHexEncodedVersionTuple(const QString& s)
     -> int {
   // s is a hex-encoded, unsigned int-packed version tuple,
