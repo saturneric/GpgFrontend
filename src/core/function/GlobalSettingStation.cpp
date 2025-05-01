@@ -182,7 +182,7 @@ class GlobalSettingStation::Impl {
 #if defined(__APPLE__) && defined(__MACH__)
 
 #ifdef NDEBUG
-    return exec_binary_path + "/../Modules";
+    return exec_binary_path + "/../PlugIns";
 #endif
 
 #endif

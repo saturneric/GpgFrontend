@@ -36,21 +36,32 @@
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 
-namespace GpgFrontend::Module {
+namespace {
 
-auto SearchModuleFromPath(const QString& mods_path,
-                          bool integrated) -> QMap<QString, bool> {
-  QMap<QString, bool> m;
-  for (const auto& module_library_name : QDir(mods_path).entryList(
-           QStringList() << "*.so" << "*.dll" << "*.dylib", QDir::Files)) {
-    m[mods_path + "/" + module_library_name] = integrated;
+auto SearchModuleFromPath(const QString& mods_path, bool integrated)
+    -> QMap<QString, bool> {
+  QMap<QString, bool> modules;
+
+  QDir dir(mods_path);
+  if (!dir.exists()) return modules;
+
+  const auto entries = dir.entryInfoList(
+      QStringList() << "*.so" << "*.dll" << "*.dylib", QDir::Files);
+
+  const QRegularExpression rx(QStringLiteral("^libgf_mod_.+$"));
+
+  for (const auto& info : entries) {
+    if (rx.match(info.fileName()).hasMatch()) {
+      modules.insert(info.absoluteFilePath(), integrated);
+    }
   }
-  return m;
+
+  return modules;
 }
 
 auto LoadIntegratedMods() -> QMap<QString, bool> {
-  const auto module_path =
-      GlobalSettingStation::GetInstance().GetIntegratedModulePath();
+  const auto module_path = GpgFrontend::GlobalSettingStation::GetInstance()
+                               .GetIntegratedModulePath();
   LOG_I() << "loading integrated modules from path:" << module_path;
 
   if (!QDir(module_path).exists()) {
@@ -74,6 +85,10 @@ auto LoadExternalMods() -> QMap<QString, bool> {
 
   return SearchModuleFromPath(mods_path, false);
 }
+
+}  // namespace
+
+namespace GpgFrontend::Module {
 
 void LoadGpgFrontendModules(ModuleInitArgs) {
   // give user ability to give up all modules

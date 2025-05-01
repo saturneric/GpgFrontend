@@ -488,7 +488,7 @@ if(BUILD_APP_FOR_PACKAGE)
   set(CPACK_PACKAGE_HOMEPAGE_URL "https://gpgfrontend.bktus.com")
 
   set(CPACK_PACKAGE_FILE_NAME "${APP_NAME_LOWER}-v${PROJECT_VERSION}")
-  set(CPACK_GENERATOR "RPM;DEB;Bundle")
+  set(CPACK_GENERATOR "RPM;DEB")
 
   #
   # RPM Settings
@@ -521,20 +521,6 @@ if(BUILD_APP_FOR_PACKAGE)
   set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "${CPACK_PACKAGE_HOMEPAGE_URL}")
   set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "${CPACK_PACKAGE_DESCRIPTION}")
   set(CPACK_DEBIAN_PACKAGE_LICENSE "GPLv3")
-
-  #
-  # macOS Bundle Settings
-  #
-  set(CPACK_BUNDLE_NAME "${APP_NAME}")
-  set(CPACK_BUNDLE_PLIST "${CMAKE_SOURCE_DIR}/resource/plist/MacOSXBundleInfo.plist.in")
-  set(CPACK_BUNDLE_ICON "${CMAKE_SOURCE_DIR}/resource/lfs/icns/GpgFrontend.icns")
-
-  if(GPGFRONTEND_XCODE_ENABLE_SANDBOX)
-    message(STATUS "Build Application With App Sandbox")
-    set(CPACK_BUNDLE_APPLE_ENTITLEMENTS "${CMAKE_SOURCE_DIR}/resource/entitlements/GpgFrontend.entitlements")
-  endif()
-
-  set(CPACK_BUNDLE_APPLE_CERT_APP "${GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY}")
 
   #
   # Install scripts
