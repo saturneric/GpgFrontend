@@ -73,11 +73,11 @@ jobs:
       - name: Codesign Configuration (macOS)
         run: |
           CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-          PP_PATH=$RUNNER_TEMP/${{secrets.GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID}}.provisionprofile
+          PP_PATH=$RUNNER_TEMP/${{secrets.GPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID}}.provisionprofile
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
           echo -n "${{secrets.MACOS_CERTIFICATE}}" | base64 --decode -o $CERTIFICATE_PATH
-          echo -n "${{secrets.GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_DATA}}" | base64 --decode -o $PP_PATH
+          echo -n "${{secrets.GPGFRONTEND_XCODE_PROVISIONING_PROFILE_DATA}}" | base64 --decode -o $PP_PATH
 
           security create-keychain -p gpgfrontend build.keychain
           security default-keychain -s build.keychain
@@ -227,10 +227,10 @@ jobs:
           cmake -B ${{github.workspace}}/build -G Xcode \
            -DGPGFRONTEND_CONFIGURE_FOR_XCODE_BUILD=On \
            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-           -DGPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY="${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" \
+           -DGPGFRONTEND_XCODE_CODE_SIGN_IDENTITY="${{secrets.GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY}}" \
            -DGPGFRONTEND_XCODE_TEAM_ID="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
-           -DGPGFRONTEND_XOCDE_APPID="${{secrets.GPGFRONTEND_XOCDE_APPID}}" \
-           -DGPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID="${{secrets.GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID}}"
+           -DGPGFRONTEND_XCODE_APPID="${{secrets.GPGFRONTEND_XCODE_APPID}}" \
+           -DGPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID="${{secrets.GPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID}}"
           xcodebuild -list -project ${{github.workspace}}/build/GpgFrontend.xcodeproj
           cd ${{github.workspace}}/build/
           xcodebuild -scheme GpgFrontend -configuration "${{env.BUILD_TYPE}}"\
@@ -243,10 +243,10 @@ jobs:
 
       - name: Copy Modules into Bundle & Deploy Qt & Code Sign (macOS)
         run: |
-          codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" -f --deep --options=runtime --timestamp ${{github.workspace}}/modules/build/artifacts/modules/*
+          codesign -s "${{secrets.GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY}}" -f --deep --options=runtime --timestamp ${{github.workspace}}/modules/build/artifacts/modules/*
           cmake -E copy_directory ${{github.workspace}}/modules/build/artifacts/modules ${{github.workspace}}/build/package/GpgFrontend.app/Contents/Modules
           macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app -verbose=2 -appstore-compliant -always-overwrite
-          codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" -f --deep --options=runtime --timestamp ${{github.workspace}}/build/package/GpgFrontend.app
+          codesign -s "${{secrets.GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY}}" -f --deep --options=runtime --timestamp ${{github.workspace}}/build/package/GpgFrontend.app
         if: runner.os == 'macOS'
 
       - name: Package & Sign App Bundle (macOS)
@@ -256,7 +256,7 @@ jobs:
           hdiutil create ${{github.workspace}}/build/tmp.dmg -ov \
             -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/package/
           mkdir ${{github.workspace}}/build/upload-artifact
-          create-dmg --codesign "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" --volicon "${{github.workspace}}/resource/lfs/icns/GpgFrontend.icns" --volname GpgFrontend --app-drop-link 600 185 --window-size 800 400 ${{github.workspace}}/build/upload-artifact/GpgFrontend.dmg ${{github.workspace}}/build/package/GpgFrontend.app
+          create-dmg --codesign "${{secrets.GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY}}" --volicon "${{github.workspace}}/resource/lfs/icns/GpgFrontend.icns" --volname GpgFrontend --app-drop-link 600 185 --window-size 800 400 ${{github.workspace}}/build/upload-artifact/GpgFrontend.dmg ${{github.workspace}}/build/package/GpgFrontend.app
           mv ${{github.workspace}}/build/upload-artifact/GpgFrontend.dmg \
             ${{github.workspace}}/build/upload-artifact/GpgFrontend-${{matrix.os}}-${{env.sha_short}}.dmg
           mv ${{github.workspace}}/build/GpgFrontend.app.zip \

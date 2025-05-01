@@ -11,11 +11,11 @@
 	<key>signingStyle</key>
 	<string>automatic</string>
 	<key>signingCertificate</key>
-	<string>@GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY@</string>
+	<string>@GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY@</string>
 	<key>provisioningProfiles</key>
 	<dict>
-		<key>@GPGFRONTEND_XOCDE_APPID@</key>
-		<string>@GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID@</string>
+		<key>@GPGFRONTEND_XCODE_APPID@</key>
+		<string>@GPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID@</string>
 	</dict>
 </dict>
 </plist>

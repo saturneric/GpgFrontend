@@ -28,6 +28,9 @@
 
 #include "GlobalSettingStation.h"
 
+#include "GpgFrontendBuildInstallInfo.h"
+
+//
 #include "core/module/ModuleManager.h"
 #include "core/utils/FilesystemUtils.h"
 
@@ -157,11 +160,11 @@ class GlobalSettingStation::Impl {
 #if defined(__linux__)
     // AppImage
     if (!qEnvironmentVariable("APPIMAGE").isEmpty()) {
-      return qEnvironmentVariable("APPDIR") + "/usr/modules";
+      return qEnvironmentVariable("APPDIR") + "/usr/lib/modules";
     }
     // Flatpak
     if (!qEnvironmentVariable("container").isEmpty()) {
-      return "/app/modules";
+      return "/app/lib/gpgfrontend/modules";
     }
 #endif
 
@@ -182,6 +185,12 @@ class GlobalSettingStation::Impl {
 #endif
 
 #endif
+
+    // Package or Install
+    auto module_install_path = QString(APP_LIB_PATH) + "/gpgfrontend/modules";
+    if (QFileInfo(module_install_path).exists()) {
+      return module_install_path;
+    }
 
     return exec_binary_path + "/modules";
   }

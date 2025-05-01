@@ -68,17 +68,21 @@ set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_SOURCE_DIR}/gpgfrontend.rc")
 set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE_DIR}/gpgfrontend.ico)
 set(RESOURCE_FILES ${CMAKE_SOURCE_DIR}/gpgfrontend.qrc ${APP_ICON_RESOURCE_WINDOWS} ${QON_QM_FILES})
 
+# rpath
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
   if(MINGW)
-    add_executable(${AppName} WIN32 ${APP_SOURCE} ${RESOURCE_FILES})
+    add_executable(${APP_NAME} WIN32 ${APP_SOURCE} ${RESOURCE_FILES})
   elseif(APPLE AND XCODE_BUILD)
     # standard app bundle packing
-    add_executable(${AppName} MACOSX_BUNDLE ${GPGFRONTEND_MACOS_ICON} ${APP_SOURCE} ${RESOURCE_FILES})
+    add_executable(${APP_NAME} MACOSX_BUNDLE ${GPGFRONTEND_MACOS_ICON} ${APP_SOURCE} ${RESOURCE_FILES})
 
-    set_target_properties(${AppName} PROPERTIES
+    set_target_properties(${APP_NAME} PROPERTIES
       BUNDLE True
       MACOSX_BUNDLE_GUI_IDENTIFIER com.bktus.gpgfrontend
-      MACOSX_BUNDLE_BUNDLE_NAME ${AppName}
+      MACOSX_BUNDLE_BUNDLE_NAME ${APP_NAME}
       MACOSX_BUNDLE_LONG_VERSION_STRING ${BUILD_VERSION}
       MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
       MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
@@ -88,36 +92,36 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
       MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/resource/plist/MacOSXBundleInfo.plist.in)
 
     # option for sandbox mode, still under test
-    if(GPGFRONTEND_XOCDE_ENABLE_SANDBOX)
+    if(GPGFRONTEND_XCODE_ENABLE_SANDBOX)
       message(STATUS "Build Application With App Sandbox")
       set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "Yes")
-      add_custom_command(TARGET ${AppName} POST_BUILD
-        COMMAND /bin/cp -rf ${CMAKE_SOURCE_DIR}/resource/lfs/macOS/GnuPG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${AppName}.app/Contents/
+      add_custom_command(TARGET ${APP_NAME} POST_BUILD
+        COMMAND /bin/cp -rf ${CMAKE_SOURCE_DIR}/resource/lfs/macOS/GnuPG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${APP_NAME}.app/Contents/
         WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-        COMMENT "Copying Buddled GnuPG into App Bundle Resource")
-      set_target_properties(${AppName} PROPERTIES
+        COMMENT "Copying Bundle GnuPG into App Bundle Resource")
+      set_target_properties(${APP_NAME} PROPERTIES
         XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_SOURCE_DIR}/resource/entitlements/GpgFrontend.entitlements")
     else()
       message(STATUS "Build Application Without App Sandbox")
       set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "No")
     endif()
 
-    set_target_properties(${AppName} PROPERTIES
+    set_target_properties(${APP_NAME} PROPERTIES
       XCODE_ATTRIBUTE_INSTALL_PATH "$(LOCAL_APPS_DIR)"
       XCODE_ATTRIBUTE_SKIP_INSTALL "No"
       XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--deep --entitlements ${CMAKE_SOURCE_DIR}/resource/plist/entitlement.plist"
       XCODE_ATTRIBUTE_ENABLE_APP_SANDBOX "${CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX}"
       XCODE_ATTRIBUTE_ENABLE_HARDENED_RUNTIME "Yes"
-      XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}")
+      XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY}")
   else()
-    add_executable(${AppName} ${APP_SOURCE} ${RESOURCE_FILES})
+    add_executable(${APP_NAME} ${APP_SOURCE} ${RESOURCE_FILES})
   endif()
 else()
-  add_executable(${AppName} ${APP_SOURCE} ${RESOURCE_FILES})
+  add_executable(${APP_NAME} ${APP_SOURCE} ${RESOURCE_FILES})
 endif()
 
 # using c++ standard 17
-target_compile_features(${AppName} PUBLIC cxx_std_17)
+target_compile_features(${APP_NAME} PUBLIC cxx_std_17)
 
 # Set Resource Output Path
 if(${CMAKE_BUILD_TYPE} STREQUAL "Release")
@@ -316,16 +320,16 @@ if(MINGW)
 endif()
 
 # link options for GpgFrontend
-target_link_libraries(${AppName} gpgfrontend_core gpgfrontend_ui gpgfrontend_test)
+target_link_libraries(${APP_NAME} gpgfrontend_core gpgfrontend_ui gpgfrontend_test)
 
 if(MINGW)
   message(STATUS "Link Application Library For MINGW")
-  target_link_libraries(${AppName} crypto)
+  target_link_libraries(${APP_NAME} crypto)
 elseif(APPLE)
   message(STATUS "Link Application Library For macOS")
 else()
   message(STATUS "Link Application Library For Linux")
-  target_link_libraries(${AppName} crypto pthread)
+  target_link_libraries(${APP_NAME} crypto pthread)
 endif()
 
 # add i18n support
@@ -371,14 +375,14 @@ if(GPGFRONTEND_QT5_BUILD)
   qt5_add_resources(GF_I18N_RESOURCES ${QT_QM_TRANSLATIONS_RESOURCE_FILE})
 
   message(STATUS "GF_I18N_RESOURCES ${GF_I18N_RESOURCES}")
-  target_sources(${AppName} PRIVATE ${GF_I18N_RESOURCES})
+  target_sources(${APP_NAME} PRIVATE ${GF_I18N_RESOURCES})
 else()
   add_custom_target(gftranslations ALL)
 
   qt_add_lrelease(gftranslations
     TS_FILES ${TS_FILES}
     QM_FILES_OUTPUT_VARIABLE GF_TRANSLATIONS_QM)
-  qt_add_resources(${AppName} "gftranslations"
+  qt_add_resources(${APP_NAME} "gftranslations"
     PREFIX "/i18n"
     BASE ${CMAKE_CURRENT_BINARY_DIR}
     FILES ${GF_TRANSLATIONS_QM})
@@ -390,14 +394,18 @@ else()
   qt_add_lrelease(qttranslations
     TS_FILES ${QT_TRANSLATIONS_TS}
     QM_FILES_OUTPUT_VARIABLE QT_TRANSLATIONS_QM)
-  qt_add_resources(${AppName} "qttranslations"
+  qt_add_resources(${APP_NAME} "qttranslations"
     PREFIX "/i18n_qt"
     BASE ${CMAKE_CURRENT_BINARY_DIR}
     FILES ${QT_TRANSLATIONS_QM})
 endif()
 
 include(GNUInstallDirs)
-include(CPack)
+
+#
+# Install information read by application
+#
+configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h @ONLY)
 
 #
 # Install generated libraries and application
@@ -408,7 +416,7 @@ set(GPGFRONTEND_INSTALL_LIBRARIES
   gpgfrontend_test
   gpgfrontend_module_sdk)
 
-install(TARGETS ${AppName} ${GPGFRONTEND_INSTALL_LIBRARIES}
+install(TARGETS ${APP_NAME} ${GPGFRONTEND_INSTALL_LIBRARIES}
   EXPORT GpgFrontendTargets
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -461,7 +469,7 @@ endforeach()
 
 # Building linux package on linux (DEB or RPM)
 if(BUILD_APP_FOR_PACKAGE)
-  set(CPACK_PACKAGE_NAME "GpgFrontend")
+  set(CPACK_PACKAGE_NAME "${APP_NAME_LOWER}")
   set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
   set(CPACK_PACKAGE_RELEASE "1")
   set(CPACK_PACKAGE_CONTACT "eric@bktus.com")
@@ -470,6 +478,7 @@ if(BUILD_APP_FOR_PACKAGE)
   set(CPACK_PACKAGE_VENDOR "Saturneric")
   set(CPACK_PACKAGE_HOMEPAGE_URL "https://gpgfrontend.bktus.com")
 
+  set(CPACK_PACKAGE_FILE_NAME "${APP_NAME_LOWER}-v${PROJECT_VERSION}")
   set(CPACK_GENERATOR "RPM;DEB")
 
   #
@@ -519,4 +528,6 @@ if(BUILD_APP_FOR_PACKAGE)
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
   file(CHMOD "${CMAKE_BINARY_DIR}/rpm-post-uninstall.sh"
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+
+  include(CPack)
 endif()

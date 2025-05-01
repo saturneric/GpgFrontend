@@ -64,10 +64,10 @@ option(GPGFRONTEND_BUILD_MODULES "Build Modules" ON)
 
 # xcode build options
 option(GPGFRONTEND_XCODE_TEAM_ID "GpgFrontend Apple Team ID" "NONE")
-option(GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY "GpgFrontend Signing Certificate" "NONE")
-option(GPGFRONTEND_XOCDE_APPID "GpgFrontend Apple AppID" "NONE")
-option(GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID "GpgFrontend ProvisioningProfile UUID" "NONE")
-option(GPGFRONTEND_XOCDE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
+option(GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY "GpgFrontend Signing Certificate" "NONE")
+option(GPGFRONTEND_XCODE_APPID "GpgFrontend Apple AppID" "NONE")
+option(GPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID "GpgFrontend ProvisioningProfile UUID" "NONE")
+option(GPGFRONTEND_XCODE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
 
 if(GPGFRONTEND_BUILD_APP_IMAGE)
   set(BUILD_APP_IMAGE 1)
@@ -173,7 +173,13 @@ if(GPGFRONTEND_ENABLE_ASAN)
   set(ENABLE_ASAN 1)
 endif()
 
-set(AppName GpgFrontend)
+if(LINUX)
+  string(TOLOWER "${CMAKE_PROJECT_NAME}" APP_NAME)
+else()
+  set(APP_NAME "${CMAKE_PROJECT_NAME}")
+endif()
+
+string(TOLOWER "${APP_NAME}" APP_NAME_LOWER)
 
 # Get Git Information
 set(GIT_COMMIT_HASH "")
@@ -337,7 +343,6 @@ add_subdirectory(third_party) # source code
 # Set build information
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h @ONLY)
-configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/src/sdk/GFSDKBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/sdk/GFSDKBuildInfo.h @ONLY)
 
 if(APPLE)
@@ -379,8 +384,8 @@ else()
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts)
 endif()
 
-add_subdirectory(src)
-
 if(BUILD_MODULES)
   add_subdirectory(modules)
 endif()
+
+add_subdirectory(src)
