@@ -79,11 +79,11 @@ jobs:
         run: |
           mkdir ${{github.workspace}}/build/final-artifact
           cd ${{github.workspace}}/build/final-artifact
-          wget -c -nv https://ftp.bktus.com/linuxdeployqt/linuxdeployqt-01052025-x86_64.AppImage
-          chmod u+x linuxdeployqt-continuous-x86_64.AppImage
+          wget -O linuxdeployqt.AppImage -c -nv https://ftp.bktus.com/linuxdeployqt/linuxdeployqt-01052025-x86_64.AppImage
+          chmod u+x linuxdeployqt.AppImage
           mkdir -p ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6
           touch ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6/copyright
-          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines,platforms/libqoffscreen.so -appimage -unsupported-allow-new-glibc
+          ./linuxdeployqt.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines,platforms/libqoffscreen.so -appimage -unsupported-allow-new-glibc
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
 
