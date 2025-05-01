@@ -306,7 +306,9 @@ jobs:
           cp TRANSLATORS build/artifacts/
           cp COPYING build/artifacts/
           cp gpgfrontend.ico build/artifacts/bin/
+          rm -rf build/artifacts/bin/*.a
           rm -rf build/artifacts/bin/modules/*.a
+          mv build/artifacts/bin/modules build/artifacts/modules
           touch build/artifacts/bin/PORTABLE.txt
           cd build
           windeployqt-qt6 --no-translations --force ./artifacts/bin/libgf_core.dll

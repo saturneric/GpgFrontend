@@ -170,13 +170,7 @@ class GlobalSettingStation::Impl {
 #endif
 
 #if defined(_WIN32) || defined(WIN32)
-
-#ifdef NDEBUG
     return exec_binary_path + "/../modules";
-#else
-    return exec_binary_path + "/../modules/bin";
-#endif
-
 #endif
 
 #if defined(__APPLE__) && defined(__MACH__)
