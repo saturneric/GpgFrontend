@@ -56,9 +56,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # general build options
 option(GPGFRONTEND_QT5_BUILD "Swith to Qt5 building mode" OFF)
 option(GPGFRONTEND_BUILD_APP_FOR_PACKAGE "Allow generating an installable package(DEB or RPM)." OFF)
-option(GPGFRONTEND_ENABLE_ASAN "Enable ASAN" OFF)
+option(GPGFRONTEND_ENABLE_ASAN "Enable ASAN for memory testing" OFF)
 option(GPGFRONTEND_BUILD_APP_IMAGE "Build AppImage" OFF)
 option(GPGFRONTEND_BUILD_MODULES "Build Modules" ON)
+option(GPGFRONTEND_BUILD_STRIP_RPATH "Strip RPATH from binaries for packaging" OFF)
 
 # xcode build options
 option(GPGFRONTEND_XCODE_TEAM_ID "GpgFrontend Apple Team ID" "NONE")
@@ -68,7 +69,7 @@ option(GPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID "GpgFrontend ProvisioningProf
 option(GPGFRONTEND_XCODE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
 
 # check options
-option(GPGFRONTEND_CHECK_RELEASE_COMMIT_HASH "Enable checking on commit hash from the GitHub release" OFF)
+option(GPGFRONTEND_CHECK_RELEASE_COMMIT_HASH "Enable checking on commit hash from the GitHub releases" OFF)
 
 if(GPGFRONTEND_BUILD_APP_IMAGE)
   set(BUILD_APP_IMAGE 1)
@@ -76,6 +77,7 @@ endif()
 
 if(GPGFRONTEND_BUILD_APP_FOR_PACKAGE)
   set(BUILD_APP_FOR_PACKAGE 1)
+  set(BUILD_STRIP_RPATH 1) # suppose that it's a standard for deb or rpm packaging
 
   if(NOT DEFINED CMAKE_INSTALL_PREFIX OR CMAKE_INSTALL_PREFIX STREQUAL "")
     if(BUILD_FOR_PACKAGING)
@@ -86,7 +88,6 @@ if(GPGFRONTEND_BUILD_APP_FOR_PACKAGE)
   endif()
 
   set(PACKAGING_INSTALL_PREFIX "/usr" CACHE PATH "Prefix by packaging")
-  set(CPACK_PACKAGING_INSTALL_PREFIX "${PACKAGING_INSTALL_PREFIX}")
 endif()
 
 if(GPGFRONTEND_BUILD_MODULES)
@@ -97,6 +98,12 @@ if(GPGFRONTEND_CHECK_RELEASE_COMMIT_HASH)
   set(CHECK_RELEASE_COMMIT_HASH 1)
 else()
   set(CHECK_RELEASE_COMMIT_HASH 0)
+endif()
+
+if(GPGFRONTEND_BUILD_STRIP_RPATH)
+  set(BUILD_STRIP_RPATH 1)
+else()
+  set(BUILD_STRIP_RPATH 0)
 endif()
 
 # C++
@@ -394,13 +401,19 @@ else()
 endif()
 
 # rpath
-if(XCODE_BUILD)
-  set(CMAKE_MACOSX_RPATH TRUE)
-  set(CMAKE_INSTALL_RPATH "@executable_path/../Frameworks")
+if(BUILD_STRIP_RPATH)
+  set(CMAKE_SKIP_INSTALL_RPATH TRUE)
+  unset(CMAKE_INSTALL_RPATH CACHE)
+  set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 else()
-  set(CMAKE_SKIP_INSTALL_RPATH FALSE)
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+  if(XCODE_BUILD)
+    set(CMAKE_MACOSX_RPATH TRUE)
+    set(CMAKE_INSTALL_RPATH "@executable_path/../Frameworks")
+  else()
+    set(CMAKE_SKIP_INSTALL_RPATH FALSE)
+    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+  endif()
 endif()
 
 # modules are only for qt6
