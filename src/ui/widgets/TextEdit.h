@@ -59,7 +59,7 @@ class TextEdit : public QWidget {
    * @return \li false, if the close event should be aborted.
    *         \li true, otherwise
    */
-  auto MaybeSaveAnyTab() -> bool;
+  void MaybeSaveAnyTabAsync(const std::function<void(bool)>& callback);
 
   /**
    * @brief
@@ -121,10 +121,15 @@ class TextEdit : public QWidget {
    */
   [[nodiscard]] auto CurPageFileTreeView() const -> FilePage*;
 
+  [[nodiscard]] auto IsCloseCheckInProgress() const -> bool;
+
+  void SetCloseCheckInProgress(bool s);
+
  public slots:
 
   /**
-   * @details Insert a ">" at the beginning of every line of current textedit.
+   * @details Insert a ">" at the beginning of every line of current
+   * textedit.
    */
   void SlotQuote() const;
 
@@ -332,6 +337,7 @@ class TextEdit : public QWidget {
 
  private:
   TextEditTabWidget* tab_widget_;  ///< widget containing the tabs of the editor
+  bool is_close_check_in_progress_ = false;
 
   /**
    * @details return just a filename stripped of a whole path

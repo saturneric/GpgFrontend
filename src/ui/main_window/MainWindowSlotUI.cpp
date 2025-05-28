@@ -109,18 +109,20 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
 void MainWindow::slot_open_settings_dialog() {
   auto* dialog = new SettingsDialog(this);
 
-  connect(dialog, &SettingsDialog::finished, this, [&]() -> void {
+  connect(dialog, &SettingsDialog::finished, this, [this]() {
     AppearanceSO appearance(SettingsObject("general_settings_state"));
-
     restore_settings();
     // restart main window if necessary
     if (restart_mode_ != kNonRestartCode) {
-      if (edit_->MaybeSaveAnyTab()) {
-        // clear cache of unsaved page
-        CacheManager::GetInstance().SaveDurableCache(
-            "editor_unsaved_pages", QJsonDocument(QJsonArray()), true);
-        emit SignalRestartApplication(restart_mode_);
-      }
+      // async
+      edit_->MaybeSaveAnyTabAsync([this](bool ok) {
+        if (ok) {
+          // clear cache of unsaved page
+          CacheManager::GetInstance().SaveDurableCache(
+              "editor_unsaved_pages", QJsonDocument(QJsonArray()), true);
+          emit SignalRestartApplication(restart_mode_);
+        }
+      });
     }
   });
 }

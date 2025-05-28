@@ -342,16 +342,18 @@ auto TextEdit::maybe_save_current_tab(bool askToSave) -> bool {
   return true;
 }
 
-auto TextEdit::MaybeSaveAnyTab() -> bool {
+void TextEdit::MaybeSaveAnyTabAsync(const std::function<void(bool)>& callback) {
   // get a list of all unsaved documents and their tab ids
-  QHash<int, QString> const unsaved_docs = this->UnsavedDocuments();
+  auto const unsaved_docs = this->UnsavedDocuments();
 
   /*
    * no unsaved documents, so app can be closed
    */
   if (unsaved_docs.empty()) {
-    return true;
+    callback(true);
+    return;
   }
+
   /*
    * only 1 unsaved document -> set modified tab as current
    * and show normal unsaved doc dialog
@@ -359,39 +361,35 @@ auto TextEdit::MaybeSaveAnyTab() -> bool {
   if (unsaved_docs.size() == 1) {
     int const modified_tab = unsaved_docs.keys().at(0);
     tab_widget_->setCurrentIndex(modified_tab);
-    return maybe_save_current_tab(true);
+    callback(maybe_save_current_tab(true));
+    return;
   }
 
   /*
    * more than one unsaved documents
    */
-  if (unsaved_docs.size() > 1) {
-    QHashIterator<int, QString> const i(unsaved_docs);
 
-    QuitDialog* dialog;
-    dialog = new QuitDialog(
-        this->parentWidget() != nullptr ? this->parentWidget() : this,
-        unsaved_docs);
-    int const result = dialog->exec();
+  auto* dialog = new QuitDialog(
+      this->parentWidget() != nullptr ? this->parentWidget() : this,
+      unsaved_docs);
 
-    // if result is QDialog::Rejected, discard or cancel was clicked
-    if (result == QDialog::Rejected) {
-      // return true, if discard is clicked, so app can be closed
-      return dialog->IsDiscarded();
-    }
+  connect(dialog, &QuitDialog::SignalDiscard, this, [=]() { callback(true); });
 
-    bool all_saved = true;
-    QContainer<int> const tab_ids_to_save = dialog->GetTabIdsToSave();
-    for (const auto& tab_id : tab_ids_to_save) {
-      tab_widget_->setCurrentIndex(tab_id);
-      if (!maybe_save_current_tab(false)) {
-        all_saved = false;
-      }
-    }
-    return all_saved;
-  }
-  // code should never reach this statement
-  return false;
+  connect(dialog, &QuitDialog::SignalSave, this,
+          [=](const QContainer<int>& ids) {
+            bool all_saved = true;
+            for (const auto& tab_id : ids) {
+              tab_widget_->setCurrentIndex(tab_id);
+              if (!maybe_save_current_tab(false)) {
+                all_saved = false;
+              }
+            }
+            callback(all_saved);
+          });
+
+  connect(dialog, &QuitDialog::SignalCancel, this, [=]() { callback(false); });
+
+  dialog->show();
 }
 
 void TextEdit::SlotSetText2CurEMailPage(const QString& text) {
@@ -430,8 +428,8 @@ void TextEdit::SlotQuote() const {
 
   QTextCursor cursor(CurTextPage()->GetTextPage()->document());
 
-  // beginEditBlock and endEditBlock() let operation look like single undo/redo
-  // operation
+  // beginEditBlock and endEditBlock() let operation look like single
+  // undo/redo operation
   cursor.beginEditBlock();
   cursor.setPosition(0);
   cursor.insertText("> ");
@@ -665,5 +663,13 @@ void TextEdit::slot_restore_unsaved_tabs() {
 
     SlotNewTabWithContent(title, content);
   }
+}
+
+auto TextEdit::IsCloseCheckInProgress() const -> bool {
+  return is_close_check_in_progress_;
+}
+
+void TextEdit::SetCloseCheckInProgress(bool s) {
+  is_close_check_in_progress_ = s;
 }
 }  // namespace GpgFrontend::UI

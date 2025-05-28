@@ -51,31 +51,22 @@ class QuitDialog : public GeneralDialog {
   QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs);
 
   /**
-   * @brief
-   *
-   * @return true
-   * @return false
-   */
-  [[nodiscard]] auto IsDiscarded() const -> bool;
-
-  /**
    * @brief Get the Tab Ids To Save object
    *
    * @return QContainer<int>
    */
   auto GetTabIdsToSave() -> QContainer<int>;
 
- private slots:
+ signals:
 
-  /**
-   * @brief
-   *
-   */
-  void slot_my_discard();
+  void SignalDiscard();
+
+  void SignalSave(const QContainer<int>& tab_ids);
+
+  void SignalCancel();
 
  private:
-  bool discarded_;            ///<
-  QTableWidget* m_fileList_;  ///<
+  QTableWidget* file_list_;  ///<
 };
 
 }  // namespace GpgFrontend::UI
