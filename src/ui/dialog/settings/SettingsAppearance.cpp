@@ -163,6 +163,9 @@ void AppearanceTab::SetSettings() {
                                      GpgOperation::kENCRYPT_SIGN) != 0);
   ui_->decrVerifyCheckBox->setChecked((appearance.tool_bar_crypto_operas_type &
                                        GpgOperation::kDECRYPT_VERIFY) != 0);
+  ui_->symmetricEncrCheckBox->setChecked(
+      (appearance.tool_bar_crypto_operas_type &
+       GpgOperation::kSYMMETRIC_ENCRYPT) != 0);
 }
 
 void AppearanceTab::ApplySettings() {
@@ -221,6 +224,8 @@ void AppearanceTab::ApplySettings() {
       ui_->encrSignCheckBox->isChecked() ? kENCRYPT_SIGN : kNONE;
   appearance.tool_bar_crypto_operas_type |=
       ui_->decrVerifyCheckBox->isChecked() ? kDECRYPT_VERIFY : kNONE;
+  appearance.tool_bar_crypto_operas_type |=
+      ui_->symmetricEncrCheckBox->isChecked() ? kSYMMETRIC_ENCRYPT : kNONE;
 
   general_settings_state.Store(appearance.ToJson());
 

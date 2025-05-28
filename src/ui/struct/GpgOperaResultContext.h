@@ -77,7 +77,7 @@ struct GpgOperaContext {
 };
 
 auto GetGpgOperaContextFromBasement(
-    const QSharedPointer<GpgOperaContextBasement>& base,
-    int category) -> QSharedPointer<GpgOperaContext>;
+    const QSharedPointer<GpgOperaContextBasement>& base, int category)
+    -> QSharedPointer<GpgOperaContext>;
 
 }  // namespace GpgFrontend::UI

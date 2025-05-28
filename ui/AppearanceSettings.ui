@@ -192,14 +192,14 @@
            </widget>
           </item>
           <item>
-           <layout class="QGridLayout" name="gridLayout_3" rowstretch="0,0,0,0,0,0,0" columnstretch="0,0" rowminimumheight="0,0,0,0,0,0,0">
+           <layout class="QGridLayout" name="gridLayout_3" rowstretch="0,0,0,0,0,0,0,0" columnstretch="0,0" rowminimumheight="0,0,0,0,0,0,0,0">
             <property name="sizeConstraint">
              <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
             </property>
-            <item row="3" column="1">
-             <widget class="QCheckBox" name="verifyCheckBox">
+            <item row="0" column="1">
+             <widget class="QCheckBox" name="decrCheckBox">
               <property name="text">
-               <string>Verify</string>
+               <string>Decrypt</string>
               </property>
              </widget>
             </item>
@@ -210,10 +210,17 @@
               </property>
              </widget>
             </item>
-            <item row="5" column="0" colspan="2">
-             <widget class="QCheckBox" name="encrSignCheckBox">
+            <item row="3" column="0">
+             <widget class="QCheckBox" name="signCheckBox">
               <property name="text">
-               <string>Encrypt Sign</string>
+               <string>Sign</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QCheckBox" name="verifyCheckBox">
+              <property name="text">
+               <string>Verify</string>
               </property>
              </widget>
             </item>
@@ -224,17 +231,17 @@
               </property>
              </widget>
             </item>
-            <item row="3" column="0">
-             <widget class="QCheckBox" name="signCheckBox">
+            <item row="5" column="0" colspan="2">
+             <widget class="QCheckBox" name="encrSignCheckBox">
               <property name="text">
-               <string>Sign</string>
+               <string>Encrypt Sign</string>
               </property>
              </widget>
             </item>
-            <item row="0" column="1">
-             <widget class="QCheckBox" name="decrCheckBox">
+            <item row="7" column="0" colspan="2">
+             <widget class="QCheckBox" name="symmetricEncrCheckBox">
               <property name="text">
-               <string>Decrypt</string>
+               <string>Sym. Encrypt</string>
               </property>
              </widget>
             </item>

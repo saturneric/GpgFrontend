@@ -181,6 +181,13 @@ void MainWindow::create_actions() {
   connect(verify_act_, &QAction::triggered, this,
           &MainWindow::SlotGeneralVerify);
 
+  sym_encrypt_act_ = create_action("symmetric_encryption", tr("Sym. Encrypt"),
+                                   ":/icons/symmetric_encryption.png",
+                                   tr("Encrypt Message (Symmetric)"),
+                                   {QKeySequence(Qt::CTRL | Qt::Key_E)});
+  connect(sym_encrypt_act_, &QAction::triggered, this,
+          &MainWindow::SlotGeneralEncrypt);
+
   /*
    * Key Menu
    */
@@ -449,6 +456,7 @@ void MainWindow::create_menus() {
   edit_menu_->addAction(open_settings_act_);
 
   crypt_menu_ = menuBar()->addMenu(tr("Crypt"));
+  crypt_menu_->addAction(sym_encrypt_act_);
   crypt_menu_->addAction(encrypt_act_);
   crypt_menu_->addAction(encrypt_sign_act_);
   crypt_menu_->addAction(decrypt_act_);

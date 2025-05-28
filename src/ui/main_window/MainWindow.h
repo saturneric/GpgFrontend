@@ -69,6 +69,7 @@ class MainWindow : public GeneralMainWindow {
     static constexpr OperationType kVerify = 1 << 3;
     static constexpr OperationType kEncryptAndSign = 1 << 4;
     static constexpr OperationType kDecryptAndVerify = 1 << 5;
+    static constexpr OperationType kSymmetricEncrypt = 1 << 6;
   };
 
   /**
@@ -719,6 +720,7 @@ class MainWindow : public GeneralMainWindow {
   QAction* print_act_{};                 ///<  Action to print
   QAction* close_tab_act_{};             ///<  Action to print
   QAction* quit_act_{};                  ///<  Action to quit application
+  QAction* sym_encrypt_act_{};           ///<  Action to symmetric encrypt text
   QAction* encrypt_act_{};               ///<  Action to encrypt text
   QAction* encrypt_sign_act_{};          ///<  Action to encrypt and sign text
   QAction* decrypt_verify_act_{};        ///<  Action to encrypt and sign text

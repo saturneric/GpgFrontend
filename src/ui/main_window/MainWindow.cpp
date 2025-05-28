@@ -221,6 +221,10 @@ void MainWindow::restore_settings() {
        GpgOperation::kDECRYPT_VERIFY) != 0) {
     crypt_tool_bar_->addAction(decrypt_verify_act_);
   }
+  if ((appearance.tool_bar_crypto_operas_type &
+       GpgOperation::kSYMMETRIC_ENCRYPT) != 0) {
+    crypt_tool_bar_->addAction(sym_encrypt_act_);
+  }
 
   icon_style_ = appearance.tool_bar_button_style;
   import_button_->setToolButtonStyle(icon_style_);

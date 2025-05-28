@@ -44,22 +44,15 @@ auto MainWindow::encrypt_operation_key_validate(
 
   // symmetric encryption
   if (keys.isEmpty()) {
-    auto ret = QMessageBox::information(
-        this, tr("Symmetric Encryption"),
-        tr("No Key Selected. Do you want to encrypt with a "
-           "symmetric cipher using a passphrase?"),
-        QMessageBox::Ok | QMessageBox::Cancel);
-    if (ret == QMessageBox::Cancel) return false;
-
     contexts->keys = {};
-  } else {
-    contexts->keys = check_keys_helper(
-        keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
-        tr("The selected keypair cannot be used for encryption."));
-    if (contexts->keys.empty()) return false;
+    return true;
   }
 
-  return true;
+  contexts->keys = check_keys_helper(
+      keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
+      tr("The selected keypair cannot be used for encryption."));
+
+  return !contexts->keys.empty();
 }
 
 auto MainWindow::sign_operation_key_validate(

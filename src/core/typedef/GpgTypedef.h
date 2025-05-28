@@ -60,7 +60,7 @@ using GpgOperaRunnable = std::function<GpgError(DataObjectPtr)>;
 using GpgOperationCallback = std::function<void(GpgError, DataObjectPtr)>;
 using GpgOperationFuture = std::future<std::tuple<GpgError, DataObjectPtr>>;
 
-enum GpgOperation {
+enum GpgOperation : uint16_t {
   kNONE = 0,
   kENCRYPT = 1 << 0,
   kDECRYPT = 1 << 1,
@@ -70,5 +70,6 @@ enum GpgOperation {
   kDECRYPT_VERIFY = 1 << 5,
   kAUTH = 1 << 6,
   kCERT = 1 << 7,
+  kSYMMETRIC_ENCRYPT = 1 << 8
 };
 }  // namespace GpgFrontend

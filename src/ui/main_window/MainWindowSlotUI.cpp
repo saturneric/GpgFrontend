@@ -85,6 +85,7 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
   encrypt_sign_act_->setDisabled(disable);
   decrypt_act_->setDisabled(disable);
   decrypt_verify_act_->setDisabled(disable);
+  sym_encrypt_act_->setDisabled(disable);
 
   redo_act_->setDisabled(disable);
   undo_act_->setDisabled(disable);
@@ -186,6 +187,7 @@ void MainWindow::slot_update_crypto_operations_menu(unsigned int mask) {
   encrypt_sign_act_->setDisabled(true);
   decrypt_act_->setDisabled(true);
   decrypt_verify_act_->setDisabled(true);
+  sym_encrypt_act_->setDisabled(true);
 
   // gnupg operations
   if ((opera_type & OperationMenu::kVerify) != 0U) {
@@ -205,6 +207,9 @@ void MainWindow::slot_update_crypto_operations_menu(unsigned int mask) {
   }
   if ((opera_type & OperationMenu::kDecryptAndVerify) != 0U) {
     decrypt_verify_act_->setDisabled(false);
+  }
+  if ((opera_type & OperationMenu::kSymmetricEncrypt) != 0U) {
+    sym_encrypt_act_->setDisabled(false);
   }
 }
 
@@ -375,6 +380,8 @@ void MainWindow::slot_update_operations_menu_by_checked_keys(
               OperationMenu::kSign);
 
   } else {
+    temp &= ~OperationMenu::kSymmetricEncrypt;
+
     for (const auto& key : keys) {
       if (key == nullptr || key->IsDisabled()) continue;
 
