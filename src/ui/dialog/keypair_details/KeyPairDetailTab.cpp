@@ -292,6 +292,8 @@ void KeyPairDetailTab::slot_query_key_publish_state() {
 
   const auto fpr = key_->Fingerprint();
 
+  QPointer<KeyPairDetailTab> self = this;
+
   Module::TriggerEvent(
       "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT",
       {
@@ -301,6 +303,9 @@ void KeyPairDetailTab::slot_query_key_publish_state() {
           Module::Event::Params p) {
         LOG_D() << "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT callback: " << i
                 << ei;
+
+        // avoid crash while outer dialog was already closed
+        if (!self) return;
 
         if (p["ret"] != "0" || !p["error_msg"].isEmpty()) {
           LOG_E() << "An error occurred trying to get data from key:" << fpr
@@ -312,7 +317,7 @@ void KeyPairDetailTab::slot_query_key_publish_state() {
                   << " from key server: " << key_data;
 
           if (!key_data.isEmpty()) {
-            slot_refresh_notice(
+            self->slot_refresh_notice(
                 ":/icons/publish.png",
                 tr("Notice: The public key has been published on "
                    "keys.openpgp.org."));
