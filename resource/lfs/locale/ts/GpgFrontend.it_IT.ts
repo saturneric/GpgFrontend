@@ -574,7 +574,7 @@
         <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="81"/>
         <source>ADSK (Additional Decryption Subkey) allows others to encrypt data for you without having access to your private key. You are only allow to check subkeys with encryption capability.</source>
         <translatorcomment>ADSK (Additional Decryption Subkey) consente ad altri di crittografare i dati per te senza avere accesso alla tua chiave privata. Puoi controllare solo le sottochiavi con capacità di crittografia.</translatorcomment>
-        <translation></translation>
+        <translation>ADSK (Additional Decryption Subkey) consente ad altri di crittografare i dati per te senza avere accesso alla tua chiave privata. Puoi controllare solo le sottochiavi con capacità di crittografia.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="96"/>
@@ -2379,42 +2379,43 @@ Queste chiavi non sono più disponibili. Vuoi rimuoverle dal gruppo?</translatio
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="283"/>
         <source>Cancel all checked keys in the current tab at once.</source>
-        <translation type="unfinished"></translation>
+        <translatorcomment>Annulla contemporaneamente tutti i tasti selezionati nella scheda corrente.</translatorcomment>
+        <translation></translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="286"/>
         <source>Check all keys in the current tab at once</source>
-        <translation type="unfinished"></translation>
+        <translation>Controlla tutte le chiavi nella scheda corrente contemporaneamente</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="288"/>
         <source>Column Type</source>
-        <translation type="unfinished"></translation>
+        <translation>Tipo di colonna</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="289"/>
         <source>Selected showed column type(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>La voce selezionata ha mostrato il tipo/i di colonna</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="290"/>
         <source>New Key Group</source>
-        <translation type="unfinished">Nuovo gruppo chiavi</translation>
+        <translation>Nuovo Gruppo Chiavi</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="291"/>
         <source>Create a new key group</source>
-        <translation type="unfinished"></translation>
+        <translation>Crea un nuovo gruppo di chiavi</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="292"/>
         <source>Key Databases</source>
-        <translation type="unfinished"></translation>
+        <translation>Database delle Chiavi</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="293"/>
         <source>Switch between Key Databases</source>
-        <translation type="unfinished"></translation>
+        <translation>Passa da un database di chiavi all&apos;altro</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="332"/>
@@ -2718,7 +2719,7 @@ Queste chiavi non sono più disponibili. Vuoi rimuoverle dal gruppo?</translatio
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="373"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="388"/>
         <source>Please check some keys before doing this operation.</source>
-        <translation>Si prega di controllare alcune chiavi prima di eseguire questa operazione.</translation>
+        <translation>Si prega di verificare alcune chiavi prima di eseguire questa operazione.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="380"/>
@@ -5939,7 +5940,7 @@ Se il problema persiste, prendere in considerazione la possibilità di richieder
         <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="44"/>
         <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="52"/>
         <source>Ultimate</source>
-        <translation>Ultimo</translation>
+        <translation>Assoluto</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="46"/>
@@ -7031,7 +7032,7 @@ Se il problema persiste, prendere in considerazione la possibilità di richieder
     <message>
         <location filename="../../../../src/core/model/GpgKey.cpp" line="80"/>
         <source>Ultimate</source>
-        <translation>Ultimo</translation>
+        <translation>Assoluto</translation>
     </message>
 </context>
 <context>
