@@ -109,8 +109,8 @@ auto CharArrayToQStringList(char **char_array, int size) -> QStringList;
 auto QStringListToCharArray(const QStringList &list) -> char **;
 
 template <typename T>
-inline auto ArrayToQList(T **pl_components,
-                         int size) -> GpgFrontend::QContainer<T> {
+inline auto ArrayToQList(T **pl_components, int size)
+    -> GpgFrontend::QContainer<T> {
   if (pl_components == nullptr || size <= 0) {
     return GpgFrontend::QContainer<T>();
   }

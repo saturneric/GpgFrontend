@@ -311,6 +311,13 @@ if(MINGW)
   endforeach()
 endif()
 
+if(SIGN_BUILT_BINARY)
+  qt_add_resources(${APP_NAME} "binaryvalidation"
+    PREFIX "/keys"
+    BASE "${CMAKE_BINARY_DIR}/keys"
+    FILES ${SIGN_PUBLIC_KEY})
+endif()
+
 # link options for GpgFrontend
 target_link_libraries(${APP_NAME} gf_core gf_ui gf_test)
 
@@ -374,6 +381,7 @@ else()
   qt_add_lrelease(gftranslations
     TS_FILES ${TS_FILES}
     QM_FILES_OUTPUT_VARIABLE GF_TRANSLATIONS_QM)
+
   qt_add_resources(${APP_NAME} "gftranslations"
     PREFIX "/i18n"
     BASE ${CMAKE_CURRENT_BINARY_DIR}

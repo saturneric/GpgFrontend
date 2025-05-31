@@ -38,6 +38,7 @@
 #include "core/utils/MemoryUtils.h"
 
 //
+#include "BinaryValidate.h"
 #include "app.h"
 #include "cmd.h"
 #include "init.h"
@@ -82,9 +83,21 @@ auto main(int argc, char* argv[]) -> int {
       {{"t", "test"}, "run all unit test cases"},
       {{"e", "environment"}, "show environment information"},
       {{"l", "log-level"}, "set log level (debug, info, warn, error)", "none"},
+      {{{}, "self-check"}, "check libraries and executables validity"},
   });
 
   parser.process(*ctx->GetApp());
+
+  if (parser.isSet("self-check")) {
+    if (!ValidateLibraries()) {
+      QMessageBox::critical(
+          nullptr, QObject::tr("Program self-test failed"),
+          QObject::tr("Some library files failed verification and the program "
+                      "cannot continue to run."),
+          QMessageBox::Ok);
+      return -1;
+    }
+  }
 
   if (parser.isSet("v")) {
     return GpgFrontend::PrintVersion();

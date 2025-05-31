@@ -40,6 +40,8 @@
 
 Q_LOGGING_CATEGORY(test, "test")
 
+auto GF_TEST_EXPORT GFTestValidateSymbol() -> int { return 0; }
+
 namespace GpgFrontend::Test {
 
 auto GenerateRandomString(size_t length) -> QString {

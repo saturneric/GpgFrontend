@@ -28,6 +28,10 @@
 
 #pragma once
 
+extern "C" {
+auto GF_TEST_EXPORT GFTestValidateSymbol() -> int;
+}
+
 // private declare area of test
 #ifdef GF_TEST_PRIVATE
 
