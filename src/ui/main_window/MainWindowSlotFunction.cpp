@@ -227,17 +227,21 @@ void MainWindow::slot_version_upgrade_notify() {
   auto is_need_upgrade = Module::RetrieveRTValueTypedOrDefault<>(
       kVersionCheckingModuleID, "version.need_upgrade", false);
 
-  auto is_current_a_withdrawn_version = Module::RetrieveRTValueTypedOrDefault<>(
-      kVersionCheckingModuleID, "version.current_a_withdrawn_version", false);
-
-  auto is_current_version_released = Module::RetrieveRTValueTypedOrDefault<>(
-      kVersionCheckingModuleID, "version.current_version_released", false);
+  auto is_current_version_publish_in_remote =
+      Module::RetrieveRTValueTypedOrDefault<>(
+          kVersionCheckingModuleID, "version.current_version_publish_in_remote",
+          false);
 
   auto latest_version = Module::RetrieveRTValueTypedOrDefault<>(
       kVersionCheckingModuleID, "version.latest_version", QString{});
 
   auto is_git_commit_hash_mismatch = Module::RetrieveRTValueTypedOrDefault<>(
       kVersionCheckingModuleID, "version.git_commit_hash_mismatch", false);
+
+  auto is_current_commit_hash_publish_in_remote =
+      Module::RetrieveRTValueTypedOrDefault<>(
+          kVersionCheckingModuleID,
+          "version.current_commit_hash_publish_in_remote", false);
 
   if (is_need_upgrade) {
     statusBar()->showMessage(
@@ -250,14 +254,14 @@ void MainWindow::slot_version_upgrade_notify() {
     connect(b, &QPushButton::clicked,
             [=]() { (new AboutDialog(tr("Update"), this))->show(); });
     statusBar()->addPermanentWidget(b);
-  } else if (is_current_a_withdrawn_version) {
+  } else if (!is_current_version_publish_in_remote) {
     auto response = QMessageBox::warning(
-        this, tr("Withdrawn Version"),
-        tr("This version(%1) may have been withdrawn by the developer due to "
-           "serious problems. Please stop using this version immediately and "
-           "download the latest stable version (%2) on the Github Releases "
-           "Page.")
-            .arg(latest_version)
+        this, tr("Unstable Version"),
+        tr("This version (%1) is not an official stable release. It may have "
+           "been withdrawn or is a beta build. "
+           "Please stop using this version immediately and download the latest "
+           "stable version (%2) from the GitHub Releases page.")
+            .arg(GetProjectVersion())
             .arg(latest_version),
         QMessageBox::Ok | QMessageBox::Open);
 
@@ -265,19 +269,6 @@ void MainWindow::slot_version_upgrade_notify() {
       QDesktopServices::openUrl(
           QUrl("https://github.com/saturneric/GpgFrontend/releases/latest"));
     }
-  } else if (!is_current_version_released) {
-    statusBar()->showMessage(
-        tr("This may be a BETA Version (Latest Stable Version: %1).")
-            .arg(latest_version),
-        30000);
-
-    auto* b = new QToolButton();
-    b->setToolButtonStyle(Qt::ToolButtonIconOnly);
-    b->setIcon(QIcon(":/icons/warning-filling.png"));
-    connect(b, &QPushButton::clicked,
-            [=]() { (new AboutDialog(tr("Update"), this))->show(); });
-    statusBar()->addPermanentWidget(b);
-
   } else if (is_git_commit_hash_mismatch && IsCheckReleaseCommitHash()) {
     QMessageBox::information(
         this, tr("Commit Hash Mismatch"),
@@ -285,6 +276,14 @@ void MainWindow::slot_version_upgrade_notify() {
            "release. This may indicate a modified or unofficial build. For "
            "security reasons, please verify your installation or download the "
            "official release from the Github Releases Page."),
+        QMessageBox::Ok);
+  } else if (!is_current_commit_hash_publish_in_remote) {
+    QMessageBox::information(
+        this, tr("Unverified Commit Hash"),
+        tr("The commit hash for this build was not found in the official "
+           "remote repository. This could indicate a modified or unofficial "
+           "build. For your security, please verify your installation or "
+           "download the official release from the GitHub Releases page."),
         QMessageBox::Ok);
   }
 }

@@ -301,7 +301,7 @@ void MainWindow::check_update_at_startup() {
               "version upgrade");
           this->slot_version_upgrade_notify();
         });
-    Module::TriggerEvent("CHECK_APPLICATION_VERSION");
+    Module::TriggerEvent("CHECK_APPLICATION_VERSION", {});
   }
 }
 

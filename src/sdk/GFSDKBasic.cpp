@@ -138,3 +138,7 @@ auto GF_SDK_EXPORT GFProjectGitCommitHash() -> const char* {
 auto GF_SDK_EXPORT GFIsFlatpakENV() -> bool {
   return GpgFrontend::IsFlatpakENV();
 }
+
+auto GF_SDK_EXPORT GFIsCheckReleaseCommitHash() -> bool {
+  return GpgFrontend::IsCheckReleaseCommitHash();
+}
