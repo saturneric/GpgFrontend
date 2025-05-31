@@ -33,8 +33,7 @@ function(register_library name out_var)
   add_library(${target_name} SHARED ${ARGN})
 
   set_target_properties(${target_name} PROPERTIES
-    VERSION ${PROJECT_VERSION}
-    SOVERSION ${PROJECT_VERSION_MAJOR})
+    VERSION ${PROJECT_VERSION})
 
   if(SIGN_BUILT_BINARY)
     add_custom_command(TARGET ${target_name} POST_BUILD

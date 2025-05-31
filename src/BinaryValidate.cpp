@@ -32,11 +32,9 @@
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 
-#include <QtSystemDetection>
-
 #include "test/GpgFrontendTest.h"
 
-#if defined(Q_OS_DARWIN) || defined(Q_OS_LINUX) || defined(Q_OS_UNIX)
+#if (defined(__APPLE__) && defined(__MACH__)) || defined(__linux__)
 
 #include <dlfcn.h>
 
@@ -54,7 +52,7 @@ auto GetLoadedLibraryPath(void *symbol_address) -> QString {
 
 }  // namespace
 
-#elif defined(Q_OS_WIN)
+#elif defined(_WIN32) || defined(WIN32)
 
 #include <windows.h>
 
