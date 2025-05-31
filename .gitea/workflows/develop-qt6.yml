@@ -75,7 +75,7 @@ jobs:
 
       - name: Build GpgFrontend
         run: |
-          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_APP_IMAGE=On
+          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_APP_IMAGE=On -DGPGFRONTEND_SIGN_BUILT_BINARY=On
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
 
       # - name: Setup tmate session

@@ -312,10 +312,38 @@ if(MINGW)
 endif()
 
 if(SIGN_BUILT_BINARY)
-  qt_add_resources(${APP_NAME} "binaryvalidation"
-    PREFIX "/keys"
-    BASE "${CMAKE_BINARY_DIR}/keys"
-    FILES ${SIGN_PUBLIC_KEY})
+  if(GPGFRONTEND_QT5_BUILD)
+    set(KEYS_QRC_FILE "${CMAKE_CURRENT_BINARY_DIR}/keys_resources.qrc")
+
+    file(WRITE ${KEYS_QRC_FILE}
+      "<!DOCTYPE RCC>\n"
+      "<RCC version=\"1.0\">\n"
+      "  <qresource prefix=\"/keys\">\n"
+    )
+
+    foreach(PUBKEY_FILE ${SIGN_PUBLIC_KEY})
+      get_filename_component(PUBKEY_FILENAME ${PUBKEY_FILE} NAME)
+      file(APPEND ${KEYS_QRC_FILE}
+        "    <file alias=\"${PUBKEY_FILENAME}\">${PUBKEY_FILE}</file>\n"
+      )
+    endforeach()
+
+    file(APPEND ${KEYS_QRC_FILE}
+      "  </qresource>\n"
+      "</RCC>\n"
+    )
+
+    qt5_add_resources(KEYS_RESOURCES ${KEYS_QRC_FILE})
+
+    target_sources(${APP_NAME} PRIVATE ${KEYS_RESOURCES})
+
+  else()
+    qt_add_resources(${APP_NAME} "binaryvalidation"
+      PREFIX "/keys"
+      BASE "${CMAKE_BINARY_DIR}/keys"
+      FILES ${SIGN_PUBLIC_KEY}
+    )
+  endif()
 endif()
 
 # link options for GpgFrontend
