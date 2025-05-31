@@ -259,7 +259,7 @@ jobs:
         run: |
           cd $(cygpath -u "${{github.workspace}}")
           mkdir build && cd build
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ..
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_SIGN_BUILT_BINARY=On ..
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
         if: runner.os == 'Windows'
 

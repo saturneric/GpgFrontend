@@ -72,7 +72,7 @@ jobs:
 
       - name: Build GpgFrontend
         run: |
-          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_APP_IMAGE=On -DGPGFRONTEND_QT5_BUILD=ON -DGPGFRONTEND_SIGN_BUILT_BINARY=On
+          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_APP_IMAGE=On -DGPGFRONTEND_QT5_BUILD=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
 
       - name: Package App Image
