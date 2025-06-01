@@ -88,15 +88,19 @@ auto main(int argc, char* argv[]) -> int {
 
   parser.process(*ctx->GetApp());
 
-  if (parser.isSet("self-check")) {
-    if (!ValidateLibraries()) {
-      QMessageBox::critical(
-          nullptr, QObject::tr("Program self-test failed"),
-          QObject::tr("Some library files failed verification and the program "
-                      "cannot continue to run."),
-          QMessageBox::Ok);
-      return -1;
-    }
+  if ((EnforceBinaryValidation() || parser.isSet("self-check")) &&
+      !ValidateLibraries()) {
+    QMessageBox::critical(
+        nullptr, QObject::tr("Program Self-Test Failed"),
+        QObject::tr(
+            "The application has detected an issue while verifying essential "
+            "libraries and binaries that were digitally signed during the "
+            "build. "
+            "This means one or more files may have been altered or are being "
+            "loaded from the wrong location. For security reasons, the program "
+            "must now exit."),
+        QMessageBox::Ok);
+    return -1;
   }
 
   if (parser.isSet("v")) {

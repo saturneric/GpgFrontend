@@ -29,3 +29,5 @@
 #pragma once
 
 auto ValidateLibraries() -> bool;
+
+auto EnforceBinaryValidation() -> bool;
