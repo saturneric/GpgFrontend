@@ -233,8 +233,6 @@ auto ValidateLibraries() -> bool {
                 << test;
   }
 
-  return succ_core && succ_ui && succ_test;
-
 #if defined(_WIN32) || defined(WIN32)
 
   auto [gpg_error, succ_gpg_error] = ValidateLibrary(
@@ -267,6 +265,8 @@ auto ValidateLibraries() -> bool {
   return succ_core && succ_ui && succ_test && succ_gpg_error && succ_assuan &&
          succ_gpgme;
 
+#else
+  return succ_core && succ_ui && succ_test;
 #endif
 }
 
