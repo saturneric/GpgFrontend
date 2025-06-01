@@ -307,7 +307,15 @@ if(MINGW)
 
   # copy dependencies to release path
   foreach(_dllRuntimeFilePath ${ALL_RUNTIME_DEP_PATH_LIST})
+    get_filename_component(_dllFilename ${_dllRuntimeFilePath} NAME)
+    set(_destDllPath "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_dllFilename}")
     file(COPY ${_dllRuntimeFilePath} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+
+    if(SIGN_BUILT_BINARY)
+      execute_process(
+        COMMAND ${OPENSSL_EXECUTABLE} dgst -sha256 -sign "${SIGN_PRIVATE_KEY}"
+        -out "${_destDllPath}.sig" "${_destDllPath}")
+    endif()
   endforeach()
 endif()
 
