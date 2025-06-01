@@ -312,9 +312,11 @@ if(MINGW)
     file(COPY ${_dllRuntimeFilePath} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
 
     if(SIGN_BUILT_BINARY)
-      execute_process(
-        COMMAND ${OPENSSL_EXECUTABLE} dgst -sha256 -sign "${SIGN_PRIVATE_KEY}"
-        -out "${_destDllPath}.sig" "${_destDllPath}")
+      if(_dllFilename MATCHES ".*gpgme.*|.*assuan.*|.*gpg-error.*")
+        execute_process(
+          COMMAND ${OPENSSL_EXECUTABLE} dgst -sha256 -sign "${SIGN_PRIVATE_KEY}"
+          -out "${_destDllPath}.sig" "${_destDllPath}")
+      endif()
     endif()
   endforeach()
 endif()

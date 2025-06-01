@@ -28,6 +28,11 @@
 
 #include "BinaryValidate.h"
 
+#include <assuan.h>
+#include <gpg-error.h>
+#include <gpgme.h>
+
+// OpenSSL
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -229,6 +234,40 @@ auto ValidateLibraries() -> bool {
   }
 
   return succ_core && succ_ui && succ_test;
+
+#if defined(_WIN32) || defined(WIN32)
+
+  auto [gpg_error, succ_gpg_error] = ValidateLibrary(
+      reinterpret_cast<void *>(gpg_error_check_version), pub_key);
+
+  if (!succ_gpg_error) {
+    qCritical() << "the dynamic link library failed verification and may be at "
+                   "risk of being tampered with: "
+                << gpg_error;
+  }
+
+  auto [assuan, succ_assuan] =
+      ValidateLibrary(reinterpret_cast<void *>(assuan_check_version), pub_key);
+
+  if (!succ_assuan) {
+    qCritical() << "the dynamic link library failed verification and may be at "
+                   "risk of being tampered with: "
+                << assuan;
+  }
+
+  auto [gpgme, succ_gpgme] =
+      ValidateLibrary(reinterpret_cast<void *>(gpgme_check_version), pub_key);
+
+  if (!succ_gpgme) {
+    qCritical() << "the dynamic link library failed verification and may be at "
+                   "risk of being tampered with: "
+                << gpgme;
+  }
+
+  return succ_core && succ_ui && succ_test && succ_gpg_error && succ_assuan &&
+         succ_gpgme;
+
+#endif
 }
 
 auto EnforceBinaryValidation() -> bool {
