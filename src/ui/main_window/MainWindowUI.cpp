@@ -605,6 +605,13 @@ void MainWindow::create_dock_windows() {
       [](const GpgAbstractKey*) -> bool { return true; });
 
   m_key_list_->AddListGroupTab(
+      tr("Key Group"), "key_group", GpgKeyTableDisplayMode::kPUBLIC_KEY,
+      [](const GpgAbstractKey* key) -> bool {
+        return key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP &&
+               !key->IsDisabled();
+      });
+
+  m_key_list_->AddListGroupTab(
       tr("Only Public Key"), "only_public_key",
       GpgKeyTableDisplayMode::kPUBLIC_KEY,
       [](const GpgAbstractKey* key) -> bool {

@@ -59,6 +59,12 @@ KeyMgmt::KeyMgmt(QWidget* parent)
                                  GpgKeyTableDisplayMode::kPRIVATE_KEY);
 
   key_list_->AddListGroupTab(
+      tr("Key Group"), "key_group", GpgKeyTableDisplayMode::kPUBLIC_KEY,
+      [](const GpgAbstractKey* key) -> bool {
+        return key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP;
+      });
+
+  key_list_->AddListGroupTab(
       tr("Only Public Key"), "only_public_key",
       GpgKeyTableDisplayMode::kPUBLIC_KEY,
       [](const GpgAbstractKey* key) -> bool {
