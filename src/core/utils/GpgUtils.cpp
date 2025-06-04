@@ -421,8 +421,12 @@ auto GF_CORE_EXPORT GetGpgKeyByGpgAbstractKey(GpgAbstractKey* ab_key)
     return *s_key->Convert2GpgKey();
   }
 
-  auto* key = dynamic_cast<GpgKey*>(ab_key);
-  return *key;
+  if (ab_key->KeyType() == GpgAbstractKeyType::kGPG_KEY) {
+    auto* key = dynamic_cast<GpgKey*>(ab_key);
+    return *key;
+  }
+
+  return {};
 }
 
 auto GF_CORE_EXPORT IsKeyGroupID(const KeyId& id) -> bool {
@@ -497,4 +501,5 @@ auto GF_CORE_EXPORT DecidePinentry() -> QString {
 
   return {};
 }
+
 }  // namespace GpgFrontend
