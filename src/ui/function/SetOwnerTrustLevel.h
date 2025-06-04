@@ -50,7 +50,7 @@ class SetOwnerTrustLevel : public QWidget {
    * @return true
    * @return false
    */
-  auto Exec(int channel, const GpgKeyPtr& key) -> bool;
+  auto Exec(int channel, const GpgAbstractKeyPtr& key) -> bool;
 };
 
 }  // namespace GpgFrontend::UI

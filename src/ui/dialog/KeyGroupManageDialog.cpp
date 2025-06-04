@@ -55,7 +55,7 @@ KeyGroupManageDialog::KeyGroupManageDialog(
       channel, KeyMenuAbility::kCOLUMN_FILTER | KeyMenuAbility::kSEARCH_BAR,
       GpgKeyTableColumn::kTYPE | GpgKeyTableColumn::kNAME |
           GpgKeyTableColumn::kEMAIL_ADDRESS | GpgKeyTableColumn::kKEY_ID |
-          GpgKeyTableColumn::kUSAGE);
+          GpgKeyTableColumn::kUSAGE | GpgKeyTableColumn::kOWNER_TRUST);
   ui_->keyGroupKeyList->AddListGroupTab(
       tr("Key Group"), "key-group",
       GpgKeyTableDisplayMode::kPRIVATE_KEY |
@@ -68,7 +68,8 @@ KeyGroupManageDialog::KeyGroupManageDialog(
   ui_->keyList->Init(
       channel, KeyMenuAbility::kCOLUMN_FILTER | KeyMenuAbility::kSEARCH_BAR,
       GpgKeyTableColumn::kTYPE | GpgKeyTableColumn::kNAME |
-          GpgKeyTableColumn::kEMAIL_ADDRESS | GpgKeyTableColumn::kKEY_ID);
+          GpgKeyTableColumn::kEMAIL_ADDRESS | GpgKeyTableColumn::kKEY_ID |
+          GpgKeyTableColumn::kOWNER_TRUST);
   ui_->keyList->AddListGroupTab(
       tr("Default"), "default",
       GpgKeyTableDisplayMode::kPRIVATE_KEY |

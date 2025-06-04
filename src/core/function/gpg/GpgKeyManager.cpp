@@ -94,7 +94,7 @@ auto GpgKeyManager::SetExpire(const GpgKeyPtr& key,
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
-auto GpgKeyManager::SetOwnerTrustLevel(const GpgKeyPtr& key,
+auto GpgKeyManager::SetOwnerTrustLevel(const GpgAbstractKeyPtr& key,
                                        int trust_level) -> bool {
   if (trust_level < 1 || trust_level > 5) {
     FLOG_W("illegal owner trust level: %d", trust_level);
@@ -167,12 +167,22 @@ auto GpgKeyManager::SetOwnerTrustLevel(const GpgKeyPtr& key,
         return QString("");
       };
 
-  auto [err, succ] = auto_.DoInteract(key, next_state_handler, action_handler);
-  return err == GPG_ERR_NO_ERROR && succ;
+  auto gpg_keys = ConvertKey2GpgKeyList(GetChannel(), {key});
+
+  bool all_succ = true;
+  for (const auto& gpg_key : gpg_keys) {
+    LOG_D() << "AAAA: " << gpg_key->Fingerprint();
+    auto [err, succ] =
+        auto_.DoInteract(gpg_key, next_state_handler, action_handler);
+
+    all_succ = all_succ && err == GPG_ERR_NO_ERROR && succ;
+  }
+
+  return all_succ;
 }
 
-auto GpgKeyManager::DeleteSubkey(const GpgKeyPtr& key,
-                                 int subkey_index) -> bool {
+auto GpgKeyManager::DeleteSubkey(const GpgKeyPtr& key, int subkey_index)
+    -> bool {
   if (subkey_index < 0 ||
       subkey_index >= static_cast<int>(key->SubKeys().size())) {
     LOG_W() << "illegal subkey index: " << subkey_index;
@@ -250,8 +260,8 @@ auto GpgKeyManager::DeleteSubkey(const GpgKeyPtr& key,
 }
 
 auto GpgKeyManager::RevokeSubkey(const GpgKeyPtr& key, int subkey_index,
-                                 int reason_code,
-                                 const QString& reason_text) -> bool {
+                                 int reason_code, const QString& reason_text)
+    -> bool {
   if (subkey_index < 0 ||
       subkey_index >= static_cast<int>(key->SubKeys().size())) {
     LOG_W() << "illegal subkey index: " << subkey_index;

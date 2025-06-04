@@ -89,7 +89,8 @@ class GF_CORE_EXPORT GpgKeyManager
    *
    * @return
    */
-  auto SetOwnerTrustLevel(const GpgKeyPtr& key, int trust_level) -> bool;
+  auto SetOwnerTrustLevel(const GpgAbstractKeyPtr& key, int trust_level)
+      -> bool;
 
   /**
    * @brief

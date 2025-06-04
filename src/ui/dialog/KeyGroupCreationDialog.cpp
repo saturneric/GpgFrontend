@@ -97,9 +97,6 @@ void KeyGroupCreationDialog::slot_create_new_uid() {
     error_stream << "  " << tr("Name must contain at least five characters.")
                  << Qt::endl;
   }
-  if (email_->text().isEmpty() || !IsEmailAddress(email_->text())) {
-    error_stream << "  " << tr("Please give a email address.") << Qt::endl;
-  }
 
   auto error_string = error_stream.readAll();
   if (error_string.isEmpty()) {
