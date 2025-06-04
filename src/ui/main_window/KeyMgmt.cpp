@@ -266,9 +266,8 @@ void KeyMgmt::create_actions() {
   set_owner_trust_of_key_act_->setToolTip(tr("Set Owner Trust Level"));
   set_owner_trust_of_key_act_->setData(QVariant("set_owner_trust_level"));
   connect(set_owner_trust_of_key_act_, &QAction::triggered, this, [this]() {
-    auto key = key_list_->GetSelectedGpgKey();
+    auto key = key_list_->GetSelectedKey();
     if (key == nullptr) return;
-
     auto* function = new SetOwnerTrustLevel(this);
     function->Exec(key_list_->GetCurrentGpgContextChannel(), key);
     function->deleteLater();
@@ -627,12 +626,9 @@ void KeyMgmt::slot_popup_menu_by_key_list(QContextMenuEvent* event,
   auto keys = key_table->GetSelectedKeys();
   if (keys.isEmpty()) return;
 
-  auto key = keys.front();
+  const auto& key = keys.front();
   generate_subkey_act_->setVisible(
       key->KeyType() == GpgAbstractKeyType::kGPG_KEY && key->IsPrivateKey());
-  set_owner_trust_of_key_act_->setVisible(key->KeyType() ==
-                                          GpgAbstractKeyType::kGPG_KEY);
-
   popup_menu_->exec(event->globalPos());
 }
 }  // namespace GpgFrontend::UI
