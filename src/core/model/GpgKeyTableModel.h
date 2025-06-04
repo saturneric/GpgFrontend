@@ -257,11 +257,12 @@ class GF_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
   auto table_tooltip_by_gpg_key(const QModelIndex &index,
                                 const GpgKey *key) const -> QVariant;
 
-  static auto table_data_by_gpg_key(const QModelIndex &index, const GpgKey *key)
+  [[nodiscard]] auto table_data_by_gpg_key(const QModelIndex &index,
+                                           const GpgAbstractKeyPtr &key) const
       -> QVariant;
 
-  static auto table_data_by_gpg_key_group(const QModelIndex &index,
-                                          const GpgKeyGroup *kg) -> QVariant;
+  [[nodiscard]] auto table_data_by_gpg_key_group(
+      const QModelIndex &index, const GpgAbstractKeyPtr &key) const -> QVariant;
 
   QContainer<GpgKeyTableItem> cached_items_;
 };
