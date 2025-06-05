@@ -139,9 +139,8 @@ jobs:
         run: |
           cd ${{github.workspace}}/third_party/gpgme
           ./autogen.sh
-          export CFLAGS="${CFLAGS} -fPIC"
-          ./configure --enable-maintainer-mode \
-            --enable-static \ 
+          mkdir build && cd build
+          ../configure --enable-static \ 
             --disable-shared \
             --enable-silent-rules \
             --disable-dependency-tracking \
@@ -160,8 +159,9 @@ jobs:
           cd $(cygpath -u "${{github.workspace}}")
           cd third_party/gpgme
           ./autogen.sh
+          mkdir build && cd build
           export CFLAGS="${CFLAGS} -Wno-int-conversion -Wno-incompatible-pointer-types"
-          ./configure --enable-maintainer-mode \
+          ../configure --enable-maintainer-mode \
             --enable-static \ 
             --disable-shared \
             --enable-silent-rules \
@@ -241,7 +241,7 @@ jobs:
           cmake -B ${{github.workspace}}/build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DGPGFRONTEND_BUILD_APP_IMAGE=ON \
-            -DGFRONTEND_LINK_GPGME_INTO_CORE=ON
+            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
         if: runner.os == 'Linux'
 
