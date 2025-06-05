@@ -364,27 +364,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts/
-          pattern: gpgfrontend-*
-          merge-multiple: true
-
-      - name: Generate SHA256 checksums
-        run: |
-          sha256sum artifacts/* > artifacts/SHA256SUMS.txt
-          cat artifacts/SHA256SUMS.txt
-
-      - name: List files
-        run: ls -rl artifacts/
-
-      - name: Generate Release Title with Date
-        id: release_title
-        run: echo "title=Nightly Build $(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-
-      - name: Pull the repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: "main"
           lfs: "false"
@@ -400,6 +380,25 @@ jobs:
           git push origin nightly --force
         env:
           GITHUB_TOKEN: ${{ secrets.USER_GITHUB_TOKEN }}
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+          pattern: gpgfrontend-*
+          merge-multiple: true
+
+      - name: Generate SHA256 checksums
+        run: |
+          sha256sum artifacts/* > artifacts/SHA256SUMS.txt
+          cat artifacts/SHA256SUMS.txt
+
+      - name: List files
+        run: ls -rl artifacts/
+
+      - name: Generate Nightly Release Title
+        id: release_title
+        run: echo "title=Nightly Build $(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
       - name: Update Nightly Release
         uses: softprops/action-gh-release@v2
