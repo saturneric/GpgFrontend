@@ -45,7 +45,12 @@ target_sources(${LIBRARY_TARGET} PRIVATE
   ${CMAKE_SOURCE_DIR}/third_party/qt-aes/qaesencryption.cpp)
 
 # link gnupg libraries
-target_link_libraries(${LIBRARY_TARGET} PUBLIC gpgme assuan gpg-error)
+if(BUILD_GPGME)
+  # if we build gpgme from source code directly
+  target_link_libraries(${LIBRARY_TARGET} PUBLIC GpgDeps)
+else()
+  target_link_libraries(${LIBRARY_TARGET} PUBLIC gpgme assuan gpg-error)
+endif()
 
 # link openssl
 target_link_libraries(${LIBRARY_TARGET} PUBLIC OpenSSL::SSL OpenSSL::Crypto)

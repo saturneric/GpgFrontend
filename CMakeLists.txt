@@ -70,6 +70,7 @@ option(GPGFRONTEND_XCODE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
 # check options
 option(GPGFRONTEND_CHECK_RELEASE_COMMIT_HASH "Enable checking on commit hash from the GitHub release" OFF)
 option(GPGFRONTEND_SIGN_BUILT_BINARY "Use OpenSSL to sign shared libraries and executables" OFF)
+option(GPGFRONTEND_BUILD_GPGME_FROM_SOURCE "Building GpgME from source" OFF)
 
 if(GPGFRONTEND_BUILD_APP_IMAGE)
   set(BUILD_APP_IMAGE 1)
@@ -104,6 +105,12 @@ if(GPGFRONTEND_SIGN_BUILT_BINARY)
   set(SIGN_BUILT_BINARY 1)
 else()
   set(SIGN_BUILT_BINARY 0)
+endif()
+
+if(GPGFRONTEND_BUILD_GPGME_FROM_SOURCE)
+  set(BUILD_GPGME 1)
+else()
+  set(BUILD_GPGME 0)
 endif()
 
 # C++
@@ -351,9 +358,6 @@ message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "Build C Flags: ${CMAKE_C_FLAGS}")
 message(STATUS "Build C++ Flags: ${CMAKE_CXX_FLAGS}")
 
-# third_party
-add_subdirectory(third_party) # source code
-
 # Set build information
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h @ONLY)
@@ -443,6 +447,10 @@ if(SIGN_BUILT_BINARY)
 
   message(STATUS "Binary Signing Private Key: ${SIGN_PRIVATE_KEY}")
   message(STATUS "Binary Signing Public Key: ${SIGN_PUBLIC_KEY}")
+endif()
+
+if(BUILD_GPGME)
+  add_subdirectory(third_party)
 endif()
 
 # modules are only for qt6
