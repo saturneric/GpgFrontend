@@ -404,16 +404,15 @@ jobs:
           body: |
             ### Nightly Build of GpgFrontend
 
-            This is an **unstable nightly build** of GpgFrontend. 
-            It may contain new features or bug fixes that are under testing. 
-            Please note that this version is less stable compared to official 
-            releases and is intended for testing purposes **only**.
+            This is an **unstable nightly build** of GpgFrontend. It may contain
+            new features or bug fixes that are under testing. Please note that
+            this version is less stable compared to official releases.
 
             #### Why Nightly Releases?
-            This nightly release aims to provide users with early access to 
-            features or fixes they urgently need. Given that official releases are 
-            typically published at least two months apart, I understand that the 
-            wait may be too long for some users. 
+            This nightly release aims to provide users with early access to
+            features or fixes they urgently need. Given that official releases
+            are typically published at least two months apart, I understand that
+            the wait may be too long for some users. 
 
             #### Important Notes:
             - Use this version at your own risk; it is not recommended for 
