@@ -378,9 +378,10 @@ jobs:
       - name: Pull the repo
         uses: actions/checkout@v4
         with:
-          ref: "develop"
+          ref: "main"
           lfs: "false"
           submodules: recursive
+          token: ${{ secrets.USER_GITHUB_TOKEN }}
 
       - name: Re-create nightly tag
         run: |
