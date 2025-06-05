@@ -93,7 +93,7 @@ jobs:
       - name: Install Qt6
         uses: jurplel/install-qt-action@v3
         with:
-          version: "6.7.2"
+          version: "6.8.3"
           cache: "true"
         if: runner.os == 'Linux' || runner.os == 'macOS'
 
