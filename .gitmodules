@@ -7,3 +7,12 @@
 [submodule "modules"]
 	path = modules
 	url = https://git.bktus.com/GpgFrontend/Modules.git
+[submodule "third_party/gpgme"]
+	path = third_party/gpgme
+	url = https://git.bktus.com/GpgFrontend/gpgme.git
+[submodule "third_party/libassuan"]
+	path = third_party/libassuan
+	url = https://git.bktus.com/GpgFrontend/libassuan.git
+[submodule "third_party/libgpg-error"]
+	path = third_party/libgpg-error
+	url = https://git.bktus.com/GpgFrontend/libgpg-error.git
