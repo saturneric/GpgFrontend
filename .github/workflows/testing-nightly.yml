@@ -37,7 +37,15 @@ jobs:
   build:
     strategy:
       matrix:
-        os: ["ubuntu-22.04", "macos-13", "macos-14", "macos-15", "windows-2019"]
+        os:
+          [
+            "ubuntu-22.04",
+            "macos-13",
+            "macos-14",
+            "macos-15",
+            "windows-2019",
+            "windows-2022",
+          ]
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:
