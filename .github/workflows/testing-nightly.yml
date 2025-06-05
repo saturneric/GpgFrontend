@@ -385,7 +385,7 @@ jobs:
       - name: Re-create nightly tag
         run: |
           cd ${{github.workspace}}
-          gh release delete nightly --repo saturneric/GpgFrontend --cleanup-tag --yes
+          gh release delete nightly --repo saturneric/GpgFrontend --cleanup-tag --yes || true
           git fetch origin develop:develop
           git tag -f nightly develop
           git push origin nightly --force
