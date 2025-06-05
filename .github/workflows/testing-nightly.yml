@@ -375,8 +375,16 @@ jobs:
         id: release_title
         run: echo "title=Nightly Build $(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
+      - name: Pull the repo
+        uses: actions/checkout@v4
+        with:
+          ref: "develop"
+          lfs: "false"
+          submodules: recursive
+
       - name: Re-create nightly tag
         run: |
+          cd ${{github.workspace}}
           gh release delete nightly --repo saturneric/GpgFrontend --cleanup-tag --yes
           git fetch origin develop:develop
           git tag -f nightly develop
