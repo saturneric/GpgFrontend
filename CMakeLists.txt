@@ -70,7 +70,7 @@ option(GPGFRONTEND_XCODE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
 # check options
 option(GPGFRONTEND_CHECK_RELEASE_COMMIT_HASH "Enable checking on commit hash from the GitHub release" OFF)
 option(GPGFRONTEND_SIGN_BUILT_BINARY "Use OpenSSL to sign shared libraries and executables" OFF)
-option(GPGFRONTEND_BUILD_GPGME_FROM_SOURCE "Building GpgME from source" OFF)
+option(GPGFRONTEND_LINK_GPGME_INTO_CORE "Static link GpgME into core library" OFF)
 
 if(GPGFRONTEND_BUILD_APP_IMAGE)
   set(BUILD_APP_IMAGE 1)
@@ -107,10 +107,10 @@ else()
   set(SIGN_BUILT_BINARY 0)
 endif()
 
-if(GPGFRONTEND_BUILD_GPGME_FROM_SOURCE)
-  set(BUILD_GPGME 1)
+if(GPGFRONTEND_LINK_GPGME_INTO_CORE)
+  set(BUILD_AND_STATIC_LINK_GPGME 1)
 else()
-  set(BUILD_GPGME 0)
+  set(BUILD_AND_STATIC_LINK_GPGME 0)
 endif()
 
 # C++
@@ -449,7 +449,7 @@ if(SIGN_BUILT_BINARY)
   message(STATUS "Binary Signing Public Key: ${SIGN_PUBLIC_KEY}")
 endif()
 
-if(BUILD_GPGME)
+if(BUILD_AND_STATIC_LINK_GPGME)
   add_subdirectory(third_party)
 endif()
 

@@ -23,7 +23,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-if(BUILD_GPGME AND NOT MINGW)
+if(BUILD_AND_STATIC_LINK_GPGME AND NOT MINGW AND NOT XCODE_BUILD)
   include(ExternalProject)
 
   set(DEPS_INSTALL_ROOT "${CMAKE_BINARY_DIR}/deps")
@@ -151,13 +151,13 @@ if(BUILD_GPGME AND NOT MINGW)
     INTERFACE_LINK_LIBRARIES "Assuan;GpgError"
   )
 
-  add_library(GpgDeps INTERFACE)
-  add_dependencies(GpgDeps EP_GpgError EP_Assuan EP_GpgME)
-  target_include_directories(GpgDeps INTERFACE ${DEPS_INSTALL_ROOT}/include)
-  target_link_libraries(GpgDeps INTERFACE GpgME Assuan GpgError)
+  add_library(GnuPGDeps INTERFACE)
+  add_dependencies(GnuPGDeps EP_GpgError EP_Assuan EP_GpgME)
+  target_include_directories(GnuPGDeps INTERFACE ${DEPS_INSTALL_ROOT}/include)
+  target_link_libraries(GnuPGDeps INTERFACE GpgME Assuan GpgError)
 endif()
 
-if(BUILD_GPGME AND MINGW)
+if(BUILD_AND_STATIC_LINK_GPGME AND MINGW)
   find_library(
     GPG_ERROR_STATIC_LIB
     NAMES libgpg-error.a
@@ -176,7 +176,31 @@ if(BUILD_GPGME AND MINGW)
     REQUIRED
   )
 
-  add_library(GpgDeps INTERFACE)
-  target_link_libraries(GpgDeps INTERFACE ws2_32)
-  target_link_libraries(GpgDeps INTERFACE ${GPGME_STATIC_LIB} ${ASSUAN_STATIC_LIB} ${GPG_ERROR_STATIC_LIB})
+  add_library(GnuPGDeps INTERFACE)
+  target_link_libraries(GnuPGDeps INTERFACE ws2_32)
+  target_link_libraries(GnuPGDeps INTERFACE ${GPGME_STATIC_LIB} ${ASSUAN_STATIC_LIB} ${GPG_ERROR_STATIC_LIB})
+endif()
+
+if(BUILD_AND_STATIC_LINK_GPGME AND XCODE_BUILD)
+  find_library(
+    GPG_ERROR_STATIC_LIB
+    NAMES libgpg-error.a
+    REQUIRED
+  )
+
+  find_library(
+    ASSUAN_STATIC_LIB
+    NAMES libassuan.a
+    REQUIRED
+  )
+
+  find_library(
+    GPGME_STATIC_LIB
+    NAMES libgpgme.a
+    REQUIRED
+  )
+
+  add_library(GnuPGDeps INTERFACE)
+  target_link_libraries(GnuPGDeps INTERFACE intl)
+  target_link_libraries(GnuPGDeps INTERFACE ${GPGME_STATIC_LIB} ${ASSUAN_STATIC_LIB} ${GPG_ERROR_STATIC_LIB})
 endif()
