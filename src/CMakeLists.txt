@@ -307,6 +307,11 @@ if(MINGW)
   foreach(_dllDepPath ${ALL_RUNTIME_DEP_PATH_LIST})
     message(STATUS "Runtime DLL Dependency Path: ${_dllDepPath}")
   endforeach()
+
+  # copy dependencies to release path
+  foreach(_dllRuntimeFilePath ${ALL_RUNTIME_DEP_PATH_LIST})
+    file(COPY ${_dllRuntimeFilePath} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
+  endforeach()
 endif()
 
 if(SIGN_BUILT_BINARY)
