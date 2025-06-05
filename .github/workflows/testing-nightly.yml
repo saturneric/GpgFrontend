@@ -140,15 +140,15 @@ jobs:
           cd ${{github.workspace}}/third_party/gpgme
           ./autogen.sh
           mkdir build && cd build
-          ../configure --enable-static \ 
-            --disable-shared \
-            --enable-silent-rules \
-            --disable-dependency-tracking \
-            --enable-languages=cl \
-            --disable-gpgconf-test \
-            --disable-gpg-test \
-            --disable-gpgsm-test \
-            --disable-g13-test
+          ../configure --enable-static \
+          --disable-shared \
+          --enable-silent-rules \
+          --disable-dependency-tracking \
+          --enable-languages=cl \
+          --disable-gpgconf-test \
+          --disable-gpg-test \
+          --disable-gpgsm-test \
+          --disable-g13-test
           make -j4
           sudo make install
         if: runner.os == 'macOS'
@@ -162,16 +162,16 @@ jobs:
           mkdir build && cd build
           export CFLAGS="${CFLAGS} -Wno-int-conversion -Wno-incompatible-pointer-types"
           ../configure --enable-maintainer-mode \
-            --enable-static \ 
-            --disable-shared \
-            --enable-silent-rules \
-            --disable-dependency-tracking \
-            --enable-languages=cl \
-            --disable-gpgconf-test \
-            --disable-gpg-test \
-            --disable-gpgsm-test \
-            --disable-g13-test \
-            --enable-w32-glib
+          --enable-static \
+          --disable-shared \
+          --enable-silent-rules \
+          --disable-dependency-tracking \
+          --enable-languages=cl \
+          --disable-gpgconf-test \
+          --disable-gpg-test \
+          --disable-gpgsm-test \
+          --disable-g13-test \
+          --enable-w32-glib
           make -j4
           make install
         if: runner.os == 'Windows'
