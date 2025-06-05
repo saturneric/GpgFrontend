@@ -101,6 +101,10 @@ auto PrintEnvInfo() -> int {
       "core", "gpgme.ctx.gnupg_version", QString{});
   stream << Tr("GnuPG Version: ") << gnupg_version << '\n';
 
+  stream << Tr("GpgME Version: ") << GetProjectGpgMEVersion() << '\n';
+
+  stream << "\n";
+
   stream << Tr("GpgME Init Status: ")
          << (init_result ? Tr("Success") : Tr("Failed")) << '\n';
 
@@ -110,8 +114,6 @@ auto PrintEnvInfo() -> int {
       "core", "gpgme.engine.openpgp", 0);
   auto cms =
       Module::RetrieveRTValueTypedOrDefault<>("core", "gpgme.engine.cms", 0);
-  auto assuan =
-      Module::RetrieveRTValueTypedOrDefault<>("core", "gpgme.engine.assuan", 0);
 
   stream << Tr("Engine 'GPGCONF' Status: ")
          << (gpgconf == 1 ? Tr("Exists") : Tr("NOT Exists")) << '\n';
@@ -119,8 +121,6 @@ auto PrintEnvInfo() -> int {
          << (openpgp == 1 ? Tr("Exists") : Tr("NOT Exists")) << '\n';
   stream << Tr("Engine 'CMS' Status: ")
          << (cms == 1 ? Tr("Exists") : Tr("NOT Exists")) << '\n';
-  stream << Tr("Engine 'ASSUAN' Status: ")
-         << (assuan == 1 ? Tr("Exists") : Tr("NOT Exists")) << '\n';
 
   stream << '\n';
 
@@ -134,8 +134,6 @@ auto PrintEnvInfo() -> int {
       "core", "gpgme.ctx.gpgconf_path", QString{});
   auto cms_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.cms_path", QString{});
-  auto assuan_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.assuan_path", QString{});
 
   if (gpgconf == 1) {
     stream << Tr("GPGCONF Path: ") << gpgconf_path << '\n';
@@ -149,10 +147,6 @@ auto PrintEnvInfo() -> int {
 
   if (cms == 1) {
     stream << Tr("CMS Path: ") << cms_path << '\n';
-  }
-
-  if (assuan == 1) {
-    stream << Tr("ASSUAN Path: ") << assuan_path << '\n';
   }
 
   stream << '\n';

@@ -160,7 +160,6 @@ auto InitGpgME() -> bool {
   // Check ENV before running
   bool has_gpgconf = false;
   bool has_openpgp = false;
-  bool has_cms = false;
 
   while (engine_info != nullptr) {
     if (strcmp(engine_info->version, "1.0.0") == 0) {
@@ -183,7 +182,6 @@ auto InitGpgME() -> bool {
                                                      : engine_info->home_dir));
         break;
       case GPGME_PROTOCOL_CMS:
-        has_cms = true;
         Module::UpsertRTValue("core", "gpgme.engine.cms", 1);
         Module::UpsertRTValue("core", "gpgme.ctx.cms_path",
                               QString(engine_info->file_name));
@@ -197,18 +195,10 @@ auto InitGpgME() -> bool {
                               QString(engine_info->file_name));
         break;
       case GPGME_PROTOCOL_ASSUAN:
-        Module::UpsertRTValue("core", "gpgme.engine.assuan", 1);
-        Module::UpsertRTValue("core", "gpgme.ctx.assuan_path",
-                              QString(engine_info->file_name));
-        break;
       case GPGME_PROTOCOL_G13:
-        break;
       case GPGME_PROTOCOL_UISERVER:
-        break;
       case GPGME_PROTOCOL_SPAWN:
-        break;
       case GPGME_PROTOCOL_DEFAULT:
-        break;
       case GPGME_PROTOCOL_UNKNOWN:
         break;
     }
@@ -230,11 +220,6 @@ auto InitGpgME() -> bool {
 
   if (!has_openpgp) {
     LOG_E() << "cannot get openpgp backend engine, abort...";
-    return false;
-  }
-
-  if (!has_cms) {
-    LOG_E() << "cannot get cms backend engine, abort...";
     return false;
   }
 
