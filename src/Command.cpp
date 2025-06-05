@@ -97,11 +97,13 @@ auto PrintEnvInfo() -> int {
 
   auto init_result = InitGpgME();
 
+  stream << Tr("GpgError Version: ") << GetProjectGpgErrorVersion() << '\n';
+  stream << Tr("Assuan Version: ") << GetProjectAssuanVersion() << '\n';
+  stream << Tr("GpgME Version: ") << GetProjectGpgMEVersion() << '\n';
+
   auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gnupg_version", QString{});
   stream << Tr("GnuPG Version: ") << gnupg_version << '\n';
-
-  stream << Tr("GpgME Version: ") << GetProjectGpgMEVersion() << '\n';
 
   stream << "\n";
 

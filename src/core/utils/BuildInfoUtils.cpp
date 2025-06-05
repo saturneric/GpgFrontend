@@ -29,6 +29,8 @@
 #include "BuildInfoUtils.h"
 
 #include <archive.h>
+#include <assuan.h>
+#include <gpg-error.h>
 #include <gpgme.h>
 #include <openssl/opensslv.h>
 
@@ -61,6 +63,10 @@ auto GetProjectQtVersion() -> QString { return {qVersion()}; }
 auto GetProjectOpenSSLVersion() -> QString { return {OPENSSL_VERSION_TEXT}; }
 
 auto GetProjectGpgMEVersion() -> QString { return {GPGME_VERSION}; }
+
+auto GetProjectAssuanVersion() -> QString { return {ASSUAN_VERSION}; }
+
+auto GetProjectGpgErrorVersion() -> QString { return {GPG_ERROR_VERSION}; }
 
 auto GetProjectLibarchiveVersion() -> QString {
   return {ARCHIVE_VERSION_ONLY_STRING};
