@@ -40,7 +40,7 @@ if(BUILD_GPGME)
     &&
     bash -c
     "cd ${CMAKE_CURRENT_BINARY_DIR}/libgpg-error && \
-        ${CMAKE_CURRENT_SOURCE_DIR}/libgpg-error/configure \
+        CFLAGS='-fPIC' ${CMAKE_CURRENT_SOURCE_DIR}/libgpg-error/configure \
           --prefix=${DEPS_INSTALL_ROOT} \
           --enable-maintainer-mode \
           --enable-static \
@@ -70,7 +70,7 @@ if(BUILD_GPGME)
     &&
     bash -c
     "cd ${CMAKE_CURRENT_BINARY_DIR}/libassuan && \ 
-      ${CMAKE_CURRENT_SOURCE_DIR}/libassuan/configure \ 
+        CFLAGS='-fPIC' ${CMAKE_CURRENT_SOURCE_DIR}/libassuan/configure \ 
         --prefix=${DEPS_INSTALL_ROOT} \ 
         --with-libgpg-error-prefix=${DEPS_INSTALL_ROOT} \
         --enable-maintainer-mode \
@@ -107,7 +107,7 @@ if(BUILD_GPGME)
     &&
     bash -c
     "cd ${CMAKE_CURRENT_BINARY_DIR}/gpgme && \
-      ${CMAKE_CURRENT_SOURCE_DIR}/gpgme/configure \
+        CFLAGS='-fPIC' ${CMAKE_CURRENT_SOURCE_DIR}/gpgme/configure \
         --prefix=${DEPS_INSTALL_ROOT} \
         --with-libgpg-error-prefix=${DEPS_INSTALL_ROOT} \
         --with-libassuan-prefix=${DEPS_INSTALL_ROOT} \
