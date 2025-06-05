@@ -26,7 +26,7 @@
  *
  */
 
-#include "init.h"
+#include "Initialize.h"
 
 #include "core/GpgCoreInit.h"
 #include "core/function/CoreSignalStation.h"

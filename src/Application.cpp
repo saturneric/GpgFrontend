@@ -26,13 +26,15 @@
  *
  */
 
+#include "Application.h"
+
 #include "GpgFrontendContext.h"
 #include "core/GpgConstants.h"
 #include "core/function/CacheManager.h"
 #include "ui/GpgFrontendUIInit.h"
 
 // main
-#include "init.h"
+#include "Initialize.h"
 
 namespace GpgFrontend {
 

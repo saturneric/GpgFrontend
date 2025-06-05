@@ -26,7 +26,7 @@
  *
  */
 
-#include "cmd.h"
+#include "Command.h"
 
 #include <qdatetime.h>
 #include <qglobal.h>

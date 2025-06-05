@@ -38,10 +38,10 @@
 #include "core/utils/MemoryUtils.h"
 
 //
+#include "Application.h"
 #include "BinaryValidate.h"
-#include "app.h"
-#include "cmd.h"
-#include "init.h"
+#include "Command.h"
+#include "Initialize.h"
 
 /**
  *
