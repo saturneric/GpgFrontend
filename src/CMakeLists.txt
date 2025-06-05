@@ -171,7 +171,7 @@ if(MINGW)
   file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libglib-*.dll")
   list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
-  # if we do not build them by ourselves
+  # if we use dynamic link
   if(NOT BUILD_AND_STATIC_LINK_GPGME)
     unset(_libDllPath)
     file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgpg-error*.dll")
