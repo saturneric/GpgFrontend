@@ -148,10 +148,6 @@ if(MINGW)
   list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
   unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libassuan*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
   file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libbz*.dll")
   list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
@@ -175,13 +171,20 @@ if(MINGW)
   file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libglib-*.dll")
   list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgpg-error*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+  # if we do not build them by ourselves
+  if(NOT BUILD_GPGME)
+    unset(_libDllPath)
+    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgpg-error*.dll")
+    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgpgme*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+    unset(_libDllPath)
+    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libassuan*.dll")
+    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+    unset(_libDllPath)
+    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgpgme*.dll")
+    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+  endif()
 
   unset(_libDllPath)
   file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgraphite2.dll")
@@ -303,21 +306,6 @@ if(MINGW)
 
   foreach(_dllDepPath ${ALL_RUNTIME_DEP_PATH_LIST})
     message(STATUS "Runtime DLL Dependency Path: ${_dllDepPath}")
-  endforeach()
-
-  # copy dependencies to release path
-  foreach(_dllRuntimeFilePath ${ALL_RUNTIME_DEP_PATH_LIST})
-    get_filename_component(_dllFilename ${_dllRuntimeFilePath} NAME)
-    set(_destDllPath "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_dllFilename}")
-    file(COPY ${_dllRuntimeFilePath} DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ FOLLOW_SYMLINK_CHAIN)
-
-    if(SIGN_BUILT_BINARY)
-      if(_dllFilename MATCHES ".*gpgme.*|.*assuan.*|.*gpg-error.*")
-        execute_process(
-          COMMAND ${OPENSSL_EXECUTABLE} dgst -sha256 -sign "${SIGN_PRIVATE_KEY}"
-          -out "${_destDllPath}.sig" "${_destDllPath}")
-      endif()
-    endif()
   endforeach()
 endif()
 
