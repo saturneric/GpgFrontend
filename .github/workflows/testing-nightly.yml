@@ -100,7 +100,7 @@ jobs:
       - name: Install Dependence (macOS)
         run: |
           brew install cmake autoconf automake texinfo gettext openssl@3
-          brew install ninja libarchive gpgme googletest
+          brew install ninja libarchive googletest
           brew install create-dmg
           brew link openssl@3 --force
         if: runner.os == 'macOS'
@@ -129,50 +129,113 @@ jobs:
             mingw-w64-x86_64-icu 
             mingw-w64-x86_64-ninja 
             mingw-w64-x86_64-gnupg 
-            mingw-w64-x86_64-gpgme
             mingw-w64-x86_64-libarchive
             mingw-w64-x86_64-gtest
             mingw-w64-x86_64-autotools
         if: runner.os == 'Windows'
 
-      - name: Build gpg-error (Linux)
+      - name: Build GpgError (macOS)
         run: |
-          git clone --depth 1 --branch libgpg-error-1.51 git://git.gnupg.org/libgpg-error.git ${{github.workspace}}/third_party/libgpg-error
           cd  ${{github.workspace}}/third_party/libgpg-error
           ./autogen.sh
-          ./configure --enable-maintainer-mode && make -j4
+          export CFLAGS="${CFLAGS} -fPIC"
+          ./configure --enable-maintainer-mode \
+            --enable-static \
+            --disable-shared \
+            --disable-rpath \
+            --enable-silent-rules \
+            --disable-dependency-tracking \
+            --disable-tests \
+            --enable-fast-install
+          make -j4
           sudo make install
-          cd ${{github.workspace}}
-        if: runner.os == 'Linux'
+        if: runner.os == 'macOS'
 
-      - name: Build assuan (Linux)
+      - name: Build Assuan (macOS)
         run: |
-          git clone --depth 1 --branch libassuan-2.5.7 git://git.gnupg.org/libassuan.git ${{github.workspace}}/third_party/libassuan
           cd ${{github.workspace}}/third_party/libassuan
           ./autogen.sh
-          ./configure --enable-maintainer-mode && make -j4
+          export CFLAGS="${CFLAGS} -fPIC"
+          ./configure --enable-maintainer-mode \
+            --enable-static \ 
+            --disable-shared \
+            --enable-silent-rules \
+            --disable-dependency-tracking \
+            --disable-doc \
+            --enable-fast-install
+          make -j4
           sudo make install
-          cd ${{github.workspace}}
-        if: runner.os == 'Linux'
+        if: runner.os == 'macOS'
 
-      - name: Build GpgME (Linux)
+      - name: Build GpgME (macOS)
         run: |
-          git clone --depth 1 --branch gpgme-1.24.2 git://git.gnupg.org/gpgme.git ${{github.workspace}}/third_party/gpgme
           cd ${{github.workspace}}/third_party/gpgme
           ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-languages=cpp && make -j4
+          export CFLAGS="${CFLAGS} -fPIC"
+          ./configure --enable-maintainer-mode \
+            --enable-static \ 
+            --disable-shared \
+            --enable-silent-rules \
+            --disable-dependency-tracking \
+            --enable-languages=cl \
+            --disable-gpgconf-test \
+            --disable-gpg-test \
+            --disable-gpgsm-test \
+            --disable-g13-test
+          make -j4
           sudo make install
-          cd ${{github.workspace}}
-        if: runner.os == 'Linux'
+        if: runner.os == 'macOS'
+
+      - name: Build GpgError (Windows)
+        shell: msys2 {0}
+        run: |
+          cd ${{github.workspace}}/third_party/libgpg-error
+          ./autogen.sh
+          ./configure --enable-maintainer-mode \
+            --enable-static \
+            --disable-shared \
+            --disable-rpath \
+            --enable-silent-rules \
+            --disable-dependency-tracking \
+            --disable-tests \
+            --enable-fast-install
+          make -j4
+          make install
+        if: runner.os == 'Windows'
+
+      - name: Build Assuan (Windows)
+        shell: msys2 {0}
+        run: |
+          cd ${{github.workspace}}/third_party/libassuan
+          ./autogen.sh
+          ./configure --enable-maintainer-mode \
+            --enable-static \ 
+            --disable-shared \
+            --enable-silent-rules \
+            --disable-dependency-tracking \
+            --disable-doc \
+            --enable-fast-install
+          make -j4
+          make install
+        if: runner.os == 'Windows'
 
       - name: Build GpgME (Windows)
         shell: msys2 {0}
         run: |
-          git clone --depth 1 --branch gpgme-1.24.2 git://git.gnupg.org/gpgme.git ${{github.workspace}}/third_party/gpgme
           cd ${{github.workspace}}/third_party/gpgme
           ./autogen.sh
           export CFLAGS="${CFLAGS} -Wno-int-conversion -Wno-incompatible-pointer-types"
-          ./configure --enable-maintainer-mode --enable-languages=cl --disable-gpg-test --enable-w32-glib
+          ./configure --enable-maintainer-mode \
+            --enable-static \ 
+            --disable-shared \
+            --enable-silent-rules \
+            --disable-dependency-tracking \
+            --enable-languages=cl \
+            --disable-gpgconf-test \
+            --disable-gpg-test \
+            --disable-gpgsm-test \
+            --disable-g13-test \
+            --enable-w32-glib
           make -j4
           make install
         if: runner.os == 'Windows'
@@ -194,7 +257,8 @@ jobs:
            -DGPGFRONTEND_XCODE_CODE_SIGN_IDENTITY="${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" \
            -DGPGFRONTEND_XCODE_TEAM_ID="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
            -DGPGFRONTEND_XCODE_APPID="${{secrets.GPGFRONTEND_XOCDE_APPID}}" \
-           -DGPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID="${{secrets.GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID}}"
+           -DGPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID="${{secrets.GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID}}" \
+           -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
           xcodebuild -list -project ${{github.workspace}}/build/GpgFrontend.xcodeproj
           cd ${{github.workspace}}/build/
           xcodebuild -scheme GpgFrontend -configuration "${{env.BUILD_TYPE}}"\
@@ -238,7 +302,10 @@ jobs:
 
       - name: Build GpgFrontend (Linux)
         run: |
-          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_APP_IMAGE=ON
+          cmake -B ${{github.workspace}}/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DGPGFRONTEND_BUILD_APP_IMAGE=ON \
+            -GPGFRONTEND_LINK_GPGME_INTO_CORE=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
         if: runner.os == 'Linux'
 
@@ -249,7 +316,12 @@ jobs:
           wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
-          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines,platforms,wayland-graphics-integration-client,wayland-decoration-client,wayland-shell-integration -appimage -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/lib/modules
+          ./linuxdeployqt-continuous-x86_64.AppImage \
+            ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop \
+            -no-translations \
+            -extra-plugins=iconengines,platforms \
+            -appimage \
+            -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/lib/modules
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: runner.os == 'Linux'
@@ -259,7 +331,10 @@ jobs:
         run: |
           cd $(cygpath -u "${{github.workspace}}")
           mkdir build && cd build
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_SIGN_BUILT_BINARY=On ..
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DGPGFRONTEND_SIGN_BUILT_BINARY=On \
+            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
+            ..
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
         if: runner.os == 'Windows'
 
