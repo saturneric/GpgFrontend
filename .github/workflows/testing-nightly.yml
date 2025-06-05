@@ -91,7 +91,7 @@ jobs:
         if: runner.os == 'macOS'
 
       - name: Install Qt6
-        uses: jurplel/install-qt-action@v3
+        uses: jurplel/install-qt-action@v4
         with:
           version: "6.8.3"
           cache: "true"

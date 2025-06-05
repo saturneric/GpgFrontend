@@ -107,7 +107,7 @@ jobs:
           sudo ninja install
 
       - name: Install Qt
-        uses: jurplel/install-qt-action@v3
+        uses: jurplel/install-qt-action@v4
         with:
           version: "6.7.2"
           cache: "true"
