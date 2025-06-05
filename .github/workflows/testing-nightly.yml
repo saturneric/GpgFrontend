@@ -100,7 +100,7 @@ jobs:
       - name: Install Dependence (macOS)
         run: |
           brew install cmake autoconf automake texinfo gettext openssl@3
-          brew install ninja libarchive googletest
+          brew install ninja libarchive googletest libassuan
           brew install create-dmg
           brew link openssl@3 --force
         if: runner.os == 'macOS'
@@ -132,40 +132,8 @@ jobs:
             mingw-w64-x86_64-libarchive
             mingw-w64-x86_64-gtest
             mingw-w64-x86_64-autotools
+            mingw-w64-x86_64-libassuan
         if: runner.os == 'Windows'
-
-      - name: Build GpgError (macOS)
-        run: |
-          cd  ${{github.workspace}}/third_party/libgpg-error
-          ./autogen.sh
-          export CFLAGS="${CFLAGS} -fPIC"
-          ./configure --enable-maintainer-mode \
-            --enable-static \
-            --disable-shared \
-            --disable-rpath \
-            --enable-silent-rules \
-            --disable-dependency-tracking \
-            --disable-tests \
-            --enable-fast-install
-          make -j4
-          sudo make install
-        if: runner.os == 'macOS'
-
-      - name: Build Assuan (macOS)
-        run: |
-          cd ${{github.workspace}}/third_party/libassuan
-          ./autogen.sh
-          export CFLAGS="${CFLAGS} -fPIC"
-          ./configure --enable-maintainer-mode \
-            --enable-static \ 
-            --disable-shared \
-            --enable-silent-rules \
-            --disable-dependency-tracking \
-            --disable-doc \
-            --enable-fast-install
-          make -j4
-          sudo make install
-        if: runner.os == 'macOS'
 
       - name: Build GpgME (macOS)
         run: |
@@ -186,43 +154,11 @@ jobs:
           sudo make install
         if: runner.os == 'macOS'
 
-      - name: Build GpgError (Windows)
-        shell: msys2 {0}
-        run: |
-          cd ${{github.workspace}}/third_party/libgpg-error
-          ./autogen.sh
-          ./configure --enable-maintainer-mode \
-            --enable-static \
-            --disable-shared \
-            --disable-rpath \
-            --enable-silent-rules \
-            --disable-dependency-tracking \
-            --disable-tests \
-            --enable-fast-install
-          make -j4
-          make install
-        if: runner.os == 'Windows'
-
-      - name: Build Assuan (Windows)
-        shell: msys2 {0}
-        run: |
-          cd ${{github.workspace}}/third_party/libassuan
-          ./autogen.sh
-          ./configure --enable-maintainer-mode \
-            --enable-static \ 
-            --disable-shared \
-            --enable-silent-rules \
-            --disable-dependency-tracking \
-            --disable-doc \
-            --enable-fast-install
-          make -j4
-          make install
-        if: runner.os == 'Windows'
-
       - name: Build GpgME (Windows)
         shell: msys2 {0}
         run: |
-          cd ${{github.workspace}}/third_party/gpgme
+          cd $(cygpath -u "${{github.workspace}}")
+          cd third_party/gpgme
           ./autogen.sh
           export CFLAGS="${CFLAGS} -Wno-int-conversion -Wno-incompatible-pointer-types"
           ./configure --enable-maintainer-mode \
@@ -305,7 +241,7 @@ jobs:
           cmake -B ${{github.workspace}}/build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DGPGFRONTEND_BUILD_APP_IMAGE=ON \
-            -GPGFRONTEND_LINK_GPGME_INTO_CORE=ON
+            -DGFRONTEND_LINK_GPGME_INTO_CORE=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
         if: runner.os == 'Linux'
 
