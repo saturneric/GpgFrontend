@@ -375,10 +375,14 @@ jobs:
         id: release_title
         run: echo "title=Nightly Build $(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
-      - name: Delete Old Nightly Release
-        run: gh release delete nightly --repo saturneric/GpgFrontend --cleanup-tag --yes
+      - name: Re-create nightly tag
+        run: |
+          gh release delete nightly --repo saturneric/GpgFrontend --cleanup-tag --yes
+          git fetch origin develop
+          git tag -f nightly develop
+          git push origin nightly --force
         env:
-          GH_TOKEN: ${{ secrets.USER_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.USER_GITHUB_TOKEN }}
 
       - name: Update Nightly Release
         uses: softprops/action-gh-release@v2
