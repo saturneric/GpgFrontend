@@ -177,8 +177,8 @@ if(BUILD_AND_STATIC_LINK_GPGME AND MINGW)
   )
 
   add_library(GnuPGDeps INTERFACE)
-  target_link_libraries(GnuPGDeps INTERFACE ws2_32)
   target_link_libraries(GnuPGDeps INTERFACE ${GPGME_STATIC_LIB} ${ASSUAN_STATIC_LIB} ${GPG_ERROR_STATIC_LIB})
+  target_link_libraries(GnuPGDeps INTERFACE ws2_32)
 endif()
 
 if(BUILD_AND_STATIC_LINK_GPGME AND XCODE_BUILD)
