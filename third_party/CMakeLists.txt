@@ -23,10 +23,11 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-set(DEPS_INSTALL_ROOT "${CMAKE_BINARY_DIR}/deps")
-include(ExternalProject)
+if(BUILD_GPGME AND NOT MINGW)
+  include(ExternalProject)
 
-if(BUILD_GPGME)
+  set(DEPS_INSTALL_ROOT "${CMAKE_BINARY_DIR}/deps")
+
   ExternalProject_Add(
     EP_GpgError
 
@@ -154,4 +155,49 @@ if(BUILD_GPGME)
   add_dependencies(GpgDeps EP_GpgError EP_Assuan EP_GpgME)
   target_include_directories(GpgDeps INTERFACE ${DEPS_INSTALL_ROOT}/include)
   target_link_libraries(GpgDeps INTERFACE GpgME Assuan GpgError)
+endif()
+
+if(BUILD_GPGME AND MINGW)
+  find_library(
+    GPG_ERROR_STATIC_LIB
+    NAMES libgpg-error.a
+    HINTS "/mingw64/lib"
+    NO_DEFAULT_PATH
+  )
+
+  if(NOT GPG_ERROR_STATIC_LIB)
+    message(FATAL_ERROR "Can't find libgpg-error.a. Build it first.")
+  else()
+    message(STATUS "Found libgpg-error.a: ${ASSUAN_STATIC_LIB}")
+  endif()
+
+  find_library(
+    ASSUAN_STATIC_LIB
+    NAMES libassuan.a
+    HINTS "/mingw64/lib"
+    NO_DEFAULT_PATH
+  )
+
+  if(NOT ASSUAN_STATIC_LIB)
+    message(FATAL_ERROR "Can't find libassuan.a. Build it first.")
+  else()
+    message(STATUS "Found libassuan.a: ${ASSUAN_STATIC_LIB}")
+  endif()
+
+  find_library(
+    GPGME_STATIC_LIB
+    NAMES libgpgme.a
+    HINTS "/mingw64/lib"
+    NO_DEFAULT_PATH
+  )
+
+  if(NOT GPGME_STATIC_LIB)
+    message(FATAL_ERROR "Can't find libgpgme.a. Build it first.")
+  else()
+    message(STATUS "Found libgpgme.a: ${GPGME_STATIC_LIB}")
+  endif()
+
+  add_library(GpgDeps INTERFACE)
+  target_include_directories(GpgDeps INTERFACE /mingw64/include)
+  target_link_libraries(GpgDeps INTERFACE ${GPGME_STATIC_LIB} ${ASSUAN_STATIC_LIB} ${GPGME_STATIC_LIB})
 endif()
