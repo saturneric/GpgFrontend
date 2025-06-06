@@ -30,12 +30,14 @@
 
 #include <unistd.h>
 
+#include <cstddef>
+
 #include "core/model/GFDataExchanger.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
-constexpr size_t kBufferSize = 32 * 1024;
+constexpr size_t kBufferSize = static_cast<const size_t>(32 * 1024);
 
 auto GFReadExCb(void* handle, void* buffer, size_t size) -> ssize_t {
   auto* ex = static_cast<GFDataExchanger*>(handle);
@@ -61,11 +63,12 @@ GpgData::GpgData() {
   data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
 }
 
-GpgData::GpgData(GFBuffer buffer) : cached_buffer_(buffer) {
+GpgData::GpgData(GFBuffer buffer) : cached_buffer_(std::move(buffer)) {
   gpgme_data_t data;
 
   auto err = gpgme_data_new_from_mem(
-      &data, reinterpret_cast<const char*>(buffer.Data()), buffer.Size(), 0);
+      &data, reinterpret_cast<const char*>(cached_buffer_.Data()),
+      cached_buffer_.Size(), 0);
   assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
 
   data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
@@ -75,7 +78,7 @@ GpgData::GpgData(const void* buffer, size_t size, bool copy) {
   gpgme_data_t data;
 
   auto err = gpgme_data_new_from_mem(&data, static_cast<const char*>(buffer),
-                                     size, copy);
+                                     size, static_cast<int>(copy));
   assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
 
   data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
