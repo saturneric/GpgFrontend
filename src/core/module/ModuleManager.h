@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <vector>
-
 #include "core/function/SecureMemoryAllocator.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/module/Event.h"
@@ -129,7 +127,8 @@ template <typename... Args>
 void TriggerEvent(const EventIdentifier& event_id,
                   const Event::Params& params = {},
                   Event::EventCallback e_cb = nullptr) {
-  ModuleManager::GetInstance().TriggerEvent(MakeEvent(event_id, params, e_cb));
+  ModuleManager::GetInstance().TriggerEvent(
+      MakeEvent(event_id, params, std::move(e_cb)));
 }
 
 /**

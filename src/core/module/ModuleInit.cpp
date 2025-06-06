@@ -107,16 +107,10 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
             auto& manager = ModuleManager::GetInstance();
             manager.SetNeedRegisterModulesNum(static_cast<int>(modules.size()));
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-            for (const auto& m : modules.asKeyValueRange()) {
-              manager.LoadModule(m.first, m.second);
-            }
-#else
             for (auto it = modules.keyValueBegin(); it != modules.keyValueEnd();
                  ++it) {
               manager.LoadModule(it->first, it->second);
             }
-#endif
 
             LOG_D() << "all modules are loaded into memory.";
             return 0;

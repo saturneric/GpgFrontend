@@ -32,8 +32,8 @@
 #include <functional>
 #include <optional>
 
-#include "core/GpgFrontendCore.h"
-#include "core/model/DataObject.h"
+#include "core/model/GFBuffer.h"
+#include "core/typedef/CoreTypedef.h"
 
 struct GFModuleEvent;
 
@@ -44,23 +44,23 @@ class Event;
 using EventReference = QSharedPointer<Event>;
 using EventIdentifier = QString;
 using EventTriggerIdentifier = QString;
-using Evnets = QContainer<Event>;
+using Events = QContainer<Event>;
 
 class GF_CORE_EXPORT Event {
  public:
   using ParameterValue = std::any;
   using EventIdentifier = QString;
   using ListenerIdentifier = QString;
-  using Params = QMap<QString, QString>;
+  using Params = QMap<QString, GFBuffer>;
 
   using EventCallback =
       std::function<void(EventIdentifier, ListenerIdentifier, Params)>;
   struct ParameterInitializer {
     QString key;
-    QString value;
+    GFBuffer value;
   };
 
-  explicit Event(const QString&, Params = {}, EventCallback = nullptr);
+  explicit Event(const QString&, const Params& = {}, EventCallback = nullptr);
 
   ~Event();
 
@@ -80,7 +80,7 @@ class GF_CORE_EXPORT Event {
 
   auto GetTriggerIdentifier() -> EventTriggerIdentifier;
 
-  void AddParameter(const QString& key, const QString& value);
+  void AddParameter(const QString& key, const GFBuffer& value);
 
   void ExecuteCallback(ListenerIdentifier, const Params&);
 

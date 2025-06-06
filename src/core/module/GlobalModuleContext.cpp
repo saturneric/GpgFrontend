@@ -266,7 +266,7 @@ class GlobalModuleContext::Impl {
       }
 
       // Retrieve the module's information
-      auto module_info = module_info_opt.value();
+      const auto& module_info = module_info_opt.value();
       auto module = module_info->module;
 
       // Check if the module is activated
