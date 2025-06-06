@@ -31,6 +31,8 @@
 #include <core/function/SecureMemoryAllocator.h>
 #include <core/typedef/CoreTypedef.h>
 
+#include "core/model/GFBuffer.h"
+
 Q_DECLARE_LOGGING_CATEGORY(sdk)
 
 #define LOG_D() qCDebug(sdk)
@@ -66,6 +68,13 @@ auto GFUnStrDup(const char *) -> QString;
 /**
  * @brief
  *
+ * @return QString
+ */
+auto GFBufferUnStrDup(const char *str) -> GpgFrontend::GFBuffer;
+
+/**
+ * @brief
+ *
  * @param char_array
  * @param size
  * @return QMap<QString, QString>
@@ -88,7 +97,7 @@ auto QMapToCharArray(const QMap<QString, QString> &map, int &size) -> char **;
  * @return QMap<QString, QString>
  */
 auto ConvertEventParamsToMap(GFModuleEventParam *params)
-    -> QMap<QString, QString>;
+    -> QMap<QString, GpgFrontend::GFBuffer>;
 
 /**
  * @brief

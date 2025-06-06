@@ -91,6 +91,17 @@ auto GFStrDup(const QString& s) -> char* {
   return c_s;
 }
 
+auto GFBufferDup(const GFBuffer& s) -> char* {
+  if (s.Empty()) return nullptr;
+
+  const auto& u_s = s;
+  auto* c_s = static_cast<char*>(SMASecMalloc((u_s.Size() + 1) * sizeof(char)));
+
+  memcpy(c_s, u_s.Data(), u_s.Size());
+  c_s[u_s.Size()] = '\0';
+  return c_s;
+}
+
 auto GFUnStrDup(char* s) -> QString {
   auto q_s = QString::fromUtf8(s == nullptr ? "" : s);
   if (s != nullptr) SMAFree(static_cast<void*>(s));

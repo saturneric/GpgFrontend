@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/typedef/CoreTypedef.h"
+#include "core/model/GFBuffer.h"
 
 namespace GpgFrontend {
 
@@ -56,6 +56,13 @@ auto GF_CORE_EXPORT GFCompareSoftwareVersion(const QString &a, const QString &b)
  * @return char*
  */
 auto GF_CORE_EXPORT GFStrDup(const QString &) -> char *;
+
+/**
+ * @brief
+ *
+ * @return char*
+ */
+auto GF_CORE_EXPORT GFBufferDup(const GFBuffer &s) -> char *;
 
 /**
  * @brief

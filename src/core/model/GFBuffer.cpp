@@ -90,6 +90,14 @@ GFBuffer::GFBuffer(const QString& str) {
   std::memcpy(impl_->sec_ptr_, b.constData(), impl_->sec_size_);
 }
 
+GFBuffer::GFBuffer(const char* str)
+    : impl_(SecureCreateSharedObject<Impl>((str != nullptr) ? std::strlen(str)
+                                                            : 0)) {
+  if ((str != nullptr) && impl_->sec_size_ > 0) {
+    std::memcpy(impl_->sec_ptr_, str, impl_->sec_size_);
+  }
+}
+
 auto GFBuffer::operator==(const GFBuffer& o) const -> bool {
   return Size() == o.Size() &&
          (Size() == 0 || std::memcmp(Data(), o.Data(), Size()) == 0);
@@ -185,4 +193,13 @@ auto GFBuffer::ConvertToQString() const -> QString {
                            static_cast<qsizetype>(impl_->sec_size_));
 }
 
+auto GFBuffer::operator==(const char* str) const -> bool {
+  return Size() == strlen(str) &&
+         (Size() == 0 || std::memcmp(Data(), str, Size()) == 0);
+}
+
+auto GFBuffer::operator!=(const char* str) const -> bool {
+  return Size() == strlen(str) &&
+         (Size() == 0 || std::memcmp(Data(), str, Size()) != 0);
+}
 }  // namespace GpgFrontend

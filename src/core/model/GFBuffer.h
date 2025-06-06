@@ -44,9 +44,15 @@ class GF_CORE_EXPORT GFBuffer {
 
   explicit GFBuffer(const QString& str);
 
+  explicit GFBuffer(const char* str);
+
   ~GFBuffer();
 
   auto operator==(const GFBuffer& o) const -> bool;
+
+  auto operator==(const char* str) const -> bool;
+
+  auto operator!=(const char* str) const -> bool;
 
   [[nodiscard]] auto Data() -> char*;
 

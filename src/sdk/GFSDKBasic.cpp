@@ -100,6 +100,17 @@ auto GFModuleStrDup(const char* src) -> char* {
   return dst;
 }
 
+auto GFModuleSecStrDup(const char* src) -> char* {
+  auto len = StrlenSafe(src, kGfStrlenMax);
+  if (len > kGfStrlenMax) return nullptr;
+
+  char* dst = static_cast<char*>(GFSecAllocateMemory((len + 1) * sizeof(char)));
+  memcpy(dst, src, len);
+  dst[len] = '\0';
+
+  return dst;
+}
+
 auto GFAppActiveLocale() -> char* { return GFStrDup(QLocale().name()); }
 
 auto GFAppRegisterTranslatorReader(const char* id,
@@ -140,3 +151,13 @@ auto GF_SDK_EXPORT GFIsFlatpakENV() -> bool {
 auto GF_SDK_EXPORT GFIsCheckReleaseCommitHash() -> bool {
   return GpgFrontend::IsCheckReleaseCommitHash();
 }
+
+auto GF_SDK_EXPORT GFSecAllocateMemory(uint32_t size) -> void* {
+  return GpgFrontend::SMASecMalloc(size);
+}
+
+auto GF_SDK_EXPORT GFSecReallocateMemory(void* ptr, uint32_t size) -> void* {
+  return GpgFrontend::SMASecRealloc(ptr, size);
+}
+
+void GF_SDK_EXPORT GFSecFreeMemory(void* ptr) { GpgFrontend::SMASecFree(ptr); }
