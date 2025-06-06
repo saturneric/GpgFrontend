@@ -133,7 +133,7 @@ void MainWindow::slot_clean_double_line_breaks() {
     return;
   }
 
-  QString content = edit_->CurPlainText();
+  auto content = edit_->CurPlainText();
   content.replace("\n\n", "\n");
   edit_->SlotFillTextEditWithText(content);
 }
@@ -143,7 +143,7 @@ void MainWindow::slot_add_pgp_header() {
     return;
   }
 
-  QString content = edit_->CurPlainText().trimmed();
+  auto content = edit_->CurPlainText().trimmed();
 
   content.prepend("\n\n").prepend(PGP_CRYPT_BEGIN);
   content.append("\n").append(PGP_CRYPT_END);

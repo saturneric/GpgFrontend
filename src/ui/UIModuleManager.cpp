@@ -109,14 +109,6 @@ void UIModuleManager::RegisterAllModuleTranslators() {
 
   const auto locale_name = QLocale().name();
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  for (const auto& reader : translator_data_readers_.asKeyValueRange()) {
-    char* data = nullptr;
-
-    auto data_size = reader.second.reader_(GFStrDup(locale_name), &data);
-    LOG_D() << "module " << reader.first << "reader, read locale "
-            << locale_name << ", data size: " << data_size;
-#else
   for (auto it = translator_data_readers_.keyValueBegin();
        it != translator_data_readers_.keyValueEnd(); ++it) {
     char* data = nullptr;
@@ -124,7 +116,6 @@ void UIModuleManager::RegisterAllModuleTranslators() {
     auto data_size = it->second.reader_(GFStrDup(locale_name), &data);
     LOG_D() << "module " << it->first << "reader, read locale " << locale_name
             << ", data size: " << data_size;
-#endif
 
     if (data == nullptr) continue;
 
@@ -149,20 +140,6 @@ void UIModuleManager::RegisterAllModuleTranslators() {
 }
 
 void UIModuleManager::TranslateAllModulesParams() {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  for (auto entry : mounted_entries_.asKeyValueRange()) {
-    for (auto& m_entry : entry.second) {
-      m_entry.meta_data_translated_.clear();
-      for (auto param : m_entry.meta_data_.asKeyValueRange()) {
-        m_entry.meta_data_translated_[param.first] =
-            QApplication::translate("GTrC", param.second.toUtf8());
-        LOG_D() << "module entry metadata key: " << param.first
-                << "value: " << param.second
-                << "translated: " << m_entry.meta_data_translated_[param.first];
-      }
-    }
-  }
-#else
   for (auto it = mounted_entries_.keyValueBegin();
        it != mounted_entries_.keyValueEnd(); ++it) {
     for (auto& m_entry : it->second) {
@@ -174,7 +151,6 @@ void UIModuleManager::TranslateAllModulesParams() {
       }
     }
   }
-#endif
 }
 
 auto UIModuleManager::RegisterQObject(const QString& id, QObject* p) -> bool {
