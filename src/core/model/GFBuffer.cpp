@@ -189,7 +189,7 @@ void GFBuffer::Zeroize() {
 
 auto GFBuffer::ConvertToQString() const -> QString {
   Q_ASSERT(impl_);
-  Q_ASSERT(impl_->sec_ptr_ != nullptr);
+  if (impl_->sec_ptr_ == nullptr) return {};
   return QString::fromUtf8(static_cast<const char*>(impl_->sec_ptr_),
                            static_cast<qsizetype>(impl_->sec_size_));
 }
