@@ -154,8 +154,8 @@ jobs:
       - name: Cache ccache (Windows)
         uses: actions/cache@v4
         with:
-          path: ${{steps.msys2.outputs.msys2-location}}\\home\\.ccache
-          key: ccache-build-${{ runner.os }}
+          path: ${{steps.msys2.outputs.msys2-location}}\home\.ccache
+          key: ccache-build-${{ matrix.os }}
         if: runner.os == 'Windows'
 
       - name: Build GpgME (macOS)
