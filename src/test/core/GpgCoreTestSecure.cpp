@@ -68,4 +68,14 @@ TEST_F(GpgCoreTest, CoreSecureTestD) {
   ASSERT_EQ(decrypted, plaintext);
 }
 
+TEST_F(GpgCoreTest, CoreSecureTestE) {
+  GFBuffer plaintext(QString::fromUtf8("HELLO WORLD! HELLO!!!"));
+  auto encoded = plaintext.ToBase64();
+  ASSERT_TRUE(encoded.has_value());
+
+  auto decoded = encoded->FromBase64();
+  ASSERT_TRUE(decoded.has_value());
+  ASSERT_EQ(*decoded, plaintext);
+}
+
 }  // namespace GpgFrontend::Test

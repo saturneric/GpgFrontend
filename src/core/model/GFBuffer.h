@@ -68,6 +68,10 @@ class GF_CORE_EXPORT GFBuffer {
 
   void Append(const char*, ssize_t);
 
+  auto ToBase64() -> std::optional<GFBuffer>;
+
+  [[nodiscard]] auto FromBase64() const -> std::optional<GFBuffer>;
+
   [[nodiscard]] auto ConvertToQByteArray() const -> QByteArray;
 
   [[nodiscard]] auto ConvertToQString() const -> QString;
