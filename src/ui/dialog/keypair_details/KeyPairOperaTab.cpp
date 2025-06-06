@@ -340,7 +340,7 @@ void KeyPairOperaTab::slot_publish_key_to_server() {
     Module::TriggerEvent(
         "REQUEST_UPLOAD_PUBLIC_KEY",
         {
-            {"key_text", QString::fromUtf8(key_text)},
+            {"key_text", GFBuffer{key_text}},
         },
         [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
             Module::Event::Params p) {
@@ -348,14 +348,15 @@ void KeyPairOperaTab::slot_publish_key_to_server() {
                      "callback: "
                   << i << ei;
 
-          if (p["ret"] != "0" || !p["error_msg"].isEmpty()) {
+          if (p["ret"] != "0" || !p["error_msg"].Empty()) {
             LOG_E() << "An error occurred trying to get data "
                        "from key:"
-                    << fpr << "error message: " << p["error_msg"]
-                    << "reply data: " << p["reply_data"];
+                    << fpr
+                    << "error message: " << p["error_msg"].ConvertToQString()
+                    << "reply data: " << p["reply_data"].ConvertToQString();
 
             // Notify user of the error
-            QString error_message = p["error_msg"];
+            auto error_message = p["error_msg"].ConvertToQString();
             QMessageBox::critical(
                 this, tr("Key Upload Failed"),
                 tr("Failed to upload public key to the server.\n"
@@ -368,13 +369,15 @@ void KeyPairOperaTab::slot_publish_key_to_server() {
             const auto status = p["status"];
             const auto reply_fpr = p["fingerprint"];
             LOG_D() << "got key data of key " << fpr
-                    << "from key server, token: " << token << "fpr: " << fpr
-                    << "status: " << status;
+                    << "from key server, token: " << token.ConvertToQString()
+                    << "fpr: " << fpr
+                    << "status: " << status.ConvertToQString();
 
             // Handle successful response
             QString status_message =
                 tr("The following email addresses have status:\n");
-            QJsonDocument json_doc = QJsonDocument::fromJson(status.toUtf8());
+            QJsonDocument json_doc =
+                QJsonDocument::fromJson(status.ConvertToQByteArray());
             QStringList email_list;
             if (!json_doc.isNull() && json_doc.isObject()) {
               QJsonObject json_obj = json_doc.object();
@@ -610,21 +613,22 @@ void KeyPairOperaTab::slot_export_paper_key() {
     Module::TriggerEvent(
         "REQUEST_TRANS_KEY_2_PAPER_KEY",
         {
-            {"secret_key", QString(gf_buffer.ConvertToQByteArray().toBase64())},
+            {"secret_key",
+             GFBuffer{gf_buffer.ConvertToQByteArray().toBase64()}},
         },
         [this, file_name](Module::EventIdentifier i,
                           Module::Event::ListenerIdentifier ei,
                           Module::Event::Params p) {
           LOG_D() << "REQUEST_TRANS_KEY_2_PAPER_KEY callback: " << i << ei;
 
-          if (p["ret"] != "0" || p["paper_key"].isEmpty()) {
+          if (p["ret"] != "0" || p["paper_key"].Empty()) {
             QMessageBox::critical(
                 this, tr("Error"),
                 tr("An error occurred trying to generate Paper Key."));
             return;
           }
 
-          if (!WriteFile(file_name, p["paper_key"].toLatin1())) {
+          if (!WriteFileGFBuffer(file_name, p["paper_key"])) {
             QMessageBox::critical(
                 this, tr("Export Error"),
                 tr("Couldn't open %1 for writing").arg(file_name));
@@ -690,15 +694,15 @@ void KeyPairOperaTab::slot_import_paper_key() {
   Module::TriggerEvent(
       "REQUEST_TRANS_PAPER_KEY_2_KEY",
       {
-          {"public_key", QString(gf_buffer.ConvertToQByteArray().toBase64())},
+          {"public_key", GFBuffer{gf_buffer.ConvertToQByteArray().toBase64()}},
           {"paper_key_secrets",
-           QString(gf_in_buff.ConvertToQByteArray().toBase64())},
+           GFBuffer{gf_in_buff.ConvertToQByteArray().toBase64()}},
       },
       [this](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
              Module::Event::Params p) {
         LOG_D() << "REQUEST_TRANS_PAPER_KEY_2_KEY callback: " << i << ei;
 
-        if (p["ret"] != "0" || p["secret_key"].isEmpty()) {
+        if (p["ret"] != "0" || p["secret_key"].Empty()) {
           QMessageBox::critical(this, tr("Error"),
                                 tr("An error occurred trying to recover the "
                                    "Paper Key back to the private key."));
@@ -707,7 +711,7 @@ void KeyPairOperaTab::slot_import_paper_key() {
 
         CommonUtils::GetInstance()->SlotImportKeys(
             this, current_gpg_context_channel_,
-            QByteArray::fromBase64(p["secret_key"].toLatin1()));
+            QByteArray::fromBase64(p["secret_key"].ConvertToQByteArray()));
       });
 }
 

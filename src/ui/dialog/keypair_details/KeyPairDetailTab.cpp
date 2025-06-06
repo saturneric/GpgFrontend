@@ -297,7 +297,7 @@ void KeyPairDetailTab::slot_query_key_publish_state() {
   Module::TriggerEvent(
       "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT",
       {
-          {"fingerprint", QString(fpr)},
+          {"fingerprint", GFBuffer{fpr}},
       },
       [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
           Module::Event::Params p) {
@@ -307,16 +307,14 @@ void KeyPairDetailTab::slot_query_key_publish_state() {
         // avoid crash while outer dialog was already closed
         if (!self) return;
 
-        if (p["ret"] != "0" || !p["error_msg"].isEmpty()) {
+        if (p["ret"] != "0" || !p["error_msg"].Empty()) {
           LOG_E() << "An error occurred trying to get data from key:" << fpr
-                  << "error message: " << p["error_msg"]
-                  << "reply data: " << p["reply_data"];
+                  << "error message: " << p["error_msg"].ConvertToQString()
+                  << "reply data: " << p["reply_data"].ConvertToQString();
         } else if (p.contains("key_data")) {
           const auto key_data = p["key_data"];
-          LOG_D() << "got key data of key " << fpr
-                  << " from key server: " << key_data;
 
-          if (!key_data.isEmpty()) {
+          if (!key_data.Empty()) {
             self->slot_refresh_notice(
                 ":/icons/publish.png",
                 tr("Notice: The public key has been published on "

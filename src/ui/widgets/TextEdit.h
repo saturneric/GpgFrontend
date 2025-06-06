@@ -309,9 +309,9 @@ class TextEdit : public QWidget {
   /**
    * @brief
    *
-   * @param text
+   * @param buffer
    */
-  void SlotSetText2CurEMailPage(const QString& text);
+  void SlotSetGFBuffer2CurEMailPage(const GFBuffer& buffer);
 
   /**
    * @brief

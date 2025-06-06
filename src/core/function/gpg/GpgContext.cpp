@@ -216,14 +216,15 @@ class GpgContext::Impl {
             << ", last_was_bad: " << prev_was_bad;
 
     QEventLoop looper;
-    QString passphrase = "";
+    GFBuffer passphrase;
 
     Module::TriggerEvent(
         "REQUEST_PIN_ENTRY",
-        {{"uid_hint", uid_hint != nullptr ? uid_hint : ""},
-         {"passphrase_info", passphrase_info != nullptr ? passphrase_info : ""},
-         {"prev_was_bad", (prev_was_bad != 0) ? "1" : "0"},
-         {"ask_for_new", ask_for_new ? "1" : "0"}},
+        {{"uid_hint", GFBuffer{uid_hint != nullptr ? uid_hint : ""}},
+         {"passphrase_info",
+          GFBuffer{passphrase_info != nullptr ? passphrase_info : ""}},
+         {"prev_was_bad", GFBuffer{(prev_was_bad != 0) ? "1" : "0"}},
+         {"ask_for_new", GFBuffer{ask_for_new ? "1" : "0"}}},
         [&passphrase, &looper](Module::EventIdentifier i,
                                Module::Event::ListenerIdentifier ei,
                                Module::Event::Params p) {
@@ -234,14 +235,11 @@ class GpgContext::Impl {
     looper.exec();
     ResetCacheValue("PinentryContext");
 
-    LOG_D() << "passphrase size:" << passphrase.size();
-
     // empty passphrase is not allowed
-    if (passphrase.isEmpty()) return GPG_ERR_CANCELED;
+    if (passphrase.Empty()) return GPG_ERR_CANCELED;
 
-    auto pass_bytes = passphrase.toLatin1();
-    auto pass_size = pass_bytes.size();
-    const auto *p_pass_bytes = pass_bytes.constData();
+    auto pass_size = passphrase.Size();
+    const auto *p_pass_bytes = passphrase.Data();
 
     ssize_t res = 0;
     if (pass_size > 0) {

@@ -397,11 +397,10 @@ void TextEdit::MaybeSaveAnyTabAsync(const std::function<void(bool)>& callback) {
   dialog->show();
 }
 
-void TextEdit::SlotSetText2CurEMailPage(const QString& text) {
+void TextEdit::SlotSetGFBuffer2CurEMailPage(const GFBuffer& buffer) {
   if (CurTextPage() == nullptr) SlotNewEMailTab();
   auto* edit = CurTextPage()->GetTextPage();
-  edit->clear();
-  edit->appendPlainText(text);
+  edit->setPlainText(buffer.ConvertToQString());
 }
 
 void TextEdit::SlotAppendText2CurTextPage(const QString& text) {

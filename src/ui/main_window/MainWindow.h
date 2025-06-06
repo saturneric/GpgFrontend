@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/module/Event.h"
 #include "core/typedef/CoreTypedef.h"
 #include "core/typedef/GpgTypedef.h"
 #include "ui/main_window/GeneralMainWindow.h"
@@ -437,7 +438,7 @@ class MainWindow : public GeneralMainWindow {
    * @param buffer
    */
   void slot_verify_email_by_eml_data_result_helper(
-      const QMap<QString, QString>& p);
+      const Module::Event::Params& p);
 
   /**
    * @brief
@@ -604,7 +605,7 @@ class MainWindow : public GeneralMainWindow {
    * @brief
    *
    */
-  void decrypt_email_by_eml_data_result_helper(QMap<QString, QString> p);
+  void decrypt_email_by_eml_data_result_helper(Module::Event::Params p);
 
   /**
    * @brief
@@ -613,7 +614,7 @@ class MainWindow : public GeneralMainWindow {
    * @param error_string
    * @return QString
    */
-  auto handle_module_error(QMap<QString, QString> p) -> bool;
+  auto handle_module_error(Module::Event::Params p) -> bool;
 
   /**
    * @brief
