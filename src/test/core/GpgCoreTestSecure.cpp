@@ -27,26 +27,45 @@
  */
 
 #include "GpgCoreTest.h"
+#include "core/function/AESCryptoHelper.h"
 #include "core/function/SecureRandomGenerator.h"
 
 namespace GpgFrontend::Test {
 
 TEST_F(GpgCoreTest, CoreSecureTestA) {
   auto buffer = SecureRandomGenerator::GetInstance().GnuPGGenerateZBase32();
-  ASSERT_EQ(buffer.Size(), 31);
+  ASSERT_TRUE(buffer.has_value());
+  ASSERT_EQ(buffer->Size(), 31);
 }
 
 TEST_F(GpgCoreTest, CoreSecureTestB) {
   auto buffer = SecureRandomGenerator::GetInstance().GnuPGGenerate(16);
-  ASSERT_EQ(buffer.Size(), 31);
+  ASSERT_TRUE(buffer.has_value());
+  ASSERT_EQ(buffer->Size(), 31);
 
   buffer = SecureRandomGenerator::GetInstance().GnuPGGenerate(512);
-  ASSERT_EQ(buffer.Size(), 512);
+  ASSERT_TRUE(buffer.has_value());
+  ASSERT_EQ(buffer->Size(), 512);
 }
 
 TEST_F(GpgCoreTest, CoreSecureTestC) {
   auto buffer = SecureRandomGenerator::OpenSSLGenerate(256);
-  ASSERT_EQ(buffer.Size(), 256);
+  ASSERT_TRUE(buffer.has_value());
+  ASSERT_EQ(buffer->Size(), 256);
+}
+
+TEST_F(GpgCoreTest, CoreSecureTestD) {
+  auto key = SecureRandomGenerator::OpenSSLGenerate(256);
+  ASSERT_TRUE(key.has_value());
+  ASSERT_EQ(key->Size(), 256);
+
+  GFBuffer plaintext(QString::fromUtf8("HELLO WORLD!"));
+  auto encrypted = AESCryptoHelper::GCMEncrypt(*key, plaintext);
+  ASSERT_TRUE(encrypted.has_value());
+
+  auto decrypted = AESCryptoHelper::GCMDecrypt(*key, *encrypted);
+  ASSERT_TRUE(decrypted.has_value());
+  ASSERT_EQ(decrypted, plaintext);
 }
 
 }  // namespace GpgFrontend::Test
