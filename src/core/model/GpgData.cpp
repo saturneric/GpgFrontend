@@ -33,26 +33,26 @@
 #include <cstddef>
 
 #include "core/model/GFDataExchanger.h"
-#include "core/typedef/GpgTypedef.h"
+#include "core/typedef/GpgErrorTypedef.h"
 
-namespace GpgFrontend {
-
-constexpr size_t kBufferSize = static_cast<const size_t>(32 * 1024);
-
+namespace {
 auto GFReadExCb(void* handle, void* buffer, size_t size) -> ssize_t {
-  auto* ex = static_cast<GFDataExchanger*>(handle);
+  auto* ex = static_cast<GpgFrontend::GFDataExchanger*>(handle);
   return ex->Read(static_cast<std::byte*>(buffer), size);
 }
 
 auto GFWriteExCb(void* handle, const void* buffer, size_t size) -> ssize_t {
-  auto* ex = static_cast<GFDataExchanger*>(handle);
+  auto* ex = static_cast<GpgFrontend::GFDataExchanger*>(handle);
   return ex->Write(static_cast<const std::byte*>(buffer), size);
 }
 
 void GFReleaseExCb(void* handle) {
-  auto* ex = static_cast<GFDataExchanger*>(handle);
+  auto* ex = static_cast<GpgFrontend::GFDataExchanger*>(handle);
   ex->CloseWrite();
 }
+}  // namespace
+
+namespace GpgFrontend {
 
 GpgData::GpgData() {
   gpgme_data_t data;
@@ -140,10 +140,11 @@ auto GpgData::Read2GFBuffer() -> GFBuffer {
     const GpgError err = gpgme_err_code_from_errno(errno);
     assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
   } else {
-    std::array<char, kBufferSize + 2> buf;
+    GFBuffer buf(kSecBufferSizeForFile + 8);
 
-    while ((ret = gpgme_data_read(*this, buf.data(), kBufferSize)) > 0) {
-      buffer.Append(buf.data(), ret);
+    while ((ret = gpgme_data_read(*this, buf.Data(), kSecBufferSizeForFile)) >
+           0) {
+      buffer.Append(buf);
     }
 
     if (ret < 0) {

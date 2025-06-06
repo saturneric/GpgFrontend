@@ -121,8 +121,17 @@ class TextEdit : public QWidget {
    */
   [[nodiscard]] auto CurPageFileTreeView() const -> FilePage*;
 
+  /**
+   * @brief
+   *
+   * @return bool
+   */
   [[nodiscard]] auto IsCloseCheckInProgress() const -> bool;
 
+  /**
+   * @brief
+   *
+   */
   void SetCloseCheckInProgress(bool s);
 
  public slots:

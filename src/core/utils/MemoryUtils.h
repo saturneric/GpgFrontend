@@ -137,4 +137,58 @@ auto SecureCreateSharedObject(Args &&...args) -> QSharedPointer<T> {
   }
 }
 
+template <typename T>
+class SMAAllocator {
+ public:
+  using value_type = T;
+
+  SMAAllocator() noexcept = default;
+  template <class U>
+  explicit SMAAllocator(const SMAAllocator<U> &) noexcept {}
+
+  auto allocate(std::size_t n) -> T * {
+    void *p = SMAMalloc(n * sizeof(T));
+    if (p == nullptr) throw std::bad_alloc();
+    return static_cast<T *>(p);
+  }
+
+  void deallocate(T *p, std::size_t /*n*/) noexcept {
+    SMAFree(static_cast<void *>(p));
+  }
+
+  // C++17: allocator must be equality comparable
+  auto operator==(const SMAAllocator &) const noexcept -> bool { return true; }
+
+  auto operator!=(const SMAAllocator &) const noexcept -> bool { return false; }
+};
+
+template <typename T>
+class SMASecAllocator {
+ public:
+  using value_type = T;
+
+  SMASecAllocator() noexcept = default;
+  template <class U>
+  explicit SMASecAllocator(const SMASecAllocator<U> &) noexcept {}
+
+  auto allocate(std::size_t n) -> T * {
+    void *p = SMASecMalloc(n * sizeof(T));
+    if (p == nullptr) throw std::bad_alloc();
+    return static_cast<T *>(p);
+  }
+
+  void deallocate(T *p, std::size_t /*n*/) noexcept {
+    SMASecFree(static_cast<void *>(p));
+  }
+
+  // C++17: allocator must be equality comparable
+  auto operator==(const SMASecAllocator &) const noexcept -> bool {
+    return true;
+  }
+
+  auto operator!=(const SMASecAllocator &) const noexcept -> bool {
+    return false;
+  }
+};
+
 };  // namespace GpgFrontend

@@ -225,4 +225,11 @@ void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
   QTimer::singleShot(25, this, &PlainTextEditorPage::SignalUIBytesDisplayed);
 }
 
+auto PlainTextEditorPage::ReadDone() const -> bool { return this->read_done_; }
+
+void PlainTextEditorPage::Clear() {
+  this->ui_->textPage->clear();
+  this->ui_->textPage->setUndoRedoEnabled(false);
+  this->ui_->textPage->setUndoRedoEnabled(true);
+}
 }  // namespace GpgFrontend::UI

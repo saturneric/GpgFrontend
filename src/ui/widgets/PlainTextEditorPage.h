@@ -99,13 +99,19 @@ class PlainTextEditorPage : public QWidget {
    * @return true
    * @return false
    */
-  [[nodiscard]] bool ReadDone() const { return this->read_done_; }
+  [[nodiscard]] auto ReadDone() const -> bool;
 
   /**
    * @brief notify the user that the file has been saved.
    *
    */
   void NotifyFileSaved();
+
+  /**
+   * @brief
+   *
+   */
+  void Clear();
 
  signals:
 

@@ -166,14 +166,22 @@ auto MainWindow::check_keys_helper(
 }
 
 void MainWindow::SlotEncrypt() {
-  if (edit_->CurPageTextEdit() == nullptr) return;
+  auto* text_edit = edit_->CurPageTextEdit();
+  if (text_edit == nullptr) return;
 
   auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
   contexts->ascii = true;
 
   if (!encrypt_operation_key_validate(contexts)) return;
 
-  contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
+  auto plain_text = edit_->CurPlainText();
+  GFBuffer secure_plain_text(plain_text);
+
+  // clear plain text in memory
+  plain_text.fill(QLatin1Char('X'));
+  text_edit->Clear();
+
+  contexts->GetContextBuffer(0).append(secure_plain_text);
   GpgOperaHelper::BuildOperas(contexts, 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasEncrypt);
@@ -236,7 +244,8 @@ void MainWindow::SlotVerify() {
 }
 
 void MainWindow::SlotEncryptSign() {
-  if (edit_->CurPageTextEdit() == nullptr) return;
+  auto* text_edit = edit_->CurPageTextEdit();
+  if (text_edit == nullptr) return;
 
   auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
   contexts->ascii = true;
@@ -250,7 +259,14 @@ void MainWindow::SlotEncryptSign() {
 
   if (!sign_operation_key_validate(contexts)) return;
 
-  contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
+  auto plain_text = edit_->CurPlainText();
+  GFBuffer secure_plain_text(plain_text);
+
+  // clear plain text in memory
+  plain_text.fill(QLatin1Char('X'));
+  text_edit->Clear();
+
+  contexts->GetContextBuffer(0).append(secure_plain_text);
   GpgOperaHelper::BuildOperas(contexts, 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasEncryptSign);

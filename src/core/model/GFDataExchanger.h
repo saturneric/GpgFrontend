@@ -31,13 +31,15 @@
 #include <cstddef>
 #include <queue>
 
-namespace GpgFrontend {
+#include "core/utils/MemoryUtils.h"
 
-constexpr ssize_t kDataExchangerSize =
-    static_cast<const ssize_t>(1024 * 1024 * 8);  // 8 MB
+namespace GpgFrontend {
 
 class GFDataExchanger {
  public:
+  using SecureByteDeque = std::deque<std::byte, SMASecAllocator<std::byte>>;
+  using SecureByteQueue = std::queue<std::byte, SecureByteDeque>;
+
   explicit GFDataExchanger(ssize_t size);
 
   auto Write(const std::byte* buffer, size_t size) -> ssize_t;
@@ -48,14 +50,14 @@ class GFDataExchanger {
 
  private:
   std::condition_variable not_full_, not_empty_;
-  std::queue<std::byte> queue_;
+  SecureByteQueue queue_;
   std::mutex mutex_;
   const ssize_t queue_max_size_;
   std::atomic_bool close_ = false;
 };
 
 inline auto CreateStandardGFDataExchanger() -> QSharedPointer<GFDataExchanger> {
-  return QSharedPointer<GFDataExchanger>::create(kDataExchangerSize);
+  return SecureCreateSharedObject<GFDataExchanger>(kSecBufferSizeForFile);
 }
 
 }  // namespace GpgFrontend
