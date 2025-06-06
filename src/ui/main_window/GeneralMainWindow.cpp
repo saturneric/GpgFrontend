@@ -50,7 +50,9 @@ GpgFrontend::UI::GeneralMainWindow::GeneralMainWindow(QString id,
 GpgFrontend::UI::GeneralMainWindow::~GeneralMainWindow() = default;
 
 void GpgFrontend::UI::GeneralMainWindow::closeEvent(QCloseEvent *event) {
+  // save size and position
   slot_save_settings();
+
   QMainWindow::closeEvent(event);
 }
 
@@ -88,11 +90,12 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
         }
 
         if (parent_pos != QPoint{0, 0}) {
-          QPoint const parent_center{parent_pos.x() + parent_size.width() / 2,
-                                     parent_pos.y() + parent_size.height() / 2};
+          QPoint const parent_center{
+              parent_pos.x() + (parent_size.width() / 2),
+              parent_pos.y() + (parent_size.height() / 2)};
 
-          pos_ = {parent_center.x() - size_.width() / 2,
-                  parent_center.y() - size_.height() / 2};
+          pos_ = {parent_center.x() - (size_.width() / 2),
+                  parent_center.y() - (size_.height() / 2)};
         }
       }
 
@@ -106,7 +109,7 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
     }
 
     // appearance
-    AppearanceSO const appearance(SettingsObject("general_settings_state"));
+    AppearanceSO appearance(SettingsObject("general_settings_state"));
 
     icon_size_ = {appearance.tool_bar_icon_width,
                   appearance.tool_bar_icon_height};

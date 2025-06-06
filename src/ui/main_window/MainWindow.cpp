@@ -260,6 +260,7 @@ void MainWindow::closeEvent(QCloseEvent* event) {
         edit_->SetCloseCheckInProgress(false);
       }
     });
+    GeneralMainWindow::closeEvent(event);
     return;
   }
 
