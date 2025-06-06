@@ -348,7 +348,7 @@ jobs:
           windeployqt-qt6 --no-translations --force ./artifacts/bin/GpgFrontend.exe
           mkdir upload-artifact
           cd artifacts
-          zip -r ../upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-x86_64.zip *
+          zip -r ../upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-${{matrix.os}}-x86_64.zip *
         if: runner.os == 'Windows'
 
       - name: Upload Artifact (Linux)
