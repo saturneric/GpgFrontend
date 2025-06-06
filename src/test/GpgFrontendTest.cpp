@@ -42,8 +42,7 @@ Q_LOGGING_CATEGORY(test, "test")
 
 auto GF_TEST_EXPORT GFTestValidateSymbol() -> int { return 0; }
 
-namespace GpgFrontend::Test {
-
+namespace {
 auto GenerateRandomString(size_t length) -> QString {
   const QString characters =
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -58,6 +57,26 @@ auto GenerateRandomString(size_t length) -> QString {
 
   return random_string;
 }
+
+void ImportPrivateKeys() {
+  auto key_files = QDir(":/test/key").entryList();
+
+  for (const auto& key_file : key_files) {
+    auto [success, gf_buffer] =
+        GpgFrontend::ReadFileGFBuffer(QString(":/test/key") + "/" + key_file);
+    if (success) {
+      GpgFrontend::GpgKeyImportExporter::GetInstance(
+          GpgFrontend::kGpgFrontendDefaultChannel)
+          .ImportKey(gf_buffer);
+    } else {
+      FLOG_W() << "read from key file failed: " << key_file;
+    }
+  }
+}
+
+};  // namespace
+
+namespace GpgFrontend::Test {
 
 void ConfigureGpgContext() {
   auto db_path = QDir(QDir::tempPath() + "/" + GenerateRandomString(12));
@@ -78,21 +97,6 @@ void ConfigureGpgContext() {
       });
 }
 
-void ImportPrivateKeys(const QString& data_path, QSettings settings) {
-  auto key_files = QDir(":/test/key").entryList();
-
-  for (const auto& key_file : key_files) {
-    auto [success, gf_buffer] =
-        ReadFileGFBuffer(QString(":/test/key") + "/" + key_file);
-    if (success) {
-      GpgKeyImportExporter::GetInstance(kGpgFrontendDefaultChannel)
-          .ImportKey(gf_buffer);
-    } else {
-      FLOG_W() << "read from key file failed: " << key_file;
-    }
-  }
-}
-
 void SetupGlobalTestEnv() {
   auto app_path = GlobalSettingStation::GetInstance().GetAppDir();
   auto test_path = app_path + "/test";
@@ -102,8 +106,7 @@ void SetupGlobalTestEnv() {
   LOG_I() << "test config file path: " << test_config_path;
   LOG_I() << "test data file path: " << test_data_path;
 
-  ImportPrivateKeys(test_data_path,
-                    QSettings(test_config_path, QSettings::IniFormat));
+  ImportPrivateKeys();
 }
 
 auto ExecuteAllTestCase(GpgFrontendContext args) -> int {
