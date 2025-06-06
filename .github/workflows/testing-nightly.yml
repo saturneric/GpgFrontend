@@ -65,6 +65,7 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ github.job }}-${{ matrix.os }}
+        if: runner.os == 'Linux'  || runner.os == 'macOS'
 
       - name: Get Short SHA of Commit
         id: vars
@@ -120,6 +121,7 @@ jobs:
 
       - name: Set up MinGW (Windows)
         uses: msys2/setup-msys2@v2
+        id: msys2
         with:
           update: false
           release: false
@@ -146,6 +148,14 @@ jobs:
             mingw-w64-x86_64-gtest
             mingw-w64-x86_64-autotools
             mingw-w64-x86_64-libassuan
+            mingw-w64-x86_64-ccache
+        if: runner.os == 'Windows'
+
+      - name: Cache ccache (Windows)
+        uses: actions/cache@v4
+        with:
+          path: ${{steps.msys2.outputs.msys2-location}}\\home\\.ccache
+          key: ccache-build-${{ runner.os }}
         if: runner.os == 'Windows'
 
       - name: Build GpgME (macOS)
