@@ -297,18 +297,25 @@ void MainWindow::slot_refresh_current_file_view() {
 void MainWindow::slot_import_key_from_edit() {
   if (edit_->TabCount() == 0 || edit_->CurPageTextEdit() == nullptr) return;
 
+  auto plain_text = edit_->CurPlainText().toLatin1();
   CommonUtils::GetInstance()->SlotImportKeys(
-      this, m_key_list_->GetCurrentGpgContextChannel(),
-      edit_->CurPlainText().toLatin1());
+      this, m_key_list_->GetCurrentGpgContextChannel(), GFBuffer(plain_text));
+
+  plain_text.fill('X');
+  plain_text.clear();
 }
 
 void MainWindow::slot_verify_email_by_eml_data(const QByteArray& buffer) {
+  GFBuffer sec_buf(buffer);
+  auto sec_buf_base64 = sec_buf.ToBase64();
+  if (!sec_buf_base64) return;
+
   GpgOperaHelper::WaitForOpera(
-      this, tr("Verifying"), [this, buffer](const OperaWaitingHd& hd) {
+      this, tr("Verifying"), [this, sec_buf_base64](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
             "EMAIL_VERIFY_EML_DATA",
             {
-                {"eml_data", GFBuffer{QString::fromLatin1(buffer.toBase64())}},
+                {"eml_data", *sec_buf_base64},
                 {"channel", GFBuffer{QString::number(
                                 m_key_list_->GetCurrentGpgContextChannel())}},
             },
@@ -332,10 +339,14 @@ void MainWindow::slot_verify_email_by_eml_data(const QByteArray& buffer) {
 }
 
 void MainWindow::slot_decrypt_email_by_eml_data(const QByteArray& buffer) {
+  GFBuffer sec_buf(buffer);
+  auto sec_buf_base64 = sec_buf.ToBase64();
+  if (!sec_buf_base64) return;
+
   Module::TriggerEvent(
       "EMAIL_DECRYPT_EML_DATA",
       {
-          {"eml_data", GFBuffer{QString::fromLatin1(buffer.toBase64())}},
+          {"eml_data", *sec_buf_base64},
           {"channel", GFBuffer{QString::number(
                           m_key_list_->GetCurrentGpgContextChannel())}},
       },
@@ -404,9 +415,6 @@ void MainWindow::slot_verifying_unknown_signature_helper(
 
 void MainWindow::slot_verify_email_by_eml_data_result_helper(
     const Module::Event::Params& p) {
-  const auto mime = QByteArray::fromBase64(p["mime"].ConvertToQByteArray());
-  const auto signature =
-      QByteArray::fromBase64(p["signature"].ConvertToQByteArray());
   const auto part_mime_content_hash = p["mime_hash"];
   const auto prm_micalg_value = p["micalg"];
 
@@ -589,9 +597,8 @@ void MainWindow::decrypt_email_by_eml_data_result_helper(
     datetime = QLocale().toString(QDateTime::fromMSecsSinceEpoch(timestamp));
   }
 
-  const auto eml_data =
-      QByteArray::fromBase64(p["eml_data"].ConvertToQByteArray());
-  edit_->SlotFillTextEditWithText(eml_data);
+  const auto eml_data = p["eml_data"].FromBase64();
+  if (eml_data) edit_->SlotSetGFBuffer2CurEMailPage(*eml_data);
 
   QString email_info;
   email_info.append("# E-Mail Information\n\n");
@@ -649,18 +656,25 @@ void MainWindow::SlotEncryptEML() {
                          tr("Please select a key for encrypt the EML."));
     return;
   }
-  auto buffer = edit_->CurPlainText().toUtf8();
+  auto buffer = edit_->CurPlainText();
 
   auto key_ids =
       ConvertKey2GpgKeyIdList(m_key_list_->GetCurrentGpgContextChannel(), keys);
 
+  GFBuffer sec_buf(buffer);
+  auto sec_buf_base64 = sec_buf.ToBase64();
+  if (!sec_buf_base64) return;
+
+  buffer.fill('X');
+  buffer.clear();
+
   GpgOperaHelper::WaitForOpera(
       this, tr("Encrypting"),
-      [this, buffer, key_ids](const OperaWaitingHd& hd) {
+      [this, sec_buf_base64, key_ids](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
             "EMAIL_ENCRYPT_EML_DATA",
             {
-                {"body_data", GFBuffer{QString::fromLatin1(buffer.toBase64())}},
+                {"body_data", *sec_buf_base64},
                 {"channel", GFBuffer{QString::number(
                                 m_key_list_->GetCurrentGpgContextChannel())}},
                 {"encrypt_keys", GFBuffer{key_ids.join(';')}},
@@ -719,16 +733,24 @@ void MainWindow::SlotSignEML() {
     return;
   }
 
-  auto buffer = edit_->CurPlainText().toUtf8();
+  auto buffer = edit_->CurPlainText();
   auto key_ids =
       ConvertKey2GpgKeyIdList(m_key_list_->GetCurrentGpgContextChannel(), keys);
 
+  GFBuffer sec_buf(buffer);
+  auto sec_buf_base64 = sec_buf.ToBase64();
+  if (!sec_buf_base64) return;
+
+  buffer.fill('X');
+  buffer.clear();
+
   GpgOperaHelper::WaitForOpera(
-      this, tr("Signing"), [this, buffer, key_ids](const OperaWaitingHd& hd) {
+      this, tr("Signing"),
+      [this, sec_buf_base64, key_ids](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
             "EMAIL_SIGN_EML_DATA",
             {
-                {"body_data", GFBuffer{QString::fromLatin1(buffer.toBase64())}},
+                {"body_data", *sec_buf_base64},
                 {"channel", GFBuffer{QString::number(
                                 m_key_list_->GetCurrentGpgContextChannel())}},
                 {"sign_key", GFBuffer{key_ids.front()}},
@@ -803,17 +825,24 @@ void MainWindow::SlotEncryptSignEML() {
     return;
   }
 
-  auto buffer = edit_->CurPlainText().toUtf8();
+  auto buffer = edit_->CurPlainText();
   auto key_ids =
       ConvertKey2GpgKeyIdList(m_key_list_->GetCurrentGpgContextChannel(), keys);
 
+  GFBuffer sec_buf(buffer);
+  auto sec_buf_base64 = sec_buf.ToBase64();
+  if (!sec_buf_base64) return;
+
+  buffer.fill('X');
+  buffer.clear();
+
   GpgOperaHelper::WaitForOpera(
       this, tr("Encrypting and Signing"),
-      [this, buffer, key_ids, signer_keys](const OperaWaitingHd& hd) {
+      [this, sec_buf_base64, key_ids, signer_keys](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
             "EMAIL_ENCRYPT_SIGN_EML_DATA",
             {
-                {"body_data", GFBuffer{QString::fromLatin1(buffer.toBase64())}},
+                {"body_data", *sec_buf_base64},
                 {"channel", GFBuffer{QString::number(
                                 m_key_list_->GetCurrentGpgContextChannel())}},
                 {"sign_key", GFBuffer{signer_keys.front()->ID()}},
@@ -869,15 +898,22 @@ void MainWindow::SlotEncryptSignEML() {
 void MainWindow::SlotDecryptVerifyEML() {
   if (edit_->TabCount() == 0 || edit_->CurEMailPage() == nullptr) return;
 
-  auto buffer = edit_->CurPlainText().toUtf8();
+  auto buffer = edit_->CurPlainText();
+
+  GFBuffer sec_buf(buffer);
+  auto sec_buf_base64 = sec_buf.ToBase64();
+  if (!sec_buf_base64) return;
+
+  buffer.fill('X');
+  buffer.clear();
 
   GpgOperaHelper::WaitForOpera(
       this, tr("Decrypting and Verifying"),
-      [this, buffer](const OperaWaitingHd& hd) {
+      [this, sec_buf_base64](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
             "EMAIL_DECRYPT_VERIFY_EML_DATA",
             {
-                {"eml_data", GFBuffer{QString::fromLatin1(buffer.toBase64())}},
+                {"eml_data", *sec_buf_base64},
                 {"channel", GFBuffer{QString::number(
                                 m_key_list_->GetCurrentGpgContextChannel())}},
             },
@@ -895,10 +931,6 @@ void MainWindow::SlotDecryptVerifyEML() {
                 edit_->SlotSetGFBuffer2CurEMailPage(p.value("eml_data"));
               }
 
-              const auto mime =
-                  QByteArray::fromBase64(p["mime"].ConvertToQByteArray());
-              const auto signature =
-                  QByteArray::fromBase64(p["signature"].ConvertToQByteArray());
               const auto part_mime_content_hash = p["mime_hash"];
               const auto prm_micalg_value = p["micalg"];
 

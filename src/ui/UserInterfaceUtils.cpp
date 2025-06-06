@@ -188,10 +188,9 @@ void CommonUtils::RaiseFailureMessageBox(QWidget *parent, GpgError err,
 }
 
 void CommonUtils::SlotImportKeys(QWidget *parent, int channel,
-                                 const QByteArray &in_buffer) {
+                                 const GFBuffer &in_buffer) {
   LOG_D() << "try to import key(s) to channel: " << channel;
-  auto info =
-      GpgKeyImportExporter::GetInstance(channel).ImportKey(GFBuffer(in_buffer));
+  auto info = GpgKeyImportExporter::GetInstance(channel).ImportKey(in_buffer);
 
   auto *connection = new QMetaObject::Connection;
   *connection =
@@ -227,13 +226,13 @@ void CommonUtils::SlotImportKeyFromFile(QWidget *parent, int channel) {
     return;
   }
 
-  QByteArray key_buffer;
-  if (!ReadFile(file_name, key_buffer)) {
+  auto [succ, buffer] = ReadFileGFBuffer(file_name);
+  if (!succ) {
     QMessageBox::critical(nullptr, tr("File Open Failed"),
                           tr("Failed to open file: ") + file_name);
     return;
   }
-  SlotImportKeys(parent, channel, key_buffer);
+  SlotImportKeys(parent, channel, buffer);
 }
 
 void CommonUtils::SlotImportKeyFromKeyServer(QWidget *parent, int channel) {
@@ -243,7 +242,8 @@ void CommonUtils::SlotImportKeyFromKeyServer(QWidget *parent, int channel) {
 
 void CommonUtils::SlotImportKeyFromClipboard(QWidget *parent, int channel) {
   QClipboard *cb = QApplication::clipboard();
-  SlotImportKeys(parent, channel, cb->text(QClipboard::Clipboard).toLatin1());
+  SlotImportKeys(parent, channel,
+                 GFBuffer{cb->text(QClipboard::Clipboard).toLatin1()});
 }
 
 void CommonUtils::SlotExecuteCommand(
@@ -603,7 +603,7 @@ void CommonUtils::ImportKeyByKeyServerSyncModule(QWidget *parent, int channel,
     return;
   }
 
-  auto all_key_data = SecureCreateSharedObject<QString>();
+  auto all_key_data = SecureCreateSharedObject<GFBuffer>();
   auto remaining_tasks = SecureCreateSharedObject<int>(fprs.size());
 
   for (const auto &fpr : fprs) {
@@ -631,12 +631,7 @@ void CommonUtils::ImportKeyByKeyServerSyncModule(QWidget *parent, int channel,
                           << p["error_msg"].ConvertToQString() << "reply data: "
                           << p["reply_data"].ConvertToQString();
                     } else if (p.contains("key_data")) {
-                      const auto key_data = p["key_data"];
-                      LOG_D() << "got key data of key " << fpr
-                              << " from key server: "
-                              << key_data.ConvertToQString();
-
-                      *all_key_data += key_data.ConvertToQString();
+                      all_key_data->Append(p["key_data"]);
                     }
 
                     // it only uses one thread for these operations
@@ -644,8 +639,7 @@ void CommonUtils::ImportKeyByKeyServerSyncModule(QWidget *parent, int channel,
                     (*remaining_tasks)--;
 
                     if (*remaining_tasks == 0) {
-                      this->SlotImportKeys(parent, channel,
-                                           all_key_data->toUtf8());
+                      this->SlotImportKeys(parent, channel, *all_key_data);
                     }
                   });
 

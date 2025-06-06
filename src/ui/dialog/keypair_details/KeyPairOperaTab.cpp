@@ -547,9 +547,8 @@ void KeyPairOperaTab::slot_import_revoke_cert() {
     return;
   }
 
-  QFile rev_file(rev_file_info.absoluteFilePath());
-
-  if (!rev_file.open(QIODevice::ReadOnly)) {
+  auto [succ, buffer] = ReadFileGFBuffer(rev_file_info.absoluteFilePath());
+  if (!succ) {
     QMessageBox::critical(
         this, tr("Error"),
         tr("Cannot open this file. Please make sure that this "
@@ -559,7 +558,7 @@ void KeyPairOperaTab::slot_import_revoke_cert() {
 
   emit UISignalStation::GetInstance() -> SignalKeyRevoked(m_key_->ID());
   CommonUtils::GetInstance()->SlotImportKeys(
-      nullptr, current_gpg_context_channel_, rev_file.readAll());
+      nullptr, current_gpg_context_channel_, buffer);
 }
 
 void KeyPairOperaTab::slot_export_paper_key() {
@@ -610,11 +609,13 @@ void KeyPairOperaTab::slot_export_paper_key() {
 
     if (file_name.isEmpty()) return;
 
+    auto sec_key = gf_buffer.ToBase64();
+    if (!sec_key) return;
+
     Module::TriggerEvent(
         "REQUEST_TRANS_KEY_2_PAPER_KEY",
         {
-            {"secret_key",
-             GFBuffer{gf_buffer.ConvertToQByteArray().toBase64()}},
+            {"secret_key", *sec_key},
         },
         [this, file_name](Module::EventIdentifier i,
                           Module::Event::ListenerIdentifier ei,
@@ -691,12 +692,17 @@ void KeyPairOperaTab::slot_import_paper_key() {
     return;
   }
 
+  auto pub_key = gf_buffer.ToBase64();
+  if (!pub_key) return;
+
+  auto paper_key_secrets = gf_in_buff.ToBase64();
+  if (!paper_key_secrets) return;
+
   Module::TriggerEvent(
       "REQUEST_TRANS_PAPER_KEY_2_KEY",
       {
-          {"public_key", GFBuffer{gf_buffer.ConvertToQByteArray().toBase64()}},
-          {"paper_key_secrets",
-           GFBuffer{gf_in_buff.ConvertToQByteArray().toBase64()}},
+          {"public_key", *pub_key},
+          {"paper_key_secrets", *paper_key_secrets},
       },
       [this](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
              Module::Event::Params p) {
@@ -709,9 +715,11 @@ void KeyPairOperaTab::slot_import_paper_key() {
           return;
         }
 
+        auto buffer = p["secret_key"].FromBase64();
+        if (!buffer) return;
+
         CommonUtils::GetInstance()->SlotImportKeys(
-            this, current_gpg_context_channel_,
-            QByteArray::fromBase64(p["secret_key"].ConvertToQByteArray()));
+            this, current_gpg_context_channel_, *buffer);
       });
 }
 

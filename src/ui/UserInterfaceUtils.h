@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
+#include "core/model/GFBuffer.h"
 #include "core/model/GpgKey.h"
 #include "core/thread/Task.h"
 #include "core/typedef/GpgTypedef.h"
@@ -133,8 +134,8 @@ class CommonUtils : public QWidget {
    * @brief
    *
    */
-  auto KeyExistsInFavoriteList(const QString& key_db_name,
-                               const GpgKey& key) -> bool;
+  auto KeyExistsInFavoriteList(const QString& key_db_name, const GpgKey& key)
+      -> bool;
 
   /**
    * @brief
@@ -204,8 +205,7 @@ class CommonUtils : public QWidget {
    * @param parent
    * @param in_buffer
    */
-  void SlotImportKeys(QWidget* parent, int channel,
-                      const QByteArray& in_buffer);
+  void SlotImportKeys(QWidget* parent, int channel, const GFBuffer& in_buffer);
 
   /**
    * @brief
