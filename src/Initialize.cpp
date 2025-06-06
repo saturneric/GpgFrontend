@@ -105,9 +105,7 @@ void InitGpgFrontendCoreAsync(CoreInitArgs core_init_args) {
 
 void InitGlobalBasicEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
   GFCxtSPtr ctx = p_ctx.lock();
-  if (ctx == nullptr) {
-    return;
-  }
+  if (ctx == nullptr) return;
 
   // change path to search for related
   InitGlobalPathEnv();

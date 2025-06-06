@@ -28,6 +28,7 @@
 
 #include "CommonUtils.h"
 
+#include "core/module/ModuleManager.h"
 #include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
@@ -121,5 +122,9 @@ const auto kReEmail = QRegularExpression{
 
 auto GF_CORE_EXPORT IsEmailAddress(const QString& str) -> bool {
   return kReEmail.match(str).hasMatch();
+}
+
+auto GF_CORE_EXPORT IsCoreEnvInitialized() -> bool {
+  return Module::RetrieveRTValueTypedOrDefault("core", "env.state.ctx", 0) == 1;
 }
 }  // namespace GpgFrontend

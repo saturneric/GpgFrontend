@@ -105,4 +105,12 @@ auto GF_CORE_EXPORT IsEmailAddress(const QString &) -> bool;
  */
 auto GF_CORE_EXPORT GFSoftwareVersionGreaterThan(const QString &a,
                                                  const QString &b) -> bool;
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+auto GF_CORE_EXPORT IsCoreEnvInitialized() -> bool;
 }  // namespace GpgFrontend

@@ -123,7 +123,7 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
           },
           "modules_system_init_task"));
 
-  LOG_D() << "dear module manager, is all module registered? answer: "
+  LOG_D() << "are all modules registered? answer: "
           << ModuleManager::GetInstance().IsAllModulesRegistered();
 }
 
