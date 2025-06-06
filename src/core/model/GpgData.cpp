@@ -63,7 +63,7 @@ GpgData::GpgData() {
   data_ref_ = std::unique_ptr<struct gpgme_data, DataRefDeleter>(data);
 }
 
-GpgData::GpgData(GFBuffer buffer) : cached_buffer_(std::move(buffer)) {
+GpgData::GpgData(const GFBuffer& buffer) : cached_buffer_(buffer) {
   gpgme_data_t data;
 
   auto err = gpgme_data_new_from_mem(
@@ -134,7 +134,7 @@ GpgData::~GpgData() {
 
 auto GpgData::Read2GFBuffer() -> GFBuffer {
   gpgme_off_t ret = gpgme_data_seek(*this, 0, SEEK_SET);
-  GFBuffer out_buffer;
+  GFBuffer buffer;
 
   if (ret != 0) {
     const GpgError err = gpgme_err_code_from_errno(errno);
@@ -143,7 +143,7 @@ auto GpgData::Read2GFBuffer() -> GFBuffer {
     std::array<char, kBufferSize + 2> buf;
 
     while ((ret = gpgme_data_read(*this, buf.data(), kBufferSize)) > 0) {
-      out_buffer.Append(buf.data(), ret);
+      buffer.Append(buf.data(), ret);
     }
 
     if (ret < 0) {
@@ -151,7 +151,7 @@ auto GpgData::Read2GFBuffer() -> GFBuffer {
       assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
     }
   }
-  return out_buffer;
+  return buffer;
 }
 
 GpgData::operator gpgme_data_t() { return data_ref_.get(); }

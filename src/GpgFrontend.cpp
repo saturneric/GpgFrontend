@@ -58,8 +58,8 @@ auto main(int argc, char* argv[]) -> int {
     abort();
   }
 
-  // OpenSSL 8 MB
-  CRYPTO_secure_malloc_init(static_cast<size_t>(8192 * 1024), 32);
+  // OpenSSL 32 MB Secure Memory
+  CRYPTO_secure_malloc_init(static_cast<size_t>(32 * 1024 * 1024), 32);
 
   // initialize qt resources
   Q_INIT_RESOURCE(gpgfrontend);

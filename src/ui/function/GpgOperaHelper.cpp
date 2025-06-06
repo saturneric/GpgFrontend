@@ -263,10 +263,11 @@ auto GpgOperaHelper::BuildComplexGpgOperasHelper(
 }
 
 template <typename EncryptFuncSymmetric, typename EncryptFuncKeys>
-auto BuildOperasFileEncryptHelper(
-    QSharedPointer<GpgOperaContext>& context, int channel, int index,
-    EncryptFuncSymmetric encrypt_symmetric,
-    EncryptFuncKeys encrypt_with_keys) -> OperaWaitingCb {
+auto BuildOperasFileEncryptHelper(QSharedPointer<GpgOperaContext>& context,
+                                  int channel, int index,
+                                  EncryptFuncSymmetric encrypt_symmetric,
+                                  EncryptFuncKeys encrypt_with_keys)
+    -> OperaWaitingCb {
   if (context->base->keys.isEmpty()) {
     return GpgOperaHelper::BuildSimpleGpgFileOperasHelper<
         GpgEncryptResult, GpgEncryptResultAnalyse>(
@@ -285,10 +286,11 @@ auto BuildOperasFileEncryptHelper(
 }
 
 template <typename EncryptFuncSymmetric, typename EncryptFuncKeys>
-auto BuildOperasEncryptHelper(
-    QSharedPointer<GpgOperaContext>& context, int channel, int index,
-    EncryptFuncSymmetric encrypt_symmetric,
-    EncryptFuncKeys encrypt_with_keys) -> OperaWaitingCb {
+auto BuildOperasEncryptHelper(QSharedPointer<GpgOperaContext>& context,
+                              int channel, int index,
+                              EncryptFuncSymmetric encrypt_symmetric,
+                              EncryptFuncKeys encrypt_with_keys)
+    -> OperaWaitingCb {
   if (context->base->keys.isEmpty()) {
     return GpgOperaHelper::BuildSimpleGpgOperasHelper<GpgEncryptResult,
                                                       GpgEncryptResultAnalyse>(
@@ -307,8 +309,8 @@ auto BuildOperasEncryptHelper(
 }
 
 auto GpgOperaHelper::BuildOperasFileEncrypt(
-    QSharedPointer<GpgOperaContext>& context, int channel,
-    int index) -> OperaWaitingCb {
+    QSharedPointer<GpgOperaContext>& context, int channel, int index)
+    -> OperaWaitingCb {
   return BuildOperasFileEncryptHelper(
       context, channel, index,
       [context, channel](const QString& path, const QString& o_path,
@@ -324,8 +326,8 @@ auto GpgOperaHelper::BuildOperasFileEncrypt(
 }
 
 auto GpgOperaHelper::BuildOperasDirectoryEncrypt(
-    QSharedPointer<GpgOperaContext>& context, int channel,
-    int index) -> OperaWaitingCb {
+    QSharedPointer<GpgOperaContext>& context, int channel, int index)
+    -> OperaWaitingCb {
   return BuildOperasFileEncryptHelper(
       context, channel, index,
       [context, channel](const QString& path, const QString& o_path,
@@ -341,8 +343,8 @@ auto GpgOperaHelper::BuildOperasDirectoryEncrypt(
 }
 
 auto GpgOperaHelper::BuildOperasFileDecrypt(
-    QSharedPointer<GpgOperaContext>& context, int channel,
-    int index) -> OperaWaitingCb {
+    QSharedPointer<GpgOperaContext>& context, int channel, int index)
+    -> OperaWaitingCb {
   return BuildSimpleGpgFileOperasHelper<GpgDecryptResult,
                                         GpgDecryptResultAnalyse>(
       context, channel, index,
@@ -353,8 +355,8 @@ auto GpgOperaHelper::BuildOperasFileDecrypt(
 }
 
 auto GpgOperaHelper::BuildOperasArchiveDecrypt(
-    QSharedPointer<GpgOperaContext>& context, int channel,
-    int index) -> OperaWaitingCb {
+    QSharedPointer<GpgOperaContext>& context, int channel, int index)
+    -> OperaWaitingCb {
   return BuildSimpleGpgFileOperasHelper<GpgDecryptResult,
                                         GpgDecryptResultAnalyse>(
       context, channel, index,
@@ -366,8 +368,8 @@ auto GpgOperaHelper::BuildOperasArchiveDecrypt(
 }
 
 auto GpgOperaHelper::BuildOperasFileSign(
-    QSharedPointer<GpgOperaContext>& context, int channel,
-    int index) -> OperaWaitingCb {
+    QSharedPointer<GpgOperaContext>& context, int channel, int index)
+    -> OperaWaitingCb {
   return BuildSimpleGpgFileOperasHelper<GpgSignResult, GpgSignResultAnalyse>(
       context, channel, index,
       [channel, context](const QString& path, const QString& o_path,
@@ -378,8 +380,8 @@ auto GpgOperaHelper::BuildOperasFileSign(
 }
 
 auto GpgOperaHelper::BuildOperasFileVerify(
-    QSharedPointer<GpgOperaContext>& context, int channel,
-    int index) -> OperaWaitingCb {
+    QSharedPointer<GpgOperaContext>& context, int channel, int index)
+    -> OperaWaitingCb {
   return BuildSimpleGpgFileOperasHelper<GpgVerifyResult,
                                         GpgVerifyResultAnalyse>(
       context, channel, index,
@@ -390,8 +392,8 @@ auto GpgOperaHelper::BuildOperasFileVerify(
 }
 
 auto GpgOperaHelper::BuildOperasFileEncryptSign(
-    QSharedPointer<GpgOperaContext>& context, int channel,
-    int index) -> OperaWaitingCb {
+    QSharedPointer<GpgOperaContext>& context, int channel, int index)
+    -> OperaWaitingCb {
   return BuildComplexGpgFileOperasHelper<GpgEncryptResult,
                                          GpgEncryptResultAnalyse, GpgSignResult,
                                          GpgSignResultAnalyse>(
@@ -405,8 +407,8 @@ auto GpgOperaHelper::BuildOperasFileEncryptSign(
 }
 
 auto GpgOperaHelper::BuildOperasDirectoryEncryptSign(
-    QSharedPointer<GpgOperaContext>& context, int channel,
-    int index) -> OperaWaitingCb {
+    QSharedPointer<GpgOperaContext>& context, int channel, int index)
+    -> OperaWaitingCb {
   return BuildComplexGpgFileOperasHelper<GpgEncryptResult,
                                          GpgEncryptResultAnalyse, GpgSignResult,
                                          GpgSignResultAnalyse>(
@@ -420,8 +422,8 @@ auto GpgOperaHelper::BuildOperasDirectoryEncryptSign(
 }
 
 auto GpgOperaHelper::BuildOperasFileDecryptVerify(
-    QSharedPointer<GpgOperaContext>& context, int channel,
-    int index) -> OperaWaitingCb {
+    QSharedPointer<GpgOperaContext>& context, int channel, int index)
+    -> OperaWaitingCb {
   return BuildComplexGpgFileOperasHelper<
       GpgDecryptResult, GpgDecryptResultAnalyse, GpgVerifyResult,
       GpgVerifyResultAnalyse>(
@@ -434,8 +436,8 @@ auto GpgOperaHelper::BuildOperasFileDecryptVerify(
 }
 
 auto GpgOperaHelper::BuildOperasArchiveDecryptVerify(
-    QSharedPointer<GpgOperaContext>& context, int channel,
-    int index) -> OperaWaitingCb {
+    QSharedPointer<GpgOperaContext>& context, int channel, int index)
+    -> OperaWaitingCb {
   return BuildComplexGpgFileOperasHelper<
       GpgDecryptResult, GpgDecryptResultAnalyse, GpgVerifyResult,
       GpgVerifyResultAnalyse>(
@@ -484,8 +486,8 @@ void GpgOperaHelper::WaitForMultipleOperas(
 }
 
 auto GpgOperaHelper::BuildOperasEncrypt(
-    QSharedPointer<GpgOperaContext>& context, int channel,
-    int index) -> OperaWaitingCb {
+    QSharedPointer<GpgOperaContext>& context, int channel, int index)
+    -> OperaWaitingCb {
   return BuildOperasEncryptHelper(
       context, channel, index,
       [context, channel](const GFBuffer& buffer, const auto& callback) {
@@ -499,8 +501,8 @@ auto GpgOperaHelper::BuildOperasEncrypt(
 }
 
 auto GpgOperaHelper::BuildOperasDecrypt(
-    QSharedPointer<GpgOperaContext>& context, int channel,
-    int index) -> OperaWaitingCb {
+    QSharedPointer<GpgOperaContext>& context, int channel, int index)
+    -> OperaWaitingCb {
   return BuildSimpleGpgOperasHelper<GpgDecryptResult, GpgDecryptResultAnalyse>(
       context, channel, index,
       [channel](const GFBuffer& buffer, const auto& callback) {
@@ -520,8 +522,8 @@ auto GpgOperaHelper::BuildOperasSign(QSharedPointer<GpgOperaContext>& context,
 }
 
 auto GpgOperaHelper::BuildOperasVerify(QSharedPointer<GpgOperaContext>& context,
-                                       int channel,
-                                       int index) -> OperaWaitingCb {
+                                       int channel, int index)
+    -> OperaWaitingCb {
   return BuildSimpleGpgOperasHelper<GpgVerifyResult, GpgVerifyResultAnalyse>(
       context, channel, index,
       [channel, context](const GFBuffer& buffer, const auto& callback) {
@@ -531,8 +533,8 @@ auto GpgOperaHelper::BuildOperasVerify(QSharedPointer<GpgOperaContext>& context,
 }
 
 auto GpgOperaHelper::BuildOperasEncryptSign(
-    QSharedPointer<GpgOperaContext>& context, int channel,
-    int index) -> OperaWaitingCb {
+    QSharedPointer<GpgOperaContext>& context, int channel, int index)
+    -> OperaWaitingCb {
   return BuildComplexGpgOperasHelper<GpgEncryptResult, GpgEncryptResultAnalyse,
                                      GpgSignResult, GpgSignResultAnalyse>(
       context, channel, index,
@@ -544,8 +546,8 @@ auto GpgOperaHelper::BuildOperasEncryptSign(
 }
 
 auto GpgOperaHelper::BuildOperasDecryptVerify(
-    QSharedPointer<GpgOperaContext>& context, int channel,
-    int index) -> OperaWaitingCb {
+    QSharedPointer<GpgOperaContext>& context, int channel, int index)
+    -> OperaWaitingCb {
   return BuildComplexGpgOperasHelper<GpgDecryptResult, GpgDecryptResultAnalyse,
                                      GpgVerifyResult, GpgVerifyResultAnalyse>(
       context, channel, index,
