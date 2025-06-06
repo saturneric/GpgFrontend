@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
@@ -60,8 +62,16 @@ class GF_CORE_EXPORT GFBuffer {
 
   [[nodiscard]] auto ConvertToQByteArray() const -> QByteArray;
 
+  [[nodiscard]] auto Mid(ssize_t pos, ssize_t len) const -> GFBuffer;
+
+  [[nodiscard]] auto Left(ssize_t len) const -> GFBuffer;
+
+  [[nodiscard]] auto Right(ssize_t len) const -> GFBuffer;
+
  private:
   QByteArray buffer_;
 };
+
+using GFBufferOrNone = std::optional<GFBuffer>;
 
 }  // namespace GpgFrontend

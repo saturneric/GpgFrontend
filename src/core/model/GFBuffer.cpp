@@ -59,4 +59,19 @@ void GFBuffer::Append(const GFBuffer& o) { buffer_.append(o.buffer_); }
 void GFBuffer::Append(const char* buffer, ssize_t size) {
   buffer_.append(buffer, size);
 }
+
+auto GFBuffer::Left(ssize_t len) const -> GFBuffer {
+  if (len <= 0) return {};
+  return GFBuffer(buffer_.left(len));
+}
+
+auto GFBuffer::Mid(ssize_t pos, ssize_t len) const -> GFBuffer {
+  if (pos < 0 || len <= 0 || pos >= buffer_.size()) return {};
+  return GFBuffer(buffer_.mid(pos, len));
+}
+
+auto GFBuffer::Right(ssize_t len) const -> GFBuffer {
+  if (len <= 0) return {};
+  return GFBuffer(buffer_.right(len));
+}
 }  // namespace GpgFrontend
