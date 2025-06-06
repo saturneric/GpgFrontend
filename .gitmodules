@@ -1,6 +1,3 @@
-[submodule "third_party/qt-aes"]
-	path = third_party/qt-aes
-	url = https://github.com/bricke/Qt-AES.git
 [submodule "third_party/qttranslations"]
 	path = third_party/qttranslations
 	url = https://github.com/qt/qttranslations.git
