@@ -49,7 +49,7 @@ class GF_CORE_EXPORT DataObject {
 
   auto operator[](size_t index) const -> std::any;
 
-  void AppendObject(std::any);
+  void AppendObject(const std::any&);
 
   [[nodiscard]] auto GetParameter(size_t index) const -> std::any;
 

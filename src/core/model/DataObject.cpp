@@ -70,7 +70,7 @@ auto DataObject::GetParameter(size_t index) const -> std::any {
   return p_->GetParameter(index);
 }
 
-void DataObject::AppendObject(std::any obj) { return p_->AppendObject(obj); }
+void DataObject::AppendObject(const std::any& obj) { p_->AppendObject(obj); }
 
 auto DataObject::GetObjectSize() const -> size_t { return p_->GetObjectSize(); }
 

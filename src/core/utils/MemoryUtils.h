@@ -127,9 +127,11 @@ auto SecureCreateSharedObject(Args &&...args) -> QSharedPointer<T> {
 
   try {
     T *obj = new (mem) T(std::forward<Args>(args)...);
-    return QSharedPointer<T>(obj, [](T *ptr) {
-      ptr->~T();
-      SMAFree(ptr);
+    return QSharedPointer<T>(obj, [](T *ptr) noexcept {
+      if (ptr) {
+        ptr->~T();
+        SMAFree(ptr);
+      }
     });
   } catch (...) {
     SMAFree(mem);

@@ -28,6 +28,7 @@
 #include "GpgSubKey.h"
 
 #include "core/model/GpgKey.h"
+#include "core/utils/MemoryUtils.h"
 namespace GpgFrontend {
 
 GpgSubKey::GpgSubKey() = default;
@@ -102,7 +103,7 @@ auto GpgSubKey::KeyType() const -> GpgAbstractKeyType {
 auto GpgSubKey::IsGood() const -> bool { return s_key_ref_ != nullptr; }
 
 auto GpgSubKey::Convert2GpgKey() const -> QSharedPointer<GpgKey> {
-  return QSharedPointer<GpgKey>::create(key_ref_);
+  return SecureCreateSharedObject<GpgKey>(key_ref_);
 }
 
 auto GpgSubKey::Name() const -> QString { return key_ref_->uids->name; }

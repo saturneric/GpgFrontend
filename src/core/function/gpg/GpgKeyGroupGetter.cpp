@@ -77,7 +77,7 @@ void GpgKeyGroupGetter::fetch_key_groups() {
             << "key ids: " << key_group.key_ids;
 
     auto node =
-        QSharedPointer<GpgKeyGroupTreeNode>::create(GpgKeyGroup{key_group});
+        SecureCreateSharedObject<GpgKeyGroupTreeNode>(GpgKeyGroup{key_group});
     node->key_group->SetKeyGroupGetter(this);
     key_groups_forest_.insert(key_group.id, node);
   }
@@ -183,7 +183,7 @@ void GpgKeyGroupGetter::build_gpg_key_group_tree() {
 }
 
 void GpgKeyGroupGetter::AddKeyGroup(const GpgKeyGroup& key_group) {
-  auto node = QSharedPointer<GpgKeyGroupTreeNode>::create(key_group);
+  auto node = SecureCreateSharedObject<GpgKeyGroupTreeNode>(key_group);
   node->key_group->SetKeyGroupGetter(this);
 
   key_groups_forest_.insert(node->key_group->ID(), node);
@@ -246,7 +246,7 @@ auto GpgKeyGroupGetter::RemoveKeyFromKeyGroup(const QString& id,
 }
 
 GpgKeyGroupTreeNode::GpgKeyGroupTreeNode(GpgKeyGroup kg)
-    : key_group(QSharedPointer<GpgKeyGroup>::create(kg)) {
+    : key_group(SecureCreateSharedObject<GpgKeyGroup>(kg)) {
   for (const auto& key_id : key_group->KeyIds()) {
     if (!IsKeyGroupID(key_id)) {
       non_key_group_ids.push_back(key_id);

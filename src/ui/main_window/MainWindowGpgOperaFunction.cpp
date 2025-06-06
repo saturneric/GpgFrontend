@@ -169,7 +169,7 @@ void MainWindow::SlotEncrypt() {
   auto* text_edit = edit_->CurPageTextEdit();
   if (text_edit == nullptr) return;
 
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = true;
 
   if (!encrypt_operation_key_validate(contexts)) return;
@@ -192,7 +192,7 @@ void MainWindow::SlotEncrypt() {
 void MainWindow::SlotSign() {
   if (edit_->CurPageTextEdit() == nullptr) return;
 
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = true;
 
   auto keys = m_key_list_->GetCheckedKeys();
@@ -214,7 +214,7 @@ void MainWindow::SlotSign() {
 void MainWindow::SlotDecrypt() {
   if (edit_->CurPageTextEdit() == nullptr) return;
 
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = true;
 
   contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
@@ -228,7 +228,7 @@ void MainWindow::SlotDecrypt() {
 void MainWindow::SlotVerify() {
   if (edit_->CurPageTextEdit() == nullptr) return;
 
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = true;
 
   contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
@@ -247,7 +247,7 @@ void MainWindow::SlotEncryptSign() {
   auto* text_edit = edit_->CurPageTextEdit();
   if (text_edit == nullptr) return;
 
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = true;
 
   auto keys = m_key_list_->GetCheckedKeys();
@@ -277,7 +277,7 @@ void MainWindow::SlotEncryptSign() {
 void MainWindow::SlotDecryptVerify() {
   if (edit_->CurPageTextEdit() == nullptr) return;
 
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = true;
 
   contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
@@ -293,7 +293,7 @@ void MainWindow::SlotDecryptVerify() {
 }
 
 void MainWindow::SlotFileEncrypt(const QStringList& paths, bool ascii) {
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = ascii;
 
   if (!encrypt_operation_key_validate(contexts)) return;
@@ -327,7 +327,7 @@ void MainWindow::SlotFileEncrypt(const QStringList& paths, bool ascii) {
 }
 
 void MainWindow::SlotFileDecrypt(const QStringList& paths) {
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
 
   contexts->ascii = true;
 
@@ -362,7 +362,7 @@ void MainWindow::SlotFileDecrypt(const QStringList& paths) {
 }
 
 void MainWindow::SlotFileSign(const QStringList& paths, bool ascii) {
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
 
   contexts->ascii = ascii;
 
@@ -393,7 +393,7 @@ void MainWindow::SlotFileSign(const QStringList& paths, bool ascii) {
 }
 
 void MainWindow::SlotFileVerify(const QStringList& paths) {
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
 
   if (!check_read_file_paths_helper(paths)) return;
 
@@ -443,7 +443,7 @@ void MainWindow::SlotFileVerify(const QStringList& paths) {
 }
 
 void MainWindow::SlotFileEncryptSign(const QStringList& paths, bool ascii) {
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = ascii;
 
   auto keys = m_key_list_->GetCheckedKeys();
@@ -483,7 +483,7 @@ void MainWindow::SlotFileEncryptSign(const QStringList& paths, bool ascii) {
 }
 
 void MainWindow::SlotFileDecryptVerify(const QStringList& paths) {
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = true;
 
   if (!check_read_file_paths_helper(paths)) return;

@@ -118,7 +118,7 @@ auto GpgAssuanHelper::SendCommand(GpgComponentType type, const QString& command,
     if (err != GPG_ERR_NO_ERROR) return err;
   }
 
-  auto context = QSharedPointer<AssuanCallbackContext>::create();
+  auto context = SecureCreateSharedObject<AssuanCallbackContext>();
   context->self = this;
   context->data_cb = std::move(data_cb);
   context->status_cb = std::move(status_cb);

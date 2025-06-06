@@ -47,7 +47,7 @@ namespace GpgFrontend::UI {
 KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
     : GeneralDialog(typeid(KeyGenerateDialog).name(), parent),
       ui_(QSharedPointer<Ui_KeyGenDialog>::create()),
-      gen_key_info_(QSharedPointer<KeyGenerateInfo>::create()),
+      gen_key_info_(SecureCreateSharedObject<KeyGenerateInfo>()),
       gen_subkey_info_(nullptr),
       supported_primary_key_algos_(
           KeyGenerateInfo::GetSupportedKeyAlgo(channel)),
@@ -635,7 +635,7 @@ void KeyGenerateDialog::do_generate() {
 
 void KeyGenerateDialog::create_sync_gen_subkey_info() {
   if (gen_subkey_info_ == nullptr) {
-    gen_subkey_info_ = QSharedPointer<KeyGenerateInfo>::create(true);
+    gen_subkey_info_ = SecureCreateSharedObject<KeyGenerateInfo>(true);
   }
 
   sync_gen_subkey_algo_info();

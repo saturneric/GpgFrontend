@@ -59,7 +59,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
       return GetPubkeyPtr(key_id, true);
     }
 
-    return QSharedPointer<GpgKey>::create(p_key);
+    return SecureCreateSharedObject<GpgKey>(p_key);
   }
 
   auto GetKey(const QString& key_id, bool cache) -> GpgKey {
@@ -92,7 +92,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
       LOG_W() << "GpgKeyGetter GetKey p_key is null, key id: " << key_id;
       return nullptr;
     }
-    return QSharedPointer<GpgKey>::create(p_key);
+    return SecureCreateSharedObject<GpgKey>(p_key);
   }
 
   auto FetchKey() -> GpgKeyPtrList {
@@ -148,7 +148,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
       gpgme_key_t key;
       while ((err = gpgme_op_keylist_next(ctx_.DefaultContext(), &key)) ==
              GPG_ERR_NO_ERROR) {
-        auto g_key = QSharedPointer<GpgKey>::create(key);
+        auto g_key = SecureCreateSharedObject<GpgKey>(key);
 
         // detect if the key is in a smartcard
         // if so, try to get full information using gpgme_get_key()
@@ -170,7 +170,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
           // subkeys should be weaker than primary key
           if (keys_search_cache_.contains(s_key.ID())) continue;
 
-          auto p_s_key = QSharedPointer<GpgSubKey>::create(s_key);
+          auto p_s_key = SecureCreateSharedObject<GpgSubKey>(s_key);
           keys_search_cache_.insert(s_key.ID(), p_s_key);
           keys_search_cache_.insert(s_key.Fingerprint(), p_s_key);
         }
@@ -275,8 +275,8 @@ auto GpgKeyGetter::GetKey(const QString& key_id, bool use_cache) -> GpgKey {
   return p_->GetKey(key_id, use_cache);
 }
 
-auto GpgKeyGetter::GetKeyPtr(const QString& key_id,
-                             bool use_cache) -> QSharedPointer<GpgKey> {
+auto GpgKeyGetter::GetKeyPtr(const QString& key_id, bool use_cache)
+    -> QSharedPointer<GpgKey> {
   return p_->GetKeyPtr(key_id, use_cache);
 }
 
@@ -284,8 +284,8 @@ auto GpgKeyGetter::GetPubkey(const QString& key_id, bool use_cache) -> GpgKey {
   return p_->GetPubkey(key_id, use_cache);
 }
 
-auto GpgKeyGetter::GetPubkeyPtr(const QString& key_id,
-                                bool use_cache) -> GpgKeyPtr {
+auto GpgKeyGetter::GetPubkeyPtr(const QString& key_id, bool use_cache)
+    -> GpgKeyPtr {
   return p_->GetPubkeyPtr(key_id, use_cache);
 }
 

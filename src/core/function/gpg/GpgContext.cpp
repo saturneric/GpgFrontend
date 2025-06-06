@@ -139,7 +139,7 @@ class GpgContext::Impl {
         database_path_(args.db_path),
         gpg_agent_path_(Module::RetrieveRTValueTypedOrDefault<>(
             "core", "gnupg.components.gpg-agent.path", QString{})),
-        agent_(QSharedPointer<GpgAgentProcess>::create(
+        agent_(SecureCreateSharedObject<GpgAgentProcess>(
             parent->GetChannel(), gpg_agent_path_, database_path_)) {
     init(args);
   }
@@ -275,7 +275,7 @@ class GpgContext::Impl {
 
   auto RestartGpgAgent() -> bool {
     if (agent_ != nullptr) {
-      agent_ = QSharedPointer<GpgAgentProcess>::create(
+      agent_ = SecureCreateSharedObject<GpgAgentProcess>(
           parent_->GetChannel(), gpg_agent_path_, database_path_);
     }
 

@@ -599,8 +599,8 @@ void CommonUtils::ImportKeyByKeyServerSyncModule(QWidget *parent, int channel,
     return;
   }
 
-  auto all_key_data = QSharedPointer<QString>::create();
-  auto remaining_tasks = QSharedPointer<int>::create(fprs.size());
+  auto all_key_data = SecureCreateSharedObject<QString>();
+  auto remaining_tasks = SecureCreateSharedObject<int>(fprs.size());
 
   for (const auto &fpr : fprs) {
     Thread::TaskRunnerGetter::GetInstance()

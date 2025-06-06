@@ -176,7 +176,7 @@ auto GpgSmartCardManager::FetchCardInfoBySerialNumber(
     return nullptr;
   }
 
-  return QSharedPointer<GpgOpenPGPCard>::create(card_info);
+  return SecureCreateSharedObject<GpgOpenPGPCard>(card_info);
 }
 
 auto PercentDataEscape(const QByteArray& data, bool plus_escape = false,

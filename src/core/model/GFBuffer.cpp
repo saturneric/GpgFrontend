@@ -109,6 +109,8 @@ void GFBuffer::Resize(ssize_t size) {
 auto GFBuffer::Size() const -> size_t { return impl_->sec_size_; }
 
 auto GFBuffer::ConvertToQByteArray() const -> QByteArray {
+  Q_ASSERT(impl_);
+  Q_ASSERT(impl_->sec_ptr_ != nullptr);
   return QByteArray{static_cast<const char*>(impl_->sec_ptr_),
                     static_cast<qsizetype>(impl_->sec_size_)};
 }

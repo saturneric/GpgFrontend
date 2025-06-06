@@ -85,8 +85,8 @@ auto GpgKeyTreeModel::columnCount(const QModelIndex &parent) const -> int {
   return static_cast<int>(root_->ColumnCount());
 }
 
-auto GpgKeyTreeModel::data(const QModelIndex &index,
-                           int role) const -> QVariant {
+auto GpgKeyTreeModel::data(const QModelIndex &index, int role) const
+    -> QVariant {
   if (!index.isValid()) return {};
 
   const auto *item =
@@ -164,7 +164,8 @@ auto GpgKeyTreeModel::GetGpgContextChannel() const -> int {
 }
 
 void GpgKeyTreeModel::setup_model_data(const GpgAbstractKeyPtrList &keys) {
-  auto root = QSharedPointer<GpgKeyTreeItem>::create(nullptr, column_headers_);
+  auto root =
+      SecureCreateSharedObject<GpgKeyTreeItem>(nullptr, column_headers_);
   cached_items_.clear();
 
   for (const auto &key : keys) {
@@ -219,7 +220,7 @@ auto GpgKeyTreeModel::create_gpg_key_tree_items(const GpgAbstractKeyPtr &key)
   columns << QLocale().toString(g_key->CreationTime(), "yyyy-MM-dd");
 
   assert(key != nullptr);
-  auto i_key = QSharedPointer<GpgKeyTreeItem>::create(key, columns);
+  auto i_key = SecureCreateSharedObject<GpgKeyTreeItem>(key, columns);
   i_key->SetEnable(true);
   i_key->SetCheckable(checkable_detector_(i_key->Key()));
   i_key->SetChecked(false);
@@ -239,8 +240,8 @@ auto GpgKeyTreeModel::create_gpg_key_tree_items(const GpgAbstractKeyPtr &key)
     columns << s_key.Algo();
     columns << QLocale().toString(s_key.CreationTime(), "yyyy-MM-dd");
 
-    auto i_s_key = QSharedPointer<GpgKeyTreeItem>::create(
-        QSharedPointer<GpgSubKey>::create(s_key), columns);
+    auto i_s_key = SecureCreateSharedObject<GpgKeyTreeItem>(
+        SecureCreateSharedObject<GpgSubKey>(s_key), columns);
     i_s_key->SetEnable(true);
     i_s_key->SetCheckable(checkable_detector_(i_s_key->Key()));
     i_s_key->SetChecked(false);

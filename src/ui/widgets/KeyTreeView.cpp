@@ -38,7 +38,7 @@ namespace GpgFrontend::UI {
 KeyTreeView::KeyTreeView(QWidget* parent)
     : QTreeView(parent),
       channel_(kGpgFrontendDefaultChannel),
-      model_(QSharedPointer<GpgKeyTreeModel>::create(
+      model_(SecureCreateSharedObject<GpgKeyTreeModel>(
           channel_, GpgAbstractKeyGetter::GetInstance(channel_).Fetch(),
           [](auto) { return false; }, this)),
       proxy_model_(
@@ -53,7 +53,7 @@ KeyTreeView::KeyTreeView(int channel,
                          QWidget* parent)
     : QTreeView(parent),
       channel_(channel),
-      model_(QSharedPointer<GpgKeyTreeModel>::create(
+      model_(SecureCreateSharedObject<GpgKeyTreeModel>(
           channel_, GpgAbstractKeyGetter::GetInstance(channel_).Fetch(),
           checkable_detector, this)),
       proxy_model_(model_, GpgKeyTreeDisplayMode::kALL, std::move(filter),
@@ -117,7 +117,7 @@ void KeyTreeView::init() {
 
   connect(UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefreshDone, this, [=] {
-            model_ = QSharedPointer<GpgKeyTreeModel>::create(
+            model_ = SecureCreateSharedObject<GpgKeyTreeModel>(
                 channel_, GpgAbstractKeyGetter::GetInstance(channel_).Fetch(),
                 [](auto) { return false; }, this);
             proxy_model_.setSourceModel(model_.get());
@@ -135,7 +135,7 @@ void KeyTreeView::SetChannel(int channel) {
 
   channel_ = channel;
   init_ = false;
-  model_ = QSharedPointer<GpgKeyTreeModel>::create(
+  model_ = SecureCreateSharedObject<GpgKeyTreeModel>(
       channel_, GpgAbstractKeyGetter::GetInstance(channel_).Fetch(),
       [](auto) { return false; }, this);
   proxy_model_.setSourceModel(model_.get());
