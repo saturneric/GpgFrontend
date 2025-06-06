@@ -143,7 +143,10 @@ auto KeyPackageOperator::GenerateKeyPackageName() -> QString {
  */
 auto KeyPackageOperator::generate_key_package_name() -> QString {
   return QString("KeyPackage_%1")
-      .arg(QRandomGenerator::global()->bounded(999, 99999));
+      .arg(SecureRandomGenerator::GetInstance()
+               .GnuPGGenerateZBase32()
+               .ConvertToQByteArray()
+               .left(8));
 }
 
 }  // namespace GpgFrontend
