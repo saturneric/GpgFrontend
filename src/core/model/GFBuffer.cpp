@@ -32,6 +32,8 @@ namespace GpgFrontend {
 
 GFBuffer::GFBuffer() = default;
 
+GFBuffer::GFBuffer(size_t size) : buffer_(static_cast<qsizetype>(size), 0) {}
+
 GFBuffer::GFBuffer(QByteArray buffer) : buffer_(std::move(buffer)) {}
 
 GFBuffer::GFBuffer(const QString& str) : buffer_(str.toUtf8()) {}
@@ -39,6 +41,8 @@ GFBuffer::GFBuffer(const QString& str) : buffer_(str.toUtf8()) {}
 auto GFBuffer::operator==(const GFBuffer& o) const -> bool {
   return buffer_ == o.buffer_;
 }
+
+auto GFBuffer::Data() -> char* { return buffer_.data(); }
 
 auto GFBuffer::Data() const -> const char* { return buffer_.constData(); }
 
@@ -55,5 +59,4 @@ void GFBuffer::Append(const GFBuffer& o) { buffer_.append(o.buffer_); }
 void GFBuffer::Append(const char* buffer, ssize_t size) {
   buffer_.append(buffer, size);
 }
-
 }  // namespace GpgFrontend

@@ -36,11 +36,15 @@ class GF_CORE_EXPORT GFBuffer {
  public:
   GFBuffer();
 
+  explicit GFBuffer(size_t size);
+
   explicit GFBuffer(QByteArray buffer);
 
   explicit GFBuffer(const QString& str);
 
   auto operator==(const GFBuffer& o) const -> bool;
+
+  [[nodiscard]] auto Data() -> char*;
 
   [[nodiscard]] auto Data() const -> const char*;
 
