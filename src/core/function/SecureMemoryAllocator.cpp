@@ -38,14 +38,14 @@ SecureMemoryAllocator::SecureMemoryAllocator() = default;
 
 SecureMemoryAllocator::~SecureMemoryAllocator() = default;
 
-auto SecureMemoryAllocator::Allocate(std::size_t size) -> void* {
+auto SecureMemoryAllocator::Allocate(size_t size) -> void* {
   auto* addr = OPENSSL_zalloc(size);
   if (addr == nullptr) FLOG_F() << "OPENSSL_zalloc failed";
   allocated_[addr] = size;
   return addr;
 }
 
-auto SecureMemoryAllocator::Reallocate(void* ptr, std::size_t size) -> void* {
+auto SecureMemoryAllocator::Reallocate(void* ptr, size_t size) -> void* {
   if (ptr == nullptr) return Allocate(size);
 
   if (!allocated_.contains(ptr)) {
@@ -82,11 +82,11 @@ auto SecureMemoryAllocator::GetInstance() -> SecureMemoryAllocator* {
   return &instance;
 }
 
-auto SMAMalloc(std::size_t size) -> void* {
+auto SMAMalloc(size_t size) -> void* {
   return SecureMemoryAllocator::GetInstance()->Allocate(size);
 }
 
-auto SMARealloc(void* ptr, std::size_t size) -> void* {
+auto SMARealloc(void* ptr, size_t size) -> void* {
   return SecureMemoryAllocator::GetInstance()->Reallocate(ptr, size);
 }
 
@@ -94,15 +94,35 @@ void SMAFree(void* ptr) {
   SecureMemoryAllocator::GetInstance()->Deallocate(ptr);
 }
 
-auto SecureMemoryAllocator::SecAllocate(std::size_t size) -> void* {
-  auto* addr = OPENSSL_secure_malloc(size);
+auto SecureMemoryAllocator::SecAllocate(size_t size) -> void* {
+  if (CRYPTO_secure_malloc_initialized() != 1) {
+    FLOG_F() << "CRYPTO_secure_malloc_initialized failed";
+  }
+
+  auto* addr = OPENSSL_secure_zalloc(size);
   if (addr == nullptr) FLOG_F() << "OPENSSL_secure_malloc failed";
   allocated_[addr] = size;
   return addr;
 }
 
+auto SecureMemoryAllocator::SecReallocate(void* ptr, size_t size) -> void* {
+  void* new_addr = SecAllocate(size);
+
+  if (ptr != nullptr) {
+    auto old_size = OPENSSL_secure_actual_size(ptr);
+    std::memcpy(new_addr, ptr, std::min(size, old_size));
+    SecDeallocate(ptr);
+  }
+
+  return new_addr;
+}
+
 void SecureMemoryAllocator::SecDeallocate(void* ptr) {
   if (ptr == nullptr) return;
+
+  if (CRYPTO_secure_malloc_initialized() != 1) {
+    FLOG_F() << "CRYPTO_secure_malloc_initialized failed";
+  }
 
   if (!allocated_.contains(ptr)) {
     FLOG_F()
@@ -115,7 +135,7 @@ void SecureMemoryAllocator::SecDeallocate(void* ptr) {
   allocated_.remove(ptr);
 }
 
-auto SMASecMalloc(std::size_t size) -> void* {
+auto SMASecMalloc(size_t size) -> void* {
   return SecureMemoryAllocator::GetInstance()->SecAllocate(size);
 }
 
@@ -123,4 +143,7 @@ void SMASecFree(void* ptr) {
   SecureMemoryAllocator::GetInstance()->SecDeallocate(ptr);
 }
 
+auto GF_CORE_EXPORT SMASecRealloc(void* ptr, size_t size) -> void* {
+  return SecureMemoryAllocator::GetInstance()->SecReallocate(ptr, size);
+}
 }  // namespace GpgFrontend

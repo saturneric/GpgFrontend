@@ -40,9 +40,11 @@ class GF_CORE_EXPORT GFBuffer {
 
   explicit GFBuffer(size_t size);
 
-  explicit GFBuffer(QByteArray buffer);
+  explicit GFBuffer(const QByteArray& buffer);
 
   explicit GFBuffer(const QString& str);
+
+  ~GFBuffer();
 
   auto operator==(const GFBuffer& o) const -> bool;
 
@@ -68,8 +70,11 @@ class GF_CORE_EXPORT GFBuffer {
 
   [[nodiscard]] auto Right(ssize_t len) const -> GFBuffer;
 
+  void Zeroize();
+
  private:
-  QByteArray buffer_;
+  struct Impl;
+  QSharedPointer<Impl> impl_;
 };
 
 using GFBufferOrNone = std::optional<GFBuffer>;

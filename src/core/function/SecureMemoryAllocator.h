@@ -39,31 +39,35 @@ class GF_CORE_EXPORT SecureMemoryAllocator {
   auto operator=(const SecureMemoryAllocator &)
       -> SecureMemoryAllocator & = delete;
 
-  auto Allocate(std::size_t) -> void *;
+  auto Allocate(size_t) -> void *;
 
-  auto Reallocate(void *, std::size_t) -> void *;
+  auto Reallocate(void *, size_t) -> void *;
 
   void Deallocate(void *);
 
-  auto SecAllocate(std::size_t) -> void *;
+  auto SecAllocate(size_t) -> void *;
+
+  auto SecReallocate(void *, size_t) -> void *;
 
   void SecDeallocate(void *);
 
  private:
-  QHash<void *, std::size_t> allocated_;
+  QHash<void *, size_t> allocated_;
 
   SecureMemoryAllocator();
 
   ~SecureMemoryAllocator();
 };
 
-auto GF_CORE_EXPORT SMAMalloc(std::size_t size) -> void *;
+auto GF_CORE_EXPORT SMAMalloc(size_t size) -> void *;
 
-auto GF_CORE_EXPORT SMARealloc(void *ptr, std::size_t size) -> void *;
+auto GF_CORE_EXPORT SMARealloc(void *ptr, size_t size) -> void *;
 
 void GF_CORE_EXPORT SMAFree(void *ptr);
 
-auto GF_CORE_EXPORT SMASecMalloc(std::size_t size) -> void *;
+auto GF_CORE_EXPORT SMASecMalloc(size_t size) -> void *;
+
+auto GF_CORE_EXPORT SMASecRealloc(void *ptr, size_t size) -> void *;
 
 void GF_CORE_EXPORT SMASecFree(void *ptr);
 
