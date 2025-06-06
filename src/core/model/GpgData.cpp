@@ -140,11 +140,11 @@ auto GpgData::Read2GFBuffer() -> GFBuffer {
     const GpgError err = gpgme_err_code_from_errno(errno);
     assert(gpgme_err_code(err) == GPG_ERR_NO_ERROR);
   } else {
-    GFBuffer buf(kSecBufferSizeForFile + 8);
+    std::vector<char, SMASecAllocator<char>> buf(kSecBufferSize + 8);
 
-    while ((ret = gpgme_data_read(*this, buf.Data(), kSecBufferSizeForFile)) >
+    while ((ret = gpgme_data_read(*this, buf.data(), kSecBufferSizeForFile)) >
            0) {
-      buffer.Append(buf);
+      buffer.Append(buf.data(), ret);
     }
 
     if (ret < 0) {
