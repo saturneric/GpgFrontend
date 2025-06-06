@@ -32,19 +32,47 @@ namespace GpgFrontend {
 
 class GF_CORE_EXPORT SecureMemoryAllocator {
  public:
-  static auto Allocate(std::size_t) -> void *;
+  static auto GetInstance() -> SecureMemoryAllocator *;
 
-  static auto Reallocate(void *, std::size_t) -> void *;
+  SecureMemoryAllocator(const SecureMemoryAllocator &) = delete;
 
-  static void Deallocate(void *);
+  auto operator=(const SecureMemoryAllocator &)
+      -> SecureMemoryAllocator & = delete;
+
+  auto Allocate(std::size_t) -> void *;
+
+  auto Reallocate(void *, std::size_t) -> void *;
+
+  void Deallocate(void *);
+
+  auto SecAllocate(std::size_t) -> void *;
+
+  void SecDeallocate(void *);
+
+ private:
+  QHash<void *, std::size_t> allocated_;
+
+  SecureMemoryAllocator();
+
+  ~SecureMemoryAllocator();
 };
+
+auto GF_CORE_EXPORT SMAMalloc(std::size_t size) -> void *;
+
+auto GF_CORE_EXPORT SMARealloc(void *ptr, std::size_t size) -> void *;
+
+void GF_CORE_EXPORT SMAFree(void *ptr);
+
+auto GF_CORE_EXPORT SMASecMalloc(std::size_t size) -> void *;
+
+void GF_CORE_EXPORT SMASecFree(void *ptr);
 
 template <typename T>
 struct SecureObjectDeleter {
   void operator()(T *ptr) {
     if (ptr) {
       ptr->~T();
-      SecureMemoryAllocator::Deallocate(ptr);
+      SMAFree(ptr);
     }
   }
 };

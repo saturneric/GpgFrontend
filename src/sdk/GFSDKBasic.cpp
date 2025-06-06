@@ -37,16 +37,14 @@
 #include "ui/UIModuleManager.h"
 
 auto GFAllocateMemory(uint32_t size) -> void* {
-  return GpgFrontend::SecureMemoryAllocator::Allocate(size);
+  return GpgFrontend::SMAMalloc(size);
 }
 
 auto GFReallocateMemory(void* ptr, uint32_t size) -> void* {
-  return GpgFrontend::SecureMemoryAllocator::Reallocate(ptr, size);
+  return GpgFrontend::SMARealloc(ptr, size);
 }
 
-void GFFreeMemory(void* ptr) {
-  return GpgFrontend::SecureMemoryAllocator::Deallocate(ptr);
-}
+void GFFreeMemory(void* ptr) { return GpgFrontend::SMAFree(ptr); }
 
 auto GFProjectVersion() -> const char* {
   return GFStrDup(GpgFrontend::GetProjectVersion());

@@ -38,9 +38,10 @@ UIModuleManager::UIModuleManager(int channel)
 
 UIModuleManager::~UIModuleManager() = default;
 
-auto UIModuleManager::DeclareMountPoint(
-    const QString& id, const QString& entry_type,
-    QMap<QString, QVariant> meta_data_desc) -> bool {
+auto UIModuleManager::DeclareMountPoint(const QString& id,
+                                        const QString& entry_type,
+                                        QMap<QString, QVariant> meta_data_desc)
+    -> bool {
   if (id.isEmpty() || mount_points_.contains(id)) return false;
 
   UIMountPoint point;
@@ -84,8 +85,9 @@ auto MountedUIEntry::GetWidget() const -> QWidget* {
   return qobject_cast<QWidget*>(static_cast<QObject*>(factory_(nullptr)));
 }
 
-auto MountedUIEntry::GetMetaDataByDefault(
-    const QString& key, QString default_value) const -> QString {
+auto MountedUIEntry::GetMetaDataByDefault(const QString& key,
+                                          QString default_value) const
+    -> QString {
   if (meta_data_translated_.contains(key)) return meta_data_translated_[key];
   if (!meta_data_.contains(key)) return default_value;
   return meta_data_[key];
@@ -127,12 +129,12 @@ void UIModuleManager::RegisterAllModuleTranslators() {
     if (data == nullptr) continue;
 
     if (data_size <= 0) {
-      SecureFree(data);
+      SMAFree(data);
       continue;
     }
 
     QByteArray b(data, data_size);
-    SecureFree(data);
+    SMAFree(data);
 
     auto* translator = new QTranslator(QCoreApplication::instance());
     auto load = translator->load(

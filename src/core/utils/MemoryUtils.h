@@ -67,26 +67,12 @@ class PointerConverter {
 /**
  * @brief
  *
- * @return void*
- */
-auto GF_CORE_EXPORT SecureMalloc(std::size_t) -> void *;
-
-/**
- * @brief
- *
- * @return void*
- */
-auto GF_CORE_EXPORT SecureRealloc(void *, std::size_t) -> void *;
-
-/**
- * @brief
- *
  * @tparam T
  * @return T*
  */
 template <typename T>
 auto SecureMallocAsType(std::size_t size) -> T * {
-  return PointerConverter<T>(SecureMemoryAllocator::Allocate(size)).AsType();
+  return PointerConverter<T>(SMAMalloc(size)).AsType();
 }
 
 /**
@@ -96,25 +82,18 @@ auto SecureMallocAsType(std::size_t size) -> T * {
  */
 template <typename T>
 auto SecureReallocAsType(T *ptr, std::size_t size) -> T * {
-  return PointerConverter<T>(SecureMemoryAllocator::Reallocate(ptr, size))
-      .AsType();
+  return PointerConverter<T>(SMARealloc(ptr, size)).AsType();
 }
-
-/**
- * @brief
- *
- */
-void GF_CORE_EXPORT SecureFree(void *);
 
 template <typename T, typename... Args>
 static auto SecureCreateObject(Args &&...args) -> T * {
-  void *mem = SecureMemoryAllocator::Allocate(sizeof(T));
+  void *mem = SMAMalloc(sizeof(T));
   if (!mem) return nullptr;
 
   try {
     return new (mem) T(std::forward<Args>(args)...);
   } catch (...) {
-    SecureMemoryAllocator::Deallocate(mem);
+    SMAFree(mem);
     throw;
   }
 }
@@ -123,37 +102,37 @@ template <typename T>
 static void SecureDestroyObject(T *obj) {
   if (!obj) return;
   obj->~T();
-  SecureMemoryAllocator::Deallocate(obj);
+  SMAFree(obj);
 }
 
 template <typename T, typename... Args>
 static auto SecureCreateUniqueObject(Args &&...args)
     -> std::unique_ptr<T, SecureObjectDeleter<T>> {
-  void *mem = SecureMemoryAllocator::Allocate(sizeof(T));
+  void *mem = SMAMalloc(sizeof(T));
   if (!mem) throw std::bad_alloc();
 
   try {
     return std::unique_ptr<T, SecureObjectDeleter<T>>(
         new (mem) T(std::forward<Args>(args)...));
   } catch (...) {
-    SecureMemoryAllocator::Deallocate(mem);
+    SMAFree(mem);
     throw;
   }
 }
 
 template <typename T, typename... Args>
 auto SecureCreateSharedObject(Args &&...args) -> QSharedPointer<T> {
-  void *mem = SecureMemoryAllocator::Allocate(sizeof(T));
+  void *mem = SMAMalloc(sizeof(T));
   if (!mem) throw std::bad_alloc();
 
   try {
     T *obj = new (mem) T(std::forward<Args>(args)...);
     return QSharedPointer<T>(obj, [](T *ptr) {
       ptr->~T();
-      SecureMemoryAllocator::Deallocate(ptr);
+      SMAFree(ptr);
     });
   } catch (...) {
-    SecureMemoryAllocator::Deallocate(mem);
+    SMAFree(mem);
     throw;
   }
 }

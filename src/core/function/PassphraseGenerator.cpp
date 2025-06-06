@@ -72,4 +72,7 @@ auto PassphraseGenerator::GenerateBytesByOpenSSL(int len) -> GFBufferOrNone {
   }
   return buffer;
 }
+
+PassphraseGenerator::PassphraseGenerator(int channel)
+    : SingletonFunctionObject<PassphraseGenerator>(channel) {}
 }  // namespace GpgFrontend

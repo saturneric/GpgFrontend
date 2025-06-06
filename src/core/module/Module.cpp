@@ -125,7 +125,7 @@ class Module::Impl {
           QString::fromUtf8(p_meta_data->value);
       l_meta_data = p_meta_data;
       p_meta_data = p_meta_data->next;
-      SecureFree(l_meta_data);
+      SMAFree(l_meta_data);
     }
 
     good_ = true;

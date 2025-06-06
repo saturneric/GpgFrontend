@@ -47,8 +47,7 @@ class GF_CORE_EXPORT PassphraseGenerator
    * @param channel The channel to use
    */
   explicit PassphraseGenerator(
-      int channel = SingletonFunctionObject::GetDefaultChannel())
-      : SingletonFunctionObject<PassphraseGenerator>(channel) {}
+      int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
    * @brief generate passphrase

@@ -28,24 +28,99 @@
 
 #include "SecureMemoryAllocator.h"
 
+#include <openssl/crypto.h>
+
 #include <cstdlib>
 
 namespace GpgFrontend {
 
+SecureMemoryAllocator::SecureMemoryAllocator() = default;
+
+SecureMemoryAllocator::~SecureMemoryAllocator() = default;
+
 auto SecureMemoryAllocator::Allocate(std::size_t size) -> void* {
-  auto* addr = std::malloc(size);
-  if (addr == nullptr) FLOG_F("malloc failed!");
+  auto* addr = OPENSSL_zalloc(size);
+  if (addr == nullptr) FLOG_F() << "OPENSSL_zalloc failed";
+  allocated_[addr] = size;
   return addr;
 }
 
 auto SecureMemoryAllocator::Reallocate(void* ptr, std::size_t size) -> void* {
-  auto* addr = std::realloc(ptr, size);
-  if (addr == nullptr) FLOG_F("realloc failed!");
+  if (ptr == nullptr) return Allocate(size);
+
+  if (!allocated_.contains(ptr)) {
+    FLOG_F()
+        << "this memory address was not allocated by SecureMemoryAllocator: "
+        << ptr;
+  }
+
+  const auto ptr_size = allocated_.value(ptr);
+  auto* addr = OPENSSL_clear_realloc(ptr, ptr_size, size);
+  if (addr == nullptr) FLOG_F() << "OPENSSL_clear_realloc failed";
+
+  allocated_[addr] = size;
+  allocated_.remove(ptr);
   return addr;
 }
 
-void SecureMemoryAllocator::Deallocate(void* p) {
-  if (p != nullptr) std::free(p);
+void SecureMemoryAllocator::Deallocate(void* ptr) {
+  if (ptr == nullptr) return;
+
+  if (!allocated_.contains(ptr)) {
+    FLOG_F()
+        << "this memory address was not allocated by SecureMemoryAllocator: "
+        << ptr;
+  }
+
+  const auto ptr_size = allocated_.value(ptr);
+  OPENSSL_clear_free(ptr, ptr_size);
+  allocated_.remove(ptr);
+}
+
+auto SecureMemoryAllocator::GetInstance() -> SecureMemoryAllocator* {
+  static SecureMemoryAllocator instance;
+  return &instance;
+}
+
+auto SMAMalloc(std::size_t size) -> void* {
+  return SecureMemoryAllocator::GetInstance()->Allocate(size);
+}
+
+auto SMARealloc(void* ptr, std::size_t size) -> void* {
+  return SecureMemoryAllocator::GetInstance()->Reallocate(ptr, size);
+}
+
+void SMAFree(void* ptr) {
+  SecureMemoryAllocator::GetInstance()->Deallocate(ptr);
+}
+
+auto SecureMemoryAllocator::SecAllocate(std::size_t size) -> void* {
+  auto* addr = OPENSSL_secure_malloc(size);
+  if (addr == nullptr) FLOG_F() << "OPENSSL_secure_malloc failed";
+  allocated_[addr] = size;
+  return addr;
+}
+
+void SecureMemoryAllocator::SecDeallocate(void* ptr) {
+  if (ptr == nullptr) return;
+
+  if (!allocated_.contains(ptr)) {
+    FLOG_F()
+        << "this memory address was not allocated by SecureMemoryAllocator: "
+        << ptr;
+  }
+
+  auto sz = OPENSSL_secure_actual_size(ptr);
+  OPENSSL_secure_clear_free(ptr, sz);
+  allocated_.remove(ptr);
+}
+
+auto SMASecMalloc(std::size_t size) -> void* {
+  return SecureMemoryAllocator::GetInstance()->SecAllocate(size);
+}
+
+void SMASecFree(void* ptr) {
+  SecureMemoryAllocator::GetInstance()->SecDeallocate(ptr);
 }
 
 }  // namespace GpgFrontend

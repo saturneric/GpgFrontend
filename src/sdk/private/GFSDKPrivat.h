@@ -118,20 +118,19 @@ inline auto ArrayToQList(T **pl_components, int size)
   GpgFrontend::QContainer<T> list;
   for (int i = 0; i < size; ++i) {
     list.append(*pl_components[i]);
-    GpgFrontend::SecureMemoryAllocator::Deallocate(pl_components[i]);
+    GpgFrontend::SMAFree(pl_components[i]);
   }
-  GpgFrontend::SecureMemoryAllocator::Deallocate(pl_components);
+  GpgFrontend::SMAFree(pl_components);
   return list;
 }
 
 template <typename T>
 inline auto QListToArray(const GpgFrontend::QContainer<T> &list) -> T ** {
-  T **array = static_cast<T **>(
-      GpgFrontend::SecureMemoryAllocator::Allocate(list.size() * sizeof(T *)));
+  T **array =
+      static_cast<T **>(GpgFrontend::SMAMalloc(list.size() * sizeof(T *)));
   int index = 0;
   for (const T &item : list) {
-    auto mem = static_cast<T *>(
-        GpgFrontend::SecureMemoryAllocator::Allocate(sizeof(T)));
+    auto mem = static_cast<T *>(GpgFrontend::SMAMalloc(sizeof(T)));
     array[index] = new (mem) T(item);
     index++;
   }

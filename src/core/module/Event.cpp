@@ -94,8 +94,7 @@ class Event::Impl {
   }
 
   auto ToModuleEvent() -> GFModuleEvent* {
-    auto* event =
-        static_cast<GFModuleEvent*>(SecureMalloc(sizeof(GFModuleEvent)));
+    auto* event = static_cast<GFModuleEvent*>(SMAMalloc(sizeof(GFModuleEvent)));
 
     event->id = GFStrDup(event_identifier_);
     event->trigger_id = GFStrDup(trigger_uuid_);
@@ -107,7 +106,7 @@ class Event::Impl {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
     for (const auto& data : data_.asKeyValueRange()) {
       p_param = static_cast<GFModuleEventParam*>(
-          SecureMalloc(sizeof(GFModuleEventParam)));
+          SMAMalloc(sizeof(GFModuleEventParam)));
       if (event->params == nullptr) event->params = p_param;
 
       p_param->name = GFStrDup(data.first);
@@ -120,7 +119,7 @@ class Event::Impl {
 #else
     for (auto it = data_.keyValueBegin(); it != data_.keyValueEnd(); ++it) {
       p_param = static_cast<GFModuleEventParam*>(
-          SecureMalloc(sizeof(GFModuleEventParam)));
+          SMAMalloc(sizeof(GFModuleEventParam)));
       if (event->params == nullptr) event->params = p_param;
 
       p_param->name = GFStrDup(it->first);

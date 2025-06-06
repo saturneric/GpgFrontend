@@ -26,9 +26,12 @@
  *
  */
 
+#include <openssl/crypto.h>
 #include <openssl/provider.h>
 #include <qcommandlineparser.h>
 #include <qloggingcategory.h>
+
+#include <cstddef>
 
 //
 #include "GpgFrontendContext.h"
@@ -54,6 +57,9 @@ auto main(int argc, char* argv[]) -> int {
                 "such as CSPRNG are not available!";
     abort();
   }
+
+  // OpenSSL 8 MB
+  CRYPTO_secure_malloc_init(static_cast<size_t>(8192 * 1024), 32);
 
   // initialize qt resources
   Q_INIT_RESOURCE(gpgfrontend);

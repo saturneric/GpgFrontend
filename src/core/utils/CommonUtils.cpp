@@ -84,7 +84,7 @@ auto GFStrDup(const QString& s) -> char* {
   if (s.isEmpty()) return nullptr;
 
   auto u_s = s.toUtf8();
-  auto* c_s = static_cast<char*>(SecureMalloc((u_s.size() + 1) * sizeof(char)));
+  auto* c_s = static_cast<char*>(SMAMalloc((u_s.size() + 1) * sizeof(char)));
 
   memcpy(c_s, u_s.constData(), u_s.size());
   c_s[u_s.size()] = '\0';
@@ -93,7 +93,7 @@ auto GFStrDup(const QString& s) -> char* {
 
 auto GFUnStrDup(char* s) -> QString {
   auto q_s = QString::fromUtf8(s == nullptr ? "" : s);
-  if (s != nullptr) SecureFree(static_cast<void*>(const_cast<char*>(s)));
+  if (s != nullptr) SMAFree(static_cast<void*>(s));
   return q_s;
 }
 
