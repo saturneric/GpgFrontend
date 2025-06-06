@@ -61,6 +61,11 @@ jobs:
           lfs: "false"
           submodules: recursive
 
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-${{ matrix.os }}
+
       - name: Get Short SHA of Commit
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
@@ -146,6 +151,8 @@ jobs:
       - name: Build GpgME (macOS)
         run: |
           cd ${{github.workspace}}/third_party/gpgme
+          export CC="ccache gcc"
+          export CXX="ccache g++"
           ./autogen.sh
           mkdir build && cd build
           ../configure --enable-static \
@@ -166,9 +173,11 @@ jobs:
         run: |
           cd $(cygpath -u "${{github.workspace}}")
           cd third_party/gpgme
+          export CC="ccache gcc"
+          export CXX="ccache g++"
+          export CFLAGS="${CFLAGS} -Wno-int-conversion -Wno-incompatible-pointer-types"
           ./autogen.sh
           mkdir build && cd build
-          export CFLAGS="${CFLAGS} -Wno-int-conversion -Wno-incompatible-pointer-types"
           ../configure --enable-maintainer-mode \
           --enable-static \
           --disable-shared \
@@ -189,7 +198,10 @@ jobs:
           git clone --depth 1 --branch v1.15.2 https://github.com/google/googletest.git ${{github.workspace}}/third_party/googletest
           cd ${{github.workspace}}/third_party/googletest
           mkdir build && cd build
-          cmake -G Ninja -DBUILD_SHARED_LIBS=ON ..
+          cmake -G Ninja -DBUILD_SHARED_LIBS=ON \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            ..
           ninja
           sudo ninja install
         if: runner.os == 'Linux'
@@ -197,12 +209,12 @@ jobs:
       - name: Build GpgFrontend (macOS)
         run: |
           cmake -B ${{github.workspace}}/build -G Xcode \
-           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-           -DGPGFRONTEND_XCODE_CODE_SIGN_IDENTITY="${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" \
-           -DGPGFRONTEND_XCODE_TEAM_ID="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
-           -DGPGFRONTEND_XCODE_APPID="${{secrets.GPGFRONTEND_XOCDE_APPID}}" \
-           -DGPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID="${{secrets.GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID}}" \
-           -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DGPGFRONTEND_XCODE_CODE_SIGN_IDENTITY="${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" \
+            -DGPGFRONTEND_XCODE_TEAM_ID="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
+            -DGPGFRONTEND_XCODE_APPID="${{secrets.GPGFRONTEND_XOCDE_APPID}}" \
+            -DGPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID="${{secrets.GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID}}" \
+            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
           xcodebuild -list -project ${{github.workspace}}/build/GpgFrontend.xcodeproj
           cd ${{github.workspace}}/build/
           xcodebuild -scheme GpgFrontend -configuration "${{env.BUILD_TYPE}}"\
