@@ -28,8 +28,8 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgKeyImportExporter.h"
-#include "core/typedef/CoreTypedef.h"
+#include "core/model/GFBuffer.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 

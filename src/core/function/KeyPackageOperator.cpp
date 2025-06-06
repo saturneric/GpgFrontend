@@ -29,8 +29,8 @@
 #include "KeyPackageOperator.h"
 
 #include <qglobal.h>
-#include <qt-aes/qaesencryption.h>
 
+#include "core/function/AESCryptoHelper.h"
 #include "core/function/KeyPackageOperator.h"
 #include "core/function/PassphraseGenerator.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
@@ -74,14 +74,14 @@ void KeyPackageOperator::GenerateKeyPackage(const QString& key_package_path,
 
         auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
 
-        auto data = gf_buffer.ConvertToQByteArray().toBase64();
-        auto hash_key = QCryptographicHash::hash(phrase.ConvertToQByteArray(),
-                                                 QCryptographicHash::Sha256);
-        QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
-                                  QAESEncryption::Padding::ISO);
-        auto encoded_data = encryption.encode(data, hash_key);
+        // AES encrypt
+        auto encrypted = AESCryptoHelper::GCMEncrypt(phrase, gf_buffer);
+        if (!encrypted) {
+          cb(-1, data_obj);
+          return;
+        }
 
-        cb(WriteFile(key_package_path, encoded_data) ? 0 : -1,
+        cb(WriteFileGFBuffer(key_package_path, *encrypted) ? 0 : -1,
            TransferParams());
         return;
       });
@@ -93,39 +93,29 @@ void KeyPackageOperator::ImportKeyPackage(const QString& key_package_path,
                                           const OperationCallback& cb) {
   RunOperaAsync(
       [=](const DataObjectPtr& data_object) -> GFError {
-        QByteArray encrypted_data;
-        ReadFile(key_package_path, encrypted_data);
+        auto [succ_e, encrypted] = ReadFileGFBuffer(key_package_path);
 
-        if (encrypted_data.isEmpty()) {
+        if (!succ_e || encrypted.Empty()) {
           LOG_W() << "failed to read key package: " << key_package_path;
+          cb(-1, data_object);
           return -1;
         };
 
-        QByteArray passphrase;
-        ReadFile(phrase_path, passphrase);
-        if (passphrase.size() != 256) {
-          LOG_W() << "passphrase size mismatch: " << phrase_path;
+        auto [succ_p, passphrase] = ReadFileGFBuffer(phrase_path);
+        if (!succ_p || passphrase.Size() != 256) {
+          LOG_W() << "passphrase invalid: " << phrase_path;
+          cb(-1, data_object);
           return -1;
         }
 
-        auto hash_key =
-            QCryptographicHash::hash(passphrase, QCryptographicHash::Sha256);
-        auto encoded = encrypted_data;
-
-        QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
-                                  QAESEncryption::Padding::ISO);
-
-        auto decoded =
-            encryption.removePadding(encryption.decode(encoded, hash_key));
-        auto key_data = QByteArray::fromBase64(decoded);
-        if (!key_data.startsWith(PGP_PUBLIC_KEY_BEGIN) &&
-            !key_data.startsWith(PGP_PRIVATE_KEY_BEGIN)) {
+        auto key_data = AESCryptoHelper::GCMDecrypt(passphrase, encrypted);
+        if (!key_data) {
+          cb(-1, data_object);
           return -1;
         }
 
         auto import_info_ptr =
-            GpgKeyImportExporter::GetInstance(channel).ImportKey(
-                GFBuffer(key_data));
+            GpgKeyImportExporter::GetInstance(channel).ImportKey(*key_data);
         if (import_info_ptr == nullptr) return GPG_ERR_NO_DATA;
 
         auto import_info = *import_info_ptr;
