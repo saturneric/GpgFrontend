@@ -36,8 +36,10 @@
 namespace GpgFrontend {
 
 void DataObjectOperator::init_app_secure_key() {
-  WriteFileGFBuffer(app_secure_key_path_,
-                    PassphraseGenerator::GenerateBytesByOpenSSL(256));
+  auto key = PassphraseGenerator::GenerateBytesByOpenSSL(256);
+  if (!key) LOG_F() << "generate app secure key failed";
+
+  WriteFileGFBuffer(app_secure_key_path_, *key);
   QFile::setPermissions(app_secure_key_path_,
                         QFileDevice::ReadOwner | QFileDevice::WriteOwner);
 }
@@ -64,12 +66,13 @@ DataObjectOperator::DataObjectOperator(int channel)
 auto DataObjectOperator::SaveDataObj(const QString& key,
                                      const QJsonDocument& value) -> QString {
   QByteArray hash_obj_key;
+
   if (key.isEmpty()) {
+    auto random = PassphraseGenerator::GetInstance().Generate(32);
+    if (!random) return {};
+
     hash_obj_key = QCryptographicHash::hash(
-                       hash_key_ +
-                           PassphraseGenerator::GetInstance()
-                               .Generate(32)
-                               .ConvertToQByteArray() +
+                       hash_key_ + random->ConvertToQByteArray() +
                            QDateTime::currentDateTime().toString().toUtf8(),
                        QCryptographicHash::Sha256)
                        .toHex();

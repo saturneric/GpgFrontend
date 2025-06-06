@@ -30,14 +30,14 @@
 
 namespace GpgFrontend {
 
-auto PassphraseGenerator::Generate(int len) -> GFBuffer {
+auto PassphraseGenerator::Generate(int len) -> GFBufferOrNone {
   static const std::array<char, 63> kAlphanum = {
       "0123456789"
       "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
       "abcdefghijklmnopqrstuvwxyz"};
 
-  GFBuffer buffer = rand_.GnuPGGenerate(len);
-  if (buffer.Empty() || buffer.Size() < static_cast<size_t>(len)) {
+  auto buffer = rand_.GnuPGGenerate(len);
+  if (!buffer || buffer->Empty() || buffer->Size() < static_cast<size_t>(len)) {
     LOG_E() << "generate random bytes failed, len: " << len;
     return {};
   }
@@ -45,7 +45,7 @@ auto PassphraseGenerator::Generate(int len) -> GFBuffer {
   GFBuffer result(len);
 
   const size_t charset_size = sizeof(kAlphanum) - 1;
-  const auto *data = buffer.Data();
+  const auto *data = buffer->Data();
   auto *result_data = result.Data();
   for (int i = 0; i < len; ++i) {
     size_t idx = static_cast<size_t>(data[i]) % charset_size;
@@ -55,18 +55,18 @@ auto PassphraseGenerator::Generate(int len) -> GFBuffer {
   return result;
 }
 
-auto PassphraseGenerator::GenerateBytes(int len) -> GFBuffer {
-  GFBuffer buffer = rand_.GnuPGGenerate(len);
-  if (buffer.Empty() || buffer.Size() < static_cast<size_t>(len)) {
+auto PassphraseGenerator::GenerateBytes(int len) -> GFBufferOrNone {
+  auto buffer = rand_.GnuPGGenerate(len);
+  if (!buffer || buffer->Empty() || buffer->Size() < static_cast<size_t>(len)) {
     LOG_E() << "generate random bytes failed, len: " << len;
     return {};
   }
   return buffer;
 }
 
-auto PassphraseGenerator::GenerateBytesByOpenSSL(int len) -> GFBuffer {
-  GFBuffer buffer = SecureRandomGenerator::OpenSSLGenerate(len);
-  if (buffer.Empty() || buffer.Size() < static_cast<size_t>(len)) {
+auto PassphraseGenerator::GenerateBytesByOpenSSL(int len) -> GFBufferOrNone {
+  auto buffer = SecureRandomGenerator::OpenSSLGenerate(len);
+  if (!buffer || buffer->Empty() || buffer->Size() < static_cast<size_t>(len)) {
     LOG_E() << "generate random bytes failed, len: " << len;
     return {};
   }

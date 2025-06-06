@@ -39,11 +39,11 @@ class GF_CORE_EXPORT SecureRandomGenerator
   explicit SecureRandomGenerator(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
-  static auto OpenSSLGenerate(size_t size) -> GFBuffer;
+  static auto OpenSSLGenerate(size_t size) -> GFBufferOrNone;
 
-  auto GnuPGGenerate(size_t size) -> GFBuffer;
+  auto GnuPGGenerate(size_t size) -> GFBufferOrNone;
 
-  auto GnuPGGenerateZBase32() -> GFBuffer;
+  auto GnuPGGenerateZBase32() -> GFBufferOrNone;
 
  private:
   GpgContext& ctx_ =

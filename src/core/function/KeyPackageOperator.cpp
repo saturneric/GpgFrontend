@@ -44,7 +44,10 @@ namespace GpgFrontend {
 
 auto KeyPackageOperator::GeneratePassphrase(const QString& phrase_path,
                                             GFBuffer& phrase) -> bool {
-  phrase = PassphraseGenerator::GetInstance().GenerateBytes(256);
+  auto random = PassphraseGenerator::GetInstance().GenerateBytes(256);
+  if (!random) return false;
+
+  phrase = *random;
   return WriteFileGFBuffer(phrase_path, phrase);
 }
 
@@ -142,11 +145,10 @@ auto KeyPackageOperator::GenerateKeyPackageName() -> QString {
  * @return QString key package name
  */
 auto KeyPackageOperator::generate_key_package_name() -> QString {
-  return QString("KeyPackage_%1")
-      .arg(SecureRandomGenerator::GetInstance()
-               .GnuPGGenerateZBase32()
-               .ConvertToQByteArray()
-               .left(8));
+  auto random = SecureRandomGenerator::GetInstance().GnuPGGenerateZBase32();
+
+  if (!random) return {};
+  return QString("KeyPackage_%1").arg(random->Left(8).ConvertToQByteArray());
 }
 
 }  // namespace GpgFrontend

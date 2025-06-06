@@ -56,7 +56,7 @@ class GF_CORE_EXPORT PassphraseGenerator
    * @param len length of the passphrase
    * @return QString passphrase
    */
-  auto Generate(int len) -> GFBuffer;
+  auto Generate(int len) -> GFBufferOrNone;
 
   /**
    * @brief generate passphrase
@@ -64,7 +64,7 @@ class GF_CORE_EXPORT PassphraseGenerator
    * @param len length of the passphrase
    * @return QString passphrase
    */
-  auto GenerateBytes(int len) -> GFBuffer;
+  auto GenerateBytes(int len) -> GFBufferOrNone;
 
   /**
    * @brief generate passphrase
@@ -72,7 +72,7 @@ class GF_CORE_EXPORT PassphraseGenerator
    * @param len length of the passphrase
    * @return QString passphrase
    */
-  static auto GenerateBytesByOpenSSL(int len) -> GFBuffer;
+  static auto GenerateBytesByOpenSSL(int len) -> GFBufferOrNone;
 
  private:
   SecureRandomGenerator& rand_ =

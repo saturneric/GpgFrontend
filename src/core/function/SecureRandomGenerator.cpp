@@ -37,7 +37,7 @@ namespace GpgFrontend {
 SecureRandomGenerator::SecureRandomGenerator(int channel)
     : SingletonFunctionObject<SecureRandomGenerator>(channel) {}
 
-auto SecureRandomGenerator::GnuPGGenerate(size_t size) -> GFBuffer {
+auto SecureRandomGenerator::GnuPGGenerate(size_t size) -> GFBufferOrNone {
   size = std::max(size, 31UL);
   size = std::min(size, 1024UL);
 
@@ -50,7 +50,7 @@ auto SecureRandomGenerator::GnuPGGenerate(size_t size) -> GFBuffer {
   return buffer;
 }
 
-auto SecureRandomGenerator::GnuPGGenerateZBase32() -> GFBuffer {
+auto SecureRandomGenerator::GnuPGGenerateZBase32() -> GFBufferOrNone {
   GFBuffer buffer(31);
 
   GpgError err =
@@ -60,7 +60,7 @@ auto SecureRandomGenerator::GnuPGGenerateZBase32() -> GFBuffer {
   return buffer;
 }
 
-auto SecureRandomGenerator::OpenSSLGenerate(size_t size) -> GFBuffer {
+auto SecureRandomGenerator::OpenSSLGenerate(size_t size) -> GFBufferOrNone {
   GFBuffer buffer(size);
 
   auto *data = reinterpret_cast<unsigned char *>(buffer.Data());
