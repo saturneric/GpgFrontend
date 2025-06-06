@@ -32,6 +32,7 @@
 #include <cstddef>
 
 #include "core/function/CacheManager.h"
+#include "core/utils/IOUtils.h"
 #include "ui/dialog/QuitDialog.h"
 #include "ui/widgets/HelpPage.h"
 #include "ui/widgets/TextEditTabWidget.h"
@@ -280,7 +281,11 @@ void TextEdit::slot_remove_tab(int index) {
   tab_widget_->setCurrentIndex(index);
 
   if (maybe_save_current_tab(true)) {
+    auto* tab = tab_widget_->widget(index);
     tab_widget_->removeTab(index);
+
+    // close tab
+    if (tab != nullptr) tab->close();
 
     if (index >= last_index) {
       tab_widget_->setCurrentIndex(last_index);
@@ -444,28 +449,27 @@ void TextEdit::SlotQuote() const {
 }
 
 void TextEdit::SlotFillTextEditWithText(const QString& text) const {
-  QTextCursor cursor(CurTextPage()->GetTextPage()->document());
-  cursor.beginEditBlock();
-  this->CurTextPage()->GetTextPage()->selectAll();
-  this->CurTextPage()->GetTextPage()->insertPlainText(text);
-  cursor.endEditBlock();
+  auto* edit = this->CurTextPage()->GetTextPage();
+  edit->setUndoRedoEnabled(false);
+  edit->setPlainText(text);
+  edit->setUndoRedoEnabled(true);
+}
+
+void TextEdit::SlotFillTextEditWithText(const GFBuffer& buffer) const {
+  auto* edit = this->CurTextPage()->GetTextPage();
+  edit->setUndoRedoEnabled(false);
+  edit->setPlainText(buffer.ConvertToQString());
+  edit->setUndoRedoEnabled(true);
 }
 
 void TextEdit::LoadFile(const QString& fileName) {
-  QFile file(fileName);
-  if (!file.open(QFile::ReadOnly | QFile::Text)) {
-    QMessageBox::warning(
-        this, tr("Warning"),
-        tr("Cannot read file %1:\n%2.").arg(fileName).arg(file.errorString()));
-    return;
-  }
-  QTextStream in(&file);
+  auto [succ, buffer] = ReadFileGFBuffer(fileName);
+
   QApplication::setOverrideCursor(Qt::WaitCursor);
-  CurTextPage()->GetTextPage()->setPlainText(in.readAll());
+  CurTextPage()->GetTextPage()->setPlainText(buffer.ConvertToQString());
   QApplication::restoreOverrideCursor();
   CurPageTextEdit()->SetFilePath(fileName);
   tab_widget_->setTabText(tab_widget_->currentIndex(), stripped_name(fileName));
-  file.close();
   // statusBar()->showMessage(tr("File loaded"), 2000);
 }
 

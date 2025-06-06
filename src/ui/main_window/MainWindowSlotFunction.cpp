@@ -1020,7 +1020,7 @@ void MainWindow::slot_gpg_opera_buffer_show_helper(
     const QContainer<GpgOperaResult>& results) {
   for (const auto& result : results) {
     if (result.o_buffer.Empty()) continue;
-    edit_->SlotFillTextEditWithText(result.o_buffer.ConvertToQByteArray());
+    edit_->SlotFillTextEditWithText(result.o_buffer);
   }
 }
 

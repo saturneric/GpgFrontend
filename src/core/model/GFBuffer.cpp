@@ -177,4 +177,12 @@ void GFBuffer::Zeroize() {
     OPENSSL_cleanse(impl_->sec_ptr_, impl_->sec_size_);
   }
 }
+
+auto GFBuffer::ConvertToQString() const -> QString {
+  Q_ASSERT(impl_);
+  Q_ASSERT(impl_->sec_ptr_ != nullptr);
+  return QString::fromUtf8(static_cast<const char*>(impl_->sec_ptr_),
+                           static_cast<qsizetype>(impl_->sec_size_));
+}
+
 }  // namespace GpgFrontend

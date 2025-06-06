@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/model/GFBuffer.h"
 #include "ui/widgets/EMailEditorPage.h"
 #include "ui/widgets/FilePage.h"
 #include "ui/widgets/PlainTextEditorPage.h"
@@ -147,6 +148,12 @@ class TextEdit : public QWidget {
    * @param text to fill on.
    */
   void SlotFillTextEditWithText(const QString& text) const;
+
+  /**
+   * @details replace the text of currently active textedit with given text.
+   * @param text to fill on.
+   */
+  void SlotFillTextEditWithText(const GFBuffer& buffer) const;
 
   /**
    * @details Saves the content of the current tab, if it has a filepath

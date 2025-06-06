@@ -77,6 +77,21 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
   }
 }
 
+void PlainTextEditorPage::closeEvent(QCloseEvent *event) {
+  // clean up
+  if (ui_ && (ui_->textPage != nullptr)) {
+    auto text = ui_->textPage->toPlainText();
+    if (!text.isEmpty()) {
+      ui_->textPage->setPlainText(QString(text.size(), QChar(0x2022)));
+      text.fill(QLatin1Char('X'));
+    }
+    ui_->textPage->setUndoRedoEnabled(false);
+    ui_->textPage->setUndoRedoEnabled(true);
+    ui_->textPage->setPlainText(QString());
+  }
+  QWidget::closeEvent(event);
+}
+
 const QString &PlainTextEditorPage::GetFilePath() const {
   return full_file_path_;
 }

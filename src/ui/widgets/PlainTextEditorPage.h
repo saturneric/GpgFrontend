@@ -124,6 +124,8 @@ class PlainTextEditorPage : public QWidget {
  protected:
   QSharedPointer<Ui_PlainTextEditor> ui_;  ///<
 
+  void closeEvent(QCloseEvent* event) override;
+
  private:
   QString full_file_path_;  ///< The path to the file handled in the tab
   bool sign_marked_{};  ///< true, if the signed header is marked, false if not

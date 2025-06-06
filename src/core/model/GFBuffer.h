@@ -64,6 +64,8 @@ class GF_CORE_EXPORT GFBuffer {
 
   [[nodiscard]] auto ConvertToQByteArray() const -> QByteArray;
 
+  [[nodiscard]] auto ConvertToQString() const -> QString;
+
   [[nodiscard]] auto Mid(ssize_t pos, ssize_t len) const -> GFBuffer;
 
   [[nodiscard]] auto Left(ssize_t len) const -> GFBuffer;
