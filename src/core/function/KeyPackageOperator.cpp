@@ -43,17 +43,16 @@
 namespace GpgFrontend {
 
 auto KeyPackageOperator::GeneratePassphrase(const QString& phrase_path,
-                                            QString& phrase) -> bool {
-  phrase = PassphraseGenerator::GetInstance().Generate(256);
-  FLOG_D() << "generated passphrase: " << phrase.size() << "bytes";
-  return WriteFile(phrase_path, phrase.toUtf8());
+                                            GFBuffer& phrase) -> bool {
+  phrase = PassphraseGenerator::GetInstance().GenerateBytes(256);
+  return WriteFileGFBuffer(phrase_path, phrase);
 }
 
 void KeyPackageOperator::GenerateKeyPackage(const QString& key_package_path,
                                             const QString& key_package_name,
                                             int channel,
                                             const GpgAbstractKeyPtrList& keys,
-                                            QString& phrase, bool secret,
+                                            GFBuffer& phrase, bool secret,
                                             const OperationCallback& cb) {
   GpgKeyImportExporter::GetInstance(channel).ExportAllKeys(
       keys, secret, true, [=](GpgError err, const DataObjectPtr& data_obj) {
@@ -73,7 +72,7 @@ void KeyPackageOperator::GenerateKeyPackage(const QString& key_package_path,
         auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
 
         auto data = gf_buffer.ConvertToQByteArray().toBase64();
-        auto hash_key = QCryptographicHash::hash(phrase.toUtf8(),
+        auto hash_key = QCryptographicHash::hash(phrase.ConvertToQByteArray(),
                                                  QCryptographicHash::Sha256);
         QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
                                   QAESEncryption::Padding::ISO);

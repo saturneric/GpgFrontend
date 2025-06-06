@@ -47,7 +47,7 @@ class GF_CORE_EXPORT KeyPackageOperator {
    * @return true if passphrase was generated and saved
    * @return false if passphrase was not generated and saved
    */
-  static auto GeneratePassphrase(const QString &phrase_path, QString &phrase)
+  static auto GeneratePassphrase(const QString &phrase_path, GFBuffer &phrase)
       -> bool;
 
   /**
@@ -71,7 +71,7 @@ class GF_CORE_EXPORT KeyPackageOperator {
   static void GenerateKeyPackage(const QString &key_package_path,
                                  const QString &key_package_name, int channel,
                                  const GpgAbstractKeyPtrList &keys,
-                                 QString &phrase, bool secret,
+                                 GFBuffer &phrase, bool secret,
                                  const OperationCallback &cb);
 
   /**

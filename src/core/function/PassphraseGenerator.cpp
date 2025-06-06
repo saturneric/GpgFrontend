@@ -30,20 +30,46 @@
 
 namespace GpgFrontend {
 
-auto PassphraseGenerator::Generate(int len) -> QString {
-  auto file_string = QString("KeyPackage_%1")
-                         .arg(QRandomGenerator::global()->bounded(999, 99999));
-  static const char kAlphanum[] =
+auto PassphraseGenerator::Generate(int len) -> GFBuffer {
+  static const std::array<char, 63> kAlphanum = {
       "0123456789"
       "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-      "abcdefghijklmnopqrstuvwxyz";
-  QString tmp_str;
-  tmp_str.reserve(len);
+      "abcdefghijklmnopqrstuvwxyz"};
 
-  for (int i = 0; i < len; ++i) {
-    tmp_str += kAlphanum[QRandomGenerator::global()->bounded(
-        static_cast<quint32>(sizeof(kAlphanum)))];
+  GFBuffer buffer = rand_.GnuPGGenerate(len);
+  if (buffer.Empty() || buffer.Size() < static_cast<size_t>(len)) {
+    LOG_E() << "generate random bytes failed, len: " << len;
+    return {};
   }
-  return tmp_str;
+
+  GFBuffer result(len);
+
+  const size_t charset_size = sizeof(kAlphanum) - 1;
+  const auto *data = buffer.Data();
+  auto *result_data = result.Data();
+  for (int i = 0; i < len; ++i) {
+    size_t idx = static_cast<size_t>(data[i]) % charset_size;
+    result_data[i] = kAlphanum[idx];
+  }
+
+  return result;
+}
+
+auto PassphraseGenerator::GenerateBytes(int len) -> GFBuffer {
+  GFBuffer buffer = rand_.GnuPGGenerate(len);
+  if (buffer.Empty() || buffer.Size() < static_cast<size_t>(len)) {
+    LOG_E() << "generate random bytes failed, len: " << len;
+    return {};
+  }
+  return buffer;
+}
+
+auto PassphraseGenerator::GenerateBytesByOpenSSL(int len) -> GFBuffer {
+  GFBuffer buffer = SecureRandomGenerator::OpenSSLGenerate(len);
+  if (buffer.Empty() || buffer.Size() < static_cast<size_t>(len)) {
+    LOG_E() << "generate random bytes failed, len: " << len;
+    return {};
+  }
+  return buffer;
 }
 }  // namespace GpgFrontend

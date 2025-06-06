@@ -26,38 +26,27 @@
  *
  */
 
-#pragma once
+#include "GpgCoreTest.h"
+#include "core/function/SecureRandomGenerator.h"
 
-#include "GpgFrontendUI.h"
-#include "core/model/GFBuffer.h"
-#include "core/typedef/GpgTypedef.h"
-#include "ui/dialog/GeneralDialog.h"
+namespace GpgFrontend::Test {
 
-class Ui_exportKeyPackageDialog;
+TEST_F(GpgCoreTest, CoreSecureTestA) {
+  auto buffer = SecureRandomGenerator::GetInstance().GnuPGGenerateZBase32();
+  ASSERT_EQ(buffer.Size(), 31);
+}
 
-namespace GpgFrontend::UI {
+TEST_F(GpgCoreTest, CoreSecureTestB) {
+  auto buffer = SecureRandomGenerator::GetInstance().GnuPGGenerate(16);
+  ASSERT_EQ(buffer.Size(), 31);
 
-/**
- * @brief
- *
- */
-class ExportKeyPackageDialog : public GeneralDialog {
-  Q_OBJECT
+  buffer = SecureRandomGenerator::GetInstance().GnuPGGenerate(512);
+  ASSERT_EQ(buffer.Size(), 512);
+}
 
- public:
-  /**
-   * @brief Construct a new Export Key Package Dialog object
-   *
-   * @param key_ids
-   * @param parent
-   */
-  explicit ExportKeyPackageDialog(int channel, GpgAbstractKeyPtrList keys,
-                                  QWidget* parent);
+TEST_F(GpgCoreTest, CoreSecureTestC) {
+  auto buffer = SecureRandomGenerator::OpenSSLGenerate(256);
+  ASSERT_EQ(buffer.Size(), 256);
+}
 
- private:
-  QSharedPointer<Ui_exportKeyPackageDialog> ui_;  ///<
-  int current_gpg_context_channel_;
-  GpgAbstractKeyPtrList keys_;  ///<
-  GFBuffer passphrase_;         ///<
-};
-}  // namespace GpgFrontend::UI
+}  // namespace GpgFrontend::Test

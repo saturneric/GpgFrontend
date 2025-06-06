@@ -28,36 +28,25 @@
 
 #pragma once
 
-#include "GpgFrontendUI.h"
+#include "core/function/basic/GpgFunctionObject.h"
+#include "core/function/gpg/GpgContext.h"
 #include "core/model/GFBuffer.h"
-#include "core/typedef/GpgTypedef.h"
-#include "ui/dialog/GeneralDialog.h"
 
-class Ui_exportKeyPackageDialog;
-
-namespace GpgFrontend::UI {
-
-/**
- * @brief
- *
- */
-class ExportKeyPackageDialog : public GeneralDialog {
-  Q_OBJECT
-
+namespace GpgFrontend {
+class GF_CORE_EXPORT SecureRandomGenerator
+    : public SingletonFunctionObject<SecureRandomGenerator> {
  public:
-  /**
-   * @brief Construct a new Export Key Package Dialog object
-   *
-   * @param key_ids
-   * @param parent
-   */
-  explicit ExportKeyPackageDialog(int channel, GpgAbstractKeyPtrList keys,
-                                  QWidget* parent);
+  explicit SecureRandomGenerator(
+      int channel = SingletonFunctionObject::GetDefaultChannel());
+
+  static auto OpenSSLGenerate(size_t size) -> GFBuffer;
+
+  auto GnuPGGenerate(size_t size) -> GFBuffer;
+
+  auto GnuPGGenerateZBase32() -> GFBuffer;
 
  private:
-  QSharedPointer<Ui_exportKeyPackageDialog> ui_;  ///<
-  int current_gpg_context_channel_;
-  GpgAbstractKeyPtrList keys_;  ///<
-  GFBuffer passphrase_;         ///<
+  GpgContext& ctx_ =
+      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
 };
-}  // namespace GpgFrontend::UI
+};  // namespace GpgFrontend
