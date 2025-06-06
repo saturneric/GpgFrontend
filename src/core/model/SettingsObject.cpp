@@ -54,8 +54,8 @@ SettingsObject::SettingsObject(QJsonObject sub_json)
 
 SettingsObject::~SettingsObject() {
   if (!settings_name_.isEmpty()) {
-    DataObjectOperator::GetInstance().SaveDataObj(settings_name_,
-                                                  QJsonDocument(*this));
+    DataObjectOperator::GetInstance().StoreDataObj(settings_name_,
+                                                   QJsonDocument(*this));
   }
 }
 

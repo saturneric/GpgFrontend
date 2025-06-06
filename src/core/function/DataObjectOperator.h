@@ -32,6 +32,7 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/basic/GpgFunctionObject.h"
+#include "core/model/GFBuffer.h"
 
 namespace GpgFrontend {
 
@@ -46,7 +47,7 @@ class GF_CORE_EXPORT DataObjectOperator
   explicit DataObjectOperator(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
-  auto SaveDataObj(const QString &_key, const QJsonDocument &value) -> QString;
+  auto StoreDataObj(const QString &_key, const QJsonDocument &value) -> QString;
 
   auto GetDataObject(const QString &_key) -> std::optional<QJsonDocument>;
 
@@ -59,6 +60,10 @@ class GF_CORE_EXPORT DataObjectOperator
    */
   void init_app_secure_key();
 
+  auto get_object_ref(const QString &key) -> QByteArray;
+
+  auto read_decr_object(const QString &ref) -> std::optional<QJsonDocument>;
+
   GlobalSettingStation &global_setting_station_ =
       GlobalSettingStation::GetInstance();  ///< GlobalSettingStation
   QString app_secure_path_ =
@@ -70,6 +75,7 @@ class GF_CORE_EXPORT DataObjectOperator
   QString app_data_objs_path_ =
       global_setting_station_.GetAppDataPath() + "/data_objs";
 
+  GFBuffer key_;         ///< Raw key
   QByteArray hash_key_;  ///< Hash key
 };
 

@@ -126,8 +126,8 @@ class CacheManager::Impl : public QObject {
     return {};
   }
 
-  auto LoadDurableCache(const QString& key,
-                        QJsonDocument default_value) -> QJsonDocument {
+  auto LoadDurableCache(const QString& key, QJsonDocument default_value)
+      -> QJsonDocument {
     auto data_object_key = get_data_object_key(key);
     if (!durable_cache_storage_.exists(key)) {
       durable_cache_storage_.insert(
@@ -197,10 +197,10 @@ class CacheManager::Impl : public QObject {
 
     for (const auto& cache : durable_cache_storage_.mirror()) {
       auto key = get_data_object_key(cache.first);
-      GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(
+      GpgFrontend::DataObjectOperator::GetInstance().StoreDataObj(
           key, QJsonDocument(cache.second));
     }
-    GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(
+    GpgFrontend::DataObjectOperator::GetInstance().StoreDataObj(
         drk_key_, QJsonDocument(key_storage_));
 
     durable_cache_modified_ = false;
@@ -249,7 +249,7 @@ class CacheManager::Impl : public QObject {
     if (stored_data.has_value() && stored_data->isArray()) {
       registered_key_list = stored_data->array();
     } else {
-      GpgFrontend::DataObjectOperator::GetInstance().SaveDataObj(
+      GpgFrontend::DataObjectOperator::GetInstance().StoreDataObj(
           drk_key_, QJsonDocument(QJsonArray()));
     }
 
@@ -298,8 +298,9 @@ auto CacheManager::LoadDurableCache(const QString& key) -> QJsonDocument {
   return p_->LoadDurableCache(key);
 }
 
-auto CacheManager::LoadDurableCache(
-    const QString& key, QJsonDocument default_value) -> QJsonDocument {
+auto CacheManager::LoadDurableCache(const QString& key,
+                                    QJsonDocument default_value)
+    -> QJsonDocument {
   return p_->LoadDurableCache(key, std::move(default_value));
 }
 
