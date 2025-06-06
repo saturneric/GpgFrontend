@@ -54,6 +54,7 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest) {
   auto result = ExtractParams<GpgEncryptResult>(data_object, 0);
   auto encr_out_buffer = ExtractParams<GFBuffer>(data_object, 1);
 
+  ASSERT_FALSE(encr_out_buffer.Empty());
   ASSERT_TRUE(result.InvalidRecipients().empty());
 
   auto [err_0, data_object_0] =

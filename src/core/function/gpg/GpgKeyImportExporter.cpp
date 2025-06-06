@@ -73,9 +73,10 @@ auto GpgKeyImportExporter::ImportKey(const GFBuffer& in_buffer)
  * @param outBuffer output byte array
  * @return if success
  */
-auto GpgKeyImportExporter::ExportKey(
-    const GpgAbstractKeyPtr& key, bool secret, bool ascii, bool shortest,
-    bool ssh_mode) const -> std::tuple<GpgError, GFBuffer> {
+auto GpgKeyImportExporter::ExportKey(const GpgAbstractKeyPtr& key, bool secret,
+                                     bool ascii, bool shortest,
+                                     bool ssh_mode) const
+    -> std::tuple<GpgError, GFBuffer> {
   if (key == nullptr) return {GPG_ERR_CANCELED, {}};
 
   int mode = 0;
