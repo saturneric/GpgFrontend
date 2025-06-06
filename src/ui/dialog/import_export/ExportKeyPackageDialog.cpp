@@ -121,7 +121,7 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
                       QString(
                           tr("The Key Package has been successfully generated "
                              "and has been protected by encryption "
-                             "algorithms(AES-256-ECB). You can safely transfer "
+                             "algorithms(AES-256-GCM). You can safely transfer "
                              "your Key Package.")) +
                           "<br /><br />" + "<b>" +
                           tr("But the key file cannot be leaked under any "

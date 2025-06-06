@@ -65,8 +65,6 @@ class GF_CORE_EXPORT KeyPackageOperator {
    * @param key_ids key ids to export
    * @param phrase passphrase to encrypt key package
    * @param secret true if secret key should be exported
-   * @return true if key package was generated
-   * @return false if key package was not generated
    */
   static void GenerateKeyPackage(const QString &key_package_path,
                                  const QString &key_package_name, int channel,
@@ -80,8 +78,6 @@ class GF_CORE_EXPORT KeyPackageOperator {
    * @param key_package_path path to key package
    * @param phrase_path path to passphrase file
    * @param import_info import info
-   * @return true if key package was imported
-   * @return false if key package was not imported
    */
   static void ImportKeyPackage(const QString &key_package_path,
                                const QString &phrase_path, int channel,
