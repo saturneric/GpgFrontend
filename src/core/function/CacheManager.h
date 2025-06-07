@@ -155,6 +155,13 @@ class GF_CORE_EXPORT CacheManager
    */
   auto ResetDurableCache(const QString& key) -> bool;
 
+  /**
+   * @brief
+   *
+   * @return void
+   */
+  void FlushCacheStorage();
+
  private:
   class Impl;
   SecureUniquePtr<Impl> p_;
