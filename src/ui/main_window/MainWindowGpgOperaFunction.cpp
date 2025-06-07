@@ -71,6 +71,7 @@ auto MainWindow::sign_operation_key_validate(
                      [](const auto& key) { return key->IsGood(); }));
 
   contexts->singer_keys = signer_keys;
+  signers_picker->deleteLater();
 
   return true;
 }

@@ -812,6 +812,7 @@ void MainWindow::SlotEncryptSignEML() {
   if (!signers_picker->GetStatus()) return;
 
   auto signer_keys = signers_picker->GetCheckedSigners();
+  signers_picker->deleteLater();
 
   if (signer_keys.isEmpty()) {
     QMessageBox::warning(this, tr("No Key Selected"),

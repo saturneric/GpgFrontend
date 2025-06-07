@@ -76,6 +76,9 @@ SignersPicker::SignersPicker(int channel, QWidget* parent)
   this->show();
   this->raise();
   this->activateWindow();
+
+  // should not delete itself at closing by default
+  setAttribute(Qt::WA_DeleteOnClose, false);
 }
 
 auto SignersPicker::GetCheckedSigners() -> GpgAbstractKeyPtrList {
