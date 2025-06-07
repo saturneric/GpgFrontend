@@ -34,6 +34,14 @@ function(register_module name out_var)
 
   set_target_properties(${target_name} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+  if(SIGN_BUILT_BINARY)
+    add_custom_command(TARGET ${target_name} POST_BUILD
+      COMMAND ${OPENSSL_EXECUTABLE} dgst -sha256 -sign "${SIGN_PRIVATE_KEY}"
+      -out "$<TARGET_FILE:${target_name}>.sig" "$<TARGET_FILE:${target_name}>"
+      VERBATIM
+    )
+  endif()
+
   target_compile_features(${target_name} PRIVATE cxx_std_17)
 
   target_link_libraries(${target_name} PRIVATE gf_sdk)
