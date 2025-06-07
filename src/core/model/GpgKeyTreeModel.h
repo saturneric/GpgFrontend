@@ -353,11 +353,28 @@ class GF_CORE_EXPORT GpgKeyTreeModel : public QAbstractItemModel {
   auto GetAllCheckedSubKey() -> QContainer<GpgSubKey>;
 
   /**
+   * @brief Get the All Checked Keys object
+   *
+   * @return GpgAbstractKeyPtrList
+   */
+  auto GetAllCheckedKeys() -> GpgAbstractKeyPtrList;
+
+  /**
    * @brief Get the Key By Index object
    *
    * @return GpgAbstractKey*
    */
   auto GetKeyByIndex(QModelIndex) -> GpgAbstractKey *;
+
+ signals:
+
+  /**
+   * @brief
+   *
+   * @param key_id
+   * @param checked
+   */
+  void SignalKeyCheckedChanged(GpgAbstractKey *key, bool checked);
 
  private:
   int gpg_context_channel_;

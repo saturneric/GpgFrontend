@@ -152,6 +152,7 @@ auto GpgKeyTreeModel::setData(const QModelIndex &index, const QVariant &value,
 
   if (index.column() == 0 && role == Qt::CheckStateRole) {
     item->SetChecked(value == Qt::Checked);
+    emit SignalKeyCheckedChanged(item->Key(), value == Qt::Checked);
     emit dataChanged(index, index);
     return true;
   }
@@ -192,6 +193,16 @@ auto GpgKeyTreeModel::GetAllCheckedKeyIds() -> KeyIdArgsList {
   for (const auto &item : cached_items_) {
     if (!item->Checkable() || !item->Checked()) continue;
     ret.push_back(item->Key()->ID());
+  }
+  return ret;
+}
+
+auto GpgKeyTreeModel::GetAllCheckedKeys() -> GpgAbstractKeyPtrList {
+  auto ret = GpgAbstractKeyPtrList{};
+  for (const auto &item : cached_items_) {
+    if (!item->Checkable() || !item->Checked()) continue;
+    ret.push_back(
+        QSharedPointer<GpgAbstractKey>(item->Key(), [](GpgAbstractKey *) {}));
   }
   return ret;
 }
