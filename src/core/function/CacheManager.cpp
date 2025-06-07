@@ -178,15 +178,23 @@ class CacheManager::Impl : public QObject {
 
   void FlushCacheStorage() { this->slot_flush_cache_storage(); }
 
-  void SaveCache(const QString& key, QString value, qint64 ttl) {
+  void SaveCache(const QString& key, const QString& value, qint64 ttl) {
+    SaveSecCache(key, GFBuffer{value}, ttl);
+  }
+
+  void SaveSecCache(const QString& key, const GFBuffer& value, qint64 ttl) {
     LOG_D() << "save cache, key: " << key << "ttl: " << ttl;
     runtime_cache_storage_.insert(
-        key, new CacheObject(
-                 std::move(value),
-                 ttl < 0 ? -1 : QDateTime::currentSecsSinceEpoch() + ttl));
+        key,
+        new CacheObject(
+            value, ttl < 0 ? -1 : QDateTime::currentSecsSinceEpoch() + ttl));
   }
 
   auto LoadCache(const QString& key) -> QString {
+    return LoadSecCache(key).ConvertToQString();
+  }
+
+  auto LoadSecCache(const QString& key) -> GFBuffer {
     if (!runtime_cache_storage_.contains(key)) return {};
     LOG_D() << "hit cache, key: " << key;
 
@@ -196,9 +204,7 @@ class CacheManager::Impl : public QObject {
       return {};
     }
 
-    if (value->ttl < 0) {
-      return value->value;
-    }
+    if (value->ttl < 0) return value->value;
 
     // deal with expiration
     auto current_timestamp = QDateTime::currentSecsSinceEpoch();
@@ -294,11 +300,10 @@ class CacheManager::Impl : public QObject {
   void register_cache_key(const QString& key) {}
 
   struct CacheObject {
-    QString value;
+    GFBuffer value;
     qint64 ttl;
 
-    CacheObject(QString value, qint64 ttl)
-        : value(std::move(value)), ttl(ttl) {}
+    CacheObject(const GFBuffer& value, qint64 ttl) : value(value), ttl(ttl) {}
   };
 
   int channel_;
@@ -360,6 +365,15 @@ auto CacheManager::LoadSecDurableCache(const QString& key,
 void CacheManager::SaveSecDurableCache(const QString& key,
                                        const GFBuffer& value, bool flush) {
   p_->SaveSecDurableCache(key, value, flush);
+}
+
+void CacheManager::SaveSecCache(const QString& key, const GFBuffer& value,
+                                qint64 ttl) {
+  p_->SaveSecCache(key, value, ttl);
+}
+
+auto CacheManager::LoadSecCache(const QString& key) -> GFBuffer {
+  return p_->LoadSecCache(key);
 }
 }  // namespace GpgFrontend
 

@@ -63,6 +63,14 @@ class GF_CORE_EXPORT CacheManager
    *
    * @param key
    * @param value
+   */
+  void SaveSecCache(const QString& key, const GFBuffer& value, qint64 ttl = -1);
+
+  /**
+   * @brief
+   *
+   * @param key
+   * @param value
    * @param flush
    */
   void SaveDurableCache(const QString& key, const QJsonDocument& value,
@@ -85,6 +93,14 @@ class GF_CORE_EXPORT CacheManager
    * @param value
    */
   auto LoadCache(const QString& key) -> QString;
+
+  /**
+   * @brief
+   *
+   * @param key
+   * @param value
+   */
+  auto LoadSecCache(const QString& key) -> GFBuffer;
 
   /**
    * @brief
