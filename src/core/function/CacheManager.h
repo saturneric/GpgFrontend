@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/function/basic/GpgFunctionObject.h"
+#include "core/model/GFBuffer.h"
 
 namespace GpgFrontend {
 
@@ -72,8 +73,36 @@ class GF_CORE_EXPORT CacheManager
    *
    * @param key
    * @param value
+   * @param flush
+   */
+  void SaveSecDurableCache(const QString& key, const GFBuffer& value,
+                           bool flush = false);
+
+  /**
+   * @brief
+   *
+   * @param key
+   * @param value
    */
   auto LoadCache(const QString& key) -> QString;
+
+  /**
+   * @brief
+   *
+   * @param key
+   * @return QJsonDocument
+   */
+  auto LoadSecDurableCache(const QString& key) -> GFBuffer;
+
+  /**
+   * @brief
+   *
+   * @param key
+   * @param default_value
+   * @return QJsonDocument
+   */
+  auto LoadSecDurableCache(const QString& key, const GFBuffer& default_value)
+      -> GFBuffer;
 
   /**
    * @brief

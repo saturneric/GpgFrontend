@@ -71,7 +71,7 @@ class ThreadSafeMap {
     return *this;
   }
 
-  auto remove(QString key) -> bool {
+  auto remove(const QString& key) -> bool {
     std::unique_lock lock(mutex_);
     auto it = map_->find(key);
     if (it != map_->end()) {
@@ -92,7 +92,8 @@ class ThreadSafeMap {
 class CacheManager::Impl : public QObject {
   Q_OBJECT
  public:
-  Impl() : flush_timer_(new QTimer(this)) {
+  explicit Impl(int channel)
+      : channel_(channel), flush_timer_(new QTimer(this)) {
     connect(flush_timer_, &QTimer::timeout, this,
             &Impl::slot_flush_cache_storage);
     flush_timer_->start(15000);
@@ -101,7 +102,13 @@ class CacheManager::Impl : public QObject {
     load_all_cache_storage();
   }
 
-  void SaveDurableCache(QString key, const QJsonDocument& value, bool flush) {
+  void SaveDurableCache(const QString& key, const QJsonDocument& value,
+                        bool flush) {
+    SaveSecDurableCache(key, GFBuffer{value.toJson()}, flush);
+  }
+
+  void SaveSecDurableCache(const QString& key, const GFBuffer& value,
+                           bool flush) {
     auto data_object_key = get_data_object_key(key);
     durable_cache_storage_.insert(key, value);
 
@@ -121,23 +128,46 @@ class CacheManager::Impl : public QObject {
       durable_cache_modified_ = true;
     }
 
-    auto cache = durable_cache_storage_.get(key);
-    if (cache.has_value()) return cache.value();
+    auto cache = LoadSecDurableCache(key);
+    if (!cache.Empty()) {
+      try {
+        return QJsonDocument::fromJson(cache.ConvertToQByteArray());
+      } catch (...) {
+        LOG_W() << "failed to get cache object:" << key
+                << " caught json exception.";
+        return {};
+      }
+    }
+
     return {};
   }
 
   auto LoadDurableCache(const QString& key, QJsonDocument default_value)
       -> QJsonDocument {
+    auto cache = LoadDurableCache(key);
+    if (cache.isEmpty()) return default_value;
+    return cache;
+  }
+
+  auto LoadSecDurableCache(const QString& key) -> GFBuffer {
     auto data_object_key = get_data_object_key(key);
+
     if (!durable_cache_storage_.exists(key)) {
-      durable_cache_storage_.insert(
-          key, load_cache_storage(key, std::move(default_value)));
+      durable_cache_storage_.insert(key, load_cache_storage(key, {}));
       durable_cache_modified_ = true;
     }
 
     auto cache = durable_cache_storage_.get(key);
-    if (cache.has_value()) return cache.value();
+    if (cache) return *cache;
+
     return {};
+  }
+
+  auto LoadSecDurableCache(const QString& key, const GFBuffer& default_value)
+      -> GFBuffer {
+    auto cache = LoadSecDurableCache(key);
+    if (cache.Empty()) return default_value;
+    return cache;
   }
 
   auto ResetDurableCache(const QString& key) -> bool {
@@ -197,8 +227,8 @@ class CacheManager::Impl : public QObject {
 
     for (const auto& cache : durable_cache_storage_.mirror()) {
       auto key = get_data_object_key(cache.first);
-      GpgFrontend::DataObjectOperator::GetInstance().StoreDataObj(
-          key, QJsonDocument(cache.second));
+      GpgFrontend::DataObjectOperator::GetInstance().StoreSecDataObj(
+          key, cache.second);
     }
     GpgFrontend::DataObjectOperator::GetInstance().StoreDataObj(
         drk_key_, QJsonDocument(key_storage_));
@@ -224,14 +254,12 @@ class CacheManager::Impl : public QObject {
    * @param default_value
    * @return QJsonObject
    */
-  static auto load_cache_storage(const QString& key,
-                                 QJsonDocument default_value) -> QJsonDocument {
+  auto load_cache_storage(const QString& key, const GFBuffer& default_value)
+      -> GFBuffer {
     auto data_object_key = get_data_object_key(key);
-    auto stored_data =
-        GpgFrontend::DataObjectOperator::GetInstance().GetDataObject(
-            data_object_key);
+    auto stored_data = opera_.GetSecDataObject(data_object_key);
 
-    if (stored_data.has_value()) return stored_data.value();
+    if (stored_data) return *stored_data;
     return default_value;
   }
 
@@ -241,16 +269,14 @@ class CacheManager::Impl : public QObject {
    */
   void load_all_cache_storage() {
     FLOG_D("start to load all cache from file system");
-    auto stored_data =
-        GpgFrontend::DataObjectOperator::GetInstance().GetDataObject(drk_key_);
+    auto stored_data = opera_.GetDataObject(drk_key_);
 
     // get cache data list from file system
     QJsonArray registered_key_list;
     if (stored_data.has_value() && stored_data->isArray()) {
       registered_key_list = stored_data->array();
     } else {
-      GpgFrontend::DataObjectOperator::GetInstance().StoreDataObj(
-          drk_key_, QJsonDocument(QJsonArray()));
+      opera_.StoreDataObj(drk_key_, QJsonDocument(QJsonArray()));
     }
 
     for (const auto& key : registered_key_list) {
@@ -275,8 +301,11 @@ class CacheManager::Impl : public QObject {
         : value(std::move(value)), ttl(ttl) {}
   };
 
+  int channel_;
+  GpgFrontend::DataObjectOperator& opera_ =
+      GpgFrontend::DataObjectOperator::GetInstance(channel_);
   QCache<QString, CacheObject> runtime_cache_storage_;
-  ThreadSafeMap<QString, QJsonDocument> durable_cache_storage_;
+  ThreadSafeMap<QString, GFBuffer> durable_cache_storage_;
   QJsonArray key_storage_;
   QTimer* flush_timer_;
   const QString drk_key_ = "__cache_manage_data_register_key_list";
@@ -285,7 +314,7 @@ class CacheManager::Impl : public QObject {
 
 CacheManager::CacheManager(int channel)
     : SingletonFunctionObject<CacheManager>(channel),
-      p_(SecureCreateUniqueObject<Impl>()) {}
+      p_(SecureCreateUniqueObject<Impl>(GetChannel())) {}
 
 CacheManager::~CacheManager() { p_->FlushCacheStorage(); }
 
@@ -316,8 +345,21 @@ auto CacheManager::LoadCache(const QString& key) -> QString {
   return p_->LoadCache(key);
 }
 
-void CacheManager::ResetCache(const QString& key) {
-  return p_->ResetCache(key);
+void CacheManager::ResetCache(const QString& key) { p_->ResetCache(key); }
+
+auto CacheManager::LoadSecDurableCache(const QString& key) -> GFBuffer {
+  return p_->LoadSecDurableCache(key);
+}
+
+auto CacheManager::LoadSecDurableCache(const QString& key,
+                                       const GFBuffer& default_value)
+    -> GFBuffer {
+  return p_->LoadSecDurableCache(key, default_value);
+}
+
+void CacheManager::SaveSecDurableCache(const QString& key,
+                                       const GFBuffer& value, bool flush) {
+  p_->SaveSecDurableCache(key, value, flush);
 }
 }  // namespace GpgFrontend
 

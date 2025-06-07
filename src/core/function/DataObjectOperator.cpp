@@ -74,12 +74,28 @@ DataObjectOperator::DataObjectOperator(int channel)
 
 auto DataObjectOperator::StoreDataObj(const QString& key,
                                       const QJsonDocument& value) -> QString {
+  return StoreSecDataObj(key, GFBuffer(value.toJson()));
+}
+
+auto DataObjectOperator::GetDataObject(const QString& key)
+    -> std::optional<QJsonDocument> {
+  if (hash_key_.isEmpty()) return {};
+  return read_decr_json_object(get_object_ref(key));
+}
+
+auto DataObjectOperator::GetDataObjectByRef(const QString& ref)
+    -> std::optional<QJsonDocument> {
+  if (hash_key_.isEmpty() || ref.size() != 64) return {};
+  return read_decr_json_object(ref);
+}
+
+auto DataObjectOperator::StoreSecDataObj(const QString& key,
+                                         const GFBuffer& value) -> QString {
   if (hash_key_.isEmpty()) return {};
 
   QByteArray hash_obj_key = get_object_ref(key);
-
   const auto target_obj_path = app_data_objs_path_ + "/" + hash_obj_key;
-  auto encrypted = AESCryptoHelper::GCMEncrypt(key_, GFBuffer(value.toJson()));
+  auto encrypted = AESCryptoHelper::GCMEncrypt(key_, value);
 
   if (!encrypted) {
     LOG_E() << "failed to encrypt data object";
@@ -97,14 +113,14 @@ auto DataObjectOperator::StoreDataObj(const QString& key,
   return key.isEmpty() ? hash_obj_key : QString();
 }
 
-auto DataObjectOperator::GetDataObject(const QString& key)
-    -> std::optional<QJsonDocument> {
+auto DataObjectOperator::GetSecDataObject(const QString& key)
+    -> GFBufferOrNone {
   if (hash_key_.isEmpty()) return {};
   return read_decr_object(get_object_ref(key));
 }
 
-auto DataObjectOperator::GetDataObjectByRef(const QString& ref)
-    -> std::optional<QJsonDocument> {
+auto DataObjectOperator::GetSecDataObjectByRef(const QString& ref)
+    -> GFBufferOrNone {
   if (hash_key_.isEmpty() || ref.size() != 64) return {};
   return read_decr_object(ref);
 }
@@ -127,7 +143,7 @@ auto DataObjectOperator::get_object_ref(const QString& key) -> QByteArray {
 }
 
 auto DataObjectOperator::read_decr_object(const QString& ref)
-    -> std::optional<QJsonDocument> {
+    -> GFBufferOrNone {
   const auto obj_path = app_data_objs_path_ + "/" + ref;
   if (!QFileInfo(obj_path).exists()) {
     LOG_W() << "data object not found from disk, ref: " << ref;
@@ -146,6 +162,14 @@ auto DataObjectOperator::read_decr_object(const QString& ref)
     return {};
   }
 
+  return plaintext;
+}
+
+auto DataObjectOperator::read_decr_json_object(const QString& ref)
+    -> std::optional<QJsonDocument> {
+  auto plaintext = read_decr_object(ref);
+  if (!plaintext) return {};
+
   try {
     return QJsonDocument::fromJson(plaintext->ConvertToQByteArray());
   } catch (...) {
@@ -153,4 +177,5 @@ auto DataObjectOperator::read_decr_object(const QString& ref)
     return {};
   }
 }
+
 }  // namespace GpgFrontend

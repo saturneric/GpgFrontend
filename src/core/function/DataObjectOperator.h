@@ -47,11 +47,17 @@ class GF_CORE_EXPORT DataObjectOperator
   explicit DataObjectOperator(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
-  auto StoreDataObj(const QString &_key, const QJsonDocument &value) -> QString;
+  auto StoreDataObj(const QString &key, const QJsonDocument &value) -> QString;
 
-  auto GetDataObject(const QString &_key) -> std::optional<QJsonDocument>;
+  auto GetDataObject(const QString &key) -> std::optional<QJsonDocument>;
 
-  auto GetDataObjectByRef(const QString &_ref) -> std::optional<QJsonDocument>;
+  auto GetDataObjectByRef(const QString &ref) -> std::optional<QJsonDocument>;
+
+  auto StoreSecDataObj(const QString &key, const GFBuffer &value) -> QString;
+
+  auto GetSecDataObject(const QString &key) -> GFBufferOrNone;
+
+  auto GetSecDataObjectByRef(const QString &ref) -> GFBufferOrNone;
 
  private:
   /**
@@ -62,7 +68,10 @@ class GF_CORE_EXPORT DataObjectOperator
 
   auto get_object_ref(const QString &key) -> QByteArray;
 
-  auto read_decr_object(const QString &ref) -> std::optional<QJsonDocument>;
+  auto read_decr_object(const QString &ref) -> GFBufferOrNone;
+
+  auto read_decr_json_object(const QString &ref)
+      -> std::optional<QJsonDocument>;
 
   GlobalSettingStation &global_setting_station_ =
       GlobalSettingStation::GetInstance();  ///< GlobalSettingStation
