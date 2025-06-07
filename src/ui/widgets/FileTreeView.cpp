@@ -80,18 +80,28 @@ void FileTreeView::selectionChanged(const QItemSelection& selected,
 }
 
 void FileTreeView::SlotGoPath(const QString& target_path) {
-  auto file_info = QFileInfo(target_path);
+  if (target_path.isEmpty()) {
+    current_path_.clear();
+    dir_model_->setRootPath("");
+    this->setRootIndex(dir_model_->index(""));
+    slot_adjust_column_widths();
+    emit SignalPathChanged(current_path_);
+    return;
+  }
+
+  const auto file_info = QFileInfo(target_path);
+
   if (file_info.isDir() && file_info.isReadable() && file_info.isExecutable()) {
     current_path_ = file_info.absoluteFilePath();
-    this->setRootIndex(dir_model_->index(file_info.filePath()));
-    dir_model_->setRootPath(file_info.filePath());
+    dir_model_->setRootPath(current_path_);
+    this->setRootIndex(dir_model_->index(current_path_));
     slot_adjust_column_widths();
+    emit SignalPathChanged(current_path_);
   } else {
     QMessageBox::critical(
         this, tr("Error"),
         tr("The path is not exists, unprivileged or unreachable."));
   }
-  emit SignalPathChanged(current_path_);
 }
 
 void FileTreeView::slot_file_tree_view_item_double_clicked(
@@ -110,19 +120,21 @@ void FileTreeView::slot_file_tree_view_item_double_clicked(
 }
 
 void FileTreeView::SlotUpLevel() {
-  QModelIndex const current_root = this->rootIndex();
-  QFileInfo info = dir_model_->fileInfo(current_root);
-  auto target_path = info.absoluteFilePath();
-  QDir parent_dir(target_path);
-
-  if (!parent_dir.cdUp()) {
-    LOG_D() << "current path is already the root path, ignoring ...";
+  if (current_path_.isEmpty()) {
+    LOG_D() << "current path is empty, ignoring ...";
     return;
   }
 
-  target_path = parent_dir.absolutePath();
+  QFileInfo info(current_path_);
+  auto target_path = info.absoluteFilePath();
+  QDir parent_dir(target_path);
+
+  target_path = {};
+  if (parent_dir.cdUp()) {
+    target_path = parent_dir.absolutePath();
+  }
+
   this->SlotGoPath(target_path);
-  current_path_ = target_path;
 }
 
 auto FileTreeView::GetCurrentPath() -> QString { return current_path_; }
