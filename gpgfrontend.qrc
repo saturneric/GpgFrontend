@@ -115,6 +115,7 @@
         <file alias="key-group.png">resource/lfs/icons/key-group.png</file>
         <file alias="workspace.png">resource/lfs/icons/workspace.png</file>
         <file alias="symmetric_encryption.png">resource/lfs/icons/symmetric_encryption.png</file>
+        <file alias="keypairs.png">resource/lfs/icons/keypairs.png</file>
     </qresource>
     <qresource prefix="/test/key">
         <file alias="pv1.key">resource/lfs/test/data/pv1.key</file>
