@@ -57,15 +57,8 @@ class SignersPicker : public GeneralDialog {
    */
   auto GetCheckedSigners() -> GpgAbstractKeyPtrList;
 
-  /**
-   *
-   * @return
-   */
-  [[nodiscard]] auto GetStatus() const -> bool;
-
  private:
   KeyList* key_list_;  ///<
-  bool accepted_ = false;
 };
 
 }  // namespace GpgFrontend::UI
