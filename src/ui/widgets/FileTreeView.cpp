@@ -111,12 +111,17 @@ void FileTreeView::slot_file_tree_view_item_double_clicked(
 
 void FileTreeView::SlotUpLevel() {
   QModelIndex const current_root = this->rootIndex();
+  QFileInfo info = dir_model_->fileInfo(current_root);
+  auto target_path = info.absoluteFilePath();
+  QDir parent_dir(target_path);
 
-  auto target_path = dir_model_->fileInfo(current_root).absoluteFilePath();
-  if (auto parent_path = QDir(target_path); parent_path.cdUp()) {
-    target_path = parent_path.absolutePath();
-    this->SlotGoPath(target_path);
+  if (!parent_dir.cdUp()) {
+    LOG_D() << "current path is already the root path, ignoring ...";
+    return;
   }
+
+  target_path = parent_dir.absolutePath();
+  this->SlotGoPath(target_path);
   current_path_ = target_path;
 }
 
