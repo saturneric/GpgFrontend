@@ -31,6 +31,7 @@
 #include <qsettings.h>
 
 #include "core/function/basic/GpgFunctionObject.h"
+#include "core/model/GFBuffer.h"
 
 namespace GpgFrontend {
 
@@ -99,6 +100,13 @@ class GF_CORE_EXPORT GlobalSettingStation
   [[nodiscard]] auto GetModulesDir() const -> QString;
 
   /**
+   * @brief Get the Data Objects Dir object
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto GetDataObjectsDir() const -> QString;
+
+  /**
    * @brief Get the Log Files Size object
    *
    * @return QString
@@ -138,6 +146,13 @@ class GF_CORE_EXPORT GlobalSettingStation
    * @return false
    */
   [[nodiscard]] auto IsProtableMode() const -> bool;
+
+  /**
+   * @brief Get the App Secure Key object
+   *
+   * @return GFBuffer
+   */
+  auto GetAppSecureKey() -> GFBuffer;
 
  private:
   class Impl;

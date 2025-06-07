@@ -34,33 +34,9 @@
 
 namespace GpgFrontend {
 
-void DataObjectOperator::init_app_secure_key() {
-  auto key = PassphraseGenerator::GenerateBytesByOpenSSL(256);
-  if (!key) {
-    LOG_E() << "generate app secure key failed";
-    return;
-  }
-
-  key_ = *key;
-  auto succ = WriteFileGFBuffer(app_secure_key_path_, *key);
-  Q_ASSERT(succ);
-
-  if (!succ) {
-    LOG_E() << "write app secure key failed: " << app_secure_key_path_;
-  }
-}
-
 DataObjectOperator::DataObjectOperator(int channel)
     : SingletonFunctionObject<DataObjectOperator>(channel) {
-  if (!QDir(app_secure_path_).exists()) QDir(app_secure_path_).mkpath(".");
-  if (!QFileInfo(app_secure_key_path_).exists()) init_app_secure_key();
-
-  auto [succ, key] = ReadFileGFBuffer(app_secure_key_path_);
-  if (!succ || key.Empty()) {
-    LOG_E() << "failed to read app secure key file: " << app_secure_key_path_;
-    // regenerate secure key
-    init_app_secure_key();
-  }
+  auto key = gss_.GetAppSecureKey();
 
   Q_ASSERT(!key.Empty());
   if (!key.Empty()) key_ = key;
@@ -69,10 +45,6 @@ DataObjectOperator::DataObjectOperator(int channel)
   if (!key_.Empty()) {
     hash_key_ = QCryptographicHash::hash(key_.ConvertToQByteArray(),
                                          QCryptographicHash::Sha256);
-  }
-
-  if (!QDir(app_data_objs_path_).exists()) {
-    QDir(app_data_objs_path_).mkpath(".");
   }
 }
 
@@ -97,18 +69,18 @@ auto DataObjectOperator::StoreSecDataObj(const QString& key,
                                          const GFBuffer& value) -> QString {
   if (hash_key_.isEmpty()) return {};
 
+  // recreate if not exists
+  if (!QDir(gss_.GetDataObjectsDir()).exists()) {
+    QDir(gss_.GetDataObjectsDir()).mkpath(".");
+  }
+
   QByteArray hash_obj_key = get_object_ref(key);
-  const auto target_obj_path = app_data_objs_path_ + "/" + hash_obj_key;
+  const auto target_obj_path = gss_.GetDataObjectsDir() + "/" + hash_obj_key;
   auto encrypted = AESCryptoHelper::GCMEncrypt(key_, value);
 
   if (!encrypted) {
     LOG_E() << "failed to encrypt data object";
     return {};
-  }
-
-  // recreate if not exists
-  if (!QDir(app_data_objs_path_).exists()) {
-    QDir(app_data_objs_path_).mkpath(".");
   }
 
   if (!WriteFileGFBuffer(target_obj_path, *encrypted)) {
@@ -148,7 +120,7 @@ auto DataObjectOperator::get_object_ref(const QString& key) -> QByteArray {
 
 auto DataObjectOperator::read_decr_object(const QString& ref)
     -> GFBufferOrNone {
-  const auto obj_path = app_data_objs_path_ + "/" + ref;
+  const auto obj_path = gss_.GetDataObjectsDir() + "/" + ref;
   if (!QFileInfo(obj_path).exists()) {
     LOG_W() << "data object not found from disk, ref: " << ref;
     return {};

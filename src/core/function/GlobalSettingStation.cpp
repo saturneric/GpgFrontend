@@ -31,8 +31,9 @@
 #include "GpgFrontendBuildInstallInfo.h"
 
 //
+#include "core/function/GFBufferFactory.h"
+#include "core/function/PassphraseGenerator.h"
 #include "core/module/ModuleManager.h"
-#include "core/utils/CommonUtils.h"
 #include "core/utils/FilesystemUtils.h"
 
 namespace GpgFrontend {
@@ -68,8 +69,9 @@ class GlobalSettingStation::Impl {
     }
 
     LOG_I() << "app data path: " << app_data_path_;
+    LOG_I() << "app secure path: " << app_secure_path();
     LOG_I() << "app log path: " << app_log_path();
-    LOG_I() << "app modules path: " << app_modules_path();
+    LOG_I() << "app modules path: " << app_mods_path();
 
 #if defined(_WIN32) || defined(WIN32)
     LOG_I() << "app config path: " << app_config_path_;
@@ -83,9 +85,14 @@ class GlobalSettingStation::Impl {
 
     if (!QDir(app_data_path_).exists()) QDir(app_data_path_).mkpath(".");
     if (!QDir(app_log_path()).exists()) QDir(app_log_path()).mkpath(".");
-    if (!QDir(app_modules_path()).exists()) {
-      QDir(app_modules_path()).mkpath(".");
+    if (!QDir(app_secure_path()).exists()) QDir(app_log_path()).mkpath(".");
+    if (!QDir(app_mods_path()).exists()) QDir(app_mods_path()).mkpath(".");
+    if (!QDir(app_data_objs_path()).exists()) {
+      QDir(app_data_objs_path()).mkpath(".");
     }
+
+    // generate or fetch app secure key
+    init_app_secure_key();
   }
 
   [[nodiscard]] auto GetSettings() -> QSettings {
@@ -152,7 +159,7 @@ class GlobalSettingStation::Impl {
    * @return QString
    */
   [[nodiscard]] auto GetModulesDir() const -> QString {
-    return app_modules_path();
+    return app_mods_path();
   }
 
   [[nodiscard]] auto GetIntegratedModulePath() const -> QString {
@@ -192,6 +199,12 @@ class GlobalSettingStation::Impl {
 
   [[nodiscard]] auto IsProtableMode() const -> bool { return portable_mode_; }
 
+  auto GetAppSecureKey() -> GFBuffer { return app_secure_key_; }
+
+  [[nodiscard]] auto GetDataObjectsPath() const -> QString {
+    return app_data_objs_path();
+  }
+
  private:
   [[nodiscard]] auto app_config_file_path() const -> QString {
     return app_config_path_ + "/config.ini";
@@ -205,8 +218,39 @@ class GlobalSettingStation::Impl {
     return app_data_path_ + "/logs";
   }
 
-  [[nodiscard]] auto app_modules_path() const -> QString {
+  [[nodiscard]] auto app_mods_path() const -> QString {
     return app_data_path_ + "/mods";
+  }
+
+  [[nodiscard]] auto app_secure_path() const -> QString {
+    return app_data_path_ + "/secure";
+  }
+
+  [[nodiscard]] auto app_secure_key_path() const -> QString {
+    return app_secure_path() + "/app.key";
+  }
+
+  void init_app_secure_key() {
+    if (!QFileInfo(app_secure_key_path()).exists()) {
+      auto key = PassphraseGenerator::GenerateBytesByOpenSSL(256);
+      if (!key) {
+        LOG_E() << "generate app secure key failed";
+        return;
+      }
+
+      if (!GFBufferFactory::ToFile(app_secure_key_path(), *key)) {
+        LOG_E() << "write app secure key failed: " << app_secure_key_path();
+      }
+
+      app_secure_key_ = *key;
+    } else {
+      auto key = GFBufferFactory::FromFile(app_secure_key_path());
+      if (!key) {
+        LOG_E() << "write app secure key failed: " << app_secure_key_path();
+      }
+
+      app_secure_key_ = *key;
+    }
   }
 
   bool portable_mode_ = false;
@@ -216,6 +260,7 @@ class GlobalSettingStation::Impl {
       QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)};
   QString app_config_path_ = QString{
       QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)};
+  GFBuffer app_secure_key_;
 };
 
 GlobalSettingStation::GlobalSettingStation(int channel) noexcept
@@ -271,5 +316,13 @@ auto GlobalSettingStation::IsProtableMode() const -> bool {
 }
 auto GetSettings() -> QSettings {
   return GlobalSettingStation::GetInstance().GetSettings();
+}
+
+auto GlobalSettingStation::GetAppSecureKey() -> GFBuffer {
+  return p_->GetAppSecureKey();
+}
+
+auto GlobalSettingStation::GetDataObjectsDir() const -> QString {
+  return p_->GetDataObjectsPath();
 }
 }  // namespace GpgFrontend
