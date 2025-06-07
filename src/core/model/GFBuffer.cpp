@@ -31,6 +31,8 @@
 #include <openssl/crypto.h>
 #include <openssl/evp.h>
 
+#include <cstring>
+
 namespace GpgFrontend {
 
 struct GFBuffer::Impl {
