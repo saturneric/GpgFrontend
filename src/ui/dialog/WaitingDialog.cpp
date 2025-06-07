@@ -35,7 +35,7 @@ namespace GpgFrontend::UI {
 WaitingDialog::WaitingDialog(const QString& title, bool range, QWidget* parent)
     : GeneralDialog("WaitingDialog", parent), pb_(new QProgressBar()) {
   pb_->setRange(0, range ? 100 : 0);
-  pb_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+  pb_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
   pb_->setTextVisible(false);
 
   auto* layout = new QVBoxLayout();
