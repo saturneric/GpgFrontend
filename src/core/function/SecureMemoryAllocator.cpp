@@ -49,8 +49,8 @@ class SecureMemoryAllocator {
 
   SecureMemoryAllocator(const SecureMemoryAllocator&) = delete;
 
-  auto operator=(const SecureMemoryAllocator&) -> SecureMemoryAllocator& =
-                                                      delete;
+  auto operator=(const SecureMemoryAllocator&)
+      -> SecureMemoryAllocator& = delete;
 
   auto Allocate(size_t) -> void*;
 
@@ -66,6 +66,7 @@ class SecureMemoryAllocator {
 
  private:
   QHash<void*, size_t> allocated_;
+  QMutex mutex_;
 
   SecureMemoryAllocator();
 
@@ -79,6 +80,8 @@ SecureMemoryAllocator::~SecureMemoryAllocator() = default;
 auto SecureMemoryAllocator::Allocate(size_t size) -> void* {
   auto* addr = OPENSSL_zalloc(size);
   if (addr == nullptr) FLOG_F("OPENSSL_zalloc failed");
+
+  QMutexLocker locker(&mutex_);
   allocated_[addr] = size;
   return addr;
 }
@@ -86,6 +89,7 @@ auto SecureMemoryAllocator::Allocate(size_t size) -> void* {
 auto SecureMemoryAllocator::Reallocate(void* ptr, size_t size) -> void* {
   if (ptr == nullptr) return Allocate(size);
 
+  QMutexLocker locker(&mutex_);
   Q_ASSERT(allocated_.contains(ptr));
   if (!allocated_.contains(ptr)) {
     FLOG_W()
@@ -106,6 +110,7 @@ auto SecureMemoryAllocator::Reallocate(void* ptr, size_t size) -> void* {
 void SecureMemoryAllocator::Deallocate(void* ptr) {
   if (ptr == nullptr) return;
 
+  QMutexLocker locker(&mutex_);
   Q_ASSERT(allocated_.contains(ptr));
   if (!allocated_.contains(ptr)) {
     FLOG_W()
@@ -141,17 +146,19 @@ void SMAFree(void* ptr) {
 }
 
 auto SecureMemoryAllocator::SecAllocate(size_t size) -> void* {
-  if (CRYPTO_secure_malloc_initialized() != 1) {
-    FLOG_F("CRYPTO_secure_malloc_initialized failed");
-  }
-
   auto* addr = OPENSSL_secure_zalloc(size);
   if (addr == nullptr) FLOG_F("OPENSSL_secure_malloc failed");
+
+  QMutexLocker locker(&mutex_);
   allocated_[addr] = size;
   return addr;
 }
 
 auto SecureMemoryAllocator::SecReallocate(void* ptr, size_t size) -> void* {
+  if (CRYPTO_secure_malloc_initialized() != 1) {
+    FLOG_F("CRYPTO_secure_malloc_initialized failed");
+  }
+
   void* new_addr = SecAllocate(size);
 
   if (ptr != nullptr) {
@@ -170,6 +177,7 @@ void SecureMemoryAllocator::SecDeallocate(void* ptr) {
     FLOG_F("CRYPTO_secure_malloc_initialized failed");
   }
 
+  QMutexLocker locker(&mutex_);
   Q_ASSERT(allocated_.contains(ptr));
   if (!allocated_.contains(ptr)) {
     FLOG_W()
