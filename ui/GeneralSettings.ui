@@ -19,11 +19,43 @@
      <item>
       <widget class="QGroupBox" name="cacheBox">
        <property name="title">
-        <string>Cache</string>
+        <string>Base</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
          <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QLabel" name="defaultWorkspaceAsLabel">
+              <property name="text">
+               <string>Default Workspace As:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="filePanelRadioButton">
+              <property name="text">
+               <string>File Panel</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="textEditorRadioButton">
+              <property name="text">
+               <string>Text Editor</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="homePathAsDefaultPathcheckBox">
+            <property name="text">
+             <string>Use home path as the default path for FilePanel</string>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QCheckBox" name="clearGpgPasswordCacheCheckBox">
             <property name="text">
@@ -34,7 +66,7 @@
           <item>
            <widget class="QCheckBox" name="restoreTextEditorPageCheckBox">
             <property name="text">
-             <string>Automatically restore unsaved Text Editor pages after an application crash.</string>
+             <string>Cache text editor contents.</string>
             </property>
            </widget>
           </item>
@@ -54,7 +86,7 @@
           <item>
            <widget class="QCheckBox" name="importConfirmationCheckBox">
             <property name="text">
-             <string>Import files dropped on the Key List without confirmation.</string>
+             <string>Import key files dropped on the Key List without confirmation.</string>
             </property>
            </widget>
           </item>

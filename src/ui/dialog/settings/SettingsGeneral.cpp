@@ -39,12 +39,23 @@ GeneralTab::GeneralTab(QWidget* parent)
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_GeneralSettings>()) {
   ui_->setupUi(this);
 
-  ui_->cacheBox->setTitle(tr("Cache"));
+  ui_->cacheBox->setTitle(tr("Base"));
+
+  ui_->defaultWorkspaceAsLabel->setText(tr("Default Workspace As:"));
+  ui_->filePanelRadioButton->setText(tr("File Panel"));
+  ui_->textEditorRadioButton->setText(tr("Text Editor"));
+
+  auto* workspace_button_group = new QButtonGroup(this);
+  workspace_button_group->addButton(ui_->filePanelRadioButton);
+  workspace_button_group->addButton(ui_->textEditorRadioButton);
+
+  ui_->homePathAsDefaultPathcheckBox->setText(
+      tr("Use home path as the default path for FilePanel"));
+
   ui_->clearGpgPasswordCacheCheckBox->setText(
       tr("Clear gpg password cache when closing GpgFrontend."));
   ui_->restoreTextEditorPageCheckBox->setText(
-      tr("Automatically restore unsaved Text Editor pages after an application "
-         "crash."));
+      tr("Cache text editor contents."));
 
   ui_->importConfirmationBox->setTitle(tr("Operation"));
   ui_->importConfirmationCheckBox->setText(
@@ -108,6 +119,20 @@ GeneralTab::GeneralTab(QWidget* parent)
 void GeneralTab::SetSettings() {
   auto settings = GetSettings();
 
+  auto default_workspace_as =
+      settings.value("basic/default_workspace_as", "file_panel").toString();
+  if (default_workspace_as == "file_panel") {
+    ui_->filePanelRadioButton->setChecked(true);
+  } else {
+    ui_->textEditorRadioButton->setChecked(true);
+  }
+
+  auto home_path_as_file_panel_default_path =
+      settings.value("basic/home_path_as_file_panel_default_path", true)
+          .toBool();
+  ui_->homePathAsDefaultPathcheckBox->setCheckState(
+      home_path_as_file_panel_default_path ? Qt::Checked : Qt::Unchecked);
+
   auto clear_gpg_password_cache =
       settings.value("basic/clear_gpg_password_cache", true).toBool();
   ui_->clearGpgPasswordCacheCheckBox->setCheckState(
@@ -141,6 +166,12 @@ void GeneralTab::SetSettings() {
 void GeneralTab::ApplySettings() {
   auto settings = GpgFrontend::GetSettings();
 
+  settings.setValue(
+      "basic/default_workspace_as",
+      ui_->filePanelRadioButton->isChecked() ? "file_panel" : "text_editor");
+
+  settings.setValue("basic/home_path_as_file_panel_default_path",
+                    ui_->homePathAsDefaultPathcheckBox->isChecked());
   settings.setValue("basic/clear_gpg_password_cache",
                     ui_->clearGpgPasswordCacheCheckBox->isChecked());
   settings.setValue("basic/restore_text_editor_page",
