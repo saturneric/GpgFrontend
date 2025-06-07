@@ -29,38 +29,18 @@
 #include "SingletonStorageCollection.h"
 
 #include <memory>
-#include <shared_mutex>
 
-#include "core/function/SecureMemoryAllocator.h"
 #include "core/function/basic/SingletonStorage.h"
+
+namespace {
+GpgFrontend::SecureUniquePtr<GpgFrontend::SingletonStorageCollection>
+    global_instance = nullptr;
+}
 
 namespace GpgFrontend {
 
-SecureUniquePtr<SingletonStorageCollection> global_instance = nullptr;
-
 class SingletonStorageCollection::Impl {
  public:
-  /**
-   * @brief Get the Instance object
-   *
-   * @return SingletonStorageCollection*
-   */
-  static auto GetInstance(bool force_refresh) -> SingletonStorageCollection* {
-    if (force_refresh || global_instance == nullptr) {
-      global_instance = SecureCreateUniqueObject<SingletonStorageCollection>();
-      FLOG_D("a new global singleton storage collection created, address: %p",
-             static_cast<void*>(global_instance.get()));
-    }
-    return global_instance.get();
-  }
-
-  /**
-   * @brief Get the Instance object
-   *
-   * @return SingletonStorageCollection*
-   */
-  static void Destroy() { global_instance = nullptr; }
-
   /**
    * @brief Get the Singleton Storage object
    *
@@ -73,13 +53,13 @@ class SingletonStorageCollection::Impl {
     while (true) {
       decltype(storages_map_.end()) ins_it;
       {
-        std::shared_lock<std::shared_mutex> lock(storages_mutex_);
+        QMutexLocker lock(&storages_mutex_);
         ins_it = storages_map_.find(hash);
       }
       if (ins_it == storages_map_.end()) {
         auto storage = SecureCreateUniqueObject<SingletonStorage>();
         {
-          std::unique_lock<std::shared_mutex> lock(storages_mutex_);
+          QMutexLocker lock(&storages_mutex_);
           storages_map_.insert({hash, std::move(storage)});
         }
         continue;
@@ -89,8 +69,8 @@ class SingletonStorageCollection::Impl {
   }
 
  private:
-  std::shared_mutex storages_mutex_;  ///< mutex for storages_map_
-  std::map<size_t, SingletonStoragePtr> storages_map_;
+  QMutex storages_mutex_;  ///< mutex for storages_map_
+  std::unordered_map<size_t, SingletonStoragePtr> storages_map_;
 };
 
 SingletonStorageCollection::SingletonStorageCollection() noexcept
@@ -98,15 +78,22 @@ SingletonStorageCollection::SingletonStorageCollection() noexcept
 
 SingletonStorageCollection::~SingletonStorageCollection() = default;
 
-auto GpgFrontend::SingletonStorageCollection::GetInstance(bool force_refresh)
+auto GpgFrontend::SingletonStorageCollection::GetInstance()
     -> GpgFrontend::SingletonStorageCollection* {
-  return Impl::GetInstance(force_refresh);
+  if (global_instance == nullptr) {
+    global_instance = SecureCreateUniqueObject<SingletonStorageCollection>();
+    FLOG_D("a new global singleton storage collection created, address: %p",
+           static_cast<void*>(global_instance.get()));
+  }
+  return global_instance.get();
 }
 
 void SingletonStorageCollection::Destroy() {
-  FLOG_D("global singleton storage collection is about to destroy, address: %p",
-         static_cast<void*>(global_instance.get()));
-  return SingletonStorageCollection::Impl::Destroy();
+  LOG_D()
+      << "global singleton storage collection is about to destroy, address: "
+      << static_cast<void*>(global_instance.get());
+  global_instance->p_.reset();
+  global_instance.reset();
 }
 
 auto SingletonStorageCollection::GetSingletonStorage(
