@@ -31,13 +31,13 @@
 #include <openssl/crypto.h>
 
 #include <cstdlib>
+#include <cstring>
 
 namespace GpgFrontend {
 class SecureMemoryAllocator;
 }
 
 namespace {
-
 QSharedPointer<GpgFrontend::SecureMemoryAllocator> instance = nullptr;
 }  // namespace
 

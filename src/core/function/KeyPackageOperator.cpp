@@ -138,7 +138,7 @@ auto KeyPackageOperator::generate_key_package_name() -> QString {
   auto random = SecureRandomGenerator::GetInstance().GnuPGGenerateZBase32();
 
   if (!random) return {};
-  return QString("KeyPackage_%1").arg(random->Left(8).ConvertToQByteArray());
+  return QString("KeyPackage_%1").arg(random->Left(8).ConvertToQString());
 }
 
 }  // namespace GpgFrontend
