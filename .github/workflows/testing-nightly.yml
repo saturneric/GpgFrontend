@@ -124,6 +124,7 @@ jobs:
           cache: true
           install: >-
             git
+            zip
             unzip
             msys2-devel
             base-devel
