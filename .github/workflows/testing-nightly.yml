@@ -112,10 +112,7 @@ jobs:
 
       - name: Install Dependence (macOS)
         run: |
-          brew install cmake autoconf automake texinfo gettext openssl@3
-          brew install ninja libarchive googletest libassuan
-          brew install create-dmg
-          brew link openssl@3 --force
+          brew install --formula cmake automake texinfo libarchive googletest create-dmg
         if: runner.os == 'macOS'
 
       - name: Set up MinGW (Windows)
