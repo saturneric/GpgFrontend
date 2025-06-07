@@ -129,23 +129,16 @@ jobs:
             git 
             msys2-devel 
             base-devel 
-            binutils 
-            zip
-            unzip
-            libintl
-            texinfo 
             msys2-runtime-devel 
-            mingw-w64-x86_64-toolchain
             mingw-w64-x86_64-gcc 
             mingw-w64-x86_64-make
             mingw-w64-x86_64-cmake
-            mingw-w64-x86_64-qt6 
-            mingw-w64-x86_64-icu 
+            mingw-w64-qt6-base
             mingw-w64-x86_64-ninja 
-            mingw-w64-x86_64-gnupg 
             mingw-w64-x86_64-libarchive
             mingw-w64-x86_64-gtest
             mingw-w64-x86_64-autotools
+            mingw-w64-x86_64-texinfo
             mingw-w64-x86_64-libassuan
             mingw-w64-x86_64-ccache
         if: runner.os == 'Windows'
