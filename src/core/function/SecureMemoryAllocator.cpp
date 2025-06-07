@@ -38,7 +38,7 @@ class SecureMemoryAllocator;
 }
 
 namespace {
-QSharedPointer<GpgFrontend::SecureMemoryAllocator> instance = nullptr;
+GpgFrontend::SecureMemoryAllocator* instance = nullptr;
 }  // namespace
 
 namespace GpgFrontend {
@@ -65,8 +65,48 @@ class SecureMemoryAllocator {
   void SecDeallocate(void*);
 
  private:
-  QHash<void*, size_t> allocated_;
+  template <typename T>
+  class OpenSSLSecureAllocator {
+   public:
+    using value_type = T;
+
+    OpenSSLSecureAllocator() noexcept = default;
+
+    OpenSSLSecureAllocator(const OpenSSLSecureAllocator&) noexcept = default;
+
+    template <typename U>
+    explicit OpenSSLSecureAllocator(const OpenSSLSecureAllocator<U>&) noexcept {
+    }
+
+    auto allocate(std::size_t n) -> T* {
+      if (n > std::numeric_limits<std::size_t>::max() / sizeof(T)) {
+        throw std::bad_alloc();
+      }
+      void* p = OPENSSL_secure_zalloc(n * sizeof(T));
+      if (p == nullptr) throw std::bad_alloc();
+      return static_cast<T*>(p);
+    }
+
+    void deallocate(T* p, std::size_t) noexcept { OPENSSL_secure_free(p); }
+
+    template <typename U>
+    auto operator==(const OpenSSLSecureAllocator<U>&) const noexcept -> bool {
+      return true;
+    }
+
+    template <typename U>
+    auto operator!=(const OpenSSLSecureAllocator<U>&) const noexcept -> bool {
+      return false;
+    }
+  };
+
+  using AllocMap = std::unordered_map<
+      void*, size_t, std::hash<void*>, std::equal_to<>,
+      OpenSSLSecureAllocator<std::pair<void* const, size_t>>>;
+  using SecureAlloc = OpenSSLSecureAllocator<typename AllocMap::value_type>;
+
   QMutex mutex_;
+  AllocMap allocated_{0, std::hash<void*>(), std::equal_to<>(), SecureAlloc()};
 
   SecureMemoryAllocator();
 
@@ -90,20 +130,20 @@ auto SecureMemoryAllocator::Reallocate(void* ptr, size_t size) -> void* {
   if (ptr == nullptr) return Allocate(size);
 
   QMutexLocker locker(&mutex_);
-  Q_ASSERT(allocated_.contains(ptr));
-  if (!allocated_.contains(ptr)) {
+  Q_ASSERT(allocated_.count(ptr) != 0);
+  if (allocated_.count(ptr) == 0) {
     FLOG_W()
         << "this memory address was not allocated by SecureMemoryAllocator: "
         << ptr;
     return nullptr;
   }
 
-  const auto ptr_size = allocated_.value(ptr);
+  const auto ptr_size = allocated_.at(ptr);
   auto* addr = OPENSSL_clear_realloc(ptr, ptr_size, size);
   if (addr == nullptr) FLOG_F("OPENSSL_clear_realloc failed");
 
   allocated_[addr] = size;
-  allocated_.remove(ptr);
+  allocated_.erase(ptr);
   return addr;
 }
 
@@ -111,26 +151,25 @@ void SecureMemoryAllocator::Deallocate(void* ptr) {
   if (ptr == nullptr) return;
 
   QMutexLocker locker(&mutex_);
-  Q_ASSERT(allocated_.contains(ptr));
-  if (!allocated_.contains(ptr)) {
+  Q_ASSERT(allocated_.count(ptr) != 0);
+  if (allocated_.count(ptr) == 0) {
     FLOG_W()
         << "this memory address was not allocated by SecureMemoryAllocator: "
         << ptr;
     return;
   }
 
-  const auto ptr_size = allocated_.value(ptr);
+  const auto ptr_size = allocated_.at(ptr);
   OPENSSL_clear_free(ptr, ptr_size);
-  allocated_.remove(ptr);
+  allocated_.erase(ptr);
 }
 
 auto SecureMemoryAllocator::GetInstance() -> SecureMemoryAllocator* {
   if (instance == nullptr) {
-    instance = QSharedPointer<SecureMemoryAllocator>(
-        new SecureMemoryAllocator(),
-        [](SecureMemoryAllocator* ptr) { ptr->~SecureMemoryAllocator(); });
+    auto* addr = OPENSSL_secure_zalloc(sizeof(SecureMemoryAllocator));
+    instance = new (addr) SecureMemoryAllocator();
   }
-  return instance.get();
+  return instance;
 }
 
 auto SMAMalloc(size_t size) -> void* {
@@ -178,8 +217,8 @@ void SecureMemoryAllocator::SecDeallocate(void* ptr) {
   }
 
   QMutexLocker locker(&mutex_);
-  Q_ASSERT(allocated_.contains(ptr));
-  if (!allocated_.contains(ptr)) {
+  Q_ASSERT(allocated_.count(ptr) != 0);
+  if (allocated_.count(ptr) == 0) {
     FLOG_W()
         << "this memory address was not allocated by SecureMemoryAllocator: "
         << ptr;
@@ -188,7 +227,7 @@ void SecureMemoryAllocator::SecDeallocate(void* ptr) {
 
   auto sz = OPENSSL_secure_actual_size(ptr);
   OPENSSL_secure_clear_free(ptr, sz);
-  allocated_.remove(ptr);
+  allocated_.erase(ptr);
 }
 
 auto SMASecMalloc(size_t size) -> void* {
