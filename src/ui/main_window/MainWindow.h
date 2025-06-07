@@ -730,6 +730,7 @@ class MainWindow : public GeneralMainWindow {
   QAction* verify_act_{};                ///<  Action to verify text
   QAction* import_key_from_edit_act_{};  ///<  Action to import key from edit
   QAction* clean_double_line_breaks_act_{};  ///<  Action to remove double
+  QAction* generate_key_pair_act_{};
 
   QAction* gnupg_controller_open_act_{};       ///<
   QAction* module_controller_open_act_{};      ///<

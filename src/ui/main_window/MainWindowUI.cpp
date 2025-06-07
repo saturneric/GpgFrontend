@@ -29,11 +29,13 @@
 #include "MainWindow.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/GpgUtils.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/controller/GnuPGControllerDialog.h"
 #include "ui/dialog/controller/ModuleControllerDialog.h"
 #include "ui/dialog/controller/SmartCardControllerDialog.h"
 #include "ui/dialog/help/AboutDialog.h"
+#include "ui/dialog/key_generate/KeyGenerateDialog.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
 
@@ -191,6 +193,19 @@ void MainWindow::create_actions() {
   /*
    * Key Menu
    */
+
+  generate_key_pair_act_ =
+      create_action("generate_key_pair", tr("New Keypair"),
+                    ":/icons/keypairs.png", tr("Generate KeyPair"));
+  connect(generate_key_pair_act_, &QAction::triggered, this, [=]() {
+    if (!CheckGpgVersion(m_key_list_->GetCurrentGpgContextChannel(), "2.2.0")) {
+      CommonUtils::RaiseMessageBoxNotSupported(this);
+      return;
+    }
+
+    new KeyGenerateDialog(m_key_list_->GetCurrentGpgContextChannel(), this);
+  });
+
   import_key_from_file_act_ = create_action("import_key_from_file", tr("File"),
                                             ":/icons/import_key_from_file.png",
                                             tr("Import New Key From File"));
@@ -467,6 +482,7 @@ void MainWindow::create_menus() {
   crypt_menu_->addSeparator();
 
   key_menu_ = menuBar()->addMenu(tr("Keys"));
+  key_menu_->addAction(generate_key_pair_act_);
   import_key_menu_ = key_menu_->addMenu(tr("Import Key"));
   import_key_menu_->setIcon(QIcon(":/icons/key_import.png"));
   import_key_menu_->addAction(import_key_from_file_act_);
@@ -533,7 +549,19 @@ void MainWindow::create_tool_bars() {
 
   key_tool_bar_ = addToolBar(tr("Key"));
   key_tool_bar_->setObjectName("keyToolBar");
+
+  // Add dropdown menu for key import to keytoolbar
+  import_button_ = new QToolButton();
+  import_button_->setMenu(import_key_menu_);
+  import_button_->setPopupMode(QToolButton::InstantPopup);
+  import_button_->setIcon(QIcon(":/icons/key_import.png"));
+  import_button_->setToolTip(tr("Import key from..."));
+  import_button_->setText(tr("Import key"));
+
+  key_tool_bar_->addAction(generate_key_pair_act_);
+  key_tool_bar_->addWidget(import_button_);
   key_tool_bar_->addAction(open_key_management_act_);
+
   view_menu_->addAction(key_tool_bar_->toggleViewAction());
 
   edit_tool_bar_ = addToolBar(tr("Edit"));
@@ -552,15 +580,6 @@ void MainWindow::create_tool_bars() {
   special_edit_tool_bar_->addAction(cut_pgp_header_act_);
   special_edit_tool_bar_->hide();
   view_menu_->addAction(special_edit_tool_bar_->toggleViewAction());
-
-  // Add dropdown menu for key import to keytoolbar
-  import_button_ = new QToolButton();
-  import_button_->setMenu(import_key_menu_);
-  import_button_->setPopupMode(QToolButton::InstantPopup);
-  import_button_->setIcon(QIcon(":/icons/key_import.png"));
-  import_button_->setToolTip(tr("Import key from..."));
-  import_button_->setText(tr("Import key"));
-  key_tool_bar_->addWidget(import_button_);
 }
 
 void MainWindow::create_status_bar() {
