@@ -53,9 +53,9 @@ auto main(int argc, char* argv[]) -> int {
   // OpenSSL
   auto* defp = OSSL_PROVIDER_load(nullptr, "default");
   if (defp == nullptr) {
-    qFatal() << "The OpenSSL default provider cannot be loaded, and features "
-                "such as CSPRNG are not available!";
-    abort();
+    qFatal(
+        "The OpenSSL default provider cannot be loaded, and features "
+        "such as CSPRNG are not available!");
   }
 
   // OpenSSL 32 MB Secure Memory
