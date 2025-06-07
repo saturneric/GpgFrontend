@@ -29,6 +29,7 @@
 
 #include <gpgme.h>
 
+#include "core/function/CacheManager.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/basic/ChannelObject.h"
@@ -47,6 +48,8 @@ namespace GpgFrontend {
 void DestroyGpgFrontendCore() {
   // stop all task runner
   Thread::TaskRunnerGetter::GetInstance().StopAllTeakRunner();
+
+  CacheManager::GetInstance().FlushCacheStorage();
 
   // destroy all singleton objects
   SingletonStorageCollection::Destroy();
