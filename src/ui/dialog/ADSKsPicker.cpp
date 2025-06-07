@@ -71,23 +71,32 @@ ADSKsPicker::ADSKsPicker(int channel, GpgKeyPtr key,
   });
   connect(cancel_button, &QPushButton::clicked, this, &QDialog::reject);
 
-  tree_view_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  tree_view_->setStyleSheet("QTreeView::item { height: 28px; }");
 
-  auto* vbox2 = new QVBoxLayout();
-  vbox2->addWidget(new QLabel(tr("Select ADSK(s)") + ": "));
-  vbox2->addWidget(tree_view_);
+  auto* main_layout = new QVBoxLayout();
+  auto* title_label = new QLabel(tr("Select ADSK(s)") + ": ");
+  main_layout->addWidget(title_label);
+  main_layout->addWidget(tree_view_, 1);
 
   auto* tips_label = new QLabel(
       tr("ADSK (Additional Decryption Subkey) allows others to encrypt data "
          "for you without having access to your private key. You are only "
          "allow to check subkeys with encryption capability."));
   tips_label->setWordWrap(true);
-  tips_label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
+  main_layout->addWidget(tips_label);
 
-  vbox2->addWidget(tips_label);
-  vbox2->addWidget(confirm_button);
-  vbox2->addWidget(cancel_button);
-  setLayout(vbox2);
+  main_layout->addStretch();
+
+  auto* btn_layout = new QHBoxLayout();
+  btn_layout->addStretch();
+  btn_layout->addWidget(confirm_button);
+  btn_layout->addWidget(cancel_button);
+
+  main_layout->addLayout(btn_layout);
+
+  setLayout(main_layout);
+
+  setMinimumSize(600, 400);
 
   this->setWindowFlags(Qt::Window | Qt::WindowTitleHint |
                        Qt::CustomizeWindowHint);
@@ -96,7 +105,6 @@ ADSKsPicker::ADSKsPicker(int channel, GpgKeyPtr key,
   this->setWindowTitle(tr("ADSKs Picker"));
 
   movePosition2CenterOfParent();
-
   this->show();
   this->raise();
   this->activateWindow();
