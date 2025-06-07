@@ -198,27 +198,33 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
       ->PostTask(new Thread::Task(
           [](const DataObjectPtr&) -> int {
-            QMap<QString, bool> modules = LoadIntegratedMods();
-            modules.insert(LoadExternalMods());
+            QMap<QString, bool> modules;
 
-            auto& manager = ModuleManager::GetInstance();
-            manager.SetNeedRegisterModulesNum(static_cast<int>(modules.size()));
-
+            // only check integrated modules at first
             auto* key = LoadEmbeddedPublicKey();
-
-            for (auto it = modules.keyValueBegin(); it != modules.keyValueEnd();
-                 ++it) {
+            QMap<QString, bool> integrated_modules = LoadIntegratedMods();
+            for (auto it = integrated_modules.keyValueBegin();
+                 it != integrated_modules.keyValueEnd(); ++it) {
               // validate integrated modules
               if (EnforceBinaryValidation() && it->second &&
                   !ValidateModule(it->first, key)) {
                 LOG_W() << "refuse to load integrated module: " << it->first;
                 continue;
               }
+              modules.insert(it->first, it->second);
+            }
 
+            modules.insert(LoadExternalMods());
+
+            auto& manager = ModuleManager::GetInstance();
+            manager.SetNeedRegisterModulesNum(static_cast<int>(modules.size()));
+
+            for (auto it = modules.keyValueBegin(); it != modules.keyValueEnd();
+                 ++it) {
               manager.LoadModule(it->first, it->second);
             }
 
-            LOG_D() << "all modules are loaded into memory.";
+            LOG_D() << "all modules are loaded into memory: " << modules.size();
             return 0;
           },
           "modules_system_init_task"));
