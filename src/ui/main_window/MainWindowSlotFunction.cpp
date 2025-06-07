@@ -802,17 +802,18 @@ void MainWindow::SlotEncryptSignEML() {
     return;
   }
 
-  auto* signers_picker =
-      new SignersPicker(m_key_list_->GetCurrentGpgContextChannel(), this);
-  QEventLoop loop;
-  connect(signers_picker, &SignersPicker::finished, &loop, &QEventLoop::quit);
-  loop.exec();
+  auto picker = QSharedPointer<SignersPicker>(
+      new SignersPicker(m_key_list_->GetCurrentGpgContextChannel(), this),
+      [](SignersPicker* picker) { picker->deleteLater(); });
+
+  picker->exec();
 
   // return when canceled
-  if (!signers_picker->GetStatus()) return;
+  if (picker->result() == QDialog::Rejected) return;
 
-  auto signer_keys = signers_picker->GetCheckedSigners();
-  signers_picker->deleteLater();
+  auto signer_keys = picker->GetCheckedSigners();
+  assert(std::all_of(signer_keys.begin(), signer_keys.end(),
+                     [](const auto& key) { return key->IsGood(); }));
 
   if (signer_keys.isEmpty()) {
     QMessageBox::warning(this, tr("No Key Selected"),

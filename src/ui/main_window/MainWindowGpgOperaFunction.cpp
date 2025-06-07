@@ -31,6 +31,7 @@
 #include "core/utils/IOUtils.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SignersPicker.h"
+#include "ui/dialog/SubKeyPicker.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/struct/GpgOperaResultContext.h"
 #include "ui/widgets/KeyList.h"
@@ -55,24 +56,62 @@ auto MainWindow::encrypt_operation_key_validate(
   return !contexts->keys.empty();
 }
 
+auto MainWindow::fuzzy_signature_key_elimination(
+    const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool {
+  bool ambiguous = false;
+
+  auto& keys =
+      contexts->singer_keys.isEmpty() ? contexts->keys : contexts->singer_keys;
+
+  for (const auto& key : keys) {
+    if (key->KeyType() != GpgAbstractKeyType::kGPG_KEY) continue;
+
+    auto gpg_key = qSharedPointerDynamicCast<GpgKey>(key);
+    if (gpg_key == nullptr) continue;
+
+    int has_sign_cap_s_keys = 0;
+    for (const auto& s_key : gpg_key->SubKeys()) {
+      if (s_key.IsHasSignCap()) has_sign_cap_s_keys++;
+    }
+
+    if (has_sign_cap_s_keys > 1) ambiguous = true;
+  }
+
+  LOG_D() << "selected have home or more subkeys which have sign capability: "
+          << ambiguous;
+
+  if (ambiguous) {
+    auto picker = QSharedPointer<SubKeyPicker>(
+        new SubKeyPicker(m_key_list_->GetCurrentGpgContextChannel(), keys,
+                         this),
+        [](SubKeyPicker* picker) { picker->deleteLater(); });
+    picker->exec();
+
+    if (picker->result() == QDialog::Rejected) return false;
+
+    keys = picker->GetSelectedKeyWithFlags();
+    return true;
+  }
+
+  return true;
+}
+
 auto MainWindow::sign_operation_key_validate(
     const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool {
-  auto* signers_picker =
-      new SignersPicker(m_key_list_->GetCurrentGpgContextChannel(), this);
-  QEventLoop loop;
-  connect(signers_picker, &SignersPicker::finished, &loop, &QEventLoop::quit);
-  loop.exec();
+  auto picker = QSharedPointer<SignersPicker>(
+      new SignersPicker(m_key_list_->GetCurrentGpgContextChannel(), this),
+      [](SignersPicker* picker) { picker->deleteLater(); });
+
+  picker->exec();
 
   // return when canceled
-  if (!signers_picker->GetStatus()) return false;
+  if (picker->result() == QDialog::Rejected) return false;
 
-  auto signer_keys = signers_picker->GetCheckedSigners();
+  auto signer_keys = picker->GetCheckedSigners();
   assert(std::all_of(signer_keys.begin(), signer_keys.end(),
                      [](const auto& key) { return key->IsGood(); }));
 
   contexts->singer_keys = signer_keys;
-  signers_picker->deleteLater();
-
   return true;
 }
 
@@ -204,6 +243,8 @@ void MainWindow::SlotSign() {
          "sign usage."));
   if (contexts->keys.empty()) return;
 
+  if (!fuzzy_signature_key_elimination(contexts)) return;
+
   contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
   GpgOperaHelper::BuildOperas(contexts, 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
@@ -259,6 +300,8 @@ void MainWindow::SlotEncryptSign() {
   if (contexts->keys.empty()) return;
 
   if (!sign_operation_key_validate(contexts)) return;
+
+  if (!fuzzy_signature_key_elimination(contexts)) return;
 
   auto plain_text = edit_->CurPlainText();
   GFBuffer secure_plain_text(plain_text);

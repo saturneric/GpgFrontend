@@ -682,6 +682,16 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @brief
    *
+   * @param contexts
+   * @return true
+   * @return false
+   */
+  auto fuzzy_signature_key_elimination(
+      const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool;
+
+  /**
+   * @brief
+   *
    * @return auto
    */
   void check_update_at_startup();
