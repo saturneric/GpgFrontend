@@ -28,7 +28,9 @@
 
 #include "AESCryptoHelper.h"
 
+#include <openssl/err.h>
 #include <openssl/evp.h>
+#include <openssl/kdf.h>
 
 #include "core/function/SecureRandomGenerator.h"
 
@@ -254,22 +256,47 @@ auto EvpDecryptImpl(const GpgFrontend::GFBuffer& ciphertext,
   return plaintext;
 }
 
-auto DeriveKeyPBKDF2(const GpgFrontend::GFBuffer& passphrase,
-                     const GpgFrontend::GFBuffer& salt, int iterations = 100000)
+auto DeriveKeyArgon2(const GpgFrontend::GFBuffer& passphrase,
+                     const GpgFrontend::GFBuffer& salt, int t_cost = 3,
+                     int m_cost = 65536, int parallelism = 4)
     -> GpgFrontend::GFBufferOrNone {
   GpgFrontend::GFBuffer key(32);
-  int rc =
-      PKCS5_PBKDF2_HMAC(passphrase.Data(), static_cast<int>(passphrase.Size()),
-                        reinterpret_cast<const unsigned char*>(salt.Data()),
-                        static_cast<int>(salt.Size()), iterations, EVP_sha256(),
-                        static_cast<int>(key.Size()),
-                        reinterpret_cast<unsigned char*>(key.Data()));
-  if (rc != 1) {
-    LOG_D() << "PKCS5_PBKDF2_HMAC failed";
+
+  auto* kdf = EVP_KDF_fetch(nullptr, "ARGON2ID", nullptr);
+  if (kdf == nullptr) {
+    LOG_E() << "EVP_KDF_fetch failed";
     return {};
   }
+
+  EVP_KDF_CTX* kctx = EVP_KDF_CTX_new(kdf);
+  if (kctx == nullptr) {
+    LOG_E() << "EVP_KDF_CTX_new failed";
+    EVP_KDF_free(kdf);
+    return {};
+  }
+
+  std::array<OSSL_PARAM, 6> params = {
+      {OSSL_PARAM_octet_string("pass", const_cast<char*>(passphrase.Data()),
+                               passphrase.Size()),
+       OSSL_PARAM_octet_string("salt", const_cast<char*>(salt.Data()),
+                               salt.Size()),
+       OSSL_PARAM_int("t", &t_cost), OSSL_PARAM_int("m", &m_cost),
+       OSSL_PARAM_int("p", &parallelism), OSSL_PARAM_END}};
+
+  int rc = EVP_KDF_derive(kctx, reinterpret_cast<unsigned char*>(key.Data()),
+                          key.Size(), params.data());
+
+  EVP_KDF_CTX_free(kctx);
+  EVP_KDF_free(kdf);
+
+  if (rc != 1) {
+    LOG_E() << "EVP_KDF_derive failed";
+    return {};
+  }
+
   return key;
 }
+
 }  // namespace
 
 namespace GpgFrontend {
@@ -283,7 +310,7 @@ auto AESCryptoHelper::GCMEncrypt(const GpgFrontend::GFBuffer& raw_key,
   auto salt = SecureRandomGenerator::OpenSSLGenerate(16);
   if (!salt) return {};
 
-  auto key = DeriveKeyPBKDF2(raw_key, *salt);
+  auto key = DeriveKeyArgon2(raw_key, *salt);
   if (!key) return {};
 
   auto ciphertext =
@@ -318,7 +345,7 @@ auto AESCryptoHelper::GCMDecrypt(const GpgFrontend::GFBuffer& raw_key,
       kSaltLen + kIvLen,
       static_cast<ssize_t>(encrypted.Size() - kSaltLen - kIvLen - kTagLen));
 
-  auto key = DeriveKeyPBKDF2(raw_key, salt);
+  auto key = DeriveKeyArgon2(raw_key, salt);
   if (!key) return {};
 
   auto plaintext = EvpDecryptImpl(ciphertext, *key, iv, tag, EVP_aes_256_gcm());

@@ -124,6 +124,7 @@ auto WriteFileGFBuffer(const QString& file_name, GFBuffer data) -> bool {
 
   file.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
   auto n = file.write(data.Data(), static_cast<qsizetype>(data.Size()));
+  file.flush();
   file.close();
   return n == static_cast<decltype(n)>(data.Size());
 }

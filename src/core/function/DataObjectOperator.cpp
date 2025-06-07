@@ -42,9 +42,12 @@ void DataObjectOperator::init_app_secure_key() {
   }
 
   key_ = *key;
-  WriteFileGFBuffer(app_secure_key_path_, *key);
-  QFile::setPermissions(app_secure_key_path_,
-                        QFileDevice::ReadOwner | QFileDevice::WriteOwner);
+  auto succ = WriteFileGFBuffer(app_secure_key_path_, *key);
+  Q_ASSERT(succ);
+
+  if (!succ) {
+    LOG_E() << "write app secure key failed: " << app_secure_key_path_;
+  }
 }
 
 DataObjectOperator::DataObjectOperator(int channel)
@@ -52,14 +55,15 @@ DataObjectOperator::DataObjectOperator(int channel)
   if (!QDir(app_secure_path_).exists()) QDir(app_secure_path_).mkpath(".");
   if (!QFileInfo(app_secure_key_path_).exists()) init_app_secure_key();
 
-  auto [succ, key_] = ReadFileGFBuffer(app_secure_key_path_);
-  if (!succ || key_.Empty()) {
+  auto [succ, key] = ReadFileGFBuffer(app_secure_key_path_);
+  if (!succ || key.Empty()) {
     LOG_E() << "failed to read app secure key file: " << app_secure_key_path_;
     // regenerate secure key
     init_app_secure_key();
   }
 
-  Q_ASSERT(!key_.Empty());
+  Q_ASSERT(!key.Empty());
+  if (!key.Empty()) key_ = key;
 
   hash_key_.clear();
   if (!key_.Empty()) {
