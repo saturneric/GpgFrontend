@@ -31,10 +31,9 @@
 #include <any>
 #include <optional>
 #include <shared_mutex>
-#include <vector>
 
 #include "GlobalRegisterTableTreeModel.h"
-#include "function/SecureMemoryAllocator.h"
+#include "core/utils/MemoryUtils.h"
 #include "utils/MemoryUtils.h"
 
 namespace GpgFrontend::Module {
@@ -126,7 +125,7 @@ class GlobalRegisterTable::Impl {
   }
 
   auto ListenPublish(QObject* o, const Namespace& n, const Key& k,
-                     LPCallback c) -> bool {
+                     const LPCallback& c) -> bool {
     if (o == nullptr) return false;
     return QObject::connect(parent_, &GlobalRegisterTable::SignalPublish, o,
                             [n, k, c](const Namespace& pn, const Key& pk,
@@ -160,12 +159,12 @@ class GlobalRegisterTableTreeModel::Impl {
     return parent_node->children.size();
   }
 
-  [[nodiscard]] auto ColumnCount(const QModelIndex& parent) const -> int {
+  [[nodiscard]] static auto ColumnCount(const QModelIndex&  /*parent*/)  -> int {
     return 4;
   }
 
-  [[nodiscard]] auto Data(const QModelIndex& index,
-                          int role) const -> QVariant {
+  [[nodiscard]] static auto Data(const QModelIndex& index,
+                          int role)  -> QVariant {
     if (!index.isValid()) return {};
 
     if (role == Qt::DisplayRole) {

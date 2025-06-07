@@ -32,11 +32,45 @@
 
 #include <cstdlib>
 
-namespace {
-QSharedPointer<GpgFrontend::SecureMemoryAllocator> instance = nullptr;
+namespace GpgFrontend {
+class SecureMemoryAllocator;
 }
 
+namespace {
+
+QSharedPointer<GpgFrontend::SecureMemoryAllocator> instance = nullptr;
+}  // namespace
+
 namespace GpgFrontend {
+
+class SecureMemoryAllocator {
+ public:
+  static auto GetInstance() -> SecureMemoryAllocator*;
+
+  SecureMemoryAllocator(const SecureMemoryAllocator&) = delete;
+
+  auto operator=(const SecureMemoryAllocator&) -> SecureMemoryAllocator& =
+                                                      delete;
+
+  auto Allocate(size_t) -> void*;
+
+  auto Reallocate(void*, size_t) -> void*;
+
+  void Deallocate(void*);
+
+  auto SecAllocate(size_t) -> void*;
+
+  auto SecReallocate(void*, size_t) -> void*;
+
+  void SecDeallocate(void*);
+
+ private:
+  QHash<void*, size_t> allocated_;
+
+  SecureMemoryAllocator();
+
+  ~SecureMemoryAllocator();
+};
 
 SecureMemoryAllocator::SecureMemoryAllocator() = default;
 

@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/function/SecureMemoryAllocator.h"
+#include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
 class SingletonStorage;

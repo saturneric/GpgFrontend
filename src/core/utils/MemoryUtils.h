@@ -105,6 +105,19 @@ static void SecureDestroyObject(T *obj) {
   SMAFree(obj);
 }
 
+template <typename T>
+struct SecureObjectDeleter {
+  void operator()(T *ptr) {
+    if (ptr) {
+      ptr->~T();
+      SMAFree(ptr);
+    }
+  }
+};
+
+template <typename T>
+using SecureUniquePtr = std::unique_ptr<T, SecureObjectDeleter<T>>;
+
 template <typename T, typename... Args>
 static auto SecureCreateUniqueObject(Args &&...args)
     -> std::unique_ptr<T, SecureObjectDeleter<T>> {

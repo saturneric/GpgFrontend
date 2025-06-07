@@ -33,7 +33,6 @@
 
 #include "core/function/SecureMemoryAllocator.h"
 #include "core/function/basic/SingletonStorage.h"
-#include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
 
