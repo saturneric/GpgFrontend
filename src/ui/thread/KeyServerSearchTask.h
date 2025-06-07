@@ -31,7 +31,6 @@
 #include <qnetworkaccessmanager.h>
 #include <qnetworkreply.h>
 
-#include "GpgFrontendUI.h"
 #include "core/thread/ThreadingModel.h"
 
 namespace GpgFrontend::UI {

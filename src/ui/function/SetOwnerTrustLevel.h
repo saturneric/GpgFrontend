@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "GpgFrontendUI.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend::UI {

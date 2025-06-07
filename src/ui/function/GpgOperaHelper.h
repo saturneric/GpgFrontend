@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "GpgFrontendUI.h"
 #include "ui/struct/GpgOperaResultContext.h"
 
 namespace GpgFrontend::UI {
@@ -155,8 +154,8 @@ class GpgOperaHelper : QObject {
    * @return OperaWaitingCb
    */
   static auto BuildOperasDirectoryEncrypt(
-      QSharedPointer<GpgOperaContext>& context, int channel,
-      int index) -> OperaWaitingCb;
+      QSharedPointer<GpgOperaContext>& context, int channel, int index)
+      -> OperaWaitingCb;
 
   /**
    * @brief
@@ -186,8 +185,8 @@ class GpgOperaHelper : QObject {
    * @return OperaWaitingCb
    */
   static auto BuildOperasArchiveDecrypt(
-      QSharedPointer<GpgOperaContext>& context, int channel,
-      int index) -> OperaWaitingCb;
+      QSharedPointer<GpgOperaContext>& context, int channel, int index)
+      -> OperaWaitingCb;
 
   /**
    * @brief
@@ -250,8 +249,8 @@ class GpgOperaHelper : QObject {
    * @param index
    */
   static auto BuildOperasFileEncryptSign(
-      QSharedPointer<GpgOperaContext>& context, int channel,
-      int index) -> OperaWaitingCb;
+      QSharedPointer<GpgOperaContext>& context, int channel, int index)
+      -> OperaWaitingCb;
 
   /**
    * @brief
@@ -262,8 +261,8 @@ class GpgOperaHelper : QObject {
    * @return OperaWaitingCb
    */
   static auto BuildOperasDirectoryEncryptSign(
-      QSharedPointer<GpgOperaContext>& context, int channel,
-      int index) -> OperaWaitingCb;
+      QSharedPointer<GpgOperaContext>& context, int channel, int index)
+      -> OperaWaitingCb;
 
   /**
    * @brief
@@ -274,8 +273,8 @@ class GpgOperaHelper : QObject {
    * @return OperaWaitingCb
    */
   static auto BuildOperasDecryptVerify(QSharedPointer<GpgOperaContext>& context,
-                                       int channel,
-                                       int index) -> OperaWaitingCb;
+                                       int channel, int index)
+      -> OperaWaitingCb;
 
   /**
    * @brief
@@ -286,8 +285,8 @@ class GpgOperaHelper : QObject {
    * @return OperaWaitingCb
    */
   static auto BuildOperasFileDecryptVerify(
-      QSharedPointer<GpgOperaContext>& context, int channel,
-      int index) -> OperaWaitingCb;
+      QSharedPointer<GpgOperaContext>& context, int channel, int index)
+      -> OperaWaitingCb;
 
   /**
    * @brief
@@ -298,8 +297,8 @@ class GpgOperaHelper : QObject {
    * @return OperaWaitingCb
    */
   static auto BuildOperasArchiveDecryptVerify(
-      QSharedPointer<GpgOperaContext>& context, int channel,
-      int index) -> OperaWaitingCb;
+      QSharedPointer<GpgOperaContext>& context, int channel, int index)
+      -> OperaWaitingCb;
 
   /**
    * @brief

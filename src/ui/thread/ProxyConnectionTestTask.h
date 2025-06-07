@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "GpgFrontendUI.h"
 #include "core/thread/ThreadingModel.h"
 
 class QNetworkAccessManager;
