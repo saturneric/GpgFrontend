@@ -40,7 +40,7 @@ SecureMemoryAllocator::~SecureMemoryAllocator() = default;
 
 auto SecureMemoryAllocator::Allocate(size_t size) -> void* {
   auto* addr = OPENSSL_zalloc(size);
-  if (addr == nullptr) FLOG_F() << "OPENSSL_zalloc failed";
+  if (addr == nullptr) FLOG_F("OPENSSL_zalloc failed");
   allocated_[addr] = size;
   return addr;
 }
@@ -48,15 +48,17 @@ auto SecureMemoryAllocator::Allocate(size_t size) -> void* {
 auto SecureMemoryAllocator::Reallocate(void* ptr, size_t size) -> void* {
   if (ptr == nullptr) return Allocate(size);
 
+  Q_ASSERT(allocated_.contains(ptr));
   if (!allocated_.contains(ptr)) {
-    FLOG_F()
+    FLOG_W()
         << "this memory address was not allocated by SecureMemoryAllocator: "
         << ptr;
+    return nullptr;
   }
 
   const auto ptr_size = allocated_.value(ptr);
   auto* addr = OPENSSL_clear_realloc(ptr, ptr_size, size);
-  if (addr == nullptr) FLOG_F() << "OPENSSL_clear_realloc failed";
+  if (addr == nullptr) FLOG_F("OPENSSL_clear_realloc failed");
 
   allocated_[addr] = size;
   allocated_.remove(ptr);
@@ -66,10 +68,12 @@ auto SecureMemoryAllocator::Reallocate(void* ptr, size_t size) -> void* {
 void SecureMemoryAllocator::Deallocate(void* ptr) {
   if (ptr == nullptr) return;
 
+  Q_ASSERT(allocated_.contains(ptr));
   if (!allocated_.contains(ptr)) {
-    FLOG_F()
+    FLOG_W()
         << "this memory address was not allocated by SecureMemoryAllocator: "
         << ptr;
+    return;
   }
 
   const auto ptr_size = allocated_.value(ptr);
@@ -96,11 +100,11 @@ void SMAFree(void* ptr) {
 
 auto SecureMemoryAllocator::SecAllocate(size_t size) -> void* {
   if (CRYPTO_secure_malloc_initialized() != 1) {
-    FLOG_F() << "CRYPTO_secure_malloc_initialized failed";
+    FLOG_F("CRYPTO_secure_malloc_initialized failed");
   }
 
   auto* addr = OPENSSL_secure_zalloc(size);
-  if (addr == nullptr) FLOG_F() << "OPENSSL_secure_malloc failed";
+  if (addr == nullptr) FLOG_F("OPENSSL_secure_malloc failed");
   allocated_[addr] = size;
   return addr;
 }
@@ -121,13 +125,15 @@ void SecureMemoryAllocator::SecDeallocate(void* ptr) {
   if (ptr == nullptr) return;
 
   if (CRYPTO_secure_malloc_initialized() != 1) {
-    FLOG_F() << "CRYPTO_secure_malloc_initialized failed";
+    FLOG_F("CRYPTO_secure_malloc_initialized failed");
   }
 
+  Q_ASSERT(allocated_.contains(ptr));
   if (!allocated_.contains(ptr)) {
-    FLOG_F()
+    FLOG_W()
         << "this memory address was not allocated by SecureMemoryAllocator: "
         << ptr;
+    return;
   }
 
   auto sz = OPENSSL_secure_actual_size(ptr);
