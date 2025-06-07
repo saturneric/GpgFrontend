@@ -227,12 +227,15 @@ void MainWindow::restore_settings() {
   }
 
   icon_style_ = appearance.tool_bar_button_style;
+  open_button_->setToolButtonStyle(icon_style_);
   import_button_->setToolButtonStyle(icon_style_);
   workspace_button_->setToolButtonStyle(icon_style_);
   this->setToolButtonStyle(icon_style_);
 
   // icons ize
   this->setIconSize(
+      QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
+  open_button_->setIconSize(
       QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
   import_button_->setIconSize(
       QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));

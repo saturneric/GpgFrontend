@@ -217,7 +217,13 @@ class TextEdit : public QWidget {
    * @brief
    *
    */
-  void SlotNewDefaultFileBrowserTab();
+  void SlotNewDefaultWorkspaceTab();
+
+  /**
+   * @brief
+   *
+   */
+  void SlotOpenDefaultFileBrowserTab();
 
   /**
    * New File Tab to do file operation

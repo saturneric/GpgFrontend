@@ -58,6 +58,10 @@ void MainWindow::slot_open_key_management() {
   dialog->raise();
 }
 
+void MainWindow::slot_default_file_tab() {
+  edit_->SlotOpenDefaultFileBrowserTab();
+}
+
 void MainWindow::slot_open_file_tab() { edit_->SlotNewFileBrowserTab(); }
 
 void MainWindow::slot_open_file_tab_with_directory() {

@@ -312,12 +312,16 @@ void TextEditTabWidget::SlotNewTabWithContent(QString title,
 }
 
 void TextEditTabWidget::SlotOpenDefaultPath() {
-#if defined(__APPLE__) && defined(__MACH__)
-  auto* page = new FilePage(qobject_cast<QWidget*>(parent()), QDir::homePath());
-#else
+  const auto home_path_as_file_panel_default_path =
+      GetSettings()
+          .value("basic/home_path_as_file_panel_default_path", true)
+          .toBool();
+
   auto* page =
-      new FilePage(qobject_cast<QWidget*>(parent()), QDir::currentPath());
-#endif
+      new FilePage(qobject_cast<QWidget*>(parent()),
+                   home_path_as_file_panel_default_path ? QDir::homePath()
+                                                        : QDir::currentPath());
+
   auto index = this->addTab(page, QString());
   this->setTabIcon(index, QIcon(":/icons/workspace.png"));
   this->setTabText(index, tr("Default Workspace"));
@@ -350,8 +354,8 @@ void TextEditTabWidget::slot_file_page_path_changed(const QString& path) {
   this->setTabText(index, m_path);
   this->setTabToolTip(index, t_path);
 
-  emit UISignalStation::GetInstance() -> SignalMainWindowUpdateBasicOperaMenu(
-                                          0);
+  emit UISignalStation::GetInstance()
+      -> SignalMainWindowUpdateBasicOperaMenu(0);
 }
 
 }  // namespace GpgFrontend::UI

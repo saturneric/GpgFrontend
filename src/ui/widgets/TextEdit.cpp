@@ -32,6 +32,7 @@
 #include <cstddef>
 
 #include "core/function/CacheManager.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/utils/IOUtils.h"
 #include "ui/dialog/QuitDialog.h"
 #include "ui/widgets/HelpPage.h"
@@ -53,7 +54,7 @@ TextEdit::TextEdit(QWidget* parent) : QWidget(parent) {
 
   setAcceptDrops(false);
 
-  SlotNewDefaultFileBrowserTab();
+  SlotNewDefaultWorkspaceTab();
 
   slot_restore_unsaved_tabs();
 }
@@ -70,8 +71,19 @@ void TextEdit::SlotNewHelpTab(const QString& title, const QString& path) const {
   tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
 }
 
-void TextEdit::SlotNewDefaultFileBrowserTab() {
-  tab_widget_->SlotOpenDefaultPath();
+void TextEdit::SlotNewDefaultWorkspaceTab() {
+  const auto default_workspace_as =
+      GetSettings()
+          .value("basic/default_workspace_as", "file_panel")
+          .toString();
+
+  if (default_workspace_as == "file_panel") {
+    tab_widget_->SlotOpenDefaultPath();
+  } else if (default_workspace_as == "email_editor") {
+    tab_widget_->SlotNewEMailTab();
+  } else {
+    tab_widget_->SlotNewTab();
+  }
 }
 
 void TextEdit::SlotNewFileBrowserTab() {
@@ -674,5 +686,9 @@ auto TextEdit::IsCloseCheckInProgress() const -> bool {
 
 void TextEdit::SetCloseCheckInProgress(bool s) {
   is_close_check_in_progress_ = s;
+}
+
+void TextEdit::SlotOpenDefaultFileBrowserTab() {
+  tab_widget_->SlotOpenDefaultPath();
 }
 }  // namespace GpgFrontend::UI

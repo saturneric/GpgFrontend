@@ -43,19 +43,35 @@ namespace GpgFrontend::UI {
 
 void MainWindow::create_actions() {
   new_tab_act_ = create_action(
-      "new_tab", tr("New Text"), ":/icons/misc_doc.png", tr("Open a new file"),
+      "new_tab", tr("Text Editor"), ":/icons/misc_doc.png",
+      tr("Open a new text editor"),
       {QKeySequence(Qt::CTRL | Qt::Key_N), QKeySequence(Qt::CTRL | Qt::Key_T)});
   connect(new_tab_act_, &QAction::triggered, edit_, &TextEdit::SlotNewTab);
 
-  browser_act_ =
-      create_action("file_browser", tr("Open File"),
-                    ":/icons/file-operator.png", tr("Open a file panel"));
+  browser_act_ = create_action(
+      "file_browser_dir", tr("File Panel (Files)"), ":/icons/file-operator.png",
+      tr("Open a new file panel"), {QKeySequence(Qt::CTRL | Qt::Key_B)});
   connect(browser_act_, &QAction::triggered, this,
+          &MainWindow::slot_default_file_tab);
+
+  if (Module::IsModuleActivate(kEmailModuleID)) {
+    new_email_tab_act_ =
+        create_action("new_email_tab", tr("Mail Editor"), ":/icons/email.png",
+                      tr("Open a new text editor for email"),
+                      {QKeySequence(Qt::CTRL | Qt::Key_M)});
+    connect(new_email_tab_act_, &QAction::triggered, edit_,
+            &TextEdit::SlotNewEMailTab);
+  }
+
+  browser_file_act_ = create_action(
+      "file_browser", tr("Open File"), ":/icons/file-operator.png",
+      tr("Open the file panel and point to a file"));
+  connect(browser_file_act_, &QAction::triggered, this,
           &MainWindow::slot_open_file_tab);
 
   browser_dir_act_ = create_action(
       "file_browser_dir", tr("Open Directory"), ":/icons/file-operator.png",
-      tr("Open a file panel"), {QKeySequence(Qt::CTRL | Qt::Key_B)});
+      tr("Open the Files panel and point to a directory"));
   connect(browser_dir_act_, &QAction::triggered, this,
           &MainWindow::slot_open_file_tab_with_directory);
 
@@ -286,17 +302,6 @@ void MainWindow::create_actions() {
   connect(smart_card_controller_open_act_, &QAction::triggered, this,
           [this]() { (new SmartCardControllerDialog(this))->exec(); });
 
-  /**
-   * E-Mail Menu
-   */
-  if (Module::IsModuleActivate(kEmailModuleID)) {
-    new_email_tab_act_ =
-        create_action("new_email_tab", tr("New E-Mail"), ":/icons/email.png",
-                      tr("Create A New E-Mail Tab"));
-    connect(new_email_tab_act_, &QAction::triggered, edit_,
-            &TextEdit::SlotNewEMailTab);
-  }
-
   /*
    * About Menu
    */
@@ -430,16 +435,20 @@ void MainWindow::create_actions() {
 
 void MainWindow::create_menus() {
   file_menu_ = menuBar()->addMenu(tr("File"));
-  file_menu_->addAction(new_tab_act_);
 
+  open_menu_ = file_menu_->addMenu(tr("Open"));
+  open_menu_->setToolTipsVisible(true);
+  open_menu_->addAction(browser_file_act_);
+  open_menu_->addAction(browser_dir_act_);
+
+  workspace_menu_ = file_menu_->addMenu(tr("Workspace"));
+  workspace_menu_->setToolTipsVisible(true);
+  workspace_menu_->addAction(browser_act_);
+  workspace_menu_->addAction(new_tab_act_);
   if (Module::IsModuleActivate(kEmailModuleID)) {
-    file_menu_->addAction(new_email_tab_act_);
+    workspace_menu_->addAction(new_email_tab_act_);
   }
 
-  file_menu_->addSeparator();
-  workspace_menu_ = file_menu_->addMenu(tr("Workspace"));
-  workspace_menu_->addAction(browser_act_);
-  workspace_menu_->addAction(browser_dir_act_);
   file_menu_->addSeparator();
 
   file_menu_->addAction(save_act_);
@@ -523,22 +532,24 @@ void MainWindow::create_tool_bars() {
   file_tool_bar_ = addToolBar(tr("File"));
   file_tool_bar_->setObjectName("fileToolBar");
 
+  open_button_ = new QToolButton();
+  open_button_->setMenu(open_menu_);
+  open_button_->setPopupMode(QToolButton::InstantPopup);
+  open_button_->setIcon(QIcon(":/icons/open.png"));
+  open_button_->setToolTip(tr("Open ..."));
+  open_button_->setText(tr("Open"));
+
+  file_tool_bar_->addWidget(open_button_);
+
   // add dropdown menu for workspace
   workspace_button_ = new QToolButton();
   workspace_button_->setMenu(workspace_menu_);
   workspace_button_->setPopupMode(QToolButton::InstantPopup);
   workspace_button_->setIcon(QIcon(":/icons/workspace.png"));
-  workspace_button_->setToolTip(tr("Open Workspace..."));
+  workspace_button_->setToolTip(tr("Open Workspace as..."));
   workspace_button_->setText(tr("Workspace"));
 
   file_tool_bar_->addWidget(workspace_button_);
-  file_tool_bar_->addSeparator();
-
-  file_tool_bar_->addAction(new_tab_act_);
-
-  if (Module::IsModuleActivate(kEmailModuleID)) {
-    file_tool_bar_->addAction(new_email_tab_act_);
-  }
 
   view_menu_->addAction(file_tool_bar_->toggleViewAction());
 
