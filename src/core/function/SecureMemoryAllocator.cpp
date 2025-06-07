@@ -32,6 +32,10 @@
 
 #include <cstdlib>
 
+namespace {
+QSharedPointer<GpgFrontend::SecureMemoryAllocator> instance = nullptr;
+}
+
 namespace GpgFrontend {
 
 SecureMemoryAllocator::SecureMemoryAllocator() = default;
@@ -82,8 +86,12 @@ void SecureMemoryAllocator::Deallocate(void* ptr) {
 }
 
 auto SecureMemoryAllocator::GetInstance() -> SecureMemoryAllocator* {
-  static SecureMemoryAllocator instance;
-  return &instance;
+  if (instance == nullptr) {
+    instance = QSharedPointer<SecureMemoryAllocator>(
+        new SecureMemoryAllocator(),
+        [](SecureMemoryAllocator* ptr) { ptr->~SecureMemoryAllocator(); });
+  }
+  return instance.get();
 }
 
 auto SMAMalloc(size_t size) -> void* {

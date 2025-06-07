@@ -30,14 +30,14 @@
 
 namespace GpgFrontend {
 
-class GF_CORE_EXPORT SecureMemoryAllocator {
+class SecureMemoryAllocator {
  public:
   static auto GetInstance() -> SecureMemoryAllocator *;
 
   SecureMemoryAllocator(const SecureMemoryAllocator &) = delete;
 
-  auto operator=(const SecureMemoryAllocator &)
-      -> SecureMemoryAllocator & = delete;
+  auto operator=(const SecureMemoryAllocator &) -> SecureMemoryAllocator & =
+                                                       delete;
 
   auto Allocate(size_t) -> void *;
 
