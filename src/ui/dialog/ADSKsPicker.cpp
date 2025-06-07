@@ -53,8 +53,17 @@ ADSKsPicker::ADSKsPicker(int channel, GpgKeyPtr key,
           })),
       channel_(channel),
       key_(std::move(key)) {
+  tree_view_->setStyleSheet("QTreeView::item { height: 28px; }");
+
   auto* confirm_button = new QPushButton(tr("Confirm"));
   auto* cancel_button = new QPushButton(tr("Cancel"));
+
+  confirm_button->setDisabled(true);
+
+  connect(tree_view_, &KeyTreeView::SignalKeysChecked, this,
+          [=](const GpgAbstractKeyPtrList& keys) {
+            confirm_button->setDisabled(keys.empty());
+          });
 
   connect(confirm_button, &QPushButton::clicked, this, [=]() {
     if (tree_view_->GetAllCheckedSubKey().isEmpty()) {
@@ -63,15 +72,10 @@ ADSKsPicker::ADSKsPicker(int channel, GpgKeyPtr key,
 
       return;
     }
-
-    confirm_button->setDisabled(true);
-    cancel_button->setDisabled(true);
-
     slot_add_adsk(tree_view_->GetAllCheckedSubKey());
   });
-  connect(cancel_button, &QPushButton::clicked, this, &QDialog::reject);
 
-  tree_view_->setStyleSheet("QTreeView::item { height: 28px; }");
+  connect(cancel_button, &QPushButton::clicked, this, &QDialog::reject);
 
   auto* main_layout = new QVBoxLayout();
   auto* title_label = new QLabel(tr("Select ADSK(s)") + ": ");
@@ -96,7 +100,7 @@ ADSKsPicker::ADSKsPicker(int channel, GpgKeyPtr key,
 
   setLayout(main_layout);
 
-  setMinimumSize(600, 400);
+  this->setMinimumWidth(480);
 
   this->setWindowFlags(Qt::Window | Qt::WindowTitleHint |
                        Qt::CustomizeWindowHint);
@@ -105,6 +109,7 @@ ADSKsPicker::ADSKsPicker(int channel, GpgKeyPtr key,
   this->setWindowTitle(tr("ADSKs Picker"));
 
   movePosition2CenterOfParent();
+
   this->show();
   this->raise();
   this->activateWindow();
