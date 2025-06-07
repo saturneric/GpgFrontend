@@ -182,10 +182,10 @@ class GpgContext::Impl {
     auto pass_size = pass_bytes.size();
     const auto *p_pass_bytes = pass_bytes.constData();
 
-    ssize_t res = 0;
+    qsizetype res = 0;
     if (pass_size > 0) {
-      ssize_t off = 0;
-      ssize_t ret = 0;
+      qsizetype off = 0;
+      qsizetype ret = 0;
       do {
         ret = gpgme_io_write(fd, &p_pass_bytes[off], pass_size - off);
         if (ret > 0) off += ret;

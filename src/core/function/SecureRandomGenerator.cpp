@@ -38,8 +38,8 @@ SecureRandomGenerator::SecureRandomGenerator(int channel)
     : SingletonFunctionObject<SecureRandomGenerator>(channel) {}
 
 auto SecureRandomGenerator::GnuPGGenerate(size_t size) -> GFBufferOrNone {
-  size = std::max(size, 31UL);
-  size = std::min(size, 1024UL);
+  size = std::max(size, static_cast<size_t>(31));
+  size = std::min(size, static_cast<size_t>(1024));
 
   GFBuffer buffer(size);
 

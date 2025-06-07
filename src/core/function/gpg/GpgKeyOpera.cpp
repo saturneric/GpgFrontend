@@ -49,11 +49,10 @@ GpgKeyOpera::GpgKeyOpera(int channel)
  * @param uidList key ids
  */
 void GpgKeyOpera::DeleteKeys(const GpgAbstractKeyPtrList& keys) {
-  GpgError err;
   for (const auto& key : keys) {
     if (key->KeyType() == GpgAbstractKeyType::kGPG_KEY && key->IsGood()) {
       auto k = qSharedPointerDynamicCast<GpgKey>(key);
-      err = CheckGpgError(gpgme_op_delete_ext(
+      auto err = CheckGpgError(gpgme_op_delete_ext(
           ctx_.DefaultContext(), static_cast<gpgme_key_t>(*k),
           GPGME_DELETE_ALLOW_SECRET | GPGME_DELETE_FORCE));
       assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
@@ -354,8 +353,9 @@ void GpgKeyOpera::ModifyPassword(const GpgKeyPtr& key,
       callback, "gpgme_op_passwd", "2.2.0");
 }
 
-auto GpgKeyOpera::ModifyTOFUPolicy(
-    const GpgKeyPtr& key, gpgme_tofu_policy_t tofu_policy) -> GpgError {
+auto GpgKeyOpera::ModifyTOFUPolicy(const GpgKeyPtr& key,
+                                   gpgme_tofu_policy_t tofu_policy)
+    -> GpgError {
   auto [err, obj] = RunGpgOperaSync(
       GetChannel(),
       [=](const DataObjectPtr&) -> GpgError {
