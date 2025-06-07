@@ -279,7 +279,6 @@ if(MINGW)
   else()
     list(APPEND ALL_RUNTIME_DLL_FILES
       "Qt6Core.dll"
-      "Qt6Core5Compat.dll"
       "Qt6Gui.dll"
       "Qt6Network.dll"
       "Qt6PrintSupport.dll"
