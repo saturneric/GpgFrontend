@@ -292,10 +292,13 @@ auto GetCanonicalKeyDatabasePath(const QDir& app_path, const QString& path)
   }
 
   QFileInfo info(target_path);
-  if (!info.exists()) {
-    LOG_W() << "key database not exists:" << info.absoluteFilePath()
-            << ", making a new directory...";
-    QDir().mkdir(info.absoluteFilePath());
+  auto dir_path = info.absolutePath();
+  QDir dir;
+  if (!dir.exists(dir_path)) {
+    LOG_W() << "key database not exists:" << dir_path << ", creating...";
+    if (!dir.mkpath(dir_path)) {
+      LOG_E() << "failed to recreate key database:" << dir_path;
+    }
   }
 
   if (VerifyKeyDatabasePath(info)) {
