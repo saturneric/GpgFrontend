@@ -36,6 +36,10 @@
 #include "core/module/ModuleManager.h"
 #include "core/utils/FilesystemUtils.h"
 
+#if defined(__linux__)
+#include "core/utils/CommonUtils.h"
+#endif
+
 namespace GpgFrontend {
 
 class GlobalSettingStation::Impl {
