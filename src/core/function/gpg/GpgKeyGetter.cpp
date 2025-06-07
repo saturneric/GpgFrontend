@@ -205,6 +205,17 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
   auto GetKeyORSubkeyPtr(const QString& key_id) -> GpgAbstractKeyPtr {
     auto key = get_key_in_cache(key_id);
 
+    // get a key with subkey_match flag
+    if (key == nullptr && key_id.endsWith("!")) {
+      gpgme_key_t key;
+      auto err = gpgme_get_key(ctx_.DefaultContext(), key_id.toUtf8(), &key, 1);
+      if (CheckGpgError(err) != GPG_ERR_NO_ERROR || key == nullptr) {
+        LOG_W() << "cannot get key with subkey_match flag: " << key_id;
+        return nullptr;
+      }
+      return SecureCreateSharedObject<GpgKey>(key);
+    }
+
     if (key != nullptr) return key;
 
     LOG_W() << "get key" << key_id
