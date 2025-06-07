@@ -28,6 +28,9 @@
 
 #include "ModuleInit.h"
 
+#include <openssl/evp.h>
+#include <openssl/pem.h>
+
 #include <QCoreApplication>
 #include <QDir>
 
@@ -35,8 +38,102 @@
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "core/utils/IOUtils.h"
 
 namespace {
+
+auto EnforceBinaryValidation() -> bool {
+  return QString::fromUtf8(ENFORCE_BINARY_VALIDATION).toInt() == 1;
+}
+
+auto LoadEmbeddedPublicKey() -> EVP_PKEY* {
+  auto [succ, buffer] = GpgFrontend::ReadFileGFBuffer(":/keys/public.pem");
+  if (!succ) {
+    qWarning()
+        << "unable to read public key from resource file: /keys/public.pem";
+    return nullptr;
+  }
+
+  auto* bio = BIO_new_mem_buf(buffer.Data(), static_cast<int>(buffer.Size()));
+  if (bio == nullptr) {
+    qWarning() << "BIO_new_mem_buf error";
+    return nullptr;
+  }
+
+  EVP_PKEY* pub_key = PEM_read_bio_PUBKEY(bio, nullptr, nullptr, nullptr);
+  BIO_free(bio);
+
+  if (pub_key == nullptr) {
+    qWarning()
+        << "PEM_read_bio_PUBKEY parsing failed, is it a valid PEM format?";
+  }
+
+  return pub_key;
+}
+
+auto VerifyModuleSignature(const GpgFrontend::GFBuffer& lib_data,
+                           const GpgFrontend::GFBuffer& sig_data,
+                           EVP_PKEY* pub_key) -> bool {
+  if (pub_key == nullptr) return false;
+
+  EVP_MD_CTX* md_ctx = EVP_MD_CTX_new();
+  if (md_ctx == nullptr) {
+    qWarning() << "EVP_MD_CTX_new error";
+    return false;
+  }
+
+  if (EVP_DigestVerifyInit(md_ctx, nullptr, EVP_sha256(), nullptr, pub_key) <=
+      0) {
+    qWarning() << "EVP_DigestVerifyInit error";
+    EVP_MD_CTX_free(md_ctx);
+    return false;
+  }
+
+  if (EVP_DigestVerifyUpdate(
+          md_ctx, reinterpret_cast<const unsigned char*>(lib_data.Data()),
+          static_cast<int>(lib_data.Size())) <= 0) {
+    qWarning() << "EVP_DigestVerifyUpdate error";
+    EVP_MD_CTX_free(md_ctx);
+    return false;
+  }
+
+  int ret = EVP_DigestVerifyFinal(
+      md_ctx, reinterpret_cast<const unsigned char*>(sig_data.Data()),
+      static_cast<int>(sig_data.Size()));
+
+  EVP_MD_CTX_free(md_ctx);
+
+  if (ret == 1) return true;
+
+  if (ret == 0) {
+    qWarning()
+        << "signature does not match, the module may have been tampered with!";
+    return false;
+  }
+
+  qWarning() << "EVP_DigestVerifyFinal error";
+  return false;
+}
+
+auto ValidateModule(const QString& path, EVP_PKEY* key) -> bool {
+  auto [succ, mod_buf] = GpgFrontend::ReadFileGFBuffer(path);
+  if (!succ) {
+    LOG_W() << "cannot read module: " << path;
+    return false;
+  }
+
+  auto sig_path = path + ".sig";
+
+  auto [succ_1, sig_buf] = GpgFrontend::ReadFileGFBuffer(sig_path);
+  if (!succ_1) {
+    LOG_W() << "cannot read signature of module: " << sig_path;
+    return false;
+  }
+
+  if (key == nullptr) return false;
+
+  return VerifyModuleSignature(mod_buf, sig_buf, key);
+}
 
 auto SearchModuleFromPath(const QString& mods_path, bool integrated)
     -> QMap<QString, bool> {
@@ -107,8 +204,17 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
             auto& manager = ModuleManager::GetInstance();
             manager.SetNeedRegisterModulesNum(static_cast<int>(modules.size()));
 
+            auto* key = LoadEmbeddedPublicKey();
+
             for (auto it = modules.keyValueBegin(); it != modules.keyValueEnd();
                  ++it) {
+              // validate integrated modules
+              if (EnforceBinaryValidation() && it->second &&
+                  !ValidateModule(it->first, key)) {
+                LOG_W() << "refuse to load integrated module: " << it->first;
+                continue;
+              }
+
               manager.LoadModule(it->first, it->second);
             }
 

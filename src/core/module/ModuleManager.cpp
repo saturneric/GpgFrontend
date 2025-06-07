@@ -30,8 +30,6 @@
 
 #include <memory>
 
-#include "core/function/GlobalSettingStation.h"
-#include "core/function/SecureMemoryAllocator.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/GlobalModuleContext.h"
