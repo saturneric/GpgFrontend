@@ -123,6 +123,11 @@ void KeyTreeView::init() {
             proxy_model_.setSourceModel(model_.get());
             proxy_model_.invalidate();
           });
+
+  connect(model_.get(), &GpgKeyTreeModel::SignalKeyCheckedChanged, this,
+          [=](GpgAbstractKey*, bool) {
+            emit SignalKeysChecked(GetAllCheckedKeys());
+          });
 }
 
 void KeyTreeView::SetKeyFilter(const GpgKeyTreeProxyModel::KeyFilter& filter) {
@@ -153,4 +158,8 @@ auto KeyTreeView::GetKeyByIndex(QModelIndex index) -> GpgAbstractKeyPtr {
 }
 
 void KeyTreeView::Refresh() { SetChannel(channel_); }
+
+auto KeyTreeView::GetAllCheckedKeys() -> GpgAbstractKeyPtrList {
+  return model_->GetAllCheckedKeys();
+}
 }  // namespace GpgFrontend::UI
