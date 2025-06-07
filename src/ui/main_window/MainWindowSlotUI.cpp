@@ -28,7 +28,6 @@
 
 #include "MainWindow.h"
 #include "core/GpgConstants.h"
-#include "core/function/CacheManager.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/model/SettingsObject.h"
 #include "ui/UserInterfaceUtils.h"
@@ -121,12 +120,7 @@ void MainWindow::slot_open_settings_dialog() {
     if (restart_mode_ != kNonRestartCode) {
       // async
       edit_->MaybeSaveAnyTabAsync([this](bool ok) {
-        if (ok) {
-          // clear cache of unsaved page
-          CacheManager::GetInstance().SaveDurableCache(
-              "editor_unsaved_pages", QJsonDocument(QJsonArray()), true);
-          emit SignalRestartApplication(restart_mode_);
-        }
+        if (ok) emit SignalRestartApplication(restart_mode_);
       });
     }
   });

@@ -30,7 +30,6 @@
 
 #include "GpgFrontendContext.h"
 #include "core/GpgConstants.h"
-#include "core/function/CacheManager.h"
 #include "ui/GpgFrontendUIInit.h"
 
 // main
@@ -83,10 +82,6 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
 
   } while (return_from_event_loop_code == GpgFrontend::kRestartCode &&
            restart_count++ < 99);
-
-  // clear cache of unsaved pages
-  GpgFrontend::CacheManager::GetInstance().SaveDurableCache(
-      "editor_unsaved_pages", QJsonDocument(QJsonArray()), true);
 
   // set return code
   ctx->rtn = return_from_event_loop_code;

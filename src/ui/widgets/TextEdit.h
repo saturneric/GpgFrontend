@@ -351,12 +351,6 @@ class TextEdit : public QWidget {
    */
   void slot_remove_tab(int index);
 
-  /**
-   * @brief
-   *
-   */
-  void slot_restore_unsaved_tabs();
-
  private:
   TextEditTabWidget* tab_widget_;  ///< widget containing the tabs of the editor
   bool is_close_check_in_progress_ = false;

@@ -55,8 +55,6 @@ TextEdit::TextEdit(QWidget* parent) : QWidget(parent) {
   setAcceptDrops(false);
 
   SlotNewDefaultWorkspaceTab();
-
-  slot_restore_unsaved_tabs();
 }
 
 void TextEdit::SlotNewTab() { tab_widget_->SlotNewTab(); }
@@ -84,6 +82,8 @@ void TextEdit::SlotNewDefaultWorkspaceTab() {
   } else {
     tab_widget_->SlotNewTab();
   }
+
+  tab_widget_->SlotRestoreTextEditorsCache();
 }
 
 void TextEdit::SlotNewFileBrowserTab() {
@@ -320,9 +320,8 @@ void TextEdit::slot_remove_tab(int index) {
 auto TextEdit::maybe_save_current_tab(bool askToSave) -> bool {
   PlainTextEditorPage* page = CurPageTextEdit();
   // if this page is no textedit, there should be nothing to save
-  if (page == nullptr) {
-    return true;
-  }
+  if (page == nullptr) return true;
+
   QTextDocument* document = page->GetTextPage()->document();
 
   if (page->ReadDone() && document->isModified()) {
@@ -367,6 +366,15 @@ void TextEdit::MaybeSaveAnyTabAsync(const std::function<void(bool)>& callback) {
    * no unsaved documents, so app can be closed
    */
   if (unsaved_docs.empty()) {
+    callback(true);
+    return;
+  }
+
+  bool restore_text_editor_page =
+      GetSettings().value("basic/restore_text_editor_page", false).toBool();
+  if (restore_text_editor_page) {
+    FLOG_D("restore_text_editor_page is true, caching messages and exit...");
+    tab_widget_->SlotCacheTextEditors();
     callback(true);
     return;
   }
@@ -464,6 +472,7 @@ void TextEdit::SlotFillTextEditWithText(const QString& text) const {
   edit->setUndoRedoEnabled(false);
   edit->setPlainText(text);
   edit->setUndoRedoEnabled(true);
+  edit->document()->setModified(true);
 }
 
 void TextEdit::SlotFillTextEditWithText(const GFBuffer& buffer) const {
@@ -471,6 +480,7 @@ void TextEdit::SlotFillTextEditWithText(const GFBuffer& buffer) const {
   edit->setUndoRedoEnabled(false);
   edit->setPlainText(buffer.ConvertToQString());
   edit->setUndoRedoEnabled(true);
+  edit->document()->setModified(true);
 }
 
 void TextEdit::LoadFile(const QString& fileName) {
@@ -652,33 +662,6 @@ auto TextEdit::CurEMailPage() const -> EMailEditorPage* {
 }
 
 void TextEdit::SlotNewEMailTab() { tab_widget_->SlotNewEMailTab(); }
-
-void TextEdit::slot_restore_unsaved_tabs() {
-  auto json_data =
-      CacheManager::GetInstance().LoadDurableCache("editor_unsaved_pages");
-
-  if (json_data.isEmpty() || !json_data.isArray()) {
-    return;
-  }
-
-  auto unsaved_page_array = json_data.array();
-  for (const auto& value_ref : unsaved_page_array) {
-    if (!value_ref.isObject()) continue;
-    auto unsaved_page_json = value_ref.toObject();
-
-    if (!unsaved_page_json.contains("title") ||
-        !unsaved_page_json.contains("content")) {
-      continue;
-    }
-
-    auto title = unsaved_page_json["title"].toString();
-    auto content = unsaved_page_json["content"].toString();
-
-    LOG_D() << "restoring tab, title: " << title;
-
-    SlotNewTabWithContent(title, content);
-  }
-}
 
 auto TextEdit::IsCloseCheckInProgress() const -> bool {
   return is_close_check_in_progress_;
