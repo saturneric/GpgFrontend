@@ -120,6 +120,11 @@ environment in GitHub Codespaces.
 
 [@Saturneric](https://github.com/saturneric)
 
+Maintainer Identity Declaration (for CA verification): This project is
+maintained by Yu Hu, who is also known in the community as Eric. The contact
+email used here (eric@bktus.com) matches the identity submitted for code signing
+certificate verification.
+
 I’m always eager to hear your suggestions for improvement. My goal is to
 continuously enhance the usability of GpgFrontend and address critical issues
 effectively. Your feedback is highly valued and has a great chance of being
