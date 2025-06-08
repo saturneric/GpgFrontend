@@ -464,22 +464,23 @@ void GpgOperaHelper::WaitForMultipleOperas(
   const auto tasks_count = operas.size();
 
   for (const auto& opera : operas) {
-    QTimer::singleShot(64, parent, [=, &remaining_tasks]() {
-      opera([dialog, &remaining_tasks, tasks_count]() {
-        if (dialog == nullptr) return;
-
-        const auto pg_value =
-            static_cast<double>(tasks_count - remaining_tasks + 1) * 100.0 /
-            static_cast<double>(tasks_count);
-        emit dialog->SignalUpdateValue(static_cast<int>(pg_value));
-        QCoreApplication::processEvents();
-
-        if (--remaining_tasks == 0) {
-          dialog->close();
-          dialog->accept();
-        }
-      });
-    });
+    QMetaObject::invokeMethod(
+        parent,
+        [=, &remaining_tasks]() {
+          opera([dialog, &remaining_tasks, tasks_count]() {
+            if (dialog == nullptr) return;
+            const auto pg_value =
+                static_cast<double>(tasks_count - remaining_tasks + 1) * 100.0 /
+                static_cast<double>(tasks_count);
+            emit dialog->SignalUpdateValue(static_cast<int>(pg_value));
+            QCoreApplication::processEvents();
+            if (--remaining_tasks == 0) {
+              dialog->close();
+              dialog->accept();
+            }
+          });
+        },
+        Qt::QueuedConnection);
   }
 
   looper.exec();
