@@ -45,8 +45,6 @@ class GF_CORE_EXPORT DataObject {
 
   ~DataObject();
 
-  DataObject(DataObject&&) noexcept;
-
   auto operator[](size_t index) const -> std::any;
 
   void AppendObject(const std::any&);
@@ -75,7 +73,7 @@ class GF_CORE_EXPORT DataObject {
 
  private:
   class Impl;
-  SecureUniquePtr<Impl> p_;
+  QSharedPointer<Impl> p_;
 };
 
 template <typename... Args>
