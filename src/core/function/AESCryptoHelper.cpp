@@ -45,7 +45,8 @@ auto EvpEncryptImpl(const GpgFrontend::GFBuffer& plaintext,
   const int key_len = EVP_CIPHER_key_length(cipher);
   Q_ASSERT(key.Size() == static_cast<size_t>(key_len));
   if (key.Size() != static_cast<size_t>(key_len)) {
-    LOG_E() << "key size is mismatch: " << key.Size();
+    LOG_E() << "key size is mismatch: " << key.Size()
+            << "expected size: " << key_len;
     return {};
   }
 
@@ -155,7 +156,8 @@ auto EvpDecryptImpl(const GpgFrontend::GFBuffer& ciphertext,
   const int key_len = EVP_CIPHER_key_length(cipher);
   Q_ASSERT(key.Size() == static_cast<size_t>(key_len));
   if (key.Size() != static_cast<size_t>(key_len)) {
-    LOG_E() << "key size is mismatch: " << key.Size();
+    LOG_E() << "key size is mismatch: " << key.Size()
+            << "expected size: " << key_len;
     return {};
   }
 
@@ -259,10 +261,10 @@ auto EvpDecryptImpl(const GpgFrontend::GFBuffer& ciphertext,
 }
 
 auto DeriveKeyArgon2(const GpgFrontend::GFBuffer& passphrase,
-                     const GpgFrontend::GFBuffer& salt, int t_cost = 3,
-                     int m_cost = 65536, int parallelism = 4)
+                     const GpgFrontend::GFBuffer& salt, int key_len = 32,
+                     int t_cost = 3, int m_cost = 65536, int parallelism = 4)
     -> GpgFrontend::GFBufferOrNone {
-  GpgFrontend::GFBuffer key(32);
+  GpgFrontend::GFBuffer key(key_len);
 
   auto* kdf = EVP_KDF_fetch(nullptr, "ARGON2ID", nullptr);
   if (kdf == nullptr) {
@@ -299,27 +301,26 @@ auto DeriveKeyArgon2(const GpgFrontend::GFBuffer& passphrase,
   return key;
 }
 
-}  // namespace
+auto EncryptImpl(const EVP_CIPHER* cipher, const GpgFrontend::GFBuffer& raw_key,
+                 const GpgFrontend::GFBuffer& plaintext)
 
-namespace GpgFrontend {
+    -> GpgFrontend::GFBufferOrNone {
+  Q_ASSERT(cipher != nullptr);
+  if (cipher == nullptr) return {};
 
-auto AESCryptoHelper::GCMEncrypt(const GpgFrontend::GFBuffer& raw_key,
-                                 const GpgFrontend::GFBuffer& plaintext)
-    -> GFBufferOrNone {
   GpgFrontend::GFBuffer iv;
   GpgFrontend::GFBuffer tag;
 
-  auto salt = SecureRandomGenerator::OpenSSLGenerate(16);
+  auto salt = GpgFrontend::SecureRandomGenerator::OpenSSLGenerate(16);
   if (!salt) return {};
 
-  auto key = DeriveKeyArgon2(raw_key, *salt);
+  auto key = DeriveKeyArgon2(raw_key, *salt, EVP_CIPHER_key_length(cipher));
   if (!key) return {};
 
-  auto ciphertext =
-      EvpEncryptImpl(plaintext, *key, iv, tag, EVP_aes_256_gcm(), {});
+  auto ciphertext = EvpEncryptImpl(plaintext, *key, iv, tag, cipher, {});
   if (!ciphertext) return {};
 
-  GFBuffer encrypted;
+  GpgFrontend::GFBuffer encrypted;
   encrypted.Append(*salt);
   encrypted.Append(iv);
   encrypted.Append(*ciphertext);
@@ -327,9 +328,12 @@ auto AESCryptoHelper::GCMEncrypt(const GpgFrontend::GFBuffer& raw_key,
   return encrypted;
 }
 
-auto AESCryptoHelper::GCMDecrypt(const GpgFrontend::GFBuffer& raw_key,
-                                 const GpgFrontend::GFBuffer& encrypted)
-    -> GFBufferOrNone {
+auto DecryptImpl(const EVP_CIPHER* cipher, const GpgFrontend::GFBuffer& raw_key,
+                 const GpgFrontend::GFBuffer& encrypted)
+    -> GpgFrontend::GFBufferOrNone {
+  Q_ASSERT(cipher != nullptr);
+  if (cipher == nullptr) return {};
+
   constexpr size_t kSaltLen = 16;
   constexpr size_t kIvLen = 12;
   constexpr size_t kTagLen = 16;
@@ -347,18 +351,44 @@ auto AESCryptoHelper::GCMDecrypt(const GpgFrontend::GFBuffer& raw_key,
       kSaltLen + kIvLen,
       static_cast<ssize_t>(encrypted.Size() - kSaltLen - kIvLen - kTagLen));
 
-  auto key = DeriveKeyArgon2(raw_key, salt);
+  auto key = DeriveKeyArgon2(raw_key, salt, EVP_CIPHER_key_length(cipher));
   if (!key) return {};
 
   if (ciphertext.Empty()) {
     LOG_W() << "ciphertext is empty, will only check tag authentication";
   }
 
-  auto plaintext = EvpDecryptImpl(ciphertext, *key, iv, tag, EVP_aes_256_gcm());
-  if (!plaintext) {
-    LOG_E() << "decrypt failed: tag mismatch or ciphertext damaged";
-    return {};
-  }
+  auto plaintext = EvpDecryptImpl(ciphertext, *key, iv, tag, cipher);
+  if (!plaintext) return {};
+
   return plaintext;
 }
+
+}  // namespace
+
+namespace GpgFrontend {
+
+auto AESCryptoHelper::GCMEncrypt(const GpgFrontend::GFBuffer& raw_key,
+                                 const GpgFrontend::GFBuffer& plaintext)
+    -> GFBufferOrNone {
+  return EncryptImpl(EVP_aes_256_gcm(), raw_key, plaintext);
+}
+
+auto AESCryptoHelper::GCMDecrypt(const GpgFrontend::GFBuffer& raw_key,
+                                 const GpgFrontend::GFBuffer& encrypted)
+    -> GFBufferOrNone {
+  return DecryptImpl(EVP_aes_256_gcm(), raw_key, encrypted);
+}
+auto AESCryptoHelper::GCMEncryptLite(const GpgFrontend::GFBuffer& raw_key,
+                                     const GpgFrontend::GFBuffer& plaintext)
+    -> GFBufferOrNone {
+  return EncryptImpl(EVP_aes_128_gcm(), raw_key, plaintext);
+}
+
+auto AESCryptoHelper::GCMDecryptLite(const GpgFrontend::GFBuffer& raw_key,
+                                     const GpgFrontend::GFBuffer& encrypted)
+    -> GFBufferOrNone {
+  return DecryptImpl(EVP_aes_128_gcm(), raw_key, encrypted);
+}
+
 }  // namespace GpgFrontend

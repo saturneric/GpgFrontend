@@ -45,5 +45,13 @@ class GF_CORE_EXPORT AESCryptoHelper
   static auto GCMDecrypt(const GpgFrontend::GFBuffer& raw_key,
                          const GpgFrontend::GFBuffer& encrypted)
       -> GFBufferOrNone;
+
+  static auto GCMEncryptLite(const GpgFrontend::GFBuffer& raw_key,
+                             const GpgFrontend::GFBuffer& plaintext)
+      -> GFBufferOrNone;
+
+  static auto GCMDecryptLite(const GpgFrontend::GFBuffer& raw_key,
+                             const GpgFrontend::GFBuffer& encrypted)
+      -> GFBufferOrNone;
 };
 }  // namespace GpgFrontend
