@@ -63,13 +63,24 @@ void PreInit(const GFCxtWPtr &p_ctx) {
   auto *app = ctx->GetApp();
 
 #ifdef Q_OS_WINDOWS
-  const auto console = app->property("GFShowConsoleOnWindows").toInt();
+  const auto console = app->property("GFShowConsoleOnWindows").toBool();
 
-  if (console && (AttachConsole(ATTACH_PARENT_PROCESS) || AllocConsole())) {
+  if (console && AllocConsole()) {
     freopen("CONOUT$", "w", stdout);
     freopen("CONOUT$", "w", stderr);
     freopen("CONIN$", "r", stdin);
+    setvbuf(stdout, NULL, _IONBF, 0);
+
+    qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context,
+                              const QString &msg) {
+      auto message = qFormatLogMessage(type, context, msg);
+      fprintf(stdout, "%s\n", message.toLocal8Bit().constData());
+      fflush(stdout);
+    });
+
+    std::ios::sync_with_stdio(true);
   }
+
 #endif
 
   // High Secure Level
@@ -78,6 +89,22 @@ void PreInit(const GFCxtWPtr &p_ctx) {
     // OpenSSL Alloc 32 MB Secure Memory
     CRYPTO_secure_malloc_init(static_cast<size_t>(32 * 1024 * 1024), 32);
   }
+
+#ifdef RELEASE
+  QLoggingCategory::setFilterRules("*.debug=false\n*.info=false\n");
+  qSetMessagePattern(
+      "[%{time yyyyMMdd h:mm:ss.zzz}] [%{category}] "
+      "[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-"
+      "critical}C%{endif}%{if-fatal}F%{endif}] [%{threadid}] - "
+      "%{message}");
+#else
+  QLoggingCategory::setFilterRules("*.debug=false");
+  qSetMessagePattern(
+      "[%{time yyyyMMdd h:mm:ss.zzz}] [%{category}] "
+      "[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-"
+      "critical}C%{endif}%{if-fatal}F%{endif}] [%{threadid}] %{file}:%{line} - "
+      "%{message}");
+#endif
 }
 
 void InitGlobalPathEnv() {

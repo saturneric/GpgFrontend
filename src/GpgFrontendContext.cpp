@@ -61,22 +61,6 @@ void GpgFrontendContext::load_env_conf_set_properties() {
 void GpgFrontendContext::InitApplication() {
   app_ = new UI::GpgFrontendApplication(argc, argv);
 
-#ifdef RELEASE
-  QLoggingCategory::setFilterRules("*.debug=false\n*.info=false\n");
-  qSetMessagePattern(
-      "[%{time yyyyMMdd h:mm:ss.zzz}] [%{category}] "
-      "[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-"
-      "critical}C%{endif}%{if-fatal}F%{endif}] [%{threadid}] - "
-      "%{message}");
-#else
-  QLoggingCategory::setFilterRules("*.debug=false");
-  qSetMessagePattern(
-      "[%{time yyyyMMdd h:mm:ss.zzz}] [%{category}] "
-      "[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-"
-      "critical}C%{endif}%{if-fatal}F%{endif}] [%{threadid}] %{file}:%{line} - "
-      "%{message}");
-#endif
-
   load_env_conf_set_properties();
 }
 
@@ -96,8 +80,8 @@ auto GpgFrontendContext::property(const char* name) -> QVariant {
   return {};
 }
 
-auto GpgFrontendContext::property(const char* name, const QVariant& value)
-    -> bool {
+auto GpgFrontendContext::property(const char* name,
+                                  const QVariant& value) -> bool {
   if (app_ != nullptr) return app_->setProperty(name, value);
   return false;
 }
