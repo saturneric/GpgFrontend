@@ -69,19 +69,15 @@ auto GpgFrontendContext::GetApp() -> QApplication* { return app_; }
 GpgFrontendContext::GpgFrontendContext(int argc, char** argv)
     : argc(argc), argv(argv) {}
 
-GpgFrontendContext::~GpgFrontendContext() {
-  if (app_ != nullptr) {
-    free(app_);
-  }
-}
+GpgFrontendContext::~GpgFrontendContext() { delete app_; }
 
 auto GpgFrontendContext::property(const char* name) -> QVariant {
   if (app_ != nullptr) return app_->property(name);
   return {};
 }
 
-auto GpgFrontendContext::property(const char* name,
-                                  const QVariant& value) -> bool {
+auto GpgFrontendContext::property(const char* name, const QVariant& value)
+    -> bool {
   if (app_ != nullptr) return app_->setProperty(name, value);
   return false;
 }
