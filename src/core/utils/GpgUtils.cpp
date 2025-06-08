@@ -485,7 +485,7 @@ auto GF_CORE_EXPORT DecidePinentry() -> QString {
   }
 
   for (const QString& name : preferred_list) {
-    QString path = QStandardPaths::findExecutable(name);
+    auto path = QStandardPaths::findExecutable(name);
     if (!path.isEmpty()) {
       LOG_D() << "find pinentry path: " << path;
       return path;
@@ -495,7 +495,7 @@ auto GF_CORE_EXPORT DecidePinentry() -> QString {
   if (search_paths.isEmpty()) return {};
 
   for (const QString& name : preferred_list) {
-    QString path = QStandardPaths::findExecutable(name, search_paths);
+    auto path = QStandardPaths::findExecutable(name, search_paths);
     if (!path.isEmpty()) {
       LOG_D() << "find pinentry path by search path: " << path;
       return path;

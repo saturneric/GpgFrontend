@@ -113,8 +113,8 @@ auto RunIOOperaAsync(const OperaRunnable& runnable,
 }
 
 auto RunOperaAsync(const OperaRunnable& runnable,
-                   const OperationCallback& callback,
-                   const QString& operation) -> Thread::Task::TaskHandler {
+                   const OperationCallback& callback, const QString& operation)
+    -> Thread::Task::TaskHandler {
   auto handler =
       Thread::TaskRunnerGetter::GetInstance()
           .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)

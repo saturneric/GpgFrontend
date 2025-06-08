@@ -251,6 +251,7 @@ auto EvpDecryptImpl(const GpgFrontend::GFBuffer& ciphertext,
     LOG_E() << "EVP_DecryptFinal_ex failed: tag/PKCS7 mismatch or corrupted";
     return {};
   }
+
   plaintext_len += len;
   plaintext.Resize(plaintext_len);
 
