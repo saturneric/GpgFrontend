@@ -93,6 +93,13 @@ class GF_CORE_EXPORT GlobalSettingStation
   [[nodiscard]] auto GetConfigPath() const -> QString;
 
   /**
+   * @brief Get the Config Dir Path object
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto GetConfigDirPath() const -> QString;
+
+  /**
    * @brief Get the Modules Dir object
    *
    * @return QString

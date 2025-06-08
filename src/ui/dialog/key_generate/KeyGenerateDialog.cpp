@@ -34,6 +34,7 @@
 #include "core/utils/CacheUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "core/utils/IOUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/function/GpgOperaHelper.h"
@@ -42,17 +43,142 @@
 //
 #include "ui_KeyGenDialog.h"
 
+namespace {
+
+auto KeyUsageToStringList(const GpgFrontend::KeyAlgo& algo) -> QStringList {
+  QStringList lst;
+  if (algo.CanCert()) lst << "cert";
+  if (algo.CanEncrypt()) lst << "encrypt";
+  if (algo.CanSign()) lst << "sign";
+  if (algo.CanAuth()) lst << "auth";
+  return lst;
+}
+
+void ExportKeyAlgoJson(
+    const GpgFrontend::QContainer<GpgFrontend::KeyAlgo>& algos,
+    QJsonArray& arr) {
+  for (const auto& algo : algos) {
+    if (algo.Id() == "none" || algo.Name() == "None") continue;
+    QJsonObject obj;
+    obj["id"] = algo.Id().toUpper();
+    obj["name"] = algo.Name();
+    obj["type"] = algo.Type();
+    obj["length"] = algo.KeyLength();
+    obj["usage"] = QJsonArray::fromStringList(KeyUsageToStringList(algo));
+    obj["since_ver"] = algo.SupportedVersion();
+    arr.append(obj);
+  }
+}
+
+void ExportSupportedAlgosToJsonFile() {
+  QJsonObject root;
+  QJsonArray primary_arr;
+  QJsonArray subkey_arr;
+
+  ExportKeyAlgoJson(GpgFrontend::KeyGenerateInfo::kPrimaryKeyAlgos,
+                    primary_arr);
+  ExportKeyAlgoJson(GpgFrontend::KeyGenerateInfo::kSubKeyAlgos, subkey_arr);
+
+  const auto config_path =
+      GpgFrontend::GlobalSettingStation::GetInstance().GetConfigDirPath();
+
+  if (!GpgFrontend::WriteFile(config_path + "/supported_key_algos.json",
+                              QJsonDocument(primary_arr).toJson())) {
+    LOG_W() << "failed to write supported key algos to config";
+  }
+
+  if (!GpgFrontend::WriteFile(config_path + "/supported_subkey_algos.json",
+                              QJsonDocument(subkey_arr).toJson())) {
+    LOG_W() << "failed to write supported key algos to config";
+  }
+}
+
+auto MakeDefaultEasyModeConf() -> QJsonArray {
+  return QJsonArray{
+      QJsonObject{
+          {"name", "RSA-2048"},
+          {"primary", QJsonObject{{"algo", "RSA2048"}, {"validity", "2y"}}},
+          {"subkey", QJsonObject{{"algo", "RSA2048"}, {"validity", "2y"}}},
+          {"hidden", false},
+      },
+      QJsonObject{
+          {"name", "DSA-2048"},
+          {"primary", QJsonObject{{"algo", "DSA2048"}, {"validity", "2y"}}},
+          {"subkey", QJsonObject{{"algo", "ELG2048"}, {"validity", "2y"}}},
+          {"hidden", false},
+      },
+      QJsonObject{
+          {"name", "ECC-25519"},
+          {"primary", QJsonObject{{"algo", "ED25519"}, {"validity", "2y"}}},
+          {"subkey", QJsonObject{{"algo", "CV25519"}, {"validity", "2y"}}},
+          {"hidden", false},
+      },
+  };
+}
+
+auto EasyModeConfFromJson(const QJsonObject& obj)
+    -> std::optional<GpgFrontend::UI::KeyGenerateDialog::EasyModeConf> {
+  if (obj.isEmpty() || !obj.contains("name") || !obj.contains("primary")) {
+    return std::nullopt;
+  }
+  QJsonObject primary = obj.value("primary").toObject();
+  QJsonObject subkey = obj.value("subkey").toObject();
+
+  if (primary.isEmpty() || !primary.contains("algo") ||
+      !primary.contains("validity")) {
+    return std::nullopt;
+  }
+
+  GpgFrontend::UI::KeyGenerateDialog::EasyModeConf conf;
+  conf.name = obj.value("name").toString().trimmed();
+
+  auto raw_algo = primary.value("algo").toString().trimmed();
+  auto [found, algo] =
+      GpgFrontend::KeyGenerateInfo::SearchPrimaryKeyAlgo(raw_algo.toLower());
+  if (found) {
+    conf.key_algo = algo.Id();
+  } else {
+    LOG_W() << "invalid primary key algo from json: " << raw_algo
+            << "ignoreing config...";
+    return std::nullopt;
+  }
+
+  conf.key_validity = primary.value("validity").toString();
+  conf.hidden = obj.value("hidden").toBool(false);
+
+  if (!subkey.isEmpty() && subkey.contains("algo") &&
+      subkey.contains("validity")) {
+    conf.has_s_key = true;
+
+    auto raw_s_algo = subkey.value("algo").toString().trimmed();
+    auto [s_found, s_algo] =
+        GpgFrontend::KeyGenerateInfo::SearchSubKeyAlgo(raw_s_algo.toLower());
+    if (s_found) {
+      conf.s_key_algo = s_algo.Id();
+    } else {
+      LOG_W() << "invalid subkey algo from json: " << raw_algo
+              << "ignoreing config...";
+      return std::nullopt;
+    }
+
+    conf.s_key_validity = subkey.value("validity").toString();
+  }
+  return conf;
+}
+}  // namespace
+
 namespace GpgFrontend::UI {
 
 KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
     : GeneralDialog(typeid(KeyGenerateDialog).name(), parent),
+      channel_(channel),
       ui_(QSharedPointer<Ui_KeyGenDialog>::create()),
       gen_key_info_(SecureCreateSharedObject<KeyGenerateInfo>()),
       gen_subkey_info_(nullptr),
       supported_primary_key_algos_(
           KeyGenerateInfo::GetSupportedKeyAlgo(channel)),
-      supported_subkey_algos_(KeyGenerateInfo::GetSupportedSubkeyAlgo(channel)),
-      channel_(channel) {
+      supported_subkey_algos_(
+          KeyGenerateInfo::GetSupportedSubkeyAlgo(channel)) {
   ui_->setupUi(this);
 
   for (const auto& key_db : GetGpgKeyDatabaseInfos()) {
@@ -60,12 +186,7 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
         key_db.channel, QString("%1: %2").arg(key_db.channel).arg(key_db.name));
   }
 
-  ui_->easyAlgoComboBox->addItems({
-      tr("Custom"),
-      "RSA",
-      "DSA",
-      "ECC (25519)",
-  });
+  load_easy_mode_config();
 
   ui_->easyValidityPeriodComboBox->addItems({
       tr("Custom"),
@@ -137,13 +258,10 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
   ui_->sAlgoComboBox->addItems(
       QStringList(s_algo_set.cbegin(), s_algo_set.cend()));
 
-  ui_->easyAlgoComboBox->setCurrentText("RSA");
-  ui_->easyValidityPeriodComboBox->setCurrentText(tr("2 Years"));
-
   set_signal_slot_config();
 
-  slot_easy_mode_changed("RSA");
-  slot_easy_valid_date_changed(tr("2 Years"));
+  ui_->easyAlgoComboBox->setCurrentIndex(
+      easy_mode_conf_.isEmpty() ? 0 : easy_mode_conf_.firstKey());
 
   this->setWindowTitle(tr("Generate Key"));
   this->setAttribute(Qt::WA_DeleteOnClose);
@@ -410,7 +528,7 @@ void KeyGenerateDialog::set_signal_slot_config() {
             refresh_widgets_state();
           });
 
-  connect(ui_->easyAlgoComboBox, &QComboBox::currentTextChanged, this,
+  connect(ui_->easyAlgoComboBox, &QComboBox::currentIndexChanged, this,
           &KeyGenerateDialog::slot_easy_mode_changed);
 
   connect(ui_->easyValidityPeriodComboBox, &QComboBox::currentTextChanged, this,
@@ -479,83 +597,74 @@ void KeyGenerateDialog::sync_gen_subkey_algo_info() {
   }
 }
 
-void KeyGenerateDialog::slot_easy_mode_changed(const QString& mode) {
-  if (mode == "RSA") {
-    auto [found, algo] = KeyGenerateInfo::SearchPrimaryKeyAlgo("rsa2048");
-    if (found) gen_key_info_->SetAlgo(algo);
+namespace {
+auto ParseValidityString(const QString& v) -> QDateTime {
+  QDateTime now = QDateTime::currentDateTime();
+  if (v == "forever" || v == "none") return now.addYears(100);
+  if (v.endsWith("y")) return now.addYears(v.left(v.length() - 1).toInt());
+  if (v.endsWith("m")) return now.addMonths(v.left(v.length() - 1).toInt());
+  if (v.endsWith("d")) return now.addDays(v.left(v.length() - 1).toInt());
+  return now.addYears(2);
+}
+}  // namespace
 
+void KeyGenerateDialog::slot_easy_mode_changed(int index) {
+  slot_set_easy_valid_date_2_custom();
+
+  if (!easy_mode_conf_.contains(index)) return;
+
+  auto c = easy_mode_conf_.value(index);
+  auto [found, algo] =
+      KeyGenerateInfo::SearchPrimaryKeyAlgo(c.key_algo.toLower());
+  if (found) gen_key_info_->SetAlgo(algo);
+
+  QDateTime dt = ParseValidityString(c.key_validity);
+  gen_key_info_->SetNonExpired(c.key_validity == "forever" ||
+                               c.key_validity == "none");
+
+  gen_key_info_->SetExpireTime(dt);
+
+  if (c.has_s_key) {
+    if (gen_subkey_info_ == nullptr) {
+      create_sync_gen_subkey_info();
+    }
+
+    auto [s_found, s_algo] =
+        KeyGenerateInfo::SearchSubKeyAlgo(c.s_key_algo.toLower());
+    if (s_found) gen_subkey_info_->SetAlgo(s_algo);
+  } else {
     gen_subkey_info_ = nullptr;
-  }
-
-  else if (mode == "DSA") {
-    auto [found, algo] = KeyGenerateInfo::SearchPrimaryKeyAlgo("dsa2048");
-    if (found) gen_key_info_->SetAlgo(algo);
-
-    if (gen_subkey_info_ == nullptr) {
-      create_sync_gen_subkey_info();
-    }
-
-    auto [s_found, s_algo] = KeyGenerateInfo::SearchSubKeyAlgo("elg2048");
-    if (s_found) gen_subkey_info_->SetAlgo(s_algo);
-  }
-
-  else if (mode == "ECC (25519)") {
-    auto [found, algo] = KeyGenerateInfo::SearchPrimaryKeyAlgo("ed25519");
-    if (found) gen_key_info_->SetAlgo(algo);
-
-    if (gen_subkey_info_ == nullptr) {
-      create_sync_gen_subkey_info();
-    }
-
-    auto [s_found, s_algo] = KeyGenerateInfo::SearchSubKeyAlgo("cv25519");
-    if (s_found) gen_subkey_info_->SetAlgo(s_algo);
-  }
-
-  else {
-    auto [found, algo] = KeyGenerateInfo::SearchPrimaryKeyAlgo("rsa2048");
-    if (found) gen_key_info_->SetAlgo(algo);
-
-    if (gen_subkey_info_ == nullptr) {
-      create_sync_gen_subkey_info();
-    }
-
-    auto [s_found, s_algo] = KeyGenerateInfo::SearchSubKeyAlgo("rsa2048");
-    if (s_found) gen_subkey_info_->SetAlgo(s_algo);
   }
 
   refresh_widgets_state();
 }
 
 void KeyGenerateDialog::slot_easy_valid_date_changed(const QString& mode) {
+  // most conditions are non expired
+  gen_key_info_->SetNonExpired(false);
+
   if (mode == tr("3 Months")) {
-    gen_key_info_->SetNonExpired(false);
     gen_key_info_->SetExpireTime(QDateTime::currentDateTime().addMonths(3));
   }
 
   else if (mode == tr("6 Months")) {
-    gen_key_info_->SetNonExpired(false);
     gen_key_info_->SetExpireTime(QDateTime::currentDateTime().addMonths(6));
   }
 
   else if (mode == tr("1 Year")) {
-    gen_key_info_->SetNonExpired(false);
     gen_key_info_->SetExpireTime(QDateTime::currentDateTime().addYears(1));
   }
 
   else if (mode == tr("2 Years")) {
-    gen_key_info_->SetNonExpired(false);
     gen_key_info_->SetExpireTime(QDateTime::currentDateTime().addYears(2));
   }
 
   else if (mode == tr("5 Years")) {
-    gen_key_info_->SetNonExpired(false);
     gen_key_info_->SetExpireTime(QDateTime::currentDateTime().addYears(5));
   }
 
   else if (mode == tr("10 Years")) {
-    gen_key_info_->SetNonExpired(false);
     gen_key_info_->SetExpireTime(QDateTime::currentDateTime().addYears(10));
-
   }
 
   else if (mode == tr("Non Expired")) {
@@ -564,7 +673,6 @@ void KeyGenerateDialog::slot_easy_valid_date_changed(const QString& mode) {
   }
 
   else {
-    gen_key_info_->SetNonExpired(false);
     gen_key_info_->SetExpireTime(QDateTime::currentDateTime().addYears(2));
   }
 
@@ -641,4 +749,48 @@ void KeyGenerateDialog::create_sync_gen_subkey_info() {
   sync_gen_subkey_algo_info();
   slot_easy_valid_date_changed(ui_->easyValidityPeriodComboBox->currentText());
 }
+
+void KeyGenerateDialog::load_easy_mode_config() {
+  auto config_path =
+      QDir(GlobalSettingStation::GetInstance().GetConfigDirPath())
+          .filePath("generate_key_easy_mode_config.json");
+  QJsonArray conf;
+
+  if (QFile::exists(config_path)) {
+    QByteArray buf;
+    if (ReadFile(config_path, buf)) {
+      auto doc = QJsonDocument::fromJson(buf);
+      conf = doc.array();
+    }
+  }
+
+  if (conf.empty()) {
+    ExportSupportedAlgosToJsonFile();
+    conf = MakeDefaultEasyModeConf();
+    if (!WriteFile(config_path, QJsonDocument(conf).toJson())) {
+      LOG_E() << "save default gen key easy mode config to disk failed: "
+              << config_path;
+    }
+  }
+
+  easy_mode_conf_.clear();
+  ui_->easyAlgoComboBox->clear();
+  ui_->easyAlgoComboBox->addItem(tr("Custom"));
+
+  int index = 1;
+  for (const auto& item : conf) {
+    auto obj = item.toObject();
+    auto conf_opt = EasyModeConfFromJson(obj);
+    if (!conf_opt) {
+      LOG_W() << "invalid easy mode config item: " << obj.toVariantMap();
+      continue;
+    }
+    const auto& conf_item = *conf_opt;
+    if (conf_item.hidden || conf_item.name.isEmpty()) continue;
+
+    easy_mode_conf_.insert(index++, conf_item);
+    ui_->easyAlgoComboBox->addItem(conf_item.name);
+  }
+}
+
 }  // namespace GpgFrontend::UI

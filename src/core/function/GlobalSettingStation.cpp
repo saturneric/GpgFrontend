@@ -209,6 +209,10 @@ class GlobalSettingStation::Impl {
     return app_data_objs_path();
   }
 
+  [[nodiscard]] auto GetConfigDirPath() const -> QString {
+    return app_config_path_;
+  }
+
  private:
   [[nodiscard]] auto app_config_file_path() const -> QString {
     return app_config_path_ + "/config.ini";
@@ -328,5 +332,9 @@ auto GlobalSettingStation::GetAppSecureKey() -> GFBuffer {
 
 auto GlobalSettingStation::GetDataObjectsDir() const -> QString {
   return p_->GetDataObjectsPath();
+}
+
+auto GlobalSettingStation::GetConfigDirPath() const -> QString {
+  return p_->GetConfigDirPath();
 }
 }  // namespace GpgFrontend

@@ -43,6 +43,18 @@ class KeyGenerateDialog : public GeneralDialog {
   Q_OBJECT
 
  public:
+  struct EasyModeConf {
+    QString name;
+    QString key_algo;
+    QString key_validity;
+
+    bool has_s_key;
+    QString s_key_algo;
+    QString s_key_validity;
+
+    bool hidden;
+  };
+
   /**
    * @details Constructor of this class
    *
@@ -72,7 +84,7 @@ class KeyGenerateDialog : public GeneralDialog {
    *
    * @param mode
    */
-  void slot_easy_mode_changed(const QString& mode);
+  void slot_easy_mode_changed(int index);
 
   /**
    * @brief
@@ -101,10 +113,8 @@ class KeyGenerateDialog : public GeneralDialog {
   void slot_easy_combination_changed(const QString& mode);
 
  private:
-  /**
-   * @brief
-   *
-   */
+  int channel_;
+
   QStringList error_messages_;  ///< List of errors occurring when checking
                                 ///< entries of line edits
 
@@ -115,7 +125,7 @@ class KeyGenerateDialog : public GeneralDialog {
   QContainer<KeyAlgo> supported_primary_key_algos_;
   QContainer<KeyAlgo> supported_subkey_algos_;
 
-  int channel_;
+  QMap<int, EasyModeConf> easy_mode_conf_;
 
   /**
    * @details Refresh widgets state by GenKeyInfo
@@ -151,6 +161,12 @@ class KeyGenerateDialog : public GeneralDialog {
    *
    */
   void do_generate();
+
+  /**
+   * @brief
+   *
+   */
+  void load_easy_mode_config();
 };
 
 }  // namespace GpgFrontend::UI
