@@ -108,4 +108,21 @@ auto GFBufferFactory::FromBase64(const GFBuffer& buffer) -> GFBufferOrNone {
   return ret;
 }
 
+auto GFBufferFactory::RandomOpenSSLPassphase(int len) -> GFBufferOrNone {
+  len = std::max(len, 16);
+  len = std::min(len, 512);
+  return PassphraseGenerator::GenerateBytesByOpenSSL(len);
+}
+
+auto GFBufferFactory::RandomGpgPassphase(int len) -> GFBufferOrNone {
+  len = std::max(len, 16);
+  len = std::min(len, 512);
+  return ph_gen_.GenerateBytes(len);
+}
+
+auto GFBufferFactory::RandomGpgZBasePassphase(int len) -> GFBufferOrNone {
+  len = std::max(len, 31);
+  len = std::min(len, 31);
+  return ph_gen_.Generate(len);
+}
 }  // namespace GpgFrontend

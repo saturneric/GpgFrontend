@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/function/PassphraseGenerator.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/GFBuffer.h"
 
@@ -57,9 +58,18 @@ class GF_CORE_EXPORT GFBufferFactory
   static auto Decrypt(const GFBuffer& passphase, const GFBuffer& buffer)
       -> GFBufferOrNone;
 
+  static auto RandomOpenSSLPassphase(int len) -> GFBufferOrNone;
+
+  auto RandomGpgPassphase(int len) -> GFBufferOrNone;
+
+  auto RandomGpgZBasePassphase(int len) -> GFBufferOrNone;
+
   auto QString(const GFBuffer& buffer) -> QString;
 
   auto QByteArray(const GFBuffer& buffer) -> QByteArray;
+
+ private:
+  PassphraseGenerator& ph_gen_ = PassphraseGenerator::GetInstance(GetChannel());
 };
 
 }  // namespace GpgFrontend
