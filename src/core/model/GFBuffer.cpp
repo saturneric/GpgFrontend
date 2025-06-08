@@ -42,8 +42,10 @@ struct GFBuffer::Impl {
   explicit Impl() = default;
 
   explicit Impl(size_t size) {
-    sec_ptr_ = SMASecMalloc(size);
-    sec_size_ = size;
+    if (size != 0) {
+      sec_ptr_ = SMASecMalloc(size);
+      sec_size_ = size;
+    }
   }
 
   ~Impl() {
@@ -113,6 +115,12 @@ auto GFBuffer::Data() const -> const char* {
 }
 
 void GFBuffer::Resize(ssize_t size) {
+  if (size == 0) {
+    impl_->sec_ptr_ = nullptr;
+    impl_->sec_size_ = 0;
+    return;
+  }
+
   impl_->sec_ptr_ = SMASecRealloc(impl_->sec_ptr_, size);
   impl_->sec_size_ = size;
 }
