@@ -28,11 +28,14 @@
 
 #include "KeyMgmt.h"
 
+#include <cassert>
+
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/KeyPackageOperator.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/model/GpgImportInformation.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "function/SetOwnerTrustLevel.h"
@@ -535,7 +538,7 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
 
 void KeyMgmt::SlotImportKeyPackage() {
   auto key_package_file_name = QFileDialog::getOpenFileName(
-      this, tr("Import Key Package"), {}, tr("Key Package") + " (*.gfepack)");
+      this, tr("Import Key Package"), {}, tr("Key Package") + " (*.gfpack)");
 
   if (key_package_file_name.isEmpty()) return;
 
@@ -581,42 +584,63 @@ void KeyMgmt::SlotImportKeyPackage() {
     return;
   }
 
-  GpgOperaHelper::WaitForOpera(
-      this, tr("Importing"), [=](const OperaWaitingHd& op_hd) {
-        KeyPackageOperator::ImportKeyPackage(
-            key_package_file_name, key_file_name,
-            key_list_->GetCurrentGpgContextChannel(),
-            [=](GFError err, const DataObjectPtr& data_obj) {
-              // stop waiting
-              op_hd();
+  bool ok;
+  auto pin = QInputDialog::getText(this, tr("Enter PIN"),
+                                   tr("Please enter PIN to decrypt the Key:"),
+                                   QLineEdit::Password, QString(), &ok);
+  if (!ok || pin.isEmpty()) return;
 
-              if (err < 0 || !data_obj->Check<GpgImportInformation>()) {
-                QMessageBox::critical(
-                    this, tr("Error"),
-                    tr("An error occur in importing key package."));
-                return;
-              }
+  GFBuffer buf(pin);
+  pin.fill('X');
+  pin.clear();
 
-              auto info = ExtractParams<GpgImportInformation>(data_obj, 0);
-              if (err >= 0) {
-                emit SignalStatusBarChanged(tr("key(s) imported"));
-                emit SignalKeyStatusUpdated();
+  QPointer<KeyMgmt> self = this;
 
-                auto* connection = new QMetaObject::Connection;
-                *connection = connect(
-                    UISignalStation::GetInstance(),
-                    &UISignalStation::SignalKeyDatabaseRefreshDone, this,
-                    [=]() {
-                      (new KeyImportDetailDialog(
-                          key_list_->GetCurrentGpgContextChannel(),
-                          SecureCreateSharedObject<GpgImportInformation>(info),
-                          this));
-                      QObject::disconnect(*connection);
-                      delete connection;
-                    });
-              }
-            });
-      });
+  Thread::Task::TaskCallback cb = [=](int /*ret*/,
+                                      const DataObjectPtr& data_object) {
+    if (!data_object->Check<QString, QSharedPointer<GpgImportInformation>>()) {
+      return;
+    }
+
+    auto msg = ExtractParams<QString>(data_object, 0);
+    auto info =
+        ExtractParams<QSharedPointer<GpgImportInformation>>(data_object, 1);
+
+    if (!info) {
+      QMessageBox::critical(self, tr("Error"), msg);
+      return;
+    }
+
+    if (!self) return;
+
+    emit SignalStatusBarChanged(tr("key(s) imported"));
+    emit SignalKeyStatusUpdated();
+
+    auto* connection = new QMetaObject::Connection;
+    *connection =
+        connect(UISignalStation::GetInstance(),
+                &UISignalStation::SignalKeyDatabaseRefreshDone, self, [=]() {
+                  (new KeyImportDetailDialog(
+                      key_list_->GetCurrentGpgContextChannel(), info, self));
+                  QObject::disconnect(*connection);
+                  delete connection;
+                });
+  };
+
+  auto* task = new Thread::Task{
+      [=](const DataObjectPtr& data_object) -> int {
+        auto [err, info] =
+            KeyPackageOperator::GetInstance(
+                key_list_->GetCurrentGpgContextChannel())
+                .ImportKeyPackage(key_package_file_name, key_file_name, buf);
+        data_object->Swap({err, info});
+        return 0;
+      },
+      "import_key_package", TransferParams(), cb};
+
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
+      ->PostTask(task);
 }
 
 void KeyMgmt::slot_popup_menu_by_key_list(QContextMenuEvent* event,

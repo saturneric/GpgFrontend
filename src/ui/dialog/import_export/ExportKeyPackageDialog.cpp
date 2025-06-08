@@ -30,6 +30,8 @@
 
 #include "core/function/KeyPackageOperator.h"
 #include "ui/function/GpgOperaHelper.h"
+
+//
 #include "ui_ExportKeyPackageDialog.h"
 
 GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
@@ -40,17 +42,16 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
       keys_(std::move(keys)) {
   ui_->setupUi(this);
 
-  ui_->nameValueLabel->setText(KeyPackageOperator::GenerateKeyPackageName());
+  ui_->nameValueLabel->setText(opera_.GenerateKeyPackageName());
 
   connect(ui_->gnerateNameButton, &QPushButton::clicked, this, [=]() {
-    ui_->nameValueLabel->setText(KeyPackageOperator::GenerateKeyPackageName());
+    ui_->nameValueLabel->setText(opera_.GenerateKeyPackageName());
   });
 
   connect(ui_->setOutputPathButton, &QPushButton::clicked, this, [=]() {
     auto file_name = QFileDialog::getSaveFileName(
-        this, tr("Export Key Package"),
-        ui_->nameValueLabel->text() + ".gfepack",
-        tr("Key Package") + " (*.gfepack);;All Files (*)");
+        this, tr("Export Key Package"), ui_->nameValueLabel->text() + ".gfpack",
+        tr("Key Package") + " (*.gfpack);;All Files (*)");
 
     // check path
     if (file_name.isEmpty()) return;
@@ -66,13 +67,6 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
 
     // check path
     if (file_name.isEmpty()) return;
-
-    if (!KeyPackageOperator::GeneratePassphrase(file_name, passphrase_)) {
-      QMessageBox::critical(
-          this, tr("Error"),
-          tr("An error occurred while generating the passphrase file."));
-      return;
-    }
     ui_->passphraseValueLabel->setText(file_name);
   });
 
@@ -105,13 +99,22 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
       return;
     }
 
+    bool ok;
+    auto pin = QInputDialog::getText(this, tr("Enter PIN"),
+                                     tr("Please enter PIN to protect the Key:"),
+                                     QLineEdit::Password, QString(), &ok);
+    if (!ok || pin.isEmpty()) return;
+
+    GFBuffer buf(pin);
+    pin.fill('X');
+    pin.clear();
+
     GpgOperaHelper::WaitForOpera(
-        this, tr("Generating"), [this](const OperaWaitingHd& op_hd) {
-          KeyPackageOperator::GenerateKeyPackage(
-              ui_->outputPathLabel->text(), ui_->nameValueLabel->text(),
-              current_gpg_context_channel_, keys_, passphrase_,
-              ui_->includeSecretKeyCheckBox->isChecked(),
-              [=](GFError err, const DataObjectPtr&) {
+        this, tr("Generating"), [this, buf](const OperaWaitingHd& op_hd) {
+          opera_.GenerateKeyPackage(
+              ui_->outputPathLabel->text(), ui_->passphraseValueLabel->text(),
+              keys_, buf, ui_->includeSecretKeyCheckBox->isChecked(),
+              [=](int err, const DataObjectPtr& data_object) {
                 // stop waiting
                 op_hd();
 
@@ -121,21 +124,23 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
                       QString(
                           tr("The Key Package has been successfully generated "
                              "and has been protected by encryption "
-                             "algorithms(AES-256-GCM). You can safely transfer "
+                             "algorithms(AES-256-GCM). You can safely "
+                             "transfer "
                              "your Key Package.")) +
                           "<br /><br />" + "<b>" +
                           tr("But the key file cannot be leaked under any "
-                             "circumstances. Please delete the Key Package and "
-                             "key file as soon as possible after completing "
+                             "circumstances. Please delete the Key Package "
+                             "and "
+                             "key file as soon as possible after "
+                             "completing "
                              "the "
                              "transfer "
                              "operation.") +
                           "</b>");
                   accept();
                 } else {
-                  QMessageBox::critical(
-                      this, tr("Error"),
-                      tr("An error occurred while exporting the key package."));
+                  auto err = ExtractParams<QString>(data_object, 0);
+                  QMessageBox::critical(this, tr("Error"), err);
                 }
               });
         });
