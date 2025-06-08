@@ -505,4 +505,9 @@ auto GF_CORE_EXPORT DecidePinentry() -> QString {
   return {};
 }
 
+auto GF_CORE_EXPORT GnuPGVersion() -> QString {
+  auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.gnupg_version", QString{});
+  return gnupg_version;
+}
 }  // namespace GpgFrontend

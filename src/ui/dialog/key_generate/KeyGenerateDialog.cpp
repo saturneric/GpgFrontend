@@ -263,6 +263,36 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
   ui_->easyAlgoComboBox->setCurrentIndex(
       easy_mode_conf_.isEmpty() ? 0 : easy_mode_conf_.firstKey());
 
+  QString info_text;
+  info_text += (tr("GnuPG Version: %1") + "\n").arg(GnuPGVersion());
+
+  info_text += "\n";
+  info_text += tr("Supported Primary Key Algorithms: ") + "\n";
+  for (const auto& algo : supported_primary_key_algos_) {
+    if (algo.Id() == "none") continue;
+    info_text += QString("  - %1 (%2, %3 bits)\n")
+                     .arg(algo.Name())
+                     .arg(algo.Type())
+                     .arg(algo.KeyLength());
+  }
+
+  info_text += "\n";
+  info_text += tr("Supported Subkey Algorithms: ") + "\n";
+  for (const auto& algo : supported_subkey_algos_) {
+    if (algo.Id() == "none") continue;
+    info_text += QString("  - %1 (%2, %3 bits)\n")
+                     .arg(algo.Name())
+                     .arg(algo.Type())
+                     .arg(algo.KeyLength());
+  }
+
+  info_text += "\n";
+  info_text += tr(
+      "Please select a key algorithm and configure the parameters as needed.");
+
+  ui_->statusPlainTextEdit->clear();
+  ui_->statusPlainTextEdit->setPlainText(info_text);
+
   this->setWindowTitle(tr("Generate Key"));
   this->setAttribute(Qt::WA_DeleteOnClose);
   this->setModal(true);

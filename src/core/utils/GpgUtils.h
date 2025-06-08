@@ -228,4 +228,11 @@ auto GF_CORE_EXPORT CheckGpgVersion(int channel, const QString&) -> bool;
  * @return QString
  */
 auto GF_CORE_EXPORT DecidePinentry() -> QString;
+
+/**
+ * @brief
+ *
+ * @return QString
+ */
+auto GF_CORE_EXPORT GnuPGVersion() -> QString;
 }  // namespace GpgFrontend
