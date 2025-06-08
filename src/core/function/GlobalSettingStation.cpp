@@ -52,8 +52,8 @@ class GlobalSettingStation::Impl {
     LOG_I() << "app path: " << app_path_;
     LOG_I() << "app working path: " << working_path_;
 
-    auto portable_file_path = working_path_ + "/PORTABLE.txt";
-    if (QFileInfo(portable_file_path).exists()) {
+    const auto protable_mode = qApp->property("GFPortableMode").toBool();
+    if (protable_mode) {
       Module::UpsertRTValue("core", "env.state.portable", 1);
       LOG_I() << "GpgFrontend runs in the portable mode now";
 
