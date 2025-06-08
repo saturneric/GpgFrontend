@@ -482,7 +482,7 @@ void KeyPairSubkeyTab::slot_export_subkey() {
   }
 
   // generate a file name
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
   auto file_string =
       key_->Name() + "[" + key_->Email() + "](" + s_key.ID() + ")_s_key.asc";
 #else

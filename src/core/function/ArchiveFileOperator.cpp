@@ -103,7 +103,7 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
         auto *disk = archive_read_disk_new();
         archive_read_disk_set_standard_lookup(disk);
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
         auto target_directory_utf16_wstr = std::wstring(
             reinterpret_cast<const wchar_t *>((target_directory).utf16()));
         auto r =
@@ -133,7 +133,7 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
 
           archive_read_disk_descend(disk);
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
           auto source_path =
               QString::fromUtf16(reinterpret_cast<const char16_t *>(
                   archive_entry_pathname_w(entry)));
@@ -148,7 +148,7 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
             auto relativ_path_name = base_path.relativeFilePath(source_path);
             archive_entry_set_pathname(entry, relativ_path_name.toUtf8());
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
             auto source_path_utf16_wstr = std::wstring(
                 reinterpret_cast<const wchar_t *>(source_path.utf16()));
             archive_entry_copy_sourcepath_w(entry,
@@ -247,7 +247,7 @@ void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
           auto path_name = QString::fromUtf8(archive_entry_pathname(entry));
           auto target_path_name = target_path + "/" + path_name;
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
           auto target_path_utf16_wstr = std::wstring(
               reinterpret_cast<const wchar_t *>((target_path_name).utf16()));
           archive_entry_copy_pathname_w(entry, target_path_utf16_wstr.c_str());

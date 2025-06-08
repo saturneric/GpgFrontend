@@ -44,7 +44,7 @@
 
 namespace GpgFrontend {
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
 int setenv(const char *name, const char *value, int overwrite) {
   if (!overwrite) {
     int errcode = 0;
@@ -62,7 +62,7 @@ void PreInit(const GFCxtWPtr &p_ctx) {
 
   auto *app = ctx->GetApp();
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
   const auto console = app->property("GFShowConsoleOnWindows").toInt();
 
   if (console && (AttachConsole(ATTACH_PARENT_PROCESS) || AllocConsole())) {
@@ -201,8 +201,7 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
 
   // On window platform, the gpg-agent is running as a subprocess. It will be
   // closed automatically when the application is closing.
-
-#if !defined(_WIN32) && !defined(WIN32)
+#ifndef Q_OS_WINDOWS
 
   auto clear_gpg_password_cache =
       GetSettings().value("basic/clear_gpg_password_cache", false).toBool();

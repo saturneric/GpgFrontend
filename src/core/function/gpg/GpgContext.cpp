@@ -42,10 +42,6 @@
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
 
-#if defined(_WIN32) || defined(WIN32)
-#include <windows.h>
-#endif
-
 namespace GpgFrontend {
 
 class GpgAgentProcess {
@@ -510,7 +506,7 @@ class GpgContext::Impl {
       auto configuration_name = info_split_list[0].trimmed();
       auto configuration_value = info_split_list[1].trimmed();
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
       // replace some special substrings on windows
       // platform
       configuration_value.replace("%3a", ":");

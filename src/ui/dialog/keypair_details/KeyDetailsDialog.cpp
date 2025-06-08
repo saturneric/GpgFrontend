@@ -65,7 +65,7 @@ KeyDetailsDialog::KeyDetailsDialog(int channel, const GpgKeyPtr& key,
   auto* main_layout = new QVBoxLayout;
   main_layout->addWidget(tab_widget_);
 
-#if defined(__APPLE__) && defined(__MACH__)
+#ifdef Q_OS_MACOS
   setAttribute(Qt::WA_LayoutUsesWidgetRect);
 #endif
 

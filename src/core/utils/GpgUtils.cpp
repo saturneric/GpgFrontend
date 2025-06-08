@@ -466,12 +466,12 @@ auto GF_CORE_EXPORT CheckGpgVersion(int channel, const QString& v) -> bool {
 }
 
 auto GF_CORE_EXPORT DecidePinentry() -> QString {
-#ifdef __linux__
+#ifdef Q_OS_LINUX
   QStringList preferred_list = {"pinentry-gnome3",
                                 "pinentry-qt"
                                 "pinentry-gtk2"};
   QStringList search_paths = {"/bin", "/usr/bin", "/usr/local/bin"};
-#elif defined(__APPLE__) && defined(__MACH__)
+#elif defined(Q_OS_MACOS)
   QStringList preferred_list = {"pinentry-mac", "pinentry-qt"};
   QStringList search_paths = {"/opt/homebrew/bin", "/usr/local/bin"};
 #else

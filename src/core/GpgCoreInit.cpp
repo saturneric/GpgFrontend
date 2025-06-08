@@ -120,7 +120,7 @@ auto InitGpgME() -> bool {
     return false;
   }
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
   auto w32spawn_dir =
       GlobalSettingStation::GetInstance().GetAppDir() + "/../gnupg/bin";
   if (gpgme_set_global_flag("w32-inst-dir",
@@ -286,7 +286,7 @@ auto GetComponentPathsByGpgConf(const QString& gpgconf_install_fs_path)
     auto exists = info_split_list[3].trimmed();
     auto runnable = info_split_list[4].trimmed();
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
     // replace some special substrings on windows platform
     component_path.replace("%3a", ":");
 #endif
@@ -321,7 +321,7 @@ auto DecideGpgConfPath(const QString& default_gpgconf_path) -> QString {
   if (use_custom_gnupg_install_path && !custom_gnupg_install_path.isEmpty()) {
     // check gpgconf path
     gpgconf_install_fs_path = custom_gnupg_install_path;
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
     gpgconf_install_fs_path += "/gpgconf.exe";
 #else
     gpgconf_install_fs_path += "/gpgconf";
@@ -344,10 +344,10 @@ auto DecideGpgConfPath(const QString& default_gpgconf_path) -> QString {
   // custom not found or not defined then fallback to default candidate path
   if (gpgconf_install_fs_path.isEmpty()) {
     // platform detection
-#if defined(__APPLE__) && defined(__MACH__)
+#ifdef Q_OS_MACOS
     gpgconf_install_fs_path = SearchGpgconfPath(
         {"/usr/local/bin/gpgconf", "/opt/homebrew/bin/gpgconf"});
-#elif defined(_WIN32) || defined(WIN32)
+#elif defined(Q_OS_WINDOWS)
     gpgconf_install_fs_path =
         SearchGpgconfPath({"C:/Program Files (x86)/gnupg/bin/gpgconf.exe"});
 #else

@@ -39,7 +39,7 @@
 
 #include "test/GpgFrontendTest.h"
 
-#if (defined(__APPLE__) && defined(__MACH__)) || defined(__linux__)
+#if defined(Q_OS_MACOS) || defined(Q_OS_LINUX)
 
 #include <dlfcn.h>
 
@@ -57,7 +57,7 @@ auto GetLoadedLibraryPath(void *symbol_address) -> QString {
 
 }  // namespace
 
-#elif defined(_WIN32) || defined(WIN32)
+#elif defined(Q_OS_WINDOWS)
 
 #include <windows.h>
 

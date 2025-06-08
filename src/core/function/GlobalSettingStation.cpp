@@ -36,7 +36,7 @@
 #include "core/module/ModuleManager.h"
 #include "core/utils/FilesystemUtils.h"
 
-#if defined(__linux__)
+#ifdef Q_OS_LINUX
 #include "core/utils/CommonUtils.h"
 #endif
 
@@ -57,7 +57,7 @@ class GlobalSettingStation::Impl {
       Module::UpsertRTValue("core", "env.state.portable", 1);
       LOG_I() << "GpgFrontend runs in the portable mode now";
 
-#if defined(__linux__)
+#ifdef Q_OS_LINUX
       if (IsAppImageENV()) {
         LOG_I() << "app image path: " << qEnvironmentVariable("APPIMAGE");
         QFileInfo info(
@@ -77,7 +77,7 @@ class GlobalSettingStation::Impl {
     LOG_I() << "app log path: " << app_log_path();
     LOG_I() << "app modules path: " << app_mods_path();
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
     LOG_I() << "app config path: " << app_config_path_;
     if (!QDir(app_config_path_).exists()) QDir(app_config_path_).mkpath(".");
 #else
@@ -100,7 +100,7 @@ class GlobalSettingStation::Impl {
   }
 
   [[nodiscard]] auto GetSettings() -> QSettings {
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
     return QSettings(app_config_file_path(), QSettings::IniFormat);
 #else
     if (IsProtableMode()) return {app_config_file_path(), QSettings::IniFormat};
@@ -169,7 +169,7 @@ class GlobalSettingStation::Impl {
   [[nodiscard]] auto GetIntegratedModulePath() const -> QString {
     const auto exec_binary_path = GetAppDir();
 
-#if defined(__linux__)
+#ifdef Q_OS_LINUX
     // AppImage
     if (IsAppImageENV()) {
       return qEnvironmentVariable("APPDIR") + "/usr/lib/modules";
@@ -180,11 +180,11 @@ class GlobalSettingStation::Impl {
     }
 #endif
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
     return exec_binary_path + "/../modules";
 #endif
 
-#if defined(__APPLE__) && defined(__MACH__)
+#ifdef Q_OS_MACOS
 
 #ifdef NDEBUG
     return exec_binary_path + "/../PlugIns";

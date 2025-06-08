@@ -234,7 +234,7 @@ void KeyPairOperaTab::slot_export_key(bool secret, bool ascii, bool shortest,
         }
 
     // generate a file name
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
         auto file_name = QString("%1[%2](%3)_%4.asc");
 #else
         auto file_name = QString("%1<%2>(%3)_%4.asc");
@@ -439,7 +439,7 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
                 QString("%1 (*.rev)").arg(tr("Revocation Certificates"));
             QString m_output_file_name;
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
             auto file_string = m_key_->Name() + "[" + m_key_->Email() + "](" +
                                m_key_->ID() + ").rev";
 #else
@@ -594,7 +594,7 @@ void KeyPairOperaTab::slot_export_paper_key() {
     }
 
     // generate a file name
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
     auto file_string = m_key_->Name() + "[" + m_key_->Email() + "](" +
                        m_key_->ID() + ")_paper_key.txt";
 #else
@@ -651,7 +651,7 @@ void KeyPairOperaTab::slot_import_paper_key() {
   }
 
   // generate a file name
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
   auto file_string = m_key_->Name() + "[" + m_key_->Email() + "](" +
                      m_key_->ID() + ")_paper_key.txt";
 #else

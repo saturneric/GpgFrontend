@@ -117,7 +117,7 @@ void MainWindow::Init() noexcept {
             &UISignalStation::SignalMainWindowOpenFile, this,
             &MainWindow::SlotOpenFile);
 
-#if !(defined(_WIN32) || defined(WIN32))
+#ifndef Q_OS_WINDOWS
     connect(this, &MainWindow::SignalLoaded, this, [=]() {
       QTimer::singleShot(3000, [self = QPointer<MainWindow>(this)]() {
         if (self != nullptr && DecidePinentry().isEmpty()) {
