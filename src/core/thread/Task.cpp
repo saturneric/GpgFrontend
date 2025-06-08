@@ -140,6 +140,7 @@ class Task::Impl {
               // set task returning code
               SetRTN(rtn);
 
+#ifdef NDEBUG
               try {
                 if (callback_) {
                   callback_(rtn_, data_object_);
@@ -148,6 +149,11 @@ class Task::Impl {
                 LOG_W() << "task: {}, " << GetFullID()
                         << "callback caught exception, rtn: " << rtn;
               }
+#else
+              if (callback_) {
+                callback_(rtn_, data_object_);
+              }
+#endif
 
               LOG_D() << "task" << this->name_
                       << "sending task end signal, rtn:" << rtn;
