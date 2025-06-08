@@ -42,10 +42,6 @@
 
 namespace {
 
-auto EnforceBinaryValidation() -> bool {
-  return QString::fromUtf8(ENFORCE_BINARY_VALIDATION).toInt() == 1;
-}
-
 auto LoadEmbeddedPublicKey() -> EVP_PKEY* {
   auto [succ, buffer] = GpgFrontend::ReadFileGFBuffer(":/keys/public.pem");
   if (!succ) {
@@ -200,14 +196,16 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
           [](const DataObjectPtr&) -> int {
             QMap<QString, bool> modules;
 
+            // if do self checking
+            const auto self_check = qApp->property("GFSelfCheck").toBool();
+
             // only check integrated modules at first
             auto* key = LoadEmbeddedPublicKey();
             QMap<QString, bool> integrated_modules = LoadIntegratedMods();
             for (auto it = integrated_modules.keyValueBegin();
                  it != integrated_modules.keyValueEnd(); ++it) {
               // validate integrated modules
-              if (EnforceBinaryValidation() && it->second &&
-                  !ValidateModule(it->first, key)) {
+              if (self_check && it->second && !ValidateModule(it->first, key)) {
                 LOG_W() << "refuse to load integrated module: " << it->first;
                 continue;
               }

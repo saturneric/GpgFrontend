@@ -235,7 +235,3 @@ auto ValidateLibraries() -> bool {
 
   return succ_core && succ_ui && succ_test;
 }
-
-auto EnforceBinaryValidation() -> bool {
-  return QString::fromUtf8(ENFORCE_BINARY_VALIDATION).toInt() == 1;
-}
