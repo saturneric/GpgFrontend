@@ -171,6 +171,7 @@ auto EvpDecryptImpl(const GpgFrontend::GFBuffer& ciphertext,
     LOG_E() << "EVP_CIPHER_CTX_new failed";
     return {};
   }
+
   GpgFrontend::GFBuffer plaintext(ciphertext.Size());
   int len = 0;
   int plaintext_len = 0;
@@ -347,6 +348,10 @@ auto AESCryptoHelper::GCMDecrypt(const GpgFrontend::GFBuffer& raw_key,
 
   auto key = DeriveKeyArgon2(raw_key, salt);
   if (!key) return {};
+
+  if (ciphertext.Empty()) {
+    LOG_W() << "ciphertext is empty, will only check tag authentication";
+  }
 
   auto plaintext = EvpDecryptImpl(ciphertext, *key, iv, tag, EVP_aes_256_gcm());
   if (!plaintext) {

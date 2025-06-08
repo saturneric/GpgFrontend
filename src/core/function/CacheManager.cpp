@@ -232,6 +232,8 @@ class CacheManager::Impl : public QObject {
     FLOG_D() << "flushing durable cache to disk...";
 
     for (const auto& cache : durable_cache_storage_.mirror()) {
+      if (cache.second.Empty()) continue;
+
       auto key = get_data_object_key(cache.first);
       opera_.StoreSecDataObj(key, cache.second);
     }

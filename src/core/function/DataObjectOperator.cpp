@@ -132,6 +132,11 @@ auto DataObjectOperator::read_decr_object(const QString& ref)
     return {};
   }
 
+  if (encrypted.Empty()) {
+    LOG_W() << "data object from disk is empty, ref: " << ref;
+    return {};
+  }
+
   auto plaintext = AESCryptoHelper::GCMDecrypt(key_, encrypted);
   if (!plaintext) {
     LOG_W() << "failed to decrypt data object ref: " << ref;
