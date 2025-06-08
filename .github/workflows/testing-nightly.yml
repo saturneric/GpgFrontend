@@ -335,7 +335,8 @@ jobs:
           rm -rf build/artifacts/bin/*.a
           rm -rf build/artifacts/bin/modules/*.a
           mv build/artifacts/bin/modules build/artifacts/modules
-          touch build/artifacts/bin/PORTABLE.txt
+          touch build/artifacts/bin/ENV.ini
+          echo "PortableMode=true" >> build/artifacts/bin/ENV.ini
           cd build
           windeployqt-qt6 --no-translations --force ./artifacts/bin/libgf_core.dll
           windeployqt-qt6 --no-translations --force ./artifacts/bin/libgf_ui.dll
