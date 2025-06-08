@@ -38,8 +38,41 @@
 
 namespace GpgFrontend {
 
+void GpgFrontendContext::load_env_conf_set_properties() {
+  auto env_config = QDir::currentPath() + "/ENV.ini";
+  if (!QFileInfo(env_config).exists()) return;
+
+  QSettings s(env_config, QSettings::IniFormat);
+
+  property("GFSelfCheck", s.value("SelfCheck", false).toBool());
+  property("GFSecureLevel", s.value("SecureLevel", 0).toInt());
+  property("GFPortableMode", s.value("PortableMode", false).toBool());
+
+  qInfo() << "ENV" << "GFSelfCheck" << property("GFSelfCheck").toInt();
+  qInfo() << "ENV" << "GFSecureLevel" << property("GFSecureLevel").toInt();
+  qInfo() << "ENV" << "GFPortableMode" << property("GFPortableMode").toBool();
+}
+
 void GpgFrontendContext::InitApplication() {
-  app_ = SecureCreateObject<UI::GpgFrontendApplication>(argc, argv);
+  app_ = new UI::GpgFrontendApplication(argc, argv);
+
+#ifdef RELEASE
+  QLoggingCategory::setFilterRules("*.debug=false\n*.info=false\n");
+  qSetMessagePattern(
+      "[%{time yyyyMMdd h:mm:ss.zzz}] [%{category}] "
+      "[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-"
+      "critical}C%{endif}%{if-fatal}F%{endif}] [%{threadid}] - "
+      "%{message}");
+#else
+  QLoggingCategory::setFilterRules("*.debug=false");
+  qSetMessagePattern(
+      "[%{time yyyyMMdd h:mm:ss.zzz}] [%{category}] "
+      "[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-"
+      "critical}C%{endif}%{if-fatal}F%{endif}] [%{threadid}] %{file}:%{line} - "
+      "%{message}");
+#endif
+
+  load_env_conf_set_properties();
 }
 
 auto GpgFrontendContext::GetApp() -> QApplication* { return app_; }
@@ -49,7 +82,18 @@ GpgFrontendContext::GpgFrontendContext(int argc, char** argv)
 
 GpgFrontendContext::~GpgFrontendContext() {
   if (app_ != nullptr) {
-    SecureDestroyObject(app_);
+    free(app_);
   }
+}
+
+auto GpgFrontendContext::property(const char* name) -> QVariant {
+  if (app_ != nullptr) return app_->property(name);
+  return {};
+}
+
+auto GpgFrontendContext::property(const char* name, const QVariant& value)
+    -> bool {
+  if (app_ != nullptr) return app_->setProperty(name, value);
+  return false;
 }
 }  // namespace GpgFrontend

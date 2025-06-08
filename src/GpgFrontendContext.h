@@ -77,6 +77,28 @@ struct GpgFrontendContext {
 
  private:
   QApplication* app_ = nullptr;
+
+  /**
+   * @brief
+   *
+   */
+  void load_env_conf_set_properties();
+
+  /**
+   * @brief
+   *
+   * @param name
+   * @return QVariant
+   */
+  auto property(const char* name) -> QVariant;
+
+  /**
+   * @brief
+   *
+   * @param name
+   * @return auto
+   */
+  auto property(const char* name, const QVariant& value) -> bool;
 };
 
 }  // namespace GpgFrontend

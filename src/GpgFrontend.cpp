@@ -58,32 +58,22 @@ auto main(int argc, char* argv[]) -> int {
         "such as CSPRNG are not available!");
   }
 
-  // OpenSSL 32 MB Secure Memory
-  CRYPTO_secure_malloc_init(static_cast<size_t>(32 * 1024 * 1024), 32);
-
   // initialize qt resources
   Q_INIT_RESOURCE(gpgfrontend);
 
-  GpgFrontend::GFCxtSPtr const ctx =
-      GpgFrontend::SecureCreateSharedObject<GpgFrontend::GpgFrontendContext>(
-          argc, argv);
+  auto const ctx =
+      QSharedPointer<GpgFrontend::GpgFrontendContext>::create(argc, argv);
   ctx->InitApplication();
 
-#ifdef RELEASE
-  QLoggingCategory::setFilterRules("*.debug=false\n*.info=false\n");
-  qSetMessagePattern(
-      "[%{time yyyyMMdd h:mm:ss.zzz}] [%{category}] "
-      "[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-"
-      "critical}C%{endif}%{if-fatal}F%{endif}] [%{threadid}] - "
-      "%{message}");
-#else
-  QLoggingCategory::setFilterRules("*.debug=false");
-  qSetMessagePattern(
-      "[%{time yyyyMMdd h:mm:ss.zzz}] [%{category}] "
-      "[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-"
-      "critical}C%{endif}%{if-fatal}F%{endif}] [%{threadid}] %{file}:%{line} - "
-      "%{message}");
-#endif
+  const auto* app = ctx->GetApp();
+  Q_ASSERT(app != nullptr);
+
+  // High Secure Level
+  const auto secure_level = app->property("GFSecureLevel").toInt();
+  if (secure_level == 2) {
+    // OpenSSL Alloc 32 MB Secure Memory
+    CRYPTO_secure_malloc_init(static_cast<size_t>(32 * 1024 * 1024), 32);
+  }
 
   auto rtn = 0;
 
@@ -99,8 +89,8 @@ auto main(int argc, char* argv[]) -> int {
 
   parser.process(*ctx->GetApp());
 
-  if ((EnforceBinaryValidation() || parser.isSet("self-check")) &&
-      !ValidateLibraries()) {
+  const auto self_check = app->property("GFSelfCheck").toBool();
+  if ((self_check || parser.isSet("self-check")) && !ValidateLibraries()) {
     QMessageBox::critical(
         nullptr, QObject::tr("Program Self-Test Failed"),
         QObject::tr(
