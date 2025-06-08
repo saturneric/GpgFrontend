@@ -33,7 +33,6 @@
 #include <qobject.h>
 #include <qthread.h>
 
-#include "core/utils/MemoryUtils.h"
 #include "ui/GpgFrontendApplication.h"
 
 namespace GpgFrontend {
@@ -48,9 +47,15 @@ void GpgFrontendContext::load_env_conf_set_properties() {
   property("GFSecureLevel", s.value("SecureLevel", 0).toInt());
   property("GFPortableMode", s.value("PortableMode", false).toBool());
 
+  property("GFShowConsoleOnWindows",
+           s.value("ShowConsoleOnWindows", false).toBool());
+
   qInfo() << "ENV" << "GFSelfCheck" << property("GFSelfCheck").toInt();
   qInfo() << "ENV" << "GFSecureLevel" << property("GFSecureLevel").toInt();
   qInfo() << "ENV" << "GFPortableMode" << property("GFPortableMode").toBool();
+
+  qInfo() << "ENV" << "GFShowConsoleOnWindows"
+          << property("GFShowConsoleOnWindows").toBool();
 }
 
 void GpgFrontendContext::InitApplication() {

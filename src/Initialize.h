@@ -33,6 +33,13 @@
 namespace GpgFrontend {
 
 /**
+ * @brief
+ *
+ * @param p_ctx
+ */
+void PreInit(const GFCxtWPtr &p_ctx);
+
+/**
  * @brief init global PATH env
  *
  */

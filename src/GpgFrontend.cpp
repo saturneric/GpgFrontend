@@ -26,7 +26,6 @@
  *
  */
 
-#include <openssl/crypto.h>
 #include <openssl/provider.h>
 #include <qcommandlineparser.h>
 #include <qloggingcategory.h>
@@ -35,7 +34,6 @@
 
 //
 #include "GpgFrontendContext.h"
-#include "core/utils/MemoryUtils.h"
 
 //
 #include "Application.h"
@@ -63,17 +61,15 @@ auto main(int argc, char* argv[]) -> int {
 
   auto const ctx =
       QSharedPointer<GpgFrontend::GpgFrontendContext>::create(argc, argv);
+
+  // create qt core application
   ctx->InitApplication();
 
   const auto* app = ctx->GetApp();
   Q_ASSERT(app != nullptr);
 
-  // High Secure Level
-  const auto secure_level = app->property("GFSecureLevel").toInt();
-  if (secure_level == 2) {
-    // OpenSSL Alloc 32 MB Secure Memory
-    CRYPTO_secure_malloc_init(static_cast<size_t>(32 * 1024 * 1024), 32);
-  }
+  // do some early init
+  GpgFrontend::PreInit(ctx);
 
   auto rtn = 0;
 

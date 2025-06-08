@@ -28,6 +28,8 @@
 
 #include "Initialize.h"
 
+#include <openssl/crypto.h>
+
 #include "core/GpgCoreInit.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
@@ -54,6 +56,30 @@ int setenv(const char *name, const char *value, int overwrite) {
 }
 #endif
 
+void PreInit(const GFCxtWPtr &p_ctx) {
+  GFCxtSPtr ctx = p_ctx.lock();
+  if (ctx == nullptr) return;
+
+  auto *app = ctx->GetApp();
+
+#if defined(_WIN32) || defined(WIN32)
+  const auto console = app->property("GFShowConsoleOnWindows").toInt();
+
+  if (console && (AttachConsole(ATTACH_PARENT_PROCESS) || AllocConsole())) {
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
+    freopen("CONIN$", "r", stdin);
+  }
+#endif
+
+  // High Secure Level
+  const auto secure_level = app->property("GFSecureLevel").toInt();
+  if (secure_level == 2) {
+    // OpenSSL Alloc 32 MB Secure Memory
+    CRYPTO_secure_malloc_init(static_cast<size_t>(32 * 1024 * 1024), 32);
+  }
+}
+
 void InitGlobalPathEnv() {
   // read settings
   bool use_custom_gnupg_install_path =
@@ -61,7 +87,7 @@ void InitGlobalPathEnv() {
           .value("gnupg/use_custom_gnupg_install_path", false)
           .toBool();
 
-  QString custom_gnupg_install_path =
+  auto custom_gnupg_install_path =
       GetSettings().value("gnupg/custom_gnupg_install_path").toString();
 
   // add custom gnupg install path into env $PATH
