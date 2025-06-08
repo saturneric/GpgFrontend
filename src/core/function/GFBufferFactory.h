@@ -58,6 +58,12 @@ class GF_CORE_EXPORT GFBufferFactory
   static auto Decrypt(const GFBuffer& passphase, const GFBuffer& buffer)
       -> GFBufferOrNone;
 
+  static auto EncryptLite(const GFBuffer& passphase, const GFBuffer& buffer)
+      -> GFBufferOrNone;
+
+  static auto DecryptLite(const GFBuffer& passphase, const GFBuffer& buffer)
+      -> GFBufferOrNone;
+
   static auto RandomOpenSSLPassphase(int len) -> GFBufferOrNone;
 
   auto RandomGpgPassphase(int len) -> GFBufferOrNone;

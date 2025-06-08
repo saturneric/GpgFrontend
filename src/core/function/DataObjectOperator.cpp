@@ -28,7 +28,7 @@
 
 #include "DataObjectOperator.h"
 
-#include "core/function/AESCryptoHelper.h"
+#include "core/function/GFBufferFactory.h"
 #include "core/function/PassphraseGenerator.h"
 #include "core/utils/IOUtils.h"
 
@@ -76,7 +76,7 @@ auto DataObjectOperator::StoreSecDataObj(const QString& key,
 
   QByteArray hash_obj_key = get_object_ref(key);
   const auto target_obj_path = gss_.GetDataObjectsDir() + "/" + hash_obj_key;
-  auto encrypted = AESCryptoHelper::GCMEncrypt(key_, value);
+  auto encrypted = GFBufferFactory::EncryptLite(key_, value);
 
   if (!encrypted) {
     LOG_E() << "failed to encrypt data object";
@@ -137,7 +137,7 @@ auto DataObjectOperator::read_decr_object(const QString& ref)
     return {};
   }
 
-  auto plaintext = AESCryptoHelper::GCMDecrypt(key_, encrypted);
+  auto plaintext = GFBufferFactory::DecryptLite(key_, encrypted);
   if (!plaintext) {
     LOG_W() << "failed to decrypt data object ref: " << ref;
     return {};

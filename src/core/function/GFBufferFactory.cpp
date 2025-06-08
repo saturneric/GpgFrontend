@@ -125,4 +125,16 @@ auto GFBufferFactory::RandomGpgZBasePassphase(int len) -> GFBufferOrNone {
   len = std::min(len, 31);
   return ph_gen_.Generate(len);
 }
+
+auto GFBufferFactory::EncryptLite(const GFBuffer& passphase,
+                                  const GFBuffer& buffer) -> GFBufferOrNone {
+  if (buffer.Empty()) return {};
+  return AESCryptoHelper::GCMEncryptLite(passphase, buffer);
+}
+
+auto GFBufferFactory::DecryptLite(const GFBuffer& passphase,
+                                  const GFBuffer& buffer) -> GFBufferOrNone {
+  if (buffer.Empty()) return {};
+  return AESCryptoHelper::GCMDecryptLite(passphase, buffer);
+}
 }  // namespace GpgFrontend
