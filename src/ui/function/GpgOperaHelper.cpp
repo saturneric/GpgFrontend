@@ -562,17 +562,21 @@ void GpgOperaHelper::WaitForOpera(QWidget* parent, const QString& title,
   QEventLoop looper;
   QPointer<WaitingDialog> const dialog =
       new WaitingDialog(title, false, parent);
-  connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
+
+  QObject::connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
   dialog->show();
 
-  QTimer::singleShot(64, parent, [=]() {
-    opera([dialog]() {
-      if (dialog != nullptr) {
-        dialog->close();
-        dialog->accept();
-      }
-    });
-  });
+  QMetaObject::invokeMethod(
+      parent,
+      [=]() {
+        opera([dialog]() {
+          if (dialog) {
+            dialog->close();
+            dialog->accept();
+          }
+        });
+      },
+      Qt::QueuedConnection);
 
   looper.exec();
 }

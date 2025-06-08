@@ -28,10 +28,11 @@
 
 #include "MainWindow.h"
 
+#include <algorithm>
+
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
-#include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/main_window/GeneralMainWindow.h"
@@ -186,7 +187,7 @@ void MainWindow::Init() noexcept {
 void MainWindow::restore_settings() {
   KeyServerSO key_server(SettingsObject("key_server"));
   if (key_server.server_list.empty()) key_server.ResetDefaultServerList();
-  if (key_server.default_server < 0) key_server.default_server = 0;
+  key_server.default_server = std::max(key_server.default_server, 0);
 
   auto settings = GetSettings();
   if (!settings.contains("gnupg/non_ascii_at_file_operation")) {
