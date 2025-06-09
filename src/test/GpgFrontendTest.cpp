@@ -28,7 +28,6 @@
 
 #include "GpgFrontendTest.h"
 
-#include <gtest/gtest.h>
 #include <qglobal.h>
 
 #include "core/GpgConstants.h"

@@ -28,6 +28,10 @@
 
 #pragma once
 
+#include <gtest/gtest.h>
+
+#include <QLoggingCategory>
+
 extern "C" {
 auto GF_TEST_EXPORT GFTestValidateSymbol() -> int;
 }

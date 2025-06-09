@@ -34,6 +34,9 @@ aux_source_directory(. TEST_SOURCE)
 # define test library
 register_library(test LIBRARY_TARGET ${TEST_SOURCE})
 
+# set up pch
+target_precompile_headers(${LIBRARY_TARGET} PUBLIC GpgFrontendTest.h)
+
 # link options
 target_link_libraries(${LIBRARY_TARGET} PRIVATE GTest::gtest)
 target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_core)
