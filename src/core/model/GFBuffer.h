@@ -52,9 +52,13 @@ class GF_CORE_EXPORT GFBuffer {
 
   auto operator==(const GFBuffer& o) const -> bool;
 
+  auto operator!=(const GFBuffer& o) const -> bool;
+
   auto operator==(const char* str) const -> bool;
 
   auto operator!=(const char* str) const -> bool;
+
+  auto operator<(const GFBuffer& other) const -> bool;
 
   [[nodiscard]] auto Data() -> char*;
 

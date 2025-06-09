@@ -257,4 +257,15 @@ auto GFBuffer::FromBase64() const -> GFBufferOrNone {
 
   return ret;
 }
+
+auto GFBuffer::operator<(const GFBuffer& other) const -> bool {
+  const auto min_len = std::min(Size(), other.Size());
+  int cmp = std::memcmp(Data(), other.Data(), min_len);
+  if (cmp != 0) return cmp < 0;
+  return Size() < other.Size();
+}
+
+auto GFBuffer::operator!=(const GFBuffer& o) const -> bool {
+  return !(*this == o);
+}
 }  // namespace GpgFrontend

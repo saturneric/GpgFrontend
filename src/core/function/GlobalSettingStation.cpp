@@ -210,8 +210,8 @@ class GlobalSettingStation::Impl {
     return app_config_path_;
   }
 
-  void SetAppSecureKeys(const QMap<GFBuffer, GFBuffer>& keys) {
-    app_secure_keys_ = keys;
+  void AppendAppSecureKeys(const QMap<GFBuffer, GFBuffer>& keys) {
+    app_secure_keys_.insert(keys);
   }
 
   auto GetAppSecureKeyPath() -> QString { return app_secure_key_path(); }
@@ -341,9 +341,9 @@ auto GlobalSettingStation::GetConfigDirPath() const -> QString {
   return p_->GetConfigDirPath();
 }
 
-void GlobalSettingStation::SetAppSecureKeys(
+void GlobalSettingStation::AppendAppSecureKeys(
     const QMap<GFBuffer, GFBuffer>& keys) {
-  p_->SetAppSecureKeys(keys);
+  p_->AppendAppSecureKeys(keys);
 }
 
 auto GlobalSettingStation::GetLegacyAppSecureKeyPath() -> QString {

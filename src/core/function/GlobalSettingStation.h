@@ -215,7 +215,7 @@ class GF_CORE_EXPORT GlobalSettingStation
    *
    * @return auto
    */
-  void SetAppSecureKeys(const QMap<GFBuffer, GFBuffer>& keys);
+  void AppendAppSecureKeys(const QMap<GFBuffer, GFBuffer>& keys);
 
   /**
    * @brief Get the Legacy Secure Key object

@@ -87,12 +87,12 @@ auto GFBufferFactory::ToSha256(const GFBuffer& buffer) -> GFBufferOrNone {
   if (buffer.Empty()) return {};
   GFBuffer ret(32);
 
-  if (SHA256(reinterpret_cast<const unsigned char*>(buffer.Data()),
-             buffer.Size(),
-             reinterpret_cast<unsigned char*>(ret.Data())) == nullptr) {
-    return {};
-  }
-  return ret;
+  auto* res =
+      SHA256(reinterpret_cast<const unsigned char*>(buffer.Data()),
+             buffer.Size(), reinterpret_cast<unsigned char*>(ret.Data()));
+  if (res != nullptr) return ret;
+
+  return {};
 }
 
 auto GFBufferFactory::ToHMACSha256(const GFBuffer& key, const GFBuffer& data)
