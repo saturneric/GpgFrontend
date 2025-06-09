@@ -31,7 +31,7 @@ on:
 
 env:
   BUILD_TYPE: Release
-  GNUPG_VERSION: "2.4.7"
+  GNUPG_VERSION: "2.4.8"
 
 jobs:
   build:
@@ -299,14 +299,27 @@ jobs:
         shell: msys2 {0}
         run: |
           export URL="https://ftp.bktus.com/GnuPG/${{env.GNUPG_VERSION}}"
+          export KEY_URL="https://ftp.bktus.com/GPG_KEYS/5CA3DA246843FD03.asc"
           export FILE="gnupg.zip"
           export CHECKSUM_FILE="SHA256SUMS.txt"
+          export SIGNATURE_FILE="gnupg.zip.sig"
+          export GNUPGHOME=$(mktemp -d)
 
           cd $(cygpath -u "${{github.workspace}}")
 
           mkdir -p build/downloads
+
           curl -o build/downloads/$FILE $URL/$FILE
           curl -o build/downloads/$CHECKSUM_FILE $URL/$CHECKSUM_FILE
+          curl -o build/downloads/5CA3DA246843FD03.asc $KEY_URL
+          curl -o build/downloads/$SIGNATURE_FILE $URL/$SIGNATURE_FILE
+
+          gpg --import build/downloads/5CA3DA246843FD03.asc
+          gpg --verify build/downloads/$SIGNATURE_FILE build/downloads/$FILE
+          if [ $? -ne 0 ]; then
+            echo "GnuPG signature verification failed!" >&2
+            exit 1
+          fi
 
           CHECKSUM=$(grep "$FILE" build/downloads/$CHECKSUM_FILE | awk '{print $1}')
           ACTUAL_CHECKSUM=$(sha256sum build/downloads/$FILE | awk '{print $1}')
@@ -377,7 +390,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: "main"
+          ref: "develop"
           lfs: "false"
           submodules: recursive
           token: ${{ secrets.USER_GITHUB_TOKEN }}
@@ -386,7 +399,6 @@ jobs:
         run: |
           cd ${{github.workspace}}
           gh release delete nightly --repo saturneric/GpgFrontend --cleanup-tag --yes || true
-          git fetch origin develop:develop
           git tag -f nightly develop
           git push origin nightly --force
         env:
@@ -420,21 +432,6 @@ jobs:
           name: ${{ steps.release_title.outputs.title }}
           draft: false
           prerelease: true
-          body: |
-            ### Nightly Build of GpgFrontend
-
-            This is an **unstable nightly build** of GpgFrontend. It may contain
-            new features or bug fixes that are under testing. Please note that
-            this version is less stable compared to official releases.
-
-            #### Why Nightly Releases?
-            This nightly release aims to provide users with early access to
-            features or fixes they urgently need. Given that official releases
-            are typically published at least two months apart, I understand that
-            the wait may be too long for some users. 
-
-            #### Important Notes:
-            - Use this version at your own risk; it is not recommended for 
-              production environments.
+          body_path: ${{ github.workspace }}/.github/NIGHTLY_RELEASE.md
           files: |
             artifacts/*
