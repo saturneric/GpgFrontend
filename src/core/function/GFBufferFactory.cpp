@@ -29,6 +29,8 @@
 #include "GFBufferFactory.h"
 
 #include <openssl/evp.h>
+#include <openssl/hmac.h>
+#include <openssl/sha.h>
 
 #include "core/function/AESCryptoHelper.h"
 #include "core/utils/IOUtils.h"
@@ -79,6 +81,31 @@ auto GFBufferFactory::ToBase64(const GFBuffer& buffer) -> GFBufferOrNone {
   if (out_len < 0) return {};
   ret.Resize(out_len);
   return ret;
+}
+
+auto GFBufferFactory::ToSha256(const GFBuffer& buffer) -> GFBufferOrNone {
+  if (buffer.Empty()) return {};
+  GFBuffer ret(32);
+
+  if (SHA256(reinterpret_cast<const unsigned char*>(buffer.Data()),
+             buffer.Size(),
+             reinterpret_cast<unsigned char*>(ret.Data())) == nullptr) {
+    return {};
+  }
+  return ret;
+}
+
+auto GFBufferFactory::ToHMACSha256(const GFBuffer& key, const GFBuffer& data)
+    -> GFBufferOrNone {
+  unsigned int out_len = 0;
+  std::array<unsigned char, EVP_MAX_MD_SIZE> out;
+
+  auto* result = HMAC(EVP_sha256(), key.Data(), static_cast<int>(key.Size()),
+                      reinterpret_cast<const unsigned char*>(data.Data()),
+                      data.Size(), out.data(), &out_len);
+  if (result == nullptr) return {};
+
+  return GFBuffer(reinterpret_cast<const char*>(out.data()), out_len);
 }
 
 auto GFBufferFactory::FromBase64(const GFBuffer& buffer) -> GFBufferOrNone {

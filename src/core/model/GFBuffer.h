@@ -46,6 +46,8 @@ class GF_CORE_EXPORT GFBuffer {
 
   explicit GFBuffer(const char* str);
 
+  explicit GFBuffer(const char* buf, size_t size);
+
   ~GFBuffer();
 
   auto operator==(const GFBuffer& o) const -> bool;

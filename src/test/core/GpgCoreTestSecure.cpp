@@ -28,6 +28,7 @@
 
 #include "GpgCoreTest.h"
 #include "core/function/AESCryptoHelper.h"
+#include "core/function/GFBufferFactory.h"
 #include "core/function/SecureRandomGenerator.h"
 
 namespace GpgFrontend::Test {
@@ -76,6 +77,26 @@ TEST_F(GpgCoreTest, CoreSecureTestE) {
   auto decoded = encoded->FromBase64();
   ASSERT_TRUE(decoded.has_value());
   ASSERT_EQ(*decoded, plaintext);
+}
+
+TEST_F(GpgCoreTest, CoreSecureTestF) {
+  GFBuffer plaintext(QString::fromUtf8("LOL!!! HELLO WORLD! HELLO!!!"));
+  ASSERT_TRUE(!plaintext.Empty());
+
+  auto sha256 = GFBufferFactory::ToSha256(plaintext);
+  ASSERT_TRUE(sha256.has_value());
+  ASSERT_EQ(sha256->ConvertToQByteArray().toHex(),
+            "b30649a855a5bbca09084a0b351aace5cfb850e583dea1b3e1782c3123c36113");
+}
+
+TEST_F(GpgCoreTest, CoreSecureTestG) {
+  GFBuffer plaintext(QString::fromUtf8("LOL!!! HELLO WORLD! HELLO!!!"));
+  ASSERT_TRUE(!plaintext.Empty());
+
+  auto sha256 = GFBufferFactory::ToHMACSha256(GFBuffer("123456"), plaintext);
+  ASSERT_TRUE(sha256.has_value());
+  ASSERT_EQ(sha256->ConvertToQByteArray().toHex(),
+            "5651ab54d616162a71a1e04937105ac2e731a9025f9b8735a9bc4ca975bbaeb1");
 }
 
 }  // namespace GpgFrontend::Test

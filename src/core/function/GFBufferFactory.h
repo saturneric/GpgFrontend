@@ -48,6 +48,11 @@ class GF_CORE_EXPORT GFBufferFactory
 
   static auto FromBase64(const GFBuffer& buffer) -> GFBufferOrNone;
 
+  static auto ToSha256(const GFBuffer& buffer) -> GFBufferOrNone;
+
+  static auto ToHMACSha256(const GFBuffer& key, const GFBuffer& data)
+      -> GFBufferOrNone;
+
   auto Compress(const GFBuffer& buffer) -> GFBufferOrNone;
 
   auto Decompress(const GFBuffer& buffer) -> GFBufferOrNone;

@@ -103,6 +103,13 @@ GFBuffer::GFBuffer(const char* str)
   }
 }
 
+GFBuffer::GFBuffer(const char* buf, size_t size)
+    : impl_(SecureCreateSharedObject<Impl>((buf != nullptr) ? size : 0)) {
+  if ((buf != nullptr) && impl_->sec_size_ > 0) {
+    std::memcpy(impl_->sec_ptr_, buf, impl_->sec_size_);
+  }
+}
+
 auto GFBuffer::operator==(const GFBuffer& o) const -> bool {
   return Size() == o.Size() &&
          (Size() == 0 || std::memcmp(Data(), o.Data(), Size()) == 0);
