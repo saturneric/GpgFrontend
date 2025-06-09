@@ -32,6 +32,38 @@
 #include <openssl/provider.h>
 #include <openssl/rand.h>
 
+#include "core/utils/GpgUtils.h"
+
+namespace {
+constexpr std::array<char, 33> kZBase32Alphabet = {
+    {"ybndrfg8ejkmcpqxot1uwisza345h769"}};
+
+auto ZBase32Encode(const GpgFrontend::GFBuffer &data) -> GpgFrontend::GFBuffer {
+  GpgFrontend::GFBuffer result;
+  int buffer = 0;
+  int bits_left = 0;
+
+  for (size_t i = 0; i < data.Size(); ++i) {
+    buffer = (buffer << 8) | static_cast<unsigned char>(data.Data()[i]);
+    bits_left += 8;
+
+    while (bits_left >= 5) {
+      int index = (buffer >> (bits_left - 5)) & 0x1F;
+      result.Append(&kZBase32Alphabet[index], 1);
+      bits_left -= 5;
+    }
+  }
+
+  if (bits_left > 0) {
+    int index = (buffer << (5 - bits_left)) & 0x1F;
+    result.Append(&kZBase32Alphabet[index], 1);
+  }
+
+  return result;
+}
+
+}  // namespace
+
 namespace GpgFrontend {
 
 SecureRandomGenerator::SecureRandomGenerator(int channel)
@@ -46,7 +78,11 @@ auto SecureRandomGenerator::GnuPGGenerate(size_t size) -> GFBufferOrNone {
   GpgError err =
       gpgme_op_random_bytes(ctx_.DefaultContext(), GPGME_RANDOM_MODE_NORMAL,
                             buffer.Data(), buffer.Size());
-  if (err != GPG_ERR_NO_ERROR) return {};
+  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+    LOG_W()
+        << "gpg failed to generate random bytes, falling back to openssl...";
+    return OpenSSLGenerate(size);
+  }
   return buffer;
 }
 
@@ -56,7 +92,11 @@ auto SecureRandomGenerator::GnuPGGenerateZBase32() -> GFBufferOrNone {
   GpgError err =
       gpgme_op_random_bytes(ctx_.DefaultContext(), GPGME_RANDOM_MODE_ZBASE32,
                             buffer.Data(), buffer.Size());
-  if (err != GPG_ERR_NO_ERROR) return {};
+  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+    LOG_W()
+        << "gpg failed to generate random zbase 32, falling back to openssl...";
+    return OpenSSLGenerateZBase32();
+  }
   return buffer;
 }
 
@@ -75,4 +115,16 @@ auto SecureRandomGenerator::OpenSSLGenerate(size_t size) -> GFBufferOrNone {
   }
   return buffer;
 }
+
+auto SecureRandomGenerator::OpenSSLGenerateZBase32() -> GFBufferOrNone {
+  auto buffer = OpenSSLGenerate(20);
+  if (!buffer) return {};
+
+  auto z_buffer = ZBase32Encode(*buffer);
+  if (z_buffer.Size() > 31) {
+    z_buffer.Resize(31);
+  }
+  return z_buffer;
+}
+
 };  // namespace GpgFrontend

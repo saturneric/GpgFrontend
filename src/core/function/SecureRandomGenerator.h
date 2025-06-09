@@ -36,13 +36,42 @@ namespace GpgFrontend {
 class GF_CORE_EXPORT SecureRandomGenerator
     : public SingletonFunctionObject<SecureRandomGenerator> {
  public:
+  /**
+   * @brief Construct a new Secure Random Generator object
+   *
+   * @param channel
+   */
   explicit SecureRandomGenerator(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
+  /**
+   * @brief
+   *
+   * @param size
+   * @return GFBufferOrNone
+   */
   static auto OpenSSLGenerate(size_t size) -> GFBufferOrNone;
 
+  /**
+   * @brief
+   *
+   * @return GFBufferOrNone
+   */
+  static auto OpenSSLGenerateZBase32() -> GFBufferOrNone;
+
+  /**
+   * @brief
+   *
+   * @param size
+   * @return GFBufferOrNone
+   */
   auto GnuPGGenerate(size_t size) -> GFBufferOrNone;
 
+  /**
+   * @brief
+   *
+   * @return GFBufferOrNone
+   */
   auto GnuPGGenerateZBase32() -> GFBufferOrNone;
 
  private:
