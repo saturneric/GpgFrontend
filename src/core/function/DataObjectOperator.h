@@ -124,6 +124,14 @@ class GF_CORE_EXPORT DataObjectOperator
    * @brief
    *
    * @param ref
+   * @return GFBufferOrNone
+   */
+  auto write_encr_object(const GFBuffer &ref, const GFBuffer &value) -> QString;
+
+  /**
+   * @brief
+   *
+   * @param ref
    * @return std::optional<QJsonDocument>
    */
   auto read_decr_json_object(const GFBuffer &ref)

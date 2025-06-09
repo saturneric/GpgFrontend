@@ -53,7 +53,7 @@ class GF_CORE_EXPORT ArchiveFileOperator {
    * @param files
    */
   static void NewArchive2DataExchanger(const QString &target_directory,
-                                       QSharedPointer<GFDataExchanger>,
+                                       const QSharedPointer<GFDataExchanger> &,
                                        const OperationCallback &cb);
 
   /**
@@ -63,7 +63,7 @@ class GF_CORE_EXPORT ArchiveFileOperator {
    * @param base_path
    */
   static void ExtractArchiveFromDataExchanger(
-      QSharedPointer<GFDataExchanger> fd, const QString &target_path,
+      const QSharedPointer<GFDataExchanger> &fd, const QString &target_path,
       const OperationCallback &cb);
 };
 }  // namespace GpgFrontend

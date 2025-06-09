@@ -223,8 +223,9 @@ auto GpgAssuanHelper::default_data_callback(void* opaque, const void* buffer,
   return GPG_ERR_NO_ERROR;
 }
 
-auto GpgAssuanHelper::default_status_callback(
-    void* opaque, const char* status, const char* args) -> gpgme_error_t {
+auto GpgAssuanHelper::default_status_callback(void* opaque, const char* status,
+                                              const char* args)
+    -> gpgme_error_t {
   auto ctx = *static_cast<QSharedPointer<AssuanCallbackContext>*>(opaque);
   ctx->status = QString::fromUtf8(status);
   ctx->status_args = QString::fromUtf8(args);
@@ -233,9 +234,10 @@ auto GpgAssuanHelper::default_status_callback(
 }
 
 // Note: Returning data is currently not implemented in GPGME.
-auto GpgAssuanHelper::default_inquery_callback(
-    void* opaque, const char* name, const char* args,
-    gpgme_data_t* /*r_data*/) -> gpgme_error_t {
+auto GpgAssuanHelper::default_inquery_callback(void* opaque, const char* name,
+                                               const char* args,
+                                               gpgme_data_t* /*r_data*/)
+    -> gpgme_error_t {
   auto ctx = *static_cast<QSharedPointer<AssuanCallbackContext>*>(opaque);
   ctx->inquery_name = QString::fromUtf8(name);
   ctx->inquery_args = QString::fromUtf8(args);

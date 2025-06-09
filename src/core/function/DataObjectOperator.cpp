@@ -136,30 +136,7 @@ auto DataObjectOperator::StoreSecDataObj(const QString& key,
   }
 
   auto ref = get_object_ref(key);
-  const auto ref_hex = ref.ConvertToQByteArray().toHex();
-  const auto ref_path = gss_.GetDataObjectsDir() + "/" + ref_hex;
-
-  auto drv_key = DeriveObjectKey(key_, ref);
-  if (!drv_key) {
-    LOG_W() << "failed to derive key from ref: " << ref_hex;
-    return {};
-  }
-
-  auto encrypted = GFBufferFactory::EncryptLite(*drv_key, value);
-  if (!encrypted) {
-    LOG_E() << "failed to encrypt data object: " << ref_hex;
-    return {};
-  }
-
-  GFBuffer data;
-  data.Append(key_id_);
-  data.Append(*encrypted);
-
-  if (!WriteFileGFBuffer(ref_path, data)) {
-    LOG_E() << "failed to write data object to disk: " << key;
-  }
-
-  return ref_hex;
+  return write_encr_object(ref, value);
 }
 
 auto DataObjectOperator::GetSecDataObject(const QString& key)
@@ -246,4 +223,31 @@ auto DataObjectOperator::read_decr_json_object(const GFBuffer& ref)
   }
 }
 
+auto DataObjectOperator::write_encr_object(const GFBuffer& ref,
+                                           const GFBuffer& value) -> QString {
+  const auto ref_hex = ref.ConvertToQByteArray().toHex();
+  const auto ref_path = gss_.GetDataObjectsDir() + "/" + ref_hex;
+
+  auto drv_key = DeriveObjectKey(key_, ref);
+  if (!drv_key) {
+    LOG_W() << "failed to derive key from ref: " << ref_hex;
+    return {};
+  }
+
+  auto encrypted = GFBufferFactory::EncryptLite(*drv_key, value);
+  if (!encrypted) {
+    LOG_E() << "failed to encrypt data object: " << ref_hex;
+    return {};
+  }
+
+  GFBuffer data;
+  data.Append(key_id_);
+  data.Append(*encrypted);
+
+  if (!WriteFileGFBuffer(ref_path, data)) {
+    LOG_E() << "failed to write data object to disk: " << ref_hex;
+  }
+
+  return ref_hex;
+}
 }  // namespace GpgFrontend

@@ -44,14 +44,14 @@ auto GFBufferFactory::Compress(const GFBuffer& buffer) -> GFBufferOrNone {
   return {};
 }
 
-auto GFBufferFactory::Encrypt(const GFBuffer& passphase,
-                              const GFBuffer& buffer) -> GFBufferOrNone {
+auto GFBufferFactory::Encrypt(const GFBuffer& passphase, const GFBuffer& buffer)
+    -> GFBufferOrNone {
   if (buffer.Empty()) return {};
   return AESCryptoHelper::GCMEncrypt(passphase, buffer);
 }
 
-auto GFBufferFactory::Decrypt(const GFBuffer& passphase,
-                              const GFBuffer& buffer) -> GFBufferOrNone {
+auto GFBufferFactory::Decrypt(const GFBuffer& passphase, const GFBuffer& buffer)
+    -> GFBufferOrNone {
   if (buffer.Empty()) return {};
   return AESCryptoHelper::GCMDecrypt(passphase, buffer);
 }
@@ -63,8 +63,8 @@ auto GFBufferFactory::FromFile(const class QString& path) -> GFBufferOrNone {
   return buffer;
 }
 
-auto GFBufferFactory::ToFile(const class QString& path,
-                             const GFBuffer& buffer) -> bool {
+auto GFBufferFactory::ToFile(const class QString& path, const GFBuffer& buffer)
+    -> bool {
   auto succ = WriteFileGFBuffer(path, buffer);
   Q_ASSERT(succ);
   if (!succ) LOG_E() << "write gf buffer to file failed: " << path;
@@ -73,7 +73,7 @@ auto GFBufferFactory::ToFile(const class QString& path,
 
 auto GFBufferFactory::ToBase64(const GFBuffer& buffer) -> GFBufferOrNone {
   if (buffer.Empty()) return {};
-  GFBuffer ret(4 * ((buffer.Size() + 2) / 3) + 1);
+  GFBuffer ret((4 * ((buffer.Size() + 2) / 3)) + 1);
   int out_len =
       EVP_EncodeBlock(reinterpret_cast<unsigned char*>(ret.Data()),
                       reinterpret_cast<const unsigned char*>(buffer.Data()),
@@ -95,8 +95,8 @@ auto GFBufferFactory::ToSha256(const GFBuffer& buffer) -> GFBufferOrNone {
   return {};
 }
 
-auto GFBufferFactory::ToHMACSha256(const GFBuffer& key,
-                                   const GFBuffer& data) -> GFBufferOrNone {
+auto GFBufferFactory::ToHMACSha256(const GFBuffer& key, const GFBuffer& data)
+    -> GFBufferOrNone {
   unsigned int out_len = 0;
   std::array<unsigned char, EVP_MAX_MD_SIZE> out;
 

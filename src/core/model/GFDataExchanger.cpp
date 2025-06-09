@@ -91,4 +91,7 @@ void GFDataExchanger::CloseWrite() {
 
 GFDataExchanger::GFDataExchanger(ssize_t size) : queue_max_size_(size) {}
 
+auto CreateStandardGFDataExchanger() -> QSharedPointer<GFDataExchanger> {
+  return SecureCreateSharedObject<GFDataExchanger>(kSecBufferSizeForFile);
+}
 }  // namespace GpgFrontend

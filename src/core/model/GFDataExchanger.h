@@ -56,8 +56,7 @@ class GFDataExchanger {
   std::atomic_bool close_ = false;
 };
 
-inline auto CreateStandardGFDataExchanger() -> QSharedPointer<GFDataExchanger> {
-  return SecureCreateSharedObject<GFDataExchanger>(kSecBufferSizeForFile);
-}
+auto GF_CORE_EXPORT CreateStandardGFDataExchanger()
+    -> QSharedPointer<GFDataExchanger>;
 
 }  // namespace GpgFrontend
