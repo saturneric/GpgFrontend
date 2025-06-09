@@ -391,6 +391,7 @@ void TextEditTabWidget::SlotCacheTextEditors() {
     content.clear();
   }
 
+  auto& gss = GlobalSettingStation::GetInstance();
   CacheObject cache("editor_pages_cache");
   QJsonArray unsaved_page_array;
   for (const auto& page : unsaved_pages) {
@@ -399,14 +400,16 @@ void TextEditTabWidget::SlotCacheTextEditors() {
     page_json["type"] = page.type;
     page_json["title"] = page.title;
 
-    auto encrypted_content = GFBufferFactory::Encrypt(
-        GlobalSettingStation::GetInstance().GetAppSecureKey(), page.content);
+    auto encrypted_content =
+        GFBufferFactory::Encrypt(gss.GetActiveAppSecureKey(), page.content);
     if (!encrypted_content) continue;
 
     auto base64_content = GFBufferFactory::ToBase64(*encrypted_content);
     if (!base64_content) continue;
 
     page_json["content"] = base64_content->ConvertToQString();
+    page_json["key_id"] =
+        QString::fromLatin1(gss.GetActiveKeyId().ConvertToQByteArray().toHex());
 
     unsaved_page_array.push_back(page_json);
   }
@@ -428,26 +431,31 @@ void TextEditTabWidget::SlotRestoreTextEditorsCache() {
 
   if (json_data.isEmpty() || !json_data.isArray()) return;
 
-  auto unsaved_page_array = json_data.array();
-  for (const auto& value_ref : unsaved_page_array) {
+  auto& gss = GlobalSettingStation::GetInstance();
+  auto json_array = json_data.array();
+  for (const auto& value_ref : json_array) {
     if (!value_ref.isObject()) continue;
-    auto unsaved_page_json = value_ref.toObject();
+    auto json = value_ref.toObject();
 
-    if (!unsaved_page_json.contains("title") ||
-        !unsaved_page_json.contains("content")) {
+    if (!json.contains("title") || !json.contains("content")) {
       continue;
     }
 
-    const auto title = unsaved_page_json["title"].toString();
-    const auto base64_content = unsaved_page_json["content"].toString();
+    const auto title = json["title"].toString();
+    const auto base64_content = json["content"].toString();
 
     auto encrypted_content =
         GFBufferFactory::FromBase64(GFBuffer(base64_content));
     if (!encrypted_content) continue;
 
-    auto content = GFBufferFactory::Decrypt(
-        GlobalSettingStation::GetInstance().GetAppSecureKey(),
-        *encrypted_content);
+    auto key_id = QByteArray::fromHex(json["key_id"].toString().toLatin1());
+    auto key = gss.GetAppSecureKey(GFBuffer(key_id));
+    key_id.fill('X');
+    key_id.clear();
+
+    if (key.Empty()) continue;
+
+    auto content = GFBufferFactory::Decrypt(key, *encrypted_content);
     if (!content) continue;
 
     LOG_D() << "restoring text editor tab, title: " << title;
