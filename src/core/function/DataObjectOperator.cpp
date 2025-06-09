@@ -192,7 +192,7 @@ auto DataObjectOperator::read_decr_object(const GFBuffer& ref)
   const auto ref_hex = ref.ConvertToQByteArray().toHex();
   const auto ref_path = gss_.GetDataObjectsDir() + "/" + ref_hex;
   if (!QFileInfo(ref_path).exists()) {
-    LOG_W() << "data object not found from disk, ref: " << ref_path;
+    LOG_W() << "data object not found from disk, ref: " << ref_hex;
     return {};
   }
 
