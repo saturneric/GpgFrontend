@@ -158,8 +158,8 @@ class GpgContext::Impl {
 
   [[nodiscard]] auto Good() const -> bool { return good_; }
 
-  auto SetPassphraseCb(const gpgme_ctx_t &ctx, gpgme_passphrase_cb_t cb)
-      -> bool {
+  auto SetPassphraseCb(const gpgme_ctx_t &ctx,
+                       gpgme_passphrase_cb_t cb) -> bool {
     if (gpgme_get_pinentry_mode(ctx) != GPGME_PINENTRY_MODE_LOOPBACK) {
       if (CheckGpgError(gpgme_set_pinentry_mode(
               ctx, GPGME_PINENTRY_MODE_LOOPBACK)) != GPG_ERR_NO_ERROR) {
@@ -244,16 +244,16 @@ class GpgContext::Impl {
       do {
         ret = gpgme_io_write(fd, &p_pass_bytes[off], pass_size - off);
         if (ret > 0) off += ret;
-      } while (ret > 0 && off != pass_size);
+      } while (ret > 0 && off != static_cast<ssize_t>(pass_size));
       res = off;
     }
 
     res += gpgme_io_write(fd, "\n", 1);
-    return res == pass_size + 1 ? 0 : GPG_ERR_CANCELED;
+    return res == static_cast<ssize_t>(pass_size + 1) ? 0 : GPG_ERR_CANCELED;
   }
 
-  static auto TestStatusCb(void *hook, const char *keyword, const char *args)
-      -> gpgme_error_t {
+  static auto TestStatusCb(void *hook, const char *keyword,
+                           const char *args) -> gpgme_error_t {
     FLOG_D("keyword %s", keyword);
     return GPG_ERR_NO_ERROR;
   }
