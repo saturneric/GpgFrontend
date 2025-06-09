@@ -101,7 +101,6 @@ class GF_CORE_EXPORT DataObjectOperator
   GlobalSettingStation &gss_ =
       GlobalSettingStation::GetInstance();  ///< GlobalSettingStation
   GFBuffer key_;                            ///< Raw key
-  QByteArray hash_key_;                     ///< Hash key
 
   /**
    * @brief Get the object ref object
@@ -109,7 +108,7 @@ class GF_CORE_EXPORT DataObjectOperator
    * @param key
    * @return QByteArray
    */
-  auto get_object_ref(const QString &key) -> QByteArray;
+  auto get_object_ref(const QString &obj_name) -> GFBuffer;
 
   /**
    * @brief
@@ -117,7 +116,7 @@ class GF_CORE_EXPORT DataObjectOperator
    * @param ref
    * @return GFBufferOrNone
    */
-  auto read_decr_object(const QString &ref) -> GFBufferOrNone;
+  auto read_decr_object(const GFBuffer &ref) -> GFBufferOrNone;
 
   /**
    * @brief
@@ -125,7 +124,7 @@ class GF_CORE_EXPORT DataObjectOperator
    * @param ref
    * @return std::optional<QJsonDocument>
    */
-  auto read_decr_json_object(const QString &ref)
+  auto read_decr_json_object(const GFBuffer &ref)
       -> std::optional<QJsonDocument>;
 };
 
