@@ -87,7 +87,7 @@ class GlobalSettingStation::Impl {
 
     if (!QDir(app_data_path_).exists()) QDir(app_data_path_).mkpath(".");
     if (!QDir(app_log_path()).exists()) QDir(app_log_path()).mkpath(".");
-    if (!QDir(app_secure_path()).exists()) QDir(app_log_path()).mkpath(".");
+    if (!QDir(app_secure_path()).exists()) QDir(app_secure_path()).mkpath(".");
     if (!QDir(app_mods_path()).exists()) QDir(app_mods_path()).mkpath(".");
     if (!QDir(app_data_objs_path()).exists()) {
       QDir(app_data_objs_path()).mkpath(".");

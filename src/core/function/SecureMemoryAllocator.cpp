@@ -50,8 +50,8 @@ class SecureMemoryAllocator {
 
   SecureMemoryAllocator(const SecureMemoryAllocator&) = delete;
 
-  auto operator=(const SecureMemoryAllocator&) -> SecureMemoryAllocator& =
-                                                      delete;
+  auto operator=(const SecureMemoryAllocator&)
+      -> SecureMemoryAllocator& = delete;
 
   auto Allocate(size_t) -> void*;
 
@@ -90,7 +90,6 @@ auto SecureMemoryAllocator::Allocate(size_t size) -> void* {
   auto* addr = OPENSSL_zalloc(size);
   if (size != 0 && addr == nullptr) FLOG_F("OPENSSL_zalloc failed");
 
-  LOG_D() << "N MA: " << addr << "SIZE: " << size;
   {
     QMutexLocker locker(&mutex_);
     Q_ASSERT(!allocated_.contains(addr));
@@ -119,13 +118,9 @@ auto SecureMemoryAllocator::Reallocate(void* ptr, size_t size) -> void* {
       return nullptr;
     }
 
-    LOG_D() << "N RE: " << ptr << "SIZE: " << size;
-
     const auto ptr_size = allocated_.value(ptr);
     auto* addr = OPENSSL_clear_realloc(ptr, ptr_size, size);
     if (size != 0 && addr == nullptr) FLOG_F("OPENSSL_clear_realloc failed");
-
-    LOG_D() << "N RE: " << addr << "<-" << ptr;
 
     allocated_.remove(ptr);
     allocated_[addr] = size;
@@ -146,8 +141,6 @@ void SecureMemoryAllocator::Deallocate(void* ptr) {
   {
     QMutexLocker locker(&mutex_);
 
-    LOG_D() << "N FE: " << ptr;
-
     Q_ASSERT(allocated_.contains(ptr));
     if (!allocated_.contains(ptr)) {
       FLOG_W()
@@ -167,7 +160,6 @@ auto SecureMemoryAllocator::GetInstance() -> SecureMemoryAllocator* {
 
   if (instance == nullptr) {
     auto secure_level = qApp->property("GFSecureLevel").toInt();
-    LOG_D() << "secure memory allocator get secure level: " << secure_level;
 
     void* addr = nullptr;
     // low and middle secure level
@@ -223,8 +215,6 @@ auto SecureMemoryAllocator::SecReallocate(void* ptr, size_t size) -> void* {
   void* new_addr = SecAllocate(size);
   Q_ASSERT(new_addr != ptr);
 
-  LOG_D() << "SEC RE: " << new_addr << "<-" << ptr;
-
   if (ptr != nullptr) {
     auto old_size = OPENSSL_secure_actual_size(ptr);
     std::memcpy(new_addr, ptr, std::min(size, old_size));
@@ -247,8 +237,6 @@ void SecureMemoryAllocator::SecDeallocate(void* ptr) {
   if (CRYPTO_secure_malloc_initialized() != 1) {
     FLOG_F("CRYPTO_secure_malloc_initialized failed");
   }
-
-  LOG_D() << "SEC FREE: " << ptr;
 
   {
     QMutexLocker locker(&mutex_);

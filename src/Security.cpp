@@ -234,6 +234,7 @@ auto InitLegacyAppSecureKey(const GFBuffer &pin) -> bool {
   GFBuffer legacy_key_id;
   if (!QFileInfo(gss.GetLegacyAppSecureKeyPath()).exists()) {
     legacy_key = NewLegacyAppSecureKey(pin);
+    legacy_key_id = CalculateKeyId(pin, legacy_key);
     Q_ASSERT(!legacy_key.Empty());
   } else {
     auto l_key_path = gss.GetLegacyAppSecureKeyPath();

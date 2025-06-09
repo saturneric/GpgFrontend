@@ -192,7 +192,7 @@ endif()
 # if enable ASAN
 if(GPGFRONTEND_ENABLE_ASAN)
   # check compiler
-  if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  if(NOT(("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang") OR("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")))
     message(FATAL_ERROR "Use GPGFRONTEND_ENABLE_ASAN only when using the clang compiler.")
   endif()
 
