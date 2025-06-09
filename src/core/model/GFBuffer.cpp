@@ -134,7 +134,7 @@ void GFBuffer::Resize(ssize_t size) {
   impl_->sec_size_ = size;
 }
 
-auto GFBuffer::Size() const -> size_t { return impl_->sec_size_; }
+auto GFBuffer::Size() const -> size_t { return impl_ ? impl_->sec_size_ : 0; }
 
 auto GFBuffer::ConvertToQByteArray() const -> QByteArray {
   Q_ASSERT(impl_);
@@ -143,13 +143,13 @@ auto GFBuffer::ConvertToQByteArray() const -> QByteArray {
                     static_cast<qsizetype>(impl_->sec_size_)};
 }
 
-auto GFBuffer::Empty() const -> bool { return this->Size() == 0; }
+auto GFBuffer::Empty() const -> bool { return Size() == 0; }
 
 void GFBuffer::Append(const GFBuffer& o) {
   if (o.Empty()) return;
 
   if (&o == this) {
-    const GFBuffer& copy(o);
+    GFBuffer copy(*this);
     Append(copy);
     return;
   }
@@ -233,4 +233,17 @@ auto GFBuffer::operator<(const GFBuffer& other) const -> bool {
 auto GFBuffer::operator!=(const GFBuffer& o) const -> bool {
   return !(*this == o);
 }
+
+GFBuffer::GFBuffer(GFBuffer&& other) noexcept : impl_(std::move(other.impl_)) {}
+
+auto GFBuffer::operator=(GFBuffer&& other) noexcept -> GFBuffer& {
+  if (this != &other) {
+    impl_ = std::move(other.impl_);
+  }
+  return *this;
+}
+
+GFBuffer::GFBuffer(const GFBuffer& other) = default;
+
+auto GFBuffer::operator=(const GFBuffer& other) -> GFBuffer& = default;
 }  // namespace GpgFrontend

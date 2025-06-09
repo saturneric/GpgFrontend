@@ -50,6 +50,14 @@ class GF_CORE_EXPORT GFBuffer {
 
   ~GFBuffer();
 
+  GFBuffer(const GFBuffer& other);
+
+  auto operator=(const GFBuffer& other) -> GFBuffer&;
+
+  GFBuffer(GFBuffer&& other) noexcept;
+
+  auto operator=(GFBuffer&& other) noexcept -> GFBuffer&;
+
   auto operator==(const GFBuffer& o) const -> bool;
 
   auto operator!=(const GFBuffer& o) const -> bool;
