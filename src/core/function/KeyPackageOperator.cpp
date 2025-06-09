@@ -120,7 +120,7 @@ auto KeyPackageOperator::ImportKeyPackage(const QString& key_package_path,
       GpgKeyImportExporter::GetInstance(GetChannel()).ImportKey(*key_data);
   if (!p_info) return {{"Import Key Data in the Key Package Failed"}, {}};
 
-  return {{}, p_info};
+  return {QString{}, p_info};
 }
 
 auto KeyPackageOperator::GenerateKeyPackageName() -> QString {

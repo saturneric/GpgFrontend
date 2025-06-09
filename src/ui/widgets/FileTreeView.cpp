@@ -126,10 +126,10 @@ void FileTreeView::SlotUpLevel() {
   }
 
   QFileInfo info(current_path_);
-  auto target_path = info.absoluteFilePath();
+  QString target_path = info.absoluteFilePath();
   QDir parent_dir(target_path);
 
-  target_path = {};
+  target_path.clear();
   if (parent_dir.cdUp()) {
     target_path = parent_dir.absolutePath();
   }
@@ -375,7 +375,7 @@ void FileTreeView::slot_show_custom_context_menu(const QPoint& point) {
 
   if (select_paths.size() != 1) return;
 
-  auto select_path = select_paths.front();
+  const auto& select_path = select_paths.front();
   if (target_path.isEmpty() && !select_path.isEmpty()) {
     target_path = select_path;
   }
