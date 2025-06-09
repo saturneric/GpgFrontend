@@ -122,9 +122,6 @@ TEST(SecureMemoryAllocatorTest, SecDoubleFreeShouldWarn) {
 #endif
 }
 
-#include <thread>
-#include <vector>
-
 TEST(SecureMemoryAllocatorTest, ParallelAllocAndFree) {
   constexpr int kThreads = 8;
   constexpr int kIters = 100;

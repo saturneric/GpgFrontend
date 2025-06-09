@@ -32,6 +32,10 @@
 
 #include <QLoggingCategory>
 
+// std
+#include <thread>
+#include <vector>
+
 extern "C" {
 auto GF_TEST_EXPORT GFTestValidateSymbol() -> int;
 }
@@ -41,7 +45,6 @@ auto GF_TEST_EXPORT GFTestValidateSymbol() -> int;
 
 // declare logging category
 Q_DECLARE_LOGGING_CATEGORY(test)
-
 #define LOG_D() qCDebug(test)
 #define LOG_I() qCInfo(test)
 #define LOG_W() qCWarning(test)
