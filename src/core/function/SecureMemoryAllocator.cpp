@@ -81,11 +81,11 @@ SecureMemoryAllocator::SecureMemoryAllocator(int secure_level)
 SecureMemoryAllocator::~SecureMemoryAllocator() = default;
 
 auto SecureMemoryAllocator::Allocate(size_t size) -> void* {
-  // debug
-  Q_ASSERT(size != 0);
-
   // low secure level
   if (secure_level_ < 1) return malloc(size);
+
+  // should not do allocate
+  if (size == 0) return nullptr;
 
   auto* addr = OPENSSL_zalloc(size);
   if (size != 0 && addr == nullptr) FLOG_F("OPENSSL_zalloc failed");
