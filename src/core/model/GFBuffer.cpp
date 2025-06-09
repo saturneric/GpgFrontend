@@ -123,6 +123,8 @@ auto GFBuffer::Data() const -> const char* {
 
 void GFBuffer::Resize(ssize_t size) {
   if (size == 0) {
+    SMASecFree(impl_->sec_ptr_);
+
     impl_->sec_ptr_ = nullptr;
     impl_->sec_size_ = 0;
     return;
@@ -219,43 +221,6 @@ auto GFBuffer::operator==(const char* str) const -> bool {
 auto GFBuffer::operator!=(const char* str) const -> bool {
   return Size() == strlen(str) &&
          (Size() == 0 || std::memcmp(Data(), str, Size()) != 0);
-}
-
-auto GFBuffer::ToBase64() -> GFBufferOrNone {
-  if (Empty()) return {};
-  GFBuffer ret(4 * ((Size() + 2) / 3));
-  int out_len = EVP_EncodeBlock(reinterpret_cast<unsigned char*>(ret.Data()),
-                                reinterpret_cast<const unsigned char*>(Data()),
-                                static_cast<int>(Size()));
-  if (out_len < 0) return {};
-  ret.Resize(out_len);
-  return ret;
-}
-
-auto GFBuffer::FromBase64() const -> GFBufferOrNone {
-  if (Empty()) return {};
-
-  size_t decoded_max = (Size() / 4) * 3;
-  GFBuffer ret(decoded_max);
-
-  int decoded_len = EVP_DecodeBlock(
-      reinterpret_cast<unsigned char*>(ret.Data()),
-      reinterpret_cast<const unsigned char*>(Data()), static_cast<int>(Size()));
-
-  if (decoded_len < 0) return {};
-
-  int pad = 0;
-  if (Size() >= 2) {
-    const char* d = Data();
-    if (d[Size() - 1] == '=') pad++;
-    if (d[Size() - 2] == '=') pad++;
-  }
-
-  int real_len = decoded_len - pad;
-  if (real_len < 0) return {};
-  ret.Resize(real_len);
-
-  return ret;
 }
 
 auto GFBuffer::operator<(const GFBuffer& other) const -> bool {
