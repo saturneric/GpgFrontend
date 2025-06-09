@@ -66,6 +66,15 @@ Q_DECLARE_LOGGING_CATEGORY(test)
 
 #endif
 
+#define WAIT_FOR_TRUE(expr, timeout_ms)                          \
+  {                                                              \
+    int _wait_counter = 0;                                       \
+    while (!(expr) && _wait_counter++ < (timeout_ms)) {          \
+      std::this_thread::sleep_for(std::chrono::milliseconds(1)); \
+    }                                                            \
+    EXPECT_TRUE(expr);                                           \
+  }
+
 namespace GpgFrontend::Test {
 
 struct GpgFrontendContext {
