@@ -71,10 +71,11 @@ TEST_F(GpgCoreTest, CoreSecureTestD) {
 
 TEST_F(GpgCoreTest, CoreSecureTestE) {
   GFBuffer plaintext(QString::fromUtf8("HELLO WORLD! HELLO!!!"));
-  auto encoded = plaintext.ToBase64();
+
+  auto encoded = GFBufferFactory::ToBase64(plaintext);
   ASSERT_TRUE(encoded.has_value());
 
-  auto decoded = encoded->FromBase64();
+  auto decoded = GFBufferFactory::FromBase64(*encoded);
   ASSERT_TRUE(decoded.has_value());
   ASSERT_EQ(*decoded, plaintext);
 }
