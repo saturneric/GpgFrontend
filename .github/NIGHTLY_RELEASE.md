@@ -17,9 +17,7 @@ instead of waiting for the next stable release.
   delivered in these nightly builds.
 - **Thorough testing by users is highly encouraged!** Your feedback is essential
   for improving stability and quality before the next official release.
-- Report problems or suggestions via [GitHub
-  Issues](https://github.com/YourRepo/GpgFrontend/issues) or contact the
-  maintainer.
+- Report problems or suggestions via GitHub Issues or contact the maintainer.
 
 #### Security & Integrity
 
