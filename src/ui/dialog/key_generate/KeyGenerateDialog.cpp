@@ -558,7 +558,8 @@ void KeyGenerateDialog::set_signal_slot_config() {
             refresh_widgets_state();
           });
 
-  connect(ui_->easyAlgoComboBox, &QComboBox::currentIndexChanged, this,
+  connect(ui_->easyAlgoComboBox,
+          qOverload<int>(&QComboBox::currentIndexChanged), this,
           &KeyGenerateDialog::slot_easy_mode_changed);
 
   connect(ui_->easyValidityPeriodComboBox, &QComboBox::currentTextChanged, this,
