@@ -100,7 +100,9 @@ class GF_CORE_EXPORT DataObjectOperator
  private:
   GlobalSettingStation &gss_ =
       GlobalSettingStation::GetInstance();  ///< GlobalSettingStation
-  GFBuffer key_;                            ///< Raw key
+  GFBuffer l_key_;                          ///< Legacy key
+  GFBuffer key_;                            ///< Active key
+  GFBuffer key_id_;                         ///< Active key Id
 
   /**
    * @brief Get the object ref object

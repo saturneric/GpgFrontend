@@ -99,10 +99,14 @@ auto DeriveObjectKey(const GpgFrontend::GFBuffer& key,
 namespace GpgFrontend {
 DataObjectOperator::DataObjectOperator(int channel)
     : SingletonFunctionObject<DataObjectOperator>(channel) {
-  auto key = gss_.GetAppSecureKey();
+  key_ = gss_.GetActiveAppSecureKey();
+  Q_ASSERT(!key_.Empty());
 
-  Q_ASSERT(!key.Empty());
-  if (!key.Empty()) key_ = key;
+  key_id_ = gss_.GetActiveKeyId();
+  Q_ASSERT(!key_id_.Empty());
+
+  l_key_ = gss_.GetLegacyAppSecureKey();
+  Q_ASSERT(!l_key_.Empty());
 }
 
 auto DataObjectOperator::StoreDataObj(const QString& key,
@@ -133,7 +137,7 @@ auto DataObjectOperator::StoreSecDataObj(const QString& key,
 
   auto ref = get_object_ref(key);
   const auto ref_hex = ref.ConvertToQByteArray().toHex();
-  const auto ref_path = gss_.GetDataObjectsDir() + "/" + ref_hex.left(32);
+  const auto ref_path = gss_.GetDataObjectsDir() + "/" + ref_hex;
 
   auto drv_key = DeriveObjectKey(key_, ref);
   if (!drv_key) {
@@ -147,7 +151,11 @@ auto DataObjectOperator::StoreSecDataObj(const QString& key,
     return {};
   }
 
-  if (!WriteFileGFBuffer(ref_path, *encrypted)) {
+  GFBuffer data;
+  data.Append(key_id_);
+  data.Append(*encrypted);
+
+  if (!WriteFileGFBuffer(ref_path, data)) {
     LOG_E() << "failed to write data object to disk: " << key;
   }
 
@@ -172,34 +180,44 @@ auto DataObjectOperator::get_object_ref(const QString& obj_name) -> GFBuffer {
         PassphraseGenerator::GetInstance().Generate(32).value_or(GFBuffer(
             QString::number(QRandomGenerator64::securelySeeded().generate())));
 
-    return GFBufferFactory::ToHMACSha256(key_, random).value_or(GFBuffer{});
+    return GFBufferFactory::ToHMACSha256(l_key_, random).value_or(GFBuffer{});
   }
 
-  return GFBufferFactory::ToHMACSha256(key_, GFBuffer(obj_name))
+  return GFBufferFactory::ToHMACSha256(l_key_, GFBuffer(obj_name))
       .value_or(GFBuffer{});
 }
 
 auto DataObjectOperator::read_decr_object(const GFBuffer& ref)
     -> GFBufferOrNone {
   const auto ref_hex = ref.ConvertToQByteArray().toHex();
-  const auto ref_path = gss_.GetDataObjectsDir() + "/" + ref_hex.left(32);
+  const auto ref_path = gss_.GetDataObjectsDir() + "/" + ref_hex;
   if (!QFileInfo(ref_path).exists()) {
     LOG_W() << "data object not found from disk, ref: " << ref_path;
     return {};
   }
 
-  auto [succ, encrypted] = ReadFileGFBuffer(ref_path);
+  auto [succ, data] = ReadFileGFBuffer(ref_path);
   if (!succ) {
     LOG_W() << "failed to read data object from disk, ref: " << ref_hex;
     return {};
   }
 
+  auto key_id = data.Left(32);
+  auto key = gss_.GetAppSecureKey(key_id);
+
+  if (key.Empty()) {
+    LOG_W() << "fail to find key of data object, key"
+            << key_id.ConvertToQByteArray().toHex() << " ref: " << ref_hex;
+    return {};
+  }
+
+  auto encrypted = data.Right(static_cast<int>(data.Size() - key_id.Size()));
   if (encrypted.Empty()) {
     LOG_W() << "data object from disk is empty, ref: " << ref_hex;
     return {};
   }
 
-  auto drv_key = DeriveObjectKey(key_, ref);
+  auto drv_key = DeriveObjectKey(key, ref);
   if (!drv_key) {
     LOG_W() << "failed to derive key from ref: " << ref_hex;
     return {};

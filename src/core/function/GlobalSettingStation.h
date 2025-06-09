@@ -159,21 +159,71 @@ class GF_CORE_EXPORT GlobalSettingStation
    *
    * @return QString
    */
-  auto GetAppSecureKeyPath() -> QString;
+  auto GetLegacyAppSecureKeyPath() -> QString;
+
+  /**
+   * @brief Get the App Secure Key Dir object
+   *
+   * @return QString
+   */
+  auto GetAppSecureKeyDir() -> QString;
+
+  /**
+   * @brief Set the Active Key Id object
+   *
+   * @param id
+   */
+  void SetActiveKeyId(const GFBuffer& id);
+
+  /**
+   * @brief Set the Legacy Key Id object
+   *
+   * @param id
+   */
+  void SetLegacyKeyId(const GFBuffer& id);
+
+  /**
+   * @brief Set the Active Key Id object
+   *
+   * @param id
+   */
+  auto GetActiveKeyId() -> GFBuffer;
+
+  /**
+   * @brief Get the Active Key object
+   *
+   * @return GFBuffer
+   */
+  auto GetActiveAppSecureKey() -> GFBuffer;
+
+  /**
+   * @brief Get the Legacy App Secure Key object
+   *
+   * @return GFBuffer
+   */
+  auto GetLegacyAppSecureKey() -> GFBuffer;
 
   /**
    * @brief Get the App Secure Key object
    *
    * @return GFBuffer
    */
-  auto GetAppSecureKey() -> GFBuffer;
+  auto GetAppSecureKey(const GFBuffer& id) -> GFBuffer;
 
   /**
    * @brief Set the App Secure Key object
    *
    * @return auto
    */
-  void SetAppSecureKey(const GFBuffer&);
+  void SetAppSecureKeys(const QMap<GFBuffer, GFBuffer>& keys);
+
+  /**
+   * @brief Get the Legacy Secure Key object
+   *
+   * @param id
+   * @return GFBuffer
+   */
+  auto GetLegacySecureKey() -> GFBuffer;
 
  private:
   class Impl;
