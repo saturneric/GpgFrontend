@@ -29,6 +29,7 @@
 #pragma once
 
 #include "GpgFrontendContext.h"
+#include "core/model/GFBuffer.h"
 
 namespace GpgFrontend {
 
@@ -71,5 +72,14 @@ void InitGlobalBasicEnvSync(const GFCxtWPtr &p_ctx);
  * @param p_ctx
  */
 void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx);
+
+/**
+ * @brief
+ *
+ * @param pin
+ * @return true
+ * @return false
+ */
+auto InitAppSecureKey(const GFBuffer &pin) -> bool;
 
 }  // namespace GpgFrontend

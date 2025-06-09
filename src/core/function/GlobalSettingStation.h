@@ -155,11 +155,25 @@ class GF_CORE_EXPORT GlobalSettingStation
   [[nodiscard]] auto IsProtableMode() const -> bool;
 
   /**
+   * @brief Get the App Secure Key Path object
+   *
+   * @return QString
+   */
+  auto GetAppSecureKeyPath() -> QString;
+
+  /**
    * @brief Get the App Secure Key object
    *
    * @return GFBuffer
    */
   auto GetAppSecureKey() -> GFBuffer;
+
+  /**
+   * @brief Set the App Secure Key object
+   *
+   * @return auto
+   */
+  void SetAppSecureKey(const GFBuffer&);
 
  private:
   class Impl;

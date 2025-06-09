@@ -94,9 +94,6 @@ class GlobalSettingStation::Impl {
     if (!QDir(app_data_objs_path()).exists()) {
       QDir(app_data_objs_path()).mkpath(".");
     }
-
-    // generate or fetch app secure key
-    init_app_secure_key();
   }
 
   [[nodiscard]] auto GetSettings() -> QSettings {
@@ -213,6 +210,10 @@ class GlobalSettingStation::Impl {
     return app_config_path_;
   }
 
+  void SetAppSecureKey(const GFBuffer& key) { app_secure_key_ = key; }
+
+  auto GetAppSecureKeyPath() -> QString { return app_secure_key_path(); }
+
  private:
   [[nodiscard]] auto app_config_file_path() const -> QString {
     return app_config_path_ + "/config.ini";
@@ -236,29 +237,6 @@ class GlobalSettingStation::Impl {
 
   [[nodiscard]] auto app_secure_key_path() const -> QString {
     return app_secure_path() + "/app.key";
-  }
-
-  void init_app_secure_key() {
-    if (!QFileInfo(app_secure_key_path()).exists()) {
-      auto key = PassphraseGenerator::GenerateBytesByOpenSSL(256);
-      if (!key) {
-        LOG_E() << "generate app secure key failed";
-        return;
-      }
-
-      if (!GFBufferFactory::ToFile(app_secure_key_path(), *key)) {
-        LOG_E() << "write app secure key failed: " << app_secure_key_path();
-      }
-
-      app_secure_key_ = *key;
-    } else {
-      auto key = GFBufferFactory::FromFile(app_secure_key_path());
-      if (!key) {
-        LOG_E() << "write app secure key failed: " << app_secure_key_path();
-      }
-
-      app_secure_key_ = *key;
-    }
   }
 
   bool portable_mode_ = false;
@@ -337,4 +315,13 @@ auto GlobalSettingStation::GetDataObjectsDir() const -> QString {
 auto GlobalSettingStation::GetConfigDirPath() const -> QString {
   return p_->GetConfigDirPath();
 }
+
+void GlobalSettingStation::SetAppSecureKey(const GFBuffer& key) {
+  p_->SetAppSecureKey(key);
+}
+
+auto GlobalSettingStation::GetAppSecureKeyPath() -> QString {
+  return p_->GetAppSecureKeyPath();
+}
+
 }  // namespace GpgFrontend

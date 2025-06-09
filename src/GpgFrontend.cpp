@@ -112,6 +112,26 @@ auto main(int argc, char* argv[]) -> int {
     return GpgFrontend::PrintEnvInfo();
   }
 
+  const auto secure_level = qApp->property("GFSecureLevel").toInt();
+  GpgFrontend::GFBuffer buf;
+
+  if (secure_level > 2) {
+    bool ok = false;
+    auto pin = QInputDialog::getText(
+        nullptr, QObject::tr("PIN Required"),
+        QObject::tr("High security mode is enabled.\n\n"
+                    "To unlock the application please enter your PIN."),
+        QLineEdit::Password, {}, &ok);
+
+    if (!ok || pin.isEmpty()) return 1;
+
+    buf = GpgFrontend::GFBuffer(pin);
+    pin.fill('X');
+    pin.clear();
+  }
+
+  if (!GpgFrontend::InitAppSecureKey(buf)) return 1;
+
   if (parser.isSet("t")) {
     ctx->gather_external_gnupg_info = false;
     ctx->unit_test_mode = true;
