@@ -53,7 +53,13 @@ if(APPLE)
   endif()
 endif()
 
+if(BUILD_AND_STATIC_LINK_OPENSSL)
+  set(OPENSSL_USE_STATIC_LIBS TRUE)
+endif()
+
 find_package(OpenSSL REQUIRED)
+
+message(STATUS "OpenSSL Libraries: ${OPENSSL_LIBRARIES}")
 
 # add libraries
 include(${CMAKE_SOURCE_DIR}/cmake/LibraryRegistry.cmake)
@@ -239,13 +245,15 @@ if(MINGW)
   list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
   # openssl
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libssl-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+  if(NOT BUILD_AND_STATIC_LINK_OPENSSL)
+    unset(_libDllPath)
+    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libssl-*.dll")
+    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libcrypto-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+    unset(_libDllPath)
+    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libcrypto-*.dll")
+    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+  endif()
 
   unset(_libDllPath)
   file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libxml2-*.dll")
@@ -349,14 +357,16 @@ endif()
 # link options for GpgFrontend
 target_link_libraries(${APP_NAME} gf_core gf_ui gf_test)
 
+# link OpenSSL for secure mechanism
+target_link_libraries(${APP_NAME} OpenSSL::SSL OpenSSL::Crypto)
+
 if(MINGW)
   message(STATUS "Link Application Library For MINGW")
-  target_link_libraries(${APP_NAME} crypto)
 elseif(APPLE)
   message(STATUS "Link Application Library For macOS")
 else()
   message(STATUS "Link Application Library For Linux")
-  target_link_libraries(${APP_NAME} crypto pthread)
+  target_link_libraries(${APP_NAME} pthread)
 endif()
 
 # add i18n support

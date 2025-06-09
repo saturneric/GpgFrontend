@@ -70,7 +70,8 @@ option(GPGFRONTEND_XCODE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
 # check options
 option(GPGFRONTEND_CHECK_RELEASE_COMMIT_HASH "Enable checking on commit hash from the GitHub release" OFF)
 option(GPGFRONTEND_SIGN_BUILT_BINARY "Use OpenSSL to sign shared libraries and executables" OFF)
-option(GPGFRONTEND_LINK_GPGME_INTO_CORE "Static link GpgME into core library" OFF)
+option(GPGFRONTEND_LINK_GPGME_INTO_CORE "Statically link GpgME into the core library" OFF)
+option(GPGFRONTEND_LINK_OPENSSL_INTO_EXEC "Statically link OpenSSL into the executable" OFF)
 
 if(GPGFRONTEND_BUILD_APP_IMAGE)
   set(BUILD_APP_IMAGE 1)
@@ -111,6 +112,12 @@ if(GPGFRONTEND_LINK_GPGME_INTO_CORE)
   set(BUILD_AND_STATIC_LINK_GPGME 1)
 else()
   set(BUILD_AND_STATIC_LINK_GPGME 0)
+endif()
+
+if(GPGFRONTEND_LINK_OPENSSL_INTO_EXEC)
+  set(BUILD_AND_STATIC_LINK_OPENSSL 1)
+else()
+  set(BUILD_AND_STATIC_LINK_OPENSSL 0)
 endif()
 
 # C++
