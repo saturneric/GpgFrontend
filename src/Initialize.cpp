@@ -30,11 +30,11 @@
 
 #include <openssl/crypto.h>
 
+#include <cstddef>
+
 #include "core/GpgCoreInit.h"
 #include "core/function/CoreSignalStation.h"
-#include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/PassphraseGenerator.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/module/ModuleInit.h"
 #include "core/module/ModuleManager.h"
@@ -263,108 +263,6 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
       ctx->rtn == GpgFrontend::kCrashCode) {
     QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
   };
-}
-
-void NewAppSecureKey(const GFBuffer &pin) {
-  const auto secure_level = qApp->property("GFSecureLevel").toInt();
-  auto &gss = GlobalSettingStation::GetInstance();
-
-  auto key = PassphraseGenerator::GenerateBytesByOpenSSL(256);
-  if (!key) {
-    qCritical()
-        << "generate app secure key failed, using qt random generator...";
-    if (secure_level > 2) {
-      QMessageBox::warning(
-          nullptr, QObject::tr("Secure Key Generation Failed"),
-          QObject::tr(
-              "Failed to generate a secure application key using OpenSSL. "
-              "A less secure fallback key will be used. Please check your "
-              "system's cryptography support."),
-          QMessageBox::Ok);
-    }
-    key = GFBuffer(QRandomGenerator64::securelySeeded().generate());
-  }
-
-  // set app secure key
-  gss.SetAppSecureKey(*key);
-
-  if (secure_level > 2 && !pin.Empty()) {
-    auto e_key = GFBufferFactory::Encrypt(pin, *key);
-    if (!e_key) {
-      qCritical() << "encrypt app secure key failed! Won't write it to disk.";
-      QMessageBox::critical(
-          nullptr, QObject::tr("Encrypt Key Failed"),
-          QObject::tr("Failed to encrypt the secure key with your PIN. The key "
-                      "will not be saved to disk."),
-          QMessageBox::Ok);
-      return;
-    }
-    key = e_key;
-  }
-
-  auto path = gss.GetAppSecureKeyPath();
-
-  if (!GFBufferFactory::ToFile(path, *key)) {
-    qCritical() << "write app secure key failed: " << path;
-    if (secure_level > 2) {
-      QMessageBox::critical(
-          nullptr, QObject::tr("Save Key Failed"),
-          QObject::tr(
-              "Failed to save the secure key to disk at: %1\n"
-              "Please check your storage or try running as administrator.")
-              .arg(path),
-          QMessageBox::Ok);
-      abort();
-    }
-  }
-}
-
-auto InitAppSecureKey(const GFBuffer &pin) -> bool {
-  const auto secure_level = qApp->property("GFSecureLevel").toInt();
-  auto &gss = GlobalSettingStation::GetInstance();
-
-  auto path = gss.GetAppSecureKeyPath();
-  if (!QFileInfo(path).exists()) {
-    NewAppSecureKey(pin);
-    return true;
-  }
-
-  auto key = GFBufferFactory::FromFile(path);
-  if (!key) {
-    qCritical() << "read app secure key failed: " << path;
-    if (secure_level > 2) {
-      QMessageBox::critical(
-          nullptr, QObject::tr("App Secure Key Error"),
-          QObject::tr(
-              "Failed to read the application secure key from disk at: %1\n"
-              "Please ensure the key file exists and is accessible, or try "
-              "re-initializing the secure key.")
-              .arg(path),
-          QMessageBox::Ok);
-    }
-    return false;
-  }
-
-  // we have to decrypt the app secure key
-  if (secure_level > 2 && !pin.Empty()) {
-    auto r_key = GFBufferFactory::Decrypt(pin, *key);
-
-    if (!r_key) {
-      qCritical() << "decrypt app secure key failed: " << path;
-      QMessageBox::critical(
-          nullptr, QObject::tr("App Secure Key Error"),
-          QObject::tr("Failed to decrypt the application secure key. Your PIN "
-                      "may be incorrect, or the key file may be "
-                      "corrupted.Please clear the secure key and try again."),
-          QMessageBox::Ok);
-      return false;
-    }
-
-    key = r_key;
-  }
-
-  gss.SetAppSecureKey(*key);
-  return true;
 }
 
 }  // namespace GpgFrontend

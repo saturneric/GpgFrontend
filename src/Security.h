@@ -28,48 +28,65 @@
 
 #pragma once
 
-#include "GpgFrontendContext.h"
+#include "core/model/GFBuffer.h"
 
 namespace GpgFrontend {
 
 /**
  * @brief
  *
- * @param p_ctx
+ * @param pin
+ * @param key
+ * @return GFBuffer
  */
-void PreInit(const GFCxtWPtr &p_ctx);
-
-/**
- * @brief init global PATH env
- *
- */
-void InitGlobalPathEnv();
+auto CalculateKeyId(const GFBuffer &pin, const GFBuffer &key) -> GFBuffer;
 
 /**
  * @brief
  *
+ * @param passphrase
+ * @param salt
+ * @param key_len
+ * @param t_cost
+ * @param m_cost
+ * @param parallelism
+ * @return GFBufferOrNone
  */
-void InitLocale();
+auto DeriveKeyArgon2(const GFBuffer &passphrase, const GFBuffer &salt,
+                     int key_len = 32, int t_cost = 3, int m_cost = 65536,
+                     int parallelism = 4) -> GFBufferOrNone;
 
 /**
  * @brief
  *
- * @param args
+ * @param pin
+ * @return GFBuffer
  */
-void InitGlobalBasicEnv(const GFCxtWPtr &, bool);
+auto FetchTimeRelatedAppSecureKey(const GFBuffer &pin) -> GFBuffer;
 
 /**
  * @brief
  *
- * @param p_ctx
+ * @param pin
+ * @return GFBuffer
  */
-void InitGlobalBasicEnvSync(const GFCxtWPtr &p_ctx);
+auto NewLegacyAppSecureKey(const GFBuffer &pin) -> GFBuffer;
 
 /**
  * @brief
  *
- * @param p_ctx
+ * @param pin
+ * @return true
+ * @return false
  */
-void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx);
+auto InitLegacyAppSecureKey(const GFBuffer &pin) -> bool;
 
+/**
+ * @brief
+ *
+ * @param pin
+ * @return true
+ * @return false
+ */
+auto InitAppSecureKey(const GFBuffer &pin) -> bool;
 }  // namespace GpgFrontend

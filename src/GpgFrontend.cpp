@@ -33,13 +33,12 @@
 #include <cstddef>
 
 //
-#include "GpgFrontendContext.h"
-
-//
 #include "Application.h"
 #include "BinaryValidate.h"
 #include "Command.h"
+#include "GpgFrontendContext.h"
 #include "Initialize.h"
+#include "Security.h"
 
 /**
  *
