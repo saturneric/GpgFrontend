@@ -38,6 +38,7 @@ class SecureMemoryAllocator;
 }
 
 namespace {
+QMutex instance_mutex;
 GpgFrontend::SecureMemoryAllocator* instance = nullptr;
 }  // namespace
 
@@ -49,8 +50,8 @@ class SecureMemoryAllocator {
 
   SecureMemoryAllocator(const SecureMemoryAllocator&) = delete;
 
-  auto operator=(const SecureMemoryAllocator&)
-      -> SecureMemoryAllocator& = delete;
+  auto operator=(const SecureMemoryAllocator&) -> SecureMemoryAllocator& =
+                                                      delete;
 
   auto Allocate(size_t) -> void*;
 
@@ -65,69 +66,9 @@ class SecureMemoryAllocator {
   void SecDeallocate(void*);
 
  private:
-  template <typename T>
-  class OpenSSLSecureAllocator {
-   public:
-    using value_type = T;
-
-    explicit OpenSSLSecureAllocator(int secure_level) noexcept
-        : secure_level_(secure_level) {}
-
-    OpenSSLSecureAllocator(const OpenSSLSecureAllocator&) noexcept = default;
-
-    template <typename U>
-    explicit OpenSSLSecureAllocator(const OpenSSLSecureAllocator<U>&) noexcept {
-    }
-
-    auto allocate(std::size_t n) -> T* {
-      if (n > std::numeric_limits<std::size_t>::max() / sizeof(T)) {
-        throw std::bad_alloc();
-      }
-
-      void* p = nullptr;
-      // low and middle secure level
-      if (secure_level_ < 2) {
-        p = malloc(n * sizeof(T));
-      } else {
-        p = OPENSSL_secure_zalloc(n * sizeof(T));
-      }
-      Q_ASSERT(p != nullptr);
-
-      if (p == nullptr) throw std::bad_alloc();
-      return static_cast<T*>(p);
-    }
-
-    void deallocate(T* p, std::size_t) noexcept {
-      // low and middle secure level
-      if (secure_level_ < 2) {
-        free(p);
-      } else {
-        OPENSSL_secure_free(p);
-      }
-    }
-
-    template <typename U>
-    auto operator==(const OpenSSLSecureAllocator<U>&) const noexcept -> bool {
-      return true;
-    }
-
-    template <typename U>
-    auto operator!=(const OpenSSLSecureAllocator<U>&) const noexcept -> bool {
-      return false;
-    }
-
-   private:
-    int secure_level_;
-  };
-
-  using AllocMap = std::unordered_map<
-      void*, size_t, std::hash<void*>, std::equal_to<>,
-      OpenSSLSecureAllocator<std::pair<void* const, size_t>>>;
-  using SecureAlloc = OpenSSLSecureAllocator<typename AllocMap::value_type>;
-
-  QMutex mutex_;
   int secure_level_;
-  AllocMap allocated_;
+  QMutex mutex_;
+  QHash<void*, size_t> allocated_;
 
   explicit SecureMemoryAllocator(int secure_level);
 
@@ -135,9 +76,7 @@ class SecureMemoryAllocator {
 };
 
 SecureMemoryAllocator::SecureMemoryAllocator(int secure_level)
-    : secure_level_(secure_level),
-      allocated_(AllocMap{0, std::hash<void*>(), std::equal_to<>(),
-                          SecureAlloc(secure_level_)}) {}
+    : secure_level_(secure_level) {}
 
 SecureMemoryAllocator::~SecureMemoryAllocator() = default;
 
@@ -151,8 +90,13 @@ auto SecureMemoryAllocator::Allocate(size_t size) -> void* {
   auto* addr = OPENSSL_zalloc(size);
   if (size != 0 && addr == nullptr) FLOG_F("OPENSSL_zalloc failed");
 
-  QMutexLocker locker(&mutex_);
-  allocated_[addr] = size;
+  LOG_D() << "N MA: " << addr << "SIZE: " << size;
+  {
+    QMutexLocker locker(&mutex_);
+    Q_ASSERT(!allocated_.contains(addr));
+
+    allocated_[addr] = size;
+  }
   return addr;
 }
 
@@ -165,22 +109,29 @@ auto SecureMemoryAllocator::Reallocate(void* ptr, size_t size) -> void* {
 
   if (ptr == nullptr) return Allocate(size);
 
-  QMutexLocker locker(&mutex_);
-  Q_ASSERT(allocated_.count(ptr) != 0);
-  if (allocated_.count(ptr) == 0) {
-    FLOG_W()
-        << "this memory address was not allocated by SecureMemoryAllocator: "
-        << ptr;
-    return nullptr;
+  {
+    QMutexLocker locker(&mutex_);
+    Q_ASSERT(allocated_.count(ptr) != 0);
+    if (allocated_.count(ptr) == 0) {
+      FLOG_W()
+          << "this memory address was not allocated by SecureMemoryAllocator: "
+          << ptr;
+      return nullptr;
+    }
+
+    LOG_D() << "N RE: " << ptr << "SIZE: " << size;
+
+    const auto ptr_size = allocated_.value(ptr);
+    auto* addr = OPENSSL_clear_realloc(ptr, ptr_size, size);
+    if (size != 0 && addr == nullptr) FLOG_F("OPENSSL_clear_realloc failed");
+
+    LOG_D() << "N RE: " << addr << "<-" << ptr;
+
+    allocated_.remove(ptr);
+    allocated_[addr] = size;
+
+    return addr;
   }
-
-  const auto ptr_size = allocated_.at(ptr);
-  auto* addr = OPENSSL_clear_realloc(ptr, ptr_size, size);
-  if (size != 0 && addr == nullptr) FLOG_F("OPENSSL_clear_realloc failed");
-
-  allocated_.erase(ptr);
-  allocated_[addr] = size;
-  return addr;
 }
 
 void SecureMemoryAllocator::Deallocate(void* ptr) {
@@ -192,21 +143,28 @@ void SecureMemoryAllocator::Deallocate(void* ptr) {
 
   if (ptr == nullptr) return;
 
-  QMutexLocker locker(&mutex_);
-  Q_ASSERT(allocated_.count(ptr) != 0);
-  if (allocated_.count(ptr) == 0) {
-    FLOG_W()
-        << "this memory address was not allocated by SecureMemoryAllocator: "
-        << ptr;
-    return;
-  }
+  {
+    QMutexLocker locker(&mutex_);
 
-  const auto ptr_size = allocated_.at(ptr);
-  OPENSSL_clear_free(ptr, ptr_size);
-  allocated_.erase(ptr);
+    LOG_D() << "N FE: " << ptr;
+
+    Q_ASSERT(allocated_.contains(ptr));
+    if (!allocated_.contains(ptr)) {
+      FLOG_W()
+          << "this memory address was not allocated by SecureMemoryAllocator: "
+          << ptr;
+      return;
+    }
+
+    const auto ptr_size = allocated_.value(ptr);
+    OPENSSL_clear_free(ptr, ptr_size);
+    allocated_.remove(ptr);
+  }
 }
 
 auto SecureMemoryAllocator::GetInstance() -> SecureMemoryAllocator* {
+  QMutexLocker<QMutex> locker(&instance_mutex);
+
   if (instance == nullptr) {
     auto secure_level = qApp->property("GFSecureLevel").toInt();
     LOG_D() << "secure memory allocator get secure level: " << secure_level;
@@ -222,6 +180,7 @@ auto SecureMemoryAllocator::GetInstance() -> SecureMemoryAllocator* {
 
     instance = new (addr) SecureMemoryAllocator(secure_level);
   }
+
   return instance;
 }
 
@@ -244,8 +203,12 @@ auto SecureMemoryAllocator::SecAllocate(size_t size) -> void* {
   auto* addr = OPENSSL_secure_zalloc(size);
   if (addr == nullptr) FLOG_F("OPENSSL_secure_malloc failed");
 
-  QMutexLocker locker(&mutex_);
-  allocated_[addr] = size;
+  {
+    QMutexLocker locker(&mutex_);
+    Q_ASSERT(!allocated_.contains(addr));
+
+    allocated_[addr] = size;
+  }
   return addr;
 }
 
@@ -258,10 +221,14 @@ auto SecureMemoryAllocator::SecReallocate(void* ptr, size_t size) -> void* {
   }
 
   void* new_addr = SecAllocate(size);
+  Q_ASSERT(new_addr != ptr);
+
+  LOG_D() << "SEC RE: " << new_addr << "<-" << ptr;
 
   if (ptr != nullptr) {
     auto old_size = OPENSSL_secure_actual_size(ptr);
     std::memcpy(new_addr, ptr, std::min(size, old_size));
+
     SecDeallocate(ptr);
   }
 
@@ -281,18 +248,23 @@ void SecureMemoryAllocator::SecDeallocate(void* ptr) {
     FLOG_F("CRYPTO_secure_malloc_initialized failed");
   }
 
-  QMutexLocker locker(&mutex_);
-  Q_ASSERT(allocated_.count(ptr) != 0);
-  if (allocated_.count(ptr) == 0) {
-    FLOG_W()
-        << "this memory address was not allocated by SecureMemoryAllocator: "
-        << ptr;
-    return;
-  }
+  LOG_D() << "SEC FREE: " << ptr;
 
-  auto sz = OPENSSL_secure_actual_size(ptr);
-  OPENSSL_secure_clear_free(ptr, sz);
-  allocated_.erase(ptr);
+  {
+    QMutexLocker locker(&mutex_);
+
+    Q_ASSERT(allocated_.contains(ptr));
+    if (!allocated_.contains(ptr)) {
+      FLOG_W()
+          << "this memory address was not allocated by SecureMemoryAllocator: "
+          << ptr;
+      return;
+    }
+
+    auto sz = OPENSSL_secure_actual_size(ptr);
+    OPENSSL_secure_clear_free(ptr, sz);
+    allocated_.remove(ptr);
+  }
 }
 
 auto SMASecMalloc(size_t size) -> void* {
