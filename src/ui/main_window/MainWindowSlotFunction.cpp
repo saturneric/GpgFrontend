@@ -27,6 +27,7 @@
  */
 
 #include "MainWindow.h"
+#include "core/function/GFBufferFactory.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
@@ -307,7 +308,7 @@ void MainWindow::slot_import_key_from_edit() {
 
 void MainWindow::slot_verify_email_by_eml_data(const QByteArray& buffer) {
   GFBuffer sec_buf(buffer);
-  auto sec_buf_base64 = sec_buf.ToBase64();
+  auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
   if (!sec_buf_base64) return;
 
   GpgOperaHelper::WaitForOpera(
@@ -340,7 +341,7 @@ void MainWindow::slot_verify_email_by_eml_data(const QByteArray& buffer) {
 
 void MainWindow::slot_decrypt_email_by_eml_data(const QByteArray& buffer) {
   GFBuffer sec_buf(buffer);
-  auto sec_buf_base64 = sec_buf.ToBase64();
+  auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
   if (!sec_buf_base64) return;
 
   Module::TriggerEvent(
@@ -597,7 +598,7 @@ void MainWindow::decrypt_email_by_eml_data_result_helper(
     datetime = QLocale().toString(QDateTime::fromMSecsSinceEpoch(timestamp));
   }
 
-  const auto eml_data = p["eml_data"].FromBase64();
+  const auto eml_data = GFBufferFactory::FromBase64(p["eml_data"]);
   if (eml_data) edit_->SlotSetGFBuffer2CurEMailPage(*eml_data);
 
   QString email_info;
@@ -662,7 +663,7 @@ void MainWindow::SlotEncryptEML() {
       ConvertKey2GpgKeyIdList(m_key_list_->GetCurrentGpgContextChannel(), keys);
 
   GFBuffer sec_buf(buffer);
-  auto sec_buf_base64 = sec_buf.ToBase64();
+  auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
   if (!sec_buf_base64) return;
 
   buffer.fill('X');
@@ -738,7 +739,7 @@ void MainWindow::SlotSignEML() {
       ConvertKey2GpgKeyIdList(m_key_list_->GetCurrentGpgContextChannel(), keys);
 
   GFBuffer sec_buf(buffer);
-  auto sec_buf_base64 = sec_buf.ToBase64();
+  auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
   if (!sec_buf_base64) return;
 
   buffer.fill('X');
@@ -832,7 +833,7 @@ void MainWindow::SlotEncryptSignEML() {
       ConvertKey2GpgKeyIdList(m_key_list_->GetCurrentGpgContextChannel(), keys);
 
   GFBuffer sec_buf(buffer);
-  auto sec_buf_base64 = sec_buf.ToBase64();
+  auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
   if (!sec_buf_base64) return;
 
   buffer.fill('X');
@@ -903,7 +904,7 @@ void MainWindow::SlotDecryptVerifyEML() {
   auto buffer = edit_->CurPlainText();
 
   GFBuffer sec_buf(buffer);
-  auto sec_buf_base64 = sec_buf.ToBase64();
+  auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
   if (!sec_buf_base64) return;
 
   buffer.fill('X');

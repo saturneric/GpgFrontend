@@ -29,6 +29,7 @@
 #include "KeyPairOperaTab.h"
 
 #include "KeySetExpireDateDialog.h"
+#include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
@@ -609,7 +610,7 @@ void KeyPairOperaTab::slot_export_paper_key() {
 
     if (file_name.isEmpty()) return;
 
-    auto sec_key = gf_buffer.ToBase64();
+    auto sec_key = GFBufferFactory::ToBase64(gf_buffer);
     if (!sec_key) return;
 
     Module::TriggerEvent(
@@ -692,10 +693,10 @@ void KeyPairOperaTab::slot_import_paper_key() {
     return;
   }
 
-  auto pub_key = gf_buffer.ToBase64();
+  auto pub_key = GFBufferFactory::ToBase64(gf_buffer);
   if (!pub_key) return;
 
-  auto paper_key_secrets = gf_in_buff.ToBase64();
+  auto paper_key_secrets = GFBufferFactory::ToBase64(gf_in_buff);
   if (!paper_key_secrets) return;
 
   Module::TriggerEvent(
@@ -715,7 +716,7 @@ void KeyPairOperaTab::slot_import_paper_key() {
           return;
         }
 
-        auto buffer = p["secret_key"].FromBase64();
+        auto buffer = GFBufferFactory::FromBase64(p["secret_key"]);
         if (!buffer) return;
 
         CommonUtils::GetInstance()->SlotImportKeys(
