@@ -29,6 +29,7 @@
 #include "Initialize.h"
 
 #include <openssl/crypto.h>
+#include <openssl/err.h>
 
 #include <cstddef>
 
@@ -89,7 +90,24 @@ void PreInit(const GFCxtWPtr &p_ctx) {
   const auto secure_level = app->property("GFSecureLevel").toInt();
   if (secure_level > 1) {
     // OpenSSL Alloc 32 MB Secure Memory
-    CRYPTO_secure_malloc_init(static_cast<size_t>(32 * 1024 * 1024), 32);
+    auto ret =
+        CRYPTO_secure_malloc_init(static_cast<size_t>(32 * 1024 * 1024), 32);
+    if (ret != 1) {
+      std::array<char, 256> err_buf;
+      ERR_error_string_n(ERR_get_error(), err_buf.data(), sizeof(err_buf));
+
+      qWarning() << "Failed to initialize OpenSSL secure memory:"
+                 << err_buf.data();
+
+      QMessageBox::warning(
+          nullptr, "Initialization Failed",
+          QString("Failed to initialize OpenSSL secure memory.\n"
+                  "Some secure operations may not be available.\n"
+                  "Reason: %1")
+              .arg(QString::fromUtf8(err_buf)));
+    }
+
+    Q_ASSERT(CRYPTO_secure_malloc_initialized());
   }
 
 #ifdef RELEASE

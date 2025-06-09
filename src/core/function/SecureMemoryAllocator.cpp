@@ -156,7 +156,7 @@ void SecureMemoryAllocator::Deallocate(void* ptr) {
 }
 
 auto SecureMemoryAllocator::GetInstance() -> SecureMemoryAllocator* {
-  QMutexLocker<QMutex> locker(&instance_mutex);
+  QMutexLocker locker(&instance_mutex);
 
   if (instance == nullptr) {
     auto secure_level = qApp->property("GFSecureLevel").toInt();
@@ -208,10 +208,6 @@ auto SecureMemoryAllocator::SecReallocate(void* ptr, size_t size) -> void* {
   // middle secure level
   if (secure_level_ < 2) return Reallocate(ptr, size);
 
-  if (CRYPTO_secure_malloc_initialized() != 1) {
-    FLOG_F("CRYPTO_secure_malloc_initialized failed");
-  }
-
   void* new_addr = SecAllocate(size);
   Q_ASSERT(new_addr != ptr);
 
@@ -233,10 +229,6 @@ void SecureMemoryAllocator::SecDeallocate(void* ptr) {
   }
 
   if (ptr == nullptr) return;
-
-  if (CRYPTO_secure_malloc_initialized() != 1) {
-    FLOG_F("CRYPTO_secure_malloc_initialized failed");
-  }
 
   {
     QMutexLocker locker(&mutex_);

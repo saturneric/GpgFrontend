@@ -431,7 +431,7 @@ void KeyPairSubkeyTab::contextMenuEvent(QContextMenuEvent* event) {
 
     if (s_key.IsHasCertCap()) return;
 
-    export_subkey_act_->setDisabled(!s_key.IsSecretKey());
+    export_subkey_act_->setDisabled(!s_key.IsSecretKey() || s_key.IsADSK());
     edit_subkey_act_->setDisabled(!s_key.IsSecretKey());
     delete_subkey_act_->setDisabled(!s_key.IsSecretKey() && !s_key.IsADSK());
     revoke_subkey_act_->setDisabled((!s_key.IsSecretKey() && !s_key.IsADSK()) ||
