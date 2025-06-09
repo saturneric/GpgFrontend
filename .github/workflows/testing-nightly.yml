@@ -283,8 +283,9 @@ jobs:
           cd $(cygpath -u "${{github.workspace}}")
           mkdir build && cd build
           cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-            -DGPGFRONTEND_SIGN_BUILT_BINARY=On \
+            -DGPGFRONTEND_SIGN_BUILT_BINARY=ON \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
+            -DGPGFRONTEND_LINK_OPENSSL_INTO_EXEC=ON \
             ..
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
         if: runner.os == 'Windows'
