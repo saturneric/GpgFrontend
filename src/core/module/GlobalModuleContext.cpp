@@ -151,7 +151,7 @@ class GlobalModuleContext::Impl {
       return false;
     }
 
-    auto module_info = module_info_opt.value();
+    const auto& module_info = module_info_opt.value();
 
     if (!module_info->registered) {
       LOG_W() << "module id:" << module_id

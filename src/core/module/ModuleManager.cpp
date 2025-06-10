@@ -28,8 +28,6 @@
 
 #include "ModuleManager.h"
 
-#include <memory>
-
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/GlobalModuleContext.h"
@@ -79,7 +77,7 @@ class ModuleManager::Impl {
         Thread::TaskRunnerGetter::kTaskRunnerType_Module);
 
     runner->PostTask(new Thread::Task(
-        [=](GpgFrontend::DataObjectPtr) -> int {
+        [=](const GpgFrontend::DataObjectPtr&) -> int {
           // register module
           if (!gmc_->RegisterModule(module, integrated_module)) return -1;
 
@@ -88,7 +86,7 @@ class ModuleManager::Impl {
         __func__, nullptr));
 
     runner->PostTask(new Thread::Task(
-        [=](GpgFrontend::DataObjectPtr) -> int {
+        [=](const GpgFrontend::DataObjectPtr&) -> int {
           const auto module_id = module->GetModuleIdentifier();
           const auto module_hash = module->GetModuleHash();
 
@@ -126,8 +124,8 @@ class ModuleManager::Impl {
     need_register_modules_ = n;
   }
 
-  auto SearchModule(ModuleIdentifier module_id) -> ModulePtr {
-    return gmc_->SearchModule(std::move(module_id));
+  auto SearchModule(const ModuleIdentifier& module_id) -> ModulePtr {
+    return gmc_->SearchModule(module_id);
   }
 
   auto ListAllRegisteredModuleID() -> QStringList {
@@ -138,7 +136,7 @@ class ModuleManager::Impl {
     Thread::TaskRunnerGetter::GetInstance()
         .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
         ->PostTask(new Thread::Task(
-            [=](GpgFrontend::DataObjectPtr) -> int {
+            [=](const GpgFrontend::DataObjectPtr&) -> int {
               module->SetGPC(gmc_.get());
               return gmc_->RegisterModule(module, false) ? 0 : -1;
             },
@@ -168,13 +166,13 @@ class ModuleManager::Impl {
             __func__, nullptr));
   }
 
-  auto SearchEvent(EventTriggerIdentifier trigger_id)
+  auto SearchEvent(const EventTriggerIdentifier& trigger_id)
       -> std::optional<EventReference> {
-    return gmc_->SearchEvent(std::move(trigger_id));
+    return gmc_->SearchEvent(trigger_id);
   }
 
-  auto GetModuleListening(ModuleIdentifier module_id) -> QStringList {
-    return gmc_->GetModuleListening(std::move(module_id));
+  auto GetModuleListening(const ModuleIdentifier& module_id) -> QStringList {
+    return gmc_->GetModuleListening(module_id);
   }
 
   void ActiveModule(const ModuleIdentifier& identifier) {
@@ -199,32 +197,32 @@ class ModuleManager::Impl {
             __func__, nullptr));
   }
 
-  auto GetTaskRunner(ModuleIdentifier module_id)
+  auto GetTaskRunner(const ModuleIdentifier& module_id)
       -> std::optional<TaskRunnerPtr> {
-    return gmc_->GetTaskRunner(std::move(module_id));
+    return gmc_->GetTaskRunner(module_id);
   }
 
   auto UpsertRTValue(Namespace n, Key k, std::any v) -> bool {
-    return grt_->PublishKV(n, k, v);
+    return grt_->PublishKV(std::move(n), std::move(k), std::move(v));
   }
 
   auto RetrieveRTValue(Namespace n, Key k) -> std::optional<std::any> {
-    return grt_->LookupKV(n, k);
+    return grt_->LookupKV(std::move(n), std::move(k));
   }
 
   auto ListenPublish(QObject* o, Namespace n, Key k, LPCallback c) -> bool {
-    return grt_->ListenPublish(o, n, k, c);
+    return grt_->ListenPublish(o, std::move(n), std::move(k), std::move(c));
   }
 
   auto ListRTChildKeys(const QString& n, const QString& k) -> QContainer<Key> {
     return grt_->ListChildKeys(n, k);
   }
 
-  auto IsModuleActivated(ModuleIdentifier id) -> bool {
+  auto IsModuleActivated(const ModuleIdentifier& id) -> bool {
     return gmc_->IsModuleActivated(id);
   }
 
-  auto IsIntegratedModule(ModuleIdentifier id) -> bool {
+  auto IsIntegratedModule(const ModuleIdentifier& id) -> bool {
     return gmc_->IsIntegratedModule(id);
   }
 
@@ -247,11 +245,11 @@ class ModuleManager::Impl {
 };
 
 auto IsModuleActivate(ModuleIdentifier id) -> bool {
-  return ModuleManager::GetInstance().IsModuleActivated(id);
+  return ModuleManager::GetInstance().IsModuleActivated(std::move(id));
 }
 
 auto GF_CORE_EXPORT IsModuleExists(ModuleIdentifier id) -> bool {
-  auto module = ModuleManager::GetInstance().SearchModule(id);
+  auto module = ModuleManager::GetInstance().SearchModule(std::move(id));
   return module != nullptr && module->IsGood();
 }
 
@@ -263,7 +261,8 @@ auto UpsertRTValue(const QString& namespace_, const QString& key,
 
 auto ListenRTPublishEvent(QObject* o, Namespace n, Key k, LPCallback c)
     -> bool {
-  return ModuleManager::GetInstance().ListenRTPublish(o, n, k, c);
+  return ModuleManager::GetInstance().ListenRTPublish(
+      o, std::move(n), std::move(k), std::move(c));
 }
 
 auto ListRTChildKeys(const QString& namespace_, const QString& key)
@@ -277,53 +276,49 @@ ModuleManager::ModuleManager(int channel)
 
 ModuleManager::~ModuleManager() = default;
 
-auto ModuleManager::LoadModule(QString module_library_path,
-                               bool integrated_module) -> bool {
-  return p_->LoadAndRegisterModule(module_library_path, integrated_module);
+auto ModuleManager::LoadModule(QString path, bool integrated) -> bool {
+  return p_->LoadAndRegisterModule(path, integrated);
 }
 
-auto ModuleManager::SearchModule(ModuleIdentifier module_id) -> ModulePtr {
-  return p_->SearchModule(std::move(module_id));
+auto ModuleManager::SearchModule(ModuleIdentifier id) -> ModulePtr {
+  return p_->SearchModule(id);
 }
 
 void ModuleManager::RegisterModule(ModulePtr module) {
-  return p_->RegisterModule(module);
+  p_->RegisterModule(module);
 }
 
 void ModuleManager::ListenEvent(ModuleIdentifier module,
                                 EventIdentifier event) {
-  return p_->ListenEvent(module, event);
+  p_->ListenEvent(module, event);
 }
 
-auto ModuleManager::GetModuleListening(ModuleIdentifier module_id)
-    -> QStringList {
-  return p_->GetModuleListening(module_id);
+auto ModuleManager::GetModuleListening(ModuleIdentifier id) -> QStringList {
+  return p_->GetModuleListening(id);
 }
 
 void ModuleManager::TriggerEvent(EventReference event) {
-  return p_->TriggerEvent(event);
+  p_->TriggerEvent(event);
 }
 
-auto ModuleManager::SearchEvent(EventTriggerIdentifier trigger_id)
+auto ModuleManager::SearchEvent(EventTriggerIdentifier id)
     -> std::optional<EventReference> {
-  return p_->SearchEvent(std::move(trigger_id));
+  return p_->SearchEvent(id);
 }
 
-void ModuleManager::ActiveModule(ModuleIdentifier id) {
-  return p_->ActiveModule(id);
-}
+void ModuleManager::ActiveModule(ModuleIdentifier id) { p_->ActiveModule(id); }
 
 void ModuleManager::DeactivateModule(ModuleIdentifier id) {
-  return p_->DeactivateModule(id);
+  p_->DeactivateModule(id);
 }
 
 auto ModuleManager::GetTaskRunner(ModuleIdentifier id)
     -> std::optional<TaskRunnerPtr> {
-  return p_->GetTaskRunner(std::move(id));
+  return p_->GetTaskRunner(id);
 }
 
 auto ModuleManager::UpsertRTValue(Namespace n, Key k, std::any v) -> bool {
-  return p_->UpsertRTValue(n, k, v);
+  return p_->UpsertRTValue(std::move(n), std::move(k), std::move(v));
 }
 
 auto ModuleManager::RetrieveRTValue(Namespace n, Key k)
@@ -333,7 +328,7 @@ auto ModuleManager::RetrieveRTValue(Namespace n, Key k)
 
 auto ModuleManager::ListenRTPublish(QObject* o, Namespace n, Key k,
                                     LPCallback c) -> bool {
-  return p_->ListenPublish(o, n, k, c);
+  return p_->ListenPublish(o, std::move(n), std::move(k), std::move(c));
 }
 
 auto ModuleManager::ListRTChildKeys(const QString& n, const QString& k)
