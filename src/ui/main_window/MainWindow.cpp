@@ -30,6 +30,7 @@
 
 #include <algorithm>
 
+#include "core/function/CacheManager.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
@@ -294,8 +295,12 @@ void MainWindow::check_update_at_startup() {
   auto settings = GetSettings();
   if (!settings.contains("network/prohibit_update_checking")) return;
 
+  auto update_checking_api =
+      settings.value("network/update_checking_api", "github").toString();
+
   auto prohibit_update_checking =
       settings.value("network/prohibit_update_checking", false).toBool();
+
   if (!prohibit_update_checking) {
     Module::ListenRTPublishEvent(
         this, kVersionCheckingModuleID, "version.loading_done",
@@ -305,9 +310,22 @@ void MainWindow::check_update_at_startup() {
               "version-checking version.loading_done changed, calling slot "
               "version upgrade");
           this->slot_version_upgrade_notify();
+
+          CacheManager::GetInstance().SaveSecDurableCache(
+              "next_statup_update_checking_timestamp",
+              GFBuffer{QString::number(
+                  QDateTime::currentDateTime().addDays(1).toSecsSinceEpoch())});
         });
-    Module::TriggerEvent("CHECK_APPLICATION_VERSION", {});
+
+    Module::TriggerEvent("CHECK_APPLICATION_VERSION",
+                         {{"api", GFBuffer(update_checking_api)}});
   }
+
+  // sync update checking api settings to module
+  Module::UpsertRTValue("ui", "settings.network.update_checking_api",
+                        QString(update_checking_api));
+  Module::UpsertRTValue("ui", "settings.network.prohibit_update_checking",
+                        prohibit_update_checking);
 }
 
 void MainWindow::slot_popup_menu_by_key_list(QContextMenuEvent* event,
