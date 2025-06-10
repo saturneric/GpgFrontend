@@ -306,6 +306,13 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="autoFetchKeyPublishStatusCheckBox">
+            <property name="text">
+             <string>Automatically fetch key publish status from key server.</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="prohibitUpdateCheck">
             <property name="text">
              <string>Prohibit checking for version updates when the program starts.</string>
@@ -313,11 +320,29 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="autoFetchKeyPublishStatusCheckBox">
-            <property name="text">
-             <string>Automatically fetch key publish status from key server.</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QLabel" name="updateCheckingAPILabel">
+              <property name="text">
+               <string>Update Checking API</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="githubRadioButton">
+              <property name="text">
+               <string>GitHub</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="bktusRadioButton">
+              <property name="text">
+               <string>BKTUS.com</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
