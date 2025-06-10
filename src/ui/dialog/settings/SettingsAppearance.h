@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include "ui/GpgFrontendUI.h"
-
 class Ui_AppearanceSettings;
 
 namespace GpgFrontend::UI {

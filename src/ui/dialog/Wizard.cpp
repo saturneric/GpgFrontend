@@ -29,7 +29,6 @@
 #include "Wizard.h"
 
 #include "core/function/GlobalSettingStation.h"
-#include "ui/GpgFrontendUI.h"
 
 namespace GpgFrontend::UI {
 

@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
 
 namespace GpgFrontend::UI {

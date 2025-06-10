@@ -30,8 +30,6 @@
 
 #include <QtNetwork>
 
-#include "ui/GpgFrontendUI.h"
-
 class Ui_NetworkSettings;
 
 namespace GpgFrontend::UI {

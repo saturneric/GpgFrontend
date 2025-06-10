@@ -33,7 +33,6 @@
 #include "core/model/GpgKeyGenerateInfo.h"
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/MemoryUtils.h"
-#include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
 
 class Ui_SubkeyGenDialog;

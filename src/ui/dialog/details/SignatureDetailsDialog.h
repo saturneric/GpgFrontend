@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include "ui/GpgFrontendUI.h"
-
 class SignatureDetailsDialog : public QDialog {
   Q_OBJECT
  public:

@@ -29,7 +29,6 @@
 #pragma once
 
 #include "core/typedef/CoreTypedef.h"
-#include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
 
 namespace GpgFrontend::UI {

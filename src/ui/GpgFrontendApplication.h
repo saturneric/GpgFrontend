@@ -26,8 +26,6 @@
  *
  */
 
-#include "ui/GpgFrontendUI.h"
-
 #pragma once
 
 namespace GpgFrontend::UI {

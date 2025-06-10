@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "ui/GpgFrontendUI.h"
 #include "ui/widgets/PlainTextEditorPage.h"
 
 namespace GpgFrontend::UI {
