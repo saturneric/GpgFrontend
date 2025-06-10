@@ -58,6 +58,7 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   key_id_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
   usage_var_label_ = new QLabel();
+  usage_var_label_->setWordWrap(true);
 
   owner_trust_var_label_ = new QLabel();
   key_size_var_label_ = new QLabel();
@@ -71,6 +72,10 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   auto* mvbox = new QVBoxLayout();
   auto* vbox_kd = new QGridLayout();
   auto* vbox_od = new QGridLayout();
+
+  expire_var_label_->setWordWrap(true);
+  created_var_label_->setWordWrap(true);
+  last_update_var_label_->setWordWrap(true);
 
   vbox_od->addWidget(new QLabel(tr("Name") + ": "), 0, 0);
   vbox_od->addWidget(new QLabel(tr("Email Address") + ": "), 1, 0);
