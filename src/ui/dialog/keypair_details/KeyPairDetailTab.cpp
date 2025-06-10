@@ -53,6 +53,7 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   email_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
   comment_var_label_ = new QLabel();
+  comment_var_label_->setWordWrap(true);
   comment_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
   key_id_var_label_ = new QLabel();
   key_id_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
