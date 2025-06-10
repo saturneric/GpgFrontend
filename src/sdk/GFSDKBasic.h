@@ -180,6 +180,25 @@ auto GF_SDK_EXPORT GFCacheSaveWithTTL(const char* key, const char* value,
  * @brief
  *
  * @param key
+ * @param value
+ * @return auto
+ */
+auto GF_SDK_EXPORT GFDurableCacheGet(const char* key) -> const char*;
+
+/**
+ * @brief
+ *
+ * @param key
+ * @param value
+ * @return auto
+ */
+auto GF_SDK_EXPORT GFDurableCacheSave(const char* key, const char* value)
+    -> int;
+
+/**
+ * @brief
+ *
+ * @param key
  * @return const char*
  */
 auto GF_SDK_EXPORT GFCacheGet(const char* key) -> const char*;

@@ -161,3 +161,17 @@ auto GF_SDK_EXPORT GFSecReallocateMemory(void* ptr, uint32_t size) -> void* {
 }
 
 void GF_SDK_EXPORT GFSecFreeMemory(void* ptr) { GpgFrontend::SMASecFree(ptr); }
+
+auto GF_SDK_EXPORT GFDurableCacheGet(const char* key) -> const char* {
+  auto value = GpgFrontend::CacheManager::GetInstance().LoadDurableCache(
+      "__module_" + GFUnStrDup(key));
+  return GFStrDup(value.toJson());
+}
+
+auto GF_SDK_EXPORT GFDurableCacheSave(const char* key, const char* value)
+    -> int {
+  GpgFrontend::CacheManager::GetInstance().SaveDurableCache(
+      "__module_" + GFUnStrDup(key),
+      QJsonDocument::fromJson(GFUnStrDup(value).toUtf8()));
+  return 0;
+}
