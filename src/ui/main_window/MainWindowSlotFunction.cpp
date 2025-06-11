@@ -186,12 +186,12 @@ void MainWindow::refresh_keys_from_key_server() {
 }
 
 void MainWindow::slot_set_owner_trust_level_of_key() {
-  auto keys = m_key_list_->GetSelectedGpgKeys();
+  auto keys = m_key_list_->GetSelectedKeys();
   if (keys.empty()) return;
 
-  auto* function = new SetOwnerTrustLevel(this);
-  function->Exec(m_key_list_->GetCurrentGpgContextChannel(), keys.front());
-  function->deleteLater();
+  auto* f = new SetOwnerTrustLevel(this);
+  f->Exec(m_key_list_->GetCurrentGpgContextChannel(), keys.front());
+  f->deleteLater();
 }
 
 void MainWindow::upload_key_to_server() {

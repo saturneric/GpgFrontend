@@ -59,9 +59,9 @@ auto SetOwnerTrustLevel::Exec(int channel, const GpgAbstractKeyPtr& key)
     const auto gpg_keys = ConvertKey2GpgKeyList(channel, {key});
     for (const auto& gpg_key : gpg_keys) {
       const auto key_trust_level = gpg_key->OwnerTrustLevel();
-      if (owner_trust_level == 1) owner_trust_level = key_trust_level;
-      if (owner_trust_level != key_trust_level) owner_trust_level = 1;
-      if (owner_trust_level == 1) break;
+      if (owner_trust_level == 2) owner_trust_level = key_trust_level;
+      if (owner_trust_level != key_trust_level) owner_trust_level = 2;
+      if (owner_trust_level == 2) break;
     }
   }
 
