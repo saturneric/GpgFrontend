@@ -5,6 +5,7 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d1750e052a85430a8f1f84e58a0fceda)](https://www.codacy.com/gh/saturneric/GpgFrontend/dashboard?utm_source=github.com&utm_medium=referral&utm_content=saturneric/GpgFrontend&utm_campaign=Badge_Grade)
 [![Build Release](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml)
 [![Build Nightly](https://github.com/saturneric/GpgFrontend/actions/workflows/testing-nightly.yml/badge.svg?branch=develop)](https://github.com/saturneric/GpgFrontend/actions/workflows/testing-nightly.yml)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/saturneric/GpgFrontend)
 
 **GpgFrontend** is a modern, cross-platform, open-source GUI for OpenPGP
 encryption—simple enough for beginners, powerful enough for experts, and
