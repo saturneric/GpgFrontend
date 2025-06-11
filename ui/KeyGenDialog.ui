@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>475</width>
-    <height>568</height>
+    <height>635</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,49 +27,65 @@
     <number>5</number>
    </property>
    <item>
-    <layout class="QGridLayout" name="gridLayout_3">
-     <property name="topMargin">
-      <number>5</number>
+    <layout class="QFormLayout" name="formLayout_2">
+     <property name="fieldGrowthPolicy">
+      <enum>QFormLayout::FieldGrowthPolicy::ExpandingFieldsGrow</enum>
      </property>
-     <item row="4" column="0">
-      <widget class="QLabel" name="commentLabel">
-       <property name="text">
-        <string>Comment</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="emailLabel">
-       <property name="text">
-        <string>Email</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
+     <property name="rowWrapPolicy">
+      <enum>QFormLayout::RowWrapPolicy::DontWrapRows</enum>
+     </property>
+     <property name="labelAlignment">
+      <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+     </property>
+     <property name="formAlignment">
+      <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+     </property>
+     <item row="1" column="0">
       <widget class="QLabel" name="nameLabel">
        <property name="text">
         <string>Name</string>
        </property>
       </widget>
      </item>
-     <item row="2" column="1" colspan="2">
+     <item row="1" column="1">
       <widget class="QLineEdit" name="nameEdit"/>
      </item>
-     <item row="4" column="1" colspan="2">
-      <widget class="QLineEdit" name="commentEdit"/>
+     <item row="2" column="0">
+      <widget class="QLabel" name="emailLabel">
+       <property name="text">
+        <string>Email</string>
+       </property>
+      </widget>
      </item>
-     <item row="3" column="1" colspan="2">
+     <item row="2" column="1">
       <widget class="QLineEdit" name="emailEdit"/>
      </item>
-     <item row="5" column="0">
+     <item row="3" column="0">
+      <widget class="QLabel" name="commentLabel">
+       <property name="text">
+        <string>Comment</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="commentEdit"/>
+     </item>
+     <item row="4" column="0">
       <widget class="QLabel" name="keyDBLabel">
        <property name="text">
         <string>Key Database</string>
        </property>
       </widget>
      </item>
-     <item row="5" column="1" colspan="2">
-      <widget class="QComboBox" name="keyDBIndexComboBox"/>
+     <item row="4" column="1">
+      <widget class="QComboBox" name="keyDBIndexComboBox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -91,28 +107,11 @@
          <string>Easy Mode</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_3">
+         <property name="bottomMargin">
+          <number>5</number>
+         </property>
          <item>
           <layout class="QGridLayout" name="gridLayout">
-           <item row="4" column="0">
-            <widget class="QLabel" name="easyValidPeriodLabel">
-             <property name="text">
-              <string>Validity Period</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1" colspan="2">
-            <widget class="QComboBox" name="easyAlgoComboBox"/>
-           </item>
-           <item row="4" column="1" colspan="2">
-            <widget class="QComboBox" name="easyValidityPeriodComboBox"/>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="easyAlgoLabel">
-             <property name="text">
-              <string>Algorithm</string>
-             </property>
-            </widget>
-           </item>
            <item row="5" column="0">
             <widget class="QLabel" name="combinationLabel">
              <property name="text">
@@ -120,8 +119,28 @@
              </property>
             </widget>
            </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="easyProfileLabel">
+             <property name="text">
+              <string>Profile</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1" colspan="2">
+            <widget class="QComboBox" name="easyValidityPeriodComboBox"/>
+           </item>
            <item row="5" column="1" colspan="2">
             <widget class="QComboBox" name="easyCombinationComboBox"/>
+           </item>
+           <item row="0" column="1" colspan="2">
+            <widget class="QComboBox" name="easyProfileComboBox"/>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="easyValidPeriodLabel">
+             <property name="text">
+              <string>Validity Period</string>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>
@@ -137,6 +156,24 @@
             </size>
            </property>
           </spacer>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item>
+            <widget class="QPushButton" name="deletePushButton">
+             <property name="text">
+              <string>Delete Profile</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="savePushButton">
+             <property name="text">
+              <string>Save Profile</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
         </layout>
        </widget>
@@ -361,12 +398,8 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>nameEdit</tabstop>
-  <tabstop>emailEdit</tabstop>
-  <tabstop>commentEdit</tabstop>
-  <tabstop>keyDBIndexComboBox</tabstop>
   <tabstop>tabWidget</tabstop>
-  <tabstop>easyAlgoComboBox</tabstop>
+  <tabstop>easyProfileComboBox</tabstop>
   <tabstop>easyValidityPeriodComboBox</tabstop>
   <tabstop>easyCombinationComboBox</tabstop>
   <tabstop>statusPlainTextEdit</tabstop>

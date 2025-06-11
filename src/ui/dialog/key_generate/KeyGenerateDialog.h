@@ -84,7 +84,7 @@ class KeyGenerateDialog : public GeneralDialog {
    *
    * @param mode
    */
-  void slot_easy_mode_changed(int index);
+  void slot_easy_profile_changed(int index);
 
   /**
    * @brief
@@ -112,9 +112,65 @@ class KeyGenerateDialog : public GeneralDialog {
    */
   void slot_easy_combination_changed(const QString& mode);
 
- private:
-  int channel_;
+  /**
+   * @brief
+   *
+   */
+  void slot_save_as_easy_profile_config();
 
+  /**
+   * @brief
+   *
+   */
+  void slot_delete_easy_profile_config();
+
+ private:
+  struct ExpireOption {
+    QString key;      // "2y"
+    QString display;  // tr("2 Years")
+    bool non_expired;
+    std::function<QDateTime()> calc_expire_time;
+  };
+
+  const ExpireOption k_default_expire_option_ = {
+      "2y", tr("2 Years"), false,
+      [] { return QDateTime::currentDateTime().addYears(2); }};
+
+  const ExpireOption k_custom_expire_option_ = {
+      "custom", tr("Custom"), false,
+      [] { return QDateTime::currentDateTime(); }};
+
+  const QMap<QString, ExpireOption> k_expire_options_ = {
+      {"custom", k_custom_expire_option_},
+      {"3m",
+       {"3m", tr("3 Months"), false,
+        [] { return QDateTime::currentDateTime().addMonths(3); }}},
+      {"6m",
+       {"6m", tr("6 Months"), false,
+        [] { return QDateTime::currentDateTime().addMonths(6); }}},
+      {"1y",
+       {"1y", tr("1 Year"), false,
+        [] { return QDateTime::currentDateTime().addYears(1); }}},
+      {"2y", k_default_expire_option_},
+      {"5y",
+       {"5y", tr("5 Years"), false,
+        [] { return QDateTime::currentDateTime().addYears(5); }}},
+      {"10y",
+       {"10y", tr("10 Years"), false,
+        [] { return QDateTime::currentDateTime().addYears(10); }}},
+      {"forever",
+       {"forever", tr("Non Expired"), true,
+        [] { return QDateTime::currentDateTime(); }}},
+  };
+
+  const QList<ExpireOption> k_expire_options_list_ = {
+      k_expire_options_.value("custom"), k_expire_options_.value("3m"),
+      k_expire_options_.value("6m"),     k_expire_options_.value("1y"),
+      k_expire_options_.value("2y"),     k_expire_options_.value("5y"),
+      k_expire_options_.value("10y"),    k_expire_options_.value("forever"),
+  };
+
+  int channel_;
   QStringList error_messages_;  ///< List of errors occurring when checking
                                 ///< entries of line edits
 
@@ -125,7 +181,8 @@ class KeyGenerateDialog : public GeneralDialog {
   QContainer<KeyAlgo> supported_primary_key_algos_;
   QContainer<KeyAlgo> supported_subkey_algos_;
 
-  QMap<int, EasyModeConf> easy_mode_conf_;
+  QContainer<EasyModeConf> easy_mode_conf_;
+  QMap<int, EasyModeConf> easy_profile_conf_index_;
 
   /**
    * @details Refresh widgets state by GenKeyInfo
@@ -166,7 +223,13 @@ class KeyGenerateDialog : public GeneralDialog {
    * @brief
    *
    */
-  void load_easy_mode_config();
+  void load_easy_profile_config();
+
+  /**
+   * @brief
+   *
+   */
+  void flush_easy_profile_config_cache();
 };
 
 }  // namespace GpgFrontend::UI
