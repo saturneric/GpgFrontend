@@ -791,14 +791,19 @@ void KeyGenerateDialog::load_easy_mode_config() {
     QByteArray buf;
     if (ReadFile(config_path, buf)) {
       auto doc = QJsonDocument::fromJson(buf);
-      conf = doc.array();
+      if (!doc.isEmpty() && doc.isArray()) conf = doc.array();
     }
   }
 
   if (conf.empty()) {
     ExportSupportedAlgosToJsonFile();
+
+    // use a default config by default
     conf = MakeDefaultEasyModeConf();
-    if (!WriteFile(config_path, QJsonDocument(conf).toJson())) {
+
+    // we should not overwrite the file due to a small mistake of users
+    if (!QFile::exists(config_path) &&
+        !WriteFile(config_path, QJsonDocument(conf).toJson())) {
       LOG_E() << "save default gen key easy mode config to disk failed: "
               << config_path;
     }
