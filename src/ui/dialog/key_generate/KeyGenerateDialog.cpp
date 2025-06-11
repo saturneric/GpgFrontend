@@ -45,7 +45,7 @@
 
 namespace {
 
-const int kProfileNameMaxLen = 16;
+const int kProfileNameMaxLen = 32;
 
 auto MakeDefaultEasyModeConf() -> QJsonArray {
   return QJsonArray{
