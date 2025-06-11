@@ -6,26 +6,33 @@
 [![Build Release](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/saturneric/GpgFrontend/actions/workflows/release.yml)
 [![Build Nightly](https://github.com/saturneric/GpgFrontend/actions/workflows/testing-nightly.yml/badge.svg?branch=develop)](https://github.com/saturneric/GpgFrontend/actions/workflows/testing-nightly.yml)
 
-GpgFrontend is a free, open-source, robust yet user-friendly, compact and
-cross-platform tool for [OpenPGP](https://www.openpgp.org/) encryption. It
-stands out as an exceptional GUI frontend for the modern
-[GnuPG](https://www.gnupg.org/) (gpg).
+**GpgFrontend** is a modern, cross-platform, open-source GUI for OpenPGP
+encryption—simple enough for beginners, powerful enough for experts, and
+portable enough for everyone who values security and flexibility.
 
 <img width="100" height="100" align="right" style="position: absolute;right: 0;padding: 12px;top:12px;z-index: 1000;" src="https://image.cdn.bktus.com/i/2024/02/24/248b2e18-a120-692e-e6bc-42ca30be9011.webp" alt="GpgFrontend"/>
 
-When using GpgFrontend, you can:
+**Key Features:**
 
-- Rapidly encrypt text, files or emails.
-- Digitally sign your text, files or emails with ease.
-- Conveniently manage all your GPG keys on your device.
-- Transfer all your GPG keys between devices safely and effortlessly.
-- Furthermore, you can build and run it on various operating systems, including
-  Windows, macOS, Linux, FreeBSD, and more.
+- **One-click Encryption & Signing** — Quickly encrypt, decrypt, and digitally
+  sign your texts, files, and emails with ease.
+- **Easy Installation** — Available via Homebrew, Flatpak, GitHub Releases,
+  winget, AUR, Microsoft Store, and more.
+- **True Cross-platform Experience** — Native support for Windows, macOS, Linux,
+  and buildable on FreeBSD.
+- **Fully Portable Across OS** — Run directly from a USB drive; seamlessly move
+  your keys and settings between Windows and Linux without hassle.
+- **Secure & Simple Key Transfer** — Easily move your keys and configurations
+  safely between devices.
+- **Multiple Independent Key Databases** — Effortlessly handle keys and
+  identities for different roles, projects, or teams.
+- **Comprehensive Algorithm Support** — RSA, DSA, EdDSA, ECDSA (NIST,
+  Brainpool), ECDH, and many more via the latest GnuPG.
 
-GpgFrontend is **PERMANENTLY FREE** to use. If you’d like to support it,
-consider giving the project a ⭐ on GitHub. Your support not only helps it grow
-but also spreads the word, allowing more people to discover and benefit from
-GpgFrontend. Every contribution is highly appreciated!
+> **100% free, open-source, no telemetry—privacy by design.**
+
+❤️ **Like GpgFrontend?**  
+Star ⭐ it on GitHub, report issues, or even contribute code—every action supports privacy and security for all.
 
 ## Table of Contents
 
@@ -119,11 +126,6 @@ environment in GitHub Codespaces.
 ## Project Maintainer
 
 [@Saturneric](https://github.com/saturneric)
-
-Maintainer Identity Declaration (for CA verification): This project is
-maintained by Yu Hu, who is also known in the community as Eric. The contact
-email used here (eric@bktus.com) matches the identity submitted for code signing
-certificate verification.
 
 I’m always eager to hear your suggestions for improvement. My goal is to
 continuously enhance the usability of GpgFrontend and address critical issues
