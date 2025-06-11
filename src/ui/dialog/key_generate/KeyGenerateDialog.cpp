@@ -663,6 +663,11 @@ void KeyGenerateDialog::slot_easy_mode_changed(int index) {
     auto [s_found, s_algo] =
         KeyGenerateInfo::SearchSubKeyAlgo(c.s_key_algo.toLower());
     if (s_found) gen_subkey_info_->SetAlgo(s_algo);
+
+    gen_subkey_info_->SetNonExpired(c.key_validity == "forever" ||
+                                    c.key_validity == "none");
+
+    gen_subkey_info_->SetExpireTime(dt);
   } else {
     gen_subkey_info_ = nullptr;
   }
