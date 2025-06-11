@@ -71,19 +71,22 @@ auto MakeDefaultEasyModeConf() -> QJsonArray {
           {"name", "ECC-384 (NIST)"},
           {"primary", QJsonObject{{"algo", "NISTP384"}, {"validity", "2y"}}},
           {"subkey", QJsonObject{{"algo", "NISTP384"}, {"validity", "2y"}}},
-          {"hidden", false}},
-      QJsonObject{{"name", "ECC-256 (EU/Brainpool)"},
-                  {"primary",
-                   QJsonObject{
-                       {"algo", "BRAINPOOLP256R1"},
-                       {"validity", "2y"},
-                   }},
-                  {"subkey",
-                   QJsonObject{
-                       {"algo", "BRAINPOOLP256R1"},
-                       {"validity", "2y"},
-                   }},
-                  {"hidden", false}},
+          {"hidden", false},
+      },
+      QJsonObject{
+          {"name", "ECC-256 (EU/Brainpool)"},
+          {"primary",
+           QJsonObject{
+               {"algo", "BRAINPOOLP256R1"},
+               {"validity", "2y"},
+           }},
+          {"subkey",
+           QJsonObject{
+               {"algo", "BRAINPOOLP256R1"},
+               {"validity", "2y"},
+           }},
+          {"hidden", false},
+      },
       QJsonObject{
           {"name", "ECC-448 (Highest Security, Niche)"},
           {"primary", QJsonObject{{"algo", "ED448"}, {"validity", "2y"}}},
