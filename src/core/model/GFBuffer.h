@@ -82,6 +82,8 @@ class GF_CORE_EXPORT GFBuffer {
 
   void Append(const char*, ssize_t);
 
+  void Combine(const std::initializer_list<GFBuffer>& buffers);
+
   [[nodiscard]] auto ConvertToQByteArray() const -> QByteArray;
 
   [[nodiscard]] auto ConvertToQString() const -> QString;

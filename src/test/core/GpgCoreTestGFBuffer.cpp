@@ -249,4 +249,60 @@ TEST(GFBufferTest, MoveAfterZeroize) {
   EXPECT_TRUE(b.Size() == 5);
 }
 
+TEST(GFBufferTest, CombineMultipleBuffers) {
+  GFBuffer a;
+  GFBuffer b;
+  GFBuffer c;
+
+  const char* data1 = "hello";
+  const char* data2 = "world";
+  const char* data3 = "!123";
+
+  a.Append(data1, 5);
+  b.Append(data2, 5);
+  c.Append(data3, 4);
+
+  GFBuffer combined;
+  combined.Combine({a, b, c});
+
+  ASSERT_EQ(combined.Size(), 14);
+  std::string result(static_cast<const char*>(combined.Data()),
+                     combined.Size());
+  EXPECT_EQ(result, "helloworld!123");
+}
+
+TEST(GFBufferTest, CombineEmptyAndNonEmptyBuffers) {
+  GFBuffer a;
+  GFBuffer b;
+  a.Append("data", 4);  // "data"
+
+  GFBuffer combined;
+  combined.Combine({a, b});
+
+  ASSERT_EQ(combined.Size(), 4);
+  std::string result(static_cast<const char*>(combined.Data()),
+                     combined.Size());
+  EXPECT_EQ(result, "data");
+}
+
+TEST(GFBufferTest, CombineAllEmptyBuffers) {
+  GFBuffer a;
+  GFBuffer b;
+  GFBuffer combined;
+  combined.Combine({a, b});
+  EXPECT_EQ(combined.Size(), 0);
+}
+
+TEST(GFBufferTest, CombineSelfBuffer) {
+  GFBuffer a;
+  a.Append("abc", 3);
+
+  GFBuffer combined;
+  combined.Combine({a, a});
+  ASSERT_EQ(combined.Size(), 6);
+  std::string result(static_cast<const char*>(combined.Data()),
+                     combined.Size());
+  EXPECT_EQ(result, "abcabc");
+}
+
 }  // namespace GpgFrontend::Test

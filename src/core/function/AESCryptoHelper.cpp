@@ -321,10 +321,8 @@ auto EncryptImpl(const EVP_CIPHER* cipher, const GpgFrontend::GFBuffer& raw_key,
   if (!ciphertext) return {};
 
   GpgFrontend::GFBuffer encrypted;
-  encrypted.Append(*salt);
-  encrypted.Append(iv);
-  encrypted.Append(*ciphertext);
-  encrypted.Append(tag);
+  encrypted.Combine({*salt, iv, *ciphertext, tag});
+
   return encrypted;
 }
 

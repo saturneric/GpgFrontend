@@ -241,8 +241,7 @@ auto DataObjectOperator::write_encr_object(const GFBuffer& ref,
   }
 
   GFBuffer data;
-  data.Append(key_id_);
-  data.Append(*encrypted);
+  data.Combine({key_id_, *encrypted});
 
   if (!WriteFileGFBuffer(ref_path, data)) {
     LOG_E() << "failed to write data object to disk: " << ref_hex;

@@ -246,4 +246,24 @@ auto GFBuffer::operator=(GFBuffer&& other) noexcept -> GFBuffer& {
 GFBuffer::GFBuffer(const GFBuffer& other) = default;
 
 auto GFBuffer::operator=(const GFBuffer& other) -> GFBuffer& = default;
+
+void GFBuffer::Combine(const std::initializer_list<GFBuffer>& buffers) {
+  size_t total_new_data = 0;
+  for (const auto& b : buffers) {
+    if (!b.Empty()) total_new_data += b.impl_->sec_size_;
+  }
+  if (total_new_data == 0) return;
+
+  const auto old_size = impl_->sec_size_;
+  Resize(static_cast<ssize_t>(old_size + total_new_data));
+
+  auto offset = old_size;
+  for (const auto& b : buffers) {
+    if (!b.Empty()) {
+      memcpy(static_cast<char*>(impl_->sec_ptr_) + offset, b.impl_->sec_ptr_,
+             b.impl_->sec_size_);
+      offset += b.impl_->sec_size_;
+    }
+  }
+}
 }  // namespace GpgFrontend
