@@ -39,7 +39,7 @@ on:
 
 env:
   BUILD_TYPE: Release
-  GNUPG_VERSION: "2.4.7"
+  GNUPG_VERSION: "2.4.8"
 
 jobs:
   build:
