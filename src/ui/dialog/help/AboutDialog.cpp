@@ -42,11 +42,13 @@ AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
   auto* tab_widget = new QTabWidget;
   auto* info_tab = new InfoTab();
   auto* translators_tab = new TranslatorsTab();
+  auto* status_tab = new StatusTab();
 
   tab_widget->setDocumentMode(true);
 
   tab_widget->addTab(info_tab, tr("About GpgFrontend"));
   tab_widget->addTab(translators_tab, tr("Translators"));
+  tab_widget->addTab(status_tab, tr("Status"));
 
   auto entries =
       UIModuleManager::GetInstance().QueryMountedEntries("AboutDialogTabs");
@@ -184,6 +186,57 @@ TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
   notice_label->setWordWrap(true);
   main_layout->addWidget(notice_label);
 
+  setLayout(main_layout);
+}
+
+StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
+  const int secure_level = qApp->property("GFSecureLevel").toInt();
+  const bool portable_mode = qApp->property("GFPortableMode").toBool();
+  const bool self_check = qApp->property("GFSelfCheck").toBool();
+
+  auto* main_layout = new QVBoxLayout(this);
+  auto* status_form = new QFormLayout();
+
+  status_form->setRowWrapPolicy(QFormLayout::DontWrapRows);
+  status_form->setFieldGrowthPolicy(QFormLayout::FieldsStayAtSizeHint);
+  status_form->setFormAlignment(Qt::AlignHCenter | Qt::AlignTop);
+  status_form->setLabelAlignment(Qt::AlignLeft);
+
+  const QString secure_level_str = [secure_level]() {
+    switch (secure_level) {
+      case 0:
+        return tr("Default");
+      case 1:
+        return tr("Standard");
+      case 2:
+        return tr("Enhanced");
+      case 3:
+        return tr("High");
+      default:
+        return tr("Unknown");
+    }
+  }();
+
+  // Running mode string
+  const QString portable_mode_str =
+      portable_mode ? tr("Portable Mode") : tr("Installed Mode");
+
+  // Self-check string
+  const QString self_check_str =
+      self_check ? tr("Self-Check Active") : tr("Self-Check Disabled");
+
+  // Add rows to form
+  status_form->addRow(tr("Security Level:"), new QLabel(secure_level_str));
+  status_form->addRow(tr("Running Mode:"), new QLabel(portable_mode_str));
+  status_form->addRow(tr("Self-Check Status:"), new QLabel(self_check_str));
+
+  auto* tip_label = new QLabel(
+      "Tips: The above parameters reflect how the application was started. ");
+  tip_label->setWordWrap(true);
+
+  main_layout->addLayout(status_form);
+  main_layout->addStretch();
+  main_layout->addWidget(tip_label);
   setLayout(main_layout);
 }
 

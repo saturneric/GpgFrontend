@@ -89,4 +89,10 @@ class AboutDialog : public GeneralDialog {
   void showEvent(QShowEvent* ev) override;
 };
 
+class StatusTab : public QWidget {
+  Q_OBJECT
+ public:
+  explicit StatusTab(QWidget* parent = nullptr);
+};
+
 }  // namespace GpgFrontend::UI
