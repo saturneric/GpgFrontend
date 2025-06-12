@@ -87,7 +87,6 @@ jobs:
             mingw-w64-x86_64-cmake
             mingw-w64-x86_64-qt5
             mingw-w64-x86_64-ninja 
-            mingw-w64-x86_64-gnupg 
             mingw-w64-x86_64-gpgme
             mingw-w64-x86_64-libarchive
             mingw-w64-x86_64-gtest
@@ -206,6 +205,7 @@ jobs:
           export FILE="gnupg.zip"
           export CHECKSUM_FILE="SHA256SUMS.txt"
           export SIGNATURE_FILE="gnupg.zip.sig"
+          export GNUPGHOME=$(mktemp -d)
 
           cd $(cygpath -u "${{github.workspace}}")
 
