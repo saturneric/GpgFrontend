@@ -500,12 +500,12 @@
 <context>
     <name>GpgFrontend::Module::GlobalRegisterTable</name>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="46"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="45"/>
         <source>NODE</source>
         <translation>结点</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="81"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="80"/>
         <source>LEAF</source>
         <translation>叶结点</translation>
     </message>
@@ -513,32 +513,32 @@
 <context>
     <name>GpgFrontend::Module::GlobalRegisterTableTreeModel::Impl</name>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="192"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="191"/>
         <source>&lt;EMPTY&gt;</source>
         <translation>&lt;空&gt;</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="231"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="230"/>
         <source>&lt;UNSUPPORTED&gt;</source>
         <translation>&lt;不支持&gt;</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="266"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="265"/>
         <source>Key</source>
         <translation>键</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="268"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="267"/>
         <source>Type</source>
         <translation>类型</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="270"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="269"/>
         <source>Value Type</source>
         <translation>值类型</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="272"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="271"/>
         <source>Value</source>
         <translation>值</translation>
     </message>
@@ -546,72 +546,72 @@
 <context>
     <name>GpgFrontend::UI::ADSKsPicker</name>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="56"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="58"/>
         <source>Confirm</source>
         <translation>确认</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="57"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="59"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="61"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="70"/>
         <source>No Subkeys Selected</source>
         <translation>没有选择任何子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="62"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="71"/>
         <source>Please select at least one Subkey.</source>
         <translation>请至少选择一个子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="77"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="81"/>
         <source>Select ADSK(s)</source>
         <translation>选择 ADSK: </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="81"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="86"/>
         <source>ADSK (Additional Decryption Subkey) allows others to encrypt data for you without having access to your private key. You are only allow to check subkeys with encryption capability.</source>
         <translation>ADSK（附加解密子密钥）允许他人为你加密数据，而无需访问你的私人密钥。您只能选中具有加密功能的子密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="96"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="109"/>
         <source>ADSKs Picker</source>
         <translation>ADSK选择器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="115"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="128"/>
         <source>Key ID: %1 Reason: %2</source>
         <translation>密钥ID: %1 原因: %2</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="127"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="140"/>
         <source>Unknown Error</source>
         <translation>未知错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="128"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="141"/>
         <source>Caught unknown error while exporting the key.</source>
         <translation>在导出密钥的过程中发生错误。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="145"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="158"/>
         <source>Failed</source>
         <translation>失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="146"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="159"/>
         <source>Partially Failed</source>
         <translation>部分失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="149"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="162"/>
         <source>Failed to add all selected subkeys.</source>
         <translation>无法添加任何选中的子密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="150"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="163"/>
         <source>Some subkeys failed to be added as ADSKs.</source>
         <translation>无法添加选中的部分子密钥。</translation>
     </message>
@@ -619,22 +619,22 @@
 <context>
     <name>GpgFrontend::UI::AboutDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="41"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="40"/>
         <source>About</source>
         <translation>关于</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="49"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="48"/>
         <source>About GpgFrontend</source>
         <translation>关于 GpgFrontend</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="59"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="58"/>
         <source>Unnamed</source>
         <translation>未命名</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="50"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="49"/>
         <source>Translators</source>
         <translation>翻译贡献者</translation>
     </message>
@@ -720,66 +720,65 @@
 <context>
     <name>GpgFrontend::UI::ChoosePage</name>
     <message>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="97"/>
+        <source>Welcome to GpgFrontend</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="98"/>
-        <source>Choose your action...</source>
-        <translation>选择你的行动...</translation>
+        <source>These quick guides will help you get started.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="99"/>
-        <source>...by clicking on the appropriate link.</source>
-        <translation>...通过点击相应的链接。</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="102"/>
-        <source>If you have never used GpgFrontend before and also don&apos;t own a gpg key yet you may possibly want to read how to</source>
-        <translation>如果您以前从未使用过 GpgFrontend，而且还没有 gpg 密钥，您可能需要阅读如何</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="103"/>
+        <source>&lt;b&gt;New to encryption?&lt;/b&gt;</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="105"/>
-        <source>Generate Key</source>
-        <translation>生成密钥</translation>
+        <source>Understand the basics of OpenPGP and how GpgFrontend works.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="109"/>
+        <source>Fundamental Concepts</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="112"/>
-        <source>If you want to learn how to encrypt, decrypt, sign and verify text, you can read </source>
-        <translation>如果您想了解如何加密、解密、签名和验证文本，可以阅读 </translation>
+        <source>&lt;b&gt;Working with text?&lt;/b&gt;</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="115"/>
-        <source>Encrypt &amp; Decrypt Text</source>
-        <translation>加密和解密文本</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="115"/>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="127"/>
-        <source>or</source>
-        <translation>或者</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="114"/>
+        <source>Learn how to encrypt, decrypt, sign, and verify text messages.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="117"/>
-        <source>Sign &amp; Verify Text</source>
-        <translation>签名和验证文本</translation>
+        <source>Text Operations Guide</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="120"/>
+        <source>&lt;b&gt;Working with files?&lt;/b&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="122"/>
+        <source>Learn how to encrypt, sign, and verify files securely.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="125"/>
-        <source>If you want to operate file, you can read </source>
-        <translation>如果要操作文件，可以阅读 </translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="127"/>
-        <source>Encrypt &amp; Sign File</source>
-        <translation>加密并签署文件</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="129"/>
-        <source>Sign &amp; Verify File</source>
-        <translation>签署并验证文件</translation>
+        <source>File Operations Guide</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>GpgFrontend::UI::CommonUtils</name>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="436"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="440"/>
         <source>Timeout</source>
         <translation>超时</translation>
     </message>
@@ -811,15 +810,15 @@
         <translation>失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="218"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="225"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="493"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="217"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="224"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="497"/>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="655"/>
         <source>Error</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="210"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="209"/>
         <source>Open Key</source>
         <translation>打开密钥</translation>
     </message>
@@ -859,27 +858,27 @@
         <translation>错误信息：%1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="211"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="210"/>
         <source>Keyring files</source>
         <translation>密钥圈文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="219"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="218"/>
         <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
         <translation>无法打开此文件。请确保这是一个普通文件，并且有读取权限。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="226"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="225"/>
         <source>The target file is too large for a keyring.</source>
         <translation>目标文件对于一个密钥来说太大。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="232"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="231"/>
         <source>File Open Failed</source>
         <translation>文件打开失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="233"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="232"/>
         <source>Failed to open file: </source>
         <translation>打开文件失败： </translation>
     </message>
@@ -919,17 +918,17 @@
         <translation>无法从您的设置中读取默认密钥服务器，请先设置默认密钥服务器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="433"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="437"/>
         <source>Key Not Found</source>
         <translation>未找到密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="439"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="443"/>
         <source>Key Server Not Found</source>
         <translation>未找到密钥服务器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="442"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="446"/>
         <source>Connection Error</source>
         <translation>连接错误</translation>
     </message>
@@ -939,14 +938,14 @@
         <translation>未找到密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="383"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="453"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="387"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="457"/>
         <source>The key has been updated</source>
         <translation>密钥已更新</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="385"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="455"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="389"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="459"/>
         <source>No need to update the key</source>
         <translation>无需更新密钥</translation>
     </message>
@@ -954,173 +953,187 @@
 <context>
     <name>GpgFrontend::UI::ConclusionPage</name>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="155"/>
-        <source>Ready.</source>
-        <translation>准备好。</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="157"/>
+        <source>You&apos;re all set!</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="156"/>
-        <source>Have fun with GpgFrontend!</source>
-        <translation>祝您使用 GpgFrontend 愉快！</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="159"/>
-        <source>You are ready to use GpgFrontend now.&lt;br&gt;&lt;br&gt;</source>
-        <translation>您现在可以使用 GpgFrontend。&lt;br&gt;&lt;br&gt;</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="158"/>
+        <source>GpgFrontend is ready to use.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="161"/>
-        <source>The Online Document</source>
-        <translation>在线文档</translation>
+        <source>GpgFrontend is now fully set up and ready to go.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="162"/>
-        <source> will get you started with GpgFrontend. Anytime you encounter problems, please try to find help from the documentation</source>
-        <translation> 会让你学会 GpgFrontend 的基本操作。任何时候遇到问题，请尝试从文档中寻求帮助</translation>
+        <source>If you encounter any issues or have questions, feel free to </source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="171"/>
-        <source>Open offline help.</source>
-        <translation>打开离线帮助。</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="164"/>
+        <source>submit an issue on GitHub</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="175"/>
-        <source>Don&apos;t show the wizard again.</source>
-        <translation>不要再显示向导界面。</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="164"/>
+        <source>or </source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="179"/>
-        <source>Check for updates at each startup.</source>
-        <translation>每次启动时检查更新。</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="166"/>
+        <source>contact the developer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="167"/>
+        <source>Any feedback is welcome and valuable!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="174"/>
+        <source>Open offline help now</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="178"/>
+        <source>Don&apos;t show this setup wizard again</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="181"/>
+        <source>Check for updates on startup</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>GpgFrontend::UI::ExportKeyPackageDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="51"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="53"/>
         <source>Export Key Package</source>
         <translation>导出密钥包</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="53"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="54"/>
         <source>Key Package</source>
         <translation>密钥包</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="63"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="64"/>
         <source>Export Key Package Passphrase</source>
         <translation>导出密钥包密码</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="65"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="66"/>
         <source>Key File</source>
         <translation>密钥文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="72"/>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="103"/>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="137"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="97"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="143"/>
         <source>Error</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="73"/>
-        <source>An error occurred while generating the passphrase file.</source>
-        <translation>生成密码短语文件时出错。</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="82"/>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="89"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="76"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="83"/>
         <source>Forbidden</source>
         <translation>操作被禁止</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="83"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="77"/>
         <source>Please select an output path before exporting.</source>
         <translation>导出前请选择输出路径。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="90"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="84"/>
         <source>Please generate a password to protect your key before exporting, it is very important. Don&apos;t forget to back up your password in a safe place.</source>
         <translation>请在导出前生成密钥文件以保护您的密钥，这非常重要。不要忘记在安全的地方备份您的密码。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="104"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="98"/>
         <source>No key is suitable to export.</source>
         <translation>没有适合导出的密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="109"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="103"/>
+        <source>Enter PIN</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="104"/>
+        <source>Please enter PIN to protect the Key:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="113"/>
         <source>Generating</source>
         <translation>生成中</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="120"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="123"/>
         <source>Success</source>
         <translation>成功</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="122"/>
-        <source>The Key Package has been successfully generated and has been protected by encryption algorithms(AES-256-ECB). You can safely transfer your Key Package.</source>
-        <translation>密钥包已成功生成并受到加密算法AES-256-ECB的保护。您可以安全地转移您的密钥包。</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="127"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="131"/>
         <source>But the key file cannot be leaked under any circumstances. Please delete the Key Package and key file as soon as possible after completing the transfer operation.</source>
         <translation>但密钥文件在任何情况下都不能泄露。请在完成传输操作后尽快删除密钥包和密钥文件。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="138"/>
-        <source>An error occurred while exporting the key package.</source>
-        <translation>导出密钥包时出错。</translation>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="125"/>
+        <source>The Key Package has been successfully generated and has been protected by encryption algorithms(AES-256-GCM). You can safely transfer your Key Package.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="147"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="152"/>
         <source>Key Package Name</source>
         <translation>密钥包名称</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="148"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="153"/>
         <source>Output Path</source>
         <translation>输出路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="149"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="154"/>
         <source>Passphrase</source>
         <translation>密钥文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="151"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="156"/>
         <source>Tips: You can use Key Package to safely and conveniently transfer your public and private keys between devices.</source>
         <translation>提示：您可以使用密钥包在设备之间安全方便地传输您的公钥和私钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="153"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="158"/>
         <source>Generate and Save Passphrase</source>
         <translation>生成并保存密码</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="154"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="159"/>
         <source>Generate Key Package Name</source>
         <translation>生成密钥包名</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="155"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="160"/>
         <source>Select Output Path</source>
         <translation>选择输出路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="158"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="163"/>
         <source>Include secret key (Think twice before acting)</source>
         <translation>一并导出私钥（勾选前请三思）</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="160"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="165"/>
         <source>Exclude keys that do not have a private key</source>
         <translation>只导出有私钥的钥对</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="163"/>
+        <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="168"/>
         <source>Export As Key Package</source>
         <translation>导出为密钥包</translation>
     </message>
@@ -1128,22 +1141,22 @@
 <context>
     <name>GpgFrontend::UI::FilePage</name>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="45"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="43"/>
         <source>Switch Batch Mode</source>
         <translation>切换到批量模式</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="65"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="64"/>
         <source>Show Hidden File</source>
         <translation>显示隐藏文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="71"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="70"/>
         <source>Show System File</source>
         <translation>显示系统文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="77"/>
+        <location filename="../../../../src/ui/widgets/FilePage.cpp" line="76"/>
         <source>ASCII Mode</source>
         <translation>ASCII模式</translation>
     </message>
@@ -1151,128 +1164,128 @@
 <context>
     <name>GpgFrontend::UI::FileTreeView</name>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="128"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="141"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="199"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="244"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="267"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="314"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="102"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="114"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="179"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="224"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="247"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="294"/>
         <source>Error</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="129"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="103"/>
         <source>The path is not exists, unprivileged or unreachable.</source>
         <translation>该路径不存在、没有特权或无法访问。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="142"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="115"/>
         <source>The file is unprivileged or unreachable.</source>
         <translation>该目录不存在，或者您的权限不足。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="192"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="172"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="193"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="173"/>
         <source>Are you sure you want to delete it?</source>
         <translation>你确定要删除吗？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="200"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="180"/>
         <source>Unable to delete the file or folder.</source>
         <translation>无法删除文件或文件夹。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="209"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="222"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="189"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="202"/>
         <source>Make New Directory</source>
         <translation>新建目录</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="210"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="223"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="190"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="203"/>
         <source>Directory Name</source>
         <translation>目录名称</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="237"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="260"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="217"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="240"/>
         <source>Create Empty File</source>
         <translation>创建空文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="237"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="260"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="217"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="240"/>
         <source>Filename (you can given extension)</source>
         <translation>文件名（您可以指定扩展名）</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="245"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="268"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="225"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="248"/>
         <source>Unable to create the file.</source>
         <translation>无法创建文件。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="306"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="338"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="286"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="318"/>
         <source>Rename</source>
         <translation>改名</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="306"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="286"/>
         <source>New Filename</source>
         <translation>新文件名</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="315"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="295"/>
         <source>Unable to rename the file or folder.</source>
         <translation>无法重命名文件或文件夹。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="332"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="312"/>
         <source>Open</source>
         <translation>打开</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="343"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="323"/>
         <source>Delete</source>
         <translation>删除</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="348"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="328"/>
         <source>Calculate Hash</source>
         <translation>计算哈希值</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="353"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="333"/>
         <source>Directory</source>
         <translation>目录</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="358"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="338"/>
         <source>File</source>
         <translation>文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="363"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="343"/>
         <source>Compress...</source>
         <translation>压缩...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="370"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="350"/>
         <source>Open with Default System Application</source>
         <translation>使用默认系统应用程序打开</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="375"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="355"/>
         <source>New</source>
         <translation>新建</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="437"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="417"/>
         <source>Calculating</source>
         <translation>计算中</translation>
     </message>
@@ -1288,84 +1301,104 @@
 <context>
     <name>GpgFrontend::UI::GeneralTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="42"/>
-        <source>Cache</source>
-        <translation>缓存</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="44"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="56"/>
         <source>Clear gpg password cache when closing GpgFrontend.</source>
         <translation>关闭 GpgFrontend 时清除 gpg 密码缓存。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="46"/>
-        <source>Automatically restore unsaved Text Editor pages after an application crash.</source>
-        <translation>应用程序崩溃后自动恢复未保存的文本编辑器页面。</translation>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="42"/>
+        <source>Base</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="49"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="44"/>
+        <source>Default Workspace As:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="45"/>
+        <source>File Panel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="46"/>
+        <source>Text Editor</source>
+        <translation type="unfinished">文本编辑器</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="53"/>
+        <source>Use home path as the default path for FilePanel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="58"/>
+        <source>Cache text editor contents.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="60"/>
         <source>Operation</source>
         <translation>操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="51"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="62"/>
         <source>Import files dropped on the Key List without confirmation.</source>
         <translation>未经确认，导入放在密钥列表中的文件。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="53"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="64"/>
         <source>Disable loading of all modules (including integrated modules)</source>
         <translation>禁止加载所有的模组（包括被集成模组）</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="55"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="66"/>
         <source>Language</source>
         <translation>语言</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="57"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="68"/>
         <source>NOTE</source>
         <translation>提示</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="57"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="68"/>
         <source>: </source>
         <translation>： </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="58"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="69"/>
         <source>GpgFrontend will restart automatically if you change the language!</source>
         <translation>如果您更改语言，GpgFrontend 将自动重启！</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="60"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="71"/>
         <source>Data</source>
         <translation>数据</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="62"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="80"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="73"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="91"/>
         <source>Clear All Log (Total Size: %1)</source>
         <translation>清除所有日志（总大小：%1）</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="65"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="94"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="76"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="105"/>
         <source>Clear All Data Objects (Total Size: %1)</source>
         <translation>清除所有数据对象（总大小：%1）</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="68"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="79"/>
         <source>Reveal in File Explorer</source>
         <translation>在文件资源管理器中显示</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="87"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="98"/>
         <source>Confirm</source>
         <translation>确认</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="88"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="99"/>
         <source>Are you sure you want to clear all data objects?
 This will result in loss of all cached form positions, statuses, key servers, etc.</source>
         <translation>您确定要清除所有数据对象吗？这将导致所有缓存的页面位置、状态、密钥服务器等丢失。</translation>
@@ -1610,22 +1643,22 @@ This will result in loss of all cached form positions, statuses, key servers, et
 <context>
     <name>GpgFrontend::UI::GpgFrontendApplication</name>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendApplication.cpp" line="77"/>
+        <location filename="../../../../src/ui/GpgFrontendApplication.cpp" line="79"/>
         <source>Standard Exception Thrown</source>
         <translation>小意外</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendApplication.cpp" line="78"/>
+        <location filename="../../../../src/ui/GpgFrontendApplication.cpp" line="80"/>
         <source>Oops, an standard exception was thrown during the running of the program. This is not a serious problem, it may be the negligence of the programmer, please report this problem if you can.</source>
         <translation>糟糕，在程序运行期间遇到了一个小异常。这不是一个严重的问题，应该是由程序员的疏忽导致的，如果可以的话，请报告这个问题。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendApplication.cpp" line="86"/>
+        <location filename="../../../../src/ui/GpgFrontendApplication.cpp" line="88"/>
         <source>Unhandled Exception Thrown</source>
         <translation>未处理的异常</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendApplication.cpp" line="87"/>
+        <location filename="../../../../src/ui/GpgFrontendApplication.cpp" line="89"/>
         <source>Oops, an unhandled exception was thrown during the running of the program. This is not a serious problem, it may be the negligence of the programmer, please report this problem if you can.</source>
         <translation>糟糕，在程序运行期间引发了未处理的异常。这不是一个严重的问题，可能是程序员的疏忽，如果可以的话，请报告这个问题。</translation>
     </message>
@@ -1690,42 +1723,67 @@ This will result in loss of all cached form positions, statuses, key servers, et
 <context>
     <name>GpgFrontend::UI::InfoTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="100"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="121"/>
         <source>Developer:</source>
         <translation>开发者：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="101"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="123"/>
         <source>If you have any questions or suggestions, raise an issue at</source>
         <translation>如果您有任何问题或建议，请在以下位置提出问题</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="103"/>
-        <source>or send a mail to my mailing list at</source>
-        <translation>或发送邮件到我的邮件列表</translation>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="124"/>
+        <source>or send a mail to my private email at</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="106"/>
-        <source>Built with Qt</source>
-        <translation>构建使用 Qt </translation>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="126"/>
+        <source>Developer</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="107"/>
-        <source>and</source>
-        <translation>和</translation>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="138"/>
+        <source>Qt</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="108"/>
-        <source>Built at</source>
-        <translation>构建于</translation>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="139"/>
+        <source>GPGME</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="123"/>
-        <source>Developer Information</source>
-        <translation>开发者信息</translation>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="140"/>
+        <source>Assuan</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="132"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="141"/>
+        <source>Libarchive</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="143"/>
+        <source>OpenSSL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="144"/>
+        <source>Git Branch:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="146"/>
+        <source>Git Commit:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="149"/>
+        <source>Built at:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="135"/>
         <source>Build Information</source>
         <translation>软件构建信息</translation>
     </message>
@@ -1733,44 +1791,39 @@ This will result in loss of all cached form positions, statuses, key servers, et
 <context>
     <name>GpgFrontend::UI::IntroPage</name>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="62"/>
-        <source>Getting Started...</source>
-        <translation>入门...</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="61"/>
+        <source>Welcome to GpgFrontend</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="63"/>
-        <source>... with GpgFrontend</source>
-        <translation>... 使用 GpgFrontend</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="62"/>
+        <source>Your OpenPGP encryption companion.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="66"/>
-        <source>Welcome to GpgFrontend for decrypting and signing text or files!</source>
-        <translation>欢迎使用GpgFrontend！你可以使用该工具解密、签名文本与文件。</translation>
+        <source>&lt;b&gt;GpgFrontend&lt;/b&gt; is a free, user-friendly, and cross-platform tool for OpenPGP encryption, decryption, and signing of text and files.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="68"/>
-        <source>is a Powerful, Easy-to-Use, Compact, Cross-Platform, and Installation-Free OpenPGP Crypto Tool. </source>
-        <translation>是一个强大、易用、灵活、跨平台与免安装的OpenPGP加密工具。</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="69"/>
+        <source>To get started, take a quick look at the</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="70"/>
-        <source>To get started, be sure to check out the</source>
-        <translation>初次使用，确认阅读过</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="73"/>
-        <source>by clicking the link, the page will open in your web browser</source>
-        <translation>点击链接后，将通过浏览器打开该页面</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="71"/>
+        <source>Overview Page</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="72"/>
-        <source>Overview</source>
-        <translation>概述</translation>
+        <source>It will open in your default browser.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="82"/>
-        <source>If it supports the language currently being used in your system, GpgFrontend will automatically set it.</source>
-        <translation>GpgFrontend 已经自动将语言设置为中文。</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="80"/>
+        <source>GpgFrontend will automatically use the language of your system if supported. You can change the language later in settings.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1862,225 +1915,314 @@ This will result in loss of all cached form positions, statuses, key servers, et
 <context>
     <name>GpgFrontend::UI::KeyGenerateDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="64"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="71"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="581"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="587"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="730"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="736"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="824"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="895"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="933"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="140"/>
         <source>Custom</source>
         <translation>自定义</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="72"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="530"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="146"/>
         <source>3 Months</source>
         <translation>3个月</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="73"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="535"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="149"/>
         <source>6 Months</source>
         <translation>6个月</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="74"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="540"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="152"/>
         <source>1 Year</source>
         <translation>1年</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="75"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="141"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="146"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="545"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="136"/>
         <source>2 Years</source>
         <translation>2年</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="76"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="550"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="156"/>
         <source>5 Years</source>
         <translation>5年</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="77"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="555"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="159"/>
         <source>10 Years</source>
         <translation>10年</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="78"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="102"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="111"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="561"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="228"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="237"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="162"/>
         <source>Non Expired</source>
         <translation>不过期</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="82"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="296"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="592"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="202"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="448"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="741"/>
         <source>Primary Key Only</source>
         <translation>仅主密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="83"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="344"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="203"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="496"/>
         <source>Primary Key With Subkey</source>
         <translation>主密钥附带子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="86"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="206"/>
         <source>Name</source>
         <translation>名称</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="87"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="207"/>
         <source>Email</source>
         <translation>电子邮件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="88"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="208"/>
         <source>Comment</source>
         <translation>注释</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="89"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="209"/>
         <source>Key Database</source>
         <translation>密钥数据库</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="90"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="94"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="104"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="220"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="230"/>
         <source>Algorithm</source>
         <translation>算法</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="91"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="211"/>
         <source>Combination</source>
         <translation>组合</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="92"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="95"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="210"/>
+        <source>Profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="212"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="221"/>
         <source>Validity Period</source>
         <translation>有效时长</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="96"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="106"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="214"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="881"/>
+        <source>Save Profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="216"/>
+        <source>Save current configuration as a new profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="217"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="952"/>
+        <source>Delete Profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="218"/>
+        <source>Delete current selected profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="222"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="232"/>
         <source>Key Length</source>
         <translation>密钥长度</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="97"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="107"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="223"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="233"/>
         <source>Usage</source>
         <translation>用法</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="98"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="108"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="224"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="234"/>
         <source>Encrypt</source>
         <translation>加密</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="99"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="109"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="225"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="235"/>
         <source>Sign</source>
         <translation>签名</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="100"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="110"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="226"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="236"/>
         <source>Authentication</source>
         <translation>验证</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="101"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="227"/>
         <source>No Passphrase</source>
         <translation>无密码</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="105"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="231"/>
         <source>Expire Date</source>
         <translation>到期日期</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="114"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="240"/>
         <source>Easy Mode</source>
         <translation>简单模式</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="115"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="241"/>
         <source>Primary Key</source>
         <translation>主密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="116"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="242"/>
         <source>Subkey</source>
         <translation>子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="119"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="245"/>
         <source>Generate</source>
         <translation>生成</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="136"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="267"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="262"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="419"/>
         <source>None</source>
         <translation>无</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="148"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="271"/>
+        <source>GnuPG Version: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="274"/>
+        <source>Supported Primary Key Algorithms: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="284"/>
+        <source>Supported Subkey Algorithms: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="294"/>
+        <source>Please select a key algorithm and configure the parameters as needed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="300"/>
         <source>Generate Key</source>
         <translation>生成密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="162"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="314"/>
         <source>Name must contain at least five characters.</source>
         <translation>名称必须至少包含五个字符。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="167"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="319"/>
         <source>Please give a valid email address.</source>
         <translation>请使用一个有效的电子邮件地址。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="172"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="324"/>
         <source>Please give a valid primary key algorithm.</source>
         <translation>请选择一个有效的主密钥算法。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="181"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="333"/>
         <source>Time to primary key expiration must not be less than 120 seconds.</source>
         <translation>距离主密钥过期时间不得少于 120 秒。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="188"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="340"/>
         <source>Please give a valid subkey algorithm.</source>
         <translation>请选择一个有效的子密钥算法。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="196"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="348"/>
         <source>Time to subkey expiration must not be less than 120 seconds.</source>
         <translation>距离子密钥过期时间不得少于 120 秒。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="620"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="769"/>
         <source>Error</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="621"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="770"/>
         <source>Unknown error occurred</source>
         <translation>发生未知错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="633"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="782"/>
         <source>Generating</source>
         <translation>生成中</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="882"/>
+        <source>Please enter profile name:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="890"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="896"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="904"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="918"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="934"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="946"/>
+        <source>Notice</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="891"/>
+        <source>Profile was not saved: Name cannot be empty.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="897"/>
+        <source>The profile name &apos;Custom&apos; is reserved. Please choose another name.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="905"/>
+        <source>Profile was not saved: Name cannot be longer than %1 characters.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="919"/>
+        <source>Profile was not saved: Name already exists.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="935"/>
+        <source>The &apos;Custom&apos; profile cannot be deleted.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="947"/>
+        <source>Selected profile does not exist.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="953"/>
+        <source>Are you sure you want to delete the profile &apos;%1&apos;?</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2120,11 +2262,6 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <source>Name must contain at least five characters.</source>
         <translation>名称必须至少包含五个字符。</translation>
     </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupCreationDialog.cpp" line="101"/>
-        <source>Please give a email address.</source>
-        <translation>请提供一个电子邮件地址。</translation>
-    </message>
 </context>
 <context>
     <name>GpgFrontend::UI::KeyGroupManageDialog</name>
@@ -2134,39 +2271,39 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation>密钥组</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="73"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="74"/>
         <source>Default</source>
         <translation>默认</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="90"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="91"/>
         <source>Key(s) in Key Group: </source>
         <translation>密钥组中的密钥: </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="91"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="92"/>
         <source>Key(s) in Key Database: </source>
         <translation>密钥数据库中的密钥: </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="96"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="97"/>
         <source>Key Group Management</source>
         <translation>密钥组管理</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="128"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="129"/>
         <source>Some Keys Failed</source>
         <translation>操作部分失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="129"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="130"/>
         <source>Some keys could not be added to the group:
 %1</source>
         <translation>一些密钥无法被添加到密钥组: 
 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="161"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="162"/>
         <source>This Key Group contains some invalid keys:
 
 %1
@@ -2179,7 +2316,7 @@ These keys are no longer available. Do you want to remove them from the group?</
 这些密钥不再可用. 您是否希望从密钥组移除这些密钥?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="167"/>
+        <location filename="../../../../src/ui/dialog/KeyGroupManageDialog.cpp" line="168"/>
         <source>Invalid Keys in Group</source>
         <translation>密钥组中含有无效密钥</translation>
     </message>
@@ -2454,361 +2591,366 @@ These keys are no longer available. Do you want to remove them from the group?</
 <context>
     <name>GpgFrontend::UI::KeyMgmt</name>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="57"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="60"/>
         <source>All</source>
         <translation>全部</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="62"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="65"/>
+        <source>Key Group</source>
+        <translation type="unfinished">密钥组</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="71"/>
         <source>Only Public Key</source>
         <translation>只有公钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="70"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="79"/>
         <source>Has Private Key</source>
         <translation>有私钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="78"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="87"/>
         <source>No Primary Key</source>
         <translation>无主密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="88"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="97"/>
         <source>Revoked</source>
         <translation>已吊销</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="95"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="104"/>
         <source>Expired</source>
         <translation>已到期</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="102"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="111"/>
         <source>Disabled</source>
         <translation>已禁用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="121"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="130"/>
         <source>KeyPair Management</source>
         <translation>密钥对管理</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="147"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="156"/>
         <source>Open</source>
         <translation>打开</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="149"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="158"/>
         <source>Open Key File</source>
         <translation>打开密钥文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="155"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="158"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="164"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="167"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="161"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="170"/>
         <source>New Keypair</source>
         <translation>新密钥对</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="164"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="173"/>
         <source>Generate KeyPair</source>
         <translation>生成密钥对</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="168"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="177"/>
         <source>New Subkey</source>
         <translation>新子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="172"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="181"/>
         <source>Generate Subkey For Selected KeyPair</source>
         <translation>为选定的密钥对生成子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="176"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="273"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="185"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="281"/>
         <source>File</source>
         <translation>文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="178"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="187"/>
         <source>Import New Key From File</source>
         <translation>从文件导入新密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="184"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="193"/>
         <source>Clipboard</source>
         <translation>剪贴板</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="188"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="197"/>
         <source>Import New Key From Clipboard</source>
         <translation>从剪贴板导入新密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="199"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="208"/>
         <source>Keyserver</source>
         <translation>密钥服务器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="203"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="212"/>
         <source>Import New Key From Keyserver</source>
         <translation>从密钥服务器导入新密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="210"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="533"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="219"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="541"/>
         <source>Key Package</source>
         <translation>密钥包</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="213"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="222"/>
         <source>Import Key(s) From a Key Package</source>
         <translation>从密钥包导入密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="217"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="226"/>
         <source>Export To Clipboard</source>
         <translation>导出到剪贴板</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="221"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="230"/>
         <source>Export Checked Key(s) To Clipboard</source>
         <translation>将选中的密钥导出到剪贴板</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="225"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="234"/>
         <source>Export As Key Package</source>
         <translation>导出为密钥包</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="228"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="237"/>
         <source>Export Checked Key(s) To a Key Package</source>
         <translation>将勾选的密钥导出到密钥包</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="232"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="241"/>
         <source>Export As OpenSSH</source>
         <translation>导出为OpenSSH密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="235"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="244"/>
         <source>Export Checked Key As OpenSSH Format to File</source>
         <translation>将校验过的密钥导出为 OpenSSH 格式文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="239"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="248"/>
         <source>Delete Selected Key(s)</source>
         <translation>删除这些选定的密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="241"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="250"/>
         <source>Delete the Selected keys</source>
         <translation>删除这个选定的密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="245"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="254"/>
         <source>Delete Checked Key(s)</source>
         <translation>删除选中的密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="247"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="256"/>
         <source>Delete the Checked keys</source>
         <translation>删除选中的密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="252"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="261"/>
         <source>Show Key Details</source>
         <translation>显示密钥细节</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="254"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="263"/>
         <source>Show Details for this Key</source>
         <translation>显示此密钥的详细信息</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="258"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="260"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="267"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="269"/>
         <source>Set Owner Trust Level</source>
         <translation>设置所有者信任级别</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="277"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="297"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="285"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="305"/>
         <source>Key</source>
         <translation>密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="278"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="286"/>
         <source>Generate Key</source>
         <translation>生成密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="282"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="310"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="290"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="318"/>
         <source>Import Key</source>
         <translation>导入密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="288"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="318"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="319"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="296"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="326"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="327"/>
         <source>Export Key</source>
         <translation>导出密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="309"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="317"/>
         <source>Import key</source>
         <translation>导入密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="347"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="355"/>
         <source>Deleting Keys</source>
         <translation>删除密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="348"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="356"/>
         <source>Are you sure that you want to delete the following keys?</source>
         <translation>您确定要删除以下密钥吗？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="350"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="358"/>
         <source>The action can not be undone.</source>
         <translation>该操作无法撤消。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="406"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="418"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="487"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="498"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="511"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="542"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="414"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="426"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="495"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="506"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="519"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="550"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="566"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="558"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="574"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="590"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="582"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="610"/>
         <source>Error</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="372"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="387"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="462"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="471"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="588"/>
+        <source>Enter PIN</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="589"/>
+        <source>Please enter PIN to decrypt the Key:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="380"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="395"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="470"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="479"/>
         <source>Forbidden</source>
         <translation>操作被禁止</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="373"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="388"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="381"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="396"/>
         <source>Please check some keys before doing this operation.</source>
         <translation>请在执行此操作之前勾选一些密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="380"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="525"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="388"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="533"/>
         <source>key(s) exported</source>
         <translation>导出的密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="396"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="477"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="404"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="485"/>
         <source>Exporting</source>
         <translation>导出中</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="407"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="419"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="488"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="499"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="415"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="427"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="496"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="507"/>
         <source>Unknown error occurred</source>
         <translation>发生了未知错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="449"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="457"/>
         <source>Invalid Operation</source>
         <translation>无效操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="450"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="458"/>
         <source>If a key pair does not have a private key then it will not be able to generate sub-keys.</source>
         <translation>如果密钥对没有私钥，那么它将无法生成子密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="463"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="471"/>
         <source>Please check a key before performing this operation.</source>
         <translation>请在执行此操作前勾选一个密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="472"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="480"/>
         <source>This operation accepts just a single key.</source>
         <translation>此操作只接受单个密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="512"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="520"/>
         <source>This key may not be able to export as OpenSSH format. Please check the key-size of the subkey(s) used to sign.</source>
         <translation>此密钥可能无法导出为 OpenSSH 格式。请检查用于签名的子密钥的密钥大小。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="520"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="528"/>
         <source>Export OpenSSH Key To File</source>
         <translation>将 OpenSSH 密钥导出到文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="521"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="529"/>
         <source>OpenSSH Public Key Files</source>
         <translation>OpenSSH 公钥文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="533"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="541"/>
         <source>Import Key Package</source>
         <translation>导入密钥包</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="543"/>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="567"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="551"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="575"/>
         <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
         <translation>无法打开此文件。请确保这是一个普通文件，并且有读取权限。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="551"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="559"/>
         <source>The target file is too large for a key package.</source>
         <translation>目标文件对于密钥包来说太大。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="556"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="564"/>
         <source>Import Key Package Passphrase File</source>
         <translation>导入密钥包口令文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="557"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="565"/>
         <source>Key Package Passphrase File</source>
         <translation>密钥包口令文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="575"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="583"/>
         <source>The target file is too large for a key package passphrase.</source>
         <translation>目标文件对于密钥包口令来说太大。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="580"/>
-        <source>Importing</source>
-        <translation>导入中</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="597"/>
+        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="616"/>
         <source>key(s) imported</source>
         <translation>导入的密钥</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="591"/>
-        <source>An error occur in importing key package.</source>
-        <translation>导入密钥包出错。</translation>
     </message>
 </context>
 <context>
@@ -2872,138 +3014,138 @@ These keys are no longer available. Do you want to remove them from the group?</
         <translation>额外的 UID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="75"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="81"/>
         <source>Name</source>
         <translation>名称</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="76"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="82"/>
         <source>Email Address</source>
         <translation>电子邮件地址</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="77"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="83"/>
         <source>Comment</source>
         <translation>注释</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="82"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="88"/>
         <source>Key ID</source>
         <translation>密钥编号</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="83"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="89"/>
         <source>Algorithm</source>
         <translation>算法</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="84"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="90"/>
         <source>Algorithm Detail</source>
         <translation>算法细节</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="85"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="91"/>
         <source>Key Size</source>
         <translation>密钥大小</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="86"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="92"/>
         <source>Usage</source>
         <translation>用法</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="87"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="93"/>
         <source>Owner Trust Level</source>
         <translation>所有者信级别</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="88"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="94"/>
         <source>Create Date (Local Time)</source>
         <translation>创建日期（本地时间）</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="89"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="95"/>
         <source>Expires on (Local Time)</source>
         <translation>到期时间（本地时间）</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="90"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="96"/>
         <source>Last Update (Local Time)</source>
         <translation>上次更新（本地时间）</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="91"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="97"/>
         <source>Primary Key Existence</source>
         <translation>主密钥存在</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="105"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="131"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="111"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="137"/>
         <source>Copy</source>
         <translation>复制</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="133"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="139"/>
         <source>copy fingerprint to clipboard</source>
         <translation>将指纹复制到剪贴板</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="179"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="185"/>
         <source>Exists</source>
         <translation>存在</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="179"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="185"/>
         <source>Not Exists</source>
         <translation>不存在</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="212"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="218"/>
         <source>Certificate</source>
         <translation>证书</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="214"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="220"/>
         <source>Encrypt</source>
         <translation>加密</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="215"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="221"/>
         <source>Sign</source>
         <translation>签名</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="216"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="222"/>
         <source>Auth</source>
         <translation>认证</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="231"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="237"/>
         <source>Never Expire</source>
         <translation>永不过期</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="242"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="248"/>
         <source>No Data</source>
         <translation>没有数据</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="258"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="264"/>
         <source>Warning: The primary key has expired.</source>
         <translation>警告：主密钥已过期。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="261"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="267"/>
         <source>Warning: The primary key has been revoked.</source>
         <translation>警告：主密钥已被撤销。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="264"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="270"/>
         <source>Warning: The primary key is not exists.</source>
         <translation>警告: 主密钥不存在</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="317"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="326"/>
         <source>Notice: The public key has been published on keys.openpgp.org.</source>
         <translation>提示： 公钥已在 keys.openpgp.org 上公布。</translation>
     </message>
@@ -3011,127 +3153,127 @@ These keys are no longer available. Do you want to remove them from the group?</
 <context>
     <name>GpgFrontend::UI::KeyPairOperaTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="57"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="58"/>
         <source>General Operations</source>
         <translation>一般操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="63"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="64"/>
         <source>Export Public Key</source>
         <translation>导出公钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="69"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="70"/>
         <source>Export Private Key</source>
         <translation>导出私钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="76"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="77"/>
         <source>Modify Expiration Datetime (Primary Key)</source>
         <translation>修改到期日期时间（主密钥）</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="79"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="80"/>
         <source>Modify Password</source>
         <translation>修改密码</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="204"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="205"/>
         <source>Generate Revoke Certificate</source>
         <translation>生成吊销证书</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="120"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="121"/>
         <source>Modify TOFU Policy</source>
         <translation>修改TOFU策略</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="96"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="97"/>
         <source>Key Server Operations</source>
         <translation>密钥服务器操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="104"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="659"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="105"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="665"/>
         <source>Import A Paper Key</source>
         <translation>导入纸密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="114"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="115"/>
         <source>Revoke Certificate Operation</source>
         <translation>吊销证书操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="127"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="128"/>
         <source>Set Owner Trust Level</source>
         <translation>设置所有者信任级别</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="153"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="154"/>
         <source>Publish Public Key to Key Server</source>
         <translation>向密钥服务器发布公钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="161"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="162"/>
         <source>Refresh Public Key From Key Server</source>
         <translation>从密钥服务器刷新本地公钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="176"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="177"/>
         <source>Export Full Secret Key</source>
         <translation>导出完整私钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="182"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="183"/>
         <source>Export Shortest Secret Key</source>
         <translation>导出最短私钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="192"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="193"/>
         <source>Export Secret Key As A Paper Key</source>
         <translation>将私钥导出为纸密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="209"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="210"/>
         <source>Import Revoke Certificate</source>
         <translation>导入吊销证书</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="231"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="232"/>
         <source>Unknown Error</source>
         <translation>未知错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="232"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="233"/>
         <source>Caught unknown error while exporting the key.</source>
         <translation>在导出密钥的过程中发生错误。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="259"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="605"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="260"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="608"/>
         <source>Export Key To File</source>
         <translation>将密钥导出到文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="260"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="606"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="261"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="609"/>
         <source>Key Files</source>
         <translation>密钥文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="266"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="629"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="267"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="635"/>
         <source>Export Error</source>
         <translation>导出错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="267"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="630"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="268"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="636"/>
         <source>Couldn&apos;t open %1 for writing</source>
         <translation>无法打开 %1 进行写入</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="361"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="363"/>
         <source>Failed to upload public key to the server.
 Fingerprint: %1
 Error: %2</source>
@@ -3140,12 +3282,12 @@ Error: %2</source>
 错误信息：%2</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="393"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="397"/>
         <source>Public Key Upload Successful</source>
         <translation>公钥上传成功</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="394"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="398"/>
         <source>The public key was successfully uploaded to the key server keys.openpgp.org.
 Fingerprint: %1
 
@@ -3162,236 +3304,236 @@ Note: For verification, you can find more information here: https://keys.openpgp
 注：关于邮件地址验证，您可以在此处找到更多信息： https://keys.openpgp.org/about</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="436"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="525"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="440"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="529"/>
         <source>Revocation Certificates</source>
         <translation>吊销证书</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="447"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="451"/>
         <source>Generate revocation certificate</source>
         <translation>生成撤吊销证书</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="474"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="483"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="478"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="487"/>
         <source>Policy Auto</source>
         <translation>策略：自动</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="474"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="485"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="478"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="489"/>
         <source>Policy Good</source>
         <translation>策略：正常</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="474"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="487"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="478"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="491"/>
         <source>Policy Bad</source>
         <translation>策略：异常</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="475"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="489"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="479"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="493"/>
         <source>Policy Ask</source>
         <translation>策略：询问</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="475"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="491"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="479"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="495"/>
         <source>Policy Unknown</source>
         <translation>策略：未知</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="479"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="483"/>
         <source>Modify TOFU Policy(Default is Auto)</source>
         <translation>修改TOFU策略（默认为自动）</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="480"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="484"/>
         <source>Policy for the Key Pair:</source>
         <translation>密钥对策略：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="497"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="501"/>
         <source>Not Successful</source>
         <translation>失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="498"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="502"/>
         <source>Modify TOFU policy not successfully.</source>
         <translation>修改 TOFU 策略失败。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="512"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="524"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="516"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="528"/>
         <source>Import Key Revocation Certificate</source>
         <translation>导入密钥吊销证书</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="513"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="517"/>
         <source>You are about to import the</source>
         <translation>您将导入</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="514"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="518"/>
         <source>REVOCATION CERTIFICATE</source>
         <translation>吊销证书</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="515"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="519"/>
         <source>A successful import will result in the key being irreversibly revoked.</source>
         <translation>导入成功后，密钥将被不可逆转地吊销。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="517"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="521"/>
         <source>Do you REALLY want to execute this operation?</source>
         <translation>您真的想执行这个操作吗？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="533"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="542"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="551"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="622"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="668"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="676"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="684"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="702"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="537"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="546"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="554"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="628"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="674"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="682"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="690"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="713"/>
         <source>Error</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="534"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="552"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="669"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="685"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="538"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="555"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="675"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="691"/>
         <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
         <translation>无法打开此文件。请确保这是一个普通文件，并且有读取权限。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="543"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="547"/>
         <source>The target file is too large for a key revocation certificate.</source>
         <translation>目标文件对于一个密钥吊销证书来说太大了。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="623"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="629"/>
         <source>An error occurred trying to generate Paper Key.</source>
         <translation>尝试生成纸密钥时发生错误。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="703"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="714"/>
         <source>An error occurred trying to recover the Paper Key back to the private key.</source>
         <translation>用纸密钥恢复私钥时发生了错误。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="660"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="666"/>
         <source>Paper Key File</source>
         <translation>纸密钥文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="283"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="305"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="566"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="284"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="306"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="569"/>
         <source>WARNING: You are about to export your</source>
         <translation>警告: 您将导出您的</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="284"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="306"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="567"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="285"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="307"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="570"/>
         <source>PRIVATE KEY</source>
         <translation>私钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="285"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="568"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="286"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="571"/>
         <source>This is NOT your Public Key, so &lt;b&gt;DO NOT&lt;/b&gt; share it with anyone.</source>
         <translation>这不是公钥，因此切勿与任何人共享。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="288"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="289"/>
         <source>You are exporting a &lt;b&gt;minimum size&lt;/b&gt; private key, which removes all signatures except for the latest self-signatures.</source>
         <translation>您正在导出一个最小尺寸的私钥，它会删除除最新自签名外的所有包含的签名数据。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="290"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="291"/>
         <source>Do you &lt;b&gt;REALLY&lt;/b&gt; want to proceed?</source>
         <translation>您真的想要继续吗？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="292"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="293"/>
         <source>Exporting Short Private Key</source>
         <translation>导出短私钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="307"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="308"/>
         <source>This operation will export your &lt;b&gt;private key&lt;/b&gt;, including both the main key and all subkeys, into an external file. This key is extremely sensitive, and anyone with access to it can impersonate you. DO NOT share this file with anyone!</source>
         <translation>此操作会将您的 &lt;b&gt;私人密钥&lt;/b&gt;（包括主密钥和所有子密钥）导出到一个外部文件中。此密钥极其敏感，任何可以访问它的人都可以冒充你。切勿与任何人共享此文件！</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="313"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="578"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="314"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="581"/>
         <source>Are you &lt;b&gt;ABSOLUTELY SURE&lt;/b&gt; you want to proceed?</source>
         <translation>您是否&lt;b&gt;绝对确定&lt;/b&gt;要继续？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="316"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="317"/>
         <source>Exporting Private Key</source>
         <translation>导出私钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="360"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="362"/>
         <source>Key Upload Failed</source>
         <translation>密钥上传失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="376"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="379"/>
         <source>The following email addresses have status:
 </source>
         <translation>以下电子邮件地址处于状态：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="388"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="392"/>
         <source>Could not parse status information.</source>
         <translation>无法解析状态信息。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="428"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="432"/>
         <source>0 -&gt; No Reason.</source>
         <translation>0 -&gt; 无理由。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="428"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="432"/>
         <source>1 -&gt; This key is no more safe.</source>
         <translation>1 -&gt; 密钥不再安全。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="429"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="433"/>
         <source>2 -&gt; Key is outdated.</source>
         <translation>2 -&gt; 密钥已经过时。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="429"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="433"/>
         <source>3 -&gt; Key is no longer used</source>
         <translation>3 -&gt; 密钥不再被使用。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="571"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="574"/>
         <source>A &lt;b&gt;PaperKey&lt;/b&gt; is a human-readable printout of your private key, which can be used to recover your key if you lose access to your digital copy. </source>
         <translation>PaperKey&lt;b&gt;/b&gt; 是私人密钥的人工可读打印件，如果丢失了数字副本，可以用它来恢复密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="575"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="578"/>
         <source>Keep this paper copy in a safe and secure place, such as a fireproof safe or a trusted vault.</source>
         <translation>将纸质副本保存在安全可靠的地方，如防火保险箱或可信的保险库。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="581"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="584"/>
         <source>Exporting Private Key as a PaperKey</source>
         <translation>将私人密钥导出为 PaperKey</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="677"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="683"/>
         <source>The target file is too large for a paper key keyring.</source>
         <translation>目标文件对于一个纸密钥文件来说太大了。</translation>
     </message>
@@ -3400,25 +3542,25 @@ Note: For verification, you can find more information here: https://keys.openpgp
     <name>GpgFrontend::UI::KeyPairSubkeyTab</name>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="85"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="193"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="197"/>
         <source>Key ID</source>
         <translation>密钥编号</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="87"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="193"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="197"/>
         <source>Algorithm</source>
         <translation>算法</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="88"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="194"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="198"/>
         <source>Algorithm Detail</source>
         <translation>算法细节</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="90"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="193"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="197"/>
         <source>Key Size</source>
         <translation>密钥大小</translation>
     </message>
@@ -3474,7 +3616,7 @@ Note: For verification, you can find more information here: https://keys.openpgp
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="86"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="193"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="197"/>
         <source>Key Type</source>
         <translation>密钥类型</translation>
     </message>
@@ -3484,228 +3626,228 @@ Note: For verification, you can find more information here: https://keys.openpgp
         <translation>已吊销</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="132"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="377"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="136"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="381"/>
         <source>Export Subkey</source>
         <translation>导出子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="194"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="198"/>
         <source>Create Date</source>
         <translation>创建时间</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="194"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="198"/>
         <source>Expire Date</source>
         <translation>到期日期</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="217"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="381"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="221"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="385"/>
         <source>Primary Key</source>
         <translation>主密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="217"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="382"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="221"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="386"/>
         <source>Subkey</source>
         <translation>子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="218"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="222"/>
         <source>ADSK</source>
         <translation>ADSK</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="242"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="246"/>
         <source>Never Expire</source>
         <translation>永不过期</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="316"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="320"/>
         <source>Never Expires</source>
         <translation>永不过期</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="340"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="344"/>
         <source>Exists</source>
         <translation>存在</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="341"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="345"/>
         <source>Not Exists</source>
         <translation>不存在</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="344"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="384"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="348"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="388"/>
         <source>Yes</source>
         <translation>是</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="344"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="384"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="348"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="388"/>
         <source>No</source>
         <translation>否</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="376"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="380"/>
         <source>Export Primary Key</source>
         <translation>导出主密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="398"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="402"/>
         <source>Edit Expire Date</source>
         <translation>编辑到期日期</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="402"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="406"/>
         <source>Export</source>
         <translation>导出</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="406"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="410"/>
         <source>Delete</source>
         <translation>删除</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="410"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="414"/>
         <source>Revoke</source>
         <translation>吊销</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="463"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="467"/>
         <source>Exporting Subkey</source>
         <translation>正在导出子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="464"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="468"/>
         <source>You are about to export a private subkey.</source>
         <translation>您即将导出一个子密钥的私有部分。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="465"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="469"/>
         <source>While subkeys are less critical than the primary key, they should still be handled with care.</source>
         <translation>虽然子密钥没有主密钥那么重要，但仍应小心处理。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="468"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="472"/>
         <source>Do you want to proceed with exporting this subkey?</source>
         <translation>是否要继续导出该子密钥？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="495"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="499"/>
         <source>Export Key To File</source>
         <translation>将密钥导出到文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="496"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="500"/>
         <source>Key Files</source>
         <translation>密钥文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="501"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="505"/>
         <source>Export Error</source>
         <translation>导出错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="502"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="506"/>
         <source>Couldn&apos;t open %1 for writing</source>
         <translation>无法打开 %1 进行写入</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="510"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="514"/>
         <source>&lt;h3&gt;You are about to delete the subkey:&lt;/h3&gt;&lt;br /&gt;&lt;b&gt;KeyID:&lt;/b&gt; %1&lt;br /&gt;&lt;br /&gt;This action is irreversible. Please confirm.</source>
         <translation>&lt;h3&gt;您即将删除子密钥：&lt;/h3&gt;&lt;br /&gt;&lt;b&gt;KeyID：&lt;/b&gt; %1&lt;br /&gt;&lt;br /&gt;此操作不可逆。请确认。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="516"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="520"/>
         <source>Delete Subkey Confirmation</source>
         <translation>确认删除子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="531"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="580"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="535"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="584"/>
         <source>Illegal Operation</source>
         <translation>非法的操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="532"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="536"/>
         <source>Cannot delete the primary key or an invalid subkey.</source>
         <translation>无法删除主密钥或者不可用的子密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="540"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="544"/>
         <source>Operation Failed</source>
         <translation>操作失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="541"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="545"/>
         <source>The selected subkey could not be deleted. Please check your permissions or try again.</source>
         <translation>所选子密钥无法删除。请检查权限或重试。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="547"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="551"/>
         <source>Operation Successful</source>
         <translation>操作成功</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="548"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="552"/>
         <source>The subkey with KeyID %1 has been successfully deleted.</source>
         <translation>密钥ID为 %1 的子密钥已成功删除。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="557"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="561"/>
         <source>&lt;h3&gt;Revoke Subkey Confirmation&lt;/h3&gt;&lt;br /&gt;&lt;b&gt;KeyID:&lt;/b&gt; %1&lt;br /&gt;&lt;br /&gt;Revoking a subkey will make it permanently unusable. This action is &lt;b&gt;irreversible&lt;/b&gt;.&lt;br /&gt;Are you sure you want to revoke this subkey?</source>
         <translation>&lt;h3&gt;子密钥吊销确认&lt;/h3&gt;&lt;br /&gt;&lt;b&gt;KeyID:&lt;/b&gt;%1&lt;br /&gt;&lt;br /&gt;吊销子密钥将使其永久不可用。此操作是 &lt;b&gt;不可逆的&lt;/b&gt;。&lt;br /&gt;您确定要撤销此子密钥吗？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="564"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="568"/>
         <source>Revoke Subkey</source>
         <translation>吊销子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="581"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="585"/>
         <source>Cannot revoke the primary key or an invalid subkey.</source>
         <translation>无法吊销主密钥或者无效的子密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="586"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="590"/>
         <source>0 -&gt; No Reason.</source>
         <translation>0 -&gt; 无理由。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="586"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="590"/>
         <source>1 -&gt; This key is no more safe.</source>
         <translation>1 -&gt; 密钥不再安全。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="587"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="591"/>
         <source>2 -&gt; Key is outdated.</source>
         <translation>2 -&gt; 密钥已经过时。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="587"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="591"/>
         <source>3 -&gt; Key is no longer used</source>
         <translation>3 -&gt; 密钥不再被使用。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="598"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="602"/>
         <source>Revocation Failed</source>
         <translation>吊销失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="599"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="603"/>
         <source>Failed to revoke the subkey. Please try again.</source>
         <translation>吊销子密钥失败。请重试。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="602"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="606"/>
         <source>Revocation Successful</source>
         <translation>吊销成功</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="603"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="607"/>
         <source>The subkey has been successfully revoked.</source>
         <translation>子密钥成功吊销</translation>
     </message>
@@ -4367,12 +4509,12 @@ Note: For verification, you can find more information here: https://keys.openpgp
 <context>
     <name>GpgFrontend::UI::MainWindow</name>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="125"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="127"/>
         <source>GUI Pinentry Not Found</source>
         <translation>未找到可用的图形化 Pinentry 程序</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="126"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="128"/>
         <source>No suitable *graphical* Pinentry program was found on your system.
 
 Please install a GUI-based Pinentry (e.g., &apos;pinentry-qt&apos;, &apos;pinentry-gnome3&apos;, or &apos;pinentry-mac&apos; on macOS).
@@ -4389,62 +4531,52 @@ After installing it, please restart GpgFrontend. The configuration file will be 
 安装完成后，请重新启动 GpgFrontend，配置文件将自动更新。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="177"/>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="180"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="179"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="182"/>
         <source>Critical error occur while loading GpgFrontend.</source>
         <translation>加载 GpgFrontend 时发生严重错误。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="179"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="181"/>
         <source>Loading Failed</source>
         <translation>加载失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="101"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="138"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="517"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="134"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="171"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="570"/>
         <source>Error</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="518"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="571"/>
         <source>Cannot read from file: %1</source>
         <translation>无法读取文件：%1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="114"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="147"/>
         <source>The target file %1 already exists, do you need to overwrite it?</source>
         <translation>目标文件 %1 已经存在，是否需要覆盖？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="117"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="150"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="48"/>
-        <source>Symmetric Encryption</source>
-        <translation>对称加密</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="49"/>
-        <source>No Key Selected. Do you want to encrypt with a symmetric cipher using a passphrase?</source>
-        <translation>未选择密钥。您想使用密码使用对称密码进行加密吗？</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="164"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="197"/>
         <source>Invalid KeyPair</source>
         <translation>无效的密钥对</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="58"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="255"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="443"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="54"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="299"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="496"/>
         <source>The selected keypair cannot be used for encryption.</source>
         <translation>所选的密钥对不能用于加密。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="102"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="135"/>
         <source>Cannot read from the following files:
 
 %1</source>
@@ -4453,7 +4585,7 @@ After installing it, please restart GpgFrontend. The configuration file will be 
 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="139"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="172"/>
         <source>Cannot write to the following files:
 
 %1</source>
@@ -4462,86 +4594,86 @@ After installing it, please restart GpgFrontend. The configuration file will be 
 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="166"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="199"/>
         <source>For example the Following Key:</source>
         <translation>例如以下密钥：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="188"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="317"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="639"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="229"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="370"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="673"/>
         <source>Encrypting</source>
         <translation>加密</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="224"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="352"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="267"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="405"/>
         <source>Decrypting</source>
         <translation>解密</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="153"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="186"/>
         <source>No Key Checked</source>
         <translation>未勾选任何密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="154"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="187"/>
         <source>Please check the key in the key toolbox on the right.</source>
         <translation>请勾选右侧密钥工具箱中的密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="201"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="364"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="242"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="417"/>
         <source>The selected key contains a key that does not actually have a sign usage.</source>
         <translation>所选密钥包含一个实际上没有符号用法的密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="210"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="383"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="708"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="253"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="436"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="749"/>
         <source>Signing</source>
         <translation>签名</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="409"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="462"/>
         <source>File to be Verified</source>
         <translation>被验证的文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="410"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="463"/>
         <source>Please provide An ABSOLUTE Path 
 If Data And Signature is COMBINED within a single file, KEEP THIS EMPTY: </source>
         <translation>请提供绝对路径 
 如果确认数据和签名都在一个文件中，请置空： </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="238"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="429"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="308"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="281"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="482"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="315"/>
         <source>Verifying</source>
         <translation>验证</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="265"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="473"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="792"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="318"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="526"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="843"/>
         <source>Encrypting and Signing</source>
         <translation>加密和签名</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="279"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="507"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="856"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="332"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="560"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="914"/>
         <source>Decrypting and Verifying</source>
         <translation>解密和验证</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="384"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="395"/>
         <source>Missing Keys</source>
         <translation>公钥缺失</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="385"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="396"/>
         <source>Some signatures cannot be verified because the corresponding keys are missing.
 
 The following fingerprints are missing:
@@ -4556,236 +4688,246 @@ Would you like to fetch these keys from the key server?</source>
 您想从密钥服务器获取这些公钥吗？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="399"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="410"/>
         <source>Verification Incomplete</source>
         <translation>验证未完成</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="400"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="411"/>
         <source>Verification was incomplete due to missing keys. You can manually import the keys later.</source>
         <translation>由于缺少公钥，验证不完整。您可以稍后手动导入密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="524"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="577"/>
         <source>EML File Too Large</source>
         <translation>EML文件过大</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="525"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="578"/>
         <source>The EML file &quot;%1&quot; is larger than 32MB and will not be opened.</source>
         <translation>由于EML 文件&quot;%1&quot;大于 32MB，将不会被打开。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="91"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="92"/>
         <source>Localize</source>
         <translation>本地化</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="94"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="95"/>
         <source>UTC</source>
         <translation>世界标准时间</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="105"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="106"/>
         <source>Local Time</source>
         <translation>当地时间</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="256"/>
-        <source>This version(%1) may have been withdrawn by the developer due to serious problems. Please stop using this version immediately and download the latest stable version (%2) on the Github Releases Page.</source>
-        <translation>该版本(%1) 可能因严重问题已被开发者撤回。请立即停止使用此版本，并从 Github 发布页面下载最新的稳定版本 (%2)。</translation>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="260"/>
+        <source>Unstable Version</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="270"/>
-        <source>This may be a BETA Version (Latest Stable Version: %1).</source>
-        <translation>这可能是 BETA 版本（最新稳定版本：%1）。</translation>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="261"/>
+        <source>This version (%1) is not an official stable release. It may have been withdrawn or is a beta build. Please stop using this version immediately and download the latest stable version (%2) from the GitHub Releases page.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="283"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="275"/>
         <source>Commit Hash Mismatch</source>
         <translation>代码提交哈希值不匹配</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="284"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="276"/>
         <source>The current version&apos;s commit hash does not match the official release. This may indicate a modified or unofficial build. For security reasons, please verify your installation or download the official release from the Github Releases Page.</source>
         <translation>当前版本的提交哈希值与正式版本不匹配。这可能表明该版本为修改版或非官方版本。出于安全考虑，请验证您的安装，或从 Github 发布页面下载正式版本。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="414"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="428"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="430"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="432"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="577"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="594"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="283"/>
+        <source>Unverified Commit Hash</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="284"/>
+        <source>The commit hash for this build was not found in the official remote repository. This could indicate a modified or unofficial build. For your security, please verify your installation or download the official release from the GitHub Releases page.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="424"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="442"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="446"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="450"/>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="596"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="598"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="886"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="902"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="905"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="908"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="617"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="621"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="625"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="943"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="963"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="967"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="971"/>
         <source>None</source>
         <translation>无</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="422"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="588"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="895"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="433"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="608"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="953"/>
         <source>From</source>
         <translation>发件人</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="423"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="425"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="589"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="591"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="896"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="899"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="434"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="438"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="609"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="613"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="954"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="958"/>
         <source>Unknown</source>
         <translation>未知</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="425"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="591"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="898"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="437"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="612"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="957"/>
         <source>To</source>
         <translation>收件人</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="427"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="593"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="901"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="441"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="616"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="962"/>
         <source>Subject</source>
         <translation>主题</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="430"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="596"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="904"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="445"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="620"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="966"/>
         <source>CC</source>
         <translation>抄送</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="432"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="598"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="907"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="449"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="624"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="970"/>
         <source>BCC</source>
         <translation>密送</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="433"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="599"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="910"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="451"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="626"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="974"/>
         <source>Date</source>
         <translation>日期</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="438"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="915"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="456"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="980"/>
         <source>Signed EML Data Hash (SHA1)</source>
         <translation>签名 EML 数据哈希值 (SHA1)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="441"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="919"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="459"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="984"/>
         <source>Message Integrity Check Algorithm</source>
         <translation>信息完整性检查算法</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="499"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="517"/>
         <source>FAIL</source>
         <translation>失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="503"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="521"/>
         <source>OK</source>
         <translation>成功</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="506"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="524"/>
         <source>WARN</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="517"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="535"/>
         <source>Summary Report</source>
         <translation>总结报告</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="518"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="536"/>
         <source>Total Operations: %1
 </source>
         <translation>所有操作: %1
 </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="519"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="537"/>
         <source>Successful: %1
 </source>
         <translation>成功: %1
 </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="520"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="538"/>
         <source>Warnings: %1
 </source>
         <translation>警告: %1
 </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="521"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="539"/>
         <source>Failures: %1
 </source>
         <translation>失败: %1
 </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="525"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="543"/>
         <source>Failed Objects: %1
 </source>
         <translation>失败对象: %1
 </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="530"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="548"/>
         <source>Warning Objects: %1
 </source>
         <translation>警告对象: %1
 </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="629"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="692"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="759"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="776"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="656"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="726"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="801"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="820"/>
         <source>No Key Selected</source>
         <translation>未选择任何密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="630"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="760"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="657"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="802"/>
         <source>Please select a key for encrypt the EML.</source>
         <translation>请选择加密邮件数据的密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="693"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="777"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="727"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="821"/>
         <source>Please select a key for signing the EML.</source>
         <translation>请选择用于签署邮件的密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="698"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="782"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="732"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="826"/>
         <source>Multiple Keys Selected</source>
         <translation>已选择多个密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="699"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="783"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="733"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="827"/>
         <source>Please select only one key to sign the EML.</source>
         <translation>请只选择一个密钥来签署邮件。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="964"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="1029"/>
         <source># EML Data Error
 
 The provided EML data does not conform to RFC 3156 standards and cannot be processed.
@@ -4816,7 +4958,7 @@ EML 是一种表示电子邮件信息的文件格式，通常包括标题、正�
 更正 EML 数据后，再次尝试操作。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="990"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="1055"/>
         <source># Email Operation Error
 
 An error occurred during the email operation. The process could not be completed.
@@ -4859,722 +5001,766 @@ If the issue persists, consider seeking technical support or consulting the docu
 如果问题仍然存在，请考虑寻求技术支持或查阅文档。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="244"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="249"/>
         <source>GpgFrontend Upgradeable (New Version: %1).</source>
         <translation>GpgFrontend 可升级（新版本：%1）。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="251"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="278"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="305"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="256"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="332"/>
         <source>Update</source>
         <translation>更新</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="255"/>
-        <source>Withdrawn Version</source>
-        <translation>被召回的版本</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="44"/>
-        <source>Open a new file</source>
-        <translation>打开一个新文件</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="44"/>
-        <source>New Text</source>
-        <translation>新文本</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="49"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="67"/>
         <source>Open File</source>
         <translation>打开文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="50"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="56"/>
-        <source>Open a file panel</source>
-        <translation>打开一个文件操作面板</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="55"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="73"/>
         <source>Open Directory</source>
         <translation>打开目录</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="60"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="74"/>
+        <source>Open the Files panel and point to a directory</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="78"/>
         <source>Save File</source>
         <translation>保存文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="61"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="79"/>
         <source>Save the current File</source>
         <translation>保存当前文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="65"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="83"/>
         <source>Save As</source>
         <translation>另存为</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="66"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="84"/>
         <source>Save the current File as...</source>
         <translation>将当前文件另存为...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="69"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="87"/>
         <source>Print</source>
         <translation>打印</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="70"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="88"/>
         <source>Print Document</source>
         <translation>打印文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="73"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="91"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="74"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="92"/>
         <source>Close file</source>
         <translation>关闭文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="77"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="95"/>
         <source>Quit</source>
         <translation>退出</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="78"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="96"/>
         <source>Quit Program</source>
         <translation>退出程序</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="82"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="100"/>
         <source>Undo</source>
         <translation>撤消</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="83"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="101"/>
         <source>Undo Last Edit Action</source>
         <translation>撤消上次编辑操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="86"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="104"/>
         <source>Redo</source>
         <translation>重做</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="87"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="105"/>
         <source>Redo Last Edit Action</source>
         <translation>重做上次编辑操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="90"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="108"/>
         <source>Zoom In</source>
         <translation>放大</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="91"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="109"/>
         <source>Zoom in</source>
         <translation>放大</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="95"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="113"/>
         <source>Zoom Out</source>
         <translation>缩小</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="96"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="114"/>
         <source>Zoom out</source>
         <translation>缩小</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="100"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="118"/>
         <source>Paste</source>
         <translation>粘贴</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="101"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="119"/>
         <source>Paste Text From Clipboard</source>
         <translation>从剪贴板粘贴文本</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="105"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="123"/>
         <source>Cut</source>
         <translation>剪切</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="106"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="124"/>
         <source>Cut the current selection&apos;s contents to the clipboard</source>
         <translation>将当前选择的内容剪切到剪贴板</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="111"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="129"/>
         <source>Copy</source>
         <translation>复制</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="112"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="130"/>
         <source>Copy the current selection&apos;s contents to the clipboard</source>
         <translation>将当前选择的内容复制到剪贴板</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="116"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="134"/>
         <source>Quote</source>
         <translation>引用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="117"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="135"/>
         <source>Quote whole text</source>
         <translation>引用全文</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="121"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="139"/>
         <source>Select All</source>
         <translation>全选</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="122"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="140"/>
         <source>Select the whole text</source>
         <translation>选择整个文本</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="126"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="144"/>
         <source>Find</source>
         <translation>查找</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="127"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="145"/>
         <source>Find a word</source>
         <translation>找一个词</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="131"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="149"/>
         <source>Remove spacing</source>
         <translation>删除间距</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="133"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="151"/>
         <source>Remove double linebreaks, e.g. in pasted text from Web Mailer</source>
         <translation>删除双换行符，例如在来自 Web Mailer 的粘贴文本中</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="138"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="156"/>
         <source>Settings</source>
         <translation>设置</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="139"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="157"/>
         <source>Open settings dialog</source>
         <translation>打开设置对话框</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="147"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="165"/>
         <source>Encrypt</source>
         <translation>加密</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="148"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="166"/>
         <source>Encrypt Message</source>
         <translation>加密消息</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="154"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="172"/>
         <source>Encrypt Sign</source>
         <translation>加密签名</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="155"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="173"/>
         <source>Encrypt and Sign Message</source>
         <translation>加密和签名消息</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="160"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="178"/>
         <source>Decrypt</source>
         <translation>解密</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="161"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="179"/>
         <source>Decrypt Message</source>
         <translation>解密消息</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="167"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="185"/>
         <source>Decrypt Verify</source>
         <translation>解密验证</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="168"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="186"/>
         <source>Decrypt and Verify Message</source>
         <translation>解密和验证消息</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="173"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="191"/>
         <source>Sign</source>
         <translation>签名</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="174"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="192"/>
         <source>Sign Message</source>
         <translation>签名留言</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="178"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="196"/>
         <source>Verify</source>
         <translation>验证</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="179"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="197"/>
         <source>Verify Message</source>
         <translation>验证消息</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="187"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="410"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="499"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="202"/>
+        <source>Sym. Encrypt</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="204"/>
+        <source>Encrypt Message (Symmetric)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="214"/>
+        <source>New Keypair</source>
+        <translation type="unfinished">新密钥对</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="215"/>
+        <source>Generate KeyPair</source>
+        <translation type="unfinished">生成密钥对</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="225"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="437"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="532"/>
         <source>File</source>
         <translation>文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="189"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="227"/>
         <source>Import New Key From File</source>
         <translation>从文件导入新密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="196"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="234"/>
         <source>Clipboard</source>
         <translation>剪贴板</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="198"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="236"/>
         <source>Import New Key From Clipboard</source>
         <translation>从剪贴板导入新密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="210"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="248"/>
         <source>Keyserver</source>
         <translation>密钥服务器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="212"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="250"/>
         <source>Import New Key From Keyserver</source>
         <translation>从密钥服务器导入新密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="220"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="258"/>
         <source>Editor</source>
         <translation>编辑器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="221"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="259"/>
         <source>Import New Key From Editor</source>
         <translation>从编辑器导入新密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="226"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="264"/>
         <source>Manage Keys</source>
         <translation>管理密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="227"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="265"/>
         <source>Open Key Management</source>
         <translation>打开密钥管理器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="232"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="270"/>
         <source>Clear Password Cache</source>
         <translation>清除密码缓存</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="233"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="271"/>
         <source>Clear Password Cache of GnuPG</source>
         <translation>清除 GnuPG 的密码缓存</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="262"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="300"/>
         <source>Open Smart Card Controller</source>
         <translation>打开智能卡控制器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="263"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="301"/>
         <source>Open Smart Card Controller Dialog</source>
         <translation>打开智能卡控制器窗口</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="418"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="508"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="439"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="540"/>
+        <source>Open</source>
+        <translation type="unfinished">打开</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="444"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="550"/>
         <source>Workspace</source>
         <translation>工作空间</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="470"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="503"/>
         <source>Advanced</source>
         <translation>高级</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="507"/>
-        <source>Open Workspace...</source>
-        <translation>打开工作空间...</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="620"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="665"/>
         <source>Status Panel</source>
         <translation>状态面板</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="321"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="338"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="356"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="324"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="341"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="359"/>
         <source>Successful Operation</source>
         <translation>操作成功</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="322"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="325"/>
         <source>Clear password cache successfully</source>
         <translation>清除密码缓存成功</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="324"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="342"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="360"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="327"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="345"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="363"/>
         <source>Failed Operation</source>
         <translation>操作失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="325"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="328"/>
         <source>Failed to clear password cache of GnuPG</source>
         <translation>无法清除 GnuPG 的密码缓存</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="238"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="276"/>
         <source>Reload All Components</source>
         <translation>重新加载所有组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="239"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="277"/>
         <source>Reload All GnuPG&apos;s Components</source>
         <translation>重新加载所有 GnuPG 的组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="339"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="342"/>
         <source>Reload all the GnuPG&apos;s components successfully</source>
         <translation>成功重新加载所有 GnuPG 组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="343"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="346"/>
         <source>Failed to reload all or one of the GnuPG&apos;s component(s)</source>
         <translation>未能重新加载所有或其中一个 GnuPG 组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="244"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="282"/>
         <source>Restart All Components</source>
         <translation>重新启动所有组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="245"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="283"/>
         <source>Restart All GnuPG&apos;s Components</source>
         <translation>重新启动所有 GnuPG 的组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="357"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="360"/>
         <source>Restart all the GnuPG&apos;s components successfully</source>
         <translation>成功重启所有 GnuPG 组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="361"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="364"/>
         <source>Failed to restart all or one of the GnuPG&apos;s component(s)</source>
         <translation>无法重新启动所有或其中一个 GnuPG 组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="250"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="288"/>
         <source>Open GnuPG Controller</source>
         <translation>打开 GnuPG 控制器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="251"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="289"/>
         <source>Open GnuPG Controller Dialog</source>
         <translation>打开 GnuPG 控制器对话框</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="256"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="294"/>
         <source>Open Module Controller</source>
         <translation>打开模组管理器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="257"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="295"/>
         <source>Open Module Controller Dialog</source>
         <translation>打开模组管理器窗口</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="272"/>
-        <source>New E-Mail</source>
-        <translation>新邮件</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="273"/>
-        <source>Create A New E-Mail Tab</source>
-        <translation>新建一个邮件标签页</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="281"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="308"/>
         <source>About</source>
         <translation>关于</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="282"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="309"/>
         <source>Show the application&apos;s About box</source>
         <translation>显示应用程序的关于界面</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="288"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="291"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="315"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="318"/>
         <source>GnuPG</source>
         <translation>GnuPG</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="289"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="316"/>
         <source>Information about Gnupg</source>
         <translation>关于 Gnupg</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="295"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="322"/>
         <source>Translate</source>
         <translation>翻译</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="296"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="323"/>
         <source>Information about translation</source>
         <translation>翻译信息</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="298"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="325"/>
         <source>Translators</source>
         <translation>翻译贡献者</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="302"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="329"/>
         <source>Check for Updates</source>
         <translation>检查更新</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="303"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="330"/>
         <source>Check for updates</source>
         <translation>检查更新</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="309"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="336"/>
         <source>Open Wizard</source>
         <translation>打开向导</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="310"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="337"/>
         <source>Open the wizard</source>
         <translation>打开向导</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="315"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="342"/>
         <source>Append Public Key to Editor</source>
         <translation>将公钥附加到编辑器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="316"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="343"/>
         <source>Append selected Keypair&apos;s Public Key to Editor</source>
         <translation>将选定的密钥对的公钥附加到编辑器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="321"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="348"/>
         <source>Append Create DateTime to Editor</source>
         <translation>将创建日期时间附加到编辑器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="322"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="349"/>
         <source>Append selected Key&apos;s creation date and time to Editor</source>
         <translation>将所选密钥的创建日期和时间附加到编辑器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="327"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="354"/>
         <source>Append Expire DateTime to Editor</source>
         <translation>将过期日期时间附加到编辑器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="328"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="355"/>
         <source>Append selected Key&apos;s expiration date and time to Editor</source>
         <translation>将所选密钥的到期日期和时间附加到编辑器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="333"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="360"/>
         <source>Append Fingerprint to Editor</source>
         <translation>将指纹附加到编辑器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="334"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="361"/>
         <source>Append selected Key&apos;s Fingerprint to Editor</source>
         <translation>将所选密钥的指纹附加到编辑器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="339"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="366"/>
         <source>Copy Email</source>
         <translation>复制电子邮件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="340"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="367"/>
         <source>Copy selected Keypair&apos;s to clipboard</source>
         <translation>将选定的密钥对复制到剪贴板</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="345"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="372"/>
         <source>Copy Default UID</source>
         <translation>复制默认 UID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="346"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="373"/>
         <source>Copy selected Keypair&apos;s default UID to clipboard</source>
         <translation>将所选密钥对的默认 UID 复制到剪贴板</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="351"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="378"/>
         <source>Copy Key ID</source>
         <translation>复制密钥 ID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="352"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="379"/>
         <source>Copy selected Keypair&apos;s ID to clipboard</source>
         <translation>将所选密钥对的 ID 复制到剪贴板</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="357"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="384"/>
         <source>Show Key Details</source>
         <translation>显示密钥细节</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="358"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="385"/>
         <source>Show Details for this Key</source>
         <translation>显示此密钥的详细信息</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="363"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="390"/>
         <source>Add To Favourite</source>
         <translation>添加到收藏夹</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="364"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="391"/>
         <source>Add this key to Favourite Table</source>
         <translation>将此键添加到收藏夹表</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="370"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="397"/>
         <source>Remove From Favourite</source>
         <translation>从收藏夹中删除</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="371"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="398"/>
         <source>Remove this key from Favourite Table</source>
         <translation>从收藏表中删除此键</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="378"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="379"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="405"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="406"/>
         <source>Set Owner Trust Level</source>
         <translation>设置所有者信任级别</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="398"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="399"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="425"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="426"/>
         <source>Remove PGP Header</source>
         <translation>删除 PGP 标头</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="403"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="404"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="430"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="431"/>
         <source>Add PGP Header</source>
         <translation>添加 PGP 标头</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="431"/>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="531"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="462"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="578"/>
         <source>Edit</source>
         <translation>编辑</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="451"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="482"/>
         <source>Crypt</source>
         <translation>加密</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="461"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="493"/>
         <source>Keys</source>
         <translation>密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="462"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="495"/>
         <source>Import Key</source>
         <translation>导入密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="479"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="512"/>
         <source>View</source>
         <translation>查看</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="481"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="514"/>
         <source>Help</source>
         <translation>帮助</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="521"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="539"/>
+        <source>Open ...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="549"/>
+        <source>Open Workspace as...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="556"/>
         <source>Operations</source>
         <translation>操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="526"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="561"/>
         <source>Key</source>
         <translation>密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="539"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="586"/>
         <source>Special Edit</source>
         <translation>特殊编辑操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="553"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="569"/>
         <source>Import key from...</source>
         <translation>从···导入密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="554"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="46"/>
+        <source>Text Editor</source>
+        <translation type="unfinished">文本编辑器</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="47"/>
+        <source>Open a new text editor</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="52"/>
+        <source>File Panel (Files)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="53"/>
+        <source>Open a new file panel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="59"/>
+        <source>Mail Editor</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="60"/>
+        <source>Open a new text editor for email</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="68"/>
+        <source>Open the file panel and point to a file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="570"/>
         <source>Import key</source>
         <translation>导入密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="570"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="608"/>
         <source>Ready</source>
         <translation>准备好</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="577"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="615"/>
         <source>Key ToolBox</source>
         <translation>密钥工具箱</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="585"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="623"/>
         <source>Default</source>
         <translation>默认</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="593"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="631"/>
         <source>Favourite</source>
         <translation>最喜欢的</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="600"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="638"/>
+        <source>Key Group</source>
+        <translation type="unfinished">密钥组</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="645"/>
         <source>Only Public Key</source>
         <translation>只有公钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="608"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="653"/>
         <source>Has Private Key</source>
         <translation>有私钥</translation>
     </message>
@@ -5623,7 +5809,7 @@ If the issue persists, consider seeking technical support or consulting the docu
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="84"/>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="192"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="186"/>
         <source>Enable Auto Activate</source>
         <translation>开启自动启用</translation>
     </message>
@@ -5690,22 +5876,22 @@ If the issue persists, consider seeking technical support or consulting the docu
         <translation>元数据</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="179"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="173"/>
         <source>Listening Event</source>
         <translation>监听事件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="188"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="182"/>
         <source>Deactivate</source>
         <translation>禁用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="189"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="183"/>
         <source>Activate</source>
         <translation>启用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="191"/>
+        <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="185"/>
         <source>Disable Auto Activate</source>
         <translation>关闭自动启用</translation>
     </message>
@@ -5764,62 +5950,67 @@ If the issue persists, consider seeking technical support or consulting the docu
         <translation>应用代理设置并检查代理连接</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="89"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="88"/>
         <source>Forbid all GnuPG network connection.</source>
         <translation>禁止所有 GnuPG 网络连接。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="93"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="90"/>
         <source>Prohibit checking for version updates when the program starts.</source>
         <translation>禁止在程序启动时检查版本更新。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="96"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="91"/>
+        <source>Update Checking API</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="93"/>
         <source>Automatically fetch key publish status from key server.</source>
         <translation>自动从密钥服务器获取公钥发布状态。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="98"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="95"/>
         <source>Tips: These Option Changes take effect only after the application restart.</source>
         <translation>提示：这些选项更改仅在应用程序重新启动后生效。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="172"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="195"/>
         <source>Test Server Url Accessibility</source>
         <translation>测试服务器 URL 连通性</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="173"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="196"/>
         <source>Server Url</source>
         <translation>服务器路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="183"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="206"/>
         <source>Success</source>
         <translation>成功</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="184"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="207"/>
         <source>Successfully connect to the target server through the proxy server.</source>
         <translation>连接目标服务器成功（通过代理）。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="188"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="211"/>
         <source>Failed</source>
         <translation>失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="189"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="212"/>
         <source>Unable to connect to the target server through the proxy server. Proxy settings may be invalid.</source>
         <translation>无法通过代理服务器连接到目标服务器。代理设置可能错误。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="199"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="222"/>
         <source>Test Proxy Server Connection...</source>
         <translation>测试代理服务器连接...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="200"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="223"/>
         <source>Is using your proxy settings to access the url. Note that this test operation will apply your proxy settings to the entire software.</source>
         <translation>正在使用您的代理设置访问 url。请注意，此测试操作会将您的代理设置应用于整个软件。</translation>
     </message>
@@ -5833,7 +6024,7 @@ If the issue persists, consider seeking technical support or consulting the docu
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="66"/>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="223"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="238"/>
         <source>%1 character(s)</source>
         <translation>%1 个字符</translation>
     </message>
@@ -5843,12 +6034,12 @@ If the issue persists, consider seeking technical support or consulting the docu
         <translation>正在加载...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="95"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="110"/>
         <source>lf</source>
         <translation>如果</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="96"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="111"/>
         <source>UTF-8</source>
         <translation>UTF-8</translation>
     </message>
@@ -5861,22 +6052,22 @@ If the issue persists, consider seeking technical support or consulting the docu
         <translation>未保存的文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/QuitDialog.cpp" line="83"/>
+        <location filename="../../../../src/ui/dialog/QuitDialog.cpp" line="82"/>
         <source>%1 files contain unsaved information.&lt;br/&gt;Save the changes before closing?</source>
         <translation>%1 个文件包含未保存的信息。&lt;br/&gt;要在关闭前保存更改吗？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/QuitDialog.cpp" line="97"/>
+        <location filename="../../../../src/ui/dialog/QuitDialog.cpp" line="96"/>
         <source>Check the files you want to save:</source>
         <translation>检查您要保存的文件：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/QuitDialog.cpp" line="99"/>
+        <location filename="../../../../src/ui/dialog/QuitDialog.cpp" line="98"/>
         <source>Note</source>
         <translation>笔记</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/QuitDialog.cpp" line="100"/>
+        <location filename="../../../../src/ui/dialog/QuitDialog.cpp" line="99"/>
         <source>If you don&apos;t save these files, all changes are lost.</source>
         <translation>如果您不保存这些文件，所有更改都将丢失。</translation>
     </message>
@@ -5902,52 +6093,52 @@ If the issue persists, consider seeking technical support or consulting the docu
 <context>
     <name>GpgFrontend::UI::SetOwnerTrustLevel</name>
     <message>
-        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="43"/>
-        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="60"/>
+        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="47"/>
+        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="101"/>
         <source>Undefined</source>
         <translation>未定义</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="43"/>
-        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="58"/>
+        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="47"/>
+        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="99"/>
         <source>Never</source>
         <translation>绝不信任</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="43"/>
-        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="56"/>
+        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="47"/>
+        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="97"/>
         <source>Marginal</source>
         <translation>有限信任</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="43"/>
-        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="54"/>
+        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="47"/>
+        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="95"/>
         <source>Full</source>
         <translation>完全信任</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="44"/>
-        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="52"/>
+        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="48"/>
+        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="93"/>
         <source>Ultimate</source>
         <translation>无限信任</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="46"/>
+        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="87"/>
         <source>Modify Owner Trust Level</source>
         <translation>修改所有者信任级别</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="47"/>
+        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="88"/>
         <source>Trust for the Key Pair:</source>
         <translation>对密钥对的信任：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="71"/>
+        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="112"/>
         <source>Failed</source>
         <translation>失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="72"/>
+        <location filename="../../../../src/ui/function/SetOwnerTrustLevel.cpp" line="113"/>
         <source>Modify Owner Trust Level failed.</source>
         <translation>修改所有者信任级别失败。</translation>
     </message>
@@ -6008,22 +6199,17 @@ If the issue persists, consider seeking technical support or consulting the docu
         <translation>签名者</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/SignersPicker.cpp" line="57"/>
+        <location filename="../../../../src/ui/dialog/SignersPicker.cpp" line="61"/>
         <source>Select Signer(s)</source>
         <translation>选择签名者</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/SignersPicker.cpp" line="60"/>
+        <location filename="../../../../src/ui/dialog/SignersPicker.cpp" line="65"/>
         <source>Please select one or more private keys you use for signing.</source>
         <translation>请选择您用于签名的一个或多个私钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/SignersPicker.cpp" line="61"/>
-        <source>If no key is selected, the default key will be used for signing.</source>
-        <translation>如果未选择密钥，则将使用默认密钥进行签名。</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/SignersPicker.cpp" line="71"/>
+        <location filename="../../../../src/ui/dialog/SignersPicker.cpp" line="81"/>
         <source>Signers Picker</source>
         <translation>签署人选择界面</translation>
     </message>
@@ -6494,6 +6680,44 @@ If the issue persists, consider seeking technical support or consulting the docu
     </message>
 </context>
 <context>
+    <name>GpgFrontend::UI::SubKeyPicker</name>
+    <message>
+        <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="42"/>
+        <source>Select Signing Key(s) &amp; Subkey(s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="48"/>
+        <source>Choose the primary key(s) or one or more subkeys:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="81"/>
+        <source>Multiple signing subkeys have been detected among your selected keys, which makes it unclear which key should be used for signing. Please select the primary key(s) or one or more subkeys with signing capability to proceed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="91"/>
+        <source>Confirm</source>
+        <translation type="unfinished">确认</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="92"/>
+        <source>Cancel</source>
+        <translation type="unfinished">取消</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="96"/>
+        <source>No Subkeys Selected</source>
+        <translation type="unfinished">没有选择任何子密钥</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="97"/>
+        <source>Please select at least one Subkey.</source>
+        <translation type="unfinished">请至少选择一个子密钥</translation>
+    </message>
+</context>
+<context>
     <name>GpgFrontend::UI::SubkeyGenerateDialog</name>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="83"/>
@@ -6622,97 +6846,95 @@ If the issue persists, consider seeking technical support or consulting the docu
 <context>
     <name>GpgFrontend::UI::TextEdit</name>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="194"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="208"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="460"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="497"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="207"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="221"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="508"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="195"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="209"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="461"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="208"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="222"/>
         <source>Cannot read file %1:
 %2.</source>
         <translation>无法读取文件 %1:
 %2。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="132"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="145"/>
         <source>Open file</source>
         <translation>打开文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="78"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="86"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="91"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="99"/>
         <source>Open File</source>
         <translation>打开文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="95"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="103"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="108"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="116"/>
         <source>Error</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="96"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="109"/>
         <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
         <translation>无法打开此文件。请确保这是一个普通文件，并且有读取权限。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="104"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="117"/>
         <source>Cannot open this file. The file is TOO LARGE (&gt;1MB) for GpgFrontend Text Editor.</source>
         <translation>无法打开此文件。文件对于 GpgFrontend 文本编辑器来说过大（&gt;1MB）。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="112"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="125"/>
         <source>File Open Error</source>
         <translation>打开文件失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="113"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="126"/>
         <source>The file &quot;%1&quot; could not be opened.</source>
         <translation>无法打开文件 &quot;%1&quot;。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="121"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="134"/>
         <source>Binary File Detected</source>
         <translation>检测到二进制文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="122"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="135"/>
         <source>The file &quot;%1&quot; appears to be a binary file and will not be opened.</source>
         <translation>文件&quot;%1&quot;似乎是二进制文件，无法打开。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="244"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="260"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="257"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="273"/>
         <source>Save file</source>
         <translation>保存存档</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="321"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="337"/>
         <source>Unsaved document</source>
         <translation>未保存的文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="322"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="338"/>
         <source>The document &quot;%1&quot; has been modified. Do you want to save your changes?</source>
         <translation>文档“%1”已被修改。是否要保存更改？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="325"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="341"/>
         <source>Note:</source>
         <translation>笔记：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="326"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="342"/>
         <source>If you don&apos;t save these files, all changes are lost.</source>
         <translation>如果您不保存这些文件，所有更改都将丢失。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="497"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="508"/>
         <source>No document to print</source>
         <translation>没有要打印的文件</translation>
     </message>
@@ -6720,68 +6942,66 @@ If the issue persists, consider seeking technical support or consulting the docu
 <context>
     <name>GpgFrontend::UI::TextEditTabWidget</name>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="65"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="68"/>
         <source>File Too Large</source>
         <translation>文件太大</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="66"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="69"/>
         <source>The file &quot;%1&quot; is larger than 1MB and will not be opened.</source>
         <translation>文件&quot;%1&quot;大于 1MB，将无法打开。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="74"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="77"/>
         <source>File Open Error</source>
         <translation>打开文件失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="75"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="78"/>
         <source>The file &quot;%1&quot; could not be opened.</source>
         <translation>无法打开文件 &quot;%1&quot;。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="83"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="86"/>
         <source>Binary File Detected</source>
         <translation>检测到二进制文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="84"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="87"/>
         <source>The file &quot;%1&quot; appears to be a binary file and will not be opened.</source>
         <translation>文件&quot;%1&quot;似乎是二进制文件，无法打开。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="101"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="104"/>
         <source>Directory Permission Denied</source>
         <translation>目录权限不足</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="102"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="105"/>
         <source>You do not have permission to access the directory &quot;%1&quot;.</source>
         <translation>您没有权限访问目录 &quot;%1&quot;。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="134"/>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="161"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="137"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="164"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="135"/>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="162"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="138"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="165"/>
         <source>Cannot read file %1:
 %2.</source>
         <translation>无法读取文件 %1:
 %2。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="259"/>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="274"/>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="291"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="238"/>
         <source>untitled</source>
         <translation>无标题</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="323"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="320"/>
         <source>Default Workspace</source>
         <translation>默认工作空间</translation>
     </message>
@@ -6789,7 +7009,7 @@ If the issue persists, consider seeking technical support or consulting the docu
 <context>
     <name>GpgFrontend::UI::TranslatorsTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="153"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="180"/>
         <source>If you think there are any problems with the translation, why not participate in the translation work? If you want to participate, please read the document or contact me via email.</source>
         <translation>如果觉得翻译有问题，何不参与翻译工作呢？如果您想参加，请阅读文档或通过电子邮件与我联系。</translation>
     </message>
@@ -6986,7 +7206,7 @@ If the issue persists, consider seeking technical support or consulting the docu
 <context>
     <name>GpgFrontend::UI::Wizard</name>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="43"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="42"/>
         <source>First Start Wizard</source>
         <translation>欢迎</translation>
     </message>
@@ -7048,13 +7268,13 @@ If the issue persists, consider seeking technical support or consulting the docu
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="166"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="187"/>
         <source>Usage</source>
         <translation>用法</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="167"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="188"/>
         <source>Trust</source>
         <translation>信任</translation>
     </message>
@@ -7080,32 +7300,32 @@ If the issue persists, consider seeking technical support or consulting the docu
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="168"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="189"/>
         <source>Comment</source>
         <translation>注释</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="164"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="185"/>
         <source>ID</source>
         <translation>ID</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="165"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="186"/>
         <source>Algo</source>
         <translation>算法</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="169"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="190"/>
         <source>No Comment</source>
         <translation>无备注</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="175"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="196"/>
         <source>SubKeys (up to 8):</source>
         <translation>子密钥 (前8个): </translation>
     </message>
     <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="181"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="202"/>
         <source>ID: %1 | Algo: %2 | Usage: %3</source>
         <translation>ID: %1 | 算法: %2 | 用法: %3</translation>
     </message>
@@ -7151,12 +7371,12 @@ If the issue persists, consider seeking technical support or consulting the docu
 <context>
     <name>QCoreApplication</name>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="58"/>
-        <source>Loading Gnupg Info...</source>
-        <translation>正在加载 Gnupg 信息...</translation>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="60"/>
+        <source>Loading GnuPG Info...</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="59"/>
+        <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="61"/>
         <source>If this process is too slow, please set the key server address appropriately in the gnupg configuration file (depending on the network situation in your country or region).</source>
         <translation>如果此过程太慢，请在 gnupg 配置文件中适当设置密钥服务器地址（取决于您所在国家或地区的网络情况）。</translation>
     </message>
@@ -7171,55 +7391,55 @@ If the issue persists, consider seeking technical support or consulting the docu
         <translation>本地没有目标公钥内容供 GpgFrontend 收集有关此签名的足够信息。现在要从密钥服务器导入公钥吗？</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="88"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="143"/>
         <source>File Hash Information</source>
         <translation>文件哈希信息</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="89"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="121"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="144"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="170"/>
         <source>Filename</source>
         <translation>文件名</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="89"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="94"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="98"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="102"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="107"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="112"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="121"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="144"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="149"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="153"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="157"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="160"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="163"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="170"/>
         <source>: </source>
         <translation>： </translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="93"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="97"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="148"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="152"/>
         <source>File Size</source>
         <translation>文件大小</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="119"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="168"/>
         <source>Error: cannot read target file</source>
         <translation>错误：无法读取目标文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="152"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="201"/>
         <source>target path doesn&apos;t exists</source>
         <translation>目标路径不存在</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="158"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="207"/>
         <source>do NOT have permission to write path</source>
         <translation>缺少写入路径的权限</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="164"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="213"/>
         <source>do NOT have permission to read/write file</source>
         <translation>缺少读写文件的权限</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="167"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="216"/>
         <source>Success</source>
         <translation>成功</translation>
     </message>
@@ -7234,44 +7454,147 @@ If the issue persists, consider seeking technical support or consulting the docu
         <translation>您没有选中任何要同步的公钥，是否要从密钥服务器同步所有本地公钥？</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GpgCoreInit.cpp" line="422"/>
+        <location filename="../../../../src/core/GpgCoreInit.cpp" line="410"/>
         <source>Cannot Find GpgConf</source>
         <translation>无法找到 GpgConf</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GpgCoreInit.cpp" line="430"/>
+        <location filename="../../../../src/core/GpgCoreInit.cpp" line="418"/>
         <source>Cannot Find GnuPG</source>
         <translation>无法找到 GnuPG</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GpgCoreInit.cpp" line="405"/>
+        <location filename="../../../../src/core/GpgCoreInit.cpp" line="393"/>
         <source>Cannot get Infos from GpgConf</source>
         <translation>无法从GpgConf获取信息</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GpgCoreInit.cpp" line="445"/>
+        <location filename="../../../../src/core/GpgCoreInit.cpp" line="433"/>
         <source>Cannot Find Default Home Path</source>
         <translation>无法找到默认的GnuPG家目录</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GpgCoreInit.cpp" line="471"/>
+        <location filename="../../../../src/core/GpgCoreInit.cpp" line="459"/>
         <source>GpgME Initiation Failed</source>
         <translation>GpgME 初始化失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GpgCoreInit.cpp" line="523"/>
+        <location filename="../../../../src/core/GpgCoreInit.cpp" line="511"/>
         <source>No valid Key Database</source>
         <translation>没有有效的密钥数据库</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GpgCoreInit.cpp" line="553"/>
+        <location filename="../../../../src/core/GpgCoreInit.cpp" line="541"/>
         <source>GpgME Default Context Initiation Failed</source>
         <translation>GpgME 默认上下文初始化失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GpgCoreInit.cpp" line="564"/>
+        <location filename="../../../../src/core/GpgCoreInit.cpp" line="552"/>
         <source>Gpg Default Key Database Initiation Failed</source>
         <translation>Gpg 默认密钥数据库初始化失败</translation>
+    </message>
+</context>
+<context>
+    <name>QObject</name>
+    <message>
+        <location filename="../../../../src/GpgFrontend.cpp" line="90"/>
+        <source>Program Self-Test Failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/GpgFrontend.cpp" line="91"/>
+        <source>The application has detected an issue while verifying essential libraries and binaries that were digitally signed during the build. This means one or more files may have been altered or are being loaded from the wrong location. For security reasons, the program must now exit.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/GpgFrontend.cpp" line="120"/>
+        <source>PIN Required</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/GpgFrontend.cpp" line="121"/>
+        <source>High security mode is enabled.
+
+To unlock the application please enter your PIN.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/Security.cpp" line="54"/>
+        <location filename="../../../../src/Security.cpp" line="216"/>
+        <source>Save Key Failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/Security.cpp" line="55"/>
+        <location filename="../../../../src/Security.cpp" line="217"/>
+        <source>Failed to save the secure key to disk at: %1
+Please check your storage or try running as administrator.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/Security.cpp" line="125"/>
+        <location filename="../../../../src/Security.cpp" line="131"/>
+        <location filename="../../../../src/Security.cpp" line="137"/>
+        <location filename="../../../../src/Security.cpp" line="159"/>
+        <source>Time Rotation Secure Key Generation Failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/Security.cpp" line="126"/>
+        <source>Failed to generate a salt; falling back to less-secure key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/Security.cpp" line="132"/>
+        <source>Failed to derive time-rotated key; falling back to less-secure key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/Security.cpp" line="138"/>
+        <source>Failed to compute key ID; falling back to less-secure key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/Security.cpp" line="150"/>
+        <location filename="../../../../src/Security.cpp" line="201"/>
+        <source>Encrypt Key Failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/Security.cpp" line="151"/>
+        <location filename="../../../../src/Security.cpp" line="202"/>
+        <source>Failed to encrypt the secure key with your PIN. The key will not be saved to disk.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/Security.cpp" line="160"/>
+        <location filename="../../../../src/Security.cpp" line="185"/>
+        <source>Failed to generate a secure application key using OpenSSL. A less secure fallback key will be used. Please check your system&apos;s cryptography support.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/Security.cpp" line="184"/>
+        <source>Secure Key Generation Failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/Security.cpp" line="246"/>
+        <location filename="../../../../src/Security.cpp" line="269"/>
+        <location filename="../../../../src/Security.cpp" line="319"/>
+        <source>App Secure Key Error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/Security.cpp" line="247"/>
+        <location filename="../../../../src/Security.cpp" line="320"/>
+        <source>Failed to read the application secure key from disk at: %1
+Please ensure the key file exists and is accessible, or try re-initializing the secure key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/Security.cpp" line="270"/>
+        <source>Failed to decrypt the application secure key. Your PIN may be incorrect, or the key file may be corrupted.Please clear the secure key and try again.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>
