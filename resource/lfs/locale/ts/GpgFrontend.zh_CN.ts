@@ -1067,7 +1067,7 @@
     <message>
         <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="125"/>
         <source>The Key Package has been successfully generated and has been protected by encryption algorithms(AES-256-GCM). You can safely transfer your Key Package.</source>
-        <translation type="unfinished">密钥包已成功生成，并已受加密算法 (AES-256-GCM) 保护。您可以安全地传输您的密钥包。</translation>
+        <translation>密钥包已成功生成，并已受加密算法 (AES-256-GCM) 保护。您可以安全地传输您的密钥包。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/ExportKeyPackageDialog.cpp" line="152"/>
@@ -1290,32 +1290,32 @@
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="42"/>
         <source>Base</source>
-        <translation type="unfinished">基础</translation>
+        <translation>基础</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="44"/>
         <source>Default Workspace As:</source>
-        <translation type="unfinished">默认工作空间为</translation>
+        <translation>默认工作空间为</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="45"/>
         <source>File Panel</source>
-        <translation type="unfinished">文件浏览器</translation>
+        <translation>文件浏览器</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="46"/>
         <source>Text Editor</source>
-        <translation type="unfinished">文本编辑器</translation>
+        <translation>文本编辑器</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="53"/>
         <source>Use home path as the default path for FilePanel</source>
-        <translation type="unfinished">使用家目录作为文件浏览器的默认目录</translation>
+        <translation>使用家目录作为文件浏览器的默认目录</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="58"/>
         <source>Cache text editor contents.</source>
-        <translation type="unfinished">缓存文本编辑器的内容。</translation>
+        <translation>缓存文本编辑器的内容。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="60"/>
@@ -1990,7 +1990,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="210"/>
         <source>Profile</source>
-        <translation type="unfinished">配置文件</translation>
+        <translation>配置文件</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="212"/>
@@ -2002,23 +2002,23 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="214"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="881"/>
         <source>Save Profile</source>
-        <translation type="unfinished">保存配置文件</translation>
+        <translation>保存配置文件</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="216"/>
         <source>Save current configuration as a new profile</source>
-        <translation type="unfinished">将当前配置保存为新的配置文件</translation>
+        <translation>将当前配置保存为新的配置文件</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="217"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="952"/>
         <source>Delete Profile</source>
-        <translation type="unfinished">删除配置文件</translation>
+        <translation>删除配置文件</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="218"/>
         <source>Delete current selected profile</source>
-        <translation type="unfinished">删除当前选中的配置文件</translation>
+        <translation>删除当前选中的配置文件</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="222"/>
@@ -2089,22 +2089,22 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="271"/>
         <source>GnuPG Version: %1</source>
-        <translation type="unfinished">GnuPG 版本：%1</translation>
+        <translation>GnuPG 版本：%1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="274"/>
         <source>Supported Primary Key Algorithms: </source>
-        <translation type="unfinished">受支持的主密钥算法：</translation>
+        <translation>受支持的主密钥算法：</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="284"/>
         <source>Supported Subkey Algorithms: </source>
-        <translation type="unfinished">受支持的子密钥算法：</translation>
+        <translation>受支持的子密钥算法：</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="294"/>
         <source>Please select a key algorithm and configure the parameters as needed.</source>
-        <translation type="unfinished">请选择密钥算法并根据需要配置参数。</translation>
+        <translation>请选择密钥算法并根据需要配置参数。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="300"/>
@@ -2159,7 +2159,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="882"/>
         <source>Please enter profile name:</source>
-        <translation type="unfinished">请输入配置文件名称：</translation>
+        <translation>请输入配置文件名称：</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="890"/>
@@ -2169,7 +2169,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="934"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="946"/>
         <source>Notice</source>
-        <translation type="unfinished">提示</translation>
+        <translation>提示</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="891"/>
@@ -2580,7 +2580,7 @@ These keys are no longer available. Do you want to remove them from the group?</
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="65"/>
         <source>Key Group</source>
-        <translation type="unfinished">密钥组</translation>
+        <translation>密钥组</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="71"/>
@@ -2822,12 +2822,12 @@ These keys are no longer available. Do you want to remove them from the group?</
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="588"/>
         <source>Enter PIN</source>
-        <translation type="unfinished">请输入PIN</translation>
+        <translation>请输入PIN</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="589"/>
         <source>Please enter PIN to decrypt the Key:</source>
-        <translation type="unfinished">请输入PIN来解锁密钥：</translation>
+        <translation>请输入PIN来解锁密钥：</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="380"/>
@@ -4707,12 +4707,12 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="260"/>
         <source>Unstable Version</source>
-        <translation type="unfinished">不稳定的版本</translation>
+        <translation>不稳定的版本</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="261"/>
         <source>This version (%1) is not an official stable release. It may have been withdrawn or is a beta build. Please stop using this version immediately and download the latest stable version (%2) from the GitHub Releases page.</source>
-        <translation type="unfinished">此版本 (%1) 并非官方稳定版本。它可能已被撤回或为 Beta 版本。请立即停止使用此版本，并从 GitHub 版本页面下载最新的稳定版本 (%2)。</translation>
+        <translation>此版本 (%1) 并非官方稳定版本。它可能已被撤回或为 Beta 版本。请立即停止使用此版本，并从 GitHub 版本页面下载最新的稳定版本 (%2)。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="275"/>
@@ -4727,12 +4727,12 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="283"/>
         <source>Unverified Commit Hash</source>
-        <translation type="unfinished">未验证的Git提交哈希值</translation>
+        <translation>未验证的Git提交哈希值</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="284"/>
         <source>The commit hash for this build was not found in the official remote repository. This could indicate a modified or unofficial build. For your security, please verify your installation or download the official release from the GitHub Releases page.</source>
-        <translation type="unfinished">在官方远程仓库中未找到此版本的提交哈希值。这可能表明此版本已被修改或非官方版本。为了您的安全，请验证您的安装或从 GitHub 发布页面下载官方版本。</translation>
+        <translation>在官方远程仓库中未找到此版本的提交哈希值。这可能表明此版本已被修改或非官方版本。为了您的安全，请验证您的安装或从 GitHub 发布页面下载官方版本。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="424"/>
@@ -5006,7 +5006,7 @@ If the issue persists, consider seeking technical support or consulting the docu
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="74"/>
         <source>Open the Files panel and point to a directory</source>
-        <translation type="unfinished">打开文件浏览器并指向一个目录</translation>
+        <translation>打开文件浏览器并指向一个目录</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="78"/>
@@ -5241,22 +5241,22 @@ If the issue persists, consider seeking technical support or consulting the docu
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="202"/>
         <source>Sym. Encrypt</source>
-        <translation type="unfinished">对称加密</translation>
+        <translation>对称加密</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="204"/>
         <source>Encrypt Message (Symmetric)</source>
-        <translation type="unfinished">加密消息（对称）</translation>
+        <translation>加密消息（对称）</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="214"/>
         <source>New Keypair</source>
-        <translation type="unfinished">新密钥对</translation>
+        <translation>新密钥对</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="215"/>
         <source>Generate KeyPair</source>
-        <translation type="unfinished">生成密钥对</translation>
+        <translation>生成密钥对</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="225"/>
@@ -5334,7 +5334,7 @@ If the issue persists, consider seeking technical support or consulting the docu
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="439"/>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="540"/>
         <source>Open</source>
-        <translation type="unfinished">打开</translation>
+        <translation>打开</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="444"/>
@@ -5644,12 +5644,12 @@ If the issue persists, consider seeking technical support or consulting the docu
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="539"/>
         <source>Open ...</source>
-        <translation type="unfinished">打开…</translation>
+        <translation>打开…</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="549"/>
         <source>Open Workspace as...</source>
-        <translation type="unfinished">以…方式打开工作区</translation>
+        <translation>以…方式打开工作区</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="556"/>
@@ -5674,7 +5674,7 @@ If the issue persists, consider seeking technical support or consulting the docu
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="46"/>
         <source>Text Editor</source>
-        <translation type="unfinished">文本编辑器</translation>
+        <translation>文本编辑器</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="47"/>
@@ -5734,7 +5734,7 @@ If the issue persists, consider seeking technical support or consulting the docu
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="638"/>
         <source>Key Group</source>
-        <translation type="unfinished">密钥组</translation>
+        <translation>密钥组</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="645"/>
@@ -5944,7 +5944,7 @@ If the issue persists, consider seeking technical support or consulting the docu
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="91"/>
         <source>Update Checking API</source>
-        <translation type="unfinished">更新检查API</translation>
+        <translation>更新检查API</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsNetwork.cpp" line="93"/>
@@ -6681,22 +6681,22 @@ If the issue persists, consider seeking technical support or consulting the docu
     <message>
         <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="91"/>
         <source>Confirm</source>
-        <translation type="unfinished">确认</translation>
+        <translation>确认</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="92"/>
         <source>Cancel</source>
-        <translation type="unfinished">取消</translation>
+        <translation>取消</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="96"/>
         <source>No Subkeys Selected</source>
-        <translation type="unfinished">没有选择任何子密钥</translation>
+        <translation>没有选择任何子密钥</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="97"/>
         <source>Please select at least one Subkey.</source>
-        <translation type="unfinished">请至少选择一个子密钥</translation>
+        <translation>请至少选择一个子密钥</translation>
     </message>
 </context>
 <context>
@@ -7355,7 +7355,7 @@ If the issue persists, consider seeking technical support or consulting the docu
     <message>
         <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="60"/>
         <source>Loading GnuPG Info...</source>
-        <translation type="unfinished"></translation>
+        <translation>正在加载 GnuPG 信息…</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/GpgFrontendUIInit.cpp" line="61"/>
