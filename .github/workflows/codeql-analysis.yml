@@ -51,11 +51,15 @@ jobs:
         language: ["cpp"]
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           lfs: "false"
           submodules: recursive
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: codeql-${{ github.job }}-${{ matrix.os }}
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -69,33 +73,6 @@ jobs:
           sudo apt-get -y install gcc g++ ninja-build
           sudo apt-get -y install libarchive-dev libgpgme-dev
           sudo apt-get -y install gpg
-
-      - name: Build gpg-error
-        run: |
-          git clone --depth 1 --branch libgpg-error-1.51 git://git.gnupg.org/libgpg-error.git ${{github.workspace}}/third_party/libgpg-error
-          cd  ${{github.workspace}}/third_party/libgpg-error
-          ./autogen.sh
-          ./configure --enable-maintainer-mode && make -j4
-          sudo make install
-          cd ${{github.workspace}}
-
-      - name: Build assuan
-        run: |
-          git clone --depth 1 --branch libassuan-2.5.7 git://git.gnupg.org/libassuan.git ${{github.workspace}}/third_party/libassuan
-          cd ${{github.workspace}}/third_party/libassuan
-          ./autogen.sh
-          ./configure --enable-maintainer-mode && make -j4
-          sudo make install
-          cd ${{github.workspace}}
-
-      - name: Build GpgME
-        run: |
-          git clone --depth 1 --branch gpgme-1.24.2 git://git.gnupg.org/gpgme.git ${{github.workspace}}/third_party/gpgme
-          cd  ${{github.workspace}}/third_party/gpgme
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-languages=cpp && make -j4
-          sudo make install
-          cd ${{github.workspace}}
 
       - name: Build googletest
         run: |
@@ -112,10 +89,13 @@ jobs:
           version: "6.7.2"
           cache: "true"
 
-      - name: Build GpgFrontend
+      - name: Build GpgFrontend (Linux)
         run: |
-          cmake -G Ninja -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          cmake -B ${{github.workspace}}/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
+        if: runner.os == 'Linux'
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
