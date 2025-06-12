@@ -498,25 +498,7 @@
     </message>
 </context>
 <context>
-    <name>GpgFrontend::Module::GlobalRegisterTable</name>
-    <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="45"/>
-        <source>NODE</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="80"/>
-        <source>LEAF</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>GpgFrontend::Module::GlobalRegisterTableTreeModel::Impl</name>
-    <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="191"/>
-        <source>&lt;EMPTY&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
     <message>
         <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="230"/>
         <source>&lt;UNSUPPORTED&gt;</source>
@@ -7446,86 +7428,99 @@ If the issue persists, consider seeking technical support or consulting the docu
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="121"/>
-        <source>High security mode is enabled.
-
-To unlock the application please enter your PIN.</source>
+        <source>High security mode is enabled.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/GpgFrontend.cpp" line="122"/>
+        <source>To unlock the application please enter your PIN.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../../../src/Security.cpp" line="54"/>
-        <location filename="../../../../src/Security.cpp" line="216"/>
+        <location filename="../../../../src/Security.cpp" line="217"/>
         <source>Save Key Failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../../../src/Security.cpp" line="55"/>
-        <location filename="../../../../src/Security.cpp" line="217"/>
-        <source>Failed to save the secure key to disk at: %1
-Please check your storage or try running as administrator.</source>
+        <location filename="../../../../src/Security.cpp" line="218"/>
+        <source>Failed to save the secure key to disk at: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="125"/>
-        <location filename="../../../../src/Security.cpp" line="131"/>
-        <location filename="../../../../src/Security.cpp" line="137"/>
-        <location filename="../../../../src/Security.cpp" line="159"/>
-        <source>Time Rotation Secure Key Generation Failed</source>
+        <location filename="../../../../src/Security.cpp" line="58"/>
+        <location filename="../../../../src/Security.cpp" line="221"/>
+        <source>Please check your storage or try running as administrator.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../../../src/Security.cpp" line="126"/>
+        <location filename="../../../../src/Security.cpp" line="132"/>
+        <location filename="../../../../src/Security.cpp" line="138"/>
+        <location filename="../../../../src/Security.cpp" line="160"/>
+        <source>Time Rotation Secure Key Generation Failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/Security.cpp" line="127"/>
         <source>Failed to generate a salt; falling back to less-secure key.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="132"/>
+        <location filename="../../../../src/Security.cpp" line="133"/>
         <source>Failed to derive time-rotated key; falling back to less-secure key.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="138"/>
+        <location filename="../../../../src/Security.cpp" line="139"/>
         <source>Failed to compute key ID; falling back to less-secure key.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/Security.cpp" line="150"/>
-        <location filename="../../../../src/Security.cpp" line="201"/>
-        <source>Encrypt Key Failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../../../src/Security.cpp" line="151"/>
         <location filename="../../../../src/Security.cpp" line="202"/>
+        <source>Encrypt Key Failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/Security.cpp" line="152"/>
+        <location filename="../../../../src/Security.cpp" line="203"/>
         <source>Failed to encrypt the secure key with your PIN. The key will not be saved to disk.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="160"/>
-        <location filename="../../../../src/Security.cpp" line="185"/>
+        <location filename="../../../../src/Security.cpp" line="161"/>
+        <location filename="../../../../src/Security.cpp" line="186"/>
         <source>Failed to generate a secure application key using OpenSSL. A less secure fallback key will be used. Please check your system&apos;s cryptography support.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="184"/>
+        <location filename="../../../../src/Security.cpp" line="185"/>
         <source>Secure Key Generation Failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="246"/>
-        <location filename="../../../../src/Security.cpp" line="269"/>
-        <location filename="../../../../src/Security.cpp" line="319"/>
+        <location filename="../../../../src/Security.cpp" line="248"/>
+        <location filename="../../../../src/Security.cpp" line="273"/>
+        <location filename="../../../../src/Security.cpp" line="323"/>
         <source>App Secure Key Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="247"/>
-        <location filename="../../../../src/Security.cpp" line="320"/>
-        <source>Failed to read the application secure key from disk at: %1
-Please ensure the key file exists and is accessible, or try re-initializing the secure key.</source>
+        <location filename="../../../../src/Security.cpp" line="249"/>
+        <location filename="../../../../src/Security.cpp" line="324"/>
+        <source>Failed to read the application secure key from disk at: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="270"/>
+        <location filename="../../../../src/Security.cpp" line="253"/>
+        <location filename="../../../../src/Security.cpp" line="328"/>
+        <source>Please ensure the key file exists and is accessible, or try re-initializing the secure key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/Security.cpp" line="274"/>
         <source>Failed to decrypt the application secure key. Your PIN may be incorrect, or the key file may be corrupted.Please clear the secure key and try again.</source>
         <translation type="unfinished"></translation>
     </message>
