@@ -97,14 +97,14 @@ void PreInit(const GFCxtWPtr &p_ctx) {
       ERR_error_string_n(ERR_get_error(), err_buf.data(), sizeof(err_buf));
 
       qWarning() << "Failed to initialize OpenSSL secure memory:"
-                 << QString::fromLatin1(err_buf);
+                 << QString::fromLatin1(err_buf.data(), err_buf.size());
 
       QMessageBox::warning(
           nullptr, "Initialization Failed",
           QString("Failed to initialize OpenSSL secure memory.\n"
                   "Some secure operations may not be available.\n"
                   "Reason: %1")
-              .arg(QString::fromLatin1(err_buf)));
+              .arg(QString::fromLatin1(err_buf.data(), err_buf.size())));
     }
 
     Q_ASSERT(CRYPTO_secure_malloc_initialized());
