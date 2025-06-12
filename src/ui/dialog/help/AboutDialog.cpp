@@ -230,8 +230,8 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   status_form->addRow(tr("Running Mode:"), new QLabel(portable_mode_str));
   status_form->addRow(tr("Self-Check Status:"), new QLabel(self_check_str));
 
-  auto* tip_label = new QLabel(
-      "Tips: The above parameters reflect how the application was started. ");
+  auto* tip_label = new QLabel(tr(
+      "Tips: The above parameters reflect how the application was started. "));
   tip_label->setWordWrap(true);
 
   main_layout->addLayout(status_form);

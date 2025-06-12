@@ -6728,6 +6728,11 @@ Wenn das Problem weiterhin besteht, wenden Sie sich an den technischen Support o
         <source>Self-Check Status:</source>
         <translation>Status der Selbstprüfung:</translation>
     </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="233"/>
+        <source>Tips: The above parameters reflect how the application was started. </source>
+        <translation>Tipps: Die oben genannten Parameter geben wieder, wie die Anwendung gestartet wurde.</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::UI::SubKeyPicker</name>

@@ -6728,6 +6728,11 @@ If the issue persists, consider seeking technical support or consulting the docu
         <source>Self-Check Status:</source>
         <translation>自检状态：</translation>
     </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="233"/>
+        <source>Tips: The above parameters reflect how the application was started. </source>
+        <translation>提示：以上参数反映的是应用程序的启动方式。</translation>
+    </message>
 </context>
 <context>
     <name>GpgFrontend::UI::SubKeyPicker</name>
