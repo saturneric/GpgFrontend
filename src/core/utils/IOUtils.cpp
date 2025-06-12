@@ -51,6 +51,7 @@ auto GetFileHashOpenSSL(const QString& file_path, const EVP_MD* md_type)
   const auto buffer_size = static_cast<qsizetype>(buffer.Size());
   while (!file.atEnd()) {
     auto n = file.read(buffer.Data(), buffer_size);
+    Q_ASSERT(n <= buffer_size);
     if (n <= 0 || n > buffer_size) break;
 
     if (EVP_DigestUpdate(ctx, buffer.Data(), n) != 1) {
