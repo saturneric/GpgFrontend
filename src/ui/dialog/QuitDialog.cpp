@@ -137,6 +137,7 @@ QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
   this->setLayout(vbox);
 
   this->movePosition2CenterOfParent();
+  setAttribute(Qt::WA_DeleteOnClose, false);
 }
 
 auto QuitDialog::GetTabIdsToSave() -> QContainer<int> {

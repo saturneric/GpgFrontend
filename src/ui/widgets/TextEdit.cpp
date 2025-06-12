@@ -317,7 +317,7 @@ void TextEdit::slot_remove_tab(int index) {
  *
  * If it returns false, the close event should be aborted.
  */
-auto TextEdit::maybe_save_current_tab(bool askToSave) -> bool {
+auto TextEdit::maybe_save_current_tab(bool ask_to_save) -> bool {
   PlainTextEditorPage* page = CurPageTextEdit();
   // if this page is no textedit, there should be nothing to save
   if (page == nullptr) return true;
@@ -332,7 +332,7 @@ auto TextEdit::maybe_save_current_tab(bool askToSave) -> bool {
     doc_name.remove(0, 2);
 
     const QString& file_path = page->GetFilePath();
-    if (askToSave) {
+    if (ask_to_save) {
       result = QMessageBox::warning(
           this, tr("Unsaved document"),
           tr("The document \"%1\" has been modified. Do you want to "
@@ -344,12 +344,8 @@ auto TextEdit::maybe_save_current_tab(bool askToSave) -> bool {
               "<br/>",
           QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     }
-    if ((result == QMessageBox::Save) || (!askToSave)) {
-      if (file_path.isEmpty()) {
-        // QString docname = tabWidget->tabText(tabWidget->currentIndex());
-        // docname.remove(0,2);
-        return SlotSaveAs();
-      }
+    if ((result == QMessageBox::Save) || (!ask_to_save)) {
+      if (file_path.isEmpty()) return SlotSaveAs();
       return saveFile(file_path);
     }
     return result == QMessageBox::Discard;
@@ -358,63 +354,55 @@ auto TextEdit::maybe_save_current_tab(bool askToSave) -> bool {
   return true;
 }
 
-void TextEdit::MaybeSaveAnyTabAsync(const std::function<void(bool)>& callback) {
+auto TextEdit::MaybeSaveAnyTab() -> bool {
   // get a list of all unsaved documents and their tab ids
   auto const unsaved_docs = this->UnsavedDocuments();
 
-  /*
-   * no unsaved documents, so app can be closed
-   */
-  if (unsaved_docs.empty()) {
-    callback(true);
-    return;
-  }
+  // no unsaved documents, so app can be closed
+  if (unsaved_docs.empty()) return true;
 
   bool restore_text_editor_page =
-      GetSettings().value("basic/restore_text_editor_page", false).toBool();
+      GetSettings().value("basic/restore_text_editor_page", true).toBool();
   if (restore_text_editor_page) {
     FLOG_D("restore_text_editor_page is true, caching messages and exit...");
     tab_widget_->SlotCacheTextEditors();
-    callback(true);
-    return;
+    return true;
   }
 
-  /*
-   * only 1 unsaved document -> set modified tab as current
-   * and show normal unsaved doc dialog
-   */
+  // only 1 unsaved document -> set modified tab as current and show normal
+  // unsaved doc dialog
+
   if (unsaved_docs.size() == 1) {
     int const modified_tab = unsaved_docs.keys().at(0);
     tab_widget_->setCurrentIndex(modified_tab);
-    callback(maybe_save_current_tab(true));
-    return;
+
+    auto maybe_save = maybe_save_current_tab(true);
+    return maybe_save;
   }
 
-  /*
-   * more than one unsaved documents
-   */
+  // more than one unsaved documents
 
+  bool can_close = false;
   auto* dialog = new QuitDialog(
       this->parentWidget() != nullptr ? this->parentWidget() : this,
       unsaved_docs);
 
-  connect(dialog, &QuitDialog::SignalDiscard, this, [=]() { callback(true); });
+  connect(dialog, &QuitDialog::SignalDiscard, this,
+          [&]() { can_close = true; });
 
   connect(dialog, &QuitDialog::SignalSave, this,
-          [=](const QContainer<int>& ids) {
+          [&](const QContainer<int>& ids) {
             bool all_saved = true;
             for (const auto& tab_id : ids) {
               tab_widget_->setCurrentIndex(tab_id);
-              if (!maybe_save_current_tab(false)) {
-                all_saved = false;
-              }
+              if (!maybe_save_current_tab(false)) all_saved = false;
             }
-            callback(all_saved);
+            can_close = all_saved;
           });
 
-  connect(dialog, &QuitDialog::SignalCancel, this, [=]() { callback(false); });
-
-  dialog->show();
+  dialog->exec();
+  dialog->deleteLater();
+  return can_close;
 }
 
 void TextEdit::SlotSetGFBuffer2CurEMailPage(const GFBuffer& buffer) {
@@ -662,14 +650,6 @@ auto TextEdit::CurEMailPage() const -> EMailEditorPage* {
 }
 
 void TextEdit::SlotNewEMailTab() { tab_widget_->SlotNewEMailTab(); }
-
-auto TextEdit::IsCloseCheckInProgress() const -> bool {
-  return is_close_check_in_progress_;
-}
-
-void TextEdit::SetCloseCheckInProgress(bool s) {
-  is_close_check_in_progress_ = s;
-}
 
 void TextEdit::SlotOpenDefaultFileBrowserTab() {
   tab_widget_->SlotOpenDefaultPath();

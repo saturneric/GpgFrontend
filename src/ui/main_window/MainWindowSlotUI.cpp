@@ -118,10 +118,8 @@ void MainWindow::slot_open_settings_dialog() {
     restore_settings();
     // restart main window if necessary
     if (restart_mode_ != kNonRestartCode) {
-      // async
-      edit_->MaybeSaveAnyTabAsync([this](bool ok) {
-        if (ok) emit SignalRestartApplication(restart_mode_);
-      });
+      auto ok = edit_->MaybeSaveAnyTab();
+      if (ok) emit SignalRestartApplication(restart_mode_);
     }
   });
 }

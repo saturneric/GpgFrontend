@@ -255,22 +255,11 @@ void MainWindow::close_attachment_dock() {
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
-  if (!edit_->IsCloseCheckInProgress()) {
+  if (!edit_->MaybeSaveAnyTab()) {
     event->ignore();
-    edit_->SetCloseCheckInProgress(true);
-    edit_->MaybeSaveAnyTabAsync([this](bool can_close) {
-      if (can_close) {
-        this->close();
-      } else {
-        edit_->SetCloseCheckInProgress(false);
-      }
-    });
-    GeneralMainWindow::closeEvent(event);
     return;
   }
-
   GeneralMainWindow::closeEvent(event);
-  edit_->SetCloseCheckInProgress(false);
 }
 
 auto MainWindow::create_action(const QString& id, const QString& name,
