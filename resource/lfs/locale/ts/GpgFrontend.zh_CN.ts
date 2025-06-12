@@ -606,17 +606,22 @@
         <translation>关于</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="48"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="49"/>
         <source>About GpgFrontend</source>
         <translation>关于 GpgFrontend</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="58"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="51"/>
+        <source>Status</source>
+        <translation>状态</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="60"/>
         <source>Unnamed</source>
         <translation>未命名</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="49"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="50"/>
         <source>Translators</source>
         <translation>翻译贡献者</translation>
     </message>
@@ -1705,67 +1710,67 @@ This will result in loss of all cached form positions, statuses, key servers, et
 <context>
     <name>GpgFrontend::UI::InfoTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="121"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="123"/>
         <source>Developer:</source>
         <translation>开发者：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="123"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="125"/>
         <source>If you have any questions or suggestions, raise an issue at</source>
         <translation>如果您有任何问题或建议，请在以下位置提出问题</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="124"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="126"/>
         <source>or send a mail to my private email at</source>
         <translation>或发送邮件至我的私人邮箱</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="126"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="128"/>
         <source>Developer</source>
         <translation>开发者</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="138"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="140"/>
         <source>Qt</source>
         <translation>Qt</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="139"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="141"/>
         <source>GPGME</source>
         <translation>GPGME</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="140"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="142"/>
         <source>Assuan</source>
         <translation>Assuan</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="141"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="143"/>
         <source>Libarchive</source>
         <translation>Libarchive</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="143"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="145"/>
         <source>OpenSSL</source>
         <translation>OpenSSL</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="144"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="146"/>
         <source>Git Branch:</source>
         <translation>Git 分支：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="146"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="148"/>
         <source>Git Commit:</source>
         <translation>Git 提交：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="149"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="151"/>
         <source>Built at:</source>
         <translation>构建时间：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="135"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="137"/>
         <source>Build Information</source>
         <translation>软件构建信息</translation>
     </message>
@@ -6662,6 +6667,69 @@ If the issue persists, consider seeking technical support or consulting the docu
     </message>
 </context>
 <context>
+    <name>GpgFrontend::UI::StatusTab</name>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="208"/>
+        <source>Default</source>
+        <translation>默认</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="210"/>
+        <source>Standard</source>
+        <translation>标准</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="212"/>
+        <source>Enhanced</source>
+        <translation>增强</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="214"/>
+        <source>High</source>
+        <translation>高级</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="216"/>
+        <source>Unknown</source>
+        <translation>未知</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="222"/>
+        <source>Portable Mode</source>
+        <translation>便携模式</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="222"/>
+        <source>Installed Mode</source>
+        <translation>安装模式</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="226"/>
+        <source>Self-Check Active</source>
+        <translation>自检已启用</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="226"/>
+        <source>Self-Check Disabled</source>
+        <translation>自检已禁用</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="229"/>
+        <source>Security Level:</source>
+        <translation>安全级别：</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="230"/>
+        <source>Running Mode:</source>
+        <translation>运行模式：</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="231"/>
+        <source>Self-Check Status:</source>
+        <translation>自检状态：</translation>
+    </message>
+</context>
+<context>
     <name>GpgFrontend::UI::SubKeyPicker</name>
     <message>
         <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="42"/>
@@ -6991,7 +7059,7 @@ If the issue persists, consider seeking technical support or consulting the docu
 <context>
     <name>GpgFrontend::UI::TranslatorsTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="180"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="182"/>
         <source>If you think there are any problems with the translation, why not participate in the translation work? If you want to participate, please read the document or contact me via email.</source>
         <translation>如果觉得翻译有问题，何不参与翻译工作呢？如果您想参加，请阅读文档或通过电子邮件与我联系。</translation>
     </message>
