@@ -87,7 +87,6 @@ jobs:
             mingw-w64-x86_64-cmake
             mingw-w64-x86_64-qt5
             mingw-w64-x86_64-ninja 
-            mingw-w64-x86_64-gpgme
             mingw-w64-x86_64-libarchive
             mingw-w64-x86_64-gtest
             mingw-w64-x86_64-autotools
