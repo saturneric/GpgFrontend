@@ -30,26 +30,16 @@
 
 namespace GpgFrontend {
 
-class GF_CORE_EXPORT SecureMemoryAllocator {
- public:
-  static auto Allocate(std::size_t) -> void *;
+auto GF_CORE_EXPORT SMAMalloc(size_t size) -> void *;
 
-  static auto Reallocate(void *, std::size_t) -> void *;
+auto GF_CORE_EXPORT SMARealloc(void *ptr, size_t size) -> void *;
 
-  static void Deallocate(void *);
-};
+void GF_CORE_EXPORT SMAFree(void *ptr);
 
-template <typename T>
-struct SecureObjectDeleter {
-  void operator()(T *ptr) {
-    if (ptr) {
-      ptr->~T();
-      SecureMemoryAllocator::Deallocate(ptr);
-    }
-  }
-};
+auto GF_CORE_EXPORT SMASecMalloc(size_t size) -> void *;
 
-template <typename T>
-using SecureUniquePtr = std::unique_ptr<T, SecureObjectDeleter<T>>;
+auto GF_CORE_EXPORT SMASecRealloc(void *ptr, size_t size) -> void *;
+
+void GF_CORE_EXPORT SMASecFree(void *ptr);
 
 }  // namespace GpgFrontend

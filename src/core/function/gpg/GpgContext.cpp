@@ -42,10 +42,6 @@
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
 
-#if defined(_WIN32) || defined(WIN32)
-#include <windows.h>
-#endif
-
 namespace GpgFrontend {
 
 class GpgAgentProcess {
@@ -139,7 +135,7 @@ class GpgContext::Impl {
         database_path_(args.db_path),
         gpg_agent_path_(Module::RetrieveRTValueTypedOrDefault<>(
             "core", "gnupg.components.gpg-agent.path", QString{})),
-        agent_(QSharedPointer<GpgAgentProcess>::create(
+        agent_(SecureCreateSharedObject<GpgAgentProcess>(
             parent->GetChannel(), gpg_agent_path_, database_path_)) {
     init(args);
   }
@@ -162,8 +158,8 @@ class GpgContext::Impl {
 
   [[nodiscard]] auto Good() const -> bool { return good_; }
 
-  auto SetPassphraseCb(const gpgme_ctx_t &ctx, gpgme_passphrase_cb_t cb)
-      -> bool {
+  auto SetPassphraseCb(const gpgme_ctx_t &ctx,
+                       gpgme_passphrase_cb_t cb) -> bool {
     if (gpgme_get_pinentry_mode(ctx) != GPGME_PINENTRY_MODE_LOOPBACK) {
       if (CheckGpgError(gpgme_set_pinentry_mode(
               ctx, GPGME_PINENTRY_MODE_LOOPBACK)) != GPG_ERR_NO_ERROR) {
@@ -182,10 +178,10 @@ class GpgContext::Impl {
     auto pass_size = pass_bytes.size();
     const auto *p_pass_bytes = pass_bytes.constData();
 
-    ssize_t res = 0;
+    qsizetype res = 0;
     if (pass_size > 0) {
-      ssize_t off = 0;
-      ssize_t ret = 0;
+      qsizetype off = 0;
+      qsizetype ret = 0;
       do {
         ret = gpgme_io_write(fd, &p_pass_bytes[off], pass_size - off);
         if (ret > 0) off += ret;
@@ -216,14 +212,15 @@ class GpgContext::Impl {
             << ", last_was_bad: " << prev_was_bad;
 
     QEventLoop looper;
-    QString passphrase = "";
+    GFBuffer passphrase;
 
     Module::TriggerEvent(
         "REQUEST_PIN_ENTRY",
-        {{"uid_hint", uid_hint != nullptr ? uid_hint : ""},
-         {"passphrase_info", passphrase_info != nullptr ? passphrase_info : ""},
-         {"prev_was_bad", (prev_was_bad != 0) ? "1" : "0"},
-         {"ask_for_new", ask_for_new ? "1" : "0"}},
+        {{"uid_hint", GFBuffer{uid_hint != nullptr ? uid_hint : ""}},
+         {"passphrase_info",
+          GFBuffer{passphrase_info != nullptr ? passphrase_info : ""}},
+         {"prev_was_bad", GFBuffer{(prev_was_bad != 0) ? "1" : "0"}},
+         {"ask_for_new", GFBuffer{ask_for_new ? "1" : "0"}}},
         [&passphrase, &looper](Module::EventIdentifier i,
                                Module::Event::ListenerIdentifier ei,
                                Module::Event::Params p) {
@@ -234,14 +231,11 @@ class GpgContext::Impl {
     looper.exec();
     ResetCacheValue("PinentryContext");
 
-    LOG_D() << "passphrase size:" << passphrase.size();
-
     // empty passphrase is not allowed
-    if (passphrase.isEmpty()) return GPG_ERR_CANCELED;
+    if (passphrase.Empty()) return GPG_ERR_CANCELED;
 
-    auto pass_bytes = passphrase.toLatin1();
-    auto pass_size = pass_bytes.size();
-    const auto *p_pass_bytes = pass_bytes.constData();
+    auto pass_size = passphrase.Size();
+    const auto *p_pass_bytes = passphrase.Data();
 
     ssize_t res = 0;
     if (pass_size > 0) {
@@ -250,16 +244,16 @@ class GpgContext::Impl {
       do {
         ret = gpgme_io_write(fd, &p_pass_bytes[off], pass_size - off);
         if (ret > 0) off += ret;
-      } while (ret > 0 && off != pass_size);
+      } while (ret > 0 && off != static_cast<ssize_t>(pass_size));
       res = off;
     }
 
     res += gpgme_io_write(fd, "\n", 1);
-    return res == pass_size + 1 ? 0 : GPG_ERR_CANCELED;
+    return res == static_cast<ssize_t>(pass_size + 1) ? 0 : GPG_ERR_CANCELED;
   }
 
-  static auto TestStatusCb(void *hook, const char *keyword, const char *args)
-      -> gpgme_error_t {
+  static auto TestStatusCb(void *hook, const char *keyword,
+                           const char *args) -> gpgme_error_t {
     FLOG_D("keyword %s", keyword);
     return GPG_ERR_NO_ERROR;
   }
@@ -275,7 +269,7 @@ class GpgContext::Impl {
 
   auto RestartGpgAgent() -> bool {
     if (agent_ != nullptr) {
-      agent_ = QSharedPointer<GpgAgentProcess>::create(
+      agent_ = SecureCreateSharedObject<GpgAgentProcess>(
           parent_->GetChannel(), gpg_agent_path_, database_path_);
     }
 
@@ -512,7 +506,7 @@ class GpgContext::Impl {
       auto configuration_name = info_split_list[0].trimmed();
       auto configuration_value = info_split_list[1].trimmed();
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
       // replace some special substrings on windows
       // platform
       configuration_value.replace("%3a", ":");

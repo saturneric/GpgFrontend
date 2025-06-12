@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/function/SecureRandomGenerator.h"
 #include "core/function/basic/GpgFunctionObject.h"
 
 namespace GpgFrontend {
@@ -46,8 +47,7 @@ class GF_CORE_EXPORT PassphraseGenerator
    * @param channel The channel to use
    */
   explicit PassphraseGenerator(
-      int channel = SingletonFunctionObject::GetDefaultChannel())
-      : SingletonFunctionObject<PassphraseGenerator>(channel) {}
+      int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
    * @brief generate passphrase
@@ -55,11 +55,27 @@ class GF_CORE_EXPORT PassphraseGenerator
    * @param len length of the passphrase
    * @return QString passphrase
    */
-  auto Generate(int len) -> QString;
+  auto Generate(int len) -> GFBufferOrNone;
+
+  /**
+   * @brief generate passphrase
+   *
+   * @param len length of the passphrase
+   * @return QString passphrase
+   */
+  auto GenerateBytes(int len) -> GFBufferOrNone;
+
+  /**
+   * @brief generate passphrase
+   *
+   * @param len length of the passphrase
+   * @return QString passphrase
+   */
+  static auto GenerateBytesByOpenSSL(int len) -> GFBufferOrNone;
 
  private:
-  std::random_device rd_;                  ///< Random device
-  std::mt19937 mt_ = std::mt19937(rd_());  ///< Mersenne twister
+  SecureRandomGenerator& rand_ =
+      SecureRandomGenerator::GetInstance(SingletonFunctionObject::GetChannel());
 };
 
 }  // namespace GpgFrontend

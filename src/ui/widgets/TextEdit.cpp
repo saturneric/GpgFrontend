@@ -32,6 +32,8 @@
 #include <cstddef>
 
 #include "core/function/CacheManager.h"
+#include "core/function/GlobalSettingStation.h"
+#include "core/utils/IOUtils.h"
 #include "ui/dialog/QuitDialog.h"
 #include "ui/widgets/HelpPage.h"
 #include "ui/widgets/TextEditTabWidget.h"
@@ -52,9 +54,7 @@ TextEdit::TextEdit(QWidget* parent) : QWidget(parent) {
 
   setAcceptDrops(false);
 
-  SlotNewDefaultFileBrowserTab();
-
-  slot_restore_unsaved_tabs();
+  SlotNewDefaultWorkspaceTab();
 }
 
 void TextEdit::SlotNewTab() { tab_widget_->SlotNewTab(); }
@@ -69,8 +69,21 @@ void TextEdit::SlotNewHelpTab(const QString& title, const QString& path) const {
   tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
 }
 
-void TextEdit::SlotNewDefaultFileBrowserTab() {
-  tab_widget_->SlotOpenDefaultPath();
+void TextEdit::SlotNewDefaultWorkspaceTab() {
+  const auto default_workspace_as =
+      GetSettings()
+          .value("basic/default_workspace_as", "file_panel")
+          .toString();
+
+  if (default_workspace_as == "file_panel") {
+    tab_widget_->SlotOpenDefaultPath();
+  } else if (default_workspace_as == "email_editor") {
+    tab_widget_->SlotNewEMailTab();
+  } else {
+    tab_widget_->SlotNewTab();
+  }
+
+  tab_widget_->SlotRestoreTextEditorsCache();
 }
 
 void TextEdit::SlotNewFileBrowserTab() {
@@ -280,7 +293,11 @@ void TextEdit::slot_remove_tab(int index) {
   tab_widget_->setCurrentIndex(index);
 
   if (maybe_save_current_tab(true)) {
+    auto* tab = tab_widget_->widget(index);
     tab_widget_->removeTab(index);
+
+    // close tab
+    if (tab != nullptr) tab->close();
 
     if (index >= last_index) {
       tab_widget_->setCurrentIndex(last_index);
@@ -300,12 +317,11 @@ void TextEdit::slot_remove_tab(int index) {
  *
  * If it returns false, the close event should be aborted.
  */
-auto TextEdit::maybe_save_current_tab(bool askToSave) -> bool {
+auto TextEdit::maybe_save_current_tab(bool ask_to_save) -> bool {
   PlainTextEditorPage* page = CurPageTextEdit();
   // if this page is no textedit, there should be nothing to save
-  if (page == nullptr) {
-    return true;
-  }
+  if (page == nullptr) return true;
+
   QTextDocument* document = page->GetTextPage()->document();
 
   if (page->ReadDone() && document->isModified()) {
@@ -316,7 +332,7 @@ auto TextEdit::maybe_save_current_tab(bool askToSave) -> bool {
     doc_name.remove(0, 2);
 
     const QString& file_path = page->GetFilePath();
-    if (askToSave) {
+    if (ask_to_save) {
       result = QMessageBox::warning(
           this, tr("Unsaved document"),
           tr("The document \"%1\" has been modified. Do you want to "
@@ -328,12 +344,8 @@ auto TextEdit::maybe_save_current_tab(bool askToSave) -> bool {
               "<br/>",
           QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     }
-    if ((result == QMessageBox::Save) || (!askToSave)) {
-      if (file_path.isEmpty()) {
-        // QString docname = tabWidget->tabText(tabWidget->currentIndex());
-        // docname.remove(0,2);
-        return SlotSaveAs();
-      }
+    if ((result == QMessageBox::Save) || (!ask_to_save)) {
+      if (file_path.isEmpty()) return SlotSaveAs();
       return saveFile(file_path);
     }
     return result == QMessageBox::Discard;
@@ -344,61 +356,59 @@ auto TextEdit::maybe_save_current_tab(bool askToSave) -> bool {
 
 auto TextEdit::MaybeSaveAnyTab() -> bool {
   // get a list of all unsaved documents and their tab ids
-  QHash<int, QString> const unsaved_docs = this->UnsavedDocuments();
+  auto const unsaved_docs = this->UnsavedDocuments();
 
-  /*
-   * no unsaved documents, so app can be closed
-   */
-  if (unsaved_docs.empty()) {
+  // no unsaved documents, so app can be closed
+  if (unsaved_docs.empty()) return true;
+
+  bool restore_text_editor_page =
+      GetSettings().value("basic/restore_text_editor_page", true).toBool();
+  if (restore_text_editor_page) {
+    FLOG_D("restore_text_editor_page is true, caching messages and exit...");
+    tab_widget_->SlotCacheTextEditors();
     return true;
   }
-  /*
-   * only 1 unsaved document -> set modified tab as current
-   * and show normal unsaved doc dialog
-   */
+
+  // only 1 unsaved document -> set modified tab as current and show normal
+  // unsaved doc dialog
+
   if (unsaved_docs.size() == 1) {
     int const modified_tab = unsaved_docs.keys().at(0);
     tab_widget_->setCurrentIndex(modified_tab);
-    return maybe_save_current_tab(true);
+
+    auto maybe_save = maybe_save_current_tab(true);
+    return maybe_save;
   }
 
-  /*
-   * more than one unsaved documents
-   */
-  if (unsaved_docs.size() > 1) {
-    QHashIterator<int, QString> const i(unsaved_docs);
+  // more than one unsaved documents
 
-    QuitDialog* dialog;
-    dialog = new QuitDialog(
-        this->parentWidget() != nullptr ? this->parentWidget() : this,
-        unsaved_docs);
-    int const result = dialog->exec();
+  bool can_close = false;
+  auto* dialog = new QuitDialog(
+      this->parentWidget() != nullptr ? this->parentWidget() : this,
+      unsaved_docs);
 
-    // if result is QDialog::Rejected, discard or cancel was clicked
-    if (result == QDialog::Rejected) {
-      // return true, if discard is clicked, so app can be closed
-      return dialog->IsDiscarded();
-    }
+  connect(dialog, &QuitDialog::SignalDiscard, this,
+          [&]() { can_close = true; });
 
-    bool all_saved = true;
-    QContainer<int> const tab_ids_to_save = dialog->GetTabIdsToSave();
-    for (const auto& tab_id : tab_ids_to_save) {
-      tab_widget_->setCurrentIndex(tab_id);
-      if (!maybe_save_current_tab(false)) {
-        all_saved = false;
-      }
-    }
-    return all_saved;
-  }
-  // code should never reach this statement
-  return false;
+  connect(dialog, &QuitDialog::SignalSave, this,
+          [&](const QContainer<int>& ids) {
+            bool all_saved = true;
+            for (const auto& tab_id : ids) {
+              tab_widget_->setCurrentIndex(tab_id);
+              if (!maybe_save_current_tab(false)) all_saved = false;
+            }
+            can_close = all_saved;
+          });
+
+  dialog->exec();
+  dialog->deleteLater();
+  return can_close;
 }
 
-void TextEdit::SlotSetText2CurEMailPage(const QString& text) {
+void TextEdit::SlotSetGFBuffer2CurEMailPage(const GFBuffer& buffer) {
   if (CurTextPage() == nullptr) SlotNewEMailTab();
   auto* edit = CurTextPage()->GetTextPage();
-  edit->clear();
-  edit->appendPlainText(text);
+  edit->setPlainText(buffer.ConvertToQString());
 }
 
 void TextEdit::SlotAppendText2CurTextPage(const QString& text) {
@@ -430,8 +440,8 @@ void TextEdit::SlotQuote() const {
 
   QTextCursor cursor(CurTextPage()->GetTextPage()->document());
 
-  // beginEditBlock and endEditBlock() let operation look like single undo/redo
-  // operation
+  // beginEditBlock and endEditBlock() let operation look like single
+  // undo/redo operation
   cursor.beginEditBlock();
   cursor.setPosition(0);
   cursor.insertText("> ");
@@ -446,28 +456,29 @@ void TextEdit::SlotQuote() const {
 }
 
 void TextEdit::SlotFillTextEditWithText(const QString& text) const {
-  QTextCursor cursor(CurTextPage()->GetTextPage()->document());
-  cursor.beginEditBlock();
-  this->CurTextPage()->GetTextPage()->selectAll();
-  this->CurTextPage()->GetTextPage()->insertPlainText(text);
-  cursor.endEditBlock();
+  auto* edit = this->CurTextPage()->GetTextPage();
+  edit->setUndoRedoEnabled(false);
+  edit->setPlainText(text);
+  edit->setUndoRedoEnabled(true);
+  edit->document()->setModified(true);
+}
+
+void TextEdit::SlotFillTextEditWithText(const GFBuffer& buffer) const {
+  auto* edit = this->CurTextPage()->GetTextPage();
+  edit->setUndoRedoEnabled(false);
+  edit->setPlainText(buffer.ConvertToQString());
+  edit->setUndoRedoEnabled(true);
+  edit->document()->setModified(true);
 }
 
 void TextEdit::LoadFile(const QString& fileName) {
-  QFile file(fileName);
-  if (!file.open(QFile::ReadOnly | QFile::Text)) {
-    QMessageBox::warning(
-        this, tr("Warning"),
-        tr("Cannot read file %1:\n%2.").arg(fileName).arg(file.errorString()));
-    return;
-  }
-  QTextStream in(&file);
+  auto [succ, buffer] = ReadFileGFBuffer(fileName);
+
   QApplication::setOverrideCursor(Qt::WaitCursor);
-  CurTextPage()->GetTextPage()->setPlainText(in.readAll());
+  CurTextPage()->GetTextPage()->setPlainText(buffer.ConvertToQString());
   QApplication::restoreOverrideCursor();
   CurPageTextEdit()->SetFilePath(fileName);
   tab_widget_->setTabText(tab_widget_->currentIndex(), stripped_name(fileName));
-  file.close();
   // statusBar()->showMessage(tr("File loaded"), 2000);
 }
 
@@ -640,30 +651,7 @@ auto TextEdit::CurEMailPage() const -> EMailEditorPage* {
 
 void TextEdit::SlotNewEMailTab() { tab_widget_->SlotNewEMailTab(); }
 
-void TextEdit::slot_restore_unsaved_tabs() {
-  auto json_data =
-      CacheManager::GetInstance().LoadDurableCache("editor_unsaved_pages");
-
-  if (json_data.isEmpty() || !json_data.isArray()) {
-    return;
-  }
-
-  auto unsaved_page_array = json_data.array();
-  for (const auto& value_ref : unsaved_page_array) {
-    if (!value_ref.isObject()) continue;
-    auto unsaved_page_json = value_ref.toObject();
-
-    if (!unsaved_page_json.contains("title") ||
-        !unsaved_page_json.contains("content")) {
-      continue;
-    }
-
-    auto title = unsaved_page_json["title"].toString();
-    auto content = unsaved_page_json["content"].toString();
-
-    LOG_D() << "restoring tab, title: " << title;
-
-    SlotNewTabWithContent(title, content);
-  }
+void TextEdit::SlotOpenDefaultFileBrowserTab() {
+  tab_widget_->SlotOpenDefaultPath();
 }
 }  // namespace GpgFrontend::UI

@@ -39,7 +39,7 @@ Q_LOGGING_CATEGORY(sdk, "sdk")
 auto GFStrDup(const QString& str) -> char* {
   auto utf8_str = str.toUtf8();
   auto* c_str = static_cast<char*>(
-      GpgFrontend::SecureMalloc((utf8_str.size() + 1) * sizeof(char)));
+      GpgFrontend::SMAMalloc((utf8_str.size() + 1) * sizeof(char)));
 
   memcpy(c_str, utf8_str.constData(), utf8_str.size());
   c_str[utf8_str.size()] = '\0';
@@ -48,12 +48,16 @@ auto GFStrDup(const QString& str) -> char* {
 
 auto GFUnStrDup(char* str) -> QString {
   auto qt_str = QString::fromUtf8(str);
-  GpgFrontend::SecureFree(static_cast<void*>(const_cast<char*>(str)));
+  GpgFrontend::SMAFree(static_cast<void*>(str));
   return qt_str;
 }
 
 auto GFUnStrDup(const char* str) -> QString {
   return GFUnStrDup(const_cast<char*>(str));
+}
+
+auto GFBufferUnStrDup(const char* str) -> GpgFrontend::GFBuffer {
+  return GpgFrontend::GFBuffer{str};
 }
 
 auto CharArrayToQMap(char** char_array, int size) -> QMap<QString, QString> {
@@ -69,18 +73,21 @@ auto CharArrayToQMap(char** char_array, int size) -> QMap<QString, QString> {
 
 auto QMapToCharArray(const QMap<QString, QString>& map, int& size) -> char** {
   size = map.size() * 2;
-  char** char_array = new char*[size];
+  auto* char_array =
+      GpgFrontend::SecureMallocAsType<char*>(sizeof(char*) * size);
 
   int index = 0;
   for (auto it = map.begin(); it != map.end(); ++it) {
     QByteArray const key = it.key().toUtf8();
     QByteArray const value = it.value().toUtf8();
 
-    char_array[index] = new char[key.size() + 1];
+    char_array[index] =
+        GpgFrontend::SecureMallocAsType<char>(sizeof(char) * (key.size() + 1));
     std::strcpy(char_array[index], key.constData());
     index++;
 
-    char_array[index] = new char[value.size() + 1];
+    char_array[index] = GpgFrontend::SecureMallocAsType<char>(
+        sizeof(char) * (value.size() + 1));
     std::strcpy(char_array[index], value.constData());
     index++;
   }
@@ -89,17 +96,17 @@ auto QMapToCharArray(const QMap<QString, QString>& map, int& size) -> char** {
 }
 
 auto ConvertEventParamsToMap(GFModuleEventParam* params)
-    -> QMap<QString, QString> {
-  QMap<QString, QString> param_map;
+    -> QMap<QString, GpgFrontend::GFBuffer> {
+  QMap<QString, GpgFrontend::GFBuffer> param_map;
   GFModuleEventParam* current = params;
   GFModuleEventParam* last;
 
   while (current != nullptr) {
-    param_map[current->name] = GFUnStrDup(current->value);
+    param_map[current->name] = GFBufferUnStrDup(current->value);
 
     last = current;
     current = current->next;
-    GpgFrontend::SecureFree(last);
+    GpgFrontend::SMAFree(last);
   }
 
   return param_map;
@@ -113,19 +120,19 @@ auto CharArrayToQStringList(char** char_array, int size) -> QStringList {
       list.append(value);
     }
   }
-  GpgFrontend::SecureFree(char_array);
+  GpgFrontend::SMAFree(static_cast<void*>(char_array));
   return list;
 }
 
 auto QStringListToCharArray(const QStringList& list) -> char** {
-  char** char_array = static_cast<char**>(
-      GpgFrontend::SecureMalloc(list.size() * sizeof(char*)));
+  char** char_array =
+      static_cast<char**>(GpgFrontend::SMAMalloc(list.size() * sizeof(char*)));
 
   int index = 0;
   for (const QString& item : list) {
     QByteArray value = item.toUtf8();
     char_array[index] =
-        static_cast<char*>(GpgFrontend::SecureMalloc(value.size() + 1));
+        static_cast<char*>(GpgFrontend::SMAMalloc(value.size() + 1));
     std::strcpy(char_array[index], value.constData());
     index++;
   }

@@ -26,7 +26,12 @@
  *
  */
 
-#include "init.h"
+#include "Initialize.h"
+
+#include <openssl/crypto.h>
+#include <openssl/err.h>
+
+#include <cstddef>
 
 #include "core/GpgCoreInit.h"
 #include "core/function/CoreSignalStation.h"
@@ -42,7 +47,7 @@
 
 namespace GpgFrontend {
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
 int setenv(const char *name, const char *value, int overwrite) {
   if (!overwrite) {
     int errcode = 0;
@@ -54,6 +59,74 @@ int setenv(const char *name, const char *value, int overwrite) {
 }
 #endif
 
+void PreInit(const GFCxtWPtr &p_ctx) {
+  GFCxtSPtr ctx = p_ctx.lock();
+  if (ctx == nullptr) return;
+
+  auto *app = ctx->GetApp();
+
+#ifdef Q_OS_WINDOWS
+  const auto console = app->property("GFShowConsoleOnWindows").toBool();
+
+  if (console && AllocConsole()) {
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
+    freopen("CONIN$", "r", stdin);
+    setvbuf(stdout, NULL, _IONBF, 0);
+
+    qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context,
+                              const QString &msg) {
+      auto message = qFormatLogMessage(type, context, msg);
+      fprintf(stdout, "%s\n", message.toLocal8Bit().constData());
+      fflush(stdout);
+    });
+
+    std::ios::sync_with_stdio(true);
+  }
+
+#endif
+
+  // High Secure Level
+  const auto secure_level = app->property("GFSecureLevel").toInt();
+  if (secure_level > 1) {
+    // OpenSSL Alloc 32 MB Secure Memory
+    auto ret =
+        CRYPTO_secure_malloc_init(static_cast<size_t>(32 * 1024 * 1024), 32);
+    if (ret == 0) {
+      std::array<char, 256> err_buf;
+      ERR_error_string_n(ERR_get_error(), err_buf.data(), sizeof(err_buf));
+
+      qWarning() << "Failed to initialize OpenSSL secure memory:"
+                 << QString::fromLatin1(err_buf.data(), err_buf.size());
+
+      QMessageBox::warning(
+          nullptr, "Initialization Failed",
+          QString("Failed to initialize OpenSSL secure memory.\n"
+                  "Some secure operations may not be available.\n"
+                  "Reason: %1")
+              .arg(QString::fromLatin1(err_buf.data(), err_buf.size())));
+    }
+
+    Q_ASSERT(CRYPTO_secure_malloc_initialized());
+  }
+
+#ifdef RELEASE
+  QLoggingCategory::setFilterRules("*.debug=false\n*.info=false\n");
+  qSetMessagePattern(
+      "[%{time yyyyMMdd h:mm:ss.zzz}] [%{category}] "
+      "[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-"
+      "critical}C%{endif}%{if-fatal}F%{endif}] [%{threadid}] - "
+      "%{message}");
+#else
+  QLoggingCategory::setFilterRules("*.debug=false");
+  qSetMessagePattern(
+      "[%{time yyyyMMdd h:mm:ss.zzz}] [%{category}] "
+      "[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-"
+      "critical}C%{endif}%{if-fatal}F%{endif}] [%{threadid}] %{file}:%{line} - "
+      "%{message}");
+#endif
+}
+
 void InitGlobalPathEnv() {
   // read settings
   bool use_custom_gnupg_install_path =
@@ -61,7 +134,7 @@ void InitGlobalPathEnv() {
           .value("gnupg/use_custom_gnupg_install_path", false)
           .toBool();
 
-  QString custom_gnupg_install_path =
+  auto custom_gnupg_install_path =
       GetSettings().value("gnupg/custom_gnupg_install_path").toString();
 
   // add custom gnupg install path into env $PATH
@@ -105,9 +178,7 @@ void InitGpgFrontendCoreAsync(CoreInitArgs core_init_args) {
 
 void InitGlobalBasicEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
   GFCxtSPtr ctx = p_ctx.lock();
-  if (ctx == nullptr) {
-    return;
-  }
+  if (ctx == nullptr) return;
 
   // change path to search for related
   InitGlobalPathEnv();
@@ -177,8 +248,7 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
 
   // On window platform, the gpg-agent is running as a subprocess. It will be
   // closed automatically when the application is closing.
-
-#if !defined(_WIN32) && !defined(WIN32)
+#ifndef Q_OS_WINDOWS
 
   auto clear_gpg_password_cache =
       GetSettings().value("basic/clear_gpg_password_cache", false).toBool();

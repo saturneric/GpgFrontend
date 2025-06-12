@@ -32,8 +32,8 @@
 #include <functional>
 #include <optional>
 
-#include "core/function/SecureMemoryAllocator.h"
 #include "core/typedef/CoreTypedef.h"
+#include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend::Module {
 

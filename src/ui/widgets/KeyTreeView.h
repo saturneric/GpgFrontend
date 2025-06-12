@@ -86,6 +86,13 @@ class KeyTreeView : public QTreeView {
   auto GetAllCheckedSubKey() -> QContainer<GpgSubKey>;
 
   /**
+   * @brief Get the All Checked Keys object
+   *
+   * @return GpgAbstractKeyPtrList
+   */
+  auto GetAllCheckedKeys() -> GpgAbstractKeyPtrList;
+
+  /**
    * @brief Set the Key Filter object
    *
    * @param filter
@@ -104,6 +111,14 @@ class KeyTreeView : public QTreeView {
    *
    */
   void Refresh();
+
+ signals:
+  /**
+   * @brief
+   *
+   * @param keys
+   */
+  void SignalKeysChecked(GpgAbstractKeyPtrList keys);
 
  protected:
   /**

@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
@@ -36,11 +38,37 @@ class GF_CORE_EXPORT GFBuffer {
  public:
   GFBuffer();
 
-  explicit GFBuffer(QByteArray buffer);
+  explicit GFBuffer(size_t size);
+
+  explicit GFBuffer(const QByteArray& buffer);
 
   explicit GFBuffer(const QString& str);
 
+  explicit GFBuffer(const char* str);
+
+  explicit GFBuffer(const char* buf, size_t size);
+
+  ~GFBuffer();
+
+  GFBuffer(const GFBuffer& other);
+
+  auto operator=(const GFBuffer& other) -> GFBuffer&;
+
+  GFBuffer(GFBuffer&& other) noexcept;
+
+  auto operator=(GFBuffer&& other) noexcept -> GFBuffer&;
+
   auto operator==(const GFBuffer& o) const -> bool;
+
+  auto operator!=(const GFBuffer& o) const -> bool;
+
+  auto operator==(const char* str) const -> bool;
+
+  auto operator!=(const char* str) const -> bool;
+
+  auto operator<(const GFBuffer& other) const -> bool;
+
+  [[nodiscard]] auto Data() -> char*;
 
   [[nodiscard]] auto Data() const -> const char*;
 
@@ -54,10 +82,25 @@ class GF_CORE_EXPORT GFBuffer {
 
   void Append(const char*, ssize_t);
 
+  void Combine(const std::initializer_list<GFBuffer>& buffers);
+
   [[nodiscard]] auto ConvertToQByteArray() const -> QByteArray;
 
+  [[nodiscard]] auto ConvertToQString() const -> QString;
+
+  [[nodiscard]] auto Mid(ssize_t pos, ssize_t len) const -> GFBuffer;
+
+  [[nodiscard]] auto Left(ssize_t len) const -> GFBuffer;
+
+  [[nodiscard]] auto Right(ssize_t len) const -> GFBuffer;
+
+  void Zeroize();
+
  private:
-  QByteArray buffer_;
+  struct Impl;
+  QSharedPointer<Impl> impl_;
 };
+
+using GFBufferOrNone = std::optional<GFBuffer>;
 
 }  // namespace GpgFrontend

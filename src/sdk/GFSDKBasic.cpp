@@ -37,16 +37,14 @@
 #include "ui/UIModuleManager.h"
 
 auto GFAllocateMemory(uint32_t size) -> void* {
-  return GpgFrontend::SecureMemoryAllocator::Allocate(size);
+  return GpgFrontend::SMAMalloc(size);
 }
 
 auto GFReallocateMemory(void* ptr, uint32_t size) -> void* {
-  return GpgFrontend::SecureMemoryAllocator::Reallocate(ptr, size);
+  return GpgFrontend::SMARealloc(ptr, size);
 }
 
-void GFFreeMemory(void* ptr) {
-  return GpgFrontend::SecureMemoryAllocator::Deallocate(ptr);
-}
+void GFFreeMemory(void* ptr) { return GpgFrontend::SMAFree(ptr); }
 
 auto GFProjectVersion() -> const char* {
   return GFStrDup(GpgFrontend::GetProjectVersion());
@@ -102,6 +100,17 @@ auto GFModuleStrDup(const char* src) -> char* {
   return dst;
 }
 
+auto GFModuleSecStrDup(const char* src) -> char* {
+  auto len = StrlenSafe(src, kGfStrlenMax);
+  if (len > kGfStrlenMax) return nullptr;
+
+  char* dst = static_cast<char*>(GFSecAllocateMemory((len + 1) * sizeof(char)));
+  memcpy(dst, src, len);
+  dst[len] = '\0';
+
+  return dst;
+}
+
 auto GFAppActiveLocale() -> char* { return GFStrDup(QLocale().name()); }
 
 auto GFAppRegisterTranslatorReader(const char* id,
@@ -137,4 +146,32 @@ auto GF_SDK_EXPORT GFProjectGitCommitHash() -> const char* {
 
 auto GF_SDK_EXPORT GFIsFlatpakENV() -> bool {
   return GpgFrontend::IsFlatpakENV();
+}
+
+auto GF_SDK_EXPORT GFIsCheckReleaseCommitHash() -> bool {
+  return GpgFrontend::IsCheckReleaseCommitHash();
+}
+
+auto GF_SDK_EXPORT GFSecAllocateMemory(uint32_t size) -> void* {
+  return GpgFrontend::SMASecMalloc(size);
+}
+
+auto GF_SDK_EXPORT GFSecReallocateMemory(void* ptr, uint32_t size) -> void* {
+  return GpgFrontend::SMASecRealloc(ptr, size);
+}
+
+void GF_SDK_EXPORT GFSecFreeMemory(void* ptr) { GpgFrontend::SMASecFree(ptr); }
+
+auto GF_SDK_EXPORT GFDurableCacheGet(const char* key) -> const char* {
+  auto value = GpgFrontend::CacheManager::GetInstance().LoadDurableCache(
+      "__module_" + GFUnStrDup(key));
+  return GFStrDup(value.toJson());
+}
+
+auto GF_SDK_EXPORT GFDurableCacheSave(const char* key, const char* value)
+    -> int {
+  GpgFrontend::CacheManager::GetInstance().SaveDurableCache(
+      "__module_" + GFUnStrDup(key),
+      QJsonDocument::fromJson(GFUnStrDup(value).toUtf8()));
+  return 0;
 }

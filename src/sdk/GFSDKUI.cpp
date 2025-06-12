@@ -46,10 +46,10 @@ auto MetaDataArrayToQMap(MetaData** meta_data_array, int size)
     QString const value = GFUnStrDup(meta_data_array[i]->value);
     map.insert(key, value);
 
-    GpgFrontend::SecureFree(meta_data_array[i]);
+    GpgFrontend::SMAFree(meta_data_array[i]);
   }
 
-  GpgFrontend::SecureFree(meta_data_array);
+  GpgFrontend::SMAFree(static_cast<void*>(meta_data_array));
   return map;
 }
 

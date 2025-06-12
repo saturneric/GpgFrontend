@@ -54,7 +54,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   tab_widget_->addTab(key_server_tab_, tr("Key Server"));
   tab_widget_->addTab(network_tab_, tr("Network"));
 
-#if defined(__APPLE__) && defined(__MACH__)
+#ifdef Q_OS_MACOS
   connect(this, &QDialog::finished, this, &SettingsDialog::SlotAccept);
   setWindowTitle(tr("Preference"));
 #else

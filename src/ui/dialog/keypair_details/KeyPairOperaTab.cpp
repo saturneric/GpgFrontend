@@ -29,6 +29,7 @@
 #include "KeyPairOperaTab.h"
 
 #include "KeySetExpireDateDialog.h"
+#include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
@@ -234,7 +235,7 @@ void KeyPairOperaTab::slot_export_key(bool secret, bool ascii, bool shortest,
         }
 
     // generate a file name
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
         auto file_name = QString("%1[%2](%3)_%4.asc");
 #else
         auto file_name = QString("%1<%2>(%3)_%4.asc");
@@ -340,7 +341,7 @@ void KeyPairOperaTab::slot_publish_key_to_server() {
     Module::TriggerEvent(
         "REQUEST_UPLOAD_PUBLIC_KEY",
         {
-            {"key_text", QString::fromUtf8(key_text)},
+            {"key_text", GFBuffer{key_text}},
         },
         [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
             Module::Event::Params p) {
@@ -348,14 +349,15 @@ void KeyPairOperaTab::slot_publish_key_to_server() {
                      "callback: "
                   << i << ei;
 
-          if (p["ret"] != "0" || !p["error_msg"].isEmpty()) {
+          if (p["ret"] != "0" || !p["error_msg"].Empty()) {
             LOG_E() << "An error occurred trying to get data "
                        "from key:"
-                    << fpr << "error message: " << p["error_msg"]
-                    << "reply data: " << p["reply_data"];
+                    << fpr
+                    << "error message: " << p["error_msg"].ConvertToQString()
+                    << "reply data: " << p["reply_data"].ConvertToQString();
 
             // Notify user of the error
-            QString error_message = p["error_msg"];
+            auto error_message = p["error_msg"].ConvertToQString();
             QMessageBox::critical(
                 this, tr("Key Upload Failed"),
                 tr("Failed to upload public key to the server.\n"
@@ -368,13 +370,15 @@ void KeyPairOperaTab::slot_publish_key_to_server() {
             const auto status = p["status"];
             const auto reply_fpr = p["fingerprint"];
             LOG_D() << "got key data of key " << fpr
-                    << "from key server, token: " << token << "fpr: " << fpr
-                    << "status: " << status;
+                    << "from key server, token: " << token.ConvertToQString()
+                    << "fpr: " << fpr
+                    << "status: " << status.ConvertToQString();
 
             // Handle successful response
             QString status_message =
                 tr("The following email addresses have status:\n");
-            QJsonDocument json_doc = QJsonDocument::fromJson(status.toUtf8());
+            QJsonDocument json_doc =
+                QJsonDocument::fromJson(status.ConvertToQByteArray());
             QStringList email_list;
             if (!json_doc.isNull() && json_doc.isObject()) {
               QJsonObject json_obj = json_doc.object();
@@ -436,7 +440,7 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
                 QString("%1 (*.rev)").arg(tr("Revocation Certificates"));
             QString m_output_file_name;
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
             auto file_string = m_key_->Name() + "[" + m_key_->Email() + "](" +
                                m_key_->ID() + ").rev";
 #else
@@ -544,9 +548,8 @@ void KeyPairOperaTab::slot_import_revoke_cert() {
     return;
   }
 
-  QFile rev_file(rev_file_info.absoluteFilePath());
-
-  if (!rev_file.open(QIODevice::ReadOnly)) {
+  auto [succ, buffer] = ReadFileGFBuffer(rev_file_info.absoluteFilePath());
+  if (!succ) {
     QMessageBox::critical(
         this, tr("Error"),
         tr("Cannot open this file. Please make sure that this "
@@ -556,7 +559,7 @@ void KeyPairOperaTab::slot_import_revoke_cert() {
 
   emit UISignalStation::GetInstance() -> SignalKeyRevoked(m_key_->ID());
   CommonUtils::GetInstance()->SlotImportKeys(
-      nullptr, current_gpg_context_channel_, rev_file.readAll());
+      nullptr, current_gpg_context_channel_, buffer);
 }
 
 void KeyPairOperaTab::slot_export_paper_key() {
@@ -592,7 +595,7 @@ void KeyPairOperaTab::slot_export_paper_key() {
     }
 
     // generate a file name
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
     auto file_string = m_key_->Name() + "[" + m_key_->Email() + "](" +
                        m_key_->ID() + ")_paper_key.txt";
 #else
@@ -607,24 +610,27 @@ void KeyPairOperaTab::slot_export_paper_key() {
 
     if (file_name.isEmpty()) return;
 
+    auto sec_key = GFBufferFactory::ToBase64(gf_buffer);
+    if (!sec_key) return;
+
     Module::TriggerEvent(
         "REQUEST_TRANS_KEY_2_PAPER_KEY",
         {
-            {"secret_key", QString(gf_buffer.ConvertToQByteArray().toBase64())},
+            {"secret_key", *sec_key},
         },
         [this, file_name](Module::EventIdentifier i,
                           Module::Event::ListenerIdentifier ei,
                           Module::Event::Params p) {
           LOG_D() << "REQUEST_TRANS_KEY_2_PAPER_KEY callback: " << i << ei;
 
-          if (p["ret"] != "0" || p["paper_key"].isEmpty()) {
+          if (p["ret"] != "0" || p["paper_key"].Empty()) {
             QMessageBox::critical(
                 this, tr("Error"),
                 tr("An error occurred trying to generate Paper Key."));
             return;
           }
 
-          if (!WriteFile(file_name, p["paper_key"].toLatin1())) {
+          if (!WriteFileGFBuffer(file_name, p["paper_key"])) {
             QMessageBox::critical(
                 this, tr("Export Error"),
                 tr("Couldn't open %1 for writing").arg(file_name));
@@ -646,7 +652,7 @@ void KeyPairOperaTab::slot_import_paper_key() {
   }
 
   // generate a file name
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
   auto file_string = m_key_->Name() + "[" + m_key_->Email() + "](" +
                      m_key_->ID() + ")_paper_key.txt";
 #else
@@ -687,27 +693,34 @@ void KeyPairOperaTab::slot_import_paper_key() {
     return;
   }
 
+  auto pub_key = GFBufferFactory::ToBase64(gf_buffer);
+  if (!pub_key) return;
+
+  auto paper_key_secrets = GFBufferFactory::ToBase64(gf_in_buff);
+  if (!paper_key_secrets) return;
+
   Module::TriggerEvent(
       "REQUEST_TRANS_PAPER_KEY_2_KEY",
       {
-          {"public_key", QString(gf_buffer.ConvertToQByteArray().toBase64())},
-          {"paper_key_secrets",
-           QString(gf_in_buff.ConvertToQByteArray().toBase64())},
+          {"public_key", *pub_key},
+          {"paper_key_secrets", *paper_key_secrets},
       },
       [this](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
              Module::Event::Params p) {
         LOG_D() << "REQUEST_TRANS_PAPER_KEY_2_KEY callback: " << i << ei;
 
-        if (p["ret"] != "0" || p["secret_key"].isEmpty()) {
+        if (p["ret"] != "0" || p["secret_key"].Empty()) {
           QMessageBox::critical(this, tr("Error"),
                                 tr("An error occurred trying to recover the "
                                    "Paper Key back to the private key."));
           return;
         }
 
+        auto buffer = GFBufferFactory::FromBase64(p["secret_key"]);
+        if (!buffer) return;
+
         CommonUtils::GetInstance()->SlotImportKeys(
-            this, current_gpg_context_channel_,
-            QByteArray::fromBase64(p["secret_key"].toLatin1()));
+            this, current_gpg_context_channel_, *buffer);
       });
 }
 

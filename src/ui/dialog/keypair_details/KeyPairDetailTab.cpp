@@ -53,11 +53,13 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   email_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
   comment_var_label_ = new QLabel();
+  comment_var_label_->setWordWrap(true);
   comment_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
   key_id_var_label_ = new QLabel();
   key_id_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
   usage_var_label_ = new QLabel();
+  usage_var_label_->setWordWrap(true);
 
   owner_trust_var_label_ = new QLabel();
   key_size_var_label_ = new QLabel();
@@ -71,6 +73,10 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   auto* mvbox = new QVBoxLayout();
   auto* vbox_kd = new QGridLayout();
   auto* vbox_od = new QGridLayout();
+
+  expire_var_label_->setWordWrap(true);
+  created_var_label_->setWordWrap(true);
+  last_update_var_label_->setWordWrap(true);
 
   vbox_od->addWidget(new QLabel(tr("Name") + ": "), 0, 0);
   vbox_od->addWidget(new QLabel(tr("Email Address") + ": "), 1, 0);
@@ -292,27 +298,30 @@ void KeyPairDetailTab::slot_query_key_publish_state() {
 
   const auto fpr = key_->Fingerprint();
 
+  QPointer<KeyPairDetailTab> self = this;
+
   Module::TriggerEvent(
       "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT",
       {
-          {"fingerprint", QString(fpr)},
+          {"fingerprint", GFBuffer{fpr}},
       },
       [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
           Module::Event::Params p) {
         LOG_D() << "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT callback: " << i
                 << ei;
 
-        if (p["ret"] != "0" || !p["error_msg"].isEmpty()) {
+        // avoid crash while outer dialog was already closed
+        if (!self) return;
+
+        if (p["ret"] != "0" || !p["error_msg"].Empty()) {
           LOG_E() << "An error occurred trying to get data from key:" << fpr
-                  << "error message: " << p["error_msg"]
-                  << "reply data: " << p["reply_data"];
+                  << "error message: " << p["error_msg"].ConvertToQString()
+                  << "reply data: " << p["reply_data"].ConvertToQString();
         } else if (p.contains("key_data")) {
           const auto key_data = p["key_data"];
-          LOG_D() << "got key data of key " << fpr
-                  << " from key server: " << key_data;
 
-          if (!key_data.isEmpty()) {
-            slot_refresh_notice(
+          if (!key_data.Empty()) {
+            self->slot_refresh_notice(
                 ":/icons/publish.png",
                 tr("Notice: The public key has been published on "
                    "keys.openpgp.org."));

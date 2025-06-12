@@ -28,6 +28,7 @@
 
 #include "CommonUtils.h"
 
+#include "core/module/ModuleManager.h"
 #include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
@@ -83,16 +84,27 @@ auto GFStrDup(const QString& s) -> char* {
   if (s.isEmpty()) return nullptr;
 
   auto u_s = s.toUtf8();
-  auto* c_s = static_cast<char*>(SecureMalloc((u_s.size() + 1) * sizeof(char)));
+  auto* c_s = static_cast<char*>(SMAMalloc((u_s.size() + 1) * sizeof(char)));
 
   memcpy(c_s, u_s.constData(), u_s.size());
   c_s[u_s.size()] = '\0';
   return c_s;
 }
 
+auto GFBufferDup(const GFBuffer& s) -> char* {
+  if (s.Empty()) return nullptr;
+
+  const auto& u_s = s;
+  auto* c_s = static_cast<char*>(SMASecMalloc((u_s.Size() + 1) * sizeof(char)));
+
+  memcpy(c_s, u_s.Data(), u_s.Size());
+  c_s[u_s.Size()] = '\0';
+  return c_s;
+}
+
 auto GFUnStrDup(char* s) -> QString {
   auto q_s = QString::fromUtf8(s == nullptr ? "" : s);
-  if (s != nullptr) SecureFree(static_cast<void*>(const_cast<char*>(s)));
+  if (s != nullptr) SMAFree(static_cast<void*>(s));
   return q_s;
 }
 
@@ -121,5 +133,9 @@ const auto kReEmail = QRegularExpression{
 
 auto GF_CORE_EXPORT IsEmailAddress(const QString& str) -> bool {
   return kReEmail.match(str).hasMatch();
+}
+
+auto GF_CORE_EXPORT IsCoreEnvInitialized() -> bool {
+  return Module::RetrieveRTValueTypedOrDefault("core", "env.state.ctx", 0) == 1;
 }
 }  // namespace GpgFrontend

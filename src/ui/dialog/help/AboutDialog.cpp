@@ -30,7 +30,6 @@
 
 #include <openssl/opensslv.h>
 
-#include "core/module/ModuleManager.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "ui/UIModuleManager.h"
 
@@ -43,11 +42,13 @@ AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
   auto* tab_widget = new QTabWidget;
   auto* info_tab = new InfoTab();
   auto* translators_tab = new TranslatorsTab();
+  auto* status_tab = new StatusTab();
 
   tab_widget->setDocumentMode(true);
 
   tab_widget->addTab(info_tab, tr("About GpgFrontend"));
   tab_widget->addTab(translators_tab, tr("Translators"));
+  tab_widget->addTab(status_tab, tr("Status"));
 
   auto entries =
       UIModuleManager::GetInstance().QueryMountedEntries("AboutDialogTabs");
@@ -84,60 +85,88 @@ AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
 void AboutDialog::showEvent(QShowEvent* ev) { QDialog::showEvent(ev); }
 
 InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
-  const auto gpgme_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.version", QString{"2.0.0"});
-
-  auto pixmap = QPixmap(":/icons/gpgfrontend_logo.png");
-  pixmap =
-      pixmap.scaled(128, 128, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
-  QString app_info = "<h2 style='text-align:center;'>" +
-                     qApp->applicationDisplayName() + "</h2>" + "<center><b>" +
-                     GetProjectVersion() + "</b></center>" + "<center>" +
-                     GetProjectBuildGitVersion() + "</center>";
-
-  QString developer_info =
-      "<b>" + tr("Developer:") + "</b> Saturneric" + "<br /><br />" +
-      tr("If you have any questions or suggestions, raise an issue at") +
-      " <a href=\"https://github.com/saturneric/GpgFrontend\">GitHub</a> " +
-      tr("or send a mail to my mailing list at") +
-      " <a href=\"mailto:eric@bktus.com\">eric@bktus.com</a>.";
-
-  QString build_info = tr("Built with Qt") + " " + qVersion() + ", " +
-                       OPENSSL_VERSION_TEXT + " " + tr("and") + " GPGME " +
-                       gpgme_version + "<br>" + tr("Built at") + " " +
-                       QLocale().toString(GetProjectBuildTimestamp());
-
-  auto* layout = new QVBoxLayout();
-
-  auto* pixmap_label = new QLabel();
+  auto pixmap =
+      QPixmap(":/icons/gpgfrontend_logo.png")
+          .scaled(128, 128, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  auto* pixmap_label = new QLabel;
   pixmap_label->setPixmap(pixmap);
+  pixmap_label->setMinimumSize({150, 150});
   pixmap_label->setAlignment(Qt::AlignCenter);
-  layout->addWidget(pixmap_label);
+
+  QString app_info = QString(R"(
+    <div align="center">
+      <span style="font-size:20px; font-weight:bold;">%1</span>
+      <br/> <br/>
+      <span style="font-size:16px;">%2</span>
+    </div>
+)")
+                         .arg(qApp->applicationDisplayName())
+                         .arg(GetProjectVersion());
 
   auto* app_info_label = new QLabel(app_info);
-  app_info_label->setWordWrap(true);
+  app_info_label->setTextFormat(Qt::RichText);
   app_info_label->setAlignment(Qt::AlignCenter);
-  layout->addWidget(app_info_label);
+  app_info_label->setWordWrap(true);
 
-  auto* dev_info_group = new QGroupBox(tr("Developer Information"));
-  auto* dev_layout = new QVBoxLayout();
-  auto* dev_info_label = new QLabel(developer_info);
-  dev_info_label->setWordWrap(true);
-  dev_info_label->setOpenExternalLinks(true);
-  dev_layout->addWidget(dev_info_label);
-  dev_info_group->setLayout(dev_layout);
-  layout->addWidget(dev_info_group);
+  auto* sep = new QFrame;
+  sep->setFrameShape(QFrame::HLine);
+  sep->setFrameShadow(QFrame::Sunken);
 
-  auto* build_info_group = new QGroupBox(tr("Build Information"));
-  auto* build_layout = new QVBoxLayout();
-  auto* build_info_label = new QLabel(build_info);
-  build_info_label->setWordWrap(true);
-  build_layout->addWidget(build_info_label);
-  build_info_group->setLayout(build_layout);
-  layout->addWidget(build_info_group);
+  auto developer_info =
+      QString(R"(
+      <b>%1</b>Saturneric<br><br>
+      %2
+      <a href="https://github.com/saturneric/GpgFrontend/issues">GitHub</a>
+      %3
+      <a href="mailto:eric@bktus.com">eric@bktus.com</a>
+  )")
+          .arg(tr("Developer:") + " ")
+          .arg(
+              tr("If you have any questions or suggestions, raise an issue at"))
+          .arg(tr("or send a mail to my private email at"));
 
-  setLayout(layout);
+  auto* dev_group = new QGroupBox(tr("Developer"));
+  auto* dev_layout = new QVBoxLayout;
+  auto* dev_label = new QLabel(developer_info);
+  dev_label->setTextFormat(Qt::RichText);
+  dev_label->setWordWrap(true);
+  dev_label->setOpenExternalLinks(true);
+  dev_layout->addWidget(dev_label);
+  dev_group->setLayout(dev_layout);
+
+  auto* build_group = new QGroupBox(tr("Build Information"));
+  auto* build_form = new QFormLayout();
+
+  build_form->addRow(tr("Qt"), new QLabel(GetProjectQtVersion()));
+  build_form->addRow(tr("GPGME"), new QLabel(GetProjectGpgMEVersion()));
+  build_form->addRow(tr("Assuan"), new QLabel(GetProjectAssuanVersion()));
+  build_form->addRow(tr("Libarchive"),
+                     new QLabel(GetProjectLibarchiveVersion()));
+  build_form->addRow(tr("OpenSSL"), new QLabel(GetProjectOpenSSLVersion()));
+  build_form->addRow(tr("Git Branch:"),
+                     new QLabel(GetProjectBuildGitBranchName()));
+  build_form->addRow(tr("Git Commit:"),
+                     new QLabel(GetProjectBuildGitCommitHash()));
+  build_form->addRow(
+      tr("Built at:"),
+      new QLabel(QLocale().toString(GetProjectBuildTimestamp())));
+
+  build_form->setRowWrapPolicy(QFormLayout::DontWrapRows);
+  build_form->setFieldGrowthPolicy(QFormLayout::FieldsStayAtSizeHint);
+  build_form->setFormAlignment(Qt::AlignHCenter | Qt::AlignTop);
+  build_form->setLabelAlignment(Qt::AlignLeft);
+  build_group->setLayout(build_form);
+
+  auto* main_layout = new QVBoxLayout(this);
+  main_layout->addWidget(pixmap_label);
+  main_layout->addSpacing(15);
+  main_layout->addWidget(app_info_label);
+  main_layout->addWidget(sep);
+  main_layout->addWidget(dev_group);
+  main_layout->addWidget(build_group, 1);
+  main_layout->addStretch();
+
+  setObjectName("InfoTab");
 }
 
 TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
@@ -157,6 +186,57 @@ TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
   notice_label->setWordWrap(true);
   main_layout->addWidget(notice_label);
 
+  setLayout(main_layout);
+}
+
+StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
+  const int secure_level = qApp->property("GFSecureLevel").toInt();
+  const bool portable_mode = qApp->property("GFPortableMode").toBool();
+  const bool self_check = qApp->property("GFSelfCheck").toBool();
+
+  auto* main_layout = new QVBoxLayout(this);
+  auto* status_form = new QFormLayout();
+
+  status_form->setRowWrapPolicy(QFormLayout::DontWrapRows);
+  status_form->setFieldGrowthPolicy(QFormLayout::FieldsStayAtSizeHint);
+  status_form->setFormAlignment(Qt::AlignHCenter | Qt::AlignTop);
+  status_form->setLabelAlignment(Qt::AlignLeft);
+
+  const QString secure_level_str = [secure_level]() {
+    switch (secure_level) {
+      case 0:
+        return tr("Default");
+      case 1:
+        return tr("Standard");
+      case 2:
+        return tr("Enhanced");
+      case 3:
+        return tr("High");
+      default:
+        return tr("Unknown");
+    }
+  }();
+
+  // Running mode string
+  const QString portable_mode_str =
+      portable_mode ? tr("Portable Mode") : tr("Installed Mode");
+
+  // Self-check string
+  const QString self_check_str =
+      self_check ? tr("Self-Check Active") : tr("Self-Check Disabled");
+
+  // Add rows to form
+  status_form->addRow(tr("Security Level:"), new QLabel(secure_level_str));
+  status_form->addRow(tr("Running Mode:"), new QLabel(portable_mode_str));
+  status_form->addRow(tr("Self-Check Status:"), new QLabel(self_check_str));
+
+  auto* tip_label = new QLabel(tr(
+      "Tips: The above parameters reflect how the application was started. "));
+  tip_label->setWordWrap(true);
+
+  main_layout->addLayout(status_form);
+  main_layout->addStretch();
+  main_layout->addWidget(tip_label);
   setLayout(main_layout);
 }
 

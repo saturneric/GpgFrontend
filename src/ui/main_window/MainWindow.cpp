@@ -28,10 +28,12 @@
 
 #include "MainWindow.h"
 
+#include <algorithm>
+
+#include "core/function/CacheManager.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
-#include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/main_window/GeneralMainWindow.h"
@@ -117,10 +119,10 @@ void MainWindow::Init() noexcept {
             &UISignalStation::SignalMainWindowOpenFile, this,
             &MainWindow::SlotOpenFile);
 
-#if !(defined(_WIN32) || defined(WIN32))
+#ifndef Q_OS_WINDOWS
     connect(this, &MainWindow::SignalLoaded, this, [=]() {
       QTimer::singleShot(3000, [self = QPointer<MainWindow>(this)]() {
-        if (self != nullptr && DecidePinentry().isEmpty()) {
+        if (self && DecidePinentry().isEmpty()) {
           QMessageBox::warning(
               self, tr("GUI Pinentry Not Found"),
               tr("No suitable *graphical* Pinentry program was found on your "
@@ -186,7 +188,7 @@ void MainWindow::Init() noexcept {
 void MainWindow::restore_settings() {
   KeyServerSO key_server(SettingsObject("key_server"));
   if (key_server.server_list.empty()) key_server.ResetDefaultServerList();
-  if (key_server.default_server < 0) key_server.default_server = 0;
+  key_server.default_server = std::max(key_server.default_server, 0);
 
   auto settings = GetSettings();
   if (!settings.contains("gnupg/non_ascii_at_file_operation")) {
@@ -221,14 +223,21 @@ void MainWindow::restore_settings() {
        GpgOperation::kDECRYPT_VERIFY) != 0) {
     crypt_tool_bar_->addAction(decrypt_verify_act_);
   }
+  if ((appearance.tool_bar_crypto_operas_type &
+       GpgOperation::kSYMMETRIC_ENCRYPT) != 0) {
+    crypt_tool_bar_->addAction(sym_encrypt_act_);
+  }
 
   icon_style_ = appearance.tool_bar_button_style;
+  open_button_->setToolButtonStyle(icon_style_);
   import_button_->setToolButtonStyle(icon_style_);
   workspace_button_->setToolButtonStyle(icon_style_);
   this->setToolButtonStyle(icon_style_);
 
   // icons ize
   this->setIconSize(
+      QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
+  open_button_->setIconSize(
       QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
   import_button_->setIconSize(
       QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
@@ -246,20 +255,11 @@ void MainWindow::close_attachment_dock() {
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
-  /*
-   * ask to save changes, if there are
-   * modified documents in any tab
-   */
-  if (edit_->MaybeSaveAnyTab()) {
-    event->accept();
-  } else {
+  if (!edit_->MaybeSaveAnyTab()) {
     event->ignore();
+    return;
   }
-
-  if (event->isAccepted()) {
-    // call parent
-    GeneralMainWindow::closeEvent(event);
-  }
+  GeneralMainWindow::closeEvent(event);
 }
 
 auto MainWindow::create_action(const QString& id, const QString& name,
@@ -284,8 +284,12 @@ void MainWindow::check_update_at_startup() {
   auto settings = GetSettings();
   if (!settings.contains("network/prohibit_update_checking")) return;
 
+  auto update_checking_api =
+      settings.value("network/update_checking_api", "github").toString();
+
   auto prohibit_update_checking =
       settings.value("network/prohibit_update_checking", false).toBool();
+
   if (!prohibit_update_checking) {
     Module::ListenRTPublishEvent(
         this, kVersionCheckingModuleID, "version.loading_done",
@@ -295,9 +299,22 @@ void MainWindow::check_update_at_startup() {
               "version-checking version.loading_done changed, calling slot "
               "version upgrade");
           this->slot_version_upgrade_notify();
+
+          CacheManager::GetInstance().SaveSecDurableCache(
+              "next_statup_update_checking_timestamp",
+              GFBuffer{QString::number(
+                  QDateTime::currentDateTime().addDays(1).toSecsSinceEpoch())});
         });
-    Module::TriggerEvent("CHECK_APPLICATION_VERSION");
+
+    Module::TriggerEvent("CHECK_APPLICATION_VERSION",
+                         {{"api", GFBuffer(update_checking_api)}});
   }
+
+  // sync update checking api settings to module
+  Module::UpsertRTValue("ui", "settings.network.update_checking_api",
+                        QString(update_checking_api));
+  Module::UpsertRTValue("ui", "settings.network.prohibit_update_checking",
+                        prohibit_update_checking);
 }
 
 void MainWindow::slot_popup_menu_by_key_list(QContextMenuEvent* event,

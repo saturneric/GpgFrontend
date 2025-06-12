@@ -83,7 +83,7 @@ class GF_CORE_EXPORT GpgData {
    * @brief Construct a new Gpg Data object
    *
    */
-  explicit GpgData(GFBuffer);
+  explicit GpgData(const GFBuffer& buffer);
 
   /**
    * @brief Destroy the Gpg Data object

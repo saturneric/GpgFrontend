@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include "ui/GpgFrontendUI.h"
-
 namespace GpgFrontend::UI {
 
 class GeneralDialog : public QDialog {

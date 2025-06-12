@@ -45,7 +45,7 @@ auto GF_SDK_EXPORT GFModuleRetrieveRTValueOrDefault(const char *namespace_,
 auto GF_SDK_EXPORT GFModuleRetrieveRTValueOrDefaultBool(const char *namespace_,
                                                         const char *key,
                                                         int default_value)
-    -> const int;
+    -> int;
 
 void GF_SDK_EXPORT GFModuleUpsertRTValue(const char *namespace_,
                                          const char *key, const char *vaule);

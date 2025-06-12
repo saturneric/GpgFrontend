@@ -27,6 +27,7 @@
  */
 
 #include "MainWindow.h"
+#include "core/function/GFBufferFactory.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
@@ -185,12 +186,12 @@ void MainWindow::refresh_keys_from_key_server() {
 }
 
 void MainWindow::slot_set_owner_trust_level_of_key() {
-  auto keys = m_key_list_->GetSelectedGpgKeys();
+  auto keys = m_key_list_->GetSelectedKeys();
   if (keys.empty()) return;
 
-  auto* function = new SetOwnerTrustLevel(this);
-  function->Exec(m_key_list_->GetCurrentGpgContextChannel(), keys.front());
-  function->deleteLater();
+  auto* f = new SetOwnerTrustLevel(this);
+  f->Exec(m_key_list_->GetCurrentGpgContextChannel(), keys.front());
+  f->deleteLater();
 }
 
 void MainWindow::upload_key_to_server() {
@@ -227,17 +228,21 @@ void MainWindow::slot_version_upgrade_notify() {
   auto is_need_upgrade = Module::RetrieveRTValueTypedOrDefault<>(
       kVersionCheckingModuleID, "version.need_upgrade", false);
 
-  auto is_current_a_withdrawn_version = Module::RetrieveRTValueTypedOrDefault<>(
-      kVersionCheckingModuleID, "version.current_a_withdrawn_version", false);
-
-  auto is_current_version_released = Module::RetrieveRTValueTypedOrDefault<>(
-      kVersionCheckingModuleID, "version.current_version_released", false);
+  auto is_current_version_publish_in_remote =
+      Module::RetrieveRTValueTypedOrDefault<>(
+          kVersionCheckingModuleID, "version.current_version_publish_in_remote",
+          false);
 
   auto latest_version = Module::RetrieveRTValueTypedOrDefault<>(
       kVersionCheckingModuleID, "version.latest_version", QString{});
 
   auto is_git_commit_hash_mismatch = Module::RetrieveRTValueTypedOrDefault<>(
       kVersionCheckingModuleID, "version.git_commit_hash_mismatch", false);
+
+  auto is_current_commit_hash_publish_in_remote =
+      Module::RetrieveRTValueTypedOrDefault<>(
+          kVersionCheckingModuleID,
+          "version.current_commit_hash_publish_in_remote", false);
 
   if (is_need_upgrade) {
     statusBar()->showMessage(
@@ -250,14 +255,14 @@ void MainWindow::slot_version_upgrade_notify() {
     connect(b, &QPushButton::clicked,
             [=]() { (new AboutDialog(tr("Update"), this))->show(); });
     statusBar()->addPermanentWidget(b);
-  } else if (is_current_a_withdrawn_version) {
+  } else if (!is_current_version_publish_in_remote) {
     auto response = QMessageBox::warning(
-        this, tr("Withdrawn Version"),
-        tr("This version(%1) may have been withdrawn by the developer due to "
-           "serious problems. Please stop using this version immediately and "
-           "download the latest stable version (%2) on the Github Releases "
-           "Page.")
-            .arg(latest_version)
+        this, tr("Unstable Version"),
+        tr("This version (%1) is not an official stable release. It may have "
+           "been withdrawn or is a beta build. "
+           "Please stop using this version immediately and download the latest "
+           "stable version (%2) from the GitHub Releases page.")
+            .arg(GetProjectVersion())
             .arg(latest_version),
         QMessageBox::Ok | QMessageBox::Open);
 
@@ -265,19 +270,6 @@ void MainWindow::slot_version_upgrade_notify() {
       QDesktopServices::openUrl(
           QUrl("https://github.com/saturneric/GpgFrontend/releases/latest"));
     }
-  } else if (!is_current_version_released) {
-    statusBar()->showMessage(
-        tr("This may be a BETA Version (Latest Stable Version: %1).")
-            .arg(latest_version),
-        30000);
-
-    auto* b = new QToolButton();
-    b->setToolButtonStyle(Qt::ToolButtonIconOnly);
-    b->setIcon(QIcon(":/icons/warning-filling.png"));
-    connect(b, &QPushButton::clicked,
-            [=]() { (new AboutDialog(tr("Update"), this))->show(); });
-    statusBar()->addPermanentWidget(b);
-
   } else if (is_git_commit_hash_mismatch && IsCheckReleaseCommitHash()) {
     QMessageBox::information(
         this, tr("Commit Hash Mismatch"),
@@ -285,6 +277,14 @@ void MainWindow::slot_version_upgrade_notify() {
            "release. This may indicate a modified or unofficial build. For "
            "security reasons, please verify your installation or download the "
            "official release from the Github Releases Page."),
+        QMessageBox::Ok);
+  } else if (!is_current_commit_hash_publish_in_remote) {
+    QMessageBox::information(
+        this, tr("Unverified Commit Hash"),
+        tr("The commit hash for this build was not found in the official "
+           "remote repository. This could indicate a modified or unofficial "
+           "build. For your security, please verify your installation or "
+           "download the official release from the GitHub Releases page."),
         QMessageBox::Ok);
   }
 }
@@ -298,20 +298,27 @@ void MainWindow::slot_refresh_current_file_view() {
 void MainWindow::slot_import_key_from_edit() {
   if (edit_->TabCount() == 0 || edit_->CurPageTextEdit() == nullptr) return;
 
+  auto plain_text = edit_->CurPlainText().toLatin1();
   CommonUtils::GetInstance()->SlotImportKeys(
-      this, m_key_list_->GetCurrentGpgContextChannel(),
-      edit_->CurPlainText().toLatin1());
+      this, m_key_list_->GetCurrentGpgContextChannel(), GFBuffer(plain_text));
+
+  plain_text.fill('X');
+  plain_text.clear();
 }
 
 void MainWindow::slot_verify_email_by_eml_data(const QByteArray& buffer) {
+  GFBuffer sec_buf(buffer);
+  auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
+  if (!sec_buf_base64) return;
+
   GpgOperaHelper::WaitForOpera(
-      this, tr("Verifying"), [this, buffer](const OperaWaitingHd& hd) {
+      this, tr("Verifying"), [this, sec_buf_base64](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
             "EMAIL_VERIFY_EML_DATA",
             {
-                {"eml_data", QString::fromLatin1(buffer.toBase64())},
-                {"channel",
-                 QString::number(m_key_list_->GetCurrentGpgContextChannel())},
+                {"eml_data", *sec_buf_base64},
+                {"channel", GFBuffer{QString::number(
+                                m_key_list_->GetCurrentGpgContextChannel())}},
             },
             [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
                 Module::Event::Params p) {
@@ -333,12 +340,16 @@ void MainWindow::slot_verify_email_by_eml_data(const QByteArray& buffer) {
 }
 
 void MainWindow::slot_decrypt_email_by_eml_data(const QByteArray& buffer) {
+  GFBuffer sec_buf(buffer);
+  auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
+  if (!sec_buf_base64) return;
+
   Module::TriggerEvent(
       "EMAIL_DECRYPT_EML_DATA",
       {
-          {"eml_data", QString::fromLatin1(buffer.toBase64())},
-          {"channel",
-           QString::number(m_key_list_->GetCurrentGpgContextChannel())},
+          {"eml_data", *sec_buf_base64},
+          {"channel", GFBuffer{QString::number(
+                          m_key_list_->GetCurrentGpgContextChannel())}},
       },
       [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
           Module::Event::Params p) {
@@ -404,13 +415,12 @@ void MainWindow::slot_verifying_unknown_signature_helper(
 }
 
 void MainWindow::slot_verify_email_by_eml_data_result_helper(
-    const QMap<QString, QString>& p) {
-  const auto mime = QByteArray::fromBase64(p["mime"].toLatin1());
-  const auto signature = QByteArray::fromBase64(p["signature"].toLatin1());
+    const Module::Event::Params& p) {
   const auto part_mime_content_hash = p["mime_hash"];
   const auto prm_micalg_value = p["micalg"];
 
-  auto timestamp = p.value("datetime", "-1").toLongLong();
+  auto timestamp =
+      p.value("datetime", GFBuffer{"-1"}).ConvertToQString().toLongLong();
   auto datetime = tr("None");
   if (timestamp > 0) {
     datetime = QLocale().toString(QDateTime::fromMSecsSinceEpoch(timestamp));
@@ -418,33 +428,41 @@ void MainWindow::slot_verify_email_by_eml_data_result_helper(
 
   QString email_info;
   email_info.append("# E-Mail Information\n\n");
-  email_info.append(QString("- %1: %2\n")
-                        .arg(tr("From"))
-                        .arg(p.value("from", tr("Unknown"))));
   email_info.append(
-      QString("- %1: %2\n").arg(tr("To")).arg(p.value("to", tr("Unknown"))));
-  email_info.append(QString("- %1: %2\n")
-                        .arg(tr("Subject"))
-                        .arg(p.value("subject", tr("None"))));
+      QString("- %1: %2\n")
+          .arg(tr("From"))
+          .arg(p.value("from", GFBuffer{tr("Unknown")}).ConvertToQString()));
   email_info.append(
-      QString("- %1: %2\n").arg(tr("CC")).arg(p.value("cc", tr("None"))));
+      QString("- %1: %2\n")
+          .arg(tr("To"))
+          .arg(p.value("to", GFBuffer{tr("Unknown")}).ConvertToQString()));
   email_info.append(
-      QString("- %1: %2\n").arg(tr("BCC")).arg(p.value("bcc", tr("None"))));
+      QString("- %1: %2\n")
+          .arg(tr("Subject"))
+          .arg(p.value("subject", GFBuffer{tr("None")}).ConvertToQString()));
+  email_info.append(
+      QString("- %1: %2\n")
+          .arg(tr("CC"))
+          .arg(p.value("cc", GFBuffer{tr("None")}).ConvertToQString()));
+  email_info.append(
+      QString("- %1: %2\n")
+          .arg(tr("BCC"))
+          .arg(p.value("bcc", GFBuffer{tr("None")}).ConvertToQString()));
   email_info.append(QString("- %1: %2\n").arg(tr("Date")).arg(datetime));
 
   email_info.append("\n");
   email_info.append("# OpenPGP Information\n\n");
   email_info.append(QString("- %1: %2\n")
                         .arg(tr("Signed EML Data Hash (SHA1)"))
-                        .arg(part_mime_content_hash));
+                        .arg(part_mime_content_hash.ConvertToQString()));
   email_info.append(QString("- %1: %2\n")
                         .arg(tr("Message Integrity Check Algorithm"))
-                        .arg(prm_micalg_value));
+                        .arg(prm_micalg_value.ConvertToQString()));
   email_info.append("\n");
 
-  if (!p["capsule_id"].isEmpty()) {
-    auto v =
-        UIModuleManager::GetInstance().GetCapsule(p.value("capsule_id", ""));
+  if (!p["capsule_id"].Empty()) {
+    auto v = UIModuleManager::GetInstance().GetCapsule(
+        p.value("capsule_id").ConvertToQString());
 
     try {
       auto sign_result = std::any_cast<GpgVerifyResult>(v);
@@ -457,8 +475,8 @@ void MainWindow::slot_verify_email_by_eml_data_result_helper(
                               email_info + result_analyse.GetResultReport());
 
     } catch (const std::bad_any_cast& e) {
-      LOG_E() << "capsule" << p["capsule_id"] << "convert to real type failed"
-              << e.what();
+      LOG_E() << "capsule" << p["capsule_id"].ConvertToQString()
+              << "convert to real type failed" << e.what();
     }
   }
 }
@@ -572,37 +590,46 @@ void MainWindow::SlotDecryptEML() {
 }
 
 void MainWindow::decrypt_email_by_eml_data_result_helper(
-    QMap<QString, QString> p) {
-  auto timestamp = p.value("datetime", "-1").toLongLong();
+    Module::Event::Params p) {
+  auto timestamp =
+      p.value("datetime", GFBuffer{"-1"}).ConvertToQString().toLongLong();
   auto datetime = tr("None");
   if (timestamp > 0) {
     datetime = QLocale().toString(QDateTime::fromMSecsSinceEpoch(timestamp));
   }
 
-  const auto eml_data = QByteArray::fromBase64(p["eml_data"].toLatin1());
-  edit_->SlotFillTextEditWithText(eml_data);
+  const auto eml_data = GFBufferFactory::FromBase64(p["eml_data"]);
+  if (eml_data) edit_->SlotSetGFBuffer2CurEMailPage(*eml_data);
 
   QString email_info;
   email_info.append("# E-Mail Information\n\n");
-  email_info.append(QString("- %1: %2\n")
-                        .arg(tr("From"))
-                        .arg(p.value("from", tr("Unknown"))));
   email_info.append(
-      QString("- %1: %2\n").arg(tr("To")).arg(p.value("to", tr("Unknown"))));
-  email_info.append(QString("- %1: %2\n")
-                        .arg(tr("Subject"))
-                        .arg(p.value("subject", tr("None"))));
+      QString("- %1: %2\n")
+          .arg(tr("From"))
+          .arg(p.value("from", GFBuffer{tr("Unknown")}).ConvertToQString()));
   email_info.append(
-      QString("- %1: %2\n").arg(tr("CC")).arg(p.value("cc", tr("None"))));
+      QString("- %1: %2\n")
+          .arg(tr("To"))
+          .arg(p.value("to", GFBuffer{tr("Unknown")}).ConvertToQString()));
   email_info.append(
-      QString("- %1: %2\n").arg(tr("BCC")).arg(p.value("bcc", tr("None"))));
+      QString("- %1: %2\n")
+          .arg(tr("Subject"))
+          .arg(p.value("subject", GFBuffer{tr("None")}).ConvertToQString()));
+  email_info.append(
+      QString("- %1: %2\n")
+          .arg(tr("CC"))
+          .arg(p.value("cc", GFBuffer{tr("None")}).ConvertToQString()));
+  email_info.append(
+      QString("- %1: %2\n")
+          .arg(tr("BCC"))
+          .arg(p.value("bcc", GFBuffer{tr("None")}).ConvertToQString()));
   email_info.append(QString("- %1: %2\n").arg(tr("Date")).arg(datetime));
 
   email_info.append("\n");
 
-  if (!p["capsule_id"].isEmpty()) {
-    auto v =
-        UIModuleManager::GetInstance().GetCapsule(p.value("capsule_id", ""));
+  if (!p["capsule_id"].Empty()) {
+    auto v = UIModuleManager::GetInstance().GetCapsule(
+        p.value("capsule_id").ConvertToQString());
 
     try {
       auto sign_result = std::any_cast<GpgDecryptResult>(v);
@@ -615,8 +642,8 @@ void MainWindow::decrypt_email_by_eml_data_result_helper(
                               email_info + result_analyse.GetResultReport());
 
     } catch (const std::bad_any_cast& e) {
-      LOG_E() << "capsule" << p["capsule_id"] << "convert to real type failed"
-              << e.what();
+      LOG_E() << "capsule" << p["capsule_id"].ConvertToQString()
+              << "convert to real type failed" << e.what();
     }
   }
 }
@@ -630,21 +657,28 @@ void MainWindow::SlotEncryptEML() {
                          tr("Please select a key for encrypt the EML."));
     return;
   }
-  auto buffer = edit_->CurPlainText().toUtf8();
+  auto buffer = edit_->CurPlainText();
 
   auto key_ids =
       ConvertKey2GpgKeyIdList(m_key_list_->GetCurrentGpgContextChannel(), keys);
 
+  GFBuffer sec_buf(buffer);
+  auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
+  if (!sec_buf_base64) return;
+
+  buffer.fill('X');
+  buffer.clear();
+
   GpgOperaHelper::WaitForOpera(
       this, tr("Encrypting"),
-      [this, buffer, key_ids](const OperaWaitingHd& hd) {
+      [this, sec_buf_base64, key_ids](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
             "EMAIL_ENCRYPT_EML_DATA",
             {
-                {"body_data", QString::fromLatin1(buffer.toBase64())},
-                {"channel",
-                 QString::number(m_key_list_->GetCurrentGpgContextChannel())},
-                {"encrypt_keys", key_ids.join(';')},
+                {"body_data", *sec_buf_base64},
+                {"channel", GFBuffer{QString::number(
+                                m_key_list_->GetCurrentGpgContextChannel())}},
+                {"encrypt_keys", GFBuffer{key_ids.join(';')}},
             },
 
             [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
@@ -657,13 +691,13 @@ void MainWindow::SlotEncryptEML() {
               // check if error occurred
               if (handle_module_error(p)) return -1;
 
-              if (!p["eml_data"].isEmpty()) {
-                edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
+              if (!p["eml_data"].Empty()) {
+                edit_->SlotSetGFBuffer2CurEMailPage(p.value("eml_data"));
               }
 
-              if (!p["capsule_id"].isEmpty()) {
+              if (!p["capsule_id"].Empty()) {
                 auto v = UIModuleManager::GetInstance().GetCapsule(
-                    p.value("capsule_id", ""));
+                    p.value("capsule_id").ConvertToQString());
 
                 try {
                   auto encr_result = std::any_cast<GpgEncryptResult>(v);
@@ -674,7 +708,7 @@ void MainWindow::SlotEncryptEML() {
                   slot_result_analyse_show_helper(result_analyse);
 
                 } catch (const std::bad_any_cast& e) {
-                  LOG_E() << "capsule" << p["capsule_id"]
+                  LOG_E() << "capsule" << p["capsule_id"].ConvertToQString()
                           << "convert to real type failed" << e.what();
                 }
               }
@@ -700,19 +734,27 @@ void MainWindow::SlotSignEML() {
     return;
   }
 
-  auto buffer = edit_->CurPlainText().toUtf8();
+  auto buffer = edit_->CurPlainText();
   auto key_ids =
       ConvertKey2GpgKeyIdList(m_key_list_->GetCurrentGpgContextChannel(), keys);
 
+  GFBuffer sec_buf(buffer);
+  auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
+  if (!sec_buf_base64) return;
+
+  buffer.fill('X');
+  buffer.clear();
+
   GpgOperaHelper::WaitForOpera(
-      this, tr("Signing"), [this, buffer, key_ids](const OperaWaitingHd& hd) {
+      this, tr("Signing"),
+      [this, sec_buf_base64, key_ids](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
             "EMAIL_SIGN_EML_DATA",
             {
-                {"body_data", QString::fromLatin1(buffer.toBase64())},
-                {"channel",
-                 QString::number(m_key_list_->GetCurrentGpgContextChannel())},
-                {"sign_key", key_ids.front()},
+                {"body_data", *sec_buf_base64},
+                {"channel", GFBuffer{QString::number(
+                                m_key_list_->GetCurrentGpgContextChannel())}},
+                {"sign_key", GFBuffer{key_ids.front()}},
             },
             [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
                 Module::Event::Params p) {
@@ -724,13 +766,13 @@ void MainWindow::SlotSignEML() {
               // check if error occurred
               if (handle_module_error(p)) return -1;
 
-              if (!p["eml_data"].isEmpty()) {
-                edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
+              if (!p["eml_data"].Empty()) {
+                edit_->SlotSetGFBuffer2CurEMailPage(p.value("eml_data"));
               }
 
-              if (!p["capsule_id"].isEmpty()) {
+              if (!p["capsule_id"].Empty()) {
                 auto v = UIModuleManager::GetInstance().GetCapsule(
-                    p.value("capsule_id", ""));
+                    p.value("capsule_id").ConvertToQString());
 
                 try {
                   auto sign_result = std::any_cast<GpgSignResult>(v);
@@ -741,7 +783,7 @@ void MainWindow::SlotSignEML() {
                   slot_result_analyse_show_helper(result_analyse);
 
                 } catch (const std::bad_any_cast& e) {
-                  LOG_E() << "capsule" << p["capsule_id"]
+                  LOG_E() << "capsule" << p["capsule_id"].ConvertToQString()
                           << "convert to real type failed" << e.what();
                 }
               }
@@ -761,16 +803,18 @@ void MainWindow::SlotEncryptSignEML() {
     return;
   }
 
-  auto* signers_picker =
-      new SignersPicker(m_key_list_->GetCurrentGpgContextChannel(), this);
-  QEventLoop loop;
-  connect(signers_picker, &SignersPicker::finished, &loop, &QEventLoop::quit);
-  loop.exec();
+  auto picker = QSharedPointer<SignersPicker>(
+      new SignersPicker(m_key_list_->GetCurrentGpgContextChannel(), this),
+      [](SignersPicker* picker) { picker->deleteLater(); });
+
+  picker->exec();
 
   // return when canceled
-  if (!signers_picker->GetStatus()) return;
+  if (picker->result() == QDialog::Rejected) return;
 
-  auto signer_keys = signers_picker->GetCheckedSigners();
+  auto signer_keys = picker->GetCheckedSigners();
+  assert(std::all_of(signer_keys.begin(), signer_keys.end(),
+                     [](const auto& key) { return key->IsGood(); }));
 
   if (signer_keys.isEmpty()) {
     QMessageBox::warning(this, tr("No Key Selected"),
@@ -784,21 +828,28 @@ void MainWindow::SlotEncryptSignEML() {
     return;
   }
 
-  auto buffer = edit_->CurPlainText().toUtf8();
+  auto buffer = edit_->CurPlainText();
   auto key_ids =
       ConvertKey2GpgKeyIdList(m_key_list_->GetCurrentGpgContextChannel(), keys);
 
+  GFBuffer sec_buf(buffer);
+  auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
+  if (!sec_buf_base64) return;
+
+  buffer.fill('X');
+  buffer.clear();
+
   GpgOperaHelper::WaitForOpera(
       this, tr("Encrypting and Signing"),
-      [this, buffer, key_ids, signer_keys](const OperaWaitingHd& hd) {
+      [this, sec_buf_base64, key_ids, signer_keys](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
             "EMAIL_ENCRYPT_SIGN_EML_DATA",
             {
-                {"body_data", QString::fromLatin1(buffer.toBase64())},
-                {"channel",
-                 QString::number(m_key_list_->GetCurrentGpgContextChannel())},
-                {"sign_key", signer_keys.front()->ID()},
-                {"encrypt_keys", key_ids.front()},
+                {"body_data", *sec_buf_base64},
+                {"channel", GFBuffer{QString::number(
+                                m_key_list_->GetCurrentGpgContextChannel())}},
+                {"sign_key", GFBuffer{signer_keys.front()->ID()}},
+                {"encrypt_keys", GFBuffer{key_ids.front()}},
             },
             [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
                 Module::Event::Params p) {
@@ -810,16 +861,16 @@ void MainWindow::SlotEncryptSignEML() {
               // check if error occurred
               if (handle_module_error(p)) return -1;
 
-              if (!p["eml_data"].isEmpty()) {
-                edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
+              if (!p["eml_data"].Empty()) {
+                edit_->SlotSetGFBuffer2CurEMailPage(p.value("eml_data"));
               }
 
-              if (!p["sign_capsule_id"].isEmpty() &&
-                  !p["encr_capsule_id"].isEmpty()) {
+              if (!p["sign_capsule_id"].Empty() &&
+                  !p["encr_capsule_id"].Empty()) {
                 auto v1 = UIModuleManager::GetInstance().GetCapsule(
-                    p.value("sign_capsule_id", ""));
+                    p.value("sign_capsule_id").ConvertToQString());
                 auto v2 = UIModuleManager::GetInstance().GetCapsule(
-                    p.value("encr_capsule_id", ""));
+                    p.value("encr_capsule_id").ConvertToQString());
 
                 try {
                   auto sign_result = std::any_cast<GpgSignResult>(v1);
@@ -837,7 +888,7 @@ void MainWindow::SlotEncryptSignEML() {
                                                   encr_result_analyse);
 
                 } catch (const std::bad_any_cast& e) {
-                  LOG_E() << "capsule" << p["capsule_id"]
+                  LOG_E() << "capsule" << p["capsule_id"].ConvertToQString()
                           << "convert to real type failed" << e.what();
                 }
               }
@@ -850,17 +901,24 @@ void MainWindow::SlotEncryptSignEML() {
 void MainWindow::SlotDecryptVerifyEML() {
   if (edit_->TabCount() == 0 || edit_->CurEMailPage() == nullptr) return;
 
-  auto buffer = edit_->CurPlainText().toUtf8();
+  auto buffer = edit_->CurPlainText();
+
+  GFBuffer sec_buf(buffer);
+  auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
+  if (!sec_buf_base64) return;
+
+  buffer.fill('X');
+  buffer.clear();
 
   GpgOperaHelper::WaitForOpera(
       this, tr("Decrypting and Verifying"),
-      [this, buffer](const OperaWaitingHd& hd) {
+      [this, sec_buf_base64](const OperaWaitingHd& hd) {
         Module::TriggerEvent(
             "EMAIL_DECRYPT_VERIFY_EML_DATA",
             {
-                {"eml_data", QString::fromLatin1(buffer.toBase64())},
-                {"channel",
-                 QString::number(m_key_list_->GetCurrentGpgContextChannel())},
+                {"eml_data", *sec_buf_base64},
+                {"channel", GFBuffer{QString::number(
+                                m_key_list_->GetCurrentGpgContextChannel())}},
             },
             [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
                 Module::Event::Params p) {
@@ -872,17 +930,16 @@ void MainWindow::SlotDecryptVerifyEML() {
               // check if error occurred
               if (handle_module_error(p)) return -1;
 
-              if (!p["eml_data"].isEmpty()) {
-                edit_->SlotSetText2CurEMailPage(p.value("eml_data", ""));
+              if (!p["eml_data"].Empty()) {
+                edit_->SlotSetGFBuffer2CurEMailPage(p.value("eml_data"));
               }
 
-              const auto mime = QByteArray::fromBase64(p["mime"].toLatin1());
-              const auto signature =
-                  QByteArray::fromBase64(p["signature"].toLatin1());
               const auto part_mime_content_hash = p["mime_hash"];
               const auto prm_micalg_value = p["micalg"];
 
-              auto timestamp = p.value("datetime", "-1").toLongLong();
+              auto timestamp = p.value("datetime", GFBuffer{"-1"})
+                                   .ConvertToQString()
+                                   .toLongLong();
               auto datetime = tr("None");
               if (timestamp > 0) {
                 datetime = QLocale().toString(
@@ -891,41 +948,49 @@ void MainWindow::SlotDecryptVerifyEML() {
 
               QString email_info;
               email_info.append("# E-Mail Information\n\n");
-              email_info.append(QString("- %1: %2\n")
-                                    .arg(tr("From"))
-                                    .arg(p.value("from", tr("Unknown"))));
+              email_info.append(
+                  QString("- %1: %2\n")
+                      .arg(tr("From"))
+                      .arg(p.value("from", GFBuffer{tr("Unknown")})
+                               .ConvertToQString()));
               email_info.append(QString("- %1: %2\n")
                                     .arg(tr("To"))
-                                    .arg(p.value("to", tr("Unknown"))));
-              email_info.append(QString("- %1: %2\n")
-                                    .arg(tr("Subject"))
-                                    .arg(p.value("subject", tr("None"))));
+                                    .arg(p.value("to", GFBuffer{tr("Unknown")})
+                                             .ConvertToQString()));
+              email_info.append(
+                  QString("- %1: %2\n")
+                      .arg(tr("Subject"))
+                      .arg(p.value("subject", GFBuffer{tr("None")})
+                               .ConvertToQString()));
               email_info.append(QString("- %1: %2\n")
                                     .arg(tr("CC"))
-                                    .arg(p.value("cc", tr("None"))));
+                                    .arg(p.value("cc", GFBuffer{tr("None")})
+                                             .ConvertToQString()));
               email_info.append(QString("- %1: %2\n")
                                     .arg(tr("BCC"))
-                                    .arg(p.value("bcc", tr("None"))));
+                                    .arg(p.value("bcc", GFBuffer{tr("None")})
+                                             .ConvertToQString()));
               email_info.append(
                   QString("- %1: %2\n").arg(tr("Date")).arg(datetime));
 
               email_info.append("\n");
               email_info.append("# OpenPGP Information\n\n");
-              email_info.append(QString("- %1: %2\n")
-                                    .arg(tr("Signed EML Data Hash (SHA1)"))
-                                    .arg(part_mime_content_hash));
+              email_info.append(
+                  QString("- %1: %2\n")
+                      .arg(tr("Signed EML Data Hash (SHA1)"))
+                      .arg(part_mime_content_hash.ConvertToQString()));
               email_info.append(
                   QString("- %1: %2\n")
                       .arg(tr("Message Integrity Check Algorithm"))
-                      .arg(prm_micalg_value));
+                      .arg(prm_micalg_value.ConvertToQString()));
               email_info.append("\n");
 
-              if (!p["decr_capsule_id"].isEmpty() &&
-                  !p["verify_capsule_id"].isEmpty()) {
+              if (!p["decr_capsule_id"].Empty() &&
+                  !p["verify_capsule_id"].Empty()) {
                 auto v1 = UIModuleManager::GetInstance().GetCapsule(
-                    p.value("decr_capsule_id", ""));
+                    p.value("decr_capsule_id").ConvertToQString());
                 auto v2 = UIModuleManager::GetInstance().GetCapsule(
-                    p.value("verify_capsule_id", ""));
+                    p.value("verify_capsule_id").ConvertToQString());
 
                 try {
                   auto decr_result = std::any_cast<GpgDecryptResult>(v1);
@@ -946,7 +1011,7 @@ void MainWindow::SlotDecryptVerifyEML() {
                           verify_result_analyse.GetResultReport());
 
                 } catch (const std::bad_any_cast& e) {
-                  LOG_E() << "capsule" << p["capsule_id"]
+                  LOG_E() << "capsule" << p["capsule_id"].ConvertToQString()
                           << "convert to real type failed" << e.what();
                 }
               }
@@ -956,9 +1021,9 @@ void MainWindow::SlotDecryptVerifyEML() {
       });
 }
 
-auto MainWindow::handle_module_error(QMap<QString, QString> p) -> bool {
+auto MainWindow::handle_module_error(QMap<QString, GFBuffer> p) -> bool {
   if (p["ret"] == "-2") {
-    QString detailed_error = p["err"];
+    auto detailed_error = p["err"];
 
     QString info =
         tr("# EML Data Error\n\n"
@@ -976,15 +1041,15 @@ auto MainWindow::handle_module_error(QMap<QString, QString> p) -> bool {
            "2. Refer to the official documentation for the EML structure: "
            "%2\n\n"
            "After correcting the EML data, try the operation again.")
-            .arg(detailed_error)
+            .arg(detailed_error.ConvertToQString())
             .arg("https://www.rfc-editor.org/rfc/rfc3156.txt");
     slot_refresh_info_board(-2, info);
     return true;
   }
 
-  if (p["ret"] != "0" || !p["err"].isEmpty()) {
+  if (p["ret"] != "0" || !p["err"].Empty()) {
     LOG_E() << "An error occurred trying to operate email, "
-            << "error message: " << p["err"];
+            << "error message: " << p["err"].ConvertToQString();
 
     QString error_message =
         tr("# Email Operation Error\n\n"
@@ -1007,8 +1072,8 @@ auto MainWindow::handle_module_error(QMap<QString, QString> p) -> bool {
            "further troubleshooting.\n\n"
            "If the issue persists, consider seeking technical support or "
            "consulting the documentation.")
-            .arg(p["ret"])
-            .arg(p["err"]);
+            .arg(p["ret"].ConvertToQString())
+            .arg(p["err"].ConvertToQString());
 
     slot_refresh_info_board(-1, error_message);
     return true;
@@ -1021,7 +1086,7 @@ void MainWindow::slot_gpg_opera_buffer_show_helper(
     const QContainer<GpgOperaResult>& results) {
   for (const auto& result : results) {
     if (result.o_buffer.Empty()) continue;
-    edit_->SlotFillTextEditWithText(result.o_buffer.ConvertToQByteArray());
+    edit_->SlotFillTextEditWithText(result.o_buffer);
   }
 }
 

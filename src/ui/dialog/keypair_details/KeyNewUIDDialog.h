@@ -31,7 +31,6 @@
 #include "core/function/gpg/GpgContext.h"
 #include "core/model/GpgKey.h"
 #include "core/typedef/GpgTypedef.h"
-#include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
 
 namespace GpgFrontend::UI {

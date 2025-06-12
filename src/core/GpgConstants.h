@@ -35,6 +35,9 @@ constexpr int kRestartCode = 1000;      ///< only refresh ui
 constexpr int kDeepRestartCode = 1001;  // refresh core and ui
 constexpr int kCrashCode = ~0;          ///< application crash
 
+constexpr int kSecBufferSize = 4 * 1024;                // 4KB
+constexpr int kSecBufferSizeForFile = 4 * 1024 * 1024;  // 4MB
+
 // Channels
 constexpr int kGpgFrontendDefaultChannel = 0;   ///<
 constexpr int kGpgFrontendNonAsciiChannel = 2;  ///<

@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/module/Event.h"
 #include "core/typedef/CoreTypedef.h"
 #include "core/typedef/GpgTypedef.h"
 #include "ui/main_window/GeneralMainWindow.h"
@@ -69,6 +70,7 @@ class MainWindow : public GeneralMainWindow {
     static constexpr OperationType kVerify = 1 << 3;
     static constexpr OperationType kEncryptAndSign = 1 << 4;
     static constexpr OperationType kDecryptAndVerify = 1 << 5;
+    static constexpr OperationType kSymmetricEncrypt = 1 << 6;
   };
 
   /**
@@ -373,6 +375,12 @@ class MainWindow : public GeneralMainWindow {
   void slot_open_key_management();
 
   /**
+   * @brief
+   *
+   */
+  void slot_default_file_tab();
+
+  /**
    * @details Open File Opera Tab
    */
   void slot_open_file_tab();
@@ -436,7 +444,7 @@ class MainWindow : public GeneralMainWindow {
    * @param buffer
    */
   void slot_verify_email_by_eml_data_result_helper(
-      const QMap<QString, QString>& p);
+      const Module::Event::Params& p);
 
   /**
    * @brief
@@ -603,7 +611,7 @@ class MainWindow : public GeneralMainWindow {
    * @brief
    *
    */
-  void decrypt_email_by_eml_data_result_helper(QMap<QString, QString> p);
+  void decrypt_email_by_eml_data_result_helper(Module::Event::Params p);
 
   /**
    * @brief
@@ -612,7 +620,7 @@ class MainWindow : public GeneralMainWindow {
    * @param error_string
    * @return QString
    */
-  auto handle_module_error(QMap<QString, QString> p) -> bool;
+  auto handle_module_error(Module::Event::Params p) -> bool;
 
   /**
    * @brief
@@ -680,6 +688,16 @@ class MainWindow : public GeneralMainWindow {
   /**
    * @brief
    *
+   * @param contexts
+   * @return true
+   * @return false
+   */
+  auto fuzzy_signature_key_elimination(
+      const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool;
+
+  /**
+   * @brief
+   *
    * @return auto
    */
   void check_update_at_startup();
@@ -693,7 +711,8 @@ class MainWindow : public GeneralMainWindow {
   QMenu* key_menu_{};         ///<  Submenu for key-operations
   QMenu* view_menu_{};        ///<  Submenu for view operations
   QMenu* import_key_menu_{};  ///<  Submenu for import operations
-  QMenu* workspace_menu_{};
+  QMenu* workspace_menu_{};   ///<
+  QMenu* open_menu_{};
 
   QToolBar* crypt_tool_bar_{};  ///<  Toolbar holding crypt actions
   QToolBar* file_tool_bar_{};   ///<  Toolbar holding file actions
@@ -703,22 +722,25 @@ class MainWindow : public GeneralMainWindow {
   QToolBar* key_tool_bar_{};     ///<  Toolbar holding key operations
   QToolButton*
       import_button_{};  ///<  Tool button for import dropdown menu in toolbar
-  QToolButton* workspace_button_{};
-  QDockWidget* key_list_dock_{};    ///<  Encrypt Dock
-  QDockWidget* attachment_dock_{};  ///<  Attachment Dock
+  QToolButton* open_button_{};       ///<
+  QToolButton* workspace_button_{};  ///<
+  QDockWidget* key_list_dock_{};     ///<  Encrypt Dock
+  QDockWidget* attachment_dock_{};   ///<  Attachment Dock
   QDockWidget* info_board_dock_{};
 
   QAction* new_tab_act_{};               ///<  Action to create new tab
   QAction* new_email_tab_act_{};         ///<  Action to create email tab
   QAction* switch_tab_up_act_{};         ///<  Action to switch tab up
   QAction* switch_tab_down_act_{};       ///<  Action to switch tab down
-  QAction* browser_act_{};               ///<  Action to open file browser
+  QAction* browser_file_act_{};          ///<  Action to open file browser
   QAction* browser_dir_act_{};           ///<  Action to open file browser
+  QAction* browser_act_{};               ///<  Action to open file browser
   QAction* save_act_{};                  ///<  Action to save file
   QAction* save_as_act_{};               ///<  Action to save file as
   QAction* print_act_{};                 ///<  Action to print
   QAction* close_tab_act_{};             ///<  Action to print
   QAction* quit_act_{};                  ///<  Action to quit application
+  QAction* sym_encrypt_act_{};           ///<  Action to symmetric encrypt text
   QAction* encrypt_act_{};               ///<  Action to encrypt text
   QAction* encrypt_sign_act_{};          ///<  Action to encrypt and sign text
   QAction* decrypt_verify_act_{};        ///<  Action to encrypt and sign text
@@ -727,6 +749,7 @@ class MainWindow : public GeneralMainWindow {
   QAction* verify_act_{};                ///<  Action to verify text
   QAction* import_key_from_edit_act_{};  ///<  Action to import key from edit
   QAction* clean_double_line_breaks_act_{};  ///<  Action to remove double
+  QAction* generate_key_pair_act_{};
 
   QAction* gnupg_controller_open_act_{};       ///<
   QAction* module_controller_open_act_{};      ///<

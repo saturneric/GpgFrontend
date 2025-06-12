@@ -158,7 +158,7 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
   connect(ui_->actionEdit_Key_Database, &QAction::triggered, this,
           &GnuPGControllerDialog::slot_edit_key_database);
 
-#if defined(__APPLE__) && defined(__MACH__)
+#ifdef Q_OS_MACOS
   // macOS style settings
   ui_->buttonBox->setDisabled(true);
   ui_->buttonBox->setHidden(true);
@@ -318,7 +318,7 @@ auto GnuPGControllerDialog::check_custom_gnupg_path(QString path) -> bool {
                           tr("Target GnuPG Path is not an absolute path."));
   }
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
   QFileInfo const gpgconf_info(path + "/gpgconf.exe");
 #else
   QFileInfo const gpgconf_info(path + "/gpgconf");

@@ -28,8 +28,10 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgKeyImportExporter.h"
-#include "core/typedef/CoreTypedef.h"
+#include "core/function/GFBufferFactory.h"
+#include "core/model/GFBuffer.h"
+#include "core/model/GpgImportInformation.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
@@ -37,25 +39,18 @@ namespace GpgFrontend {
  * @brief give the possibility to import or export a key package
  *
  */
-class GF_CORE_EXPORT KeyPackageOperator {
+class GF_CORE_EXPORT KeyPackageOperator
+    : public SingletonFunctionObject<KeyPackageOperator> {
  public:
-  /**
-   * @brief generate passphrase for key package and save it to file
-   *
-   * @param phrase_path path to passphrase file
-   * @param phrase passphrase generated
-   * @return true if passphrase was generated and saved
-   * @return false if passphrase was not generated and saved
-   */
-  static auto GeneratePassphrase(const QString &phrase_path, QString &phrase)
-      -> bool;
+  explicit KeyPackageOperator(
+      int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
    * @brief generate the name of the key package
    *
    * @return QString name of the key package
    */
-  static auto GenerateKeyPackageName() -> QString;
+  auto GenerateKeyPackageName() -> QString;
 
   /**
    * @brief generate key package
@@ -65,14 +60,12 @@ class GF_CORE_EXPORT KeyPackageOperator {
    * @param key_ids key ids to export
    * @param phrase passphrase to encrypt key package
    * @param secret true if secret key should be exported
-   * @return true if key package was generated
-   * @return false if key package was not generated
    */
-  static void GenerateKeyPackage(const QString &key_package_path,
-                                 const QString &key_package_name, int channel,
-                                 const GpgAbstractKeyPtrList &keys,
-                                 QString &phrase, bool secret,
-                                 const OperationCallback &cb);
+  void GenerateKeyPackage(const QString &key_package_path,
+                          const QString &key_path,
+                          const GpgAbstractKeyPtrList &keys,
+                          const GFBuffer &pin, bool secret,
+                          const OperationCallback &cb);
 
   /**
    * @brief import key package
@@ -80,19 +73,19 @@ class GF_CORE_EXPORT KeyPackageOperator {
    * @param key_package_path path to key package
    * @param phrase_path path to passphrase file
    * @param import_info import info
-   * @return true if key package was imported
-   * @return false if key package was not imported
    */
-  static void ImportKeyPackage(const QString &key_package_path,
-                               const QString &phrase_path, int channel,
-                               const OperationCallback &cb);
+  auto ImportKeyPackage(const QString &key_package_path,
+                        const QString &key_path, const GFBuffer &pin)
+      -> std::tuple<QString, QSharedPointer<GpgImportInformation>>;
 
  private:
+  GFBufferFactory &gb_fac_ = GFBufferFactory::GetInstance(GetChannel());
+
   /**
    * @brief generate key package name
    *
    * @return QString key package name
    */
-  static auto generate_key_package_name() -> QString;
+  auto generate_key_package_name() -> QString;
 };
 }  // namespace GpgFrontend

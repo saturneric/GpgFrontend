@@ -32,6 +32,7 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/basic/GpgFunctionObject.h"
+#include "core/model/GFBuffer.h"
 
 namespace GpgFrontend {
 
@@ -46,31 +47,95 @@ class GF_CORE_EXPORT DataObjectOperator
   explicit DataObjectOperator(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
-  auto SaveDataObj(const QString &_key, const QJsonDocument &value) -> QString;
+  /**
+   * @brief
+   *
+   * @param key
+   * @param value
+   * @return QString
+   */
+  auto StoreDataObj(const QString &key, const QJsonDocument &value) -> QString;
 
-  auto GetDataObject(const QString &_key) -> std::optional<QJsonDocument>;
+  /**
+   * @brief Get the Data Object object
+   *
+   * @param key
+   * @return std::optional<QJsonDocument>
+   */
+  auto GetDataObject(const QString &key) -> std::optional<QJsonDocument>;
 
-  auto GetDataObjectByRef(const QString &_ref) -> std::optional<QJsonDocument>;
+  /**
+   * @brief Get the Data Object By Ref object
+   *
+   * @param ref
+   * @return std::optional<QJsonDocument>
+   */
+  auto GetDataObjectByRef(const QString &ref) -> std::optional<QJsonDocument>;
+
+  /**
+   * @brief
+   *
+   * @param key
+   * @param value
+   * @return QString
+   */
+  auto StoreSecDataObj(const QString &key, const GFBuffer &value) -> QString;
+
+  /**
+   * @brief Get the Sec Data Object object
+   *
+   * @param key
+   * @return GFBufferOrNone
+   */
+  auto GetSecDataObject(const QString &key) -> GFBufferOrNone;
+
+  /**
+   * @brief Get the Sec Data Object By Ref object
+   *
+   * @param ref
+   * @return GFBufferOrNone
+   */
+  auto GetSecDataObjectByRef(const QString &ref) -> GFBufferOrNone;
 
  private:
-  /**
-   * @brief init the secure key of application data object
-   *
-   */
-  void init_app_secure_key();
-
-  GlobalSettingStation &global_setting_station_ =
+  GlobalSettingStation &gss_ =
       GlobalSettingStation::GetInstance();  ///< GlobalSettingStation
-  QString app_secure_path_ =
-      global_setting_station_.GetAppDataPath() +
-      "/secure";  ///< Where sensitive information is stored
-  QString app_secure_key_path_ =
-      app_secure_path_ +
-      "/app.key";  ///< Where the key of data object is stored
-  QString app_data_objs_path_ =
-      global_setting_station_.GetAppDataPath() + "/data_objs";
+  GFBuffer l_key_;                          ///< Legacy key
+  GFBuffer key_;                            ///< Active key
+  GFBuffer key_id_;                         ///< Active key Id
 
-  QByteArray hash_key_;  ///< Hash key
+  /**
+   * @brief Get the object ref object
+   *
+   * @param key
+   * @return QByteArray
+   */
+  auto get_object_ref(const QString &obj_name) -> GFBuffer;
+
+  /**
+   * @brief
+   *
+   * @param ref
+   * @return GFBufferOrNone
+   */
+  auto read_decr_object(const GFBuffer &ref) -> GFBufferOrNone;
+
+  /**
+   * @brief
+   *
+   * @param ref
+   * @return GFBufferOrNone
+   */
+  auto write_encr_object(const GFBuffer &ref, const GFBuffer &value) -> QString;
+
+  /**
+   * @brief
+   *
+   * @param ref
+   * @return std::optional<QJsonDocument>
+   */
+  auto read_decr_json_object(const GFBuffer &ref)
+      -> std::optional<QJsonDocument>;
 };
 
 }  // namespace GpgFrontend

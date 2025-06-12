@@ -28,41 +28,54 @@
 
 #pragma once
 
-#include "GpgFrontendContext.h"
+#include "core/function/basic/GpgFunctionObject.h"
+#include "core/function/gpg/GpgContext.h"
+#include "core/model/GFBuffer.h"
 
 namespace GpgFrontend {
+class GF_CORE_EXPORT SecureRandomGenerator
+    : public SingletonFunctionObject<SecureRandomGenerator> {
+ public:
+  /**
+   * @brief Construct a new Secure Random Generator object
+   *
+   * @param channel
+   */
+  explicit SecureRandomGenerator(
+      int channel = SingletonFunctionObject::GetDefaultChannel());
 
-/**
- * @brief init global PATH env
- *
- */
-void InitGlobalPathEnv();
+  /**
+   * @brief
+   *
+   * @param size
+   * @return GFBufferOrNone
+   */
+  static auto OpenSSLGenerate(size_t size) -> GFBufferOrNone;
 
-/**
- * @brief
- *
- */
-void InitLocale();
+  /**
+   * @brief
+   *
+   * @return GFBufferOrNone
+   */
+  static auto OpenSSLGenerateZBase32() -> GFBufferOrNone;
 
-/**
- * @brief
- *
- * @param args
- */
-void InitGlobalBasicEnv(const GFCxtWPtr &, bool);
+  /**
+   * @brief
+   *
+   * @param size
+   * @return GFBufferOrNone
+   */
+  auto GnuPGGenerate(size_t size) -> GFBufferOrNone;
 
-/**
- * @brief
- *
- * @param p_ctx
- */
-void InitGlobalBasicEnvSync(const GFCxtWPtr &p_ctx);
+  /**
+   * @brief
+   *
+   * @return GFBufferOrNone
+   */
+  auto GnuPGGenerateZBase32() -> GFBufferOrNone;
 
-/**
- * @brief
- *
- * @param p_ctx
- */
-void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx);
-
-}  // namespace GpgFrontend
+ private:
+  GpgContext& ctx_ =
+      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
+};
+};  // namespace GpgFrontend

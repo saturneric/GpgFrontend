@@ -28,7 +28,6 @@
 
 #include "MainWindow.h"
 #include "core/GpgConstants.h"
-#include "core/function/CacheManager.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/model/SettingsObject.h"
 #include "ui/UserInterfaceUtils.h"
@@ -58,6 +57,10 @@ void MainWindow::slot_open_key_management() {
   dialog->raise();
 }
 
+void MainWindow::slot_default_file_tab() {
+  edit_->SlotOpenDefaultFileBrowserTab();
+}
+
 void MainWindow::slot_open_file_tab() { edit_->SlotNewFileBrowserTab(); }
 
 void MainWindow::slot_open_file_tab_with_directory() {
@@ -85,6 +88,7 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
   encrypt_sign_act_->setDisabled(disable);
   decrypt_act_->setDisabled(disable);
   decrypt_verify_act_->setDisabled(disable);
+  sym_encrypt_act_->setDisabled(disable);
 
   redo_act_->setDisabled(disable);
   undo_act_->setDisabled(disable);
@@ -109,18 +113,13 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
 void MainWindow::slot_open_settings_dialog() {
   auto* dialog = new SettingsDialog(this);
 
-  connect(dialog, &SettingsDialog::finished, this, [&]() -> void {
+  connect(dialog, &SettingsDialog::finished, this, [this]() {
     AppearanceSO appearance(SettingsObject("general_settings_state"));
-
     restore_settings();
     // restart main window if necessary
     if (restart_mode_ != kNonRestartCode) {
-      if (edit_->MaybeSaveAnyTab()) {
-        // clear cache of unsaved page
-        CacheManager::GetInstance().SaveDurableCache(
-            "editor_unsaved_pages", QJsonDocument(QJsonArray()), true);
-        emit SignalRestartApplication(restart_mode_);
-      }
+      auto ok = edit_->MaybeSaveAnyTab();
+      if (ok) emit SignalRestartApplication(restart_mode_);
     }
   });
 }
@@ -130,7 +129,7 @@ void MainWindow::slot_clean_double_line_breaks() {
     return;
   }
 
-  QString content = edit_->CurPlainText();
+  auto content = edit_->CurPlainText();
   content.replace("\n\n", "\n");
   edit_->SlotFillTextEditWithText(content);
 }
@@ -140,7 +139,7 @@ void MainWindow::slot_add_pgp_header() {
     return;
   }
 
-  QString content = edit_->CurPlainText().trimmed();
+  auto content = edit_->CurPlainText().trimmed();
 
   content.prepend("\n\n").prepend(PGP_CRYPT_BEGIN);
   content.append("\n").append(PGP_CRYPT_END);
@@ -184,6 +183,7 @@ void MainWindow::slot_update_crypto_operations_menu(unsigned int mask) {
   encrypt_sign_act_->setDisabled(true);
   decrypt_act_->setDisabled(true);
   decrypt_verify_act_->setDisabled(true);
+  sym_encrypt_act_->setDisabled(true);
 
   // gnupg operations
   if ((opera_type & OperationMenu::kVerify) != 0U) {
@@ -203,6 +203,9 @@ void MainWindow::slot_update_crypto_operations_menu(unsigned int mask) {
   }
   if ((opera_type & OperationMenu::kDecryptAndVerify) != 0U) {
     decrypt_verify_act_->setDisabled(false);
+  }
+  if ((opera_type & OperationMenu::kSymmetricEncrypt) != 0U) {
+    sym_encrypt_act_->setDisabled(false);
   }
 }
 
@@ -373,6 +376,8 @@ void MainWindow::slot_update_operations_menu_by_checked_keys(
               OperationMenu::kSign);
 
   } else {
+    temp &= ~OperationMenu::kSymmetricEncrypt;
+
     for (const auto& key : keys) {
       if (key == nullptr || key->IsDisabled()) continue;
 

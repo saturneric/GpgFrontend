@@ -164,7 +164,8 @@ void FilePage::update_main_basic_opera_menu(const QStringList& selected_paths) {
 
   if (c_encr) {
     operation_type |= MainWindow::OperationMenu::kEncrypt |
-                      MainWindow::OperationMenu::kEncryptAndSign;
+                      MainWindow::OperationMenu::kEncryptAndSign |
+                      MainWindow::OperationMenu::kSymmetricEncrypt;
   }
 
   bool c_decr =

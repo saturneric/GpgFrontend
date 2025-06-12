@@ -34,7 +34,7 @@ namespace GpgFrontend::UI {
 
 GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
     : QApplication(argc, argv) {
-#if !(defined(__APPLE__) && defined(__MACH__))
+#ifndef Q_OS_MACOS
   // Try system theme icon first, fall back to resource
   QIcon app_icon = QIcon::fromTheme("com.bktus.gpgfrontend",
                                     QIcon(":/icons/gpgfrontend.png"));

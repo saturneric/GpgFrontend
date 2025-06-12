@@ -32,8 +32,11 @@
 
 //
 #include "core/module/ModuleManager.h"
-#include "core/utils/CommonUtils.h"
 #include "core/utils/FilesystemUtils.h"
+
+#ifdef Q_OS_LINUX
+#include "core/utils/CommonUtils.h"
+#endif
 
 namespace GpgFrontend {
 
@@ -47,12 +50,12 @@ class GlobalSettingStation::Impl {
     LOG_I() << "app path: " << app_path_;
     LOG_I() << "app working path: " << working_path_;
 
-    auto portable_file_path = working_path_ + "/PORTABLE.txt";
-    if (QFileInfo(portable_file_path).exists()) {
+    const auto protable_mode = qApp->property("GFPortableMode").toBool();
+    if (protable_mode) {
       Module::UpsertRTValue("core", "env.state.portable", 1);
       LOG_I() << "GpgFrontend runs in the portable mode now";
 
-#if defined(__linux__)
+#ifdef Q_OS_LINUX
       if (IsAppImageENV()) {
         LOG_I() << "app image path: " << qEnvironmentVariable("APPIMAGE");
         QFileInfo info(
@@ -68,10 +71,11 @@ class GlobalSettingStation::Impl {
     }
 
     LOG_I() << "app data path: " << app_data_path_;
+    LOG_I() << "app secure path: " << app_secure_path();
     LOG_I() << "app log path: " << app_log_path();
-    LOG_I() << "app modules path: " << app_modules_path();
+    LOG_I() << "app modules path: " << app_mods_path();
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
     LOG_I() << "app config path: " << app_config_path_;
     if (!QDir(app_config_path_).exists()) QDir(app_config_path_).mkpath(".");
 #else
@@ -83,13 +87,15 @@ class GlobalSettingStation::Impl {
 
     if (!QDir(app_data_path_).exists()) QDir(app_data_path_).mkpath(".");
     if (!QDir(app_log_path()).exists()) QDir(app_log_path()).mkpath(".");
-    if (!QDir(app_modules_path()).exists()) {
-      QDir(app_modules_path()).mkpath(".");
+    if (!QDir(app_secure_path()).exists()) QDir(app_secure_path()).mkpath(".");
+    if (!QDir(app_mods_path()).exists()) QDir(app_mods_path()).mkpath(".");
+    if (!QDir(app_data_objs_path()).exists()) {
+      QDir(app_data_objs_path()).mkpath(".");
     }
   }
 
   [[nodiscard]] auto GetSettings() -> QSettings {
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
     return QSettings(app_config_file_path(), QSettings::IniFormat);
 #else
     if (IsProtableMode()) return {app_config_file_path(), QSettings::IniFormat};
@@ -152,13 +158,13 @@ class GlobalSettingStation::Impl {
    * @return QString
    */
   [[nodiscard]] auto GetModulesDir() const -> QString {
-    return app_modules_path();
+    return app_mods_path();
   }
 
   [[nodiscard]] auto GetIntegratedModulePath() const -> QString {
     const auto exec_binary_path = GetAppDir();
 
-#if defined(__linux__)
+#ifdef Q_OS_LINUX
     // AppImage
     if (IsAppImageENV()) {
       return qEnvironmentVariable("APPDIR") + "/usr/lib/modules";
@@ -169,11 +175,11 @@ class GlobalSettingStation::Impl {
     }
 #endif
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
     return exec_binary_path + "/../modules";
 #endif
 
-#if defined(__APPLE__) && defined(__MACH__)
+#ifdef Q_OS_MACOS
 
 #ifdef NDEBUG
     return exec_binary_path + "/../PlugIns";
@@ -192,6 +198,44 @@ class GlobalSettingStation::Impl {
 
   [[nodiscard]] auto IsProtableMode() const -> bool { return portable_mode_; }
 
+  auto GetAppSecureKey(const GFBuffer& id) -> GFBuffer {
+    return app_secure_keys_.value(id, GFBuffer{});
+  }
+
+  [[nodiscard]] auto GetDataObjectsPath() const -> QString {
+    return app_data_objs_path();
+  }
+
+  [[nodiscard]] auto GetConfigDirPath() const -> QString {
+    return app_config_path_;
+  }
+
+  void AppendAppSecureKeys(const QMap<GFBuffer, GFBuffer>& keys) {
+    app_secure_keys_.insert(keys);
+  }
+
+  auto GetAppSecureKeyPath() -> QString { return app_secure_key_path(); }
+
+  void SetActiveKeyId(const GFBuffer& id) { active_key_id_ = id; }
+
+  auto GetActiveKeyId() -> GFBuffer { return active_key_id_; }
+
+  auto GetActiveKey() -> GFBuffer {
+    auto active_key = GetAppSecureKey(active_key_id_);
+    Q_ASSERT(!active_key.Empty());
+    return active_key;
+  }
+
+  auto GetLegacyKey() -> GFBuffer {
+    auto active_key = GetAppSecureKey(legacy_key_id_);
+    Q_ASSERT(!active_key.Empty());
+    return active_key;
+  }
+
+  void SetLegacyKeyId(const GFBuffer& id) { legacy_key_id_ = id; }
+
+  auto GetAppSecureKeyDir() -> QString { return app_secure_path(); }
+
  private:
   [[nodiscard]] auto app_config_file_path() const -> QString {
     return app_config_path_ + "/config.ini";
@@ -205,8 +249,16 @@ class GlobalSettingStation::Impl {
     return app_data_path_ + "/logs";
   }
 
-  [[nodiscard]] auto app_modules_path() const -> QString {
+  [[nodiscard]] auto app_mods_path() const -> QString {
     return app_data_path_ + "/mods";
+  }
+
+  [[nodiscard]] auto app_secure_path() const -> QString {
+    return app_data_path_ + "/secure";
+  }
+
+  [[nodiscard]] auto app_secure_key_path() const -> QString {
+    return app_secure_path() + "/app.key";
   }
 
   bool portable_mode_ = false;
@@ -216,6 +268,10 @@ class GlobalSettingStation::Impl {
       QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)};
   QString app_config_path_ = QString{
       QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)};
+
+  QMap<GFBuffer, GFBuffer> app_secure_keys_;
+  GFBuffer active_key_id_;
+  GFBuffer legacy_key_id_;
 };
 
 GlobalSettingStation::GlobalSettingStation(int channel) noexcept
@@ -271,5 +327,50 @@ auto GlobalSettingStation::IsProtableMode() const -> bool {
 }
 auto GetSettings() -> QSettings {
   return GlobalSettingStation::GetInstance().GetSettings();
+}
+
+auto GlobalSettingStation::GetAppSecureKey(const GFBuffer& id) -> GFBuffer {
+  return p_->GetAppSecureKey(id);
+}
+
+auto GlobalSettingStation::GetDataObjectsDir() const -> QString {
+  return p_->GetDataObjectsPath();
+}
+
+auto GlobalSettingStation::GetConfigDirPath() const -> QString {
+  return p_->GetConfigDirPath();
+}
+
+void GlobalSettingStation::AppendAppSecureKeys(
+    const QMap<GFBuffer, GFBuffer>& keys) {
+  p_->AppendAppSecureKeys(keys);
+}
+
+auto GlobalSettingStation::GetLegacyAppSecureKeyPath() -> QString {
+  return p_->GetAppSecureKeyPath();
+}
+
+void GlobalSettingStation::SetActiveKeyId(const GFBuffer& id) {
+  p_->SetActiveKeyId(id);
+}
+
+auto GlobalSettingStation::GetActiveAppSecureKey() -> GFBuffer {
+  return p_->GetActiveKey();
+}
+
+auto GlobalSettingStation::GetAppSecureKeyDir() -> QString {
+  return p_->GetAppSecureKeyDir();
+}
+
+auto GlobalSettingStation::GetActiveKeyId() -> GFBuffer {
+  return p_->GetActiveKeyId();
+}
+
+void GlobalSettingStation::SetLegacyKeyId(const GFBuffer& id) {
+  p_->SetLegacyKeyId(id);
+}
+
+auto GlobalSettingStation::GetLegacyAppSecureKey() -> GFBuffer {
+  return p_->GetLegacyKey();
 }
 }  // namespace GpgFrontend

@@ -49,22 +49,25 @@ QContainer<QByteArray> loaded_qm_datum;
 extern void InitUITranslations();
 
 void WaitEnvCheckingProcess() {
-  FLOG_D("need to wait for env checking process");
+  FLOG_D() << "we need to wait for env checking process";
 
   // create and show loading window before starting the main window
   auto* progress_dialog = new QProgressDialog();
   progress_dialog->setMaximum(0);
   progress_dialog->setMinimum(0);
+
   auto* waiting_dialog_label = new QLabel(
-      QCoreApplication::tr("Loading Gnupg Info...") + "<br /><br />" +
+      QCoreApplication::tr("Loading GnuPG Info...") + "<br /><br />" +
       QCoreApplication::tr(
           "If this process is too slow, please set the key "
           "server address appropriately in the gnupg configuration "
           "file (depending "
           "on the network situation in your country or region)."));
+
   waiting_dialog_label->setWordWrap(true);
   progress_dialog->setLabel(waiting_dialog_label);
   progress_dialog->resize(420, 120);
+
   QApplication::connect(CoreSignalStation::GetInstance(),
                         &CoreSignalStation::SignalCoreFullyLoaded,
                         progress_dialog, [=]() {
@@ -107,6 +110,8 @@ void WaitEnvCheckingProcess() {
 
   // show the loading window
   progress_dialog->setModal(true);
+  progress_dialog->raise();
+  progress_dialog->activateWindow();
   progress_dialog->setFocus();
   progress_dialog->show();
 

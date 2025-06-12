@@ -117,7 +117,7 @@ class SingletonFunctionObject : public ChannelObject {
    * @return T&
    */
   static void ReleaseChannel(int channel) {
-    SingletonStorageCollection::GetInstance(false)
+    SingletonStorageCollection::GetInstance()
         ->GetSingletonStorage(typeid(T))
         ->ReleaseChannel(channel);
   }
@@ -146,7 +146,7 @@ class SingletonFunctionObject : public ChannelObject {
    * @return QContainer<int>
    */
   static auto GetAllChannelId() -> QContainer<int> {
-    return SingletonStorageCollection::GetInstance(false)
+    return SingletonStorageCollection::GetInstance()
         ->GetSingletonStorage(typeid(T))
         ->GetAllChannelId();
   }

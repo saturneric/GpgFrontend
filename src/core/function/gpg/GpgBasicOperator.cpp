@@ -163,8 +163,8 @@ auto GpgBasicOperator::DecryptSync(const GFBuffer& in_buffer)
 }
 
 auto VerifyImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
-                const GFBuffer& sig_buffer,
-                const DataObjectPtr& data_object) -> GpgError {
+                const GFBuffer& sig_buffer, const DataObjectPtr& data_object)
+    -> GpgError {
   GpgError err;
 
   GpgData data_in(in_buffer);
@@ -243,9 +243,10 @@ void GpgBasicOperator::Sign(const GpgAbstractKeyPtrList& signers,
       cb, "gpgme_op_sign", "2.2.0");
 }
 
-auto GpgBasicOperator::SignSync(
-    const GpgAbstractKeyPtrList& signers, const GFBuffer& in_buffer,
-    GpgSignMode mode, bool ascii) -> std::tuple<GpgError, DataObjectPtr> {
+auto GpgBasicOperator::SignSync(const GpgAbstractKeyPtrList& signers,
+                                const GFBuffer& in_buffer, GpgSignMode mode,
+                                bool ascii)
+    -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) {

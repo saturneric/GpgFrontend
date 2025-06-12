@@ -44,7 +44,7 @@ class DataObject::Impl {
     if (index >= static_cast<size_t>(params_.size())) {
       throw std::out_of_range("index out of range");
     }
-    return params_[index];
+    return params_[static_cast<qsizetype>(index)];
   }
 
   auto GetObjectSize() -> size_t { return params_.size(); }
@@ -53,14 +53,12 @@ class DataObject::Impl {
   QContainer<std::any> params_;
 };
 
-DataObject::DataObject() : p_(SecureCreateUniqueObject<Impl>()) {}
+DataObject::DataObject() : p_(SecureCreateSharedObject<Impl>()) {}
 
 DataObject::DataObject(std::initializer_list<std::any> i)
-    : p_(SecureCreateUniqueObject<Impl>(i)) {}
+    : p_(SecureCreateSharedObject<Impl>(i)) {}
 
 DataObject::~DataObject() = default;
-
-DataObject::DataObject(DataObject&&) noexcept = default;
 
 auto DataObject::operator[](size_t index) const -> std::any {
   return p_->GetParameter(index);
@@ -70,13 +68,13 @@ auto DataObject::GetParameter(size_t index) const -> std::any {
   return p_->GetParameter(index);
 }
 
-void DataObject::AppendObject(std::any obj) { return p_->AppendObject(obj); }
+void DataObject::AppendObject(const std::any& obj) { p_->AppendObject(obj); }
 
 auto DataObject::GetObjectSize() const -> size_t { return p_->GetObjectSize(); }
 
 void DataObject::Swap(DataObject& other) noexcept { std::swap(p_, other.p_); }
 
-void DataObject::Swap(DataObject&& other) noexcept { p_ = std::move(other.p_); }
+void DataObject::Swap(DataObject&& other) noexcept { std::swap(p_, other.p_); }
 
 void swap(DataObject& a, DataObject& b) noexcept { a.Swap(b); }
 

@@ -31,10 +31,9 @@
 #include <any>
 #include <optional>
 #include <shared_mutex>
-#include <vector>
 
 #include "GlobalRegisterTableTreeModel.h"
-#include "function/SecureMemoryAllocator.h"
+#include "core/utils/MemoryUtils.h"
 #include "utils/MemoryUtils.h"
 
 namespace GpgFrontend::Module {
@@ -43,7 +42,7 @@ class GlobalRegisterTable::Impl {
  public:
   struct RTNode {
     QString name;
-    QString type = tr("NODE");
+    QString type = "NODE";
     int version = 0;
     const std::type_info* value_type = nullptr;
     std::optional<std::any> value = std::nullopt;
@@ -78,7 +77,7 @@ class GlobalRegisterTable::Impl {
       }
 
       current->name = segments.back();
-      current->type = tr("LEAF");
+      current->type = "LEAF";
       current->value = v;
       current->value_type = &v.type();
       version = ++current->version;
@@ -126,7 +125,7 @@ class GlobalRegisterTable::Impl {
   }
 
   auto ListenPublish(QObject* o, const Namespace& n, const Key& k,
-                     LPCallback c) -> bool {
+                     const LPCallback& c) -> bool {
     if (o == nullptr) return false;
     return QObject::connect(parent_, &GlobalRegisterTable::SignalPublish, o,
                             [n, k, c](const Namespace& pn, const Key& pk,
@@ -160,12 +159,12 @@ class GlobalRegisterTableTreeModel::Impl {
     return parent_node->children.size();
   }
 
-  [[nodiscard]] auto ColumnCount(const QModelIndex& parent) const -> int {
+  [[nodiscard]] static auto ColumnCount(const QModelIndex& /*parent*/) -> int {
     return 4;
   }
 
-  [[nodiscard]] auto Data(const QModelIndex& index,
-                          int role) const -> QVariant {
+  [[nodiscard]] static auto Data(const QModelIndex& index, int role)
+      -> QVariant {
     if (!index.isValid()) return {};
 
     if (role == Qt::DisplayRole) {
@@ -189,7 +188,7 @@ class GlobalRegisterTableTreeModel::Impl {
   }
 
   static auto Any2QVariant(std::optional<std::any> op) -> QVariant {
-    if (!op) return tr("<EMPTY>");
+    if (!op) return "<EMPTY>";
 
     auto& o = op.value();
     if (o.type() == typeid(QString)) {
@@ -231,8 +230,8 @@ class GlobalRegisterTableTreeModel::Impl {
     return tr("<UNSUPPORTED>");
   }
 
-  [[nodiscard]] auto Index(int row, int column,
-                           const QModelIndex& parent) const -> QModelIndex {
+  [[nodiscard]] auto Index(int row, int column, const QModelIndex& parent) const
+      -> QModelIndex {
     if (!parent_->hasIndex(row, column, parent)) return {};
 
     auto* parent_node = !parent.isValid()
@@ -291,8 +290,8 @@ auto GlobalRegisterTable::PublishKV(Namespace n, Key k, std::any v) -> bool {
   return p_->PublishKV(n, k, v);
 }
 
-auto GlobalRegisterTable::LookupKV(Namespace n,
-                                   Key v) -> std::optional<std::any> {
+auto GlobalRegisterTable::LookupKV(Namespace n, Key v)
+    -> std::optional<std::any> {
   return p_->LookupKV(n, v);
 }
 
@@ -325,8 +324,9 @@ auto GlobalRegisterTableTreeModel::data(const QModelIndex& index,
   return p_->Data(index, role);
 }
 
-auto GlobalRegisterTableTreeModel::index(
-    int row, int column, const QModelIndex& parent) const -> QModelIndex {
+auto GlobalRegisterTableTreeModel::index(int row, int column,
+                                         const QModelIndex& parent) const
+    -> QModelIndex {
   return p_->Index(row, column, parent);
 }
 
@@ -340,4 +340,5 @@ auto GlobalRegisterTableTreeModel::headerData(int section,
                                               int role) const -> QVariant {
   return p_->HeaderData(section, orientation, role);
 }
+
 }  // namespace GpgFrontend::Module

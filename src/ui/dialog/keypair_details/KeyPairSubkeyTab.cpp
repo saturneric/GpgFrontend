@@ -99,18 +99,22 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
                                   10, 0);
   subkey_detail_layout->addWidget(new QLabel(tr("Fingerprint") + ": "), 11, 0);
 
-  key_type_var_label_ = new QLabel(this);
-  key_id_var_label_ = new QLabel(this);
-  key_size_var_label_ = new QLabel(this);
-  expire_var_label_ = new QLabel(this);
-  revoke_var_label_ = new QLabel(this);
-  algorithm_var_label_ = new QLabel(this);
-  algorithm_detail_var_label_ = new QLabel(this);
-  created_var_label_ = new QLabel(this);
-  usage_var_label_ = new QLabel(this);
-  master_key_exist_var_label_ = new QLabel(this);
-  fingerprint_var_label_ = new QLabel(this);
-  card_key_label_ = new QLabel(this);
+  key_type_var_label_ = new QLabel();
+  key_id_var_label_ = new QLabel();
+  key_size_var_label_ = new QLabel();
+  expire_var_label_ = new QLabel();
+  revoke_var_label_ = new QLabel();
+  algorithm_var_label_ = new QLabel();
+  algorithm_detail_var_label_ = new QLabel();
+  created_var_label_ = new QLabel();
+  usage_var_label_ = new QLabel();
+  master_key_exist_var_label_ = new QLabel();
+  fingerprint_var_label_ = new QLabel();
+  card_key_label_ = new QLabel();
+
+  created_var_label_->setWordWrap(true);
+  expire_var_label_->setWordWrap(true);
+  usage_var_label_->setWordWrap(true);
 
   // make keyid & fingerprint selectable for copy
   key_id_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
@@ -431,7 +435,7 @@ void KeyPairSubkeyTab::contextMenuEvent(QContextMenuEvent* event) {
 
     if (s_key.IsHasCertCap()) return;
 
-    export_subkey_act_->setDisabled(!s_key.IsSecretKey());
+    export_subkey_act_->setDisabled(!s_key.IsSecretKey() || s_key.IsADSK());
     edit_subkey_act_->setDisabled(!s_key.IsSecretKey());
     delete_subkey_act_->setDisabled(!s_key.IsSecretKey() && !s_key.IsADSK());
     revoke_subkey_act_->setDisabled((!s_key.IsSecretKey() && !s_key.IsADSK()) ||
@@ -482,7 +486,7 @@ void KeyPairSubkeyTab::slot_export_subkey() {
   }
 
   // generate a file name
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
   auto file_string =
       key_->Name() + "[" + key_->Email() + "](" + s_key.ID() + ")_s_key.asc";
 #else

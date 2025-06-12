@@ -28,32 +28,242 @@
 
 #include "GFBuffer.h"
 
+#include <openssl/crypto.h>
+#include <openssl/evp.h>
+
+#include <cstring>
+
 namespace GpgFrontend {
 
-GFBuffer::GFBuffer() = default;
+struct GFBuffer::Impl {
+  void* sec_ptr_ = nullptr;
+  size_t sec_size_ = 0;
 
-GFBuffer::GFBuffer(QByteArray buffer) : buffer_(std::move(buffer)) {}
+  explicit Impl() = default;
 
-GFBuffer::GFBuffer(const QString& str) : buffer_(str.toUtf8()) {}
+  explicit Impl(size_t size) {
+    if (size != 0) {
+      sec_ptr_ = SMASecMalloc(size);
+      sec_size_ = size;
+    }
+  }
+
+  ~Impl() {
+    if (sec_ptr_ != nullptr) {
+      SMASecFree(sec_ptr_);
+      sec_ptr_ = nullptr;
+    }
+    sec_size_ = 0;
+  }
+
+  Impl(const Impl&) = delete;
+
+  auto operator=(const Impl&) -> Impl& = delete;
+
+  Impl(Impl&& other) noexcept
+      : sec_ptr_(other.sec_ptr_), sec_size_(other.sec_size_) {
+    other.sec_ptr_ = nullptr;
+    other.sec_size_ = 0;
+  }
+
+  auto operator=(Impl&& other) noexcept -> Impl& {
+    if (this != &other) {
+      if (sec_ptr_ != nullptr) SMASecFree(sec_ptr_);
+      sec_ptr_ = other.sec_ptr_;
+      sec_size_ = other.sec_size_;
+      other.sec_ptr_ = nullptr;
+      other.sec_size_ = 0;
+    }
+    return *this;
+  }
+};
+
+GFBuffer::GFBuffer() : impl_(SecureCreateSharedObject<Impl>()) {}
+
+GFBuffer::GFBuffer(size_t size) : impl_(SecureCreateSharedObject<Impl>(size)) {}
+
+GFBuffer::~GFBuffer() = default;
+
+GFBuffer::GFBuffer(const QByteArray& buffer)
+    : impl_(SecureCreateSharedObject<Impl>(buffer.size())) {
+  std::memcpy(impl_->sec_ptr_, buffer.constData(), impl_->sec_size_);
+}
+
+GFBuffer::GFBuffer(const QString& str) {
+  auto b = str.toUtf8();
+  impl_ = SecureCreateSharedObject<Impl>(b.size());
+  std::memcpy(impl_->sec_ptr_, b.constData(), impl_->sec_size_);
+}
+
+GFBuffer::GFBuffer(const char* str)
+    : impl_(SecureCreateSharedObject<Impl>((str != nullptr) ? std::strlen(str)
+                                                            : 0)) {
+  if ((str != nullptr) && impl_->sec_size_ > 0) {
+    std::memcpy(impl_->sec_ptr_, str, impl_->sec_size_);
+  }
+}
+
+GFBuffer::GFBuffer(const char* buf, size_t size)
+    : impl_(SecureCreateSharedObject<Impl>((buf != nullptr) ? size : 0)) {
+  if ((buf != nullptr) && impl_->sec_size_ > 0) {
+    std::memcpy(impl_->sec_ptr_, buf, impl_->sec_size_);
+  }
+}
 
 auto GFBuffer::operator==(const GFBuffer& o) const -> bool {
-  return buffer_ == o.buffer_;
+  return Size() == o.Size() &&
+         (Size() == 0 || std::memcmp(Data(), o.Data(), Size()) == 0);
 }
 
-auto GFBuffer::Data() const -> const char* { return buffer_.constData(); }
+auto GFBuffer::Data() -> char* { return static_cast<char*>(impl_->sec_ptr_); }
 
-void GFBuffer::Resize(ssize_t size) { buffer_.resize(size); }
+auto GFBuffer::Data() const -> const char* {
+  return static_cast<const char*>(impl_->sec_ptr_);
+}
 
-auto GFBuffer::Size() const -> size_t { return buffer_.size(); }
+void GFBuffer::Resize(ssize_t size) {
+  if (size == 0) {
+    SMASecFree(impl_->sec_ptr_);
 
-auto GFBuffer::ConvertToQByteArray() const -> QByteArray { return buffer_; }
+    impl_->sec_ptr_ = nullptr;
+    impl_->sec_size_ = 0;
+    return;
+  }
 
-auto GFBuffer::Empty() const -> bool { return this->Size() == 0; }
+  impl_->sec_ptr_ = SMASecRealloc(impl_->sec_ptr_, size);
+  impl_->sec_size_ = size;
+}
 
-void GFBuffer::Append(const GFBuffer& o) { buffer_.append(o.buffer_); }
+auto GFBuffer::Size() const -> size_t { return impl_ ? impl_->sec_size_ : 0; }
+
+auto GFBuffer::ConvertToQByteArray() const -> QByteArray {
+  Q_ASSERT(impl_);
+  Q_ASSERT(impl_->sec_ptr_ != nullptr);
+  return QByteArray{static_cast<const char*>(impl_->sec_ptr_),
+                    static_cast<qsizetype>(impl_->sec_size_)};
+}
+
+auto GFBuffer::Empty() const -> bool { return Size() == 0; }
+
+void GFBuffer::Append(const GFBuffer& o) {
+  if (o.Empty()) return;
+
+  if (&o == this) {
+    GFBuffer copy(*this);
+    Append(copy);
+    return;
+  }
+
+  const auto old_size = impl_->sec_size_;
+  Resize(static_cast<ssize_t>(impl_->sec_size_ + o.impl_->sec_size_));
+  memcpy(static_cast<char*>(impl_->sec_ptr_) + old_size, o.impl_->sec_ptr_,
+         o.impl_->sec_size_);
+}
 
 void GFBuffer::Append(const char* buffer, ssize_t size) {
-  buffer_.append(buffer, size);
+  if (size == 0) return;
+
+  const auto old_size = impl_->sec_size_;
+  Resize(static_cast<ssize_t>(impl_->sec_size_ + size));
+  memcpy(static_cast<char*>(impl_->sec_ptr_) + old_size, buffer, size);
 }
 
+auto GFBuffer::Left(ssize_t len) const -> GFBuffer {
+  if (len <= 0) return {};
+
+  len = std::min(len, static_cast<ssize_t>(impl_->sec_size_));
+  auto ret = GFBuffer(len);
+  memcpy(ret.impl_->sec_ptr_, impl_->sec_ptr_, len);
+  return ret;
+}
+
+auto GFBuffer::Mid(ssize_t pos, ssize_t len) const -> GFBuffer {
+  if (pos < 0 || len <= 0 || pos >= impl_->sec_size_) return {};
+
+  len = std::min(len, static_cast<ssize_t>(impl_->sec_size_ - pos));
+  auto ret = GFBuffer(len);
+  memcpy(ret.impl_->sec_ptr_,
+         reinterpret_cast<void*>(static_cast<char*>(impl_->sec_ptr_) + pos),
+         len);
+  return ret;
+}
+
+auto GFBuffer::Right(ssize_t len) const -> GFBuffer {
+  if (len <= 0) return {};
+
+  len = std::min(len, static_cast<ssize_t>(impl_->sec_size_));
+  auto ret = GFBuffer(len);
+  memcpy(ret.impl_->sec_ptr_,
+         reinterpret_cast<void*>(static_cast<char*>(impl_->sec_ptr_) +
+                                 impl_->sec_size_ - len),
+         len);
+  return ret;
+}
+
+void GFBuffer::Zeroize() {
+  if (impl_ && (impl_->sec_ptr_ != nullptr) && impl_->sec_size_ > 0) {
+    OPENSSL_cleanse(impl_->sec_ptr_, impl_->sec_size_);
+  }
+}
+
+auto GFBuffer::ConvertToQString() const -> QString {
+  Q_ASSERT(impl_);
+  if (impl_->sec_ptr_ == nullptr) return {};
+  return QString::fromUtf8(static_cast<const char*>(impl_->sec_ptr_),
+                           static_cast<qsizetype>(impl_->sec_size_));
+}
+
+auto GFBuffer::operator==(const char* str) const -> bool {
+  return Size() == strlen(str) &&
+         (Size() == 0 || std::memcmp(Data(), str, Size()) == 0);
+}
+
+auto GFBuffer::operator!=(const char* str) const -> bool {
+  return Size() == strlen(str) &&
+         (Size() == 0 || std::memcmp(Data(), str, Size()) != 0);
+}
+
+auto GFBuffer::operator<(const GFBuffer& other) const -> bool {
+  const auto min_len = std::min(Size(), other.Size());
+  int cmp = std::memcmp(Data(), other.Data(), min_len);
+  if (cmp != 0) return cmp < 0;
+  return Size() < other.Size();
+}
+
+auto GFBuffer::operator!=(const GFBuffer& o) const -> bool {
+  return !(*this == o);
+}
+
+GFBuffer::GFBuffer(GFBuffer&& other) noexcept : impl_(std::move(other.impl_)) {}
+
+auto GFBuffer::operator=(GFBuffer&& other) noexcept -> GFBuffer& {
+  if (this != &other) {
+    impl_ = std::move(other.impl_);
+  }
+  return *this;
+}
+
+GFBuffer::GFBuffer(const GFBuffer& other) = default;
+
+auto GFBuffer::operator=(const GFBuffer& other) -> GFBuffer& = default;
+
+void GFBuffer::Combine(const std::initializer_list<GFBuffer>& buffers) {
+  size_t total_new_data = 0;
+  for (const auto& b : buffers) {
+    if (!b.Empty()) total_new_data += b.impl_->sec_size_;
+  }
+  if (total_new_data == 0) return;
+
+  const auto old_size = impl_->sec_size_;
+  Resize(static_cast<ssize_t>(old_size + total_new_data));
+
+  auto offset = old_size;
+  for (const auto& b : buffers) {
+    if (!b.Empty()) {
+      memcpy(static_cast<char*>(impl_->sec_ptr_) + offset, b.impl_->sec_ptr_,
+             b.impl_->sec_size_);
+      offset += b.impl_->sec_size_;
+    }
+  }
+}
 }  // namespace GpgFrontend

@@ -28,8 +28,11 @@
 
 #include "TextEditTabWidget.h"
 
+#include "core/function/CacheManager.h"
+#include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/CacheObject.h"
+#include "core/model/GFBuffer.h"
 #include "ui/UISignalStation.h"
 #include "ui/widgets/EMailEditorPage.h"
 #include "ui/widgets/FilePage.h"
@@ -209,54 +212,15 @@ auto TextEditTabWidget::stripped_name(const QString& full_file_name)
 void TextEditTabWidget::slot_save_status_to_cache_for_recovery() {
   if (this->text_page_data_modified_count_++ % 8 != 0) return;
 
-  auto settings = GetSettings();
-
   bool restore_text_editor_page =
-      settings.value("basic/restore_text_editor_page", false).toBool();
-  if (!restore_text_editor_page) {
-    FLOG_D("restore_text_editor_page is false, ignoring...");
-    return;
-  }
+      GetSettings().value("basic/restore_text_editor_page", false).toBool();
+  if (!restore_text_editor_page) return;
 
-  int tab_count = this->count();
-  QContainer<std::tuple<int, QString, QString>> unsaved_pages;
-
-  for (int i = 0; i < tab_count; i++) {
-    auto* target_page = qobject_cast<PlainTextEditorPage*>(this->widget(i));
-
-    // if this page is no textedit, there should be nothing to save
-    if (target_page == nullptr) {
-      continue;
-    }
-
-    auto* document = target_page->GetTextPage()->document();
-    auto tab_title = this->tabText(i);
-    if (!target_page->ReadDone() || !target_page->isEnabled() ||
-        !document->isModified()) {
-      continue;
-    }
-
-    unsaved_pages.push_back({i, tab_title, document->toRawText()});
-  }
-
-  CacheObject cache("editor_unsaved_pages");
-  QJsonArray unsaved_page_array;
-  for (const auto& page : unsaved_pages) {
-    const auto [index, title, content] = page;
-
-    QJsonObject page_json;
-    page_json["index"] = index;
-    page_json["title"] = title;
-    page_json["content"] = content;
-
-    unsaved_page_array.push_back(page_json);
-  }
-
-  cache.setArray(unsaved_page_array);
+  SlotCacheTextEditors();
 }
 
 void TextEditTabWidget::SlotNewTab() {
-  QString header = tr("untitled") + QString::number(++count_page_) + ".txt";
+  const auto header = generate_new_title("T", "txt");
 
   auto* page = new PlainTextEditorPage();
   auto index = this->addTab(page, header);
@@ -286,9 +250,9 @@ void TextEditTabWidget::SlotNewEMailTab() {
           &TextEditTabWidget::slot_save_status_to_cache_for_recovery);
 }
 
-void TextEditTabWidget::SlotNewTabWithContent(QString title,
-                                              const QString& content) {
-  QString header = tr("untitled") + QString::number(++count_page_) + ".txt";
+void TextEditTabWidget::SlotNewTabWithGFBuffer(QString title,
+                                               const GFBuffer& buffer) {
+  QString header;
   if (!title.isEmpty()) {
     // modify title
     if (!title.isEmpty() && title[0] == '*') {
@@ -296,6 +260,35 @@ void TextEditTabWidget::SlotNewTabWithContent(QString title,
     }
     // set title
     header = title;
+  } else {
+    header = generate_new_title("T", title);
+  }
+
+  auto* page = new PlainTextEditorPage();
+  auto index = this->addTab(page, header);
+  this->setTabIcon(index, QIcon(":/icons/file.png"));
+  page->GetTextPage()->setFocus();
+  connect(page->GetTextPage()->document(), &QTextDocument::modificationChanged,
+          this, &TextEditTabWidget::SlotShowModified);
+  connect(page->GetTextPage()->document(), &QTextDocument::contentsChanged,
+          this, &TextEditTabWidget::slot_save_status_to_cache_for_recovery);
+
+  // set content with modified status
+  page->GetTextPage()->document()->setPlainText(buffer.ConvertToQString());
+}
+
+void TextEditTabWidget::SlotNewTabWithContent(QString title,
+                                              const QString& content) {
+  QString header;
+  if (!title.isEmpty()) {
+    // modify title
+    if (!title.isEmpty() && title[0] == '*') {
+      title.remove(0, 1);
+    }
+    // set title
+    header = title;
+  } else {
+    header = generate_new_title("T", title);
   }
 
   auto* page = new PlainTextEditorPage();
@@ -312,12 +305,16 @@ void TextEditTabWidget::SlotNewTabWithContent(QString title,
 }
 
 void TextEditTabWidget::SlotOpenDefaultPath() {
-#if defined(__APPLE__) && defined(__MACH__)
-  auto* page = new FilePage(qobject_cast<QWidget*>(parent()), QDir::homePath());
-#else
+  const auto home_path_as_file_panel_default_path =
+      GetSettings()
+          .value("basic/home_path_as_file_panel_default_path", true)
+          .toBool();
+
   auto* page =
-      new FilePage(qobject_cast<QWidget*>(parent()), QDir::currentPath());
-#endif
+      new FilePage(qobject_cast<QWidget*>(parent()),
+                   home_path_as_file_panel_default_path ? QDir::homePath()
+                                                        : QDir::currentPath());
+
   auto index = this->addTab(page, QString());
   this->setTabIcon(index, QIcon(":/icons/workspace.png"));
   this->setTabText(index, tr("Default Workspace"));
@@ -350,8 +347,127 @@ void TextEditTabWidget::slot_file_page_path_changed(const QString& path) {
   this->setTabText(index, m_path);
   this->setTabToolTip(index, t_path);
 
-  emit UISignalStation::GetInstance() -> SignalMainWindowUpdateBasicOperaMenu(
-                                          0);
+  emit UISignalStation::GetInstance()
+      -> SignalMainWindowUpdateBasicOperaMenu(0);
 }
 
+void TextEditTabWidget::SlotCacheTextEditors() {
+  int tab_count = this->count();
+
+  struct TextEditorStatus {
+    int index;
+    QString title;
+    GFBuffer content;
+    QString type;
+  };
+
+  QContainer<TextEditorStatus> unsaved_pages;
+
+  for (int i = 0; i < tab_count; i++) {
+    auto* target_page = qobject_cast<PlainTextEditorPage*>(this->widget(i));
+
+    // if this page is no textedit, there should be nothing to save
+    if (target_page == nullptr) {
+      continue;
+    }
+
+    auto* document = target_page->GetTextPage()->document();
+    auto tab_title = this->tabText(i);
+    if (!target_page->ReadDone() || !target_page->isEnabled() ||
+        !document->isModified()) {
+      continue;
+    }
+
+    auto content = document->toRawText();
+
+    unsaved_pages.push_back({
+        i,
+        tab_title,
+        GFBuffer(content),
+        "text_editor",
+    });
+
+    content.fill('X');
+    content.clear();
+  }
+
+  auto& gss = GlobalSettingStation::GetInstance();
+  CacheObject cache("editor_pages_cache");
+  QJsonArray unsaved_page_array;
+  for (const auto& page : unsaved_pages) {
+    QJsonObject page_json;
+    page_json["index"] = page.index;
+    page_json["type"] = page.type;
+    page_json["title"] = page.title;
+
+    auto encrypted_content =
+        GFBufferFactory::Encrypt(gss.GetActiveAppSecureKey(), page.content);
+    if (!encrypted_content) continue;
+
+    auto base64_content = GFBufferFactory::ToBase64(*encrypted_content);
+    if (!base64_content) continue;
+
+    page_json["content"] = base64_content->ConvertToQString();
+    page_json["key_id"] =
+        QString::fromLatin1(gss.GetActiveKeyId().ConvertToQByteArray().toHex());
+
+    unsaved_page_array.push_back(page_json);
+  }
+
+  cache.setArray(unsaved_page_array);
+}
+
+void TextEditTabWidget::SlotRestoreTextEditorsCache() {
+  bool restore_text_editor_page =
+      GetSettings().value("basic/restore_text_editor_page", false).toBool();
+  if (!restore_text_editor_page) {
+    CacheObject cache("editor_pages_cache");
+    cache.setObject(QJsonObject());
+    return;
+  }
+
+  auto json_data =
+      CacheManager::GetInstance().LoadDurableCache("editor_pages_cache");
+
+  if (json_data.isEmpty() || !json_data.isArray()) return;
+
+  auto& gss = GlobalSettingStation::GetInstance();
+  auto json_array = json_data.array();
+  for (const auto& value_ref : json_array) {
+    if (!value_ref.isObject()) continue;
+    auto json = value_ref.toObject();
+
+    if (!json.contains("title") || !json.contains("content")) {
+      continue;
+    }
+
+    const auto title = json["title"].toString();
+    const auto base64_content = json["content"].toString();
+
+    auto encrypted_content =
+        GFBufferFactory::FromBase64(GFBuffer(base64_content));
+    if (!encrypted_content) continue;
+
+    auto key_id = QByteArray::fromHex(json["key_id"].toString().toLatin1());
+    auto key = gss.GetAppSecureKey(GFBuffer(key_id));
+    key_id.fill('X');
+    key_id.clear();
+
+    if (key.Empty()) continue;
+
+    auto content = GFBufferFactory::Decrypt(key, *encrypted_content);
+    if (!content) continue;
+
+    LOG_D() << "restoring text editor tab, title: " << title;
+    SlotNewTabWithGFBuffer(title, *content);
+  }
+
+  CacheObject cache("editor_pages_cache");
+  cache.setObject(QJsonObject());
+}
+
+auto TextEditTabWidget::generate_new_title(const QString& prefix,
+                                           const QString& suffix) -> QString {
+  return prefix + QString::number(++count_page_) + "." + suffix;
+}
 }  // namespace GpgFrontend::UI

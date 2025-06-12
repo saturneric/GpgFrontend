@@ -31,6 +31,7 @@
 #include <qsettings.h>
 
 #include "core/function/basic/GpgFunctionObject.h"
+#include "core/model/GFBuffer.h"
 
 namespace GpgFrontend {
 
@@ -92,11 +93,25 @@ class GF_CORE_EXPORT GlobalSettingStation
   [[nodiscard]] auto GetConfigPath() const -> QString;
 
   /**
+   * @brief Get the Config Dir Path object
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto GetConfigDirPath() const -> QString;
+
+  /**
    * @brief Get the Modules Dir object
    *
    * @return QString
    */
   [[nodiscard]] auto GetModulesDir() const -> QString;
+
+  /**
+   * @brief Get the Data Objects Dir object
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto GetDataObjectsDir() const -> QString;
 
   /**
    * @brief Get the Log Files Size object
@@ -138,6 +153,77 @@ class GF_CORE_EXPORT GlobalSettingStation
    * @return false
    */
   [[nodiscard]] auto IsProtableMode() const -> bool;
+
+  /**
+   * @brief Get the App Secure Key Path object
+   *
+   * @return QString
+   */
+  auto GetLegacyAppSecureKeyPath() -> QString;
+
+  /**
+   * @brief Get the App Secure Key Dir object
+   *
+   * @return QString
+   */
+  auto GetAppSecureKeyDir() -> QString;
+
+  /**
+   * @brief Set the Active Key Id object
+   *
+   * @param id
+   */
+  void SetActiveKeyId(const GFBuffer& id);
+
+  /**
+   * @brief Set the Legacy Key Id object
+   *
+   * @param id
+   */
+  void SetLegacyKeyId(const GFBuffer& id);
+
+  /**
+   * @brief Set the Active Key Id object
+   *
+   * @param id
+   */
+  auto GetActiveKeyId() -> GFBuffer;
+
+  /**
+   * @brief Get the Active Key object
+   *
+   * @return GFBuffer
+   */
+  auto GetActiveAppSecureKey() -> GFBuffer;
+
+  /**
+   * @brief Get the Legacy App Secure Key object
+   *
+   * @return GFBuffer
+   */
+  auto GetLegacyAppSecureKey() -> GFBuffer;
+
+  /**
+   * @brief Get the App Secure Key object
+   *
+   * @return GFBuffer
+   */
+  auto GetAppSecureKey(const GFBuffer& id) -> GFBuffer;
+
+  /**
+   * @brief Set the App Secure Key object
+   *
+   * @return auto
+   */
+  void AppendAppSecureKeys(const QMap<GFBuffer, GFBuffer>& keys);
+
+  /**
+   * @brief Get the Legacy Secure Key object
+   *
+   * @param id
+   * @return GFBuffer
+   */
+  auto GetLegacySecureKey() -> GFBuffer;
 
  private:
   class Impl;

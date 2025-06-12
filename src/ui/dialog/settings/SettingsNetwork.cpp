@@ -84,19 +84,32 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
 
   ui_->checkProxyConnectionButton->setText(
       tr("Apply Proxy Settings and Check Proxy Connection"));
-
   ui_->forbidALLGnuPGNetworkConnectionCheckBox->setText(
       tr("Forbid all GnuPG network connection."));
-
-  if (Module::IsModuleActivate(kVersionCheckingModuleID)) {
-    ui_->prohibitUpdateCheck->setText(
-        tr("Prohibit checking for version updates when the program starts."));
-  }
+  ui_->prohibitUpdateCheck->setText(
+      tr("Prohibit checking for version updates when the program starts."));
+  ui_->updateCheckingAPILabel->setText(tr("Update Checking API"));
   ui_->autoFetchKeyPublishStatusCheckBox->setText(
       tr("Automatically fetch key publish status from key server."));
   ui_->networkAbilityTipsLabel->setText(
       tr("Tips: These Option Changes take effect only after the "
          "application restart."));
+
+  auto has_version_checking_module =
+      Module::IsModuleActivate(kVersionCheckingModuleID);
+
+  ui_->prohibitUpdateCheck->setEnabled(has_version_checking_module);
+  auto group = QGroupBox();
+
+  auto *update_api_group = new QButtonGroup(this);
+  update_api_group->addButton(ui_->githubRadioButton);
+  update_api_group->addButton(ui_->bktusRadioButton);
+
+  ui_->forbidALLGnuPGNetworkConnectionCheckBox->setEnabled(
+      has_version_checking_module);
+  ui_->githubRadioButton->setEnabled(has_version_checking_module);
+  ui_->bktusRadioButton->setEnabled(has_version_checking_module);
+
   SetSettings();
 }
 
@@ -141,6 +154,14 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
   ui_->autoFetchKeyPublishStatusCheckBox->setCheckState(
       auto_fetch_key_publish_status ? Qt::Checked : Qt::Unchecked);
 
+  auto update_checking_api =
+      settings.value("network/update_checking_api", "github").toString();
+  if (update_checking_api == "github") {
+    ui_->githubRadioButton->setChecked(true);
+  } else {
+    ui_->bktusRadioButton->setChecked(true);
+  }
+
   switch_ui_proxy_type(ui_->proxyTypeComboBox->currentText());
   switch_ui_enabled(ui_->enableProxyCheckBox->isChecked());
 }
@@ -161,6 +182,8 @@ void GpgFrontend::UI::NetworkTab::ApplySettings() {
                     ui_->prohibitUpdateCheck->isChecked());
   settings.setValue("network/auto_fetch_key_publish_status",
                     ui_->autoFetchKeyPublishStatusCheckBox->isChecked());
+  settings.setValue("network/update_checking_api",
+                    ui_->githubRadioButton->isChecked() ? "github" : "bktus");
 
   apply_proxy_settings();
 }

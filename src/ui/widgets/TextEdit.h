@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/model/GFBuffer.h"
 #include "ui/widgets/EMailEditorPage.h"
 #include "ui/widgets/FilePage.h"
 #include "ui/widgets/PlainTextEditorPage.h"
@@ -124,7 +125,8 @@ class TextEdit : public QWidget {
  public slots:
 
   /**
-   * @details Insert a ">" at the beginning of every line of current textedit.
+   * @details Insert a ">" at the beginning of every line of current
+   * textedit.
    */
   void SlotQuote() const;
 
@@ -133,6 +135,12 @@ class TextEdit : public QWidget {
    * @param text to fill on.
    */
   void SlotFillTextEditWithText(const QString& text) const;
+
+  /**
+   * @details replace the text of currently active textedit with given text.
+   * @param text to fill on.
+   */
+  void SlotFillTextEditWithText(const GFBuffer& buffer) const;
 
   /**
    * @details Saves the content of the current tab, if it has a filepath
@@ -196,7 +204,13 @@ class TextEdit : public QWidget {
    * @brief
    *
    */
-  void SlotNewDefaultFileBrowserTab();
+  void SlotNewDefaultWorkspaceTab();
+
+  /**
+   * @brief
+   *
+   */
+  void SlotOpenDefaultFileBrowserTab();
 
   /**
    * New File Tab to do file operation
@@ -288,9 +302,9 @@ class TextEdit : public QWidget {
   /**
    * @brief
    *
-   * @param text
+   * @param buffer
    */
-  void SlotSetText2CurEMailPage(const QString& text);
+  void SlotSetGFBuffer2CurEMailPage(const GFBuffer& buffer);
 
   /**
    * @brief
@@ -323,12 +337,6 @@ class TextEdit : public QWidget {
    * @param index Tab-number to remove
    */
   void slot_remove_tab(int index);
-
-  /**
-   * @brief
-   *
-   */
-  void slot_restore_unsaved_tabs();
 
  private:
   TextEditTabWidget* tab_widget_;  ///< widget containing the tabs of the editor

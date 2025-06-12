@@ -68,12 +68,14 @@ class GF_CORE_EXPORT GpgAutomatonHandler
 
     void SetStatus(AutomatonState next_state);
     void SetSuccess(bool success);
+    void SetKeyConsiderIdMatched(bool matched);
     void SetPromptStatus(QString status, QString args);
     void SetHandler(AutomatonNextStateHandler next_state_handler,
                     AutomatonActionHandler action_handler);
 
     [[nodiscard]] auto CurrentStatus() const -> AutomatonState;
     [[nodiscard]] auto Success() const -> bool;
+    [[nodiscard]] auto KeyConsiderIdMatched() const -> bool;
     [[nodiscard]] auto KeyFpr() const -> QString;
     [[nodiscard]] auto SerialNumber() const -> QString;
     [[nodiscard]] auto PromptStatus() const -> std::tuple<QString, QString>;
@@ -84,6 +86,7 @@ class GF_CORE_EXPORT GpgAutomatonHandler
     AutomatonActionHandler action_handler_;
     bool success_ = true;
     bool card_edit_;
+    bool key_consider_id_matched_;
     QString id_;
     QString prompt_status_;
     QString prompt_args_;

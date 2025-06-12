@@ -38,9 +38,10 @@ UIModuleManager::UIModuleManager(int channel)
 
 UIModuleManager::~UIModuleManager() = default;
 
-auto UIModuleManager::DeclareMountPoint(
-    const QString& id, const QString& entry_type,
-    QMap<QString, QVariant> meta_data_desc) -> bool {
+auto UIModuleManager::DeclareMountPoint(const QString& id,
+                                        const QString& entry_type,
+                                        QMap<QString, QVariant> meta_data_desc)
+    -> bool {
   if (id.isEmpty() || mount_points_.contains(id)) return false;
 
   UIMountPoint point;
@@ -84,8 +85,9 @@ auto MountedUIEntry::GetWidget() const -> QWidget* {
   return qobject_cast<QWidget*>(static_cast<QObject*>(factory_(nullptr)));
 }
 
-auto MountedUIEntry::GetMetaDataByDefault(
-    const QString& key, QString default_value) const -> QString {
+auto MountedUIEntry::GetMetaDataByDefault(const QString& key,
+                                          QString default_value) const
+    -> QString {
   if (meta_data_translated_.contains(key)) return meta_data_translated_[key];
   if (!meta_data_.contains(key)) return default_value;
   return meta_data_[key];
@@ -107,14 +109,6 @@ void UIModuleManager::RegisterAllModuleTranslators() {
 
   const auto locale_name = QLocale().name();
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  for (const auto& reader : translator_data_readers_.asKeyValueRange()) {
-    char* data = nullptr;
-
-    auto data_size = reader.second.reader_(GFStrDup(locale_name), &data);
-    LOG_D() << "module " << reader.first << "reader, read locale "
-            << locale_name << ", data size: " << data_size;
-#else
   for (auto it = translator_data_readers_.keyValueBegin();
        it != translator_data_readers_.keyValueEnd(); ++it) {
     char* data = nullptr;
@@ -122,17 +116,16 @@ void UIModuleManager::RegisterAllModuleTranslators() {
     auto data_size = it->second.reader_(GFStrDup(locale_name), &data);
     LOG_D() << "module " << it->first << "reader, read locale " << locale_name
             << ", data size: " << data_size;
-#endif
 
     if (data == nullptr) continue;
 
     if (data_size <= 0) {
-      SecureFree(data);
+      SMAFree(data);
       continue;
     }
 
     QByteArray b(data, data_size);
-    SecureFree(data);
+    SMAFree(data);
 
     auto* translator = new QTranslator(QCoreApplication::instance());
     auto load = translator->load(
@@ -147,20 +140,6 @@ void UIModuleManager::RegisterAllModuleTranslators() {
 }
 
 void UIModuleManager::TranslateAllModulesParams() {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-  for (auto entry : mounted_entries_.asKeyValueRange()) {
-    for (auto& m_entry : entry.second) {
-      m_entry.meta_data_translated_.clear();
-      for (auto param : m_entry.meta_data_.asKeyValueRange()) {
-        m_entry.meta_data_translated_[param.first] =
-            QApplication::translate("GTrC", param.second.toUtf8());
-        LOG_D() << "module entry metadata key: " << param.first
-                << "value: " << param.second
-                << "translated: " << m_entry.meta_data_translated_[param.first];
-      }
-    }
-  }
-#else
   for (auto it = mounted_entries_.keyValueBegin();
        it != mounted_entries_.keyValueEnd(); ++it) {
     for (auto& m_entry : it->second) {
@@ -172,7 +151,6 @@ void UIModuleManager::TranslateAllModulesParams() {
       }
     }
   }
-#endif
 }
 
 auto UIModuleManager::RegisterQObject(const QString& id, QObject* p) -> bool {

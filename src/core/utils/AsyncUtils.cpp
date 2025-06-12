@@ -94,13 +94,13 @@ auto RunIOOperaAsync(const OperaRunnable& runnable,
               operation,
               [=](const DataObjectPtr& data_object) -> int {
                 auto custom_data_object = TransferParams();
-                GpgError err = runnable(custom_data_object);
+                auto err = runnable(custom_data_object);
 
                 data_object->Swap({err, custom_data_object});
                 return 0;
               },
               [=](int rtn, const DataObjectPtr& data_object) {
-                if (rtn < 0) {
+                if (rtn != 0) {
                   callback(-1, ExtractParams<DataObjectPtr>(data_object, 1));
                 } else {
                   callback(ExtractParams<GFError>(data_object, 0),
@@ -113,8 +113,8 @@ auto RunIOOperaAsync(const OperaRunnable& runnable,
 }
 
 auto RunOperaAsync(const OperaRunnable& runnable,
-                   const OperationCallback& callback,
-                   const QString& operation) -> Thread::Task::TaskHandler {
+                   const OperationCallback& callback, const QString& operation)
+    -> Thread::Task::TaskHandler {
   auto handler =
       Thread::TaskRunnerGetter::GetInstance()
           .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Default)
@@ -122,13 +122,13 @@ auto RunOperaAsync(const OperaRunnable& runnable,
               operation,
               [=](const DataObjectPtr& data_object) -> int {
                 auto custom_data_object = TransferParams();
-                GpgError err = runnable(custom_data_object);
+                auto err = runnable(custom_data_object);
 
                 data_object->Swap({err, custom_data_object});
-                return 0;
+                return static_cast<int>(err);
               },
               [=](int rtn, const DataObjectPtr& data_object) {
-                if (rtn < 0) {
+                if (rtn != 0) {
                   callback(-1, ExtractParams<DataObjectPtr>(data_object, 1));
                 } else {
                   callback(ExtractParams<GFError>(data_object, 0),

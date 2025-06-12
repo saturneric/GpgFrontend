@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include "core/typedef/CoreTypedef.h"
-
 namespace GpgFrontend::UI {
 
 class FileTreeView : public QTreeView {

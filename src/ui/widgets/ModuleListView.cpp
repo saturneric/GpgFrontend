@@ -59,7 +59,7 @@ void ModuleListView::load_module_information() {
     auto integrated_module = module_manager.IsIntegratedModule(module_id);
     auto meta_data = module->GetModuleMetaData();
 
-    auto *item = new QStandardItem((integrated_module ? "*" : "") +
+    auto *item = new QStandardItem((integrated_module ? "*" : "?") +
                                    meta_data.value("Name", module_id));
 
     item->setData(module_id, Qt::UserRole + 1);

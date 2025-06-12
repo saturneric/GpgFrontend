@@ -37,8 +37,8 @@ SignersPicker::SignersPicker(int channel, QWidget* parent)
   auto* confirm_button = new QPushButton(tr("Confirm"));
   auto* cancel_button = new QPushButton(tr("Cancel"));
 
-  connect(confirm_button, &QPushButton::clicked,
-          [=]() { this->accepted_ = true; });
+  confirm_button->setDisabled(true);
+
   connect(confirm_button, &QPushButton::clicked, this, &QDialog::accept);
   connect(cancel_button, &QPushButton::clicked, this, &QDialog::reject);
 
@@ -53,14 +53,24 @@ SignersPicker::SignersPicker(int channel, QWidget* parent)
       [](const GpgAbstractKey* key) -> bool { return key->IsHasSignCap(); });
   key_list_->SlotRefresh();
 
+  connect(key_list_, &KeyList::SignalKeyChecked, this, [=]() {
+    confirm_button->setDisabled(GetCheckedSigners().isEmpty());
+  });
+
   auto* vbox2 = new QVBoxLayout();
   vbox2->addWidget(new QLabel(tr("Select Signer(s)") + ": "));
-  vbox2->addWidget(key_list_);
-  vbox2->addWidget(new QLabel(
-      tr("Please select one or more private keys you use for signing.") + "\n" +
-      tr("If no key is selected, the default key will be used for signing.")));
-  vbox2->addWidget(confirm_button);
-  vbox2->addWidget(cancel_button);
+  vbox2->addWidget(key_list_, 1);
+
+  auto* tips_label = new QLabel(
+      tr("Please select one or more private keys you use for signing."));
+  vbox2->addWidget(tips_label);
+  tips_label->setStyleSheet("color: #666; margin-bottom: 6px;");
+
+  auto* btn_layout = new QHBoxLayout();
+  btn_layout->addStretch();
+  btn_layout->addWidget(confirm_button);
+  btn_layout->addWidget(cancel_button);
+  vbox2->addLayout(btn_layout);
   vbox2->addStretch(0);
   setLayout(vbox2);
 
@@ -76,12 +86,13 @@ SignersPicker::SignersPicker(int channel, QWidget* parent)
   this->show();
   this->raise();
   this->activateWindow();
+
+  // should not delete itself at closing by default
+  setAttribute(Qt::WA_DeleteOnClose, false);
 }
 
 auto SignersPicker::GetCheckedSigners() -> GpgAbstractKeyPtrList {
   return key_list_->GetCheckedPrivateKey();
 }
-
-auto SignersPicker::GetStatus() const -> bool { return this->accepted_; }
 
 }  // namespace GpgFrontend::UI

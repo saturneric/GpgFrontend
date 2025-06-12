@@ -44,8 +44,8 @@ std::mutex g_function_object_mutex_map_lock;
 std::map<size_t, FunctionObjectTypeLockInfo> g_function_object_mutex_map;
 
 namespace GpgFrontend {
-auto GetGlobalFunctionObjectChannelLock(const std::type_info& type,
-                                        int channel) -> std::mutex& {
+auto GetGlobalFunctionObjectChannelLock(const std::type_info& type, int channel)
+    -> std::mutex& {
   std::lock_guard<std::mutex> lock_guard(g_function_object_mutex_map_lock);
   auto& channel_map = g_function_object_mutex_map[type.hash_code()];
   return channel_map.channel_lock_map[channel];
@@ -64,17 +64,16 @@ auto GetGlobalFunctionObjectTypeLock(const std::type_info& type)
  * @param channel
  * @return T&
  */
-auto GetChannelObjectInstance(const std::type_info& type,
-                              int channel) -> ChannelObject* {
+auto GetChannelObjectInstance(const std::type_info& type, int channel)
+    -> ChannelObject* {
   // lock this channel
   std::lock_guard<std::mutex> guard(
       GetGlobalFunctionObjectChannelLock(type, channel));
 
   auto* p_storage =
-      SingletonStorageCollection::GetInstance(false)->GetSingletonStorage(type);
+      SingletonStorageCollection::GetInstance()->GetSingletonStorage(type);
 
-  auto* p_pbj =
-      static_cast<ChannelObject*>(p_storage->FindObjectInChannel(channel));
+  auto* p_pbj = p_storage->FindObjectInChannel(channel);
 
   return p_pbj;
 }
@@ -87,7 +86,7 @@ auto CreateChannelObjectInstance(const std::type_info& type, int channel,
       GetGlobalFunctionObjectChannelLock(type, channel));
 
   auto* p_storage =
-      SingletonStorageCollection::GetInstance(false)->GetSingletonStorage(type);
+      SingletonStorageCollection::GetInstance()->GetSingletonStorage(type);
 
   // do create object of this channel
   return p_storage->SetObjectInChannel(channel, std::move(channel_object));

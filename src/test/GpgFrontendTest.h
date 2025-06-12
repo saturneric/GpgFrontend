@@ -28,12 +28,23 @@
 
 #pragma once
 
+#include <gtest/gtest.h>
+
+#include <QLoggingCategory>
+
+// std
+#include <thread>
+#include <vector>
+
+extern "C" {
+auto GF_TEST_EXPORT GFTestValidateSymbol() -> int;
+}
+
 // private declare area of test
 #ifdef GF_TEST_PRIVATE
 
 // declare logging category
 Q_DECLARE_LOGGING_CATEGORY(test)
-
 #define LOG_D() qCDebug(test)
 #define LOG_I() qCInfo(test)
 #define LOG_W() qCWarning(test)
@@ -57,6 +68,15 @@ Q_DECLARE_LOGGING_CATEGORY(test)
 #endif
 
 #endif
+
+#define WAIT_FOR_TRUE(expr, timeout_ms)                          \
+  {                                                              \
+    int _wait_counter = 0;                                       \
+    while (!(expr) && _wait_counter++ < (timeout_ms)) {          \
+      std::this_thread::sleep_for(std::chrono::milliseconds(1)); \
+    }                                                            \
+    EXPECT_TRUE(expr);                                           \
+  }
 
 namespace GpgFrontend::Test {
 

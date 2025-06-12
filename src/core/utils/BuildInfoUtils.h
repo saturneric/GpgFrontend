@@ -112,6 +112,20 @@ auto GF_CORE_EXPORT GetProjectGpgMEVersion() -> QString;
  *
  * @return QString
  */
+auto GF_CORE_EXPORT GetProjectAssuanVersion() -> QString;
+
+/**
+ * @brief
+ *
+ * @return QString
+ */
+auto GF_CORE_EXPORT GetProjectGpgErrorVersion() -> QString;
+
+/**
+ * @brief
+ *
+ * @return QString
+ */
 auto GF_CORE_EXPORT GetHttpRequestUserAgent() -> QString;
 
 /**

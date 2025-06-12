@@ -60,16 +60,14 @@ jobs:
           lfs: "false"
           submodules: recursive
 
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: release-qt5-${{ github.job }}-${{ matrix.os }}
+
       - name: Get Short SHA of Commit
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-
-      - name: Set up MinGW (Windows)
-        uses: msys2/setup-msys2@v2
-        with:
-          install: git msys2-devel base-devel binutils mingw-w64-x86_64-toolchain
-          release: false
-        if: runner.os == 'Windows'
 
       - name: Set up MinGW (Windows)
         uses: msys2/setup-msys2@v2
@@ -78,21 +76,16 @@ jobs:
           release: false
           cache: true
           install: >-
-            git 
-            msys2-devel 
-            base-devel 
-            binutils 
+            git
             zip
             unzip
-            libintl
-            texinfo 
+            msys2-devel
+            base-devel
             msys2-runtime-devel 
-            mingw-w64-x86_64-toolchain
-            mingw-w64-x86_64-gcc 
+            mingw-w64-x86_64-gcc
             mingw-w64-x86_64-make
             mingw-w64-x86_64-cmake
-            mingw-w64-x86_64-qt5 
-            mingw-w64-x86_64-icu 
+            mingw-w64-x86_64-qt5
             mingw-w64-x86_64-ninja 
             mingw-w64-x86_64-gnupg 
             mingw-w64-x86_64-gpgme
@@ -100,6 +93,9 @@ jobs:
             mingw-w64-x86_64-gtest
             mingw-w64-x86_64-autotools
             mingw-w64-x86_64-angleproject
+            mingw-w64-x86_64-texinfo
+            mingw-w64-x86_64-libassuan
+            mingw-w64-x86_64-ccache
         if: runner.os == 'Windows'
 
       - name: Install Dependence (Linux)
@@ -115,50 +111,33 @@ jobs:
         if: runner.os == 'Linux'
 
       - name: Install Qt5
-        uses: jurplel/install-qt-action@v3
+        uses: jurplel/install-qt-action@v4
         with:
           version: "5.15.2"
           cache: "true"
         if: runner.os == 'Linux'
 
-      - name: Build gpg-error (Linux)
-        run: |
-          git clone --depth 1 --branch libgpg-error-1.51 git://git.gnupg.org/libgpg-error.git ${{github.workspace}}/third_party/libgpg-error
-          cd  ${{github.workspace}}/third_party/libgpg-error
-          ./autogen.sh
-          ./configure --enable-maintainer-mode && make -j4
-          sudo make install
-          cd ${{github.workspace}}
-        if: runner.os == 'Linux'
-
-      - name: Build assuan (Linux)
-        run: |
-          git clone --depth 1 --branch libassuan-2.5.7 git://git.gnupg.org/libassuan.git ${{github.workspace}}/third_party/libassuan
-          cd ${{github.workspace}}/third_party/libassuan
-          ./autogen.sh
-          ./configure --enable-maintainer-mode && make -j4
-          sudo make install
-          cd ${{github.workspace}}
-        if: runner.os == 'Linux'
-
-      - name: Build GpgME (Linux)
-        run: |
-          git clone --depth 1 --branch gpgme-1.24.2 git://git.gnupg.org/gpgme.git ${{github.workspace}}/third_party/gpgme
-          cd ${{github.workspace}}/third_party/gpgme
-          ./autogen.sh
-          ./configure --enable-maintainer-mode --enable-languages=cpp && make -j4
-          sudo make install
-          cd ${{github.workspace}}
-        if: runner.os == 'Linux'
-
       - name: Build GpgME (Windows)
         shell: msys2 {0}
         run: |
-          git clone --depth 1 --branch gpgme-1.24.2 git://git.gnupg.org/gpgme.git ${{github.workspace}}/third_party/gpgme
-          cd ${{github.workspace}}/third_party/gpgme
-          ./autogen.sh
+          cd $(cygpath -u "${{github.workspace}}")
+          cd third_party/gpgme
+          export CC="ccache gcc"
+          export CXX="ccache g++"
           export CFLAGS="${CFLAGS} -Wno-int-conversion -Wno-incompatible-pointer-types"
-          ./configure --enable-maintainer-mode --enable-languages=cl --disable-gpg-test --enable-w32-glib
+          ./autogen.sh
+          mkdir build && cd build
+          ../configure --enable-maintainer-mode \
+          --enable-static \
+          --disable-shared \
+          --enable-silent-rules \
+          --disable-dependency-tracking \
+          --enable-languages=cl \
+          --disable-gpgconf-test \
+          --disable-gpg-test \
+          --disable-gpgsm-test \
+          --disable-g13-test \
+          --enable-w32-glib
           make -j4
           make install
         if: runner.os == 'Windows'
@@ -178,13 +157,21 @@ jobs:
         run: |
           cd $(cygpath -u "${{github.workspace}}")
           mkdir build && cd build
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_BUILD_TYPE_STABLE=ON -DGPGFRONTEND_QT5_BUILD=ON ..
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DGPGFRONTEND_QT5_BUILD=ON \
+            -DGPGFRONTEND_SIGN_BUILT_BINARY=ON \
+            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
+            ..
           cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
         if: runner.os == 'Windows'
 
       - name: Build GpgFrontend (Linux)
         run: |
-          cmake -B ${{github.workspace}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGPGFRONTEND_QT5_BUILD=ON -DGPGFRONTEND_BUILD_APP_IMAGE=ON
+          cmake -B ${{github.workspace}}/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DGPGFRONTEND_QT5_BUILD=ON \
+            -DGPGFRONTEND_BUILD_APP_IMAGE=ON \
+            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
         if: runner.os == 'Linux'
 
@@ -194,7 +181,13 @@ jobs:
           cd ${{github.workspace}}/build/upload-artifact
           wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
-          ./linuxdeployqt-continuous-x86_64.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines,platforms,wayland-graphics-integration-client,wayland-decoration-client,wayland-shell-integration -appimage
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+          ./linuxdeployqt-continuous-x86_64.AppImage \
+            ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop \
+            -no-translations \
+            -extra-plugins=iconengines,platforms \
+            -appimage \
+            -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/lib/modules
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: runner.os == 'Linux'
@@ -209,14 +202,27 @@ jobs:
         shell: msys2 {0}
         run: |
           export URL="https://ftp.bktus.com/GnuPG/${{env.GNUPG_VERSION}}"
+          export KEY_URL="https://ftp.bktus.com/GPG_KEYS/5CA3DA246843FD03.asc"
           export FILE="gnupg.zip"
           export CHECKSUM_FILE="SHA256SUMS.txt"
+          export SIGNATURE_FILE="gnupg.zip.sig"
+          export GNUPGHOME=$(mktemp -d)
 
           cd $(cygpath -u "${{github.workspace}}")
 
           mkdir -p build/downloads
+
           curl -o build/downloads/$FILE $URL/$FILE
           curl -o build/downloads/$CHECKSUM_FILE $URL/$CHECKSUM_FILE
+          curl -o build/downloads/5CA3DA246843FD03.asc $KEY_URL
+          curl -o build/downloads/$SIGNATURE_FILE $URL/$SIGNATURE_FILE
+
+          gpg --import build/downloads/5CA3DA246843FD03.asc
+          gpg --verify build/downloads/$SIGNATURE_FILE build/downloads/$FILE
+          if [ $? -ne 0 ]; then
+            echo "GnuPG signature verification failed!" >&2
+            exit 1
+          fi
 
           CHECKSUM=$(grep "$FILE" build/downloads/$CHECKSUM_FILE | awk '{print $1}')
           ACTUAL_CHECKSUM=$(sha256sum build/downloads/$FILE | awk '{print $1}')
@@ -243,7 +249,8 @@ jobs:
           cp COPYING build/artifacts/
           cp gpgfrontend.ico build/artifacts/bin/
           rm -rf build/artifacts/bin/*.a
-          touch build/artifacts/bin/PORTABLE.txt
+          touch build/artifacts/bin/ENV.ini
+          echo "PortableMode=true" >> build/artifacts/bin/ENV.ini
           cd build
           windeployqt --no-translations --force ./artifacts/bin/libgf_core.dll
           windeployqt --no-translations --force ./artifacts/bin/libgf_ui.dll
@@ -251,7 +258,7 @@ jobs:
           windeployqt --no-translations --force ./artifacts/bin/GpgFrontend.exe
           mkdir upload-artifact
           cd artifacts
-          zip -r ../upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-x86_64.zip *
+          zip -r ../upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-${{matrix.os}}-x86_64.zip *
         if: runner.os == 'Windows'
 
       - name: Upload Artifact(Linux)
@@ -261,9 +268,9 @@ jobs:
           path: ${{github.workspace}}/build/upload-artifact/Gpg_Frontend*.AppImage*
         if: runner.os == 'Linux'
 
-      - name: Upload Artifact(Windows)
-        uses: actions/upload-artifact@v4
+      - name: Upload Artifact (Windows)
+        uses: actions/upload-artifact@master
         with:
-          name: gpgfrontend-qt5-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{ env.SHORT_SHA }}
-          path: ${{github.workspace}}/build/artifacts/*
+          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
+          path: ${{github.workspace}}/build/upload-artifact/*
         if: runner.os == 'Windows'

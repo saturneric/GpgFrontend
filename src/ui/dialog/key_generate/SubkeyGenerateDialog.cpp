@@ -49,7 +49,7 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, GpgKeyPtr key,
       ui_(QSharedPointer<Ui_SubkeyGenDialog>::create()),
       current_gpg_context_channel_(channel),
       key_(std::move(key)),
-      gen_subkey_info_(QSharedPointer<KeyGenerateInfo>::create(true)),
+      gen_subkey_info_(SecureCreateSharedObject<KeyGenerateInfo>(true)),
       supported_subkey_algos_(KeyGenerateInfo::GetSupportedSubkeyAlgo(
           current_gpg_context_channel_)) {
   ui_->setupUi(this);

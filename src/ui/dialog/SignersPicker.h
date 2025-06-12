@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "GpgFrontendUI.h"
 #include "core/typedef/GpgTypedef.h"
 #include "ui/dialog//GeneralDialog.h"
 
@@ -58,15 +57,8 @@ class SignersPicker : public GeneralDialog {
    */
   auto GetCheckedSigners() -> GpgAbstractKeyPtrList;
 
-  /**
-   *
-   * @return
-   */
-  [[nodiscard]] auto GetStatus() const -> bool;
-
  private:
   KeyList* key_list_;  ///<
-  bool accepted_ = false;
 };
 
 }  // namespace GpgFrontend::UI

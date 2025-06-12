@@ -34,7 +34,7 @@
 namespace GpgFrontend {
 
 GpgAbstractKeyGetter::GpgAbstractKeyGetter(int channel)
-    : SingletonFunctionObject<GpgAbstractKeyGetter>(channel){};
+    : SingletonFunctionObject<GpgAbstractKeyGetter>(channel) {};
 
 auto GpgAbstractKeyGetter::Fetch() -> GpgAbstractKeyPtrList {
   auto ret = GpgAbstractKeyPtrList{};

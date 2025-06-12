@@ -56,7 +56,7 @@ auto GpgKeyImportExporter::ImportKey(const GFBuffer& in_buffer)
   result = gpgme_op_import_result(ctx_.BinaryContext());
   gpgme_import_status_t status = result->imports;
 
-  auto import_info = QSharedPointer<GpgImportInformation>::create(result);
+  auto import_info = SecureCreateSharedObject<GpgImportInformation>(result);
   while (status != nullptr) {
     GpgImportInformation::GpgImportedKey key;
     key.import_status = static_cast<int>(status->status);
@@ -73,9 +73,10 @@ auto GpgKeyImportExporter::ImportKey(const GFBuffer& in_buffer)
  * @param outBuffer output byte array
  * @return if success
  */
-auto GpgKeyImportExporter::ExportKey(
-    const GpgAbstractKeyPtr& key, bool secret, bool ascii, bool shortest,
-    bool ssh_mode) const -> std::tuple<GpgError, GFBuffer> {
+auto GpgKeyImportExporter::ExportKey(const GpgAbstractKeyPtr& key, bool secret,
+                                     bool ascii, bool shortest,
+                                     bool ssh_mode) const
+    -> std::tuple<GpgError, GFBuffer> {
   if (key == nullptr) return {GPG_ERR_CANCELED, {}};
 
   int mode = 0;

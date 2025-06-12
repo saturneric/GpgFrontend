@@ -34,42 +34,41 @@ QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
     : GeneralDialog("quit_dialog", parent) {
   setWindowTitle(tr("Unsaved Files"));
   setModal(true);
-  discarded_ = false;
 
   /*
    * Table of unsaved documents
    */
   QHashIterator<int, QString> i(unsavedDocs);
   int row = 0;
-  m_fileList_ = new QTableWidget(this);
-  m_fileList_->horizontalHeader()->hide();
-  m_fileList_->setColumnCount(3);
-  m_fileList_->setColumnWidth(0, 20);
-  m_fileList_->setColumnHidden(2, true);
-  m_fileList_->verticalHeader()->hide();
-  m_fileList_->setShowGrid(false);
-  m_fileList_->setEditTriggers(QAbstractItemView::NoEditTriggers);
-  m_fileList_->setFocusPolicy(Qt::NoFocus);
-  m_fileList_->horizontalHeader()->setStretchLastSection(true);
+  file_list_ = new QTableWidget(this);
+  file_list_->horizontalHeader()->hide();
+  file_list_->setColumnCount(3);
+  file_list_->setColumnWidth(0, 20);
+  file_list_->setColumnHidden(2, true);
+  file_list_->verticalHeader()->hide();
+  file_list_->setShowGrid(false);
+  file_list_->setEditTriggers(QAbstractItemView::NoEditTriggers);
+  file_list_->setFocusPolicy(Qt::NoFocus);
+  file_list_->horizontalHeader()->setStretchLastSection(true);
   // fill the table
   i.toFront();  // jump to the end of list to fill the table backwards
   while (i.hasNext()) {
     i.next();
-    m_fileList_->setRowCount(m_fileList_->rowCount() + 1);
+    file_list_->setRowCount(file_list_->rowCount() + 1);
 
     // checkbox in front of filename
     auto* tmp0 = new QTableWidgetItem();
     tmp0->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
     tmp0->setCheckState(Qt::Checked);
-    m_fileList_->setItem(row, 0, tmp0);
+    file_list_->setItem(row, 0, tmp0);
 
     // filename
     auto* tmp1 = new QTableWidgetItem(i.value());
-    m_fileList_->setItem(row, 1, tmp1);
+    file_list_->setItem(row, 1, tmp1);
 
     // tab-index in hidden column
     auto* tmp2 = new QTableWidgetItem(QString::number(i.key()));
-    m_fileList_->setItem(row, 2, tmp2);
+    file_list_->setItem(row, 2, tmp2);
     ++row;
   }
   /*
@@ -105,11 +104,26 @@ QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
   auto* button_box =
       new QDialogButtonBox(QDialogButtonBox::Discard | QDialogButtonBox::Save |
                            QDialogButtonBox::Cancel);
-  connect(button_box, &QDialogButtonBox::accepted, this, &QuitDialog::accept);
-  connect(button_box, &QDialogButtonBox::rejected, this, &QuitDialog::reject);
-  QPushButton* btn_no_key = button_box->button(QDialogButtonBox::Discard);
-  connect(btn_no_key, &QPushButton::clicked, this,
-          &QuitDialog::slot_my_discard);
+  // Discard
+  connect(button_box->button(QDialogButtonBox::Discard), &QPushButton::clicked,
+          this, [this]() {
+            emit SignalDiscard();
+            this->close();
+          });
+
+  // Save
+  connect(button_box->button(QDialogButtonBox::Save), &QPushButton::clicked,
+          this, [this]() {
+            emit SignalSave(this->GetTabIdsToSave());
+            this->close();
+          });
+
+  // Cancel
+  connect(button_box->button(QDialogButtonBox::Cancel), &QPushButton::clicked,
+          this, [this]() {
+            emit SignalCancel();
+            this->close();
+          });
 
   /*
    *  Set the layout
@@ -117,26 +131,20 @@ QuitDialog::QuitDialog(QWidget* parent, const QHash<int, QString>& unsavedDocs)
   auto* vbox = new QVBoxLayout();
   vbox->addWidget(warn_box);
   vbox->addWidget(check_label);
-  vbox->addWidget(m_fileList_);
+  vbox->addWidget(file_list_);
   vbox->addWidget(note_label);
   vbox->addWidget(button_box);
   this->setLayout(vbox);
 
   this->movePosition2CenterOfParent();
+  setAttribute(Qt::WA_DeleteOnClose, false);
 }
-
-void QuitDialog::slot_my_discard() {
-  discarded_ = true;
-  reject();
-}
-
-auto QuitDialog::IsDiscarded() const -> bool { return discarded_; }
 
 auto QuitDialog::GetTabIdsToSave() -> QContainer<int> {
   QContainer<int> tab_ids_to_save;
-  for (int i = 0; i < m_fileList_->rowCount(); i++) {
-    if (m_fileList_->item(i, 0)->checkState() == Qt::Checked) {
-      tab_ids_to_save << m_fileList_->item(i, 2)->text().toInt();
+  for (int i = 0; i < file_list_->rowCount(); i++) {
+    if (file_list_->item(i, 0)->checkState() == Qt::Checked) {
+      tab_ids_to_save << file_list_->item(i, 2)->text().toInt();
     }
   }
   return tab_ids_to_save;

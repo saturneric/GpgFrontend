@@ -29,11 +29,13 @@
 #include "MainWindow.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/GpgUtils.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/controller/GnuPGControllerDialog.h"
 #include "ui/dialog/controller/ModuleControllerDialog.h"
 #include "ui/dialog/controller/SmartCardControllerDialog.h"
 #include "ui/dialog/help/AboutDialog.h"
+#include "ui/dialog/key_generate/KeyGenerateDialog.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
 
@@ -41,19 +43,35 @@ namespace GpgFrontend::UI {
 
 void MainWindow::create_actions() {
   new_tab_act_ = create_action(
-      "new_tab", tr("New Text"), ":/icons/misc_doc.png", tr("Open a new file"),
+      "new_tab", tr("Text Editor"), ":/icons/misc_doc.png",
+      tr("Open a new text editor"),
       {QKeySequence(Qt::CTRL | Qt::Key_N), QKeySequence(Qt::CTRL | Qt::Key_T)});
   connect(new_tab_act_, &QAction::triggered, edit_, &TextEdit::SlotNewTab);
 
-  browser_act_ =
-      create_action("file_browser", tr("Open File"),
-                    ":/icons/file-operator.png", tr("Open a file panel"));
+  browser_act_ = create_action(
+      "file_browser_dir", tr("File Panel (Files)"), ":/icons/file-operator.png",
+      tr("Open a new file panel"), {QKeySequence(Qt::CTRL | Qt::Key_B)});
   connect(browser_act_, &QAction::triggered, this,
+          &MainWindow::slot_default_file_tab);
+
+  if (Module::IsModuleActivate(kEmailModuleID)) {
+    new_email_tab_act_ =
+        create_action("new_email_tab", tr("Mail Editor"), ":/icons/email.png",
+                      tr("Open a new text editor for email"),
+                      {QKeySequence(Qt::CTRL | Qt::Key_M)});
+    connect(new_email_tab_act_, &QAction::triggered, edit_,
+            &TextEdit::SlotNewEMailTab);
+  }
+
+  browser_file_act_ = create_action(
+      "file_browser", tr("Open File"), ":/icons/file-operator.png",
+      tr("Open the file panel and point to a file"));
+  connect(browser_file_act_, &QAction::triggered, this,
           &MainWindow::slot_open_file_tab);
 
   browser_dir_act_ = create_action(
       "file_browser_dir", tr("Open Directory"), ":/icons/file-operator.png",
-      tr("Open a file panel"), {QKeySequence(Qt::CTRL | Qt::Key_B)});
+      tr("Open the Files panel and point to a directory"));
   connect(browser_dir_act_, &QAction::triggered, this,
           &MainWindow::slot_open_file_tab_with_directory);
 
@@ -181,9 +199,29 @@ void MainWindow::create_actions() {
   connect(verify_act_, &QAction::triggered, this,
           &MainWindow::SlotGeneralVerify);
 
+  sym_encrypt_act_ = create_action("symmetric_encryption", tr("Sym. Encrypt"),
+                                   ":/icons/symmetric_encryption.png",
+                                   tr("Encrypt Message (Symmetric)"),
+                                   {QKeySequence(Qt::CTRL | Qt::Key_E)});
+  connect(sym_encrypt_act_, &QAction::triggered, this,
+          &MainWindow::SlotGeneralEncrypt);
+
   /*
    * Key Menu
    */
+
+  generate_key_pair_act_ =
+      create_action("generate_key_pair", tr("New Keypair"),
+                    ":/icons/keypairs.png", tr("Generate KeyPair"));
+  connect(generate_key_pair_act_, &QAction::triggered, this, [=]() {
+    if (!CheckGpgVersion(m_key_list_->GetCurrentGpgContextChannel(), "2.2.0")) {
+      CommonUtils::RaiseMessageBoxNotSupported(this);
+      return;
+    }
+
+    new KeyGenerateDialog(m_key_list_->GetCurrentGpgContextChannel(), this);
+  });
+
   import_key_from_file_act_ = create_action("import_key_from_file", tr("File"),
                                             ":/icons/import_key_from_file.png",
                                             tr("Import New Key From File"));
@@ -263,17 +301,6 @@ void MainWindow::create_actions() {
       ":/icons/smart-card.png", tr("Open Smart Card Controller Dialog"));
   connect(smart_card_controller_open_act_, &QAction::triggered, this,
           [this]() { (new SmartCardControllerDialog(this))->exec(); });
-
-  /**
-   * E-Mail Menu
-   */
-  if (Module::IsModuleActivate(kEmailModuleID)) {
-    new_email_tab_act_ =
-        create_action("new_email_tab", tr("New E-Mail"), ":/icons/email.png",
-                      tr("Create A New E-Mail Tab"));
-    connect(new_email_tab_act_, &QAction::triggered, edit_,
-            &TextEdit::SlotNewEMailTab);
-  }
 
   /*
    * About Menu
@@ -408,16 +435,20 @@ void MainWindow::create_actions() {
 
 void MainWindow::create_menus() {
   file_menu_ = menuBar()->addMenu(tr("File"));
-  file_menu_->addAction(new_tab_act_);
 
+  open_menu_ = file_menu_->addMenu(tr("Open"));
+  open_menu_->setToolTipsVisible(true);
+  open_menu_->addAction(browser_file_act_);
+  open_menu_->addAction(browser_dir_act_);
+
+  workspace_menu_ = file_menu_->addMenu(tr("Workspace"));
+  workspace_menu_->setToolTipsVisible(true);
+  workspace_menu_->addAction(browser_act_);
+  workspace_menu_->addAction(new_tab_act_);
   if (Module::IsModuleActivate(kEmailModuleID)) {
-    file_menu_->addAction(new_email_tab_act_);
+    workspace_menu_->addAction(new_email_tab_act_);
   }
 
-  file_menu_->addSeparator();
-  workspace_menu_ = file_menu_->addMenu(tr("Workspace"));
-  workspace_menu_->addAction(browser_act_);
-  workspace_menu_->addAction(browser_dir_act_);
   file_menu_->addSeparator();
 
   file_menu_->addAction(save_act_);
@@ -449,6 +480,7 @@ void MainWindow::create_menus() {
   edit_menu_->addAction(open_settings_act_);
 
   crypt_menu_ = menuBar()->addMenu(tr("Crypt"));
+  crypt_menu_->addAction(sym_encrypt_act_);
   crypt_menu_->addAction(encrypt_act_);
   crypt_menu_->addAction(encrypt_sign_act_);
   crypt_menu_->addAction(decrypt_act_);
@@ -459,6 +491,7 @@ void MainWindow::create_menus() {
   crypt_menu_->addSeparator();
 
   key_menu_ = menuBar()->addMenu(tr("Keys"));
+  key_menu_->addAction(generate_key_pair_act_);
   import_key_menu_ = key_menu_->addMenu(tr("Import Key"));
   import_key_menu_->setIcon(QIcon(":/icons/key_import.png"));
   import_key_menu_->addAction(import_key_from_file_act_);
@@ -499,22 +532,24 @@ void MainWindow::create_tool_bars() {
   file_tool_bar_ = addToolBar(tr("File"));
   file_tool_bar_->setObjectName("fileToolBar");
 
+  open_button_ = new QToolButton();
+  open_button_->setMenu(open_menu_);
+  open_button_->setPopupMode(QToolButton::InstantPopup);
+  open_button_->setIcon(QIcon(":/icons/open.png"));
+  open_button_->setToolTip(tr("Open ..."));
+  open_button_->setText(tr("Open"));
+
+  file_tool_bar_->addWidget(open_button_);
+
   // add dropdown menu for workspace
   workspace_button_ = new QToolButton();
   workspace_button_->setMenu(workspace_menu_);
   workspace_button_->setPopupMode(QToolButton::InstantPopup);
   workspace_button_->setIcon(QIcon(":/icons/workspace.png"));
-  workspace_button_->setToolTip(tr("Open Workspace..."));
+  workspace_button_->setToolTip(tr("Open Workspace as..."));
   workspace_button_->setText(tr("Workspace"));
 
   file_tool_bar_->addWidget(workspace_button_);
-  file_tool_bar_->addSeparator();
-
-  file_tool_bar_->addAction(new_tab_act_);
-
-  if (Module::IsModuleActivate(kEmailModuleID)) {
-    file_tool_bar_->addAction(new_email_tab_act_);
-  }
 
   view_menu_->addAction(file_tool_bar_->toggleViewAction());
 
@@ -525,7 +560,19 @@ void MainWindow::create_tool_bars() {
 
   key_tool_bar_ = addToolBar(tr("Key"));
   key_tool_bar_->setObjectName("keyToolBar");
+
+  // Add dropdown menu for key import to keytoolbar
+  import_button_ = new QToolButton();
+  import_button_->setMenu(import_key_menu_);
+  import_button_->setPopupMode(QToolButton::InstantPopup);
+  import_button_->setIcon(QIcon(":/icons/key_import.png"));
+  import_button_->setToolTip(tr("Import key from..."));
+  import_button_->setText(tr("Import key"));
+
+  key_tool_bar_->addAction(generate_key_pair_act_);
+  key_tool_bar_->addWidget(import_button_);
   key_tool_bar_->addAction(open_key_management_act_);
+
   view_menu_->addAction(key_tool_bar_->toggleViewAction());
 
   edit_tool_bar_ = addToolBar(tr("Edit"));
@@ -544,15 +591,6 @@ void MainWindow::create_tool_bars() {
   special_edit_tool_bar_->addAction(cut_pgp_header_act_);
   special_edit_tool_bar_->hide();
   view_menu_->addAction(special_edit_tool_bar_->toggleViewAction());
-
-  // Add dropdown menu for key import to keytoolbar
-  import_button_ = new QToolButton();
-  import_button_->setMenu(import_key_menu_);
-  import_button_->setPopupMode(QToolButton::InstantPopup);
-  import_button_->setIcon(QIcon(":/icons/key_import.png"));
-  import_button_->setToolTip(tr("Import key from..."));
-  import_button_->setText(tr("Import key"));
-  key_tool_bar_->addWidget(import_button_);
 }
 
 void MainWindow::create_status_bar() {
@@ -595,6 +633,13 @@ void MainWindow::create_dock_windows() {
           GpgKeyTableDisplayMode::kPRIVATE_KEY |
           GpgKeyTableDisplayMode::kFAVORITES,
       [](const GpgAbstractKey*) -> bool { return true; });
+
+  m_key_list_->AddListGroupTab(
+      tr("Key Group"), "key_group", GpgKeyTableDisplayMode::kPUBLIC_KEY,
+      [](const GpgAbstractKey* key) -> bool {
+        return key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP &&
+               !key->IsDisabled();
+      });
 
   m_key_list_->AddListGroupTab(
       tr("Only Public Key"), "only_public_key",

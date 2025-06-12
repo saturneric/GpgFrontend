@@ -32,7 +32,6 @@
 
 #include "core/module/Event.h"
 #include "core/thread/TaskRunner.h"
-#include "function/SecureMemoryAllocator.h"
 #include "module/GlobalRegisterTable.h"
 
 namespace GpgFrontend::Module {
@@ -58,7 +57,7 @@ class GF_CORE_EXPORT GlobalModuleContext : public QObject {
 
   ~GlobalModuleContext() override;
 
-  auto SearchModule(ModuleIdentifier) -> ModulePtr;
+  auto SearchModule(const ModuleIdentifier&) -> ModulePtr;
 
   auto GetChannel(ModuleRawPtr) -> int;
 
@@ -66,27 +65,28 @@ class GF_CORE_EXPORT GlobalModuleContext : public QObject {
 
   auto GetTaskRunner(ModuleRawPtr) -> std::optional<TaskRunnerPtr>;
 
-  auto GetTaskRunner(ModuleIdentifier) -> std::optional<TaskRunnerPtr>;
+  auto GetTaskRunner(const ModuleIdentifier&) -> std::optional<TaskRunnerPtr>;
 
   auto GetGlobalTaskRunner() -> std::optional<TaskRunnerPtr>;
 
-  auto RegisterModule(ModulePtr, bool) -> bool;
+  auto RegisterModule(const ModulePtr&, bool) -> bool;
 
-  auto ActiveModule(ModuleIdentifier) -> bool;
+  auto ActiveModule(const ModuleIdentifier&) -> bool;
 
-  auto DeactivateModule(ModuleIdentifier) -> bool;
+  auto DeactivateModule(const ModuleIdentifier&) -> bool;
 
-  auto ListenEvent(ModuleIdentifier, EventIdentifier) -> bool;
+  auto ListenEvent(const ModuleIdentifier&, const EventIdentifier&) -> bool;
 
-  auto TriggerEvent(EventReference) -> bool;
+  auto TriggerEvent(const EventReference&) -> bool;
 
-  auto SearchEvent(EventTriggerIdentifier) -> std::optional<EventReference>;
+  auto SearchEvent(const EventTriggerIdentifier&)
+      -> std::optional<EventReference>;
 
-  auto GetModuleListening(ModuleIdentifier) -> QStringList;
+  auto GetModuleListening(const ModuleIdentifier&) -> QStringList;
 
-  auto IsModuleActivated(ModuleIdentifier) -> bool;
+  auto IsModuleActivated(const ModuleIdentifier&) -> bool;
 
-  auto IsIntegratedModule(ModuleIdentifier) -> bool;
+  auto IsIntegratedModule(const ModuleIdentifier&) -> bool;
 
   auto ListAllRegisteredModuleID() -> QStringList;
 

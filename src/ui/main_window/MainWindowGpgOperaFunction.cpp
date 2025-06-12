@@ -31,6 +31,7 @@
 #include "core/utils/IOUtils.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SignersPicker.h"
+#include "ui/dialog/SubKeyPicker.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/struct/GpgOperaResultContext.h"
 #include "ui/widgets/KeyList.h"
@@ -44,19 +45,52 @@ auto MainWindow::encrypt_operation_key_validate(
 
   // symmetric encryption
   if (keys.isEmpty()) {
-    auto ret = QMessageBox::information(
-        this, tr("Symmetric Encryption"),
-        tr("No Key Selected. Do you want to encrypt with a "
-           "symmetric cipher using a passphrase?"),
-        QMessageBox::Ok | QMessageBox::Cancel);
-    if (ret == QMessageBox::Cancel) return false;
-
     contexts->keys = {};
-  } else {
-    contexts->keys = check_keys_helper(
-        keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
-        tr("The selected keypair cannot be used for encryption."));
-    if (contexts->keys.empty()) return false;
+    return true;
+  }
+
+  contexts->keys = check_keys_helper(
+      keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
+      tr("The selected keypair cannot be used for encryption."));
+
+  return !contexts->keys.empty();
+}
+
+auto MainWindow::fuzzy_signature_key_elimination(
+    const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool {
+  bool ambiguous = false;
+
+  auto& keys =
+      contexts->singer_keys.isEmpty() ? contexts->keys : contexts->singer_keys;
+
+  for (const auto& key : keys) {
+    if (key->KeyType() != GpgAbstractKeyType::kGPG_KEY) continue;
+
+    auto gpg_key = qSharedPointerDynamicCast<GpgKey>(key);
+    if (gpg_key == nullptr) continue;
+
+    int has_sign_cap_s_keys = 0;
+    for (const auto& s_key : gpg_key->SubKeys()) {
+      if (s_key.IsHasSignCap()) has_sign_cap_s_keys++;
+    }
+
+    if (has_sign_cap_s_keys > 1) ambiguous = true;
+  }
+
+  LOG_D() << "selected have home or more subkeys which have sign capability: "
+          << ambiguous;
+
+  if (ambiguous) {
+    auto picker = QSharedPointer<SubKeyPicker>(
+        new SubKeyPicker(m_key_list_->GetCurrentGpgContextChannel(), keys,
+                         this),
+        [](SubKeyPicker* picker) { picker->deleteLater(); });
+    picker->exec();
+
+    if (picker->result() == QDialog::Rejected) return false;
+
+    keys = picker->GetSelectedKeyWithFlags();
+    return true;
   }
 
   return true;
@@ -64,21 +98,20 @@ auto MainWindow::encrypt_operation_key_validate(
 
 auto MainWindow::sign_operation_key_validate(
     const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool {
-  auto* signers_picker =
-      new SignersPicker(m_key_list_->GetCurrentGpgContextChannel(), this);
-  QEventLoop loop;
-  connect(signers_picker, &SignersPicker::finished, &loop, &QEventLoop::quit);
-  loop.exec();
+  auto picker = QSharedPointer<SignersPicker>(
+      new SignersPicker(m_key_list_->GetCurrentGpgContextChannel(), this),
+      [](SignersPicker* picker) { picker->deleteLater(); });
+
+  picker->exec();
 
   // return when canceled
-  if (!signers_picker->GetStatus()) return false;
+  if (picker->result() == QDialog::Rejected) return false;
 
-  auto signer_keys = signers_picker->GetCheckedSigners();
+  auto signer_keys = picker->GetCheckedSigners();
   assert(std::all_of(signer_keys.begin(), signer_keys.end(),
                      [](const auto& key) { return key->IsGood(); }));
 
   contexts->singer_keys = signer_keys;
-
   return true;
 }
 
@@ -173,14 +206,22 @@ auto MainWindow::check_keys_helper(
 }
 
 void MainWindow::SlotEncrypt() {
-  if (edit_->CurPageTextEdit() == nullptr) return;
+  auto* text_edit = edit_->CurPageTextEdit();
+  if (text_edit == nullptr) return;
 
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = true;
 
   if (!encrypt_operation_key_validate(contexts)) return;
 
-  contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
+  auto plain_text = edit_->CurPlainText();
+  GFBuffer secure_plain_text(plain_text);
+
+  // clear plain text in memory
+  plain_text.fill(QLatin1Char('X'));
+  text_edit->Clear();
+
+  contexts->GetContextBuffer(0).append(secure_plain_text);
   GpgOperaHelper::BuildOperas(contexts, 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasEncrypt);
@@ -191,7 +232,7 @@ void MainWindow::SlotEncrypt() {
 void MainWindow::SlotSign() {
   if (edit_->CurPageTextEdit() == nullptr) return;
 
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = true;
 
   auto keys = m_key_list_->GetCheckedKeys();
@@ -201,6 +242,8 @@ void MainWindow::SlotSign() {
       tr("The selected key contains a key that does not actually have a "
          "sign usage."));
   if (contexts->keys.empty()) return;
+
+  if (!fuzzy_signature_key_elimination(contexts)) return;
 
   contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
   GpgOperaHelper::BuildOperas(contexts, 0,
@@ -213,7 +256,7 @@ void MainWindow::SlotSign() {
 void MainWindow::SlotDecrypt() {
   if (edit_->CurPageTextEdit() == nullptr) return;
 
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = true;
 
   contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
@@ -227,7 +270,7 @@ void MainWindow::SlotDecrypt() {
 void MainWindow::SlotVerify() {
   if (edit_->CurPageTextEdit() == nullptr) return;
 
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = true;
 
   contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
@@ -243,9 +286,10 @@ void MainWindow::SlotVerify() {
 }
 
 void MainWindow::SlotEncryptSign() {
-  if (edit_->CurPageTextEdit() == nullptr) return;
+  auto* text_edit = edit_->CurPageTextEdit();
+  if (text_edit == nullptr) return;
 
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = true;
 
   auto keys = m_key_list_->GetCheckedKeys();
@@ -257,7 +301,16 @@ void MainWindow::SlotEncryptSign() {
 
   if (!sign_operation_key_validate(contexts)) return;
 
-  contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
+  if (!fuzzy_signature_key_elimination(contexts)) return;
+
+  auto plain_text = edit_->CurPlainText();
+  GFBuffer secure_plain_text(plain_text);
+
+  // clear plain text in memory
+  plain_text.fill(QLatin1Char('X'));
+  text_edit->Clear();
+
+  contexts->GetContextBuffer(0).append(secure_plain_text);
   GpgOperaHelper::BuildOperas(contexts, 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasEncryptSign);
@@ -268,7 +321,7 @@ void MainWindow::SlotEncryptSign() {
 void MainWindow::SlotDecryptVerify() {
   if (edit_->CurPageTextEdit() == nullptr) return;
 
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = true;
 
   contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
@@ -284,7 +337,7 @@ void MainWindow::SlotDecryptVerify() {
 }
 
 void MainWindow::SlotFileEncrypt(const QStringList& paths, bool ascii) {
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = ascii;
 
   if (!encrypt_operation_key_validate(contexts)) return;
@@ -318,7 +371,7 @@ void MainWindow::SlotFileEncrypt(const QStringList& paths, bool ascii) {
 }
 
 void MainWindow::SlotFileDecrypt(const QStringList& paths) {
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
 
   contexts->ascii = true;
 
@@ -353,7 +406,7 @@ void MainWindow::SlotFileDecrypt(const QStringList& paths) {
 }
 
 void MainWindow::SlotFileSign(const QStringList& paths, bool ascii) {
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
 
   contexts->ascii = ascii;
 
@@ -384,7 +437,7 @@ void MainWindow::SlotFileSign(const QStringList& paths, bool ascii) {
 }
 
 void MainWindow::SlotFileVerify(const QStringList& paths) {
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
 
   if (!check_read_file_paths_helper(paths)) return;
 
@@ -434,7 +487,7 @@ void MainWindow::SlotFileVerify(const QStringList& paths) {
 }
 
 void MainWindow::SlotFileEncryptSign(const QStringList& paths, bool ascii) {
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = ascii;
 
   auto keys = m_key_list_->GetCheckedKeys();
@@ -474,7 +527,7 @@ void MainWindow::SlotFileEncryptSign(const QStringList& paths, bool ascii) {
 }
 
 void MainWindow::SlotFileDecryptVerify(const QStringList& paths) {
-  auto contexts = QSharedPointer<GpgOperaContextBasement>::create();
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = true;
 
   if (!check_read_file_paths_helper(paths)) return;

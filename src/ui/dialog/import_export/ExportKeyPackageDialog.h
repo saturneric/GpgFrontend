@@ -28,7 +28,8 @@
 
 #pragma once
 
-#include "GpgFrontendUI.h"
+#include "core/function/KeyPackageOperator.h"
+#include "core/model/GFBuffer.h"
 #include "core/typedef/GpgTypedef.h"
 #include "ui/dialog/GeneralDialog.h"
 
@@ -56,7 +57,8 @@ class ExportKeyPackageDialog : public GeneralDialog {
  private:
   QSharedPointer<Ui_exportKeyPackageDialog> ui_;  ///<
   int current_gpg_context_channel_;
+  KeyPackageOperator& opera_ =
+      KeyPackageOperator::GetInstance(current_gpg_context_channel_);
   GpgAbstractKeyPtrList keys_;  ///<
-  QString passphrase_;          ///<
 };
 }  // namespace GpgFrontend::UI

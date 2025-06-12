@@ -292,10 +292,13 @@ auto GetCanonicalKeyDatabasePath(const QDir& app_path, const QString& path)
   }
 
   QFileInfo info(target_path);
-  if (!info.exists()) {
-    LOG_W() << "key database not exists:" << info.absoluteFilePath()
-            << ", making a new directory...";
-    QDir().mkdir(info.absoluteFilePath());
+  auto dir_path = info.absolutePath();
+  QDir dir;
+  if (!dir.exists(dir_path)) {
+    LOG_W() << "key database not exists:" << dir_path << ", creating...";
+    if (!dir.mkpath(dir_path)) {
+      LOG_E() << "failed to recreate key database:" << dir_path;
+    }
   }
 
   if (VerifyKeyDatabasePath(info)) {
@@ -421,8 +424,12 @@ auto GF_CORE_EXPORT GetGpgKeyByGpgAbstractKey(GpgAbstractKey* ab_key)
     return *s_key->Convert2GpgKey();
   }
 
-  auto* key = dynamic_cast<GpgKey*>(ab_key);
-  return *key;
+  if (ab_key->KeyType() == GpgAbstractKeyType::kGPG_KEY) {
+    auto* key = dynamic_cast<GpgKey*>(ab_key);
+    return *key;
+  }
+
+  return {};
 }
 
 auto GF_CORE_EXPORT IsKeyGroupID(const KeyId& id) -> bool {
@@ -459,12 +466,12 @@ auto GF_CORE_EXPORT CheckGpgVersion(int channel, const QString& v) -> bool {
 }
 
 auto GF_CORE_EXPORT DecidePinentry() -> QString {
-#ifdef __linux__
+#ifdef Q_OS_LINUX
   QStringList preferred_list = {"pinentry-gnome3",
                                 "pinentry-qt"
                                 "pinentry-gtk2"};
   QStringList search_paths = {"/bin", "/usr/bin", "/usr/local/bin"};
-#elif defined(__APPLE__) && defined(__MACH__)
+#elif defined(Q_OS_MACOS)
   QStringList preferred_list = {"pinentry-mac", "pinentry-qt"};
   QStringList search_paths = {"/opt/homebrew/bin", "/usr/local/bin"};
 #else
@@ -478,7 +485,7 @@ auto GF_CORE_EXPORT DecidePinentry() -> QString {
   }
 
   for (const QString& name : preferred_list) {
-    QString path = QStandardPaths::findExecutable(name);
+    auto path = QStandardPaths::findExecutable(name);
     if (!path.isEmpty()) {
       LOG_D() << "find pinentry path: " << path;
       return path;
@@ -488,7 +495,7 @@ auto GF_CORE_EXPORT DecidePinentry() -> QString {
   if (search_paths.isEmpty()) return {};
 
   for (const QString& name : preferred_list) {
-    QString path = QStandardPaths::findExecutable(name, search_paths);
+    auto path = QStandardPaths::findExecutable(name, search_paths);
     if (!path.isEmpty()) {
       LOG_D() << "find pinentry path by search path: " << path;
       return path;
@@ -496,5 +503,11 @@ auto GF_CORE_EXPORT DecidePinentry() -> QString {
   }
 
   return {};
+}
+
+auto GF_CORE_EXPORT GnuPGVersion() -> QString {
+  auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.gnupg_version", QString{});
+  return gnupg_version;
 }
 }  // namespace GpgFrontend

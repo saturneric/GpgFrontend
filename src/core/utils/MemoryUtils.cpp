@@ -28,15 +28,4 @@
 
 #include "MemoryUtils.h"
 
-namespace GpgFrontend {
-
-auto SecureMalloc(std::size_t size) -> void * {
-  return SecureMemoryAllocator::Allocate(size);
-}
-
-auto SecureRealloc(void *ptr, std::size_t size) -> void * {
-  return SecureMemoryAllocator::Reallocate(ptr, size);
-}
-
-void SecureFree(void *ptr) { SecureMemoryAllocator::Deallocate(ptr); }
-}  // namespace GpgFrontend
+namespace GpgFrontend {}  // namespace GpgFrontend

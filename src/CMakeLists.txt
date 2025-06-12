@@ -53,7 +53,13 @@ if(APPLE)
   endif()
 endif()
 
+if(BUILD_AND_STATIC_LINK_OPENSSL)
+  set(OPENSSL_USE_STATIC_LIBS TRUE)
+endif()
+
 find_package(OpenSSL REQUIRED)
+
+message(STATUS "OpenSSL Libraries: ${OPENSSL_LIBRARIES}")
 
 # add libraries
 include(${CMAKE_SOURCE_DIR}/cmake/LibraryRegistry.cmake)
@@ -148,10 +154,6 @@ if(MINGW)
   list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
   unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libassuan*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
-
-  unset(_libDllPath)
   file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libbz*.dll")
   list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
@@ -175,13 +177,20 @@ if(MINGW)
   file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libglib-*.dll")
   list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgpg-error*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+  # if we use dynamic link
+  if(NOT BUILD_AND_STATIC_LINK_GPGME)
+    unset(_libDllPath)
+    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgpg-error*.dll")
+    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgpgme*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+    unset(_libDllPath)
+    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libassuan*.dll")
+    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
+    unset(_libDllPath)
+    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgpgme*.dll")
+    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+  endif()
 
   unset(_libDllPath)
   file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libgraphite2.dll")
@@ -236,13 +245,15 @@ if(MINGW)
   list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
   # openssl
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libssl-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+  if(NOT BUILD_AND_STATIC_LINK_OPENSSL)
+    unset(_libDllPath)
+    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libssl-*.dll")
+    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
-  unset(_libDllPath)
-  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libcrypto-*.dll")
-  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+    unset(_libDllPath)
+    file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libcrypto-*.dll")
+    list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+  endif()
 
   unset(_libDllPath)
   file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libxml2-*.dll")
@@ -265,8 +276,8 @@ if(MINGW)
       "Qt5Gui.dll"
       "Qt5Network.dll"
       "Qt5PrintSupport.dll"
-      "Qt5Svg.dll"
       "Qt5Widgets.dll"
+      "Qt5Xml.dll"
       "libbrotlicommon.dll"
       "libbrotlidec.dll"
       "libdouble-conversion.dll"
@@ -276,12 +287,11 @@ if(MINGW)
   else()
     list(APPEND ALL_RUNTIME_DLL_FILES
       "Qt6Core.dll"
-      "Qt6Core5Compat.dll"
       "Qt6Gui.dll"
       "Qt6Network.dll"
       "Qt6PrintSupport.dll"
-      "Qt6Svg.dll"
       "Qt6Widgets.dll"
+      "Qt6Xml.dll"
       "libbrotlicommon.dll"
       "libbrotlidec.dll"
       "libdouble-conversion.dll"
@@ -311,17 +321,54 @@ if(MINGW)
   endforeach()
 endif()
 
+if(SIGN_BUILT_BINARY)
+  if(GPGFRONTEND_QT5_BUILD)
+    set(KEYS_QRC_FILE "${CMAKE_CURRENT_BINARY_DIR}/keys_resources.qrc")
+
+    file(WRITE ${KEYS_QRC_FILE}
+      "<!DOCTYPE RCC>\n"
+      "<RCC version=\"1.0\">\n"
+      "  <qresource prefix=\"/keys\">\n"
+    )
+
+    foreach(PUBKEY_FILE ${SIGN_PUBLIC_KEY})
+      get_filename_component(PUBKEY_FILENAME ${PUBKEY_FILE} NAME)
+      file(APPEND ${KEYS_QRC_FILE}
+        "    <file alias=\"${PUBKEY_FILENAME}\">${PUBKEY_FILE}</file>\n"
+      )
+    endforeach()
+
+    file(APPEND ${KEYS_QRC_FILE}
+      "  </qresource>\n"
+      "</RCC>\n"
+    )
+
+    qt5_add_resources(KEYS_RESOURCES ${KEYS_QRC_FILE})
+
+    target_sources(${APP_NAME} PRIVATE ${KEYS_RESOURCES})
+
+  else()
+    qt_add_resources(${APP_NAME} "binaryvalidation"
+      PREFIX "/keys"
+      BASE "${CMAKE_BINARY_DIR}/keys"
+      FILES ${SIGN_PUBLIC_KEY}
+    )
+  endif()
+endif()
+
 # link options for GpgFrontend
 target_link_libraries(${APP_NAME} gf_core gf_ui gf_test)
 
+# link OpenSSL for secure mechanism
+target_link_libraries(${APP_NAME} OpenSSL::SSL OpenSSL::Crypto)
+
 if(MINGW)
   message(STATUS "Link Application Library For MINGW")
-  target_link_libraries(${APP_NAME} crypto)
 elseif(APPLE)
   message(STATUS "Link Application Library For macOS")
 else()
   message(STATUS "Link Application Library For Linux")
-  target_link_libraries(${APP_NAME} crypto pthread)
+  target_link_libraries(${APP_NAME} pthread)
 endif()
 
 # add i18n support
@@ -374,6 +421,7 @@ else()
   qt_add_lrelease(gftranslations
     TS_FILES ${TS_FILES}
     QM_FILES_OUTPUT_VARIABLE GF_TRANSLATIONS_QM)
+
   qt_add_resources(${APP_NAME} "gftranslations"
     PREFIX "/i18n"
     BASE ${CMAKE_CURRENT_BINARY_DIR}

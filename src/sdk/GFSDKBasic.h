@@ -55,6 +55,35 @@ auto GF_SDK_EXPORT GFReallocateMemory(void* ptr, uint32_t size) -> void*;
 /**
  * @brief
  *
+ */
+void GF_SDK_EXPORT GFFreeMemory(void*);
+
+/**
+ * @brief
+ *
+ * @param size
+ * @return void*
+ */
+auto GF_SDK_EXPORT GFSecAllocateMemory(uint32_t size) -> void*;
+
+/**
+ * @brief
+ *
+ * @param ptr
+ * @param size
+ * @return void*
+ */
+auto GF_SDK_EXPORT GFSecReallocateMemory(void* ptr, uint32_t size) -> void*;
+
+/**
+ * @brief
+ *
+ */
+void GF_SDK_EXPORT GFSecFreeMemory(void*);
+
+/**
+ * @brief
+ *
  * @return const char*
  */
 auto GF_SDK_EXPORT GFProjectVersion() -> const char*;
@@ -72,12 +101,6 @@ auto GF_SDK_EXPORT GFProjectGitCommitHash() -> const char*;
  * @return const char*
  */
 auto GF_SDK_EXPORT GFQtEnvVersion() -> const char*;
-
-/**
- * @brief
- *
- */
-void GF_SDK_EXPORT GFFreeMemory(void*);
 
 /**
  * @brief
@@ -108,6 +131,13 @@ void GF_SDK_EXPORT GFExecuteCommandBatchSync(GFCommandExecuteContext** contexts,
  * @return char*
  */
 auto GF_SDK_EXPORT GFModuleStrDup(const char*) -> char*;
+
+/**
+ * @brief
+ *
+ * @return char*
+ */
+auto GF_SDK_EXPORT GFModuleSecStrDup(const char*) -> char*;
 
 /**
  * @brief
@@ -150,6 +180,25 @@ auto GF_SDK_EXPORT GFCacheSaveWithTTL(const char* key, const char* value,
  * @brief
  *
  * @param key
+ * @param value
+ * @return auto
+ */
+auto GF_SDK_EXPORT GFDurableCacheGet(const char* key) -> const char*;
+
+/**
+ * @brief
+ *
+ * @param key
+ * @param value
+ * @return auto
+ */
+auto GF_SDK_EXPORT GFDurableCacheSave(const char* key, const char* value)
+    -> int;
+
+/**
+ * @brief
+ *
+ * @param key
  * @return const char*
  */
 auto GF_SDK_EXPORT GFCacheGet(const char* key) -> const char*;
@@ -161,4 +210,12 @@ auto GF_SDK_EXPORT GFCacheGet(const char* key) -> const char*;
  * @return false
  */
 auto GF_SDK_EXPORT GFIsFlatpakENV() -> bool;
+
+/**
+ * @brief
+ *
+ * @return true
+ * @return false
+ */
+auto GF_SDK_EXPORT GFIsCheckReleaseCommitHash() -> bool;
 }

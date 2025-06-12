@@ -188,10 +188,9 @@ void CommonUtils::RaiseFailureMessageBox(QWidget *parent, GpgError err,
 }
 
 void CommonUtils::SlotImportKeys(QWidget *parent, int channel,
-                                 const QByteArray &in_buffer) {
+                                 const GFBuffer &in_buffer) {
   LOG_D() << "try to import key(s) to channel: " << channel;
-  auto info =
-      GpgKeyImportExporter::GetInstance(channel).ImportKey(GFBuffer(in_buffer));
+  auto info = GpgKeyImportExporter::GetInstance(channel).ImportKey(in_buffer);
 
   auto *connection = new QMetaObject::Connection;
   *connection =
@@ -227,13 +226,13 @@ void CommonUtils::SlotImportKeyFromFile(QWidget *parent, int channel) {
     return;
   }
 
-  QByteArray key_buffer;
-  if (!ReadFile(file_name, key_buffer)) {
+  auto [succ, buffer] = ReadFileGFBuffer(file_name);
+  if (!succ) {
     QMessageBox::critical(nullptr, tr("File Open Failed"),
                           tr("Failed to open file: ") + file_name);
     return;
   }
-  SlotImportKeys(parent, channel, key_buffer);
+  SlotImportKeys(parent, channel, buffer);
 }
 
 void CommonUtils::SlotImportKeyFromKeyServer(QWidget *parent, int channel) {
@@ -243,7 +242,8 @@ void CommonUtils::SlotImportKeyFromKeyServer(QWidget *parent, int channel) {
 
 void CommonUtils::SlotImportKeyFromClipboard(QWidget *parent, int channel) {
   QClipboard *cb = QApplication::clipboard();
-  SlotImportKeys(parent, channel, cb->text(QClipboard::Clipboard).toLatin1());
+  SlotImportKeys(parent, channel,
+                 GFBuffer{cb->text(QClipboard::Clipboard).toLatin1()});
 }
 
 void CommonUtils::SlotExecuteCommand(
@@ -354,7 +354,7 @@ void CommonUtils::SlotImportKeyFromKeyServer(
                 Module::TriggerEvent(
                     "REQUEST_GET_PUBLIC_KEY_BY_KEY_ID",
                     {
-                        {"key_id", QString(key_id)},
+                        {"key_id", GFBuffer{key_id}},
                     },
                     [key_id, channel, callback, current_index, all_index](
                         Module::EventIdentifier i,
@@ -366,16 +366,20 @@ void CommonUtils::SlotImportKeyFromKeyServer(
 
                       QString status;
 
-                      if (p["ret"] != "0" || !p["error_msg"].isEmpty()) {
+                      if (p["ret"] != "0" || !p["error_msg"].Empty()) {
                         LOG_E()
                             << "An error occurred trying to get data from key:"
-                            << key_id << "error message: " << p["error_msg"]
-                            << "reply data: " << p["reply_data"];
-                        status = p["error_msg"] + p["reply_data"];
+                            << key_id << "error message: "
+                            << p["error_msg"].ConvertToQString()
+                            << "reply data: "
+                            << p["reply_data"].ConvertToQString();
+                        status = p["error_msg"].ConvertToQString() +
+                                 p["reply_data"].ConvertToQString();
                       } else if (p.contains("key_data")) {
                         const auto key_data = p["key_data"];
                         LOG_D() << "got key data of key " << key_id
-                                << " from key server: " << key_data;
+                                << " from key server: "
+                                << key_data.ConvertToQString();
 
                         auto result = GpgKeyImportExporter::GetInstance(channel)
                                           .ImportKey(GFBuffer(key_data));
@@ -599,8 +603,8 @@ void CommonUtils::ImportKeyByKeyServerSyncModule(QWidget *parent, int channel,
     return;
   }
 
-  auto all_key_data = QSharedPointer<QString>::create();
-  auto remaining_tasks = QSharedPointer<int>::create(fprs.size());
+  auto all_key_data = SecureCreateSharedObject<GFBuffer>();
+  auto remaining_tasks = SecureCreateSharedObject<int>(fprs.size());
 
   for (const auto &fpr : fprs) {
     Thread::TaskRunnerGetter::GetInstance()
@@ -610,7 +614,7 @@ void CommonUtils::ImportKeyByKeyServerSyncModule(QWidget *parent, int channel,
               Module::TriggerEvent(
                   "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT",
                   {
-                      {"fingerprint", QString(fpr)},
+                      {"fingerprint", GFBuffer{fpr}},
                   },
                   [fpr, all_key_data, remaining_tasks, this, parent, channel](
                       Module::EventIdentifier i,
@@ -620,17 +624,14 @@ void CommonUtils::ImportKeyByKeyServerSyncModule(QWidget *parent, int channel,
                         << "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT callback: "
                         << i << ei;
 
-                    if (p["ret"] != "0" || !p["error_msg"].isEmpty()) {
+                    if (p["ret"] != "0" || !p["error_msg"].Empty()) {
                       LOG_E()
                           << "An error occurred trying to get data from key:"
-                          << fpr << "error message: " << p["error_msg"]
-                          << "reply data: " << p["reply_data"];
+                          << fpr << "error message: "
+                          << p["error_msg"].ConvertToQString() << "reply data: "
+                          << p["reply_data"].ConvertToQString();
                     } else if (p.contains("key_data")) {
-                      const auto key_data = p["key_data"];
-                      LOG_D() << "got key data of key " << fpr
-                              << " from key server: " << key_data;
-
-                      *all_key_data += key_data;
+                      all_key_data->Append(p["key_data"]);
                     }
 
                     // it only uses one thread for these operations
@@ -638,8 +639,7 @@ void CommonUtils::ImportKeyByKeyServerSyncModule(QWidget *parent, int channel,
                     (*remaining_tasks)--;
 
                     if (*remaining_tasks == 0) {
-                      this->SlotImportKeys(parent, channel,
-                                           all_key_data->toUtf8());
+                      this->SlotImportKeys(parent, channel, *all_key_data);
                     }
                   });
 

@@ -68,10 +68,10 @@ auto GpgOperaContextBasement::GetAllOutPath() -> QStringList {
 }
 
 auto GetGpgOperaContextFromBasement(
-    const QSharedPointer<GpgOperaContextBasement>& base,
-    int category) -> QSharedPointer<GpgOperaContext> {
+    const QSharedPointer<GpgOperaContextBasement>& base, int category)
+    -> QSharedPointer<GpgOperaContext> {
   if (!base->GetContextPath(category).isEmpty()) {
-    auto context = QSharedPointer<GpgOperaContext>::create(base);
+    auto context = SecureCreateSharedObject<GpgOperaContext>(base);
 
     context->paths = base->GetContextPath(category);
     context->o_paths = base->GetContextOutPath(category);
@@ -79,7 +79,7 @@ auto GetGpgOperaContextFromBasement(
   }
 
   if (!base->GetContextBuffer(category).isEmpty()) {
-    auto context = QSharedPointer<GpgOperaContext>::create(base);
+    auto context = SecureCreateSharedObject<GpgOperaContext>(base);
 
     context->buffers = base->GetContextBuffer(category);
     return context;

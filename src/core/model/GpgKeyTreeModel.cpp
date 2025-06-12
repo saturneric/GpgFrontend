@@ -85,8 +85,8 @@ auto GpgKeyTreeModel::columnCount(const QModelIndex &parent) const -> int {
   return static_cast<int>(root_->ColumnCount());
 }
 
-auto GpgKeyTreeModel::data(const QModelIndex &index,
-                           int role) const -> QVariant {
+auto GpgKeyTreeModel::data(const QModelIndex &index, int role) const
+    -> QVariant {
   if (!index.isValid()) return {};
 
   const auto *item =
@@ -152,6 +152,7 @@ auto GpgKeyTreeModel::setData(const QModelIndex &index, const QVariant &value,
 
   if (index.column() == 0 && role == Qt::CheckStateRole) {
     item->SetChecked(value == Qt::Checked);
+    emit SignalKeyCheckedChanged(item->Key(), value == Qt::Checked);
     emit dataChanged(index, index);
     return true;
   }
@@ -164,7 +165,8 @@ auto GpgKeyTreeModel::GetGpgContextChannel() const -> int {
 }
 
 void GpgKeyTreeModel::setup_model_data(const GpgAbstractKeyPtrList &keys) {
-  auto root = QSharedPointer<GpgKeyTreeItem>::create(nullptr, column_headers_);
+  auto root =
+      SecureCreateSharedObject<GpgKeyTreeItem>(nullptr, column_headers_);
   cached_items_.clear();
 
   for (const auto &key : keys) {
@@ -195,6 +197,16 @@ auto GpgKeyTreeModel::GetAllCheckedKeyIds() -> KeyIdArgsList {
   return ret;
 }
 
+auto GpgKeyTreeModel::GetAllCheckedKeys() -> GpgAbstractKeyPtrList {
+  auto ret = GpgAbstractKeyPtrList{};
+  for (const auto &item : cached_items_) {
+    if (!item->Checkable() || !item->Checked()) continue;
+    ret.push_back(
+        QSharedPointer<GpgAbstractKey>(item->Key(), [](GpgAbstractKey *) {}));
+  }
+  return ret;
+}
+
 auto GpgKeyTreeModel::create_gpg_key_tree_items(const GpgAbstractKeyPtr &key)
     -> QSharedPointer<GpgKeyTreeItem> {
   QVariantList columns;
@@ -219,7 +231,7 @@ auto GpgKeyTreeModel::create_gpg_key_tree_items(const GpgAbstractKeyPtr &key)
   columns << QLocale().toString(g_key->CreationTime(), "yyyy-MM-dd");
 
   assert(key != nullptr);
-  auto i_key = QSharedPointer<GpgKeyTreeItem>::create(key, columns);
+  auto i_key = SecureCreateSharedObject<GpgKeyTreeItem>(key, columns);
   i_key->SetEnable(true);
   i_key->SetCheckable(checkable_detector_(i_key->Key()));
   i_key->SetChecked(false);
@@ -239,8 +251,8 @@ auto GpgKeyTreeModel::create_gpg_key_tree_items(const GpgAbstractKeyPtr &key)
     columns << s_key.Algo();
     columns << QLocale().toString(s_key.CreationTime(), "yyyy-MM-dd");
 
-    auto i_s_key = QSharedPointer<GpgKeyTreeItem>::create(
-        QSharedPointer<GpgSubKey>::create(s_key), columns);
+    auto i_s_key = SecureCreateSharedObject<GpgKeyTreeItem>(
+        SecureCreateSharedObject<GpgSubKey>(s_key), columns);
     i_s_key->SetEnable(true);
     i_s_key->SetCheckable(checkable_detector_(i_s_key->Key()));
     i_s_key->SetChecked(false);

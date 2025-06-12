@@ -80,18 +80,28 @@ void FileTreeView::selectionChanged(const QItemSelection& selected,
 }
 
 void FileTreeView::SlotGoPath(const QString& target_path) {
-  auto file_info = QFileInfo(target_path);
+  if (target_path.isEmpty()) {
+    current_path_.clear();
+    dir_model_->setRootPath("");
+    this->setRootIndex(dir_model_->index(""));
+    slot_adjust_column_widths();
+    emit SignalPathChanged(current_path_);
+    return;
+  }
+
+  const auto file_info = QFileInfo(target_path);
+
   if (file_info.isDir() && file_info.isReadable() && file_info.isExecutable()) {
     current_path_ = file_info.absoluteFilePath();
-    this->setRootIndex(dir_model_->index(file_info.filePath()));
-    dir_model_->setRootPath(file_info.filePath());
+    dir_model_->setRootPath(current_path_);
+    this->setRootIndex(dir_model_->index(current_path_));
     slot_adjust_column_widths();
+    emit SignalPathChanged(current_path_);
   } else {
     QMessageBox::critical(
         this, tr("Error"),
         tr("The path is not exists, unprivileged or unreachable."));
   }
-  emit SignalPathChanged(current_path_);
 }
 
 void FileTreeView::slot_file_tree_view_item_double_clicked(
@@ -110,14 +120,21 @@ void FileTreeView::slot_file_tree_view_item_double_clicked(
 }
 
 void FileTreeView::SlotUpLevel() {
-  QModelIndex const current_root = this->rootIndex();
-
-  auto target_path = dir_model_->fileInfo(current_root).absoluteFilePath();
-  if (auto parent_path = QDir(target_path); parent_path.cdUp()) {
-    target_path = parent_path.absolutePath();
-    this->SlotGoPath(target_path);
+  if (current_path_.isEmpty()) {
+    LOG_D() << "current path is empty, ignoring ...";
+    return;
   }
-  current_path_ = target_path;
+
+  QFileInfo info(current_path_);
+  QString target_path = info.absoluteFilePath();
+  QDir parent_dir(target_path);
+
+  target_path.clear();
+  if (parent_dir.cdUp()) {
+    target_path = parent_dir.absolutePath();
+  }
+
+  this->SlotGoPath(target_path);
 }
 
 auto FileTreeView::GetCurrentPath() -> QString { return current_path_; }
@@ -358,7 +375,7 @@ void FileTreeView::slot_show_custom_context_menu(const QPoint& point) {
 
   if (select_paths.size() != 1) return;
 
-  auto select_path = select_paths.front();
+  const auto& select_path = select_paths.front();
   if (target_path.isEmpty() && !select_path.isEmpty()) {
     target_path = select_path;
   }

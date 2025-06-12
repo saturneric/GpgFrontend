@@ -28,42 +28,30 @@
 
 #pragma once
 
-#include <openssl/aes.h>
-#include <openssl/evp.h>
+#include "core/function/basic/GpgFunctionObject.h"
+#include "core/model/GFBuffer.h"
 
-namespace GpgFrontend::RawAPI {
+namespace GpgFrontend {
 
-/**
- * @brief
- *
- * @param key_data
- * @param key_data_len
- * @param salt
- * @param e_ctx
- * @param d_ctx
- * @return int
- */
-int aes_256_cbc_init(uint8_t *key_data, int key_data_len, uint8_t *salt,
-                     EVP_CIPHER_CTX *e_ctx, EVP_CIPHER_CTX *d_ctx);
+class GF_CORE_EXPORT AESCryptoHelper
+    : public SingletonFunctionObject<AESCryptoHelper> {
+ public:
+  AESCryptoHelper();
 
-/**
- * @brief
- *
- * @param e
- * @param plaintext
- * @param len
- * @return uint8_t*
- */
-uint8_t *aes_256_cbc_encrypt(EVP_CIPHER_CTX *e, uint8_t *plaintext, int *len);
+  static auto GCMEncrypt(const GpgFrontend::GFBuffer& raw_key,
+                         const GpgFrontend::GFBuffer& plaintext)
+      -> GFBufferOrNone;
 
-/**
- * @brief
- *
- * @param e
- * @param ciphertext
- * @param len
- * @return uint8_t*
- */
-uint8_t *aes_256_cbc_decrypt(EVP_CIPHER_CTX *e, uint8_t *ciphertext, int *len);
+  static auto GCMDecrypt(const GpgFrontend::GFBuffer& raw_key,
+                         const GpgFrontend::GFBuffer& encrypted)
+      -> GFBufferOrNone;
 
-}  // namespace GpgFrontend::RawAPI
+  static auto GCMEncryptLite(const GpgFrontend::GFBuffer& raw_key,
+                             const GpgFrontend::GFBuffer& plaintext)
+      -> GFBufferOrNone;
+
+  static auto GCMDecryptLite(const GpgFrontend::GFBuffer& raw_key,
+                             const GpgFrontend::GFBuffer& encrypted)
+      -> GFBufferOrNone;
+};
+}  // namespace GpgFrontend

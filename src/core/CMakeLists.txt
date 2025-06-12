@@ -40,12 +40,13 @@ aux_source_directory(. CORE_SOURCE)
 # register core
 register_library(core LIBRARY_TARGET ${CORE_SOURCE})
 
-# qt-aes
-target_sources(${LIBRARY_TARGET} PRIVATE
-  ${CMAKE_SOURCE_DIR}/third_party/qt-aes/qaesencryption.cpp)
-
 # link gnupg libraries
-target_link_libraries(${LIBRARY_TARGET} PUBLIC gpgme assuan gpg-error)
+if(BUILD_AND_STATIC_LINK_GPGME)
+  # if we need to static link gpgme
+  target_link_libraries(${LIBRARY_TARGET} PUBLIC GnuPGDeps)
+else()
+  target_link_libraries(${LIBRARY_TARGET} PUBLIC gpgme assuan gpg-error)
+endif()
 
 # link openssl
 target_link_libraries(${LIBRARY_TARGET} PUBLIC OpenSSL::SSL OpenSSL::Crypto)

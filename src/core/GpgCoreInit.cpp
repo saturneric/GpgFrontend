@@ -29,6 +29,7 @@
 
 #include <gpgme.h>
 
+#include "core/function/CacheManager.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/basic/ChannelObject.h"
@@ -47,6 +48,8 @@ namespace GpgFrontend {
 void DestroyGpgFrontendCore() {
   // stop all task runner
   Thread::TaskRunnerGetter::GetInstance().StopAllTeakRunner();
+
+  CacheManager::GetInstance().FlushCacheStorage();
 
   // destroy all singleton objects
   SingletonStorageCollection::Destroy();
@@ -117,7 +120,7 @@ auto InitGpgME() -> bool {
     return false;
   }
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
   auto w32spawn_dir =
       GlobalSettingStation::GetInstance().GetAppDir() + "/../gnupg/bin";
   if (gpgme_set_global_flag("w32-inst-dir",
@@ -160,7 +163,6 @@ auto InitGpgME() -> bool {
   // Check ENV before running
   bool has_gpgconf = false;
   bool has_openpgp = false;
-  bool has_cms = false;
 
   while (engine_info != nullptr) {
     if (strcmp(engine_info->version, "1.0.0") == 0) {
@@ -183,7 +185,6 @@ auto InitGpgME() -> bool {
                                                      : engine_info->home_dir));
         break;
       case GPGME_PROTOCOL_CMS:
-        has_cms = true;
         Module::UpsertRTValue("core", "gpgme.engine.cms", 1);
         Module::UpsertRTValue("core", "gpgme.ctx.cms_path",
                               QString(engine_info->file_name));
@@ -197,18 +198,10 @@ auto InitGpgME() -> bool {
                               QString(engine_info->file_name));
         break;
       case GPGME_PROTOCOL_ASSUAN:
-        Module::UpsertRTValue("core", "gpgme.engine.assuan", 1);
-        Module::UpsertRTValue("core", "gpgme.ctx.assuan_path",
-                              QString(engine_info->file_name));
-        break;
       case GPGME_PROTOCOL_G13:
-        break;
       case GPGME_PROTOCOL_UISERVER:
-        break;
       case GPGME_PROTOCOL_SPAWN:
-        break;
       case GPGME_PROTOCOL_DEFAULT:
-        break;
       case GPGME_PROTOCOL_UNKNOWN:
         break;
     }
@@ -230,11 +223,6 @@ auto InitGpgME() -> bool {
 
   if (!has_openpgp) {
     LOG_E() << "cannot get openpgp backend engine, abort...";
-    return false;
-  }
-
-  if (!has_cms) {
-    LOG_E() << "cannot get cms backend engine, abort...";
     return false;
   }
 
@@ -298,7 +286,7 @@ auto GetComponentPathsByGpgConf(const QString& gpgconf_install_fs_path)
     auto exists = info_split_list[3].trimmed();
     auto runnable = info_split_list[4].trimmed();
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
     // replace some special substrings on windows platform
     component_path.replace("%3a", ":");
 #endif
@@ -333,7 +321,7 @@ auto DecideGpgConfPath(const QString& default_gpgconf_path) -> QString {
   if (use_custom_gnupg_install_path && !custom_gnupg_install_path.isEmpty()) {
     // check gpgconf path
     gpgconf_install_fs_path = custom_gnupg_install_path;
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
     gpgconf_install_fs_path += "/gpgconf.exe";
 #else
     gpgconf_install_fs_path += "/gpgconf";
@@ -356,10 +344,10 @@ auto DecideGpgConfPath(const QString& default_gpgconf_path) -> QString {
   // custom not found or not defined then fallback to default candidate path
   if (gpgconf_install_fs_path.isEmpty()) {
     // platform detection
-#if defined(__APPLE__) && defined(__MACH__)
+#ifdef Q_OS_MACOS
     gpgconf_install_fs_path = SearchGpgconfPath(
         {"/usr/local/bin/gpgconf", "/opt/homebrew/bin/gpgconf"});
-#elif defined(_WIN32) || defined(WIN32)
+#elif defined(Q_OS_WINDOWS)
     gpgconf_install_fs_path =
         SearchGpgconfPath({"C:/Program Files (x86)/gnupg/bin/gpgconf.exe"});
 #else

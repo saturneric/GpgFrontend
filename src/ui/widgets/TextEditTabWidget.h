@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/model/GFBuffer.h"
 namespace GpgFrontend::UI {
 
 class PlainTextEditorPage;
@@ -92,6 +93,14 @@ class TextEditTabWidget : public QTabWidget {
   /**
    * @brief
    *
+   * @param title
+   * @param buffer
+   */
+  void SlotNewTabWithGFBuffer(QString title, const GFBuffer& buffer);
+
+  /**
+   * @brief
+   *
    */
   void SlotOpenDefaultPath();
 
@@ -118,6 +127,18 @@ class TextEditTabWidget : public QTabWidget {
    * modified
    */
   void SlotShowModified();
+
+  /**
+   * @brief
+   *
+   */
+  void SlotCacheTextEditors();
+
+  /**
+   * @brief
+   *
+   */
+  void SlotRestoreTextEditorsCache();
 
  protected:
   /**
@@ -159,6 +180,15 @@ class TextEditTabWidget : public QTabWidget {
    * @return QString
    */
   static auto stripped_name(const QString& full_file_name) -> QString;
+
+  /**
+   * @brief
+   *
+   * @param prefix
+   * @return QString
+   */
+  auto generate_new_title(const QString& prefix, const QString& suffix)
+      -> QString;
 };
 
 }  // namespace GpgFrontend::UI

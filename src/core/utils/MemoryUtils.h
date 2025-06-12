@@ -67,26 +67,12 @@ class PointerConverter {
 /**
  * @brief
  *
- * @return void*
- */
-auto GF_CORE_EXPORT SecureMalloc(std::size_t) -> void *;
-
-/**
- * @brief
- *
- * @return void*
- */
-auto GF_CORE_EXPORT SecureRealloc(void *, std::size_t) -> void *;
-
-/**
- * @brief
- *
  * @tparam T
  * @return T*
  */
 template <typename T>
 auto SecureMallocAsType(std::size_t size) -> T * {
-  return PointerConverter<T>(SecureMemoryAllocator::Allocate(size)).AsType();
+  return PointerConverter<T>(SMAMalloc(size)).AsType();
 }
 
 /**
@@ -96,25 +82,18 @@ auto SecureMallocAsType(std::size_t size) -> T * {
  */
 template <typename T>
 auto SecureReallocAsType(T *ptr, std::size_t size) -> T * {
-  return PointerConverter<T>(SecureMemoryAllocator::Reallocate(ptr, size))
-      .AsType();
+  return PointerConverter<T>(SMARealloc(ptr, size)).AsType();
 }
-
-/**
- * @brief
- *
- */
-void GF_CORE_EXPORT SecureFree(void *);
 
 template <typename T, typename... Args>
 static auto SecureCreateObject(Args &&...args) -> T * {
-  void *mem = SecureMemoryAllocator::Allocate(sizeof(T));
+  void *mem = SMAMalloc(sizeof(T));
   if (!mem) return nullptr;
 
   try {
     return new (mem) T(std::forward<Args>(args)...);
   } catch (...) {
-    SecureMemoryAllocator::Deallocate(mem);
+    SMAFree(mem);
     throw;
   }
 }
@@ -123,39 +102,108 @@ template <typename T>
 static void SecureDestroyObject(T *obj) {
   if (!obj) return;
   obj->~T();
-  SecureMemoryAllocator::Deallocate(obj);
+  SMAFree(obj);
 }
+
+template <typename T>
+struct SecureObjectDeleter {
+  void operator()(T *ptr) {
+    if (ptr) {
+      ptr->~T();
+      SMAFree(ptr);
+    }
+  }
+};
+
+template <typename T>
+using SecureUniquePtr = std::unique_ptr<T, SecureObjectDeleter<T>>;
 
 template <typename T, typename... Args>
 static auto SecureCreateUniqueObject(Args &&...args)
     -> std::unique_ptr<T, SecureObjectDeleter<T>> {
-  void *mem = SecureMemoryAllocator::Allocate(sizeof(T));
+  void *mem = SMAMalloc(sizeof(T));
   if (!mem) throw std::bad_alloc();
 
   try {
     return std::unique_ptr<T, SecureObjectDeleter<T>>(
         new (mem) T(std::forward<Args>(args)...));
   } catch (...) {
-    SecureMemoryAllocator::Deallocate(mem);
+    SMAFree(mem);
     throw;
   }
 }
 
 template <typename T, typename... Args>
 auto SecureCreateSharedObject(Args &&...args) -> QSharedPointer<T> {
-  void *mem = SecureMemoryAllocator::Allocate(sizeof(T));
+  void *mem = SMAMalloc(sizeof(T));
   if (!mem) throw std::bad_alloc();
 
   try {
     T *obj = new (mem) T(std::forward<Args>(args)...);
-    return QSharedPointer<T>(obj, [](T *ptr) {
-      ptr->~T();
-      SecureMemoryAllocator::Deallocate(ptr);
+    return QSharedPointer<T>(obj, [](T *ptr) noexcept {
+      if (ptr) {
+        ptr->~T();
+        SMAFree(ptr);
+      }
     });
   } catch (...) {
-    SecureMemoryAllocator::Deallocate(mem);
+    SMAFree(mem);
     throw;
   }
 }
+
+template <typename T>
+class SMAAllocator {
+ public:
+  using value_type = T;
+
+  SMAAllocator() noexcept = default;
+  template <class U>
+  explicit SMAAllocator(const SMAAllocator<U> &) noexcept {}
+
+  auto allocate(std::size_t n) -> T * {
+    void *p = SMAMalloc(n * sizeof(T));
+    if (p == nullptr) throw std::bad_alloc();
+    return static_cast<T *>(p);
+  }
+
+  void deallocate(T *p, std::size_t /*n*/) noexcept {
+    SMAFree(static_cast<void *>(p));
+  }
+
+  // C++17: allocator must be equality comparable
+  auto operator==(const SMAAllocator &) const noexcept -> bool { return true; }
+
+  auto operator!=(const SMAAllocator &) const noexcept -> bool { return false; }
+};
+
+template <typename T>
+class SMASecAllocator {
+ public:
+  using value_type = T;
+
+  SMASecAllocator() noexcept = default;
+  template <class U>
+  explicit SMASecAllocator(const SMASecAllocator<U> &) noexcept {}
+
+  auto allocate(std::size_t n) -> T * {
+    void *p = SMASecMalloc(n * sizeof(T));
+    if (p == nullptr) throw std::bad_alloc();
+    return static_cast<T *>(p);
+  }
+
+  void deallocate(T *p, std::size_t /*n*/) noexcept {
+    SMASecFree(static_cast<void *>(p));
+  }
+
+  // C++17: allocator must be equality comparable
+  auto operator==(const SMASecAllocator &) const noexcept -> bool {
+    return true;
+  }
+
+  auto operator!=(const SMASecAllocator &) const noexcept -> bool {
+    return false;
+  }
+};
 
 };  // namespace GpgFrontend

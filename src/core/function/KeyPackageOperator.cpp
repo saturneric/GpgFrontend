@@ -28,109 +28,99 @@
 
 #include "KeyPackageOperator.h"
 
-#include <qglobal.h>
-#include <qt-aes/qaesencryption.h>
-
 #include "core/function/KeyPackageOperator.h"
-#include "core/function/PassphraseGenerator.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/model/GpgImportInformation.h"
-#include "core/typedef/CoreTypedef.h"
-#include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 
 namespace GpgFrontend {
 
-auto KeyPackageOperator::GeneratePassphrase(const QString& phrase_path,
-                                            QString& phrase) -> bool {
-  phrase = PassphraseGenerator::GetInstance().Generate(256);
-  FLOG_D() << "generated passphrase: " << phrase.size() << "bytes";
-  return WriteFile(phrase_path, phrase.toUtf8());
-}
+KeyPackageOperator::KeyPackageOperator(int channel)
+    : GpgFrontend::SingletonFunctionObject<KeyPackageOperator>(channel) {}
 
 void KeyPackageOperator::GenerateKeyPackage(const QString& key_package_path,
-                                            const QString& key_package_name,
-                                            int channel,
+                                            const QString& key_path,
                                             const GpgAbstractKeyPtrList& keys,
-                                            QString& phrase, bool secret,
+                                            const GFBuffer& pin, bool secret,
                                             const OperationCallback& cb) {
-  GpgKeyImportExporter::GetInstance(channel).ExportAllKeys(
-      keys, secret, true, [=](GpgError err, const DataObjectPtr& data_obj) {
-        if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-          LOG_W() << "export keys error, reason: "
-                  << DescribeGpgErrCode(err).second;
-          cb(-1, data_obj);
-          return;
-        }
+  GpgKeyImportExporter::GetInstance(GetChannel())
+      .ExportAllKeys(
+          keys, secret, true, [=](GpgError err, const DataObjectPtr& data_obj) {
+            if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+              cb(-1, TransferParams(QString{"Export Key Data Failed: "} +
+                                    DescribeGpgErrCode(err).second));
+              return;
+            }
 
-        if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
-            !data_obj->Check<GFBuffer>()) {
-          cb(-1, data_obj);
-          return;
-        }
+            if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
+                !data_obj->Check<GFBuffer>()) {
+              cb(-1, TransferParams(QString{"Fetch Key Data Failed"}));
+              return;
+            }
 
-        auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
+            auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
 
-        auto data = gf_buffer.ConvertToQByteArray().toBase64();
-        auto hash_key = QCryptographicHash::hash(phrase.toUtf8(),
-                                                 QCryptographicHash::Sha256);
-        QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
-                                  QAESEncryption::Padding::ISO);
-        auto encoded_data = encryption.encode(data, hash_key);
+            auto p = gb_fac_.RandomGpgPassphase(256);
+            if (!p) {
+              cb(-1, TransferParams(QString{"Generate Passphase Failed"}));
+              return;
+            }
 
-        cb(WriteFile(key_package_path, encoded_data) ? 0 : -1,
-           TransferParams());
-        return;
-      });
+            // AES encrypt
+            auto encrypted = GFBufferFactory::Encrypt(*p, gf_buffer);
+            if (!encrypted) {
+              cb(-1, TransferParams(QString{"Encrypt Key Data Failed"}));
+              return;
+            }
+
+            auto encrypted_phrase = GFBufferFactory::Encrypt(pin, *p);
+            if (!encrypted_phrase) {
+              cb(-1, TransferParams(QString{"Encrypt Passphase Failed"}));
+              return;
+            }
+
+            auto succ = WriteFileGFBuffer(key_package_path, *encrypted);
+            if (!succ) {
+              cb(-1, TransferParams(QString{"Write Key Package Failed"}));
+              return;
+            }
+
+            succ = WriteFileGFBuffer(key_path, *encrypted_phrase);
+            if (!succ) {
+              cb(-1, TransferParams(
+                         QString{"Write the Key of Key Package Failed"}));
+              return;
+            }
+
+            cb(0, TransferParams(QString{}));
+            return;
+          });
 }
 
-void KeyPackageOperator::ImportKeyPackage(const QString& key_package_path,
-                                          const QString& phrase_path,
-                                          int channel,
-                                          const OperationCallback& cb) {
-  RunOperaAsync(
-      [=](const DataObjectPtr& data_object) -> GFError {
-        QByteArray encrypted_data;
-        ReadFile(key_package_path, encrypted_data);
+auto KeyPackageOperator::ImportKeyPackage(const QString& key_package_path,
+                                          const QString& key_path,
+                                          const GFBuffer& pin)
+    -> std::tuple<QString, QSharedPointer<GpgImportInformation>> {
+  auto [succ_e, encrypted] = ReadFileGFBuffer(key_package_path);
+  if (!succ_e || encrypted.Empty()) return {{"Read Key Package Failed"}, {}};
 
-        if (encrypted_data.isEmpty()) {
-          LOG_W() << "failed to read key package: " << key_package_path;
-          return -1;
-        };
+  auto [succ_p, encrypted_passphrase] = ReadFileGFBuffer(key_path);
+  if (!succ_p || encrypted_passphrase.Empty()) {
+    return {{"Read the Key of Key Package Failed"}, {}};
+  }
 
-        QByteArray passphrase;
-        ReadFile(phrase_path, passphrase);
-        if (passphrase.size() != 256) {
-          LOG_W() << "passphrase size mismatch: " << phrase_path;
-          return -1;
-        }
+  auto passphrase = GFBufferFactory::Decrypt(pin, encrypted_passphrase);
+  if (!passphrase) return {{"Decrypt the Key of Key Package Failed"}, {}};
 
-        auto hash_key =
-            QCryptographicHash::hash(passphrase, QCryptographicHash::Sha256);
-        auto encoded = encrypted_data;
+  auto key_data = GFBufferFactory::Decrypt(*passphrase, encrypted);
+  if (!key_data) return {{"Decrypt the Key Package Failed"}, {}};
 
-        QAESEncryption encryption(QAESEncryption::AES_256, QAESEncryption::ECB,
-                                  QAESEncryption::Padding::ISO);
+  auto p_info =
+      GpgKeyImportExporter::GetInstance(GetChannel()).ImportKey(*key_data);
+  if (!p_info) return {{"Import Key Data in the Key Package Failed"}, {}};
 
-        auto decoded =
-            encryption.removePadding(encryption.decode(encoded, hash_key));
-        auto key_data = QByteArray::fromBase64(decoded);
-        if (!key_data.startsWith(PGP_PUBLIC_KEY_BEGIN) &&
-            !key_data.startsWith(PGP_PRIVATE_KEY_BEGIN)) {
-          return -1;
-        }
-
-        auto import_info_ptr =
-            GpgKeyImportExporter::GetInstance(channel).ImportKey(
-                GFBuffer(key_data));
-        if (import_info_ptr == nullptr) return GPG_ERR_NO_DATA;
-
-        auto import_info = *import_info_ptr;
-        data_object->Swap({import_info});
-        return 0;
-      },
-      cb, "import_key_package");
+  return {QString{}, p_info};
 }
 
 auto KeyPackageOperator::GenerateKeyPackageName() -> QString {
@@ -143,8 +133,10 @@ auto KeyPackageOperator::GenerateKeyPackageName() -> QString {
  * @return QString key package name
  */
 auto KeyPackageOperator::generate_key_package_name() -> QString {
-  return QString("KeyPackage_%1")
-      .arg(QRandomGenerator::global()->bounded(999, 99999));
+  auto random = gb_fac_.RandomGpgZBasePassphase(31);
+  if (!random) return {};
+
+  return QString("KeyPackage_%1").arg(random->Left(8).ConvertToQString());
 }
 
 }  // namespace GpgFrontend

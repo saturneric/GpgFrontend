@@ -35,7 +35,7 @@ namespace GpgFrontend::Module {
 
 class Event::Impl {
  public:
-  Impl(QString event_id, Params params, EventCallback callback)
+  Impl(QString event_id, const Params& params, EventCallback callback)
       : event_identifier_(std::move(event_id)),
         callback_(std::move(callback)),
         callback_thread_(QThread::currentThread()) {
@@ -70,7 +70,7 @@ class Event::Impl {
     return trigger_uuid_;
   }
 
-  void AddParameter(const QString& key, const QString& value) {
+  void AddParameter(const QString& key, const GFBuffer& value) {
     data_[key] = value;
   }
 
@@ -78,7 +78,7 @@ class Event::Impl {
     AddParameter(param.key, param.value);
   }
 
-  void ExecuteCallback(ListenerIdentifier listener_id,
+  void ExecuteCallback(const ListenerIdentifier& listener_id,
                        const Params& data_object) {
     if (callback_) {
       if (!QMetaObject::invokeMethod(
@@ -94,8 +94,7 @@ class Event::Impl {
   }
 
   auto ToModuleEvent() -> GFModuleEvent* {
-    auto* event =
-        static_cast<GFModuleEvent*>(SecureMalloc(sizeof(GFModuleEvent)));
+    auto* event = static_cast<GFModuleEvent*>(SMAMalloc(sizeof(GFModuleEvent)));
 
     event->id = GFStrDup(event_identifier_);
     event->trigger_id = GFStrDup(trigger_uuid_);
@@ -104,33 +103,18 @@ class Event::Impl {
     GFModuleEventParam* l_param = nullptr;
     GFModuleEventParam* p_param;
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 4, 0)
-    for (const auto& data : data_.asKeyValueRange()) {
-      p_param = static_cast<GFModuleEventParam*>(
-          SecureMalloc(sizeof(GFModuleEventParam)));
-      if (event->params == nullptr) event->params = p_param;
-
-      p_param->name = GFStrDup(data.first);
-      p_param->value = GFStrDup(data.second);
-      p_param->next = nullptr;
-
-      if (l_param != nullptr) l_param->next = p_param;
-      l_param = p_param;
-    }
-#else
     for (auto it = data_.keyValueBegin(); it != data_.keyValueEnd(); ++it) {
       p_param = static_cast<GFModuleEventParam*>(
-          SecureMalloc(sizeof(GFModuleEventParam)));
+          SMAMalloc(sizeof(GFModuleEventParam)));
       if (event->params == nullptr) event->params = p_param;
 
       p_param->name = GFStrDup(it->first);
-      p_param->value = GFStrDup(it->second);
+      p_param->value = GFBufferDup(it->second);
       p_param->next = nullptr;
 
       if (l_param != nullptr) l_param->next = p_param;
       l_param = p_param;
     }
-#endif
 
     return event;
   }
@@ -138,12 +122,13 @@ class Event::Impl {
  private:
   EventIdentifier event_identifier_;
   EventTriggerIdentifier trigger_uuid_ = QUuid::createUuid().toString();
-  QMap<QString, QString> data_;
+  QMap<QString, GFBuffer> data_;
   EventCallback callback_;
   QThread* callback_thread_ = nullptr;  ///<
 };
 
-Event::Event(const QString& event_id, Params params, EventCallback callback)
+Event::Event(const QString& event_id, const Params& params,
+             EventCallback callback)
     : p_(SecureCreateUniqueObject<Impl>(event_id, params,
                                         std::move(callback))) {}
 
@@ -171,12 +156,12 @@ auto Event::Event::GetTriggerIdentifier() -> EventTriggerIdentifier {
   return p_->GetTriggerIdentifier();
 }
 
-void Event::AddParameter(const QString& key, const QString& value) {
+void Event::AddParameter(const QString& key, const GFBuffer& value) {
   p_->AddParameter(key, value);
 }
 
 void Event::ExecuteCallback(ListenerIdentifier l_id, const Params& param) {
-  p_->ExecuteCallback(std::move(l_id), param);
+  p_->ExecuteCallback(l_id, param);
 }
 
 auto Event::ToModuleEvent() -> GFModuleEvent* { return p_->ToModuleEvent(); }

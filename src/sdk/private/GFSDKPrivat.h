@@ -31,6 +31,8 @@
 #include <core/function/SecureMemoryAllocator.h>
 #include <core/typedef/CoreTypedef.h>
 
+#include "core/model/GFBuffer.h"
+
 Q_DECLARE_LOGGING_CATEGORY(sdk)
 
 #define LOG_D() qCDebug(sdk)
@@ -66,6 +68,13 @@ auto GFUnStrDup(const char *) -> QString;
 /**
  * @brief
  *
+ * @return QString
+ */
+auto GFBufferUnStrDup(const char *str) -> GpgFrontend::GFBuffer;
+
+/**
+ * @brief
+ *
  * @param char_array
  * @param size
  * @return QMap<QString, QString>
@@ -88,7 +97,7 @@ auto QMapToCharArray(const QMap<QString, QString> &map, int &size) -> char **;
  * @return QMap<QString, QString>
  */
 auto ConvertEventParamsToMap(GFModuleEventParam *params)
-    -> QMap<QString, QString>;
+    -> QMap<QString, GpgFrontend::GFBuffer>;
 
 /**
  * @brief
@@ -109,8 +118,8 @@ auto CharArrayToQStringList(char **char_array, int size) -> QStringList;
 auto QStringListToCharArray(const QStringList &list) -> char **;
 
 template <typename T>
-inline auto ArrayToQList(T **pl_components,
-                         int size) -> GpgFrontend::QContainer<T> {
+inline auto ArrayToQList(T **pl_components, int size)
+    -> GpgFrontend::QContainer<T> {
   if (pl_components == nullptr || size <= 0) {
     return GpgFrontend::QContainer<T>();
   }
@@ -118,20 +127,19 @@ inline auto ArrayToQList(T **pl_components,
   GpgFrontend::QContainer<T> list;
   for (int i = 0; i < size; ++i) {
     list.append(*pl_components[i]);
-    GpgFrontend::SecureMemoryAllocator::Deallocate(pl_components[i]);
+    GpgFrontend::SMAFree(pl_components[i]);
   }
-  GpgFrontend::SecureMemoryAllocator::Deallocate(pl_components);
+  GpgFrontend::SMAFree(pl_components);
   return list;
 }
 
 template <typename T>
 inline auto QListToArray(const GpgFrontend::QContainer<T> &list) -> T ** {
-  T **array = static_cast<T **>(
-      GpgFrontend::SecureMemoryAllocator::Allocate(list.size() * sizeof(T *)));
+  T **array =
+      static_cast<T **>(GpgFrontend::SMAMalloc(list.size() * sizeof(T *)));
   int index = 0;
   for (const T &item : list) {
-    auto mem = static_cast<T *>(
-        GpgFrontend::SecureMemoryAllocator::Allocate(sizeof(T)));
+    auto mem = static_cast<T *>(GpgFrontend::SMAMalloc(sizeof(T)));
     array[index] = new (mem) T(item);
     index++;
   }

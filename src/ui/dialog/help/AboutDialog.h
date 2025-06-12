@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "ui/GpgFrontendUI.h"
 #include "ui/dialog/GeneralDialog.h"
 
 namespace GpgFrontend::UI {
@@ -88,6 +87,12 @@ class AboutDialog : public GeneralDialog {
    * @param ev
    */
   void showEvent(QShowEvent* ev) override;
+};
+
+class StatusTab : public QWidget {
+  Q_OBJECT
+ public:
+  explicit StatusTab(QWidget* parent = nullptr);
 };
 
 }  // namespace GpgFrontend::UI

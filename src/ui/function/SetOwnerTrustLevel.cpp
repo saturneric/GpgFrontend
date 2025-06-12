@@ -29,13 +29,17 @@
 #include "SetOwnerTrustLevel.h"
 
 #include "core/function/gpg/GpgKeyManager.h"
+#include "core/utils/GpgUtils.h"
+
+//
 #include "ui/UISignalStation.h"
 
 namespace GpgFrontend::UI {
 
 SetOwnerTrustLevel::SetOwnerTrustLevel(QWidget* parent) : QWidget(parent) {}
 
-auto SetOwnerTrustLevel::Exec(int channel, const GpgKeyPtr& key) -> bool {
+auto SetOwnerTrustLevel::Exec(int channel, const GpgAbstractKeyPtr& key)
+    -> bool {
   assert(key->IsGood());
 
   QStringList items;
@@ -43,9 +47,46 @@ auto SetOwnerTrustLevel::Exec(int channel, const GpgKeyPtr& key) -> bool {
   items << tr("Undefined") << tr("Never") << tr("Marginal") << tr("Full")
         << tr("Ultimate");
   bool ok;
+
+  auto owner_trust_level = 2;
+
+  if (key->KeyType() == GpgAbstractKeyType::kGPG_KEY) {
+    auto* gpg_key = dynamic_cast<GpgKey*>(key.get());
+    owner_trust_level = gpg_key->OwnerTrustLevel();
+  }
+
+  if (key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP) {
+    const auto gpg_keys = ConvertKey2GpgKeyList(channel, {key});
+    for (const auto& gpg_key : gpg_keys) {
+      const auto key_trust_level = gpg_key->OwnerTrustLevel();
+      if (owner_trust_level == 2) owner_trust_level = key_trust_level;
+      if (owner_trust_level != key_trust_level) owner_trust_level = 2;
+      if (owner_trust_level == 2) break;
+    }
+  }
+
+  int index = 0;
+  switch (owner_trust_level) {
+    case 2:
+      index = 1;
+      break;
+    case 3:
+      index = 2;
+      break;
+    case 4:
+      index = 3;
+      break;
+    case 5:
+      index = 4;
+      break;
+    case 1:
+    default:
+      index = 0;
+  }
+
   QString item = QInputDialog::getItem(this, tr("Modify Owner Trust Level"),
                                        tr("Trust for the Key Pair:"), items,
-                                       key->OwnerTrustLevel(), false, &ok);
+                                       index, false, &ok);
 
   if (ok && !item.isEmpty()) {
     int trust_level = 0;  // Unknown Level

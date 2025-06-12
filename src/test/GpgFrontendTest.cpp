@@ -28,20 +28,22 @@
 
 #include "GpgFrontendTest.h"
 
-#include <gtest/gtest.h>
 #include <qglobal.h>
 
 #include "core/GpgConstants.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/basic/ChannelObject.h"
+#include "core/function/gpg/GpgAbstractKeyGetter.h"
 #include "core/function/gpg/GpgContext.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/model/GpgImportInformation.h"
 #include "core/utils/IOUtils.h"
 
 Q_LOGGING_CATEGORY(test, "test")
 
-namespace GpgFrontend::Test {
+auto GF_TEST_EXPORT GFTestValidateSymbol() -> int { return 0; }
 
+namespace {
 auto GenerateRandomString(size_t length) -> QString {
   const QString characters =
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -57,39 +59,65 @@ auto GenerateRandomString(size_t length) -> QString {
   return random_string;
 }
 
+void ImportPrivateKeys() {
+  auto key_files = QDir(":/test/key").entryList();
+
+  for (const auto& key_file : key_files) {
+    auto [success, gf_buffer] =
+        GpgFrontend::ReadFileGFBuffer(QString(":/test/key") + "/" + key_file);
+
+    if (success) {
+      auto info = GpgFrontend::GpgKeyImportExporter::GetInstance(
+                      GpgFrontend::kGpgFrontendDefaultChannel)
+                      .ImportKey(gf_buffer);
+
+      if (info == nullptr) {
+        LOG_E() << "import key for unit test failed: " << key_file;
+        continue;
+      }
+
+      LOG_D() << "unit test key(s) imported: " << info->imported;
+
+      for (const auto& key : info->imported_keys) {
+        LOG_D() << "(+) unit test key: " << key.fpr;
+      }
+
+    } else {
+      FLOG_W() << "read from key file failed: " << key_file;
+    }
+  }
+
+  GpgFrontend::GpgAbstractKeyGetter::GetInstance().FlushCache();
+  GpgFrontend::GpgAbstractKeyGetter::GetInstance().Fetch();
+}
+
 void ConfigureGpgContext() {
   auto db_path = QDir(QDir::tempPath() + "/" + GenerateRandomString(12));
 
   if (db_path.exists()) db_path.rmdir(".");
   db_path.mkpath(".");
 
-  GpgContext::CreateInstance(
-      kGpgFrontendDefaultChannel, [=]() -> ChannelObjectPtr {
-        GpgContextInitArgs args;
+  LOG_D() << "db path of unit test: " << db_path.canonicalPath();
+  Q_ASSERT(db_path.exists());
+
+  GpgFrontend::GpgContext::CreateInstance(
+      GpgFrontend::kGpgFrontendDefaultChannel,
+      [=]() -> GpgFrontend::ChannelObjectPtr {
+        GpgFrontend::GpgContextInitArgs args;
         args.test_mode = true;
         args.offline_mode = true;
         args.db_name = "UNIT_TEST";
         args.db_path = db_path.path();
 
-        return ConvertToChannelObjectPtr<>(SecureCreateUniqueObject<GpgContext>(
-            args, kGpgFrontendDefaultChannel));
+        return GpgFrontend::ConvertToChannelObjectPtr<>(
+            GpgFrontend::SecureCreateUniqueObject<GpgFrontend::GpgContext>(
+                args, GpgFrontend::kGpgFrontendDefaultChannel));
       });
 }
 
-void ImportPrivateKeys(const QString& data_path, QSettings settings) {
-  auto key_files = QDir(":/test/key").entryList();
+};  // namespace
 
-  for (const auto& key_file : key_files) {
-    auto [success, gf_buffer] =
-        ReadFileGFBuffer(QString(":/test/key") + "/" + key_file);
-    if (success) {
-      GpgKeyImportExporter::GetInstance(kGpgFrontendDefaultChannel)
-          .ImportKey(gf_buffer);
-    } else {
-      FLOG_W() << "read from key file failed: " << key_file;
-    }
-  }
-}
+namespace GpgFrontend::Test {
 
 void SetupGlobalTestEnv() {
   auto app_path = GlobalSettingStation::GetInstance().GetAppDir();
@@ -100,8 +128,7 @@ void SetupGlobalTestEnv() {
   LOG_I() << "test config file path: " << test_config_path;
   LOG_I() << "test data file path: " << test_data_path;
 
-  ImportPrivateKeys(test_data_path,
-                    QSettings(test_config_path, QSettings::IniFormat));
+  ImportPrivateKeys();
 }
 
 auto ExecuteAllTestCase(GpgFrontendContext args) -> int {

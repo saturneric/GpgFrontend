@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/function/SecureMemoryAllocator.h"
+#include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
 class SingletonStorage;
@@ -55,7 +55,7 @@ class GF_CORE_EXPORT SingletonStorageCollection {
    *
    * @return SingletonStorageCollection*
    */
-  static auto GetInstance(bool force_refresh) -> SingletonStorageCollection*;
+  static auto GetInstance() -> SingletonStorageCollection*;
 
   /**
    * @brief

@@ -118,7 +118,7 @@ auto GpgAssuanHelper::SendCommand(GpgComponentType type, const QString& command,
     if (err != GPG_ERR_NO_ERROR) return err;
   }
 
-  auto context = QSharedPointer<AssuanCallbackContext>::create();
+  auto context = SecureCreateSharedObject<AssuanCallbackContext>();
   context->self = this;
   context->data_cb = std::move(data_cb);
   context->status_cb = std::move(status_cb);
@@ -282,8 +282,6 @@ auto GpgAssuanHelper::component_type_to_q_string(GpgComponentType type)
 }
 auto GpgAssuanHelper::simple_data_callback(void* opaque, const void* buffer,
                                            size_t length) -> gpgme_error_t {
-  LOG_D() << "assuan callback data: "
-          << QByteArray::fromRawData(static_cast<const char*>(buffer), length);
   return 0;
 }
 

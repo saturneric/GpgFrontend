@@ -32,10 +32,10 @@
 #include <archive_entry.h>
 #include <sys/fcntl.h>
 
+#include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/AsyncUtils.h"
 
-namespace GpgFrontend {
-
+namespace {
 auto CopyData(struct archive *ar, struct archive *aw) -> int {
   int r;
   const void *buff;
@@ -58,6 +58,9 @@ auto CopyData(struct archive *ar, struct archive *aw) -> int {
     }
   }
 }
+}  // namespace
+
+namespace GpgFrontend {
 
 struct ArchiveReadClientData {
   GFDataExchanger *ex;
@@ -85,10 +88,11 @@ auto ArchiveCloseWriteCallback(struct archive *, void *client_data) -> int {
 }
 
 void ArchiveFileOperator::NewArchive2DataExchanger(
-    const QString &target_directory, QSharedPointer<GFDataExchanger> exchanger,
+    const QString &target_directory,
+    const QSharedPointer<GFDataExchanger> &exchanger,
     const OperationCallback &cb) {
-  RunIOOperaAsync(
-      [=](const DataObjectPtr &data_object) -> GFError {
+  auto *task = new Thread::Task{
+      [=](const DataObjectPtr &) -> int {
         auto ret = 0;
         const auto base_path = QDir(QDir(target_directory).absolutePath());
 
@@ -103,7 +107,7 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
         auto *disk = archive_read_disk_new();
         archive_read_disk_set_standard_lookup(disk);
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
         auto target_directory_utf16_wstr = std::wstring(
             reinterpret_cast<const wchar_t *>((target_directory).utf16()));
         auto r =
@@ -133,7 +137,7 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
 
           archive_read_disk_descend(disk);
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
           auto source_path =
               QString::fromUtf16(reinterpret_cast<const char16_t *>(
                   archive_entry_pathname_w(entry)));
@@ -148,7 +152,7 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
             auto relativ_path_name = base_path.relativeFilePath(source_path);
             archive_entry_set_pathname(entry, relativ_path_name.toUtf8());
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
             auto source_path_utf16_wstr = std::wstring(
                 reinterpret_cast<const wchar_t *>(source_path.utf16()));
             archive_entry_copy_sourcepath_w(entry,
@@ -188,16 +192,22 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
 
         archive_read_free(disk);
         archive_write_free(archive);
+
         return ret;
       },
-      cb, "archive_write_new");
+      "new_archive_2_data_exchanger", TransferParams(), cb};
+
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_IO)
+      ->PostTask(task);
 }
 
 void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
-    QSharedPointer<GFDataExchanger> ex, const QString &target_path,
+    const QSharedPointer<GFDataExchanger> &ex, const QString &target_path,
     const OperationCallback &cb) {
-  RunIOOperaAsync(
-      [=](const DataObjectPtr &data_object) -> GFError {
+  auto *task = new Thread::Task{
+      [=](const DataObjectPtr &) -> GFError {
+        int ret = 0;
         auto *archive = archive_read_new();
         auto *ext = archive_write_disk_new();
 
@@ -241,13 +251,14 @@ void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
           if (r != ARCHIVE_OK) {
             FLOG_W("archive_read_next_header(), ret: %d, reason: %s", r,
                    archive_error_string(archive));
+            ret = r;
             break;
           }
 
           auto path_name = QString::fromUtf8(archive_entry_pathname(entry));
           auto target_path_name = target_path + "/" + path_name;
 
-#if defined(_WIN32) || defined(WIN32)
+#ifdef Q_OS_WINDOWS
           auto target_path_utf16_wstr = std::wstring(
               reinterpret_cast<const wchar_t *>((target_path_name).utf16()));
           archive_entry_copy_pathname_w(entry, target_path_utf16_wstr.c_str());
@@ -276,9 +287,13 @@ void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
                  archive_error_string(archive));
         }
 
-        return 0;
+        return ret;
       },
-      cb, "archive_read_new");
+      "extract_archive_from_data_exchanger", TransferParams(), cb};
+
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_IO)
+      ->PostTask(task);
 }
 
 void ArchiveFileOperator::ListArchive(const QString &archive_path) {

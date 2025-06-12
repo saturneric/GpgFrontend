@@ -88,8 +88,8 @@ void GFModuleTriggerModuleEventCallback(GFModuleEvent *module_event,
 }
 
 auto GFModuleRetrieveRTValueOrDefaultBool(const char *namespace_,
-                                          const char *key,
-                                          int default_value) -> const int {
+                                          const char *key, int default_value)
+    -> int {
   return static_cast<const int>(
       GpgFrontend::Module::RetrieveRTValueTypedOrDefault(
           GFUnStrDup(namespace_), GFUnStrDup(key),

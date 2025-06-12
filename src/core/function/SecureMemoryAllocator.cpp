@@ -28,24 +28,235 @@
 
 #include "SecureMemoryAllocator.h"
 
+#include <openssl/crypto.h>
+
 #include <cstdlib>
+#include <cstring>
+
+namespace GpgFrontend {
+class SecureMemoryAllocator;
+}
+
+namespace {
+QMutex instance_mutex;
+GpgFrontend::SecureMemoryAllocator* instance = nullptr;
+}  // namespace
 
 namespace GpgFrontend {
 
-auto SecureMemoryAllocator::Allocate(std::size_t size) -> void* {
-  auto* addr = std::malloc(size);
-  if (addr == nullptr) FLOG_F("malloc failed!");
+class SecureMemoryAllocator {
+ public:
+  static auto GetInstance() -> SecureMemoryAllocator*;
+
+  SecureMemoryAllocator(const SecureMemoryAllocator&) = delete;
+
+  auto operator=(const SecureMemoryAllocator&)
+      -> SecureMemoryAllocator& = delete;
+
+  auto Allocate(size_t) -> void*;
+
+  auto Reallocate(void*, size_t) -> void*;
+
+  void Deallocate(void*);
+
+  auto SecAllocate(size_t) -> void*;
+
+  auto SecReallocate(void*, size_t) -> void*;
+
+  void SecDeallocate(void*);
+
+ private:
+  int secure_level_;
+  QMutex mutex_;
+  QHash<void*, size_t> allocated_;
+
+  explicit SecureMemoryAllocator(int secure_level);
+
+  ~SecureMemoryAllocator();
+};
+
+SecureMemoryAllocator::SecureMemoryAllocator(int secure_level)
+    : secure_level_(secure_level) {}
+
+SecureMemoryAllocator::~SecureMemoryAllocator() = default;
+
+auto SecureMemoryAllocator::Allocate(size_t size) -> void* {
+  // low secure level
+  if (secure_level_ < 1) return malloc(size);
+
+  // should not do allocate
+  if (size == 0) return nullptr;
+
+  auto* addr = OPENSSL_zalloc(size);
+  if (size != 0 && addr == nullptr) FLOG_F("OPENSSL_zalloc failed");
+
+  {
+    QMutexLocker locker(&mutex_);
+    Q_ASSERT(!allocated_.contains(addr));
+
+    allocated_[addr] = size;
+  }
   return addr;
 }
 
-auto SecureMemoryAllocator::Reallocate(void* ptr, std::size_t size) -> void* {
-  auto* addr = std::realloc(ptr, size);
-  if (addr == nullptr) FLOG_F("realloc failed!");
+auto SecureMemoryAllocator::Reallocate(void* ptr, size_t size) -> void* {
+  // debug
+  Q_ASSERT(size != 0);
+
+  // low secure level
+  if (secure_level_ < 1) return realloc(ptr, size);
+
+  if (ptr == nullptr) return Allocate(size);
+
+  {
+    QMutexLocker locker(&mutex_);
+    Q_ASSERT(allocated_.count(ptr) != 0);
+    if (allocated_.count(ptr) == 0) {
+      FLOG_W()
+          << "this memory address was not allocated by SecureMemoryAllocator: "
+          << ptr;
+      return nullptr;
+    }
+
+    const auto ptr_size = allocated_.value(ptr);
+    auto* addr = OPENSSL_clear_realloc(ptr, ptr_size, size);
+    if (size != 0 && addr == nullptr) FLOG_F("OPENSSL_clear_realloc failed");
+
+    allocated_.remove(ptr);
+    allocated_[addr] = size;
+
+    return addr;
+  }
+}
+
+void SecureMemoryAllocator::Deallocate(void* ptr) {
+  // low secure level
+  if (secure_level_ < 1) {
+    free(ptr);
+    return;
+  }
+
+  if (ptr == nullptr) return;
+
+  {
+    QMutexLocker locker(&mutex_);
+
+    Q_ASSERT(allocated_.contains(ptr));
+    if (!allocated_.contains(ptr)) {
+      FLOG_W()
+          << "this memory address was not allocated by SecureMemoryAllocator: "
+          << ptr;
+      return;
+    }
+
+    const auto ptr_size = allocated_.value(ptr);
+    OPENSSL_clear_free(ptr, ptr_size);
+    allocated_.remove(ptr);
+  }
+}
+
+auto SecureMemoryAllocator::GetInstance() -> SecureMemoryAllocator* {
+  QMutexLocker locker(&instance_mutex);
+
+  if (instance == nullptr) {
+    auto secure_level = qApp->property("GFSecureLevel").toInt();
+
+    void* addr = nullptr;
+    // low and middle secure level
+    if (secure_level < 2) {
+      addr = malloc(sizeof(SecureMemoryAllocator));
+    } else {
+      addr = OPENSSL_secure_zalloc(sizeof(SecureMemoryAllocator));
+    }
+    Q_ASSERT(addr != nullptr);
+
+    instance = new (addr) SecureMemoryAllocator(secure_level);
+  }
+
+  return instance;
+}
+
+auto SMAMalloc(size_t size) -> void* {
+  return SecureMemoryAllocator::GetInstance()->Allocate(size);
+}
+
+auto SMARealloc(void* ptr, size_t size) -> void* {
+  return SecureMemoryAllocator::GetInstance()->Reallocate(ptr, size);
+}
+
+void SMAFree(void* ptr) {
+  SecureMemoryAllocator::GetInstance()->Deallocate(ptr);
+}
+
+auto SecureMemoryAllocator::SecAllocate(size_t size) -> void* {
+  // middle secure level
+  if (secure_level_ < 2) return Allocate(size);
+
+  auto* addr = OPENSSL_secure_zalloc(size);
+  if (addr == nullptr) FLOG_F("OPENSSL_secure_malloc failed");
+
+  {
+    QMutexLocker locker(&mutex_);
+    Q_ASSERT(!allocated_.contains(addr));
+
+    allocated_[addr] = size;
+  }
   return addr;
 }
 
-void SecureMemoryAllocator::Deallocate(void* p) {
-  if (p != nullptr) std::free(p);
+auto SecureMemoryAllocator::SecReallocate(void* ptr, size_t size) -> void* {
+  // middle secure level
+  if (secure_level_ < 2) return Reallocate(ptr, size);
+
+  void* new_addr = SecAllocate(size);
+  Q_ASSERT(new_addr != ptr);
+
+  if (ptr != nullptr) {
+    auto old_size = OPENSSL_secure_actual_size(ptr);
+    std::memcpy(new_addr, ptr, std::min(size, old_size));
+
+    SecDeallocate(ptr);
+  }
+
+  return new_addr;
+}
+
+void SecureMemoryAllocator::SecDeallocate(void* ptr) {
+  // middle secure level
+  if (secure_level_ < 2) {
+    Deallocate(ptr);
+    return;
+  }
+
+  if (ptr == nullptr) return;
+
+  {
+    QMutexLocker locker(&mutex_);
+
+    Q_ASSERT(allocated_.contains(ptr));
+    if (!allocated_.contains(ptr)) {
+      FLOG_W()
+          << "this memory address was not allocated by SecureMemoryAllocator: "
+          << ptr;
+      return;
+    }
+
+    auto sz = OPENSSL_secure_actual_size(ptr);
+    OPENSSL_secure_clear_free(ptr, sz);
+    allocated_.remove(ptr);
+  }
+}
+
+auto SMASecMalloc(size_t size) -> void* {
+  return SecureMemoryAllocator::GetInstance()->SecAllocate(size);
+}
+
+auto SMASecRealloc(void* ptr, size_t size) -> void* {
+  return SecureMemoryAllocator::GetInstance()->SecReallocate(ptr, size);
+}
+
+void SMASecFree(void* ptr) {
+  SecureMemoryAllocator::GetInstance()->SecDeallocate(ptr);
 }
 
 }  // namespace GpgFrontend

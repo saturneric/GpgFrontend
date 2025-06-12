@@ -53,8 +53,17 @@ ADSKsPicker::ADSKsPicker(int channel, GpgKeyPtr key,
           })),
       channel_(channel),
       key_(std::move(key)) {
+  tree_view_->setStyleSheet("QTreeView::item { height: 28px; }");
+
   auto* confirm_button = new QPushButton(tr("Confirm"));
   auto* cancel_button = new QPushButton(tr("Cancel"));
+
+  confirm_button->setDisabled(true);
+
+  connect(tree_view_, &KeyTreeView::SignalKeysChecked, this,
+          [=](const GpgAbstractKeyPtrList& keys) {
+            confirm_button->setDisabled(keys.empty());
+          });
 
   connect(confirm_button, &QPushButton::clicked, this, [=]() {
     if (tree_view_->GetAllCheckedSubKey().isEmpty()) {
@@ -63,31 +72,35 @@ ADSKsPicker::ADSKsPicker(int channel, GpgKeyPtr key,
 
       return;
     }
-
-    confirm_button->setDisabled(true);
-    cancel_button->setDisabled(true);
-
     slot_add_adsk(tree_view_->GetAllCheckedSubKey());
   });
+
   connect(cancel_button, &QPushButton::clicked, this, &QDialog::reject);
 
-  tree_view_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-  auto* vbox2 = new QVBoxLayout();
-  vbox2->addWidget(new QLabel(tr("Select ADSK(s)") + ": "));
-  vbox2->addWidget(tree_view_);
+  auto* main_layout = new QVBoxLayout();
+  auto* title_label = new QLabel(tr("Select ADSK(s)") + ": ");
+  main_layout->addWidget(title_label);
+  main_layout->addWidget(tree_view_, 1);
 
   auto* tips_label = new QLabel(
       tr("ADSK (Additional Decryption Subkey) allows others to encrypt data "
          "for you without having access to your private key. You are only "
          "allow to check subkeys with encryption capability."));
   tips_label->setWordWrap(true);
-  tips_label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
+  main_layout->addWidget(tips_label);
 
-  vbox2->addWidget(tips_label);
-  vbox2->addWidget(confirm_button);
-  vbox2->addWidget(cancel_button);
-  setLayout(vbox2);
+  main_layout->addStretch();
+
+  auto* btn_layout = new QHBoxLayout();
+  btn_layout->addStretch();
+  btn_layout->addWidget(confirm_button);
+  btn_layout->addWidget(cancel_button);
+
+  main_layout->addLayout(btn_layout);
+
+  setLayout(main_layout);
+
+  this->setMinimumWidth(480);
 
   this->setWindowFlags(Qt::Window | Qt::WindowTitleHint |
                        Qt::CustomizeWindowHint);

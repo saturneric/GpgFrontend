@@ -26,21 +26,19 @@
  *
  */
 
-/**
- * \mainpage GpgFrontend Develop Document Main Page
- */
-
+#include <openssl/provider.h>
 #include <qcommandlineparser.h>
 #include <qloggingcategory.h>
 
-//
-#include "GpgFrontendContext.h"
-#include "core/utils/MemoryUtils.h"
+#include <cstddef>
 
 //
-#include "app.h"
-#include "cmd.h"
-#include "init.h"
+#include "Application.h"
+#include "BinaryValidate.h"
+#include "Command.h"
+#include "GpgFrontendContext.h"
+#include "Initialize.h"
+#include "Security.h"
 
 /**
  *
@@ -49,29 +47,28 @@
  * @return
  */
 auto main(int argc, char* argv[]) -> int {
+  // OpenSSL
+  auto* defp = OSSL_PROVIDER_load(nullptr, "default");
+  if (defp == nullptr) {
+    qFatal(
+        "The OpenSSL default provider cannot be loaded, and features "
+        "such as CSPRNG are not available!");
+  }
+
   // initialize qt resources
   Q_INIT_RESOURCE(gpgfrontend);
 
-  GpgFrontend::GFCxtSPtr const ctx =
-      GpgFrontend::SecureCreateSharedObject<GpgFrontend::GpgFrontendContext>(
-          argc, argv);
+  auto const ctx =
+      QSharedPointer<GpgFrontend::GpgFrontendContext>::create(argc, argv);
+
+  // create qt core application
   ctx->InitApplication();
 
-#ifdef RELEASE
-  QLoggingCategory::setFilterRules("*.debug=false\n*.info=false\n");
-  qSetMessagePattern(
-      "[%{time yyyyMMdd h:mm:ss.zzz}] [%{category}] "
-      "[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-"
-      "critical}C%{endif}%{if-fatal}F%{endif}] [%{threadid}] - "
-      "%{message}");
-#else
-  QLoggingCategory::setFilterRules("*.debug=false");
-  qSetMessagePattern(
-      "[%{time yyyyMMdd h:mm:ss.zzz}] [%{category}] "
-      "[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-"
-      "critical}C%{endif}%{if-fatal}F%{endif}] [%{threadid}] %{file}:%{line} - "
-      "%{message}");
-#endif
+  const auto* app = ctx->GetApp();
+  Q_ASSERT(app != nullptr);
+
+  // do some early init
+  GpgFrontend::PreInit(ctx);
 
   auto rtn = 0;
 
@@ -82,9 +79,25 @@ auto main(int argc, char* argv[]) -> int {
       {{"t", "test"}, "run all unit test cases"},
       {{"e", "environment"}, "show environment information"},
       {{"l", "log-level"}, "set log level (debug, info, warn, error)", "none"},
+      {{{}, "self-check"}, "check libraries and executables validity"},
   });
 
   parser.process(*ctx->GetApp());
+
+  const auto self_check = app->property("GFSelfCheck").toBool();
+  if ((self_check || parser.isSet("self-check")) && !ValidateLibraries()) {
+    QMessageBox::critical(
+        nullptr, QObject::tr("Program Self-Test Failed"),
+        QObject::tr(
+            "The application has detected an issue while verifying essential "
+            "libraries and binaries that were digitally signed during the "
+            "build. "
+            "This means one or more files may have been altered or are being "
+            "loaded from the wrong location. For security reasons, the program "
+            "must now exit."),
+        QMessageBox::Ok);
+    return -1;
+  }
 
   if (parser.isSet("v")) {
     return GpgFrontend::PrintVersion();
@@ -97,6 +110,26 @@ auto main(int argc, char* argv[]) -> int {
   if (parser.isSet("e")) {
     return GpgFrontend::PrintEnvInfo();
   }
+
+  const auto secure_level = qApp->property("GFSecureLevel").toInt();
+  GpgFrontend::GFBuffer buf;
+
+  if (secure_level > 2) {
+    bool ok = false;
+    auto pin = QInputDialog::getText(
+        nullptr, QObject::tr("PIN Required"),
+        QObject::tr("High security mode is enabled.") + "\n\n" +
+            QObject::tr("To unlock the application please enter your PIN."),
+        QLineEdit::Password, {}, &ok);
+
+    if (!ok || pin.isEmpty()) return 1;
+
+    buf = GpgFrontend::GFBuffer(pin);
+    pin.fill('X');
+    pin.clear();
+  }
+
+  if (!GpgFrontend::InitAppSecureKey(buf)) return 1;
 
   if (parser.isSet("t")) {
     ctx->gather_external_gnupg_info = false;

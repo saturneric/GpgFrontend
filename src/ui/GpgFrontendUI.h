@@ -28,6 +28,10 @@
 
 #pragma once
 
+extern "C" {
+auto GF_UI_EXPORT GFUIValidateSymbol() -> int;
+}
+
 // qt
 #include <QtWidgets>
 
