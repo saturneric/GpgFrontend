@@ -48,6 +48,7 @@ jobs:
         os:
           [
             "ubuntu-22.04",
+            "ubuntu-24.04-arm",
             "macos-13",
             "macos-14",
             "macos-15",
@@ -270,11 +271,25 @@ jobs:
         run: |
           mkdir ${{github.workspace}}/build/upload-artifact
           cd ${{github.workspace}}/build/upload-artifact
-          wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-          chmod u+x linuxdeployqt-continuous-x86_64.AppImage
+
+          ARCH=$(uname -m)
+          if [[ "$ARCH" == "x86_64" ]]; then
+            wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+            mv linuxdeployqt-continuous-x86_64.AppImage linuxdeployqt-continuous.AppImage 
+            EXTRA_ARGS=""
+          elif [[ "$ARCH" == "aarch64" ]]; then
+            wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-aarch64.AppImage
+            mv linuxdeployqt-continuous-aarch64.AppImage linuxdeployqt-continuous.AppImage
+            mkdir -p ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6/
+            touch ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6/copyright        
+            EXTRA_ARGS="-unsupported-allow-new-glibc"
+          fi
+
+          chmod u+x linuxdeployqt-continuous.AppImage
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
-          ./linuxdeployqt-continuous-x86_64.AppImage \
+          ./linuxdeployqt-continuous.AppImage \
             ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop \
+            $EXTRA_ARGS \
             -no-translations \
             -extra-plugins=iconengines,platforms \
             -appimage \
