@@ -34,6 +34,7 @@
 
 namespace GpgFrontend::UI {
 class SubKeyPicker : public GeneralDialog {
+  Q_OBJECT
  public:
   explicit SubKeyPicker(int channel, GpgAbstractKeyPtrList keys,
                         QWidget* parent);

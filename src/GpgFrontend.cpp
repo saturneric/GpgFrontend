@@ -118,8 +118,8 @@ auto main(int argc, char* argv[]) -> int {
     bool ok = false;
     auto pin = QInputDialog::getText(
         nullptr, QObject::tr("PIN Required"),
-        QObject::tr("High security mode is enabled.\n\n"
-                    "To unlock the application please enter your PIN."),
+        QObject::tr("High security mode is enabled.") + "\n\n" +
+            QObject::tr("To unlock the application please enter your PIN."),
         QLineEdit::Password, {}, &ok);
 
     if (!ok || pin.isEmpty()) return 1;

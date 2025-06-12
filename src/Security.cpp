@@ -52,10 +52,11 @@ void RequireWriteSuccess(bool ok, const QString &key_path) {
     qCritical() << "write app secure key failed: " << key_path;
     QMessageBox::critical(
         nullptr, QObject::tr("Save Key Failed"),
-        QObject::tr(
-            "Failed to save the secure key to disk at: %1\n"
-            "Please check your storage or try running as administrator.")
-            .arg(key_path),
+        QObject::tr("Failed to save the secure key to disk at: %1")
+                .arg(key_path) +
+            "\n" +
+            QObject::tr(
+                "Please check your storage or try running as administrator."),
         QMessageBox::Ok);
     abort();
   }
@@ -214,10 +215,11 @@ auto NewLegacyAppSecureKey(const GFBuffer &pin) -> GFBuffer {
     if (secure_level > 2) {
       QMessageBox::critical(
           nullptr, QObject::tr("Save Key Failed"),
-          QObject::tr(
-              "Failed to save the secure key to disk at: %1\n"
-              "Please check your storage or try running as administrator.")
-              .arg(path),
+          QObject::tr("Failed to save the secure key to disk at: %1")
+                  .arg(path) +
+              "\n" +
+              QObject::tr(
+                  "Please check your storage or try running as administrator."),
           QMessageBox::Ok);
       abort();
     }
@@ -245,10 +247,12 @@ auto InitLegacyAppSecureKey(const GFBuffer &pin) -> bool {
       QMessageBox::critical(
           nullptr, QObject::tr("App Secure Key Error"),
           QObject::tr(
-              "Failed to read the application secure key from disk at: %1\n"
-              "Please ensure the key file exists and is accessible, or try "
-              "re-initializing the secure key.")
-              .arg(l_key_path),
+              "Failed to read the application secure key from disk at: %1")
+                  .arg(l_key_path) +
+              "\n" +
+              QObject::tr(
+                  "Please ensure the key file exists and is accessible, or try "
+                  "re-initializing the secure key."),
           QMessageBox::Ok);
       return false;
     }
@@ -318,10 +322,12 @@ auto InitAppSecureKey(const GFBuffer &pin) -> bool {
       QMessageBox::critical(
           nullptr, QObject::tr("App Secure Key Error"),
           QObject::tr(
-              "Failed to read the application secure key from disk at: %1\n"
-              "Please ensure the key file exists and is accessible, or try "
-              "re-initializing the secure key.")
-              .arg(key_path),
+              "Failed to read the application secure key from disk at: %1")
+                  .arg(key_path) +
+              "\n" +
+              QObject::tr(
+                  "Please ensure the key file exists and is accessible, or try "
+                  "re-initializing the secure key."),
           QMessageBox::Ok);
       return false;
     }
