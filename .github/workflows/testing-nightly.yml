@@ -40,6 +40,7 @@ jobs:
         os:
           [
             "ubuntu-22.04",
+            "ubuntu-22.04-arm",
             "macos-13",
             "macos-14",
             "macos-15",
@@ -264,10 +265,18 @@ jobs:
         run: |
           mkdir ${{github.workspace}}/build/upload-artifact
           cd ${{github.workspace}}/build/upload-artifact
-          wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-          chmod u+x linuxdeployqt-continuous-x86_64.AppImage
+
+          ARCH=$(uname -m)
+          if [[ "$ARCH" == "x86_64" ]]; then
+            wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+            mv linuxdeployqt-continuous-x86_64.AppImage linuxdeployqt-continuous.AppImage 
+          elif [[ "$ARCH" == "aarch64" ]]; then
+            wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-aarch64.AppImage
+            mv linuxdeployqt-continuous-aarch64.AppImage linuxdeployqt-continuous.AppImage 
+          fi
+          chmod u+x linuxdeployqt-continuous.AppImage
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
-          ./linuxdeployqt-continuous-x86_64.AppImage \
+          ./linuxdeployqt-continuous.AppImage \
             ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop \
             -no-translations \
             -extra-plugins=iconengines,platforms \
