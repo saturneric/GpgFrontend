@@ -270,29 +270,24 @@ jobs:
           if [[ "$ARCH" == "x86_64" ]]; then
             wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
             mv linuxdeployqt-continuous-x86_64.AppImage linuxdeployqt-continuous.AppImage 
-            chmod u+x linuxdeployqt-continuous.AppImage
-            export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
-            ./linuxdeployqt-continuous.AppImage \
-              ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop \
-              -no-translations \
-              -extra-plugins=iconengines,platforms \
-              -appimage \
-              -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/lib/modules
+            EXTRA_ARGS=""
           elif [[ "$ARCH" == "aarch64" ]]; then
             wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-aarch64.AppImage
             mv linuxdeployqt-continuous-aarch64.AppImage linuxdeployqt-continuous.AppImage
-            chmod u+x linuxdeployqt-continuous.AppImage
             mkdir -p ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6/
             touch ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6/copyright        
-            export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
-            ./linuxdeployqt-continuous.AppImage \
-              ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop \
-              -unsupported-allow-new-glibc \
-              -no-translations \
-              -extra-plugins=iconengines,platforms \
-              -appimage \
-              -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/lib/modules
+            EXTRA_ARGS="-unsupported-allow-new-glibc"
           fi
+
+          chmod u+x linuxdeployqt-continuous.AppImage
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+          ./linuxdeployqt-continuous.AppImage \
+            ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop \
+            $EXTRA_ARGS \
+            -no-translations \
+            -extra-plugins=iconengines,platforms \
+            -appimage \
+            -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/lib/modules
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: runner.os == 'Linux'
