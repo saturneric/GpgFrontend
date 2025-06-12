@@ -31,9 +31,13 @@
 #include <openssl/crypto.h>
 #include <openssl/evp.h>
 
+#include <cstddef>
 #include <cstring>
 
 namespace GpgFrontend {
+
+// 16MB
+constexpr size_t kStrlenMaxLength = static_cast<const size_t>(16 * 1024 * 1024);
 
 struct GFBuffer::Impl {
   void* sec_ptr_ = nullptr;
@@ -96,8 +100,8 @@ GFBuffer::GFBuffer(const QString& str) {
 }
 
 GFBuffer::GFBuffer(const char* str)
-    : impl_(SecureCreateSharedObject<Impl>((str != nullptr) ? std::strlen(str)
-                                                            : 0)) {
+    : impl_(SecureCreateSharedObject<Impl>(
+          (str != nullptr) ? strnlen(str, kStrlenMaxLength) : 0)) {
   if ((str != nullptr) && impl_->sec_size_ > 0) {
     std::memcpy(impl_->sec_ptr_, str, impl_->sec_size_);
   }
@@ -214,12 +218,12 @@ auto GFBuffer::ConvertToQString() const -> QString {
 }
 
 auto GFBuffer::operator==(const char* str) const -> bool {
-  return Size() == strlen(str) &&
+  return Size() == strnlen(str, kStrlenMaxLength) &&
          (Size() == 0 || std::memcmp(Data(), str, Size()) == 0);
 }
 
 auto GFBuffer::operator!=(const char* str) const -> bool {
-  return Size() == strlen(str) &&
+  return Size() == strnlen(str, kStrlenMaxLength) &&
          (Size() == 0 || std::memcmp(Data(), str, Size()) != 0);
 }
 

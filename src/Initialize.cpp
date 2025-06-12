@@ -69,9 +69,9 @@ void PreInit(const GFCxtWPtr &p_ctx) {
   const auto console = app->property("GFShowConsoleOnWindows").toBool();
 
   if (console && AllocConsole()) {
-    freopen("CONOUT$", "w", stdout);
-    freopen("CONOUT$", "w", stderr);
-    freopen("CONIN$", "r", stdin);
+    Q_ASSERT(freopen("CONOUT$", "w", stdout) != nullptr);
+    Q_ASSERT(freopen("CONOUT$", "w", stderr) != nullptr);
+    Q_ASSERT(freopen("CONIN$", "r", stdin) != nullptr);
     setvbuf(stdout, NULL, _IONBF, 0);
 
     qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context,

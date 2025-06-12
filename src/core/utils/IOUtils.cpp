@@ -48,9 +48,11 @@ auto GetFileHashOpenSSL(const QString& file_path, const EVP_MD* md_type)
   }
 
   GpgFrontend::GFBuffer buffer(GpgFrontend::kSecBufferSize);
+  const auto buffer_size = static_cast<qsizetype>(buffer.Size());
   while (!file.atEnd()) {
-    qint64 n = file.read(buffer.Data(), static_cast<qsizetype>(buffer.Size()));
-    if (n <= 0) break;
+    auto n = file.read(buffer.Data(), buffer_size);
+    if (n <= 0 || n > buffer_size) break;
+
     if (EVP_DigestUpdate(ctx, buffer.Data(), n) != 1) {
       EVP_MD_CTX_free(ctx);
       return {};
@@ -100,18 +102,11 @@ auto ReadFileGFBuffer(const QString& file_name) -> std::tuple<bool, GFBuffer> {
   }
 
   auto file_size = file.size();
-  if (file_size <= 0) {
-    file.close();
-    return {false, GFBuffer()};
-  }
+  if (file_size <= 0) return {false, GFBuffer()};
 
   GFBuffer buf(static_cast<size_t>(file_size));
   auto n = file.read(buf.Data(), file_size);
-  file.close();
-
-  if (n != file_size) {
-    return {false, GFBuffer()};
-  }
+  if (n <= 0 || n != file_size) return {false, GFBuffer()};
 
   return {true, std::move(buf)};
 }
