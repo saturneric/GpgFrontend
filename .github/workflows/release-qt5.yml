@@ -206,7 +206,6 @@ jobs:
           export FILE="gnupg.zip"
           export CHECKSUM_FILE="SHA256SUMS.txt"
           export SIGNATURE_FILE="gnupg.zip.sig"
-          export GNUPGHOME=$(mktemp -d)
 
           cd $(cygpath -u "${{github.workspace}}")
 
