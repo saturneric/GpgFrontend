@@ -408,7 +408,6 @@ jobs:
           ref: "develop"
           lfs: "false"
           submodules: recursive
-          token: ${{ secrets.USER_GITHUB_TOKEN }}
 
       - name: Re-create nightly tag
         run: |
@@ -416,8 +415,6 @@ jobs:
           gh release delete nightly --repo saturneric/GpgFrontend --cleanup-tag --yes || true
           git tag -f nightly develop
           git push origin nightly --force
-        env:
-          GITHUB_TOKEN: ${{ secrets.USER_GITHUB_TOKEN }}
 
       - name: Download Artifacts
         uses: actions/download-artifact@v4
@@ -440,8 +437,6 @@ jobs:
 
       - name: Update Nightly Release
         uses: softprops/action-gh-release@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.USER_GITHUB_TOKEN }}
         with:
           tag_name: nightly
           name: ${{ steps.release_title.outputs.title }}
