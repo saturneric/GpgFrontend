@@ -124,8 +124,6 @@ auto DoInteractImpl(GpgContext& ctx_, const GpgKeyPtr& key, bool card_edit,
     -> std::tuple<GpgError, bool> {
   gpgme_key_t p_key = key == nullptr ? nullptr : static_cast<gpgme_key_t>(*key);
 
-  LOG_D() << "BBBBBBB: " << p_key->fpr;
-
   AutomatonHandelStruct handle(card_edit, fpr);
   handle.SetHandler(std::move(next_state_handler), std::move(action_handler));
 
