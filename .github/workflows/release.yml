@@ -376,9 +376,6 @@ jobs:
           windeployqt-qt6 --no-translations --force ./artifacts/bin/libgf_ui.dll
           windeployqt-qt6 --no-translations --force ./artifacts/bin/libgf_test.dll
           windeployqt-qt6 --no-translations --force ./artifacts/bin/GpgFrontend.exe
-          for module in ./artifacts/modules/*.dll; do
-            windeployqt-qt6 --no-translations --force "$module"
-          done
           mkdir upload-artifact
           cd artifacts
           zip -r ../upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-${{matrix.os}}-x86_64.zip *
