@@ -194,10 +194,12 @@ jobs:
 
           export CC="ccache gcc"
           export CXX="ccache g++"
-          ./config shared --prefix=/usr --openssldir=/usr/lib/ssl
+          ./config shared
           make -j$(nproc)
           sudo make install_sw
 
+          which openssl
+          ldd $(which openssl) | grep ssl
           openssl version -a
           openssl list -kdf-algorithms || true
         if: runner.os == 'Linux'
