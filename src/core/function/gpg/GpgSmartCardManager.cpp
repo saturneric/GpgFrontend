@@ -143,7 +143,7 @@ auto GpgSmartCardManager::SelectCardBySerialNumber(const QString& serial_number)
 
   auto [err, status] = assuan_.SendStatusCommand(
       GpgComponentType::kGPG_AGENT,
-      QString("SCD SERIALNO --demand=%1 openpgp").arg(serial_number));
+      QString("SCD SWITCHCARD %1").arg(serial_number));
   if (err != GPG_ERR_NO_ERROR || status.isEmpty()) {
     return {err, status.join(' ')};
   }
@@ -313,6 +313,9 @@ auto GpgSmartCardManager::GenerateKey(const QString& serial_number,
             }
             if (status == "GET_LINE" && args == "cardedit.prompt") {
               return GpgAutomatonHandler::kAS_QUIT;
+            }
+            if (status == "GET_LINE" && args == "keygen.valid") {
+              return GpgAutomatonHandler::kAS_COMMAND;
             }
             return GpgAutomatonHandler::kAS_ERROR;
           case GpgAutomatonHandler::kAS_QUIT:

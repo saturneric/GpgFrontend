@@ -80,6 +80,11 @@ SmartCardControllerDialog::SmartCardControllerDialog(QWidget* parent)
             select_smart_card_by_serial_number(serial_number);
           });
 
+  connect(ui_->currentCardComboBox, &QComboBox::currentTextChanged, this,
+          [=](const QString& serial_number) {
+            select_smart_card_by_serial_number(serial_number);
+          });
+
   connect(ui_->refreshButton, &QPushButton::clicked, this,
           [=](bool) { slot_refresh(); });
 
@@ -134,7 +139,7 @@ SmartCardControllerDialog::SmartCardControllerDialog(QWidget* parent)
     connect(d, &GenerateCardKeyDialog::finished, this, [=](int ret) {
       if (ret == 1) {
         fetch_smart_card_info(serial_number);
-      } else {
+      } else if (ret == -1) {
         QMessageBox::critical(this, tr("Error"),
                               tr("Generate card key failed."));
       }

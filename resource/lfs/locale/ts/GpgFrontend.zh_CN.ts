@@ -7446,55 +7446,55 @@ If the issue persists, consider seeking technical support or consulting the docu
         <translation>本地没有目标公钥内容供 GpgFrontend 收集有关此签名的足够信息。现在要从密钥服务器导入公钥吗？</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="143"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="139"/>
         <source>File Hash Information</source>
         <translation>文件哈希信息</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="144"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="170"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="140"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="166"/>
         <source>Filename</source>
         <translation>文件名</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="144"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="140"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="145"/>
         <location filename="../../../../src/core/utils/IOUtils.cpp" line="149"/>
         <location filename="../../../../src/core/utils/IOUtils.cpp" line="153"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="157"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="160"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="163"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="170"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="156"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="159"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="166"/>
         <source>: </source>
         <translation>： </translation>
     </message>
     <message>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="144"/>
         <location filename="../../../../src/core/utils/IOUtils.cpp" line="148"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="152"/>
         <source>File Size</source>
         <translation>文件大小</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="168"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="164"/>
         <source>Error: cannot read target file</source>
         <translation>错误：无法读取目标文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="201"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="197"/>
         <source>target path doesn&apos;t exists</source>
         <translation>目标路径不存在</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="207"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="203"/>
         <source>do NOT have permission to write path</source>
         <translation>缺少写入路径的权限</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="213"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="209"/>
         <source>do NOT have permission to read/write file</source>
         <translation>缺少读写文件的权限</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="216"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="212"/>
         <source>Success</source>
         <translation>成功</translation>
     </message>

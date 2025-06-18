@@ -410,6 +410,8 @@ jobs:
           submodules: recursive
 
       - name: Re-create nightly tag
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           cd ${{github.workspace}}
           gh release delete nightly --repo saturneric/GpgFrontend --cleanup-tag --yes || true

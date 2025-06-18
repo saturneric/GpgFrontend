@@ -109,15 +109,16 @@ void GenerateCardKeyDialog::slot_generate_card_key() {
 
     hd();
 
-    UISignalStation::GetInstance()->SignalKeyDatabaseRefresh();
-
     connect(UISignalStation::GetInstance(),
             &UISignalStation::SignalKeyDatabaseRefreshDone, this,
             [=, ret = ret]() {
-              emit finished(ret ? 1 : -1);
+              emit finished(ret == GPG_ERR_NO_ERROR ? 1 : -1);
               this->close();
             });
+
+    UISignalStation::GetInstance()->SignalKeyDatabaseRefresh();
   };
+
   GpgOperaHelper::WaitForOpera(this, tr("Generating"), f);
 }
 }  // namespace GpgFrontend::UI
