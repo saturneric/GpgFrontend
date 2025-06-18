@@ -81,6 +81,32 @@ auto GetLoadedLibraryPath(void *symbol_address) -> QString {
   return QString::fromWCharArray(wpath_buffer, static_cast<int>(len));
 }
 
+auto VerifySignatureByWinVerifyTrust(const QString &path) -> bool {
+  LONG l_status;
+  GUID wvt_policy_guid = WINTRUST_ACTION_GENERIC_VERIFY_V2;
+
+  WINTRUST_FILE_INFO file_data = {0};
+  file_data.cbStruct = sizeof(WINTRUST_FILE_INFO);
+  file_data.pcwszFilePath = (LPCWSTR)path.utf16();
+  file_data.hFile = NULL;
+  file_data.pgKnownSubject = NULL;
+
+  WINTRUST_DATA win_trust_data = {0};
+  win_trust_data.cbStruct = sizeof(WINTRUST_DATA);
+  win_trust_data.dwUIChoice = WTD_UI_NONE;
+  win_trust_data.fdwRevocationChecks = WTD_REVOKE_NONE;
+  win_trust_data.dwUnionChoice = WTD_CHOICE_FILE;
+  win_trust_data.pFile = &file_data;
+  win_trust_data.dwStateAction = 0;
+  win_trust_data.hWVTStateData = NULL;
+  win_trust_data.pwszURLReference = NULL;
+  win_trust_data.dwProvFlags = WTD_CACHE_ONLY_URL_RETRIEVAL;
+
+  l_status = WinVerifyTrust(NULL, &wvt_policy_guid, &win_trust_data);
+
+  return (l_status == ERROR_SUCCESS);
+}
+
 }  // namespace
 
 #else
@@ -181,6 +207,14 @@ auto VerifySignature(const QByteArray &lib_data, const QByteArray &sig_data,
 auto ValidateLibrary(void *symbol_address, EVP_PKEY *key)
     -> std::tuple<QString, bool> {
   auto lib_path = GetLoadedLibraryPath(symbol_address);
+
+  // check if library exists
+  if (!QFileInfo(lib_path).exists()) return {lib_path, false};
+
+#ifdef Q_OS_WINDOWS
+  // use win verify trust at first
+  if (VerifySignatureByWinVerifyTrust(lib_path)) return true;
+#endif
 
   QByteArray lib_data;
   auto succ = FileToByteArray(lib_path, lib_data);
