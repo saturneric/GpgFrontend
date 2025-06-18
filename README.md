@@ -30,10 +30,9 @@ portable enough for everyone who values security and flexibility.
 - **Comprehensive Algorithm Support** — RSA, DSA, EdDSA, ECDSA (NIST,
   Brainpool), ECDH, and many more via the latest GnuPG.
 
-> **100% free, open-source, no telemetry—privacy by design.**
-
 ❤️ **Like GpgFrontend?**  
-Star ⭐ it on GitHub, report issues, or even contribute code—every action supports privacy and security for all.
+Star ⭐ it on GitHub, report issues, or even contribute code—every action
+supports privacy and security for all.
 
 ## Table of Contents
 
