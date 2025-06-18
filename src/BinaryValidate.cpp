@@ -59,6 +59,7 @@ auto GetLoadedLibraryPath(void *symbol_address) -> QString {
 
 #elif defined(Q_OS_WINDOWS)
 
+#include <psapi.h>
 #include <softpub.h>
 #include <windows.h>
 #include <wintrust.h>
@@ -109,7 +110,7 @@ auto VerifySignatureByWinVerifyTrust(const QString &path) -> bool {
   return (l_status == ERROR_SUCCESS);
 }
 
-auto FindLoadedOpenSSL() -> QStringList {
+auto FindLoadedLibraries(const QStringList &keywords) -> QStringList {
   QStringList result;
   HMODULE h_mods[1024];
   HANDLE h_process = GetCurrentProcess();
@@ -121,9 +122,11 @@ auto FindLoadedOpenSSL() -> QStringList {
       if (GetModuleFileName(h_mods[i], sz_mod_name,
                             sizeof(sz_mod_name) / sizeof(TCHAR))) {
         auto mod = QString::fromWCharArray(sz_mod_name);
-        if (mod.contains("libssl", Qt::CaseInsensitive) ||
-            mod.contains("libcrypto", Qt::CaseInsensitive)) {
-          result << mod;
+        for (const auto &kw : keywords) {
+          if (mod.contains(kw, Qt::CaseInsensitive)) {
+            result << mod;
+            break;
+          }
         }
       }
     }
@@ -239,7 +242,7 @@ auto ValidateLibrary(const QString &lib_path, EVP_PKEY *key)
 #endif
 
   // we must now ensure that we have the public key
-  if (key == nullptr) return {lib_path, true};
+  if (key == nullptr) return {lib_path, false};
 
   QByteArray lib_data;
   auto succ = FileToByteArray(lib_path, lib_data);
@@ -272,16 +275,17 @@ auto ValidateLibraries() -> bool {
 #ifdef Q_OS_WINDOWS
 
   // we need to check openssl at first
-  auto libs = FindLoadedOpenSSL();
-  qInfo() << "Loaded OpenSSL DLL:" << libs;
+  auto base_libs =
+      QStringList{"libssl", "libcrypto", "QtCore", "QtGui", "QtWidgets"};
+  auto libs = FindLoadedLibraries(base_libs);
+  qInfo() << "Loaded Base Libraries:" << libs;
 
   for (const auto &path : libs) {
-    auto [ssl, succ_ssl] = ValidateLibrary(path, pub_key);
-    if (!succ_ssl) {
-      qCritical()
-          << "the dynamic link library failed verification and may be at "
-             "risk of being tampered with: "
-          << ssl;
+    auto [lib, succ_lib] = ValidateLibrary(path, pub_key);
+    if (!succ_lib) {
+      qCritical() << "a dynamic link library failed verification and may be at "
+                     "risk of being tampered with: "
+                  << lib;
       return false;
     }
   }
@@ -292,7 +296,7 @@ auto ValidateLibraries() -> bool {
       ValidateLibrary(reinterpret_cast<void *>(GFCoreValidateSymbol), pub_key);
 
   if (!succ_core) {
-    qCritical() << "the dynamic link library failed verification and may be at "
+    qCritical() << "a dynamic link library failed verification and may be at "
                    "risk of being tampered with: "
                 << core;
   }
@@ -301,7 +305,7 @@ auto ValidateLibraries() -> bool {
       ValidateLibrary(reinterpret_cast<void *>(GFUIValidateSymbol), pub_key);
 
   if (!succ_ui) {
-    qCritical() << "the dynamic link library failed verification and may be at "
+    qCritical() << "a dynamic link library failed verification and may be at "
                    "risk of being tampered with: "
                 << ui;
   }
@@ -310,7 +314,7 @@ auto ValidateLibraries() -> bool {
       ValidateLibrary(reinterpret_cast<void *>(GFTestValidateSymbol), pub_key);
 
   if (!succ_test) {
-    qCritical() << "the dynamic link library failed verification and may be at "
+    qCritical() << "a dynamic link library failed verification and may be at "
                    "risk of being tampered with: "
                 << test;
   }
