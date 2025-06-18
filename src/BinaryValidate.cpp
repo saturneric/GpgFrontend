@@ -274,10 +274,10 @@ auto ValidateLibraries() -> bool {
 
 #ifdef Q_OS_WINDOWS
 
-  // we need to check openssl at first
+  // we need to check base libraries at first
   auto base_libs = QStringList{
-      "libssl",    "libcrypto", "QtCore", "QtGui",
-      "QtWidgets", "Qt6Core",   "Qt6Gui", "Qt6Widgets",
+      "libssl",     "libcrypto", "Qt5Core", "Qt5Gui",     "Qt5Widgets",
+      "Qt5Network", "Qt6Core",   "Qt6Gui",  "Qt6Widgets", "Qt6Network",
   };
   auto libs = FindLoadedLibraries(base_libs);
   qInfo() << "Loaded Base Libraries:" << libs;
