@@ -194,10 +194,11 @@ jobs:
 
           export CC="ccache gcc"
           export CXX="ccache g++"
-          ./config shared
+          ./config
           make -j$(nproc)
           sudo make install_sw
 
+          export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
           which openssl
           ldd $(which openssl) | grep ssl
           openssl version -a
@@ -269,6 +270,7 @@ jobs:
 
       - name: Build GpgFrontend (Linux)
         run: |
+          export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
           cmake -B ${{github.workspace}}/build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DGPGFRONTEND_BUILD_APP_IMAGE=ON \
@@ -295,7 +297,7 @@ jobs:
           fi
 
           chmod u+x linuxdeployqt-continuous.AppImage
-          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+          export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
           ./linuxdeployqt-continuous.AppImage \
             ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop \
             $EXTRA_ARGS \
