@@ -195,6 +195,23 @@ jobs:
           make install
         if: runner.os == 'Windows'
 
+      - name: Build OpenSSL (Linux)
+        run: |
+          cd ${{github.workspace}}/third_party/openssl
+
+          export CC="ccache gcc"
+          export CXX="ccache g++"
+          ./config
+          make -j$(nproc)
+          sudo make install_sw
+
+          export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
+          which openssl
+          ldd $(which openssl) | grep ssl
+          openssl version -a
+          openssl list -kdf-algorithms || true
+        if: runner.os == 'Linux'
+
       - name: Build googletest (Linux)
         run: |
           git clone --depth 1 --branch v1.15.2 https://github.com/google/googletest.git ${{github.workspace}}/third_party/googletest
@@ -260,6 +277,7 @@ jobs:
 
       - name: Build GpgFrontend (Linux)
         run: |
+          export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
           cmake -B ${{github.workspace}}/build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DGPGFRONTEND_BUILD_APP_IMAGE=ON \
@@ -286,7 +304,7 @@ jobs:
           fi
 
           chmod u+x linuxdeployqt-continuous.AppImage
-          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+          export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
           ./linuxdeployqt-continuous.AppImage \
             ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop \
             $EXTRA_ARGS \
