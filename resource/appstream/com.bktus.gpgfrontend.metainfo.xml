@@ -12,7 +12,7 @@
 
   <description>
     <p>
-      <b>GpgFrontend</b> is a modern, cross-platform, open-source GUI for
+      GpgFrontend is a modern, cross-platform, open-source GUI for
       OpenPGP encryption—simple enough for beginners, powerful enough for
       experts, and portable enough for everyone who values security and
       flexibility.
@@ -27,16 +27,15 @@
       support through the latest GnuPG.
     </p>
     <ul>
-      <li><b>One-click Encryption and Signing</b> — Instantly encrypt, decrypt, and sign texts, files, and emails.</li>
-      <li><b>Easy Installation</b> — Available via Homebrew, Flatpak, GitHub Releases, winget, AUR, Microsoft Store, and more.</li>
-      <li><b>Truly Cross-platform</b> — Native support for Windows, macOS, Linux, and buildable on FreeBSD.</li>
-      <li><b>Fully Portable</b> — Run from a USB drive; seamlessly move keys and settings between systems.</li>
-      <li><b>Secure and Simple Key Transfer</b> — Safely move your keys and configurations between devices.</li>
-      <li><b>Multiple Independent Key Databases</b> — Easily manage keys for different purposes.</li>
-      <li><b>Comprehensive Algorithm Support</b> — RSA, DSA, EdDSA, ECDSA (NIST, Brainpool), ECDH, and more via GnuPG.</li>
+      <li>One-click Encryption and Signing — Instantly encrypt, decrypt, and sign texts, files, and emails.</li>
+      <li>Truly Cross-platform — Native support for Windows, macOS, Linux, and buildable on FreeBSD.</li>
+      <li>Fully Portable — Run from a USB drive; seamlessly move keys and settings between systems.</li>
+      <li>Secure and Simple Key Transfer — Safely move your keys and configurations between devices.</li>
+      <li>Multiple Independent Key Databases — Easily manage keys for different purposes.</li>
+      <li>Comprehensive Algorithm Support — RSA, DSA, EdDSA, ECDSA (NIST, Brainpool), ECDH, and more via GnuPG.</li>
     </ul>
     <p>
-      <b>100% free, open-source, and privacy-friendly—no telemetry, privacy by design.</b>
+      100% free, open-source, and privacy-friendly—no telemetry, privacy by design.
     </p>
   </description>
 
