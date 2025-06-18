@@ -70,7 +70,6 @@ option(GPGFRONTEND_XCODE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
 
 # check options
 option(GPGFRONTEND_CHECK_RELEASE_COMMIT_HASH "Enable checking on commit hash from the GitHub release" OFF)
-option(GPGFRONTEND_SIGN_BUILT_BINARY "Use OpenSSL to sign shared libraries and executables" OFF)
 option(GPGFRONTEND_LINK_GPGME_INTO_CORE "Statically link GpgME into the core library" OFF)
 option(GPGFRONTEND_LINK_OPENSSL_INTO_EXEC "Statically link OpenSSL into the executable" OFF)
 
@@ -107,12 +106,6 @@ if(GPGFRONTEND_BUILD_STRIP_RPATH)
   set(BUILD_STRIP_RPATH 1)
 else()
   set(BUILD_STRIP_RPATH 0)
-endif()
-
-if(GPGFRONTEND_SIGN_BUILT_BINARY)
-  set(SIGN_BUILT_BINARY 1)
-else()
-  set(SIGN_BUILT_BINARY 0)
 endif()
 
 if(GPGFRONTEND_LINK_GPGME_INTO_CORE)
@@ -433,41 +426,6 @@ else()
     set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
     set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
   endif()
-endif()
-
-if(SIGN_BUILT_BINARY)
-  set(SIGN_KEYS_DIR "${CMAKE_BINARY_DIR}/keys")
-  file(MAKE_DIRECTORY "${SIGN_KEYS_DIR}")
-
-  set(SIGN_PRIVATE_KEY "${SIGN_KEYS_DIR}/private.pem")
-  set(SIGN_PUBLIC_KEY "${SIGN_KEYS_DIR}/public.pem")
-
-  find_program(OPENSSL_EXECUTABLE NAMES openssl)
-
-  if(NOT OPENSSL_EXECUTABLE)
-    message(FATAL_ERROR "Signing is enabled (SIGN_BUILT_BINARY=ON), but openssl executable not found, please install OpenSSL.")
-  endif()
-
-  execute_process(
-    COMMAND ${OPENSSL_EXECUTABLE} genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out "${SIGN_PRIVATE_KEY}"
-    RESULT_VARIABLE result_priv
-  )
-
-  if(NOT result_priv EQUAL 0)
-    message(FATAL_ERROR "Failed to generate private key for binary signing.")
-  endif()
-
-  execute_process(
-    COMMAND ${OPENSSL_EXECUTABLE} pkey -in "${SIGN_PRIVATE_KEY}" -pubout -out "${SIGN_PUBLIC_KEY}"
-    RESULT_VARIABLE result_pub
-  )
-
-  if(NOT result_pub EQUAL 0)
-    message(FATAL_ERROR "Failed to generate public key for binary signing.")
-  endif()
-
-  message(STATUS "Binary Signing Private Key: ${SIGN_PRIVATE_KEY}")
-  message(STATUS "Binary Signing Public Key: ${SIGN_PUBLIC_KEY}")
 endif()
 
 if(BUILD_AND_STATIC_LINK_GPGME)

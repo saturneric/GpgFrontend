@@ -35,14 +35,6 @@ function(register_library name out_var)
   set_target_properties(${target_name} PROPERTIES
     VERSION ${PROJECT_VERSION})
 
-  if(SIGN_BUILT_BINARY)
-    add_custom_command(TARGET ${target_name} POST_BUILD
-      COMMAND ${OPENSSL_EXECUTABLE} dgst -sha256 -sign "${SIGN_PRIVATE_KEY}"
-      -out "$<TARGET_FILE:${target_name}>.sig" "$<TARGET_FILE:${target_name}>"
-      VERBATIM
-    )
-  endif()
-
   set_target_properties(${target_name} PROPERTIES
     POSITION_INDEPENDENT_CODE ON
     CXX_VISIBILITY_PRESET hidden
