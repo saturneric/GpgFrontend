@@ -38,98 +38,8 @@
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
-#include "core/utils/IOUtils.h"
 
 namespace {
-
-auto LoadEmbeddedPublicKey() -> EVP_PKEY* {
-  auto [succ, buffer] = GpgFrontend::ReadFileGFBuffer(":/keys/public.pem");
-  if (!succ) {
-    qWarning()
-        << "unable to read public key from resource file: /keys/public.pem";
-    return nullptr;
-  }
-
-  auto* bio = BIO_new_mem_buf(buffer.Data(), static_cast<int>(buffer.Size()));
-  if (bio == nullptr) {
-    qWarning() << "BIO_new_mem_buf error";
-    return nullptr;
-  }
-
-  EVP_PKEY* pub_key = PEM_read_bio_PUBKEY(bio, nullptr, nullptr, nullptr);
-  BIO_free(bio);
-
-  if (pub_key == nullptr) {
-    qWarning()
-        << "PEM_read_bio_PUBKEY parsing failed, is it a valid PEM format?";
-  }
-
-  return pub_key;
-}
-
-auto VerifyModuleSignature(const GpgFrontend::GFBuffer& lib_data,
-                           const GpgFrontend::GFBuffer& sig_data,
-                           EVP_PKEY* pub_key) -> bool {
-  if (pub_key == nullptr) return false;
-
-  EVP_MD_CTX* md_ctx = EVP_MD_CTX_new();
-  if (md_ctx == nullptr) {
-    qWarning() << "EVP_MD_CTX_new error";
-    return false;
-  }
-
-  if (EVP_DigestVerifyInit(md_ctx, nullptr, EVP_sha256(), nullptr, pub_key) <=
-      0) {
-    qWarning() << "EVP_DigestVerifyInit error";
-    EVP_MD_CTX_free(md_ctx);
-    return false;
-  }
-
-  if (EVP_DigestVerifyUpdate(
-          md_ctx, reinterpret_cast<const unsigned char*>(lib_data.Data()),
-          static_cast<int>(lib_data.Size())) <= 0) {
-    qWarning() << "EVP_DigestVerifyUpdate error";
-    EVP_MD_CTX_free(md_ctx);
-    return false;
-  }
-
-  int ret = EVP_DigestVerifyFinal(
-      md_ctx, reinterpret_cast<const unsigned char*>(sig_data.Data()),
-      static_cast<int>(sig_data.Size()));
-
-  EVP_MD_CTX_free(md_ctx);
-
-  if (ret == 1) return true;
-
-  if (ret == 0) {
-    qWarning()
-        << "signature does not match, the module may have been tampered with!";
-    return false;
-  }
-
-  qWarning() << "EVP_DigestVerifyFinal error";
-  return false;
-}
-
-auto ValidateModule(const QString& path, EVP_PKEY* key) -> bool {
-  auto [succ, mod_buf] = GpgFrontend::ReadFileGFBuffer(path);
-  if (!succ) {
-    LOG_W() << "cannot read module: " << path;
-    return false;
-  }
-
-  auto sig_path = path + ".sig";
-
-  auto [succ_1, sig_buf] = GpgFrontend::ReadFileGFBuffer(sig_path);
-  if (!succ_1) {
-    LOG_W() << "cannot read signature of module: " << sig_path;
-    return false;
-  }
-
-  if (key == nullptr) return false;
-
-  return VerifyModuleSignature(mod_buf, sig_buf, key);
-}
 
 auto SearchModuleFromPath(const QString& mods_path, bool integrated)
     -> QMap<QString, bool> {
@@ -181,6 +91,52 @@ auto LoadExternalMods() -> QMap<QString, bool> {
 
 }  // namespace
 
+#if defined(Q_OS_WINDOWS)
+
+#include <softpub.h>
+#include <windows.h>
+#include <wintrust.h>
+
+namespace {
+
+auto ValidateModule(const QString& path) -> bool {
+  LONG l_status;
+  GUID wvt_policy_guid = WINTRUST_ACTION_GENERIC_VERIFY_V2;
+
+  WINTRUST_FILE_INFO file_data = {0};
+  file_data.cbStruct = sizeof(WINTRUST_FILE_INFO);
+  file_data.pcwszFilePath = (LPCWSTR)path.utf16();
+  file_data.hFile = NULL;
+  file_data.pgKnownSubject = NULL;
+
+  WINTRUST_DATA win_trust_data = {0};
+  win_trust_data.cbStruct = sizeof(WINTRUST_DATA);
+  win_trust_data.dwUIChoice = WTD_UI_NONE;
+  win_trust_data.fdwRevocationChecks = WTD_REVOKE_NONE;
+  win_trust_data.dwUnionChoice = WTD_CHOICE_FILE;
+  win_trust_data.pFile = &file_data;
+  win_trust_data.dwStateAction = 0;
+  win_trust_data.hWVTStateData = NULL;
+  win_trust_data.pwszURLReference = NULL;
+  win_trust_data.dwProvFlags = WTD_CACHE_ONLY_URL_RETRIEVAL;
+
+  l_status = WinVerifyTrust(NULL, &wvt_policy_guid, &win_trust_data);
+
+  return (l_status == ERROR_SUCCESS);
+}
+
+}  // namespace
+
+#else
+
+namespace {
+
+auto ValidateModule(const QString& path) -> bool { return true; };
+
+}  // namespace
+
+#endif
+
 namespace GpgFrontend::Module {
 
 void LoadGpgFrontendModules(ModuleInitArgs) {
@@ -200,12 +156,10 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
             const auto self_check = qApp->property("GFSelfCheck").toBool();
 
             // only check integrated modules at first
-            auto* key = LoadEmbeddedPublicKey();
             QMap<QString, bool> integrated_modules = LoadIntegratedMods();
             for (auto it = integrated_modules.keyValueBegin();
                  it != integrated_modules.keyValueEnd(); ++it) {
-              // validate integrated modules
-              if (self_check && it->second && !ValidateModule(it->first, key)) {
+              if (self_check && it->second && !ValidateModule(it->first)) {
                 LOG_W() << "refuse to load integrated module: " << it->first;
                 continue;
               }

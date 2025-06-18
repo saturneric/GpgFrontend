@@ -39,7 +39,7 @@
 
 #include "test/GpgFrontendTest.h"
 
-#if defined(Q_OS_MACOS) || defined(Q_OS_LINUX)
+#if defined(Q_OS_LINUX) || defined(Q_OS_MACOS)
 
 #include <dlfcn.h>
 
@@ -53,6 +53,12 @@ auto GetLoadedLibraryPath(void *symbol_address) -> QString {
   }
 
   return {info.dli_fname};
+}
+
+auto VerifySignatureByOS(const QString &path) -> bool { return true; }
+
+auto FindLoadedLibraries(const QStringList &keywords) -> QStringList {
+  return {};
 }
 
 }  // namespace
@@ -84,7 +90,7 @@ auto GetLoadedLibraryPath(void *symbol_address) -> QString {
   return QString::fromWCharArray(wpath_buffer, static_cast<int>(len));
 }
 
-auto VerifySignatureByWinVerifyTrust(const QString &path) -> bool {
+auto VerifySignatureByOS(const QString &path) -> bool {
   LONG l_status;
   GUID wvt_policy_guid = WINTRUST_ACTION_GENERIC_VERIFY_V2;
 
@@ -144,146 +150,45 @@ auto GetLoadedLibraryPath(void *) -> QString { return {}; }
 
 namespace {
 
-auto LoadEmbeddedPublicKey() -> EVP_PKEY * {
-  QFile key_file(":/keys/public.pem");
-  if (!key_file.open(QIODevice::ReadOnly)) {
-    qWarning()
-        << "unable to read public key from resource file: /keys/public.pem";
-    return nullptr;
-  }
+// checking the trust of base libraries
+const auto kBaseLibs = QStringList{
+    // OpenSSL
+    "libssl",
+    "libcrypto",
+    // Qt5
+    "Qt5Core",
+    "Qt5Gui",
+    "Qt5Widgets",
+    "Qt5Network",
+    "Qt5Svg",
+    "Qt5Xml",
+    // Qt6
+    "Qt6Core",
+    "Qt6Gui",
+    "Qt6Widgets",
+    "Qt6Network",
+    "Qt6Svg",
+    "Qt6Xml",
+};
 
-  auto pem_data = key_file.readAll();
-  key_file.close();
-
-  auto *bio =
-      BIO_new_mem_buf(pem_data.constData(), static_cast<int>(pem_data.size()));
-  if (bio == nullptr) {
-    qWarning() << "BIO_new_mem_buf error";
-    return nullptr;
-  }
-
-  EVP_PKEY *pub_key = PEM_read_bio_PUBKEY(bio, nullptr, nullptr, nullptr);
-  BIO_free(bio);
-
-  if (pub_key == nullptr) {
-    qWarning()
-        << "PEM_read_bio_PUBKEY parsing failed, is it a valid PEM format?";
-    ERR_print_errors_fp(stderr);
-  }
-
-  return pub_key;
-}
-
-auto FileToByteArray(const QString &path, QByteArray &out) -> bool {
-  QFile f(path);
-  if (!f.open(QIODevice::ReadOnly)) {
-    qWarning() << "cannot open file:" << path;
-    return false;
-  }
-  out = f.readAll();
-  f.close();
-  return true;
-}
-
-auto VerifySignature(const QByteArray &lib_data, const QByteArray &sig_data,
-                     EVP_PKEY *pub_key) -> bool {
-  if (pub_key == nullptr) return false;
-
-  EVP_MD_CTX *md_ctx = EVP_MD_CTX_new();
-  if (md_ctx == nullptr) {
-    qWarning() << "EVP_MD_CTX_new error";
-    return false;
-  }
-
-  if (EVP_DigestVerifyInit(md_ctx, nullptr, EVP_sha256(), nullptr, pub_key) <=
-      0) {
-    qWarning() << "EVP_DigestVerifyInit error";
-    ERR_print_errors_fp(stderr);
-    EVP_MD_CTX_free(md_ctx);
-    return false;
-  }
-
-  if (EVP_DigestVerifyUpdate(
-          md_ctx, reinterpret_cast<const unsigned char *>(lib_data.constData()),
-          static_cast<size_t>(lib_data.size())) <= 0) {
-    qWarning() << "EVP_DigestVerifyUpdate error";
-    ERR_print_errors_fp(stderr);
-    EVP_MD_CTX_free(md_ctx);
-    return false;
-  }
-
-  int ret = EVP_DigestVerifyFinal(
-      md_ctx, reinterpret_cast<const unsigned char *>(sig_data.constData()),
-      static_cast<size_t>(sig_data.size()));
-
-  EVP_MD_CTX_free(md_ctx);
-
-  if (ret == 1) return true;
-
-  if (ret == 0) {
-    qWarning() << "signature does not match, the library file "
-                  "may have been tampered with!";
-    return false;
-  }
-
-  qWarning() << "EVP_DigestVerifyFinal error";
-  ERR_print_errors_fp(stderr);
-  return false;
-}
-
-auto ValidateLibrary(const QString &lib_path, EVP_PKEY *key)
-    -> std::tuple<QString, bool> {
+auto ValidateLibrary(const QString &lib_path) -> std::tuple<QString, bool> {
   // check if library exists
   if (!QFileInfo(lib_path).exists()) return {lib_path, false};
-
-#ifdef Q_OS_WINDOWS
-  // use win verify trust api at first try
-  if (VerifySignatureByWinVerifyTrust(lib_path)) return {lib_path, true};
-#endif
-
-  // we must now ensure that we have the public key
-  if (key == nullptr) return {lib_path, false};
-
-  QByteArray lib_data;
-  auto succ = FileToByteArray(lib_path, lib_data);
-  if (!succ) return {lib_path, false};
-
-  auto sig_path = lib_path + ".sig";
-
-  QByteArray sig_data;
-  succ = FileToByteArray(sig_path, sig_data);
-  if (!succ) return {lib_path, false};
-
-  if (key == nullptr) return {lib_path, false};
-
-  return {lib_path, VerifySignature(lib_data, sig_data, key)};
+  return {lib_path, VerifySignatureByOS(lib_path)};
 }
 
-auto ValidateLibrary(void *symbol_address, EVP_PKEY *key)
-    -> std::tuple<QString, bool> {
-  return ValidateLibrary(GetLoadedLibraryPath(symbol_address), key);
+auto ValidateLibrary(void *symbol_address) -> std::tuple<QString, bool> {
+  return ValidateLibrary(GetLoadedLibraryPath(symbol_address));
 }
 
 }  // namespace
 
 auto ValidateLibraries() -> bool {
-  auto *pub_key = LoadEmbeddedPublicKey();
-  if (pub_key == nullptr) {
-    qWarning() << "unable to obtain public key of binary signing";
-  }
-
-#ifdef Q_OS_WINDOWS
-
-  // we need to check base libraries at first
-  auto base_libs = QStringList{
-      "libssl",     "libcrypto", "Qt5Core", "Qt5Gui",     "Qt5Widgets",
-      "Qt5Network", "Qt6Core",   "Qt6Gui",  "Qt6Widgets", "Qt6Network",
-  };
-  auto libs = FindLoadedLibraries(base_libs);
+  auto libs = FindLoadedLibraries(kBaseLibs);
   qInfo() << "Loaded Base Libraries:" << libs;
 
   for (const auto &path : libs) {
-    auto [lib, succ_lib] = ValidateLibrary(path, pub_key);
+    auto [lib, succ_lib] = ValidateLibrary(path);
     if (!succ_lib) {
       qCritical() << "a dynamic link library failed verification and may be at "
                      "risk of being tampered with: "
@@ -292,10 +197,8 @@ auto ValidateLibraries() -> bool {
     }
   }
 
-#endif
-
   auto [core, succ_core] =
-      ValidateLibrary(reinterpret_cast<void *>(GFCoreValidateSymbol), pub_key);
+      ValidateLibrary(reinterpret_cast<void *>(GFCoreValidateSymbol));
 
   if (!succ_core) {
     qCritical() << "a dynamic link library failed verification and may be at "
@@ -304,7 +207,7 @@ auto ValidateLibraries() -> bool {
   }
 
   auto [ui, succ_ui] =
-      ValidateLibrary(reinterpret_cast<void *>(GFUIValidateSymbol), pub_key);
+      ValidateLibrary(reinterpret_cast<void *>(GFUIValidateSymbol));
 
   if (!succ_ui) {
     qCritical() << "a dynamic link library failed verification and may be at "
@@ -313,7 +216,7 @@ auto ValidateLibraries() -> bool {
   }
 
   auto [test, succ_test] =
-      ValidateLibrary(reinterpret_cast<void *>(GFTestValidateSymbol), pub_key);
+      ValidateLibrary(reinterpret_cast<void *>(GFTestValidateSymbol));
 
   if (!succ_test) {
     qCritical() << "a dynamic link library failed verification and may be at "
