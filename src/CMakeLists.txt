@@ -364,6 +364,7 @@ target_link_libraries(${APP_NAME} OpenSSL::SSL OpenSSL::Crypto)
 
 if(MINGW)
   message(STATUS "Link Application Library For MINGW")
+  target_link_libraries(${APP_NAME} Wintrust Crypt32)
 elseif(APPLE)
   message(STATUS "Link Application Library For macOS")
 else()

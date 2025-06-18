@@ -59,7 +59,9 @@ auto GetLoadedLibraryPath(void *symbol_address) -> QString {
 
 #elif defined(Q_OS_WINDOWS)
 
+#include <softpub.h>
 #include <windows.h>
+#include <wintrust.h>
 
 namespace {
 
@@ -105,6 +107,28 @@ auto VerifySignatureByWinVerifyTrust(const QString &path) -> bool {
   l_status = WinVerifyTrust(NULL, &wvt_policy_guid, &win_trust_data);
 
   return (l_status == ERROR_SUCCESS);
+}
+
+auto FindLoadedOpenSSL() -> QStringList {
+  QStringList result;
+  HMODULE h_mods[1024];
+  HANDLE h_process = GetCurrentProcess();
+  DWORD cb_needed;
+
+  if (EnumProcessModules(h_process, h_mods, sizeof(h_mods), &cb_needed)) {
+    for (unsigned int i = 0; i < (cb_needed / sizeof(HMODULE)); ++i) {
+      TCHAR sz_mod_name[MAX_PATH];
+      if (GetModuleFileName(h_mods[i], sz_mod_name,
+                            sizeof(sz_mod_name) / sizeof(TCHAR))) {
+        auto mod = QString::fromWCharArray(sz_mod_name);
+        if (mod.contains("libssl", Qt::CaseInsensitive) ||
+            mod.contains("libcrypto", Qt::CaseInsensitive)) {
+          result << mod;
+        }
+      }
+    }
+  }
+  return result;
 }
 
 }  // namespace
@@ -204,17 +228,18 @@ auto VerifySignature(const QByteArray &lib_data, const QByteArray &sig_data,
   return false;
 }
 
-auto ValidateLibrary(void *symbol_address, EVP_PKEY *key)
+auto ValidateLibrary(const QString &lib_path, EVP_PKEY *key)
     -> std::tuple<QString, bool> {
-  auto lib_path = GetLoadedLibraryPath(symbol_address);
-
   // check if library exists
   if (!QFileInfo(lib_path).exists()) return {lib_path, false};
 
 #ifdef Q_OS_WINDOWS
-  // use win verify trust at first
-  if (VerifySignatureByWinVerifyTrust(lib_path)) return true;
+  // use win verify trust api at first try
+  if (VerifySignatureByWinVerifyTrust(lib_path)) return {lib_path, true};
 #endif
+
+  // we must now ensure that we have the public key
+  if (key == nullptr) return {lib_path, true};
 
   QByteArray lib_data;
   auto succ = FileToByteArray(lib_path, lib_data);
@@ -231,14 +256,37 @@ auto ValidateLibrary(void *symbol_address, EVP_PKEY *key)
   return {lib_path, VerifySignature(lib_data, sig_data, key)};
 }
 
+auto ValidateLibrary(void *symbol_address, EVP_PKEY *key)
+    -> std::tuple<QString, bool> {
+  return ValidateLibrary(GetLoadedLibraryPath(symbol_address), key);
+}
+
 }  // namespace
 
 auto ValidateLibraries() -> bool {
   auto *pub_key = LoadEmbeddedPublicKey();
   if (pub_key == nullptr) {
-    qCritical() << "unable to obtain public key for binary signing";
-    return false;
+    qWarning() << "unable to obtain public key of binary signing";
   }
+
+#ifdef Q_OS_WINDOWS
+
+  // we need to check openssl at first
+  auto libs = FindLoadedOpenSSL();
+  qInfo() << "Loaded OpenSSL DLL:" << libs;
+
+  for (const auto &path : libs) {
+    auto [ssl, succ_ssl] = ValidateLibrary(path, pub_key);
+    if (!succ_ssl) {
+      qCritical()
+          << "the dynamic link library failed verification and may be at "
+             "risk of being tampered with: "
+          << ssl;
+      return false;
+    }
+  }
+
+#endif
 
   auto [core, succ_core] =
       ValidateLibrary(reinterpret_cast<void *>(GFCoreValidateSymbol), pub_key);
