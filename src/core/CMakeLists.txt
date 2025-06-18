@@ -82,12 +82,9 @@ target_precompile_headers(${LIBRARY_TARGET}
 
 # link for different platforms
 if(MINGW)
-  message(STATUS "Link GPG Static Library For MINGW")
   target_link_libraries(${LIBRARY_TARGET} PUBLIC wsock32)
+  target_link_libraries(${LIBRARY_TARGET} PRIVATE Wintrust Crypt32)
 elseif(APPLE)
-  message(STATUS "Link GPG Static Library For macOS")
 else()
-  # linux
-  message(STATUS "Link GPG Static Library For Unix")
   target_link_libraries(${LIBRARY_TARGET} PUBLIC pthread dl)
 endif()
