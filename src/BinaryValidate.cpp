@@ -124,9 +124,9 @@ auto FindLoadedLibraries(const QStringList &keywords) -> QStringList {
 
   if (EnumProcessModules(h_process, h_mods, sizeof(h_mods), &cb_needed)) {
     for (unsigned int i = 0; i < (cb_needed / sizeof(HMODULE)); ++i) {
-      TCHAR sz_mod_name[MAX_PATH];
-      if (GetModuleFileName(h_mods[i], sz_mod_name,
-                            sizeof(sz_mod_name) / sizeof(TCHAR))) {
+      wchar_t sz_mod_name[MAX_PATH];
+      if (GetModuleFileNameW(h_mods[i], sz_mod_name,
+                            sizeof(sz_mod_name) / sizeof(wchar_t))) {
         auto mod = QString::fromWCharArray(sz_mod_name);
         for (const auto &kw : keywords) {
           if (mod.contains(kw, Qt::CaseInsensitive)) {
