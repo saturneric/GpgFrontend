@@ -44,7 +44,6 @@ jobs:
             "macos-13",
             "macos-14",
             "macos-15",
-            "windows-2019",
             "windows-2022",
           ]
     runs-on: ${{ matrix.os }}
@@ -188,6 +187,18 @@ jobs:
           make -j4
           make install
         if: runner.os == 'Windows'
+
+      - name: Build OpenSSL (Linux)
+        run: |
+          cd ${{github.workspace}}/third_party/openssl
+
+          ./config shared --prefix=/usr --openssldir=/usr/lib/ssl
+          make -j$(nproc)
+          sudo make install_sw
+
+          openssl version -a
+          openssl list -kdf-algorithms || true
+        if: runner.os == 'Linux'
 
       - name: Build googletest (Linux)
         run: |
