@@ -192,6 +192,8 @@ jobs:
         run: |
           cd ${{github.workspace}}/third_party/openssl
 
+          export CC="ccache gcc"
+          export CXX="ccache g++"
           ./config shared --prefix=/usr --openssldir=/usr/lib/ssl
           make -j$(nproc)
           sudo make install_sw
