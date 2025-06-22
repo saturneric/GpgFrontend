@@ -220,8 +220,24 @@ jobs:
 
       - name: Build GpgFrontend (macOS)
         run: |
+          MACOS_MAJOR=$(sw_vers -productVersion | cut -d. -f1)
+          MACOS_MINOR=$(sw_vers -productVersion | cut -d. -f2)
+
+          if [[ "$MACOS_MAJOR" == "13" ]]; then
+            DEPLOY_TARGET="13.0"
+          elif [[ "$MACOS_MAJOR" == "14" ]]; then
+            DEPLOY_TARGET="14.0"
+          elif [[ "$MACOS_MAJOR" == "15" ]]; then
+            DEPLOY_TARGET="15.0"
+          else
+            DEPLOY_TARGET="${MACOS_MAJOR}.${MACOS_MINOR}"
+          fi
+
+          echo "Set MacOS Deployment Target: $DEPLOY_TARGET"
+
           cmake -B ${{github.workspace}}/build -G Xcode \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=${DEPLOY_TARGET} \
             -DGPGFRONTEND_XCODE_CODE_SIGN_IDENTITY="${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" \
             -DGPGFRONTEND_XCODE_TEAM_ID="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
             -DGPGFRONTEND_XCODE_APPID="${{secrets.GPGFRONTEND_XOCDE_APPID}}" \
