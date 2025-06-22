@@ -236,9 +236,6 @@ void MainWindow::slot_version_upgrade_notify() {
   auto latest_version = Module::RetrieveRTValueTypedOrDefault<>(
       kVersionCheckingModuleID, "version.latest_version", QString{});
 
-  auto is_git_commit_hash_mismatch = Module::RetrieveRTValueTypedOrDefault<>(
-      kVersionCheckingModuleID, "version.git_commit_hash_mismatch", false);
-
   auto is_current_commit_hash_publish_in_remote =
       Module::RetrieveRTValueTypedOrDefault<>(
           kVersionCheckingModuleID,
@@ -270,14 +267,6 @@ void MainWindow::slot_version_upgrade_notify() {
       QDesktopServices::openUrl(
           QUrl("https://github.com/saturneric/GpgFrontend/releases/latest"));
     }
-  } else if (is_git_commit_hash_mismatch && IsCheckReleaseCommitHash()) {
-    QMessageBox::information(
-        this, tr("Commit Hash Mismatch"),
-        tr("The current version's commit hash does not match the official "
-           "release. This may indicate a modified or unofficial build. For "
-           "security reasons, please verify your installation or download the "
-           "official release from the Github Releases Page."),
-        QMessageBox::Ok);
   } else if (!is_current_commit_hash_publish_in_remote) {
     QMessageBox::information(
         this, tr("Unverified Commit Hash"),
