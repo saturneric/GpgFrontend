@@ -69,7 +69,6 @@ option(GPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID "GpgFrontend ProvisioningProf
 option(GPGFRONTEND_XCODE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
 
 # check options
-option(GPGFRONTEND_CHECK_RELEASE_COMMIT_HASH "Enable checking on commit hash from the GitHub release" OFF)
 option(GPGFRONTEND_LINK_GPGME_INTO_CORE "Statically link GpgME into the core library" OFF)
 option(GPGFRONTEND_LINK_OPENSSL_INTO_EXEC "Statically link OpenSSL into the executable" OFF)
 
@@ -94,12 +93,6 @@ endif()
 
 if(GPGFRONTEND_BUILD_MODULES)
   set(BUILD_MODULES 1)
-endif()
-
-if(GPGFRONTEND_CHECK_RELEASE_COMMIT_HASH)
-  set(CHECK_RELEASE_COMMIT_HASH 1)
-else()
-  set(CHECK_RELEASE_COMMIT_HASH 0)
 endif()
 
 if(GPGFRONTEND_BUILD_STRIP_RPATH)

@@ -148,10 +148,6 @@ auto GF_SDK_EXPORT GFIsFlatpakENV() -> bool {
   return GpgFrontend::IsFlatpakENV();
 }
 
-auto GF_SDK_EXPORT GFIsCheckReleaseCommitHash() -> bool {
-  return GpgFrontend::IsCheckReleaseCommitHash();
-}
-
 auto GF_SDK_EXPORT GFSecAllocateMemory(uint32_t size) -> void* {
   return GpgFrontend::SMASecMalloc(size);
 }

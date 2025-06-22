@@ -210,12 +210,4 @@ auto GF_SDK_EXPORT GFCacheGet(const char* key) -> const char*;
  * @return false
  */
 auto GF_SDK_EXPORT GFIsFlatpakENV() -> bool;
-
-/**
- * @brief
- *
- * @return true
- * @return false
- */
-auto GF_SDK_EXPORT GFIsCheckReleaseCommitHash() -> bool;
 }

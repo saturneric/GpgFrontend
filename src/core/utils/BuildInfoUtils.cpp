@@ -76,7 +76,4 @@ auto GetProjectLibarchiveVersion() -> QString {
 
 auto GetHttpRequestUserAgent() -> QString { return HTTP_REQUEST_USER_AGENT; }
 
-auto GF_CORE_EXPORT IsCheckReleaseCommitHash() -> bool {
-  return QString::fromLatin1(CHECK_RELEASE_COMMIT_HASH).toInt() == 1;
-}
 };  // namespace GpgFrontend

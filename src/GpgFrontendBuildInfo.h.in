@@ -59,9 +59,3 @@
  *
  */
 #define HTTP_REQUEST_USER_AGENT "@HTTP_REQUEST_USER_AGENT@"
-
-/**
- * @brief Checking
- *
- */
-#define CHECK_RELEASE_COMMIT_HASH "@CHECK_RELEASE_COMMIT_HASH@"
