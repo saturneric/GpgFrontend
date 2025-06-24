@@ -39,7 +39,7 @@ supports privacy and security for all.
 - [GpgFrontend](#gpgfrontend)
   - [Table of Contents](#table-of-contents)
   - [User Manual](#user-manual)
-  - [Developer Document](#developer-document)
+  - [Developer Wiki](#developer-wiki)
   - [Language Support](#language-support)
     - [Supported Languages](#supported-languages)
   - [Modules](#modules)
@@ -52,22 +52,30 @@ supports privacy and security for all.
 
 ## User Manual
 
-GpgFrontend provides documentations on its main features. If you want to know
-how to install, please read the [User
-Manual](https://www.gpgfrontend.bktus.com/overview/glance) instead of README.
+For detailed instructions on installation, usage, and troubleshooting, please
+refer to the official [User
+Manual](https://www.gpgfrontend.bktus.com/overview/glance). The User Manual is
+the primary and most up-to-date resource for all users. It provides
+comprehensive guidance beyond what is found in the README, ensuring you have the
+latest information and best practices.
 
-The code for the user manual is maintained in [this
-repository](https://github.com/saturneric/GpgFrontend-Manual.git).
+The source code for the user manual is maintained in this
+[repository](https://github.com/saturneric/GpgFrontend-Manual.git).
 
-## Developer Document
+## Developer Wiki
 
-You can view the developer documentations that is synchronized with the current
-latest develop code. [Developer Document](https://doxygen.gpgfrontend.bktus.com)
-will help you understand the source code and get involved more quickly in the
-process of contributing to open source.
+An AI-assisted Wiki has been generated through automated analysis of the
+GpgFrontend source code. This Wiki offers a comprehensive overview of the
+project’s technical architecture, design principles, and major components. The
+information provided is highly accurate, making it an excellent resource for
+both new and experienced contributors.
 
-The code for the developer documentations is maintained in [this
-repository](https://github.com/saturneric/GpgFrontend-Doxygen.git).
+Link: https://deepwiki.com/saturneric/GpgFrontend
+
+We strongly recommend reading the Wiki carefully before exploring the source
+code in depth. Gaining an understanding of the overall architecture and design
+principles in advance will significantly accelerate your learning process and
+enhance the quality of your contributions.
 
 ## Language Support
 
