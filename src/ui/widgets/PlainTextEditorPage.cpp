@@ -78,17 +78,7 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
 }
 
 void PlainTextEditorPage::closeEvent(QCloseEvent *event) {
-  // clean up
-  if (ui_ && (ui_->textPage != nullptr)) {
-    auto text = ui_->textPage->toPlainText();
-    if (!text.isEmpty()) {
-      ui_->textPage->setPlainText(QString(text.size(), QChar(0x2022)));
-      text.fill(QLatin1Char('X'));
-    }
-    ui_->textPage->setUndoRedoEnabled(false);
-    ui_->textPage->setUndoRedoEnabled(true);
-    ui_->textPage->setPlainText(QString());
-  }
+  if (ui_ && (ui_->textPage != nullptr)) Clear();
   QWidget::closeEvent(event);
 }
 
@@ -243,6 +233,14 @@ void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
 auto PlainTextEditorPage::ReadDone() const -> bool { return this->read_done_; }
 
 void PlainTextEditorPage::Clear() {
+  // If the text page is not empty, we will clear it to avoid memory leak.
+  auto text = ui_->textPage->toPlainText();
+  if (!text.isEmpty()) {
+    // Fill the text page with bullet characters to avoid memory leak.
+    ui_->textPage->setPlainText(QString(text.size(), QChar(0x2022)));
+    text.fill(QLatin1Char('X'));
+  }
+
   this->ui_->textPage->clear();
   this->ui_->textPage->setUndoRedoEnabled(false);
   this->ui_->textPage->setUndoRedoEnabled(true);

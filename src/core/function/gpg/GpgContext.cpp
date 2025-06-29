@@ -158,8 +158,8 @@ class GpgContext::Impl {
 
   [[nodiscard]] auto Good() const -> bool { return good_; }
 
-  auto SetPassphraseCb(const gpgme_ctx_t &ctx,
-                       gpgme_passphrase_cb_t cb) -> bool {
+  auto SetPassphraseCb(const gpgme_ctx_t &ctx, gpgme_passphrase_cb_t cb)
+      -> bool {
     if (gpgme_get_pinentry_mode(ctx) != GPGME_PINENTRY_MODE_LOOPBACK) {
       if (CheckGpgError(gpgme_set_pinentry_mode(
               ctx, GPGME_PINENTRY_MODE_LOOPBACK)) != GPG_ERR_NO_ERROR) {
@@ -252,8 +252,8 @@ class GpgContext::Impl {
     return res == static_cast<ssize_t>(pass_size + 1) ? 0 : GPG_ERR_CANCELED;
   }
 
-  static auto TestStatusCb(void *hook, const char *keyword,
-                           const char *args) -> gpgme_error_t {
+  static auto TestStatusCb(void *hook, const char *keyword, const char *args)
+      -> gpgme_error_t {
     FLOG_D("keyword %s", keyword);
     return GPG_ERR_NO_ERROR;
   }
@@ -281,9 +281,11 @@ class GpgContext::Impl {
 
  private:
   GpgContext *parent_;
-  GpgContextInitArgs args_{};             ///<
-  gpgme_ctx_t ctx_ref_ = nullptr;         ///<
-  gpgme_ctx_t binary_ctx_ref_ = nullptr;  ///<
+  GpgContextInitArgs args_{};                 ///<
+  gpgme_ctx_t ctx_ref_ = nullptr;             ///<
+  gpgme_ctx_t binary_ctx_ref_ = nullptr;      ///<
+  gpgme_ctx_t cms_ctx_ref_ = nullptr;         ///<
+  gpgme_ctx_t cms_binary_ctx_ref_ = nullptr;  ///<
   bool good_ = true;
 
   std::mutex ctx_ref_lock_;
@@ -305,7 +307,8 @@ class GpgContext::Impl {
     kill_gpg_agent();
 
     good_ = launch_gpg_agent() && default_ctx_initialize(args) &&
-            binary_ctx_initialize(args);
+            binary_ctx_initialize(args) && cms_default_ctx_initialize(args) &&
+            cms_binary_ctx_initialize(args);
   }
 
   static auto component_type_to_q_string(GpgComponentType type) -> QString {
@@ -339,8 +342,7 @@ class GpgContext::Impl {
     return CheckGpgError(gpgme_set_keylist_mode(
                ctx, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_WITH_SECRET |
                         GPGME_KEYLIST_MODE_SIGS |
-                        GPGME_KEYLIST_MODE_SIG_NOTATIONS |
-                        GPGME_KEYLIST_MODE_WITH_TOFU)) == GPG_ERR_NO_ERROR;
+                        GPGME_KEYLIST_MODE_SIG_NOTATIONS)) == GPG_ERR_NO_ERROR;
   }
 
   auto set_ctx_openpgp_engine_info(gpgme_ctx_t ctx) -> bool {
@@ -434,6 +436,62 @@ class GpgContext::Impl {
         QString("gpgme.ctx.list.%1.database_path").arg(parent_->GetChannel()),
         args_.db_path);
 
+    return true;
+  }
+
+  auto cms_default_ctx_initialize(const GpgContextInitArgs &args) -> bool {
+    gpgme_ctx_t p_ctx;
+    if (auto err = CheckGpgError(gpgme_new(&p_ctx)); err != GPG_ERR_NO_ERROR) {
+      LOG_W() << "get new gpg context error: "
+              << DescribeGpgErrCode(err).second;
+      return false;
+    }
+
+    assert(p_ctx != nullptr);
+    cms_ctx_ref_ = p_ctx;
+
+    if (auto err =
+            CheckGpgError(gpgme_set_protocol(cms_ctx_ref_, GPGME_PROTOCOL_CMS));
+        err != GPG_ERR_NO_ERROR) {
+      LOG_W() << "get new gpg context error: "
+              << DescribeGpgErrCode(err).second;
+      return false;
+    }
+
+    if (!common_ctx_initialize(cms_ctx_ref_, args)) {
+      FLOG_W("get new ctx failed, binary");
+      return false;
+    }
+
+    gpgme_set_armor(cms_ctx_ref_, 1);
+    return true;
+  }
+
+  auto cms_binary_ctx_initialize(const GpgContextInitArgs &args) -> bool {
+    gpgme_ctx_t p_ctx;
+    if (auto err = CheckGpgError(gpgme_new(&p_ctx)); err != GPG_ERR_NO_ERROR) {
+      LOG_W() << "get new gpg context error: "
+              << DescribeGpgErrCode(err).second;
+      return false;
+    }
+
+    assert(p_ctx != nullptr);
+    cms_binary_ctx_ref_ = p_ctx;
+
+    if (auto err = CheckGpgError(
+            gpgme_set_protocol(cms_binary_ctx_ref_, GPGME_PROTOCOL_CMS));
+        err != GPG_ERR_NO_ERROR) {
+      LOG_W() << "get new gpg context error: "
+              << DescribeGpgErrCode(err).second;
+      return false;
+    }
+
+    if (!common_ctx_initialize(cms_binary_ctx_ref_, args)) {
+      FLOG_W("get new ctx failed, binary");
+      return false;
+    }
+
+    gpgme_set_armor(cms_binary_ctx_ref_, 0);
     return true;
   }
 
