@@ -273,12 +273,7 @@ auto TextEdit::SlotSaveAsEML() -> bool {
   return saveEMLFile(QFileDialog::getSaveFileName(this, tr("Save file"), path));
 }
 
-void TextEdit::SlotCloseTab() {
-  slot_remove_tab(tab_widget_->currentIndex());
-  if (tab_widget_->count() != 0) {
-    CurPageTextEdit()->GetTextPage()->setFocus();
-  }
-}
+void TextEdit::SlotCloseTab() { slot_remove_tab(tab_widget_->currentIndex()); }
 
 void TextEdit::slot_remove_tab(int index) {
   // Do nothing, if no tab is opened
@@ -296,18 +291,15 @@ void TextEdit::slot_remove_tab(int index) {
     auto* tab = tab_widget_->widget(index);
     tab_widget_->removeTab(index);
 
-    // close tab
-    if (tab != nullptr) tab->close();
+    // if the tab was the last one, set the current index to the last tab
+    tab_widget_->setCurrentIndex(index >= last_index ? last_index
+                                                     : last_index - 1);
 
-    if (index >= last_index) {
-      tab_widget_->setCurrentIndex(last_index);
-    } else {
-      tab_widget_->setCurrentIndex(last_index - 1);
+    // close and destroy tab
+    if (tab != nullptr) {
+      tab->close();
+      tab->deleteLater();
     }
-  }
-
-  if (tab_widget_->count() == 0) {
-    //  enableAction(false);
   }
 }
 
