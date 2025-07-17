@@ -15,24 +15,23 @@ portable enough for everyone who values security and flexibility.
 
 **Key Features:**
 
-- **One-click Encryption & Signing** — Quickly encrypt, decrypt, and digitally
-  sign your texts, files, and emails with ease.
-- **Easy Installation** — Available via Homebrew, Flatpak, GitHub Releases,
-  winget, AUR, Microsoft Store, and more.
-- **True Cross-platform Experience** — Native support for Windows, macOS, Linux,
-  and buildable on FreeBSD.
-- **Fully Portable Across OS** — Run directly from a USB drive; seamlessly move
-  your keys and settings between Windows and Linux without hassle.
-- **Secure & Simple Key Transfer** — Easily move your keys and configurations
-  safely between devices.
-- **Multiple Independent Key Databases** — Effortlessly handle keys and
-  identities for different roles, projects, or teams.
-- **Comprehensive Algorithm Support** — RSA, DSA, EdDSA, ECDSA (NIST,
-  Brainpool), ECDH, and many more via the latest GnuPG.
+1. One-click encryption and signing: Quickly encrypt, decrypt and digitally sign
+   texts, files and emails
+2. Easy installation: Available via Homebrew, Flatpak, GitHub Releases, winget,
+   AUR, Microsoft Store and more
+3. True cross-platform experience: Native support for Windows, macOS and Linux;
+   can also be built on FreeBSD
+4. Fully portable: Run directly from a USB drive and move keys and settings
+   between Windows and Linux without hassle
+5. Secure key transfer: Safely migrate your keys and configurations across
+   devices
+6. Multiple independent key databases: Manage keys and identities separately for
+   different roles, projects or teams
+7. Comprehensive algorithm support: Includes RSA, DSA, EdDSA, ECDSA (NIST,
+   Brainpool), ECDH and other algorithms via the latest GnuPG
 
-❤️ **Like GpgFrontend?**  
-Star ⭐ it on GitHub, report issues, or even contribute code—every action
-supports privacy and security for all.
+If you like GpgFrontend, please star ⭐ it on GitHub, report issues or contribute
+code to help advance privacy and security for everyone.
 
 ## Table of Contents
 
