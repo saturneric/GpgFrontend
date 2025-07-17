@@ -7,9 +7,9 @@
 [![Build Nightly](https://github.com/saturneric/GpgFrontend/actions/workflows/testing-nightly.yml/badge.svg?branch=develop)](https://github.com/saturneric/GpgFrontend/actions/workflows/testing-nightly.yml)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/saturneric/GpgFrontend)
 
-**GpgFrontend** is a modern, cross-platform, open-source GUI for OpenPGP
-encryption—simple enough for beginners, powerful enough for experts, and
-portable enough for everyone who values security and flexibility.
+GpgFrontend is a modern, cross-platform open-source GUI for OpenPGP encryption.
+It’s easy enough for beginners, powerful enough for experts and portable for
+anyone who values security and flexibility.
 
 <img width="100" height="100" align="right" style="position: absolute;right: 0;padding: 12px;top:12px;z-index: 1000;" src="https://image.cdn.bktus.com/i/2024/02/24/248b2e18-a120-692e-e6bc-42ca30be9011.webp" alt="GpgFrontend"/>
 
