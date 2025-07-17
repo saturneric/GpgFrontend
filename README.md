@@ -63,18 +63,14 @@ The source code for the user manual is maintained in this
 
 ## Developer Wiki
 
-An AI-assisted Wiki has been generated through automated analysis of the
-GpgFrontend source code. This Wiki offers a comprehensive overview of the
-project’s technical architecture, design principles, and major components. The
-information provided is highly accurate, making it an excellent resource for
-both new and experienced contributors.
+[An AI-assisted Wiki](https://deepwiki.com/saturneric/GpgFrontend) has been
+generated through automated analysis of the GpgFrontend source code. This Wiki
+offers a comprehensive overview of the project’s technical architecture, design
+principles, and major components. The information provided is highly accurate,
+making it an excellent resource for both new and experienced contributors.
 
-Link: https://deepwiki.com/saturneric/GpgFrontend
-
-We strongly recommend reading the Wiki carefully before exploring the source
-code in depth. Gaining an understanding of the overall architecture and design
-principles in advance will significantly accelerate your learning process and
-enhance the quality of your contributions.
+I strongly recommend reading the Wiki carefully before exploring the source
+code in depth.
 
 ## Language Support
 
