@@ -192,7 +192,7 @@ Task::~Task() = default;
  *
  * @return QString
  */
-QString Task::GetFullID() const { return p_->GetFullID(); }
+auto Task::GetFullID() const -> QString { return p_->GetFullID(); }
 
 QString Task::GetUUID() const { return p_->GetUUID(); }
 

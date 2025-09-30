@@ -7,39 +7,38 @@
 [![Build Nightly](https://github.com/saturneric/GpgFrontend/actions/workflows/testing-nightly.yml/badge.svg?branch=develop)](https://github.com/saturneric/GpgFrontend/actions/workflows/testing-nightly.yml)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/saturneric/GpgFrontend)
 
-**GpgFrontend** is a modern, cross-platform, open-source GUI for OpenPGP
-encryption—simple enough for beginners, powerful enough for experts, and
-portable enough for everyone who values security and flexibility.
+GpgFrontend is a modern, cross-platform open-source GUI for OpenPGP encryption.
+It’s easy enough for beginners, powerful enough for experts and portable for
+anyone who values security and flexibility.
 
 <img width="100" height="100" align="right" style="position: absolute;right: 0;padding: 12px;top:12px;z-index: 1000;" src="https://image.cdn.bktus.com/i/2024/02/24/248b2e18-a120-692e-e6bc-42ca30be9011.webp" alt="GpgFrontend"/>
 
 **Key Features:**
 
-- **One-click Encryption & Signing** — Quickly encrypt, decrypt, and digitally
-  sign your texts, files, and emails with ease.
-- **Easy Installation** — Available via Homebrew, Flatpak, GitHub Releases,
-  winget, AUR, Microsoft Store, and more.
-- **True Cross-platform Experience** — Native support for Windows, macOS, Linux,
-  and buildable on FreeBSD.
-- **Fully Portable Across OS** — Run directly from a USB drive; seamlessly move
-  your keys and settings between Windows and Linux without hassle.
-- **Secure & Simple Key Transfer** — Easily move your keys and configurations
-  safely between devices.
-- **Multiple Independent Key Databases** — Effortlessly handle keys and
-  identities for different roles, projects, or teams.
-- **Comprehensive Algorithm Support** — RSA, DSA, EdDSA, ECDSA (NIST,
-  Brainpool), ECDH, and many more via the latest GnuPG.
+1. One-click encryption and signing: Quickly encrypt, decrypt and digitally sign
+   texts, files and emails
+2. Easy installation: Available via Homebrew, Flatpak, GitHub Releases, winget,
+   AUR, Microsoft Store and more
+3. True cross-platform experience: Native support for Windows, macOS and Linux;
+   can also be built on FreeBSD
+4. Fully portable: Run directly from a USB drive and move keys and settings
+   between Windows and Linux without hassle
+5. Secure key transfer: Safely migrate your keys and configurations across
+   devices
+6. Multiple independent key databases: Manage keys and identities separately for
+   different roles, projects or teams
+7. Comprehensive algorithm support: Includes RSA, DSA, EdDSA, ECDSA (NIST,
+   Brainpool), ECDH and other algorithms via the latest GnuPG
 
-❤️ **Like GpgFrontend?**  
-Star ⭐ it on GitHub, report issues, or even contribute code—every action
-supports privacy and security for all.
+If you like GpgFrontend, please star ⭐ it on GitHub, report issues or contribute
+code to help advance privacy and security for everyone.
 
 ## Table of Contents
 
 - [GpgFrontend](#gpgfrontend)
   - [Table of Contents](#table-of-contents)
   - [User Manual](#user-manual)
-  - [Developer Document](#developer-document)
+  - [Developer Wiki](#developer-wiki)
   - [Language Support](#language-support)
     - [Supported Languages](#supported-languages)
   - [Modules](#modules)
@@ -52,22 +51,26 @@ supports privacy and security for all.
 
 ## User Manual
 
-GpgFrontend provides documentations on its main features. If you want to know
-how to install, please read the [User
-Manual](https://www.gpgfrontend.bktus.com/overview/glance) instead of README.
+For detailed instructions on installation, usage, and troubleshooting, please
+refer to the official [User
+Manual](https://www.gpgfrontend.bktus.com/overview/glance). The User Manual is
+the primary and most up-to-date resource for all users. It provides
+comprehensive guidance beyond what is found in the README, ensuring you have the
+latest information and best practices.
 
-The code for the user manual is maintained in [this
-repository](https://github.com/saturneric/GpgFrontend-Manual.git).
+The source code for the user manual is maintained in this
+[repository](https://github.com/saturneric/GpgFrontend-Manual.git).
 
-## Developer Document
+## Developer Wiki
 
-You can view the developer documentations that is synchronized with the current
-latest develop code. [Developer Document](https://doxygen.gpgfrontend.bktus.com)
-will help you understand the source code and get involved more quickly in the
-process of contributing to open source.
+[An AI-assisted Wiki](https://deepwiki.com/saturneric/GpgFrontend) has been
+generated through automated analysis of the GpgFrontend source code. This Wiki
+offers a comprehensive overview of the project’s technical architecture, design
+principles, and major components. The information provided is highly accurate,
+making it an excellent resource for both new and experienced contributors.
 
-The code for the developer documentations is maintained in [this
-repository](https://github.com/saturneric/GpgFrontend-Doxygen.git).
+I strongly recommend reading the Wiki carefully before exploring the source
+code in depth.
 
 ## Language Support
 

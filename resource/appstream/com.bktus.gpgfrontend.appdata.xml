@@ -52,24 +52,32 @@
 
   <screenshots>
     <screenshot type="default">
-      <image>https://image.cdn.bktus.com/i/2024/02/14/056f1017-331f-ef69-93a6-c49f1d233f8d.png</image>
-      <caption>Main Window</caption>
+      <image>https://image.cdn.bktus.com/i/2025/06/25/1d53089c71f47c9c039bdb070d1526feb7ab6792.png</image>
+      <caption>Default Workspace</caption>
     </screenshot>
     <screenshot>
-      <image>https://image.cdn.bktus.com/i/2024/02/14/8b891c88-2335-63d8-4f78-2d0dffea763c.png</image>
-      <caption>Subkey Management</caption>
-    </screenshot>
-    <screenshot>
-      <image>https://image.cdn.bktus.com/i/2024/02/14/704717c6-e2bc-c5f3-e69e-dcc9a588dde4.png</image>
-      <caption>Key Generation</caption>
-    </screenshot>
-    <screenshot>
-      <image>https://image.cdn.bktus.com/i/2024/02/14/d8e79f1c-7d07-c550-b1d7-36c33a901056.png</image>
+      <image>https://image.cdn.bktus.com/i/2025/06/25/4d59e0a14bbac37f2d7c7ffc3a0cdb4439df4c26.png</image>
       <caption>Verify Signature of File</caption>
     </screenshot>
     <screenshot>
-      <image>https://image.cdn.bktus.com/i/2024/02/14/f1ef687a-a232-23e3-776d-c03e88c62dca.png</image>
-      <caption>Import Key(s) From Key Server</caption>
+      <image>https://image.cdn.bktus.com/i/2025/06/25/b1590e858f7480578b9584d3d9ecafddc54772e6.png</image>
+      <caption>Verify Signature of Email</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://image.cdn.bktus.com/i/2025/06/25/ae4de317dd6ae3d799dc6544c77ffc1e8550926d.png</image>
+      <caption>Encrypt Text</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://image.cdn.bktus.com/i/2025/06/25/94c2c33b11c612d502ab226c0aa89c96809f98d5.png</image>
+      <caption>Key Generation</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://image.cdn.bktus.com/i/2025/06/25/438adc94e18d9bdf66c2e92272e0c1c36e6bdb48.png</image>
+      <caption>Key Information</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://image.cdn.bktus.com/i/2025/06/25/72cbd33f559d53f5591eb2690e1dd998f35752b4.png</image>
+      <caption>Key Structure</caption>
     </screenshot>
   </screenshots>
 
