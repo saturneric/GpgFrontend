@@ -48,20 +48,23 @@ class TaskRunner::Impl : public QThread {
     task->SafelyRun();
   }
 
-  auto RegisterTask(const QString& name, const Task::TaskRunnable& runnerable,
-                    const Task::TaskCallback& cb,
-                    DataObjectPtr params) -> Task::TaskHandler {
-    auto* raw_task = new Task(runnerable, name, std::move(params), cb);
+  auto RegisterTask(const QString& name, const Task::TaskRunnable& runnable,
+                    const Task::TaskCallback& cb, DataObjectPtr params)
+      -> Task::TaskHandler {
+    auto* raw_task = new Task(runnable, name, std::move(params), cb);
     raw_task->setParent(nullptr);
     raw_task->moveToThread(this);
 
-    connect(raw_task, &Task::SignalRun, this, [this, raw_task]() {
-      pending_tasks_[raw_task->GetFullID()] = raw_task;
-    });
+    const auto full_id = raw_task->GetFullID();
 
-    connect(raw_task, &Task::SignalTaskEnd, this, [this, raw_task]() {
-      pending_tasks_.remove(raw_task->GetFullID());
-    });
+    connect(raw_task, &Task::SignalRun, this,
+            [this, task = QPointer<Task>(raw_task), full_id]() {
+              if (task == nullptr) return;
+              pending_tasks_[full_id] = task;
+            });
+
+    connect(raw_task, &Task::SignalTaskEnd, this,
+            [this, full_id]() { pending_tasks_.remove(full_id); });
 
     return Task::TaskHandler(raw_task);
   }
@@ -136,8 +139,8 @@ auto TaskRunner::IsRunning() -> bool { return p_->isRunning(); }
 
 auto TaskRunner::RegisterTask(const QString& name,
                               const Task::TaskRunnable& runnable,
-                              const Task::TaskCallback& cb,
-                              DataObjectPtr p_pbj) -> Task::TaskHandler {
+                              const Task::TaskCallback& cb, DataObjectPtr p_pbj)
+    -> Task::TaskHandler {
   return p_->RegisterTask(name, runnable, cb, p_pbj);
 }
 }  // namespace GpgFrontend::Thread
