@@ -177,7 +177,8 @@ void KeyPairUIDTab::slot_refresh_uid_list() {
     this->buffered_uids_.push_back(std::move(uid));
   }
 
-  uid_list_->setRowCount(buffered_uids_.size());
+  const int rows = static_cast<int>(buffered_uids_.size());
+  uid_list_->setRowCount(rows);
 
   for (const auto& uid : buffered_uids_) {
     auto* tmp0 = new QTableWidgetItem(uid.GetName());
@@ -266,7 +267,8 @@ void KeyPairUIDTab::slot_refresh_sig_list() {
       buffered_signatures_.push_back(std::move(sig));
     }
 
-    sig_list_->setRowCount(buffered_signatures_.size());
+    const int rows = static_cast<int>(buffered_signatures_.size());
+    sig_list_->setRowCount(rows);
 
     for (const auto& sig : buffered_signatures_) {
       auto* tmp0 = new QTableWidgetItem(sig.GetKeyID());

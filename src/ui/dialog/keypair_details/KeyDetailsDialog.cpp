@@ -28,13 +28,18 @@
 
 #include "KeyDetailsDialog.h"
 
+#include "core/function/gpg/GpgAttributeHelper.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/keypair_details/KeyPairDetailTab.h"
 #include "ui/dialog/keypair_details/KeyPairOperaTab.h"
+#include "ui/dialog/keypair_details/KeyPairPhotosTab.h"
 #include "ui/dialog/keypair_details/KeyPairSubkeyTab.h"
 #include "ui/dialog/keypair_details/KeyPairUIDTab.h"
 
+namespace {}  // namespace
+
 namespace GpgFrontend::UI {
+
 KeyDetailsDialog::KeyDetailsDialog(int channel, const GpgKeyPtr& key,
                                    QWidget* parent)
     : GeneralDialog(typeid(KeyDetailsDialog).name(), parent),
@@ -44,10 +49,26 @@ KeyDetailsDialog::KeyDetailsDialog(int channel, const GpgKeyPtr& key,
       new KeyPairDetailTab(current_gpg_context_channel_, key, tab_widget_),
       tr("KeyPair"));
 
+  auto attrs =
+      GpgAttributeHelper(current_gpg_context_channel_).GetAttributes(key->ID());
+
+  bool has_photos = false;
+  has_photos = std::any_of(
+      attrs.begin(), attrs.end(),
+      [](const GpgFrontend::GpgAttrInfo& info) { return info.ext == "jpg"; });
+
   if (!key->IsRevoked()) {
     tab_widget_->addTab(
         new KeyPairUIDTab(current_gpg_context_channel_, key, tab_widget_),
         tr("UIDs"));
+
+    // Add Photos tab if there are photo attributes
+    if (has_photos) {
+      tab_widget_->addTab(new KeyPairPhotosTab(current_gpg_context_channel_,
+                                               key, attrs, tab_widget_),
+                          tr("Photo IDs"));
+    }
+
     tab_widget_->addTab(
         new KeyPairSubkeyTab(current_gpg_context_channel_, key, tab_widget_),
         tr("Keychain"));
