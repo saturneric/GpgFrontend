@@ -45,7 +45,7 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
   connect(ui_->upPathButton, &QPushButton::clicked, ui_->treeView,
           &FileTreeView::SlotUpLevel);
   connect(ui_->refreshButton, &QPushButton::clicked, this,
-          &FilePage::SlotGoPath);
+          &FilePage::SlotRefreshState);
   connect(this->ui_->newDirButton, &QPushButton::clicked, ui_->treeView,
           &FileTreeView::SlotMkdir);
 
@@ -84,6 +84,8 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
   ascii_mode_ = !(
       GetSettings().value("gnupg/non_ascii_at_file_operation", true).toBool());
   switch_asc_mode_act->setChecked(ascii_mode_);
+
+  update_harddisk_menu();
 
   connect(ui_->pathEdit, &QLineEdit::textChanged, [=]() {
     auto path = ui_->pathEdit->text();
@@ -128,6 +130,11 @@ auto FilePage::GetSelected() const -> QStringList {
 
 void FilePage::SlotGoPath() {
   ui_->treeView->SlotGoPath(ui_->pathEdit->text());
+}
+
+void FilePage::SlotRefreshState() {
+  update_harddisk_menu();
+  SlotGoPath();
 }
 
 void FilePage::keyPressEvent(QKeyEvent* event) {
@@ -206,4 +213,30 @@ auto FilePage::IsBatchMode() const -> bool {
 }
 
 auto FilePage::IsASCIIMode() const -> bool { return ascii_mode_; }
+
+auto FilePage::update_harddisk_menu() -> void {
+  if (harddisk_popup_menu_ != nullptr) {
+    harddisk_popup_menu_->deleteLater();
+    harddisk_popup_menu_ = nullptr;
+  }
+
+  harddisk_popup_menu_ = new QMenu(this);
+
+  for (const auto& storage_device : QStorageInfo::mountedVolumes()) {
+    LOG_D() << "found storage device: " << storage_device.rootPath() << " "
+            << storage_device.displayName() << " " << storage_device.isRoot();
+
+    auto* device_act = new QAction(storage_device.displayName(), this);
+    device_act->setData(storage_device.rootPath());
+    connect(device_act, &QAction::triggered, this, [=]() {
+      auto path = device_act->data().toString();
+      ui_->pathEdit->setText(path);
+      SlotGoPath();
+    });
+    harddisk_popup_menu_->addAction(device_act);
+  }
+
+  ui_->hardDiskButton->setMenu(harddisk_popup_menu_);
+}
+
 }  // namespace GpgFrontend::UI

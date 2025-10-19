@@ -78,6 +78,12 @@ class FilePage : public QWidget {
    */
   void SlotGoPath();
 
+  /**
+   * @brief
+   *
+   */
+  void SlotRefreshState();
+
  signals:
 
   /**
@@ -122,8 +128,9 @@ class FilePage : public QWidget {
   QCompleter* path_edit_completer_;        ///<
   QStringListModel* path_complete_model_;  ///<
 
-  QMenu* popup_menu_{};         ///<
-  QMenu* option_popup_menu_{};  ///<
+  QMenu* popup_menu_{};           ///<
+  QMenu* option_popup_menu_{};    ///<
+  QMenu* harddisk_popup_menu_{};  ///<
   bool ascii_mode_;
 
  private slots:
@@ -133,6 +140,8 @@ class FilePage : public QWidget {
    *
    */
   void update_main_basic_opera_menu(const QStringList&);
+
+  void update_harddisk_menu();
 };
 
 }  // namespace GpgFrontend::UI
