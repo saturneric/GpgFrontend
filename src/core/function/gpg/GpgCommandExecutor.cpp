@@ -49,16 +49,18 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
     LOG_D() << "data object args count of cmd executor result callback:"
             << obj->GetObjectSize();
 
-    if (!obj->Check<int, QByteArray, GpgCommandExecutorCallback>()) {
-      FLOG_W("data object checking failed");
+    if (!obj->Check<int, QByteArray, QByteArray,
+                    GpgCommandExecutorCallback>()) {
+      LOG_W() << "failed gpg command: " << cmd;
       return;
     }
 
     auto code = ExtractParams<int>(obj, 0);
     auto out = ExtractParams<QByteArray>(obj, 1);
-    auto cb = ExtractParams<GpgCommandExecutorCallback>(obj, 2);
+    auto err = ExtractParams<QByteArray>(obj, 2);
+    auto cb = ExtractParams<GpgCommandExecutorCallback>(obj, 3);
 
-    cb(code, out, {});
+    cb(code, out, err);
   };
 
   Thread::Task::TaskRunnable runner =
@@ -87,7 +89,7 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
     pcs->moveToThread(QThread::currentThread());
     // set process channel mode
     // this is to make sure we can get all output from stdout and stderr
-    pcs->setProcessChannelMode(QProcess::MergedChannels);
+    pcs->setProcessChannelMode(QProcess::SeparateChannels);
     pcs->setProgram(cmd);
 
     // set arguments
@@ -118,6 +120,7 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
     pcs->waitForFinished();
 
     auto out = pcs->readAllStandardOutput();
+    auto err = pcs->readAllStandardError();
     auto code = pcs->exitCode();
 
     LOG_D() << "\n==== Process Execution Summary ====\n"
@@ -126,12 +129,14 @@ auto BuildTaskFromExecCtx(const GpgCommandExecutor::ExecuteContext &context)
             << "Exit Code: " << code << "\n"
             << "---- Standard Output ----\n"
             << out << "\n"
+            << "---- Standard Error ----\n"
+            << err << "\n"
             << "===============================";
 
     pcs->close();
     pcs->deleteLater();
 
-    data_object->Swap({code, out, callback});
+    data_object->Swap({code, out, err, callback});
     return 0;
   };
 
@@ -270,26 +275,30 @@ auto PrepareContext(const GpgContext &ctx_, const QString &path,
   return {true, ctx};
 }
 
-auto PrepareExecuteSyncContext(const GpgContext &ctx_, const QString &path,
-                               const GpgCommandExecutor::ExecuteContext
-                                   &context) -> std::tuple<int, QString> {
+auto PrepareExecuteSyncContext(
+    const GpgContext &ctx_, const QString &path,
+    const GpgCommandExecutor::ExecuteContext &context)
+    -> std::tuple<int, QByteArray, QByteArray> {
   auto ctx = context;
 
   int pcs_exit_code;
-  QString pcs_stdout;
+  QByteArray pcs_stdout;
+  QByteArray pcs_stderr;
 
   // proxy
-  ctx.cb_func = [&](int exit_code, const QString &out, const QString &) {
+  ctx.cb_func = [&](int exit_code, const QByteArray &out,
+                    const QByteArray &err) {
     pcs_exit_code = exit_code;
     pcs_stdout = out;
+    pcs_stderr = err;
   };
 
   auto [ret, ctx2] = PrepareContext(ctx_, path, ctx);
   if (ret) {
     GpgFrontend::GpgCommandExecutor::ExecuteSync(ctx2);
-    return {pcs_exit_code, pcs_stdout};
+    return {pcs_exit_code, pcs_stdout, pcs_stderr};
   }
-  return {-1, "invalid context"};
+  return {-1, "invalid context", ""};
 }
 
 void PrepareExecuteAsyncContext(
@@ -300,7 +309,7 @@ void PrepareExecuteAsyncContext(
 }
 
 auto GpgCommandExecutor::GpgExecuteSync(const ExecuteContext &context)
-    -> std::tuple<int, QString> {
+    -> std::tuple<int, QByteArray, QByteArray> {
   return PrepareExecuteSyncContext(ctx_,
                                    Module::RetrieveRTValueTypedOrDefault<>(
                                        "core", "gpgme.ctx.app_path", QString{}),
@@ -309,7 +318,7 @@ auto GpgCommandExecutor::GpgExecuteSync(const ExecuteContext &context)
 
 auto GpgCommandExecutor::GpgConfExecuteSync(const ExecuteContext &context)
 
-    -> std::tuple<int, QString> {
+    -> std::tuple<int, QByteArray, QByteArray> {
   return PrepareExecuteSyncContext(
       ctx_,
       Module::RetrieveRTValueTypedOrDefault<>("core", "gpgme.ctx.gpgconf_path",

@@ -34,7 +34,8 @@
 
 namespace GpgFrontend {
 
-using GpgCommandExecutorCallback = std::function<void(int, QString, QString)>;
+using GpgCommandExecutorCallback =
+    std::function<void(int, QByteArray, QByteArray)>;
 using GpgCommandExecutorInterator = std::function<void(QProcess *)>;
 
 /**
@@ -117,13 +118,15 @@ class GF_CORE_EXPORT GpgCommandExecutor
    * @brief
    *
    */
-  auto GpgExecuteSync(const ExecuteContext &) -> std::tuple<int, QString>;
+  auto GpgExecuteSync(const ExecuteContext &)
+      -> std::tuple<int, QByteArray, QByteArray>;
 
   /**
    * @brief
    *
    */
-  auto GpgConfExecuteSync(const ExecuteContext &) -> std::tuple<int, QString>;
+  auto GpgConfExecuteSync(const ExecuteContext &)
+      -> std::tuple<int, QByteArray, QByteArray>;
 
   /**
    * @brief
