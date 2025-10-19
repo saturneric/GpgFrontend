@@ -26,15 +26,43 @@
 name: Build Nightly
 
 on:
-  push:
-    branches: ["develop"]
+  schedule:
+    - cron: "0 2 * * *" # Läuft täglich um 2:00 UTC
+  workflow_dispatch: # Ermöglicht manuelles Auslösen
 
 env:
   BUILD_TYPE: Release
   GNUPG_VERSION: "2.4.8"
 
 jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.check.outputs.should_build }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: "develop"
+          fetch-depth: 2
+
+      - name: Check for changes in last 24 hours
+        id: check
+        run: |
+          LAST_COMMIT=$(git log -1 --format=%ct)
+          CURRENT_TIME=$(date +%s)
+          TIME_DIFF=$((CURRENT_TIME - LAST_COMMIT))
+
+          if [ $TIME_DIFF -lt 86400 ]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "Changes found in the last 24 hours"
+          else
+            echo "should_build=false" >> $GITHUB_OUTPUT
+            echo "No changes in the last 24 hours"
+          fi
+
   build:
+    needs: check-changes
+    if: needs.check-changes.outputs.should_build == 'true'
     strategy:
       matrix:
         os:
