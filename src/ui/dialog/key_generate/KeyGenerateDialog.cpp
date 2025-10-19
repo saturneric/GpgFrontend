@@ -297,6 +297,10 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
   ui_->statusPlainTextEdit->clear();
   ui_->statusPlainTextEdit->setPlainText(info_text);
 
+  // flush easy profile cache on dialog close
+  connect(this, &QDialog::finished, this,
+          [this](int) { flush_easy_profile_config_cache(); });
+
   this->setWindowTitle(tr("Generate Key"));
   this->setAttribute(Qt::WA_DeleteOnClose);
   this->setModal(true);
@@ -801,10 +805,14 @@ void KeyGenerateDialog::load_easy_profile_config() {
 
     if (!cache.isEmpty() && cache.isArray()) conf = cache.array();
     if (conf.empty()) {
+      LOG_D() << "no easy mode config found in cache, "
+                 "loading default config.";
       // use a default config by default
       conf = MakeDefaultEasyModeConf();
       cache.setArray(conf);
     }
+
+    LOG_D() << "loading easy mode config: " << conf;
 
     for (const auto& item : conf) {
       auto obj = item.toObject();
