@@ -38,7 +38,7 @@
 
 namespace {
 
-auto LogOpenSSLError(const std::string& context) -> void {
+auto LogOpenSSLError(const QString& context) -> void {
   unsigned long err = ERR_get_error();
   std::array<char, 256> err_buf;
   ERR_error_string_n(err, err_buf.data(), err_buf.size());
