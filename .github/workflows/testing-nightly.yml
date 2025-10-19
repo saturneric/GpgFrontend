@@ -27,8 +27,8 @@ name: Build Nightly
 
 on:
   schedule:
-    - cron: "0 2 * * *" # Läuft täglich um 2:00 UTC
-  workflow_dispatch: # Ermöglicht manuelles Auslösen
+    - cron: "0 2 * * *"
+  workflow_dispatch:
 
 env:
   BUILD_TYPE: Release
