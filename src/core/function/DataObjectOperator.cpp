@@ -28,6 +28,7 @@
 
 #include "DataObjectOperator.h"
 
+#include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/kdf.h>
 
@@ -37,6 +38,13 @@
 
 namespace {
 
+auto LogOpenSSLError(const std::string& context) -> void {
+  unsigned long err = ERR_get_error();
+  std::array<char, 256> err_buf;
+  ERR_error_string_n(err, err_buf.data(), err_buf.size());
+  LOG_E() << context << " failed: " << err_buf.data();
+}
+
 auto DeriveObjectKey(const GpgFrontend::GFBuffer& key,
                      const GpgFrontend::GFBuffer& context)
     -> GpgFrontend::GFBufferOrNone {
@@ -45,24 +53,26 @@ auto DeriveObjectKey(const GpgFrontend::GFBuffer& key,
 
   EVP_PKEY_CTX* pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, nullptr);
   if (pctx == nullptr) {
-    LOG_E() << "EVP_PKEY_CTX_new_id failed";
+    LogOpenSSLError("EVP_PKEY_CTX_new_id");
     return {};
   }
 
   if (EVP_PKEY_derive_init(pctx) <= 0) {
-    LOG_E() << "EVP_PKEY_derive_init failed";
+    LogOpenSSLError("EVP_PKEY_derive_init");
     EVP_PKEY_CTX_free(pctx);
     return {};
   }
 
   if (EVP_PKEY_CTX_set_hkdf_md(pctx, EVP_sha256()) <= 0) {
-    LOG_E() << "EVP_PKEY_CTX_set_hkdf_md failed";
+    LogOpenSSLError("EVP_PKEY_CTX_set_hkdf_md");
     EVP_PKEY_CTX_free(pctx);
     return {};
   }
 
-  if (EVP_PKEY_CTX_set1_hkdf_salt(pctx, nullptr, 0) <= 0) {
-    LOG_E() << "EVP_PKEY_CTX_set1_hkdf_salt failed";
+  std::array<unsigned char, 1> empty_salt = {{0}};
+  if (EVP_PKEY_CTX_set1_hkdf_salt(pctx, empty_salt.data(), empty_salt.size()) <=
+      0) {
+    LogOpenSSLError("EVP_PKEY_CTX_set1_hkdf_salt");
     EVP_PKEY_CTX_free(pctx);
     return {};
   }
@@ -70,7 +80,7 @@ auto DeriveObjectKey(const GpgFrontend::GFBuffer& key,
   if (EVP_PKEY_CTX_set1_hkdf_key(
           pctx, reinterpret_cast<const unsigned char*>(key.Data()),
           static_cast<int>(key.Size())) <= 0) {
-    LOG_E() << "EVP_PKEY_CTX_set1_hkdf_key failed";
+    LogOpenSSLError("EVP_PKEY_CTX_set1_hkdf_key");
     EVP_PKEY_CTX_free(pctx);
     return {};
   }
@@ -78,14 +88,14 @@ auto DeriveObjectKey(const GpgFrontend::GFBuffer& key,
   if (EVP_PKEY_CTX_add1_hkdf_info(
           pctx, reinterpret_cast<const unsigned char*>(context.Data()),
           static_cast<int>(context.Size())) <= 0) {
-    LOG_E() << "EVP_PKEY_CTX_add1_hkdf_info failed";
+    LogOpenSSLError("EVP_PKEY_CTX_add1_hkdf_info");
     EVP_PKEY_CTX_free(pctx);
     return {};
   }
 
   if (EVP_PKEY_derive(pctx, reinterpret_cast<unsigned char*>(out.Data()),
                       &outlen) <= 0) {
-    LOG_E() << "EVP_PKEY_derive failed";
+    LogOpenSSLError("EVP_PKEY_derive failed");
     EVP_PKEY_CTX_free(pctx);
     return {};
   }
