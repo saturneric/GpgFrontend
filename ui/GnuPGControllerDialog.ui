@@ -38,13 +38,6 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="usePinentryAsPasswordInputDialogCheckBox">
-               <property name="text">
-                <string>Use Pinentry as Password Input Dialog</string>
-               </property>
-              </widget>
-             </item>
-             <item>
               <widget class="QCheckBox" name="gpgmeDebugLogCheckBox">
                <property name="text">
                 <string>Enable GpgME Debug Log</string>
