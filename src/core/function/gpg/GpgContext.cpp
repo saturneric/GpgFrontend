@@ -75,7 +75,23 @@ class GpgAgentProcess {
 
     args.append({"--daemon", "--enable-ssh-support"});
 
+    // auto decide pinentry program path
     auto pinentry = DecidePinentry();
+
+    // GFPinentryProgramPath
+    auto user_pinentry = qApp->property("GFPinentryProgramPath").toString();
+    if (!user_pinentry.isEmpty()) {
+      QFileInfo pinentry_info(user_pinentry);
+      if (pinentry_info.exists() && pinentry_info.isFile()) {
+        pinentry = pinentry_info.absoluteFilePath();
+      } else {
+        LOG_W() << "the user defined pinentry program path is illegal: "
+                << user_pinentry;
+      }
+    }
+
+    LOG_D() << "decided pinentry program path: " << pinentry;
+
     if (!pinentry.trimmed().isEmpty()) {
       args.append({"--pinentry-program", pinentry});
     }
