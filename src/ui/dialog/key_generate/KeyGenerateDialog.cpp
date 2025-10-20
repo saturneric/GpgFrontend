@@ -753,13 +753,6 @@ void KeyGenerateDialog::slot_easy_combination_changed(const QString& mode) {
 }
 
 void KeyGenerateDialog::do_generate() {
-  if (!GetSettings()
-           .value("gnupg/use_pinentry_as_password_input_dialog",
-                  !IsFlatpakENV())
-           .toBool() &&
-      !ui_->noPassphraseCheckBox->isChecked()) {
-    SetCacheValue("PinentryContext", "NEW_PASSPHRASE");
-  }
 
   auto f = [this,
             gen_key_info = this->gen_key_info_](const OperaWaitingHd& hd) {

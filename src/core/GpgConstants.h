@@ -61,8 +61,6 @@ constexpr const char* kGnuPGInfoGatheringModuleID =
     "com.bktus.gpgfrontend.module.gnupg_info_gathering";
 constexpr const char* kVersionCheckingModuleID =
     "com.bktus.gpgfrontend.module.version_checking";
-constexpr const char* kPinentryModuleID =
-    "com.bktus.gpgfrontend.module.pinentry";
 constexpr const char* kPaperKeyModuleID =
     "com.bktus.gpgfrontend.module.paper_key";
 constexpr const char* kKeyServerSyncModuleID =

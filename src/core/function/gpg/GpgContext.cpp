@@ -193,65 +193,6 @@ class GpgContext::Impl {
     return res == pass_size + 1 ? 0 : GPG_ERR_CANCELED;
   }
 
-  static auto CustomPassphraseCb(void *hook, const char *uid_hint,
-                                 const char *passphrase_info, int prev_was_bad,
-                                 int fd) -> gpgme_error_t {
-    auto context_cache = GetCacheValue("PinentryContext");
-    bool ask_for_new = context_cache == "NEW_PASSPHRASE";
-    auto context =
-        QSharedPointer<GpgPassphraseContext>(new GpgPassphraseContext(
-            uid_hint != nullptr ? uid_hint : "",
-            passphrase_info != nullptr ? passphrase_info : "",
-            prev_was_bad != 0, ask_for_new));
-
-    LOG_D() << "custom passphrase cb called, uid: "
-            << (uid_hint == nullptr ? "<empty>" : QString{uid_hint})
-            << ", info: "
-            << (passphrase_info == nullptr ? "<empty>"
-                                           : QString{passphrase_info})
-            << ", last_was_bad: " << prev_was_bad;
-
-    QEventLoop looper;
-    GFBuffer passphrase;
-
-    Module::TriggerEvent(
-        "REQUEST_PIN_ENTRY",
-        {{"uid_hint", GFBuffer{uid_hint != nullptr ? uid_hint : ""}},
-         {"passphrase_info",
-          GFBuffer{passphrase_info != nullptr ? passphrase_info : ""}},
-         {"prev_was_bad", GFBuffer{(prev_was_bad != 0) ? "1" : "0"}},
-         {"ask_for_new", GFBuffer{ask_for_new ? "1" : "0"}}},
-        [&passphrase, &looper](Module::EventIdentifier i,
-                               Module::Event::ListenerIdentifier ei,
-                               Module::Event::Params p) {
-          if (p["ret"] == "0") passphrase = p["passphrase"];
-          looper.quit();
-        });
-
-    looper.exec();
-    ResetCacheValue("PinentryContext");
-
-    // empty passphrase is not allowed
-    if (passphrase.Empty()) return GPG_ERR_CANCELED;
-
-    auto pass_size = passphrase.Size();
-    const auto *p_pass_bytes = passphrase.Data();
-
-    ssize_t res = 0;
-    if (pass_size > 0) {
-      ssize_t off = 0;
-      ssize_t ret = 0;
-      do {
-        ret = gpgme_io_write(fd, &p_pass_bytes[off], pass_size - off);
-        if (ret > 0) off += ret;
-      } while (ret > 0 && off != static_cast<ssize_t>(pass_size));
-      res = off;
-    }
-
-    res += gpgme_io_write(fd, "\n", 1);
-    return res == static_cast<ssize_t>(pass_size + 1) ? 0 : GPG_ERR_CANCELED;
-  }
-
   static auto TestStatusCb(void *hook, const char *keyword, const char *args)
       -> gpgme_error_t {
     FLOG_D("keyword %s", keyword);
@@ -409,12 +350,6 @@ class GpgContext::Impl {
     if (args_.test_mode) {
       if (!SetPassphraseCb(ctx, TestPassphraseCb)) {
         FLOG_W("set passphrase cb failed, test");
-        return false;
-      };
-    } else if (!args_.use_pinentry &&
-               Module::IsModuleActivate(kPinentryModuleID)) {
-      if (!SetPassphraseCb(ctx, CustomPassphraseCb)) {
-        FLOG_D("set passphrase cb failed, custom");
         return false;
       }
     }

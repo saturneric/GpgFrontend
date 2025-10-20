@@ -49,8 +49,6 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
   ui_->setupUi(this);
 
   ui_->asciiModeCheckBox->setText(tr("Use Binary Mode for File Operations"));
-  ui_->usePinentryAsPasswordInputDialogCheckBox->setText(
-      tr("Use Pinentry as Password Input Dialog"));
   ui_->gpgmeDebugLogCheckBox->setText(tr("Enable GpgME Debug Log"));
   ui_->useCustomGnuPGInstallPathCheckBox->setText(tr("Use Custom GnuPG"));
   ui_->useCustomGnuPGInstallPathButton->setText(tr("Select GnuPG Path"));
@@ -114,12 +112,6 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
         this->slot_update_custom_gnupg_install_path_label(
             this->ui_->useCustomGnuPGInstallPathCheckBox->checkState());
       });
-
-  connect(ui_->usePinentryAsPasswordInputDialogCheckBox,
-          &QCheckBox::stateChanged, this, [=](int) {
-            // announce the restart
-            this->slot_set_restart_needed(kDeepRestartCode);
-          });
 
   connect(ui_->gpgmeDebugLogCheckBox, &QCheckBox::stateChanged, this, [=](int) {
     // announce the restart
@@ -245,15 +237,6 @@ void GnuPGControllerDialog::set_settings() {
     ui_->useCustomGnuPGInstallPathCheckBox->setCheckState(Qt::Checked);
   }
 
-  auto use_pinentry_as_password_input_dialog =
-      settings
-          .value("gnupg/use_pinentry_as_password_input_dialog",
-                 QString::fromLocal8Bit(qgetenv("container")) != "flatpak")
-          .toBool();
-  if (use_pinentry_as_password_input_dialog) {
-    ui_->usePinentryAsPasswordInputDialogCheckBox->setCheckState(Qt::Checked);
-  }
-
   this->slot_update_custom_gnupg_install_path_label(
       use_custom_gnupg_install_path ? Qt::Checked : Qt::Unchecked);
 
@@ -272,8 +255,6 @@ void GnuPGControllerDialog::apply_settings() {
                     ui_->asciiModeCheckBox->isChecked());
   settings.setValue("gnupg/use_custom_gnupg_install_path",
                     ui_->useCustomGnuPGInstallPathCheckBox->isChecked());
-  settings.setValue("gnupg/use_pinentry_as_password_input_dialog",
-                    ui_->usePinentryAsPasswordInputDialogCheckBox->isChecked());
   settings.setValue("gnupg/enable_gpgme_debug_log",
                     ui_->gpgmeDebugLogCheckBox->isChecked());
   settings.setValue("gnupg/custom_gnupg_install_path",

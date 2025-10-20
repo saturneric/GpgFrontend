@@ -491,12 +491,6 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   auto auto_import_missing_key =
       settings.value("network/auto_import_missing_key", false).toBool();
 
-  // force to use pinentry in flatpak container
-  auto use_pinentry_as_password_input_dialog =
-      IsFlatpakENV() ||
-      settings.value("gnupg/use_pinentry_as_password_input_dialog", true)
-          .toBool();
-
   // unit test mode
   if (args.unit_test_mode) {
     Module::UpsertRTValue("core", "env.state.basic", 1);
@@ -530,7 +524,6 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
 
         args.offline_mode = forbid_all_gnupg_connection;
         args.auto_import_missing_key = auto_import_missing_key;
-        args.use_pinentry = use_pinentry_as_password_input_dialog;
 
         LOG_D() << "gpgme default context at channel 0, key db name:"
                 << args.db_name << "key db path:" << args.db_path;
@@ -582,7 +575,6 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
 
                 args.offline_mode = forbid_all_gnupg_connection;
                 args.auto_import_missing_key = auto_import_missing_key;
-                args.use_pinentry = use_pinentry_as_password_input_dialog;
 
                 LOG_D() << "new gpgme context, channel" << channel_index
                         << ", key db name" << args.db_name << "key db path"

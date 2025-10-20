@@ -45,8 +45,6 @@ struct GpgContextInitArgs {
   bool test_mode = false;                ///<
   bool offline_mode = false;             ///<
   bool auto_import_missing_key = false;  ///<
-
-  bool use_pinentry = false;  ///<
 };
 
 enum class GpgComponentType { kGPG_AGENT, kDIRMNGR, kKEYBOXD, kGPG_AGENT_SSH };
