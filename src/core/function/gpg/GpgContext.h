@@ -30,6 +30,8 @@
 
 #include <gpgme.h>
 
+#include <cstdint>
+
 #include "core/function/basic/GpgFunctionObject.h"
 
 namespace GpgFrontend {
@@ -47,7 +49,12 @@ struct GpgContextInitArgs {
   bool auto_import_missing_key = false;  ///<
 };
 
-enum class GpgComponentType { kGPG_AGENT, kDIRMNGR, kKEYBOXD, kGPG_AGENT_SSH };
+enum class GpgComponentType : std::uint8_t {
+  kGPG_AGENT,
+  kDIRMNGR,
+  kKEYBOXD,
+  kGPG_AGENT_SSH
+};
 
 /**
  * @brief
