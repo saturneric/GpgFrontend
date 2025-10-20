@@ -193,6 +193,9 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   const int secure_level = qApp->property("GFSecureLevel").toInt();
   const bool portable_mode = qApp->property("GFPortableMode").toBool();
   const bool self_check = qApp->property("GFSelfCheck").toBool();
+  const bool gnupg_offline_mode = qApp->property("GFGnuPGOfflineMode").toBool();
+  const QString pinentry_program_path =
+      qApp->property("GFPinentryProgramPath").toString();
 
   auto* main_layout = new QVBoxLayout(this);
   auto* status_form = new QFormLayout();
@@ -225,10 +228,23 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   const QString self_check_str =
       self_check ? tr("Self-Check Active") : tr("Self-Check Disabled");
 
+  // GnuPG Offline Mode string
+  const QString gnupg_offline_mode_str =
+      gnupg_offline_mode ? tr("Active") : tr("Disabled");
+
+  // Pinentry Program Path string
+  const QString pinentry_program_path_str = pinentry_program_path.isEmpty()
+                                                ? tr("Default Pinentry Program")
+                                                : pinentry_program_path;
+
   // Add rows to form
   status_form->addRow(tr("Security Level:"), new QLabel(secure_level_str));
   status_form->addRow(tr("Running Mode:"), new QLabel(portable_mode_str));
   status_form->addRow(tr("Self-Check Status:"), new QLabel(self_check_str));
+  status_form->addRow(tr("GnuPG Offline Mode:"),
+                      new QLabel(gnupg_offline_mode_str));
+  status_form->addRow(tr("Pinentry Program Path:"),
+                      new QLabel(pinentry_program_path_str));
 
   auto* tip_label = new QLabel(tr(
       "Tips: The above parameters reflect how the application was started. "));

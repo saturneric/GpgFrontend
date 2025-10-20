@@ -39,20 +39,31 @@ namespace GpgFrontend {
 
 void GpgFrontendContext::load_env_conf_set_properties() {
   auto env_config = QDir::currentPath() + "/ENV.ini";
-  if (!QFileInfo(env_config).exists()) return;
+  if (!QFileInfo(env_config).exists()) {
+    qInfo() << "No ENV.ini found, skipping loading environment config.";
+    return;
+  }
 
   QSettings s(env_config, QSettings::IniFormat);
 
   property("GFSelfCheck", s.value("SelfCheck", false).toBool());
   property("GFSecureLevel", s.value("SecureLevel", 0).toInt());
   property("GFPortableMode", s.value("PortableMode", false).toBool());
+  property("GFGnuPGOfflineMode", s.value("GnuPGOfflineMode", false).toBool());
+  property("GFPinentryProgramPath",
+           s.value("PinentryProgramPath", "").toString());
 
+  // Set ShowConsoleOnWindows property
   property("GFShowConsoleOnWindows",
            s.value("ShowConsoleOnWindows", false).toBool());
 
   qInfo() << "ENV" << "GFSelfCheck" << property("GFSelfCheck").toInt();
   qInfo() << "ENV" << "GFSecureLevel" << property("GFSecureLevel").toInt();
   qInfo() << "ENV" << "GFPortableMode" << property("GFPortableMode").toBool();
+  qInfo() << "ENV" << "GFGnuPGOfflineMode"
+          << property("GFGnuPGOfflineMode").toBool();
+  qInfo() << "ENV" << "GFPinentryProgramPath"
+          << property("GFPinentryProgramPath").toString();
 
   qInfo() << "ENV" << "GFShowConsoleOnWindows"
           << property("GFShowConsoleOnWindows").toBool();
