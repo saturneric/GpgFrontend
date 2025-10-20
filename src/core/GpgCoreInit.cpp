@@ -482,6 +482,12 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   auto forbid_all_gnupg_connection =
       settings.value("network/forbid_all_gnupg_connection", false).toBool();
 
+  forbid_all_gnupg_connection = forbid_all_gnupg_connection ||
+                                qApp->property("GFGnuPGOfflineMode").toBool();
+
+  LOG_D() << "forbid all gnupg network connection:"
+          << forbid_all_gnupg_connection;
+
   auto auto_import_missing_key =
       settings.value("network/auto_import_missing_key", false).toBool();
 

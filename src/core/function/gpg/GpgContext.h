@@ -30,7 +30,6 @@
 
 #include <gpgme.h>
 
-#include "core/function/SecureMemoryAllocator.h"
 #include "core/function/basic/GpgFunctionObject.h"
 
 namespace GpgFrontend {
