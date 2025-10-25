@@ -133,6 +133,8 @@ class FilePage : public QWidget {
   QMenu* harddisk_popup_menu_{};  ///<
   bool ascii_mode_;
 
+  QSet<QString> last_volume_keys_;  ///<
+
  private slots:
 
   /**
@@ -141,7 +143,17 @@ class FilePage : public QWidget {
    */
   void update_main_basic_opera_menu(const QStringList&);
 
+  /**
+   * @brief
+   *
+   */
   void update_harddisk_menu();
+
+  /**
+   * @brief
+   *
+   */
+  void update_harddisk_menu_periodic();
 };
 
 }  // namespace GpgFrontend::UI

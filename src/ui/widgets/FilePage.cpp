@@ -33,6 +33,17 @@
 #include "ui/main_window/MainWindow.h"
 #include "ui_FilePage.h"
 
+namespace {
+
+auto VolumeKey(const QStorageInfo& s) -> QString {
+  return QCryptographicHash::hash(
+             (s.device() + "|" + s.rootPath() + "|" + s.displayName()).toUtf8(),
+             QCryptographicHash::Sha1)
+      .toHex();
+}
+
+}  // namespace
+
 namespace GpgFrontend::UI {
 
 FilePage::FilePage(QWidget* parent, const QString& target_path)
@@ -85,8 +96,6 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
       GetSettings().value("gnupg/non_ascii_at_file_operation", true).toBool());
   switch_asc_mode_act->setChecked(ascii_mode_);
 
-  update_harddisk_menu();
-
   connect(ui_->pathEdit, &QLineEdit::textChanged, [=]() {
     auto path = ui_->pathEdit->text();
     auto dir = QDir(path);
@@ -122,6 +131,8 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
           &UISignalStation::SignalMainWindowUpdateBasicOperaMenu);
   connect(ui_->batchModeButton, &QToolButton::toggled, ui_->treeView,
           &FileTreeView::SlotSwitchBatchMode);
+
+  QTimer::singleShot(200, this, &FilePage::update_harddisk_menu_periodic);
 }
 
 auto FilePage::GetSelected() const -> QStringList {
@@ -215,6 +226,30 @@ auto FilePage::IsBatchMode() const -> bool {
 auto FilePage::IsASCIIMode() const -> bool { return ascii_mode_; }
 
 auto FilePage::update_harddisk_menu() -> void {
+  const auto vols = QStorageInfo::mountedVolumes();
+
+  QSet<QString> keys;
+  keys.reserve(vols.size());
+  for (const auto& s : vols) {
+    if (!s.isValid() || !s.isReady()) continue;
+    const auto key = VolumeKey(s);
+    keys.insert(key);
+  }
+
+  if (keys == last_volume_keys_) return;
+
+  const QSet<QString> added = keys - last_volume_keys_;
+  const QSet<QString> removed = last_volume_keys_ - keys;
+
+  if (!added.isEmpty() || !removed.isEmpty()) {
+    for (const auto& k : added) LOG_D() << "mounted: " << k;
+    for (const auto& k : removed) LOG_D() << "unmounted: " << k;
+  }
+
+  last_volume_keys_ = std::move(keys);
+
+  LOG_D() << "updating harddisk menu...";
+
   if (harddisk_popup_menu_ != nullptr) {
     harddisk_popup_menu_->deleteLater();
     harddisk_popup_menu_ = nullptr;
@@ -222,7 +257,7 @@ auto FilePage::update_harddisk_menu() -> void {
 
   harddisk_popup_menu_ = new QMenu(this);
 
-  for (const auto& storage_device : QStorageInfo::mountedVolumes()) {
+  for (const auto& storage_device : vols) {
     LOG_D() << "found storage device: " << storage_device.rootPath() << " "
             << storage_device.displayName() << " " << storage_device.isRoot();
 
@@ -237,6 +272,11 @@ auto FilePage::update_harddisk_menu() -> void {
   }
 
   ui_->hardDiskButton->setMenu(harddisk_popup_menu_);
+}
+
+auto FilePage::update_harddisk_menu_periodic() -> void {
+  update_harddisk_menu();
+  QTimer::singleShot(3000, this, &FilePage::update_harddisk_menu_periodic);
 }
 
 }  // namespace GpgFrontend::UI
