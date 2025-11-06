@@ -43,11 +43,6 @@ jobs:
           lfs: "false"
           submodules: recursive
 
-      - name: ccache
-        uses: hendrikmuhs/ccache-action@v1.2
-        with:
-          key: ${{ github.job }}-${{ matrix.os }}
-
       - name: Get Short SHA of Commit
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
@@ -64,10 +59,15 @@ jobs:
         run: |
           sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
           sudo apt-get update
-          sudo apt-get -y install build-essential binutils git cmake
+          sudo apt-get -y install build-essential binutils git cmake ccache
           sudo apt-get -y install autoconf automake gettext texinfo
           sudo apt-get -y install gcc g++ ninja-build gnupg qtchooser qt6-base-dev qt6-base-dev-tools qt6-l10n-tools qt6-tools-dev qt6-tools-dev-tools libqt6svg6
           sudo apt-get -y install libarchive-dev libssl-dev libgpgme-dev libgl1-mesa-dev libfuse2
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-${{ matrix.os }}
 
       - name: Cache googletest
         id: cache-googletest
