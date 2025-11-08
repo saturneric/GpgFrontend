@@ -3,16 +3,16 @@
 	url = https://github.com/qt/qttranslations.git
 [submodule "modules"]
 	path = modules
-	url = https://git.bktus.com/GpgFrontend/Modules.git
+	url = https://git.bktus.com/gpgfrontend/modules.git
 [submodule "third_party/gpgme"]
 	path = third_party/gpgme
-	url = https://git.bktus.com/GpgFrontend/gpgme.git
+	url = https://git.bktus.com/gpgfrontend/gpgme.git
 [submodule "third_party/libassuan"]
 	path = third_party/libassuan
-	url = https://git.bktus.com/GpgFrontend/libassuan.git
+	url = https://git.bktus.com/gpgfrontend/libassuan.git
 [submodule "third_party/libgpg-error"]
 	path = third_party/libgpg-error
-	url = https://git.bktus.com/GpgFrontend/libgpg-error.git
+	url = https://git.bktus.com/gpgfrontend/libgpg-error.git
 [submodule "third_party/openssl"]
 	path = third_party/openssl
 	url = https://github.com/openssl/openssl.git
