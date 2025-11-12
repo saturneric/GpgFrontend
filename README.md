@@ -41,6 +41,7 @@ security, and trust to everyday encryption.
   - [Language Support](#language-support)
     - [Supported Languages](#supported-languages)
   - [Modules](#modules)
+    - [Mission and Origins](#mission-and-origins)
   - [Contact](#contact)
   - [Contributing \& Bugs Report](#contributing--bugs-report)
     - [Quick Start with GitHub Codespaces](#quick-start-with-github-codespaces)
@@ -65,11 +66,8 @@ The source code for the user manual is maintained in this
 [An AI-assisted Wiki](https://deepwiki.com/saturneric/GpgFrontend) has been
 generated through automated analysis of the GpgFrontend source code. This Wiki
 offers a comprehensive overview of the project’s technical architecture, design
-principles, and major components. The information provided is highly accurate,
-making it an excellent resource for both new and experienced contributors.
-
-I strongly recommend reading the Wiki carefully before exploring the source
-code in depth.
+principles, and major components. It serves as a valuable resource for developers
+looking to understand the inner workings of GpgFrontend.
 
 ## Language Support
 
@@ -94,13 +92,30 @@ Contributors: [SHOW](TRANSLATORS)
 GpgFrontend supports extensive module development, allowing users to customize
 their experience. Modules can encapsulate functionality, enabling users to
 enable or disable features as needed. Users can refer to existing module code
-for guidance and are encouraged to contribute to the [Module
+for guidance [Module
 Repository](https://github.com/saturneric/GpgFrontend-Modules.git) to reach a
 broader audience.
 
-As the development is still in its infancy, there are not enough modules and
-many API interfaces have not been stabilized. So the discussion is open for the
-development of new modules and the introduction of API interfaces.
+### Mission and Origins
+
+GpgFrontend draws its inspiration and core philosophy from the stable, portable,
+and cross-platform **[gpg4usb](https://git.bktus.com/gpgfrontend/gpg4usb/)**
+project. Inheriting the spirit of true portability and platform independence,
+GpgFrontend builds on this foundation to deliver advanced features, modern
+cryptographic standards, and a clean, intuitive user experience.
+
+As described in the article _[“The Past and Present of GpgFrontend: My Journey
+with an Open-Source Encryption
+Tool”](https://blog.bktus.com/en/archives/u8hywl/)_, the project began with a
+simple question:
+
+> “What if everyone could have a small, reliable, and secure ‘crypto machine’—a
+> tool that makes encryption as tangible and trustworthy as turning a key in a
+> lock?”
+
+That idea became the cornerstone of GpgFrontend’s mission: **to make OpenPGP
+encryption truly accessible—simple, robust, and convenient for everyone, on any
+major operating system.**
 
 ## Contact
 
