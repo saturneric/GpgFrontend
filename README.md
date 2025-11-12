@@ -7,31 +7,30 @@
 [![Build Nightly](https://github.com/saturneric/GpgFrontend/actions/workflows/testing-nightly.yml/badge.svg?branch=develop)](https://github.com/saturneric/GpgFrontend/actions/workflows/testing-nightly.yml)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/saturneric/GpgFrontend)
 
-GpgFrontend is a modern, cross-platform open-source GUI for OpenPGP encryption.
-It’s easy enough for beginners, powerful enough for experts and portable for
-anyone who values security and flexibility.
+A modern Enigma built on [GnuPG](https://www.gnupg.org/). It brings clarity,
+security, and trust to everyday encryption.
 
 <img width="100" height="100" align="right" style="position: absolute;right: 0;padding: 12px;top:12px;z-index: 1000;" src="https://image.cdn.bktus.com/i/2024/02/24/248b2e18-a120-692e-e6bc-42ca30be9011.webp" alt="GpgFrontend"/>
 
 **Key Features:**
 
-1. One-click encryption and signing: Quickly encrypt, decrypt and digitally sign
-   texts, files and emails
-2. Easy installation: Available via Homebrew, Flatpak, GitHub Releases, winget,
-   AUR, Microsoft Store and more
-3. True cross-platform experience: Native support for Windows, macOS and Linux;
-   can also be built on FreeBSD
-4. Fully portable: Run directly from a USB drive and move keys and settings
-   between Windows and Linux without hassle
-5. Secure key transfer: Safely migrate your keys and configurations across
-   devices
-6. Multiple independent key databases: Manage keys and identities separately for
-   different roles, projects or teams
-7. Comprehensive algorithm support: Includes RSA, DSA, EdDSA, ECDSA (NIST,
-   Brainpool), ECDH and other algorithms via the latest GnuPG
+- One-click encryption and signing: Quickly encrypt, decrypt and digitally sign
+  texts, files and emails
+- Easy installation: Available via Homebrew, Flatpak, GitHub Releases, winget,
+  AUR, Microsoft Store and more
+- True cross-platform experience: Native support for Windows, macOS and Linux;
+  can also be built on FreeBSD
+- Fully portable: Run directly from a USB drive and move keys and settings
+  between Windows and Linux without hassle
+- Secure key transfer: Safely migrate your keys and configurations across
+  devices
+- Multiple independent key databases: Manage keys and identities separately for
+  different roles, projects or teams
+- Comprehensive algorithm support: Includes RSA, DSA, EdDSA, ECDSA (NIST,
+  Brainpool), ECDH and other algorithms via the latest GnuPG
 
-If you like GpgFrontend, please star ⭐ it on GitHub, report issues or contribute
-code to help advance privacy and security for everyone.
+> If you appreciate GpgFrontend, just give it a ⭐ on GitHub: it’s like adopting
+> your own little digital Enigma.
 
 ## Table of Contents
 
