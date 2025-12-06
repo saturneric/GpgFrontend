@@ -345,7 +345,8 @@ set(TS_FILES
   "${LOCALE_TS_PATH}/GpgFrontend.fr_FR.ts"
   "${LOCALE_TS_PATH}/GpgFrontend.zh_CN.ts"
   "${LOCALE_TS_PATH}/GpgFrontend.zh_TW.ts"
-  "${LOCALE_TS_PATH}/GpgFrontend.it_IT.ts")
+  "${LOCALE_TS_PATH}/GpgFrontend.it_IT.ts"
+  "${LOCALE_TS_PATH}/GpgFrontend.es_ES.ts")
 file(GLOB_RECURSE ALL_SOURCE_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/src/*.cpp)
 
 if(GPGFRONTEND_QT5_BUILD)
