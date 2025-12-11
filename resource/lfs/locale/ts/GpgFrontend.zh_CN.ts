@@ -145,6 +145,130 @@
     </message>
 </context>
 <context>
+    <name>GpgFrontend::GpgKeyTableModel</name>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
+        <source>Select</source>
+        <translation type="unfinished">选择</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
+        <source>Type</source>
+        <translation type="unfinished">类型</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
+        <source>Name</source>
+        <translation type="unfinished">名称</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
+        <source>Email Address</source>
+        <translation type="unfinished">电子邮件地址</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="187"/>
+        <source>Usage</source>
+        <translation type="unfinished">用法</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="188"/>
+        <source>Trust</source>
+        <translation type="unfinished">信任</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
+        <source>Key ID</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
+        <source>Create Date</source>
+        <translation type="unfinished">创建时间</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
+        <source>Algorithm</source>
+        <translation type="unfinished">算法</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
+        <source>Subkey(s)</source>
+        <translation type="unfinished">子密钥</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="189"/>
+        <source>Comment</source>
+        <translation type="unfinished">注释</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="185"/>
+        <source>ID</source>
+        <translation type="unfinished">ID</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="186"/>
+        <source>Algo</source>
+        <translation type="unfinished">算法</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="190"/>
+        <source>No Comment</source>
+        <translation type="unfinished">无备注</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="196"/>
+        <source>SubKeys (up to 8):</source>
+        <translation type="unfinished">子密钥 (前8个): </translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="202"/>
+        <source>ID: %1 | Algo: %2 | Usage: %3</source>
+        <translation type="unfinished">ID: %1 | 算法: %2 | 用法: %3</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::GpgKeyTreeModel</name>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="41"/>
+        <source>Select</source>
+        <translation type="unfinished">选择</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="42"/>
+        <source>Type</source>
+        <translation type="unfinished">类型</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="43"/>
+        <source>Identity</source>
+        <translation type="unfinished">标识</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="44"/>
+        <source>Key ID</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="45"/>
+        <source>Usage</source>
+        <translation type="unfinished">用法</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="46"/>
+        <source>Algorithm</source>
+        <translation type="unfinished">算法</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="47"/>
+        <source>Create Date</source>
+        <translation type="unfinished">创建时间</translation>
+    </message>
+</context>
+<context>
     <name>GpgFrontend::GpgSignResultAnalyse</name>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="43"/>
@@ -7350,130 +7474,6 @@ If the issue persists, consider seeking technical support or consulting the docu
         <location filename="../../../../src/core/model/GpgKey.cpp" line="80"/>
         <source>Ultimate</source>
         <translation>终极</translation>
-    </message>
-</context>
-<context>
-    <name>GpgKeyTableModel</name>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
-        <source>Select</source>
-        <translation>选择</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
-        <source>Type</source>
-        <translation>类型</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
-        <source>Name</source>
-        <translation>名称</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
-        <source>Email Address</source>
-        <translation>电子邮件地址</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="187"/>
-        <source>Usage</source>
-        <translation>用法</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="188"/>
-        <source>Trust</source>
-        <translation>信任</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
-        <source>Key ID</source>
-        <translation>密钥ID</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
-        <source>Create Date</source>
-        <translation>创建时间</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
-        <source>Algorithm</source>
-        <translation>算法</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
-        <source>Subkey(s)</source>
-        <translation>子密钥</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="189"/>
-        <source>Comment</source>
-        <translation>注释</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="185"/>
-        <source>ID</source>
-        <translation>ID</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="186"/>
-        <source>Algo</source>
-        <translation>算法</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="190"/>
-        <source>No Comment</source>
-        <translation>无备注</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="196"/>
-        <source>SubKeys (up to 8):</source>
-        <translation>子密钥 (前8个): </translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="202"/>
-        <source>ID: %1 | Algo: %2 | Usage: %3</source>
-        <translation>ID: %1 | 算法: %2 | 用法: %3</translation>
-    </message>
-</context>
-<context>
-    <name>GpgKeyTreeModel</name>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="41"/>
-        <source>Select</source>
-        <translation>选择</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="42"/>
-        <source>Type</source>
-        <translation>类型</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="43"/>
-        <source>Identity</source>
-        <translation>标识</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="44"/>
-        <source>Key ID</source>
-        <translation>密钥ID</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="45"/>
-        <source>Usage</source>
-        <translation>用法</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="46"/>
-        <source>Algorithm</source>
-        <translation>算法</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="47"/>
-        <source>Create Date</source>
-        <translation>创建时间</translation>
     </message>
 </context>
 <context>

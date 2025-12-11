@@ -145,6 +145,130 @@
     </message>
 </context>
 <context>
+    <name>GpgFrontend::GpgKeyTableModel</name>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
+        <source>Select</source>
+        <translation type="unfinished">Seleziona</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
+        <source>Type</source>
+        <translation type="unfinished">Tipo</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
+        <source>Name</source>
+        <translation type="unfinished">Nome</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
+        <source>Email Address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="187"/>
+        <source>Usage</source>
+        <translation type="unfinished">Utilizzo</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="188"/>
+        <source>Trust</source>
+        <translation type="unfinished">Fiducia</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
+        <source>Key ID</source>
+        <translation type="unfinished">ID chiave</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
+        <source>Create Date</source>
+        <translation type="unfinished">Crea Data</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
+        <source>Algorithm</source>
+        <translation type="unfinished">Algoritmo</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
+        <source>Subkey(s)</source>
+        <translation type="unfinished">Sottochiave(i)</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="189"/>
+        <source>Comment</source>
+        <translation type="unfinished">Commento</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="185"/>
+        <source>ID</source>
+        <translation type="unfinished">ID</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="186"/>
+        <source>Algo</source>
+        <translation type="unfinished">Algo</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="190"/>
+        <source>No Comment</source>
+        <translation type="unfinished">Nessun Commento</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="196"/>
+        <source>SubKeys (up to 8):</source>
+        <translation type="unfinished">Sottochiavi (fino a 8):</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="202"/>
+        <source>ID: %1 | Algo: %2 | Usage: %3</source>
+        <translation type="unfinished">ID: %1 | Algoritmo: %2 | Utilizzo: %3</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::GpgKeyTreeModel</name>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="41"/>
+        <source>Select</source>
+        <translation type="unfinished">Seleziona</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="42"/>
+        <source>Type</source>
+        <translation type="unfinished">Tipo</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="43"/>
+        <source>Identity</source>
+        <translation type="unfinished">Identità</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="44"/>
+        <source>Key ID</source>
+        <translation type="unfinished">ID chiave</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="45"/>
+        <source>Usage</source>
+        <translation type="unfinished">Utilizzo</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="46"/>
+        <source>Algorithm</source>
+        <translation type="unfinished">Algoritmo</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="47"/>
+        <source>Create Date</source>
+        <translation type="unfinished">Crea Data</translation>
+    </message>
+</context>
+<context>
     <name>GpgFrontend::GpgSignResultAnalyse</name>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="43"/>
@@ -7360,130 +7484,6 @@ Se il problema persiste, prendere in considerazione la possibilità di richieder
         <location filename="../../../../src/core/model/GpgKey.cpp" line="80"/>
         <source>Ultimate</source>
         <translation>Assoluto</translation>
-    </message>
-</context>
-<context>
-    <name>GpgKeyTableModel</name>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
-        <source>Select</source>
-        <translation>Seleziona</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
-        <source>Type</source>
-        <translation>Tipo</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
-        <source>Name</source>
-        <translation>Nome</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
-        <source>Email Address</source>
-        <translation>Indirizzo Email</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="187"/>
-        <source>Usage</source>
-        <translation>Utilizzo</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="188"/>
-        <source>Trust</source>
-        <translation>Fiducia</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
-        <source>Key ID</source>
-        <translation>ID chiave</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
-        <source>Create Date</source>
-        <translation>Crea Data</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
-        <source>Algorithm</source>
-        <translation>Algoritmo</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
-        <source>Subkey(s)</source>
-        <translation>Sottochiave(i)</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="189"/>
-        <source>Comment</source>
-        <translation>Commento</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="185"/>
-        <source>ID</source>
-        <translation>ID</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="186"/>
-        <source>Algo</source>
-        <translation>Algo</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="190"/>
-        <source>No Comment</source>
-        <translation>Nessun Commento</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="196"/>
-        <source>SubKeys (up to 8):</source>
-        <translation>Sottochiavi (fino a 8):</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="202"/>
-        <source>ID: %1 | Algo: %2 | Usage: %3</source>
-        <translation>ID: %1 | Algoritmo: %2 | Utilizzo: %3</translation>
-    </message>
-</context>
-<context>
-    <name>GpgKeyTreeModel</name>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="41"/>
-        <source>Select</source>
-        <translation>Seleziona</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="42"/>
-        <source>Type</source>
-        <translation>Tipo</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="43"/>
-        <source>Identity</source>
-        <translation>Identità</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="44"/>
-        <source>Key ID</source>
-        <translation>ID chiave</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="45"/>
-        <source>Usage</source>
-        <translation>Utilizzo</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="46"/>
-        <source>Algorithm</source>
-        <translation>Algoritmo</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="47"/>
-        <source>Create Date</source>
-        <translation>Crea Data</translation>
     </message>
 </context>
 <context>
