@@ -43,8 +43,12 @@
 
 namespace GpgFrontend::UI {
 
+namespace {
+
 QContainer<QTranslator*> registered_translators;
 QContainer<QByteArray> loaded_qm_datum;
+
+};  // namespace
 
 extern void InitUITranslations();
 
@@ -119,15 +123,7 @@ void WaitEnvCheckingProcess() {
   looper.exec();
 }
 
-void PreInitGpgFrontendUI() {
-  CommonUtils::GetInstance();
-
-  // declare module ui entry mount points
-  UIModuleManager::GetInstance().DeclareMountPoint("AboutDialogTabs", "QWidget",
-                                                   {});
-  UIModuleManager::GetInstance().DeclareMountPoint("GnuPGControllerDialogTabs",
-                                                   "QWidget", {});
-}
+void PreInitGpgFrontendUI() { CommonUtils::GetInstance(); }
 
 void SetFusionAsDefaultStyle() {
   // Set Fusion style for better dark mode support across platforms
@@ -316,8 +312,6 @@ void InitUITranslations() {
 void InitModulesTranslations() {
   // register module's translations
   UIModuleManager::GetInstance().RegisterAllModuleTranslators();
-  // translate all params
-  UIModuleManager::GetInstance().TranslateAllModulesParams();
 }
 
 }  // namespace GpgFrontend::UI

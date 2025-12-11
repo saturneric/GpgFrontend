@@ -413,11 +413,6 @@ class MainWindow : public GeneralMainWindow {
   void slot_switch_menu_control_mode(int);
 
   /**
-   * @details called when need to upgrade.
-   */
-  void slot_version_upgrade_notify();
-
-  /**
    * @details
    */
   void slot_add_key_2_favorite();
@@ -695,13 +690,6 @@ class MainWindow : public GeneralMainWindow {
   auto fuzzy_signature_key_elimination(
       const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool;
 
-  /**
-   * @brief
-   *
-   * @return auto
-   */
-  void check_update_at_startup();
-
   TextEdit* edit_{};          ///< Tabwidget holding the edit-windows
   QMenu* file_menu_{};        ///<  Submenu for file-operations
   QMenu* edit_menu_{};        ///<  Submenu for text-operations
@@ -786,7 +774,6 @@ class MainWindow : public GeneralMainWindow {
   QAction* zoom_in_act_{};               ///< Action to zoom in
   QAction* zoom_out_act_{};              ///< Action to zoom out
   QAction* about_act_{};                 ///< Action to open about dialog
-  QAction* check_update_act_{};          ///< Action to open about dialog
   QAction* translate_act_{};             ///< Action to open about dialog
   QAction* gnupg_act_{};                 ///< Action to open about dialog
   QAction* open_settings_act_{};         ///< Action to open settings dialog

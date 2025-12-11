@@ -289,13 +289,6 @@
         <string>Network Ability</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
-        <item row="4" column="0">
-         <widget class="QLabel" name="networkAbilityTipsLabel">
-          <property name="text">
-           <string>Tips: These Option Changes take effect only after the application restart.</string>
-          </property>
-         </widget>
-        </item>
         <item row="2" column="0">
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
@@ -312,46 +305,7 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QCheckBox" name="prohibitUpdateCheck">
-            <property name="text">
-             <string>Prohibit checking for version updates when the program starts.</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <widget class="QLabel" name="updateCheckingAPILabel">
-              <property name="text">
-               <string>Update Checking API</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="githubRadioButton">
-              <property name="text">
-               <string>GitHub</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="bktusRadioButton">
-              <property name="text">
-               <string>BKTUS.com</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
          </layout>
-        </item>
-        <item row="3" column="0">
-         <widget class="Line" name="line">
-          <property name="orientation">
-           <enum>Qt::Orientation::Horizontal</enum>
-          </property>
-         </widget>
         </item>
        </layout>
       </widget>

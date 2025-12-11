@@ -30,6 +30,7 @@
 
 #include <openssl/opensslv.h>
 
+#include "core/module/ModuleManager.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "ui/UIModuleManager.h"
 
@@ -50,16 +51,11 @@ AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
   tab_widget->addTab(translators_tab, tr("Translators"));
   tab_widget->addTab(status_tab, tr("Status"));
 
-  auto entries =
-      UIModuleManager::GetInstance().QueryMountedEntries("AboutDialogTabs");
-
-  for (const auto& entry : entries) {
-    auto* widget = entry.GetWidget();
-    if (widget != nullptr) {
-      tab_widget->addTab(widget,
-                         entry.GetMetaDataByDefault("TabTitle", tr("Unnamed")));
-    }
-  }
+  Module::TriggerEvent(
+      "ABOUT_DIALOG_TABS_MOUNTED",
+      {
+          {"tab_widget", GFBuffer(RegisterQObject(tab_widget))},
+      });
 
   int default_index = 0;
   for (int i = 0; i < tab_widget->count(); i++) {

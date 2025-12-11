@@ -30,11 +30,11 @@
 
 #include <algorithm>
 
-#include "core/function/CacheManager.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
+#include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/main_window/GeneralMainWindow.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
@@ -162,9 +162,6 @@ void MainWindow::Init() noexcept {
 
     info_board_->AssociateTabWidget(edit_->TabWidget());
 
-    // check update if needed
-    check_update_at_startup();
-
     slot_switch_menu_control_mode(0);
 
     // check if need to open wizard window
@@ -174,7 +171,12 @@ void MainWindow::Init() noexcept {
 
     // loading process is done
     emit SignalLoaded();
-    Module::TriggerEvent("APPLICATION_LOADED");
+
+    // notify other modules that application is loaded
+    Module::TriggerEvent("APPLICATION_LOADED",
+                         {
+                             {"main_window", GFBuffer(RegisterQObject(this))},
+                         });
   } catch (...) {
     LOG_W() << tr("Critical error occur while loading GpgFrontend.");
     QMessageBox::critical(
@@ -277,47 +279,6 @@ auto MainWindow::create_action(const QString& id, const QString& name,
 
   buffered_actions_.insert(id, {action});
   return action;
-}
-
-void MainWindow::check_update_at_startup() {
-  // check version information
-  auto settings = GetSettings();
-
-  // ensure that it will not perform at the first startup before wizard is done
-  if (!settings.contains("network/prohibit_update_checking")) return;
-
-  auto update_checking_api =
-      settings.value("network/update_checking_api", "github").toString();
-
-  // we only check for update if the user did set the option to allow it
-  auto prohibit_update_checking =
-      settings.value("network/prohibit_update_checking", true).toBool();
-
-  if (!prohibit_update_checking) {
-    Module::ListenRTPublishEvent(
-        this, kVersionCheckingModuleID, "version.loading_done",
-        [=](const Module::Namespace&, const Module::Key&, int,
-            const std::any&) {
-          FLOG_D(
-              "version-checking version.loading_done changed, calling slot "
-              "version upgrade");
-          this->slot_version_upgrade_notify();
-
-          CacheManager::GetInstance().SaveSecDurableCache(
-              "next_statup_update_checking_timestamp",
-              GFBuffer{QString::number(
-                  QDateTime::currentDateTime().addDays(1).toSecsSinceEpoch())});
-        });
-
-    Module::TriggerEvent("CHECK_APPLICATION_VERSION",
-                         {{"api", GFBuffer(update_checking_api)}});
-  }
-
-  // sync update checking api settings to module
-  Module::UpsertRTValue("ui", "settings.network.update_checking_api",
-                        QString(update_checking_api));
-  Module::UpsertRTValue("ui", "settings.network.prohibit_update_checking",
-                        prohibit_update_checking);
 }
 
 void MainWindow::slot_popup_menu_by_key_list(QContextMenuEvent* event,

@@ -97,4 +97,8 @@ auto MakeEvent(const EventIdentifier& event_id, const Event::Params& params,
   return GpgFrontend::SecureCreateSharedObject<Event>(event_id, params, e_cb);
 }
 
+const Event::EventCallback kEmptyEventCallback =
+    [](const Event::EventIdentifier&, const Event::ListenerIdentifier&,
+       const Event::Params&) {};
+
 }  // namespace GpgFrontend::Module

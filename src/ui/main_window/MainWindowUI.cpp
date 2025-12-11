@@ -30,6 +30,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
+#include "ui/UIModuleManager.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/controller/GnuPGControllerDialog.h"
 #include "ui/dialog/controller/ModuleControllerDialog.h"
@@ -324,14 +325,6 @@ void MainWindow::create_actions() {
   connect(translate_act_, &QAction::triggered, this,
           [=]() { new AboutDialog(tr("Translators"), this); });
 
-  if (Module::IsModuleActivate(kVersionCheckingModuleID)) {
-    check_update_act_ =
-        create_action("check_update", tr("Check for Updates"),
-                      ":/icons/update.png", tr("Check for updates"));
-    connect(check_update_act_, &QAction::triggered, this,
-            [=]() { new AboutDialog(tr("Update"), this); });
-  }
-
   start_wizard_act_ =
       create_action("start_wizard", tr("Open Wizard"), ":/icons/wizard.png",
                     tr("Open the wizard"));
@@ -521,11 +514,22 @@ void MainWindow::create_menus() {
 
   help_menu_->addAction(translate_act_);
 
-  if (Module::IsModuleActivate(kVersionCheckingModuleID)) {
-    help_menu_->addAction(check_update_act_);
-  }
-
   help_menu_->addAction(about_act_);
+
+  Module::TriggerEvent(
+      "MAINWINDOW_MENU_MOUNTED",
+      {
+          {"main_window", GFBuffer(RegisterQObject(this))},
+          {"file_menu", GFBuffer(RegisterQObject(file_menu_))},
+          {"file_open_menu", GFBuffer(RegisterQObject(open_menu_))},
+          {"file_workspace_menu", GFBuffer(RegisterQObject(workspace_menu_))},
+          {"edit_menu", GFBuffer(RegisterQObject(edit_menu_))},
+          {"crypt_menu", GFBuffer(RegisterQObject(crypt_menu_))},
+          {"key_menu", GFBuffer(RegisterQObject(key_menu_))},
+          {"advance_menu", GFBuffer(RegisterQObject(advance_menu_))},
+          {"help_menu", GFBuffer(RegisterQObject(help_menu_))},
+          {"view_menu", GFBuffer(RegisterQObject(view_menu_))},
+      });
 }
 
 void MainWindow::create_tool_bars() {

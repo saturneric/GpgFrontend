@@ -40,7 +40,6 @@ class GeneralWindowState {};
 GpgFrontend::UI::GeneralMainWindow::GeneralMainWindow(QString id,
                                                       QWidget *parent)
     : QMainWindow(parent), id_(std::move(id)) {
-  UIModuleManager::GetInstance().RegisterQObject(id_, this);
   slot_restore_settings();
 
   // should delete itself at closing by default

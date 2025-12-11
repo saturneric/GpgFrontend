@@ -30,6 +30,7 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
+#include "ui/UIModuleManager.h"
 #include "ui/thread/ProxyConnectionTestTask.h"
 #include "ui_NetworkSettings.h"
 
@@ -86,29 +87,17 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
       tr("Apply Proxy Settings and Check Proxy Connection"));
   ui_->forbidALLGnuPGNetworkConnectionCheckBox->setText(
       tr("Forbid all GnuPG network connection."));
-  ui_->prohibitUpdateCheck->setText(
-      tr("Prohibit checking for version updates when the program starts."));
-  ui_->updateCheckingAPILabel->setText(tr("Update Checking API"));
-  ui_->autoFetchKeyPublishStatusCheckBox->setText(
-      tr("Automatically fetch key publish status from key server."));
-  ui_->networkAbilityTipsLabel->setText(
-      tr("Tips: These Option Changes take effect only after the "
-         "application restart."));
 
-  auto has_version_checking_module =
-      Module::IsModuleActivate(kVersionCheckingModuleID);
-
-  ui_->prohibitUpdateCheck->setEnabled(has_version_checking_module);
-  auto group = QGroupBox();
-
-  auto *update_api_group = new QButtonGroup(this);
-  update_api_group->addButton(ui_->githubRadioButton);
-  update_api_group->addButton(ui_->bktusRadioButton);
-
-  ui_->forbidALLGnuPGNetworkConnectionCheckBox->setEnabled(
-      has_version_checking_module);
-  ui_->githubRadioButton->setEnabled(has_version_checking_module);
-  ui_->bktusRadioButton->setEnabled(has_version_checking_module);
+  Module::TriggerEvent(
+      "NETWORK_SETTINGS_TAB_UI_CREATED",
+      {
+          {"network_settings_tab", GFBuffer(RegisterQObject(this))},
+          {"proxy_group_box", GFBuffer(RegisterQObject(ui_->proxyGroupBox))},
+          {"capability_group_box",
+           GFBuffer(RegisterQObject(ui_->capabilityGroupBox))},
+          {"operations_group_box",
+           GFBuffer(RegisterQObject(ui_->operationsGroupBox))},
+      });
 
   SetSettings();
 }
@@ -144,27 +133,19 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
   ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(
       forbid_all_gnupg_connection ? Qt::Checked : Qt::Unchecked);
 
-  // prohibit update checking by default for privacy reasons
-  auto prohibit_update_checking =
-      settings.value("network/prohibit_update_checking", true).toBool();
-  ui_->prohibitUpdateCheck->setCheckState(
-      prohibit_update_checking ? Qt::Checked : Qt::Unchecked);
-
   auto auto_fetch_key_publish_status =
       settings.value("network/auto_fetch_key_publish_status", false).toBool();
   ui_->autoFetchKeyPublishStatusCheckBox->setCheckState(
       auto_fetch_key_publish_status ? Qt::Checked : Qt::Unchecked);
 
-  auto update_checking_api =
-      settings.value("network/update_checking_api", "github").toString();
-  if (update_checking_api == "github") {
-    ui_->githubRadioButton->setChecked(true);
-  } else {
-    ui_->bktusRadioButton->setChecked(true);
-  }
-
   switch_ui_proxy_type(ui_->proxyTypeComboBox->currentText());
   switch_ui_enabled(ui_->enableProxyCheckBox->isChecked());
+
+  Module::TriggerEvent(
+      "NETWORK_SETTINGS_TAB_LOAD_SETTINGS",
+      {
+          {"network_settings_tab", GFBuffer(RegisterQObject(this))},
+      });
 }
 
 void GpgFrontend::UI::NetworkTab::ApplySettings() {
@@ -176,17 +157,18 @@ void GpgFrontend::UI::NetworkTab::ApplySettings() {
   settings.setValue("proxy/port", ui_->portSpin->value());
   settings.setValue("proxy/proxy_type", ui_->proxyTypeComboBox->currentText());
   settings.setValue("proxy/enable", ui_->enableProxyCheckBox->isChecked());
-
   settings.setValue("network/forbid_all_gnupg_connection",
                     ui_->forbidALLGnuPGNetworkConnectionCheckBox->isChecked());
-  settings.setValue("network/prohibit_update_checking",
-                    ui_->prohibitUpdateCheck->isChecked());
   settings.setValue("network/auto_fetch_key_publish_status",
                     ui_->autoFetchKeyPublishStatusCheckBox->isChecked());
-  settings.setValue("network/update_checking_api",
-                    ui_->githubRadioButton->isChecked() ? "github" : "bktus");
 
   apply_proxy_settings();
+
+  Module::TriggerEvent(
+      "NETWORK_SETTINGS_TAB_APPLY_SETTINGS",
+      {
+          {"network_settings_tab", GFBuffer(RegisterQObject(this))},
+      });
 }
 
 void GpgFrontend::UI::NetworkTab::slot_test_proxy_connection_result() {
