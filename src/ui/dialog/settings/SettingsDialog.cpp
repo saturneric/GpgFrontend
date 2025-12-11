@@ -31,7 +31,6 @@
 #include "core/GpgConstants.h"
 #include "ui/dialog/settings/SettingsAppearance.h"
 #include "ui/dialog/settings/SettingsGeneral.h"
-#include "ui/dialog/settings/SettingsKeyServer.h"
 #include "ui/dialog/settings/SettingsNetwork.h"
 #include "ui/main_window/MainWindow.h"
 
@@ -42,7 +41,6 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   tab_widget_ = new QTabWidget();
   general_tab_ = new GeneralTab();
   appearance_tab_ = new AppearanceTab();
-  key_server_tab_ = new KeyserverTab();
   network_tab_ = new NetworkTab();
 
   auto* main_layout = new QVBoxLayout();
@@ -51,7 +49,6 @@ SettingsDialog::SettingsDialog(QWidget* parent)
 
   tab_widget_->addTab(general_tab_, tr("General"));
   tab_widget_->addTab(appearance_tab_, tr("Appearance"));
-  tab_widget_->addTab(key_server_tab_, tr("Key Server"));
   tab_widget_->addTab(network_tab_, tr("Network"));
 
 #ifdef Q_OS_MACOS
@@ -110,7 +107,6 @@ void SettingsDialog::slot_declare_a_deep_restart() {
 void SettingsDialog::SlotAccept() {
   general_tab_->ApplySettings();
   appearance_tab_->ApplySettings();
-  key_server_tab_->ApplySettings();
   network_tab_->ApplySettings();
 
   if (restart_mode_ != kNonRestartCode) {
