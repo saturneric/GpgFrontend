@@ -87,6 +87,8 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
       tr("Apply Proxy Settings and Check Proxy Connection"));
   ui_->forbidALLGnuPGNetworkConnectionCheckBox->setText(
       tr("Forbid all GnuPG network connection."));
+  ui_->autoFetchKeyPublishStatusCheckBox->setText(
+      tr("Automatically fetch key publish status from key server."));
 
   Module::TriggerEvent(
       "NETWORK_SETTINGS_TAB_UI_CREATED",
