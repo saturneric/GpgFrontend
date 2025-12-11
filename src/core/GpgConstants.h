@@ -57,8 +57,6 @@ constexpr const char* PGP_PRIVATE_KEY_BEGIN =
     "-----BEGIN PGP PRIVATE KEY BLOCK-----";  ///<
 
 // MODULE ID
-constexpr const char* kGnuPGInfoGatheringModuleID =
-    "com.bktus.gpgfrontend.module.gnupg_info_gathering";
 constexpr const char* kPaperKeyModuleID =
     "com.bktus.gpgfrontend.module.paper_key";
 constexpr const char* kKeyServerSyncModuleID =

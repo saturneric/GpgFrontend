@@ -312,13 +312,6 @@ void MainWindow::create_actions() {
   connect(about_act_, &QAction::triggered, this,
           [=]() { new AboutDialog(0, this); });
 
-  if (Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
-    gnupg_act_ = create_action("gnupg_info", tr("GnuPG"), ":/icons/key.png",
-                               tr("Information about Gnupg"));
-    connect(gnupg_act_, &QAction::triggered, this,
-            [=]() { new AboutDialog(tr("GnuPG"), this); });
-  }
-
   translate_act_ =
       create_action("translate", tr("Translate"), ":/icons/translate.png",
                     tr("Information about translation"));
@@ -508,12 +501,7 @@ void MainWindow::create_menus() {
   help_menu_->addAction(start_wizard_act_);
   help_menu_->addSeparator();
 
-  if (Module::IsModuleActivate(kGnuPGInfoGatheringModuleID)) {
-    help_menu_->addAction(gnupg_act_);
-  }
-
   help_menu_->addAction(translate_act_);
-
   help_menu_->addAction(about_act_);
 
   Module::TriggerEvent(
