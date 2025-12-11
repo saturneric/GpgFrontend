@@ -109,8 +109,9 @@ cBEIUb80jrN959lF8eobqrVouY5GyvZXVZFGoXS4OTkFAwlEZxWBxJw=
 namespace GpgFrontend::Test {
 
 TEST_F(GpgCoreTest, CoreDeleteSubkeyTestA) {
-  auto info = GpgKeyImportExporter::GetInstance().ImportKey(
-      GFBuffer(QString::fromLatin1(test_private_key_data)));
+  auto info =
+      GpgKeyImportExporter::GetInstance(kGpgFrontendDefaultChannel)
+          .ImportKey(GFBuffer(QString::fromLatin1(test_private_key_data)));
 
   ASSERT_EQ(info->not_imported, 0);
   ASSERT_EQ(info->imported, 1);
@@ -124,9 +125,7 @@ TEST_F(GpgCoreTest, CoreDeleteSubkeyTestA) {
   ASSERT_EQ(s_key.size(), 5);
   ASSERT_EQ(s_key[2].ID(), "2D1F9FC59B568A8C");
 
-  auto res = GpgKeyManager::GetInstance().DeleteSubkey(key, 2);
-
-  ASSERT_TRUE(res);
+  ASSERT_WITHIN(GpgKeyManager::GetInstance().DeleteSubkey(key, 2), 3000);
 
   GpgKeyGetter::GetInstance().FlushKeyCache();
   key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
@@ -152,8 +151,7 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
                  .GetKeyPtr("822D7E13F5B85D7D");
   ASSERT_TRUE(key != nullptr);
 
-  auto res = GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 1);
-  ASSERT_TRUE(res);
+  ASSERT_WITHIN(GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 1), 3000);
 
   GpgKeyGetter::GetInstance().FlushKeyCache();
   key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
@@ -163,8 +161,7 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
   // why?
   ASSERT_EQ(key->OwnerTrustLevel(), 0);
 
-  res = GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 2);
-  ASSERT_TRUE(res);
+  ASSERT_WITHIN(GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 2), 3000);
 
   GpgKeyGetter::GetInstance().FlushKeyCache();
   key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
@@ -173,8 +170,7 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
 
   ASSERT_EQ(key->OwnerTrustLevel(), 2);
 
-  res = GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 3);
-  ASSERT_TRUE(res);
+  ASSERT_WITHIN(GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 3), 3000);
 
   GpgKeyGetter::GetInstance().FlushKeyCache();
   key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
@@ -183,8 +179,7 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
 
   ASSERT_EQ(key->OwnerTrustLevel(), 3);
 
-  res = GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 4);
-  ASSERT_TRUE(res);
+  ASSERT_WITHIN(GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 4), 3000);
 
   GpgKeyGetter::GetInstance().FlushKeyCache();
   key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
@@ -193,8 +188,7 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
 
   ASSERT_EQ(key->OwnerTrustLevel(), 4);
 
-  res = GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 5);
-  ASSERT_TRUE(res);
+  ASSERT_WITHIN(GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 5), 3000);
 
   GpgKeyGetter::GetInstance().FlushKeyCache();
   key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
@@ -203,14 +197,10 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
 
   ASSERT_EQ(key->OwnerTrustLevel(), 5);
 
-  res = GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 0);
-  ASSERT_FALSE(res);
+  ASSERT_FALSE(GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 0));
 
-  res = GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, -1);
-  ASSERT_FALSE(res);
-
-  res = GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 6);
-  ASSERT_FALSE(res);
+  ASSERT_FALSE(GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, -1));
+  ASSERT_FALSE(GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 6));
 
   GpgKeyOpera::GetInstance().DeleteKey(key);
 }
@@ -231,10 +221,9 @@ TEST_F(GpgCoreTest, CoreRevokeSubkeyTestA) {
   ASSERT_EQ(s_key.size(), 5);
   ASSERT_EQ(s_key[2].ID(), "2D1F9FC59B568A8C");
 
-  auto res = GpgKeyManager::GetInstance().RevokeSubkey(
-      key, 2, 2, QString("H\nE\nLL\nO\n\n"));
-
-  ASSERT_TRUE(res);
+  ASSERT_WITHIN(GpgKeyManager::GetInstance().RevokeSubkey(
+                    key, 2, 2, QString("H\nE\nLL\nO\n\n")),
+                3000);
 
   GpgKeyGetter::GetInstance().FlushKeyCache();
   key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)

@@ -87,4 +87,9 @@ struct GpgFrontendContext {
 
 auto GF_TEST_EXPORT ExecuteAllTestCase(GpgFrontendContext args) -> int;
 
+auto WaitFor(std::function<bool()> cond, int timeout_ms = 5000) -> bool;
+
+#define ASSERT_WITHIN(cond, ms) \
+  ASSERT_TRUE(WaitFor([&]() { return (cond); }, ms))
+
 }  // namespace GpgFrontend::Test

@@ -139,4 +139,23 @@ auto ExecuteAllTestCase(GpgFrontendContext args) -> int {
   return RUN_ALL_TESTS();
 }
 
+auto WaitFor(std::function<bool()> cond, int timeout_ms) -> bool {
+  QEventLoop loop;
+  QTimer timer;
+  timer.setSingleShot(true);
+
+  QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+
+  QTimer check_timer;
+  check_timer.setInterval(20);
+  QObject::connect(&check_timer, &QTimer::timeout, [&]() {
+    if (cond()) loop.quit();
+  });
+
+  timer.start(timeout_ms);
+  check_timer.start();
+  loop.exec();
+
+  return cond();
+}
 }  // namespace GpgFrontend::Test
