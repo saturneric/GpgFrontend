@@ -84,6 +84,13 @@ class MainWindow : public GeneralMainWindow {
    */
   void Init() noexcept;
 
+  /**
+   * @brief
+   *
+   * @return int
+   */
+  [[nodiscard]] auto GF_UI_EXPORT GetCurrentGpgContextChannel() const -> int;
+
  signals:
 
   /**
@@ -302,16 +309,6 @@ class MainWindow : public GeneralMainWindow {
    * @details Show the details of the first of the first of selected keys
    */
   void slot_show_key_details();
-
-  /**
-   * @details Refresh key information of selected keys from default keyserver
-   */
-  void refresh_keys_from_key_server();
-
-  /**
-   * @details upload the selected key to the keyserver
-   */
-  void upload_key_to_server();
 
   /**
    * @details Open find widget.
@@ -781,8 +778,7 @@ class MainWindow : public GeneralMainWindow {
   QAction* cut_pgp_header_act_{};        ///< Action for cutting the PGP header
   QAction* add_pgp_header_act_{};        ///< Action for adding the PGP header
   QAction* import_key_from_file_act_{};  ///<
-  QAction* import_key_from_clipboard_act_{};   ///<
-  QAction* import_key_from_key_server_act_{};  ///<
+  QAction* import_key_from_clipboard_act_{};  ///<
 
   QLabel* status_bar_icon_{};  ///<
 

@@ -240,21 +240,6 @@ void MainWindow::create_actions() {
         this, m_key_list_->GetCurrentGpgContextChannel());
   });
 
-  bool forbid_all_gnupg_connection =
-      GetSettings()
-          .value("network/forbid_all_gnupg_connection", false)
-          .toBool();
-
-  import_key_from_key_server_act_ =
-      create_action("import_key_from_keyserver", tr("Keyserver"),
-                    ":/icons/import_key_from_server.png",
-                    tr("Import New Key From Keyserver"));
-  import_key_from_key_server_act_->setDisabled(forbid_all_gnupg_connection);
-  connect(import_key_from_key_server_act_, &QAction::triggered, this, [this]() {
-    CommonUtils::GetInstance()->SlotImportKeyFromKeyServer(
-        this, m_key_list_->GetCurrentGpgContextChannel());
-  });
-
   import_key_from_edit_act_ =
       create_action("import_key_from_edit", tr("Editor"), ":/icons/editor.png",
                     tr("Import New Key From Editor"));
@@ -483,7 +468,6 @@ void MainWindow::create_menus() {
   import_key_menu_->addAction(import_key_from_file_act_);
   import_key_menu_->addAction(import_key_from_edit_act_);
   import_key_menu_->addAction(import_key_from_clipboard_act_);
-  import_key_menu_->addAction(import_key_from_key_server_act_);
   key_menu_->addAction(open_key_management_act_);
 
   advance_menu_ = menuBar()->addMenu(tr("Advanced"));
@@ -517,6 +501,7 @@ void MainWindow::create_menus() {
           {"advance_menu", GFBuffer(RegisterQObject(advance_menu_))},
           {"help_menu", GFBuffer(RegisterQObject(help_menu_))},
           {"view_menu", GFBuffer(RegisterQObject(view_menu_))},
+          {"import_key_menu", GFBuffer(RegisterQObject(import_key_menu_))},
       });
 }
 

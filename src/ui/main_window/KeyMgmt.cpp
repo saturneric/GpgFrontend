@@ -30,15 +30,16 @@
 
 #include <cassert>
 
-#include "core/function/GlobalSettingStation.h"
 #include "core/function/KeyPackageOperator.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/model/GpgImportInformation.h"
+#include "core/module/ModuleManager.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "function/SetOwnerTrustLevel.h"
+#include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/import_export/ExportKeyPackageDialog.h"
@@ -200,22 +201,6 @@ void KeyMgmt::create_actions() {
         this, key_list_->GetCurrentGpgContextChannel());
   });
 
-  bool const forbid_all_gnupg_connection =
-      GetSettings()
-          .value("network/forbid_all_gnupg_connection", false)
-          .toBool();
-
-  import_key_from_key_server_act_ = new QAction(tr("Keyserver"), this);
-  import_key_from_key_server_act_->setIcon(
-      QIcon(":/icons/import_key_from_server.png"));
-  import_key_from_key_server_act_->setToolTip(
-      tr("Import New Key From Keyserver"));
-  import_key_from_key_server_act_->setDisabled(forbid_all_gnupg_connection);
-  connect(import_key_from_key_server_act_, &QAction::triggered, this, [this]() {
-    CommonUtils::GetInstance()->SlotImportKeyFromKeyServer(
-        this, key_list_->GetCurrentGpgContextChannel());
-  });
-
   import_keys_from_key_package_act_ = new QAction(tr("Key Package"), this);
   import_keys_from_key_package_act_->setIcon(QIcon(":/icons/key_package.png"));
   import_keys_from_key_package_act_->setToolTip(
@@ -290,7 +275,6 @@ void KeyMgmt::create_menus() {
   import_key_menu_ = key_menu_->addMenu(tr("Import Key"));
   import_key_menu_->addAction(import_key_from_file_act_);
   import_key_menu_->addAction(import_key_from_clipboard_act_);
-  import_key_menu_->addAction(import_key_from_key_server_act_);
   import_key_menu_->addAction(import_keys_from_key_package_act_);
 
   export_key_menu_ = key_menu_->addMenu(tr("Export Key"));
@@ -519,7 +503,8 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
                         this, tr("Error"),
                         tr("This key may not be able to export as OpenSSH "
                            "format. "
-                           "Please check the key-size of the subkey(s) used to "
+                           "Please check the key-size of the subkey(s) used "
+                           "to "
                            "sign."));
                     return;
                   }

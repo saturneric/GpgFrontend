@@ -44,7 +44,6 @@
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SignersPicker.h"
 #include "ui/dialog/help/AboutDialog.h"
-#include "ui/dialog/import_export/KeyUploadDialog.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/SetOwnerTrustLevel.h"
 #include "ui/struct/GpgOperaResult.h"
@@ -178,13 +177,6 @@ void MainWindow::slot_remove_key_from_favorite() {
   emit SignalUIRefresh();
 }
 
-void MainWindow::refresh_keys_from_key_server() {
-  auto keys = m_key_list_->GetSelectedGpgKeys();
-  if (keys.empty()) return;
-  CommonUtils::GetInstance()->ImportGpgKeyFromKeyServer(
-      m_key_list_->GetCurrentGpgContextChannel(), keys);
-}
-
 void MainWindow::slot_set_owner_trust_level_of_key() {
   auto keys = m_key_list_->GetSelectedKeys();
   if (keys.empty()) return;
@@ -192,16 +184,6 @@ void MainWindow::slot_set_owner_trust_level_of_key() {
   auto* f = new SetOwnerTrustLevel(this);
   f->Exec(m_key_list_->GetCurrentGpgContextChannel(), keys.front());
   f->deleteLater();
-}
-
-void MainWindow::upload_key_to_server() {
-  auto keys = m_key_list_->GetSelectedKeys();
-  if (keys.empty()) return;
-
-  auto* dialog = new KeyUploadDialog(m_key_list_->GetCurrentGpgContextChannel(),
-                                     keys, this);
-  dialog->show();
-  dialog->SlotUpload();
 }
 
 void MainWindow::SlotOpenFile(const QString& path) {
@@ -322,7 +304,7 @@ void MainWindow::slot_verifying_unknown_signature_helper(
                             QMessageBox::Yes | QMessageBox::No);
 
   if (user_response == QMessageBox::Yes) {
-    CommonUtils::GetInstance()->ImportKeyByKeyServerSyncModule(
+    CommonUtils::GetInstance()->ImportKeysFromKeyServer(
         this, m_key_list_->GetCurrentGpgContextChannel(), fpr_set.values());
   } else {
     QMessageBox::information(

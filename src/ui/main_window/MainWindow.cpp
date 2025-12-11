@@ -47,6 +47,8 @@ namespace GpgFrontend::UI {
 
 MainWindow::MainWindow() : GeneralMainWindow("main_window") {
   this->setWindowTitle(qApp->applicationDisplayName());
+  // register main window
+  UIModuleManager::GetInstance().SetMainWindow(this);
 }
 
 void MainWindow::Init() noexcept {
@@ -298,5 +300,9 @@ void MainWindow::slot_popup_menu_by_key_list(QContextMenuEvent* event,
   }
 
   popup_menu_->popup(event->globalPos());
+}
+
+auto MainWindow::GetCurrentGpgContextChannel() const -> int {
+  return m_key_list_->GetCurrentGpgContextChannel();
 }
 }  // namespace GpgFrontend::UI

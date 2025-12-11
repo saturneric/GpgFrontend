@@ -33,6 +33,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAbstractKeyGetter.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
@@ -293,10 +294,11 @@ void KeyList::init() {
   ui_->switchContextButton->setToolTip(tr("Switch between Key Databases"));
 }
 
-auto KeyList::AddListGroupTab(
-    const QString& name, const QString& id, GpgKeyTableDisplayMode display_mode,
-    GpgKeyTableProxyModel::KeyFilter search_filter,
-    GpgKeyTableColumn custom_columns_filter) -> KeyTable* {
+auto KeyList::AddListGroupTab(const QString& name, const QString& id,
+                              GpgKeyTableDisplayMode display_mode,
+                              GpgKeyTableProxyModel::KeyFilter search_filter,
+                              GpgKeyTableColumn custom_columns_filter)
+    -> KeyTable* {
   auto* key_table =
       new KeyTable(this, model_, display_mode, custom_columns_filter,
                    std::move(search_filter));
@@ -538,7 +540,7 @@ void KeyList::slot_sync_with_key_server() {
 
   emit SignalRefreshStatusBar(tr("Syncing Key List..."), 3000);
 
-  CommonUtils::SlotImportKeyFromKeyServer(
+  CommonUtils::SlotUpdateKeysFromKeyServer(
       current_gpg_context_channel_, key_ids,
       [=](const QString& key_id, const QString& status, size_t current_index,
           size_t all_index) {
