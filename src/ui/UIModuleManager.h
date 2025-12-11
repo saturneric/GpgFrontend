@@ -32,24 +32,8 @@
 #include "core/module/Module.h"
 #include "sdk/GFSDKBasicModel.h"
 #include "sdk/GFSDKUIModel.h"
-#include "ui/struct/UIMountPoint.h"
 
 namespace GpgFrontend::UI {
-
-struct MountedUIEntry {
-  QString id_;
-  QMap<QString, QString> meta_data_;
-  QMap<QString, QString> meta_data_translated_;
-  QObjectFactory factory_;
-
-  MountedUIEntry() = default;
-
-  [[nodiscard]] auto GetWidget() const -> QWidget*;
-
-  [[nodiscard]] auto GetMetaDataByDefault(const QString& key,
-                                          QString default_value) const
-      -> QString;
-};
 
 struct ModuleTranslatorInfo {
   GFTranslatorDataReader reader_;
@@ -70,37 +54,6 @@ class GF_UI_EXPORT UIModuleManager
    *
    */
   virtual ~UIModuleManager() override;
-  /**
-   * @brief
-   *
-   * @param id
-   * @param entry_type
-   * @param metadata_desc
-   * @return true
-   * @return false
-   */
-  auto DeclareMountPoint(const QString& id, const QString& entry_type,
-                         QMap<QString, QVariant> meta_data_desc) -> bool;
-
-  /**
-   * @brief
-   *
-   * @param id
-   * @param meta_data
-   * @param entry
-   * @return true
-   * @return false
-   */
-  auto MountEntry(const QString& id, QMap<QString, QString> meta_data,
-                  QObjectFactory factory) -> bool;
-
-  /**
-   * @brief
-   *
-   * @param id
-   * @return QContainer<MountedUIEntry>
-   */
-  auto QueryMountedEntries(QString id) -> QContainer<MountedUIEntry>;
 
   /**
    * @brief
@@ -116,7 +69,7 @@ class GF_UI_EXPORT UIModuleManager
    * @param id
    * @return auto
    */
-  auto RegisterQObject(const QString& id, QObject*) -> bool;
+  auto RegisterQObject(QObject*) -> QString;
 
   /**
    * @brief
@@ -151,17 +104,19 @@ class GF_UI_EXPORT UIModuleManager
   /**
    * @brief
    *
+   * @return const QSettings*
    */
-  void TranslateAllModulesParams();
+  [[nodiscard]] auto GetSettings() const -> const QSettings*;
 
  private:
-  QMap<QString, UIMountPoint> mount_points_;
-  QMap<QString, QContainer<MountedUIEntry>> mounted_entries_;
   QMap<QString, ModuleTranslatorInfo> translator_data_readers_;
   QContainer<QTranslator*> registered_translators_;
   QContainer<QByteArray> read_translator_data_list_;
   QMap<QString, QPointer<QObject>> registered_qobjects_;
   QMap<QString, std::any> capsule_;
+  QSettings settings_;
 };
+
+auto GF_UI_EXPORT RegisterQObject(QObject* p) -> QString;
 
 }  // namespace GpgFrontend::UI

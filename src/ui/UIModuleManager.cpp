@@ -28,70 +28,17 @@
 
 #include "UIModuleManager.h"
 
+#include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/CommonUtils.h"
 
 namespace GpgFrontend::UI {
 
 UIModuleManager::UIModuleManager(int channel)
-    : SingletonFunctionObject<UIModuleManager>(channel) {}
+    : SingletonFunctionObject<UIModuleManager>(channel),
+      settings_(GpgFrontend::GetSettings()) {}
 
 UIModuleManager::~UIModuleManager() = default;
-
-auto UIModuleManager::DeclareMountPoint(const QString& id,
-                                        const QString& entry_type,
-                                        QMap<QString, QVariant> meta_data_desc)
-    -> bool {
-  if (id.isEmpty() || mount_points_.contains(id)) return false;
-
-  UIMountPoint point;
-  point.id = id;
-  point.entry_type = entry_type;
-  point.meta_data_desc = std::move(meta_data_desc);
-
-  mount_points_[id] = point;
-
-  auto grt_key = QString("mount_points.%1").arg(id);
-  GpgFrontend::Module::UpsertRTValue(
-      "ui", grt_key, QString(QJsonDocument(point.ToJson()).toJson()));
-
-  return true;
-}
-
-auto UIModuleManager::MountEntry(const QString& id,
-                                 QMap<QString, QString> meta_data,
-                                 QObjectFactory factory) -> bool {
-  if (id.isEmpty() || !mount_points_.contains(id)) return false;
-
-  if (factory == nullptr) return false;
-
-  MountedUIEntry m_entry;
-  m_entry.id_ = id;
-
-  m_entry.meta_data_ = std::move(meta_data);
-  m_entry.factory_ = factory;
-
-  mounted_entries_[id].append(m_entry);
-  return true;
-}
-
-auto UIModuleManager::QueryMountedEntries(QString id)
-    -> QContainer<MountedUIEntry> {
-  if (id.isEmpty() || !mount_points_.contains(id)) return {};
-  return mounted_entries_[id];
-}
-
-auto MountedUIEntry::GetWidget() const -> QWidget* {
-  return qobject_cast<QWidget*>(static_cast<QObject*>(factory_(nullptr)));
-}
-
-auto MountedUIEntry::GetMetaDataByDefault(const QString& key,
-                                          QString default_value) const
-    -> QString {
-  if (meta_data_translated_.contains(key)) return meta_data_translated_[key];
-  if (!meta_data_.contains(key)) return default_value;
-  return meta_data_[key];
-}
 
 auto UIModuleManager::RegisterTranslatorDataReader(
     Module::ModuleIdentifier id, GFTranslatorDataReader reader) -> bool {
@@ -139,25 +86,13 @@ void UIModuleManager::RegisterAllModuleTranslators() {
   }
 }
 
-void UIModuleManager::TranslateAllModulesParams() {
-  for (auto it = mounted_entries_.keyValueBegin();
-       it != mounted_entries_.keyValueEnd(); ++it) {
-    for (auto& m_entry : it->second) {
-      m_entry.meta_data_translated_.clear();
-      for (auto it_p = m_entry.meta_data_.keyValueBegin();
-           it_p != m_entry.meta_data_.keyValueEnd(); ++it_p) {
-        m_entry.meta_data_translated_[it_p->first] =
-            QApplication::translate("GTrC", it_p->second.toUtf8());
-      }
-    }
-  }
-}
-
-auto UIModuleManager::RegisterQObject(const QString& id, QObject* p) -> bool {
-  if (id.isEmpty() || registered_qobjects_.contains(id)) return false;
-
-  registered_qobjects_[id] = p;
-  return true;
+auto UIModuleManager::RegisterQObject(QObject* p) -> QString {
+  const QString id = QString::number(reinterpret_cast<quintptr>(p), 16);
+  QPointer<QObject> ptr = p;
+  registered_qobjects_[id] = ptr;
+  QObject::connect(p, &QObject::destroyed,
+                   [this, id]() { registered_qobjects_.remove(id); });
+  return id;
 }
 
 auto UIModuleManager::GetQObject(const QString& id) -> QObject* {
@@ -172,6 +107,14 @@ auto UIModuleManager::MakeCapsule(std::any v) -> QString {
   auto uuid = QUuid::createUuid().toString();
   capsule_[uuid] = std::move(v);
   return uuid;
+}
+
+auto UIModuleManager::GetSettings() const -> const QSettings* {
+  return &settings_;
+}
+
+auto GF_UI_EXPORT RegisterQObject(QObject* p) -> QString {
+  return UIModuleManager::GetInstance().RegisterQObject(p);
 }
 
 }  // namespace GpgFrontend::UI
