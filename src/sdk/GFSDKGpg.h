@@ -128,4 +128,34 @@ auto GF_SDK_EXPORT GFGpgPublicKey(int channel, char* key_id, int ascii)
  */
 auto GF_SDK_EXPORT GFGpgKeyPrimaryUID(int channel, char* key_id, GFGpgKeyUID**)
     -> int;
+
+/**
+ * @brief
+ *
+ * @param channel
+ * @param parent
+ * @param keys
+ * @param size
+ */
+auto GF_SDK_EXPORT GFGpgImportKeys(int channel, void* parent, const char* data,
+                                   int size) -> int;
+
+/**
+ * @brief
+ *
+ * @param channel
+ * @param key_ids
+ * @param key_ids_size
+ * @param ascii
+ * @return int
+ */
+auto GF_SDK_EXPORT GFGpgExportKey(int channel, char* key_id, int ascii,
+                                  char** data, int* size) -> int;
+
+/**
+ * @brief
+ *
+ * @return int
+ */
+auto GF_SDK_EXPORT GFGpgCurrentGpgContextChannel() -> int;
 }

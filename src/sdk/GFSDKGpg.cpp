@@ -43,6 +43,7 @@
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UIModuleManager.h"
+#include "ui/UserInterfaceUtils.h"
 
 //
 #include "private/GFSDKPrivat.h"
@@ -254,5 +255,46 @@ auto GF_SDK_EXPORT GFGpgVerifyData(int channel, char* data, char* signature,
 
   s->capsule_id = GFStrDup(capsule_id);
   s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
+  return 0;
+}
+
+auto GFGpgImportKeys(int channel, void* parent, const char* data, int size)
+    -> int {
+  auto in_buffer = GpgFrontend::GFBuffer(QByteArray::fromRawData(data, size));
+
+  QObject* p = nullptr;
+  if (parent != nullptr) {
+    p = static_cast<QObject*>(parent);
+  }
+
+  GpgFrontend::UI::CommonUtils::GetInstance()->ImportKeys(
+      qobject_cast<QWidget*>(p), channel, in_buffer);
+  return 0;
+}
+
+auto GFGpgCurrentGpgContextChannel() -> int {
+  auto* main_window =
+      GpgFrontend::UI::UIModuleManager::GetInstance().GetMainWindow();
+
+  if (main_window != nullptr) {
+    return main_window->GetCurrentGpgContextChannel();
+  }
+
+  return -1;
+}
+
+auto GFGpgExportKey(int channel, char* key_id, int ascii, char** data,
+                    int* size) -> int {
+  auto key = GpgFrontend::GpgKeyGetter::GetInstance(channel).GetKeyPtr(
+      GFUnStrDup(key_id));
+  if (key == nullptr) return -1;
+
+  auto [err, buffer] =
+      GpgFrontend::GpgKeyImportExporter::GetInstance(channel).ExportKey(
+          key, false, ascii != 0, false);
+  if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) return -1;
+  auto byte_array = buffer.ConvertToQByteArray();
+  *data = GFStrDup(byte_array);
+  *size = static_cast<int>(byte_array.size());
   return 0;
 }
