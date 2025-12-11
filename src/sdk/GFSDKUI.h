@@ -32,16 +32,12 @@
 
 extern "C" {
 
-auto GF_SDK_EXPORT GFUIMountEntry(const char* id, MetaData** meta_data_array,
-                                  int meta_data_array_size,
-                                  QObjectFactory factory) -> int;
-
 auto GF_SDK_EXPORT GFUICreateGUIObject(QObjectFactory factory, void* data)
     -> void*;
 
-auto GF_SDK_EXPORT GFUIMainWindowPtr() -> void*;
-
-auto GF_SDK_EXPORT GFUIActiveWindowPtr() -> void*;
+auto GF_SDK_EXPORT GFUIGetGUIObject(const char* id) -> void*;
 
 auto GF_SDK_EXPORT GFUIShowDialog(void* dialog, void* parent) -> bool;
+
+auto GF_SDK_EXPORT GFUIGlobalSettings() -> void*;
 }

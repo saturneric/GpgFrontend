@@ -34,6 +34,7 @@
 #include <QObject>
 #include <QString>
 
+#include "core/function/GlobalSettingStation.h"
 #include "private/GFSDKPrivat.h"
 #include "ui/UIModuleManager.h"
 
@@ -51,29 +52,6 @@ auto MetaDataArrayToQMap(MetaData** meta_data_array, int size)
 
   GpgFrontend::SMAFree(static_cast<void*>(meta_data_array));
   return map;
-}
-
-auto GFUIMountEntry(const char* id, MetaData** meta_data_array,
-                    int meta_data_array_size, QObjectFactory factory) -> int {
-  if (id == nullptr || factory == nullptr) return -1;
-
-  auto meta_data = MetaDataArrayToQMap(meta_data_array, meta_data_array_size);
-  auto qid = GFUnStrDup(id);
-
-  QMetaObject::invokeMethod(
-      QApplication::instance()->thread(), [qid, meta_data, factory]() -> int {
-        return GpgFrontend::UI::UIModuleManager::GetInstance().MountEntry(
-                   qid, meta_data, factory)
-                   ? 0
-                   : -1;
-      });
-
-  return 0;
-}
-
-auto GF_SDK_EXPORT GFUIMainWindowPtr() -> void* {
-  return GpgFrontend::UI::UIModuleManager::GetInstance().GetQObject(
-      "main_window");
 }
 
 auto GF_SDK_EXPORT GFUIShowDialog(void* dialog_raw_ptr, void* parent_raw_ptr)
@@ -129,17 +107,38 @@ auto GF_SDK_EXPORT GFUIShowDialog(void* dialog_raw_ptr, void* parent_raw_ptr)
 
 auto GF_SDK_EXPORT GFUICreateGUIObject(QObjectFactory factory, void* data)
     -> void* {
-  QEventLoop loop;
   void* object = nullptr;
 
-  QMetaObject::invokeMethod(QApplication::instance(), [&]() -> int {
-    LOG_D() << "create gui object, current thread id:"
-            << QThread::currentThreadId();
+  if (QThread::currentThread() == QApplication::instance()->thread()) {
     object = factory(data);
-    loop.quit();
-    return 0;
-  });
+  } else {
+    QMetaObject::invokeMethod(
+        QApplication::instance(),
+        [&]() {
+          LOG_D() << "create gui object, current thread id:"
+                  << QThread::currentThreadId();
+          object = factory(data);
+        },
+        Qt::BlockingQueuedConnection);
+  }
 
-  loop.exec();
   return object;
+}
+
+auto GF_SDK_EXPORT GFUIGetGUIObject(const char* id) -> void* {
+  if (id == nullptr) {
+    LOG_W() << "gui object id is nullptr";
+    return nullptr;
+  }
+
+  auto* object = GpgFrontend::UI::UIModuleManager::GetInstance().GetQObject(
+      GFUnStrDup(id));
+
+  return object;
+}
+
+auto GF_SDK_EXPORT GFUIGlobalSettings() -> void* {
+  const auto* settings =
+      GpgFrontend::UI::UIModuleManager::GetInstance().GetSettings();
+  return static_cast<void*>(const_cast<QSettings*>(settings));
 }
