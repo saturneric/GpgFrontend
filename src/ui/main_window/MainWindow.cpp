@@ -282,13 +282,16 @@ auto MainWindow::create_action(const QString& id, const QString& name,
 void MainWindow::check_update_at_startup() {
   // check version information
   auto settings = GetSettings();
+
+  // ensure that it will not perform at the first startup before wizard is done
   if (!settings.contains("network/prohibit_update_checking")) return;
 
   auto update_checking_api =
       settings.value("network/update_checking_api", "github").toString();
 
+  // we only check for update if the user did set the option to allow it
   auto prohibit_update_checking =
-      settings.value("network/prohibit_update_checking", false).toBool();
+      settings.value("network/prohibit_update_checking", true).toBool();
 
   if (!prohibit_update_checking) {
     Module::ListenRTPublishEvent(

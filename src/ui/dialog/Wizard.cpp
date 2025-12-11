@@ -178,8 +178,9 @@ ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
       new QCheckBox(tr("Don't show this setup wizard again"));
   dont_show_wizard_checkbox_->setChecked(true);
 
+  // I think update checking should be off by default for privacy reasons
   check_updates_checkbox_ = new QCheckBox(tr("Check for updates on startup"));
-  check_updates_checkbox_->setChecked(true);
+  check_updates_checkbox_->setChecked(false);
 
   // Register fields
   registerField("showWizard", dont_show_wizard_checkbox_);

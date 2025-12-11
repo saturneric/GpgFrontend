@@ -144,8 +144,9 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
   ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(
       forbid_all_gnupg_connection ? Qt::Checked : Qt::Unchecked);
 
+  // prohibit update checking by default for privacy reasons
   auto prohibit_update_checking =
-      settings.value("network/prohibit_update_checking").toBool();
+      settings.value("network/prohibit_update_checking", true).toBool();
   ui_->prohibitUpdateCheck->setCheckState(
       prohibit_update_checking ? Qt::Checked : Qt::Unchecked);
 
