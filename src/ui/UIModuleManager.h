@@ -31,7 +31,7 @@
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/module/Module.h"
 #include "sdk/GFSDKBasicModel.h"
-#include "sdk/GFSDKUIModel.h"
+#include "ui/main_window/MainWindow.h"
 
 namespace GpgFrontend::UI {
 
@@ -102,6 +102,20 @@ class GF_UI_EXPORT UIModuleManager
   void RegisterAllModuleTranslators();
 
   /**
+   * @brief Set the Main Window object
+   *
+   * @param main_window
+   */
+  void SetMainWindow(MainWindow* main_window);
+
+  /**
+   * @brief Get the Main Window object
+   *
+   * @return MainWindow*
+   */
+  auto GetMainWindow() -> MainWindow*;
+
+  /**
    * @brief
    *
    * @return const QSettings*
@@ -115,6 +129,7 @@ class GF_UI_EXPORT UIModuleManager
   QMap<QString, QPointer<QObject>> registered_qobjects_;
   QMap<QString, std::any> capsule_;
   QSettings settings_;
+  QPointer<MainWindow> main_window_;
 };
 
 auto GF_UI_EXPORT RegisterQObject(QObject* p) -> QString;

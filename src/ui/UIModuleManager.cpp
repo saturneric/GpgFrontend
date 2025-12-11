@@ -117,4 +117,10 @@ auto GF_UI_EXPORT RegisterQObject(QObject* p) -> QString {
   return UIModuleManager::GetInstance().RegisterQObject(p);
 }
 
+void UIModuleManager::SetMainWindow(MainWindow* main_window) {
+  main_window_ = main_window;
+}
+
+auto UIModuleManager::GetMainWindow() -> MainWindow* { return main_window_; }
+
 }  // namespace GpgFrontend::UI
