@@ -59,14 +59,6 @@ void show_verify_details(QWidget* parent, InfoBoardWidget* info_board,
  * @brief
  *
  * @param parent
- * @param verify_res
- */
-void ImportUnknownKeyFromKeyserver(QWidget* parent,
-                                   const GpgVerifyResultAnalyse& verify_res);
-/**
- * @brief
- *
- * @param parent
  * @param waiting_title
  * @param func
  */
@@ -100,7 +92,7 @@ class CommonUtils : public QWidget {
    *
    * @return CommonUtils*
    */
-  static auto GetInstance() -> CommonUtils*;
+  static auto GF_UI_EXPORT GetInstance() -> CommonUtils*;
 
   /**
    * @brief
@@ -154,17 +146,20 @@ class CommonUtils : public QWidget {
   /**
    * @brief
    *
-   */
-  void ImportGpgKeyFromKeyServer(int channel, const GpgKeyPtrList&);
-
-  /**
-   * @brief
-   *
    * @param parent
    * @param key
    */
   static void OpenDetailsDialogByKey(QWidget* parent, int channel,
                                      const GpgAbstractKeyPtr& key);
+
+  /**
+   * @brief
+   *
+   * @param parent
+   * @param in_buffer
+   */
+  void GF_UI_EXPORT ImportKeys(QWidget* parent, int channel,
+                               const GFBuffer& in_buffer);
 
  signals:
   /**
@@ -219,13 +214,6 @@ class CommonUtils : public QWidget {
    *
    * @param parent
    */
-  void SlotImportKeyFromKeyServer(QWidget* parent, int channel);
-
-  /**
-   * @brief
-   *
-   * @param parent
-   */
   void SlotImportKeyFromClipboard(QWidget* parent, int channel);
 
   /**
@@ -233,8 +221,8 @@ class CommonUtils : public QWidget {
    *
    * @param channel
    */
-  void ImportKeyByKeyServerSyncModule(QWidget* parent, int channel,
-                                      const QStringList& fprs);
+  void ImportKeysFromKeyServer(QWidget* parent, int channel,
+                               const QStringList& fprs);
 
   /**
    * @brief
@@ -243,7 +231,7 @@ class CommonUtils : public QWidget {
    * @param key_ids
    * @param callback
    */
-  static void SlotImportKeyFromKeyServer(
+  static void SlotUpdateKeysFromKeyServer(
       int channel, const GpgFrontend::KeyIdArgsList& key_ids,
       const CommonUtils::ImportCallbackFunction& callback);
 
