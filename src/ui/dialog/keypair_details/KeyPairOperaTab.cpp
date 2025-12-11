@@ -39,10 +39,10 @@
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
+#include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/RevocationOptionsDialog.h"
-#include "ui/dialog/import_export/KeyUploadDialog.h"
 #include "ui/function/SetOwnerTrustLevel.h"
 
 namespace GpgFrontend::UI {
@@ -86,19 +86,7 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
     }
   }
 
-  auto* advance_h_box_layout = new QHBoxLayout();
-
   auto settings = GetSettings();
-
-  // read settings
-  bool forbid_all_gnupg_connection =
-      settings.value("network/forbid_all_gnupg_connection").toBool();
-
-  auto* key_server_opera_button = new QPushButton(tr("Key Server Operations"));
-  key_server_opera_button->setStyleSheet("text-align:center;");
-  key_server_opera_button->setMenu(key_server_opera_menu_);
-  key_server_opera_button->setDisabled(forbid_all_gnupg_connection);
-  advance_h_box_layout->addWidget(key_server_opera_button);
 
   if (Module::IsModuleActivate(kPaperKeyModuleID)) {
     if (!m_key_->IsPrivateKey()) {
@@ -115,7 +103,7 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
         new QPushButton(tr("Revoke Certificate Operation"));
     revoke_cert_opera_button->setStyleSheet("text-align:center;");
     revoke_cert_opera_button->setMenu(rev_cert_opera_menu_);
-    advance_h_box_layout->addWidget(revoke_cert_opera_button);
+    vbox_p_k->addWidget(revoke_cert_opera_button);
   }
 
   auto* modify_tofu_button = new QPushButton(tr("Modify TOFU Policy"));
@@ -129,7 +117,6 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
   connect(set_owner_trust_level_button, &QPushButton::clicked, this,
           &KeyPairOperaTab::slot_set_owner_trust_level);
 
-  vbox_p_k->addLayout(advance_h_box_layout);
   opera_key_box->setLayout(vbox_p_k);
   m_vbox->addWidget(opera_key_box);
   // modify owner trust of public key
@@ -141,6 +128,20 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
 
   setLayout(m_vbox);
 
+  Module::TriggerEvent(
+      "KEY_PAIR_OPERA_MENU_CREATED",
+      {
+          {"tab", GFBuffer(RegisterQObject(this))},
+          {"opera_layout", GFBuffer(RegisterQObject(vbox_p_k))},
+          {"channel", GFBuffer(QString::number(current_gpg_context_channel_))},
+          {"key_id", GFBuffer(m_key_->ID())},
+          {"fpr", GFBuffer(m_key_->Fingerprint())},
+          {"has_master_key", GFBuffer(QString::number(
+                                 static_cast<int>(m_key_->IsHasMasterKey())))},
+          {"is_private_key",
+           GFBuffer(QString::number(static_cast<int>(m_key_->IsPrivateKey())))},
+      });
+
   // set up signal
   connect(this, &KeyPairOperaTab::SignalKeyDatabaseRefresh,
           UISignalStation::GetInstance(),
@@ -148,29 +149,6 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
 }
 
 void KeyPairOperaTab::CreateOperaMenu() {
-  key_server_opera_menu_ = new QMenu(this);
-
-  auto* upload_key_pair =
-      new QAction(tr("Publish Public Key to Key Server"), this);
-  connect(upload_key_pair, &QAction::triggered, this,
-          &KeyPairOperaTab::slot_publish_key_to_server);
-  if (!(m_key_->IsPrivateKey() && m_key_->IsHasMasterKey())) {
-    upload_key_pair->setDisabled(true);
-  }
-
-  auto* update_key_pair =
-      new QAction(tr("Refresh Public Key From Key Server"), this);
-  connect(update_key_pair, &QAction::triggered, this,
-          &KeyPairOperaTab::slot_update_key_from_server);
-
-  // when a key has primary key, it should always upload to keyserver.
-  if (m_key_->IsHasMasterKey()) {
-    update_key_pair->setDisabled(true);
-  }
-
-  key_server_opera_menu_->addAction(upload_key_pair);
-  key_server_opera_menu_->addAction(update_key_pair);
-
   secret_key_export_opera_menu_ = new QMenu(this);
 
   auto* export_full_secret_key =
@@ -327,104 +305,6 @@ void KeyPairOperaTab::slot_modify_edit_datetime() {
   auto* dialog =
       new KeySetExpireDateDialog(current_gpg_context_channel_, m_key_, this);
   dialog->show();
-}
-
-void KeyPairOperaTab::slot_publish_key_to_server() {
-  if (Module::IsModuleActivate(kKeyServerSyncModuleID)) {
-    auto [err, gf_buffer] =
-        GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
-            .ExportKey(m_key_, false, true, false);
-
-    auto fpr = m_key_->Fingerprint();
-    auto key_text = gf_buffer.ConvertToQByteArray();
-
-    Module::TriggerEvent(
-        "REQUEST_UPLOAD_PUBLIC_KEY",
-        {
-            {"key_text", GFBuffer{key_text}},
-        },
-        [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
-            Module::Event::Params p) {
-          LOG_D() << "REQUEST_UPLOAD_PUBLIC_KEY "
-                     "callback: "
-                  << i << ei;
-
-          if (p["ret"] != "0" || !p["error_msg"].Empty()) {
-            LOG_E() << "An error occurred trying to get data "
-                       "from key:"
-                    << fpr
-                    << "error message: " << p["error_msg"].ConvertToQString()
-                    << "reply data: " << p["reply_data"].ConvertToQString();
-
-            // Notify user of the error
-            auto error_message = p["error_msg"].ConvertToQString();
-            QMessageBox::critical(
-                this, tr("Key Upload Failed"),
-                tr("Failed to upload public key to the server.\n"
-                   "Fingerprint: %1\n"
-                   "Error: %2")
-                    .arg(fpr, error_message));
-          } else if (p.contains("token") && p.contains("status") &&
-                     p.contains("fingerprint")) {
-            const auto token = p["token"];
-            const auto status = p["status"];
-            const auto reply_fpr = p["fingerprint"];
-            LOG_D() << "got key data of key " << fpr
-                    << "from key server, token: " << token.ConvertToQString()
-                    << "fpr: " << fpr
-                    << "status: " << status.ConvertToQString();
-
-            // Handle successful response
-            QString status_message =
-                tr("The following email addresses have status:\n");
-            QJsonDocument json_doc =
-                QJsonDocument::fromJson(status.ConvertToQByteArray());
-            QStringList email_list;
-            if (!json_doc.isNull() && json_doc.isObject()) {
-              QJsonObject json_obj = json_doc.object();
-              for (auto it = json_obj.constBegin(); it != json_obj.constEnd();
-                   ++it) {
-                status_message +=
-                    QString("%1: %2\n").arg(it.key(), it.value().toString());
-                email_list.append(it.key());
-              }
-            } else {
-              status_message += tr("Could not parse status information.");
-            }
-
-            // Notify user of successful upload and status details
-            QMessageBox::information(
-                this, tr("Public Key Upload Successful"),
-                tr("The public key was successfully uploaded to the "
-                   "key server keys.openpgp.org.\n"
-                   "Fingerprint: %1\n\n"
-                   "%2\n"
-                   "Please check your email (%3) for further "
-                   "verification from keys.openpgp.org.\n\n"
-                   "Note: For verification, you can find more "
-                   "information here: "
-                   "https://keys.openpgp.org/about")
-                    .arg(fpr, status_message, email_list.join(", ")));
-          }
-        });
-    return;
-  }
-
-  auto keys = KeyIdArgsList{m_key_->ID()};
-  auto* dialog =
-      new KeyUploadDialog(current_gpg_context_channel_, {m_key_}, this);
-  dialog->show();
-  dialog->SlotUpload();
-}
-
-void KeyPairOperaTab::slot_update_key_from_server() {
-  if (Module::IsModuleActivate(kKeyServerSyncModuleID)) {
-    CommonUtils::GetInstance()->ImportKeyByKeyServerSyncModule(
-        this, current_gpg_context_channel_, {m_key_->Fingerprint()});
-    return;
-  }
-  CommonUtils::GetInstance()->ImportGpgKeyFromKeyServer(
-      current_gpg_context_channel_, {m_key_});
 }
 
 void KeyPairOperaTab::slot_gen_revoke_cert() {

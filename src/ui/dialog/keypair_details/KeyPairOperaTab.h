@@ -94,18 +94,6 @@ class KeyPairOperaTab : public QWidget {
    * @brief
    *
    */
-  void slot_publish_key_to_server();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_update_key_from_server();
-
-  /**
-   * @brief
-   *
-   */
   void slot_gen_revoke_cert();
 
   /**
@@ -151,8 +139,7 @@ class KeyPairOperaTab : public QWidget {
 
  private:
   int current_gpg_context_channel_;
-  GpgKeyPtr m_key_;                 ///<
-  QMenu* key_server_opera_menu_{};  ///<
+  GpgKeyPtr m_key_;  ///<
   QMenu* rev_cert_opera_menu_{};
   QMenu* secret_key_export_opera_menu_{};  ///<
 };
