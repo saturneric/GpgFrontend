@@ -71,29 +71,9 @@ jobs:
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
 
-      - name: Package App Image
-        run: |
-          mkdir ${{github.workspace}}/build/final-artifact
-          cd ${{github.workspace}}/build/final-artifact
-          wget -O linuxdeployqt.AppImage -c -nv https://ftp.bktus.com/linuxdeployqt/linuxdeployqt-01052025-x86_64.AppImage
-          chmod u+x linuxdeployqt.AppImage
-          mkdir -p ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6
-          touch ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6/copyright
-          ./linuxdeployqt.AppImage ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop -no-translations -extra-plugins=iconengines,platforms/libqoffscreen.so -appimage -unsupported-allow-new-glibc
-          echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
-          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
-
       - name: Run Unit Tests
         run: |
           cd ${{github.workspace}}/build/final-artifact
           export QT_QPA_PLATFORM=offscreen
           export GTEST_OUTPUT=json:/workspace/GpgFrontend/GpgFrontend/build/final-artifact/unit_tests.json
           ./Gpg_Frontend-*-x86_64.AppImage -t || true
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: gpgfrontend-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
-          path: |
-            ${{github.workspace}}/build/final-artifact/Gpg_Frontend*.AppImage*
-            ${{github.workspace}}/build/final-artifact/unit_tests.json

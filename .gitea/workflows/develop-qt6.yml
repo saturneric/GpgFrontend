@@ -106,11 +106,3 @@ jobs:
           export QT_QPA_PLATFORM=offscreen
           export GTEST_OUTPUT=json:${{github.workspace}}/build/artifacts/unit_tests.json
           ./gpgfrontend -t || true
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: gpgfrontend-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
-          path: |
-            ${{github.workspace}}/build/final-artifact/Gpg_Frontend*.AppImage*
-            ${{github.workspace}}/build/final-artifact/unit_tests.json
