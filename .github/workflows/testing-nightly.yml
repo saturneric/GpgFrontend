@@ -47,18 +47,48 @@ jobs:
 
       - name: Check for changes in last 24 hours
         id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          LAST_COMMIT=$(git log -1 --format=%ct)
-          CURRENT_TIME=$(date +%s)
-          TIME_DIFF=$((CURRENT_TIME - LAST_COMMIT))
+          CURRENT_TIME=$(date -u +%s)
 
-          if [ $TIME_DIFF -lt 86400 ]; then
-            echo "should_build=true" >> $GITHUB_OUTPUT
-            echo "Changes found in the last 24 hours"
-          else
-            echo "should_build=false" >> $GITHUB_OUTPUT
-            echo "No changes in the last 24 hours"
+          LAST_COMMIT=$(git log -1 --format=%ct)
+          TIME_DIFF_COMMIT=$((CURRENT_TIME - LAST_COMMIT))
+
+          SHOULD_BUILD=false
+          REASON="No changes in the last 24 hours"
+
+          if [ $TIME_DIFF_COMMIT -lt 86400 ]; then
+            SHOULD_BUILD=true
+            REASON="Changes found in the last 24 hours"
           fi
+
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            WORKFLOW_JSON=$(curl -s -H "Authorization: Bearer ${GH_TOKEN}" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/workflows/testing-nightly.yml/runs?per_page=1")
+            LAST_RUN_TIME=$(echo "$WORKFLOW_JSON" | jq -r '.workflow_runs[0].created_at // empty')
+            if [ -n "$LAST_RUN_TIME" ]; then
+              LAST_RUN_TS=$(date -d "$LAST_RUN_TIME" +%s)
+              if [ $((CURRENT_TIME - LAST_RUN_TS)) -lt 86400 ]; then
+                SHOULD_BUILD=false
+                REASON="Recent workflow run detected in the last 24 hours"
+              fi
+            fi
+
+            RELEASE_JSON=$(curl -s -H "Authorization: Bearer ${GH_TOKEN}" \
+              "https://api.github.com/repos/${{ github.repository }}/releases/tags/nightly")
+            LAST_REL_TIME=$(echo "$RELEASE_JSON" | jq -r '.published_at // .created_at // empty')
+            if [ -n "$LAST_REL_TIME" ]; then
+              LAST_REL_TS=$(date -d "$LAST_REL_TIME" +%s)
+              if [ $((CURRENT_TIME - LAST_REL_TS)) -lt 86400 ]; then
+                SHOULD_BUILD=false
+                REASON="Recent nightly release detected in the last 24 hours"
+              fi
+            fi
+          fi
+
+          echo "should_build=${SHOULD_BUILD}" >> $GITHUB_OUTPUT
+          echo "$REASON"
 
   build:
     needs: check-changes
@@ -258,6 +288,8 @@ jobs:
             DEPLOY_TARGET="14.0"
           elif [[ "$MACOS_MAJOR" == "15" ]]; then
             DEPLOY_TARGET="15.0"
+          elif [[ "$MACOS_MAJOR" == "26" ]]; then
+            DEPLOY_TARGET="26.0"
           else
             DEPLOY_TARGET="${MACOS_MAJOR}.${MACOS_MINOR}"
           fi
