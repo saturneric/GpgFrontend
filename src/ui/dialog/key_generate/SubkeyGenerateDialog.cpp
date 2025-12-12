@@ -99,21 +99,52 @@ void SubkeyGenerateDialog::set_signal_slot_config() {
   connect(ui_->generateButton, &QPushButton::clicked, this,
           &SubkeyGenerateDialog::slot_key_gen_accept);
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(ui_->nonExpiredCheckBox, &QCheckBox::checkStateChanged, this,
+          [=](Qt::CheckState state) {
+            gen_subkey_info_->SetNonExpired(state == Qt::Checked);
+            refresh_widgets_state();
+          });
+#else
   connect(ui_->nonExpiredCheckBox, &QCheckBox::stateChanged, this,
           [=](int state) {
             gen_subkey_info_->SetNonExpired(state == Qt::Checked);
             refresh_widgets_state();
           });
+#endif
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(ui_->encrCheckBox, &QCheckBox::checkStateChanged, this,
+          [this](Qt::CheckState state) {
+            gen_subkey_info_->SetAllowEncr(state == Qt::Checked);
+          });
+#else
   connect(ui_->encrCheckBox, &QCheckBox::stateChanged, this, [this](int state) {
     gen_subkey_info_->SetAllowEncr(state == Qt::Checked);
   });
+#endif
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(ui_->signCheckBox, &QCheckBox::checkStateChanged, this,
+          [this](Qt::CheckState state) {
+            gen_subkey_info_->SetAllowSign(state == Qt::Checked);
+          });
+#else
   connect(ui_->signCheckBox, &QCheckBox::stateChanged, this, [this](int state) {
     gen_subkey_info_->SetAllowSign(state == Qt::Checked);
   });
+#endif
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(ui_->authCheckBox, &QCheckBox::checkStateChanged, this,
+          [this](Qt::CheckState state) {
+            gen_subkey_info_->SetAllowAuth(state == Qt::Checked);
+          });
+#else
   connect(ui_->authCheckBox, &QCheckBox::stateChanged, this, [this](int state) {
     gen_subkey_info_->SetAllowAuth(state == Qt::Checked);
   });
+#endif
 
   connect(ui_->algoComboBox, &QComboBox::currentTextChanged, this,
           [=](const QString& text) {
@@ -124,10 +155,17 @@ void SubkeyGenerateDialog::set_signal_slot_config() {
             refresh_widgets_state();
           });
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(ui_->nonPassphraseCheckBox, &QCheckBox::checkStateChanged, this,
+          [this](Qt::CheckState state) -> void {
+            gen_subkey_info_->SetNonPassPhrase(state == Qt::Checked);
+          });
+#else
   connect(ui_->nonPassphraseCheckBox, &QCheckBox::stateChanged, this,
           [this](int state) -> void {
             gen_subkey_info_->SetNonPassPhrase(state == Qt::Checked);
           });
+#endif
 
   connect(ui_->keyLengthComboBox, &QComboBox::currentTextChanged, this,
           [this](const QString& text) -> void {

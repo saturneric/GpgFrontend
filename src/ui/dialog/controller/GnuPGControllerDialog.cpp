@@ -85,16 +85,29 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
   connect(this, &GnuPGControllerDialog::SignalRestartNeeded,
           UISignalStation::GetInstance(),
           &UISignalStation::SignalRestartApplication);
-
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(
+      ui_->useCustomGnuPGInstallPathCheckBox, &QCheckBox::checkStateChanged,
+      this, [=](Qt::CheckState state) {
+        ui_->useCustomGnuPGInstallPathButton->setDisabled(state != Qt::Checked);
+      });
+#else
   connect(ui_->useCustomGnuPGInstallPathCheckBox, &QCheckBox::stateChanged,
           this, [=](int state) {
             ui_->useCustomGnuPGInstallPathButton->setDisabled(
                 state != Qt::CheckState::Checked);
           });
+#endif
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(ui_->useCustomGnuPGInstallPathCheckBox, &QCheckBox::checkStateChanged,
+          this,
+          &GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label);
+#else
   connect(ui_->useCustomGnuPGInstallPathCheckBox, &QCheckBox::stateChanged,
           this,
           &GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label);
+#endif
 
   connect(
       ui_->useCustomGnuPGInstallPathButton, &QPushButton::clicked, this, [=]() {
@@ -113,21 +126,45 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
             this->ui_->useCustomGnuPGInstallPathCheckBox->checkState());
       });
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(ui_->gpgmeDebugLogCheckBox, &QCheckBox::checkStateChanged, this,
+          [=](Qt::CheckState) {
+            // announce the restart
+            this->slot_set_restart_needed(kDeepRestartCode);
+          });
+#else
   connect(ui_->gpgmeDebugLogCheckBox, &QCheckBox::stateChanged, this, [=](int) {
     // announce the restart
     this->slot_set_restart_needed(kDeepRestartCode);
   });
+#endif
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(ui_->asciiModeCheckBox, &QCheckBox::checkStateChanged, this,
+          [=](Qt::CheckState) {
+            // announce the restart
+            this->slot_set_restart_needed(kDeepRestartCode);
+          });
+#else
   connect(ui_->asciiModeCheckBox, &QCheckBox::stateChanged, this, [=](int) {
     // announce the restart
     this->slot_set_restart_needed(kDeepRestartCode);
   });
+#endif
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(ui_->useCustomGnuPGInstallPathCheckBox, &QCheckBox::checkStateChanged,
+          this, [=](Qt::CheckState) {
+            // announce the restart
+            this->slot_set_restart_needed(kDeepRestartCode);
+          });
+#else
   connect(ui_->useCustomGnuPGInstallPathCheckBox, &QCheckBox::stateChanged,
           this, [=](int) {
             // announce the restart
             this->slot_set_restart_needed(kDeepRestartCode);
           });
+#endif
 
   connect(ui_->addNewKeyDatabaseButton, &QPushButton::clicked, this,
           &GnuPGControllerDialog::slot_add_new_key_database);

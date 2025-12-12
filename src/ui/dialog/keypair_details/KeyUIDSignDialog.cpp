@@ -75,8 +75,15 @@ KeyUIDSignDialog::KeyUIDSignDialog(int channel, const GpgKeyPtr& key,
   non_expire_check_ = new QCheckBox("Non Expired");
   non_expire_check_->setTristate(false);
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(non_expire_check_, &QCheckBox::checkStateChanged, this,
+          [this](Qt::CheckState state) -> void {
+            expires_edit_->setEnabled(state == Qt::Unchecked);
+          });
+#else
   connect(non_expire_check_, &QCheckBox::stateChanged, this,
           [this](int state) -> void { expires_edit_->setEnabled(state == 0); });
+#endif
 
   auto* layout = new QGridLayout();
   auto* time_layout = new QGridLayout();

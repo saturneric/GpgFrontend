@@ -61,8 +61,15 @@ GenerateCardKeyDialog::GenerateCardKeyDialog(int channel,
 
   connect(ui_->generateButton, &QPushButton::clicked, this,
           &GenerateCardKeyDialog::slot_generate_card_key);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(ui_->nonExpireCheckBox, &QCheckBox::checkStateChanged, this,
+          [=](Qt::CheckState state) {
+            ui_->dateEdit->setDisabled(state == Qt::Checked);
+          });
+#else
   connect(ui_->nonExpireCheckBox, &QCheckBox::stateChanged, this,
           [=](int state) { ui_->dateEdit->setDisabled(state == Qt::Checked); });
+#endif
 
   setWindowTitle(tr("Card Key Generation"));
   movePosition2CenterOfParent();

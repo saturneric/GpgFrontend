@@ -39,13 +39,32 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_NetworkSettings>()) {
   ui_->setupUi(this);
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(ui_->enableProxyCheckBox, &QCheckBox::checkStateChanged, this,
+          [=](Qt::CheckState state) {
+            switch_ui_enabled(state == Qt::Checked);
+            // when selecting no proxy option, apply it immediately
+            if (state != Qt::Checked) apply_proxy_settings();
+          });
+#else
   connect(ui_->enableProxyCheckBox, &QCheckBox::stateChanged, this,
           [=](int state) {
             switch_ui_enabled(state == Qt::Checked);
             // when selecting no proxy option, apply it immediately
             if (state != Qt::Checked) apply_proxy_settings();
           });
+#endif
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(
+      ui_->autoFetchKeyPublishStatusCheckBox, &QCheckBox::checkStateChanged,
+      this, [=](Qt::CheckState state) {
+        ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(
+            state == Qt::Checked
+                ? Qt::Unchecked
+                : ui_->forbidALLGnuPGNetworkConnectionCheckBox->checkState());
+      });
+#else
   connect(
       ui_->autoFetchKeyPublishStatusCheckBox, &QCheckBox::stateChanged, this,
       [=](int state) {
@@ -54,7 +73,17 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
                 ? Qt::Unchecked
                 : ui_->forbidALLGnuPGNetworkConnectionCheckBox->checkState());
       });
+#endif
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(ui_->forbidALLGnuPGNetworkConnectionCheckBox,
+          &QCheckBox::checkStateChanged, this, [=](Qt::CheckState state) {
+            ui_->autoFetchKeyPublishStatusCheckBox->setCheckState(
+                state == Qt::Checked
+                    ? Qt::Unchecked
+                    : ui_->autoFetchKeyPublishStatusCheckBox->checkState());
+          });
+#else
   connect(ui_->forbidALLGnuPGNetworkConnectionCheckBox,
           &QCheckBox::stateChanged, this, [=](int state) {
             ui_->autoFetchKeyPublishStatusCheckBox->setCheckState(
@@ -62,6 +91,7 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
                     ? Qt::Unchecked
                     : ui_->autoFetchKeyPublishStatusCheckBox->checkState());
           });
+#endif
 
   connect(
       ui_->proxyTypeComboBox, &QComboBox::currentTextChanged, this,

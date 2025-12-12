@@ -103,8 +103,13 @@ void KeySetExpireDateDialog::init() {
   ui_->dateEdit->setDateTime(current_expire_time);
   ui_->timeEdit->setDateTime(current_expire_time);
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+  connect(ui_->noExpirationCheckBox, &QCheckBox::checkStateChanged, this,
+          &KeySetExpireDateDialog::slot_non_expired_checked);
+#else
   connect(ui_->noExpirationCheckBox, &QCheckBox::stateChanged, this,
           &KeySetExpireDateDialog::slot_non_expired_checked);
+#endif
   connect(ui_->button_box_, &QDialogButtonBox::accepted, this,
           &KeySetExpireDateDialog::slot_confirm);
   connect(this, &KeySetExpireDateDialog::SignalKeyExpireDateUpdated,
