@@ -85,9 +85,9 @@ to register, you are welcome to communicate with me via email.
 
 ### For Developers
 
-GpgFrontend's architecture and design is not easy for starters, especially for
-developers who are not familiar with c++, qt and multi-threading. I was
-struggling hard for these in the past years as well. [An AI-assisted
+GpgFrontend's architecture and design are not easy for beginners, especially for
+developers who are not familiar with C++, Qt, and multithreading. I was
+struggling hard for these in the past few years as well. [An AI-assisted
 Wiki](https://deepwiki.com/saturneric/GpgFrontend) has been created through
 analysis of the GpgFrontend source code. This Wiki offers a comprehensive
 overview of the project’s technical architecture, design principles, and major
