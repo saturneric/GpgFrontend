@@ -117,18 +117,6 @@ class KeyPairOperaTab : public QWidget {
   /**
    * @brief
    *
-   */
-  void slot_export_paper_key();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_import_paper_key();
-
-  /**
-   * @brief
-   *
    * @param secret
    * @param ascii
    * @param shortest

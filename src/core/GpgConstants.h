@@ -57,8 +57,6 @@ constexpr const char* PGP_PRIVATE_KEY_BEGIN =
     "-----BEGIN PGP PRIVATE KEY BLOCK-----";  ///<
 
 // MODULE ID
-constexpr const char* kPaperKeyModuleID =
-    "com.bktus.gpgfrontend.module.paper_key";
 constexpr const char* kEmailModuleID = "com.bktus.gpgfrontend.module.email";
 
 }  // namespace GpgFrontend
