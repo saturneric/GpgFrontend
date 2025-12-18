@@ -292,7 +292,7 @@ void KeyPairDetailTab::slot_query_key_publish_state() {
 
   if (forbid_all_gnupg_connection || !auto_fetch_key_publish_status) return;
 
-  if (!Module::IsModuleActivate(kKeyServerSyncModuleID)) {
+  if (!Module::IsEventListening("REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT")) {
     return;
   }
 
@@ -307,9 +307,6 @@ void KeyPairDetailTab::slot_query_key_publish_state() {
       },
       [=](Module::EventIdentifier i, Module::Event::ListenerIdentifier ei,
           Module::Event::Params p) {
-        LOG_D() << "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT callback: " << i
-                << ei;
-
         // avoid crash while outer dialog was already closed
         if (!self) return;
 
