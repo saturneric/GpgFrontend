@@ -92,6 +92,8 @@ class GF_CORE_EXPORT GlobalModuleContext : public QObject {
 
   [[nodiscard]] auto GetRegisteredModuleNum() const -> int;
 
+  auto IsEventListening(const EventTriggerIdentifier& trigger_id) -> bool;
+
  private:
   class Impl;
   SecureUniquePtr<Impl> p_;

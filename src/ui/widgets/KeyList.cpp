@@ -32,11 +32,11 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAbstractKeyGetter.h"
-#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/model/GpgImportInformation.h"
 #include "core/module/ModuleManager.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/KeyGroupCreationDialog.h"
 #include "ui/dialog/import_export/KeyImportDetailDialog.h"
 
@@ -224,13 +224,9 @@ void KeyList::init() {
 
   ui_->keyGroupTab->clear();
 
-  auto forbid_all_gnupg_connection =
-      GetSettings()
-          .value("network/forbid_all_gnupg_connection", false)
-          .toBool();
-
-  // forbidden networks connections
-  if (forbid_all_gnupg_connection) ui_->syncButton->setDisabled(true);
+  // disable sync button if the module is not listening to the event
+  ui_->syncButton->setHidden(
+      !Module::IsEventListening("REQUEST_GET_PUBLIC_KEY_BY_KEY_ID"));
 
   // register key database refresh signal
   connect(this, &KeyList::SignalRefreshDatabase, UISignalStation::GetInstance(),
@@ -517,6 +513,70 @@ auto KeyList::GetSelectedGpgKeys() -> GpgKeyPtrList {
   return g_keys;
 }
 
+void KeyList::sync_keys_from_key_server(
+    const KeyIdArgsList& key_ids,
+    const std::function<void(const QString&, const QString&, size_t, size_t)>&
+        callback) const {
+  // LOOP
+  decltype(key_ids.size()) current_index = 1;
+  decltype(key_ids.size()) all_index = key_ids.size();
+
+  auto channel = current_gpg_context_channel_;
+
+  for (const auto& key_id : key_ids) {
+    Thread::TaskRunnerGetter::GetInstance()
+        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
+        ->PostTask(new Thread::Task(
+            [=](const DataObjectPtr& data_obj) -> int {
+              // rate limit
+              QThread::msleep(200);
+              // call
+              Module::TriggerEvent(
+                  "REQUEST_GET_PUBLIC_KEY_BY_KEY_ID",
+                  {
+                      {"key_id", GFBuffer{key_id}},
+                  },
+                  [key_id, channel, callback, current_index, all_index](
+                      Module::EventIdentifier i,
+                      Module::Event::ListenerIdentifier ei,
+                      Module::Event::Params p) {
+                    QString status;
+
+                    if (p["ret"] != "0" || !p["error_msg"].Empty()) {
+                      LOG_E()
+                          << "An error occurred trying to get data from key:"
+                          << key_id << "error message: "
+                          << p["error_msg"].ConvertToQString() << "reply data: "
+                          << p["reply_data"].ConvertToQString();
+                      status = p["error_msg"].ConvertToQString() +
+                               p["reply_data"].ConvertToQString();
+                    } else if (p.contains("key_data")) {
+                      const auto key_data = p["key_data"];
+                      LOG_D() << "got key data of key " << key_id
+                              << " from key server: "
+                              << key_data.ConvertToQString();
+
+                      auto result =
+                          GpgKeyImportExporter::GetInstance(channel).ImportKey(
+                              GFBuffer(key_data));
+                      if (result->imported == 1) {
+                        status = tr("The key has been updated");
+                      } else {
+                        status = tr("No need to update the key");
+                      }
+                    }
+
+                    callback(key_id, status, current_index, all_index);
+                  });
+
+              return 0;
+            },
+            QString("key_%1_import_task").arg(key_id)));
+
+    current_index++;
+  }
+}
+
 void KeyList::slot_sync_with_key_server() {
   auto keys = GetCheckedPublicKey();
   if (keys.empty()) {
@@ -540,10 +600,9 @@ void KeyList::slot_sync_with_key_server() {
 
   emit SignalRefreshStatusBar(tr("Syncing Key List..."), 3000);
 
-  CommonUtils::SlotUpdateKeysFromKeyServer(
-      current_gpg_context_channel_, key_ids,
-      [=](const QString& key_id, const QString& status, size_t current_index,
-          size_t all_index) {
+  sync_keys_from_key_server(
+      key_ids, [=](const QString& key_id, const QString& status,
+                   size_t current_index, size_t all_index) {
         auto status_str = tr("Sync [%1/%2] %3 %4")
                               .arg(current_index)
                               .arg(all_index)

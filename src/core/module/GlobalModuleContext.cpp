@@ -213,7 +213,7 @@ class GlobalModuleContext::Impl {
       return false;
     }
 
-    auto module_info = module_info_opt.value();
+    const auto& module_info = module_info_opt.value();
     // activate the module if it is not already Deactivate.
     if (module_info->activate && (module_info->module->Deactivate() == 0)) {
       for (const auto& event_ids : module_info->listening_event_ids) {
@@ -309,6 +309,10 @@ class GlobalModuleContext::Impl {
       return module_on_triggering_events_table_[trigger_id];
     }
     return {};
+  }
+
+  auto IsEventListening(const EventTriggerIdentifier& trigger_id) -> bool {
+    return module_events_table_.find(trigger_id) != module_events_table_.end();
   }
 
   [[nodiscard]] auto IsModuleActivated(const ModuleIdentifier& m_id) const
@@ -483,4 +487,8 @@ auto GlobalModuleContext::GetRegisteredModuleNum() const -> int {
   return p_->GetRegisteredModuleNum();
 }
 
+auto GlobalModuleContext::IsEventListening(
+    const EventTriggerIdentifier& trigger_id) -> bool {
+  return p_->IsEventListening(trigger_id);
+}
 }  // namespace GpgFrontend::Module

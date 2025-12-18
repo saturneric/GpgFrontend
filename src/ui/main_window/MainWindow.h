@@ -543,6 +543,12 @@ class MainWindow : public GeneralMainWindow {
    */
   void slot_open_file_tab_with_directory();
 
+  /**
+   * @brief
+   *
+   */
+  void slot_import_keys_from_key_server(const QStringList& fprs);
+
  private:
   /**
    * @details Create actions for the main-menu and the context-menu of the

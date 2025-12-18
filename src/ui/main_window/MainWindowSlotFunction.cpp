@@ -36,14 +36,12 @@
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgSignResult.h"
 #include "core/module/ModuleManager.h"
-#include "core/typedef/GpgTypedef.h"
-#include "core/utils/BuildInfoUtils.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SignersPicker.h"
-#include "ui/dialog/help/AboutDialog.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/SetOwnerTrustLevel.h"
 #include "ui/struct/GpgOperaResult.h"
@@ -278,9 +276,59 @@ void MainWindow::SlotVerifyEML() {
   slot_verify_email_by_eml_data(buffer);
 }
 
+void MainWindow::slot_import_keys_from_key_server(const QStringList& fprs) {
+  auto channel = m_key_list_->GetCurrentGpgContextChannel();
+  auto all_key_data = SecureCreateSharedObject<GFBuffer>();
+  auto remaining_tasks = SecureCreateSharedObject<int>(fprs.size());
+
+  for (const auto& fpr : fprs) {
+    Thread::TaskRunnerGetter::GetInstance()
+        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
+        ->PostTask(new Thread::Task(
+            [=](const DataObjectPtr& data_obj) -> int {
+              Module::TriggerEvent(
+                  "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT",
+                  {
+                      {"fingerprint", GFBuffer{fpr}},
+                  },
+                  [fpr, all_key_data, remaining_tasks, this, channel](
+                      Module::EventIdentifier i,
+                      Module::Event::ListenerIdentifier ei,
+                      Module::Event::Params p) {
+                    if (p["ret"] != "0" || !p["error_msg"].Empty()) {
+                      LOG_E()
+                          << "An error occurred trying to get data from key:"
+                          << fpr << "error message: "
+                          << p["error_msg"].ConvertToQString() << "reply data: "
+                          << p["reply_data"].ConvertToQString();
+                    } else if (p.contains("key_data")) {
+                      all_key_data->Append(p["key_data"]);
+                    }
+
+                    // it only uses one thread for these operations
+                    // so that is no need for locking now
+                    (*remaining_tasks)--;
+
+                    // all tasks are done
+                    if (*remaining_tasks == 0) {
+                      CommonUtils::GetInstance()->ImportKeys(this, channel,
+                                                             *all_key_data);
+                    }
+                  });
+
+              return 0;
+            },
+            QString("key_%1_import_task").arg(fpr)));
+  }
+}
+
 void MainWindow::slot_verifying_unknown_signature_helper(
     const QStringList& fprs) {
-  if (!Module::IsModuleActivate(kKeyServerSyncModuleID) || fprs.empty()) return;
+  // check if event is listened by any module
+  if (!Module::IsEventListening("REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT") ||
+      fprs.empty()) {
+    return;
+  }
 
   auto fpr_set = QSet<QString>(fprs.begin(), fprs.end());
 
@@ -304,8 +352,7 @@ void MainWindow::slot_verifying_unknown_signature_helper(
                             QMessageBox::Yes | QMessageBox::No);
 
   if (user_response == QMessageBox::Yes) {
-    CommonUtils::GetInstance()->ImportKeysFromKeyServer(
-        this, m_key_list_->GetCurrentGpgContextChannel(), fpr_set.values());
+    slot_import_keys_from_key_server(fpr_set.values());
   } else {
     QMessageBox::information(
         this, tr("Verification Incomplete"),

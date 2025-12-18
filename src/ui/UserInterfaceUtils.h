@@ -75,13 +75,6 @@ class CommonUtils : public QWidget {
   Q_OBJECT
  public:
   /**
-   * @brief
-   *
-   */
-  using ImportCallbackFunction =
-      std::function<void(const QString&, const QString&, size_t, size_t)>;
-
-  /**
    * @brief Construct a new Common Utils object
    *
    */
@@ -215,25 +208,6 @@ class CommonUtils : public QWidget {
    * @param parent
    */
   void SlotImportKeyFromClipboard(QWidget* parent, int channel);
-
-  /**
-   * @brief
-   *
-   * @param channel
-   */
-  void ImportKeysFromKeyServer(QWidget* parent, int channel,
-                               const QStringList& fprs);
-
-  /**
-   * @brief
-   *
-   * @param ctx_channel
-   * @param key_ids
-   * @param callback
-   */
-  static void SlotUpdateKeysFromKeyServer(
-      int channel, const GpgFrontend::KeyIdArgsList& key_ids,
-      const CommonUtils::ImportCallbackFunction& callback);
 
   /**
    * @brief

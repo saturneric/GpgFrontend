@@ -35,13 +35,11 @@
 #include "core/function/gpg/GpgAbstractKeyGetter.h"
 #include "core/model/CacheObject.h"
 #include "core/model/GpgImportInformation.h"
-#include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/struct/cache_object/AllFavoriteKeyPairsCO.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/typedef/GpgTypedef.h"
-#include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "dialog/import_export/KeyImportDetailDialog.h"
@@ -50,7 +48,6 @@
 #include "ui/dialog/WaitingDialog.h"
 #include "ui/dialog/controller/GnuPGControllerDialog.h"
 #include "ui/dialog/keypair_details/KeyDetailsDialog.h"
-#include "ui/struct/settings_object/KeyServerSO.h"
 
 namespace GpgFrontend::UI {
 
@@ -165,9 +162,7 @@ void CommonUtils::RaiseFailureMessageBox(QWidget *parent, GpgError err,
 
 void CommonUtils::SlotImportKeys(QWidget *parent, int channel,
                                  const GFBuffer &in_buffer) {
-  LOG_D() << "try to import key(s) to channel: " << channel;
   auto info = GpgKeyImportExporter::GetInstance(channel).ImportKey(in_buffer);
-
   auto *connection = new QMetaObject::Connection;
   *connection =
       connect(UISignalStation::GetInstance(),
@@ -296,79 +291,6 @@ void CommonUtils::SlotExecuteGpgCommand(
   dialog->close();
 }
 
-void CommonUtils::SlotUpdateKeysFromKeyServer(
-    int channel, const KeyIdArgsList &key_ids,
-    const ImportCallbackFunction &callback) {
-  if (!Module::IsModuleActivate(kKeyServerSyncModuleID)) {
-    QMessageBox::critical(
-        nullptr, tr("Keyserver Sync Module Not Activated"),
-        tr("The Keyserver Sync Module is not activated, "
-           "please activate it in the Module Manager first."));
-    return;
-  }
-
-  // LOOP
-  decltype(key_ids.size()) current_index = 1;
-  decltype(key_ids.size()) all_index = key_ids.size();
-
-  for (const auto &key_id : key_ids) {
-    Thread::TaskRunnerGetter::GetInstance()
-        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
-        ->PostTask(new Thread::Task(
-            [=](const DataObjectPtr &data_obj) -> int {
-              // rate limit
-              QThread::msleep(200);
-              // call
-              Module::TriggerEvent(
-                  "REQUEST_GET_PUBLIC_KEY_BY_KEY_ID",
-                  {
-                      {"key_id", GFBuffer{key_id}},
-                  },
-                  [key_id, channel, callback, current_index, all_index](
-                      Module::EventIdentifier i,
-                      Module::Event::ListenerIdentifier ei,
-                      Module::Event::Params p) {
-                    LOG_D()
-                        << "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT callback: "
-                        << i << ei;
-
-                    QString status;
-
-                    if (p["ret"] != "0" || !p["error_msg"].Empty()) {
-                      LOG_E()
-                          << "An error occurred trying to get data from key:"
-                          << key_id << "error message: "
-                          << p["error_msg"].ConvertToQString() << "reply data: "
-                          << p["reply_data"].ConvertToQString();
-                      status = p["error_msg"].ConvertToQString() +
-                               p["reply_data"].ConvertToQString();
-                    } else if (p.contains("key_data")) {
-                      const auto key_data = p["key_data"];
-                      LOG_D() << "got key data of key " << key_id
-                              << " from key server: "
-                              << key_data.ConvertToQString();
-
-                      auto result =
-                          GpgKeyImportExporter::GetInstance(channel).ImportKey(
-                              GFBuffer(key_data));
-                      if (result->imported == 1) {
-                        status = tr("The key has been updated");
-                      } else {
-                        status = tr("No need to update the key");
-                      }
-                    }
-
-                    callback(key_id, status, current_index, all_index);
-                  });
-
-              return 0;
-            },
-            QString("key_%1_import_task").arg(key_id)));
-
-    current_index++;
-  }
-}
-
 void CommonUtils::slot_update_key_status() {
   auto *refresh_task = new Thread::Task(
       [](DataObjectPtr) -> int {
@@ -476,62 +398,6 @@ void CommonUtils::RemoveKeyFromFavorite(const QString &key_db_name,
   }
 
   emit SignalFavoritesChanged();
-}
-
-void CommonUtils::ImportKeysFromKeyServer(QWidget *parent, int channel,
-                                          const QStringList &fprs) {
-  if (!Module::IsModuleActivate(kKeyServerSyncModuleID)) {
-    QMessageBox::critical(
-        parent, tr("Key Server Sync Module Not Activated"),
-        tr("The Key Server Sync Module is not activated. Please activate it "
-           "first in order to sync keys from key servers."));
-    return;
-  }
-
-  auto all_key_data = SecureCreateSharedObject<GFBuffer>();
-  auto remaining_tasks = SecureCreateSharedObject<int>(fprs.size());
-
-  for (const auto &fpr : fprs) {
-    Thread::TaskRunnerGetter::GetInstance()
-        .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
-        ->PostTask(new Thread::Task(
-            [=](const DataObjectPtr &data_obj) -> int {
-              Module::TriggerEvent(
-                  "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT",
-                  {
-                      {"fingerprint", GFBuffer{fpr}},
-                  },
-                  [fpr, all_key_data, remaining_tasks, this, parent, channel](
-                      Module::EventIdentifier i,
-                      Module::Event::ListenerIdentifier ei,
-                      Module::Event::Params p) {
-                    LOG_D()
-                        << "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT callback: "
-                        << i << ei;
-
-                    if (p["ret"] != "0" || !p["error_msg"].Empty()) {
-                      LOG_E()
-                          << "An error occurred trying to get data from key:"
-                          << fpr << "error message: "
-                          << p["error_msg"].ConvertToQString() << "reply data: "
-                          << p["reply_data"].ConvertToQString();
-                    } else if (p.contains("key_data")) {
-                      all_key_data->Append(p["key_data"]);
-                    }
-
-                    // it only uses one thread for these operations
-                    // so that is no need for locking now
-                    (*remaining_tasks)--;
-
-                    if (*remaining_tasks == 0) {
-                      this->SlotImportKeys(parent, channel, *all_key_data);
-                    }
-                  });
-
-              return 0;
-            },
-            QString("key_%1_import_task").arg(fpr)));
-  }
 }
 
 void CommonUtils::OpenDetailsDialogByKey(QWidget *parent, int channel,

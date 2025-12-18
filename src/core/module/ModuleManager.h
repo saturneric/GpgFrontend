@@ -103,6 +103,8 @@ class GF_CORE_EXPORT ModuleManager
 
   auto GRT() -> GlobalRegisterTable*;
 
+  auto IsEventListening(const EventTriggerIdentifier&) -> bool;
+
  private:
   class Impl;
   SecureUniquePtr<Impl> p_;
@@ -200,5 +202,15 @@ auto RetrieveRTValueTypedOrDefault(const QString& namespace_,
   }
   return defaultValue;
 }
+
+/**
+ * @brief
+ *
+ * @param trigger_id
+ * @return true
+ * @return false
+ */
+auto GF_CORE_EXPORT IsEventListening(const EventTriggerIdentifier& trigger_id)
+    -> bool;
 
 }  // namespace GpgFrontend::Module

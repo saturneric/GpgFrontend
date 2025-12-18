@@ -38,7 +38,6 @@
 #include "ui/UISignalStation.h"
 #include "ui/main_window/GeneralMainWindow.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
-#include "ui/struct/settings_object/KeyServerSO.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
 #include "ui/widgets/TextEditTabWidget.h"
@@ -190,10 +189,6 @@ void MainWindow::Init() noexcept {
 }
 
 void MainWindow::restore_settings() {
-  KeyServerSO key_server(SettingsObject("key_server"));
-  if (key_server.server_list.empty()) key_server.ResetDefaultServerList();
-  key_server.default_server = std::max(key_server.default_server, 0);
-
   auto settings = GetSettings();
   if (!settings.contains("gnupg/non_ascii_at_file_operation")) {
     settings.setValue("gnupg/non_ascii_at_file_operation", true);

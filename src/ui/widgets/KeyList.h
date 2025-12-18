@@ -363,6 +363,16 @@ class KeyList : public QWidget {
    *
    */
   void filter_by_keyword();
+
+  /**
+   * @brief
+   *
+   * @param key_ids
+   */
+  void sync_keys_from_key_server(
+      const KeyIdArgsList& key_ids,
+      const std::function<void(const QString&, const QString&, size_t, size_t)>&
+          callback) const;
 };
 
 }  // namespace GpgFrontend::UI

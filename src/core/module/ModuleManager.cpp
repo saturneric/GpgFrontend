@@ -236,6 +236,10 @@ class ModuleManager::Impl {
 
   auto GRT() -> GlobalRegisterTable* { return grt_.get(); }
 
+  auto IsEventListening(const EventTriggerIdentifier& trigger_id) -> bool {
+    return gmc_->IsEventListening(trigger_id);
+  }
+
  private:
   static ModuleMangerPtr global_module_manager;
   SecureUniquePtr<GlobalModuleContext> gmc_;
@@ -356,5 +360,14 @@ auto ModuleManager::IsAllModulesRegistered() -> bool {
 
 void ModuleManager::SetNeedRegisterModulesNum(int n) {
   p_->SetNeedRegisterModulesNum(n);
+}
+
+auto ModuleManager::IsEventListening(const EventTriggerIdentifier& trigger_id)
+    -> bool {
+  return p_->IsEventListening(trigger_id);
+}
+
+auto IsEventListening(const EventTriggerIdentifier& trigger_id) -> bool {
+  return ModuleManager::GetInstance().IsEventListening(trigger_id);
 }
 }  // namespace GpgFrontend::Module
