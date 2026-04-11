@@ -452,6 +452,12 @@ auto KeyPairSubkeyTab::get_selected_subkey() -> const GpgSubKey& {
     row++;
   }
 
+  // this should rarely happen, but just in case, return the first subkey to
+  // avoid crash
+  if (row >= buffered_subkeys_.size()) {
+    return buffered_subkeys_.first();
+  }
+
   return buffered_subkeys_[row];
 }
 
