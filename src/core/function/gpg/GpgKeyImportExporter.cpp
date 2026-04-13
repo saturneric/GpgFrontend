@@ -137,6 +137,12 @@ void GpgKeyImportExporter::ExportKeys(const GpgAbstractKeyPtrList& keys,
       [=](const DataObjectPtr& data_object) -> GpgError {
         if (keys.empty()) return GPG_ERR_CANCELED;
 
+        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+          auto [err, buffer] = ExportKeysRpgpImpl(ctx_, keys, secret);
+          data_object->Swap({buffer});
+          return err;
+        }
+
         auto [err, buffer] =
             ExportKeysImpl(ctx_, keys, secret, ascii, shortest, ssh_mode);
         data_object->Swap({buffer});
@@ -158,6 +164,21 @@ void GpgKeyImportExporter::ExportAllKeys(const GpgAbstractKeyPtrList& keys,
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
         if (keys.empty()) return GPG_ERR_CANCELED;
+
+        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+          auto [err, buffer] = ExportKeysRpgpImpl(ctx_, keys, false);
+          if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return err;
+
+          if (secret) {
+            auto [sec_err, sec_buffer] = ExportKeysRpgpImpl(ctx_, keys, true);
+            if (gpgme_err_code(sec_err) != GPG_ERR_NO_ERROR) return sec_err;
+
+            buffer.Append(sec_buffer);
+          }
+
+          data_object->Swap({buffer});
+          return err;
+        }
 
         // 1. Export public keys first (secret=false, shortest=false,
         // ssh_mode=false)

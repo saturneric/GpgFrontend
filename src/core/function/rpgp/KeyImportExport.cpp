@@ -53,9 +53,11 @@ auto ImportKeyRpgpImpl(GpgContext& ctx, const GFBuffer& in_buffer)
   }
 
   for (const auto& gf_key : gf_keys) {
-    if (CreateOrUpdateGFKeyInDatabase(*key_db, gf_key)) {
-      info->imported_keys.push_back({gf_key.metadata.fpr, GPG_ERR_NO_ERROR});
+    if (CreateOrUpdateGFKeyInDatabase(ctx.GetChannel(), gf_key)) {
+      info->imported_keys.push_back(
+          {gf_key.metadata.fpr.toUpper(), GPG_ERR_NO_ERROR});
       info->imported += 1;
+      info->considered += 1;
     } else {
       LOG_E() << "failed to import key with fpr: " << gf_key.metadata.fpr;
     }
@@ -70,7 +72,7 @@ auto ExportKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
 
   if (key_db == nullptr) {
     LOG_E() << "key database is not initialized";
-    return {};
+    return {GPG_ERR_GENERAL, {}};
   }
 
   QStringList key_ids;
@@ -82,7 +84,7 @@ auto ExportKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
   auto key_blocks = GetArmoredKeyBlocksForKeys(*key_db, key_ids, secret);
   if (key_blocks.empty()) {
     LOG_E() << "no valid key blocks found for export";
-    return {};
+    return {GPG_ERR_NO_DATA, {}};
   }
 
   char* out_armored_string = nullptr;
