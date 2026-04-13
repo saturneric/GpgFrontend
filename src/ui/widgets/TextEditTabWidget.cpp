@@ -232,6 +232,7 @@ void TextEditTabWidget::SlotNewTabWithGFBuffer(QString title,
   auto* page = new PlainTextEditorPage();
   auto index = this->addTab(page, header);
   this->setTabIcon(index, QIcon(":/icons/file.png"));
+  page->setProperty("type", "text");
   page->GetTextPage()->setFocus();
   connect(page->GetTextPage()->document(), &QTextDocument::modificationChanged,
           this, &TextEditTabWidget::SlotShowModified);
@@ -313,8 +314,7 @@ void TextEditTabWidget::slot_file_page_path_changed(const QString& path) {
   this->setTabText(index, m_path);
   this->setTabToolTip(index, t_path);
 
-  emit UISignalStation::GetInstance()
-      -> SignalMainWindowUpdateBasicOperaMenu(0);
+  emit UISignalStation::GetInstance()->SignalMainWindowUpdateBasicOperaMenu(0);
 }
 
 void TextEditTabWidget::SlotCacheTextEditors() {
