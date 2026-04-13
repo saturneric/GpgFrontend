@@ -29,11 +29,7 @@
 use crate::key::{
     export_merged_public_keys, export_merged_secret_keys, extract_public_key_internal,
 };
-use crate::keygen::{GeneratedKeys, create_key_internal};
-use crate::types::{
-    GfrFreeCb, GfrKeyConfig, GfrKeyGenerateResult, GfrKeyMetadataC, GfrPasswordFetchCb, GfrStatus,
-    GfrSubkeyMetadataC,
-};
+use crate::types::{GfrKeyMetadataC, GfrStatus, GfrSubkeyMetadataC};
 use log::LevelFilter;
 use std::slice;
 use std::{
@@ -55,67 +51,6 @@ pub extern "C" fn gfr_init_logger() {
         .target(env_logger::Target::Stdout)
         .filter_level(LevelFilter::Debug)
         .try_init();
-}
-
-#[unsafe(no_mangle)]
-pub extern "C" fn gfr_crypto_generate_key(
-    user_id: *const c_char,
-    key_config: GfrKeyConfig,
-    s_key_configs: *const GfrKeyConfig,
-    s_key_count: usize,
-    fetch_pwd_cb: GfrPasswordFetchCb,
-    free_cb: GfrFreeCb,
-    o_result: *mut GfrKeyGenerateResult,
-) -> GfrStatus {
-    let result = catch_unwind(|| -> Result<GeneratedKeys, GfrStatus> {
-        if user_id.is_null() || o_result.is_null() {
-            return Err(GfrStatus::ErrorInvalidInput);
-        }
-
-        let user_id_str = unsafe { CStr::from_ptr(user_id) }
-            .to_str()
-            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
-
-        let configs = unsafe { std::slice::from_raw_parts(s_key_configs, s_key_count) };
-
-        let keys = create_key_internal(
-            user_id_str,
-            key_config,
-            configs,
-            Some(fetch_pwd_cb),
-            Some(free_cb),
-        )?;
-
-        Ok(keys)
-    });
-
-    match result {
-        Ok(inner_result) => match inner_result {
-            Ok(keys) => {
-                let Ok(c_s) = CString::new(keys.secret) else {
-                    return GfrStatus::ErrorInternal;
-                };
-                let Ok(c_p) = CString::new(keys.public) else {
-                    return GfrStatus::ErrorInternal;
-                };
-                let Ok(c_f) = CString::new(keys.fingerprint) else {
-                    return GfrStatus::ErrorInternal;
-                };
-
-                unsafe {
-                    *o_result = GfrKeyGenerateResult {
-                        secret_key: c_s.into_raw(),
-                        public_key: c_p.into_raw(),
-                        fingerprint: c_f.into_raw(),
-                    };
-                }
-                GfrStatus::Success
-            }
-
-            Err(status) => status,
-        },
-        Err(_) => GfrStatus::ErrorPanic,
-    }
 }
 
 #[unsafe(no_mangle)]

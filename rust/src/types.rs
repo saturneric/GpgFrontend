@@ -63,9 +63,15 @@ pub enum GfrKeyAlgo {
     NISTP256,
     NISTP384,
     NISTP521,
+    BRAINPOOLP256,
+    BRAINPOOLP384,
+    BRAINPOOLP512,
+    ED448,
+    X448,
     RSA2048,
     RSA3072,
     RSA4096,
+    SECP256K1,
 }
 
 #[repr(C)]
