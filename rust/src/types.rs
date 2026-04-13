@@ -258,6 +258,13 @@ pub struct GfrDecryptAndVerifyResultC {
 pub type GfrPublicKeyFetchCb =
     extern "C" fn(issuer_fpr: *const c_char, user_data: *mut c_void) -> *mut c_char;
 
+// Callback to fetch a secret key block by its Key ID.
+// Returns a dynamically allocated C-string containing the armored key, or null if not found.
+pub type GfrSecretKeyFetchCb = extern "C" fn(
+    key_id: *const std::os::raw::c_char,
+    user_data: *mut std::ffi::c_void,
+) -> *mut std::os::raw::c_char;
+
 // Callback to free the memory allocated by the fetch callback.
 pub type GfrFreeCb = extern "C" fn(ptr: *mut c_void, user_data: *mut c_void);
 
