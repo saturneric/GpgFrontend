@@ -32,12 +32,44 @@
 #include "core/model/GpgKeyGenerateInfo.h"
 
 namespace GpgFrontend {
+
+/**
+ * @brief
+ *
+ * @param kie
+ * @param p_params
+ * @param s_params
+ * @param data_object
+ * @return GpgError
+ */
 auto GenerateKeyWithSubkeyRpgpImpl(
     GpgKeyImportExporter& kie, const QSharedPointer<KeyGenerateInfo>& p_params,
     const QSharedPointer<KeyGenerateInfo>& s_params,
     const DataObjectPtr& data_object) -> GpgError;
 
-auto GenerateKeyRpgpImpl(GpgKeyImportExporter& key_import_exporter,
+/**
+ * @brief
+ *
+ * @param kie
+ * @param params
+ * @param data_object
+ * @return GpgError
+ */
+auto GenerateKeyRpgpImpl(GpgKeyImportExporter& kie,
                          const QSharedPointer<KeyGenerateInfo>& params,
                          const DataObjectPtr& data_object) -> GpgError;
+
+/**
+ * @brief
+ *
+ * @param kie
+ * @param primary_key_id
+ * @param params
+ * @param data_object
+ * @return GpgError
+ */
+auto GenerateSubKeyRpgpImpl(GpgContext& ctx, GpgKeyImportExporter& kie,
+                            const GpgKeyPtr& key,
+                            const QSharedPointer<KeyGenerateInfo>& params,
+                            const DataObjectPtr& data_object) -> GpgError;
 }  // namespace GpgFrontend

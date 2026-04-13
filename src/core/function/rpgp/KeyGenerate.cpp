@@ -45,12 +45,23 @@ auto GenerateKeyWithSubkeyRpgpImpl(
   key_config.can_auth = p_params->IsAllowAuth();
   key_config.has_passphrase = !p_params->IsNoPassPhrase();
 
+  if (key_config.algo == Rust::GfrKeyAlgo::Unknown) {
+    LOG_E() << "Unsupported key algorithm: " << p_params->GetAlgo().Id();
+    return GPG_ERR_UNSUPPORTED_ALGORITHM;
+  }
+
   Rust::GfrStatus err = Rust::GfrStatus::Success;
   Rust::GfrKeyGenerateResult kg_result;
 
   if (s_params != nullptr) {
     std::array<Rust::GfrKeyConfig, 1> s_key_configs;
     s_key_configs[0].algo = KeyAlgoId2GfrKeyAlgo(s_params->GetAlgo().Id());
+
+    if (s_key_configs[0].algo == Rust::GfrKeyAlgo::Unknown) {
+      LOG_E() << "Unsupported subkey algorithm: " << s_params->GetAlgo().Id();
+      return GPG_ERR_UNSUPPORTED_ALGORITHM;
+    }
+
     s_key_configs[0].can_sign = s_params->IsAllowSign();
     s_key_configs[0].can_encrypt = s_params->IsAllowEncr();
     s_key_configs[0].can_auth = s_params->IsAllowAuth();
@@ -87,11 +98,81 @@ auto GenerateKeyWithSubkeyRpgpImpl(
   return GPG_ERR_NO_ERROR;
 }
 
-auto GenerateKeyRpgpImpl(GpgKeyImportExporter& key_import_exporter,
+auto GenerateKeyRpgpImpl(GpgKeyImportExporter& kie,
                          const QSharedPointer<KeyGenerateInfo>& params,
                          const DataObjectPtr& data_object) -> GpgError {
-  return GenerateKeyWithSubkeyRpgpImpl(key_import_exporter, params, nullptr,
-                                       data_object);
+  return GenerateKeyWithSubkeyRpgpImpl(kie, params, nullptr, data_object);
+}
+
+auto GenerateSubKeyRpgpImpl(GpgContext& ctx, GpgKeyImportExporter& kie,
+                            const GpgKeyPtr& key,
+                            const QSharedPointer<KeyGenerateInfo>& params,
+                            const DataObjectPtr& data_object) -> GpgError {
+  if (key == nullptr) {
+    LOG_E() << "primary key is null";
+    return GPG_ERR_GENERAL;
+  }
+
+  auto key_db = ctx.KeyDatabase();
+  if (key_db == nullptr) {
+    LOG_E() << "key database is not initialized";
+    return GPG_ERR_GENERAL;
+  }
+
+  auto gf_key = key_db->GetKeyByIdentifier(key->Fingerprint());
+  if (!gf_key) {
+    LOG_E() << "failed to find key in database for fpr: " << key->Fingerprint();
+    return GPG_ERR_GENERAL;
+  }
+
+  if (!gf_key->metadata.has_secret) {
+    LOG_E() << "cannot add subkey to a public key, primary key fpr: "
+            << key->Fingerprint();
+    return GPG_ERR_UNSUPPORTED_OPERATION;
+  }
+
+  Rust::GfrKeyConfig key_config;
+  key_config.algo = KeyAlgoId2GfrKeyAlgo(params->GetAlgo().Id());
+  key_config.can_sign = params->IsAllowSign();
+  key_config.can_encrypt = params->IsAllowEncr();
+  key_config.can_auth = params->IsAllowAuth();
+  key_config.has_passphrase = !params->IsNoPassPhrase();
+
+  if (key_config.algo == Rust::GfrKeyAlgo::Unknown) {
+    LOG_E() << "Unsupported subkey algorithm: " << params->GetAlgo().Id();
+    return GPG_ERR_UNSUPPORTED_ALGORITHM;
+  }
+
+  Rust::GfrKeyGenerateResult kg_result;
+
+  auto key_block_data = gf_key->blocks.secret_key.toUtf8();
+  if (key_block_data.isEmpty()) {
+    LOG_E() << "primary key block data is empty, primary key fpr: "
+            << key->Fingerprint();
+    return GPG_ERR_GENERAL;
+  }
+
+  auto err = Rust::gfr_crypto_add_subkey(
+      ctx.GetChannel(), key_block_data.constData(), key_config,
+      FetchPasswordCallback, FreeCallback, &kg_result);
+  if (err != Rust::GfrStatus::Success) {
+    data_object->Swap({GpgGenerateKeyResult{}});
+    LOG_D() << "gfr_crypto_add_subkey error, code: " << static_cast<int>(err);
+    return GPG_ERR_GENERAL;
+  }
+
+  auto armored_s_key = QString::fromUtf8(kg_result.secret_key);
+  auto armored_p_key = QString::fromUtf8(kg_result.public_key);
+
+  LOG_D() << "generated subkey, armored public key: " << armored_p_key;
+
+  auto import_info = kie.ImportKey(GFBuffer(armored_s_key));
+
+  data_object->Swap({
+      GpgGenerateKeyResult{QString::fromUtf8(kg_result.fingerprint)},
+      GpgGenerateKeyResult{QString::fromUtf8(kg_result.fingerprint)},
+  });
+  return GPG_ERR_NO_ERROR;
 }
 
 }  // namespace GpgFrontend
