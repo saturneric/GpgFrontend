@@ -261,6 +261,14 @@ class GF_CORE_EXPORT GpgSubKey : public GpgAbstractKey {
   /**
    * @brief
    *
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] auto IsMarked() const -> bool;
+
+  /**
+   * @brief
+   *
    * @return QString
    */
   [[nodiscard]] auto SmartCardSerialNumber() const -> QString;

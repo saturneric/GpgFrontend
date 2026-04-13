@@ -78,6 +78,7 @@ auto GFKeyDatabase::GetMetadataList() -> QList<GFKeyMetadata> {
       // subkey, so we need to add it to the subkeys list when returning the
       // metadata
       GFSubKeyMetadata primary_as_subkey;
+      primary_as_subkey.marked = false;
       primary_as_subkey.fpr = meta.fpr;
       primary_as_subkey.key_id = meta.key_id;
       primary_as_subkey.algo = meta.algo;
@@ -120,6 +121,26 @@ auto GFKeyDatabase::GetKeyBlocks(const QString& identifier)
   }
 
   return std::nullopt;
+}
+
+auto GFKeyDatabase::GetKeyByIdentifier(const QString& identifier)
+    -> std::optional<GFKey> {
+  QString real_primary_fpr = ResolvePrimaryFpr(identifier);
+  if (real_primary_fpr.isEmpty()) {
+    return std::nullopt;
+  }
+
+  auto meta = GetKeyMetadata(real_primary_fpr);
+  if (!meta) {
+    return std::nullopt;
+  }
+
+  auto blocks = GetKeyBlocks(real_primary_fpr);
+  if (!blocks) {
+    return std::nullopt;
+  }
+
+  return GFKey{.metadata = *meta, .blocks = *blocks};
 }
 
 auto GFKeyDatabase::Init(const QString& path) -> bool {
@@ -270,6 +291,7 @@ auto GFKeyDatabase::GetKeyMetadata(const QString& identifier)
     // subkey, so we need to add it to the subkeys list when returning the
     // metadata
     GFSubKeyMetadata primary_as_subkey;
+    primary_as_subkey.marked = false;
     primary_as_subkey.fpr = meta.fpr;
     primary_as_subkey.key_id = meta.key_id;
     primary_as_subkey.algo = meta.algo;
@@ -358,7 +380,7 @@ auto GFKeyDatabase::load_subkeys_for_parent(const QString& parent_fpr)
   QList<GFSubKeyMetadata> subkeys;
   QSqlQuery query(db_);
   query.prepare(R"(
-    SELECT fpr, key_id, algo, created_at, has_secret, can_sign, can_encrypt, can_auth 
+    SELECT fpr, key_id, algo, created_at, has_secret, can_sign, can_encrypt, can_auth, can_certify
     FROM subkey_metadata WHERE parent_fpr = :parent_fpr
   )");
   query.bindValue(":parent_fpr", parent_fpr);
@@ -366,6 +388,7 @@ auto GFKeyDatabase::load_subkeys_for_parent(const QString& parent_fpr)
   if (query.exec()) {
     while (query.next()) {
       GFSubKeyMetadata sub;
+      sub.marked = false;
       sub.fpr = query.value(0).toString();
       sub.key_id = query.value(1).toString();
       sub.algo = query.value(2).toInt();
@@ -374,6 +397,7 @@ auto GFKeyDatabase::load_subkeys_for_parent(const QString& parent_fpr)
       sub.can_sign = query.value(5).toBool();
       sub.can_encrypt = query.value(6).toBool();
       sub.can_auth = query.value(7).toBool();
+      sub.can_certify = query.value(8).toBool();
       subkeys.append(sub);
     }
   }
@@ -381,9 +405,15 @@ auto GFKeyDatabase::load_subkeys_for_parent(const QString& parent_fpr)
 }
 
 auto GFKeyDatabase::DeleteKey(const QString& fpr) -> bool {
+  auto primary_fpr = ResolvePrimaryFpr(fpr);
+  if (primary_fpr.isEmpty()) {
+    LOG_W() << "Attempted to delete non-existent key with identifier: " << fpr;
+    return false;
+  }
+
   QSqlQuery query(db_);
   query.prepare("DELETE FROM key_metadata WHERE fpr = :fpr");
-  query.bindValue(":fpr", fpr);
+  query.bindValue(":fpr", primary_fpr);
 
   return query.exec();
 }

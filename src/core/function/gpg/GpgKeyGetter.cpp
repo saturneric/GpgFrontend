@@ -168,15 +168,25 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
   auto GetKeyORSubkeyPtr(const QString& key_id) -> GpgAbstractKeyPtr {
     auto key = get_key_in_cache(key_id);
 
-    // get a key with subkey_match flag
-    if (key == nullptr && key_id.endsWith("!")) {
-      gpgme_key_t key;
-      auto err = gpgme_get_key(ctx_.DefaultContext(), key_id.toUtf8(), &key, 1);
-      if (CheckGpgError(err) != GPG_ERR_NO_ERROR || key == nullptr) {
-        LOG_W() << "cannot get key with subkey_match flag: " << key_id;
-        return nullptr;
+    if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+      // get a key with subkey_match flag for rpgp backend
+      if (key == nullptr && key_id.endsWith("!")) {
+        return get_key_rpgp_impl(key_id, true);
       }
-      return SecureCreateSharedObject<GpgKey>(key);
+    }
+
+    if (ctx_.BackendType() == PGPBackendType::kGNUPG) {
+      // get a key with subkey_match flag
+      if (key == nullptr && key_id.endsWith("!")) {
+        gpgme_key_t key;
+        auto err =
+            gpgme_get_key(ctx_.DefaultContext(), key_id.toUtf8(), &key, 1);
+        if (CheckGpgError(err) != GPG_ERR_NO_ERROR || key == nullptr) {
+          LOG_W() << "cannot get key with subkey_match flag: " << key_id;
+          return nullptr;
+        }
+        return SecureCreateSharedObject<GpgKey>(key);
+      }
     }
 
     if (key != nullptr) return key;
@@ -341,7 +351,29 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
       return nullptr;
     }
 
-    auto meta_list = key_db->GetKeyMetadata(key_id);
+    std::optional<GFKeyMetadata> meta_list;
+    if (key_id.endsWith("!")) {
+      auto real_key_id = key_id.left(key_id.length() - 1);
+      meta_list = key_db->GetKeyMetadata(real_key_id);
+
+      if (!meta_list.has_value()) {
+        LOG_W() << "cannot get key metadata for key id: " << real_key_id;
+        return nullptr;
+      }
+
+      // mark the subkey metadata as marked if the key_id is a subkey id
+      for (auto& sub : meta_list->subkeys) {
+        if ((sub.fpr == sub.key_id || sub.fpr.contains(real_key_id))) {
+          LOG_D() << "mark subkey with key id: " << real_key_id << " as marked";
+          sub.marked = true;
+          break;
+        }
+      }
+
+    } else {
+      meta_list = key_db->GetKeyMetadata(key_id);
+    }
+
     if (!meta_list.has_value()) {
       LOG_W() << "cannot get key metadata for key id: " << key_id;
       return nullptr;

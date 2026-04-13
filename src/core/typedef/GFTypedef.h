@@ -67,6 +67,8 @@ struct GFSubKeyMetadata {
   bool can_encrypt;
   bool can_auth;
   bool can_certify;
+
+  bool marked;
 };
 
 struct GFKeyMetadata {

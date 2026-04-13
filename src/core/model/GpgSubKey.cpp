@@ -150,6 +150,11 @@ auto GpgSubKey::IsADSK() const -> bool {
   return s_key_ref_->can_renc;
 }
 
+[[nodiscard]] auto GpgSubKey::IsMarked() const -> bool {
+  if (skm_ref_ != nullptr) return skm_ref_->marked;
+  return false;
+}
+
 auto GpgSubKey::SmartCardSerialNumber() const -> QString {
   if (skm_ref_ != nullptr) return {};
   return QString::fromLatin1(s_key_ref_->card_number);

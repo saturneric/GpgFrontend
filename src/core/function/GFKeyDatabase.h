@@ -73,6 +73,15 @@ class GF_CORE_EXPORT GFKeyDatabase {
   auto GetKeyBlocks(const QString& identifier) -> std::optional<GFKeyBlocks>;
 
   /**
+   * @brief Get the Key object by identifier (can be either fingerprint or key
+   * ID)
+   *
+   * @param identifier
+   * @return std::optional<GFKey>
+   */
+  auto GetKeyByIdentifier(const QString& identifier) -> std::optional<GFKey>;
+
+  /**
    * @brief
    *
    * @param metadata
