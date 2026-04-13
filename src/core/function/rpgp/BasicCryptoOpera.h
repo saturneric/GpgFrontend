@@ -75,6 +75,19 @@ auto SignRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& signers,
 /**
  * @brief
  *
+ * @param ctx_
+ * @param in_buffer
+ * @param sig_buffer
+ * @param data_object
+ * @return GpgError
+ */
+auto VerifyRpgpImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
+                    const GFBuffer& sig_buffer,
+                    const DataObjectPtr& data_object) -> GpgError;
+
+/**
+ * @brief
+ *
  * @param ctx
  * @param keys
  * @param signers

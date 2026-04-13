@@ -29,6 +29,8 @@
 #include "KeyStorage.h"
 
 #include "core/GpgCoreRust.h"
+#include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/GpgKeyGetter.h"
 
 namespace GpgFrontend {
 
@@ -121,7 +123,7 @@ auto GetGFKeysFromKeyBlock(const GFBuffer& buffer) -> QContainer<GFKey> {
       key.blocks.public_key = QString::fromUtf8(public_key);
       Rust::gfr_crypto_free_string(public_key);
 
-    } else {
+    } else if (!meta.has_secret && key.blocks.public_key.isEmpty()) {
       key.blocks.public_key = key_block_data;
     }
   }
@@ -129,8 +131,13 @@ auto GetGFKeysFromKeyBlock(const GFBuffer& buffer) -> QContainer<GFKey> {
   return keys;
 }
 
-auto CreateOrUpdateGFKeyInDatabase(GFKeyDatabase& key_db, const GFKey& key)
-    -> bool {
+auto CreateOrUpdateGFKeyInDatabase(int channel, const GFKey& key) -> bool {
+  auto key_db = GpgContext::GetInstance(channel).KeyDatabase();
+  if (key_db == nullptr) {
+    LOG_E() << "key database is not initialized";
+    return false;
+  }
+
   if (key.metadata.fpr.isEmpty()) {
     LOG_E() << "key metadata must contain a valid fingerprint";
     return false;
@@ -146,7 +153,81 @@ auto CreateOrUpdateGFKeyInDatabase(GFKeyDatabase& key_db, const GFKey& key)
     return false;
   }
 
-  return key_db.SaveKey(key.metadata, key.blocks);
+  if (key.metadata.algo <= 0) {
+    LOG_E() << "key metadata must contain a valid algorithm identifier, algo: "
+            << key.metadata.algo;
+    return false;
+  }
+
+  auto succ = key_db->SaveKey(key.metadata, key.blocks);
+  if (!succ) {
+    LOG_E() << "failed to save key with fpr: " << key.metadata.fpr;
+    return false;
+  }
+
+  GpgKeyGetter::GetInstance(channel).FlushKeyCache();
+  return succ;
+}
+
+auto GetKeyByKeyIdsForDecryption(GFKeyDatabase& key_db,
+                                 const QStringList& key_ids)
+    -> std::optional<GFKey> {
+  // Variables to store our target key for decryption
+  std::optional<GFKey> result;
+  bool found_usable_secret = false;
+
+  // 2. Iterate through all sniffed recipient IDs to find a USABLE secret key
+  for (const auto& key_id : key_ids) {
+    // Fetch the full metadata tree (Primary + Subkeys)
+    auto meta_opt = key_db.GetKeyMetadata(key_id);
+    if (!meta_opt) continue;
+
+    // Check if the recipient ID matches the primary key itself
+    // (Rare for encryption, but possible with older RSA keys)
+    if (meta_opt->key_id.toUpper() == key_id.toUpper() ||
+        meta_opt->fpr.toUpper() == key_id.toUpper()) {
+      if (meta_opt->has_secret) {
+        found_usable_secret = true;
+      }
+    } else {
+      // Check if the recipient ID matches a subkey, and IF THAT SUBKEY HAS A
+      // SECRET
+      for (const auto& subkey : meta_opt->subkeys) {
+        if (subkey.key_id.toUpper() == key_id.toUpper() ||
+            subkey.fpr.toUpper() == key_id.toUpper()) {
+          if (subkey.has_secret) {
+            found_usable_secret = true;
+          } else {
+            LOG_W() << "Subkey " << key_id
+                    << " matched, but its secret is stripped/offline.";
+          }
+          break;  // Stop searching subkeys for this specific recipient_id
+        }
+      }
+    }
+
+    // If we found a usable secret key, fetch the actual key block and stop
+    // searching
+    if (found_usable_secret) {
+      auto key = key_db.GetKeyByIdentifier(meta_opt->fpr);
+      if (key && !key->blocks.secret_key.isEmpty()) {
+        result = *key;
+        break;
+      }
+      // Fallback in case DB is inconsistent
+      found_usable_secret = false;
+    }
+  }
+
+  // 3. Handle the result of our search
+  if (!found_usable_secret) {
+    LOG_E() << "No USABLE secret key found in local database to decrypt this "
+               "message. "
+            << "Keys might be offline or on a smartcard.";
+    return {};
+  }
+
+  return result;
 }
 
 }  // namespace GpgFrontend

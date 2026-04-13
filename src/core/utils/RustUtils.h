@@ -73,15 +73,6 @@ auto GF_CORE_EXPORT SniffIssuerKeyIds(const GFBuffer& in_buffer) -> QStringList;
 /**
  * @brief
  *
- * @param key_ids
- * @return QString
- */
-auto GF_CORE_EXPORT GetKeyBlockFromKeyIdsForDecryption(
-    GFKeyDatabase& key_db, const QStringList& key_ids) -> QString;
-
-/**
- * @brief
- *
  * @param key_db
  * @param key_ids
  * @return QString

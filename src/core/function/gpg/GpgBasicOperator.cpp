@@ -203,59 +203,6 @@ auto VerifyImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
   return err;
 }
 
-auto VerifyRpgpImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
-                    const GFBuffer& sig_buffer,
-                    const DataObjectPtr& data_object) -> GpgError {
-  auto key_db = ctx_.KeyDatabase();
-  if (!key_db) {
-    LOG_E() << "Failed to get key database from context";
-    return GPG_ERR_GENERAL;
-  }
-
-  auto issuer_ids = SniffIssuerKeyIds(in_buffer);
-  if (issuer_ids.isEmpty()) {
-    LOG_W() << "No signature issuers found in RPGP message.";
-    return GPG_ERR_INV_DATA;
-  }
-
-  QContainer<QByteArray> verified_keys_utf8 =
-      GetKeyBlocksForVerification(*key_db, issuer_ids);
-
-  QContainer<const char*> c_verified_keys;
-  for (const auto& key : verified_keys_utf8) {
-    c_verified_keys.push_back(key.constData());
-  }
-
-  Rust::GfrVerifyResultC verify_result;
-
-  auto status = Rust::gfr_crypto_verify_data(
-      reinterpret_cast<const uint8_t*>(in_buffer.Data()), in_buffer.Size(),
-      reinterpret_cast<const uint8_t*>(sig_buffer.Data()), sig_buffer.Size(),
-      c_verified_keys.data(), c_verified_keys.size(),
-      sig_buffer.Empty() ? Rust::GfrSignMode::ClearText
-                         : Rust::GfrSignMode::Detached,
-      &verify_result);
-
-  if (status != Rust::GfrStatus::Success) {
-    LOG_E() << "Rust FFI verification failed with status: "
-            << static_cast<int>(status);
-    return GPG_ERR_GENERAL;
-  }
-
-  GFVerifyResult result = GfrVerifyResultC2GFVerifyResult(verify_result);
-  Rust::gfr_crypto_free_verify_result(&verify_result);
-
-  LOG_D() << "Verification result: "
-          << (result.is_verified ? "VALID" : "INVALID")
-          << ", Signatures found: " << result.signatures.size();
-
-  data_object->Swap({
-      GpgVerifyResult(result),
-      GFBuffer(),
-  });
-  return GPG_ERR_NO_ERROR;
-}
-
 void GpgBasicOperator::Verify(const GFBuffer& in_buffer,
                               const GFBuffer& sig_buffer,
                               const GpgOperationCallback& cb) {

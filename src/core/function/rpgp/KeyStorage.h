@@ -52,7 +52,17 @@ auto GetGFKeysFromKeyBlock(const GFBuffer& buffer) -> QContainer<GFKey>;
  * @return true
  * @return false
  */
-auto CreateOrUpdateGFKeyInDatabase(GFKeyDatabase& key_db, const GFKey& key)
-    -> bool;
+auto CreateOrUpdateGFKeyInDatabase(int channel, const GFKey& key) -> bool;
+
+/**
+ * @brief Get the Key By Key Ids For Decryption object
+ *
+ * @param key_db
+ * @param key_ids
+ * @return std::optional<GFKey>
+ */
+auto GetKeyByKeyIdsForDecryption(GFKeyDatabase& key_db,
+                                 const QStringList& key_ids)
+    -> std::optional<GFKey>;
 
 }  // namespace GpgFrontend
