@@ -28,41 +28,17 @@
 
 #pragma once
 
+#include "core/function/gpg/GpgContext.h"
+
 namespace GpgFrontend {
-extern "C" {
 
-/**
- * @brief
- *
- * @param fpr
- * @param user_data
- * @return char*
- */
-auto FetchPublicKeyCallback(const char* fpr, void* user_data) -> char*;
+auto EncryptFileRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
+                         const QString& in_path, bool ascii,
+                         const QString& out_path,
+                         const DataObjectPtr& data_object) -> GpgError;
 
-/**
- * @brief 
- * 
- * @param fpr 
- * @param user_data 
- * @return char* 
- */
-auto FetchSecretKeyCallback(const char* fpr, void* user_data) -> char*;
+auto DecryptFileRpgpImpl(GpgContext& ctx_, const QString& in_path,
+                         const QString& out_path,
+                         const DataObjectPtr& data_object) -> GpgError;
 
-/**
- * @brief
- *
- */
-void FreeCallback(void* ptr, void*);
-
-/**
- * @brief
- *
- * @param key_hint_fpr
- * @param user_data
- * @return char*
- */
-auto FetchPasswordCallback(int channel, const char* fpr, const char* info,
-                           uint8_t** out_pwd, void* /*user_data*/) -> int;
-}
 }  // namespace GpgFrontend

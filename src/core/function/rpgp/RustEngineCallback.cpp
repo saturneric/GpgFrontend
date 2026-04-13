@@ -57,6 +57,28 @@ auto FetchPublicKeyCallback(const char* fpr, void* user_data) -> char* {
   return nullptr;
 }
 
+auto FetchSecretKeyCallback(const char* fpr, void* user_data) -> char* {
+  if ((fpr == nullptr) || (user_data == nullptr)) return nullptr;
+
+  auto* key_db = static_cast<GFKeyDatabase*>(user_data);
+  QString fingerprint = QString::fromUtf8(fpr);
+
+  LOG_D() << "Rust FFI requested secret key for issuer: " << fingerprint;
+
+  auto key_block = key_db->GetKeyBlocks(fingerprint);
+  if (key_block && !key_block->secret_key.isEmpty()) {
+    QByteArray utf8 = key_block->secret_key.toUtf8();
+    // Allocate memory using strdup (or standard malloc) for Rust to safely
+    // consume
+    char* c_str = reinterpret_cast<char*>(
+        SMAMalloc(utf8.size() + 1));  // +1 for null terminator
+    std::memcpy(c_str, utf8.constData(), utf8.size());
+    c_str[utf8.size()] = '\0';
+    return c_str;
+  }
+  return nullptr;
+}
+
 auto FetchPasswordCallback(int channel, const char* fpr, const char* info,
                            uint8_t** out_pwd, void* /*user_data*/) -> int {
   QString qs_fpr = QString::fromUtf8(fpr).toUpper();

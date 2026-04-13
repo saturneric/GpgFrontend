@@ -30,6 +30,7 @@
 
 #include "core/function/GFKeyDatabase.h"
 #include "core/typedef/GFTypedef.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
@@ -64,5 +65,16 @@ auto CreateOrUpdateGFKeyInDatabase(int channel, const GFKey& key) -> bool;
 auto GetKeyByKeyIdsForDecryption(GFKeyDatabase& key_db,
                                  const QStringList& key_ids)
     -> std::optional<GFKey>;
+
+/**
+ * @brief Get the Public Keys By Key Ids For Encryption object
+ *
+ * @param key_db
+ * @param key_ids
+ * @return QContainer<QByteArray>
+ */
+auto GetPublicKeysByKeyIdsForEncryption(GFKeyDatabase& key_db,
+                                        const GpgAbstractKeyPtrList& keys)
+    -> QContainer<QByteArray>;
 
 }  // namespace GpgFrontend

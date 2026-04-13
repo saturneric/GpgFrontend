@@ -29,6 +29,7 @@
 
 #include "core/function/ArchiveFileOperator.h"
 #include "core/function/gpg/GpgBasicOperator.h"
+#include "core/function/rpgp/FileCryptoOpera.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
@@ -38,6 +39,8 @@
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
+
+namespace {
 
 auto ExtractArchiveHelper(const QString& out_path)
     -> QSharedPointer<GFDataExchanger> {
@@ -61,6 +64,8 @@ void CreateArchiveHelper(const QString& in_path,
         }
       });
 }
+
+}  // namespace
 
 GpgFileOpera::GpgFileOpera(int channel)
     : SingletonFunctionObject<GpgFileOpera>(channel) {}
@@ -95,7 +100,11 @@ void GpgFileOpera::EncryptFile(const GpgAbstractKeyPtrList& keys,
                                const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       GetChannel(),
-      [=](const DataObjectPtr& data_object) {
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+          return EncryptFileRpgpImpl(ctx_, keys, in_path, ascii, out_path,
+                                     data_object);
+        }
         return EncryptFileImpl(ctx_, keys, in_path, ascii, out_path,
                                data_object);
       },
@@ -108,7 +117,11 @@ auto GpgFileOpera::EncryptFileSync(const GpgAbstractKeyPtrList& keys,
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       GetChannel(),
-      [=](const DataObjectPtr& data_object) {
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+          return EncryptFileRpgpImpl(ctx_, keys, in_path, ascii, out_path,
+                                     data_object);
+        }
         return EncryptFileImpl(ctx_, keys, in_path, ascii, out_path,
                                data_object);
       },
@@ -159,7 +172,10 @@ void GpgFileOpera::DecryptFile(const QString& in_path, const QString& out_path,
                                const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       GetChannel(),
-      [=](const DataObjectPtr& data_object) {
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+          return DecryptFileRpgpImpl(ctx_, in_path, out_path, data_object);
+        }
         return DecryptFileImpl(ctx_, in_path, out_path, data_object);
       },
       cb, "gpgme_op_decrypt", "2.2.0");
@@ -170,7 +186,10 @@ auto GpgFileOpera::DecryptFileSync(const QString& in_path,
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       GetChannel(),
-      [=](const DataObjectPtr& data_object) {
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+          return DecryptFileRpgpImpl(ctx_, in_path, out_path, data_object);
+        }
         return DecryptFileImpl(ctx_, in_path, out_path, data_object);
       },
       "gpgme_op_decrypt", "2.2.0");
