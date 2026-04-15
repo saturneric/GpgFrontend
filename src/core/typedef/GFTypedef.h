@@ -42,18 +42,11 @@ struct GFUserId {
 
   GFUserId() = default;
 
-  GFUserId(QString name, QString email, QString comment, bool is_primary)
-      : name(std::move(name)),
-        email(std::move(email)),
-        comment(std::move(comment)),
-        is_primary(is_primary) {}
+  explicit GFUserId(const QString& uid);
 
-  [[nodiscard]] auto ToString() const -> QString {
-    if (comment.isEmpty()) {
-      return QString("%1 <%2>").arg(name, email);
-    }
-    return QString("%1 (%2) <%3>").arg(name, comment, email);
-  }
+  GFUserId(QString name, QString email, QString comment, bool is_primary);
+
+  [[nodiscard]] auto ToString() const -> QString;
 };
 
 struct GFSubKeyMetadata {
@@ -75,7 +68,6 @@ struct GFKeyMetadata {
   QString fpr;
   QString key_id;
 
-  QString user_id;
   QContainer<GFUserId> user_ids;
 
   int algo;

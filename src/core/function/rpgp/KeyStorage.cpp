@@ -40,10 +40,18 @@ auto ParseGfrMetadata(const Rust::GfrKeyMetadataC& gfr_meta) -> GFKey {
   GFKeyMetadata& meta = key.metadata;
   meta.fpr = QString::fromUtf8(gfr_meta.fpr);
   meta.key_id = QString::fromUtf8(gfr_meta.key_id);
-  meta.user_id = QString::fromUtf8(gfr_meta.user_id);
   meta.created_at = static_cast<qint64>(gfr_meta.created_at);
   meta.has_secret = gfr_meta.has_secret;
   meta.algo = static_cast<int>(gfr_meta.algo);
+
+  for (size_t i = 0; i < gfr_meta.user_id_count; ++i) {
+    const auto& user_id = gfr_meta.user_ids[i];
+    auto uid = GFUserId(QString::fromUtf8(user_id));
+
+    // The first user ID is typically the primary one
+    uid.is_primary = (i == 0);
+    meta.user_ids.push_back(uid);
+  }
 
   meta.can_sign = gfr_meta.can_sign;
   meta.can_encrypt = gfr_meta.can_encrypt;
@@ -97,7 +105,7 @@ auto GetGFKeysFromKeyBlock(const GFBuffer& buffer) -> QContainer<GFKey> {
     auto key = ParseGfrMetadata(out_metadata);
     LOG_D() << "extracted key metadata, fpr: " << key.metadata.fpr
             << ", key_id: " << key.metadata.key_id
-            << ", user_id: " << key.metadata.user_id
+            << ", user_ids: " << key.metadata.user_ids.size()
             << ", created_at: " << key.metadata.created_at
             << ", has_secret: " << key.metadata.has_secret
             << "subkeys: " << key.metadata.subkeys.size();

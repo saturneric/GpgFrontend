@@ -173,24 +173,25 @@ auto GpgSubKey::Convert2GpgKey() const -> QSharedPointer<GpgKey> {
 }
 
 auto GpgSubKey::Name() const -> QString {
-  if (km_ref_ != nullptr) return km_ref_->user_id.split('<').first().trimmed();
+  if (km_ref_ != nullptr) {
+    return km_ref_->user_ids.empty() ? QString{}
+                                     : km_ref_->user_ids.front().name;
+  }
   return key_ref_->uids->name;
 }
 
 auto GpgSubKey::Email() const -> QString {
   if (km_ref_ != nullptr) {
-    auto user_id = km_ref_->user_id;
-    auto email = user_id.split('<').last().split('>').first().trimmed();
-    return email;
+    return km_ref_->user_ids.empty() ? QString{}
+                                     : km_ref_->user_ids.front().email;
   }
   return key_ref_->uids->email;
 }
 
 auto GpgSubKey::Comment() const -> QString {
   if (km_ref_ != nullptr) {
-    auto user_id = km_ref_->user_id;
-    auto comment = user_id.split('<').last().split('>').last().trimmed();
-    return comment;
+    return km_ref_->user_ids.empty() ? QString{}
+                                     : km_ref_->user_ids.front().comment;
   }
   return key_ref_->uids->comment;
 }

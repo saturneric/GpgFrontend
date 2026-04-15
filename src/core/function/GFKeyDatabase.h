@@ -147,6 +147,14 @@ class GF_CORE_EXPORT GFKeyDatabase {
    */
   auto load_subkeys_for_parent(const QString& parent_fpr)
       -> QList<GFSubKeyMetadata>;
+
+  /**
+   * @brief
+   *
+   * @param fpr
+   * @return QStringList
+   */
+  auto load_user_ids_for_parent(const QString& fpr) -> QStringList;
 };
 
 }  // namespace GpgFrontend

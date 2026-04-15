@@ -64,8 +64,8 @@ auto GpgKey::ID() const -> QString {
 
 auto GpgKey::Name() const -> QString {
   if (km_ref_ != nullptr) {
-    auto user_id = km_ref_->user_id;
-    auto name = user_id.split('<').first().split('(').first().trimmed();
+    auto name =
+        km_ref_->user_ids.empty() ? QString{} : km_ref_->user_ids.front().name;
     return name;
   }
   return key_ref_->uids->name;
@@ -73,16 +73,17 @@ auto GpgKey::Name() const -> QString {
 
 auto GpgKey::Email() const -> QString {
   if (km_ref_ != nullptr) {
-    auto user_id = km_ref_->user_id;
-    auto email = user_id.split('<').last().split('>').first().trimmed();
+    auto email =
+        km_ref_->user_ids.empty() ? QString{} : km_ref_->user_ids.front().email;
     return email;
   }
   return key_ref_->uids->email;
 }
 auto GpgKey::Comment() const -> QString {
   if (km_ref_ != nullptr) {
-    auto user_id = km_ref_->user_id;
-    auto comment = user_id.split('(').last().split(')').first().trimmed();
+    auto comment = km_ref_->user_ids.empty()
+                       ? QString{}
+                       : km_ref_->user_ids.front().comment;
     return comment;
   }
   return key_ref_->uids->comment;

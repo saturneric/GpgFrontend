@@ -526,13 +526,16 @@ auto GnuPGVersion() -> QString {
   return gnupg_version;
 }
 
+const QRegularExpression kRegexUserId(
+    R"(^(.*?)(?:\s*\((.*?)\))?(?:\s*<(.*?)>)?$)");
+
 auto ParseUserId(const QString& raw_id) -> GFUserId {
   GFUserId uid;
   uid.is_primary = false;
 
   // Standard PGP UID Regex format
-  QRegularExpression regex(R"(^(.*?)(?:\s*\((.*?)\))?(?:\s*<(.*?)>)?$)");
-  QRegularExpressionMatch match = regex.match(raw_id);
+
+  QRegularExpressionMatch match = kRegexUserId.match(raw_id);
 
   if (match.hasMatch()) {
     uid.name = match.captured(1).trimmed();

@@ -53,7 +53,7 @@ auto GFKeyDatabase::GetMetadataList() -> QList<GFKeyMetadata> {
   QSqlQuery query(db_);
 
   if (query.exec(R"(
-        SELECT fpr, key_id, user_id, algo, created_at, has_secret, 
+        SELECT fpr, key_id, algo, created_at, has_secret, 
                can_sign, can_encrypt, can_auth, can_certify 
         FROM key_metadata
       )")) {
@@ -61,7 +61,6 @@ auto GFKeyDatabase::GetMetadataList() -> QList<GFKeyMetadata> {
       GFKeyMetadata meta;
       meta.fpr = query.value(0).toString();
       meta.key_id = query.value(1).toString();
-      meta.user_id = query.value(2).toString();
       meta.algo = query.value(3).toInt();
       meta.created_at = query.value(4).toLongLong();
       meta.has_secret = query.value(5).toBool();
@@ -69,7 +68,11 @@ auto GFKeyDatabase::GetMetadataList() -> QList<GFKeyMetadata> {
       meta.can_encrypt = query.value(7).toBool();
       meta.can_auth = query.value(8).toBool();
       meta.can_certify = query.value(9).toBool();
-      meta.user_ids.push_back(ParseUserId(meta.user_id));
+
+      auto raw_user_ids = load_user_ids_for_parent(meta.fpr);
+      for (const auto& uid : qAsConst(raw_user_ids)) {
+        meta.user_ids.push_back(GFUserId(uid));
+      }
 
       // Load subkeys for this primary key
       meta.subkeys = load_subkeys_for_parent(meta.fpr);
@@ -179,12 +182,11 @@ auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
   // 1. Save Primary Key Metadata
   query.prepare(R"(
     INSERT OR REPLACE INTO key_metadata 
-    (fpr, key_id, user_id, algo, created_at, has_secret, can_sign, can_encrypt, can_auth, can_certify)
-    VALUES (:fpr, :key_id, :user_id, :algo, :created_at, :has_secret, :can_sign, :can_encrypt, :can_auth, :can_certify)
+    (fpr, key_id, algo, created_at, has_secret, can_sign, can_encrypt, can_auth, can_certify)
+    VALUES (:fpr, :key_id, :algo, :created_at, :has_secret, :can_sign, :can_encrypt, :can_auth, :can_certify)
   )");
   query.bindValue(":fpr", meta.fpr.toUpper());
   query.bindValue(":key_id", meta.key_id.toUpper());
-  query.bindValue(":user_id", meta.user_id);
   query.bindValue(":algo", meta.algo);
   query.bindValue(":created_at", meta.created_at);
   query.bindValue(":has_secret", meta.has_secret ? 1 : 0);
@@ -199,9 +201,38 @@ auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
     return false;
   }
 
+  // 2. Save User IDs
+  QSqlQuery uid_del_query(db_);
+  uid_del_query.prepare("DELETE FROM user_ids WHERE fpr = :fpr");
+  uid_del_query.bindValue(":fpr", meta.fpr.toUpper());
+  uid_del_query.exec();
+
+  QSqlQuery uid_insert_query(db_);
+  uid_insert_query.prepare(R"(
+    INSERT INTO user_ids (fpr, user_id) VALUES (:fpr, :user_id)
+  )");
+
+  auto raw_user_ids = load_user_ids_for_parent(meta.fpr);
+  for (const auto& uid : raw_user_ids) {
+    uid_insert_query.bindValue(":fpr", meta.fpr.toUpper());
+    uid_insert_query.bindValue(":user_id", uid);
+    if (!uid_insert_query.exec()) {
+      LOG_E() << "SaveKey user_id error: "
+              << uid_insert_query.lastError().text();
+      db_.rollback();
+      return false;
+    }
+  }
+
   // 2. Save Subkeys
+  QSqlQuery s_key_del_query(db_);
+  s_key_del_query.prepare(
+      "DELETE FROM subkey_metadata WHERE parent_fpr = :parent_fpr");
+  s_key_del_query.bindValue(":parent_fpr", meta.fpr.toUpper());
+  s_key_del_query.exec();
+
   query.prepare(R"(
-    INSERT OR REPLACE INTO subkey_metadata 
+    INSERT INTO subkey_metadata 
     (fpr, parent_fpr, key_id, algo, created_at, has_secret, can_sign, can_encrypt, can_auth)
     VALUES (:fpr, :parent_fpr, :key_id, :algo, :created_at, :has_secret, :can_sign, :can_encrypt, :can_auth)
   )");
@@ -274,7 +305,7 @@ auto GFKeyDatabase::GetKeyMetadata(const QString& identifier)
     GFKeyMetadata meta;
     meta.fpr = query.value(0).toString();
     meta.key_id = query.value(1).toString();
-    meta.user_id = query.value(2).toString();
+
     meta.algo = query.value(3).toInt();
     meta.created_at = query.value(4).toLongLong();
     meta.has_secret = query.value(5).toBool();
@@ -282,7 +313,12 @@ auto GFKeyDatabase::GetKeyMetadata(const QString& identifier)
     meta.can_encrypt = query.value(7).toBool();
     meta.can_auth = query.value(8).toBool();
     meta.can_certify = query.value(9).toBool();
-    meta.user_ids.push_back(ParseUserId(meta.user_id));
+
+    // Load user IDs
+    QStringList raw_user_ids = load_user_ids_for_parent(meta.fpr);
+    for (const auto& uid_str : raw_user_ids) {
+      meta.user_ids.push_back(GFUserId(uid_str));
+    }
 
     // Load subkeys
     meta.subkeys = load_subkeys_for_parent(meta.fpr);
@@ -354,6 +390,16 @@ auto GFKeyDatabase::create_table() -> bool {
     )
   )";
 
+  // 4. User IDs table (Linked to primary key via fpr)
+  const QString create_user_ids_table = R"(
+    CREATE TABLE IF NOT EXISTS user_ids (
+      fpr TEXT NOT NULL COLLATE NOCASE,
+      user_id TEXT NOT NULL,
+      FOREIGN KEY(fpr) REFERENCES key_metadata(fpr) ON DELETE CASCADE,
+      UNIQUE(fpr, user_id)
+    )
+  )";
+
   if (!query.exec(create_metadata_table)) {
     LOG_E() << "Failed to create key_metadata table: "
             << query.lastError().text();
@@ -369,6 +415,11 @@ auto GFKeyDatabase::create_table() -> bool {
   if (!query.exec(create_blocks_table)) {
     LOG_E() << "Failed to create key_blocks table: "
             << query.lastError().text();
+    return false;
+  }
+
+  if (!query.exec(create_user_ids_table)) {
+    LOG_E() << "Failed to create user_ids table: " << query.lastError().text();
     return false;
   }
 
@@ -448,6 +499,21 @@ auto GFKeyDatabase::ResolvePrimaryFpr(const QString& identifier) -> QString {
 
   // 4. Not found anywhere
   return {};
+}
+
+auto GFKeyDatabase::load_user_ids_for_parent(const QString& fpr)
+    -> QStringList {
+  QStringList uids;
+  QSqlQuery query(db_);
+  query.prepare("SELECT user_id FROM user_ids WHERE fpr = :fpr");
+  query.bindValue(":fpr", fpr);
+
+  if (query.exec()) {
+    while (query.next()) {
+      uids.append(query.value(0).toString());
+    }
+  }
+  return uids;
 }
 
 GFKeyDatabase::~GFKeyDatabase() {
