@@ -59,8 +59,9 @@ auto GF_CORE_EXPORT GfrKeyAlgo2KeyAlgoName(Rust::GfrKeyAlgo algo) -> QString;
  * @param in_buffer
  * @return QStringList
  */
-auto GF_CORE_EXPORT SniffRecipientKeyIds(const GFBuffer& in_buffer)
-    -> QStringList;
+auto GF_CORE_EXPORT SniffRecipients(GFKeyDatabase& key_db,
+                                    const GFBuffer& in_buffer)
+    -> QContainer<GFRecipient>;
 
 /**
  * @brief
@@ -80,58 +81,6 @@ auto GF_CORE_EXPORT SniffIssuerKeyIds(const GFBuffer& in_buffer) -> QStringList;
 auto GF_CORE_EXPORT GetKeyBlocksForVerification(GFKeyDatabase& key_db,
                                                 const QStringList& key_ids)
     -> QContainer<QByteArray>;
-
-/**
- * @brief
- *
- * @param r
- * @return GFEncryptResult
- */
-auto GF_CORE_EXPORT GfrEncryptResultC2GFEncryptResult(
-    const Rust::GfrEncryptResultC& r) -> GFEncryptResult;
-
-/**
- * @brief
- *
- * @param r
- * @return GFDecryptResult
- */
-auto GF_CORE_EXPORT GfrDecryptResultC2GFDecryptResult(
-    const Rust::GfrDecryptResultC& r) -> GFDecryptResult;
-/**
- * @brief
- * @param r
- * @return GFSignResult
- */
-auto GF_CORE_EXPORT GfrSignResultC2GFSignResult(const Rust::GfrSignResultC& r)
-    -> GFSignResult;
-
-/**
- * @brief
- *
- * @param r
- * @return GFVerifyResult
- */
-auto GF_CORE_EXPORT GfrVerifyResultC2GFVerifyResult(
-    const Rust::GfrVerifyResultC& r) -> GFVerifyResult;
-
-/**
- * @brief
- *
- * @param r
- * @return GFEncryptAndSignResult
- */
-auto GF_CORE_EXPORT GfrEncryptAndSignResultC2GFEncryptAndSignResult(
-    const Rust::GfrEncryptAndSignResultC& r) -> GFEncryptAndSignResult;
-
-/**
- * @brief
- *
- * @param r
- * @return GFDecryptAndVerifyResult
- */
-auto GF_CORE_EXPORT GfrDecryptAndVerifyResultC2GFDecryptAndVerifyResult(
-    const Rust::GfrDecryptAndVerifyResultC& r) -> GFDecryptAndVerifyResult;
 
 /**
  * @brief

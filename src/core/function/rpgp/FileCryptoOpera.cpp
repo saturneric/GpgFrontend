@@ -30,12 +30,12 @@
 
 #include "core/GpgCoreRust.h"
 #include "core/function/rpgp/KeyStorage.h"
+#include "core/function/rpgp/ResultHandler.h"
 #include "core/function/rpgp/RustEngineCallback.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgSignResult.h"
 #include "core/model/GpgVerifyResult.h"
-#include "core/utils/RustUtils.h"
 
 namespace GpgFrontend {
 
@@ -95,9 +95,11 @@ auto DecryptFileRpgpImpl(GpgContext& ctx_, const QString& in_path,
     return GPG_ERR_GENERAL;
   }
 
-  Rust::GfrDecryptResultC decrypt_result;
   auto in_file_path_utf8 = in_path.toUtf8();
   auto out_file_path_utf8 = out_path.toUtf8();
+
+  Rust::GfrDecryptResultC decrypt_result;
+  memset(&decrypt_result, 0, sizeof(decrypt_result));
 
   auto err = Rust::gfr_crypto_decrypt_file(
       ctx_.GetChannel(), in_file_path_utf8.constData(),
@@ -115,14 +117,15 @@ auto DecryptFileRpgpImpl(GpgContext& ctx_, const QString& in_path,
     return GPG_ERR_GENERAL;
   }
 
-  GFDecryptResult result = GfrDecryptResultC2GFDecryptResult(decrypt_result);
+  auto [gf_err, result] =
+      HandleDecryptResult(*key_db, GFBuffer{}, err, decrypt_result);
   Rust::gfr_crypto_free_decrypt_result(&decrypt_result);
 
   data_object->Swap({
       GpgDecryptResult(result),
+      result.data,
   });
-
-  return GPG_ERR_NO_ERROR;
+  return gf_err;
 }
 
 auto SignFileRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
@@ -183,9 +186,11 @@ auto VerifyFileRpgpImpl(GpgContext& ctx_, const QString& data_path,
     return GPG_ERR_GENERAL;
   }
 
-  Rust::GfrVerifyResultC verify_result;
   auto data_file_path_utf8 = data_path.toUtf8();
   auto sign_file_path_utf8 = sign_path.toUtf8();
+
+  Rust::GfrVerifyResultC verify_result;
+  memset(&verify_result, 0, sizeof(verify_result));
 
   Rust::GfrStatus err;
   if (sign_path.isEmpty()) {
@@ -200,17 +205,18 @@ auto VerifyFileRpgpImpl(GpgContext& ctx_, const QString& data_path,
         Rust::GfrSignMode::Detached, &verify_result);
   }
 
-  if (err != Rust::GfrStatus::Success) {
-    LOG_E() << "Rust FFI verification failed."
-            << " Status: " << static_cast<int>(err);
-    return GPG_ERR_GENERAL;
-  }
-
-  GFVerifyResult result = GfrVerifyResultC2GFVerifyResult(verify_result);
+  auto [gf_err, result] = HandleVerifyResult(GFBuffer{}, err, verify_result);
   Rust::gfr_crypto_free_verify_result(&verify_result);
 
-  data_object->Swap({GpgVerifyResult(result)});
-  return GPG_ERR_NO_ERROR;
+  LOG_D() << "Verification result: "
+          << (result.is_verified ? "VALID" : "INVALID")
+          << ", Signatures found: " << result.signatures.size();
+
+  data_object->Swap({
+      GpgVerifyResult{result},
+      GFBuffer{},
+  });
+  return gf_err;
 }
 
 auto EncryptSignFileRpgpImpl(GpgContext& ctx,
@@ -305,10 +311,11 @@ auto DecryptVerifyFileRpgpImpl(GpgContext& ctx, const QString& in_path,
     return GPG_ERR_GENERAL;
   }
 
-  Rust::GfrDecryptAndVerifyResultC decrypt_verify_result;
-
   auto in_file_path_utf8 = in_path.toUtf8();
   auto out_file_path_utf8 = out_path.toUtf8();
+
+  Rust::GfrDecryptAndVerifyResultC decrypt_verify_result;
+  memset(&decrypt_verify_result, 0, sizeof(decrypt_verify_result));
 
   auto err = Rust::gfr_crypto_decrypt_and_verify_file(
       ctx.GetChannel(), in_file_path_utf8.constData(),
@@ -316,31 +323,27 @@ auto DecryptVerifyFileRpgpImpl(GpgContext& ctx, const QString& in_path,
       FetchPasswordCallback, FetchPublicKeyCallback, FreeCallback,
       key_db.data(), &decrypt_verify_result);
 
-  if (err != Rust::GfrStatus::Success) {
-    if (err == Rust::GfrStatus::ErrorDecryptionFailed) {
-      data_object->Swap({GpgDecryptResult{}, GpgVerifyResult{}});
-      return GPG_ERR_BAD_PASSPHRASE;
-    }
+  auto [gf_err, decrypt_result] =
+      HandleDecryptResult(*key_db, GFBuffer{}, err,
+                          Rust::GfrDecryptResultC{
+                              .data = decrypt_verify_result.data,
+                              .data_len = decrypt_verify_result.data_len,
+                              .meta = decrypt_verify_result.decrypt_meta,
+                          });
 
-    LOG_E() << "Rust FFI decryption failed."
-            << " Status: " << static_cast<int>(err);
-    return GPG_ERR_GENERAL;
-  }
+  auto [gf_err_2, verify_result] = HandleVerifyResult(
+      GFBuffer{}, err,
+      Rust::GfrVerifyResultC{.meta = decrypt_verify_result.verify_meta});
 
-  GFDecryptAndVerifyResult result =
-      GfrDecryptAndVerifyResultC2GFDecryptAndVerifyResult(
-          decrypt_verify_result);
   Rust::gfr_crypto_free_decrypt_and_verify_result(&decrypt_verify_result);
 
-  // For simplicity, we can treat the verify result as part of the decrypt
-  // result since they are closely related in this combined operation.
   data_object->Swap({
-      GpgDecryptResult(result.decrypt_result),
-      // We can add a placeholder for the verify result if needed
-      GpgVerifyResult(result.verify_result),
+      GpgDecryptResult(decrypt_result),
+      GpgVerifyResult(verify_result),
+      decrypt_result.data,
   });
 
-  return GPG_ERR_NO_ERROR;
+  return (gf_err != GPG_ERR_NO_ERROR) ? gf_err : gf_err_2;
 }
 
 }  // namespace GpgFrontend
