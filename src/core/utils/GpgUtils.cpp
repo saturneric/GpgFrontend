@@ -456,7 +456,6 @@ auto GF_CORE_EXPORT CheckGpgVersion(int channel, const QString& v) -> bool {
   // RPGP does not support gpg-agent, so we skip the version check for RPGP
   // backend
   if (GpgContext::GetInstance(channel).BackendType() == PGPBackendType::kRPGP) {
-    LOG_W() << "operation not support for RPGP backend, channel: " << channel;
     return true;
   }
 
