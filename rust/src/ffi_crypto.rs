@@ -30,8 +30,9 @@ use crate::crypto::get_signature_issuers_internal;
 use crate::crypto_stream;
 use crate::types::{
     GfrDecryptAndVerifyResultC, GfrDecryptResultC, GfrEncryptAndSignResultC, GfrEncryptResultC,
-    GfrFreeCb, GfrInvalidRecipientC, GfrPasswordFetchCb, GfrRecipientResultC, GfrSecretKeyFetchCb,
-    GfrSignMode, GfrSignResultC, GfrSignatureResultC, GfrStatus, GfrVerifyResultC,
+    GfrFreeCb, GfrInvalidRecipientC, GfrPasswordFetchCb, GfrPublicKeyFetchCb, GfrRecipientResultC,
+    GfrSecretKeyFetchCb, GfrSignMode, GfrSignResultC, GfrSignatureResultC, GfrStatus,
+    GfrVerifyResultC,
 };
 use std::fs::File;
 use std::path::Path;
@@ -480,47 +481,154 @@ pub extern "C" fn gfr_crypto_sign_data(
 }
 
 #[unsafe(no_mangle)]
+pub extern "C" fn gfr_crypto_sign_file(
+    channel: i32,
+    in_file_path: *const c_char,
+    out_file_path: *const c_char,
+    secret_keys: *const *const c_char,
+    signers_count: usize,
+    fetch_pwd_cb: GfrPasswordFetchCb,
+    free_cb: GfrFreeCb,
+    mode: GfrSignMode,
+    ascii: bool,
+    out_result: *mut GfrSignResultC,
+) -> GfrStatus {
+    let result = catch_unwind(|| -> Result<(), GfrStatus> {
+        // 1. Check null pointers
+        if in_file_path.is_null()
+            || out_file_path.is_null()
+            || secret_keys.is_null()
+            || out_result.is_null()
+        {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+
+        // 2. Convert C strings to Rust string slices
+        let in_path_str = unsafe { CStr::from_ptr(in_file_path) }
+            .to_str()
+            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+        let out_path_str = unsafe { CStr::from_ptr(out_file_path) }
+            .to_str()
+            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+        // 3. Extract the filename from the input path to use as a PGP hint
+        let filename_hint = Path::new(in_path_str)
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy();
+
+        // 4. Safely extract secret keys
+        let mut skey_blocks = Vec::with_capacity(signers_count);
+        unsafe {
+            let sk_slice = slice::from_raw_parts(secret_keys, signers_count);
+            for i in 0..signers_count {
+                if sk_slice[i].is_null() {
+                    return Err(GfrStatus::ErrorInvalidInput);
+                }
+                let sk_str = CStr::from_ptr(sk_slice[i])
+                    .to_str()
+                    .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+                skey_blocks.push(sk_str);
+            }
+        }
+
+        // 5. Open input and output files
+        let in_file = File::open(in_path_str).map_err(|e| {
+            log::error!("Failed to open input file: {}", e);
+            GfrStatus::ErrorInvalidInput
+        })?;
+
+        let out_file = File::create(out_path_str).map_err(|e| {
+            log::error!("Failed to create output file: {}", e);
+            GfrStatus::ErrorInvalidInput
+        })?;
+
+        // 6. Perform the streaming signature
+        let stream_result = crate::crypto_stream::sign_stream_internal(
+            channel,
+            &filename_hint,
+            in_file,
+            out_file,
+            &skey_blocks,
+            Some(fetch_pwd_cb),
+            Some(free_cb),
+            mode,
+            ascii,
+        )?;
+
+        // 7. Process the signatures array
+        let mut c_signatures = Vec::with_capacity(stream_result.signatures.len());
+        for sig in stream_result.signatures {
+            c_signatures.push(GfrSignatureResultC {
+                sig_type: mode,
+                issuer_fpr: CString::new(sig.fpr).unwrap_or_default().into_raw(),
+                status: sig.status,
+                created_at: sig.created_at,
+                pub_algo: CString::new(sig.pub_algo).unwrap_or_default().into_raw(),
+                hash_algo: CString::new(sig.hash_algo).unwrap_or_default().into_raw(),
+            });
+        }
+
+        let mut boxed_sigs = c_signatures.into_boxed_slice();
+        let sigs_ptr = boxed_sigs.as_mut_ptr();
+        let sigs_count = boxed_sigs.len();
+        std::mem::forget(boxed_sigs); // Leak array to C
+
+        // 8. Populate the output struct safely
+        // Note: For files, we only need to pass back the metadata.
+        unsafe {
+            (*out_result).data = std::ptr::null_mut(); // No in-memory data for file signing
+            (*out_result).data_len = 0;
+            (*out_result).meta.signatures = sigs_ptr;
+            (*out_result).meta.signature_count = sigs_count;
+        }
+
+        Ok(())
+    });
+
+    match result {
+        Ok(Ok(_)) => GfrStatus::Success,
+        Ok(Err(e)) => e,
+        Err(_) => GfrStatus::ErrorPanic,
+    }
+}
+
+#[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_verify_data(
     in_data: *const u8,
     in_len: usize,
     sig_data: *const u8, // Only used if mode == 2 (Detached)
     sig_len: usize,      // Only used if mode == 2 (Detached)
-    pub_keys: *const *const c_char,
-    pub_keys_count: usize,
+    fetch_pubkey_cb: crate::types::GfrPublicKeyFetchCb, // Replaced static pub_keys array
+    free_cb: crate::types::GfrFreeCb, // Added for memory management
+    user_data: *mut std::ffi::c_void, // Added for callback context
     mode: GfrSignMode,
     out_result: *mut GfrVerifyResultC, // Output parameter for the comprehensive result
 ) -> GfrStatus {
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
+        // Check for null pointers
         if in_data.is_null() || out_result.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
-        let data_slice = unsafe { slice::from_raw_parts(in_data, in_len) };
+        // Convert raw pointers to Rust slices safely
+        let data_slice = unsafe { std::slice::from_raw_parts(in_data, in_len) };
         let sig_slice = if !sig_data.is_null() && sig_len > 0 {
-            unsafe { slice::from_raw_parts(sig_data, sig_len) }
+            unsafe { std::slice::from_raw_parts(sig_data, sig_len) }
         } else {
             &[]
         };
 
-        let mut key_blocks = Vec::with_capacity(pub_keys_count);
-        if !pub_keys.is_null() && pub_keys_count > 0 {
-            unsafe {
-                let keys_slice = slice::from_raw_parts(pub_keys, pub_keys_count);
-                for &key_ptr in keys_slice {
-                    if key_ptr.is_null() {
-                        return Err(GfrStatus::ErrorInvalidInput);
-                    }
-                    let key_str = CStr::from_ptr(key_ptr)
-                        .to_str()
-                        .map_err(|_| GfrStatus::ErrorInvalidInput)?;
-                    key_blocks.push(key_str);
-                }
-            }
-        }
-
-        // Call the updated internal function which now returns VerifyResultInternal
-        let mut internal_result =
-            crate::crypto::verify_internal(data_slice, sig_slice, &key_blocks, mode)?;
+        // Call the updated internal function with callbacks instead of a static array
+        let mut internal_result = crate::crypto::verify_internal(
+            data_slice,
+            sig_slice,
+            mode,
+            Some(fetch_pubkey_cb),
+            Some(free_cb),
+            user_data,
+        )?;
 
         // 1. Process the extracted payload (data)
         internal_result.data.shrink_to_fit();
@@ -531,9 +639,15 @@ pub extern "C" fn gfr_crypto_verify_data(
         // 2. Process the signatures array
         let mut c_signatures = Vec::with_capacity(internal_result.signatures.len());
         for sig in internal_result.signatures {
-            let c_fpr = CString::new(sig.fpr).unwrap_or_default().into_raw();
-            let c_pub_algo = CString::new(sig.pub_algo).unwrap_or_default().into_raw();
-            let c_hash_algo = CString::new(sig.hash_algo).unwrap_or_default().into_raw();
+            let c_fpr = std::ffi::CString::new(sig.fpr)
+                .unwrap_or_default()
+                .into_raw();
+            let c_pub_algo = std::ffi::CString::new(sig.pub_algo)
+                .unwrap_or_default()
+                .into_raw();
+            let c_hash_algo = std::ffi::CString::new(sig.hash_algo)
+                .unwrap_or_default()
+                .into_raw();
 
             c_signatures.push(GfrSignatureResultC {
                 sig_type: sig.sig_type,
@@ -557,6 +671,151 @@ pub extern "C" fn gfr_crypto_verify_data(
             (*out_result).meta.signatures = sigs_ptr;
             (*out_result).meta.signature_count = sigs_count;
             (*out_result).meta.is_verified = internal_result.is_verified;
+        }
+
+        Ok(())
+    });
+
+    match result {
+        Ok(Ok(_)) => GfrStatus::Success,
+        Ok(Err(e)) => e,
+        Err(_) => GfrStatus::ErrorPanic,
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_crypto_verify_file(
+    in_file_path: *const c_char,
+    sig_file_path: *const c_char, // Used for Detached mode (.sig file)
+    out_file_path: *const c_char, // Optional: Extracted plaintext output for Inline mode
+    fetch_pubkey_cb: GfrPublicKeyFetchCb,
+    free_cb: GfrFreeCb,
+    user_data: *mut std::ffi::c_void,
+    mode: GfrSignMode,
+    out_result: *mut GfrVerifyResultC,
+) -> GfrStatus {
+    let result = catch_unwind(|| -> Result<(), GfrStatus> {
+        if in_file_path.is_null() || out_result.is_null() {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+
+        let in_path_str = unsafe { std::ffi::CStr::from_ptr(in_file_path) }
+            .to_str()
+            .unwrap_or("");
+
+        let sig_path_str = if !sig_file_path.is_null() {
+            unsafe { std::ffi::CStr::from_ptr(sig_file_path) }
+                .to_str()
+                .unwrap_or("")
+        } else {
+            ""
+        };
+
+        let out_path_str = if !out_file_path.is_null() {
+            unsafe { std::ffi::CStr::from_ptr(out_file_path) }
+                .to_str()
+                .unwrap_or("")
+        } else {
+            ""
+        };
+
+        let mut out_data_ptr: *mut u8 = std::ptr::null_mut();
+        let mut out_data_len: usize = 0;
+        let c_signatures;
+        let is_verified;
+
+        match mode {
+            // ---------------------------------------------------------
+            // Detached: Use stream implementation for large payloads
+            // ---------------------------------------------------------
+            GfrSignMode::Detached => {
+                if sig_path_str.is_empty() {
+                    return Err(GfrStatus::ErrorInvalidInput);
+                }
+
+                let in_file = File::open(in_path_str).map_err(|e| {
+                    log::error!("Failed to open input file: {}", e);
+                    GfrStatus::ErrorInvalidInput
+                })?;
+
+                let sig_data =
+                    std::fs::read(sig_path_str).map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+                let stream_result = crate::crypto_stream::verify_detached_stream_internal(
+                    in_file,
+                    &sig_data,
+                    Some(fetch_pubkey_cb),
+                    Some(free_cb),
+                    user_data,
+                )?;
+
+                is_verified = stream_result.is_verified;
+                c_signatures = stream_result.signatures;
+            }
+
+            // ---------------------------------------------------------
+            // Inline / ClearText: Use non-stream fallback to extract payload
+            // ---------------------------------------------------------
+            GfrSignMode::Inline | GfrSignMode::ClearText => {
+                let in_data =
+                    std::fs::read(in_path_str).map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+                let mut internal_result = crate::crypto::verify_internal(
+                    &in_data,
+                    &[], // sig_data is not needed for inline
+                    mode,
+                    Some(fetch_pubkey_cb),
+                    Some(free_cb),
+                    user_data,
+                )?;
+
+                is_verified = internal_result.is_verified;
+                c_signatures = internal_result.signatures;
+
+                if !out_path_str.is_empty() {
+                    std::fs::write(out_path_str, &internal_result.data).map_err(|e| {
+                        log::error!("Failed to write inline extracted data to file: {}", e);
+                        GfrStatus::ErrorInternal
+                    })?;
+                } else {
+                    internal_result.data.shrink_to_fit();
+                    out_data_ptr = internal_result.data.as_mut_ptr();
+                    out_data_len = internal_result.data.len();
+                    std::mem::forget(internal_result.data);
+                }
+            }
+        }
+
+        // Convert signatures array for C
+        let mut c_sigs_c = Vec::with_capacity(c_signatures.len());
+        for sig in c_signatures {
+            c_sigs_c.push(GfrSignatureResultC {
+                sig_type: sig.sig_type,
+                issuer_fpr: std::ffi::CString::new(sig.fpr)
+                    .unwrap_or_default()
+                    .into_raw(),
+                status: sig.status,
+                created_at: sig.created_at,
+                pub_algo: std::ffi::CString::new(sig.pub_algo)
+                    .unwrap_or_default()
+                    .into_raw(),
+                hash_algo: std::ffi::CString::new(sig.hash_algo)
+                    .unwrap_or_default()
+                    .into_raw(),
+            });
+        }
+
+        let mut boxed_sigs = c_sigs_c.into_boxed_slice();
+        let sigs_ptr = boxed_sigs.as_mut_ptr();
+        let sigs_count = boxed_sigs.len();
+        std::mem::forget(boxed_sigs);
+
+        unsafe {
+            (*out_result).data = out_data_ptr;
+            (*out_result).data_len = out_data_len;
+            (*out_result).meta.signatures = sigs_ptr;
+            (*out_result).meta.signature_count = sigs_count;
+            (*out_result).meta.is_verified = is_verified;
         }
 
         Ok(())

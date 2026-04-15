@@ -392,26 +392,43 @@ pub fn sniff_signatures(data: &[u8], mode: GfrSignMode) -> Vec<SignatureResultIn
     results
 }
 
+// Shared helper to dynamically fetch certs for sniffing results
+fn fetch_certs_for_signatures(
+    signatures: &[SignatureResultInternal],
+    fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
+    free_cb: Option<GfrFreeCb>,
+    user_data: *mut std::ffi::c_void,
+) -> Vec<SignedPublicKey> {
+    let mut certs = Vec::new();
+    if let Some(cb) = fetch_pubkey_cb {
+        for sig in signatures {
+            let c_fpr = std::ffi::CString::new(sig.fpr.clone()).unwrap_or_default();
+            let c_key_block = cb(c_fpr.as_ptr(), user_data);
+
+            if !c_key_block.is_null() {
+                if let Ok(key_str) = unsafe { std::ffi::CStr::from_ptr(c_key_block) }.to_str() {
+                    if let Ok((cert, _)) = SignedPublicKey::from_string(key_str) {
+                        certs.push(cert);
+                    }
+                }
+                if let Some(f_cb) = free_cb {
+                    f_cb(c_key_block as *mut std::ffi::c_void, user_data);
+                }
+            }
+        }
+    }
+    certs
+}
+
 pub fn verify_internal(
     data: &[u8],
     sig_data: &[u8], // Used only for Detached mode
-    public_key_blocks: &[&str],
     mode: GfrSignMode,
+    fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
+    free_cb: Option<GfrFreeCb>,
+    user_data: *mut std::ffi::c_void,
 ) -> Result<VerifyResultInternal, GfrStatus> {
-    // 1. Parse candidate public keys concisely using filter_map
-    let certs: Vec<SignedPublicKey> = public_key_blocks
-        .iter()
-        .filter_map(|block| SignedPublicKey::from_string(block).ok().map(|(c, _)| c))
-        .collect();
-
-    debug!(
-        "Parsed {} public keys for verification, mode: {:?}",
-        certs.len(),
-        mode
-    );
-
     // Helper closure to update signature statuses uniformly across all modes.
-    // It returns `true` if it successfully found and processed at least one matching issuer.
     let update_signatures = |cert: &SignedPublicKey,
                              is_cert_valid: bool,
                              signatures: &mut Vec<SignatureResultInternal>,
@@ -425,7 +442,6 @@ pub fn verify_internal(
                     sig.status = GfrSignatureStatus::Valid;
                     *is_verified = true;
                 } else if sig.status == GfrSignatureStatus::NoKey {
-                    // Only mark as bad if we haven't already validated it via another key
                     sig.status = GfrSignatureStatus::BadSignature;
                 }
             }
@@ -438,24 +454,24 @@ pub fn verify_internal(
         // MODE 0: INLINE SIGNATURE
         // ---------------------------------------------------------
         GfrSignMode::Inline => {
-            // Attempt to parse armored first, fallback to raw bytes
             let mut msg = Message::from_armor(Cursor::new(data))
                 .map(|(m, _)| m)
                 .or_else(|_| Message::from_bytes(data))
                 .map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
             let mut signatures = sniff_signatures(data, mode);
+            let certs =
+                fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, free_cb, user_data);
             let mut is_verified = false;
 
             for cert in &certs {
-                // Try verifying with the primary key first, fallback to ANY subkey to bypass rpgp identity strictness
                 let is_cert_valid = msg.verify(cert).is_ok()
                     || cert.public_subkeys.iter().any(|sk| msg.verify(sk).is_ok());
 
                 let found =
                     update_signatures(cert, is_cert_valid, &mut signatures, &mut is_verified);
 
-                // Special fallback: If verification succeeded but the issuer wasn't caught by sniff_signatures
+                // Special fallback if verification succeeded but issuer wasn't caught by sniff_signatures
                 if is_cert_valid && !found {
                     signatures.push(SignatureResultInternal {
                         fpr: cert.primary_key.fingerprint().to_string(),
@@ -485,7 +501,7 @@ pub fn verify_internal(
             let (msg, _) = CleartextSignedMessage::from_string(text_str)
                 .map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
-            // Sniff signatures directly from the parsed cleartext message structure
+            // Sniff directly from the parsed message
             let mut signatures = Vec::new();
             for sig in msg.signatures().into_iter() {
                 for issuer in sig.issuer_fingerprint() {
@@ -511,9 +527,11 @@ pub fn verify_internal(
                 }
             }
 
+            let certs =
+                fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, free_cb, user_data);
             let mut is_verified = false;
+
             for cert in &certs {
-                // Try verifying with the primary key first, fallback to ANY subkey
                 let is_cert_valid = msg.verify(cert).is_ok()
                     || cert.public_subkeys.iter().any(|sk| msg.verify(sk).is_ok());
 
@@ -538,17 +556,17 @@ pub fn verify_internal(
                 return Err(GfrStatus::ErrorInvalidInput);
             }
 
-            // Attempt to parse armored first, fallback to raw bytes
             let sig_msg = DetachedSignature::from_armor_single(Cursor::new(sig_data))
                 .map(|(s, _)| s)
                 .or_else(|_| DetachedSignature::from_bytes(sig_data))
                 .map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
             let mut signatures = sniff_signatures(sig_data, mode);
+            let certs =
+                fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, free_cb, user_data);
             let mut is_verified = false;
 
             for cert in &certs {
-                // Try verifying with the primary key first, fallback to ANY subkey
                 let is_cert_valid = sig_msg.verify(cert, data).is_ok()
                     || cert
                         .public_subkeys
@@ -558,7 +576,6 @@ pub fn verify_internal(
                 update_signatures(cert, is_cert_valid, &mut signatures, &mut is_verified);
             }
 
-            // Detached verification doesn't extract plaintext payload, only confirms verification status
             Ok(VerifyResultInternal {
                 data: Vec::new(),
                 is_verified,

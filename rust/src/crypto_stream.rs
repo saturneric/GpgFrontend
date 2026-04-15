@@ -388,15 +388,12 @@ pub struct VerifyStreamResultInternal {
     pub signatures: Vec<SignatureResultInternal>,
 }
 
-/// Stream-based verification exclusively for Detached signatures.
-///
-/// `data_stream`: The large file payload to be verified. Requires `Seek` to allow rewinding
-///                if testing against multiple subkeys.
-/// `sig_data`: The detached signature file content (usually very small, so a memory slice is fine).
 pub fn verify_detached_stream_internal<R>(
     mut data_stream: R,
     sig_data: &[u8],
-    public_key_blocks: &[&str],
+    fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
+    free_cb: Option<GfrFreeCb>,
+    user_data: *mut std::ffi::c_void,
 ) -> Result<VerifyStreamResultInternal, GfrStatus>
 where
     R: Read + Seek + Send + Sync,
@@ -405,26 +402,40 @@ where
         return Err(GfrStatus::ErrorInvalidInput);
     }
 
-    // 1. Parse candidate public keys concisely
-    let certs: Vec<SignedPublicKey> = public_key_blocks
-        .iter()
-        .filter_map(|block| SignedPublicKey::from_string(block).ok().map(|(c, _)| c))
-        .collect();
-
-    debug!(
-        "Parsed {} public keys for detached stream verification",
-        certs.len()
-    );
-
-    // 2. Parse the detached signature file (Attempt armored first, fallback to raw bytes)
+    // 1. Parse the detached signature file (Attempt armored first, fallback to raw bytes)
     let sig_msg = DetachedSignature::from_armor_single(Cursor::new(sig_data))
         .map(|(s, _)| s)
         .or_else(|_| DetachedSignature::from_bytes(sig_data))
         .map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
-    // 3. Sniff signature metadata to know WHO signed it before processing the heavy stream
+    // 2. Sniff signature metadata to know WHO signed it before fetching keys
     let mut signatures = sniff_signatures(sig_data, GfrSignMode::Detached);
     let mut is_verified = false;
+
+    // 3. Dynamically Fetch Public Keys via C Callback based on sniffed fingerprints
+    let mut certs = Vec::new();
+    if let Some(cb) = fetch_pubkey_cb {
+        for sig in &signatures {
+            let c_fpr = std::ffi::CString::new(sig.fpr.clone()).unwrap_or_default();
+            let c_key_block = cb(c_fpr.as_ptr(), user_data);
+
+            if !c_key_block.is_null() {
+                if let Ok(key_str) = unsafe { std::ffi::CStr::from_ptr(c_key_block) }.to_str() {
+                    if let Ok((cert, _)) = SignedPublicKey::from_string(key_str) {
+                        certs.push(cert);
+                    }
+                }
+                if let Some(f_cb) = free_cb {
+                    f_cb(c_key_block as *mut std::ffi::c_void, user_data);
+                }
+            }
+        }
+    }
+
+    log::debug!(
+        "Fetched and parsed {} public keys for detached stream verification",
+        certs.len()
+    );
 
     // Helper closure to update signature statuses uniformly
     let update_signatures = |cert: &SignedPublicKey,
@@ -450,23 +461,12 @@ where
 
     // 4. Stream Verification
     for cert in &certs {
-        // PERFORMANCE OPTIMIZATION:
-        // Check if this certificate matches any sniffed issuer fingerprint.
-        // If not, completely skip to avoid hashing the massive data stream unnecessarily!
-        let is_potential_match = signatures
-            .iter()
-            .any(|sig| cert_contains_issuer(cert, &sig.fpr));
-        if !is_potential_match {
-            continue;
-        }
-
         // Rewind the stream to the beginning before starting verification
         data_stream
             .seek(SeekFrom::Start(0))
             .map_err(|_| GfrStatus::ErrorInternal)?;
 
         // Try verifying with the primary key first
-        // Note: passing `&mut data_stream` satisfies `impl Read` without consuming our handle
         let mut is_cert_valid = sig_msg.signature.verify(cert, &mut data_stream).is_ok();
 
         // Fallback: If primary key fails, test subkeys (to bypass rpgp's strict identity matching)

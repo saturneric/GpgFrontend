@@ -132,11 +132,6 @@ pub fn keygen_dynamic(
     let mut subkeys = Vec::new();
 
     for config in s_key_configs {
-        debug!(
-            "Configuring subkey with algo: {:?}, can_sign: {}, can_encrypt: {}, can_auth: {}",
-            config.algo, config.can_sign, config.can_encrypt, config.can_auth
-        );
-
         let k_type = resolve_key_type(&config.algo, config.can_encrypt)?;
         let mut builder = SubkeyParamsBuilder::default();
         builder
@@ -155,15 +150,6 @@ pub fn keygen_dynamic(
                 .map_err(|e| anyhow::anyhow!("Subkey build failed: {}", e))?,
         );
     }
-
-    debug!(
-        "Generating key with primary algo: {:?}, can_sign: {}, can_encrypt: {}, can_auth: {}, subkey_count: {}",
-        key_config.algo,
-        key_config.can_sign,
-        key_config.can_encrypt,
-        key_config.can_auth,
-        subkeys.len()
-    );
 
     let signed = SecretKeyParamsBuilder::default()
         .key_type(primary_type)
