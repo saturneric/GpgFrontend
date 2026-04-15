@@ -164,7 +164,7 @@ auto GpgKey::LastUpdateTime() const -> QDateTime {
 }
 
 auto GpgKey::ExpirationTime() const -> QDateTime {
-  if (km_ref_ != nullptr) return {};
+  if (km_ref_ != nullptr) return QDateTime::fromSecsSinceEpoch(0);
   return QDateTime::fromSecsSinceEpoch(key_ref_->subkeys->expires);
 };
 

@@ -141,7 +141,7 @@ auto GpgSubKey::CreationTime() const -> QDateTime {
 }
 
 auto GpgSubKey::ExpirationTime() const -> QDateTime {
-  if (skm_ref_ != nullptr) return {};
+  if (skm_ref_ != nullptr) return QDateTime::fromSecsSinceEpoch(0);
   return QDateTime::fromSecsSinceEpoch(s_key_ref_->expires);
 }
 
