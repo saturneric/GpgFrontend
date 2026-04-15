@@ -213,4 +213,134 @@ auto VerifyFileRpgpImpl(GpgContext& ctx_, const QString& data_path,
   return GPG_ERR_NO_ERROR;
 }
 
+auto EncryptSignFileRpgpImpl(GpgContext& ctx,
+                             const GpgAbstractKeyPtrList& enc_keys,
+                             const GpgAbstractKeyPtrList& sign_keys,
+                             const QString& in_path, bool ascii,
+                             const QString& out_path,
+                             const DataObjectPtr& data_object) -> GpgError {
+  auto key_db = ctx.KeyDatabase();
+  if (!key_db) {
+    LOG_E() << "Failed to get key database from context";
+    return GPG_ERR_GENERAL;
+  }
+
+  if (sign_keys.isEmpty() || enc_keys.isEmpty()) return GPG_ERR_INV_ARG;
+
+  // 1. Vector to hold the actual memory of the UTF-8 strings
+  QContainer<QByteArray> key_blocks_utf8;
+
+  // 2. Vector to hold the pointers to pass to Rust FFI
+  std::vector<const char*> recipient_cstrs;
+
+  for (const auto& key : enc_keys) {
+    auto key_block = key_db->GetKeyBlocks(key->Fingerprint());
+    if (!key_block || key_block->public_key.isEmpty()) {
+      LOG_W() << "No valid public key block found for key with fpr: "
+              << key->Fingerprint();
+      continue;
+    }
+
+    // Keep the QByteArray alive by pushing it to the vector
+    key_blocks_utf8.push_back(key_block->public_key.toUtf8());
+  }
+
+  if (key_blocks_utf8.empty()) {
+    LOG_E() << "No valid recipients found for encryption.";
+    return GPG_ERR_GENERAL;  // Or appropriate error code
+  }
+
+  // Pre-allocate space for performance
+  recipient_cstrs.reserve(key_blocks_utf8.size());
+
+  // Safely extract pointers from the valid memory blocks
+  for (const auto& ba : key_blocks_utf8) {
+    recipient_cstrs.push_back(ba.constData());
+  }
+
+  auto skey_utf8_list = GetSecretKeysByKeyIdForSigning(*key_db, sign_keys);
+  std::vector<const char*> c_skeys;
+
+  // Fetch key blocks and safely store memory
+
+  // Extract C-string pointers
+  c_skeys.reserve(skey_utf8_list.size());
+  for (const auto& i : skey_utf8_list) {
+    c_skeys.push_back(i.constData());
+  }
+
+  QString name;
+  Rust::GfrEncryptAndSignResultC encrypt_sign_result;
+
+  auto err = Rust::gfr_crypto_encrypt_and_sign_file(
+      ctx.GetChannel(), in_path.toUtf8().constData(),
+      out_path.toUtf8().constData(), recipient_cstrs.data(),
+      recipient_cstrs.size(), c_skeys.data(), c_skeys.size(),
+      FetchPasswordCallback, FreeCallback, ascii, &encrypt_sign_result);
+
+  if (err != Rust::GfrStatus::Success) {
+    LOG_E() << "Rust FFI encrypt_and_sign failed with status: "
+            << static_cast<int>(err);
+    return GPG_ERR_GENERAL;
+  }
+
+  GFEncryptAndSignResult result =
+      GfrEncryptAndSignResultC2GFEncryptAndSignResult(encrypt_sign_result);
+  Rust::gfr_crypto_free_encrypt_and_sign_result(&encrypt_sign_result);
+
+  data_object->Swap({
+      GpgEncryptResult(result.encrypt_result),
+      GpgSignResult(result.sign_result),
+  });
+
+  return GPG_ERR_NO_ERROR;
+}
+
+auto DecryptVerifyFileRpgpImpl(GpgContext& ctx, const QString& in_path,
+                               const QString& out_path,
+                               const DataObjectPtr& data_object) -> GpgError {
+  auto key_db = ctx.KeyDatabase();
+  if (!key_db) {
+    LOG_E() << "Failed to get key database from context";
+    return GPG_ERR_GENERAL;
+  }
+
+  Rust::GfrDecryptAndVerifyResultC decrypt_verify_result;
+
+  auto in_file_path_utf8 = in_path.toUtf8();
+  auto out_file_path_utf8 = out_path.toUtf8();
+
+  auto err = Rust::gfr_crypto_decrypt_and_verify_file(
+      ctx.GetChannel(), in_file_path_utf8.constData(),
+      out_file_path_utf8.constData(), false, FetchSecretKeyCallback,
+      FetchPasswordCallback, FetchPublicKeyCallback, FreeCallback,
+      key_db.data(), &decrypt_verify_result);
+
+  if (err != Rust::GfrStatus::Success) {
+    if (err == Rust::GfrStatus::ErrorDecryptionFailed) {
+      data_object->Swap({GpgDecryptResult{}, GpgVerifyResult{}});
+      return GPG_ERR_BAD_PASSPHRASE;
+    }
+
+    LOG_E() << "Rust FFI decryption failed."
+            << " Status: " << static_cast<int>(err);
+    return GPG_ERR_GENERAL;
+  }
+
+  GFDecryptAndVerifyResult result =
+      GfrDecryptAndVerifyResultC2GFDecryptAndVerifyResult(
+          decrypt_verify_result);
+  Rust::gfr_crypto_free_decrypt_and_verify_result(&decrypt_verify_result);
+
+  // For simplicity, we can treat the verify result as part of the decrypt
+  // result since they are closely related in this combined operation.
+  data_object->Swap({
+      GpgDecryptResult(result.decrypt_result),
+      // We can add a placeholder for the verify result if needed
+      GpgVerifyResult(result.verify_result),
+  });
+
+  return GPG_ERR_NO_ERROR;
+}
+
 }  // namespace GpgFrontend

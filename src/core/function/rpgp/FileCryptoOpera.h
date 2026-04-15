@@ -32,22 +32,94 @@
 
 namespace GpgFrontend {
 
+/**
+ * @brief
+ *
+ * @param ctx_
+ * @param keys
+ * @param in_path
+ * @param ascii
+ * @param out_path
+ * @param data_object
+ * @return GpgError
+ */
 auto EncryptFileRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
                          const QString& in_path, bool ascii,
                          const QString& out_path,
                          const DataObjectPtr& data_object) -> GpgError;
 
+/**
+ * @brief
+ *
+ * @param ctx_
+ * @param in_path
+ * @param out_path
+ * @param data_object
+ * @return GpgError
+ */
 auto DecryptFileRpgpImpl(GpgContext& ctx_, const QString& in_path,
                          const QString& out_path,
                          const DataObjectPtr& data_object) -> GpgError;
 
+/**
+ * @brief
+ *
+ * @param ctx_
+ * @param key
+ * @param in_path
+ * @param ascii
+ * @param out_path
+ * @param data_object
+ * @return GpgError
+ */
 auto SignFileRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& key,
                       const QString& in_path, bool ascii,
                       const QString& out_path, const DataObjectPtr& data_object)
     -> GpgError;
 
+/**
+ * @brief
+ *
+ * @param ctx_
+ * @param data_path
+ * @param sign_path
+ * @param data_object
+ * @return GpgError
+ */
 auto VerifyFileRpgpImpl(GpgContext& ctx_, const QString& data_path,
                         const QString& sign_path,
                         const DataObjectPtr& data_object) -> GpgError;
+
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param enc_keys
+ * @param sign_keys
+ * @param in_path
+ * @param ascii
+ * @param out_path
+ * @param data_object
+ * @return GpgError
+ */
+auto EncryptSignFileRpgpImpl(GpgContext& ctx,
+                             const GpgAbstractKeyPtrList& enc_keys,
+                             const GpgAbstractKeyPtrList& sign_keys,
+                             const QString& in_path, bool ascii,
+                             const QString& out_path,
+                             const DataObjectPtr& data_object) -> GpgError;
+
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param data_path
+ * @param sign_path
+ * @param data_object
+ * @return GpgError
+ */
+auto DecryptVerifyFileRpgpImpl(GpgContext& ctx, const QString& in_path,
+                               const QString& out_path,
+                               const DataObjectPtr& data_object) -> GpgError;
 
 }  // namespace GpgFrontend

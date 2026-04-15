@@ -321,22 +321,10 @@ auto EncryptSignRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
     recipient_cstrs.push_back(ba.constData());
   }
 
-  std::vector<QByteArray> skey_utf8_list;
-  std::vector<const char*> c_skeys;
-
-  // Fetch key blocks and safely store memory
-  for (const auto& signer : signers) {
-    auto blocks = key_db->GetKeyBlocks(signer->Fingerprint());
-    if (!blocks || blocks->secret_key.isEmpty()) {
-      LOG_E() << "Failed to find secret key block for FPR: "
-              << signer->Fingerprint();
-      return GPG_ERR_NO_SECKEY;
-    }
-
-    skey_utf8_list.push_back(blocks->secret_key.toUtf8());
-  }
+  auto skey_utf8_list = GetSecretKeysByKeyIdForSigning(*key_db, signers);
 
   // Extract C-string pointers
+  std::vector<const char*> c_skeys;
   c_skeys.reserve(skey_utf8_list.size());
   for (const auto& i : skey_utf8_list) {
     c_skeys.push_back(i.constData());

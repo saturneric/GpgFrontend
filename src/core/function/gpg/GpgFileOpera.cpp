@@ -369,7 +369,11 @@ void GpgFileOpera::EncryptSignFile(const GpgAbstractKeyPtrList& keys,
                                    const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       GetChannel(),
-      [=](const DataObjectPtr& data_object) {
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+          return EncryptSignFileRpgpImpl(ctx_, keys, signer_keys, in_path,
+                                         ascii, out_path, data_object);
+        }
         return EncryptSignFileImpl(ctx_, basic_opera_, keys, signer_keys,
                                    in_path, ascii, out_path, data_object);
       },
@@ -383,7 +387,11 @@ auto GpgFileOpera::EncryptSignFileSync(const GpgAbstractKeyPtrList& keys,
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       GetChannel(),
-      [=](const DataObjectPtr& data_object) {
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+          return EncryptSignFileRpgpImpl(ctx_, keys, signer_keys, in_path,
+                                         ascii, out_path, data_object);
+        }
         return EncryptSignFileImpl(ctx_, basic_opera_, keys, signer_keys,
                                    in_path, ascii, out_path, data_object);
       },
@@ -440,6 +448,10 @@ void GpgFileOpera::DecryptVerifyFile(const QString& in_path,
   RunGpgOperaAsync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
+        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+          return DecryptVerifyFileRpgpImpl(ctx_, in_path, out_path,
+                                           data_object);
+        }
         return DecryptVerifyFileImpl(ctx_, in_path, out_path, data_object);
       },
       cb, "gpgme_op_decrypt_verify", "2.2.0");
@@ -451,6 +463,10 @@ auto GpgFileOpera::DecryptVerifyFileSync(const QString& in_path,
   return RunGpgOperaSync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
+        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+          return DecryptVerifyFileRpgpImpl(ctx_, in_path, out_path,
+                                           data_object);
+        }
         return DecryptVerifyFileImpl(ctx_, in_path, out_path, data_object);
       },
       "gpgme_op_decrypt_verify", "2.2.0");
