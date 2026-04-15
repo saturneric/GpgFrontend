@@ -52,7 +52,6 @@ pub struct ExtractedSubkey {
 pub struct ExtractedMetadata {
     pub fpr: String,
     pub key_id: String,
-    pub user_id: String,
     pub algo: GfrKeyAlgo,
     pub created_at: u32,
     pub has_secret: bool,
@@ -60,6 +59,7 @@ pub struct ExtractedMetadata {
     pub can_encrypt: bool,
     pub can_auth: bool,
     pub can_certify: bool,
+    pub user_ids: Vec<String>,
     pub subkeys: Vec<ExtractedSubkey>,
     pub public_key_block: String,
     pub secret_key_block: Option<String>,
@@ -150,11 +150,14 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
     }
 
     let users = &pk.details.users;
-    let user_id = users
-        .first()
-        .map(|u| String::from_utf8_lossy(u.id.id()).into_owned())
-        .unwrap_or_default();
 
+    // Extract all user IDs into a vector of strings
+    let user_ids: Vec<String> = users
+        .iter()
+        .map(|u| String::from_utf8_lossy(u.id.id()).into_owned())
+        .collect();
+
+    // Use the first user's signatures to determine primary capabilities
     let primary_user_sigs = users
         .first()
         .map(|u| u.signatures.as_slice())
@@ -164,15 +167,15 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
     ExtractedMetadata {
         fpr: pk.primary_key.fingerprint().to_string(),
         key_id: pk.primary_key.legacy_key_id().to_string(),
-        user_id,
         algo: determine_algo(pk.primary_key.public_params()),
         created_at: pk.primary_key.created_at().as_secs(),
         has_secret: true,
-        subkeys: subs,
         can_sign,
         can_encrypt,
         can_auth,
         can_certify,
+        user_ids, // Assign the collected vector here
+        subkeys: subs,
         public_key_block: pk
             .to_armored_string(ArmorOptions::default())
             .unwrap_or_default(),
@@ -200,10 +203,12 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
     }
 
     let users = &pk.details.users;
-    let user_id = users
-        .first()
+
+    // Extract all user IDs into a vector of strings
+    let user_ids: Vec<String> = users
+        .iter()
         .map(|u| String::from_utf8_lossy(u.id.id()).into_owned())
-        .unwrap_or_default();
+        .collect();
 
     let primary_user_sigs = users
         .first()
@@ -214,7 +219,7 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
     ExtractedMetadata {
         fpr: pk.primary_key.fingerprint().to_string(),
         key_id: pk.primary_key.legacy_key_id().to_string(),
-        user_id,
+        user_ids,
         algo: determine_algo(pk.primary_key.public_params()),
         created_at: pk.primary_key.created_at().as_secs(),
         has_secret: false,

@@ -327,15 +327,25 @@ pub unsafe extern "C" fn gfr_free_metadata_array(metadata_ptr: *mut GfrKeyMetada
         if !meta.key_id.is_null() {
             let _ = unsafe { CString::from_raw(meta.key_id as *mut _) };
         }
-        if !meta.user_id.is_null() {
-            let _ = unsafe { CString::from_raw(meta.user_id as *mut _) };
-        }
 
         if !meta.public_key_block.is_null() {
             let _ = unsafe { CString::from_raw(meta.public_key_block as *mut _) };
         }
         if !meta.secret_key_block.is_null() {
             let _ = unsafe { CString::from_raw(meta.secret_key_block as *mut _) };
+        }
+
+        if meta.user_ids.is_null() == false && meta.user_id_count > 0 {
+            let uids_slice =
+                unsafe { std::slice::from_raw_parts_mut(meta.user_ids, meta.user_id_count) };
+            for uid in uids_slice.iter_mut() {
+                if !uid.is_null() {
+                    let _ = unsafe { CString::from_raw(*uid as *mut _) };
+                }
+            }
+            let _ = unsafe {
+                Vec::from_raw_parts(meta.user_ids, meta.user_id_count, meta.user_id_count)
+            };
         }
 
         // Free subkeys and their strings

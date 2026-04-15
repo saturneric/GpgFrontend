@@ -36,21 +36,17 @@ use crate::{
         GfrFreeCb, GfrPasswordFetchCb, GfrPublicKeyFetchCb, GfrRecipientStatus,
         GfrSecretKeyFetchCb, GfrSignMode, GfrSignatureStatus, GfrStatus,
     },
-    utils::fetch_password_internal,
 };
-use log::debug;
 use pgp::{
     armor::Dearmor,
     composed::{
         ArmorOptions, CleartextSignedMessage, Deserializable, DetachedSignature, Message,
-        MessageBuilder, SignedPublicKey, SignedSecretKey,
+        SignedPublicKey, SignedSecretKey,
     },
-    crypto::{hash::HashAlgorithm, public_key::PublicKeyAlgorithm, sym::SymmetricKeyAlgorithm},
+    crypto::public_key::PublicKeyAlgorithm,
     packet::{Packet, PacketParser, SecretKey, SecretSubkey},
-    ser::Serialize,
-    types::{KeyDetails, Password, SecretParams},
+    types::{KeyDetails, SecretParams},
 };
-use rand::thread_rng;
 use std::{
     ffi::c_void,
     io::{Cursor, Read},
@@ -96,7 +92,7 @@ pub struct DecryptResultInternal {
 }
 
 // Helper to sniff all intended recipients from the encrypted data
-fn sniff_recipients(data: &[u8]) -> Vec<RecipientResultInternal> {
+pub fn sniff_recipients(data: &[u8]) -> Vec<RecipientResultInternal> {
     let mut results = Vec::new();
     let mut dearmored = Vec::new();
     let _ = Dearmor::new(Cursor::new(data)).read_to_end(&mut dearmored);
@@ -163,18 +159,6 @@ pub fn decrypt_internal(
         filename: stream_result.filename,
         recipients: stream_result.recipients,
     })
-}
-
-pub fn get_message_recipients_internal(data: &[u8]) -> Result<String, GfrStatus> {
-    let recipients = sniff_recipients(data);
-    let key_ids: Vec<String> = recipients.iter().map(|r| r.key_id.clone()).collect();
-
-    if key_ids.is_empty() {
-        return Err(GfrStatus::ErrorInvalidInput); // Not a valid encrypted message
-    }
-
-    // Join them with commas for easy FFI transfer (e.g., "A1B2C3D4E5F6G7H8,8H7G6F5E4D3C2B1A")
-    Ok(key_ids.join(","))
 }
 
 pub struct SignResultInternal {

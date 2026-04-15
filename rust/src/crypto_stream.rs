@@ -32,6 +32,7 @@ use crate::{
         algo_to_string_simple, cert_contains_issuer, parse_signer_block, sniff_signatures,
         with_signing_key,
     },
+    err::IntoGfrResult,
     types::{
         GfrFreeCb, GfrPasswordFetchCb, GfrPublicKeyFetchCb, GfrRecipientStatus,
         GfrSecretKeyFetchCb, GfrSignMode, GfrSignatureStatus, GfrStatus,
@@ -41,13 +42,11 @@ use crate::{
 use core::fmt;
 use log::debug;
 use pgp::{
-    armor::Dearmor,
     composed::{
         ArmorOptions, CleartextSignedMessage, Deserializable, DetachedSignature, Esk, Message,
         MessageBuilder, SignedPublicKey, SignedSecretKey,
     },
-    crypto::{hash::HashAlgorithm, public_key::PublicKeyAlgorithm, sym::SymmetricKeyAlgorithm},
-    packet::{Packet, PacketParser, SecretKey, SecretSubkey},
+    crypto::{hash::HashAlgorithm, sym::SymmetricKeyAlgorithm},
     ser::Serialize,
     types::{KeyDetails, Password, SecretParams},
 };
@@ -791,9 +790,7 @@ where
 
     // 5. Initialize streaming decryption
     let pwd_fn = Password::from(password.as_slice());
-    let mut decrypted = parsed_message
-        .decrypt(&pwd_fn, &skey)
-        .map_err(|_| GfrStatus::ErrorDecryptionFailed)?;
+    let mut decrypted = parsed_message.decrypt(&pwd_fn, &skey).into_gfr()?;
 
     for rec in &mut recipients {
         if rec.key_id == matched_recipient_id || is_anonymous(&rec.key_id) {
@@ -803,9 +800,7 @@ where
 
     // 6. Mount decompression pipeline
     if decrypted.is_compressed() {
-        decrypted = decrypted
-            .decompress()
-            .map_err(|_| GfrStatus::ErrorInternal)?;
+        decrypted = decrypted.decompress().into_gfr()?;
     }
 
     // 7. Extract filename
@@ -816,10 +811,8 @@ where
     }
 
     // 8. Stream Execution
-    std::io::copy(&mut decrypted, &mut output_stream).map_err(|_| GfrStatus::ErrorInternal)?;
-    output_stream
-        .flush()
-        .map_err(|_| GfrStatus::ErrorInternal)?;
+    std::io::copy(&mut decrypted, &mut output_stream).into_gfr()?;
+    output_stream.flush().into_gfr()?;
 
     // ==========================================
     // OPTIONAL: VERIFICATION PHASE
@@ -878,10 +871,10 @@ where
         }
 
         // Verify signatures
-        let mut update_signatures = |cert: &SignedPublicKey,
-                                     is_cert_valid: bool,
-                                     signatures: &mut Vec<SignatureResultInternal>,
-                                     is_verified: &mut bool|
+        let update_signatures = |cert: &SignedPublicKey,
+                                 is_cert_valid: bool,
+                                 signatures: &mut Vec<SignatureResultInternal>,
+                                 is_verified: &mut bool|
          -> bool {
             let mut found = false;
             for sig in signatures.iter_mut() {

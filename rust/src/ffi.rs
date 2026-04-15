@@ -29,7 +29,7 @@
 use crate::key::{
     export_merged_public_keys, export_merged_secret_keys, extract_public_key_internal,
 };
-use crate::types::{GfrKeyMetadataC, GfrStatus, GfrSubkeyMetadataC};
+use crate::types::{GfrKeyMetadataC, GfrRecipientResultC, GfrStatus, GfrSubkeyMetadataC};
 use log::LevelFilter;
 use std::slice;
 use std::{
@@ -78,7 +78,6 @@ pub extern "C" fn gfr_crypto_extract_metadata(
         for meta in meta_list {
             let c_fpr = CString::new(meta.fpr).map_err(|_| GfrStatus::ErrorInternal)?;
             let c_key_id = CString::new(meta.key_id).map_err(|_| GfrStatus::ErrorInternal)?;
-            let c_user_id = CString::new(meta.user_id).map_err(|_| GfrStatus::ErrorInternal)?;
 
             // Convert the new armored key blocks
             let c_pub_block = CString::new(meta.public_key_block)
@@ -118,11 +117,26 @@ pub extern "C" fn gfr_crypto_extract_metadata(
             let subkey_count = boxed_subkeys.len();
             std::mem::forget(boxed_subkeys); // Leak it deliberately
 
+            let mut c_user_ids = Vec::with_capacity(meta.user_ids.len());
+            for user_id in meta.user_ids {
+                c_user_ids.push(
+                    CString::new(user_id)
+                        .map_err(|_| GfrStatus::ErrorInternal)?
+                        .into_raw(),
+                );
+            }
+
+            let mut boxed_user_ids = c_user_ids.into_boxed_slice();
+            let user_ids_ptr = boxed_user_ids.as_mut_ptr();
+            let user_id_count = boxed_user_ids.len();
+            std::mem::forget(boxed_user_ids); // Leak it deliberately
+
             // Assemble the C-compatible metadata struct
             c_metadata_list.push(GfrKeyMetadataC {
                 fpr: c_fpr.into_raw(),
                 key_id: c_key_id.into_raw(),
-                user_id: c_user_id.into_raw(),
+                user_ids: user_ids_ptr,
+                user_id_count: user_id_count,
                 algo: meta.algo,
                 created_at: meta.created_at,
                 has_secret: meta.has_secret,
@@ -197,20 +211,49 @@ pub extern "C" fn gfr_crypto_extract_public_key(
 pub extern "C" fn gfr_crypto_get_recipients(
     in_data: *const u8,
     in_len: usize,
-    out_recipients: *mut *mut c_char,
+    out_recipients: *mut *mut GfrRecipientResultC, // Changed to return structured array
+    out_count: *mut usize,                         // Added to return array length
 ) -> GfrStatus {
-    let result = catch_unwind(|| -> Result<(), GfrStatus> {
-        if in_data.is_null() || out_recipients.is_null() {
+    // crate::error_handler::clear_last_error(); // Uncomment if using the new error system
+
+    let result = std::panic::catch_unwind(|| -> Result<(), GfrStatus> {
+        // 1. Check for null pointers
+        if in_data.is_null() || out_recipients.is_null() || out_count.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
-        let data_slice = unsafe { slice::from_raw_parts(in_data, in_len) };
-        let recipients_csv = crate::crypto::get_message_recipients_internal(data_slice)?;
+        let data_slice = unsafe { std::slice::from_raw_parts(in_data, in_len) };
 
-        let c_str = CString::new(recipients_csv).map_err(|_| GfrStatus::ErrorInternal)?;
-        unsafe {
-            *out_recipients = c_str.into_raw();
+        // 2. Call sniff_recipients directly to get the structured list
+        // Note: sniff_recipients does not return a Result, it returns Vec directly
+        let recipients = crate::crypto::sniff_recipients(data_slice);
+
+        if recipients.is_empty() {
+            return Err(GfrStatus::ErrorInvalidData);
         }
+
+        // 3. Map to C structures
+        let mut c_recipients = Vec::with_capacity(recipients.len());
+        for rec in recipients {
+            c_recipients.push(GfrRecipientResultC {
+                key_id: std::ffi::CString::new(rec.key_id)
+                    .unwrap_or_default()
+                    .into_raw(),
+                pub_algo: std::ffi::CString::new(rec.pub_algo)
+                    .unwrap_or_default()
+                    .into_raw(),
+                status: rec.status, // Usually defaults to NoKey at this stage
+            });
+        }
+
+        // 4. Leak the array to C
+        let mut boxed_recs = c_recipients.into_boxed_slice();
+        unsafe {
+            *out_recipients = boxed_recs.as_mut_ptr();
+            *out_count = boxed_recs.len();
+        }
+        std::mem::forget(boxed_recs);
+
         Ok(())
     });
 
