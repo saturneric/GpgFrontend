@@ -31,6 +31,7 @@ use crate::{
         decrypt_and_verify_stream_internal, encrypt_and_sign_stream_internal,
         encrypt_stream_internal, sign_stream_internal,
     },
+    err::IntoGfrResult,
     types::{
         GfrFreeCb, GfrPasswordFetchCb, GfrPublicKeyFetchCb, GfrRecipientStatus,
         GfrSecretKeyFetchCb, GfrSignMode, GfrSignatureStatus, GfrStatus,
@@ -457,7 +458,7 @@ pub fn verify_internal(
             let mut msg = Message::from_armor(Cursor::new(data))
                 .map(|(m, _)| m)
                 .or_else(|_| Message::from_bytes(data))
-                .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+                .into_gfr()?;
 
             let mut signatures = sniff_signatures(data, mode);
             let certs =
@@ -485,7 +486,7 @@ pub fn verify_internal(
                 }
             }
 
-            let clear_data = msg.as_data_vec().map_err(|_| GfrStatus::ErrorInternal)?;
+            let clear_data = msg.as_data_vec().into_gfr()?;
             Ok(VerifyResultInternal {
                 data: clear_data,
                 is_verified,
@@ -498,8 +499,7 @@ pub fn verify_internal(
         // ---------------------------------------------------------
         GfrSignMode::ClearText => {
             let text_str = std::str::from_utf8(data).map_err(|_| GfrStatus::ErrorInvalidInput)?;
-            let (msg, _) = CleartextSignedMessage::from_string(text_str)
-                .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+            let (msg, _) = CleartextSignedMessage::from_string(text_str).into_gfr()?;
 
             // Sniff directly from the parsed message
             let mut signatures = Vec::new();
@@ -559,7 +559,7 @@ pub fn verify_internal(
             let sig_msg = DetachedSignature::from_armor_single(Cursor::new(sig_data))
                 .map(|(s, _)| s)
                 .or_else(|_| DetachedSignature::from_bytes(sig_data))
-                .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+                .into_gfr()?;
 
             let mut signatures = sniff_signatures(sig_data, mode);
             let certs =
@@ -715,204 +715,37 @@ pub struct DecryptAndVerifyResultInternal {
 pub fn decrypt_and_verify_internal(
     channel: i32,
     encrypted_data: &[u8],
-    secret_key_block: &str,
+    fetch_seckey_cb: Option<GfrSecretKeyFetchCb>,
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
     fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
     free_cb: Option<GfrFreeCb>,
-    user_data: *mut c_void,
+    user_data: *mut std::ffi::c_void,
 ) -> Result<DecryptAndVerifyResultInternal, GfrStatus> {
-    // 1. Parse secret key
-    let (skey, _) =
-        SignedSecretKey::from_string(secret_key_block).map_err(|_| GfrStatus::ErrorInvalidInput)?;
+    let mut output_data = Vec::new();
 
-    // 2. Sniff recipients from outer layer
-    let mut recipients = sniff_recipients(encrypted_data);
+    let is_armor = std::str::from_utf8(encrypted_data)
+        .map(|s| s.trim_start().starts_with("-----BEGIN PGP MESSAGE-----"))
+        .unwrap_or(false);
 
-    let parsed_message = if let Ok((msg, _)) = Message::from_armor(Cursor::new(encrypted_data)) {
-        msg
-    } else if let Ok(msg) = Message::from_bytes(encrypted_data) {
-        msg
-    } else {
-        return Err(GfrStatus::ErrorInvalidInput);
-    };
+    let input_cursor = Cursor::new(encrypted_data);
 
-    // 3. Determine if we need to fetch a password
-    let mut needs_password = false;
-    let primary_id = skey.primary_key.legacy_key_id().to_string();
-    let mut target_fpr_for_pwd = skey.primary_key.fingerprint().to_string();
-
-    let is_anonymous = |id: &str| id == "0000000000000000";
-
-    if recipients
-        .iter()
-        .any(|r| r.key_id == primary_id || is_anonymous(&r.key_id))
-        && matches!(skey.primary_key.secret_params(), SecretParams::Encrypted(_))
-    {
-        needs_password = true;
-    }
-
-    if !needs_password {
-        for subkey in &skey.secret_subkeys {
-            let subkey_id = subkey.key.legacy_key_id().to_string();
-            if recipients
-                .iter()
-                .any(|r| r.key_id == subkey_id || is_anonymous(&r.key_id))
-                && matches!(subkey.key.secret_params(), SecretParams::Encrypted(_))
-            {
-                needs_password = true;
-                target_fpr_for_pwd = subkey.key.fingerprint().to_string();
-                break;
-            }
-        }
-    }
-
-    let mut password = Vec::<u8>::new();
-
-    if needs_password {
-        password = fetch_password_internal(
-            channel,
-            &target_fpr_for_pwd,
-            "Decryption & Verification",
-            fetch_pwd_cb,
-            free_cb,
-        )?;
-    } else {
-        debug!("Target secret key is unlocked. Bypassing password callback.");
-    }
-
-    // 4. Decrypt outer layer
-    let pwd_fn = Password::from(password.as_slice());
-    let mut decrypted = parsed_message
-        .decrypt(&pwd_fn, &skey)
-        .map_err(|_| GfrStatus::ErrorInternal)?;
-
-    // Update recipients
-    let subkey_ids: Vec<String> = skey
-        .secret_subkeys
-        .iter()
-        .map(|s| s.key.legacy_key_id().to_string())
-        .collect();
-
-    for rec in &mut recipients {
-        if rec.key_id == primary_id || subkey_ids.contains(&rec.key_id) {
-            rec.status = GfrRecipientStatus::Success;
-        }
-    }
-
-    // 5. Decompress if necessary
-    if decrypted.is_compressed() {
-        decrypted = decrypted
-            .decompress()
-            .map_err(|_| GfrStatus::ErrorInternal)?;
-    }
-
-    // 6. Extract filename from headers BEFORE consuming payload
-    let mut filename = String::new();
-    if let Some(header) = decrypted.literal_data_header() {
-        filename = String::from_utf8_lossy(header.file_name()).to_string();
-    }
-
-    let is_signed = decrypted.is_signed();
-
-    // 7. Consume the payload to unlock trailing signatures
-    let payload = decrypted
-        .as_data_vec()
-        .map_err(|_| GfrStatus::ErrorInternal)?;
-
-    // 8. Extract parsed signatures
-    let mut signatures = Vec::new();
-    if let pgp::composed::Message::Signed { ref reader, .. } = decrypted {
-        for i in 0..reader.num_signatures() {
-            if let Some(sig) = reader.signature(i) {
-                for issuer in sig.issuer_fingerprint() {
-                    let fpr = issuer.to_string();
-                    let (hash_algo_id, pub_algo_id) = if let Some(config) = sig.config() {
-                        (
-                            config.hash_alg.to_string(),
-                            algo_to_string_simple(config.pub_alg),
-                        )
-                    } else {
-                        (String::new(), String::new())
-                    };
-
-                    if !signatures
-                        .iter()
-                        .any(|r: &SignatureResultInternal| r.fpr == fpr)
-                    {
-                        signatures.push(SignatureResultInternal {
-                            fpr,
-                            status: GfrSignatureStatus::NoKey, // Default to NoKey
-                            created_at: sig.created().map(|d| d.as_secs() as u32).unwrap_or(0),
-                            pub_algo: pub_algo_id,
-                            hash_algo: hash_algo_id,
-                            sig_type: GfrSignMode::Inline,
-                        });
-                    }
-                }
-            }
-        }
-    }
-
-    // 9. Dynamically Fetch Public Keys via C++ Callback
-    let mut certs = Vec::new();
-    if let Some(cb) = fetch_pubkey_cb {
-        for sig in &signatures {
-            let c_fpr = std::ffi::CString::new(sig.fpr.clone()).unwrap_or_default();
-            let c_key_block = cb(c_fpr.as_ptr(), user_data);
-
-            if !c_key_block.is_null() {
-                if let Ok(key_str) = unsafe { std::ffi::CStr::from_ptr(c_key_block) }.to_str() {
-                    if let Ok((cert, _)) = SignedPublicKey::from_string(key_str) {
-                        certs.push(cert);
-                    }
-                }
-                if let Some(f_cb) = free_cb {
-                    f_cb(c_key_block as *mut c_void, user_data);
-                }
-            }
-        }
-    }
-
-    // 10. Verify Signatures with fetched certs
-    let mut is_verified = false;
-    if is_signed {
-        // Helper closure to update signature statuses uniformly
-        let update_signatures = |cert: &SignedPublicKey,
-                                 is_cert_valid: bool,
-                                 signatures: &mut Vec<SignatureResultInternal>,
-                                 is_verified: &mut bool|
-         -> bool {
-            let mut found = false;
-            for sig in signatures.iter_mut() {
-                if cert_contains_issuer(cert, &sig.fpr) {
-                    found = true;
-                    if is_cert_valid {
-                        sig.status = GfrSignatureStatus::Valid;
-                        *is_verified = true;
-                    } else if sig.status == GfrSignatureStatus::NoKey {
-                        sig.status = GfrSignatureStatus::BadSignature;
-                    }
-                }
-            }
-            found
-        };
-
-        for cert in &certs {
-            let is_cert_valid = decrypted.verify(cert).is_ok()
-                || cert
-                    .public_subkeys
-                    .iter()
-                    .any(|sk| decrypted.verify(sk).is_ok());
-
-            update_signatures(cert, is_cert_valid, &mut signatures, &mut is_verified);
-        }
-    }
+    let stream_result = crate::crypto_stream::decrypt_and_verify_stream_internal(
+        channel,
+        input_cursor,
+        &mut output_data,
+        is_armor,
+        fetch_seckey_cb,
+        fetch_pwd_cb,
+        fetch_pubkey_cb,
+        free_cb,
+        user_data,
+    )?;
 
     Ok(DecryptAndVerifyResultInternal {
-        data: payload,
-        filename,
-        recipients,
-        is_verified,
-        signatures,
+        data: output_data,
+        filename: stream_result.filename,
+        recipients: stream_result.recipients,
+        is_verified: stream_result.is_verified,
+        signatures: stream_result.signatures,
     })
 }

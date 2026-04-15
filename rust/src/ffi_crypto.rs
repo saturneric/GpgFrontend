@@ -1127,49 +1127,48 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_data(
     channel: i32,
     in_data: *const u8,
     in_len: usize,
-    secret_key: *const c_char,
+    fetch_sec_key_cb: GfrSecretKeyFetchCb,
     fetch_pwd_cb: GfrPasswordFetchCb,
-    fetch_cb: crate::types::GfrPublicKeyFetchCb,
+    fetch_pubkey_cb: crate::types::GfrPublicKeyFetchCb,
     free_cb: crate::types::GfrFreeCb,
     user_data: *mut std::ffi::c_void,
     out_result: *mut GfrDecryptAndVerifyResultC,
 ) -> GfrStatus {
-    let result = catch_unwind(|| -> Result<(), GfrStatus> {
-        if in_data.is_null() || secret_key.is_null() || out_result.is_null() {
+    let result = std::panic::catch_unwind(|| -> Result<(), GfrStatus> {
+        if in_data.is_null() || out_result.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
-        let data_slice = unsafe { slice::from_raw_parts(in_data, in_len) };
-        let skey_str = unsafe { CStr::from_ptr(secret_key) }.to_str().unwrap_or("");
+        let data_slice = unsafe { std::slice::from_raw_parts(in_data, in_len) };
 
-        // Execute core logic
         let mut internal_result = crate::crypto::decrypt_and_verify_internal(
             channel,
             data_slice,
-            skey_str,
+            Some(fetch_sec_key_cb),
             Some(fetch_pwd_cb),
-            Some(fetch_cb),
+            Some(fetch_pubkey_cb),
             Some(free_cb),
             user_data,
         )?;
 
-        // 1. Process Payload
         internal_result.data.shrink_to_fit();
         let data_ptr = internal_result.data.as_mut_ptr();
         let data_len = internal_result.data.len();
         std::mem::forget(internal_result.data);
 
-        // 2. Process Filename
-        let c_filename = CString::new(internal_result.filename)
+        let c_filename = std::ffi::CString::new(internal_result.filename)
             .unwrap_or_default()
             .into_raw();
 
-        // 3. Process Decrypt Meta (Recipients)
         let mut c_recipients = Vec::with_capacity(internal_result.recipients.len());
         for rec in internal_result.recipients {
             c_recipients.push(GfrRecipientResultC {
-                key_id: CString::new(rec.key_id).unwrap_or_default().into_raw(),
-                pub_algo: CString::new(rec.pub_algo).unwrap_or_default().into_raw(),
+                key_id: std::ffi::CString::new(rec.key_id)
+                    .unwrap_or_default()
+                    .into_raw(),
+                pub_algo: std::ffi::CString::new(rec.pub_algo)
+                    .unwrap_or_default()
+                    .into_raw(),
                 status: rec.status,
             });
         }
@@ -1178,15 +1177,20 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_data(
         let recs_count = boxed_recs.len();
         std::mem::forget(boxed_recs);
 
-        // 4. Process Verify Meta (Signatures)
         let mut c_signatures = Vec::with_capacity(internal_result.signatures.len());
         for sig in internal_result.signatures {
             c_signatures.push(GfrSignatureResultC {
-                issuer_fpr: CString::new(sig.fpr).unwrap_or_default().into_raw(),
+                issuer_fpr: std::ffi::CString::new(sig.fpr)
+                    .unwrap_or_default()
+                    .into_raw(),
                 status: sig.status,
                 created_at: sig.created_at,
-                pub_algo: CString::new(sig.pub_algo).unwrap_or_default().into_raw(),
-                hash_algo: CString::new(sig.hash_algo).unwrap_or_default().into_raw(),
+                pub_algo: std::ffi::CString::new(sig.pub_algo)
+                    .unwrap_or_default()
+                    .into_raw(),
+                hash_algo: std::ffi::CString::new(sig.hash_algo)
+                    .unwrap_or_default()
+                    .into_raw(),
                 sig_type: sig.sig_type,
             });
         }
@@ -1195,15 +1199,12 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_data(
         let sigs_count = boxed_sigs.len();
         std::mem::forget(boxed_sigs);
 
-        // 5. Populate C Struct
         unsafe {
             (*out_result).data = data_ptr;
             (*out_result).data_len = data_len;
             (*out_result).decrypt_meta.filename = c_filename;
-
             (*out_result).decrypt_meta.recipients = recs_ptr;
             (*out_result).decrypt_meta.recipient_count = recs_count;
-
             (*out_result).verify_meta.is_verified = internal_result.is_verified;
             (*out_result).verify_meta.signatures = sigs_ptr;
             (*out_result).verify_meta.signature_count = sigs_count;
