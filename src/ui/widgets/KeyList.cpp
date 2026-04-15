@@ -228,6 +228,9 @@ void KeyList::init() {
   ui_->syncButton->setHidden(
       !Module::IsEventListening("REQUEST_GET_PUBLIC_KEY_BY_KEY_ID"));
 
+  // display current gpg context channel
+  ui_->channelLcdNumber->display(current_gpg_context_channel_);
+
   // register key database refresh signal
   connect(this, &KeyList::SignalRefreshDatabase, UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefresh);
