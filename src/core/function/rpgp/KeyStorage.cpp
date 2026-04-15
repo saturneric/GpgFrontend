@@ -250,4 +250,24 @@ auto GetPublicKeysByKeyIdsForEncryption(GFKeyDatabase& key_db,
   return result;
 }
 
+auto GetSecretKeysByKeyIdForSigning(GFKeyDatabase& key_db,
+                                    const GpgAbstractKeyPtrList& key)
+    -> QContainer<QByteArray> {
+  QContainer<QByteArray> result;
+
+  for (const auto& k : key) {
+    auto key_block = key_db.GetKeyBlocks(k->Fingerprint());
+    if (!key_block || key_block->secret_key.isEmpty()) {
+      LOG_W() << "No valid secret key block found for key with fpr: "
+              << k->Fingerprint();
+      continue;
+    }
+
+    // Keep the QByteArray alive by pushing it to the vector
+    result.push_back(key_block->secret_key.toUtf8());
+  }
+
+  return result;
+}
+
 }  // namespace GpgFrontend

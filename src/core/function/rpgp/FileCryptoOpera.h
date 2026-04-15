@@ -41,4 +41,13 @@ auto DecryptFileRpgpImpl(GpgContext& ctx_, const QString& in_path,
                          const QString& out_path,
                          const DataObjectPtr& data_object) -> GpgError;
 
+auto SignFileRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& key,
+                      const QString& in_path, bool ascii,
+                      const QString& out_path, const DataObjectPtr& data_object)
+    -> GpgError;
+
+auto VerifyFileRpgpImpl(GpgContext& ctx_, const QString& data_path,
+                        const QString& sign_path,
+                        const DataObjectPtr& data_object) -> GpgError;
+
 }  // namespace GpgFrontend

@@ -247,7 +247,11 @@ void GpgFileOpera::SignFile(const GpgAbstractKeyPtrList& keys,
                             const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       GetChannel(),
-      [=](const DataObjectPtr& data_object) {
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+          return SignFileRpgpImpl(ctx_, keys, in_path, ascii, out_path,
+                                  data_object);
+        }
         return SignFileImpl(ctx_, basic_opera_, keys, in_path, ascii, out_path,
                             data_object);
       },
@@ -260,7 +264,11 @@ auto GpgFileOpera::SignFileSync(const GpgAbstractKeyPtrList& keys,
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       GetChannel(),
-      [=](const DataObjectPtr& data_object) {
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+          return SignFileRpgpImpl(ctx_, keys, in_path, ascii, out_path,
+                                  data_object);
+        }
         return SignFileImpl(ctx_, basic_opera_, keys, in_path, ascii, out_path,
                             data_object);
       },
@@ -296,6 +304,9 @@ void GpgFileOpera::VerifyFile(const QString& data_path,
   RunGpgOperaAsync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
+        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+          return VerifyFileRpgpImpl(ctx_, data_path, sign_path, data_object);
+        }
         return VerifyFileImpl(ctx_, data_path, sign_path, data_object);
       },
       cb, "gpgme_op_verify", "2.2.0");
@@ -307,6 +318,9 @@ auto GpgFileOpera::VerifyFileSync(const QString& data_path,
   return RunGpgOperaSync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
+        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+          return VerifyFileRpgpImpl(ctx_, data_path, sign_path, data_object);
+        }
         return VerifyFileImpl(ctx_, data_path, sign_path, data_object);
       },
       "gpgme_op_verify", "2.2.0");

@@ -33,6 +33,8 @@
 #include "core/function/rpgp/RustEngineCallback.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
+#include "core/model/GpgSignResult.h"
+#include "core/model/GpgVerifyResult.h"
 #include "core/utils/RustUtils.h"
 
 namespace GpgFrontend {
@@ -120,6 +122,94 @@ auto DecryptFileRpgpImpl(GpgContext& ctx_, const QString& in_path,
       GpgDecryptResult(result),
   });
 
+  return GPG_ERR_NO_ERROR;
+}
+
+auto SignFileRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
+                      const QString& in_path, bool ascii,
+                      const QString& out_path, const DataObjectPtr& data_object)
+    -> GpgError {
+  auto key_db = ctx_.KeyDatabase();
+  if (!key_db) {
+    LOG_E() << "Failed to get key database from context";
+    return GPG_ERR_GENERAL;
+  }
+
+  // For signing, we typically use the first key in the list
+  if (keys.empty()) {
+    LOG_E() << "No signing key provided.";
+    return GPG_ERR_GENERAL;
+  }
+
+  auto key_block_utf8 = GetSecretKeysByKeyIdForSigning(*key_db, keys);
+  if (key_block_utf8.isEmpty()) {
+    LOG_E() << "Failed to retrieve secret key for signing.";
+    return GPG_ERR_GENERAL;
+  }
+
+  std::vector<const char*> key_block_cstrs;
+  for (const auto& ba : key_block_utf8) {
+    key_block_cstrs.push_back(ba.constData());
+  }
+
+  auto in_file_path_utf8 = in_path.toUtf8();
+  auto out_file_path_utf8 = out_path.toUtf8();
+  Rust::GfrSignResultC sign_result;
+
+  auto status = Rust::gfr_crypto_sign_file(
+      ctx_.GetChannel(), in_file_path_utf8.constData(),
+      out_file_path_utf8.constData(), key_block_cstrs.data(),
+      key_block_cstrs.size(), FetchPasswordCallback, FreeCallback,
+      Rust::GfrSignMode::Detached, ascii, &sign_result);
+
+  if (status != Rust::GfrStatus::Success) {
+    LOG_E() << "Rust FFI signing failed.";
+    return GPG_ERR_GENERAL;
+  }
+
+  GFSignResult result = GfrSignResultC2GFSignResult(sign_result);
+  Rust::gfr_crypto_free_sign_result(&sign_result);
+
+  data_object->Swap({GpgSignResult(result)});
+  return GPG_ERR_NO_ERROR;
+}
+
+auto VerifyFileRpgpImpl(GpgContext& ctx_, const QString& data_path,
+                        const QString& sign_path,
+                        const DataObjectPtr& data_object) -> GpgError {
+  auto key_db = ctx_.KeyDatabase();
+  if (!key_db) {
+    LOG_E() << "Failed to get key database from context";
+    return GPG_ERR_GENERAL;
+  }
+
+  Rust::GfrVerifyResultC verify_result;
+  auto data_file_path_utf8 = data_path.toUtf8();
+  auto sign_file_path_utf8 = sign_path.toUtf8();
+
+  Rust::GfrStatus err;
+  if (sign_path.isEmpty()) {
+    err = Rust::gfr_crypto_verify_file(
+        data_file_path_utf8.constData(), sign_file_path_utf8.constData(),
+        nullptr, FetchPublicKeyCallback, FreeCallback, key_db.data(),
+        Rust::GfrSignMode::Inline, &verify_result);
+  } else {
+    err = Rust::gfr_crypto_verify_file(
+        data_file_path_utf8.constData(), sign_file_path_utf8.constData(),
+        nullptr, FetchPublicKeyCallback, FreeCallback, key_db.data(),
+        Rust::GfrSignMode::Detached, &verify_result);
+  }
+
+  if (err != Rust::GfrStatus::Success) {
+    LOG_E() << "Rust FFI verification failed."
+            << " Status: " << static_cast<int>(err);
+    return GPG_ERR_GENERAL;
+  }
+
+  GFVerifyResult result = GfrVerifyResultC2GFVerifyResult(verify_result);
+  Rust::gfr_crypto_free_verify_result(&verify_result);
+
+  data_object->Swap({GpgVerifyResult(result)});
   return GPG_ERR_NO_ERROR;
 }
 

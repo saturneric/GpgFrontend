@@ -77,4 +77,15 @@ auto GetPublicKeysByKeyIdsForEncryption(GFKeyDatabase& key_db,
                                         const GpgAbstractKeyPtrList& keys)
     -> QContainer<QByteArray>;
 
+/**
+ * @brief Get the Secret Keys By Key Id For Signing object
+ *
+ * @param key_db
+ * @param key
+ * @return QContainer<QByteArray>
+ */
+auto GetSecretKeysByKeyIdForSigning(GFKeyDatabase& key_db,
+                                    const GpgAbstractKeyPtrList& key)
+    -> QContainer<QByteArray>;
+
 }  // namespace GpgFrontend

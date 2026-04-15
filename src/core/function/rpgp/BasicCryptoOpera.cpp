@@ -253,7 +253,7 @@ auto VerifyRpgpImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
   auto status = Rust::gfr_crypto_verify_data(
       reinterpret_cast<const uint8_t*>(in_buffer.Data()), in_buffer.Size(),
       reinterpret_cast<const uint8_t*>(sig_buffer.Data()), sig_buffer.Size(),
-      c_verified_keys.data(), c_verified_keys.size(),
+      FetchPublicKeyCallback, FreeCallback, key_db.data(),
       sig_buffer.Empty() ? Rust::GfrSignMode::ClearText
                          : Rust::GfrSignMode::Detached,
       &verify_result);
