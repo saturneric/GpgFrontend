@@ -33,16 +33,28 @@ use std::{error::Error, ffi::c_void, os::raw::c_char};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum GfrStatus {
     Success = 0,
-    ErrorInvalidInput = -1, // invalid input (e.g., null pointers, invalid strings)
-    ErrorKeygenFailed = -2, // key generation failed
-    ErrorPasswordFailed = -3, // password setting failed
-    ErrorArmorFailed = -4,  // conversion to ASCII Armor failed
-    ErrorInternal = -5,     // internal conversion error (e.g., CString contains \0)
-    ErrorNoKey = -6,        // required key not found for operation
-    ErrorInvalidData = -7,  // data is not in expected format (e.g., not a valid OpenPGP message)
-    ErrorDecryptionFailed = -8, // decryption failed likely due to wrong key or password
-    ErrorFetchPasswordFailed = -9, // password callback failed to provide a valid password
-    ErrorPanic = -99,       // Rust internal panic
+
+    // --- General Errors ---
+    ErrorInvalidInput = -1,
+    ErrorInternal = -5,
+    ErrorPanic = -99,
+
+    // --- Key & Auth Errors ---
+    ErrorKeygenFailed = -2,
+    ErrorPasswordFailed = -3,
+    ErrorNoKey = -6,
+    ErrorFetchPasswordFailed = -9,
+    ErrorWrongPassword = -10, // Specifically for incorrect passphrase
+
+    // --- Data & Parsing Errors ---
+    ErrorArmorFailed = -4,
+    ErrorInvalidData = -7,           // General parsing error
+    ErrorDataCorrupted = -11,        // Packet checksum failed / Tampered data
+    ErrorUnsupportedAlgorithm = -12, // e.g., IDEA or old deprecated algos
+
+    // --- IO & Execution Errors ---
+    ErrorIo = -13, // File read/write failures
+    ErrorDecryptionFailed = -8,
 }
 
 impl fmt::Display for GfrStatus {
