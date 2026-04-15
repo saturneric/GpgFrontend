@@ -977,6 +977,152 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_data(
 }
 
 #[unsafe(no_mangle)]
+pub extern "C" fn gfr_crypto_encrypt_and_sign_file(
+    channel: i32,
+    in_file_path: *const c_char,
+    out_file_path: *const c_char,
+    pub_keys: *const *const c_char,
+    pub_keys_count: usize,
+    secret_keys: *const *const c_char,
+    signers_count: usize,
+    fetch_pwd_cb: GfrPasswordFetchCb,
+    free_cb: GfrFreeCb,
+    ascii: bool,
+    out_result: *mut GfrEncryptAndSignResultC,
+) -> GfrStatus {
+    let result = catch_unwind(|| -> Result<(), GfrStatus> {
+        // 1. Check for null pointers
+        if in_file_path.is_null()
+            || out_file_path.is_null()
+            || pub_keys.is_null()
+            || secret_keys.is_null()
+            || out_result.is_null()
+        {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+
+        // 2. Convert C string paths
+        let in_path_str = unsafe { std::ffi::CStr::from_ptr(in_file_path) }
+            .to_str()
+            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+        let out_path_str = unsafe { std::ffi::CStr::from_ptr(out_file_path) }
+            .to_str()
+            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+        // 3. Extract the filename from the input path to use as a PGP hint
+        let filename_hint = std::path::Path::new(in_path_str)
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy();
+
+        // 4. Safely extract public keys (Recipients)
+        let mut pkey_blocks = Vec::with_capacity(pub_keys_count);
+        unsafe {
+            let pkeys_slice = std::slice::from_raw_parts(pub_keys, pub_keys_count);
+            for &key_ptr in pkeys_slice {
+                if key_ptr.is_null() {
+                    return Err(GfrStatus::ErrorInvalidInput);
+                }
+                pkey_blocks.push(std::ffi::CStr::from_ptr(key_ptr).to_str().unwrap_or(""));
+            }
+        }
+
+        // 5. Safely extract secret keys (Signers)
+        let mut skey_blocks = Vec::with_capacity(signers_count);
+        unsafe {
+            let sk_slice = std::slice::from_raw_parts(secret_keys, signers_count);
+            for i in 0..signers_count {
+                if sk_slice[i].is_null() {
+                    return Err(GfrStatus::ErrorInvalidInput);
+                }
+                skey_blocks.push(std::ffi::CStr::from_ptr(sk_slice[i]).to_str().unwrap_or(""));
+            }
+        }
+
+        // 6. Open input and output files for streaming
+        let in_file = std::fs::File::open(in_path_str).map_err(|e| {
+            log::error!("Failed to open input file: {}", e);
+            GfrStatus::ErrorInvalidInput
+        })?;
+
+        let out_file = std::fs::File::create(out_path_str).map_err(|e| {
+            log::error!("Failed to create output file: {}", e);
+            GfrStatus::ErrorInvalidInput
+        })?;
+
+        // 7. Execute core stream logic
+        let stream_result = crate::crypto_stream::encrypt_and_sign_stream_internal(
+            channel,
+            &filename_hint,
+            in_file,
+            out_file,
+            &pkey_blocks,
+            &skey_blocks,
+            Some(fetch_pwd_cb),
+            Some(free_cb),
+            ascii,
+        )?;
+
+        // 8. Process Signatures array and leak it to C
+        let mut c_signatures = Vec::with_capacity(stream_result.signatures.len());
+        for sig in stream_result.signatures {
+            c_signatures.push(GfrSignatureResultC {
+                issuer_fpr: std::ffi::CString::new(sig.fpr)
+                    .unwrap_or_default()
+                    .into_raw(),
+                status: sig.status,
+                created_at: sig.created_at,
+                pub_algo: std::ffi::CString::new(sig.pub_algo)
+                    .unwrap_or_default()
+                    .into_raw(),
+                hash_algo: std::ffi::CString::new(sig.hash_algo)
+                    .unwrap_or_default()
+                    .into_raw(),
+                sig_type: sig.sig_type,
+            });
+        }
+        let mut boxed_sigs = c_signatures.into_boxed_slice();
+        let sigs_ptr = boxed_sigs.as_mut_ptr();
+        let sigs_count = boxed_sigs.len();
+        std::mem::forget(boxed_sigs);
+
+        // 9. Process Invalid Recipients array and leak it to C
+        let mut c_invalid_recs = Vec::with_capacity(stream_result.invalid_recipients.len());
+        for rec in stream_result.invalid_recipients {
+            c_invalid_recs.push(GfrInvalidRecipientC {
+                fpr: std::ffi::CString::new(rec.fpr)
+                    .unwrap_or_default()
+                    .into_raw(),
+                reason: rec.reason,
+            });
+        }
+        let mut boxed_recs = c_invalid_recs.into_boxed_slice();
+        let recs_ptr = boxed_recs.as_mut_ptr();
+        let recs_count = boxed_recs.len();
+        std::mem::forget(boxed_recs);
+
+        // 10. Populate the output struct safely
+        unsafe {
+            (*out_result).data = std::ptr::null_mut(); // No in-memory payload for file ops
+            (*out_result).data_len = 0;
+            (*out_result).sign_meta.signatures = sigs_ptr;
+            (*out_result).sign_meta.signature_count = sigs_count;
+            (*out_result).encrypt_meta.invalid_recipients = recs_ptr;
+            (*out_result).encrypt_meta.invalid_recipient_count = recs_count;
+        }
+
+        Ok(())
+    });
+
+    match result {
+        Ok(Ok(_)) => GfrStatus::Success,
+        Ok(Err(e)) => e,
+        Err(_) => GfrStatus::ErrorPanic,
+    }
+}
+
+#[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_decrypt_and_verify_data(
     channel: i32,
     in_data: *const u8,
@@ -1059,6 +1205,132 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_data(
             (*out_result).decrypt_meta.recipient_count = recs_count;
 
             (*out_result).verify_meta.is_verified = internal_result.is_verified;
+            (*out_result).verify_meta.signatures = sigs_ptr;
+            (*out_result).verify_meta.signature_count = sigs_count;
+        }
+
+        Ok(())
+    });
+
+    match result {
+        Ok(Ok(_)) => GfrStatus::Success,
+        Ok(Err(e)) => e,
+        Err(_) => GfrStatus::ErrorPanic,
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_crypto_decrypt_and_verify_file(
+    channel: i32,
+    in_file_path: *const c_char,
+    out_file_path: *const c_char,
+    ascii: bool,
+    fetch_sec_key_cb: GfrSecretKeyFetchCb,
+    fetch_pwd_cb: GfrPasswordFetchCb,
+    fetch_pubkey_cb: crate::types::GfrPublicKeyFetchCb,
+    free_cb: crate::types::GfrFreeCb,
+    user_data: *mut std::ffi::c_void,
+    out_result: *mut GfrDecryptAndVerifyResultC,
+) -> GfrStatus {
+    let result = catch_unwind(|| -> Result<(), GfrStatus> {
+        // 1. Check for null pointers
+        if in_file_path.is_null() || out_file_path.is_null() || out_result.is_null() {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+
+        // 2. Convert C string paths
+        let in_path_str = unsafe { std::ffi::CStr::from_ptr(in_file_path) }
+            .to_str()
+            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+        let out_path_str = unsafe { std::ffi::CStr::from_ptr(out_file_path) }
+            .to_str()
+            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+        // 3. Open input and output files for streaming
+        let in_file = std::fs::File::open(in_path_str).map_err(|e| {
+            log::error!("Failed to open input file: {}", e);
+            GfrStatus::ErrorInvalidInput
+        })?;
+
+        let out_file = std::fs::File::create(out_path_str).map_err(|e| {
+            log::error!("Failed to create output file: {}", e);
+            GfrStatus::ErrorInvalidInput
+        })?;
+
+        // 4. Execute stream logic
+        // This will read the encrypted file in chunks, decrypt it, decompress it,
+        // verify inline signatures, and write the plaintext straight to out_file.
+        let stream_result = crate::crypto_stream::decrypt_and_verify_stream_internal(
+            channel,
+            in_file,
+            out_file,
+            ascii,
+            Some(fetch_sec_key_cb),
+            Some(fetch_pwd_cb),
+            Some(fetch_pubkey_cb),
+            Some(free_cb),
+            user_data,
+        )?;
+
+        // 5. Process Filename (Extracted from literal data header)
+        let c_filename = std::ffi::CString::new(stream_result.filename)
+            .unwrap_or_default()
+            .into_raw();
+
+        // 6. Process Decrypt Meta (Recipients array)
+        let mut c_recipients = Vec::with_capacity(stream_result.recipients.len());
+        for rec in stream_result.recipients {
+            c_recipients.push(GfrRecipientResultC {
+                key_id: std::ffi::CString::new(rec.key_id)
+                    .unwrap_or_default()
+                    .into_raw(),
+                pub_algo: std::ffi::CString::new(rec.pub_algo)
+                    .unwrap_or_default()
+                    .into_raw(),
+                status: rec.status,
+            });
+        }
+        let mut boxed_recs = c_recipients.into_boxed_slice();
+        let recs_ptr = boxed_recs.as_mut_ptr();
+        let recs_count = boxed_recs.len();
+        std::mem::forget(boxed_recs); // Leak array to C
+
+        // 7. Process Verify Meta (Signatures array)
+        let mut c_signatures = Vec::with_capacity(stream_result.signatures.len());
+        for sig in stream_result.signatures {
+            c_signatures.push(GfrSignatureResultC {
+                issuer_fpr: std::ffi::CString::new(sig.fpr)
+                    .unwrap_or_default()
+                    .into_raw(),
+                status: sig.status,
+                created_at: sig.created_at,
+                pub_algo: std::ffi::CString::new(sig.pub_algo)
+                    .unwrap_or_default()
+                    .into_raw(),
+                hash_algo: std::ffi::CString::new(sig.hash_algo)
+                    .unwrap_or_default()
+                    .into_raw(),
+                sig_type: sig.sig_type,
+            });
+        }
+        let mut boxed_sigs = c_signatures.into_boxed_slice();
+        let sigs_ptr = boxed_sigs.as_mut_ptr();
+        let sigs_count = boxed_sigs.len();
+        std::mem::forget(boxed_sigs); // Leak array to C
+
+        // 8. Populate C Struct safely
+        unsafe {
+            (*out_result).data = std::ptr::null_mut(); // No in-memory payload for file ops
+            (*out_result).data_len = 0;
+
+            // Fill decryption metadata
+            (*out_result).decrypt_meta.filename = c_filename;
+            (*out_result).decrypt_meta.recipients = recs_ptr;
+            (*out_result).decrypt_meta.recipient_count = recs_count;
+
+            // Fill verification metadata
+            (*out_result).verify_meta.is_verified = stream_result.is_verified;
             (*out_result).verify_meta.signatures = sigs_ptr;
             (*out_result).verify_meta.signature_count = sigs_count;
         }
