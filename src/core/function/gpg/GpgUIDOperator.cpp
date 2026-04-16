@@ -29,35 +29,22 @@
 #include "GpgUIDOperator.h"
 
 #include "core/function/gpg/GpgAutomatonHandler.h"
+#include "core/function/rpgp/UserIdOpera.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
 
-GpgUIDOperator::GpgUIDOperator(int channel)
-    : SingletonFunctionObject<GpgUIDOperator>(channel) {}
+namespace {
 
-auto GpgUIDOperator::AddUID(const GpgKeyPtr& key, const QString& uid) -> bool {
-  auto err = gpgme_op_adduid(ctx_.DefaultContext(),
+auto AddUIDGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key, const QString& uid)
+    -> bool {
+  auto err = gpgme_op_adduid(ctx.DefaultContext(),
                              static_cast<gpgme_key_t>(*key), uid.toUtf8(), 0);
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
-auto GpgUIDOperator::SetPrimaryUID(const GpgKeyPtr& key,
-                                   const QString& uid) -> bool {
-  auto err = CheckGpgError(gpgme_op_set_uid_flag(
-      ctx_.DefaultContext(), static_cast<gpgme_key_t>(*key), uid.toUtf8(),
-      "primary", nullptr));
-  return CheckGpgError(err) == GPG_ERR_NO_ERROR;
-}
-
-auto GpgUIDOperator::AddUID(const GpgKeyPtr& key, const QString& name,
-                            const QString& comment,
-                            const QString& email) -> bool {
-  LOG_D() << "new uuid:" << name << comment << email;
-  return AddUID(key, QString("%1(%2)<%3>").arg(name).arg(comment).arg(email));
-}
-
-auto GpgUIDOperator::DeleteUID(const GpgKeyPtr& key, int uid_index) -> bool {
+auto DeleteUIDGnuPGImpl(GpgAutomatonHandler& auto_hdlr, const GpgKeyPtr& key,
+                        int uid_index) -> bool {
   if (uid_index < 2 || uid_index > static_cast<int>(key->UIDs().size())) {
     LOG_W() << "illegal uid_index index: " << uid_index;
     return false;
@@ -129,13 +116,14 @@ auto GpgUIDOperator::DeleteUID(const GpgKeyPtr& key, int uid_index) -> bool {
         return QString("");
       };
 
-  auto [err, succ] = auto_.DoInteract(key, next_state_handler, action_handler);
+  auto [err, succ] =
+      auto_hdlr.DoInteract(key, next_state_handler, action_handler);
   return err == GPG_ERR_NO_ERROR && succ;
 }
 
-auto GpgUIDOperator::RevokeUID(const GpgKeyPtr& key, int uid_index,
-                               int reason_code,
-                               const QString& reason_text) -> bool {
+auto RevokeUIDGnuPGImpl(GpgAutomatonHandler& auto_hdlr, const GpgKeyPtr& key,
+                        int uid_index, int reason_code,
+                        const QString& reason_text) -> bool {
   if (uid_index < 2 || uid_index > static_cast<int>(key->UIDs().size())) {
     LOG_W() << "illegal uid index: " << uid_index;
     return false;
@@ -244,8 +232,58 @@ auto GpgUIDOperator::RevokeUID(const GpgKeyPtr& key, int uid_index,
         return QString("");
       };
 
-  auto [err, succ] = auto_.DoInteract(key, next_state_handler, action_handler);
+  auto [err, succ] =
+      auto_hdlr.DoInteract(key, next_state_handler, action_handler);
   return err == GPG_ERR_NO_ERROR && succ;
+}
+
+}  // namespace
+
+GpgUIDOperator::GpgUIDOperator(int channel)
+    : SingletonFunctionObject<GpgUIDOperator>(channel) {}
+
+auto GpgUIDOperator::AddUID(const GpgKeyPtr& key, const QString& uid) -> bool {
+  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+    return AddUIDRpgpImpl(ctx_, key, uid);
+  }
+  return AddUIDGnuPGImpl(ctx_, key, uid);
+}
+
+auto GpgUIDOperator::SetPrimaryUID(const GpgKeyPtr& key, const QString& uid)
+    -> bool {
+  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+    LOG_W() << "SetPrimaryUID is not supported in RPGP backend";
+    return false;
+  }
+
+  auto err = CheckGpgError(gpgme_op_set_uid_flag(
+      ctx_.DefaultContext(), static_cast<gpgme_key_t>(*key), uid.toUtf8(),
+      "primary", nullptr));
+  return CheckGpgError(err) == GPG_ERR_NO_ERROR;
+}
+
+auto GpgUIDOperator::AddUID(const GpgKeyPtr& key, const QString& name,
+                            const QString& comment, const QString& email)
+    -> bool {
+  LOG_D() << "new uuid:" << name << comment << email;
+  return AddUID(key, QString("%1(%2)<%3>").arg(name).arg(comment).arg(email));
+}
+
+auto GpgUIDOperator::DeleteUID(const GpgKeyPtr& key, int uid_index) -> bool {
+  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+    return DeleteUIDRpgpImpl(ctx_, key, uid_index);
+  }
+  return DeleteUIDGnuPGImpl(auto_, key, uid_index);
+}
+
+auto GpgUIDOperator::RevokeUID(const GpgKeyPtr& key, int uid_index,
+                               int reason_code, const QString& reason_text)
+    -> bool {
+  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+    LOG_W() << "RevokeUID is not supported in RPGP backend";
+    return false;
+  }
+  return RevokeUIDGnuPGImpl(auto_, key, uid_index, reason_code, reason_text);
 }
 
 }  // namespace GpgFrontend
