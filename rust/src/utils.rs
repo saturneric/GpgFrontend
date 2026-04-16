@@ -83,6 +83,6 @@ pub fn fetch_password_internal(
     // 2. NOW FREE THE MEMORY in C++
     free_fn(pwd_ptr as *mut std::ffi::c_void, null_mut());
 
-    debug!("Fetched password for decryption via callback");
+    log::debug!("Fetched password via callback");
     Ok(password)
 }

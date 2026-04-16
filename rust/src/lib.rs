@@ -30,6 +30,7 @@ pub mod ffi;
 pub mod ffi_crypto;
 pub mod ffi_keygen;
 pub mod ffi_mem;
+pub mod ffi_user_id;
 
 pub mod crypto;
 pub mod crypto_stream;
@@ -37,4 +38,5 @@ pub mod err;
 pub mod key;
 pub mod keygen;
 pub mod types;
+pub mod user_id;
 pub mod utils;
