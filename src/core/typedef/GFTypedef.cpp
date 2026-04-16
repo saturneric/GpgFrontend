@@ -26,7 +26,7 @@
  *
  */
 
-#pragma once
+#include "GFTypedef.h"
 
 #include "core/utils/GpgUtils.h"
 
@@ -40,6 +40,7 @@ GFUserId::GFUserId(QString name, QString email, QString comment,
       email(std::move(email)),
       comment(std::move(comment)),
       is_primary(is_primary) {}
+
 [[nodiscard]] auto GFUserId::ToString() const -> QString {
   if (comment.isEmpty()) {
     return QString("%1<%2>").arg(name, email);

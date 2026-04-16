@@ -61,13 +61,13 @@ auto GFKeyDatabase::GetMetadataList() -> QList<GFKeyMetadata> {
       GFKeyMetadata meta;
       meta.fpr = query.value(0).toString();
       meta.key_id = query.value(1).toString();
-      meta.algo = query.value(3).toInt();
-      meta.created_at = query.value(4).toLongLong();
-      meta.has_secret = query.value(5).toBool();
-      meta.can_sign = query.value(6).toBool();
-      meta.can_encrypt = query.value(7).toBool();
-      meta.can_auth = query.value(8).toBool();
-      meta.can_certify = query.value(9).toBool();
+      meta.algo = query.value(2).toInt();
+      meta.created_at = query.value(3).toLongLong();
+      meta.has_secret = query.value(4).toBool();
+      meta.can_sign = query.value(5).toBool();
+      meta.can_encrypt = query.value(6).toBool();
+      meta.can_auth = query.value(7).toBool();
+      meta.can_certify = query.value(8).toBool();
 
       auto raw_user_ids = load_user_ids_for_parent(meta.fpr);
       for (const auto& uid : qAsConst(raw_user_ids)) {
@@ -212,10 +212,9 @@ auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
     INSERT INTO user_ids (fpr, user_id) VALUES (:fpr, :user_id)
   )");
 
-  auto raw_user_ids = load_user_ids_for_parent(meta.fpr);
-  for (const auto& uid : raw_user_ids) {
+  for (const auto& uid : meta.user_ids) {
     uid_insert_query.bindValue(":fpr", meta.fpr.toUpper());
-    uid_insert_query.bindValue(":user_id", uid);
+    uid_insert_query.bindValue(":user_id", uid.ToString());
     if (!uid_insert_query.exec()) {
       LOG_E() << "SaveKey user_id error: "
               << uid_insert_query.lastError().text();
@@ -294,7 +293,7 @@ auto GFKeyDatabase::GetKeyMetadata(const QString& identifier)
   // FPR
   QSqlQuery query(db_);
   query.prepare(R"(
-    SELECT fpr, key_id, user_id, algo, created_at, has_secret, 
+    SELECT fpr, key_id, algo, created_at, has_secret, 
            can_sign, can_encrypt, can_auth, can_certify 
     FROM key_metadata WHERE fpr = :fpr
   )");
@@ -305,17 +304,16 @@ auto GFKeyDatabase::GetKeyMetadata(const QString& identifier)
     GFKeyMetadata meta;
     meta.fpr = query.value(0).toString();
     meta.key_id = query.value(1).toString();
-
-    meta.algo = query.value(3).toInt();
-    meta.created_at = query.value(4).toLongLong();
-    meta.has_secret = query.value(5).toBool();
-    meta.can_sign = query.value(6).toBool();
-    meta.can_encrypt = query.value(7).toBool();
-    meta.can_auth = query.value(8).toBool();
-    meta.can_certify = query.value(9).toBool();
+    meta.algo = query.value(2).toInt();
+    meta.created_at = query.value(3).toLongLong();
+    meta.has_secret = query.value(4).toBool();
+    meta.can_sign = query.value(5).toBool();
+    meta.can_encrypt = query.value(6).toBool();
+    meta.can_auth = query.value(7).toBool();
+    meta.can_certify = query.value(8).toBool();
 
     // Load user IDs
-    QStringList raw_user_ids = load_user_ids_for_parent(meta.fpr);
+    auto raw_user_ids = load_user_ids_for_parent(meta.fpr);
     for (const auto& uid_str : raw_user_ids) {
       meta.user_ids.push_back(GFUserId(uid_str));
     }
@@ -352,7 +350,6 @@ auto GFKeyDatabase::create_table() -> bool {
     CREATE TABLE IF NOT EXISTS key_metadata (
       fpr TEXT PRIMARY KEY COLLATE NOCASE,
       key_id TEXT NOT NULL COLLATE NOCASE,
-      user_id TEXT,
       algo INTEGER,
       created_at INTEGER,
       has_secret INTEGER DEFAULT 0,
@@ -503,10 +500,18 @@ auto GFKeyDatabase::ResolvePrimaryFpr(const QString& identifier) -> QString {
 
 auto GFKeyDatabase::load_user_ids_for_parent(const QString& fpr)
     -> QStringList {
+  auto real_primary_fpr = ResolvePrimaryFpr(fpr);
+  if (real_primary_fpr.isEmpty()) {
+    LOG_W()
+        << "Attempted to load user IDs for non-existent key with identifier: "
+        << fpr;
+    return {};
+  }
+
   QStringList uids;
   QSqlQuery query(db_);
   query.prepare("SELECT user_id FROM user_ids WHERE fpr = :fpr");
-  query.bindValue(":fpr", fpr);
+  query.bindValue(":fpr", real_primary_fpr);
 
   if (query.exec()) {
     while (query.next()) {
