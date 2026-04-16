@@ -65,88 +65,30 @@ pub struct EncryptStreamResultInternal {
 pub fn encrypt_stream_internal<R, W>(
     filename_hint: &str,
     input_stream: R,
-    mut output_stream: W,
+    output_stream: W,
     public_key_blocks: &[&str],
     ascii_armor: bool,
 ) -> Result<EncryptStreamResultInternal, GfrStatus>
 where
-    R: Read,
-    W: Write,
+    R: Read + Send + Sync,
+    W: Write + Send + Sync,
 {
-    let mut rng = thread_rng();
+    // Delegate to the shared engine, passing empty arrays for signing
+    let result = encrypt_and_sign_stream_internal(
+        0, // Dummy channel
+        filename_hint,
+        input_stream,
+        output_stream,
+        public_key_blocks,
+        &[], // Empty secret keys skips the signing phase!
+        None,
+        None,
+        ascii_armor,
+    )?;
 
-    let mut builder = MessageBuilder::from_reader(filename_hint.as_bytes().to_vec(), input_stream);
-
-    builder
-        .partial_chunk_size(512 * 1024)
-        .map_err(|_| GfrStatus::ErrorInternal)?;
-
-    let mut enc_builder = builder.seipd_v1(&mut rng, SymmetricKeyAlgorithm::AES256);
-
-    let mut has_recipient = false;
-    let mut invalid_recipients = Vec::new();
-
-    for block in public_key_blocks {
-        match SignedPublicKey::from_string(block) {
-            Ok((cert, _)) => {
-                let mut added_for_this_cert = false;
-                let fpr = cert.primary_key.fingerprint().to_string();
-
-                for subkey in &cert.public_subkeys {
-                    if subkey.key.algorithm().can_encrypt() {
-                        if enc_builder.encrypt_to_key(&mut rng, subkey).is_ok() {
-                            added_for_this_cert = true;
-                            has_recipient = true;
-                            break;
-                        }
-                    }
-                }
-
-                if !added_for_this_cert && cert.primary_key.algorithm().can_encrypt() {
-                    if enc_builder
-                        .encrypt_to_key(&mut rng, &cert.primary_key)
-                        .is_ok()
-                    {
-                        added_for_this_cert = true;
-                        has_recipient = true;
-                    }
-                }
-
-                if !added_for_this_cert {
-                    invalid_recipients.push(InvalidRecipientInternal {
-                        fpr,
-                        reason: GfrStatus::ErrorNoKey,
-                    });
-                }
-            }
-            Err(_) => {
-                invalid_recipients.push(InvalidRecipientInternal {
-                    fpr: String::from("Unknown"),
-                    reason: GfrStatus::ErrorInvalidData,
-                });
-            }
-        }
-    }
-
-    if !has_recipient {
-        return Err(GfrStatus::ErrorInvalidInput);
-    }
-
-    let result = if ascii_armor {
-        enc_builder.to_armored_writer(&mut rng, ArmorOptions::default(), &mut output_stream)
-    } else {
-        enc_builder.to_writer(&mut rng, &mut output_stream)
-    };
-
-    if result.is_err() {
-        return Err(GfrStatus::ErrorInternal);
-    }
-
-    if output_stream.flush().is_err() {
-        return Err(GfrStatus::ErrorInternal);
-    }
-
-    Ok(EncryptStreamResultInternal { invalid_recipients })
+    Ok(EncryptStreamResultInternal {
+        invalid_recipients: result.invalid_recipients,
+    })
 }
 
 /// Package a directory as a Tar and encrypt it as a stream
@@ -570,12 +512,12 @@ pub struct EncryptAndSignStreamResultInternal {
 }
 
 pub fn encrypt_and_sign_stream_internal<R, W>(
-    channel: i32, // Added for callback context
+    channel: i32,
     name: &str,
     input_stream: R,
     mut output_stream: W,
     public_key_blocks: &[&str],
-    secret_key_blocks: &[&str],
+    secret_key_blocks: &[&str], // If empty, performs ENCRYPT ONLY
     fetch_cb: Option<GfrPasswordFetchCb>,
     free_cb: Option<GfrFreeCb>,
     ascii_armor: bool,
@@ -584,20 +526,9 @@ where
     R: Read + Send + Sync,
     W: Write + Send + Sync,
 {
-    // Check if we have at least one secret key to sign with
-    if secret_key_blocks.is_empty() {
-        return Err(GfrStatus::ErrorInvalidInput);
-    }
-
     let mut rng = thread_rng();
     let filename_bytes = name.as_bytes().to_vec();
 
-    // 1. Initialize the builder with the streaming payload
-    // Using from_reader hooks up the input stream to the pipeline
-    let mut builder = MessageBuilder::from_reader(filename_bytes, input_stream);
-
-    // 2. Process Signers FIRST (Signing must wrap the payload before encryption)
-    // Using the robust parse_signer_block for exact subkey target matching (!)
     let mut parsed_skeys = Vec::with_capacity(secret_key_blocks.len());
     for block in secret_key_blocks {
         let (target, armor_block) = parse_signer_block(block);
@@ -606,65 +537,66 @@ where
         parsed_skeys.push((skey, target));
     }
 
+    let mut builder = MessageBuilder::from_reader(filename_bytes, input_stream);
+    builder.partial_chunk_size(512 * 1024).into_gfr()?; // Set chunk size to 512KB for better performance on large files
+
     let mut created_signatures = Vec::new();
-    let current_time = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_secs() as u32;
 
-    let mut record_sig = |fpr: String, algo_str: String| {
-        created_signatures.push(SignatureResultInternal {
-            fpr,
-            status: GfrSignatureStatus::Valid,
-            created_at: current_time,
-            pub_algo: algo_str,
-            hash_algo: "SHA512".to_string(),
-            sig_type: GfrSignMode::Inline, // Encrypt+Sign is always Inline nested
-        });
-    };
+    // 3. Process signing if secret keys are provided (if empty, skip signing)
+    if !parsed_skeys.is_empty() {
+        let current_time = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as u32;
 
-    // Helper closure to dynamically fetch password for signing keys
-    let fetch_pwd_for_key = |is_encrypted: bool, fpr: &str| -> Result<Password, GfrStatus> {
-        if is_encrypted {
-            let pwd_bytes = fetch_password_internal(channel, fpr, "Signing", fetch_cb, free_cb)?;
-            Ok(Password::from(pwd_bytes.as_slice()))
-        } else {
-            debug!("Target secret key is unlocked. Bypassing password callback for signing.");
-            Ok(Password::empty())
+        let fetch_pwd_for_key = |is_encrypted: bool, fpr: &str| -> Result<Password, GfrStatus> {
+            if is_encrypted {
+                let pwd_bytes =
+                    fetch_password_internal(channel, fpr, "Signing", fetch_cb, free_cb)?;
+                Ok(Password::from(pwd_bytes.as_slice()))
+            } else {
+                debug!("Target secret key is unlocked. Bypassing password callback for signing.");
+                Ok(Password::empty())
+            }
+        };
+
+        let mut at_least_one_signer = false;
+
+        // Iterate over all parsed secret keys and apply signatures to the builder
+        for (skey, target) in &parsed_skeys {
+            with_signing_key(skey, target.as_deref(), |selected_key| {
+                let fpr = selected_key.fpr();
+                let is_enc = selected_key.is_encrypted();
+                let algo_str = algo_to_string_simple(selected_key.algorithm());
+                let pwd = fetch_pwd_for_key(is_enc, &fpr)?;
+
+                // rpgp's builder API will handle the streaming signing
+                // internally, we just need to call sign() for each key
+                match selected_key {
+                    SelectedKey::Primary(k) => builder.sign(k, pwd, HashAlgorithm::Sha512),
+                    SelectedKey::Sub(k) => builder.sign(k, pwd, HashAlgorithm::Sha512),
+                };
+
+                created_signatures.push(SignatureResultInternal {
+                    fpr,
+                    status: GfrSignatureStatus::Valid,
+                    created_at: current_time,
+                    pub_algo: algo_str,
+                    hash_algo: "SHA512".to_string(),
+                    sig_type: GfrSignMode::Inline,
+                });
+                at_least_one_signer = true;
+                Ok(())
+            })?;
         }
-    };
 
-    let mut at_least_one_signer = false;
-
-    // Iterate over each provided signing key
-    for (skey, target) in &parsed_skeys {
-        with_signing_key(skey, target.as_deref(), |selected_key| {
-            let fpr = selected_key.fpr();
-            let is_enc = selected_key.is_encrypted();
-            let algo_str = algo_to_string_simple(selected_key.algorithm());
-            let pwd = fetch_pwd_for_key(is_enc, &fpr)?;
-
-            // Apply the signature to the streaming pipeline
-            match selected_key {
-                SelectedKey::Primary(k) => builder.sign(k, pwd, HashAlgorithm::Sha512),
-                SelectedKey::Sub(k) => builder.sign(k, pwd, HashAlgorithm::Sha512),
-            };
-
-            record_sig(fpr, algo_str);
-            at_least_one_signer = true;
-            Ok(())
-        })?;
+        if !at_least_one_signer {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
     }
 
-    if !at_least_one_signer {
-        return Err(GfrStatus::ErrorInvalidInput); // Missing valid signing key
-    }
-
-    // 3. Transition the Builder into Encryption Mode
-    // This wraps the signed inner payload into an encrypted outer envelope
     let mut enc_builder = builder.seipd_v1(&mut rng, SymmetricKeyAlgorithm::AES256);
 
-    // 4. Process Recipients
     let mut has_recipient = false;
     let mut invalid_recipients = Vec::new();
 
@@ -711,23 +643,19 @@ where
     }
 
     if !has_recipient {
-        return Err(GfrStatus::ErrorInvalidInput); // Missing valid encryption key
+        return Err(GfrStatus::ErrorInvalidInput);
     }
 
-    // 5. Finalize the nested payload and stream to output
     let result = if ascii_armor {
         enc_builder.to_armored_writer(&mut rng, ArmorOptions::default(), &mut output_stream)
     } else {
         enc_builder.to_writer(&mut rng, &mut output_stream)
     };
 
-    if result.is_err() {
-        return Err(GfrStatus::ErrorInternal);
-    }
-
-    if output_stream.flush().is_err() {
-        return Err(GfrStatus::ErrorInternal);
-    }
+    result.map_err(|_| GfrStatus::ErrorInternal)?;
+    output_stream
+        .flush()
+        .map_err(|_| GfrStatus::ErrorInternal)?;
 
     Ok(EncryptAndSignStreamResultInternal {
         signatures: created_signatures,
