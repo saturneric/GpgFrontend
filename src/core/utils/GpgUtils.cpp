@@ -549,4 +549,15 @@ auto ParseUserId(const QString& raw_id) -> GFUserId {
   return uid;
 }
 
+auto ConvertPGPBackendType2String(PGPBackendType type) -> QString {
+  switch (type) {
+    case PGPBackendType::kGNUPG:
+      return "GnuPG";
+    case PGPBackendType::kRPGP:
+      return "RPGP";
+    default:
+      return "Unknown";
+  }
+}
+
 }  // namespace GpgFrontend

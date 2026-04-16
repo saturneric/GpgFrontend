@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/GpgCoreRust.h"
+#include "core/function/gpg/GpgContext.h"
 #include "core/model/GpgAbstractKey.h"
 #include "core/model/KeyDatabaseInfo.h"
 #include "core/struct/settings_object/KeyDatabaseItemSO.h"
@@ -252,4 +253,13 @@ auto GF_CORE_EXPORT GnuPGVersion() -> QString;
  * @return GFUserId
  */
 auto GF_CORE_EXPORT ParseUserId(const QString& raw_id) -> GFUserId;
+
+/**
+ * @brief
+ *
+ * @param type
+ * @return QString
+ */
+auto GF_CORE_EXPORT ConvertPGPBackendType2String(PGPBackendType type)
+    -> QString;
 }  // namespace GpgFrontend

@@ -101,8 +101,11 @@ void KeyList::init() {
     LOG_D() << "context grt channel: " << channel
             << "database name: " << key_db_name;
 
-    auto* switch_context_action =
-        new QAction(QString("%1: %2").arg(channel).arg(key_db_name), this);
+    auto bnd_type = ConvertPGPBackendType2String(
+        GpgContext::GetInstance(channel).BackendType());
+    auto* switch_context_action = new QAction(
+        QString("[%2]: %3 (%1)").arg(bnd_type).arg(channel).arg(key_db_name),
+        this);
     switch_context_action->setCheckable(true);
     switch_context_action->setChecked(channel == current_gpg_context_channel_);
     connect(switch_context_action, &QAction::toggled, this,
