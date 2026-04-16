@@ -97,22 +97,33 @@ auto FetchPasswordCallback(int channel, const char* fpr, const char* info,
                                                         false, false);
 
   QEventLoop loop;
+  QTimer timeout_timer;
+  timeout_timer.setSingleShot(true);
+  QObject::connect(&timeout_timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+
   QObject::connect(
       CoreSignalStation::GetInstance(),
       &CoreSignalStation::SignalUserInputPassphraseReady, &loop,
       [&result_pwd, &c,
        &loop](const QSharedPointer<GpgPassphraseContext>& ctx) -> void {
         if (ctx->GetKey() == nullptr ||
-            ctx->GetKey()->ID() == c->GetKey()->ID()) {
+            (c->GetKey() != nullptr &&
+             ctx->GetKey()->ID() == c->GetKey()->ID())) {
           result_pwd = ctx->GetPassphrase();
         }
         loop.quit();
       });
 
-  emit CoreSignalStation::GetInstance()->SignalNeedUserInputPassphrase(c);
+  QTimer::singleShot(0, [c]() -> void {
+    emit CoreSignalStation::GetInstance()->SignalNeedUserInputPassphrase(c);
+  });
+
+  timeout_timer.start(60000);
   loop.exec();
+  timeout_timer.stop();
 
   if (result_pwd.isEmpty()) {
+    *out_pwd = nullptr;
     return 0;
   }
 

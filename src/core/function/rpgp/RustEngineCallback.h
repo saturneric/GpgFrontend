@@ -29,6 +29,7 @@
 #pragma once
 
 namespace GpgFrontend {
+
 extern "C" {
 
 /**
@@ -41,11 +42,11 @@ extern "C" {
 auto FetchPublicKeyCallback(const char* fpr, void* user_data) -> char*;
 
 /**
- * @brief 
- * 
- * @param fpr 
- * @param user_data 
- * @return char* 
+ * @brief
+ *
+ * @param fpr
+ * @param user_data
+ * @return char*
  */
 auto FetchSecretKeyCallback(const char* fpr, void* user_data) -> char*;
 
@@ -65,4 +66,5 @@ void FreeCallback(void* ptr, void*);
 auto FetchPasswordCallback(int channel, const char* fpr, const char* info,
                            uint8_t** out_pwd, void* /*user_data*/) -> int;
 }
+
 }  // namespace GpgFrontend
