@@ -57,8 +57,8 @@ auto EncryptFileRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
  * @param data_object
  * @return GpgError
  */
-auto DecryptFileRpgpImpl(GpgContext& ctx_, const QString& in_path,
-                         const QString& out_path,
+auto DecryptFileRpgpImpl(GpgContext& ctx_, bool is_archive,
+                         const QString& in_path, const QString& out_path,
                          const DataObjectPtr& data_object) -> GpgError;
 
 /**
@@ -118,8 +118,8 @@ auto EncryptSignFileRpgpImpl(GpgContext& ctx,
  * @param data_object
  * @return GpgError
  */
-auto DecryptVerifyFileRpgpImpl(GpgContext& ctx, const QString& in_path,
-                               const QString& out_path,
+auto DecryptVerifyFileRpgpImpl(GpgContext& ctx, bool is_archive,
+                               const QString& in_path, const QString& out_path,
                                const DataObjectPtr& data_object) -> GpgError;
 
 }  // namespace GpgFrontend

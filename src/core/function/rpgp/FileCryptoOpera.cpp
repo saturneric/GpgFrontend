@@ -50,8 +50,7 @@ auto EncryptFileRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
   }
 
   // 1. Vector to hold the actual memory of the UTF-8 strings
-  QContainer<QByteArray> key_blocks_utf8 =
-      GetPublicKeysByKeyIdsForEncryption(*key_db, keys);
+  auto key_blocks_utf8 = GetPublicKeysByKeyIdsForEncryption(*key_db, keys);
   if (key_blocks_utf8.empty()) {
     LOG_E() << "No valid recipients found for encryption.";
     return GPG_ERR_GENERAL;  // Or appropriate error code
@@ -67,12 +66,23 @@ auto EncryptFileRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
   auto in_file_path_utf8 = in_path.toUtf8();
   auto out_file_path_utf8 = out_path.toUtf8();
   Rust::GfrEncryptResultC encrypt_result;
+  Rust::GfrStatus status;
 
-  // Call Rust FFI. Ensure in_buffer is a null-terminated C-string if Rust
-  // expects it.
-  auto status = Rust::gfr_crypto_encrypt_file(
-      in_file_path_utf8.constData(), out_file_path_utf8.constData(),
-      recipient_cstrs.data(), recipient_cstrs.size(), ascii, &encrypt_result);
+  auto is_directory = QFileInfo(in_path).isDir();
+  if (is_directory) {
+    // For directory encryption, we need to create a tar archive in memory first
+    // and then pass it to the Rust FFI. The Rust FFI will handle the encryption
+    // of the tar archive.
+    status = Rust::gfr_crypto_encrypt_directory(
+        in_file_path_utf8.constData(), out_file_path_utf8.constData(),
+        recipient_cstrs.data(), recipient_cstrs.size(), ascii, &encrypt_result);
+  } else {
+    // Call Rust FFI. Ensure in_buffer is a null-terminated C-string if Rust
+    // expects it.
+    status = Rust::gfr_crypto_encrypt_file(
+        in_file_path_utf8.constData(), out_file_path_utf8.constData(),
+        recipient_cstrs.data(), recipient_cstrs.size(), ascii, &encrypt_result);
+  }
 
   if (status != Rust::GfrStatus::Success) {
     LOG_E() << "Rust FFI encryption failed.";
@@ -86,8 +96,8 @@ auto EncryptFileRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
   return GPG_ERR_NO_ERROR;
 }
 
-auto DecryptFileRpgpImpl(GpgContext& ctx_, const QString& in_path,
-                         const QString& out_path,
+auto DecryptFileRpgpImpl(GpgContext& ctx_, bool is_archive,
+                         const QString& in_path, const QString& out_path,
                          const DataObjectPtr& data_object) -> GpgError {
   auto key_db = ctx_.KeyDatabase();
   if (!key_db) {
@@ -100,31 +110,25 @@ auto DecryptFileRpgpImpl(GpgContext& ctx_, const QString& in_path,
 
   Rust::GfrDecryptResultC decrypt_result;
   memset(&decrypt_result, 0, sizeof(decrypt_result));
+  Rust::GfrStatus err;
 
-  auto err = Rust::gfr_crypto_decrypt_file(
-      ctx_.GetChannel(), in_file_path_utf8.constData(),
-      out_file_path_utf8.constData(), false, FetchSecretKeyCallback,
-      FetchPasswordCallback, FreeCallback, key_db.data(), &decrypt_result);
-
-  if (err != Rust::GfrStatus::Success) {
-    if (err == Rust::GfrStatus::ErrorDecryptionFailed) {
-      data_object->Swap({GpgDecryptResult{}, GFBuffer()});
-      return GPG_ERR_BAD_PASSPHRASE;
-    }
-
-    LOG_E() << "Rust FFI decryption failed."
-            << " Status: " << static_cast<int>(err);
-    return GPG_ERR_GENERAL;
+  if (is_archive) {
+    err = Rust::gfr_crypto_decrypt_archive(
+        ctx_.GetChannel(), in_file_path_utf8.constData(),
+        out_file_path_utf8.constData(), false, FetchSecretKeyCallback,
+        FetchPasswordCallback, FreeCallback, key_db.data(), &decrypt_result);
+  } else {
+    err = Rust::gfr_crypto_decrypt_file(
+        ctx_.GetChannel(), in_file_path_utf8.constData(),
+        out_file_path_utf8.constData(), false, FetchSecretKeyCallback,
+        FetchPasswordCallback, FreeCallback, key_db.data(), &decrypt_result);
   }
 
   auto [gf_err, result] =
       HandleDecryptResult(*key_db, GFBuffer{}, err, decrypt_result);
   Rust::gfr_crypto_free_decrypt_result(&decrypt_result);
 
-  data_object->Swap({
-      GpgDecryptResult(result),
-      result.data,
-  });
+  data_object->Swap({GpgDecryptResult(result)});
   return gf_err;
 }
 
@@ -275,14 +279,24 @@ auto EncryptSignFileRpgpImpl(GpgContext& ctx,
     c_skeys.push_back(i.constData());
   }
 
+  Rust::GfrStatus err;
   QString name;
   Rust::GfrEncryptAndSignResultC encrypt_sign_result;
 
-  auto err = Rust::gfr_crypto_encrypt_and_sign_file(
-      ctx.GetChannel(), in_path.toUtf8().constData(),
-      out_path.toUtf8().constData(), recipient_cstrs.data(),
-      recipient_cstrs.size(), c_skeys.data(), c_skeys.size(),
-      FetchPasswordCallback, FreeCallback, ascii, &encrypt_sign_result);
+  bool is_directory = QFileInfo(in_path).isDir();
+  if (is_directory) {
+    err = Rust::gfr_crypto_encrypt_and_sign_directory(
+        ctx.GetChannel(), in_path.toUtf8().constData(),
+        out_path.toUtf8().constData(), recipient_cstrs.data(),
+        recipient_cstrs.size(), c_skeys.data(), c_skeys.size(),
+        FetchPasswordCallback, FreeCallback, ascii, &encrypt_sign_result);
+  } else {
+    err = Rust::gfr_crypto_encrypt_and_sign_file(
+        ctx.GetChannel(), in_path.toUtf8().constData(),
+        out_path.toUtf8().constData(), recipient_cstrs.data(),
+        recipient_cstrs.size(), c_skeys.data(), c_skeys.size(),
+        FetchPasswordCallback, FreeCallback, ascii, &encrypt_sign_result);
+  }
 
   if (err != Rust::GfrStatus::Success) {
     LOG_E() << "Rust FFI encrypt_and_sign failed with status: "
@@ -302,8 +316,8 @@ auto EncryptSignFileRpgpImpl(GpgContext& ctx,
   return GPG_ERR_NO_ERROR;
 }
 
-auto DecryptVerifyFileRpgpImpl(GpgContext& ctx, const QString& in_path,
-                               const QString& out_path,
+auto DecryptVerifyFileRpgpImpl(GpgContext& ctx, bool is_archive,
+                               const QString& in_path, const QString& out_path,
                                const DataObjectPtr& data_object) -> GpgError {
   auto key_db = ctx.KeyDatabase();
   if (!key_db) {
@@ -314,14 +328,23 @@ auto DecryptVerifyFileRpgpImpl(GpgContext& ctx, const QString& in_path,
   auto in_file_path_utf8 = in_path.toUtf8();
   auto out_file_path_utf8 = out_path.toUtf8();
 
+  Rust::GfrStatus err;
   Rust::GfrDecryptAndVerifyResultC decrypt_verify_result;
   memset(&decrypt_verify_result, 0, sizeof(decrypt_verify_result));
 
-  auto err = Rust::gfr_crypto_decrypt_and_verify_file(
-      ctx.GetChannel(), in_file_path_utf8.constData(),
-      out_file_path_utf8.constData(), false, FetchSecretKeyCallback,
-      FetchPasswordCallback, FetchPublicKeyCallback, FreeCallback,
-      key_db.data(), &decrypt_verify_result);
+  if (is_archive) {
+    err = Rust::gfr_crypto_decrypt_and_verify_archive(
+        ctx.GetChannel(), in_file_path_utf8.constData(),
+        out_file_path_utf8.constData(), false, FetchSecretKeyCallback,
+        FetchPasswordCallback, FetchPublicKeyCallback, FreeCallback,
+        key_db.data(), &decrypt_verify_result);
+  } else {
+    err = Rust::gfr_crypto_decrypt_and_verify_file(
+        ctx.GetChannel(), in_file_path_utf8.constData(),
+        out_file_path_utf8.constData(), false, FetchSecretKeyCallback,
+        FetchPasswordCallback, FetchPublicKeyCallback, FreeCallback,
+        key_db.data(), &decrypt_verify_result);
+  }
 
   auto [gf_err, decrypt_result] =
       HandleDecryptResult(*key_db, GFBuffer{}, err,

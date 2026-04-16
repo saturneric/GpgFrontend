@@ -220,13 +220,15 @@ auto HandleDecryptResult(GFKeyDatabase& key_db, const GFBuffer& in_buffer,
     if (err == Rust::GfrStatus::ErrorNoKey) {
       LOG_E() << "Decryption failed: Incorrect passphrase or bad key.";
 
+      bool has_valid_recipient = false;
       result.recipients = SniffRecipients(key_db, in_buffer);
       for (auto& rec : result.recipients) {
         if (rec.status != GPG_ERR_NO_KEY) {
           rec.status = GPG_ERR_BAD_PASSPHRASE;
+          has_valid_recipient = true;
         }
       }
-      gf_err = GPG_ERR_BAD_PASSPHRASE;
+      gf_err = has_valid_recipient ? GPG_ERR_BAD_PASSPHRASE : GPG_ERR_NO_KEY;
       goto end;
     }
 
