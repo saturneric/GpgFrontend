@@ -151,15 +151,35 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
 
     let users = &pk.details.users;
 
-    // Extract all user IDs into a vector of strings
-    let user_ids: Vec<String> = users
+    // find primary user ID index (the one with the IsPrimary flag set). If
+    // multiple have it, take the first. If none have it, default to index 0.
+    let mut primary_idx = 0;
+    for (i, user) in users.iter().enumerate() {
+        let has_primary_flag = user.is_primary();
+
+        if has_primary_flag {
+            primary_idx = i;
+            break;
+        }
+    }
+
+    // extract all user IDs into a vector of strings
+    let mut user_ids: Vec<String> = users
         .iter()
         .map(|u| String::from_utf8_lossy(u.id.id()).into_owned())
         .collect();
 
-    // Use the first user's signatures to determine primary capabilities
-    let primary_user_sigs = users
-        .first()
+    // if the detected primary UID is not already the first one, reorder the
+    // vector so that it is. This ensures the primary UID is always at index 0
+    // in our output, which simplifies capability extraction later.
+    if primary_idx != 0 && primary_idx < user_ids.len() {
+        let primary_uid = user_ids.remove(primary_idx);
+        user_ids.insert(0, primary_uid);
+    }
+
+    // use the signatures of the actual primary user ID (after reordering) to determine capabilities
+    let primary_user_sigs: &[pgp::packet::Signature] = users
+        .get(primary_idx)
         .map(|u| u.signatures.as_slice())
         .unwrap_or(&[]);
     let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(primary_user_sigs);
@@ -204,14 +224,35 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
 
     let users = &pk.details.users;
 
-    // Extract all user IDs into a vector of strings
-    let user_ids: Vec<String> = users
+    // find primary user ID index (the one with the IsPrimary flag set). If
+    // multiple have it, take the first. If none have it, default to index 0.
+    let mut primary_idx = 0;
+    for (i, user) in users.iter().enumerate() {
+        let has_primary_flag = user.is_primary();
+
+        if has_primary_flag {
+            primary_idx = i;
+            break;
+        }
+    }
+
+    // extract all user IDs into a vector of strings
+    let mut user_ids: Vec<String> = users
         .iter()
         .map(|u| String::from_utf8_lossy(u.id.id()).into_owned())
         .collect();
 
-    let primary_user_sigs = users
-        .first()
+    // if the detected primary UID is not already the first one, reorder the
+    // vector so that it is. This ensures the primary UID is always at index 0
+    // in our output, which simplifies capability extraction later.
+    if primary_idx != 0 && primary_idx < user_ids.len() {
+        let primary_uid = user_ids.remove(primary_idx);
+        user_ids.insert(0, primary_uid);
+    }
+
+    // use the signatures of the actual primary user ID (after reordering) to determine capabilities
+    let primary_user_sigs: &[pgp::packet::Signature] = users
+        .get(primary_idx)
         .map(|u| u.signatures.as_slice())
         .unwrap_or(&[]);
     let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(primary_user_sigs);

@@ -26,7 +26,10 @@
  *
  */
 use crate::types::{GfrFreeCb, GfrStatus};
-use crate::user_id::{add_user_id_internal, delete_user_id_internal, update_user_id_internal};
+use crate::user_id::{
+    add_user_id_internal, delete_user_id_internal, set_primary_user_id_internal,
+    update_user_id_internal,
+};
 use crate::{err::clear_last_error, types::GfrPasswordFetchCb};
 use std::{
     ffi::{CStr, CString, c_char},
@@ -146,6 +149,53 @@ pub extern "C" fn gfr_crypto_update_user_id(
 
         unsafe {
             *out_block = CString::new(new_block).unwrap_or_default().into_raw();
+        }
+
+        Ok(())
+    });
+
+    match result {
+        Ok(Ok(_)) => GfrStatus::Success,
+        Ok(Err(e)) => e,
+        Err(_) => GfrStatus::ErrorPanic,
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_crypto_set_primary_user_id(
+    channel: i32,
+    secret_key_block: *const std::os::raw::c_char,
+    target_uid: *const std::os::raw::c_char,
+    fetch_pwd_cb: crate::types::GfrPasswordFetchCb,
+    free_cb: crate::types::GfrFreeCb,
+    out_block: *mut *mut std::os::raw::c_char,
+) -> GfrStatus {
+    // crate::error_handler::clear_last_error();
+
+    let result = std::panic::catch_unwind(|| -> Result<(), GfrStatus> {
+        if secret_key_block.is_null() || target_uid.is_null() || out_block.is_null() {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+
+        let block_str = unsafe { std::ffi::CStr::from_ptr(secret_key_block) }
+            .to_str()
+            .unwrap_or("");
+        let uid_str = unsafe { std::ffi::CStr::from_ptr(target_uid) }
+            .to_str()
+            .unwrap_or("");
+
+        let new_block = set_primary_user_id_internal(
+            channel,
+            block_str,
+            uid_str,
+            Some(fetch_pwd_cb),
+            Some(free_cb),
+        )?;
+
+        unsafe {
+            *out_block = std::ffi::CString::new(new_block)
+                .unwrap_or_default()
+                .into_raw();
         }
 
         Ok(())

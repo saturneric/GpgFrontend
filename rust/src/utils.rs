@@ -27,7 +27,6 @@
  */
 
 use crate::types::{GfrFreeCb, GfrPasswordFetchCb, GfrStatus};
-use log::debug;
 use std::{
     ffi::{CString, c_char},
     ptr::null_mut,
