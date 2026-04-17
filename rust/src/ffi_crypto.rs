@@ -1739,3 +1739,180 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_archive(
         Err(_) => GfrStatus::ErrorPanic,
     }
 }
+
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_crypto_encrypt_data_symmetric(
+    channel: i32,
+    name: *const c_char,
+    in_data: *const u8,
+    in_len: usize,
+    ascii: bool,
+    fetch_pwd_cb: GfrPasswordFetchCb,
+    free_cb: GfrFreeCb,
+    out_result: *mut GfrEncryptResultC,
+) -> GfrStatus {
+    let result = catch_unwind(|| -> Result<(), GfrStatus> {
+        if name.is_null() || in_data.is_null() || out_result.is_null() {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+
+        let name_str = unsafe { CStr::from_ptr(name) }
+            .to_str()
+            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+        let data_slice = unsafe { slice::from_raw_parts(in_data, in_len) };
+
+        let mut out_buf = Vec::new();
+
+        crypto_stream::encrypt_stream_with_password_internal(
+            channel,
+            name_str,
+            data_slice,
+            &mut out_buf,
+            Some(fetch_pwd_cb),
+            Some(free_cb),
+            ascii,
+        )?;
+
+        out_buf.shrink_to_fit();
+        let data_ptr = out_buf.as_mut_ptr();
+        let data_len = out_buf.len();
+        std::mem::forget(out_buf);
+
+        unsafe {
+            (*out_result).data = data_ptr;
+            (*out_result).data_len = data_len;
+            (*out_result).meta.invalid_recipients = std::ptr::null_mut();
+            (*out_result).meta.invalid_recipient_count = 0;
+        }
+
+        Ok(())
+    });
+
+    match result {
+        Ok(Ok(_)) => GfrStatus::Success,
+        Ok(Err(e)) => e,
+        Err(_) => GfrStatus::ErrorPanic,
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_crypto_encrypt_file_symmetric(
+    channel: i32,
+    in_file_path: *const c_char,
+    out_file_path: *const c_char,
+    ascii: bool,
+    fetch_pwd_cb: GfrPasswordFetchCb,
+    free_cb: GfrFreeCb,
+    out_result: *mut GfrEncryptResultC,
+) -> GfrStatus {
+    let result = catch_unwind(|| -> Result<(), GfrStatus> {
+        // 1. Null pointer checks
+        if in_file_path.is_null() || out_file_path.is_null() || out_result.is_null() {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+
+        // 2. Convert C strings to Rust string slices
+        let in_path_str = unsafe { CStr::from_ptr(in_file_path) }
+            .to_str()
+            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+        let out_path_str = unsafe { CStr::from_ptr(out_file_path) }
+            .to_str()
+            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+        // 3. Extract filename hint from input path
+        let filename_hint = Path::new(in_path_str)
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy();
+
+        // 4. Open input and output files
+        let in_file = File::open(in_path_str).map_err(|e| {
+            log::error!("Failed to open input file: {}", e);
+            GfrStatus::ErrorInvalidInput
+        })?;
+
+        let out_file = File::create(out_path_str).map_err(|e| {
+            log::error!("Failed to create output file: {}", e);
+            GfrStatus::ErrorInvalidInput
+        })?;
+
+        // 5. Execute streaming symmetric encryption
+        crypto_stream::encrypt_stream_with_password_internal(
+            channel,
+            &filename_hint,
+            in_file,
+            out_file,
+            Some(fetch_pwd_cb),
+            Some(free_cb),
+            ascii,
+        )?;
+
+        // 6. Populate output metadata
+        // Symmetric encryption has no recipients, so return empty metadata
+        unsafe {
+            (*out_result).data = std::ptr::null_mut();
+            (*out_result).data_len = 0;
+            (*out_result).meta.invalid_recipients = std::ptr::null_mut();
+            (*out_result).meta.invalid_recipient_count = 0;
+        }
+
+        Ok(())
+    });
+
+    match result {
+        Ok(Ok(_)) => GfrStatus::Success,
+        Ok(Err(e)) => e,
+        Err(_) => GfrStatus::ErrorPanic,
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_crypto_encrypt_directory_symmetric(
+    channel: i32,
+    in_dir_path: *const c_char,
+    out_file_path: *const c_char,
+    ascii: bool,
+    fetch_pwd_cb: GfrPasswordFetchCb,
+    free_cb: GfrFreeCb,
+    out_result: *mut GfrEncryptResultC,
+) -> GfrStatus {
+    let result = catch_unwind(|| -> Result<(), GfrStatus> {
+        if in_dir_path.is_null() || out_file_path.is_null() || out_result.is_null() {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+
+        let in_path_str = unsafe { CStr::from_ptr(in_dir_path) }
+            .to_str()
+            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+        let out_path_str = unsafe { CStr::from_ptr(out_file_path) }
+            .to_str()
+            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+        crypto_stream::encrypt_directory_with_password_internal(
+            channel,
+            in_path_str,
+            out_path_str,
+            Some(fetch_pwd_cb),
+            Some(free_cb),
+            ascii,
+        )?;
+
+        unsafe {
+            (*out_result).data = std::ptr::null_mut();
+            (*out_result).data_len = 0;
+            (*out_result).meta.invalid_recipients = std::ptr::null_mut();
+            (*out_result).meta.invalid_recipient_count = 0;
+        }
+
+        Ok(())
+    });
+
+    match result {
+        Ok(Ok(_)) => GfrStatus::Success,
+        Ok(Err(e)) => e,
+        Err(_) => GfrStatus::ErrorPanic,
+    }
+}

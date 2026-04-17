@@ -48,7 +48,7 @@ use pgp::{
     },
     crypto::{hash::HashAlgorithm, sym::SymmetricKeyAlgorithm},
     ser::Serialize,
-    types::{KeyDetails, Password, SecretParams},
+    types::{KeyDetails, Password, SecretParams, StringToKey},
 };
 use rand::thread_rng;
 use std::{
@@ -746,6 +746,64 @@ pub struct DecryptAndVerifyStreamResultInternal {
     pub signatures: Vec<SignatureResultInternal>,
 }
 
+fn analyze_encrypted_envelope(
+    parsed_message: &Message,
+) -> Result<(bool, bool, Vec<RecipientResultInternal>), GfrStatus> {
+    let mut has_pkesk = false;
+    let mut has_skesk = false;
+    let mut recipients = Vec::new();
+
+    if let Message::Encrypted { esk, .. } = parsed_message {
+        for e in esk {
+            match e {
+                Esk::PublicKeyEncryptedSessionKey(pkesk) => {
+                    has_pkesk = true;
+
+                    if let Ok(id) = pkesk.id() {
+                        let algo = pkesk
+                            .algorithm()
+                            .map(algo_to_string_simple)
+                            .unwrap_or_default();
+
+                        recipients.push(RecipientResultInternal {
+                            key_id: id.to_string(),
+                            pub_algo: algo,
+                            status: GfrRecipientStatus::NoKey,
+                        });
+                    }
+                }
+                Esk::SymKeyEncryptedSessionKey(_) => {
+                    has_skesk = true;
+                }
+            }
+        }
+
+        return Ok((has_pkesk, has_skesk, recipients));
+    }
+
+    Err(GfrStatus::ErrorInvalidData)
+}
+
+fn decrypt_message_with_password(
+    channel: i32,
+    parsed_message: Message,
+    fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+    free_cb: Option<GfrFreeCb>,
+) -> Result<Message, GfrStatus> {
+    let password =
+        fetch_password_internal(channel, "", "Symmetric Decryption", fetch_pwd_cb, free_cb)?;
+
+    if password.is_empty() {
+        return Err(GfrStatus::ErrorInvalidInput);
+    }
+
+    let msg_pw = Password::from(password.as_slice());
+
+    parsed_message
+        .decrypt_with_password(&msg_pw)
+        .map_err(|_| GfrStatus::ErrorDecryptionFailed)
+}
+
 pub fn decrypt_and_verify_stream_internal<R, W>(
     channel: i32,
     input_stream: R,
@@ -774,103 +832,90 @@ where
             .0
     };
 
-    // 2. Extract recipient Key IDs
-    let mut recipients = Vec::new();
-    if let Message::Encrypted { esk, .. } = &parsed_message {
-        for e in esk {
-            if let Esk::PublicKeyEncryptedSessionKey(pkesk) = e {
-                if let Ok(id) = pkesk.id() {
-                    let algo = pkesk
-                        .algorithm()
-                        .map(algo_to_string_simple)
-                        .unwrap_or_default();
-                    recipients.push(RecipientResultInternal {
-                        key_id: id.to_string(),
-                        pub_algo: algo,
-                        status: GfrRecipientStatus::NoKey,
-                    });
-                }
-            }
-        }
-    }
-
-    if recipients.is_empty() {
+    let (_, has_skesk, mut recipients) = analyze_encrypted_envelope(&parsed_message)?;
+    if !has_skesk && recipients.is_empty() {
         return Err(GfrStatus::ErrorInvalidData);
     }
 
-    // 3. Request Secret Key from C++
-    let mut target_skey: Option<SignedSecretKey> = None;
-    let mut matched_recipient_id = String::new();
+    let mut decrypted: Message;
+    if has_skesk {
+        debug!("Message is encrypted with a passphrase. Attempting password-based decryption.");
+        decrypted = decrypt_message_with_password(channel, parsed_message, fetch_pwd_cb, free_cb)?;
+    } else {
+        // 3. Request Secret Key from C++
+        let mut target_skey: Option<SignedSecretKey> = None;
+        let mut matched_recipient_id = String::new();
 
-    if let Some(cb) = fetch_seckey_cb {
-        for rec in &recipients {
-            let c_key_id = CString::new(rec.key_id.clone()).unwrap_or_default();
-            let c_key_block = cb(c_key_id.as_ptr(), user_data);
+        if let Some(cb) = fetch_seckey_cb {
+            for rec in &recipients {
+                let c_key_id = CString::new(rec.key_id.clone()).unwrap_or_default();
+                let c_key_block = cb(c_key_id.as_ptr(), user_data);
 
-            if !c_key_block.is_null() {
-                if let Ok(key_str) = unsafe { CStr::from_ptr(c_key_block) }.to_str() {
-                    if let Ok((cert, _)) = SignedSecretKey::from_string(key_str) {
-                        target_skey = Some(cert);
-                        matched_recipient_id = rec.key_id.clone();
+                if !c_key_block.is_null() {
+                    if let Ok(key_str) = unsafe { CStr::from_ptr(c_key_block) }.to_str() {
+                        if let Ok((cert, _)) = SignedSecretKey::from_string(key_str) {
+                            target_skey = Some(cert);
+                            matched_recipient_id = rec.key_id.clone();
+                        }
+                    }
+                    if let Some(f_cb) = free_cb {
+                        f_cb(c_key_block as *mut c_void, user_data);
+                    }
+                    if target_skey.is_some() {
+                        break;
                     }
                 }
-                if let Some(f_cb) = free_cb {
-                    f_cb(c_key_block as *mut c_void, user_data);
-                }
-                if target_skey.is_some() {
+            }
+        }
+
+        let skey = target_skey.ok_or(GfrStatus::ErrorNoKey)?;
+
+        // 4. Check if unlocking is needed
+        let mut needs_password = false;
+        let primary_id = skey.primary_key.legacy_key_id().to_string();
+        let is_anonymous = |id: &str| id == "0000000000000000";
+        let mut target_fpr_for_pwd = skey.primary_key.fingerprint().to_string();
+
+        if (matched_recipient_id == primary_id || is_anonymous(&matched_recipient_id))
+            && matches!(skey.primary_key.secret_params(), SecretParams::Encrypted(_))
+        {
+            needs_password = true;
+        }
+
+        if !needs_password {
+            for subkey in &skey.secret_subkeys {
+                let subkey_id = subkey.key.legacy_key_id().to_string();
+                if (matched_recipient_id == subkey_id || is_anonymous(&matched_recipient_id))
+                    && matches!(subkey.key.secret_params(), SecretParams::Encrypted(_))
+                {
+                    needs_password = true;
+                    target_fpr_for_pwd = subkey.key.fingerprint().to_string();
                     break;
                 }
             }
         }
-    }
 
-    let skey = target_skey.ok_or(GfrStatus::ErrorNoKey)?;
-
-    // 4. Check if unlocking is needed
-    let mut needs_password = false;
-    let primary_id = skey.primary_key.legacy_key_id().to_string();
-    let is_anonymous = |id: &str| id == "0000000000000000";
-    let mut target_fpr_for_pwd = skey.primary_key.fingerprint().to_string();
-
-    if (matched_recipient_id == primary_id || is_anonymous(&matched_recipient_id))
-        && matches!(skey.primary_key.secret_params(), SecretParams::Encrypted(_))
-    {
-        needs_password = true;
-    }
-
-    if !needs_password {
-        for subkey in &skey.secret_subkeys {
-            let subkey_id = subkey.key.legacy_key_id().to_string();
-            if (matched_recipient_id == subkey_id || is_anonymous(&matched_recipient_id))
-                && matches!(subkey.key.secret_params(), SecretParams::Encrypted(_))
-            {
-                needs_password = true;
-                target_fpr_for_pwd = subkey.key.fingerprint().to_string();
-                break;
-            }
+        let mut password = Vec::<u8>::new();
+        if needs_password {
+            password = fetch_password_internal(
+                channel,
+                &target_fpr_for_pwd,
+                "Decryption",
+                fetch_pwd_cb,
+                free_cb,
+            )?;
+        } else {
+            debug!("Target secret key is unlocked. Bypassing password callback.");
         }
-    }
 
-    let mut password = Vec::<u8>::new();
-    if needs_password {
-        password = fetch_password_internal(
-            channel,
-            &target_fpr_for_pwd,
-            "Decryption",
-            fetch_pwd_cb,
-            free_cb,
-        )?;
-    } else {
-        debug!("Target secret key is unlocked. Bypassing password callback.");
-    }
+        // 5. Initialize streaming decryption
+        let pwd_fn = Password::from(password.as_slice());
+        decrypted = parsed_message.decrypt(&pwd_fn, &skey).into_gfr()?;
 
-    // 5. Initialize streaming decryption
-    let pwd_fn = Password::from(password.as_slice());
-    let mut decrypted = parsed_message.decrypt(&pwd_fn, &skey).into_gfr()?;
-
-    for rec in &mut recipients {
-        if rec.key_id == matched_recipient_id || is_anonymous(&rec.key_id) {
-            rec.status = GfrRecipientStatus::Success;
+        for rec in &mut recipients {
+            if rec.key_id == matched_recipient_id || is_anonymous(&rec.key_id) {
+                rec.status = GfrRecipientStatus::Success;
+            }
         }
     }
 
@@ -1004,7 +1049,6 @@ pub fn decrypt_and_verify_archive_internal(
     if !out_dir.exists() {
         std::fs::create_dir_all(out_dir).map_err(|e| {
             log::error!("Failed to create output directory: {}", e);
-            // 如果你使用了上一步的新错误处理，这里可以用:
             set_last_error(&e.to_string());
             crate::types::GfrStatus::ErrorIo
         })?;
@@ -1026,8 +1070,8 @@ pub fn decrypt_and_verify_archive_internal(
     log::info!("Decrypting file into temporary archive...");
     let stream_result = crate::crypto_stream::decrypt_and_verify_stream_internal(
         channel,
-        in_file,           // 从加密文件读
-        &mut temp_archive, // 写入临时文件
+        in_file,
+        &mut temp_archive,
         ascii_armor,
         fetch_seckey_cb,
         fetch_pwd_cb,
@@ -1060,4 +1104,142 @@ pub fn decrypt_and_verify_archive_internal(
         is_verified: stream_result.is_verified,
         signatures: stream_result.signatures,
     })
+}
+
+pub struct SymmetricEncryptStreamResultInternal {}
+
+pub struct SymmetricDecryptStreamResultInternal {
+    pub filename: String,
+}
+
+pub struct SymmetricEncryptAndSignStreamResultInternal {
+    pub signatures: Vec<SignatureResultInternal>,
+}
+
+pub struct SymmetricDecryptAndVerifyStreamResultInternal {
+    pub filename: String,
+    pub is_verified: bool,
+    pub signatures: Vec<SignatureResultInternal>,
+}
+
+pub fn encrypt_stream_with_password_internal<R, W>(
+    channel: i32,
+    name: &str,
+    input_stream: R,
+    mut output_stream: W,
+    fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+    free_cb: Option<GfrFreeCb>,
+    ascii_armor: bool,
+) -> Result<(), GfrStatus>
+where
+    R: Read + Send + Sync,
+    W: Write + Send + Sync,
+{
+    let mut rng = thread_rng();
+    let filename_bytes = name.as_bytes().to_vec();
+
+    let mut builder = MessageBuilder::from_reader(filename_bytes, input_stream);
+    builder.partial_chunk_size(512 * 1024).into_gfr()?;
+
+    let mut enc_builder = builder.seipd_v1(&mut rng, SymmetricKeyAlgorithm::AES256);
+
+    let password: Vec<u8> =
+        fetch_password_internal(channel, "", "Symmetric Encryption", fetch_pwd_cb, free_cb)?;
+    if password.is_empty() {
+        return Err(GfrStatus::ErrorInvalidInput);
+    }
+
+    let msg_pw = Password::from(password.as_slice());
+
+    let s2k = StringToKey::new_argon2(&mut rng, 1, 4, 21);
+
+    enc_builder.encrypt_with_password(s2k, &msg_pw).into_gfr()?;
+
+    let result = if ascii_armor {
+        enc_builder.to_armored_writer(&mut rng, ArmorOptions::default(), &mut output_stream)
+    } else {
+        enc_builder.to_writer(&mut rng, &mut output_stream)
+    };
+
+    result.map_err(|_| GfrStatus::ErrorInternal)?;
+    output_stream
+        .flush()
+        .map_err(|_| GfrStatus::ErrorInternal)?;
+    Ok(())
+}
+
+/// Package a directory as a Tar and encrypt it as a stream
+pub fn encrypt_directory_with_password_internal(
+    channel: i32,
+    in_dir_path: &str,
+    out_file_path: &str,
+    fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+    free_cb: Option<GfrFreeCb>,
+    ascii_armor: bool,
+) -> Result<SymmetricEncryptStreamResultInternal, crate::types::GfrStatus> {
+    let dir_path = Path::new(in_dir_path);
+    if !dir_path.is_dir() {
+        log::error!("Input path is not a directory: {}", in_dir_path);
+        return Err(crate::types::GfrStatus::ErrorInvalidInput);
+    }
+
+    // 1. Generate an embedded PGP filename hint (e.g., "my_folder.tar")
+    let dir_name = dir_path
+        .file_name()
+        .unwrap_or_default()
+        .to_string_lossy()
+        .to_string();
+    let filename_hint = format!("{}.tar", dir_name);
+
+    // 2. Create a system-level anonymous temporary file
+    // It is on disk, will not cause OOM, and will be automatically destroyed by the OS when the handle is closed
+    let mut temp_archive = tempfile::tempfile().map_err(|e| {
+        log::error!("Failed to create temp file for tar: {}", e);
+        set_last_error(&e.to_string());
+        crate::types::GfrStatus::ErrorIo
+    })?;
+
+    // 3. Build the Tar archive and write it directly into the anonymous temporary file
+    log::info!("Building tar archive for directory: {}", in_dir_path);
+    let mut tar_builder = tar::Builder::new(&temp_archive);
+
+    // Recursively package all contents of the folder
+    // The second parameter is the relative root directory path inside the tar archive, usually set to the folder's own name
+    tar_builder.append_dir_all(".", dir_path).map_err(|e| {
+        log::error!("Failed to build tar archive: {}", e);
+        // crate::error_handler::set_last_error(&e.to_string());
+        crate::types::GfrStatus::ErrorIo
+    })?;
+
+    // Force completion of writing and flush
+    tar_builder
+        .into_inner()
+        .map_err(|_| crate::types::GfrStatus::ErrorIo)?;
+
+    // 4. Move the cursor of the temporary file back to the beginning, preparing for the PGP engine to read
+    temp_archive
+        .seek(SeekFrom::Start(0))
+        .map_err(|_| crate::types::GfrStatus::ErrorIo)?;
+
+    // 5. Open the final output file
+    let out_file = File::create(out_file_path).map_err(|e| {
+        log::error!("Failed to create output file: {}", e);
+        set_last_error(&e.to_string());
+        crate::types::GfrStatus::ErrorIo
+    })?;
+
+    // 6. Call the existing stream encryption engine
+    // This perfectly reuses the previously written stream interface!
+    log::info!("Encrypting tar archive...");
+    encrypt_stream_with_password_internal(
+        channel,
+        &filename_hint,
+        temp_archive,
+        out_file,
+        fetch_pwd_cb,
+        free_cb,
+        ascii_armor,
+    )?;
+
+    Ok(SymmetricEncryptStreamResultInternal {})
 }
