@@ -28,8 +28,6 @@
 
 #include "UserInterfaceUtils.h"
 
-#include <cstddef>
-
 #include "core/GpgConstants.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/gpg/GpgAbstractKeyGetter.h"
@@ -41,14 +39,14 @@
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/typedef/GpgTypedef.h"
-#include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
-#include "dialog/import_export/KeyImportDetailDialog.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/KeyGroupManageDialog.h"
+#include "ui/dialog/PassphraseDialog.h"
 #include "ui/dialog/WaitingDialog.h"
 #include "ui/dialog/controller/GnuPGControllerDialog.h"
+#include "ui/dialog/import_export/KeyImportDetailDialog.h"
 #include "ui/dialog/keypair_details/KeyDetailsDialog.h"
 
 namespace GpgFrontend::UI {
@@ -133,29 +131,26 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
       CoreSignalStation::GetInstance(),
       &CoreSignalStation::SignalNeedUserInputPassphrase,
       QApplication::instance(),
-      [=](const QSharedPointer<GpgPassphraseContext> &c)
+      [](const QSharedPointer<GpgPassphraseContext> &c) {
+        if (!c) return;
 
-          -> void {
-        bool ok;
+        QWidget *parent_widget = QApplication::activeWindow();
+        PassphraseDialog dialog(c, parent_widget);
 
-        QString label = tr("Enter passphrase for: ") + "\n" +
-                        QString("%1").arg(c->GetPassphraseInfo()) + "\n";
+        if (dialog.exec() == QDialog::Accepted) {
+          auto result_pwd = dialog.Passphrase();
+          if (!result_pwd.isEmpty()) {
+            c->SetPassphrase(result_pwd);
+          } else {
+            c->SetPassphrase(QString());
+          }
 
-        if (c->GetKey() != nullptr) {
-          label += tr("Key ID: %1").arg(c->GetKey()->ID()) + "\n";
-          label += tr("Key UID: %1").arg(c->GetKey()->UID()) + "\n";
+          result_pwd.fill(u'\0');
+          result_pwd.clear();
+        } else {
+          c->SetPassphrase(QString());
         }
 
-        // TODO: For absolute highest security, avoid QInputDialog.
-        auto result_pwd =
-            QInputDialog::getText(nullptr, tr("Passphrase Required"), label,
-                                  QLineEdit::Password, QString(), &ok);
-
-        if (!ok) {
-          result_pwd.clear();  // User canceled
-        }
-
-        c->SetPassphrase(result_pwd);
         emit CoreSignalStation::GetInstance()->SignalUserInputPassphraseReady(
             c);
       });
@@ -306,12 +301,13 @@ void CommonUtils::SlotExecuteGpgCommand(
           qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this,
           [=](int, QProcess::ExitStatus status) {
             dialog->close();
-            if (status == QProcess::NormalExit)
+            if (status == QProcess::NormalExit) {
               QMessageBox::information(nullptr, tr("Success"),
                                        tr("Succeed in executing command."));
-            else
+            } else {
               QMessageBox::information(nullptr, tr("Warning"),
                                        tr("Finished executing command."));
+            }
           });
 
   const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
