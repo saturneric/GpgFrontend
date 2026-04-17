@@ -260,6 +260,19 @@ pub fn set_primary_user_id_internal(
     let primary_fpr_bytes = primary_fpr.as_bytes().to_vec();
     let primary_algo = skey.primary_key.algorithm();
 
+    let old_primary_idx = 0;
+
+    let current_primary_template_sig: Option<Signature> =
+        skey.details.users.get(old_primary_idx).and_then(|user| {
+            let self_sigs: Vec<&Signature> = user
+                .signatures
+                .iter()
+                .filter(|sig| is_self_signature_from_primary(sig, &primary_fpr_bytes))
+                .collect();
+
+            choose_template_self_sig(&self_sigs).cloned()
+        });
+
     for (i, user) in skey.details.users.iter_mut().enumerate() {
         let is_target = i == target_idx;
 
@@ -275,7 +288,13 @@ pub fn set_primary_user_id_internal(
             continue;
         }
 
-        let template_sig = choose_template_self_sig(&self_sigs);
+        let own_template_sig = choose_template_self_sig(&self_sigs);
+
+        let template_sig = if is_target {
+            current_primary_template_sig.as_ref().or(own_template_sig)
+        } else {
+            own_template_sig.or(current_primary_template_sig.as_ref())
+        };
 
         let cfg = build_updated_self_sig_config(
             template_sig,
