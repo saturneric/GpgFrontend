@@ -33,6 +33,7 @@ use crate::{
         with_signing_key,
     },
     err::{IntoGfrResult, set_last_error},
+    tar::build_tar_tempfile_from_directory,
     types::{
         GfrFreeCb, GfrPasswordFetchCb, GfrPublicKeyFetchCb, GfrRecipientStatus,
         GfrSecretKeyFetchCb, GfrSignMode, GfrSignatureStatus, GfrStatus,
@@ -98,59 +99,14 @@ pub fn encrypt_directory_internal(
     public_key_blocks: &[&str],
     ascii_armor: bool,
 ) -> Result<crate::crypto_stream::EncryptStreamResultInternal, crate::types::GfrStatus> {
-    let dir_path = Path::new(in_dir_path);
-    if !dir_path.is_dir() {
-        log::error!("Input path is not a directory: {}", in_dir_path);
-        return Err(crate::types::GfrStatus::ErrorInvalidInput);
-    }
+    let (temp_archive, filename_hint) = build_tar_tempfile_from_directory(in_dir_path)?;
 
-    // 1. Generate an embedded PGP filename hint (e.g., "my_folder.tar")
-    let dir_name = dir_path
-        .file_name()
-        .unwrap_or_default()
-        .to_string_lossy()
-        .to_string();
-    let filename_hint = format!("{}.tar", dir_name);
-
-    // 2. Create a system-level anonymous temporary file
-    // It is on disk, will not cause OOM, and will be automatically destroyed by the OS when the handle is closed
-    let mut temp_archive = tempfile::tempfile().map_err(|e| {
-        log::error!("Failed to create temp file for tar: {}", e);
-        set_last_error(&e.to_string());
-        crate::types::GfrStatus::ErrorIo
-    })?;
-
-    // 3. Build the Tar archive and write it directly into the anonymous temporary file
-    log::info!("Building tar archive for directory: {}", in_dir_path);
-    let mut tar_builder = tar::Builder::new(&temp_archive);
-
-    // Recursively package all contents of the folder
-    // The second parameter is the relative root directory path inside the tar archive, usually set to the folder's own name
-    tar_builder.append_dir_all(".", dir_path).map_err(|e| {
-        log::error!("Failed to build tar archive: {}", e);
-        // crate::error_handler::set_last_error(&e.to_string());
-        crate::types::GfrStatus::ErrorIo
-    })?;
-
-    // Force completion of writing and flush
-    tar_builder
-        .into_inner()
-        .map_err(|_| crate::types::GfrStatus::ErrorIo)?;
-
-    // 4. Move the cursor of the temporary file back to the beginning, preparing for the PGP engine to read
-    temp_archive
-        .seek(SeekFrom::Start(0))
-        .map_err(|_| crate::types::GfrStatus::ErrorIo)?;
-
-    // 5. Open the final output file
     let out_file = File::create(out_file_path).map_err(|e| {
         log::error!("Failed to create output file: {}", e);
         set_last_error(&e.to_string());
         crate::types::GfrStatus::ErrorIo
     })?;
 
-    // 6. Call the existing stream encryption engine
-    // This perfectly reuses the previously written stream interface!
     log::info!("Encrypting tar archive...");
     crate::crypto_stream::encrypt_stream_internal(
         &filename_hint,
@@ -673,52 +629,13 @@ pub fn encrypt_and_sign_directory_internal(
     free_cb: Option<crate::types::GfrFreeCb>,
     ascii_armor: bool,
 ) -> Result<crate::crypto::EncryptAndSignResultInternal, crate::types::GfrStatus> {
-    let dir_path = Path::new(in_dir_path);
-    if !dir_path.is_dir() {
-        log::error!("Input path is not a directory: {}", in_dir_path);
-        return Err(crate::types::GfrStatus::ErrorInvalidInput);
-    }
+    let (temp_archive, filename_hint) = build_tar_tempfile_from_directory(in_dir_path)?;
 
-    // 1. Generate an embedded PGP filename hint based on the directory name (e.g., "my_folder.tar")
-    let dir_name = dir_path.file_name().unwrap_or_default().to_string_lossy();
-    let filename_hint = format!("{}.tar", dir_name);
-
-    // 2. Create a system-level anonymous temporary file for transiting
-    let mut temp_archive = tempfile::tempfile().map_err(|e| {
-        log::error!("Failed to create temp file for tar: {}", e);
-        // crate::error_handler::set_last_error(&e.to_string());
-        crate::types::GfrStatus::ErrorIo
-    })?;
-
-    // 3. Build the Tar archive and write it directly into the anonymous temporary file
-    log::info!(
-        "Building tar archive for directory (encrypt & sign): {}",
-        in_dir_path
-    );
-    let mut tar_builder = tar::Builder::new(&temp_archive);
-
-    tar_builder.append_dir_all(".", dir_path).map_err(|e| {
-        log::error!("Failed to build tar archive: {}", e);
-        crate::types::GfrStatus::ErrorIo
-    })?;
-
-    // Force completion of writing and flush
-    tar_builder
-        .into_inner()
-        .map_err(|_| crate::types::GfrStatus::ErrorIo)?;
-
-    // 4. Move the cursor of the temporary file back to the beginning, preparing for the PGP engine to read
-    temp_archive
-        .seek(SeekFrom::Start(0))
-        .map_err(|_| crate::types::GfrStatus::ErrorIo)?;
-
-    // 5. Open the final output file
     let out_file = File::create(out_file_path).map_err(|e| {
         log::error!("Failed to create output file: {}", e);
         crate::types::GfrStatus::ErrorIo
     })?;
 
-    // 6. Call the streaming [encrypt and sign] engine
     log::info!("Encrypting and signing tar archive...");
     let stream_result = crate::crypto_stream::encrypt_and_sign_stream_internal(
         channel,
@@ -1108,20 +1025,6 @@ pub fn decrypt_and_verify_archive_internal(
 
 pub struct SymmetricEncryptStreamResultInternal {}
 
-pub struct SymmetricDecryptStreamResultInternal {
-    pub filename: String,
-}
-
-pub struct SymmetricEncryptAndSignStreamResultInternal {
-    pub signatures: Vec<SignatureResultInternal>,
-}
-
-pub struct SymmetricDecryptAndVerifyStreamResultInternal {
-    pub filename: String,
-    pub is_verified: bool,
-    pub signatures: Vec<SignatureResultInternal>,
-}
-
 pub fn encrypt_stream_with_password_internal<R, W>(
     channel: i32,
     name: &str,
@@ -1177,59 +1080,14 @@ pub fn encrypt_directory_with_password_internal(
     free_cb: Option<GfrFreeCb>,
     ascii_armor: bool,
 ) -> Result<SymmetricEncryptStreamResultInternal, crate::types::GfrStatus> {
-    let dir_path = Path::new(in_dir_path);
-    if !dir_path.is_dir() {
-        log::error!("Input path is not a directory: {}", in_dir_path);
-        return Err(crate::types::GfrStatus::ErrorInvalidInput);
-    }
+    let (temp_archive, filename_hint) = build_tar_tempfile_from_directory(in_dir_path)?;
 
-    // 1. Generate an embedded PGP filename hint (e.g., "my_folder.tar")
-    let dir_name = dir_path
-        .file_name()
-        .unwrap_or_default()
-        .to_string_lossy()
-        .to_string();
-    let filename_hint = format!("{}.tar", dir_name);
-
-    // 2. Create a system-level anonymous temporary file
-    // It is on disk, will not cause OOM, and will be automatically destroyed by the OS when the handle is closed
-    let mut temp_archive = tempfile::tempfile().map_err(|e| {
-        log::error!("Failed to create temp file for tar: {}", e);
-        set_last_error(&e.to_string());
-        crate::types::GfrStatus::ErrorIo
-    })?;
-
-    // 3. Build the Tar archive and write it directly into the anonymous temporary file
-    log::info!("Building tar archive for directory: {}", in_dir_path);
-    let mut tar_builder = tar::Builder::new(&temp_archive);
-
-    // Recursively package all contents of the folder
-    // The second parameter is the relative root directory path inside the tar archive, usually set to the folder's own name
-    tar_builder.append_dir_all(".", dir_path).map_err(|e| {
-        log::error!("Failed to build tar archive: {}", e);
-        // crate::error_handler::set_last_error(&e.to_string());
-        crate::types::GfrStatus::ErrorIo
-    })?;
-
-    // Force completion of writing and flush
-    tar_builder
-        .into_inner()
-        .map_err(|_| crate::types::GfrStatus::ErrorIo)?;
-
-    // 4. Move the cursor of the temporary file back to the beginning, preparing for the PGP engine to read
-    temp_archive
-        .seek(SeekFrom::Start(0))
-        .map_err(|_| crate::types::GfrStatus::ErrorIo)?;
-
-    // 5. Open the final output file
     let out_file = File::create(out_file_path).map_err(|e| {
         log::error!("Failed to create output file: {}", e);
         set_last_error(&e.to_string());
         crate::types::GfrStatus::ErrorIo
     })?;
 
-    // 6. Call the existing stream encryption engine
-    // This perfectly reuses the previously written stream interface!
     log::info!("Encrypting tar archive...");
     encrypt_stream_with_password_internal(
         channel,
