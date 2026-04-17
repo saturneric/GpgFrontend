@@ -28,9 +28,9 @@
 
 use pgp::{
     composed::{ArmorOptions, Deserializable, SignedPublicKey, SignedSecretKey},
-    crypto::hash::HashAlgorithm,
-    packet::{SignatureConfig, SignatureType, Subpacket, SubpacketData},
-    types::{KeyDetails, PacketHeaderVersion, Password, SecretParams, Tag},
+    crypto::{hash::HashAlgorithm, public_key},
+    packet::{Signature, SignatureConfig, SignatureType, Subpacket, SubpacketData},
+    types::{KeyDetails, PacketHeaderVersion, Password, SecretParams, Tag, Timestamp},
 };
 
 use crate::{
@@ -113,6 +113,122 @@ pub fn update_user_id_internal(
     delete_user_id_internal(&block_with_new, old_uid)
 }
 
+fn is_self_signature_from_primary(sig: &Signature, primary_fpr_bytes: &[u8]) -> bool {
+    sig.issuer_fingerprint()
+        .iter()
+        .any(|f| f.as_bytes() == primary_fpr_bytes)
+}
+
+fn sig_creation_time(sig: &Signature) -> Option<Timestamp> {
+    sig.config().and_then(|c| {
+        c.hashed_subpackets
+            .iter()
+            .chain(c.unhashed_subpackets.iter())
+            .find_map(|sp| match &sp.data {
+                SubpacketData::SignatureCreationTime(ts) => Some(*ts),
+                _ => None,
+            })
+    })
+}
+
+fn has_key_flags(sig: &Signature) -> bool {
+    sig.config()
+        .map(|c| {
+            c.hashed_subpackets
+                .iter()
+                .chain(c.unhashed_subpackets.iter())
+                .any(|sp| matches!(sp.data, SubpacketData::KeyFlags(_)))
+        })
+        .unwrap_or(false)
+}
+
+fn has_is_primary_true(sig: &Signature) -> bool {
+    sig.config()
+        .map(|c| {
+            c.hashed_subpackets
+                .iter()
+                .chain(c.unhashed_subpackets.iter())
+                .any(|sp| matches!(sp.data, SubpacketData::IsPrimary(true)))
+        })
+        .unwrap_or(false)
+}
+
+fn sig_creation_time_value(sig: &Signature) -> u64 {
+    sig_creation_time(sig)
+        .map(|ts| ts.as_secs() as u64)
+        .unwrap_or(0)
+}
+
+fn choose_template_self_sig<'a>(self_sigs: &[&'a Signature]) -> Option<&'a Signature> {
+    self_sigs
+        .iter()
+        .copied()
+        .filter(|sig| has_key_flags(sig))
+        .max_by(|a, b| sig_creation_time_value(a).cmp(&sig_creation_time_value(b)))
+        .or_else(|| {
+            self_sigs
+                .iter()
+                .copied()
+                .max_by(|a, b| sig_creation_time_value(a).cmp(&sig_creation_time_value(b)))
+        })
+}
+fn build_updated_self_sig_config(
+    template_sig: Option<&Signature>,
+    primary_key_algo: public_key::PublicKeyAlgorithm,
+    primary_fpr: pgp::types::Fingerprint,
+    make_primary: bool,
+) -> Result<SignatureConfig, GfrStatus> {
+    let mut cfg = if let Some(sig) = template_sig {
+        sig.config().cloned().unwrap_or_else(|| {
+            SignatureConfig::v4(
+                SignatureType::CertPositive,
+                primary_key_algo,
+                HashAlgorithm::Sha512,
+            )
+        })
+    } else {
+        SignatureConfig::v4(
+            SignatureType::CertPositive,
+            primary_key_algo,
+            HashAlgorithm::Sha512,
+        )
+    };
+
+    let filter_subpackets = |subpackets: &mut Vec<Subpacket>| {
+        subpackets.retain(|sp| {
+            !matches!(
+                sp.data,
+                SubpacketData::SignatureCreationTime(_)
+                    | SubpacketData::IssuerFingerprint(_)
+                    | SubpacketData::IssuerKeyId(_)
+                    | SubpacketData::IsPrimary(_)
+            )
+        });
+    };
+
+    filter_subpackets(&mut cfg.hashed_subpackets);
+    filter_subpackets(&mut cfg.unhashed_subpackets);
+
+    cfg.hashed_subpackets.push(
+        Subpacket::regular(SubpacketData::IssuerFingerprint(primary_fpr))
+            .map_err(|_| GfrStatus::ErrorInternal)?,
+    );
+
+    cfg.hashed_subpackets.push(
+        Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::now()))
+            .map_err(|_| GfrStatus::ErrorInternal)?,
+    );
+
+    if make_primary {
+        cfg.hashed_subpackets.push(
+            Subpacket::regular(SubpacketData::IsPrimary(true))
+                .map_err(|_| GfrStatus::ErrorInternal)?,
+        );
+    }
+
+    Ok(cfg)
+}
+
 pub fn set_primary_user_id_internal(
     channel: i32,
     secret_key_block: &str,
@@ -122,7 +238,6 @@ pub fn set_primary_user_id_internal(
 ) -> Result<String, GfrStatus> {
     let (mut skey, _) = SignedSecretKey::from_string(secret_key_block).into_gfr()?;
 
-    // 1. 查找目标 UID 索引
     let target_idx = skey
         .details
         .users
@@ -131,140 +246,58 @@ pub fn set_primary_user_id_internal(
         .ok_or(GfrStatus::ErrorInvalidInput)?;
 
     let fpr = skey.primary_key.fingerprint().to_string();
-
-    // 2. 获取密码
     let is_enc = matches!(skey.primary_key.secret_params(), SecretParams::Encrypted(_));
+
     let pwd_bytes = if is_enc {
         fetch_password_internal(channel, &fpr, "Set Primary User ID", fetch_cb, free_cb)?
     } else {
         Vec::new()
     };
     let pwd = Password::from(pwd_bytes.as_slice());
+
     let pk = skey.primary_key.public_key();
+    let primary_fpr = skey.primary_key.fingerprint();
+    let primary_fpr_bytes = primary_fpr.as_bytes().to_vec();
+    let primary_algo = skey.primary_key.algorithm();
 
-    let primary_fpr_bytes = skey.primary_key.fingerprint().as_bytes().to_vec();
-
-    // 3. 遍历所有 User ID，对 user 可变引用进行操作
     for (i, user) in skey.details.users.iter_mut().enumerate() {
         let is_target = i == target_idx;
 
-        // 收集该 UID 身上所有由当前主密钥签发的自签名 (Self-Signatures)
-        let self_sigs: Vec<&pgp::packet::Signature> = user
+        let self_sigs: Vec<&Signature> = user
             .signatures
             .iter()
-            .filter(|sig| {
-                sig.issuer_fingerprint()
-                    .iter()
-                    .any(|f| f.as_bytes() == primary_fpr_bytes)
-            })
+            .filter(|sig| is_self_signature_from_primary(sig, &primary_fpr_bytes))
             .collect();
 
-        // 检查历史签名中是否在任何地方残留了 IsPrimary(true) 标记
-        let has_any_primary = self_sigs.iter().any(|sig| {
-            sig.config()
-                .map(|c| {
-                    c.hashed_subpackets
-                        .iter()
-                        .chain(c.unhashed_subpackets.iter())
-                        .any(|s| matches!(s.data, SubpacketData::IsPrimary(true)))
-                })
-                .unwrap_or(false)
-        });
+        let has_primary_true = self_sigs.iter().any(|sig| has_is_primary_true(sig));
 
-        log::info!(
-            "Processing UID '{}', is_target: {}, has_self_sigs: {}, has_any_primary: {}",
-            String::from_utf8_lossy(user.id.id()),
-            is_target,
-            !self_sigs.is_empty(),
-            has_any_primary
-        );
-
-        // 只有两种情况我们需要重写它的签名：
-        // 1. 它是目标 UID（必须确保提权，加上 IsPrimary 标记并置换为最新时间戳）
-        // 2. 它不是目标 UID，但身上却残留了 Primary 标记（必须强行洗掉标记进行降权！）
-        if !is_target && !has_any_primary {
+        if !is_target && !has_primary_true {
             continue;
         }
 
-        // 找到时间戳最新的那个自签名，用来继承它的偏好配置 (KeyFlags, Algorithms 等)
-        let latest_self_sig = self_sigs.into_iter().last();
+        let template_sig = choose_template_self_sig(&self_sigs);
 
-        let mut cfg = if let Some(sig) = latest_self_sig {
-            let mut c = sig.config().cloned().unwrap_or_else(|| {
-                SignatureConfig::v4(
-                    SignatureType::CertPositive,
-                    skey.primary_key.algorithm(),
-                    HashAlgorithm::Sha512,
-                )
-            });
+        let cfg = build_updated_self_sig_config(
+            template_sig,
+            primary_algo,
+            primary_fpr.clone(),
+            is_target,
+        )?;
 
-            let filter_subpackets = |subpackets: &mut Vec<Subpacket>| {
-                subpackets.retain(|s| {
-                    !matches!(
-                        s.data,
-                        SubpacketData::SignatureCreationTime(_)
-                            | SubpacketData::IssuerFingerprint(_)
-                            | SubpacketData::IssuerKeyId(_)
-                            | SubpacketData::IsPrimary(_)
-                    )
-                });
-            };
-
-            filter_subpackets(&mut c.hashed_subpackets);
-            filter_subpackets(&mut c.unhashed_subpackets);
-            c
-        } else {
-            SignatureConfig::v4(
-                SignatureType::CertPositive,
-                skey.primary_key.algorithm(),
-                HashAlgorithm::Sha512,
-            )
-        };
-
-        // 注入新的时间戳和签发者指纹
-        cfg.hashed_subpackets.push(
-            Subpacket::regular(SubpacketData::IssuerFingerprint(
-                skey.primary_key.fingerprint(),
-            ))
-            .map_err(|_| GfrStatus::ErrorInternal)?,
-        );
-        cfg.hashed_subpackets.push(
-            Subpacket::regular(SubpacketData::SignatureCreationTime(
-                pgp::types::Timestamp::now(),
-            ))
-            .map_err(|_| GfrStatus::ErrorInternal)?,
-        );
-
-        // 【核心逻辑】：只有目标 UID 才会注入 IsPrimary(true)
-        if is_target {
-            cfg.hashed_subpackets.push(
-                Subpacket::regular(SubpacketData::IsPrimary(true))
-                    .map_err(|_| GfrStatus::ErrorInternal)?,
-            );
-        }
-
-        // 重新生成规范的单认证签名
         let new_sig = cfg
             .sign_certification(&skey.primary_key, &pk, &pwd, Tag::UserId, &user.id)
             .into_gfr()?;
 
-        // 【终极清理】：无情剔除这个 UID 身上所有的旧自签名！只保留别人的认证签名
-        user.signatures.retain(|sig| {
-            !sig.issuer_fingerprint()
-                .iter()
-                .any(|f| f.as_bytes() == primary_fpr_bytes)
-        });
+        user.signatures
+            .retain(|sig| !is_self_signature_from_primary(sig, &primary_fpr_bytes));
 
-        // 填入这唯一的一个最新合规自签名
         user.signatures.push(new_sig);
     }
 
-    // 4. 将新指定的 Primary UID 移动到数组 Index 0 的位置
     if target_idx != 0 {
         let primary_user = skey.details.users.remove(target_idx);
         skey.details.users.insert(0, primary_user);
     }
 
-    // 5. 导出 Armor
     skey.to_armored_string(ArmorOptions::default()).into_gfr()
 }
