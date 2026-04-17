@@ -39,6 +39,7 @@ struct GFUserId {
   QString email;
   QString comment;
   bool is_primary;
+  bool is_revoked;
 
   GFUserId() = default;
 

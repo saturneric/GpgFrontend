@@ -46,10 +46,10 @@ auto ParseGfrMetadata(const Rust::GfrKeyMetadataC& gfr_meta) -> GFKey {
 
   for (size_t i = 0; i < gfr_meta.user_id_count; ++i) {
     const auto& user_id = gfr_meta.user_ids[i];
-    auto uid = GFUserId(QString::fromUtf8(user_id));
+    auto uid = GFUserId(QString::fromUtf8(user_id.user_id));
 
-    // The first user ID is typically the primary one
-    uid.is_primary = (i == 0);
+    uid.is_primary = user_id.is_primary;
+    uid.is_revoked = user_id.is_revoked;
     meta.user_ids.push_back(uid);
   }
 
