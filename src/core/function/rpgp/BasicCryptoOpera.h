@@ -112,4 +112,16 @@ auto EncryptSignRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
 auto DecryptVerifyRpgpImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
                            const DataObjectPtr& data_object) -> GpgError;
 
+/**
+ * @brief
+ *
+ * @param ctx_
+ * @param in_buffer
+ * @param ascii
+ * @param data_object
+ * @return GpgError
+ */
+auto EncryptSymmetricRpgpImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
+                              bool ascii, const DataObjectPtr& data_object)
+    -> GpgError;
 }  // namespace GpgFrontend

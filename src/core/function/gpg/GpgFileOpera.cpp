@@ -540,6 +540,10 @@ void GpgFileOpera::EncryptFileSymmetric(const QString& in_path, bool ascii,
   RunGpgOperaAsync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
+        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+          return EncryptSymmetricFileRpgpImpl(ctx_, in_path, ascii, out_path,
+                                              data_object);
+        }
         return EncryptFileImpl(ctx_, {}, in_path, ascii, out_path, data_object);
       },
       cb, "gpgme_op_encrypt_symmetric", "2.2.0");
@@ -551,6 +555,10 @@ auto GpgFileOpera::EncryptFileSymmetricSync(const QString& in_path, bool ascii,
   return RunGpgOperaSync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
+        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+          return EncryptSymmetricFileRpgpImpl(ctx_, in_path, ascii, out_path,
+                                              data_object);
+        }
         return EncryptFileImpl(ctx_, {}, in_path, ascii, out_path, data_object);
       },
       "gpgme_op_encrypt_symmetric", "2.2.0");
@@ -559,6 +567,17 @@ auto GpgFileOpera::EncryptFileSymmetricSync(const QString& in_path, bool ascii,
 void GpgFileOpera::EncryptDirectorySymmetric(const QString& in_path, bool ascii,
                                              const QString& out_path,
                                              const GpgOperationCallback& cb) {
+  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+    RunGpgOperaAsync(
+        GetChannel(),
+        [=](const DataObjectPtr& data_object) -> GpgError {
+          return EncryptSymmetricFileRpgpImpl(ctx_, in_path, ascii, out_path,
+                                              data_object);
+        },
+        cb, "rpgp_op_encrypt_symmetric", "0.0.0");
+    return;
+  }
+
   auto ex = CreateStandardGFDataExchanger();
 
   RunGpgOperaAsync(
@@ -579,6 +598,16 @@ auto GpgFileOpera::EncryptDirectorySymmetricSync(const QString& in_path,
                                                  bool ascii,
                                                  const QString& out_path)
     -> std::tuple<GpgError, DataObjectPtr> {
+  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+    return RunGpgOperaSync(
+        GetChannel(),
+        [=](const DataObjectPtr& data_object) -> GpgError {
+          return EncryptSymmetricFileRpgpImpl(ctx_, in_path, ascii, out_path,
+                                              data_object);
+        },
+        "rpgp_op_encrypt_symmetric", "0.0.0");
+  }
+
   auto ex = CreateStandardGFDataExchanger();
 
   CreateArchiveHelper(in_path, ex);

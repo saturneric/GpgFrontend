@@ -122,4 +122,18 @@ auto DecryptVerifyFileRpgpImpl(GpgContext& ctx, bool is_archive,
                                const QString& in_path, const QString& out_path,
                                const DataObjectPtr& data_object) -> GpgError;
 
+/**
+ * @brief
+ *
+ * @param ctx_
+ * @param in_path
+ * @param ascii
+ * @param out_path
+ * @param data_object
+ * @return GpgError
+ */
+auto EncryptSymmetricFileRpgpImpl(GpgContext& ctx_, const QString& in_path,
+                                  bool ascii, const QString& out_path,
+                                  const DataObjectPtr& data_object) -> GpgError;
+
 }  // namespace GpgFrontend

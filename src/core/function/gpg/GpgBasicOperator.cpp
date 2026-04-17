@@ -30,9 +30,7 @@
 
 #include <gpg-error.h>
 
-#include "core/function/GFKeyDatabase.h"
 #include "core/function/rpgp/BasicCryptoOpera.h"
-#include "core/function/rpgp/RustEngineCallback.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
@@ -40,13 +38,10 @@
 #include "core/model/GpgVerifyResult.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
-#include "core/utils/RustUtils.h"
 
 namespace GpgFrontend {
 
-GpgBasicOperator::GpgBasicOperator(int channel)
-    : SingletonFunctionObject<GpgBasicOperator>(channel) {}
-
+namespace {
 void SetSignersImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& signers,
                     bool ascii) {
   auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
@@ -88,6 +83,122 @@ auto EncryptImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
   return err;
 }
 
+auto DecryptImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
+                 const DataObjectPtr& data_object) -> GpgError {
+  GpgData data_in(in_buffer);
+  GpgData data_out;
+
+  auto err =
+      CheckGpgError(gpgme_op_decrypt(ctx_.DefaultContext(), data_in, data_out));
+  data_object->Swap({
+      GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext())),
+      data_out.Read2GFBuffer(),
+  });
+
+  return err;
+}
+
+auto SignImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& signers,
+              const GFBuffer& in_buffer, GpgSignMode mode, bool ascii,
+              const DataObjectPtr& data_object) -> GpgError {
+  if (signers.empty()) return GPG_ERR_CANCELED;
+
+  GpgError err;
+
+  // Set Singers of this opera
+  SetSignersImpl(ctx_, signers, ascii);
+
+  GpgData data_in(in_buffer);
+  GpgData data_out;
+
+  auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+  err = CheckGpgError(gpgme_op_sign(ctx, data_in, data_out, mode));
+
+  data_object->Swap({
+      GpgSignResult(gpgme_op_sign_result(ctx)),
+      data_out.Read2GFBuffer(),
+  });
+  return err;
+}
+
+auto VerifyImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
+                const GFBuffer& sig_buffer, const DataObjectPtr& data_object)
+    -> GpgError {
+  GpgError err;
+
+  GpgData data_in(in_buffer);
+  GpgData data_out;
+
+  if (!sig_buffer.Empty()) {
+    GpgData sig_data(sig_buffer);
+    err = CheckGpgError(
+        gpgme_op_verify(ctx_.DefaultContext(), sig_data, data_in, nullptr));
+  } else {
+    err = CheckGpgError(
+        gpgme_op_verify(ctx_.DefaultContext(), data_in, nullptr, data_out));
+  }
+
+  data_object->Swap({
+      GpgVerifyResult(gpgme_op_verify_result(ctx_.DefaultContext())),
+      GFBuffer(),
+  });
+
+  return err;
+}
+
+auto EncryptSignImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
+                     const GpgAbstractKeyPtrList& signers,
+                     const GFBuffer& in_buffer, bool ascii,
+                     const DataObjectPtr& data_object) -> GpgError {
+  if (keys.empty() || signers.empty()) return GPG_ERR_CANCELED;
+
+  GpgError err;
+  auto recipients = Convert2RawGpgMEKeyList(ctx_.GetChannel(), keys);
+
+  // Last entry data_in array has to be nullptr
+  recipients.push_back(nullptr);
+
+  SetSignersImpl(ctx_, signers, ascii);
+
+  GpgData data_in(in_buffer);
+  GpgData data_out;
+
+  auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+  err = CheckGpgError(gpgme_op_encrypt_sign(
+      ctx, recipients.data(), GPGME_ENCRYPT_ALWAYS_TRUST, data_in, data_out));
+
+  data_object->Swap({
+      GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
+      GpgSignResult(gpgme_op_sign_result(ctx)),
+      data_out.Read2GFBuffer(),
+  });
+  return err;
+}
+
+auto DecryptVerifyImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
+                       const DataObjectPtr& data_object) -> GpgError {
+  GpgError err;
+
+  GpgData data_in(in_buffer);
+  GpgData data_out;
+
+  err = CheckGpgError(
+      gpgme_op_decrypt_verify(ctx_.DefaultContext(), data_in, data_out));
+
+  data_object->Swap({
+      GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext())),
+      GpgVerifyResult(gpgme_op_verify_result(ctx_.DefaultContext())),
+      data_out.Read2GFBuffer(),
+  });
+
+  return err;
+}
+
+}  // namespace
+
+GpgBasicOperator::GpgBasicOperator(int channel)
+    : SingletonFunctionObject<GpgBasicOperator>(channel) {}
+
 void GpgBasicOperator::Encrypt(const GpgAbstractKeyPtrList& keys,
                                const GFBuffer& in_buffer, bool ascii,
                                const GpgOperationCallback& cb) {
@@ -120,7 +231,10 @@ void GpgBasicOperator::EncryptSymmetric(const GFBuffer& in_buffer, bool ascii,
                                         const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       GetChannel(),
-      [=](const DataObjectPtr& data_object) {
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+          return EncryptSymmetricRpgpImpl(ctx_, in_buffer, ascii, data_object);
+        }
         return EncryptImpl(ctx_, {}, in_buffer, ascii, data_object);
       },
       cb, "gpgme_op_encrypt_symmetric", "2.2.0");
@@ -131,25 +245,13 @@ auto GpgBasicOperator::EncryptSymmetricSync(const GFBuffer& in_buffer,
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunGpgOperaSync(
       GetChannel(),
-      [=](const DataObjectPtr& data_object) {
+      [=](const DataObjectPtr& data_object) -> GpgError {
+        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+          return EncryptSymmetricRpgpImpl(ctx_, in_buffer, ascii, data_object);
+        }
         return EncryptImpl(ctx_, {}, in_buffer, ascii, data_object);
       },
       "gpgme_op_encrypt_symmetric", "2.2.0");
-}
-
-auto DecryptImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
-                 const DataObjectPtr& data_object) -> GpgError {
-  GpgData data_in(in_buffer);
-  GpgData data_out;
-
-  auto err =
-      CheckGpgError(gpgme_op_decrypt(ctx_.DefaultContext(), data_in, data_out));
-  data_object->Swap({
-      GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext())),
-      data_out.Read2GFBuffer(),
-  });
-
-  return err;
 }
 
 void GpgBasicOperator::Decrypt(const GFBuffer& in_buffer,
@@ -178,31 +280,6 @@ auto GpgBasicOperator::DecryptSync(const GFBuffer& in_buffer)
       "gpgme_op_decrypt", "2.2.0");
 }
 
-auto VerifyImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
-                const GFBuffer& sig_buffer, const DataObjectPtr& data_object)
-    -> GpgError {
-  GpgError err;
-
-  GpgData data_in(in_buffer);
-  GpgData data_out;
-
-  if (!sig_buffer.Empty()) {
-    GpgData sig_data(sig_buffer);
-    err = CheckGpgError(
-        gpgme_op_verify(ctx_.DefaultContext(), sig_data, data_in, nullptr));
-  } else {
-    err = CheckGpgError(
-        gpgme_op_verify(ctx_.DefaultContext(), data_in, nullptr, data_out));
-  }
-
-  data_object->Swap({
-      GpgVerifyResult(gpgme_op_verify_result(ctx_.DefaultContext())),
-      GFBuffer(),
-  });
-
-  return err;
-}
-
 void GpgBasicOperator::Verify(const GFBuffer& in_buffer,
                               const GFBuffer& sig_buffer,
                               const GpgOperationCallback& cb) {
@@ -229,29 +306,6 @@ auto GpgBasicOperator::VerifySync(const GFBuffer& in_buffer,
         return VerifyImpl(ctx_, in_buffer, sig_buffer, data_object);
       },
       "gpgme_op_verify", "2.2.0");
-}
-
-auto SignImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& signers,
-              const GFBuffer& in_buffer, GpgSignMode mode, bool ascii,
-              const DataObjectPtr& data_object) -> GpgError {
-  if (signers.empty()) return GPG_ERR_CANCELED;
-
-  GpgError err;
-
-  // Set Singers of this opera
-  SetSignersImpl(ctx_, signers, ascii);
-
-  GpgData data_in(in_buffer);
-  GpgData data_out;
-
-  auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
-  err = CheckGpgError(gpgme_op_sign(ctx, data_in, data_out, mode));
-
-  data_object->Swap({
-      GpgSignResult(gpgme_op_sign_result(ctx)),
-      data_out.Read2GFBuffer(),
-  });
-  return err;
 }
 
 void GpgBasicOperator::Sign(const GpgAbstractKeyPtrList& signers,
@@ -285,25 +339,6 @@ auto GpgBasicOperator::SignSync(const GpgAbstractKeyPtrList& signers,
       "gpgme_op_sign", "2.2.0");
 }
 
-auto DecryptVerifyImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
-                       const DataObjectPtr& data_object) -> GpgError {
-  GpgError err;
-
-  GpgData data_in(in_buffer);
-  GpgData data_out;
-
-  err = CheckGpgError(
-      gpgme_op_decrypt_verify(ctx_.DefaultContext(), data_in, data_out));
-
-  data_object->Swap({
-      GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext())),
-      GpgVerifyResult(gpgme_op_verify_result(ctx_.DefaultContext())),
-      data_out.Read2GFBuffer(),
-  });
-
-  return err;
-}
-
 void GpgBasicOperator::DecryptVerify(const GFBuffer& in_buffer,
                                      const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
@@ -328,35 +363,6 @@ auto GpgBasicOperator::DecryptVerifySync(const GFBuffer& in_buffer)
         return DecryptVerifyImpl(ctx_, in_buffer, data_object);
       },
       "gpgme_op_decrypt_verify", "2.2.0");
-}
-
-auto EncryptSignImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
-                     const GpgAbstractKeyPtrList& signers,
-                     const GFBuffer& in_buffer, bool ascii,
-                     const DataObjectPtr& data_object) -> GpgError {
-  if (keys.empty() || signers.empty()) return GPG_ERR_CANCELED;
-
-  GpgError err;
-  auto recipients = Convert2RawGpgMEKeyList(ctx_.GetChannel(), keys);
-
-  // Last entry data_in array has to be nullptr
-  recipients.push_back(nullptr);
-
-  SetSignersImpl(ctx_, signers, ascii);
-
-  GpgData data_in(in_buffer);
-  GpgData data_out;
-
-  auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
-  err = CheckGpgError(gpgme_op_encrypt_sign(
-      ctx, recipients.data(), GPGME_ENCRYPT_ALWAYS_TRUST, data_in, data_out));
-
-  data_object->Swap({
-      GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
-      GpgSignResult(gpgme_op_sign_result(ctx)),
-      data_out.Read2GFBuffer(),
-  });
-  return err;
 }
 
 void GpgBasicOperator::EncryptSign(const GpgAbstractKeyPtrList& keys,

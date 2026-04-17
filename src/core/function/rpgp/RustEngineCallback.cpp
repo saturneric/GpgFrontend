@@ -104,9 +104,9 @@ auto FetchPasswordCallback(int channel, const char* fpr, const char* info,
   QObject::connect(
       CoreSignalStation::GetInstance(),
       &CoreSignalStation::SignalUserInputPassphraseReady, &loop,
-      [&result_pwd, &c,
+      [&result_pwd, &c, &qs_fpr,
        &loop](const QSharedPointer<GpgPassphraseContext>& ctx) -> void {
-        if (ctx->GetKey() == nullptr ||
+        if ((qs_fpr.isEmpty() && ctx->GetKey() == nullptr) ||
             (c->GetKey() != nullptr &&
              ctx->GetKey()->ID() == c->GetKey()->ID())) {
           result_pwd = ctx->GetPassphrase();

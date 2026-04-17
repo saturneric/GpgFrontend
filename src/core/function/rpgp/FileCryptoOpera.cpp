@@ -369,4 +369,43 @@ auto DecryptVerifyFileRpgpImpl(GpgContext& ctx, bool is_archive,
   return (gf_err != GPG_ERR_NO_ERROR) ? gf_err : gf_err_2;
 }
 
+auto EncryptSymmetricFileRpgpImpl(GpgContext& ctx_, const QString& in_path,
+                                  bool ascii, const QString& out_path,
+                                  const DataObjectPtr& data_object)
+    -> GpgError {
+  auto in_file_path_utf8 = in_path.toUtf8();
+  auto out_file_path_utf8 = out_path.toUtf8();
+  Rust::GfrEncryptResultC encrypt_result;
+  Rust::GfrStatus status;
+
+  auto is_directory = QFileInfo(in_path).isDir();
+  if (is_directory) {
+    // For directory encryption, we need to create a tar archive in memory first
+    // and then pass it to the Rust FFI. The Rust FFI will handle the encryption
+    // of the tar archive.
+    status = Rust::gfr_crypto_encrypt_directory_symmetric(
+        ctx_.GetChannel(), in_file_path_utf8.constData(),
+        out_file_path_utf8.constData(), ascii, FetchPasswordCallback,
+        FreeCallback, &encrypt_result);
+  } else {
+    // Call Rust FFI. Ensure in_buffer is a null-terminated C-string if Rust
+    // expects it.
+    status = Rust::gfr_crypto_encrypt_file_symmetric(
+        ctx_.GetChannel(), in_file_path_utf8.constData(),
+        out_file_path_utf8.constData(), ascii, FetchPasswordCallback,
+        FreeCallback, &encrypt_result);
+  }
+
+  if (status != Rust::GfrStatus::Success) {
+    LOG_E() << "Rust FFI encryption failed.";
+    return GPG_ERR_GENERAL;
+  }
+
+  GFEncryptResult result = GfrEncryptResultC2GFEncryptResult(encrypt_result);
+  Rust::gfr_crypto_free_encrypt_result(&encrypt_result);
+
+  data_object->Swap({GpgEncryptResult(result)});
+  return GPG_ERR_NO_ERROR;
+}
+
 }  // namespace GpgFrontend

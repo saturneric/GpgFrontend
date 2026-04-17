@@ -370,4 +370,31 @@ auto DecryptVerifyRpgpImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
   return (gf_err != GPG_ERR_NO_ERROR) ? gf_err : gf_err_2;
 }
 
+auto EncryptSymmetricRpgpImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
+                              bool ascii, const DataObjectPtr& data_object)
+    -> GpgError {
+  std::string name;
+  Rust::GfrEncryptResultC encrypt_result;
+  memset(&encrypt_result, 0, sizeof(encrypt_result));
+
+  auto status = Rust::gfr_crypto_encrypt_data_symmetric(
+      ctx_.GetChannel(), name.c_str(),
+      reinterpret_cast<const uint8_t*>(in_buffer.Data()), in_buffer.Size(),
+      ascii, FetchPasswordCallback, FreeCallback, &encrypt_result);
+
+  if (status != Rust::GfrStatus::Success) {
+    LOG_E() << "Rust FFI symmetric encryption failed.";
+    return GPG_ERR_GENERAL;
+  }
+
+  GFEncryptResult result = GfrEncryptResultC2GFEncryptResult(encrypt_result);
+  Rust::gfr_crypto_free_encrypt_result(&encrypt_result);
+
+  data_object->Swap({
+      GpgEncryptResult(result),
+      result.data,
+  });
+  return GPG_ERR_NO_ERROR;
+}
+
 }  // namespace GpgFrontend
