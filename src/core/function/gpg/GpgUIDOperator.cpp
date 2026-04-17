@@ -252,8 +252,7 @@ auto GpgUIDOperator::AddUID(const GpgKeyPtr& key, const QString& uid) -> bool {
 auto GpgUIDOperator::SetPrimaryUID(const GpgKeyPtr& key, const QString& uid)
     -> bool {
   if (ctx_.BackendType() == PGPBackendType::kRPGP) {
-    LOG_W() << "SetPrimaryUID is not supported in RPGP backend";
-    return false;
+    return SetPrimaryUIDRpgpImpl(ctx_, key, uid);
   }
 
   auto err = CheckGpgError(gpgme_op_set_uid_flag(

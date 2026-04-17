@@ -169,4 +169,70 @@ auto DeleteUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key, int uid_index)
   return true;
 }
 
+auto SetPrimaryUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
+                           const QString& uid) -> bool {
+  LOG_D() << "Adding UID: " << uid << " to key: " << key->Fingerprint()
+          << " using RPGP backend";
+
+  auto key_db = ctx.KeyDatabase();
+  if (key_db == nullptr) {
+    LOG_E() << "Key database is not initialized";
+    return false;
+  }
+
+  auto gf_key = key_db->GetKeyByIdentifier(key->Fingerprint());
+  if (!gf_key) {
+    LOG_E() << "Key not found in database: " << key->Fingerprint();
+    return false;
+  }
+
+  if (!gf_key->metadata.has_secret) {
+    LOG_E() << "Cannot add UID to a public key";
+    return false;
+  }
+
+  auto secret_key_block = gf_key->blocks.secret_key.toUtf8();
+  if (secret_key_block.isEmpty()) {
+    LOG_E() << "Secret key block is empty for key: " << key->Fingerprint();
+    return false;
+  }
+
+  auto uid_utf8 = uid.toUtf8();
+
+  char* out_block = nullptr;
+  auto status = Rust::gfr_crypto_set_primary_user_id(
+      ctx.GetChannel(), secret_key_block.constData(), uid_utf8.constData(),
+      FetchPasswordCallback, FreeCallback, &out_block);
+
+  LOG_D() << "Rust function gfr_crypto_set_primary_user_id returned status: "
+          << static_cast<int>(status);
+
+  if (status != Rust::GfrStatus::Success) {
+    LOG_E() << "Failed to set primary UID: " << uid
+            << " for key: " << key->Fingerprint()
+            << ", status: " << static_cast<int>(status);
+    return false;
+  }
+
+  if (out_block == nullptr) {
+    LOG_E() << "Output block is null after setting primary UID: " << uid
+            << " for key: " << key->Fingerprint();
+    return false;
+  }
+
+  auto out_block_str = QString::fromUtf8(out_block);
+  Rust::gfr_crypto_free_string(out_block);
+
+  LOG_D() << "Successfully set primary UID: " << uid << " for key: " << key;
+
+  auto info = ImportKeyRpgpImpl(ctx, GFBuffer(out_block_str));
+  if (info == nullptr || info->imported_keys.empty()) {
+    LOG_E() << "Failed to import updated key block after setting primary UID: "
+            << uid << " for key: " << key->Fingerprint();
+    return false;
+  }
+
+  return true;
+}
+
 }  // namespace GpgFrontend

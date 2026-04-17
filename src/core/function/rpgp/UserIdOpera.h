@@ -56,4 +56,16 @@ auto AddUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key, const QString& uid)
 auto DeleteUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key, int uid_index)
     -> bool;
 
+/**
+ * @brief Set the Primary U I D Rpgp Impl object
+ *
+ * @param ctx
+ * @param key
+ * @param uid_index
+ * @return true
+ * @return false
+ */
+auto SetPrimaryUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
+                           const QString& uid) -> bool;
+
 }  // namespace GpgFrontend

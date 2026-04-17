@@ -209,12 +209,13 @@ auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
 
   QSqlQuery uid_insert_query(db_);
   uid_insert_query.prepare(R"(
-    INSERT INTO user_ids (fpr, user_id) VALUES (:fpr, :user_id)
+    INSERT INTO user_ids (fpr, user_id, is_primary) VALUES (:fpr, :user_id, :is_primary)
   )");
 
   for (const auto& uid : meta.user_ids) {
     uid_insert_query.bindValue(":fpr", meta.fpr.toUpper());
     uid_insert_query.bindValue(":user_id", uid.ToString());
+    uid_insert_query.bindValue(":is_primary", uid.is_primary ? 1 : 0);
     if (!uid_insert_query.exec()) {
       LOG_E() << "SaveKey user_id error: "
               << uid_insert_query.lastError().text();
@@ -392,6 +393,7 @@ auto GFKeyDatabase::create_table() -> bool {
     CREATE TABLE IF NOT EXISTS user_ids (
       fpr TEXT NOT NULL COLLATE NOCASE,
       user_id TEXT NOT NULL,
+      is_primary INTEGER DEFAULT 0,
       FOREIGN KEY(fpr) REFERENCES key_metadata(fpr) ON DELETE CASCADE,
       UNIQUE(fpr, user_id)
     )
@@ -510,12 +512,20 @@ auto GFKeyDatabase::load_user_ids_for_parent(const QString& fpr)
 
   QStringList uids;
   QSqlQuery query(db_);
-  query.prepare("SELECT user_id FROM user_ids WHERE fpr = :fpr");
+  query.prepare("SELECT user_id, is_primary FROM user_ids WHERE fpr = :fpr");
   query.bindValue(":fpr", real_primary_fpr);
 
   if (query.exec()) {
     while (query.next()) {
-      uids.append(query.value(0).toString());
+      auto uid_str = query.value(0).toString();
+      auto is_primary = query.value(1).toBool();
+      if (is_primary) {
+        // Primary UID is typically listed first, but we can also enforce it
+        // here
+        uids.prepend(uid_str);
+      } else {
+        uids.append(uid_str);
+      }
     }
   }
   return uids;
