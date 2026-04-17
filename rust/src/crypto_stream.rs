@@ -92,6 +92,29 @@ where
     })
 }
 
+fn create_output_file(out_file_path: &str) -> Result<File, GfrStatus> {
+    File::create(out_file_path).map_err(|e| {
+        log::error!("Failed to create output file: {}", e);
+        set_last_error(&e.to_string());
+        GfrStatus::ErrorIo
+    })
+}
+
+type ParsedSigner = (SignedSecretKey, Option<String>);
+
+fn parse_secret_signers(secret_key_blocks: &[&str]) -> Result<Vec<ParsedSigner>, GfrStatus> {
+    let mut parsed_keys = Vec::with_capacity(secret_key_blocks.len());
+
+    for block in secret_key_blocks {
+        let (target, armor_block) = parse_signer_block(block);
+        let (skey, _) =
+            SignedSecretKey::from_string(armor_block).map_err(|_| GfrStatus::ErrorInvalidInput)?;
+        parsed_keys.push((skey, target));
+    }
+
+    Ok(parsed_keys)
+}
+
 /// Package a directory as a Tar and encrypt it as a stream
 pub fn encrypt_directory_internal(
     in_dir_path: &str,
@@ -100,12 +123,7 @@ pub fn encrypt_directory_internal(
     ascii_armor: bool,
 ) -> Result<crate::crypto_stream::EncryptStreamResultInternal, crate::types::GfrStatus> {
     let (temp_archive, filename_hint) = build_tar_tempfile_from_directory(in_dir_path)?;
-
-    let out_file = File::create(out_file_path).map_err(|e| {
-        log::error!("Failed to create output file: {}", e);
-        set_last_error(&e.to_string());
-        crate::types::GfrStatus::ErrorIo
-    })?;
+    let out_file = create_output_file(out_file_path)?;
 
     log::info!("Encrypting tar archive...");
     crate::crypto_stream::encrypt_stream_internal(
@@ -141,13 +159,7 @@ where
     }
 
     // 1. Parse Keys and Extract Exact Targets
-    let mut parsed_keys = Vec::with_capacity(secret_key_blocks.len());
-    for block in secret_key_blocks {
-        let (target, armor_block) = parse_signer_block(block);
-        let (skey, _) =
-            SignedSecretKey::from_string(armor_block).map_err(|_| GfrStatus::ErrorInvalidInput)?;
-        parsed_keys.push((skey, target));
-    }
+    let parsed_keys = parse_secret_signers(secret_key_blocks)?;
 
     let mut rng = thread_rng();
     let mut created_signatures = Vec::new();
@@ -485,13 +497,7 @@ where
     let mut rng = thread_rng();
     let filename_bytes = name.as_bytes().to_vec();
 
-    let mut parsed_skeys = Vec::with_capacity(secret_key_blocks.len());
-    for block in secret_key_blocks {
-        let (target, armor_block) = parse_signer_block(block);
-        let (skey, _) =
-            SignedSecretKey::from_string(armor_block).map_err(|_| GfrStatus::ErrorInvalidInput)?;
-        parsed_skeys.push((skey, target));
-    }
+    let parsed_skeys = parse_secret_signers(secret_key_blocks)?;
 
     let mut builder = MessageBuilder::from_reader(filename_bytes, input_stream);
     builder.partial_chunk_size(512 * 1024).into_gfr()?; // Set chunk size to 512KB for better performance on large files
@@ -630,11 +636,7 @@ pub fn encrypt_and_sign_directory_internal(
     ascii_armor: bool,
 ) -> Result<crate::crypto::EncryptAndSignResultInternal, crate::types::GfrStatus> {
     let (temp_archive, filename_hint) = build_tar_tempfile_from_directory(in_dir_path)?;
-
-    let out_file = File::create(out_file_path).map_err(|e| {
-        log::error!("Failed to create output file: {}", e);
-        crate::types::GfrStatus::ErrorIo
-    })?;
+    let out_file = create_output_file(out_file_path)?;
 
     log::info!("Encrypting and signing tar archive...");
     let stream_result = crate::crypto_stream::encrypt_and_sign_stream_internal(
@@ -1081,12 +1083,7 @@ pub fn encrypt_directory_with_password_internal(
     ascii_armor: bool,
 ) -> Result<SymmetricEncryptStreamResultInternal, crate::types::GfrStatus> {
     let (temp_archive, filename_hint) = build_tar_tempfile_from_directory(in_dir_path)?;
-
-    let out_file = File::create(out_file_path).map_err(|e| {
-        log::error!("Failed to create output file: {}", e);
-        set_last_error(&e.to_string());
-        crate::types::GfrStatus::ErrorIo
-    })?;
+    let out_file = create_output_file(out_file_path)?;
 
     log::info!("Encrypting tar archive...");
     encrypt_stream_with_password_internal(
