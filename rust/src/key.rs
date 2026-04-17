@@ -28,6 +28,8 @@
 
 use crate::types::{GfrKeyAlgo, GfrStatus};
 use pgp::armor::{self, BlockType};
+use pgp::packet::SignatureType;
+use pgp::types::SignedUser;
 use pgp::{
     composed::{ArmorOptions, Deserializable, SignedPublicKey, SignedSecretKey},
     packet::Signature,
@@ -36,6 +38,12 @@ use pgp::{
 };
 use std::collections::HashSet;
 use std::io;
+
+pub struct ExtractUserId {
+    pub user_id: String,
+    pub is_primary: bool,
+    pub is_revoked: bool,
+}
 
 pub struct ExtractedSubkey {
     pub fpr: String,
@@ -59,7 +67,7 @@ pub struct ExtractedMetadata {
     pub can_encrypt: bool,
     pub can_auth: bool,
     pub can_certify: bool,
-    pub user_ids: Vec<String>,
+    pub user_ids: Vec<ExtractUserId>,
     pub subkeys: Vec<ExtractedSubkey>,
     pub public_key_block: String,
     pub secret_key_block: Option<String>,
@@ -96,7 +104,24 @@ fn determine_algo(public_params: &PublicParams) -> GfrKeyAlgo {
     }
 }
 
-// Helper to extract (can_sign, can_encrypt, can_auth, can_certify) from signatures
+fn is_self_signature_from_primary(sig: &Signature, primary_fpr_bytes: &[u8]) -> bool {
+    sig.issuer_fingerprint()
+        .iter()
+        .any(|f| f.as_bytes() == primary_fpr_bytes)
+}
+
+fn is_self_uid_revocation(sig: &Signature, primary_fpr_bytes: &[u8]) -> bool {
+    is_self_signature_from_primary(sig, primary_fpr_bytes)
+        && matches!(sig.typ(), Some(SignatureType::CertRevocation))
+}
+
+fn is_user_id_revoked(user: &SignedUser, primary_fpr_bytes: &[u8]) -> bool {
+    user.signatures
+        .iter()
+        .any(|sig| is_self_uid_revocation(sig, primary_fpr_bytes))
+}
+
+// Helper to extract metadata flags from a list of signatures. This is used for both primary and subkeys.
 fn extract_capabilities(signatures: &[Signature]) -> (bool, bool, bool, bool) {
     let mut can_sign = false;
     let mut can_encrypt = false;
@@ -164,9 +189,18 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
     }
 
     // extract all user IDs into a vector of strings
-    let mut user_ids: Vec<String> = users
+    let primary_fpr_bytes = pk.fingerprint().as_bytes().to_vec();
+    let mut user_ids: Vec<ExtractUserId> = users
         .iter()
-        .map(|u| String::from_utf8_lossy(u.id.id()).into_owned())
+        .map(|u| {
+            let is_revoked = is_user_id_revoked(u, &primary_fpr_bytes);
+
+            ExtractUserId {
+                user_id: String::from_utf8_lossy(u.id.id()).into_owned(),
+                is_primary: !is_revoked && u.is_primary(),
+                is_revoked,
+            }
+        })
         .collect();
 
     // if the detected primary UID is not already the first one, reorder the
@@ -237,9 +271,18 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
     }
 
     // extract all user IDs into a vector of strings
-    let mut user_ids: Vec<String> = users
+    let primary_fpr_bytes = pk.fingerprint().as_bytes().to_vec();
+    let mut user_ids: Vec<ExtractUserId> = users
         .iter()
-        .map(|u| String::from_utf8_lossy(u.id.id()).into_owned())
+        .map(|u| {
+            let is_revoked = is_user_id_revoked(u, &primary_fpr_bytes);
+
+            ExtractUserId {
+                user_id: String::from_utf8_lossy(u.id.id()).into_owned(),
+                is_primary: !is_revoked && u.is_primary(),
+                is_revoked,
+            }
+        })
         .collect();
 
     // if the detected primary UID is not already the first one, reorder the

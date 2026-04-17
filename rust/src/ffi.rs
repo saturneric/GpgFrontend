@@ -29,7 +29,9 @@
 use crate::key::{
     export_merged_public_keys, export_merged_secret_keys, extract_public_key_internal,
 };
-use crate::types::{GfrKeyMetadataC, GfrRecipientResultC, GfrStatus, GfrSubkeyMetadataC};
+use crate::types::{
+    GfrKeyMetadataC, GfrRecipientResultC, GfrStatus, GfrSubkeyMetadataC, GfrUserIdC,
+};
 use log::LevelFilter;
 use std::slice;
 use std::{
@@ -118,12 +120,14 @@ pub extern "C" fn gfr_crypto_extract_metadata(
             std::mem::forget(boxed_subkeys); // Leak it deliberately
 
             let mut c_user_ids = Vec::with_capacity(meta.user_ids.len());
-            for user_id in meta.user_ids {
-                c_user_ids.push(
-                    CString::new(user_id)
+            for uid in meta.user_ids {
+                c_user_ids.push(GfrUserIdC {
+                    user_id: CString::new(uid.user_id)
                         .map_err(|_| GfrStatus::ErrorInternal)?
                         .into_raw(),
-                );
+                    is_primary: uid.is_primary,
+                    is_revoked: uid.is_revoked,
+                });
             }
 
             let mut boxed_user_ids = c_user_ids.into_boxed_slice();
