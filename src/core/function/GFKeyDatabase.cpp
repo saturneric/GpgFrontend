@@ -69,9 +69,13 @@ auto GFKeyDatabase::GetMetadataList() -> QList<GFKeyMetadata> {
       meta.can_auth = query.value(7).toBool();
       meta.can_certify = query.value(8).toBool();
 
-      auto raw_user_ids = load_user_ids_for_parent(meta.fpr);
-      for (const auto& uid : qAsConst(raw_user_ids)) {
-        meta.user_ids.push_back(GFUserId(uid));
+      // Load user IDs for this primary key
+      meta.user_ids = load_user_ids_for_parent(meta.fpr);
+
+      for (const auto& uid : meta.user_ids) {
+        LOG_D() << "Loaded UID for key " << meta.fpr << ": " << uid.ToString()
+                << ", is_primary: " << uid.is_primary
+                << ", is_revoked: " << uid.is_revoked;
       }
 
       // Load subkeys for this primary key
@@ -209,13 +213,14 @@ auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
 
   QSqlQuery uid_insert_query(db_);
   uid_insert_query.prepare(R"(
-    INSERT INTO user_ids (fpr, user_id, is_primary) VALUES (:fpr, :user_id, :is_primary)
+    INSERT INTO user_ids (fpr, user_id, is_primary, is_revoked) VALUES (:fpr, :user_id, :is_primary, :is_revoked)
   )");
 
   for (const auto& uid : meta.user_ids) {
     uid_insert_query.bindValue(":fpr", meta.fpr.toUpper());
     uid_insert_query.bindValue(":user_id", uid.ToString());
     uid_insert_query.bindValue(":is_primary", uid.is_primary ? 1 : 0);
+    uid_insert_query.bindValue(":is_revoked", uid.is_revoked ? 1 : 0);
     if (!uid_insert_query.exec()) {
       LOG_E() << "SaveKey user_id error: "
               << uid_insert_query.lastError().text();
@@ -314,10 +319,7 @@ auto GFKeyDatabase::GetKeyMetadata(const QString& identifier)
     meta.can_certify = query.value(8).toBool();
 
     // Load user IDs
-    auto raw_user_ids = load_user_ids_for_parent(meta.fpr);
-    for (const auto& uid_str : raw_user_ids) {
-      meta.user_ids.push_back(GFUserId(uid_str));
-    }
+    meta.user_ids = load_user_ids_for_parent(meta.fpr);
 
     // Load subkeys
     meta.subkeys = load_subkeys_for_parent(meta.fpr);
@@ -394,6 +396,7 @@ auto GFKeyDatabase::create_table() -> bool {
       fpr TEXT NOT NULL COLLATE NOCASE,
       user_id TEXT NOT NULL,
       is_primary INTEGER DEFAULT 0,
+      is_revoked INTEGER DEFAULT 0,
       FOREIGN KEY(fpr) REFERENCES key_metadata(fpr) ON DELETE CASCADE,
       UNIQUE(fpr, user_id)
     )
@@ -501,7 +504,7 @@ auto GFKeyDatabase::ResolvePrimaryFpr(const QString& identifier) -> QString {
 }
 
 auto GFKeyDatabase::load_user_ids_for_parent(const QString& fpr)
-    -> QStringList {
+    -> QContainer<GFUserId> {
   auto real_primary_fpr = ResolvePrimaryFpr(fpr);
   if (real_primary_fpr.isEmpty()) {
     LOG_W()
@@ -510,21 +513,28 @@ auto GFKeyDatabase::load_user_ids_for_parent(const QString& fpr)
     return {};
   }
 
-  QStringList uids;
+  QContainer<GFUserId> uids;
   QSqlQuery query(db_);
-  query.prepare("SELECT user_id, is_primary FROM user_ids WHERE fpr = :fpr");
+  query.prepare(
+      "SELECT user_id, is_primary, is_revoked FROM user_ids WHERE fpr = :fpr");
   query.bindValue(":fpr", real_primary_fpr);
 
   if (query.exec()) {
     while (query.next()) {
       auto uid_str = query.value(0).toString();
       auto is_primary = query.value(1).toBool();
+      auto is_revoked = query.value(2).toBool();
+
+      GFUserId uid(uid_str);
+      uid.is_primary = is_primary;
+      uid.is_revoked = is_revoked;
+
       if (is_primary) {
         // Primary UID is typically listed first, but we can also enforce it
         // here
-        uids.prepend(uid_str);
+        uids.prepend(uid);
       } else {
-        uids.append(uid_str);
+        uids.append(uid);
       }
     }
   }

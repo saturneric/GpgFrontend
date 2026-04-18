@@ -152,9 +152,9 @@ class GF_CORE_EXPORT GFKeyDatabase {
    * @brief
    *
    * @param fpr
-   * @return QStringList
+   * @return QContainer<GFUserId>
    */
-  auto load_user_ids_for_parent(const QString& fpr) -> QStringList;
+  auto load_user_ids_for_parent(const QString& fpr) -> QContainer<GFUserId>;
 };
 
 }  // namespace GpgFrontend

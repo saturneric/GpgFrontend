@@ -268,19 +268,19 @@ auto GpgUIDOperator::AddUID(const GpgKeyPtr& key, const QString& name,
   return AddUID(key, QString("%1(%2)<%3>").arg(name).arg(comment).arg(email));
 }
 
-auto GpgUIDOperator::DeleteUID(const GpgKeyPtr& key, int uid_index) -> bool {
+auto GpgUIDOperator::DeleteUID(const GpgKeyPtr& key, const QString& uid,
+                               int uid_index) -> bool {
   if (ctx_.BackendType() == PGPBackendType::kRPGP) {
-    return DeleteUIDRpgpImpl(ctx_, key, uid_index);
+    return DeleteUIDRpgpImpl(ctx_, key, uid);
   }
   return DeleteUIDGnuPGImpl(auto_, key, uid_index);
 }
 
-auto GpgUIDOperator::RevokeUID(const GpgKeyPtr& key, int uid_index,
-                               int reason_code, const QString& reason_text)
-    -> bool {
+auto GpgUIDOperator::RevokeUID(const GpgKeyPtr& key, const QString& uid,
+                               int uid_index, int reason_code,
+                               const QString& reason_text) -> bool {
   if (ctx_.BackendType() == PGPBackendType::kRPGP) {
-    LOG_W() << "RevokeUID is not supported in RPGP backend";
-    return false;
+    return RevokeUIDRpgpImpl(ctx_, key, uid, reason_code, reason_text);
   }
   return RevokeUIDGnuPGImpl(auto_, key, uid_index, reason_code, reason_text);
 }

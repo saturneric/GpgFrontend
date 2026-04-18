@@ -75,7 +75,8 @@ class GF_CORE_EXPORT GpgUIDOperator
    * @return true
    * @return false
    */
-  auto DeleteUID(const GpgKeyPtr& key, int uid_index) -> bool;
+  auto DeleteUID(const GpgKeyPtr& key, const QString& uid, int uid_index)
+      -> bool;
 
   /**
    * @brief
@@ -87,8 +88,8 @@ class GF_CORE_EXPORT GpgUIDOperator
    * @return true
    * @return false
    */
-  auto RevokeUID(const GpgKeyPtr& key, int uid_index, int reason_code,
-                 const QString& reason_text) -> bool;
+  auto RevokeUID(const GpgKeyPtr& key, const QString& uid, int uid_index,
+                 int reason_code, const QString& reason_text) -> bool;
 
   /**
    * Set one of a uid of a key pair as primary

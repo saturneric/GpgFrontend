@@ -64,7 +64,7 @@ auto GpgUID::GetUID() const -> QString {
 }
 
 auto GpgUID::GetRevoked() const -> bool {
-  if (um_ref_ != nullptr) return false;
+  if (um_ref_ != nullptr) return um_ref_->is_revoked;
   return uid_ref_->revoked;
 }
 

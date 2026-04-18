@@ -38,12 +38,16 @@ struct GFUserId {
   QString name;
   QString email;
   QString comment;
-  bool is_primary;
-  bool is_revoked;
+  bool is_primary = false;
+  bool is_revoked = false;
 
   GFUserId() = default;
 
   explicit GFUserId(const QString& uid);
+
+  GFUserId(const GFUserId&) = default;
+
+  auto operator=(const GFUserId&) -> GFUserId& = default;
 
   GFUserId(QString name, QString email, QString comment, bool is_primary);
 

@@ -100,8 +100,8 @@ auto AddUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key, const QString& uid)
   return true;
 }
 
-auto DeleteUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key, int uid_index)
-    -> bool {
+auto DeleteUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
+                       const QString& uid) -> bool {
   auto key_db = ctx.KeyDatabase();
   if (key_db == nullptr) {
     LOG_E() << "Key database is not initialized";
@@ -120,12 +120,13 @@ auto DeleteUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key, int uid_index)
   }
 
   auto uids = gf_key->metadata.user_ids;
-  if (uid_index <= 0 || uid_index > static_cast<int>(uids.size())) {
-    LOG_E() << "Invalid UID index: " << uid_index;
+  if (std::none_of(uids.begin(), uids.end(), [uid](const GFUserId& u) -> bool {
+        return u.ToString() == uid;
+      })) {
+    LOG_E() << "UID: " << uid << " not found in key: " << key->Fingerprint();
     return false;
   }
 
-  auto uid = uids[uid_index - 1].ToString();
   auto uid_utf8 = uid.toUtf8();
 
   auto secret_key_block = gf_key->blocks.secret_key.toUtf8();
@@ -229,6 +230,86 @@ auto SetPrimaryUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
   if (info == nullptr || info->imported_keys.empty()) {
     LOG_E() << "Failed to import updated key block after setting primary UID: "
             << uid << " for key: " << key->Fingerprint();
+    return false;
+  }
+
+  return true;
+}
+
+auto RevokeUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
+                       const QString& uid, int reason_code,
+                       const QString& reason_text) -> bool {
+  LOG_D() << "Revoking UID: " << uid << " from key: " << key->Fingerprint()
+          << " using RPGP backend";
+
+  auto key_db = ctx.KeyDatabase();
+  if (key_db == nullptr) {
+    LOG_E() << "Key database is not initialized";
+    return false;
+  }
+
+  auto gf_key = key_db->GetKeyByIdentifier(key->Fingerprint());
+  if (!gf_key) {
+    LOG_E() << "Key not found in database: " << key->Fingerprint();
+    return false;
+  }
+
+  if (!gf_key->metadata.has_secret) {
+    LOG_E() << "Cannot revoke UID from a public key";
+    return false;
+  }
+
+  auto secret_key_block = gf_key->blocks.secret_key.toUtf8();
+  if (secret_key_block.isEmpty()) {
+    LOG_E() << "Secret key block is empty for key: " << key->Fingerprint();
+    return false;
+  }
+
+  auto uid_utf8 = uid.toUtf8();
+
+  int mapped_reason_code = 0;
+  switch (reason_code) {
+    case 4:
+      mapped_reason_code = 32;
+      break;
+    default:
+      mapped_reason_code = 0;
+      break;
+  }
+
+  char* out_block = nullptr;
+  auto status = Rust::gfr_crypto_revoke_user_id(
+      ctx.GetChannel(), secret_key_block.constData(), uid_utf8.constData(),
+      static_cast<Rust::GfrRevocationCode>(mapped_reason_code),
+      reason_text.toUtf8().constData(), FetchPasswordCallback, FreeCallback,
+      &out_block);
+
+  LOG_D() << "Rust function gfr_crypto_revoke_user_id returned status: "
+          << static_cast<int>(status);
+
+  if (status != Rust::GfrStatus::Success) {
+    LOG_E() << "Failed to revoke UID: " << uid
+            << " for key: " << key->Fingerprint()
+            << ", status: " << static_cast<int>(status);
+    return false;
+  }
+
+  if (out_block == nullptr) {
+    LOG_E() << "Output block is null after revoking UID: " << uid
+            << " for key: " << key->Fingerprint();
+    return false;
+  }
+
+  auto out_block_str = QString::fromUtf8(out_block);
+  Rust::gfr_crypto_free_string(out_block);
+
+  LOG_D() << "Successfully revoked UID: " << uid
+          << " for key: " << key->Fingerprint();
+
+  auto info = ImportKeyRpgpImpl(ctx, GFBuffer(out_block_str));
+  if (info == nullptr || info->imported_keys.empty()) {
+    LOG_E() << "Failed to import updated key block after revoking UID: " << uid
+            << " for key: " << key->Fingerprint();
     return false;
   }
 

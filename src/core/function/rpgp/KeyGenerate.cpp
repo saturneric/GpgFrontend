@@ -78,9 +78,15 @@ auto GenerateKeyWithSubkeyRpgpImpl(
   }
 
   if (err != Rust::GfrStatus::Success) {
+    if (err == Rust::GfrStatus::ErrorFetchPasswordFailed) {
+      LOG_E() << "Key generation failed: Failed to fetch password.";
+      return GPG_ERR_NO_PASSPHRASE;
+    }
+
     data_object->Swap({GpgGenerateKeyResult{}});
     LOG_D() << "gfr_crypto_create_v6_key error, code: "
             << static_cast<int>(err);
+
     return GPG_ERR_GENERAL;
   }
 
