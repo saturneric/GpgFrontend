@@ -363,7 +363,7 @@ void KeyPairUIDTab::slot_del_uid() {
 
   if (ret == QMessageBox::Yes) {
     if (!GpgUIDOperator::GetInstance(current_gpg_context_channel_)
-             .DeleteUID(m_key_, index)) {
+             .DeleteUID(m_key_, target_uid.GetUID(), index)) {
       QMessageBox::critical(
           nullptr, tr("Operation Failed"),
           tr("An error occurred during the delete %1 operation.")
@@ -569,10 +569,10 @@ void KeyPairUIDTab::slot_rev_uid() {
 
   connect(revocation_options_dialog,
           &RevocationOptionsDialog::SignalRevokeOptionAccepted, this,
-          [key = m_key_, index, channel = current_gpg_context_channel_, this](
-              int code, const QString& text) {
+          [key = m_key_, index, channel = current_gpg_context_channel_, this,
+           uid = target_uid.GetUID()](int code, const QString& text) {
             auto res = GpgUIDOperator::GetInstance(channel).RevokeUID(
-                key, index, code == 1 ? 4 : 0, text);
+                key, uid, index, code == 1 ? 4 : 0, text);
             if (!res) {
               QMessageBox::critical(
                   nullptr, tr("Revocation Failed"),

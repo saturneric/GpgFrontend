@@ -78,7 +78,8 @@ TEST_F(GpgCoreTest, CoreDeleteUIDTestA) {
   ASSERT_EQ(uids.size(), 4);
   ASSERT_EQ(uids[2].GetUID(), "gggggg(ggggg)<ggggg@ggg.ggg>");
 
-  auto res = GpgUIDOperator::GetInstance().DeleteUID(key, 3);
+  auto res = GpgUIDOperator::GetInstance().DeleteUID(
+      key, "gggggg(ggggg)<ggggg@ggg.ggg>", 3);
 
   ASSERT_TRUE(res);
 
@@ -114,7 +115,7 @@ TEST_F(GpgCoreTest, CoreRevokeUIDTestA) {
   ASSERT_EQ(uids[2].GetUID(), "gggggg(ggggg)<ggggg@ggg.ggg>");
 
   auto res = GpgUIDOperator::GetInstance().RevokeUID(
-      key, 3, 4, "H\nEEEEEL\n\n\n\nL   \n0\n");
+      key, "gggggg(ggggg)<ggggg@ggg.ggg>", 3, 4, "H\nEEEEEL\n\n\n\nL   \n0\n");
 
   ASSERT_TRUE(res);
 
