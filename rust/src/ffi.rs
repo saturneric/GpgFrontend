@@ -51,7 +51,7 @@ pub extern "C" fn gfr_rust_hello() {
 pub extern "C" fn gfr_init_logger() {
     let _ = env_logger::builder()
         .target(env_logger::Target::Stdout)
-        .filter_level(LevelFilter::Debug)
+        .filter_level(LevelFilter::Info)
         .try_init();
 }
 

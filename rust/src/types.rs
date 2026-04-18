@@ -95,6 +95,16 @@ pub enum GfrSignMode {
 }
 
 #[repr(C)]
+#[derive(Debug, Clone, Copy)]
+pub enum GfrRevocationCode {
+    NoReason = 0,
+    Superseded = 1,
+    Compromised = 2,
+    Retired = 3,
+    UserIdInvalid = 32,
+}
+
+#[repr(C)]
 pub struct GfrKeyConfig {
     pub algo: GfrKeyAlgo,
     pub can_sign: bool,

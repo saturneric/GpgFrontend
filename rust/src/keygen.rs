@@ -195,7 +195,7 @@ pub fn create_key_internal(
     let primary_pwd_bytes = if key_config.has_passphrase {
         fetch_password_internal(
             0, // Index 0 for primary key
-            &secret_key.fingerprint().to_string(),
+            "",
             "Generate Primary Key",
             fetch_pwd_cb,
             free_cb,
@@ -222,7 +222,7 @@ pub fn create_key_internal(
             // For example, fetching a different password for each subkey:
             let subkey_pwd_bytes = fetch_password_internal(
                 ((index + 1) as u32).try_into().unwrap(), // Use a different index for each subkey
-                &subkey.key.fingerprint().to_string(),
+                "",
                 "Generate Subkey",
                 fetch_pwd_cb,
                 free_cb,

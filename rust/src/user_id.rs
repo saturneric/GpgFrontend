@@ -27,15 +27,16 @@
  */
 
 use pgp::{
+    bytes::Bytes,
     composed::{ArmorOptions, Deserializable, SignedPublicKey, SignedSecretKey},
     crypto::{hash::HashAlgorithm, public_key},
-    packet::{Signature, SignatureConfig, SignatureType, Subpacket, SubpacketData},
+    packet::{RevocationCode, Signature, SignatureConfig, SignatureType, Subpacket, SubpacketData},
     types::{KeyDetails, PacketHeaderVersion, Password, SecretParams, Tag, Timestamp},
 };
 
 use crate::{
     err::IntoGfrResult,
-    types::{GfrFreeCb, GfrPasswordFetchCb, GfrStatus},
+    types::{GfrFreeCb, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus},
     utils::fetch_password_internal,
 };
 
@@ -317,6 +318,105 @@ pub fn set_primary_user_id_internal(
         let primary_user = skey.details.users.remove(target_idx);
         skey.details.users.insert(0, primary_user);
     }
+
+    skey.to_armored_string(ArmorOptions::default()).into_gfr()
+}
+
+fn build_revocation_reason_subpacket(
+    code: GfrRevocationCode,
+    text: Option<&str>,
+) -> Result<Subpacket, GfrStatus> {
+    let reason_text = text.unwrap_or("").to_string();
+
+    let sp = match code {
+        GfrRevocationCode::NoReason => Subpacket::regular(SubpacketData::RevocationReason(
+            RevocationCode::NoReason,
+            Bytes::from(reason_text),
+        )),
+        GfrRevocationCode::Superseded => Subpacket::regular(SubpacketData::RevocationReason(
+            RevocationCode::KeySuperseded,
+            Bytes::from(reason_text),
+        )),
+        GfrRevocationCode::Compromised => Subpacket::regular(SubpacketData::RevocationReason(
+            RevocationCode::KeyCompromised,
+            Bytes::from(reason_text),
+        )),
+        GfrRevocationCode::Retired => Subpacket::regular(SubpacketData::RevocationReason(
+            RevocationCode::KeyRetired,
+            Bytes::from(reason_text),
+        )),
+        GfrRevocationCode::UserIdInvalid => Subpacket::regular(SubpacketData::RevocationReason(
+            RevocationCode::CertUserIdInvalid,
+            Bytes::from(reason_text),
+        )),
+    };
+
+    sp.map_err(|_| GfrStatus::ErrorInternal)
+}
+
+pub fn revoke_user_id_internal(
+    channel: i32,
+    secret_key_block: &str,
+    target_uid_str: &str,
+    reason_code: GfrRevocationCode,
+    reason_text: Option<&str>,
+    fetch_cb: Option<GfrPasswordFetchCb>,
+    free_cb: Option<GfrFreeCb>,
+) -> Result<String, GfrStatus> {
+    let (mut skey, _) = SignedSecretKey::from_string(secret_key_block).into_gfr()?;
+
+    let target_idx = skey
+        .details
+        .users
+        .iter()
+        .position(|u| String::from_utf8_lossy(u.id.id()) == target_uid_str)
+        .ok_or(GfrStatus::ErrorInvalidInput)?;
+
+    let fpr = skey.primary_key.fingerprint().to_string();
+    let is_enc = matches!(skey.primary_key.secret_params(), SecretParams::Encrypted(_));
+
+    let pwd_bytes = if is_enc {
+        fetch_password_internal(channel, &fpr, "Revoke User ID", fetch_cb, free_cb)?
+    } else {
+        Vec::new()
+    };
+    let pwd = Password::from(pwd_bytes.as_slice());
+
+    let pk = skey.primary_key.public_key();
+    let primary_fpr = skey.primary_key.fingerprint();
+
+    let user = skey
+        .details
+        .users
+        .get_mut(target_idx)
+        .ok_or(GfrStatus::ErrorInternal)?;
+
+    let mut cfg = SignatureConfig::v4(
+        SignatureType::CertRevocation,
+        skey.primary_key.algorithm(),
+        HashAlgorithm::Sha512,
+    );
+
+    cfg.hashed_subpackets.push(
+        Subpacket::regular(SubpacketData::IssuerFingerprint(primary_fpr))
+            .map_err(|_| GfrStatus::ErrorInternal)?,
+    );
+
+    cfg.hashed_subpackets.push(
+        Subpacket::regular(SubpacketData::SignatureCreationTime(
+            pgp::types::Timestamp::now(),
+        ))
+        .map_err(|_| GfrStatus::ErrorInternal)?,
+    );
+
+    cfg.hashed_subpackets
+        .push(build_revocation_reason_subpacket(reason_code, reason_text)?);
+
+    let revoke_sig = cfg
+        .sign_certification(&skey.primary_key, &pk, &pwd, Tag::UserId, &user.id)
+        .into_gfr()?;
+
+    user.signatures.push(revoke_sig);
 
     skey.to_armored_string(ArmorOptions::default()).into_gfr()
 }
