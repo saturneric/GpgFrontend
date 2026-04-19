@@ -38,11 +38,6 @@ namespace GpgFrontend {
 
 class GFKeyDatabase;
 
-enum class OpenPGPEngine : std::uint8_t {
-  kGNUPG,
-  kRPGP,
-};
-
 /**
  * @brief
  *
@@ -90,6 +85,13 @@ class GF_CORE_EXPORT GpgContext : public SingletonFunctionObject<GpgContext> {
    * @return OpenPGPEngine
    */
   [[nodiscard]] auto Engine() const -> OpenPGPEngine;
+
+  /**
+   * @brief
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto EngineVersion() const -> QString;
 
   /**
    * @brief

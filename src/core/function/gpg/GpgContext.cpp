@@ -36,10 +36,12 @@
 
 #include "core/function/GFKeyDatabase.h"
 #include "core/function/basic/GpgFunctionObject.h"
+#include "core/function/gpg/GpgComponentManager.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
+#include "core/utils/RustUtils.h"
 
 namespace GpgFrontend {
 
@@ -253,6 +255,28 @@ class GpgContext::Impl {
   auto KeyDatabase() -> QSharedPointer<GFKeyDatabase> {
     assert(engine_ == OpenPGPEngine::kRPGP);
     return engine_ == OpenPGPEngine::kRPGP ? key_db_ : nullptr;
+  }
+
+  auto EngineVersion() -> QString {
+    if (Engine() == OpenPGPEngine::kRPGP) {
+      return RustEngineVersion();
+    }
+
+    auto ver = GpgComponentManager::GetInstance(parent_->GetChannel())
+                   .GetGpgAgentVersion();
+
+    if (!ver.isEmpty()) {
+      return ver;
+    }
+
+    auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
+        "core", "gpgme.ctx.gnupg_version", QString{});
+
+    if (!gnupg_version.isEmpty()) {
+      return gnupg_version;
+    }
+
+    return "0.0.0";
   }
 
  private:
@@ -642,6 +666,10 @@ auto GpgContext::KeyDBName() const -> QString { return p_->KeyDBName(); }
 auto GpgContext::RestartGpgAgent() -> bool { return p_->RestartGpgAgent(); }
 
 auto GpgContext::Engine() const -> OpenPGPEngine { return p_->Engine(); }
+
+auto GpgContext::EngineVersion() const -> QString {
+  return p_->EngineVersion();
+}
 
 auto GpgContext::KeyDatabase() -> QSharedPointer<GFKeyDatabase> {
   return p_->KeyDatabase();

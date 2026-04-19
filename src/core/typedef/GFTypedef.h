@@ -34,6 +34,11 @@
 
 namespace GpgFrontend {
 
+enum class OpenPGPEngine : std::uint8_t {
+  kGNUPG,
+  kRPGP,
+};
+
 struct GFUserId {
   QString name;
   QString email;
