@@ -28,6 +28,8 @@
 
 #include "RustEngineCallback.h"
 
+#include <cstring>
+
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GFKeyDatabase.h"
 #include "core/function/gpg/GpgAbstractKeyGetter.h"
