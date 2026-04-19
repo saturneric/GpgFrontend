@@ -26,7 +26,10 @@
  *
  */
 
-use pgp::types::PublicParams;
+use pgp::{
+    packet::{Signature, SubpacketData},
+    types::{PublicParams, Timestamp},
+};
 use rsa::traits::PublicKeyParts;
 
 use crate::types::{GfrFreeCb, GfrPasswordFetchCb, GfrStatus};
@@ -122,4 +125,64 @@ pub fn extract_key_length(public_params: &PublicParams) -> Option<u32> {
 
         _ => None,
     }
+}
+
+pub fn is_self_signature_from_primary(sig: &Signature, primary_fpr_bytes: &[u8]) -> bool {
+    sig.issuer_fingerprint()
+        .iter()
+        .any(|f| f.as_bytes() == primary_fpr_bytes)
+}
+
+fn sig_creation_time(sig: &Signature) -> Option<Timestamp> {
+    sig.config().and_then(|c| {
+        c.hashed_subpackets
+            .iter()
+            .chain(c.unhashed_subpackets.iter())
+            .find_map(|sp| match &sp.data {
+                SubpacketData::SignatureCreationTime(ts) => Some(*ts),
+                _ => None,
+            })
+    })
+}
+
+fn has_key_flags(sig: &Signature) -> bool {
+    sig.config()
+        .map(|c| {
+            c.hashed_subpackets
+                .iter()
+                .chain(c.unhashed_subpackets.iter())
+                .any(|sp| matches!(sp.data, SubpacketData::KeyFlags(_)))
+        })
+        .unwrap_or(false)
+}
+
+pub fn has_is_primary_true(sig: &Signature) -> bool {
+    sig.config()
+        .map(|c| {
+            c.hashed_subpackets
+                .iter()
+                .chain(c.unhashed_subpackets.iter())
+                .any(|sp| matches!(sp.data, SubpacketData::IsPrimary(true)))
+        })
+        .unwrap_or(false)
+}
+
+fn sig_creation_time_value(sig: &Signature) -> u64 {
+    sig_creation_time(sig)
+        .map(|ts| ts.as_secs() as u64)
+        .unwrap_or(0)
+}
+
+pub fn choose_template_self_sig<'a>(self_sigs: &[&'a Signature]) -> Option<&'a Signature> {
+    self_sigs
+        .iter()
+        .copied()
+        .filter(|sig| has_key_flags(sig))
+        .max_by(|a, b| sig_creation_time_value(a).cmp(&sig_creation_time_value(b)))
+        .or_else(|| {
+            self_sigs
+                .iter()
+                .copied()
+                .max_by(|a, b| sig_creation_time_value(a).cmp(&sig_creation_time_value(b)))
+        })
 }
