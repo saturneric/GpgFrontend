@@ -45,8 +45,6 @@ auto GF_CORE_EXPORT RustEngineVersion() -> QString {
 }
 
 auto KeyAlgoId2GfrKeyAlgo(const QString& algo_id) -> Rust::GfrKeyAlgo {
-  LOG_D() << "key algo id: " << algo_id;
-
   if (algo_id == "ed25519") return Rust::GfrKeyAlgo::ED25519;
   if (algo_id == "cv25519") return Rust::GfrKeyAlgo::CV25519;
   if (algo_id == "nistp256") return Rust::GfrKeyAlgo::NISTP256;
@@ -62,7 +60,12 @@ auto KeyAlgoId2GfrKeyAlgo(const QString& algo_id) -> Rust::GfrKeyAlgo {
   if (algo_id == "ed448") return Rust::GfrKeyAlgo::ED448;
   if (algo_id == "x448") return Rust::GfrKeyAlgo::X448;
   if (algo_id == "rsa") return Rust::GfrKeyAlgo::RSA2048;
+  if (algo_id == "dsa1024") return Rust::GfrKeyAlgo::DSA1024;
+  if (algo_id == "dsa2048") return Rust::GfrKeyAlgo::DSA2048;
+  if (algo_id == "dsa3072") return Rust::GfrKeyAlgo::DSA3072;
+  if (algo_id == "dsa") return Rust::GfrKeyAlgo::DSA2048;
 
+  LOG_W() << "Unknown key algo id: " << algo_id;
   return Rust::GfrKeyAlgo::Unknown;
 }
 
@@ -96,6 +99,12 @@ auto GF_CORE_EXPORT GfrKeyAlgo2KeyAlgoName(Rust::GfrKeyAlgo algo) -> QString {
       return "X448";
     case Rust::GfrKeyAlgo::SECP256K1:
       return "SECP256K1";
+    case Rust::GfrKeyAlgo::DSA1024:
+      return "DSA 1024";
+    case Rust::GfrKeyAlgo::DSA2048:
+      return "DSA 2048";
+    case Rust::GfrKeyAlgo::DSA3072:
+      return "DSA 3072";
     default:
       return "Unknown";
   }

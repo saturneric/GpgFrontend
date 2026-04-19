@@ -42,19 +42,8 @@ auto EngineSupportIf::IsSupport(const GpgContext& ctx) const -> bool {
   auto version = ctx.EngineVersion();
   auto engine = ctx.Engine();
 
-  if (engine != engine_req_) {
-    LOG_D() << "Engine type not match. Required: "
-            << ConvertOpenPGPEngine2String(engine_req_)
-            << ", actual: " << ConvertOpenPGPEngine2String(engine);
-    return false;
-  }
-
-  if (GFCompareSoftwareVersion(version_req_, version) > 0) {
-    LOG_D() << "Engine version not match. Required: " << version_req_
-            << ", actual: " << version;
-    return false;
-  }
-
+  if (engine != engine_req_) return false;
+  if (GFCompareSoftwareVersion(version_req_, version) > 0) return false;
   return true;
 }
 

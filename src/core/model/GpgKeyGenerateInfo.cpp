@@ -89,7 +89,7 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kPrimaryKeyAlgos = {
         "DSA",
         1024,
         kSIGN | kAUTH | kCERT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}},
+        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
     },
     {
         "dsa2048",
@@ -97,7 +97,7 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kPrimaryKeyAlgos = {
         "DSA",
         2048,
         kSIGN | kAUTH | kCERT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}},
+        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
     },
     {
         "dsa3072",
@@ -105,7 +105,7 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kPrimaryKeyAlgos = {
         "DSA",
         3072,
         kSIGN | kAUTH | kCERT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}},
+        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
     },
     {
         "ed25519",
@@ -222,7 +222,7 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kSubKeyAlgos = {
         "DSA",
         1024,
         kSIGN | kAUTH,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}},
+        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
     },
     {
         "dsa2048",
@@ -230,7 +230,7 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kSubKeyAlgos = {
         "DSA",
         2048,
         kSIGN | kAUTH,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}},
+        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
     },
     {
         "dsa3072",
@@ -238,7 +238,7 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kSubKeyAlgos = {
         "DSA",
         3072,
         kSIGN | kAUTH,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}},
+        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
     },
     {
         "ed25519",
@@ -318,7 +318,7 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kSubKeyAlgos = {
         "ECDH",
         256,
         kENCRYPT,
-        {{OpenPGPEngine::kGNUPG, "2.3.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
+        {{OpenPGPEngine::kGNUPG, "2.3.0"}},
     },
 
     /**
