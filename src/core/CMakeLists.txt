@@ -71,13 +71,18 @@ target_link_libraries(${LIBRARY_TARGET} PRIVATE archive)
 # link qt
 target_link_libraries(${LIBRARY_TARGET} PUBLIC Qt::Core Qt::Gui Qt::Sql)
 
+if(WIN32)
+  # link bcrypt for windows bcrypt is required for the bcrypt implementation of
+  # AES, which is used by rpgp engine for crypto operations.
+  target_link_libraries(gf_rust INTERFACE bcrypt)
+endif()
+
 # link rust support library
 target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_rust)
 target_compile_definitions(${LIBRARY_TARGET} PRIVATE HAS_RUST_SUPPORT)
 
 if(MINGW)
-  # link bcrypt for windows bcrypt is required for the bcrypt implementation of
-  # AES, which is used by rpgp engine and uuid generation
+  # bcypt uuid generation
   target_link_libraries(${LIBRARY_TARGET} PRIVATE bcrypt)
 endif()
 
