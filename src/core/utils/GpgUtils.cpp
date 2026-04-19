@@ -525,7 +525,7 @@ auto ConvertOpenPGPEngine2String(OpenPGPEngine type) -> QString {
     case OpenPGPEngine::kGNUPG:
       return "GnuPG";
     case OpenPGPEngine::kRPGP:
-      return "RPGP";
+      return "rPGP";
     default:
       return "Unknown";
   }

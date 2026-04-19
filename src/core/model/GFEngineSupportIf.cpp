@@ -29,7 +29,6 @@
 #include "GFEngineSupportIf.h"
 
 #include "core/utils/CommonUtils.h"
-#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
 EngineSupportIf::EngineSupportIf()

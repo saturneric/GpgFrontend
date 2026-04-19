@@ -41,7 +41,7 @@ void GpgSignResultAnalyse::doAnalyse() {
   auto signatures = this->result_.Signatures();
   auto invalid_signers = this->result_.InvalidSigners();
 
-  stream_ << "# " << tr("Sign Operation") << " ";
+  stream_ << "# " << tr("Sign Operation") << " (" << EngineInfo() << ") ";
 
   if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
     stream_ << "- " << tr("Success") << " " << Qt::endl;

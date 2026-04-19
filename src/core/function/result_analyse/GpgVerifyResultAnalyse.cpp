@@ -39,7 +39,7 @@ GpgFrontend::GpgVerifyResultAnalyse::GpgVerifyResultAnalyse(
 void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
   auto signatures = this->result_.GetSignature();
 
-  stream_ << "# " << tr("Verify Operation") << " ";
+  stream_ << "# " << tr("Verify Operation") << " (" << EngineInfo() << ") ";
 
   if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
     stream_ << " - " << tr("Success") << " " << Qt::endl;

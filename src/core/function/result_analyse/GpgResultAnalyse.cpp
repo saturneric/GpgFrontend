@@ -28,14 +28,19 @@
 
 #include "GpgResultAnalyse.h"
 
-auto GpgFrontend::GpgResultAnalyse::GetResultReport() const -> const QString {
+#include <algorithm>
+
+#include "core/function/gpg/GpgContext.h"
+#include "core/utils/GpgUtils.h"
+
+auto GpgFrontend::GpgResultAnalyse::GetResultReport() const -> QString {
   return *stream_.string();
 }
 
 auto GpgFrontend::GpgResultAnalyse::GetStatus() const -> int { return status_; }
 
 void GpgFrontend::GpgResultAnalyse::setStatus(int m_status) {
-  if (m_status < status_) status_ = m_status;
+  status_ = std::min(m_status, status_);
 }
 
 void GpgFrontend::GpgResultAnalyse::Analyse() {
@@ -47,4 +52,14 @@ void GpgFrontend::GpgResultAnalyse::Analyse() {
 
 auto GpgFrontend::GpgResultAnalyse::GetChannel() const -> int {
   return current_gpg_context_channel_;
+}
+
+auto GpgFrontend::GpgResultAnalyse::EngineInfo() const -> QString {
+  auto& ctx = GpgContext::GetInstance(current_gpg_context_channel_);
+  auto version = ctx.EngineVersion();
+  auto engine = ctx.Engine();
+
+  return QString("%1 v%2")
+      .arg(ConvertOpenPGPEngine2String(engine))
+      .arg(version);
 }

@@ -39,14 +39,14 @@ class GF_CORE_EXPORT GpgResultAnalyse : public QObject {
    *
    */
   explicit GpgResultAnalyse(int channel)
-      : current_gpg_context_channel_(channel) {};
+      : current_gpg_context_channel_(channel){};
 
   /**
    * @brief Get the Result Report object
    *
    * @return const QString
    */
-  [[nodiscard]] auto GetResultReport() const -> const QString;
+  [[nodiscard]] auto GetResultReport() const -> QString;
 
   /**
    * @brief Get the Status object
@@ -55,7 +55,19 @@ class GF_CORE_EXPORT GpgResultAnalyse : public QObject {
    */
   [[nodiscard]] auto GetStatus() const -> int;
 
+  /**
+   * @brief Get the Channel object
+   *
+   * @return int
+   */
   [[nodiscard]] auto GetChannel() const -> int;
+
+  /**
+   * @brief
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto EngineInfo() const -> QString;
 
   /**
    * @brief

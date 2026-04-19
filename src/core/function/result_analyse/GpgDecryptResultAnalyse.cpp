@@ -37,7 +37,7 @@ GpgFrontend::GpgDecryptResultAnalyse::GpgDecryptResultAnalyse(
 void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
   auto recipients = this->result_.Recipients();
 
-  stream_ << "# " << tr("Decrypt Operation") << " ";
+  stream_ << "# " << tr("Decrypt") << " (" << EngineInfo() << ") ";
 
   if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
     stream_ << "- " << tr("Success") << " " << Qt::endl;
@@ -51,6 +51,8 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
               << result_.UnsupportedAlgorithm() << Qt::endl;
     }
   }
+
+  stream_ << Qt::endl;
 
   if (!recipients.empty()) {
     stream_ << Qt::endl;
