@@ -28,7 +28,10 @@
 
 #include "KeyManagement.h"
 
+#include "core/GpgCoreRust.h"
 #include "core/function/GFKeyDatabase.h"
+#include "core/function/rpgp/KeyImportExport.h"
+#include "core/function/rpgp/RustEngineCallback.h"
 
 namespace GpgFrontend {
 
@@ -51,6 +54,71 @@ auto DeleteKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys)
       LOG_E() << "failed to delete key from database: " << key->ID();
     }
   }
+  return GPG_ERR_NO_ERROR;
+}
+
+auto ModifyKeyPassphraseRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key)
+    -> GpgError {
+  auto key_db = ctx.KeyDatabase();
+  if (key_db == nullptr) {
+    LOG_E() << "key database is not initialized";
+    return GPG_ERR_GENERAL;
+  }
+
+  auto meta = key_db->GetKeyMetadata(key->Fingerprint());
+  if (!meta) {
+    LOG_E() << "key metadata not found in database for key: "
+            << key->Fingerprint();
+    return GPG_ERR_GENERAL;
+  }
+
+  auto key_block_data = key_db->GetKeyBlocks(meta->fpr);
+  if (!key_block_data) {
+    LOG_E() << "key block data not found in database for key with fpr: "
+            << meta->fpr;
+    return GPG_ERR_GENERAL;
+  }
+
+  if (key_block_data->secret_key.isEmpty()) {
+    LOG_E() << "secret key block is empty for key with fpr: " << meta->fpr;
+    return GPG_ERR_GENERAL;
+  }
+
+  auto key_block_utf8 = key_block_data->secret_key.toUtf8();
+  if (key_block_utf8.isEmpty()) {
+    LOG_E() << "key block data is empty for key with fpr: " << meta->fpr;
+    return GPG_ERR_GENERAL;
+  }
+
+  auto key_fpr_utf8 = key->Fingerprint().toUtf8();
+  char* out_secret_block = nullptr;
+
+  auto err = Rust::gfr_crypto_modify_key_password(
+      ctx.GetChannel(), key_block_utf8.constData(), key_fpr_utf8.constData(),
+      FetchPasswordCallback, FreeCallback, &out_secret_block);
+
+  if (err != Rust::GfrStatus::Success) {
+    LOG_E() << "gfr_crypto_modify_key_password error, code: "
+            << static_cast<int>(err);
+    return GPG_ERR_GENERAL;
+  }
+
+  if (out_secret_block == nullptr) {
+    LOG_E() << "gfr_crypto_modify_key_password returned null secret block";
+    return GPG_ERR_GENERAL;
+  }
+
+  auto out_block_str = QString::fromUtf8(out_secret_block);
+  Rust::gfr_crypto_free_string(out_secret_block);
+
+  auto info = ImportKeyRpgpImpl(ctx, GFBuffer(out_block_str));
+  if (info == nullptr || info->imported_keys.empty()) {
+    LOG_E() << "Failed to import updated key block after modifying key "
+               "password for key with fpr: "
+            << key->Fingerprint();
+    return GPG_ERR_GENERAL;
+  }
+
   return GPG_ERR_NO_ERROR;
 }
 }  // namespace GpgFrontend

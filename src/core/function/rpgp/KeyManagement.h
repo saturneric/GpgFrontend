@@ -42,4 +42,13 @@ namespace GpgFrontend {
 auto DeleteKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys)
     -> GpgError;
 
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param keys
+ * @return GpgError
+ */
+auto ModifyKeyPassphraseRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key)
+    -> GpgError;
 }  // namespace GpgFrontend

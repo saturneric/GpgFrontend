@@ -61,6 +61,7 @@ void DeleteKeysImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys) {
     }
   }
 }
+
 }  // namespace
 
 GpgKeyOpera::GpgKeyOpera(int channel)
@@ -402,6 +403,9 @@ void GpgKeyOpera::ModifyPassword(const GpgKeyPtr& key,
   RunGpgOperaAsync(
       GetChannel(),
       [&key, &ctx = ctx_](const DataObjectPtr&) -> GpgError {
+        if (ctx.BackendType() == PGPBackendType::kRPGP) {
+          return ModifyKeyPassphraseRpgpImpl(ctx, key);
+        }
         return gpgme_op_passwd(ctx.DefaultContext(),
                                static_cast<gpgme_key_t>(*key), 0);
       },
