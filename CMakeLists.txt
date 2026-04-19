@@ -34,7 +34,7 @@ endif()
 
 # define project
 project(GpgFrontend
-  VERSION 2.1.11
+  VERSION 2.2.0
   DESCRIPTION "GpgFrontend is a modern, cross-platform, open-source GUI for OpenPGP encryption."
   HOMEPAGE_URL "https://gpgfrontend.bktus.com"
   LANGUAGES CXX)
