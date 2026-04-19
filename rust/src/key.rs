@@ -798,3 +798,87 @@ pub fn revoke_subkey_internal(
         fingerprint: fpr,
     })
 }
+
+pub fn generate_key_rev_cert_internal(
+    channel: i32,
+    secret_key_block: &str,
+    reason_code: GfrRevocationCode,
+    reason_text: Option<&str>,
+    fetch_cb: Option<GfrPasswordFetchCb>,
+    free_cb: Option<GfrFreeCb>,
+) -> Result<String, GfrStatus> {
+    let (skey, _) = SignedSecretKey::from_string(secret_key_block).into_gfr()?;
+
+    let fpr = skey.primary_key.fingerprint().to_string();
+    let is_enc = matches!(skey.primary_key.secret_params(), SecretParams::Encrypted(_));
+
+    let pwd_bytes = if is_enc {
+        fetch_password_with_cache(
+            Some(&PASSWORD_CACHE),
+            PasswordCachePolicy::Default,
+            channel,
+            &fpr,
+            "Generate Key Revocation Certificate",
+            fetch_cb,
+            free_cb,
+        )?
+    } else {
+        Vec::new()
+    };
+    let pwd = Password::from(pwd_bytes.as_slice());
+
+    if is_enc {
+        let inner = skey
+            .primary_key
+            .unlock(&pwd, |_, _| Ok(()))
+            .map_err(|_| GfrStatus::ErrorPasswordFailed)?;
+        inner.map_err(|_| GfrStatus::ErrorPasswordFailed)?;
+    }
+
+    let primary_fpr = skey.primary_key.fingerprint();
+    let pk = skey.primary_key.public_key();
+
+    let mut cfg = SignatureConfig::v4(
+        SignatureType::KeyRevocation,
+        skey.primary_key.algorithm(),
+        HashAlgorithm::Sha512,
+    );
+
+    cfg.hashed_subpackets.push(
+        Subpacket::regular(SubpacketData::IssuerFingerprint(primary_fpr))
+            .map_err(|_| GfrStatus::ErrorInternal)?,
+    );
+
+    cfg.hashed_subpackets.push(
+        Subpacket::regular(SubpacketData::SignatureCreationTime(
+            pgp::types::Timestamp::now(),
+        ))
+        .map_err(|_| GfrStatus::ErrorInternal)?,
+    );
+
+    cfg.hashed_subpackets
+        .push(build_revocation_reason_subpacket(reason_code, reason_text)?);
+
+    let revoke_sig = cfg.sign_key(&skey.primary_key, &pwd, &pk).into_gfr()?;
+
+    let mut out = Vec::new();
+    pk.to_writer(&mut out)
+        .map_err(|_| GfrStatus::ErrorArmorFailed)?;
+    revoke_sig
+        .to_writer(&mut out)
+        .map_err(|_| GfrStatus::ErrorArmorFailed)?;
+
+    let source = MergedRawKeys { packet_bytes: out };
+
+    let mut armored_output = Vec::new();
+    armor::write(
+        &source,
+        BlockType::PublicKey,
+        &mut armored_output,
+        None,
+        true,
+    )
+    .map_err(|_| GfrStatus::ErrorArmorFailed)?;
+
+    String::from_utf8(armored_output).map_err(|_| GfrStatus::ErrorArmorFailed)
+}

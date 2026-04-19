@@ -109,17 +109,6 @@ impl PasswordCache {
         guard.remove(&key);
     }
 
-    pub fn clear(&self) {
-        let mut guard = self.inner.lock().expect("password cache poisoned");
-        guard.clear();
-    }
-
-    pub fn remove_by_channel_and_fpr(&self, channel: i32, fpr: &str) {
-        let fpr = fpr.to_uppercase(); // Ensure FPR is case-insensitive
-        let mut guard = self.inner.lock().expect("password cache poisoned");
-        guard.retain(|k, _| !(k.channel == channel && k.fpr == fpr));
-    }
-
     pub fn remove_by_fpr(&self, fpr: &str) {
         let fpr = fpr.to_uppercase(); // Ensure FPR is case-insensitive
         let mut guard = self.inner.lock().expect("password cache poisoned");
@@ -128,4 +117,4 @@ impl PasswordCache {
 }
 
 pub static PASSWORD_CACHE: Lazy<PasswordCache> =
-    Lazy::new(|| PasswordCache::new(Duration::from_secs(60)));
+    Lazy::new(|| PasswordCache::new(Duration::from_secs(300)));

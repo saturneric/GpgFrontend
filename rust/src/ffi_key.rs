@@ -27,7 +27,10 @@
  */
 
 use crate::err::clear_last_error;
-use crate::key::{delete_subkey_internal, modify_key_password_internal, revoke_subkey_internal};
+use crate::key::{
+    delete_subkey_internal, generate_key_rev_cert_internal, modify_key_password_internal,
+    revoke_subkey_internal,
+};
 use crate::key::{
     export_merged_public_keys, export_merged_secret_keys, extract_public_key_internal,
 };
@@ -483,6 +486,68 @@ pub extern "C" fn gfr_crypto_revoke_subkey(
 
         unsafe {
             *out_secret_block = secret_cstr.into_raw();
+        }
+
+        Ok(())
+    });
+
+    match result {
+        Ok(Ok(())) => GfrStatus::Success,
+        Ok(Err(e)) => e,
+        Err(_) => GfrStatus::ErrorPanic,
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_crypto_generate_key_rev_cert(
+    channel: i32,
+    secret_key_block: *const c_char,
+    reason_code: GfrRevocationCode,
+    reason_text: *const c_char,
+    fetch_pwd_cb: GfrPasswordFetchCb,
+    free_cb: GfrFreeCb,
+    out_cert_block: *mut *mut c_char,
+) -> GfrStatus {
+    clear_last_error();
+
+    if !out_cert_block.is_null() {
+        unsafe {
+            *out_cert_block = std::ptr::null_mut();
+        }
+    }
+
+    let result = catch_unwind(|| -> Result<(), GfrStatus> {
+        if secret_key_block.is_null() || out_cert_block.is_null() {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+
+        let block_str = unsafe { CStr::from_ptr(secret_key_block) }
+            .to_str()
+            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+        let reason_text = if reason_text.is_null() {
+            None
+        } else {
+            Some(
+                unsafe { CStr::from_ptr(reason_text) }
+                    .to_str()
+                    .map_err(|_| GfrStatus::ErrorInvalidInput)?,
+            )
+        };
+
+        let cert = generate_key_rev_cert_internal(
+            channel,
+            block_str,
+            reason_code,
+            reason_text,
+            Some(fetch_pwd_cb),
+            Some(free_cb),
+        )?;
+
+        let cert_cstr = CString::new(cert).map_err(|_| GfrStatus::ErrorInternal)?;
+
+        unsafe {
+            *out_cert_block = cert_cstr.into_raw();
         }
 
         Ok(())
