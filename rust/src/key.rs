@@ -28,11 +28,14 @@
 
 use crate::err::IntoGfrResult;
 use crate::keygen::GeneratedKeys;
-use crate::types::{GfrFreeCb, GfrKeyAlgo, GfrPasswordFetchCb, GfrStatus};
-use crate::utils::{extract_key_length, fetch_password_internal};
+use crate::types::{GfrFreeCb, GfrKeyAlgo, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus};
+use crate::utils::{
+    build_revocation_reason_subpacket, extract_key_length, fetch_password_internal,
+};
 use pgp::armor::{self, BlockType};
-use pgp::packet::SignatureType;
-use pgp::types::{Password, SignedUser};
+use pgp::crypto::hash::HashAlgorithm;
+use pgp::packet::{SignatureConfig, SignatureType, Subpacket, SubpacketData};
+use pgp::types::{Password, SecretParams, SignedUser};
 use pgp::{
     composed::{ArmorOptions, Deserializable, SignedPublicKey, SignedSecretKey},
     packet::Signature,
@@ -55,6 +58,7 @@ pub struct ExtractedSubkey {
     pub key_length: u32,
     pub created_at: u32,
     pub has_secret: bool,
+    pub is_revoked: bool,
     pub can_sign: bool,
     pub can_encrypt: bool,
     pub can_certify: bool,
@@ -159,14 +163,28 @@ fn extract_capabilities(signatures: &[Signature]) -> (bool, bool, bool, bool) {
     (can_sign, can_encrypt, can_auth, can_certify)
 }
 
+fn is_self_subkey_revocation(sig: &Signature, primary_fpr_bytes: &[u8]) -> bool {
+    is_self_signature_from_primary(sig, primary_fpr_bytes)
+        && matches!(sig.typ(), Some(SignatureType::SubkeyRevocation))
+}
+
+fn is_subkey_revoked(signatures: &[Signature], primary_fpr_bytes: &[u8]) -> bool {
+    signatures
+        .iter()
+        .any(|sig| is_self_subkey_revocation(sig, primary_fpr_bytes))
+}
+
 // Helper: Extract metadata from a secret key
 fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
     let pk = SignedPublicKey::from(sk.clone());
     let mut subs = Vec::new();
 
+    let primary_fpr_bytes = sk.primary_key.fingerprint().as_bytes().to_vec();
+
     for sub in &sk.secret_subkeys {
         let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(&sub.signatures);
         let key_length = extract_key_length(sub.key.public_params());
+        let is_revoked = is_subkey_revoked(&sub.signatures, &primary_fpr_bytes);
         subs.push(ExtractedSubkey {
             fpr: sub.key.fingerprint().to_string(),
             key_id: sub.key.legacy_key_id().to_string(),
@@ -178,6 +196,7 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
             can_auth,
             can_certify,
             key_length: key_length.unwrap_or(0),
+            is_revoked: is_revoked,
         });
     }
 
@@ -249,9 +268,12 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
 fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
     let mut subs = Vec::new();
 
+    let primary_fpr_bytes = pk.primary_key.fingerprint().as_bytes().to_vec();
+
     for sub in &pk.public_subkeys {
         let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(&sub.signatures);
         let key_length = extract_key_length(sub.key.public_params()).unwrap_or(0);
+        let is_revoked = is_subkey_revoked(&sub.signatures, &primary_fpr_bytes);
         subs.push(ExtractedSubkey {
             fpr: sub.key.fingerprint().to_string(),
             key_id: sub.key.legacy_key_id().to_string(),
@@ -263,6 +285,7 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
             can_auth,
             can_certify,
             key_length: key_length,
+            is_revoked,
         });
     }
 
@@ -627,4 +650,155 @@ pub fn modify_key_password_internal(
     }
 
     Err(GfrStatus::ErrorInvalidInput)
+}
+
+pub fn delete_subkey_internal(
+    secret_key_block: &str,
+    target_subkey_fpr: &str,
+) -> Result<GeneratedKeys, GfrStatus> {
+    let (mut secret_key, _) = SignedSecretKey::from_string(secret_key_block).map_err(|e| {
+        log::error!("Failed to parse secret key block: {}", e);
+        GfrStatus::ErrorInvalidData
+    })?;
+
+    let fingerprint_str = secret_key.fingerprint().to_string().to_uppercase();
+    let initial_len = secret_key.secret_subkeys.len();
+
+    if secret_key
+        .primary_key
+        .fingerprint()
+        .to_string()
+        .to_uppercase()
+        == target_subkey_fpr
+    {
+        return Err(GfrStatus::ErrorInvalidInput);
+    }
+
+    secret_key
+        .secret_subkeys
+        .retain(|sub| sub.key.fingerprint().to_string().to_uppercase() != target_subkey_fpr);
+
+    if secret_key.secret_subkeys.len() == initial_len {
+        return Err(GfrStatus::ErrorInvalidInput);
+    }
+
+    let armored_s_key = secret_key
+        .to_armored_string(ArmorOptions::default())
+        .into_gfr()?;
+
+    let public_key = SignedPublicKey::from(secret_key);
+    let armored_p_key = public_key
+        .to_armored_string(ArmorOptions::default())
+        .into_gfr()?;
+
+    Ok(GeneratedKeys {
+        secret: armored_s_key,
+        public: armored_p_key,
+        fingerprint: fingerprint_str,
+    })
+}
+
+pub fn revoke_subkey_internal(
+    channel: i32,
+    secret_key_block: &str,
+    target_subkey_fpr: &str,
+    reason_code: GfrRevocationCode,
+    reason_text: Option<&str>,
+    fetch_cb: Option<GfrPasswordFetchCb>,
+    free_cb: Option<GfrFreeCb>,
+) -> Result<GeneratedKeys, GfrStatus> {
+    let (mut secret_key, _) = SignedSecretKey::from_string(secret_key_block).into_gfr()?;
+
+    let target_idx = secret_key
+        .secret_subkeys
+        .iter()
+        .position(|sub| {
+            sub.key.fingerprint().to_string().to_uppercase() == target_subkey_fpr.to_uppercase()
+        })
+        .ok_or(GfrStatus::ErrorInvalidInput)?;
+
+    if secret_key
+        .primary_key
+        .fingerprint()
+        .to_string()
+        .to_uppercase()
+        == target_subkey_fpr.to_uppercase()
+    {
+        return Err(GfrStatus::ErrorInvalidInput);
+    }
+
+    let fpr = secret_key.primary_key.fingerprint().to_string();
+    let is_enc = matches!(
+        secret_key.primary_key.secret_params(),
+        SecretParams::Encrypted(_)
+    );
+
+    let pwd_bytes = if is_enc {
+        fetch_password_internal(channel, &fpr, "Revoke Subkey", fetch_cb, free_cb)?
+    } else {
+        Vec::new()
+    };
+    let pwd = Password::from(pwd_bytes.as_slice());
+
+    let pk = secret_key.primary_key.public_key();
+    let primary_fpr = secret_key.primary_key.fingerprint();
+    let primary_fpr_bytes = primary_fpr.as_bytes().to_vec();
+
+    let subkey = secret_key
+        .secret_subkeys
+        .get_mut(target_idx)
+        .ok_or(GfrStatus::ErrorInternal)?;
+
+    let already_revoked = subkey.signatures.iter().any(|sig| {
+        sig.issuer_fingerprint()
+            .iter()
+            .any(|fp| fp.as_bytes() == primary_fpr_bytes)
+            && matches!(sig.typ(), Some(SignatureType::SubkeyRevocation))
+    });
+
+    if already_revoked {
+        return Err(GfrStatus::ErrorInvalidInput);
+    }
+
+    let mut cfg = SignatureConfig::v4(
+        SignatureType::SubkeyRevocation,
+        secret_key.primary_key.algorithm(),
+        HashAlgorithm::Sha512,
+    );
+
+    cfg.hashed_subpackets.push(
+        Subpacket::regular(SubpacketData::IssuerFingerprint(primary_fpr))
+            .map_err(|_| GfrStatus::ErrorInternal)?,
+    );
+
+    cfg.hashed_subpackets.push(
+        Subpacket::regular(SubpacketData::SignatureCreationTime(
+            pgp::types::Timestamp::now(),
+        ))
+        .map_err(|_| GfrStatus::ErrorInternal)?,
+    );
+
+    cfg.hashed_subpackets
+        .push(build_revocation_reason_subpacket(reason_code, reason_text)?);
+
+    let revoke_sig = cfg
+        .sign_subkey_binding(&secret_key.primary_key, &pk, &pwd, subkey.key.public_key())
+        .into_gfr()?;
+
+    subkey.signatures.push(revoke_sig);
+
+    let armored_s_key = secret_key
+        .to_armored_string(ArmorOptions::default())
+        .map_err(|_| GfrStatus::ErrorArmorFailed)?;
+
+    let public_key = SignedPublicKey::from(secret_key);
+    let armored_p_key = public_key
+        .to_armored_string(ArmorOptions::default())
+        .map_err(|_| GfrStatus::ErrorArmorFailed)?;
+
+    Ok(GeneratedKeys {
+        secret: armored_s_key,
+        public: armored_p_key,
+        fingerprint: fpr,
+    })
 }

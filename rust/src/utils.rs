@@ -27,12 +27,13 @@
  */
 
 use pgp::{
-    packet::{Signature, SubpacketData},
+    bytes::Bytes,
+    packet::{RevocationCode, Signature, Subpacket, SubpacketData},
     types::{PublicParams, Timestamp},
 };
 use rsa::traits::PublicKeyParts;
 
-use crate::types::{GfrFreeCb, GfrPasswordFetchCb, GfrStatus};
+use crate::types::{GfrFreeCb, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus};
 use std::{
     ffi::{CString, c_char},
     ptr::null_mut,
@@ -185,4 +186,36 @@ pub fn choose_template_self_sig<'a>(self_sigs: &[&'a Signature]) -> Option<&'a S
                 .copied()
                 .max_by(|a, b| sig_creation_time_value(a).cmp(&sig_creation_time_value(b)))
         })
+}
+
+pub fn build_revocation_reason_subpacket(
+    code: GfrRevocationCode,
+    text: Option<&str>,
+) -> Result<Subpacket, GfrStatus> {
+    let reason_text = text.unwrap_or("").to_string();
+
+    let sp = match code {
+        GfrRevocationCode::NoReason => Subpacket::regular(SubpacketData::RevocationReason(
+            RevocationCode::NoReason,
+            Bytes::from(reason_text),
+        )),
+        GfrRevocationCode::Superseded => Subpacket::regular(SubpacketData::RevocationReason(
+            RevocationCode::KeySuperseded,
+            Bytes::from(reason_text),
+        )),
+        GfrRevocationCode::Compromised => Subpacket::regular(SubpacketData::RevocationReason(
+            RevocationCode::KeyCompromised,
+            Bytes::from(reason_text),
+        )),
+        GfrRevocationCode::Retired => Subpacket::regular(SubpacketData::RevocationReason(
+            RevocationCode::KeyRetired,
+            Bytes::from(reason_text),
+        )),
+        GfrRevocationCode::UserIdInvalid => Subpacket::regular(SubpacketData::RevocationReason(
+            RevocationCode::CertUserIdInvalid,
+            Bytes::from(reason_text),
+        )),
+    };
+
+    sp.map_err(|_| GfrStatus::ErrorInternal)
 }

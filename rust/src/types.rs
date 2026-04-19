@@ -128,6 +128,7 @@ pub struct GfrSubkeyMetadataC {
     pub key_length: u32,
     pub created_at: u32,
     pub has_secret: bool,
+    pub is_revoked: bool,
     pub can_sign: bool,
     pub can_encrypt: bool,
     pub can_auth: bool,

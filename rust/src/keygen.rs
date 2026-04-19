@@ -281,7 +281,7 @@ pub fn add_subkey_internal(
     let mut primary_pw = Password::empty();
     if secret_key.primary_key.secret_params().is_encrypted() {
         let pwd_bytes = fetch_password_internal(
-            0,
+            channel,
             &fingerprint_str,
             "Unlock Primary Key to generate subkey",
             fetch_pwd_cb,
@@ -381,7 +381,7 @@ pub fn add_subkey_internal(
     if config.has_passphrase {
         let subkey_pwd_bytes = fetch_password_internal(
             channel,
-            &raw_subkey.fingerprint().to_string(),
+            "",
             "Set password for new subkey",
             fetch_pwd_cb,
             free_cb,

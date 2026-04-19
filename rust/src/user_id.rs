@@ -27,10 +27,9 @@
  */
 
 use pgp::{
-    bytes::Bytes,
     composed::{ArmorOptions, Deserializable, SignedPublicKey, SignedSecretKey},
     crypto::{hash::HashAlgorithm, public_key},
-    packet::{RevocationCode, Signature, SignatureConfig, SignatureType, Subpacket, SubpacketData},
+    packet::{Signature, SignatureConfig, SignatureType, Subpacket, SubpacketData},
     types::{KeyDetails, PacketHeaderVersion, Password, SecretParams, Tag, Timestamp},
 };
 
@@ -38,8 +37,8 @@ use crate::{
     err::IntoGfrResult,
     types::{GfrFreeCb, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus},
     utils::{
-        choose_template_self_sig, fetch_password_internal, has_is_primary_true,
-        is_self_signature_from_primary,
+        build_revocation_reason_subpacket, choose_template_self_sig, fetch_password_internal,
+        has_is_primary_true, is_self_signature_from_primary,
     },
 };
 
@@ -264,38 +263,6 @@ pub fn set_primary_user_id_internal(
     }
 
     skey.to_armored_string(ArmorOptions::default()).into_gfr()
-}
-
-fn build_revocation_reason_subpacket(
-    code: GfrRevocationCode,
-    text: Option<&str>,
-) -> Result<Subpacket, GfrStatus> {
-    let reason_text = text.unwrap_or("").to_string();
-
-    let sp = match code {
-        GfrRevocationCode::NoReason => Subpacket::regular(SubpacketData::RevocationReason(
-            RevocationCode::NoReason,
-            Bytes::from(reason_text),
-        )),
-        GfrRevocationCode::Superseded => Subpacket::regular(SubpacketData::RevocationReason(
-            RevocationCode::KeySuperseded,
-            Bytes::from(reason_text),
-        )),
-        GfrRevocationCode::Compromised => Subpacket::regular(SubpacketData::RevocationReason(
-            RevocationCode::KeyCompromised,
-            Bytes::from(reason_text),
-        )),
-        GfrRevocationCode::Retired => Subpacket::regular(SubpacketData::RevocationReason(
-            RevocationCode::KeyRetired,
-            Bytes::from(reason_text),
-        )),
-        GfrRevocationCode::UserIdInvalid => Subpacket::regular(SubpacketData::RevocationReason(
-            RevocationCode::CertUserIdInvalid,
-            Bytes::from(reason_text),
-        )),
-    };
-
-    sp.map_err(|_| GfrStatus::ErrorInternal)
 }
 
 pub fn revoke_user_id_internal(
