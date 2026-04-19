@@ -189,8 +189,11 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
           KeyGenerateInfo::GetSupportedSubkeyAlgo(channel)) {
   ui_->setupUi(this);
 
+  auto engine = GpgContext::GetInstance(channel).Engine();
+  LOG_D() << "current gpg engine: " << ConvertOpenPGPEngine2String(engine);
+
   for (const auto& key_db : GetGpgKeyDatabaseInfos()) {
-    auto bnd_type = ConvertPGPBackendType2String(
+    auto bnd_type = ConvertOpenPGPEngine2String(
         GpgContext::GetInstance(key_db.channel).Engine());
     ui_->keyDBIndexComboBox->insertItem(key_db.channel, QString("[%2]: %3 (%1)")
                                                             .arg(bnd_type)
@@ -198,10 +201,22 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
                                                             .arg(key_db.name));
   }
   ui_->keyDBIndexComboBox->setCurrentIndex(channel);
+  ui_->keyDBIndexComboBox->setEnabled(false);
 
   for (const auto& option : k_expire_options_list_) {
     ui_->easyValidityPeriodComboBox->addItem(option.display);
   }
+
+  // the rPGP backend has very limited support for key generation, so we disable
+  // some options when rPGP is used as the backend engine.
+  ui_->easyValidPeriodLabel->setHidden(engine != OpenPGPEngine::kGNUPG);
+  ui_->easyValidityPeriodComboBox->setHidden(engine != OpenPGPEngine::kGNUPG);
+  ui_->pExpireCheckBox->setHidden(engine != OpenPGPEngine::kGNUPG);
+  ui_->sExpireCheckBox->setHidden(engine != OpenPGPEngine::kGNUPG);
+  ui_->pExpireDateTimeEdit->setHidden(engine != OpenPGPEngine::kGNUPG);
+  ui_->sExpireDateTimeEdit->setHidden(engine != OpenPGPEngine::kGNUPG);
+  ui_->pExpireDateLabel->setHidden(engine != OpenPGPEngine::kGNUPG);
+  ui_->sExpireDateLabel->setHidden(engine != OpenPGPEngine::kGNUPG);
 
   ui_->easyCombinationComboBox->addItems({
       tr("Primary Key Only"),
@@ -1010,6 +1025,17 @@ void KeyGenerateDialog::load_easy_profile_config() {
   int index = 1;
   for (const auto& item : easy_mode_conf) {
     if (item.hidden || item.name.isEmpty()) continue;
+
+    auto [found, algo] =
+        GetAlgoById(item.key_algo, supported_primary_key_algos_);
+    if (!found) continue;  // skip config with unsupported algo
+
+    if (item.has_s_key) {
+      auto [s_found, s_algo] =
+          GetAlgoById(item.s_key_algo, supported_subkey_algos_);
+      if (!s_found) continue;  // skip config with unsupported subkey algo
+    }
+
     easy_profile_conf_index_.insert(index++, item);
     ui_->easyProfileComboBox->addItem(item.name);
   }

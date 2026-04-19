@@ -102,7 +102,7 @@ void KeyList::init() {
             << "database name: " << key_db_name;
 
     auto bnd_type =
-        ConvertPGPBackendType2String(GpgContext::GetInstance(channel).Engine());
+        ConvertOpenPGPEngine2String(GpgContext::GetInstance(channel).Engine());
     auto* switch_context_action = new QAction(
         QString("[%2]: %3 (%1)").arg(bnd_type).arg(channel).arg(key_db_name),
         this);

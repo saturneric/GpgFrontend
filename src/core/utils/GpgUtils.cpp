@@ -459,6 +459,8 @@ auto GF_CORE_EXPORT CheckGpgVersion(int channel, const QString& v) -> bool {
     return true;
   }
 
+  auto engine_version = GpgContext::GetInstance(channel).EngineVersion();
+
   const auto ver =
       GpgComponentManager::GetInstance(channel).GetGpgAgentVersion();
 
@@ -549,7 +551,7 @@ auto ParseUserId(const QString& raw_id) -> GFUserId {
   return uid;
 }
 
-auto ConvertPGPBackendType2String(OpenPGPEngine type) -> QString {
+auto ConvertOpenPGPEngine2String(OpenPGPEngine type) -> QString {
   switch (type) {
     case OpenPGPEngine::kGNUPG:
       return "GnuPG";

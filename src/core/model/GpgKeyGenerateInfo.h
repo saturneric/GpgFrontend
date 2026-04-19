@@ -28,16 +28,17 @@
 
 #pragma once
 
+#include "core/model/GFEngineSupportIf.h"
 #include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
-
 class GF_CORE_EXPORT KeyAlgo {
  public:
   KeyAlgo() = default;
 
   KeyAlgo(QString id, QString name, QString type, int length, int opera,
-          QString supported_version, QContainer<KeyAlgo> sub_algos = {});
+          QContainer<EngineSupportIf> support_if,
+          QContainer<KeyAlgo> sub_algos = {});
 
   KeyAlgo(const KeyAlgo &) = default;
 
@@ -61,7 +62,7 @@ class GF_CORE_EXPORT KeyAlgo {
 
   [[nodiscard]] auto CanCert() const -> bool;
 
-  [[nodiscard]] auto SupportedVersion() const -> QString;
+  [[nodiscard]] auto SupportedVersion() const -> QContainer<EngineSupportIf>;
 
   [[nodiscard]] auto SubAlgos() const -> QContainer<KeyAlgo>;
 
@@ -74,7 +75,7 @@ class GF_CORE_EXPORT KeyAlgo {
   bool sign_;
   bool auth_;
   bool cert_;
-  QString supported_version_;
+  QContainer<EngineSupportIf> support_ifs_;
 
   // for hybrid algorithms
   QContainer<KeyAlgo> sub_algos_;

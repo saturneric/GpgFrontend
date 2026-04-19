@@ -32,16 +32,54 @@
 
 namespace GpgFrontend::UI {
 
-auto SearchAlgoByName(const QString& name,
-                      const QContainer<KeyAlgo>& algos) -> QContainer<KeyAlgo>;
+/**
+ * @brief Get the Algo By Id object
+ *
+ * @param id
+ * @param algos
+ * @return std::tuple<bool, KeyAlgo>
+ */
+auto GetAlgoById(const QString& id, const QContainer<KeyAlgo>& algos)
+    -> std::tuple<bool, KeyAlgo>;
 
+/**
+ * @brief
+ *
+ * @param name
+ * @param algos
+ * @return QContainer<KeyAlgo>
+ */
+auto SearchAlgoByName(const QString& name, const QContainer<KeyAlgo>& algos)
+    -> QContainer<KeyAlgo>;
+
+/**
+ * @brief Get the Algo By Name And Key Length object
+ *
+ * @param name
+ * @param key_length
+ * @param algos
+ * @return std::tuple<bool, KeyAlgo>
+ */
 auto GetAlgoByNameAndKeyLength(const QString& name, int key_length,
                                const QContainer<KeyAlgo>& algos)
     -> std::tuple<bool, KeyAlgo>;
 
+/**
+ * @brief Get the Algo By Name object
+ *
+ * @param name
+ * @param algos
+ * @return std::tuple<bool, KeyAlgo>
+ */
 auto GetAlgoByName(const QString& name, const QContainer<KeyAlgo>& algos)
     -> std::tuple<bool, KeyAlgo>;
 
+/**
+ * @brief Set the Key Length Combox Box By Algo object
+ *
+ * @param combo
+ * @param algos
+ */
 void SetKeyLengthComboxBoxByAlgo(QComboBox* combo,
                                  const QContainer<KeyAlgo>& algos);
 }  // namespace GpgFrontend::UI

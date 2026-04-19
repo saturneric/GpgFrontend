@@ -32,6 +32,18 @@
 
 namespace GpgFrontend {
 
+auto GF_CORE_EXPORT RustEngineVersion() -> QString {
+  char* c_str = Rust::gfr_rust_engine_version();
+  if (c_str == nullptr) {
+    LOG_E() << "Failed to get Rust engine version.";
+    return {};
+  }
+
+  auto version = QString::fromUtf8(c_str);
+  Rust::gfr_crypto_free_string(c_str);
+  return version;
+}
+
 auto KeyAlgoId2GfrKeyAlgo(const QString& algo_id) -> Rust::GfrKeyAlgo {
   LOG_D() << "key algo id: " << algo_id;
 

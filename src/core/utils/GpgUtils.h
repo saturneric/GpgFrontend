@@ -260,5 +260,5 @@ auto GF_CORE_EXPORT ParseUserId(const QString& raw_id) -> GFUserId;
  * @param type
  * @return QString
  */
-auto GF_CORE_EXPORT ConvertPGPBackendType2String(OpenPGPEngine type) -> QString;
+auto GF_CORE_EXPORT ConvertOpenPGPEngine2String(OpenPGPEngine type) -> QString;
 }  // namespace GpgFrontend

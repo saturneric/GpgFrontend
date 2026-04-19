@@ -30,8 +30,18 @@
 
 namespace GpgFrontend::UI {
 
-auto SearchAlgoByName(const QString& name,
-                      const QContainer<KeyAlgo>& algos) -> QContainer<KeyAlgo> {
+auto GetAlgoById(const QString& id, const QContainer<KeyAlgo>& algos)
+    -> std::tuple<bool, KeyAlgo> {
+  for (const auto& algo : algos) {
+    if (algo.Id() != id) continue;
+    return {true, algo};
+  }
+
+  return {};
+}
+
+auto SearchAlgoByName(const QString& name, const QContainer<KeyAlgo>& algos)
+    -> QContainer<KeyAlgo> {
   QContainer<KeyAlgo> res;
 
   for (const auto& algo : algos) {

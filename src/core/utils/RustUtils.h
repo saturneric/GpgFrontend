@@ -39,6 +39,13 @@ namespace GpgFrontend {
 /**
  * @brief
  *
+ * @return QString
+ */
+auto GF_CORE_EXPORT RustEngineVersion() -> QString;
+
+/**
+ * @brief
+ *
  * @param algo_id
  * @return Rust::GfrKeyAlgo
  */
