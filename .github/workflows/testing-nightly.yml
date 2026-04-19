@@ -311,7 +311,7 @@ jobs:
             $EXTRA_ARGS \
             -no-translations \
             -extra-plugins=iconengines,platforms \
-            -exclude-libs=libqsqlmimer \
+            -exclude-libs=libqsqlmimer,libclntsh \
             -appimage \
             -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/lib/modules
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
