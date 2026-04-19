@@ -77,6 +77,7 @@ struct GFKeyMetadata {
 
   int algo;
   qint64 created_at;
+  qint64 update_time;
   bool has_secret;
 
   bool can_sign;

@@ -100,7 +100,7 @@ auto GpgKey::Protocol() const -> QString {
 }
 
 auto GpgKey::OwnerTrust() const -> QString {
-  if (km_ref_ != nullptr) return {};
+  if (km_ref_ != nullptr) return tr("Ultimate");
 
   switch (key_ref_->owner_trust) {
     case GPGME_VALIDITY_UNKNOWN:
@@ -120,7 +120,7 @@ auto GpgKey::OwnerTrust() const -> QString {
 }
 
 auto GpgKey::OwnerTrustLevel() const -> int {
-  if (km_ref_ != nullptr) return 0;
+  if (km_ref_ != nullptr) return 5;
 
   switch (key_ref_->owner_trust) {
     case GPGME_VALIDITY_UNKNOWN:
@@ -159,7 +159,9 @@ auto GpgKey::Algo() const -> QString {
 }
 
 auto GpgKey::LastUpdateTime() const -> QDateTime {
-  if (km_ref_ != nullptr) return {};
+  if (km_ref_ != nullptr) {
+    return QDateTime::fromSecsSinceEpoch(km_ref_->update_time);
+  }
   return QDateTime::fromSecsSinceEpoch(
       static_cast<time_t>(key_ref_->last_update));
 }

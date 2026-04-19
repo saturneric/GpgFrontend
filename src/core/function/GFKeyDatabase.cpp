@@ -31,8 +31,6 @@
 #include <QSqlError>
 #include <QSqlQuery>
 
-#include "core/utils/GpgUtils.h"
-
 namespace GpgFrontend {
 
 auto GFKeyDatabase::connect_db(const QString& path) -> bool {
@@ -54,7 +52,7 @@ auto GFKeyDatabase::GetMetadataList() -> QList<GFKeyMetadata> {
 
   if (query.exec(R"(
         SELECT fpr, key_id, algo, created_at, has_secret, 
-               can_sign, can_encrypt, can_auth, can_certify 
+               can_sign, can_encrypt, can_auth, can_certify, update_time
         FROM key_metadata
       )")) {
     while (query.next()) {
@@ -68,6 +66,9 @@ auto GFKeyDatabase::GetMetadataList() -> QList<GFKeyMetadata> {
       meta.can_encrypt = query.value(6).toBool();
       meta.can_auth = query.value(7).toBool();
       meta.can_certify = query.value(8).toBool();
+      meta.update_time =
+          QDateTime::fromString(query.value(9).toString(), Qt::ISODate)
+              .toSecsSinceEpoch();
 
       // Load user IDs for this primary key
       meta.user_ids = load_user_ids_for_parent(meta.fpr);
@@ -186,8 +187,8 @@ auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
   // 1. Save Primary Key Metadata
   query.prepare(R"(
     INSERT OR REPLACE INTO key_metadata 
-    (fpr, key_id, algo, created_at, has_secret, can_sign, can_encrypt, can_auth, can_certify)
-    VALUES (:fpr, :key_id, :algo, :created_at, :has_secret, :can_sign, :can_encrypt, :can_auth, :can_certify)
+    (fpr, key_id, algo, created_at, has_secret, can_sign, can_encrypt, can_auth, can_certify, update_time)
+    VALUES (:fpr, :key_id, :algo, :created_at, :has_secret, :can_sign, :can_encrypt, :can_auth, :can_certify, :update_time)
   )");
   query.bindValue(":fpr", meta.fpr.toUpper());
   query.bindValue(":key_id", meta.key_id.toUpper());
@@ -198,6 +199,8 @@ auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
   query.bindValue(":can_encrypt", meta.can_encrypt ? 1 : 0);
   query.bindValue(":can_auth", meta.can_auth ? 1 : 0);
   query.bindValue(":can_certify", meta.can_certify ? 1 : 0);
+  query.bindValue(":update_time",
+                  QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
 
   if (!query.exec()) {
     LOG_E() << "SaveKey meta error: " << query.lastError().text();
@@ -300,7 +303,7 @@ auto GFKeyDatabase::GetKeyMetadata(const QString& identifier)
   QSqlQuery query(db_);
   query.prepare(R"(
     SELECT fpr, key_id, algo, created_at, has_secret, 
-           can_sign, can_encrypt, can_auth, can_certify 
+           can_sign, can_encrypt, can_auth, can_certify, update_time
     FROM key_metadata WHERE fpr = :fpr
   )");
   // Bind the resolved fingerprint, not the original identifier!
@@ -317,6 +320,9 @@ auto GFKeyDatabase::GetKeyMetadata(const QString& identifier)
     meta.can_encrypt = query.value(6).toBool();
     meta.can_auth = query.value(7).toBool();
     meta.can_certify = query.value(8).toBool();
+    meta.update_time =
+        QDateTime::fromString(query.value(9).toString(), Qt::ISODate)
+            .toSecsSinceEpoch();
 
     // Load user IDs
     meta.user_ids = load_user_ids_for_parent(meta.fpr);
@@ -359,7 +365,8 @@ auto GFKeyDatabase::create_table() -> bool {
       can_sign INTEGER DEFAULT 0,
       can_encrypt INTEGER DEFAULT 0,
       can_auth INTEGER DEFAULT 0,
-      can_certify INTEGER DEFAULT 0
+      can_certify INTEGER DEFAULT 0,
+      update_time DATETIME DEFAULT(datetime('subsec'))
     )
   )";
 
