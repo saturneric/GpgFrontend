@@ -96,6 +96,7 @@ void KeyDatabaseEditDialog::init_ui() {
 
   ui_->keyDBNameLabel->setText(tr("Key Database Name"));
   ui_->keyDBPathLabel->setText(tr("Key Database Path"));
+  ui_->keyDBBackendTypeLabel->setText(tr("Key Database Engine"));
   ui_->selectKeyDBButton->setText(tr("Select A Key Database Path"));
   ui_->convert2RelativePathCheckBox->setText(tr("Convert to Relative Path"));
 

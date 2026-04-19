@@ -36,7 +36,7 @@
      <item>
       <widget class="QLabel" name="keyDBBackendTypeLabel">
        <property name="text">
-        <string>Key Database Backend Type</string>
+        <string>Key Database Engine</string>
        </property>
       </widget>
      </item>

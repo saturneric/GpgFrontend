@@ -127,6 +127,7 @@ class KeyPairOperaTab : public QWidget {
 
  private:
   int current_gpg_context_channel_;
+  OpenPGPEngine engine_;
   GpgKeyPtr m_key_;  ///<
   QMenu* rev_cert_opera_menu_{};
   QMenu* secret_key_export_opera_menu_{};  ///<

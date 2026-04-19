@@ -47,6 +47,9 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
       key_(std::move(key)) {
   assert(key_ != nullptr);
 
+  auto engine = GpgContext::GetInstance(current_gpg_context_channel_).Engine();
+  engine_ = engine;
+
   create_subkey_list();
   create_subkey_opera_menu();
 
@@ -135,6 +138,11 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
 
   export_subkey_button_ = new QPushButton(tr("Export Subkey"));
   export_subkey_button_->setFlat(true);
+  export_subkey_button_->setDisabled(engine_ != OpenPGPEngine::kGNUPG);
+  if (engine_ != OpenPGPEngine::kGNUPG) {
+    export_subkey_button_->setToolTip(
+        tr("Exporting subkeys is only supported for GnuPG"));
+  }
   subkey_detail_layout->addWidget(export_subkey_button_, 0, 2);
   connect(export_subkey_button_, &QPushButton::clicked, this,
           &KeyPairSubkeyTab::slot_export_subkey);
@@ -381,7 +389,8 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   export_subkey_button_->setText(s_key.IsHasCertCap() ? tr("Export Primary Key")
                                                       : tr("Export Subkey"));
   export_subkey_button_->setDisabled(
-      !key_->IsPrivateKey() || s_key.IsHasCertCap() || !s_key.IsSecretKey());
+      !key_->IsPrivateKey() || s_key.IsHasCertCap() || !s_key.IsSecretKey() ||
+      engine_ != OpenPGPEngine::kGNUPG);
 
   key_type_var_label_->setText(s_key.IsHasCertCap() ? tr("Primary Key")
                                                     : tr("Subkey"));
@@ -441,6 +450,11 @@ void KeyPairSubkeyTab::contextMenuEvent(QContextMenuEvent* event) {
     delete_subkey_act_->setDisabled(!s_key.IsSecretKey() && !s_key.IsADSK());
     revoke_subkey_act_->setDisabled((!s_key.IsSecretKey() && !s_key.IsADSK()) ||
                                     s_key.IsRevoked());
+
+    // only allow export subkey when using GnuPG, since rpgp doesn't support
+    // exporting subkeys for now
+    export_subkey_act_->setDisabled(engine_ != OpenPGPEngine::kGNUPG);
+    delete_subkey_act_->setDisabled(engine_ != OpenPGPEngine::kGNUPG);
 
     subkey_opera_menu_->exec(event->globalPos());
   }

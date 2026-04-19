@@ -51,6 +51,9 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
     : QWidget(parent), current_gpg_context_channel_(channel), m_key_(key) {
   assert(m_key_ != nullptr);
 
+  auto engine = GpgContext::GetInstance(current_gpg_context_channel_).Engine();
+  engine_ = engine;
+
   // Set Menu
   CreateOperaMenu();
   auto* m_vbox = new QVBoxLayout(this);
@@ -73,15 +76,18 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
     export_h_box_layout->addWidget(export_private_button);
 
     if (m_key_->IsHasMasterKey()) {
-      auto* edit_expires_button =
-          new QPushButton(tr("Modify Expiration Datetime (Primary Key)"));
-      connect(edit_expires_button, &QPushButton::clicked, this,
-              &KeyPairOperaTab::slot_modify_edit_datetime);
+      if (engine == OpenPGPEngine::kGNUPG) {
+        auto* edit_expires_button =
+            new QPushButton(tr("Modify Expiration Datetime (Primary Key)"));
+        connect(edit_expires_button, &QPushButton::clicked, this,
+                &KeyPairOperaTab::slot_modify_edit_datetime);
+
+        vbox_p_k->addWidget(edit_expires_button);
+      }
+
       auto* edit_password_button = new QPushButton(tr("Modify Password"));
       connect(edit_password_button, &QPushButton::clicked, this,
               &KeyPairOperaTab::slot_modify_password);
-
-      vbox_p_k->addWidget(edit_expires_button);
       vbox_p_k->addWidget(edit_password_button);
     }
   }
@@ -108,7 +114,7 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
   opera_key_box->setLayout(vbox_p_k);
   m_vbox->addWidget(opera_key_box);
   // modify owner trust of public key
-  if (!m_key_->IsPrivateKey()) {
+  if (!m_key_->IsPrivateKey() && engine == OpenPGPEngine::kGNUPG) {
     vbox_p_k->addWidget(set_owner_trust_level_button);
   }
   vbox_p_k->addWidget(modify_tofu_button);
@@ -145,13 +151,15 @@ void KeyPairOperaTab::CreateOperaMenu() {
           &KeyPairOperaTab::slot_export_private_key);
   if (!m_key_->IsPrivateKey()) export_full_secret_key->setDisabled(true);
 
-  auto* export_shortest_secret_key =
-      new QAction(tr("Export Shortest Secret Key"), this);
-  connect(export_shortest_secret_key, &QAction::triggered, this,
-          &KeyPairOperaTab::slot_export_short_private_key);
-
   secret_key_export_opera_menu_->addAction(export_full_secret_key);
-  secret_key_export_opera_menu_->addAction(export_shortest_secret_key);
+
+  if (engine_ == OpenPGPEngine::kGNUPG) {
+    auto* export_shortest_secret_key =
+        new QAction(tr("Export Shortest Secret Key"), this);
+    connect(export_shortest_secret_key, &QAction::triggered, this,
+            &KeyPairOperaTab::slot_export_short_private_key);
+    secret_key_export_opera_menu_->addAction(export_shortest_secret_key);
+  }
 
   rev_cert_opera_menu_ = new QMenu(this);
 
@@ -413,7 +421,7 @@ void KeyPairOperaTab::slot_import_revoke_cert() {
     return;
   }
 
-  emit UISignalStation::GetInstance() -> SignalKeyRevoked(m_key_->ID());
+  emit UISignalStation::GetInstance()->SignalKeyRevoked(m_key_->ID());
   CommonUtils::GetInstance()->SlotImportKeys(
       nullptr, current_gpg_context_channel_, buffer);
 }

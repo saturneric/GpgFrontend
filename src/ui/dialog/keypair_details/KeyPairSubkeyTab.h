@@ -120,6 +120,7 @@ class KeyPairSubkeyTab : public QWidget {
 
  private:
   int current_gpg_context_channel_;
+  OpenPGPEngine engine_;
   GpgKeyPtr key_;                           ///<
   QTableWidget* subkey_list_{};             ///<
   QContainer<GpgSubKey> buffered_subkeys_;  ///<
