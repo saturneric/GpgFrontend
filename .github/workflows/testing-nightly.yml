@@ -304,6 +304,16 @@ jobs:
             EXTRA_ARGS="-unsupported-allow-new-glibc"
           fi
 
+          QT_PLUGIN_DIR=$(qmake -query QT_INSTALL_PLUGINS)
+          echo "Found Qt plugin dir: $QT_PLUGIN_DIR"
+
+          # enter the sqldrivers directory
+          cd $QT_PLUGIN_DIR/sqldrivers
+
+          # remove all non-sqlite drivers to reduce the size of the final AppImage
+          find . -type f ! -name '*sqlite*' -delete
+          ls -l
+
           chmod u+x linuxdeployqt-continuous.AppImage
           export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
           ./linuxdeployqt-continuous.AppImage \
@@ -311,11 +321,6 @@ jobs:
             $EXTRA_ARGS \
             -no-translations \
             -extra-plugins=iconengines,platforms,sqldrivers/libqsqlite.so \
-            -ignore-glob=**/sqldrivers/libqsqlmysql.so \
-            -ignore-glob=**/sqldrivers/libqsqlodbc.so \
-            -ignore-glob=**/sqldrivers/libqsqlpsql.so \
-            -ignore-glob=**/sqldrivers/libqsqloci.so \
-            -ignore-glob=**/sqldrivers/libqsqlmimer.so \
             -appimage \
             -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/lib/modules
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
