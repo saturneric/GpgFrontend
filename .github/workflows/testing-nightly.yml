@@ -311,7 +311,11 @@ jobs:
             $EXTRA_ARGS \
             -no-translations \
             -extra-plugins=iconengines,platforms,sqldrivers/libqsqlite.so \
+            -ignore-glob=**/sqldrivers/libqsqlmysql.so \
+            -ignore-glob=**/sqldrivers/libqsqlodbc.so \
+            -ignore-glob=**/sqldrivers/libqsqlpsql.so \
             -ignore-glob=**/sqldrivers/libqsqloci.so \
+            -ignore-glob=**/sqldrivers/libqsqlmimer.so \
             -appimage \
             -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/lib/modules
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
