@@ -60,9 +60,9 @@ class GF_CORE_EXPORT GFKeyDatabase {
   /**
    * @brief Get the Metadata List object
    *
-   * @return QList<GFKeyMetadata>
+   * @return QContainer<GFKeyMetadata>
    */
-  auto GetMetadataList() -> QList<GFKeyMetadata>;
+  auto GetMetadataList() -> QContainer<GFKeyMetadata>;
 
   /**
    * @brief Get the Key Blocks object
@@ -146,7 +146,7 @@ class GF_CORE_EXPORT GFKeyDatabase {
    * @return QList<GFSubKeyMetadata>
    */
   auto load_subkeys_for_parent(const QString& parent_fpr)
-      -> QList<GFSubKeyMetadata>;
+      -> QContainer<GFSubKeyMetadata>;
 
   /**
    * @brief

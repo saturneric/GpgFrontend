@@ -67,8 +67,8 @@ auto GFKeyDatabase::connect_db(const QString& path) -> bool {
   return true;
 }
 
-auto GFKeyDatabase::GetMetadataList() -> QList<GFKeyMetadata> {
-  QList<GFKeyMetadata> list;
+auto GFKeyDatabase::GetMetadataList() -> QContainer<GFKeyMetadata> {
+  QContainer<GFKeyMetadata> list;
   QSqlQuery query(db_);
 
   if (query.exec(R"(
@@ -438,8 +438,8 @@ auto GFKeyDatabase::create_table() -> bool {
 }
 
 auto GFKeyDatabase::load_subkeys_for_parent(const QString& parent_fpr)
-    -> QList<GFSubKeyMetadata> {
-  QList<GFSubKeyMetadata> subkeys;
+    -> QContainer<GFSubKeyMetadata> {
+  QContainer<GFSubKeyMetadata> subkeys;
   QSqlQuery query(db_);
   query.prepare(R"(
     SELECT fpr, key_id, algo, created_at, has_secret, key_length, can_sign, can_encrypt, can_auth, can_certify, is_revoked
