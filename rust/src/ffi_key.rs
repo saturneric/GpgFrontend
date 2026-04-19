@@ -28,8 +28,7 @@
 
 use crate::err::clear_last_error;
 use crate::key::{
-    delete_subkey_internal, generate_key_rev_cert_internal, modify_key_password_internal,
-    revoke_subkey_internal,
+    delete_subkey_internal, generate_key_rev_cert_internal, merge_key_block_internal, modify_key_password_internal, revoke_subkey_internal
 };
 use crate::key::{
     export_merged_public_keys, export_merged_secret_keys, extract_public_key_internal,
@@ -136,6 +135,7 @@ pub extern "C" fn gfr_crypto_extract_metadata(
                 key_length: meta.key_length,
                 created_at: meta.created_at,
                 has_secret: meta.has_secret,
+                is_revoked: meta.is_revoked,
                 can_sign: meta.can_sign,
                 can_encrypt: meta.can_encrypt,
                 can_auth: meta.can_auth,
@@ -548,6 +548,71 @@ pub extern "C" fn gfr_crypto_generate_key_rev_cert(
 
         unsafe {
             *out_cert_block = cert_cstr.into_raw();
+        }
+
+        Ok(())
+    });
+
+    match result {
+        Ok(Ok(())) => GfrStatus::Success,
+        Ok(Err(e)) => e,
+        Err(_) => GfrStatus::ErrorPanic,
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_crypto_merge_key_blocks(
+    base_block: *const c_char,
+    incoming_block: *const c_char,
+    out_secret_block: *mut *mut c_char,
+    out_public_block: *mut *mut c_char,
+) -> GfrStatus {
+    clear_last_error();
+
+    if !out_secret_block.is_null() {
+        unsafe {
+            *out_secret_block = std::ptr::null_mut();
+        }
+    }
+
+    if !out_public_block.is_null() {
+        unsafe {
+            *out_public_block = std::ptr::null_mut();
+        }
+    }
+
+    let result = catch_unwind(|| -> Result<(), GfrStatus> {
+        if base_block.is_null()
+            || incoming_block.is_null()
+            || out_secret_block.is_null()
+            || out_public_block.is_null()
+        {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+
+        let base_str = unsafe { CStr::from_ptr(base_block) }
+            .to_str()
+            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+        let incoming_str = unsafe { CStr::from_ptr(incoming_block) }
+            .to_str()
+            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+        let merged = merge_key_block_internal(base_str, incoming_str)?;
+
+        // public block 必须有
+        let public_cstr = CString::new(merged.public).map_err(|_| GfrStatus::ErrorInternal)?;
+
+        unsafe {
+            *out_public_block = public_cstr.into_raw();
+        }
+
+        // secret block 可能为空；为空时保持 null，便于 C/C++ 判断
+        if !merged.secret.is_empty() {
+            let secret_cstr = CString::new(merged.secret).map_err(|_| GfrStatus::ErrorInternal)?;
+            unsafe {
+                *out_secret_block = secret_cstr.into_raw();
+            }
         }
 
         Ok(())

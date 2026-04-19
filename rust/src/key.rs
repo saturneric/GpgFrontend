@@ -35,6 +35,7 @@ use crate::utils::{
     fetch_password_with_cache,
 };
 use pgp::armor::{self, BlockType};
+use pgp::composed::{SignedPublicSubKey, SignedSecretSubKey};
 use pgp::crypto::hash::HashAlgorithm;
 use pgp::packet::{SignatureConfig, SignatureType, Subpacket, SubpacketData};
 use pgp::types::{Password, SecretParams, SignedUser};
@@ -44,7 +45,7 @@ use pgp::{
     ser::Serialize,
     types::KeyDetails,
 };
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 use std::io;
 
 pub struct ExtractUserId {
@@ -74,6 +75,7 @@ pub struct ExtractedMetadata {
     pub key_length: u32,
     pub created_at: u32,
     pub has_secret: bool,
+    pub is_revoked: bool,
     pub can_sign: bool,
     pub can_encrypt: bool,
     pub can_auth: bool,
@@ -99,6 +101,17 @@ fn is_user_id_revoked(user: &SignedUser, primary_fpr_bytes: &[u8]) -> bool {
     user.signatures
         .iter()
         .any(|sig| is_self_uid_revocation(sig, primary_fpr_bytes))
+}
+
+fn is_self_key_revocation(sig: &Signature, primary_fpr_bytes: &[u8]) -> bool {
+    is_self_signature_from_primary(sig, primary_fpr_bytes)
+        && matches!(sig.typ(), Some(SignatureType::KeyRevocation))
+}
+
+fn is_primary_key_revoked(signatures: &[Signature], primary_fpr_bytes: &[u8]) -> bool {
+    signatures
+        .iter()
+        .any(|sig| is_self_key_revocation(sig, primary_fpr_bytes))
 }
 
 // Helper to extract metadata flags from a list of signatures. This is used for both primary and subkeys.
@@ -215,12 +228,15 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
         .unwrap_or(&[]);
     let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(primary_user_sigs);
     let key_length = extract_key_length(pk.primary_key.public_params());
+    let is_revoked = is_primary_key_revoked(&pk.details.direct_signatures, &primary_fpr_bytes);
+
     ExtractedMetadata {
         fpr: pk.primary_key.fingerprint().to_string(),
         key_id: pk.primary_key.legacy_key_id().to_string(),
         algo: determine_algo(pk.primary_key.public_params()),
         created_at: pk.primary_key.created_at().as_secs(),
         has_secret: true,
+        is_revoked,
         can_sign,
         can_encrypt,
         can_auth,
@@ -304,6 +320,7 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
         .unwrap_or(&[]);
     let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(primary_user_sigs);
     let key_length = extract_key_length(pk.primary_key.public_params());
+    let is_revoked = is_primary_key_revoked(&pk.details.direct_signatures, &primary_fpr_bytes);
     ExtractedMetadata {
         fpr: pk.primary_key.fingerprint().to_string(),
         key_id: pk.primary_key.legacy_key_id().to_string(),
@@ -312,6 +329,7 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
         key_length: key_length.unwrap_or(0),
         created_at: pk.primary_key.created_at().as_secs(),
         has_secret: false,
+        is_revoked,
         subkeys: subs,
         can_sign,
         can_encrypt,
@@ -807,6 +825,8 @@ pub fn generate_key_rev_cert_internal(
     fetch_cb: Option<GfrPasswordFetchCb>,
     free_cb: Option<GfrFreeCb>,
 ) -> Result<String, GfrStatus> {
+    use pgp::packet::Packet;
+
     let (skey, _) = SignedSecretKey::from_string(secret_key_block).into_gfr()?;
 
     let fpr = skey.primary_key.fingerprint().to_string();
@@ -862,23 +882,272 @@ pub fn generate_key_rev_cert_internal(
     let revoke_sig = cfg.sign_key(&skey.primary_key, &pwd, &pk).into_gfr()?;
 
     let mut out = Vec::new();
-    pk.to_writer(&mut out)
-        .map_err(|_| GfrStatus::ErrorArmorFailed)?;
-    revoke_sig
+
+    Packet::Signature(revoke_sig)
         .to_writer(&mut out)
-        .map_err(|_| GfrStatus::ErrorArmorFailed)?;
+        .into_gfr()?;
 
     let source = MergedRawKeys { packet_bytes: out };
 
     let mut armored_output = Vec::new();
+    let mut headers = BTreeMap::new();
+    headers.insert(
+        String::from("Comment"),
+        vec![String::from(
+            format!("This is a revocation certificate.").as_str(),
+        )],
+    );
+
     armor::write(
         &source,
         BlockType::PublicKey,
         &mut armored_output,
-        None,
+        Some(&headers),
         true,
     )
-    .map_err(|_| GfrStatus::ErrorArmorFailed)?;
+    .into_gfr()?;
 
     String::from_utf8(armored_output).map_err(|_| GfrStatus::ErrorArmorFailed)
+}
+
+fn serialize_bytes<T: Serialize>(obj: &T) -> Result<Vec<u8>, GfrStatus> {
+    let mut buf = Vec::new();
+    obj.to_writer(&mut buf)
+        .map_err(|_| GfrStatus::ErrorInternal)?;
+    Ok(buf)
+}
+
+fn merge_signatures(dst: &mut Vec<Signature>, src: &[Signature]) -> Result<(), GfrStatus> {
+    let mut seen: HashSet<Vec<u8>> = HashSet::new();
+
+    for sig in dst.iter() {
+        seen.insert(serialize_bytes(sig)?);
+    }
+
+    for sig in src {
+        let key = serialize_bytes(sig)?;
+        if seen.insert(key) {
+            dst.push(sig.clone());
+        }
+    }
+
+    Ok(())
+}
+
+fn merge_users(
+    dst: &mut Vec<pgp::types::SignedUser>,
+    src: &[pgp::types::SignedUser],
+) -> Result<(), GfrStatus> {
+    for src_user in src {
+        let src_uid = String::from_utf8_lossy(src_user.id.id()).into_owned();
+
+        if let Some(dst_user) = dst
+            .iter_mut()
+            .find(|u| String::from_utf8_lossy(u.id.id()) == src_uid)
+        {
+            merge_signatures(&mut dst_user.signatures, &src_user.signatures)?;
+        } else {
+            dst.push(src_user.clone());
+        }
+    }
+
+    Ok(())
+}
+
+fn merge_public_subkeys(
+    dst: &mut Vec<SignedPublicSubKey>,
+    src: &[SignedPublicSubKey],
+) -> Result<(), GfrStatus> {
+    for src_sub in src {
+        let src_fpr = src_sub.key.fingerprint().to_string();
+
+        if let Some(dst_sub) = dst
+            .iter_mut()
+            .find(|s| s.key.fingerprint().to_string() == src_fpr)
+        {
+            merge_signatures(&mut dst_sub.signatures, &src_sub.signatures)?;
+        } else {
+            dst.push(src_sub.clone());
+        }
+    }
+
+    Ok(())
+}
+
+fn merge_secret_subkeys(
+    dst: &mut Vec<SignedSecretSubKey>,
+    src: &[SignedSecretSubKey],
+) -> Result<(), GfrStatus> {
+    for src_sub in src {
+        let src_fpr = src_sub.key.fingerprint().to_string();
+
+        if let Some(dst_sub) = dst
+            .iter_mut()
+            .find(|s| s.key.fingerprint().to_string() == src_fpr)
+        {
+            merge_signatures(&mut dst_sub.signatures, &src_sub.signatures)?;
+        } else {
+            dst.push(src_sub.clone());
+        }
+    }
+
+    Ok(())
+}
+
+fn dedup_signatures_in_place(sigs: &mut Vec<Signature>) -> Result<(), GfrStatus> {
+    let mut seen = HashSet::new();
+    let mut out = Vec::with_capacity(sigs.len());
+
+    for sig in sigs.drain(..) {
+        let key = serialize_bytes(&sig)?;
+        if seen.insert(key) {
+            out.push(sig);
+        }
+    }
+
+    *sigs = out;
+    Ok(())
+}
+
+pub fn merge_key_block_internal(
+    base_block: &str,
+    incoming_block: &str,
+) -> Result<GeneratedKeys, GfrStatus> {
+    // Try parsing the base block as a secret key first, since it has more
+    // information. If that fails, it must be a public key.
+    if let Ok((mut base_sk, _)) = SignedSecretKey::from_string(base_block) {
+        // if incoming block is secret key, merge at the secret key level (this
+        // is the most complete merge, as it includes subkey material). If it's
+        // a public key, we can still merge user IDs and signatures, but we
+        // won't have access to any secret subkeys that might be in the incoming
+        // block.
+        if let Ok((incoming_sk, _)) = SignedSecretKey::from_string(incoming_block) {
+            if base_sk.fingerprint().to_string() != incoming_sk.fingerprint().to_string() {
+                return Err(GfrStatus::ErrorInvalidInput);
+            }
+
+            merge_signatures(
+                &mut base_sk.details.direct_signatures,
+                &incoming_sk.details.direct_signatures,
+            )?;
+            merge_users(&mut base_sk.details.users, &incoming_sk.details.users)?;
+            merge_secret_subkeys(&mut base_sk.secret_subkeys, &incoming_sk.secret_subkeys)?;
+
+            dedup_signatures_in_place(&mut base_sk.details.direct_signatures)?;
+
+            let secret = base_sk
+                .to_armored_string(ArmorOptions::default())
+                .into_gfr()?;
+            let public = SignedPublicKey::from(base_sk)
+                .to_armored_string(ArmorOptions::default())
+                .into_gfr()?;
+
+            let fingerprint = SignedPublicKey::from_string(&public)
+                .into_gfr()?
+                .0
+                .fingerprint()
+                .to_string();
+
+            return Ok(GeneratedKeys {
+                secret,
+                public,
+                fingerprint,
+            });
+        }
+
+        // use public key to merge into secret key
+        if let Ok((incoming_pk, _)) = SignedPublicKey::from_string(incoming_block) {
+            if base_sk.fingerprint().to_string() != incoming_pk.fingerprint().to_string() {
+                return Err(GfrStatus::ErrorInvalidInput);
+            }
+
+            merge_signatures(
+                &mut base_sk.details.direct_signatures,
+                &incoming_pk.details.direct_signatures,
+            )?;
+            merge_users(&mut base_sk.details.users, &incoming_pk.details.users)?;
+
+            // For subkeys, we need to match them by fingerprint and merge signatures at the subkey level
+            for incoming_sub in &incoming_pk.public_subkeys {
+                let incoming_fpr = incoming_sub.key.fingerprint().to_string();
+
+                if let Some(dst_sub) = base_sk
+                    .secret_subkeys
+                    .iter_mut()
+                    .find(|s| s.key.fingerprint().to_string() == incoming_fpr)
+                {
+                    merge_signatures(&mut dst_sub.signatures, &incoming_sub.signatures)?;
+                }
+            }
+
+            dedup_signatures_in_place(&mut base_sk.details.direct_signatures)?;
+
+            let fingerprint = base_sk.fingerprint().to_string();
+            let secret = base_sk
+                .to_armored_string(ArmorOptions::default())
+                .into_gfr()?;
+            let public = SignedPublicKey::from(base_sk)
+                .to_armored_string(ArmorOptions::default())
+                .into_gfr()?;
+
+            return Ok(GeneratedKeys {
+                secret,
+                public,
+                fingerprint,
+            });
+        }
+
+        return Err(GfrStatus::ErrorInvalidInput);
+    }
+
+    // if base is not secret, must be public. incoming can be either.
+    let (mut base_pk, _) = SignedPublicKey::from_string(base_block).into_gfr()?;
+
+    if let Ok((incoming_sk, _)) = SignedSecretKey::from_string(incoming_block) {
+        let incoming_pk = SignedPublicKey::from(incoming_sk);
+        if base_pk.fingerprint().to_string() != incoming_pk.fingerprint().to_string() {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+
+        merge_signatures(
+            &mut base_pk.details.direct_signatures,
+            &incoming_pk.details.direct_signatures,
+        )?;
+        merge_users(&mut base_pk.details.users, &incoming_pk.details.users)?;
+        merge_public_subkeys(&mut base_pk.public_subkeys, &incoming_pk.public_subkeys)?;
+
+        let public = base_pk
+            .to_armored_string(ArmorOptions::default())
+            .into_gfr()?;
+        let fingerprint = base_pk.fingerprint().to_string();
+
+        return Ok(GeneratedKeys {
+            secret: String::new(),
+            public,
+            fingerprint,
+        });
+    }
+
+    let (incoming_pk, _) = SignedPublicKey::from_string(incoming_block).into_gfr()?;
+    if base_pk.fingerprint().to_string() != incoming_pk.fingerprint().to_string() {
+        return Err(GfrStatus::ErrorInvalidInput);
+    }
+
+    merge_signatures(
+        &mut base_pk.details.direct_signatures,
+        &incoming_pk.details.direct_signatures,
+    )?;
+    merge_users(&mut base_pk.details.users, &incoming_pk.details.users)?;
+    merge_public_subkeys(&mut base_pk.public_subkeys, &incoming_pk.public_subkeys)?;
+
+    let public = base_pk
+        .to_armored_string(ArmorOptions::default())
+        .into_gfr()?;
+    let fingerprint = base_pk.fingerprint().to_string();
+
+    Ok(GeneratedKeys {
+        secret: String::new(),
+        public,
+        fingerprint,
+    })
 }
