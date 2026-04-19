@@ -179,7 +179,7 @@ auto GpgKey::CreationTime() const -> QDateTime {
 };
 
 auto GpgKey::PrimaryKeyLength() const -> unsigned int {
-  if (km_ref_ != nullptr) return 0;
+  if (km_ref_ != nullptr) return km_ref_->key_length;
   return key_ref_->subkeys->length;
 }
 

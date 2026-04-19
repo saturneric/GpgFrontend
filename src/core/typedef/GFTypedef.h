@@ -58,6 +58,8 @@ struct GFSubKeyMetadata {
   QString fpr;
   QString key_id;
   int algo;
+  unsigned key_length;
+
   qint64 created_at;
   bool has_secret;
 
@@ -76,6 +78,7 @@ struct GFKeyMetadata {
   QContainer<GFUserId> user_ids;
 
   int algo;
+  unsigned key_length;
   qint64 created_at;
   qint64 update_time;
   bool has_secret;

@@ -43,6 +43,7 @@ auto ParseGfrMetadata(const Rust::GfrKeyMetadataC& gfr_meta) -> GFKey {
   meta.created_at = static_cast<qint64>(gfr_meta.created_at);
   meta.has_secret = gfr_meta.has_secret;
   meta.algo = static_cast<int>(gfr_meta.algo);
+  meta.key_length = static_cast<unsigned int>(gfr_meta.key_length);
 
   for (size_t i = 0; i < gfr_meta.user_id_count; ++i) {
     const auto& user_id = gfr_meta.user_ids[i];
@@ -66,7 +67,7 @@ auto ParseGfrMetadata(const Rust::GfrKeyMetadataC& gfr_meta) -> GFKey {
     sub_meta.created_at = static_cast<qint64>(subkey_meta.created_at);
     sub_meta.has_secret = subkey_meta.has_secret;
     sub_meta.algo = static_cast<int>(subkey_meta.algo);
-
+    sub_meta.key_length = static_cast<unsigned int>(subkey_meta.key_length);
     sub_meta.can_sign = subkey_meta.can_sign;
     sub_meta.can_encrypt = subkey_meta.can_encrypt;
     sub_meta.can_auth = subkey_meta.can_auth;

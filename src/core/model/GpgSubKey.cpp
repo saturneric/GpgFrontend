@@ -79,7 +79,9 @@ auto GpgSubKey::Algo() const -> QString {
 }
 
 auto GpgSubKey::KeyLength() const -> unsigned int {
-  if (skm_ref_ != nullptr) return 0;
+  if (skm_ref_ != nullptr) {
+    return skm_ref_->key_length;
+  }
   return s_key_ref_->length;
 }
 

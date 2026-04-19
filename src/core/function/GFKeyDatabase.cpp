@@ -51,7 +51,7 @@ auto GFKeyDatabase::GetMetadataList() -> QList<GFKeyMetadata> {
   QSqlQuery query(db_);
 
   if (query.exec(R"(
-        SELECT fpr, key_id, algo, created_at, has_secret, 
+        SELECT fpr, key_id, algo, created_at, has_secret, key_length,
                can_sign, can_encrypt, can_auth, can_certify, update_time
         FROM key_metadata
       )")) {
@@ -62,12 +62,13 @@ auto GFKeyDatabase::GetMetadataList() -> QList<GFKeyMetadata> {
       meta.algo = query.value(2).toInt();
       meta.created_at = query.value(3).toLongLong();
       meta.has_secret = query.value(4).toBool();
-      meta.can_sign = query.value(5).toBool();
-      meta.can_encrypt = query.value(6).toBool();
-      meta.can_auth = query.value(7).toBool();
-      meta.can_certify = query.value(8).toBool();
+      meta.key_length = static_cast<unsigned int>(query.value(5).toUInt());
+      meta.can_sign = query.value(6).toBool();
+      meta.can_encrypt = query.value(7).toBool();
+      meta.can_auth = query.value(8).toBool();
+      meta.can_certify = query.value(9).toBool();
       meta.update_time =
-          QDateTime::fromString(query.value(9).toString(), Qt::ISODate)
+          QDateTime::fromString(query.value(10).toString(), Qt::ISODate)
               .toSecsSinceEpoch();
 
       // Load user IDs for this primary key
@@ -96,6 +97,7 @@ auto GFKeyDatabase::GetMetadataList() -> QList<GFKeyMetadata> {
       primary_as_subkey.can_encrypt = meta.can_encrypt;
       primary_as_subkey.can_auth = meta.can_auth;
       primary_as_subkey.can_certify = meta.can_certify;
+      primary_as_subkey.key_length = meta.key_length;
       meta.subkeys.prepend(primary_as_subkey);
 
       list.append(meta);
@@ -187,14 +189,15 @@ auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
   // 1. Save Primary Key Metadata
   query.prepare(R"(
     INSERT OR REPLACE INTO key_metadata 
-    (fpr, key_id, algo, created_at, has_secret, can_sign, can_encrypt, can_auth, can_certify, update_time)
-    VALUES (:fpr, :key_id, :algo, :created_at, :has_secret, :can_sign, :can_encrypt, :can_auth, :can_certify, :update_time)
+    (fpr, key_id, algo, created_at, has_secret, key_length, can_sign, can_encrypt, can_auth, can_certify, update_time)
+    VALUES (:fpr, :key_id, :algo, :created_at, :has_secret, :key_length, :can_sign, :can_encrypt, :can_auth, :can_certify, :update_time)
   )");
   query.bindValue(":fpr", meta.fpr.toUpper());
   query.bindValue(":key_id", meta.key_id.toUpper());
   query.bindValue(":algo", meta.algo);
   query.bindValue(":created_at", meta.created_at);
   query.bindValue(":has_secret", meta.has_secret ? 1 : 0);
+  query.bindValue(":key_length", meta.key_length);
   query.bindValue(":can_sign", meta.can_sign ? 1 : 0);
   query.bindValue(":can_encrypt", meta.can_encrypt ? 1 : 0);
   query.bindValue(":can_auth", meta.can_auth ? 1 : 0);
@@ -241,8 +244,8 @@ auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
 
   query.prepare(R"(
     INSERT INTO subkey_metadata 
-    (fpr, parent_fpr, key_id, algo, created_at, has_secret, can_sign, can_encrypt, can_auth)
-    VALUES (:fpr, :parent_fpr, :key_id, :algo, :created_at, :has_secret, :can_sign, :can_encrypt, :can_auth)
+    (fpr, parent_fpr, key_id, algo, created_at, has_secret, key_length, can_sign, can_encrypt, can_auth)
+    VALUES (:fpr, :parent_fpr, :key_id, :algo, :created_at, :has_secret, :key_length, :can_sign, :can_encrypt, :can_auth)
   )");
 
   for (const auto& sub : meta.subkeys) {
@@ -261,6 +264,8 @@ auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
     query.bindValue(":can_sign", sub.can_sign ? 1 : 0);
     query.bindValue(":can_encrypt", sub.can_encrypt ? 1 : 0);
     query.bindValue(":can_auth", sub.can_auth ? 1 : 0);
+    query.bindValue(":can_certify", sub.can_certify ? 1 : 0);
+    query.bindValue(":key_length", sub.key_length);
 
     if (!query.exec()) {
       LOG_E() << "SaveKey subkey error: " << query.lastError().text();
@@ -302,7 +307,7 @@ auto GFKeyDatabase::GetKeyMetadata(const QString& identifier)
   // FPR
   QSqlQuery query(db_);
   query.prepare(R"(
-    SELECT fpr, key_id, algo, created_at, has_secret, 
+    SELECT fpr, key_id, algo, created_at, has_secret, key_length,
            can_sign, can_encrypt, can_auth, can_certify, update_time
     FROM key_metadata WHERE fpr = :fpr
   )");
@@ -316,12 +321,13 @@ auto GFKeyDatabase::GetKeyMetadata(const QString& identifier)
     meta.algo = query.value(2).toInt();
     meta.created_at = query.value(3).toLongLong();
     meta.has_secret = query.value(4).toBool();
-    meta.can_sign = query.value(5).toBool();
-    meta.can_encrypt = query.value(6).toBool();
-    meta.can_auth = query.value(7).toBool();
-    meta.can_certify = query.value(8).toBool();
+    meta.key_length = static_cast<unsigned int>(query.value(5).toUInt());
+    meta.can_sign = query.value(6).toBool();
+    meta.can_encrypt = query.value(7).toBool();
+    meta.can_auth = query.value(8).toBool();
+    meta.can_certify = query.value(9).toBool();
     meta.update_time =
-        QDateTime::fromString(query.value(9).toString(), Qt::ISODate)
+        QDateTime::fromString(query.value(10).toString(), Qt::ISODate)
             .toSecsSinceEpoch();
 
     // Load user IDs
@@ -344,6 +350,7 @@ auto GFKeyDatabase::GetKeyMetadata(const QString& identifier)
     primary_as_subkey.can_encrypt = meta.can_encrypt;
     primary_as_subkey.can_auth = meta.can_auth;
     primary_as_subkey.can_certify = meta.can_certify;
+    primary_as_subkey.key_length = meta.key_length;
     meta.subkeys.prepend(primary_as_subkey);
 
     return meta;
@@ -360,6 +367,7 @@ auto GFKeyDatabase::create_table() -> bool {
       fpr TEXT PRIMARY KEY COLLATE NOCASE,
       key_id TEXT NOT NULL COLLATE NOCASE,
       algo INTEGER,
+      key_length INTEGER DEFAULT 0,
       created_at INTEGER,
       has_secret INTEGER DEFAULT 0,
       can_sign INTEGER DEFAULT 0,
@@ -378,6 +386,7 @@ auto GFKeyDatabase::create_table() -> bool {
       key_id TEXT NOT NULL COLLATE NOCASE,
       algo INTEGER,
       created_at INTEGER,
+      key_length INTEGER DEFAULT 0,
       has_secret INTEGER DEFAULT 0,
       can_sign INTEGER DEFAULT 0,
       can_encrypt INTEGER DEFAULT 0,
@@ -440,7 +449,7 @@ auto GFKeyDatabase::load_subkeys_for_parent(const QString& parent_fpr)
   QList<GFSubKeyMetadata> subkeys;
   QSqlQuery query(db_);
   query.prepare(R"(
-    SELECT fpr, key_id, algo, created_at, has_secret, can_sign, can_encrypt, can_auth, can_certify
+    SELECT fpr, key_id, algo, created_at, has_secret, key_length, can_sign, can_encrypt, can_auth, can_certify
     FROM subkey_metadata WHERE parent_fpr = :parent_fpr
   )");
   query.bindValue(":parent_fpr", parent_fpr);
@@ -454,10 +463,11 @@ auto GFKeyDatabase::load_subkeys_for_parent(const QString& parent_fpr)
       sub.algo = query.value(2).toInt();
       sub.created_at = query.value(3).toLongLong();
       sub.has_secret = query.value(4).toBool();
-      sub.can_sign = query.value(5).toBool();
-      sub.can_encrypt = query.value(6).toBool();
-      sub.can_auth = query.value(7).toBool();
-      sub.can_certify = query.value(8).toBool();
+      sub.key_length = static_cast<unsigned int>(query.value(5).toUInt());
+      sub.can_sign = query.value(6).toBool();
+      sub.can_encrypt = query.value(7).toBool();
+      sub.can_auth = query.value(8).toBool();
+      sub.can_certify = query.value(9).toBool();
       subkeys.append(sub);
     }
   }
