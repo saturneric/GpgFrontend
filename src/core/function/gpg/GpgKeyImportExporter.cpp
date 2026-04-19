@@ -148,7 +148,8 @@ void GpgKeyImportExporter::ExportKeys(const GpgAbstractKeyPtrList& keys,
         data_object->Swap({buffer});
         return err;
       },
-      cb, "gpgme_op_export_keys", "2.1.0");
+      cb, "gpgme_op_export_keys",
+      {{OpenPGPEngine::kGNUPG, "2.1.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 /**
@@ -200,7 +201,8 @@ void GpgKeyImportExporter::ExportAllKeys(const GpgAbstractKeyPtrList& keys,
         data_object->Swap({buffer});
         return GPG_ERR_NO_ERROR;
       },
-      cb, "gpgme_op_export_keys", "2.1.0");
+      cb, "gpgme_op_export_keys",
+      {{OpenPGPEngine::kGNUPG, "2.1.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GpgKeyImportExporter::ExportSubkey(const QString& fpr, bool ascii) const

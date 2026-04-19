@@ -34,9 +34,9 @@
 namespace GpgFrontend {
 EngineSupportIf::EngineSupportIf()
     : version_req_("0.0.0"), engine_req_(OpenPGPEngine::kGNUPG) {}
-EngineSupportIf::EngineSupportIf(OpenPGPEngine engine,
-                                 QString version_requirement)
-    : version_req_(std::move(version_requirement)), engine_req_(engine) {}
+
+EngineSupportIf::EngineSupportIf(OpenPGPEngine engine, QString version)
+    : version_req_(std::move(version)), engine_req_(engine) {}
 
 auto EngineSupportIf::IsSupport(const GpgContext& ctx) const -> bool {
   auto version = ctx.EngineVersion();

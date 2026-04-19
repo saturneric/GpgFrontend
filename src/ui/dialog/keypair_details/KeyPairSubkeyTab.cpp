@@ -65,7 +65,7 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
     add_adsk_button->hide();
   }
 
-  if (!CheckGpgVersion(channel, "2.4.1")) {
+  if (!GpgContextSupportIf(channel, {{OpenPGPEngine::kGNUPG, "2.4.1"}})) {
     add_adsk_button->setDisabled(true);
     add_adsk_button->hide();
   }
@@ -284,7 +284,9 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
 }
 
 void KeyPairSubkeyTab::slot_add_subkey() {
-  if (!CheckGpgVersion(current_gpg_context_channel_, "2.2.0")) {
+  if (!GpgContextSupportIf(current_gpg_context_channel_,
+                           {{OpenPGPEngine::kGNUPG, "2.2.0"},
+                            {OpenPGPEngine::kRPGP, "0.1.0"}})) {
     CommonUtils::RaiseMessageBoxNotSupported(this);
     return;
   }

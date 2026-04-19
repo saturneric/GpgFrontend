@@ -28,23 +28,19 @@
 
 #include "AsyncUtils.h"
 
-#include "core/function/gpg/GpgContext.h"
 #include "core/model/DataObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
-#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
 
 auto RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
                       const GpgOperationCallback& callback,
-                      const QString& operation, const QString& minimal_version)
+                      const QString& operation,
+                      const QContainer<EngineSupportIf>& support_ifs)
     -> Thread::Task::TaskHandler {
-  auto& ctx = GpgContext::GetInstance(channel);
-
-  if (ctx.Engine() == OpenPGPEngine::kGNUPG &&
-      !CheckGpgVersion(channel, minimal_version)) {
+  if (!GpgContextSupportIf(channel, support_ifs)) {
     LOG_W() << "operation: " << operation << "is not supported.";
     callback(GPG_ERR_NOT_SUPPORTED, TransferParams());
     return Thread::Task::TaskHandler(nullptr);
@@ -76,9 +72,10 @@ auto RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
 }
 
 auto RunGpgOperaSync(int channel, const GpgOperaRunnable& runnable,
-                     const QString& operation, const QString& minimal_version)
+                     const QString& operation,
+                     const QContainer<EngineSupportIf>& support_ifs)
     -> std::tuple<GpgError, DataObjectPtr> {
-  if (!CheckGpgVersion(channel, minimal_version)) {
+  if (!GpgContextSupportIf(channel, support_ifs)) {
     LOG_W() << "operation: " << operation << "is not supported.";
     return {GPG_ERR_NOT_SUPPORTED, TransferParams()};
   }

@@ -50,7 +50,7 @@ class GF_CORE_EXPORT EngineSupportIf {
    * @param engine
    * @param version_requirement
    */
-  EngineSupportIf(OpenPGPEngine engine, QString version_requirement);
+  EngineSupportIf(OpenPGPEngine engine, QString version);
 
   /**
    * @brief Check if the engine support the requirement

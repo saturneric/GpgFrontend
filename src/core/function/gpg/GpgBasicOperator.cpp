@@ -210,7 +210,8 @@ void GpgBasicOperator::Encrypt(const GpgAbstractKeyPtrList& keys,
         }
         return EncryptImpl(ctx_, keys, in_buffer, ascii, data_object);
       },
-      cb, "gpgme_op_encrypt", "2.2.0");
+      cb, "gpgme_op_encrypt",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GpgBasicOperator::EncryptSync(const GpgAbstractKeyPtrList& keys,
@@ -224,7 +225,8 @@ auto GpgBasicOperator::EncryptSync(const GpgAbstractKeyPtrList& keys,
         }
         return EncryptImpl(ctx_, keys, in_buffer, ascii, data_object);
       },
-      "gpgme_op_encrypt", "2.2.0");
+      "gpgme_op_encrypt",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 void GpgBasicOperator::EncryptSymmetric(const GFBuffer& in_buffer, bool ascii,
@@ -237,7 +239,8 @@ void GpgBasicOperator::EncryptSymmetric(const GFBuffer& in_buffer, bool ascii,
         }
         return EncryptImpl(ctx_, {}, in_buffer, ascii, data_object);
       },
-      cb, "gpgme_op_encrypt_symmetric", "2.2.0");
+      cb, "gpgme_op_encrypt_symmetric",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GpgBasicOperator::EncryptSymmetricSync(const GFBuffer& in_buffer,
@@ -251,7 +254,8 @@ auto GpgBasicOperator::EncryptSymmetricSync(const GFBuffer& in_buffer,
         }
         return EncryptImpl(ctx_, {}, in_buffer, ascii, data_object);
       },
-      "gpgme_op_encrypt_symmetric", "2.2.0");
+      "gpgme_op_encrypt_symmetric",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 void GpgBasicOperator::Decrypt(const GFBuffer& in_buffer,
@@ -264,7 +268,8 @@ void GpgBasicOperator::Decrypt(const GFBuffer& in_buffer,
         }
         return DecryptImpl(ctx_, in_buffer, data_object);
       },
-      cb, "gpgme_op_decrypt", "2.2.0");
+      cb, "gpgme_op_decrypt",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GpgBasicOperator::DecryptSync(const GFBuffer& in_buffer)
@@ -277,7 +282,8 @@ auto GpgBasicOperator::DecryptSync(const GFBuffer& in_buffer)
         }
         return DecryptImpl(ctx_, in_buffer, data_object);
       },
-      "gpgme_op_decrypt", "2.2.0");
+      "gpgme_op_decrypt",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 void GpgBasicOperator::Verify(const GFBuffer& in_buffer,
@@ -291,7 +297,8 @@ void GpgBasicOperator::Verify(const GFBuffer& in_buffer,
         }
         return VerifyImpl(ctx_, in_buffer, sig_buffer, data_object);
       },
-      cb, "gpgme_op_verify", "2.2.0");
+      cb, "gpgme_op_verify",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GpgBasicOperator::VerifySync(const GFBuffer& in_buffer,
@@ -305,7 +312,8 @@ auto GpgBasicOperator::VerifySync(const GFBuffer& in_buffer,
         }
         return VerifyImpl(ctx_, in_buffer, sig_buffer, data_object);
       },
-      "gpgme_op_verify", "2.2.0");
+      "gpgme_op_verify",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 void GpgBasicOperator::Sign(const GpgAbstractKeyPtrList& signers,
@@ -320,7 +328,8 @@ void GpgBasicOperator::Sign(const GpgAbstractKeyPtrList& signers,
         }
         return SignImpl(ctx_, signers, in_buffer, mode, ascii, data_object);
       },
-      cb, "gpgme_op_sign", "2.2.0");
+      cb, "gpgme_op_sign",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GpgBasicOperator::SignSync(const GpgAbstractKeyPtrList& signers,
@@ -336,7 +345,8 @@ auto GpgBasicOperator::SignSync(const GpgAbstractKeyPtrList& signers,
         }
         return SignImpl(ctx_, signers, in_buffer, mode, ascii, data_object);
       },
-      "gpgme_op_sign", "2.2.0");
+      "gpgme_op_sign",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 void GpgBasicOperator::DecryptVerify(const GFBuffer& in_buffer,
@@ -349,7 +359,8 @@ void GpgBasicOperator::DecryptVerify(const GFBuffer& in_buffer,
         }
         return DecryptVerifyImpl(ctx_, in_buffer, data_object);
       },
-      cb, "gpgme_op_decrypt_verify", "2.2.0");
+      cb, "gpgme_op_decrypt_verify",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GpgBasicOperator::DecryptVerifySync(const GFBuffer& in_buffer)
@@ -362,7 +373,8 @@ auto GpgBasicOperator::DecryptVerifySync(const GFBuffer& in_buffer)
         }
         return DecryptVerifyImpl(ctx_, in_buffer, data_object);
       },
-      "gpgme_op_decrypt_verify", "2.2.0");
+      "gpgme_op_decrypt_verify",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 void GpgBasicOperator::EncryptSign(const GpgAbstractKeyPtrList& keys,
@@ -379,7 +391,8 @@ void GpgBasicOperator::EncryptSign(const GpgAbstractKeyPtrList& keys,
         return EncryptSignImpl(ctx_, keys, signers, in_buffer, ascii,
                                data_object);
       },
-      cb, "gpgme_op_encrypt_sign", "2.2.0");
+      cb, "gpgme_op_encrypt_sign",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GpgBasicOperator::EncryptSignSync(const GpgAbstractKeyPtrList& keys,
@@ -396,7 +409,8 @@ auto GpgBasicOperator::EncryptSignSync(const GpgAbstractKeyPtrList& keys,
         return EncryptSignImpl(ctx_, keys, signers, in_buffer, ascii,
                                data_object);
       },
-      "gpgme_op_encrypt_sign", "2.2.0");
+      "gpgme_op_encrypt_sign",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 void GpgBasicOperator::SetSigners(const GpgAbstractKeyPtrList& signers,

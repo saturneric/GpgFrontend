@@ -452,37 +452,6 @@ auto GF_CORE_EXPORT GpgAgentVersionGreaterThan(int channel, const QString& v)
       GpgComponentManager::GetInstance(channel).GetGpgAgentVersion(), v);
 }
 
-auto GF_CORE_EXPORT CheckGpgVersion(int channel, const QString& v) -> bool {
-  // RPGP does not support gpg-agent, so we skip the version check for RPGP
-  // backend
-  if (GpgContext::GetInstance(channel).Engine() == OpenPGPEngine::kRPGP) {
-    return true;
-  }
-
-  auto engine_version = GpgContext::GetInstance(channel).EngineVersion();
-
-  const auto ver =
-      GpgComponentManager::GetInstance(channel).GetGpgAgentVersion();
-
-  if (ver.isEmpty() || !GFSoftwareVersionGreaterThan(ver, v)) {
-    LOG_W() << "operation not support for gpg-agent version: " << ver
-            << "minimal version: " << v;
-    return false;
-  }
-
-  const auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gnupg_version", QString{});
-
-  if (gnupg_version.isEmpty() ||
-      GFCompareSoftwareVersion(gnupg_version, v) < 0) {
-    LOG_W() << "operation not support for gnupg version: " << gnupg_version
-            << "minimal version: " << v;
-    return false;
-  }
-
-  return true;
-}
-
 auto GF_CORE_EXPORT DecidePinentry() -> QString {
 #ifdef Q_OS_LINUX
   QStringList preferred_list = {"pinentry-gnome3", "pinentry-qt",

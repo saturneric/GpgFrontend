@@ -246,7 +246,8 @@ void GpgKeyOpera::GenerateKey(const QSharedPointer<KeyGenerateInfo>& params,
         }
         return GenerateKeyImpl(ctx_, params, data_object);
       },
-      callback, "gpgme_op_createkey", "2.2.0");
+      callback, "gpgme_op_createkey",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GpgKeyOpera::GenerateKeySync(const QSharedPointer<KeyGenerateInfo>& params)
@@ -259,7 +260,8 @@ auto GpgKeyOpera::GenerateKeySync(const QSharedPointer<KeyGenerateInfo>& params)
         }
         return GenerateKeyImpl(ctx_, params, data_object);
       },
-      "gpgme_op_createkey", "2.2.0");
+      "gpgme_op_createkey",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GenerateSubKeyImpl(GpgContext& ctx, const GpgKeyPtr& key,
@@ -319,7 +321,8 @@ void GpgKeyOpera::GenerateSubkey(const GpgKeyPtr& key,
         }
         return GenerateSubKeyImpl(ctx_, key, params, data_object);
       },
-      callback, "gpgme_op_createsubkey", "2.1.13");
+      callback, "gpgme_op_createsubkey",
+      {{OpenPGPEngine::kGNUPG, "2.1.13"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GpgKeyOpera::GenerateSubkeySync(
@@ -334,7 +337,8 @@ auto GpgKeyOpera::GenerateSubkeySync(
         }
         return GenerateSubKeyImpl(ctx_, key, params, data_object);
       },
-      "gpgme_op_createsubkey", "2.1.13");
+      "gpgme_op_createsubkey",
+      {{OpenPGPEngine::kGNUPG, "2.1.13"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GenerateKeyWithSubkeyImpl(GpgContext& ctx, GpgKeyGetter& key_getter,
@@ -378,7 +382,8 @@ void GpgKeyOpera::GenerateKeyWithSubkey(
         return GenerateKeyWithSubkeyImpl(ctx_, key_getter_, p_params, s_params,
                                          data_object);
       },
-      callback, "gpgme_op_createkey&gpgme_op_createsubkey", "2.2.0");
+      callback, "gpgme_op_createkey&gpgme_op_createsubkey",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GpgKeyOpera::GenerateKeyWithSubkeySync(
@@ -395,7 +400,8 @@ auto GpgKeyOpera::GenerateKeyWithSubkeySync(
         return GenerateKeyWithSubkeyImpl(ctx_, key_getter_, p_params, s_params,
                                          data_object);
       },
-      "gpgme_op_createkey&gpgme_op_createsubkey", "2.2.0");
+      "gpgme_op_createkey&gpgme_op_createsubkey",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 void GpgKeyOpera::ModifyPassword(const GpgKeyPtr& key,
@@ -409,7 +415,8 @@ void GpgKeyOpera::ModifyPassword(const GpgKeyPtr& key,
         return gpgme_op_passwd(ctx.DefaultContext(),
                                static_cast<gpgme_key_t>(*key), 0);
       },
-      callback, "gpgme_op_passwd", "2.2.0");
+      callback, "gpgme_op_passwd",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GpgKeyOpera::ModifyTOFUPolicy(const GpgKeyPtr& key,
@@ -426,7 +433,8 @@ auto GpgKeyOpera::ModifyTOFUPolicy(const GpgKeyPtr& key,
         return gpgme_op_tofu_policy(
             ctx_.DefaultContext(), static_cast<gpgme_key_t>(*key), tofu_policy);
       },
-      "gpgme_op_tofu_policy", "2.2.0");
+      "gpgme_op_tofu_policy",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 
   return CheckGpgError(err);
 }
@@ -455,31 +463,31 @@ auto AddADSKImpl(GpgContext& ctx, const GpgKeyPtr& key, const GpgSubKey& adsk,
 
 void GpgKeyOpera::AddADSK(const GpgKeyPtr& key, const GpgSubKey& adsk,
                           const GpgOperationCallback& callback) {
-  RunGpgOperaAsync(
-      GetChannel(),
-      [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
-          // RPGP engine does not support generating revoke cert for now, return
-          // directly
-          return GPG_ERR_UNSUPPORTED_OPERATION;
-        }
-        return AddADSKImpl(ctx_, key, adsk, data_object);
-      },
-      callback, "gpgme_op_createsubkey", "2.4.1");
+  RunGpgOperaAsync(GetChannel(),
+                   [=](const DataObjectPtr& data_object) -> GpgError {
+                     if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
+                       // RPGP engine does not support generating revoke cert
+                       // for now, return directly
+                       return GPG_ERR_UNSUPPORTED_OPERATION;
+                     }
+                     return AddADSKImpl(ctx_, key, adsk, data_object);
+                   },
+                   callback, "gpgme_op_createsubkey",
+                   {{OpenPGPEngine::kGNUPG, "2.4.1"}});
 }
 
 auto GpgKeyOpera::AddADSKSync(const GpgKeyPtr& key, const GpgSubKey& adsk)
     -> std::tuple<GpgError, DataObjectPtr> {
-  return RunGpgOperaSync(
-      GetChannel(),
-      [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
-          // RPGP engine does not support generating revoke cert for now, return
-          // directly
-          return GPG_ERR_UNSUPPORTED_OPERATION;
-        }
-        return AddADSKImpl(ctx_, key, adsk, data_object);
-      },
-      "gpgme_op_createsubkey", "2.4.1");
+  return RunGpgOperaSync(GetChannel(),
+                         [=](const DataObjectPtr& data_object) -> GpgError {
+                           if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
+                             // RPGP engine does not support generating revoke
+                             // cert for now, return directly
+                             return GPG_ERR_UNSUPPORTED_OPERATION;
+                           }
+                           return AddADSKImpl(ctx_, key, adsk, data_object);
+                         },
+                         "gpgme_op_createsubkey",
+                         {{OpenPGPEngine::kGNUPG, "2.4.1"}});
 }
 }  // namespace GpgFrontend

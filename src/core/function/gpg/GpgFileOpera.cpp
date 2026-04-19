@@ -240,7 +240,8 @@ void GpgFileOpera::EncryptFile(const GpgAbstractKeyPtrList& keys,
         return EncryptFileImpl(ctx_, keys, in_path, ascii, out_path,
                                data_object);
       },
-      cb, "gpgme_op_encrypt", "2.2.0");
+      cb, "gpgme_op_encrypt",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GpgFileOpera::EncryptFileSync(const GpgAbstractKeyPtrList& keys,
@@ -257,7 +258,8 @@ auto GpgFileOpera::EncryptFileSync(const GpgAbstractKeyPtrList& keys,
         return EncryptFileImpl(ctx_, keys, in_path, ascii, out_path,
                                data_object);
       },
-      "gpgme_op_encrypt", "2.2.0");
+      "gpgme_op_encrypt",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 void GpgFileOpera::EncryptDirectory(const GpgAbstractKeyPtrList& keys,
@@ -271,7 +273,8 @@ void GpgFileOpera::EncryptDirectory(const GpgAbstractKeyPtrList& keys,
           return EncryptFileRpgpImpl(ctx_, keys, in_path, ascii, out_path,
                                      data_object);
         },
-        cb, "rpgp_op_encrypt", "0.0.0");
+        cb, "rpgp_op_encrypt",
+        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
     return;
   }
 
@@ -286,7 +289,8 @@ void GpgFileOpera::EncryptDirectory(const GpgAbstractKeyPtrList& keys,
         return EncryptFileGpgDataImpl(ctx_, keys, data_in, ascii, data_out,
                                       data_object);
       },
-      cb, "gpgme_op_encrypt", "2.2.0");
+      cb, "gpgme_op_encrypt",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 
   CreateArchiveHelper(in_path, ex);
 }
@@ -302,7 +306,8 @@ void GpgFileOpera::DecryptFile(const QString& in_path, const QString& out_path,
         }
         return DecryptFileImpl(ctx_, in_path, out_path, data_object);
       },
-      cb, "gpgme_op_decrypt", "2.2.0");
+      cb, "gpgme_op_decrypt",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GpgFileOpera::DecryptFileSync(const QString& in_path,
@@ -317,20 +322,21 @@ auto GpgFileOpera::DecryptFileSync(const QString& in_path,
         }
         return DecryptFileImpl(ctx_, in_path, out_path, data_object);
       },
-      "gpgme_op_decrypt", "2.2.0");
+      "gpgme_op_decrypt",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 void GpgFileOpera::DecryptArchive(const QString& in_path,
                                   const QString& out_path,
                                   const GpgOperationCallback& cb) {
   if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
-    RunGpgOperaAsync(
-        GetChannel(),
-        [=](const DataObjectPtr& data_object) -> GpgError {
-          return DecryptFileRpgpImpl(ctx_, true, in_path, out_path,
-                                     data_object);
-        },
-        cb, "rpgp_op_decrypt_archive", "0.0.0");
+    RunGpgOperaAsync(GetChannel(),
+                     [=](const DataObjectPtr& data_object) -> GpgError {
+                       return DecryptFileRpgpImpl(ctx_, true, in_path, out_path,
+                                                  data_object);
+                     },
+                     cb, "rpgp_op_decrypt_archive",
+                     {{OpenPGPEngine::kRPGP, "0.1.0"}});
     return;
   }
 
@@ -344,7 +350,8 @@ void GpgFileOpera::DecryptArchive(const QString& in_path,
 
         return DecryptFileGpgDataImpl(ctx_, data_in, data_out, data_object);
       },
-      cb, "gpgme_op_decrypt", "2.2.0");
+      cb, "gpgme_op_decrypt",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 void GpgFileOpera::SignFile(const GpgAbstractKeyPtrList& keys,
@@ -361,7 +368,8 @@ void GpgFileOpera::SignFile(const GpgAbstractKeyPtrList& keys,
         return SignFileImpl(ctx_, basic_opera_, keys, in_path, ascii, out_path,
                             data_object);
       },
-      cb, "gpgme_op_sign", "2.2.0");
+      cb, "gpgme_op_sign",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GpgFileOpera::SignFileSync(const GpgAbstractKeyPtrList& keys,
@@ -378,7 +386,8 @@ auto GpgFileOpera::SignFileSync(const GpgAbstractKeyPtrList& keys,
         return SignFileImpl(ctx_, basic_opera_, keys, in_path, ascii, out_path,
                             data_object);
       },
-      "gpgme_op_sign", "2.2.0");
+      "gpgme_op_sign",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 void GpgFileOpera::VerifyFile(const QString& data_path,
@@ -392,7 +401,8 @@ void GpgFileOpera::VerifyFile(const QString& data_path,
         }
         return VerifyFileImpl(ctx_, data_path, sign_path, data_object);
       },
-      cb, "gpgme_op_verify", "2.2.0");
+      cb, "gpgme_op_verify",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GpgFileOpera::VerifyFileSync(const QString& data_path,
@@ -406,7 +416,8 @@ auto GpgFileOpera::VerifyFileSync(const QString& data_path,
         }
         return VerifyFileImpl(ctx_, data_path, sign_path, data_object);
       },
-      "gpgme_op_verify", "2.2.0");
+      "gpgme_op_verify",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 void GpgFileOpera::EncryptSignFile(const GpgAbstractKeyPtrList& keys,
@@ -424,7 +435,8 @@ void GpgFileOpera::EncryptSignFile(const GpgAbstractKeyPtrList& keys,
         return EncryptSignFileImpl(ctx_, basic_opera_, keys, signer_keys,
                                    in_path, ascii, out_path, data_object);
       },
-      cb, "gpgme_op_encrypt_sign", "2.2.0");
+      cb, "gpgme_op_encrypt_sign",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GpgFileOpera::EncryptSignFileSync(const GpgAbstractKeyPtrList& keys,
@@ -442,7 +454,8 @@ auto GpgFileOpera::EncryptSignFileSync(const GpgAbstractKeyPtrList& keys,
         return EncryptSignFileImpl(ctx_, basic_opera_, keys, signer_keys,
                                    in_path, ascii, out_path, data_object);
       },
-      "gpgme_op_encrypt_sign", "2.2.0");
+      "gpgme_op_encrypt_sign",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 void GpgFileOpera::EncryptSignDirectory(
@@ -456,7 +469,8 @@ void GpgFileOpera::EncryptSignDirectory(
           return EncryptSignFileRpgpImpl(ctx_, keys, signer_keys, in_path,
                                          ascii, out_path, data_object);
         },
-        cb, "rpgp_op_encrypt_sign", "0.0.0");
+        cb, "rpgp_op_encrypt_sign",
+        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
     return;
   }
 
@@ -472,7 +486,8 @@ void GpgFileOpera::EncryptSignDirectory(
                                           data_in, ascii, data_out,
                                           data_object);
       },
-      cb, "gpgme_op_encrypt_sign", "2.2.0");
+      cb, "gpgme_op_encrypt_sign",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 
   CreateArchiveHelper(in_path, ex);
 }
@@ -489,7 +504,8 @@ void GpgFileOpera::DecryptVerifyFile(const QString& in_path,
         }
         return DecryptVerifyFileImpl(ctx_, in_path, out_path, data_object);
       },
-      cb, "gpgme_op_decrypt_verify", "2.2.0");
+      cb, "gpgme_op_decrypt_verify",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GpgFileOpera::DecryptVerifyFileSync(const QString& in_path,
@@ -504,20 +520,21 @@ auto GpgFileOpera::DecryptVerifyFileSync(const QString& in_path,
         }
         return DecryptVerifyFileImpl(ctx_, in_path, out_path, data_object);
       },
-      "gpgme_op_decrypt_verify", "2.2.0");
+      "gpgme_op_decrypt_verify",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 void GpgFileOpera::DecryptVerifyArchive(const QString& in_path,
                                         const QString& out_path,
                                         const GpgOperationCallback& cb) {
   if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
-    RunGpgOperaAsync(
-        GetChannel(),
-        [=](const DataObjectPtr& data_object) -> GpgError {
-          return DecryptVerifyFileRpgpImpl(ctx_, true, in_path, out_path,
-                                           data_object);
-        },
-        cb, "rpgp_op_decrypt_verify_archive", "0.0.0");
+    RunGpgOperaAsync(GetChannel(),
+                     [=](const DataObjectPtr& data_object) -> GpgError {
+                       return DecryptVerifyFileRpgpImpl(ctx_, true, in_path,
+                                                        out_path, data_object);
+                     },
+                     cb, "rpgp_op_decrypt_verify_archive",
+                     {{OpenPGPEngine::kRPGP, "0.1.0"}});
     return;
   }
 
@@ -531,7 +548,8 @@ void GpgFileOpera::DecryptVerifyArchive(const QString& in_path,
         return DecryptVerifyFileGpgDataImpl(ctx_, data_in, data_out,
                                             data_object);
       },
-      cb, "gpgme_op_decrypt_verify", "2.2.0");
+      cb, "gpgme_op_decrypt_verify",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 void GpgFileOpera::EncryptFileSymmetric(const QString& in_path, bool ascii,
@@ -546,7 +564,8 @@ void GpgFileOpera::EncryptFileSymmetric(const QString& in_path, bool ascii,
         }
         return EncryptFileImpl(ctx_, {}, in_path, ascii, out_path, data_object);
       },
-      cb, "gpgme_op_encrypt_symmetric", "2.2.0");
+      cb, "gpgme_op_encrypt_symmetric",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 auto GpgFileOpera::EncryptFileSymmetricSync(const QString& in_path, bool ascii,
@@ -561,20 +580,21 @@ auto GpgFileOpera::EncryptFileSymmetricSync(const QString& in_path, bool ascii,
         }
         return EncryptFileImpl(ctx_, {}, in_path, ascii, out_path, data_object);
       },
-      "gpgme_op_encrypt_symmetric", "2.2.0");
+      "gpgme_op_encrypt_symmetric",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 void GpgFileOpera::EncryptDirectorySymmetric(const QString& in_path, bool ascii,
                                              const QString& out_path,
                                              const GpgOperationCallback& cb) {
   if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
-    RunGpgOperaAsync(
-        GetChannel(),
-        [=](const DataObjectPtr& data_object) -> GpgError {
-          return EncryptSymmetricFileRpgpImpl(ctx_, in_path, ascii, out_path,
-                                              data_object);
-        },
-        cb, "rpgp_op_encrypt_symmetric", "0.0.0");
+    RunGpgOperaAsync(GetChannel(),
+                     [=](const DataObjectPtr& data_object) -> GpgError {
+                       return EncryptSymmetricFileRpgpImpl(
+                           ctx_, in_path, ascii, out_path, data_object);
+                     },
+                     cb, "rpgp_op_encrypt_symmetric",
+                     {{OpenPGPEngine::kRPGP, "0.1.0"}});
     return;
   }
 
@@ -589,7 +609,8 @@ void GpgFileOpera::EncryptDirectorySymmetric(const QString& in_path, bool ascii,
         return EncryptFileGpgDataImpl(ctx_, {}, data_in, ascii, data_out,
                                       data_object);
       },
-      cb, "gpgme_op_encrypt_symmetric", "2.2.0");
+      cb, "gpgme_op_encrypt_symmetric",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 
   CreateArchiveHelper(in_path, ex);
 }
@@ -605,7 +626,8 @@ auto GpgFileOpera::EncryptDirectorySymmetricSync(const QString& in_path,
           return EncryptSymmetricFileRpgpImpl(ctx_, in_path, ascii, out_path,
                                               data_object);
         },
-        "rpgp_op_encrypt_symmetric", "0.0.0");
+        "rpgp_op_encrypt_symmetric",
+        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
   }
 
   auto ex = CreateStandardGFDataExchanger();
@@ -621,7 +643,8 @@ auto GpgFileOpera::EncryptDirectorySymmetricSync(const QString& in_path,
         return EncryptFileGpgDataImpl(ctx_, {}, data_in, ascii, data_out,
                                       data_object);
       },
-      "gpgme_op_encrypt_symmetric", "2.2.0");
+      "gpgme_op_encrypt_symmetric",
+      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
 }
 
 }  // namespace GpgFrontend

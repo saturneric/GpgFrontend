@@ -226,15 +226,6 @@ auto GF_CORE_EXPORT GpgAgentVersionGreaterThan(int channel, const QString&)
 /**
  * @brief
  *
- * @param channel
- * @return true
- * @return false
- */
-auto GF_CORE_EXPORT CheckGpgVersion(int channel, const QString&) -> bool;
-
-/**
- * @brief
- *
  * @return QString
  */
 auto GF_CORE_EXPORT DecidePinentry() -> QString;

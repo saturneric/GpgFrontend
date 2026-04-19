@@ -204,8 +204,10 @@ void MainWindow::create_actions() {
   generate_key_pair_act_ =
       create_action("generate_key_pair", tr("New Keypair"),
                     ":/icons/keypairs.png", tr("Generate KeyPair"));
-  connect(generate_key_pair_act_, &QAction::triggered, this, [=]() {
-    if (!CheckGpgVersion(m_key_list_->GetCurrentGpgContextChannel(), "2.2.0")) {
+  connect(generate_key_pair_act_, &QAction::triggered, this, [=]() -> void {
+    if (!GpgContextSupportIf(m_key_list_->GetCurrentGpgContextChannel(),
+                             {{OpenPGPEngine::kGNUPG, "2.2.0"},
+                              {OpenPGPEngine::kRPGP, "0.1.0"}})) {
       CommonUtils::RaiseMessageBoxNotSupported(this);
       return;
     }

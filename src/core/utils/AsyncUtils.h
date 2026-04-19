@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/GpgFrontendCore.h"
+#include "core/model/GFEngineSupportIf.h"
 #include "core/thread/Task.h"
 #include "core/typedef/CoreTypedef.h"
 #include "core/typedef/GpgTypedef.h"
@@ -43,11 +44,10 @@ namespace GpgFrontend {
  * @param operation
  * @param minimal_version
  */
-auto GF_CORE_EXPORT RunGpgOperaAsync(int channel,
-                                     const GpgOperaRunnable& runnable,
-                                     const GpgOperationCallback& callback,
-                                     const QString& operation,
-                                     const QString& minimal_version)
+auto GF_CORE_EXPORT
+RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
+                 const GpgOperationCallback& callback, const QString& operation,
+                 const QContainer<EngineSupportIf>& support_ifs)
     -> Thread::Task::TaskHandler;
 
 /**
@@ -58,10 +58,9 @@ auto GF_CORE_EXPORT RunGpgOperaAsync(int channel,
  * @param minimal_version
  * @return std::tuple<GpgError, DataObjectPtr>
  */
-auto GF_CORE_EXPORT RunGpgOperaSync(int channel,
-                                    const GpgOperaRunnable& runnable,
-                                    const QString& operation,
-                                    const QString& minimal_version)
+auto GF_CORE_EXPORT RunGpgOperaSync(
+    int channel, const GpgOperaRunnable& runnable, const QString& operation,
+    const QContainer<EngineSupportIf>& support_ifs)
     -> std::tuple<GpgError, DataObjectPtr>;
 
 /**
