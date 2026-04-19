@@ -27,7 +27,10 @@
  */
 
 use crate::{
-    cache::{PASSWORD_CACHE, PasswordCachePolicy}, err::IntoGfrResult, types::{GfrFreeCb, GfrKeyConfig, GfrPasswordFetchCb, GfrStatus}, utils::{fetch_password_with_cache, resolve_key_type}
+    cache::{PASSWORD_CACHE, PasswordCachePolicy},
+    err::IntoGfrResult,
+    types::{GfrFreeCb, GfrKeyConfig, GfrPasswordFetchCb, GfrStatus},
+    utils::{fetch_password_with_cache, resolve_key_type},
 };
 use log::{debug, error};
 use pgp::{
@@ -129,8 +132,27 @@ pub fn create_key_internal(
         Vec::new()
     };
 
+    // Ask user to re-enter the password for confirmation if a passphrase is required for the primary key
+    let primary_pwd_bytes_confirm = if key_config.has_passphrase {
+        fetch_password_with_cache(
+            Some(&PASSWORD_CACHE),
+            PasswordCachePolicy::Refresh,
+            0, // Index 0 for primary key
+            "",
+            "Generate Primary Key (Confirm)",
+            fetch_pwd_cb,
+            free_cb,
+        )?
+    } else {
+        Vec::new()
+    };
+
     if key_config.has_passphrase && primary_pwd_bytes.is_empty() {
         return Err(GfrStatus::ErrorFetchPasswordFailed);
+    }
+
+    if primary_pwd_bytes != primary_pwd_bytes_confirm {
+        return Err(GfrStatus::ErrorPasswordMismatch);
     }
 
     if !primary_pwd_bytes.is_empty() {
@@ -150,7 +172,7 @@ pub fn create_key_internal(
                 PasswordCachePolicy::Refresh,
                 ((index + 1) as u32).try_into().unwrap(), // Use a different index for each subkey
                 "",
-                "Generate Subkey",
+                "Generate Subkey associated with Primary Key",
                 fetch_pwd_cb,
                 free_cb,
             )?;
@@ -314,9 +336,25 @@ pub fn add_subkey_internal(
             free_cb,
         )?;
 
+        // Ask user to re-enter the password for confirmation if a passphrase is required for the subkey
+        let subkey_pwd_bytes_retry = fetch_password_with_cache(
+            Some(&PASSWORD_CACHE),
+            PasswordCachePolicy::Refresh,
+            channel,
+            "",
+            "Set password for new subkey (Confirm)",
+            fetch_pwd_cb,
+            free_cb,
+        )?;
+
         if subkey_pwd_bytes.is_empty() {
             log::error!("Password requested for new subkey but none provided.");
             return Err(GfrStatus::ErrorFetchPasswordFailed);
+        }
+
+        if subkey_pwd_bytes != subkey_pwd_bytes_retry {
+            log::error!("Subkey password confirmation does not match.");
+            return Err(GfrStatus::ErrorPasswordMismatch);
         }
 
         let sub_password = Password::from(subkey_pwd_bytes.as_slice());

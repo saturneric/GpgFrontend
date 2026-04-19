@@ -44,7 +44,8 @@ pub enum GfrStatus {
     ErrorPasswordFailed = -3,
     ErrorNoKey = -6,
     ErrorFetchPasswordFailed = -9,
-    ErrorWrongPassword = -10, // Specifically for incorrect passphrase
+    ErrorWrongPassword = -10,    // Specifically for incorrect passphrase
+    ErrorPasswordMismatch = -14, // When password confirmation does not match
 
     // --- Data & Parsing Errors ---
     ErrorArmorFailed = -4,
