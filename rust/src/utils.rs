@@ -114,6 +114,11 @@ pub fn fetch_password_with_cache(
         info: info.to_string().to_uppercase(),
     };
 
+    let mut policy = policy;
+    if fpr.is_empty() {
+        policy = PasswordCachePolicy::Bypass; // If no FPR, we cannot cache, so bypass cache
+    }
+
     match policy {
         PasswordCachePolicy::Default => {
             if let Some(cache) = cache {

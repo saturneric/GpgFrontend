@@ -91,37 +91,6 @@ pub struct DecryptResultInternal {
     pub recipients: Vec<RecipientResultInternal>,
 }
 
-// Helper to sniff all intended recipients from the encrypted data
-pub fn sniff_recipients(data: &[u8]) -> Vec<RecipientResultInternal> {
-    let mut results = Vec::new();
-    let mut dearmored = Vec::new();
-    let _ = Dearmor::new(Cursor::new(data)).read_to_end(&mut dearmored);
-    let payload = if dearmored.is_empty() {
-        data
-    } else {
-        &dearmored
-    };
-
-    let parser = PacketParser::new(Cursor::new(payload));
-    for packet_result in parser {
-        if let Ok(Packet::PublicKeyEncryptedSessionKey(pkesk)) = packet_result {
-            if let Ok(id) = pkesk.id() {
-                let algo = if let Ok(algo_id) = pkesk.algorithm() {
-                    algo_to_string_simple(algo_id)
-                } else {
-                    String::new()
-                };
-                results.push(RecipientResultInternal {
-                    key_id: id.to_string(),
-                    pub_algo: algo,
-                    status: GfrRecipientStatus::NoKey, // Default to NoKey until proven otherwise
-                });
-            }
-        }
-    }
-    results
-}
-
 pub fn decrypt_internal(
     channel: i32,
     encrypted_data: &[u8],

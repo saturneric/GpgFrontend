@@ -44,13 +44,10 @@ use crate::{
 use core::fmt;
 use log::debug;
 use pgp::{
-    composed::{
+    armor::Dearmor, composed::{
         ArmorOptions, CleartextSignedMessage, Deserializable, DetachedSignature, Esk, Message,
         MessageBuilder, SignedPublicKey, SignedSecretKey,
-    },
-    crypto::{hash::HashAlgorithm, sym::SymmetricKeyAlgorithm},
-    ser::Serialize,
-    types::{KeyDetails, Password, SecretParams, StringToKey},
+    }, crypto::{hash::HashAlgorithm, sym::SymmetricKeyAlgorithm}, packet::{Packet, PacketParser}, ser::Serialize, types::{KeyDetails, Password, SecretParams, StringToKey}
 };
 use rand::thread_rng;
 use std::{
@@ -114,6 +111,37 @@ fn parse_secret_signers(secret_key_blocks: &[&str]) -> Result<Vec<ParsedSigner>,
     }
 
     Ok(parsed_keys)
+}
+
+// Helper to sniff all intended recipients from the encrypted data
+pub fn sniff_recipients(data: &[u8]) -> Vec<RecipientResultInternal> {
+    let mut results = Vec::new();
+    let mut dearmored = Vec::new();
+    let _ = Dearmor::new(Cursor::new(data)).read_to_end(&mut dearmored);
+    let payload = if dearmored.is_empty() {
+        data
+    } else {
+        &dearmored
+    };
+
+    let parser = PacketParser::new(Cursor::new(payload));
+    for packet_result in parser {
+        if let Ok(Packet::PublicKeyEncryptedSessionKey(pkesk)) = packet_result {
+            if let Ok(id) = pkesk.id() {
+                let algo = if let Ok(algo_id) = pkesk.algorithm() {
+                    algo_to_string_simple(algo_id)
+                } else {
+                    String::new()
+                };
+                results.push(RecipientResultInternal {
+                    key_id: id.to_string(),
+                    pub_algo: algo,
+                    status: GfrRecipientStatus::NoKey, // Default to NoKey until proven otherwise
+                });
+            }
+        }
+    }
+    results
 }
 
 /// Package a directory as a Tar and encrypt it as a stream
@@ -240,6 +268,16 @@ where
                 builder.to_writer(&mut rng, &mut output_stream)
             };
 
+            if result.is_err() {
+                log::warn!("Stream signing pipeline failed. Evicting all target password caches.");
+                for (skey, _) in &parsed_keys {
+                    PASSWORD_CACHE.remove_by_fpr(&skey.primary_key.fingerprint().to_string());
+                    for sub in &skey.secret_subkeys {
+                        PASSWORD_CACHE.remove_by_fpr(&sub.key.fingerprint().to_string());
+                    }
+                }
+            }
+
             result.map_err(|_| GfrStatus::ErrorInternal)?;
             output_stream
                 .flush()
@@ -286,6 +324,9 @@ where
                             .into_bytes();
                         return Ok(out);
                     }
+
+                    log::warn!("Signing failed for {}. Evicting bad password.", fpr);
+                    PASSWORD_CACHE.remove_by_fpr(&fpr);
                     Err(GfrStatus::ErrorInternal)
                 });
 
@@ -351,6 +392,9 @@ where
                         };
                         return Ok(out);
                     }
+
+                    log::warn!("Signing failed for {}. Evicting bad password.", fpr);
+                    PASSWORD_CACHE.remove_by_fpr(&fpr);
                     Err(GfrStatus::ErrorInternal)
                 });
 
@@ -727,7 +771,7 @@ fn decrypt_message_with_password(
 ) -> Result<Message, GfrStatus> {
     let password = fetch_password_with_cache(
         Some(&PASSWORD_CACHE),
-        PasswordCachePolicy::Default,
+        PasswordCachePolicy::Bypass,
         channel,
         "",
         "Symmetric Decryption",
@@ -854,7 +898,19 @@ where
 
         // 5. Initialize streaming decryption
         let pwd_fn = Password::from(password.as_slice());
-        decrypted = parsed_message.decrypt(&pwd_fn, &skey).into_gfr()?;
+        decrypted = parsed_message
+            .decrypt(&pwd_fn, &skey)
+            .map_err(|e| {
+                if needs_password {
+                    log::warn!(
+                        "Asymmetric decryption failed. Evicting bad password for FPR: {}",
+                        target_fpr_for_pwd
+                    );
+                    PASSWORD_CACHE.remove_by_fpr(&target_fpr_for_pwd);
+                }
+                e
+            })
+            .into_gfr()?;
 
         for rec in &mut recipients {
             if rec.key_id == matched_recipient_id || is_anonymous(&rec.key_id) {
@@ -1075,7 +1131,7 @@ where
 
     let password: Vec<u8> = fetch_password_with_cache(
         Some(&PASSWORD_CACHE),
-        PasswordCachePolicy::Default,
+        PasswordCachePolicy::Bypass,
         channel,
         "",
         "Symmetric Encryption",

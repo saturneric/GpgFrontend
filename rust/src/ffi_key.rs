@@ -26,11 +26,12 @@
  *
  */
 
+use crate::crypto_stream::sniff_recipients;
 use crate::err::clear_last_error;
 use crate::key::{
-    delete_subkey_internal, extract_rev_cert_target_fpr_internal,
-    generate_key_rev_cert_internal, import_rev_cert_internal, merge_key_block_internal,
-    modify_key_password_internal, revoke_subkey_internal,
+    delete_subkey_internal, extract_rev_cert_target_fpr_internal, generate_key_rev_cert_internal,
+    import_rev_cert_internal, merge_key_block_internal, modify_key_password_internal,
+    revoke_subkey_internal,
 };
 use crate::key::{
     export_merged_public_keys, export_merged_secret_keys, extract_public_key_internal,
@@ -224,7 +225,7 @@ pub extern "C" fn gfr_crypto_get_recipients(
 
         // 2. Call sniff_recipients directly to get the structured list
         // Note: sniff_recipients does not return a Result, it returns Vec directly
-        let recipients = crate::crypto::sniff_recipients(data_slice);
+        let recipients = sniff_recipients(data_slice);
 
         if recipients.is_empty() {
             return Err(GfrStatus::ErrorInvalidData);
