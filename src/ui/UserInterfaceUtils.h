@@ -193,7 +193,8 @@ class CommonUtils : public QWidget {
    * @param parent
    * @param in_buffer
    */
-  void SlotImportKeys(QWidget* parent, int channel, const GFBuffer& in_buffer);
+  void SlotImportKeys(QWidget* parent, int channel, const GFBuffer& in_buffer,
+                      bool rev_cert = false);
 
   /**
    * @brief

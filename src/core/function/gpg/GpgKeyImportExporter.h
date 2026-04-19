@@ -63,6 +63,13 @@ class GF_CORE_EXPORT GpgKeyImportExporter
   /**
    * @brief
    *
+   * @return QSharedPointer<GpgImportInformation>
+   */
+  auto ImportRevCert(const GFBuffer&) -> QSharedPointer<GpgImportInformation>;
+
+  /**
+   * @brief
+   *
    * @param key
    * @param secret
    * @param ascii

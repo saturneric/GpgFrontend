@@ -53,4 +53,14 @@ auto ImportKeyRpgpImpl(GpgContext& ctx, const GFBuffer& in_buffer)
  */
 auto ExportKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
                         bool secret) -> std::tuple<GpgError, GFBuffer>;
+
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param in_buffer
+ * @return QSharedPointer<GpgImportInformation>
+ */
+auto ImportRevCertRpgpImpl(GpgContext& ctx, const GFBuffer& in_buffer)
+    -> QSharedPointer<GpgImportInformation>;
 }  // namespace GpgFrontend

@@ -189,16 +189,19 @@ void CommonUtils::RaiseFailureMessageBox(QWidget *parent, GpgError err,
 }
 
 void CommonUtils::SlotImportKeys(QWidget *parent, int channel,
-                                 const GFBuffer &in_buffer) {
-  auto info = GpgKeyImportExporter::GetInstance(channel).ImportKey(in_buffer);
+                                 const GFBuffer &in_buffer, bool rev_cert) {
+  auto info =
+      rev_cert
+          ? GpgKeyImportExporter::GetInstance(channel).ImportRevCert(in_buffer)
+          : GpgKeyImportExporter::GetInstance(channel).ImportKey(in_buffer);
   auto *connection = new QMetaObject::Connection;
-  *connection =
-      connect(UISignalStation::GetInstance(),
-              &UISignalStation::SignalKeyDatabaseRefreshDone, this, [=]() {
-                (new KeyImportDetailDialog(channel, info, parent));
-                QObject::disconnect(*connection);
-                delete connection;
-              });
+  *connection = connect(UISignalStation::GetInstance(),
+                        &UISignalStation::SignalKeyDatabaseRefreshDone, this,
+                        [=]() -> void {
+                          (new KeyImportDetailDialog(channel, info, parent));
+                          QObject::disconnect(*connection);
+                          delete connection;
+                        });
 
   emit SignalKeyStatusUpdated();
 }

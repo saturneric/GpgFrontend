@@ -175,7 +175,7 @@ auto ImportKeyRpgpImpl(GpgContext& ctx, const GFBuffer& in_buffer)
     if (db_gf_key) {
       LOG_I() << "key with fpr: " << pd_gf_key.metadata.fpr
               << " already exists in database, merging with the imported key";
-      final_gf_key = MergeGFKeyRpgpImpl({*db_gf_key, pd_gf_key},
+      final_gf_key = MergeGFKeyRpgpImpl({pd_gf_key, *db_gf_key},
                                         pd_gf_key.metadata.has_secret);
     } else {
       final_gf_key = pd_gf_key;
@@ -242,6 +242,105 @@ auto ExportKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
   LOG_D() << "exported armored string: " << qs_armored;
 
   return {GPG_ERR_NO_ERROR, GFBuffer(qs_armored)};
+}
+
+auto ImportRevCertRpgpImpl(GpgContext& ctx, const GFBuffer& in_buffer)
+    -> QSharedPointer<GpgImportInformation> {
+  if (in_buffer.Empty()) return {};
+
+  LOG_D() << "importing revocation certificate with buffer size: "
+          << in_buffer.Size();
+
+  auto in_buffer_utf8 = in_buffer.ConvertToQString().toUtf8();
+  LOG_D() << "importing revocation certificate with UTF-8 size: "
+          << in_buffer_utf8.size();
+
+  char* out_fpr = nullptr;
+  auto status = Rust::gfr_crypto_extract_rev_cert_target_fpr(
+      in_buffer_utf8.data(), &out_fpr);
+
+  if (status != Rust::GfrStatus::Success) {
+    LOG_E() << "gfr_crypto_extract_rev_cert_target_fpr failed with status: "
+            << static_cast<int>(status);
+    return {};
+  }
+
+  auto qs_fpr = QString::fromUtf8(out_fpr).toUpper();
+  Rust::gfr_crypto_free_string(out_fpr);
+
+  if (qs_fpr.isEmpty()) {
+    LOG_E() << "extracted empty fingerprint from revocation certificate";
+    return {};
+  }
+
+  LOG_D() << "extracted fingerprint from revocation certificate: " << qs_fpr;
+
+  auto key_db = ctx.KeyDatabase();
+  if (!key_db) {
+    LOG_E() << "key database is not initialized";
+    return {};
+  }
+
+  auto db_gf_key = key_db->GetKeyByIdentifier(qs_fpr);
+  if (!db_gf_key) {
+    LOG_E()
+        << "no key found in database matching the fingerprint extracted from "
+        << "revocation certificate. fpr: " << qs_fpr;
+    return {};
+  }
+
+  QByteArray key_block_utf8;
+  if (db_gf_key->metadata.has_secret) {
+    if (db_gf_key->blocks.secret_key.isEmpty()) {
+      LOG_E()
+          << "key with matching fingerprint does not have a secret key block";
+      return {};
+    }
+    key_block_utf8 = db_gf_key->blocks.secret_key.toUtf8();
+  } else {
+    if (db_gf_key->blocks.public_key.isEmpty()) {
+      LOG_E()
+          << "key with matching fingerprint does not have a public key block";
+      return {};
+    }
+    key_block_utf8 = db_gf_key->blocks.public_key.toUtf8();
+  }
+
+  char* out_sec = nullptr;
+  char* out_pub = nullptr;
+  status = Rust::gfr_crypto_import_rev_cert(
+      key_block_utf8.data(), in_buffer_utf8.data(), &out_sec, &out_pub);
+
+  if (status != Rust::GfrStatus::Success) {
+    LOG_E() << "gfr_crypto_import_rev_cert failed with status: "
+            << static_cast<int>(status);
+    return {};
+  }
+
+  auto qs_sec_armored = QString::fromUtf8(out_sec);
+  Rust::gfr_crypto_free_string(out_sec);
+  auto qs_pub_armored = QString::fromUtf8(out_pub);
+  Rust::gfr_crypto_free_string(out_pub);
+
+  if (qs_sec_armored.isEmpty() && qs_pub_armored.isEmpty()) {
+    LOG_E() << "both imported public and secret key blocks are empty after "
+               "importing revocation certificate";
+    return {};
+  }
+
+  if (db_gf_key->metadata.has_secret && qs_sec_armored.isEmpty()) {
+    LOG_E() << "imported revocation certificate did not return a secret key "
+               "block for a key that has secret key in database";
+    return {};
+  }
+
+  LOG_D() << "imported revocation certificate, got secret block size: "
+          << qs_sec_armored.size()
+          << ", public block size: " << qs_pub_armored.size();
+
+  return ImportKeyRpgpImpl(ctx, qs_sec_armored.isEmpty()
+                                    ? GFBuffer(qs_pub_armored)
+                                    : GFBuffer(qs_sec_armored));
 }
 
 }  // namespace GpgFrontend

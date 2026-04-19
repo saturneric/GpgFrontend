@@ -72,7 +72,7 @@ auto GFKeyDatabase::GetMetadataList() -> QContainer<GFKeyMetadata> {
   QSqlQuery query(db_);
 
   if (query.exec(R"(
-        SELECT fpr, key_id, algo, created_at, has_secret, key_length,
+        SELECT fpr, key_id, algo, created_at, has_secret, is_revoked, key_length,
                can_sign, can_encrypt, can_auth, can_certify, update_time
         FROM key_metadata
       )")) {
@@ -83,13 +83,14 @@ auto GFKeyDatabase::GetMetadataList() -> QContainer<GFKeyMetadata> {
       meta.algo = query.value(2).toInt();
       meta.created_at = query.value(3).toLongLong();
       meta.has_secret = query.value(4).toBool();
-      meta.key_length = static_cast<unsigned int>(query.value(5).toUInt());
-      meta.can_sign = query.value(6).toBool();
-      meta.can_encrypt = query.value(7).toBool();
-      meta.can_auth = query.value(8).toBool();
-      meta.can_certify = query.value(9).toBool();
+      meta.is_revoked = query.value(5).toBool();
+      meta.key_length = static_cast<unsigned int>(query.value(6).toUInt());
+      meta.can_sign = query.value(7).toBool();
+      meta.can_encrypt = query.value(8).toBool();
+      meta.can_auth = query.value(9).toBool();
+      meta.can_certify = query.value(10).toBool();
       meta.update_time =
-          QDateTime::fromString(query.value(10).toString(), Qt::ISODate)
+          QDateTime::fromString(query.value(11).toString(), Qt::ISODate)
               .toSecsSinceEpoch();
 
       // Load user IDs for this primary key
@@ -192,14 +193,15 @@ auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
   // 1. Save Primary Key Metadata
   query.prepare(R"(
     INSERT OR REPLACE INTO key_metadata 
-    (fpr, key_id, algo, created_at, has_secret, key_length, can_sign, can_encrypt, can_auth, can_certify, update_time)
-    VALUES (:fpr, :key_id, :algo, :created_at, :has_secret, :key_length, :can_sign, :can_encrypt, :can_auth, :can_certify, :update_time)
+    (fpr, key_id, algo, created_at, has_secret, is_revoked, key_length, can_sign, can_encrypt, can_auth, can_certify, update_time)
+    VALUES (:fpr, :key_id, :algo, :created_at, :has_secret, :is_revoked, :key_length, :can_sign, :can_encrypt, :can_auth, :can_certify, :update_time)
   )");
   query.bindValue(":fpr", meta.fpr.toUpper());
   query.bindValue(":key_id", meta.key_id.toUpper());
   query.bindValue(":algo", meta.algo);
   query.bindValue(":created_at", meta.created_at);
   query.bindValue(":has_secret", meta.has_secret ? 1 : 0);
+  query.bindValue(":is_revoked", meta.is_revoked ? 1 : 0);
   query.bindValue(":key_length", meta.key_length);
   query.bindValue(":can_sign", meta.can_sign ? 1 : 0);
   query.bindValue(":can_encrypt", meta.can_encrypt ? 1 : 0);
@@ -311,7 +313,7 @@ auto GFKeyDatabase::GetKeyMetadata(const QString& identifier)
   // FPR
   QSqlQuery query(db_);
   query.prepare(R"(
-    SELECT fpr, key_id, algo, created_at, has_secret, key_length,
+    SELECT fpr, key_id, algo, created_at, has_secret, is_revoked, key_length,
            can_sign, can_encrypt, can_auth, can_certify, update_time
     FROM key_metadata WHERE fpr = :fpr
   )");
@@ -325,13 +327,14 @@ auto GFKeyDatabase::GetKeyMetadata(const QString& identifier)
     meta.algo = query.value(2).toInt();
     meta.created_at = query.value(3).toLongLong();
     meta.has_secret = query.value(4).toBool();
-    meta.key_length = static_cast<unsigned int>(query.value(5).toUInt());
-    meta.can_sign = query.value(6).toBool();
-    meta.can_encrypt = query.value(7).toBool();
-    meta.can_auth = query.value(8).toBool();
-    meta.can_certify = query.value(9).toBool();
+    meta.is_revoked = query.value(5).toBool();
+    meta.key_length = static_cast<unsigned int>(query.value(6).toUInt());
+    meta.can_sign = query.value(7).toBool();
+    meta.can_encrypt = query.value(8).toBool();
+    meta.can_auth = query.value(9).toBool();
+    meta.can_certify = query.value(10).toBool();
     meta.update_time =
-        QDateTime::fromString(query.value(10).toString(), Qt::ISODate)
+        QDateTime::fromString(query.value(11).toString(), Qt::ISODate)
             .toSecsSinceEpoch();
 
     // Load user IDs
@@ -362,6 +365,7 @@ auto GFKeyDatabase::create_table() -> bool {
       key_length INTEGER DEFAULT 0,
       created_at INTEGER,
       has_secret INTEGER DEFAULT 0,
+      is_revoked INTEGER DEFAULT 0,
       can_sign INTEGER DEFAULT 0,
       can_encrypt INTEGER DEFAULT 0,
       can_auth INTEGER DEFAULT 0,
@@ -442,7 +446,7 @@ auto GFKeyDatabase::load_subkeys_for_parent(const QString& parent_fpr)
   QContainer<GFSubKeyMetadata> subkeys;
   QSqlQuery query(db_);
   query.prepare(R"(
-    SELECT fpr, key_id, algo, created_at, has_secret, key_length, can_sign, can_encrypt, can_auth, can_certify, is_revoked
+    SELECT fpr, key_id, algo, created_at, has_secret, is_revoked, key_length, can_sign, can_encrypt, can_auth, can_certify
     FROM subkey_metadata WHERE parent_fpr = :parent_fpr
   )");
   query.bindValue(":parent_fpr", parent_fpr);
@@ -456,12 +460,13 @@ auto GFKeyDatabase::load_subkeys_for_parent(const QString& parent_fpr)
       sub.algo = query.value(2).toInt();
       sub.created_at = query.value(3).toLongLong();
       sub.has_secret = query.value(4).toBool();
-      sub.key_length = static_cast<unsigned int>(query.value(5).toUInt());
-      sub.can_sign = query.value(6).toBool();
-      sub.can_encrypt = query.value(7).toBool();
-      sub.can_auth = query.value(8).toBool();
-      sub.can_certify = query.value(9).toBool();
-      sub.is_revoked = query.value(10).toBool();
+      sub.is_revoked = query.value(5).toBool();
+      sub.key_length = static_cast<unsigned int>(query.value(6).toUInt());
+      sub.can_sign = query.value(7).toBool();
+      sub.can_encrypt = query.value(8).toBool();
+      sub.can_auth = query.value(9).toBool();
+      sub.can_certify = query.value(10).toBool();
+      sub.is_revoked = query.value(11).toBool();
       subkeys.append(sub);
     }
   }

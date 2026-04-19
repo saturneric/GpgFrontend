@@ -106,6 +106,17 @@ auto GpgKeyImportExporter::ImportKey(const GFBuffer& in_buffer)
   return ImportKeyImpl(ctx_, in_buffer);
 }
 
+auto GpgKeyImportExporter::ImportRevCert(const GFBuffer& in_buffer)
+    -> QSharedPointer<GpgImportInformation> {
+  if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
+    return ImportRevCertRpgpImpl(ctx_, in_buffer);
+  }
+
+  // For GnuPG engine, importing revocation certificate is the same as importing
+  // normal key block.
+  return ImportKeyImpl(ctx_, in_buffer);
+}
+
 /**
  * Export keys
  * @param keys keys used

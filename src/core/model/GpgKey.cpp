@@ -209,7 +209,7 @@ auto GpgKey::IsExpired() const -> bool {
 }
 
 auto GpgKey::IsRevoked() const -> bool {
-  if (km_ref_ != nullptr) return false;
+  if (km_ref_ != nullptr) return km_ref_->is_revoked;
   return key_ref_->revoked;
 }
 

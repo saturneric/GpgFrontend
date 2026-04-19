@@ -422,8 +422,10 @@ void KeyPairOperaTab::slot_import_revoke_cert() {
   }
 
   emit UISignalStation::GetInstance()->SignalKeyRevoked(m_key_->ID());
+
+  // import revocation certificate
   CommonUtils::GetInstance()->SlotImportKeys(
-      nullptr, current_gpg_context_channel_, buffer);
+      nullptr, current_gpg_context_channel_, buffer, true);
 }
 
 }  // namespace GpgFrontend::UI
