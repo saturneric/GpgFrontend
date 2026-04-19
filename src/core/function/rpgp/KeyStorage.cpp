@@ -42,6 +42,7 @@ auto ParseGfrMetadata(const Rust::GfrKeyMetadataC& gfr_meta) -> GFKey {
   meta.key_id = QString::fromUtf8(gfr_meta.key_id);
   meta.created_at = static_cast<qint64>(gfr_meta.created_at);
   meta.has_secret = gfr_meta.has_secret;
+  meta.is_revoked = gfr_meta.is_revoked;
   meta.algo = static_cast<int>(gfr_meta.algo);
   meta.key_length = static_cast<unsigned int>(gfr_meta.key_length);
 
@@ -122,7 +123,14 @@ auto GetGFKeysFromKeyBlock(const GFBuffer& buffer) -> QContainer<GFKey> {
             << ", user_ids: " << key.metadata.user_ids.size()
             << ", created_at: " << key.metadata.created_at
             << ", has_secret: " << key.metadata.has_secret
-            << "subkeys: " << key.metadata.subkeys.size();
+            << ", is_revoked: " << key.metadata.is_revoked
+            << ", algo: " << key.metadata.algo
+            << ", key_length: " << key.metadata.key_length
+            << ", can_sign: " << key.metadata.can_sign
+            << ", can_encrypt: " << key.metadata.can_encrypt
+            << ", can_auth: " << key.metadata.can_auth
+            << ", can_certify: " << key.metadata.can_certify
+            << ", subkeys: " << key.metadata.subkeys.size();
     keys.push_back(key);
   }
 
