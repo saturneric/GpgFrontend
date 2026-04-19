@@ -191,7 +191,7 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
 
   for (const auto& key_db : GetGpgKeyDatabaseInfos()) {
     auto bnd_type = ConvertPGPBackendType2String(
-        GpgContext::GetInstance(key_db.channel).BackendType());
+        GpgContext::GetInstance(key_db.channel).Engine());
     ui_->keyDBIndexComboBox->insertItem(key_db.channel, QString("[%2]: %3 (%1)")
                                                             .arg(bnd_type)
                                                             .arg(key_db.channel)

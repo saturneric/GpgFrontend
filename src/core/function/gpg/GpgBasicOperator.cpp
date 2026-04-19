@@ -205,7 +205,7 @@ void GpgBasicOperator::Encrypt(const GpgAbstractKeyPtrList& keys,
   RunGpgOperaAsync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           return EncryptRpgpImpl(ctx_, keys, in_buffer, ascii, data_object);
         }
         return EncryptImpl(ctx_, keys, in_buffer, ascii, data_object);
@@ -219,7 +219,7 @@ auto GpgBasicOperator::EncryptSync(const GpgAbstractKeyPtrList& keys,
   return RunGpgOperaSync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           return EncryptRpgpImpl(ctx_, keys, in_buffer, ascii, data_object);
         }
         return EncryptImpl(ctx_, keys, in_buffer, ascii, data_object);
@@ -232,7 +232,7 @@ void GpgBasicOperator::EncryptSymmetric(const GFBuffer& in_buffer, bool ascii,
   RunGpgOperaAsync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           return EncryptSymmetricRpgpImpl(ctx_, in_buffer, ascii, data_object);
         }
         return EncryptImpl(ctx_, {}, in_buffer, ascii, data_object);
@@ -246,7 +246,7 @@ auto GpgBasicOperator::EncryptSymmetricSync(const GFBuffer& in_buffer,
   return RunGpgOperaSync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           return EncryptSymmetricRpgpImpl(ctx_, in_buffer, ascii, data_object);
         }
         return EncryptImpl(ctx_, {}, in_buffer, ascii, data_object);
@@ -259,7 +259,7 @@ void GpgBasicOperator::Decrypt(const GFBuffer& in_buffer,
   RunGpgOperaAsync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           return DecryptRpgpImpl(ctx_, in_buffer, data_object);
         }
         return DecryptImpl(ctx_, in_buffer, data_object);
@@ -272,7 +272,7 @@ auto GpgBasicOperator::DecryptSync(const GFBuffer& in_buffer)
   return RunGpgOperaSync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           return DecryptRpgpImpl(ctx_, in_buffer, data_object);
         }
         return DecryptImpl(ctx_, in_buffer, data_object);
@@ -286,7 +286,7 @@ void GpgBasicOperator::Verify(const GFBuffer& in_buffer,
   RunGpgOperaAsync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           return VerifyRpgpImpl(ctx_, in_buffer, sig_buffer, data_object);
         }
         return VerifyImpl(ctx_, in_buffer, sig_buffer, data_object);
@@ -300,7 +300,7 @@ auto GpgBasicOperator::VerifySync(const GFBuffer& in_buffer,
   return RunGpgOperaSync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           return VerifyRpgpImpl(ctx_, in_buffer, sig_buffer, data_object);
         }
         return VerifyImpl(ctx_, in_buffer, sig_buffer, data_object);
@@ -314,7 +314,7 @@ void GpgBasicOperator::Sign(const GpgAbstractKeyPtrList& signers,
   RunGpgOperaAsync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           return SignRpgpImpl(ctx_, signers, in_buffer, mode, ascii,
                               data_object);
         }
@@ -330,7 +330,7 @@ auto GpgBasicOperator::SignSync(const GpgAbstractKeyPtrList& signers,
   return RunGpgOperaSync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           return SignRpgpImpl(ctx_, signers, in_buffer, mode, ascii,
                               data_object);
         }
@@ -344,7 +344,7 @@ void GpgBasicOperator::DecryptVerify(const GFBuffer& in_buffer,
   RunGpgOperaAsync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           return DecryptVerifyRpgpImpl(ctx_, in_buffer, data_object);
         }
         return DecryptVerifyImpl(ctx_, in_buffer, data_object);
@@ -357,7 +357,7 @@ auto GpgBasicOperator::DecryptVerifySync(const GFBuffer& in_buffer)
   return RunGpgOperaSync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           return DecryptVerifyRpgpImpl(ctx_, in_buffer, data_object);
         }
         return DecryptVerifyImpl(ctx_, in_buffer, data_object);
@@ -372,7 +372,7 @@ void GpgBasicOperator::EncryptSign(const GpgAbstractKeyPtrList& keys,
   RunGpgOperaAsync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           return EncryptSignRpgpImpl(ctx_, keys, signers, in_buffer, ascii,
                                      data_object);
         }
@@ -389,7 +389,7 @@ auto GpgBasicOperator::EncryptSignSync(const GpgAbstractKeyPtrList& keys,
   return RunGpgOperaSync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           return EncryptSignRpgpImpl(ctx_, keys, signers, in_buffer, ascii,
                                      data_object);
         }

@@ -53,7 +53,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
               << "from cache failed, channel: " << GetChannel();
     }
 
-    if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+    if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
       return GetPubkeyPtr(key_id, true);
     }
 
@@ -91,7 +91,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
               << "from cache failed, channel: " << GetChannel();
     }
 
-    if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+    if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
       return get_key_rpgp_impl(key_id, false);
     }
 
@@ -142,7 +142,7 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     keys_cache_.clear();
     keys_search_cache_.clear();
 
-    if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+    if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
       return flush_key_cache_rpgp_impl();
     }
 
@@ -168,14 +168,14 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
   auto GetKeyORSubkeyPtr(const QString& key_id) -> GpgAbstractKeyPtr {
     auto key = get_key_in_cache(key_id);
 
-    if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+    if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
       // get a key with subkey_match flag for rpgp backend
       if (key == nullptr && key_id.endsWith("!")) {
         return get_key_rpgp_impl(key_id, true);
       }
     }
 
-    if (ctx_.BackendType() == PGPBackendType::kGNUPG) {
+    if (ctx_.Engine() == OpenPGPEngine::kGNUPG) {
       // get a key with subkey_match flag
       if (key == nullptr && key_id.endsWith("!")) {
         gpgme_key_t key;

@@ -43,7 +43,7 @@ auto RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
     -> Thread::Task::TaskHandler {
   auto& ctx = GpgContext::GetInstance(channel);
 
-  if (ctx.BackendType() == PGPBackendType::kGNUPG &&
+  if (ctx.Engine() == OpenPGPEngine::kGNUPG &&
       !CheckGpgVersion(channel, minimal_version)) {
     LOG_W() << "operation: " << operation << "is not supported.";
     callback(GPG_ERR_NOT_SUPPORTED, TransferParams());

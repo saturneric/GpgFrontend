@@ -578,9 +578,9 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
 
                 // set backend type
                 if (key_db.backend_type.toLower().trimmed() == "rpgp") {
-                  args.backend_type = PGPBackendType::kRPGP;
+                  args.backend_type = OpenPGPEngine::kRPGP;
                 } else {
-                  args.backend_type = PGPBackendType::kGNUPG;
+                  args.backend_type = OpenPGPEngine::kGNUPG;
                 }
 
                 args.offline_mode = forbid_all_gnupg_connection;

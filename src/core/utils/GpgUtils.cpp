@@ -455,7 +455,7 @@ auto GF_CORE_EXPORT GpgAgentVersionGreaterThan(int channel, const QString& v)
 auto GF_CORE_EXPORT CheckGpgVersion(int channel, const QString& v) -> bool {
   // RPGP does not support gpg-agent, so we skip the version check for RPGP
   // backend
-  if (GpgContext::GetInstance(channel).BackendType() == PGPBackendType::kRPGP) {
+  if (GpgContext::GetInstance(channel).Engine() == OpenPGPEngine::kRPGP) {
     return true;
   }
 
@@ -549,11 +549,11 @@ auto ParseUserId(const QString& raw_id) -> GFUserId {
   return uid;
 }
 
-auto ConvertPGPBackendType2String(PGPBackendType type) -> QString {
+auto ConvertPGPBackendType2String(OpenPGPEngine type) -> QString {
   switch (type) {
-    case PGPBackendType::kGNUPG:
+    case OpenPGPEngine::kGNUPG:
       return "GnuPG";
-    case PGPBackendType::kRPGP:
+    case OpenPGPEngine::kRPGP:
       return "RPGP";
     default:
       return "Unknown";

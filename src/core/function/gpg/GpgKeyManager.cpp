@@ -330,7 +330,7 @@ auto GpgKeyManager::SignKey(const GpgKeyPtr& key,
                             const GpgAbstractKeyPtrList& keys,
                             const QString& uid,
                             const std::unique_ptr<QDateTime>& expires) -> bool {
-  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+  if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
     LOG_W() << "RPGP backend does not support signing key for now";
     return false;
   }
@@ -355,7 +355,7 @@ auto GpgKeyManager::SignKey(const GpgKeyPtr& key,
 
 auto GpgKeyManager::RevSign(const GpgKeyPtr& key,
                             const SignIdArgsList& signature_id) -> bool {
-  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+  if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
     LOG_W() << "RPGP backend does not support signing key for now";
     return false;
   }
@@ -377,7 +377,7 @@ auto GpgKeyManager::RevSign(const GpgKeyPtr& key,
 auto GpgKeyManager::SetExpire(const GpgKeyPtr& key,
                               std::unique_ptr<GpgSubKey>& subkey,
                               std::unique_ptr<QDateTime>& expires) -> bool {
-  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+  if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
     LOG_W() << "RPGP backend does not support setting expire for now";
     return false;
   }
@@ -404,7 +404,7 @@ auto GpgKeyManager::SetOwnerTrustLevel(const GpgAbstractKeyPtr& key,
 
 auto GpgKeyManager::DeleteSubkey(const GpgKeyPtr& key, int subkey_index)
     -> bool {
-  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+  if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
     return DeleteSubKeyRpgpImpl(ctx_, key, subkey_index);
   }
   return DeleteSubKeyImpl(auto_, key, subkey_index);
@@ -413,7 +413,7 @@ auto GpgKeyManager::DeleteSubkey(const GpgKeyPtr& key, int subkey_index)
 auto GpgKeyManager::RevokeSubkey(const GpgKeyPtr& key, int subkey_index,
                                  int reason_code, const QString& reason_text)
     -> bool {
-  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+  if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
     return RevokeSubKeyRpgpImpl(ctx_, key, subkey_index, reason_code,
                                 reason_text);
   }

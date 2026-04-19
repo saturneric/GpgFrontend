@@ -83,9 +83,9 @@ void KeyDatabaseEditDialog::init_ui() {
   ui_->keyDBBackendTypeComboBox->addItem("GnuPG", "GNUPG");
   ui_->keyDBBackendTypeComboBox->addItem("rPGP", "RPGP");
   if (channel_ != -1) {
-    auto backend_types = GpgContext::GetInstance(channel_).BackendType();
+    auto backend_types = GpgContext::GetInstance(channel_).Engine();
     ui_->keyDBBackendTypeComboBox->setCurrentIndex(
-        backend_types == PGPBackendType::kRPGP ? 1 : 0);
+        backend_types == OpenPGPEngine::kRPGP ? 1 : 0);
   } else {
     ui_->keyDBBackendTypeComboBox->setCurrentIndex(0);
   }

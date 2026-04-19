@@ -144,7 +144,7 @@ class GpgContext::Impl {
   Impl(GpgContext *parent, const GpgContextInitArgs &args)
       : parent_(parent),
         args_(args),
-        backend_type_(args.backend_type),
+        engine_(args.backend_type),
         db_name_(args.db_name),
         gpgconf_path_(Module::RetrieveRTValueTypedOrDefault<>(
             "core", "gpgme.ctx.gpgconf_path", QString{})),
@@ -157,7 +157,7 @@ class GpgContext::Impl {
   }
 
   ~Impl() {
-    if (backend_type_ == PGPBackendType::kGNUPG) {
+    if (engine_ == OpenPGPEngine::kGNUPG) {
       if (ctx_ref_ != nullptr) {
         gpgme_release(ctx_ref_);
       }
@@ -173,12 +173,12 @@ class GpgContext::Impl {
   }
 
   [[nodiscard]] auto BinaryContext() const -> gpgme_ctx_t {
-    assert(backend_type_ == PGPBackendType::kGNUPG);
+    assert(engine_ == OpenPGPEngine::kGNUPG);
     return binary_ctx_ref_;
   }
 
   [[nodiscard]] auto DefaultContext() const -> gpgme_ctx_t {
-    assert(backend_type_ == PGPBackendType::kGNUPG);
+    assert(engine_ == OpenPGPEngine::kGNUPG);
     return ctx_ref_;
   }
 
@@ -235,7 +235,7 @@ class GpgContext::Impl {
   [[nodiscard]] auto KeyDBName() const -> QString { return db_name_; }
 
   auto RestartGpgAgent() -> bool {
-    assert(backend_type_ == PGPBackendType::kGNUPG);
+    assert(engine_ == OpenPGPEngine::kGNUPG);
 
     if (agent_ != nullptr) {
       agent_ = SecureCreateSharedObject<GpgAgentProcess>(
@@ -248,11 +248,11 @@ class GpgContext::Impl {
     return launch_gpg_agent();
   }
 
-  auto BackendType() -> PGPBackendType { return backend_type_; }
+  auto Engine() -> OpenPGPEngine { return engine_; }
 
   auto KeyDatabase() -> QSharedPointer<GFKeyDatabase> {
-    assert(backend_type_ == PGPBackendType::kRPGP);
-    return backend_type_ == PGPBackendType::kRPGP ? key_db_ : nullptr;
+    assert(engine_ == OpenPGPEngine::kRPGP);
+    return engine_ == OpenPGPEngine::kRPGP ? key_db_ : nullptr;
   }
 
  private:
@@ -267,7 +267,7 @@ class GpgContext::Impl {
   std::mutex ctx_ref_lock_;
   std::mutex binary_ctx_ref_lock_;
 
-  PGPBackendType backend_type_;
+  OpenPGPEngine engine_;
   QString db_name_;
   QString gpgconf_path_;
   QString database_path_;
@@ -278,14 +278,14 @@ class GpgContext::Impl {
 
   void init(const GpgContextInitArgs &args) {
     // try to use rpgp backend if possible
-    if (HasRustSupport() && backend_type_ == PGPBackendType::kRPGP) {
+    if (HasRustSupport() && engine_ == OpenPGPEngine::kRPGP) {
       assert(!database_path_.isEmpty());
 
       key_db_ = SecureCreateSharedObject<GFKeyDatabase>();
       good_ = key_db_->Init(database_path_);
     } else {
       // fallback to gnupg backend
-      backend_type_ = PGPBackendType::kGNUPG;
+      engine_ = OpenPGPEngine::kGNUPG;
 
       assert(!gpgconf_path_.isEmpty());
       assert(!database_path_.isEmpty());
@@ -641,9 +641,7 @@ auto GpgContext::KeyDBName() const -> QString { return p_->KeyDBName(); }
 
 auto GpgContext::RestartGpgAgent() -> bool { return p_->RestartGpgAgent(); }
 
-auto GpgContext::BackendType() const -> PGPBackendType {
-  return p_->BackendType();
-}
+auto GpgContext::Engine() const -> OpenPGPEngine { return p_->Engine(); }
 
 auto GpgContext::KeyDatabase() -> QSharedPointer<GFKeyDatabase> {
   return p_->KeyDatabase();

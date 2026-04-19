@@ -243,7 +243,7 @@ GpgUIDOperator::GpgUIDOperator(int channel)
     : SingletonFunctionObject<GpgUIDOperator>(channel) {}
 
 auto GpgUIDOperator::AddUID(const GpgKeyPtr& key, const QString& uid) -> bool {
-  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+  if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
     return AddUIDRpgpImpl(ctx_, key, uid);
   }
   return AddUIDGnuPGImpl(ctx_, key, uid);
@@ -251,7 +251,7 @@ auto GpgUIDOperator::AddUID(const GpgKeyPtr& key, const QString& uid) -> bool {
 
 auto GpgUIDOperator::SetPrimaryUID(const GpgKeyPtr& key, const QString& uid)
     -> bool {
-  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+  if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
     return SetPrimaryUIDRpgpImpl(ctx_, key, uid);
   }
 
@@ -270,7 +270,7 @@ auto GpgUIDOperator::AddUID(const GpgKeyPtr& key, const QString& name,
 
 auto GpgUIDOperator::DeleteUID(const GpgKeyPtr& key, const QString& uid,
                                int uid_index) -> bool {
-  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+  if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
     return DeleteUIDRpgpImpl(ctx_, key, uid);
   }
   return DeleteUIDGnuPGImpl(auto_, key, uid_index);
@@ -279,7 +279,7 @@ auto GpgUIDOperator::DeleteUID(const GpgKeyPtr& key, const QString& uid,
 auto GpgUIDOperator::RevokeUID(const GpgKeyPtr& key, const QString& uid,
                                int uid_index, int reason_code,
                                const QString& reason_text) -> bool {
-  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+  if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
     return RevokeUIDRpgpImpl(ctx_, key, uid, reason_code, reason_text);
   }
   return RevokeUIDGnuPGImpl(auto_, key, uid_index, reason_code, reason_text);

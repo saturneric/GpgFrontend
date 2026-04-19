@@ -99,7 +99,7 @@ GpgKeyImportExporter::GpgKeyImportExporter(int channel)
  */
 auto GpgKeyImportExporter::ImportKey(const GFBuffer& in_buffer)
     -> QSharedPointer<GpgImportInformation> {
-  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+  if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
     return ImportKeyRpgpImpl(ctx_, in_buffer);
   }
 
@@ -116,7 +116,7 @@ auto GpgKeyImportExporter::ExportKey(const GpgAbstractKeyPtr& key, bool secret,
                                      bool ascii, bool shortest,
                                      bool ssh_mode) const
     -> std::tuple<GpgError, GFBuffer> {
-  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+  if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
     return ExportKeysRpgpImpl(ctx_, {key}, secret);
   }
   return ExportKeysImpl(ctx_, {key}, secret, ascii, shortest, ssh_mode);
@@ -137,7 +137,7 @@ void GpgKeyImportExporter::ExportKeys(const GpgAbstractKeyPtrList& keys,
       [=](const DataObjectPtr& data_object) -> GpgError {
         if (keys.empty()) return GPG_ERR_CANCELED;
 
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           auto [err, buffer] = ExportKeysRpgpImpl(ctx_, keys, secret);
           data_object->Swap({buffer});
           return err;
@@ -165,7 +165,7 @@ void GpgKeyImportExporter::ExportAllKeys(const GpgAbstractKeyPtrList& keys,
       [=](const DataObjectPtr& data_object) -> GpgError {
         if (keys.empty()) return GPG_ERR_CANCELED;
 
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           auto [err, buffer] = ExportKeysRpgpImpl(ctx_, keys, false);
           if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return err;
 

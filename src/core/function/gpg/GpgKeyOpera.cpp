@@ -74,7 +74,7 @@ GpgKeyOpera::GpgKeyOpera(int channel)
 void GpgKeyOpera::DeleteKeys(const GpgAbstractKeyPtrList& keys) {
   if (keys.empty()) return;
 
-  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+  if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
     auto err = DeleteKeysRpgpImpl(ctx_, keys);
     if (err != GPG_ERR_NO_ERROR) {
       LOG_E() << "Failed to delete keys in RPGP backend, error code: " << err;
@@ -127,7 +127,7 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKeyPtr& key,
                                      const QString& output_path,
                                      int revocation_reason_code,
                                      const QString& revocation_reason_text) {
-  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+  if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
     // RPGP engine does not support generating revoke cert for now, return
     // directly
     return;
@@ -241,7 +241,7 @@ void GpgKeyOpera::GenerateKey(const QSharedPointer<KeyGenerateInfo>& params,
   RunGpgOperaAsync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           return GenerateKeyRpgpImpl(key_import_exporter_, params, data_object);
         }
         return GenerateKeyImpl(ctx_, params, data_object);
@@ -254,7 +254,7 @@ auto GpgKeyOpera::GenerateKeySync(const QSharedPointer<KeyGenerateInfo>& params)
   return RunGpgOperaSync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           return GenerateKeyRpgpImpl(key_import_exporter_, params, data_object);
         }
         return GenerateKeyImpl(ctx_, params, data_object);
@@ -313,7 +313,7 @@ void GpgKeyOpera::GenerateSubkey(const GpgKeyPtr& key,
   RunGpgOperaAsync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           return GenerateSubKeyRpgpImpl(ctx_, key_import_exporter_, key, params,
                                         data_object);
         }
@@ -328,7 +328,7 @@ auto GpgKeyOpera::GenerateSubkeySync(
   return RunGpgOperaSync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           return GenerateSubKeyRpgpImpl(ctx_, key_import_exporter_, key, params,
                                         data_object);
         }
@@ -371,7 +371,7 @@ void GpgKeyOpera::GenerateKeyWithSubkey(
   RunGpgOperaAsync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           return GenerateKeyWithSubkeyRpgpImpl(key_import_exporter_, p_params,
                                                s_params, data_object);
         }
@@ -388,7 +388,7 @@ auto GpgKeyOpera::GenerateKeyWithSubkeySync(
   return RunGpgOperaSync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           return GenerateKeyWithSubkeyRpgpImpl(key_import_exporter_, p_params,
                                                s_params, data_object);
         }
@@ -403,7 +403,7 @@ void GpgKeyOpera::ModifyPassword(const GpgKeyPtr& key,
   RunGpgOperaAsync(
       GetChannel(),
       [&key, &ctx = ctx_](const DataObjectPtr&) -> GpgError {
-        if (ctx.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx.Engine() == OpenPGPEngine::kRPGP) {
           return ModifyKeyPassphraseRpgpImpl(ctx, key);
         }
         return gpgme_op_passwd(ctx.DefaultContext(),
@@ -418,7 +418,7 @@ auto GpgKeyOpera::ModifyTOFUPolicy(const GpgKeyPtr& key,
   auto [err, obj] = RunGpgOperaSync(
       GetChannel(),
       [=](const DataObjectPtr&) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           // RPGP engine does not support generating revoke cert for now, return
           // directly
           return GPG_ERR_UNSUPPORTED_OPERATION;
@@ -458,7 +458,7 @@ void GpgKeyOpera::AddADSK(const GpgKeyPtr& key, const GpgSubKey& adsk,
   RunGpgOperaAsync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           // RPGP engine does not support generating revoke cert for now, return
           // directly
           return GPG_ERR_UNSUPPORTED_OPERATION;
@@ -473,7 +473,7 @@ auto GpgKeyOpera::AddADSKSync(const GpgKeyPtr& key, const GpgSubKey& adsk)
   return RunGpgOperaSync(
       GetChannel(),
       [=](const DataObjectPtr& data_object) -> GpgError {
-        if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+        if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
           // RPGP engine does not support generating revoke cert for now, return
           // directly
           return GPG_ERR_UNSUPPORTED_OPERATION;
