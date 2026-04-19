@@ -35,7 +35,10 @@ use pgp::{
 };
 use rsa::traits::PublicKeyParts;
 
-use crate::types::{GfrFreeCb, GfrKeyAlgo, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus};
+use crate::{
+    cache::{PasswordCache, PasswordCacheKey, PasswordCachePolicy},
+    types::{GfrFreeCb, GfrKeyAlgo, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus},
+};
 use std::{
     ffi::{CString, c_char},
     ptr::null_mut,
@@ -93,6 +96,60 @@ pub fn fetch_password_internal(
 
     log::debug!("Fetched password via callback");
     Ok(password)
+}
+
+pub fn fetch_password_with_cache(
+    cache: Option<&PasswordCache>,
+    policy: PasswordCachePolicy,
+    channel: i32,
+    fpr: &str,
+    info: &str,
+    fetch_cb: Option<GfrPasswordFetchCb>,
+    free_cb: Option<GfrFreeCb>,
+) -> Result<Vec<u8>, GfrStatus> {
+    let fpr = fpr.to_uppercase();
+    let key = PasswordCacheKey {
+        channel,
+        fpr: fpr.to_string(),
+        info: info.to_string().to_uppercase(),
+    };
+
+    match policy {
+        PasswordCachePolicy::Default => {
+            if let Some(cache) = cache {
+                if let Some(pwd) = cache.get(&key) {
+                    log::debug!("Password cache hit");
+                    return Ok(pwd);
+                }
+            }
+
+            let pwd = fetch_password_internal(channel, &fpr, info, fetch_cb, free_cb)?;
+
+            if let Some(cache) = cache {
+                cache.put(key, pwd.clone());
+            }
+
+            Ok(pwd)
+        }
+
+        PasswordCachePolicy::Bypass => {
+            fetch_password_internal(channel, &fpr, info, fetch_cb, free_cb)
+        }
+
+        PasswordCachePolicy::Refresh => {
+            if let Some(cache) = cache {
+                cache.remove(&key);
+            }
+
+            let pwd = fetch_password_internal(channel, &fpr, info, fetch_cb, free_cb)?;
+
+            if let Some(cache) = cache {
+                cache.put(key, pwd.clone());
+            }
+
+            Ok(pwd)
+        }
+    }
 }
 
 pub fn resolve_key_type(algo: &GfrKeyAlgo, can_encrypt: bool) -> Result<KeyType, GfrStatus> {

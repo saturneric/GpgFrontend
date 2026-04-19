@@ -27,9 +27,7 @@
  */
 
 use crate::{
-    err::IntoGfrResult,
-    types::{GfrFreeCb, GfrKeyConfig, GfrPasswordFetchCb, GfrStatus},
-    utils::{fetch_password_internal, resolve_key_type},
+    cache::{PASSWORD_CACHE, PasswordCachePolicy}, err::IntoGfrResult, types::{GfrFreeCb, GfrKeyConfig, GfrPasswordFetchCb, GfrStatus}, utils::{fetch_password_with_cache, resolve_key_type}
 };
 use log::{debug, error};
 use pgp::{
@@ -118,7 +116,9 @@ pub fn create_key_internal(
         })?;
 
     let primary_pwd_bytes = if key_config.has_passphrase {
-        fetch_password_internal(
+        fetch_password_with_cache(
+            Some(&PASSWORD_CACHE),
+            PasswordCachePolicy::Refresh,
             0, // Index 0 for primary key
             "",
             "Generate Primary Key",
@@ -145,7 +145,9 @@ pub fn create_key_internal(
         for (index, subkey) in secret_key.secret_subkeys.iter_mut().enumerate() {
             // Determine if subkey needs a password based on your own configuration logic.
             // For example, fetching a different password for each subkey:
-            let subkey_pwd_bytes = fetch_password_internal(
+            let subkey_pwd_bytes = fetch_password_with_cache(
+                Some(&PASSWORD_CACHE),
+                PasswordCachePolicy::Refresh,
                 ((index + 1) as u32).try_into().unwrap(), // Use a different index for each subkey
                 "",
                 "Generate Subkey",
@@ -205,7 +207,9 @@ pub fn add_subkey_internal(
     // which will use the `unlock(pw, closure)` pattern internally.
     let mut primary_pw = Password::empty();
     if secret_key.primary_key.secret_params().is_encrypted() {
-        let pwd_bytes = fetch_password_internal(
+        let pwd_bytes = fetch_password_with_cache(
+            Some(&PASSWORD_CACHE),
+            PasswordCachePolicy::Refresh,
             channel,
             &fingerprint_str,
             "Unlock Primary Key to generate subkey",
@@ -300,7 +304,9 @@ pub fn add_subkey_internal(
 
     // 7. Lock the new subkey if a passphrase is required by the user's config
     if config.has_passphrase {
-        let subkey_pwd_bytes = fetch_password_internal(
+        let subkey_pwd_bytes = fetch_password_with_cache(
+            Some(&PASSWORD_CACHE),
+            PasswordCachePolicy::Refresh,
             channel,
             "",
             "Set password for new subkey",

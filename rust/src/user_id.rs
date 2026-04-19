@@ -34,10 +34,11 @@ use pgp::{
 };
 
 use crate::{
+    cache::{PASSWORD_CACHE, PasswordCachePolicy},
     err::IntoGfrResult,
     types::{GfrFreeCb, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus},
     utils::{
-        build_revocation_reason_subpacket, choose_template_self_sig, fetch_password_internal,
+        build_revocation_reason_subpacket, choose_template_self_sig, fetch_password_with_cache,
         has_is_primary_true, is_self_signature_from_primary,
     },
 };
@@ -82,7 +83,15 @@ pub fn add_user_id_internal(
 
     let is_enc = matches!(skey.primary_key.secret_params(), SecretParams::Encrypted(_));
     let pwd_bytes = if is_enc {
-        fetch_password_internal(channel, &fpr, "Add User ID", fetch_cb, free_cb)?
+        fetch_password_with_cache(
+            Some(&PASSWORD_CACHE),
+            PasswordCachePolicy::Default,
+            channel,
+            &fpr,
+            "Add User ID",
+            fetch_cb,
+            free_cb,
+        )?
     } else {
         Vec::new()
     };
@@ -193,7 +202,15 @@ pub fn set_primary_user_id_internal(
     let is_enc = matches!(skey.primary_key.secret_params(), SecretParams::Encrypted(_));
 
     let pwd_bytes = if is_enc {
-        fetch_password_internal(channel, &fpr, "Set Primary User ID", fetch_cb, free_cb)?
+        fetch_password_with_cache(
+            Some(&PASSWORD_CACHE),
+            PasswordCachePolicy::Default,
+            channel,
+            &fpr,
+            "Set Primary User ID",
+            fetch_cb,
+            free_cb,
+        )?
     } else {
         Vec::new()
     };
@@ -287,7 +304,15 @@ pub fn revoke_user_id_internal(
     let is_enc = matches!(skey.primary_key.secret_params(), SecretParams::Encrypted(_));
 
     let pwd_bytes = if is_enc {
-        fetch_password_internal(channel, &fpr, "Revoke User ID", fetch_cb, free_cb)?
+        fetch_password_with_cache(
+            Some(&PASSWORD_CACHE),
+            PasswordCachePolicy::Default,
+            channel,
+            &fpr,
+            "Revoke User ID",
+            fetch_cb,
+            free_cb,
+        )?
     } else {
         Vec::new()
     };

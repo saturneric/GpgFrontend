@@ -26,11 +26,13 @@
  *
  */
 
+use crate::cache::{PASSWORD_CACHE, PasswordCachePolicy};
 use crate::err::IntoGfrResult;
 use crate::keygen::GeneratedKeys;
 use crate::types::{GfrFreeCb, GfrKeyAlgo, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus};
 use crate::utils::{
-    build_revocation_reason_subpacket, determine_algo, extract_key_length, fetch_password_internal,
+    build_revocation_reason_subpacket, determine_algo, extract_key_length,
+    fetch_password_with_cache,
 };
 use pgp::armor::{self, BlockType};
 use pgp::crypto::hash::HashAlgorithm;
@@ -496,8 +498,15 @@ fn fetch_old_and_new_passwords(
     free_cb: Option<GfrFreeCb>,
 ) -> Result<(Option<Password>, Password), GfrStatus> {
     let old_pw = if is_encrypted {
-        let old_pwd_bytes =
-            fetch_password_internal(channel, target_fpr, unlock_purpose, fetch_pwd_cb, free_cb)?;
+        let old_pwd_bytes = fetch_password_with_cache(
+            Some(&PASSWORD_CACHE),
+            PasswordCachePolicy::Default,
+            channel,
+            target_fpr,
+            unlock_purpose,
+            fetch_pwd_cb,
+            free_cb,
+        )?;
 
         if old_pwd_bytes.is_empty() {
             return Err(GfrStatus::ErrorFetchPasswordFailed);
@@ -508,8 +517,15 @@ fn fetch_old_and_new_passwords(
         None
     };
 
-    let new_pwd_bytes =
-        fetch_password_internal(channel, target_fpr, new_purpose, fetch_pwd_cb, free_cb)?;
+    let new_pwd_bytes = fetch_password_with_cache(
+        Some(&PASSWORD_CACHE),
+        PasswordCachePolicy::Bypass,
+        channel,
+        target_fpr,
+        new_purpose,
+        fetch_pwd_cb,
+        free_cb,
+    )?;
 
     if new_pwd_bytes.is_empty() {
         return Err(GfrStatus::ErrorFetchPasswordFailed);
@@ -555,6 +571,9 @@ pub fn modify_key_password_internal(
         if let Some(old_pw) = old_pw {
             secret_key.primary_key.remove_password(&old_pw).into_gfr()?;
         }
+
+        // Invalidate cache entries for this key
+        PASSWORD_CACHE.remove_by_fpr(&primary_fpr);
 
         secret_key
             .primary_key
@@ -703,7 +722,15 @@ pub fn revoke_subkey_internal(
     );
 
     let pwd_bytes = if is_enc {
-        fetch_password_internal(channel, &fpr, "Revoke Subkey", fetch_cb, free_cb)?
+        fetch_password_with_cache(
+            Some(&PASSWORD_CACHE),
+            PasswordCachePolicy::Default,
+            channel,
+            &fpr,
+            "Revoke Subkey",
+            fetch_cb,
+            free_cb,
+        )?
     } else {
         Vec::new()
     };

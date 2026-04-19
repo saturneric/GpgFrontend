@@ -42,4 +42,5 @@ mod keygen;
 mod user_id;
 mod utils;
 
+mod cache;
 mod tar;

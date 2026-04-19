@@ -841,11 +841,13 @@ dependencies = [
  "cbindgen",
  "env_logger",
  "log",
+ "once_cell",
  "pgp",
  "rand",
  "rsa",
  "tar",
  "tempfile",
+ "zeroize",
 ]
 
 [[package]]

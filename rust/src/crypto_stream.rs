@@ -27,6 +27,7 @@
  */
 
 use crate::{
+    cache::{PASSWORD_CACHE, PasswordCachePolicy},
     crypto::{
         InvalidRecipientInternal, RecipientResultInternal, SelectedKey, SignatureResultInternal,
         algo_to_string_simple, cert_contains_issuer, parse_signer_block, sniff_signatures,
@@ -38,7 +39,7 @@ use crate::{
         GfrFreeCb, GfrPasswordFetchCb, GfrPublicKeyFetchCb, GfrRecipientStatus,
         GfrSecretKeyFetchCb, GfrSignMode, GfrSignatureStatus, GfrStatus,
     },
-    utils::fetch_password_internal,
+    utils::fetch_password_with_cache,
 };
 use core::fmt;
 use log::debug;
@@ -183,7 +184,15 @@ where
     // Helper closure to dynamically fetch passwords if the target key is locked
     let fetch_pwd_for_key = |is_encrypted: bool, fpr: &str| -> Result<Password, GfrStatus> {
         if is_encrypted {
-            let pwd_bytes = fetch_password_internal(channel, fpr, "Signing", fetch_cb, free_cb)?;
+            let pwd_bytes = fetch_password_with_cache(
+                Some(&PASSWORD_CACHE),
+                PasswordCachePolicy::Default,
+                channel,
+                fpr,
+                "Signing",
+                fetch_cb,
+                free_cb,
+            )?;
             Ok(Password::from(pwd_bytes.as_slice()))
         } else {
             Ok(Password::empty())
@@ -513,8 +522,15 @@ where
 
         let fetch_pwd_for_key = |is_encrypted: bool, fpr: &str| -> Result<Password, GfrStatus> {
             if is_encrypted {
-                let pwd_bytes =
-                    fetch_password_internal(channel, fpr, "Signing", fetch_cb, free_cb)?;
+                let pwd_bytes = fetch_password_with_cache(
+                    Some(&PASSWORD_CACHE),
+                    PasswordCachePolicy::Default,
+                    channel,
+                    fpr,
+                    "Signing",
+                    fetch_cb,
+                    free_cb,
+                )?;
                 Ok(Password::from(pwd_bytes.as_slice()))
             } else {
                 debug!("Target secret key is unlocked. Bypassing password callback for signing.");
@@ -709,8 +725,15 @@ fn decrypt_message_with_password(
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
     free_cb: Option<GfrFreeCb>,
 ) -> Result<Message, GfrStatus> {
-    let password =
-        fetch_password_internal(channel, "", "Symmetric Decryption", fetch_pwd_cb, free_cb)?;
+    let password = fetch_password_with_cache(
+        Some(&PASSWORD_CACHE),
+        PasswordCachePolicy::Default,
+        channel,
+        "",
+        "Symmetric Decryption",
+        fetch_pwd_cb,
+        free_cb,
+    )?;
 
     if password.is_empty() {
         return Err(GfrStatus::ErrorInvalidInput);
@@ -816,7 +839,9 @@ where
 
         let mut password = Vec::<u8>::new();
         if needs_password {
-            password = fetch_password_internal(
+            password = fetch_password_with_cache(
+                Some(&PASSWORD_CACHE),
+                PasswordCachePolicy::Default,
                 channel,
                 &target_fpr_for_pwd,
                 "Decryption",
@@ -1048,8 +1073,15 @@ where
 
     let mut enc_builder = builder.seipd_v1(&mut rng, SymmetricKeyAlgorithm::AES256);
 
-    let password: Vec<u8> =
-        fetch_password_internal(channel, "", "Symmetric Encryption", fetch_pwd_cb, free_cb)?;
+    let password: Vec<u8> = fetch_password_with_cache(
+        Some(&PASSWORD_CACHE),
+        PasswordCachePolicy::Default,
+        channel,
+        "",
+        "Symmetric Encryption",
+        fetch_pwd_cb,
+        free_cb,
+    )?;
     if password.is_empty() {
         return Err(GfrStatus::ErrorInvalidInput);
     }
