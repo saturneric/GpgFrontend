@@ -77,8 +77,8 @@ target_compile_definitions(${LIBRARY_TARGET} PRIVATE HAS_RUST_SUPPORT)
 
 if(MINGW)
   # link bcrypt for windows bcrypt is required for the bcrypt implementation of
-  # AES, which is used by rpgp engine and uuid generation.
-  target_link_options(${LIBRARY_TARGET} PRIVATE "-lbcrypt")
+  # AES, which is used by rpgp engine and uuid generation
+  target_link_libraries(${LIBRARY_TARGET} PRIVATE bcrypt)
 endif()
 
 # set up pch
