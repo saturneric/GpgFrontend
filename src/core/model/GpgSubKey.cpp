@@ -116,7 +116,7 @@ auto GpgSubKey::IsExpired() const -> bool {
 }
 
 auto GpgSubKey::IsRevoked() const -> bool {
-  if (skm_ref_ != nullptr) return false;
+  if (skm_ref_ != nullptr) return skm_ref_->is_revoked;
   return s_key_ref_->revoked;
 }
 

@@ -266,6 +266,7 @@ auto RevokeUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
   }
 
   auto uid_utf8 = uid.toUtf8();
+  auto reason_text_utf8 = reason_text.toUtf8();
 
   int mapped_reason_code = 0;
   switch (reason_code) {
@@ -281,7 +282,7 @@ auto RevokeUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
   auto status = Rust::gfr_crypto_revoke_user_id(
       ctx.GetChannel(), secret_key_block.constData(), uid_utf8.constData(),
       static_cast<Rust::GfrRevocationCode>(mapped_reason_code),
-      reason_text.toUtf8().constData(), FetchPasswordCallback, FreeCallback,
+      reason_text_utf8.constData(), FetchPasswordCallback, FreeCallback,
       &out_block);
 
   LOG_D() << "Rust function gfr_crypto_revoke_user_id returned status: "

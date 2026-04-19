@@ -33,6 +33,27 @@
 
 namespace GpgFrontend {
 
+namespace {
+
+auto PrimaryKeyAsSubKey(const GFKeyMetadata& meta) -> GFSubKeyMetadata {
+  GFSubKeyMetadata sub;
+  sub.marked = false;
+  sub.fpr = meta.fpr;
+  sub.key_id = meta.key_id;
+  sub.algo = meta.algo;
+  sub.created_at = meta.created_at;
+  sub.has_secret = meta.has_secret;
+  sub.can_sign = meta.can_sign;
+  sub.can_encrypt = meta.can_encrypt;
+  sub.can_auth = meta.can_auth;
+  sub.can_certify = meta.can_certify;
+  sub.key_length = meta.key_length;
+  sub.is_revoked = false;  // primary key itself is not revoked, even if all
+                           // its user IDs are revoked
+  return sub;
+}
+}  // namespace
+
 auto GFKeyDatabase::connect_db(const QString& path) -> bool {
   db_ = QSqlDatabase::addDatabase("QSQLITE");
 
@@ -74,31 +95,13 @@ auto GFKeyDatabase::GetMetadataList() -> QList<GFKeyMetadata> {
       // Load user IDs for this primary key
       meta.user_ids = load_user_ids_for_parent(meta.fpr);
 
-      for (const auto& uid : meta.user_ids) {
-        LOG_D() << "Loaded UID for key " << meta.fpr << ": " << uid.ToString()
-                << ", is_primary: " << uid.is_primary
-                << ", is_revoked: " << uid.is_revoked;
-      }
-
       // Load subkeys for this primary key
       meta.subkeys = load_subkeys_for_parent(meta.fpr);
 
       // In gnupg keyring, the primary key is also represented as the first
       // subkey, so we need to add it to the subkeys list when returning the
       // metadata
-      GFSubKeyMetadata primary_as_subkey;
-      primary_as_subkey.marked = false;
-      primary_as_subkey.fpr = meta.fpr;
-      primary_as_subkey.key_id = meta.key_id;
-      primary_as_subkey.algo = meta.algo;
-      primary_as_subkey.created_at = meta.created_at;
-      primary_as_subkey.has_secret = meta.has_secret;
-      primary_as_subkey.can_sign = meta.can_sign;
-      primary_as_subkey.can_encrypt = meta.can_encrypt;
-      primary_as_subkey.can_auth = meta.can_auth;
-      primary_as_subkey.can_certify = meta.can_certify;
-      primary_as_subkey.key_length = meta.key_length;
-      meta.subkeys.prepend(primary_as_subkey);
+      meta.subkeys.prepend(PrimaryKeyAsSubKey(meta));
 
       list.append(meta);
     }
@@ -244,8 +247,8 @@ auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
 
   query.prepare(R"(
     INSERT INTO subkey_metadata 
-    (fpr, parent_fpr, key_id, algo, created_at, has_secret, key_length, can_sign, can_encrypt, can_auth)
-    VALUES (:fpr, :parent_fpr, :key_id, :algo, :created_at, :has_secret, :key_length, :can_sign, :can_encrypt, :can_auth)
+    (fpr, parent_fpr, key_id, algo, created_at, has_secret, key_length, can_sign, can_encrypt, can_auth, is_revoked)
+    VALUES (:fpr, :parent_fpr, :key_id, :algo, :created_at, :has_secret, :key_length, :can_sign, :can_encrypt, :can_auth, :is_revoked)
   )");
 
   for (const auto& sub : meta.subkeys) {
@@ -266,6 +269,7 @@ auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
     query.bindValue(":can_auth", sub.can_auth ? 1 : 0);
     query.bindValue(":can_certify", sub.can_certify ? 1 : 0);
     query.bindValue(":key_length", sub.key_length);
+    query.bindValue(":is_revoked", sub.is_revoked ? 1 : 0);
 
     if (!query.exec()) {
       LOG_E() << "SaveKey subkey error: " << query.lastError().text();
@@ -339,19 +343,7 @@ auto GFKeyDatabase::GetKeyMetadata(const QString& identifier)
     // In gnupg keyring, the primary key is also represented as the first
     // subkey, so we need to add it to the subkeys list when returning the
     // metadata
-    GFSubKeyMetadata primary_as_subkey;
-    primary_as_subkey.marked = false;
-    primary_as_subkey.fpr = meta.fpr;
-    primary_as_subkey.key_id = meta.key_id;
-    primary_as_subkey.algo = meta.algo;
-    primary_as_subkey.created_at = meta.created_at;
-    primary_as_subkey.has_secret = meta.has_secret;
-    primary_as_subkey.can_sign = meta.can_sign;
-    primary_as_subkey.can_encrypt = meta.can_encrypt;
-    primary_as_subkey.can_auth = meta.can_auth;
-    primary_as_subkey.can_certify = meta.can_certify;
-    primary_as_subkey.key_length = meta.key_length;
-    meta.subkeys.prepend(primary_as_subkey);
+    meta.subkeys.prepend(PrimaryKeyAsSubKey(meta));
 
     return meta;
   }
@@ -388,6 +380,7 @@ auto GFKeyDatabase::create_table() -> bool {
       created_at INTEGER,
       key_length INTEGER DEFAULT 0,
       has_secret INTEGER DEFAULT 0,
+      is_revoked INTEGER DEFAULT 0,
       can_sign INTEGER DEFAULT 0,
       can_encrypt INTEGER DEFAULT 0,
       can_auth INTEGER DEFAULT 0,
@@ -449,7 +442,7 @@ auto GFKeyDatabase::load_subkeys_for_parent(const QString& parent_fpr)
   QList<GFSubKeyMetadata> subkeys;
   QSqlQuery query(db_);
   query.prepare(R"(
-    SELECT fpr, key_id, algo, created_at, has_secret, key_length, can_sign, can_encrypt, can_auth, can_certify
+    SELECT fpr, key_id, algo, created_at, has_secret, key_length, can_sign, can_encrypt, can_auth, can_certify, is_revoked
     FROM subkey_metadata WHERE parent_fpr = :parent_fpr
   )");
   query.bindValue(":parent_fpr", parent_fpr);
@@ -468,6 +461,7 @@ auto GFKeyDatabase::load_subkeys_for_parent(const QString& parent_fpr)
       sub.can_encrypt = query.value(7).toBool();
       sub.can_auth = query.value(8).toBool();
       sub.can_certify = query.value(9).toBool();
+      sub.is_revoked = query.value(10).toBool();
       subkeys.append(sub);
     }
   }

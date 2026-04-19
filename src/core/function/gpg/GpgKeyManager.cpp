@@ -31,6 +31,7 @@
 #include "core/function/gpg/GpgAutomatonHandler.h"
 #include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/rpgp/KeyManagement.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
@@ -329,6 +330,11 @@ auto GpgKeyManager::SignKey(const GpgKeyPtr& key,
                             const GpgAbstractKeyPtrList& keys,
                             const QString& uid,
                             const std::unique_ptr<QDateTime>& expires) -> bool {
+  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+    LOG_W() << "RPGP backend does not support signing key for now";
+    return false;
+  }
+
   GpgBasicOperator::GetInstance(GetChannel()).SetSigners(keys, true);
 
   unsigned int flags = 0;
@@ -349,6 +355,11 @@ auto GpgKeyManager::SignKey(const GpgKeyPtr& key,
 
 auto GpgKeyManager::RevSign(const GpgKeyPtr& key,
                             const SignIdArgsList& signature_id) -> bool {
+  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+    LOG_W() << "RPGP backend does not support signing key for now";
+    return false;
+  }
+
   auto& key_getter = GpgKeyGetter::GetInstance(GetChannel());
 
   for (const auto& sign_id : signature_id) {
@@ -366,6 +377,11 @@ auto GpgKeyManager::RevSign(const GpgKeyPtr& key,
 auto GpgKeyManager::SetExpire(const GpgKeyPtr& key,
                               std::unique_ptr<GpgSubKey>& subkey,
                               std::unique_ptr<QDateTime>& expires) -> bool {
+  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+    LOG_W() << "RPGP backend does not support setting expire for now";
+    return false;
+  }
+
   unsigned long expires_time = 0;
 
   if (expires != nullptr) expires_time = expires->toSecsSinceEpoch();
@@ -388,12 +404,19 @@ auto GpgKeyManager::SetOwnerTrustLevel(const GpgAbstractKeyPtr& key,
 
 auto GpgKeyManager::DeleteSubkey(const GpgKeyPtr& key, int subkey_index)
     -> bool {
+  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+    return DeleteSubKeyRpgpImpl(ctx_, key, subkey_index);
+  }
   return DeleteSubKeyImpl(auto_, key, subkey_index);
 }
 
 auto GpgKeyManager::RevokeSubkey(const GpgKeyPtr& key, int subkey_index,
                                  int reason_code, const QString& reason_text)
     -> bool {
+  if (ctx_.BackendType() == PGPBackendType::kRPGP) {
+    return RevokeSubKeyRpgpImpl(ctx_, key, subkey_index, reason_code,
+                                reason_text);
+  }
   return RevokeSubKeyImpl(auto_, key, subkey_index, reason_code, reason_text);
 }
 

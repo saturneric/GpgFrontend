@@ -62,6 +62,7 @@ struct GFSubKeyMetadata {
 
   qint64 created_at;
   bool has_secret;
+  bool is_revoked;
 
   bool can_sign;
   bool can_encrypt;

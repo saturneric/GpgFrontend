@@ -51,4 +51,30 @@ auto DeleteKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys)
  */
 auto ModifyKeyPassphraseRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key)
     -> GpgError;
+
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param key
+ * @param subkey_index
+ * @return GpgError
+ */
+auto DeleteSubKeyRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
+                          int subkey_index) -> bool;
+
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param key
+ * @param subkey_index
+ * @param reason_code
+ * @param reason_text
+ * @return true
+ * @return false
+ */
+auto RevokeSubKeyRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
+                          int subkey_index, int reason_code,
+                          const QString& reason_text) -> bool;
 }  // namespace GpgFrontend

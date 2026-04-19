@@ -91,6 +91,12 @@ auto FetchPasswordCallback(int channel, const char* fpr, const char* info,
   LOG_D() << "Rust FFI requested password for key fpr: " << qs_fpr
           << ", info: " << qs_info << ", channel: " << channel;
 
+  if (key) {
+    LOG_D() << "Key ID: " << key->ID() << ", User IDs: " << key->UID().size();
+  } else {
+    LOG_D() << "No key found for fpr: " << qs_fpr;
+  }
+
   QString result_pwd;
 
   auto c = QSharedPointer<GpgPassphraseContext>::create(channel, key, qs_info,
