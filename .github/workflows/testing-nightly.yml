@@ -288,6 +288,19 @@ jobs:
 
       - name: Package App Image (Linux)
         run: |
+          QT_PLUGIN_DIR=$(qmake -query QT_INSTALL_PLUGINS)
+          echo "Found Qt plugin dir: $QT_PLUGIN_DIR"
+
+          # enter the sqldrivers directory
+          cd $QT_PLUGIN_DIR/sqldrivers
+
+          # remove all non-sqlite drivers to reduce the size of the final AppImage
+          find . -type f ! -name '*sqlite*' -delete
+          ls -l
+
+          # return to the root of the repository
+          cd ${{github.workspace}}
+
           mkdir ${{github.workspace}}/build/upload-artifact
           cd ${{github.workspace}}/build/upload-artifact
 
@@ -303,16 +316,6 @@ jobs:
             touch ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6/copyright        
             EXTRA_ARGS="-unsupported-allow-new-glibc"
           fi
-
-          QT_PLUGIN_DIR=$(qmake -query QT_INSTALL_PLUGINS)
-          echo "Found Qt plugin dir: $QT_PLUGIN_DIR"
-
-          # enter the sqldrivers directory
-          cd $QT_PLUGIN_DIR/sqldrivers
-
-          # remove all non-sqlite drivers to reduce the size of the final AppImage
-          find . -type f ! -name '*sqlite*' -delete
-          ls -l
 
           chmod u+x linuxdeployqt-continuous.AppImage
           export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
