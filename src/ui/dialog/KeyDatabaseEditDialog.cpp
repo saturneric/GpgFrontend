@@ -29,6 +29,7 @@
 #include "KeyDatabaseEditDialog.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/gpg/GpgContext.h"
 #include "core/utils/MemoryUtils.h"
 #include "ui_KeyDatabaseEditDialog.h"
 
@@ -37,12 +38,61 @@ KeyDatabaseEditDialog::KeyDatabaseEditDialog(
     QContainer<KeyDatabaseInfo> key_db_infos, QWidget* parent)
     : GeneralDialog("KeyDatabaseEditDialog", parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyDatabaseEditDialog>()),
+      channel_(-1),
       key_database_infos_(std::move(key_db_infos)) {
   ui_->setupUi(this);
 
+  init_ui();
+}
+
+KeyDatabaseEditDialog::KeyDatabaseEditDialog(
+    QContainer<KeyDatabaseInfo> key_db_infos, int index, QWidget* parent)
+    : GeneralDialog("KeyDatabaseEditDialog", parent),
+      ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyDatabaseEditDialog>()),
+      channel_(-1),
+      key_database_infos_(std::move(key_db_infos)) {
+  ui_->setupUi(this);
+
+  if (index < 0 || index >= key_database_infos_.size()) {
+    throw std::out_of_range("Index out of range in KeyDatabaseEditDialog");
+  }
+
+  const auto& key_db_info = key_database_infos_[index];
+  default_name_ = key_db_info.name;
+  default_path_ = key_db_info.origin_path;
+  channel_ = index;
+
+  LOG_D() << "edit key database, index: " << index << "name: " << default_name_
+          << "path: " << default_path_ << "channel: " << channel_;
+
+  init_ui();
+}
+
+void KeyDatabaseEditDialog::init_ui() {
   ui_->keyDBPathShowLabel->setHidden(true);
   ui_->convert2RelativePathCheckBox->setChecked(
       GlobalSettingStation::GetInstance().IsProtableMode());
+  ui_->keyDBNameLineEdit->setText(default_name_);
+  if (!default_path_.isEmpty()) {
+    path_ = QFileInfo(default_path_).absoluteFilePath();
+    ui_->keyDBPathShowLabel->setText(path_);
+    ui_->keyDBPathShowLabel->setHidden(false);
+  }
+
+  ui_->keyDBBackendTypeComboBox->clear();
+  ui_->keyDBBackendTypeComboBox->addItem("GnuPG", "GNUPG");
+  ui_->keyDBBackendTypeComboBox->addItem("rPGP", "RPGP");
+  if (channel_ != -1) {
+    auto backend_types = GpgContext::GetInstance(channel_).BackendType();
+    ui_->keyDBBackendTypeComboBox->setCurrentIndex(
+        backend_types == PGPBackendType::kRPGP ? 1 : 0);
+  } else {
+    ui_->keyDBBackendTypeComboBox->setCurrentIndex(0);
+  }
+
+  if (channel_ != -1) {
+    ui_->keyDBBackendTypeComboBox->setEnabled(false);
+  }
 
   ui_->keyDBNameLabel->setText(tr("Key Database Name"));
   ui_->keyDBPathLabel->setText(tr("Key Database Path"));
@@ -76,6 +126,7 @@ KeyDatabaseEditDialog::KeyDatabaseEditDialog(
   setAttribute(Qt::WA_DeleteOnClose);
   setModal(true);
 }
+
 void KeyDatabaseEditDialog::slot_button_box_accepted() {
   name_ = ui_->keyDBNameLineEdit->text();
 
@@ -122,20 +173,6 @@ auto KeyDatabaseEditDialog::check_custom_gnupg_key_database_path(
   return dir_info.exists() && dir_info.isReadable() && dir_info.isDir();
 }
 
-void KeyDatabaseEditDialog::SetDefaultName(QString name) {
-  name_ = std::move(name);
-  default_name_ = name_;
-
-  ui_->keyDBNameLineEdit->setText(name_);
-}
-
-void KeyDatabaseEditDialog::SetDefaultPath(const QString& path) {
-  path_ = QFileInfo(path).absoluteFilePath();
-  default_path_ = path_;
-
-  ui_->keyDBPathShowLabel->setText(path_);
-  ui_->keyDBPathShowLabel->setHidden(path_.isEmpty());
-}
 void KeyDatabaseEditDialog::slot_show_err_msg(const QString& error_msg) {
   ui_->errorLabel->setText(error_msg);
   ui_->errorLabel->setStyleSheet("color: red;");

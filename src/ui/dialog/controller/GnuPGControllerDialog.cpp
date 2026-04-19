@@ -614,9 +614,7 @@ void GnuPGControllerDialog::slot_edit_key_database() {
 
   auto& key_databases = key_db_infos_;
   KeyDatabaseInfo& selected_key_database = key_databases[selected_row];
-  auto* dialog = new KeyDatabaseEditDialog(key_databases, this);
-  dialog->SetDefaultName(selected_key_database.name);
-  dialog->SetDefaultPath(selected_key_database.path);
+  auto* dialog = new KeyDatabaseEditDialog(key_databases, selected_row, this);
 
   connect(dialog, &KeyDatabaseEditDialog::SignalKeyDatabaseInfoAccepted, this,
           [this, selected_row, selected_key_database](
