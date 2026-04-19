@@ -310,8 +310,8 @@ jobs:
             ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop \
             $EXTRA_ARGS \
             -no-translations \
-            -extra-plugins=iconengines,platforms \
-            -exclude-libs=libqsqlmimer,libclntsh \
+            -extra-plugins=iconengines,platforms,sqldrivers/libqsqlite.so \
+            -ignore-glob=**/sqldrivers/libqsqloci.so \
             -appimage \
             -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/lib/modules
           echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
