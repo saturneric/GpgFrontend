@@ -31,7 +31,7 @@ use log::LevelFilter;
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_rust_hello() {
     println!(
-        "Hello from Rust! (Rust Support Library version {})",
+        "Hello from Rust! (Rust Engine version {})",
         env!("CARGO_PKG_VERSION")
     );
 }
