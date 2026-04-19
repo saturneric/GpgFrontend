@@ -96,6 +96,7 @@ pub extern "C" fn gfr_crypto_extract_metadata(
                     can_encrypt: sub.can_encrypt,
                     can_auth: sub.can_auth,
                     can_certify: sub.can_certify,
+                    key_length: sub.key_length,
                 });
             }
 
@@ -128,6 +129,7 @@ pub extern "C" fn gfr_crypto_extract_metadata(
                 user_ids: user_ids_ptr,
                 user_id_count: user_id_count,
                 algo: meta.algo,
+                key_length: meta.key_length,
                 created_at: meta.created_at,
                 has_secret: meta.has_secret,
                 can_sign: meta.can_sign,

@@ -29,7 +29,7 @@
 use crate::err::IntoGfrResult;
 use crate::keygen::GeneratedKeys;
 use crate::types::{GfrFreeCb, GfrKeyAlgo, GfrPasswordFetchCb, GfrStatus};
-use crate::utils::fetch_password_internal;
+use crate::utils::{extract_key_length, fetch_password_internal};
 use pgp::armor::{self, BlockType};
 use pgp::packet::SignatureType;
 use pgp::types::{Password, SignedUser};
@@ -52,6 +52,7 @@ pub struct ExtractedSubkey {
     pub fpr: String,
     pub key_id: String,
     pub algo: GfrKeyAlgo,
+    pub key_length: u32,
     pub created_at: u32,
     pub has_secret: bool,
     pub can_sign: bool,
@@ -64,6 +65,7 @@ pub struct ExtractedMetadata {
     pub fpr: String,
     pub key_id: String,
     pub algo: GfrKeyAlgo,
+    pub key_length: u32,
     pub created_at: u32,
     pub has_secret: bool,
     pub can_sign: bool,
@@ -164,6 +166,7 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
 
     for sub in &sk.secret_subkeys {
         let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(&sub.signatures);
+        let key_length = extract_key_length(sub.key.public_params());
         subs.push(ExtractedSubkey {
             fpr: sub.key.fingerprint().to_string(),
             key_id: sub.key.legacy_key_id().to_string(),
@@ -174,6 +177,7 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
             can_encrypt,
             can_auth,
             can_certify,
+            key_length: key_length.unwrap_or(0),
         });
     }
 
@@ -220,7 +224,7 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
         .map(|u| u.signatures.as_slice())
         .unwrap_or(&[]);
     let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(primary_user_sigs);
-
+    let key_length = extract_key_length(pk.primary_key.public_params());
     ExtractedMetadata {
         fpr: pk.primary_key.fingerprint().to_string(),
         key_id: pk.primary_key.legacy_key_id().to_string(),
@@ -237,6 +241,7 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
             .to_armored_string(ArmorOptions::default())
             .unwrap_or_default(),
         secret_key_block: sk.to_armored_string(ArmorOptions::default()).ok(),
+        key_length: key_length.unwrap_or(0),
     }
 }
 
@@ -246,6 +251,7 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
 
     for sub in &pk.public_subkeys {
         let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(&sub.signatures);
+        let key_length = extract_key_length(sub.key.public_params()).unwrap_or(0);
         subs.push(ExtractedSubkey {
             fpr: sub.key.fingerprint().to_string(),
             key_id: sub.key.legacy_key_id().to_string(),
@@ -256,6 +262,7 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
             can_encrypt,
             can_auth,
             can_certify,
+            key_length: key_length,
         });
     }
 
@@ -302,12 +309,13 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
         .map(|u| u.signatures.as_slice())
         .unwrap_or(&[]);
     let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(primary_user_sigs);
-
+    let key_length = extract_key_length(pk.primary_key.public_params());
     ExtractedMetadata {
         fpr: pk.primary_key.fingerprint().to_string(),
         key_id: pk.primary_key.legacy_key_id().to_string(),
         user_ids,
         algo: determine_algo(pk.primary_key.public_params()),
+        key_length: key_length.unwrap_or(0),
         created_at: pk.primary_key.created_at().as_secs(),
         has_secret: false,
         subkeys: subs,

@@ -843,6 +843,7 @@ dependencies = [
  "log",
  "pgp",
  "rand",
+ "rsa",
  "tar",
  "tempfile",
 ]

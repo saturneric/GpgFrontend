@@ -26,6 +26,9 @@
  *
  */
 
+use pgp::types::PublicParams;
+use rsa::traits::PublicKeyParts;
+
 use crate::types::{GfrFreeCb, GfrPasswordFetchCb, GfrStatus};
 use std::{
     ffi::{CString, c_char},
@@ -84,4 +87,39 @@ pub fn fetch_password_internal(
 
     log::debug!("Fetched password via callback");
     Ok(password)
+}
+
+pub fn extract_key_length(public_params: &PublicParams) -> Option<u32> {
+    match public_params {
+        PublicParams::RSA(p) => Some(p.key.n().bits() as u32),
+
+        PublicParams::Ed25519(_) => Some(255),
+        PublicParams::Ed448(_) => Some(448),
+        PublicParams::X448(_) => Some(448),
+
+        PublicParams::ECDH(p) => match p.curve() {
+            pgp::crypto::ecc_curve::ECCCurve::Curve25519 => Some(255),
+            pgp::crypto::ecc_curve::ECCCurve::P256 => Some(256),
+            pgp::crypto::ecc_curve::ECCCurve::P384 => Some(384),
+            pgp::crypto::ecc_curve::ECCCurve::P521 => Some(521),
+            pgp::crypto::ecc_curve::ECCCurve::BrainpoolP256r1 => Some(256),
+            pgp::crypto::ecc_curve::ECCCurve::BrainpoolP384r1 => Some(384),
+            pgp::crypto::ecc_curve::ECCCurve::BrainpoolP512r1 => Some(512),
+            pgp::crypto::ecc_curve::ECCCurve::Secp256k1 => Some(256),
+            _ => None,
+        },
+
+        PublicParams::ECDSA(p) => match p.curve() {
+            pgp::crypto::ecc_curve::ECCCurve::P256 => Some(256),
+            pgp::crypto::ecc_curve::ECCCurve::P384 => Some(384),
+            pgp::crypto::ecc_curve::ECCCurve::P521 => Some(521),
+            pgp::crypto::ecc_curve::ECCCurve::BrainpoolP256r1 => Some(256),
+            pgp::crypto::ecc_curve::ECCCurve::BrainpoolP384r1 => Some(384),
+            pgp::crypto::ecc_curve::ECCCurve::BrainpoolP512r1 => Some(512),
+            pgp::crypto::ecc_curve::ECCCurve::Secp256k1 => Some(256),
+            _ => None,
+        },
+
+        _ => None,
+    }
 }

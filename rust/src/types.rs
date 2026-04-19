@@ -125,6 +125,7 @@ pub struct GfrSubkeyMetadataC {
     pub fpr: *mut c_char,
     pub key_id: *mut c_char,
     pub algo: GfrKeyAlgo,
+    pub key_length: u32,
     pub created_at: u32,
     pub has_secret: bool,
     pub can_sign: bool,
@@ -150,6 +151,7 @@ pub struct GfrKeyMetadataC {
     pub user_id_count: usize,
 
     pub algo: GfrKeyAlgo,
+    pub key_length: u32,
     pub created_at: u32,
     pub has_secret: bool,
 
