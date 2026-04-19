@@ -28,7 +28,9 @@
 
 use crate::err::clear_last_error;
 use crate::key::{
-    delete_subkey_internal, generate_key_rev_cert_internal, merge_key_block_internal, modify_key_password_internal, revoke_subkey_internal
+    delete_subkey_internal, extract_rev_cert_target_fpr_internal,
+    generate_key_rev_cert_internal, import_rev_cert_internal, merge_key_block_internal,
+    modify_key_password_internal, revoke_subkey_internal,
 };
 use crate::key::{
     export_merged_public_keys, export_merged_secret_keys, extract_public_key_internal,
@@ -613,6 +615,107 @@ pub extern "C" fn gfr_crypto_merge_key_blocks(
             unsafe {
                 *out_secret_block = secret_cstr.into_raw();
             }
+        }
+
+        Ok(())
+    });
+
+    match result {
+        Ok(Ok(())) => GfrStatus::Success,
+        Ok(Err(e)) => e,
+        Err(_) => GfrStatus::ErrorPanic,
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_crypto_import_rev_cert(
+    base_key_block: *const c_char,
+    rev_cert_block: *const c_char,
+    out_secret_block: *mut *mut c_char,
+    out_public_block: *mut *mut c_char,
+) -> GfrStatus {
+    clear_last_error();
+
+    if !out_secret_block.is_null() {
+        unsafe {
+            *out_secret_block = std::ptr::null_mut();
+        }
+    }
+
+    if !out_public_block.is_null() {
+        unsafe {
+            *out_public_block = std::ptr::null_mut();
+        }
+    }
+
+    let result = catch_unwind(|| -> Result<(), GfrStatus> {
+        if base_key_block.is_null()
+            || rev_cert_block.is_null()
+            || out_secret_block.is_null()
+            || out_public_block.is_null()
+        {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+
+        let base_str = unsafe { CStr::from_ptr(base_key_block) }
+            .to_str()
+            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+        let cert_str = unsafe { CStr::from_ptr(rev_cert_block) }
+            .to_str()
+            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+        let merged = import_rev_cert_internal(base_str, cert_str)?;
+
+        if !merged.secret.is_empty() {
+            let secret_cstr = CString::new(merged.secret).map_err(|_| GfrStatus::ErrorInternal)?;
+            unsafe {
+                *out_secret_block = secret_cstr.into_raw();
+            }
+        }
+
+        let public_cstr = CString::new(merged.public).map_err(|_| GfrStatus::ErrorInternal)?;
+        unsafe {
+            *out_public_block = public_cstr.into_raw();
+        }
+
+        Ok(())
+    });
+
+    match result {
+        Ok(Ok(())) => GfrStatus::Success,
+        Ok(Err(e)) => e,
+        Err(_) => GfrStatus::ErrorPanic,
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_crypto_extract_rev_cert_target_fpr(
+    rev_cert_block: *const c_char,
+    out_fpr: *mut *mut c_char,
+) -> GfrStatus {
+    clear_last_error();
+
+    if !out_fpr.is_null() {
+        unsafe {
+            *out_fpr = std::ptr::null_mut();
+        }
+    }
+
+    let result = catch_unwind(|| -> Result<(), GfrStatus> {
+        if rev_cert_block.is_null() || out_fpr.is_null() {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+
+        let cert_str = unsafe { CStr::from_ptr(rev_cert_block) }
+            .to_str()
+            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+        let fpr = extract_rev_cert_target_fpr_internal(cert_str)?;
+
+        let fpr_cstr = CString::new(fpr).map_err(|_| GfrStatus::ErrorInternal)?;
+        unsafe {
+            *out_fpr = fpr_cstr.into_raw();
         }
 
         Ok(())
