@@ -27,7 +27,7 @@
  */
 
 use crate::err::clear_last_error;
-use crate::key::change_secret_component_password_internal;
+use crate::key::modify_key_password_internal;
 use crate::key::{
     export_merged_public_keys, export_merged_secret_keys, extract_public_key_internal,
 };
@@ -326,14 +326,13 @@ pub unsafe extern "C" fn gfr_export_merged_keys(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn gfr_crypto_change_secret_component_password(
+pub extern "C" fn gfr_crypto_modify_key_password(
     channel: i32,
     secret_key_block: *const c_char,
     target_fpr: *const c_char,
     fetch_pwd_cb: GfrPasswordFetchCb,
     free_cb: GfrFreeCb,
     out_secret_block: *mut *mut c_char,
-    out_public_block: *mut *mut c_char,
 ) -> GfrStatus {
     clear_last_error();
 
@@ -343,18 +342,8 @@ pub extern "C" fn gfr_crypto_change_secret_component_password(
         }
     }
 
-    if !out_public_block.is_null() {
-        unsafe {
-            *out_public_block = std::ptr::null_mut();
-        }
-    }
-
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
-        if secret_key_block.is_null()
-            || target_fpr.is_null()
-            || out_secret_block.is_null()
-            || out_public_block.is_null()
-        {
+        if secret_key_block.is_null() || target_fpr.is_null() || out_secret_block.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
@@ -366,7 +355,7 @@ pub extern "C" fn gfr_crypto_change_secret_component_password(
             .to_str()
             .map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
-        let generated = change_secret_component_password_internal(
+        let generated = modify_key_password_internal(
             channel,
             block_str,
             fpr_str,
@@ -375,11 +364,9 @@ pub extern "C" fn gfr_crypto_change_secret_component_password(
         )?;
 
         let c_secret = CString::new(generated.secret).map_err(|_| GfrStatus::ErrorInternal)?;
-        let c_public = CString::new(generated.public).map_err(|_| GfrStatus::ErrorInternal)?;
 
         unsafe {
             *out_secret_block = c_secret.into_raw();
-            *out_public_block = c_public.into_raw();
         }
 
         Ok(())

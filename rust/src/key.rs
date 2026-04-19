@@ -26,6 +26,7 @@
  *
  */
 
+use crate::err::IntoGfrResult;
 use crate::keygen::GeneratedKeys;
 use crate::types::{GfrFreeCb, GfrKeyAlgo, GfrPasswordFetchCb, GfrStatus};
 use crate::utils::fetch_password_internal;
@@ -519,7 +520,7 @@ fn fetch_old_and_new_passwords(
     Ok((old_pw, new_pw))
 }
 
-pub fn change_secret_component_password_internal(
+pub fn modify_key_password_internal(
     channel: i32,
     secret_key_block: &str,
     target_fpr: &str,
@@ -532,7 +533,11 @@ pub fn change_secret_component_password_internal(
     })?;
 
     let whole_fpr = secret_key.fingerprint().to_string();
-    let primary_fpr = secret_key.primary_key.fingerprint().to_string();
+    let primary_fpr = secret_key
+        .primary_key
+        .fingerprint()
+        .to_string()
+        .to_uppercase();
 
     if primary_fpr == target_fpr {
         let mut rng = rand::thread_rng();
@@ -548,26 +553,22 @@ pub fn change_secret_component_password_internal(
         )?;
 
         if let Some(old_pw) = old_pw {
-            let inner = secret_key
-                .primary_key
-                .unlock(&old_pw, |_, _| Ok(()))
-                .map_err(|_| GfrStatus::ErrorPasswordFailed)?;
-            inner.map_err(|_| GfrStatus::ErrorPasswordFailed)?;
+            secret_key.primary_key.remove_password(&old_pw).into_gfr()?;
         }
 
         secret_key
             .primary_key
             .set_password(&mut rng, &new_pw)
-            .map_err(|_| GfrStatus::ErrorPasswordFailed)?;
+            .into_gfr()?;
 
         let armored_s_key = secret_key
             .to_armored_string(ArmorOptions::default())
-            .map_err(|_| GfrStatus::ErrorArmorFailed)?;
+            .into_gfr()?;
 
         let public_key = SignedPublicKey::from(secret_key);
         let armored_p_key = public_key
             .to_armored_string(ArmorOptions::default())
-            .map_err(|_| GfrStatus::ErrorArmorFailed)?;
+            .into_gfr()?;
 
         return Ok(GeneratedKeys {
             secret: armored_s_key,
@@ -577,7 +578,7 @@ pub fn change_secret_component_password_internal(
     }
 
     for subkey in secret_key.secret_subkeys.iter_mut() {
-        let sub_fpr = subkey.key.fingerprint().to_string();
+        let sub_fpr = subkey.key.fingerprint().to_string().to_uppercase();
 
         if sub_fpr != target_fpr {
             continue;
@@ -596,26 +597,19 @@ pub fn change_secret_component_password_internal(
         )?;
 
         if let Some(old_pw) = old_pw {
-            let inner = subkey
-                .key
-                .unlock(&old_pw, |_, _| Ok(()))
-                .map_err(|_| GfrStatus::ErrorPasswordFailed)?;
-            inner.map_err(|_| GfrStatus::ErrorPasswordFailed)?;
+            subkey.key.remove_password(&old_pw).into_gfr()?;
         }
 
-        subkey
-            .key
-            .set_password(&mut rng, &new_pw)
-            .map_err(|_| GfrStatus::ErrorPasswordFailed)?;
+        subkey.key.set_password(&mut rng, &new_pw).into_gfr()?;
 
         let armored_s_key = secret_key
             .to_armored_string(ArmorOptions::default())
-            .map_err(|_| GfrStatus::ErrorArmorFailed)?;
+            .into_gfr()?;
 
         let public_key = SignedPublicKey::from(secret_key);
         let armored_p_key = public_key
             .to_armored_string(ArmorOptions::default())
-            .map_err(|_| GfrStatus::ErrorArmorFailed)?;
+            .into_gfr()?;
 
         return Ok(GeneratedKeys {
             secret: armored_s_key,
