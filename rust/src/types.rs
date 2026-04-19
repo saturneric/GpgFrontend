@@ -80,10 +80,14 @@ pub enum GfrKeyAlgo {
     BRAINPOOLP512,
     ED448,
     X448,
+    RSA1024,
     RSA2048,
     RSA3072,
     RSA4096,
     SECP256K1,
+    DSA1024,
+    DSA2048,
+    DSA3072,
 }
 
 #[repr(C)]

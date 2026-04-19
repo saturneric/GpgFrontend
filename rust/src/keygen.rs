@@ -27,16 +27,16 @@
  */
 
 use crate::{
-    types::{GfrFreeCb, GfrKeyAlgo, GfrKeyConfig, GfrPasswordFetchCb, GfrStatus},
-    utils::fetch_password_internal,
+    err::IntoGfrResult,
+    types::{GfrFreeCb, GfrKeyConfig, GfrPasswordFetchCb, GfrStatus},
+    utils::{fetch_password_internal, resolve_key_type},
 };
 use log::{debug, error};
 use pgp::{
     composed::{
-        ArmorOptions, Deserializable, EncryptionCaps, KeyType, SecretKeyParamsBuilder,
-        SignedPublicKey, SignedSecretKey, SignedSecretSubKey, SubkeyParamsBuilder,
+        ArmorOptions, Deserializable, EncryptionCaps, SecretKeyParamsBuilder, SignedPublicKey,
+        SignedSecretKey, SignedSecretSubKey, SubkeyParamsBuilder,
     },
-    crypto::ecc_curve::ECCCurve,
     packet::{KeyFlags, PubKeyInner, PublicSubkey, SecretSubkey},
     types::{KeyDetails, KeyVersion, Password, Timestamp},
 };
@@ -46,81 +46,6 @@ pub struct GeneratedKeys {
     pub secret: String,
     pub public: String,
     pub fingerprint: String,
-}
-
-pub fn resolve_key_type(algo: &GfrKeyAlgo, can_encrypt: bool) -> Result<KeyType, GfrStatus> {
-    match algo {
-        GfrKeyAlgo::ED25519 | GfrKeyAlgo::CV25519 => {
-            if can_encrypt {
-                Ok(KeyType::ECDH(ECCCurve::Curve25519))
-            } else {
-                Ok(KeyType::Ed25519)
-            }
-        }
-
-        GfrKeyAlgo::NISTP256 => {
-            if can_encrypt {
-                Ok(KeyType::ECDH(ECCCurve::P256))
-            } else {
-                Ok(KeyType::ECDSA(ECCCurve::P256))
-            }
-        }
-        GfrKeyAlgo::NISTP384 => {
-            if can_encrypt {
-                Ok(KeyType::ECDH(ECCCurve::P384))
-            } else {
-                Ok(KeyType::ECDSA(ECCCurve::P384))
-            }
-        }
-        GfrKeyAlgo::NISTP521 => {
-            if can_encrypt {
-                Ok(KeyType::ECDH(ECCCurve::P521))
-            } else {
-                Ok(KeyType::ECDSA(ECCCurve::P521))
-            }
-        }
-        GfrKeyAlgo::BRAINPOOLP256 => {
-            if can_encrypt {
-                Ok(KeyType::ECDH(ECCCurve::BrainpoolP256r1))
-            } else {
-                Ok(KeyType::ECDSA(ECCCurve::BrainpoolP256r1))
-            }
-        }
-        GfrKeyAlgo::BRAINPOOLP384 => {
-            if can_encrypt {
-                Ok(KeyType::ECDH(ECCCurve::BrainpoolP384r1))
-            } else {
-                Ok(KeyType::ECDSA(ECCCurve::BrainpoolP384r1))
-            }
-        }
-        GfrKeyAlgo::BRAINPOOLP512 => {
-            if can_encrypt {
-                Ok(KeyType::ECDH(ECCCurve::BrainpoolP512r1))
-            } else {
-                Ok(KeyType::ECDSA(ECCCurve::BrainpoolP512r1))
-            }
-        }
-        GfrKeyAlgo::ED448 | GfrKeyAlgo::X448 => {
-            if can_encrypt {
-                Ok(KeyType::X448)
-            } else {
-                Ok(KeyType::Ed448)
-            }
-        }
-        GfrKeyAlgo::SECP256K1 => {
-            if can_encrypt {
-                Ok(KeyType::ECDH(ECCCurve::Secp256k1))
-            } else {
-                Ok(KeyType::ECDSA(ECCCurve::Secp256k1))
-            }
-        }
-
-        GfrKeyAlgo::RSA2048 => Ok(KeyType::Rsa(2048)),
-        GfrKeyAlgo::RSA3072 => Ok(KeyType::Rsa(3072)),
-        GfrKeyAlgo::RSA4096 => Ok(KeyType::Rsa(4096)),
-
-        GfrKeyAlgo::Unknown => Err(GfrStatus::ErrorInvalidInput),
-    }
 }
 
 pub fn keygen_dynamic(
@@ -308,9 +233,7 @@ pub fn add_subkey_internal(
     let sub_k_type = resolve_key_type(&config.algo, config.can_encrypt)?;
     let mut rng = thread_rng();
 
-    let (public_params, secret_params) = sub_k_type
-        .generate(&mut rng)
-        .map_err(|_| GfrStatus::ErrorKeygenFailed)?;
+    let (public_params, secret_params) = sub_k_type.generate(&mut rng).into_gfr()?;
 
     // Assemble the inner public key part
     let pub_inner = PubKeyInner::new(
@@ -320,12 +243,10 @@ pub fn add_subkey_internal(
         None,
         public_params,
     )
-    .map_err(|_| GfrStatus::ErrorKeygenFailed)?;
+    .into_gfr()?;
 
-    let public_subkey =
-        PublicSubkey::from_inner(pub_inner).map_err(|_| GfrStatus::ErrorKeygenFailed)?;
-    let mut raw_subkey = SecretSubkey::new(public_subkey, secret_params)
-        .map_err(|_| GfrStatus::ErrorKeygenFailed)?;
+    let public_subkey = PublicSubkey::from_inner(pub_inner).into_gfr()?;
+    let mut raw_subkey = SecretSubkey::new(public_subkey, secret_params).into_gfr()?;
 
     // 4. Setup KeyFlags for the new subkey
     let mut flags = KeyFlags::default();

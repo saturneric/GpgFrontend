@@ -28,8 +28,9 @@
 
 use pgp::{
     bytes::Bytes,
+    composed::{DsaKeySize, KeyType},
+    crypto::ecc_curve::ECCCurve,
     packet::{RevocationCode, Signature, Subpacket, SubpacketData},
-    ser::Serialize,
     types::{PublicParams, Timestamp},
 };
 use rsa::traits::PublicKeyParts;
@@ -94,31 +95,126 @@ pub fn fetch_password_internal(
     Ok(password)
 }
 
+pub fn resolve_key_type(algo: &GfrKeyAlgo, can_encrypt: bool) -> Result<KeyType, GfrStatus> {
+    match algo {
+        GfrKeyAlgo::ED25519 | GfrKeyAlgo::CV25519 => {
+            if can_encrypt {
+                Ok(KeyType::ECDH(ECCCurve::Curve25519))
+            } else {
+                Ok(KeyType::Ed25519)
+            }
+        }
+
+        GfrKeyAlgo::NISTP256 => {
+            if can_encrypt {
+                Ok(KeyType::ECDH(ECCCurve::P256))
+            } else {
+                Ok(KeyType::ECDSA(ECCCurve::P256))
+            }
+        }
+        GfrKeyAlgo::NISTP384 => {
+            if can_encrypt {
+                Ok(KeyType::ECDH(ECCCurve::P384))
+            } else {
+                Ok(KeyType::ECDSA(ECCCurve::P384))
+            }
+        }
+        GfrKeyAlgo::NISTP521 => {
+            if can_encrypt {
+                Ok(KeyType::ECDH(ECCCurve::P521))
+            } else {
+                Ok(KeyType::ECDSA(ECCCurve::P521))
+            }
+        }
+        GfrKeyAlgo::BRAINPOOLP256 => {
+            if can_encrypt {
+                Ok(KeyType::ECDH(ECCCurve::BrainpoolP256r1))
+            } else {
+                Ok(KeyType::ECDSA(ECCCurve::BrainpoolP256r1))
+            }
+        }
+        GfrKeyAlgo::BRAINPOOLP384 => {
+            if can_encrypt {
+                Ok(KeyType::ECDH(ECCCurve::BrainpoolP384r1))
+            } else {
+                Ok(KeyType::ECDSA(ECCCurve::BrainpoolP384r1))
+            }
+        }
+        GfrKeyAlgo::BRAINPOOLP512 => {
+            if can_encrypt {
+                Ok(KeyType::ECDH(ECCCurve::BrainpoolP512r1))
+            } else {
+                Ok(KeyType::ECDSA(ECCCurve::BrainpoolP512r1))
+            }
+        }
+        GfrKeyAlgo::ED448 | GfrKeyAlgo::X448 => {
+            if can_encrypt {
+                Ok(KeyType::X448)
+            } else {
+                Ok(KeyType::Ed448)
+            }
+        }
+        GfrKeyAlgo::SECP256K1 => {
+            if can_encrypt {
+                Err(GfrStatus::ErrorUnsupportedAlgorithm)
+            } else {
+                Ok(KeyType::ECDSA(ECCCurve::Secp256k1))
+            }
+        }
+
+        GfrKeyAlgo::RSA1024 => Ok(KeyType::Rsa(1024)),
+        GfrKeyAlgo::RSA2048 => Ok(KeyType::Rsa(2048)),
+        GfrKeyAlgo::RSA3072 => Ok(KeyType::Rsa(3072)),
+        GfrKeyAlgo::RSA4096 => Ok(KeyType::Rsa(4096)),
+
+        GfrKeyAlgo::DSA1024 => Ok(KeyType::Dsa(DsaKeySize::B1024)),
+        GfrKeyAlgo::DSA2048 => Ok(KeyType::Dsa(DsaKeySize::B2048)),
+        GfrKeyAlgo::DSA3072 => Ok(KeyType::Dsa(DsaKeySize::B3072)),
+
+        GfrKeyAlgo::Unknown => Err(GfrStatus::ErrorUnsupportedAlgorithm),
+    }
+}
+
 pub fn determine_algo(public_params: &PublicParams) -> GfrKeyAlgo {
     match public_params {
         PublicParams::RSA(p) => {
-            // Rough estimation of RSA bit size based on modulus bytes
-            let bits = p.write_len();
+            let bits = p.key.n().bits() as u32;
             if bits >= 4096 {
                 GfrKeyAlgo::RSA4096
             } else if bits >= 3072 {
                 GfrKeyAlgo::RSA3072
-            } else {
+            } else if bits >= 2048 {
                 GfrKeyAlgo::RSA2048
+            } else {
+                GfrKeyAlgo::RSA1024
+            }
+        }
+        PublicParams::DSA(p) => {
+            let bits = p.key.components().p().bits() as u32;
+            if bits >= 3072 {
+                GfrKeyAlgo::DSA3072
+            } else if bits >= 2048 {
+                GfrKeyAlgo::DSA2048
+            } else {
+                GfrKeyAlgo::DSA1024
             }
         }
         PublicParams::Ed25519(_) => GfrKeyAlgo::ED25519,
+        PublicParams::Ed448(_) => GfrKeyAlgo::ED448,
+        PublicParams::X448(_) => GfrKeyAlgo::X448,
         PublicParams::ECDH(p) => match p.curve() {
-            pgp::crypto::ecc_curve::ECCCurve::Curve25519 => GfrKeyAlgo::CV25519,
-            pgp::crypto::ecc_curve::ECCCurve::P256 => GfrKeyAlgo::NISTP256,
-            pgp::crypto::ecc_curve::ECCCurve::P384 => GfrKeyAlgo::NISTP384,
-            pgp::crypto::ecc_curve::ECCCurve::P521 => GfrKeyAlgo::NISTP521,
+            ECCCurve::Curve25519 => GfrKeyAlgo::CV25519,
+            ECCCurve::P256 => GfrKeyAlgo::NISTP256,
+            ECCCurve::P384 => GfrKeyAlgo::NISTP384,
+            ECCCurve::P521 => GfrKeyAlgo::NISTP521,
+            ECCCurve::Secp256k1 => GfrKeyAlgo::SECP256K1,
             _ => GfrKeyAlgo::Unknown,
         },
         PublicParams::ECDSA(p) => match p.curve() {
-            pgp::crypto::ecc_curve::ECCCurve::P256 => GfrKeyAlgo::NISTP256,
-            pgp::crypto::ecc_curve::ECCCurve::P384 => GfrKeyAlgo::NISTP384,
-            pgp::crypto::ecc_curve::ECCCurve::P521 => GfrKeyAlgo::NISTP521,
+            ECCCurve::P256 => GfrKeyAlgo::NISTP256,
+            ECCCurve::P384 => GfrKeyAlgo::NISTP384,
+            ECCCurve::P521 => GfrKeyAlgo::NISTP521,
+            ECCCurve::Secp256k1 => GfrKeyAlgo::SECP256K1,
             _ => GfrKeyAlgo::Unknown,
         },
         _ => GfrKeyAlgo::Unknown, // Fallback
@@ -128,33 +224,15 @@ pub fn determine_algo(public_params: &PublicParams) -> GfrKeyAlgo {
 pub fn extract_key_length(public_params: &PublicParams) -> Option<u32> {
     match public_params {
         PublicParams::RSA(p) => Some(p.key.n().bits() as u32),
+        PublicParams::DSA(p) => Some(p.key.components().p().bits() as u32),
 
         PublicParams::Ed25519(_) => Some(255),
         PublicParams::Ed448(_) => Some(448),
         PublicParams::X448(_) => Some(448),
 
-        PublicParams::ECDH(p) => match p.curve() {
-            pgp::crypto::ecc_curve::ECCCurve::Curve25519 => Some(255),
-            pgp::crypto::ecc_curve::ECCCurve::P256 => Some(256),
-            pgp::crypto::ecc_curve::ECCCurve::P384 => Some(384),
-            pgp::crypto::ecc_curve::ECCCurve::P521 => Some(521),
-            pgp::crypto::ecc_curve::ECCCurve::BrainpoolP256r1 => Some(256),
-            pgp::crypto::ecc_curve::ECCCurve::BrainpoolP384r1 => Some(384),
-            pgp::crypto::ecc_curve::ECCCurve::BrainpoolP512r1 => Some(512),
-            pgp::crypto::ecc_curve::ECCCurve::Secp256k1 => Some(256),
-            _ => None,
-        },
+        PublicParams::ECDH(p) => Some(p.curve().nbits() as u32),
 
-        PublicParams::ECDSA(p) => match p.curve() {
-            pgp::crypto::ecc_curve::ECCCurve::P256 => Some(256),
-            pgp::crypto::ecc_curve::ECCCurve::P384 => Some(384),
-            pgp::crypto::ecc_curve::ECCCurve::P521 => Some(521),
-            pgp::crypto::ecc_curve::ECCCurve::BrainpoolP256r1 => Some(256),
-            pgp::crypto::ecc_curve::ECCCurve::BrainpoolP384r1 => Some(384),
-            pgp::crypto::ecc_curve::ECCCurve::BrainpoolP512r1 => Some(512),
-            pgp::crypto::ecc_curve::ECCCurve::Secp256k1 => Some(256),
-            _ => None,
-        },
+        PublicParams::ECDSA(p) => Some(p.curve().nbits() as u32),
 
         _ => None,
     }
