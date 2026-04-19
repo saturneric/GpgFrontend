@@ -53,11 +53,6 @@ endif()
 # link openssl
 target_link_libraries(${LIBRARY_TARGET} PUBLIC ssl crypto)
 
-if(MINGW)
-  # for uuid ability in mingw
-  target_link_libraries(${LIBRARY_TARGET} PUBLIC bcrypt)
-endif()
-
 # configure libarchive
 if(APPLE)
   if(EXISTS "/usr/local/opt/libarchive/include")
@@ -79,6 +74,11 @@ target_link_libraries(${LIBRARY_TARGET} PUBLIC Qt::Core Qt::Gui Qt::Sql)
 # link rust support library
 target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_rust)
 target_compile_definitions(${LIBRARY_TARGET} PRIVATE HAS_RUST_SUPPORT)
+
+if(MINGW)
+  # link bcrypt for rPGP engine and uuid generation on Windows
+  target_link_libraries(${LIBRARY_TARGET} PUBLIC bcrypt)
+endif()
 
 # set up pch
 target_precompile_headers(${LIBRARY_TARGET}
