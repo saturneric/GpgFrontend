@@ -26,10 +26,12 @@
  *
  */
 
-use crate::types::{GfrKeyAlgo, GfrStatus};
+use crate::keygen::GeneratedKeys;
+use crate::types::{GfrFreeCb, GfrKeyAlgo, GfrPasswordFetchCb, GfrStatus};
+use crate::utils::fetch_password_internal;
 use pgp::armor::{self, BlockType};
 use pgp::packet::SignatureType;
-use pgp::types::SignedUser;
+use pgp::types::{Password, SignedUser};
 use pgp::{
     composed::{ArmorOptions, Deserializable, SignedPublicKey, SignedSecretKey},
     packet::Signature,
@@ -481,4 +483,146 @@ pub fn export_merged_secret_keys(key_blocks: &[&str]) -> Result<String, GfrStatu
 
     // 5. Convert the armored bytes back to a String.
     String::from_utf8(armored_output).map_err(|_| GfrStatus::ErrorArmorFailed)
+}
+
+fn fetch_old_and_new_passwords(
+    channel: i32,
+    target_fpr: &str,
+    is_encrypted: bool,
+    unlock_purpose: &str,
+    new_purpose: &str,
+    fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+    free_cb: Option<GfrFreeCb>,
+) -> Result<(Option<Password>, Password), GfrStatus> {
+    let old_pw = if is_encrypted {
+        let old_pwd_bytes =
+            fetch_password_internal(channel, target_fpr, unlock_purpose, fetch_pwd_cb, free_cb)?;
+
+        if old_pwd_bytes.is_empty() {
+            return Err(GfrStatus::ErrorFetchPasswordFailed);
+        }
+
+        Some(Password::from(old_pwd_bytes.as_slice()))
+    } else {
+        None
+    };
+
+    let new_pwd_bytes =
+        fetch_password_internal(channel, target_fpr, new_purpose, fetch_pwd_cb, free_cb)?;
+
+    if new_pwd_bytes.is_empty() {
+        return Err(GfrStatus::ErrorFetchPasswordFailed);
+    }
+
+    let new_pw = Password::from(new_pwd_bytes.as_slice());
+
+    Ok((old_pw, new_pw))
+}
+
+pub fn change_secret_component_password_internal(
+    channel: i32,
+    secret_key_block: &str,
+    target_fpr: &str,
+    fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+    free_cb: Option<GfrFreeCb>,
+) -> Result<GeneratedKeys, GfrStatus> {
+    let (mut secret_key, _) = SignedSecretKey::from_string(secret_key_block).map_err(|e| {
+        log::error!("Failed to parse secret key block: {}", e);
+        GfrStatus::ErrorInvalidData
+    })?;
+
+    let whole_fpr = secret_key.fingerprint().to_string();
+    let primary_fpr = secret_key.primary_key.fingerprint().to_string();
+
+    if primary_fpr == target_fpr {
+        let mut rng = rand::thread_rng();
+
+        let (old_pw, new_pw) = fetch_old_and_new_passwords(
+            channel,
+            target_fpr,
+            secret_key.primary_key.secret_params().is_encrypted(),
+            "Unlock Primary Key to change password",
+            "Set new password for Primary Key",
+            fetch_pwd_cb,
+            free_cb,
+        )?;
+
+        if let Some(old_pw) = old_pw {
+            let inner = secret_key
+                .primary_key
+                .unlock(&old_pw, |_, _| Ok(()))
+                .map_err(|_| GfrStatus::ErrorPasswordFailed)?;
+            inner.map_err(|_| GfrStatus::ErrorPasswordFailed)?;
+        }
+
+        secret_key
+            .primary_key
+            .set_password(&mut rng, &new_pw)
+            .map_err(|_| GfrStatus::ErrorPasswordFailed)?;
+
+        let armored_s_key = secret_key
+            .to_armored_string(ArmorOptions::default())
+            .map_err(|_| GfrStatus::ErrorArmorFailed)?;
+
+        let public_key = SignedPublicKey::from(secret_key);
+        let armored_p_key = public_key
+            .to_armored_string(ArmorOptions::default())
+            .map_err(|_| GfrStatus::ErrorArmorFailed)?;
+
+        return Ok(GeneratedKeys {
+            secret: armored_s_key,
+            public: armored_p_key,
+            fingerprint: whole_fpr,
+        });
+    }
+
+    for subkey in secret_key.secret_subkeys.iter_mut() {
+        let sub_fpr = subkey.key.fingerprint().to_string();
+
+        if sub_fpr != target_fpr {
+            continue;
+        }
+
+        let mut rng = rand::thread_rng();
+
+        let (old_pw, new_pw) = fetch_old_and_new_passwords(
+            channel,
+            target_fpr,
+            subkey.key.secret_params().is_encrypted(),
+            "Unlock Subkey to change password",
+            "Set new password for Subkey",
+            fetch_pwd_cb,
+            free_cb,
+        )?;
+
+        if let Some(old_pw) = old_pw {
+            let inner = subkey
+                .key
+                .unlock(&old_pw, |_, _| Ok(()))
+                .map_err(|_| GfrStatus::ErrorPasswordFailed)?;
+            inner.map_err(|_| GfrStatus::ErrorPasswordFailed)?;
+        }
+
+        subkey
+            .key
+            .set_password(&mut rng, &new_pw)
+            .map_err(|_| GfrStatus::ErrorPasswordFailed)?;
+
+        let armored_s_key = secret_key
+            .to_armored_string(ArmorOptions::default())
+            .map_err(|_| GfrStatus::ErrorArmorFailed)?;
+
+        let public_key = SignedPublicKey::from(secret_key);
+        let armored_p_key = public_key
+            .to_armored_string(ArmorOptions::default())
+            .map_err(|_| GfrStatus::ErrorArmorFailed)?;
+
+        return Ok(GeneratedKeys {
+            secret: armored_s_key,
+            public: armored_p_key,
+            fingerprint: whole_fpr,
+        });
+    }
+
+    Err(GfrStatus::ErrorInvalidInput)
 }

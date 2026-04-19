@@ -28,6 +28,7 @@
 
 pub mod ffi;
 pub mod ffi_crypto;
+pub mod ffi_key;
 pub mod ffi_keygen;
 pub mod ffi_mem;
 pub mod ffi_user_id;
