@@ -77,4 +77,19 @@ auto DeleteSubKeyRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
 auto RevokeSubKeyRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
                           int subkey_index, int reason_code,
                           const QString& reason_text) -> bool;
+
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param secret_key
+ * @param reason_code
+ * @param reason_text
+ * @return true
+ * @return false
+ */
+auto GenerateKeyRevCertRpgpImpl(GpgContext& ctx,
+                                const GpgAbstractKeyPtr& secret_key,
+                                const QString& output_path, int reason_code,
+                                const QString& reason_text) -> bool;
 }  // namespace GpgFrontend

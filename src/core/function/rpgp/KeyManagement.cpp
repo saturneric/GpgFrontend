@@ -32,6 +32,7 @@
 #include "core/function/GFKeyDatabase.h"
 #include "core/function/rpgp/KeyImportExport.h"
 #include "core/function/rpgp/RustEngineCallback.h"
+#include "core/utils/IOUtils.h"
 
 namespace GpgFrontend {
 
@@ -292,5 +293,84 @@ auto RevokeSubKeyRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
   }
 
   return true;
+}
+
+auto GenerateKeyRevCertRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
+                                const QString& output_path, int reason_code,
+                                const QString& reason_text) -> bool {
+  auto key_db = ctx.KeyDatabase();
+  if (key_db == nullptr) {
+    LOG_E() << "key database is not initialized";
+    return false;
+  }
+
+  auto meta = key_db->GetKeyMetadata(key->Fingerprint());
+  if (!meta) {
+    LOG_E() << "key metadata not found in database for key: "
+            << key->Fingerprint();
+    return false;
+  }
+
+  auto key_block_data = key_db->GetKeyBlocks(meta->fpr);
+  if (!key_block_data) {
+    LOG_E() << "key block data not found in database for key with fpr: "
+            << meta->fpr;
+    return false;
+  }
+
+  if (key_block_data->secret_key.isEmpty()) {
+    LOG_E() << "secret key block is empty for key with fpr: " << meta->fpr;
+    return false;
+  }
+
+  auto key_block_utf8 = key_block_data->secret_key.toUtf8();
+  if (key_block_utf8.isEmpty()) {
+    LOG_E() << "key block data is empty for key with fpr: " << meta->fpr;
+    return false;
+  }
+
+  auto reason_text_utf8 = reason_text.toUtf8();
+
+  int mapped_reason_code = 0;
+  switch (reason_code) {
+    case 1:
+      mapped_reason_code =
+          static_cast<int>(Rust::GfrRevocationCode::Compromised);
+      break;
+    case 2:
+      mapped_reason_code =
+          static_cast<int>(Rust::GfrRevocationCode::Superseded);
+      break;
+    case 3:
+      mapped_reason_code = static_cast<int>(Rust::GfrRevocationCode::Retired);
+      break;
+    default:
+      mapped_reason_code = 0;
+      break;
+  }
+
+  auto key_fpr_utf8 = key->Fingerprint().toUtf8();
+  char* out_secret_block = nullptr;
+
+  auto err = Rust::gfr_crypto_generate_key_rev_cert(
+      ctx.GetChannel(), key_block_utf8.constData(),
+      static_cast<Rust::GfrRevocationCode>(mapped_reason_code),
+      reason_text_utf8.constData(), FetchPasswordCallback, FreeCallback,
+      &out_secret_block);
+
+  if (err != Rust::GfrStatus::Success) {
+    LOG_E() << "gfr_crypto_generate_key_rev_cert error, code: "
+            << static_cast<int>(err);
+    return false;
+  }
+
+  if (out_secret_block == nullptr) {
+    LOG_E() << "gfr_crypto_generate_key_rev_cert returned null secret block";
+    return false;
+  }
+
+  auto out_block_str = QString::fromUtf8(out_secret_block);
+  Rust::gfr_crypto_free_string(out_secret_block);
+  return WriteFileGFBuffer(output_path, GFBuffer(out_block_str));
 }
 }  // namespace GpgFrontend

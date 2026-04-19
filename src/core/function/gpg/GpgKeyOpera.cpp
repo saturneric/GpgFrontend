@@ -117,22 +117,9 @@ auto GpgKeyOpera::SetExpire(const GpgKeyPtr& key, const SubkeyId& subkey_fpr,
   return err;
 }
 
-/**
- * Generate revoke cert of a key pair
- * @param key target key pair
- * @param outputFileName out file name(path)
- * @return the process doing this job
- */
-void GpgKeyOpera::GenerateRevokeCert(const GpgKeyPtr& key,
-                                     const QString& output_path,
-                                     int revocation_reason_code,
-                                     const QString& revocation_reason_text) {
-  if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
-    // RPGP engine does not support generating revoke cert for now, return
-    // directly
-    return;
-  }
-
+auto GenerateRevCertImpl(GpgContext& ctx_, const GpgKeyPtr& key,
+                         const QString& output_path, int revocation_reason_code,
+                         const QString& revocation_reason_text) -> void {
   LOG_D() << "revoke code:" << revocation_reason_code
           << "text:" << revocation_reason_text;
 
@@ -187,6 +174,25 @@ void GpgKeyOpera::GenerateRevokeCert(const GpgKeyPtr& key,
            }
          }
        }});
+}
+
+/**
+ * Generate revoke cert of a key pair
+ * @param key target key pair
+ * @param outputFileName out file name(path)
+ * @return the process doing this job
+ */
+void GpgKeyOpera::GenerateRevokeCert(const GpgKeyPtr& key,
+                                     const QString& output_path,
+                                     int revocation_reason_code,
+                                     const QString& revocation_reason_text) {
+  if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
+    GenerateKeyRevCertRpgpImpl(ctx_, key, output_path, revocation_reason_code,
+                               revocation_reason_text);
+    return;
+  }
+  GenerateRevCertImpl(ctx_, key, output_path, revocation_reason_code,
+                      revocation_reason_text);
 }
 
 auto GenerateKeyImpl(GpgContext& ctx,
@@ -433,8 +439,7 @@ auto GpgKeyOpera::ModifyTOFUPolicy(const GpgKeyPtr& key,
         return gpgme_op_tofu_policy(
             ctx_.DefaultContext(), static_cast<gpgme_key_t>(*key), tofu_policy);
       },
-      "gpgme_op_tofu_policy",
-      {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}});
+      "gpgme_op_tofu_policy", {{OpenPGPEngine::kGNUPG, "2.2.0"}});
 
   return CheckGpgError(err);
 }
