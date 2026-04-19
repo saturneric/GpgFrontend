@@ -55,6 +55,13 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, GpgKeyPtr key,
   ui_->setupUi(this);
   assert(key_ != nullptr);
 
+  auto engine = GpgContext::GetInstance(channel).Engine();
+  LOG_D() << "current gpg engine: " << ConvertOpenPGPEngine2String(engine);
+
+  ui_->expireLabel->setHidden(engine != OpenPGPEngine::kGNUPG);
+  ui_->expireDateTimeEdit->setHidden(engine != OpenPGPEngine::kGNUPG);
+  ui_->nonExpiredCheckBox->setHidden(engine != OpenPGPEngine::kGNUPG);
+
   ui_->algoLabel->setText(tr("Algorithm"));
   ui_->keyLengthLabel->setText(tr("Key Length"));
   ui_->expireLabel->setText(tr("Expire Date"));
@@ -320,7 +327,7 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
                   CommonUtils::RaiseMessageBox(this, err);
                   if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
                     emit UISignalStation::GetInstance()
-                        -> SignalKeyDatabaseRefresh();
+                        ->SignalKeyDatabaseRefresh();
                   }
                 });
       });
