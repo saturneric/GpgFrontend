@@ -29,11 +29,12 @@
 use pgp::{
     bytes::Bytes,
     packet::{RevocationCode, Signature, Subpacket, SubpacketData},
+    ser::Serialize,
     types::{PublicParams, Timestamp},
 };
 use rsa::traits::PublicKeyParts;
 
-use crate::types::{GfrFreeCb, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus};
+use crate::types::{GfrFreeCb, GfrKeyAlgo, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus};
 use std::{
     ffi::{CString, c_char},
     ptr::null_mut,
@@ -91,6 +92,37 @@ pub fn fetch_password_internal(
 
     log::debug!("Fetched password via callback");
     Ok(password)
+}
+
+pub fn determine_algo(public_params: &PublicParams) -> GfrKeyAlgo {
+    match public_params {
+        PublicParams::RSA(p) => {
+            // Rough estimation of RSA bit size based on modulus bytes
+            let bits = p.write_len();
+            if bits >= 4096 {
+                GfrKeyAlgo::RSA4096
+            } else if bits >= 3072 {
+                GfrKeyAlgo::RSA3072
+            } else {
+                GfrKeyAlgo::RSA2048
+            }
+        }
+        PublicParams::Ed25519(_) => GfrKeyAlgo::ED25519,
+        PublicParams::ECDH(p) => match p.curve() {
+            pgp::crypto::ecc_curve::ECCCurve::Curve25519 => GfrKeyAlgo::CV25519,
+            pgp::crypto::ecc_curve::ECCCurve::P256 => GfrKeyAlgo::NISTP256,
+            pgp::crypto::ecc_curve::ECCCurve::P384 => GfrKeyAlgo::NISTP384,
+            pgp::crypto::ecc_curve::ECCCurve::P521 => GfrKeyAlgo::NISTP521,
+            _ => GfrKeyAlgo::Unknown,
+        },
+        PublicParams::ECDSA(p) => match p.curve() {
+            pgp::crypto::ecc_curve::ECCCurve::P256 => GfrKeyAlgo::NISTP256,
+            pgp::crypto::ecc_curve::ECCCurve::P384 => GfrKeyAlgo::NISTP384,
+            pgp::crypto::ecc_curve::ECCCurve::P521 => GfrKeyAlgo::NISTP521,
+            _ => GfrKeyAlgo::Unknown,
+        },
+        _ => GfrKeyAlgo::Unknown, // Fallback
+    }
 }
 
 pub fn extract_key_length(public_params: &PublicParams) -> Option<u32> {

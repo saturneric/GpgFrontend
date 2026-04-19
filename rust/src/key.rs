@@ -30,7 +30,7 @@ use crate::err::IntoGfrResult;
 use crate::keygen::GeneratedKeys;
 use crate::types::{GfrFreeCb, GfrKeyAlgo, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus};
 use crate::utils::{
-    build_revocation_reason_subpacket, extract_key_length, fetch_password_internal,
+    build_revocation_reason_subpacket, determine_algo, extract_key_length, fetch_password_internal,
 };
 use pgp::armor::{self, BlockType};
 use pgp::crypto::hash::HashAlgorithm;
@@ -40,7 +40,7 @@ use pgp::{
     composed::{ArmorOptions, Deserializable, SignedPublicKey, SignedSecretKey},
     packet::Signature,
     ser::Serialize,
-    types::{KeyDetails, PublicParams},
+    types::KeyDetails,
 };
 use std::collections::HashSet;
 use std::io;
@@ -80,37 +80,6 @@ pub struct ExtractedMetadata {
     pub subkeys: Vec<ExtractedSubkey>,
     pub public_key_block: String,
     pub secret_key_block: Option<String>,
-}
-
-fn determine_algo(public_params: &PublicParams) -> GfrKeyAlgo {
-    match public_params {
-        PublicParams::RSA(p) => {
-            // Rough estimation of RSA bit size based on modulus bytes
-            let bits = p.write_len();
-            if bits >= 4096 {
-                GfrKeyAlgo::RSA4096
-            } else if bits >= 3072 {
-                GfrKeyAlgo::RSA3072
-            } else {
-                GfrKeyAlgo::RSA2048
-            }
-        }
-        PublicParams::Ed25519(_) => GfrKeyAlgo::ED25519,
-        PublicParams::ECDH(p) => match p.curve() {
-            pgp::crypto::ecc_curve::ECCCurve::Curve25519 => GfrKeyAlgo::CV25519,
-            pgp::crypto::ecc_curve::ECCCurve::P256 => GfrKeyAlgo::NISTP256,
-            pgp::crypto::ecc_curve::ECCCurve::P384 => GfrKeyAlgo::NISTP384,
-            pgp::crypto::ecc_curve::ECCCurve::P521 => GfrKeyAlgo::NISTP521,
-            _ => GfrKeyAlgo::Unknown,
-        },
-        PublicParams::ECDSA(p) => match p.curve() {
-            pgp::crypto::ecc_curve::ECCCurve::P256 => GfrKeyAlgo::NISTP256,
-            pgp::crypto::ecc_curve::ECCCurve::P384 => GfrKeyAlgo::NISTP384,
-            pgp::crypto::ecc_curve::ECCCurve::P521 => GfrKeyAlgo::NISTP521,
-            _ => GfrKeyAlgo::Unknown,
-        },
-        _ => GfrKeyAlgo::Unknown, // Fallback
-    }
 }
 
 fn is_self_signature_from_primary(sig: &Signature, primary_fpr_bytes: &[u8]) -> bool {

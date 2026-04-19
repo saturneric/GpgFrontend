@@ -26,14 +26,23 @@
  *
  */
 
+use std::ffi::{CString, c_char};
+
 use log::LevelFilter;
 
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_rust_hello() {
-    println!(
+    log::info!(
         "Hello from Rust! (Rust Engine version {})",
         env!("CARGO_PKG_VERSION")
     );
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_rust_engine_version() -> *mut c_char {
+    let ver_str =
+        CString::new(env!("CARGO_PKG_VERSION")).unwrap_or_else(|_| CString::new("0.0.0").unwrap());
+    return ver_str.into_raw();
 }
 
 #[unsafe(no_mangle)]
