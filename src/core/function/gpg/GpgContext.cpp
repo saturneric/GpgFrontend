@@ -146,7 +146,7 @@ class GpgContext::Impl {
   Impl(GpgContext *parent, const GpgContextInitArgs &args)
       : parent_(parent),
         args_(args),
-        engine_(args.backend_type),
+        engine_(args.engine),
         db_name_(args.db_name),
         gpgconf_path_(Module::RetrieveRTValueTypedOrDefault<>(
             "core", "gpgme.ctx.gpgconf_path", QString{})),
@@ -339,7 +339,7 @@ class GpgContext::Impl {
       Module::UpsertRTValue(
           "core",
           QString("gpgme.ctx.list.%1.backend_type").arg(parent_->GetChannel()),
-          args_.backend_type);
+          args_.engine);
     }
   }
 

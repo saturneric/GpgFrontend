@@ -44,6 +44,7 @@
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
+#include "core/utils/RustUtils.h"
 
 namespace GpgFrontend {
 
@@ -72,12 +73,8 @@ auto GetDefaultKeyDatabasePath(const QString& gpgconf_path) -> QString {
     default_db_path =
         GlobalSettingStation::GetInstance().GetAppDataPath() + "/db";
     LOG_D() << "default key db in protable mode:" << default_db_path;
-  } else {
-    if (gpgconf_path.isEmpty()) return {};
-
+  } else if (!gpgconf_path.isEmpty() && QFileInfo(gpgconf_path).isFile()) {
     QFileInfo info(gpgconf_path);
-    if (!info.exists() || !info.isFile()) return {};
-
     auto* p = new QProcess();
     p->setProgram(info.absoluteFilePath());
     p->setArguments({"--list-dirs", "homedir"});
@@ -86,10 +83,15 @@ auto GetDefaultKeyDatabasePath(const QString& gpgconf_path) -> QString {
     p->waitForFinished();
     default_db_path = p->readAll().trimmed();
     p->deleteLater();
+  } else {
+    default_db_path =
+        GlobalSettingStation::GetInstance().GetAppDataPath() + "/rpgp_db";
   }
 
   QFileInfo info(default_db_path);
   default_db_path = info.absoluteFilePath();
+
+  LOG_I() << "default key db path: " << default_db_path;
 
   // update GRT
   Module::UpsertRTValue("core", "gpgme.ctx.default_database_path",
@@ -445,31 +447,21 @@ auto InitGpgME() -> bool {
   return true;
 }
 
-auto InitGpgFrontendCore(CoreInitArgs args) -> int {
+auto InitGnuPGEnv() -> bool {
   // initialize gpgme
   if (!InitGpgME()) {
     LOG_E() << "Oops, GpgME init failed!"
-            << "GpgFrontend cannot start under this situation!";
+            << "But don't worry, GpgFrontend will use rPGP engine as fallback.";
     Module::UpsertRTValue("core", "env.state.gpgme", -1);
-    CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-        QCoreApplication::tr("GpgME Initiation Failed"));
-    return -1;
+    return false;
   }
-
-#ifdef HAS_RUST_SUPPORT
-  if (HasRustSupport()) {
-    GpgFrontend::Rust::gfr_rust_hello();
-    GpgFrontend::Rust::gfr_init_logger();
-  }
-#endif
-
   Module::UpsertRTValue("core", "env.state.gpgme", 1);
 
   // decide gpgconf, gnupg and default home path
   if (!InitBasicPath()) {
     LOG_E() << "Oops, Basic Path init failed!"
-            << "GpgFrontend cannot start under this situation!";
-    return -1;
+            << "But don't worry, GpgFrontend will use rPGP engine as fallback.";
+    return false;
   }
 
   auto default_gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
@@ -478,6 +470,42 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
       "core", "gpgme.ctx.app_path", QString{});
   auto default_home_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.default_database_path", QString{});
+
+  return true;
+}
+
+auto InitGpgFrontendCore(CoreInitArgs args) -> int {
+  QContainer<OpenPGPEngine> supported_engines;
+
+  // check gpgme env
+  if (InitGnuPGEnv()) {
+    supported_engines.push_back(OpenPGPEngine::kGNUPG);
+  }
+
+  // check rpgp env, actually rpgp is always integrated and supported, but just
+  // in case
+  if (HasRustSupport()) {
+    GpgFrontend::Rust::gfr_rust_hello();
+    GpgFrontend::Rust::gfr_init_logger();
+    LOG_I() << "Rust support detected, rPGP engine is available.";
+    LOG_I() << "rPGP engine version: " << RustEngineVersion();
+
+    supported_engines.push_back(OpenPGPEngine::kRPGP);
+  }
+
+  // update supported engines to global setting station
+  GlobalSettingStation::GetInstance().SetSupportedOpenPPGEngines(
+      supported_engines);
+
+  // rarely happens, but just in case
+  if (supported_engines.empty()) {
+    LOG_E()
+        << "No supported OpenPGP engine detected, GpgFrontend cannot start!";
+    Module::UpsertRTValue("core", "env.state.openpgp_engine", -1);
+    CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+        QCoreApplication::tr("No Supported OpenPGP Engine Detected"));
+    return -1;
+  }
 
   auto settings = GetSettings();
 
@@ -519,10 +547,20 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
       kGpgFrontendDefaultChannel, [=]() -> ChannelObjectPtr {
         GpgFrontend::GpgContextInitArgs args;
 
-        if (!key_dbs.isEmpty()) {
-          const auto& default_key_db_info = key_dbs.front();
-          args.db_name = default_key_db_info.name;
-          args.db_path = default_key_db_info.path;
+        const auto& default_key_db_info = key_dbs.front();
+        args.db_name = default_key_db_info.name;
+        args.db_path = default_key_db_info.path;
+
+        LOG_I() << "default key db name:" << args.db_name
+                << "default key db path:" << args.db_path;
+
+        // default to gnupg backend if possible, or fallback to rpgp backend
+        if (supported_engines.contains(OpenPGPEngine::kGNUPG)) {
+          args.engine = OpenPGPEngine::kGNUPG;
+          LOG_I() << "gnupg backend is supported, use gnupg backend as default";
+        } else {
+          args.engine = OpenPGPEngine::kRPGP;
+          LOG_W() << "gnupg backend is not supported, fallback to rpgp backend";
         }
 
         args.offline_mode = forbid_all_gnupg_connection;
@@ -565,24 +603,31 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
         for (int i = 1; i < key_dbs.size(); i++) {
           const auto& key_db = key_dbs[i];
 
+          auto key_db_engine = key_db.backend_type.toLower().trimmed() == "rpgp"
+                                   ? OpenPGPEngine::kRPGP
+                                   : OpenPGPEngine::kGNUPG;
+
+          if (key_db_engine == OpenPGPEngine::kGNUPG &&
+              !supported_engines.contains(OpenPGPEngine::kGNUPG)) {
+            LOG_W() << "gnupg backend is not supported, skip key db:"
+                    << key_db.name;
+            continue;
+          }
+
+          if (key_db.path.isEmpty() || key_db.name.isEmpty()) {
+            LOG_W() << "invalid key db info, skip, name:" << key_db.name
+                    << key_db.path;
+            continue;
+          }
+
           // init ctx, also checking the basic env
           auto& ctx = GpgFrontend::GpgContext::CreateInstance(
               channel_index, [=]() -> ChannelObjectPtr {
                 GpgFrontend::GpgContextInitArgs args;
 
-                // set key database path
-                if (!key_db.path.isEmpty()) {
-                  args.db_name = key_db.name;
-                  args.db_path = key_db.path;
-                }
-
-                // set backend type
-                if (key_db.backend_type.toLower().trimmed() == "rpgp") {
-                  args.backend_type = OpenPGPEngine::kRPGP;
-                } else {
-                  args.backend_type = OpenPGPEngine::kGNUPG;
-                }
-
+                args.db_name = key_db.name;
+                args.db_path = key_db.path;
+                args.engine = key_db_engine;
                 args.offline_mode = forbid_all_gnupg_connection;
                 args.auto_import_missing_key = auto_import_missing_key;
 

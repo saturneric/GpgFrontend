@@ -43,9 +43,9 @@ class GFKeyDatabase;
  *
  */
 struct GpgContextInitArgs {
-  OpenPGPEngine backend_type;  ///<
-  QString db_name;             ///<
-  QString db_path;             ///<
+  OpenPGPEngine engine;  ///<
+  QString db_name;       ///<
+  QString db_path;       ///<
 
   bool test_mode = false;                ///<
   bool offline_mode = false;             ///<

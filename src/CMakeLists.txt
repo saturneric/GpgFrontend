@@ -78,10 +78,6 @@ if(XCODE_BUILD)
   if(GPGFRONTEND_XCODE_ENABLE_SANDBOX)
     message(STATUS "Build Application With App Sandbox")
     set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "Yes")
-    add_custom_command(TARGET ${APP_NAME} POST_BUILD
-      COMMAND /bin/cp -rf ${CMAKE_SOURCE_DIR}/resource/lfs/macOS/GnuPG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/${APP_NAME}.app/Contents/
-      WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-      COMMENT "Copying Bundle GnuPG into App Bundle Resource")
     set_target_properties(${APP_NAME} PROPERTIES
       XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS "${CMAKE_SOURCE_DIR}/resource/entitlements/GpgFrontend.entitlements")
   else()

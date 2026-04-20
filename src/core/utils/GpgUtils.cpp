@@ -245,7 +245,19 @@ auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
     key_db.channel = 0;
     key_db.name = "DEFAULT";
     key_db.path = home_path;
-    key_db.backend_type = "gnupg";
+
+    auto supported_engines =
+        GlobalSettingStation::GetInstance().SupportedOpenPPGEngines();
+
+    // default to gnupg backend if possible
+    if (supported_engines.contains(OpenPGPEngine::kGNUPG)) {
+      key_db.backend_type = "gnupg";
+      LOG_I() << "gnupg backend is supported, use gnupg backend as default";
+    } else {
+      // fallback to rpgp backend
+      key_db.backend_type = "rpgp";
+      LOG_W() << "gnupg backend is not supported, fallback to rpgp backend";
+    }
 
     key_dbs.append(key_db);
   }

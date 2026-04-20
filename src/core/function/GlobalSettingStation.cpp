@@ -236,6 +236,15 @@ class GlobalSettingStation::Impl {
 
   auto GetAppSecureKeyDir() -> QString { return app_secure_path(); }
 
+  auto SupportedOpenPPGEngines() -> QContainer<OpenPGPEngine> {
+    return supported_engines_;
+  }
+
+  auto SetSupportedOpenPPGEngines(const QContainer<OpenPGPEngine>& engines)
+      -> void {
+    supported_engines_ = engines;
+  }
+
  private:
   [[nodiscard]] auto app_config_file_path() const -> QString {
     return app_config_path_ + "/config.ini";
@@ -272,6 +281,7 @@ class GlobalSettingStation::Impl {
   QMap<GFBuffer, GFBuffer> app_secure_keys_;
   GFBuffer active_key_id_;
   GFBuffer legacy_key_id_;
+  QContainer<OpenPGPEngine> supported_engines_;
 };
 
 GlobalSettingStation::GlobalSettingStation(int channel) noexcept
@@ -344,6 +354,15 @@ auto GlobalSettingStation::GetConfigDirPath() const -> QString {
 void GlobalSettingStation::AppendAppSecureKeys(
     const QMap<GFBuffer, GFBuffer>& keys) {
   p_->AppendAppSecureKeys(keys);
+}
+auto GlobalSettingStation::SupportedOpenPPGEngines()
+    -> QContainer<OpenPGPEngine> {
+  return p_->SupportedOpenPPGEngines();
+}
+
+auto GlobalSettingStation::SetSupportedOpenPPGEngines(
+    const QContainer<OpenPGPEngine>& engines) -> void {
+  p_->SetSupportedOpenPPGEngines(engines);
 }
 
 auto GlobalSettingStation::GetLegacyAppSecureKeyPath() -> QString {

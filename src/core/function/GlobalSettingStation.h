@@ -225,6 +225,21 @@ class GF_CORE_EXPORT GlobalSettingStation
    */
   auto GetLegacySecureKey() -> GFBuffer;
 
+  /**
+   * @brief
+   *
+   * @return QContainer<OpenPGPEngine>
+   */
+  auto SupportedOpenPPGEngines() -> QContainer<OpenPGPEngine>;
+
+  /**
+   * @brief Set the Supported Open P P G Engine object
+   *
+   * @param engines
+   */
+  auto SetSupportedOpenPPGEngines(const QContainer<OpenPGPEngine>& engines)
+      -> void;
+
  private:
   class Impl;
   SecureUniquePtr<Impl> p_;
