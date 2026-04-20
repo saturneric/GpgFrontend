@@ -65,38 +65,42 @@ auto SearchGpgconfPath(const QStringList& candidate_paths) -> QString {
   return {};
 }
 
-auto GetDefaultKeyDatabasePath(const QString& gpgconf_path) -> QString {
+auto GetDefaultKeyDatabasePath() -> QString {
   QString default_db_path;
+  auto target_gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.gpgconf_path", QString{});
 
   // portable mode
   if (GlobalSettingStation::GetInstance().IsProtableMode()) {
     default_db_path =
         GlobalSettingStation::GetInstance().GetAppDataPath() + "/db";
     LOG_D() << "default key db in protable mode:" << default_db_path;
-  } else if (!gpgconf_path.isEmpty() && QFileInfo(gpgconf_path).isFile()) {
-    QFileInfo info(gpgconf_path);
-    auto* p = new QProcess();
-    p->setProgram(info.absoluteFilePath());
-    p->setArguments({"--list-dirs", "homedir"});
-    p->start();
-
-    p->waitForFinished();
-    default_db_path = p->readAll().trimmed();
-    p->deleteLater();
-  } else {
-    default_db_path =
-        GlobalSettingStation::GetInstance().GetAppDataPath() + "/rpgp_db";
+    goto out;
   }
 
-  QFileInfo info(default_db_path);
-  default_db_path = info.absoluteFilePath();
+  if (!target_gpgconf_path.isEmpty()) {
+    QFileInfo info(target_gpgconf_path);
+    if (info.exists() && info.isFile()) {
+      auto* p = new QProcess();
+      p->setProgram(info.absoluteFilePath());
+      p->setArguments({"--list-dirs", "homedir"});
+      p->start();
 
-  LOG_I() << "default key db path: " << default_db_path;
+      p->waitForFinished();
+      default_db_path = p->readAll().trimmed();
+      p->deleteLater();
 
-  // update GRT
-  Module::UpsertRTValue("core", "gpgme.ctx.default_database_path",
-                        default_db_path);
+      LOG_D() << "default key db path from gpgconf: " << default_db_path;
+      goto out;
+    }
+  }
 
+  default_db_path =
+      GlobalSettingStation::GetInstance().GetAppDataPath() + "/rpgp_db";
+  LOG_D() << "default key db in fallback mode: " << default_db_path;
+
+out:
+  default_db_path = QFileInfo(default_db_path).absoluteFilePath();
   return default_db_path;
 }
 
@@ -241,7 +245,7 @@ auto DecideGnuPGPath(const QString& default_gnupg_path) -> QString {
 
 }  // namespace
 
-auto InitBasicPath() -> bool {
+auto InitBasicPathWithGpgConf() -> bool {
   auto default_gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", QString{});
 
@@ -250,6 +254,11 @@ auto InitBasicPath() -> bool {
 
   LOG_I() << "default gpgconf path found by gpgme: " << default_gpgconf_path;
   LOG_I() << "default gnupg path found by gpgme: " << default_gnupg_path;
+
+  if (default_gpgconf_path.isEmpty() || default_gnupg_path.isEmpty()) {
+    LOG_W() << "cannot get gpgconf path or gnupg path from gpgme context";
+    return false;
+  }
 
   auto target_gpgconf_path = DecideGpgConfPath(default_gpgconf_path);
 
@@ -286,11 +295,21 @@ auto InitBasicPath() -> bool {
     return false;
   }
 
-  auto default_home_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.default_database_path", QString{});
-  if (default_home_path.trimmed().isEmpty()) {
-    default_home_path = GetDefaultKeyDatabasePath(target_gpgconf_path);
+  Module::UpsertRTValue("core", "gpgme.ctx.gpgconf_path",
+                        QString(target_gpgconf_path));
+  Module::UpsertRTValue("core", "gpgme.ctx.app_path",
+                        QString(target_gnupg_path));
+
+  return true;
+}
+
+auto InitBasicPath() -> bool {
+  if (!InitBasicPathWithGpgConf()) {
+    LOG_W()
+        << "Init basic path with gpgconf failed, luckily, that's not critical";
   }
+
+  auto default_home_path = GetDefaultKeyDatabasePath();
 
   LOG_I() << "home path provided by gpgconf: " << default_home_path;
   if (default_home_path.isEmpty()) {
@@ -303,13 +322,8 @@ auto InitBasicPath() -> bool {
 
   if (!QDir(default_home_path).exists()) QDir(default_home_path).mkpath(".");
 
-  RefreshGpgMEBackendEngine(target_gpgconf_path, target_gnupg_path,
-                            default_home_path);
-
-  Module::UpsertRTValue("core", "gpgme.ctx.gpgconf_path",
-                        QString(target_gpgconf_path));
-  Module::UpsertRTValue("core", "gpgme.ctx.app_path",
-                        QString(target_gnupg_path));
+  // set default home path to GRT for later use, such as setting up the default
+  // key database path
   Module::UpsertRTValue("core", "gpgme.ctx.default_database_path",
                         QString(default_home_path));
 
@@ -455,22 +469,16 @@ auto InitGnuPGEnv() -> bool {
     Module::UpsertRTValue("core", "env.state.gpgme", -1);
     return false;
   }
-  Module::UpsertRTValue("core", "env.state.gpgme", 1);
 
-  // decide gpgconf, gnupg and default home path
-  if (!InitBasicPath()) {
-    LOG_E() << "Oops, Basic Path init failed!"
-            << "But don't worry, GpgFrontend will use rPGP engine as fallback.";
-    return false;
-  }
+  Module::UpsertRTValue("core", "env.state.gpgme", 1);
 
   auto default_gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", QString{});
   auto default_gnupg_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.app_path", QString{});
-  auto default_home_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.default_database_path", QString{});
 
+  LOG_I() << "final gpgconf path: " << default_gpgconf_path;
+  LOG_I() << "final gnupg path: " << default_gnupg_path;
   return true;
 }
 
@@ -482,8 +490,8 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     supported_engines.push_back(OpenPGPEngine::kGNUPG);
   }
 
-  // check rpgp env, actually rpgp is always integrated and supported, but just
-  // in case
+  // check rpgp env, actually rpgp is always integrated and supported, but
+  // just in case
   if (HasRustSupport()) {
     GpgFrontend::Rust::gfr_rust_hello();
     GpgFrontend::Rust::gfr_init_logger();
@@ -491,6 +499,33 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     LOG_I() << "rPGP engine version: " << RustEngineVersion();
 
     supported_engines.push_back(OpenPGPEngine::kRPGP);
+  }
+
+  // decide gpgconf, gnupg and default home path
+  if (!InitBasicPath()) {
+    LOG_E() << "Oops, Basic Path init failed!"
+            << "GpgFrontend cannot start under this situation!";
+    Module::UpsertRTValue("core", "env.state.ctx", -1);
+    CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+        QCoreApplication::tr("Basic Path Initiation Failed"));
+    return -1;
+  }
+
+  // refresh gpgme backend engine, if gnupg is supported
+  if (supported_engines.contains(OpenPGPEngine::kGNUPG)) {
+    auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
+        "core", "gpgme.ctx.gpgconf_path", QString{});
+    auto gnupg_path = Module::RetrieveRTValueTypedOrDefault<>(
+        "core", "gpgme.ctx.app_path", QString{});
+    auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
+        "core", "gpgme.ctx.default_database_path", QString{});
+
+    if (!RefreshGpgMEBackendEngine(gpgconf_path, gnupg_path, home_path)) {
+      LOG_E()
+          << "Oops, Refresh GpgME Backend Engine failed!"
+          << "But don't worry, GpgFrontend will use rPGP engine as fallback.";
+      supported_engines.removeAll(OpenPGPEngine::kGNUPG);
+    }
   }
 
   // update supported engines to global setting station

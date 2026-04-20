@@ -234,22 +234,36 @@ auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
   if (key_dbs.empty()) {
     KeyDatabaseItemSO key_db;
 
+    // try to get default key database path from gpgme context
+    // if gpgme checking failed, this is likely to be empty
     auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
         "core", "gpgme.ctx.default_database_path", QString{});
-
-    if (GlobalSettingStation::GetInstance().IsProtableMode()) {
-      home_path = QDir(GlobalSettingStation::GetInstance().GetAppDir())
-                      .relativeFilePath(home_path);
-    }
-
-    key_db.channel = 0;
-    key_db.name = "DEFAULT";
-    key_db.path = home_path;
+    assert(!home_path.isEmpty());
 
     auto supported_engines =
         GlobalSettingStation::GetInstance().SupportedOpenPPGEngines();
 
-    // default to gnupg backend if possible
+    if (home_path.isEmpty()) {
+      LOG_E() << "failed to get default key database path from gpgme context, "
+                 "fallback to default app data path";
+
+      // this should not happen, but just in case, fallback to app data path
+      home_path =
+          GlobalSettingStation::GetInstance().GetAppDataPath() + "/rpgp_db";
+
+      // since we cannot get default key database path from gpgme context, it's
+      // likely that gpgme is not working properly, we should fallback to rpgp
+      supported_engines = {OpenPGPEngine::kRPGP};
+      GlobalSettingStation::GetInstance().SetSupportedOpenPPGEngines(
+          supported_engines);
+    }
+
+    key_db.channel = 0;
+    key_db.name = "DEFAULT";
+
+    // default to gnupg backend if possible if gnupg backend is not supported,
+    // fallback to rpgp backend, and set the default key database path to rpgp
+    // default path
     if (supported_engines.contains(OpenPGPEngine::kGNUPG)) {
       key_db.backend_type = "gnupg";
       LOG_I() << "gnupg backend is supported, use gnupg backend as default";
@@ -259,12 +273,21 @@ auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
       LOG_W() << "gnupg backend is not supported, fallback to rpgp backend";
     }
 
+    // in portable mode, convert home path to relative path to app dir
+    if (GlobalSettingStation::GetInstance().IsProtableMode()) {
+      home_path = QDir(GlobalSettingStation::GetInstance().GetAppDir())
+                      .relativeFilePath(home_path);
+    }
+
+    key_db.path = home_path;
     key_dbs.append(key_db);
   }
 
   // Sort by channel
   std::sort(key_dbs.begin(), key_dbs.end(),
-            [](const auto& a, const auto& b) { return a.channel < b.channel; });
+            [](const auto& a, const auto& b) -> bool {
+              return a.channel < b.channel;
+            });
 
   // Resolve duplicate channels by incrementing
   for (auto it = key_dbs.begin(); it != key_dbs.end(); ++it) {
@@ -276,6 +299,11 @@ auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
   }
 
   key_db_list_so.Store(key_db_list.ToJson());
+
+  for (const auto& key_db : key_db_list.key_databases) {
+    LOG_I() << "got key database from settings:" << key_db.name
+            << ", path:" << key_db.path;
+  }
 
   return key_db_list.key_databases;
 }
@@ -336,7 +364,8 @@ auto GetAllKeyDatabaseInfoBySettings() -> QContainer<KeyDatabaseInfo> {
   for (const auto& key_database : key_dbs) {
     if (key_database.path.isEmpty()) continue;
 
-    LOG_D() << "got key database:" << key_database.path;
+    LOG_D() << "got key database:" << key_database.name
+            << "path:" << key_database.path;
 
     auto key_database_fs_path =
         GetCanonicalKeyDatabasePath(app_path, key_database.path);
@@ -349,7 +378,7 @@ auto GetAllKeyDatabaseInfoBySettings() -> QContainer<KeyDatabaseInfo> {
     key_db_info.valid = !key_database_fs_path.isEmpty();
     key_db_infos.append(key_db_info);
 
-    LOG_D() << "plan to load gpg key database:" << key_database_fs_path;
+    LOG_D() << "plan to load gpg key database at:" << key_database_fs_path;
   }
 
   return key_db_infos;
@@ -365,6 +394,7 @@ auto GetKeyDatabaseInfoBySettings() -> QContainer<KeyDatabaseInfo> {
           [](const auto& key_db_info) -> auto{ return !key_db_info.valid; }),
       key_db_infos.end());
 
+  LOG_I() << "valid key database count: " << key_db_infos.size();
   return key_db_infos;
 }
 
