@@ -32,7 +32,7 @@ on:
   workflow_dispatch:
 
 env:
-  BUILD_TYPE: Release
+  BUILD_TYPE: RelWithDebInfo
   GNUPG_VERSION: "2.5.18"
 
 jobs:
@@ -307,6 +307,8 @@ jobs:
           productbuild --component ${{github.workspace}}/build/package/GpgFrontend.app /Applications \
             --sign "${{secrets.MAS_INSTALLER_CODE_SIGN_IDENTITY}}" \
             ${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.sha_short}}.pkg
+          echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE} | tr '[:upper:]' '[:lower:]')" >> ${GITHUB_ENV}
+          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: runner.os == 'macOS' && matrix.sandbox == 'ON'
 
       - name: Notarize Release Build (macOS)
