@@ -575,6 +575,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     Module::UpsertRTValue("core", "env.state.ctx", -1);
     CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
         QCoreApplication::tr("No valid Key Database"));
+    return -1;
   }
 
   // load default context
