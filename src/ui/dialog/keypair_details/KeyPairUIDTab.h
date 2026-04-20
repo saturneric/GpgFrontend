@@ -72,12 +72,6 @@ class KeyPairUIDTab : public QWidget {
    * @brief
    *
    */
-  void slot_refresh_tofu_info();
-
-  /**
-   * @brief
-   *
-   */
   void slot_refresh_sig_list();
 
   /**
@@ -140,7 +134,6 @@ class KeyPairUIDTab : public QWidget {
   GpgKeyPtr m_key_;
   QTableWidget* uid_list_{};                         ///<
   QTableWidget* sig_list_{};                         ///<
-  QTabWidget* tofu_tabs_{};                          ///<
   QMenu* uid_popup_menu_{};                          ///<
   QMenu* sign_popup_menu_{};                         ///<
   QContainer<GpgUID> buffered_uids_;                 ///<

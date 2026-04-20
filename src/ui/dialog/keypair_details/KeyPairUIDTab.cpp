@@ -35,7 +35,6 @@
 #include "ui/dialog/RevocationOptionsDialog.h"
 #include "ui/dialog/keypair_details/KeyNewUIDDialog.h"
 #include "ui/dialog/keypair_details/KeyUIDSignDialog.h"
-#include "ui/widgets/TOFUInfoPage.h"
 
 namespace GpgFrontend::UI {
 
@@ -44,6 +43,8 @@ KeyPairUIDTab::KeyPairUIDTab(int channel, GpgKeyPtr key, QWidget* parent)
       current_gpg_context_channel_(channel),
       m_key_(std::move(key)) {
   assert(m_key_ != nullptr);
+
+  auto engine = GpgContext::GetInstance(current_gpg_context_channel_).Engine();
 
   create_uid_list();
   create_sign_list();
@@ -69,15 +70,6 @@ KeyPairUIDTab::KeyPairUIDTab(int channel, GpgKeyPtr key, QWidget* parent)
   uid_group_box->setLayout(grid_layout);
   uid_group_box->setTitle(tr("UIDs"));
 
-  auto* tofu_group_box = new QGroupBox();
-  auto* tofu_vbox_layout = new QVBoxLayout();
-  tofu_group_box->setLayout(tofu_vbox_layout);
-  tofu_group_box->setTitle(tr("TOFU"));
-#if !defined(RELEASE)
-  tofu_tabs_ = new QTabWidget(this);
-  tofu_vbox_layout->addWidget(tofu_tabs_);
-#endif
-
   auto* sign_grid_layout = new QGridLayout();
   sign_grid_layout->addWidget(sig_list_, 0, 0);
   sign_grid_layout->setContentsMargins(0, 10, 0, 0);
@@ -85,21 +77,16 @@ KeyPairUIDTab::KeyPairUIDTab(int channel, GpgKeyPtr key, QWidget* parent)
   auto* sign_group_box = new QGroupBox();
   sign_group_box->setLayout(sign_grid_layout);
   sign_group_box->setTitle(tr("Signature of Selected UID"));
+  sign_group_box->setHidden(engine != OpenPGPEngine::kGNUPG);
 
   auto* vbox_layout = new QVBoxLayout();
   vbox_layout->addWidget(uid_group_box);
-#if !defined(RELEASE)
-  // Function needed testing
-  vbox_layout->addWidget(tofu_group_box);
-#endif
   vbox_layout->addWidget(sign_group_box);
 
   vbox_layout->setContentsMargins(0, 0, 0, 0);
 
   connect(add_uid_button, &QPushButton::clicked, this,
           &KeyPairUIDTab::slot_add_uid);
-  connect(uid_list_, &QTableWidget::itemSelectionChanged, this,
-          &KeyPairUIDTab::slot_refresh_tofu_info);
   connect(uid_list_, &QTableWidget::itemSelectionChanged, this,
           &KeyPairUIDTab::slot_refresh_sig_list);
 
@@ -221,31 +208,6 @@ void KeyPairUIDTab::slot_refresh_uid_list() {
   }
 
   slot_refresh_sig_list();
-  slot_refresh_tofu_info();
-}
-
-void KeyPairUIDTab::slot_refresh_tofu_info() {
-  if (this->tofu_tabs_ == nullptr) return;
-
-  int uid_row = 0;
-  tofu_tabs_->clear();
-  for (const auto& uid : buffered_uids_) {
-    // Only Show Selected UID Signatures
-    if (!uid_list_->item(uid_row++, 0)->isSelected()) {
-      continue;
-    }
-    auto tofu_infos = uid.GetTofuInfos();
-    if (tofu_infos->empty()) {
-      tofu_tabs_->hide();
-    } else {
-      tofu_tabs_->show();
-    }
-    int index = 1;
-    for (const auto& tofu_info : *tofu_infos) {
-      tofu_tabs_->addTab(new TOFUInfoPage(tofu_info, this),
-                         tr("TOFU %1").arg(index++));
-    }
-  }
 }
 
 void KeyPairUIDTab::slot_refresh_sig_list() {
@@ -520,7 +482,6 @@ void KeyPairUIDTab::slot_refresh_key() {
   std::swap(this->m_key_, refreshed_key);
 
   this->slot_refresh_uid_list();
-  this->slot_refresh_tofu_info();
   this->slot_refresh_sig_list();
 }
 
