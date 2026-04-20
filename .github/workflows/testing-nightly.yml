@@ -293,6 +293,7 @@ jobs:
 
       - name: Create Installer Package (macOS)
         run: |
+          mkdir ${{github.workspace}}/build/upload-artifact
           productbuild --component ${{github.workspace}}/build/package/GpgFrontend.app /Applications \
             --sign "${{secrets.MAS_INSTALLER_CODE_SIGN_IDENTITY}}" \
             ${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.sha_short}}.pkg
